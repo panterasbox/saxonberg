@@ -832,6 +832,69 @@ export type PaneId = "inspect" | "location" | "self";
 /** Every {@link PaneId}. The server validates against this; the client picks from it. */
 export const PANE_IDS: readonly PaneId[] = ["inspect", "location", "self"];
 
+/**
+ * A row on the **widget shelf** — the pinnable figures in the top bar.
+ *
+ * Shaped exactly like {@link PaneId}, and for the same reason: pinning
+ * is a real command persisting to the `cockpit.shelf` clientState key,
+ * so the server validates a row name against this list and the client
+ * picks from it. A shelf the client owned would falsify the one claim
+ * the status bar exists to make — *every click sends a command, and the
+ * interface shows which*.
+ *
+ * ⚠ **What is here is the ID vocabulary and nothing else.** Each row's
+ * label, description, and — critically — whether it is live or hatched
+ * and why, are CLIENT-side, in `components/frame/Shelf.tsx`.
+ * Hatched-ness is a property of the client's wiring, not of the
+ * server's capability: the server cannot know that the client declined
+ * to paint `COIN`, only the client knows which of the fields it
+ * receives it actually renders. Modelling that here would be a second
+ * source of truth for something only one side observes.
+ *
+ * ⚠⚠ **`trait` is not in this union, and must never be added.** It is
+ * in the reference art's catalogue and it is a permanent non-goal: the
+ * psychology vocation rests on self-other asymmetry, and a pinned
+ * always-on readout of your own personality is the stat sheet that
+ * makes the therapist unnecessary. The server-side guard forbidding
+ * subscribable field names matching `trait|disposition|personality`
+ * stands unmodified; this is its client-vocabulary twin, placed here
+ * because this is where a future contributor would add the row.
+ */
+export type ShelfRowId =
+  | "play"
+  | "renown"
+  | "skill"
+  | "make"
+  | "coin"
+  | "status"
+  | "time"
+  | "online"
+  | "docket";
+
+/** Every {@link ShelfRowId}, in catalogue order. */
+export const SHELF_ROW_IDS: readonly ShelfRowId[] = [
+  "play",
+  "renown",
+  "skill",
+  "make",
+  "coin",
+  "status",
+  "time",
+  "online",
+  "docket",
+];
+
+/**
+ * What `cockpit.shelf` holds for a player who has never touched it:
+ * **all nine rows**.
+ *
+ * ⭐ Not the reference art's five. The build's claim is that the shelf
+ * is mostly hatched *by construction*, and that this is the honesty
+ * convention working rather than a shortfall — a claim that is
+ * invisible on first login if six of the nine are unpinned by default.
+ */
+export const DEFAULT_SHELF: readonly ShelfRowId[] = SHELF_ROW_IDS;
+
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;

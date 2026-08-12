@@ -41,6 +41,8 @@ import {
   LEGACY_LAYOUT_FOR,
   MAX_ARRANGEMENT_NAME_LENGTH,
   MAX_SAVED_ARRANGEMENTS_PER_MODE,
+  SHELF_ROW_IDS,
+  DEFAULT_SHELF,
   type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
@@ -450,6 +452,40 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             return true;
           }
           return 'unknown watch target shape';
+        },
+      },
+      {
+        key: 'cockpit.shelf',
+        // ⚠ NOT transient, unlike `inputModes` and `watch`. A shelf is a
+        // preference — the same kind of thing as `cockpit.layout` — and
+        // a player who arranged their figures expects to find them
+        // arranged tomorrow. `inputModes` and `watch` are session
+        // routing, which is why those two reset.
+        defaultValue: [...DEFAULT_SHELF],
+        description:
+          'The widget shelf — which figures are pinned to the top bar, ' +
+          'in order. An array of ShelfRowId. Edited by `cockpit shelf ' +
+          'pin|unpin`; defaults to all nine rows, most of which render ' +
+          'their honest not-wired state rather than a number. ' +
+          'Server-authoritative on purpose: a pin affordance that ' +
+          'mutated local state would falsify the claim the status bar ' +
+          'makes, that every click sends a command.',
+        // Shape: an array of known row ids, no duplicates. The id
+        // vocabulary is `SHELF_ROW_IDS` in `@saxonberg/types` — one
+        // list, shared, so the server's validation and the client's
+        // catalogue cannot drift into two.
+        validator: (v) => {
+          if (!Array.isArray(v)) return 'must be an array of shelf row ids';
+          const seen = new Set<string>();
+          for (const row of v) {
+            if (typeof row !== 'string') return 'every row must be a string';
+            if (!(SHELF_ROW_IDS as readonly string[]).includes(row)) {
+              return `unknown shelf row '${row}' (known: ${SHELF_ROW_IDS.join(', ')})`;
+            }
+            if (seen.has(row)) return `duplicate shelf row '${row}'`;
+            seen.add(row);
+          }
+          return true;
         },
       },
     ];

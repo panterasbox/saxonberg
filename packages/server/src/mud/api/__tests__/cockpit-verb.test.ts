@@ -80,10 +80,14 @@ describe('the cockpit verb', () => {
       'layout',
       'mode',
       'pane',
+      'shelf',
       'style',
     ]);
     expect(cockpit!.controllerForSubcommand('pane')).toBe(
       '/obj/command/shell/CockpitPaneController'
+    );
+    expect(cockpit!.controllerForSubcommand('shelf')).toBe(
+      '/obj/command/shell/CockpitShelfController'
     );
     expect(cockpit!.controllerForSubcommand('mode')).toBe(
       '/obj/command/shell/CockpitModeController'
@@ -170,6 +174,23 @@ describe('the cockpit verb', () => {
 
       expect(bind('cockpit pane dismiss focus').action).toBe('dismiss');
       expect(bind('cockpit pane').action).toBeUndefined();
+    });
+
+    /*
+     * ⚠ Through the REAL parser, because a controller test binds
+     * nothing: `cockpit shelf pin play` has to survive tokenizing into
+     * two positional slots before the controller ever sees an action.
+     */
+    it('binds the cockpit shelf pin', () => {
+      const pin = bind('cockpit shelf pin play');
+      expect(pin.subcommand).toBe('shelf');
+      expect(pin.action).toBe('pin');
+      expect(pin.row).toBe('play');
+
+      expect(bind('cockpit shelf unpin coin').action).toBe('unpin');
+      const bare = bind('cockpit shelf');
+      expect(bare.action).toBeUndefined();
+      expect(bare.row).toBeUndefined();
     });
 
     it('binds cockpit layout <name>', () => {
