@@ -418,6 +418,48 @@ domino**, ahead of any new producer.
 
 ---
 
+## ⚠⚠ Part 8 — The build-time gotcha every pack in this family shares
+
+**(Reconciliation pass, 2026-08-11. Stated once here rather than repeated in
+five packs.)**
+
+> **The seeder is INSERT-ONLY. Editing a seed's `data:` after first boot does
+> nothing.**
+
+At least four packs in this family add **fields to existing Material seeds** —
+the spoilage-rate constant ([spoilage](./slates/builds/spoilage-design-pack.md)),
+`takesPatina` ([patina](./slates/builds/patina-design-pack.md)), and mana
+density + conductivity ([mana economy](./slates/builds/mana-economy-design-pack.md)).
+On any world that has already booted, **those edits are silent no-ops.** The
+material rows exist; the new keys never arrive.
+
+So every one of those builds needs, explicitly in its plan:
+
+1. a **migration** that adds the field to existing rows, **or**
+2. a documented **delete-the-rows-and-reboot** reseed, **or**
+3. a **derived default** that makes the absent field harmless.
+
+⚠ This fails *quietly* — the field reads `undefined`, the consumer falls back,
+and nothing throws. Which makes it the same shape as the family's other
+recurring bug (below), and it should be checked at plan time, never
+discovered at drive time.
+
+### The sibling failure, and the guard that catches both
+
+This family keeps producing one bug in four costumes: **a producer with no
+consumer, a consumer with no producer, a roster nothing warms, and a fact with
+no consequence.** Instances found so far — rain that never reaches soil,
+compost that nothing makes, `Condition` Ideas nothing stands up, and a season
+the world computes and only two `analyze` verbs read.
+
+> ⭐ **The guard is `obj/api/__tests__/ConditionLogic.boot.test.ts`'s shape:
+> coverage driven off the seed files ON DISK, not a mock.** Generalising it —
+> table-driven across the reference rosters, then a lint — is worth doing
+> **before** these builds rather than after, because every one of them adds a
+> new roster or a new field that can go quietly missing.
+
+---
+
 ## Open questions / forks
 
 1. ⭐⭐ **Priority — promote the pillar now, or keep the current
