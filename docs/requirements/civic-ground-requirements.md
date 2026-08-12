@@ -254,13 +254,23 @@ consumed by a `flex` shorthand, so wrapping it would be actively wrong.
 
 - Four faces self-hosted under `public/fonts/`; `globalFonts.test.ts`
   still asserts every `src` URL is relative — no runtime CDN request.
-- Newsreader loads rather than falling back to Times, asserting the
-  `opsz`-free request.
+- Newsreader loads rather than falling back to Times. ⚠ Revised at
+  planning time: there is no request tuple to assert under self-hosting, so
+  this is two assertions — no client source contains `opsz`, and the
+  Newsreader woff2 exists on disk and is named by a `@font-face` block.
+  (`Art Direction - Civic.dc.html`'s own `<link>` carries `opsz` — the
+  reference art contains the trap `DESIGN-SYSTEM.md` warns about.)
 - `FontRole` has four members and all three themes supply all four
   `fontRoles` entries from the single face-stack source.
-- Register behaviour is unchanged: `world.*` → narrative, `system.*` /
-  `shell.diagnostic.*` → command, unmapped → command. `display` maps to
-  no topic.
+- Register behaviour is unchanged: `BASE_REGISTERS` is byte-identical
+  across all three themes, unmapped topics still default to `command`, and
+  `display` appears in no mapping value. ⚠ Revised at planning time: an
+  earlier draft of this criterion said `world.*` → narrative and
+  `system.*` → command. **Those roots died in the S2 corpus replacement** —
+  the shipped table keys the current seven (`shell`/`session` → command;
+  `speech`/`act`/`sense`/`self`/`publication` → narrative). The stale
+  wording came from `message-rendering.md` § Font-by-register, which still
+  carries it; **the build fixes that prose too.**
 
 **Honest states**
 
