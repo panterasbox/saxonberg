@@ -25,6 +25,19 @@ is to build a subject from scratch and teach it honestly.
 > both errors were in the most confident-sounding passages, and the
 > rule at the head of this document is only worth something if things
 > occasionally fail it.
+>
+> **Revision, 2026-08-11 — the mana/energy split.** Two errors of the
+> same kind, both in confident passages, both found by *using* the
+> science rather than reading it. **(1)** Halloway Equivalence read a
+> **coupling constant** as an **identity** (`a mana point IS a
+> kilojoule`) — the same over-reading of Joule that real caloric theory
+> made, and it is now stated as the exchange rate it always was.
+> **(2)** The postulate was narrowed to *energy* when the exemption it
+> actually makes is *locality*, which had the effect of appearing to
+> forbid teleportation — while the TPA has been shipped content the
+> whole time. ⚠ **No numbers changed** (k = 1 kJ/τ), and no second
+> exemption was added. Design record:
+> [mana-economy-design-pack](./slates/builds/mana-economy-design-pack.md).
 
 ---
 
@@ -41,13 +54,14 @@ carried by a fictional subject. If any part of this document teaches
 a student something they would have to unlearn in a real classroom,
 that part is a defect.
 
-So the invented content is deliberately confined to **one postulate
-and one taxonomy.** Everything a student would actually be graded on
-is real.
+So the invented content is deliberately confined to **one postulate,
+one quantity, and one taxonomy.** Everything a student would actually
+be graded on is real.
 
 | Invented | Real |
 |---|---|
 | The postulate (below) | Conservation of energy and momentum |
+| **Mana as a second conserved quantity** | **Conserved quantities and their coupling constants** (charge; the mechanical equivalent of heat) |
 | The verb × noun taxonomy | Thermodynamics, all of it |
 | The names of the laws and their discoverers | Specific heat, latent heat, phase change |
 | Which quantities happen to be measurable | Efficiency, exergy, Carnot limits |
@@ -56,6 +70,14 @@ is real.
 | | Landauer's principle |
 | | Experimental design, controls, replication |
 | | Reading a paper: claim, evidence, range, gap |
+
+⚠ **The budget is now three items, and that is the ceiling.** A second
+conserved quantity is the one addition since this document was first
+written (2026-08-11). *Mana is not energy* — it exchanges with energy
+at a fixed one-way rate, exactly as charge does through a potential,
+and a student who understands that structure has learned something
+true about charge and chemical potential too. **Anything that appears
+to need a fourth invented item is a modelling error.**
 
 ---
 
@@ -89,18 +111,28 @@ sentence in this document for anyone authoring content:
 
 ## The Postulate
 
-> **A caster can relocate energy between their own body and one
-> chosen point, in either direction, in a form of their choosing,
-> without a medium in between.**
+> **Locality fails for a caster acting deliberately. They may relocate
+> energy, or themselves, between their own body and one chosen point,
+> in either direction, in a form of their choosing, without a medium
+> in between.**
 
 That is the entire fictional physics. Stated precisely: **local
-conservation of energy fails; global conservation holds.** Energy
-vanishes at one place and appears at another, and the books balance.
+conservation fails; global conservation holds.** What vanishes at one
+place appears at another, and the books balance.
 
-**What it breaks:** locality. The continuity equation — the statement
-that energy cannot leave a region without crossing its boundary — is
-false in this world, and it is false *only* for a caster acting
-deliberately.
+**What it breaks:** locality, and *only* locality. The continuity
+equation — the statement that a conserved thing cannot leave a region
+without crossing its boundary — is false in this world, and it is
+false only for a caster acting deliberately.
+
+> ⚠ **Revised 2026-08-11 — the exemption is LOCALITY, not "energy
+> transport."** This postulate was previously written as *"a caster can
+> relocate **energy**…"* That narrowing was never load-bearing, and it
+> had one bad consequence: it appeared to forbid **teleportation**,
+> which the fiction has shipped all along (the TPA). Moving oneself is
+> a locality violation and nothing else — **the same exemption applied
+> consistently, not a second one.** See *Control·Body and the terminal
+> network*, below.
 
 **What it does not break:** everything else. The first law holds. The
 second law holds — *this one is load-bearing and easy to lose*:
@@ -132,6 +164,12 @@ own body. This single clause is why the faculty is anatomical
 a person's physiology, why cold magic cooks the caster, and why a
 mage standing in a conductive pool is part of their own circuit.
 
+⭐ **And it is why you can only teleport *yourself*.** A caster cannot
+relocate a third party, because the third party is not an endpoint.
+This closes an obvious exploit without anyone needing to rule on it —
+nobody teleports a prisoner into a cell — and it is why a TPA terminal
+is a booth you step *into* rather than a service performed on you.
+
 **Perception at a distance is an active probe.** The postulate grants
 transfer, not omniscience. Remote sensing works the way all remote
 sensing works — you send a small amount of energy out and read what
@@ -140,9 +178,17 @@ comes back, the same nonlocal channel run in reverse. Which means
 noticed by anyone with an instrument tuned for them.
 
 **Magic never creates matter.** One litre of water is 9 × 10¹⁶ J by
-E = mc². The postulate moves energy; it does not manufacture mass. Every
+E = mc². The postulate relocates; it does not manufacture mass. Every
 "conjuration" in the roster is therefore a **collection**, and has to
 be modelled as one.
+
+⚠ **Do not over-read this into a ban on moving matter** — it is an
+*affordability* argument about **creation**, and it is silent on
+**transport**. Making a litre of water costs 9 × 10¹⁶ J and is
+therefore out forever. Moving a litre of water that already exists
+costs whatever its change in potential energy costs, which is usually
+very little. Conjuration is collection; teleportation is relocation;
+neither is creation.
 
 **Every push is a shove in both directions.** Momentum rides the
 channel, so Newton's third law is not suspended: give a 70 kg target
@@ -160,23 +206,75 @@ the most expensive things in the roster**, which is the correct
 result: moving mass around is genuinely costly, and a mage is not a
 crane.
 
+> ⚠ **That expense is about ACCELERATING mass, not relocating it.** The
+> shove is dear because it buys kinetic energy and pays the recoil
+> twice. A **teleport** accelerates nothing: no kinetic term, no
+> momentum transfer, no recoil. Its only energetic cost is the change
+> in potential energy, `mgh` — which is why arriving uphill costs more
+> than arriving downhill, why a loaded traveller costs more than an
+> empty one, and why **distance costs nothing at all**, locality being
+> the thing that broke. What teleportation *is* expensive in is
+> **specification**; see *The specification problem*.
+
+### The second quantity — mana is not energy
+
+The postulate is the only *impossible* thing here. Alongside it sits
+one invented *quantity*, and the distinction matters:
+
+> **Mana is a conserved quantity in its own right, which exchanges
+> with energy at a fixed rate `k` in one direction only.**
+
+`E_delivered = η · k · M_spent`, with **k = 1 kJ/τ**.
+
+This is the relationship **electric charge** has with energy: charge is
+conserved independently, couples to energy through a potential
+(`E = qV`), can be stored in matter, and none of that makes energy
+conservation false. Four consequences, all of which the field took an
+embarrassingly long time to notice (see *Halloway Equivalence*):
+
+- **The conversion is one-way.** Mana becomes energy; no amount of fuel
+  becomes mana. There is no such thing as a mana generator.
+- **Mana can be held by matter.** A substance has a *mana density* the
+  way it has a specific heat, and a *mana conductivity* the way it has
+  an electrical one. Both are ordinary material properties.
+- ⚠ **Mana itself moves by contact, not nonlocally.** The postulate
+  relocates energy and the caster; it says nothing about relocating
+  mana, and extending it there would be the second exemption this
+  document does not permit. Mana conducts, like charge — which is why a
+  caster must *hold* a conduit to charge it, and cannot draw on a
+  distant reserve.
+- **Living things accumulate it slowly from their surroundings**, which
+  is where a caster's reserve comes from.
+
+⚠ **Note the two clauses point opposite ways and are easy to confuse.**
+*Locality* is general: energy and the caster's own body both cross it.
+*Mana transport* is the narrow case: contact only. Getting this
+backwards produces a mage who can drain a vault from the street.
+
 ---
 
 ## Units and quantities
 
 | Quantity | Symbol | Unit | What it is |
 |---|---|---|---|
-| Assertion / arcane energy | E | **thaum (τ)**, 1 τ ≡ 1 kJ | energy committed to a transfer |
+| Assertion / arcane charge | M | **thaum (τ)**, exchanging at k = 1 kJ/τ | mana committed to a transfer |
 | Reserve capacity | D | τ | the caster's usable arcane budget ("Depth") |
 | Recovery power | S | τ·min⁻¹ (≡ W) | rate of budget replenishment ("Serenity") |
 | Delivery efficiency | η | dimensionless, 0 < η ≤ 1 | delivered ÷ committed |
 | Leak rate | λ | τ·s⁻¹ | rate a bound state bleeds back toward equilibrium |
 | Composure | C | dimensionless | resistance to being patterned by another |
 
-**The thaum is a kilojoule.** That is the whole of Halloway
+**A thaum buys a kilojoule.** That is the whole of Halloway
 Equivalence (below), and it is the reason this science can be graded.
 The engine's mana `pt` and the thaum are the same number; naming it
 costs nothing and buys dimensional analysis.
+
+⚠ **A thaum is not *itself* a kilojoule** — it buys one, at the
+coupling constant `k = 1 kJ/τ`, in one direction. The distinction is
+worth the care: a calorie is not a joule either, and the field's
+founding error (below) was exactly this conflation. **Every number in
+this document is unaffected**, because `k = 1` numerically; what
+changes is what the unit *means* and what may hold it.
 
 *Calibration note.* World time runs at 12× real time. Rates quoted in
 this document are **physical** (per real second). Any dial expressed
@@ -188,8 +286,18 @@ source of a silently dishonest number in the whole system.
 
 ## The caster's budget
 
-A human body carries roughly **8.5 MJ** of glycogen (about 500 g at
-17 kJ/g). The arcane reserve is a small, fast-access fraction of it.
+⚠ **Revised 2026-08-11.** The reserve was previously described as a
+fast-access fraction of the body's glycogen. It cannot be: the coupling
+is one-way, so **food does not become mana.** A caster's reserve is
+**accumulated slowly from ambient mana**, the way any living thing
+accumulates it — which means **recovery rate depends on where you are.**
+Terminus, whose Confluence vents into the air, is a rich place to
+recover; a sealed vault is a poor one.
+
+For scale, a human body carries roughly **8.5 MJ** of glycogen (about
+500 g at 17 kJ/g), and the arcane reserve is comparable to a small
+fraction of it — a useful comparison even though the two are no longer
+the same stock.
 
 These are the **shipped** values (`lib/magic/Faculty.ts`,
 `FACULTY_DEFAULTS`), read in kilojoules. Rates are quoted per
@@ -210,23 +318,30 @@ all three are commonly gotten wrong:
   a fast metabolism does not hold more. Confusing a stock with a flow
   is the most common novice error in this field and in every other
   field that has both.
-- **A full arcane reserve is about a quarter of a banana** — 120 kJ
-  against a banana's 440, and about **1.4% of the body's ~8.5 MJ of
-  glycogen.** That is the correct order of magnitude and it should be
-  taught, not hidden. A caster is, energetically, a snack.
-- **Recovering is not resting. It is exercise.** Compare the recovery
-  column against the benchmarks: basal metabolism is ~97 W, a brisk
-  walk is 300–400 W, hard cycling is ~1000 W. A mid caster refilling
-  a reserve is working at **about the metabolic cost of walking**, and
-  a high-band caster at rather more.
+- **A full arcane reserve buys about a quarter of a banana** — 120 kJ
+  of delivered energy against a banana's 440. That is the correct order
+  of magnitude and it should be taught, not hidden. A caster is,
+  energetically, a snack.
+- ⚠ **CASTING is exercise.** Compare the recovery column against the
+  benchmarks: basal metabolism is ~97 W, a brisk walk is 300–400 W,
+  hard cycling is ~1000 W. Pushing mana through the coupling costs the
+  *caster* real joules — the losses go where losses go — so a mid
+  caster working steadily is spending **about the metabolic cost of
+  walking**, and a high-band caster rather more.
 
-That last one is a derived prediction, not flavour, and it is testable
-against the shipped metabolism subsystem: **refilling a reserve should
-make you hungry and warm**, on the same order as a brisk walk of the
-same duration. It is also why recovery is scaled by posture, rest
-quality, and nutrition exactly as metabolism scales everything else —
-because it *is* metabolism, not a second mechanism and not a mystery.
-A caster who wants to refill fast should eat, not meditate.
+That second one is a derived prediction, not flavour, and it is
+testable against the shipped metabolism subsystem: **working magic
+should make you hungry and warm**, on the same order as a brisk walk of
+the same duration.
+
+> ⚠ **Revised 2026-08-11 — this used to read "recovering is exercise,"
+> and the metabolic cost has moved.** It attaches to **spending** mana
+> (the coupling is lossy and the caster is the resistor), not to
+> **refilling** it (which is ambient absorption and costs the body
+> nothing). So the old advice — *"a caster who wants to refill fast
+> should eat, not meditate"* — inverts: **eating does not refill a
+> reserve; being somewhere rich does.** What eating fixes is the
+> hunger that *casting* caused.
 
 **Overchannel** is metabolic overdraft. Completing a transfer past
 empty draws on tissue the body needed, which is why it hurts, why the
@@ -241,11 +356,41 @@ one hand grenade per day. A mage cannot level a city. This is not a
 balance decision; it is the postulate plus human physiology.
 
 It also proves a piece of existing canon. The bible says the realm
-*networked its minds but never mechanized its matter*. The
-thermodynamic reason: **a person is a terrible power plant.** A
-kilogram of coal is 30 MJ; a caster is 0.3. Magic never
-industrialized because it could not compete with a fire, and it stayed
-artisanal for the same reason handweaving did.
+*networked its minds but never mechanized its matter*. **There are
+three reasons, and they are independent — which is why the result is
+robust rather than a balance decision.**
+
+**1. You cannot manufacture the input.** Mana is found, never made: the
+coupling runs one way, so no quantity of coal, water or labour produces
+a single thaum. Every other industrial input can be scaled by building
+another plant.
+
+> ⭐ **You cannot build a mana plant. You can only own a mana deposit.**
+
+**2. Magic is bad at everything that must be *held*.** By Kell's
+Partition an act is an impulse or a binding, and a binding must be
+continuously topped up. A concrete dam is a capital cost after which
+gravity works for nothing; a magically-held dam is an operating cost
+that never ends. **Structure beats sustained assertion, always** — so
+magic loses every contest it enters against a built thing.
+
+**3. A person is a poor conduit.** A caster's throughput is bounded by
+their own physiology, and unlike a furnace you cannot build a bigger
+one.
+
+⚠ **The old argument on this line was "a kilogram of coal is 30 MJ; a
+caster is 0.3."** It was retired 2026-08-11: once mana is not energy,
+coal and casters are not bidding for the same job, and a comparison of
+their energy content answers a question nobody was asking. The three
+reasons above survive that change, and reasons 1 and 2 are structural
+— they hold at any power level, which the old one did not.
+
+**What magic is left good at** falls out of reason 2 and is worth
+stating positively, because it is where the whole practice actually
+lives: **impulse, portability, and places you cannot build.** A cave, a
+battlefield, a moment of need. Magic stayed artisanal for the same
+reason handweaving did — not because it was weak, but because it was
+never the cheap way to do anything at scale.
 
 ---
 
@@ -346,20 +491,47 @@ worth more than any balance patch, because it cannot be lobbied.
 
 ### Halloway Equivalence — the founding result
 
-> The energy a cast delivers is equal to the energy the caster
+> The energy a cast delivers is proportional to the mana the caster
 > spends, times a delivery efficiency that depends only on the form
 > delivered and the caster's competence.
 
-`E_delivered = η · E_spent`
+`E_delivered = η · k · M_spent`
 
 Halloway's experiment is the field's paddle-wheel — Joule's, in the
-1840s, the one that made mechanical work and heat a single currency.
-Cast repeatedly into a stone basin of known mass and specific heat,
-measure the temperature rise, compute the joules, and compare against
-the reserve drawn down. *This* rhyme is honest: like Joule's, it
-unifies two quantities that looked unrelated into one bookkeeping. The result — that a mana point *is* a kilojoule — is what
-made thaumology a science instead of a craft, because it made every
-subsequent claim dimensionally checkable.
+1840s. Cast repeatedly into a stone basin of known mass and specific
+heat, measure the temperature rise, compute the joules, and compare
+against the reserve drawn down. It is what made thaumology a science
+instead of a craft, because it made every subsequent claim
+dimensionally checkable.
+
+### ⚠ And the field over-read it for a century
+
+The result was stated as *"a mana point **is** a kilojoule."* That is
+**not what the experiment shows**, and the error is the same one the
+rhyme should have warned against:
+
+> **Joule did not show that heat *is* work.** He measured the
+> *mechanical equivalent of heat* — a **conversion constant** between
+> two different things. The calorie survived as a unit precisely
+> because it measures something you measure differently.
+
+What Halloway's basin measures is **`k`, the coupling constant.** The
+field read a fixed exchange rate as an identity — which is caloric
+theory's exact mistake, made for exactly the same reason: the numbers
+come out the same either way.
+
+⭐ **And here is why nobody caught it.** You cannot distinguish a
+coupling constant from an identity while **every mana point you have
+ever measured came out of a human body.** With one source, the two
+hypotheses make identical predictions in every experiment anyone
+thought to run. It takes mana that did *not* come from a caster — a
+mana-bearing substance, measured against the same basin — to tell them
+apart.
+
+**The stone basin did not lie. It answered a narrower question than
+the field asked of it,** which is the most common way a founding
+result goes wrong, and worth more to a student than a century of
+correct answers.
 
 **The stone basin in the Practicum's casting yard is a calorimeter.**
 It was put there as a safe target. It is, in fact, the instrument the
@@ -387,6 +559,26 @@ The consequences are the ones the engine already implements:
   magical about it.
 
 The warded cell is this law in one room, and it is already built.
+
+#### ⭐ The economic corollary — once is cheap, held is dear
+
+The partition has a consequence the field states about *physics* and
+almost never about *cost*, and it decides where magic is used at all:
+
+> **Magic writes initial and boundary conditions, never laws. So it is
+> excellent at what happens ONCE and poor at what must be HELD.**
+
+An impulse is paid for once and the world carries it afterwards, free.
+A binding is a standing bill. Set them against built alternatives and
+the verdict is the same every time: iron lock over held lock, lamp over
+glowlight for permanent light, furnace over firebolt for sustained
+heat. This is reason 2 of *why magic never industrialized*, above.
+
+⭐ **It also tells an engineer which supply a device needs**, with no
+judgement required — an **impulse** device draws *per use* and runs off
+a stored charge, while a **binding** device draws *per second* and
+needs a standing supply. A teleport terminal is an impulse device; a
+ward is a binding one. Nothing else has to be decided.
 
 ### Voss Decay — why a binding costs
 
@@ -644,6 +836,40 @@ temperature is about **3 × 10⁻²¹ J**. Energetically, information is
 free. So Mind and Sense effects are not limited by the reserve at all;
 they are limited by *specification*, and **nobody knows what fixes the
 specification.**
+
+### ⭐ Control·Body and the terminal network
+
+**Teleportation is the third specification-limited effect, and the one
+where the economics are visible from the street.**
+
+Relocating a body is `Control·Body` — position is a parameter, and the
+body remains itself. It accelerates nothing, so its energetic cost is
+only the change in potential energy, `mgh`. Horizontally, that is
+nearly nothing. **A teleport ought to be almost free, and it is not**,
+because you must *specify where* to an accuracy no one can hold in
+their head: arriving inside a wall is not a near miss.
+
+> ⭐⭐ **Which is why the Teleport Authority is a fixed graph of
+> registered terminals rather than a go-anywhere spell.** A terminal is
+> a **surveyed destination** — the specification is paid once, built
+> into the infrastructure, and amortised across every traveller. You
+> cannot teleport to an arbitrary point because nobody has paid the
+> survey for it, and `register` is the traveller being specified into
+> the system.
+
+The fare structure falls straight out and is worth putting in front of
+students precisely because the intuitive answer is wrong:
+
+| Factor | Cost |
+|---|---|
+| **Altitude** | real — `mgh`; arriving uphill costs more |
+| **Mass** | real — `mgh` again; a loaded traveller costs more |
+| ⚠ **Distance** | **none.** Locality is the thing that broke |
+
+A hop to the next district and a hop across the realm cost the same.
+Fares vary with **how high and how heavy**, never with how far — and a
+student who can say *why* has understood what the postulate actually
+breaks.
 
 This is the honest centre of the field's ignorance, and it is where a
 course should locate its "we don't know." It is a gap in explanation,

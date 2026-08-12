@@ -489,6 +489,44 @@ institution model ([guild-slate](./builds/guild-slate.md)) →
 player-extensible content-graph + governed canonization
 → (the education-vertical sensor bridge deferred).
 
+### 13. Stewardship — the third pillar
+*You hold things, and tending them well is how you rise.* Named as a
+**pillar** beside learning-as-adventure and the living community
+([stewardship-doctrine](../stewardship-doctrine.md) — the family's meta-doc:
+the three decay archetypes, the Law-2 resolution, the status map and the
+build order). Its parent slates were already indexed above and in §3; what
+follows are the **planner-ready design packs**, which were written across two
+sessions and indexed here for the first time by the 2026-08-11 reconciliation
+pass.
+
+⚠ **Read the doctrine's build order before picking one** — three of these
+depend on nothing and can be built in any order, while most of the rest queue
+behind spoilage.
+
+- [spoilage-design-pack](./builds/spoilage-design-pack.md) — ⭐ **the keystone.** `Freshness` as a third wear axis beside `Durable`/`Keen`, on real predictive microbiology (logistic growth, Arrhenius temperature, water activity). Everything in the family that waits, waits on this. Rationale lives in [preservation-slate](./builds/preservation-slate.md).
+- [fridge-design-pack](./builds/fridge-design-pack.md) — the cold-storage stack, in three power tiers. ⭐ **The icebox ships first** (no power, no dependency) — the family's canonical passive-before-powered move.
+- [room-condition-design-pack](./builds/room-condition-design-pack.md) — the *"condition model"* dissolved: `Soilable` + a room debris field, **act-deposited so it freezes in absence**. ⭐ Carries one hard constraint for any builder — **care acts must attribute to the actor**, both directions, or the household commons is unreachable.
+- [residence-ladder-design-pack](./builds/residence-ladder-design-pack.md) — the progression spine. Money is necessary; **the binding gate is the condition of what you already hold.** Anti-hoarding falls out for free.
+- [disease-design-pack](./builds/disease-design-pack.md) — contagion and hygiene, inheriting spoilage's growth term. *Good husbandry is immunity*, pointed at bodies, herds, crops and homes.
+- [household-design-pack](./builds/household-design-pack.md) — the multi-occupant case. ⭐⭐ **With one holder property condition is a mirror; with two it is a commons.** Needs no new primitive: a household is two derived reads (tenure ∪ domicile). Condition collective, competence individual, **exit always cheap**.
+- [water-design-pack](./builds/water-design-pack.md) — ⭐ water has **physics everywhere and weather nowhere**. Drought is fully implemented and cannot happen. **Connect the rain to the soil, leave the tap alone** — the billing half of a water utility is declined on purpose.
+- [hearth-and-larder-design-pack](./builds/hearth-and-larder-design-pack.md) — the domestic integrating vertical: a room that answers to its fire, the preserving crafts, and ⭐ **the compost heap, whose consumer already ships and whose producer does not.** Closes the food→soil→food loop and stops spoilage reading as pure loss.
+- [tenancy-design-pack](./builds/tenancy-design-pack.md) — stewardship of what you **don't own**, closing a hole inside the ladder's own rented rungs. ⭐ Nearly free: room-condition's actor attribution *is* the mechanism, and the structure/contents split already exists in the persistence model (the room is the landlord's, the estate slice is the tenant's). Eviction is legitimate and stripping is not — **you can be put out, never stripped.**
+- [patina-design-pack](./builds/patina-design-pack.md) — ⭐⭐ **the only loop where care makes a thing BETTER**, not merely un-worse. Patina accrues from the *cycle* (use → care), never from either alone; it removes failure modes rather than adding power; and `globIdentity` makes a seasoned object un-mergeable with a shop copy. **Unblocked — nothing it needs is unbuilt.**
+
+**Adjacent, filed here because the family drove them:**
+[supply-design-pack](./builds/supply-design-pack.md) — one model for every
+source (water, power, mana): **cache the source's identity, derive its
+state**, plus a closed six-entry failure vocabulary · and
+[mana-economy-design-pack](./builds/mana-economy-design-pack.md) — mana as
+its own conserved quantity coupled one-way to energy, which
+[arcane-science.md](../arcane-science.md) now reflects.
+
+**Phases:** land `ConditionApi.boot` (⚠ written, **not merged**) → spoilage +
+compost → cold storage → room condition → disease → ladder + household. The
+three unblocked slices (**patina**, the **rain edge**, the **hearth**) sit
+outside that queue entirely.
+
 ---
 
 ## Enhancement tails (`tails/`)
