@@ -1,5 +1,5 @@
 /**
- * CockpitShelfController — `cockpit shelf list | pin <row> | unpin <row>`.
+ * CockpitShelfController — `cockpit shelf list | pin | unpin | first <row>`.
  *
  * ⚠ The actions ride positional slots (`action` / `row`), not command
  * subcommands: `cockpit shelf` has already spent the one level of
@@ -187,6 +187,72 @@ describe('CockpitShelfController', () => {
     });
   });
 
+  /*
+   * ⭐ **`first` is the shelf gaining an ORDER**, and the reason it
+   * exists is a phone: the mobile bar shows `shelf.slice(0, 3)`, so
+   * choosing what rides a narrow bar IS reordering the shelf. Until
+   * this action the order was whatever pin-sequence happened to leave
+   * behind, and there was no way to change it — on either form factor.
+   */
+  describe('first', () => {
+    it('moves a pinned row to the front, keeping the rest in order', async () => {
+      // `skill` is default-pinned LAST of the three.
+      expect(shelf()).toEqual(['play', 'renown', 'skill']);
+      const ctx = await run({ action: 'first', row: 'skill' });
+      expect(shelf()).toEqual(['skill', 'play', 'renown']);
+      expect(pushSpy).toHaveBeenCalledWith(SHELF_KEY, expect.any(Array));
+      expect(ctx.getStatus()).toBe('ok');
+    });
+
+    /*
+     * ⚠ The one-intention case. "Put coin on my bar" is a single
+     * thought; making the player type `pin coin` and then `first coin`
+     * would be two commands for it.
+     */
+    it('⚠ pins an UNPINNED row, at the front', async () => {
+      expect(shelf()).not.toContain('coin');
+      await run({ action: 'first', row: 'coin' });
+      expect(shelf()[0]).toBe('coin');
+      expect(shelf()).toEqual(['coin', 'play', 'renown', 'skill']);
+    });
+
+    it('on a row already first is a no-op that does not duplicate it', async () => {
+      const before = [...shelf()];
+      pushSpy.mockClear();
+      await run({ action: 'first', row: 'play' });
+      expect(shelf()).toEqual(before);
+      expect(shelf().filter((r) => r === 'play')).toHaveLength(1);
+      // Not merely idempotent in the result — it does not WRITE. An
+      // identical array pushed back would re-save for nothing.
+      expect(pushSpy).not.toHaveBeenCalled();
+    });
+
+    it('refuses an unknown row, naming the known set', async () => {
+      const ctx = await run({ action: 'first', row: 'nonesuch' });
+      expect(rejected(ctx)).toBe('unknown-shelf-row');
+      const body = lastBody();
+      for (const row of SHELF_ROW_IDS) expect(body).toContain(row);
+      expect(shelf()).toEqual([...DEFAULT_SHELF]);
+    });
+
+    it('refuses with no row', async () => {
+      const ctx = await run({ action: 'first' });
+      expect(rejected(ctx)).toBe('missing-arg');
+    });
+
+    /*
+     * ⭐ And it does not become a back door onto the closed vocabulary:
+     * identity and connection are still not shelf rows.
+     */
+    it('⭐ cannot promote identity or connection onto the shelf', async () => {
+      for (const row of ['identity', 'connection']) {
+        const ctx = await run({ action: 'first', row });
+        expect(rejected(ctx), `${row} was accepted`).toBe('unknown-shelf-row');
+      }
+      expect(shelf()).toEqual([...DEFAULT_SHELF]);
+    });
+  });
+
   describe('refusals', () => {
     it('refuses an unknown row, NAMING the known rows', async () => {
       const ctx = await run({ action: 'pin', row: 'nonesuch' });
@@ -220,7 +286,9 @@ describe('CockpitShelfController', () => {
       const ctx = await run({ action: 'obliterate', row: 'coin' });
       expect(rejected(ctx)).toBe('unknown-shelf-action');
       const body = lastBody();
-      for (const action of ['list', 'pin', 'unpin']) {
+      // ⚠ Including `first` — a new action that the refusal did not
+      // name would be a vocabulary the player cannot discover.
+      for (const action of ['list', 'pin', 'unpin', 'first']) {
         expect(body).toContain(action);
       }
     });
