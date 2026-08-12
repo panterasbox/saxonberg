@@ -53,6 +53,7 @@
 
 import { createGlobalStyle } from 'styled-components';
 import { FACE_STACKS } from './faces';
+import { SX } from './ground';
 
 export const GlobalFonts = createGlobalStyle`
   /* App-wide base voice: the chrome register (Public Sans). Everything
@@ -60,9 +61,21 @@ export const GlobalFonts = createGlobalStyle`
      overrides per-frame (narrative/command), the command console
      overrides to command. Without this, unstyled or portaled text
      (dropdowns, menus rendered outside a font-set ancestor) would fall
-     back to the browser default serif. */
+     back to the browser default serif.
+
+     ⚠ The base COLOUR belongs here for the same reason, and its absence
+     was a live defect the civic browser drive surfaced: nothing set a
+     root colour, so every element inheriting its colour resolved to the
+     browser default BLACK. On a dark ground that is the pane-rail tabs
+     at 1.6:1, and in high-contrast — the theme whose entire purpose is
+     legibility — 1.21:1. Invisible to the unit suite, because jsdom has
+     no cascade worth the name; obvious the moment a browser painted it.
+     One declaration fixes every inheriting element at once, and is what
+     makes "chrome colour resolves from the active theme" true rather
+     than true-of-the-components-that-remembered. */
   body {
     font-family: ${FACE_STACKS.chrome};
+    color: ${SX.fg};
   }
 
   @font-face {

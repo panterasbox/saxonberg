@@ -100,8 +100,12 @@ export function Terminal({
     }
   }, [frames]);
 
+  // `data-testid` so the e2e theme drive can read the transcript's
+  // RESOLVED colour. That assertion cannot live in the unit suite —
+  // jsdom leaves `var()` unsubstituted — and it is the only check that
+  // the transcript and the chrome resolved the same theme.
   return (
-    <TerminalContainer ref={containerRef}>
+    <TerminalContainer ref={containerRef} data-testid="terminal">
       {frames.map((frame) => (
         <FrameRow key={frame.id}>
           <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
