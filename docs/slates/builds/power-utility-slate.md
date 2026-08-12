@@ -68,6 +68,30 @@ conduction walk ever traverse the ref (probably not — it's a
 logical dependency, not a physical conductor); who may flip a
 substation (access/governance gate).
 
+## ⭐ Generation — DECIDED: Terminus runs on hydro
+
+**(Recorded 2026-08-11. Decided in conversation earlier and never written
+down; everything below and in the
+[mana pack](./mana-economy-design-pack.md) Part 5b leans on it.)**
+
+> **Terminus generates its power from HYDRO, because it sits on the rivers.**
+
+The geography already carries it — [terminus-city](../../staging/terminus-city.md)
+puts two rivers meeting at the **Confluence** at the north head, the combined
+river running south between the banks, with **Wharfside** as the riverfront.
+Generation is a site fact, not a policy choice: the city is where it is
+*because* of the water.
+
+⭐⭐ **And it is load-bearing beyond lighting.** Refining mana costs energy
+(the [mana pack](./mana-economy-design-pack.md)), so cheap hydro is what lets
+**Terminus refine mana it does not produce** — raw material in from the
+frontier, refined mana out. That is the aluminium relationship (smelters
+locate at cheap hydro and import their ore), and it turns a lighting decision
+into the city's industrial identity.
+
+⚠ **Note what this does NOT settle:** who *owns* the generation, who is billed
+and how. Those stay open below. Generation is geography; ownership is politics.
+
 ## The municipal layer (the real fork — owner's call)
 
 Everything past the middle tier is polity + economy design:

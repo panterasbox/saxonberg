@@ -321,7 +321,7 @@ rules already in hand answer **every cell**:
 
 ---
 
-## Part 5 — The economy: two utilities, and bottled before piped
+## Part 5 — The economy: a commodity that becomes a utility at scale
 
 ### ⭐⭐⭐ The consequence that shapes everything: the mana industry is MUNDANE
 
@@ -359,21 +359,42 @@ Magic stays scarce because its input cannot be manufactured — not because a
 caster is a bad generator. That reason survives any future rebalancing, and it
 makes mana the **land** of the magic economy.
 
-**How it is sold — and the sequencing is the family's usual move:**
+### ⭐⭐⭐ How it is sold: volume-tiered, and industrial gases settle it
 
-| | Needs | Verdict |
-|---|---|---|
-| ⭐ **Bottled** — flasks, crystals, charged items | bulk ✅ · retail/`PricedOffer` ✅ · chattel ✅ · `ChargedMixin` ✅ | **buildable with no new economic machinery** |
-| **Piped** — a mana main, a meter, a grid | the distribution walk, metering, billing | the whole power-utility middle tier |
+> ⚠ **Supersedes two earlier readings in this pack** — "two utilities" (too
+> generous) and its over-correction, "mana is never a utility, only a
+> commodity" (too strict). Neither survives contact with an actual industrial
+> consumer.
 
-**Bottled first — the icebox before the fridge.** Magic water is a bulk
-material with a mana density, sold by the flask; a mana crystal is the solid
-form; a charged wand is the same store with a fixture around it. Piped mana
-can come later or never.
+The real world already has a commodity with **no residential demand and
+genuine continuous industrial demand** — industrial gases — and it is
+delivered three ways, chosen **by volume**:
 
-⚠ **The [recurring-charge call](../../stewardship-doctrine.md) applies
-unchanged** if piped mana is ever built: meter on use, dischargeable without
-attendance, and non-payment never takes the asset.
+| Scale | Delivery | Relationship | Needs |
+|---|---|---|---|
+| **small** | flasks, crystals, charged items | **retail** | bulk ✅ · `PricedOffer` ✅ · chattel ✅ · `ChargedMixin` ✅ — **no new machinery** |
+| **medium** | bulk delivery | **a contract** | [contract](../../subsystems/contract.md) ✅ + [freight](./freight-slate.md) |
+| ⭐ **large** | **a pipe, often a refinery built over the fence** | **a genuine utility relationship** | the power slate's middle tier |
+
+> **Mana is a commodity that becomes a utility at industrial scale.** Nobody
+> has an argon tap at home; a float-glass plant has an oxygen pipeline. Both
+> are true at once, and **the tier boundary is a player's decision, made on
+> volume** — not a design decision made in advance.
+
+⭐ **Which gives a real business arc**: buy flasks → contract bulk delivery →
+**own the refinery over the fence.** That progression teaches *why firms
+vertically integrate* — transaction costs, Coase — by letting a player feel
+the moment buying becomes worse than building.
+
+⚠ **Piped mana still never reaches housing**, because housing has no standing
+demand (the binding law, Part 2). And the [recurring-charge
+call](../../stewardship-doctrine.md) applies unchanged wherever a pipe does
+exist: meter on use, dischargeable without attendance, non-payment never takes
+the asset.
+
+**Build order is still smallest-first** — the icebox before the fridge. Magic
+water is a bulk material with a mana density sold by the flask; a crystal is
+the solid form; a charged wand is the same store with a fixture around it.
 
 ### ⭐⭐⭐ The arbitrage floor — asymmetric physics makes asymmetric prices
 
@@ -410,6 +431,125 @@ senior and junior claims — one of the richest bodies of real property law
 there is, and the [parcel](../../subsystems/parcel.md) title, land-use and
 [governance](../../subsystems/governance.md) machinery to adjudicate it
 already ships.
+
+### ⭐⭐⭐ The mana farm — and why "it's always a loss" does not close it
+
+Feeding refined mana into soil to grow mana-bearing crops **loses mana every
+time**: conservation plus refining losses mean the crop cannot return more
+than went in. It is tempting to conclude nobody would do it, and that
+conclusion is **wrong** — it is a physics argument doing economic work it
+cannot do.
+
+> ⚠ **The farmer is not selling mana. He is selling carrots.** A smelter
+> loses metal to dross and runs anyway, because the output is worth more than
+> the input. The loss settles the question only if the *output* is mana.
+
+**Two results, and both hold at once:**
+
+1. ✅ **You still cannot farm mana into existence.** No agricultural loop
+   creates mana, so decision 3 survives — this is the loophole that would
+   otherwise launder "extractive, never manufactured" through a field.
+2. ⭐ **Mana-fertilised farming is nonetheless a real industry**, whenever the
+   product's premium exceeds (mana in + farming cost).
+
+#### ⭐⭐ What justifies the premium — and it is not convenience
+
+"One item instead of two" supports a small margin and no industry. Two better
+answers, one of which is a mechanism:
+
+- **Extended release.** [Metabolism](../../subsystems/metabolism.md)'s
+  digestion buffer releases food over time. A flask is a bolus; a carrot is a
+  drip — and if ingestion is band-capped (open question 2), slow release lets a
+  caster absorb **more total per day** than a flask they cannot finish.
+- ⭐⭐⭐ **Bioavailability.** Mana a plant has already incorporated into
+  organic matter absorbs far better than refined mana does — **heme iron
+  versus iron filings**, which is real nutrition science. That makes the
+  farmer's process not concentration but **conversion into a bioavailable
+  form**: a genuine quality gain, and what pays for the loss.
+
+⭐ **The product category that falls out:** the mana reserve sits beside
+satiation and hydration, so a crop hitting all three is literally **the
+caster's field ration** — which an army quartermaster buys, and that is a far
+larger customer than any individual mage.
+
+#### ⭐⭐ Two ways to supply the farm — and it is labour versus capital
+
+| | Casters on the payroll | Bought refined mana |
+|---|---|---|
+| What it is | an **ambient-harvesting machine** — each caster a small trickle refilled from the air | a purchased input |
+| Scales by | **hiring** | **investing** |
+| Character | labour-intensive, low capital, scales badly | capital-intensive, scales well |
+
+> **Which wins depends on wages against the mana price.** That is **factor
+> substitution** — the labour-versus-capital decision that drives
+> mechanisation — so a mana farm *mechanises over its lifetime* for exactly
+> the reasons real farms did. A smallholder uses hands; a large operation buys
+> the input.
+
+⚠ **Keep the political texture rather than sanding it off.** Paying people for
+what their bodies slowly accumulate has uncomfortable real analogues — plasma
+donation, sharecropping. In a world with a dockers' hall and a labour
+movement, that is a feature.
+
+#### Does the market exist? It passes the register's own test
+
+The [vocations](../../vocations.md) register's hardest brake is **NEVER INVENT
+A NEED TO CREATE A MARKET**. This clears it: casters already need mana,
+everyone already eats, and the mana carrot **combines two existing demands**
+rather than imposing a new obligation. With bioavailability it is a *product
+improvement*, not a bundle.
+
+---
+
+## Part 5b — ⭐⭐⭐ Where Terminus gets it: the city refines what it cannot produce
+
+**The canon.** [terminus-city](../../staging/terminus-city.md): two rivers
+meet at the **Confluence** at the north head ("sacred head"), the combined
+river runs south splitting West Bank from East, and **Wharfside** is the
+riverfront. ⚠ **The hydro decision is NOT in the corpus** —
+[power-utility-slate](./power-utility-slate.md) still lists *"who owns
+supply?"* as genuinely open. It was decided in conversation and never
+recorded; Part 8 flags the fix.
+
+**The proposal, and it makes the hydro decision load-bearing rather than
+incidental:**
+
+> ⭐⭐⭐ **Terminus refines mana it does not produce.** Raw mana-bearing
+> material comes in from the frontier; Terminus's cheap hydro concentrates it
+> (refining costs energy, Part 4); refined mana is sold locally and exported.
+
+**This is aluminium, exactly.** Smelters locate at cheap hydro — Iceland,
+Norway, Quebec, the Pacific Northwest — and import bauxite from the tropics,
+because ore is cheap to ship and electricity is not. *Aluminium is solid
+electricity.* Making Terminus a **processing** city rather than a **resource**
+city buys four things at once: an industry that is not merely "the city," a
+trade route for [freight](./freight-slate.md), an economic reason the frontier
+exists, and von Thünen doing the work that slate already wanted done.
+
+### The two farming modes, and where each belongs
+
+| Mode | Where | Yield | What it actually is |
+|---|---|---|---|
+| **On a deposit** | frontier, rich ground | good | ⭐ **slow mining**, with the plant as concentrator |
+| **On ordinary ground** | anywhere | tiny per hectare | **harvesting ambient** — diffuse, like sunlight before cheap panels |
+
+⭐ Mode 2 is **the frontier's business model**: land that is nearly free, no
+competing use, enormous acreage, thin yield. That is marginal agricultural
+land in reality, it is von Thünen again (low value per hectare locates far
+from market), and it puts the magic-carrot farmer *somewhere specific*.
+
+### ⚠ One fork left open: is the Confluence a deposit?
+
+The lore already calls it the **"sacred head,"** and sacredness attached to a
+specific place is usually fiction marking a real anomaly.
+
+| Option | Buys | Costs |
+|---|---|---|
+| **No deposit** | cleanest economic geography; the frontier matters | leaves the Confluence's sacredness unexplained |
+| **The Confluence is one** | contested sacred site *inside* the city — church, University and state all with claims | weakens the import story |
+| ⭐ **Both** — real but **small and protected**, so it can never supply industry | explains **why the founders settled there** while keeping the economy import-dependent | one more thing to author |
+
+*Lean: both.* **Owner's call — not decided here.**
 
 ---
 
@@ -449,7 +589,8 @@ such a trade would use.
 | ✳ **Ambient mana density of place** | drives innate recovery | **new (derived, per place)** |
 | ✳ **Refining** | a crafting transform; cost in real joules | **rides [crafting](../../subsystems/crafting.md) + [fire](../../subsystems/fire.md)** |
 | ✳ **Deposits** | ownable ground | **rides [parcel](../../subsystems/parcel.md)** |
-| ✳ **Mana as a supply commodity** | the third one | **rides [supply](./supply-design-pack.md)** |
+| ✳ **Mana as a supply commodity** | the third one; ⭐ **volume-tiered** — retail / bulk contract / pipe (Part 5) | **rides [supply](./supply-design-pack.md)** |
+| ✳ **Mana-fertilised cropping** | soil mana as a `feed`-able input; the premium rides bioavailability + extended release | **rides smallholding + metabolism** |
 
 **4. Verbs & affordances.** **No new verbs.** Drawing on a flask is `drink` /
 `fill` / the charge economy; refining is `craft`; assaying is `analyze`.
@@ -483,6 +624,11 @@ Listed so the edit is scoped rather than exploratory. **Not done here.**
 | **Conjure-water** | ✅ survives unchanged — still collection, still real work, still heat-limited |
 | **Voss Decay, the Reeve Line, Tarn's Rule** | ✅ untouched — they are about coupling and dissipation |
 | **The audit log** | re-run it; the doc asks for this before new numbers land |
+
+⚠ **And one fix outside `arcane-science.md`:**
+[power-utility-slate](./power-utility-slate.md) lists *"who owns supply?"* as
+genuinely open, but **Terminus's hydro was decided in conversation and never
+written down.** Record it there — everything in Part 5b leans on it.
 
 ---
 
@@ -538,6 +684,19 @@ their physics differs — exactly as power, gas and water do.
 - ⭐ **Price floors and arbitrage bounds** — a one-way conversion sets a floor
   that is real but never binding. Most students meet arbitrage as a trick;
   here it is a physical fact with a price consequence.
+- ⭐⭐ **Why firms vertically integrate** — the retail → contract → own-the-pipe
+  arc (Part 5) lets a player *feel* the moment buying becomes worse than
+  building. That is transaction-cost economics learned by hitting it, not by
+  reading Coase.
+- ⭐⭐ **Factor substitution and mechanisation** — casters-on-the-payroll vs
+  bought input is labour vs capital, decided on relative prices, and a farm
+  that mechanises over its lifetime for the same reasons real farms did.
+- ⭐ **Industrial location** — why a smelter sits at cheap power and imports
+  its ore (Part 5b). Terminus is the worked example, and the answer is
+  legible from a map.
+- **Bioavailability** — heme iron vs iron filings: *the form a nutrient
+  arrives in changes how much of it you get.* One of the most useful and
+  least-known facts in ordinary nutrition.
 
 ---
 
