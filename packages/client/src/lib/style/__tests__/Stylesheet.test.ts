@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { Stylesheet } from '../Stylesheet';
-import { DEFAULT_THEME } from '../themes/default';
+import { INK_THEME } from '../themes/ink';
 import { HIGH_CONTRAST_THEME } from '../themes/highContrast';
 import {
   NEUTRAL_BUCKET_RESOLVER,
@@ -16,12 +16,12 @@ import type { BucketResolver, StyleOverlay } from '../types';
 function makeSheet(
   overlay: StyleOverlay = {},
   opts: {
-    theme?: typeof DEFAULT_THEME;
+    theme?: typeof INK_THEME;
     resolver?: BucketResolver;
     viewerStuffId?: string | null;
   } = {},
 ) {
-  return new Stylesheet(opts.theme ?? DEFAULT_THEME, overlay, {
+  return new Stylesheet(opts.theme ?? INK_THEME, overlay, {
     resolver: opts.resolver ?? NEUTRAL_BUCKET_RESOLVER,
     viewerStuffId: opts.viewerStuffId ?? null,
   });
@@ -70,7 +70,7 @@ describe('Stylesheet — channel color (#20)', () => {
 
   it('theme default applies when overlay has no rule', () => {
     const sheet = makeSheet();
-    expect(sheet.channelColor('gossip')).toBe('#c8b76a');
+    expect(sheet.channelColor('gossip')).toBe('var(--sx-tint-amber)');
   });
 
   it('unknown channel resolves to null', () => {
@@ -92,7 +92,7 @@ describe('Stylesheet — plain mode (#23, #24)', () => {
   it('per-channel plain only collapses that channel', () => {
     const sheet = makeSheet({ 'plain.channel.gossip': true });
     expect(sheet.channelColor('gossip')).toBeNull();
-    expect(sheet.channelColor('trade')).toBe('#7fa8c8');
+    expect(sheet.channelColor('trade')).toBe('var(--sx-tint-sky)');
     // Non-channel-scoped queries are not affected by per-channel
     // plain — the topic-cascade still resolves; v1 just returns
     // empty treatment for content topics.
@@ -104,14 +104,14 @@ describe('Stylesheet — mention treatment (#19)', () => {
   it('self-match treatment fires when viewer matches', () => {
     const sheet = makeSheet({}, { viewerStuffId: 'me' });
     const t = sheet.mentionTreatment('me');
-    expect(t.fg).toBe('#ffd966');
+    expect(t.fg).toBe('var(--sx-accent)');
     expect(t.weight).toBe('bold');
   });
 
   it('other-match treatment fires when viewer does not match', () => {
     const sheet = makeSheet({}, { viewerStuffId: 'me' });
     const t = sheet.mentionTreatment('other');
-    expect(t.fg).toBe('#a89bd8');
+    expect(t.fg).toBe('var(--sx-tint-violet)');
     expect(t.weight).toBeUndefined();
   });
 
@@ -121,7 +121,7 @@ describe('Stylesheet — mention treatment (#19)', () => {
       { viewerStuffId: 'me' },
     );
     const t = sheet.mentionTreatment('me');
-    expect(t.fg).toBe('#a89bd8'); // collapsed to "other" treatment
+    expect(t.fg).toBe('var(--sx-tint-violet)'); // collapsed to "other"
   });
 });
 
@@ -152,9 +152,9 @@ describe('Stylesheet — bucket resolver (#22)', () => {
 });
 
 describe('Stylesheet — themes', () => {
-  it('default theme name is "default"', () => {
+  it('the default theme name is "ink"', () => {
     const sheet = makeSheet();
-    expect(sheet.themeName).toBe('default');
+    expect(sheet.themeName).toBe('ink');
   });
 
   it('high-contrast theme name is "high-contrast" (#21)', () => {
@@ -164,9 +164,9 @@ describe('Stylesheet — themes', () => {
 
   it('palette tokens are exposed', () => {
     const sheet = makeSheet();
-    expect(sheet.palette.link).toBe('#4ec9b0');
+    expect(sheet.palette.link).toBe('var(--sx-good)');
     const hc = makeSheet({}, { theme: HIGH_CONTRAST_THEME });
-    expect(hc.palette.link).toBe('#00ffff');
+    expect(hc.palette.link).toBe('var(--sx-tint-teal)');
   });
 });
 

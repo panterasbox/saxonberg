@@ -15,7 +15,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Stylesheet } from '../Stylesheet';
-import { DEFAULT_THEME } from '../themes/default';
+import { INK_THEME } from '../themes/ink';
 import { HIGH_CONTRAST_THEME } from '../themes/highContrast';
 import { NEUTRAL_BUCKET_RESOLVER } from '../BucketResolver';
 import { BASE_REGISTERS, BASE_FONT_ROLES } from '../themes/registers';
@@ -32,7 +32,7 @@ const SERIF = 'Newsreader';
 const MONO = 'IBM Plex Mono';
 
 describe('register classification — explicit topic→register table', () => {
-  const ss = sheet(DEFAULT_THEME);
+  const ss = sheet(INK_THEME);
 
   it('speech.vocal → narrative serif [AC: say renders serif]', () => {
     expect(ss.fontFamilyForTopic('speech.vocal')).toContain(SERIF);
@@ -90,7 +90,7 @@ describe('the four voices — one face source, no topic for chrome/display', () 
   });
 
   it('an unmapped topic still resolves to the display-free default', () => {
-    const ss = sheet(DEFAULT_THEME);
+    const ss = sheet(INK_THEME);
     expect(ss.fontFamilyForTopic('some.new.root')).toBe(
       BASE_FONT_ROLES.command,
     );
@@ -101,7 +101,7 @@ describe('register classification — longest-prefix cascade', () => {
   it('a deeper explicit entry overrides a shallower one', () => {
     // Synthetic theme: shallow prefix is narrative, deeper is command.
     const theme: Theme = {
-      ...DEFAULT_THEME,
+      ...INK_THEME,
       registers: { a: 'narrative', 'a.b.c': 'command' },
     };
     const ss = sheet(theme);
@@ -114,8 +114,8 @@ describe('register classification — longest-prefix cascade', () => {
 
 describe('register is not stripped by plain mode [reader sovereignty]', () => {
   it('plain mode leaves the font register unchanged', () => {
-    const normal = sheet(DEFAULT_THEME);
-    const plain = sheet(DEFAULT_THEME, { plain: true });
+    const normal = sheet(INK_THEME);
+    const plain = sheet(INK_THEME, { plain: true });
     expect(plain.fontFamilyForTopic('speech.vocal')).toBe(
       normal.fontFamilyForTopic('speech.vocal'),
     );
@@ -127,8 +127,8 @@ describe('faces are swappable — one role→family change [8b]', () => {
   it('overriding fontRoles.narrative re-skins narrative frames only', () => {
     const SENTINEL = "'Literata', Georgia, serif";
     const reskinned: Theme = {
-      ...DEFAULT_THEME,
-      fontRoles: { ...DEFAULT_THEME.fontRoles, narrative: SENTINEL },
+      ...INK_THEME,
+      fontRoles: { ...INK_THEME.fontRoles, narrative: SENTINEL },
     };
     const ss = sheet(reskinned);
 
@@ -138,6 +138,6 @@ describe('faces are swappable — one role→family change [8b]', () => {
     expect(ss.fontFamilyForTopic('shell.result')).toContain(MONO);
     // ...and the register (topic→role) table is byte-identical: the
     // faces are not load-bearing, only the role tokens changed.
-    expect(reskinned.registers).toEqual(DEFAULT_THEME.registers);
+    expect(reskinned.registers).toEqual(INK_THEME.registers);
   });
 });

@@ -5,61 +5,122 @@
  * treatments — components reference these tokens by *role*
  * (`surface`, `fg`, `accent`, `border`), not by literal color.
  *
- * The values here are the dark-terminal default theme. A future
- * theme swap (high-contrast, colorblind-safe, light) replaces this
- * file's exports without touching component code. Component code
- * must NEVER hardcode hex literals; if a needed treatment isn't
- * here, add a token rather than inlining.
+ * **Every colour below is a `var(--sx-…)` reference into the active
+ * theme's `ground`** (see `styles/ground.ts`), so chrome repaints when
+ * the theme changes with no component touched. The names and shape are
+ * unchanged from the pre-civic table on purpose: the migration is one
+ * token module, not 1468 call sites.
+ *
+ * Component code must NEVER hardcode hex literals; if a needed treatment
+ * isn't here, add a token rather than inlining. That sentence has stood
+ * unenforced since this file was written —
+ * `lib/style/__tests__/noHexLiterals.test.ts` now makes good on it.
+ *
+ * ⚠ A `var()` string is indistinguishable from any other string to
+ * TypeScript. Do not do colour arithmetic on a token, and do not write
+ * one into a non-CSS context (SVG `fill=`, canvas `fillStyle`, a string
+ * compare) — both break with no type error. `styles/ground.ts` carries
+ * the long form of this warning.
+ *
+ * ⚠⚠ **Two aliases cross over, and the crossing is deliberate.** The
+ * pre-civic palette was VS Code dark, whose emphasis colour was a gold
+ * and whose accent was a teal; the civic palette's accent is brass and
+ * its `good` is verdigris. Mapping by *appearance* rather than by name
+ * is what let every call site stay put:
+ *
+ *   - `color.fgEmphasis` was the gold `#d7ba7d` → `--sx-accent` (brass)
+ *   - `color.accent`     was the teal `#4ec9b0` → `--sx-good` (verdigris)
+ *
+ * ⭐ And `color.danger` resolves to `--sx-ember`, **not** `--sx-bad`.
+ * That is how "red never touches blue" becomes testable rather than
+ * aspirational: Ink's `bad` is Old Glory Red at 2.66:1 against the navy
+ * surface — unreadable as text. `ember` is the alert-on-field colour at
+ * 5.57:1. `bad`/`red` remain reserved for the seal, the flag rule and
+ * the single committing action per screen, and `contrast.test.ts`
+ * asserts no token here resolves to `--sx-bad`.
  */
 
 import { FACE_STACKS } from "../../styles/faces";
+import { SX } from "../../styles/ground";
 
 export const tokens = {
   color: {
-    surface: "#252526",
-    surfaceAlt: "#2d2d30",
-    surfaceMuted: "#1f1f1f",
-    surfaceSunken: "#1e1e1e",
-    fg: "#d4d4d4",
-    fgMuted: "#888",
-    fgEmphasis: "#d7ba7d",
-    accent: "#4ec9b0",
-    accentHover: "#7fdfc8",
-    onAccent: "#11201b",
-    primary: "#007acc",
-    primaryHover: "#005a9e",
-    primaryActive: "#004578",
-    border: "#444",
-    borderMuted: "#333",
-    borderEmphasis: "#555",
-    sectionLabel: "#569cd6",
-    actionBg: "#3c3c3c",
-    actionBgHover: "#4a4a4a",
+    surface: SX.surface,
+    surfaceAlt: SX.raised,
+    surfaceMuted: SX.ground,
+    surfaceSunken: SX.sunken,
+    fg: SX.fg,
+    fgMuted: SX["fg-mute"],
+    fgEmphasis: SX.accent,
+    accent: SX.good,
+    accentHover: SX["good-lift"],
+    onAccent: SX["accent-ink"],
+    primary: SX.field,
+    primaryHover: SX["field-lift"],
+    primaryActive: SX["field-press"],
+    border: SX.line,
+    borderMuted: SX["line-soft"],
+    borderEmphasis: SX["line-strong"],
+    sectionLabel: SX["fg-mute"],
+    actionBg: SX.raised,
+    actionBgHover: SX.line,
     // Connection-health signals — narrow, high-meaning state only
     // (reconnecting / dropped). Not for general decoration.
-    warning: "#cca700",
-    danger: "#f48771",
+    warning: SX.warn,
+    danger: SX.ember,
+    // ── Additive keys the hex sweep needed. No call site changed to
+    //    gain these; they exist so the literals they replace had a home.
+    /** Informational, non-alarming state. The `not wired` glyph. */
+    info: SX.info,
+    /** Foreground on a saturated field (buttons, the blue canton). */
+    onField: SX.white,
+    /** Drop shadow under a raised surface. */
+    shadow: SX.shadow,
+    /** Full-surface dim behind a modal or a disabled region. */
+    scrim: SX.scrim,
+    /** The unbuilt-state hatch, and its higher-contrast stripe. */
+    hatch: SX.hatch,
+    hatchStrong: SX["hatch-strong"],
+    /** The plate register — an author illustration's paper mount. */
+    paper: SX.paper,
+    paperInk: SX["paper-ink"],
+    paperLine: SX["paper-line"],
   },
   // Named social-graph highlight palette. The server emits a token name
   // (never raw hex — see `NotifyRule.PaletteToken`); the client maps it
   // here so a theme swap re-tints every social highlight in one edit.
   // `paletteFor(token)` falls back to `neutral` for an unknown token.
+  // 1:1 with the ground's `tint-*` tier, which is what keeps the
+  // server's token vocabulary and the ground's in step.
   palette: {
-    amber: "#d7ba7d",
-    teal: "#4ec9b0",
-    rose: "#f48771",
-    slate: "#888",
-    violet: "#a89bd8",
-    emerald: "#6abf69",
-    sky: "#569cd6",
-    neutral: "#bbb",
+    amber: SX["tint-amber"],
+    teal: SX["tint-teal"],
+    rose: SX["tint-rose"],
+    slate: SX["tint-slate"],
+    violet: SX["tint-violet"],
+    emerald: SX["tint-emerald"],
+    sky: SX["tint-sky"],
+    neutral: SX["tint-neutral"],
   } as Record<string, string>,
+  // Third-party platform marks. Not theme colours — somebody else's
+  // trademarks, identical in every ground. They live in the token layer
+  // because the alternative is three hex literals loose in
+  // `relayTemplate`, and an evasion is worse than a home.
+  brand: {
+    twitch: SX["brand-twitch"],
+    youtube: SX["brand-youtube"],
+    kick: SX["brand-kick"],
+  },
+  // DESIGN-SYSTEM § Scale: 4 / 6 / 9 / 12 / 16 / 22px. Theme-invariant,
+  // so these stay literal — a ground does not change how far apart
+  // things sit.
   space: {
-    xs: "0.15rem",
-    sm: "0.25rem",
-    md: "0.5rem",
-    lg: "0.75rem",
-    xl: "1rem",
+    xs: "4px",
+    sm: "6px",
+    md: "9px",
+    lg: "12px",
+    xl: "16px",
+    xxl: "22px",
   },
   font: {
     // ── Faces. `family` is the app-chrome default voice (Public Sans).
@@ -90,9 +151,13 @@ export const tokens = {
     prose: "16px",
     display: "22px",
   },
+  // DESIGN-SYSTEM § Scale: "Radius 3px everywhere. Engraved, not
+  // friendly." Both keys are kept so no call site moved; they are the
+  // same value on purpose, and a future divergence would be a design
+  // decision rather than a leftover.
   radius: {
-    sm: "2px",
-    md: "4px",
+    sm: "3px",
+    md: "3px",
   },
   // The side rail — the fixed-width complement to a fluid primary column
   // (chat rail, glance terminal). Fixed rem on purpose: a percentage rail
