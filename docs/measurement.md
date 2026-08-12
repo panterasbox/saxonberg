@@ -59,10 +59,19 @@ The platform separates three things that most software fuses:
 |---|---|---|---|
 | **1** | **Measurement** | the engine | witnesses acts, derives quantities. Honest, auditable, **silent on worth** |
 | **2** | **Valuation** | ⭐ **the subject** | the standard against which a quantity means something |
-| **3** | **Imposition** | ⭐ **the polity** | the small set that applies regardless — **enumerable and amendable** |
+| **3** | **Imposition** | ⚠ **three different parties** — see Part 10 | the small set that applies regardless — **enumerable**, and amendable *by someone*, but not all by the same someone |
 
-> **The engine counts. You say what counts. The Compact says what
+> **The engine counts. You say what counts. Someone else says what
 > everyone must.**
+
+⚠ **An earlier draft said "the polity" and "amendable," flat.** Both were
+wrong, and enumerating layer 3 (Part 10) is what exposed it: a third of
+it is not amendable by the polity, and some of it is not amendable at
+all without destroying the platform's ability to make honest claims.
+Layer 3 has **three tiers of entrenchment** — which is not a special
+pleading, it is the ordinary constitutional structure the
+[Compact course](./compact-political-science.md) already teaches (Art. X,
+four tiers ending in eternity clauses).
 
 Fusing any two produces a known failure. Fuse 1 and 2 and you get the
 scoreboard that tells you what to want. Fuse 2 and 3 and you get a state
@@ -306,6 +315,112 @@ than quietly contradicted.
 
 ---
 
+---
+
+# Part 10 — ⭐⭐ The enumeration of layer 3
+
+The list Part 1 asserts and owes. **An imposition is a rule that binds
+regardless of what anyone declares.** The test that keeps it honest:
+*could a player, an author, or the operator opt out of this by declaring
+otherwise?* If yes, it is not layer 3.
+
+Three tiers, by **who can change it** — and the tiers are what make the
+"amendable" claim survivable.
+
+## Tier A — Integrity invariants · amendable by **nobody**
+
+The test: **violating it would let someone lie to a player, and no
+version of the platform that violates it can be trusted.** These are the
+eternity clauses. They are not policy choices and there is no legitimate
+process for changing them.
+
+| # | Invariant | Enforced at |
+|---|---|---|
+| A1 | **Monetary conservation.** Every ledger leg balances; the reserve is the only mint; ⚠ a leg may never cross currencies | the sealed `postTransaction` chokepoint; `BankTransaction` **throws** on breach ([banking.md](./subsystems/banking.md)) |
+| A2 | **Ledgers are append-only.** `bank_ledger`, `chronicles`, `transcripts`, `authoring_events`, `accountability_events`, `renown_events`, `participation_events`. **You cannot edit your past** | per-collection write paths |
+| A3 | **Derive, don't track.** Competence, traits, renown, standing and **culpability** are derived on read, *never a stamped stat* | [accountability.md](./subsystems/accountability.md), [advancement.md](./subsystems/advancement.md) |
+| A4 | **Title is stored separately from the content it gates** | [parcel.md](./subsystems/parcel.md)'s *governing security invariant* |
+| A5 | **Transfer never overwrites.** Chain of title, on parcels and chattel | `parcel_events`, `chattel_events` |
+| A6 | **No aleatory resolution.** No die between a choice and its outcome | [uncertainty.md](./uncertainty.md) category 4 |
+| A7 | **The principal comes from context, never a parameter.** Authorship and actor identity are derived by the gate, not passed by the caller | call-security; the `recordAuthoring` gate |
+
+⭐ Note what A1–A7 have in common: **each is the reason some claim the
+platform makes is believable at all.** Drop A1 and a fortune means
+nothing; drop A2 and a chronicle means nothing; drop A3 and standing is
+just a number someone set; drop A7 and provenance is a lie. They are not
+values — they are the preconditions for having values that mean anything.
+
+## Tier B — Editorial commitments · amendable by **whoever ships the code**
+
+Not the polity's to change, and not integrity either. These are choices
+about what kind of thing this is. **The check on them is the AGPL-3 right
+to fork** — which is the founder's only constraint, stated as such in
+[wizard-duty-slate](./slates/builds/wizard-duty-slate.md).
+
+| # | Commitment | Source |
+|---|---|---|
+| B1 | **Nothing may contradict real science.** One postulate, everything downstream honest | [arcane-science.md](./arcane-science.md) |
+| B2 | **The good-floor.** Players are never evil; feeding evil is **drift, redeemable, not damnation** | [story-bible.md](./story-bible.md) |
+| B3 | **Any measurement the platform makes of you is one you can read** | Part 2 |
+| B4 | **The write is visible; the value is not — and never a gauge** | Part 6 |
+| B5 | **No variable-ratio reinforcement.** No loot boxes, gacha, pity timers | [uncertainty.md](./uncertainty.md) |
+| B6 | **Code-trust is orthogonal to content-write.** Owning content never escalates to TS execution | [access.md](./subsystems/access.md) § the code-trust lockdown |
+| B7 | **AGPL-3, and the right to run your own** | the licence |
+
+> ⚠ **B7 is the tier's own enforcement.** Every other entry here is a
+> promise by the people shipping the code, and a promise is worth what
+> the exit costs. Fork-ability is what converts B1–B6 from assurances
+> into something with a remedy.
+
+### ⭐⭐ The platform records; it rarely forbids
+
+Worth stating because it reshapes what "imposition" means here. B2 does
+not stop you doing a terrible thing. Combat does not refuse lethal terms
+against a non-consenting sentient — it **marks** them (`consented:
+false`, the crime marker the blame ledger reads).
+
+> **The imposition is almost never "you cannot." It is "it will be
+> recorded, and the record derives honestly."**
+
+That is a much lighter hand than a rule engine, and it is the same
+commitment as Part 2 in a different register: the platform's power over
+you is that it *counts*, and its discipline is that the counting is open.
+
+## Tier C — Policy · amendable by **the polity**, through the Compact
+
+The genuinely political layer — the
+[amendment-library](./slates/builds/amendment-library-slate.md)'s legos.
+Everything here is *meant* to change, and a build that hardcodes one of
+these has made a political decision by accident.
+
+- monetary policy — the wage rate, the reserve's mandate
+- taxes and levies
+- land use, zoning, the allowance cascade
+- jurisdiction; what a Locality may declare
+- **what constitutes a crime, and its penalty**
+- office structure — seats, terms, elections, the executive veto
+- free movement of goods, statutory right-of-way, full faith and credit
+- disenfranchisement by inactivity
+- ⚠ **the measurement vocabulary itself** — *proposed here, unresolved.*
+  Part 3 argues what the world counts should be amendable the way the law
+  is. It is currently Tier B by default, which is to say it sits in a
+  wizard's YAML file and nobody voted for it.
+
+## What is **not** layer 3
+
+Frequently mistaken for imposition; all of it is layer 2 or content:
+
+| Not an imposition | Because |
+|---|---|
+| your patron, aspiration, goals | declared — that is layer 2 by definition |
+| a congregation's or guild's standard | mutual opt-in with cheap exit (Part 8) |
+| a content pack's contents | a pack is a unit of review; installable and removable |
+| trade / faith lean weights | generation bias, explicitly **never a rule** ([trade-roster](./slates/builds/trade-roster-slate.md)) |
+| NPC opinion of you | derived from your acts, not imposed on them |
+| competence gates on verbs | earned, and the evidence is inspectable |
+
+---
+
 ## What this does not cover
 
 - ⚠ **Surveillance**, the second risk in `standard-model.md`'s honest
@@ -327,9 +442,13 @@ than quietly contradicted.
    *"wizards decide what counts"* and *"the polity does,"* and it is
    unresolved. It also decides the shape of the faith build's precept
    vocabulary.
-2. **What is the enumeration of layer 3?** The doc asserts impositions
-   are enumerable and amendable; **nobody has enumerated them.** That
-   list is a real artifact this doc implies and does not supply.
+2. ~~What is the enumeration of layer 3?~~ **Answered in Part 10**, and
+   it corrected Part 1: impositions are enumerable but **not uniformly
+   amendable**. Two follow-ons remain live — (a) is the Tier A list
+   *complete*, or does some subsystem impose an integrity invariant
+   nobody has written down? (b) **Tier C's last row** — moving the
+   measurement vocabulary from a wizard's YAML into the governed layer —
+   is the single largest open decision in this document.
 3. **How is "cheap exit" verified?** Part 8 makes it non-negotiable
    without saying how a build demonstrates it.
 4. **Does the reading rule survive contact with the client?** A cockpit
