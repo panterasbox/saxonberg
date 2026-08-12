@@ -6,6 +6,7 @@
  * without a full Character clone.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import type { MessageFrame } from '@saxonberg/types';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -51,7 +52,7 @@ function guardedFires(): number {
 function movementFrame(): MessageFrame {
   return {
     id: 'mf1',
-    topic: 'world.narration.movement',
+    topic: 'act.move',
     body: 'someone arrives.',
     meta: { timestamp: 0 },
   };

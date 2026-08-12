@@ -1,5 +1,5 @@
 /**
- * defaultTemplate — handles `system.*`, `world.perception.*`, and
+ * defaultTemplate — handles `system.*`, `sense.*`, and
  * every other topic family with no explicit template. Renders the
  * body MML inline with topic-cascade treatment from the stylesheet.
  *

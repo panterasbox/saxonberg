@@ -2,13 +2,29 @@
 
 The persistent right-column cockpit surface that displays what the
 player is currently **focused** on. Sourced from two long-lived
-MQL subscriptions — a `$focus`-bearing query for the focused-thing
-body and a `here`-bearing query for the breadcrumb root — the
-pane composes a live-updated header (focus display name), a
+subscriptions opened **by name** — the `inspect` pane for the
+focused-thing body and the `location` pane for the breadcrumb root —
+the pane composes a live-updated header (focus display name), a
 paint/clear-gated body (detail when single-focus, list when
 multi-focus), a unified breadcrumb that combines the player's
 current location, past focus shifts, and any active detail drill,
 plus a Refresh button.
+
+⭐⭐ **The client names a pane; the server says what it is.** The
+catalogue (`lib/connection/Panes.ts`) owns each pane's query,
+cardinality, field set, dependency flags and hold, and the client sends
+`{ pane: "inspect" }` and nothing else. It used to send
+`query: "$focus", cardinality: "many", fields: "detail"` — MQL, in a
+`.tsx` file — which is the client holding a server semantic, the same
+category error as a client deciding its own affordances.
+
+⚠ The forcing reason was identity, not tidiness. A `subscriptionId` is a
+client-minted `nanoid` that dies on reconnect, so it could name a pane
+for one socket and nothing longer — which is why `cockpit layout save`
+could only ever write an empty pane list. **A pane is a NAMED
+subscription; a hold is an optional property of one.** Neither shipped
+pane carries a hold, and that is correct: paint/clear means a focus
+change clears the body rather than closing the pane.
 
 Pane policy is **paint/clear**: focus changes clear the body to a
 placeholder; an explicit `look` against the current focus paints
@@ -143,6 +159,107 @@ consumes the replace op directly rather than running it through
 the generic `applyChanges` helper (which keys by stuffId and
 would append a duplicate). The flat-cardinality `me.focus`
 projection uses `applyChanges` normally.
+
+## ⭐ The pane set — N panes, each held by a condition
+
+The single focus slot became an **N-pane set**. Each pane's lifetime is
+governed by a **hold condition**, evaluated **server-side**, because
+these are facts about the world — a client guessing at them is the same
+category error as a client guessing at affordances.
+
+### ⚠ A pane is a subscription plus a lifetime rule
+
+That is the whole shape, and it is what keeps criterion 11 honest. An
+N-pane set *is* N subscriptions, so `hold` is a field on the ordinary
+`SubscribeRequest`, the pane set **is** the existing subscription
+registry, and there is no second registry to drift out of step.
+
+Holds are evaluated on the **drain that was already running**
+(`MqlSubscriptionRegistry.reresolveAndEmit`), not on a timer of their
+own. A pane set with its own tick would be a second clock, and two
+clocks disagree.
+
+### The five conditions
+
+| Hold | Held while | Released with |
+|---|---|---|
+| `unanswered` | it owes a reply | `answered` |
+| `here` | you are where it opened | `left` |
+| `present` | the subject shares your room | `departed` |
+| `inReach` | the subject is in reach or in hand | `out-of-reach` |
+| `carried` | the subject is on you | `dropped` |
+
+⭐ **`unanswered` was built first, and it earned it.** It is the one the
+design leans on — *nothing that is still actionable ever leaves* — and
+the only one whose subject is a pending **command** rather than a Stuff.
+A shape derived from the four spatial holds would not have fitted it.
+It reads `PromptApi.isPending`: absence from the interactive's bucket
+**is** "answered", so there is no second flag to go stale.
+
+`here` captures its anchor (the viewer's container) at subscribe time —
+"here" is only meaningful relative to a *where*, and the pane's own
+subject is not it.
+
+### ⚠ The spatial holds are containment predicates, not MQL scopes
+
+Answering them by re-resolving the viewer's own MQL seeds (`peers` /
+`reachable` / `inventory`) was tried first and is **wrong**: those
+scopes include the room and the viewer themselves, so the scope is never
+empty and a hold keyed on "is anything still in scope" can never lapse.
+
+A pane that can never close is worse than no pane lifetime at all,
+because the feature reads as working. The tests caught it. They are
+direct containment predicates now, and the viewer never counts as its
+own subject — a pane about *you* would otherwise satisfy `carried` and
+`present` forever.
+
+### ⚠⚠ A hold must install the dependency that lets it fire
+
+A hold is only evaluated when its subscription **re-resolves**, and a
+subscription only re-resolves when something marks it dirty. So every
+hold except `unanswered` implies `locationDependent` — they are all
+questions about where things are relative to the viewer, and without the
+holder-level container dependency nothing wakes them.
+
+**Found by driving it live, with eleven passing tests.** A `here` pane
+was immortal: the viewer walked out, nothing woke the subscription, the
+hold was never evaluated, and the pane never closed. The suite was green
+throughout because **every test called `refreshForInteractive` by hand**
+— the manual refresh stood in for the wake production would never
+perform, so the tests asserted the *condition* was right while never
+exercising whether anything would ask it.
+
+The lesson generalizes past panes: **a derive-on-read answer is dead
+unless something invalidates it**, and a test that pokes the deriver
+directly cannot see the difference. Any test for this shape should
+perform only the world change and assert the consequence — no manual
+refresh. A `refresh*` / `drain*` helper appearing in every case of a
+file is the smell.
+
+`unanswered` is excluded deliberately: its subject is a pending prompt,
+not a position, and the prompt's own resolution is what should wake it.
+
+### Release carries a reason
+
+`mql-subscription-released { subscriptionId, hold, reason }` — a
+distinct envelope from the error one, precisely because nothing went
+wrong: the pane reached the end of its stated lifetime. **A pane that
+vanishes without a reason reads as a bug**, and the player cannot tell a
+rule from a defect.
+
+### ⚠ The pin overrides in BOTH directions
+
+`cockpit pane pin|dismiss|auto|list`.
+
+Pinning is **not a sixth hold condition** — it is an override on the
+other five. A sixth condition could only ever *keep* a pane; it could
+never dismiss one whose condition still holds, which is half of what a
+player needs.
+
+`dismiss` does not tear the pane down inline. It marks the override and
+lets the next drain apply it, so a dismissal is released down the same
+reasoned path as every other release. A second teardown path is how a
+pane ends up vanishing without its reason.
 
 ## Focus-change signaling
 

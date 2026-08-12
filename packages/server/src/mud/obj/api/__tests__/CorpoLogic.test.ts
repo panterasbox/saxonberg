@@ -5,6 +5,7 @@
  * edge, rivalry reads, and the listings.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CorpoApi } from "../../../api/corpo";
 import CorpoCatalogue from "../../CorpoCatalogue";

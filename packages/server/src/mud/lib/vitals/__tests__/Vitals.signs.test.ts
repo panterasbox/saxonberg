@@ -5,6 +5,7 @@
  * "requires OrganismMixin" composition guard.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../obj/species/Species';

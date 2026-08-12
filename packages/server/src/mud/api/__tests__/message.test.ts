@@ -2,6 +2,7 @@
  * MessageApi tests
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../message';
 import { MessageLogic } from '../../obj/api/MessageLogic';
@@ -205,9 +206,9 @@ describe('MessageApi', () => {
       const source = makeStuff(() => new MobileSensor());
       source.teleport(location, { silent: true });
 
-      const message1 = makeFrame('world.perception.sense.look', 'Test');
-      const message2 = makeFrame('system.log.info', 'note');
-      const message3 = makeFrame('world.speech.say', 'hi');
+      const message1 = makeFrame('sense.survey', 'Test');
+      const message2 = makeFrame('shell.diagnostic', 'note');
+      const message3 = makeFrame('speech.vocal', 'hi');
 
       MessageApi.messageContainer(source, message1);
       expect(sensor1.lastMessage).toEqual(message1);
@@ -252,8 +253,8 @@ describe('MessageApi', () => {
       speaker.teleport(location, { silent: true });
 
       const sayMessage = makeFrame(
-        'world.speech.say',
-        '<name>Alice</name> says, <speech>"Hello everyone"</speech>'
+        'speech.vocal',
+        '<player>Alice</player> says, <speech>"Hello everyone"</speech>'
       );
 
       MessageApi.messageContainer(speaker, sayMessage);

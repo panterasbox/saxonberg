@@ -1,6 +1,6 @@
 /**
  * HelpController — every form renders off the index through HelpApi, on
- * the `system.shell.help` topic.
+ * the `shell.result` topic.
  *
  * Covers: bare `help` landing; fallthrough `help look`; legacy `help verb
  * look`; `help api ContainmentApi.move` (real signature + summary, not the
@@ -8,6 +8,7 @@
  * unknown-command rejection note.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { HelpTopic } from "@saxonberg/types";
 import HelpController from "../HelpController";
@@ -106,9 +107,9 @@ describe("HelpController", () => {
     return { topic: topicName, body: (selfBody as Mml)?.toString() ?? "" };
   }
 
-  it("bare `help` renders the landing/index on system.shell.help", () => {
+  it("bare `help` renders the landing/index on shell.result", () => {
     const out = run({});
-    expect(out.topic).toBe("system.shell.help");
+    expect(out.topic).toBe("shell.result");
     expect(out.body).toContain("Commands");
     expect(out.body).toContain("90"); // mixin count from the index
   });

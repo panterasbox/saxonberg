@@ -6,6 +6,7 @@
  * substitution) is covered in `mql.test.ts` and `command.test.ts`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   PronounMemory,

@@ -180,7 +180,7 @@ the uniform fields.
 ## The `help` verb — index-backed, light grammar polish
 
 `HelpController` renders every form off the index through `HelpApi`, on
-the existing `system.shell.help` topic:
+the existing `shell.result` topic:
 
 - bare `help` → the landing/index (categories + counts + a hint line);
 - `help <verb>` → that command's topic (**bare fallthrough** — the YAML

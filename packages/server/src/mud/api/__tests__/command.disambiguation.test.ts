@@ -12,6 +12,7 @@
  * the dispatcher catches and emits a cancelled-shape note.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommandApi, type CommandContext } from '../command';
 import { PromptApi, PromptCancelledError } from '../prompt';

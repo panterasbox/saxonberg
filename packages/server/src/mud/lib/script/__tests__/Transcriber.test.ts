@@ -10,6 +10,7 @@
  * (empty recipe / no recorded sources — a scripted build).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Transcriber } from "../Transcriber";
 import { ScriptApi } from "../../../api/script";

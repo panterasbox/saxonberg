@@ -33,12 +33,12 @@ export default class Topic extends Idea {
    */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.topic;
 
-  /** Dotted topic path (e.g. `'world.speech.say'`). Non-empty. */
+  /** Dotted topic path (e.g. `'speech.vocal'`). Non-empty. */
   public topic: string = '';
 
   /**
    * Family prefix — the dotted path with the last segment dropped
-   * (e.g. `'world.speech'` for `'world.speech.say'`). Empty string
+   * (e.g. `'speech'` for `'speech.vocal'`). Empty string
    * for top-level topics (`'world'`, `'system'`); a top-level entry
    * is its own root.
    */

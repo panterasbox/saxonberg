@@ -119,12 +119,65 @@ lint:
     # directions, so a new MATERIAL colliding with a shipped descriptor
     # is caught too. That is the direction nobody thinks to check.
     - pnpm -C packages/server lint:descriptors
+    # Topic vocabulary totality. Every emitted topic key must resolve to
+    # an AUTHORED descriptor, and every root must be one of the seven.
+    # TopicCatalogue's third tier derives a plausible descriptor for any
+    # unknown key, so a typo or a rename fails silently and looks fine —
+    # when this gate was first run, 45 of 105 emitted topics had no
+    # authored descriptor at all. It also enforces roots-are-closed:
+    # content packs may add leaves, never a root, because a pack-minted
+    # root breaks subtree muting for every player.
+    - pnpm -C packages/server lint:topics
+    # Affordance honesty. Every object-typed slot declares `requires:` —
+    # a mixin name it must compose, or `any` for deliberately
+    # unconstrained. The resolver's candidate set is syntactic, so an
+    # undeclared arg makes the verb menu assert things the controller
+    # will refuse — `attack` on a chair. The client cannot filter those
+    # out; it is forbidden from re-deriving semantics, so a wrong figure
+    # on the wire is a wrong figure on screen.
+    #
+    # It also fails on a name that is not in the Mixins registry, which
+    # is the point of naming a mixin rather than asserting `any`: the
+    # predecessor marker could not be wrong, and three of its fifty uses
+    # were. Reports two tiers — menu-visible positionals vs every object
+    # field — so a regression says which claim it broke. Also fails on
+    # any spec it cannot PARSE: an unreadable spec silently shrinks
+    # every total and makes the gate look better.
+    - pnpm -C packages/server lint:arg-kinds --lint
+    # The framework wiring is an explicit import, not a global setup
+    # file. A test that touches the wired runtime must say so; this
+    # keeps the two in sync. It fails only in the cheap direction (a
+    # file that needs wiring and lacks the import) — a redundant import
+    # is free, because the bootstrap is once-guarded.
+    - pnpm -C packages/server lint:test-bootstrap
+    # ...and that the gate can SEE every file vitest runs. Scanning only
+    # `*.test.ts` silently missed two `.test.js` files, and the check
+    # meant to catch that was itself filtered through `grep test.ts` —
+    # so it confirmed the undercount instead of exposing it. This asks
+    # vitest directly, across both configs, with no filtering.
+    - pnpm -C packages/server lint:test-bootstrap:verify
 
 test:
   extends: [.node, .mr-only]
   stage: validate
   script:
     - pnpm test
+
+# The gym benches — balance regression guards that simulate whole
+# fights (combat-gym, waster-spar). They were 25% of the suite's test
+# CPU in two files, so they are out of the default `pnpm test` and run
+# here instead.
+#
+# A SEPARATE job, not an extra line in `test`: taking them off the
+# local loop is a speed decision, and letting them stop running is a
+# different decision that nobody made. Running in parallel with `test`
+# means the validate stage finishes in max(test, test-gym) rather than
+# the sum — CI wall clock goes down while coverage stays identical.
+test-gym:
+  extends: [.node, .mr-only]
+  stage: validate
+  script:
+    - pnpm test:gym
 
 build:
   extends: [.node, .mr-only]

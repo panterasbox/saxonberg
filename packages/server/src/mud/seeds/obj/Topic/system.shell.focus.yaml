@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.shell.focus
-  family: system.shell
-  label: Focus
-  description: Output of the focus verb — focus inspection and set confirmations.

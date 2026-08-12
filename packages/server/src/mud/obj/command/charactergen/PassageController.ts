@@ -33,7 +33,7 @@ import { Mml } from '../../../api/mml';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 /**
  * How much of each biological reserve the floor route costs you (`%`).
@@ -103,7 +103,7 @@ export default class PassageController extends CommandController<CommandModel> {
       .toSelf(
         Mml.compose`You take a breath, and it is your own. The between lets go — and leaves you with nothing to spare.`,
       )
-      .toPeers(Mml.compose`${Mml.name(body)} draws a first breath.`)
+      .toPeers(Mml.compose`${Mml.actor(body)} draws a first breath.`)
       .send();
   }
 }

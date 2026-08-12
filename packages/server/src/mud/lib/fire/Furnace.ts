@@ -89,14 +89,13 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static commandContributions: CommandContributions = {
       self: [],
-      environment: [
+      peers: [
         'device/ignite.yaml',
         'device/douse.yaml',
         'device/pump.yaml',
         'crafting/heat.yaml',
       ],
-      inventory: [],
-      peers: [],
+      environment: [],
     };
 
     static fieldMeta: FieldMeta = {

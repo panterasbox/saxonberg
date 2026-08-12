@@ -1,8 +1,8 @@
 /**
  * WhoPane — the "Who's Online" right-column cockpit pane (social-inspection
  * Phase 4, client half). A pure render of the server-projected roster: the
- * `world.social.roster` frames land in the store (`roster` / `rosterOrder`,
- * see `store/index.ts` + the `world.social.roster` handler in
+ * `self.group` frames land in the store (`roster` / `rosterOrder`,
+ * see `store/index.ts` + the `self.group` handler in
  * `services/websocket.ts`), and this pane reads them reactively.
  *
  * The client owns ZERO command/identity semantics here. Each row's

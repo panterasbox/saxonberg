@@ -7,6 +7,7 @@
  * up a SkyExposed biome + activates weather with a forced type.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import AnalyzeWeatherController from '../AnalyzeWeatherController';
 import Location from '../../../../lib/stuff/Location';

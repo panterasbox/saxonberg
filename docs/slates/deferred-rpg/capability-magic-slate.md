@@ -40,7 +40,7 @@ See also:
   (magic is honest if internally consistent and measurable), Principle
   4 (reality-shaped seeding — which magic *cannot* use, the honest
   break).
-- [docs/slates/vitals-slate.md](../builds/vitals-slate.md) — the body
+- [docs/slates/vitals-slate.md](../tails/vitals-slate.md) — the body
   substrate physical capability derives from; the
   **endurance ⟷ mana** reserve symmetry; CON dissolving into Vitals.
 - [docs/subsystems/race.md](../../subsystems/race.md) — `BodyPlan` /
@@ -738,7 +738,7 @@ Everything here is deferred, but one negative obligation binds the
 
 ## What this slate does NOT cover
 
-- **The Vitals substrate itself** — [vitals-slate.md](../builds/vitals-slate.md).
+- **The Vitals substrate itself** — [vitals-slate.md](../tails/vitals-slate.md).
   This slate consumes it (capability derives from the body); it doesn't
   redefine it.
 - **Combat** — combat-slate territory. Capability *feeds* combat

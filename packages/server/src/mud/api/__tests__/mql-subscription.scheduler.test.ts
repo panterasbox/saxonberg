@@ -4,6 +4,7 @@
  * single re-resolve per affected subscription.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { MqlApi } from '../mql';

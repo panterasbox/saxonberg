@@ -19,7 +19,7 @@ import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
 import { Mml } from "../../../api/mml";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 export default class VomitController extends CommandController<CommandModel> {
   execute(_model: CommandModel, context: CommandContext): void {
@@ -38,7 +38,7 @@ export default class VomitController extends CommandController<CommandModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You retch and bring up ${what}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} doubles over and vomits.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} doubles over and vomits.`)
       .send();
   }
 }

@@ -5,6 +5,7 @@
  * round-trip. R2.4 cleanup is in `Spawner.cleanup.test.ts`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

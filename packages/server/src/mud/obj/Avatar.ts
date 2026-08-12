@@ -62,6 +62,9 @@ import type TopicCatalogue from "./TopicCatalogue";
 import { TemplatePathPrefixes } from "../lib/paths";
 import { EstateMixin } from "../lib/chattel/Estate";
 import type { FieldMeta } from "../lib/mixin";
+import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
+import { InfluenceApi } from '../api/influence';
+import { RenownApi } from '../api/renown';
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -89,6 +92,28 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
     return body.getInteractives();
   }
   return live.getInteractives();
+}
+
+/**
+ * ⭐ **The self-only gate for the live standing figures.**
+ *
+ * Returns the durable subject key the ledgers are keyed on — but only
+ * when the viewer IS the subject. Anyone else gets `undefined`, which
+ * `projectFields` omits, so another player's subscription simply has
+ * no standing fields on it.
+ *
+ * Reading someone *else's* standing is a real feature and it already
+ * has a surface: the `profile` verb, with its own redaction model. A
+ * second implementation here would be a second copy of those rules,
+ * and the two would drift the first time one was changed. So this
+ * surface answers for you and nobody else.
+ *
+ * A module-private function rather than a method: it is a policy the
+ * descriptors share, not behaviour the Avatar offers.
+ */
+function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
+  if (viewer?.stuffId !== stuff.stuffId) return undefined;
+  return stuff.getTemplatePath() ?? undefined;
 }
 
 /**
@@ -167,9 +192,8 @@ export default class Avatar extends AvatarBase {
       "stream/tune.yaml",
       "crafting/make.yaml",
     ],
-    environment: [],
-    inventory: [],
     peers: [],
+    environment: [],
   };
 
   /**
@@ -192,8 +216,127 @@ export default class Avatar extends AvatarBase {
    */
   static fieldMeta: FieldMeta = {
     mortalArc: { persistent: true },
+    lastSeen: { persistent: true },
     startLocation: { instruction: true },
   };
+
+  /**
+   * Epoch ms of this character's last logout, or 0 for never-played.
+   *
+   * ⭐ The cheap field the character-select screen was starved for, and
+   * the prerequisite for the "since you left" digest — which is derived
+   * across the ledgers *since this instant*, so without it there is no
+   * window to derive over.
+   *
+   * Stamped on logout rather than continuously: "when did I last put
+   * this character down" is the question the roster asks, and a
+   * heartbeat-updated field would answer a different one while costing
+   * a write per tick.
+   *
+   * Public because the `Hydrator` reflects into persistent fields by
+   * name; other Stuff use `getLastSeen` / `markSeen`.
+   */
+  public lastSeen: number = 0;
+
+  /** Epoch ms of the last logout, or `undefined` if never played. */
+  public getLastSeen(): number | undefined {
+    return this.lastSeen > 0 ? this.lastSeen : undefined;
+  }
+
+  /**
+   * Stamp the logout instant. Called by the connection teardown, which
+   * is the one moment that means "this character was put down".
+   */
+  public markSeen(at: number): void {
+    this.lastSeen = at;
+  }
+
+  /**
+   * ⭐ **The live standing figures**, as subscribable data rather than
+   * prose.
+   *
+   * ⚠ **Your trait position is deliberately NOT here.** The engine
+   * derives it, and a pinnable "your most pronounced trait right now"
+   * widget would be a stat sheet of your own personality — which the
+   * psychology slate calls the *unrealistic* feature, and which would
+   * foreclose the vocation it is designed around: **you cannot read
+   * yourself; another person can.** Keeping traits off the live
+   * dashboard is what keeps that buildable without retrofitting a
+   * permission model later.
+   *
+   * (The `traits` and `score` verbs DO self-report today. That is a
+   * pre-existing product decision and its own conversation — this
+   * build simply declines to make it worse.)
+   *
+   * Every one of these is already reachable — `score` reports the lot,
+   * and `StandingController` calls the same Apis. What did not exist
+   * was a way to get them to a client as *numbers*: they shipped as MML
+   * inside a scene frame, so a shelf widget would have had to re-parse
+   * a sentence. These descriptors are the structured path.
+   *
+   * **Declared here rather than on a mixin.** `lib/renown/`,
+   * `lib/influence/` and `lib/participation/` hold no mixins at all —
+   * those subsystems are Api + logic singleton + collection. Minting a
+   * `StandingMixin` for five fields on one class would be the
+   * per-feature minting the conventions warn against; if a second host
+   * ever needs them, that is when it becomes a mixin.
+   *
+   * **Self-only.** These resolve for the subscriber's own identity.
+   * Reading someone *else's* standing already has a surface with a
+   * redaction model — the `profile` verb — and a second copy of those
+   * rules on a subscription is how two copies drift.
+   *
+   * ⚠ **These re-resolve through `durableKey`, not `changes`.** An
+   * earlier cut declared `changes: [{ on: SomeAppendedEvent, by:
+   * 'subject' }]` — which **never fired at all**: the index registers a
+   * non-`target`/`field` source under the value `null`, while
+   * `routeFire` looks up `payload['subject']`, so the tuple could never
+   * match. Standing keys on the durable `templatePath` and the bus
+   * indexes live `stuffId`s; the two cannot meet.
+   *
+   * `durableKey` is the seam that closes it, and it is a **direct poke
+   * from the ledger, not a broadcast** — one known producer, one known
+   * consumer. See {@link MqlSubscriptionApi.notifyDurableSubject}.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'playStanding',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { band: InfluenceApi.bandOf(key, 'consumer') };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+    {
+      /**
+       * *Make* is an **account-level** stock (`STOCK_LEVEL`): it is
+       * something the person does, not the character.
+       *
+       * ⚠ Read through `standingForHost`, the shared seam — NOT through
+       * a local aggregation. The account arithmetic is deliberately
+       * unbuilt (see that method), so this is still a per-character
+       * figure today. Deriving one here would put a formula in a
+       * concrete class, which is where the previous attempt went wrong:
+       * it made the dashboard disagree with `standing` and `profile`.
+       */
+      name: 'makeStanding',
+      read: (stuff, viewer) => {
+        if (!standingSubject(stuff, viewer)) return undefined;
+        return { band: InfluenceApi.standingForHost(stuff, 'producer').band };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+    {
+      name: 'renown',
+      read: (stuff, viewer) => {
+        const key = standingSubject(stuff, viewer);
+        if (!key) return undefined;
+        return { value: RenownApi.renownOf(key) };
+      },
+      durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
+    },
+  ];
 
   /**
    * The identity's death-arc position, or `null` while embodied and alive.
@@ -625,7 +768,7 @@ export default class Avatar extends AvatarBase {
       tags: ["arrival"],
     });
 
-    // Welcome scene: actor frame at system.connection.established
+    // Welcome scene: actor frame at session.link
     // carries the bootstrap payload the client needs.
     // Welcome is the introductory moment — explicitly the formal
     // register, so reach for fullName.
@@ -654,7 +797,7 @@ export default class Avatar extends AvatarBase {
       // The live news-ticker window (pins-first, recency-ordered, already
       // retract/expiry-filtered + length-capped by the PressBoard). The
       // client seeds its feed pane from this as a `snapshot`, exactly as it
-      // caches `topicCatalogue`; live deltas ride `world.press.feed`.
+      // caches `topicCatalogue`; live deltas ride `publication.press`.
       releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
       clientState: this.snapshotClientState(),
       reactionPrefs: {
@@ -679,7 +822,7 @@ export default class Avatar extends AvatarBase {
       ? Mml.compose`Welcome, ${this.getFullName()}.`
       : Mml.compose`Welcome back, ${this.getFullName()}!`;
     MessageApi.scene(this)
-      .topic("system.connection.established")
+      .topic("session.link")
       .toSelf(greeting)
       .payload(payload)
       .send();
@@ -1021,6 +1164,16 @@ export default class Avatar extends AvatarBase {
     // `PlayerLoggedOut` (the character left the game; a return is a fresh
     // login). A bare drop is a `PlayerDisconnected` (linkdead): the body
     // lingers and the next `enter()` will be a reconnect.
+    // ⭐ Stamp `lastSeen` on EITHER path. A network drop is still the
+    // last moment this character was in the world, and the roster's
+    // question ("when did I last play them") does not care whether the
+    // player meant to leave. Stamping only the deliberate path would
+    // leave every crashed session reading as never-played.
+    // Wall clock, not game time: "when did I last play them" is a
+    // real-world question the character-select screen asks before the
+    // world clock is even relevant to the reader.
+    this.markSeen(Date.now());
+
     if (this.leaveIntent) {
       this.leaveIntent = false;
       this.sessionActive = false;
@@ -1028,6 +1181,8 @@ export default class Avatar extends AvatarBase {
     } else {
       EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     }
+    // Persist the stamp; a save failure must not break teardown.
+    this.save().catch(() => undefined);
   }
 
   /* ── sandbox parking (Decision P) ──

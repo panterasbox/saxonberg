@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.auth
-  family: system
-  label: Authentication
-  description: Login and identity-verification events — success and failure.

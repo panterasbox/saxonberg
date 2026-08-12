@@ -11,6 +11,7 @@
  * (metabolism ingest + the NutritionLabel).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -243,28 +244,28 @@ describe('the venue menus', () => {
     // Menus = menu/order, any venue (inherited off the commerce base).
     const commerce = ['crafting/menu.yaml', 'crafting/order.yaml'];
     for (const cls of [SmithyMenu, KitchenMenu, LoungeMenu]) {
+      expect(cls.commandContributions.peers).toEqual(commerce);
       expect(cls.commandContributions.environment).toEqual(commerce);
-      expect(cls.commandContributions.inventory).toEqual(commerce);
     }
 
     // The working verbs ride the instruments — derived from instance
     // `capabilities` through the capability table (no per-tool classes).
     const anvil = makeStuff(() => new ToolItem());
     anvil.setCapabilities(['anvil']);
-    const anvilEnv = anvil.getInstanceContributions().environment ?? [];
+    const anvilEnv = anvil.getInstanceContributions().peers ?? [];
     expect(anvilEnv).toContain('crafting/hammer.yaml');
     expect(anvilEnv).toContain('crafting/forge.yaml');
     expect(anvilEnv).toContain('crafting/repair.yaml');
     expect(anvilEnv).not.toContain('crafting/mix.yaml');
 
     const pot = makeStuff(() => new CookPot());
-    const potEnv = pot.getInstanceContributions().environment ?? [];
+    const potEnv = pot.getInstanceContributions().peers ?? [];
     expect(potEnv).toContain('crafting/cook.yaml');
     expect(potEnv).toContain('crafting/pour.yaml');
     expect(potEnv).not.toContain('crafting/forge.yaml');
 
     // `heat` is the furnace's (the fire is the instrument) + the pot's.
-    expect(Forge.commandContributions.environment).toContain(
+    expect(Forge.commandContributions.peers).toContain(
       'crafting/heat.yaml',
     );
     expect(potEnv).toContain('crafting/heat.yaml');

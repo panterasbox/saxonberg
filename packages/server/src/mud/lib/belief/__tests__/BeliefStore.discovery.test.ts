@@ -6,6 +6,7 @@
  * already guarantees, at a new realm.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { BeliefStoreMixin, DISCOVERY } from '../BeliefStore';
 import { Idea } from '../../stuff/Idea';

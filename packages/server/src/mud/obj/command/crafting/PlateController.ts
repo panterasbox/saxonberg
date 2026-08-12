@@ -23,7 +23,7 @@ import { CraftingApi } from '../../../api/crafting';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ScriptApi } from '../../../api/script';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const PLATE_MS = 2500;
 
 interface PlateModel extends CommandModel {
@@ -48,7 +48,7 @@ export default class PlateController extends ManualBuildController<PlateModel> {
     if (vessel.isBuildEmpty()) {
       this.declineStep(
         context,
-        Mml.compose`${Mml.item(vessel)} is empty — there's nothing to plate.`,
+        Mml.compose`${Mml.thing(vessel)} is empty — there's nothing to plate.`,
         'empty-build',
       );
       return;
@@ -73,7 +73,7 @@ export default class PlateController extends ManualBuildController<PlateModel> {
 
     this.engageStep(context, {
       durationMs: this.paceMs(PLATE_MS, vessel, ['pot']),
-      beginSelf: Mml.compose`You begin plating ${Mml.item(vessel)} onto ${Mml.item(dish)}.`,
+      beginSelf: Mml.compose`You begin plating ${Mml.thing(vessel)} onto ${Mml.thing(dish)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {
           built.recordCommand(commandText);
@@ -95,8 +95,8 @@ export default class PlateController extends ManualBuildController<PlateModel> {
           built.clearBuild();
           MessageApi.scene(giver)
             .topic(TOPIC)
-            .toSelf(Mml.compose`You plate up ${Mml.item(outcome.output)}.`)
-            .toPeers(Mml.compose`${Mml.name(giver)} plates up ${Mml.item(outcome.output)}.`)
+            .toSelf(Mml.compose`You plate up ${Mml.thing(outcome.output)}.`)
+            .toPeers(Mml.compose`${Mml.actor(giver)} plates up ${Mml.thing(outcome.output)}.`)
             .send();
 
           // The knowledge ladder + demonstration capture (the same act).

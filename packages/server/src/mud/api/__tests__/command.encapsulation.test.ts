@@ -8,6 +8,7 @@
  * logic-method call from any other module is denied.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CommandLogic } from '../../obj/api/CommandLogic';
 import { SecurityError } from '../../lib/security/errors';

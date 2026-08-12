@@ -14,7 +14,7 @@ import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
 import { Mml } from "../../../api/mml";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface ReserveModel extends CommandModel {
   amount?: string;
@@ -103,7 +103,7 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
         Mml.compose`The reserve issues ${Money.of(minor, Currency.compact()).render()} in fresh currency into your hands.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} draws fresh currency from the reserve.`,
+        Mml.compose`${Mml.actor(giver)} draws fresh currency from the reserve.`,
       )
       .send();
   }

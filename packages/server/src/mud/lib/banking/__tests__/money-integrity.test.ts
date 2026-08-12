@@ -11,6 +11,7 @@
  * of it is a later cycle. This file covers only what this build claims.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Coin from "../../../obj/Coin";
 import { Currency } from "../Currency";

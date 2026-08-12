@@ -1,0 +1,13 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: session
+  family: ""
+  label: "Your connection"
+  description: "The link itself — logging in, dropping out, and who else is around."
+  address: direct
+  actor: system
+  weight: activity
+  audience: all
+  durable: false
+  affordance: decays

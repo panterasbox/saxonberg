@@ -29,9 +29,8 @@ export default class TipJar extends TipJarBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['employment/tip.yaml', 'employment/collect.yaml'],
-    inventory: [],
-    peers: [],
+    peers: ['employment/tip.yaml', 'employment/collect.yaml'],
+    environment: [],
   };
 
   /**

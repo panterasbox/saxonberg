@@ -2,6 +2,7 @@
  * VisibleMixin description setters fire FieldChangedEvent.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VisibleMixin } from '../Visible';
 import { Idea } from '../../stuff/Idea';

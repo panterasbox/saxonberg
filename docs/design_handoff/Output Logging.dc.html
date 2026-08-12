@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .dfr { display:flex; gap:11px; padding:7px 0; border-bottom:1px solid var(--line-soft); }
+    .dfr.insel { background:color-mix(in oklab,var(--accent) 11%,transparent); margin:0 -10px; padding:7px 10px; border-left:2px solid var(--accent); }
+    .dfk { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; flex:0 0 54px; padding-top:3px; }
+    .wp { font-family:'Newsreader',Georgia,serif; font-size:14.5px; line-height:1.55; }
+    .tab { display:inline-flex; align-items:center; min-height:32px; padding:0 13px; border:1px solid var(--line);
+           background:transparent; color:var(--fg-dim); cursor:pointer; font-size:12.5px; font-family:'Public Sans',sans-serif; }
+    .tab.on { background:var(--raised); color:var(--fg); border-color:var(--accent); }
+    .tab:first-child { border-radius:3px 0 0 3px; }
+    .tab:last-child { border-radius:0 3px 3px 0; }
+    .span { display:flex; align-items:center; gap:9px; min-height:38px; padding:0 12px; border:1px solid var(--line);
+            border-radius:3px; cursor:pointer; margin-bottom:5px; }
+    .span:hover { border-color:var(--fg-mute); }
+    .span.on { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+    .send { font-family:'Public Sans',sans-serif; font-size:13px; font-weight:600; color:var(--white);
+            background:var(--red); border:1px solid var(--white); border-radius:3px; padding:0 15px; height:36px; cursor:pointer; }
+    .ghost { font-family:'Public Sans',sans-serif; font-size:12.5px; color:var(--fg-dim); background:transparent;
+             border:1px solid var(--line); border-radius:3px; padding:0 12px; height:36px; cursor:pointer; }
+    .ghost:hover { color:var(--fg); border-color:var(--fg-mute); }
+    .clip { border:1px solid var(--line); border-radius:3px; background:var(--surface); margin-bottom:8px; }
+    .clip.att { border-left:2px solid var(--good); }
+    .clip.expiring { border-left:2px solid var(--ember); }
+    .clip.cold { border-left:2px solid var(--line); opacity:.72; }
+    .ch { display:flex; align-items:center; gap:9px; padding:8px 11px; border-bottom:1px solid var(--line-soft); }
+    .badge { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase;
+             border-radius:2px; padding:1px 6px; flex:none; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:3px 8px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    .act.warn { color:var(--ember); border-color:var(--ember); }
+    .bar { height:6px; background:var(--sunken); border:1px solid var(--line); border-radius:2px; overflow:hidden; display:flex; }
+  </style>
+</helmet>
+
+<div id="lg-root" style="width:1440px; height:900px; display:flex; flex-direction:column; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <header style="flex:none; display:flex; align-items:center; gap:12px; padding:9px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+    <span class="cap" style="font-size:13px;">Output logging</span>
+    <span style="font-size:12px; color:var(--fg-dim);">one operation, two entry points</span>
+    <div style="flex:1;"></div>
+    <div style="display:flex;">
+      <sc-for list="{{ views }}" as="v" hint-placeholder-count="4">
+        <button class="tab {{ v.cls }}" data-view="{{ v.id }}">{{ v.label }}</button>
+      </sc-for>
+    </div>
+  </header>
+
+  <div style="flex:1; display:flex; min-height:0;">
+
+    <!-- ══ terminal ══ -->
+    <div style="flex:1; display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line);">
+      <sc-if value="{{ recording }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none; display:flex; align-items:center; gap:9px; padding:7px 18px; background:color-mix(in oklab,var(--red) 16%,transparent); border-bottom:1px solid var(--red);">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--red);"></span>
+          <span class="m" style="font-size:11px; color:var(--fg);">recording · 4m 12s · 38 frames</span>
+          <div style="flex:1;"></div>
+          <span class="m" style="font-size:10px; color:var(--fg-dim);">record stop</span>
+        </div>
+      </sc-if>
+
+      <div style="flex:1; overflow-y:auto; padding:10px 18px;">
+        <sc-for list="{{ frames }}" as="f" hint-placeholder-count="6">
+          <div class="dfr {{ f.cls }}">
+            <span class="dfk" style="color:{{ f.hue }};">{{ f.kind }}</span>
+            <div style="flex:1;" class="{{ f.face }}">{{ f.text }}</div>
+            <span class="m" style="font-size:9px; color:var(--fg-mute); flex:0 0 30px; text-align:right; padding-top:3px;">{{ f.t }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="flex:none; display:flex; align-items:center; gap:9px; padding:9px 18px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+        <span class="m" style="font-size:13px; color:var(--accent);">here&gt;</span>
+        <div style="flex:1; display:flex; align-items:center; gap:6px; height:36px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+          <span class="m" style="font-size:12.5px; color:var(--fg);">{{ pending }}</span>
+          <span style="width:8px;height:14px;background:var(--accent);border-radius:1px;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ right ══ -->
+    <aside style="flex:0 0 452px; display:flex; flex-direction:column; background:var(--ground); min-height:0;">
+
+      <!-- CLIP · retroactive -->
+      <sc-if value="{{ isClip }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:none; padding:9px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Clip</span>
+          <span style="font-size:11.5px; color:var(--fg-dim); margin-left:8px;">something already happened — reach back for it</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:12px 14px;">
+
+          <!-- the two windows, which are different lengths -->
+          <div class="lbl" style="margin-bottom:7px;">How far back you can reach</div>
+          <div class="bar" style="margin-bottom:5px;">
+            <div style="width:51%; background:var(--line);"></div>
+            <div style="width:49%; background:color-mix(in oklab,var(--good) 55%,transparent);"></div>
+          </div>
+          <div style="position:relative; height:13px; margin-bottom:9px;">
+            <span class="m" style="position:absolute; left:0; font-size:9px; color:var(--fg-mute);">14:30 connected</span>
+            <span class="m" style="position:absolute; left:51%; transform:translateX(-50%); font-size:9px; color:var(--good); white-space:nowrap;">16:40 chain reaches</span>
+            <span class="m" style="position:absolute; right:0; font-size:9px; color:var(--accent);">18:44 now</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="width:9px;height:9px;background:var(--line);flex:none;"></span>
+              <span style="font-size:11.5px; color:var(--fg-dim);">clippable only — your buffer, 1,240 frames back to 14:30</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="width:9px;height:9px;background:color-mix(in oklab,var(--good) 55%,transparent);flex:none;"></span>
+              <span style="font-size:11.5px; color:var(--fg-dim);">still attestable — the chain holds a rolling 2h 04m, so it reaches 16:40</span>
+            </div>
+          </div>
+
+          <div class="lbl" style="margin-bottom:7px;">Span</div>
+          <sc-for list="{{ spans }}" as="s" hint-placeholder-count="4">
+            <div class="span {{ s.cls }}" data-span="{{ s.id }}">
+              <span class="m" style="font-size:12px; color:var(--accent);">{{ s.cmd }}</span>
+              <span style="font-size:12.5px; color:var(--fg-dim);">{{ s.label }}</span>
+              <span style="flex:1;"></span>
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">{{ s.n }}</span>
+            </div>
+          </sc-for>
+
+          <div style="display:flex; align-items:center; gap:9px; margin-top:13px;">
+            <button class="send">Keep it</button>
+            <span class="m" style="font-size:10.5px; color:var(--fg-dim);">{{ clipCmd }}</span>
+          </div>
+
+          <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:13px 0 0; padding-top:11px; border-top:1px solid var(--line-soft);">Both entry points write the same artifact. <span class="m" style="font-size:11px; color:var(--fg-dim);">record</span> declares the span in advance; <span class="m" style="font-size:11px; color:var(--fg-dim);">clip</span> declares it afterwards. One storage model, one quota, one search.</p>
+        </div>
+      </sc-if>
+
+      <!-- LIBRARY -->
+      <sc-if value="{{ isLib }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none; padding:9px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Your clips</span>
+          <span style="font-size:11.5px; color:var(--fg-dim); margin-left:8px;">12.4 of 40 MB · 6 kept</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:12px 14px;">
+
+          <div class="bar" style="margin-bottom:14px;">
+            <div style="width:31%; background:var(--accent);"></div>
+          </div>
+
+          <sc-for list="{{ clips }}" as="c" hint-placeholder-count="3">
+            <div class="clip {{ c.cls }}">
+              <div class="ch">
+                <span class="badge" style="color:{{ c.bhue }}; border:1px solid {{ c.bhue }};">{{ c.badge }}</span>
+                <span style="font-size:13px; color:var(--fg); flex:1; min-width:0;">{{ c.title }}</span>
+                <span class="m" style="font-size:9px; color:var(--fg-mute);">{{ c.size }}</span>
+              </div>
+              <div style="padding:9px 11px;">
+                <div style="font-size:11.5px; color:var(--fg-dim); line-height:1.5; margin-bottom:8px;">{{ c.note }}</div>
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <sc-for list="{{ c.acts }}" as="a" hint-placeholder-count="2">
+                    <span class="act {{ a.cls }}">{{ a.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="border:1px solid var(--line); border-left:2px solid var(--ember); border-radius:2px; padding:11px 12px; margin-top:4px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+              <span class="m" style="font-size:9px; color:var(--ember);">THE REAL CONSTRAINT</span>
+            </div>
+            <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin:0 0 7px;">Storage is a mailbox — delete something to make room, and it never expires on you. That matters because a dispute can take weeks, and a retention window would erase the evidence exactly when it is still being argued.</p>
+            <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin:0;">Attestation is the thing on a clock. The server keeps a rolling chain of frame hashes, not your content — cheap to run, but it only reaches back so far. Attest while it still covers the span, or the clip stays just your word.</p>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- RECIPIENT -->
+      <sc-if value="{{ isShare }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none; padding:9px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">What the recipient sees</span>
+          <span style="font-size:11.5px; color:var(--fg-dim); margin-left:8px;">the distinction has to be unmissable</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:12px 14px;">
+
+          <div class="clip att" style="margin-bottom:14px;">
+            <div class="ch" style="background:color-mix(in oklab,var(--good) 12%,transparent);">
+              <span class="badge" style="color:var(--good); border:1px solid var(--good);">Attested</span>
+              <span style="font-size:13px; color:var(--fg); flex:1;">Maren · the axle contract</span>
+            </div>
+            <div style="padding:11px;">
+              <div style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin-bottom:9px;">Saxonberg vouches that these 14 frames were sent to Maren at these times, unaltered. Verified against the session chain.</div>
+              <div style="border-top:1px solid var(--line-soft); padding-top:9px;">
+                <div class="wp" style="font-size:14px; margin-bottom:5px;">Tomas says, “Forty coin when the axle holds the river run.”</div>
+                <span class="m" style="font-size:9px; color:var(--fg-mute);">18:43 · frame 8f21 · hash verified</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="clip" style="border-left:2px solid var(--ember);">
+            <div class="ch" style="background:color-mix(in oklab,var(--ember) 12%,transparent);">
+              <span class="badge" style="color:var(--ember); border:1px solid var(--ember);">Unverified</span>
+              <span style="font-size:13px; color:var(--fg); flex:1;">Bobalu · the iron deal</span>
+            </div>
+            <div style="padding:11px;">
+              <div style="font-size:11.5px; color:var(--ember); line-height:1.55; margin-bottom:9px;">This is what Bobalu says they saw. Nothing here has been checked against the server, and it can be edited freely before sharing.</div>
+              <div style="border-top:1px solid var(--line-soft); padding-top:9px;">
+                <div class="wp" style="font-size:14px; color:var(--fg-dim); margin-bottom:5px;">Maren says, “I'll take the whole lot at two coin.”</div>
+                <span class="m" style="font-size:9px; color:var(--fg-mute);">18:11 · no attestation</span>
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:14px 0 0; padding-top:11px; border-top:1px solid var(--line-soft);">Unattested clips are useful and cheap, and most sharing is casual. But if the two render alike, every unattested clip gets treated as proof — so the unverified case says plainly that it can be edited.</p>
+        </div>
+      </sc-if>
+
+      <!-- MODERATION -->
+      <sc-if value="{{ isMod }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none; padding:9px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Reporting</span>
+          <span style="font-size:11.5px; color:var(--fg-dim); margin-left:8px;">attest first, ask questions after</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:12px 14px;">
+          <div style="border:1px solid var(--red); border-radius:3px; padding:12px; margin-bottom:13px; background:var(--surface);">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:9px;">
+              <span class="badge" style="color:var(--red); border:1px solid var(--red);">Report</span>
+              <span style="font-size:13px; color:var(--fg);">what Bobalu said to you</span>
+            </div>
+            <div class="span on" style="cursor:default;">
+              <span class="m" style="font-size:12px; color:var(--accent);">clip --since-tell bobalu</span>
+              <span style="font-size:12.5px; color:var(--fg-dim);">the whole exchange</span>
+              <span style="flex:1;"></span>
+              <span class="m" style="font-size:10px; color:var(--fg-mute);">22 frames</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin:9px 0 11px; padding:8px 10px; border:1px solid var(--good); border-radius:2px; background:color-mix(in oklab,var(--good) 10%,transparent);">
+              <span class="m" style="font-size:9px; color:var(--good);">AUTO</span>
+              <span style="font-size:11.5px; color:var(--fg-dim);">Attested on filing — the chain still covers this span</span>
+            </div>
+            <button class="send" style="width:100%;">File the report</button>
+          </div>
+          <p style="font-size:11.5px; color:var(--fg-dim); line-height:1.55; margin:0;">Filing attests automatically rather than offering it as a choice. Someone reporting harassment should not have to understand a hash chain, and the window closes while they are deciding whether it is worth reporting at all.</p>
+          <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:9px 0 0;">It also means a moderator never receives an unverifiable report, which is the failure mode that makes moderation queues worthless.</p>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { view:'clip', span:'room' };
+
+  VIEWS=[['clip','Clip'],['lib','Library'],['share','Shared'],['mod','Report']];
+
+  // semantic spans beat "last N minutes" — the client already knows these edges
+  SPANS=[
+    ['room','clip --since-room','since you entered the yard','41 frames'],
+    ['tell','clip --since-tell bramble','since Bramble first messaged','88 frames'],
+    ['20m','clip --last 20m','the last twenty minutes','156 frames'],
+    ['session','clip --since-connect','everything since you logged in','1,240 frames'],
+  ];
+
+  FR=[
+    ['18:41','Room','#c98a3f','Packed earth between the shed and the tavern wall.',0],
+    ['18:42','Say','#4a9d8f','Tomas: \u201cThe axle wants another turn in the coals.\u201d',1],
+    ['18:43','Say','#4a9d8f','Tomas says, \u201cForty coin when the axle holds the river run.\u201d',1],
+    ['18:43','You','#c9a227','say agreed',1,1],
+    ['18:44','Tell','#5b8fd6','Bramble tells you, \u201cCustoms house when the iron\u2019s done.\u201d',1],
+    ['18:44','Work','#e8705c','The weld takes. The axle rings true when struck.',1],
+  ];
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('lg-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const v=e.target.closest('[data-view]');
+      if(v&&r.contains(v)) return this.setState({view:v.getAttribute('data-view')});
+      const s=e.target.closest('[data-span]');
+      if(s&&r.contains(s)) return this.setState({span:s.getAttribute('data-span')});
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  renderVals(){
+    const v=this.state.view, sp=this.state.span;
+    const inSel=(f)=> v==='clip' && f[4]===1;
+    const cur=this.SPANS.find(x=>x[0]===sp)||this.SPANS[0];
+
+    return {
+      views:this.VIEWS.map(([id,label])=>({id,label,cls:v===id?'on':''})),
+      isClip:v==='clip', isLib:v==='lib', isShare:v==='share', isMod:v==='mod',
+      recording:false,
+      pending: v==='clip' ? cur[1] : 'record start',
+      clipCmd: cur[1],
+      frames:this.FR.map(f=>({
+        kind:f[1], hue:f[2], t:f[0], text:f[3], cls:inSel(f)?'insel':'',
+        face:f[5]?'m':'wp' })),
+      spans:this.SPANS.map(([id,cmd,label,n])=>({id,cmd,label,n,cls:sp===id?'on':''})),
+
+      clips:[
+        { cls:'att', badge:'Attested', bhue:'var(--good)', title:'The axle contract', size:'0.8 MB',
+          note:'14 frames · 18:41–18:44 · verified against the session chain',
+          acts:[{label:'⧉ copy link'},{label:'cite in a filing'},{label:'delete'}] },
+        { cls:'expiring', badge:'Attestable 1h 22m', bhue:'var(--ember)', title:'Bobalu, the iron deal', size:'1.1 MB',
+          note:'22 frames · 18:02–18:19 · the chain still covers this, but not for long',
+          acts:[{label:'attest now', cls:'warn'},{label:'⧉ copy link'},{label:'delete'}] },
+        { cls:'cold', badge:'Notes only', bhue:'var(--fg-mute)', title:'Yesterday at the customs house', size:'3.2 MB',
+          note:'104 frames · the chain no longer reaches this span — it cannot be attested',
+          acts:[{label:'⧉ copy link'},{label:'export'},{label:'delete'}] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

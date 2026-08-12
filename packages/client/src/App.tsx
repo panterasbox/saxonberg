@@ -28,6 +28,7 @@ import { CharGenStage } from "./components/CharGenStage";
 import { GhostCommandLine } from "./components/GhostCommandLine";
 import { SettingsPane } from "./components/settings/SettingsPane";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
+import { useGround } from "./lib/style/useGround";
 import { tokens } from "./components/ui";
 import type {
   ConsoleTab,
@@ -37,9 +38,9 @@ import type {
 
 /** Relay-chat topics that carry a `RelayMessagePayload` (all transports). */
 const RELAY_TOPICS = new Set([
-  "world.twitch.message",
-  "world.youtube.message",
-  "world.kick.message",
+  "speech.relay",
+  "speech.relay",
+  "speech.relay",
 ]);
 
 /**
@@ -236,6 +237,14 @@ function formatResponseEcho(promptId: string, response: string): string | null {
  * App component.
  */
 function App() {
+  // ⚠ First line, above the phase switch. The switch early-returns per
+  // phase, so a ground applied inside one case would leave the other
+  // four (start screen, splash, character select, char-gen) painting on
+  // whatever `main.tsx` pre-applied and never repainting on a theme
+  // change. The chrome resolves its theme through the same `pickTheme`
+  // as the transcript's `useStylesheet` — see `lib/style/useGround`.
+  useGround();
+
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
@@ -318,7 +327,7 @@ function App() {
     // renders the buffer; tab-level filtering (Phase 3+) reads from
     // the same buffer.
     //
-    // Echo frames (`system.log.command.{info|warn}`) pair against the
+    // Echo frames (`shell.diagnostic`) pair against the
     // FIFO echo-snapshot queue at arrival time so the rendered line
     // carries the base-prompt sigil that was active when the player
     // pressed Enter, regardless of where focus has moved since. The
@@ -327,8 +336,8 @@ function App() {
     const handle = (frame: import("@saxonberg/types").MessageFrame) => {
       if (!frame.body) return;
       const isEcho =
-        frame.topic === "system.log.command.info" ||
-        frame.topic === "system.log.command.warn";
+        frame.topic === "shell.diagnostic" ||
+        frame.topic === "shell.diagnostic";
       let sigil: string | undefined;
       if (isEcho) {
         const snap = useStore.getState().shiftEchoSnapshot();
@@ -440,7 +449,7 @@ function App() {
   /**
    * Send a response to an active server-side prompt. Emits the
    * resolution echo line locally at send time — prompt responses
-   * don't ride the system.log.command.* echo channel, so the
+   * don't ride the `shell.diagnostic` echo channel, so the
    * snapshot-pairing path doesn't apply here. The label-prefixed
    * line lands in the scroll regardless of which prompt is active
    * by the time the dismissed envelope round-trips.
@@ -454,7 +463,7 @@ function App() {
     if (echo) {
       useStore.getState().appendFrame({
         id: `prompt-echo-${nanoid()}`,
-        topic: "system.log.command.info",
+        topic: "shell.diagnostic",
         body: echo,
         timestamp: Date.now(),
       });
@@ -534,7 +543,7 @@ function App() {
       console.info("__injectMessage:", text);
       useStore.getState().appendFrame({
         id: `inject-${nanoid()}`,
-        topic: "world.narration.action",
+        topic: "act.deed",
         body: text,
         timestamp: Date.now(),
       });

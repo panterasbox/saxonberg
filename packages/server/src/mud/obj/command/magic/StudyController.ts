@@ -36,7 +36,7 @@ import { MagicGrid } from '../../../lib/magic/Grid';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import type Spellbook from '../../magic/Spellbook';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 /** Game-ms a full study from nothing takes, at ordinary book quality. */
 const FULL_STUDY_MS = 20 * 60 * 1000;
@@ -69,7 +69,7 @@ export default class StudyController extends CommandController<StudyModel> {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`There is no working set out in ${Mml.item(book)} to take on board.`,
+          Mml.compose`There is no working set out in ${Mml.thing(book)} to take on board.`,
         )
         .send();
       context.note({
@@ -198,8 +198,8 @@ export default class StudyController extends CommandController<StudyModel> {
 
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You open ${Mml.item(book)} and begin to read.`)
-      .toPeers(Mml.compose`${Mml.name(actor)} settles down with a book.`)
+      .toSelf(Mml.compose`You open ${Mml.thing(book)} and begin to read.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} settles down with a book.`)
       .send();
   }
 }

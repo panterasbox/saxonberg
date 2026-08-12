@@ -7,6 +7,7 @@
  * is covered by requiresArchwizard.test.ts.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { MockInstance } from "vitest";
 import WizardController from "../WizardController";

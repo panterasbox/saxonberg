@@ -69,7 +69,7 @@ export default class DestructController extends CommandController<DestructModel>
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.author')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

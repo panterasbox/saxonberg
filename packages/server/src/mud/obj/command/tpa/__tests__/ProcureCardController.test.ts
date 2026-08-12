@@ -4,6 +4,7 @@
  * command source (the verb is contributed by a present clerk).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ProcureCardController from "../ProcureCardController";
 import TravelCard from "../../../../domain/common/tpa/TravelCard";

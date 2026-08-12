@@ -3,6 +3,7 @@
  * slices from every contributing mixin into a `StuffDetailFocusRecord`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { projectFocus } from '../mql-subscription';
 import { NamedMixin } from '../../lib/description/Named';

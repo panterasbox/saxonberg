@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.ambient.hearing
-  family: world.perception.ambient
-  label: Ambient Hearing
-  description: Unbidden auditory signal — footsteps from elsewhere, a creak, an ambient hum.

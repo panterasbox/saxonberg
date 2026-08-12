@@ -2,8 +2,8 @@
  * MobileMixin — locomotion for creatures and vehicles.
  *
  * Mobile owns movement messaging. The mover composes the Scene at
- * `world.narration.movement` (when an Exit is in hand) or
- * `world.narration.teleport` (no exit). Scene.send() auto-stamps
+ * `act.move` (when an Exit is in hand) or
+ * `act.move` (no exit). Scene.send() auto-stamps
  * `commandId` / `causingCommandId` from the active ExecutionContext,
  * so a `go north` command and any aftermath the mover triggers all
  * carry the same attribution.
@@ -230,9 +230,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'boundary/close.yaml',
         'author/goto.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**
@@ -681,7 +680,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const messageOut = exit?.getMessageOut();
       if (messageOut) {
         const fragment = ProseApi.format(messageOut, {
-          mover: Mml.name(self),
+          mover: Mml.actor(self),
         });
         return { self: fragment, peers: fragment };
       }
@@ -729,7 +728,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const messageIn = exit?.getMessageIn();
       if (messageIn) {
         const fragment = ProseApi.format(messageIn, {
-          mover: Mml.name(self),
+          mover: Mml.actor(self),
         });
         return { self: fragment, peers: fragment };
       }
@@ -774,8 +773,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
     ): void {
       const self = this as unknown as Stuff;
       const topic = exit
-        ? 'world.narration.movement'
-        : 'world.narration.teleport';
+        ? 'act.move'
+        : 'act.move';
       const scene = MessageApi.scene(self).topic(topic);
 
       // toSelf only when the mover is actually a Sensor — a future
@@ -805,7 +804,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         'messages.movement.departPeers',
       ) ?? '';
       return ProseApi.format(tpl, {
-        mover: Mml.name(this as unknown as Stuff),
+        mover: Mml.actor(this as unknown as Stuff),
         direction: Mml.direction(exit.getDirection()),
       });
     }
@@ -826,7 +825,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       ) ?? '';
       const dir = arriveDirection(exit);
       const ctx: Record<string, Mml> = {
-        mover: Mml.name(this as unknown as Stuff),
+        mover: Mml.actor(this as unknown as Stuff),
       };
       if (dir) ctx.direction = Mml.direction(dir);
       return ProseApi.format(tpl, ctx);
@@ -845,7 +844,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportOutPeers',
       ) ?? '';
-      return ProseApi.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
+      return ProseApi.format(tpl, { mover: Mml.actor(this as unknown as Stuff) });
     }
 
     protected defaultTeleportInSelf(): Mml {
@@ -861,7 +860,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         this as unknown as Stuff,
         'messages.movement.teleportInPeers',
       ) ?? '';
-      return ProseApi.format(tpl, { mover: Mml.name(this as unknown as Stuff) });
+      return ProseApi.format(tpl, { mover: Mml.actor(this as unknown as Stuff) });
     }
   };
 }

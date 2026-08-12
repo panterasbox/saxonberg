@@ -151,7 +151,7 @@ controllers can render verb-templated prose without re-parsing
 is the centralized fix point for all six per-mode controllers and the
 refactored `go`. It does two things:
 
-1. Fires `Scene.send` at `system.shell.movement` with the
+1. Fires `Scene.send` at `shell.result` with the
    verb-templated rejection prose (per the concrete controller's
    `composeRejection` override).
 2. Emits a `locomotion-gate-failed { gate, mode }` note onto the

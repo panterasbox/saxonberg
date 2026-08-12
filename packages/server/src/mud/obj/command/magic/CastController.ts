@@ -24,7 +24,7 @@ import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
 import { CastActivity } from '../../../lib/magic/CastActivity';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 interface CastModel extends CommandModel {
   /** A `type: string` arg parses to a plain string. */

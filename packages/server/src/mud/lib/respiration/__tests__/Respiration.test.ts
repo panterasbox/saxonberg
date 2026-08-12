@@ -13,6 +13,7 @@
  * the water-breather species inversion; the `respires` opt-out.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';

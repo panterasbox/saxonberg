@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.measure-altitude
-  family: world.perception.measurement
-  label: Measure Altitude
-  description: Output of the measure altitude subcommand — meters above reference.

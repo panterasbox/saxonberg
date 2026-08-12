@@ -14,6 +14,7 @@ import type {
   QueryRequest,
   SubscribeRequest,
 } from '../../api/mql-subscription';
+import type { PaneHold, PaneId } from '@saxonberg/types';
 
 const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
 );
@@ -134,6 +135,35 @@ export class MqlSubscriptionLogic extends ApiLogic {
   @CallSecurity(MqlSubscriptionApiCallers)
   public refreshForInteractive(interactive: Interactive): void {
     resolveRegistry().refreshForInteractive(interactive);
+  }
+
+  /** See {@link MqlSubscriptionApi.notifyDurableSubject}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public notifyDurableSubject(subject: string): void {
+    resolveRegistry().notifyDurableSubject(subject);
+  }
+
+  /** See {@link MqlSubscriptionApi.setPanePinned}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public setPanePinned(
+    interactive: Interactive,
+    subscriptionId: string,
+    pinned: boolean | null
+  ): boolean {
+    return resolveRegistry().setPanePinned(interactive, subscriptionId, pinned);
+  }
+
+  /** See {@link MqlSubscriptionApi.listPanes}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public listPanes(
+    interactive: Interactive
+  ): {
+    subscriptionId: string;
+    paneId?: PaneId;
+    hold?: PaneHold;
+    pinned: boolean | null;
+  }[] {
+    return resolveRegistry().listPanes(interactive);
   }
 
   /** See {@link MqlSubscriptionApi.cancelAllForScope}. */

@@ -42,8 +42,7 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   enlist:
     description: "Take a mercenary (or willing NPC) into your party (captain-only)"
@@ -58,8 +57,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable"]
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   accept:
     description: "Accept a party invite"
@@ -80,8 +78,7 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   disband:
     description: "Dissolve your party (captain-only)"
@@ -98,8 +95,7 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   side:
     description: "Set your party's combat side (captain-only)"
@@ -146,8 +142,7 @@ subcommands:
         type: object
         required: true
         scope: ["reachable", "online"]
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   muster:
     description: "Re-activate a dormant durable crew by name"

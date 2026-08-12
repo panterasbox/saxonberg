@@ -3,15 +3,18 @@
  * `fg` (color) must also set at least one non-color cue (weight,
  * italic, prefix, chip) so the theme remains legible without color.
  *
- * Default theme is exempt from the strict audit (it leans on the
- * developer dark palette and not all distinctions need non-color
- * cues — fidelity to the existing cockpit). The high-contrast
- * theme MUST pass.
+ * `ink` and `marble` are exempt from the strict audit — the posture is
+ * unchanged from the retired `default` theme (the two civic grounds are
+ * the ordinary reading themes and not every distinction needs a
+ * non-colour cue), only the subject was renamed. The high-contrast
+ * theme MUST pass, because it is the theme that exists to be the test.
  */
 
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_THEME } from '../themes/default';
+import { INK_THEME } from '../themes/ink';
+import { MARBLE_THEME } from '../themes/marble';
 import { HIGH_CONTRAST_THEME } from '../themes/highContrast';
+import { THEMES, pickTheme } from '../themes';
 import type { StyleTreatment, Theme } from '../types';
 
 function hasNonColorCue(t: StyleTreatment): boolean {
@@ -51,9 +54,16 @@ describe('High-contrast theme (#27 — no color-alone semantics)', () => {
     ).toEqual([]);
   });
 
-  it('palette uses pure high-contrast values', () => {
-    expect(HIGH_CONTRAST_THEME.palette.fg).toBe('#ffffff');
-    expect(HIGH_CONTRAST_THEME.palette.bg).toBe('#000000');
+  it('palette resolves through the ground, which holds the pure values', () => {
+    // The palette now holds `var()` REFERENCES; the assertion that used
+    // to live here moved one layer down, onto the ground record that
+    // actually carries the value. Both halves are worth keeping: the
+    // reference proves the indirection, the value proves it is still
+    // maximal contrast.
+    expect(HIGH_CONTRAST_THEME.palette.fg).toBe('var(--sx-fg)');
+    expect(HIGH_CONTRAST_THEME.palette.bg).toBe('var(--sx-surface)');
+    expect(HIGH_CONTRAST_THEME.ground.fg).toBe('#ffffff');
+    expect(HIGH_CONTRAST_THEME.ground.surface).toBe('#000000');
   });
 
   it('friend / foe carry both color AND prefix', () => {
@@ -62,32 +72,69 @@ describe('High-contrast theme (#27 — no color-alone semantics)', () => {
   });
 });
 
-describe('Default theme — basic shape', () => {
-  it('name is "default"', () => {
-    expect(DEFAULT_THEME.name).toBe('default');
+describe('The theme registry — three themes, one resolver', () => {
+  it('registers exactly ink, marble and high-contrast', () => {
+    expect(Object.keys(THEMES).sort()).toEqual([
+      'high-contrast',
+      'ink',
+      'marble',
+    ]);
+    for (const [name, theme] of Object.entries(THEMES)) {
+      expect(theme.name).toBe(name);
+    }
   });
 
-  it('exposes the gossip channel default color', () => {
-    expect(DEFAULT_THEME.palette.channelDefaults.gossip).toBeDefined();
+  it('pickTheme resolves each known name to its own theme', () => {
+    expect(pickTheme('ink')).toBe(INK_THEME);
+    expect(pickTheme('marble')).toBe(MARBLE_THEME);
+    expect(pickTheme('high-contrast')).toBe(HIGH_CONTRAST_THEME);
   });
 
-  it('element / topic rules stay empty — renderer carries styling', () => {
-    // Per-tag treatment (StrongSpan = bold, EmSpan = italic, etc.) is
-    // baked into the renderer. The theme tables are present for
-    // future divergence but stay empty in v1 so per-word markers
-    // don't get erased by frame-level claims. Font-by-register adds
-    // SIBLING fields (registers / fontRoles), NOT topic/element
-    // entries — so this invariant is unaffected.
-    expect(DEFAULT_THEME.element).toEqual({});
-    expect(DEFAULT_THEME.topic).toEqual({});
+  it('⚠ `default` is retired UNALIASED — it resolves like any junk', () => {
+    // The word stopped naming anything the moment there were two
+    // grounds. It must fall through exactly as an unknown string does,
+    // not resolve to Ink by a special case that would keep the dead
+    // vocabulary quietly alive. (The server refuses it outright; this
+    // is the client half of the same decision.)
+    expect(pickTheme('default')).toBe(INK_THEME);
+    expect(pickTheme('gibberish')).toBe(INK_THEME);
+    expect(pickTheme(undefined)).toBe(INK_THEME);
+    expect(pickTheme(null)).toBe(INK_THEME);
+    expect(pickTheme(42)).toBe(INK_THEME);
   });
 });
 
-describe('Both themes expose font registers + role tokens', () => {
-  for (const theme of [DEFAULT_THEME, HIGH_CONTRAST_THEME]) {
+describe('Ink and Marble — basic shape', () => {
+  for (const theme of [INK_THEME, MARBLE_THEME]) {
     describe(theme.name, () => {
-      it('declares all three FontRole face stacks', () => {
-        for (const role of ['narrative', 'chrome', 'command'] as const) {
+      it('exposes the gossip channel default color', () => {
+        expect(theme.palette.channelDefaults.gossip).toBeDefined();
+      });
+
+      it('element / topic rules stay empty — renderer carries styling', () => {
+        // Per-tag treatment (StrongSpan = bold, EmSpan = italic, etc.) is
+        // baked into the renderer. The theme tables are present for
+        // future divergence but stay empty so per-word markers don't get
+        // erased by frame-level claims. Neither font-by-register nor the
+        // colour ground adds topic/element entries — both are SIBLING
+        // fields — so this invariant is unaffected by either.
+        expect(theme.element).toEqual({});
+        expect(theme.topic).toEqual({});
+      });
+    });
+  }
+});
+
+describe('All three themes expose font registers + role tokens', () => {
+  for (const theme of Object.values(THEMES)) {
+    describe(theme.name, () => {
+      it('declares all four FontRole face stacks', () => {
+        for (const role of [
+          'narrative',
+          'chrome',
+          'command',
+          'display',
+        ] as const) {
           expect(typeof theme.fontRoles[role]).toBe('string');
           expect(theme.fontRoles[role].length).toBeGreaterThan(0);
         }
@@ -97,15 +144,27 @@ describe('Both themes expose font registers + role tokens', () => {
         expect(theme.fontRoles.narrative).not.toBe(theme.fontRoles.command);
       });
 
-      it('the register table maps world prose to narrative, system to command', () => {
-        expect(theme.registers['world.speech']).toBe('narrative');
-        expect(theme.registers['system']).toBe('command');
+      it('the register table maps world prose to narrative, machine to command', () => {
+        // Keyed on ROOTS now — the payoff of a tree that carries
+        // subject matter, since the voice a frame speaks in follows
+        // from what it is about.
+        expect(theme.registers['speech']).toBe('narrative');
+        expect(theme.registers['act']).toBe('narrative');
+        expect(theme.registers['sense']).toBe('narrative');
+        expect(theme.registers['shell']).toBe('command');
+        expect(theme.registers['session']).toBe('command');
       });
     });
   }
 
-  it('both themes share the identical register mapping (orthogonal to contrast)', () => {
-    expect(HIGH_CONTRAST_THEME.registers).toEqual(DEFAULT_THEME.registers);
-    expect(HIGH_CONTRAST_THEME.fontRoles).toEqual(DEFAULT_THEME.fontRoles);
+  it('all three themes share the identical register mapping', () => {
+    // Typography is orthogonal to BOTH the ground and the contrast
+    // axis. One shared table, three consumers — the single-source
+    // claim, asserted over every consumer rather than the one pair it
+    // used to cover.
+    expect(MARBLE_THEME.registers).toEqual(INK_THEME.registers);
+    expect(MARBLE_THEME.fontRoles).toEqual(INK_THEME.fontRoles);
+    expect(HIGH_CONTRAST_THEME.registers).toEqual(INK_THEME.registers);
+    expect(HIGH_CONTRAST_THEME.fontRoles).toEqual(INK_THEME.fontRoles);
   });
 });

@@ -570,7 +570,7 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and
   the coroner economy.
 - **Declarative reference lifetimes** —
-  [reference-lifetime-slate](../slates/builds/reference-lifetime-slate.md),
+  [reference-lifetime-slate](../slates/tails/reference-lifetime-slate.md),
   surfaced by this build. `MortalArc` holds **no handle to the corpse**:
   it was redundant (a corpse is laid at the body's own container, so
   "beside your corpse" and "where you fell" are the same room) and

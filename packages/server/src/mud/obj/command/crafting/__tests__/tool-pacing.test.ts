@@ -8,6 +8,7 @@
  * can't zero a duration, and rate-1 when the instrument isn't a tool.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HammerController from '../HammerController';
 import HeatController from '../HeatController';

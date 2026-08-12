@@ -8,6 +8,7 @@
  * nothing.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WaterController from '../WaterController';
 import WateringCan from '../../../WateringCan';
@@ -208,10 +209,12 @@ describe('the watering capability', () => {
   it('a carried can affords water; the same can on the floor does not', () => {
     const can = makeCan(1);
     const contributions = can.getInstanceContributions();
-    // The `carried` placement puts it in the INVENTORY bucket only, so a
-    // can lying in the room confers nothing (the whetstone rule as data).
-    expect(contributions.inventory ?? []).toContain('bulk/water.yaml');
-    expect(contributions.environment ?? []).not.toContain('bulk/water.yaml');
+    // The `carried` placement puts it in the ENVIRONMENT bucket only —
+    // the can grants outward to whoever holds it — so a can lying in the
+    // room confers nothing on the occupants (which would be `peers`).
+    // The whetstone rule, as data.
+    expect(contributions.environment ?? []).toContain('bulk/water.yaml');
+    expect(contributions.peers ?? []).not.toContain('bulk/water.yaml');
   });
 });
 

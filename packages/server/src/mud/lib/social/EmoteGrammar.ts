@@ -172,9 +172,9 @@ function buildRenderContext(
   audience: Audience,
   actor: Stuff,
 ): Record<string, unknown> {
-  const actorName = Mml.name(actor);
+  const actorName = Mml.actor(actor);
   const target = bound.target;
-  const targetName = target ? Mml.name(target) : null;
+  const targetName = target ? Mml.actor(target) : null;
 
   const ctx: Record<string, unknown> = { ...bound.fills };
 

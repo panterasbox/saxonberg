@@ -127,7 +127,7 @@ function push<T>(
     // associate the long-form terminal prose with the prompt envelope.
     if (opts?.body !== undefined) {
       MessageApi.scene(holder)
-        .topic('world.prompt')
+        .topic('shell.prompt')
         .toSelf(opts.body, { promptId })
         .send();
     }
@@ -144,7 +144,7 @@ function push<T>(
 
 /**
  * Resolve the Interactive's holder + assert it's a Sensor (so
- * `MessageApi.sendEnvelope` and the `world.prompt` MessageFrame delivery
+ * `MessageApi.sendEnvelope` and the `shell.prompt` MessageFrame delivery
  * can address it).
  */
 function requireViewer(interactive: Interactive): Stuff & Sensor {
@@ -517,6 +517,12 @@ export class PromptLogic extends ApiLogic {
       if (record) cancelOne(record, reason);
     }
     return count;
+  }
+
+  /** See {@link PromptApi.isPending}. */
+  @CallSecurity(PromptApiCallers)
+  public isPending(interactive: Interactive, promptId: string): boolean {
+    return byInteractive.get(interactive)?.has(promptId) ?? false;
   }
 
   /**

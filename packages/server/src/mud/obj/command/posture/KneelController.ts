@@ -25,7 +25,7 @@ export default class KneelController extends CommandController<KneelModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
         .send();
       context.note({
@@ -37,7 +37,7 @@ export default class KneelController extends CommandController<KneelModel> {
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
-        `KneelController: mustBePostured validator should have caught ${target.stuffId}`
+        `KneelController: requires: PosturedMixin should have caught ${target.stuffId}`
       );
     }
     if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {
@@ -54,7 +54,7 @@ export default class KneelController extends CommandController<KneelModel> {
     );
     if (!result.ok) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`${result.summary}`)
         .send();
       context.note({
@@ -66,9 +66,9 @@ export default class KneelController extends CommandController<KneelModel> {
     }
 
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You kneel down.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} kneels down.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} kneels down.`)
       .send();
     return;
   }

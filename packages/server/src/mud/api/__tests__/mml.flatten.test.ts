@@ -26,15 +26,14 @@ describe('Mml.flatten — per-tag failsafe table', () => {
     expect(Mml.flatten('<msg>hello</msg>')).toBe('hello');
   });
 
-  it('player, npc, mention, link, name, item, location, object, speech, detail, direction, exit — children verbatim', () => {
+  it('player, npc, mention, link, thing, location, speech, detail, direction, exit — children verbatim', () => {
     expect(Mml.flatten('<player stuff-id="x">Bobalu</player>')).toBe('Bobalu');
     expect(Mml.flatten('<npc stuff-id="x">Guard</npc>')).toBe('Guard');
     expect(Mml.flatten('<mention stuff-id="x">@Bobalu</mention>')).toBe('@Bobalu');
     expect(Mml.flatten('<link href="mudcmd:look%20x">label</link>')).toBe('label');
-    expect(Mml.flatten('<name stuff-id="x">Alice</name>')).toBe('Alice');
-    expect(Mml.flatten('<item stuff-id="x">sword</item>')).toBe('sword');
+    expect(Mml.flatten('<thing stuff-id="x">Alice</thing>')).toBe('Alice');
+    expect(Mml.flatten('<thing stuff-id="x">sword</thing>')).toBe('sword');
     expect(Mml.flatten('<location stuff-id="x">Lobby</location>')).toBe('Lobby');
-    expect(Mml.flatten('<object stuff-id="x">desk</object>')).toBe('desk');
     expect(Mml.flatten('<speech>"hi"</speech>')).toBe('"hi"');
     expect(Mml.flatten('<detail key="hands">hands</detail>')).toBe('hands');
     expect(Mml.flatten('<direction>north</direction>')).toBe('north');

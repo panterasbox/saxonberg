@@ -542,3 +542,37 @@ numerically). See [biome.md](./biome.md) for the breakpoints.
 - [command-spec.md](./command-spec.md) — Option E (per-subcommand
   controllers), the `analyze` / `measure` verb pattern that
   consumes Quantity output.
+
+## ⭐ A reading is more than a number
+
+`toMml` / `formatMml` take an optional `QuantityMarkupOptions` carrying
+four facts a bare value does not have:
+
+| Field | Meaning |
+|---|---|
+| `channel` | *What kind of reading this is* — the client's stable identity for pinning to an instrument panel or charting a series. From `MEASURE_CHANNELS` (`lib/perception/MeasureChannel.ts`). |
+| `via` | The instrument that produced it. |
+| `lo` / `hi` | Optional working range, in this quantity's own unit. |
+
+All four are **omitted from the emitted tag when absent**, so every
+existing call site is unaffected and a quantity with no instrument
+behind it never claims to have one.
+
+`via` is the pedagogical seam: **a reading is only honest if you can say
+how it was taken.** A number with no provenance is a number the player
+has to trust; a number with an instrument beside it is one they can
+reason about.
+
+`buildMarkup` is the single chokepoint — the attributes thread through
+the two public emitters rather than being written at every call site,
+which is why adding them touched ~25 emission sites without editing any
+of them individually. Attribute order is fixed (`channel`, `unit`,
+`value`, `tag`, `via`, `lo`, `hi`) so snapshot assertions are stable,
+and every value is escaped — `via` is the one that can carry authored
+text, so escaping there is load-bearing rather than defensive.
+
+⚠ `MEASURE_CHANNELS` is **not** `lib/material/Channel.ts`. That
+vocabulary (`edge` · `point` · `blunt` · `shock` · `heat`) is the shape
+of a *force*. These are kinds of *reading*. Homonyms at unrelated
+layers — see [messaging.md](./messaging.md) for the full note and the
+security posture of the `<quantity>` tag itself.

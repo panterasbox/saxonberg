@@ -7,6 +7,7 @@
  * to touch it here. `makeStuff` from test-setup ensures it's loaded.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { ProxyApi } from '../proxy';

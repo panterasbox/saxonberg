@@ -26,8 +26,7 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   revoke:
     description: "Revoke wizard status from a player"
@@ -42,6 +41,5 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt

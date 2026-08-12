@@ -23,6 +23,7 @@
  * end at the last positional rather than at end-of-line.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';

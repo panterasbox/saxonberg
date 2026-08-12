@@ -9,6 +9,7 @@
  *     result kinds
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as resolvePath } from 'path';
@@ -46,7 +47,7 @@ describe('CommandApi.resolveParser', () => {
     // Use a non-parser module path. We point at a known TS file that
     // doesn't default-export a parser shape.
     await expect(
-      CommandApi.resolveParser('/lib/command/validators/mustBeVisible')
+      CommandApi.resolveParser('/lib/command/validators/mustBeInLocation')
     ).rejects.toThrow(/must default-export an object with \{ name, parse \}/);
     void MUD_ROOT;
   });

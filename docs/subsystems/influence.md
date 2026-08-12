@@ -56,6 +56,63 @@ The symmetry lives at the standing/band layer; the **asymmetry stays at the
 source** — capital is `concave($)`, not `engagement × quality`, so no shared
 formula fits. Raw logs stay per-faucet.
 
+## ⭐ Standing levels — what a stock measures *of*
+
+> **Make** (you build) and **Fund** (you pay) are things the **person**
+> does → account-level. **Play** accrues by living in the world as one
+> particular body → per-character, and is the only standing that can
+> legitimately diverge across an account's characters.
+
+`STOCK_LEVEL` states that as data:
+
+| stock | level |
+|---|---|
+| `consumer` (play) | `character` |
+| `producer` (make) | `account` |
+| `capital` (fund) | `account` |
+
+⚠ **Vocabulary, not arithmetic.** Declaring producer account-level says
+nothing about *how* an account's figure derives from its characters'.
+
+### ⚠⚠ `standingForHost` — the seam, and its stub
+
+`InfluenceApi.standingForHost(host, stock)` is the read every
+player-facing surface goes through: the `standing` verb, the `profile`
+digest, and the `makeStanding` live field. That is the whole point —
+three surfaces reading one figure through one function **cannot
+disagree**.
+
+**The account-level aggregation inside it is a stub. It does not
+aggregate.** For an account-level stock it returns the host's own
+subject standing, exactly as a character-level read would. So make
+standing is still per-character today, and that is *visible rather than
+pretended*.
+
+This is deliberate. How an account's make standing derives from its
+characters' — sum, best, decayed differently, something else — is an
+open design question and its own piece of work. Committing to a formula
+would ship a number players can see derived from a placeholder, and
+every surface reading it would encode the placeholder by reference.
+
+An earlier attempt did commit to one (banding the sum of the account's
+scalars, computed inside `Avatar`) and produced three defects worth
+naming, because they are the failure modes any retry should avoid:
+
+1. **Split-brain** — only the dashboard was changed, so `standing` and
+   `profile` still answered per-character and one player could see two
+   different make bands.
+2. **Wrong cutoffs** — `Band.fromScalar(total)` with no argument
+   silently uses `DEFAULT_BAND_THRESHOLDS` while every real producer
+   band uses the configured ones from AppSettings.
+3. **Silent downgrade** — it read `getUser()`, which is runtime-only and
+   unpersisted; unset, it quietly fell back to per-character with
+   nothing saying so.
+
+⚠ `producer_events` is **not** re-keyed by any of this. Re-keying has a
+wrong answer available — silently dropping the history of anyone with
+more than one character — so whatever formula lands should aggregate on
+**read**, which derive-on-read makes possible.
+
 ## The producer stock (the make faucet)
 
 An author earns producer standing from **engagement their released content
@@ -191,3 +248,43 @@ explicit `release` action); the **second-order engagement** quality
 enrichment (register D2); the per-Player → User franchise rollup; a
 conviction verb. Producer feeds **no vote** this build — measured standing
 only.
+
+
+## The standing witness
+
+After each append is persisted, the ledger calls
+**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+call on the one consumer that cares.
+
+Every standing here derives on read, which works fine for a verb (you
+ask, it computes) and not at all for a **live figure on a client**,
+which has to learn its number changed without asking. This is that seam.
+
+⚠ **It is deliberately NOT an `EventApi` broadcast.** The bus is for
+genuinely global signals with unknown consumers; this has exactly one
+known consumer, so it is a method call. An earlier cut of this build did
+mint a bus event per ledger — six classes — and they were not merely
+redundant, they were **wired to nothing**: the dependency index cannot
+match a durable `templatePath` through a `ChangeSource`. See
+[mql-subscription.md](./mql-subscription.md).
+
+⚠ **After the write, never before.** A consumer that recomputes must not
+read a ledger missing the row it was just told about.
+
+## ⚠ Seeding the log does not move the figure
+
+`RenownApi.renownOf` reads `RenownStanding.cached()` — an in-memory map
+warmed at boot from the **`renown` collection**, which holds the
+*materialized* standings. It does **not** read `renown_events`.
+
+So writing rows into `renown_events` (as
+`packages/server/scripts/seed-standing.ts` does) changes nothing until a
+**recompute** folds the log into the standings collection. A bare
+restart re-warms the map from a collection the seeding never wrote, and
+is therefore a no-op.
+
+This is the trap that made a correctly-seeded character still read
+`dormant` through a whole live drive of the S1 build. The same holds for
+`participation` and `producer`. `transcripts` and `disposition_events`
+are the opposite — they derive on read straight from the log, so seeded
+rows are live as soon as the fold runs.

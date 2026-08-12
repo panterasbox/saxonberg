@@ -5,6 +5,7 @@
  * verb uses), and `recognizes` reports it.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { SoulMixin } from "../Soul";
 import { RecognitionApi } from "../../../api/recognition";

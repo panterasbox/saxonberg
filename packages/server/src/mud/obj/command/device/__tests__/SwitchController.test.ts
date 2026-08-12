@@ -3,6 +3,7 @@
  * non-switchable target.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import SwitchController from '../SwitchController';
 import { SwitchableMixin } from '../../../../lib/boundary/Switchable';

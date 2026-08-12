@@ -5,6 +5,7 @@
  * The no-registry path returns the documented closed-fail defaults.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CompactApi } from '../compact';
 import { StuffApi } from '../stuff';

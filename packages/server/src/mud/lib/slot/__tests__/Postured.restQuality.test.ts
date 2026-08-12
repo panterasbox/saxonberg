@@ -5,6 +5,7 @@
  * field (the `transmissionFactor`-on-Vessel pattern; NOT on SlotSpec).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PosturedMixin } from '../Postured';
 import { SlottedMixin } from '../Slotted';

@@ -4,6 +4,7 @@
  * against the `crafting.keenness.deliveryFloor` dial fallback.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Weapon from '../../../obj/equipment/Weapon';
 import { MixinApi } from '../../../api/mixin';

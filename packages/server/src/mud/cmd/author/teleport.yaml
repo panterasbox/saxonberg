@@ -41,12 +41,14 @@ args:
     type: object
     required: false
     scope: ["online", "/obj/**", "reachable"]
+    requires: any
 options:
   target:
     short: t
     type: object
     scope: ["reachable", "online", "/obj/**"]
     description: "Move this object/being instead of yourself (privileged; access-gated)."
+    requires: any
   force:
     short: f
     type: boolean

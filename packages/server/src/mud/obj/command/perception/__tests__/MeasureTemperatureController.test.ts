@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import MeasureTemperatureController from '../MeasureTemperatureController';
 import Thermometer from '../../../instrument/Thermometer';
@@ -112,7 +113,7 @@ describe('MeasureTemperatureController', () => {
 
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
-    expect(frame.body).toContain('<quantity unit="K"');
+    expect(frame.body).toContain('<quantity channel="thermal" unit="K"');
     expect(frame.body).toContain('value="310"');
     expect(frame.body).toContain('(hot)');
   });

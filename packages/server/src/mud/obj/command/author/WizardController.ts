@@ -81,7 +81,7 @@ export default class WizardController extends CommandController<WizardModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.access')
+      .topic('shell.error')
       .toSelf(body)
       .send();
   }

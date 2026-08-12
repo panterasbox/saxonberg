@@ -34,7 +34,7 @@ See also:
 - [../../subsystems/forums.md](../../subsystems/forums.md) — the boundary:
   forums host *discourse and the civic aftermath*, never adjudicate *what
   is true* (that's the sim's job).
-- [reputation-slate.md](./builds/reputation-slate.md) /
+- [reputation-slate.md](./reputation-slate.md) /
   [../../subsystems/renown.md](../../subsystems/renown.md) — **credibility**
   as a renown consumer.
 - [farming-slate.md](./farming-slate.md), the University content, and the

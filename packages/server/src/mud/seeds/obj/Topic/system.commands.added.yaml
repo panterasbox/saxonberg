@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.commands.added
-  family: system.commands
-  label: Added
-  description: New verbs have been wired into this client's command schema.

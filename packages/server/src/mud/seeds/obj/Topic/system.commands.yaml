@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.commands
-  family: system
-  label: Commands
-  description: Command-vocabulary lifecycle — verbs being added, removed, or reset for this client.

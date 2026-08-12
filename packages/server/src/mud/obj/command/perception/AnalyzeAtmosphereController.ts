@@ -58,7 +58,7 @@ export default class AnalyzeAtmosphereController extends CommandController<Analy
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-atmosphere')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You aren't anywhere to analyze.`)
         .send();
       return;
@@ -87,19 +87,19 @@ export default class AnalyzeAtmosphereController extends CommandController<Analy
       Mml.compose`  zone:  ${zonePath ?? '(none)'}`,
     );
     lines.push(
-      Mml.compose`  temperature: ${traces.temperature.value.formatMml(undefined, 'thermal')} (${traces.temperature.value.tag('thermal')}) — ${describeSource(traces.temperature)}`,
+      Mml.compose`  temperature: ${traces.temperature.value.formatMml(undefined, 'thermal', { channel: 'thermal' })} (${traces.temperature.value.tag('thermal')}) — ${describeSource(traces.temperature)}`,
     );
     lines.push(
-      Mml.compose`  pressure:    ${traces.pressure.value.formatMml()} (${traces.pressure.value.tag()}) — ${describeSource(traces.pressure)}`,
+      Mml.compose`  pressure:    ${traces.pressure.value.formatMml(undefined, undefined, { channel: 'atmosphere' })} (${traces.pressure.value.tag()}) — ${describeSource(traces.pressure)}`,
     );
     lines.push(
-      Mml.compose`  humidity:    ${traces.humidity.value.formatMml()} (${traces.humidity.value.tag()}) — ${describeSource(traces.humidity)}`,
+      Mml.compose`  humidity:    ${traces.humidity.value.formatMml(undefined, undefined, { channel: 'atmosphere' })} (${traces.humidity.value.tag()}) — ${describeSource(traces.humidity)}`,
     );
     lines.push(
-      Mml.compose`  wind:        ${traces.wind.value.formatMml()} — ${describeSource(traces.wind)}`,
+      Mml.compose`  wind:        ${traces.wind.value.formatMml(undefined, undefined, { channel: 'atmosphere' })} — ${describeSource(traces.wind)}`,
     );
     lines.push(
-      Mml.compose`  gravity:     ${traces.gravity.value.formatMml()} (${traces.gravity.value.tag()}) — ${describeSource(traces.gravity)}`,
+      Mml.compose`  gravity:     ${traces.gravity.value.formatMml(undefined, undefined, { channel: 'gravity' })} (${traces.gravity.value.tag()}) — ${describeSource(traces.gravity)}`,
     );
     lines.push(
       Mml.compose`  atmosphere:  ${traces.atmosphere.value} — ${describeSource(traces.atmosphere)}`,
@@ -116,17 +116,17 @@ export default class AnalyzeAtmosphereController extends CommandController<Analy
     if (volume !== null || ceiling !== null) {
       lines.push(Mml.compose`  derived:`);
       if (volume !== null) {
-        lines.push(Mml.compose`    volume:  ${volume.formatMml()}`);
+        lines.push(Mml.compose`    volume:  ${volume.formatMml(undefined, undefined, { channel: 'spatial' })}`);
       }
       if (ceiling !== null) {
-        lines.push(Mml.compose`    ceiling: ${ceiling.formatMml()}`);
+        lines.push(Mml.compose`    ceiling: ${ceiling.formatMml(undefined, undefined, { channel: 'spatial' })}`);
       }
     }
 
     // Density of the resolved atmosphere if known.
     try {
       const d = BiomeApi.densityOf(traces.atmosphere.value);
-      lines.push(Mml.compose`    density: ${d.formatMml()}`);
+      lines.push(Mml.compose`    density: ${d.formatMml(undefined, undefined, { channel: 'atmosphere' })}`);
     } catch {
       // unknown tag — skip silently.
     }
@@ -136,7 +136,7 @@ export default class AnalyzeAtmosphereController extends CommandController<Analy
       body = Mml.compose`${body}${line}\n`;
     }
     MessageApi.scene(giver)
-      .topic('world.perception.measurement.analyze-atmosphere')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
   }

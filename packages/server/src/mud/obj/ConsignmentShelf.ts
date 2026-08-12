@@ -44,8 +44,7 @@ export default class ConsignmentShelf extends ConsignmentShelfBase {
 
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ["retail/consign.yaml", "retail/reclaim.yaml", "retail/buy.yaml"],
-    inventory: ["retail/consign.yaml", "retail/reclaim.yaml"],
-    peers: [],
+    peers: ["retail/consign.yaml", "retail/reclaim.yaml", "retail/buy.yaml"],
+    environment: ["retail/consign.yaml", "retail/reclaim.yaml"],
   };
 }

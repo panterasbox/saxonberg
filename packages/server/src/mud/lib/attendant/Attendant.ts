@@ -312,7 +312,7 @@ export function AttendantMixin<TBase extends MixinConstructor<Stuff>>(
       const who = StuffApi.findByTemplatePath(customerKey);
       if (!who || !MixinApi.isSensor(who)) return;
       MessageApi.scene(who)
-        .topic("world.narration.action")
+        .topic("act.deed")
         .toSelf(Mml.compose`${line}`)
         .send();
     }

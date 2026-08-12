@@ -33,7 +33,7 @@ interface AnalyzeWeatherModel extends CommandModel {
   location?: MqlOneResult;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-weather';
+const TOPIC = 'sense.reading';
 
 /** Human label per deviated field. */
 const FIELD_LABELS: Record<WeatherField, string> = {

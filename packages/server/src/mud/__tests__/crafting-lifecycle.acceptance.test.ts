@@ -11,6 +11,7 @@
  * harness.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ForgeController from '../obj/command/crafting/ForgeController';
 import SharpenController from '../obj/command/crafting/SharpenController';

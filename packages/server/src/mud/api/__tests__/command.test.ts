@@ -10,6 +10,7 @@
  * the responsibility of `CommandDefinition.hasVerb`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CommandApi } from '../command';
 

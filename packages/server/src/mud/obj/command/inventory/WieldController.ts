@@ -3,7 +3,7 @@
  *
  * Validation surface (from `cmd/wield.yaml`):
  *   - requiresAnimate, requiresSlotted (verb-level)
- *   - mustBeInInventory, mustBeWieldable (target-level)
+ *   - mustBeInInventory (target-level) + `requires: WieldableMixin`
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -28,7 +28,7 @@ export default class WieldController extends CommandController<WieldModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't have any '${model.target.raw}'.`)
         .send();
       context.note({
@@ -48,9 +48,9 @@ export default class WieldController extends CommandController<WieldModel> {
     // horse hauls is NOT the hauler, so their hands stay free.
     if (MixinApi.isHauling(giver) && giver.isHitched()) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(
-          Mml.compose`Your hands are full — you're pulling ${Mml.item(giver.getHauledCart()!)}.`,
+          Mml.compose`Your hands are full — you're pulling ${Mml.thing(giver.getHauledCart()!)}.`,
         )
         .send();
       context.note({
@@ -68,7 +68,7 @@ export default class WieldController extends CommandController<WieldModel> {
     const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(giver);
     if (!bodyPlanPath) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You have no body plan.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'BodyPlanMixin' });
@@ -77,9 +77,9 @@ export default class WieldController extends CommandController<WieldModel> {
     const slots = target.getSlotClaim(bodyPlanPath);
     if (slots.length === 0) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(
-          Mml.compose`${Mml.item(target)} doesn't fit your hands.`,
+          Mml.compose`${Mml.thing(target)} doesn't fit your hands.`,
         )
         .send();
       context.note({
@@ -92,7 +92,7 @@ export default class WieldController extends CommandController<WieldModel> {
     for (const slot of slots) {
       if (giver.isSlotFull(slot)) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
+          .topic('sense.survey')
           .toSelf(Mml.compose`Your hands are full.`)
           .send();
         context.note({
@@ -107,10 +107,10 @@ export default class WieldController extends CommandController<WieldModel> {
     // dispatcher's outer catch emits controller-error uniformly.
     SlotApi.occupyAll(giver, target, [...slots]);
     MessageApi.scene(giver)
-      .topic('world.perception.inventory')
-      .toSelf(Mml.compose`You wield ${Mml.item(target)}.`)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`You wield ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} wields ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} wields ${Mml.thing(target)}.`
       )
       .send();
     return;

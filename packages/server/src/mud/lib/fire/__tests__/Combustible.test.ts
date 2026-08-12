@@ -7,6 +7,7 @@
  * real `WorldClockApi` seam (the Thermal.test harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
 import Material from '../../material/Material';

@@ -18,7 +18,7 @@ interface StatusModel extends CommandModel {
   text?: string;
 }
 
-const TOPIC = 'system.shell.player';
+const TOPIC = 'shell.result';
 
 export default class StatusController extends CommandController<StatusModel> {
   execute(model: StatusModel, context: CommandContext): void {

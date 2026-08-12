@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SlottedMixin, UNBOUNDED_CAPACITY } from '../../lib/slot/Slotted';
 import { SlottableMixin } from '../../lib/slot/Slottable';

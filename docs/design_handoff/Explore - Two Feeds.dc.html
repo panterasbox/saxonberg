@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --field:#002868; --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --bad:#BF0A30; --info:#5b8fd6;
+      --paper:#f2ebdc; --paper-ink:#2a2418; --paper-line:#d8cdb4;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    a { color:var(--accent); text-decoration:none; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .dfr { display:flex; gap:11px; padding:8px 0; border-bottom:1px solid var(--line-soft); }
+    .dfk { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase; flex:0 0 58px; padding-top:4px; }
+    .wp { font-family:'Newsreader',Georgia,serif; font-size:15px; line-height:1.6; }
+    .aff { color:var(--accent); cursor:pointer; box-shadow:inset 0 -1px 0 color-mix(in oklab,var(--accent) 50%,transparent); border-radius:2px; padding:0 1px; }
+    .aff:hover { background:color-mix(in oklab,var(--accent) 16%,transparent); }
+
+    /* ── the pane feed: same frames, structured renderer ── */
+    .pane { border:1px solid var(--line); border-radius:3px; background:var(--surface); margin-bottom:9px; overflow:hidden; }
+    .pane.live { border-color:color-mix(in oklab,var(--accent) 45%,var(--line)); }
+    .pane.pinned { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); }
+    .pane.faded { border-color:var(--line-soft); background:transparent; }
+    .pane.faded .ph { background:transparent; border-bottom-color:var(--line-soft); }
+    .pane.faded:hover { border-color:var(--line); }
+    .ph { display:flex; align-items:center; gap:8px; padding:7px 11px; background:var(--sunken); border-bottom:1px solid var(--line); }
+    .ph .pt { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; }
+    .pin { font-size:11px; color:var(--fg-mute); cursor:pointer; padding:2px 4px; border-radius:2px; }
+    .pin:hover { color:var(--fg); background:var(--raised); }
+    .pin.on { color:var(--red); }
+    .pb { padding:11px; }
+    .row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px solid var(--line-soft); }
+    .row:last-child { border-bottom:none; }
+    .k { font-size:11.5px; color:var(--fg-dim); }
+    .v { font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--fg); }
+    .sig { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 40%,transparent); border-radius:2px; padding:1px 5px; }
+    .more { font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--fg-mute); border:1px dashed var(--line); border-radius:2px; padding:1px 5px; cursor:pointer; }
+    .opt { display:flex; align-items:center; gap:8px; min-height:34px; padding:0 10px; border:1px solid var(--line);
+           border-radius:3px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--fg); cursor:pointer; }
+    .opt:hover { border-color:var(--accent); }
+    .opt.sel { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+    .send { font-family:'Public Sans',sans-serif; font-size:12.5px; font-weight:600; color:var(--white);
+            background:var(--red); border:1px solid var(--white); border-radius:3px; padding:7px 14px; cursor:pointer; }
+    .seg { font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--fg-dim); cursor:pointer; padding:2px 5px; border-radius:2px; }
+    .seg:hover { background:var(--raised); color:var(--fg); }
+    .seg.tip { color:var(--accent); background:color-mix(in oklab,var(--accent) 12%,transparent); }
+  </style>
+</helmet>
+
+<div id="ex-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <nav style="flex:0 0 58px; display:flex; flex-direction:column; align-items:center; gap:5px; padding:12px 8px; background:var(--sunken); border-right:1px solid var(--line);">
+    <span class="seal" style="width:30px; height:30px; font-size:15px; margin-bottom:8px;">S</span>
+    <div style="width:32px;height:32px;border-radius:3px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-size:14px;">◆</div>
+    <div style="width:32px;height:32px;border-radius:3px;color:var(--fg-mute);display:flex;align-items:center;justify-content:center;font-size:14px;">▭</div>
+    <div style="width:32px;height:32px;border-radius:3px;color:var(--fg-mute);display:flex;align-items:center;justify-content:center;font-size:14px;">▶</div>
+  </nav>
+
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <header style="flex:none; display:flex; align-items:center; gap:14px; padding:9px 18px; background:var(--surface); border-bottom:1px solid var(--line);">
+      <div>
+        <div class="cap" style="font-size:13.5px;">The Cartwright's Yard</div>
+        <div style="display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--good);"></span><span>Ashmill · 2 here</span>
+        </div>
+      </div>
+      <div style="flex:1;"></div>
+      <span class="lbl">explore</span>
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute); border:1px solid var(--line); border-radius:2px; padding:2px 7px;">two feeds · independent scroll</span>
+    </header>
+
+    <div style="flex:1; display:flex; min-height:0;">
+
+      <!-- ══ FEED 1 · text ══ -->
+      <div style="flex:1; display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line);">
+        <div style="flex:none; display:flex; align-items:center; gap:8px; padding:6px 18px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Terminal</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute);">oldest → newest</span>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:10px 18px;">
+          <sc-for list="{{ feed }}" as="f" hint-placeholder-count="5">
+            <div class="dfr">
+              <span class="dfk" style="color:{{ f.hue }};">{{ f.kind }}</span>
+              <div class="wp" style="flex:1; color:{{ f.color }};">{{ f.node }}</div>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute); flex:0 0 30px; text-align:right; padding-top:4px;">{{ f.time }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="flex:none; padding:9px 18px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+            <span class="lbl">focus</span>
+            <span class="seg">here</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--fg-mute);">›</span>
+            <span class="seg tip">forge</span>
+            <span style="flex:1;"></span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--fg-mute);">$focus = here:forge</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:9px;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--fg-mute);">›</span>
+            <div style="flex:1; display:flex; align-items:center; gap:6px; height:38px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--fg);">analyze forge</span>
+              <span style="width:8px;height:14px;background:var(--accent);border-radius:1px;"></span>
+            </div>
+            <button class="send" style="height:38px;">Send ⏎</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FEED 2 · panes ══ -->
+      <aside style="flex:0 0 384px; display:flex; flex-direction:column; background:var(--ground); min-height:0;">
+        <div style="flex:none; display:flex; align-items:center; gap:8px; padding:6px 14px; border-bottom:1px solid var(--line-soft);">
+          <span class="lbl">Panes</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute);">newest → oldest</span>
+          <span style="flex:1;"></span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute);">{{ pinnedCount }} pinned</span>
+        </div>
+
+        <div style="flex:1; overflow-y:auto; padding:10px 14px 14px;">
+          <sc-for list="{{ panes }}" as="p" hint-placeholder-count="4">
+            <div class="pane {{ p.cls }}">
+              <div class="ph">
+                <span class="pt" style="color:{{ p.hue }};">{{ p.type }}</span>
+                <span style="font-family:'Spectral',serif; font-size:12.5px; color:var(--fg); flex:1; min-width:0;">{{ p.title }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--fg-mute);">{{ p.age }}</span>
+                <span class="pin {{ p.pinCls }}" data-pin="{{ p.id }}" data-auto="{{ p.auto }}">{{ p.pinGlyph }}</span>
+              </div>
+              <sc-if value="{{ p.open }}" hint-placeholder-val="{{ true }}">
+                <div class="pb">{{ p.body }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+
+          <div style="font-size:11px; color:var(--fg-mute); line-height:1.55; padding:6px 2px 0; border-top:1px solid var(--line-soft); margin-top:4px;">
+Nothing leaves while you can still act on it. A pane is held because it <span style="color:var(--fg-dim);">owes a reply</span>, or is <span style="color:var(--fg-dim);">here</span>, <span style="color:var(--fg-dim);">in reach</span>, or <span style="color:var(--fg-dim);">on you</span> — never because it is recent. It fades only when that stops being true, and the header says which. The pin overrides the decision either way.
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  // pins[id]: undefined = automatic, true = held by you, false = dismissed by you
+  state = { pins:{}, sel:null };
+
+  // What the client currently believes about the world. Every hold below is a
+  // question about THIS, never about elapsed time.
+  WORLD = { here:'yard', tomasPresent:true, forgeInReach:true, packCarried:true };
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('ex-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const p=e.target.closest('[data-pin]');
+      if(p&&r.contains(p)){
+        const id=p.getAttribute('data-pin');
+        const autoKeep=p.getAttribute('data-auto')==='1';
+        return this.setState(s=>({ pins:{...s.pins,
+          [id]: s.pins[id]===undefined ? !autoKeep : undefined }}));
+      }
+      const o=e.target.closest('[data-opt]');
+      if(o&&r.contains(o)) return this.setState({sel:o.getAttribute('data-opt')});
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  el(t,p,...c){ return React.createElement(t,p,...c); }
+  row(k,v,tone){ return this.el('div',{className:'row',key:k},
+    this.el('span',{className:'k'},k),
+    this.el('span',{className:'v',style:{color:tone||'var(--fg)'}},v)); }
+
+  renderVals(){
+    const E=(t,p,...c)=>React.createElement(t,p,...c);
+    const pins=this.state.pins;
+
+    // ── FEED 2 · panes. A pane is a frame with a structured payload;
+    //    section ORDER is derived from composition, so mixtures sort themselves.
+    const PANES=[
+      { id:'form', type:'Form', hue:'#e8705c', title:'Tomas asks', hold:'unanswered', fact:true,
+        body:E('div',null,
+          E('div',{style:{fontFamily:"'Newsreader',Georgia,serif",fontSize:'14.5px',lineHeight:1.55,marginBottom:'9px'}},
+            '“Which do you want trued first? I can only set up the jig once.”'),
+          E('div',{style:{display:'flex',flexDirection:'column',gap:'5px',marginBottom:'9px'}},
+            ['axle','rim','both'].map(k=>E('div',{key:k, className:'opt'+(this.state.sel===k?' sel':''), 'data-opt':k},
+              E('span',{style:{color:'var(--accent)'}},'reply'),
+              E('span',null,k)))),
+          E('div',{style:{display:'flex',alignItems:'center',gap:'9px'}},
+            E('button',{className:'send'},'reply '+this.state.sel),
+            E('span',{style:{fontSize:'10.5px',color:'var(--fg-mute)'}},'unanswered forms pin themselves'))) },
+
+      { id:'dossier', type:'Agent', hue:'#5b8fd6', title:'Tomas', hold:'present', fact:true,
+        body:E('div',null,
+          E('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'9px'}},
+            ['Vocal','Employed','Mobile'].map(m=>E('span',{key:m,className:'sig'},m)),
+            E('span',{className:'more'},'+11')),
+          E('div',null,
+            this.row('Trade','wheelwright'),
+            this.row('Bearing','preoccupied'),
+            this.row('Hiring','not today','var(--warn)')),
+          E('div',{style:{display:'flex',gap:'5px',marginTop:'9px'}},
+            ['talk tomas','look tomas'].map(c=>E('span',{key:c,className:'opt',style:{fontSize:'11px'}},c)))) },
+
+      { id:'instr', type:'Instrument', hue:'var(--warn)', title:'the forge', hold:'inReach', fact:true,
+        body:E('div',null,
+          E('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'9px'}},
+            ['Furnace','Thermal','Combustible'].map(m=>E('span',{key:m,className:'sig'},m)),
+            E('span',{className:'more'},'+8')),
+          E('div',{style:{display:'flex',alignItems:'baseline',gap:'6px',marginBottom:'7px'}},
+            E('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:'21px',color:'var(--warn)'}},'1240'),
+            E('span',{style:{fontSize:'11px',color:'var(--fg-mute)'}},'°C'),
+            E('span',{style:{marginLeft:'auto',fontFamily:"'IBM Plex Mono',monospace",fontSize:'10.5px',color:'var(--good)'}},'in window')),
+          E('div',{style:{height:'5px',background:'var(--sunken)',position:'relative',overflow:'hidden'}},
+            E('div',{style:{position:'absolute',left:'63%',right:'16%',top:0,bottom:0,background:'color-mix(in oklab,var(--good) 45%,transparent)'}}),
+            E('div',{style:{position:'absolute',left:0,width:'70%',top:0,bottom:0,background:'linear-gradient(90deg,transparent,var(--warn))'}})),
+          E('div',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:'9px',color:'var(--fg-mute)',marginTop:'4px'}},'working 1150–1300 · via pyrometer')) },
+
+      { id:'loc', type:'Place', hue:'#c98a3f', title:'The Cartwright\u2019s Yard', hold:'here', fact:true,
+        body:E('div',null,
+          E('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'9px'}},
+            ['Exitable','AmbientLit','Atmospheric'].map(m=>E('span',{key:m,className:'sig'},m)),
+            E('span',{className:'more'},'+6')),
+          E('div',{className:'lbl',style:{marginBottom:'5px'}},'Ways out'),
+          E('div',{style:{display:'flex',gap:'5px',marginBottom:'10px'}},
+            ['go north','go south'].map(c=>E('span',{key:c,className:'opt',style:{fontSize:'11px'}},c))),
+          E('div',{className:'lbl',style:{marginBottom:'5px'}},'Here'),
+          E('div',null,
+            this.row('the forge','1240 °C','var(--warn)'),
+            this.row('a cast-iron anvil','54.4 kg'),
+            this.row('Tomas','wheelwright'))) },
+
+      // two panes whose condition has stopped being true — this is the ONLY way
+      // a pane leaves automatically, and it is what bounds the feed
+      { id:'oldloc', type:'Place', hue:'#c98a3f', title:'The Lounge', hold:'here', fact:false,
+        body:E('div',null,
+          E('div',{style:{fontSize:'11.5px',color:'var(--fg-dim)',lineHeight:1.5}},
+            'What you last saw here. Re-reading is free; acting on it needs you back in the room.')) },
+
+      { id:'sable', type:'Agent', hue:'#5b8fd6', title:'Sable', hold:'present', fact:false,
+        body:E('div',null,
+          E('div',{style:{fontSize:'11.5px',color:'var(--fg-dim)',lineHeight:1.5}},
+            'Walked south a minute ago.')) },
+
+      { id:'manifest', type:'Manifest', hue:'var(--good)', title:'your pack', hold:'carried', fact:true,
+        body:E('div',null,
+          E('div',{style:{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'9px'}},
+            ['Container','Slotted','Chattel'].map(m=>E('span',{key:m,className:'sig'},m)),
+            E('span',{className:'more'},'+9')),
+          E('div',null,
+            this.row('Carried','7.4 / 18 kg'),
+            this.row('Bulk','23 / 40 L'),
+            this.row('Nested vessels','2'))) },
+    ];
+
+    // ── the pin policy ──
+    // Nothing that is still actionable ever leaves. A pane's state answers
+    // "is this still true / still reachable / still owed a reply?" — never
+    // "how long has it been here?". That is what removes the race: the only
+    // panes that age out are ones you can no longer act on anyway.
+    const holds={
+      unanswered:{ why:'held · owes a reply',       gone:'answered · settled' },
+      here:      { why:'held · you are here',        gone:'stale · you left' },
+      present:   { why:'held · still in the room',   gone:'stale · they left' },
+      inReach:   { why:'held · in reach',            gone:'stale · out of reach' },
+      carried:   { why:'held · on you',              gone:'stale · not carried' },
+    };
+    const panes=PANES.map(p=>{
+      const h=holds[p.hold]||{why:'settled',gone:'settled'};
+      const autoKeep=p.fact!==false;   // the pane's own condition, not a clock
+      const override=pins[p.id];                 // undefined = automatic
+      const keep = override===undefined ? autoKeep : override;
+      const why = override===true ? 'held by you'
+                : override===false ? 'dismissed by you'
+                : (autoKeep ? h.why : (h.gone||'settled'));
+      const cls = keep ? (override===true?'pinned':'live') : 'faded';
+      return { id:p.id, type:p.type, hue: keep ? p.hue : 'var(--fg-mute)', title:p.title, age:why, body:p.body,
+        cls, open:keep, auto:autoKeep?'1':'0',
+        pinCls: override!==undefined?'on':'', pinGlyph: override===undefined?'⚲':(override?'⚲ held':'⚲ off') };
+    });
+
+    // ── FEED 1 · text
+    const aff=(t)=>E('span',{className:'aff'},t);
+    const feed=[
+      ['Room','#c98a3f',null,['Packed earth between the shed and the tavern wall. The ',aff('forge'),' throws heat across it.'],'18:41'],
+      ['Presence','#7f93a8','var(--fg-dim)',[aff('Tomas'),' is turning a wheel-rim over in his hands.'],'18:41'],
+      ['You','var(--accent)',null,['analyze forge'],'18:42','mono'],
+      ['Work','#e8705c',null,['The coals sit at a steady orange. A pyrometer would call it working heat.'],'18:42'],
+      ['Say','#4a9d8f',null,[aff('Tomas'),' looks up. “Which do you want trued first?”'],'18:43'],
+    ].map(([kind,hue,color,parts,time,flag])=>({
+      kind,hue,time,color:color||'var(--fg)',
+      node: flag==='mono'
+        ? E('span',{style:{fontFamily:"'IBM Plex Mono',monospace",fontSize:'13px',color:'var(--fg-dim)'}},...parts)
+        : parts,
+    }));
+
+    return { panes, feed, pinnedCount:Object.values(pins).filter(Boolean).length };
+  }
+}
+</script>
+</body>
+</html>

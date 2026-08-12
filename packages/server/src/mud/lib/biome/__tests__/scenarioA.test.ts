@@ -4,6 +4,7 @@
  * a Location-scope detail override at 800 K.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../stuff/Location';
 import Biome from '../Biome';

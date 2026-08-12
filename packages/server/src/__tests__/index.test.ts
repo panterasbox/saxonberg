@@ -1,3 +1,4 @@
+import "../test-bootstrap";
 import { describe, it, expect } from "vitest";
 
 // Basic test - server exports are tested separately

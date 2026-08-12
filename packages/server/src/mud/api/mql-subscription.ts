@@ -27,8 +27,10 @@
  */
 
 import type {
+  PaneId,
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
+  PaneHold,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -76,6 +78,25 @@ export interface SubscribableFieldDescriptor {
   dependsOnFields?: string[];
   changes?: ChangeSource[];
   static?: true;
+  /**
+   * ⭐ **Re-resolve me when this durable subject is poked.**
+   *
+   * The bus indexes on live `stuffId`s. Ledger-derived figures key on a
+   * durable `templatePath` instead (`/obj/Avatar/<playerId>`), which no
+   * `ChangeSource` can match — a descriptor that tried got silently
+   * indexed under `null` and never fired at all.
+   *
+   * So a descriptor whose value comes from a durable-keyed ledger
+   * returns that key here, and its producer calls
+   * {@link MqlSubscriptionApi.notifyDurableSubject} after the write.
+   * **No event, no bus, no broadcast** — a direct poke from the one
+   * producer to the one consumer, matched exactly on the subject that
+   * actually changed.
+   *
+   * Returns `undefined` when this host has no durable identity (a
+   * guest), in which case nothing is indexed.
+   */
+  durableKey?: (stuff: Stuff) => string | undefined;
 }
 
 /* ─────────────────────── Field-set aliases ─────────────────────── */
@@ -160,12 +181,35 @@ export type SubscriptionCardinality = 'one' | 'many';
 export interface SubscribeRequest {
   interactive: Interactive;
   subscriptionId: string;
-  query: string;
-  cardinality: SubscriptionCardinality;
+  /**
+   * Open a **named** pane. When set, the server reads query,
+   * cardinality, fields, dependency flags and hold from its own
+   * catalogue (`lib/connection/Panes.ts`) and IGNORES whatever else the
+   * caller passed — a pane's shape is a server semantic, and the point
+   * of naming one is that the caller does not get to describe it.
+   */
+  pane?: PaneId;
+  /** Required UNLESS `pane` names one. */
+  query?: string;
+  /** Required UNLESS `pane` names one. */
+  cardinality?: SubscriptionCardinality;
   fields?: FieldSet | FieldAlias;
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
+  /**
+   * Optional lifetime rule — a subscription carrying one is a **pane**.
+   *
+   * ⚠ Deliberately a field on the ordinary subscribe request rather
+   * than a parallel "pane" concept: an N-pane set IS N subscriptions
+   * plus a lifetime rule, so the pane set is the existing registry, and
+   * there is no second registry to keep in step. Evaluated on the
+   * existing re-resolve batch — a pane set with its own tick would be a
+   * second clock.
+   */
+  hold?: PaneHold;
+  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  holdSubject?: string;
 }
 
 export interface QueryRequest {
@@ -307,6 +351,37 @@ export class MqlSubscriptionApi {
     return logic().cancelAllForScope(scope);
   }
 
+  /**
+   * Pin or dismiss a pane — the manual override on its hold condition,
+   * in **both** directions. `true` keeps a pane whose condition has
+   * lapsed; `false` drops one whose condition still holds; `null`
+   * returns it to the condition's judgement.
+   *
+   * Returns false when the subscription is unknown or is not a pane
+   * (carries no hold). Takes effect on the next drain, so a dismiss
+   * emits its release reason down the same path every other release
+   * uses.
+   */
+  public static setPanePinned(
+    interactive: Interactive,
+    subscriptionId: string,
+    pinned: boolean | null,
+  ): boolean {
+    return logic().setPanePinned(interactive, subscriptionId, pinned);
+  }
+
+  /** The open panes for one interactive (subscriptions carrying a hold). */
+  public static listPanes(
+    interactive: Interactive,
+  ): {
+    subscriptionId: string;
+    paneId?: PaneId;
+    hold?: PaneHold;
+    pinned: boolean | null;
+  }[] {
+    return logic().listPanes(interactive);
+  }
+
   /* ─── test seams ─── */
 
   public static _getRegistrySizeForTesting(): number {
@@ -327,6 +402,20 @@ export class MqlSubscriptionApi {
   public static _clearAllForTesting(): void {
     SecurityApi.assertTestOnly('_clearAllForTesting');
     logic()._clearAll();
+  }
+
+  /**
+   * ⭐ **The durable-subject witness.** Re-resolve every subscription
+   * whose fields declared {@link SubscribableFieldDescriptor.durableKey}
+   * equal to `subject`.
+   *
+   * Called directly by a ledger after it persists a row — no event
+   * class, no `EventApi` fire. The bus is for genuinely global
+   * broadcast; this is one known producer poking one known consumer,
+   * which is a method call.
+   */
+  public static notifyDurableSubject(subject: string): void {
+    logic().notifyDurableSubject(subject);
   }
 }
 

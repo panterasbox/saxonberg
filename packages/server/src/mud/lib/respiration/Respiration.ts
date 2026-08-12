@@ -165,9 +165,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: ['posture/inhale.yaml', 'posture/exhale.yaml'],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**
@@ -626,7 +625,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A cue must never throw and abort the crisis engagement — the
       // telegraph is best-effort (no message infra in a unit test, etc.).
       try {
-        MessageApi.scene(self).topic('world.narration.action').toSelf(body).send();
+        MessageApi.scene(self).topic('act.deed').toSelf(body).send();
       } catch {
         // swallow — the crisis is authoritative, the cue is decoration.
       }

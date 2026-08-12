@@ -9,6 +9,7 @@
  * typeahead; and the surface-absent degrade path (one warning).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import HelpCatalogue, { type AuthorSurface } from "../HelpCatalogue";
 import { Mixins } from "../../lib/mixin";

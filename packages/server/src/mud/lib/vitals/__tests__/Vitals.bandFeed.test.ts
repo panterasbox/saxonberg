@@ -4,6 +4,7 @@
  * The reserves are themed `biological`, never a magic pool.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { Quantity } from '../../quantity';

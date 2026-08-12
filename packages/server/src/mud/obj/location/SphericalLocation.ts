@@ -67,6 +67,19 @@ export default class SphericalLocation extends SphericalLocationBase {
   }
 
   /**
+   * The linear extent is the **diameter**, `2r` — the longest straight
+   * line across the room, which is the distance a shot actually has to
+   * cross. Spherical rooms already carry a per-room radius, so they need
+   * no authored override (unlike cartesian cells, which are sized by
+   * their zone).
+   */
+  public override getLinearExtent(): number | null {
+    const r = this.getRadius();
+    if (r === null || r === undefined || r === 0) return null;
+    return 2 * r;
+  }
+
+  /**
    * Full-sphere volume `(4/3)πr³`. The reservation that adjacent
    * spheres can't overlap; also what gas-law math (`n = PV/RT`)
    * operates against. Returns `null` when radius is unset.

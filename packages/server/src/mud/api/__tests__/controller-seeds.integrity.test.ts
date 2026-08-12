@@ -41,6 +41,7 @@
  * is tracked together with its source file.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { fileURLToPath } from "url";

@@ -1,10 +1,11 @@
 /**
  * FeelController smoke — channel = `touch`, topic =
- * `world.perception.sense.feel`. Wider coverage lives in
+ * `sense.survey`. Wider coverage lives in
  * SmellController.test.ts (the shared SingleSenseControllerBase
  * pipeline is exercised once there).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import FeelController from '../FeelController';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -140,7 +141,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.feel');
+    expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('rough oak');
   });
 
@@ -160,7 +161,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.feel');
+    expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toMatch(/feels (warm|hot)/);
   });
 
@@ -174,7 +175,7 @@ describe('FeelController', () => {
     const c = makeStuff(() => new FeelController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.feel');
+    expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain("don't perceive");
   });
 });

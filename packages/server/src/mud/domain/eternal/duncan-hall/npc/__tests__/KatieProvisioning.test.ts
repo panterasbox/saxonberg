@@ -10,6 +10,7 @@
  * a random principal is not a member and is refused.
  */
 
+import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupRegistry from '../../../../../obj/GroupRegistry';
 import ParcelRegistry from '../../../../../obj/ParcelRegistry';
@@ -167,7 +168,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // front desk. Content commands are afforded by content, referenced by
     // their `domain/`-prefixed view key, and those keys resolve to real
     // definitions (the domain-local `getCommand` branch).
-    const env = Katie.commandContributions.environment ?? [];
+    const env = Katie.commandContributions.peers ?? [];
     expect(env).toContain('domain/eternal/duncan-hall/cmd/provision.yaml');
     expect(env).toContain('domain/eternal/duncan-hall/cmd/unprovision.yaml');
     for (const key of env) {

@@ -5,6 +5,7 @@
  * (`create`, `createSync`) are the stamp sites.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import {

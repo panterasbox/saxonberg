@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.broadcast
-  family: system
-  label: Broadcast
-  description: A one-to-many announcement riding the ESP modality — sent to every online player (or an MQL-refined subset). Diegetically a frequency on the baseline implant.

@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import CartesianLocation from '../../location/CartesianLocation';

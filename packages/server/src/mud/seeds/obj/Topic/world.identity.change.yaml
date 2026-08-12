@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.identity.change
-  family: world.identity
-  label: Change
-  description: A character's name, pronouns, or honorific being updated.

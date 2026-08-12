@@ -24,7 +24,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ScriptApi } from '../../../api/script';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const QUENCH_MS = 2500;
 
 interface QuenchModel extends CommandModel {
@@ -48,7 +48,7 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     if (workpiece.isBuildEmpty()) {
       this.declineStep(
         context,
-        Mml.compose`${Mml.item(workpiece)} hasn't been worked — there's nothing to quench.`,
+        Mml.compose`${Mml.thing(workpiece)} hasn't been worked — there's nothing to quench.`,
         'empty-build',
       );
       return;
@@ -66,8 +66,8 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     const anvil = this.findCapability(giver, 'anvil');
     this.engageStep(context, {
       durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
-      beginSelf: Mml.compose`You plunge ${Mml.item(workpiece)} into the slack tub with a hiss of steam.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} quenches ${Mml.item(workpiece)} in a burst of steam.`,
+      beginSelf: Mml.compose`You plunge ${Mml.thing(workpiece)} into the slack tub with a hiss of steam.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(workpiece)} in a burst of steam.`,
       onComplete: () => {
         void (async (): Promise<void> => {
           built.recordCommand(commandText);
@@ -93,8 +93,8 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
           }
           MessageApi.scene(giver)
             .topic(TOPIC)
-            .toSelf(Mml.compose`You draw ${Mml.item(output)} from the tub, finished.`)
-            .toPeers(Mml.compose`${Mml.name(giver)} draws ${Mml.item(output)} from the tub.`)
+            .toSelf(Mml.compose`You draw ${Mml.thing(output)} from the tub, finished.`)
+            .toPeers(Mml.compose`${Mml.actor(giver)} draws ${Mml.thing(output)} from the tub.`)
             .send();
 
           // The knowledge ladder + demonstration capture — the first

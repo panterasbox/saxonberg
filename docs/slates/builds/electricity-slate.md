@@ -197,7 +197,7 @@ cross-element combos — oil-on-water ignition).
 
 **Weather is the natural driver for wet-skin** (rain → everyone wet → an
 outdoor fight becomes an electrocution hazard for free). Electricity and
-[weather](./weather-slate.md) want to be neighbours; weather ships just
+[weather](../tails/weather-slate.md) want to be neighbours; weather ships just
 before this, so the coupling is cheap to light.
 
 ## §7 — The v1 demonstrable vertical (sources)

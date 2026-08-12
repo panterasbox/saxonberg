@@ -6,6 +6,7 @@
  * hiding (a fresh contest per hide), durable via `super` otherwise.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { HidingMixin } from '../Hiding';
 import { ConcealableMixin } from '../Concealable';

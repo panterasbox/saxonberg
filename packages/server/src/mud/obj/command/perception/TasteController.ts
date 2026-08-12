@@ -8,5 +8,5 @@ import type { SenseChannel } from '../../../lib/description/Perceiver';
 
 export default class TasteController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'taste';
-  protected readonly sceneTopic = 'world.perception.sense.taste';
+  protected readonly sceneTopic = 'sense.survey';
 }

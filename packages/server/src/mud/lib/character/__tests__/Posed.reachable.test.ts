@@ -17,6 +17,7 @@
  * if no player can issue the verb that occupies it.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { PosedMixin } from "../Posed";
 import { Creature } from "../../creature/Creature";

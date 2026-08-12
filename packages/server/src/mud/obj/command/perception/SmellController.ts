@@ -38,7 +38,7 @@ const DEFAULT_ACUITY: OlfactoryProfile['acuity'] = 'normal';
 
 export default class SmellController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'smell';
-  protected readonly sceneTopic = 'world.perception.sense.smell';
+  protected readonly sceneTopic = 'sense.survey';
 
   /**
    * Override the bare-form branch — read the field signal and render

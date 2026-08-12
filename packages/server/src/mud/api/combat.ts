@@ -23,6 +23,11 @@ import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
+import type { TermsProposal } from "../lib/combat/CombatTerms";
+import type {
+  InitiateResult,
+  ThrownDelivery,
+} from "../obj/api/CombatLogic";
 import type {
   CombatInfluence,
   InfluenceResult,
@@ -296,6 +301,116 @@ export class CombatApi {
    */
   public static rangeStanding(actor: Stuff): RangeStanding | null {
     return logic().rangeStanding(actor);
+  }
+
+  /**
+   * **Start a fight** — the one initiation handshake, wherever the act
+   * comes from.
+   *
+   * Reconciles both sides' standing terms, prompts on a conflict (via the
+   * caller's `onConflict`, because asking is a UI act), snapshots melee
+   * competence, warms the formation Ideas, reads the ambush *before*
+   * revealing the attacker, and then opens / joins / merges as the
+   * situation requires.
+   *
+   * Every initiating verb must go through this rather than reproducing
+   * the sequence. `attack` and `throw ... at` routing "identically" is a
+   * fact only while there is one copy of it.
+   */
+  public static initiate(
+    initiator: Stuff,
+    target: Stuff,
+    overrides?: { lethal?: boolean; to?: string },
+    onConflict?: (
+      target: Stuff,
+      mine: TermsProposal,
+    ) => Promise<boolean | null | "cancelled">,
+  ): Promise<InitiateResult> {
+    return logic().initiate(initiator, target, overrides, onConflict);
+  }
+
+  /**
+   * A combatant's standing combat terms — the player-side `combat.*`
+   * settings and the authored `CombatantMixin` posture, folded. Either
+   * surface declaring `lethal` brings lethal terms.
+   */
+  public static standingTermsOf(
+    combatant: Stuff,
+    lethal?: boolean,
+    to?: string,
+  ): TermsProposal {
+    return logic().standingTermsOf(combatant, lethal, to);
+  }
+
+  /**
+   * The engagement band between two combatants — the location-aware read.
+   *
+   * Prefer this to `CombatGraph.rangeBetween`, which is a pure
+   * value-object and answers `close` for a pair it has never seen. `null`
+   * means the two are not co-present at all.
+   */
+  public static bandBetween(a: Stuff, b: Stuff): RangeState | null {
+    return logic().bandBetween(a, b);
+  }
+
+  /**
+   * The widest band this combatant's arena affords, derived from the
+   * room's real linear extent — a 3 m cell caps at `reach`, an authored
+   * 20 m outdoor cell reaches `far`. Nobody authors a band.
+   */
+  public static arenaMaxBandFor(who: Stuff): RangeState {
+    return logic().arenaMaxBandFor(who);
+  }
+
+  /**
+   * Resolve a thrown carrier's arrival: where it landed, whether the
+   * vessel broke, and how its real volume divides between the target,
+   * whoever is clinched with them, and the floor.
+   *
+   * Returns a PLAN rather than applying one — discharging into each
+   * victim and pooling the remainder are world mutations with their own
+   * gates, and they belong to the caller.
+   */
+  public static resolveThrown(
+    thrower: Stuff,
+    target: Stuff,
+    contents: {
+      litres: number;
+      toughness?: number;
+      hardness?: number;
+      massKg?: number;
+    },
+    splash: readonly Stuff[],
+  ): ThrownDelivery {
+    return logic().resolveThrown(thrower, target, contents, splash);
+  }
+
+  /**
+   * Everyone an area delivery aimed at `target` would catch: the target
+   * plus whoever is clinched (`close`) with them. Bands are relationships
+   * rather than positions, so this is the honest reading of "splash" —
+   * no radius, no geometry.
+   */
+  public static splashSetFor(target: Stuff): Stuff[] {
+    return logic().splashSetFor(target);
+  }
+
+  /**
+   * The commit-time consent gate for an area delivery. The primary target
+   * runs the ordinary terms handshake (attacking the unwilling is a crime,
+   * not an impossibility); every OTHER sentient caught in the splash must
+   * already stand under consented terms with the thrower, or the whole act
+   * is refused before it commits.
+   *
+   * Area delivery must not be a cheaper route to a person than aiming at
+   * them.
+   */
+  public static mayDeliverTo(
+    thrower: Stuff,
+    primary: Stuff,
+    splash: readonly Stuff[],
+  ): { ok: true } | { ok: false; refusedBy: Stuff } {
+    return logic().mayDeliverTo(thrower, primary, splash);
   }
 
   /**

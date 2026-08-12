@@ -19,7 +19,7 @@ import { MessageApi } from "../../../api/message";
 import { MixinApi } from "../../../api/mixin";
 import { Mml } from "../../../api/mml";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface PayModel extends CommandModel {
   recipient: MqlOneResult;
@@ -83,7 +83,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
     if (method.kind === "credential" && !payeeAccountId) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.name(payee)} has no account to receive into. Try \`--cash\`.`)
+        .toSelf(Mml.compose`${Mml.actor(payee)} has no account to receive into. Try \`--cash\`.`)
         .send();
       context.note({ kind: "controller-rejected", reason: "payee-no-account", detail: model.recipient.raw });
       return;
@@ -108,8 +108,8 @@ export default class PayController extends BankingControllerBase<PayModel> {
             : "from your account";
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You pay ${Money.of(minor, Currency.compact()).render()} to ${Mml.name(payee)} ${how}.`)
-        .toPeers(Mml.compose`${Mml.name(giver)} pays ${Mml.name(payee)}.`)
+        .toSelf(Mml.compose`You pay ${Money.of(minor, Currency.compact()).render()} to ${Mml.actor(payee)} ${how}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} pays ${Mml.actor(payee)}.`)
         .send();
     } catch (err) {
       MessageApi.scene(giver)

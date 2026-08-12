@@ -14,6 +14,7 @@
  * invoked assertions don't need a full AccessRegistry bootstrap.
  */
 
+import "../../../test-bootstrap";
 import {
   describe,
   it,

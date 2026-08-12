@@ -26,3 +26,4 @@ args:
     # focus would resolve 0 candidates (the location's own surface
     # doesn't expose its contents — that's `reachable`'s job).
     scope: ["$focus", "reachable"]
+    requires: any

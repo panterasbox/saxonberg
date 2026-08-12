@@ -7,6 +7,7 @@
  * Persistence-layer domain collection doesn't need to be set up.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DropController from '../DropController';
 import { ContainerMixin } from '../../../../lib/spatial/Container';

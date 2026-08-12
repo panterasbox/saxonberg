@@ -25,7 +25,7 @@ import { AdvancementApi } from '../../../api/advancement';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.perception.hide';
+const TOPIC = 'sense.survey';
 
 /** The Discipline that grades a hide (the opposed sibling of awareness). */
 const STEALTH_DISCIPLINE = 'stealth';

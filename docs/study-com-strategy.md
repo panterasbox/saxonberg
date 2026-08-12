@@ -12,6 +12,26 @@ Everything below about study.com is from **published sources only**
 (researched 2026-07); items marked ⚑ are open questions to answer by
 interviewing the resident insider.
 
+> **Engagement / "it's a game" positioning** — how to lead with the
+> fun/gamification story *without* the burned word, why the category failed,
+> the validated novelty claim, and the first-mover / ideal-operator close:
+> [study-com-engagement-and-positioning.md](./study-com-engagement-and-positioning.md).
+> That doc carries the emotional half of the business case this doc makes
+> structurally.
+
+> **⚠️ Business framing corrected (2026-08-05) — read
+> [study-com-platform-business-model.md](./study-com-platform-business-model.md).**
+> The "go-to-market alternatives / deal models" below were written as
+> **Study-partnership** shapes, implicitly treating the game as a product
+> *we own and Study partners with*. That's wrong at the root: **Saxonberg is
+> AGPL-3 open source; Study *licenses and runs its own instance*.** The deal
+> runs in reverse — any party can operate the platform, Study has no special
+> authority, and our revenue is **custom platform + integration support** and
+> **managed ops / PaaS**, not customer ownership. Model E ("platform
+> license") is the closest existing shape; the business-model doc is its
+> correct, foundational form. Read the deal models below as *shapes of an
+> operator relationship*, not as us selling a product we own.
+
 ---
 
 ## Study.com product map (public)
@@ -173,6 +193,34 @@ provenance can't). First-mover on the seam = the urgency argument in
 the room. This is deck/conversation material — the *videos* keep the
 no-competitor rule (V3 carries exactly one unnamed sentence); the
 named, four-point version lives here and in any investor context.
+
+## StudyAI — the wedge, and its numbers are the argument (added 2026-08-03)
+
+Study already ships **StudyAI** (the CX + Test Prep "Student AI
+Assistant") — a topic-aware, **function-calling** LLM agent in
+`prediction-services` with real tools (enroll, create study plan, set
+goal, create classroom, recommend next lesson). Full technical + leverage
+capture: [study-com-studyai.md](./study-com-studyai.md). Two things it
+hands the pitch:
+
+1. **The concept is pre-sold internally.** Study built and staffed
+   AI-assisted learning (the "Alpacas" team), so the idea isn't foreign and
+   there are internal validators. The tuned function-calling tool layer is
+   a reusable asset — their tools become our commands.
+2. **Its numbers are the argument, not a liability.** 94% of Test Prep /
+   74% of CX users only click canned pills; ~1.5k users; the team's own
+   note that it "isn't working as expected"; a router that can't infer
+   intent. Every one is a **container failure** — a web page can't host a
+   conversational, context-dependent agent. Saxonberg fixes each:
+   conversation is the medium (pills → real interaction), location is
+   intent (fixes routing), doing is the point (fixes engagement). And
+   Study's own roadmap pivot — "invisible AI, focused, embedded in the
+   activity" — **is a classroom.**
+
+Pitch line: *"You already built the intelligence and believe in it; it's
+underperforming because a website can't host it. We're the world where the
+same tools finally work."* Use these figures **only** in the Study-facing
+deck (their own data reflected back) — never in public materials.
 
 ## Go-to-market alternatives
 

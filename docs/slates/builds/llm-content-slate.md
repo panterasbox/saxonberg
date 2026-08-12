@@ -7,7 +7,7 @@
 > agent** that **forces the cast** through the normal command bus, is
 > **stateless** (all locality lives in the prompt), and expresses
 > multi-stage behavior by **authoring scripts** in the language the
-> [scripting slate](./scripting-slate.md) defines. The director and the
+> [scripting slate](../tails/scripting-slate.md) defines. The director and the
 > ambient narrator are the **same agent**.
 
 Working slate for **LLM-driven content** — the runtime use of a language
@@ -73,9 +73,9 @@ See also:
   (canned → tree → intent → scripted → **LLM**) and the `Behaved` substrate.
   This slate is that ladder's top rung, realized. Its open Q7 ("LLM brain —
   when it lands + its contract") is answered here.
-- [npc-dialogue-slate.md](./npc-dialogue-slate.md) — the deferred LLM
+- [npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — the deferred LLM
   speech front-end; the director is its generalization to all behavior.
-- [scripting-slate.md](./scripting-slate.md) — **the medium.** The director
+- [scripting-slate.md](../tails/scripting-slate.md) — **the medium.** The director
   expresses multi-stage / scheduled behavior by *authoring scripts* in the
   scripting language, not by emitting a tool-call per beat. This slate says
   *who drives and how*; that slate says *in what language*.
@@ -134,7 +134,7 @@ See also:
 | The **observations** | per-scene witness buffer (Witness pattern) + biome/event broadcasts |
 | **Authority** to act | the single director giver (force-bounded by each target's perms) |
 | **Attribution** | the forced target (the room for unattributed ambient) |
-| Multi-stage / scheduled behavior | a **script** the director authors — see [scripting-slate](./scripting-slate.md) |
+| Multi-stage / scheduled behavior | a **script** the director authors — see [scripting-slate](../tails/scripting-slate.md) |
 
 ### MCP boundary
 
@@ -173,7 +173,7 @@ See also:
 
 - **The brain ladder / `Behaved` / triggers / engagement** →
   [npc-behavior-slate.md](./npc-behavior-slate.md).
-- **The scripting language itself** → [scripting-slate.md](./scripting-slate.md).
+- **The scripting language itself** → [scripting-slate.md](../tails/scripting-slate.md).
 - **LLM-assisted authoring** → [authoring-intelligence-slate.md](./authoring-intelligence-slate.md).
 - **The Claude API mechanics** (models, tool use, caching, statelessness) —
   platform detail, not engine design.

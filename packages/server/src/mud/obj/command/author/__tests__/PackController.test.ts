@@ -7,6 +7,7 @@
  * the dispatcher, not re-tested here.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PackController from '../PackController';
 import { PackApi } from '../../../../api/pack';

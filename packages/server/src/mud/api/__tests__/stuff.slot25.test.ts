@@ -8,6 +8,7 @@
  * declaration.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';

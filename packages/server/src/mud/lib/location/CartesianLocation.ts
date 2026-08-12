@@ -57,6 +57,7 @@ const CartesianLocationBase = SingletonMixin(
 export default class CartesianLocation extends CartesianLocationBase {
   static fieldMeta: FieldMeta = {
     coords: { persistent: true },
+    extent: { persistent: true, authorable: true },
   };
 
   /**
@@ -142,6 +143,48 @@ export default class CartesianLocation extends CartesianLocationBase {
   }
 
   /**
+   * Persistent per-room override of the linear cell extent, in metres.
+   *
+   * Cartesian cells are sized by the ZONE (`cellSize`, default 3.0),
+   * which means a cramped shop and an open hall in the same zone could
+   * not differ — the one gap the ranged build named as its single
+   * dependency. `null` (the default) keeps the shipped behaviour
+   * exactly: fall through to the zone.
+   *
+   * It is deliberately ONE number rather than a combat-only field.
+   * Extent already drives light (via the squared area) and the
+   * atmosphere (via the cubed volume); giving combat its own would let
+   * a room be small for bands and large for lux, which is the kind of
+   * disagreement the store-causes-derive-effects rule exists to
+   * prevent. Authoring a bigger room makes it dimmer, airier AND
+   * longer-ranged, because that is what a bigger room is.
+   */
+  protected _extent: number | null = null;
+
+  public getExtent(): number | null {
+    return this._extent;
+  }
+
+  /** Per-field invariant: a room's extent is a positive magnitude. */
+  public setExtent(value: number | null): void {
+    if (value !== null && (!Number.isFinite(value) || value <= 0)) {
+      throw new Error(
+        `extent: must be a positive number of metres (got ${value})`,
+      );
+    }
+    this._extent = value;
+  }
+
+  /**
+   * The linear cell extent in metres — the per-room override when one is
+   * authored, else the zone's `cellSize`. The single cause the three
+   * derivations below read.
+   */
+  public override getLinearExtent(): number | null {
+    return this._extent ?? this.getZone()?.getCellSize() ?? null;
+  }
+
+  /**
    * Effective receiving-surface area in m² used by `VisionModality.lightAt`
    * to convert accumulated lumens to lux: the walk divides the total
    * flux at this room by `getSizeScale()`. Derived from the linear
@@ -151,27 +194,27 @@ export default class CartesianLocation extends CartesianLocationBase {
    * a zone yet.
    */
   public override getSizeScale(): number {
-    const c = this.getZone()?.getCellSize() ?? 1.0;
+    const c = this.getLinearExtent() ?? 1.0;
     return c * c;
   }
 
   /**
-   * Cube-cell volume: `cellSize³`. The atmospheric-fill reservation
+   * Cube-cell volume: `extent³`. The atmospheric-fill reservation
    * (`n = PV/RT` math operates against this scalar). Returns `null`
-   * when the room hasn't been associated with a zone yet.
+   * when the room reports no extent at all (no override, no zone).
    */
   public override getVolume(): Quantity<'m³'> | null {
-    const c = this.getZone()?.getCellSize();
+    const c = this.getLinearExtent();
     if (c === undefined || c === null) return null;
     return Quantity.of(c * c * c, 'm³');
   }
 
   /**
-   * Cube-cell ceiling height: `cellSize`. Floor-to-ceiling vertical
+   * Cube-cell ceiling height: `extent`. Floor-to-ceiling vertical
    * extent. `null` falls through identically to `getVolume`.
    */
   public override getCeilingHeight(): Quantity<'m'> | null {
-    const c = this.getZone()?.getCellSize();
+    const c = this.getLinearExtent();
     if (c === undefined || c === null) return null;
     return Quantity.of(c, 'm');
   }

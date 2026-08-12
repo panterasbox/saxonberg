@@ -8,6 +8,7 @@
  * remainder faster, and same-material mixing blends mass-weighted.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Flask from "../Flask";
 import Receptacle from "../Receptacle";

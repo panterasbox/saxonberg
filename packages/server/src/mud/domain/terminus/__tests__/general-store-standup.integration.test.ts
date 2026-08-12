@@ -10,6 +10,7 @@
  * terminus-standup test stubs it — so it isn't materialized here).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";

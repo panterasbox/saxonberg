@@ -6,6 +6,7 @@
  *     corpo substrate.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";

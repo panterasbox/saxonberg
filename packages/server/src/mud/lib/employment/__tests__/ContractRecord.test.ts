@@ -4,6 +4,7 @@
  * their reads (live-by-board, active-by-claimant, oldest-first events).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ContractRecord } from "../ContractRecord";
 import { ContractEvent } from "../ContractEvent";

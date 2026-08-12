@@ -36,7 +36,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
 
-const TOPIC = 'residence.unprovision';
+const TOPIC = 'act.deed';
 
 interface UnprovisionModel extends CommandModel {
   player?: MqlOneResult;

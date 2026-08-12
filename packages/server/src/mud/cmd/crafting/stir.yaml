@@ -14,3 +14,4 @@ args:
     type: object
     required: false
     scope: "reachable"
+    requires: ManualBuildMixin

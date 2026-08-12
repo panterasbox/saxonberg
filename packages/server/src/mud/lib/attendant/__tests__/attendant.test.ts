@@ -11,6 +11,7 @@
  *     appointment) — pinned to their current FIFO fall-through behavior.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AttendantApi } from "../../../api/attendant";
 import AttendancePoint from "../../../obj/AttendancePoint";

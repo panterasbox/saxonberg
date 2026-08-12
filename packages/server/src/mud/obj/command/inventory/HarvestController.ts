@@ -42,9 +42,8 @@ import { Grade, type GradeBand } from '../../../lib/craft/Grade';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Container } from '../../../lib/spatial/Container';
-import Plant from '../../Plant';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
 function dial(key: string, fallback: number): number {
@@ -80,10 +79,16 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
-    if (!(named instanceof Plant)) {
+    // ⭐ The CAPABILITY, not the `Plant` class — the same predicate the
+    // spec declares (`requires: GrowingMixin`). It used to be
+    // `instanceof Plant` while the arg declared the mixin: two
+    // predicates for one gate, which is how `plant` came to be offered
+    // on a rock. A cutting, a vine or a fungus should not have to
+    // inherit `Plant` to be harvested.
+    if (!MixinApi.isGrowing(named)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(named)} isn't a plant.`)
+        .toSelf(Mml.compose`${Mml.thing(named)} isn't a plant.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -98,7 +103,7 @@ export default class HarvestController extends CommandController<HarvestModel> {
     if (!cropPath) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(plant)} isn't something you harvest.`)
+        .toSelf(Mml.compose`${Mml.thing(plant)} isn't something you harvest.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -117,8 +122,8 @@ export default class HarvestController extends CommandController<HarvestModel> {
         .topic(TOPIC)
         .toSelf(
           dead
-            ? Mml.compose`${Mml.item(plant)} is dead. There is nothing to take.`
-            : Mml.compose`${Mml.item(plant)} isn't ready — it is still ${stage}.`,
+            ? Mml.compose`${Mml.thing(plant)} is dead. There is nothing to take.`
+            : Mml.compose`${Mml.thing(plant)} isn't ready — it is still ${stage}.`,
         )
         .send();
       context.note({
@@ -199,9 +204,9 @@ export default class HarvestController extends CommandController<HarvestModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You take ${Mml.item(crop)} off ${presentation}, and what is left of the plant comes away with it.`,
+        Mml.compose`You take ${Mml.thing(crop)} off ${presentation}, and what is left of the plant comes away with it.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} harvests ${Mml.item(crop)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} harvests ${Mml.thing(crop)}.`)
       .send();
   }
 

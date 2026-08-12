@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.measurement.analyze-response
-  family: world.perception.measurement
-  label: Analyze Response
-  description: Output of the analyze response subcommand — the materials-response per-channel outcome bands of a made thing (a weapon's delivery, an armor's protection).

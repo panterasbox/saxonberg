@@ -22,7 +22,7 @@
 > three-surface taxonomy, the workflow — lives in the cooperative slate's
 > *Deliberation* section; this slate specs the **surface itself.**
 
-> **Factoring superseded by [forums-slate.md](./forums-slate.md) (2026-06):**
+> **Factoring superseded by [forums-slate.md](../builds/forums-slate.md) (2026-06):**
 > the argument-map is no longer "not a forum" — it is the
 > `organizer: 'structure'` mode of the one forum primitive, sharing that
 > slate's Part-0 substrate. The "distinct from forums" framing below is
@@ -52,13 +52,13 @@ itself.*
 
 See also:
 
-- [cooperative-slate.md](./cooperative-slate.md) §
+- [cooperative-slate.md](../builds/cooperative-slate.md) §
   *Deliberation* — the **governance framing**: the three-surface taxonomy
   (social forum / polling / deliberation), the
   chatter→poll→deliberate→converge→vote workflow,
   deliberate-as-equals/vote-by-weight, and the ungameable-organization
   principle. This slate is the surface that section points to.
-- [delivery-slate.md](./delivery-slate.md) — the comms
+- [delivery-slate.md](../builds/delivery-slate.md) — the comms
   family (chat / email / **social forum**). The argument-map **reuses the
   `GroupRef` audience seam** (L1) but is *not* a conversation product — its
   artifact (a claim-graph) and interaction (argue/navigate) are wholly its

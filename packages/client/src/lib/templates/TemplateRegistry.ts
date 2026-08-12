@@ -38,28 +38,23 @@ interface Registration {
 }
 
 const REGISTRATIONS: Registration[] = [
-  { prefix: 'world.chat', template: chatTemplate },
-  { prefix: 'world.speech.say', template: sayTemplate },
-  { prefix: 'world.speech.dm', template: tellTemplate },
-  // Back-compat for any persisted frame still carrying the old
-  // `world.speech.tell` topic. Both topics render through the same
-  // tellTemplate so the experience is identical pre / post rename.
-  { prefix: 'world.speech.tell', template: tellTemplate },
-  { prefix: 'world.expression', template: emoteTemplate },
-  { prefix: 'world.twitch', template: relayTemplate },
-  { prefix: 'world.youtube', template: relayTemplate },
-  { prefix: 'world.kick', template: relayTemplate },
+  { prefix: 'speech.channel', template: chatTemplate },
+  { prefix: 'speech.vocal', template: sayTemplate },
+  { prefix: 'speech.comms', template: tellTemplate },
+  { prefix: 'act.emote', template: emoteTemplate },
+  // One entry, not three. The platform is a transport attribute on
+  // `payload.service`, not a subject, so twitch / youtube / kick all
+  // arrive on one topic — and a fourth platform needs no registration.
+  { prefix: 'speech.relay', template: relayTemplate },
 ];
 
 /**
- * Pick the template for a given topic. Longest-prefix-match wins so
- * `world.speech.tell` resolves to `tellTemplate` rather than the
- * shorter `world.speech.say` prefix. Falls back to defaultTemplate
- * for any topic with no match.
+ * Pick the template for a given topic. Longest-prefix-match wins, so a
+ * future `speech.vocal.<something>` would still find `sayTemplate`.
+ * Falls back to defaultTemplate for any topic with no match.
  *
- * Bare `'world.speech'` matches the `say` template; the system
- * doesn't ship a separate "speech root" template since say IS the
- * canonical case.
+ * Bare `'speech'` has no registration — the root is a mute target, not
+ * a render target, and every leaf under it registers for itself.
  */
 export function pickTemplate(topic: string): Template {
   let bestPrefix = '';

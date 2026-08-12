@@ -6,6 +6,7 @@
  * those subclasses' tests; bare Location is just `ContainerMixin(Idea)`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Location from '../Location';
 import { StuffApi } from '../../../api/stuff';

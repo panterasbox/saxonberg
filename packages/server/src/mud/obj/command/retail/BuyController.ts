@@ -35,7 +35,7 @@ import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Containable } from "../../../lib/spatial/Containable";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface BuyModel extends CommandModel {
   thing: string;
@@ -100,7 +100,7 @@ export default class BuyController extends CommandController<BuyModel> {
   ): Promise<void> {
     const price = stock.priceFor(item.getTemplatePath() ?? "");
     if (price == null) {
-      this.reject(giver, context, Mml.compose`${Mml.item(item)} isn't for sale.`, {
+      this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't for sale.`, {
         kind: "controller-rejected",
         reason: "not-priced",
         detail: model.thing,
@@ -137,7 +137,7 @@ export default class BuyController extends CommandController<BuyModel> {
       ? shelf.listingFor(item.getChattelId())
       : null;
     if (!listing) {
-      this.reject(giver, context, Mml.compose`${Mml.item(item)} isn't for sale.`, {
+      this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't for sale.`, {
         kind: "controller-rejected",
         reason: "no-listing",
         detail: model.thing,
@@ -156,7 +156,7 @@ export default class BuyController extends CommandController<BuyModel> {
       this.reject(
         giver,
         context,
-        Mml.compose`${Mml.item(item)} can't be sold right now.`,
+        Mml.compose`${Mml.thing(item)} can't be sold right now.`,
         { kind: "controller-rejected", reason: "consignor-no-account", detail: model.thing },
       );
       return;
@@ -257,8 +257,8 @@ export default class BuyController extends CommandController<BuyModel> {
   private announce(giver: Stuff, item: Stuff, paid: string): void {
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You buy ${Mml.item(item)}. ${paid}`)
-      .toPeers(Mml.compose`${Mml.name(giver)} buys ${Mml.item(item)}.`)
+      .toSelf(Mml.compose`You buy ${Mml.thing(item)}. ${paid}`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${Mml.thing(item)}.`)
       .send();
   }
 
@@ -268,7 +268,7 @@ export default class BuyController extends CommandController<BuyModel> {
     item: Stuff,
     model: BuyModel,
   ): void {
-    this.reject(giver, context, Mml.compose`You can't cover ${Mml.item(item)} just now.`, {
+    this.reject(giver, context, Mml.compose`You can't cover ${Mml.thing(item)} just now.`, {
       kind: "controller-rejected",
       reason: "insufficient-funds",
       detail: model.thing,

@@ -192,7 +192,7 @@ export default class SettingsController extends CommandController<SettingsModel>
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.settings')
+      .topic('shell.config')
       .toSelf(body)
       .send();
   }

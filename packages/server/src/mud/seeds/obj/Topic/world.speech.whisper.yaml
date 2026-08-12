@@ -1,8 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.speech.whisper
-  communicative: true
-  family: world.speech
-  label: Whisper
-  description: A quiet, short-reach utterance. The voice carries only to those very close; overhearers see a redacted form ("X whispers something to Y").

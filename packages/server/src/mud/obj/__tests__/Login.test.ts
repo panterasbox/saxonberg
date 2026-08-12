@@ -6,6 +6,7 @@
  * Avatar session-start lives in Avatar.test.ts.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Login from '../Login';
 import Interactive from '../Interactive';

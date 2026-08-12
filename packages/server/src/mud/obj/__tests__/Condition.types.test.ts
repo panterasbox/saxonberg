@@ -4,6 +4,7 @@
  * Idea template. Shapes only; zero authored content.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Condition, {
   TRAUMA_BEHAVIOR,

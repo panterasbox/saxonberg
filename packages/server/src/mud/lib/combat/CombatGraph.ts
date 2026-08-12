@@ -18,15 +18,21 @@
 
 import type { Stuff } from "../stuff/Stuff";
 import type { CombatTerms } from "./CombatTerms";
+import type { RangeState } from "./RangeBand";
 
 /**
- * The engagement **range** on a pair (the geometry-free reach tier): `reach`
- * — fighting at the end of a long weapon (a spear controls, a dagger is out
- * of range); `close` — inside, where a dagger/unarmed owns the clinch and a
- * long weapon is a liability. Physically symmetric per pair (both directed
- * edges carry the same value); flipped by the `close` gambit.
+ * The engagement **range** on a pair — the geometry-free band ladder,
+ * `close` · `reach` · `near` · `far`. The two melee tiers are `close`
+ * (inside, where a dagger/unarmed owns the clinch and a long weapon is a
+ * liability) and `reach` (the end of a long weapon — a spear controls, a
+ * dagger is out of range); `near` and `far` are the ranged pair.
+ *
+ * Physically symmetric per pair (both directed edges carry the same
+ * value); stepped by the advance/withdraw gambits. The vocabulary and its
+ * derivations live in {@link RangeBand} — re-exported here so the graph
+ * stays the natural import site for edge-shaped code.
  */
-export type RangeState = "reach" | "close";
+export type { RangeState };
 
 /** One directed engagement: `attacker` presses `defender` under `terms`. */
 export interface ThreatEdge {

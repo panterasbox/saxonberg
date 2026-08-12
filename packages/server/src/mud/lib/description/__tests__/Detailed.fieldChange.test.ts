@@ -3,6 +3,7 @@
  * the `details` field discriminator.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DetailedMixin } from '../Detailed';
 import { Idea } from '../../stuff/Idea';

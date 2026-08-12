@@ -123,10 +123,19 @@ export class EffectContexts {
     user: Stuff,
     address: EffectAddress,
     potency: number,
-    options?: { readonly source?: Stuff; readonly specifiedBy?: string },
+    options?: {
+      readonly source?: Stuff;
+      readonly specifiedBy?: string;
+      readonly origin?: Stuff;
+    },
   ): EffectContext {
     return {
-      origin: item,
+      // Where the working ISSUES from, which is not always the item. A
+      // thrown flask acts at the point of contact, not from the hand
+      // that threw it — and since reachability is measured from the
+      // origin, getting this wrong makes a contact payload refuse itself
+      // for being too far from its own thrower.
+      origin: options?.origin ?? item,
       actor: user,
       source: options?.source ?? item,
       potency,

@@ -20,6 +20,7 @@
  * Avatar-shaped hosts (Sensor + NotifyPolicy) capturing their frames.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../api/social";
 import { GroupApi } from "../../../api/group";
@@ -62,11 +63,11 @@ class Viewer extends SensorMixin(NotifyPolicyMixin(Idea)) {
   protected override handleMessage(frame: unknown): void {
     // This file tests the presence-NOTIFICATION relay. `SocialApi.boot()`
     // also wires the presence-public roster delta tap (Who's Online), so a
-    // login/logout legitimately also produces a `world.social.roster`
+    // login/logout legitimately also produces a `self.group`
     // frame on a different topic. Scope capture to the presence topic so
     // these assertions count only the relay under test.
     const f = frame as MessageFrame;
-    if (f.topic === "world.social.presence") this.received.push(f);
+    if (f.topic === "session.presence") this.received.push(f);
   }
 }
 
@@ -158,7 +159,7 @@ describe("SocialLogic presence relay", () => {
 
     expect(v.received).toHaveLength(1);
     const frame = v.received[0]!;
-    expect(frame.topic).toBe("world.social.presence");
+    expect(frame.topic).toBe("session.presence");
     const payload = frame.payload as Record<string, unknown>;
     expect(payload.kind).toBe("presence");
     expect(payload.event).toBe("loggedIn");

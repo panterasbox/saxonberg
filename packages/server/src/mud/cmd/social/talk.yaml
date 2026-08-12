@@ -24,3 +24,4 @@ args:
     scope: ["$focus", "reachable"]
     prepositions: [to]
     onExcess: prompt
+    requires: BehavedMixin

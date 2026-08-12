@@ -9,6 +9,7 @@
  * logic-method call from any other module is denied.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SoulLogic } from '../../obj/api/SoulLogic';
 import { SecurityError } from '../../lib/security/errors';

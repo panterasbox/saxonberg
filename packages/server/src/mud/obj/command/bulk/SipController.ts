@@ -15,7 +15,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** A single sip, in litres (~two tablespoons). */
 const SIP_LITRES = 0.03;
@@ -42,7 +42,7 @@ export default class SipController extends CommandController<SipModel> {
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to sip in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`There's nothing to sip in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -64,7 +64,7 @@ export default class SipController extends CommandController<SipModel> {
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to sip in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`There's nothing to sip in ${Mml.thing(target)}.`)
         .send();
       return;
     }
@@ -76,7 +76,7 @@ export default class SipController extends CommandController<SipModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You take a sip of the ${appearance}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} sips from ${Mml.item(target)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} sips from ${Mml.thing(target)}.`)
       .send();
   }
 }

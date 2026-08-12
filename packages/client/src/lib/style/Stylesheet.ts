@@ -14,8 +14,8 @@
  *   overlay rules. The renderer collapses to the failsafe layout.
  *
  * Five selector kinds:
- *   - `topic` (longest-prefix cascade) — `world.speech.tell` →
- *     merge `world.speech` then override with `world.speech.tell`.
+ *   - `topic` (longest-prefix cascade) — `speech.comms` →
+ *     merge `speech` then override with `speech.comms`.
  *   - `channel` — `<chan id>` chip color; theme default + overlay
  *     `channel.<id>.color` scalar override.
  *   - `element` — tag name; `<strong>` bold, `<em>` italic, etc.
@@ -127,7 +127,7 @@ export class Stylesheet {
   }
 
   /**
-   * Bucket-based treatment for a `<player>` / `<name>` carrying a
+   * Bucket-based treatment for a `<player>` / `<npc>` carrying a
    * stuff-id. v1 always lands on `neutral` (empty treatment) because
    * the resolver stub returns neutral for everything; the call is
    * still made so swapping the real resolver in later is automatic.

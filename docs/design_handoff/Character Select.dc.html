@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+      --paper:#f2ebdc; --paper-line:#d8cdb4;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .seal { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--white);
+            border:2px solid var(--red); color:var(--red); font-family:'Spectral',serif; font-weight:600; flex:none; }
+    .flagrule { height:5px; background:linear-gradient(180deg, var(--white) 0 1px, var(--red) 1px 4px, var(--white) 4px 5px); }
+    /* a character card is a record of standing, not a save slot */
+    .char { display:flex; gap:13px; padding:13px 15px; border:1px solid var(--line); border-radius:3px;
+            background:var(--surface); cursor:pointer; margin-bottom:8px; text-align:left; }
+    .char:hover { border-color:var(--fg-mute); }
+    .char.on { border-color:var(--red); box-shadow:inset 3px 0 0 var(--red); background:var(--raised); }
+    .char.dim { opacity:.6; }
+    .port { width:54px; height:72px; flex:none; border:1px solid var(--paper-line); border-radius:2px;
+            background:repeating-linear-gradient(135deg,#e6dcc4 0 9px,#efe6d2 9px 18px);
+            display:flex; align-items:center; justify-content:center;
+            font-family:'IBM Plex Mono',monospace; font-size:8px; color:#8a8069; }
+    .bandrow { display:flex; align-items:center; gap:6px; }
+    .band { flex:1; height:4px; background:var(--sunken); overflow:hidden; }
+    .band > i { display:block; height:100%; }
+    .flag { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.09em; text-transform:uppercase;
+            border-radius:2px; padding:1px 6px; flex:none; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:4px 9px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    .act.danger { color:var(--ember); border-color:color-mix(in oklab,var(--ember) 45%,transparent); }
+    .enter { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:46px;
+             font-family:'Public Sans',sans-serif; font-size:14px; font-weight:600; color:var(--white);
+             background:var(--red); border:1px solid var(--white); border-radius:3px; cursor:pointer; }
+    .enter:hover { filter:brightness(1.08); }
+    .newchar { display:flex; align-items:center; gap:11px; width:100%; padding:13px 15px; border:1px dashed var(--line);
+               border-radius:3px; background:transparent; cursor:pointer; text-align:left; }
+    .newchar:hover { border-color:var(--accent); }
+    .cell { width:9px; height:9px; border-radius:1px; }
+    .key { display:inline-flex; align-items:center; gap:5px; font-size:10.5px; color:var(--fg-dim); }
+    .sw { width:8px; height:8px; border-radius:1px; flex:none; }
+    .prow { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+    .prow:last-child { border-bottom:none; }
+    .idrow { display:flex; align-items:center; gap:9px; padding:7px 10px; border:1px solid var(--line); border-radius:3px; margin-bottom:5px; }
+  </style>
+</helmet>
+
+<div id="cs-root" style="width:1440px; height:900px; display:flex; flex-direction:column; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <!-- ══ the user account owns the session; characters hang off it ══ -->
+  <div style="flex:none; position:relative; padding:16px 30px 14px; background:var(--surface); border-bottom:1px solid var(--line);">
+    <div class="flagrule" style="position:absolute; left:0; right:0; top:0;"></div>
+    <div style="display:flex; align-items:center; gap:13px;">
+      <span class="seal" style="width:40px; height:40px; font-size:19px;">S</span>
+      <div style="flex:1; min-width:0;">
+        <div class="cap" style="font-size:16px; line-height:1.15;">Who are you tonight?</div>
+        <div style="font-size:11.5px; color:var(--fg-mute); margin-top:3px;">Signed in as <span style="color:var(--fg-dim);">maren.vask@gmail.com</span></div>
+      </div>
+
+      <!-- Make and Fund are things the PERSON does, so they sit on the account -->
+      <div style="display:flex; gap:16px; flex:none;">
+        <sc-for list="{{ acctStanding }}" as="a" hint-placeholder-count="2">
+          <div style="min-width:96px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;">
+              <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em;">{{ a.k }}</span>
+              <span class="m" style="font-size:9.5px; color:{{ a.hue }};">{{ a.v }}</span>
+            </div>
+            <div class="band"><i style="width:{{ a.w }}; background:{{ a.hue }};"></i></div>
+            <div style="font-size:9.5px; color:var(--fg-mute); margin-top:3px;">{{ a.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <span style="width:1px; height:38px; background:var(--line); flex:none;"></span>
+      <span class="act">manage account</span>
+      <span class="act">sign out</span>
+    </div>
+  </div>
+
+  <div style="flex:1; display:flex; min-height:0;">
+
+    <!-- ══ the roster ══ -->
+    <div style="flex:1; display:flex; flex-direction:column; min-width:0; border-right:1px solid var(--line);">
+      <div style="flex:none; display:flex; align-items:baseline; gap:9px; padding:11px 22px 9px;">
+        <span class="lbl">Your characters</span>
+        <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ rosterNote }}</span>
+        <div style="flex:1;"></div>
+        <span class="m" style="font-size:9.5px; color:var(--fg-mute);">roster</span>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:0 22px 16px;">
+        <sc-for list="{{ roster }}" as="c" hint-placeholder-count="3">
+          <div class="char {{ c.cls }}" data-char="{{ c.id }}">
+            <span class="port">portrait</span>
+            <div style="flex:1; min-width:0;">
+              <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:2px;">
+                <span class="wp" style="font-size:17px; color:var(--fg);">{{ c.name }}</span>
+                <span class="m" style="font-size:9px; color:var(--fg-mute); font-style:italic;">{{ c.binomial }}</span>
+                <div style="flex:1;"></div>
+                <sc-if value="{{ c.hasFlag }}" hint-placeholder-val="{{ false }}">
+                  <span class="flag" style="color:{{ c.flagHue }}; border:1px solid {{ c.flagHue }};">{{ c.flag }}</span>
+                </sc-if>
+              </div>
+              <div style="font-size:11.5px; color:var(--fg-dim); margin-bottom:8px;">{{ c.line }}</div>
+
+              <!-- Play is earned by living in the world, so it is the only band
+                   that can differ between two characters of the same person -->
+              <div style="display:flex; align-items:center; gap:9px; margin-bottom:7px;">
+                <span class="m" style="font-size:8.5px; color:var(--fg-mute); letter-spacing:.1em; flex:none;">PLAY</span>
+                <div class="band" style="flex:1;"><i style="width:{{ c.playW }}; background:{{ c.playHue }};"></i></div>
+                <span class="m" style="font-size:9.5px; color:{{ c.playHue }}; flex:none;">{{ c.playV }}</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:7px;">
+                <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ c.lastSeen }}</span>
+                <div style="flex:1;"></div>
+                <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ c.where }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+
+        <!-- minting a character is the same enroll flow, entered from here -->
+        <button class="newchar">
+          <span style="width:54px; height:72px; flex:none; border:1px dashed var(--line); border-radius:2px;
+                       display:flex; align-items:center; justify-content:center; color:var(--fg-mute); font-size:20px;">＋</span>
+          <div style="flex:1;">
+            <div class="wp" style="font-size:16px; color:var(--fg); margin-bottom:2px;">Make someone new</div>
+            <div style="font-size:11.5px; color:var(--fg-mute); line-height:1.5;">Runs the same Articles of Enrolment. A character is yours permanently — there is no slot to free up and nothing to overwrite.</div>
+          </div>
+          <span class="m" style="font-size:10px; color:var(--accent); flex:none;">enroll</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ the selected character, and what waited for them ══ -->
+    <aside style="flex:0 0 420px; display:flex; flex-direction:column; background:var(--surface); min-height:0;">
+
+      <div style="flex:1; overflow-y:auto; padding:15px 18px;">
+        <div style="display:flex; align-items:baseline; gap:9px; margin-bottom:3px;">
+          <span class="wp" style="font-size:21px; color:var(--fg);">{{ selName }}</span>
+          <span class="m" style="font-size:10px; color:var(--fg-mute); font-style:italic;">{{ selBinomial }}</span>
+        </div>
+        <div style="font-size:12px; color:var(--fg-dim); margin-bottom:14px;">{{ selLine }}</div>
+
+        <!-- what happened while you were gone: the reason to come back -->
+        <div class="lbl" style="margin-bottom:7px;">Since you left</div>
+        <sc-if value="{{ hasAway }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid var(--line); border-radius:3px; margin-bottom:14px;">
+            <sc-for list="{{ away }}" as="a" hint-placeholder-count="3">
+              <div style="display:flex; gap:9px; padding:9px 11px; border-bottom:1px solid var(--line-soft);">
+                <span class="m" style="font-size:8.5px; color:{{ a.hue }}; letter-spacing:.1em; flex:0 0 46px; padding-top:2px;">{{ a.kind }}</span>
+                <div style="flex:1; min-width:0;">
+                  <div class="wp" style="font-size:13.5px; line-height:1.45; color:var(--fg);">{{ a.body }}</div>
+                  <div class="m" style="font-size:9px; color:var(--fg-mute); margin-top:2px;">{{ a.when }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noAway }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px dashed var(--line); border-radius:3px; padding:12px; margin-bottom:14px;">
+            <p style="font-size:12px; color:var(--fg-mute); line-height:1.55; margin:0;">{{ noAwayNote }}</p>
+          </div>
+        </sc-if>
+
+        <div class="lbl" style="margin-bottom:7px;">Play standing</div>
+        <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:14px;">
+          <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:7px;">
+            <span class="m" style="font-size:20px; color:{{ selPlayHue }};">{{ selPlayV }}</span>
+            <span style="font-size:12px; color:var(--fg-dim);">{{ selPlayTrend }}</span>
+          </div>
+          <div class="band" style="margin-bottom:8px;"><i style="width:{{ selPlayW }}; background:{{ selPlayHue }};"></i></div>
+          <p style="font-size:11.5px; color:var(--fg-mute); line-height:1.55; margin:0;">{{ selPlayNote }}</p>
+        </div>
+
+        <sc-if value="{{ hasPractice }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:7px;">
+            <span class="lbl">Practice</span>
+            <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ practiceNote }}</span>
+          </div>
+          <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:14px;">
+            <div style="display:flex; gap:2px; margin-bottom:9px;">
+              <sc-for list="{{ weeks }}" as="w" hint-placeholder-count="26">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <sc-for list="{{ w.days }}" as="d" hint-placeholder-count="7">
+                    <span class="cell" style="background:{{ d.bg }};" title="{{ d.title }}"></span>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; align-items:center; gap:11px; flex-wrap:wrap;">
+              <sc-for list="{{ tradeKey }}" as="t" hint-placeholder-count="3">
+                <span class="key"><span class="sw" style="background:{{ t.hue }};"></span>{{ t.name }}<span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ t.n }}</span></span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <div class="lbl" style="margin-bottom:7px;">Where you left them</div>
+        <div style="border:1px solid var(--line); border-radius:3px; padding:11px 12px; margin-bottom:14px;">
+          <div class="wp" style="font-size:14.5px; color:var(--fg); margin-bottom:3px;">{{ selWhere }}</div>
+          <div style="font-size:11.5px; color:var(--fg-mute); line-height:1.5;">{{ selWhereNote }}</div>
+        </div>
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <sc-for list="{{ selActions }}" as="a" hint-placeholder-count="3">
+            <span class="act {{ a.cls }}">{{ a.label }}</span>
+          </sc-for>
+        </div>
+        <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:8px 0 0;">{{ retireNote }}</p>
+      </div>
+
+      <div style="flex:none; padding:12px 18px 14px; border-top:1px solid var(--line); background:var(--sunken);">
+        <sc-if value="{{ canEnter }}" hint-placeholder-val="{{ true }}">
+          <button class="enter"><span>Enter as {{ selName }}</span><span style="opacity:.7;">⏎</span></button>
+        </sc-if>
+        <sc-if value="{{ isRetired }}" hint-placeholder-val="{{ false }}">
+          <button class="enter" disabled="{{ true }}" style="background:transparent; color:var(--fg-mute); border-color:var(--line); cursor:default;">
+            <span>Retired — cannot be taken out</span>
+          </button>
+          <button class="enter" style="margin-top:7px; background:transparent; color:var(--accent); border-color:var(--accent);">
+            <span>Restore {{ selName }}</span>
+          </button>
+        </sc-if>
+        <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+          <span style="font-size:11px; color:var(--fg-mute);">sends as</span>
+          <span class="m" style="font-size:11px; color:var(--fg-dim);">{{ enterCmd }}</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { sel:'maren' };
+
+  // colour is the TRADE, never the intensity — that is what makes the grid a
+  // portrait of a career rather than an attendance sheet
+  TRADES={
+    smithing:['Smithing','#e8705c'], haulage:['Haulage','#5b8fd6'],
+    medicine:['Field medicine','#4a9d8f'], civics:['Civics','#c9a227'],
+    survey:['Surveying','#a487c9'],
+  };
+
+  // deterministic, so every figure printed beside it is reproducible
+  practice(seed0, weeks, mix, gapAt){
+    let seed=seed0;
+    const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+    const out=[];
+    for(let w=0; w<weeks; w++){
+      const days=[];
+      for(let d=0; d<7; d++){
+        const away = gapAt && w>=gapAt[0] && w<=gapAt[1];
+        const r=rnd();
+        let trade=mix[mix.length-1][1];
+        for(const [p,t] of mix){ if(r<p){ trade=t; break; } }
+        days.push((!away && rnd()<0.6) ? trade : null);
+      }
+      out.push(days);
+    }
+    return out;
+  }
+
+  // Make (you build) and Fund (you pay) are things the PERSON does — there is no
+  // reason to author or fund as one character rather than another, so they are
+  // account-level. Play is earned by living in the world, so it is the only
+  // standing that can diverge across characters of the same account.
+  ACCOUNT={ Make:[0.62,'rising','12 pages, 3 rooms'], Fund:[0.08,'lapsed','last pledge in Harvestmoon'] };
+
+  // one user account, many characters — each with its own standing and history
+  ROSTER={
+    maren:{ name:'Maren Vask', binomial:'Homo sapiens', handle:'maren',
+      line:'a wright · Smiths\u2019 Guild of Ashmill',
+      play:[0.74,'rising','Out most nights, mid-contract. Standing is a rate — it holds while you keep turning up.'],
+      arc:[1987,26,[[0.58,'smithing'],[0.82,'haulage'],[1,'medicine']],[18,19]],
+      lastSeen:'last out 2 hours ago', where:'The Cartwright\u2019s Yard',
+      whereNote:'Mid-contract. The jig is still set and Tomas is expecting the rim.',
+      away:[
+        ['TELL','#5b8fd6','Bramble tells you, \u201cCustoms house when the iron\u2019s done.\u201d','1h ago'],
+        ['GUILD','var(--info)','Aldric posted the quarter dues — 30 rims wanted at four coin.','3h ago'],
+        ['CIVIC','var(--accent)','Measure 14 closes in two days. You hold a vote in Play.','5h ago'],
+      ] },
+    korrin:{ name:'Korrin Orebright', binomial:'Homo khazadicus', handle:'korrin',
+      line:'a delver · unaffiliated', flag:'NEW', flagHue:'var(--good)',
+      play:[0,'new','Enrolled but never taken out. Nothing accrues until they do something in front of someone.'],
+      arc:null,
+      lastSeen:'made yesterday, never taken out', where:'The Lounge',
+      whereNote:'Still at the table where they were enrolled. Nobody has met them yet.',
+      away:[] },
+    sable:{ name:'Sable Nimreth', binomial:'Homo eldarinus', handle:'sable',
+      line:'an advocate · retired', flag:'RETIRED', flagHue:'var(--fg-mute)', dim:true,
+      play:[0.52,'decaying','Retired three weeks ago and falling. A rate with nothing feeding it only goes one way.'],
+      arc:[4211,26,[[0.64,'civics'],[0.88,'survey'],[1,'haulage']],[23,25]],
+      lastSeen:'retired three weeks ago', where:'the Chamber steps',
+      whereNote:'Retired. Their record stands and the name stays taken, but they cannot be taken out.',
+      away:[] },
+  };
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('cs-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const c=e.target.closest('[data-char]');
+      if(c&&r.contains(c)) return this.setState({sel:c.getAttribute('data-char')});
+    };
+    r.addEventListener('click',this._h);
+  }
+  componentWillUnmount(){ if(this._r&&this._h) this._r.removeEventListener('click',this._h); }
+
+  hueFor(t){
+    if(t==='rising') return 'var(--good)';
+    if(t==='decaying'||t==='lapsed') return 'var(--ember)';
+    if(t==='new') return 'var(--info)';
+    return 'var(--fg-mute)';
+  }
+
+  renderVals(){
+    const S=this.ROSTER[this.state.sel];
+    const grid = S.arc ? this.practice(S.arc[0],S.arc[1],S.arc[2],S.arc[3]) : [];
+    const flat = grid.flat().filter(Boolean);
+    const worked = flat.length;
+    const counts={}; flat.forEach(t=>{ counts[t]=(counts[t]||0)+1; });
+    const ids=Object.keys(this.ROSTER);
+    const live=ids.filter(k=>!this.ROSTER[k].dim).length;
+
+    const pct=(v)=> v>0 ? Math.round(v*100)+'' : '—';
+
+    return {
+      rosterNote: live+' active · '+(ids.length-live)+' retired',
+      acctStanding:Object.keys(this.ACCOUNT).map(k=>{
+        const [v,t,note]=this.ACCOUNT[k];
+        return { k, v:pct(v), w:(v*100)+'%', hue:this.hueFor(t), note };
+      }),
+      roster: ids.map(id=>{
+        const c=this.ROSTER[id];
+        const [v,t]=c.play;
+        return { id, name:c.name, binomial:c.binomial, line:c.line,
+          cls:(this.state.sel===id?'on':'')+(c.dim?' dim':''),
+          hasFlag:!!c.flag, flag:c.flag||'', flagHue:c.flagHue||'var(--line)',
+          playV:pct(v), playW:(v*100)+'%', playHue:this.hueFor(t),
+          lastSeen:c.lastSeen, where:'⌖ '+c.where };
+      }),
+
+      selName:S.name, selBinomial:S.binomial, selLine:S.line,
+      // every figure derives from the same grid
+      hasPractice:!!S.arc,
+      weeks: grid.map(days=>({ days:days.map(t=>({
+        bg: t ? this.TRADES[t][1] : 'var(--sunken)',
+        title: t ? this.TRADES[t][0] : 'nothing that day' })) })),
+      tradeKey: Object.keys(counts).sort((a,b)=>counts[b]-counts[a])
+        .map(k=>({ name:this.TRADES[k][0], hue:this.TRADES[k][1], n:' '+counts[k] })),
+      practiceNote: S.arc ? (worked+' days over '+grid.length+' weeks') : '',
+      noAwayNote: S.play[1]==='new'
+        ? 'Nothing has happened to '+S.name+' yet — they have never been taken out, so there is no one to have missed them.'
+        : 'Nothing waited for '+S.name+'. Standing is a rate, and a character nobody sees only loses it.',
+      selPlayV:pct(S.play[0]), selPlayW:(S.play[0]*100)+'%',
+      selPlayHue:this.hueFor(S.play[1]), selPlayTrend:S.play[1], selPlayNote:S.play[2],
+      selWhere:S.where, selWhereNote:S.whereNote,
+      away:S.away.map(([kind,hue,body,when])=>({kind,hue,body,when})),
+      hasAway:S.away.length>0, noAway:S.away.length===0,
+      // one retirement flag drives the flag, the dimming, the action row AND the CTA
+      isRetired:!!S.dim, canEnter:!S.dim,
+      selActions: S.dim
+        ? [{label:'restore', cls:''},{label:'rename', cls:''}]
+        : [{label:'rename', cls:''},{label:'appearance', cls:''},{label:'retire', cls:'danger'}],
+      retireNote: S.dim
+        ? 'Restoring returns them to play with the standing they still hold. Nothing about their record changed while they were away.'
+        : 'Retiring is not deletion — a retired character keeps their record and their name stays taken. The Gazette does not un-print.',
+      enterCmd: S.dim ? ('restore '+S.handle) : ('play '+S.handle),
+    };
+  }
+}
+</script>
+</body>
+</html>

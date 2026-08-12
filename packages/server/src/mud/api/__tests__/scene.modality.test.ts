@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MessageApi } from '../message';
 import { StuffApi } from '../stuff';
@@ -82,7 +83,7 @@ describe('Scene.modality + SensorMixin.filterMessage', () => {
   it('frames without modality have undefined meta.modality', () => {
     const speaker = makeActor(['hearing']) as ReceivingActor;
     MessageApi.scene(speaker)
-      .topic('system.log.info')
+      .topic('shell.diagnostic')
       .toSelf('hi')
       .send();
     const frame = speaker.received.at(-1);
@@ -130,7 +131,7 @@ describe('Scene.modality + SensorMixin.filterMessage', () => {
   it('no-meta-modality frame delivers to a recipient with empty sensorium', () => {
     const sessile = makeActor([]) as ReceivingActor;
     MessageApi.scene(sessile)
-      .topic('system.connection.established')
+      .topic('session.link')
       .toTarget(sessile, 'hello')
       .send();
     const f = sessile.received.find((f) => f.tags?.includes('audience:target'));

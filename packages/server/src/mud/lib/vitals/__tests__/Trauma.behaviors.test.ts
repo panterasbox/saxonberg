@@ -5,6 +5,7 @@
  * read that restores as the fracture heals / clears).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../obj/species/Species';

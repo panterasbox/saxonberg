@@ -4,6 +4,7 @@
  * the must-be-hosted orphan invariant.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { AetherMixin, type AetherHost } from '../Aether';
 import { AetherHostedMixin } from '../../augmentation/AetherHosted';

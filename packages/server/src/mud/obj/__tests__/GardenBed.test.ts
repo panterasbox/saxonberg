@@ -15,6 +15,7 @@
  * driven through the seed pipeline.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Plant from '../Plant';
 import PlantPot from '../PlantPot';

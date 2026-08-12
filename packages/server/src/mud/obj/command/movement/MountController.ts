@@ -9,7 +9,7 @@
  *
  * Validation surface (from `cmd/mount.yaml`):
  *   - requiresAnimate, requiresPosed, requiresSlottable (verb-level)
- *   - mustBeVisible, mustBeMountable (target-level)
+ *   - `requires: [VisibleMixin, MountableMixin]` (target-level)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -35,7 +35,7 @@ export default class MountController extends CommandController<MountModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
         .send();
       context.note({
@@ -64,8 +64,8 @@ export default class MountController extends CommandController<MountModel> {
     const mountSlot = target.getMountSlot();
     if (target.isSlotFull(mountSlot)) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
-        .toSelf(Mml.compose`${Mml.item(target)} is already mounted.`)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${Mml.thing(target)} is already mounted.`)
         .send();
       context.note({
         kind: 'slot-occupied',
@@ -76,7 +76,7 @@ export default class MountController extends CommandController<MountModel> {
     }
     if (!target.canOccupy(giver, mountSlot)) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't fit on it.`)
         .send();
       context.note({
@@ -99,10 +99,10 @@ export default class MountController extends CommandController<MountModel> {
     );
     giver.setPosture(Postures.Mounted);
     MessageApi.scene(giver)
-      .topic('world.narration.action')
-      .toSelf(Mml.compose`You mount ${Mml.item(target)}.`)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You mount ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} mounts ${Mml.item(target)}.`
+        Mml.compose`${Mml.actor(giver)} mounts ${Mml.thing(target)}.`
       )
       .send();
     return;

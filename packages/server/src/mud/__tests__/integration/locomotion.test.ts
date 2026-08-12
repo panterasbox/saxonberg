@@ -9,6 +9,7 @@
  * (engagedMode set / cleared correctly).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../../api/locomotion';
 import { ContainmentApi } from '../../api/containment';

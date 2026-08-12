@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BiomeApi } from '../biome';
 import { BiomeLogic } from '../../obj/api/BiomeLogic';

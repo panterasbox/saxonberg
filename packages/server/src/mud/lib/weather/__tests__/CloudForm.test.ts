@@ -6,6 +6,7 @@
  * never a physics input. See docs/subsystems/weather.md.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { WeatherApi } from '../../../api/weather';
 import { StuffApi } from '../../../api/stuff';

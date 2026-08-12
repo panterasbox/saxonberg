@@ -401,7 +401,7 @@ function processInline(
 }
 
 /**
- * A whole tag and nothing but: `<name>`, `</name>`, `<name/>`, with
+ * A whole tag and nothing but: `<player>`, `</player>`, `<player/>`, with
  * attributes that are bare or quoted. Attribute values may not contain
  * `>` — which is what lets the caller find the tag's end with a plain
  * `indexOf('>')` and still be right.

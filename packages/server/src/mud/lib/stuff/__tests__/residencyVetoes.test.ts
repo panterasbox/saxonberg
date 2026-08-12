@@ -3,6 +3,7 @@
  * knowledge; base Stuff stays permissive and vetoes compose via super.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { EvictionContext } from '../Stuff';
 import Thing from '../Thing';

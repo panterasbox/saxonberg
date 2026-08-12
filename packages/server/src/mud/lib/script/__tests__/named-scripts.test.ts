@@ -11,6 +11,7 @@
  * lands in P10.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Location from "../../stuff/Location";
 import { Idea } from "../../stuff/Idea";
@@ -35,10 +36,9 @@ const TestGiverBase = CommandGiverMixin(
 
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ["system/ping.yaml", "crafting/make.yaml"],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
   protected override handleMessage(): void {}

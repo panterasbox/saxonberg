@@ -14,6 +14,7 @@
  * is what's under test.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ArmController from '../ArmController';
 import GetController from '../../inventory/GetController';

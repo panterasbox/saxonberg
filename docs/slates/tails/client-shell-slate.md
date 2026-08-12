@@ -51,7 +51,7 @@ See also:
   wraps. This slate generalizes its "always-on minimum" into a
   cross-surface frame and its mode catalogue into the full use-case
   matrix.
-- [cms-slate.md](./cms-slate.md) — the **CMS surface**. Same session,
+- [cms-slate.md](../builds/cms-slate.md) — the **CMS surface**. Same session,
   separate tab, client-heavy over the same backend; the author↔test
   dev loop is the live coupling between the game and CMS surfaces.
 - [auth-providers-slate.md](./auth-providers-slate.md) — sign-in gates
@@ -60,21 +60,23 @@ See also:
 - [external-chat-relay-slate.md](./external-chat-relay-slate.md) —
   Twitch chat ↔ game channel. The *chat* half of streaming; this
   slate's public surface is the *gamestate-rendering* half (overlays).
-- [state-sync-slate.md](./state-sync-slate.md) — perception-scoped
+- [mql-subscription-slate.md](./mql-subscription-slate.md) *(supersedes
+  the retired state-sync-slate)* — perception-scoped
   world deltas to **authed** clients. The public surface's projector is
   a sibling: it consumes gamestate internally with full trust and
   emits a *narrower, unauthed* projection.
-- [char-gen-slate.md](./char-gen-slate.md) + the `feature/char-gen-wave1`
+- [char-gen.md](../../subsystems/char-gen.md) *(shipped; slate retired)* + the `feature/char-gen-wave1`
   implementation (`CharGenStage`, `enroll`/`EnrollController`) — the
   pre-world char-gen flow the start screen hands off to. (Supersedes
   the cockpit slate's modal Track 3.)
-- [lounge-slate.md](./lounge-slate.md) — the **first room**, locked in
+- [lounge-slate.md](../builds/lounge-slate.md) — the **first room**, locked in
   its own slate. Not redesigned here; it's the boundary where plain UI
   ends and the world begins.
-- [onboarding-slate.md](./onboarding-slate.md) — starts at campus
+- [onboarding-slate.md](../builds/onboarding-slate.md) — starts at campus
   arrival, downstream of the lounge. Not touched here.
 - [mql-subscription-slate.md](./mql-subscription-slate.md) +
-  [inspection-pane-slate.md](./inspection-pane-slate.md) — the
+  [inspection-pane.md](../../subsystems/inspection-pane.md) *(shipped;
+  slate retired)* — the
   live-state substrate the game body's regions consume.
 - [docs/deployment.md](../../deployment.md) — `mud.panterasbox.com`, the
   single-box deploy this is meant to make presentable; metrics surface
@@ -124,7 +126,7 @@ the public surface is output-only. Forcing one chrome over all three
 compromises all three.
 
 The game and CMS are "separate shells coupled at the authoring seam,"
-not isolated apps — see [cms-slate.md](./cms-slate.md) for the dev-loop
+not isolated apps — see [cms-slate.md](../builds/cms-slate.md) for the dev-loop
 coupling (one session, two tabs, cross-tab state awareness, gated
 `write` ops). This slate only notes that the **game surface needs an
 author mode** that surfaces authoring/test status (HMR, eval output,
@@ -263,7 +265,7 @@ center of gravity, and they overlap heavily):
   in-game `help` browser already scaffolds against). Exists now;
   searchable first. It's outgrowing that scaffold (taxonomies, its own
   spoiler controls, the unified topic index) — see
-  [help-slate.md](./help-slate.md).
+  [help-slate.md](../builds/help-slate.md).
 - **Wiki** leans **content** — specific NPCs, areas, lore, quests,
   guides; community-authored. Empty until there's a community, so later
   by nature. Own, not external: the "built into the client" value (live
@@ -279,7 +281,7 @@ surface can summon), **search** (the discovery front-end; results open
 the viewer), **spoiler gating**, and the **transclusion/embed palette**.
 
 **Spoiler is shell-level, not a wiki feature.** The reader's appetite
-dial + capability ceiling (see [spoiler-slate.md](./spoiler-slate.md))
+dial + capability ceiling (see [spoiler-slate.md](../deferred-rpg/spoiler-slate.md))
 are a property of the *session*; the shared viewer applies them to
 *whatever it renders* — a help page, a wiki page, or a transcluded embed
 inside either. Same for the **transclusion palette**: `{{help:…}}`,
@@ -451,7 +453,7 @@ now **three consumers**:
   index, so it rides that pipeline rather than the gamestate projector
   below; the spoiler capability ceiling does the gating (anonymous = the
   floor, so most of help is public, spoiler-gated content withheld). See
-  [help-slate.md](./help-slate.md).
+  [help-slate.md](../builds/help-slate.md).
 
 > With three distinct consumers, this surface probably wants to graduate
 > from a section here into its own slate.
@@ -633,9 +635,9 @@ To stay a good citizen of the docs (extend, don't duplicate):
 - **[auth-providers-slate](./auth-providers-slate.md)** — sign-in gate,
   guest, the streamer keystone.
 - **[mql-subscription-slate](./mql-subscription-slate.md)** +
-  **[state-sync-slate](./state-sync-slate.md)** — the live-state
+  **[mql-subscription-slate](./mql-subscription-slate.md)** — the live-state
   substrates the game body consumes and the projector mirrors.
-- **[char-gen-slate](./char-gen-slate.md)** + `feature/char-gen-wave1`
+- **[char-gen.md](../../subsystems/char-gen.md)** + `feature/char-gen-wave1`
   — the pre-world flow the start screen hands off to.
 - **Help system / api-model** (TypeDoc `api-model.json`, `HelpController`
   scaffold) — the first search corpus.

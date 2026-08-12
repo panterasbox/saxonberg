@@ -249,7 +249,7 @@ async function startAndDetach(
     deregisterCoroutine(actor, co);
     if (result.aborted !== undefined && MixinApi.isSensor(actor)) {
       MessageApi.scene(actor as Stuff & Sensor)
-        .topic("system.script.aborted")
+        .topic("shell.error")
         .toSelf(
           Mml.compose`The script stopped (${result.aborted}${
             result.detail ? `: ${result.detail}` : ""

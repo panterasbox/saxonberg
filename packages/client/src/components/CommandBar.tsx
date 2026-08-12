@@ -219,7 +219,7 @@ const SendButton = styled.button<{ $promptMode: boolean }>`
   background: ${(p) =>
     p.$promptMode ? tokens.color.accent : tokens.color.primary};
   color: ${(p) =>
-    p.$promptMode ? tokens.color.surfaceSunken : 'white'};
+    p.$promptMode ? tokens.color.surfaceSunken : tokens.color.onField};
   border: none;
   cursor: pointer;
   font-family: ${tokens.font.mono};
@@ -318,7 +318,7 @@ const SlotDropdown = styled.ul`
   left: 0;
   margin-bottom: ${tokens.space.xs};
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px ${tokens.color.shadow};
 `;
 
 const SlotRow = styled.li<{ $active: boolean }>`
@@ -418,7 +418,7 @@ const Chip = styled.button<{ $primary?: boolean; $selected?: boolean }>`
 
 const ValidationMessage = styled.div`
   flex-basis: 100%;
-  color: #e06c75;
+  color: ${tokens.color.danger};
   font-size: ${tokens.font.small};
   padding: 0 ${tokens.space.sm};
 `;
@@ -565,8 +565,8 @@ export function CommandBar({
 
     // The client never wraps input — the tail goes verbatim, tagged with
     // this bar's `barId`, and the server's interpreter prepends this
-    // bar's mode prefix (the `mode` verb + `/`-escape are exempt there).
-    // `mode` / `mode off` are real commands now: they ride the bus too.
+    // line's prefix (the `cockpit` verb + `/`-escape are exempt
+    // there). `cockpit cli` rides the bus like any other command.
     onSendCommand(baseDraft, barId);
     if (trimmed) {
       setHistory((prev) => {
@@ -578,10 +578,10 @@ export function CommandBar({
     setHistoryIndex(-1);
   };
 
-  /** Clear this bar's mode by sending `mode off` from this bar. */
+  /** Clear this line's prefix by sending `cockpit cli --clear` from it. */
   const clearBarMode = () => {
     if (offline) return;
-    onSendCommand('mode off', barId);
+    onSendCommand('cockpit cli --clear', barId);
   };
 
   const submitActive = () => {

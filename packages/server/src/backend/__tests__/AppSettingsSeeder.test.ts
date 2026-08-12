@@ -4,6 +4,7 @@
  * operator-changed keys survive. PersistenceManager is stubbed (no Mongo).
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AppSettingsSeeder } from "../AppSettingsSeeder";
 import { AppSettingKeys } from "../../mud/lib/config/AppSettings";
@@ -41,7 +42,7 @@ describe("AppSettingsSeeder", () => {
     pm.setFindResult([]);
     const added = await AppSettingsSeeder.run();
 
-    expect(added).toBe(292); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 4 kick relay (replayWindowSec + dedupTtlSec + dedupMaxSize + resolveCacheTtlMs) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate) + 13 husbandry (step/maxSteps, vigor tau, goodAt, deathAt, rootFloor, 3 bands, 2 warmth, 2 soil nutrient, 4 grade ladder) + 2 sandbox (sweeper.intervalMs + session.graceMs) + 5 wiki render budget (snippetDepth, maxSnippets, maxComponents, componentTimeoutMs, maxOutputChars) + 1 press.frontPage + 1 banking.compactCurrency
+    expect(added).toBe(302); // 146 base + 7 Attendant+Goodkin + 19 storms-and-wetness + 17 concealment/detection/hazard/movement + 12 stealth-deployables + 2 residency reset + 2 retail consignment + 15 fire (3 heat-channel + 4 combustion + 3 tick/spread + 5 chemistry) + 20 magic (3 cast + 7 faculty pool/recovery + 4 composure + 1 potency + 2 overchannel + 3 effect magnitudes) + 3 combat formations + 4 work-contracts (banking.defaultCustodianBank + 3 contract.*) + 4 combat-hooks (3 influence + combat.natural.largeBodyMassKg) + 4 kick relay (replayWindowSec + dedupTtlSec + dedupMaxSize + resolveCacheTtlMs) + 11 crafting (broken + delivery floors, wear-per-use, 3 keenness, repair pricing/heat, salvageRate) + 13 husbandry (step/maxSteps, vigor tau, goodAt, deathAt, rootFloor, 3 bands, 2 warmth, 2 soil nutrient, 4 grade ladder) + 2 sandbox (sweeper.intervalMs + session.graceMs) + 5 wiki render budget (snippetDepth, maxSnippets, maxComponents, componentTimeoutMs, maxOutputChars) + 1 press.frontPage + 1 banking.compactCurrency + 10 ranged (2 band-ladder metres, withdrawCost, magic.spellEnvelope, thrownEnvelope, throwSpeedMs, 4 splash fractions)
     expect(pm.saves).toHaveLength(1);
     expect(pm.saves[0]!.collection).toBe("app_settings");
     const values = savedValues(pm);
@@ -385,6 +386,16 @@ describe("AppSettingsSeeder", () => {
           [AppSettingKeys.wikiRenderComponentTimeoutMs]: "2000",
           [AppSettingKeys.wikiRenderMaxOutputChars]: "200000",
           [AppSettingKeys.pressFrontPage]: "/compact/press",
+          [AppSettingKeys.combatRangeNearMetres]: "6",
+          [AppSettingKeys.combatRangeFarMetres]: "20",
+          [AppSettingKeys.combatRangeWithdrawCost]: "0.22",
+          [AppSettingKeys.magicSpellEnvelope]: "far",
+          [AppSettingKeys.combatRangeThrownEnvelope]: "near",
+          [AppSettingKeys.combatRangeThrowSpeed]: "12",
+          [AppSettingKeys.combatRangeSplashPrecise]: "0.85",
+          [AppSettingKeys.combatRangeSplashPrimary]: "0.6",
+          [AppSettingKeys.combatRangeSplashGraze]: "0.3",
+          [AppSettingKeys.combatRangeSplashBystander]: "0.15",
         },
       },
     ]);
@@ -438,7 +449,7 @@ describe("AppSettingsSeeder", () => {
     // + 11 husbandry (step/maxSteps, vigor tau, goodAt, deathAt, rootFloor,
     //   3 bands, 2 warmth)
     // + 2 sandbox (sweeper.intervalMs + session.graceMs) + 5 wiki render budget (snippetDepth, maxSnippets, maxComponents, componentTimeoutMs, maxOutputChars) + 1 press.frontPage + 1 banking.compactCurrency.
-    expect(added).toBe(291); // 292 total − 1 operator-preset key
+    expect(added).toBe(301); // 302 total − 1 operator-preset key
     expect(pm.saves).toHaveLength(1);
     const values = savedValues(pm);
     // operator value preserved, missing keys seeded

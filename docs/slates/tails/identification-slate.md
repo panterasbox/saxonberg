@@ -12,6 +12,21 @@
 > ID verbs (`taste` / `drink` / `learn from teacher`), and
 > misidentification (belief-vs-truth, cursed items, illusion content).
 
+> ⭐⭐ **This slate is the *epistemic* half of a pair, and the other half
+> already shipped.** The [wiki's reveal
+> model](../../subsystems/wiki.md#-what-reveal-does-not-answer--appetite-is-not-epistemics)
+> answers **appetite** (*does this reader want to be spoiled?* — a
+> preference, one click) and **capability** (*is this reader allowed?*).
+> Neither answers ***does this character know this***, and nothing else
+> does either: there is no per-viewer knowledge state over world facts,
+> no way to earn a measurement, and no way to be **wrong** about one.
+> That is what this slate is for. ⚠ The two are complements — **a
+> collapse toggle is not a lock, and a lock is not knowledge** — and the
+> live failure mode is mistaking one for the other (a surface printing a
+> `spoiler: 1` density is *not* leaking a secret; level 1 is collapsed,
+> never forbidden). Until this lands, "what a player knows about oak" is
+> a **UI preference**, not a fact about anybody.
+
 Working slate for item identification — the parallel of
 recognition for *items* rather than *actors*. A blue potion is
 "a blue potion" until identified; thereafter it's "a potion of

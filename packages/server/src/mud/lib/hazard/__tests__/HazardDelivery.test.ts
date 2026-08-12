@@ -4,10 +4,12 @@
  * `EnergyInflictSpec`; site selection is first-match over the mover's
  * anatomy (a non-matching selector → null, the graceful no-op); the
  * `shock` channel yields a `ShockInflictSpec` with the energy read as
- * amperes; the reserved `range` defaults to `'contact'` and round-trips.
+ * amperes; `range` defaults to `'contact'`, round-trips, and now accepts
+ * `'ranged'` — the seam the trap build reserved for the ranged one.
  * Deterministic — no RNG.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { HazardDelivery } from '../HazardDelivery';
 import { Creature } from '../../creature/Creature';
@@ -119,5 +121,40 @@ describe('HazardDelivery — the reserved range seam + toxin', () => {
     expect(HazardDelivery.from(d)).toBe(d); // an instance passes through
     expect(d.toJSON().channel).toBe('blunt');
     expect(d.toJSON().energy).toBe(4);
+  });
+});
+
+describe('HazardDelivery — the ranged seam (P7)', () => {
+  it("accepts 'ranged' and reports it", () => {
+    const d = new HazardDelivery({
+      channel: 'heat',
+      energy: 40,
+      siteSelector: ['body.torso'],
+      range: 'ranged',
+    });
+    expect(d.range).toBe('ranged');
+    expect(d.isRanged()).toBe(true);
+  });
+
+  it("still defaults to 'contact', which is not ranged", () => {
+    const d = new HazardDelivery({
+      channel: 'edge',
+      energy: 10,
+      siteSelector: ['body.torso'],
+    });
+    expect(d.range).toBe('contact');
+    expect(d.isRanged()).toBe(false);
+  });
+
+  it("round-trips 'ranged' through serialization", () => {
+    const d = new HazardDelivery({
+      channel: 'heat',
+      energy: 40,
+      siteSelector: ['body.torso'],
+      range: 'ranged',
+    });
+    const again = HazardDelivery.from(d.toJSON());
+    expect(again.range).toBe('ranged');
+    expect(again.isRanged()).toBe(true);
   });
 });

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ground:#071224; --surface:#0d1c38; --raised:#15274a; --sunken:#040b17;
+      --line:#22355e; --line-soft:#132441;
+      --fg:#f2f5fa; --fg-dim:#9fb0cc; --fg-mute:#8494b3;
+      --red:#BF0A30; --white:#FFFFFF;
+      --accent:#c9a227; --accent-ink:#171204;
+      --good:#4a9d8f; --warn:#c9a227; --info:#5b8fd6; --ember:#e8705c;
+      --twitch:#9146ff; --youtube:#ff0033; --kick:#53fc18;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; }
+    body { -webkit-font-smoothing:antialiased; }
+    ::-webkit-scrollbar { width:8px; }
+    ::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+    .cap { font-family:'Spectral',serif; font-weight:500; text-transform:uppercase; letter-spacing:.19em; }
+    .lbl { font-family:'Spectral',serif; font-weight:500; font-size:9.5px; text-transform:uppercase; letter-spacing:.19em; color:var(--fg-mute); }
+    .m { font-family:'IBM Plex Mono',monospace; }
+    .wp { font-family:'Newsreader',Georgia,serif; }
+    .plat { font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:.09em; text-transform:uppercase;
+            border-radius:2px; padding:1px 4px; flex:none; }
+    .tuned { display:flex; align-items:center; gap:7px; padding:5px 9px; border:1px solid var(--line);
+             border-radius:3px; background:var(--surface); cursor:pointer; font-size:12px; }
+    .tuned:hover { border-color:var(--fg-mute); }
+    .tuned.on { border-color:var(--accent); background:var(--raised); }
+    .tuned.ro { opacity:.72; }
+    .cl { display:flex; gap:7px; padding:4px 0; }
+    .act { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--accent);
+           border:1px solid color-mix(in oklab,var(--accent) 35%,transparent); border-radius:2px; padding:3px 8px; cursor:pointer; }
+    .act:hover { background:color-mix(in oklab,var(--accent) 14%,transparent); }
+    .fr { padding:7px 0; border-bottom:1px solid var(--line-soft); }
+    .fk { font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.13em; text-transform:uppercase; }
+    .tab { display:inline-flex; align-items:center; min-height:28px; padding:0 11px; border:1px solid var(--line);
+           background:transparent; color:var(--fg-dim); cursor:pointer; font-size:11.5px; font-family:'Public Sans',sans-serif; }
+    .tab.on { background:var(--raised); color:var(--fg); border-color:var(--accent); }
+    .tab:first-child { border-radius:3px 0 0 3px; }
+    .tab:last-child { border-radius:0 3px 3px 0; }
+    /* the split: a 5px grab strip with a wider invisible hit area */
+    .grip { flex:none; height:5px; position:relative; background:var(--line); cursor:ns-resize; }
+    .grip::before { content:''; position:absolute; left:0; right:0; top:-5px; bottom:-5px; }
+    .grip::after { content:''; position:absolute; left:50%; top:1px; width:38px; height:3px;
+                   transform:translateX(-50%); border-radius:2px; background:var(--fg-mute); }
+    .grip:hover { background:var(--accent); }
+    .grip:hover::after { background:var(--accent-ink); }
+    .sizer { display:inline-flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:9.5px;
+             color:var(--fg-mute); border:1px solid var(--line); border-radius:2px; padding:2px 7px; cursor:pointer; }
+    .sizer:hover { color:var(--accent); border-color:var(--accent); }
+    .sizer.on { color:var(--accent-ink); background:var(--accent); border-color:var(--accent); }
+  </style>
+</helmet>
+
+<div id="ls-root" style="width:1440px; height:900px; display:flex; background:var(--ground); color:var(--fg); font-family:'Public Sans',system-ui,sans-serif; font-size:13px; overflow:hidden;">
+
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+
+    <header style="flex:none; display:flex; align-items:center; gap:12px; padding:9px 16px; background:var(--surface); border-bottom:1px solid var(--line);">
+      <span class="cap" style="font-size:13px;">Watch</span>
+      <span style="font-size:12px; color:var(--fg-dim);">an external stream in the focal embed — the world keeps running under it</span>
+      <div style="flex:1;"></div>
+      <div style="display:flex;">
+        <sc-for list="{{ states }}" as="s" hint-placeholder-count="2">
+          <button class="tab {{ s.cls }}" data-state="{{ s.id }}">{{ s.label }}</button>
+        </sc-for>
+      </div>
+    </header>
+
+    <!-- ══ the focal embed ══ -->
+    <div style="flex:none; height:{{ videoH }}px; position:relative; background:#000; min-height:0;">
+      <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                    background:linear-gradient(140deg,#1a1030,#07040f);">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:9px; color:var(--fg-mute);">
+            <svg width="42" height="42" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2.3" y="4.3" width="15.4" height="11.4" rx="2"/><path d="M8.3 8l4.2 2-4.2 2z" fill="currentColor" stroke="none"/></svg>
+            <span class="m" style="font-size:11px;">twitch.tv/aldric · embed</span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isStandby }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:11px; background:linear-gradient(140deg,#0d1c38,#040b17);">
+          <span class="cap" style="font-size:15px; color:var(--fg-dim);">Back soon</span>
+          <span class="m" style="font-size:34px; color:var(--accent);">11:42</span>
+          <span style="font-size:12px; color:var(--fg-mute);">Aldric stepped away — the countdown is the overlay, not a frozen feed</span>
+          <span class="m" style="font-size:10px; color:var(--fg-mute); border:1px solid var(--line); border-radius:2px; padding:2px 8px;">stream away 15m</span>
+        </div>
+      </sc-if>
+
+      <!-- chrome over the embed -->
+      <div style="position:absolute; top:11px; left:13px; display:flex; align-items:center; gap:7px;">
+        <span class="m" style="font-size:9px; background:{{ badgeBg }}; color:{{ badgeFg }}; border-radius:2px; padding:2px 7px;">{{ badgeText }}</span>
+        <span class="m" style="font-size:9.5px; color:var(--fg-dim); background:rgba(0,0,0,.5); border-radius:2px; padding:2px 7px;">2,411 watching</span>
+      </div>
+      <div style="position:absolute; bottom:11px; left:13px; right:13px; display:flex; align-items:flex-end; gap:11px;">
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+            <span style="font-size:15px; font-weight:600; color:var(--fg);">Aldric</span>
+            <span class="plat" style="background:var(--twitch); color:#fff;">twitch</span>
+            <!-- the character form: watch <character> resolves a linked channel -->
+            <span class="m" style="font-size:9.5px; color:var(--accent); border:1px solid color-mix(in oklab,var(--accent) 40%,transparent); border-radius:2px; padding:1px 6px;">⌖ Foreman Aldric</span>
+          </div>
+          <div style="font-size:12px; color:var(--fg-dim); text-shadow:0 1px 3px #000;">Forging thirty wheel rims for the guild — measure 14 talk at the top of the hour</div>
+        </div>
+        <span class="act" style="background:rgba(0,0,0,.5);">watch off</span>
+      </div>
+    </div>
+
+    <!-- drag to resize; the world never goes to zero -->
+    <div class="grip" id="ls-grip"></div>
+
+    <!-- ══ the world, still running ══ -->
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div style="flex:none; display:flex; align-items:center; gap:9px; padding:6px 16px; background:var(--sunken); border-bottom:1px solid var(--line-soft);">
+        <span class="lbl">Your world</span>
+        <span style="font-size:11.5px; color:var(--fg-dim);">The Cartwright's Yard</span>
+        <div style="flex:1;"></div>
+        <sc-for list="{{ sizes }}" as="z" hint-placeholder-count="3">
+          <span class="sizer {{ z.cls }}" data-size="{{ z.id }}">{{ z.label }}</span>
+        </sc-for>
+        <span class="m" style="font-size:9.5px; color:var(--fg-mute);">{{ splitNote }}</span>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:8px 16px;">
+        <div class="fr">
+          <div style="display:flex; align-items:baseline; gap:7px; margin-bottom:2px;"><span class="m" style="font-size:9px; color:var(--fg-mute);">204</span><span class="fk" style="color:#c98a3f;">Room</span><span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:41</span></div>
+          <div class="wp" style="font-size:14.5px; line-height:1.5;">The forge has gone cold. Your billet sits where you left it.</div>
+        </div>
+        <div class="fr">
+          <div style="display:flex; align-items:baseline; gap:7px; margin-bottom:2px;"><span class="m" style="font-size:9px; color:var(--fg-mute);">205</span><span class="fk" style="color:#5b8fd6;">Tell</span><span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:43</span></div>
+          <div class="wp" style="font-size:14.5px; line-height:1.5;">Bramble tells you, “Are you actually watching him work or are you coming?”</div>
+        </div>
+        <div class="fr" style="border-bottom:none;">
+          <div style="display:flex; align-items:baseline; gap:7px; margin-bottom:2px;"><span class="m" style="font-size:9px; color:var(--fg-mute);">206</span><span class="fk" style="color:#4a9d8f;">Say</span><span class="m" style="font-size:8.5px; color:var(--fg-mute); margin-left:auto;">18:44</span></div>
+          <div class="wp" style="font-size:14.5px; line-height:1.5;">Tomas says, “Leave him to it. The jig is still set.”</div>
+        </div>
+      </div>
+      <div style="flex:none; display:flex; align-items:center; gap:9px; padding:8px 16px 10px; border-top:1px solid var(--line); background:var(--sunken);">
+        <span class="m" style="font-size:12.5px; color:var(--accent); flex:none;">here›</span>
+        <div style="flex:1; display:flex; align-items:center; height:34px; padding:0 11px; border:1px solid var(--line); border-radius:3px; background:var(--surface);">
+          <span class="m" style="font-size:12.5px; color:var(--fg-mute);">your own command line, unchanged</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ chat: many sources, one pane ══ -->
+  <aside style="flex:0 0 384px; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--line); min-height:0;">
+
+    <div style="flex:none; padding:9px 13px 8px; border-bottom:1px solid var(--line);">
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:8px;">
+        <span class="lbl">Tuned</span>
+        <span style="font-size:11px; color:var(--fg-mute);">they interleave, tagged per line</span>
+        <div style="flex:1;"></div>
+        <span class="m" style="font-size:9px; color:var(--fg-mute);">tune list</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <sc-for list="{{ tuned }}" as="t" hint-placeholder-count="4">
+          <div class="tuned {{ t.cls }}" data-post="{{ t.id }}">
+            <span class="plat" style="background:{{ t.hue }}; color:{{ t.ink }};">{{ t.plat }}</span>
+            <span style="flex:1; min-width:0; color:var(--fg);">{{ t.handle }}</span>
+            <span class="m" style="font-size:9px; color:{{ t.rwHue }};">{{ t.rw }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:8px 13px;">
+      <sc-for list="{{ chat }}" as="c" hint-placeholder-count="10">
+        <div class="cl">
+          <span class="plat" style="background:{{ c.hue }}; color:{{ c.ink }}; margin-top:2px;">{{ c.plat }}</span>
+          <span style="font-size:12.5px; font-weight:600; color:{{ c.whoHue }}; flex:none;">{{ c.who }}</span>
+          <span style="font-size:12.5px; line-height:1.45; color:var(--fg-dim); flex:1; min-width:0;">{{ c.body }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- posting is asymmetric and the composer has to say so -->
+    <div style="flex:none; padding:9px 13px 11px; border-top:1px solid var(--line); background:var(--sunken);">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">
+        <span class="m" style="font-size:12px; color:{{ postHue }}; flex:none;">{{ postSlot }}</span>
+        <div style="flex:1; display:flex; align-items:center; height:34px; padding:0 10px; border:1px solid var(--line); border-radius:3px; background:{{ postBg }};">
+          <span class="m" style="font-size:12px; color:var(--fg-mute);">{{ postHint }}</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:11px; color:var(--fg-mute);">sends as</span>
+        <span class="m" style="font-size:11px; color:var(--fg-dim);">{{ postCmd }}</span>
+      </div>
+      <p style="font-size:11px; color:var(--fg-mute); line-height:1.5; margin:7px 0 0;">{{ postNote }}</p>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  // the world never collapses to nothing — the never-blind law survives a drag
+  MINV=180; MINW=150; SHELL=900; CHROME=42;
+  state = { live:'live', post:'twitch:aldric', videoH:376 };
+
+  // `tune` follows a chat; `watch` puts one stream in the focal embed.
+  // Twitch is read-write this cycle; YouTube and Kick are read-only.
+  TUNED=[
+    { id:'twitch:aldric', plat:'twitch', hue:'var(--twitch)', ink:'#fff', handle:'aldric', rw:'read · post' },
+    { id:'kick:bobalu',   plat:'kick',   hue:'var(--kick)',   ink:'#07120a', handle:'bobalu', rw:'read only' },
+    { id:'youtube:wrightworks', plat:'youtube', hue:'var(--youtube)', ink:'#fff', handle:'@wrightworks', rw:'read only' },
+    { id:'game:gossip',   plat:'game',   hue:'var(--accent)', ink:'var(--accent-ink)', handle:'#gossip', rw:'read · post' },
+  ];
+
+  CHAT=[
+    ['twitch','Kestrel','that weld is never taking at that heat'],
+    ['game','Perrin','he is streaming the guild order? bold'],
+    ['twitch','dorn','1150 minimum, he knows'],
+    ['kick','marrow','chat is wrong, look at the colour'],
+    ['twitch','Aldric','colour is right. you all read one wiki page and became smiths'],
+    ['youtube','@ferrous','the pyrometer reading is in the corner if anyone cares'],
+    ['game','Bramble','ask him about measure 14'],
+    ['twitch','Kestrel','MEASURE 14 WHEN'],
+    ['kick','marrow','fine, i was wrong'],
+    ['twitch','Aldric','at the top of the hour. let me finish the rim.'],
+  ];
+
+  componentDidMount(){ this._bind(); }
+  componentDidUpdate(){ this._bind(); }
+  _bind(){
+    const r=document.getElementById('ls-root');
+    if(!r||r===this._r) return;
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    this._r=r;
+    this._h=(e)=>{
+      const s=e.target.closest('[data-state]');
+      if(s&&r.contains(s)) return this.setState({live:s.getAttribute('data-state')});
+      const p=e.target.closest('[data-post]');
+      if(p&&r.contains(p)) return this.setState({post:p.getAttribute('data-post')});
+      const z=e.target.closest('[data-size]');
+      if(z&&r.contains(z)){ const id=z.getAttribute('data-size');
+        const maxV=this.SHELL-this.CHROME-this.MINW;
+        return this.setState({ videoH: id==='theater' ? maxV : (id==='even' ? 376 : this.MINV) }); }
+    };
+    r.addEventListener('click',this._h);
+
+    const grip=document.getElementById('ls-grip');
+    if(grip&&grip!==this._grip){
+      this._grip=grip;
+      const maxV=this.SHELL-this.CHROME-this.MINW;
+      this._down=(ev)=>{ this._drag={ y:ev.clientY, h:this.state.videoH }; ev.preventDefault(); };
+      this._move=(ev)=>{ if(!this._drag) return;
+        const next=this._drag.h+(ev.clientY-this._drag.y);
+        this.setState({ videoH: Math.max(this.MINV, Math.min(maxV, next)) }); };
+      this._up=()=>{ this._drag=null; };
+      grip.addEventListener('pointerdown',this._down);
+      window.addEventListener('pointermove',this._move);
+      window.addEventListener('pointerup',this._up);
+    }
+  }
+  componentWillUnmount(){
+    if(this._r&&this._h) this._r.removeEventListener('click',this._h);
+    if(this._grip&&this._down) this._grip.removeEventListener('pointerdown',this._down);
+    window.removeEventListener('pointermove',this._move);
+    window.removeEventListener('pointerup',this._up);
+  }
+
+  renderVals(){
+    const live=this.state.live==='live';
+    const P=this.TUNED.find(t=>t.id===this.state.post)||this.TUNED[0];
+    const writable=P.rw.includes('post');
+    const HUE={ twitch:['var(--twitch)','#fff'], kick:['var(--kick)','#07120a'],
+                youtube:['var(--youtube)','#fff'], game:['var(--accent)','var(--accent-ink)'] };
+    const WHO={ twitch:'#b98cff', kick:'#7ce85a', youtube:'#ff6b8a', game:'var(--accent)' };
+
+    return {
+      videoH:this.state.videoH,
+      sizes:[['reading','reading'],['even','even'],['theater','theater']].map(([id,label])=>{
+        const maxV=this.SHELL-this.CHROME-this.MINW;
+        const at = id==='theater' ? maxV : (id==='even' ? 376 : this.MINV);
+        return { id, label, cls: Math.abs(this.state.videoH-at)<6 ? 'on':'' };
+      }),
+      splitNote:'video '+Math.round(this.state.videoH)+'px · drag to resize',
+      states:[['live','Live'],['standby','Standby']].map(([id,label])=>({id,label,cls:this.state.live===id?'on':''})),
+      isLive:live, isStandby:!live,
+      badgeText: live?'● LIVE':'◐ STANDBY',
+      badgeBg: live?'var(--red)':'var(--surface)',
+      badgeFg: live?'#fff':'var(--fg-dim)',
+
+      tuned:this.TUNED.map(t=>({ ...t, cls:(t.id===this.state.post?'on':'')+(t.rw.includes('post')?'':' ro'),
+        rwHue: t.rw.includes('post')?'var(--good)':'var(--fg-mute)' })),
+
+      chat:this.CHAT.map(([plat,who,body])=>({
+        plat, hue:HUE[plat][0], ink:HUE[plat][1], who, whoHue:WHO[plat], body })),
+
+      postSlot: writable ? (P.plat==='game' ? P.handle+'›' : P.handle+'›') : '⃠',
+      postHue: writable ? 'var(--accent)' : 'var(--fg-mute)',
+      postBg: writable ? 'var(--surface)' : 'transparent',
+      postHint: writable ? 'say something…' : P.plat+' chat is read-only this cycle',
+      postCmd: P.plat==='game' ? ('chan '+P.handle.replace('#','')+' <msg>')
+                               : ('tune '+P.handle+' --'+P.plat+' <msg>'),
+      postNote: writable
+        ? (P.plat==='game'
+            ? 'A game channel and a platform chat post through the same bar — only the command differs.'
+            : 'Posts as your linked Twitch identity and mirrors here. Needs chat authorized the first time.')
+        : 'You can read '+P.plat+' chat but not post to it. Select a writable channel to type.',
+    };
+  }
+}
+</script>
+</body>
+</html>

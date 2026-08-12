@@ -15,5 +15,6 @@ args:
     type: object
     scope: ["$focus", "reachable"]
     required: true
+    requires: MountableMixin
     validators:
       - /lib/command/validators/canReach

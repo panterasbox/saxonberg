@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.sense.scry
-  family: world.perception.sense
-  label: Scry
-  description: Output of the scry verb — remote perception of a place or thing.

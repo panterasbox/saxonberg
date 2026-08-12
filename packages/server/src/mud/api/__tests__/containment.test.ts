@@ -2,6 +2,7 @@
  * ContainmentApi tests
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ContainmentApi } from '../containment';
 import { ContainmentLogic } from '../../obj/api/ContainmentLogic';

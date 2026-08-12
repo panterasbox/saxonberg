@@ -7,6 +7,7 @@
  * real-life absence never starves you). There is no away-recovery.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import { HasInteractiveMixin } from "../../connection/HasInteractive";

@@ -6,6 +6,7 @@
  * with a broken floor (a ruined blade barely bites).
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

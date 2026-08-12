@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.expression
-  family: world
-  label: Expression
-  description: Non-verbal expressive acts riding the ESP modality — emotes and other affective conveyance.

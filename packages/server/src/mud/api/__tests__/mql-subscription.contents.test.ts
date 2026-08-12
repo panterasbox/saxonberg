@@ -16,6 +16,7 @@
  *   - Non-Container hosts have `contents` omitted from the projection.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { EventApi } from '../event';

@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Window from '../Window';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';

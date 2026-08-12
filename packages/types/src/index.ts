@@ -801,15 +801,126 @@ export interface PromptEnvelope {
  * fields (e.g., a focus-pane query like `$focus` or a current-room
  * query like `here`).
  */
+/**
+ * A **pane** the server knows by name.
+ *
+ * ⭐⭐ **The server owns this vocabulary, and that is the whole point.**
+ * A subscription's `subscriptionId` is a client-minted `nanoid` — a
+ * transport handle that dies on reconnect — so it can name a pane for
+ * the length of one socket and nothing longer. Anything durable that
+ * refers to a pane (a saved arrangement, a pin, a future authored
+ * layout) needs an identity the server issues and can still recognise
+ * tomorrow. That is this.
+ *
+ * ⚠ **Naming a pane is not the same as describing one.** The client
+ * sends `pane: 'inspect'` and NOTHING else — the server supplies the
+ * query, the cardinality, the field set, the dependency flags and the
+ * hold. Before this, `InspectionPane.tsx` hardcoded `query: "$focus"`,
+ * which is the client holding a server semantic: the same category
+ * error as a client deciding its own affordances, and the reason a
+ * wrong figure on the wire becomes a wrong figure on screen.
+ *
+ * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
+ * It is not a menu of hypothetical panes — every entry here is one the
+ * client actually opens. The server-side definitions live in
+ * `lib/connection/Panes.ts`.
+ */
+export type PaneId = "inspect" | "location";
+
+/** Every {@link PaneId}. The server validates against this; the client picks from it. */
+export const PANE_IDS: readonly PaneId[] = ["inspect", "location"];
+
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
-  query: string;
-  cardinality: 'one' | 'many';
+  /**
+   * Open a **named** pane — the server supplies query, cardinality,
+   * fields, dependency flags and hold from its own catalogue, and every
+   * one of those fields below is ignored. See {@link PaneId}.
+   */
+  pane?: PaneId;
+  /** Required UNLESS `pane` names one, in which case the server owns it. */
+  query?: string;
+  /** Required UNLESS `pane` names one. */
+  cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
+  /**
+   * Optional lifetime rule. A subscription carrying a hold is a
+   * **pane**: it lives until its condition lapses, then is released
+   * with a reason. Absent = lives until unsubscribed, the classic
+   * shape.
+   */
+  hold?: PaneHold;
+  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  holdSubject?: string;
+}
+
+/**
+ * What keeps a pane open. Evaluated **server-side**, because these are
+ * facts about the world — a client guessing at them is the same
+ * category error as a client guessing at affordances.
+ *
+ * ⭐ `unanswered` is the one the design leans on: *nothing that is
+ * still actionable ever leaves*. It is also the odd one out — its
+ * subject is a pending **command**, not a Stuff — which is exactly why
+ * it must be built first. A shape derived from the four spatial holds
+ * would not fit it.
+ *
+ * | Hold | Held while | Released when |
+ * |---|---|---|
+ * | `unanswered` | it owes a reply | answered |
+ * | `here` | you are where you were | you left |
+ * | `present` | they are still in the room | they left |
+ * | `inReach` | in reach | out of reach |
+ * | `carried` | on you | not carried |
+ */
+export type PaneHold =
+  | "unanswered"
+  | "here"
+  | "present"
+  | "inReach"
+  | "carried";
+
+/** Every {@link PaneHold}. Server validator and client both read this. */
+export const PANE_HOLDS: readonly PaneHold[] = [
+  "unanswered",
+  "here",
+  "present",
+  "inReach",
+  "carried",
+];
+
+/**
+ * Why a pane went away. A pane that vanishes without a reason reads as
+ * a bug, so the reason is on the wire rather than inferred.
+ *
+ * `dismissed` and `kept` are the manual-pin outcomes: pinning is not a
+ * sixth hold, it is an override on the other five in **both**
+ * directions — keep a pane whose condition lapsed, drop one whose
+ * condition still holds.
+ */
+export type PaneReleaseReason =
+  | "answered"
+  | "left"
+  | "departed"
+  | "out-of-reach"
+  | "dropped"
+  | "dismissed";
+
+/**
+ * A pane's hold lapsed and the pane is gone. Distinct from
+ * {@link MqlSubscriptionErrorEnvelope}: nothing went wrong, the
+ * subscription simply reached the end of its stated lifetime.
+ */
+export interface MqlSubscriptionReleasedEnvelope {
+  type: 'mql-subscription-released';
+  frameId: number;
+  subscriptionId: string;
+  hold: PaneHold;
+  reason: PaneReleaseReason;
 }
 
 export interface MqlUnsubscribeMessage {
@@ -853,6 +964,53 @@ export interface ReactionExpandMessage {
   type: 'reaction-expand';
   requestId: string;
   commandId: string;
+}
+
+/**
+ * Ask the server what a viewer can do with one object, right now —
+ * the request behind the radial menu. Correlated by `requestId`; the
+ * subject is named by `stuffId`, the same token every identity tag
+ * already carries on the wire.
+ *
+ * One-shot request/response, deliberately not a subscription: a menu
+ * is open for a second or two. Keeping an open radial live as the
+ * world changes is possible on the subscription substrate and is
+ * deferred until something needs it.
+ */
+export interface AffordanceResolveMessage {
+  type: 'affordance-resolve';
+  requestId: string;
+  stuffId: string;
+}
+
+/**
+ * Whether a verb can be run on the subject right now.
+ *
+ * `pending-operand` is the state that keeps a radial honest: `put`
+ * passes every check a menu can evaluate, but still needs a container
+ * the menu cannot know. Reporting it plainly `enabled` would promise
+ * a click that then stalls on a prompt.
+ */
+export type AffordanceState = 'enabled' | 'disabled' | 'pending-operand';
+
+/** One verb in an {@link AffordanceResultEnvelope}. */
+export interface AffordanceEntry {
+  verb: string;
+  /** Authored one-line description — the menu's label text. */
+  description: string;
+  state: AffordanceState;
+  /**
+   * Why it is unavailable — **the validator's own words**, verbatim.
+   * Present only on `disabled`. The strings are already written in
+   * player-facing prose, because a validator's return value is what
+   * the player would have been shown had they typed the verb.
+   */
+  reason?: string;
+  /**
+   * The field still needing a value, on `pending-operand` — so the
+   * client can open the right prompt rather than guessing.
+   */
+  operand?: string;
 }
 
 /**
@@ -1289,6 +1447,46 @@ export interface ReactionExpandResultEnvelope {
 }
 
 /**
+ * Result of an {@link AffordanceResolveMessage}: what this viewer can
+ * do with this object, at this instant.
+ *
+ * ⚠ **Both lists are filtered, and filtering means DELETION.** A verb
+ * the viewer is not entitled to know about is absent — never present
+ * and flagged — because a response that admits a hidden verb exists
+ * leaks the fact that it exists. Same for a concealed mixin. The
+ * honest-fog rule; see docs/subsystems/concealment.md.
+ */
+export interface AffordanceResultEnvelope {
+  type: 'affordance-result';
+  frameId: number;
+  requestId: string;
+  stuffId: string;
+  verbs: AffordanceEntry[];
+  /**
+   * The subject's active mixin composition, so the menu can label and
+   * group without a second round trip. **Active**, not declared:
+   * augments, implants, species innates and on-shift conferral all
+   * change it at runtime.
+   */
+  composition: string[];
+}
+
+/**
+ * The subject could not be resolved for this viewer.
+ *
+ * ⚠ One reason code, and that is deliberate: distinguishing "no such
+ * object" from "you may not see that object" would answer the
+ * question the gate exists to refuse.
+ */
+export interface AffordanceErrorEnvelope {
+  type: 'affordance-error';
+  frameId: number;
+  requestId: string;
+  stuffId: string;
+  reason: 'unresolvable';
+}
+
+/**
  * Live broadcast state — the public, read-only overlay projection
  * served to `service:broadcast` connections (OBS browser sources).
  * Deliberately tiny in Phase 1; later gains active scene, lower-third
@@ -1337,6 +1535,7 @@ export type Envelope =
   | MqlSubscriptionResultEnvelope
   | MqlSubscriptionDeltaEnvelope
   | MqlSubscriptionErrorEnvelope
+  | MqlSubscriptionReleasedEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
   | ForumSubscriptionResultEnvelope
@@ -1344,6 +1543,8 @@ export type Envelope =
   | ForumSubscriptionErrorEnvelope
   | ReactionDeltaEnvelope
   | ReactionExpandResultEnvelope
+  | AffordanceResultEnvelope
+  | AffordanceErrorEnvelope
   | StreamStateEnvelope
   | RelayChatEnvelope;
 
@@ -1358,6 +1559,7 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
+  | Omit<MqlSubscriptionReleasedEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
   | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
@@ -1365,6 +1567,8 @@ export type EnvelopeTemplate =
   | Omit<ForumSubscriptionErrorEnvelope, 'frameId'>
   | Omit<ReactionDeltaEnvelope, 'frameId'>
   | Omit<ReactionExpandResultEnvelope, 'frameId'>
+  | Omit<AffordanceResultEnvelope, 'frameId'>
+  | Omit<AffordanceErrorEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
   | Omit<RelayChatEnvelope, 'frameId'>;
 
@@ -1672,7 +1876,127 @@ export interface TopicDescriptor {
   label: string;
   /** Authored prose description. */
   description: string;
+  /** Who the frame is aimed at — drives badging and notification. */
+  address: TopicAddress;
+  /** Whose voice it is — drives gutter colour. */
+  actor: TopicActor;
+  /** How much it matters — drives default filter levels. */
+  weight: TopicWeight;
+  /** Which surface it belongs to. */
+  audience: TopicAudience;
+  /** Keep in scrollback and transcripts, or let it age out. */
+  durable: boolean;
+  /** Whether affordances in this frame survive the frame aging. */
+  affordance: TopicAffordance;
 }
+
+/**
+ * ⭐ **The facets — five cross-cutting answers the client used to have
+ * to guess.**
+ *
+ * The dotted topic tree expresses exactly one hierarchy, so anything
+ * that cuts across it — *everything addressed to me*, *everything that
+ * matters* — had to become a client-side lookup table keyed on ~90
+ * topic strings, drifting silently from the seeds every time a topic
+ * was added. These five fields put those answers in the data, where
+ * they are authored once and shipped on the existing
+ * `topicCatalogue` snapshot.
+ *
+ * The tree still does the job facets cannot: muting a *subtree*
+ * ("everything about the air in here") is a prefix operation. Both
+ * halves are needed; neither replaces the other.
+ */
+
+/**
+ * Who a frame is aimed at. `direct` earns a push notification;
+ * `ambient` never does.
+ */
+export type TopicAddress = 'direct' | 'personal' | 'ambient' | 'broadcast';
+
+/**
+ * Whose voice a frame speaks in. Replaces colour-by-family, which
+ * encoded which subsystem emitted the frame rather than who is
+ * talking.
+ */
+export type TopicActor = 'self' | 'person' | 'world' | 'system';
+
+/**
+ * How much a frame matters. Turns "quiet mode" into one rule —
+ * `weight ≤ activity` — instead of a list of sixty topic paths.
+ */
+export type TopicWeight =
+  | 'consequence'
+  | 'activity'
+  | 'chatter'
+  | 'diagnostic';
+
+/** Which surface a frame belongs to. */
+export type TopicAudience = 'player' | 'author' | 'all';
+
+/**
+ * Whether the affordances inside a frame stay usable as the frame ages
+ * in scrollback.
+ *
+ * Without this the client cannot tell a live link from a dead one, so
+ * every affordance in history looks equally clickable — a door tagged
+ * `unlock` ten minutes ago is a lie the UI tells confidently. `decays`
+ * is the floor because a wrongly-`permanent` affordance is exactly that
+ * lie, while a wrongly-`decays` one only costs a re-resolve.
+ */
+export type TopicAffordance =
+  /** Still valid; re-resolve on use and expect it to work. */
+  | 'live'
+  /** Was valid when emitted; grey it once the frame is not current. */
+  | 'decays'
+  /** Never goes stale — a wiki link, a press archive entry. */
+  | 'permanent';
+
+/**
+ * ⭐ **The seven topic roots — a closed set.**
+ *
+ * The tree carries *subject matter* and nothing else; every
+ * cross-cutting axis (who it is aimed at, whose voice, how much it
+ * matters, which surface) lives in the facets above. That is why seven
+ * roots suffice where the pre-facet vocabulary needed eighty-nine
+ * paths: it was five facets flattened into a string.
+ *
+ * ⚠ **Content packs may add leaves, never roots.** A pack-minted root
+ * would mean a player's mute of `sense` no longer catches everything
+ * sense-shaped, and subtree-mute integrity is the entire reason this is
+ * a tree instead of flat tags. Enforced at install time by pack
+ * reconcile and at build time by `pnpm lint:topics`.
+ *
+ * Exported from `@saxonberg/types` for the same reason as
+ * {@link LAYOUT_NAMES}: the server's gate and the client's filter
+ * surface must never drift.
+ */
+export type TopicRoot =
+  /** Words from a person. */
+  | 'speech'
+  /** Something was done — by a person or by the world. */
+  | 'act'
+  /** The world reaching your senses, solicited or not. */
+  | 'sense'
+  /** Your own person — body, standing, holdings, affiliations. */
+  | 'self'
+  /** Authored durable content. */
+  | 'publication'
+  /** The client↔server relationship. */
+  | 'shell'
+  /** The connection itself. */
+  | 'session';
+
+/** Every {@link TopicRoot}. `lint:topics` and pack reconcile both
+ *  validate against this; nothing may emit outside it. */
+export const TOPIC_ROOTS: readonly TopicRoot[] = [
+  'speech',
+  'act',
+  'sense',
+  'self',
+  'publication',
+  'shell',
+  'session',
+];
 
 /**
  * Shape of a single console tab in the cockpit's tabbed terminal.
@@ -1714,6 +2038,159 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
   "streamer",
   "builder",
 ];
+
+/**
+ * The cockpit's **activity axis** — the front doors, answering *what am
+ * I here to do*. Held server-authoritative on the `cockpit.mode`
+ * clientState key and set by `cockpit mode <name>`.
+ *
+ * This is the axis that used to be conflated with {@link LayoutName}:
+ * the five old layout values were really a mode plus that mode's
+ * arrangement, flattened into one string (see
+ * {@link LEGACY_LAYOUT_MIGRATION}).
+ *
+ * ⚠ **A mode is a view, never a gate.** Everything runnable in `play`
+ * is runnable in `build`. A mode that forbade a verb would be a
+ * permission system wearing a UI costume, with its checks in the wrong
+ * layer entirely. A mode owns which arrangements ship, which one you
+ * land in, and which pane kinds may be summoned — nothing else.
+ *
+ * ⚠ `govern` ships as a peer of `build` rather than a tier inside it.
+ * The seeding slate writes the pair as "the Build / Govern ascent",
+ * which reads as one progression; they are two values here because a
+ * front door is a front door. If `govern` turns out to belong *within*
+ * `build`, that is a one-line edit to this list, not a redesign —
+ * flagged deliberately rather than silently resolved.
+ */
+export type CockpitMode =
+  /** Talking to people — channels, boards, the social surface. */
+  | "chat"
+  /** Living in the world. The default. */
+  | "play"
+  /** Watching a stream, as viewer or broadcaster. */
+  | "watch"
+  /** Making things — the content editor. */
+  | "build"
+  /** The offices and the polity. */
+  | "govern";
+
+/** Every {@link CockpitMode}, in menu order. The `cockpit mode`
+ *  validator and the client's mode registry both read this one list. */
+export const COCKPIT_MODES: readonly CockpitMode[] = [
+  "chat",
+  "play",
+  "watch",
+  "build",
+  "govern",
+];
+
+/** The mode a player lands in with nothing stored. */
+export const DEFAULT_COCKPIT_MODE: CockpitMode = "play";
+
+/**
+ * The **arrangement axis** — savable pane arrangements *inside* a mode.
+ * These are the shipped defaults; a player composes and names their own
+ * with `cockpit layout save <name>`, so this is a floor, not a closed
+ * vocabulary. The first entry of each list is that mode's default
+ * arrangement, the one you land in on entry.
+ *
+ * `watch` ships two because the two legacy livestream layouts are
+ * genuinely different arrangements of one activity — which is exactly
+ * why {@link LEGACY_LAYOUT_MIGRATION} is a mapping and not a rename.
+ */
+export const COCKPIT_ARRANGEMENTS: Readonly<
+  Record<CockpitMode, readonly string[]>
+> = {
+  chat: ["default"],
+  play: ["default"],
+  watch: ["viewer", "streamer"],
+  build: ["default"],
+  govern: ["default"],
+};
+
+/**
+ * Legacy `cockpit.layout` → the (mode, arrangement) pair it always
+ * really meant.
+ *
+ * ⚠ **A mapping, not a rename.** Every player who ever ran `layout
+ * builder` has that string persisted, and the read path resolves it
+ * through this table. `livestream-viewer` and `streamer` are the row
+ * that matters: two legacy values collapse into ONE mode carrying
+ * *different* arrangements, so the collapse is lossy in the mode column
+ * and only the arrangement column keeps them apart.
+ */
+export const LEGACY_LAYOUT_MIGRATION: Readonly<
+  Record<LayoutName, { mode: CockpitMode; arrangement: string }>
+> = {
+  world: { mode: "play", arrangement: "default" },
+  forum: { mode: "chat", arrangement: "default" },
+  "livestream-viewer": { mode: "watch", arrangement: "viewer" },
+  streamer: { mode: "watch", arrangement: "streamer" },
+  builder: { mode: "build", arrangement: "default" },
+};
+
+/**
+ * The inverse of {@link LEGACY_LAYOUT_MIGRATION}: (mode, arrangement)
+ * → the legacy {@link LayoutName} that best represents it.
+ *
+ * ⚠ **This is a compatibility projection, and it is meant to die.** The
+ * cockpit's real axes are now mode + arrangement, but the shipped
+ * client still swaps its whole frame off `cockpit.layout` keyed by
+ * `LayoutName`, and repainting the client is a separate cycle. So the
+ * server keeps `cockpit.layout` populated with the closest legacy name
+ * while the two real axes carry the truth. When the client reads mode +
+ * arrangement directly, this table and the `cockpit.layout` key go
+ * together.
+ *
+ * Not total, and cannot be: `govern` has no legacy layout at all, and a
+ * player-saved arrangement has no legacy name by construction. Both
+ * fall back to the mode's first entry here — see
+ * `legacyLayoutFor` on the server.
+ */
+export const LEGACY_LAYOUT_FOR: Readonly<
+  Record<CockpitMode, Readonly<Record<string, LayoutName>>>
+> = {
+  chat: { default: "forum" },
+  play: { default: "world" },
+  watch: { viewer: "livestream-viewer", streamer: "streamer" },
+  // No legacy layout ever meant "govern" — the builder frame is the
+  // closest thing the current client can paint for it.
+  build: { default: "builder" },
+  govern: { default: "builder" },
+};
+
+/**
+ * A saved pane arrangement. `panes` is the ordered list of pane kinds
+ * the arrangement opens with; it is empty until the pane set exists to
+ * capture, which is deliberate — naming an arrangement and populating
+ * it are separate acts.
+ */
+export interface ArrangementSpec {
+  panes: string[];
+}
+
+/**
+ * Cap on a player-supplied arrangement name. These are player INPUT
+ * that become keys in a persisted map and get rendered back, so they
+ * are bounded at the boundary rather than trusted.
+ */
+export const MAX_ARRANGEMENT_NAME_LENGTH = 32;
+
+/**
+ * Cap on how many arrangements one player may save **per mode**.
+ *
+ * ⚠ Saving writes a player-chosen KEY into a persisted map, so without
+ * a cap a player can grow their own stored document without bound. It
+ * is self-inflicted rather than an attack on anyone else — which is
+ * exactly why it is easy to leave uncapped and easy to regret: the cost
+ * lands on storage and on every read of that document, not on the
+ * player doing it.
+ *
+ * The number is deliberately generous. This is a guard against
+ * unbounded growth, not a design statement about how many layouts a
+ * person ought to want.
+ */
+export const MAX_SAVED_ARRANGEMENTS_PER_MODE = 32;
 
 /**
 /**
@@ -1922,6 +2399,22 @@ export interface CharGenRosterEntry {
   name: string;
   species: string;
   description: string;
+  /**
+   * ⭐ **At Login you are not embodied**, and that is the structural
+   * fact this block exists for. Every figure below is readable in
+   * session through a subscription — but the character-select screen
+   * has no character, so no subscription is available to it. The roster
+   * is therefore the one payload that must CARRY what is elsewhere
+   * subscribed to.
+   */
+  /** Epoch ms of this character's last logout. Absent = never played. */
+  lastSeen?: number;
+  /** Play standing band — per-character, unlike make standing. */
+  playStanding?: string;
+  /** Where you left them, as a display name. */
+  lastLocation?: string;
+  /** The practice record: every discipline with evidence, and its band. */
+  practice?: { discipline: string; band: string }[];
 }
 
 /** `system.charactergen.roster` payload — the character-select list. */
@@ -1986,7 +2479,7 @@ export interface StyleTreatment {
  * keys) or `StyleTreatment` objects.
  *
  * Selector vocabulary the engine recognizes:
- *   - `theme`             — `'default' | 'high-contrast'`
+ *   - `theme`             — `'ink' | 'marble' | 'high-contrast'`
  *   - `plain`             — boolean (global plain-mode)
  *   - `plain.channel.<k>` — boolean (per-channel plain-mode)
  *   - `mention.self`      — boolean (own-name highlight; default ON)

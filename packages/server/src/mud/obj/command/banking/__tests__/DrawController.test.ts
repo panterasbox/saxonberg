@@ -5,6 +5,7 @@
  * actor, no parameter to spoof); short funds refused; reconcile green.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import DrawController from "../DrawController";
 import BusinessEntity from "../../../Business";

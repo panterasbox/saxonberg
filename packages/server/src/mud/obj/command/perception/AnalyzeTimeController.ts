@@ -17,7 +17,7 @@ interface AnalyzeTimeModel extends CommandModel {
   detail?: string;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-time';
+const TOPIC = 'sense.reading';
 
 export default class AnalyzeTimeController extends CommandController<AnalyzeTimeModel> {
   execute(_model: AnalyzeTimeModel, ctx: CommandContext): void {

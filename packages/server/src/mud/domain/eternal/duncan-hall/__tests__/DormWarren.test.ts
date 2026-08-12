@@ -9,6 +9,7 @@
  * unit door), sync floor reachability, and the DormDoor lease-gate.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../DormWarren';
 import DormRoom from '../DormRoom';

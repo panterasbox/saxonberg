@@ -7,6 +7,7 @@
  * (the ErrorsController.test harness); GitApi is stubbed.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GitController from '../GitController';
 import { GitApi, GitError } from '../../../../api/git';

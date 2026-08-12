@@ -18,7 +18,7 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { CompactApi } from '../../../api/compact';
 
-const TOPIC = 'system.compact';
+const TOPIC = 'shell.result';
 
 interface CommitteeModel extends CommandModel {
   /** Optional explicit content path to ask about. */

@@ -75,7 +75,7 @@ export default class ConfigController extends CommandController<ConfigModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic("system.app.config")
+      .topic("shell.config")
       .toSelf(body)
       .send();
   }

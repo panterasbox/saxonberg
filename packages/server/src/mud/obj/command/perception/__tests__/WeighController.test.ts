@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import WeighController from '../WeighController';
 import { TangibleMixin } from '../../../../lib/material/Tangible';
@@ -88,7 +89,7 @@ describe('WeighController', () => {
       makeContext(avatar, room)
     );
     const frame = avatar.received[0] as { body: string };
-    expect(frame.body).toContain('<quantity unit="kg"');
+    expect(frame.body).toContain('<quantity channel="mass" unit="kg"');
     expect(frame.body).toContain('value="3"');
     expect(frame.body).toContain('>3 kg</quantity>');
   });

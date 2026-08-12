@@ -25,6 +25,7 @@
  * only way in.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../document';
 import { PressApi } from '../press';

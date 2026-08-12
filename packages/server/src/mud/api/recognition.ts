@@ -79,6 +79,16 @@ function logic(): RecognitionLogic {
   );
 }
 
+/**
+ * Which identity tag a reference renders as — the closed set
+ * `Mml.actor` resolves to. See {@link RecognitionApi.kindOf}.
+ *
+ * `thing` is in the set so that the failure mode of handing an actor
+ * face a non-person is an *honest* tag rather than a false claim that
+ * a chair is an NPC.
+ */
+export type RefKind = 'player' | 'npc' | 'thing';
+
 export class RecognitionApi {
   /**
    * The viewer-aware name for `target` as `viewer` would render it. See
@@ -153,6 +163,26 @@ export class RecognitionApi {
    */
   public static knowsTrueType(viewer: Stuff, target: Stuff): boolean {
     return logic().knowsTrueType(viewer, target);
+  }
+
+  /**
+   * **Is `viewer` looking at a person, or at a puppet?** — the tag axis,
+   * and the resolver behind `Mml.actor`.
+   *
+   * Prose cannot answer this: an emitter holds a `giver` and has no way
+   * to know whether a human is on the other end of it. The world can,
+   * so the question is asked here, at render time, beside the naming
+   * step it belongs with.
+   *
+   * ⚠ **Viewer-aware on purpose.** `player` asserts that a real person
+   * is behind a figure — the single fact a disguise exists to hide. A
+   * viewer who cannot see the target, or who is looking at a mask, is
+   * told `npc`, exactly as `getPresentation()` already tells them a
+   * covering's name. With no viewer (logs, snapshots) the object's own
+   * truth is reported, since nobody is being fooled.
+   */
+  public static kindOf(viewer: Stuff | undefined, target: Stuff): RefKind {
+    return logic().kindOf(viewer, target);
   }
 
   /**

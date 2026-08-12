@@ -1,8 +1,9 @@
 /**
- * tellTemplate — `world.speech.tell` frames. The quieter palette
- * comes from the topic-cascade rule (`world.speech.tell: { fg:
- * '#aaa', italic: true }` in the default theme) — the structural
- * render is the same as `default`. Acceptance criterion #3 gates
+ * tellTemplate — `speech.comms` frames. The quieter palette comes
+ * from the topic-cascade rule (`speech.comms: { fg: <a muted
+ * foreground>, prefix: '» ' }` — high-contrast is the theme that
+ * currently carries one) — the structural render is the same as
+ * `defaultTemplate`. Acceptance criterion #3 gates
  * that `tell` looks visibly quieter than `say`; the stylesheet
  * delivers that.
  */

@@ -22,7 +22,7 @@ import type { Vitals } from '../../../lib/vitals/Vitals';
 import { TRAUMA_BEHAVIOR } from '../../Condition';
 import type { Trauma } from '../../Condition';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface UndressModel extends CommandModel {
   target?: MqlOneResult;
@@ -58,7 +58,7 @@ export default class UndressController extends CommandController<UndressModel> {
     if (!MixinApi.isVitals(target)) {
       return this.fail(
         context,
-        `You can't undress a wound on ${Mml.item(target).toString()}.`,
+        `You can't undress a wound on ${Mml.thing(target).toString()}.`,
         'not-a-body'
       );
     }

@@ -12,7 +12,8 @@ help: |
   un-impaired limb:
     `fight strike`  — press the attack
     `fight feint`   — bait a patient defender into over-committing
-    `fight close`   — step inside a longer weapon's reach
+    `fight advance` — buy a band of distance, inward (`close` is an alias)
+    `fight withdraw`— open a band of distance, on ONE threat at a time
     `fight disarm`  — knock your opponent's weapon away
     `fight subdue`  — lock them up
     `fight shove`   — put them on the ground
@@ -38,7 +39,11 @@ subcommands:
   feint:
     description: "Gambit — bait a patient defender into cracking their guard"
   close:
-    description: "Step inside a longer weapon's reach (turn the tables at close range)"
+    description: "Step inside a longer weapon's reach (an alias for `advance`)"
+  advance:
+    description: "Buy one band of distance, inward — contested by a composed reach-holder"
+  withdraw:
+    description: "Open one band of distance from ONE threat; the room caps how far"
   disarm:
     description: "Gambit — knock your opponent's weapon away"
   subdue:
@@ -68,6 +73,7 @@ subcommands:
         type: object
         required: true
         scope: ["inventory", "reachable"]
+        requires: VitalsMixin
   draw:
     description: "Draw a sidearm fast — the answer to being disarmed"
     help: |

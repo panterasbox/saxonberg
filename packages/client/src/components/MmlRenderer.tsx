@@ -100,10 +100,8 @@ export function commandFor(node: Extract<MmlNode, { kind: 'tag' }>): string | nu
     return commandForLink(node.attrs.href ?? '');
   }
   if (
-    node.tag === 'item' ||
-    node.tag === 'name' ||
+    node.tag === 'thing' ||
     node.tag === 'location' ||
-    node.tag === 'object' ||
     node.tag === 'player' ||
     node.tag === 'npc'
   ) {
@@ -152,19 +150,25 @@ function labelOf(node: MmlNode): string {
 }
 
 const ClickableSpan = styled.span<{ $tint?: string }>`
-  color: ${(p) => p.$tint ?? '#4ec9b0'};
+  color: ${(p) => p.$tint ?? tokens.color.accent};
   cursor: pointer;
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 2px;
 
   &:hover {
-    color: ${(p) => p.$tint ?? '#7fdfc8'};
+    color: ${(p) => p.$tint ?? tokens.color.accentHover};
     text-decoration-style: solid;
   }
 
+  /* ⚠ :hover and :active share accentHover. The pre-civic palette had
+     three hand-picked steps here; the ground vocabulary carries one
+     -lift step per colour family on purpose, and minting a good-press
+     role for one :active state would be the vocabulary growing to fit
+     an accident rather than a need. The solid underline on hover
+     already carries the state change. */
   &:active {
-    color: ${(p) => p.$tint ?? '#b8eedc'};
+    color: ${(p) => p.$tint ?? tokens.color.accentHover};
   }
 `;
 
@@ -226,7 +230,7 @@ const ColorSpan = styled.span<{ $tint?: string }>`
  * clicking.
  */
 const InertLinkSpan = styled.span`
-  color: #88a;
+  color: ${tokens.color.fgMuted};
   font-style: italic;
 `;
 
@@ -249,9 +253,9 @@ const EmSpan = styled.span`
 
 const CodeSpan = styled.span`
   font-family: ${FACE_STACKS.mono};
-  background: #2a2a2a;
+  background: ${tokens.color.surfaceAlt};
   padding: 0 3px;
-  border-radius: 2px;
+  border-radius: ${tokens.radius.sm};
 `;
 
 const StrikeSpan = styled.span`
@@ -261,30 +265,30 @@ const StrikeSpan = styled.span`
 const PreBlock = styled.pre`
   margin: 0;
   font-family: ${FACE_STACKS.mono};
-  background: #2a2a2a;
+  background: ${tokens.color.surfaceAlt};
   padding: 4px 6px;
-  border-radius: 3px;
+  border-radius: ${tokens.radius.md};
   white-space: pre-wrap;
 `;
 
 const Blockquote = styled.blockquote`
   margin: 0;
   padding: 0 0 0 8px;
-  border-left: 2px solid #555;
-  color: #bbb;
+  border-left: 2px solid ${tokens.color.borderEmphasis};
+  color: ${tokens.color.fgMuted};
 `;
 
 const ChanChip = styled.span`
-  color: #c8b76a;
+  color: ${tokens.palette.amber};
   font-weight: 500;
 `;
 
 const MentionSpan = styled.span<{ $self: boolean }>`
-  color: ${(p) => (p.$self ? '#ffd966' : '#a89bd8')};
+  color: ${(p) => (p.$self ? tokens.color.fgEmphasis : tokens.palette.violet)};
   font-weight: ${(p) => (p.$self ? 600 : 400)};
-  background: ${(p) => (p.$self ? 'rgba(255, 217, 102, 0.12)' : 'transparent')};
+  background: ${(p) => (p.$self ? tokens.color.accentWash : 'transparent')};
   padding: ${(p) => (p.$self ? '0 2px' : '0')};
-  border-radius: ${(p) => (p.$self ? '2px' : '0')};
+  border-radius: ${(p) => (p.$self ? tokens.radius.sm : '0')};
 `;
 
 /* ── Long-form article treatments (the wiki build) ───────────────── */
@@ -297,10 +301,11 @@ const MentionSpan = styled.span<{ $self: boolean }>`
  */
 const Heading = styled.div<{ $level: 1 | 2 | 3 }>`
   font-weight: 600;
-  color: #e8e4da;
+  color: ${tokens.color.fg};
   font-size: ${(p) => (p.$level === 1 ? '1.25em' : p.$level === 2 ? '1.1em' : '1em')};
   margin: ${(p) => (p.$level === 1 ? '0.6em 0 0.3em' : '0.5em 0 0.2em')};
-  border-bottom: ${(p) => (p.$level === 1 ? '1px solid #3a3a3a' : 'none')};
+  border-bottom: ${(p) =>
+    p.$level === 1 ? `1px solid ${tokens.color.border}` : 'none'};
   padding-bottom: ${(p) => (p.$level === 1 ? '2px' : '0')};
 `;
 
@@ -315,19 +320,19 @@ const ArticleTable = styled.table`
 `;
 
 const TableCell = styled.td`
-  border: 1px solid #3a3a3a;
+  border: 1px solid ${tokens.color.border};
   padding: 2px 6px;
   text-align: left;
   vertical-align: top;
 `;
 
 const TableHeaderCell = styled.th`
-  border: 1px solid #3a3a3a;
+  border: 1px solid ${tokens.color.border};
   padding: 2px 6px;
   text-align: left;
   vertical-align: top;
   font-weight: 600;
-  background: #262626;
+  background: ${tokens.color.surfaceAlt};
 `;
 
 /**
@@ -338,13 +343,14 @@ const TableHeaderCell = styled.th`
  * the level rides a data attribute for the stylesheet overlay.
  */
 const SpoilerSpan = styled.span<{ $revealed: boolean }>`
-  background: ${(p) => (p.$revealed ? 'transparent' : '#2f2f33')};
+  background: ${(p) =>
+    p.$revealed ? 'transparent' : tokens.color.surfaceAlt};
   color: ${(p) => (p.$revealed ? 'inherit' : 'transparent')};
-  border-radius: 2px;
+  border-radius: ${tokens.radius.sm};
   cursor: ${(p) => (p.$revealed ? 'inherit' : 'pointer')};
   transition: background 120ms ease;
   &:hover {
-    background: ${(p) => (p.$revealed ? 'transparent' : '#3a3a40')};
+    background: ${(p) => (p.$revealed ? 'transparent' : tokens.color.actionBgHover)};
   }
 `;
 

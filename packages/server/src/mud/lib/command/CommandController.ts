@@ -107,4 +107,26 @@ export abstract class CommandController<
     }
     return out;
   }
+
+  /**
+   * ⭐ **The object that afforded this command, when it was not the
+   * actor themselves** — the thermometer that lit up `measure
+   * temperature`, the barometer behind `measure pressure`. Returns
+   * `undefined` for an innate verb, where `commandSource` falls back
+   * to the giver and naming it would claim the *person* was the
+   * instrument.
+   *
+   * This is the provenance seam: a reading is only honest if you can
+   * say how it was taken, and the affordance layer already knows —
+   * `commandSource` is populated from the claiming match's affordance
+   * record. Derived rather than asserted per call site, so a new
+   * instrument gets provenance the moment it confers a verb.
+   */
+  protected affordingSource(context: CommandContext): string | undefined {
+    const source = context.commandSource;
+    if (!source || source.stuffId === context.commandGiver.stuffId) {
+      return undefined;
+    }
+    return source.getPresentation();
+  }
 }

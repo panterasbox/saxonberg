@@ -212,6 +212,17 @@ type MmlPayload =
   | { kind: 'ref'; tag: string; stuff: Stuff };
 
 /**
+ * The placeholder tag `Mml.actor` carries until render time, when
+ * `RecognitionApi.kindOf` replaces it with `player` or `npc`.
+ *
+ * ⚠ Deliberately **not** in `KNOWN_TAGS`, and that is the invariant
+ * worth protecting: it never reaches a parser, a policy, a stylesheet
+ * or a client, so nothing downstream grows a branch for it. A test
+ * asserts its absence from the wire vocabulary.
+ */
+const ACTOR_TAG = 'actor';
+
+/**
  * `Mml.list(items)` switches from inline (comma + "and") to block
  * (one item per line) when the item count crosses this threshold.
  * Picked at 4 so two/three/four items stay on one wrap-line and
@@ -262,31 +273,44 @@ export class Mml {
    * `getPresentation()` baseline.
    *
    * This is the single seam that makes the whole prose name path
-   * viewer-aware: every `Mml.name/item/object/player/npc/location`
-   * caller (and there are many) keeps composing exactly as before —
-   * the per-recipient resolution rides `Scene.send`'s existing
+   * viewer-aware: every `Mml.actor/thing/player/npc/location` caller
+   * (and there are many) keeps composing exactly as before — the
+   * per-recipient resolution rides `Scene.send`'s existing
    * `body.toString(recipient)` materialization. See
    * `RecognitionApi.describe`.
+   *
+   * The **tag** is resolved at the same seam for {@link ACTOR_TAG},
+   * which is why that one is not a wire tag at all.
    */
   private static ref(tag: string, stuff: Stuff): Mml {
     return new Mml({ kind: 'ref', tag, stuff });
   }
 
   /**
-   * Render an entity reference inside `<name stuff-id="...">` tags.
-   * The `stuff-id` attribute carries the runtime identity through to
-   * the wire — server-side disambiguation walks bodies for these
-   * tokens to pick the minimal-distinguishing form per recipient,
-   * and client-side features (right-click → tell, social-graph
-   * rendering, identity overlays) read the id directly.
+   * Render a reference to **a person acting**, without claiming which
+   * kind of person. Resolves to `<player>` or `<npc>` at render time
+   * through `RecognitionApi.kindOf(viewer, stuff)`.
    *
-   * The inner display text is **viewer-aware** (see {@link ref}): it
-   * resolves through `RecognitionApi.describe(viewer, stuff)` per
-   * recipient, falling back to the viewer-blind baseline absent a
-   * viewer.
+   * ⭐ **This is the face nearly every emitter wants.** A controller
+   * holds a `giver`; whether a human is on the other end of it is a
+   * runtime fact, and one that changes per viewer once a disguise is
+   * involved. Asking the author to answer it would get a wrong answer
+   * written into ~120 call sites.
+   *
+   * Use `player` / `npc` / `thing` directly **only where the emitter
+   * genuinely knows better than the world does** — the puppeteer behind
+   * a possessed corpse, an illusion that should read as a person. Those
+   * are the cases the framework must not guess at, and they stay
+   * explicit.
+   *
+   * The `stuff-id` attribute carries the runtime identity through to
+   * the wire — server-side disambiguation walks bodies for these tokens
+   * to pick the minimal-distinguishing form per recipient, and
+   * client-side features (right-click → tell, social-graph rendering,
+   * identity overlays) read the id directly.
    */
-  static name(stuff: Stuff): Mml {
-    return Mml.ref('name', stuff);
+  static actor(stuff: Stuff): Mml {
+    return Mml.ref(ACTOR_TAG, stuff);
   }
 
   /**
@@ -336,20 +360,16 @@ export class Mml {
   }
 
   /**
-   * Render a generic object's display name inside
-   * `<object stuff-id="...">` tags. Same identity-tagging rationale
-   * as `name`.
+   * Render a thing's display name inside `<thing stuff-id="...">` tags.
+   * Same identity-tagging rationale as {@link Mml.actor}.
+   *
+   * ⭐ One tag, where there were two. `item` and `object` split on
+   * portability, which is **state** — a chair is furniture until
+   * somebody picks it up — so the split was never stable and no
+   * consumer ever acted on it.
    */
-  static object(stuff: Stuff): Mml {
-    return Mml.ref('object', stuff);
-  }
-
-  /**
-   * Render an item's display name inside `<item stuff-id="...">`
-   * tags. Same identity-tagging rationale as `name`.
-   */
-  static item(stuff: Stuff): Mml {
-    return Mml.ref('item', stuff);
+  static thing(stuff: Stuff): Mml {
+    return Mml.ref('thing', stuff);
   }
 
   /**
@@ -380,7 +400,10 @@ export class Mml {
 
   /**
    * Render a player's display name inside `<player stuff-id="...">`
-   * tags. Same identity-tagging contract as `name`; the renderer
+   * tags. Same identity-tagging contract as {@link Mml.actor} — but
+   * **asserted by the emitter**, so reach for it only where the caller
+   * knows something the world does not; `Mml.actor` is the default.
+   * The renderer
    * applies friend/foe coloring on player-tagged references through
    * the stylesheet's `attribute → bucket` selector.
    */
@@ -898,11 +921,19 @@ export class Mml {
   toString(viewer?: Stuff & Sensor): string {
     if (this.payload.kind === 'eager') return this.payload.raw;
     if (this.payload.kind === 'ref') {
-      const { tag, stuff } = this.payload;
+      const { tag: wire, stuff } = this.payload;
       // Recognition (the viewer-aware naming step) stays here, in the
       // render layer: resolve the recipient's perceived label, or the
       // viewer-blind baseline when no recipient is in play (logs,
       // snapshots).
+      // `actor` is an authoring face, never a wire tag: the emitter
+      // said "a person acting" and the world answers which kind, per
+      // viewer. Resolved here, beside the naming step, because both
+      // questions are the same question — what does THIS recipient
+      // perceive.
+      const tag = wire === ACTOR_TAG
+        ? RecognitionApi.kindOf(viewer, stuff)
+        : wire;
       const label = viewer
         ? RecognitionApi.describe(viewer, stuff)
         : stuff.getPresentation();

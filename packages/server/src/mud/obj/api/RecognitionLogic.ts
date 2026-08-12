@@ -9,6 +9,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Sensor } from '../../lib/message/Sensor';
 import type { Perception } from '../../lib/perception/Perception';
 import { MixinApi } from '../../api/mixin';
+import type { RefKind } from '../../api/recognition';
 import { StuffApi } from '../../api/stuff';
 import { GrammarApi } from '../../api/grammar';
 import { TemplatePathPrefixes } from '../../lib/paths';
@@ -349,6 +350,37 @@ function describeImpl(viewer: Stuff, target: Stuff): string {
   return describeCore(viewer, target, false, false);
 }
 
+/**
+ * See {@link RecognitionApi.kindOf}. Deliberately built from the same
+ * three gates `describeCore` opens with, in the same order — a viewer
+ * who cannot see, or who is looking at a mask, must not be handed the
+ * one fact the mask exists to hide.
+ *
+ * ⚠ The `npc` answers below are **false statements told to a fooled
+ * viewer**, which is exactly what `getPresentation()` already does for
+ * a disguised being. The alternative — a third "unknown" wire tag —
+ * would announce *that* something is being withheld, which is the
+ * honest-fog failure this build is trying not to commit.
+ */
+function kindOfImpl(viewer: Stuff | undefined, target: Stuff): RefKind {
+  // Not a living thing at all — say so, rather than calling a chair an
+  // NPC. ⚠ A corpse still composes `Organism` and so lands on `npc`;
+  // an emitter naming a corpse (or the puppeteer wearing one) says
+  // `Mml.thing` / `Mml.npc` outright. That is the case this whole face
+  // is built to leave explicit.
+  if (!MixinApi.isOrganism(target)) return 'thing';
+  if (!MixinApi.isHasInteractive(target)) return 'npc';
+  // No viewer: logs, snapshots, `refOf`. Nobody is being fooled, so
+  // report the object's own truth.
+  if (!viewer) return 'player';
+  if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) {
+    return 'player';
+  }
+  if (!canSeeGate(viewer, target)) return 'npc';
+  if (isMasked(target)) return 'npc';
+  return 'player';
+}
+
 /** See {@link RecognitionApi.describeWithStatus}. */
 function describeWithStatusImpl(viewer: Stuff, target: Stuff): string {
   return describeCore(viewer, target, false, true);
@@ -455,5 +487,11 @@ export class RecognitionLogic extends ApiLogic {
   @CallSecurity(RecognitionApiCallers)
   public perceivedKeywords(viewer: Stuff, target: Stuff): string[] {
     return perceivedKeywordsImpl(viewer, target);
+  }
+
+  /** See {@link RecognitionApi.kindOf}. */
+  @CallSecurity(RecognitionApiCallers)
+  public kindOf(viewer: Stuff | undefined, target: Stuff): RefKind {
+    return kindOfImpl(viewer, target);
   }
 }

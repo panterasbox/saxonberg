@@ -4,6 +4,7 @@
  * the derived band / consciousness (with no lifecycle transition).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import type { Trauma, AfflictionRecord } from '../../../obj/Condition';

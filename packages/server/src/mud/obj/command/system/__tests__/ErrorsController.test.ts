@@ -6,6 +6,7 @@
  * harness); DiagnosticApi / AccessApi are stubbed.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ErrorsController from '../ErrorsController';
 import { DiagnosticApi } from '../../../../api/diagnostics';

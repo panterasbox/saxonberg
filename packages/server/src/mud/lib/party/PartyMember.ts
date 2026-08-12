@@ -96,9 +96,8 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The `party` verb — a party-capable actor's whole party surface. */
     static commandContributions: CommandContributions = {
       self: ["social/party.yaml"],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

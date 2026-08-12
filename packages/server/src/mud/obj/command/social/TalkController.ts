@@ -24,7 +24,7 @@ import type { BrainStatics } from "../../../lib/behavior/brain";
 import { BRAIN_EXPORT } from "../../../lib/behavior/brain";
 
 /** Diegetic world-action topic for the private decline lines. */
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface TalkModel extends CommandModel {
   /** Positional: who to talk to. */
@@ -45,7 +45,7 @@ export default class TalkController extends CommandController<TalkModel> {
     if (!MixinApi.isBehaved(target)) {
       return this.decline(
         context,
-        Mml.compose`${Mml.name(target)} has nothing to say.`,
+        Mml.compose`${Mml.actor(target)} has nothing to say.`,
         "not-conversational",
         target.stuffId,
       );
@@ -69,7 +69,7 @@ export default class TalkController extends CommandController<TalkModel> {
     if (!descriptor?.open) {
       return this.decline(
         context,
-        Mml.compose`${Mml.name(target)} has nothing to say.`,
+        Mml.compose`${Mml.actor(target)} has nothing to say.`,
         "not-conversational",
         target.stuffId,
       );
@@ -88,7 +88,7 @@ export default class TalkController extends CommandController<TalkModel> {
       case "busy":
         return this.decline(
           context,
-          Mml.compose`${Mml.name(target)} is busy with someone else.`,
+          Mml.compose`${Mml.actor(target)} is busy with someone else.`,
           "busy",
           target.stuffId,
         );
@@ -102,7 +102,7 @@ export default class TalkController extends CommandController<TalkModel> {
       default:
         return this.decline(
           context,
-          Mml.compose`${Mml.name(target)} has nothing to say.`,
+          Mml.compose`${Mml.actor(target)} has nothing to say.`,
           "not-conversational",
           target.stuffId,
         );

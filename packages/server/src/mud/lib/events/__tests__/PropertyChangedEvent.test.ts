@@ -2,6 +2,7 @@
  * PropertyChangedEvent unit tests.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';

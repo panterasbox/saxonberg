@@ -7,6 +7,7 @@
  * (no-world-clock) mode so the deposit is the only temperature change.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../lib/stuff/Thing';
 import Location from '../../lib/stuff/Location';

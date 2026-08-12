@@ -18,6 +18,6 @@ args:
     required: true
     greedy: true
     scope: "inventory"
+    requires: ContainableMixin
     validators:
-      - /lib/command/validators/mustBeContainable
       - /lib/command/validators/mustBeInInventory

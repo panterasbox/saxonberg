@@ -5,11 +5,124 @@ descriptors plus a runtime catalogue served to the client at
 session-establish.
 
 Topics carry the routing decision on every `MessageFrame`: the
-wire-level `topic` string is a dotted path like `world.speech.say`,
+wire-level `topic` string is a dotted path like `speech.vocal`,
 and the catalogue resolves each path to a friendly label, a
-description, and a family. The cockpit's tabbed terminal, filter
-drawer, and gutter tooltips all consume that resolution; the future
-help system will tap the same catalogue.
+description, a family, and six facets. The cockpit's tabbed terminal,
+filter drawer, and gutter tooltips all consume that resolution; the
+future help system will tap the same catalogue.
+
+## ⭐⭐ The tree carries subject matter; the facets carry everything else
+
+**The single governing rule.** A topic path answers exactly one
+question — *what is this frame about?* Every cross-cutting question —
+who it is aimed at, whose voice it speaks in, how much it matters,
+which surface it belongs to — is a **facet**, never a path segment.
+
+This is worth stating loudly because the vocabulary violated it for
+years and the damage was invisible. The pre-facet tree had **89 topics**
+because it was five facets flattened into a string:
+
+| The tree encoded | The facet that carries it |
+|---|---|
+| `system.*` vs `world.*` | `actor` |
+| `say` / `whisper` / `shout` | `address` |
+| `dm` / `tell` | `address: direct` |
+| 13 × `system.shell.*` | `actor: system` + `address: direct` |
+| `*.error`, `system.log.*` | `weight: diagnostic` |
+
+Once the facets existed the tree had nothing left to do but subject
+matter, and it collapsed to **seven roots and 29 leaves** with nothing
+lost. Two collapses came free: the 15 `world.perception.measurement.*`
+leaves became one `sense.reading`, because `<quantity channel="thermal">`
+already carries the channel in the markup; and the three per-platform
+relay topics became one `speech.relay`, because the platform is a
+transport attribute, not a subject.
+
+**The test to apply before adding a topic:** if the thing that
+distinguishes your candidate from an existing leaf is *who is talking*,
+*who it is for*, or *how loud it is*, it is a facet value, not a topic.
+
+### The seven roots
+
+| Root | Leaves | Subject |
+|---|---|---|
+| `speech` | `vocal` `comms` `channel` `relay` | Words from a person, split by **medium** — overhearable vs point-to-point is a fact about the world |
+| `act` | `deed` `move` `emote` `combat` | Something was done; `actor` distinguishes person from world |
+| `sense` | `ambient` `weather` `survey` `reading` | The world reaching you; `survey` answers your own looking |
+| `self` | `body` `standing` `holding` `group` | Your own person |
+| `publication` | `press` `wiki` `forum` | Authored durable content |
+| `shell` | `result` `error` `prompt` `config` `control` `diagnostic` | The client↔server relationship |
+| `session` | `link` `identity` `notice` `presence` | The connection itself |
+
+### ⚠ The vocabulary is open; the roots are closed
+
+Content packs **may** add topics — they install `domain` rows exactly as
+core seeds do, and `TopicCatalogue` reads the collection, not a bundled
+file list. Nothing special is needed.
+
+**But a pack may add leaves only, never a root.** If a pack could mint a
+top-level subject, a player's mute of `sense` would stop catching
+everything sense-shaped — and subtree-mute integrity is the entire
+reason topics form a tree instead of a flat tag set. `TOPIC_ROOTS` in
+`@saxonberg/types` is the closed list, exported for the same reason as
+`LAYOUT_NAMES`: the server's gate and the client's filter surface must
+never drift.
+
+The convention for content, in order of preference:
+
+1. **Use an existing leaf** and distinguish with facets. This is almost
+   always right.
+2. **Add a leaf** under a core root, when the *subject* genuinely
+   differs from every existing one.
+3. **Never a root.**
+
+The rule was written against a live violation: `residence.provision` /
+`.remodel` / `.unprovision`, minted as a third root by Duncan Hall's
+domain-local commands. All three are a person doing something
+observable — `act.deed`, with `actor` carrying the distinction. Nothing
+was lost by not having a root, which is the evidence the rule is right
+rather than merely tidy. The two other content-local families
+(`world.lounge.*`, `world.hazard.*`) collapsed the same way.
+
+### ⭐ The two-part totality gate
+
+Tier 3 (below) *derives* a descriptor for any key it has never heard of,
+so a typo, a rename, or a never-authored topic used to fail **silently**
+into something plausible. Measured when the gate was written: **105
+topics were emitted, 89 were seeded, and 45 emitted topics had no
+authored descriptor at all.** Nobody had noticed, because a derived
+default reads like a real one.
+
+A build-time lint alone cannot close this, because it cannot see a
+third-party pack. So the gate has two halves:
+
+- **`pnpm lint:topics`** (`scripts/check-topic-keys.ts`, CI-gating) —
+  every topic key emitted in server source resolves to an authored
+  descriptor, and every key's root is in `TOPIC_ROOTS`.
+- **Runtime** — a topic that resolves by *derivation* rather than
+  authorship files a diagnostic through `DiagnosticApi`, once per key.
+  Resolution is unchanged; the frame still renders. The failure becomes
+  author-visible instead of invisible.
+
+⚠ **The lint has no exemption list, by design.** All five ways
+`.topic(…)` is written in this tree resolve statically — literals,
+`*_TOPIC` constants, class fields with concrete initializers, local
+consts holding literal ternaries, and forwarded option properties — so
+an unresolvable argument is an **error**, not a skip. A silently-skipped
+emitter is precisely how the 45 stayed hidden.
+
+⚠⚠ **Resolution is file-scoped first.** An early revision of the lint
+resolved names against one tree-wide table, and `Mobile.ts`'s
+`.topic(topic)` matched an unrelated file's `topic` default — resolving
+to a plausible *wrong* key rather than reporting a miss. The gate went
+green while two emitters kept firing retired topics. A name-based
+resolver must prefer the local declaration or it manufactures the exact
+quiet wrongness it exists to catch.
+
+The lint also **warns** (never errors) on a seeded key nothing emits.
+That direction produced ~50 dead seeds in the old corpus. It cannot be
+an error — packs and subtree parents legitimately have no core emitter —
+but it must not be silent either.
 
 ## File layout
 
@@ -17,16 +130,16 @@ help system will tap the same catalogue.
 |---|---|
 | `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/obj/Topic/'`. |
 | `obj/TopicCatalogue.ts` | The singleton Idea (`/obj/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
-| `seeds/lib/messaging/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
+| `seeds/obj/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
 | `seeds/obj/TopicCatalogue.yaml` | Singleton seed (`{ class: /obj/TopicCatalogue, data: {} }`). |
 | `bootstrap.ts` | Manifest entry for the `/obj/TopicCatalogue` singleton. **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
-| `@saxonberg/types` `TopicDescriptor` | Wire-safe shape: `{ topic, family, label, description }`. Shared between the server snapshot and the client cache. |
+| `@saxonberg/types` `TopicDescriptor` | Wire-safe shape: `{ topic, family, label, description }` + the six facets. `TopicRoot` / `TOPIC_ROOTS` live here too. Shared between the server snapshot and the client cache. |
 
 ## No code-side constants mirror
 
 There is no `TOPICS` const in code. The earlier nested `TOPICS` tree
 on `MessageApi` has been retired — topics are dotted-path string
-literals at call sites (e.g. `.topic('world.speech.say')`), with
+literals at call sites (e.g. `.topic('speech.vocal')`), with
 `Topic` Ideas + `TopicCatalogue` as the runtime catalogue. Three
 deliberate non-things:
 
@@ -96,7 +209,11 @@ preamble in `mud/bootstrap.ts` for the precedent).
    inherit the family's description and synthesize the label as
    `<family-label> (<leaf-titlecased>)`.
 3. **Derived default** — titlecased last segment as the label,
-   `'(no description)'`, family = path prefix.
+   `'(no description)'`, family = path prefix. ⚠ **This tier now files a
+   diagnostic.** Reaching it means a topic is emitted that nobody
+   authored; the frame still renders, but the omission is reported
+   instead of hidden. Fires once per key, not once per frame — a chatty
+   topic would otherwise flood the diagnostics store.
 
 The family-inheriting step scales dynamic-topic generators. For
 example, `MudlogApi` composes `system.log.<category>.<level>` at
@@ -177,6 +294,79 @@ during its template scan (no `TopicDescriptor` wire change) and exposes
 The renown reception gate (`SensorMixin.onMessage`) consults it so only
 genuine comm frames mint a being-heard signal — the first data-driven
 capability hung on a topic. See [renown.md](./renown.md).
+
+## ⭐ The six facets — attention, in data
+
+The dotted tree expresses exactly **one** hierarchy. Everything that
+cuts across it — *everything addressed to me*, *everything that
+matters*, *what should interrupt* — used to be a client-side lookup
+table keyed on ~90 topic strings, which drifted from the seeds every
+time a topic was added. The knowledge lived in the wrong repository.
+
+Five fields on every descriptor put those answers in the data:
+
+| Facet | Values | What the client does with it |
+|---|---|---|
+| `address` | `direct` · `personal` · `ambient` · `broadcast` | Badging and notification. `direct` earns a push; `ambient` never does. |
+| `actor` | `self` · `person` · `world` · `system` | Gutter colour and voice — replaces colour-by-family, which encoded the *emitter*. |
+| `weight` | `consequence` · `activity` · `chatter` · `diagnostic` | Default filter levels. "Quiet mode" is `weight ≤ activity` — **one rule**, not sixty paths. |
+| `audience` | `player` · `author` · `all` | Which surface it belongs to. |
+| `durable` | boolean | Keep in scrollback and transcripts, or let it age out. |
+
+**Both halves are needed.** Facets fix cross-cutting queries; only the
+*tree* fixes subtree mutes ("everything about the air in here"), which
+is a prefix operation. Neither replaces the other.
+
+They ride the existing `TopicDescriptor` snapshot — no new channel, no
+new endpoint. All five are **required** on the type: a facet that is
+sometimes absent puts the fallback back in the client, which is the
+defect they exist to remove.
+
+### All three resolution tiers produce them
+
+1. **Authored** — read from `data:` verbatim, following the
+   `communicative` precedent. `Topic` gains no fields; Topic templates
+   are pure data rows that are never cloned.
+2. **Family-inherited** — a leaf takes its ancestor's *attention shape*
+   along with its prose. A child of `world.chat` is chatter for the same
+   reason its parent is.
+3. **Derived default** — the **conservative floor**: `ambient` /
+   `system` / `diagnostic` / `all` / not-durable. An unknown topic must
+   be **quiet, not loud**; the failure mode being designed against is a
+   topic added without facets silently interrupting every player.
+
+### ⚠ There is no family-prefix derivation at read time
+
+The mechanical derivation (`system.*` → `system`/`all`, and so on) lives
+**only** in `scripts/derive-topic-facets.ts`, which bakes its answers
+into the seeds. `TopicCatalogue.readFacets` is authored-or-floor and
+nothing else.
+
+That is deliberate and was learned the hard way: the build first had a
+derivation in the script *and* a second one in the catalogue, and the
+two disagreed about `world.speech.say`'s `weight` within an hour of both
+existing. A second taxonomy describing what the first already knows will
+drift. **The seed file is the single source of truth.**
+
+### The exceptions are the point
+
+`derive-topic-facets.ts` derives all 89 seeds and carries **24 hand
+exceptions**. A derivation needing *no* exceptions would prove the
+facets carry nothing the path did not already have; the exceptions are
+exactly where attention and emitter disagree.
+
+The sharpest is the speech family splitting three ways on one facet —
+`say` is `broadcast`, `whisper` is `personal`, `dm` is `direct` — which
+is precisely what the tree structurally cannot say. A test pins that
+split: if it ever collapses to one value, the facet has stopped earning
+its place.
+
+### ⚠ Facets need a reseed, not a migration
+
+The seeder is **insert-only**. Editing a seeded topic's `data:` does
+nothing on a database that has already booted — drop the `/obj/Topic/`
+rows and restart. On the wiping demo instance this is simply the
+standing loop for reference data.
 
 ## Boot sequence
 

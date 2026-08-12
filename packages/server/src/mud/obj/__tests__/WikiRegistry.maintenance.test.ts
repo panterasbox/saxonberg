@@ -9,6 +9,7 @@
  * grows no inbox).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiRegistry from '../WikiRegistry';
 import WikiNamespaceZone from '../WikiNamespaceZone';

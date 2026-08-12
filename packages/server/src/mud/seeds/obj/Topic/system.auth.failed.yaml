@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.auth.failed
-  family: system.auth
-  label: Failed
-  description: Authentication failed — credentials rejected or provider unreachable.

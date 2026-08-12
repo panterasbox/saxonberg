@@ -13,7 +13,7 @@ import { EmploymentApi } from "../../../api/employment";
 import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface HouseModel extends CommandModel {
   worker?: MqlOneResult;
@@ -107,7 +107,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pay ${Mml.name(worker!)} a wage of ${Money.of(minor, Currency.compact()).render()}.`)
+      .toSelf(Mml.compose`You pay ${Mml.actor(worker!)} a wage of ${Money.of(minor, Currency.compact()).render()}.`)
       .send();
   }
 }

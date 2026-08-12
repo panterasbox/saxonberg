@@ -32,8 +32,9 @@ about the drift, because nobody touched it. This collapses the hard
 "passivate stateful clones" problem entirely: there is no state to
 preserve, because we only cull what's already abandoned.
 
-See [residency-requirements.md](../requirements/residency-requirements.md)
-and the seeding [residency-slate.md](../slates/builds/residency-slate.md).
+See the seeding [residency-slate.md](../slates/tails/residency-slate.md).
+(The requirements doc was retired at the pre-merge sweep; this doc is the
+record of what shipped.)
 
 ## The whole mechanism
 

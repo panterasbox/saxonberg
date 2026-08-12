@@ -12,6 +12,7 @@
  * `CombatLogic.test.ts`; the full bout rides the gym's `runMatchup`.
  */
 
+import "../../src/test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "vitest";
 import {
   makeStuff,
