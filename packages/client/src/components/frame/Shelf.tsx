@@ -264,7 +264,15 @@ const MenuWrap = styled.div`
 const Menu = styled.div`
   position: absolute;
   top: calc(100% + ${tokens.space.xs});
-  left: 0;
+  /*
+   * ⚠ Anchored RIGHT, opening leftward. Left-anchored it overflowed the
+   * viewport by 15px at 1440 and made the whole page scroll sideways —
+   * the add-widget button is the last item in the rack, so it always
+   * sits near the right end and a 20rem menu hanging off it has nowhere
+   * to go. Found by driving, not by the suite: jsdom has no layout, so
+   * nothing short of a real browser could see it.
+   */
+  right: 0;
   z-index: 20;
   min-width: 20rem;
   background: ${tokens.color.surfaceAlt};
