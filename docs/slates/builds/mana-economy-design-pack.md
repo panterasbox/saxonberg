@@ -786,9 +786,16 @@ second build. Piped mana is a third and optional.
 
 ---
 
-## Part 8 — ⚠ What a later edit to `arcane-science.md` must touch
+## Part 8 — ✅ What the edit to `arcane-science.md` touched
 
-Listed so the edit is scoped rather than exploratory. **Not done here.**
+> ✅ **LANDED 2026-08-11.** This was written as a scope list before the edit;
+> the edit has now been made and the table below is the record of what
+> changed. The audit log at the head of `arcane-science.md` carries the
+> summary, and its standing instruction — *re-run the audit against any new
+> numbers or historical claims* — applies to this revision too.
+>
+> ⭐ **No numbers changed anywhere** (`k = 1 kJ/τ`), and no second exemption
+> was added.
 
 | Section | Change |
 |---|---|
