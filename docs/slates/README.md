@@ -153,12 +153,46 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
   **witness, never broadcast** (which makes concealment religiously
   meaningful and the informer a role).
 
+- [lineage-slate](./builds/lineage-slate.md) — char-gen restructured
+  around **you choose a family, not a stat sheet**, on a stated fiction
+  (*your majority day* — you come of age and leave the household, which
+  explains the parent gallery, the antecedents budget, seeded upbringing
+  and starting capital all at once). Names the platform's missing
+  **fourth kind of value — endowed** (neither derived nor declared),
+  under the rule *endow what creates a relationship, **never** a
+  ranking*. The gallery is **a grid, not a bio** (ONI's reason), and is
+  safe to optimize precisely because **its columns are incomparable** —
+  informs the choice without solving it. ⭐ Parents are **records, not
+  NPCs**: an *unrealized person record* is a primitive the world already
+  needed, and it is what finally makes chronicle's inert `who` mean
+  something. Decided: no hybrid species; rerolls priced against starting
+  capital. ⚠⚠ **Healthspan, not lifespan** — aging is real and *never*
+  terminal for a player, because a lifespan clock would be the most
+  rankable stat in the game and no countervailing cost can exist.
+- [trait-slate](./builds/trait-slate.md) — a change to **shipped**
+  `trait.md`: split the derived position into **equilibrium** (slow, who
+  you are) and **expressed** (fast, mean-reverting), which is *free* —
+  one ledger read at two half-lives. Two rules follow: **the write is
+  visible, the value is not** (people have excellent access to their
+  acts and terrible access to their dispositions), and **announce the
+  surprising, not the every** — *"You'd not have done that a year ago."*
+  Anti-farming falls out: **cheap to look different this week, expensive
+  to be different.** ⚠ Settle **the denominator** before wiring forty
+  subsystems, or the most-instrumented one wins everyone's personality.
+  Also settles species personality in three tiers — **emergent from
+  affordances beats authored**, because an authored species trait makes
+  the prejudice *true*, and a true prejudice is an endorsement rather
+  than an allegory.
+
 **Status:** recognition + identification substrate shipped → `belief.md`;
 chronicle ledger substrate shipped → `chronicle.md`; social-graph
 attention layer shipped Wave 3 → `social-graph.md` (Wave 4 + connection
 origin remain as tails). The 2026-08 design cluster —
 **deed-tags → tradition → faith** — is unbuilt and sequenced in that
 order: nothing in faith is buildable until the tag vocabulary exists.
+**lineage + trait** are a second unbuilt cluster and share a joint: seeded
+claims set `equilibrium`, so *genotype is inherited, disposition is
+learned from* — and you can grow out of your upbringing, slowly.
 
 ### 2. NPCs
 *Where the personality lives.*
@@ -196,6 +230,19 @@ The remaining consumers + the environment they run against extend the build:
 - [disease-slate](./builds/disease-slate.md) — **NEW 2026-07-31.** Infection, transmission, and **the price of density** — the one mechanic touching *every living thing*, hence its own doc. **The seam is already cut:** all 11 shipped `Condition` seeds carry `contagion: null` and `toxinBehavior` is a complete within-host burden engine, so the delta is **two things** — a **growth term** (a toxin burden only decays; a pathogen *replicates*) and a filled-in **`ContagionSpec`**. **Two idioms, not one:** within-host load is reconcile-on-read, but **room-to-room spread must be a push tick** (copying `FireLogic`'s one-hop attenuated exit walk) *because nobody reads an empty room*. **Host range over the `Clade` tree** gives *default containment, deliberate crossing* — until a **zoonosis** turns ranching into public health. **The keystone: good husbandry *is* immunity** (the resist factor reads live off host state, so the care model's condition score becomes the resistance term). Frame: **disease is the shadow of the density dial**. **Crops first**; pets and players last.
 - [mortality-slate](./builds/mortality-slate.md) — **SHIPPED 2026-07-31** → [../subsystems/mortality.md](../subsystems/mortality.md); kept for its design rationale + the deferred service/underworld surface. The **dying arc** — the missing other half of every risk system in the game. **Verified gap:** seven sites write `lifecycleState = 'dead'` (three of them byte-identical copy-pasted `applyDeath` helpers) and **nothing anywhere writes back to `'alive'`**; worse, `Avatar` carries the dead state through the snapshot spine, so **a player who dies today is bricked permanently**. `Vitals.getConditionBand` already documents the seam ("the deferred driver owns transitions"); this is that driver. **The keystone: death is the sandbox crossing run backwards** — the same `ForkableMixin` protocol, but forking the *body* out of the person instead of the person out of the body, with the **material/forensic slices fork-only**, so **the corpse's un-reanimatability is enforced by protocol rather than policy**. Three objects at death: the **corpse** (a separate persistent Stuff carrying the real wound map + cause stamp, decaying on its own clock so forensics works whether or not the player returns), the **shade** (a `WireBody` sibling — `shouldPersist() → false`, identity-threaded, carrying the shell slices, and **holding the `PlayerApi` slot** because it is the player's only body while dead), and the **new body** at re-embodiment. **Death is an experience, not a waiting room:** the shade is *unconfined*, roaming the ordinary map as an **overlay** anywhere the general public may walk — which needs no new access model and never touches parcels, because a baseline vessel holds **no keys, no credentials, no gear**, so the shipped `Lockable` machinery does it for free (**the shade walks; it never phases**). It is perceptible because *being dead doesn't log you off* — network presence, **not** a spirit-fabric reading of the aether — at a fidelity set by **awareness competence**. **The engine owns two transitions and nothing between them** — `die` and `reembody` — with **no route/terms vocabulary** (a schema for content that doesn't exist yet would constrain the authoring space rather than serve it); a resurrection business or a Hades journey is content that charges through banking, gives and takes through containment, and finishes by calling `reembody`, needing **no engine work**. v1 ships those two transitions, and an argument-less `passage` **floor** so no player is ever stranded. A `perceptualPlane` axis was built and **CUT** — it could not tag a *place* (`Location` doesn't compose `ConcealableMixin`) and gated sight rather than passage (traversal is `canTraverse`), so it could not do the job it was justified by; an underworld wants a traversal gate on incorporeality, and the ghost-in-the-tavern beat is already expressible through concealment's own bands. **Doctrinal split:** NPCs keep race.md's same-Stuff corpse; only a PC's body splits, because only a PC has an identity that must leave. Nearly all durable state survives free — **the ledgers all key on `getIdentityPath()`, not the object**. Ships dying-as-a-clocked-rescuable-state, the stabilization seam on the **already-shipped** medic loop, the corpse, the passage **floor** (the Orpheus ladder stays content), and the chronicle + accountability writes death has never made. Design authority stays [deferred-rpg/mortal-vessel-slate](./deferred-rpg/mortal-vessel-slate.md), which keeps its moderation/prison half.
 - [health-vertical-slate](./builds/health-vertical-slate.md) — **NEW 2026-07-31.** The **vertical** over disease + harm: clinical assessment, diagnosis, treatment, prevention and public health, **across people and animals both**. Spans four layers no single slate owns — the engine, the **institutions** (a public-health *department*, staffed via the **College of Physic**, whose demand anchor already reads *polity public-health paper*), the **demo set** (the aid post, the health-cohort cut), and the **teaching seam**. Differentiator: **every prior game's healer asks "how much healing do I apply?"; ours asks "what is wrong with them?"** — nearly free, because honest opacity + `observableSigns` + **11 shipped conditions with overlapping signs** make **differential diagnosis emerge rather than be scripted**. The six-link **chain of infection** maps link-for-link onto `ContagionSpec`; **the vet track is free**; **prevention is the unexplored half**. Largest gap: **there is no diagnosis surface at all**.
+
+- [blood-slate](./builds/blood-slate.md) — the **transfusion economy**:
+  harm ships a bleed and mortality ships death by exsanguination, so
+  *you can stop a bleed but you cannot undo one*, and given how combat
+  resolves that is the most common serious injury in the game. The
+  substrate mostly exists — ⭐ metabolism's `introduceToxin` is *"the
+  bloodstream seam past digestion"*, i.e. **the transfusion door, already
+  built** — so the work is a compatibility check in front of it. Carries
+  the **first *endowed* value**, blood type: pure relationship, no scale,
+  nobody's is better (genotype stored, phenotype derives). Compatibility
+  is a **cost curve, not a gate**. v1 is **gift-only**; ⚠ the **Titmuss
+  lever** (paid donation, and whether payment *reduces* supply) is
+  designed-for and deliberately **not built**.
 
 **Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails) → respiration (built → tails) → **thermal (built → tail)** → **weather Wave 1 (built → tail)** → **storms-and-wetness / weather Wave 2 (built → tail; wetness substrate + Storm frontier)** → **fire / combustion (next; the Fire channel)**.
 
@@ -510,6 +557,24 @@ salvaged into the subsystem doc):
 > **Retired 2026-07-31**: `import-boundary` → architecture.md § The
 > import boundary (§12 above; shipped and absorbed in one MR).
 
+- [antecedents-slate](./builds/antecedents-slate.md) — **one** answer to
+  *"what did this character do before now"*, with three provenances —
+  **native** (this instance witnessed it), **authored** (a content
+  author's fiction), **foreign** (attested by another instance) —
+  differing in degree and trust, never in kind. **Phase A** authors the
+  **prior, not the evidence**: a résumé (`kind × years × at`) maps to the
+  BKT's starting `theta`, so an author types **stated effort, never a
+  stated band** — *twenty years pouring beer* and *three years in a
+  cocktail lab* come out differently because the estimator already knows
+  trivial repetition teaches nothing. ⭐ A pure function of the template
+  means **the crowd costs zero database writes**. **Phase B** federates
+  transcripts on two engine facts (competence is *never stored*, and
+  `iscedf` is already on every Discipline), via **three buckets** —
+  portable / attestable-but-inert / never. ⭐⭐ *Skill is in your hands;
+  standing is in other people's heads.* **Not a blockchain**, and
+  structurally so: competence is not scarce, so there is no double-spend
+  — it needs **accreditation, not consensus**. Export the **evidence**,
+  never the estimate.
 - [trade-roster-slate](./builds/trade-roster-slate.md) — **content
   design, buildable**: the 34-trade closed vocabulary the
   [lineage](./builds/lineage-slate.md) gallery generates households from,
