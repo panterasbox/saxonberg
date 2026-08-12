@@ -294,24 +294,65 @@ export interface SelfFigureRecord {
 |---|---|---|
 | `PLAY` | `{ band: 'dormant' }` | `live`, value `dormant` — a band floor is a real derivation, not an absence |
 | `PLAY` | key absent | `empty`, reason *not resolved for this session* |
-| `RENOWN` | `{ value: n }`, `n !== 0` | `live`, value `String(n)` |
-| ⭐ `RENOWN` | `{ value: 0 }` | **`empty`**, reason *no renown recorded yet* |
+| `RENOWN` | `{ value: n }` — **including `0`** | `live`, value `String(n)` |
+| ⭐ `RENOWN` | key absent | `empty`, reason *no renown recorded yet* |
 | `SKILL` | `{ discipline, band }` | `live`, value `` `${discipline} · ${band}` `` |
 | `SKILL` | `null` | `empty`, reason *nothing being practised* |
 | `SKILL` | key absent | `empty`, reason *the transcript fold has not landed yet* |
 
-⭐ **Why `renown: 0` is `empty` and not `live`.** `RenownApi.renownOf`
-*"returns the neutral 0 for a non-materialized scope"* (`api/renown.ts:107`) —
-so on the wire, "measured and found neutral" and "never materialized" are the
-**same bytes**. `CONVENTIONS.md` #1 defines `empty` as exactly this case: *"a
-real zero — `—` plus a reason"*. Printing `0` as a live figure would assert a
-measurement the payload cannot distinguish from its own absence, which is the
-convention's own failure mode one level down from a fake.
+⭐ **`0` is a live figure, because D4b makes it unambiguous.** The wire
+previously could not tell "measured and found neutral" from "never
+materialized" — `RenownApi.renownOf` *"returns the neutral 0 for a
+non-materialized scope"* — so an earlier revision of this plan rendered every
+`0` as `empty`, which was choosing which way to be wrong rather than fixing
+it. **D4b removes the ambiguity at its source**, so a `{ value: 0 }` that
+reaches the client now genuinely means *measured, and the answer is zero* —
+which is a real figure and renders live. An unmeasured scope omits the key,
+and the row is `empty` through the same path every other absent field takes.
 
-⚠ **Consequence, and it is visible:** on a fresh character the shelf reads
-`PLAY dormant` · `RENOWN —` · `SKILL —` · six `╌╌`. That is the honest picture
-and it is what a demo screenshot will show. Flagged (**F11**) because it is a
-judgement call about the product's first impression, not a technical one.
+### D4b — Fix the renown ambiguity at its source, additively
+
+⭐ **The information exists and is discarded one line before it leaves.**
+`renownOfImpl` (`obj/api/RenownLogic.ts:437`) is
+`RenownStanding.cached().get(key) ?? 0` — the cache **already** returns
+`undefined` for a scope that was never materialized, and the `?? 0` is what
+collapses two different facts into one number. Nothing has to be computed; the
+distinction only has to survive the return.
+
+So rather than have the client guess which meaning a `0` carries, add an
+**absence-preserving sibling** on the existing `RenownApi`:
+
+```ts
+/** The measured standing, or `undefined` when the scope was never
+ *  materialized. The absence-preserving companion to `renownOf`, whose
+ *  `?? 0` is correct for scoring and wrong for display. */
+public static measuredRenownOf(
+  subjectId: string,
+  scope?: RenownScope,
+): number | undefined;
+```
+
+`Avatar`'s descriptor reads it and returns `undefined` — which `projectFields`
+already **omits** — when the scope is unmaterialized.
+
+⚠ **Additive, and deliberately so.** `renownOf` keeps its neutral-0 contract
+and **all five of its callers are untouched**: `StandingController` (a report),
+`ProfileLogic` ×2 (`Band.fromScalar`), `ConsumerLogic` (a `Math.max(0, …)`
+quality clamp), and the old `Avatar` line this replaces. Every one of them
+genuinely wants a number, and changing `renownOf` itself would push an
+`undefined` into four call sites that would then need their own `?? 0` — the
+same collapse, four times, further from the data.
+
+**Why this is in scope for a chrome build**, when "measuring connection health"
+was declined as out of scope: this is not new measurement. It is one existing
+value not being flattened on its way out, and the alternative was a client-side
+policy that mis-renders a real zero forever. It is also the *only* honest
+answer available — both other options (render `0` live, or render `0` empty)
+require picking which of two meanings to be wrong about.
+
+⚠ This is a server change inside a chrome build and was signed off explicitly.
+Keep it to the one method plus the one descriptor line; **do not** refactor the
+renown read path further while here.
 
 ### D5 — `connectedAt` is an **optional** field on `ConnectionState`, and the popover says "this connection"
 
@@ -537,7 +578,15 @@ to be wrong about.
   explicit, and why (neither alias carries standing).
 - `packages/server/src/mud/obj/Avatar.ts` — the two `Band` → `.name`
   normalizations (**D3**), each with a one-line comment saying the wire carries
-  a band **name**, not a serialized value object.
+  a band **name**, not a serialized value object. And the `renown` descriptor
+  reads `measuredRenownOf`, returning `undefined` for an unmaterialized scope
+  (**D4b**) — one line, with a comment saying an omitted key is the honest
+  answer and `?? 0` would be a fabricated one.
+- `packages/server/src/mud/api/renown.ts` +
+  `packages/server/src/mud/obj/api/RenownLogic.ts` — `measuredRenownOf`
+  (**D4b**), forwarding to a logic method that returns the cache lookup
+  **without** the `?? 0`. Additive: `renownOf` and its five callers are
+  untouched.
 
 ### Tests
 
@@ -555,6 +604,13 @@ to be wrong about.
     the real pane rather than through `projectFields` directly).
 - `obj/__tests__/Avatar.standing-split.test.ts:116-124` — `viaField.band.name`
   → `viaField.band`. **The only edit in this phase to an existing assertion.**
+- ⭐ **New, for D4b** — the distinction the whole decision rests on:
+  `measuredRenownOf` returns `undefined` for a subject with no materialized
+  scope, and `0` for one whose materialized standing really is zero; `renownOf`
+  returns `0` for **both**, unchanged. Then through the pane: an unmeasured
+  avatar's projected record has **no `renown` key at all**, and a
+  measured-at-zero one has `{ value: 0 }`. Without this pair the ambiguity
+  looks fixed while still being collapsed somewhere in the chain.
 - ⚠ **F1's verification happens here**, before anything relies on it: assert
   that a `notifyDurableSubject` poke against the avatar's template path marks
   the `self` subscription dirty and produces a delta. If it does not, the shelf
@@ -980,13 +1036,13 @@ questions.
 | **F2** | ⚠ **Related and also unverified: how does the differ compare field values?** If it is identity-based, a descriptor returning a freshly-minted object on every read produces a spurious delta per re-resolve. | **D3 makes it moot for the two influence fields** (a string compares by value under any scheme). `practisingCompetence` returns a fresh `{discipline, band}` object per read and would still be exposed if the comparison is identity-based — check it in the same Phase 1 test by poking twice with no underlying change and asserting **one** delta, not two. |
 | **F3** | ⭐ **`api/__tests__/cockpit-verb.test.ts:80` asserts the subcommand list exactly, so adding `shelf` REQUIRES editing it.** This must not be read as violating the requirements' freeze. | The freeze covers **three named files** — `store/__tests__/connectionLink.test.ts`, `components/__tests__/ConnectionIndicator.test.tsx`, `services/__tests__/websocket.test.ts` — because they are the guard on the *full-bar-rebuild* risk. `cockpit-verb.test.ts` is a server verb-registry test with no relationship to the reconnect machine, and it is *designed* to fail when the subcommand set changes: that is its job. The edit is additive (a sixth entry, a sixth controller assertion, a binder case). **Make the distinction explicit in the MR body** so a reviewer does not read a legitimate edit as a broken promise. |
 | **F4** | **`ConnectionState` gains a field, and `connectionLink.test.ts` builds a complete literal.** A *required* field breaks that frozen test's typecheck — and only under `build:types`, since vitest strips types without checking them. | **D5**: `connectedAt?: number`, optional. Also honest (no timestamp before the first connection). Alternative — a store field outside `connection` — also compiles but splits the concept and Build C needs it too. Needs a nod that a `?` in a shared type is acceptable as the mechanism. |
-| **F5** | **`playStanding` / `makeStanding` put a `Band` class instance on the wire**, which `JSON.stringify` renders as `{ band: { name: "…" } }` — a shape nobody designed. | **D3** normalizes to `{ band: 'nascent' }`, matching `practisingCompetence`'s already-plain band. Cost: two source lines and two assertion edits in `Avatar.standing-split.test.ts` (not frozen; equally strong after). The alternative — the client reads `.band.name` — is one edit smaller and pins the client to an accident. **Sign-off wanted before Phase 1**, because it touches S1's wire (which has zero consumers today, which is exactly why now is the cheap moment). |
+| **F5** | ✅ **RESOLVED — normalize, as planned.** `playStanding` / `makeStanding` put a `Band` class instance on the wire, which `JSON.stringify` renders as `{ band: { name: "…" } }` — a shape nobody designed. | **D3** stands: normalize to `{ band: 'nascent' }`, matching `practisingCompetence`'s already-plain band. Cost is two source lines and two assertion edits in `Avatar.standing-split.test.ts` (not frozen; equally strong after). Signed off before Phase 1, on the reasoning that S1's wire has **zero consumers today** and this is the last cheap moment to fix it. The `{ band: … }` envelope is kept rather than flattened, so the record's shape does not move. |
 | **F6** | **The art and the requirements disagree on where identity sits.** `Global Chrome.dc.html` puts the `who` chip at the **left**, beside connection; the requirements say *"the account menu at the right"*. `AccountMenu` is one component that is both the identity chip and its dropdown. | **D11** puts it left, on the requirements' own stronger sentence — *"the two things that must be true at a glance"* — and leaves the right cluster to `ViewsMenu` + settings. If the intent was a split (identity chip left, account actions right), that is two components and a second identity rendering; say so before Phase 5. |
 | **F7** | **"Each with its reason" in a 30px chip.** The shelf row has no room for a visible reason line; the art's `.wg` carries only `title`. | Chip renders the reason in `title` **and** in the `aria-label` `Figure` already emits (*"not wired — <reason>"*, so a screen reader gets it in words), and the `＋ widget` catalogue menu renders every row's reason as **visible text**. The AC's test asserts the reason via `aria-label`, which is the accessible name — the strongest available reading. Confirm this satisfies "with its reason". |
 | **F8** | **"`cockpit shelf list` prints the catalogue with each row's state" is ambiguous** — pinned/unpinned, or live/hatched? | **D8** prints pinned-ness, because per **D2** the server does not know which rows the client painted and a verb printing a guess is a confident wrong answer. If live/hatched was meant, the honesty vocabulary must move server-side, which needs a catalogue module in `lib/connection/` — **a new server module, requiring sign-off**, and a server that models the client's build state. Recommend as planned. |
 | **F9** | **The default shelf is unspecified.** The art defaults to five of ten. | **D9** defaults to all nine, so the AC's nine-row assertion tests the default state and the build's ⭐ claim is visible on first login. One constant to change if the five-row default is preferred — but then the nine-row AC needs restating as "the catalogue holds nine". |
 | **F10** | **`Figure` — a Build A primitive shipped one commit ago — gains a `variant` prop.** | **D7**. `card` remains the default, so `Figure.test.tsx` (including its `@ts-expect-error` compiler assertions) passes unmodified. The alternatives are a second component (reopens the `<span>{n}</span>` hole the union closed) or `styled(Figure)` descendant overrides (puts the primitive's DOM shape in the consumer's hands, breaks silently with no type error). Being the first consumer *is* how a primitive learns what it needs. |
-| **F11** | ⭐ **`renown: 0` is ambiguous on the wire, and the honest reading makes a fresh shelf look empty.** `RenownApi.renownOf` returns *"the neutral 0 for a non-materialized scope"*, so "measured neutral" and "never materialized" are the same bytes. **D4** renders `0` as `empty` with a reason. Consequence: a fresh character reads `PLAY dormant · RENOWN — · SKILL — ·` six `╌╌`. | This is a product-impression call, not a technical one. The alternative — render `0` as `live` — asserts a measurement the payload cannot distinguish from its own absence, which is the convention's failure mode one level down. If the demo needs figures, the convention's own preference order #3 applies: **seed the world so the real endpoint answers**, which is a content task, not a client one. |
+| **F11** | ✅ **RESOLVED — fixed at the source.** `renown: 0` was ambiguous on the wire: `renownOf` returns the neutral 0 for a non-materialized scope, so "measured neutral" and "never measured" were the same bytes, and the earlier plan rendered every `0` as `empty` to stay honest — at the cost of a fresh shelf reading `RENOWN —` forever. | **D4b**: `RenownApi.measuredRenownOf` preserves the absence the cache already has (`cached().get(key)` is `undefined`; the `?? 0` was discarding it), the descriptor omits the key when unmeasured, and the client renders a real `0` as **live**. Additive — `renownOf` and its five callers are untouched. ⚠ A server change inside a chrome build, signed off explicitly; scope is one Api method plus one descriptor line. |
 | **F12** | **`GhostCommandLine` has two render sites**, and the requirements demand exactly one preview surface. | **D10**: the component is deleted and both sites render `StatusBar`; the sites are mutually exclusive phases (`App()` early-returns per phase), so one surface is live at every instant. Char-gen **keeps** a preview surface, and must — it renders command-sending affordances. Guarded structurally by a source-scan test (one `ghostPreview` consumer), not by memory. |
 | **F13** | **The art's at-rest status-bar right region shows `here:forge · 1,240 frames`** — two figures with no source. | Rendered as **nothing** at rest, `click to send` while previewing. Building them would be the exact violation this build exists to demonstrate against, in the surface that advertises the claim. Recorded so the omission reads as a decision. |
 
@@ -994,8 +1050,10 @@ questions.
 function, no new `eslint-disable`, no new module category. The server side is
 one new controller + its two-line seed (both squarely inside existing
 categories, mirroring `CockpitPaneController`), one `clientStateSchema` entry,
-one YAML subcommand block, two type-widening edits and two one-line descriptor
-normalizations. The shared vocabulary lands in `@saxonberg/types`, beside
+one YAML subcommand block, two type-widening edits, two one-line descriptor
+normalizations, and **one additive method on the existing `RenownApi`**
+(**D4b** — a method on a subsystem Api that already exists, not a new Api and
+not a new module). The shared vocabulary lands in `@saxonberg/types`, beside
 `PANE_IDS`, precisely so that no new server module is needed. **If anything
 during the build seems to need one, stop and get sign-off** — the lint failing
 is the intended tripwire.
