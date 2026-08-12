@@ -49,6 +49,15 @@ import {
 const Screen = styled.div`
   position: fixed;
   inset: 0;
+  /*
+   * ⚠⚠ Load-bearing, and found by DRIVING. inset:0 resolves the width
+   * from the edges, and under the default content-box the padding is
+   * then added OUTSIDE it — so this element rendered 18px wider than
+   * the viewport and scrolled the whole page sideways. The client has
+   * no global border-box reset, so every full-bleed surface has to say
+   * this for itself. jsdom has no layout and stayed green throughout.
+   */
+  box-sizing: border-box;
   z-index: 60;
   display: flex;
   flex-direction: column;

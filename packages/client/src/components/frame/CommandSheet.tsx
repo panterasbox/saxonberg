@@ -43,6 +43,10 @@ import { tokens } from "../ui";
 const Scrim = styled.div`
   position: fixed;
   inset: 0;
+  /* ⚠ See ShelfScreen: inset resolves the width, and content-box adds
+     padding outside it. No padding here today — stated so a future one
+     cannot silently widen the page. */
+  box-sizing: border-box;
   z-index: 70;
   display: flex;
   flex-direction: column;
@@ -51,6 +55,7 @@ const Scrim = styled.div`
 `;
 
 const Sheet = styled.div`
+  box-sizing: border-box;
   background: ${tokens.color.surfaceAlt};
   border-top: 1px solid ${tokens.color.border};
   border-radius: ${tokens.radius.md} ${tokens.radius.md} 0 0;

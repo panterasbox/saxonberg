@@ -46,6 +46,9 @@ const Sheet = styled.div`
   left: 0;
   right: 0;
   top: 100%;
+  /* ⚠ See ShelfScreen: left+right resolve the width, and content-box
+     then adds the padding outside it, past the viewport. */
+  box-sizing: border-box;
   z-index: 40;
   max-height: 70vh;
   overflow-y: auto;
