@@ -20,6 +20,7 @@
  * `Behaved.test.ts` + `Audible.test.ts` harnesses fused.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,
@@ -79,7 +80,7 @@ type NPC = TestNPC & {
 function movementFrame(): MessageFrame {
   return {
     id: 'mf1',
-    topic: 'world.narration.movement',
+    topic: 'act.move',
     body: 'someone arrives.',
     meta: { timestamp: 0 },
   };

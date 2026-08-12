@@ -17,7 +17,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface ForgeModel extends CommandModel {
   item: string;
@@ -48,8 +48,8 @@ export default class ForgeController extends CraftController<ForgeModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You forge ${Mml.item(output)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} forges ${Mml.item(output)}.`)
+      .toSelf(Mml.compose`You forge ${Mml.thing(output)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} forges ${Mml.thing(output)}.`)
       .send();
   }
 }

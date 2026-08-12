@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import Avatar from "../Avatar";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";

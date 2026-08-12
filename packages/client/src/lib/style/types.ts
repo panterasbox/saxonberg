@@ -70,7 +70,7 @@ export interface Theme {
   /** Default per-element treatment (looked up by tag name). */
   element: Record<string, StyleTreatment>;
 
-  /** Default per-bucket treatment for `<player>` / `<name>` highlights. */
+  /** Default per-bucket treatment for `<player>` / `<npc>` highlights. */
   bucket: Record<Bucket, StyleTreatment>;
 
   /** Mention treatments — self-match vs other-match. */

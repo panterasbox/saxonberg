@@ -22,3 +22,4 @@ subcommands:
         type: object
         required: true
         scope: "inventory"
+        requires: CredentialWalletMixin

@@ -565,8 +565,8 @@ export function CommandBar({
 
     // The client never wraps input — the tail goes verbatim, tagged with
     // this bar's `barId`, and the server's interpreter prepends this
-    // bar's mode prefix (the `mode` verb + `/`-escape are exempt there).
-    // `mode` / `mode off` are real commands now: they ride the bus too.
+    // line's prefix (the `cockpit` verb + `/`-escape are exempt
+    // there). `cockpit cli` rides the bus like any other command.
     onSendCommand(baseDraft, barId);
     if (trimmed) {
       setHistory((prev) => {
@@ -578,10 +578,10 @@ export function CommandBar({
     setHistoryIndex(-1);
   };
 
-  /** Clear this bar's mode by sending `mode off` from this bar. */
+  /** Clear this line's prefix by sending `cockpit cli --clear` from it. */
   const clearBarMode = () => {
     if (offline) return;
-    onSendCommand('mode off', barId);
+    onSendCommand('cockpit cli --clear', barId);
   };
 
   const submitActive = () => {

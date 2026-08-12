@@ -5,6 +5,7 @@
  * call instead of importing helpers.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import {

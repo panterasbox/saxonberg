@@ -5,6 +5,7 @@
  * coverage; this file exercises only the sun/moon routing.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import MeasureAltitudeController from '../MeasureAltitudeController';
 import Sextant from '../../../instrument/Sextant';

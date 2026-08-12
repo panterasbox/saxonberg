@@ -26,7 +26,7 @@ import { RenownApi } from '../../../api/renown';
 import { InfluenceApi } from '../../../api/influence';
 
 /** Identity-family self readout — reuse, don't invent a topic. */
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 export default class StandingController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -42,7 +42,11 @@ export default class StandingController extends CommandController<CommandModel> 
     // Bands throughout, never raw scalars (register D6: standing is shown
     // qualitatively; the precise number is reserved for the eventual ballot).
     const playBand = InfluenceApi.bandOf(subjectId, 'consumer');
-    const makeBand = InfluenceApi.bandOf(subjectId, 'producer');
+    // ⚠ Through the shared host seam, not `bandOf`, so this verb, the
+    // `profile` digest and the live dashboard field cannot report
+    // different make standings. The account aggregation behind it is
+    // still a stub — see `InfluenceApi.standingForHost`.
+    const makeBand = InfluenceApi.standingForHost(actor, 'producer').band;
     // Capital (fund) is intake-gated — a defined zero until Twitch capital
     // lands; shown as not-yet-earnable rather than a misleading 'dormant'.
 

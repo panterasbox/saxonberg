@@ -1,0 +1,14 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: act.emote
+  family: "act"
+  label: "Expression"
+  communicative: true
+  description: "A gesture, a glance, a laugh. Body language rather than words."
+  address: ambient
+  actor: person
+  weight: chatter
+  audience: player
+  durable: false
+  affordance: decays

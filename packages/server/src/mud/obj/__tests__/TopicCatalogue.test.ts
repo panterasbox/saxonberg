@@ -3,6 +3,7 @@
  * mongo, and singleton destruct refusal.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TopicCatalogue from '../TopicCatalogue';
 import Topic from '../Topic';
@@ -22,6 +23,7 @@ interface TopicSeedData {
   weight?: string;
   audience?: string;
   durable?: boolean;
+  affordance?: string;
 }
 
 /**
@@ -35,6 +37,9 @@ const FLOOR = {
   weight: 'diagnostic',
   audience: 'all',
   durable: false,
+  // `decays` rather than `permanent`: a wrongly-permanent affordance is
+  // a dead link the UI presents as live.
+  affordance: 'decays',
 } as const;
 
 
@@ -78,16 +83,16 @@ describe('TopicCatalogue', () => {
   it('returns an authored descriptor verbatim when one exists', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'world.speech.say',
-        family: 'world.speech',
+        topic: 'speech.vocal',
+        family: 'speech',
         label: 'Say',
         description: 'Speaking aloud.',
       },
     ]);
-    const d = cat.getDescriptor('world.speech.say');
+    const d = cat.getDescriptor('speech.vocal');
     expect(d).toEqual({
-      topic: 'world.speech.say',
-      family: 'world.speech',
+      topic: 'speech.vocal',
+      family: 'speech',
       label: 'Say',
       description: 'Speaking aloud.',
       // No facets authored on this seed. The runtime does NOT
@@ -101,38 +106,41 @@ describe('TopicCatalogue', () => {
   it('isCommunicative reflects the data flag (and excludes the rest)', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'world.speech.say',
-        family: 'world.speech',
+        topic: 'speech.vocal',
+        family: 'speech',
         label: 'Say',
         description: '',
         communicative: true,
       },
       {
-        topic: 'world.speech.dm',
-        family: 'world.speech',
+        topic: 'speech.comms',
+        family: 'speech',
         label: 'DM',
         description: '',
       },
     ]);
-    expect(cat.isCommunicative('world.speech.say')).toBe(true);
-    expect(cat.isCommunicative('world.speech.dm')).toBe(false); // private
+    expect(cat.isCommunicative('speech.vocal')).toBe(true);
+    expect(cat.isCommunicative('speech.comms')).toBe(false); // private
     expect(cat.isCommunicative('unseeded.topic')).toBe(false);
   });
 
   it('inherits from the nearest authored family ancestor when the leaf is unseeded', async () => {
     const cat = await warmCatalogue([
       {
-        topic: 'system.log.command',
-        family: 'system.log',
-        label: 'Command',
+        topic: 'shell',
+        family: '',
+        label: 'Your terminal',
         description: 'Per-command log emissions.',
       },
     ]);
-    const d = cat.getDescriptor('system.log.command.info');
+    // A leaf nobody seeded, under a seeded root. This tier is what
+    // keeps a pack-added leaf readable before its descriptor is known,
+    // and what the `topic.unauthored` diagnostic reports on.
+    const d = cat.getDescriptor('shell.unseeded');
     expect(d).toEqual({
-      topic: 'system.log.command.info',
-      family: 'system.log.command',
-      label: 'Command (Info)',
+      topic: 'shell.unseeded',
+      family: 'shell',
+      label: 'Your terminal (Unseeded)',
       description: 'Per-command log emissions.',
       // The leaf inherits the ancestor's attention shape along with
       // its prose. The ancestor was seeded facet-less, so it holds the
@@ -171,7 +179,7 @@ describe('TopicCatalogue', () => {
     const cat = await warmCatalogue([
       { topic: 'world', family: '', label: 'World', description: 'In-world events.' },
       {
-        topic: 'world.speech',
+        topic: 'speech',
         family: 'world',
         label: 'Speech',
         description: 'Speech-family events.',
@@ -181,7 +189,7 @@ describe('TopicCatalogue', () => {
     expect(snap).toHaveLength(2);
     const byTopic = new Map(snap.map((d) => [d.topic, d]));
     expect(byTopic.get('world')?.label).toBe('World');
-    expect(byTopic.get('world.speech')?.label).toBe('Speech');
+    expect(byTopic.get('speech')?.label).toBe('Speech');
   });
 
   it('invalidateCache + re-warm picks up new templates', async () => {
@@ -194,7 +202,7 @@ describe('TopicCatalogue', () => {
     stubTopicTemplates([
       { topic: 'world', family: '', label: 'World', description: 'World events.' },
       {
-        topic: 'world.speech',
+        topic: 'speech',
         family: 'world',
         label: 'Speech',
         description: 'Speech-family.',
@@ -203,7 +211,7 @@ describe('TopicCatalogue', () => {
     cat.invalidateCache();
     await cat.postRegister();
 
-    expect(cat.getDescriptor('world.speech').label).toBe('Speech');
+    expect(cat.getDescriptor('speech').label).toBe('Speech');
   });
 
   it('canDestruct refuses (singleton)', async () => {

@@ -12,7 +12,7 @@ This subsystem unifies three formerly-separate surfaces: the shipped
 **Twitch chat relay** (folded in here — see the superseded banner atop
 [twitch-relay.md](./twitch-relay.md)), the **livestream-viewer video embed**
 (was an operator-curated `broadcastSources` picker, now `watch`-driven —
-[cockpit-layouts.md](./cockpit-layouts.md)), and **YouTube chat** (new,
+[cockpit.md](./cockpit.md)), and **YouTube chat** (new,
 read-only). The **player-facing surface is one code path**; only the
 backend *transports* stay per-platform because the protocols genuinely
 differ. **Kick** (read-only) joined as the third transport — the first
@@ -225,7 +225,7 @@ reader-unconfigured → reject-and-point at a URL) — rendered
 `live_stream?channel=<channelId>` so it tracks the channel's live status.
 Watching also best-effort delegates to `StreamApi.tune` (Twitch now; the
 YouTube implied chat-tune resolves live-or-not through the same path). See
-[cockpit-layouts.md](./cockpit-layouts.md) for the client half.
+[cockpit.md](./cockpit.md) for the client half.
 
 ## Identity / rendering
 
@@ -235,7 +235,7 @@ persona-on-hover via the reverse `TwitchProfile`/`KickProfile → User`
 walk); YouTube lines are `external`-only (no channel stored → no reverse
 link this cycle). The client `relayTemplate` (parameterized by service —
 Twitch-purple / YouTube-red / Kick-green glyph) renders
-`world.twitch.message` / `world.youtube.message` / `world.kick.message`;
+`speech.relay` (one topic; the platform rides `payload.service`);
 message text is escaped plain text, never MML (untrusted external
 input).
 
@@ -285,7 +285,7 @@ for the full non-goal list.
   in (superseded banner points here)
 - [livestream.md](./livestream.md) — the overlay `BroadcastFeed` +
   `RelayChatEnvelope` seam
-- [cockpit-layouts.md](./cockpit-layouts.md) — the `watch`-driven
+- [cockpit.md](./cockpit.md) — the `watch`-driven
   `cockpit.watch` embed
 - [connection.md](./connection.md) — the OAuth spine + `TwitchProfile` /
   `GoogleProfile` / `KickProfile`

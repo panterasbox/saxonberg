@@ -12,6 +12,7 @@
  * no real timer.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { EventApi } from '../../../api/event';

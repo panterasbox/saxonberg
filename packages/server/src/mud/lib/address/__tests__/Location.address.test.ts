@@ -8,6 +8,7 @@
  * before the mixin existed — plus the `isAddressable` narrowing.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Location from '../../stuff/Location';
 import { MixinApi } from '../../../api/mixin';

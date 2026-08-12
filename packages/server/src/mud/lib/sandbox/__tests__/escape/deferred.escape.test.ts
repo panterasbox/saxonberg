@@ -6,6 +6,7 @@
  * ScheduleApi birth-scope propagation + the per-scope handle index.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { ScheduleApi } from '../../../../api/schedule';

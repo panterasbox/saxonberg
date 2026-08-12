@@ -11,6 +11,7 @@
  * scores are pure weighted counts; the decay test seeds a short half-life.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducerApi } from '../../../api/producer';
 import { AppSettings } from '../../../lib/config/AppSettings';

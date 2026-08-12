@@ -14,6 +14,7 @@
  * here.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MixinApi } from '../../../api/mixin';
 import { RecognitionApi } from '../../../api/recognition';

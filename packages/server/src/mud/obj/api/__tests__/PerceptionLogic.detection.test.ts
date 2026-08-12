@@ -16,6 +16,7 @@
  * exactly `attention`, and the ladder is a clean function of it.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { PerceptionApi } from '../../../api/perception';
 import type { ConcealmentLevel } from '../../../lib/concealment/ConcealmentLevel';

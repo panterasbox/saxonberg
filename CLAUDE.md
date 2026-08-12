@@ -72,11 +72,11 @@ behavior. Read the relevant doc before editing in its area.
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
   - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: frame primitives, start screen, anonymous-guest path, reconnect machine
-  - [cockpit-layouts.md](./docs/subsystems/cockpit-layouts.md) — server-authoritative `cockpit.layout` + `cockpit.inputModes`; watch embed; ghost command line; summoned panes
+  - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; ghost command line
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
   - [media.md](./docs/subsystems/media.md) — `Visible.illustration` → `mediaUrl()`; MediaAsset provenance; image-generation pipeline
-  - [topics.md](./docs/subsystems/topics.md) — Topic docs, TopicCatalogue, three-tier resolution, session-establish push
+  - [topics.md](./docs/subsystems/topics.md) — the 7 closed roots (subject matter only; facets carry the rest), TopicCatalogue, three-tier resolution, the build/runtime/install/boot totality gate
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin, Emote Document + EmoteGrammar, SoulCatalogue, three dispatch paths
   - [reactions.md](./docs/subsystems/reactions.md) — act-scoped emote aggregation, fixed-cadence flush, the `react` verb
   - [grouping.md](./docs/subsystems/grouping.md) — GroupApi facade over three GroupProvider impls, GroupRef typed strings
@@ -101,13 +101,13 @@ behavior. Read the relevant doc before editing in its area.
   - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports (Twitch/YouTube/Kick — Kick = webhook-inbound + the KickProfile provider); overlay chat forwarding
   - [twitch-relay.md](./docs/subsystems/twitch-relay.md) — [superseded → streaming.md] the Twitch transport: EventSub reader, reauth flow, RelaySpeaker
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, masks
-  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution, async override
+  - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution + resolution, async override
   - [command-parsing.md](./docs/subsystems/command-parsing.md) — CommandLineApi tokenizer, RawToken, `format()` round-trip, `msh`
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for verbs: YAML shape, controller refs as paths, domain-local commands, categories
   - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`make`
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
-  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column pane: two subscriptions, unified breadcrumb, cardinality-polymorphic body
+  - [inspection-pane.md](./docs/subsystems/inspection-pane.md) — right-column pane: two SERVER-NAMED panes (the catalogue owns the query), unified breadcrumb, cardinality-polymorphic body
   - [prompt.md](./docs/subsystems/prompt.md) — PromptApi (choice/confirm/text/mqlObject/mqlMany), resolver map, cardinality policy
   - [mixins.md](./docs/subsystems/mixins.md) — class-factory mixins, `_mixinName`, Mixins registry, MixinApi predicates, composition order
   - [zone.md](./docs/subsystems/zone.md) — Zone/SpatialZone/FolderZone roots, resolveZoneForPath, field inheritance
@@ -294,13 +294,22 @@ and the launch aborts rather than starting into `EADDRINUSE`.
 
 ```bash
 pnpm build            # pnpm -r build
-pnpm test             # all tests (Vitest)
+pnpm test             # all tests (Vitest) — ONE full run per build
+pnpm test:near        # only the tests beside what you changed (fast loop)
+pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
 ```
 
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
+
+[docs/testing.md](./docs/testing.md) — the suite's cost model: `pnpm
+bench` + the measurement history, the ±6% noise floor (nothing under
+10% is a real win), how often to run the full suite, why `isolate:
+false` stays declined, and the one rule for a new test — anything
+touching the wired runtime imports `test-bootstrap`
+(`pnpm lint:test-bootstrap` enforces it).
 
 ### Documentation
 
@@ -394,6 +403,20 @@ discoverability.
   direction rule). CI-gating. It deliberately does NOT judge whether an
   exemption is *justified* — that is a review call, and the reason
   these stay short readable lists instead of being derived.
+- `pnpm lint:topics` (`scripts/check-topic-keys.ts`) — **the topic
+  vocabulary**: every topic key emitted in server source resolves to an
+  **authored** descriptor, and every key's root is one of the seven in
+  `TOPIC_ROOTS`. `TopicCatalogue`'s third tier *derives* a plausible
+  descriptor for an unknown key, so without this a typo or a rename
+  fails silently — when the gate was first run, **45 of 105 emitted
+  topics had no authored descriptor at all**. No exemption list: all
+  five ways `.topic(…)` is written resolve statically, so an
+  unresolvable argument is an error, not a skip. ⚠ Resolution is
+  **file-scoped first** — an earlier revision used one tree-wide table
+  and silently resolved a name against an unrelated file. CI-gating.
+  The build-time third of a four-part gate (runtime diagnostic, pack
+  reconcile, boot prune) — see
+  [topics.md](./docs/subsystems/topics.md).
 - `pnpm lint:imports` (`scripts/check-mud-imports.ts`) — **the import
   boundary**: nothing under `src/mud/` imports outside the tree (Node
   built-ins included) except the Api tier (`api/**` + `obj/api/**`),

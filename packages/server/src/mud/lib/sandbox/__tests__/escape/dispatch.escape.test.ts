@@ -12,6 +12,7 @@
  * this battery against genuine crossings.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import {

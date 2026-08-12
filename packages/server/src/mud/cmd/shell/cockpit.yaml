@@ -1,0 +1,239 @@
+verbs: [cockpit]
+controller: /obj/command/shell/CockpitController
+description: "Steer your cockpit: layout, per-bar input scoping, appearance."
+help: |
+  The cockpit is your screen — everything about how it is arranged and
+  how it reads. Every control lives under this one verb, so there is
+  exactly one place to look.
+
+    cockpit                       report everything in effect
+    cockpit mode <name>           what you are here to do
+    cockpit layout <name>         the pane arrangement inside that mode
+    cockpit scope <prefix…>       scope a command bar's bare input
+    cockpit style <sub> …         appearance: theme, colors, plain mode
+
+  Two axes, and they are different questions. A MODE is the front door
+  — chat, play, watch, build, govern. A LAYOUT is how the panes sit
+  inside the mode you are in, and each mode remembers its own.
+
+  Cockpit control is interface, not fiction — so `cockpit` and every
+  subcommand under it always reach the interpreter un-prefixed, even
+  from a bar you have scoped to a channel. A bar scoped to gossip can
+  still steer its own cockpit without the `/` escape.
+validators:
+  - /lib/command/validators/requiresHasInteractive
+examples:
+  - cmd: cockpit
+    note: Report mode, layout, scope and style in one view
+  - cmd: cockpit mode watch
+    note: Switch to the watch front door
+  - cmd: cockpit layout forum
+    note: Open the forum board view
+  - cmd: cockpit scope chat gossip
+    note: Scope this bar to the gossip channel
+  - cmd: cockpit style theme high-contrast
+    note: Switch to the high-contrast theme
+subcommands:
+  mode:
+    controller: /obj/command/shell/CockpitModeController
+    description: "Switch the cockpit mode (chat | play | watch | build | govern)."
+    help: |
+      A mode is a front door — it answers *what am I here to do*.
+      `chat` is talking to people, `play` is living in the world,
+      `watch` is a stream (as viewer or broadcaster), `build` is
+      making things, and `govern` is the offices and the polity.
+
+      Each mode remembers the arrangement you last used in it, so
+      switching to `chat` and back to `play` puts you where you were.
+
+      A mode changes what your screen is FOR, never what you are
+      allowed to do: everything you can run in `play` you can run in
+      every other mode. Bare `cockpit mode` reports the current one.
+      Naming an arrangement too — `cockpit mode watch streamer` — goes
+      straight to that front door in that arrangement, which is what
+      the "Views" menu sends.
+    examples:
+      - cmd: cockpit mode watch
+        note: Switch to the watch front door
+      - cmd: cockpit mode watch streamer
+        note: Enter watch mode in the streamer arrangement
+      - cmd: cockpit mode
+        note: Report the current mode and arrangement
+    args:
+      - name: name
+        type: string
+        required: false
+      - name: arrangement
+        type: string
+        required: false
+
+  layout:
+    controller: /obj/command/shell/LayoutController
+    description: "Recall, save, list or forget a pane arrangement in this mode."
+    help: |
+      A layout is a named arrangement of panes *inside* the mode you
+      are in. Each mode ships at least one, and you can compose and
+      name your own — so this is not a fixed menu.
+
+        cockpit layout <name>         switch to an arrangement
+        cockpit layout list           what is available here
+        cockpit layout save <name>    name the current arrangement
+        cockpit layout forget <name>  drop one you saved
+
+      Arrangements belong to a mode. If you ask for one that lives in
+      a different mode, you'll be told which mode that is rather than
+      being moved there — recalling a layout is not a mode change.
+
+      Your arrangement is remembered per mode: switch to `chat` and
+      back to `play` and you land where you left off. It follows you
+      across reconnects and every connection you have open.
+
+      The "Views" menu in the cockpit sends this command for you —
+      typing `cockpit layout <name>` and clicking a menu item are the
+      same thing.
+    examples:
+      - cmd: cockpit layout list
+        note: List this mode's arrangements, marking the active one
+      - cmd: cockpit layout streamer
+        note: Switch to the streamer arrangement (in watch mode)
+      - cmd: cockpit layout save wide
+        note: Name the current arrangement "wide"
+      - cmd: cockpit layout forget wide
+        note: Drop a saved arrangement
+    args:
+      - name: name
+        type: string
+        required: false
+      - name: target
+        type: string
+        required: false
+
+  cli:
+    controller: /obj/command/shell/CliController
+    description: "Prefix a command line: type bare lines as `<prefix> …` until you clear it."
+    help: |
+      We run a command-line interface and we multiplex it, so you can
+      have several command lines open at once. This sets one line's
+      prefix, so everything you type there is prefixed for you.
+      `cockpit cli --prefix "chat gossip"` puts THIS line on the gossip
+      channel — then a bare `hello` dispatches as `chat gossip hello`.
+      Run a one-off raw command without clearing the prefix by starting
+      it with a slash: `/look`.
+
+      Prefixes are per-line: a layout with several terminals can have
+      one line on chat while another stays plain. The line shows its
+      prefix inline as you type, so what you see is exactly what
+      dispatches.
+
+      The line you typed in is the default. Name another one
+      positionally — a UI control does this, because an affordance
+      dispatches un-prefixed and has to say which line it means.
+
+      ⚠ Nothing here is a *world* scope. `scope:` in a command spec is
+      an MQL search anchor and a sandbox scope is a jurisdiction; this
+      is a text prefix on one input, and it used to be called `cockpit
+      scope`, which made three unrelated things share a word.
+    examples:
+      - cmd: cockpit cli --prefix "chat gossip"
+        note: Put this command line on the gossip channel
+      - cmd: cockpit cli --clear
+        note: Clear this line's prefix
+      - cmd: cockpit cli stream-chat --prefix chat
+        note: Set a named line (used by prefix-setting buttons)
+      - cmd: cockpit cli
+        note: Report this line's prefix
+    options:
+      prefix:
+        short: p
+        type: string
+        description: "The prefix to prepend to bare input on this line."
+      clear:
+        short: c
+        type: boolean
+        description: "Clear this line's prefix."
+    args:
+      # Which command line. Defaults to the one you typed in; a UI
+      # control names another, because an affordance dispatches
+      # un-prefixed and has to say which line it means.
+      - name: cli
+        type: string
+        required: false
+
+  pane:
+    controller: /obj/command/shell/CockpitPaneController
+    description: "Keep or drop an inspection pane, overriding what holds it open."
+    help: |
+      Panes stay open while something about the world keeps them
+      relevant — a question you have not answered, a person still in
+      the room, a thing still in reach. When that lapses the pane is
+      released and tells you why.
+
+      This is the override, and it works both ways:
+
+        cockpit pane list           what is open, and what holds it
+        cockpit pane pin <pane>     keep it after its hold lapses
+        cockpit pane dismiss <pane> drop it while its hold still holds
+        cockpit pane auto <pane>    hand the decision back
+
+      Pinning is not another kind of hold — it is you overruling the
+      one that is there.
+    examples:
+      - cmd: cockpit pane list
+        note: List open panes and what is keeping each one
+      - cmd: cockpit pane pin focus
+        note: Keep a pane after whatever held it lapses
+      - cmd: cockpit pane dismiss focus
+        note: Drop a pane that is still being held open
+    args:
+      - name: action
+        type: string
+        required: false
+      - name: paneId
+        type: string
+        required: false
+
+  style:
+    controller: /obj/command/shell/StyleController
+    description: "Customize cockpit appearance: theme, per-channel color, plain mode, mention prefs."
+    help: |
+      Tune how the cockpit looks and reads. `cockpit style` collects
+      every visual preference — your overall theme, the color a given
+      chat channel shows in, whether your own name gets highlighted,
+      and whether output drops to plain unstyled text.
+
+      Each preference has its own form:
+
+        cockpit style show                       print the current overlay
+        cockpit style theme <default|high-contrast>
+        cockpit style channel <key> color <value>
+        cockpit style channel <key> clear
+        cockpit style mention self <on|off>
+        cockpit style plain <on|off>
+        cockpit style plain channel <key> <on|off>
+        cockpit style reset                      wipe the overlay
+
+      Bare `cockpit style` is the same as `cockpit style show`. Use
+      `cockpit style reset` to wipe your overlay back to defaults if
+      you've tangled things up.
+    examples:
+      - cmd: cockpit style show
+        note: Print every style choice currently in effect
+      - cmd: cockpit style theme high-contrast
+        note: Switch to the high-contrast theme
+      - cmd: cockpit style channel gossip color blue
+        note: Tint the gossip channel blue
+      - cmd: cockpit style plain channel gossip on
+        note: Drop just the gossip channel to plain text
+    args:
+      - name: styleSub
+        type: string
+        required: false
+      - name: a
+        type: string
+        required: false
+      - name: b
+        type: string
+        required: false
+      - name: c
+        type: string
+        required: false

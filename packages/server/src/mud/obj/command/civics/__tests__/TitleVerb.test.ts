@@ -15,6 +15,7 @@
  * wherever you happen to be standing.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleController from '../TitleController';
 import ParcelRegistry from '../../../ParcelRegistry';

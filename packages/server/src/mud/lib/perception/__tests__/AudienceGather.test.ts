@@ -7,6 +7,7 @@
  * gating (that is the Scene caller's), so no BodyPlan is needed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { AudienceGather } from '../AudienceGather';
 import { MAX_HOPS } from '../Modality';

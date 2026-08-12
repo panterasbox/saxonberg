@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import FolderZone from '../FolderZone';
 import { Zone } from '../../lib/zone/Zone';

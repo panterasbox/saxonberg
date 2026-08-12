@@ -26,7 +26,7 @@ import { MessageApi } from "../../../api/message";
 import { Mml } from "../../../api/mml";
 import { StuffApi } from "../../../api/stuff";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 /** A standard manual pour (≥ every demo recipe's per-slot measure). */
 const STANDARD_POUR_L = 0.06;
 const POUR_MS = 3000;
@@ -82,7 +82,7 @@ export default class PourController extends ManualBuildController<PourModel> {
       }
       this.declineStep(
         context,
-        Mml.compose`You can't pour a measure from ${Mml.item(bottle)}.`,
+        Mml.compose`You can't pour a measure from ${Mml.thing(bottle)}.`,
         "not-a-holder",
       );
       return;
@@ -92,7 +92,7 @@ export default class PourController extends ManualBuildController<PourModel> {
     if (!slot) {
       this.declineStep(
         context,
-        Mml.compose`There's nothing to pour out of ${Mml.item(bottle)}.`,
+        Mml.compose`There's nothing to pour out of ${Mml.thing(bottle)}.`,
         "not-a-holder",
       );
       return;
@@ -110,8 +110,8 @@ export default class PourController extends ManualBuildController<PourModel> {
 
     this.engageStep(context, {
       durationMs: this.paceMs(POUR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
-      beginSelf: Mml.compose`You start pouring ${Mml.item(bottle)} into ${Mml.item(vessel)}.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} starts pouring ${Mml.item(bottle)} into ${Mml.item(vessel)}.`,
+      beginSelf: Mml.compose`You start pouring ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} starts pouring ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`,
       onComplete: () => {
         const result = BulkableApi.transfer(slot, null, {
           kind: "measure",
@@ -121,7 +121,7 @@ export default class PourController extends ManualBuildController<PourModel> {
         if (result.applied <= EPS) {
           MessageApi.scene(giver)
             .topic(TOPIC)
-            .toSelf(Mml.compose`${Mml.item(bottle)} is empty — nothing pours.`)
+            .toSelf(Mml.compose`${Mml.thing(bottle)} is empty — nothing pours.`)
             .send();
           return;
         }
@@ -134,8 +134,8 @@ export default class PourController extends ManualBuildController<PourModel> {
         vessel.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You pour ${Mml.item(bottle)} into ${Mml.item(vessel)}.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} pours ${Mml.item(bottle)} into ${Mml.item(vessel)}.`)
+          .toSelf(Mml.compose`You pour ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} pours ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`)
           .send();
       },
     });
@@ -161,8 +161,8 @@ export default class PourController extends ManualBuildController<PourModel> {
     const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(POUR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
-      beginSelf: Mml.compose`You start adding ${Mml.item(ingredient)} to ${Mml.item(vessel)}.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} adds ${Mml.item(ingredient)} to ${Mml.item(vessel)}.`,
+      beginSelf: Mml.compose`You start adding ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} adds ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`,
       onComplete: () => {
         if (ingredient.isDestroyed()) return; // gone mid-step — nothing to add
         build.addContribution({
@@ -181,7 +181,7 @@ export default class PourController extends ManualBuildController<PourModel> {
         build.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You add ${Mml.item(ingredient)} to ${Mml.item(vessel)}.`)
+          .toSelf(Mml.compose`You add ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`)
           .send();
         StuffApi.destruct(ingredient);
       },

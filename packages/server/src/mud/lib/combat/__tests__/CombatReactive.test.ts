@@ -6,6 +6,7 @@
  * nested).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { StuffApi } from "../../../api/stuff";

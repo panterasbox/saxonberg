@@ -6,6 +6,7 @@
  *   - till security (vault coin leaves only through the banking verbs).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";

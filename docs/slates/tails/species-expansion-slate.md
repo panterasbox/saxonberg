@@ -237,6 +237,49 @@ just a name (see a seed like `homo/sensitivus.yaml`, `tutor-bot/mk-iv.yaml`):
 
 ---
 
+## ⭐ DECIDED (2026-08-11) — no hybrid species
+
+`semieldarinus` (half-elf) and `semiorcus` (half-orc) ship as **hybrids
+modeled as `Species` rows**, and that is wrong. **They are to be
+retired**; the roster stays a closed set of true species and gets
+*more* distinct, not less.
+
+**The taxonomy was never the problem.** All sixteen are `hominidae/homo/`
+— congeners, and congeneric hybridization is real (*H. sapiens* ×
+*H. neanderthalensis* produced fertile offspring; non-African humans
+carry ~1–2% Neanderthal ancestry). **A hybrid just isn't a species.** A
+binomial asserts a population that breeds true, which a hybrid
+definitionally isn't: half-elf × half-elf yields another `semieldarinus`,
+half-elf × elf has no row and never can, and sixteen species is **120
+pairs of which two are authored.**
+
+⚠ **Deriving hybrids by blending parent species was considered and
+rejected** — because it breaks against *this slate's own direction*.
+`innateMixins: ["CasterMixin"]` is already a capability list, not a
+number: union it and every hybrid strictly dominates, intersect it and
+every hybrid is strictly worse. Specials, "where you can go" differences,
+and vocation affinities are **discrete by nature — half a gill is
+nothing.** Building blend machinery would also pressure species to stay
+numeric, letting the implementation constrain the design.
+
+**Migration — ⭐ unlist before you delete.** Removing the two from the
+char-gen roster is a config change that stops new half-elves immediately
+at near-zero risk. Deleting the `Species` rows is a separate migration:
+the seeder is **insert-only** (editing the rows does nothing), and live
+characters may hold those class refs. The two steps are independent and
+should stay that way.
+
+**Vocation synergy, when it lands, should be *access* not *aptitude*** —
+elven workshops hiring elves, elven guilds admitting elves — because
+access changes *who you need* (the quality criterion) while an aptitude
+bonus is a rank. It also rides the shipped groups/access/contacts stack
+instead of minting a new mechanic.
+
+Full reasoning, and the char-gen restructure this came out of:
+[lineage-slate](../builds/lineage-slate.md).
+
+---
+
 *See also:* [race.md](../../subsystems/race.md) (the built substrate) ·
 [eternal-university-narrative-slate.md](../builds/eternal-university-narrative-slate.md)
 (the who-counts engine the diversity serves) · the character sheets under

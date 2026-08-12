@@ -7,6 +7,7 @@
  * (reception gate unchanged).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DmController from '../DmController';
 import { StuffApi } from '../../../../api/stuff';
@@ -130,7 +131,7 @@ describe('DmController', () => {
 
     expect(
       (bob as unknown as Actor).received.some(
-        (f) => f.topic === 'world.speech.dm',
+        (f) => f.topic === 'speech.comms',
       ),
     ).toBe(true);
     expect(ctx.getNotes().some((n) => n.kind === 'mixin-missing')).toBe(false);
@@ -166,13 +167,13 @@ describe('DmController', () => {
 
     expect(
       (bob as unknown as Actor).received.some(
-        (f) => f.topic === 'world.speech.dm',
+        (f) => f.topic === 'speech.comms',
       ),
     ).toBe(false);
     // The sender still hears their own echo (they are attuned).
     expect(
       (alice as unknown as Actor).received.some(
-        (f) => f.topic === 'world.speech.dm',
+        (f) => f.topic === 'speech.comms',
       ),
     ).toBe(true);
   });

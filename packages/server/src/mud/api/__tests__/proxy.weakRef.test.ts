@@ -7,6 +7,7 @@
  * declaring `ref` cannot tell a broken trap from a wrong declaration.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';

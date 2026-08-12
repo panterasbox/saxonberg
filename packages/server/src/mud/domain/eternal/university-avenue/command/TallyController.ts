@@ -40,7 +40,7 @@ export default class TallyController extends CommandController<TallyModel> {
         query: target?.raw ?? '',
       });
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Tally what?`)
         .send();
       return;
@@ -52,7 +52,7 @@ export default class TallyController extends CommandController<TallyModel> {
         detail: "can't tally that",
       });
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't tally that.`)
         .send();
       return;
@@ -69,13 +69,13 @@ export default class TallyController extends CommandController<TallyModel> {
 
     const stamp =
       reading === null
-        ? Mml.compose`You add an untimed tick to ${Mml.object(log as unknown as Stuff)}.`
-        : Mml.compose`You glance at the time and mark ${Mml.object(log as unknown as Stuff)}.`;
+        ? Mml.compose`You add an untimed tick to ${Mml.thing(log as unknown as Stuff)}.`
+        : Mml.compose`You glance at the time and mark ${Mml.thing(log as unknown as Stuff)}.`;
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(stamp)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} makes a mark on ${Mml.object(log as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(giver)} makes a mark on ${Mml.thing(log as unknown as Stuff)}.`,
       )
       .send();
   }

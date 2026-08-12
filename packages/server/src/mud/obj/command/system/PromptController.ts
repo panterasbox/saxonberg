@@ -76,7 +76,7 @@ export default class PromptController extends CommandController<PromptModel> {
         : Mml.compose`Cancelled ${total === 1 ? '1 prompt' : `${total} prompts`}.`;
 
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(message)
       .send();
   }

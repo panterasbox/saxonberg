@@ -18,7 +18,12 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type Interactive from '../obj/Interactive';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath } from 'url';
-import type { Note, Status } from '@saxonberg/types';
+import type {
+  Note,
+  Status,
+  AffordanceEntry,
+  AffordanceState,
+} from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ShadowApi } from './shadow';
@@ -67,7 +72,7 @@ export interface ExecuteCommandOpts {
    * Which input region (command bar) the command was submitted from.
    * Threaded from the inbound `command` message so the input-mode
    * prepend ({@link CommandApi.applyInputMode}) looks up *that bar's*
-   * prefix in `cockpit.inputModes`, and so `ModeController` knows which
+   * prefix in `cockpit.inputModes`, and so `CliController` knows which
    * bar a `mode` verb targets. Defaults to `'main'`; absent for
    * scripts / NPC / forced dispatch (no bar, no prefix applied).
    */
@@ -136,7 +141,7 @@ export interface CommandContext {
 
   /**
    * The input region (command bar) this command was submitted from,
-   * carried from {@link ExecuteCommandOpts.barId}. `ModeController`
+   * carried from {@link ExecuteCommandOpts.barId}. `CliController`
    * reads it to target the right bar's entry in `cockpit.inputModes`.
    * Defaults to `'main'`.
    */
@@ -417,6 +422,22 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * `CommandDefinition` live on `CommandContext`; the model carries
  * field data only.
  */
+/**
+ * What {@link CommandApi.resolveAffordances} answers with — the verb
+ * menu for one (target, viewer) pair plus the target's active mixin
+ * composition.
+ *
+ * Re-exported wire shapes: `AffordanceEntry` / `AffordanceState` are
+ * the client's own types, spoken here unchanged so the two surfaces
+ * cannot drift.
+ */
+export interface AffordanceResolution {
+  verbs: AffordanceEntry[];
+  composition: string[];
+}
+
+export type { AffordanceEntry, AffordanceState };
+
 export type CommandModel = ModelData & {
   /**
    * Stamped by the matcher when the active YAML declares
@@ -762,6 +783,12 @@ export function collectPhaseEffects(
 
 export interface FieldDefinition {
   /**
+   * What this slot accepts, by mixin composition. Required on every
+   * object-typed field; `'any'` is the explicit no-constraint value.
+   * See {@link MixinRequirement} — the declaration is the record.
+   */
+  requires?: MixinRequirement;
+  /**
    * - `string` / `number` / `boolean` — primitive coerce-on-bind.
    * - `object` — singular MQL field; the dispatcher resolves the
    *   bound text via `MqlApi.resolveOne` (when `onExcess: 'top'`) or
@@ -923,6 +950,74 @@ export interface PositionalDefinition extends FieldDefinition {
 }
 
 /**
+ * What an object-typed slot accepts, declared on the slot.
+ *
+ * ⭐ **A slot states what it takes; it does not import a function that
+ * says no.** Every object-typed field carries this, and the framework
+ * synthesises the check — see {@link CommandApi.resolveValidator}'s
+ * sibling, `resolveCommandValidators`, which prepends a validator built
+ * from the declaration.
+ *
+ * Three forms:
+ *
+ *   - `'any'` — **deliberately unconstrained**. A wizard's
+ *     `destruct <anything>`, an MQL selector, a perception verb that
+ *     refuses nothing by kind. Explicit rather than absent, so that a
+ *     missing declaration is an error instead of silently the same
+ *     thing.
+ *   - a mixin name — `SealableMixin`. The bound Stuff must compose it.
+ *   - a list — `[VisibleMixin, ContainableMixin]`, meaning **all of
+ *     them**. Any single entry may itself be an alternation written
+ *     with `|` — `CombustibleMixin|FurnaceMixin` means *either*, which
+ *     is what `ignite` needs.
+ *
+ * ### Why this and not a validator
+ *
+ * It replaces two mechanisms with one. The predecessor was a
+ * `targetKind: 'any'` marker plus ~34 near-identical validator files,
+ * each of which was one `MixinApi.isX` and one sentence. Neither said
+ * what the slot *accepted*: `'any'` was an author's unverifiable
+ * promise (review found three of its fifty declarations were wrong, and
+ * nothing could have caught them), and a validator can only reject a
+ * candidate, never describe what would satisfy it.
+ *
+ * A mixin name, by contrast, **resolves or it does not** — a typo, a
+ * rename, or a mixin that no longer exists fails the build. And it is
+ * the generative direction: a declared kind can *filter* a candidate
+ * set, which is what a suggester needs and what a rejective validator
+ * can never provide.
+ *
+ * ### What it deliberately does NOT cover
+ *
+ * This is the **kind** axis only — what the thing *is*. Two other axes
+ * stay hand-written, because they are not properties of the target:
+ *
+ *   - **relation** — `canReach`, `mustBeInInventory`: needs the viewer.
+ *   - **state** — is it already open, currently lit, out of charge:
+ *     changes moment to moment, and a menu must not freeze it into a
+ *     greyed-out row.
+ *
+ * A slot may declare `requires:` **and** carry validators; that is the
+ * normal shape for anything with a condition beyond composition —
+ * `eat` declares `TangibleMixin` and keeps `mustBeEdible` for the
+ * material's `edibility`.
+ *
+ * ⚠ Composition, not activation. The check is `MixinApi.hasMixin`. A
+ * capability that must be *active* (augment-conferred, `MixinApi.isMaker`
+ * and friends) is a state question and keeps its validator.
+ *
+ * ⚠ Never declare `'any'` on a field whose controller DOES refuse by
+ * kind. That is not an exemption, it is a lie in the one place a
+ * reviewer would go looking for the truth — declare the mixin instead,
+ * and if the controller refuses on a class, that is usually a sign the
+ * capability wants extracting into a mixin (`PlantableMixin` is the
+ * worked example).
+ *
+ * @see MixinRefusals — where the player-facing sentence comes from.
+ */
+export type MixinRequirement = 'any' | string | string[];
+
+/**
  * YAML option definition.
  *
  * Verb-scoped or subcommand-scoped — the scope is structural (which
@@ -932,6 +1027,11 @@ export interface PositionalDefinition extends FieldDefinition {
  */
 export interface OptionDefinition {
   short?: string;
+  /**
+   * What this option accepts, by mixin composition. See
+   * {@link MixinRequirement}.
+   */
+  requires?: MixinRequirement;
   /**
    * Same type taxonomy as positional fields. `struct` is
    * structured-input-only — text-input rejects it with a clear
@@ -1136,7 +1236,7 @@ export interface CommandView {
 }
 
 /**
- * Schema-delivery payload for system.commands.{added,reset}. Mirrors
+ * Schema-delivery payload for shell.control. Mirrors
  * the YAML view minus runtime-only bits.
  */
 export interface CommandSchemaPayload {
@@ -1380,11 +1480,21 @@ export class CommandApi {
    *   1. **No prefix** (the bar is unset) → verbatim no-op.
    *   2. **`/`-escape** → strip the leading slash and run the rest raw
    *      (a one-off un-moded command; `/look` lexes as `look`).
-   *   3. **`mode`-management** → the `mode` verb itself is exempt, so
-   *      `mode off` / `mode chat x` always reach the interpreter
-   *      un-prefixed regardless of the active mode.
+   *   3. **Cockpit control** → the `cockpit` verb is exempt, so
+   *      `cockpit scope off` / `cockpit mode watch` / `cockpit style …`
+   *      always reach the interpreter un-prefixed regardless of the
+   *      active scope.
    *
-   * Otherwise the prefix is prepended: `chat`-mode + `hello` →
+   * Rule 3 states one thing: **interface control is not world input.**
+   * A bar scoped to a chat channel still steers its own cockpit. The
+   * exemption covers the whole `cockpit` subtree rather than a single
+   * verb, and that is correct by construction — every subcommand under
+   * `cockpit` is interface control, so there is nothing under it that
+   * *should* be prefixed. A narrower exemption would strand a player
+   * who scoped a bar to gossip: they could not un-scope it without
+   * knowing the `/` escape.
+   *
+   * Otherwise the prefix is prepended: `chat`-scope + `hello` →
    * `chat hello`. Kept here (not in `msh`) so the tokenizer stays
    * Stuff-unaware; the per-bar lookup happens at the call site.
    */
@@ -1392,7 +1502,7 @@ export class CommandApi {
     if (!modePrefix) return rawText; // (1) unset bar — verbatim no-op
     const t = rawText.trimStart();
     if (t.startsWith('/')) return t.slice(1); // (2) escape → run raw
-    if (t.split(/\s+/)[0]?.toLowerCase() === 'mode') return rawText; // (3) exempt
+    if (t.split(/\s+/)[0]?.toLowerCase() === 'cockpit') return rawText; // (3) exempt
     return `${modePrefix} ${rawText}`;
   }
 
@@ -1470,6 +1580,53 @@ export class CommandApi {
     fromYaml: string
   ): Promise<FieldValidator> {
     return logic().resolveValidator(spec, fromYaml);
+  }
+
+  /**
+   * Resolve **every** gate on one `CommandDefinition` — each slot's
+   * `requires:` declaration and each `validators:` entry — onto
+   * `_resolvedValidators`, in the order dispatch runs them.
+   *
+   * What {@link CommandApi.preloadAll} does per file, for a definition
+   * you already hold. ⚠ Reach for this rather than walking `args` and
+   * calling {@link CommandApi.resolveValidator} yourself: a hand-rolled
+   * loop only knows about the gates that existed when it was written.
+   * The `throw.yaml` binder fixture had exactly that loop, and when
+   * `requires:` arrived it silently stopped installing the check the
+   * test existed to prove — a green assertion over a definition with no
+   * kind gate on it at all.
+   *
+   * Idempotent; the JS module cache makes a second pass cheap.
+   */
+  static resolveValidators(cmd: CommandDefinition): Promise<void> {
+    return logic().resolveValidators(cmd);
+  }
+
+  /**
+   * Turn a slot's `requires:` declaration into the live field validator
+   * it stands for, or `null` when it declares `'any'`.
+   *
+   * The declarative sibling of {@link CommandApi.resolveValidator}:
+   * that one imports a function an author wrote, this one builds the
+   * function a *declaration* describes. Spec-load calls it for every
+   * object-typed slot and prepends the result to that slot's chain, so
+   * dispatch and the affordance resolver see an ordinary validator and
+   * need to know nothing about the declaration.
+   *
+   * ⚠ **Rejects rather than returning a bad check.** An unknown mixin
+   * name, an unsanctioned `class:`, or an empty entry throws — see
+   * {@link MixinRequirement} for why that throw is the whole point.
+   *
+   * @param where a human label for the slot, used in the throw. Callers
+   *   pass something a reader can act on (`cmd/spatial/open.yaml arg
+   *   \`target\``), because "a mixin doesn't exist" without a location
+   *   is a boot failure somebody has to bisect.
+   */
+  static resolveRequirement(
+    requires: MixinRequirement,
+    where: string,
+  ): Promise<FieldValidator | null> {
+    return logic().resolveRequirement(requires, where);
   }
 
   /**
@@ -1698,7 +1855,7 @@ export class CommandApi {
   }
 
   /**
-   * Emit a `system.commands.{added,removed,reset}` frame to a
+   * Emit a `shell.control` frame to a
    * recipient. Stamps `commandId` / `causingCommandId` from the
    * ambient ExecutionContext when present (so a recency-stack
    * mutation triggered inside a command is auto-attributed). Skips
@@ -1741,7 +1898,7 @@ export class CommandApi {
 
   /**
    * Project a `CommandDefinition` to a wire-safe schema payload for
-   * client-side widget rendering. Used by `system.commands.{added,
+   * client-side widget rendering. Used by `shell.control ({added,
    * reset}`.
    */
   static getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
@@ -1782,6 +1939,35 @@ export class CommandApi {
     value: unknown,
   ): string | null {
     return logic().validateAgainstJsonSchema(schema, value);
+  }
+
+  /**
+   * **What can this viewer do with this object, right now?** — the
+   * server-side answer behind the client's radial menu.
+   *
+   * Returns the verbs the target affords `viewer` at this instant,
+   * each carrying a state and (when refused) the refusing validator's
+   * own words, plus the target's **active** mixin composition so a
+   * menu can label and group without a second round trip.
+   *
+   * Returns `null` when the viewer cannot perceive the target at all.
+   *
+   * ⚠ **This is not a gate and must never become one.** It evaluates
+   * the existing validator chain without dispatching; a verb that
+   * resolves `enabled` still faces the full chain when it is actually
+   * run. Anything that trusted this answer instead of re-checking
+   * would be trusting a snapshot of a world that has moved.
+   *
+   * ⚠ Validators are expected to be side-effect free, and this is the
+   * caller that makes that a real requirement rather than an
+   * assumption — an open radial resolves repeatedly, so a validator
+   * that wrote anything would turn hovering into an action.
+   */
+  static resolveAffordances(
+    target: Stuff,
+    viewer: Stuff & CommandGiver,
+  ): Promise<AffordanceResolution | null> {
+    return logic().resolveAffordances(target, viewer);
   }
 }
 

@@ -6,6 +6,7 @@
  * `AppApi.setting` are stubbed — no Mongo, no warmed AppSettings.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { MockInstance } from 'vitest';
 import PressController from '../PressController';

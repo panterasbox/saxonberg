@@ -32,7 +32,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { Mml } from '../../../api/mml';
 import { HazardActivity, HAZARD_DISARM_TYPE } from '../../../lib/hazard/HazardActivity';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** `hazard.disarmSeconds` fallback (game-seconds). */
 const DEFAULT_DISARM_SECONDS = 5;
@@ -149,9 +149,9 @@ export default class DisarmController extends CommandController<DisarmModel> {
       context.note(result.note);
       MessageApi.scene(actor)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You set to work disarming ${Mml.object(trap)}.`)
+        .toSelf(Mml.compose`You set to work disarming ${Mml.thing(trap)}.`)
         .toPeers(
-          Mml.compose`${Mml.name(actor)} sets to work on ${Mml.object(trap)}.`,
+          Mml.compose`${Mml.actor(actor)} sets to work on ${Mml.thing(trap)}.`,
         )
         .send();
       return;

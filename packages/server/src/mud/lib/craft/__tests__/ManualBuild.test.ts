@@ -7,6 +7,7 @@
  * target it) while a Bulkable bottle is NOT a build vessel.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import CocktailShaker from "../../../domain/lounge/CocktailShaker";
 import GradedReceptacle from "../../../domain/lounge/GradedReceptacle";

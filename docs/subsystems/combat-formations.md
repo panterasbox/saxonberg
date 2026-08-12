@@ -152,7 +152,7 @@ survives a foe the same apprentice cannot beat alone.
   captain-gated subcommands on the existing `party` verb (`adopt`, not
   `formation`, to avoid the `party form` adjacency). Adopting is a
   **witnessed, reactable formation-shift beat** ("the line reforms
-  around…", topic `world.party.formation`); a mid-fight adopt acts on the
+  around…", topic `self.group`); a mid-fight adopt acts on the
   very next beat. `PartyLogic.setFormation` awaits the preset Idea
   resident before accepting (the beat's consult is sync);
   `AttackController` warms both sides' formations pre-open.

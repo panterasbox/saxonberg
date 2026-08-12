@@ -9,6 +9,7 @@
  * re-fires when it comes off (BOTH transitions).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { DisguisableMixin } from '../Disguisable';
 import { DisguiseBearingMixin, type Disguise } from '../Disguise';

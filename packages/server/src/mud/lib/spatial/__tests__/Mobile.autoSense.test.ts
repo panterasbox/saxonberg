@@ -7,6 +7,7 @@
  * method, so verifying the verb text here gates all four.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { MobileMixin } from '../Mobile';
 import { ContainerMixin } from '../Container';

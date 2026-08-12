@@ -8,6 +8,7 @@
  * brain path in content is caught here rather than silently at spawn.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';

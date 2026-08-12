@@ -213,7 +213,7 @@ So:
   contents-token is added)
 - `inventory` command (player verb) — reads `avatar.getContents()`
   under the hood
-- `world.perception.inventory` topic (player-action topic) — keeps
+- `sense.survey` topic (player-action topic) — keeps
   the player vocabulary at the messaging layer where players see it
 
 MQL aliases are fine where player vocabulary is more familiar than

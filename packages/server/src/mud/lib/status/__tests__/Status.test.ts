@@ -9,6 +9,7 @@
  * (both the recognized and unknown branches), without double-decorating.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { StatusMixin } from '../Status';
 import { RecognitionApi } from '../../../api/recognition';

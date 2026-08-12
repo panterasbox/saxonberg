@@ -21,6 +21,5 @@ args:
     type: object
     required: false
     scope: ["reachable", "online"]
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
     onExcess: prompt

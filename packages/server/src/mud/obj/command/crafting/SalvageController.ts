@@ -19,7 +19,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface SalvageModel extends CommandModel {
   item?: MqlOneResult;
@@ -69,7 +69,7 @@ export default class SalvageController extends CraftController<SalvageModel> {
       .toSelf(
         Mml.compose`You break ${itemName} down for its matter — what the work put in, the wrecking mostly loses.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} breaks ${itemName} down for salvage.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} breaks ${itemName} down for salvage.`)
       .send();
   }
 }

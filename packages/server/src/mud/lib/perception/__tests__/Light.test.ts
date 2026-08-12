@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Light, LIGHT_SOURCE_CAP } from '../Light';
 import { Quantity } from '../../quantity';

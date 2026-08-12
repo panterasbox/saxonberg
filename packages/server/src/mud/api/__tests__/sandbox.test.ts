@@ -4,6 +4,7 @@
  * the collection layer (the PersistenceManager.hooks.test.ts pattern).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';

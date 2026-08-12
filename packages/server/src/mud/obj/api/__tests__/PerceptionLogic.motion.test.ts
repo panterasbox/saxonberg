@@ -11,6 +11,7 @@
  * clears hiding outright. Deterministic — no RNG.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { PerceptionApi } from '../../../api/perception';
 import { HidingMixin } from '../../../lib/concealment/Hiding';

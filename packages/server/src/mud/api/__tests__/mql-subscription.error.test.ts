@@ -4,6 +4,7 @@
  * substrate doesn't register on a failed subscribe.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { EventApi } from '../event';

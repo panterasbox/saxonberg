@@ -526,12 +526,41 @@ work, so the cycle is server-first.
   rather than ninety paths, and the live standing figures over a direct
   `durableKey` witness → [../subsystems/messaging.md](../subsystems/messaging.md),
   [topics.md](../subsystems/topics.md),
-  [mql-subscription.md](../subsystems/mql-subscription.md). Remaining:
-  **S2** affordance resolution, **S3** the topic renames (breaking),
-  **Track D** the modes/panes wire contract (design first), then the
-  client waves themselves. ⚠ Carries the ruling that the handoff's
-  pinnable **trait widget must not be built** — it would foreclose the
+  [mql-subscription.md](../subsystems/mql-subscription.md).
+  **S2 shipped** (MRs !173/!174) — the topic taxonomy + the affordance
+  resolver. **S3 / Track D shipped** (MRs !177/!178/!179) — the one
+  `cockpit` verb, the mode × arrangement axes, `requires:` on every
+  object slot, and a **server-owned pane catalogue**. ⭐ Its open
+  question — *does a mode switch stay a real command on the wire?* — is
+  **answered yes**, verified by driving a browser, so the axiom holds.
+  ⚠ Remaining is the CLIENT itself: waves 1 (foundation) · 2 (arrival) ·
+  4 (play surface) · 6 (social) · 7 (authoring), and two things a build
+  must decide rather than discover — **who acts on an arrangement
+  recall** (nothing does today, on either side), and that the pane
+  catalogue ships **two entries**, so every new pane is a one-line
+  server addition. ⚠ Carries the ruling that the handoff's pinnable
+  **trait widget must not be built** — it would foreclose the
   psychology vocation.
+- [affordance-suggestion-slate](./builds/affordance-suggestion-slate.md)
+  — **NEW 2026-08-10.** *"Given everything we know about this player
+  right now, what should be offered to them?"* Surfaced by the S2/S3
+  review: the radial menu is ONE consumer of a much larger question, and
+  the build had solved a fragment while borrowing the whole question's
+  justification. Four stages — candidacy (✅ the recency stack, already
+  good) · binding · admissibility · relevance — of which only
+  admissibility exists, and only rejectively. **§ 3 and § 6 SHIPPED as
+  `requires:`** (MR !178): the kind axis moved onto the command def, ~35
+  near-identical validator files went away, and a mixin name now
+  RESOLVES or the spec does not load — where `targetKind: any` was an
+  unfalsifiable promise whose fifty uses included three wrong ones.
+  ⚠ Still open and deliberately unbuilt: the **generative** direction (a
+  declared kind could FILTER a candidate set, not just judge one — but
+  no consumer asks yet), the relational axis staying rejective, and
+  **server-side command history**, which is blocked on retention +
+  privacy decisions nobody has made. ⚠⚠ Its § 5 warns loudest: a command
+  history is the most sensitive per-player record the server would hold
+  — what you tried and were refused predicts what you want, and is the
+  part players would least expect to be kept.
 
 ### 13. Engine hygiene — ✅ shipped
 *Platform refactors with a lint at the end — no product surface.*

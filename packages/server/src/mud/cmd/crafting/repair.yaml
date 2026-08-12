@@ -16,3 +16,4 @@ args:
     type: object
     required: true
     scope: "reachable"
+    requires: DurableMixin

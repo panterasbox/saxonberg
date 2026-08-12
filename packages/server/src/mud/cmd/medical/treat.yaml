@@ -32,5 +32,4 @@ args:
     scope: ["$focus", "reachable"]
     updates_focus: extend
     prepositions: [on]
-    validators:
-      - /lib/command/validators/mustBeVisible
+    requires: [VisibleMixin, VitalsMixin]

@@ -128,10 +128,10 @@ perceives, or it is a timer.
 
 | Alias | Frame topic (prefix) | Subject |
 |---|---|---|
-| `arrival` | `world.narration.movement` | new room occupant (delta vs a per-host seen-set) |
-| `departure` | `world.narration.movement` | departed occupant (delta) |
-| `emote` | `world.expression.emote` | recovered via `meta.commandId` → `ReactionApi.actInfo` |
-| `speech` | `world.speech.` | same (available; `reacts` uses `emote`) |
+| `arrival` | `act.move` | new room occupant (delta vs a per-host seen-set) |
+| `departure` | `act.move` | departed occupant (delta) |
+| `emote` | `act.emote` | recovered via `meta.commandId` → `ReactionApi.actInfo` |
+| `speech` | `speech.` | same (available; `reacts` uses `emote`) |
 
 `arrival`/`departure` compute the room-occupant delta against a
 per-host seen-set seeded at wire time (so spawning doesn't "greet"

@@ -17,6 +17,7 @@
  *     the founder.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OrganizationEntity from '../../../obj/Organization';
 import PressBoard from '../../../obj/PressBoard';

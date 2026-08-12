@@ -261,8 +261,15 @@ export const DEFAULT_SCALE: ScaleName = 'default';
 export interface QuantityMarkupOptions {
   /**
    * What kind of reading this is — the client's stable identity for
-   * pinning to an instrument panel or charting a series. Shares its
-   * vocabulary with the `world.measure.<channel>` topic family.
+   * pinning to an instrument panel or charting a series.
+   *
+   * ⚠ **A separate vocabulary from the topic tree, deliberately.** This
+   * once documented itself as sharing one with a `world.measure.*`
+   * topic family; that family was retired when the topic collapse made
+   * the tree *subject matter* and pushed everything else onto facets.
+   * `MeasureChannel` is an **instrument** vocabulary — what the reading
+   * is of — so the two lists are different on purpose and neither
+   * should be derived from the other.
    */
   channel?: MeasureChannel;
   /**

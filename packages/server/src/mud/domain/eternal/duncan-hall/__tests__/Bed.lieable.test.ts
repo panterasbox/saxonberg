@@ -9,6 +9,7 @@
  * what rests ON the bed; the posture slot is who rests IN it.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import Bed from "../Bed";
 import DormRoom from "../DormRoom";

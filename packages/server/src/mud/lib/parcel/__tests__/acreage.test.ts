@@ -21,6 +21,7 @@
  * nothing behaves exactly as it did before any of this existed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ParcelRegistry from "../../../obj/ParcelRegistry";
 import { ParcelApi } from "../../../api/parcel";

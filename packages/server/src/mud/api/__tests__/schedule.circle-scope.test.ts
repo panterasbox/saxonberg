@@ -5,6 +5,7 @@
  * field/omni registrations are never indexed.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { ScheduleApi } from '../schedule';
 import {

@@ -34,7 +34,7 @@ export default class AdjustController extends CommandController<AdjustModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Adjust what?`)
         .send();
       ctx.note({
@@ -46,7 +46,7 @@ export default class AdjustController extends CommandController<AdjustModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       ctx.note({
@@ -64,7 +64,7 @@ export default class AdjustController extends CommandController<AdjustModel> {
     );
     if (!movement) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't adjust that.`)
         .send();
       ctx.note({
@@ -81,7 +81,7 @@ export default class AdjustController extends CommandController<AdjustModel> {
       time = Time.parse(raw);
     } catch {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(
           Mml.compose`Adjust it to what time? Try 'HH:MM', like 4:00.`,
         )
@@ -97,12 +97,12 @@ export default class AdjustController extends CommandController<AdjustModel> {
     movement.setTime(time.minutes);
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(
-        Mml.compose`You thumb the crown and set ${Mml.object(movement as unknown as Stuff)} to ${time.format()}.`,
+        Mml.compose`You thumb the crown and set ${Mml.thing(movement as unknown as Stuff)} to ${time.format()}.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} sets ${Mml.object(movement as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} sets ${Mml.thing(movement as unknown as Stuff)}.`,
       )
       .send();
   }

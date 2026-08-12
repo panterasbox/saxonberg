@@ -14,6 +14,7 @@
  * hidden 4, deep 7, buried 11; cutoff 4).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import LookController from '../../obj/command/perception/LookController';
 import { PerceptionApi } from '../../api/perception';

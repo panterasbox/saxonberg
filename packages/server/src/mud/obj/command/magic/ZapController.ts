@@ -23,7 +23,7 @@ import { MessageApi } from '../../../api/message';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 interface ZapModel extends CommandModel {
   item: MqlOneResult;
@@ -48,7 +48,7 @@ export default class ZapController extends CommandController<ZapModel> {
     if (!MixinApi.isCharged(item) || !MixinApi.isArcane(item)) {
       MessageApi.scene(actor)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(item)} is not something you can fire.`)
+        .toSelf(Mml.compose`${Mml.thing(item)} is not something you can fire.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'ChargedMixin' });
       return;
@@ -69,7 +69,7 @@ export default class ZapController extends CommandController<ZapModel> {
         MessageApi.scene(actor)
           .topic(TOPIC)
           .toSelf(
-            Mml.compose`You raise ${Mml.item(item)} and lower it again — nothing you have settled on to aim at.`,
+            Mml.compose`You raise ${Mml.thing(item)} and lower it again — nothing you have settled on to aim at.`,
           )
           .send();
         context.note({
@@ -103,8 +103,8 @@ export default class ZapController extends CommandController<ZapModel> {
       .toSelf(Mml.text(outcome.reports.join(' ')))
       .toPeers(
         target
-          ? Mml.compose`${Mml.name(actor)} levels ${Mml.item(item)} at ${Mml.item(target)}.`
-          : Mml.compose`${Mml.name(actor)} raises ${Mml.item(item)}, and something answers.`,
+          ? Mml.compose`${Mml.actor(actor)} levels ${Mml.thing(item)} at ${Mml.thing(target)}.`
+          : Mml.compose`${Mml.actor(actor)} raises ${Mml.thing(item)}, and something answers.`,
       )
       .send();
   }

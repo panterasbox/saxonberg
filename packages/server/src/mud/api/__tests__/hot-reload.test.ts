@@ -11,6 +11,7 @@
  * fresh constructor identities.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { writeFileSync, mkdtempSync, rmSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';

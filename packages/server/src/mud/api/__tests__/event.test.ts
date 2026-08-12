@@ -6,6 +6,7 @@
  * test.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EventApi } from '../event';
 import { Events } from '../../lib/events';

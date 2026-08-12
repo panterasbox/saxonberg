@@ -5,6 +5,7 @@
  * no-committee rejection).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import CommitteeController from "../CommitteeController";
 import { CompactApi } from "../../../../api/compact";

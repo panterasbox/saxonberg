@@ -69,7 +69,7 @@ interface SenseModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-const SCENE_TOPIC = 'world.perception.sense.sense';
+const SCENE_TOPIC = 'sense.survey';
 
 export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {
@@ -199,7 +199,14 @@ export default class SenseController extends CommandController<SenseModel> {
     // rule with `look` + the inspection pane.
     const topLevel = ContainmentApi.looseContents(visibleContents);
     if (topLevel.length > 0) {
-      const list = Mml.list(topLevel.map((item) => Mml.item(item)));
+      // ⚠ `Mml.actor`, not `Mml.thing`: room contents include PEOPLE.
+      // `look` splits organisms out to the occupant formatter; the
+      // sense verbs do not, so this list is the one place a person can
+      // land in a contents run. Before the tag collapse both paths
+      // emitted meaningless tags and the divergence was invisible —
+      // the live drive rendered Dave `<thing>` here and `<npc>` under
+      // `look`, in the same room, seconds apart.
+      const list = Mml.list(topLevel.map((item) => Mml.actor(item)));
       body = Mml.compose`${body}\n── You also see: ${list}.`;
     }
 
@@ -226,14 +233,16 @@ export default class SenseController extends CommandController<SenseModel> {
       return;
     }
     const filteredText = target.getMarkupLong(actor, { filter: sensorium });
-    let body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
+    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(filteredText)}\n`;
     // Drill-in: sensing a surface reveals what rests on it — mirrors
     // `LookController.lookAtTarget`, the discovery path that keeps resting
     // items out of the room view.
     if (MixinApi.isSurfaced(target)) {
       const resting = target.getResting();
       if (resting.length > 0) {
-        const list = Mml.list(resting.map((r) => Mml.item(r)));
+        // Someone sitting on a stool rests on a surface like anything
+        // else — so this list can hold a person too.
+        const list = Mml.list(resting.map((r) => Mml.actor(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
@@ -250,7 +259,7 @@ export default class SenseController extends CommandController<SenseModel> {
       const door = exit.getDoor();
       if (!door) return tagged;
       const state = door.isOpen() ? 'open' : 'closed';
-      const doorLink = Mml.item(door);
+      const doorLink = Mml.thing(door);
       return Mml.compose`${tagged} (${doorLink}, ${state})`;
     });
     const joined = Mml.list(parts);

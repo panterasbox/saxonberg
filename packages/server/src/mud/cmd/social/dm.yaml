@@ -27,8 +27,7 @@ args:
     cardinality: { min: 1, max: 10 }
     onShortage: error
     onExcess: error
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
   - name: message
     type: string
     required: true

@@ -1,19 +1,19 @@
 /**
  * VocalMixin — speech for sentient beings.
  *
- * `say(text, target?)` composes a Scene at `world.speech.say`. Default
- * shape (no target): self frame "You say, ...", peers frame "<name>X</name>
- * says, ...". With `--to <target>`: self "You say to <name>Y</name>,
- * ...", peers "<name>X</name> says to <name>Y</name>, ...", and a
- * target frame "<name>X</name> says to you, ...".
+ * `say(text, target?)` composes a Scene at `speech.vocal`. Default
+ * shape (no target): self frame "You say, ...", peers frame "<player>X</player>
+ * says, ...". With `--to <target>`: self "You say to <player>Y</player>,
+ * ...", peers "<player>X</player> says to <player>Y</player>, ...", and a
+ * target frame "<player>X</player> says to you, ...".
  *
  * `whisper(text, target?)` rides the same Scene scaffolding but stamps
  * a lower `meta.acousticDb` for short-reach acoustic propagation. The
- * topic is `world.speech.whisper`. Always-directed: a bare `whisper hi`
+ * topic is `speech.vocal`. Always-directed: a bare `whisper hi`
  * with no target falls back to the room (rare; the verb's target arg is
  * optional but expected).
  *
- * `shout(text, target?)` is the loud cousin — `world.speech.shout` topic,
+ * `shout(text, target?)` is the loud cousin — `speech.vocal` topic,
  * high `meta.acousticDb` so the sound walk can propagate across rooms.
  *
  * All three stamp `meta.modality = 'hearing'` for sensorium gating.
@@ -78,7 +78,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     say(text: string, target?: Stuff): void {
       vocalEmit(this as unknown as Stuff, text, {
-        topic: 'world.speech.say',
+        topic: 'speech.vocal',
         verb: 'say',
         acousticDb: DB.say,
         target,
@@ -87,7 +87,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     whisper(text: string, target?: Stuff): void {
       vocalEmit(this as unknown as Stuff, text, {
-        topic: 'world.speech.whisper',
+        topic: 'speech.vocal',
         verb: 'whisper',
         acousticDb: DB.whisper,
         target,
@@ -96,7 +96,7 @@ export function VocalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     shout(text: string, target?: Stuff): void {
       vocalEmit(this as unknown as Stuff, text, {
-        topic: 'world.speech.shout',
+        topic: 'speech.vocal',
         verb: 'shout',
         acousticDb: DB.shout,
         target,
@@ -135,13 +135,13 @@ function vocalEmit(
   let peersBody: Mml;
   let targetBody: Mml | undefined;
   if (target) {
-    const targetName = Mml.name(target);
+    const targetName = Mml.actor(target);
     selfBody = Mml.compose`You ${verbSelf} to ${targetName}, ${speechFragment}`;
-    peersBody = Mml.compose`${Mml.name(speaker)} ${verbThird} to ${targetName}, ${speechFragment}`;
-    targetBody = Mml.compose`${Mml.name(speaker)} ${verbThird} to you, ${speechFragment}`;
+    peersBody = Mml.compose`${Mml.actor(speaker)} ${verbThird} to ${targetName}, ${speechFragment}`;
+    targetBody = Mml.compose`${Mml.actor(speaker)} ${verbThird} to you, ${speechFragment}`;
   } else {
     selfBody = Mml.compose`You ${verbSelf}, ${speechFragment}`;
-    peersBody = Mml.compose`${Mml.name(speaker)} ${verbThird}, ${speechFragment}`;
+    peersBody = Mml.compose`${Mml.actor(speaker)} ${verbThird}, ${speechFragment}`;
   }
 
   const scene = MessageApi.scene(speaker)

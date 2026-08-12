@@ -8,6 +8,7 @@
  * author, then the dispatch-captured `makerPath` fallback).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CraftingApi } from "../../../api/crafting";
 import { StuffApi } from "../../../api/stuff";

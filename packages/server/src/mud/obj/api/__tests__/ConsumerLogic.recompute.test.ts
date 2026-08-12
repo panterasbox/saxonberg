@@ -11,6 +11,7 @@
  * short half-life and an old `realAt`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { AppSettings } from '../../../lib/config/AppSettings';

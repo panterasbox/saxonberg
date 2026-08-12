@@ -11,6 +11,7 @@
  * actual controllers in `obj/command/`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 import DestructController from '../../../obj/command/author/DestructController';

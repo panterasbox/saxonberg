@@ -7,6 +7,7 @@
  * reject-passthrough / unknown-character) and the YouTube read-only post.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { StreamApi } from '../../../api/stream';
 import { PlayerApi } from '../../../api/player';

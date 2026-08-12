@@ -17,6 +17,7 @@
  * bounded rather than impossible.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import WikiRenderer from '../WikiRenderer';
 import { Idea } from '../../lib/stuff/Idea';

@@ -12,6 +12,7 @@
  * `onEntered` → conduct behavior.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import FloodedCell from '../FloodedCell';
 import LiveWire from '../../../obj/LiveWire';

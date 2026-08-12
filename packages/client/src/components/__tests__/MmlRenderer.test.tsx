@@ -147,20 +147,20 @@ describe("MmlRenderer", () => {
       useStore.setState({ stuffRegistry: new Map() });
     });
 
-    it("renders an <item> with a stuff-id resolving to a registry hit as a clickable span; click sends look <primaryKeyword>", () => {
+    it("renders an <thing> with a stuff-id resolving to a registry hit as a clickable span; click sends look <primaryKeyword>", () => {
       useStore.getState().upsertStuffMetadata([
         { stuffId: "X", displayName: "a brass thermometer", primaryKeyword: "thermometer" },
       ]);
       const { onCommandClick } = renderRenderer(
-        '<item stuff-id="X">a brass thermometer</item>'
+        '<thing stuff-id="X">a brass thermometer</thing>'
       );
       fireEvent.click(screen.getByText("a brass thermometer"));
       expect(onCommandClick).toHaveBeenCalledWith("look thermometer");
     });
 
-    it("renders an <item> with a stuff-id but no registry hit as a clickable span; click sends look <label>", () => {
+    it("renders an <thing> with a stuff-id but no registry hit as a clickable span; click sends look <label>", () => {
       const { onCommandClick } = renderRenderer(
-        '<item stuff-id="Y">an orphan</item>'
+        '<thing stuff-id="Y">an orphan</thing>'
       );
       fireEvent.click(screen.getByText("an orphan"));
       expect(onCommandClick).toHaveBeenCalledWith("look an orphan");
@@ -171,7 +171,7 @@ describe("MmlRenderer", () => {
         { stuffId: "Z", displayName: "something nameless" },
       ]);
       const { onCommandClick } = renderRenderer(
-        '<item stuff-id="Z">something nameless</item>'
+        '<thing stuff-id="Z">something nameless</thing>'
       );
       fireEvent.click(screen.getByText("something nameless"));
       expect(onCommandClick).toHaveBeenCalledWith("look something nameless");
@@ -179,18 +179,18 @@ describe("MmlRenderer", () => {
 
     it("falls back to label when the identity tag carries no stuff-id at all", () => {
       const { onCommandClick } = renderRenderer(
-        "<item>a plain apple</item>"
+        "<thing>a plain apple</thing>"
       );
       fireEvent.click(screen.getByText("a plain apple"));
       expect(onCommandClick).toHaveBeenCalledWith("look a plain apple");
     });
 
-    it("renders <name> tags the same way (registry hit → primaryKeyword)", () => {
+    it("renders <player> tags the same way (registry hit → primaryKeyword)", () => {
       useStore.getState().upsertStuffMetadata([
         { stuffId: "A", displayName: "Alice", primaryKeyword: "alice" },
       ]);
       const { onCommandClick } = renderRenderer(
-        '<name stuff-id="A">Alice</name>'
+        '<player stuff-id="A">Alice</player>'
       );
       fireEvent.click(screen.getByText("Alice"));
       expect(onCommandClick).toHaveBeenCalledWith("look alice");
@@ -207,9 +207,9 @@ describe("MmlRenderer", () => {
       expect(onCommandClick).toHaveBeenCalledWith("look hall");
     });
 
-    it("renders <object> tags the same way (registry miss → label fallback)", () => {
+    it("renders <npc> tags the same way (registry miss → label fallback)", () => {
       const { onCommandClick } = renderRenderer(
-        '<object stuff-id="missing">a stray rock</object>'
+        '<npc stuff-id="missing">a stray rock</npc>'
       );
       fireEvent.click(screen.getByText("a stray rock"));
       expect(onCommandClick).toHaveBeenCalledWith("look a stray rock");
@@ -246,7 +246,7 @@ describe("MmlRenderer", () => {
         { stuffId: "X", displayName: "a brass thermometer", primaryKeyword: "thermometer" },
       ]);
       const { onCommandPreview } = renderRenderer(
-        '<item stuff-id="X">a brass thermometer</item>'
+        '<thing stuff-id="X">a brass thermometer</thing>'
       );
       fireEvent.mouseEnter(screen.getByText("a brass thermometer"));
       expect(onCommandPreview).toHaveBeenCalledWith("look thermometer");
@@ -254,7 +254,7 @@ describe("MmlRenderer", () => {
 
     it("fires onCommandPreview with null on mouseleave for an identity tag", () => {
       const { onCommandPreview } = renderRenderer(
-        '<item stuff-id="Y">orphan</item>'
+        '<thing stuff-id="Y">orphan</thing>'
       );
       const span = screen.getByText("orphan");
       fireEvent.mouseEnter(span);
@@ -263,9 +263,9 @@ describe("MmlRenderer", () => {
       expect(onCommandPreview).toHaveBeenNthCalledWith(2, null);
     });
 
-    it("tints a <name color='amber'> span with the palette color (boosted occupant) while keeping it clickable", () => {
+    it("tints a <player color='amber'> span with the palette color (boosted occupant) while keeping it clickable", () => {
       const { container, onCommandClick } = renderRenderer(
-        '<name color="amber">Alice</name>'
+        '<player color="amber">Alice</player>'
       );
       const span = screen.getByText("Alice");
       // amber → tokens.palette.amber = #d7ba7d = rgb(215, 186, 125).
@@ -291,7 +291,7 @@ describe("MmlRenderer", () => {
     it("reads the registry as a snapshot — upserts after render do not auto-rerender, but reads at click time use the latest snapshot when the parent re-renders", () => {
       // First render: no registry hit, label fallback.
       const { onCommandClick, rerender } = renderRenderer(
-        '<item stuff-id="X">a brass thermometer</item>'
+        '<thing stuff-id="X">a brass thermometer</thing>'
       );
       fireEvent.click(screen.getByText("a brass thermometer"));
       expect(onCommandClick).toHaveBeenLastCalledWith(
@@ -306,7 +306,7 @@ describe("MmlRenderer", () => {
       // Parent re-renders (passes same text) → renderer re-reads snapshot.
       rerender(
         <MmlRenderer
-          text={'<item stuff-id="X">a brass thermometer</item>'}
+          text={'<thing stuff-id="X">a brass thermometer</thing>'}
           onCommandClick={onCommandClick}
           onCommandPreview={vi.fn()}
         />

@@ -175,7 +175,7 @@ are emitted as dotted-path literals at call sites:
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic('world.speech.say')   // literal, not MessageApi.Topics.X
+  .topic('speech.vocal')       // literal, not MessageApi.Topics.X
   …
 ```
 
@@ -218,7 +218,7 @@ Avatars compose `AetherMixin` because players have implants (per the
 char-gen / augmentation slates' diegetic story). NPCs opt in
 per-class when content requires it.
 
-`AetherMixin.tell(target, text)` fires a scene at `world.speech.dm`
+`AetherMixin.tell(target, text)` fires a scene at `speech.comms`
 with **chat-form** bodies:
 
 ```
@@ -317,10 +317,10 @@ templates. `pickTemplate(topic)` does longest-prefix dispatch:
 
 | Topic family | Template | Layout |
 |---|---|---|
-| `world.chat.*` | `chatTemplate` | gutter `<chan>` chip; content column with `<player>`/`<name>` + `:` + `<msg>` and hanging indent |
-| `world.speech.say` | `sayTemplate` | inline: `<name> says, "<speech>"` |
-| `world.speech.dm` | `tellTemplate` | inline directional treatment (sender → recipient); quieter than `say`. The client also keeps a legacy `world.speech.tell` registration bound to the same template, but no server frame emits it. |
-| `world.expression.*` | `emoteTemplate` | inline italic, action-shaped |
+| `speech.channel` | `chatTemplate` | gutter `<chan>` chip; content column with `<player>`/`<name>` + `:` + `<msg>` and hanging indent |
+| `speech.vocal` | `sayTemplate` | inline: `<name> says, "<speech>"` |
+| `speech.comms` | `tellTemplate` | inline directional treatment (sender → recipient); quieter than `say`. |
+| `act.emote.*` | `emoteTemplate` | inline italic, action-shaped |
 | anything else (including `system.*`) | `defaultTemplate` | body MML inline, theme-default treatment |
 
 The `Terminal` component picks the template per frame and renders
@@ -394,7 +394,7 @@ MUD-throwback default, so an unclassified future topic stays mono.
 
 The **three-voice model**: *serif = the world speaks · sans = the app
 chrome · mono = you + the machine.* `world.*` prose maps to `narrative`
-(serif); `system.*` and command echo (`system.log.command.*`) map to
+(serif); `system.*` and command echo (`shell.diagnostic.*`) map to
 `command` (mono). The `chrome` (sans) role is the client-shell frame
 voice — declared and self-hosted, but intentionally **not mapped to any
 transcript topic**. Both shipped themes share the identical mapping
@@ -498,24 +498,35 @@ categories are:
 shape is **bounded** — the engine recognizes a fixed set of keys; no
 `position`, no `z-index`, no global escape hatches.
 
-### The `style` verb
+### `cockpit style`
 
 `StyleController` (`mud/obj/command/shell/StyleController.ts`) is the
-player's surface for editing the overlay. Subcommands:
+player's surface for editing the overlay. Settings:
 
 | Usage | Effect |
 |---|---|
-| `style show` | Print current overlay as readable JSON |
-| `style theme <name>` | `default` \| `high-contrast` |
-| `style channel <key> color <value>` | Per-channel chip color |
-| `style channel <key> clear` | Drop all overlay rules for the channel |
-| `style mention self on\|off` | Own-name highlight toggle |
-| `style plain on\|off` | Global plain-mode toggle |
-| `style plain channel <key> on\|off` | Per-channel plain-mode |
-| `style reset` | Clear overlay to `{}` |
+| `cockpit style show` | Print current overlay as readable JSON |
+| `cockpit style theme <name>` | `default` \| `high-contrast` |
+| `cockpit style channel <key> color <value>` | Per-channel chip color |
+| `cockpit style channel <key> clear` | Drop all overlay rules for the channel |
+| `cockpit style mention self on\|off` | Own-name highlight toggle |
+| `cockpit style plain on\|off` | Global plain-mode toggle |
+| `cockpit style plain channel <key> on\|off` | Per-channel plain-mode |
+| `cockpit style reset` | Clear overlay to `{}` |
 
-`style` is a **single-token verb** per [[no-two-word-verbs]];
-subcommands ride argument shape. The controller travels with
+⚠ **`style` was a standalone verb and is not any more.** It was absorbed
+into the one `cockpit` verb along with `layout` and `mode`, because all
+three wrote the same `cockpit.*` clientState keyspace — see
+[cockpit.md](./cockpit.md). It is not kept as an alias: one name per
+thing.
+
+⚠ The settings above are **not** command subcommands. `cockpit style` is
+already the subcommand and subcommands are one level deep framework-wide,
+so they ride positional slots and `StyleController` dispatches on them —
+which is why it carries an explicit `default:` that refuses an unknown
+setting. Without it, `cockpit style bogus` would silently succeed.
+
+The controller travels with
 `HasInteractiveMixin.commandContributions.self`, so wherever the mixin
 composes the verb appears.
 

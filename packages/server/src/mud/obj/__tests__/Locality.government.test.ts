@@ -5,6 +5,7 @@
  * before the field existed.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import Locality from "../Locality";
 import AddressRegistry from "../AddressRegistry";

@@ -4,7 +4,7 @@
  * `SingleSenseControllerBase` exercised here.
  *
  * Branches under test:
- *   - bare `smell` fires Scene at `world.perception.sense.smell`
+ *   - bare `smell` fires Scene at `sense.survey`
  *     with the location's long filtered to `['smell']`.
  *   - `smell <target>` resolves via MQL, reads
  *     `getDetail(id, 'smell')`, polite fallback on null.
@@ -12,6 +12,7 @@
  *   - targets outside MQL scope aren't addressable.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import SmellController from '../SmellController';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
@@ -160,7 +161,7 @@ describe('SmellController', () => {
       expect.objectContaining({ kind: 'empty-result', field: 'target' }),
     );
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
+    expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).toContain('mystery-thing');
   });
 
@@ -197,7 +198,7 @@ describe('SmellController', () => {
       expect.objectContaining({ kind: 'controller-rejected' }),
     );
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
+    expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).toContain('old leather and tobacco');
   });
 
@@ -231,7 +232,7 @@ describe('SmellController', () => {
     const ctx = makeContext(fix, 'smell here');
     controller.execute(makeModel(target), ctx);
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
+    expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).toContain("don't perceive");
   });
 
@@ -247,7 +248,7 @@ describe('SmellController', () => {
     const ctx = makeContext(fix, 'smell here');
     controller.execute(makeModel(target), ctx);
     const lastFrame = fix.giver.received.at(-1);
-    expect(lastFrame?.topic).toBe('world.perception.sense.smell');
+    expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).not.toContain('A wide stone plaza.');
     expect(lastFrame?.body).toContain('Wet stone and ozone');
   });

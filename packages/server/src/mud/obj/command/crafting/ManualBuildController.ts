@@ -29,7 +29,7 @@ import { Mml } from "../../../api/mml";
 import { SchedulerApi } from "../../../api/scheduler";
 import { ManualBuildStep } from "../../../lib/craft/ManualBuildStep";
 
-const STEP_TOPIC = "world.narration.action";
+const STEP_TOPIC = "act.deed";
 
 type Composed = ReturnType<typeof Mml.compose>;
 

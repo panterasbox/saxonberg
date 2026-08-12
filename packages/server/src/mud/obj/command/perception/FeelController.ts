@@ -35,7 +35,7 @@ interface FeelModel extends CommandModel {
 
 export default class FeelController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'touch';
-  protected readonly sceneTopic = 'world.perception.sense.feel';
+  protected readonly sceneTopic = 'sense.survey';
 
   /**
    * Async overload: bare form reads ambient temperature; detail-via

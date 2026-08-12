@@ -16,6 +16,7 @@
  * because it requires the EventRegistry singleton to be bootstrapped.
  */
 
+import "../../../../test-bootstrap";
 import {
   describe,
   it,

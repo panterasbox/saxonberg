@@ -1,0 +1,13 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: self.standing
+  family: "self"
+  label: "Your standing"
+  description: "Your measured position — what you are known for and how far that reaches."
+  address: direct
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true
+  affordance: live

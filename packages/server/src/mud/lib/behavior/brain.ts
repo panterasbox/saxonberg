@@ -168,10 +168,10 @@ export type ParsedTrigger =
  * room-occupant delta the framework computes.
  */
 export const WITNESS_TOPIC: Record<WitnessKind, string> = {
-  arrival: 'world.narration.movement',
-  departure: 'world.narration.movement',
-  emote: 'world.expression.emote',
-  speech: 'world.speech.',
+  arrival: 'act.move',
+  departure: 'act.move',
+  emote: 'act.emote',
+  speech: 'speech.',
 } as const;
 
 // Trigger parsing lives on `BehavedMixin` (`_parseTrigger`) — the owner

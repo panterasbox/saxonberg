@@ -8,6 +8,7 @@
  * `bucket`. `getAvailableCommands()` is its flattened projection.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import {

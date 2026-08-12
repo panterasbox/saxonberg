@@ -15,6 +15,7 @@
  * Mongo is faked with an in-memory collection (the chronicle/renown harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PressApi } from '../../../api/press';
 import {

@@ -25,7 +25,7 @@ in flight has already answered better.
 > literal — § 4 is four server tracks, and two of them are blocking.
 
 Related: [client-shell.md](../../subsystems/client-shell.md),
-[cockpit-layouts.md](../../subsystems/cockpit-layouts.md),
+[cockpit.md](../../subsystems/cockpit.md),
 [message-rendering.md](../../subsystems/message-rendering.md),
 [inspection-pane.md](../../subsystems/inspection-pane.md),
 [messaging.md](../../subsystems/messaging.md),
@@ -164,7 +164,7 @@ instead. `GhostCommandLine` moves out of the command bar into the global
 status bar, and the command bar then shows only what you are composing.
 
 This is a restatement of the shipped axiom — *the client owns zero
-command semantics* ([cockpit-layouts.md](../../subsystems/cockpit-layouts.md))
+command semantics* ([cockpit.md](../../subsystems/cockpit.md))
 — at the interaction layer. It binds hardest on **reactions**, the most
 used interaction in the product and the last place it should lapse.
 
@@ -227,9 +227,9 @@ Verified against the tree: **90 topic seed rows**
 |---|---|---|
 | 1 | ~~`<measure …>`~~ → **`<quantity>`, extended** — ✅ shipped | **Additive** — old clients see the flattened prose unchanged |
 | 2 | Five topic facets — `address` · `actor` · `weight` · `audience` · `durable` — on the seed schema and `TopicDescriptor` | **Additive** fields on an existing type |
-| 3 | Retire `world.emote`; fold `direction` into `exit` | Breaking, single-emitter each |
-| 4 | The renames — `world.perception.measurement.*` (15) → `world.measure.<channel>` (8); `system.shell.*` (13) → `author.shell` (1); `system.commands.*` → `system.registry.*`; `system.auth\|connection\|session` → one subtree. ~90 → ~60 | Breaking; alias map for one release |
-| 5 | Rewrite topic `label`/`description` in player voice | Content only |
+| 3 | Retire `world.emote`; fold `direction` into `exit` | ✅ shipped in S2 (the corpus replacement) |
+| 4 | ~~The renames~~ → **the corpus was REPLACED** — ✅ shipped in S2. 89 seeds deleted, 36 authored: 7 roots, 29 leaves, two levels. No alias map. | Breaking; done |
+| 5 | Rewrite topic `label`/`description` in player voice | ✅ shipped in S2 (folded in — doing it twice was the waste) |
 
 ⭐ **`<measure>` was never a new tag.** `Quantity.buildMarkup` had been
 emitting `<quantity unit value tag>` since the quantity substrate
@@ -262,6 +262,21 @@ channel enum — it should be one list in one place.
 
 ### 4.2 ⭐⭐⭐ Track B — affordance resolution, **and the correction**
 
+> **STATUS — ✅ SHIPPED as S2 MR B.** Items 8 and 9 are built; 6 was
+> already answered by `commandContributions`, 7 was cut, 10 shipped in
+> MR A. See [messaging.md § The identity tags](../../subsystems/messaging.md)
+> and [command-routing.md § Affordance resolution](../../subsystems/command-routing.md).
+>
+> Two things the build corrected in this section:
+> - **Item 8's "alias during migration" did not happen, and should not
+>   have.** There is no playerbase to protect and the retired tags had
+>   no consumers; an alias would have kept a dead vocabulary alive for
+>   nobody. The retirement is total, asserted by a source scan.
+> - **Retiring `name` was not a rename.** 195 emitters used it because
+>   it let them *not* say what the referent was — a fact none of them
+>   could know. The answer is `Mml.actor`, resolved per viewer at render
+>   time, not a hand-classification of 195 sites.
+
 The spec's § 6.3 proposes adding `static affords` beside `fieldMeta` on
 every verb-conferring mixin, collected up the prototype chain.
 
@@ -288,7 +303,7 @@ So Track B reduces to:
 | # | Change | Wire |
 |---|---|---|
 | 6 | ~~`static affords`~~ → **use `commandContributions`**; the collector already exists | — |
-| 7 | Emit the `mx` digest on affordance tags — the object's composed mixins | Additive attribute; ignored by old clients |
+| 7 | ~~Emit the `mx` digest on affordance tags~~ — **CUT**. See below. | — |
 | 8 | Collapse `item` + `object` → `thing`; retire `name` | Breaking; alias during migration |
 | 9 | **The affordance resolver** — verbs for `(id, viewer, now)` with an enabled flag and a reason | New endpoint; no frame change |
 | — | *(S1 note)* `via` provenance is already solved: `ctx.commandSource` names the object that afforded a verb, so an instrument identifies itself on every reading without per-controller wiring | shipped |
@@ -321,13 +336,42 @@ Track B's item 10 is what stops a long scrollback from being a
 minefield of dead links: today every affordance in history looks equally
 live.
 
-Open: how wide is the `mx` digest — every composed mixin (honest,
-wordy, and pedagogically better because `Chattel` and `Constructed`
-teach something even though they afford nothing) or only those that
-confer verbs (compact, covers the menu)? Should `fieldMeta.spoiler` gate
-the digest — a creature's `Combustible` is a weakness, and the reveal
-model already runs on values. Should the resolver return verbs the
-viewer *cannot yet* use, greyed with their requirement?
+### ⭐ Why the `mx` digest was cut
+
+The question was going to be *how wide* — every composed mixin, or only
+the verb-conferring ones. It turned out to be neither, because the
+premise of putting composition in MML at all was false.
+
+**The split rested on "a mixin set is stable; its state is volatile."**
+It is not stable: `MixinApi.getActiveMixins` unions in augments,
+implants, species innates and on-shift conferral. Composition changes at
+runtime, so a digest sitting in scrollback goes stale in exactly the way
+this section refuses to let the *verb* list go stale. The three
+arguments above — bloat, staleness, viewer-dependence — apply verbatim
+to the digest. The reasoning stopped one step short of itself.
+
+Two more, either sufficient alone:
+
+- **Redundant with the key beside it.** The frame already carries
+  `stuff-id`; the resolver is a function of `(id, viewer, now)`, and so
+  is composition.
+- **It can drift irreconcilably.** `ProseLogic` registers an `item`
+  Liquid filter, wiki content is hand-authored, and `Mml.fromMarkup` is
+  public — so hand-written `<thing mx="…">` is reachable and nothing
+  could ever reconcile it against the object.
+
+A bitvector was considered: 149 registered mixins means ~25 fixed
+base64 characters on every tagged noun — *longer* than the sparse list
+for the common object — plus a version-locked index registry shared with
+the client. Worst of both.
+
+**Composition rides the resolver instead**, cached per `stuff-id`. A
+cold radial waits one local round-trip; warm opens are instant. No MML
+change, no encoding problem, no drift.
+
+Still open: should the resolver return verbs the viewer *cannot yet*
+use, greyed with their requirement? (Decided yes for S2 — the reason
+strings already exist, one per validator.)
 
 ### 4.3 ⚠ Track C — the unwired read-APIs  *(blocking, per § 3.1)*
 
@@ -394,6 +438,44 @@ executed.** It is also the one that decides whether the shipped axiom
 survives: *the client owns zero command semantics.* A mode switch is a
 real command on the wire, or the axiom is gone.
 
+### ✅ SHIPPED as S3 — and the axiom held
+
+MRs !177 / !178 / !179. What landed, and the four things a client build
+should know:
+
+- **One `cockpit` verb** with subcommands (`mode` / `layout` / `cli` /
+  `pane` / `style`); `layout` / `style` / `mode` were absorbed and
+  **deleted**. `applyInputMode`'s exemption moved from the literal
+  `'mode'` to `'cockpit'`, which lets it finally state its rule:
+  *interface control is not world input.*
+- ⭐⭐ **The server owns the pane vocabulary AND what a pane IS.** A
+  client sends `{ pane: "inspect" }` and nothing else — the catalogue
+  (`lib/connection/Panes.ts`) supplies query, cardinality, field set,
+  dependency flags and hold. `InspectionPane.tsx` used to send
+  `query: "$focus"`, which was the client holding a server semantic.
+  ⚠ **The catalogue ships TWO entries.** Every pane the 23 screens want
+  needs one — a one-line server addition, but a real per-pane
+  dependency to plan around rather than discover.
+- ⚠⚠ **Arrangements ship storage and vocabulary, NOT behaviour.**
+  `save` captures the open panes by durable name, `recall` sets the
+  active arrangement — and nothing opens or closes a pane in response,
+  on either side. ⭐ The undecided half: the server cannot tell a client
+  to open a subscription (the client always initiates), so either that
+  mechanism gets invented or **the client reads the arrangement and
+  opens the named panes itself** — which works with what exists and
+  preserves *client initiates, server owns the vocabulary*. **Decide
+  this before the pane feed is built.**
+- **`cockpit.layout` survives as a compatibility projection** painted
+  from (mode, arrangement) so the SHIPPED client keeps working. The
+  rebuild does not read it; it dies with the old client.
+
+⚠ The hold conditions are five and closed (`unanswered` · `here` ·
+`present` · `inReach` · `carried`), each declaring what wakes it. A
+sixth — "while the fight lasts", "while you are on shift" — is a design
+conversation, not a map edit: see
+[affordance-suggestion-slate](./affordance-suggestion-slate.md) and the
+attention question it opens.
+
 ---
 
 ## 5 · What in `packages/client` is superseded
@@ -406,17 +488,41 @@ orthogonal to the restyle; dragging it through a rewrite buys nothing.
 |---|---|
 | `styles/faces.ts` — Source Serif / Sans / Code Pro | Faces change to Spectral / Public Sans / Newsreader / Plex Mono. The three-voice model is **kept** and extended to four. Request Newsreader **without** the `opsz` axis — with it the face silently fails to load and falls back to Times. |
 | The VS Code dark palette | Replaced wholesale by the civic tokens. Mechanical, touches everything, which is why it is step 1. |
-| `GhostCommandLine.tsx` | Hover preview moves to the global status bar (§ 3.5). |
-| `InspectionPane.tsx` | Becomes the pane feed (§ 3.4). |
-| `layouts/` (`LAYOUT_REGISTRY`) | Layouts demote under modes (§ 3.3, § 4.4). Components map over; the registry's *level* changes. |
+| `GhostCommandLine.tsx` | Hover preview moves to the global status bar (§ 3.5). ⚠ Note the input-prefix surface it sits beside is now `cockpit cli` (not `cockpit scope`), bare invocation REPORTS rather than clears, and prefixes are genuinely per-command-line — verified with two lines prefixed independently. |
+| `InspectionPane.tsx` | Becomes the pane feed (§ 3.4). ⚠ Already **half-moved**: it opens `pane: "inspect"` / `pane: "location"` by name rather than sending MQL, so the subscription half is done and the N-pane feed is what remains. |
+| `layouts/` (`LAYOUT_REGISTRY`) | Layouts demote under modes (§ 3.3, § 4.4) — **done server-side**; the client still swaps its whole frame off the `cockpit.layout` compatibility key. Components map over; the registry's *level* changes. |
 
-Worth verifying first, per the handoff's own list: whether `TabStrip`
-filter tabs already read topic facets or hardcode topic strings (they
-must run on facets, or "quiet" is a sixty-path list that drifts);
-whether the client has any notion of *account* separate from *character*
-(character select assumes one account owns many); whether
-`prompt.format` is already rendered client-side (the design treats it as
-a Liquid template the player owns).
+### ✅ The three "verify first" items — answered 2026-08-11
+
+Checked against the tree so a build does not have to rediscover them.
+
+1. **Facets vs topic strings — better than either option this slate
+   offered.** The S2 facets ARE plumbed into the client: the store
+   resolves `address` / `actor` / `weight` / `audience` / `durable` /
+   `affordance` per topic, with the *same* ancestor inheritance and the
+   same conservative `FACET_FLOOR` the server's `TopicCatalogue` uses —
+   and a comment saying why ("the two resolvers must agree or the client
+   renders a frame the server classified differently").
+
+   ⚠ But the **filter SURFACE does not use them**. `FilterDrawer` toggles
+   per-leaf and per-family **topic paths**, so "quiet" really is a
+   path list that drifts. `TabStrip` does not touch topics at all — its
+   tabs are user-named client-side filters.
+
+   ⭐ So this is a **UI change, not a plumbing change**: the data a facet
+   rule needs is already in the store. That is a materially smaller job
+   than the slate assumed.
+
+2. **No account/character split client-side.** `accountId` does not
+   exist in the client; the only "account" references are the account
+   *menu*. Character select currently assumes the session, not an
+   account that owns many characters. ⚠ MR C's roster work is the
+   server half of this (`lastSeen`, play standing, last location,
+   practice per entry) — the client half is unbuilt, and Wave 2 owns it.
+
+3. **`prompt.format` is not rendered client-side.** No reference
+   anywhere in `packages/client`. The design treats it as a Liquid
+   template the player owns, so this is net-new in Wave 4.
 
 ---
 
@@ -488,9 +594,9 @@ Ordered so each ships independently. The handoff's build order is a good
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
 | **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). Mechanical, touches everything. | 0 (facets, for the filter surface) |
 | **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
-| **3** | Track A steps 3–5 + Track B — renames behind an alias map, `thing` collapse, `mx` digest, the affordance resolver, the `affordance` facet. | 1 |
-| **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and Track D designed |
-| **5** | Track D — modes axis, layout demotion, pane subscription set. **Design before scheduling.** | 4's requirements |
+| ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
+| **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
+| ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned pane catalogue**: the client opens a pane BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a pane on recall, on either side. | done |
 | **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |
 | **7** | **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
 | ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
@@ -509,10 +615,12 @@ everything that happened.
 1. **Per-player frame store — yes or no?** (§ 4.3). Product decision.
    Everything about search scope, a second device, and "your backlog is
    bigger than the server's copy" falls out of it.
-2. **Does a mode switch stay a real command on the wire?** (§ 4.4). If
-   yes, Track D is a verb + a `clientState` axis and the axiom holds. If
-   no, the axiom is gone and that should be said out loud rather than
-   discovered.
+2. ~~**Does a mode switch stay a real command on the wire?**~~ (§ 4.4)
+   **ANSWERED: yes** — and verified by driving a browser, not just by
+   test. `cockpit mode watch streamer` is an ordinary command; the whole
+   frame switches on it. Track D is a verb plus a `clientState` axis,
+   and **the axiom holds**: every clickable still previews exactly what
+   it sends.
 3. **`item` / `object` — portable-vs-fixed, or historical?** Decides
    keep-or-collapse in Track A/B, and the spec's own answer (collapse to
    `thing`, because portability is *state*, not kind) depends on the

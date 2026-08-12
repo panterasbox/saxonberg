@@ -5,6 +5,7 @@
  * threading their `_id`s.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { ManagedGroupProvider } from '../ManagedGroupProvider';
 import { Group } from '../../Group';

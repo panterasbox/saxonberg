@@ -17,5 +17,6 @@ args:
     required: true
     scope: "reachable"
     updates_focus: extend
+    requires: CombustibleMixin|FurnaceMixin
     validators:
       - /lib/command/validators/canReach

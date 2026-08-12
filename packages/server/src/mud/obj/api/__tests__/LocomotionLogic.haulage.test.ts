@@ -5,6 +5,7 @@
  * test (it needs the full mount machinery).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { ContainableMixin } from '../../../lib/spatial/Containable';

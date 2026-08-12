@@ -31,6 +31,7 @@
  *    resolvers above; the gated set is enforced at its callers.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, statSync } from "fs";
 import { fileURLToPath } from "url";
@@ -184,6 +185,15 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // source-tree file behind the wizard source-write gate.
   { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
   { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
+  { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
+  // The `requires: class:Agent` escape. ⚠ NOT author-reachable in the
+  // way the three above are: the module path is not read from YAML at
+  // all — the spec supplies a bare NAME, which is looked up in the
+  // closed `CLASS_REQUIREMENTS` map, and only the map's own hardcoded
+  // path is imported. Deferred to a dynamic import purely to break an
+  // import cycle (`Agent` composes command mixins), so the classifier's
+  // usual question — can an author steer this string — is answered no
+  // by construction.
   { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
   // Content-pack class-resolve check (requires-kernel boundary).
   {

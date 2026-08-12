@@ -6,6 +6,7 @@
  * would (actor derived from context, never the wire).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TipController from '../TipController';
 import CollectController from '../CollectController';

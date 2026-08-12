@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TangibleMixin } from '../Tangible';
 import Thing from '../../stuff/Thing';

@@ -523,7 +523,7 @@ derived from Wikipedia, but it occupies the same position relative to
 it that our courses occupy relative to our wiki — **the credentialed
 pedagogical path through an open commons of the same knowledge.** The
 mechanism the wiki itself needs is already designed in
-[wiki-slate.md](./wiki-slate.md); what follows is the part that slate
+[wiki-slate.md](../tails/wiki-slate.md); what follows is the part that slate
 does not cover, which is the *relationship*.
 
 ### The source ladder

@@ -5,7 +5,7 @@
  * slots are for activities, not storage" rule in
  * `docs/subsystems/embodiment.md`.
  *
- * The field-level `mustBeAgent` validator already gated the
+ * The field-level `requires: class:Agent` already gated the
  * recipient as an `Agent`. Agents in v1 (Character / Avatar)
  * compose Container, so the move target is well-formed without an
  * extra mixin probe. A future Agent that for some reason didn't
@@ -40,7 +40,7 @@ export default class GiveController extends CommandController<GiveModel> {
 
     if (!item) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't have any '${model.item.raw}'.`)
         .send();
       context.note({
@@ -52,7 +52,7 @@ export default class GiveController extends CommandController<GiveModel> {
     }
     if (!recipient) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't see any '${model.recipient.raw}' here.`)
         .send();
       context.note({
@@ -64,7 +64,7 @@ export default class GiveController extends CommandController<GiveModel> {
     }
 
     if (!MixinApi.isContainer(recipient)) {
-      // Defensive: the mustBeAgent validator passed, so the
+      // Defensive: the `class:Agent` check passed, so the
       // recipient is an Agent. Agents compose Container in v1; this
       // throw protects against future Agent subclasses that drop
       // the mixin without realizing they break `give`.
@@ -81,11 +81,11 @@ export default class GiveController extends CommandController<GiveModel> {
       const release = giver.tryReleaseFromSlots(item);
       if (!release.released) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
+          .topic('sense.survey')
           .toSelf(
             release.dumpedKJ > 0
-              ? Mml.compose`You cannot let go of ${Mml.item(item)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.item(item)}. It has no intention of leaving your hand.`,
+              ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`,
           )
           .send();
         context.note({
@@ -103,17 +103,17 @@ export default class GiveController extends CommandController<GiveModel> {
     );
 
     MessageApi.scene(giver)
-      .topic('world.perception.inventory')
-      .toSelf(Mml.compose`You give ${Mml.item(item)} to ${Mml.name(recipient)}.`)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`You give ${Mml.thing(item)} to ${Mml.actor(recipient)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} gives ${Mml.item(item)} to ${Mml.name(recipient)}.`,
+        Mml.compose`${Mml.actor(giver)} gives ${Mml.thing(item)} to ${Mml.actor(recipient)}.`,
       )
       .send();
     // Recipient's own scene-message for receipt. Separate Scene so
     // the recipient gets their own envelope frame.
     MessageApi.scene(recipient)
-      .topic('world.perception.inventory')
-      .toSelf(Mml.compose`${Mml.name(giver)} gives you ${Mml.item(item)}.`)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`${Mml.actor(giver)} gives you ${Mml.thing(item)}.`)
       .send();
   }
 }

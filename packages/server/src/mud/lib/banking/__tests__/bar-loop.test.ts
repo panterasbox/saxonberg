@@ -6,6 +6,7 @@
  * throughout. (Pay-per-drink only — no tab; the soft-credit tab was retired.)
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";

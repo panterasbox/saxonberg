@@ -13,6 +13,7 @@
  * detached body's clone/execute microtasks up to the gate.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../stuff/Location';
 import { CommandGiverMixin } from '../CommandGiver';
@@ -122,7 +123,7 @@ const asEnv = (e: EnvelopeTemplate): Omit<DispatchResponseEnvelope, 'frameId'> =
 function lastEchoDispatchId(giver: TestGiver): string {
   const echo = [...giver.received]
     .reverse()
-    .find((f) => f.topic.startsWith('system.log.command'));
+    .find((f) => f.topic.startsWith('shell.diagnostic'));
   return (echo!.payload as { dispatchId: string }).dispatchId;
 }
 
@@ -298,7 +299,7 @@ describe('async command dispatch', () => {
     await giver.executeCommand('ping --async');
     // Body still parked — but the input echo already landed.
     const echo = giver.received.find((f) =>
-      f.topic.startsWith('system.log.command')
+      f.topic.startsWith('shell.diagnostic')
     );
     expect(echo).toBeDefined();
     expect((echo!.payload as { kind: string }).kind).toBe('issued');

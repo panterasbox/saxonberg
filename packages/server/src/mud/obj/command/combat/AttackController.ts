@@ -27,7 +27,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import { CombatApi } from "../../../api/combat";
 import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface AttackModel extends CommandModel {
   target?: MqlOneResult;
@@ -56,7 +56,7 @@ export default class AttackController extends CommandController<AttackModel> {
     if (!MixinApi.isVitals(target) || !MixinApi.isEngaged(target)) {
       return this.fail(
         context,
-        `You can't attack ${Mml.item(target).toString()}.`,
+        `You can't attack ${Mml.thing(target).toString()}.`,
         "not-a-combatant",
       );
     }
@@ -87,9 +87,9 @@ export default class AttackController extends CommandController<AttackModel> {
 
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You square off against ${Mml.name(target)}.`)
-      .toTarget(target, Mml.compose`${Mml.name(giver)} squares off against you!`)
-      .toPeers(Mml.compose`${Mml.name(giver)} squares off against ${Mml.name(target)}.`)
+      .toSelf(Mml.compose`You square off against ${Mml.actor(target)}.`)
+      .toTarget(target, Mml.compose`${Mml.actor(giver)} squares off against you!`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} squares off against ${Mml.actor(target)}.`)
       .send();
   }
 

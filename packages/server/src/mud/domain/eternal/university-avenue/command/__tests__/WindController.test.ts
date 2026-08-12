@@ -5,6 +5,7 @@
  * `instanceof Watch`), so it operates on any MechanicalMovement.
  */
 
+import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import WindController from '../WindController';
 import Watch from '../../Watch';

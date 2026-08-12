@@ -16,9 +16,10 @@
  *     and its redaction rules must not get a second copy here.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Avatar from '../Avatar';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { MqlSubscriptionApi, collectSubscribableFields } from '../../api/mql-subscription';
 import { StuffApi } from '../../api/stuff';
 import { ShadowApi } from '../../api/shadow';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -54,7 +55,16 @@ function makeAvatar(playerId: string): Avatar {
 
 describe('Avatar standing figures — declaration', () => {
   it('declares all five as subscribable fields', () => {
-    const names = Avatar.subscribableFields.map((d) => d.name);
+    // ⚠ Through the prototype-chain collector production uses, not
+    // Avatar's own static: the competence descriptors live on
+    // `AdvancementMixin`, and asserting on the concrete class's own
+    // array would test WHERE a descriptor is declared rather than that
+    // the host has it.
+    const names = [
+      ...collectSubscribableFields(
+        makeStuff(() => new Avatar()) as unknown as Stuff,
+      ).keys(),
+    ];
     for (const f of FIGURES) expect(names).toContain(f);
   });
 
@@ -87,7 +97,16 @@ describe('Avatar standing figures — declaration', () => {
     // it is built. If a trait figure ever appears here, that is a
     // product decision that must be made deliberately — not by someone
     // adding a field because the data was reachable.
-    const names = Avatar.subscribableFields.map((d) => d.name);
+    // ⚠ Through the prototype-chain collector production uses, not
+    // Avatar's own static: the competence descriptors live on
+    // `AdvancementMixin`, and asserting on the concrete class's own
+    // array would test WHERE a descriptor is declared rather than that
+    // the host has it.
+    const names = [
+      ...collectSubscribableFields(
+        makeStuff(() => new Avatar()) as unknown as Stuff,
+      ).keys(),
+    ];
     for (const n of names) {
       expect(
         /trait|disposition|personality/i.test(n),

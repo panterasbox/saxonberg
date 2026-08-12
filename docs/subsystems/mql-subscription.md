@@ -347,9 +347,23 @@ gated cross-cutting renders → the mixin that owns the gate.
 
 ## ⭐ Ledger-derived fields: the live standing figures
 
-`Avatar.subscribableFields` carries `playStanding`, `makeStanding`,
-`renown` and `practisingCompetence` — as **structured values** rather
-than a sentence.
+`Avatar.subscribableFields` carries `playStanding`, `makeStanding` and
+`renown` — as **structured values** rather than a sentence.
+
+The competence figures — `practisingCompetence` and the whole-projection
+`competenceDigest` — live on **`AdvancementMixin`**, per the rule stated
+two lines above. They were on `Avatar` and were moved: a descriptor
+gated on a mixin belongs to that mixin, and declaring them on the
+concrete class quietly encoded *competence is a player dashboard
+figure*, which the advancement substrate has never assumed. `Character`
+composes the mixin, so an NPC expresses competence exactly as a player
+does.
+
+⚠ **The three standing figures above are still on `Avatar` and are the
+same smell.** They are left there deliberately for now: `makeStanding`'s
+home is entangled with the unbuilt account-aggregation question (see
+`InfluenceApi.standingForHost`), and moving the trio is worth doing as
+one deliberate pass rather than piecemeal.
 
 ⚠ **A trait position is deliberately NOT among them.** The engine
 derives one, and the data is trivially reachable, but a pinnable "your

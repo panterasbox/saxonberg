@@ -21,7 +21,7 @@ import { Mml } from '../../../api/mml';
 import TipJar from '../../../domain/lounge/TipJar';
 import { Currency } from "../../../lib/banking/Currency";
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface TipModel extends CommandModel {
   amount: string;
@@ -62,7 +62,7 @@ export default class TipController extends CommandController<TipModel> {
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You drop ${Money.of(minor, Currency.compact()).render()} into the tip jar.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} drops a tip in the jar.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} drops a tip in the jar.`)
           .send();
         return;
       } catch {
@@ -93,7 +93,7 @@ export default class TipController extends CommandController<TipModel> {
     if (!recipientAccount) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.name(recipient)} has no account to tip into.`)
+        .toSelf(Mml.compose`${Mml.actor(recipient)} has no account to tip into.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -127,8 +127,8 @@ export default class TipController extends CommandController<TipModel> {
       );
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You tip ${Money.of(minor, Currency.compact()).render()} to ${Mml.name(recipient)}.`)
-        .toPeers(Mml.compose`${Mml.name(giver)} tips ${Mml.name(recipient)}.`)
+        .toSelf(Mml.compose`You tip ${Money.of(minor, Currency.compact()).render()} to ${Mml.actor(recipient)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} tips ${Mml.actor(recipient)}.`)
         .send();
     } catch (err) {
       MessageApi.scene(giver)

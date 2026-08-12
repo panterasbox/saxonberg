@@ -11,6 +11,7 @@
  * class, exactly as the renown / participation taps subscribe.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';

@@ -31,7 +31,7 @@ See also:
 - [docs/slates/persistence-architecture-slate.md](./persistence-architecture-slate.md)
   — `Document` (plain JSON, no Stuff) is what `GoogleProfile` / `User` /
   `TwitchProfile` all are.
-- [docs/slates/char-gen-slate.md](../char-gen-slate.md) — char-gen is
+- [char-gen.md](../../subsystems/char-gen.md) *(shipped; slate retired)* — char-gen is
   **provider-agnostic** (free-text given + roster-defaulted surname); the
   provider name becomes a char-gen *input* only at the deferred
   LLM-refraction stage.

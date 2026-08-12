@@ -11,6 +11,7 @@
  * Application.processUserMessage routing.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PromptApi, PromptCancelledError } from '../prompt';
 import { EventApi } from '../event';

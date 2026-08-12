@@ -21,16 +21,16 @@ export default class InhaleController extends CommandController<CommandModel> {
     if (!MixinApi.isRespiration(giver)) {
       // A body that doesn't respire (construct) — gentle no-op cue.
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You breathe, out of habit.`)
         .send();
       return;
     }
     giver.inhale();
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You take a deep breath and hold it.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} takes a deep breath.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} takes a deep breath.`)
       .send();
   }
 }

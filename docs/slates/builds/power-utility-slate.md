@@ -33,7 +33,7 @@ lamppost is locally Energized; its plate carries a **maker's mark +
 
 Not wires, not metering: a **supply reference**. An `Energized`
 fixture may declare its source — a resolve-on-read identity ref
-([ref-shapes.md](../../subsystems/ref-shapes.md)) to a substation —
+([ref-shapes.md](../../ref-shapes.md)) to a substation —
 and the source's state gates its dependents:
 
 - The substation goes down → Foundry Row's lamps go dark. The

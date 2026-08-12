@@ -246,7 +246,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic("system.shell.notify")
+      .topic("shell.result")
       .toSelf(body)
       .send();
   }

@@ -11,6 +11,7 @@
  * `ContainerMixin` `contents` subscribable-field projection.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import LookController from '../../obj/command/perception/LookController';
 import { MqlApi } from '../../api/mql';

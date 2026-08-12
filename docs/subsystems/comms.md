@@ -117,13 +117,13 @@ the Scene; the verb word ("say" / "whisper" / "shout") drives the
 prose and the dB + topic come from the calling method.
 
 - **`say`** — normal volume (60 dB), room reach, undirected by
-  default. Topic `world.speech.say`.
+  default. Topic `speech.vocal`.
 - **`whisper`** — quiet (30 dB), short reach. Topic
-  `world.speech.whisper`. `whisper.yaml` makes `target` a **required**
+  `speech.quiet`. `whisper.yaml` makes `target` a **required**
   positional arg — whisper is implicitly directed (you whisper *to*
   someone).
 - **`shout`** — loud (90 dB), multi-room reach. Topic
-  `world.speech.shout`.
+  `speech.vocal`.
 
 All three stamp `meta.modality: 'hearing'` for sensorium gating, and
 emit to peers via the Containable-wins rule (a Containable speaker
@@ -139,7 +139,7 @@ haunted room — addresses its own contents). See
 `requiresVerbalESP` validator so an unattuned host is turned away
 before dispatch. `DmController` resolves the hosted comms update and
 delegates to `CommsMixin.tell`, which stamps `meta.modality:
-'verbal-esp'` and fires `world.speech.dm` *from the operator*.
+'verbal-esp'` and fires `speech.comms` *from the operator*.
 
 Three cardinality cases inside the controller (`comms` = the resolved
 hosted comms update):

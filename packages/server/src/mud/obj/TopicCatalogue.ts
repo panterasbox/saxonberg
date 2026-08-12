@@ -31,6 +31,9 @@
  * cache is rebuilt on demand by reading Template docs.
  */
 
+import { DiagnosticApi } from '../api/diagnostics';
+import { PersistApi } from '../api/persist';
+import { Collections } from '../lib/persistence/Collections';
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Template } from '../lib/stuff/Template';
@@ -41,16 +44,18 @@ import type {
   TopicActor,
   TopicWeight,
   TopicAudience,
+  TopicAffordance,
 } from '@saxonberg/types';
+import { TOPIC_ROOTS } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
 const TopicCatalogueBase = PostRegistrationMixin(Idea);
 
-/** The five facets, as a unit — the slice every tier must produce. */
+/** The six facets, as a unit — the slice every tier must produce. */
 type TopicFacets = Pick<
   TopicDescriptor,
-  'address' | 'actor' | 'weight' | 'audience' | 'durable'
+  'address' | 'actor' | 'weight' | 'audience' | 'durable' | 'affordance'
 >;
 
 /**
@@ -73,6 +78,11 @@ const WEIGHTS: readonly TopicWeight[] = [
   'diagnostic',
 ];
 const AUDIENCES: readonly TopicAudience[] = ['player', 'author', 'all'];
+const AFFORDANCES: readonly TopicAffordance[] = [
+  'live',
+  'decays',
+  'permanent',
+];
 
 export default class TopicCatalogue extends TopicCatalogueBase {
 
@@ -193,10 +203,56 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    * layer entirely — Topic instances have no behavior worth
    * cloning, only data the catalogue cares about.
    */
+  /**
+   * ⚠⚠ **Drop topic rows whose root is not a real root.**
+   *
+   * The seeder is **insert-only**: deleting a seed FILE does nothing to
+   * the row it already wrote. So the taxonomy replacement left every
+   * pre-existing database holding BOTH vocabularies — measured on the
+   * build-1 dev database at the first boot after the change: 126 topic
+   * rows, 89 of them retired. `lint:topics` cannot see this, because it
+   * reads seed files and the stale rows are only in mongo.
+   *
+   * Pruning at boot rather than shipping a migration script is
+   * deliberate: this repo already has a migration script that has never
+   * been run, and a hazard that depends on somebody remembering is a
+   * hazard. Topic rows are pure reference data fully derived from
+   * seeds, so deleting an unrecognized one costs nothing and it comes
+   * straight back if a seed still declares it.
+   *
+   * Scope is narrow on purpose — **root validity only**. It cannot
+   * catch a stale row under a *valid* root (a future rename of
+   * `sense.weather` would leave one behind), and widening it to "any
+   * key not in the shipped seed set" would need the file list, which
+   * the mudlib cannot read. Pack-added leaves always sit under a core
+   * root, so they are never at risk.
+   */
+  private async pruneRetiredRoots(templates: Template[]): Promise<void> {
+    const roots = new Set<string>(TOPIC_ROOTS);
+    const stale = templates.filter((tpl) => {
+      const key = tpl.path.slice(Topic.TEMPLATE_PATH_PREFIX.length);
+      return !roots.has(key.split('.')[0] ?? key);
+    });
+    if (stale.length === 0) return;
+    // No database, nothing to prune — and `deleteMany` would throw.
+    // Unit tests warm the catalogue from stubbed templates with no
+    // connection behind them, which is exactly this case.
+    if (!PersistApi.isConnected()) return;
+    await PersistApi.deleteMany(Collections.Domain, {
+      path: { $in: stale.map((t) => t.path) },
+    });
+    console.log(
+      `TopicCatalogue: pruned ${stale.length} topic row(s) outside the ` +
+        `${TOPIC_ROOTS.length} roots (retired vocabulary)`,
+    );
+  }
+
   private async loadCacheFromTemplates(): Promise<void> {
-    const templates = await Template.findDescendants(
+    let templates = await Template.findDescendants(
       Topic.TEMPLATE_PATH_PREFIX,
     );
+    await this.pruneRetiredRoots(templates);
+    templates = await Template.findDescendants(Topic.TEMPLATE_PATH_PREFIX);
     const map = new Map<string, TopicDescriptor>();
     const communicative = new Set<string>();
     for (const tpl of templates) {
@@ -257,13 +313,14 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           label: `${ancestor.label} (${titleCase(leaf)})`,
           description: ancestor.description,
           // A leaf inherits its ancestor's attention shape along with
-          // its prose — a child of `world.chat` is chatter for the
+          // its prose — a child of `speech.channel` is chatter for the
           // same reason its parent is.
           address: ancestor.address,
           actor: ancestor.actor,
           weight: ancestor.weight,
           audience: ancestor.audience,
           durable: ancestor.durable,
+          affordance: ancestor.affordance,
         };
       }
     }
@@ -293,6 +350,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
           weight?: unknown;
           audience?: unknown;
           durable?: unknown;
+          affordance?: unknown;
         }
       | undefined,
   ): TopicFacets {
@@ -312,8 +370,46 @@ export default class TopicCatalogue extends TopicCatalogueBase {
       audience: pick(data?.audience, AUDIENCES, FACET_FLOOR.audience),
       durable:
         typeof data?.durable === 'boolean' ? data.durable : FACET_FLOOR.durable,
+      affordance: pick(data?.affordance, AFFORDANCES, FACET_FLOOR.affordance),
     };
   }
+
+  /**
+   * ⚠ **Reaching the derived tier is a defect, and it now says so.**
+   *
+   * Deriving a descriptor means a topic is being emitted that nobody
+   * authored. The derivation reads like a real descriptor, which is
+   * exactly why this went unnoticed for so long: when the totality gate
+   * was first run, **45 of the 105 emitted topics had no authored
+   * descriptor at all**.
+   *
+   * Reporting rather than throwing is deliberate — an unauthored topic
+   * is an authoring omission, not a runtime fault, and failing the frame
+   * would punish the player for the author's miss. The frame renders
+   * exactly as before; the omission just stops being invisible.
+   *
+   * Fires **once per key**. A chatty topic would otherwise write a
+   * diagnostic row per frame and bury the store under one mistake.
+   */
+  private reportUnauthored(topic: string): void {
+    if (this.derivedReported.has(topic)) return;
+    this.derivedReported.add(topic);
+    void DiagnosticApi.record({
+      path: null,
+      channel: 'topic.unauthored',
+      severity: 'warning',
+      message:
+        `Topic '${topic}' is emitted but has no authored descriptor, ` +
+        `so it resolved to a derived default. Add a seed under ` +
+        `/obj/Topic/, or route the emitter to an existing topic.`,
+    });
+  }
+
+  /**
+   * Keys already reported by {@link reportUnauthored} — the once-per-key
+   * guard. Transient like the cache itself.
+   */
+  private readonly derivedReported = new Set<string>();
 
   /**
    * Last-resort derived descriptor. Pure structural derivation: the
@@ -321,6 +417,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
    * path prefix becomes the family.
    */
   private deriveFallback(topic: string): TopicDescriptor {
+    this.reportUnauthored(topic);
     const segments = topic.split('.');
     const leaf = segments[segments.length - 1] ?? topic;
     const family = segments.length > 1 ? segments.slice(0, -1).join('.') : '';
@@ -353,5 +450,9 @@ const FACET_FLOOR = {
   weight: 'diagnostic',
   audience: 'all',
   durable: false,
+  // `decays` rather than `permanent`: a wrongly-permanent affordance is
+  // a dead link the UI presents as live, while a wrongly-decaying one
+  // costs only a re-resolve.
+  affordance: 'decays',
 } as const;
 

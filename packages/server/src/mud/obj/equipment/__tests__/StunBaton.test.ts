@@ -9,6 +9,7 @@
  * matchup in `scripts/__tests__/combat-gym.test.ts`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { MixinApi } from '../../../api/mixin';

@@ -23,8 +23,7 @@ options:
     scope: "online"
     field: target
     description: "Address an explicit target. Public — everyone in the room hears, the target is marked."
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
     onExcess: prompt
 args:
   - name: message

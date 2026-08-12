@@ -100,10 +100,8 @@ export function commandFor(node: Extract<MmlNode, { kind: 'tag' }>): string | nu
     return commandForLink(node.attrs.href ?? '');
   }
   if (
-    node.tag === 'item' ||
-    node.tag === 'name' ||
+    node.tag === 'thing' ||
     node.tag === 'location' ||
-    node.tag === 'object' ||
     node.tag === 'player' ||
     node.tag === 'npc'
   ) {

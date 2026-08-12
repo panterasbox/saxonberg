@@ -13,8 +13,10 @@ args:
     type: object
     required: true
     scope: "reachable"
+    requires: ManualBuildMixin
   - name: garnish
     type: object
     required: true
     scope: "reachable"
     prepositions: [with]
+    requires: any

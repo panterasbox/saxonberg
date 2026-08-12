@@ -6,6 +6,7 @@
  * in-circle gates + the instance-state copy).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';

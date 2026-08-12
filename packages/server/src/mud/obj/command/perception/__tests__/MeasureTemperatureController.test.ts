@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import MeasureTemperatureController from '../MeasureTemperatureController';
 import Thermometer from '../../../instrument/Thermometer';

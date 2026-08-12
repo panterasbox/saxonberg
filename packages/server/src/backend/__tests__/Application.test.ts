@@ -16,6 +16,7 @@
  * No new test packages.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';

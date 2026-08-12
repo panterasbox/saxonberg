@@ -56,7 +56,7 @@ import { MagicApi } from '../../../api/magic';
 import { SpellKnowledge } from '../../../lib/magic/SpellKnowledge';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.magic.cast';
+const TOPIC = 'act.deed';
 
 /** The working that specifies the transfer. */
 const TRANSFER_SPELL_PATH = '/obj/magic/Spell/transfer';
@@ -85,7 +85,7 @@ export default class RechargeController extends CommandController<RechargeModel>
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} has nothing in it that would hold a charge.`,
+          Mml.compose`${Mml.thing(target)} has nothing in it that would hold a charge.`,
         )
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'ChargedMixin' });
@@ -175,7 +175,7 @@ export default class RechargeController extends CommandController<RechargeModel>
       .topic(TOPIC)
       .toSelf(Mml.text(moved.report))
       .toPeers(
-        Mml.compose`${Mml.name(actor)} holds ${Mml.item(target)} still, and something passes between them.`,
+        Mml.compose`${Mml.actor(actor)} holds ${Mml.thing(target)} still, and something passes between them.`,
       )
       .send();
   }

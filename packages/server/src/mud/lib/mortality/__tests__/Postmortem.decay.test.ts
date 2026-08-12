@@ -11,6 +11,7 @@
  * objection* rather than destroying anything.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { MORTALITY_DEFAULTS } from '../MortalArc';

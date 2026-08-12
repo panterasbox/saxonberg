@@ -96,7 +96,7 @@ un-genred rule and fair-play detective fiction. Guard against it.
   obscurity **is** the Encyclopedia Brown vibe, and it falls out of the
   shipped recognition/belief substrate for free. See
   [reputation-slate](./reputation-slate.md),
-  [social-graph-slate](./social-graph-slate.md),
+  [social-graph-slate](../tails/social-graph-slate.md),
   [../../subsystems/belief.md](../../subsystems/belief.md).
 - **The gift is deduction made social.** Not "you're smart" — *you can
   make a group smart.* The player looks closer (perception), interrogates

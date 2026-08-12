@@ -13,7 +13,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface MixModel extends CommandModel {
   cocktail: string;
@@ -40,8 +40,8 @@ export default class MixController extends CraftController<MixModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You mix ${Mml.item(drink)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} mixes ${Mml.item(drink)}.`)
+      .toSelf(Mml.compose`You mix ${Mml.thing(drink)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} mixes ${Mml.thing(drink)}.`)
       .send();
   }
 }

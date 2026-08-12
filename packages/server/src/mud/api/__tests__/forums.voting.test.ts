@@ -8,6 +8,7 @@
  * fire); `AppApi.setting` is stubbed for the anti-snowball thresholds.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
 import SubjectCatalogue from '../../obj/SubjectCatalogue';

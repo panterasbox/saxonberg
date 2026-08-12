@@ -7,6 +7,7 @@
  *   - the remittance-split seam routes a cut to a third account, conserving.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";

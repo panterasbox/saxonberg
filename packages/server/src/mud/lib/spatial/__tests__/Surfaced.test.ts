@@ -4,6 +4,7 @@
  * the composition constraint that requires Containable on the host.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SurfacedMixin } from '../Surfaced';
 import { ContainableMixin } from '../Containable';

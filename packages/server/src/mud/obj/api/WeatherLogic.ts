@@ -978,14 +978,14 @@ export class WeatherLogic extends ApiLogic {
 
   /** See {@link WeatherApi.onBoundary}. */
   @CallSecurity(WeatherApiCallers)
-  public onBoundary(): void {
-    void runBoundaryFanout();
+  public onBoundary(): Promise<void> {
+    return runBoundaryFanout();
   }
 
   /** See {@link WeatherApi.onStormTick}. */
   @CallSecurity(WeatherApiCallers)
-  public onStormTick(): void {
-    void runStormFanout();
+  public onStormTick(): Promise<void> {
+    return runStormFanout();
   }
 
   /** See {@link WeatherApi.strikeIntervalSeconds}. */

@@ -30,8 +30,8 @@ const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
 );
 
 /** The roster wire topic — a presence-PUBLIC channel, distinct from the
- *  notify-rule-gated `world.social.presence` notification surface. */
-const ROSTER_TOPIC = 'world.social.roster';
+ *  notify-rule-gated `session.presence` notification surface. */
+const ROSTER_TOPIC = 'self.group';
 
 /** Default idle threshold (seconds) when AppSettings isn't warmed. */
 const IDLE_AFTER_FALLBACK = 300;

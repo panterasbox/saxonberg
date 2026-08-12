@@ -7,6 +7,7 @@
  * hook forces the `sense` verb, not `look`).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import SenseController from '../SenseController';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -126,7 +127,7 @@ function modelOf(target: MqlOneResult | undefined): CommandModel {
 }
 
 describe('SenseController', () => {
-  it('bare sense fires world.perception.sense.sense with viewer-sensorium filter', () => {
+  it('bare sense fires sense.survey with viewer-sensorium filter', () => {
     const fix = makeFixture(['vision', 'hearing', 'smell']);
     (fix.location as unknown as {
       setLongDescription: (s: string) => void;
@@ -142,7 +143,7 @@ describe('SenseController', () => {
     const f = fix.giver.received.at(-1);
     // Topic is fixed per the verb-as-topic principle — channel
     // attribution lives in body MML, not in the topic.
-    expect(f?.topic).toBe('world.perception.sense.sense');
+    expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('A bright hall.');
     expect(f?.body).toContain('Footsteps echo.');
     expect(f?.body).toContain('Old varnish.');
@@ -161,7 +162,7 @@ describe('SenseController', () => {
     const c = makeStuff(() => new SenseController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.sense');
+    expect(f?.topic).toBe('sense.survey');
   });
 
   it('sense on untagged-only-prose room fires same topic', () => {
@@ -173,7 +174,7 @@ describe('SenseController', () => {
     const c = makeStuff(() => new SenseController());
     c.execute(modelOf(target), ctxOf(fix));
     const f = fix.giver.received.at(-1);
-    expect(f?.topic).toBe('world.perception.sense.sense');
+    expect(f?.topic).toBe('sense.survey');
   });
 
   it('sense <target> mirrors look <target> shape with gestalt filter', () => {

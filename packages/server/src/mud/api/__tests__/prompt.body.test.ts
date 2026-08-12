@@ -1,13 +1,14 @@
 /**
  * Wave 2: PromptApi body MessageFrame correlation.
  *
- * Push with `opts.body` set emits a `world.prompt` MessageFrame
+ * Push with `opts.body` set emits a `shell.prompt` MessageFrame
  * carrying `payload: { promptId }` BEFORE the PromptEnvelope so
  * the client can correlate the long-form prose with the prompt.
  *
  * Push without body emits only the envelope; no MessageFrame.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PromptApi } from '../prompt';
 import { EventApi } from '../event';
@@ -84,7 +85,7 @@ describe('PromptApi — body MessageFrame correlation', () => {
     // Frame first, envelope second.
     expect(events).toHaveLength(2);
     expect(events[0]!.kind).toBe('frame');
-    expect((events[0]! as { topic: string }).topic).toBe('world.prompt');
+    expect((events[0]! as { topic: string }).topic).toBe('shell.prompt');
     expect(events[1]!.kind).toBe('envelope');
     expect((events[1]! as { type: string }).type).toBe('prompt');
 

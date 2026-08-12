@@ -16,7 +16,7 @@ export default class InventoryController extends CommandController {
     const actor = context.commandGiver;
     if (!MixinApi.isContainer(actor)) {
       MessageApi.scene(actor)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You have no inventory.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'ContainerMixin' });
@@ -28,13 +28,13 @@ export default class InventoryController extends CommandController {
     if (contents.length === 0) {
       body = Mml.compose`\nYou are not carrying anything.\n`;
     } else {
-      const items = contents.map((item) => Mml.item(item));
+      const items = contents.map((item) => Mml.thing(item));
       const list = Mml.list(items);
       body = Mml.compose`\nYou are carrying: ${list}.\n`;
     }
 
     MessageApi.scene(actor)
-      .topic('world.perception.inventory')
+      .topic('sense.survey')
       .toSelf(body)
       .send();
 

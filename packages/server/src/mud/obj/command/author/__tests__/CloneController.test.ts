@@ -4,6 +4,7 @@
  * self-placement (Layer 3), giver-fallback (Layer 4).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CloneController from '../CloneController';
 import { Idea } from '../../../../lib/stuff/Idea';

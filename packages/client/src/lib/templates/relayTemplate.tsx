@@ -1,6 +1,5 @@
 /**
- * relayTemplate — relay chat frames (`world.twitch.message` /
- * `world.youtube.message`, the unified stream-chat relay).
+ * relayTemplate — relay chat frames (`speech.relay`, the unified stream-chat relay).
  *
  * A distinct, OOC/meta treatment separate from in-world chat: a
  * per-platform provenance chip (Twitch-purple / YouTube-red), the sender's

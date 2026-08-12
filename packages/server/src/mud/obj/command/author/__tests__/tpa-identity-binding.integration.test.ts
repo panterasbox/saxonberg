@@ -10,6 +10,7 @@
  * gates refuse the ride.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import RegisterController from "../../movement/RegisterController";
 import TeleportController from "../TeleportController";

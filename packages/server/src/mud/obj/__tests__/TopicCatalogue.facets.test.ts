@@ -52,7 +52,9 @@ function seeds(): Seed[] {
 
 describe('topic seeds — every topic answers every facet', () => {
   it('the corpus is non-trivial (guards against an empty glob)', () => {
-    expect(seeds().length).toBeGreaterThan(50);
+    // The corpus is 37 rows after the taxonomy replacement (was 89).
+    // Floor guards a mis-pathed seed directory, not a size target.
+    expect(seeds().length).toBeGreaterThan(30);
   });
 
   it('every seed carries all five facets', () => {
@@ -97,20 +99,31 @@ describe('topic seeds — the facets carry information the path does not', () =>
     // The case the tree structurally cannot express: one family, three
     // different answers to "who is this aimed at". If these ever
     // collapse to one value, the facet has stopped earning its place.
+    //
+    // ⚠ This test is why `speech.quiet` exists as its own leaf rather
+    // than folding into `speech.vocal` with say and shout. `address` is
+    // a facet OF THE TOPIC, so one topic can hold exactly one value —
+    // and a whisper aimed at you must not inherit a shout's
+    // `broadcast`, or it stops earning a notification. Say and shout DO
+    // share a topic: they differ in reach, not in who they are aimed
+    // at, and `meta.acousticDb` (60 / 90) already carries reach on the
+    // frame. A per-frame address override would let all three share one
+    // topic; until that exists, this split is the honest cost of a
+    // topic-scoped facet.
     const by = new Map(seeds().map((s) => [s.topic, s.data]));
-    expect(by.get('world.speech.say')?.address).toBe('broadcast');
-    expect(by.get('world.speech.whisper')?.address).toBe('personal');
-    expect(by.get('world.speech.dm')?.address).toBe('direct');
+    expect(by.get('speech.vocal')?.address).toBe('broadcast');
+    expect(by.get('speech.quiet')?.address).toBe('personal');
+    expect(by.get('speech.comms')?.address).toBe('direct');
   });
 
   it('a measurement is durable; ambient texture is not', () => {
     const by = new Map(seeds().map((s) => [s.topic, s.data]));
     // A reading is a fact with a timestamp — true forever.
     expect(
-      by.get('world.perception.measurement.measure-temperature')?.durable
+      by.get('sense.reading')?.durable
     ).toBe(true);
     // What the room smelled like is not worth a transcript line.
-    expect(by.get('world.perception.ambient.smell')?.durable).toBe(false);
+    expect(by.get('sense.surroundings')?.durable).toBe(false);
   });
 
   it('quiet mode is one rule, not a list of paths', () => {
@@ -130,7 +143,7 @@ describe('topic seeds — the facets carry information the path does not', () =>
   it('the authoring shell is the only author-audience family', () => {
     for (const s of seeds()) {
       if (s.data.audience === 'author') {
-        expect(s.topic.startsWith('system.shell')).toBe(true);
+        expect(s.topic).toBe('shell.diagnostic');
       }
     }
   });

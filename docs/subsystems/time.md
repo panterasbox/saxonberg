@@ -381,7 +381,7 @@ grade values on the analytical path.
 (sextant) branch; anything else → the existing barometric-altitude
 path. Instruments are `Thing`s carrying the verb via
 `commandContributions.inventory`. Topic strings reuse the free-form
-`world.perception.measurement.*` family (no perception-file edit).
+`sense.reading.*` family (no perception-file edit).
 
 ---
 

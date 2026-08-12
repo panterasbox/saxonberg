@@ -9,6 +9,7 @@
  * method relies on).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GroupApi } from '../group';
 import { Group } from '../../lib/social/Group';

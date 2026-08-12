@@ -49,7 +49,7 @@ precisely.
   body, optional structured payload, and metadata. See "Wire envelope".
 - **Topic** — *intrinsic* hierarchical classification of a message's
   nature/content. Mandatory. Framework-defined and stable. Dot-separated
-  path. Example: `world.speech.say`. Answers "what kind of message is
+  path. Example: `speech.vocal`. Answers "what kind of message is
   this?"
 - **Tag** — orthogonal flat property attached to a frame.
   Namespace-prefixed string (`audience:witness`). Open set.
@@ -193,16 +193,16 @@ Conventions:
 
 - All paths lowercase, dot-separated.
 - Leaves should be specific enough that a single MML template applies
-  (`world.speech.say` is a leaf; `world.speech` is not).
+  (`speech.vocal` is a leaf; `speech` is not).
 - Adding a new topic requires no framework changes — producers just emit
   the new topic string.
 - Controller-side failures aren't a special topic. A `look` that
-  found nothing still composes prose at `world.perception.look`;
+  found nothing still composes prose at `sense.look`;
   failure is captured in the dispatch-response envelope's
   `outcome.status` + `notes`, AND in the prose the controller
   fires at the same domain topic it would have used on success.
 - **Framework-side** failures (parse, MQL, validator,
-  controller-throw) DO have a special topic — `system.command.error`
+  controller-throw) DO have a special topic — `shell.error`
   — populated by the dispatcher's end-of-execute prose sweep. The
   player sees WHY a bad command was rejected without the client
   needing to render envelopes. See
@@ -213,7 +213,7 @@ sites:
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic('world.speech.say')
+  .topic('speech.vocal')
   ...
 ```
 
@@ -227,9 +227,9 @@ player-facing descriptor (friendly label, description, family for the
 cockpit's filter drawer, gutter tooltips, etc.). See
 [topics.md](./topics.md).
 
-`'system.log'` is the prefix used for "all log frames" matching;
-`system.log.command` is the framework-emitted **input-echo** topic
-(see "Input echo at `system.log.command.*`" below).
+`'shell.diagnostic'` is the prefix used for "all log frames" matching;
+`shell.diagnostic` is the framework-emitted **input-echo** topic
+(see "Input echo at `shell.diagnostic.*`" below).
 
 ## Tags
 
@@ -263,15 +263,14 @@ class Mml {
   static fromMarkup(raw: string): Mml          // explicit trust assertion
 
   // Identity vocabulary
-  static name(stuff: Stuff): Mml               // <name stuff-id="…">…</name>
+  static actor(stuff: Stuff): Mml              // → <player> | <npc> | <thing>
+  static thing(stuff: Stuff): Mml              // <thing stuff-id="…">…</thing>
+  static player(stuff: Stuff): Mml             // <player stuff-id="…">…</player>
+  static npc(stuff: Stuff): Mml                // <npc stuff-id="…">…</npc>
   static speech(text: string | Mml): Mml       // <speech>"…"</speech>
   static location(stuff: Stuff): Mml           // <location stuff-id="…">…</location>
   static direction(d: string): Mml             // <direction>…</direction>
   static exit(exit: Exit): Mml                 // <exit dir="…" stuff-id="…">…</exit>
-  static object(stuff: Stuff): Mml             // <object stuff-id="…">…</object>
-  static item(stuff: Stuff): Mml               // <item stuff-id="…">…</item>
-  static player(stuff: Stuff): Mml             // <player stuff-id="…">…</player>
-  static npc(stuff: Stuff): Mml                // <npc stuff-id="…">…</npc>
 
   // Chat / messaging vocabulary
   static chan(id: string, label: string): Mml  // <chan id="…">[Label]</chan>
@@ -544,6 +543,77 @@ Future contributors (exit-direction auto-link on
 spoiler hide) plug in via the same `static markupAugmenters`
 slot with no changes to `Visible` or its consumers.
 
+### ⭐ The identity tags — `actor` / `thing` / `player` / `npc`
+
+Three wire tags, one authoring face. The vocabulary used to have five
+(`name`, `item`, `object`, `player`, `npc`); the collapse is the point
+of the change, and each half of it was wrong in a different way.
+
+**`item` vs `object` split on portability — which is state, not kind.**
+A chair is furniture until somebody picks it up. Nothing downstream
+ever branched on the difference, so the split cost two vocabulary
+entries and bought nothing. Both are now **`thing`**.
+
+**`name` asserted nothing**, which is exactly why 195 of the tree's
+~230 identity emitters reached for it. An emitter holds a `giver` and
+cannot know whether a human is on the other end — so it reached for the
+tag that let it not say. The wire learned nothing from any of them.
+
+**`Mml.actor` is the face that replaces it**, and it resolves late:
+
+```typescript
+Mml.actor(giver)   // the emitter says "a person acting" and stops
+// → <player …> | <npc …> | <thing …>, decided at toString(viewer)
+```
+
+The decision is `RecognitionApi.kindOf(viewer, target)`, which lives
+beside `describe` because it is the same question — *what does THIS
+recipient perceive* — asked about the kind instead of the name. It
+answers in four steps:
+
+| Gate | Answer | Why |
+|---|---|---|
+| not an `Organism` | `thing` | Honest failure. Handing an actor face a chair must not promote it to a character. |
+| no `HasInteractive` | `npc` | Alive, nobody driving. |
+| no viewer | `player` | Logs, snapshots, `refOf`. Nobody is being fooled, and a log that lied would be useless. |
+| can't see it, or it's masked | `npc` | ⚠ See below. |
+| otherwise | `player` | |
+
+> ⚠⚠ **`<player>` is the sharpest identity claim in the vocabulary.**
+> It asserts a real person is behind a figure — precisely the fact a
+> disguise exists to hide. So a viewer who cannot see the target, or
+> who is looking at a mask, is told `npc`. That is a **false statement
+> told to a fooled viewer**, and it is consistent: `getPresentation()`
+> already tells that viewer the covering's name. The alternative — a
+> third "unknown" tag — would announce *that* something is being
+> withheld, which leaks the same fact one level up.
+
+**`actor` is never a wire tag.** It is not in `KNOWN_TAGS`, it never
+reaches a parser, a policy, a stylesheet or a client, and a test pins
+its absence. Nothing downstream grows a branch for a tag meaning "ask
+again."
+
+> ⚠ **Any list of "what is here" must use `Mml.actor`.** Room contents
+> include people. `look` splits organisms out to the occupant formatter
+> and so was already right; the **sense** verbs do not, and rendered a
+> person `<thing>` — Dave read `<thing>` under `sense` and `<npc>` under
+> `look`, in the same room, seconds apart. The divergence long predated
+> this build and was invisible while both tags meant nothing. Same for
+> surface-resting lists (someone sits on a stool) and search results
+> (what a search turns up is very often a hiding person). Only a
+> definitionally-object list — inventory — stays `Mml.thing`.
+
+**Use `player` / `npc` / `thing` directly only where the emitter knows
+something the world does not** — the puppeteer behind a possessed
+corpse, an illusion that should read as a person, a corpse being named
+as an object. Those are the cases the framework must not guess at, and
+they stay explicit. Everything else says `actor`.
+
+All three wire tags are **identity claims**, so no passthrough policy
+below `all` admits them — a player who could write `<player>` could out
+somebody, and one who could write `<thing>` could plant a clickable
+pointing at an object that is not there.
+
 ## Scene — multi-audience composer
 
 `MessageApi.scene(actor)` returns a `Scene` builder. Layer 3 of the
@@ -552,9 +622,9 @@ dispatches them all.
 
 ```typescript
 MessageApi.scene(speaker)
-  .topic('world.speech.say')
+  .topic('speech.vocal')
   .toSelf(Mml.compose`You say, ${Mml.speech(text)}`)
-  .toPeers(Mml.compose`${Mml.name(speaker)} says, ${Mml.speech(text)}`)
+  .toPeers(Mml.compose`${Mml.actor(speaker)} says, ${Mml.speech(text)}`)
   .payload({ speaker: MessageApi.refOf(speaker), text })
   .send();
 ```
@@ -666,7 +736,7 @@ resonance field, hybrid mesh — diegetically per zone). A character
 can compose Vocal without Aether (mute) or Aether without Vocal
 (post-vocal-loss with an implant); both are independent.
 
-`AetherMixin.tell(target, text)` fires `world.speech.dm` with
+`AetherMixin.tell(target, text)` fires `speech.comms` with
 chat-form bodies (`<speaker> → <target>: <body>` self,
 `<speaker> → you: <body>` target). Self is a valid target. Markdown
 parsing runs through `Mml.markdownToMml` with the speaker's perceiver
@@ -694,8 +764,8 @@ respectively) for the sound-propagation walk's reach computation.
 With `--to <target>` (a flag on `say.yaml` / `shout.yaml`), the
 room still hears, but the target gets a marked target-frame
 ("Bobalu says to you, …"); whisper is implicitly directed so its
-`target` is a required positional. Topics: `world.speech.say`,
-`world.speech.whisper`, `world.speech.shout`.
+`target` is a required positional. Topics: `speech.vocal`,
+`speech.quiet`, `speech.vocal`.
 
 ### SoulMixin — expressive (emote) on every Character
 
@@ -709,7 +779,7 @@ separately for remote delivery. The mixin owns rendering
 AND in-room send (`emote` / `emoteFree` compose Scene + send,
 Containable-wins). Channel-routed / DM-handle-routed emotes call
 the render methods directly and compose their own Scene. Topic:
-`world.expression.emote`. Modality stamp: `'emotive-esp'`. See
+`act.emote`. Modality stamp: `'emotive-esp'`. See
 [emotes.md](./emotes.md) for the full substrate (Emote Documents,
 EmoteGrammar, SoulCatalogue, dispatch paths).
 
@@ -811,11 +881,11 @@ skip `handleMessage` and break delivery. Game content uses
 
 `MudlogApi` (`mud/api/mudlog.ts`) is the in-game messaging facility for
 log-style content. Every call delivers to a Sensor. Topic is
-`system.log.<level>` (no category) or `system.log.<category>.<level>`.
+`shell.diagnostic.<level>` (no category) or `shell.diagnostic.<category>.<level>`.
 
 ```typescript
 class MudlogApi {
-  // Body-only — topic system.log.<level>
+  // Body-only — topic shell.diagnostic.<level>
   static trace(body: Mml, opts?: MudlogOptions): void;
   static debug(body: Mml, opts?: MudlogOptions): void;
   static info (body: Mml, opts?: MudlogOptions): void;
@@ -823,7 +893,7 @@ class MudlogApi {
   static error(body: Mml, opts?: MudlogOptions): void;
   static fatal(body: Mml, opts?: MudlogOptions): void;
 
-  // Categorized — topic system.log.<category>.<level>
+  // Categorized — topic shell.diagnostic.<category>.<level>
   static trace(category: string, body: Mml, opts?: MudlogOptions): void;
   // …debug/info/warn/error/fatal same shape
 
@@ -869,24 +939,24 @@ MudlogApi.info(Mml.compose`Boot complete`);   // body-only
 
 if (MudlogApi.isEnabled('combat', 'debug')) {
   MudlogApi.debug('combat',
-    Mml.compose`${Mml.name(attacker)} swing detail: ${expensive.computation()}`);
+    Mml.compose`${Mml.actor(attacker)} swing detail: ${expensive.computation()}`);
 }
 
 MudlogApi.info('admin',
-  Mml.compose`${Mml.name(player)} just hit level 50`,
+  Mml.compose`${Mml.actor(player)} just hit level 50`,
   { to: [admin1, admin2] });
 ```
 
 The standard level constants are exported as `MUDLOG_LEVELS` for
 diagnostic UIs that want to render every level.
 
-### Input echo at `system.log.command.*`
+### Input echo at `shell.diagnostic.*`
 
 `CommandGiverMixin.executeCommand` fires an **input-echo** MessageFrame
 at the *start* of every dispatch — before parsing, matching, or
 controller execution. The frame carries topic
-`system.log.command.info` when the parser succeeded or
-`system.log.command.warn` when it failed; payload is:
+`shell.diagnostic.info` when the parser succeeded or
+`shell.diagnostic.warn` when it failed; payload is:
 
 ```typescript
 {
@@ -906,7 +976,7 @@ Interactive on the actor. Use cases:
 - **Multi-device echo** — an Avatar's other Interactives see what
   their sibling typed; the client filters its own echo by comparing
   `payload.originInteractiveId` against the `interactiveStuffId` it
-  stashed from `system.connection.established`.
+  stashed from `session.link`.
 - **Audit trail** — server-side audit Sensors observe player input
   independently of any dispatch outcome.
 - **Replay capture** — structured `kind: 'issued'` records replay
@@ -942,7 +1012,7 @@ The override hierarchy `MobileMixin` consults (highest priority first):
 3. **`messages.movement.*` settings** — schema-defaulted, player-overridable.
 
 Each schema entry's default is rendered through `ProseApi.format`,
-which interpolates `Mml.name(mover)` and `Mml.direction(...)` and
+which interpolates `Mml.actor(mover)` and `Mml.direction(...)` and
 handles the directional/bland arrive split via `{% if direction %}`
 inside a single template — see [prose.md](./prose.md) for the
 templating language.
@@ -977,7 +1047,7 @@ and carries `commandId: string` for attribution.
 3. Pushes the CommandContext onto `ExecutionContextApi.commandContext`
    AND sets `causingCommandId` to the same id.
 4. Emits the input-echo MessageFrame (see "Input echo at
-   `system.log.command.*`" above) and the dispatch-response envelope
+   `shell.diagnostic.*`" above) and the dispatch-response envelope
    carries the outcome.
 5. Invokes the controller.
 6. Pops on return (including error paths). `causingCommandId` clears
@@ -1058,12 +1128,12 @@ the producer composes both at the same call site (one Scene, multiple
 ### Topic vs tags vs scope
 
 Multi-axis classification doesn't fit a single hierarchy. Topic encodes
-the producing subsystem (speech machinery → `world.speech.*`); tags
+the producing subsystem (speech machinery → `speech.*`); tags
 capture orthogonal properties (`audience:witness`); scope is a
 producer-side concern that disappears once the frame lands.
 
 Two roots — `world.*` and `system.*` — and that's it. Logs are
-`system.log.*`. Widgets are NOT a topic root; widgets are renderers
+`shell.diagnostic.*`. Widgets are NOT a topic root; widgets are renderers
 that consume topic streams and are registered on the client side.
 
 ### Sensors are the only recipient type

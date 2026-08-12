@@ -3,6 +3,7 @@
  * rejects when the actor holds nothing to blow.
  */
 
+import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BlowController from '../BlowController';
 import Whistle from '../../Whistle';

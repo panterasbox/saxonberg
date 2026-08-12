@@ -73,7 +73,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │     when an alias fires) — see shell-alias.md. Skipped on the bound
    │     branch (LLM parsers chose the verb directly).
    │
-   ├─ emit input echo MessageFrame at system.log.command.{info|warn}
+   ├─ emit input echo MessageFrame at shell.diagnostic.{info|warn}
    │     (payload kind: 'issued'; see messaging.md)
    │
    ├─ if ParseResult.parsed: _runChain
@@ -95,7 +95,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │
    │   after _runChain: dispatcher walks accumulator notes,
    │   per framework-emitted failure note fires a scene on
-   │   system.command.error so a bad command surfaces WHY
+   │   shell.error so a bad command surfaces WHY
    │   without client-side envelope rendering (see § Envelope
    │   vs scene split below).
    │
@@ -542,10 +542,10 @@ on the first `onConnectionAttached`. Pre-subscription pushes
 (hydration, boot-time) don't fire spurious frames. After the gate
 opens:
 
-- Every push emits a `system.commands.added` frame per
+- Every push emits a `shell.control` (`schema:added`) frame per
   `CommandSchemaPayload`.
-- Every pop emits a `system.commands.removed` with `{ verb }`.
-- The gate-open itself emits one `system.commands.reset` carrying
+- Every pop emits a `shell.control` (`schema:removed`) with `{ verb }`.
+- The gate-open itself emits one `shell.control` (`schema:reset`) carrying
   the full deduped payload (the client uses this as its baseline
   schema view).
 
@@ -683,7 +683,7 @@ or option named `subcommand` — caught at load time.
 ### Phase 3a — opt-in subcommand → flat-args fallthrough
 
 Most subcommanded verbs (`measure`, `alias`, `prompt`, `analyze`,
-`settings`, `style`, `var`) want unknown first tokens to surface
+`settings`, `cockpit`, `var`) want unknown first tokens to surface
 as `unknown-subcommand`. A small minority — `chat` is the
 canonical example — want unknown first tokens to fall through
 into a bare-form positional bind: `chat <channel> <msg>` is a
@@ -1296,7 +1296,7 @@ Live recency-stack entries that already hold a reference to the old
 reloaded definition. For most dev workflows, "edit YAML →
 invalidate → move yourself in/out of the affected container" is a
 two-line console sequence. Wiring full HMR for command YAMLs (file-
-watcher → invalidate → broadcast `system.commands.reset`) is a
+watcher → invalidate → broadcast `shell.control` (`schema:reset`)) is a
 future task.
 
 ## Frame attribution
@@ -1408,6 +1408,221 @@ Two requirements drove this:
 
 Destructing in `finally` keeps `StuffApi`'s template/instance indexes
 from accumulating ephemeral entries.
+
+## Affordance resolution — the read side of dispatch
+
+`CommandApi.resolveAffordances(target, viewer)` answers **"what can
+this viewer do with this object, right now?"** — the server-side half
+of the client's radial menu. Inbound op `affordance-resolve`, outbound
+`affordance-result` / `affordance-error`, one-shot request/response
+(`backend/inbound/affordance.ts`).
+
+It reuses the pipeline rather than paralleling it. Candidates come from
+`viewer.getAffordances()` — already attributed and already scoped to
+what the viewer can reach — filtered two ways: an affordance whose
+`source` **is** the target belongs in its menu, and one of the viewer's
+own verbs belongs only if it declares an object-shaped field the target
+could fill. Each survivor gets a `CommandContext`, an async
+`preloadValidatorDeps` pass, and `runValidators` — **no dispatch**.
+
+### The three states
+
+| State | When |
+|---|---|
+| `enabled` | Every evaluable validator passed |
+| `disabled` | One failed — carries its reason **verbatim** |
+| `pending-operand` | Passed, but a second object field is unbound |
+
+Reasons are the validator's own return value, unmodified. A validator's
+return is already what the player would have been shown had they typed
+the verb, so rewording here would create a second, driftable copy of
+every refusal in the game.
+
+> ⭐ **`pending-operand` is what keeps a radial honest.** `put <item> in
+> <target>` binds the item from the menu's subject but the container is
+> an operand no menu can know. Reporting it `enabled` promises a click
+> that then stalls on a prompt.
+>
+> ⚠⚠ It is also a **correctness** state, not a cosmetic one. The
+> unbound field carries its own validators (`mustBeVisible`,
+> `mustBePutTarget`), which run against `undefined` and fail — so
+> without this, `put` reports flatly unavailable on every object in the
+> game. A refusal aimed at a field nobody has chosen yet is not a
+> refusal.
+
+### Two gates, and both DELETE
+
+Nothing is returned present-and-flagged. A response that admits a
+hidden verb exists leaks the fact that it exists (the honest-fog rule —
+see [concealment.md](./concealment.md)).
+
+1. **Perception.** `PerceptionApi.perceives` fails → `affordance-error`
+   with the single reason code `unresolvable`. ⚠ One code deliberately:
+   distinguishing "no such object" from "not for you" would answer the
+   question the gate exists to refuse, turning a probe for unknown ids
+   into a map of what is hidden nearby.
+2. **Identification.** An `Identifiable` target the viewer has not
+   identified reports an **empty** composition — not a redacted one —
+   and none of the verbs *it* contributes, because a contributed verb
+   is a statement about what the thing is. An unidentified wand must
+   not advertise `recharge`. The viewer's own verbs survive: `look` is
+   a fact about the viewer.
+
+### The candidate set is no longer purely syntactic — `requires:`
+
+⚠ **This section previously recorded the gap as open. It is closed.**
+
+The resolver's mechanism is still syntactic: it offers any verb
+declaring an object-shaped positional and lets the validator chain
+decide. What changed is the **specs** — every object-typed slot now
+states what it accepts, so the chain has something semantic to say.
+
+> **Every `type: object` / `type: objects` field declares
+> `requires:`.** One field, one rule. Enforced by
+> `pnpm lint:arg-kinds --lint` in CI.
+
+`attack`, `drink` and `talk` on a room are closed. (`cast` is not, and
+deliberately — see below.)
+
+#### ⭐ A slot states what it accepts; it does not import a function that says no
+
+```yaml
+- name: target
+  type: object
+  requires: SealableMixin                     # must compose it
+- name: target
+  requires: [VisibleMixin, ContainableMixin]  # a list is AND
+- name: fuel
+  requires: CombustibleMixin|FurnaceMixin     # `|` inside an entry is OR
+- name: target
+  requires: any                               # deliberately unconstrained
+```
+
+The framework synthesises the check at spec-load
+(`CommandApi.resolveRequirement`) and **prepends** it to the slot's
+validator chain, so dispatch and the affordance resolver see an
+ordinary validator and know nothing about the declaration.
+
+**What this replaced, and why.** The predecessor was ~34 near-identical
+validator files — each one `MixinApi.isX` plus one sentence — alongside
+a bare `targetKind: any` marker. Neither said what the slot *accepted*:
+`'any'` was an author's unverifiable promise (review found **three of
+its fifty declarations were wrong**, and nothing could have caught
+them), and a rejective validator can never describe what *would*
+satisfy it. A mixin name resolves against the `Mixins` registry or the
+spec does not load — that is the whole difference.
+
+Three consequences worth naming:
+
+- **The door rule is the framework's now.** MQL lands on a door two ways
+  — by keyword (`open oak`) or by direction (`open north`), where the
+  door rides the match's `via.exit` and is *not* the matched Stuff.
+  Every `requires:` check resolves through `MqlApi.effectiveTarget`, so
+  every slot gets the direct-first / door-second walk. It used to be
+  copy-pasted into the six validators whose authors remembered it.
+- **The refusal sentence lives on the mixin** (`MixinRefusals` in
+  `lib/mixin.ts`), with `{}` standing for the target's presentation.
+  The phrase is a property of the capability, not the verb —
+  `SealableMixin` means the same to `open`, `close` and `knock`, and
+  `VisibleMixin` is declared at 34 sites.
+- **The lint script lost its private opinion.** It used to hold a
+  hand-maintained list of six validator names classifying kind from
+  relation. It reads one field now, and reports **two tiers** (see
+  below).
+
+#### ⚠⚠ Kind only — the three axes
+
+`requires:` is the **kind** axis: what the thing *is*, by composition.
+Two axes stay hand-written validators, because they are not properties
+of the target:
+
+- **relation** — `canReach`, `mustBeInInventory`, `mustBeHeld`: needs
+  the viewer, and is recomputed every resolve.
+- **state** — already open, currently lit, out of charge: changes
+  between one moment and the next, and a menu must not freeze it into a
+  greyed-out row.
+
+A slot may declare `requires:` **and** carry validators; that is the
+normal shape for anything with a condition beyond composition. `eat`
+declares `VisibleMixin` and keeps `mustBeEdible`, which asks a question
+composition cannot answer — the target's bulk **Material** must declare
+`edibility`. `drink` is the same shape with `mustHaveBulkSlot`: a thing
+can compose `BulkableMixin` and still expose no slot, so the refusal is
+`BulkableApi.slotFor(x) === null`, not the mixin.
+
+⚠ Composition, not **activation**. The check is `MixinApi.hasMixin`. A
+capability that must be *active* (augment-conferred — `isMaker` and
+friends) is a state question and keeps its validator.
+
+#### ⚠ The `class:` escape is closed
+
+One entry: `class:Agent`, the "is this a person" gate behind `whisper`,
+`dm`, `give`, `introduce` and sixteen more. It exists because the
+top-level Stuff types are the hierarchy itself rather than a capability
+bolted onto it, and `instanceof` is the sanctioned check for them.
+
+A second entry is a design conversation, not a map edit. The pull
+toward "just add the class" is the pull that made `plant` refuse with
+`instanceof Seed` — and the answer there was to extract
+`PlantableMixin`, because a cutting, a tuber and a bulb should not have
+to inherit from `Seed` to be plantable.
+
+#### ⚠ A wrong declaration is worse than a missing one
+
+Over-reporting offers a verb that then declines with a reason.
+**Under-reporting hides a verb that would have worked**, and the player
+has no way to discover it. So the sweep is conservative in one
+direction: where a controller's refusal cannot be expressed as a
+property of the target *alone*, the slot declares `any` and **says so**.
+
+`cast` is the standing example. `CastController` refuses on the
+**spell's** own target rule, which is not a property of the arg — so
+`cast`'s target declares `requires: any` and the spell keeps its
+refusal. Inventing a kind constraint to make the count look complete is
+precisely the failure this rule names.
+
+⚠ Never declare `any` on a field whose controller **does** refuse by
+kind. That is not an exemption; it is a lie in the one place a reviewer
+would go looking for the truth.
+
+#### The gate reports two tiers
+
+`pnpm lint:arg-kinds` separates two claims that used to hide in one
+number:
+
+| Tier | Scope | What a miss means |
+|---|---|---|
+| **menu** | verb-level object *positionals* (117) | a false figure on a player's screen |
+| **all** | every object-typed field (157) | dispatch hygiene — real, but nobody sees it |
+
+Options are excluded from the menu tier deliberately (`cd --mql` would
+otherwise put every shell verb in every object's menu) and subcommand
+args structurally (`CommandDefinition.args` is empty for a subcommanded
+verb). Both tiers gate; they are reported apart so a regression says
+which one it broke.
+
+⚠ Do **not** close any remaining gap by teaching the resolver a table of
+which verbs suit which targets. That is a second taxonomy describing
+what the specs already know, and it would drift the moment a verb
+changed. This project has refused that shape twice.
+
+### What it is not
+
+⚠ **Not a gate, and it must never become one.** A verb reported
+`enabled` still faces the full chain when it is actually run; anything
+that trusted this answer instead of re-checking would be trusting a
+snapshot of a world that has moved.
+
+⚠ **Validators must be side-effect free**, and this caller is what
+makes that a requirement rather than an assumption — an open radial
+resolves repeatedly, so a validator that wrote anything would turn
+hovering into an action. A test resolves 25 times and asserts the
+answer is byte-identical.
+
+The `commandId` stamped on a probe context is the fixed sentinel
+`affordance-probe`, so nothing correlating by command id (attribution,
+the accountability ledger, `causingCommandId`) can mistake a menu
+opening for a command.
 
 ## Cross-references
 

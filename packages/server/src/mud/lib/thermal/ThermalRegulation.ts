@@ -607,7 +607,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const host = this.regHost;
       try {
         MessageApi.scene(host)
-          .topic("world.sensation.interoception")
+          .topic("self.body")
           .toSelf(Mml.compose`${text}`)
           .send();
       } catch {

@@ -34,7 +34,7 @@ export default class LockController extends CommandController<LockModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Lock what?`)
         .send();
       context.note({
@@ -46,7 +46,7 @@ export default class LockController extends CommandController<LockModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -63,7 +63,7 @@ export default class LockController extends CommandController<LockModel> {
     );
     if (!lockable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't lock that.`)
         .send();
       context.note({
@@ -76,7 +76,7 @@ export default class LockController extends CommandController<LockModel> {
 
     if (lockable.isLocked()) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`It is already locked.`)
         .send();
       context.note({
@@ -90,10 +90,10 @@ export default class LockController extends CommandController<LockModel> {
     lockable.lock();
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
-      .toSelf(Mml.compose`You lock ${Mml.object(lockable as unknown as Stuff)}.`)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You lock ${Mml.thing(lockable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} locks ${Mml.object(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} locks ${Mml.thing(lockable as unknown as Stuff)}.`,
       )
       .send();
 

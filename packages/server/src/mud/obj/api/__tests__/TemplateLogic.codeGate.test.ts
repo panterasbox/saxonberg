@@ -18,6 +18,7 @@
  * Mongo is faked collection-aware (domain + authoring_events).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TemplateApi, TemplateError } from "../../../api/template";
 import { AccessApi } from "../../../api/access";

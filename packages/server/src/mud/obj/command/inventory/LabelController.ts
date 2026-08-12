@@ -19,7 +19,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.perception.inventory';
+const TOPIC = 'sense.survey';
 
 interface LabelModel extends CommandModel {
   target: MqlOneResult;
@@ -45,7 +45,7 @@ export default class LabelController extends CommandController<LabelModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`There is nowhere on ${Mml.item(target)} to write anything.`,
+          Mml.compose`There is nowhere on ${Mml.thing(target)} to write anything.`,
         )
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'LabelledMixin' });
@@ -60,8 +60,8 @@ export default class LabelController extends CommandController<LabelModel> {
         .topic(TOPIC)
         .toSelf(
           had
-            ? Mml.compose`You rub the label off ${Mml.item(target)}.`
-            : Mml.compose`${Mml.item(target)} carries no label to remove.`,
+            ? Mml.compose`You rub the label off ${Mml.thing(target)}.`
+            : Mml.compose`${Mml.thing(target)} carries no label to remove.`,
         )
         .send();
       return;

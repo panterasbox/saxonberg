@@ -459,7 +459,7 @@ export default class TeleportController extends CommandController<TeleportModel>
       // diegetic in-world action, not author tooling — same narration channel
       // as the other movement commands. The privileged self-powered fork rides
       // the same helper; its operator output is fine on this channel too.
-      .topic("world.narration.action")
+      .topic("act.deed")
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

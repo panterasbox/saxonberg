@@ -104,7 +104,7 @@ export type PromptValidator<T> = (
  *     a string keeps the prompt alive and emits a
  *     `prompt-validation-failed` envelope.
  *   - `body`: optional long-form prose for the terminal scroll. The
- *     substrate emits a `MessageFrame` on `world.prompt` with
+ *     substrate emits a `MessageFrame` on `shell.prompt` with
  *     `payload: { promptId }` so the client can correlate the
  *     body frame with the prompt envelope (click-to-focus, visual
  *     association in deep stacks).
@@ -290,6 +290,21 @@ export class PromptApi {
     reason: 'cancelled' | 'host-disconnected',
   ): number {
     return logic().cancelAll(interactive, reason);
+  }
+
+  /**
+   * Is `promptId` still awaiting an answer from `interactive`?
+   *
+   * The read behind the `unanswered` pane hold — *nothing that is still
+   * actionable ever leaves*. A prompt that has been answered, cancelled
+   * or timed out is gone from the interactive's bucket, so absence IS
+   * the answer; there is no separate "answered" flag to go stale.
+   */
+  public static isPending(
+    interactive: Interactive,
+    promptId: string,
+  ): boolean {
+    return logic().isPending(interactive, promptId);
   }
 
   /* ────────────────── Test seams ────────────────── */

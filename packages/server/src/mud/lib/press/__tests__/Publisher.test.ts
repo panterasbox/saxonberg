@@ -13,6 +13,7 @@
  * while testing nothing. Every refusal below is paired with an admit.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OrganizationEntity from '../../../obj/Organization';
 import Avatar from '../../../obj/Avatar';

@@ -22,7 +22,7 @@ import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
 
 /** The livestream-chat relay topics the chat terminal allowlists. */
-const CHAT_TOPICS = new Set(["world.twitch.message", "world.youtube.message"]);
+const CHAT_TOPICS = new Set(["speech.relay", "speech.relay"]);
 
 function isChatFrame(f: ConsoleFrame): boolean {
   return CHAT_TOPICS.has(f.topic);

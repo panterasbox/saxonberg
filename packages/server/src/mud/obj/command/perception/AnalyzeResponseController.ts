@@ -26,7 +26,7 @@ interface AnalyzeResponseModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-const TOPIC = 'world.perception.measurement.analyze-response';
+const TOPIC = 'sense.reading';
 
 export default class AnalyzeResponseController extends CommandController<AnalyzeResponseModel> {
   execute(model: AnalyzeResponseModel, context: CommandContext): void {
@@ -56,7 +56,7 @@ export default class AnalyzeResponseController extends CommandController<Analyze
           MessageApi.scene(giver)
             .topic(TOPIC)
             .toSelf(
-              Mml.compose`Control of ${Mml.name(stuff)}: ${bands[0]!} — work done with it never lands below that band.`,
+              Mml.compose`Control of ${Mml.thing(stuff)}: ${bands[0]!} — work done with it never lands below that band.`,
             )
             .send();
           return;
@@ -102,7 +102,7 @@ export default class AnalyzeResponseController extends CommandController<Analyze
     const verb = armor ? 'turns' : 'delivers';
     const lines: Mml[] = [];
     lines.push(
-      Mml.compose`Response of ${Mml.name(stuff)} (${construction.getForm()}) — how it ${verb} each channel:`,
+      Mml.compose`Response of ${Mml.thing(stuff)} (${construction.getForm()}) — how it ${verb} each channel:`,
     );
     if (MixinApi.isDurable(stuff) && stuff.isBroken()) {
       lines.push(

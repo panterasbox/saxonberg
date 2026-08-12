@@ -48,7 +48,7 @@ import { Dose } from './Dose';
 import type { DoseSpec } from './Dose';
 
 /** Where a working's own prose rides. */
-const POTION_TOPIC = 'world.narration.action';
+const POTION_TOPIC = 'act.deed';
 
 /** How a potion gets in. The delivery model for the latter two defers. */
 export const POTION_ROUTES = ['oral', 'contact', 'vapour'] as const;

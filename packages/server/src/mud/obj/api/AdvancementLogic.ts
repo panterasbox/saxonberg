@@ -144,6 +144,34 @@ function practisingCompetenceCachedImpl(
   return key === null ? undefined : practisingCache.get(key);
 }
 
+/**
+ * ⭐ The whole transcript projection, as a sync read — the **competence
+ * digest**. `practisingCache` folds to the single discipline being
+ * practised; this folds to every discipline with evidence.
+ *
+ * ⚠ **Derive-on-read, no stored total.** The band is already a
+ * derivation over `transcripts`, so caching a total here would be a
+ * second source of truth for a number the ledger owns — and the ledger
+ * is append-only, so the two would diverge the first time a conferral
+ * landed without going through this path. The cache below is a *fold
+ * cache*, invalidated by the ledger's own notify, not a stored figure.
+ */
+const digestCache = new DerivedStandingCache<DisciplineBand[]>(
+  async (subject) => {
+    const owner = StuffApi.findByTemplatePath(subject);
+    if (!owner) return [];
+    return bandsForImpl(owner);
+  },
+  (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)
+);
+
+function competenceDigestCachedImpl(
+  owner: Stuff
+): DisciplineBand[] | undefined {
+  const key = ownerKey(owner);
+  return key === null ? undefined : digestCache.get(key);
+}
+
 async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
   if (!active()) return [];
   const ownerId = ownerKey(owner);
@@ -265,9 +293,16 @@ export class AdvancementLogic extends ApiLogic {
   }
 
   /** See {@link AdvancementApi._clearDerivedCacheForTesting}. */
+  /** See {@link AdvancementApi.competenceDigestCached}. */
+  @CallSecurity(AdvancementApiCallers)
+  public competenceDigestCached(owner: Stuff): DisciplineBand[] | undefined {
+    return competenceDigestCachedImpl(owner);
+  }
+
   @CallSecurity(AdvancementApiCallers)
   public clearDerivedCache(): void {
     practisingCache.clear();
+    digestCache.clear();
   }
 
   /** See {@link AdvancementApi.conferredVerbs}. */

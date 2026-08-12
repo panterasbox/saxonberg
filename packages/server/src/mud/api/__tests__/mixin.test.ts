@@ -6,6 +6,7 @@
  * - Type-predicate narrowing helpers (isContainer, isNamed, ...)
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MixinApi, Mixins } from '../mixin';
 import { ShadowApi } from '../shadow';

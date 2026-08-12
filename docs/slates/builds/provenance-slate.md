@@ -47,7 +47,8 @@ the first and most demanding consumer, not the only one.
 - [draft-constitution.md](../../governance/draft-constitution.md) Art. X (amendment =
   versioned law), Art. VII (the tamper-evident record) — **the same
   VCS** this slate stands up.
-- [influence-allocation-requirements.md](../../requirements/influence-allocation-requirements.md)
+- [influence.md](../../subsystems/influence.md) *(was
+  `influence-allocation-requirements.md`, retired at sweep)*
   — the producer faucet's **routing-resolver seam** (Layer-1 authorship /
   Layer-2 engagement faucet) is the consumer this slate feeds; v1 routes
   to a single owner, this slate is how that becomes the full owner graph.

@@ -164,14 +164,14 @@ to branch.
 
 ### Body MessageFrame correlation
 
-Push with `opts.body` set emits a `world.prompt` MessageFrame
+Push with `opts.body` set emits a `shell.prompt` MessageFrame
 BEFORE the `PromptEnvelope`. The frame's `payload` carries
 `{ promptId }` so the client can correlate the long-form prose
 with the prompt envelope (visual highlight, click-to-focus, etc.).
 
 ```ts
 PromptApi.mqlObject(iact, 'Which sword?', matches, {
-  body: Mml.compose`Multiple swords match: ${Mml.item(rusty)} or ${Mml.item(iron)}.`,
+  body: Mml.compose`Multiple swords match: ${Mml.thing(rusty)} or ${Mml.thing(iron)}.`,
 });
 ```
 

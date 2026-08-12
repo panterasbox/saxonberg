@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Pronouns } from '@saxonberg/types';
 import { GrammarApi } from '../grammar';

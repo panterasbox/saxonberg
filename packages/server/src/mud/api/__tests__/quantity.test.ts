@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { writeFileSync, mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';

@@ -7,6 +7,7 @@
  * pass (and, independently, without the proxy check).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { MqlApi } from '../../../../api/mql';

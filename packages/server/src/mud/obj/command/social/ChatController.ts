@@ -100,10 +100,10 @@ export default class ChatController extends CommandController<ChatModel> {
         for (const m of ad.members) {
           if (m === speaker) continue;
           MessageApi.scene(speaker)
-            .topic('world.chat.message')
+            .topic('speech.channel')
             .modality('verbal-esp')
             .meta({ channelId: ad.handle })
-            .toTarget(m, Mml.compose`[${ad.handle}] ${Mml.name(speaker)}: ${body}`)
+            .toTarget(m, Mml.compose`[${ad.handle}] ${Mml.actor(speaker)}: ${body}`)
             .payload({
               channelId: ad.handle,
               channelName: ad.handle,
@@ -114,7 +114,7 @@ export default class ChatController extends CommandController<ChatModel> {
         }
         // Speaker self frame
         MessageApi.scene(speaker)
-          .topic('world.chat.message')
+          .topic('speech.channel')
           .modality('verbal-esp')
           .meta({ channelId: ad.handle })
           .toSelf(Mml.compose`[${ad.handle}] You: ${body}`)
@@ -128,7 +128,7 @@ export default class ChatController extends CommandController<ChatModel> {
         // Append to history
         cat.appendToHistory(ad.handle, {
           id: SecurityApi.uuid(),
-          topic: 'world.chat.message',
+          topic: 'speech.channel',
           tags: ['audience:witness'],
           body: `[${ad.handle}] ${speaker.getPresentation()}: ${body}`,
           meta: { timestamp: Date.now(), modality: 'verbal-esp', channelId: ad.handle },
@@ -393,7 +393,7 @@ export default class ChatController extends CommandController<ChatModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.chat')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

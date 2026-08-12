@@ -282,7 +282,7 @@ export default class GroupController extends CommandController<GroupModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.group')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

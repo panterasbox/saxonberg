@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Exit from '../Exit';
 import CartesianZone from '../../../obj/location/CartesianZone';

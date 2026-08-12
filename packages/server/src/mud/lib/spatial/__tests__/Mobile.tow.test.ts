@@ -5,6 +5,7 @@
  * a non-hauler leaves room objects untouched.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';

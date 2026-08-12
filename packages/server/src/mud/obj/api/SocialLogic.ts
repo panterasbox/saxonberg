@@ -488,9 +488,15 @@ function wornFeatureOf(occ: Stuff): string | null {
 function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
   const display = RecognitionApi.describeWithStatus(viewer, occ);
   const colorAttr = color ? ` color="${Mml.escape(color)}"` : "";
+  // Hand-built rather than `Mml.actor` because of the `color` attribute
+  // — so the kind resolution has to be asked for explicitly. ⚠ It must
+  // be: the occupant list is the one surface where a hooded figure is
+  // read carefully, so it is the last place that should quietly admit
+  // a real person is under the hood.
+  const tag = RecognitionApi.kindOf(viewer, occ);
   return Mml.fromMarkup(
-    `<name stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +
-      `${Mml.escape(display)}</name>`,
+    `<${tag} stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +
+      `${Mml.escape(display)}</${tag}>`,
   );
 }
 
@@ -698,7 +704,7 @@ async function relayPresenceImpl(
     // default "from …" tail elides. A syntactically broken custom template
     // never silences the notice — it falls back to the shipped default.
     const vars = {
-      who: Mml.name(actor as Stuff),
+      who: Mml.actor(actor as Stuff),
       action: verb,
       event,
       category: isArrival ? "arrival" : "departure",
@@ -730,7 +736,7 @@ async function relayPresenceImpl(
     // lands in their circle session (delivery follows identity).
     try {
       MessageApi.scene(deliveryBody)
-        .topic("world.social.presence")
+        .topic("session.presence")
         .toSelf(body, payload)
         .send();
     } catch {

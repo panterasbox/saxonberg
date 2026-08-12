@@ -37,7 +37,7 @@ See also:
   consumes. Help sets the **transparency-by-default** posture; the
   **capability ceiling** does help's pre-auth gating for free (anonymous
   = the floor tier).
-- [wiki-slate.md](./wiki-slate.md) — the **content** half of the
+- [wiki-slate.md](../tails/wiki-slate.md) — the **content** half of the
   systems↔content pair. Cross-transcludes help via `{{help:…}}`; the
   `HelpTopic` is that transclusion unit.
 - [docs/subsystems/command-spec.md](../../subsystems/command-spec.md) +
@@ -259,7 +259,7 @@ wiki source viewer + the CMS edit handoff).
 - **The spoiler reveal substrate** — owned by
   [spoiler-slate.md](../deferred-rpg/spoiler-slate.md); help consumes it and sets the
   transparency-by-default posture.
-- **The wiki** (content half) — [wiki-slate.md](./wiki-slate.md).
+- **The wiki** (content half) — [wiki-slate.md](../tails/wiki-slate.md).
 - **The public read-only surface mechanics** (gather-on-bus /
   project-off-bus / default-deny) — the shell slate's public surface
   section (which, now with metrics + overlays + help/docs as consumers,

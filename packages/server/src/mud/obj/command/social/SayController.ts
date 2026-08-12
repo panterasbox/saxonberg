@@ -3,7 +3,7 @@
  * current location.
  *
  * Delegates to VocalMixin.say which fires a Scene at
- * `world.speech.say`. With the `--to <target>` option, the message is
+ * `speech.vocal`. With the `--to <target>` option, the message is
  * publicly directed — the room still hears, but the target is marked
  * with a target-frame ("Bobalu says to you, ...").
  *
@@ -31,7 +31,7 @@ export default class SayController extends CommandController<SayModel> {
     const speaker = context.commandGiver;
     if (!MixinApi.isVocal(speaker)) {
       MessageApi.scene(speaker)
-        .topic('world.speech.say')
+        .topic('speech.vocal')
         .toSelf(Mml.compose`You cannot speak.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'VocalMixin' });

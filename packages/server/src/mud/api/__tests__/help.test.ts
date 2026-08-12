@@ -9,6 +9,7 @@
  * pre-warm empty-result path.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type {
   HelpTopic,

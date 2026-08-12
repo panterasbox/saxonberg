@@ -29,7 +29,7 @@ export default class WindController extends CommandController<WindModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Wind what?`)
         .send();
       ctx.note({
@@ -41,7 +41,7 @@ export default class WindController extends CommandController<WindModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       ctx.note({
@@ -59,7 +59,7 @@ export default class WindController extends CommandController<WindModel> {
     );
     if (!movement) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't wind that.`)
         .send();
       ctx.note({
@@ -73,12 +73,12 @@ export default class WindController extends CommandController<WindModel> {
     movement.wind();
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(
-        Mml.compose`You wind ${Mml.object(movement as unknown as Stuff)}; the mainspring tightens with a soft ratchet.`,
+        Mml.compose`You wind ${Mml.thing(movement as unknown as Stuff)}; the mainspring tightens with a soft ratchet.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} winds ${Mml.object(movement as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} winds ${Mml.thing(movement as unknown as Stuff)}.`,
       )
       .send();
   }

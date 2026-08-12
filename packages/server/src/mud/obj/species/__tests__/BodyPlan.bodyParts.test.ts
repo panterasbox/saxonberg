@@ -4,6 +4,7 @@
  * array per part.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import BodyPlan, { BodyPart } from '../BodyPlan';
 import { StuffApi } from '../../../api/stuff';

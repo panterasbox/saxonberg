@@ -12,6 +12,7 @@
  * exists). Harness mirrors persistence-spine.test.ts.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { PersistableApi } from "../../../api/persistable";
 import { StuffApi } from "../../../api/stuff";

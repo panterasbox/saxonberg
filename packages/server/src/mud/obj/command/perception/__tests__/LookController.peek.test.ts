@@ -13,6 +13,7 @@
  * `command-empty-resolve.test.ts`.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import { CommandApi, type CommandContext } from "../../../../api/command";
 import { CommandDefinition } from "../../../../lib/command/CommandDefinition";

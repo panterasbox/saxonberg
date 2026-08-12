@@ -14,6 +14,7 @@
  * completely different: "review this diff", not "this broke".
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { component as composition } from '../components/composition';
 import WikiRenderer from '../../../obj/WikiRenderer';

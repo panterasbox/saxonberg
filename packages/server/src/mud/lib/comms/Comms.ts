@@ -170,13 +170,13 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // Self-frame body. Single-target: "X → Y: msg". Multi: cohort
       // names spelled out so the operator sees who they hit.
       const selfBody = isMulti
-        ? Mml.compose`${Mml.name(operator)} → ${Mml.fromMarkup(
-            targets.map((t) => Mml.name(t).toString()).join(", "),
+        ? Mml.compose`${Mml.actor(operator)} → ${Mml.fromMarkup(
+            targets.map((t) => Mml.actor(t).toString()).join(", "),
           )}: ${parsed}`
-        : Mml.compose`${Mml.name(operator)} → ${Mml.name(targets[0]!)}: ${parsed}`;
+        : Mml.compose`${Mml.actor(operator)} → ${Mml.actor(targets[0]!)}: ${parsed}`;
 
       MessageApi.scene(operator)
-        .topic("world.speech.dm")
+        .topic("speech.comms")
         .modality("verbal-esp")
         .meta(channelMeta)
         .toSelf(selfBody)
@@ -203,17 +203,17 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (isMulti) {
           const others = targets
             .filter((other) => other !== t)
-            .map((other) => Mml.name(other).toString())
+            .map((other) => Mml.actor(other).toString())
             .join(", ");
           const cohortHint = others
             ? Mml.fromMarkup(` (also to: ${others})`)
             : Mml.fromMarkup("");
-          targetBody = Mml.compose`${Mml.name(operator)} → you${cohortHint}: ${parsed}`;
+          targetBody = Mml.compose`${Mml.actor(operator)} → you${cohortHint}: ${parsed}`;
         } else {
-          targetBody = Mml.compose`${Mml.name(operator)} → you: ${parsed}`;
+          targetBody = Mml.compose`${Mml.actor(operator)} → you: ${parsed}`;
         }
         MessageApi.scene(operator)
-          .topic("world.speech.dm")
+          .topic("speech.comms")
           .modality("verbal-esp")
           .meta(channelMeta)
           .toTarget(t, targetBody)

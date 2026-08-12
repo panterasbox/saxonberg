@@ -7,6 +7,7 @@
  * agnostic (credential OR cash via the cash bridge), refuses on short funds.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import TeleportController from "../TeleportController";
 import { AetherMixin } from "../../../../lib/message/Aether";

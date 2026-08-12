@@ -4,6 +4,7 @@
  * Slotted.canOccupy, so no verb knows about folding).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Chair from '../Chair';
 import FoldingChair from '../FoldingChair';

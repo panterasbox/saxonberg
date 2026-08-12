@@ -5,6 +5,7 @@
  * nothing. Sharpening is the keenness axis ONLY — condition untouched.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SharpenController from '../SharpenController';
 import { SchedulerApi } from '../../../../api/scheduler';

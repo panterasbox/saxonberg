@@ -3,6 +3,7 @@
  * skip on equal value.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { NamedMixin } from '../Named';
 import { Idea } from '../../stuff/Idea';

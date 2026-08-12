@@ -6,6 +6,7 @@
  * creature container is never gated.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import GetController from '../GetController';
 import { ContainerMixin } from '../../../../lib/spatial/Container';

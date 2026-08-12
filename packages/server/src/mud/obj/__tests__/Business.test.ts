@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import BusinessEntity from '../Business';
 import { StuffApi } from '../../api/stuff';

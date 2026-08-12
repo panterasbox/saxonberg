@@ -7,6 +7,7 @@
  * `holdsAuthority` really does admit a member of it and refuse everyone
  * else. Without this the port is asserted, not demonstrated.
  */
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

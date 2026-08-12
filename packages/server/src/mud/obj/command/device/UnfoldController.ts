@@ -27,7 +27,7 @@ export default class UnfoldController extends CommandController<UnfoldModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Unfold what?`)
         .send();
       context.note({
@@ -39,7 +39,7 @@ export default class UnfoldController extends CommandController<UnfoldModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -56,7 +56,7 @@ export default class UnfoldController extends CommandController<UnfoldModel> {
     );
     if (!foldable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't unfold that.`)
         .send();
       context.note({
@@ -69,7 +69,7 @@ export default class UnfoldController extends CommandController<UnfoldModel> {
 
     if (!foldable.isFolded()) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`It is already unfolded.`)
         .send();
       context.note({
@@ -83,10 +83,10 @@ export default class UnfoldController extends CommandController<UnfoldModel> {
     foldable.unfold();
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
-      .toSelf(Mml.compose`You unfold ${Mml.object(foldable as unknown as Stuff)}.`)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You unfold ${Mml.thing(foldable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} unfolds ${Mml.object(foldable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} unfolds ${Mml.thing(foldable as unknown as Stuff)}.`,
       )
       .send();
 

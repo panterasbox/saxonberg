@@ -37,7 +37,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type Material from "../../../lib/material/Material";
 import type { TermsProposal } from "../../../lib/combat/CombatTerms";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 /**
  * Where a thrown thing lands on a body, first match wins.
@@ -87,7 +87,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
       // person than aiming at them.
       return this.fail(
         context,
-        `You can't throw that without catching ${Mml.item(verdict.refusedBy).toString()} in it.`,
+        `You can't throw that without catching ${Mml.thing(verdict.refusedBy).toString()} in it.`,
         "splash-would-catch-a-bystander",
       );
     }
@@ -128,8 +128,8 @@ export default class ThrowController extends CommandController<ThrowModel> {
     ContainmentApi.move(item as never, room as never);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You hurl ${Mml.item(item)} away.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} away.`)
+      .toSelf(Mml.compose`You hurl ${Mml.thing(item)} away.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} hurls ${Mml.thing(item)} away.`)
       .send();
   }
 
@@ -161,14 +161,14 @@ export default class ThrowController extends CommandController<ThrowModel> {
     // OBJECTS, not just at people. A terminal has nothing to be told.
     const scene = MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You hurl ${Mml.item(item)} at ${Mml.name(target)}.`)
+      .toSelf(Mml.compose`You hurl ${Mml.thing(item)} at ${Mml.actor(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at ${Mml.name(target)}.`,
+        Mml.compose`${Mml.actor(giver)} hurls ${Mml.thing(item)} at ${Mml.actor(target)}.`,
       );
     if (MixinApi.isSensor(target)) {
       scene.toTarget(
         target,
-        Mml.compose`${Mml.name(giver)} hurls ${Mml.item(item)} at you!`,
+        Mml.compose`${Mml.actor(giver)} hurls ${Mml.thing(item)} at you!`,
       );
     }
     scene.send();
@@ -202,8 +202,8 @@ export default class ThrowController extends CommandController<ThrowModel> {
     if (plan.profile.breaksOnArrival() && plan.placement !== "miss") {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(item)} shatters against ${Mml.name(target)}.`)
-        .toPeers(Mml.compose`${Mml.item(item)} shatters against ${Mml.name(target)}.`)
+        .toSelf(Mml.compose`${Mml.thing(item)} shatters against ${Mml.actor(target)}.`)
+        .toPeers(Mml.compose`${Mml.thing(item)} shatters against ${Mml.actor(target)}.`)
         .send();
 
       for (const share of plan.shares) {
@@ -260,7 +260,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
   }
 
   /**
-   * The thrown object's real mass in kg. `mustBeTangible` guarantees the
+   * The thrown object's real mass in kg. `requires: TangibleMixin` guarantees the
    * mixin is there; a mass that will not read is 0, which lands the
    * arrival under the inert floor rather than inventing a weight.
    */

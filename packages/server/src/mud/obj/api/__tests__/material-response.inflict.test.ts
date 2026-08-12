@@ -6,6 +6,7 @@
  * produce honestly different wounds.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConditionApi } from '../../../api/condition';
 import { MaterialApi } from '../../../api/material';

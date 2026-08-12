@@ -10,6 +10,7 @@
  * founding deed do, which is exactly what this test isolates.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EnrollController from '../EnrollController';
 import Login from '../../../Login';

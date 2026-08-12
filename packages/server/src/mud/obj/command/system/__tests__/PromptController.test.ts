@@ -8,6 +8,7 @@
  * framework-side notes covered in their own test suites.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import PromptController from '../PromptController';
 import { PromptApi } from '../../../../api/prompt';

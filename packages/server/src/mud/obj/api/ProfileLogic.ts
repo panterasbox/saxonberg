@@ -271,7 +271,8 @@ export class ProfileLogic extends ApiLogic {
       renown: Band.fromScalar(RenownApi.renownOf(subjectId)).name,
       influence: {
         play: InfluenceApi.bandOf(subjectId, 'consumer').name,
-        make: InfluenceApi.bandOf(subjectId, 'producer').name,
+        // ⚠ Through the shared host seam — see StandingController.
+        make: InfluenceApi.standingForHost(target, 'producer').band.name,
       },
     };
     const competence = await AdvancementApi.bandsFor(target);

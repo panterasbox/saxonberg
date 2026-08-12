@@ -366,7 +366,7 @@ export default class PressController extends CommandController<ReleaseModel> {
 
   private tell(context: CommandContext, text: string): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.press')
+      .topic('publication.press')
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

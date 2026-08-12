@@ -7,6 +7,40 @@
 > the grouping facade (group-role is one capability source) and fills
 > call-security's stubbed/deferred policy slots.
 
+> **⚠ AUDIT 2026-08-08 — this slate should be SPLIT; half of it is a
+> design question, not a build.** Checked against the tree when GitLab #13
+> was closed here.
+>
+> - ✅ **The audit sink is the clean survivor** — genuinely unbuilt, and
+>   documented as such at
+>   [call-security.md](../../subsystems/call-security.md):33: *"no
+>   structured audit sink is wired in. `MudlogApi` exists but…"*.
+>   Self-contained, still wanted, and the piece to pick up first.
+> - ❌ **The lease model has lost both its stated consumers.** This slate
+>   and its issue justified leases as the thing that "unblocks the CMS"
+>   and carries the holodeck. Neither held: the **CMS shipped without a
+>   lease** ([cms.md](../../subsystems/cms.md), on the code-trust axis),
+>   and the **holodeck shipped independently** as
+>   [sandbox.md](../../subsystems/sandbox.md) — circle-scope taint, the
+>   PM policy table, the Layer-4 boundary, the Forkable substrate. So
+>   "should there be an access lease at all?" is now an open **design**
+>   question with no consumer pushing it, not a queued build.
+> - ⚠️ **"lease" exists in the tree, but not this lease** —
+>   `lib/attendant/Attendant.ts` (queue + lease over storefront
+>   attention), `ParcelRegistry.ts`, Duncan Hall's `provision` verb. The
+>   governing shape: a **lease** fits an *exclusive* resource, a **quota**
+>   fits a *common-pool* one. Attendant attention is exclusive, which is
+>   why it got one. Whether authoring/access is exclusive enough is
+>   precisely the question above.
+> - ✅ **The class-allowlist for content writes already shipped** —
+>   `obj/api/CmsLogic.ts` gates `class` / `hydratorClass` /
+>   `behaviors[].brain` on `isWizard`. See
+>   [scoped-authoring-slate](../builds/scoped-authoring-slate.md)'s audit.
+>
+> **Recommended split when picked up:** the audit sink and the lease
+> question are different work at different confidence levels and should
+> not ride one cycle.
+
 Working slate for **authorization** — the scattered access checks
 (chat post/moderation, door locks, guild kick, file write-scope, wizard
 verbs, the `forceX` admin bypass) unified into one model. Distinct from

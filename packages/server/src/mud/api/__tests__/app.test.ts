@@ -5,6 +5,7 @@
  * stubbed; the cache is warmed via `AppSettings.warm` against the stub.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AppApi } from "../app";
 import { AppLogic } from "../../obj/api/AppLogic";
