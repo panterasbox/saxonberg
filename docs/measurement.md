@@ -420,15 +420,33 @@ The worst case is therefore **lost accrual, never corruption**: an object
 persisted after the last clock snapshot comes back with a future stamp,
 forfeits that sliver of integration, and resumes.
 
-> ⚠⚠ **But A16 is enforced by convention alone.** There is no base class,
-> no shared helper, and no lint. A new reconcile-on-read mixin that omits
-> the guard would produce silent garbage on the next crash recovery —
-> a corpse warming up, a plant un-growing — and nothing would catch it.
+> ⚠⚠ **A16 was enforced by convention alone** — no base class, no shared
+> helper, no check. A new reconcile-on-read mixin omitting the guard
+> would produce silent garbage on the next crash recovery (a corpse
+> warming up, a plant un-growing) and nothing would catch it.
 >
-> ⭐ **This is a cheap lint in the house style** (`lint:gates`,
-> `lint:boundary`, `lint:instanceable`, `check-does-nothing` are all this
-> shape): *any file declaring a `*ClockStamp` field must contain an
-> `elapsed <= 0` guard.* Recommended, not built.
+> ✅ **Now enforced:** `pnpm lint:clock-guards`
+> (`scripts/check-clock-guards.ts`, CI-gating). Parses the TS AST for any
+> interval bound by subtracting a stamp from a now, and requires a
+> non-positive guard in the same file. Currently **21 bindings across 17
+> files, all guarded**, with 3 reviewed exemptions.
+
+Two things the check surfaced that the manual audit had missed:
+
+- ⚠ **`SchedulerRegistry.fireEmission`** binds a game-time `elapsed` and
+  hands it to **authored emission consumers** as a payload field. It
+  integrates nothing itself, so a rewind cannot corrupt engine state —
+  but content code may integrate over it. **Exempted for review with a
+  recommended fix** (`Math.max(0, …)` at the binding), not blessed.
+- **`StreamRelay.consume`** is a `Date.now` token bucket — off the game
+  clock entirely, so an NTP step over-debits one speaker's rate limit
+  until it refills. Self-healing; exempted with that reason.
+
+⭐ The check also **fails if it matches zero bindings**, and verifies every
+exemption still resolves to a real site. Both are the
+`check-boundary-exemptions` lesson: *a lint that silently matches nothing
+is worse than no lint*, and a rename must not leave an exemption quietly
+excusing something that moved.
 
 ### ⚠⚠ What Tier A does not protect
 

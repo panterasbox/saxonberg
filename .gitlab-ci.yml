@@ -119,6 +119,13 @@ lint:
     # directions, so a new MATERIAL colliding with a shipped descriptor
     # is caught too. That is the direction nobody thinks to check.
     - pnpm -C packages/server lint:descriptors
+    # Game time is NOT monotonic — it rewinds on ungraceful shutdown, on
+    # a cleared DB, and on an NTP step. Every reconcile-on-read consumer
+    # survives that only because it guards `elapsed <= 0` and integrates
+    # nothing. That held by convention alone until this check; a new
+    # mixin omitting it makes a corpse warm up on the next crash
+    # recovery, silently.
+    - pnpm -C packages/server lint:clock-guards
 
 test:
   extends: [.node, .mr-only]
