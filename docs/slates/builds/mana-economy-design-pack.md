@@ -609,6 +609,126 @@ immediately and rewrite later. NPCs stay just-in-time.
 
 ---
 
+## Part 5c — ⭐⭐⭐ Teleportation, TPA, and devices that hold effects
+
+**(Owner, 2026-08-11: the TPA is magic, not electrical; it is to be retrofitted
+to run a real teleport spell with real mana costs, paid by the zorkmid fare and
+afforded by a wired connection in the city or a battery on the frontier, and it
+can go offline when the mana runs out.)**
+
+⚠ **The apparent blocker, and why it is the doc's gap rather than a design
+contradiction.** Read narrowly, `arcane-science.md` seems to forbid this: the
+thirteen nouns contain no Space or Distance, the postulate relocates *energy*,
+and no teleport spell ships. But **TPA already ships and the fiction already
+teleports** — so the taxonomy failed to account for content that predates it.
+The fix below adds **no second exemption**.
+
+### The one exemption is LOCALITY, and teleport is a locality violation
+
+The postulate's own words: *"local conservation of energy fails; global
+conservation holds… the continuity equation is false in this world."*
+
+> ⭐⭐⭐ **Locality is the impossible thing.** Restricting it to *energy* was a
+> narrowing the doc chose, not the exemption itself. Teleportation is a
+> locality violation and nothing else — **the same exemption, applied
+> consistently.**
+
+⭐ And *"magic never creates matter"* survives untouched. Read closely it is an
+**affordability argument about creation** (9 × 10¹⁶ J/kg by E = mc²), not a
+prohibition on transport: conjuration must be *collection* because making mass
+is unaffordable. Nothing in it speaks to **moving** mass.
+
+### ⭐⭐⭐⭐ The cost is SPECIFICATION, not energy — and Landauer is already cited
+
+Relocating a body horizontally costs essentially **zero energy**: no
+acceleration, so no kinetic term and no momentum recoil. That would make
+teleport free, which is wrong.
+
+It is not free, because the cost sits where `arcane-science.md`'s own **"the
+specification problem"** section already puts it — *"for a delivered pattern,
+form is doing nearly all of the work at almost no energetic cost"* — and
+**Landauer's principle** is already in the doc's Real column. Information has a
+thermodynamic price.
+
+> ⭐⭐⭐⭐ **Which explains the shipped content exactly: TPA is a fixed directed
+> graph of registered terminals because a terminal is a PRE-SPECIFIED
+> destination.** The network *is* the specification infrastructure, surveyed
+> once and amortised. You cannot teleport to an arbitrary point because nobody
+> paid the survey cost for it — and `register` is the traveller being specified
+> into the system.
+
+The mechanic was already right. The science now explains it.
+
+### What the fare depends on — and the counterintuitive part is the teachable part
+
+| Factor | Cost |
+|---|---|
+| **Altitude** | ⭐ real `mgh` — arriving at Vionne Heights costs more than Wharfside |
+| **Mass** | scales with `mgh`; a loaded traveller costs more, which stops TPA trivially replacing [freight](./freight-slate.md) |
+| ⭐⭐ **Distance** | **none — locality is what is broken** |
+
+Same fare to the next district as to the far city; the fare moves with **how
+high and how heavy**. That is exactly what a student would get wrong on first
+guess, and it is *derived*, not asserted.
+
+### The vocabulary was already there: Control·Body
+
+*"Control — changes parameters, remains itself."* Position is a parameter; the
+body remains itself. **No fourteenth noun is needed.** The doc's line about
+Control·Body being ruinously expensive was about **accelerating** mass — the
+shove, with its recoil doubling — and relocation has no acceleration and no
+momentum transfer, so it does not inherit that cost.
+
+> ⭐ **And the caster-is-always-one-endpoint clause closes an exploit for
+> free: you can only teleport YOURSELF.** A mage cannot teleport a third
+> party — which is why TPA is a booth you step *into*, and why "teleport the
+> prisoner into the cell" is off the table with nobody having to rule on it.
+
+The traveller is the endpoint; the terminal supplies the **specification and
+the mana**.
+
+### ⭐⭐⭐ The general category: devices that hold effects
+
+TPA is the first non-agent caster and will not be the last. The postulate
+already permits the category through **Kell's Partition**, with no new physics:
+
+> **A device does not cast. It sustains a binding a caster established.** The
+> wizard was the endpoint *once*, at installation; the device holds the state,
+> and a **mana reservoir tops it up instead of a person.** When the mana runs
+> out, the binding lapses.
+
+⭐⭐⭐⭐ **And impulse-vs-binding IS the battery-vs-wired distinction** — the two
+supply shapes are not arbitrary, they follow from Kell:
+
+| Device kind | Draw | Supply |
+|---|---|---|
+| **Impulse** — fires, then the world takes over (a teleport, a trap's firebolt) | **per use** | a **battery**: a charge replaced or recharged |
+| **Binding** — a state held from equilibrium (a ward, a held glowlight, a climate vault) | **per second** | a **wired connection**: continuous supply |
+
+**TPA is an impulse device**, so it is battery-shaped by nature — and a busy
+city terminal has enough throughput to justify a wire while a frontier terminal
+does not. **Same device, different supply, chosen on throughput**: the
+industrial-gas tiering from Part 5, unchanged.
+
+⭐ **Going offline is already half-built.** The [supply
+pack](./supply-design-pack.md)'s failure vocabulary has **`dry`**, and
+`FastTravelMixin` already ships an inert `status` seam with a **grey
+out-of-service** state on `TpaTerminal`. There is now a cause for that grey.
+
+### ⭐⭐ What this means for a home
+
+> **Domestic devices are IMPULSE devices** — a lock that opens, a lamp you
+> light, a hearth that kindles. Small per-use costs, topped up **by contact
+> from the resident's own pool** (`ConduitMixin` doing exactly its job). So a
+> home needs **no mana connection at all**, and the reason is not "homes do not
+> use magic" but **"homes use impulses, and a resident is a sufficient
+> battery."**
+>
+> **Binding devices need a real supply**, and those are institutional — a
+> permanent ward is a guild's problem, never a homeowner's.
+
+---
+
 ## Part 6 — ⭐ Three vocations fall out, and two are already listed as GAPs
 
 | Vocation | Register status | Gate | Fit |
@@ -647,6 +767,8 @@ such a trade would use.
 | ✳ **Deposits** | ownable ground | **rides [parcel](../../subsystems/parcel.md)** |
 | ✳ **Mana as a supply commodity** | the third one; ⭐ **volume-tiered** — retail / bulk contract / pipe (Part 5) | **rides [supply](./supply-design-pack.md)** |
 | ✳ **Mana-fertilised cropping** | soil mana as a `feed`-able input; the premium rides bioavailability + extended release | **rides smallholding + metabolism** |
+| ⭐⭐ **Device mana reservoirs** | impulse → battery (per use) · binding → wired (per second); a lapsed binding when it runs dry | **new — `ChargedMixin` is most of the battery half** |
+| ⭐ **TPA retrofit** | teleport as a real Control·Body effect: fare = `mgh` (altitude × mass), **distance-free**; supply per terminal; the `status` seam gains `dry` | **rides [fasttravel](../../subsystems/fasttravel.md) — the status seam + grey light already ship** |
 
 **4. Verbs & affordances.** **No new verbs.** Drawing on a flask is `drink` /
 `fill` / the charge economy; refining is `craft`; assaying is `analyze`.
@@ -670,7 +792,10 @@ Listed so the edit is scoped rather than exploratory. **Not done here.**
 
 | Section | Change |
 |---|---|
-| **The Postulate** | add the second quantity; the locality break is unchanged; ⭐ state explicitly that **nonlocality is energy-only** — mana moves by contact (decision 6) |
+| ⚠⚠ **The Postulate** | **the largest edit on this list.** Restate the exemption over **LOCALITY** rather than over *energy* (Part 5c) — the narrowing to energy is what appeared to forbid teleportation, and TPA already ships. Also: add the second quantity, and state that **mana** moves by contact rather than nonlocally (decision 6). ⭐ Note the two are opposite narrowings and must not be confused: *locality* is general, *mana transport* is contact-only |
+| ⭐ **The thirteen nouns** | **no fourteenth needed** — teleport is **Control·Body** (Part 5c). Add the worked example, and note that Control·Body's "ruinous" cost is about *accelerating* mass, which relocation does not do |
+| ⭐⭐ **The specification problem** | **the load-bearing section for teleport** — the fare is a Landauer/specification cost, not an energy cost, which is why TPA is a fixed graph of surveyed terminals |
+| **"Magic never creates matter"** | ✅ survives untouched — it is an affordability argument about *creation*, and says nothing about *transport*. Worth a clarifying sentence so the next reader does not over-read it as this one did |
 | ⭐⭐⭐ **Kell's Partition** | **ADD the economic corollary** — magic is excellent at ONCE and terrible at HELD; structure beats sustained assertion; magic's comparative advantage is impulse, portability, and places you cannot build (Part 2) |
 | ⭐ **Halloway Equivalence** | **reinterpret, do not delete** — `E = η·k·M`; the basin still measures; add the over-reading and why it survived (Part 1) |
 | **Units and quantities** | τ is its own unit; k = 1 kJ/τ; ⚠ **no number changes** |
