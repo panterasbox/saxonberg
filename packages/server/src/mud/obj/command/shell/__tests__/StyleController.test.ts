@@ -109,6 +109,20 @@ describe('StyleController', () => {
       expect(ctx.getStatus()).toBe('ok');
     });
 
+    it.each(['ink', 'marble', 'high-contrast'])(
+      'accepts the civic theme %s',
+      async (name) => {
+        const controller = makeStuff(() => new StyleController());
+        const ctx = makeContext(actor, location);
+        await controller.execute(
+          makeModel({ styleSub: 'theme', a: name }),
+          ctx as never,
+        );
+        expect(getOverlay(actor).theme).toBe(name);
+        expect(ctx.getStatus()).toBe('ok');
+      },
+    );
+
     it('rejects an unknown theme name', async () => {
       const controller = makeStuff(() => new StyleController());
       const ctx = makeContext(actor, location);
@@ -119,6 +133,32 @@ describe('StyleController', () => {
       expect(getOverlay(actor).theme).toBeUndefined();
       const notes = ctx.getNotes();
       expect(notes.some((n) => n.kind === 'controller-rejected')).toBe(true);
+    });
+
+    it('⭐ refuses `default` — retired, and deliberately unaliased', async () => {
+      // `default` stopped naming anything the moment there were two
+      // grounds. Accepting it (or aliasing it to ink) would keep a dead
+      // vocabulary alive for nobody, and would leave the verb and the
+      // design doc disagreeing about what the dark ground is called.
+      // The refusal must also NAME the three known themes — "commands
+      // refuse honestly" is the machine-voice half of the honesty rule.
+      const controller = makeStuff(() => new StyleController());
+      const ctx = makeContext(actor, location);
+      await controller.execute(
+        makeModel({ styleSub: 'theme', a: 'default' }),
+        ctx as never,
+      );
+      expect(getOverlay(actor).theme).toBeUndefined();
+      const rejection = ctx
+        .getNotes()
+        .find((n) => n.kind === 'controller-rejected') as
+        | { reason?: string; detail?: string }
+        | undefined;
+      expect(rejection).toBeDefined();
+      expect(rejection!.reason).toBe('unknown-theme');
+      expect(rejection!.detail).toContain('ink');
+      expect(rejection!.detail).toContain('marble');
+      expect(rejection!.detail).toContain('high-contrast');
     });
   });
 

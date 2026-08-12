@@ -2479,7 +2479,7 @@ export interface StyleTreatment {
  * keys) or `StyleTreatment` objects.
  *
  * Selector vocabulary the engine recognizes:
- *   - `theme`             — `'default' | 'high-contrast'`
+ *   - `theme`             — `'ink' | 'marble' | 'high-contrast'`
  *   - `plain`             — boolean (global plain-mode)
  *   - `plain.channel.<k>` — boolean (per-channel plain-mode)
  *   - `mention.self`      — boolean (own-name highlight; default ON)
