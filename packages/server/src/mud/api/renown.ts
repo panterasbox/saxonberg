@@ -110,6 +110,32 @@ export class RenownApi {
   public static renownOf(subjectId: string, scope?: RenownScope): number {
     return logic().renownOf(subjectId, scope ?? null);
   }
+
+  /**
+   * The measured standing, or `undefined` when the scope was never
+   * materialized — the **absence-preserving companion** to
+   * {@link RenownApi.renownOf}, whose `?? 0` is correct for scoring and
+   * wrong for display.
+   *
+   * ⭐ Two different facts share one number in `renownOf`: a subject
+   * measured and found neutral, and a subject never measured at all.
+   * That is exactly right for a caller about to do arithmetic — a
+   * missing scope contributes nothing, which is zero. It is exactly
+   * wrong for a caller about to *show* the figure, which would print a
+   * confident `0` for a standing nobody ever computed.
+   *
+   * So this is additive rather than a change to `renownOf`: every one
+   * of that method's callers genuinely wants a number, and pushing the
+   * `undefined` outward would only reproduce the same `?? 0` collapse
+   * in each of them, further from the data. Display consumers call
+   * this and render the absence honestly.
+   */
+  public static measuredRenownOf(
+    subjectId: string,
+    scope?: RenownScope
+  ): number | undefined {
+    return logic().measuredRenownOf(subjectId, scope ?? null);
+  }
 }
 
 SecurityApi.decorateApiClass(RenownApi);

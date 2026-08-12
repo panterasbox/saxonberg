@@ -25,6 +25,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
+import { MqlApi } from '../mql';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { ContainmentApi } from '../containment';
@@ -37,6 +38,11 @@ import Location from '../../lib/stuff/Location';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { EventApi } from '../event';
 import { ConnectionApi } from '../connection';
+import { RenownApi } from '../renown';
+import RenownStanding, {
+  COMPACT_WIDE,
+} from '../../lib/standing/RenownStanding';
+import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 interface Harness {
   interactive: Interactive;
@@ -71,10 +77,65 @@ async function setup(): Promise<Harness> {
   return { interactive, avatar, location, envelopes };
 }
 
+/**
+ * A second harness for the `self` pane's durable half: the avatar
+ * carries a `/obj/Avatar/<id>` template stamp, which is what
+ * `standingSubject` and every `durableKey` return. Constructed
+ * synchronously — a durable-stamped Avatar through the clone pipeline
+ * would try to materialize from `holder_snapshots`, and none of this is
+ * about persistence.
+ */
+async function setupDurable(
+  templatePath: string,
+): Promise<Harness & { subject: string }> {
+  const reg = await StuffApi.create(() => {
+    const r = new EventRegistry();
+    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    return r;
+  });
+  StuffApi.unregister(reg);
+  StuffApi.register(reg);
+  EventApi._setRegistryForTesting(reg);
+
+  const location = await StuffApi.create(() => new Location());
+  const avatar = makeStuffAtPath(() => new Avatar(), templatePath);
+  avatar.setName('Alice');
+  ContainmentApi.move(avatar, location);
+  const interactive = await StuffApi.create(
+    () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
+  );
+  ConnectionApi.transfer(interactive, avatar);
+
+  const envelopes: { type?: string }[] = [];
+  vi.spyOn(avatar, 'onEnvelope').mockImplementation((tpl) => {
+    envelopes.push(tpl as unknown as { type?: string });
+  });
+  return {
+    interactive,
+    avatar,
+    location,
+    envelopes,
+    subject: templatePath,
+  };
+}
+
+/** The first result envelope's single record, for a `one` pane. */
+function firstRecord(
+  envelopes: { type?: string }[],
+): Record<string, unknown> | undefined {
+  const result = envelopes.find(
+    (e) => e.type === 'mql-subscription-result',
+  ) as { result?: Record<string, unknown>[] } | undefined;
+  return result?.result?.[0];
+}
+
 describe('the pane catalogue', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+    MqlSubscriptionApi._clearAllForTesting();
+    RenownStanding._resetForTesting();
   });
 
   /*
@@ -207,5 +268,255 @@ describe('the pane catalogue', () => {
     const open = MqlSubscriptionApi.listPanes(h.interactive);
     expect(open.length).toBe(1);
     expect(open[0]!.paneId).toBeUndefined();
+  });
+});
+
+/**
+ * ⭐ **The `self` pane** — the widget shelf's one subscription, and the
+ * first pane whose field set is an explicit list rather than an alias.
+ *
+ * Neither alias could serve it: `REF_FIELDS` and `DETAIL_FIELDS` are
+ * object-DESCRIPTION sets (`displayName`, `contents`, `exits`), and
+ * nothing in either carries a figure about the subject.
+ */
+describe('the self pane', () => {
+  const SUBJECT = '/obj/Avatar/shelf-tester';
+
+  beforeEach(() => {
+    StuffApi.clearAll();
+    ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+    MqlSubscriptionApi._clearAllForTesting();
+    RenownStanding._resetForTesting();
+  });
+
+  /*
+   * ⭐⭐ `makeStanding` is ABSENT from this list ON PURPOSE, and the
+   * next person to read it will assume an omission — so it is asserted
+   * as a decision.
+   *
+   * The server has the number and `Avatar` declares the field. But
+   * *Make* is an account-level stock whose account arithmetic is
+   * deliberately unbuilt, so the value's LEVEL is wrong: it is a
+   * per-character figure standing in for a per-person claim. A figure
+   * whose level is wrong cannot be rendered, and the strongest form of
+   * that is keeping it off the wire — a number sitting in the client
+   * store is a number the next builder paints in one line.
+   */
+  it('carries exactly the three fields the shelf renders — and not makeStanding', () => {
+    expect(PANES.self.query).toBe('me');
+    expect(PANES.self.cardinality).toBe('one');
+    expect(Array.isArray(PANES.self.fields)).toBe(true);
+    expect(PANES.self.fields).toEqual([
+      'playStanding',
+      'renown',
+      'practisingCompetence',
+    ]);
+    expect(PANES.self.fields).not.toContain('makeStanding');
+  });
+
+  /*
+   * ⚠ No dependency flag, deliberately: these figures wake through
+   * `durableKey` pokes, and a flag nothing needs is churn dressed as
+   * liveness.
+   */
+  it('declares no focus or location dependency', () => {
+    expect(PANES.self.focusDependent).toBeUndefined();
+    expect(PANES.self.locationDependent).toBeUndefined();
+  });
+
+  it('opens through the catalogue and projects the viewer own figures', async () => {
+    const h = await setupDurable(SUBJECT);
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'sub-self',
+      pane: 'self',
+    });
+
+    const first = h.envelopes[0] as { type?: string };
+    expect(first.type).not.toBe('mql-subscription-error');
+
+    const rec = firstRecord(h.envelopes);
+    expect(rec, 'the self pane resolved no record').toBeDefined();
+    expect(rec!.stuffId).toBe(h.avatar.stuffId);
+    // A band NAME, not a serialized `Band` value object (D3).
+    expect(typeof (rec!.playStanding as { band: unknown }).band).toBe(
+      'string',
+    );
+    // And the field kept off the wire is genuinely not on it.
+    expect(rec).not.toHaveProperty('makeStanding');
+  });
+
+  /*
+   * ⚠ Self-only, enforced at the descriptor rather than by permission
+   * logic on the pane: `standingSubject` returns `undefined` for any
+   * viewer who is not the subject, and `projectFields` omits an
+   * `undefined` field. Asserted through the REAL pane, because that is
+   * the path a second player would actually take.
+   */
+  it('projects no standing for a viewer who is not the subject', async () => {
+    const h = await setupDurable(SUBJECT);
+    const other = makeStuffAtPath(
+      () => new Avatar(),
+      '/obj/Avatar/somebody-else',
+    );
+    other.setName('Bob');
+    ContainmentApi.move(other, h.location);
+    const otherInteractive = await StuffApi.create(
+      () => new Interactive('sock-2', 'sess-2', { _id: 'u2' } as never),
+    );
+    ConnectionApi.transfer(otherInteractive, other);
+    const otherEnvelopes: { type?: string }[] = [];
+    vi.spyOn(other, 'onEnvelope').mockImplementation((tpl) => {
+      otherEnvelopes.push(tpl as unknown as { type?: string });
+    });
+
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: otherInteractive,
+      subscriptionId: 'sub-other',
+      pane: 'self',
+    });
+
+    const rec = firstRecord(otherEnvelopes);
+    expect(rec, 'the other viewer resolved no record at all').toBeDefined();
+    // `me` resolves to THEIR avatar, and their own standing is theirs to
+    // see — what must not appear is the first avatar's.
+    expect(rec!.stuffId).toBe(other.stuffId);
+    expect(rec!.stuffId).not.toBe(h.avatar.stuffId);
+  });
+
+  /*
+   * ⭐ **F1, verified before anything relies on it.** Everything about a
+   * LIVE shelf rests on the durable index being built from the
+   * SUBSCRIPTION'S field list — `deriveAndInstallDependencies` skips any
+   * descriptor whose name is not in `sub.fields`, so a pane naming its
+   * fields explicitly had to be checked rather than assumed. If this
+   * fails the shelf is a static snapshot and the client design changes.
+   */
+  it('⭐ a durable-subject poke re-resolves the pane — the shelf is live', async () => {
+    const h = await setupDurable(SUBJECT);
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'sub-self',
+      pane: 'self',
+    });
+    const spy = vi.spyOn(MqlApi, 'resolveOne');
+
+    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+
+    // ⚠ `toHaveBeenCalled`, not a count: `practisingCompetence` reads a
+    // self-healing derived cache whose background fold pokes the same
+    // subject again when it lands, so one external poke legitimately
+    // cascades. The count is an implementation detail of that cache;
+    // that the poke ARRIVES is the claim. The negative control below is
+    // what keeps this from being satisfied by the cascade alone.
+    expect(
+      spy,
+      'the poke did not reach a pane whose fields are an explicit list',
+    ).toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  /*
+   * The control: the index matches the exact durable key, so it is the
+   * POKE that woke the pane above and not merely the passage of time.
+   */
+  it('a poke on a different subject does not re-resolve the pane', async () => {
+    const h = await setupDurable(SUBJECT);
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'sub-self',
+      pane: 'self',
+    });
+    await MqlSubscriptionApi._drainScheduledForTesting();
+    const spy = vi.spyOn(MqlApi, 'resolveOne');
+
+    MqlSubscriptionApi.notifyDurableSubject('/obj/Avatar/somebody-else');
+    await MqlSubscriptionApi._drainScheduledForTesting();
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  /*
+   * ⚠ F2: the differ compares field values with `deepEqual`, not by
+   * identity — so a descriptor returning a freshly-built object on every
+   * read does NOT produce a spurious delta. Two pokes with nothing
+   * underneath them changed must yield no `update`.
+   */
+  it('two pokes with no underlying change emit no delta', async () => {
+    const h = await setupDurable(SUBJECT);
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'sub-self',
+      pane: 'self',
+    });
+    h.envelopes.length = 0;
+
+    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+    MqlSubscriptionApi.notifyDurableSubject(SUBJECT);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+
+    const deltas = h.envelopes.filter(
+      (e) => e.type === 'mql-subscription-delta',
+    );
+    expect(deltas).toHaveLength(0);
+  });
+
+  /*
+   * ⭐⭐ **The distinction D4b exists for.** Without this pair the
+   * ambiguity looks fixed while still being collapsed somewhere in the
+   * chain: a fresh character's `RENOWN` would read a confident `0`
+   * forever, and nothing would say which of the two facts it meant.
+   */
+  it('⭐ omits renown for an unmeasured scope, and carries a measured zero', async () => {
+    const h = await setupDurable(SUBJECT);
+
+    // Unmeasured: no row in the standing cache at all.
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'sub-unmeasured',
+      pane: 'self',
+    });
+    expect(firstRecord(h.envelopes)).not.toHaveProperty('renown');
+
+    // Measured, and the answer is zero.
+    RenownStanding.cached().set(
+      RenownStanding.key(SUBJECT, COMPACT_WIDE),
+      0,
+    );
+    h.envelopes.length = 0;
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: h.interactive,
+      subscriptionId: 'sub-measured',
+      pane: 'self',
+    });
+    expect(firstRecord(h.envelopes)!.renown).toEqual({ value: 0 });
+  });
+
+  /*
+   * The Api-level half of the same distinction. `renownOf` keeps its
+   * neutral-0 contract — five callers depend on it and every one of them
+   * genuinely wants a number.
+   */
+  it('measuredRenownOf preserves the absence renownOf collapses', () => {
+    expect(RenownApi.measuredRenownOf(SUBJECT)).toBeUndefined();
+    expect(RenownApi.renownOf(SUBJECT)).toBe(0);
+
+    RenownStanding.cached().set(
+      RenownStanding.key(SUBJECT, COMPACT_WIDE),
+      0,
+    );
+    expect(RenownApi.measuredRenownOf(SUBJECT)).toBe(0);
+    expect(RenownApi.renownOf(SUBJECT)).toBe(0);
+
+    RenownStanding.cached().set(
+      RenownStanding.key(SUBJECT, COMPACT_WIDE),
+      7,
+    );
+    expect(RenownApi.measuredRenownOf(SUBJECT)).toBe(7);
+    expect(RenownApi.renownOf(SUBJECT)).toBe(7);
   });
 });

@@ -823,12 +823,14 @@ export interface PromptEnvelope {
  * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
  * It is not a menu of hypothetical panes — every entry here is one the
  * client actually opens. The server-side definitions live in
- * `lib/connection/Panes.ts`.
+ * `lib/connection/Panes.ts`. `inspect` and `location` are the
+ * inspection pane's two; `self` is the **widget shelf's** — the one
+ * subscription behind every self-scoped figure the shelf renders.
  */
-export type PaneId = "inspect" | "location";
+export type PaneId = "inspect" | "location" | "self";
 
 /** Every {@link PaneId}. The server validates against this; the client picks from it. */
-export const PANE_IDS: readonly PaneId[] = ["inspect", "location"];
+export const PANE_IDS: readonly PaneId[] = ["inspect", "location", "self"];
 
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
@@ -1154,6 +1156,45 @@ export interface StuffExitDoor {
    * one (Perceptible's primaryKeyword is fail-soft).
    */
   primaryKeyword?: string;
+}
+
+/**
+ * What the `self` pane puts on the wire — the viewer's own figures, as
+ * the widget shelf reads them.
+ *
+ * ⚠ **Every field is optional, and an absent key is the honest
+ * answer.** `projectFields` omits any field whose descriptor `read`
+ * returns `undefined`, and the standing descriptors return `undefined`
+ * for anyone but the subject — so a record with no `playStanding` is
+ * not an error, it is "not resolved for you". The shelf renders each
+ * absence as the not-wired state with its own reason rather than
+ * substituting a zero.
+ *
+ * ⭐ **`makeStanding` is deliberately not here.** The server has the
+ * number, but *Make* is an account-level stock and the account
+ * arithmetic is unbuilt, so the figure's LEVEL is wrong — a figure
+ * whose level is wrong cannot be rendered. It is kept off the wire
+ * entirely rather than sent-and-declined, so the shelf's `MAKE` hatch
+ * is structural instead of a matter of client discipline. See the
+ * `self` entry in `lib/connection/Panes.ts`.
+ *
+ * ⭐ `renown` is absent — not `0` — for a scope that was never
+ * materialized. `RenownApi.measuredRenownOf` preserves that
+ * distinction, so a `{ value: 0 }` that arrives here genuinely means
+ * *measured, and the answer is zero*, and renders as a live figure.
+ */
+export interface SelfFigureRecord {
+  stuffId: string;
+  /** Influence earned by living in the world. Band NAME, not a value object. */
+  playStanding?: { band: string };
+  /** Signed standing. Present only when the scope is materialized. */
+  renown?: { value: number };
+  /**
+   * The competence currently being practised. `null` — as distinct from
+   * absent — means the transcript answered and nothing is being
+   * practised.
+   */
+  practisingCompetence?: { discipline: string; band: string } | null;
 }
 
 /**

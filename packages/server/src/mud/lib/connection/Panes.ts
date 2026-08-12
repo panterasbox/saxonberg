@@ -34,6 +34,7 @@
  */
 
 import type { PaneId, PaneHold } from '@saxonberg/types';
+import type { FieldAlias, FieldSet } from '../../api/mql-subscription';
 
 /** Everything the server needs to open one named pane. */
 export interface PaneDefinition {
@@ -42,7 +43,18 @@ export interface PaneDefinition {
   /** The MQL the pane resolves. Server-owned; never client-supplied. */
   readonly query: string;
   readonly cardinality: 'one' | 'many';
-  readonly fields: 'ref' | 'detail';
+  /**
+   * The field set, as either alias or an explicit list.
+   *
+   * ⚠ **Both aliases are object-DESCRIPTION sets** — `REF_FIELDS` is
+   * `displayName`/`quantity`/`primaryKeyword`, `DETAIL_FIELDS` adds
+   * descriptions, contents and exits. Neither carries a standing, a
+   * competence or any other figure ABOUT the subject, so a pane whose
+   * whole content is such figures has to name them. The subscribe path
+   * needed no change to accept this: `resolveFieldSet` has always
+   * returned an explicit `FieldSet` unchanged.
+   */
+  readonly fields: FieldSet | FieldAlias;
   /** Lifetime rule, when this pane has one. */
   readonly hold?: PaneHold;
   /** Re-resolve when the viewer's focus fragment changes. */
@@ -72,6 +84,33 @@ export const PANES: Readonly<Record<PaneId, PaneDefinition>> = {
     cardinality: 'one',
     fields: 'ref',
     locationDependent: true,
+  },
+  /**
+   * ⭐ The widget shelf's one subscription. `me` is a pronoun seed, the
+   * same fixed-pool shape `location` uses with `here`, so the pane
+   * resolves to exactly one Stuff — the viewer.
+   *
+   * ⚠ **No dependency flags, deliberately.** These figures wake through
+   * `durableKey` pokes from the standing ledgers, not through focus or
+   * location, and declaring a flag nothing needs is the inverse of the
+   * `HOLD_WAKES_ON` lesson: a dependency that fires for reasons
+   * unrelated to the content is churn, not liveness.
+   *
+   * ⭐⭐ **`makeStanding` is absent on purpose — do not "fix" this.**
+   * `Avatar` declares it and it returns a real band, but *Make* is an
+   * account-level stock whose account arithmetic is deliberately
+   * unbuilt, so what the field returns is a per-CHARACTER figure for an
+   * account-level claim. A figure whose level is wrong cannot be
+   * rendered, and the strongest form of that is never putting it on the
+   * wire — a number sitting unused in the client store is a number the
+   * next builder wires up in one line. It joins this list the day the
+   * account roll-up lands.
+   */
+  self: {
+    label: 'your own figures',
+    query: 'me',
+    cardinality: 'one',
+    fields: ['playStanding', 'renown', 'practisingCompetence'],
   },
 };
 

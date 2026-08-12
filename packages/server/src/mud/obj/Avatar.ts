@@ -304,7 +304,12 @@ export default class Avatar extends AvatarBase {
       read: (stuff, viewer) => {
         const key = standingSubject(stuff, viewer);
         if (!key) return undefined;
-        return { band: InfluenceApi.bandOf(key, 'consumer') };
+        // The wire carries a band NAME, not a serialized value object.
+        // `Band`'s one public member is `name`, so `JSON.stringify`
+        // would emit `{band: {name}}` — a shape nobody designed and no
+        // test asserts as a contract. `practisingCompetence` already
+        // puts its band on the wire as a plain string; this matches it.
+        return { band: InfluenceApi.bandOf(key, 'consumer').name };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -323,7 +328,10 @@ export default class Avatar extends AvatarBase {
       name: 'makeStanding',
       read: (stuff, viewer) => {
         if (!standingSubject(stuff, viewer)) return undefined;
-        return { band: InfluenceApi.standingForHost(stuff, 'producer').band };
+        // Band NAME on the wire, as `playStanding` — see there.
+        return {
+          band: InfluenceApi.standingForHost(stuff, 'producer').band.name,
+        };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -332,7 +340,14 @@ export default class Avatar extends AvatarBase {
       read: (stuff, viewer) => {
         const key = standingSubject(stuff, viewer);
         if (!key) return undefined;
-        return { value: RenownApi.renownOf(key) };
+        // ⭐ `measuredRenownOf`, not `renownOf`: an unmaterialized scope
+        // returns `undefined` and `projectFields` omits the field, so
+        // the client can tell "never measured" from "measured at zero".
+        // `renownOf`'s neutral `?? 0` is right for arithmetic and a
+        // fabricated answer for a display surface.
+        const value = RenownApi.measuredRenownOf(key);
+        if (value === undefined) return undefined;
+        return { value };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
