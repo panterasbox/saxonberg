@@ -64,6 +64,7 @@ import {
 } from "./Shelf";
 import { ViewsMenu } from "../ViewsMenu";
 import { ShelfPullDown } from "./ShelfPullDown";
+import { DroppedRow } from "./DroppedRow";
 
 const Bar = styled.header`
   display: flex;
@@ -184,6 +185,7 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
 }) => {
   const clientState = useStore((s) => s.clientState);
   const shelfFigures = useStore((s) => s.shelfFigures);
+  const link = useStore((s) => s.connection.link);
   const [pullDownOpen, setPullDownOpen] = React.useState(false);
 
   const pinned = pinnedShelf(clientState);
@@ -224,11 +226,24 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
 
   return (
     <Bar data-testid="mobile-bar">
-      <FactsRow data-testid="mobile-facts-row">
-        <Seal size={20} title="Saxonberg" />
-        <ConnectionChip />
-        <AccountMenu {...(extras ? { extras } : {})} />
-      </FactsRow>
+      {/*
+       * ⭐ A dropped socket claims the ENTIRE first row. On a phone you
+       * are usually not looking, so the bar must not understate it —
+       * and the fixed facts are what a dead link makes meaningless
+       * anyway. The glance-line below stays, hatched by its own
+       * figures going stale, because a shelf that vanished on a blip
+       * would reflow the whole bar every time a train went into a
+       * tunnel.
+       */}
+      {link === "connected" ? (
+        <FactsRow data-testid="mobile-facts-row">
+          <Seal size={20} title="Saxonberg" />
+          <ConnectionChip />
+          <AccountMenu {...(extras ? { extras } : {})} />
+        </FactsRow>
+      ) : (
+        <DroppedRow />
+      )}
       <GlanceRow data-testid="mobile-glance-row">
         <Glance data-testid="glance-line">
           {glance.length === 0 ? (
