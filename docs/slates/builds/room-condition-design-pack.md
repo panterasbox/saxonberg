@@ -166,6 +166,13 @@ the driver, not the domain.
 watched."** Each is a legible act that clears a gauge; none is a bar you stare
 at. `dispose` hands debris to sanitation (a bin, or dumped → public litter).
 
+⭐ **The water-using ones (`wash`/`wipe`/`bathe`) take a PRECONDITION, not a
+consumable** — see [water-design-pack § Part 4](./water-design-pack.md). Where
+there is a tap the act simply works; where there is not, you need a filled
+vessel. Deliberately **not** metered water: the shipped taps are `∞` on
+purpose, and charging the care loop an errand per wash is the friction this
+pack exists to avoid.
+
 **5. Persisted fields.** The `Soilable` band per item/body; the room's debris
 level. **No clock stamp** (it's event-accumulated, not time-integrated) — they
 persist as plain state and are correct across dormancy *because they froze.*
@@ -286,9 +293,11 @@ spoilage's growth term. So the sequence is: **spoilage → room condition
 1. **The `restQuality` curve** — how bedding `Soilable` + room condition combine
    into the multiplier furnishing wants (bounded, forgiving; a filthy bed is a
    worse floor, never a punishment cliff).
-2. **Body `Soilable` ↔ the bathroom.** The shower/tub (furnishing's "presence"
-   archetype) becomes functional here — `bathe` clears body soiling. Does this
-   finally give the bathroom its modeled function, or stay LOD-light?
+2. ✅ **Body `Soilable` ↔ the bathroom — ANSWERED 2026-08-11.** The tub/basin
+   is **the fixture that makes `bathe` available** (the water precondition,
+   [water pack § Part 4](./water-design-pack.md)). That is a real modelled
+   function with no needs-bar, and it makes *running water* a residence-ladder
+   rung feature rather than a `prestige` number.
 3. **Tidiness from placement** — is it truly derivable from item `place`/resting
    state, or does it need a light gauge? *Lean: derive it; a scattered room is
    one whose items aren't in their `place`.*
