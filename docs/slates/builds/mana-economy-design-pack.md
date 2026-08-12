@@ -538,18 +538,74 @@ competing use, enormous acreage, thin yield. That is marginal agricultural
 land in reality, it is von Thünen again (low value per hectare locates far
 from market), and it puts the magic-carrot farmer *somewhere specific*.
 
-### ⚠ One fork left open: is the Confluence a deposit?
+### ⭐⭐⭐ DECIDED — the Confluence is the source, and it is chosen for NARRATIVE
 
-The lore already calls it the **"sacred head,"** and sacredness attached to a
-specific place is usually fiction marking a real anomaly.
+**(Owner, 2026-08-11: Terminus needs a mana source; the criterion is a rich
+surface for NPCs and stories players can engage with, not economic tidiness.)**
 
-| Option | Buys | Costs |
+On that criterion it is not close. An import-only city puts every conflict out
+on the frontier and leaves Terminus **downstream of its own drama** — a place
+that processes other people's problems. Putting the source in the middle of
+the map makes it everyone's.
+
+> ⭐⭐⭐ **A sacred site that is also an economic resource is the richest single
+> object you can put in a city**, because it forces every character to choose
+> between two incommensurable values. That is not a puzzle with a solution —
+> it is a **position**, and positions are what make NPCs read as people rather
+> than quest dispensers.
+
+**Six legitimate claims on one piece of ground — all already named and housed
+on the shipped map, with no new worldbuilding:**
+
+| Claim | Who | Position |
 |---|---|---|
-| **No deposit** | cleanest economic geography; the frontier matters | leaves the Confluence's sacredness unexplained |
-| **The Confluence is one** | contested sacred site *inside* the city — church, University and state all with claims | weakens the import story |
-| ⭐ **Both** — real but **small and protected**, so it can never supply industry | explains **why the founders settled there** while keeping the economy import-dependent | one more thing to author |
+| **occupation** | the **University** — the campus sits on it | it is ours; we study it |
+| **sacred** | the **clergy** — the Sanctuary is *below* the campus | it is not a resource at all |
+| **civic** | the **locality** ([governance](../../subsystems/governance.md) ships) | it is public |
+| **capital** | **Aevex · Goodkin · Vionne · Hollis** | name a price |
+| **labour** | the **dockers' hall**, Wharfside | it is jobs |
+| **security** | the **Garrison**, already guarding the northern approaches | ⭐ guarding *what*, exactly? |
 
-*Lean: both.* **Owner's call — not decided here.**
+That last row is the tell that the geography was already pointing here.
+
+### ⭐⭐ The fog is the evidence, and it is already canon
+
+[terminus-city](../../staging/terminus-city.md) gives the city a signature:
+**"fog off the confluence."** Decision 7 says mana is **volatile and leaks to
+ambient on every disturbance.**
+
+> **The fog IS the deposit venting.** A line of existing flavour text becomes
+> the visible signature of the source, with nothing invented to join them.
+
+And it pays off mechanically: Terminus carries **high ambient mana**, so
+casters recover faster in the city. That is a reason mages live there, a
+reason the University is there, and a reason East Bank rent is high — all out
+of one weather line already written.
+
+⭐ **The import economy survives intact**, because all three hold at once:
+**rich ambient** (free, everywhere, good for casters) + a **protected
+deposit** (too sacred and too small to industrialise) + **imported raw
+material** for the refineries. The tension between the three *is* the story.
+
+### The hooks the systems already generate
+
+Situations, not a plot list — each is mechanically supported today or by a
+designed pack:
+
+- **Rationing.** The deposit is drawn down; who gets an allocation? The supply
+  pack's common-pool **quota**, which makes an NPC administrator a person with
+  enemies.
+- **Refinery downstream vs sacred site upstream** — the flow-rivalry
+  water-rights seam (Part 5), already designed.
+- **Illegal extraction** — the Gray, the fence, the dead-drop, all on the map.
+- **A worker hurt at the site** —
+  [accountability](../../subsystems/accountability.md), already shipped.
+- **Samples the church will not permit** — the University's research blocked by
+  a claim it cannot overrule.
+
+⚠ **Name positions, not people.** Six factions with a stated stance is a
+*generator*; a roster of twelve named characters is a carve you pay for
+immediately and rewrite later. NPCs stay just-in-time.
 
 ---
 
@@ -625,10 +681,17 @@ Listed so the edit is scoped rather than exploratory. **Not done here.**
 | **Voss Decay, the Reeve Line, Tarn's Rule** | ✅ untouched — they are about coupling and dissipation |
 | **The audit log** | re-run it; the doc asks for this before new numbers land |
 
-⚠ **And one fix outside `arcane-science.md`:**
-[power-utility-slate](./power-utility-slate.md) lists *"who owns supply?"* as
-genuinely open, but **Terminus's hydro was decided in conversation and never
-written down.** Record it there — everything in Part 5b leans on it.
+⚠ **And two fixes outside `arcane-science.md`:**
+
+1. ✅ [power-utility-slate](./power-utility-slate.md) listed *"who owns
+   supply?"* as genuinely open while **Terminus's hydro had been decided in
+   conversation and never written down.** Recorded there 2026-08-11.
+2. ⚠ [terminus-city](../../staging/terminus-city.md) needs **the Confluence
+   as a mana source** (Part 5b) — the deposit, the six claims, and the fog as
+   its visible signature. **Deliberately NOT written yet**, for the same
+   reason `arcane-science.md` is untouched: the mana model is a design pack,
+   not ratified, and putting it into the city's canon doc first would invert
+   the dependency. Land it when the model lands.
 
 ---
 
