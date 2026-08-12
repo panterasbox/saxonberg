@@ -26,11 +26,12 @@ import React from "react";
 import styled from "styled-components";
 import type { Template } from "./TemplateRegistry";
 import { renderTree } from "./renderHelpers";
+import { tokens } from "../../components/ui";
 
 const SERVICE_COLOR: Record<string, string> = {
-  twitch: "#9146ff",
-  youtube: "#ff0000",
-  kick: "#53fc18",
+  twitch: tokens.brand.twitch,
+  youtube: tokens.brand.youtube,
+  kick: tokens.brand.kick,
 };
 
 const Row = styled.div`

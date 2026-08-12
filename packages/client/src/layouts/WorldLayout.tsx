@@ -53,8 +53,8 @@ const PaneSlot = styled.div`
 `;
 
 const PaneTab = styled.button<{ $active: boolean }>`
-  background: ${(p) => (p.$active ? "rgba(255,255,255,0.14)" : "transparent")};
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: ${(p) => (p.$active ? tokens.color.surfaceAlt : "transparent")};
+  border: 1px solid ${tokens.color.borderEmphasis};
   border-radius: 4px;
   color: inherit;
   cursor: pointer;

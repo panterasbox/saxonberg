@@ -72,6 +72,8 @@ export const tokens = {
     //    gain these; they exist so the literals they replace had a home.
     /** Informational, non-alarming state. The `not wired` glyph. */
     info: SX.info,
+    /** A translucent accent film — self-mention background, selection. */
+    accentWash: SX["accent-wash"],
     /** Foreground on a saturated field (buttons, the blue canton). */
     onField: SX.white,
     /** Drop shadow under a raised surface. */

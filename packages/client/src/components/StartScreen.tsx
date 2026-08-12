@@ -63,7 +63,7 @@ const Action = styled.button<{ $primary?: boolean }>`
   background: ${(p: { $primary?: boolean }) =>
     p.$primary ? tokens.color.primary : tokens.color.actionBg};
   color: ${(p: { $primary?: boolean }) =>
-    p.$primary ? "#fff" : tokens.color.fg};
+    p.$primary ? tokens.color.onField : tokens.color.fg};
   font-family: inherit;
   font-size: ${tokens.font.body};
   cursor: pointer;

@@ -26,13 +26,14 @@ import type { Frame } from '../store/index';
 import { parseMml } from '../lib/mml/parseMml';
 import { pickTemplate } from '../lib/templates/TemplateRegistry';
 import { useStylesheet } from '../lib/style/useStylesheet';
+import { tokens } from './ui';
 
 const TerminalContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
   font-size: 14px;
   /* The cross-register rhythm anchor — keep line-height HERE on the
      common ancestor, never per-register on Body, so a serif frame and
