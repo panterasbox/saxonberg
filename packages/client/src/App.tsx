@@ -77,11 +77,45 @@ function relayFrameFields(payload: unknown): ConsoleFrame["relay"] {
   };
 }
 
-const AppContainer = styled.div`
+/**
+ * ⚠⚠ **`$compact` clamps the shell to the viewport, and it is the
+ * precondition for every fixed-position chrome surface working at
+ * all.**
+ *
+ * On a real phone (not merely a narrow desktop window) a document that
+ * overflows horizontally makes Chrome widen the **initial containing
+ * block** — and the ICB is what `position: fixed` resolves against. The
+ * in-world layout puts a fixed `22rem` rail beside the terminal, so the
+ * document is ~698px wide at a 390px viewport; measured consequence:
+ * the shelf screen, declared `position: fixed; inset: 0`, computed to
+ * **728px**, and its close button and every row's actions sat off the
+ * right edge, unreachable. The command sheet had the same fate.
+ *
+ * ⚠ The unit suite cannot see this (jsdom has no layout) and neither
+ * could the e2e suite as written: Playwright's plain `viewport` is a
+ * DESKTOP context, where the ICB stays put. It needs `isMobile`, which
+ * is what a real device emulation turns on.
+ *
+ * So the shell refuses to be wider than the screen, and `ContentRow`
+ * takes the overflow into its own scroller — the rail stays reachable
+ * by scrolling the CONTENT, which is where a phone user would look for
+ * it, instead of by scrolling the whole page, which broke the chrome.
+ *
+ * ⚠ Compact only. Above the breakpoint nothing changes; a page-level
+ * horizontal scroll is legitimate for the builder/CMS layouts.
+ */
+const AppContainer = styled.div<{ $compact: boolean }>`
   display: flex;
   flex-direction: column;
   height: 100vh;
   background: ${tokens.color.surfaceSunken};
+  ${(p) =>
+    p.$compact
+      ? `
+  max-width: 100vw;
+  overflow-x: hidden;
+  `
+      : ""}
 `;
 
 /**
@@ -107,10 +141,18 @@ const Splash = styled.div`
  * (settings, future detail) docks beside it as a non-modal side panel —
  * the terminal stays visible (never-blind, no-modal).
  */
-const ContentRow = styled.div`
+const ContentRow = styled.div<{ $compact?: boolean }>`
   display: flex;
   flex: 1;
   min-height: 0;
+  /*
+   * ⚠ The overflow the shell above refuses has to go somewhere, and
+   * here is the right somewhere: the rail scrolls WITH the content
+   * rather than with the page. Clipping it instead would have made a
+   * shipped pane unreachable, which is a worse answer than the bug.
+   * Redesigning the play surface for a phone is Wave 4's.
+   */
+  ${(p) => (p.$compact ? "overflow-x: auto;" : "")}
 `;
 
 /**
@@ -653,7 +695,7 @@ function App() {
         LAYOUT_REGISTRY[layout] ?? LAYOUT_REGISTRY.world!
       ).Component;
       return (
-        <AppContainer>
+        <AppContainer $compact={isCompact}>
           {/* Always-on chrome (the matte): bus-health + identity + the
               Views layout switcher + settings, same place every layout —
               then the reconnect banner.
@@ -687,7 +729,7 @@ function App() {
           <ReconnectBanner />
           {/* The active layout fills the fluid content area; a summoned
               pane (settings) docks beside it — non-modal, terminal stays. */}
-          <ContentRow>
+          <ContentRow $compact={isCompact}>
             <ActiveLayout {...layoutProps} />
             {summonedPane === "settings" ? (
               <SettingsPane onSendCommand={sendCommand} onClose={closePane} />

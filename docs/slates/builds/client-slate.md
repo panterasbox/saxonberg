@@ -667,13 +667,34 @@ document 698px wide at a 390px viewport — belongs to Wave 4, where the
 feed itself is owned. Both were left alone deliberately rather than
 half-built.
 
-⭐ **Two bugs found by DRIVING that 710 green unit tests could not
-see**: `inset: 0` plus padding under content-box made a full-bleed
-surface 18px wider than the viewport and scrolled the page sideways; and
-`context.setOffline(true)` does **not** close an already-open WebSocket,
-so the dropped-row spec was asserting a state it never reached. jsdom has
-no layout and substitutes no `var()` — the same lesson B's overflowing
-`＋ widget` menu taught, learned again.
+⭐⭐ **SIX bugs found by driving a real browser, none of which a fully
+green suite could see.** The first two came from Playwright, the rest
+only from a real phone emulation:
+
+1. `inset: 0` plus padding under content-box made a full-bleed surface
+   18px too wide and scrolled the page sideways.
+2. `context.setOffline(true)` does **not** close an already-open
+   WebSocket, so the dropped-row spec asserted a state it never reached.
+3. ⭐⭐ **The mobile bar never opened the `self` subscription** — it
+   does not render `Shelf`, where that `useEffect` lived — so every
+   glance-line figure was empty forever. Eleven green tests seeded the
+   store directly and were structurally blind to *does anything ask?*
+4. ⭐⭐ **Under the mobile viewport model an overflowing document widens
+   the ICB**, which `position: fixed` resolves against — so the shelf
+   screen rendered at 728px in a 390px viewport with its close button
+   and every action off-screen and **unreachable**. Playwright's plain
+   `viewport` is a narrow DESKTOP context where this cannot happen;
+   `isMobile: true` is the difference.
+5. **The right-column panes bypassed the command sheet**, taking the raw
+   send — so one screen had two rules for the same tap.
+6. ⭐⭐ **The client never reconnected after a server restart** — the
+   standup-deploy path the backoff exists for — because `App`'s connect
+   effect raced the loop and the chain was lost. Pre-existing; the retry
+   countdown is what made it legible, and *a countdown is a promise*.
+
+⚠ The governing lesson, third time it has been paid for: **jsdom has no
+layout, and a narrow desktop window is not a phone.** B's overflowing
+`＋ widget` menu taught half of it; this build taught the other half.
 
 ⚠ **Build B's read-only mode indicator was CUT, not deferred — it has no
 source.** This line promised one; investigation during planning found

@@ -537,6 +537,25 @@ interface StoreState extends CmsSlice, StudioSlice {
    */
   frames: Frame[];
   /** Append one frame; preserves arrival order. */
+  /**
+   * Epoch ms of the most recent frame to arrive, or `undefined` before
+   * the first one.
+   *
+   * ⭐⭐ **It is a separate slot precisely so it can OUTLIVE the
+   * buffer.** The dropped row reports *how long since the last frame*,
+   * and the obvious source — `frames[frames.length - 1].timestamp` —
+   * is structurally always absent exactly when it is wanted:
+   * `WebSocketClient.onclose` calls `clearFrames()`, so by the time the
+   * row renders, the buffer is empty. Measured on a real drop: the
+   * figure read *"no frame has arrived this session"* in a session that
+   * had just rendered a full transcript.
+   *
+   * ⚠ So `clearFrames` deliberately does not touch it. Scrollback is
+   * session-scoped; *when the link last carried something* is a fact
+   * about the LINK, and dropping it with the scrollback made the one
+   * surface that needs it unable to answer.
+   */
+  lastFrameAt?: number;
   appendFrame: (frame: Frame) => void;
   /** Empty the buffer; called on disconnect. */
   clearFrames: () => void;
@@ -1380,11 +1399,31 @@ export const useStore = create<StoreState>((set, get) => ({
           // longer exists, so keeping it would leave a confident
           // latency reading sitting beside the word "dropped".
           //
-          // `retryAt` is present only when the caller has one — the
-          // backoff loop knows its next attempt, the give-up path and
-          // the manual reconnect do not, and an omitted field is how a
-          // countdown says it has nothing to count.
-          ...(retryAt !== undefined ? { retryAt } : {}),
+          /*
+           * ⚠⚠ An omitted `retryAt` means *"I have nothing to say about
+           * the schedule"*, NOT *"there is no schedule"* — so it is
+           * CARRIED OVER rather than dropped.
+           *
+           * Measured: a failing socket fires `onerror` before `onclose`,
+           * and `onerror` calls this with two arguments. Treating the
+           * omission as a clear made the countdown blink to empty on
+           * every attempt, and — worse — a late `onerror` arriving after
+           * the machine had given up would restore `reconnecting` with
+           * no schedule at all, leaving the bar promising a retry that
+           * nothing would ever fire.
+           *
+           * ⭐ A `dropped` link is the one state that genuinely has no
+           * next attempt, so it clears — which is the rule the honest
+           * figure needs and the reason it is expressed as a rule
+           * rather than as a parameter every caller must remember.
+           */
+          ...(link === "dropped"
+            ? {}
+            : retryAt !== undefined
+              ? { retryAt }
+              : state.connection.retryAt !== undefined
+                ? { retryAt: state.connection.retryAt }
+                : {}),
         },
         selfInteractiveId: null,
         selfAvatarId: null,
@@ -1679,6 +1718,9 @@ export const useStore = create<StoreState>((set, get) => ({
       }
       return {
         frames: [...state.frames, frame],
+        // ⭐ Stamped alongside the buffer, and deliberately NOT part of
+        // it — see `lastFrameAt`.
+        lastFrameAt: frame.timestamp,
         ...(unreadChanged ? { unreadCounts } : {}),
         ...(mutedSinceSessionStart !== state.mutedSinceSessionStart
           ? { mutedSinceSessionStart }
@@ -1696,6 +1738,7 @@ export const useStore = create<StoreState>((set, get) => ({
             frames: [],
             unreadCounts: {},
             mutedSinceSessionStart: {},
+            // ⚠ `lastFrameAt` deliberately SURVIVES. See its declaration.
           },
     ),
 

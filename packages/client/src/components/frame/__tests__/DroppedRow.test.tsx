@@ -54,7 +54,7 @@ function rowFor(label: string): HTMLElement {
 beforeEach(() => {
   vi.useFakeTimers();
   reconnectNow.mockClear();
-  useStore.setState({ frames: [], clientState: {}, shelfFigures: null });
+  useStore.setState({ frames: [], lastFrameAt: undefined, clientState: {}, shelfFigures: null });
   setLink('reconnecting');
 });
 
@@ -158,11 +158,7 @@ describe('DroppedRow', () => {
     it('reports it live', () => {
       const now = Date.now();
       vi.setSystemTime(now);
-      useStore.setState({
-        frames: [
-          { id: 'f1', topic: 'act.deed', body: 'x', timestamp: now - 90_000 },
-        ],
-      });
+      useStore.setState({ lastFrameAt: now - 90_000 });
       render(<DroppedRow />);
       expect(rowFor('last frame').getAttribute('aria-label')).toBe(
         'last frame: 1m',
@@ -170,12 +166,40 @@ describe('DroppedRow', () => {
     });
 
     /*
-     * ⚠ A reconnect clears the frame buffer, so "no frames yet" is a
-     * state that genuinely occurs here — and it is `empty` with a
-     * reason, not a zero.
+     * ⚠⚠ **The regression this figure actually had, and the reason it
+     * reads `lastFrameAt` rather than the frame buffer.**
+     *
+     * `WebSocketClient.onclose` calls `clearFrames()`, so by the time
+     * this row exists the buffer is ALWAYS empty — the figure reported
+     * "no frame has arrived this session" in a session that had just
+     * rendered a full transcript. The original test seeded `frames`
+     * directly and passed, because it never modelled the clear that
+     * every real drop performs. Found by driving a real server restart.
      */
-    it('⚠ is empty with a reason when no frame has arrived', () => {
-      useStore.setState({ frames: [] });
+    it('⚠⚠ survives the clearFrames that every real drop performs', () => {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      useStore.getState().appendFrame({
+        id: 'f1',
+        topic: 'act.deed',
+        body: 'x',
+        timestamp: now - 30_000,
+      });
+      // Exactly what `onclose` does.
+      useStore.getState().clearFrames();
+      expect(useStore.getState().frames).toHaveLength(0);
+
+      render(<DroppedRow />);
+      const row = rowFor('last frame');
+      expect(row.getAttribute('data-figure-state')).toBe('live');
+      expect(row.getAttribute('aria-label')).toBe('last frame: 30s');
+    });
+
+    /*
+     * ⚠ And genuinely-never is still `empty` with a reason, not a zero.
+     */
+    it('⚠ is empty with a reason when no frame has EVER arrived', () => {
+      useStore.setState({ frames: [], lastFrameAt: undefined });
       render(<DroppedRow />);
       const row = rowFor('last frame');
       expect(row.getAttribute('data-figure-state')).toBe('empty');

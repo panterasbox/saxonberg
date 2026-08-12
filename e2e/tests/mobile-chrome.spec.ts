@@ -24,6 +24,24 @@ const PHONE = { width: 390, height: 844 };
 /** The narrow case. Nothing may overflow here either. */
 const NARROW = { width: 320, height: 640 };
 
+/**
+ * ⚠⚠ **`isMobile` is not decoration, and leaving it off hid a real
+ * bug through a whole green run.**
+ *
+ * A bare `viewport` gives a DESKTOP context that happens to be narrow.
+ * Only `isMobile` turns on the mobile viewport model — and that model
+ * is where a horizontally-overflowing document **widens the initial
+ * containing block**, which is what `position: fixed` resolves against.
+ * Without it every fixed full-bleed surface measured a tidy 390px and
+ * every assertion passed; with it (and on the actual phone this was
+ * driven on) the shelf screen computed to 728px with its close button
+ * and every row's actions off the right edge, unreachable.
+ *
+ * So the phone specs run in a phone context, not a narrow desktop one.
+ */
+const PHONE_CONTEXT = { viewport: PHONE, hasTouch: true, isMobile: true };
+const NARROW_CONTEXT = { viewport: NARROW, hasTouch: true, isMobile: true };
+
 /** How far the document can scroll horizontally, in px. */
 async function horizontalScroll(page: Page): Promise<number> {
   return page.evaluate(
@@ -34,23 +52,23 @@ async function horizontalScroll(page: Page): Promise<number> {
 }
 
 /**
- * ⚠⚠ **The world LAYOUT already overflows at phone widths**, and that
- * is not this build's to fix.
+ * ⚠ **The world LAYOUT still wants to be wider than a phone**, and this
+ * build does not redesign it: `WorldLayout` puts a fixed `22rem` rail
+ * beside the terminal, ~698px of content at a 390px viewport. The
+ * mobile play surface is an explicit **Wave 4** non-goal.
  *
- * Measured at 390px: `WorldLayout` puts a fixed `22rem` rail beside the
- * terminal, so the document is 698px wide before any chrome is
- * involved. The mobile play surface — the two feeds, the pane feed,
- * focus chain, filters and routing — is an explicit **Wave 4** non-goal
- * of this build, and reflowing it here would be building half of that
- * wave blind.
+ * What this build DOES do is stop that from widening the *document* —
+ * the shell is clamped to the viewport and the rail scrolls inside the
+ * content row instead (see `AppContainer` in `App.tsx`). That clamp is
+ * not tidiness: under the mobile viewport model an overflowing document
+ * widens the initial containing block, and every `position: fixed`
+ * chrome surface inherits it. Left alone, the shelf screen rendered at
+ * 728px with its actions off-screen.
  *
- * So the claim these specs make is the one this build is actually
- * responsible for and the one the AC states: **no chrome surface CAUSES
- * the page to scroll sideways.** Each surface is checked twice — it
- * must not widen the document beyond the baseline it opened over, and
- * its own box must fit inside the viewport. Both are stronger than a
- * bare `scrollWidth === clientWidth` would have been, and neither
- * quietly passes because the layout was already broken.
+ * So each surface is checked twice — it must not widen the document
+ * beyond the baseline it opened over, and its own box must fit inside
+ * the viewport. The second half is the one that catches an ICB
+ * expansion, and it is why the baseline comparison alone is not enough.
  */
 async function openWithoutOverflow(
   page: Page,
@@ -98,7 +116,7 @@ test('the bar is two rows, and the glance-line holds three', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobbar', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
   });
   try {
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
@@ -151,7 +169,7 @@ test('the pull-down overlays the feed, and nothing scrolls sideways', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobpull', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
   });
   try {
     const terminal = page.getByTestId('terminal');
@@ -195,7 +213,7 @@ test('neither the pull-down nor the shelf screen overflows at 320px', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobnarrow', {
-    contextOptions: { viewport: NARROW, hasTouch: true },
+    contextOptions: NARROW_CONTEXT,
   });
   try {
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
@@ -247,7 +265,7 @@ test('cockpit shelf first puts a row on the bar, and it survives a reload', asyn
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobfirst', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
   });
   try {
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
@@ -287,7 +305,7 @@ test('a tap names its command, and the server echoes exactly that', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobsheet', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
   });
   try {
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
@@ -332,7 +350,7 @@ test('a dead socket claims the first row, counts down, and promises nothing', as
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobdrop', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
     // ⚠ Keep a handle on every socket the page opens.
     //
     // ⚠⚠ `context.setOffline(true)` alone does NOT do this — measured:
@@ -410,7 +428,7 @@ test('round trip renders a real number shortly after connecting', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobrtt', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
   });
   try {
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
@@ -464,7 +482,7 @@ test('the bar consumes the safe-area inset, and the viewport enables it', async 
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'mobsafe', {
-    contextOptions: { viewport: PHONE, hasTouch: true },
+    contextOptions: PHONE_CONTEXT,
   });
   try {
     await expect(page.getByTestId('mobile-bar')).toBeVisible({

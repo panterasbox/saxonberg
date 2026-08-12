@@ -156,6 +156,43 @@ class WebSocketClient {
   private heartbeat: ReturnType<typeof setInterval> | null = null;
   private static readonly HEARTBEAT_MS = 30_000;
 
+  /**
+   * The pending backoff timer, or `null` when no reconnect is armed.
+   *
+   * ⭐⭐ **Its existence is what makes the backoff loop the SOLE driver
+   * of reconnection**, and that is a fix for a measured, pre-existing
+   * failure: after a server restart the client would sit at
+   * `reconnecting` **forever** and never recover, even with the server
+   * back and healthy for minutes. The very case the generous 7-attempt
+   * window was written for — *"a user can ride straight through a
+   * standup deploy without touching anything"* — did not work.
+   *
+   * The race, from the console of a real drop:
+   *
+   *   1. `onclose` nulls the socket and arms attempt 1.
+   *   2. `setDisconnected` flips `connection.isConnected` false, which
+   *      re-fires **`App`'s connect effect** — a second, independent
+   *      caller of `connect()`, out of band with the backoff.
+   *   3. That immediate attempt fails and arms attempt 2.
+   *   4. Attempt 1's timer fires and opens a socket.
+   *   5. Attempt 2's timer fires, finds that socket still CONNECTING,
+   *      and returns **without re-arming**. The loop is now lost.
+   *   6. The parked socket sits in CONNECTING behind Chrome's own
+   *      repeated-failure throttle, so nothing ever completes it.
+   *
+   * With this timer, `connect()` refuses while a reconnect is armed, so
+   * step 2 cannot inject an out-of-band attempt and the loop stays a
+   * single ordered chain: close → arm → connect → close → arm.
+   *
+   * ⚠ This is a **behaviour change to the reconnect machine**, which
+   * this build's requirements fenced off as additive-only. It is made
+   * deliberately and reported: the countdown this build added is what
+   * exposed the fault, and a countdown is a promise — reporting when
+   * the next attempt fires obliges the next attempt to actually fire.
+   * The three frozen guard files still pass unmodified.
+   */
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     this.registerBuiltinHandlers();
   }
@@ -261,9 +298,56 @@ class WebSocketClient {
   public connect(url: string): void {
     this.url = url;
 
-    if (this.ws) {
+    /*
+     * ⚠⚠ **The guard is on a LIVE socket, not on the slot being
+     * non-empty — and that distinction is a reconnect loop that
+     * recovers versus one that wedges forever.**
+     *
+     * Measured against a real stopped server: attempt 1 failed, attempt
+     * 2 was scheduled, and when its timer fired this method found a
+     * non-null `this.ws` holding a socket that was already CLOSED,
+     * logged "Already connected" and returned. No further attempt was
+     * ever made. The link sat at `reconnecting` indefinitely and the
+     * backoff never advanced.
+     *
+     * ⚠ That is a PRE-EXISTING fault in the reconnect machine — but it
+     * was invisible while nothing reported the schedule. The retry
+     * countdown this build added is what made it legible, and a
+     * countdown frozen at 0s against a loop that will never fire again
+     * is a worse lie than not showing one. Reporting a number obliges
+     * you to make the number true.
+     *
+     * A CONNECTING or OPEN socket still short-circuits, which is the
+     * duplicate-connect the guard was actually written for.
+     */
+    if (this.reconnectTimer !== null) {
+      // The backoff loop owns the connection now. An out-of-band
+      // caller must not open a competing socket — see `reconnectTimer`.
+      console.warn("WebSocketClient: Reconnect already scheduled");
+      return;
+    }
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
       console.warn("WebSocketClient: Already connected");
       return;
+    }
+    if (this.ws) {
+      // A dead socket in the slot. Detach first so its late events
+      // cannot null out the socket we are about to create.
+      const stale = this.ws;
+      this.ws = null;
+      stale.onmessage = null;
+      stale.onclose = null;
+      stale.onerror = null;
+      stale.onopen = null;
+      try {
+        stale.close();
+      } catch {
+        /* already closed */
+      }
     }
 
     console.info(`WebSocketClient: Connecting to ${url}...`);
@@ -339,6 +423,14 @@ class WebSocketClient {
    */
   public reconnectNow(): void {
     this.reconnectAttempts = 0;
+    // ⚠ Disarm first: a pending backoff attempt would otherwise make
+    // the manual reconnect below refuse, which is the opposite of what
+    // the affordance promises — and it would leave a stale countdown
+    // running against a connection the player has already re-made.
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     // ⚠ Explicitly, because the teardown below DETACHES `onclose` — the
     // handler that normally stops the heartbeat never runs on this
     // path, and a leaked timer would outlive its socket.
@@ -370,6 +462,11 @@ class WebSocketClient {
   public disconnect(): void {
     this.intentionalDisconnect = true;
     this.stopHeartbeat();
+    // An armed backoff would reconnect a session the caller just ended.
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.ws) {
       // Close with the intentional-leave code so the server reads this as
       // a deliberate departure (→ a `loggedOut` presence frame for
@@ -1022,7 +1119,10 @@ class WebSocketClient {
     useStore
       .getState()
       .setDisconnected(undefined, "reconnecting", Date.now() + delay);
-    setTimeout(() => {
+    this.reconnectTimer = setTimeout(() => {
+      // Cleared BEFORE connecting, so `connect` sees an unarmed loop
+      // and proceeds — and so a failure inside it can arm the next one.
+      this.reconnectTimer = null;
       this.connect(this.url);
     }, delay);
   }

@@ -162,14 +162,43 @@ that wave blind. The named token deliberately does *not* match those
 numbers — they are a different question, and an accidental match would
 make two unrelated decisions look like one.
 
-⚠ **The world LAYOUT still overflows at phone widths, and this build
-does not fix it.** `WorldLayout` puts a fixed `22rem` rail beside the
-terminal, so at a 390px viewport the document is 698px wide before any
-chrome is involved. The mobile play surface — the two feeds, the pane
-feed, focus chain, filters, routing — is an explicit **Wave 4**
-non-goal. The e2e assertions are therefore scoped to what the chrome is
-responsible for: no chrome surface may *widen* the page past the
-baseline it opened over, and each must fit the viewport itself.
+### ⚠⚠ The shell is clamped to the viewport, and that is load-bearing
+
+`WorldLayout` puts a fixed `22rem` rail beside the terminal, so at a
+390px viewport its content wants ~698px. Redesigning the mobile play
+surface is an explicit **Wave 4** non-goal — but leaving the *document*
+that wide is not survivable, and the reason is not tidiness:
+
+⭐⭐ **Under the mobile viewport model, a horizontally overflowing
+document widens the INITIAL CONTAINING BLOCK — and the ICB is what
+`position: fixed` resolves against.** Measured on a real phone
+emulation: `ShelfScreen`, declared `position: fixed; inset: 0`,
+computed to **728px** in a 390px viewport, putting its close button and
+every row's actions off the right edge, **unreachable**. The command
+sheet inherited the same fate. The surface was not merely ugly; it was
+unusable, and no amount of `box-sizing` on the surface itself could fix
+it, because the containing block was the thing that was wrong.
+
+So `AppContainer` refuses to exceed `100vw` when compact, and
+`ContentRow` takes the overflow into **its own** scroller. The rail
+stays reachable by scrolling the *content* — where a phone user would
+look for it — instead of by scrolling the whole page, which broke the
+chrome. Clipping it instead would have made a shipped pane unreachable,
+which is a worse answer than the bug.
+
+⚠⚠ **Neither suite could see this, and one of them lied by omission.**
+jsdom has no layout at all. And Playwright's plain `viewport` is a
+DESKTOP context that merely happens to be narrow — the ICB stays put,
+every fixed surface measured a tidy 390px, and eight e2e specs passed
+green over a broken build. The phone specs now pass `isMobile: true`,
+and that flag is the difference between a test that models a phone and
+one that models a small window. Verified by removing the fix and
+watching the assertion fail with *"shelf-screen runs past the right
+edge — expected ≤391, received 730"*.
+
+The chrome's own claim is unchanged and still checked twice per
+surface: it must not widen the page past the baseline it opened over,
+and its own box must fit the viewport.
 
 ## The mobile bar
 
@@ -190,6 +219,20 @@ bar at all.
 `Seal`, `ConnectionChip` and `AccountMenu` are the **same components,
 unchanged** — the fixed facts are not mobile copies, because a copy is
 how two surfaces start disagreeing about one socket.
+
+⚠⚠ **The bar OPENS the `self` subscription (`useSelfFigures`), and
+forgetting to was this build's most embarrassing bug.** The figures
+live in the store, but the subscription that fills them was a
+`useEffect` inside `Shelf` — which the mobile bar does not render. So
+the glance-line and the pull-down shipped reading a `shelfFigures` that
+**nothing ever populated**: every row rendered its honest empty state
+forever, on a phone, for figures the server was perfectly willing to
+send. Eleven green tests missed it and *could not* have caught it —
+every one seeds the store directly with `useStore.setState`, the seam
+that makes the shelf testable without a socket, and is therefore blind
+to *does anything ask?* **A derive-on-read surface needs its WAKE
+tested, not only its read.** The subscription is now a shared hook and
+`MobileFrame.test.tsx` asserts the bar opens it.
 
 ⭐ **The glance-line is `shelf.slice(0, GLANCE_ROWS)` — the HEAD of the
 one list, not a second key.** The alternative was a `cockpit.glance`
@@ -298,7 +341,7 @@ So the row reports:
 | reconnecting or dropped | `connection.link` |
 | the retry countdown, live | `connection.retryAt` |
 | a manual retry | the existing `reconnectNow` path, not a second implementation |
-| how long since the last frame | `Frame.timestamp` |
+| how long since the last frame | `store.lastFrameAt` — see below |
 | ⭐ **that commands sent now will not arrive** | the truth |
 
 ⭐ **That last row is the inversion worth making.** The art comforts —
@@ -315,6 +358,50 @@ placeholder.
 ⚠ The countdown is driven in test by advancing the clock rather than
 asserted as a constant: a static *retry in 4s* that never moved would be
 a worse lie than showing nothing, because it looks live.
+
+⚠⚠ **`lastFrameAt` is a separate store slot precisely so it can outlive
+the buffer.** The obvious source — `frames[frames.length - 1]` — is
+structurally absent exactly when the row needs it, because
+`WebSocketClient.onclose` calls `clearFrames()`. Driven on a real
+server restart, the figure read *"no frame has arrived this session"* in
+a session that had just rendered a full transcript. Scrollback is
+session-scoped; *when the link last carried something* is a fact about
+the LINK, and dropping it with the scrollback made the one surface that
+needs it unable to answer. Its test now performs the same `clearFrames`
+every real drop performs — the original seeded `frames` directly and
+passed against the bug.
+
+### ⭐⭐ Reporting a schedule obliges the schedule to be real
+
+Driving a server restart — the standup-deploy path the generous
+7-attempt window was written for — showed the client **never
+reconnecting**: `reconnecting` forever, with the server back and healthy
+for minutes, until the player reloaded by hand.
+
+The race, from the console of a real drop:
+
+1. `onclose` nulls the socket and arms attempt 1.
+2. `setDisconnected` flips `connection.isConnected` false, which
+   re-fires **`App`'s connect effect** — a second, independent caller of
+   `connect()`, out of band with the backoff.
+3. That immediate attempt fails and arms attempt 2.
+4. Attempt 1's timer fires and opens a socket.
+5. Attempt 2's timer fires, finds it mid-handshake, and returns
+   **without re-arming**. The chain is lost.
+
+`WebSocketClient.reconnectTimer` makes the backoff loop the **sole
+driver**: `connect()` refuses while an attempt is armed, so step 2
+cannot inject a competing socket, and the loop stays one ordered chain —
+close → arm → connect → close → arm. `reconnectNow` and `disconnect`
+disarm first, since a pending attempt must never block the manual
+affordance or resurrect a session the caller just ended.
+
+⚠ **This is a behaviour change to a machine this build's requirements
+fenced off as additive-only, and it is deliberate.** The fault is
+pre-existing; what is new is that the retry countdown made it legible.
+A countdown is a promise, and reporting when the next attempt fires
+obliges the next attempt to actually fire. The three frozen guard files
+still pass unmodified.
 
 ## The widget shelf
 
@@ -496,14 +583,33 @@ that the showing costs a tap instead of a hover.
 
 ⭐⭐ **The interception is at `App.handleCommandClick`, and that
 placement is the whole design.** Every affordance in the tree —
-transcript tags, shelf entries, `ViewsMenu`, the pull-down, panes not
-yet written — routes through that one handler, so the confirm step is
-**one interception point for the entire app** rather than an `isCompact`
-prop threaded into every renderer. `MmlRenderer`, `EntityName` and
-`Shelf` needed no changes at all, and an affordance added next year gets
-the behaviour for free. One `sendDirect` serves both the desktop click
-and the sheet's confirm, so *what the sheet showed* and *what got sent*
-cannot become two strings that merely agree today.
+transcript tags, shelf entries, `ViewsMenu`, the pull-down, the
+right-column panes — routes through that one handler, so the confirm
+step is **one interception point for the entire app** rather than an
+`isCompact` prop threaded into every renderer. `MmlRenderer`,
+`EntityName` and `Shelf` needed no changes at all. One `sendDirect`
+serves both the desktop click and the sheet's confirm, so *what the
+sheet showed* and *what got sent* cannot become two strings that merely
+agree today.
+
+⚠⚠ **"Every affordance" is a claim about WIRING, and it was false for
+one family until it was driven.** The four right-column panes
+(`InspectionPane`, `WhoPane`, `NewsTickerPane`, `WikiPane`) took
+`onSendCommand` — the raw send — so they bypassed the sheet entirely:
+tapping `north` in the transcript opened a sheet naming the command,
+while tapping the identical `north` in the pane six inches away sent it
+instantly. **Two rules on one screen is worse than either rule alone**,
+and it is precisely the unpredictability the no-exceptions policy above
+exists to prevent. `WorldLayout` now passes `onCommandClick` to all
+four, and `layouts/__tests__/affordanceRouting.test.ts` guards it —
+because a new pane wired to the wrong prop is one copy-paste away.
+
+⚠ `CommandBar` keeps the raw send, correctly: **typed input is not an
+affordance** and must never be confirmed.
+
+⚠ Every unit and e2e assertion about the sheet happened to pick a
+transcript or menu affordance, so a fully green suite said nothing
+about this.
 
 ⚠ **Every affordance, with no "obvious case" exception.** An unambiguous
 `look anvil` gets a sheet too. The extra tap **is** the pedagogical

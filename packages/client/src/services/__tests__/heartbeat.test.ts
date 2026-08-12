@@ -38,6 +38,7 @@ class MockWebSocket {
 interface Privates {
   ws: MockWebSocket | null;
   heartbeat: ReturnType<typeof setInterval> | null;
+  reconnectTimer: ReturnType<typeof setTimeout> | null;
   reconnectAttempts: number;
   url: string;
   startHeartbeat: () => void;
@@ -68,6 +69,10 @@ beforeEach(() => {
   vi.useFakeTimers();
   const p = privates();
   p.stopHeartbeat();
+  if (p.reconnectTimer !== null) {
+    clearTimeout(p.reconnectTimer);
+    p.reconnectTimer = null;
+  }
   p.ws = null;
   p.reconnectAttempts = 0;
   p.url = "ws://test";
@@ -85,8 +90,86 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  privates().stopHeartbeat();
+  const p = privates();
+  p.stopHeartbeat();
+  if (p.reconnectTimer !== null) {
+    clearTimeout(p.reconnectTimer);
+    p.reconnectTimer = null;
+  }
   vi.useRealTimers();
+});
+
+/**
+ * ⭐⭐ **The backoff loop is the SOLE driver of reconnection, and this
+ * is the assertion that keeps it that way.**
+ *
+ * Measured against a real stopped server: `setDisconnected` flips
+ * `connection.isConnected` false, which re-fires **`App`'s connect
+ * effect** — a second, independent caller of `connect()`, racing the
+ * backoff. One of them opened a socket; the other's timer then found it
+ * mid-handshake and returned **without re-arming**. The chain was lost,
+ * the link sat at `reconnecting` indefinitely, and the countdown this
+ * build added froze at `0s` — a promise of a retry that would never
+ * fire.
+ *
+ * ⚠ Reporting a schedule obliges the schedule to be real. That is why a
+ * pre-existing fault in a machine this build was told to leave alone
+ * had to be fixed here: the build is what made it a lie.
+ */
+describe("the reconnect loop owns the connection", () => {
+  /*
+   * ⚠ These tests let `connect()` actually run, so the constructor has
+   * to be stubbed — jsdom would otherwise open a real socket to
+   * `ws://test` and reject asynchronously long after the test passed.
+   */
+  const RealWebSocket = globalThis.WebSocket;
+  beforeEach(() => {
+    globalThis.WebSocket = MockWebSocket as unknown as typeof WebSocket;
+  });
+  afterEach(() => {
+    globalThis.WebSocket = RealWebSocket;
+  });
+
+  it("⭐⭐ refuses an out-of-band connect while an attempt is armed", () => {
+    const p = privates();
+    p.ws = null;
+    p.attemptReconnect();
+    expect(p.reconnectTimer).not.toBeNull();
+
+    // What `App`'s effect does the instant the store flips.
+    websocketClient.connect("ws://test");
+
+    // No socket was opened behind the loop's back.
+    expect(p.ws).toBeNull();
+    expect(p.reconnectTimer).not.toBeNull();
+  });
+
+  it("⚠ and disarms so the NEXT attempt can proceed", () => {
+    const p = privates();
+    p.attemptReconnect();
+    // Fire the armed attempt; it clears itself before connecting.
+    vi.advanceTimersByTime(1000);
+    expect(p.reconnectTimer).toBeNull();
+  });
+
+  /*
+   * ⚠ The manual affordance must never be blocked by a pending backoff
+   * — that is the opposite of what a "Retry now" button promises.
+   */
+  it("⚠ the manual reconnect disarms rather than being refused", () => {
+    const p = privates();
+    p.attemptReconnect();
+    expect(p.reconnectTimer).not.toBeNull();
+    websocketClient.reconnectNow();
+    expect(p.reconnectTimer).toBeNull();
+  });
+
+  it("an intentional disconnect cancels the armed attempt", () => {
+    const p = privates();
+    p.attemptReconnect();
+    websocketClient.disconnect();
+    expect(p.reconnectTimer).toBeNull();
+  });
 });
 
 describe("the round-trip heartbeat", () => {

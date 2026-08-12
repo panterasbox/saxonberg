@@ -60,6 +60,7 @@ import {
   SHELF_CATALOGUE,
   figureFor,
   pinnedShelf,
+  useSelfFigures,
   GLANCE_ROWS,
 } from "./Shelf";
 import { ViewsMenu } from "../ViewsMenu";
@@ -187,6 +188,15 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
   const shelfFigures = useStore((s) => s.shelfFigures);
   const link = useStore((s) => s.connection.link);
   const [pullDownOpen, setPullDownOpen] = React.useState(false);
+
+  /*
+   * ⚠⚠ **Without this the glance-line is empty forever.** The figures
+   * live in the store, but the `self` subscription that fills them was
+   * opened by `Shelf` — which the mobile bar does not render. Shipped
+   * broken, green in eleven unit tests (they all seed the store
+   * directly), and obvious within ten seconds of opening a phone.
+   */
+  useSelfFigures();
 
   const pinned = pinnedShelf(clientState);
   const byId = new Map(SHELF_CATALOGUE.map((r) => [r.id, r]));

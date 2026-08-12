@@ -115,7 +115,7 @@ export function formatCountdown(msRemaining: number): string {
 export const DroppedRow: React.FC = () => {
   const link = useStore((s) => s.connection.link);
   const retryAt = useStore((s) => s.connection.retryAt);
-  const frames = useStore((s) => s.frames);
+  const lastFrameAt = useStore((s) => s.lastFrameAt);
   const [now, setNow] = React.useState(() => Date.now());
 
   /*
@@ -144,11 +144,17 @@ export const DroppedRow: React.FC = () => {
         }
       : { state: "live", value: formatCountdown(retryAt - now) };
 
-  const last = frames[frames.length - 1];
+  /*
+   * ⚠⚠ Read from `lastFrameAt`, NOT from the frame buffer. `onclose`
+   * clears the buffer, so `frames[frames.length - 1]` is structurally
+   * always absent by the time this row exists — the figure read "no
+   * frame has arrived this session" in a session that had just
+   * rendered a full transcript. Found by driving a real drop.
+   */
   const sinceLastFrame: FigureState =
-    last === undefined
+    lastFrameAt === undefined
       ? { state: "empty", reason: "no frame has arrived this session" }
-      : { state: "live", value: formatDuration(now - last.timestamp) };
+      : { state: "live", value: formatDuration(now - lastFrameAt) };
 
   return (
     <Row role="status" data-testid="dropped-row">

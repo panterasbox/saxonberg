@@ -389,14 +389,28 @@ interface ShelfProps {
   onCommandPreview?: (command: string | null) => void;
 }
 
-export const Shelf: React.FC<ShelfProps> = ({
-  onCommandClick,
-  onCommandPreview,
-}) => {
-  const shelfFigures = useStore((s) => s.shelfFigures);
-  const clientState = useStore((s) => s.clientState);
-  const [menuOpen, setMenuOpen] = useState(false);
-
+/**
+ * Open the `self` pane for as long as the caller is mounted, feeding
+ * `store.shelfFigures`.
+ *
+ * ⭐⭐ **A HOOK, because the subscription belongs to whoever shows the
+ * figures — and that is now two components.** It began as a `useEffect`
+ * inside `Shelf`, which was correct while the desktop bar was the only
+ * consumer. The mobile bar does not render `Shelf` at all, so the
+ * glance-line and the pull-down shipped reading a `shelfFigures` that
+ * **nothing ever populated**: every row rendered its honest empty state
+ * forever, on a phone, for figures the server was perfectly willing to
+ * send.
+ *
+ * ⚠⚠ **Eleven green unit tests did not catch it, and could not have:**
+ * every one of them drives the store directly with
+ * `useStore.setState({ shelfFigures })`, which is the seam that makes
+ * the shelf testable without a socket — and is therefore blind to the
+ * question *does anything ask for them?* This is the wake-vs-read
+ * distinction the pane holds taught: a derive-on-read surface needs its
+ * WAKE tested, not just its read. Found by driving.
+ */
+export function useSelfFigures(): void {
   useEffect(() => {
     // ⭐ Opened BY NAME. The server owns the query, the cardinality and
     // the field set — the client sends `pane: 'self'` and nothing else.
@@ -451,6 +465,17 @@ export const Shelf: React.FC<ShelfProps> = ({
       websocketClient.unsubscribe(selfId);
     };
   }, []);
+}
+
+export const Shelf: React.FC<ShelfProps> = ({
+  onCommandClick,
+  onCommandPreview,
+}) => {
+  const shelfFigures = useStore((s) => s.shelfFigures);
+  const clientState = useStore((s) => s.clientState);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useSelfFigures();
 
   const pinned = pinnedShelf(clientState);
 

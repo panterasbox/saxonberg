@@ -19,12 +19,15 @@ import { SHELF_ROW_IDS, LEGACY_LAYOUT_MIGRATION } from '@saxonberg/types';
 import { MobileFrame } from '../MobileFrame';
 import { useStore } from '../../../store/index';
 
-// The glance-line reads figures from the store; the shelf's own
-// subscription lives in `Shelf`, which the mobile bar does not render.
-// Stub the transport anyway so nothing reaches for a socket.
+/** Every `subscribeMql` spec the bar asked for. */
+const subscribed: unknown[] = [];
+
 vi.mock('../../../services/websocket', () => ({
   websocketClient: {
-    subscribeMql: () => 'sub-self',
+    subscribeMql: (spec: unknown) => {
+      subscribed.push(spec);
+      return 'sub-self';
+    },
     unsubscribe: () => {},
     onEnvelope: () => {},
     offEnvelope: () => {},
@@ -51,6 +54,38 @@ function chipLabels(): string[] {
 }
 
 describe('MobileFrame', () => {
+  /*
+   * ⭐⭐ **The bug every other test in this file was structurally blind
+   * to.**
+   *
+   * The glance-line and the pull-down read `store.shelfFigures`, and
+   * the `self` subscription that fills it was opened by `Shelf` — which
+   * the mobile bar does not render. So the mobile chrome shipped
+   * reading a value nothing populated: every row showed its honest
+   * empty state forever, for figures the server was willing to send.
+   *
+   * ⚠⚠ Eleven green tests missed it, and could not have caught it:
+   * every one seeds `shelfFigures` with `useStore.setState`, which is
+   * the seam that makes the shelf testable without a socket — and is
+   * therefore blind to *does anything ask?* **A derive-on-read surface
+   * needs its WAKE tested, not only its read.** This is that test.
+   */
+  it('⭐⭐ OPENS the self subscription — the figures do not arrive by themselves', () => {
+    subscribed.length = 0;
+    render(<MobileFrame />);
+    expect(subscribed).toEqual([{ pane: 'self' }]);
+  });
+
+  it('closes it on unmount, so switching form factor leaks nothing', () => {
+    subscribed.length = 0;
+    const { unmount } = render(<MobileFrame />);
+    expect(subscribed).toHaveLength(1);
+    unmount();
+    // A second mount subscribes again rather than riding a stale one.
+    render(<MobileFrame />);
+    expect(subscribed).toHaveLength(2);
+  });
+
   beforeEach(() => {
     useStore.setState({
       shelfFigures: null,
