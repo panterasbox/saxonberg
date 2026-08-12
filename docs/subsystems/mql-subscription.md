@@ -185,6 +185,67 @@ on the wire). See the inspection-pane subsystem doc for the
 details surface and the per-viewer visibility filter that scopes
 `contents` projection.
 
+⚠ **Both aliases are object-DESCRIPTION sets, and that is a real
+limit.** Between them they carry a name, a quantity, a keyword, two
+descriptions, details, material, mass, contents and exits — every one of
+which describes *what a thing is*. **Neither carries a figure ABOUT the
+subject**: no standing, no competence, no renown. So a pane whose whole
+content is such figures cannot use an alias and has to name its fields.
+That is what widened `PaneDefinition.fields` (below); the subscribe path
+itself needed no change at all, because `resolveFieldSet` has always
+returned an explicit `FieldSet` unchanged.
+
+### The pane catalogue's field sets
+
+`lib/connection/Panes.ts` declares
+`readonly fields: FieldSet | FieldAlias`, so a shipped pane may name an
+alias or an explicit list. Three panes ship:
+
+| Pane | Query | Cardinality | Fields |
+|---|---|---|---|
+| `inspect` | `$focus` | `many` | `'detail'` |
+| `location` | `here` | `one` | `'ref'` |
+| `self` | `me` | `one` | `['playStanding','renown','practisingCompetence']` |
+
+`self` is the **widget shelf's** one subscription
+([client-shell.md § The widget shelf](./client-shell.md)) — the shelf's
+live figures are all fields on the viewer's own Avatar, so they are one
+subscription rather than one per figure. `me` is a pronoun seed, the
+same fixed-pool shape `location` uses with `here`.
+
+⚠ **No dependency flags on `self`, deliberately.** These figures wake
+through `durableKey` pokes from the standing ledgers, not through focus
+or location. Declaring a flag nothing needs is the inverse of the
+`HOLD_WAKES_ON` lesson: a dependency that fires for reasons unrelated to
+the content is churn dressed as liveness.
+
+⭐⭐ **`makeStanding` is deliberately absent from `self`'s field list —
+do not "fix" it.** `Avatar` declares the field and it returns a real
+band, but *Make* is an account-level stock whose account arithmetic is
+unbuilt, so what it returns is a per-CHARACTER figure answering a
+per-person claim. A figure whose level is wrong cannot be rendered, and
+the strongest form of that is keeping it off the wire entirely rather
+than sending it and declining to paint it: a number sitting unused in
+the client store is a number the next builder wires up in one line. It
+joins the list the day the account roll-up lands.
+
+⚠ The durable index is built from the **subscription's** field list —
+`deriveAndInstallDependencies` skips any descriptor whose name is not in
+`sub.fields` — so a pane naming its fields explicitly still wakes
+normally. That was verified rather than assumed
+(`pane-catalogue.test.ts`), because the whole liveness of the shelf
+rested on it.
+
+**The wire contract for a band is a NAME, not a value object.**
+`playStanding` and `makeStanding` return `{ band: 'nascent' }`, matching
+`practisingCompetence`'s already-plain `CompetenceBandName`. They used
+to return the `Band` instance, which `JSON.stringify` rendered as
+`{ band: { name: '…' } }` — a shape nobody designed, no test asserted as
+a contract, and which invited a client to depend on a value class's
+incidental JSON. (The differ compares structurally, not by identity, so
+a freshly-built `Band` per read never produced a spurious delta; the
+normalization is about the contract, not about churn.)
+
 ### Holder-level dependency flags
 
 The substrate accepts two opt-in flags on `SubscribeRequest`:
@@ -414,6 +475,35 @@ collection first:
 **A figure the server has not computed yet is absent, not zero.** A zero
 would be a claim nobody made. A test asserts the key is missing from the
 projection so this cannot quietly regress.
+
+⭐ **`renown` used to be the exception, and it was fixed at the source.**
+It reads a materialized standing, so it took the sync path above — but
+`RenownApi.renownOf` ends in `RenownStanding.cached().get(key) ?? 0`,
+and that `?? 0` collapsed two different facts into one number: *measured
+and found neutral* and *never measured at all*. A fresh character
+therefore projected a confident `0`, indistinguishable on the wire from
+a standing genuinely computed as zero.
+
+The information already existed — the cache returns `undefined` for a
+scope with no row — and was being discarded one line before it left. So
+`RenownApi.measuredRenownOf` is the **absence-preserving companion**:
+same read, without the collapse. `Avatar`'s descriptor calls it and
+returns `undefined` for an unmaterialized scope, which `projectFields`
+omits like any other.
+
+⚠ **Additive on purpose.** `renownOf` keeps its neutral-0 contract and
+all five of its callers are untouched — `StandingController` (a report),
+`ProfileLogic` ×2 (`Band.fromScalar`), `ConsumerLogic` (a `Math.max(0,
+…)` clamp), and the descriptor this replaced. Every one of them is about
+to do arithmetic, where a missing scope contributing nothing genuinely
+IS zero. Pushing the `undefined` outward would only reproduce the same
+`?? 0` in four places, further from the data. **The rule: `renownOf` for
+scoring, `measuredRenownOf` for display.**
+
+The consequence on the client is that a `{ value: 0 }` reaching the
+shelf now means *measured, and the answer is zero* — a real figure, and
+rendered as one. An earlier cut had the client render every zero as
+empty, which was choosing which way to be wrong rather than fixing it.
 
 After the first fold, each ledger's own append event
 (`lib/events/StandingAppendedEvents.ts`) keeps the cache fresh.

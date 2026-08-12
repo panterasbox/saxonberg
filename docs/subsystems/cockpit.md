@@ -23,6 +23,7 @@ cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
 cockpit layout <name>         the pane arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
+cockpit shelf list|pin|unpin  which figures ride the top bar
 cockpit style <sub> …         appearance
 cockpit pane pin|dismiss …    override what holds a pane open
 ```
@@ -36,6 +37,46 @@ top-level verb, and its old word was needed for the activity axis.
 The three controllers survive as **per-subcommand controllers**
 (`controller:` on each subcommand), so the consolidation was wiring, not
 a rewrite.
+
+### `cockpit shelf` — the widget shelf's pin surface
+
+```
+cockpit shelf list            the whole catalogue, and what is pinned
+cockpit shelf pin <row>       add a figure, at the end
+cockpit shelf unpin <row>     take one off
+```
+
+Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
+`docket`. Persists to **`cockpit.shelf`**; the surface it drives is
+documented in [client-shell.md § The widget shelf](./client-shell.md).
+
+Mirrors `cockpit pane` in every respect — `list` / verb / `<id>`, two
+positional slots (`action`, `row`) dispatched in the controller, and a
+refusal in the machine voice naming the known set. Four artifacts: a
+YAML `subcommands:` block, `CockpitShelfController`, a two-line seed,
+and a `clientStateSchema` entry.
+
+⚠ **Pinning is a command and not a client toggle**, which is the whole
+reason it is here at all. The status bar shipped in the same build
+advertises one axiom — *every click sends a command, and the interface
+shows which*. A pin affordance that mutated local state while the status
+bar previewed a command would falsify the one claim that bar exists to
+make. (The second reason is ordinary: the cockpit keyspace is already
+server-owned, and a divergent persistence path for one preference is
+drift.)
+
+⭐ **`list` reports PINNED-NESS, never live-or-hatched.** The honesty
+vocabulary — which rows show a real figure and which show their reason —
+is **client-side**, because hatched-ness is a property of the client's
+wiring rather than of the server's capability. The server cannot know
+which of the fields it sends the client actually paints; a verb printing
+a guess would be exactly the confident wrong answer the honest-chrome
+build exists to eliminate. Modelling it server-side would mean the
+server holding a second source of truth for something only one side
+observes.
+
+⭐ Identity and connection refuse as *unknown shelf row*, because they
+are **not rows** — a stronger guarantee than a protection rule.
 
 ### ⚠ The style tree rides positionals, not nested subcommands
 
