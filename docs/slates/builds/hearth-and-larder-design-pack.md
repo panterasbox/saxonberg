@@ -14,7 +14,10 @@
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
 [spoilage](./spoilage-design-pack.md) (**the keystone clock all three answer
-to**) · [fridge](./fridge-design-pack.md) (the cold-store tier) ·
+to — and it owns the preserving MECHANISM**) ·
+[preservation-slate](./preservation-slate.md) (⭐ **owns the endeavor, salt,
+and the agricultural year — read before touching Part 2**) ·
+[fridge](./fridge-design-pack.md) (the cold-store tier) ·
 [room-condition](./room-condition-design-pack.md) (the room this happens in) ·
 [household](./household-design-pack.md) · substrates:
 [thermal](../../subsystems/thermal.md) (⚠ **read its non-goals — Part 1 is
@@ -99,23 +102,39 @@ machinery — and `restQuality` gains a second input beside bedding cleanliness.
 
 ---
 
-## Part 2 — The larder: preservation as a craft, and the machine that kills it
+## Part 2 — The larder: what this pack adds, and what it must NOT re-design
 
-[fire.md](../../subsystems/fire.md)'s deferred list already names *"the
-crafting recipes (cooking / smelting / smithing / glassmaking)"* as the
-downstream consumer of its substrate. **Preservation is that list's food
-branch**, and it is the pre-industrial answer to the fridge:
+> ⚠⚠ **Corrected by the reconciliation pass, 2026-08-11.** This part
+> originally re-designed preservation from scratch and attributed it to
+> `fire.md`'s deferred recipe list. **That was wrong on ownership and
+> duplicative on mechanism.** Two documents already own it:
+>
+> - ⭐ **[preservation-slate](./preservation-slate.md) owns the ENDEAVOR** —
+>   it is titled *"spoilage, the counterplay, and the agricultural year,"*
+>   and carries salt, the trade geography, and the seasonal argument.
+> - ⭐ **[spoilage](./spoilage-design-pack.md) Part 4 owns the MECHANISM** —
+>   curing/smoking/salting are **rate-reducer recipes** on
+>   `outputApplication: 'tangible'` (the fresh→cured material swap), and
+>   drying/salting work by pushing **water activity `a_w`** down, *read
+>   straight off the shipped `WetMixin` gauge*. That is more precise than
+>   what this pack had, and it points at something already built.
+>
+> **Defer to both.** What follows is only what this pack genuinely adds.
 
-| Method | Mechanism | Rides |
-|---|---|---|
-| **Drying** | remove water → the growth term stalls | thermal + spoilage |
-| **Salting** | bind water chemically | crafting + [bulk](../../subsystems/bulk.md) |
-| **Smoking** | heat + antimicrobial deposition | fire's combustion driver |
-| **Pickling / fermenting** | acidify → hostile to spoilage organisms | crafting transform |
+**What the larder adds: the room, and the economic story.**
 
-Each is a **`Grade`-bearing craft** (crafting ships `Grade`), so a skilled
-preserver's output lasts longer than a novice's — competence buying *duration*
-rather than a multiplier, which is the family's rule.
+The preserving crafts need somewhere to happen and something to happen
+*around* — a fire to smoke over, a cool corner to hang in, a heap for what
+fails. That is Parts 1 and 3, and it is why preservation belongs in this
+build rather than standing alone.
+
+> ⭐⭐ **And the economic story is this pack's own contribution: the machine
+> devalues the craft.** When the icebox arrives, the pickler's skill becomes a
+> hobby. A world where that happens *on-screen*, to a vocation players can
+> hold, is the industrial revolution rendered in one kitchen — and it is a far
+> better teacher of technological unemployment than any lecture. Neither
+> preservation-slate nor the spoilage pack makes that argument; it needs the
+> cold-store tier standing next to the craft to be visible at all.
 
 > ⭐⭐ **And the economic story is real history: the machine devalues the
 > craft.** When the icebox arrives, the pickler's skill becomes a hobby. A

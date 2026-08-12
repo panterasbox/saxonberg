@@ -305,9 +305,14 @@ measures the doing.
 | **Cold storage / fridge / cellar** | 2 | ◐ **authorable today** (`AtmosphericMixin` `Vessel`), inert without spoilage | fine — it waits on spoilage by necessity |
 | **Disease / contagion** | 2 | 🔲 **designed** — inherits spoilage's growth term | principled (build spoilage first) |
 | **Room condition / cleanliness / pests / tidiness** | **1** | 🔲 **designed** ([room-condition pack](./slates/builds/room-condition-design-pack.md)) | ⚠ **was mis-framed** — act-deposited (archetype-1-shaped), *not* a separate "condition model" |
-| Property condition + residence ladder | 2 | 🔲 **designed** (stewardship-slate) | principled (waits on the allowance meter for the *city* rungs; the frontier rung is unblocked) |
+| Property condition + residence ladder | 2 | 🔲 **designed** ([residence-ladder pack](./slates/builds/residence-ladder-design-pack.md)) | principled (waits on the allowance meter for the *city* rungs; the frontier rung is unblocked) |
 | Stewardship Discipline | — | 🔲 **designed**, pure data | trivially cheap; ships with the vanilla discipline pack |
 | Ranching / pets / farming | 2 | 🔲 **designed** | principled (wait on land use — now shipped — and spoilage) |
+| **The multi-occupant household** | — | 🔲 **designed** ([household pack](./slates/builds/household-design-pack.md)) | new 2026-08-11 — condition is a **commons** once a holding has two occupants |
+| **Rain → soil moisture** | **2** | 🔲 **designed** ([water pack](./slates/builds/water-design-pack.md)) | ⭐ **unblocked** — drought is fully implemented and cannot happen, because nothing connects the sky to the ground |
+| **The hearth (room ambient)** | **1** | 🔲 **designed** ([hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | ⭐ **unblocked**; scoped by thermal's non-goals to one room, no airflow |
+| **Compost** | **2** | 🔲 **designed** (same pack) | ⭐ its **consumer already ships** (`feed` + `COMPOST_TAG`); only the producer is missing |
+| ⭐ **Patina — the improving axis** | **1** | 🔲 **designed** ([patina pack](./slates/builds/patina-design-pack.md)) | ⭐⭐ **unblocked, and the only loop in the family where care makes a thing BETTER rather than merely un-worse** |
 
 **The verdict on the deferrals** (your instinct, confirmed): each was
 locally reasonable *at the time* — every build shipped its slice and punted
@@ -331,19 +336,54 @@ archetype 3 — and spoilage's payoff — depends on (vitals.md, verbatim):
 > `toxinBehavior` are all read off an object that isn't there."*
 
 If that is current, then `ptomaine`'s bands, disease behavior, and any
-spoilage payoff are reading off a null Idea. ⚠ **Verify first** — the
-metabolism Wave-2 toxin path (alcohol/BAC) appears to work, so either this
-was fixed or the toxin path resolves differently; the discrepancy must be
-resolved before building on the affliction half. **This is the true first
+spoilage payoff are reading off a null Idea. **This is the true first
 domino**, ahead of any new producer.
+
+> ✅ **VERIFIED, FIXED — and ⚠ STILL LIVE IN PRODUCTION.** (Reconciliation
+> pass, 2026-08-11.)
+>
+> It was real. `ConditionApi.boot()` was written to stand the roster up (15
+> singletons), with a real-seed coverage test that drives off the seed files
+> on disk rather than a mock — the symptom was that **toxins never cleared
+> and alcohol accumulated forever.** It lives on branch
+> `fix/condition-ideas-inert`, pushed.
+>
+> ⚠ **But it is NOT merged.** `AppBootstrap.ts` on `origin/master` still
+> calls only `MaterialApi.boot()`. So the first domino has a fix that has
+> not fallen: **until that branch lands, spoilage's `ptomaine` payoff cannot
+> work in a running world**, and build-order step 1 below is outstanding
+> regardless of the code existing.
+>
+> ⭐ The general pattern this belongs to — *a reference-Idea roster nothing
+> warms reads null forever, silently, while tests hand-construct the missing
+> object* — has now bitten **three** subsystems (Material, Condition, and
+> `CombatFormation`, which is **still broken**: every formation behaves as
+> `default`).
 
 ---
 
 ## Part 7 — Build order (stewardship as a pillar)
 
+> ⭐⭐ **Revised by the reconciliation pass, 2026-08-11.** This order was
+> written when everything queued behind spoilage. **Four packs since then
+> added three slices that depend on nothing** — they can be built in any
+> order, at any time, including first:
+>
+> | Unblocked now | Needs | Why it is free |
+> |---|---|---|
+> | ⭐ **Patina** ([pack](./slates/builds/patina-design-pack.md)) | nothing | `Durable`/`Keen`/`Graded`/glob/chattel all ship; **no new verbs** |
+> | ⭐ **The rain edge** ([water pack](./slates/builds/water-design-pack.md)) | nothing | weather + smallholding both ship; one edge between them |
+> | ⭐ **The hearth** ([hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | nothing | thermal's own named Wave-2 follow-on |
+>
+> **Patina is the one I would put first if the goal is to change how the
+> pillar feels** rather than how much of it exists — it is the only loop
+> where care makes a thing *better*, and everything else on this list is
+> loss-resistance.
+
 1. **Make the `Condition` substrate live** — resolve the inert-Idea gap
    (Part 6). Prerequisite for every archetype-3 payoff and for spoilage's
-   `ptomaine` hand-off.
+   `ptomaine` hand-off. ⚠ **The code exists on `fix/condition-ideas-inert`
+   and is NOT merged** — this step is "land that branch," not "write it."
 2. **Spoilage / preservation** — the ~120-line `Freshness` mixin (archetype
    2), `ThermalMixin` on perishables, the freshness→`ptomaine` override
    rung, salt as the first counterplay. **The keystone**: proves the
@@ -352,6 +392,11 @@ domino**, ahead of any new producer.
 3. **Cold storage** — the icebox (passive, no power) then fridge/cellar;
    nearly free once spoilage exists. Wakes the icehouse-keeper vocation and
    the agricultural year. See [fridge-design-pack](./slates/builds/fridge-design-pack.md).
+3.5. ⭐ **Compost** — the loop-closer, and cheap: `feed` + `COMPOST_TAG` +
+   the soil nitrogen reserve **already ship**, so only the producer is
+   missing. Worth doing *with* spoilage rather than after it, because it is
+   what stops spoilage reading as pure loss. See
+   [hearth & larder](./slates/builds/hearth-and-larder-design-pack.md).
 4. **Room condition + cleanliness** — the **act-deposited** producer
    (`Soilable` + a room debris field) over rooms and bodies; aesthetic /
    `restQuality` / sanitation ships near-term, the disease/immunity half
@@ -363,6 +408,10 @@ domino**, ahead of any new producer.
    ladder gate is *"the condition of what you hold."* Frontier rung first
    (unblocked); city rungs wait on the allowance meter + region parcels. See
    [residence-ladder-design-pack](./slates/builds/residence-ladder-design-pack.md).
+6.5. **The multi-occupant household** — condition becomes a commons the
+   moment a holding has two occupants; rides the ladder's gate and room
+   condition's attribution. See
+   [household-design-pack](./slates/builds/household-design-pack.md).
 7. **The Stewardship Discipline + the pillar naming** — pure data + a
    product-framing pass.
 8. **Ranching / pets / farming** — ride on top, mostly designed.
