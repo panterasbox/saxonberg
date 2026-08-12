@@ -239,10 +239,11 @@ through it, and a **closed failure vocabulary**. Not a new substance model.
 | ✳ **`plug`/`unplug`** | the connect act | **rides the fridge pack** |
 | ⛔ **A unified source mixin** | — | **refused (Part 1)** |
 
-⚠ **Where this lives is an open ask, not a decision** (Part 9, Q1) — a
-supply layer spans bulk *and* electricity, so it fits no existing subsystem
-cleanly, and CLAUDE.md requires sign-off before minting a new Api or module
-category.
+✅ **Where this lives: MIXIN + VOCABULARY, NO NEW API** (owner's decision,
+2026-08-11). The supply layer spans bulk *and* electricity — and now
+[mana](./mana-economy-design-pack.md) as a third commodity — so it fits no
+existing subsystem cleanly; keeping it out of the Api tier is what makes that
+acceptable rather than a taxonomy violation.
 
 **4. Verbs & affordances.** `fill` / `drink` / `analyze` ship; `plug` /
 `unplug` ride the fridge pack. **No new verbs from this pack.**
@@ -284,13 +285,11 @@ rather than a race — and it should be **per-window, not first-come**.
 
 ## Part 9 — Open questions
 
-1. ⚠ **Where does the supply layer live?** It spans bulk and electricity and
-   fits no existing subsystem. Options: a new `lib/supply/` subsystem folder
-   + its face; folded onto an existing utility-ish Api; or kept as pure
-   mixin+vocabulary with no Api at all. **This needs the owner's sign-off
-   before anything is written** (CLAUDE.md: *ask before adding a new module
-   category*). *Lean: mixin + vocabulary, no new Api* — the third option is
-   the smallest thing that could work.
+1. ✅ **Where does the supply layer live? — DECIDED 2026-08-11 by the owner:
+   MIXIN + VOCABULARY, NO NEW API.** The smallest thing that works, and it
+   keeps the layer out of the Api tier entirely. (The alternatives — a
+   `lib/supply/` subsystem with its own face, or folding onto a utility-ish
+   Api — are recorded here only so the decision reads as a choice.)
 2. **Does the cached ref persist, or re-resolve per boot?** Persisting risks
    staleness after re-zoning; re-resolving costs one walk per consumer per
    boot. *Lean: transient, re-resolved* — the backlog-safe checkpoint (Part
