@@ -167,8 +167,9 @@ remains in the near-term Track A queue:
 >
 > - **Message-rendering.** Shipped 2026-06 — see
 >   [message-rendering.md](./subsystems/message-rendering.md).
->   Nested-aware renderer, stylesheet engine + two themes, per-
->   message-type templates, Discord-dialect markdown, custom URI
+>   Nested-aware renderer, stylesheet engine + three themes
+>   (`ink`/`marble`/`high-contrast` — the civic ground, 2026-08),
+>   per-message-type templates, Discord-dialect markdown, custom URI
 >   schemes, mentions, `style` verb + overlay.
 > - **Prompt-stack client UI.** Shipped in the console-foundations
 >   merge. The CommandBar is a slot-multiplexed input that absorbs
@@ -632,7 +633,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   [prompt.md](./subsystems/prompt.md),
   [inspection-pane.md](./subsystems/inspection-pane.md)); see
   **Foundation**. Message rendering shipped 2026-06 (nested-aware
-  renderer, stylesheet engine + two themes, per-message-type
+  renderer, stylesheet engine + three themes, per-message-type
   templates, Discord-dialect markdown, custom URI schemes, mentions,
   `style` verb + overlay). The server `PromptApi` is live, the focus
   pane is live, and the prompt-stack client UI shipped in the

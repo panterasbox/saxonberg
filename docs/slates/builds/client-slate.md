@@ -608,7 +608,7 @@ are for reasons worth keeping:
 
 | Build | Ships | Requirements |
 |---|---|---|
-| ✅ **A — civic ground** — **SHIPPED 2026-08-11** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | `docs/requirements/civic-ground-requirements.md` |
+| ✅ **A — civic ground** — **SHIPPED 2026-08-11** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | shipped — see [message-rendering.md](../../subsystems/message-rendering.md) § The custom-property colour layer + § Font-by-register, and [client-shell.md](../../subsystems/client-shell.md) § The honest-state primitives |
 | **B — honest chrome** | desktop top bar (shelf, read-only mode indicator), status bar + `GhostCommandLine` relocation, and the server work: `self` pane entry, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf` | not yet written |
 | **C — chrome on a phone** | the mobile *inversion* — no status bar, shelf leaves the bar for a pull-down with one glance-line slot, command sheet, dropped connection claims the first row, safe areas | not yet written |
 
@@ -700,7 +700,13 @@ everything that happened.
    resolver existing first.
 4. **How wide is the `mx` digest** (§ 4.2) — the honest full list or the
    verb-conferring subset?
-5. **Do the four faces get licensed/self-hosted, or ride Google Fonts?**
-   The handoff ships a `<link>`. A self-hosted subset is the usual
-   answer for a product that claims to be auditable, and it is a
-   one-time cost best paid in Wave 1.
+5. ~~**Do the four faces get licensed/self-hosted, or ride Google
+   Fonts?**~~ ✅ **CLOSED by precedent (Build A, MR !182)** — not
+   decided. `GlobalFonts.ts` already self-hosted subset OFL woff2 and
+   `globalFonts.test.tsx` already asserted the `src` URLs are relative,
+   so the handoff's `<link>` would have been a *regression*. Six files
+   ship (Spectral is static so 400 + 500 are real faces; Public Sans is
+   one variable file), and the subsetting procedure is recorded in
+   [message-rendering.md](../../subsystems/message-rendering.md)
+   § Font-by-register typography — it had been traceable only to a
+   commit message describing the result.

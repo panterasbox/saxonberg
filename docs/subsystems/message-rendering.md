@@ -897,3 +897,31 @@ sweep distilled them to:
 - [docs/antipatterns.md](../antipatterns.md) — `no-new-apis-default`,
   `no-two-word-verbs`, `settings-vs-propertied-vs-client-state`
   (memory tags referenced above).
+
+## History
+
+- **The civic ground** (`c3ea1f07..ee4c4d02`, client-rebuild Wave 1
+  Build A). Three shifts between plan and implementation that are worth
+  keeping, because each was a fact the plan asserted and the build
+  measured:
+  - **Six woff2, not seven.** The plan projected one file per
+    face/weight combination. Upstream is not uniform: Spectral is a
+    *static* family (400 and 500 are two real files, and 500 must be
+    real because browsers synthesize bold only and round 500 down),
+    while Public Sans is a single *variable* file covering 100–900. A
+    seventh file would have been the same bytes under another name.
+    **Check static-vs-variable before deciding a file count** — request
+    two weights and compare the returned URLs.
+  - ⭐ **The root `color` defect, found only by driving.** Nothing in
+    the client set a base `color`, so every element inheriting one
+    resolved to the browser default black — the right-rail pane tabs at
+    **1.21:1** in high-contrast. Pre-existing; the token layer only made
+    it visible. `contrast.test.ts` could not have caught it, because it
+    checks values a theme *declares* and this was a value **no theme
+    declared at all**. The general lesson: a guard over declared values
+    is blind to an absent declaration, and only a real cascade over real
+    DOM can see an inherited default.
+  - **`font.engraved` vs `font.display`.** The plan named the display
+    *face* and the 22px *size* step the same key. DESIGN-SYSTEM's own
+    phrase is "Engraved capitals, display"; the two halves take the two
+    keys.
