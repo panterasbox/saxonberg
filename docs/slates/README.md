@@ -117,10 +117,48 @@ moving to `tails/` with only Wave 4 + the message-restyle wiring left.
   collection-watch abstraction (the argument organizer's *scale* tail moved to
   [tails/argument-map-slate](./tails/argument-map-slate.md)).
 
+- [deed-tags-slate](./builds/deed-tags-slate.md) — **decided 2026-08-12**,
+  and the joint two other slates stalled on: the closed, registered
+  vocabulary every readout over the chronicle points at (`tags` is
+  *"open — inert in v1"* today). A deed-tag is **descriptive, not
+  normative** — *this act was of kind X*, never *X was good* — so the
+  vocabulary is layer 1, while **its RESOLUTION is political**: the
+  polity **petitions** for a distinction, engineering may add, nobody may
+  remove or redefine (the official-statistics model). Dotted paths with
+  Topic's family inheritance + its **conservative floor** (an
+  unregistered tag matches no precept, so a new subsystem can never
+  retroactively make anyone a sinner), `since` on every row. ⚠ Turned up
+  a live defect: `CombatLogic`'s stamped `crime` tag is layer 3 in layer
+  1, contradicting accountability.md's *derived-never-stamped*.
+- [tradition-slate](./builds/tradition-slate.md) — **schools of thought
+  as research programmes.** A Tradition (craft school, medical tradition,
+  guild lore, naturalist account, *or* faith) is normative **tenets** plus
+  an **attention order** over inquiry's shared `Law` catalog: everyone's
+  laws are the same and true, what differs is **who reaches them first**,
+  and order is worth money because the first discoverer publishes.
+  **Null laws** give a symmetric error model (naturalist = false negative,
+  devout = false positive) with **no truth table to datamine** — the
+  evaluator is the only oracle. Written as `Doctrine`, renamed and
+  **demoted** when a stress test showed it served one of eight religious
+  wants. ⚠ Worth exactly what being *first* is worth.
+- [faith-slate](./builds/faith-slate.md) — the other seven wants. The
+  centerpiece is **the Paladin's fall, automated** — the genre's best
+  religion mechanic, never systematized because it needed a DM. Deed
+  ledger + declared precepts + derive-on-read gives it without one, and
+  trait's two-value arithmetic makes **redemption the mean reversion**
+  rather than a mercy rule. ⚠ The fidelity value is **never readable, by
+  anyone** (measurement.md's no-gauge rule) — only a surprising write
+  narrates. Congregation is the **fifth GroupProvider** and you are *born
+  into* one via the lineage gallery; it learns of a transgression by
+  **witness, never broadcast** (which makes concealment religiously
+  meaningful and the informer a role).
+
 **Status:** recognition + identification substrate shipped → `belief.md`;
 chronicle ledger substrate shipped → `chronicle.md`; social-graph
 attention layer shipped Wave 3 → `social-graph.md` (Wave 4 + connection
-origin remain as tails).
+origin remain as tails). The 2026-08 design cluster —
+**deed-tags → tradition → faith** — is unbuilt and sequenced in that
+order: nothing in faith is buildable until the tag vocabulary exists.
 
 ### 2. NPCs
 *Where the personality lives.*
@@ -471,6 +509,18 @@ salvaged into the subsystem doc):
 >
 > **Retired 2026-07-31**: `import-boundary` → architecture.md § The
 > import boundary (§12 above; shipped and absorbed in one MR).
+
+- [trade-roster-slate](./builds/trade-roster-slate.md) — **content
+  design, buildable**: the 34-trade closed vocabulary the
+  [lineage](./builds/lineage-slate.md) gallery generates households from,
+  each trade naming its Disciplines, plausible localities, `Means` type
+  and hook shapes. The join rule is the point — *Trade is not free text*,
+  or the generator produces ward nurses who know smithing. ⭐ The
+  actionable half is the **gap report**: the catalogue has 41 Disciplines
+  but **18 are `magic-*`**, so the non-magical world runs on 23 — and the
+  roster demands **21 more**, each with channel and ISCED-F code, none
+  minted for sounding good. ⚠ Codes carry a verify-before-seeding
+  warning.
 
 ### 11. Magic items & BUC
 *NetHack's consumables as an immsim stress-test.* Most of the potion / scroll

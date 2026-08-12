@@ -41,6 +41,21 @@ behavior. Read the relevant doc before editing in its area.
   **8 binding content-authoring rules** any magic content must obey
 - [docs/compact-political-science.md](./docs/compact-political-science.md)
   — the Compact as teachable political science; the sibling course
+- [docs/uncertainty.md](./docs/uncertainty.md) — where randomness may
+  enter and where it may never: the **four provenances** (epistemic /
+  environmental / generative legal, **resolutional banned** — *roll to
+  decide what the world IS, never what your action DID*), seeded-not-drawn,
+  luck-is-not-a-stat, mysticism as a correlation not a mechanism, and the
+  **abstraction law** (an abstraction is legitimate while it still costs
+  somebody the activity)
+- [docs/measurement.md](./docs/measurement.md) — what the platform may
+  **count**, who says what a count is **worth**, and what it **imposes**:
+  the three layers (engine measures · subject values · polity imposes),
+  the Mara/Aletheia property (*the feed hides the measurement; the mirror
+  shows you*), the **no-gauge reading rules**, *the first screen is the
+  syllabus*, and **layer 3 enumerated** in three entrenchment tiers —
+  A1–A16 amendable by nobody, B by whoever ships the code (the AGPL is
+  the check), C by the polity
 - [docs/roadmap.md](./docs/roadmap.md) — what's left to build
 - [docs/deployment.md](./docs/deployment.md) — deployment & infra:
   single Lightsail box + Caddy/Let's Encrypt + Mongo Atlas, GitLab CI
