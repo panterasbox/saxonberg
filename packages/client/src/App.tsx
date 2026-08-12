@@ -25,7 +25,7 @@ import { SocialNotificationsPane } from "./components/settings/SocialNotificatio
 import { StartScreen } from "./components/StartScreen";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
-import { GhostCommandLine } from "./components/GhostCommandLine";
+import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPane } from "./components/settings/SettingsPane";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { useGround } from "./lib/style/useGround";
@@ -647,9 +647,10 @@ function App() {
               onCommandClick={handleCommandClick}
             />
           )}
-          {/* The always-on ghost command line — affordance previews +
-              post-action flash, beside the primary command bar. */}
-          <GhostCommandLine />
+          {/* The status bar — the one preview surface. Affordance
+              previews + post-action flash, browser-style along the
+              bottom of the window. */}
+          <StatusBar />
         </AppContainer>
       );
     }

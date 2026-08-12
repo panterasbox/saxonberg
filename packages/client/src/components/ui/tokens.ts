@@ -50,6 +50,13 @@ export const tokens = {
     surfaceMuted: SX.ground,
     surfaceSunken: SX.sunken,
     fg: SX.fg,
+    // ⭐ The three-level text hierarchy the chrome build needed:
+    // `fg` (what you are reading) → `fgDim` (present, secondary — a
+    // shelf label beside its value) → `fgMuted` (barely there — a hint,
+    // an at-rest placeholder). `fg-dim` was already a defined ground
+    // role in all three themes and already classified as a
+    // floor-clearing TEXT_ROLE; it simply had no alias here.
+    fgDim: SX["fg-dim"],
     fgMuted: SX["fg-mute"],
     fgEmphasis: SX.accent,
     accent: SX.good,

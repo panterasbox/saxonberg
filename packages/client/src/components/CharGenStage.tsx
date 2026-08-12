@@ -42,7 +42,7 @@ import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
 import { Terminal } from "./Terminal";
 import { CommandBar } from "./CommandBar";
-import { GhostCommandLine } from "./GhostCommandLine";
+import { StatusBar } from "./frame/StatusBar";
 import type { Frame } from "../store/index";
 
 /* --- Layout primitives -------------------------------------------- */
@@ -914,8 +914,12 @@ export function CharGenStage({
         />
       </TerminalStrip>
 
-      {/* Ghost command line — previews the `enroll …` an affordance runs. */}
-      <GhostCommandLine />
+      {/* The one preview surface — previews the `enroll …` an affordance
+          runs. Intake keeps it because intake renders command-sending
+          affordances, and the axiom does not switch off during it. This
+          site and App's are mutually exclusive phases, so exactly one
+          bar is mounted at any instant. */}
+      <StatusBar />
       {/* The command bar is the backbone — typed `enroll …` always works. */}
       <CommandBar
         barId="chargen"

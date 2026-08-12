@@ -162,12 +162,12 @@ describe('4 — reverse: every role is consumed, or reserved on purpose', () => 
     // (`bad` IS consumed — high-contrast's `bucket.foe`, where the role
     // takes a legible #ff4d4d rather than the 2.66:1 official red.)
     red: 'the official colour; awaits a surface that can carry white separation',
-    // The brighter of the two secondary foregrounds. `fg-mute` covers
-    // every secondary-text site today; `fg-dim` is the published middle
-    // step DESIGN-SYSTEM defines between it and `fg`, and its consumer
-    // is Build B's chrome hierarchy (top bar / status bar / shelf), which
-    // is the first surface with three levels of text to separate.
-    'fg-dim': 'the published middle foreground step; Build B chrome consumes it',
+    // ⭐ `fg-dim` graduated out of this table in Build B, exactly as its
+    // reservation predicted: the chrome hierarchy (top bar / status bar
+    // / shelf) is the first surface with three levels of text to
+    // separate, and `tokens.color.fgDim` now references it. A
+    // reservation whose named consumer arrives is supposed to leave —
+    // that is what distinguishes it from dead vocabulary.
   };
 
   it('the consumed set plus the reserved set is the whole vocabulary', () => {
