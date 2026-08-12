@@ -14,6 +14,7 @@
 
 import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
+import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
@@ -215,6 +216,14 @@ export class AppBootstrap {
     // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
     // hit from the first frame (nothing else stands materials up live).
     await MaterialApi.boot();
+
+    // Conditions — the same gap one subsystem over: seeds are template
+    // rows and nothing cloned them into Ideas, so every condition read
+    // null in a running world and authored `toxinBehavior` / signs /
+    // progression were inert. Silent, because the one hot reader skips
+    // on null rather than throwing. After materials: a condition's
+    // signs can name tissue materials.
+    await ConditionApi.boot();
 
     // Renown — warm the standing read-cache from the materialized
     // aggregate, then install the reaction ingestion tap + self-register
