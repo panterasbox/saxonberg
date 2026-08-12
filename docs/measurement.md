@@ -343,12 +343,69 @@ process for changing them.
 | A5 | **Transfer never overwrites.** Chain of title, on parcels and chattel | `parcel_events`, `chattel_events` |
 | A6 | **No aleatory resolution.** No die between a choice and its outcome | [uncertainty.md](./uncertainty.md) category 4 |
 | A7 | **The principal comes from context, never a parameter.** Authorship and actor identity are derived by the gate, not passed by the caller | call-security; the `recordAuthoring` gate |
+| A8 | ⭐ **Server-authoritative everything.** Nothing is pure client | the entire client-side cheat family — seeing through fog, editing state, speed — is void *in principle*, not by detection |
+| A9 | ⭐ **Content-write never grants code execution.** Authoring content cannot name an executable class | the code-trust lockdown ([access.md](./subsystems/access.md)); `pnpm lint:instanceable`, `lint:gates` |
+| A10 | **The preview is the outcome.** No hidden adjustment, no fudge, no thumb on the scale | analyze-preview parity; the deterministic resolution path |
+| A11 | **Identity cannot be re-stamped.** `#templatePath` is hard-private, bracket-writes are runtime no-ops, the re-key seam is gated | `setTemplatePath` (ApiOnly), `_stampTemplatePath` caller-allowlist |
+| A12 | **Evidence is idempotent and deduplicated.** Seeded claims apply once; replay no-ops | `TraitApi.seedClaims`, `recordOnce`, transcript dedup |
+| A13 | **Transformation never creates matter.** Σ output ≤ input; short debits throw | [crafting.md](./subsystems/crafting.md) — *"lossless would break conservation"* |
+| A14 | **The sandbox boundary is symmetric.** Nothing crosses into or out of a circle | the Layer-4 boundary; `pnpm lint:boundary` |
+| A15 | ⚠ **The evidence firewall.** Kernel omniscience never becomes diegetic evidence | [enforcement-slate](./slates/builds/enforcement-slate.md) — *judgment call, see the audit* |
 
-⭐ Note what A1–A7 have in common: **each is the reason some claim the
+⭐ Note what these have in common: **each is the reason some claim the
 platform makes is believable at all.** Drop A1 and a fortune means
 nothing; drop A2 and a chronicle means nothing; drop A3 and standing is
-just a number someone set; drop A7 and provenance is a lie. They are not
-values — they are the preconditions for having values that mean anything.
+just a number someone set; drop A7 or A11 and provenance is a lie; drop
+A8 and none of the others survive contact with a modified client. They
+are not values — they are the preconditions for having values that mean
+anything.
+
+### ⚠ Audit — 2026-08-11
+
+The first draft listed A1–A7 and was **incomplete**. Audited against
+[lenses/cheatability.md](./lenses/cheatability.md), which turns out to be
+an inventory of exactly this tier under a different name — its doctrine
+*"you may automate your deeds; you may not forge your receipts"* is Tier
+A's purpose in one line.
+
+**Added:** A8–A15.
+
+**Re-tiered:** the old **B6** (*code-trust is orthogonal to
+content-write*) was in the wrong tier. Violating it voids **every** other
+invariant — an author who can execute code can forge any record — so the
+*invariant* is A9. What stays in Tier B is only the **policy** half: who
+holds the wizard bit, and the fiduciary duty they owe
+([wizard-duty-slate](./slates/builds/wizard-duty-slate.md)).
+
+**Considered and not admitted:**
+
+| Candidate | Why not |
+|---|---|
+| far-past reconcile guards | **deliberately inconsistent** — husbandry excludes the guard, mortality skips it. A per-subsystem policy, not an invariant |
+| honest units (`Quantity<U>`) | Tier B. A wrong unit is a bug, not a forgeable claim |
+| anti-grief lease / quota | policy (Tier C) |
+| residency / self-eviction | operational; no claim depends on it |
+
+⚠ **One possible gap, unverified: monotonic game time.** Every
+reconcile-on-read subsystem assumes `now ≥ stamp`. If game time could run
+backwards, growth, thermal, metabolism and respiration would all produce
+garbage — which *is* a lie to a player. I could not find this enforced
+anywhere as an invariant. **Either it is guaranteed somewhere I did not
+look, or it is a missing A-row.** Worth an hour of somebody's time.
+
+### ⚠⚠ What Tier A does not protect
+
+The honest limit, from the same lens's *residue*:
+
+> **A1–A15 protect the integrity of the record. They do not protect the
+> uniqueness of persons.**
+
+One human may hold many characters. Nothing in this tier prevents it, so
+every per-character measurement is Sybil-exposed — which is
+[the influence work](./slates/builds/reputation-slate.md)'s known open
+flank, not a gap this document can close. Related: **external-credential
+trust is imported, not derived** — a federated antecedent is only as good
+as its issuer, and Tier A ends at the boundary.
 
 ## Tier B — Editorial commitments · amendable by **whoever ships the code**
 
@@ -364,7 +421,7 @@ to fork** — which is the founder's only constraint, stated as such in
 | B3 | **Any measurement the platform makes of you is one you can read** | Part 2 |
 | B4 | **The write is visible; the value is not — and never a gauge** | Part 6 |
 | B5 | **No variable-ratio reinforcement.** No loot boxes, gacha, pity timers | [uncertainty.md](./uncertainty.md) |
-| B6 | **Code-trust is orthogonal to content-write.** Owning content never escalates to TS execution | [access.md](./subsystems/access.md) § the code-trust lockdown |
+| B6 | **The wizard roster stays small, and its holders owe a fiduciary duty** — the *policy* half of code-trust. ⚠ The *invariant* half is **A9**, not this | [wizard-duty-slate](./slates/builds/wizard-duty-slate.md) |
 | B7 | **AGPL-3, and the right to run your own** | the licence |
 
 > ⚠ **B7 is the tier's own enforcement.** Every other entry here is a
@@ -444,11 +501,12 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
    vocabulary.
 2. ~~What is the enumeration of layer 3?~~ **Answered in Part 10**, and
    it corrected Part 1: impositions are enumerable but **not uniformly
-   amendable**. Two follow-ons remain live — (a) is the Tier A list
-   *complete*, or does some subsystem impose an integrity invariant
-   nobody has written down? (b) **Tier C's last row** — moving the
-   measurement vocabulary from a wizard's YAML into the governed layer —
-   is the single largest open decision in this document.
+   amendable**. ~~Is Tier A complete?~~ **Audited 2026-08-11** — it was
+   not; A8–A15 were added and one entry re-tiered. One live residue:
+   ⚠ **monotonic game time** may be a missing A-row, unverified. And
+   **Tier C's last row** — moving the measurement vocabulary from a
+   wizard's YAML into the governed layer — remains the single largest
+   open decision in this document.
 3. **How is "cheap exit" verified?** Part 8 makes it non-negotiable
    without saying how a build demonstrates it.
 4. **Does the reading rule survive contact with the client?** A cockpit
