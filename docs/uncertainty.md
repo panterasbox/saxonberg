@@ -219,16 +219,27 @@ Three homes, none of which need a die:
 
 ---
 
-# Part 3b — ⭐⭐⭐⭐ Religion as framework: the mechanics
+# Part 3b — ⭐⭐⭐⭐ Frameworks as research programmes
 
 Part 3 is philosophy until it cashes out in something a player does.
 This section is the cash-out, and it is deliberately honest about the
 parts that are load-bearing and unbuilt.
 
 > **The full mechanical design is
-> [doctrine-slate.md](./slates/builds/doctrine-slate.md)** — objects,
+> [tradition-slate.md](./slates/builds/tradition-slate.md)** — objects,
 > verbs, the worked scene, and the failure analysis. This section holds
 > only the rules that constrain it.
+
+⚠ **This was first written as a religion mechanic and that was wrong.**
+Stress-tested against what players actually want from faith, it serves
+**one** want — inheriting an account of how the world works — and none of
+the other seven (congregation, visible practice, proselytizing, apostasy,
+founding your own, ritual, felt power). The substrate is sound but
+general: it is a **Tradition** — a craft school, a medical tradition, a
+guild's lore, a naturalist's method, *or* a faith. **Religion is one
+consumer, not the owner**, and what religion additionally needs is a
+different substrate this codex does not design. Full scoring in the
+slate's failure analysis.
 
 ## ⚠ Correction — a corpus of false claims cannot exist here
 
@@ -251,9 +262,9 @@ The correction is a **split**, not a retreat.
 | adjudicated by | **the sim**, via the predict gate | **nothing, ever** |
 | can be false | yes — and it dies on verification | category error |
 
-A doctrine making **positive** claims is picking a fight with the
+A tradition making **positive** claims is picking a fight with the
 evaluator and loses — the god-of-the-gaps failure with a build date. A
-doctrine making **normative** claims makes no prediction, so nothing can
+tradition making **normative** claims makes no prediction, so nothing can
 refute it. ⭐⭐ This is the **positive/normative split the Compact course
 already grades on**, pointed at religion instead of politics.
 
@@ -303,7 +314,7 @@ line — *truth is shown, not argued or voted*).
 
 ⚠ **The real dependency:** all of this rides an **inquiry substrate that
 is designed and not built.** Objects, verbs and the failure analysis are
-in [doctrine-slate.md](./slates/builds/doctrine-slate.md), which adds no
+in [tradition-slate.md](./slates/builds/tradition-slate.md), which adds no
 new collection and no new Api — but is worth nothing without inquiry
 underneath it.
 
@@ -344,7 +355,7 @@ available in a world where the ritual might have been true.
 
 ## ⚠⚠ Where this dies
 
-Full analysis in [doctrine-slate.md](./slates/builds/doctrine-slate.md).
+Full analysis in [tradition-slate.md](./slates/builds/tradition-slate.md).
 The one that belongs in the codex because it constrains *every* system
 here, not just religion:
 
@@ -355,10 +366,10 @@ here, not just religion:
 > product](./slates/builds/discovery-slate.md) and the null-law model
 > undatamineable.
 
-The load-bearing risk specific to doctrine is that **attention order is
+The load-bearing risk specific to tradition is that **attention order is
 worth exactly what being first is worth** — which depends on credibility,
 the teachable-good price gap, and almanac staleness, none of which are
-built. If being first is worth little, doctrine is cosmetic.
+built. If being first is worth little, tradition is cosmetic.
 
 ## ⚠ No spokesperson
 
@@ -494,9 +505,9 @@ contain `Math.random` outside tests; **none is on a resolution path.**
 | **discovery / foraging / mining** | already correct — label the astrological timing term **category 2** so nobody later "improves" it into a draw |
 | **mana economy** (celestial node) | already correct — category 2, periodic, predictable |
 | **fishing** | spec against this codex rather than inheriting genre defaults |
-| **alignment / religion** | absorb Parts 3 + 3b; fix the `fortune` line; **religion-as-framework depends on an unbuilt claim/inquiry substrate** — say so in the slate |
-| **inquiry** | ⭐⭐ **the load-bearing dependency for Part 3b.** Its `Law` catalog + predict gate is what makes a doctrine mechanical rather than cosmetic; add **null candidates** to the catalog scope |
-| **wiki / forums** | they **host** the why-argument, never settle it — the deduction hard line applies to doctrine as much as to murder |
+| **alignment / religion** | absorb Parts 3 + 3b; fix the `fortune` line; ⚠ **Tradition covers only the inherited-account want** — congregation, practice, apostasy and player-founded faiths need a substrate nobody has designed |
+| **inquiry** | ⭐⭐ **the load-bearing dependency for Part 3b.** Its `Law` catalog + predict gate is what makes a tradition mechanical rather than cosmetic; add **null candidates** to the catalog scope, and ⚠⚠ **answer whether the catalog is player-enumerable** — Tradition is worthless if it is a menu |
+| **wiki / forums** | they **host** the why-argument, never settle it — the deduction hard line applies to tradition as much as to murder |
 | **combat · banking · advancement · renown · hazard** | no change; banking stays category-0 forever |
 
 ---
