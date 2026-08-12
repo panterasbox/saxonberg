@@ -221,9 +221,27 @@ precondition waits on room-condition; contamination waits on disease; the
 supply-ref waits on the power slate's middle tier.
 
 **7. Fault line.** ⭐ **The rain edge is a near-term build on two shipped
-subsystems and depends on nothing designed-but-unbuilt.** Everything else in
-this pack rides another build's timeline. If only one thing here is ever done,
-it is the sky-to-soil edge.
+subsystems.** Everything else in this pack rides another build's timeline. If
+only one thing here is ever done, it is the sky-to-soil edge.
+
+> ⚠ **Amended 2026-08-11 — one design dependency, missed here.** *"Depends on
+> nothing designed-but-unbuilt"* was wrong. Implementation hits a real seam:
+> **husbandry is deliberately 100% synchronous** (`reconcileSoil` /
+> `reconcileGrowth` / `waterPlant`, reconcile-on-read, no tick) while
+> **resolving a bed's covering `Locality` is async** (`Zone.lookupField`).
+> Passing `locality: null` is sync but wrong — every bed everywhere would get
+> identical weather, so it could rain in Hinkley Hills while the bed there
+> stayed dry, which is the exact incoherence this edge exists to fix.
+>
+> ✅ **Resolved by [supply-design-pack § Part 4](./supply-design-pack.md):
+> cache the source's IDENTITY, derive its STATE.** Cache the locality (async,
+> once, backlog-safe checkpoint); `weatherAt` is **pure and replayable**, so
+> rainfall still integrates *exactly* across any absence. ⚠ And note what
+> this rules out: crediting rain from weather's existing **segment-boundary
+> schedule** would be a push-tick, and an evicted or dormant bed would
+> silently miss rain with reconcile-on-read unable to know — breaking
+> husbandry's *"integrates the full absence"* guarantee. Pull-on-read is not
+> a preference here; it is the only correct shape.
 
 ---
 
@@ -287,12 +305,18 @@ middle tier.
 
 ## Open questions
 
-1. ⭐ **How much rain, and over what interval?** The weather field is
-   procedural and stateless, so rainfall must be *integrated over the gap* the
-   same way growth is. **Lean:** reconcile-on-read against the same clock
-   husbandry already walks, so no new timer — but the integration wants care,
-   since a stateless field sampled at two points is not the same as rain that
-   fell between them.
+1. ✅ **How much rain, and over what interval? — ANSWERED 2026-08-11.** The
+   worry (*"a stateless field sampled at two points is not the same as rain
+   that fell between them"*) turns out not to bite: weather is
+   **piecewise-constant per 6-game-hour segment**, and `weatherAt(t, locality)`
+   is a **pure function of time**. So the integral is a segment walk over
+   `[lastStamp, now]` summing `overlap × rate(type)` — **exact, not
+   approximated**, and replayable over any absence. Litres come out with no
+   invented field: rainfall in mm × the shipped `getLandRequirementM2()`, since
+   1 mm over 1 m² is 1 L. **Rate per type is the one thing still to author** —
+   `rain` and `storm` precipitate; ⚠ `snow` credits **zero** for v1, which is
+   physically right (frozen ground does not infiltrate until melt) and honest
+   while winter is unbuilt. ⚠ Long gaps want a segment cap.
 2. **Does rain wet things other than soil?** `Wet.ts` and puddles ship; whether
    an uncovered item left outside gets wet is a separate (and cheap) edge.
    *Lean: yes, and it is a nice legibility win for `SkyExposed`.*
