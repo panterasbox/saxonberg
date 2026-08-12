@@ -64,7 +64,7 @@ Not a restyle. Three things at once:
 
 | | From | To |
 |---|---|---|
-| **Dress** | VS Code dark (`#1e1e1e`, `#4ec9b0`, `#007acc`), Source Serif/Sans/Code Pro | The civic frame — ink/marble, Old Glory blue + red, Spectral / Public Sans / Newsreader / Plex Mono |
+| **Dress** ✅ | VS Code dark (`#1e1e1e`, `#4ec9b0`, `#007acc`), Source Serif/Sans/Code Pro | The civic frame — ink/marble, Old Glory blue + red, Spectral / Public Sans / Newsreader / Plex Mono. **Shipped in Build A**; see [message-rendering.md § The custom-property colour layer](../../subsystems/message-rendering.md) |
 | **Architecture** | Five peer layouts (`world`, `forum`, `livestream-viewer`, `streamer`, `builder`) | `one frame → modes → layouts → panes` |
 | **Honesty** | Implicit | An enforced convention: never render a figure the server did not send |
 
@@ -486,8 +486,8 @@ orthogonal to the restyle; dragging it through a rewrite buys nothing.
 
 | Existing | Status |
 |---|---|
-| `styles/faces.ts` — Source Serif / Sans / Code Pro | Faces change to Spectral / Public Sans / Newsreader / Plex Mono. The three-voice model is **kept** and extended to four. Request Newsreader **without** the `opsz` axis — with it the face silently fails to load and falls back to Times. |
-| The VS Code dark palette | Replaced wholesale by the civic tokens. Mechanical, touches everything, which is why it is step 1. |
+| ✅ `styles/faces.ts` — Source Serif / Sans / Code Pro | **SHIPPED (Build A).** Spectral / Public Sans / Newsreader / Plex Mono; the three-voice model kept and extended to four with `display`, which maps to no transcript topic. Six woff2, not seven — Spectral is static upstream (400 + 500 as real files, and 500 must be real or the engraved weight rounds away) while Public Sans is one variable file declared `font-weight: 100 900`. Newsreader requested **without** the `opsz` axis, and `globalFonts.test.tsx` now bans the axis in a tuple position. |
+| ✅ The VS Code dark palette | **SHIPPED (Build A)** as the `--sx-*` custom-property ground: a 44-role vocabulary in `styles/ground.ts`, one `ground` record of hex per theme, and `tokens.color` / `tokens.palette` / `Theme.palette` all reduced to `var()` references. Zero call sites changed. Four guard tests plus an e2e drive. |
 | `GhostCommandLine.tsx` | Hover preview moves to the global status bar (§ 3.5). ⚠ Note the input-prefix surface it sits beside is now `cockpit cli` (not `cockpit scope`), bare invocation REPORTS rather than clears, and prefixes are genuinely per-command-line — verified with two lines prefixed independently. |
 | `InspectionPane.tsx` | Becomes the pane feed (§ 3.4). ⚠ Already **half-moved**: it opens `pane: "inspect"` / `pane: "location"` by name rather than sending MQL, so the subscription half is done and the N-pane feed is what remains. |
 | `layouts/` (`LAYOUT_REGISTRY`) | Layouts demote under modes (§ 3.3, § 4.4) — **done server-side**; the client still swaps its whole frame off the `cockpit.layout` compatibility key. Components map over; the registry's *level* changes. |
@@ -608,7 +608,7 @@ are for reasons worth keeping:
 
 | Build | Ships | Requirements |
 |---|---|---|
-| **A — civic ground** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | `docs/requirements/civic-ground-requirements.md` |
+| ✅ **A — civic ground** — **SHIPPED 2026-08-11** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | `docs/requirements/civic-ground-requirements.md` |
 | **B — honest chrome** | desktop top bar (shelf, read-only mode indicator), status bar + `GhostCommandLine` relocation, and the server work: `self` pane entry, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf` | not yet written |
 | **C — chrome on a phone** | the mobile *inversion* — no status bar, shelf leaves the bar for a pull-down with one glance-line slot, command sheet, dropped connection claims the first row, safe areas | not yet written |
 
@@ -664,11 +664,13 @@ account-level. Labelling it account-level in the shelf would render a
 claim the server cannot back — the honesty rule applied to a level rather
 than a value.
 
-⚠ **Open question 5 (fonts) is closed by precedent, not decided.**
+✅ **Open question 5 (fonts) — CLOSED by precedent, not decided.**
 `GlobalFonts.ts` already self-hosts subset OFL woff2 from `public/fonts/`
-and `globalFonts.test.ts` asserts the `src` URLs are relative, so the
-handoff's Google Fonts `<link>` would be a regression. Build A generates
-four subsets.
+and `globalFonts.test.tsx` asserts the `src` URLs are relative, so the
+handoff's Google Fonts `<link>` would be a regression. Build A generated
+the subsets (six files, four families) and **recorded the procedure** in
+`message-rendering.md` § Font-by-register typography — it had been tribal
+knowledge, traceable only to a commit message describing the result.
 
 ---
 

@@ -351,17 +351,44 @@ A `Treatment` is a small fixed-key object: `{ fg, bg, weight, italic,
 prefix, chip, indent }`. Unknown keys are silently ignored; unknown
 selector prefixes no-op silently. **No raw CSS reaches the engine.**
 
+⚠ **The cascade is unchanged by the custom-property colour layer.** The
+ground is not a fourth cascade step; it is what the theme layer's values
+*resolve to* — `Stylesheet.ts` is untouched, its tables still hold
+strings, and the strings are now `var(--sx-…)` references. Selector
+resolution, the fixed `Treatment` key set and "no raw CSS reaches the
+engine" all hold. An overlay override still wins (it is returned earlier
+in the same cascade), a player-typed `blue` or `#ff0000` is still a raw
+string and still works, plain mode still returns `EMPTY`, and
+`fontFamilyForTopic` still ignores `isPlain()`.
+
 ### Themes
 
-Two themes ship in v1:
+Three themes ship, registered in `themes/index.ts`:
 
-- **default** — `packages/client/src/lib/style/themes/default.ts`. The
-  existing cockpit dark palette lifted into stylesheet form.
-- **high-contrast** — `themes/highContrast.ts`. Accessibility-driven;
-  strong fg/bg contrast, larger weight deltas, **every colored
-  treatment paired with a non-color cue** (weight / prefix / chip /
-  position). The high-contrast theme being legible without the color
-  channel is the acceptance gate against color-alone semantics.
+- **ink** — `packages/client/src/lib/style/themes/ink.ts`. The dark
+  ground, and the default. A deepened navy drawn from Old Glory Blue,
+  brass accent, hairline rules.
+- **marble** — `themes/marble.ts`. The light ground.
+- **high-contrast** — `themes/highContrast.ts`. Accessibility-driven,
+  re-based on civic; strong fg/bg contrast, larger weight deltas,
+  **every colored treatment paired with a non-color cue** (weight /
+  prefix / chip / position). The high-contrast theme being legible
+  without the color channel is the acceptance gate against color-alone
+  semantics.
+
+⚠ **`default` is retired and NOT aliased.** It stopped naming anything
+the moment there were two grounds — the design doc calls the dark ground
+Ink and so does the verb. `pickTheme('default')` falls through to Ink
+like any other unknown string, and `cockpit style theme default` refuses
+outright. (The S2 precedent: no playerbase to protect, the demo wipes
+nightly, and an alias keeps a dead vocabulary alive for nobody.)
+
+⭐ **Marble is not decoration — it is the verification.** A theme-aware
+colour layer with exactly one theme is untested by construction: nothing
+distinguishes a component that resolves at render time from one that
+read a constant at import time. Marble is the second variant that proves
+the abstraction, which is why it could not be added later "once we're
+sure" — being sure is what it provides.
 
 Theme entries' frame-level topic rules stay **empty for content
 topics**. Per-word markers (`<strong>`, `<em>`, `<code>`) live at the
@@ -370,6 +397,144 @@ frame-level topic rule claims the same dimension (bold, italic), the
 per-word marker becomes invisible. Speech is already marked by the
 quote characters in the body and the framing "You say,"; no extra
 typographic claim is needed at the frame level.
+
+### The custom-property colour layer
+
+Before the civic build there were **two independently-authored colour
+tables for one product**: the switchable `Theme.palette` (transcript
+only) and the static `components/ui/tokens.ts` (read by 52 files).
+Nothing connected them, so they could drift. They are now one.
+
+**`styles/ground.ts`** declares the vocabulary and contains **no hex**:
+
+| Export | What it is |
+|---|---|
+| `GROUND_ROLES` | 44 role names in five tiers. A name appears **once**; everything else derives from it |
+| `Ground` | `Record<GroundRole, string>` — a theme's concrete values |
+| `SX` | the `var()` **reference** table (`SX.surface === "var(--sx-surface)"`), built from `GROUND_ROLES` so a name cannot be typed twice |
+
+The five tiers: **1** the 18 published ground roles, verbatim from
+`DESIGN-SYSTEM.md`; **1b** the official colours + `ember` (4); **2**
+derived chrome — `-lift`/`-press` steps, films, and the two stripe
+percentages (11); **2b** the social tints, 1:1 with the server's
+`NotifyRule.PaletteToken` vocabulary (8); **3** invariant platform marks
+(3), declared once in `themes/invariant.ts` and spread into all three
+grounds so no theme can repaint the flag or a third-party trademark.
+
+Each theme supplies one `ground: Ground` record of hex. **Hex appears in
+exactly one place per value** — that theme module — and every other
+colour-bearing table holds an `SX.*` reference.
+
+**Emission is imperative**, in `lib/style/useGround.ts`:
+
+```ts
+applyGround(ground: Ground): void;  // setProperty per role on :root
+useGround(): void;                  // effect; re-applies on theme change
+```
+
+⚠ **Why imperative and not a second `createGlobalStyle`.** `GlobalFonts`
+has to sit outside `React.StrictMode` because a `createGlobalStyle`
+under StrictMode is injected, removed by the simulated
+mount→unmount→remount, and never re-added (styled-components #3601).
+Any new global-style sink inherits that trap. Emitting properties
+imperatively sidesteps it entirely: nothing is injected, so nothing can
+be removed and never re-added. Three consequences follow — `useGround`
+can live *inside* StrictMode and read the store; `setProperty` is
+idempotent so the double-invoked effect is harmless; and it is testable
+in jsdom, which a `createGlobalStyle` sink is not. ⚠ **It deliberately
+has no cleanup** — a cleanup on the simulated unmount is precisely how
+#3601 bites.
+
+`main.tsx` calls `applyGround(INK_THEME.ground)` before `createRoot`, so
+first paint has a ground. `useGround()` is the **first line of `App()`**,
+above the phase switch — the switch early-returns per connection phase,
+so a hook inside one case would leave the other four unpainted.
+
+`themes/index.ts` holds `THEMES` and `pickTheme`, and is **the
+divergence guard**: `useStylesheet` (transcript) and `useGround`
+(chrome) resolve the same overlay value through the same function. Two
+local copies could drift and leave the transcript wearing one ground
+inside chrome wearing another.
+
+#### ⚠ The silent-failure mode, and the four guards
+
+A missing or misspelled custom property does not throw, does not warn,
+and does not render obviously wrong: **CSS drops the declaration and the
+element inherits.** The page looks nearly right, which is the worst
+outcome available. It is closed twice — `Record<GroundRole, string>`
+makes a theme missing a role a *compile* error, and tests close the
+rest. Under `lib/style/__tests__/`:
+
+| Guard | What it closes |
+|---|---|
+| ⭐ `customProperties.test.ts` | definition (every theme covers the vocabulary) · **reference** (every `--sx-*` in source is a real role — the typo guard for a hand-written `var(--sx-surace)` that bypassed `SX`) · emission (the applier writes all 44, idempotently) · reverse (every role consumed, or reserved **with a reason**) |
+| `noHexLiterals.test.ts` | no colour value outside `themes/`. Bans hex, `rgb()`/`hsl()` **without** a `var(` argument, and bare `white`/`black` in a colour position — a hex-only guard has three evasions and two were live |
+| `contrast.test.ts` | every foreground pair against **`--surface`**, all three grounds, plus a ⭐ totality gate (a new role must be categorised) and the ⭐ red rule as an assertion |
+| `oneColourSource.test.ts` | every token and every treatment fg/bg is `var(--sx-<role>)` — and, the other direction, a `ground` entry is never itself a `var()` |
+
+⚠ Also **`e2e/tests/theme.spec.ts`**, which is not optional garnish:
+**jsdom does not substitute `var()`**. `getComputedStyle(el).color`
+returns the literal reference string, so no unit test can observe a
+resolved colour. The e2e is the only place the cascade is seen end to
+end, and it is what found that nothing set a root `color` — leaving
+every inheriting element on the browser default black, 1.21:1 in
+high-contrast. `contrast.test.ts` could not have caught that: it checks
+values a theme *declares*, and this was a value no theme declared.
+
+#### The `tokens.ts` alias table
+
+`tokens.color`'s 21 keys keep their exact names and become `SX` reads,
+so **zero call sites changed** across 1468 references:
+
+| `tokens.color` | role | `tokens.color` | role |
+|---|---|---|---|
+| `surface` | `surface` | `primary` | `field` |
+| `surfaceAlt` | `raised` | `primaryHover` | `field-lift` |
+| `surfaceMuted` | `ground` | `primaryActive` | `field-press` |
+| `surfaceSunken` | `sunken` | `border` | `line` |
+| `fg` | `fg` | `borderMuted` | `line-soft` |
+| `fgMuted` | `fg-mute` | `borderEmphasis` | `line-strong` |
+| ⚠ `fgEmphasis` | `accent` | `sectionLabel` | `fg-mute` |
+| ⚠ `accent` | `good` | `actionBg` | `raised` |
+| `accentHover` | `good-lift` | `actionBgHover` | `line` |
+| `onAccent` | `accent-ink` | `warning` | `warn` |
+| | | ⭐ `danger` | `ember` |
+
+⚠ **Two aliases cross over, deliberately.** The pre-civic palette was VS
+Code dark, whose `fgEmphasis` was a gold (`#d7ba7d`) and whose `accent`
+was a teal (`#4ec9b0`); civic's accent is brass and its `good` is
+verdigris. Mapping by *appearance* rather than by name is what let every
+call site stay put.
+
+⭐ **`danger → ember`, not `danger → bad`, is how "red never touches
+blue" becomes testable.** Ink's `--bad` is Old Glory Red at **2.66:1**
+against Ink's `--surface` — unreadable as text on the navy field. That
+is not a defect to fix by lightening the red; it *is* the constraint
+stated as a measurement. `--ember` (`#e8705c`, 5.57:1) is the
+alert-on-field colour. `bad` and `red` stay in the vocabulary for the
+seal, the flag rule and the single committing action per screen —
+surfaces that carry white separation. `contrast.test.ts` asserts that no
+`tokens.*` alias resolves to `--sx-bad`, and that Ink's `bad` really
+does measure below the floor (so the exemption's stated reason cannot
+quietly become false).
+
+Additive keys the hex sweep needed, with no call-site change: `info`,
+`accentWash`, `onField`, `shadow`, `scrim`, `hatch`, `hatchStrong`,
+`paper`, `paperInk`, `paperLine`, plus the `tokens.brand` group.
+
+**Theme-invariant groups stay literal.** `space`, `radius`, the `font`
+size scale, `rail` and `ratio` are the same in every ground —
+`ratio.focal` in particular is a bare number in a `flex` shorthand, so
+wrapping it would be actively wrong. Their *values* changed to the
+published scale (radius 3px everywhere; spacing 4/6/9/12/16/22px).
+
+**The one computed colour.** `GutterStripe.colorForTopic` hashes a topic
+family to a hue. The hue must stay computed, but its saturation and
+lightness were hand-tuned for the dark terminal — theme-blind. It now
+composes rather than resolves: `hsl(${hue} var(--sx-stripe-s)
+var(--sx-stripe-l))`. This is the single site the hex guard's
+"colour function whose arguments include `var(`" carve-out exists for,
+and it is a pattern permission, not a file allowlist.
 
 ### Font-by-register typography
 
@@ -382,8 +547,8 @@ lives entirely on the client `Theme` via two sibling tables:
 
 - **`Theme.registers: Record<string, FontRole>`** — the explicit
   topic-prefix → register map (`FontRole = 'narrative' | 'chrome' |
-  'command'`). Resolved by the **same longest-prefix cascade** as
-  `topicTreatment` (deepest matching prefix wins).
+  'command' | 'display'`). Resolved by the **same longest-prefix
+  cascade** as `topicTreatment` (deepest matching prefix wins).
 - **`Theme.fontRoles: Record<FontRole, string>`** — the role → CSS
   font-family stack. The swappable-faces layer.
 
@@ -392,14 +557,33 @@ topic, pick the deepest matching register, return `fontRoles[role]`.
 Unmapped topics default to **`command` (mono)** — the conservative
 MUD-throwback default, so an unclassified future topic stays mono.
 
-The **three-voice model**: *serif = the world speaks · sans = the app
-chrome · mono = you + the machine.* `world.*` prose maps to `narrative`
-(serif); `system.*` and command echo (`shell.diagnostic.*`) map to
-`command` (mono). The `chrome` (sans) role is the client-shell frame
-voice — declared and self-hosted, but intentionally **not mapped to any
-transcript topic**. Both shipped themes share the identical mapping
-(typography register is orthogonal to the contrast axis); the tables
-are factored into `themes/registers.ts` to avoid drift.
+The **four-voice model**: *narrative = the world speaks · chrome = the
+app · command = you + the machine · display = the engraved civic frame.*
+
+⚠ **`BASE_REGISTERS` keys the seven topic ROOTS**, which is the payoff of
+a tree that carries subject matter — the voice a frame speaks in follows
+from what it is about, so one entry per root replaces the per-leaf table
+this used to need:
+
+| Root | Register |
+|---|---|
+| `speech` `act` `sense` `self` `publication` | `narrative` |
+| `shell` `session` | `command` |
+
+(An earlier revision of this section said `world.*` → narrative and
+`system.*` → command. **Those roots died in the S2 corpus replacement**
+and the prose outlived them by two builds; the table above is the
+shipped one.)
+
+`chrome` and `display` are the client-shell frame voices — declared and
+self-hosted, but intentionally **mapped to no transcript topic**. A
+topic can only acquire a voice by appearing in the register table, which
+is what keeps an unclassified future topic falling back to `command`
+rather than silently picking one up. All **three** themes share the
+identical mapping (typography register is orthogonal to both the ground
+and the contrast axis); the tables are factored into
+`themes/registers.ts` to avoid drift, and `themes.test.ts` asserts the
+identity across all three consumers.
 
 **Where the font is applied.** `Terminal.tsx` sets the per-frame family
 on the `Body` ancestor (`stylesheet.fontFamilyForTopic(frame.topic)`),
@@ -412,34 +596,120 @@ switching register produces no baseline jolt. Plain mode does **not**
 strip the register — font is structural legibility, not decoration, and
 the failsafe message string is unchanged (reader sovereignty intact).
 
-**The faces** are the Source superfamily — Source Serif 4 (narrative,
-regular + italic), Source Sans 3 (chrome), Source Code Pro (command) —
-self-hosted as subset OFL woff2 under `public/fonts/`, declared by the
+**The faces** are the civic four from `DESIGN-SYSTEM.md`:
+
+| Role | Face | Where |
+|---|---|---|
+| `display` | **Spectral** 500, uppercase, `letter-spacing:.19em` | Section labels, headings, wordmark, binomials |
+| `chrome` | **Public Sans** | Everything chrome. The US federal design system's face — civic by provenance |
+| `narrative` | **Newsreader** | World prose, plate captions |
+| `command` | **IBM Plex Mono** | You and the machine |
+
+⚠ **Only ever two voices on screen at once.**
+
+Self-hosted as subset OFL woff2 under `public/fonts/`, declared by the
 `createGlobalStyle` `@font-face` block in `styles/GlobalFonts.ts`
 (`font-display: swap`). `GlobalFonts` is mounted in `main.tsx` **outside
 `React.StrictMode`** — a `createGlobalStyle` under StrictMode is injected
 then removed by the simulated mount→unmount→remount and never re-added
 (styled-components #3601), so its `@font-face` block silently never
 lands. **No Google Fonts / third-party CDN request at runtime.**
+`DESIGN-SYSTEM.md` ships a Google Fonts `<link>`; adopting it would be a
+regression for a product whose claim is that it is auditable.
 
-**Single source, app-wide.** The three face stacks live once in
-`styles/faces.ts` (`FACE_STACKS.serif/sans/mono`); both the transcript
-register table (`Theme.fontRoles`) and the UI design tokens
+⚠ **The metric-mismatch note.** The previous arrangement justified
+`font-display: swap` with "the Source superfamily shares metrics, so the
+swap is near-imperceptible." **Four unrelated families do not share
+metrics**, so the swap now reflows. `swap` is kept anyway — a
+non-blocking first paint is the stronger property, and `block` trades a
+reflow for invisible text.
+
+**Six files, four families.** Weight coverage is not uniform because
+what upstream serves is not uniform, and the difference is load-bearing:
+
+```
+spectral-latin.woff2            Spectral 400        (static)
+spectral-500-latin.woff2        Spectral 500        (static — a REAL face)
+public-sans-latin.woff2         Public Sans 100–900 (VARIABLE, one file)
+newsreader-latin.woff2          Newsreader 400
+newsreader-italic-latin.woff2   Newsreader 400 italic
+plex-mono-latin.woff2           IBM Plex Mono 400
+```
+
+- **Spectral 500 must be a real face.** Browsers synthesize bold only
+  and round 500 down to 400, so a lone 400 would silently lose the
+  engraved weight the design specifies. Measured in a browser: 500
+  renders 4px wider than 400 at 40px, and both differ from the Georgia
+  fallback — the check that it actually loaded rather than fell back.
+- **Public Sans is one variable file**, declared `font-weight: 100 900`
+  so `font-weight: 600` is a real interpolated instance. A second file
+  for 600 would be the same bytes under another name.
+- ⚠ **Newsreader must be requested without the `opsz` axis** — with it
+  the face silently fails to load and falls back to Times.
+  `Art Direction - Civic.dc.html`'s own `<link>` *does* carry
+  `opsz,wght@0,6..72,400`: the reference art contains the trap
+  `DESIGN-SYSTEM.md` warns about. Follow DESIGN-SYSTEM.
+  `globalFonts.test.tsx` bans the axis in a tuple position.
+
+#### The subsetting procedure
+
+Recorded here so the next face swap is not a rediscovery — before this
+build the only trace of how the Source subsets were made was a commit
+message describing the *result*. **This is a one-off build-time fetch
+and creates no runtime dependency**; the thing `globalFonts.test.tsx`
+guards is the *runtime* request.
+
+**Procedure A — no new toolchain.** All four families are OFL and
+Google-hosted, and Google serves per-`unicode-range` pre-subset woff2
+(the shipped files are exactly these). Ask for the CSS with a
+woff2-capable UA, take the `latin` block, fetch its `fonts.gstatic.com`
+URL:
+
+```bash
+curl -sH 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \
+  (KHTML, like Gecko) Chrome/120 Safari/537.36' \
+  'https://fonts.googleapis.com/css2?family=Spectral:wght@400;500&display=swap'
+# → find the @font-face whose unicode-range starts U+0000-00FF, curl its
+#   src URL into packages/client/public/fonts/
+```
+
+⚠ Check whether the family is static or variable before deciding how
+many files to ship: request two weights and compare the returned URLs.
+Identical URLs mean one variable file (declare the range); different
+URLs mean real static instances (ship both).
+
+**Procedure B — fallback.** `pip install fonttools brotli`, then
+`pyftsubset <family>.ttf --unicodes=U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD --flavor=woff2 --layout-features='*' --output-file=<name>-latin.woff2`.
+
+**OFL requires the copyright notice to travel with the font** —
+`public/fonts/OFL.txt` carries all four families' notices plus the
+shared licence text.
+
+**Single source, app-wide.** The face stacks live once in
+`styles/faces.ts`; both the transcript register table
+(`Theme.fontRoles`) and the UI design tokens
 (`components/ui/tokens.ts`) resolve through it, so a face swap is one
-edit there. The three-voice model is applied **across the whole client**,
-not just the transcript: `tokens.font.family` defaults to **sans** (the
-chrome voice — nav, tabs, start/char-gen screens, menus, buttons, and the
-inspection-pane chrome: breadcrumbs, header, Refresh), `GlobalFonts` sets
-a `body` sans base for unstyled/portaled text, the command console
-(`CommandBar`) and `<pre>`/`<code>` (`MmlRenderer`) opt into **mono**
-(`tokens.font.mono` / `FACE_STACKS.mono`), and the transcript paints
-**serif**/**mono** per register. The **inspection-pane body** (its
-`Body` content — description, exits, contents) paints **serif** too, so
-the pane reads like the transcript's look frame while its surrounding
-chrome stays sans. Faces are a
-swappable default theme, not load-bearing: re-skinning narrative to
-Literata is editing the one `FACE_STACKS.serif` line plus dropping the
-woff2 in — no controller, topic, template, token, or content change.
+edit there. `FACE_STACKS.serif/sans/mono` remain as **aliases** (`sans →
+chrome`, `serif → narrative`, `mono → command`) so no call site moved
+when the model went from three voices to four.
+
+The model applies **across the whole client**, not just the transcript:
+`tokens.font.family` defaults to **chrome** (nav, tabs, start/char-gen
+screens, menus, buttons, and the inspection-pane chrome), `GlobalFonts`
+sets a `body` chrome base for unstyled/portaled text, the command
+console (`CommandBar`) and `<pre>`/`<code>` (`MmlRenderer`) opt into
+**command**, and the transcript paints **narrative**/**command** per
+register. The **inspection-pane body** paints narrative too, so the pane
+reads like the transcript's look frame while its chrome stays chrome.
+
+⚠ **`tokens.font.engraved` is the display FACE; `tokens.font.display` is
+the 22px step in the size scale.** DESIGN-SYSTEM names the role
+"Engraved capitals, display"; the two halves of that phrase take the two
+keys rather than colliding on one.
+
+Faces are a swappable default, not load-bearing: re-skinning narrative
+to Literata is editing one `FACE_STACKS` line plus dropping the woff2
+in — no controller, topic, template, token, or content change.
 
 ### Friend/foe stub
 
@@ -483,7 +753,7 @@ categories are:
 
 | Key | Value |
 |---|---|
-| `theme` | `'default' \| 'high-contrast'` |
+| `theme` | `'ink' \| 'marble' \| 'high-contrast'` |
 | `plain` | boolean (global plain-mode) |
 | `plain.channel.<k>` | boolean (per-channel plain-mode) |
 | `mention.self` | boolean (own-name highlight; default ON) |
@@ -506,7 +776,7 @@ player's surface for editing the overlay. Settings:
 | Usage | Effect |
 |---|---|
 | `cockpit style show` | Print current overlay as readable JSON |
-| `cockpit style theme <name>` | `default` \| `high-contrast` |
+| `cockpit style theme <name>` | `ink` \| `marble` \| `high-contrast` |
 | `cockpit style channel <key> color <value>` | Per-channel chip color |
 | `cockpit style channel <key> clear` | Drop all overlay rules for the channel |
 | `cockpit style mention self on\|off` | Own-name highlight toggle |
@@ -584,7 +854,8 @@ sweep distilled them to:
 - The body is a tagged-complete-string; flatten produces the failsafe.
 - Four templates ship (chat / say / tell / emote); everything else
   goes through default.
-- The stylesheet engine + two themes (default + high-contrast) work
+- The stylesheet engine + three themes (`ink`, `marble`,
+  `high-contrast`) work
   end-to-end via the `style` verb.
 - Discord-dialect markdown subset parses server-side; `[label](URI)`
   with the three custom schemes is the only link surface; unknown
