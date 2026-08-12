@@ -22,6 +22,13 @@
  * placeholder shipping. `UnbuiltGround` is for when the whole card is
  * unbuilt rather than one value inside it.
  *
+ * ⭐ The **widget shelf** (`components/frame/Shelf.tsx`) is `Figure`'s
+ * first consumer, and it is the shape the primitive was built for: nine
+ * rows of which six are honestly hatched, each naming its own reason.
+ * Being that consumer is also how `Figure` learned it needed a
+ * `variant` axis — `chip` for a 30px shelf entry, `row` for the
+ * connection popover, `card` the original and still the default.
+ *
  * ⚠ Two carve-outs the convention states explicitly, and neither belongs
  * to these components: **prose never hedges** (a room description
  * carries no engineering stamp — if a thing cannot be described yet, it
@@ -32,7 +39,7 @@
 export { Button } from "./Button";
 export { EntityName } from "./EntityName";
 export { Figure } from "./Figure";
-export type { FigureState, FigureProps } from "./Figure";
+export type { FigureState, FigureProps, FigureVariant } from "./Figure";
 export { List, ListItem } from "./List";
 export { tokens } from "./tokens";
 export type { Tokens } from "./tokens";

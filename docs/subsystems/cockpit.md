@@ -23,6 +23,7 @@ cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
 cockpit layout <name>         the pane arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
+cockpit shelf list|pin|unpin  which figures ride the top bar
 cockpit style <sub> …         appearance
 cockpit pane pin|dismiss …    override what holds a pane open
 ```
@@ -36,6 +37,54 @@ top-level verb, and its old word was needed for the activity axis.
 The three controllers survive as **per-subcommand controllers**
 (`controller:` on each subcommand), so the consolidation was wiring, not
 a rewrite.
+
+### `cockpit shelf` — the widget shelf's pin surface
+
+```
+cockpit shelf list            the whole catalogue, and what is pinned
+cockpit shelf pin <row>       add a figure, at the end
+cockpit shelf unpin <row>     take one off
+```
+
+Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
+`docket`. Persists to **`cockpit.shelf`**; the surface it drives is
+documented in [client-shell.md § The widget shelf](./client-shell.md).
+
+⭐ **The default pins only `play`, `renown`, `skill`** — the three that
+are actually wired. *Never default-pin a widget that does not do
+anything yet*: the other six render their honest not-wired state, and a
+new player's first impression should not be six dead boxes. They are one
+`cockpit shelf pin` away, and `cockpit shelf list` is how a player
+discovers them — which is why `list` prints the whole catalogue rather
+than only what is pinned.
+
+Mirrors `cockpit pane` in every respect — `list` / verb / `<id>`, two
+positional slots (`action`, `row`) dispatched in the controller, and a
+refusal in the machine voice naming the known set. Four artifacts: a
+YAML `subcommands:` block, `CockpitShelfController`, a two-line seed,
+and a `clientStateSchema` entry.
+
+⚠ **Pinning is a command and not a client toggle**, which is the whole
+reason it is here at all. The status bar shipped in the same build
+advertises one axiom — *every click sends a command, and the interface
+shows which*. A pin affordance that mutated local state while the status
+bar previewed a command would falsify the one claim that bar exists to
+make. (The second reason is ordinary: the cockpit keyspace is already
+server-owned, and a divergent persistence path for one preference is
+drift.)
+
+⭐ **`list` reports PINNED-NESS, never live-or-hatched.** The honesty
+vocabulary — which rows show a real figure and which show their reason —
+is **client-side**, because hatched-ness is a property of the client's
+wiring rather than of the server's capability. The server cannot know
+which of the fields it sends the client actually paints; a verb printing
+a guess would be exactly the confident wrong answer the honest-chrome
+build exists to eliminate. Modelling it server-side would mean the
+server holding a second source of truth for something only one side
+observes.
+
+⭐ Identity and connection refuse as *unknown shelf row*, because they
+are **not rows** — a stronger guarantee than a protection rule.
 
 ### ⚠ The style tree rides positionals, not nested subcommands
 
@@ -256,11 +305,12 @@ are **deleted** — all view-switching lives in the one server axis.
 - `LayoutProps` is the bundle `App` threads to the active layout (frame
   buffer, command-send/preview/click handlers, prompt handlers). Each
   command bar owns its own local input draft and submits its `barId`;
-  preview/flash live in the ghost line, not in a bar.
+  preview/flash live in the status bar, not in a bar.
 - The **"Views" menu** (`components/ViewsMenu.tsx`) previews/sends
   `cockpit mode <mode> <arrangement>` per the click model and marks the current layout. It +
   the Settings affordance live in the **single top `Frame` bar**
-  (`components/frame/Frame.tsx`) alongside bus-health + identity — one
+  (`components/frame/Frame.tsx`) alongside the connection chip, identity
+  and the widget shelf — one
   fixed chrome row, not two (the separate `ChromeBar` row was folded into
   `Frame` so the content area reclaims the vertical space).
 - An **always-on minimum** (the Frame bar, a command bar) renders in
@@ -295,7 +345,7 @@ community prompts, broadcast state) plus a small live readout (viewers,
 uptime). The deck is the *frame* for that — a live strip + grouped cards
 of command shortcuts. The streamer command set isn't built yet, so the
 chips are an **honest scaffold**: each previews the command it *would*
-run in the ghost line on hover (the same learn-the-CLI affordance) but is
+run in the status bar on hover (the same learn-the-CLI affordance) but is
 dimmed and doesn't send until its verb ships. Per the through-line the
 client still owns zero command semantics — every chip is just a
 command-bus affordance.
@@ -378,7 +428,7 @@ primacy made absolute.
   the explicit **`--bar <id>`** option names a bar for an affordance —
   which dispatches *un-moded* (no wire `barId`, so preview == send) and so
   can't rely on `context.barId`. The target rides in the command text
-  (`cockpit cli stream-chat --prefix chat`), keeping the ghost-line preview honest.
+  (`cockpit cli stream-chat --prefix chat`), keeping the status-bar preview honest.
   Because modes are transient the commit is just **write→push** (no
   `save()`).
 
@@ -397,16 +447,22 @@ The client no longer wraps input. The `inputMode` store slice is gone.
   `cockpit cli --clear` from that line. The chat sidecar's "talk here" sends
   `cockpit cli --prefix "chat <handle>"` from the forum line.
 
-### The ghost command line + click model
+### The preview surface + click model
 
 Under per-bar mode, preview cannot live *in* a bar (a moded bar would
 prepend its prefix, so the preview would lie). It lives in the always-on
-**ghost command line** (`components/GhostCommandLine.tsx`, store-backed
-`ghostPreview`/`ghostFlash`) beside the primary bar. Hover → the exact
-command; **click → run it un-moded** (no `barId`, so preview equals
-send); **shift-click / right-click → copy** to the clipboard (the
+**status bar** (`components/frame/StatusBar.tsx`, store-backed
+`ghostPreview`/`ghostFlash`) along the bottom of the window. Hover → the
+exact command; **click → run it un-moded** (no `barId`, so preview
+equals send); **shift-click / right-click → copy** to the clipboard (the
 explicit "make it mine" path, replacing shift-click-loads-a-bar, which
 has no honest target under N bars).
+
+⚠ **`GhostCommandLine.tsx` is retired** — it had two render sites, and
+two surfaces showing what a click would send can disagree, which
+discredits the axiom rather than merely looking wrong. There is now
+exactly ONE preview surface, guarded by a source scan. See
+[client-shell.md § The status bar](./client-shell.md).
 
 ## The summoned-pane tier
 

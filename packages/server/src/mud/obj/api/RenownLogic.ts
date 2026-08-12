@@ -433,13 +433,29 @@ async function recomputeImpl(): Promise<void> {
   await RenownStanding.warm();
 }
 
+/**
+ * Sync read off the warmed standing cache, **preserving absence**:
+ * `undefined` when the scope was never materialized, a number when it
+ * was — including a materialized `0`.
+ *
+ * ⭐ The distinction already exists in the cache and was being thrown
+ * away one line before it left: `cached().get(...)` returns `undefined`
+ * for a scope with no row, and `renownOfImpl`'s `?? 0` collapses
+ * "measured and found neutral" into "never measured". Nothing here is
+ * computed — the fact simply survives the return.
+ */
+function measuredRenownOfImpl(
+  subjectId: string,
+  scope: RenownScope
+): number | undefined {
+  return RenownStanding.cached().get(
+    RenownStanding.key(subjectId, scopeKey(scope))
+  );
+}
+
 /** Sync read off the warmed standing cache; neutral 0 for a missing scope. */
 function renownOfImpl(subjectId: string, scope: RenownScope): number {
-  return (
-    RenownStanding.cached().get(
-      RenownStanding.key(subjectId, scopeKey(scope))
-    ) ?? 0
-  );
+  return measuredRenownOfImpl(subjectId, scope) ?? 0;
 }
 
 /**
@@ -566,6 +582,15 @@ export class RenownLogic extends ApiLogic {
   @CallSecurity(RenownApiCallers)
   public renownOf(subjectId: string, scope: RenownScope = null): number {
     return renownOfImpl(subjectId, scope);
+  }
+
+  /** See {@link RenownApi.measuredRenownOf}. */
+  @CallSecurity(RenownApiCallers)
+  public measuredRenownOf(
+    subjectId: string,
+    scope: RenownScope = null
+  ): number | undefined {
+    return measuredRenownOfImpl(subjectId, scope);
   }
 
   /**

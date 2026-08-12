@@ -31,6 +31,7 @@ import type {
   ReactionActState,
   ReactionSampleEntry,
   RosterRow,
+  SelfFigureRecord,
   StuffDetailRecord,
   StuffRefRecord,
   TopicDescriptor,
@@ -304,6 +305,30 @@ interface StoreState extends CmsSlice, StudioSlice {
   setGhostPreview: (command: string | null) => void;
   /** Show a transient ghost-line flash (auto-clears in the component). */
   flashGhost: (message: string) => void;
+
+  /**
+   * The widget shelf's figures — the latest record from the `self`
+   * pane, or `null` before the first delivery.
+   *
+   * ⚠ Store state rather than component state so a test can drive the
+   * shelf with `useStore.setState` and no socket, exactly as the
+   * inspection pane's slices allow.
+   *
+   * ⚠⚠ **Every field is optional and an absent key is meaningful.** The
+   * server omits a field its descriptor could not answer for, and the
+   * shelf renders that absence as the not-wired state with a reason —
+   * never as a zero. Do not default anything here.
+   */
+  shelfFigures: SelfFigureRecord | null;
+  /** Replace the shelf record wholesale (a subscription RESULT). */
+  setShelfFigures: (record: SelfFigureRecord | null) => void;
+  /**
+   * Merge a field patch into the shelf record (a subscription `update`
+   * DELTA). Separate from `set` because a delta carries only what
+   * changed, and replacing wholesale would drop every field the poke
+   * did not touch.
+   */
+  mergeShelfFigures: (patch: Partial<SelfFigureRecord>) => void;
 
   /**
    * Whether the "Social / Notifications" settings pane (a modal over the
@@ -1051,6 +1076,21 @@ export const useStore = create<StoreState>((set, get) => ({
   setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
   flashGhost: (message) => set(() => ({ ghostFlash: message })),
 
+  // The widget shelf's `self`-pane record.
+  shelfFigures: null,
+  setShelfFigures: (record) => set(() => ({ shelfFigures: record })),
+  mergeShelfFigures: (patch) =>
+    set((s) =>
+      s.shelfFigures === null
+        ? // A patch with no prior record cannot be merged into
+          // anything. Dropping it is correct: the pane's initial
+          // RESULT is what establishes the record, and a delta that
+          // arrives first would produce a partial record with an
+          // invented `stuffId`.
+          {}
+        : { shelfFigures: { ...s.shelfFigures, ...patch } },
+    ),
+
   // "Social / Notifications" settings-pane modal toggle (account menu).
   socialPaneOpen: false,
   setSocialPaneOpen: (open) => set(() => ({ socialPaneOpen: open })),
@@ -1227,6 +1267,11 @@ export const useStore = create<StoreState>((set, get) => ({
         socketId: payload.socketId,
         sessionId: payload.sessionId,
         error: null,
+        // ⚠ Stamped here, not on the socket open: this is the frame
+        // that says the connection is USABLE. A reconnect re-issues it,
+        // so the clock restarts — which is why the popover's row is
+        // labelled "this connection" rather than "session".
+        connectedAt: Date.now(),
       },
       // An established frame always carries an Avatar (avatarStuffId),
       // so it is unconditionally the in-world flip — regardless of
@@ -1280,6 +1325,9 @@ export const useStore = create<StoreState>((set, get) => ({
           socketId: null,
           sessionId: null,
           error: error || null,
+          // ⚠ `connectedAt` is deliberately NOT carried over. There is
+          // no live connection to have a duration, and reporting the
+          // dead one's age would be a figure about nothing.
         },
         selfInteractiveId: null,
         selfAvatarId: null,

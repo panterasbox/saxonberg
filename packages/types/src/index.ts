@@ -823,12 +823,92 @@ export interface PromptEnvelope {
  * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
  * It is not a menu of hypothetical panes — every entry here is one the
  * client actually opens. The server-side definitions live in
- * `lib/connection/Panes.ts`.
+ * `lib/connection/Panes.ts`. `inspect` and `location` are the
+ * inspection pane's two; `self` is the **widget shelf's** — the one
+ * subscription behind every self-scoped figure the shelf renders.
  */
-export type PaneId = "inspect" | "location";
+export type PaneId = "inspect" | "location" | "self";
 
 /** Every {@link PaneId}. The server validates against this; the client picks from it. */
-export const PANE_IDS: readonly PaneId[] = ["inspect", "location"];
+export const PANE_IDS: readonly PaneId[] = ["inspect", "location", "self"];
+
+/**
+ * A row on the **widget shelf** — the pinnable figures in the top bar.
+ *
+ * Shaped exactly like {@link PaneId}, and for the same reason: pinning
+ * is a real command persisting to the `cockpit.shelf` clientState key,
+ * so the server validates a row name against this list and the client
+ * picks from it. A shelf the client owned would falsify the one claim
+ * the status bar exists to make — *every click sends a command, and the
+ * interface shows which*.
+ *
+ * ⚠ **What is here is the ID vocabulary and nothing else.** Each row's
+ * label, description, and — critically — whether it is live or hatched
+ * and why, are CLIENT-side, in `components/frame/Shelf.tsx`.
+ * Hatched-ness is a property of the client's wiring, not of the
+ * server's capability: the server cannot know that the client declined
+ * to paint `COIN`, only the client knows which of the fields it
+ * receives it actually renders. Modelling that here would be a second
+ * source of truth for something only one side observes.
+ *
+ * ⚠⚠ **`trait` is not in this union, and must never be added.** It is
+ * in the reference art's catalogue and it is a permanent non-goal: the
+ * psychology vocation rests on self-other asymmetry, and a pinned
+ * always-on readout of your own personality is the stat sheet that
+ * makes the therapist unnecessary. The server-side guard forbidding
+ * subscribable field names matching `trait|disposition|personality`
+ * stands unmodified; this is its client-vocabulary twin, placed here
+ * because this is where a future contributor would add the row.
+ */
+export type ShelfRowId =
+  | "play"
+  | "renown"
+  | "skill"
+  | "make"
+  | "coin"
+  | "status"
+  | "time"
+  | "online"
+  | "docket";
+
+/** Every {@link ShelfRowId}, in catalogue order. */
+export const SHELF_ROW_IDS: readonly ShelfRowId[] = [
+  "play",
+  "renown",
+  "skill",
+  "make",
+  "coin",
+  "status",
+  "time",
+  "online",
+  "docket",
+];
+
+/**
+ * What `cockpit.shelf` holds for a player who has never touched it:
+ * **the rows that are actually wired**, and nothing else.
+ *
+ * ⭐ **Never default-pin a widget that does not do anything yet.** An
+ * earlier cut defaulted to all nine, reasoning that the shelf being
+ * mostly hatched *is* the honesty convention working and should
+ * therefore be visible on first login. That mistook a principle for a
+ * product: a new player's first impression should not be six dead
+ * boxes, however truthfully each one explains itself.
+ *
+ * The convention is not lost by this — it moves to where it is
+ * actually useful. The `＋ widget` menu lists the whole catalogue with
+ * every row's reason in visible text, which is the moment a player is
+ * asking "why can't I have COIN?" A reason shown at the point of the
+ * question beats a reason shown on a bar nobody asked about.
+ *
+ * ⚠ So the nine-row assertion is about the **catalogue**, not the
+ * default shelf. A row joins this list when it starts answering.
+ */
+export const DEFAULT_SHELF: readonly ShelfRowId[] = [
+  "play",
+  "renown",
+  "skill",
+];
 
 export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
@@ -1154,6 +1234,45 @@ export interface StuffExitDoor {
    * one (Perceptible's primaryKeyword is fail-soft).
    */
   primaryKeyword?: string;
+}
+
+/**
+ * What the `self` pane puts on the wire — the viewer's own figures, as
+ * the widget shelf reads them.
+ *
+ * ⚠ **Every field is optional, and an absent key is the honest
+ * answer.** `projectFields` omits any field whose descriptor `read`
+ * returns `undefined`, and the standing descriptors return `undefined`
+ * for anyone but the subject — so a record with no `playStanding` is
+ * not an error, it is "not resolved for you". The shelf renders each
+ * absence as the not-wired state with its own reason rather than
+ * substituting a zero.
+ *
+ * ⭐ **`makeStanding` is deliberately not here.** The server has the
+ * number, but *Make* is an account-level stock and the account
+ * arithmetic is unbuilt, so the figure's LEVEL is wrong — a figure
+ * whose level is wrong cannot be rendered. It is kept off the wire
+ * entirely rather than sent-and-declined, so the shelf's `MAKE` hatch
+ * is structural instead of a matter of client discipline. See the
+ * `self` entry in `lib/connection/Panes.ts`.
+ *
+ * ⭐ `renown` is absent — not `0` — for a scope that was never
+ * materialized. `RenownApi.measuredRenownOf` preserves that
+ * distinction, so a `{ value: 0 }` that arrives here genuinely means
+ * *measured, and the answer is zero*, and renders as a live figure.
+ */
+export interface SelfFigureRecord {
+  stuffId: string;
+  /** Influence earned by living in the world. Band NAME, not a value object. */
+  playStanding?: { band: string };
+  /** Signed standing. Present only when the scope is materialized. */
+  renown?: { value: number };
+  /**
+   * The competence currently being practised. `null` — as distinct from
+   * absent — means the transcript answered and nothing is being
+   * practised.
+   */
+  practisingCompetence?: { discipline: string; band: string } | null;
 }
 
 /**
@@ -2597,6 +2716,28 @@ export interface ConnectionState {
   socketId: string | null;
   sessionId: string | null;
   error: string | null;
+  /**
+   * Epoch ms this socket was established — what the connection
+   * popover's live duration row is derived from.
+   *
+   * ⚠ **Optional, and the optionality is load-bearing twice over.**
+   * Practically: `store/__tests__/connectionLink.test.ts` builds a
+   * complete `ConnectionState` literal, and the client's `tsc` includes
+   * its tests, so a REQUIRED field would break a frozen reconnect test
+   * under `build:types` while still passing `vitest` (esbuild strips
+   * types without checking them) — the worst possible failure shape.
+   * Honestly: before the first connection and after a drop there is no
+   * duration to report, and a `0` or `null` sentinel would be a value
+   * standing in for an absence.
+   *
+   * ⭐ It measures THIS CONNECTION, not the session: a successful
+   * reconnect issues a fresh `connection-established` and the timestamp
+   * resets. The popover's label says "this connection" rather than
+   * papering over that with a fake continuous session clock — the same
+   * move as hatching `MAKE`, where the honest fix for a figure at the
+   * wrong level is to correct the claim rather than the number.
+   */
+  connectedAt?: number;
 }
 
 // ============================================================================

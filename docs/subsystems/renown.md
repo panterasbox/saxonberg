@@ -94,6 +94,19 @@ Surface:
 - `recompute()` — the batch aggregator (below).
 - `renownOf(subject, scope?)` — the **sync cached read** consumers call;
   neutral `0` for a non-materialized scope.
+- `measuredRenownOf(subject, scope?)` — ⭐ the **absence-preserving
+  companion**: the same read without the `?? 0`, so an unmaterialized
+  scope answers `undefined` and a standing genuinely measured at zero
+  answers `0`. **`renownOf` for scoring, `measuredRenownOf` for
+  display.** A caller about to do arithmetic is right to treat a missing
+  scope as contributing nothing; a caller about to *show* the figure
+  would be printing a confident zero for a standing nobody ever
+  computed. It is additive rather than a change to `renownOf` because
+  all five of that method's callers genuinely want a number, and pushing
+  the `undefined` outward would reproduce the same collapse four times,
+  further from the data. `Avatar`'s `renown` subscribable field is the
+  first consumer — see
+  [mql-subscription.md](./mql-subscription.md).
 - `boot()` — installs both ingestion taps + self-registers the recompute
   schedule (idempotent). Each tap **receive-gates** its event
   (`EventApi.restrictSubscribe`): `ReactionFiredEvent` and

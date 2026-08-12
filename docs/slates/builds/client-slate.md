@@ -609,8 +609,43 @@ are for reasons worth keeping:
 | Build | Ships | Requirements |
 |---|---|---|
 | ✅ **A — civic ground** — **SHIPPED 2026-08-11** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | shipped — see [message-rendering.md](../../subsystems/message-rendering.md) § The custom-property colour layer + § Font-by-register, and [client-shell.md](../../subsystems/client-shell.md) § The honest-state primitives |
-| **B — honest chrome** | desktop top bar (shelf, read-only mode indicator), status bar + `GhostCommandLine` relocation, and the server work: `self` pane entry, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf` | not yet written |
+| ✅ **B — honest chrome** — **SHIPPED 2026-08-11** | desktop top bar (seal, connection chip + popover, identity, the nine-row shelf), the status bar replacing `GhostCommandLine`, and the server work: the `self` pane, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf`, `RenownApi.measuredRenownOf`. ⚠ **The read-only mode indicator is CUT** — see below. | shipped — see [client-shell.md](../../subsystems/client-shell.md) §§ The top bar / The widget shelf / The status bar / The connection popover, [cockpit.md](../../subsystems/cockpit.md) § `cockpit shelf`, [mql-subscription.md](../../subsystems/mql-subscription.md) § The pane catalogue's field sets |
 | **C — chrome on a phone** | the mobile *inversion* — no status bar, shelf leaves the bar for a pull-down with one glance-line slot, command sheet, dropped connection claims the first row, safe areas | not yet written |
+
+⚠ **Build B's read-only mode indicator was CUT, not deferred — it has no
+source.** This line promised one; investigation during planning found
+nothing for it to indicate. The only read-only principal in the system
+is the livestream broadcast feed, which
+[livestream.md](../../subsystems/livestream.md) records as having *"no
+`Interactive` at all"* — an out-of-band overlay socket that never
+receives `connection-established`, absent from the connection registry,
+and with no reference anywhere in `packages/client`. Nor is there a
+read-only `CockpitMode`: `watch` is a mode, but a watching player holds
+a full `Interactive` and can act.
+
+Building one would have meant inventing a read-only session state to
+justify a chip — the interface leading the model, which is the honesty
+failure one level up: not a fake figure but a fake capability. **If a
+read-only React session is genuinely wanted** — a spectator link, a
+shared-screen mode, a suspended account that can read but not act —
+that is a real feature with server work and wants its own requirements.
+Recorded here so this line is not later read as an unmet promise; the
+full rationale is in
+[client-shell.md](../../subsystems/client-shell.md) § The read-only mode
+indicator.
+
+⭐ **B's shelf is mostly hatched, and that is the deliverable.** Three of
+nine rows have a live server read; the other six name one of three
+distinct reasons (the account-level gap, the missing-field gap, the
+not-about-you gap). A shelf showing nine confident numbers would be
+lying about six of them.
+
+⚠ **But the DEFAULT pins only the three wired rows** — corrected on
+review. *Never default-pin a widget that does not do anything yet.* A
+principle is not a product: six dead boxes on first login is bad even
+when each one explains itself honestly. The convention moved to the
+`＋ widget` menu, which carries every reason in visible text at the
+moment a player is actually asking.
 
 ⭐ **The token sweep is nearly free, and "mechanical, touches everything"
 was wrong.** 1468 `tokens.*` reference sites over only **44 distinct

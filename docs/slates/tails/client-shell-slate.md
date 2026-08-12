@@ -443,6 +443,18 @@ A third front-end forced by the OBS constraint (a browser source can't
 sign in, and gamestate is unreachable without the bus). One surface,
 now **three consumers**:
 
+> ⚠ **Related, and still open: a read-only SESSION.** Wave 1 Build B
+> (honest chrome) was slated to ship a read-only mode indicator and
+> **cut it, because there is nothing for it to indicate.** The only
+> read-only principal today is the livestream broadcast feed, which has
+> no `Interactive` at all and never reaches the React client — so the
+> indicator would have meant inventing a session state to justify a
+> chip. If a read-only React session is wanted (a spectator link, a
+> shared-screen mode, a suspended account that can read but not act),
+> it is a real feature with server work and belongs here, in this
+> slate's design space, with its own requirements. See
+> [client-shell.md § The read-only mode indicator](../../subsystems/client-shell.md).
+
 - **Metrics view** — aggregate/health state for a public status page,
   useful when the live box is degraded.
 - **Overlay view(s)** — diegetic state styled for broadcast

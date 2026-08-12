@@ -22,9 +22,16 @@ category error as a client deciding its own affordances.
 client-minted `nanoid` that dies on reconnect, so it could name a pane
 for one socket and nothing longer — which is why `cockpit layout save`
 could only ever write an empty pane list. **A pane is a NAMED
-subscription; a hold is an optional property of one.** Neither shipped
-pane carries a hold, and that is correct: paint/clear means a focus
-change clears the body rather than closing the pane.
+subscription; a hold is an optional property of one.** Neither of this
+pane's two carries a hold, and that is correct: paint/clear means a
+focus change clears the body rather than closing the pane.
+
+⚠ **This pane is no longer the catalogue's only consumer.** A third
+entry, `self`, feeds the top bar's widget shelf — and it is the one
+whose field set is an explicit list rather than an alias, because
+neither alias carries a figure *about* the subject. See
+[mql-subscription.md § The pane catalogue's field sets](./mql-subscription.md)
+and [client-shell.md § The widget shelf](./client-shell.md).
 
 Pane policy is **paint/clear**: focus changes clear the body to a
 placeholder; an explicit `look` against the current focus paints

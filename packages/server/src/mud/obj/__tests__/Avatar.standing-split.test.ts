@@ -38,6 +38,9 @@ import { collectSubscribableFields } from '../../api/mql-subscription';
 import NPC from '../NPC';
 import { AdvancementApi } from '../../api/advancement';
 import { InfluenceApi, STOCK_LEVEL } from '../../api/influence';
+import RenownStanding, {
+  COMPACT_WIDE,
+} from '../../lib/standing/RenownStanding';
 
 /**
  * Read a subscribable field as some viewer.
@@ -62,6 +65,7 @@ describe('standing splits by level', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
+    RenownStanding._resetForTesting();
 
     // One account, two characters — the whole point of the split.
     const user = new User();
@@ -113,14 +117,17 @@ describe('standing splits by level', () => {
    * and `standing` / `profile` were not.
    */
   it('routes the dashboard field through the same seam the verbs use', () => {
+    // ⚠ The wire carries the band NAME, not a serialized `Band` value
+    // object — `{band: 'nascent'}`, matching `practisingCompetence`'s
+    // already-plain band. The assertion is exactly as strong either way.
     const viaField = readField('makeStanding', alice as unknown as Stuff) as {
-      band: { name: string };
+      band: string;
     };
     const viaSeam = InfluenceApi.standingForHost(
       alice as unknown as Stuff,
       'producer',
     );
-    expect(viaField.band.name).toBe(viaSeam.band.name);
+    expect(viaField.band).toBe(viaSeam.band.name);
   });
 
   /*
@@ -141,7 +148,18 @@ describe('standing splits by level', () => {
     expect(bPlay).toBeDefined();
 
     // Renown stays per-character too — the other half of the split.
-    expect(readField('renown', alice as unknown as Stuff)).toBeDefined();
+    // ⚠ It has to be MEASURED to read at all: an unmaterialized scope
+    // projects as absent, never as a neutral zero. Seeding alice's
+    // alone is what makes this an assertion about KEYING — bob shares
+    // the account and still reads nothing.
+    RenownStanding.cached().set(
+      RenownStanding.key(alice.getTemplatePath()!, COMPACT_WIDE),
+      5
+    );
+    expect(readField('renown', alice as unknown as Stuff)).toEqual({
+      value: 5,
+    });
+    expect(readField('renown', bob as unknown as Stuff)).toBeUndefined();
   });
 
   /*

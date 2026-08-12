@@ -30,13 +30,28 @@
  * a plausible fake — is exactly what the path of least resistance
  * produces.
  *
- * ## ⚠ Ships with no consumer
+ * ## The three variants
  *
- * Deliberately. Applying the honest states to a surface is a non-goal of
- * this build; Build B's widget shelf (whose catalogue is mostly
- * not-wired) is the first real consumer. That a primitive with no
- * consumer can drift is the accepted risk in the Wave 1 cut, and the
- * mitigation is that B follows immediately.
+ * `card` is the Build A block and stays the default. `chip` is the
+ * widget shelf's 30px horizontal entry; `row` is the connection
+ * popover's full-width label-left / value-right form.
+ *
+ * ⚠ **A variant enum, not a second component and not a
+ * `styled(Figure)` override.** A second component reopens the
+ * `<span>{n}</span>` hole the union was shaped to close — the
+ * constraint is that no shelf row may print a value outside `Figure`,
+ * and the moment there are two ways to render a figure there are three.
+ * A `styled(Figure)` override with descendant selectors would put this
+ * module's internal DOM shape in the consumer's hands, so a refactor
+ * here would silently break the shelf's layout with no type error. The
+ * enum keeps every rendering decision inside the one module that owns
+ * the convention.
+ *
+ * ⚠ `chip` has no room for a visible reason line, so the reason rides
+ * `title` **and** the `aria-label` this component already emits (*"not
+ * wired — <reason>"*, in words). The `＋ widget` catalogue menu renders
+ * every reason as visible text; the chip is the compact face of the
+ * same fact, never the only place it appears.
  *
  * ## Two voices, never three
  *
@@ -61,6 +76,12 @@ export type FigureState =
   | { readonly state: 'empty'; readonly reason: string }
   | { readonly state: 'unwired'; readonly reason: string };
 
+/**
+ * How a figure is laid out. The honest states are identical across all
+ * three — only the geometry differs.
+ */
+export type FigureVariant = 'card' | 'chip' | 'row';
+
 export interface FigureProps {
   /** Engraved label — rendered uppercase in the display voice. */
   label: string;
@@ -68,6 +89,13 @@ export interface FigureProps {
   figure: FigureState;
   /** 0–1 band fill. Honoured in `live` only; ignored otherwise. */
   fill?: number;
+  /**
+   * `card` (default) — the Build A block, label over value over band.
+   * `chip` — a single-line shelf entry; band suppressed, reason in
+   * `title` + the `aria-label`. `row` — full-width, label left / value
+   * right, reason visible beneath.
+   */
+  variant?: FigureVariant;
   className?: string;
 }
 
@@ -85,6 +113,64 @@ const Box = styled.div`
 /** The hatched variant. Same box metrics; dashed + hatched ground. */
 const UnbuiltBox = styled(UnbuiltGround)`
   padding: ${tokens.space.sm} ${tokens.space.md};
+`;
+
+/**
+ * The chip's box: one 30px line, label and value side by side. Padding
+ * is tighter than the card's because the shelf holds nine of these
+ * across a bar that also carries identity and connection.
+ */
+const ChipBox = styled(Box)`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.sm};
+  height: 30px;
+  padding: 0 ${tokens.space.sm};
+`;
+
+const UnbuiltChipBox = styled(UnbuiltBox)`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.sm};
+  height: 30px;
+  padding: 0 ${tokens.space.sm};
+`;
+
+/** The popover row: label left, value right, reason beneath. */
+const RowBox = styled(Box)`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: ${tokens.space.md};
+  width: 100%;
+
+  /*
+   * Label and value take the two columns; the band and the reason span
+   * both. Child selectors rather than props because this module owns
+   * the DOM shape they address — the same reason a consumer is NOT
+   * allowed to do this from outside (see the variant note at the top).
+   */
+  > *:nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+`;
+
+const UnbuiltRowBox = styled(UnbuiltBox)`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: ${tokens.space.md};
+  width: 100%;
+
+  /*
+   * Label and value take the two columns; the band and the reason span
+   * both. Child selectors rather than props because this module owns
+   * the DOM shape they address — the same reason a consumer is NOT
+   * allowed to do this from outside (see the variant note at the top).
+   */
+  > *:nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
 `;
 
 const Label = styled.div`
@@ -159,31 +245,71 @@ function ariaLabelFor(label: string, figure: FigureState): string {
   }
 }
 
+/**
+ * The box for one (variant, state) pair.
+ *
+ * ⚠ The return type is INFERRED as a union of the six styled
+ * components, deliberately. Annotating it — even as `typeof Box` —
+ * fails: styled-components' prop types differ structurally between a
+ * `styled.div` and a `styled(UnbuiltGround)`, and the two are not
+ * mutually assignable. The union is what JSX actually needs.
+ */
+function containerFor(variant: FigureVariant, state: FigureState['state']) {
+  const unwired = state === 'unwired';
+  switch (variant) {
+    case 'chip':
+      return unwired ? UnbuiltChipBox : ChipBox;
+    case 'row':
+      return unwired ? UnbuiltRowBox : RowBox;
+    case 'card':
+      return unwired ? UnbuiltBox : Box;
+  }
+}
+
 export function Figure({
   label,
   figure,
   fill,
+  variant = 'card',
   className,
 }: FigureProps): React.ReactElement {
-  const Container = figure.state === 'unwired' ? UnbuiltBox : Box;
+  const Container = containerFor(variant, figure.state);
   const clamped = Math.max(0, Math.min(1, fill ?? 0));
+  const ariaLabel = ariaLabelFor(label, figure);
+  // The chip has no room for a visible reason line, so the same words
+  // ride `title` for a pointer and `aria-label` for a reader. `title`
+  // on the other variants would duplicate text already on screen.
+  const titled =
+    variant === 'chip' && figure.state !== 'live'
+      ? { title: `${label}: not wired — ${figure.reason}` }
+      : {};
+
+  const glyph =
+    figure.state === 'live'
+      ? figure.value
+      : figure.state === 'empty'
+        ? EMPTY_GLYPH
+        : UNWIRED_GLYPH;
 
   return (
     <Container
       role="group"
-      aria-label={ariaLabelFor(label, figure)}
+      aria-label={ariaLabel}
       data-figure-state={figure.state}
+      data-figure-variant={variant}
+      {...titled}
       {...(className !== undefined ? { className } : {})}
     >
       <Label>{label}</Label>
       <Value $tone={figure.state} aria-hidden="true">
-        {figure.state === 'live'
-          ? figure.value
-          : figure.state === 'empty'
-            ? EMPTY_GLYPH
-            : UNWIRED_GLYPH}
+        {glyph}
       </Value>
-      {figure.state === 'unwired' ? (
+      {/*
+        The band is a card/row decoration. A chip is a single 30px line
+        with a label and a value on it; a 4px track under them would
+        make it two lines, which is the one thing a chip is not.
+      */}
+      {variant === 'chip' ? null : figure.state === 'unwired' ? (
         <HatchBand aria-hidden="true" />
       ) : (
         <Band aria-hidden="true">
@@ -192,7 +318,7 @@ export function Figure({
           ) : null}
         </Band>
       )}
-      {figure.state === 'live' ? null : (
+      {variant === 'chip' || figure.state === 'live' ? null : (
         <Reason aria-hidden="true">{figure.reason}</Reason>
       )}
     </Container>

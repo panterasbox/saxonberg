@@ -10,6 +10,7 @@ help: |
     cockpit mode <name>           what you are here to do
     cockpit layout <name>         the pane arrangement inside that mode
     cockpit scope <prefix…>       scope a command bar's bare input
+    cockpit shelf <sub> …         which figures ride the top bar
     cockpit style <sub> …         appearance: theme, colors, plain mode
 
   Two axes, and they are different questions. A MODE is the front door
@@ -189,6 +190,45 @@ subcommands:
         type: string
         required: false
       - name: paneId
+        type: string
+        required: false
+
+  shelf:
+    controller: /obj/command/shell/CockpitShelfController
+    description: "Choose which figures ride the top bar's widget shelf."
+    help: |
+      The shelf is the row of figures across your top bar. You choose
+      what is on it.
+
+        cockpit shelf list          the whole catalogue, and what is pinned
+        cockpit shelf pin <row>     add a figure, at the end
+        cockpit shelf unpin <row>   take one off
+
+      Rows: play, renown, skill, make, coin, status, time, online,
+      docket.
+
+      Most of them will not be showing you a number. That is not a
+      fault — a figure the server cannot stand behind renders as
+      hatched, with the reason it is not there, rather than as a
+      confident guess. `make` has a number and still hatches: it is an
+      account-level standing and the account arithmetic is not built,
+      so the figure would be answering at the wrong level.
+
+      Identity and connection are not on this list. They are not
+      widgets — they are the two things that must be true at a glance,
+      so they cannot be unpinned.
+    examples:
+      - cmd: cockpit shelf list
+        note: Print the catalogue and what is currently pinned
+      - cmd: cockpit shelf unpin coin
+        note: Take a row off the shelf
+      - cmd: cockpit shelf pin coin
+        note: Put it back, at the end
+    args:
+      - name: action
+        type: string
+        required: false
+      - name: row
         type: string
         required: false
 

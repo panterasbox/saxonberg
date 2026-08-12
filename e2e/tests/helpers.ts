@@ -131,6 +131,30 @@ export async function enterWorld(
 }
 
 /**
+ * Re-enter the world on an EXISTING page — after a `page.reload()`.
+ *
+ * A reload drops the client back to whatever the server says the
+ * session is, which for a with-character account is the roster: the
+ * WebSocket is new and nothing has sent `play <id>` yet. So a spec that
+ * reloads to prove something is server-authoritative has to walk the
+ * same resilient path `enterWorld` walks, and this is that path with
+ * the context-building half removed.
+ */
+export async function reenterWorld(page: Page): Promise<void> {
+  const roster = page.getByTestId('roster-screen');
+  const input = commandInput(page);
+  await expect(roster.or(input).first()).toBeVisible({ timeout: 25_000 });
+  await expect(async () => {
+    if (await input.isVisible().catch(() => false)) return;
+    const play = page.getByRole('button', { name: /^Play / }).first();
+    if (await play.isVisible().catch(() => false)) {
+      await play.click().catch(() => {});
+    }
+    await expect(input).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 25_000 });
+}
+
+/**
  * Convenience: mint a fresh with-character avatar and enter the world in
  * one call. Returns the page plus a `close()` that tears the context
  * down (call it in a `finally`).

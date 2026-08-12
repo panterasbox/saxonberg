@@ -29,6 +29,9 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { Sensor } from '../../lib/message/Sensor';
 import { AdvancementApi } from '../../api/advancement';
+import RenownStanding, {
+  COMPACT_WIDE,
+} from '../../lib/standing/RenownStanding';
 
 /**
  * ⚠ `dominantTrait` is deliberately NOT a figure. Your trait position
@@ -127,10 +130,19 @@ describe('Avatar standing figures — projection', () => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
     AdvancementApi._clearDerivedCacheForTesting();
+    RenownStanding._resetForTesting();
   });
 
   it('projects the sync figures as structured values, never strings', () => {
     const avatar = makeAvatar('tester');
+    // ⚠ Renown must be MEASURED for it to project at all — an
+    // unmaterialized scope is omitted, not zeroed (see the cold-cache
+    // test below). This one is about the SHAPE of a figure that
+    // resolved, so the standing is seeded first.
+    RenownStanding.cached().set(
+      RenownStanding.key('/obj/Avatar/tester', COMPACT_WIDE),
+      3
+    );
     const out = MqlSubscriptionApi.projectFields(
       avatar as unknown as Stuff,
       ['playStanding', 'makeStanding', 'renown'],
@@ -143,19 +155,57 @@ describe('Avatar standing figures — projection', () => {
         `${f} must be structured data, not a rendered string`
       ).toBe('object');
     }
+    // ⚠ The band rides the wire as a NAME, not a serialized `Band`
+    // value object — the shape `practisingCompetence` already used.
+    expect(typeof (out.playStanding as { band: unknown }).band).toBe(
+      'string'
+    );
+    expect(typeof (out.makeStanding as { band: unknown }).band).toBe(
+      'string'
+    );
   });
 
+  /*
+   * ⭐⭐ The file's own doctrine, applied to both folded figures.
+   *
+   * `renown` used to be the exception: `renownOf`'s `?? 0` returned the
+   * neutral zero for a scope that was never materialized, so a fresh
+   * character projected a confident `0` — a claim the server never
+   * made, and indistinguishable on the wire from a standing genuinely
+   * measured at zero. `measuredRenownOf` keeps the absence the cache
+   * already had, so both figures now answer the same way: absent.
+   */
   it('⭐ omits a folded figure while its cache is cold — absent, not zero', () => {
     const avatar = makeAvatar('tester');
     const out = MqlSubscriptionApi.projectFields(
       avatar as unknown as Stuff,
-      ['practisingCompetence'],
+      ['practisingCompetence', 'renown'],
       avatar as unknown as Stuff & Sensor
     );
     // `read` returned undefined -> projectFields skipped the key
     // entirely. The client renders nothing. If this ever becomes `0`
     // or `null`-by-default, the honesty convention has been broken.
     expect('practisingCompetence' in out).toBe(false);
+    expect('renown' in out).toBe(false);
+  });
+
+  /*
+   * ⭐ And the other half of the same distinction, which is what makes
+   * the absence mean something: a standing measured AT zero is a real
+   * figure and projects as one.
+   */
+  it('⭐ carries a measured zero — the absence above is not "falsy"', () => {
+    const avatar = makeAvatar('tester');
+    RenownStanding.cached().set(
+      RenownStanding.key('/obj/Avatar/tester', COMPACT_WIDE),
+      0
+    );
+    const out = MqlSubscriptionApi.projectFields(
+      avatar as unknown as Stuff,
+      ['renown'],
+      avatar as unknown as Stuff & Sensor
+    );
+    expect(out.renown).toEqual({ value: 0 });
   });
 
   it('always carries the stuffId, whatever else resolves', () => {

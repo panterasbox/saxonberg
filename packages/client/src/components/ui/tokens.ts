@@ -50,6 +50,13 @@ export const tokens = {
     surfaceMuted: SX.ground,
     surfaceSunken: SX.sunken,
     fg: SX.fg,
+    // ⭐ The three-level text hierarchy the chrome build needed:
+    // `fg` (what you are reading) → `fgDim` (present, secondary — a
+    // shelf label beside its value) → `fgMuted` (barely there — a hint,
+    // an at-rest placeholder). `fg-dim` was already a defined ground
+    // role in all three themes and already classified as a
+    // floor-clearing TEXT_ROLE; it simply had no alias here.
+    fgDim: SX["fg-dim"],
     fgMuted: SX["fg-mute"],
     fgEmphasis: SX.accent,
     accent: SX.good,
@@ -76,6 +83,19 @@ export const tokens = {
     accentWash: SX["accent-wash"],
     /** Foreground on a saturated field (buttons, the blue canton). */
     onField: SX.white,
+    /**
+     * ⭐ Old Glory Red as the **official colour**, distinct from the
+     * `bad` semantic role — reserved for the seal, the flag rule and
+     * the single committing action per screen. Every one of those
+     * carries white separation, which is what makes it usable at 2.66:1
+     * where `bad` as text would not be; `color.danger` resolves to
+     * `ember` for alerts and always will.
+     *
+     * ⚠ A background/border colour only. Never put text in this.
+     */
+    seal: SX.red,
+    /** The white that separates the seal from what it sits on. */
+    sealInk: SX.white,
     /** Drop shadow under a raised surface. */
     shadow: SX.shadow,
     /** Full-surface dim behind a modal or a disabled region. */

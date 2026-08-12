@@ -31,10 +31,15 @@ import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
-import type { StyleOverlay } from '@saxonberg/types';
+import {
+  SHELF_ROW_IDS,
+  DEFAULT_SHELF,
+  type StyleOverlay,
+} from '@saxonberg/types';
 
 const MODES_KEY = 'cockpit.inputModes';
 const STYLE_KEY = 'style.overlay';
+const SHELF_KEY = 'cockpit.shelf';
 
 type CockpitHost = Stuff & HasInteractive;
 
@@ -58,10 +63,25 @@ export default class CockpitController extends CommandController<CommandModel> {
       `  mode     ${mode}`,
       `  layout   ${host.getCockpitArrangement(mode)}`,
       `  scope    ${this.describeScopes(host)}`,
+      `  shelf    ${this.describeShelf(host)}`,
       `  style    ${this.describeStyle(host)}`,
       '',
     ];
     this.send(context, Mml.fromMarkup(Mml.escape(lines.join('\n'))));
+  }
+
+  /**
+   * How much of the shelf is pinned. A count rather than the row list:
+   * the bare report answers "how is my cockpit set up right now" at a
+   * glance, and `cockpit shelf list` is one keystroke away for the
+   * detail. The denominator is named so the count means something.
+   */
+  private describeShelf(host: CockpitHost): string {
+    const stored = host.getClientState<string[]>(SHELF_KEY);
+    const pinned = Array.isArray(stored)
+      ? stored.filter((r) => (SHELF_ROW_IDS as readonly string[]).includes(r))
+      : DEFAULT_SHELF;
+    return `${pinned.length} of ${SHELF_ROW_IDS.length} pinned`;
   }
 
   /**
