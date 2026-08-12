@@ -532,10 +532,15 @@ these has made a political decision by accident.
 - office structure — seats, terms, elections, the executive veto
 - free movement of goods, statutory right-of-way, full faith and credit
 - disenfranchisement by inactivity
-- ⚠ **the measurement vocabulary itself** — *proposed here, unresolved.*
-  Part 3 argues what the world counts should be amendable the way the law
-  is. It is currently Tier B by default, which is to say it sits in a
-  wizard's YAML file and nobody voted for it.
+- ✅ **the measurement vocabulary** — *resolved 2026-08-12, and the
+  resolution corrects Part 3.* The vocabulary is **descriptive, not
+  normative**, so it is layer 1 and not the polity's to set — but its
+  **resolution** (which distinctions it can draw) is political. The
+  polity's lever is a **petition, not an override**: engineering may add
+  distinctions freely, nobody may remove or redefine one, and a demand
+  for a new distinction becomes a public recorded work item. The
+  official-statistics model. See
+  [deed-tags-slate](./slates/builds/deed-tags-slate.md).
 
 ## What is **not** layer 3
 
@@ -579,9 +584,13 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
    not; A8–A16 were added and one entry re-tiered. The monotonic-clock
    question was **checked in code and resolved** — time is not monotonic,
    every consumer guards, and the guard became A16. Its residue is a
-   recommended lint, not a design question. **Tier C's last row** —
-   moving the measurement vocabulary from a wizard's YAML into the
-   governed layer — remains the single largest open decision here.
+   recommended lint, not a design question. ~~Tier C's last row.~~
+   **Resolved 2026-08-12** — the vocabulary is descriptive, so it stays
+   layer 1; the polity gets a **petition, not an override**
+   ([deed-tags-slate](./slates/builds/deed-tags-slate.md)). ⚠ That
+   resolution **corrects Part 3**, which filed the vocabulary as
+   value-laden-therefore-governable. The sharper form: each tag is
+   descriptive, while the *set of distinctions it can draw* is political.
 3. **How is "cheap exit" verified?** Part 8 makes it non-negotiable
    without saying how a build demonstrates it.
 4. **Does the reading rule survive contact with the client?** A cockpit

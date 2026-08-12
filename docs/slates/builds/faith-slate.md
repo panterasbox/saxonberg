@@ -295,13 +295,24 @@ attendance lands in `chronicles`.
 
 ## Open questions
 
-1. ⚠⚠ **The deed-tag vocabulary is the joint everything hangs on**, and
-   chronicle's `tags` is *"open vocabulary — inert in v1."* Precepts need
-   a **closed** vocabulary to point at. This is the same question as
-   [measurement.md](../../measurement.md)'s Tier C last row — *does the
-   measurement vocabulary belong in the governed layer?* — and it is
-   unresolved there too. **Nothing in this slate is buildable until it
-   is.**
+1. ✅ ~~The deed-tag vocabulary is the joint everything hangs on.~~
+   **Resolved 2026-08-12 — [deed-tags-slate](./deed-tags-slate.md).**
+   Closed, registered, dotted-path with family inheritance (so declaring
+   `harm` covers every child), additive-only, producer-declared. Three
+   consequences land directly on this slate:
+   - ⭐ **An unregistered tag matches no precept** — a new subsystem's
+     new tag can never retroactively make anyone a sinner.
+   - ⚠ **`since` must be honoured by the fall derivation.** A precept
+     naming a tag added last winter must not conclude everyone was
+     faithless before then. **This is the trap in building Part 1.**
+   - A precept naming an unknown tag **fails at seed validation**, so
+     dead precepts are impossible.
+
+   The four tags Part 1's worked precepts need — `aid.treat`,
+   `aid.attend-dying`, `harm.nonconsented`, `ritual.attend` — must be
+   minted by their producers first. `harm.nonconsented` is already
+   computable from `accountability_events`, which records consent on
+   every harm fact.
 2. **Bootstrapping a founded faith.** If a faith exists once it has a
    congregation and a place, how does the first adherent join something
    that does not yet exist? (Probable answer: a *seeking* state and a
