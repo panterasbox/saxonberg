@@ -83,13 +83,13 @@ describe('Terminal — per-frame font by register', () => {
   it('a say frame body resolves to the narrative serif', () => {
     const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const row = container.firstElementChild!.firstElementChild!;
-    expect(rulesFor(bodyOfRow(row))).toContain('Source Serif 4');
+    expect(rulesFor(bodyOfRow(row))).toContain('Newsreader');
   });
 
   it('a help frame body resolves to the command mono', () => {
     const { container } = renderTerminal([frame({ topic: 'shell.result' })]);
     const row = container.firstElementChild!.firstElementChild!;
-    expect(rulesFor(bodyOfRow(row))).toContain('Source Code Pro');
+    expect(rulesFor(bodyOfRow(row))).toContain('IBM Plex Mono');
   });
 
   it('<pre> stays monospace inside an otherwise-serif narrative frame', () => {
@@ -101,13 +101,13 @@ describe('Terminal — per-frame font by register', () => {
     ]);
     const row = container.firstElementChild!.firstElementChild!;
     // The frame body itself is serif (narrative register)...
-    expect(rulesFor(bodyOfRow(row))).toContain('Source Serif 4');
+    expect(rulesFor(bodyOfRow(row))).toContain('Newsreader');
     // ...but the <pre> element carries its own monospace rule, which
     // wins by element-level specificity over the inherited serif.
     const pre = container.querySelector('pre');
     expect(pre).not.toBeNull();
     expect(rulesFor(pre!)).toContain('monospace');
-    expect(rulesFor(pre!)).not.toContain('Source Serif 4');
+    expect(rulesFor(pre!)).not.toContain('Newsreader');
   });
 });
 

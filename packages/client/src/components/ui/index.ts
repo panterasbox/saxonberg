@@ -11,10 +11,29 @@
  * `<table>` / `<list>` / `<field>` tags onto, so the
  * subscription-driven and the message-rendered paths converge on
  * one DOM shape.
+ *
+ * ## The honesty convention
+ *
+ * `Figure` and `UnbuiltGround` are the primitives for
+ * `docs/design_handoff/CONVENTIONS.md` #1 — **never render a figure the
+ * server did not send**, including "just for now". Any widget showing a
+ * number reaches for `Figure` and names its state; the discriminated
+ * union means the compiler, not the reviewer, is what stops a hardcoded
+ * placeholder shipping. `UnbuiltGround` is for when the whole card is
+ * unbuilt rather than one value inside it.
+ *
+ * ⚠ Two carve-outs the convention states explicitly, and neither belongs
+ * to these components: **prose never hedges** (a room description
+ * carries no engineering stamp — if a thing cannot be described yet, it
+ * is not in the room yet), and **commands refuse honestly** in the
+ * machine voice rather than through a hatched widget.
  */
 
 export { Button } from "./Button";
 export { EntityName } from "./EntityName";
+export { Figure } from "./Figure";
+export type { FigureState, FigureProps } from "./Figure";
 export { List, ListItem } from "./List";
 export { tokens } from "./tokens";
 export type { Tokens } from "./tokens";
+export { UnbuiltGround } from "./UnbuiltGround";

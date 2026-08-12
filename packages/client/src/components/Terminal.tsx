@@ -26,13 +26,14 @@ import type { Frame } from '../store/index';
 import { parseMml } from '../lib/mml/parseMml';
 import { pickTemplate } from '../lib/templates/TemplateRegistry';
 import { useStylesheet } from '../lib/style/useStylesheet';
+import { tokens } from './ui';
 
 const TerminalContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
   font-size: 14px;
   /* The cross-register rhythm anchor — keep line-height HERE on the
      common ancestor, never per-register on Body, so a serif frame and
@@ -99,8 +100,12 @@ export function Terminal({
     }
   }, [frames]);
 
+  // `data-testid` so the e2e theme drive can read the transcript's
+  // RESOLVED colour. That assertion cannot live in the unit suite —
+  // jsdom leaves `var()` unsubstituted — and it is the only check that
+  // the transcript and the chrome resolved the same theme.
   return (
-    <TerminalContainer ref={containerRef}>
+    <TerminalContainer ref={containerRef} data-testid="terminal">
       {frames.map((frame) => (
         <FrameRow key={frame.id}>
           <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />

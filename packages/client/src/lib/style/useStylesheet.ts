@@ -7,22 +7,21 @@
  * Single source of truth: `clientState['style.overlay']`. The
  * stylesheet picks a theme by reading `overlay.theme` and composes
  * the cascade.
+ *
+ * ⚠ `pickTheme` is imported from `themes/index`, not defined here. The
+ * chrome's `useGround` resolves the same overlay value through the same
+ * function; two local copies could drift and leave the transcript on one
+ * ground inside chrome on another.
  */
 
 import { useMemo } from 'react';
 import { useStore } from '../../store';
 import { Stylesheet } from './Stylesheet';
-import { DEFAULT_THEME } from './themes/default';
-import { HIGH_CONTRAST_THEME } from './themes/highContrast';
+import { pickTheme } from './themes';
 import { NEUTRAL_BUCKET_RESOLVER } from './BucketResolver';
-import type { StyleOverlay, Theme } from './types';
+import type { StyleOverlay } from './types';
 
 const EMPTY_OVERLAY: StyleOverlay = {};
-
-function pickTheme(name: unknown): Theme {
-  if (name === 'high-contrast') return HIGH_CONTRAST_THEME;
-  return DEFAULT_THEME;
-}
 
 /**
  * Read the resolved stylesheet for the current player. The hook

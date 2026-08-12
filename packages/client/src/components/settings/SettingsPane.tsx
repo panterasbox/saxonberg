@@ -119,7 +119,7 @@ const TextInput = styled.input`
 
 const SubmitButton = styled.button`
   background: ${tokens.color.primary};
-  color: white;
+  color: ${tokens.color.onField};
   border: none;
   border-radius: ${tokens.radius.sm};
   padding: 0.15rem 0.6rem;

@@ -19,6 +19,7 @@ import React from 'react';
 import styled from 'styled-components';
 import type { Template } from './TemplateRegistry';
 import { findFirstTag, findFirstTagAny, renderTree } from './renderHelpers';
+import { tokens } from '../../components/ui';
 
 const ChatRow = styled.div`
   display: flex;
@@ -29,7 +30,7 @@ const ChatRow = styled.div`
 const Gutter = styled.div<{ $color?: string }>`
   flex: 0 0 auto;
   min-width: 5rem;
-  color: ${(p) => p.$color ?? '#c8b76a'};
+  color: ${(p) => p.$color ?? tokens.color.fgEmphasis};
   font-weight: 500;
 `;
 

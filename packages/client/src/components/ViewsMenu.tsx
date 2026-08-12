@@ -68,7 +68,7 @@ const Menu = styled.ul`
   background: ${tokens.color.surfaceSunken};
   border: 1px solid ${tokens.color.borderEmphasis};
   border-radius: ${tokens.radius.sm};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px ${tokens.color.shadow};
 `;
 
 const Item = styled.li<{ $active: boolean }>`

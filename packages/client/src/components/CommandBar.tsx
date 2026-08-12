@@ -219,7 +219,7 @@ const SendButton = styled.button<{ $promptMode: boolean }>`
   background: ${(p) =>
     p.$promptMode ? tokens.color.accent : tokens.color.primary};
   color: ${(p) =>
-    p.$promptMode ? tokens.color.surfaceSunken : 'white'};
+    p.$promptMode ? tokens.color.surfaceSunken : tokens.color.onField};
   border: none;
   cursor: pointer;
   font-family: ${tokens.font.mono};
@@ -318,7 +318,7 @@ const SlotDropdown = styled.ul`
   left: 0;
   margin-bottom: ${tokens.space.xs};
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px ${tokens.color.shadow};
 `;
 
 const SlotRow = styled.li<{ $active: boolean }>`
@@ -418,7 +418,7 @@ const Chip = styled.button<{ $primary?: boolean; $selected?: boolean }>`
 
 const ValidationMessage = styled.div`
   flex-basis: 100%;
-  color: #e06c75;
+  color: ${tokens.color.danger};
   font-size: ${tokens.font.small};
   padding: 0 ${tokens.space.sm};
 `;
