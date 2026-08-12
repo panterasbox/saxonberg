@@ -23,7 +23,7 @@ cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
 cockpit layout <name>         the pane arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
-cockpit shelf list|pin|unpin  which figures ride the top bar
+cockpit shelf list|pin|unpin|first  which figures ride the top bar
 cockpit style <sub> …         appearance
 cockpit pane pin|dismiss …    override what holds a pane open
 ```
@@ -44,11 +44,51 @@ a rewrite.
 cockpit shelf list            the whole catalogue, and what is pinned
 cockpit shelf pin <row>       add a figure, at the end
 cockpit shelf unpin <row>     take one off
+cockpit shelf first <row>     move it to the front
 ```
 
 Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
 `docket`. Persists to **`cockpit.shelf`**; the surface it drives is
 documented in [client-shell.md § The widget shelf](./client-shell.md).
+
+### ⭐ `first`, and the glance-line
+
+The shelf has always had an **order** and, until the phone chrome, no
+way to change it: `pin` appends, `unpin` removes, and what you ended up
+with was whatever pin-sequence you happened to type. That was survivable
+on a desktop bar that wraps. It is not survivable on a narrow one, where
+the bar shows only the **head** of the shelf — `shelf.slice(0, 3)`, the
+glance-line — and the rest lives behind a pull-down. So *choosing what
+rides a phone's bar* **is** *reordering the shelf*.
+
+The alternative was a second clientState key naming the bar rows
+explicitly, and it was rejected for the reason two parallel lists are
+always rejected here: an unpin that forgot the glance key, a glance row
+that is not on the shelf, and a `list` output that cannot say which is
+true. **One ordered list has one answer.** It is also a desktop
+improvement — shelf order had been unchangeable since the shelf shipped.
+
+⚠ `first` on an **unpinned** row pins it at the front, because *"put
+this on my bar"* is one intention and making a player type `pin` then
+`first` would be two commands for one thought. `first` on a row already
+at the head does not write at all — an identical array pushed back would
+re-save and re-broadcast for nothing.
+
+Naming: `first` over `promote`/`move`, because it names the resulting
+**state** rather than the operation, and it reads correctly in the
+machine voice — *coin moved to the front of the shelf*.
+
+⚠ It is a fourth **action** on the existing positional slots, not a new
+subcommand: `cockpit shelf` has already spent the one level of nesting
+the framework has. So the YAML gained help text and an example and
+nothing else, and the refusal that names the known actions had to grow
+to four — an action a refusal does not name is a vocabulary a player
+cannot discover.
+
+⚠ The count (three) is a **client** rendering decision, not a server
+constraint. The server does not know how wide a bar is; a shelf shorter
+than three simply shows what it has. See [client-shell.md § The mobile
+bar](./client-shell.md).
 
 ⭐ **The default pins only `play`, `renown`, `skill`** — the three that
 are actually wired. *Never default-pin a widget that does not do
