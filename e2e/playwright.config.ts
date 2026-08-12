@@ -16,6 +16,9 @@ const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 export default defineConfig({
   testDir: './tests',
   globalSetup: './global-setup.ts',
+  // Removes the characters this run minted, plus any e2e orphans left
+  // by a crashed run. See global-teardown.ts.
+  globalTeardown: './global-teardown.ts',
   timeout: 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: true,

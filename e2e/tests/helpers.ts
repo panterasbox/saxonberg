@@ -1,5 +1,7 @@
 import { request, expect } from '@playwright/test';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
+import { appendFileSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 /**
  * Shared E2E helpers.
@@ -24,6 +26,38 @@ const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
  * against a persistent local Mongo. */
 export function uniqueHandle(prefix: string): string {
   return `e2e-${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
+
+/**
+ * Where this run's minted handles are recorded, for `global-teardown`
+ * to purge. Gitignored (`.auth/`), truncated by `global-setup`.
+ */
+export const MINTED_HANDLES_LOG = resolve(
+  new URL('..', import.meta.url).pathname,
+  '.auth/minted-handles.log',
+);
+
+/**
+ * Record a minted handle so teardown can remove the character.
+ *
+ * ⚠ **Records only `e2e-` handles.** `openWorldAsFounder` mints the
+ * literal handle `founder`, which is a REAL founder by way of
+ * `FOUNDER_GOOGLE_EMAIL` — deleting it would break every
+ * authority-dependent spec. The purge script refuses it independently;
+ * this keeps it out of the log in the first place.
+ *
+ * ⚠ Appends one line per handle so parallel workers cannot interleave a
+ * partial write, and never throws — a harness bookkeeping failure must
+ * not fail a test.
+ */
+export function recordMintedHandle(handle: string): void {
+  if (!handle.startsWith('e2e-')) return;
+  try {
+    mkdirSync(dirname(MINTED_HANDLES_LOG), { recursive: true });
+    appendFileSync(MINTED_HANDLES_LOG, `${handle}\n`, 'utf8');
+  } catch {
+    // Cleanup is best-effort; the stale sweep catches what this misses.
+  }
 }
 
 /** The shape Playwright's `storageState()` returns. */
@@ -73,6 +107,7 @@ export async function mintSession(
       if (res.ok()) {
         const state = await ctx.storageState();
         await ctx.dispose();
+        recordMintedHandle(handle);
         return { state, handle };
       }
       lastErr = `status ${res.status()}`;

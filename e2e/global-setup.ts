@@ -1,5 +1,7 @@
 import { request } from '@playwright/test';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, rmSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { recordMintedHandle } from './tests/helpers';
 
 /**
  * Authenticate once via the test-auth seam and persist the session so
@@ -15,7 +17,30 @@ import { mkdirSync } from 'node:fs';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
 
+/**
+ * The shared default session's handle.
+ *
+ * ⚠ Minted HERE with a direct POST rather than through
+ * `mintSession`, so it does not record itself — which is exactly how it
+ * survived the first teardown while all four spec-minted characters
+ * were removed. It is recorded explicitly below; setup re-mints it
+ * every run, so removing it at teardown is correct.
+ */
+const DEFAULT_HANDLE = 'e2e-default';
+
 export default async function globalSetup(): Promise<void> {
+  // Start this run's minted-handle log clean. A leftover list from a
+  // crashed run would make teardown ask for handles already gone — the
+  // stale sweep is what actually collects those.
+  try {
+    rmSync(
+      resolve(new URL('.', import.meta.url).pathname, '.auth/minted-handles.log'),
+      { force: true },
+    );
+  } catch {
+    /* best effort */
+  }
+
   const ctx = await request.newContext({ baseURL: SERVER_URL });
 
   // Retry briefly: Playwright's webServer gates on the server's `/`
@@ -31,10 +56,13 @@ export default async function globalSetup(): Promise<void> {
         // default session lands in-world (the cockpit), not char-gen.
         // The char-gen spec logs in separately with a fresh handle and
         // no character, so it gets the 0-avatar → intake path.
-        data: { handle: 'e2e-default', withCharacter: true },
+        data: { handle: DEFAULT_HANDLE, withCharacter: true },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
-      if (res.ok()) break;
+      if (res.ok()) {
+        recordMintedHandle(DEFAULT_HANDLE);
+        break;
+      }
       lastErr = `status ${res.status()}`;
     } catch (e) {
       lastErr = e instanceof Error ? e.message : String(e);
