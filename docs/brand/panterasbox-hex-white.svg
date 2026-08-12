@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+    <path d="M50 50 L17.09 31 L50 12 L82.91 31 Z" fill="#FFFFFF" transform="translate(50 31) scale(0.895) translate(-50 -31)"></path>
+    <path d="M50 50 L82.91 31 L82.91 69 L50 88 Z" fill="#FFFFFF" transform="translate(66.46 59.5) scale(0.895) translate(-66.46 -59.5)"></path>
+    <path d="M50 50 L50 88 L17.09 69 L17.09 31 Z" fill="#FFFFFF" transform="translate(33.55 59.5) scale(0.895) translate(-33.55 -59.5)"></path>
+</svg>

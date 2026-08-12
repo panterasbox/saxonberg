@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <circle cx="50" cy="50" r="49" fill="#BF0A30"></circle>
+  <circle cx="50" cy="50" r="45.5" fill="none" stroke="#FFFFFF" stroke-width="2.1"></circle>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#FFFFFF" stroke-width="0.9" opacity="0.8"></circle>
+  <g transform="translate(50 50) scale(0.72) translate(-50 -50)">
+    <defs>
+      <clipPath id="sv">
+        <circle cx="24.348" cy="60.047" r="9.87"></circle>
+        <circle cx="59.152" cy="39.953" r="9.87"></circle>
+      </clipPath>
+    </defs>
+      <circle cx="50" cy="64.289" r="26" fill="none" stroke="#BF0A30" stroke-width="11.985"></circle>
+      <circle cx="50" cy="64.289" r="26" fill="none" stroke="#FFFFFF" stroke-width="4.7"></circle>
+      <circle cx="66.5" cy="35.711" r="26" fill="none" stroke="#BF0A30" stroke-width="11.985"></circle>
+      <circle cx="66.5" cy="35.711" r="26" fill="none" stroke="#FFFFFF" stroke-width="4.7"></circle>
+      <circle cx="33.5" cy="35.711" r="26" fill="none" stroke="#BF0A30" stroke-width="11.985"></circle>
+      <circle cx="33.5" cy="35.711" r="26" fill="none" stroke="#FFFFFF" stroke-width="4.7"></circle>
+      <circle cx="50" cy="64.289" r="26" fill="none" stroke="#BF0A30" stroke-width="11.985" clip-path="url(#sv)"></circle>
+      <circle cx="50" cy="64.289" r="26" fill="none" stroke="#FFFFFF" stroke-width="4.7" clip-path="url(#sv)"></circle>
+  </g>
+</svg>
