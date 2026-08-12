@@ -85,7 +85,7 @@ export const HATCH_COPY: Record<HatchReason, string> = {
     "not a figure about you — a world figure, which the self pane cannot carry",
 };
 
-interface ShelfRow {
+export interface ShelfRow {
   readonly id: ShelfRowId;
   readonly label: string;
   /** What the figure would mean — shown in the `＋ widget` menu. */
@@ -160,6 +160,42 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
   },
 ];
 
+/**
+ * How many shelf rows ride a narrow bar's glance-line.
+ *
+ * ⚠ **A CLIENT constant, and it has to be**: the server does not know
+ * how wide a bar is, so this is a rendering decision, not a shelf
+ * constraint. A shelf shorter than three simply shows what it has. It
+ * lives here — beside the catalogue — rather than in the mobile bar,
+ * because the shelf screen names the same number when it explains which
+ * rows fit, and two surfaces disagreeing about "three" would be a
+ * ridiculous bug to actually ship.
+ */
+export const GLANCE_ROWS = 3;
+
+/**
+ * The player's shelf: server-authoritative, with the shipped default
+ * standing in until the first `client-state-update` lands, filtered to
+ * known ids so a shelf saved before a row was retired cannot ask for a
+ * row that is gone.
+ *
+ * ⭐ **One reader, three surfaces.** The desktop shelf, the mobile
+ * glance-line and the pull-down all resolve `cockpit.shelf` through
+ * this, so "what is pinned, and in what order" has exactly one answer.
+ * Three copies of the filter is how a retired row survives in one place
+ * and not another.
+ */
+export function pinnedShelf(
+  clientState: Record<string, unknown>,
+): ShelfRowId[] {
+  const raw = clientState["cockpit.shelf"];
+  return Array.isArray(raw)
+    ? (raw as string[]).filter((r): r is ShelfRowId =>
+        (SHELF_ROW_IDS as readonly string[]).includes(r),
+      )
+    : [...DEFAULT_SHELF];
+}
+
 /** The command a pin / unpin affordance sends. ONE definition, so the */
 /** preview and the send cannot drift into two strings that agree today. */
 export function pinCommand(row: ShelfRowId): string {
@@ -168,9 +204,24 @@ export function pinCommand(row: ShelfRowId): string {
 export function unpinCommand(row: ShelfRowId): string {
   return `cockpit shelf unpin ${row}`;
 }
+/**
+ * ⭐ Move a row to the head of the shelf — and so onto the glance-line,
+ * since a phone's bar shows the head. `first` pins the row if it was
+ * not pinned, which is why the mobile shelf screen offers it on
+ * unpinned rows too.
+ */
+export function firstCommand(row: ShelfRowId): string {
+  return `cockpit shelf first ${row}`;
+}
 
 /**
  * Wire → honest state, one mapping per live row.
+ *
+ * ⚠ **Exported, because the mobile bar and the pull-down render the
+ * same rows.** Two copies of this switch is exactly the decay the
+ * category table prevents on the reason side: a live row added here and
+ * not there would show a number on one form factor and a hatch on the
+ * other, for the same field, at the same instant.
  *
  * ⭐ A `renown` of `0` is **live**, not empty. The server now
  * distinguishes "measured and found neutral" from "never materialized"
@@ -179,7 +230,7 @@ export function unpinCommand(row: ShelfRowId): string {
  * earlier cut rendered every zero as empty, which was choosing which
  * way to be wrong rather than fixing it.
  */
-function figureFor(
+export function figureFor(
   row: ShelfRow,
   figures: SelfFigureRecord | null,
 ): FigureState {
@@ -401,15 +452,7 @@ export const Shelf: React.FC<ShelfProps> = ({
     };
   }, []);
 
-  // Server-authoritative, with the shipped default standing in until the
-  // first `client-state-update` lands. Filtered to known ids so a shelf
-  // saved before a row was retired cannot ask for a row that is gone.
-  const pinnedRaw = clientState["cockpit.shelf"];
-  const pinned: ShelfRowId[] = Array.isArray(pinnedRaw)
-    ? (pinnedRaw as string[]).filter((r): r is ShelfRowId =>
-        (SHELF_ROW_IDS as readonly string[]).includes(r),
-      )
-    : [...DEFAULT_SHELF];
+  const pinned = pinnedShelf(clientState);
 
   const byId = new Map(SHELF_CATALOGUE.map((r) => [r.id, r]));
   const rows = pinned

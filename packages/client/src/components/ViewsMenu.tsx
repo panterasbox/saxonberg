@@ -56,25 +56,53 @@ const MenuButton = styled.button<{ $open: boolean }>`
   }
 `;
 
-const Menu = styled.ul`
+/**
+ * ⚠ `$inline` drops the absolute positioning and the fixed min-width.
+ * A 180px popover anchored inside an already-popped account menu near
+ * the right edge of a 320px screen overflows the viewport and scrolls
+ * the whole page sideways — which is the exact failure the `＋ widget`
+ * menu shipped with, found by driving and invisible to jsdom. Inline,
+ * the list is in flow and can only be as wide as its host.
+ */
+const Menu = styled.ul<{ $inline?: boolean }>`
   list-style: none;
   margin: 0;
   padding: 0;
-  position: absolute;
+  position: ${(p) => (p.$inline ? "static" : "absolute")};
   top: 100%;
   left: 0.5rem;
   z-index: 20;
-  min-width: 180px;
-  background: ${tokens.color.surfaceSunken};
-  border: 1px solid ${tokens.color.borderEmphasis};
+  min-width: ${(p) => (p.$inline ? "0" : "180px")};
+  max-width: 100%;
+  background: ${(p) =>
+    p.$inline ? "transparent" : tokens.color.surfaceSunken};
+  border: ${(p) =>
+    p.$inline ? "none" : `1px solid ${tokens.color.borderEmphasis}`};
   border-radius: ${tokens.radius.sm};
-  box-shadow: 0 2px 8px ${tokens.color.shadow};
+  box-shadow: ${(p) => (p.$inline ? "none" : `0 2px 8px ${tokens.color.shadow}`)};
+`;
+
+const InlineWrap = styled.div`
+  position: relative;
+  display: block;
+`;
+
+const InlineHeading = styled.div`
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: ${tokens.color.fgMuted};
+  padding: ${tokens.space.xs} ${tokens.space.sm} 0;
 `;
 
 const Item = styled.li<{ $active: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Wraps rather than overflows when the host is a phone-width menu. */
+  flex-wrap: wrap;
+  gap: 0 ${tokens.space.sm};
   padding: 0.35rem 0.7rem;
   cursor: pointer;
   color: ${(p) => (p.$active ? tokens.color.accent : tokens.color.fg)};
@@ -114,14 +142,61 @@ interface ViewsMenuProps {
   onCommandClick: (command: string) => void;
   /** Hover-preview a command in the ghost line (`null` = stop). */
   onCommandPreview: (command: string | null) => void;
+  /**
+   * Render the list expanded in flow, with no trigger of its own —
+   * for the mobile account dropdown, which is already an open menu.
+   *
+   * ⭐ A variant rather than a second component: the items, the labels
+   * and above all the **command string** are built in exactly one
+   * place, so the two form factors cannot drift into sending different
+   * commands for the same menu entry. That is the same reason
+   * `pinCommand` is a function and not two literals.
+   */
+  inline?: boolean;
 }
 
 export function ViewsMenu({
   current,
   onCommandClick,
   onCommandPreview,
+  inline = false,
 }: ViewsMenuProps): JSX.Element {
   const [open, setOpen] = useState(false);
+  const expanded = inline || open;
+
+  const items = (
+    <Menu data-testid="views-menu" $inline={inline}>
+      {LAYOUT_NAMES.map((name) => {
+        const { mode, arrangement } = LEGACY_LAYOUT_MIGRATION[name];
+        const cmd = `cockpit mode ${mode} ${arrangement}`;
+        return (
+          <Item
+            key={name}
+            data-testid={`views-item-${name}`}
+            $active={name === current}
+            onMouseEnter={() => onCommandPreview(cmd)}
+            onMouseLeave={() => onCommandPreview(null)}
+            onClick={() => {
+              onCommandClick(cmd);
+              setOpen(false);
+            }}
+          >
+            <span>{labelFor(name)}</span>
+            <ItemVerb>{cmd}</ItemVerb>
+          </Item>
+        );
+      })}
+    </Menu>
+  );
+
+  if (inline) {
+    return (
+      <InlineWrap>
+        <InlineHeading>Views</InlineHeading>
+        {items}
+      </InlineWrap>
+    );
+  }
 
   return (
     <Wrap
@@ -137,30 +212,7 @@ export function ViewsMenu({
         <span>Views</span>
         <span>{open ? "▴" : "▾"}</span>
       </MenuButton>
-      {open ? (
-        <Menu data-testid="views-menu">
-          {LAYOUT_NAMES.map((name) => {
-            const { mode, arrangement } = LEGACY_LAYOUT_MIGRATION[name];
-            const cmd = `cockpit mode ${mode} ${arrangement}`;
-            return (
-              <Item
-                key={name}
-                data-testid={`views-item-${name}`}
-                $active={name === current}
-                onMouseEnter={() => onCommandPreview(cmd)}
-                onMouseLeave={() => onCommandPreview(null)}
-                onClick={() => {
-                  onCommandClick(cmd);
-                  setOpen(false);
-                }}
-              >
-                <span>{labelFor(name)}</span>
-                <ItemVerb>{cmd}</ItemVerb>
-              </Item>
-            );
-          })}
-        </Menu>
-      ) : null}
+      {expanded ? items : null}
     </Wrap>
   );
 }

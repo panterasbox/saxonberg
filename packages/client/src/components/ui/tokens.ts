@@ -198,6 +198,25 @@ export const tokens = {
     focal: 62,
     focalComplement: 38,
   },
+  /**
+   * Viewport thresholds. ⭐ **One named constant, so the chrome cannot
+   * drift into disagreeing with itself about what "narrow" means.**
+   *
+   * `compact` sits above phone landscape and below tablet portrait: the
+   * width at which the top bar stops being a bar that can wrap and
+   * starts being two rows plus a pull-down, because *a bar that wraps
+   * has nowhere to wrap to* when every row it takes is a row the feed
+   * loses.
+   *
+   * ⚠ It deliberately does NOT match `CharGenStage`'s ad-hoc 640/520.
+   * Those are a different question — intake layout, whose mobile art is
+   * its own wave — and retuning them here would be building half of
+   * that wave blind. A sweep can unify later; an accidental match now
+   * would make two unrelated decisions look like one.
+   */
+  breakpoint: {
+    compact: "760px",
+  },
 } as const;
 
 export type Tokens = typeof tokens;

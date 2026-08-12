@@ -11,6 +11,15 @@
  * Logged-out is the start screen's job, not this menu — the menu only
  * appears in-world. Portrait + the guest marker come from the server
  * (`auth.player`), never a client-side guess.
+ *
+ * ⚠ **`extras` is where the mobile bar puts Views and Settings.** On a
+ * phone neither earns a permanent slot in a two-row bar when the
+ * identity chip is already a dropdown holding account actions — but
+ * dropping them would regress two shipped surfaces, so they move rather
+ * than go. Presentational only: same components, same commands,
+ * different home. The slot is a `ReactNode` rather than a `mobile`
+ * boolean because this component should not know what a viewport is;
+ * whoever composes the bar does.
  */
 
 import React, { useEffect, useRef, useState } from "react";
@@ -56,6 +65,15 @@ const Menu = styled.div`
   right: 0;
   top: calc(100% + ${tokens.space.xs});
   min-width: 160px;
+  /*
+   * ⚠ Bounded, because the extras slot can make this menu carry the
+   * whole Views list on a phone. Right-anchored content that grows past
+   * the LEFT edge of a 320px viewport scrolls the page sideways just as
+   * surely as content that grows past the right — the add-widget menu's
+   * failure in the other direction.
+   */
+  max-width: min(280px, calc(100vw - ${tokens.space.xl}));
+  overflow-x: hidden;
   background: ${tokens.color.surfaceAlt};
   border: 1px solid ${tokens.color.border};
   border-radius: ${tokens.radius.md};
@@ -81,7 +99,21 @@ const Item = styled.button`
   }
 `;
 
-export const AccountMenu: React.FC = () => {
+const Divider = styled.div`
+  height: 1px;
+  background: ${tokens.color.borderMuted};
+  margin: ${tokens.space.xs} 0;
+`;
+
+interface AccountMenuProps {
+  /**
+   * Extra menu content, rendered above the account actions and
+   * separated from them. The mobile bar passes Views + Settings here.
+   */
+  extras?: React.ReactNode;
+}
+
+export const AccountMenu: React.FC<AccountMenuProps> = ({ extras }) => {
   const player = useStore((s) => s.auth.player);
   const displayName = useStore((s) => s.auth.user?.displayName);
   const isWizard = useStore((s) => s.auth.isWizard === true);
@@ -155,6 +187,12 @@ export const AccountMenu: React.FC = () => {
       </Trigger>
       {open && (
         <Menu role="menu">
+          {extras ? (
+            <>
+              {extras}
+              <Divider aria-hidden="true" />
+            </>
+          ) : null}
           {isGuest ? (
             <Item role="menuitem" onClick={signIn}>
               Sign in to save

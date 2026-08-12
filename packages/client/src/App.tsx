@@ -20,6 +20,7 @@ import { registerForumHandlers } from "./store/forumActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Frame } from "./components/frame/Frame";
+import { MobileFrame } from "./components/frame/MobileFrame";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
 import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
 import { StartScreen } from "./components/StartScreen";
@@ -29,6 +30,7 @@ import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPane } from "./components/settings/SettingsPane";
 import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { useGround } from "./lib/style/useGround";
+import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
 import type {
   ConsoleTab,
@@ -244,6 +246,20 @@ function App() {
   // change. The chrome resolves its theme through the same `pickTheme`
   // as the transcript's `useStylesheet` — see `lib/style/useGround`.
   useGround();
+
+  /*
+   * ⚠ Above the phase switch for the same reason `useGround` is: the
+   * switch early-returns per phase, and a hook called inside one branch
+   * would break the rules-of-hooks contract the moment the phase moved.
+   *
+   * ⭐ It gates the IN-WORLD chrome only. Char-gen keeps its own
+   * `StatusBar` and its own layout untouched — mobile intake is its own
+   * wave with its own art, and reflowing it here would be building half
+   * of that wave blind. So "no status bar below the breakpoint" is a
+   * claim about the in-world phase, which is where the command sheet
+   * exists to replace what hover used to do.
+   */
+  const isCompact = useIsCompact();
 
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
@@ -615,18 +631,36 @@ function App() {
       ).Component;
       return (
         <AppContainer>
-          {/* Always-on chrome (the matte): one bar — bus-health + identity
-              + the Views layout switcher + settings, same place every
-              layout — then the reconnect banner. */}
-          <Frame
-            layout={layout}
-            onCommandClick={handleCommandClick}
-            onCommandPreview={handleCommandPreview}
-            settingsActive={summonedPane === "settings"}
-            onToggleSettings={() =>
-              summonedPane === "settings" ? closePane() : openPane("settings")
-            }
-          />
+          {/* Always-on chrome (the matte): bus-health + identity + the
+              Views layout switcher + settings, same place every layout —
+              then the reconnect banner.
+
+              ⭐ A JS switch, not a media query hiding one of two: the
+              mobile bar is a different COMPOSITION (two rows, a
+              pull-down, no status bar), and rendering both would put
+              two `StatusBar`s in the tree and make "exactly one renders
+              above the breakpoint" unassertable. */}
+          {isCompact ? (
+            <MobileFrame
+              layout={layout}
+              onCommandClick={handleCommandClick}
+              onCommandPreview={handleCommandPreview}
+              settingsActive={summonedPane === "settings"}
+              onToggleSettings={() =>
+                summonedPane === "settings" ? closePane() : openPane("settings")
+              }
+            />
+          ) : (
+            <Frame
+              layout={layout}
+              onCommandClick={handleCommandClick}
+              onCommandPreview={handleCommandPreview}
+              settingsActive={summonedPane === "settings"}
+              onToggleSettings={() =>
+                summonedPane === "settings" ? closePane() : openPane("settings")
+              }
+            />
+          )}
           <ReconnectBanner />
           {/* The active layout fills the fluid content area; a summoned
               pane (settings) docks beside it — non-modal, terminal stays. */}
@@ -649,8 +683,14 @@ function App() {
           )}
           {/* The status bar — the one preview surface. Affordance
               previews + post-action flash, browser-style along the
-              bottom of the window. */}
-          <StatusBar />
+              bottom of the window.
+
+              ⚠ Absent below the breakpoint, and not merely hidden: a
+              phone has no hover, so it would have nothing to report,
+              and it would cost a row the feed needs. What replaces it
+              is the command sheet — the tap that names its command
+              before it sends. */}
+          {isCompact ? null : <StatusBar />}
         </AppContainer>
       );
     }
