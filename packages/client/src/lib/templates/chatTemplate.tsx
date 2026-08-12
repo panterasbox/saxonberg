@@ -1,5 +1,5 @@
 /**
- * chatTemplate — `world.chat.*` frames. Two-column layout:
+ * chatTemplate — `speech.channel` frames. Two-column layout:
  *
  *   ┌────────────┬────────────────────────────────────┐
  *   │ [Gossip]   │ Bobalu: some very long message     │
@@ -19,6 +19,7 @@ import React from 'react';
 import styled from 'styled-components';
 import type { Template } from './TemplateRegistry';
 import { findFirstTag, findFirstTagAny, renderTree } from './renderHelpers';
+import { tokens } from '../../components/ui';
 
 const ChatRow = styled.div`
   display: flex;
@@ -29,7 +30,7 @@ const ChatRow = styled.div`
 const Gutter = styled.div<{ $color?: string }>`
   flex: 0 0 auto;
   min-width: 5rem;
-  color: ${(p) => p.$color ?? '#c8b76a'};
+  color: ${(p) => p.$color ?? tokens.color.fgEmphasis};
   font-weight: 500;
 `;
 
@@ -46,7 +47,7 @@ const Sender = styled.span`
 
 export const chatTemplate: Template = (ctx) => {
   const chan = findFirstTag(ctx.tree, 'chan');
-  const sender = findFirstTagAny(ctx.tree, ['player', 'name', 'npc']);
+  const sender = findFirstTagAny(ctx.tree, ['player', 'npc', 'thing']);
   const msg = findFirstTag(ctx.tree, 'msg');
 
   // Channel chip color: overlay channel color trumps theme default;

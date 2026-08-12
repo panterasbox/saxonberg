@@ -12,6 +12,7 @@
  * never lands).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import PourController from "../PourController";
 import StrainController from "../StrainController";

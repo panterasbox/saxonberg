@@ -10,6 +10,7 @@
  * harness).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RenownEvent from '../RenownEvent';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';

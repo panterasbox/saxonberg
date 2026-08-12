@@ -68,14 +68,14 @@ interface WikiModel extends CommandModel {
 }
 
 /** The scene topic every `wiki` readout rides. */
-const TOPIC = 'system.shell.wiki';
+const TOPIC = 'shell.result';
 
 /**
  * The structured side-channel the wiki pane reads. A `world.` topic
- * rather than `system.shell.` because it is world content, and because
+ * rather than `shell.result.` because it is world content, and because
  * a player who filters the shell family should still get the pane.
  */
-const PAGE_TOPIC = 'world.wiki.page';
+const PAGE_TOPIC = 'publication.wiki';
 
 export default class WikiController extends CommandController<WikiModel> {
   async execute(model: WikiModel, context: CommandContext): Promise<void> {

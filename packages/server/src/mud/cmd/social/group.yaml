@@ -61,8 +61,7 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
   remove:
     description: "Remove a player from a group"

@@ -6,6 +6,7 @@
  * base-class contract that's modality-agnostic.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Modality } from '../Modality';
 import type { ModalityFamily } from '../Modality';

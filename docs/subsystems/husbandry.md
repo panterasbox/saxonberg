@@ -26,8 +26,8 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 |---|---|---|
 | **Pot** | `/obj/PlantPot` | a `Slotted` fixture with one `plant` slot **and** a bulk interior holding soil. **Its soil volume is the root ceiling.** Two sizes ship. |
 | **Soil** | `/obj/material/bulk/potting-soil` | a bulk `Material`. A sack of it is an ordinary bulk holder; you `pour` it into the pot. |
-| **Seed** | `/obj/Seed` | a discrete `Thing` naming the plant template it grows into. Bought, or set by a flowering plant. Consumed on planting. |
-| **Plant** | `/obj/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** |
+| **Seed** | `/obj/Seed` | a discrete `Thing` composing `PlantableMixin`, which names the plant template it grows into. Bought, or set by a flowering plant. Consumed on planting. **The capability is the mixin** — a cutting or a tuber is plantable without inheriting `Seed`. |
+| **Plant** | `/obj/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** ⚠ The class is a *composition*, not a gate: `harvest` and `repot` narrow on `MixinApi.isGrowing`, never `instanceof Plant`, and the harvest + rooting surface (`harvestTemplatePath`, `nutrientDraw`, `isHarvestable`, `getBed`, `transplantDifficulty`) lives on the mixin for that reason. |
 
 **A pot is the density dial at N = 1, not a special case.** The farming
 slate specifies the boutique density as *"a garden bed is a `Slotted`
@@ -507,7 +507,7 @@ world** at the moment of the act — never tagged on the verb:
 |---|---|---|
 | `plant` | `trivial` | pressing a seed into soil is the entry act |
 | `water` | `trivial` → `hard` | `Plant.careDifficulty()` — the condition band, so a top-up is trivial and a rescue is hard |
-| `repot` | `trivial` → `hard` | `Plant.transplantDifficulty()` — the growth stage, since root disturbance scales with what there is to disturb |
+| `repot` | `trivial` → `hard` | `Growing.transplantDifficulty()` — the growth stage, since root disturbance scales with what there is to disturb |
 
 Two properties make this a practice rather than an odometer:
 

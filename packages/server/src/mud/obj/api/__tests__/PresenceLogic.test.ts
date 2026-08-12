@@ -5,6 +5,7 @@
  * session's `lastInputAt`. Pure derive-on-read; substrate stubbed.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { SocialApi } from '../../../api/social';
 import { MixinApi } from '../../../api/mixin';

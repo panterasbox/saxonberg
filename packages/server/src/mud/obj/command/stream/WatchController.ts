@@ -3,7 +3,7 @@
  *
  * `watch <target>` resolves the *embed* shape and writes it to the
  * server-authoritative per-viewer `cockpit.watch` clientState (transient,
- * the `cockpit.inputModes` / ModeController precedent: `setClientState` →
+ * the `cockpit.inputModes` / CliController precedent: `setClientState` →
  * `pushClientStateUpdate`, no `save()`), then the client mirrors it and
  * renders the platform's public-player iframe. `watch off` clears it. Most
  * forms resolve with no external call (Twitch handle, YouTube URL / videoId
@@ -227,7 +227,7 @@ export default class WatchController extends CommandController<WatchModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.chat')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

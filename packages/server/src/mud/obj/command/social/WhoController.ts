@@ -23,7 +23,7 @@ import { SocialApi, type RosterRow } from '../../../api/social';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
 /** Identity-family self/social readout — reuse, don't invent a topic. */
-const TOPIC = 'world.identity';
+const TOPIC = 'act.deed';
 
 /** Above this many rows, unrecognized strangers collapse to a count. */
 const COLLAPSE_ABOVE = 40;

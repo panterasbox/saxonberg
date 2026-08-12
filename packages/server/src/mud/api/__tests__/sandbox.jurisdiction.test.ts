@@ -17,6 +17,7 @@
  * of) and — the half that matters for containment — the ways out.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';

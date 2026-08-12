@@ -19,7 +19,7 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { ThermalApi } from '../../../api/thermal';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const HEAT_MS = 4000;
 
 interface HeatModel extends CommandModel {
@@ -55,8 +55,8 @@ export default class HeatController extends ManualBuildController<HeatModel> {
     const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(HEAT_MS, target, ["pot"]),
-      beginSelf: Mml.compose`You bring ${Mml.item(target)} to the fire and let it take the heat.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} brings ${Mml.item(target)} to the fire.`,
+      beginSelf: Mml.compose`You bring ${Mml.thing(target)} to the fire and let it take the heat.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} brings ${Mml.thing(target)} to the fire.`,
       onComplete: () => {
         // Re-read at completion — the fire may have died mid-step; you
         // latch the heat you actually finished at.
@@ -65,8 +65,8 @@ export default class HeatController extends ManualBuildController<HeatModel> {
         build.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`${Mml.item(target)} takes the heat, glowing with it.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} works ${Mml.item(target)} in the heat.`)
+          .toSelf(Mml.compose`${Mml.thing(target)} takes the heat, glowing with it.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} works ${Mml.thing(target)} in the heat.`)
           .send();
       },
     });

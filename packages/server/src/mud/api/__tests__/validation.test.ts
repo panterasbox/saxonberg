@@ -3,6 +3,7 @@
  * dynamic-import wiring, and end-to-end boot preload.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'url';
 import { dirname, resolve as resolvePath } from 'path';
@@ -23,7 +24,7 @@ const MUD_ROOT = resolvePath(__dirname, '../..');
 describe('CommandApi.resolveValidator', () => {
   it('resolves an absolute /-rooted spec against src/mud/', async () => {
     const fn = await CommandApi.resolveValidator(
-      '/lib/command/validators/mustBeVisible',
+      '/lib/command/validators/mustBeInLocation',
       // YAML path is irrelevant for absolute specs.
       resolvePath(MUD_ROOT, 'cmd/look.yaml')
     );
@@ -38,7 +39,7 @@ describe('CommandApi.resolveValidator', () => {
       'lib/command/__tests__/synthetic.yaml'
     );
     const fn = await CommandApi.resolveValidator(
-      '../validators/mustBeVisible',
+      '../validators/mustBeInLocation',
       yamlPath
     );
     expect(typeof fn).toBe('function');
@@ -47,7 +48,7 @@ describe('CommandApi.resolveValidator', () => {
   it('rejects bare names', async () => {
     await expect(
       CommandApi.resolveValidator(
-        'mustBeVisible',
+        'mustBeInLocation',
         resolvePath(MUD_ROOT, 'cmd/x.yaml')
       )
     ).rejects.toThrow(/must start with '\/' .* or '\.\/'/);
@@ -80,10 +81,18 @@ describe('CommandApi.preloadAll', () => {
     expect(result.loaded).toBeGreaterThan(0);
 
     // get.yaml's `targets` arg should now have resolved validators.
+    // ⭐ TWO, from two sources: the slot's `requires:` declaration is
+    // synthesised into a validator and PREPENDED, then its one authored
+    // `validators:` entry follows. A count that only matched the
+    // authored list would pass while the declaration did nothing.
     const get = CommandApi.getCommand('inventory/get.yaml');
     const arg = get?.args[0];
+    expect(arg?.requires).toEqual(['VisibleMixin', 'ContainableMixin']);
+    expect(arg?.validators).toEqual([
+      '/lib/command/validators/mustBeInLocation',
+    ]);
     expect(arg?._resolvedValidators).toBeDefined();
-    expect(arg?._resolvedValidators?.length).toBe(3);
+    expect(arg?._resolvedValidators?.length).toBe(2);
     expect(typeof arg?._resolvedValidators?.[0]).toBe('function');
   });
 });

@@ -6,6 +6,7 @@
  * postmortem-progression seam. NOTHING watches a vital and transitions.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { Quantity } from '../../quantity';

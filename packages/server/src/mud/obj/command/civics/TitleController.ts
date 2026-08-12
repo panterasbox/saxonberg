@@ -69,7 +69,7 @@ import PlatBook from '../../PlatBook';
 import type LotHolder from '../../LotHolder';
 import { Currency } from "../../../lib/banking/Currency";
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** Where land business is transacted — the city's records counter. */
 const REGISTRY_ROOM = '/domain/terminus/registry/office';
@@ -319,7 +319,7 @@ export default class TitleController extends CommandController<TitleModel> {
           ? Mml.compose`The registrar writes the row, blots it, and turns the book around for you to see. ${leaf} in ${where} is yours.`
           : Mml.compose`The registrar writes the row and turns the book around. ${leaf} in ${where} is yours again.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} buys a lot in ${where}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} buys a lot in ${where}.`)
       .send();
   }
 

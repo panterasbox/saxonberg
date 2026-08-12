@@ -18,10 +18,12 @@ interface MeasureShadowModel extends CommandModel {
   detail?: string;
 }
 
-const TOPIC = 'world.perception.measurement.measure-shadow';
+const TOPIC = 'sense.reading';
 
 export default class MeasureShadowController extends CommandController<MeasureShadowModel> {
   async execute(_model: MeasureShadowModel, ctx: CommandContext): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
       ? (giver as Stuff & Container).getContents()
@@ -62,7 +64,7 @@ export default class MeasureShadowController extends CommandController<MeasureSh
       ? Mml.compose`Your sundial's shadow marks the sun.`
       : Mml.compose`The sun is below the horizon; the sundial casts no shadow.`;
     const body = Mml.compose`${lead}
-sun elevation: ${altitude.formatMml()} · azimuth: ${azimuth.formatMml()}
+sun elevation: ${altitude.formatMml(undefined, undefined, { channel: 'celestial', via })} · azimuth: ${azimuth.formatMml(undefined, undefined, { channel: 'celestial', via })}
 `;
 
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();

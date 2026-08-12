@@ -8,6 +8,7 @@
  * mirroring the Document-test mocking style.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BeliefStoreApi } from '../../../api/belief';
 import {

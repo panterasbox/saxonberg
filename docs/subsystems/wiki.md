@@ -5,9 +5,10 @@ component/snippet contract, the permission anchoring, and the markup
 additions. Read this before editing under `lib/wiki/`, `obj/Wiki*`, or
 `cmd/system/wiki.yaml`.
 
-Design lineage: [wiki-requirements.md](../requirements/wiki-requirements.md)
-(the complete design) and [wiki-plan.md](../plans/wiki-plan.md) (the
-build carve). This doc supersedes both for *what shipped*.
+Design lineage: the wiki requirements + plan docs (the complete design
+and the build carve) were **retired at the pre-merge sweep** — this doc
+superseded both. The open design surface that outlived them is
+[wiki-slate.md](../slates/tails/wiki-slate.md).
 
 ---
 
@@ -42,7 +43,7 @@ time and cannot go stale.
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
 | Verb | `cmd/system/wiki.yaml` + `obj/command/system/WikiController.ts` |
 | Starter articles | `config/wiki-pages.yaml` + `backend/WikiSeeder.ts` |
-| Client pane | `client/components/WikiPane.tsx`, fed by `world.wiki.page` |
+| Client pane | `client/components/WikiPane.tsx`, fed by `publication.wiki` |
 
 **No `*Api` was added**, by constraint. `obj/<Name>Registry.ts` is the
 shipped shape for a gated, state-owning singleton with no Api face
@@ -135,6 +136,48 @@ two different numbers:
 Conflating them leaks. `level > ceiling` deletes; `ceiling >= level >
 appetite` keeps and wraps. **Every test asserts on the emitted string** —
 a tree can carry the right levels and still serialise the wrong bytes.
+
+### ⚠⚠ What reveal does NOT answer — appetite is not epistemics
+
+Both axes above are about **the reader at the keyboard**, not the
+character in the world:
+
+| | question | resolved by |
+|---|---|---|
+| **appetite** ✅ built | *does this reader want to be spoiled?* | a preference, and one click |
+| **capability** ✅ built | *is this reader allowed to see it?* | identity / authoring authority |
+| ⚠ **epistemics** ✗ **no substrate** | *does this **character** know this?* | nothing today |
+
+⭐ **A collapse toggle is not a lock, and a lock is not knowledge.**
+Nothing here models what a character has *learned* — there is no
+per-viewer knowledge state over world facts, no way to earn a
+measurement, and no way to be **wrong** about one. `spoiler: 1` on a
+material's density means *"a reader may prefer to click for this,"* not
+*"this character has never measured oak."*
+
+⚠ This is the specific mistake to avoid: reading the level tables — the
+one above, or *What else is level 1* further down — and concluding that
+some surface which prints a level-1 value is **leaking withheld data**.
+It is not. Level 1 is *collapsed by default, never forbidden*, and
+reclassifying density and hardness to it was only coherent **because** of
+the ordinary-player rung above. A surface that prints one is at most
+failing to offer the collapse.
+
+**The contract itself lives on the field, not here** —
+`FieldMetaEntry.spoiler` in `lib/mixin.ts`, declared there precisely so
+the level travels *"wherever it surfaces — a wiki panel, the Studio,
+help, a future codex."* Read that docstring before reasoning about
+levels; this doc describes the wiki's *use* of the model, not its
+definition. A surface that drops the level on the wire (as
+[char-gen](./char-gen.md)'s `SpeciesDossier` does) has a **wire-type**
+bug, not a content one.
+
+The epistemic half is the deferred
+[identification-slate](../slates/tails/identification-slate.md) —
+`analyze X with Y`, real Material chemistry, partial identification,
+misidentification: knowledge as something **earned per viewer** rather
+than revealed by preference. The two are complements and should both
+exist; what must not happen is one being mistaken for the other.
 
 ### The MAXIMUM rule
 
@@ -543,7 +586,7 @@ Two properties worth keeping:
   Refusing somebody who has just written an article is technically
   identical and humanly very different.
 
-`mayEdit` rides the `world.wiki.page` frame, so the pane simply does
+`mayEdit` rides the `publication.wiki` frame, so the pane simply does
 not draw an Edit button for a guest.
 
 **A review queue is deliberately absent.** Open editing plus fast
@@ -686,7 +729,7 @@ or a `# comment` in a shell sample acquires an anchor.
 ## The client — one pane, everything a command
 
 `wiki <page>` sends the article's prose to the scroll on
-`system.shell.wiki` **and** a structured twin on `world.wiki.page`.
+`shell.result.wiki` **and** a structured twin on `publication.wiki`.
 `WikiPane` reads the twin: title, handle/rev/author, the outline, the
 body, the subject binding, tags and see-alsos.
 

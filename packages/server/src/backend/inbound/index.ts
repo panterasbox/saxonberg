@@ -44,6 +44,7 @@ import {
 import { handlePromptResponse, handlePromptCancel } from './prompt';
 import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
+import { handleAffordanceResolve } from './affordance';
 import {
   handleForumSubscribe,
   handleForumUnsubscribe,
@@ -61,4 +62,5 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   'prompt-cancel': handlePromptCancel,
   'client-state-write': handleClientStateWrite,
   'reaction-expand': handleReactionExpand,
+  'affordance-resolve': handleAffordanceResolve,
 };

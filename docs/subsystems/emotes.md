@@ -201,7 +201,7 @@ emote(emote: Emote, opts?: EmoteOptions): void {
   const actor = this as unknown as Stuff;
   const bodies = this.renderEmote(emote, opts);
   const scene = MessageApi.scene(actor)
-    .topic('world.expression.emote')
+    .topic('act.emote')
     .modality('emotive-esp')
     .toSelf(bodies.self)
     .payload({ verb: emote.verb, emoji: emote.emoji, tags: emote.tags });
@@ -328,18 +328,18 @@ resolvable on every dispatch path without restart.
 
 ## Topic and modality
 
-Emote frames stamp `topic = 'world.expression.emote'`, a single
+Emote frames stamp `topic = 'act.emote'`, a single
 leaf for both catalog and free-form emotes; payload distinguishes
 (`{ verb, emoji, tags }` for catalog, `{ freeForm: true, text }` for
 free-form). The leaf is authored as a `Topic` template at
-`seeds/lib/messaging/Topic/world.expression.emote.yaml`:
+`seeds/lib/messaging/Topic/act.emote.yaml`:
 
 ```yaml
 class: /lib/messaging/Topic
 hydratorClass: /obj/persistence/PersistentHydrator
 data:
-  topic: world.expression.emote
-  family: world.expression
+  topic: act.emote
+  family: act.emote
   label: Emote
   description: A character performs an expressive act conveyed via the ESP modality.
 ```
@@ -448,4 +448,4 @@ later force a migration; the **behavior** doesn't run in v1.
   resolver branch in `CommandGiver._runChain`, the per-giver
   recency stack, schema delivery.
 - [topics.md](./topics.md) — `TopicCatalogue`, authored topic
-  descriptors, the `world.expression.emote` leaf.
+  descriptors, the `act.emote` leaf.

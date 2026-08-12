@@ -29,7 +29,7 @@ import { CompactApi } from '../../../api/compact';
 import { PlayerApi } from '../../../api/player';
 import { Office } from '../../../lib/governance/Office';
 
-const TOPIC = 'system.governance';
+const TOPIC = 'shell.result';
 
 interface OfficeModel extends CommandModel {
   /** `assign`: the resolved target Avatar (MQL `scope: online`). */

@@ -2,6 +2,7 @@
  * Character tests
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Character } from '../Character';
 import { makeStuff } from '../../security/__tests__/test-setup';

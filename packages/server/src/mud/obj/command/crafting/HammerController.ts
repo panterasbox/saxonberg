@@ -18,7 +18,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 const HAMMER_MS = 5000;
 
 interface HammerModel extends CommandModel {
@@ -66,7 +66,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
     if (target.getHeatedToK() <= 0) {
       this.declineStep(
         context,
-        Mml.compose`${Mml.item(target)} is stone cold — heat it first.`,
+        Mml.compose`${Mml.thing(target)} is stone cold — heat it first.`,
         'insufficient-heat',
       );
       return;
@@ -78,8 +78,8 @@ export default class HammerController extends ManualBuildController<HammerModel>
       // The anvil paces the forming work (the conferring kind's rate);
       // the striking hammer is a requirement, never a pacer.
       durationMs: this.paceMs(HAMMER_MS, anvil, ['anvil']),
-      beginSelf: Mml.compose`You set ${Mml.item(target)} on the anvil and begin to hammer.`,
-      beginPeers: Mml.compose`${Mml.name(giver)} hammers at ${Mml.item(target)}, ringing the anvil.`,
+      beginSelf: Mml.compose`You set ${Mml.thing(target)} on the anvil and begin to hammer.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} hammers at ${Mml.thing(target)}, ringing the anvil.`,
       onComplete: () => {
         // Bank the workpiece's matter — the forming work. The once-rule
         // is the substrate's (`bankWorkpiece` is idempotent per build).
@@ -89,8 +89,8 @@ export default class HammerController extends ManualBuildController<HammerModel>
         if (MixinApi.isDurable(striker)) striker.wear();
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`The metal moves under your hammer — ${Mml.item(target)} is taking shape.`)
-          .toPeers(Mml.compose`${Mml.name(giver)} draws a shape out of ${Mml.item(target)} blow by blow.`)
+          .toSelf(Mml.compose`The metal moves under your hammer — ${Mml.thing(target)} is taking shape.`)
+          .toPeers(Mml.compose`${Mml.actor(giver)} draws a shape out of ${Mml.thing(target)} blow by blow.`)
           .send();
       },
     });

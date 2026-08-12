@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: system.shell.wiki
-  family: system.shell
-  label: Wiki
-  description: Output of the wiki verb — the community encyclopedia of the world.

@@ -24,7 +24,7 @@ import { CraftingApi } from "../../../api/crafting";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { ScriptApi } from "../../../api/script";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 const STRAIN_MS = 2500;
 
 interface StrainModel extends CommandModel {
@@ -49,7 +49,7 @@ export default class StrainController extends ManualBuildController<StrainModel>
     if (vessel.isBuildEmpty()) {
       this.declineStep(
         context,
-        Mml.compose`${Mml.item(vessel)} is empty — there's nothing to strain.`,
+        Mml.compose`${Mml.thing(vessel)} is empty — there's nothing to strain.`,
         "empty-build",
       );
       return;
@@ -78,7 +78,7 @@ export default class StrainController extends ManualBuildController<StrainModel>
 
     this.engageStep(context, {
       durationMs: this.paceMs(STRAIN_MS, vessel, ["shaker", "mixing-glass"]),
-      beginSelf: Mml.compose`You begin straining ${Mml.item(vessel)} into ${Mml.item(glass)}.`,
+      beginSelf: Mml.compose`You begin straining ${Mml.thing(vessel)} into ${Mml.thing(glass)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {
           // Close the capture: the strain is the last step of the build.
@@ -101,8 +101,8 @@ export default class StrainController extends ManualBuildController<StrainModel>
           built.clearBuild();
           MessageApi.scene(giver)
             .topic(TOPIC)
-            .toSelf(Mml.compose`You strain out ${Mml.item(outcome.output)}.`)
-            .toPeers(Mml.compose`${Mml.name(giver)} strains out ${Mml.item(outcome.output)}.`)
+            .toSelf(Mml.compose`You strain out ${Mml.thing(outcome.output)}.`)
+            .toPeers(Mml.compose`${Mml.actor(giver)} strains out ${Mml.thing(outcome.output)}.`)
             .send();
 
           // The chronicle knowledge ladder + demonstration capture. The

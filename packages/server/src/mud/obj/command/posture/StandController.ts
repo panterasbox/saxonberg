@@ -7,7 +7,7 @@
  *
  * Validation surface (from `cmd/stand.yaml`):
  *   - requiresAnimate, requiresPosed (verb-level)
- *   - mustBeVisible, mustBePostured (target-level — only with arg)
+ *   - `requires: [VisibleMixin, PosturedMixin]` (target-level — only with arg)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -40,7 +40,7 @@ export default class StandController extends CommandController<StandModel> {
     if (target) {
       if (!MixinApi.isPostured(target)) {
         throw new Error(
-          `StandController: mustBePostured validator should have caught ${target.stuffId}`
+          `StandController: requires: PosturedMixin should have caught ${target.stuffId}`
         );
       }
       if (!MixinApi.isSlottable(giver)) {
@@ -56,7 +56,7 @@ export default class StandController extends CommandController<StandModel> {
       );
       if (!result.ok) {
         MessageApi.scene(giver)
-          .topic('world.narration.action')
+          .topic('act.deed')
           .toSelf(Mml.compose`${result.summary}`)
           .send();
         context.note({
@@ -67,10 +67,10 @@ export default class StandController extends CommandController<StandModel> {
         return;
       }
       MessageApi.scene(giver)
-        .topic('world.narration.action')
-        .toSelf(Mml.compose`You stand on ${Mml.item(target)}.`)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You stand on ${Mml.thing(target)}.`)
         .toPeers(
-          Mml.compose`${Mml.name(giver)} stands on ${Mml.item(target)}.`
+          Mml.compose`${Mml.actor(giver)} stands on ${Mml.thing(target)}.`
         )
         .send();
       return;
@@ -80,9 +80,9 @@ export default class StandController extends CommandController<StandModel> {
     PostureApi.vacatePostureBearingSlots(giver);
     giver.setPosture(Postures.Stand);
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You stand up.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} stands up.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} stands up.`)
       .send();
     return;
   }

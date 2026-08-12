@@ -4,6 +4,7 @@
  * `warm` loads saved rows keyed by `{subject, scope}`; round-trip.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ParticipationStanding, { PARTICIPATION_WIDE } from '../ParticipationStanding';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';

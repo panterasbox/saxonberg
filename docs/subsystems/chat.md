@@ -21,7 +21,7 @@ wiring.
 
 Chat is distinct from `dm` (a single-cohort directed-speech verb that
 mints one off the cuff frame and does not lay down a channel) and from
-**MudlogApi** (`system.log.*` — the game narrating to the player, not
+**MudlogApi** (`shell.diagnostic.*` — the game narrating to the player, not
 agents conversing with one another). Game-event feeds belong on
 `MudlogApi`; chat is for messages between actors.
 
@@ -44,7 +44,7 @@ fixed origin story and lifetime:
   server restart. Subscription is implicit (members are everyone in
   the cohort).
 
-The three kinds share the same `world.chat.message` topic, the same
+The three kinds share the same `speech.channel` topic, the same
 `meta.channelId` wire stamp, the same history ring, and the same
 audience-fanout chokepoint. What differs is *how the audience is
 resolved* and *where the membership lives*.
@@ -290,7 +290,7 @@ channelId being the short ad-hoc handle.
 
 Every chat frame carries:
 
-- `topic: 'world.chat.message'`
+- `topic: 'speech.channel'`
 - `meta.modality: 'verbal-esp'`
 - `meta.channelId: string` (channel `_id` for persistent, handle for
   ad-hoc)
@@ -516,7 +516,7 @@ into this doc as they ship.
 - [grouping.md](./grouping.md) — the `GroupApi` facade that chat
   consumes for channel-membership reads via the Subject's `groupRef`.
 - [topics.md](./topics.md) — the `TopicCatalogue` source of truth
-  for player-facing topic descriptors; `world.chat.message` is
+  for player-facing topic descriptors; `speech.channel` is
   authored under `seeds/lib/messaging/Topic/`.
 - [command-routing.md](./command-routing.md) — Phase 3a and the
   `fallthrough: true` verb-level flag the chat verb relies on.

@@ -12,6 +12,7 @@
  *    burning: suppression drops what magic holds up, never an impulse.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";

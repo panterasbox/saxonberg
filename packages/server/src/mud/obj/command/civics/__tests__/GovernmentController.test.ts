@@ -6,6 +6,7 @@
  * chain (undomiciled → honest prose + note).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import GovernmentController from "../GovernmentController";
 import GovernmentCatalogue from "../../../GovernmentCatalogue";

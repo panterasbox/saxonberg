@@ -8,6 +8,7 @@
  * Renown is stubbed; participation is seeded into the standing cache.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConsumerApi } from '../../../api/consumer';
 import { RenownApi } from '../../../api/renown';

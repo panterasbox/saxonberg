@@ -10,6 +10,7 @@
  * consumer; this file exercises the substrate behavior directly.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { MqlApi } from '../mql';

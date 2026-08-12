@@ -8,6 +8,7 @@
  *     account balance or coin stack over a game-clock advance.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import Coin from "../../../obj/Coin";

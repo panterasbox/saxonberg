@@ -21,7 +21,7 @@ import { StuffApi } from "../../../api/stuff";
 import { Mml } from "../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../lib/metabolism/Metabolic";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface EatModel extends CommandModel {
   target: MqlOneResult;
@@ -49,7 +49,7 @@ export default class EatController extends CommandController<EatModel> {
     if (!material || material.getEdibility() !== true) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't eat ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You can't eat ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: "controller-rejected",
@@ -66,7 +66,7 @@ export default class EatController extends CommandController<EatModel> {
     if (accepted < portion - 1e-9) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You're too full to eat ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You're too full to eat ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: "controller-rejected",
@@ -81,7 +81,7 @@ export default class EatController extends CommandController<EatModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You eat the ${appearance}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} eats ${Mml.item(target)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)}.`)
       .send();
     await StuffApi.destruct(target);
   }

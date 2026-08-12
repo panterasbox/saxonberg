@@ -1,0 +1,13 @@
+class: /obj/Topic
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  topic: shell.prompt
+  family: "shell"
+  label: "Questions"
+  description: "The server is waiting on an answer from you."
+  address: direct
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false
+  affordance: live

@@ -7,6 +7,7 @@
  * verb gate blocks a collapsed eater.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import EatController from "../EatController";
 import { Creature } from "../../../../lib/creature/Creature";

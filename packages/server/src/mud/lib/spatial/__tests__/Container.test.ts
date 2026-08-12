@@ -7,6 +7,7 @@
  * ContainmentApi) may invoke them.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ContainerMixin } from '../Container';
 import { ContainableMixin } from '../Containable';

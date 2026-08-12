@@ -25,7 +25,7 @@ export default class LieController extends CommandController<LieModel> {
     const target = model.target.stuff;
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
         .send();
       context.note({
@@ -37,7 +37,7 @@ export default class LieController extends CommandController<LieModel> {
     }
     if (!MixinApi.isPostured(target)) {
       throw new Error(
-        `LieController: mustBePostured validator should have caught ${target.stuffId}`
+        `LieController: requires: PosturedMixin should have caught ${target.stuffId}`
       );
     }
     if (!MixinApi.isPosed(giver) || !MixinApi.isSlottable(giver)) {
@@ -54,7 +54,7 @@ export default class LieController extends CommandController<LieModel> {
     );
     if (!result.ok) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`${result.summary}`)
         .send();
       context.note({
@@ -66,9 +66,9 @@ export default class LieController extends CommandController<LieModel> {
     }
 
     MessageApi.scene(giver)
-      .topic('world.narration.action')
+      .topic('act.deed')
       .toSelf(Mml.compose`You lie down.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} lies down.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} lies down.`)
       .send();
     return;
   }

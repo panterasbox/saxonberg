@@ -180,7 +180,7 @@ two of them loses the thing that makes it useful**:
 
 > **Forums argue. The wiki converges. The press asserts.**
 
-⚠ **All three are ATTRIBUTED** — [wiki-slate](./wiki-slate.md) is explicit
+⚠ **All three are ATTRIBUTED** — [wiki-slate](../tails/wiki-slate.md) is explicit
 that *"every page is authored"* and keeps `{ author, at, snapshot }` per
 revision. The wiki differs by **what attribution is FOR**: on a wiki it is
 an **edit trail**, on a publication it is a **byline you answer for**.

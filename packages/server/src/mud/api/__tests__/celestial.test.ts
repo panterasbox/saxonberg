@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CelestialApi } from '../celestial';
 import { CelestialLogic } from '../../obj/api/CelestialLogic';

@@ -20,7 +20,7 @@ import { Mml } from "../../../api/mml";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Bank } from "../../../lib/banking/Bank";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 /** Default / max rows a `bank statement` lists (most recent first). */
 const DEFAULT_STATEMENT_ROWS = 20;
@@ -81,7 +81,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You open an account with ${house}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} opens an account.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} opens an account.`)
       .send();
   }
 
@@ -189,8 +189,8 @@ export default class BankController extends BankingControllerBase<BankModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You deposit ${Mml.item(coins)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} makes a deposit.`)
+      .toSelf(Mml.compose`You deposit ${Mml.thing(coins)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} makes a deposit.`)
       .send();
   }
 
@@ -212,7 +212,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You withdraw ${Money.of(minor, Currency.compact()).render()} in cash.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} makes a withdrawal.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} makes a withdrawal.`)
       .send();
   }
 
@@ -249,7 +249,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
     if (!toAccount) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.name(payee!)} has no account to receive into.`)
+        .toSelf(Mml.compose`${Mml.actor(payee!)} has no account to receive into.`)
         .send();
       context.note({ kind: "controller-rejected", reason: "payee-no-account", detail: model.recipient?.raw ?? "" });
       return;
@@ -261,7 +261,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You transfer ${Money.of(minor, Currency.compact()).render()} to ${Mml.name(payee!)}.`)
+      .toSelf(Mml.compose`You transfer ${Money.of(minor, Currency.compact()).render()} to ${Mml.actor(payee!)}.`)
       .send();
   }
 

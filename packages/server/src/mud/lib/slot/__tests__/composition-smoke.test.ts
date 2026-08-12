@@ -7,6 +7,7 @@
  * subsystem-specific test files.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Floor from '../../../obj/Floor';
 import Thing from '../../stuff/Thing';

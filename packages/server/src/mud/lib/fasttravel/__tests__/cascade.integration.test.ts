@@ -7,6 +7,7 @@
  * room) live from that one seed — with no registry and no manual loading.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import LoungeWarren from "../../../domain/lounge/LoungeWarren";
 import { LoungePaths } from "../../../domain/lounge/paths";

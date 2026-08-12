@@ -8,8 +8,8 @@
  *     channel name is `'hearing'`, not `'listen'` — the verb is the
  *     user-facing action, the channel is the sense vocabulary.
  *   - `sceneTopic` — the dotted topic the Scene fires on
- *     (`'world.perception.sense.smell'`, etc.). Mirrors the existing
- *     `world.perception.<verb>` shape from `look` / `scry` / `locate`.
+ *     (`'sense.survey'`, etc.). Mirrors the existing
+ *     `sense.survey` topic for `look` / `scry` / `locate`.
  *
  * Routes through three branches dispatched on the bound `target`:
  *
@@ -66,7 +66,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
 
   /**
    * Dotted topic the Scene fires on. Mirrors the existing
-   * `world.perception.<verb>` shape used by `look` / `scry` / `locate`.
+   * `sense.survey` topic used by `look` / `scry` / `locate`.
    */
   protected abstract readonly sceneTopic: string;
 
@@ -214,7 +214,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
       });
       return;
     }
-    const body = Mml.compose`\n${Mml.name(target)}\n\n${Mml.fromMarkup(filtered)}\n`;
+    const body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(filtered)}\n`;
     MessageApi.scene(actor)
       .topic(this.sceneTopic)
       .toSelf(body)

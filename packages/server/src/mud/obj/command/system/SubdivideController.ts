@@ -27,7 +27,7 @@ import { TemplateApi } from "../../../api/template";
 import { Zone } from "../../../lib/zone/Zone";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 
-const TOPIC = "system.parcel";
+const TOPIC = "shell.result";
 
 interface SubdivideModel extends CommandModel {
   name?: string;

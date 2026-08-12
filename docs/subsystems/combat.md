@@ -207,12 +207,12 @@ into **per-viewer** prose (Thesis 17). Per the plan's [VERIFIED-CORRECTION],
 a single `Scene` fans by audience *bucket* and gives every peer the same
 body (only per-viewer *naming* is automatic), so the adapter **loops the
 room's witnesses and emits one `Scene` per perception tier**
-(`MessageApi.scene(viewer).topic('world.combat.exchange').meta({commandId}).
+(`MessageApi.scene(viewer).topic('act.combat').meta({commandId}).
 toSelf(body).send()`, the `SocialLogic` presence-relay pattern) — combatants
 read the precise band, bystanders a hedged clause. It mints its own
 `commandId` (`SecurityApi.uuid()` — the beat runs in a detached scheduler
 root) and calls `ReactionApi.noteReactableAct` itself on **dramatic beats
-only** (`world.combat.exchange` is in `REACTABLE_TOPICS`; tick/pressed stay
+only** (`act.combat` is in `REACTABLE_TOPICS`; tick/pressed stay
 silent).
 
 The line is composed from the **tactical state** so the feed reads as a
@@ -612,11 +612,17 @@ weapon engine):
   hydrate) and the exchange's erosion / inflict energy.
 - **reach** ← `length` (a real magnitude, symmetric with `mass`). A banded
   class (`short`/`medium`/`long`) drives a **geometry-free engagement-range
-  tier** on `CombatGraph`: each pair carries a `reach | close` state
+  tier** on `CombatGraph`: each pair carries a band from the
+  `close · reach · near · far` ladder
   (`ThreatEdge.range`, `setRange`/`rangeBetween` keeping both directed edges
   in sync). A longer weapon **controls until closed** — a genuinely out-ranged
   attacker (a 2-rank gap) is simply **out of range** and *whiffs* (offence AND
   riposte); reach-advantaged actors resolve first (a stable reach-order sort).
+  ⚠ The ranged build widened that tier to four bands and moved the
+  OPENING band off reach rank onto the room's real size — see
+  [ranged.md](./ranged.md). Reach still decides who controls the gap;
+  it no longer decides where the fight starts, and `close` is now an
+  alias for `advance`.
   **Closing** is a tempo-costed opposed beat (the `close` gambit), *contested*
   by a composed, longer reach-holder; a reach-holder's `defend` re-opens
   distance. Inside (`close`) the term **reverses** — the dagger/unarmed owns
@@ -701,7 +707,7 @@ Named at their sites; nothing inherited:
 - **Split** — connected-component recompute on edge removal spawning a
   second session; deferred (no criterion requires it) until fragmentation
   is real.
-- **Known engine seams** — the `world.combat.exchange` topic wants a client
+- **Known engine seams** — the `act.combat` topic wants a client
   font-register mapping. The beat loop has **no presence-freeze** — a fight
   ticks on against a linkdead combatant until `combat.maxBeats` forces a
   draw (bounded, not a leak; "you can't rage-quit a fight" may even be
@@ -735,7 +741,7 @@ Named at their sites; nothing inherited:
   (`WieldableMixin`), the missing `/obj/ParcelRegistry` seed (a latent
   fresh-DB bootstrap failure), the silent-fight-end bug, and the flat
   narration. `CombatantMixin` was composed onto `Character`; `Weapon` gained
-  `balanceFactor`; `world.combat.exchange` joined `REACTABLE_TOPICS`.
+  `balanceFactor`; `act.combat` joined `REACTABLE_TOPICS`.
 - **Cycle 1, build 2** (`feature/combat-consequence`) — consequence &
   progression: `isSentient` (a `Species` flag + the three-case defeat),
   the two-stage **coup** (`Coup` `DurativeActivity` + the `intervene`

@@ -26,7 +26,7 @@ export default class EmoteController extends CommandController<EmoteModel> {
     const speaker = context.commandGiver;
     if (!MixinApi.isSoul(speaker)) {
       MessageApi.scene(speaker)
-        .topic('world.expression.emote')
+        .topic('act.emote')
         .toSelf(Mml.compose`You cannot express that.`)
         .send();
       context.note({ kind: 'mixin-missing', mixin: 'SoulMixin' });

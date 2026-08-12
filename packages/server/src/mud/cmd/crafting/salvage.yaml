@@ -15,3 +15,9 @@ args:
     type: object
     required: true
     scope: "reachable"
+    # ⚠ NOT `CraftedMixin`. `CraftingApi.salvage` is "the one generic
+    # lossy melt-down" (crafting.md) and refuses only
+    # `!isTangible || isOrganism` — it flattens ANY material
+    # composition. Declaring `Crafted` here hid salvage on every
+    # non-crafted tangible thing the Api would happily break down.
+    requires: TangibleMixin

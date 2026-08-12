@@ -14,5 +14,4 @@ args:
     type: object
     required: true
     scope: ["reachable"]
-    validators:
-      - /lib/command/validators/mustBeTangible
+    requires: TangibleMixin

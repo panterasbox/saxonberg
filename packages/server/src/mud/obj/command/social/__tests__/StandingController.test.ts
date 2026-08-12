@@ -8,12 +8,14 @@
  * by stubbing `MessageApi.scene`.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import StandingController from '../StandingController';
 import { ConsumerApi } from '../../../../api/consumer';
 import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
 import { Band } from '../../../../lib/standing/Band';
+import { InfluenceStanding } from '../../../../lib/standing/InfluenceStanding';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -52,11 +54,28 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
+/**
+ * ⚠ Make standing reads through `InfluenceApi.standingForHost` — the
+ * shared seam — while play still reads `bandOf`. A test that mocked only
+ * `bandOf` would silently stop influencing the make line.
+ */
+function mockMakeBand(band: Band): void {
+  vi.spyOn(InfluenceApi, 'standingForHost').mockImplementation((host, stock) =>
+    new InfluenceStanding(
+      host.getTemplatePath() ?? host.stuffId,
+      stock,
+      0,
+      band,
+    ),
+  );
+}
+
 describe('StandingController render', () => {
   it('shows the influence band and qualitative lines, with no raw scalar', async () => {
     vi.spyOn(ConsumerApi, 'participationOf').mockReturnValue(10);
     vi.spyOn(RenownApi, 'renownOf').mockReturnValue(2);
     vi.spyOn(InfluenceApi, 'bandOf').mockReturnValue(Band.of('established'));
+    mockMakeBand(Band.of('established'));
 
     const actor = makeStuffAtPath(() => new Actor(), '/obj/Avatar/render');
     const ctrl = makeStuff(() => new StandingController());
@@ -74,6 +93,7 @@ describe('StandingController render', () => {
     vi.spyOn(ConsumerApi, 'participationOf').mockReturnValue(0);
     vi.spyOn(RenownApi, 'renownOf').mockReturnValue(0);
     vi.spyOn(InfluenceApi, 'bandOf').mockReturnValue(Band.of('dormant'));
+    mockMakeBand(Band.of('dormant'));
 
     const actor = makeStuffAtPath(() => new Actor(), '/obj/Avatar/zero');
     const ctrl = makeStuff(() => new StandingController());
@@ -89,9 +109,8 @@ describe('StandingController render', () => {
     vi.spyOn(ConsumerApi, 'participationOf').mockReturnValue(3);
     vi.spyOn(RenownApi, 'renownOf').mockReturnValue(1);
     // Stock-aware: consumer (play) vs producer (make) read different bands.
-    vi.spyOn(InfluenceApi, 'bandOf').mockImplementation((_id, stock) =>
-      stock === 'producer' ? Band.of('pillar') : Band.of('familiar')
-    );
+    vi.spyOn(InfluenceApi, 'bandOf').mockReturnValue(Band.of('familiar'));
+    mockMakeBand(Band.of('pillar'));
 
     const actor = makeStuffAtPath(() => new Actor(), '/obj/Avatar/three');
     const ctrl = makeStuff(() => new StandingController());

@@ -15,7 +15,7 @@ import { BulkableApi, type TransferAmount } from '../../../api/bulk';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface FillModel extends CommandModel {
   target: MqlOneResult;
@@ -49,7 +49,7 @@ export default class FillController extends CommandController<FillModel> {
     if (toSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't fill ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You can't fill ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -62,7 +62,7 @@ export default class FillController extends CommandController<FillModel> {
     if (fromSlot === null) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to fill from in ${Mml.item(source)}.`)
+        .toSelf(Mml.compose`There's nothing to fill from in ${Mml.thing(source)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -82,16 +82,16 @@ export default class FillController extends CommandController<FillModel> {
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't fill ${Mml.item(target)} from ${Mml.item(source)}.`)
+        .toSelf(Mml.compose`You can't fill ${Mml.thing(target)} from ${Mml.thing(source)}.`)
         .send();
       return;
     }
 
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You fill ${Mml.item(target)} from ${Mml.item(source)}.`)
+      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${Mml.thing(source)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} fills ${Mml.item(target)} from ${Mml.item(source)}.`,
+        Mml.compose`${Mml.actor(giver)} fills ${Mml.thing(target)} from ${Mml.thing(source)}.`,
       )
       .send();
   }

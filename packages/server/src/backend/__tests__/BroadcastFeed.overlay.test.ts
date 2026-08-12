@@ -7,6 +7,7 @@
  * Mocked Backend socket + a mocked `StreamApi.setOverlayReading`.
  */
 
+import "../../test-bootstrap";
 import {
   describe,
   it,

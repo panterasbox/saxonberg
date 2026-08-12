@@ -4,6 +4,7 @@
  * scope tag, rich enough for derive-on-read reports with no backfill.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import LedgerEntry from "../LedgerEntry";
 import {

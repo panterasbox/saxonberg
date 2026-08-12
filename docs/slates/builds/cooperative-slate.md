@@ -1527,7 +1527,7 @@ needs neutral/randomized statement exposure + an integrity-grade algorithm,
 but it's never decisive, so its residual gameability is tolerable.
 **Deliberation** (the argument-map) is a structured argumentation surface —
 *not* a forum mode, and distinct enough it has **its own slate**
-([argument-map-slate](./argument-map-slate.md)), with the comms family
+([argument-map-slate](../tails/argument-map-slate.md)), with the comms family
 providing only the *social* layer around it.
 
 ---
@@ -2915,7 +2915,7 @@ citizen. Parked until there's a population to govern:
   exposure + integrity-grade algorithm) · **deliberation** in two flavors —
   **async** = an **argument-map** (Kialo-like: bill-as-spine,
   claims→objections→rebuttals, *no ranking*, navigated by structure +
-  delegated attention; now its own [argument-map-slate](./argument-map-slate.md))
+  delegated attention; now its own [argument-map-slate](../tails/argument-map-slate.md))
   and **sync** = floor-managed structured chat (automated floor-bot,
   bounded/small-group, RRO/debate-format, *feeds the async record, doesn't
   decide*) · the weighted vote. Governing principle: **load-bearing organization must be ungameable**

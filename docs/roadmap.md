@@ -51,7 +51,9 @@ The substrate is in place. Major shipped surfaces:
   kinds shipped with the perception substrate).
 - **Quantities substrate** — `Quantity<U>` value object,
   per-unit math op table, tag-table registry, YAML-authored
-  scales, `<quantity>` Mml emission, marshaller integration.
+  scales, `<quantity>` Mml emission (registered, non-inert, and
+  carrying `channel` / `via` / `lo` / `hi` so a reading survives the
+  wire as a number with provenance), marshaller integration.
   Consumed by Light (lux/lumen/Kelvin), Material (kg/m³, g/mol),
   Tangible (kg); future channels (sound, heat) plug in via the
   same shape. See [docs/subsystems/quantities.md](./subsystems/quantities.md).
@@ -152,7 +154,7 @@ remains in the near-term Track A queue:
    shipped (cockpit-layouts build, 2026-06: server-authoritative `layout`
    axis + per-bar input mode + livestream-viewer + builder + the
    summoned-pane tier — see
-   [cockpit-layouts.md](./subsystems/cockpit-layouts.md)). What remains:
+   [cockpit.md](./subsystems/cockpit.md)). What remains:
    the education content surface (video + transcript), the study /
    classroom / tutor modes, and theming polish. Per
    [client-cockpit-slate.md](./slates/tails/client-cockpit-slate.md);
@@ -165,8 +167,9 @@ remains in the near-term Track A queue:
 >
 > - **Message-rendering.** Shipped 2026-06 — see
 >   [message-rendering.md](./subsystems/message-rendering.md).
->   Nested-aware renderer, stylesheet engine + two themes, per-
->   message-type templates, Discord-dialect markdown, custom URI
+>   Nested-aware renderer, stylesheet engine + three themes
+>   (`ink`/`marble`/`high-contrast` — the civic ground, 2026-08),
+>   per-message-type templates, Discord-dialect markdown, custom URI
 >   schemes, mentions, `style` verb + overlay.
 > - **Prompt-stack client UI.** Shipped in the console-foundations
 >   merge. The CommandBar is a slot-multiplexed input that absorbs
@@ -630,7 +633,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   [prompt.md](./subsystems/prompt.md),
   [inspection-pane.md](./subsystems/inspection-pane.md)); see
   **Foundation**. Message rendering shipped 2026-06 (nested-aware
-  renderer, stylesheet engine + two themes, per-message-type
+  renderer, stylesheet engine + three themes, per-message-type
   templates, Discord-dialect markdown, custom URI schemes, mentions,
   `style` verb + overlay). The server `PromptApi` is live, the focus
   pane is live, and the prompt-stack client UI shipped in the

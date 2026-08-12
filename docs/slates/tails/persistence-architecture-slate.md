@@ -15,6 +15,26 @@
 > npc-behavior "brain" pattern, decision 5 below). Highest-effort piece;
 > scoped separately. Everything above it is done.
 
+> **Audit 2026-08-08 — Wave 3 verified untouched, and its pattern is now
+> proven.** Checked against the tree when GitLab #14 was closed here.
+>
+> - **Still Stuff:** `PersistentHydrator` still `extends Idea`, and
+>   `obj/hooks/` still holds `DomainHook.ts` + `hooks.yaml`. Wave 3 has
+>   not been started.
+> - **The brain pattern it wants to copy is now real and load-bearing** —
+>   `lib/behavior/`, lowercase per-verb modules whose sole export is
+>   `export const brain = class {…}` (a *named class-expression* so the HMR
+>   registry retains it), no class name, no registry, re-resolved per
+>   invocation for HMR ([behavior.md](../../subsystems/behavior.md)). So
+>   decision 5's "same pattern as npc-behavior" is no longer a proposal to
+>   invent in parallel — it is a shipped convention with its own entry in
+>   `CLAUDE.md`'s module-category table. **Copy it; don't re-derive it.**
+> - **Context that post-dates this slate:** the self-persistence spine
+>   (`PersistableMixin` → `holder_snapshots`,
+>   [persistence.md](../../subsystems/persistence.md)) landed on top of
+>   the two-track model. Wave 3 has to keep it working; check `capture` /
+>   `materialize` before touching the Hydrator.
+
 Working slate for the **persistence architecture** — a deliberate rethink
 prompted by realizing that *most* of what a platform persists (auth records,
 dialogue trees, loot tables, quest defs, lesson content, analytics/event logs,

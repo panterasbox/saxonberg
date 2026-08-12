@@ -5,7 +5,7 @@
  * pulls it. Graceful no-op decline when nothing is hitched.
  *
  * Validation surface (from `cmd/movement/unhitch.yaml`):
- *   - requiresAnimate (verb-level); mustBeVisible (target, optional)
+ *   - requiresAnimate (verb-level); `requires: VisibleMixin` (target, optional)
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -34,7 +34,7 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
       const t = targetRes.stuff;
       if (!t) {
         MessageApi.scene(giver)
-          .topic('world.narration.action')
+          .topic('act.deed')
           .toSelf(Mml.compose`You don't see any '${targetRes.raw}' here.`)
           .send();
         context.note({
@@ -53,7 +53,7 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
 
     if (!hauler || !hauler.isHitched()) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`There's nothing to unhitch.`)
         .send();
       context.note({
@@ -68,18 +68,18 @@ export default class UnhitchController extends CommandController<UnhitchModel> {
     hauler.unhitch();
     if (hauler.stuffId === giver.stuffId) {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
-        .toSelf(Mml.compose`You let go of ${Mml.item(cart)}.`)
-        .toPeers(Mml.compose`${Mml.name(giver)} lets go of ${Mml.item(cart)}.`)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You let go of ${Mml.thing(cart)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} lets go of ${Mml.thing(cart)}.`)
         .send();
     } else {
       MessageApi.scene(giver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(
-          Mml.compose`You unhitch ${Mml.item(cart)} from ${Mml.item(hauler)}.`,
+          Mml.compose`You unhitch ${Mml.thing(cart)} from ${Mml.thing(hauler)}.`,
         )
         .toPeers(
-          Mml.compose`${Mml.name(giver)} unhitches ${Mml.item(cart)} from ${Mml.item(hauler)}.`,
+          Mml.compose`${Mml.actor(giver)} unhitches ${Mml.thing(cart)} from ${Mml.thing(hauler)}.`,
         )
         .send();
     }

@@ -3,6 +3,7 @@
  * scope; refuse folding an occupied chair; reject a non-foldable target.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import FoldController from '../FoldController';
 import UnfoldController from '../UnfoldController';

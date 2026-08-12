@@ -27,7 +27,7 @@ export default class UnlockController extends CommandController<UnlockModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Unlock what?`)
         .send();
       context.note({
@@ -39,7 +39,7 @@ export default class UnlockController extends CommandController<UnlockModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -56,7 +56,7 @@ export default class UnlockController extends CommandController<UnlockModel> {
     );
     if (!lockable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't unlock that.`)
         .send();
       context.note({
@@ -69,7 +69,7 @@ export default class UnlockController extends CommandController<UnlockModel> {
 
     if (!lockable.isLocked()) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`It is already unlocked.`)
         .send();
       context.note({
@@ -83,10 +83,10 @@ export default class UnlockController extends CommandController<UnlockModel> {
     lockable.unlock();
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
-      .toSelf(Mml.compose`You unlock ${Mml.object(lockable as unknown as Stuff)}.`)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You unlock ${Mml.thing(lockable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} unlocks ${Mml.object(lockable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} unlocks ${Mml.thing(lockable as unknown as Stuff)}.`,
       )
       .send();
 

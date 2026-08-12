@@ -33,8 +33,7 @@ subcommands:
         type: object
         required: true
         scope: "online"
-        validators:
-          - /lib/command/validators/mustBeAgent
+        requires: class:Agent
         onExcess: prompt
       - name: label
         type: string

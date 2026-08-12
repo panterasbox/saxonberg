@@ -57,7 +57,7 @@ See also:
   `canMutateZone` / `isWizard`, the zone-anchored slice walk over
   `ownerGroup`/`accessGroups`, and `resolveSourceFolderZone` (the
   namespace-anchoring pattern the wiki mirrors). Reused wholesale.
-- [cms-slate.md](./cms-slate.md) — the **level-3 source** embed is the
+- [cms-slate.md](../builds/cms-slate.md) — the **level-3 source** embed is the
   CMS code-editor's *read* side (`SourceTreeApi`); "view the source
   behind this" (wiki) hands off to "edit it" (CMS) → "test it" (game).
 - [docs/subsystems/command-spec.md](../../subsystems/command-spec.md) +
@@ -68,7 +68,7 @@ See also:
   [message-rendering.md](../../subsystems/message-rendering.md) — the MML
   the page body is authored in; the renderer + click model the viewer
   reuses; the `<mql>` sleeper tag the embed palette extends.
-- [college-slate.md](./college-slate.md) § *The wiki — the commons the
+- [college-slate.md](../builds/college-slate.md) § *The wiki — the commons the
   courses read from* — **the education-vertical consumer.**
   *study.com : Wikipedia :: our courses : our wiki.* It adds the
   **source ladder** (papers = primary and re-runnable · wiki =
@@ -416,11 +416,11 @@ re-litigated from the slate.
   graduated-dial delta flagged back to it.
 - **Help-system internals** — the systems-leaning co-consumer (commands,
   taxonomies, mechanics; generated from code + data; gets its *own*
-  spoiler controls). Owned by [help-slate.md](./help-slate.md), not this
+  spoiler controls). Owned by [help-slate.md](../builds/help-slate.md), not this
   slate.
 - **Assessment integrity** — flagged by the spoiler slate as a separate
   assessment-system problem; not here. **Now resolved by
-  [college-slate.md](./college-slate.md):** procedurally generated exam
+  [college-slate.md](../builds/college-slate.md):** procedurally generated exam
   items are wiki-proof *by construction* (per-student seeds, keys
   computed by running the subsystem), so a complete wiki cannot devalue
   the machine-graded credential and **no spoiler gating is required for

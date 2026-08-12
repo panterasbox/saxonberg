@@ -14,6 +14,7 @@
  * they would over the real CMS path.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ScriptApi } from "../../../api/script";
 import { StoredDocument } from "../../document/StoredDocument";
@@ -37,10 +38,9 @@ class TestGiver extends CommandGiverMixin(
   SensorMixin(ContainerMixin(ContainableMixin(Idea))),
 ) {
   static override commandContributions = {
+      peers: [],
     self: ["system/ping.yaml"],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   protected override handleMessage(): void {}
   protected override handleEnvelope(): void {}

@@ -15,6 +15,7 @@
  * small caps so the ordering/limit math is deterministic.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PressBoard from '../PressBoard';
 import {

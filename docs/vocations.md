@@ -249,7 +249,7 @@ right per row is most of the civic design.
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
 | miller · smelter · tanner | **GAP** | premises (industrial zoning) | the classic nuisance trades |
 | **charcoal burner / collier** | **GAP** | skill | fuel for everything above |
-| **gunsmith · powder maker** | designed ([ranged](./slates/builds/ranged-slate.md)) | licence | credential-gated |
+| **gunsmith · powder maker** | designed ([ranged](./slates/tails/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
 | **quarrier** | **GAP** | land + tools | mining's sibling |
 | **almanac-maker / weather-reader** | **designed** ([insurance § the almanac-maker](./slates/builds/insurance-slate.md)) | ⭐ **a TIME SERIES** (years of records — not skill or capital) | farmers — *a tighter planting window*; ⭐⭐ **owns DATA where the ratings agency owns a METHOD** |

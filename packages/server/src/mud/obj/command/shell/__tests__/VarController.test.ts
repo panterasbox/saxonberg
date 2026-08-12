@@ -4,6 +4,7 @@
  * D3 back-door close.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import VarController from '../VarController';
 import { Idea } from '../../../../lib/stuff/Idea';

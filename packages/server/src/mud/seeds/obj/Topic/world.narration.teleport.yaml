@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.narration.teleport
-  family: world.narration
-  label: Teleport
-  description: A character vanishing or appearing without traversing an exit — magical or admin-driven displacement.

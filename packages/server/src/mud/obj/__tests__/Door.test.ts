@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Door from '../Door';
 import Exit from '../../lib/boundary/Exit';

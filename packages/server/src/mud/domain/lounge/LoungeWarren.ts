@@ -222,7 +222,7 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   private emitBudCue(host: MemberStuff): void {
     try {
       MessageApi.scene(host)
-        .topic('world.lounge.bud')
+        .topic('act.deed')
         .toContents(Mml.compose`A new doorway eases open along the wall.`)
         .send();
     } catch {
@@ -234,7 +234,7 @@ export default class LoungeWarren extends SingletonMixin(Warren) {
   private emitMergeCue(satellite: MemberStuff): void {
     try {
       MessageApi.scene(satellite)
-        .topic('world.lounge.merge')
+        .topic('act.deed')
         .toContents(Mml.compose`A doorway eases quietly shut.`)
         .send();
     } catch {

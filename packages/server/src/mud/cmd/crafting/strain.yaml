@@ -18,8 +18,10 @@ args:
     type: object
     required: false
     scope: "reachable"
+    requires: ManualBuildMixin
   - name: glass
     type: object
     required: false
     scope: "reachable"
     prepositions: [into, in]
+    requires: ManualBuildMixin

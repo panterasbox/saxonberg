@@ -7,6 +7,7 @@
  * demo.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   makeStuff,

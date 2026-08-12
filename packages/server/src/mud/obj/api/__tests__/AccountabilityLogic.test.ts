@@ -15,6 +15,7 @@
  * `lib/accountability/__tests__/AccountabilityEvent.test.ts`).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CombatApi } from '../../../api/combat';
 import { AccountabilityApi } from '../../../api/accountability';

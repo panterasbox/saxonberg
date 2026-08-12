@@ -7,6 +7,7 @@
  * minimal consumer this build ships.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import Condition from "../../../obj/Condition";

@@ -22,7 +22,7 @@
  * if a subclass overrides without `super` is a missed initial reset,
  * which is recoverable when the next move triggers a delta.
  *
- * Schema-delivery emits to the client (system.commands.{added,
+ * Schema-delivery emits to the client (shell.control ({added,
  * removed, reset}) gate on `_commandSchemaSubscribed`, which flips
  * once `onConnectionAttached` fires — pushes that happen during
  * hydration don't generate spurious frames to a not-yet-listening
@@ -79,7 +79,7 @@ import type { LogLevel, Note } from '@saxonberg/types';
  * a chance to produce prose.
  *
  * Used by the dispatcher's end-of-execute sweep below: walks the
- * accumulated notes and fires a `system.command.error` scene per
+ * accumulated notes and fires a `shell.error` scene per
  * prose-bearing note so a player typing a bad command sees WHY
  * without needing client-side envelope rendering. The structured
  * note still rides the envelope for bot/script consumers — the
@@ -171,7 +171,7 @@ function recordControllerThrow(
 function emitDispatchResponse(ctx: CommandContext): void {
   const giverAsStuff = ctx.commandGiver as unknown as Stuff;
   // Framework-failure prose sweep: dispatcher / validator / MQL notes
-  // get an auto-rendered `system.command.error` scene so the player
+  // get an auto-rendered `shell.error` scene so the player
   // sees WHY without the client rendering envelopes. Controller-side
   // notes are skipped (controllers fire their own scenes).
   if (MixinApi.isSensor(giverAsStuff)) {
@@ -179,7 +179,7 @@ function emitDispatchResponse(ctx: CommandContext): void {
       const prose = proseForFrameworkNote(note);
       if (prose === null) continue;
       MessageApi.scene(giverAsStuff as Stuff & Sensor)
-        .topic('system.command.error')
+        .topic('shell.error')
         .toSelf(Mml.compose`${prose}`)
         .send();
     }
@@ -567,7 +567,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     onConnectionAttached(_conn: Interactive): void {
       if (this._commandSchemaSubscribed) return;
       this._commandSchemaSubscribed = true;
-      // Emit a single `system.commands.reset` carrying the full set
+      // Emit a single `shell.control` carrying the full set
       // — the client uses this as its baseline schema view.
       this._ensureSelfEntry();
       const payloads: CommandSchemaPayload[] = [];
@@ -844,7 +844,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * Emit the input-echo MudlogApi frame at start-of-dispatch.
      * Fires exactly once per `executeCommand` regardless of the
      * branch taken (parsed / bound / parse-error). Topic
-     * `system.log.command.{info|warn}`; payload `kind: 'issued'`.
+     * `shell.diagnostic`; payload `kind: 'issued'`.
      * Multi-device echo, audit trail, replay capture all consume
      * this; clients filter their own echo by comparing
      * `originInteractiveId` against their stashed
@@ -1061,6 +1061,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           command,
           commandSource: affordance.source,
           interactive: outer.interactive,
+          // ⚠⚠ The submitting command line. Without it a controller
+          // sees `context.barId === undefined` and falls back to
+          // `'main'`, while the input-mode reader above looks up the
+          // REAL barId — so `cockpit cli` wrote its prefix to one key
+          // and the prepend read another, and the feature was inert
+          // through any client that sends a barId other than `main`.
+          // Found by driving it: the browser sends `barId: "world"`.
+          barId: outer.barId,
         });
         if (outer.aliasExpansion !== undefined) {
           attempt.aliasExpansion = outer.aliasExpansion;

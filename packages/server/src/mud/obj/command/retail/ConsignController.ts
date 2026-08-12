@@ -29,7 +29,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 interface ConsignModel extends CommandModel {
   thing: string;
@@ -86,7 +86,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
       owner?.kind !== "player" ||
       owner.templatePath !== consignorKey
     ) {
-      this.reject(giver, context, Mml.compose`${Mml.item(item)} isn't yours to sell.`, {
+      this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
         kind: "controller-rejected",
         reason: "not-owner",
         detail: model.thing,
@@ -128,9 +128,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You put ${Mml.item(item)} up for sale at ${Money.of(ask, Currency.compact()).render()}. It's still yours until it sells.`,
+        Mml.compose`You put ${Mml.thing(item)} up for sale at ${Money.of(ask, Currency.compact()).render()}. It's still yours until it sells.`,
       )
-      .toPeers(Mml.compose`${Mml.name(giver)} sets ${Mml.item(item)} on the consignment shelf.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(item)} on the consignment shelf.`)
       .send();
   }
 

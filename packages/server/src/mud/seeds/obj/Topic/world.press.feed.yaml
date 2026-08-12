@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.press.feed
-  family: world.press
-  label: News Ticker
-  description: The staff→player broadcast feed (the news ticker) — operator changelogs, decisions, events, and notices fanned out as pins-first, recency-ordered rows. An OOC-public surface, identical for every viewer (no per-viewer lensing); deltas ride `upsert`/`remove`/`snapshot` payloads, the initial window arriving on connect via the welcome payload.

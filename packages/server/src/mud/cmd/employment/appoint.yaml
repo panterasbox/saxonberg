@@ -34,8 +34,7 @@ args:
     type: object
     required: true
     scope: "online"
-    validators:
-      - /lib/command/validators/mustBeAgent
+    requires: class:Agent
     onExcess: prompt
   - name: position
     type: string

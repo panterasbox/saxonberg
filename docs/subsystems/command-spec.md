@@ -535,6 +535,104 @@ Bare names and package specifiers are rejected. The path tells you
 exactly where the validator lives — there's no registry, no implicit
 search paths.
 
+#### ⭐ `requires:` — every object field states what it accepts
+
+> **Every `type: object` / `type: objects` field declares
+> `requires:`.** CI-gated by `pnpm lint:arg-kinds --lint`.
+
+```yaml
+args:
+  - name: target
+    type: object
+    requires: SealableMixin                     # must compose it
+  - name: item
+    requires: [VisibleMixin, ContainableMixin]  # a list is AND
+  - name: fuel
+    requires: CombustibleMixin|FurnaceMixin     # `|` inside an entry is OR
+  - name: victim
+    requires: class:Agent                       # the one class escape
+  - name: thing
+    requires: any                               # deliberately unconstrained
+```
+
+The name is a **mixin** from the `Mixins` registry in `lib/mixin.ts`.
+The framework synthesises the check at spec-load and prepends it to the
+slot's validator chain; the refusal sentence comes from `MixinRefusals`
+in the same file, where `{}` stands for the target's presentation.
+
+⚠⚠ **If you name a mixin with no phrase, the build fails and tells you
+the line to add.** `MixinRefusals` is partial — most mixins are never
+required by a spec — so nothing in the type system catches "constraint
+added, words not". `lint:arg-kinds --lint` does. At runtime a missing
+phrase would degrade to a generic sentence rather than break the verb;
+at build it is refused, because a `requires:` is a refusal players hit,
+and one they cannot act on is a dead end.
+
+This exists because the affordance resolver offers a verb whenever its
+operand binds and its field validators pass. A verb whose real refusal
+lives in its **controller** therefore advertises itself against targets
+it cannot act on — and the client cannot filter that out, because it is
+forbidden from re-deriving semantics. A wrong figure on the wire is a
+wrong figure on screen.
+
+##### The three axes — `requires:` is only the first
+
+| Axis | Constrains | Where it lives |
+|---|---|---|
+| **kind** | what the target **is** | `requires:` on the slot |
+| **relation** | the viewer's **relationship** to it | a validator (`canReach`, `mustBeInInventory`, `mustBeHeld`) |
+| **state** | its **current condition** — already open, unlit, uncharged | the **controller**, permanently |
+
+A slot may declare `requires:` **and** carry validators — that is the
+normal shape when a condition goes beyond composition. `eat` declares
+`VisibleMixin` and keeps `mustBeEdible`, which asks a question
+composition cannot answer: the target's bulk **Material** must declare
+`edibility`. `drink` is the same shape with `mustHaveBulkSlot` — a
+thing can compose `BulkableMixin` and still expose no slot, so the
+refusal is `BulkableApi.slotFor(x) === null`, not the mixin.
+
+⚠ The **state** axis is deliberately excluded. A thing unlit now is
+ignitable a second later; freezing that into a greyed-out menu row
+would be wrong within the second. State refusals belong to the
+controller where they can change.
+
+⚠ Composition, not **activation**. The check is `MixinApi.hasMixin`, so
+a capability that must be *active* (augment-conferred) keeps a
+validator.
+
+##### ⚠⚠ A validator may only state a refusal the controller makes
+
+Where a validator survives, it and the controller must share **one
+predicate** — the validator is *extracted* from the controller's guard,
+and the controller then uses it. A restatement in different words is a
+second source of truth whose drift is invisible: the menu says yes, the
+verb says no.
+
+⚠ **A wrong declaration is worse than a missing one.** Over-reporting
+offers a verb that then declines with a reason; **under-reporting hides
+a verb that would have worked**, and the player cannot discover it.
+
+##### `requires: any` — declared, not omitted
+
+Genuinely unconstrained slots declare it **at the site**, the way
+`@hook` does, rather than sitting in a central exemption list. A
+missing `requires:` is an error, never silently the same thing — which
+is exactly what the predecessor `targetKind: any` marker could not
+manage, since an unfalsifiable promise is indistinguishable from a
+correct one. (Three of its fifty uses were wrong.)
+
+Legitimate uses: wizard verbs (`destruct`, `goto`, `eval --on`), MQL
+selectors (`--mql` on the shell verbs), perception verbs that branch on
+mixins to enrich output but refuse nothing by kind, and slots whose
+refusal belongs to something else entirely (`cast`'s target is decided
+by the **spell**).
+
+⚠ Never declare `any` on a field whose controller **does** refuse by
+kind. If the controller refuses on a *class*, that is usually a sign
+the capability wants extracting into a mixin — `PlantableMixin` is the
+worked example, taken out of `instanceof Seed` when the menu started
+offering `plant` on a rock.
+
 #### Why validators are mandatory on object-acting verbs
 
 **`scope:` is a search hint, not a security gate.** The MQL grammar
@@ -1010,7 +1108,7 @@ export class OpenController extends CommandController<OpenModel> {
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.world.perception.look)
+        .topic(MessageApi.Topics.sense.look)
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({
@@ -1064,7 +1162,7 @@ signal for bots / scripting / replay. See
   bound Stuff isn't Containable is a programming bug; "you don't
   see it here" is player input. The `_executeOne` boundary catches
   throws and emits a `controller-error { controller, detail }`
-  note that auto-proses on `system.command.error`.
+  note that auto-proses on `shell.error`.
 
 ### Subcommanded controllers
 
@@ -1079,7 +1177,7 @@ execute(model: PlayerModel, context: CommandContext): void {
     case 'show':     return this.executeShow(model, context);
     default:
       MessageApi.scene(context.commandGiver)
-        .topic(MessageApi.Topics.system.shell.help)
+        .topic(MessageApi.Topics.shell.result)
         .toSelf(Mml.compose`try \`player show\` to see usage`)
         .send();
       context.note({
@@ -1118,7 +1216,7 @@ a failure note speak for itself.
 #### 2. Player-facing failure
 
 Fire a Scene that explains *why* (using the same topic the success
-path would have used — `world.perception.look`, `world.speech.say`,
+path would have used — `sense.look`, `speech.vocal`,
 etc.) AND emit a `controller-rejected { reason, detail? }` note.
 The `reason` is an open-enum domain code (`target-not-found`,
 `target-not-visible`, `already-open`, `cant-afford`,
@@ -1127,7 +1225,7 @@ bot/script consumers that don't want to map enum codes to text.
 
 Example — `LookController`'s non-Visible target path fires
 `Mml.compose\`You can't see ${name}.\`` on
-`world.perception.look` AND `ctx.note({ kind:
+`sense.look` AND `ctx.note({ kind:
 'controller-rejected', reason: 'target-not-visible', detail: name })`.
 
 #### 3. Silent success
@@ -1148,7 +1246,7 @@ in command-routing.md.
 
 A throw inside `execute` bubbles to `_executeOne`'s boundary,
 which catches it and emits a `controller-error { controller,
-detail }` note (which auto-proses on `system.command.error` via
+detail }` note (which auto-proses on `shell.error` via
 the dispatcher's framework-failure sweep). Use this for cases
 that shouldn't happen: a `Mobile` mover that isn't `Containable`,
 a `target.stuff` that fails an `instanceof` narrow that the
@@ -1306,7 +1404,7 @@ reloaded definition. For most dev workflows, "edit YAML →
 container" is the round-trip.
 
 Wiring full HMR for command YAMLs (file-watcher → invalidate →
-broadcast `system.commands.reset`) is a future task.
+broadcast `shell.control` (`schema:reset`)) is a future task.
 
 ## Testing
 

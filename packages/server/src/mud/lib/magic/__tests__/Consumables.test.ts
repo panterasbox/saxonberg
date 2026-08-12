@@ -13,6 +13,7 @@
  * AC 5c — no affordance varies with hidden state (D34).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -144,7 +145,9 @@ function makeScroll(spellId: string): Scroll {
  * collector walks the whole chain and unions. Asserting the static
  * would be asserting an implementation detail — and the wrong one.
  */
-function scrollContributions(bucket: 'inventory'): CommandDefinition[] {
+function scrollContributions(
+  bucket: 'self' | 'inventory' | 'environment' | 'peers',
+): CommandDefinition[] {
   return CommandApi.collectContributions(Scroll, bucket);
 }
 
@@ -309,8 +312,10 @@ describe('Wave 2 — consumables', () => {
     // ones on the class object — but the runtime collector walks the
     // whole mixin chain and unions them, which is what actually
     // determines a scroll's affordances.
+    // A held scroll grants OUTWARD to its holder, so its verbs live in
+    // the `environment` bucket under the directional model.
     const verbs = new Set(
-      scrollContributions('inventory').flatMap((d) => d.verbs),
+      scrollContributions('environment').flatMap((d) => d.verbs),
     );
     // `read` from MarkedMixin, `label` from LabelledMixin. Each written
     // ONCE, on its capability — the scroll declares neither.

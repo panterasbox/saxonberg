@@ -10,6 +10,7 @@
  * materials are registered at their paths so `singleton` resolves them.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../../../api/crafting';
 import type { CraftRequest } from '../../../api/crafting';

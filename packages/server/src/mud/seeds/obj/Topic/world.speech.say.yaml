@@ -1,8 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.speech.say
-  communicative: true
-  family: world.speech
-  label: Say
-  description: A character speaks aloud to everyone in the room. The voice carries to anyone present.

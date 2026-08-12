@@ -5,6 +5,7 @@
  * (`setCondition`) reverses it with no residue.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { AppApi } from '../../../api/app';
 import ToolItem from '../../../obj/ToolItem';

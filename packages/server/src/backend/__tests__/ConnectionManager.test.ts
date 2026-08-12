@@ -7,6 +7,7 @@
  * machinery — the manager's responsibility is the map.
  */
 
+import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConnectionManager } from '../ConnectionManager';
 import { StuffApi } from '../../mud/api/stuff';

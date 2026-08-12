@@ -10,6 +10,7 @@
  * would deny) or without the Layer-4 backstop (the smuggle would pass).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import {
@@ -35,7 +36,7 @@ class Listener extends SensorMixin(Idea) {
 function frame(body: string): MessageFrame {
   return {
     id: 'f1',
-    topic: 'world.speech.dm',
+    topic: 'speech.comms',
     body,
     meta: { timestamp: Date.now() },
   } as MessageFrame;

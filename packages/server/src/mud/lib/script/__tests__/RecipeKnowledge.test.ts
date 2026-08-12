@@ -16,6 +16,7 @@
  * derives over).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { RecipeKnowledge } from "../RecipeKnowledge";
 import { ChronicleApi } from "../../../api/chronicle";

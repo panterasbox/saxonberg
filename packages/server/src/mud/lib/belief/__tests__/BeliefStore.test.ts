@@ -3,6 +3,7 @@
  * upsert, partial/total forget, instance+type coexistence, liveness-GC.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   BeliefStoreMixin,

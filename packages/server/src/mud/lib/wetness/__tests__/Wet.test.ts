@@ -5,6 +5,7 @@
  * player. See docs/subsystems/weather.md.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../stuff/Thing';
 import { Vessel } from '../../stuff/Vessel';

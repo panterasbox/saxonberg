@@ -30,9 +30,9 @@ import { expandReactors } from "../store/reactionActions";
 
 /** Topics whose frames are reactable acts (mirrors REACTABLE_TOPICS). */
 const REACTABLE_PREFIXES = [
-  "world.speech.",
-  "world.expression.emote",
-  "world.chat.message",
+  "speech.",
+  "act.emote",
+  "speech.channel",
 ];
 
 function isReactableTopic(topic: string): boolean {
@@ -268,7 +268,7 @@ export function ReactionBar({
   }
 
   // `social.react.muteChannels` — no reaction widgets on chat lines.
-  if (prefs.muteChannels && frame.topic.startsWith("world.chat.message")) {
+  if (prefs.muteChannels && frame.topic.startsWith("speech.channel")) {
     return null;
   }
 

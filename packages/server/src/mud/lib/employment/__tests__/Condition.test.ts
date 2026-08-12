@@ -6,6 +6,7 @@
  * creature-ancestor strict-possession refusal).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Condition } from "../Condition";
 import type { ConditionData } from "../Condition";

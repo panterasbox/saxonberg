@@ -2,6 +2,7 @@
  * ContactsMixin tests — flat-set CRUD, label-derived views, rename/clear.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { ContactsMixin, type ContactEntry } from '../Contacts';
 import { Idea } from '../../stuff/Idea';

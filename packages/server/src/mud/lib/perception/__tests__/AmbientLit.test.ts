@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AmbientLitMixin } from '../AmbientLit';
 import { Idea } from '../../stuff/Idea';

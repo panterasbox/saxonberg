@@ -24,9 +24,8 @@ import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
 import { AdvancementApi } from '../../../api/advancement';
 import { PLANT_SLOT } from '../../../lib/husbandry/Cultivable';
-import Plant from '../../Plant';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface RepotModel extends CommandModel {
   plant: MqlOneResult;
@@ -64,10 +63,24 @@ export default class RepotController extends CommandController<RepotModel> {
       return;
     }
 
-    if (!(subject instanceof Plant)) {
+    /*
+     * ⭐ The capabilities, not the class — see HarvestController.
+     *
+     * ⚠ Repotting needs THREE, and the spec declares the same three:
+     * the thing must grow (`Growing`), must sit in a slot so it can be
+     * lifted out of one bed and set in another (`Slottable`), and must
+     * be movable at all (`Containable`). `instanceof Plant` bundled all
+     * three behind one class and said none of them — which is exactly
+     * why the arg's declaration and the controller's guard could drift.
+     */
+    if (
+      !MixinApi.isGrowing(subject) ||
+      !MixinApi.isSlottable(subject) ||
+      !MixinApi.isContainable(subject)
+    ) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(subject)} isn't a plant.`)
+        .toSelf(Mml.compose`${Mml.thing(subject)} isn't a plant.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -79,7 +92,7 @@ export default class RepotController extends CommandController<RepotModel> {
     if (!MixinApi.isCultivable(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You can't plant anything in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`You can't plant anything in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -93,7 +106,7 @@ export default class RepotController extends CommandController<RepotModel> {
     if (origin === target) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.item(subject)} is already in that pot.`)
+        .toSelf(Mml.compose`${Mml.thing(subject)} is already in that pot.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -106,7 +119,7 @@ export default class RepotController extends CommandController<RepotModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} has no soil in it. Pour some in first.`,
+          Mml.compose`${Mml.thing(target)} has no soil in it. Pour some in first.`,
         )
         .send();
       context.note({
@@ -120,7 +133,7 @@ export default class RepotController extends CommandController<RepotModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} already has something growing in it.`,
+          Mml.compose`${Mml.thing(target)} already has something growing in it.`,
         )
         .send();
       context.note({
@@ -135,7 +148,7 @@ export default class RepotController extends CommandController<RepotModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`${Mml.item(target)} is too small for ${Mml.item(subject)} — its roots need more room than that.`,
+          Mml.compose`${Mml.thing(target)} is too small for ${Mml.thing(subject)} — its roots need more room than that.`,
         )
         .send();
       context.note({
@@ -186,10 +199,10 @@ export default class RepotController extends CommandController<RepotModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You lift ${Mml.item(subject)} clear, roots and all, and settle it into ${Mml.item(target)}.`,
+        Mml.compose`You lift ${Mml.thing(subject)} clear, roots and all, and settle it into ${Mml.thing(target)}.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} repots ${Mml.item(subject)} into ${Mml.item(target)}.`,
+        Mml.compose`${Mml.actor(giver)} repots ${Mml.thing(subject)} into ${Mml.thing(target)}.`,
       )
       .send();
   }

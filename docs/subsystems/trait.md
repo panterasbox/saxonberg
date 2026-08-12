@@ -176,3 +176,41 @@ drift-inertia (the normalized-position variant); full-surface
 disposition-valence authoring (only a starter set rides authored
 `ActSignature`s today); npc-dialogue voice-from-traits (consumes the
 readable trait-position).
+
+
+## The standing witness
+
+After each append is persisted, the ledger calls
+**`MqlSubscriptionApi.notifyDurableSubject(subject)`** — a direct method
+call on the one consumer that cares.
+
+Every standing here derives on read, which works fine for a verb (you
+ask, it computes) and not at all for a **live figure on a client**,
+which has to learn its number changed without asking. This is that seam.
+
+⚠ **It is deliberately NOT an `EventApi` broadcast.** The bus is for
+genuinely global signals with unknown consumers; this has exactly one
+known consumer, so it is a method call. An earlier cut of this build did
+mint a bus event per ledger — six classes — and they were not merely
+redundant, they were **wired to nothing**: the dependency index cannot
+match a durable `templatePath` through a `ChangeSource`. See
+[mql-subscription.md](./mql-subscription.md).
+
+⚠ **After the write, never before.** A consumer that recomputes must not
+read a ledger missing the row it was just told about.
+
+## ⚠ Trait position and the live dashboard
+
+Trait position is **not** a subscribable standing figure, and that is a
+design constraint rather than an oversight — see
+[mql-subscription.md](./mql-subscription.md) and
+`docs/slates/builds/psychology-slate.md`. The vocation rests on
+**self-other asymmetry**: you cannot read yourself, another person can,
+which is *why the profession exists*.
+
+⚠ **The `traits` and `score` verbs do self-report today.** That predates
+the psychology slate's framing and contradicts its stated premise that
+"the engine derives `TraitPosition` and shows nobody, so privacy is
+free." Whether those verbs keep self-reporting is a **product decision
+the psychology build has to make**; it is called out here so it is
+found deliberately rather than rediscovered.

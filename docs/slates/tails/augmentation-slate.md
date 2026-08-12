@@ -9,6 +9,16 @@
 > See [docs/subsystems/augmentation.md](../../subsystems/augmentation.md)
 > for the shipped doc. Wave 2+ items below remain.
 
+> **Audit 2026-08-08 — Wave 2 verified untouched.** Checked against the
+> tree when GitLab #12 was closed here: `cmd/medical/` contains only
+> `treat.yaml` and `undress.yaml`, and there is no augment install/remove
+> procedure anywhere. So the whole Wave 2+ scope below carries intact —
+> the medical install/remove procedure, char-gen loadout, additional
+> augment Stuff (translation, prosthetics, sensor / motor / cognitive
+> packages), and the failure / hacking modes. Nothing to reconcile; this
+> banner exists so the next reader knows the list was checked rather than
+> assumed.
+
 Working slate for **augmentation** — how an avatar acquires capabilities
 its species didn't give it: sensors, limbs, organs, cognition. We
 reached for it earlier than planned because comms/emotes/senses now
@@ -56,7 +66,7 @@ See also:
   [docs/slates/emotes-slate.md](../tails/emotes-slate.md) — the baseline implant
   carries DM/chat (verbal) + emote perception (emotive). The DM-as-
   tutorial on-ramp.
-- [docs/slates/vitals-slate.md](../builds/vitals-slate.md) — **install/remove is
+- [vitals-slate.md](./vitals-slate.md) — **install/remove is
   a medical procedure** (surgery); **replace** augments are prosthetics
   for lost limbs/organs; organ *condition* modulates an augment.
 - [docs/slates/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md) —

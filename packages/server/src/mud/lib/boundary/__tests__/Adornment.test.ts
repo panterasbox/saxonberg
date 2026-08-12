@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import Thing from '../../stuff/Thing';
 import { AdornmentMixin } from '../Adornment';

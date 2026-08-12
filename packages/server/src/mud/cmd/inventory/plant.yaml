@@ -22,12 +22,10 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
+    requires: [VisibleMixin, PlantableMixin]
   - name: pot
     type: object
     required: true
     scope: "reachable"
     prepositions: [in, into]
-    validators:
-      - /lib/command/validators/mustBeVisible
+    requires: [VisibleMixin, CultivableMixin]

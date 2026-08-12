@@ -30,7 +30,7 @@ import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { EmploymentApi } from '../../../api/employment';
 
-const TOPIC = 'system.employment';
+const TOPIC = 'shell.result';
 
 interface AppointModel extends CommandModel {
   /** The resolved appointee (MQL `scope: online`). */

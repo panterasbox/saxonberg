@@ -2,6 +2,7 @@
  * PropertiedMixin tests
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Idea } from '../Idea';
 import {

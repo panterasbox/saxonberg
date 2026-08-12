@@ -4,13 +4,14 @@
  * Covers:
  *   - renderEmote returns per-audience bodies with correct actor/target
  *     pronouns and verb agreement.
- *   - emote() composes a Scene at world.expression.emote with the
+ *   - emote() composes a Scene at act.emote with the
  *     emotive-esp modality stamp.
  *   - emoteFree() free-form prose.
  *   - Containable-wins routing (peers when containable, contents when
  *     pure-container).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
@@ -63,7 +64,13 @@ describe('SoulMixin.renderEmote', () => {
     alice.setName('Alice');
     const bodies = alice.renderEmote(waveEmote());
     expect(bodies.self.toString()).toBe('You wave.');
-    expect(bodies.peer.toString()).toMatch(/^<name[^>]*>Alice<\/name> waves\.$/);
+    // ⚠ `<thing>`, not `<player>`, and that is the fixture talking:
+    // these doubles are bare `Idea`s composing no `Organism`, so
+    // `Mml.actor` resolves them honestly rather than promoting them to
+    // people. A live Avatar composes both and renders `<player>` — see
+    // `recognition.kindOf.test.ts`, which is where that contract is
+    // pinned.
+    expect(bodies.peer.toString()).toMatch(/^<thing[^>]*>Alice<\/thing> waves\.$/);
     expect(bodies.target).toBeUndefined();
   });
 
@@ -73,14 +80,14 @@ describe('SoulMixin.renderEmote', () => {
     const iffy = makeStuff(() => new Listener());
     iffy.setName('Iffy');
     const bodies = alice.renderEmote(waveEmote(), { target: iffy });
-    expect(bodies.self.toString()).toMatch(/^You wave at <name[^>]*>Iffy<\/name>\.$/);
-    expect(bodies.peer.toString()).toMatch(/^<name[^>]*>Alice<\/name> waves at <name[^>]*>Iffy<\/name>\.$/);
-    expect(bodies.target!.toString()).toMatch(/^<name[^>]*>Alice<\/name> waves at you\.$/);
+    expect(bodies.self.toString()).toMatch(/^You wave at <thing[^>]*>Iffy<\/thing>\.$/);
+    expect(bodies.peer.toString()).toMatch(/^<thing[^>]*>Alice<\/thing> waves at <thing[^>]*>Iffy<\/thing>\.$/);
+    expect(bodies.target!.toString()).toMatch(/^<thing[^>]*>Alice<\/thing> waves at you\.$/);
   });
 });
 
 describe('SoulMixin.emote', () => {
-  it('composes a Scene at world.expression.emote with emotive-esp modality', () => {
+  it('composes a Scene at act.emote with emotive-esp modality', () => {
     const room = makeStuff(() => new Location());
     const alice = makeStuff(() => new CharacterStuff());
     alice.setName('Alice');
@@ -93,7 +100,7 @@ describe('SoulMixin.emote', () => {
     expect(alice.received).toHaveLength(1);
     expect(bob.received).toHaveLength(1);
     for (const f of [alice.received[0]!, bob.received[0]!]) {
-      expect(f.topic).toBe('world.expression.emote');
+      expect(f.topic).toBe('act.emote');
       expect(f.meta.modality).toBe('emotive-esp');
     }
     expect(alice.received[0]!.payload).toMatchObject({
@@ -131,7 +138,7 @@ describe('SoulMixin.emoteFree', () => {
     alice.emoteFree('shuffles a deck of cards');
 
     expect(alice.received[0]!.body).toBe('You shuffles a deck of cards.');
-    expect(bob.received[0]!.body).toMatch(/<name[^>]*>Alice<\/name> shuffles a deck of cards\./);
+    expect(bob.received[0]!.body).toMatch(/<thing[^>]*>Alice<\/thing> shuffles a deck of cards\./);
   });
 
   it('resolves `@mention` syntax inside the body to <mention> tags', () => {

@@ -40,7 +40,7 @@ export default class CloseController extends CommandController<CloseModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Close what?`)
         .send();
       context.note({
@@ -52,7 +52,7 @@ export default class CloseController extends CommandController<CloseModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({
@@ -74,7 +74,7 @@ export default class CloseController extends CommandController<CloseModel> {
     );
     if (!sealable) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You can't close that.`)
         .send();
       context.note({
@@ -87,7 +87,7 @@ export default class CloseController extends CommandController<CloseModel> {
 
     if (!sealable.isOpen()) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`It is already closed.`)
         .send();
       context.note({
@@ -101,10 +101,10 @@ export default class CloseController extends CommandController<CloseModel> {
     sealable.close();
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
-      .toSelf(Mml.compose`You close ${Mml.object(sealable as unknown as Stuff)}.`)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You close ${Mml.thing(sealable as unknown as Stuff)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} closes ${Mml.object(sealable as unknown as Stuff)}.`,
+        Mml.compose`${Mml.actor(commandGiver)} closes ${Mml.thing(sealable as unknown as Stuff)}.`,
       )
       .send();
 

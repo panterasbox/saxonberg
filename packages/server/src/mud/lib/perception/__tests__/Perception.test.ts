@@ -6,6 +6,7 @@
  * the bare-mixin contract (input == output, profile is null).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionMixin } from '../Perception';
 import { Idea } from '../../stuff/Idea';

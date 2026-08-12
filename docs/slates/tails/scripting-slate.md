@@ -3,9 +3,9 @@
 > **Status: v1 engine SHIPPED (2026-06)** → graduated to
 > [scripting.md](../../subsystems/scripting.md). A **purpose-built scripting
 > language** — our grammar, our semantics — is the medium for procedural
-> content behavior. It promotes [npc-behavior-slate](./npc-behavior-slate.md)'s
+> content behavior. It promotes [npc-behavior-slate](../builds/npc-behavior-slate.md)'s
 > deferred `scripted-behavior` tail to a first-class subsystem, and it's the
-> language the [LLM director](./llm-content-slate.md) authors in. It is the
+> language the [LLM director](../builds/llm-content-slate.md) authors in. It is the
 > **special** language (reaches only what the grammar grants), distinct from
 > the **general** TS `EvalScript` (reaches everything). The block /
 > execution-model / `( )` sublanguage / scope forks this slate framed are all
@@ -42,7 +42,7 @@ The load-bearing decisions:
 
 2. **It conducts the verb bus; it doesn't bypass it.** A statement like
    `say "..."` or `pour mug` is a **gated dispatch as the actor** — on the
-   bus, attributed, permission-checked (and when the [director](./llm-content-slate.md)
+   bus, attributed, permission-checked (and when the [director](../builds/llm-content-slate.md)
    forces, force stays bounded by the *target's* perms). The language is a
    sequencing + control-flow layer **over** dispatch, never a side door
    around it. The whole command-security model survives unchanged. See
@@ -65,7 +65,7 @@ The load-bearing decisions:
    re-invokes the LLM mid-script for a line it didn't pre-write. This unifies
    the two extremes as **one knob**: a script that's all `improv` is the live
    per-beat loop; a script with none is pure choreography. The
-   [director](./llm-content-slate.md) dials the ratio.
+   [director](../builds/llm-content-slate.md) dials the ratio.
 
 6. **Humans author it too — the LLM is just its most prolific author.** It is
    *the* content-scripting language, not an LLM output format. This collapses
@@ -73,17 +73,17 @@ The load-bearing decisions:
    scripted rung**, with `improv` for the generative beats — exactly the
    slate's "scripting and LLM aren't a separate paradigm." It sits at the
    **wizard/code tier** of the authoring ladder
-   ([scoped-authoring-slate](./scoped-authoring-slate.md)), with authoring
-   intelligence ([authoring-intelligence-slate](./authoring-intelligence-slate.md))
+   ([scoped-authoring-slate](../builds/scoped-authoring-slate.md)), with authoring
+   intelligence ([authoring-intelligence-slate](../builds/authoring-intelligence-slate.md))
    over it.
 
 See also:
 
-- [npc-behavior-slate.md](./npc-behavior-slate.md) — defers exactly this
+- [npc-behavior-slate.md](../builds/npc-behavior-slate.md) — defers exactly this
   ("Scripting itself … the deferred scripting work"; the `scripted-behavior`
   brain; open Q4). This slate is that tail, promoted. A script is a brain's
   code-tier config.
-- [llm-content-slate.md](./llm-content-slate.md) — *who* authors scripts at
+- [llm-content-slate.md](../builds/llm-content-slate.md) — *who* authors scripts at
   runtime (the director) and *how they're enacted* (force over the verb bus).
   This slate is the language they're written in.
 - [shell-author.md](../../subsystems/shell-author.md) — the existing
@@ -118,7 +118,7 @@ See also:
 
 This slate's "next conversation" (*what needs we have around scripting*) has its
 first concrete, bounded answer, and it's the **gentlest rung the language could
-launch on.** In [Dave's Bar](./daves-bar-slate.md), a player learns a cocktail
+launch on.** In [Dave's Bar](../builds/daves-bar-slate.md), a player learns a cocktail
 by **making it once for real** (programming by demonstration): the sequence of
 verbs they perform — `pour gin into shaker` · `add vermouth` · `stir` ·
 `strain into glass` · `garnish with olive` · `serve` — is **banked as a named
@@ -400,10 +400,10 @@ What remains open:
 ## What this slate does NOT cover (yet)
 
 - **Who drives at runtime** (the director, force, scenes) →
-  [llm-content-slate.md](./llm-content-slate.md).
+  [llm-content-slate.md](../builds/llm-content-slate.md).
 - **The brain ladder / `Behaved` / engagement** →
-  [npc-behavior-slate.md](./npc-behavior-slate.md).
+  [npc-behavior-slate.md](../builds/npc-behavior-slate.md).
 - **Authoring intelligence over the language** (completions, diagnostics) →
-  [authoring-intelligence-slate.md](./authoring-intelligence-slate.md).
+  [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md).
 - **The concrete grammar** — deliberately open; that's the next conversation
   ("what needs we have around scripting").

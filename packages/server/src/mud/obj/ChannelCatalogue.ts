@@ -313,7 +313,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
     const reactionScope =
       'channel:' + (subject?.getGroupRef() || channelId);
-    const speakerName = Mml.name(speaker);
+    const speakerName = Mml.actor(speaker);
     const safeBody = Mml.markdownToMml(
       body,
       Mml.perceiverMentionResolver(speaker),
@@ -323,7 +323,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const peerBody = Mml.compose`[${channel.name}] ${speakerName}: ${safeBody}`;
 
     MessageApi.scene(speaker)
-      .topic('world.chat.message')
+      .topic('speech.channel')
       .modality('verbal-esp')
       .meta({ channelId })
       .toSelf(selfBody)
@@ -366,7 +366,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       if (!MixinApi.isSensor(a)) continue;
       MessageApi.sendMessage(a, {
         id: SecurityApi.uuid(),
-        topic: 'world.chat.message',
+        topic: 'speech.channel',
         tags: ['audience:witness'],
         body: peerBody.toString(a),
         meta: { ...baseMeta },
@@ -376,7 +376,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
     this.appendToHistory(channelId, {
       id: SecurityApi.uuid(),
-      topic: 'world.chat.message',
+      topic: 'speech.channel',
       tags: ['audience:witness'],
       body: selfBody.toString(speaker),
       meta: { ...baseMeta },

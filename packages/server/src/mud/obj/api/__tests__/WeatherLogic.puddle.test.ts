@@ -7,6 +7,7 @@
  * weather→bulk→electricity loop) with no new glue.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';
@@ -144,7 +145,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
     expect(surfaceL(floor)).toBe(0);
 
     WeatherApi._forceTypeForTesting('rain');
-    WeatherApi.onBoundary();
+    await WeatherApi.onBoundary();
     await flush();
 
     expect(surfaceL(floor)).toBeGreaterThan(0);
@@ -158,7 +159,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
     await occupy(room);
     WeatherApi._forceTypeForTesting('rain');
     for (let i = 0; i < 5; i++) {
-      WeatherApi.onBoundary();
+      await WeatherApi.onBoundary();
       await flush();
     }
     expect(surfaceL(floor)).toBeLessThanOrEqual(20 + 1e-9);
@@ -175,7 +176,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
     await occupy(room);
 
     WeatherApi._forceTypeForTesting('clear');
-    WeatherApi.onBoundary();
+    await WeatherApi.onBoundary();
     await flush();
 
     expect(surfaceL(floor)).toBeLessThan(30);
@@ -189,7 +190,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
     await occupy(room);
     expect(BiomeApi.isSkyExposed(room)).toBe(false);
 
-    WeatherApi.onBoundary();
+    await WeatherApi.onBoundary();
     await flush();
 
     expect(surfaceL(floor)).toBeGreaterThan(0);
@@ -202,7 +203,7 @@ describe('Weather → Floor puddle (Phase D)', () => {
     WeatherApi._forceTypeForTesting('rain');
     // Fill the pool over a few segments.
     for (let i = 0; i < 3; i++) {
-      WeatherApi.onBoundary();
+      await WeatherApi.onBoundary();
       await flush();
     }
     expect(surfaceL(floor)).toBeGreaterThan(0);

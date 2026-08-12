@@ -1,21 +1,32 @@
 /**
- * ViewsMenu — the always-on cockpit-layout switcher.
+ * ViewsMenu — the always-on cockpit-view switcher.
  *
  * A small "Views" dropdown in the fixed chrome. Per the click model it
- * is pure command-bus sugar: hovering an item previews `layout <name>`
- * in the ghost line, clicking sends it. The server is authoritative —
- * the menu never sets layout locally; it reads the current layout from
- * `cockpit.layout` to mark the active item, and the actual switch lands
- * via the `client-state-update` the `layout` verb pushes back.
+ * is pure command-bus sugar: hovering an item previews the command in
+ * the ghost line, clicking sends it. The server is authoritative — the
+ * menu never sets anything locally; it reads `cockpit.layout` to mark
+ * the active item, and the switch lands via the `client-state-update`
+ * the verb pushes back.
  *
- * The menu noun ("Views") and the verb (`layout`) intentionally differ:
- * "Views" is newcomer-legible, `layout` pairs with `style` in the
- * cockpit-config verb family. The first use teaches the verb.
+ * ⚠ Each item sends `cockpit mode <mode> <arrangement>` — ONE command,
+ * because the cockpit now has two axes and a menu item means a point on
+ * both. Sending two commands per click would break the rule that every
+ * clickable previews exactly what it sends.
+ *
+ * ⚠ The items are still keyed by legacy `LayoutName` because the frame
+ * this menu drives still swaps off `cockpit.layout`. That key is a
+ * compatibility projection of (mode, arrangement) and dies with the
+ * client overhaul, at which point this menu should offer the modes
+ * directly and let the arrangement list follow the chosen mode.
  */
 
 import React, { useState } from "react";
 import styled from "styled-components";
-import { LAYOUT_NAMES, type LayoutName } from "@saxonberg/types";
+import {
+  LAYOUT_NAMES,
+  LEGACY_LAYOUT_MIGRATION,
+  type LayoutName,
+} from "@saxonberg/types";
 import { LAYOUT_REGISTRY } from "../layouts";
 import { tokens } from "./ui";
 
@@ -57,7 +68,7 @@ const Menu = styled.ul`
   background: ${tokens.color.surfaceSunken};
   border: 1px solid ${tokens.color.borderEmphasis};
   border-radius: ${tokens.radius.sm};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px ${tokens.color.shadow};
 `;
 
 const Item = styled.li<{ $active: boolean }>`
@@ -129,7 +140,8 @@ export function ViewsMenu({
       {open ? (
         <Menu data-testid="views-menu">
           {LAYOUT_NAMES.map((name) => {
-            const cmd = `layout ${name}`;
+            const { mode, arrangement } = LEGACY_LAYOUT_MIGRATION[name];
+            const cmd = `cockpit mode ${mode} ${arrangement}`;
             return (
               <Item
                 key={name}

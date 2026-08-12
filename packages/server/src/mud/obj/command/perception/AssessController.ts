@@ -26,7 +26,7 @@ import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../api/stuff';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface AssessModel extends CommandModel {
   target?: MqlOneResult;
@@ -87,7 +87,7 @@ export default class AssessController extends CommandController<AssessModel> {
     if (!MixinApi.isVitals(target)) {
       return this.fail(
         context,
-        `You can't assess ${Mml.item(target).toString()}.`,
+        `You can't assess ${Mml.thing(target).toString()}.`,
         'not-a-body'
       );
     }

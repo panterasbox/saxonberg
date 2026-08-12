@@ -10,6 +10,7 @@
  *     it fails earlier than VocalMixin's intended throw.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
@@ -68,7 +69,7 @@ describe('VocalMixin.say()', () => {
 
       expect(bob.received).toHaveLength(1);
       expect(bob.received[0]!.body).toBe(
-        `<name stuff-id="${alice.stuffId}">Alice</name> says, <speech>"hello"</speech>`
+        `<thing stuff-id="${alice.stuffId}">Alice</thing> says, <speech>"hello"</speech>`
       );
       // Speaker hears its own self frame: "You say, ..."
       expect(alice.received).toHaveLength(1);
@@ -93,7 +94,7 @@ describe('VocalMixin.say()', () => {
       // Casual register — surname not included; use `obj.getFullName()`
       // to get "Haunted House".
       expect(occupant.received[0]!.body).toBe(
-        `<name stuff-id="${house.stuffId}">Haunted</name> says, <speech>"get out"</speech>`
+        `<thing stuff-id="${house.stuffId}">Haunted</thing> says, <speech>"get out"</speech>`
       );
     });
   });

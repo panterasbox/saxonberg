@@ -13,6 +13,7 @@
  *    Slotted cleanup vacates the slot — both fire correctly.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

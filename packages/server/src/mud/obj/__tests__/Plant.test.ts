@@ -12,6 +12,7 @@
  * exercised by the Duncan Hall integration test.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Plant from '../Plant';
 import PlantPot, { PLANT_SLOT } from '../PlantPot';

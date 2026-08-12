@@ -8,6 +8,7 @@
  * familiar-biased sampling, and TTL GC.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ReactionApi, type ReactionSink } from "../../api/reaction";
 import { EventApi } from "../../api/event";

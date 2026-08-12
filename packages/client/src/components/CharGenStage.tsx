@@ -10,7 +10,7 @@
  *      Keep / Re-roll / Type-your-own on the name step, the accumulated
  *      `picks`, and any validation `error`.
  *   2. A slim terminal strip — the Login's narration frames
- *      (`system.charactergen.welcome` et al.) scroll here, secondary.
+ *      (`session.identity` et al.) scroll here, secondary.
  *   3. The command bar — front-and-centre (CLI-as-backbone). Reuses the
  *      cockpit `CommandBar` so typed input still works and echoes; every
  *      stage affordance sends the literal `enroll <field> <value>`
@@ -21,7 +21,7 @@
  * Re-roll → `enroll name reroll`; an aspiration card → `enroll
  * aspiration healer`; the confirm button → `enroll confirm`. The server
  * owns all option computation and validation; the client only renders
- * what the `system.charactergen.state` frame carries and forwards the
+ * what the `session.identity` frame carries and forwards the
  * tokens back.
  *
  * Styling matches the cockpit's token-driven aesthetic. Weight and
@@ -423,7 +423,7 @@ const StageButton = styled.button<{ $primary?: boolean }>`
   padding: ${tokens.space.sm} ${tokens.space.xl};
   background: ${(p) =>
     p.$primary ? tokens.color.primary : tokens.color.actionBg};
-  color: ${(p) => (p.$primary ? "white" : tokens.color.fg)};
+  color: ${(p) => (p.$primary ? tokens.color.onField : tokens.color.fg)};
   border: 1px solid
     ${(p) => (p.$primary ? tokens.color.primary : tokens.color.borderEmphasis)};
   border-radius: ${tokens.radius.sm};
@@ -446,9 +446,9 @@ const StageButton = styled.button<{ $primary?: boolean }>`
 
 const ErrorBanner = styled.div`
   padding: ${tokens.space.md} ${tokens.space.xl};
-  border: 1px solid #e06c75;
+  border: 1px solid ${tokens.color.danger};
   border-radius: ${tokens.radius.sm};
-  color: #e06c75;
+  color: ${tokens.color.danger};
   font-size: ${tokens.font.small};
 `;
 

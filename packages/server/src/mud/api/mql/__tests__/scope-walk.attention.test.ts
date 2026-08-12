@@ -16,6 +16,7 @@
  * precedent).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { MqlApi } from '../../mql';
 import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';

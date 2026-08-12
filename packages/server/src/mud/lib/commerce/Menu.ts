@@ -41,9 +41,8 @@ export default class CommerceMenu extends CommerceMenuBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
+    peers: ['crafting/menu.yaml', 'crafting/order.yaml'],
     environment: ['crafting/menu.yaml', 'crafting/order.yaml'],
-    inventory: ['crafting/menu.yaml', 'crafting/order.yaml'],
-    peers: [],
   };
 
   /**

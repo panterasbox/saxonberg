@@ -1,3 +1,4 @@
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import MeasureLightController from '../MeasureLightController';
 import CartesianZone from '../../../location/CartesianZone';
@@ -86,7 +87,7 @@ describe('MeasureLightController', () => {
     );
     expect(avatar.received).toHaveLength(1);
     const frame = avatar.received[0] as { body: string };
-    expect(frame.body).toContain('<quantity unit="lux"');
+    expect(frame.body).toContain('<quantity channel="light" unit="lux"');
     expect(frame.body).toContain('value="40"');
     expect(frame.body).toContain('>40 lux</quantity>');
   });

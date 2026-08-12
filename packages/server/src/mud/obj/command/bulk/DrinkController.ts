@@ -16,7 +16,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface DrinkModel extends CommandModel {
   target: MqlOneResult;
@@ -44,7 +44,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to drink in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`There's nothing to drink in ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -103,7 +103,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
     if (result.applied <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to drink in ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`There's nothing to drink in ${Mml.thing(target)}.`)
         .send();
       return;
     }
@@ -118,7 +118,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(drunk)
-      .toPeers(Mml.compose`${Mml.name(giver)} drinks from ${Mml.item(target)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} drinks from ${Mml.thing(target)}.`)
       .send();
   }
 }

@@ -103,7 +103,7 @@ See also:
 - [docs/subsystems/quantities.md](../../subsystems/quantities.md) — every
   channel's signal is a `Quantity<U>` (lux/dB/ppm/°C…) with friendly
   tags + instrument reveal.
-- [docs/slates/vitals-slate.md](../builds/vitals-slate.md) — body temperature
+- [docs/slates/vitals-slate.md](./vitals-slate.md) — body temperature
   (thermal), and consumables/eat-drink (the taste tie).
 - [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
   **implant is an artificial sense-organ**; sensor augments *are*

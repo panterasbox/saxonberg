@@ -247,7 +247,7 @@ export default class SoulController extends CommandController<SoulModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.author')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

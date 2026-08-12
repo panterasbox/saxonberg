@@ -13,6 +13,7 @@
  *     carries the right `organizationPath` and `positionKey`.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import AppointController from '../AppointController';
 import mustHoldAppointingAuthority from '../../../../lib/command/validators/mustHoldAppointingAuthority';

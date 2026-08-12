@@ -4,6 +4,7 @@
  * and when it does not (NPC path).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';

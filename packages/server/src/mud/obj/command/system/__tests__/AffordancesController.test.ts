@@ -9,6 +9,7 @@
  * and one item-afforded verb (`help`).
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import AffordancesController from '../AffordancesController';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -32,10 +33,9 @@ const TestGiverBase = CommandGiverMixin(
 );
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
+      peers: [],
     self: ['system/ping.yaml'],
     environment: [],
-    inventory: [],
-    peers: [],
   };
   protected override handleMessage(_frame: unknown): void {
     // discard
@@ -45,10 +45,9 @@ class TestGiver extends TestGiverBase {
 const ItemBase = ContainableMixin(Idea);
 class HelpItem extends ItemBase {
   static commandContributions = {
+      peers: [],
     self: [],
-    environment: [],
-    inventory: ['system/help.yaml'],
-    peers: [],
+    environment: ['system/help.yaml'],
   };
 }
 
@@ -65,6 +64,7 @@ describe('AffordancesController', () => {
     selfBody = undefined;
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};
+      b.tags = () => b;
       b.topic = (t: string) => {
         topic = t;
         return b;
@@ -108,10 +108,10 @@ describe('AffordancesController', () => {
     ctrl.execute({} as CommandModel, ctx);
   }
 
-  it('emits on system.affordances', () => {
+  it('emits on shell.control', () => {
     const { giver } = setup();
     run(giver, giver);
-    expect(topic).toBe('system.affordances');
+    expect(topic).toBe('shell.control');
   });
 
   it('annotates innate vs item-afforded commands by source identity', () => {

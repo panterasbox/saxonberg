@@ -1,6 +1,5 @@
 /**
- * relayTemplate — relay chat frames (`world.twitch.message` /
- * `world.youtube.message`, the unified stream-chat relay).
+ * relayTemplate — relay chat frames (`speech.relay`, the unified stream-chat relay).
  *
  * A distinct, OOC/meta treatment separate from in-world chat: a
  * per-platform provenance chip (Twitch-purple / YouTube-red), the sender's
@@ -27,11 +26,12 @@ import React from "react";
 import styled from "styled-components";
 import type { Template } from "./TemplateRegistry";
 import { renderTree } from "./renderHelpers";
+import { tokens } from "../../components/ui";
 
 const SERVICE_COLOR: Record<string, string> = {
-  twitch: "#9146ff",
-  youtube: "#ff0000",
-  kick: "#53fc18",
+  twitch: tokens.brand.twitch,
+  youtube: tokens.brand.youtube,
+  kick: tokens.brand.kick,
 };
 
 const Row = styled.div`

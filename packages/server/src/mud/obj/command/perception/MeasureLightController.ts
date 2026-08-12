@@ -3,7 +3,7 @@
  *
  * Reads `vision.signalAt(loc).intensity` (a
  * `Quantity<'lux'>`) and emits a single self-frame at
- * `world.perception.measurement.measure-light` with a canonical
+ * `sense.reading` with a canonical
  * readout. Photometer hosts the verb on its `inventory` bucket — the
  * player gains `measure light` while carrying one.
  */
@@ -28,12 +28,14 @@ interface MeasureLightModel extends CommandModel {
 
 export default class MeasureLightController extends CommandController<MeasureLightModel> {
   execute(model: MeasureLightModel, context: CommandContext): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.measure-light')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'location', query: raw });
@@ -42,7 +44,7 @@ export default class MeasureLightController extends CommandController<MeasureLig
     if (!MixinApi.isContainer(target.stuff)) {
       const detail = `${target.stuff.getPresentation()} isn't a place`;
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.measure-light')
+        .topic('sense.reading')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -57,10 +59,10 @@ export default class MeasureLightController extends CommandController<MeasureLig
     const light = (vision.signalAt(loc) as Light | null) ?? Light.ZERO;
     const intensity = light.intensity;
 
-    const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml()}\n`;
+    const body = Mml.compose`light at ${Mml.location(loc)}: ${intensity.formatMml(undefined, undefined, { channel: 'light', via })}\n`;
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.measurement.measure-light')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
 

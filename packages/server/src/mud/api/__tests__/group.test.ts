@@ -1,3 +1,4 @@
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GroupApi } from '../group';
 import { StuffApi } from '../stuff';

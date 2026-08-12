@@ -6,6 +6,7 @@
  * self-smothers. One test exercising the layers together.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import CartesianZone from '../location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';

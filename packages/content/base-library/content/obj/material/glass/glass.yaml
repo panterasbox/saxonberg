@@ -12,6 +12,15 @@ data:
   waterAbsorptionCapacity: 0.1
   thermalConductivity: 1.0
   specificHeat: 840
+  # BRITTLE, stated as numbers rather than only as a tag: glass is nearly
+  # as hard as steel (600/200) and has almost none of its toughness. That
+  # RATIO is what brittleness is — it resists being scratched and fails
+  # catastrophically instead of deforming — and it is why a thrown flask
+  # shatters where a steel one would dent. Nothing read these fields
+  # until the ranged build needed to ask whether a vessel breaks; the
+  # values are the honest ones, not ones tuned to make a flask break.
+  hardness: 550
+  toughness: 0.5
   edibility: false
   nutrients: []
   toxicity: []

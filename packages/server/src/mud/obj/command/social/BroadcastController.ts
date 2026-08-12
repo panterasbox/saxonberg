@@ -3,7 +3,7 @@
  *
  * Default audience: every online Avatar. `--to <mql>` narrows to an
  * MQL-resolved subset. Modality stamp `'verbal-esp'`; topic
- * `system.broadcast`. Body MML wraps the sender+payload in a
+ * `session.notice`. Body MML wraps the sender+payload in a
  * `<chan id="broadcast" label="Broadcast">` region so the cockpit
  * renders distinctly.
  *
@@ -59,7 +59,7 @@ export default class BroadcastController extends CommandController<BroadcastMode
       audience = result.stuff;
     } catch (err) {
       MessageApi.scene(speaker)
-        .topic('system.broadcast')
+        .topic('session.notice')
         .toSelf(Mml.fromMarkup(`\nBroadcast query failed: ${(err as Error).message}\n`))
         .send();
       context.note({
@@ -72,7 +72,7 @@ export default class BroadcastController extends CommandController<BroadcastMode
 
     if (audience.length === 0) {
       MessageApi.scene(speaker)
-        .topic('system.broadcast')
+        .topic('session.notice')
         .toSelf(Mml.fromMarkup(`\nNo one matched '${queryString}'.\n`))
         .send();
       return;
@@ -83,13 +83,13 @@ export default class BroadcastController extends CommandController<BroadcastMode
     // players, not props.
     const filtered = audience.filter((a) => MixinApi.isSensor(a));
     const parsed = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));
-    const speakerName = Mml.name(speaker);
+    const speakerName = Mml.actor(speaker);
     const selfBody = Mml.fromMarkup(
       `<chan id="broadcast" label="Broadcast">${speakerName.toString()}: ${parsed.toString()}</chan>`,
     );
 
     MessageApi.scene(speaker)
-      .topic('system.broadcast')
+      .topic('session.notice')
       .modality('verbal-esp')
       .toSelf(selfBody)
       .payload({
@@ -105,7 +105,7 @@ export default class BroadcastController extends CommandController<BroadcastMode
         `<chan id="broadcast" label="Broadcast">${speakerName.toString()}: ${parsed.toString()}</chan>`,
       );
       MessageApi.scene(speaker)
-        .topic('system.broadcast')
+        .topic('session.notice')
         .modality('verbal-esp')
         .toTarget(a, peerBody)
         .payload({

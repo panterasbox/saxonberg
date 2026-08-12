@@ -22,14 +22,12 @@ args:
     type: object
     required: true
     scope: "inventory"
+    requires: ContainableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
-      - /lib/command/validators/mustBeContainable
   - name: recipient
     type: object
     required: true
     scope: "peers"
     prepositions: [to]
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeAgent
+    requires: [VisibleMixin, class:Agent]

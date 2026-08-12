@@ -169,9 +169,8 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
+      peers: ['magic/zap.yaml', 'magic/recharge.yaml'],
       environment: ['magic/zap.yaml', 'magic/recharge.yaml'],
-      inventory: ['magic/zap.yaml', 'magic/recharge.yaml'],
-      peers: ['magic/zap.yaml'],
     };
 
     static fieldMeta: FieldMeta = {

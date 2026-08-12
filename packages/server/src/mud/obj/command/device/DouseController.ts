@@ -26,7 +26,7 @@ export default class DouseController extends CommandController<DouseModel> {
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`Douse what?`)
         .send();
       context.note({
@@ -38,7 +38,7 @@ export default class DouseController extends CommandController<DouseModel> {
     }
     if (target.stuff === null) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${target.raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'target', query: target.raw });
@@ -52,7 +52,7 @@ export default class DouseController extends CommandController<DouseModel> {
     const doused = target2 !== null && FireApi.douse(target2);
     if (!doused) {
       MessageApi.scene(commandGiver)
-        .topic('world.narration.action')
+        .topic('act.deed')
         .toSelf(Mml.compose`That isn't burning.`)
         .send();
       context.note({
@@ -64,10 +64,10 @@ export default class DouseController extends CommandController<DouseModel> {
     }
 
     MessageApi.scene(commandGiver)
-      .topic('world.narration.action')
-      .toSelf(Mml.compose`You douse ${Mml.object(target2 as Stuff)}; it hisses out.`)
+      .topic('act.deed')
+      .toSelf(Mml.compose`You douse ${Mml.thing(target2 as Stuff)}; it hisses out.`)
       .toPeers(
-        Mml.compose`${Mml.name(commandGiver)} douses ${Mml.object(target2 as Stuff)}; it hisses out.`,
+        Mml.compose`${Mml.actor(commandGiver)} douses ${Mml.thing(target2 as Stuff)}; it hisses out.`,
       )
       .send();
   }

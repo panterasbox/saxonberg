@@ -72,6 +72,7 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
       _notifyRules: { persistent: true, runtimeState: true },
     };
 
+
     /**
      * The global verbosity dial — schema-on-mixin (declared here, not on
      * the `EnvironmentMixin` substrate). Shifts the room-occupant density
@@ -120,9 +121,8 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: ["social/notify.yaml"],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

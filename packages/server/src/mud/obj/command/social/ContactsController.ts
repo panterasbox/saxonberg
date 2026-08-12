@@ -299,7 +299,7 @@ export default class ContactsController extends CommandController<ContactsModel>
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.contacts')
+      .topic('shell.result')
       .toSelf(body)
       .send();
   }

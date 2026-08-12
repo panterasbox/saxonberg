@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.ambient.vision
-  family: world.perception.ambient
-  label: Ambient Vision
-  description: Unbidden visual signal — a flicker caught in periphery, a figure crossing the edge of sight.

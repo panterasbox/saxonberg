@@ -14,7 +14,7 @@
 > Complicity model: **willful incuriosity.** Species cast: **Ghoul**, carrying
 > the **stigmatized death-caste** allegory (see *The allegory* below; the
 > governing stance is the species-as-race-allegory rule —
-> [species-expansion-slate.md](../../../slates/builds/species-expansion-slate.md)).
+> [species-expansion-slate.md](../../../slates/tails/species-expansion-slate.md)).
 > **Name:** "Dr. Vance" / *she* are working handles; owned by the naming pass.
 > **Retire when:** cemented as a `Character` seed in YAML.
 
@@ -179,7 +179,7 @@ don't "beat" her with force or access; you make the expert do her actual job.
   tame examiner, the laundering seam), §11/§15.1 (banality), §5/§7 (the
   who-counts engine the allegory serves).
 - Species/allegory:
-  [species-expansion-slate.md](../../../slates/builds/species-expansion-slate.md)
+  [species-expansion-slate.md](../../../slates/tails/species-expansion-slate.md)
   (casting + the race-allegory layer).
 - Carves: [property-manager.md](./property-manager.md) (Katie — troll, the warm
   end of the same axis).

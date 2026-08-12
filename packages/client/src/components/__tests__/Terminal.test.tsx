@@ -2,8 +2,8 @@
  * Terminal font-by-register rendering.
  *
  * Covers:
- *  - per-frame font selection by register: a `world.speech.say` frame's
- *    Body resolves to the narrative serif; a `system.shell.help` frame's
+ *  - per-frame font selection by register: a `speech.vocal` frame's
+ *    Body resolves to the narrative serif; a `shell.result` frame's
  *    Body resolves to the command mono (8d);
  *  - `<pre>` keeps its element-level monospace inside an otherwise
  *    proportional (serif) frame (8d);
@@ -81,46 +81,46 @@ function bodyOfRow(row: Element): Element {
 
 describe('Terminal — per-frame font by register', () => {
   it('a say frame body resolves to the narrative serif', () => {
-    const { container } = renderTerminal([frame({ topic: 'world.speech.say' })]);
+    const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const row = container.firstElementChild!.firstElementChild!;
-    expect(rulesFor(bodyOfRow(row))).toContain('Source Serif 4');
+    expect(rulesFor(bodyOfRow(row))).toContain('Newsreader');
   });
 
   it('a help frame body resolves to the command mono', () => {
-    const { container } = renderTerminal([frame({ topic: 'system.shell.help' })]);
+    const { container } = renderTerminal([frame({ topic: 'shell.result' })]);
     const row = container.firstElementChild!.firstElementChild!;
-    expect(rulesFor(bodyOfRow(row))).toContain('Source Code Pro');
+    expect(rulesFor(bodyOfRow(row))).toContain('IBM Plex Mono');
   });
 
   it('<pre> stays monospace inside an otherwise-serif narrative frame', () => {
     const { container } = renderTerminal([
       frame({
-        topic: 'world.perception.look',
+        topic: 'sense.survey',
         body: 'You see a sign:\n<pre>  ASCII  </pre>',
       }),
     ]);
     const row = container.firstElementChild!.firstElementChild!;
     // The frame body itself is serif (narrative register)...
-    expect(rulesFor(bodyOfRow(row))).toContain('Source Serif 4');
+    expect(rulesFor(bodyOfRow(row))).toContain('Newsreader');
     // ...but the <pre> element carries its own monospace rule, which
     // wins by element-level specificity over the inherited serif.
     const pre = container.querySelector('pre');
     expect(pre).not.toBeNull();
     expect(rulesFor(pre!)).toContain('monospace');
-    expect(rulesFor(pre!)).not.toContain('Source Serif 4');
+    expect(rulesFor(pre!)).not.toContain('Newsreader');
   });
 });
 
 describe('Terminal — removed global mono + rhythm anchor', () => {
   it('the container has no font-family / Courier New rule (regression guard)', () => {
-    const { container } = renderTerminal([frame({ topic: 'world.speech.say' })]);
+    const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const containerRule = rulesFor(container.firstElementChild!);
     expect(containerRule).not.toContain('Courier');
     expect(containerRule).not.toContain('font-family');
   });
 
   it('line-height is the container rhythm anchor, never on Body [8g]', () => {
-    const { container } = renderTerminal([frame({ topic: 'world.speech.say' })]);
+    const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const root = container.firstElementChild!;
     const row = root.firstElementChild!;
     // Container owns line-height (shared cross-register rhythm)...

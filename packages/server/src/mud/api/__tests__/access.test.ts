@@ -14,6 +14,7 @@
  * role-gated mutate-zone) live in `obj/__tests__/AccessRegistry.test.ts`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AccessApi } from '../access';
 import AccessRegistry from '../../obj/AccessRegistry';

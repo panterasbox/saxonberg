@@ -325,9 +325,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
         "combat/intervene.yaml",
         "combat/defend.yaml",
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

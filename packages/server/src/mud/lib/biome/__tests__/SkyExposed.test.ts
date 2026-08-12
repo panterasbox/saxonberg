@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Biome from '../Biome';
 import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';

@@ -25,9 +25,23 @@
  * (the `formatMml` path). Viewer is threaded for forward
  * compatibility with the deferred pedagogical-seam setting; v1
  * ignores it.
+ *
+ * ⭐ **A reading is more than a number.** Both emitters take an
+ * optional {@link QuantityMarkupOptions} carrying `channel` (what
+ * *kind* of reading — the client's pin/chart identity), `via` (the
+ * instrument that produced it) and `lo`/`hi` (the working range it is
+ * judged against). They are emitted only when supplied, so every
+ * existing call site is unaffected and a value with no instrument
+ * behind it makes no claim to have one.
+ *
+ * `via` is the pedagogical seam: **a reading is only honest if you can
+ * say how it was taken.** A number with no provenance is a number the
+ * player has to trust; a number with an instrument beside it is one
+ * they can reason about.
  */
 
 import { Mml } from '../api/mml';
+import type { MeasureChannel } from './perception/MeasureChannel';
 
 /**
  * The full v1 unit catalog. Mass, length, time, temperature, light,
@@ -235,6 +249,39 @@ export interface TagTableEntry {
 export type ScaleName = string;
 
 export const DEFAULT_SCALE: ScaleName = 'default';
+
+/**
+ * Optional markup facts a *reading* carries that a bare value does
+ * not. All four are omitted from the emitted tag when absent, so a
+ * quantity with no instrument behind it never claims to have one.
+ *
+ * Distinct from {@link ScaleName}, which is a rendering choice: these
+ * are claims about where the number came from and what it means.
+ */
+export interface QuantityMarkupOptions {
+  /**
+   * What kind of reading this is — the client's stable identity for
+   * pinning to an instrument panel or charting a series.
+   *
+   * ⚠ **A separate vocabulary from the topic tree, deliberately.** This
+   * once documented itself as sharing one with a `world.measure.*`
+   * topic family; that family was retired when the topic collapse made
+   * the tree *subject matter* and pushed everything else onto facets.
+   * `MeasureChannel` is an **instrument** vocabulary — what the reading
+   * is of — so the two lists are different on purpose and neither
+   * should be derived from the other.
+   */
+  channel?: MeasureChannel;
+  /**
+   * The instrument that produced the reading. The pedagogical seam —
+   * a reading is only honest if you can say how it was taken.
+   */
+  via?: string;
+  /** Low bound of the working range, in this quantity's own unit. */
+  lo?: number;
+  /** High bound of the working range, in this quantity's own unit. */
+  hi?: number;
+}
 
 /**
  * Registry of tag tables, double-keyed by unit and scale name. Each
@@ -951,38 +998,68 @@ export class Quantity<U extends Unit> {
    * format for tagless units). Viewer parameter is forward-compat
    * for the deferred pedagogical-seam setting. Optional
    * `scaleName` picks the vocabulary when multiple scales are
-   * registered for the unit; default scale otherwise.
+   * registered for the unit; default scale otherwise. Optional
+   * `opts` adds channel / provenance / working range.
    */
-  public toMml(_viewer?: unknown, scaleName?: ScaleName): Mml {
-    return Mml.fromMarkup(this.buildMarkup(this.tag(scaleName), scaleName));
+  public toMml(
+    _viewer?: unknown,
+    scaleName?: ScaleName,
+    opts?: QuantityMarkupOptions
+  ): Mml {
+    return Mml.fromMarkup(
+      this.buildMarkup(this.tag(scaleName), scaleName, opts)
+    );
   }
 
   /**
    * Instrument / analyze emission. Same wrapper, canonical text
    * inside. The optional `scaleName` flows through to the
    * `<quantity tag="...">` attribute when a tag table is
-   * registered for the unit at that scale.
+   * registered for the unit at that scale. Optional `opts` adds
+   * channel / provenance / working range — the instrument path is
+   * where those are usually known.
    */
-  public formatMml(_viewer?: unknown, scaleName?: ScaleName): Mml {
-    return Mml.fromMarkup(this.buildMarkup(this.format(), scaleName));
+  public formatMml(
+    _viewer?: unknown,
+    scaleName?: ScaleName,
+    opts?: QuantityMarkupOptions
+  ): Mml {
+    return Mml.fromMarkup(this.buildMarkup(this.format(), scaleName, opts));
   }
 
   /**
    * Compose the `<quantity>` markup. Inner text and attribute
-   * values are HTML-escaped — the values come from internal state
-   * and are unlikely to contain `<` or `&`, but escape is
-   * defense-in-depth.
+   * values are HTML-escaped — most values come from internal state
+   * and are unlikely to contain `<` or `&`, but `via` can carry
+   * authored text, so escaping is load-bearing rather than merely
+   * defensive.
+   *
+   * Attribute order is fixed (channel, unit, value, tag, via, lo,
+   * hi) so snapshot assertions are stable.
    */
-  private buildMarkup(innerText: string, scaleName?: ScaleName): string {
-    const unitAttr = escapeText(this.unit);
-    const valueAttr = escapeText(String(this.value));
-    const inner = escapeText(innerText);
-    const tag = tagFor(this.unit, this.value, scaleName);
-    if (tag !== null) {
-      const tagAttr = escapeText(tag);
-      return `<quantity unit="${unitAttr}" value="${valueAttr}" tag="${tagAttr}">${inner}</quantity>`;
+  private buildMarkup(
+    innerText: string,
+    scaleName?: ScaleName,
+    opts?: QuantityMarkupOptions
+  ): string {
+    const attrs: string[] = [];
+    if (opts?.channel !== undefined) {
+      attrs.push(`channel="${escapeText(opts.channel)}"`);
     }
-    return `<quantity unit="${unitAttr}" value="${valueAttr}">${inner}</quantity>`;
+    attrs.push(`unit="${escapeText(this.unit)}"`);
+    attrs.push(`value="${escapeText(String(this.value))}"`);
+    const tag = tagFor(this.unit, this.value, scaleName);
+    if (tag !== null) attrs.push(`tag="${escapeText(tag)}"`);
+    if (opts?.via !== undefined) {
+      attrs.push(`via="${escapeText(opts.via)}"`);
+    }
+    if (opts?.lo !== undefined) {
+      attrs.push(`lo="${escapeText(String(opts.lo))}"`);
+    }
+    if (opts?.hi !== undefined) {
+      attrs.push(`hi="${escapeText(String(opts.hi))}"`);
+    }
+    return `<quantity ${attrs.join(' ')}>${escapeText(innerText)}</quantity>`;
   }
 
   // ---------- persistence ----------

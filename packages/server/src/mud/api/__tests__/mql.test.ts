@@ -10,6 +10,7 @@
  * expressions arrive in Phase 6.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { resolve, MqlDesugarError } from '../mql/resolver';
 import { MqlPermissionError } from '../mql/types';

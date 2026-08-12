@@ -149,6 +149,82 @@ so it has nothing to resume.
   `intentionalDisconnect` so `onclose` skips auto-reconnect — the caller
   drives the phase itself.
 
+## The honest-state primitives
+
+`components/ui/Figure.tsx` + `UnbuiltGround.tsx` — the shared primitives
+for the one convention that cuts across every surface that shows a
+number (`docs/design_handoff/CONVENTIONS.md` #1):
+
+> **Never render a figure the server did not send**, including "just for
+> now."
+
+The demo wipes nightly, which buys latitude on *persistence* and none on
+*figures*: a plausible fake is indistinguishable from a bug, and this
+product's central claim is that its numbers are real. Three states must
+look nothing alike:
+
+| State | Rendering | Reason shown |
+|---|---|---|
+| `live` | a number. no decoration. the only state that shows one | none — a live figure has nothing to explain |
+| `empty` | `—` in the muted foreground | **yes** — a real zero deserves a reason |
+| `unwired` | hatched ground, dashed border, `╌╌` where the value goes | **yes** |
+
+⭐ **The union is the deliverable.** One component with a *required*
+discriminated `figure` prop, not three components and not an optional
+`value`:
+
+```ts
+export type FigureState =
+  | { readonly state: "live";    readonly value: string }
+  | { readonly state: "empty";   readonly reason: string }
+  | { readonly state: "unwired"; readonly reason: string };
+```
+
+You cannot render a figure without naming its state; `empty` and
+`unwired` cannot omit their reason; and **`unwired` has no `value` field
+at all**, so the convention is enforced by the type checker rather than
+by vigilance at every call site. Three separate components would leave
+`<span>{n}</span>` as the path of least resistance — and the fourth
+state the convention warns about, a plausible fake, is exactly what the
+path of least resistance produces. `Figure.test.tsx` asserts the
+compiler's refusal with `@ts-expect-error`; CI enforces it through the
+client's `build:types` job.
+
+Tokens: `hatch` / `hatchStrong` for the 135° stripe, `info` for the
+`╌╌`, `fgMuted` for the `—` and the reason, `accent` for a live value.
+
+Two decisions worth keeping:
+
+- ⚠ **No stamp.** The reference art's `live` / `empty` / `not wired`
+  chips are documentation labels for its three example cards; the
+  convention's own wording is "a reason, **not a stamp**". The hatch is
+  the stamp and the reason is the words.
+- ⚠ **No `color-mix(in oklab, …)`**, which the reference art uses
+  throughout. `hatch` / `hatchStrong` are precomputed per ground —
+  a marble hatch is not an ink hatch lightened, mixing against a
+  transparent stop composites over whatever is behind, and precomputing
+  makes each theme state what its hatch actually looks like. It is also
+  readable in jsdom, so the hatch is testable rather than intended.
+
+Accessibility carries the honesty to a screen reader, to which a dashed
+border is invisible and `╌╌` is noise: `role="group"` plus an
+`aria-label` that says "not wired" / "none" in words, with the reason.
+
+**Two carve-outs, neither belonging to these components.** *Prose never
+hedges* — a room description carries no engineering stamp, because
+breaking the fiction to report an engineering fact is the wrong trade in
+the one place the game is supposed to be a world; if a thing cannot be
+described yet, it is not in the room yet. And *commands refuse honestly*
+in the machine voice (`cockpit style theme default` naming the three it
+does know), not through a hatched widget.
+
+⚠ **They ship with no consumer.** Applying the honest states to a
+surface was explicitly out of scope for the civic-ground build; Build B's
+widget shelf, whose catalogue is mostly not-wired, is the first real
+consumer. That a primitive with no consumer can drift is the accepted
+risk in the Wave 1 cut, and the mitigation is that B follows
+immediately.
+
 ## What this build does NOT add
 
 - **No client-side persistence / localStorage.** Everything that matters

@@ -1,11 +1,12 @@
 /**
  * ClearController — the `clear` verb. The controller's whole job is to
- * emit one signal frame on `system.terminal.clear` with an empty body
+ * emit one signal frame on `shell.control` with an empty body
  * (so it renders no scrollback line); the client handler empties the
  * buffer. The scene emit is captured here; the buffer-clearing is a
  * client concern.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ClearController from '../ClearController';
 import { MessageApi } from '../../../../api/message';
@@ -24,6 +25,7 @@ describe('ClearController', () => {
     selfBody = undefined;
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};
+      b.tags = () => b;
       b.topic = (t: string) => {
         topic = t;
         return b;
@@ -42,13 +44,13 @@ describe('ClearController', () => {
     StuffApi.clearAll();
   });
 
-  it('emits an empty-body signal frame on system.terminal.clear', () => {
+  it('emits an empty-body signal frame on shell.control', () => {
     const ctrl = makeStuff(() => new ClearController());
     const ctx = { commandGiver: {} } as unknown as CommandContext;
 
     ctrl.execute({} as CommandModel, ctx);
 
-    expect(topic).toBe('system.terminal.clear');
+    expect(topic).toBe('shell.control');
     // Empty body → the client's frame buffer skips it (no scrollback
     // line); the clear is delivered purely by the topic handler.
     expect(selfBody).toBeInstanceOf(Mml);

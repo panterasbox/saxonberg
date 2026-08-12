@@ -12,6 +12,7 @@
  * while still inheriting all the cafeteria's atmospheric profile.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../stuff/Location';
 import Biome from '../Biome';

@@ -7,6 +7,7 @@
  * integration concern.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EnrollController from '../EnrollController';
 import Login from '../../../Login';

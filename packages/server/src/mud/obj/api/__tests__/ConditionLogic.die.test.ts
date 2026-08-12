@@ -14,6 +14,7 @@
  * writes is structurally incapable of deriving as a crime.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../../lib/creature/Creature';
 import { ConditionApi } from '../../../api/condition';

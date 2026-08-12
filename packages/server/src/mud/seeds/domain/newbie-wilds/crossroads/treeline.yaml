@@ -41,6 +41,13 @@ data:
     # and stood up by no test — an added exit pulls in nothing).
     east:
       destination: /domain/newbie-wilds/crossroads/watchpost
+    # Northeast opens into the long meadow — the RANGED demonstrator, and
+    # the only room hereabouts with an authored extent, so the only one
+    # where a fight can open at a distance. (`east` was already the
+    # watchpost; a duplicate key here is a YAML parse error that takes
+    # the whole seed tree down with it.)
+    northeast:
+      destination: /domain/newbie-wilds/crossroads/longmeadow
   # The cull: one wolfshead and a dropped dagger, both cloned fresh at
   # standup. Pick up the dagger, wield it, and `attack the wolf`.
   populates:

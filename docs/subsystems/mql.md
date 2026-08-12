@@ -495,7 +495,7 @@ salient features if not, the disguise's descriptors if masked, never the
 true name); items keep their ordinary keywords. `look bob` resolves iff
 the room view shows the viewer "Bob". Ordinal disambiguation
 (`stranger:[2]`) is an index into the snapshot and carries no identity.
-See [belief.md](./subsystems/belief.md).
+See [belief.md](./belief.md).
 
 Built-in scopes:
 

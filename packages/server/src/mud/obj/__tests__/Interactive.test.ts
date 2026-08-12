@@ -9,6 +9,7 @@
  * respectively — those have their own tests.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Interactive from '../Interactive';
 import Avatar from '../Avatar';

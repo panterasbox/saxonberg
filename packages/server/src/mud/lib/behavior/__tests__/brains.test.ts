@@ -8,6 +8,14 @@
  * covered in Behaved.test.ts with a real host.
  */
 
+// Import-ORDER, not wiring: this file composes a mixin at module
+// scope, and the mixin's own module sits in an import cycle that only
+// resolves once the graph is loaded in bootstrap order. The global
+// `setupFiles` used to do that incidentally for all 964 files; with it
+// gone, the four files relying on it say so. Removing this line fails
+// the file at COLLECTION ("MixinName is not a function"), which is why
+// it survived unnoticed — see docs/testing.md § The four cycle files.
+import "../../../../test-bootstrap";
 import { describe, it, expect, vi } from 'vitest';
 import type { BrainContext, BrainStatics } from '../brain';
 import { brain as idles } from '../idles';
@@ -92,7 +100,7 @@ describe('greets brain', () => {
     const subject = { stuffId: 'player-1' } as unknown as Stuff;
     const ctx = fakeCtx(
       { lines: ['welcome in'] },
-      { frame: { topic: 'world.narration.movement' } as never, subject }
+      { frame: { topic: 'act.move' } as never, subject }
     );
     greets.act(ctx);
     expect(ctx.say).toHaveBeenCalledWith('welcome in', subject);
@@ -105,7 +113,7 @@ describe('reacts brain', () => {
     const subject = { stuffId: 'player-1' } as unknown as Stuff;
     const ctx = fakeCtx(
       { reactions: [{ emote: 'nod' }] },
-      { frame: { topic: 'world.expression.emote' } as never, subject }
+      { frame: { topic: 'act.emote' } as never, subject }
     );
     void reacts.act(ctx);
     expect(ctx.emote).toHaveBeenCalledWith('nod', subject);

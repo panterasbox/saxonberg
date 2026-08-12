@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SexedMixin } from '../Sexed';
 import { OrganismMixin } from '../../species/Organism';

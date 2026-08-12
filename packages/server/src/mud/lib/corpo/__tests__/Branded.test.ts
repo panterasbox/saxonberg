@@ -5,6 +5,7 @@
  * in the long-description perception surface, and the MQL projection.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BrandedBottle from "../../../obj/corpo/BrandedBottle";
 import CorpoCatalogue from "../../../obj/CorpoCatalogue";

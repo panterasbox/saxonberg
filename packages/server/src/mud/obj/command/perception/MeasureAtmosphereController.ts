@@ -25,6 +25,8 @@ export default class MeasureAtmosphereController extends CommandController<Measu
     model: MeasureAtmosphereModel,
     ctx: CommandContext,
   ): Promise<void> {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(ctx);
     const giver = ctx.commandGiver;
     const inv = MixinApi.isContainer(giver)
       ? (giver as Stuff & Container).getContents()
@@ -36,7 +38,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
         detail: 'no gas analyzer in hand',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.measure-atmosphere')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You need a gas analyzer in hand.`)
         .send();
       return;
@@ -51,7 +53,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
         detail: 'no atmospheric scope',
       });
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.measure-atmosphere')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You aren't anywhere to measure.`)
         .send();
       return;
@@ -64,7 +66,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
     let densityLine: Mml | null = null;
     try {
       const d = BiomeApi.densityOf(a);
-      densityLine = Mml.compose`  density: ${d.formatMml()}\n`;
+      densityLine = Mml.compose`  density: ${d.formatMml(undefined, undefined, { channel: 'atmosphere', via })}\n`;
     } catch {
       // Unknown atmosphere tag — surface the tag without a density.
       densityLine = null;
@@ -73,7 +75,7 @@ export default class MeasureAtmosphereController extends CommandController<Measu
       ? Mml.compose`Atmosphere: ${a}\n${densityLine}`
       : Mml.compose`Atmosphere: ${a}\n`;
     MessageApi.scene(giver)
-      .topic('world.perception.measurement.measure-atmosphere')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
   }

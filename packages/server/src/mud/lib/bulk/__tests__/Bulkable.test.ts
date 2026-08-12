@@ -5,6 +5,7 @@
  * verb-level wiring is covered in `obj/command/bulk/__tests__`.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { BulkableApi } from '../../../api/bulk';
 import {

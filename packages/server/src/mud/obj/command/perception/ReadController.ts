@@ -40,7 +40,7 @@ import { PerceptionApi } from '../../../api/perception';
 import { MagicApi } from '../../../api/magic';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.perception.vision';
+const TOPIC = 'sense.survey';
 
 interface ReadModel extends CommandModel {
   target: MqlOneResult;
@@ -68,7 +68,7 @@ export default class ReadController extends CommandController<ReadModel> {
     if (!MixinApi.isMarked(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`There is nothing written on ${Mml.item(target)}.`)
+        .toSelf(Mml.compose`There is nothing written on ${Mml.thing(target)}.`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -92,8 +92,8 @@ export default class ReadController extends CommandController<ReadModel> {
         .topic(TOPIC)
         .toSelf(
           lightBound
-            ? Mml.compose`There is writing on ${Mml.item(target)}, but you cannot make out a word of it in this light.`
-            : Mml.compose`There is writing on ${Mml.item(target)}, but you have no way to make it out.`,
+            ? Mml.compose`There is writing on ${Mml.thing(target)}, but you cannot make out a word of it in this light.`
+            : Mml.compose`There is writing on ${Mml.thing(target)}, but you have no way to make it out.`,
         )
         .send();
       context.note({
@@ -121,7 +121,7 @@ export default class ReadController extends CommandController<ReadModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`The marks on ${Mml.item(target)} are writing of some kind, but not in any script you know.`,
+          Mml.compose`The marks on ${Mml.thing(target)} are writing of some kind, but not in any script you know.`,
         )
         .send();
       context.note({
@@ -135,8 +135,8 @@ export default class ReadController extends CommandController<ReadModel> {
     const text = target.getMarkText();
     const body =
       text.length > 0
-        ? Mml.compose`${Mml.item(target)} reads: ${text}`
-        : Mml.compose`${Mml.item(target)} is blank.`;
+        ? Mml.compose`${Mml.thing(target)} reads: ${text}`
+        : Mml.compose`${Mml.thing(target)} is blank.`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
 
     // ── …and whatever reading it sets off ──
@@ -168,7 +168,7 @@ export default class ReadController extends CommandController<ReadModel> {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          Mml.compose`The marks are inert — whatever was bound into ${Mml.item(target)} is long spent.`,
+          Mml.compose`The marks are inert — whatever was bound into ${Mml.thing(target)} is long spent.`,
         )
         .send();
       context.note({

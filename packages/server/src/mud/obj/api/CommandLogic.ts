@@ -28,7 +28,12 @@ import { readFileSync, readdirSync } from 'fs';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { SourceTreeApi } from '../../api/source-tree';
-import type { MessageFrame, Note, Status } from '@saxonberg/types';
+import type {
+  MessageFrame,
+  Note,
+  Status,
+  AffordanceEntry,
+} from '@saxonberg/types';
 import {
   MqlApi,
   type MqlMany,
@@ -38,6 +43,9 @@ import {
   type MqlOne,
 } from '../../api/mql';
 import { MixinApi } from '../../api/mixin';
+import { Mixins, MixinRefusals, type MixinName } from '../../lib/mixin';
+import { PerceptionApi } from '../../api/perception';
+import { RecognitionApi } from '../../api/recognition';
 import { MessageApi } from '../../api/message';
 import { AccessApi } from '../../api/access';
 import { GroupApi } from '../../api/group';
@@ -66,9 +74,11 @@ import {
   type FieldValue,
   type ModelData,
   type CommandModel,
+  type AffordanceResolution,
   type FieldValidator,
   type CommandValidator,
   type ValidatorPreloads,
+  type MixinRequirement,
   type CardinalitySpec,
   type OnExcessPolicy,
   type OnShortagePolicy,
@@ -498,6 +508,21 @@ export class CommandLogic extends ApiLogic {
       );
     }
     return fn as FieldValidator;
+  }
+
+  /** See {@link CommandApi.resolveValidators}. */
+  @CallSecurity(CommandApiCallers)
+  public resolveValidators(cmd: CommandDefinition): Promise<void> {
+    return resolveCommandValidators(cmd);
+  }
+
+  /** See {@link CommandApi.resolveRequirement}. */
+  @CallSecurity(CommandApiCallers)
+  public resolveRequirement(
+    requires: MixinRequirement,
+    where: string,
+  ): Promise<FieldValidator | null> {
+    return requirementValidator(requires, where);
   }
 
   /** See {@link CommandApi.resolveCommandValidator}. */
@@ -1313,7 +1338,7 @@ export class CommandLogic extends ApiLogic {
     // Verb-option validators. Options are optional unless the YAML
     // explicitly says otherwise; an absent option short-circuits its
     // validator chain so authors don't have to teach every field
-    // validator (e.g. `mustBeAgent`) to tolerate `null`.
+    // validator (e.g. a relational one) to tolerate `null`.
     for (const [name, opt] of Object.entries(command.verbOptions)) {
       const fname = opt.field ?? name;
       const v = resolved[fname];
@@ -1400,23 +1425,22 @@ export class CommandLogic extends ApiLogic {
     payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
   ): void {
     if (!MixinApi.isSensor(recipient)) return;
-    const topic =
-      kind === 'added'
-        ? 'system.commands.added'
-        : kind === 'removed'
-          ? 'system.commands.removed'
-          : 'system.commands.reset';
-
     const meta: MessageFrame['meta'] = { timestamp: Date.now() };
     const ctx = ExecutionContextApi.getCurrentCommandContext();
     if (ctx?.commandId) meta.commandId = ctx.commandId;
     const causing = ExecutionContextApi.getCurrentCausingCommandId();
     if (causing) meta.causingCommandId = causing;
 
+    // ⭐ `shell.control` carries every "server changes your interface"
+    // frame — schema deltas, `clear`, layout, mode, style. They are one
+    // subject, so they are one topic; WHICH control it is rides a tag,
+    // the way a log line's level does. This used to be three topics
+    // (`system.commands.{added,removed,reset}`), which put the
+    // discriminator in the tree and minted three keys nobody authored.
     const frame: MessageFrame = {
       id: SecurityApi.uuid(),
-      topic,
-      tags: [],
+      topic: 'shell.control',
+      tags: ['control:schema', `schema:${kind}`],
       body: '',
       meta,
       payload,
@@ -1488,6 +1512,218 @@ export class CommandLogic extends ApiLogic {
     const path = first.instancePath || '<root>';
     return `${path}: ${first.message ?? 'invalid'}`;
   }
+
+  /** See {@link CommandApi.resolveAffordances}. */
+  @CallSecurity(CommandApiCallers)
+  public resolveAffordances(
+    target: Stuff,
+    viewer: Stuff & CommandGiver,
+  ): Promise<AffordanceResolution | null> {
+    return resolveAffordancesImpl(target, viewer);
+  }
+}
+
+/* ─────────────────── Affordance resolution ─────────────────── */
+
+/**
+ * Execution/command id stamped on a resolution probe's context.
+ *
+ * ⚠ A fixed, recognisable sentinel rather than a fresh id per probe:
+ * a menu opening is not a command, and anything downstream that
+ * correlates by command id (attribution, the accountability ledger,
+ * `causingCommandId`) must never mistake a probe for one.
+ */
+const AFFORDANCE_PROBE_ID = 'affordance-probe';
+
+/**
+ * The object-shaped field types. A verb can take our target as an
+ * argument only if it declares one of these somewhere.
+ */
+const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
+
+/**
+ * Every object-shaped **positional** a definition declares, in slot
+ * order.
+ *
+ * ⚠ Options are deliberately excluded, and the live drive is what
+ * proved it: `cd` declares `--mql` as an object option, so counting
+ * options put `cd` — and every other shell verb with an MQL escape
+ * hatch — in the menu of every object in the world. A radial's subject
+ * binds to what the verb is ABOUT, and that is a positional. An option
+ * is a modifier the player types on purpose.
+ */
+function objectFields(cmd: CommandDefinition): string[] {
+  const names: string[] = [];
+  for (const arg of cmd.args) {
+    if (arg.type && OBJECT_FIELD_TYPES.has(arg.type)) names.push(arg.name);
+  }
+  return names;
+}
+
+/**
+ * See {@link CommandApi.resolveAffordances}.
+ *
+ * ⚠ **Every gate here DELETES.** Nothing is returned present-and-
+ * flagged, because a response admitting that a hidden verb exists
+ * leaks the fact that it exists — the honest-fog rule. That is why the
+ * error case carries one reason code and why an unidentified thing
+ * reports an empty composition rather than a redacted one.
+ */
+async function resolveAffordancesImpl(
+  target: Stuff,
+  viewer: Stuff & CommandGiver,
+): Promise<AffordanceResolution | null> {
+  // Gate 1 — perception. You cannot have a menu for something you
+  // cannot perceive, and "no such object" and "not for you" must be
+  // the same answer.
+  if (!PerceptionApi.perceives(viewer, target)) return null;
+
+  // Gate 2 — identification. ⭐ An unidentified thing tells you
+  // nothing about ITSELF: no composition, and none of the verbs it
+  // contributes, because a contributed verb IS a statement about what
+  // the thing is (an unidentified wand must not offer `recharge`).
+  // Your own verbs still apply — `get` and `look` are facts about you.
+  const identified =
+    !MixinApi.isIdentifiable(target) ||
+    RecognitionApi.knowsTrueType(viewer, target);
+
+  // ⚠ Deduped: a mixin composed at two points in the chain is returned
+  // twice by `getActiveMixins`, and the live drive showed
+  // `TangibleMixin` twice on an aether implant. A menu grouping by
+  // composition would have painted the group twice.
+  const composition = identified
+    ? [
+        ...new Set(
+          MixinApi.getActiveMixins(target)
+            .map((m) => m._mixinName ?? m.name)
+            .filter((n): n is string => !!n),
+        ),
+      ]
+    : [];
+
+  const seen = new Set<string>();
+  const entries: AffordanceEntry[] = [];
+
+  for (const affordance of viewer.getAffordances()) {
+    const cmd = affordance.command;
+    const verb = cmd.verbs[0];
+    if (!verb || seen.has(verb)) continue;
+
+    const fromTarget = affordance.source === target;
+    const fields = objectFields(cmd);
+
+    if (fromTarget) {
+      if (!identified) continue;
+    } else if (fields.length === 0) {
+      // One of the viewer's own verbs that takes no object at all —
+      // `look` with no argument, `score`. Not an affordance OF this
+      // target, so it does not belong in this target's menu.
+      continue;
+    }
+
+    seen.add(verb);
+    entries.push(await evaluateAffordance(cmd, verb, target, viewer, fields));
+  }
+
+  entries.sort((a, b) => a.verb.localeCompare(b.verb));
+  return { verbs: entries, composition };
+}
+
+/**
+ * Run one verb's declared validators against a context with `target`
+ * bound, without dispatching.
+ *
+ * ⚠ The reason string is the validator's **own return value**,
+ * verbatim. Validators already speak player-facing prose — a
+ * validator's return is exactly what the player would have been shown
+ * had they typed the verb — so re-wording here would be inventing a
+ * second, driftable copy of every refusal in the game.
+ */
+async function evaluateAffordance(
+  cmd: CommandDefinition,
+  verb: string,
+  target: Stuff,
+  viewer: Stuff & CommandGiver,
+  fields: string[],
+): Promise<AffordanceEntry> {
+  const bound = fields[0];
+  const context = CommandApi.createCommandContext({
+    commandGiver: viewer,
+    location: MixinApi.isContainable(viewer) ? viewer.getContainer() : null,
+    commandText: verb,
+    executionId: AFFORDANCE_PROBE_ID,
+    commandId: AFFORDANCE_PROBE_ID,
+    verb,
+    command: cmd,
+    commandSource: target,
+  });
+
+  // ⚠ Bound as an `MqlOneResult`, not a bare Stuff: field validators
+  // reach for `MqlApi.effectiveTarget(value, …)`, whose door-behind-an-
+  // exit rule needs the wrapper's shape. A bare Stuff survives
+  // `extractStuffs` and then silently fails the richer readers.
+  //
+  // `raw` is the probe's own marker rather than player text — nobody
+  // typed this binding.
+  const binding: MqlOneResult = { stuff: target, raw: AFFORDANCE_PROBE_ID };
+  const model: CommandModel = bound ? { [bound]: binding } : {};
+
+  // ⚠⚠ The dispatcher runs an ASYNC preload phase between MQL
+  // resolution and the sync validator bodies, and it is not optional:
+  // `requiresAnimate` reports a live avatar inanimate until its species
+  // singletons are warm. Skipping this made every verb resolve
+  // `disabled` with one nonsense reason — and the tests still passed,
+  // because "everything is disabled" is a perfectly well-formed menu.
+  const preloads = await CommandApi.preloadValidatorDeps(cmd, context, model);
+  const outcome = CommandApi.runValidators(model, context, preloads);
+
+  if ('result' in outcome) {
+    // The note the failing validator filed carries its own words.
+    const note = context
+      .getNotes()
+      .find((n) => n.kind === 'validator-failed') as
+      | { detail?: string; field?: string }
+      | undefined;
+
+    // ⚠⚠ A refusal aimed at an UNBOUND operand is not a refusal.
+    // `put`'s `target` field declares `requires: [VisibleMixin,
+    // ContainerMixin|SurfacedMixin]`, and with no container picked yet
+    // the whole chain runs against `undefined` — which without this
+    // branch reports `put` flatly unavailable on every object in the
+    // game. The only honest reading is "you have not chosen the other
+    // half yet."
+    if (note?.field && note.field !== bound && fields.includes(note.field)) {
+      return {
+        verb,
+        description: cmd.description,
+        state: 'pending-operand',
+        operand: note.field,
+      };
+    }
+
+    return {
+      verb,
+      description: cmd.description,
+      state: 'disabled',
+      reason: note?.detail ?? 'You cannot do that here.',
+    };
+  }
+
+  // ⭐ Passed every check a menu CAN evaluate — but a second object
+  // field is an operand no radial can know (`put <thing> in <what?>`).
+  // Reporting that plainly `enabled` would promise a click that then
+  // stalls on a prompt.
+  const operand = fields[1];
+  if (operand) {
+    return {
+      verb,
+      description: cmd.description,
+      state: 'pending-operand',
+      operand,
+    };
+  }
+
+  return { verb, description: cmd.description, state: 'enabled' };
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */
@@ -2109,32 +2345,260 @@ function collectActiveOptionDefs(
 }
 
 /**
+ * One term of a `requires:` declaration — a predicate the bound Stuff
+ * must satisfy, paired with the sentence to say when it doesn't.
+ */
+interface RequirementTerm {
+  test: (s: Stuff) => boolean;
+  refusal: string;
+}
+
+/**
+ * The `class:` escape, and the whole of it.
+ *
+ * ⚠⚠ **This map is closed on purpose.** Composition is the project's
+ * answer to "what kind of thing is this", and `requires:` speaks mixins
+ * for that reason. The exception is the handful of **top-level Stuff
+ * types** where `instanceof` is the sanctioned check — see CLAUDE.md's
+ * inter-stuff rules — because they are the type hierarchy itself rather
+ * than a capability bolted onto it.
+ *
+ * Exactly one is in use: `class:Agent`, the "is this a person" gate
+ * behind `whisper`, `dm`, `give`, `introduce` and sixteen more. A
+ * second entry is a design conversation, not a map edit — the pull
+ * toward "just add the class" is the pull that made `plant` refuse with
+ * `instanceof Seed`, and the answer there was a mixin.
+ *
+ * Loaded by **dynamic import at spec-load**, not a top-level import:
+ * `Agent` composes command mixins, so importing the class here would
+ * close a cycle through this very module. Load-time only, so it costs
+ * one import per boot and nothing per dispatch.
+ */
+const CLASS_REQUIREMENTS: Record<
+  string,
+  { module: string; export: string; refusal: string }
+> = {
+  Agent: {
+    module: '../../lib/stuff/Agent',
+    export: 'Agent',
+    refusal: "{} isn't a person",
+  },
+};
+
+/**
+ * Parse a `requires:` declaration into its AND-terms.
+ *
+ * The grammar is two characters wide: **the list is AND, `|` inside an
+ * entry is OR.** `[VisibleMixin, ContainableMixin]` means both;
+ * `CombustibleMixin|FurnaceMixin` means either. `'any'` parses to no
+ * terms at all, which is how "deliberately unconstrained" ends up
+ * costing nothing at dispatch.
+ *
+ * ⚠ Throws on a name that isn't in the {@link Mixins} registry. That
+ * throw is the point of the whole mechanism — it is what makes a
+ * declaration *checkable* where the `targetKind: 'any'` marker it
+ * replaced was only an assertion. It fires at spec-load, so a typo is a
+ * boot failure and a lint failure, never a validator that silently
+ * never fires.
+ *
+ * An alternation reports its FIRST member's phrase: the alternation
+ * exists because the members are the same idea from two directions
+ * (`ignite` takes a Combustible or a Furnace; "won't burn" is true of
+ * failing both), so listing every branch's sentence would be worse copy,
+ * not more information.
+ *
+ * One entry may instead be `class:<Name>` — see
+ * {@link CLASS_REQUIREMENTS}, which is closed and has one member.
+ */
+async function parseRequirement(
+  requires: MixinRequirement,
+  where: string,
+): Promise<RequirementTerm[]> {
+  if (requires === 'any') return [];
+  const entries = Array.isArray(requires) ? requires : [requires];
+  const known = new Set<string>(Object.values(Mixins));
+  const terms: RequirementTerm[] = [];
+  for (const entry of entries) {
+    const names = String(entry)
+      .split('|')
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+    if (names.length === 0) {
+      throw new Error(`${where}: empty \`requires\` entry`);
+    }
+
+    if (names.length === 1 && names[0]!.startsWith('class:')) {
+      const className = names[0]!.slice('class:'.length);
+      const spec = CLASS_REQUIREMENTS[className];
+      if (!spec) {
+        throw new Error(
+          `${where}: \`requires: class:${className}\` — not one of the ` +
+            `sanctioned top-level types (${Object.keys(CLASS_REQUIREMENTS).join(', ')}). ` +
+            `A capability wants a mixin, not a class.`,
+        );
+      }
+      const mod = (await import(spec.module)) as Record<string, unknown>;
+      const ctor = mod[spec.export] as (new (...a: never[]) => object) | undefined;
+      if (typeof ctor !== 'function') {
+        throw new Error(
+          `${where}: \`class:${className}\` resolved to no export ` +
+            `\`${spec.export}\` in ${spec.module}`,
+        );
+      }
+      terms.push({
+        test: (s) => s instanceof ctor,
+        refusal: spec.refusal,
+      });
+      continue;
+    }
+
+    for (const name of names) {
+      if (!known.has(name)) {
+        throw new Error(
+          `${where}: \`requires: ${name}\` is not a mixin — ` +
+            `no such entry in the Mixins registry (lib/mixin.ts)`,
+        );
+      }
+    }
+    const mixinNames = names as MixinName[];
+    const first = mixinNames[0]!;
+    terms.push({
+      test: (s) => mixinNames.some((n) => MixinApi.hasMixin(s, n)),
+      // The fallback is deliberately usable rather than a placeholder:
+      // a mixin with no authored phrase is worse copy, not a broken
+      // verb. `lint:arg-kinds` reports the gap.
+      refusal: MixinRefusals[first] ?? `{} isn't the right kind of thing`,
+    });
+  }
+  return terms;
+}
+
+/**
+ * Build the field validator a `requires:` declaration stands for.
+ *
+ * Returns `null` for `'any'` — nothing to check, and no function to
+ * call on every bind.
+ *
+ * ⚠ **The door rule is the framework's, not each validator's.** Single
+ * bindings go through `MqlApi.effectiveTarget`, whose direct-first /
+ * door-second walk is what makes `open north` work as well as
+ * `open oak`. That used to be copy-pasted into the six validators whose
+ * authors happened to remember it; declaring the kind gets it
+ * everywhere, including the twenty-odd slots that silently didn't have
+ * it.
+ *
+ * ⚠ Absent bindings pass. An optional positional that didn't bind, or
+ * an operand the player hasn't chosen yet, is not a wrong kind — the
+ * affordance resolver reads that distinction to report
+ * `pending-operand` rather than flatly refusing a two-operand verb on
+ * every object in the world.
+ */
+async function requirementValidator(
+  requires: MixinRequirement,
+  where: string,
+): Promise<FieldValidator | null> {
+  const terms = await parseRequirement(requires, where);
+  if (terms.length === 0) return null;
+
+  const fails = (s: Stuff, term: RequirementTerm): boolean => !term.test(s);
+
+  return (value, field) => {
+    if (value === undefined || value === null) return undefined;
+
+    // ⚠⚠ SINGULAR ONLY. `MqlOneResult` and `MqlManyResult` both carry a
+    // `stuff` key — the plural one holds an ARRAY — so the key's
+    // presence does not tell them apart, and `Array.isArray` is the
+    // whole discriminator. Without it every `type: objects` field hands
+    // an array to `effectiveTarget`, whose predicate answers a
+    // well-formed `false` for it; the refusal path then calls
+    // `getPresentation()` on the array and throws. Measured: `get`,
+    // `drop` and every other plural verb, on an EMPTY result too, since
+    // `[]` is truthy. Nothing in the shipped controller tests would have
+    // caught it — they bind their own models and skip the binder.
+    //
+    // `effectiveTarget` wants a type guard, and composition is not a
+    // TS-narrowable fact, so the guard asserts only `object` — the
+    // check itself is the `test` inside it.
+    const one = value as MqlOneResult;
+    if (
+      one &&
+      typeof one === 'object' &&
+      'stuff' in one &&
+      one.stuff &&
+      !Array.isArray(one.stuff)
+    ) {
+      for (const term of terms) {
+        const found = MqlApi.effectiveTarget(
+          one,
+          (s): s is Stuff & object => !fails(s, term),
+        );
+        if (!found) {
+          return term.refusal.replace('{}', one.stuff.getPresentation());
+        }
+      }
+      return undefined;
+    }
+
+    const stuffs = MqlApi.extractStuffs(value);
+    if (stuffs === null) return `${field} must be an object`;
+    for (const stuff of stuffs) {
+      for (const term of terms) {
+        if (fails(stuff as Stuff, term)) {
+          return term.refusal.replace('{}', stuff.getPresentation());
+        }
+      }
+    }
+    return undefined;
+  };
+}
+
+/**
  * Walk every `validators: [...]` block on a CommandDefinition and
  * resolve each spec into a live function via
  * `CommandApi.resolveValidator`. Stores the result on
  * `_resolvedValidators`. Idempotent — calling twice just re-resolves
  * (the JS module cache makes the second pass cheap).
+ *
+ * ⭐ Also the home of `requires:` synthesis. A declared kind becomes a
+ * validator here and is **prepended** to the slot's chain, so the rest
+ * of the engine — dispatch, the affordance resolver, the preload phase
+ * — needs to know nothing about the declaration. It sees a validator,
+ * which it already knows how to run. Prepended rather than appended
+ * because "that isn't the kind of thing you can do this to" is the
+ * cheapest and most informative refusal a slot has: a relational check
+ * reporting "you can't reach it" about a rock you were never going to
+ * seal is a worse sentence, arrived at more expensively.
  */
 async function resolveCommandValidators(
   cmd: CommandDefinition
 ): Promise<void> {
   const yamlPath = cmd.filePath;
   const resolveOne = async (
-    target: { validators?: string[]; _resolvedValidators?: FieldValidator[] }
+    target: {
+      validators?: string[];
+      requires?: MixinRequirement;
+      _resolvedValidators?: FieldValidator[];
+    },
+    where: string,
   ): Promise<void> => {
-    if (!target.validators || target.validators.length === 0) return;
     const fns: FieldValidator[] = [];
-    for (const spec of target.validators) {
+    if (target.requires !== undefined) {
+      const synthesized = await requirementValidator(target.requires, where);
+      if (synthesized) fns.push(synthesized);
+    }
+    for (const spec of target.validators ?? []) {
       fns.push(await CommandApi.resolveValidator(spec, yamlPath));
     }
-    target._resolvedValidators = fns;
+    if (fns.length > 0) target._resolvedValidators = fns;
   };
 
-  for (const a of cmd.args) await resolveOne(a);
-  for (const sub of Object.values(cmd.subcommands)) {
-    for (const a of sub.args ?? []) await resolveOne(a);
-    for (const opt of Object.values(sub.options ?? {})) {
-      await resolveOne(opt);
+  for (const a of cmd.args) await resolveOne(a, `${yamlPath} arg \`${a.name}\``);
+  for (const [subName, sub] of Object.entries(cmd.subcommands)) {
+    for (const a of sub.args ?? []) {
+      await resolveOne(a, `${yamlPath} ${subName} arg \`${a.name}\``);
+    }
+    for (const [optName, opt] of Object.entries(sub.options ?? {})) {
+      await resolveOne(opt, `${yamlPath} ${subName} option \`--${optName}\``);
     }
     // Subcommand-level validators — command-shaped (take `context`),
     // like verb-level, so they dispatch to `resolveCommandValidator`
@@ -2147,11 +2611,11 @@ async function resolveCommandValidators(
       sub._resolvedValidators = fns;
     }
   }
-  for (const opt of Object.values(cmd.verbOptions)) {
-    await resolveOne(opt);
+  for (const [optName, opt] of Object.entries(cmd.verbOptions)) {
+    await resolveOne(opt, `${yamlPath} option \`--${optName}\``);
   }
-  for (const opt of Object.values(cmd.payload)) {
-    await resolveOne(opt);
+  for (const [fieldName, opt] of Object.entries(cmd.payload)) {
+    await resolveOne(opt, `${yamlPath} payload \`${fieldName}\``);
   }
 
   // Verb-level (top-level) validators — different signature, so the
@@ -2316,70 +2780,176 @@ function collectBucketDefsForInstance(
   ]);
 }
 
+/**
+ * Every container in `s`'s ancestor chain, innermost first, capped.
+ *
+ * The cap is a cycle/pathology backstop, not a design limit — containment
+ * is a tree, but a corrupted graph must not hang the command layer.
+ */
+const CONTAINMENT_WALK_CAP = 16;
+
+function ancestorsOf(s: Stuff): Stuff[] {
+  const out: Stuff[] = [];
+  let cursor: Stuff | null = MixinApi.isContainable(s)
+    ? (s as Stuff & Containable).getContainer()
+    : null;
+  let depth = CONTAINMENT_WALK_CAP;
+  while (cursor !== null && depth-- > 0) {
+    out.push(cursor);
+    cursor = MixinApi.isContainable(cursor)
+      ? (cursor as Stuff & Containable).getContainer()
+      : null;
+  }
+  return out;
+}
+
+/** `s` plus everything nested inside it, at any depth, capped. */
+function selfAndDescendants(s: Stuff, depth = CONTAINMENT_WALK_CAP): Stuff[] {
+  const out: Stuff[] = [s];
+  if (depth <= 0 || !MixinApi.isContainer(s)) return out;
+  for (const child of (s as Stuff & Container).getContents()) {
+    out.push(...selfAndDescendants(child, depth - 1));
+  }
+  return out;
+}
+
+/**
+ * The rooms whose occupants count as `s`'s peers: its own container, plus
+ * every room one exit away.
+ *
+ * Adjacency is one hop and **passable exits only** — a closed door is a
+ * closed door, and a verb that lit up through it would be claiming a
+ * reach the world does not have. Cross-room verb affordance is a
+ * deliberately small extension: it says "you can see who is next door
+ * well enough to address them", not that distance has stopped existing.
+ */
+function peerScopesOf(container: Stuff): Stuff[] {
+  const out: Stuff[] = [container];
+  if (!MixinApi.isExitable(container)) return out;
+  for (const exit of container.getExits().values()) {
+    // A closed door is a closed door, and so is a blocked exit — a verb
+    // lighting up through one would claim a reach the world does not
+    // have. The DOOR is a separate object hanging off the exit, not the
+    // exit itself; asking `isSealable(exit)` looked right and would
+    // never have fired.
+    if (exit.isBlocked()) continue;
+    const door = exit.getDoor();
+    if (door !== null && !door.isOpen()) continue;
+    // ⚠ `getDestination()` THROWS when the target zone is not faulted
+    // in yet. Redistributing affordances must never force world-loading
+    // — a containment delta is a hot path and an unloaded room simply is
+    // not an adjacent peer scope until something else pulls it in.
+    let dest: Stuff | null = null;
+    try {
+      dest = exit.getDestination();
+    } catch {
+      continue;
+    }
+    if (dest !== null && !out.includes(dest)) out.push(dest);
+  }
+  return out;
+}
+
+/**
+ * Redistribute command affordances after `item` moved from `from` to `to`.
+ *
+ * **The buckets name WHO RECEIVES, from the declaring object's point of
+ * view**, and they are directional:
+ *
+ * | Bucket | Receiver |
+ * |---|---|
+ * | `self` | the object itself |
+ * | `inventory` | everything nested **inside** it, at any depth |
+ * | `environment` | its container **chain**, outward, at any depth |
+ * | `peers` | its siblings, and one passable exit away |
+ *
+ * ⚠ **`inventory` and `environment` are RECURSIVE, and that is the
+ * point.** Verb availability used to be direct-containment-scoped while
+ * MQL targeting is arbitrarily-nested — so a rock inside a bag inside
+ * your pack could be *named* by a command whose verb the rock had never
+ * lit up. It worked anyway, by accident, because the bag was also
+ * Tangible and afforded the same verb itself. The moment a verb came
+ * from a rarer mixin the accident would have stopped covering for it.
+ * Reach now matches what the parser can address.
+ */
 function applyContainmentDeltaImpl(
   item: Stuff,
   from: (Stuff & Container) | null,
   to: (Stuff & Container) | null
 ): void {
-  // Source side: pop from anyone whose stack carried item.
+  const moved = selfAndDescendants(item);
+
+  // ── Source side: every stack that carried anything in the moved
+  // subtree drops it. Popping by source is idempotent, so popping a
+  // source that was never pushed is free.
   if (from) {
-    if (MixinApi.isCommandGiver(from)) {
-      (from as Stuff & CommandGiver).popCommandSource(item);
-    }
-    for (const sibling of from.getContents()) {
-      if (sibling === item) continue;
-      if (MixinApi.isCommandGiver(sibling)) {
-        (sibling as Stuff & CommandGiver).popCommandSource(item);
-      }
-    }
-  }
-
-  // Dest side: push to anyone whose stack now carries item.
-  if (to) {
-    if (MixinApi.isCommandGiver(to)) {
-      const defs = collectBucketDefsForInstance(item, 'inventory');
-      if (defs.length > 0) {
-        (to as Stuff & CommandGiver).pushCommandSource(item, 'inventory', defs);
-      }
-    }
-    const envDefs = collectBucketDefsForInstance(item, 'environment');
-    const peerDefs = MixinApi.isCommandGiver(item)
-      ? collectBucketDefsForInstance(item, 'peers')
-      : [];
-    if (envDefs.length > 0 || peerDefs.length > 0) {
-      for (const sibling of to.getContents()) {
-        if (sibling === item) continue;
-        if (!MixinApi.isCommandGiver(sibling)) continue;
-        const siblingCG = sibling as Stuff & CommandGiver;
-        if (envDefs.length > 0) {
-          siblingCG.pushCommandSource(item, 'environment', envDefs);
-        }
-        if (peerDefs.length > 0) {
-          siblingCG.pushCommandSource(item, 'peers', peerDefs);
+    const oldScopes = [from, ...ancestorsOf(from), ...peerScopesOf(from)];
+    for (const scope of oldScopes) {
+      for (const holder of selfAndDescendants(scope)) {
+        if (!MixinApi.isCommandGiver(holder)) continue;
+        for (const m of moved) {
+          (holder as Stuff & CommandGiver).popCommandSource(m);
         }
       }
     }
+    // And the moved subtree drops whatever the old surroundings gave it.
+    for (const m of moved) {
+      if (!MixinApi.isCommandGiver(m)) continue;
+      (m as Stuff & CommandGiver).resetCommandSources('self-moved');
+    }
   }
 
-  // Self-move: item is a CommandGiver entering a container. Drop
-  // any prior env+peers slice and push contributions from each
-  // neighbor in the new container — this is what makes "I just
-  // walked into a room" see the room's existing contents on the
-  // giver's own stack.
-  if (MixinApi.isCommandGiver(item) && to) {
-    const itemCG = item as Stuff & CommandGiver;
-    if (from) itemCG.resetCommandSources('self-moved');
-    for (const neighbor of to.getContents()) {
-      if ((neighbor as Stuff) === item) continue;
-      const envDefs = collectBucketDefsForInstance(neighbor, 'environment');
-      const peerDefs = MixinApi.isCommandGiver(neighbor)
-        ? collectBucketDefsForInstance(neighbor, 'peers')
-        : [];
-      if (envDefs.length > 0) {
-        itemCG.pushCommandSource(neighbor, 'environment', envDefs);
+  if (!to) return;
+
+  const ancestors = [to, ...ancestorsOf(to)];
+
+  // ── `environment`: the moved subtree grants OUTWARD, to every
+  // container above it. This is what makes a rock in a bag in your pack
+  // still hand you `throw`.
+  for (const m of moved) {
+    const defs = collectBucketDefsForInstance(m, 'environment');
+    if (defs.length === 0) continue;
+    for (const anc of ancestors) {
+      if (!MixinApi.isCommandGiver(anc)) continue;
+      (anc as Stuff & CommandGiver).pushCommandSource(m, 'environment', defs);
+    }
+  }
+
+  // ── `inventory`: every container above grants INWARD, to the whole
+  // moved subtree. A pack that affords `rummage` affords it to what it
+  // swallowed, however deep.
+  for (const anc of ancestors) {
+    const defs = collectBucketDefsForInstance(anc, 'inventory');
+    if (defs.length === 0) continue;
+    for (const m of moved) {
+      if (!MixinApi.isCommandGiver(m)) continue;
+      (m as Stuff & CommandGiver).pushCommandSource(anc, 'inventory', defs);
+    }
+  }
+
+  // ── `peers`: sideways, both directions, across the peer scopes.
+  //
+  // Ungated by CommandGiver on the CONTRIBUTOR side: a job board is not a
+  // command giver and still posts its verb to everyone in the room. Only
+  // the RECEIVER has to be able to hold a command.
+  const scopes = peerScopesOf(to);
+  for (const scope of scopes) {
+    if (!MixinApi.isContainer(scope)) continue;
+    for (const sibling of (scope as Stuff & Container).getContents()) {
+      if (moved.includes(sibling)) continue;
+
+      const theirs = collectBucketDefsForInstance(sibling, 'peers');
+      if (theirs.length > 0) {
+        for (const m of moved) {
+          if (!MixinApi.isCommandGiver(m)) continue;
+          (m as Stuff & CommandGiver).pushCommandSource(sibling, 'peers', theirs);
+        }
       }
-      if (peerDefs.length > 0) {
-        itemCG.pushCommandSource(neighbor, 'peers', peerDefs);
+      if (!MixinApi.isCommandGiver(sibling)) continue;
+      for (const m of moved) {
+        const mine = collectBucketDefsForInstance(m, 'peers');
+        if (mine.length === 0) continue;
+        (sibling as Stuff & CommandGiver).pushCommandSource(m, 'peers', mine);
       }
     }
   }
@@ -2407,27 +2977,37 @@ function applyShadowDeltaImpl(
         collectBucketDefs(shadow.constructor, 'self')
       );
     }
+    // A shadow rides its host, so it distributes exactly as the host
+    // would: outward along the container chain, inward to the host's
+    // contents, sideways to peers. Same directional model as the
+    // containment path — a shadow must not have a different reach from
+    // the thing it is shadowing.
+    const envDefs = collectBucketDefs(shadow.constructor, 'environment');
+    for (const anc of ancestorsOf(host)) {
+      if (!MixinApi.isCommandGiver(anc)) continue;
+      push(anc as Stuff & CommandGiver, 'environment', envDefs);
+    }
+
+    const invDefs = collectBucketDefs(shadow.constructor, 'inventory');
+    if (invDefs.length > 0 && MixinApi.isContainer(host)) {
+      for (const inner of selfAndDescendants(host)) {
+        if (inner === host || !MixinApi.isCommandGiver(inner)) continue;
+        push(inner as Stuff & CommandGiver, 'inventory', invDefs);
+      }
+    }
+
     if (!MixinApi.isContainable(host)) return;
     const container = (host as Stuff & Containable).getContainer();
     if (!container) return;
-    if (MixinApi.isCommandGiver(container)) {
-      push(
-        container as Stuff & CommandGiver,
-        'inventory',
-        collectBucketDefs(shadow.constructor, 'inventory')
-      );
-    }
-    const envDefs = collectBucketDefs(shadow.constructor, 'environment');
-    const peerDefs = MixinApi.isCommandGiver(host)
-      ? collectBucketDefs(shadow.constructor, 'peers')
-      : [];
-    if (envDefs.length === 0 && peerDefs.length === 0) return;
-    for (const sibling of container.getContents()) {
-      if ((sibling as Stuff) === host) continue;
-      if (!MixinApi.isCommandGiver(sibling)) continue;
-      const siblingCG = sibling as Stuff & CommandGiver;
-      push(siblingCG, 'environment', envDefs);
-      push(siblingCG, 'peers', peerDefs);
+    const peerDefs = collectBucketDefs(shadow.constructor, 'peers');
+    if (peerDefs.length === 0) return;
+    for (const scope of peerScopesOf(container)) {
+      if (!MixinApi.isContainer(scope)) continue;
+      for (const sibling of (scope as Stuff & Container).getContents()) {
+        if ((sibling as Stuff) === host) continue;
+        if (!MixinApi.isCommandGiver(sibling)) continue;
+        push(sibling as Stuff & CommandGiver, 'peers', peerDefs);
+      }
     }
     return;
   }

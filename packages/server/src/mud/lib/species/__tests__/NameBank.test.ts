@@ -6,6 +6,7 @@
  * fallback.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Species from '../../../obj/species/Species';
 import { NameBank } from '../NameBank';

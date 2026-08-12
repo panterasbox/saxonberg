@@ -19,6 +19,7 @@
  * it fails here.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Avatar from '../../../obj/Avatar';

@@ -2,8 +2,10 @@
  * Tests for Mml composer.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Mml } from '../mml';
+import { isKnownTag } from '../mml/tags';
 import { NamedMixin } from '../../lib/description/Named';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import { Idea } from "../../lib/stuff/Idea";
@@ -35,9 +37,9 @@ describe('Mml.compose', () => {
   });
 
   it('emits Mml fragments verbatim without re-escaping', () => {
-    const fragment = Mml.fromMarkup('<name>Alice</name>');
+    const fragment = Mml.fromMarkup('<player>Alice</player>');
     const m = Mml.compose`hi ${fragment}!`;
-    expect(m.toString()).toBe('hi <name>Alice</name>!');
+    expect(m.toString()).toBe('hi <player>Alice</player>!');
   });
 
   it('coerces numbers and booleans then escapes', () => {
@@ -61,46 +63,66 @@ describe('Mml.compose', () => {
 
 describe('Mml.fromMarkup', () => {
   it('does not escape input', () => {
-    const m = Mml.fromMarkup('<name>Alice</name>');
-    expect(m.toString()).toBe('<name>Alice</name>');
+    const m = Mml.fromMarkup('<player>Alice</player>');
+    expect(m.toString()).toBe('<player>Alice</player>');
   });
 });
 
 describe('Mml vocabulary helpers', () => {
-  it('Mml.name returns the casual register (just `name`) and stamps stuff-id', () => {
+  it('Mml.actor returns the casual register (just `name`) and stamps stuff-id', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('Alice');
     obj.setSurname('Smith');
     // Casual register — surname not included. Call `obj.getFullName()`
     // when you need the formal form.
-    expect(Mml.name(obj).toString()).toBe(
-      `<name stuff-id="${obj.stuffId}">Alice</name>`
+    expect(Mml.actor(obj).toString()).toBe(
+      `<thing stuff-id="${obj.stuffId}">Alice</thing>`
     );
   });
 
-  it('Mml.name escapes chars in the casual name', () => {
+  it('Mml.actor escapes chars in the casual name', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('a "quoted" name');
-    expect(Mml.name(obj).toString()).toBe(
-      `<name stuff-id="${obj.stuffId}">a &quot;quoted&quot; name</name>`
+    expect(Mml.actor(obj).toString()).toBe(
+      `<thing stuff-id="${obj.stuffId}">a &quot;quoted&quot; name</thing>`
     );
   });
 
-  it('Mml.name falls back to "something" when no name set', () => {
+  it('Mml.actor falls back to "something" when no name set', () => {
     const obj = makeStuff(() => new Plain());
-    expect(Mml.name(obj).toString()).toBe(
-      `<name stuff-id="${obj.stuffId}">something</name>`
+    expect(Mml.actor(obj).toString()).toBe(
+      `<thing stuff-id="${obj.stuffId}">something</thing>`
     );
   });
 
-  it('Mml.object / Mml.item / Mml.location stamp stuff-id and use the casual `name`', () => {
+  it('⭐ Mml.actor handed a non-person renders `thing`, never `npc`', () => {
+    // The honest-failure guarantee. `actor` is the face ~120 emitters
+    // use because they hold a `giver` and cannot know what is behind
+    // it; the one thing it must never do is upgrade a chair to a
+    // character. A `NamedThing` composes no `Organism`, so `kindOf`
+    // stops at the first gate.
+    const chair = makeStuff(() => new NamedThing());
+    chair.setName('a wooden chair');
+    expect(Mml.actor(chair).toString()).toContain('<thing ');
+    expect(Mml.actor(chair).toString()).not.toContain('<npc');
+    expect(Mml.actor(chair).toString()).not.toContain('<player');
+  });
+
+  it('⚠ `actor` is never itself a wire tag', () => {
+    // It is an authoring face that resolves before serialization. If it
+    // ever reached the wire, every consumer downstream — parser, policy,
+    // stylesheet, renderer — would need a branch for it.
+    const obj = makeStuff(() => new NamedThing());
+    obj.setName('Alice');
+    expect(Mml.actor(obj).toString()).not.toContain('actor');
+    expect(isKnownTag('actor')).toBe(false);
+  });
+
+  it('Mml.thing / Mml.location stamp stuff-id and use the casual `name`', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('rusty sword');
-    expect(Mml.object(obj).toString()).toBe(
-      `<object stuff-id="${obj.stuffId}">rusty sword</object>`
-    );
-    expect(Mml.item(obj).toString()).toBe(
-      `<item stuff-id="${obj.stuffId}">rusty sword</item>`
+    expect(Mml.thing(obj).toString()).toBe(
+      `<thing stuff-id="${obj.stuffId}">rusty sword</thing>`
     );
     expect(Mml.location(obj).toString()).toBe(
       `<location stuff-id="${obj.stuffId}">rusty sword</location>`
@@ -179,7 +201,7 @@ describe('Mml.toJSON', () => {
 
 describe('Mml.stripTags', () => {
   it('strips simple tags', () => {
-    expect(Mml.stripTags('<name>Alice</name>')).toBe('Alice');
+    expect(Mml.stripTags('<player>Alice</player>')).toBe('Alice');
   });
 
   it('strips nested tags', () => {
@@ -207,11 +229,11 @@ describe('Mml.stripTags', () => {
 
   it('strips tags with attributes (e.g. stuff-id)', () => {
     expect(
-      Mml.stripTags('<name stuff-id="abc123">Alice</name>')
+      Mml.stripTags('<player stuff-id="abc123">Alice</player>')
     ).toBe('Alice');
     expect(
       Mml.stripTags(
-        'hi <name stuff-id="x">A</name> meet <name stuff-id="y">B</name>'
+        'hi <player stuff-id="x">A</player> meet <player stuff-id="y">B</player>'
       )
     ).toBe('hi A meet B');
   });

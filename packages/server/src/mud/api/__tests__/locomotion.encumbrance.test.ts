@@ -9,6 +9,7 @@
  *     gentle for light loads, and absent from raw `Mobile.traverse`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
 import { LocomotionMode } from '../../obj/LocomotionMode';

@@ -11,6 +11,7 @@
  *   3. Nitrogen is exported, so an unfed bed yields worse each round.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HarvestController from '../HarvestController';
 import Plant from '../../../Plant';

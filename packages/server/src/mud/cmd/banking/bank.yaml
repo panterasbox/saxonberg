@@ -29,6 +29,7 @@ subcommands:
         type: object
         required: true
         scope: "inventory"
+        requires: GlobbableMixin
   withdraw:
     description: "Withdraw cash from your account (till-bounded)"
     args:
@@ -46,3 +47,4 @@ subcommands:
         required: true
         prepositions: [to]
         scope: ["reachable", "online"]
+        requires: any

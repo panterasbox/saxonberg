@@ -2,7 +2,7 @@
  * Avatar.enter — the news-ticker window on the session-establish payload.
  *
  * Releases have no presence event to hang a snapshot on, so the welcome
- * `system.connection.established` payload is the delivery seam (exactly as
+ * `session.link` payload is the delivery seam (exactly as
  * `topicCatalogue` is). This asserts `enter()` folds the live ticker window
  * (projected to `ReleaseRow[]` via `PressApi.toRow`) into
  * `ConnectionEstablishedPayload.releaseWindow`.
@@ -13,6 +13,7 @@
  * the window has a known row independent of a live board.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Avatar from '../Avatar';
 import Interactive from '../Interactive';

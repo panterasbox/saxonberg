@@ -29,12 +29,14 @@ interface AnalyzeLightModel extends CommandModel {
 
 export default class AnalyzeLightController extends CommandController<AnalyzeLightModel> {
   execute(model: AnalyzeLightModel, context: CommandContext): void {
+    // Provenance: the instrument that afforded this verb, if any.
+    const via = this.affordingSource(context);
     const giver = context.commandGiver;
     const target = model.location;
     if (!target || target.stuff === null) {
       const raw = target?.raw ?? '';
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-light')
+        .topic('sense.reading')
         .toSelf(Mml.compose`You don't see any '${raw}' here.`)
         .send();
       context.note({ kind: 'empty-result', field: 'location', query: raw });
@@ -43,7 +45,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
     if (!MixinApi.isContainer(target.stuff)) {
       const detail = `${target.stuff.getPresentation()} isn't a place`;
       MessageApi.scene(giver)
-        .topic('world.perception.measurement.analyze-light')
+        .topic('sense.reading')
         .toSelf(Mml.fromMarkup(detail))
         .send();
       context.note({
@@ -59,10 +61,10 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
 
     const lines: Mml[] = [];
     lines.push(Mml.compose`Light analysis at ${Mml.location(loc)}:`);
-    lines.push(Mml.compose`  total: ${light.intensity.formatMml()}`);
+    lines.push(Mml.compose`  total: ${light.intensity.formatMml(undefined, undefined, { channel: 'light', via })}`);
     if (light.colorTemperature) {
       lines.push(
-        Mml.compose`  color temperature: ${light.colorTemperature.formatMml()}`
+        Mml.compose`  color temperature: ${light.colorTemperature.formatMml(undefined, undefined, { channel: 'light', via })}`
       );
     }
     if (light.sources.length === 0) {
@@ -72,17 +74,17 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
       for (const s of light.sources) {
         const src = StuffApi.findById(s.stuffId);
         const sourceName = src
-          ? Mml.name(src as Stuff)
+          ? Mml.thing(src as Stuff)
           : Mml.fromMarkup(`<unknown>${s.stuffId}</unknown>`);
         const flux = Quantity.of(s.flux, 'lumen');
         if (s.colorTemperature !== null) {
           const colorTempQ = Quantity.of(s.colorTemperature, 'K');
           lines.push(
-            Mml.compose`    - ${sourceName}: ${flux.formatMml()} @ ${colorTempQ.formatMml()}`
+            Mml.compose`    - ${sourceName}: ${flux.formatMml(undefined, undefined, { channel: 'light', via })} @ ${colorTempQ.formatMml(undefined, undefined, { channel: 'light', via })}`
           );
         } else {
           lines.push(
-            Mml.compose`    - ${sourceName}: ${flux.formatMml()}`
+            Mml.compose`    - ${sourceName}: ${flux.formatMml(undefined, undefined, { channel: 'light', via })}`
           );
         }
       }
@@ -94,7 +96,7 @@ export default class AnalyzeLightController extends CommandController<AnalyzeLig
     }
 
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.measurement.analyze-light')
+      .topic('sense.reading')
       .toSelf(body)
       .send();
 

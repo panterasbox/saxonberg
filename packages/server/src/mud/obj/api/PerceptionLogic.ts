@@ -240,6 +240,68 @@ export class PerceptionLogic extends ApiLogic {
 
   /** See {@link PerceptionApi.perceives}. */
   @CallSecurity(PerceptionApiCallers)
+  /**
+   * Is `attacker` striking from concealment `defender` does not perceive?
+   *
+   * Reads the attacker's hidden state FIRST — warming the defender's
+   * `awareness` so the sync gate uses their real capacity — then clears
+   * the attacker's hide, because striking reveals you, ambush or not.
+   *
+   * It lives HERE rather than in combat because it is a perception
+   * fact, not combat physics — `check-combat-dynamics` says so, and it
+   * is right. Combat asks the question; perception answers it.
+   */
+  public async resolveAmbush(attacker: Stuff, defender: Stuff): Promise<boolean> {
+    if (!MixinApi.isHiding(attacker) || !attacker.isHiding()) return false;
+    await this.preloadForSenseGate(defender);
+    const unseen = !perceivesImpl(defender, attacker);
+    attacker.breakHide();
+    return unseen;
+  }
+
+  /** See {@link PerceptionApi.canReach}. */
+  @CallSecurity(PerceptionApiCallers)
+  public canReach(
+    actor: Stuff,
+    target: Stuff,
+    opts?: { location?: Stuff | null; viaExit?: boolean },
+  ): boolean {
+    const id = target.stuffId;
+    if (id === actor.stuffId) return true;
+
+    const location =
+      opts?.location !== undefined
+        ? opts.location
+        : MixinApi.isContainable(actor)
+          ? actor.getContainer()
+          : null;
+
+    // The door-via-direction case: `open north` resolves to the LOCATION
+    // carrying an exit attribution, and the controller then fetches the
+    // door off that exit. Without this the commonest way to open a door
+    // is unreachable.
+    if (opts?.viaExit && location && id === location.stuffId) return true;
+
+    if (MixinApi.isContainer(actor)) {
+      for (const c of actor.getContents()) if (c.stuffId === id) return true;
+    }
+    if (location && MixinApi.isContainer(location)) {
+      for (const c of location.getContents()) if (c.stuffId === id) return true;
+    }
+    // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
+    // — so a containment-only test misses every door in the game. This
+    // clause is the entire reason reach could not stay hand-rolled: the
+    // pane hold that omitted it released `out-of-reach` on doors the
+    // `open` verb worked on perfectly well.
+    if (location && MixinApi.isExitable(location)) {
+      for (const exit of location.getObviousExits()) {
+        if (exit.getDoor()?.stuffId === id) return true;
+      }
+    }
+    return false;
+  }
+
+  @CallSecurity(PerceptionApiCallers)
   public perceives(viewer: Stuff, target: Stuff, attention?: number): boolean {
     return perceivesImpl(viewer, target, attention);
   }

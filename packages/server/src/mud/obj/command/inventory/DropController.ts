@@ -97,7 +97,7 @@ export default class DropController extends CommandController<DropModel> {
   ): void {
     if (targets.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
         .send();
       context.note({ kind: 'empty-result', field: 'targets', query: raw });
@@ -113,7 +113,7 @@ export default class DropController extends CommandController<DropModel> {
     }
     if (droppedNames.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`Nothing dropped.`)
         .send();
       context.note({
@@ -139,13 +139,13 @@ export default class DropController extends CommandController<DropModel> {
       switch (note.kind) {
         case 'empty-result':
           MessageApi.scene(context.commandGiver)
-            .topic('world.perception.inventory')
+            .topic('sense.survey')
             .toSelf(Mml.compose`You don't have any '${raw}' to drop.`)
             .send();
           return;
         case 'quantity-clamped-rejected':
           MessageApi.scene(context.commandGiver)
-            .topic('world.perception.inventory')
+            .topic('sense.survey')
             .toSelf(
               Mml.compose`You only have ${String(note.available)} of those.`,
             )
@@ -160,7 +160,7 @@ export default class DropController extends CommandController<DropModel> {
 
     if (!result.ok || result.payloads.length === 0) {
       MessageApi.scene(context.commandGiver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`Nothing dropped.`)
         .send();
       context.note({
@@ -197,11 +197,11 @@ export default class DropController extends CommandController<DropModel> {
       const release = giver.tryReleaseFromSlots(operand);
       if (!release.released) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
+          .topic('sense.survey')
           .toSelf(
             release.dumpedKJ > 0
-              ? Mml.compose`You cannot let go of ${Mml.item(operand)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.item(operand)}. It has no intention of being put down.`,
+              ? Mml.compose`You cannot let go of ${Mml.thing(operand)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.thing(operand)}. It has no intention of being put down.`,
           )
           .send();
         context.note({
@@ -219,10 +219,10 @@ export default class DropController extends CommandController<DropModel> {
     // room. A no-op for anything unowned. (D8)
     void ChattelApi.followCustody(operand);
     MessageApi.scene(context.commandGiver)
-      .topic('world.perception.inventory')
-      .toSelf(Mml.compose`You drop ${Mml.item(operand)}.`)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`You drop ${Mml.thing(operand)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(context.commandGiver)} drops ${Mml.item(operand)}.`
+        Mml.compose`${Mml.actor(context.commandGiver)} drops ${Mml.thing(operand)}.`
       )
       .send();
     return true;

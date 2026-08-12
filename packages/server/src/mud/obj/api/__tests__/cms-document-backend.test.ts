@@ -11,6 +11,7 @@
  * inside the runRoot + tagActingAuthor attribution bridge the REST CMS uses.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CmsApi } from "../../../api/cms";
 import { AccessApi } from "../../../api/access";

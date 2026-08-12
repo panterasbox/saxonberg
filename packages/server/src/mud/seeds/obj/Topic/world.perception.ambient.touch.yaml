@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.ambient.touch
-  family: world.perception.ambient
-  label: Ambient Touch
-  description: Unbidden tactile signal — a draft on skin, a sudden chill, a pressure change.

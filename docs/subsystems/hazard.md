@@ -77,7 +77,7 @@ drop-reentrancy guard).
 a trap, takes the wound, and sees nothing. The victim gets the authored
 `springMessage` if set, else a generic line ("Something gives way beneath
 you — a hidden trap springs!"); witnesses always get a generic
-"…springs a hidden trap." on the `world.hazard.spring` topic.
+"…springs a hidden trap." on the `act.deed` topic.
 
 **`deliverHarm`** runs `ConditionApi.inflict(mover,
 delivery.toInflictSpec(mover))` (the covering stack mitigates armor for
@@ -114,10 +114,16 @@ scythe's `edge`, a deadfall's `blunt`, an electrified floor's `shock`),
   circuit was already resolved by the [electricity](./electricity.md)
   substrate), else an `EnergyInflictSpec` for a mechanical channel (the
   covering stack resolves severity + type). `null` when no site resolves.
-- **The `range` field is a reserved seam.** v1 delivers `'contact'` only —
-  the trap harms whoever physically meets it. `'ranged'` (a dart across a
-  room) is a future build; the field is here so the shape is stable, but
-  nothing reads a non-`'contact'` value yet.
+- **The `range` field — seam ADOPTED.** `'contact'` means the trap harms
+  whoever physically meets it; **`'ranged'`** means the delivery crossed a
+  band gap (a thrown flask, a dart from the far wall) and had already
+  found its victim when it resolved. `resolveTraversal` therefore skips a
+  ranged delivery: walking through where it landed is not what springs
+  it. See [ranged.md](./ranged.md).
+
+  *(A LINGERING residue that does harm the next person through is a real
+  feature — it needs a lifetime/expiry model hazards do not have yet, and
+  it defers with cover.)*
 - `from()` / `toJSON()` round-trip the value-object through persistence
   capture (`HazardMixin.setDelivery` normalizes a raw seed object or an
   instance).

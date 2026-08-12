@@ -12,7 +12,7 @@
  * composing BOTH (a desk-with-drawer) is ambiguous — the
  * controller rejects with a `put it in or on X?` prompt.
  *
- * The field-level `mustBePutTarget` validator already gated the
+ * The field-level `requires: ContainerMixin|SurfacedMixin` already gated the
  * target as Container OR Surfaced, so the `wrong-preposition`
  * branch fires only when the typed preposition contradicts the
  * target's actual shape.
@@ -47,7 +47,7 @@ export default class PutController extends CommandController<PutModel> {
 
     if (!item) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't have any '${model.item.raw}'.`)
         .send();
       context.note({
@@ -59,7 +59,7 @@ export default class PutController extends CommandController<PutModel> {
     }
     if (!target) {
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
+        .topic('sense.survey')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
         .send();
       context.note({
@@ -78,8 +78,8 @@ export default class PutController extends CommandController<PutModel> {
       // No preposition AND target composes both Container and
       // Surfaced — ambiguous. Reject; ask the player to specify.
       MessageApi.scene(giver)
-        .topic('world.perception.inventory')
-        .toSelf(Mml.compose`Put it in or on ${Mml.item(target)}?`)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`Put it in or on ${Mml.thing(target)}?`)
         .send();
       context.note({
         kind: 'controller-rejected',
@@ -92,8 +92,8 @@ export default class PutController extends CommandController<PutModel> {
     if (mode === 'in') {
       if (!MixinApi.isContainer(target)) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
-          .toSelf(Mml.compose`You can't put things in ${Mml.item(target)}.`)
+          .topic('sense.survey')
+          .toSelf(Mml.compose`You can't put things in ${Mml.thing(target)}.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -106,8 +106,8 @@ export default class PutController extends CommandController<PutModel> {
       // mode === 'on'
       if (!MixinApi.isSurfaced(target)) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
-          .toSelf(Mml.compose`You can't put things on ${Mml.item(target)}.`)
+          .topic('sense.survey')
+          .toSelf(Mml.compose`You can't put things on ${Mml.thing(target)}.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -118,8 +118,8 @@ export default class PutController extends CommandController<PutModel> {
       }
       if (!(target as Stuff & Surfaced).canRest(item as Stuff & Containable)) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
-          .toSelf(Mml.compose`${Mml.item(item)} won't rest on ${Mml.item(target)}.`)
+          .topic('sense.survey')
+          .toSelf(Mml.compose`${Mml.thing(item)} won't rest on ${Mml.thing(target)}.`)
           .send();
         context.note({
           kind: 'controller-rejected',
@@ -138,11 +138,11 @@ export default class PutController extends CommandController<PutModel> {
       const release = giver.tryReleaseFromSlots(item);
       if (!release.released) {
         MessageApi.scene(giver)
-          .topic('world.perception.inventory')
+          .topic('sense.survey')
           .toSelf(
             release.dumpedKJ > 0
-              ? Mml.compose`You cannot let go of ${Mml.item(item)} — and it is running hot against your skin.`
-              : Mml.compose`You cannot let go of ${Mml.item(item)}. It has no intention of leaving your hand.`,
+              ? Mml.compose`You cannot let go of ${Mml.thing(item)} — and it is running hot against your skin.`
+              : Mml.compose`You cannot let go of ${Mml.thing(item)}. It has no intention of leaving your hand.`,
           )
           .send();
         context.note({
@@ -176,10 +176,10 @@ export default class PutController extends CommandController<PutModel> {
     // `mode` is narrowed to 'in' | 'on' at this point; use it as the
     // preposition verbatim.
     MessageApi.scene(giver)
-      .topic('world.perception.inventory')
-      .toSelf(Mml.compose`You put ${Mml.item(item)} ${mode} ${Mml.item(target)}.`)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`You put ${Mml.thing(item)} ${mode} ${Mml.thing(target)}.`)
       .toPeers(
-        Mml.compose`${Mml.name(giver)} puts ${Mml.item(item)} ${mode} ${Mml.item(target)}.`,
+        Mml.compose`${Mml.actor(giver)} puts ${Mml.thing(item)} ${mode} ${Mml.thing(target)}.`,
       )
       .send();
   }

@@ -293,6 +293,10 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public resolveTraversal(mover: Stuff, mode: string): void {
       if (!this.isArmed() || this.trigger !== 'traversal') return;
+      // A RANGED delivery already found its victim when it resolved.
+      // Walking through where it landed is not what springs it, so the
+      // traversal trigger stays a contact-hazard affair.
+      if (this.delivery.isRanged()) return;
       if (this.moverAvoids(mover, mode)) return;
       // Spend it FIRST — the drop-reentrancy guard.
       this.spring();
@@ -320,13 +324,13 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
     private narrateSpring(victim: Stuff): void {
       const authored = this.springMessage.trim();
       MessageApi.scene(victim)
-        .topic('world.hazard.spring')
+        .topic('act.deed')
         .toSelf(
           authored
             ? Mml.fromMarkup(authored)
             : Mml.compose`Something gives way beneath you — a hidden trap springs!`
         )
-        .toPeers(Mml.compose`${Mml.name(victim)} springs a hidden trap.`)
+        .toPeers(Mml.compose`${Mml.actor(victim)} springs a hidden trap.`)
         .send();
     }
 
@@ -344,9 +348,9 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.disarm();
       const self = this as unknown as Stuff;
       MessageApi.scene(actor)
-        .topic('world.hazard.disarm')
-        .toSelf(Mml.compose`You defuse ${Mml.object(self)}.`)
-        .toPeers(Mml.compose`${Mml.name(actor)} defuses ${Mml.object(self)}.`)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You defuse ${Mml.thing(self)}.`)
+        .toPeers(Mml.compose`${Mml.actor(actor)} defuses ${Mml.thing(self)}.`)
         .send();
     }
 

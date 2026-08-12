@@ -23,6 +23,7 @@
  * persistence-spine stand-in).
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../ChattelRegistry";
 import Thing from "../../lib/stuff/Thing";

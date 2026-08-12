@@ -9,6 +9,7 @@
  * here so bare test sensors need no BodyPlan.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../../../api/message';
 import { PerceptionApi } from '../../../api/perception';
@@ -53,7 +54,7 @@ function pushAudible(
   descriptor: string,
 ): void {
   MessageApi.scene(emitter)
-    .topic('world.perception.ambient.sound')
+    .topic('sense.surroundings')
     .modality('hearing')
     .meta({ acousticDb: db })
     .toAudible(body, { descriptor })

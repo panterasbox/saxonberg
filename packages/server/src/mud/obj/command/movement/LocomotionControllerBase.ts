@@ -59,7 +59,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       // any other failure.
       context.note({ kind: 'mixin-missing', mixin: 'MobileMixin' });
       MessageApi.scene(actor)
-        .topic('system.shell.movement')
+        .topic('shell.result')
         .toSelf(Mml.fromMarkup("You can't move."))
         .send();
       return;
@@ -124,7 +124,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     const broke = CombatApi.disengage(actor);
     if (!broke.ok) {
       MessageApi.scene(actor)
-        .topic('system.shell.movement')
+        .topic('shell.result')
         .toSelf(Mml.fromMarkup(broke.message ?? "You can't break away!"))
         .send();
       context.note({
@@ -165,7 +165,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
 
   /**
    * Centralized failure emission for the locomotion family: fire
-   * the rejection prose at `system.shell.movement` (actor-side
+   * the rejection prose at `shell.result` (actor-side
    * shell channel) AND emit a structured `locomotion-gate-failed`
    * note onto the dispatch context. One pairing, every gate.
    */
@@ -177,7 +177,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
   ): void {
     const prose = this.composeRejection(guard, mode, model);
     MessageApi.scene(context.commandGiver)
-      .topic('system.shell.movement')
+      .topic('shell.result')
       .toSelf(Mml.fromMarkup(prose))
       .send();
     context.note({

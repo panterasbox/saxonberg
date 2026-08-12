@@ -4,6 +4,7 @@
  * missing part disables the slots it enables).
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Species from '../../../obj/species/Species';

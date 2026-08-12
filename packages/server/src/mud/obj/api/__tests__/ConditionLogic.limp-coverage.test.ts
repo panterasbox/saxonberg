@@ -10,6 +10,7 @@
  * `inflict` covering stack. See `material-response.inflict.test.ts`.)
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../../../api/locomotion';
 import { LocomotionMode } from '../../LocomotionMode';

@@ -10,6 +10,7 @@
  * engaged-activity substrate in `coroutine-pacing.test.ts`.)
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Interpreter } from "../Interpreter";
 import type { DispatchFn, RescheduleFn, ResourceLimits } from "../Interpreter";

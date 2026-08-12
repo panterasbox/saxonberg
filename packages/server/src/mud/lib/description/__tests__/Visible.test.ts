@@ -2,6 +2,7 @@
  * VisibleMixin tests
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VisibleMixin } from '../Visible';
 import { makeStuff } from '../../security/__tests__/test-setup';

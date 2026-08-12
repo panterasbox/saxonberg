@@ -13,6 +13,7 @@
  * materialization, not a direct `describe` call.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { RecognitionApi } from '../recognition';
 import { MessageApi } from '../message';
@@ -163,8 +164,8 @@ describe('viewer-aware naming through a scene (real path)', () => {
     // One composed line, broadcast to the room's contents. Each
     // recipient materializes it against itself as the viewer.
     MessageApi.scene(room)
-      .topic('world.perception.sense.look')
-      .toContents(Mml.compose`${Mml.name(bob)} is here.`)
+      .topic('sense.survey')
+      .toContents(Mml.compose`${Mml.actor(bob)} is here.`)
       .send();
 
     const friendBody = friend.received.at(-1)?.body ?? '';

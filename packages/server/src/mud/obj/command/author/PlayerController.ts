@@ -63,7 +63,7 @@ export default class PlayerController extends CommandController<PlayerModel> {
     this.send(
       context,
       Mml.compose`\nYour name is now ${avatar.getFullName()}.\n`,
-      'world.identity.change'
+      'act.deed.change'
     );
     return;
   }
@@ -109,7 +109,7 @@ export default class PlayerController extends CommandController<PlayerModel> {
     this.send(
       context,
       Mml.compose`\nYour pronouns are now ${avatar.getPronouns()}.\n`,
-      'world.identity.change'
+      'act.deed.change'
     );
     return;
   }
@@ -132,7 +132,7 @@ export default class PlayerController extends CommandController<PlayerModel> {
   private send(
     context: CommandContext,
     body: Mml,
-    topic: string = 'system.shell.player'
+    topic: string = 'shell.result'
   ): void {
     MessageApi.scene(context.commandGiver)
       .topic(topic)

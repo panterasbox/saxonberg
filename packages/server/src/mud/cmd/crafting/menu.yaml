@@ -12,5 +12,17 @@ args:
     type: object
     required: false
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
+    # ⚠ NOT `AttendantMixin`, which is what this said and which `Menu`
+    # does not compose — so naming the menu (`menu drinks list`) was
+    # refused by the very verb that reads it. Bare `menu` still worked,
+    # because the arg is optional and `Menu.resolveIn` scans, which is
+    # why nothing noticed.
+    #
+    # ⚠ A knowingly-accepted SUPERSET: the controller narrows
+    # `instanceof Menu` because it needs `offeredRecipes`, which is the
+    # class's datum. `PricedOfferMixin` means "has a price list" — true
+    # of a Menu, and of a shop's stock that has no recipes at all. The
+    # split stays because the alternatives are worse: folding recipes
+    # into PricedOffer conflates two concepts, and a `MenuMixin` for one
+    # class is a mixin per behaviour.
+    requires: [VisibleMixin, PricedOfferMixin]

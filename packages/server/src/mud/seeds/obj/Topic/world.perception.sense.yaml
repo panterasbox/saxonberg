@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.perception.sense
-  family: world.perception
-  label: Sense
-  description: Parent topic for direct deliberate perception — the actor queries the world and receives perceptual content. Children per verb (look / sense / smell / listen / feel / taste / scry).

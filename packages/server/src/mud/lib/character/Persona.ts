@@ -93,9 +93,8 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // standing at the Registry counter.
         'civics/title.yaml',
       ],
-      environment: [],
-      inventory: [],
       peers: [],
+      environment: [],
     };
 
     /**

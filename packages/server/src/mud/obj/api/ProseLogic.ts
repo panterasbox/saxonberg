@@ -131,10 +131,14 @@ function engine(): Liquid {
 
   // `| name` is strict — Named only. A non-Named stuff has no proper
   // name to render, so the filter renders empty rather than wrapping a
-  // fallback string in a `<name>` tag (which would lie about identity).
+  // fallback string in a tag (which would lie about identity).
+  //
+  // The FILTER keeps its authored name — `{{ mover | name }}` is a
+  // prose-author verb and renaming it would be a content migration —
+  // but what it emits is now `Mml.actor`, resolved per viewer.
   built.registerFilter('name', (v) => {
     const s = asStuff(v);
-    return s && MixinApi.isNamed(s) ? Mml.name(s) : '';
+    return s && MixinApi.isNamed(s) ? Mml.actor(s) : '';
   });
 
   // `| item`, `| location`, `| object` accept any Stuff. The underlying
@@ -145,7 +149,7 @@ function engine(): Liquid {
   // surface rather than swallowing the call.
   built.registerFilter('item', (v) => {
     const s = asStuff(v);
-    return s ? Mml.item(s) : '';
+    return s ? Mml.thing(s) : '';
   });
   built.registerFilter('location', (v) => {
     const s = asStuff(v);
@@ -153,7 +157,7 @@ function engine(): Liquid {
   });
   built.registerFilter('object', (v) => {
     const s = asStuff(v);
-    return s ? Mml.object(s) : '';
+    return s ? Mml.thing(s) : '';
   });
   built.registerFilter('direction', (v) =>
     v == null || v === '' ? '' : Mml.direction(String(v)),

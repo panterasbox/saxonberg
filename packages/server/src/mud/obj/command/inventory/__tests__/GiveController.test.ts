@@ -1,10 +1,11 @@
 /**
  * GiveController tests — inter-Agent item transfer. The recipient
- * must be an Agent (gated by `mustBeAgent`); the validator guarantee
+ * must be an Agent (gated by `requires: class:Agent`); the guarantee
  * lets the controller go straight to `ContainmentApi.move` into the
  * recipient's general inventory.
  */
 
+import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import GiveController from '../GiveController';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -35,7 +36,7 @@ class TestGiver extends SensorMixin(
 }
 
 /**
- * Test recipient — extends Agent (so the `mustBeAgent` semantics
+ * Test recipient — extends Agent (so the `class:Agent` semantics
  * match) and composes Container so the give path can hand items
  * into it. v1 Agents (Character / Avatar) all compose Container; the
  * test mirrors that shape.

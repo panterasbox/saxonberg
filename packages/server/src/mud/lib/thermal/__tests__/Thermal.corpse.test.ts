@@ -8,6 +8,7 @@
  * over elapsed game-time.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
 import { MixinApi } from "../../../api/mixin";

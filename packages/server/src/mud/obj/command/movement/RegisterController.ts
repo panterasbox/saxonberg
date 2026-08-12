@@ -78,7 +78,7 @@ export default class RegisterController extends CommandController<CommandModel> 
       // A diegetic player action (operating a Teleport Authority terminal),
       // not author tooling — same in-world narration channel as the other
       // movement commands (mount/dismount, sit/stand).
-      .topic("world.narration.action")
+      .topic("act.deed")
       .toSelf(Mml.fromMarkup(text))
       .send();
   }

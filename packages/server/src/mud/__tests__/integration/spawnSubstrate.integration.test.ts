@@ -7,6 +7,7 @@
  * Containable, and a parent Container declaring `populates:`.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { fileURLToPath } from 'url';
 import { Idea } from '../../lib/stuff/Idea';

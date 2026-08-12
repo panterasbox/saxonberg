@@ -15,7 +15,7 @@ import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 interface ServeModel extends CommandModel {
   patron: MqlOneResult;
@@ -52,9 +52,9 @@ export default class ServeController extends CraftController<ServeModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You make ${Mml.item(drink)} and hand it to ${Mml.name(patron)}.`)
-      .toTarget(patron, Mml.compose`${Mml.name(giver)} makes you ${Mml.item(drink)}.`)
-      .toPeers(Mml.compose`${Mml.name(giver)} serves ${Mml.name(patron)} ${Mml.item(drink)}.`)
+      .toSelf(Mml.compose`You make ${Mml.thing(drink)} and hand it to ${Mml.actor(patron)}.`)
+      .toTarget(patron, Mml.compose`${Mml.actor(giver)} makes you ${Mml.thing(drink)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} serves ${Mml.actor(patron)} ${Mml.thing(drink)}.`)
       .send();
   }
 }

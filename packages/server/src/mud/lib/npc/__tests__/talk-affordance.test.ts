@@ -7,6 +7,7 @@
  * departs.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { Idea } from "../../stuff/Idea";

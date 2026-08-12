@@ -16,8 +16,10 @@ args:
     type: object
     required: true
     scope: "reachable"
+    requires: any
   - name: vessel
     type: object
     required: false
     scope: "reachable"
     prepositions: [into, in, to]
+    requires: ManualBuildMixin

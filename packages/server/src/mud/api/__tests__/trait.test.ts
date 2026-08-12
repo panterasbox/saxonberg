@@ -11,6 +11,7 @@
  * we stub PM's find / save — the same wrappers `DispositionEntry` uses.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { TraitApi } from "../trait";
 import type { ActSignature } from "../../lib/advancement/ActSignature";

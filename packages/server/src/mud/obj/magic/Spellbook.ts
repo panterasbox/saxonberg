@@ -90,9 +90,8 @@ export default class Spellbook extends SpellbookBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
+    peers: ['magic/study.yaml'],
     environment: ['magic/study.yaml'],
-    inventory: ['magic/study.yaml'],
-    peers: [],
   };
 
   /** Which working this volume sets out. */

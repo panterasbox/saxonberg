@@ -18,6 +18,7 @@
  *    would be silly, and because being dead does not log you off.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Shade from '../Shade';
 import Avatar from '../Avatar';

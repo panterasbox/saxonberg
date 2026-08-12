@@ -36,7 +36,7 @@ import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import { Mml } from '../../../api/mml';
 import TrapKit from '../../TrapKit';
 
-const TOPIC = 'world.narration.action';
+const TOPIC = 'act.deed';
 
 /** The Discipline that grades a placed trap's concealment (as for `hide`). */
 const STEALTH_DISCIPLINE = 'stealth';
@@ -116,7 +116,7 @@ export default class ArmController extends CommandController<ArmModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You set ${Mml.item(trap)} and work it into the surroundings.`,
+        Mml.compose`You set ${Mml.thing(trap)} and work it into the surroundings.`,
       )
       .send();
   }

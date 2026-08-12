@@ -15,9 +15,7 @@ args:
     type: object
     required: true
     scope: "reachable"
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBeAgent
+    requires: [VisibleMixin, class:Agent]
   - name: cocktail
     type: string
     required: true

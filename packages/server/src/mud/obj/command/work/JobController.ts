@@ -28,7 +28,7 @@ import type { ConditionData } from "../../../lib/employment/Condition";
 import type { ContractRecord } from "../../../lib/employment/ContractRecord";
 import JobBoard from "../../JobBoard";
 
-const TOPIC = "world.narration.action";
+const TOPIC = "act.deed";
 
 /** The browse's short id — enough to be unique on one board. */
 const SHORT_ID_LEN = 8;
@@ -248,7 +248,7 @@ export default class JobController extends CommandController<JobModel> {
         Mml.compose`The board verifies the work and pays out — ${result.paidMinor} credits, released from escrow to your account.`,
       )
       .toPeers(
-        Mml.compose`${Mml.name(giver)} turns a job in at the board and gets paid.`,
+        Mml.compose`${Mml.actor(giver)} turns a job in at the board and gets paid.`,
       )
       .send();
   }

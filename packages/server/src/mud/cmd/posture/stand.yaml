@@ -18,6 +18,4 @@ args:
     type: object
     required: false
     scope: ["$focus", "reachable"]
-    validators:
-      - /lib/command/validators/mustBeVisible
-      - /lib/command/validators/mustBePostured
+    requires: [VisibleMixin, PosturedMixin]

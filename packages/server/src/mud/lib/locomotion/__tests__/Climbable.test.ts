@@ -1,3 +1,4 @@
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ClimbableMixin, CLIMBING_CAPABILITY_PROP } from '../Climbable';
 import { Idea } from '../../stuff/Idea';

@@ -6,6 +6,7 @@
  * sits above Creature in the hierarchy.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../Creature';
 import { Character } from '../../character/Character';

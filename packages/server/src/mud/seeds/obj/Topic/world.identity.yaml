@@ -1,7 +1,0 @@
-class: /obj/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  topic: world.identity
-  family: world
-  label: Identity
-  description: Identity events — name, pronoun, or honorific changes affecting how characters are addressed and seen.

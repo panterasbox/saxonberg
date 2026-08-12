@@ -7,6 +7,7 @@
  * each Floor fills the **same** puddle. Source-indifference, demonstrated.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';
@@ -153,7 +154,7 @@ describe('The Weeping Moor — the spine invariant', () => {
     WeatherApi._forceTypeForTesting('rain');
 
     // One boundary pass over both occupied scopes.
-    WeatherApi.onBoundary();
+    await WeatherApi.onBoundary();
     await flush();
 
     // The bodies are equally wet — source-indifferent.
