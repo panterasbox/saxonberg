@@ -28,6 +28,7 @@ import { ChronicleApi } from '../../../api/chronicle';
 import { ConnectionApi } from '../../../api/connection';
 import { ShellApi } from '../../../api/shell';
 import { Band } from '../../../lib/standing/Band';
+import { InfluenceStanding } from '../../../lib/standing/InfluenceStanding';
 import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
@@ -81,6 +82,15 @@ function stubSubstrate(recognized: boolean): void {
   // surface renown + competence outward.
   vi.spyOn(RenownApi, 'renownOf').mockReturnValue(0);
   vi.spyOn(InfluenceApi, 'bandOf').mockReturnValue(Band.of('dormant'));
+  // ⚠ Make is ACCOUNT-level and reads through the host seam, which
+  // returns `undefined` for a target with no account — and this unit's
+  // target is a bare Stuff, not an Avatar. Mocked so the assertion below
+  // stays about "the digest carries make", which is what this test is
+  // for; the account resolution itself is covered in
+  // `Avatar.standing-split.test.ts`.
+  vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue(
+    new InfluenceStanding('acct', 'producer', 0, Band.of('dormant'))
+  );
   vi.spyOn(AdvancementApi, 'bandsFor').mockResolvedValue([]);
   vi.spyOn(TraitApi, 'pronouncedFor').mockResolvedValue([]);
   vi.spyOn(RegardApi, 'getRegard').mockReturnValue(0);

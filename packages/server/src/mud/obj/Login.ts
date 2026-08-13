@@ -51,6 +51,7 @@ import type {
   MessageFrame,
   EnvelopeTemplate,
   CharGenRosterEntry,
+  AccountStandingPayload,
   CharGenRosterPayload,
 } from "@saxonberg/types";
 import type Interactive from "./Interactive";
@@ -387,6 +388,8 @@ export default class Login extends LoginBase {
       ...this.rosterFigures(a),
     }));
     const payload: CharGenRosterPayload = { characters };
+    const account = this.accountFigures(avatars);
+    if (account) payload.account = account;
     MessageApi.scene(this)
       .topic("session.identity")
       .toSelf(Mml.compose`Choose a character, or create a new one.`)
@@ -409,6 +412,39 @@ export default class Login extends LoginBase {
    * is what the unbuilt-state convention is for, and an invented zero
    * would read as a real one.
    */
+  /**
+   * ⭐ The **account's** figures — the second entry point to the one
+   * roll-up, and the reason character select cannot disagree with the
+   * in-world shelf.
+   *
+   * At Login there is no host to hand `standingForHost`, because the
+   * player is not embodied. So this calls `standingForAccount` directly
+   * with the account's own subject keys — the same function
+   * `standingForHost` delegates to once it has resolved a host. One
+   * formula, two entry points; the split-brain defect the previous
+   * attempt shipped is not merely avoided here but unreachable.
+   *
+   * ⚠ Fund is deliberately never sent. `'capital'` has no faucet, so a
+   * band for it would be a zero dressed as a measurement; the client
+   * hatches the absence with its own reason.
+   */
+  private accountFigures(avatars: Avatar[]): AccountStandingPayload | undefined {
+    try {
+      const subjects = avatars[0]?.getAccountSubjects();
+      if (!subjects) return undefined;
+      const make = InfluenceApi.standingForAccount(
+        subjects.subject,
+        subjects.members,
+        "producer",
+      );
+      return { make: make.band.name };
+    } catch {
+      // Same rule as the per-character figures: a roster that throws is
+      // a login the player cannot complete. Omit rather than block.
+      return undefined;
+    }
+  }
+
   private rosterFigures(a: Avatar): Partial<CharGenRosterEntry> {
     const out: Partial<CharGenRosterEntry> = {};
     try {

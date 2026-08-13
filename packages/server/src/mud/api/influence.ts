@@ -22,6 +22,10 @@ import { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import type { Stock } from '../lib/standing/InfluenceStanding';
 import type { Band } from '../lib/standing/Band';
 import type { Stuff } from '../lib/stuff/Stuff';
+import type {
+  AccountScoped,
+  AccountSubjects,
+} from '../lib/standing/AccountScoped';
 import { SecurityApi } from './security';
 
 export type { Stock };
@@ -63,48 +67,92 @@ export class InfluenceApi {
   }
 
   /**
+   * An **account's** standing in `stock` — the arithmetic, in one place.
+   *
+   * `subject` names what was measured; `members` are the per-character
+   * subject keys the account owns. Only account-level stocks have a
+   * roll-up: `'producer'` sums (see `ProducerLogic`), `'capital'` has no
+   * faucet and returns a tagged zero, and `'consumer'` is character-level
+   * so asking for an account roll-up of it is a caller error.
+   *
+   * ⭐ Two entry points, one formula. `standingForHost` resolves a host
+   * to its account and delegates here; `Login` calls it directly, having
+   * no host at all — at the character-select screen the player is not
+   * embodied. Because both run this function, the roster and the
+   * in-world figure **cannot** disagree, which is the structural answer
+   * to the split-brain defect the previous attempt shipped.
+   */
+  public static standingForAccount(
+    subject: string,
+    members: readonly string[],
+    stock: Stock
+  ): InfluenceStanding {
+    if (stock === 'producer') {
+      return ProducerApi.standingForAccount(subject, members);
+    }
+    // `consumer` is character-level; there is no account roll-up of it,
+    // and inventing one here would contradict STOCK_LEVEL.
+    return InfluenceStanding.zero(subject, stock);
+  }
+
+  /**
    * A **host's** standing in `stock` — the seam every player-facing
    * surface reads through, so `standing`, `profile` and the live
    * dashboard field cannot disagree.
    *
-   * ⚠⚠ **THE ACCOUNT-LEVEL AGGREGATION IS A STUB. It does not
-   * aggregate.** For an account-level stock this currently returns the
-   * host's *own* subject standing — exactly what a character-level read
-   * returns.
+   * ⚠⚠ **Returns `undefined` when an account-level stock cannot resolve
+   * its account**, and a caller may NOT substitute a per-character
+   * figure for it.
    *
-   * That is deliberate. *How* an account's make standing derives from
-   * its characters' — sum, best, decayed differently, something else
-   * entirely — is an open design question and its own piece of work.
-   * Committing to a formula here would ship a number players can see
-   * that is derived from a placeholder, and every surface that read it
-   * would encode the placeholder by reference.
+   * That is the whole point. The account is resolved through the host's
+   * runtime `User`, which is unpersisted — so "no account in hand" is a
+   * reachable state, and the previous attempt at this roll-up quietly
+   * fell back to the per-character number when it hit that state, with
+   * nothing saying so. A figure whose *level* is wrong is worse than an
+   * absent one, because it is confidently wrong at the exact moment
+   * nobody is looking.
    *
-   * So the **shape** lands and the **arithmetic** does not:
+   * The `undefined` convention is not invented here: `measuredRenownOf`
+   * already returns it for an unmaterialized scope, precisely so a
+   * reader can tell *never measured* from *measured at zero*.
    *
-   *   - `STOCK_LEVEL` records which stocks are account-level;
-   *   - this is the one function that will consult it;
-   *   - all three read surfaces already call through here.
-   *
-   * When the standing design lands, exactly one function changes and
-   * nothing downstream moves. Until then a producer standing is still
-   * per-character, and **that is visible rather than pretended**.
+   * Character-level stocks never return `undefined`.
    */
-  public static standingForHost(host: Stuff, stock: Stock): InfluenceStanding {
+  public static standingForHost(
+    host: Stuff,
+    stock: Stock
+  ): InfluenceStanding | undefined {
     // The durable subject the faucets re-key storage to; the live
     // stuffId is re-minted on re-clone. Matches the faucet's own
     // fallback so the key always agrees.
     const subject = host.getTemplatePath() ?? host.stuffId;
 
-    // ⚠⚠ STUB. `STOCK_LEVEL[stock]` says whether this figure measures
-    // the account or the character — and this is the function that will
-    // act on it. It does not yet: an account-level stock resolves to
-    // the host's own subject, identical to a character-level one.
-    //
-    // Two things are missing and both are deliberate: the account →
-    // characters resolution, and the formula that combines them. When
-    // they land they land HERE, and every caller is already routed
-    // through this function.
-    return InfluenceApi.standingOf(subject, stock);
+    if (STOCK_LEVEL[stock] === 'character') {
+      return InfluenceApi.standingOf(subject, stock);
+    }
+
+    const account = InfluenceApi.#accountOf(host);
+    if (!account) return undefined;
+    return InfluenceApi.standingForAccount(
+      account.subject,
+      account.members,
+      stock
+    );
+  }
+
+  /**
+   * The account a host belongs to, or `undefined`.
+   *
+   * ⚠ A `typeof` guard rather than `MixinApi.isX`, and confined to this
+   * one private method. See `lib/standing/AccountScoped.ts` for why: no
+   * mixin owns account ownership, and reaching `Avatar` — directly or
+   * through `PlayerApi` — would close an import cycle, because `Avatar`
+   * imports this module.
+   */
+  static #accountOf(host: Stuff): AccountSubjects | undefined {
+    const scoped = host as unknown as Partial<AccountScoped>;
+    if (typeof scoped.getAccountSubjects !== 'function') return undefined;
+    return scoped.getAccountSubjects();
   }
 
   /** The band a subject sits in for `stock` (the player-facing surface). */

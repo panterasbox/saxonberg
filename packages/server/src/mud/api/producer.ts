@@ -98,6 +98,26 @@ export class ProducerApi {
     return logic().standingOf(authorId);
   }
 
+  /**
+   * The **account** roll-up: the members' scalars summed, then banded
+   * with the configured producer cutoffs.
+   *
+   * ⭐ Lives here rather than on `InfluenceApi` because the band
+   * thresholds and the scalar reader are this stock's own; putting the
+   * arithmetic on the dispatcher would have meant duplicating the
+   * AppSettings threshold lookup, and a second copy of a cutoff is how
+   * two surfaces come to disagree.
+   *
+   * `subject` names what was measured (the account), `members` are the
+   * per-character subject keys it owns.
+   */
+  public static standingForAccount(
+    subject: string,
+    members: readonly string[]
+  ): InfluenceStanding {
+    return logic().standingForAccount(subject, members);
+  }
+
   /** The raw, per-author log reader — the unscored substrate seam. */
   public static async eventsFor(authorId: string): Promise<ProducerEvent[]> {
     return logic().eventsFor(authorId);

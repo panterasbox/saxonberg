@@ -54,7 +54,12 @@ export interface ProfileNameSurface {
 /** The self-only standing digest (empty lines hidden). */
 export interface ProfileDigest {
   renown?: string;
-  influence?: { play: string; make: string };
+  /**
+   * ⚠ `make` is OPTIONAL: it is account-level, and an account that
+   * cannot be resolved yields no figure rather than the per-character
+   * one. See `InfluenceApi.standingForHost`.
+   */
+  influence?: { play: string; make?: string };
   competence?: { discipline: string; band: string }[];
   traits?: { axis: string; band: string }[];
 }

@@ -422,6 +422,16 @@ export const AppSettingKeys = {
   sandboxSessionGraceMs: "sandbox.session.graceMs",
   /** Eviction — `observe` (log only) | `enforce` (actually cull). */
   residencyEvictionMode: "residency.eviction.mode",
+  /**
+   * How often the world is reset, in words — e.g. `"nightly"`.
+   *
+   * ⚠⚠ **Unset by default, and unset means the front door says
+   * NOTHING about resets.** Do not set this as ambience: it is a
+   * promise about whether a player's work survives the night, and the
+   * server that sets it should be the server that actually does the
+   * resetting. Surfaced on `/auth/status` as `resetPolicy`.
+   */
+  worldResetPolicy: "world.resetPolicy",
   /** Eviction — sweep cadence in ms. */
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */

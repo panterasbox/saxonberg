@@ -41,6 +41,9 @@ import { InfluenceApi, STOCK_LEVEL } from '../../api/influence';
 import RenownStanding, {
   COMPACT_WIDE,
 } from '../../lib/standing/RenownStanding';
+import ProducerStanding, {
+  PRODUCER_WIDE,
+} from '../../lib/standing/ProducerStanding';
 
 /**
  * Read a subscribable field as some viewer.
@@ -92,23 +95,85 @@ describe('standing splits by level', () => {
     expect(STOCK_LEVEL.consumer).toBe('character');
   });
 
-  /*
-   * ⚠ The stub, pinned deliberately. Make standing does NOT yet
-   * aggregate across an account, and this asserts that out loud so the
-   * change is a visible, intentional edit rather than something that
-   * quietly starts happening.
-   */
-  it('does NOT aggregate across the account yet — the formula is unbuilt', () => {
-    const own = InfluenceApi.standingOf(
-      alice.getTemplatePath()!,
-      'producer',
+  /** Seed a character's producer scalar directly into the warmed cache. */
+  function seedProducer(host: Avatar, scalar: number): void {
+    ProducerStanding.cached().set(
+      ProducerStanding.key(host.getTemplatePath()!, PRODUCER_WIDE),
+      scalar,
     );
+  }
+
+  /*
+   * ⭐ The roll-up. This test previously pinned the STUB — asserting
+   * that make standing did *not* aggregate — precisely so that starting
+   * to aggregate would be a visible, intentional edit rather than
+   * something that quietly began happening. This is that edit.
+   */
+  it('sums the account characters into one make standing', () => {
+    seedProducer(alice, 3);
+    seedProducer(bob, 4);
+
     const viaSeam = InfluenceApi.standingForHost(
       alice as unknown as Stuff,
       'producer',
     );
-    expect(viaSeam.scalar).toBe(own.scalar);
-    expect(viaSeam.band.name).toBe(own.band.name);
+    expect(viaSeam?.scalar).toBe(7);
+
+    // And it is genuinely the ACCOUNT's figure: bob reads the same one.
+    const bobSeam = InfluenceApi.standingForHost(
+      bob as unknown as Stuff,
+      'producer',
+    );
+    expect(bobSeam?.scalar).toBe(7);
+    expect(bobSeam?.band.name).toBe(viaSeam?.band.name);
+  });
+
+  /*
+   * ⭐⭐ The property that decides SUM over max or mean: the account is
+   * the subject, so how a person spreads their work across bodies must
+   * not move their figure. Max and mean both penalise minting a second
+   * character, which would make the level claim incoherent.
+   */
+  it('is unchanged by how the work is split across characters', () => {
+    seedProducer(alice, 7);
+    seedProducer(bob, 0);
+    const together = InfluenceApi.standingForHost(
+      alice as unknown as Stuff,
+      'producer',
+    )!.scalar;
+
+    seedProducer(alice, 3);
+    seedProducer(bob, 4);
+    const split = InfluenceApi.standingForHost(
+      alice as unknown as Stuff,
+      'producer',
+    )!.scalar;
+
+    expect(split).toBe(together);
+  });
+
+  /*
+   * ⚠ Defect 2 of the three recorded against the previous attempt:
+   * `Band.fromScalar(total)` with no argument silently uses
+   * `DEFAULT_BAND_THRESHOLDS` while every real producer band uses the
+   * configured ones. The roll-up must band through the same cutoffs a
+   * single-character read does.
+   */
+  it('bands the sum through the same cutoffs a single read uses', () => {
+    seedProducer(alice, 5);
+    seedProducer(bob, 0);
+    const rolled = InfluenceApi.standingForHost(
+      alice as unknown as Stuff,
+      'producer',
+    );
+    const single = InfluenceApi.standingOf(
+      alice.getTemplatePath()!,
+      'producer',
+    );
+    // Same scalar (bob contributes nothing) ⇒ same band, or the two
+    // paths are using different threshold tables.
+    expect(rolled?.scalar).toBe(single.scalar);
+    expect(rolled?.band.name).toBe(single.band.name);
   });
 
   /*
@@ -127,7 +192,7 @@ describe('standing splits by level', () => {
       alice as unknown as Stuff,
       'producer',
     );
-    expect(viaField.band).toBe(viaSeam.band.name);
+    expect(viaField.band).toBe(viaSeam!.band.name);
   });
 
   /*
@@ -163,16 +228,42 @@ describe('standing splits by level', () => {
   });
 
   /*
-   * A character with no account (a guest, or a directly-constructed
-   * body) must still answer rather than throwing — the pre-existing
-   * behaviour, so nothing regresses for guests.
+   * ⭐⭐ Defect 3 of the three: the previous attempt read the runtime
+   * `User`, found it unset, and quietly fell back to the per-character
+   * figure with nothing saying so.
+   *
+   * ⚠ This is a deliberate BEHAVIOUR CHANGE. A body with no account —
+   * a guest, or a directly-constructed one — used to report a make
+   * band and now reports nothing at all. That is worse-looking and more
+   * honest: the band it used to print was a per-character number under
+   * an account-level label. The client hatches on the absence.
    */
-  it('answers for a body with no account rather than throwing', () => {
+  it('yields no make standing for a body with no account, and does not throw', () => {
     const loner = makeStuff(() => new Avatar()) as Avatar;
     stampTemplatePathForTest(loner, Avatar.getTemplatePath('loner'));
     loner.setPlayerId('loner');
-    expect(() => readField('makeStanding', loner as unknown as Stuff)).not.toThrow();
-    expect(readField('makeStanding', loner as unknown as Stuff)).toBeDefined();
+
+    expect(() =>
+      readField('makeStanding', loner as unknown as Stuff),
+    ).not.toThrow();
+    expect(readField('makeStanding', loner as unknown as Stuff)).toBeUndefined();
+    expect(
+      InfluenceApi.standingForHost(loner as unknown as Stuff, 'producer'),
+    ).toBeUndefined();
+  });
+
+  /*
+   * ⚠ Play must keep answering for an accountless body — the
+   * `undefined` path is scoped to ACCOUNT-level stocks only, and a
+   * character-level read has nothing to resolve.
+   */
+  it('still answers play standing for a body with no account', () => {
+    const loner = makeStuff(() => new Avatar()) as Avatar;
+    stampTemplatePathForTest(loner, Avatar.getTemplatePath('loner2'));
+    loner.setPlayerId('loner2');
+    expect(
+      InfluenceApi.standingForHost(loner as unknown as Stuff, 'consumer'),
+    ).toBeDefined();
   });
 
   /*

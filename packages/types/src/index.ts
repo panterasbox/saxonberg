@@ -2598,9 +2598,30 @@ export interface CharGenRosterEntry {
   practice?: { discipline: string; band: string }[];
 }
 
+/**
+ * The account's own standing — the figures that belong to the PERSON,
+ * not to any one character.
+ *
+ * ⭐ Character select is the one screen where the account is the
+ * subject, so this rides beside the roster rather than on an entry.
+ *
+ * ⚠ Every member is optional and an absent one means **the server
+ * cannot answer**, never zero. `fund` has no faucet at all today and is
+ * therefore always absent; `make` is absent when the account could not
+ * be resolved. The client hatches either with its own reason.
+ */
+export interface AccountStandingPayload {
+  /** Make (creation) band — summed across the account's characters. */
+  make?: string;
+  /** Fund (capital) band. No faucet exists, so this never arrives yet. */
+  fund?: string;
+}
+
 /** `system.charactergen.roster` payload — the character-select list. */
 export interface CharGenRosterPayload {
   characters: CharGenRosterEntry[];
+  /** The account-level figures. Absent when none could be derived. */
+  account?: AccountStandingPayload;
 }
 
 /**
@@ -2696,6 +2717,29 @@ export interface ApiResponse<T = unknown> {
  */
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
+  /**
+   * How many live sessions the server currently holds — an **aggregate
+   * only**, never names or identities.
+   *
+   * ⭐ The front door's "it is usually quiet · you may be the only
+   * person on" note was static apologetic copy nobody maintained. This
+   * replaces it with the fact. The websocket opens only after auth, so
+   * this counts signed-in sessions rather than page views.
+   */
+  online?: number;
+  /**
+   * How often the world is reset, in words, when it is reset at all.
+   *
+   * ⚠⚠ **Absent means the server makes no such promise, and the client
+   * must then say nothing.** The handoff art shipped "the world resets
+   * nightly · nothing survives to tomorrow yet" as fixed copy while no
+   * cron, CI job or script implemented a wipe, and three design
+   * documents went on to reason *from* it. A claim about whether the
+   * player's own work survives the night is the most expensive kind to
+   * get wrong, so it is reported by the server that would do the
+   * resetting or it is not rendered.
+   */
+  resetPolicy?: string;
   /**
    * The login providers this server has configured (env-gated strategy
    * registration). Drives start-screen button *enablement* only — the

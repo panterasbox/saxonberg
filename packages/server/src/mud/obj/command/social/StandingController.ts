@@ -44,9 +44,13 @@ export default class StandingController extends CommandController<CommandModel> 
     const playBand = InfluenceApi.bandOf(subjectId, 'consumer');
     // ⚠ Through the shared host seam, not `bandOf`, so this verb, the
     // `profile` digest and the live dashboard field cannot report
-    // different make standings. The account aggregation behind it is
-    // still a stub — see `InfluenceApi.standingForHost`.
-    const makeBand = InfluenceApi.standingForHost(actor, 'producer').band;
+    // different make standings — they run the same roll-up.
+    //
+    // ⭐ `undefined` = the account could not be resolved. The verb says
+    // so in the machine voice rather than printing the per-character
+    // band under an account-level label. "Commands refuse honestly" is
+    // the same convention the hatched surfaces follow.
+    const makeStanding = InfluenceApi.standingForHost(actor, 'producer');
     // Capital (fund) is intake-gated — a defined zero until Twitch capital
     // lands; shown as not-yet-earnable rather than a misleading 'dormant'.
 
@@ -69,7 +73,11 @@ export default class StandingController extends CommandController<CommandModel> 
       Mml.strong('Your standing').toString(),
       Mml.escape(`Play (engagement): ${playBand.name}.`),
       Mml.escape(`${presence} ${regard}`),
-      Mml.escape(`Make (creation): ${makeBand.name}.`),
+      Mml.escape(
+        makeStanding
+          ? `Make (creation): ${makeStanding.band.name}.`
+          : 'Make (creation): not measurable — Make is account-level and this body is not attached to an account.',
+      ),
       Mml.escape('Fund (capital): not yet earnable.'),
     ];
 
