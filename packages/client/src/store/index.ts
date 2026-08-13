@@ -19,6 +19,7 @@ import type {
   AuthState,
   ReleaseRow,
   CharGenRosterEntry,
+  AccountStandingPayload,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
   ConnectionState,
@@ -509,8 +510,20 @@ interface StoreState extends CmsSlice, StudioSlice {
    * arrives. Setting it flips the phase to `character-select`.
    */
   charGenRoster: CharGenRosterEntry[];
+  /**
+   * The ACCOUNT's own standing, from the same roster frame.
+   *
+   * ⚠ Character select is the one screen where the account is the
+   * subject, and it is also the one screen with no character — so no
+   * subscription is available and these must ride the payload. An
+   * absent member means the server could not answer, never zero.
+   */
+  accountStanding: AccountStandingPayload;
   /** Store the roster and flip to `character-select`. */
-  setCharGenRoster: (roster: CharGenRosterEntry[]) => void;
+  setCharGenRoster: (
+    roster: CharGenRosterEntry[],
+    account?: AccountStandingPayload,
+  ) => void;
   /**
    * The current char-gen step state, from the most recent
    * `session.identity` frame. `null` until char-gen begins.
@@ -1293,10 +1306,12 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Char-gen slices (initial cleared state).
   charGenRoster: [],
+  accountStanding: {},
 
-  setCharGenRoster: (roster) =>
+  setCharGenRoster: (roster, account) =>
     set(() => ({
       charGenRoster: roster,
+      accountStanding: account ?? {},
       connectionPhase: "character-select",
     })),
 

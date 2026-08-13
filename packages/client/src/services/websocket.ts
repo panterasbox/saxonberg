@@ -229,7 +229,10 @@ class WebSocketClient {
       if (Array.isArray(payload.characters)) {
         useStore
           .getState()
-          .setCharGenRoster((payload as CharGenRosterPayload).characters);
+          .setCharGenRoster(
+            (payload as CharGenRosterPayload).characters,
+            (payload as CharGenRosterPayload).account,
+          );
         return;
       }
       useStore.getState().setCharGenState(payload as CharGenStatePayload);

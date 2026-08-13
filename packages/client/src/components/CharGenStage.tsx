@@ -239,6 +239,13 @@ const OptionColumn = styled.div`
 const DetailPane = styled.aside`
   width: 260px;
   flex-shrink: 0;
+
+  /* One column at phone width — a fixed 260px pane in a ~350px content
+     box reads as a stray card rather than a detail pane. */
+  @media (max-width: 640px) {
+    width: auto;
+    max-width: 100%;
+  }
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.md};
