@@ -143,10 +143,12 @@ class WebSocketClient {
    * The round-trip heartbeat's timer, or `null` when no socket is up.
    *
    * ⭐ **The service owns this, not a component.** A popover-owned ping
-   * would only measure while somebody had the popover open — so the
-   * mobile bar, which shows the figure at rest, would have nothing, and
-   * the desktop popover would show a number that existed only because
-   * you were looking at it. A socket owns its own health.
+   * would only measure while somebody had the popover open, so the
+   * figure would exist *because you were looking at it* — the number
+   * you read on opening would be the first sample rather than the
+   * current state of a socket that has been up for an hour. A socket
+   * owns its own health, and the reading is true whether or not anyone
+   * has asked for it.
    *
    * ⚠ 30s, and one immediately on connect so the first figure lands
    * without a thirty-second hole. The cadence is a real cost decision:

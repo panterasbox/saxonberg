@@ -687,9 +687,17 @@ What the fix consists of:
   timer explicitly). One ping fires immediately so the figure is not
   blank for the first half-minute. ⭐ It lives in the service and not in
   the popover because a component-owned ping would only measure while
-  somebody was looking — the mobile bar shows the figure at rest, and
-  the popover would otherwise report a number that existed *because* you
-  opened it.
+  somebody was looking: the number you read on opening would be the
+  first sample rather than the current state of a socket that has been
+  up for an hour. The reading is true whether or not anyone has asked
+  for it.
+
+  ⚠ Round trip is a **popover** row on both form factors — the mobile
+  bar reaches it through the same `ConnectionChip`, not as a chip at
+  rest. An earlier draft of this section and of `websocket.ts` claimed
+  the bar showed it at rest; it never did, and the claim was corrected
+  in the pre-merge sweep. The service-ownership argument above stands
+  on its own and never depended on it.
 - **The server echoes the client's own stamp.** `pong` now carries both
   clocks: `timestamp` (the server's, unchanged) and `clientTimestamp`
   (echoed verbatim). ⚠ Subtracting the *server's* timestamp measures

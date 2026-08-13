@@ -884,8 +884,13 @@ slate flags them as separate projects):
   per-type / bespoke content editors + the zone/map canvas, the
   external-editor/LSP / engine-typed IntelliSense path, drafts/publish + the
   law==code forums-review gate, and versioning.
-- **Mobile cockpit** — different layout (stream + button bar), same
-  wire model. Own slate when prioritized.
+- **Mobile cockpit** — the **chrome half shipped** 2026-08-12 (Build C,
+  client-rebuild Wave 1): the two-row bar, the shelf as a pull-down +
+  chooser, the command sheet, and the dropped-link row. See
+  [client-shell.md](./subsystems/client-shell.md). What remains is the
+  **play surface** — the two feeds, the pane feed, focus chain, filters
+  and routing on a phone — which is Wave 4's, and until then the
+  desktop layout's fixed rail simply scrolls inside the content row.
 
 ---
 

@@ -341,6 +341,43 @@ heavier contention the set widens to `landing.integration`,
 **Never quote a failure count without an isolation run.** The count
 tracks machine load, not code health.
 
+## ⭐⭐ Test the WAKE, not just the read
+
+The seam that makes a derive-on-read surface testable is the same seam
+that makes it possible to test it into a false pass.
+
+The phone-chrome build shipped a mobile bar whose figures were **empty
+forever**: the bar does not render `Shelf`, which is where the `self`
+subscription was opened, so nothing ever asked the server for the data
+it displayed. **Eleven tests covered that bar and every one of them
+passed** — because each seeded the store directly
+(`useStore.setState({ shelfFigures })`), which is exactly the seam that
+lets a shelf be tested without a socket, and is therefore structurally
+blind to the question *does anything ask?*
+
+The same shape had already bitten the pane holds, where eleven green
+tests missed an immortal pane because all of them hand-refreshed.
+
+So for anything that **derives on read** — a pane hold, a standing, a
+reconcile-on-read projection, a subscription-fed widget — write the
+read test *and* a second test that asserts the thing which is supposed
+to wake it actually does:
+
+- a **subscription** — assert the component subscribes (spy the
+  transport), not merely that it renders what the store holds;
+- a **reconcile** — drive the clock and assert it advanced, rather than
+  calling the reconciler yourself;
+- a **projection** — seed the *event log* and assert the derived value,
+  rather than seeding the derived value.
+
+⚠ The tell is a test that never touches the producer. If every test for
+a surface reaches past the wire and writes the answer in, the suite is
+describing the renderer and saying nothing about the feature.
+
+Related: a guard that scans source can pass by **matching nothing**.
+Assert what it found (`expect(inspected).toBe(N)`), or a rename
+silently reduces it to `expect([]).toEqual([])`.
+
 ## Adding a test
 
 Nothing to do, unless your test touches the wired runtime — the Stuff
