@@ -42,7 +42,13 @@ The components:
 - **`AccountMenu`** — a dropdown off the identity label (portrait +
   name), state-polymorphic over the connected identity: a real character
   gets *Switch character* (a reconnect → roster, account stays signed
-  in) + *Sign out*; a guest gets *Sign in to save* + *Sign out*. The two
+  in) + *Sign out*; a guest gets *Sign in to start a character* +
+  *Sign out*. ⚠⚠ That item used to read *"Sign in to save"*, which
+  promised the one thing a guest session explicitly does not get — the
+  front door states a guest keeps nothing and nobody can find them
+  again, and there is no conversion path. Copy that implies the session
+  carries over is worse than a wrong figure, because the player **acts**
+  on it: they keep going, believing the work is banked. The two
   exits are distinct — leaving the world ≠ ending the account.
 - **`Portrait`** — the small avatar image; renders `player.portraitUrl`
   with an initials fallback when the URL is empty (the server's "no
@@ -796,15 +802,107 @@ something the server cannot back.
 shared-screen mode, a suspended account that can read but not act — that
 is a real feature with server work and wants its own requirements.
 
-## The start screen (pre-world, plain UI)
+## The front door
 
 `components/StartScreen.tsx` renders the `unauthenticated` phase — no
-diegetic metaphor (the lounge is the first room; this is just the app's
-start screen). It offers a **data-shaped provider list** (Google live; a
-rendered-but-inert Twitch slot — the auth-providers slate wires it
-later), a co-equal **Play as guest** button, and a **dev-only** no-OAuth
-login (`import.meta.env.DEV`). Logout returns here (a real logged-out
-state, never a reload to a dead page).
+diegetic metaphor (the lounge is the first room; this is the app's front
+door). It carries the pitch, the three chambers (Make / Fund / Play), a
+**data-shaped provider list** (Google, Twitch and Kick as co-equal login
+providers, each disabled when `/auth/status` reports it unconfigured),
+the **guest** control with its terms, the {@link PressRoom}, and a
+**dev-only** no-OAuth login (`import.meta.env.DEV`). Logout returns here
+(a real logged-out state, never a reload to a dead page).
+
+Compact is a **reflow**, not a different composition — one column,
+sign-in above the fold, the press room as the scroll — so it is plain
+CSS rather than a `useIsCompact` branch. The mobile bar is the case that
+genuinely needs the hook; this is not.
+
+⭐⭐ **Every claim on this screen has a source**, and this is the screen
+where that is hardest to hold: it is what a stranger judges the project
+on, so the pull toward filling space with plausible copy is at its
+maximum. Two claims the handoff art shipped as fixed strings are now
+server-reported:
+
+| Art copy | What ships |
+|---|---|
+| *"it is usually quiet · you may be the only person on"* | a **live count** from `/auth/status`'s `online`. Three states, and the third is the point: a number, a real zero, or **nothing at all** when the server did not answer — an unanswered count must not render as "nobody is on", which is a different claim and a discouraging one to get wrong. |
+| *"the world resets nightly · nothing survives to tomorrow yet"* | rendered **only** when `/auth/status` reports a `resetPolicy`, which is absent by default. |
+
+⚠⚠ The second is not fussiness. The claim was **implemented nowhere** —
+no cron, no CI job, no script — while three design documents reasoned
+*from* it. A statement about whether the player's own work survives the
+night is the most expensive kind to get wrong, and the fact that it is
+*reassuring* is what makes it dangerous. There is no fallback string in
+the component and there must never be one; `App.test.tsx` and
+`arrival.spec.ts` both guard it.
+
+The press room is **never awaited**: the sign-in and guest controls
+paint whether it loads, is empty, or is gone.
+
+## Character select
+
+`components/CharacterSelect.tsx` renders the `character-select` phase.
+
+⭐ **Every figure rides the roster payload**, because at `Login` you are
+not embodied: the per-character standings are readable in-session
+through a subscription and none of those is available to a screen with
+no character. `lastSeen`, `playStanding`, `lastLocation` and `practice`
+shipped on that payload in an earlier build and nothing read them until
+this one. The **account** block (`account.make`) is the second entry
+point to the standing roll-up — see
+[influence.md](./influence.md) § *`standingForHost`*.
+
+⭐ **Two panes on a desktop, two screens on a phone, and the split is by
+QUESTION**: the list answers *who*, the detail answers *what happened
+while I was gone*. Most accounts have one character, so the list is a
+way-station rather than a destination — **a single-character account
+opens straight on the detail** on both form factors.
+
+⚠ Three hatches, three **distinct** reasons. Collapsing them into one
+string would send the next reader to the wrong place, which is the
+failure the honest-state convention exists to prevent and which an
+earlier build shipped anyway:
+
+| Surface | State | Reason |
+|---|---|---|
+| **Since you left** | whole-card `UnbuiltGround` | nothing records what happened while you were away — no mailbox, no notice queue |
+| **Fund** standing | `unwired` | the capital stock has no faucet |
+| **Make** standing, unresolvable account | `unwired` | the account could not be resolved |
+| **retire / restore / rename / appearance** | disabled, reason in `title` | no such command exists |
+| Play standing / practice / location, never-played | `empty` | *never taken out* |
+
+⚠ *Since you left* is a whole-card hatch rather than a hatched value
+because hatching one row inside an otherwise confident panel would
+understate how absent it is.
+
+⚠ A never-played character shows a reasoned `empty`, **never a zero**. A
+zero says *we measured, and it is nothing*; the truth is that nothing
+has been measured.
+
+⭐ The Enter control previews the command it sends (`sends as play
+<id>`) — the axiom does not switch off before the command bar exists.
+
+## Intake on a phone, and the in-world rail
+
+Intake is one column at phone width; the species detail pane stops being
+a fixed 260px card.
+
+⚠⚠ **The in-world rail collapses on compact**, and it is in this build
+rather than the play-surface wave for one reason: **the arrival path
+terminates there.** Each right-column pane declares its own fixed 360px
+width, so beside a terminal the in-world document computed ~698px at a
+390px viewport — and under the mobile viewport model an overflowing
+document widens the **initial containing block**, which is what
+`position: fixed` resolves against, so the shell's own fixed surfaces
+(the shelf screen, the command sheet) rendered off the right edge. An
+arrival that delivers you somewhere broken has not arrived.
+
+⚠ **The collapse and nothing more.** What the panes should be on a
+phone, and whether they belong inline in the feed, is the play-surface
+wave's, and this must not pre-empt it.
+
+## Anonymous guest
 
 ## Anonymous guest
 
@@ -916,6 +1014,18 @@ number (`docs/design_handoff/CONVENTIONS.md` #1):
 
 > **Never render a figure the server did not send**, including "just for
 > now."
+
+> ⚠⚠ **The nightly wipe this paragraph argues from did not exist** —
+> found 2026-08-13 while building Arrival. No cron, no CI job, no
+> script, and [deployment.md](../deployment.md) documents durable Mongo
+> Atlas persistence. The assumption had propagated into three documents.
+> It is scheduled to be built (the record-layer build), and until it is,
+> **no surface may state it**: the front door renders a reset notice
+> only when `/auth/status` reports a `resetPolicy`, which is absent by
+> default. See [the front door](#the-front-door).
+>
+> ⭐ The lesson outlives the fix: *a factual premise stated once in a
+> governing paragraph gets cited, not re-checked.*
 
 The demo wipes nightly, which buys latitude on *persistence* and none on
 *figures*: a plausible fake is indistinguishable from a bug, and this

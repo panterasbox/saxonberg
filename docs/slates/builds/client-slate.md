@@ -611,7 +611,7 @@ Ordered so each ships independently. The handoff's build order is a good
 |---|---|---|
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
 | ~~**1**~~ ✅ | **Foundation — CLOSED 2026-08-12.** Civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome desktop AND phone. **Shipped as three builds — see § 7.1.** | done |
-| **2** | **Arrival** — front door, intake, character select, + mobile. The launch path, and the one wave a stranger sees. ⚠ **The lounge is CUT** — see § 7.2. Scoped in [arrival-requirements](../../requirements/arrival-requirements.md). | 1 |
+| ~~**2**~~ ✅ | **Arrival — SHIPPED 2026-08-13.** Front door, intake, character select, + mobile; the char-gen payload generalized; account-level Make standing. ⚠ **The lounge is CUT** — see § 7.2. | done |
 | **2.5** | ⭐ **The read surfaces** — one SERVER build batching every remaining endpoint the 23 screens need, so waves 4/6/7 are pure client. See § 7.2. | 2 |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
 | **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
@@ -811,6 +811,50 @@ the subsets (six files, four families) and **recorded the procedure** in
 knowledge, traceable only to a commit message describing the result.
 
 ---
+
+#### ⭐ **WAVE 2 IS CLOSED.** What it settled, beyond its own screens
+
+- ⭐⭐ **The char-gen payload is generic**, projected from
+  `EnrollController`'s `FIELDS` table. A new intake concept is **one
+  table entry**. This is the change [char-gen.md](../../subsystems/char-gen.md)
+  argued for, taken at the moment it was cheapest, and it makes the
+  lineage model mostly a server change.
+- ⭐⭐ **Two rules the analysis had not anticipated**, and they are what
+  makes "additive" true rather than merely claimed: a field the client's
+  screen config does not name **still renders**, and a field whose
+  `kind` it cannot draw **renders hatched**. Without them a
+  server-added field would be invisible while still gating `enroll
+  confirm` through `missing` — a dead Continue button with nothing
+  explaining it. *The honest-state rule turned on the intake's own
+  extensibility.*
+- ⭐ **Account-level Make standing shipped**, ending the level collision
+  Build B recorded. Sum, not max or mean — *the account is the subject,
+  so distributing work across bodies must not move the figure*, and sum
+  is the only combinator with that property. `PANES.self` gained
+  `makeStanding` in the same commit as the arithmetic, which was the
+  condition its absence had been recorded against.
+- ⚠ **`standingForHost` returns `undefined`** for an unresolvable
+  account and no caller may substitute a per-character figure. A
+  deliberate behaviour change: a body with no account used to print a
+  band, and that band was a per-character number wearing an
+  account-level label.
+- ⚠⚠ **The nightly wipe did not exist** (§ 3.1's box). Found while
+  scoping this wave.
+- ⚠⚠ **A shipped guest-menu string promised what the product refuses.**
+  *"Sign in to save"* implied a guest session carries over; a guest is
+  `anon:<nanoid>` with no persisted `User` and there is no conversion
+  path. ⭐ Worse than a wrong figure, because the player **acts** on it —
+  they keep playing believing the work is banked. Now *"Sign in to start
+  a character"*. Conversion is **refused, not deferred**: building it
+  would make the front door's own promise false.
+- ⚠ **The in-world rail collapse came forward from Wave 4**, because the
+  arrival path terminates in the world and an arrival that delivers you
+  somewhere broken has not arrived. **Collapse only** — the play-surface
+  redesign is untouched.
+- ⚠ **Still cut:** the lounge (both halves), `retire`/`restore`/
+  `rename`/`appearance`, an offline-notice source for *Since you left*,
+  and Fund standing. Each renders with its own reason rather than being
+  omitted.
 
 ### 7.2 The program resequenced — 2026-08-13
 

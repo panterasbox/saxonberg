@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { commandInput, sendUntil } from './helpers';
 
 /**
- * The anonymous-guest path: a fresh visitor clicks "Play as guest", the
+ * The anonymous-guest path: a fresh visitor clicks "Look around as a guest", the
  * server mints an ephemeral guest avatar (`/auth/guest` → WS connect),
  * and the client flips straight to the cockpit — no Google sign-in, no
  * roster. See client-shell.md.
@@ -19,7 +19,7 @@ test('an anonymous visitor can play as guest and enter the world', async ({
   // The start screen, not the cockpit.
   await expect(page.getByText('Sign in with Google')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Play as guest' }).click();
+  await page.getByRole('button', { name: 'Look around as a guest' }).click();
 
   // The guest mint + WS welcome flips us into the cockpit. Generous
   // timeout: the box may be under load.
