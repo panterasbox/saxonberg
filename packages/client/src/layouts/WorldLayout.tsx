@@ -91,6 +91,28 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCancelPrompt={onCancelPrompt}
         />
       </LeftColumn>
+      {/*
+       * ⚠⚠ **The right-column panes dispatch through `onCommandClick`,
+       * not `onSendCommand`, and the distinction is not cosmetic.**
+       *
+       * Every call these four panes make is a CLICK ON A CONTROL — a
+       * breadcrumb, a refresh, a content row, an exit. That is an
+       * affordance, and affordances are what the command sheet
+       * intercepts on a phone. Wired to `onSendCommand` they bypassed
+       * it entirely: tapping `north` in the transcript opened a sheet
+       * naming the command, tapping the identical `north` in the
+       * inspection pane six inches away sent it instantly. Two rules on
+       * one screen, which is worse than either rule alone — and exactly
+       * the unpredictability the no-exceptions sheet policy exists to
+       * avoid.
+       *
+       * ⚠ `onSendCommand` stays raw for `CommandBar`, correctly: TYPED
+       * input is not an affordance and must never be confirmed.
+       *
+       * Found by driving; every unit and e2e assertion about the sheet
+       * happened to pick a transcript or menu affordance, so the gap
+       * was invisible to the suite.
+       */}
       <RightColumn>
         <PaneSwitch>
           <PaneTab
@@ -121,22 +143,22 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         <PaneSlot>
           {rightPane === "who" ? (
             <WhoPane
-              onSendCommand={onSendCommand}
+              onSendCommand={onCommandClick}
               onCommandPreview={onCommandPreview}
             />
           ) : rightPane === "news" ? (
             <NewsTickerPane
-              onSendCommand={onSendCommand}
+              onSendCommand={onCommandClick}
               onCommandPreview={onCommandPreview}
             />
           ) : rightPane === "wiki" ? (
             <WikiPane
-              onSendCommand={onSendCommand}
+              onSendCommand={onCommandClick}
               onCommandPreview={onCommandPreview}
             />
           ) : (
             <InspectionPane
-              onSendCommand={onSendCommand}
+              onSendCommand={onCommandClick}
               onCommandPreview={onCommandPreview}
             />
           )}

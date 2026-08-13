@@ -18,6 +18,7 @@ import { useStore } from '../../../store/index';
 function setLink(
   link: 'connected' | 'reconnecting' | 'dropped',
   connectedAt?: number,
+  roundTripMs?: number,
 ): void {
   useStore.setState({
     connection: {
@@ -27,6 +28,7 @@ function setLink(
       sessionId: link === 'connected' ? 'sess-1' : null,
       error: null,
       ...(connectedAt !== undefined ? { connectedAt } : {}),
+      ...(roundTripMs !== undefined ? { roundTripMs } : {}),
     },
   });
 }
@@ -119,21 +121,54 @@ describe('ConnectionChip', () => {
       expect(row.getAttribute('aria-label')).toContain('no connection to measure');
     });
 
-    it('hatches the two unmeasured readings WITH their reasons', () => {
+    /*
+     * ⚠ This assertion used to cover TWO hatched rows and pinned round
+     * trip's reason as "ping/pong". **Editing it is the point of the
+     * change**, not collateral: that reason was inaccurate — the
+     * protocol existed and nothing called it — so the row is measured
+     * now and only frames-behind is genuinely unmeasured.
+     */
+    it('hatches the ONE unmeasured reading, with what is actually missing', () => {
       render(<ConnectionChip />);
       const popover = open();
-      const rt = rowFor(popover, 'round trip');
       const fb = rowFor(popover, 'frames behind');
 
-      expect(rt.getAttribute('data-figure-state')).toBe('unwired');
       expect(fb.getAttribute('data-figure-state')).toBe('unwired');
       // The reason must say WHAT IS MISSING — a generic "not wired"
-      // tells the next builder nothing about what to build.
-      expect(rt.getAttribute('aria-label')).toContain('ping/pong');
+      // tells the next builder nothing about what to build, and a
+      // reason naming the wrong missing thing is worse still.
       expect(fb.getAttribute('aria-label')).toContain('sequence number');
-      // And neither invents a number.
-      expect(rt.textContent ?? '').not.toMatch(/\d/);
       expect(fb.textContent ?? '').not.toMatch(/\d/);
+    });
+
+    /*
+     * ⭐ The measurement B said needed protocol work it already had.
+     */
+    it('⭐ reports a completed round trip as a live figure', () => {
+      setLink('connected', Date.now(), 42);
+      render(<ConnectionChip />);
+      const rt = rowFor(open(), 'round trip');
+      expect(rt.getAttribute('data-figure-state')).toBe('live');
+      expect(rt.getAttribute('aria-label')).toContain('42 ms');
+    });
+
+    /*
+     * ⚠⚠ **`empty` with a reason, never a zero.** A 0 ms round trip is
+     * not a thing that happens, so printing one would claim a perfect
+     * link where the truth is that nothing has been measured yet. Same
+     * rule as the duration row, and the reason it is asserted
+     * separately is that "unmeasured" and "measured as zero" are the
+     * two readings this whole convention exists to keep apart.
+     */
+    it('⚠ before the first pong is empty WITH a reason, never 0', () => {
+      setLink('connected', Date.now());
+      render(<ConnectionChip />);
+      const rt = rowFor(open(), 'round trip');
+      expect(rt.getAttribute('data-figure-state')).toBe('empty');
+      expect(rt.textContent ?? '').not.toMatch(/\d/);
+      expect(rt.getAttribute('aria-label')).toContain(
+        'no round trip completed yet',
+      );
     });
 
     it('ticks while open', () => {

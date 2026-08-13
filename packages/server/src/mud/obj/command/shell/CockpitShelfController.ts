@@ -5,6 +5,24 @@
  *   cockpit shelf list          what is on the shelf, and what is not
  *   cockpit shelf pin <row>     add it, at the end
  *   cockpit shelf unpin <row>   take it off
+ *   cockpit shelf first <row>   move it to the front
+ *
+ * ⭐ **`first` exists because the shelf has an ORDER and a phone can
+ * only show the head of it.** The mobile bar renders `shelf.slice(0, 3)`
+ * as its glance-line, so *choosing* what rides a phone's bar is exactly
+ * *reordering the shelf* — and until this action there was no way to do
+ * that at all. The alternative was a second clientState key naming the
+ * bar rows explicitly, which is two lists that must agree: an unpin that
+ * forgot to update the glance key, a glance row that is not on the
+ * shelf, and a `list` output that cannot say which is true. One ordered
+ * list has one answer.
+ *
+ * ⚠ It **pins first when the row was not pinned**, because *"put this on
+ * my bar"* is ONE intention and making a player type `pin` then `first`
+ * would be two commands for one thought. The naming follows suit:
+ * `first` over `promote`/`move`, because it names the resulting state
+ * rather than the operation, and it reads correctly in the machine voice
+ * — *coin moved to the front of the shelf*.
  *
  * ⚠ **Pinning is a command, not a client-side toggle**, and this is the
  * build's load-bearing reason for it. The status bar introduced
@@ -47,14 +65,14 @@ import {
 } from '@saxonberg/types';
 
 const SHELF_KEY = 'cockpit.shelf';
-const SHELF_ACTIONS = ['list', 'pin', 'unpin'];
+const SHELF_ACTIONS = ['list', 'pin', 'unpin', 'first'];
 
 type ShelfHost = Stuff & HasInteractive;
 
 interface ShelfModel extends CommandModel {
-  /** `list` | `pin` | `unpin`. Bare `cockpit shelf` means `list`. */
+  /** `list` | `pin` | `unpin` | `first`. Bare `cockpit shelf` means `list`. */
   action?: string;
-  /** The row to pin or unpin. */
+  /** The row to pin, unpin or move to the front. */
   row?: string;
 }
 
@@ -99,6 +117,35 @@ export default class CockpitShelfController extends CommandController<ShelfModel
     }
 
     const current = this.currentShelf(host);
+    if (action === 'first') {
+      if (current[0] === row) {
+        // Already the head. Not an error — the state the player asked
+        // for is the state they have — and crucially not a rewrite,
+        // which would push an identical array and re-save for nothing.
+        return this.send(
+          context,
+          Mml.fromMarkup(
+            Mml.escape(`\n${row} already heads the shelf\n`),
+          ),
+        );
+      }
+      const wasPinned = current.includes(row as ShelfRowId);
+      this.commit(host, [
+        row as ShelfRowId,
+        ...current.filter((r) => r !== row),
+      ]);
+      return this.send(
+        context,
+        Mml.fromMarkup(
+          Mml.escape(
+            wasPinned
+              ? `\n${row} moved to the front of the shelf\n`
+              : `\n${row} pinned to the front of the shelf\n`,
+          ),
+        ),
+      );
+    }
+
     if (action === 'pin') {
       if (current.includes(row as ShelfRowId)) {
         return this.send(

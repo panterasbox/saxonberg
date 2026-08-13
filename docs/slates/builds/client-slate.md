@@ -592,7 +592,7 @@ Ordered so each ships independently. The handoff's build order is a good
 | Wave | What | Depends on |
 |---|---|---|
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
-| **1** | **Foundation** — civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome (top bar + status bar). **Cut into three builds — see § 7.1.** | 0 (facets, for the filter surface) |
+| ~~**1**~~ ✅ | **Foundation — CLOSED 2026-08-12.** Civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome desktop AND phone. **Shipped as three builds — see § 7.1.** | done |
 | **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
 | **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
@@ -610,7 +610,91 @@ are for reasons worth keeping:
 |---|---|---|
 | ✅ **A — civic ground** — **SHIPPED 2026-08-11** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | shipped — see [message-rendering.md](../../subsystems/message-rendering.md) § The custom-property colour layer + § Font-by-register, and [client-shell.md](../../subsystems/client-shell.md) § The honest-state primitives |
 | ✅ **B — honest chrome** — **SHIPPED 2026-08-11** | desktop top bar (seal, connection chip + popover, identity, the nine-row shelf), the status bar replacing `GhostCommandLine`, and the server work: the `self` pane, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf`, `RenownApi.measuredRenownOf`. ⚠ **The read-only mode indicator is CUT** — see below. | shipped — see [client-shell.md](../../subsystems/client-shell.md) §§ The top bar / The widget shelf / The status bar / The connection popover, [cockpit.md](../../subsystems/cockpit.md) § `cockpit shelf`, [mql-subscription.md](../../subsystems/mql-subscription.md) § The pane catalogue's field sets |
-| **C — chrome on a phone** | the mobile *inversion* — no status bar, shelf leaves the bar for a pull-down with one glance-line slot, command sheet, dropped connection claims the first row, safe areas | not yet written |
+| ✅ **C — chrome on a phone** — **SHIPPED 2026-08-12** | the mobile *inversion* — two-row bar, no status bar, the shelf leaves the bar for a pull-down + shelf screen, the command sheet, a dropped socket claiming the first row, safe areas; plus `cockpit shelf first`, the round-trip heartbeat and the retry countdown. ⚠ **The held-commands queue and the notification bell are CUT** — see below. | shipped — see [client-shell.md](../../subsystems/client-shell.md) §§ The server owns what is shown / The mobile bar / The command sheet, and [cockpit.md](../../subsystems/cockpit.md) § `first`, and the glance-line |
+
+#### ⭐ **WAVE 1 IS CLOSED.** Wave 2 (Arrival) is unblocked.
+
+⭐ **C's governing sentence: *a bar that wraps has nowhere to wrap
+to*.** Desktop's shelf grows a second row when you pin too much and the
+page absorbs it; on a phone every row the chrome takes is a row the feed
+loses, and the feed is the app. So the shelf leaves the bar entirely and
+becomes a pull-down: **same catalogue, same order, different
+disclosure.**
+
+⭐ **The server owns what is shown; the viewport owns how it is
+disclosed.** `cockpit.shelf` is identical on both form factors. There is
+deliberately no `cockpit.formFactor` — the server cannot know a
+viewport, so such a key would be a fake *fact*, the same failure one
+level up that cut B's read-only indicator.
+
+⭐ **The glance-line is the HEAD of the shelf, not a second key** — which
+made *choosing what rides the bar* into *reordering*, and produced
+`cockpit shelf first`. A desktop improvement too: shelf order had been
+unchangeable since B.
+
+⭐⭐ **B's round-trip hatch reason was WRONG, and C retires it.** It said
+nothing measured round trip and a ping/pong would have to be written;
+the protocol existed end to end and nothing called it. A reason pointing
+at the wrong place is worse than no reason — it is confidently
+actionable and false — so the retired string is now guarded by a test
+that greps the client source. This is the hatch-doctrine failure the
+three-category table exists to prevent, occurring anyway, and it is the
+strongest argument yet for that table.
+
+⚠ **The held-commands queue is CUT, not deferred.** The art's 6D shows
+*"2 commands held · retry in 4 s"* with a footer naming the commands it
+kept. **No such queue exists** — `WebSocketClient.send()` logs an error
+and drops the message. Building one is an offline queue with ordering,
+expiry and replay-safety questions (*is `north` still the right command
+forty seconds later?*), which is a real feature deserving its own
+requirements rather than a chrome build's side effect. ⭐ What the
+dropped row says instead is the inversion: **commands sent now will not
+arrive**. The art comforts; the truth is bleaker and strictly more
+useful, and it is the sentence that makes the queue's absence *visible*
+rather than silently wrong. A test asserts no "held" count renders.
+Recorded here so 6D is not later read as an unmet promise.
+
+⚠ **The notification bell is CUT for the second time**, on the same
+grounds as in B: what belongs in that tray is whatever the receiver
+*said* they wanted, which wants `NotifyPolicy` read first, and nothing
+about a smaller screen changes what is behind it. It gets no permanent
+slot in the scarcest row on the screen.
+
+⚠ **`CharGenStage` and the world layout are untouched.** The viewport
+switch is scoped to the in-world phase: mobile intake is Wave 2 with its
+own art, and `WorldLayout`'s fixed `22rem` rail — which makes the
+document 698px wide at a 390px viewport — belongs to Wave 4, where the
+feed itself is owned. Both were left alone deliberately rather than
+half-built.
+
+⭐⭐ **SIX bugs found by driving a real browser, none of which a fully
+green suite could see.** The first two came from Playwright, the rest
+only from a real phone emulation:
+
+1. `inset: 0` plus padding under content-box made a full-bleed surface
+   18px too wide and scrolled the page sideways.
+2. `context.setOffline(true)` does **not** close an already-open
+   WebSocket, so the dropped-row spec asserted a state it never reached.
+3. ⭐⭐ **The mobile bar never opened the `self` subscription** — it
+   does not render `Shelf`, where that `useEffect` lived — so every
+   glance-line figure was empty forever. Eleven green tests seeded the
+   store directly and were structurally blind to *does anything ask?*
+4. ⭐⭐ **Under the mobile viewport model an overflowing document widens
+   the ICB**, which `position: fixed` resolves against — so the shelf
+   screen rendered at 728px in a 390px viewport with its close button
+   and every action off-screen and **unreachable**. Playwright's plain
+   `viewport` is a narrow DESKTOP context where this cannot happen;
+   `isMobile: true` is the difference.
+5. **The right-column panes bypassed the command sheet**, taking the raw
+   send — so one screen had two rules for the same tap.
+6. ⭐⭐ **The client never reconnected after a server restart** — the
+   standup-deploy path the backoff exists for — because `App`'s connect
+   effect raced the loop and the chain was lost. Pre-existing; the retry
+   countdown is what made it legible, and *a countdown is a promise*.
+
+⚠ The governing lesson, third time it has been paid for: **jsdom has no
+layout, and a narrow desktop window is not a phone.** B's overflowing
+`＋ widget` menu taught half of it; this build taught the other half.
 
 ⚠ **Build B's read-only mode indicator was CUT, not deferred — it has no
 source.** This line promised one; investigation during planning found

@@ -139,6 +139,62 @@ class WebSocketClient {
    */
   private forumSubscriptions: Map<string, ForumSubscriptionScope> = new Map();
 
+  /**
+   * The round-trip heartbeat's timer, or `null` when no socket is up.
+   *
+   * ⭐ **The service owns this, not a component.** A popover-owned ping
+   * would only measure while somebody had the popover open, so the
+   * figure would exist *because you were looking at it* — the number
+   * you read on opening would be the first sample rather than the
+   * current state of a socket that has been up for an hour. A socket
+   * owns its own health, and the reading is true whether or not anyone
+   * has asked for it.
+   *
+   * ⚠ 30s, and one immediately on connect so the first figure lands
+   * without a thirty-second hole. The cadence is a real cost decision:
+   * this is a cosmetic reading multiplied by every connected client, and
+   * a tighter loop buys precision nobody is reading.
+   */
+  private heartbeat: ReturnType<typeof setInterval> | null = null;
+  private static readonly HEARTBEAT_MS = 30_000;
+
+  /**
+   * The pending backoff timer, or `null` when no reconnect is armed.
+   *
+   * ⭐⭐ **Its existence is what makes the backoff loop the SOLE driver
+   * of reconnection**, and that is a fix for a measured, pre-existing
+   * failure: after a server restart the client would sit at
+   * `reconnecting` **forever** and never recover, even with the server
+   * back and healthy for minutes. The very case the generous 7-attempt
+   * window was written for — *"a user can ride straight through a
+   * standup deploy without touching anything"* — did not work.
+   *
+   * The race, from the console of a real drop:
+   *
+   *   1. `onclose` nulls the socket and arms attempt 1.
+   *   2. `setDisconnected` flips `connection.isConnected` false, which
+   *      re-fires **`App`'s connect effect** — a second, independent
+   *      caller of `connect()`, out of band with the backoff.
+   *   3. That immediate attempt fails and arms attempt 2.
+   *   4. Attempt 1's timer fires and opens a socket.
+   *   5. Attempt 2's timer fires, finds that socket still CONNECTING,
+   *      and returns **without re-arming**. The loop is now lost.
+   *   6. The parked socket sits in CONNECTING behind Chrome's own
+   *      repeated-failure throttle, so nothing ever completes it.
+   *
+   * With this timer, `connect()` refuses while a reconnect is armed, so
+   * step 2 cannot inject an out-of-band attempt and the loop stays a
+   * single ordered chain: close → arm → connect → close → arm.
+   *
+   * ⚠ This is a **behaviour change to the reconnect machine**, which
+   * this build's requirements fenced off as additive-only. It is made
+   * deliberately and reported: the countdown this build added is what
+   * exposed the fault, and a countdown is a promise — reporting when
+   * the next attempt fires obliges the next attempt to actually fire.
+   * The three frozen guard files still pass unmodified.
+   */
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     this.registerBuiltinHandlers();
   }
@@ -244,9 +300,56 @@ class WebSocketClient {
   public connect(url: string): void {
     this.url = url;
 
-    if (this.ws) {
+    /*
+     * ⚠⚠ **The guard is on a LIVE socket, not on the slot being
+     * non-empty — and that distinction is a reconnect loop that
+     * recovers versus one that wedges forever.**
+     *
+     * Measured against a real stopped server: attempt 1 failed, attempt
+     * 2 was scheduled, and when its timer fired this method found a
+     * non-null `this.ws` holding a socket that was already CLOSED,
+     * logged "Already connected" and returned. No further attempt was
+     * ever made. The link sat at `reconnecting` indefinitely and the
+     * backoff never advanced.
+     *
+     * ⚠ That is a PRE-EXISTING fault in the reconnect machine — but it
+     * was invisible while nothing reported the schedule. The retry
+     * countdown this build added is what made it legible, and a
+     * countdown frozen at 0s against a loop that will never fire again
+     * is a worse lie than not showing one. Reporting a number obliges
+     * you to make the number true.
+     *
+     * A CONNECTING or OPEN socket still short-circuits, which is the
+     * duplicate-connect the guard was actually written for.
+     */
+    if (this.reconnectTimer !== null) {
+      // The backoff loop owns the connection now. An out-of-band
+      // caller must not open a competing socket — see `reconnectTimer`.
+      console.warn("WebSocketClient: Reconnect already scheduled");
+      return;
+    }
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
       console.warn("WebSocketClient: Already connected");
       return;
+    }
+    if (this.ws) {
+      // A dead socket in the slot. Detach first so its late events
+      // cannot null out the socket we are about to create.
+      const stale = this.ws;
+      this.ws = null;
+      stale.onmessage = null;
+      stale.onclose = null;
+      stale.onerror = null;
+      stale.onopen = null;
+      try {
+        stale.close();
+      } catch {
+        /* already closed */
+      }
     }
 
     console.info(`WebSocketClient: Connecting to ${url}...`);
@@ -266,6 +369,7 @@ class WebSocketClient {
       this.ws.onclose = () => {
         console.info("WebSocketClient: Connection closed");
         this.ws = null;
+        this.stopHeartbeat();
 
         // Intentional teardown (logout / leave-world): the caller has
         // already driven the phase. Don't auto-reconnect, don't flip to
@@ -298,6 +402,7 @@ class WebSocketClient {
 
       this.ws.onerror = (error) => {
         console.error("WebSocketClient: Error:", error);
+        this.stopHeartbeat();
         useStore.getState().setDisconnected("WebSocket error", "reconnecting");
       };
     } catch (error) {
@@ -320,6 +425,18 @@ class WebSocketClient {
    */
   public reconnectNow(): void {
     this.reconnectAttempts = 0;
+    // ⚠ Disarm first: a pending backoff attempt would otherwise make
+    // the manual reconnect below refuse, which is the opposite of what
+    // the affordance promises — and it would leave a stale countdown
+    // running against a connection the player has already re-made.
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    // ⚠ Explicitly, because the teardown below DETACHES `onclose` — the
+    // handler that normally stops the heartbeat never runs on this
+    // path, and a leaked timer would outlive its socket.
+    this.stopHeartbeat();
     const old = this.ws;
     this.ws = null;
     if (old) {
@@ -346,6 +463,12 @@ class WebSocketClient {
    */
   public disconnect(): void {
     this.intentionalDisconnect = true;
+    this.stopHeartbeat();
+    // An armed backoff would reconnect a session the caller just ended.
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.ws) {
       // Close with the intentional-leave code so the server reads this as
       // a deliberate departure (→ a `loggedOut` presence frame for
@@ -373,6 +496,34 @@ class WebSocketClient {
       type: "ping",
       payload: { timestamp: Date.now() },
     });
+  }
+
+  /**
+   * Start the round-trip heartbeat. Fires one ping immediately — the
+   * figure should not be blank for the first half-minute of a session —
+   * then every `HEARTBEAT_MS`.
+   *
+   * Idempotent: a second `connection-established` on the same socket
+   * (which a reconnect legitimately produces) must not leave two timers
+   * pinging in parallel.
+   */
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.sendPing();
+    this.heartbeat = setInterval(() => {
+      // Guard rather than assume: `onclose` clears the timer, but a
+      // socket can be mid-close when the tick lands, and `send()`
+      // logging an error every 30s for a dead link would be noise
+      // standing in for a fact the store already has.
+      if (this.isConnected()) this.sendPing();
+    }, WebSocketClient.HEARTBEAT_MS);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeat !== null) {
+      clearInterval(this.heartbeat);
+      this.heartbeat = null;
+    }
   }
 
   /**
@@ -497,6 +648,23 @@ class WebSocketClient {
         return;
       }
 
+      // The heartbeat's reply. Like `client-state-update` this is
+      // substrate plumbing with no `frameId` and no topic, so it needs
+      // its own branch above the envelope discriminator — without one
+      // it falls through to the catch-all as a topic-less MessageFrame
+      // and is silently ignored, which is exactly what "nothing handles
+      // the pong" meant.
+      if (
+        typeof frame === "object" &&
+        frame !== null &&
+        (frame as { type?: unknown }).type === "pong"
+      ) {
+        this.handlePong(
+          (frame as { payload?: { clientTimestamp?: unknown } }).payload,
+        );
+        return;
+      }
+
       // Envelope frames carry `type` + numeric `frameId`; MessageFrames
       // carry `topic`. Two channels, two shapes — discriminate
       // structurally.
@@ -573,11 +741,37 @@ class WebSocketClient {
     }
   }
 
+  /**
+   * A completed round trip: `now − the stamp we sent`, using ONE clock
+   * throughout.
+   *
+   * ⚠ The stamp is the client's own, echoed home by the server — never
+   * the server's `timestamp` field, which is a different machine's
+   * clock and would report skew rather than latency. A pong without one
+   * (an older server) leaves the figure absent, which is the honest
+   * reading: nothing measured it.
+   */
+  private handlePong(payload: { clientTimestamp?: unknown } | undefined): void {
+    const sent = payload?.clientTimestamp;
+    if (typeof sent !== "number") return;
+    const rtt = Date.now() - sent;
+    // A negative round trip means the clock moved under us (a sleep, an
+    // NTP step). Dropping it beats reporting a number that cannot be
+    // true; the next beat is 30s away.
+    if (rtt < 0) return;
+    useStore.getState().setConnection({ roundTripMs: rtt });
+  }
+
   private handleConnectionEstablished(
     payload: ConnectionEstablishedPayload,
   ): void {
     console.info("WebSocketClient: Connection established:", payload);
     useStore.getState().setConnected(payload);
+    // ⚠ Here, not on the socket's `onopen`: this is the frame that says
+    // the connection is USABLE, and it is the same seam `connectedAt`
+    // is stamped from. Pinging a socket the server has not finished
+    // admitting would measure a handshake, not a round trip.
+    this.startHeartbeat();
 
     // Re-issue every active MQL subscription on every
     // connection-established event. The server re-instantiates the
@@ -919,7 +1113,18 @@ class WebSocketClient {
     console.warn(
       `WebSocketClient: Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`,
     );
-    setTimeout(() => {
+    // ⭐ The delay is now REPORTED as well as slept on. It used to go
+    // straight into the timer and nowhere else, so the store learned
+    // only `link: 'reconnecting'` and every surface could say "we are
+    // retrying" while none could say *when*. The schedule itself is
+    // untouched — this is the same number, told to somebody.
+    useStore
+      .getState()
+      .setDisconnected(undefined, "reconnecting", Date.now() + delay);
+    this.reconnectTimer = setTimeout(() => {
+      // Cleared BEFORE connecting, so `connect` sees an unarmed loop
+      // and proceeds — and so a failure inside it can arm the next one.
+      this.reconnectTimer = null;
       this.connect(this.url);
     }, delay);
   }

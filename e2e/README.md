@@ -44,6 +44,47 @@ The seam is server-side and gated on `AUTH_MODE=test` (see
 `packages/server/src/services/auth/TestAuthRoutes.ts`); production never
 sets that flag, so the route doesn't exist there.
 
+## Cleanup — the suite removes what it mints
+
+Every test mints its **own** avatar (see *How auth works*), which is
+what makes the suite parallel-safe. `global-teardown.ts` removes them
+again, so a run leaves the world as it found it.
+
+Two passes, because a crashed run never reaches its teardown:
+
+1. **This run's handles** — `mintSession` records each one to
+   `.auth/minted-handles.log` as it mints. Exact, and safe when two
+   people run the suite at once.
+2. **A stale sweep** — any `e2e-` character older than two hours,
+   collecting orphans from runs that were killed.
+
+The deletion itself lives in
+`packages/server/scripts/purge-test-characters.ts`, **not** in a backend
+route: `docs/antipatterns.md § A test-only capability added to the
+BACKEND` ends its ladder with *put it in the harness, not in three
+layers of production code*. The harness decides *when*; the server
+script owns *how*, because the collection vocabulary and the
+`users`↔`google_profiles` join are its schema. `e2e/` gains no database
+dependency.
+
+Run it by hand when a world needs clearing:
+
+```bash
+cd packages/server
+npx tsx scripts/purge-test-characters.ts --dry-run --all   # look first
+npx tsx scripts/purge-test-characters.ts --all
+```
+
+⚠ **A character is only purgeable if its handle starts `e2e-` AND its
+email ends `@e2e.local`.** Both are needed because of `founder`: the
+config points `FOUNDER_GOOGLE_EMAIL` at `founder@e2e.local` to give one
+session real in-world authority, so it carries the synthetic email but
+not the handle. Anything failing either rule is refused out loud, even
+when named explicitly.
+
+⚠ Teardown never fails a run. A cleanup that turned a green suite red
+because Mongo blinked would be worse than the litter.
+
 ## CI
 
 Wired as the `e2e` stage in `.gitlab-ci.yml` (default branch only — it's

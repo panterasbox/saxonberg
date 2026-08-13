@@ -693,9 +693,19 @@ work, so the cycle is server-first.
   CLOSED** — self-hosted, the handoff's Google Fonts `<link>` declined,
   and the subsetting procedure recorded in `message-rendering.md` rather
   than left as tribal knowledge.
-  ⚠ Remaining is the CLIENT itself: wave 1 **Builds B and C** (honest
-  chrome; chrome on a phone) · waves 2 (arrival) ·
-  4 (play surface) · 6 (social) · 7 (authoring), and two things a build
+  **Wave 1 Build B shipped** (MR !186) — the desktop chrome. ⭐⭐ **Wave
+  1 Build C shipped and WAVE 1 IS CLOSED** (MR !190, 2026-08-12) — the
+  mobile inversion: a two-row bar whose glance-line is the *head of the
+  one shelf* (so choosing what rides it is reordering, hence
+  `cockpit shelf first`), the shelf as a pull-down + chooser, the
+  command sheet, the dropped-link row, and a measured round trip that
+  retired a hatch reason B had got **wrong**. Its lasting lesson is a
+  testing one, now in [../testing.md](../testing.md): **six bugs that a
+  fully green suite could not see**, because jsdom has no layout and a
+  narrow desktop window is not a phone. Wave 2 (Arrival) is unblocked.
+  ⚠ Remaining is the rest of the CLIENT: waves 2 (arrival) ·
+  4 (play surface — which still owns the phone-width rail) · 6 (social) ·
+  7 (authoring), and two things a build
   must decide rather than discover — **who acts on an arrangement
   recall** (nothing does today, on either side), and that the pane
   catalogue ships **two entries**, so every new pane is a one-line

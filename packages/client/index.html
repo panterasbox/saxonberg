@@ -2,7 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      ⚠ `viewport-fit=cover` is load-bearing, not cosmetic. Without it
+      `env(safe-area-inset-*)` resolves to 0px, so every safe-area rule
+      in the mobile chrome renders faithfully — to nothing. The failure
+      is SILENT: the padding is there, it is just always zero, and the
+      bar sits under a notch looking like a layout bug rather than a
+      missing attribute.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Saxonberg</title>
   </head>
   <body>

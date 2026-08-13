@@ -274,7 +274,20 @@ interface StoreState extends CmsSlice, StudioSlice {
   selfAvatarId: string | null;
   setConnection: (connection: Partial<ConnectionState>) => void;
   setConnected: (payload: ConnectionEstablishedPayload) => void;
-  setDisconnected: (error?: string, link?: "reconnecting" | "dropped") => void;
+  /**
+   * ⚠ `retryAt` is a THIRD OPTIONAL param rather than a separate action,
+   * and both halves of that matter. Optional: every existing call site
+   * — including the frozen reconnect test's 0-, 1- and 2-arg calls —
+   * compiles and behaves identically. One action: a second action would
+   * split one transition across two calls, and a caller that forgot the
+   * second would leave a stale countdown ticking against a link that is
+   * already back.
+   */
+  setDisconnected: (
+    error?: string,
+    link?: "reconnecting" | "dropped",
+    retryAt?: number,
+  ) => void;
 
   // Connection-phase slice — the mutually-exclusive top-level screen.
   /**
@@ -305,6 +318,29 @@ interface StoreState extends CmsSlice, StudioSlice {
   setGhostPreview: (command: string | null) => void;
   /** Show a transient ghost-line flash (auto-clears in the component). */
   flashGhost: (message: string) => void;
+
+  /**
+   * The command sheet — the command a tapped affordance WILL send,
+   * awaiting the player's confirmation, or `null` when no sheet is up.
+   *
+   * ⚠⚠ **Deliberately NOT `ghostPreview`, and the separation is the
+   * point.** A guard asserts exactly one module reads `ghostPreview`;
+   * a sheet reading it would trip that guard *and* would be conflating
+   * two different facts — *"what a hover would send"* is a question
+   * with a before, and *"what this tap will send, pending
+   * confirmation"* is a commitment already begun. Desktop hover has a
+   * moment before you commit; **on a phone a tap IS the commit**, so
+   * the sheet is not a preview surface at all. The guard catching a
+   * reuse would be correct behaviour, not a false positive.
+   *
+   * ⚠ ONE command, because that is what an affordance affords today:
+   * `commandFor(node)` returns a single string. A sheet offering
+   * several would be an interface promising a resolution the renderer
+   * does not perform.
+   */
+  commandSheet: string | null;
+  openCommandSheet: (command: string) => void;
+  closeCommandSheet: () => void;
 
   /**
    * The widget shelf's figures — the latest record from the `self`
@@ -501,6 +537,25 @@ interface StoreState extends CmsSlice, StudioSlice {
    */
   frames: Frame[];
   /** Append one frame; preserves arrival order. */
+  /**
+   * Epoch ms of the most recent frame to arrive, or `undefined` before
+   * the first one.
+   *
+   * ⭐⭐ **It is a separate slot precisely so it can OUTLIVE the
+   * buffer.** The dropped row reports *how long since the last frame*,
+   * and the obvious source — `frames[frames.length - 1].timestamp` —
+   * is structurally always absent exactly when it is wanted:
+   * `WebSocketClient.onclose` calls `clearFrames()`, so by the time the
+   * row renders, the buffer is empty. Measured on a real drop: the
+   * figure read *"no frame has arrived this session"* in a session that
+   * had just rendered a full transcript.
+   *
+   * ⚠ So `clearFrames` deliberately does not touch it. Scrollback is
+   * session-scoped; *when the link last carried something* is a fact
+   * about the LINK, and dropping it with the scrollback made the one
+   * surface that needs it unable to answer.
+   */
+  lastFrameAt?: number;
   appendFrame: (frame: Frame) => void;
   /** Empty the buffer; called on disconnect. */
   clearFrames: () => void;
@@ -1076,6 +1131,10 @@ export const useStore = create<StoreState>((set, get) => ({
   setGhostPreview: (command) => set(() => ({ ghostPreview: command })),
   flashGhost: (message) => set(() => ({ ghostFlash: message })),
 
+  commandSheet: null,
+  openCommandSheet: (command) => set(() => ({ commandSheet: command })),
+  closeCommandSheet: () => set(() => ({ commandSheet: null })),
+
   // The widget shelf's `self`-pane record.
   shelfFigures: null,
   setShelfFigures: (record) => set(() => ({ shelfFigures: record })),
@@ -1272,6 +1331,12 @@ export const useStore = create<StoreState>((set, get) => ({
         // so the clock restarts — which is why the popover's row is
         // labelled "this connection" rather than "session".
         connectedAt: Date.now(),
+        // ⭐ `roundTripMs` and `retryAt` are absent here by
+        // CONSTRUCTION — this is a whole-object replacement, not a
+        // merge, so a stale trip measured on the dead socket and a
+        // countdown to an attempt that has already succeeded both
+        // vanish without anyone having to remember to clear them. The
+        // heartbeat's first ping repopulates the trip within a beat.
       },
       // An established frame always carries an Avatar (avatarStuffId),
       // so it is unconditionally the in-world flip — regardless of
@@ -1308,7 +1373,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }));
   },
 
-  setDisconnected: (error, link = "reconnecting") =>
+  setDisconnected: (error, link = "reconnecting", retryAt) =>
     set((state) => {
       // A dropped guest can't resume — the server reaped the avatar on
       // disconnect — so route them to the start screen (their throwaway
@@ -1328,6 +1393,37 @@ export const useStore = create<StoreState>((set, get) => ({
           // ⚠ `connectedAt` is deliberately NOT carried over. There is
           // no live connection to have a duration, and reporting the
           // dead one's age would be a figure about nothing.
+          //
+          // ⚠ Nor is `roundTripMs`, for the same reason and more
+          // sharply: the last measured trip belongs to a socket that no
+          // longer exists, so keeping it would leave a confident
+          // latency reading sitting beside the word "dropped".
+          //
+          /*
+           * ⚠⚠ An omitted `retryAt` means *"I have nothing to say about
+           * the schedule"*, NOT *"there is no schedule"* — so it is
+           * CARRIED OVER rather than dropped.
+           *
+           * Measured: a failing socket fires `onerror` before `onclose`,
+           * and `onerror` calls this with two arguments. Treating the
+           * omission as a clear made the countdown blink to empty on
+           * every attempt, and — worse — a late `onerror` arriving after
+           * the machine had given up would restore `reconnecting` with
+           * no schedule at all, leaving the bar promising a retry that
+           * nothing would ever fire.
+           *
+           * ⭐ A `dropped` link is the one state that genuinely has no
+           * next attempt, so it clears — which is the rule the honest
+           * figure needs and the reason it is expressed as a rule
+           * rather than as a parameter every caller must remember.
+           */
+          ...(link === "dropped"
+            ? {}
+            : retryAt !== undefined
+              ? { retryAt }
+              : state.connection.retryAt !== undefined
+                ? { retryAt: state.connection.retryAt }
+                : {}),
         },
         selfInteractiveId: null,
         selfAvatarId: null,
@@ -1622,6 +1718,9 @@ export const useStore = create<StoreState>((set, get) => ({
       }
       return {
         frames: [...state.frames, frame],
+        // ⭐ Stamped alongside the buffer, and deliberately NOT part of
+        // it — see `lastFrameAt`.
+        lastFrameAt: frame.timestamp,
         ...(unreadChanged ? { unreadCounts } : {}),
         ...(mutedSinceSessionStart !== state.mutedSinceSessionStart
           ? { mutedSinceSessionStart }
@@ -1639,6 +1738,7 @@ export const useStore = create<StoreState>((set, get) => ({
             frames: [],
             unreadCounts: {},
             mutedSinceSessionStart: {},
+            // ⚠ `lastFrameAt` deliberately SURVIVES. See its declaration.
           },
     ),
 

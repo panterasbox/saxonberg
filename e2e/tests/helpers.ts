@@ -1,5 +1,7 @@
 import { request, expect } from '@playwright/test';
 import type { Browser, BrowserContext, Page } from '@playwright/test';
+import { appendFileSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 
 /**
  * Shared E2E helpers.
@@ -24,6 +26,38 @@ const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
  * against a persistent local Mongo. */
 export function uniqueHandle(prefix: string): string {
   return `e2e-${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
+
+/**
+ * Where this run's minted handles are recorded, for `global-teardown`
+ * to purge. Gitignored (`.auth/`), truncated by `global-setup`.
+ */
+export const MINTED_HANDLES_LOG = resolve(
+  new URL('..', import.meta.url).pathname,
+  '.auth/minted-handles.log',
+);
+
+/**
+ * Record a minted handle so teardown can remove the character.
+ *
+ * ⚠ **Records only `e2e-` handles.** `openWorldAsFounder` mints the
+ * literal handle `founder`, which is a REAL founder by way of
+ * `FOUNDER_GOOGLE_EMAIL` — deleting it would break every
+ * authority-dependent spec. The purge script refuses it independently;
+ * this keeps it out of the log in the first place.
+ *
+ * ⚠ Appends one line per handle so parallel workers cannot interleave a
+ * partial write, and never throws — a harness bookkeeping failure must
+ * not fail a test.
+ */
+export function recordMintedHandle(handle: string): void {
+  if (!handle.startsWith('e2e-')) return;
+  try {
+    mkdirSync(dirname(MINTED_HANDLES_LOG), { recursive: true });
+    appendFileSync(MINTED_HANDLES_LOG, `${handle}\n`, 'utf8');
+  } catch {
+    // Cleanup is best-effort; the stale sweep catches what this misses.
+  }
 }
 
 /** The shape Playwright's `storageState()` returns. */
@@ -73,6 +107,7 @@ export async function mintSession(
       if (res.ok()) {
         const state = await ctx.storageState();
         await ctx.dispose();
+        recordMintedHandle(handle);
         return { state, handle };
       }
       lastErr = `status ${res.status()}`;
@@ -104,9 +139,38 @@ export function commandInput(page: Page) {
  */
 export async function enterWorld(
   browser: Browser,
-  state: SessionState
+  state: SessionState,
+  /**
+   * Extra `newContext` options — in practice a `viewport` (and
+   * `hasTouch` / `deviceScaleFactor`) for the phone-chrome specs.
+   *
+   * ⚠ The viewport has to be set on the CONTEXT, not by resizing after
+   * `goto`: the chrome picks its composition from a `matchMedia`
+   * subscription at mount, and a page that loaded wide and was resized
+   * narrow exercises the resize path rather than the load path. Both
+   * are worth driving; a helper that could only do the second would
+   * hide a first-paint bug.
+   */
+  contextOptions: Parameters<Browser['newContext']>[0] = {},
+  /**
+   * Runs against the fresh context BEFORE its first page is created —
+   * the only window in which `addInitScript` can reach the app's own
+   * module scope.
+   *
+   * ⚠ Used by the dropped-link spec to keep a handle on the sockets the
+   * page opens. `websocketClient` is module-private and CDP's offline
+   * emulation does **not** close an already-open WebSocket (measured:
+   * `connection.link` stays `connected` indefinitely), so instrumenting
+   * the transport from outside is the only way to drive a real drop
+   * without a test-only seam in the product.
+   */
+  onContext?: (context: BrowserContext) => Promise<void>
 ): Promise<{ context: BrowserContext; page: Page }> {
-  const context = await browser.newContext({ storageState: state });
+  const context = await browser.newContext({
+    ...contextOptions,
+    storageState: state,
+  });
+  if (onContext) await onContext(context);
   const page = await context.newPage();
   await page.goto('/');
   const roster = page.getByTestId('roster-screen');
@@ -172,6 +236,11 @@ export async function openWorldAs(
     /** Reuse a handle already minted by `mintSession` (the seat-then-enter
      *  flow: a character must EXIST before the founder can seat it). */
     handle?: string;
+    /** Browser-context options — a phone `viewport` for the mobile
+     *  chrome specs. See `enterWorld`. */
+    contextOptions?: Parameters<Browser['newContext']>[0];
+    /** Runs against the context before its first page. See `enterWorld`. */
+    onContext?: (context: BrowserContext) => Promise<void>;
   } = {}
 ): Promise<{
   page: Page;
@@ -186,7 +255,12 @@ export async function openWorldAs(
     startLocation: opts.startLocation,
     wizard: opts.wizard,
   });
-  const { context, page } = await enterWorld(browser, state);
+  const { context, page } = await enterWorld(
+    browser,
+    state,
+    opts.contextOptions ?? {},
+    opts.onContext
+  );
   return { page, context, handle, state, close: () => context.close() };
 }
 

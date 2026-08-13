@@ -109,6 +109,300 @@ screen composes the same primitives into its own full-screen layout; a
 single cross-surface `Frame` wrapper is deferred until a third surface
 (CMS, public) makes the real commonality visible.
 
+## ⭐⭐ The server owns what is shown; the viewport owns how it is disclosed
+
+The one line that decides every *is this client or server* question in
+the chrome.
+
+`cockpit.shelf` is **identical on both form factors** — same rows, same
+order, same `cockpit shelf` verb, same catalogue. What a viewport
+decides is only *disclosure*: whether the shelf renders inline in the
+bar (desktop, wrapping) or behind a pull-down (mobile, two-up).
+
+⚠ **Mobile is a viewport fact and must never become a server key.** The
+server cannot know a viewport, so a `cockpit.formFactor` would be a fake
+fact — the honesty failure one level up from a fake figure, and the same
+one that cut the read-only indicator below. `nothing-is-pure-client`
+governs **command semantics and affordances**, and none of those move:
+every affordance still sends a server command and the client still owns
+zero command semantics.
+
+Detection is `lib/style/useIsCompact.ts` over `matchMedia`, against the
+single named token `tokens.breakpoint.compact` (**760px** — above phone
+landscape, below tablet portrait) so it cannot drift between components.
+
+⭐ **A JS switch, not a CSS-only reflow.** The mobile bar is not the
+desktop bar rearranged; it is a different composition — two rows, a
+pull-down, no status bar. CSS-only means rendering **both** and hiding
+one, which puts two `StatusBar`s in the DOM permanently and makes the
+requirement *"exactly one status bar renders above the breakpoint"*
+unassertable by construction. That
+`__tests__/chromeComposition.test.tsx` can make that assertion at all is
+the argument for the switch.
+
+⚠ The hook **subscribes** to `change` rather than reading once. Dragging
+a desktop window narrow is the cheapest way anybody will test this, and
+a one-shot read would make exactly that not work — the chrome would stay
+whatever it was when the tab opened, which reads as a broken layout
+rather than a stale hook. Where `matchMedia` does not exist at all it
+resolves to *not compact*, the composition that has been shipping.
+
+⚠ **`viewport-fit=cover` in `index.html` is part of this, not a
+detail.** Without it `env(safe-area-inset-*)` resolves to `0px` and
+every safe-area rule renders faithfully to nothing. The failure is
+**silent** — the padding is there, it is just always zero — so the e2e
+spec asserts both halves separately: that the bar's rule references the
+inset, and that the attribute enabling it is present. Either alone
+passes while the feature is dead.
+
+⚠ **Scope: the in-world phase only.** `CharGenStage` keeps its own
+`StatusBar` and its three ad-hoc breakpoints (640/520). Mobile intake is
+Wave 2 with its own art, and reflowing it here would be building half of
+that wave blind. The named token deliberately does *not* match those
+numbers — they are a different question, and an accidental match would
+make two unrelated decisions look like one.
+
+### ⚠⚠ The shell is clamped to the viewport, and that is load-bearing
+
+`WorldLayout` puts a fixed `22rem` rail beside the terminal, so at a
+390px viewport its content wants ~698px. Redesigning the mobile play
+surface is an explicit **Wave 4** non-goal — but leaving the *document*
+that wide is not survivable, and the reason is not tidiness:
+
+⭐⭐ **Under the mobile viewport model, a horizontally overflowing
+document widens the INITIAL CONTAINING BLOCK — and the ICB is what
+`position: fixed` resolves against.** Measured on a real phone
+emulation: `ShelfScreen`, declared `position: fixed; inset: 0`,
+computed to **728px** in a 390px viewport, putting its close button and
+every row's actions off the right edge, **unreachable**. The command
+sheet inherited the same fate. The surface was not merely ugly; it was
+unusable, and no amount of `box-sizing` on the surface itself could fix
+it, because the containing block was the thing that was wrong.
+
+So `AppContainer` refuses to exceed `100vw` when compact, and
+`ContentRow` takes the overflow into **its own** scroller. The rail
+stays reachable by scrolling the *content* — where a phone user would
+look for it — instead of by scrolling the whole page, which broke the
+chrome. Clipping it instead would have made a shipped pane unreachable,
+which is a worse answer than the bug.
+
+⚠⚠ **Neither suite could see this, and one of them lied by omission.**
+jsdom has no layout at all. And Playwright's plain `viewport` is a
+DESKTOP context that merely happens to be narrow — the ICB stays put,
+every fixed surface measured a tidy 390px, and eight e2e specs passed
+green over a broken build. The phone specs now pass `isMobile: true`,
+and that flag is the difference between a test that models a phone and
+one that models a small window. Verified by removing the fix and
+watching the assertion fail with *"shelf-screen runs past the right
+edge — expected ≤391, received 730"*.
+
+The chrome's own claim is unchanged and still checked twice per
+surface: it must not widen the page past the baseline it opened over,
+and its own box must fit the viewport.
+
+## The mobile bar
+
+`components/frame/MobileFrame.tsx`, rendered by `App` in place of
+`Frame` below the breakpoint.
+
+```
+row 1   [seal] [connection] [identity ▾]        ← never removable
+row 2   [ GLANCE-LINE — head of the shelf ] [⌄] ← the grab
+```
+
+⭐ **The governing sentence: *a bar that wraps has nowhere to wrap
+to*.** Desktop's shelf grows a second row when you pin too much and the
+page absorbs it. On a phone every row the chrome takes is a row **the
+feed loses**, and the feed is the app. So the shelf cannot live in the
+bar at all.
+
+`Seal`, `ConnectionChip` and `AccountMenu` are the **same components,
+unchanged** — the fixed facts are not mobile copies, because a copy is
+how two surfaces start disagreeing about one socket.
+
+⚠⚠ **The bar OPENS the `self` subscription (`useSelfFigures`), and
+forgetting to was this build's most embarrassing bug.** The figures
+live in the store, but the subscription that fills them was a
+`useEffect` inside `Shelf` — which the mobile bar does not render. So
+the glance-line and the pull-down shipped reading a `shelfFigures` that
+**nothing ever populated**: every row rendered its honest empty state
+forever, on a phone, for figures the server was perfectly willing to
+send. Eleven green tests missed it and *could not* have caught it —
+every one seeds the store directly with `useStore.setState`, the seam
+that makes the shelf testable without a socket, and is therefore blind
+to *does anything ask?* **A derive-on-read surface needs its WAKE
+tested, not only its read.** The subscription is now a shared hook and
+`MobileFrame.test.tsx` asserts the bar opens it.
+
+⭐ **The glance-line is `shelf.slice(0, GLANCE_ROWS)` — the HEAD of the
+one list, not a second key.** The alternative was a `cockpit.glance`
+naming the bar rows explicitly, and two lists that must agree is the
+drift this codebase keeps warning about: an unpin that forgot the glance
+key, a glance row that is not on the shelf, a `list` output that cannot
+say which is true. One ordered list has one answer.
+
+The consequence is that **choosing what rides the bar is *reordering***,
+which is what [`cockpit shelf first`](./cockpit.md) exists for.
+`GLANCE_ROWS = 3` is a client constant and has to be — the server does
+not know how wide a bar is. A shorter shelf simply shows what it has; an
+empty one says *nothing pinned* rather than leaving an unexplained gap.
+
+⚠ The glance-line **scrolls** where the desktop shelf **wraps**, and
+that is the one place the two disclosures legitimately differ: wrapping
+is what a phone cannot afford, and the rows that do not fit are not
+hidden behind a gesture — the pull-down shows the whole catalogue.
+
+⚠ **`ViewsMenu` and Settings move into the account dropdown.** They
+survive, because dropping them would regress two shipped surfaces, but
+neither earns a permanent slot in a two-row bar when the identity chip
+is already a dropdown holding account actions. `AccountMenu` takes an
+`extras: ReactNode` slot rather than a `mobile` boolean — the component
+should not know what a viewport is; whoever composes the bar does.
+`ViewsMenu` gained an `inline` variant (list in flow, no trigger of its
+own) so the **command strings are still built in exactly one place**; a
+second component would be two sources for one menu entry. Its absolute
+popover would also overflow a 320px screen leftward from a
+right-anchored host, which is the `＋ widget` failure in the other
+direction.
+
+⚠⚠ **No notification bell**, asserted by name in both the unit and e2e
+suites. The art puts `◔ 3` in row one and calls it never removable; it
+is not built, not hatched and not placeholdered, because what belongs in
+that tray is whatever the receiver *said* they wanted — which wants
+`NotifyPolicy` read first — and nothing about a smaller screen changes
+what is behind it. `SocialNotificationsPane` stays reachable from the
+account menu, so the capability has a home; it does not get a permanent
+slot in the scarcest row on the screen.
+
+### The pull-down, and the shelf screen
+
+`ShelfPullDown.tsx` discloses the shelf **two-up** with the `card`
+variant, **over** the feed rather than displacing it — pushing the
+transcript down would reflow everything the player was reading, and
+closing it would scroll them somewhere they did not ask to be. A phone
+can afford height here and never width, which is exactly why `card` and
+not `chip`.
+
+`ShelfScreen.tsx` (reached from the pull-down) is the chooser: the
+glance-line as its own named section — *three fit on the bar without
+pulling down; everything else is one drag away* — above the full
+catalogue with each row's state and reason. Every affordance sends a
+`cockpit shelf …` command and **mutates nothing locally**; `to bar`
+sends `first`, which pins an unpinned row at the head so *"put this on
+my bar"* stays one tap.
+
+⚠ Both **import** `SHELF_CATALOGUE`, `HATCH_COPY`, `figureFor` and
+`pinnedShelf` from `Shelf.tsx`. Two copies of the hatch reasons is
+precisely the decay the three-category table exists to prevent — the
+second copy is where a reason gets softened into a generic *not wired*
+by whoever is in a hurry. Likewise one `figureFor`: a live row added in
+one place and not the other would show a number on one form factor and a
+hatch on the other, for the same field, at the same instant.
+
+⚠ Hatch reasons render as **visible text**, not a `title`. A phone has
+no hover, so a tooltip reason is a reason nobody can read — which would
+make *"each with its reason"* true of the markup and false of the
+surface.
+
+⚠ **Identity and connection are absent from the chooser by design.**
+They are not shelf rows at all; `cockpit shelf unpin identity` refuses
+with *unknown shelf row*, and that refusal is a stronger guarantee than
+a rule in a component somebody could edit.
+
+⚠⚠ **`box-sizing: border-box` on every full-bleed surface is
+load-bearing.** `inset: 0` (or `left`/`right`) resolves the width from
+the edges and the default content-box then adds padding *outside* it —
+which made the shelf screen 18px wider than the viewport and scrolled
+the whole page sideways. The client has no global border-box reset, so
+each surface says it for itself. Found by driving; jsdom stayed green.
+
+### ⭐⭐ The dropped row — what is true, not what is comforting
+
+`DroppedRow.tsx` replaces the fixed facts entirely when
+`link !== 'connected'`. On a phone you are usually not looking, so the
+bar must not understate a drop — and the fixed facts are what a dead
+link makes meaningless anyway. The glance-line below **stays**: a shelf
+that vanished on a blip would reflow the bar every time a train went
+into a tunnel.
+
+The reference art's dropped panel is the most persuasive in the set and
+the one that most overpromises — *"2 commands held · retry in 4 s"*, with
+a footer naming the commands it kept. **No such queue exists.**
+`WebSocketClient.send()` logs an error and drops the message. Building
+one is an offline queue with ordering, expiry and replay-safety
+questions — *is `north` still the right command forty seconds later?* —
+which deserves its own requirements rather than being a chrome build's
+side effect.
+
+So the row reports:
+
+| Reported | Source |
+|---|---|
+| reconnecting or dropped | `connection.link` |
+| the retry countdown, live | `connection.retryAt` |
+| a manual retry | the existing `reconnectNow` path, not a second implementation |
+| how long since the last frame | `store.lastFrameAt` — see below |
+| ⭐ **that commands sent now will not arrive** | the truth |
+
+⭐ **That last row is the inversion worth making.** The art comforts —
+*we kept your commands*. The truth is bleaker and strictly more
+actionable: **they are dropped**. A player who knows their input is
+going nowhere stops typing; a fabricated count of things allegedly saved
+lets them keep typing into a void and believe it is being kept. It is
+also the sentence that makes the queue's absence **visible** rather than
+silently wrong — and when the queue is built, this is the row it
+replaces. A test asserts no *held* count is rendered, by regex, because
+the absence of a promise has to be guarded or it returns as a
+placeholder.
+
+⚠ The countdown is driven in test by advancing the clock rather than
+asserted as a constant: a static *retry in 4s* that never moved would be
+a worse lie than showing nothing, because it looks live.
+
+⚠⚠ **`lastFrameAt` is a separate store slot precisely so it can outlive
+the buffer.** The obvious source — `frames[frames.length - 1]` — is
+structurally absent exactly when the row needs it, because
+`WebSocketClient.onclose` calls `clearFrames()`. Driven on a real
+server restart, the figure read *"no frame has arrived this session"* in
+a session that had just rendered a full transcript. Scrollback is
+session-scoped; *when the link last carried something* is a fact about
+the LINK, and dropping it with the scrollback made the one surface that
+needs it unable to answer. Its test now performs the same `clearFrames`
+every real drop performs — the original seeded `frames` directly and
+passed against the bug.
+
+### ⭐⭐ Reporting a schedule obliges the schedule to be real
+
+Driving a server restart — the standup-deploy path the generous
+7-attempt window was written for — showed the client **never
+reconnecting**: `reconnecting` forever, with the server back and healthy
+for minutes, until the player reloaded by hand.
+
+The race, from the console of a real drop:
+
+1. `onclose` nulls the socket and arms attempt 1.
+2. `setDisconnected` flips `connection.isConnected` false, which
+   re-fires **`App`'s connect effect** — a second, independent caller of
+   `connect()`, out of band with the backoff.
+3. That immediate attempt fails and arms attempt 2.
+4. Attempt 1's timer fires and opens a socket.
+5. Attempt 2's timer fires, finds it mid-handshake, and returns
+   **without re-arming**. The chain is lost.
+
+`WebSocketClient.reconnectTimer` makes the backoff loop the **sole
+driver**: `connect()` refuses while an attempt is armed, so step 2
+cannot inject a competing socket, and the loop stays one ordered chain —
+close → arm → connect → close → arm. `reconnectNow` and `disconnect`
+disarm first, since a pending attempt must never block the manual
+affordance or resurrect a session the caller just ended.
+
+⚠ **This is a behaviour change to a machine this build's requirements
+fenced off as additive-only, and it is deliberate.** The fault is
+pre-existing; what is new is that the retry countdown made it legible.
+A countdown is a promise, and reporting when the next attempt fires
+obliges the next attempt to actually fire. The three frozen guard files
+still pass unmodified.
+
 ## The widget shelf
 
 `components/frame/Shelf.tsx`. The player-pinned row of figures across
@@ -268,6 +562,76 @@ instant. **Char-gen keeps a preview surface and must**: it renders
 affordances that send commands, and the axiom does not switch off during
 intake.
 
+⚠ **The in-world bar is absent below the breakpoint**, not hidden. It
+has no hover to report on a phone and would cost the feed a row. What
+replaces it is the command sheet.
+
+## ⭐ The command sheet — a tap names its command before it sends
+
+`components/frame/CommandSheet.tsx`, the phone's replacement for hover.
+
+Desktop hover asks *what would this send?* — there is a moment before
+you commit, and the status bar fills it. **On a phone there is no
+before: a tap is the commit.** So the sheet is not a preview surface
+with a different shape; it is the moment a phone otherwise does not
+have, inserted deliberately. Tapping any affordance opens a sheet naming
+the **verbatim** command; the player sends it or does not.
+
+§ 3.5's axiom is preserved and arguably strengthened: the interface
+still shows which command, and still *before* it goes. What changes is
+that the showing costs a tap instead of a hover.
+
+⭐⭐ **The interception is at `App.handleCommandClick`, and that
+placement is the whole design.** Every affordance in the tree —
+transcript tags, shelf entries, `ViewsMenu`, the pull-down, the
+right-column panes — routes through that one handler, so the confirm
+step is **one interception point for the entire app** rather than an
+`isCompact` prop threaded into every renderer. `MmlRenderer`,
+`EntityName` and `Shelf` needed no changes at all. One `sendDirect`
+serves both the desktop click and the sheet's confirm, so *what the
+sheet showed* and *what got sent* cannot become two strings that merely
+agree today.
+
+⚠⚠ **"Every affordance" is a claim about WIRING, and it was false for
+one family until it was driven.** The four right-column panes
+(`InspectionPane`, `WhoPane`, `NewsTickerPane`, `WikiPane`) took
+`onSendCommand` — the raw send — so they bypassed the sheet entirely:
+tapping `north` in the transcript opened a sheet naming the command,
+while tapping the identical `north` in the pane six inches away sent it
+instantly. **Two rules on one screen is worse than either rule alone**,
+and it is precisely the unpredictability the no-exceptions policy above
+exists to prevent. `WorldLayout` now passes `onCommandClick` to all
+four, and `layouts/__tests__/affordanceRouting.test.ts` guards it —
+because a new pane wired to the wrong prop is one copy-paste away.
+
+⚠ `CommandBar` keeps the raw send, correctly: **typed input is not an
+affordance** and must never be confirmed.
+
+⚠ Every unit and e2e assertion about the sheet happened to pick a
+transcript or menu affordance, so a fully green suite said nothing
+about this.
+
+⚠ **Every affordance, with no "obvious case" exception.** An unambiguous
+`look anvil` gets a sheet too. The extra tap **is** the pedagogical
+dividend — clicks are how a player learns the command line exists — and
+a rule with an exception for cases the client judges obvious is a rule
+nobody can predict, which is worse than either uniform answer.
+
+⚠⚠ **It does not read `ghostPreview`.** The sheet carries its own store
+slice (`commandSheet: string | null`). The one-preview-surface guard
+above passes **unmodified**, and a second assertion states the same
+claim from the sheet's side — because *"what a hover would send"* and
+*"what this tap will send, pending confirmation"* really are different
+facts. A sheet that reused the preview slice would trip the guard *and*
+be conflating two concepts; the guard catching it would be correct
+behaviour, not a false positive.
+
+⚠ The sheet shows **one** command, because that is what an affordance
+affords today — `commandFor(node)` returns a single string. It renders
+in the command register (mono), verbatim and wrapping rather than
+truncating: an ellipsis would hide the half of the command a player most
+needs to see before sending it.
+
 ⭐ **The art's at-rest right region reads `here:forge · 1,240 frames`,
 and neither figure is rendered.** Nothing measures a frame count, and
 `here:` would be a location readout with no subscription behind it. The
@@ -278,21 +642,78 @@ making.
 
 ## The connection popover
 
-`ConnectionChip`'s expansion — three readings, of which one has a
+`ConnectionChip`'s expansion — three readings, of which two now have a
 source:
 
 | Row | State | Why |
 |---|---|---|
 | this connection | **live** | derivable from a connect timestamp; no server work, no new wire field |
-| round trip | hatched | nothing measures it — needs a ping/pong |
-| frames behind | hatched | nothing measures it — needs a server sequence number |
+| round trip | **live** | measured by the service-owned heartbeat — see below |
+| frames behind | hatched | needs a server sequence number, which genuinely does not exist |
 
-Adding a ping/pong and a frame sequence is real protocol work with its
-own failure modes and belongs in its own build, not smuggled into a
-chrome pass. The popover's own copy is what earns it a place — *a
-dropped socket in a MUD costs you whatever you were mid-way through* —
-and the honest version of that surface says which of its three readings
-it can stand behind.
+The popover's own copy is what earns it a place — *a dropped socket in a
+MUD costs you whatever you were mid-way through* — and the honest
+version of that surface says which of its readings it can stand behind.
+
+### ⭐⭐ Round trip, and a hatch reason that was WRONG
+
+Round trip shipped hatched, with a reason saying nothing measured it and
+a ping/pong would have to be written. **That reason was inaccurate**,
+and the correction is the most instructive thing in this section.
+
+The protocol existed end to end the whole time.
+`websocketClient.sendPing()` sent a client timestamp and
+`backend/inbound/ping.ts` replied. What was missing was that nothing
+*called* one and nothing *handled* the other — the `pong` carries no
+`frameId` and no `topic`, so it fell through the envelope discriminator,
+reached the catch-all as a topic-less frame, and was dropped in silence.
+
+⚠ **A reason that points at the wrong place is worse than no reason at
+all.** The whole purpose of classifying a hatch is to tell the next
+builder where to look; this one would have spent somebody's afternoon
+writing a second copy of a protocol that was already there. That is
+precisely the decay the three-category hatch table exists to prevent,
+and it happened anyway — which is why the retired string is now guarded
+by a test (`roundTripReason.test.ts`) that greps the client source and
+fails if it survives anywhere, including in prose. `ConnectionChip`'s
+own comment paraphrases the old reason rather than quoting it, for
+exactly that reason.
+
+What the fix consists of:
+
+- **A service-owned heartbeat.** `WebSocketClient` starts a **30s**
+  interval on `connection-established` and clears it on close, error and
+  the manual reconnect (which detaches `onclose`, so it must stop the
+  timer explicitly). One ping fires immediately so the figure is not
+  blank for the first half-minute. ⭐ It lives in the service and not in
+  the popover because a component-owned ping would only measure while
+  somebody was looking: the number you read on opening would be the
+  first sample rather than the current state of a socket that has been
+  up for an hour. The reading is true whether or not anyone has asked
+  for it.
+
+  ⚠ Round trip is a **popover** row on both form factors — the mobile
+  bar reaches it through the same `ConnectionChip`, not as a chip at
+  rest. An earlier draft of this section and of `websocket.ts` claimed
+  the bar showed it at rest; it never did, and the claim was corrected
+  in the pre-merge sweep. The service-ownership argument above stands
+  on its own and never depended on it.
+- **The server echoes the client's own stamp.** `pong` now carries both
+  clocks: `timestamp` (the server's, unchanged) and `clientTimestamp`
+  (echoed verbatim). ⚠ Subtracting the *server's* timestamp measures
+  clock skew between two machines plus half a trip — a number that looks
+  like latency and is not. Echoing makes each pong **self-describing**,
+  so the pairing rides the protocol instead of a private slot that
+  cannot tell whether the reply it got belongs to the ping it sent. The
+  stamp is echoed, never trusted: nothing server-side reads it.
+- **`ConnectionState.roundTripMs`**, optional, absent until the first
+  pong lands and cleared on a drop — a stale trip measured on a dead
+  socket would sit as a confident latency reading beside the word
+  "dropped". A negative sample (the clock stepped under us) is discarded
+  rather than printed.
+
+⚠ Frames-behind stays hatched and is now the only unmeasured claim here.
+Its reason names something that genuinely does not exist.
 
 ⭐ **The duration row says "this connection", not "session".** A
 successful reconnect issues a fresh `connection-established`, so
@@ -315,13 +736,40 @@ absence.
 The ticking is a `useEffect` interval **inside the popover, only while
 open** — never a global 1 Hz re-render of the bar.
 
-⚠ **The reconnect machine itself is untouched.** `ConnectionState`,
-`setDisconnected`, the link vocabulary, backoff and `ReconnectBanner`
-are presentation-only work in this build, and the three guard files
-(`connectionLink.test.ts`, `ConnectionIndicator.test.tsx`,
-`websocket.test.ts`) plus `ConnectionIndicator.tsx` show **zero diffs**.
-If one of them ever needs changing to accommodate the bar, that is the
-signal that behaviour moved where only presentation should have.
+⚠ **The reconnect machine's BEHAVIOUR is untouched.** The link
+vocabulary, the backoff schedule and `ReconnectBanner` are unchanged,
+and the three guard files (`connectionLink.test.ts`,
+`ConnectionIndicator.test.tsx`, `websocket.test.ts`) plus
+`ConnectionIndicator.tsx` still show **zero diffs**. If one of them ever
+needs changing, that is the signal that behaviour moved where only
+reporting should have.
+
+### ⭐ The retry countdown — exposed, not invented
+
+`attemptReconnect()` has always computed an exponential backoff
+(1·2·4·8·16·30·30s) and then **dropped it into a bare `setTimeout`**. The
+store learned only `link: 'reconnecting'`, so every surface could say
+*we are retrying* and none could say *when*. Same shape as the renown
+measurement: the information exists and is thrown away one line before
+it leaves. Surfacing it is not new measurement, and the schedule itself
+did not change — the same number is now told to somebody.
+
+`ConnectionState.retryAt` is an epoch-ms stamp, optional, present only
+while an attempt is actually scheduled. ⚠ Once the machine gives up
+there is no *next* attempt, so the field is absent and the countdown
+reads `empty` with a reason — a clock still ticking against a link that
+will never retry on its own would be the most misleading figure on the
+screen.
+
+It rides `setDisconnected` as an **optional third parameter** rather
+than a second store action. Optional keeps every existing call site,
+including the frozen test's 0-, 1- and 2-arg calls, compiling and
+behaving identically. One action rather than two keeps the transition
+atomic: a caller that updated the link and forgot the countdown would
+leave a stale clock ticking against a connection that is already back.
+`setConnected` clears both derived readings **by construction** — it
+replaces the connection object rather than merging, so neither can
+survive a reconnect through somebody forgetting to reset it.
 
 ## ⚠ The read-only mode indicator: cut, not deferred
 
@@ -565,6 +1013,27 @@ that a primitive with no consumer can drift. Build B closed it.)
 - Search, mode switcher, the public read-only surface, the declarative
   mode/manifest model, author mode / CMS — all later cycles (see the
   client-shell slate).
+- **⛔ The held-commands queue.** Cut with a reason, recorded here and in
+  the slate so the art's 6D is not later read as an unmet promise. See
+  *the dropped row* above: an offline queue with ordering, expiry and
+  replay-safety questions is a real feature deserving its own
+  requirements. The dropped row's *commands sent now will not arrive*
+  is what it would replace.
+- **⛔ Touch gesture infrastructure beyond the one pull-down.** The grab
+  toggles on tap; there is no swipe navigation, pull-to-refresh or edge
+  gesture. A full gesture system (velocity, rubber-banding, partial
+  states) is its own build, and the art's *arrives when you drag* is
+  satisfied by an animated disclosure.
+- **The mobile Arrival path** (front door, intake, lounge, character
+  select) — Wave 2, with its own `- Mobile` art. `CharGenStage` is
+  untouched here.
+- **The mobile live client / play surface** — the two feeds, the pane
+  feed and its hold policy, focus chain, filters, routing, prompts.
+  Wave 4, which is where the feed itself is owned, and where the
+  `WorldLayout` rail's phone-width overflow belongs.
+- **A frames-behind figure.** Still unmeasured — no server sequence
+  number, and unlike round trip there is no existing protocol for it.
+  Stays hatched, with a reason naming what is actually missing.
 
 ## History
 

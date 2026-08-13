@@ -203,9 +203,17 @@ subcommands:
         cockpit shelf list          the whole catalogue, and what is pinned
         cockpit shelf pin <row>     add a figure, at the end
         cockpit shelf unpin <row>   take one off
+        cockpit shelf first <row>   move it to the front
 
       Rows: play, renown, skill, make, coin, status, time, online,
       docket.
+
+      The shelf has an order, and `first` is how you change it. On a
+      narrow screen only the head of the shelf rides the bar — the rest
+      is one pull-down away — so putting a figure first is how you
+      choose what you can see without reaching for it. `first` on a row
+      that is not pinned puts it on the shelf, at the front: asking for
+      it on your bar is one intention, not two commands.
 
       Most of them will not be showing you a number. That is not a
       fault — a figure the server cannot stand behind renders as
@@ -224,6 +232,8 @@ subcommands:
         note: Take a row off the shelf
       - cmd: cockpit shelf pin coin
         note: Put it back, at the end
+      - cmd: cockpit shelf first coin
+        note: Move it to the front (pinning it there if it was off)
     args:
       - name: action
         type: string
