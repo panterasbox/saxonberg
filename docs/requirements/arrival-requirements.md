@@ -46,6 +46,11 @@ a reason. Six of the shelf's nine rows hatched in Build B and that was
 - **Every affordance previews the command it sends**, including the
   roster's Enter control — the axiom Wave 1 established, extended to the
   screens that precede the command bar.
+- **The arrival path works end to end on a phone**, which requires
+  collapsing the fixed in-world rail that currently makes the document
+  698px wide at 390px. Scoped to the collapse, not the feed redesign.
+- **A guest can find their way to a real account**, without being
+  promised their guest session converts into one.
 
 ## Non-goals
 
@@ -81,6 +86,15 @@ a reason. Six of the shelf's nine rows hatched in Build B and that was
   decision 3.
 - **Re-keying `producer_events`.** Aggregation happens on read. See
   decision 7.
+- **Guest → account *conversion*.** Explicitly refused, not deferred. A
+  guest is `anon:<nanoid>` with no persisted `User`, and the front
+  door's own copy promises *"nothing you make is kept, nobody can find
+  you again."* Building a path that carries a guest's work into an
+  account would make that copy false — the honesty rule applied to a
+  promise rather than a figure. What ships instead is decision 14.
+- **The feed, panes and verb bar in the in-world phase.** Decision 13
+  collapses the rail so the arrival path terminates somewhere usable; it
+  does not redesign what is inside it. Wave 4 owns that.
 
 ## Surface decisions
 
@@ -280,11 +294,31 @@ digest is built in `selfDigest` on a played avatar, and the shelf's
 Two footer notes in the art do not survive contact with the tree.
 
 - **"the world resets nightly / Nothing survives to tomorrow yet"** is
-  **cut.** [deployment.md](../deployment.md) documents durable
-  Mongo Atlas persistence and there is no nightly wipe. Shipping this
-  would be a false claim about the player's own data — the most
-  expensive kind — and the fact that it is *reassuring* is what makes it
-  dangerous.
+  **server-reported, and renders only when true.**
+
+  ⚠⚠ This one is worth recording carefully, because the investigation
+  found something larger than a copy question. **Three documents reason
+  *from* a nightly wipe that is implemented nowhere** —
+  [client-slate](../slates/builds/client-slate.md) § 3.1 and
+  [client-shell.md](../subsystems/client-shell.md) both open a governing
+  argument with *"the demo wipes nightly, which buys latitude on
+  persistence"*, [message-rendering.md](../subsystems/message-rendering.md)
+  leans on it to justify retiring a vocabulary without an alias, and
+  [gazette-slate](../slates/builds/gazette-slate.md) records a
+  requirement that bulletins survive it. There is no cron, no CI job and
+  no script, and [deployment.md](../deployment.md) documents durable
+  Mongo Atlas persistence.
+
+  The wipe **will be built** — it is a small ops job and the latitude is
+  genuinely worth having pre-launch — but it lands in the server build
+  that follows this wave, not in it. So Wave 2 ships the *mechanism* and
+  not the claim: the front door renders a reset notice **iff the server
+  reports a reset policy**, and reports none today. When the wipe lands,
+  the copy appears with no client change.
+
+  This is the honest-state rule applied to a sentence rather than a
+  number, and it is the pattern to prefer over hardcoding the copy now
+  and hoping the job appears.
 - **"it is usually quiet · You may be the only person on"** becomes a
   **live figure**: `/auth/status` gains an aggregate count of players
   currently in-world, and the note renders what is true right now. A
@@ -346,6 +380,7 @@ subject is unbuilt.
 | **Since you left** | `UnbuiltGround` | nothing records what happened while you were away |
 | **retire / restore** | disabled + reason | no such command |
 | **rename / appearance** | disabled + reason | no such command |
+| The **reset notice** | absent | the server reports no reset policy |
 | Play standing, never-played character | `empty` | never taken out |
 | Practice, no evidence | `empty` | no practice recorded yet |
 | Last location, never-played | `empty` | never taken out |
@@ -356,6 +391,44 @@ send the next reader to the wrong place, and Build C had to retire a
 reason that pointed at the wrong place entirely — *a reason pointing at
 the wrong place is worse than no reason, because it is confidently
 actionable and false*. Each row above states what is actually missing.
+
+### 13 · The rail collapses on compact — and nothing else changes
+
+`tokens.rail.width` is `22rem`, and `App.tsx` already carries the
+observation that the in-world layout's fixed rail beside the terminal
+makes the document 698px wide at a 390px viewport. Build C deferred this
+to Wave 4 deliberately, on the correct reasoning that Wave 4 owns the
+feed.
+
+It comes forward for one reason: **this wave's goal is that someone
+arriving from a video can sign in, make a character and reach the
+world**, and today that path terminates in a horizontally-scrolling
+screen. An arrival that delivers you somewhere broken has not arrived.
+
+The scope is exactly the collapse — the rail stops being a fixed column
+on compact — using the same clamp Build C shipped one level up. **No
+feed redesign, no pane behaviour, no filters.** Wave 4 inherits an
+in-world phone view that is legible rather than one that is finished,
+and is free to replace all of it.
+
+⚠ This must be verified under `isMobile: true`. It is the same class of
+failure as the ICB bug, and a narrow desktop viewport cannot see it.
+
+### 14 · The guest gets a door, not a conversion
+
+A guest session shows a persistent, quiet affordance back to sign-in,
+whose copy states the actual terms: signing in starts a **real
+character**, and the guest session is not carried over.
+
+The alternative — carrying a guest's work into a new account — is
+refused rather than deferred (non-goal above). The front door promises
+that a guest keeps nothing; a conversion path would make the front door
+lie, and it is a worse lie than a wrong number because the player acts
+on it.
+
+⚠ The copy must not imply the guest's character is preserved. *"Sign in
+to start a character that lasts"* is the register; *"save your
+progress"* is not, and there is no progress to save.
 
 ## Constraints
 
@@ -402,8 +475,20 @@ actionable and false*. Each row above states what is actually missing.
   than dead-ending into an OAuth error.
 - The press room is never awaited — the sign-in controls paint whether
   it loads, is empty, or is gone.
-- The presence note renders a live count from `/auth/status`; a test
-  asserts no "resets nightly" string ships.
+- The presence note renders a live count from `/auth/status`.
+- The reset notice renders **only** when the server reports a reset
+  policy, and a test asserts no reset copy ships while it reports none.
+- A guest session shows a route back to sign-in whose copy does not
+  imply the guest character is kept; a test asserts the copy.
+
+**The phone arrival path**
+
+- At a 390px `isMobile` viewport, the whole path — front door → intake →
+  character select → in-world — is reachable and no screen scrolls
+  horizontally. This is one e2e spec and it is the wave's headline
+  assertion.
+- The in-world rail collapses on compact; the document does not exceed
+  the viewport width. Verified in a real browser, not jsdom.
 
 **Intake**
 
@@ -469,13 +554,44 @@ actionable and false*. Each row above states what is actually missing.
 - The client slate's wave table marks Wave 2 shipped and records what
   was cut.
 
+## Where this sits in the program
+
+Decided 2026-08-13, when the remaining client program was sequenced as a
+whole rather than wave by wave.
+
+**Wave 2 is deliberately *not* maximal.** Its three screens are touched
+by no other wave, and that isolation is what makes them cheap; pulling
+Wave 4 material in would make both waves share components and both
+slower. Cramming is not the efficiency lever here.
+
+The lever is that **waves 6 and 7 are already almost pure client** —
+their server halves shipped — while Wave 4 is not. So the wave after
+this one is a **server build that batches every remaining read surface
+the 23 handoff screens need**, after which the rest of the program is
+client-only. It carries at least: the pane catalogue entries (the
+catalogue ships **three** — `inspect`, `location`, `self` — and every
+pane in the handoff needs one), `prompt.format` rendering, wiki and
+forum search, the **per-player frame store** (decided yes, 2026-08-13 —
+it unblocks search scope, the second-device story and "your backlog"),
+and the **nightly wipe** decision 9 depends on.
+
+Wave 2 leads because it is the demo, and because its own server work is
+small and self-contained.
+
 ## Sizing note
 
-This is comparable to Builds B and C **combined**. If it does not fit
-one session, the natural cut is between screens rather than between
-layers — **front door + intake** first (they share the pre-account
-phase), then **character select + account standing** (they share the
-account). Server work leads in both halves, as it did in Build C.
+This is comparable to Builds B and C **combined**, plus decisions 13 and
+14. If it does not fit one session, the natural cut is between screens
+rather than between layers:
+
+- **A — the pre-account phase**: front door, intake, the char-gen
+  payload generalization, the dossier spoiler level, the guest door, the
+  reset-notice mechanism.
+- **B — the account phase**: character select, account-level Make
+  standing, the compact rail.
+
+Server work leads in both halves, as it did in Build C. Decision 13 sits
+in B rather than A only because A does not reach the in-world phase.
 
 Recorded so a mid-build split is a planned boundary rather than an
 improvised one.

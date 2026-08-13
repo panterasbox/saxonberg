@@ -80,6 +80,24 @@ Six. Each is a rule that decides cases, not a preference.
 
 ### 3.1 ⭐⭐ Never render a figure the server did not send
 
+> ⚠⚠ **The nightly wipe this paragraph argues from did not exist** —
+> found 2026-08-13 while scoping Wave 2. No cron, no CI job, no script,
+> and [deployment.md](../../deployment.md) documents durable Mongo Atlas
+> persistence. The assumption had propagated into
+> [client-shell.md](../../subsystems/client-shell.md) § 3.1,
+> [message-rendering.md](../../subsystems/message-rendering.md) (as
+> justification for retiring a vocabulary with no alias) and
+> [gazette-slate](./gazette-slate.md) (which records a requirement that
+> bulletins survive it). **Resolved by building it**: the wipe lands in
+> the server build after Wave 2. Until it does, no surface may state it
+> — see [arrival-requirements](../../requirements/arrival-requirements.md)
+> decision 9, which ships the mechanism and withholds the claim.
+>
+> ⭐ Worth keeping as a lesson independent of the outcome: **a factual
+> premise stated once in a governing paragraph gets cited, not
+> re-checked.** Three documents inherited this one without anybody
+> looking for the cron job.
+
 The demo wipes nightly, which buys latitude on *persistence* and none on
 *figures*. A plausible fake is indistinguishable from a bug, and the
 central claim of this product is that its numbers are real.
@@ -593,7 +611,8 @@ Ordered so each ships independently. The handoff's build order is a good
 |---|---|---|
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
 | ~~**1**~~ ✅ | **Foundation — CLOSED 2026-08-12.** Civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome desktop AND phone. **Shipped as three builds — see § 7.1.** | done |
-| **2** | **Arrival** — front door, intake, lounge, character select, + mobile. The launch path, and the one wave a stranger sees. | 1 |
+| **2** | **Arrival** — front door, intake, character select, + mobile. The launch path, and the one wave a stranger sees. ⚠ **The lounge is CUT** — see § 7.2. Scoped in [arrival-requirements](../../requirements/arrival-requirements.md). | 1 |
+| **2.5** | ⭐ **The read surfaces** — one SERVER build batching every remaining endpoint the 23 screens need, so waves 4/6/7 are pure client. See § 7.2. | 2 |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
 | **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
 | ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned pane catalogue**: the client opens a pane BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a pane on recall, on either side. | done |
@@ -793,6 +812,50 @@ knowledge, traceable only to a commit message describing the result.
 
 ---
 
+### 7.2 The program resequenced — 2026-08-13
+
+Decided while scoping Wave 2, when the remaining waves were sequenced as
+a program rather than one at a time. Three changes to § 7's table.
+
+⭐ **The efficiency lever is not "more per wave".** Wave 2's three
+screens are touched by no other wave, and that isolation is what makes
+them cheap. Pulling Wave 4 material forward would make two waves share
+components and slow both. The lever is elsewhere: **waves 6 and 7 are
+already almost pure client** — reactions, forums, wiki, livestream, CMS,
+help and git all have shipped server halves — while Wave 4 does not.
+
+So a **server build (2.5) sits between Arrival and the Play surface**,
+batching every remaining read surface into one pass. What it carries:
+
+- **Pane catalogue entries.** The catalogue ships **three** (`inspect`,
+  `location`, `self`); every pane across the 23 screens needs one. This
+  is the item most likely to stall a client wave mid-flight, and § 4.4
+  already flagged it as "a real per-pane dependency to plan around
+  rather than discover".
+- **The per-player frame store** — open question 1, **ANSWERED: yes**
+  (2026-08-13). Everything about search scope, a second device, and
+  "your backlog is bigger than the server's copy" falls out of it, which
+  is why it could not stay open past Wave 4's planning.
+- **`prompt.format` rendering** — no reference anywhere in
+  `packages/client`; net-new.
+- **Wiki search and forum search** — both "not wired" in § 4.3's audit.
+- **The nightly wipe** (§ 3.1's box).
+- Whatever else § 4.3's *not wired* column still lists at that point.
+
+⚠ **Still to decide before the pane feed is built** (§ 4.4's undecided
+half): does the client read an arrangement and open the named panes
+itself? That remains open and belongs to Wave 4's requirements — the
+server build does not settle it, because it is a question about who
+initiates, not about which endpoint exists.
+
+⚠ **The lounge is cut from Wave 2 entirely** — both halves. Its client
+half is Wave 4's play surface (the art's lounge panel is a play-surface
+mock, so a pass built in Wave 2 would be discarded or would constrain
+Wave 4); its content half — the pizza-as-tally, the waiter, the order
+console, the departures board — is listed **deferred** in
+[location.md](../../subsystems/location.md) and belongs to the
+lounge-revisit slate.
+
 Deferred, designed but not scheduled: output logging / clips /
 attestation (§ 4.3); engagement patterns beyond the practice record;
 notifications — designed only as a stub, and `NotifyPolicy` /
@@ -804,9 +867,12 @@ everything that happened.
 
 ## 8 · Open questions
 
-1. **Per-player frame store — yes or no?** (§ 4.3). Product decision.
-   Everything about search scope, a second device, and "your backlog is
-   bigger than the server's copy" falls out of it.
+1. ~~**Per-player frame store — yes or no?**~~ (§ 4.3) ✅ **ANSWERED:
+   yes** (2026-08-13). The server retains a player's frames; the client
+   buffer stops being the only copy. It lands in the **2.5 server
+   build** (§ 7.2) with its own storage and retention design, because
+   search scope, the second-device story and "your backlog" all depend
+   on it and Wave 4 would otherwise stall on the question.
 2. ~~**Does a mode switch stay a real command on the wire?**~~ (§ 4.4)
    **ANSWERED: yes** — and verified by driving a browser, not just by
    test. `cockpit mode watch streamer` is an ordinary command; the whole
