@@ -98,13 +98,18 @@ export default class ProfileController extends CommandController<ProfileModel> {
       lines.push(Mml.strong('Your standing').toString());
       const d = card.digest;
       if (d.influence) {
-        lines.push(
-          Mml.escape(
-            `Play: ${d.influence.play} · Make: ${d.influence.make} · Renown: ${
-              d.renown ?? 'dormant'
-            }`
-          )
-        );
+        // ⚠ `make` is OPTIONAL — it is account-level, and an account
+        // that cannot be resolved yields no figure rather than the
+        // per-character one. Interpolating it directly printed
+        // `Make: undefined` into player-visible prose, which the type
+        // system happily allows inside a template literal. Absent means
+        // the segment is omitted; it never becomes a word.
+        const parts = [
+          `Play: ${d.influence.play}`,
+          ...(d.influence.make ? [`Make: ${d.influence.make}`] : []),
+          `Renown: ${d.renown ?? 'dormant'}`,
+        ];
+        lines.push(Mml.escape(parts.join(' · ')));
       }
       if (d.traits?.length) {
         lines.push(
