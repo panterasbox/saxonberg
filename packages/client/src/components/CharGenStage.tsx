@@ -31,15 +31,12 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import type {
-  CharGenField,
-  CharGenOption,
-  CharGenPicks,
-} from "@saxonberg/types";
+import type { CharGenFieldState, DossierRow } from "@saxonberg/types";
 import { useStore } from "../store/index";
 import { signOut } from "../services/auth";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
+import { UnbuiltGround } from "./ui/UnbuiltGround";
 import { Terminal } from "./Terminal";
 import { CommandBar } from "./CommandBar";
 import { StatusBar } from "./frame/StatusBar";
@@ -467,23 +464,65 @@ const TerminalStrip = styled.div`
   min-height: 0;
 `;
 
+
+/** The server's own "still missing" list, rendered verbatim. */
+const MissingLine = styled.div`
+  padding: 0 ${tokens.space.xl} ${tokens.space.md};
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+  font-family: ${tokens.font.mono};
+`;
+
+/** A reveal-level disclosure inside a dossier section. */
+const SpoilerDetails = styled.details`
+  margin-top: ${tokens.space.sm};
+
+  summary {
+    cursor: pointer;
+    font-size: ${tokens.font.micro};
+    color: ${tokens.color.fgMuted};
+    list-style: none;
+  }
+
+  summary::before {
+    content: "▸ ";
+  }
+
+  &[open] summary::before {
+    content: "▾ ";
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+`;
+
 /* --- Screen layout (client-owned) --------------------------------- */
 
 interface ScreenDef {
   id: string;
   heading: string;
   sub: string;
-  fields: CharGenField[];
+  fields: string[];
 }
 
 /**
- * The char-gen layout lives ENTIRELY here on the client — the server is
- * a field state machine that doesn't care how fields are grouped. This
- * default chunks fields across screens (sex + pronouns share one). A
- * single-page A/B variant is just a one-entry config listing every
- * field; no server change.
+ * ⭐⭐ **An ordering HINT, not an exhaustive list.**
+ *
+ * Layout stays entirely client-side — the server is a field state
+ * machine that does not care how fields are grouped, and that split is
+ * what lets a single-page A/B variant be a pure client change.
+ *
+ * But the payload is now a generic field LIST, so a config that named
+ * every field would silently drop a field the server added: it would
+ * never render, while still gating `enroll confirm` through `missing` —
+ * a dead end the player cannot diagnose and cannot escape. So this
+ * names the fields it has an opinion about, and {@link buildScreens}
+ * appends everything else.
+ *
+ * The honest-state rule, applied to the intake's own extensibility.
  */
-const SCREENS: ScreenDef[] = [
+const SCREEN_HINTS: ScreenDef[] = [
   {
     id: "species",
     heading: "Choose your species",
@@ -517,50 +556,60 @@ const REVIEW_SCREEN: ScreenDef = {
   fields: [],
 };
 
-/** Fields rendered with the illustrated cards-plus-dossier layout. */
-const ILLUSTRATED_FIELDS = new Set<CharGenField>(["species"]);
+/** Every renderer kind this client knows how to draw. */
+const KNOWN_KINDS = new Set<string>(["choose-one", "text"]);
 
-/** Per-field heading, shown when a screen groups more than one field. */
-const FIELD_HEADING: Record<CharGenField, string> = {
-  species: "Species",
-  sex: "Sex",
-  name: "Name",
-  pronouns: "Pronouns",
-  aspiration: "Aspiration",
-};
+/**
+ * Chunk the server's fields into screens.
+ *
+ * Three rules, in order:
+ *   1. a field a hint names renders in that hint's group and order;
+ *   2. **a field no hint names still renders**, on its own screen, using
+ *      its server-supplied label;
+ *   3. an inapplicable field renders nowhere — the server said it does
+ *      not apply (a non-sexed species has no sex), which is different
+ *      from having no options authored.
+ */
+function buildScreens(fields: CharGenFieldState[]): ScreenDef[] {
+  const applicable = fields.filter((f) => f.applicable);
+  const has = (name: string) => applicable.some((f) => f.field === name);
+  const hinted = new Set(SCREEN_HINTS.flatMap((s) => s.fields));
 
-/** The currently-selected option value for a closed-choice field. */
-function pickValueForField(
-  field: CharGenField,
-  picks: CharGenPicks,
-): string | null {
-  switch (field) {
-    case "species":
-      return picks.species?.key ?? null;
-    case "sex":
-      return picks.sex ?? null;
-    case "pronouns":
-      return picks.pronouns ?? null;
-    case "aspiration":
-      return picks.aspiration ?? null;
-    default:
-      return null;
+  const screens: ScreenDef[] = SCREEN_HINTS.map((s) => ({
+    ...s,
+    fields: s.fields.filter(has),
+  })).filter((s) => s.fields.length > 0);
+
+  // Rule 2. In server order, so a field's position is the server's
+  // decision rather than an accident of this file.
+  for (const f of applicable) {
+    if (hinted.has(f.field)) continue;
+    screens.push({
+      id: f.field,
+      heading: f.label,
+      sub: "",
+      fields: [f.field],
+    });
   }
+  return screens;
 }
 
-/** The accumulated picks, for the review summary. */
-function reviewRows(picks: CharGenPicks): { label: string; value: string }[] {
-  const rows: { label: string; value: string }[] = [];
-  if (picks.species) {
-    rows.push({ label: "Species", value: picks.species.commonName });
-  }
-  if (picks.sex) rows.push({ label: "Sex", value: picks.sex });
-  if (picks.pronouns) rows.push({ label: "Pronouns", value: picks.pronouns });
-  const fullName = [picks.name, picks.surname].filter(Boolean).join(" ");
-  if (fullName) rows.push({ label: "Name", value: fullName });
-  if (picks.aspiration)
-    rows.push({ label: "Aspiration", value: picks.aspiration });
-  return rows;
+/** Two text inputs, or one — see {@link isTwoPart}. */
+interface TextDraft {
+  a: string;
+  b: string;
+}
+
+/**
+ * Whether a `text` field draws two inputs.
+ *
+ * ⚠ The **presence of a surname on the suggestion** is the signal, and
+ * there is deliberately no second mechanism for it. A `parts` array or
+ * a per-component value would be the same duplication the projected
+ * payload removed — two sources of truth for one fact.
+ */
+function isTwoPart(f: CharGenFieldState): boolean {
+  return f.suggestion?.surname !== undefined;
 }
 
 /* --- Component ---------------------------------------------------- */
@@ -592,30 +641,54 @@ export function CharGenStage({
   // The detail pane previews this option on card hover; null falls
   // through to the chosen card, then the first option.
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
-  // Editable name fields, pre-filled from the existing pick (else the
-  // suggestion); refilled only when that source changes (e.g. reroll),
-  // not on every keystroke.
-  const [givenName, setGivenName] = useState("");
-  const [surnameVal, setSurnameVal] = useState("");
-  // The name field flushes from both the input `onBlur` and the Continue
+  // Editable text fields, keyed by field name, pre-filled from the
+  // existing value (else the suggestion); refilled only when that
+  // source changes (e.g. a reroll), not on every keystroke.
+  const [drafts, setDrafts] = useState<Record<string, TextDraft>>({});
+  // A text field flushes from both the input `onBlur` and the Continue
   // button. Clicking Continue blurs the input first, so both fire in the
-  // same tick with identical content. Dedupe by last-sent value so an
-  // unchanged name is never re-fired (a redundant `enroll name`).
-  const lastSentName = useRef<string | null>(null);
-  const nameSource = charGenState?.picks?.name
-    ? `pick:${charGenState.picks.name}|${charGenState.picks.surname ?? ""}`
-    : `sug:${charGenState?.suggestion?.name ?? ""}|${charGenState?.suggestion?.surname ?? ""}`;
+  // same tick with identical content. Dedupe by last-sent command so an
+  // unchanged value is never re-fired.
+  const lastSent = useRef<Record<string, string>>({});
+
+  const textFields = (charGenState?.fields ?? []).filter(
+    (f) => f.kind === "text",
+  );
+  // A fingerprint of every text field's SOURCE, so the refill effect
+  // fires on a reroll or a server-side change but not on a keystroke.
+  const draftSource = textFields
+    .map(
+      (f) =>
+        `${f.field}:${f.value ?? ""}|${f.suggestion?.name ?? ""}|${f.suggestion?.surname ?? ""}`,
+    )
+    .join("~");
+
   useEffect(() => {
     if (!charGenState) return;
-    if (charGenState.picks.name) {
-      setGivenName(charGenState.picks.name);
-      setSurnameVal(charGenState.picks.surname ?? "");
-    } else if (charGenState.suggestion) {
-      setGivenName(charGenState.suggestion.name ?? "");
-      setSurnameVal(charGenState.suggestion.surname ?? "");
+    const next: Record<string, TextDraft> = {};
+    for (const f of charGenState.fields) {
+      if (f.kind !== "text") continue;
+      if (f.value) {
+        // The server hands back a joined display value; split only when
+        // the field is two-part, and only on the FIRST space so a
+        // multi-word surname survives.
+        const at = isTwoPart(f) ? f.value.indexOf(" ") : -1;
+        next[f.field] =
+          at >= 0
+            ? { a: f.value.slice(0, at), b: f.value.slice(at + 1) }
+            : { a: f.value, b: "" };
+      } else if (f.suggestion) {
+        next[f.field] = {
+          a: f.suggestion.name ?? "",
+          b: f.suggestion.surname ?? "",
+        };
+      } else {
+        next[f.field] = { a: "", b: "" };
+      }
     }
+    setDrafts(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nameSource]);
+  }, [draftSource]);
 
   // No state yet (frame in flight) — show a quiet placeholder rather
   // than an empty screen.
@@ -634,84 +707,80 @@ export function CharGenStage({
     );
   }
 
-  const {
-    picks,
-    speciesOptions,
-    sexOptions,
-    pronounOptions,
-    aspirationOptions,
-    accountName,
-    missing,
-    error,
-  } = charGenState;
+  const { fields, accountName, missing, error } = charGenState;
+  const fieldNamed = (name: string): CharGenFieldState | undefined =>
+    fields.find((f) => f.field === name);
 
-  const optionsFor = (field: CharGenField): CharGenOption[] => {
-    switch (field) {
-      case "species":
-        return speciesOptions;
-      case "sex":
-        return sexOptions;
-      case "pronouns":
-        return pronounOptions;
-      case "aspiration":
-        return aspirationOptions;
-      default:
-        return [];
-    }
-  };
-
-  // Sex drops off a screen entirely when it doesn't apply (no options).
-  const fieldApplies = (field: CharGenField): boolean =>
-    field === "sex" ? sexOptions.length > 0 : true;
-
-  const screens = [...SCREENS, REVIEW_SCREEN];
+  const screens = [...buildScreens(fields), REVIEW_SCREEN];
   const clampedIndex = Math.min(screenIndex, screens.length - 1);
   const screen = screens[clampedIndex]!;
-  const isReview = clampedIndex >= SCREENS.length;
-  const screenFields = screen.fields.filter(fieldApplies);
+  const isReview = clampedIndex >= screens.length - 1;
+  const screenFields = screen.fields
+    .map(fieldNamed)
+    .filter((f): f is CharGenFieldState => f !== undefined);
 
-  const submitName = () => {
-    const given = givenName.trim();
-    if (!given) return;
-    const surname = surnameVal.trim();
-    const cmd = `enroll name ${[given, surname].filter(Boolean).join(" ")}`;
-    if (cmd === lastSentName.current) return;
-    lastSentName.current = cmd;
+  const draftOf = (name: string): TextDraft =>
+    drafts[name] ?? { a: "", b: "" };
+
+  const submitText = (f: CharGenFieldState) => {
+    const d = draftOf(f.field);
+    const a = d.a.trim();
+    if (!a) return;
+    const b = isTwoPart(f) ? d.b.trim() : "";
+    const cmd = `enroll ${f.field} ${[a, b].filter(Boolean).join(" ")}`;
+    if (cmd === lastSent.current[f.field]) return;
+    lastSent.current[f.field] = cmd;
     onSendCommand(cmd);
   };
 
-  // Setting a field is a LIVE command (fires + echoes immediately).
-  const setField = (field: CharGenField, value: string) =>
-    onSendCommand(`enroll ${field} ${value}`);
+  const setDraft = (name: string, patch: Partial<TextDraft>) =>
+    setDrafts((prev) => ({
+      ...prev,
+      [name]: { ...draftOf(name), ...patch },
+    }));
 
-  // Nav: a field is satisfied via the local box (name, which fires on
-  // blur / Next) or the server's `missing` (everything else).
-  const fieldSatisfied = (field: CharGenField): boolean =>
-    field === "name" ? givenName.trim() !== "" : !missing.includes(field);
+  // Setting a field is a LIVE command (fires + echoes immediately).
+  const setField = (name: string, value: string) =>
+    onSendCommand(`enroll ${name} ${value}`);
+
+  // Nav: a text field is satisfied via its local box (it fires on blur /
+  // Next), everything else via the server's `missing`.
+  //
+  // ⚠ Gating reads `missing` and never a client-side list of required
+  // fields — the client must not re-encode which fields exist or in what
+  // order they are required.
+  const fieldSatisfied = (f: CharGenFieldState): boolean =>
+    f.kind === "text"
+      ? draftOf(f.field).a.trim() !== ""
+      : !missing.includes(f.field);
   const canAdvance = screenFields.every(fieldSatisfied);
 
   const goNext = () => {
-    if (screenFields.includes("name")) submitName();
+    for (const f of screenFields) if (f.kind === "text") submitText(f);
     setScreenIndex((i) => Math.min(i + 1, screens.length - 1));
   };
   const goBack = () => setScreenIndex((i) => Math.max(0, i - 1));
 
-  const renderCards = (field: CharGenField) => {
-    const opts = optionsFor(field);
-    const selected = pickValueForField(field, picks);
-    const illustrated = ILLUSTRATED_FIELDS.has(field);
+  const renderCards = (f: CharGenFieldState) => {
+    const opts = f.options ?? [];
+    const selected = f.value ?? null;
+    // ⭐ Illustrated is DERIVED, not declared. A field is illustrated
+    // when its options actually carry an image or a dossier — which
+    // deletes the old `ILLUSTRATED_FIELDS` set rather than replacing it
+    // with a wire field that says the same thing twice.
+    const illustrated = opts.some((o) => o.image || o.dossier);
     const grid = (
       <OptionGrid>
         {opts.map((opt) => (
           <OptionCard
             key={opt.value}
             data-testid={`chargen-option-${opt.value}`}
-            $selected={opt.value === selected}
-            aria-pressed={opt.value === selected}
-            onClick={() => setField(field, opt.value)}
+            $selected={opt.value === selected || opt.label === selected}
+            aria-pressed={opt.value === selected || opt.label === selected}
+            onClick={() => setField(f.field, opt.value)}
             onMouseEnter={() => {
               if (illustrated) setFocusedValue(opt.value);
-              onCommandPreview(`enroll ${field} ${opt.value}`);
+              onCommandPreview(`enroll ${f.field} ${opt.value}`);
             }}
             onMouseLeave={() => {
               if (illustrated) setFocusedValue(null);
@@ -728,7 +797,9 @@ export function CharGenStage({
     );
     if (!illustrated) return grid;
     const focused =
-      opts.find((o) => o.value === (focusedValue ?? selected)) ??
+      opts.find(
+        (o) => o.value === (focusedValue ?? selected) || o.label === selected,
+      ) ??
       opts[0] ??
       null;
     return (
@@ -758,17 +829,11 @@ export function CharGenStage({
           {focused?.dossier?.sections.length ? (
             <DossierBox data-testid="chargen-detail-dossier">
               {focused.dossier.sections.map((section) => (
-                <div key={section.heading}>
-                  <DossierHeading>{section.heading}</DossierHeading>
-                  <DossierGrid>
-                    {section.rows.map((row) => (
-                      <Fragment key={row.label}>
-                        <DossierLabel>{row.label}</DossierLabel>
-                        <DossierValue>{row.value}</DossierValue>
-                      </Fragment>
-                    ))}
-                  </DossierGrid>
-                </div>
+                <DossierSectionView
+                  key={section.heading}
+                  heading={section.heading}
+                  rows={section.rows}
+                />
               ))}
             </DossierBox>
           ) : null}
@@ -777,60 +842,93 @@ export function CharGenStage({
     );
   };
 
-  const renderNameField = () => (
-    <NameForm
-      onSubmit={(e) => {
-        e.preventDefault();
-        submitName();
-      }}
-    >
-      {accountName ? (
-        <NameAccountRef>
-          Signed in as <strong>{accountName}</strong>
-        </NameAccountRef>
-      ) : null}
-      <NameFieldRow>
-        <NameField>
-          <NameFieldLabel htmlFor="chargen-given">Given name</NameFieldLabel>
-          <NameInput
-            id="chargen-given"
-            data-testid="chargen-given-input"
-            value={givenName}
-            onChange={(e) => setGivenName(e.target.value)}
-            onBlur={submitName}
-            placeholder="Given name"
-            autoComplete="off"
-          />
-        </NameField>
-        <NameField>
-          <NameFieldLabel htmlFor="chargen-surname">
-            Surname <NameOptional>(optional)</NameOptional>
-          </NameFieldLabel>
-          <NameInput
-            id="chargen-surname"
-            data-testid="chargen-surname-input"
-            value={surnameVal}
-            onChange={(e) => setSurnameVal(e.target.value)}
-            onBlur={submitName}
-            placeholder="Surname"
-            autoComplete="off"
-          />
-        </NameField>
-      </NameFieldRow>
-      <StageButton
-        type="button"
-        data-testid="chargen-reroll"
-        onClick={() => onSendCommand("enroll name reroll")}
+  const renderTextField = (f: CharGenFieldState) => {
+    const two = isTwoPart(f);
+    const d = draftOf(f.field);
+    return (
+      <NameForm
+        onSubmit={(e) => {
+          e.preventDefault();
+          submitText(f);
+        }}
       >
-        ⟳ Suggest another
-      </StageButton>
-      {/* Hidden submit so Enter in a field commits the name. */}
-      <button type="submit" hidden aria-hidden="true" />
-    </NameForm>
+        {accountName ? (
+          <NameAccountRef>
+            Signed in as <strong>{accountName}</strong>
+          </NameAccountRef>
+        ) : null}
+        <NameFieldRow>
+          <NameField>
+            <NameFieldLabel htmlFor={`chargen-${f.field}-a`}>
+              {two ? "Given name" : f.label}
+            </NameFieldLabel>
+            <NameInput
+              id={`chargen-${f.field}-a`}
+              data-testid="chargen-given-input"
+              value={d.a}
+              onChange={(e) => setDraft(f.field, { a: e.target.value })}
+              onBlur={() => submitText(f)}
+              placeholder={two ? "Given name" : f.label}
+              autoComplete="off"
+            />
+          </NameField>
+          {two ? (
+            <NameField>
+              <NameFieldLabel htmlFor={`chargen-${f.field}-b`}>
+                Surname <NameOptional>(optional)</NameOptional>
+              </NameFieldLabel>
+              <NameInput
+                id={`chargen-${f.field}-b`}
+                data-testid="chargen-surname-input"
+                value={d.b}
+                onChange={(e) => setDraft(f.field, { b: e.target.value })}
+                onBlur={() => submitText(f)}
+                placeholder="Surname"
+                autoComplete="off"
+              />
+            </NameField>
+          ) : null}
+        </NameFieldRow>
+        {f.hint ? <NameAccountRef>{f.hint}</NameAccountRef> : null}
+        {f.suggestion ? (
+          <StageButton
+            type="button"
+            data-testid="chargen-reroll"
+            onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
+          >
+            ⟳ Suggest another
+          </StageButton>
+        ) : null}
+        {/* Hidden submit so Enter in a field commits the value. */}
+        <button type="submit" hidden aria-hidden="true" />
+      </NameForm>
+    );
+  };
+
+  /**
+   * ⚠ A field whose `kind` this client does not know renders HATCHED
+   * with its reason — never nothing. An omitted field would still gate
+   * `enroll confirm` through `missing`, stranding the player on a
+   * Continue button that never enables and giving them no way to see
+   * why.
+   */
+  const renderUnknownKind = (f: CharGenFieldState) => (
+    <UnbuiltGround
+      data-testid={`chargen-unknown-kind-${f.field}`}
+      style={{ padding: tokens.space.lg }}
+    >
+      <FieldGroupHeading>{f.label}</FieldGroupHeading>
+      <OptionDesc>
+        This client does not know how to show a “{f.kind}” field yet. You can
+        still set it from the command line: <code>enroll {f.field} …</code>
+      </OptionDesc>
+    </UnbuiltGround>
   );
 
-  const renderField = (field: CharGenField) =>
-    field === "name" ? renderNameField() : renderCards(field);
+  const renderField = (f: CharGenFieldState) => {
+    if (!KNOWN_KINDS.has(f.kind)) return renderUnknownKind(f);
+    return f.kind === "text" ? renderTextField(f) : renderCards(f);
+  };
 
   return (
     <Stage data-testid="chargen-stage">
@@ -843,7 +941,7 @@ export function CharGenStage({
             <StepHeading data-testid="chargen-step">
               {screen.heading}
             </StepHeading>
-            <StepSub>{screen.sub}</StepSub>
+            {screen.sub ? <StepSub>{screen.sub}</StepSub> : null}
           </div>
 
           {error ? (
@@ -854,17 +952,19 @@ export function CharGenStage({
 
           {isReview ? (
             <Picks data-testid="chargen-review">
-              {reviewRows(picks).map((r) => (
-                <PickRow key={r.label} label={r.label} value={r.value} />
-              ))}
+              {fields
+                .filter((f) => f.applicable && f.value)
+                .map((f) => (
+                  <PickRow key={f.field} label={f.label} value={f.value!} />
+                ))}
             </Picks>
           ) : (
-            screenFields.map((field) => (
-              <FieldGroup key={field}>
+            screenFields.map((f) => (
+              <FieldGroup key={f.field}>
                 {screenFields.length > 1 ? (
-                  <FieldGroupHeading>{FIELD_HEADING[field]}</FieldGroupHeading>
+                  <FieldGroupHeading>{f.label}</FieldGroupHeading>
                 ) : null}
-                {renderField(field)}
+                {renderField(f)}
               </FieldGroup>
             ))
           )}
@@ -905,6 +1005,14 @@ export function CharGenStage({
         )}
       </NavRow>
 
+      {/* The still-missing line, verbatim from the server. The client
+          never composes this list — see `fieldSatisfied`. */}
+      {isReview && missing.length > 0 ? (
+        <MissingLine data-testid="chargen-missing">
+          still missing: {missing.join(", ")}
+        </MissingLine>
+      ) : null}
+
       {/* Slim narration strip — secondary to the stage. */}
       <TerminalStrip>
         <Terminal
@@ -928,6 +1036,59 @@ export function CharGenStage({
         onCancelPrompt={onCancelPrompt}
       />
     </Stage>
+  );
+}
+
+/**
+ * One dossier section. Rows at reveal level >= 1 collapse behind a
+ * disclosure.
+ *
+ * ⭐ The level rides the row from `fieldMeta` — it is declared on the
+ * field precisely so it travels wherever the field surfaces, and
+ * char-gen used to drop it and render expanded what the wiki renders
+ * collapsed.
+ *
+ * ⚠ Collapsed is not withheld. Level 1 means "one click", not "locked":
+ * this is an APPETITE axis (does this reader want to be spoiled), not an
+ * epistemic one (does this character know it). A collapse toggle is not
+ * a lock.
+ */
+function DossierSectionView({
+  heading,
+  rows,
+}: {
+  heading: string;
+  rows: DossierRow[];
+}) {
+  const open = rows.filter((r) => !r.spoiler);
+  const veiled = rows.filter((r) => r.spoiler);
+  return (
+    <div>
+      <DossierHeading>{heading}</DossierHeading>
+      {open.length ? (
+        <DossierGrid>
+          {open.map((row) => (
+            <Fragment key={row.label}>
+              <DossierLabel>{row.label}</DossierLabel>
+              <DossierValue>{row.value}</DossierValue>
+            </Fragment>
+          ))}
+        </DossierGrid>
+      ) : null}
+      {veiled.length ? (
+        <SpoilerDetails data-testid={`dossier-spoiler-${heading}`}>
+          <summary>{veiled.length} measured {veiled.length === 1 ? "property" : "properties"}</summary>
+          <DossierGrid>
+            {veiled.map((row) => (
+              <Fragment key={row.label}>
+                <DossierLabel>{row.label}</DossierLabel>
+                <DossierValue>{row.value}</DossierValue>
+              </Fragment>
+            ))}
+          </DossierGrid>
+        </SpoilerDetails>
+      ) : null}
+    </div>
   );
 }
 

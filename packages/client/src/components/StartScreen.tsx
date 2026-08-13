@@ -1,18 +1,33 @@
 /**
- * StartScreen — the plain-UI front door (the `unauthenticated` phase).
- * No diegetic metaphor: the lounge is the first room; this is just the
- * app's start screen. Offers a provider sign-in list + anonymous guest
- * play, and (dev builds only) the no-OAuth dev login.
+ * StartScreen — the front door (the `unauthenticated` phase).
  *
- * Replaces the old inline login-takeover + its raw-hex styling. The
- * provider set is a data-shaped list, not hardcoded anchors, so adding
- * Twitch later is a list entry + wiring (the auth-providers slate owns
- * the mechanics — here it's an inert slot).
+ * No diegetic metaphor: the lounge is the first room; this is the app's
+ * front door. It carries the pitch, the three chambers, the provider
+ * sign-in list, the anonymous guest path, and the {@link PressRoom} —
+ * what the world can read without an account.
  *
- * Beside the sign-in panel sits the {@link PressRoom} — what the world can
- * read without signing in. ⚠ It is **never awaited**: the sign-in and
- * guest controls paint regardless of whether it loads, is empty, or is
- * gone, and it renders `null` rather than an error in the last case.
+ * ⚠ **Every claim on this screen has a source.** It is the screen a
+ * stranger judges the project on, which is exactly where the temptation
+ * to fill space with plausible copy is strongest. Two consequences:
+ *
+ *   - the presence line renders a **live count** from `/auth/status`,
+ *     not the art's static "it is usually quiet · you may be the only
+ *     person on";
+ *   - the reset notice renders **only when the server reports a reset
+ *     policy**. The handoff art shipped "the world resets nightly ·
+ *     nothing survives to tomorrow yet" as fixed copy while no cron, CI
+ *     job or script implemented a wipe — and three design documents went
+ *     on to reason *from* it. A claim about whether the player's own
+ *     work survives the night is the most expensive kind to get wrong.
+ *
+ * ⚠ The `PressRoom` is **never awaited**: the sign-in and guest controls
+ * paint whether it loads, is empty, or is gone, and it renders `null`
+ * rather than an error in the last case.
+ *
+ * Compact layout is a reflow, not a different composition — one column,
+ * sign-in above the fold, the press room as the scroll — so this uses
+ * plain CSS rather than a `useIsCompact` branch. The chrome's mobile bar
+ * is the case that genuinely needs the hook; this is not.
  */
 
 import React, { useState } from "react";
@@ -24,60 +39,227 @@ import { tokens } from "./ui";
 import { PressRoom } from "./PressRoom";
 
 const Screen = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${tokens.space.xl};
-  flex-wrap: wrap;
-  height: 100vh;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   background: ${tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
   font-family: ${tokens.font.family};
+  overflow-y: auto;
 `;
 
+const Inner = styled.div`
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: ${tokens.space.xxl} ${tokens.space.xl} ${tokens.space.xxl};
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: ${tokens.space.xxl};
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+    padding-top: 3rem;
+  }
+`;
+
+/* ── Masthead ──────────────────────────────────────────────────── */
+
+const Masthead = styled.header`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.lg};
+  margin-bottom: ${tokens.space.xl};
+`;
+
+/** The seal. Old Glory red with white separation — never text-on-red. */
+const Seal = styled.div`
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: ${tokens.color.seal};
+  color: ${tokens.color.sealInk};
+  border: 1px solid ${tokens.color.sealInk};
+  border-radius: ${tokens.radius.sm};
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.title};
+  letter-spacing: 0.06em;
+`;
+
+const WordMark = styled.div`
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.display};
+  letter-spacing: 0.04em;
+  color: ${tokens.color.fg};
+  line-height: 1.1;
+`;
+
+const Tagline = styled.div`
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+`;
+
+const Headline = styled.h1`
+  margin: 0 0 ${tokens.space.lg};
+  font-family: ${tokens.font.serif};
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-wrap: balance;
+  color: ${tokens.color.fg};
+`;
+
+const Lede = styled.p`
+  margin: 0 0 ${tokens.space.xxl};
+  max-width: 56ch;
+  font-size: ${tokens.font.title};
+  line-height: 1.65;
+  color: ${tokens.color.fgDim};
+`;
+
+/* ── The three chambers ────────────────────────────────────────── */
+
+const SectionLabel = styled.div`
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: ${tokens.color.sectionLabel};
+  margin-bottom: ${tokens.space.lg};
+`;
+
+const Chambers = styled.ol`
+  list-style: none;
+  margin: 0 0 ${tokens.space.xxl};
+  padding: 0;
+  display: grid;
+  gap: ${tokens.space.lg};
+
+  @media (min-width: 620px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+`;
+
+const Chamber = styled.li`
+  padding: ${tokens.space.lg};
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.md};
+  background: ${tokens.color.surface};
+`;
+
+/**
+ * ⚠ The ordinal is real information, not decoration: the chambers are
+ * a fixed, named set of three and the numbering is how the Compact
+ * refers to them. It is not a "01 / 02 / 03" flourish over an arbitrary
+ * list.
+ */
+const ChamberOrdinal = styled.div`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+`;
+
+const ChamberName = styled.div`
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.title};
+  letter-spacing: 0.06em;
+  color: ${tokens.color.fg};
+  margin: ${tokens.space.xs} 0;
+`;
+
+const ChamberNote = styled.div`
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+`;
+
+const CHAMBERS: ReadonlyArray<{ n: string; name: string; note: string }> = [
+  { n: "01", name: "Make", note: "You built it" },
+  { n: "02", name: "Fund", note: "You keep it running" },
+  { n: "03", name: "Play", note: "You live here" },
+];
+
+/* ── Sign-in ───────────────────────────────────────────────────── */
+
 const Panel = styled.div`
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.lg};
-  min-width: 280px;
   padding: ${tokens.space.xl};
   background: ${tokens.color.surface};
   border: 1px solid ${tokens.color.border};
   border-radius: ${tokens.radius.md};
 `;
 
-const Title = styled.h1`
+const PanelHeading = styled.h2`
   margin: 0;
+  font-family: ${tokens.font.engraved};
   font-size: ${tokens.font.title};
-  font-weight: 600;
-  color: ${tokens.color.fgEmphasis};
+  letter-spacing: 0.06em;
+  color: ${tokens.color.fg};
 `;
 
+const PanelNote = styled.p`
+  margin: 0;
+  font-size: ${tokens.font.micro};
+  line-height: 1.6;
+  color: ${tokens.color.fgMuted};
+`;
+
+/**
+ * A provider button. `$primary` is the committing action and carries
+ * the official red with white separation.
+ *
+ * ⚠ `min-height: 44px` — the tap-target floor, with weight controlled
+ * by padding rather than by shrinking the box.
+ */
 const Action = styled.button<{ $primary?: boolean }>`
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${tokens.space.sm};
   width: 100%;
-  text-align: center;
-  padding: ${tokens.space.md};
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: ${tokens.space.md} ${tokens.space.lg};
   border-radius: ${tokens.radius.md};
-  border: 1px solid ${tokens.color.border};
+  border: 1px solid
+    ${(p: { $primary?: boolean }) =>
+      p.$primary ? tokens.color.sealInk : tokens.color.border};
   background: ${(p: { $primary?: boolean }) =>
-    p.$primary ? tokens.color.primary : tokens.color.actionBg};
+    p.$primary ? tokens.color.seal : tokens.color.actionBg};
   color: ${(p: { $primary?: boolean }) =>
-    p.$primary ? tokens.color.onField : tokens.color.fg};
+    p.$primary ? tokens.color.sealInk : tokens.color.fg};
   font-family: inherit;
   font-size: ${tokens.font.body};
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
 
   &:hover:not(:disabled) {
-    background: ${(p: { $primary?: boolean }) =>
-      p.$primary ? tokens.color.primaryHover : tokens.color.actionBgHover};
+    filter: brightness(1.07);
   }
 
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
   }
+
+  &:focus-visible {
+    outline: 2px solid ${tokens.color.fgEmphasis};
+    outline-offset: 2px;
+  }
+`;
+
+const GuestAction = styled(Action)`
+  font-weight: 500;
+  background: transparent;
+  color: ${tokens.color.fgDim};
 `;
 
 const Divider = styled.div`
@@ -85,7 +267,9 @@ const Divider = styled.div`
   align-items: center;
   gap: ${tokens.space.sm};
   color: ${tokens.color.fgMuted};
-  font-size: ${tokens.font.micro};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 
   &::before,
   &::after {
@@ -95,9 +279,21 @@ const Divider = styled.div`
   }
 `;
 
-/** Sign-in providers. Google, Twitch, and Kick are co-equal login
- *  providers (one unified provider interface). The list stays
- *  data-shaped so a future provider is one more entry. */
+/* ── Footer facts ──────────────────────────────────────────────── */
+
+const Facts = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.sm};
+  margin-top: ${tokens.space.xl};
+  padding-top: ${tokens.space.lg};
+  border-top: 1px solid ${tokens.color.borderMuted};
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+  line-height: 1.6;
+`;
+
+/** Sign-in providers. Google, Twitch and Kick are co-equal. */
 const PROVIDERS: ReadonlyArray<{
   key: string;
   label: string;
@@ -106,19 +302,19 @@ const PROVIDERS: ReadonlyArray<{
 }> = [
   {
     key: "google",
-    label: "Sign in with Google",
+    label: "Continue with Google",
     href: "/auth/google",
     enabled: true,
   },
   {
     key: "twitch",
-    label: "Sign in with Twitch",
+    label: "Continue with Twitch",
     href: "/auth/twitch",
     enabled: true,
   },
   {
     key: "kick",
-    label: "Sign in with Kick",
+    label: "Continue with Kick",
     href: "/auth/kick",
     enabled: true,
   },
@@ -134,7 +330,7 @@ const DevBox = styled.div`
 `;
 
 const DevLabel = styled.div`
-  font-size: ${tokens.font.micro};
+  font-size: ${tokens.font.label};
   color: ${tokens.color.fgMuted};
 `;
 
@@ -198,6 +394,33 @@ function DevLogin() {
   );
 }
 
+/**
+ * The presence line.
+ *
+ * ⚠ Three states, and the third is the point: a number, a real zero, or
+ * — when the server did not answer — **nothing at all**. An unanswered
+ * count must not render as "nobody is on", which is a different claim
+ * and a discouraging one to get wrong.
+ */
+function PresenceLine({ online }: { online?: number }) {
+  if (online === undefined) return null;
+  if (online === 0) {
+    return (
+      <div data-testid="presence-line">
+        Nobody is connected right now. The lounge still works, and the world
+        is yours to wander.
+      </div>
+    );
+  }
+  return (
+    <div data-testid="presence-line">
+      {online === 1
+        ? "One person is connected right now."
+        : `${online} people are connected right now.`}
+    </div>
+  );
+}
+
 export const StartScreen: React.FC = () => {
   const [guestBusy, setGuestBusy] = useState(false);
 
@@ -230,36 +453,105 @@ export const StartScreen: React.FC = () => {
   const serverEnabled = (key: string): boolean =>
     configured === null || configured.includes(key);
 
+  const facts = useStore((s) => s.serverFacts);
+
   return (
-    <Screen>
-      <Panel>
-        <Title>Saxonberg 2.0</Title>
-        {PROVIDERS.map((p) =>
-          p.enabled && p.href && serverEnabled(p.key) ? (
-            <Action key={p.key} as="a" href={`${SERVER_URL}${p.href}`} $primary>
-              {p.label}
-            </Action>
-          ) : (
-            <Action
-              key={p.key}
-              disabled
-              title={
-                p.enabled
-                  ? "Not configured on this server"
-                  : "Coming soon"
-              }
-            >
-              {p.label}
-            </Action>
-          ),
-        )}
-        <Divider>or</Divider>
-        <Action onClick={playAsGuest} disabled={guestBusy}>
-          {guestBusy ? "Connecting…" : "Play as guest"}
-        </Action>
-        {import.meta.env.DEV && <DevLogin />}
-      </Panel>
-      <PressRoom />
+    <Screen data-testid="start-screen">
+      <Inner>
+        <div>
+          <Masthead>
+            <Seal aria-hidden="true">S</Seal>
+            <div>
+              <WordMark>Saxonberg</WordMark>
+              <Tagline>
+                a multiplayer text world · governed by the people in it
+              </Tagline>
+            </div>
+          </Masthead>
+
+          <Headline>A world your community actually runs.</Headline>
+          <Lede>
+            Real units and real math underneath, with no fudge in the
+            substrate. A written Compact on top, where standing is earned by
+            what you do and every decision lands in a record anyone can read.
+          </Lede>
+
+          <SectionLabel>Standing is earned in three chambers</SectionLabel>
+          <Chambers>
+            {CHAMBERS.map((c) => (
+              <Chamber key={c.name}>
+                <ChamberOrdinal>{c.n}</ChamberOrdinal>
+                <ChamberName>{c.name}</ChamberName>
+                <ChamberNote>{c.note}</ChamberNote>
+              </Chamber>
+            ))}
+          </Chambers>
+
+          <PressRoom />
+        </div>
+
+        <Panel>
+          <PanelHeading>Sign in</PanelHeading>
+          <PanelNote>
+            Your character, your record, and everything you build persist to
+            an account. One click — no password to make.
+          </PanelNote>
+
+          {PROVIDERS.map((p) =>
+            p.enabled && p.href && serverEnabled(p.key) ? (
+              <Action
+                key={p.key}
+                as="a"
+                href={`${SERVER_URL}${p.href}`}
+                $primary
+              >
+                {p.label}
+              </Action>
+            ) : (
+              <Action
+                key={p.key}
+                disabled
+                title={
+                  p.enabled ? "Not configured on this server" : "Coming soon"
+                }
+              >
+                {p.label}
+              </Action>
+            ),
+          )}
+
+          <Divider>or</Divider>
+
+          <GuestAction
+            onClick={playAsGuest}
+            disabled={guestBusy}
+            data-testid="guest-button"
+          >
+            {guestBusy ? "Connecting…" : "Look around as a guest"}
+          </GuestAction>
+          <PanelNote data-testid="guest-warning">
+            A guest is anonymous and temporary. Nothing you make is kept,
+            nobody can find you again, and the record that makes the game
+            worth playing never starts. Fine for a look; not a way to play.
+          </PanelNote>
+
+          {import.meta.env.DEV && <DevLogin />}
+
+          <Facts>
+            <PresenceLine online={facts.online} />
+            {/*
+              ⚠ Rendered ONLY when the server states a policy. There is
+              no fallback string here and there must never be one — see
+              the file header.
+            */}
+            {facts.resetPolicy ? (
+              <div data-testid="reset-notice">
+                The world resets {facts.resetPolicy}.
+              </div>
+            ) : null}
+          </Facts>
+        </Panel>
+      </Inner>
     </Screen>
   );
 };

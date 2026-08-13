@@ -257,6 +257,19 @@ interface StoreState extends CmsSlice, StudioSlice {
    */
   configuredProviders: string[] | null;
   setConfiguredProviders: (providers: string[] | null) => void;
+  /**
+   * Facts the server reports about itself, for the front door.
+   *
+   * ⚠ Each is optional and **absent means the server did not answer**,
+   * never a default. `resetPolicy` especially: the handoff art shipped
+   * "the world resets nightly" as fixed copy while nothing implemented
+   * a wipe, so the notice renders only when a server says it is true.
+   */
+  serverFacts: { online?: number; resetPolicy?: string };
+  setServerFacts: (facts: {
+    online?: number;
+    resetPolicy?: string;
+  }) => void;
 
   // Connection state
   connection: ConnectionState;
@@ -1078,6 +1091,9 @@ export const useStore = create<StoreState>((set, get) => ({
   configuredProviders: null,
   setConfiguredProviders: (providers) =>
     set({ configuredProviders: providers }),
+
+  serverFacts: {},
+  setServerFacts: (facts) => set({ serverFacts: facts }),
 
   setAuth: (auth) =>
     set((state) => {

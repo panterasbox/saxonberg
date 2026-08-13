@@ -194,8 +194,21 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ extras }) => {
             </>
           ) : null}
           {isGuest ? (
-            <Item role="menuitem" onClick={signIn}>
-              Sign in to save
+            /*
+             * ⚠⚠ **Not "Sign in to save".** That was the shipped copy
+             * and it promised the one thing a guest session explicitly
+             * does not get: the front door states that a guest keeps
+             * nothing and nobody can find them again, and there is no
+             * conversion path — a guest is `anon:<nanoid>` with no
+             * persisted User. Copy that implies the session carries
+             * over is worse than a wrong number, because the player
+             * acts on it: they keep playing believing the work is
+             * banked.
+             *
+             * Signing in starts a REAL character, fresh. Say that.
+             */
+            <Item role="menuitem" onClick={signIn} title="This guest session is not carried over">
+              Sign in to start a character
             </Item>
           ) : (
             <Item role="menuitem" onClick={switchCharacter}>
