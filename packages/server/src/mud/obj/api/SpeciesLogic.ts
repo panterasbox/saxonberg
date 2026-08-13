@@ -15,6 +15,7 @@ import type Material from '../../lib/material/Material';
 import type { VisionProfile } from '../../lib/perception/Light';
 import type { DossierSection, SpeciesDossier } from '@saxonberg/types';
 import { MixinApi } from '../../api/mixin';
+import type { AnyConstructor } from '../../api/mixin';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePathPrefixes } from '../../lib/paths';
@@ -180,16 +181,44 @@ export class SpeciesLogic extends ApiLogic {
 
     // Composition — from the default Material.
     if (material) {
+      /**
+       * ⭐ The reveal level travels with the row.
+       *
+       * `spoiler` is declared on `fieldMeta` precisely so it follows a
+       * field "wherever it surfaces — a wiki panel, the Studio, help, a
+       * future codex". The dossier used to drop it here, so char-gen
+       * rendered EXPANDED what every other surface renders collapsed —
+       * not a leak (level 1 is collapsed-by-default, not forbidden) but
+       * an inconsistency that put char-gen beside the reveal model
+       * instead of inside it.
+       *
+       * ⚠ Read from `fieldMeta`, never hardcoded. `Material`'s measured
+       * properties all carry `spoiler: 1`, and a literal here would go
+       * stale the moment one is reclassified.
+       */
+      const meta = MixinApi.getAllFieldMeta(
+        material.constructor as AnyConstructor
+      );
+      const levelOf = (f: string): number | undefined => meta[f]?.spoiler;
+
       const comp: DossierSection['rows'] = [
         { label: 'Tissue', value: material.getName() },
       ];
       try {
         const density = Math.round(material.getDensity().rawValue());
-        comp.push({ label: 'Density', value: `${density} kg/m³` });
+        comp.push({
+          label: 'Density',
+          value: `${density} kg/m³`,
+          ...(levelOf('density') ? { spoiler: levelOf('density') } : {}),
+        });
       } catch {
         /* density unset — skip */
       }
-      comp.push({ label: 'Edible', value: material.getEdibility() ? 'yes' : 'no' });
+      comp.push({
+        label: 'Edible',
+        value: material.getEdibility() ? 'yes' : 'no',
+        ...(levelOf('edibility') ? { spoiler: levelOf('edibility') } : {}),
+      });
       sections.push({ heading: 'Composition', rows: comp });
     }
 
