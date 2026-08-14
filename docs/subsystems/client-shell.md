@@ -310,6 +310,19 @@ no hover, so a tooltip reason is a reason nobody can read — which would
 make *"each with its reason"* true of the markup and false of the
 surface.
 
+⚠⚠ **A catalogue row's state column names its ACTION — `pinned` or
+`add` — never a placeholder.** It read `pinned` or `—` until the Wave 1
+mock audit, and `—` is the glyph an *empty figure* uses, so an unpinned
+row wore a broken row's costume. `MAKE` made that concrete: it went
+live with the account roll-up, and a live row carries no reason line,
+so it sat under a bare `—` reading as **more** broken than the hatched
+rows around it, every one of which at least explained itself. Every
+item in this menu is a button that does something; labelling one with
+the vocabulary of absence describes the figure when the column is
+describing the affordance. The phone's shelf screen always named its
+actions (`pin` / `to bar` / `remove`) — this was the desktop half
+catching up.
+
 ⚠ **Identity and connection are absent from the chooser by design.**
 They are not shelf rows at all; `cockpit shelf unpin identity` refuses
 with *unknown shelf row*, and that refusal is a stronger guarantee than
@@ -1114,6 +1127,20 @@ Two decisions worth keeping:
 Accessibility carries the honesty to a screen reader, to which a dashed
 border is invisible and `╌╌` is noise: `role="group"` plus an
 `aria-label` that says "not wired" / "none" in words, with the reason.
+
+⚠⚠ **The chip's `title` IS that `aria-label`, not a second copy of it.**
+It was once built separately with `not wired` hardcoded for every
+non-live state, so an `empty` chip — a figure the server *did* answer,
+with nothing — told every pointer user it had no endpoint. That is the
+one collapse this whole vocabulary exists to prevent, and it landed in
+the attribute that, on a chip, is the *only* place the reason appears:
+the glyphs `—` and `╌╌` do not spell out which state they mean.
+`Figure.test.tsx` now asserts the two attributes are the **same
+string** rather than re-asserting the words, because two descriptions
+of one thing is the defect and equality is the form that cannot drift.
+⭐ Found by rendering the design mock beside the live chrome — the
+aria-label tests covered all three states correctly and nothing read
+the other attribute.
 
 **Two carve-outs, neither belonging to these components.** *Prose never
 hedges* — a room description carries no engineering stamp, because

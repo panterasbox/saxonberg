@@ -325,6 +325,41 @@ describe('Shelf', () => {
     });
 
     /*
+     * ⚠⚠ **Every row names its ACTION; none of them names `—`.**
+     *
+     * The state column used to read `pinned` or `—`, and `—` is the
+     * glyph an EMPTY figure uses. So an unpinned row wore the costume
+     * of a broken one — and `MAKE` made that concrete: it is live and
+     * pinnable, but sat under a `—` with no reason line beneath it
+     * (live rows have none), which read as *more* broken than the
+     * hatched rows around it, all of which at least explained
+     * themselves.
+     *
+     * ⭐ Asserted as "the glyph appears nowhere in this menu" rather
+     * than as "MAKE says add". The specific row that exposed it is an
+     * accident of which figures happen to be live today; the rule is
+     * that a menu of buttons never labels one with a placeholder.
+     */
+    it('⭐ labels every row with its action, never the empty glyph', () => {
+      render(<Shelf onCommandClick={vi.fn()} />);
+      const menu = openMenu();
+
+      // ⚠ Scoped to the state column. The em-dash is legitimate INSIDE
+      // a reason ("not a figure about you — a world figure"), so a
+      // whole-menu text scan would fail on correct copy — which is a
+      // test asserting the wrong thing, not a stricter one.
+      const states = within(menu)
+        .getAllByTestId('shelf-menu-state')
+        .map((el) => el.textContent);
+
+      expect(states).toHaveLength(SHELF_CATALOGUE.length);
+      expect(states).not.toContain('—');
+      // Every row offers an action, and only these two exist.
+      expect(new Set(states)).toEqual(new Set(['pinned', 'add']));
+      expect(states.filter((s) => s === 'pinned')).toHaveLength(3);
+    });
+
+    /*
      * ⭐ Preview EQUALS send — asserted as one claim rather than as two
      * behaviours that happen to agree. That equality is the axiom the
      * status bar advertises, so a test that checked them separately

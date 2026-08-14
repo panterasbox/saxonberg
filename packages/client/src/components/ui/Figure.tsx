@@ -279,10 +279,17 @@ export function Figure({
   // The chip has no room for a visible reason line, so the same words
   // ride `title` for a pointer and `aria-label` for a reader. `title`
   // on the other variants would duplicate text already on screen.
+  //
+  // ⚠⚠ **`ariaLabel`, not a second copy of the string.** This built its
+  // own title with `not wired` hardcoded, so an `empty` chip — a figure
+  // the server DID answer, with nothing — told every pointer user it
+  // had no endpoint. `empty` and `unwired` are the two states the
+  // unbuilt-state convention says must look nothing alike, and on a
+  // chip the tooltip is the only place either one's reason surfaces.
+  // Reading the same builder as the accessible name is what stops the
+  // two descriptions drifting again.
   const titled =
-    variant === 'chip' && figure.state !== 'live'
-      ? { title: `${label}: not wired — ${figure.reason}` }
-      : {};
+    variant === 'chip' && figure.state !== 'live' ? { title: ariaLabel } : {};
 
   const glyph =
     figure.state === 'live'

@@ -179,6 +179,58 @@ describe('accessibility — the honesty reaches a screen reader', () => {
   });
 });
 
+/**
+ * ⚠⚠ **The chip's `title` was a SECOND copy of the sentence, and it
+ * said the wrong thing.** It hardcoded `not wired` for every non-live
+ * state, so an `empty` chip — a figure the server DID answer, with
+ * nothing — told a pointer user it had no endpoint. `empty` and
+ * `unwired` are the two states the convention says must look nothing
+ * alike, and on a chip the tooltip is the ONLY place either reason
+ * appears; the visible glyphs (`—` vs `╌╌`) do not spell it out.
+ *
+ * ⭐ Found by rendering the design mock and reading the live chrome
+ * beside it, not by the suite: the aria-label tests above cover all
+ * three states correctly, and nothing read the other attribute. **Two
+ * descriptions of one thing is the bug** — so these assert the title
+ * IS the accessible name rather than re-asserting its words, which is
+ * the form that cannot drift.
+ */
+describe('the chip tooltip is the accessible name, not a second copy', () => {
+  function chipTitles(figure: FigureState) {
+    const { container } = render(
+      <Figure label={LABEL} figure={figure} variant="chip" />,
+    );
+    const el = container.firstElementChild!;
+    return {
+      title: el.getAttribute('title'),
+      aria: el.getAttribute('aria-label'),
+    };
+  }
+
+  it('empty says "none", never "not wired"', () => {
+    const { title, aria } = chipTitles({
+      state: 'empty',
+      reason: 'no renown recorded yet',
+    });
+    expect(title).toBe(aria);
+    expect(title).toBe(`${LABEL}: none — no renown recorded yet`);
+    expect(title).not.toContain('not wired');
+  });
+
+  it('unwired says "not wired"', () => {
+    const { title, aria } = chipTitles({
+      state: 'unwired',
+      reason: 'no subscribable field yet',
+    });
+    expect(title).toBe(aria);
+    expect(title).toContain('not wired');
+  });
+
+  it('live carries no tooltip — there is nothing to explain', () => {
+    expect(chipTitles({ state: 'live', value: '74' }).title).toBeNull();
+  });
+});
+
 describe('⭐ type-level — the union IS the deliverable', () => {
   it('a value on the unwired state does not compile', () => {
     // The compiler's refusal is part of the test surface. If `unwired`
