@@ -230,9 +230,40 @@ export function lex(input: string): Token[] {
           i
         );
       }
-      // Scan the identifier body; classify by shape.
+      /*
+       * Scan the identifier body; classify by shape.
+       *
+       * ⚠⚠ **Internal `-` is part of the id.** `stuffId`s are nanoids
+       * over `A-Za-z0-9_-`, so roughly half of them contain a hyphen —
+       * and a plain word-char scan stopped at the first one, quietly
+       * yielding a TRUNCATED id that then resolved to nothing (or, far
+       * worse, to a different object whose id is a prefix). `scanWord`
+       * has always applied this rule to barewords (`half-forged` lexes
+       * whole); the `#` branch simply did not, so the two disagreed
+       * about what an identifier is.
+       *
+       * Same guard as `scanWord`: a `-` counts only BETWEEN word chars,
+       * so a trailing dash still lexes as the operator.
+       */
       let j = i + 1;
-      while (j < n && isWordChar(input[j]!)) j += 1;
+      while (j < n) {
+        const c = input[j]!;
+        if (isWordChar(c)) {
+          j += 1;
+          continue;
+        }
+        if (
+          c === '-' &&
+          j + 1 < n &&
+          isWordChar(input[j + 1]!) &&
+          j > i + 1 &&
+          isWordChar(input[j - 1]!)
+        ) {
+          j += 1;
+          continue;
+        }
+        break;
+      }
       const body = input.slice(i + 1, j);
       const allDigits = /^\d+$/.test(body);
       tokens.push({

@@ -21,6 +21,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type Interactive from '../Interactive';
 import type { Sensor } from '../../lib/message/Sensor';
 import { MessageApi } from '../../api/message';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ProseApi } from '../../api/prose';
@@ -215,6 +216,26 @@ function cleanup(record: ResolverRecord): void {
       byInteractive.delete(record.interactive);
     }
   }
+  /*
+   * ⚠⚠ **Wake any pane held by this prompt.**
+   *
+   * `HOLD_WAKES_ON` declares `unanswered: { location: false }` — its
+   * subject is a pending PROMPT, not a position, "and the prompt's own
+   * resolution is what wakes it". That sentence described an intention
+   * with no mechanism behind it: nothing poked the subscription
+   * registry when a prompt settled, so a `hold: 'unanswered'` pane was
+   * **immortal**. The player answered, the card stayed, and nothing
+   * about it looked broken.
+   *
+   * Found by driving it — the same way the `here` hold's missing wake
+   * was found, and the reason `HOLD_WAKES_ON` exists at all: a row in
+   * that table with no wake behind it is precisely what it is there to
+   * make visible.
+   *
+   * One known producer poking one known consumer, so it is a method
+   * call rather than an event — the `notifyDurableSubject` shape.
+   */
+  MqlSubscriptionApi.notifyPromptSettled(record.interactive, record.promptId);
 }
 
 function emitValidationFailed(record: ResolverRecord, message: string): void {

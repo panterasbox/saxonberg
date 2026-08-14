@@ -827,10 +827,25 @@ export interface PromptEnvelope {
  * inspection pane's two; `self` is the **widget shelf's** — the one
  * subscription behind every self-scoped figure the shelf renders.
  */
-export type PaneId = "inspect" | "location" | "self";
+export type PaneId =
+  | "inspect"
+  | "location"
+  | "self"
+  | "place"
+  | "agent"
+  | "instrument"
+  | "manifest";
 
 /** Every {@link PaneId}. The server validates against this; the client picks from it. */
-export const PANE_IDS: readonly PaneId[] = ["inspect", "location", "self"];
+export const PANE_IDS: readonly PaneId[] = [
+  "inspect",
+  "location",
+  "self",
+  "place",
+  "agent",
+  "instrument",
+  "manifest",
+];
 
 /**
  * A row on the **widget shelf** — the pinnable figures in the top bar.
@@ -919,6 +934,23 @@ export interface MqlSubscribeMessage {
    * one of those fields below is ignored. See {@link PaneId}.
    */
   pane?: PaneId;
+  /**
+   * ⭐ The Stuff a **subject pane** is about, by `stuffId`.
+   *
+   * Three catalogue panes (`agent`, `instrument`, `manifest`) are about
+   * a particular thing rather than about a fixed place, so their
+   * server-owned query carries a `$subject` slot the request fills.
+   *
+   * ⚠⚠ **An identity, not a query.** The client says *this object*; the
+   * server still decides what a pane about an object resolves and
+   * projects. Letting the client send the query instead is exactly the
+   * hole the catalogue closes, and it is worth restating here because a
+   * parameter looks superficially like one.
+   *
+   * Ignored by panes whose query has no `$subject`; required (and an
+   * error when absent) by panes whose query has one.
+   */
+  subject?: string;
   /** Required UNLESS `pane` names one, in which case the server owns it. */
   query?: string;
   /** Required UNLESS `pane` names one. */
@@ -1091,6 +1123,20 @@ export interface AffordanceEntry {
    * client can open the right prompt rather than guessing.
    */
   operand?: string;
+  /**
+   * ⭐ Which category the verb belongs to — the directory its spec
+   * lives in (`perception`, `movement`, `social`, `inventory`, …), or
+   * `'domain'` for a locality's own verb.
+   *
+   * ⚠⚠ **The radial's geometry is FIXED per category and must never
+   * reflow to fit the verbs a particular object affords.** Muscle
+   * memory across objects is the entire point of a radial menu; one
+   * that rearranges itself has none. Which quadrant a category sits in
+   * is a client rendering decision — several categories share a slot —
+   * but WHICH category a verb is in is a server fact, so it rides here
+   * rather than being pattern-matched off the verb's name.
+   */
+  category?: string;
 }
 
 /**
@@ -1314,6 +1360,37 @@ export interface MqlSubscriptionResultEnvelope {
    * envelope shape carries both.
    */
   result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+  /**
+   * ⭐ Which catalogue pane this is, when it was opened by name.
+   *
+   * Redundant for a subscription the client opened itself — it already
+   * knows what it asked for. Load-bearing for one the **server** opened:
+   * a mode switch resolves the saved arrangement server-side and pushes
+   * the pane set, and the client has to know which body to draw for a
+   * handle it has never seen. Without this the arrangement could only
+   * ever be replayed by the client, which is the round trip per pane the
+   * server-side resolve exists to avoid.
+   */
+  pane?: PaneId;
+  /**
+   * What holds it open, echoed for the same reason as `pane`: a
+   * server-pushed card needs its header words on arrival, not after a
+   * second exchange.
+   */
+  hold?: PaneHold;
+  /**
+   * The manual override, when the pane has one. `null` = the condition
+   * decides; `true` keeps a lapsed pane; `false` drops a held one.
+   *
+   * ⚠⚠ **The pin's answer, and the reason the client never sets one
+   * optimistically.** `cockpit pane pin` is a real command; a local
+   * toggle would show a pin the server had refused, and it would not
+   * survive the tab. The server re-emits this envelope when the
+   * override changes — the *dismiss* direction is already visible (the
+   * pane releases with reason `dismissed`), so without this only the
+   * KEEP direction was silent.
+   */
+  pinned?: boolean | null;
 }
 
 export interface Change {

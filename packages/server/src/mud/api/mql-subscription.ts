@@ -189,6 +189,12 @@ export interface SubscribeRequest {
    * of naming one is that the caller does not get to describe it.
    */
   pane?: PaneId;
+  /**
+   * The `stuffId` a **subject pane** is about — `agent`, `instrument`,
+   * `manifest`. An identity, never a query: the catalogue still owns
+   * what a pane about a thing resolves and projects.
+   */
+  subject?: string;
   /** Required UNLESS `pane` names one. */
   query?: string;
   /** Required UNLESS `pane` names one. */
@@ -313,6 +319,26 @@ export class MqlSubscriptionApi {
 
   public static handleSubscribe(req: SubscribeRequest): void {
     logic().handleSubscribe(req);
+  }
+
+  /**
+   * ⭐ A prompt settled — wake any pane held by it.
+   *
+   * `HOLD_WAKES_ON` records that an `unanswered` pane needs no location
+   * dependency because "the prompt's own resolution is what wakes it".
+   * This is the call that makes that true. Before it, nothing poked the
+   * registry when a prompt resolved, so an `unanswered` pane was
+   * immortal — the player answered and the card stayed.
+   *
+   * One known producer (the prompt substrate) poking one known consumer
+   * (this registry), which the codebase's rule says is a method call
+   * rather than a broadcast — the `notifyDurableSubject` shape.
+   */
+  public static notifyPromptSettled(
+    interactive: Interactive,
+    promptId: string,
+  ): void {
+    logic().notifyPromptSettled(interactive, promptId);
   }
 
   public static handleQuery(

@@ -40,6 +40,11 @@ import type {
 } from "@saxonberg/types";
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
+import { createPaneFeedSlice, type PaneFeedSlice } from "./paneFeedSlice";
+import {
+  createAffordanceSlice,
+  type AffordanceSlice,
+} from "./affordanceSlice";
 
 /**
  * The mutually-exclusive top-level UI phase. Derived from the auth /
@@ -245,7 +250,11 @@ export interface Frame {
  * Combined store state. Extends {@link CmsSlice} (the CMS editor's
  * state + actions) — composed in via `createCmsSlice` in the store body.
  */
-interface StoreState extends CmsSlice, StudioSlice {
+interface StoreState
+  extends CmsSlice,
+    StudioSlice,
+    PaneFeedSlice,
+    AffordanceSlice {
   // Auth state
   auth: AuthState;
   setAuth: (auth: Partial<AuthState>) => void;
@@ -1123,6 +1132,21 @@ export const useStore = create<StoreState>((set, get) => ({
   ...createStudioSlice(
     set as Parameters<typeof createStudioSlice>[0],
     get as Parameters<typeof createStudioSlice>[1],
+  ),
+
+  // The pane feed — the right column's cards, keyed by subscription
+  // handle. Only touches `paneCards`; same narrow set/get shape.
+  ...createPaneFeedSlice(
+    set as Parameters<typeof createPaneFeedSlice>[0],
+    get as Parameters<typeof createPaneFeedSlice>[1],
+  ),
+
+  // The affordance cache — one answer per subject, read by BOTH the
+  // radial and every pane body's composition chips. Only touches the
+  // `affordance*` keys.
+  ...createAffordanceSlice(
+    set as Parameters<typeof createAffordanceSlice>[0],
+    get as Parameters<typeof createAffordanceSlice>[1],
   ),
 
   // Auth state

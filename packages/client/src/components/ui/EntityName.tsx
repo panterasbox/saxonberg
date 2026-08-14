@@ -26,6 +26,7 @@
 import React from "react";
 import styled from "styled-components";
 import { tokens } from "./tokens";
+import { useStore } from "../../store/index";
 
 const NameButton = styled.button`
   background: none;
@@ -89,6 +90,26 @@ interface EntityNameProps {
   onClick: () => void;
 }
 
+/**
+ * ⭐ **Every named thing opens its radial from the same gesture.**
+ *
+ * Wired here rather than at ~40 call sites, and that is the whole
+ * reason it is here: a menu you can reach on a room's exits but not on
+ * a pane's contents list is a menu the player cannot rely on, and
+ * "which surfaces support it" is exactly the kind of inconsistency the
+ * no-exceptions command-sheet policy was written against.
+ *
+ * ⚠ Reads the store directly instead of taking a prop. The alternative
+ * is threading one more optional callback through every consumer, where
+ * the failure mode is a surface that silently forgets it — an absent
+ * prop is invisible, a missing gesture is a bug report.
+ *
+ * ⚠ Long-press is the phone's form of the same gesture and is bound at
+ * `pointerdown`, not `click`: a tap must still SEND the command, so the
+ * two cannot share an event.
+ */
+const LONG_PRESS_MS = 450;
+
 export function EntityName({
   stuffId,
   label,
@@ -98,11 +119,49 @@ export function EntityName({
   onClick,
 }: EntityNameProps): React.ReactElement {
   const previewEnabled = !!(onPreview && command);
+  const pressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openRadial = React.useCallback(() => {
+    if (!stuffId) return;
+    useStore.getState().openRadial({ stuffId, displayName: label });
+  }, [stuffId, label]);
+
+  const cancelPress = React.useCallback(() => {
+    if (pressTimer.current !== null) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  }, []);
+
+  React.useEffect(() => cancelPress, [cancelPress]);
+
   return (
     <NameButton
       data-stuff-id={stuffId}
       title={title}
       onClick={onClick}
+      // Right-click on a pointer device, long-press on a touch one.
+      // Both are "tell me about this" rather than "do the default
+      // thing", which is what keeps the primary click sending the
+      // command it previews.
+      onContextMenu={
+        stuffId
+          ? (e) => {
+              e.preventDefault();
+              openRadial();
+            }
+          : undefined
+      }
+      onPointerDown={
+        stuffId
+          ? () => {
+              cancelPress();
+              pressTimer.current = setTimeout(openRadial, LONG_PRESS_MS);
+            }
+          : undefined
+      }
+      onPointerUp={stuffId ? cancelPress : undefined}
+      onPointerLeave={stuffId ? cancelPress : undefined}
       onMouseEnter={
         previewEnabled ? () => onPreview!(command!) : undefined
       }

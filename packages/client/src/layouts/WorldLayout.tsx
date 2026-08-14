@@ -18,7 +18,8 @@ import { TabStrip } from "../components/TabStrip";
 import { Terminal } from "../components/Terminal";
 import { FilterDrawer } from "../components/FilterDrawer";
 import { CommandBar } from "../components/CommandBar";
-import { InspectionPane } from "../components/InspectionPane";
+import { PaneFeed } from "../components/panes/PaneFeed";
+import { RadialOverlay } from "../components/panes/RadialOverlay";
 import { WhoPane } from "../components/WhoPane";
 import { NewsTickerPane } from "../components/NewsTickerPane";
 import { WikiPane } from "../components/WikiPane";
@@ -203,13 +204,31 @@ export const WorldLayout: React.FC<LayoutProps> = ({
               onCommandPreview={onCommandPreview}
             />
           ) : (
-            <InspectionPane
+            /*
+             * ⭐⭐ **The one focus slot is now a FEED.** N cards, each
+             * held open by a server-side condition rather than by
+             * recency, each naming which condition holds it. The
+             * inspection pane did not go away — it is the `inspect`
+             * card's body, at the foot of the feed, still owning its
+             * own breadcrumb and paint/clear policy.
+             */
+            <PaneFeed
               onSendCommand={onCommandClick}
               onCommandPreview={onCommandPreview}
+              compact={isCompact}
             />
           )}
         </PaneSlot>
       </RightColumn>
+      {/*
+        ⭐ Mounted once, at the layout, so the gesture on `EntityName`
+        works on every named thing in the cockpit rather than on the
+        surfaces that remembered to thread a callback.
+      */}
+      <RadialOverlay
+        onSendCommand={onCommandClick}
+        onCommandPreview={onCommandPreview}
+      />
     </Cockpit>
   );
 };
