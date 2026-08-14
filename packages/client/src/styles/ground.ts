@@ -124,6 +124,7 @@ export const GROUND_ROLES = [
   "tint-sky",
   "tint-neutral",
   // ── Tier 3 — invariant platform marks
+  "brand-google",
   "brand-twitch",
   "brand-youtube",
   "brand-kick",

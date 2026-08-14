@@ -30,6 +30,11 @@ export const INVARIANT_GROUND = {
   /** Old Glory Red, PMS 193 C. Never touches blue without white. */
   red: "#BF0A30",
   white: "#FFFFFF",
+  /**
+   * ⚠ Google's mark is multicolour; this is its blue, used for the
+   * glyph's dominant stroke. The others are single-colour brands.
+   */
+  "brand-google": "#4285f4",
   "brand-twitch": "#9146ff",
   "brand-youtube": "#ff0000",
   "brand-kick": "#53fc18",

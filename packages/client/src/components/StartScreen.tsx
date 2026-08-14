@@ -37,6 +37,7 @@ import { websocketClient } from "../services/websocket";
 import { useStore } from "../store/index";
 import { tokens } from "./ui";
 import { PressRoom } from "./PressRoom";
+import { Seal } from "./frame/Seal";
 
 const Screen = styled.div`
   min-height: 100vh;
@@ -75,20 +76,27 @@ const Masthead = styled.header`
   margin-bottom: ${tokens.space.xl};
 `;
 
-/** The seal. Old Glory red with white separation — never text-on-red. */
-const Seal = styled.div`
+/**
+ * ⭐ The real mark, not a letter in a box.
+ *
+ * ⚠ An earlier cut of this screen drew its own "S" on a red square
+ * while `frame/Seal.tsx` — the applied seal, sourced from
+ * `docs/brand/saxonberg-seal.svg` and already on the in-world top bar —
+ * sat one import away. The front door is the first thing a stranger
+ * sees, so it is the last place to ship a stand-in for the brand.
+ *
+ * It earns its place here twice over: the seal's three interlocking
+ * rings ARE the Make / Fund / Play argument (cut any one and the other
+ * two fall apart untouched), and this page argues exactly that a few
+ * hundred pixels below.
+ *
+ * ⚠ `id` is distinct from the bar's — two seals sharing a clip-path id
+ * would make the second one's crossings resolve against the first's.
+ */
+const SealWrap = styled.div`
   flex: none;
-  width: 34px;
-  height: 34px;
   display: grid;
   place-items: center;
-  background: ${tokens.color.seal};
-  color: ${tokens.color.sealInk};
-  border: 1px solid ${tokens.color.sealInk};
-  border-radius: ${tokens.radius.sm};
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.title};
-  letter-spacing: 0.06em;
 `;
 
 const WordMark = styled.div`
@@ -212,29 +220,25 @@ const PanelNote = styled.p`
 `;
 
 /**
- * A provider button. `$primary` is the committing action and carries
- * the official red with white separation.
+ * A provider button. Neutral by construction — see PROVIDERS for why
+ * none of them carries the committing-action red.
  *
  * ⚠ `min-height: 44px` — the tap-target floor, with weight controlled
  * by padding rather than by shrinking the box.
  */
-const Action = styled.button<{ $primary?: boolean }>`
+const Action = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: ${tokens.space.sm};
+  justify-content: flex-start;
+  gap: ${tokens.space.md};
   width: 100%;
   min-height: 44px;
   box-sizing: border-box;
   padding: ${tokens.space.md} ${tokens.space.lg};
   border-radius: ${tokens.radius.md};
-  border: 1px solid
-    ${(p: { $primary?: boolean }) =>
-      p.$primary ? tokens.color.sealInk : tokens.color.border};
-  background: ${(p: { $primary?: boolean }) =>
-    p.$primary ? tokens.color.seal : tokens.color.actionBg};
-  color: ${(p: { $primary?: boolean }) =>
-    p.$primary ? tokens.color.sealInk : tokens.color.fg};
+  border: 1px solid ${tokens.color.border};
+  background: ${tokens.color.actionBg};
+  color: ${tokens.color.fg};
   font-family: inherit;
   font-size: ${tokens.font.body};
   font-weight: 600;
@@ -293,7 +297,66 @@ const Facts = styled.div`
   line-height: 1.6;
 `;
 
-/** Sign-in providers. Google, Twitch and Kick are co-equal. */
+/**
+ * The platform marks.
+ *
+ * ⚠ Somebody else's trademarks, so the colours come from the
+ * **invariant** ground — identical in every theme, because a brand does
+ * not restyle itself for our dark mode. The glyphs are simplified
+ * monochrome forms, which is what a sign-in row wants and what most
+ * brand guidelines permit at this size.
+ *
+ * ⚠ `currentColor` is deliberately NOT used: these must read as the
+ * platform's colour, not the button's.
+ */
+const Glyph = styled.svg<{ $tint: string }>`
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: ${(p) => p.$tint};
+`;
+
+function ProviderMark({ provider }: { provider: string }) {
+  if (provider === "google") {
+    return (
+      <Glyph $tint={tokens.brand.google} viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21.35 11.1H12v2.99h5.35c-.23 1.46-1.7 4.28-5.35 4.28-3.22 0-5.85-2.66-5.85-5.94S8.78 6.5 12 6.5c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.66 3.9 14.5 3 12 3 6.98 3 2.9 7.03 2.9 12s4.08 9 9.1 9c5.25 0 8.73-3.69 8.73-8.88 0-.6-.06-1.05-.15-1.5l-1.23.48z" />
+      </Glyph>
+    );
+  }
+  if (provider === "twitch") {
+    return (
+      <Glyph $tint={tokens.brand.twitch} viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4.3 3 3 6.5v12.2h4.2V21h2.3l2.2-2.3h3.4L20 14.5V3H4.3zm14.2 10.7-2.6 2.6h-3.9l-2.2 2.2v-2.2H6.5V4.6h12v9.1zM15 7.7v4.6h-1.6V7.7H15zm-4.2 0v4.6H9.2V7.7h1.6z" />
+      </Glyph>
+    );
+  }
+  return (
+    <Glyph $tint={tokens.brand.kick} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 3h5.4v5.4h2.7V5.7h2.7V3h5.4v8.1h-2.7v1.8h2.7V21h-5.4v-2.7h-2.7v-2.7H8.4V21H3V3z" />
+    </Glyph>
+  );
+}
+
+/**
+ * Sign-in providers.
+ *
+ * ⭐⭐ **Co-equal, and rendered co-equal.** Every one of these is a
+ * full login provider — the same account either way — so none of them
+ * gets the committing-action red. An earlier cut gave the red to every
+ * *configured* provider, which on this dev server (Google only) read as
+ * Google being favoured and on a fully-configured server would have
+ * rendered three red buttons.
+ *
+ * ⚠ The token layer reserves that red for "the single committing action
+ * per screen"; a menu of three equivalent choices is not one.
+ *
+ * ⚠ **YouTube is not here, and must not be.** YouTube/Twitch/Kick are
+ * the *streaming* platforms; the *login* providers are
+ * Google/Twitch/Kick, and signing in with a YouTube account IS signing
+ * in with Google. A YouTube button would advertise a fourth provider
+ * that does not exist.
+ */
 const PROVIDERS: ReadonlyArray<{
   key: string;
   label: string;
@@ -460,7 +523,9 @@ export const StartScreen: React.FC = () => {
       <Inner>
         <div>
           <Masthead>
-            <Seal aria-hidden="true">S</Seal>
+            <SealWrap>
+              <Seal size={38} id="sx-seal-door" title="Saxonberg" />
+            </SealWrap>
             <div>
               <WordMark>Saxonberg</WordMark>
               <Tagline>
@@ -499,12 +564,8 @@ export const StartScreen: React.FC = () => {
 
           {PROVIDERS.map((p) =>
             p.enabled && p.href && serverEnabled(p.key) ? (
-              <Action
-                key={p.key}
-                as="a"
-                href={`${SERVER_URL}${p.href}`}
-                $primary
-              >
+              <Action key={p.key} as="a" href={`${SERVER_URL}${p.href}`}>
+                <ProviderMark provider={p.key} />
                 {p.label}
               </Action>
             ) : (
@@ -515,6 +576,7 @@ export const StartScreen: React.FC = () => {
                   p.enabled ? "Not configured on this server" : "Coming soon"
                 }
               >
+                <ProviderMark provider={p.key} />
                 {p.label}
               </Action>
             ),
