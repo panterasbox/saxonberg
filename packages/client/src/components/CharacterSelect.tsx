@@ -23,9 +23,10 @@
  *     `UnbuiltGround`, because hatching one value inside an otherwise
  *     confident panel would understate it.
  *   - **Fund standing** — the capital stock has no faucet at all.
- *   - **retire / restore / rename / appearance** — no such command
- *     exists. The controls render disabled with that reason rather than
- *     being omitted, so the absence is legible instead of invisible.
+ *   - **Retire** — no retire command exists. The control renders
+ *     disabled with that reason rather than being omitted, so the
+ *     absence is legible instead of invisible. See `UNBUILT_ACTIONS`
+ *     for why rename and appearance are dropped instead.
  *
  * ⚠ A never-played character shows a reasoned `empty`, never a zero. A
  * zero is a measurement; "never taken out" is the truth.

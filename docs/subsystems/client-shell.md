@@ -439,7 +439,7 @@ answering.
 | `PLAY` | **live** | ✅ | `playStanding` |
 | `RENOWN` | **live** | ✅ | `renown` |
 | `SKILL` | **live** | ✅ | `practisingCompetence` |
-| `MAKE` | hatched | — | `level` |
+| `MAKE` | **live** | — | `makeStanding` |
 | `COIN` | hatched | — | `unexposed` |
 | `STATUS` | hatched | — | `unexposed` |
 | `TIME` | hatched | — | `not-self` |
@@ -447,22 +447,25 @@ answering.
 | `DOCKET` | hatched | — | `not-self` |
 | ~~`TRAIT`~~ | **never** | — | see below |
 
-### ⭐ The three hatch categories, and why they are three
+### ⭐ The hatch categories, and why they are distinct
 
-The reasons are three distinct claims and must not collapse into one.
-They tell the next builder **where to look**, and a single generic "not
+The reasons are distinct claims and must not collapse into one. They
+tell the next builder **where to look**, and a single generic "not
 wired" erases exactly that:
 
-1. **`level` — the account gap** (`MAKE`). The value EXISTS and its
-   *level* is wrong. `Avatar.makeStanding` returns a real band, but
-   *Make* is an account-level stock (`STOCK_LEVEL`) and the account
-   arithmetic is deliberately unbuilt, so the number answers
-   per-character for a per-person claim. **A figure whose level is wrong
-   is not a figure you can render** — the honesty rule applies to the
-   level, not only to the value. This is the one row where hatching
-   hides a real number, which is why its reason string is load-bearing
-   and separately tested. It unhatches the day the account roll-up
-   lands.
+1. ~~**`level` — the account gap**~~ (`MAKE`) — **RETIRED in the Arrival
+   build.** It said the value existed but its *level* was wrong:
+   `Avatar.makeStanding` returned a real band while *Make* is an
+   account-level stock (`STOCK_LEVEL`) whose arithmetic was unbuilt, so
+   the number answered per-character for a per-person claim. **A figure
+   whose level is wrong is not a figure you can render** — the honesty
+   rule applies to the level, not only to the value. The account
+   roll-up landed ([influence.md](./influence.md) §
+   *`standingForHost`*), `MAKE` went live, and the category went with
+   it. ⚠ It was found stale by *driving the client*, not by the suite:
+   the row still printed "the account arithmetic is unbuilt" after the
+   arithmetic shipped. **A hatch reason is a claim about the code and
+   goes false silently** — nothing type-checks it.
 2. **`unexposed` — the missing field** (`COIN`, `STATUS`). Genuinely
    figures about you, simply not on the wire. A one-field addition
    unhatches each.
@@ -477,8 +480,9 @@ wired" erases exactly that:
 
 The reason is derived from a **category**, not typed per row — the
 `contrast.test.ts` totality-gate pattern. A row must be *classified*,
-the three categories are three strings in one table, and a test asserts
-they are pairwise distinct. A per-row free-text reason decays into the
+the categories are strings in one table, and a test asserts they are
+pairwise distinct — which is also what made retiring `level` a
+one-table edit rather than a hunt. A per-row free-text reason decays into the
 generic one the first time somebody copies a neighbouring line.
 
 ### ⚠⚠ `TRAIT` is permanent, not deferred
@@ -813,10 +817,31 @@ the **guest** control with its terms, the {@link PressRoom}, and a
 **dev-only** no-OAuth login (`import.meta.env.DEV`). Logout returns here
 (a real logged-out state, never a reload to a dead page).
 
-Compact is a **reflow**, not a different composition — one column,
-sign-in above the fold, the press room as the scroll — so it is plain
-CSS rather than a `useIsCompact` branch. The mobile bar is the case that
-genuinely needs the hook; this is not.
+The composition is **full-bleed horizontal bands** — a hero band
+carrying the seal, wordmark, headline and the sign-in column together,
+then a chambers band, then the press room and the facts row beneath it.
+The bands run edge to edge; only their contents are width-capped
+(`BandInner`), so the page reads as a civic document rather than a
+centred card on a page. Sign-in is a fixed 350px column inside the hero
+band, and every provider is the same seal red with a white monochrome
+mark — **Google gets no visual precedence**, because giving one
+identity provider a distinct treatment states a partnership that does
+not exist.
+
+Compact is a **reflow**, not a different composition — the bands stack
+to one column, sign-in above the fold, the press room as the scroll —
+so it is plain CSS rather than a `useIsCompact` branch. The mobile bar
+is the case that genuinely needs the hook; this is not.
+
+⚠ The app ships a document reset (`styles/GlobalReset.ts`), mounted
+**outside** `React.StrictMode` for the same styled-components reason
+`GlobalFonts` is. Without it `body` kept the user-agent `margin: 8px`,
+which put a white frame around every screen and made the document
+`100vh + 16px` — a scrollbar on a page that fits. ⭐ The overflow read
+as *content too tall* and the instinct was to compress the layout;
+compressing would have made the design worse and left the scrollbar,
+because the 16px was never in the content. Measure the container before
+you shrink the contents.
 
 ⭐⭐ **Every claim on this screen has a source**, and this is the screen
 where that is hardest to hold: it is what a stranger judges the project
@@ -869,7 +894,7 @@ earlier build shipped anyway:
 | **Since you left** | whole-card `UnbuiltGround` | nothing records what happened while you were away — no mailbox, no notice queue |
 | **Fund** standing | `unwired` | the capital stock has no faucet |
 | **Make** standing, unresolvable account | `unwired` | the account could not be resolved |
-| **retire / restore / rename / appearance** | disabled, reason in `title` | no such command exists |
+| **Retire** | disabled, reason in `title` | no retire command exists |
 | Play standing / practice / location, never-played | `empty` | *never taken out* |
 
 ⚠ *Since you left* is a whole-card hatch rather than a hatched value
@@ -882,6 +907,17 @@ has been measured.
 
 ⭐ The Enter control previews the command it sends (`sends as play
 <id>`) — the axiom does not switch off before the command bar exists.
+It **leads the detail pane** rather than closing it: this screen exists
+to be left, and the one control that leaves it should not be the last
+thing found. The screen's header band names the **account** — the
+person, not any character on it — and carries the account's own meters.
+
+⭐ **Retire is kept as a disabled stub; rename and appearance are
+dropped.** The difference is whether the absence is worth advertising:
+retiring a character is a thing a player will look for and not find, so
+the disabled control with its reason is the honest answer. Rename and
+appearance answer nothing anyone asked at this screen, and a disabled
+control for an unasked question is clutter pretending to be candour.
 
 ## Intake on a phone, and the in-world rail
 

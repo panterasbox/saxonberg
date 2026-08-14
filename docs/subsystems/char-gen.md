@@ -217,14 +217,18 @@ for species, a `SpeciesDossier` (below).
 > ⭐⭐ **Two rules the build added that this section did not anticipate,
 > and which are what make "additive" true in practice:**
 >
-> 1. **A field the client's screen config does not name still renders**,
->    on its own screen, in server order. `SCREENS` demoted from an
->    exhaustive list to an ordering *hint*.
+> 1. **An unnamed field must still render.** The client holds no list of
+>    which fields exist; it draws *every* field the payload carries, in
+>    server order. (The first cut of this build shipped a client-side
+>    screen config and demoted it to an ordering *hint* so an unnamed
+>    field fell through to its own screen; the single-page rebuild
+>    deleted the config outright, which is the stronger form of the same
+>    rule — there is no config left for a field to be missing from.)
 > 2. **A field whose `kind` the client cannot draw renders hatched**,
 >    naming the reason and pointing at the command line.
 >
 > Without those, a server-added field would be **invisible while still
-> gating `enroll confirm` through `missing`** — a dead Continue button
+> gating `enroll confirm` through `missing`** — a dead confirm button
 > with nothing on screen explaining it. The honest-state rule, applied
 > to the intake's own extensibility.
 >
@@ -532,28 +536,42 @@ character-select roster; `session.identity.state` flips to the
 char-gen stage and drives it; `session.link` (always
 carrying an avatar) is the unconditional in-world flip.
 
-`CharGenStage.tsx` owns the layout. A `SCREEN_HINTS` config chunks the
-fields into screens — species · sex+pronouns · name · aspiration ·
-review — with client-side Back/Next navigation. Card clicks live-fire
-`enroll <field> <value>`; a `text` field flushes `enroll <field> <a>
-<b>` on blur/Next (deduped); the review screen's confirm fires `enroll
-confirm`. Continue and Back are pure client pagination and send no
-command. Because the server is layout-agnostic, the whole screen set is
-reconfigurable client-side (the single-page A/B variant).
+`CharGenStage.tsx` owns the layout: **one page, every field, filled in
+any order**, in three columns — the form, the species plate, and a slim
+narration log. Chip clicks live-fire `enroll <field> <value>`; a `text`
+field flushes `enroll <field> <a> <b>` on blur or its keep button
+(deduped, and the button reports back that the value landed); the
+footer carries the server's `still missing:` list verbatim and the
+`enroll confirm` action, both visible throughout.
 
-⭐⭐ **`SCREEN_HINTS` is a hint, not an exhaustive list**, and that is
-what keeps the generic payload safe. Three rules, in order:
+⭐⭐ **There is no client-side screen config, and that is the point.**
+The client holds no list of which fields exist, no cursor, no order of
+its own — it draws *every* field the payload carries, in server order.
+Two rules keep the generic payload safe:
 
-1. a field a hint names renders in that hint's group and order;
-2. **a field no hint names still renders**, on its own screen, in
-   server order, using its server-supplied `label`;
-3. a field whose `kind` the client cannot draw renders **hatched**,
+1. **an unnamed field still renders**, using its server-supplied
+   `label`, because there is no config for it to be missing from;
+2. a field whose `kind` the client cannot draw renders **hatched**,
    naming the reason and pointing at the command line.
 
-Rules 2 and 3 exist because an omitted field would still gate `enroll
-confirm` through `missing` — leaving the player on a Continue button
-that never enables with nothing on screen explaining why. Both are
-tested (`charGenFields.test.tsx`).
+Both exist because an omitted field would still gate `enroll confirm`
+through `missing` — leaving the player on a confirm button that never
+enables with nothing on screen explaining why. Both are tested
+(`charGenFields.test.tsx`).
+
+⚠ The first cut of the Arrival build paginated this into five screens
+with Back/Continue, carrying the old client's shape forward instead of
+the design's. It was wrong twice: the reference art puts every field
+group in a single panel under *"fill the fields in any order"*, and the
+**server is deliberately step-less** — pagination re-imposed a sequence
+the substrate does not have and made a player walk it to reach a field
+they could have set first.
+
+Two gates the single page does keep, both server-side and both about
+meaning rather than sequence: `name` is inapplicable until `species` is
+chosen (the name suggester is a species faculty), and the player-facing
+pronoun options are `he`/`she`/`they` — the `Pronouns` enum keeps `It`
+for objects and the parser, but a character is not an it.
 
 ⚠ A **two-part text field** (given + surname) is signalled by its
 `suggestion` carrying a `surname`. There is deliberately no second

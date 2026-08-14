@@ -1,26 +1,30 @@
 /**
  * Standing levels, and the read seam every surface goes through.
  *
- * ⚠⚠ **Acceptance criterion 16 is NOT met, deliberately.** It asks that
- * two characters on one account report the SAME make standing — which
- * is a claim about the account **formula**, and the formula is an open
- * design question that was explicitly deferred. Asserting equality here
- * would pin a placeholder arithmetic into the test suite, and every
- * future change to the real formula would then read as a regression.
+ * Three things are pinned here, and they are pinned separately on
+ * purpose:
  *
- * What DID land is the abstraction:
+ *   1. **The level declaration** — `STOCK_LEVEL` says producer/capital
+ *      are account-level and consumer per-character. Vocabulary, not
+ *      arithmetic; it would still be true under a different formula.
+ *   2. **The seam** — `InfluenceApi.standingForHost` is the one read
+ *      every in-world surface goes through, and
+ *      `standingForAccount` is the roster's entry point to the same
+ *      function. Neither surface may grow its own arithmetic.
+ *   3. **The formula** — sum, banded with the *configured* cutoffs, and
+ *      neutral against splitting work across bodies.
  *
- *   - `STOCK_LEVEL` records that producer/capital are account-level and
- *     consumer is per-character — vocabulary, not arithmetic;
- *   - `InfluenceApi.standingForHost` is the one seam that will consult
- *     it, and all three player-facing surfaces already call through it,
- *     so they cannot disagree;
- *   - the aggregation inside it is a **stub** that does not aggregate.
+ * ⚠ An earlier revision of this file pinned the roll-up's **absence**:
+ * it asserted that make standing did *not* aggregate, so that beginning
+ * to aggregate would have to be a visible, intentional edit rather than
+ * something that quietly started happening. That edit is this build,
+ * and the assertions were inverted rather than deleted — which is why
+ * each one still names the defect it guards.
  *
- * So these tests assert the SEAM and the LEVEL DECLARATION, and
- * explicitly pin that make standing is still per-character today — so
- * the day it stops being, this file says so out loud instead of
- * silently agreeing.
+ * ⚠ The one thing deliberately NOT asserted is any particular band
+ * *name* for a given scalar. Those cutoffs are AppSettings and the
+ * polity may move them; pinning them here would make a governance
+ * decision read as a regression.
  */
 
 import "../../../test-bootstrap";
@@ -126,6 +130,48 @@ describe('standing splits by level', () => {
     );
     expect(bobSeam?.scalar).toBe(7);
     expect(bobSeam?.band.name).toBe(viaSeam?.band.name);
+  });
+
+  /*
+   * ⭐⭐ **The split-brain defect, made into an assertion.**
+   *
+   * There are two entry points to this figure and they serve different
+   * screens: `standingForHost` for everything in-world (the `standing`
+   * verb, `profile`, the dashboard field), and `standingForAccount` for
+   * the character-select roster — where no host exists at all, because
+   * the player is not embodied. The previous attempt at this roll-up
+   * computed them separately and they drifted.
+   *
+   * They now run one function, so agreement is structural rather than
+   * maintained. This pins it anyway: the failure mode is somebody
+   * "optimising" the roster path into its own arithmetic, and the
+   * screens it breaks are the two nobody diffs against each other.
+   */
+  it('agrees between the host seam and the account entry point', () => {
+    seedProducer(alice, 3);
+    seedProducer(bob, 4);
+
+    // What the roster computes: no host, only the account's subjects —
+    // exactly what `Login.accountFigures` has in hand.
+    const subjects = alice.getAccountSubjects();
+    const viaAccount = InfluenceApi.standingForAccount(
+      subjects!.subject,
+      subjects!.members,
+      'producer',
+    );
+    // What every in-world surface computes, from a body.
+    const viaHost = InfluenceApi.standingForHost(
+      alice as unknown as Stuff,
+      'producer',
+    );
+
+    expect(viaAccount.scalar).toBe(viaHost?.scalar);
+    expect(viaAccount.band.name).toBe(viaHost?.band.name);
+    // ...and both name the ACCOUNT as the subject, not the character —
+    // a figure that agrees numerically while claiming a different
+    // subject is still two different claims.
+    expect(viaAccount.subject).toBe(subjects!.subject);
+    expect(viaHost?.subject).toBe(subjects!.subject);
   });
 
   /*

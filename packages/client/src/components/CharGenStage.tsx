@@ -3,26 +3,27 @@
  * `char-gen`).
  *
  * NOT a modal and NOT an inline panel: this is its own full-screen
- * stage. Three bands, top to bottom:
+ * stage. **One page, every field, filled in any order** — see the ⭐⭐
+ * note above the form section for why pagination was wrong twice over.
  *
- *   1. The stage (flex: 1) — the current step prompt, the closed-choice
- *      `options` as clickable cards, the name `suggestion` with
- *      Keep / Re-roll / Type-your-own on the name step, the accumulated
- *      `picks`, and any validation `error`.
- *   2. A slim terminal strip — the Login's narration frames
- *      (`session.identity` et al.) scroll here, secondary.
- *   3. The command bar — front-and-centre (CLI-as-backbone). Reuses the
- *      cockpit `CommandBar` so typed input still works and echoes; every
- *      stage affordance sends the literal `enroll <field> <value>`
- *      string through the same `sendCommand` path.
+ * Three columns on a wide viewport, stacking to one when narrow:
  *
- * Every affordance is a thin wrapper over `sendCommand`. Clicking the
- * "Elf" card sends `enroll species elf`; Keep → `enroll name keep`;
- * Re-roll → `enroll name reroll`; an aspiration card → `enroll
- * aspiration healer`; the confirm button → `enroll confirm`. The server
- * owns all option computation and validation; the client only renders
- * what the `session.identity` frame carries and forwards the
- * tokens back.
+ *   1. **The form** — every field the payload carries, in server order,
+ *      each as a labelled group of compact chips (closed choices) or
+ *      text inputs. Inapplicable fields render dimmed with the server's
+ *      own reason rather than vanishing.
+ *   2. **The plate** — the species illustration and dossier, plus the
+ *      certificate title block and the record line.
+ *   3. **The log** — the Login's narration and the player's own command
+ *      echoes, with the server's `still missing:` list and the
+ *      `enroll confirm` action at its foot.
+ *
+ * The command bar sits beneath all three (CLI-as-backbone). Every
+ * affordance is a thin wrapper over `sendCommand`: a species chip sends
+ * `enroll species elf`, a name field flushes `enroll name <given>
+ * <surname>` on blur, the confirm button sends `enroll confirm`. The
+ * server owns all option computation and validation; the client renders
+ * what the `session.identity` frame carries and forwards tokens back.
  *
  * Styling matches the cockpit's token-driven aesthetic. Weight and
  * position carry the hierarchy (the command bar is the visual anchor);
@@ -580,14 +581,12 @@ export function CharGenStage({
   onCommandPreview,
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
-  // Which screen the client is showing — flow/layout is entirely
-  // client-side; the server is a field state machine that doesn't care.
-  // The detail pane previews this option on card hover; null falls
-  // through to the chosen card, then the first option.
   /**
    * What the plate column is showing. ⚠ Keyed by FIELD as well as
    * value: the plate follows whichever illustrated field you are
    * touching, and two fields could offer the same option token.
+   *
+   * `null` falls through to the chosen option, then the first one.
    */
   const [focused, setFocused] = useState<{
     field: string;
@@ -664,17 +663,6 @@ export function CharGenStage({
   // Command echoes carry a `sigil`; narration does not. So this counts
   // what the PLAYER sent, which is what the log claims to be showing.
   const sentCount = frames.filter((f) => f.sigil !== undefined).length;
-
-  /**
-   * ⭐ EVERY field, in server order — including the ones that do not
-   * apply yet, rendered dimmed with the server's own reason.
-   *
-   * ⚠ They used to be filtered out entirely, which made the form jump
-   * as fields appeared and left the player guessing why a control they
-   * had just seen was gone. Showing the gap and naming it is the same
-   * rule the hatched figures follow.
-   */
-  const shown = fields;
 
   const draftOf = (name: string): TextDraft =>
     drafts[name] ?? { a: "", b: "" };
@@ -760,7 +748,7 @@ export function CharGenStage({
    * species yet" instead of drawing an empty frame.
    */
   const plateOption = (() => {
-    const illustrated = shown.filter((f) =>
+    const illustrated = fields.filter((f) =>
       (f.options ?? []).some((o) => o.image || o.dossier),
     );
     for (const f of illustrated) {
@@ -925,11 +913,18 @@ export function CharGenStage({
             ) : null}
 
             {/*
-              ⭐ Every applicable field, in server order. A field this
-              client has no opinion about still appears — on one page
-              there is nowhere for one to hide.
+              ⭐ EVERY field, in server order — inapplicable ones
+              included, rendered dimmed with the server's own reason. A
+              field this client has no opinion about still appears; on
+              one page there is nowhere for one to hide.
+
+              ⚠ Inapplicable fields used to be filtered out entirely,
+              which made the form jump as they appeared and left the
+              player guessing why a control they had just seen was
+              gone. Showing the gap and naming it is the rule the
+              hatched figures follow.
             */}
-            {shown.map((f) => (
+            {fields.map((f) => (
               <FieldGroup key={f.field} $muted={!f.applicable}>
                 <FieldGroupHeading>{f.label}</FieldGroupHeading>
                 {f.applicable ? (

@@ -18,9 +18,11 @@ import { openWorldAs, sendUntil } from './helpers';
 test('an authenticated visitor lands in the cockpit', async ({ browser }) => {
   const { page, close } = await openWorldAs(browser, 'smoke-cockpit');
   try {
-    // The cockpit exposes a command input; the login screen does not.
+    // The cockpit exposes a command input; the front door does not.
     await expect(page.getByPlaceholder('Enter command...')).toBeVisible();
-    await expect(page.getByText('Sign in with Google')).toHaveCount(0);
+    // ⚠ Test id, not provider copy — an absence check written against
+    // copy passes vacuously the moment the copy changes.
+    await expect(page.getByTestId('start-screen')).toHaveCount(0);
   } finally {
     await close();
   }

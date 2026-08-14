@@ -24,6 +24,16 @@
  * paint whether it loads, is empty, or is gone, and it renders `null`
  * rather than an error in the last case.
  *
+ * The composition is **full-bleed horizontal bands** — hero (seal,
+ * wordmark, headline and the sign-in column together), then chambers,
+ * then the press room and facts. Only band *contents* are width-capped,
+ * so the page reads as a civic document rather than a centred card.
+ *
+ * ⚠ **Every provider gets the same treatment** — same seal red, same
+ * white monochrome mark. Giving one a distinct colour or position
+ * states a partnership that does not exist; they are login vectors, and
+ * the world does not care which one you came through.
+ *
  * Compact layout is a reflow, not a different composition — one column,
  * sign-in above the fold, the press room as the scroll — so this uses
  * plain CSS rather than a `useIsCompact` branch. The chrome's mobile bar

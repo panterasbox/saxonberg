@@ -14,7 +14,7 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { SocialApi } from '../../../api/social';
 import { MixinApi } from '../../../api/mixin';
 import { PlayerApi } from '../../../api/player';

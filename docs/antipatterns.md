@@ -2957,3 +2957,59 @@ with a display consumer wants the same split. See
 [renown.md](./subsystems/renown.md) and
 [mql-subscription.md](./subsystems/mql-subscription.md) § Ledger-derived
 fields.
+
+## An optional figure interpolated into player-visible prose
+
+**Don't** widen a display field to optional and leave a template
+literal reading it. `${undefined}` is the string `"undefined"`, and
+TypeScript raises nothing — interpolation accepts every type by design.
+The absence you were careful to preserve at the source becomes a word
+in the player's output, at the exact seam that was supposed to protect
+them from it.
+
+### BAD
+
+```ts
+// `ProfileDigest.influence.make` had just been widened to `make?`,
+// because Make is account-level and an unresolvable account yields no
+// figure. Every read site was checked. This one type-checks anyway.
+lines.push(
+  Mml.escape(
+    `Play: ${d.influence.play} · Make: ${d.influence.make} · Renown: ${
+      d.renown ?? 'dormant'
+    }`
+  )
+);
+// Player sees: "Play: rising · Make: undefined · Renown: dormant"
+```
+
+### GOOD
+
+```ts
+// Build the segments, drop the absent one, then join. An absent figure
+// omits its whole segment — it never becomes a word.
+const parts = [
+  `Play: ${d.influence.play}`,
+  ...(d.influence.make ? [`Make: ${d.influence.make}`] : []),
+  `Renown: ${d.renown ?? 'dormant'}`,
+];
+lines.push(Mml.escape(parts.join(' · ')));
+```
+
+**The rule: an optional in prose is a segment, not a slot.** A
+`?? 'unknown'` default is the *other* wrong answer for a figure — it
+states a measurement that was never taken. Either omit the segment, or
+say in words why it is absent (`StandingController` does the latter,
+because a verb the player explicitly asked for should not silently
+answer less than it was asked).
+
+⚠ **The tell that this class of bug is coming: you widened a type and
+the compiler said nothing.** Narrowing a type surfaces every consumer;
+widening one to optional surfaces only the consumers that *destructure
+or compare*. String interpolation, `String()`, logging and JSX children
+all accept `undefined` silently. After widening a display field, grep
+its name for `${` rather than trusting the build.
+
+⭐ Found by **driving the client**, not by the suite: eleven green
+tests covered the roll-up and none of them read the rendered line. See
+[influence.md](./subsystems/influence.md) § `standingForHost`.
