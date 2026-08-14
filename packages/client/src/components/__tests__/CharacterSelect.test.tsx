@@ -116,15 +116,13 @@ describe('CharacterSelect', () => {
     renderSelect();
 
     const since = screen.getByTestId('since-you-left').textContent ?? '';
-    const fund =
-      screen.getByLabelText(/Fund/i).textContent ??
-      document.body.textContent ??
-      '';
+    // Account standing is a METER band in the header now, not a card.
+    const meters = screen.getByTestId('account-standing').textContent ?? '';
     const retire =
       screen.getByTestId('roster-unbuilt-retire').textContent ?? '';
 
     expect(since).toMatch(/nothing records what happened/i);
-    expect(fund + document.body.textContent).toMatch(/no faucet/i);
+    expect(meters).toMatch(/no faucet/i);
     expect(retire).toMatch(/no retire command exists/i);
 
     // Three gaps, three sentences — none of them the same words.

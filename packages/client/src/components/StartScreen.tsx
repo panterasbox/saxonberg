@@ -50,20 +50,54 @@ const Screen = styled.div`
   overflow-y: auto;
 `;
 
+/**
+ * ⭐ The mock's structure: a full-width hero band, a full-width chambers
+ * band beneath it, then the body split with a NARROW sign-in column and
+ * the press room beside it.
+ *
+ * ⚠ An earlier cut put sign-in in a right rail beside the headline,
+ * which made the pitch and the action compete for the same eyeline. The
+ * hero spans; the action sits under it.
+ */
+const Band = styled.div`
+  width: 100%;
+  box-sizing: border-box;
+  padding: ${tokens.space.xxl} ${tokens.space.xl};
+`;
+
+const HeroBand = styled(Band)`
+  background: ${tokens.color.surface};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+`;
+
+/** The chambers sit on their own darker rule — a band, not three cards. */
+const ChambersBand = styled(Band)`
+  background: ${tokens.color.surfaceSunken};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  padding-top: ${tokens.space.lg};
+  padding-bottom: ${tokens.space.lg};
+`;
+
+const BandInner = styled.div`
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+`;
+
 const Inner = styled.div`
   box-sizing: border-box;
   width: 100%;
-  max-width: 1040px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: ${tokens.space.xxl} ${tokens.space.xl} ${tokens.space.xxl};
+  padding: ${tokens.space.xxl} ${tokens.space.xl};
   display: grid;
   grid-template-columns: 1fr;
   gap: ${tokens.space.xxl};
 
   @media (min-width: 900px) {
-    grid-template-columns: 1fr 320px;
+    /* Sign-in is the NARROW column; the press room takes the room. */
+    grid-template-columns: 350px 1fr;
     align-items: start;
-    padding-top: 3rem;
   }
 `;
 
@@ -143,21 +177,16 @@ const SectionLabel = styled.div`
 
 const Chambers = styled.ol`
   list-style: none;
-  margin: 0 0 ${tokens.space.xxl};
+  margin: 0;
   padding: 0;
-  display: grid;
-  gap: ${tokens.space.lg};
-
-  @media (min-width: 620px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${tokens.space.xxl};
 `;
 
+/** ⚠ No border, no card. The band IS the container. */
 const Chamber = styled.li`
-  padding: ${tokens.space.lg};
-  border: 1px solid ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.md};
-  background: ${tokens.color.surface};
+  min-width: 8rem;
 `;
 
 /**
@@ -296,16 +325,28 @@ const Divider = styled.div`
 
 /* ── Footer facts ──────────────────────────────────────────────── */
 
+/**
+ * The two server facts, as labelled columns under the press room — the
+ * mock's placement. They are statements ABOUT the world, so they sit
+ * with the world's news rather than inside the sign-in panel.
+ */
 const Facts = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${tokens.space.sm};
+  display: grid;
+  gap: ${tokens.space.xl};
   margin-top: ${tokens.space.xl};
   padding-top: ${tokens.space.lg};
   border-top: 1px solid ${tokens.color.borderMuted};
   font-size: ${tokens.font.micro};
   color: ${tokens.color.fgMuted};
   line-height: 1.6;
+
+  @media (min-width: 620px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+`;
+
+const Fact = styled.div`
+  min-width: 0;
 `;
 
 /**
@@ -550,41 +591,45 @@ export const StartScreen: React.FC = () => {
 
   return (
     <Screen data-testid="start-screen">
-      <Inner>
-        <div>
+      <HeroBand>
+        <BandInner>
           <Masthead>
             <SealWrap>
               <Seal size={56} id="sx-seal-door" title="Saxonberg" />
             </SealWrap>
             <div>
-              <WordMark>Saxonberg</WordMark>
+              <WordMark>SAXONBERG</WordMark>
               <Tagline>
                 a multiplayer text world · governed by the people in it
               </Tagline>
             </div>
           </Masthead>
-
           <Headline>A world your community actually runs.</Headline>
           <Lede>
             Real units and real math underneath, with no fudge in the
             substrate. A written Compact on top, where standing is earned by
             what you do and every decision lands in a record anyone can read.
           </Lede>
+        </BandInner>
+      </HeroBand>
 
+      <ChambersBand>
+        <BandInner>
           <SectionLabel>Standing is earned in three chambers</SectionLabel>
           <Chambers>
             {CHAMBERS.map((c) => (
               <Chamber key={c.name}>
-                <ChamberOrdinal>{c.n}</ChamberOrdinal>
-                <ChamberName>{c.name}</ChamberName>
+                <ChamberOrdinal>
+                  {c.n} — <ChamberName as="span">{c.name}</ChamberName>
+                </ChamberOrdinal>
                 <ChamberNote>{c.note}</ChamberNote>
               </Chamber>
             ))}
           </Chambers>
+        </BandInner>
+      </ChambersBand>
 
-          <PressRoom />
-        </div>
-
+      <Inner>
         <Panel>
           <PanelHeading>Sign in</PanelHeading>
           <PanelNote>
@@ -628,21 +673,37 @@ export const StartScreen: React.FC = () => {
           </PanelNote>
 
           {import.meta.env.DEV && <DevLogin />}
+        </Panel>
 
+        {/*
+          The right column: what the world can be read without an
+          account, and the two facts about the server underneath it.
+        */}
+        <div>
+          <PressRoom />
           <Facts>
-            <PresenceLine online={facts.online} />
+            {facts.online !== undefined ? (
+              <Fact>
+                <SectionLabel as="div">Who is on</SectionLabel>
+                <PresenceLine online={facts.online} />
+              </Fact>
+            ) : null}
             {/*
               ⚠ Rendered ONLY when the server states a policy. There is
               no fallback string here and there must never be one — see
               the file header.
             */}
             {facts.resetPolicy ? (
-              <div data-testid="reset-notice">
-                The world resets {facts.resetPolicy}.
-              </div>
+              <Fact>
+                <SectionLabel as="div">The world resets</SectionLabel>
+                <div data-testid="reset-notice">
+                  {facts.resetPolicy}. Nothing survives to tomorrow yet — it
+                  means you can try anything.
+                </div>
+              </Fact>
             ) : null}
           </Facts>
-        </Panel>
+        </div>
       </Inner>
     </Screen>
   );

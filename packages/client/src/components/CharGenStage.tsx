@@ -40,6 +40,7 @@ import { UnbuiltGround } from "./ui/UnbuiltGround";
 import { Terminal } from "./Terminal";
 import { CommandBar } from "./CommandBar";
 import { StatusBar } from "./frame/StatusBar";
+import { Seal } from "./frame/Seal";
 import type { Frame } from "../store/index";
 
 /* --- Layout primitives -------------------------------------------- */
@@ -64,19 +65,135 @@ const StageBody = styled.div`
   align-items: center;
 `;
 
+/**
+ * ⭐ The mock's three-column workspace: the FORM on the left, the
+ * species plate + certificate in the middle, and "what you are typing"
+ * as a full right column.
+ *
+ * ⚠ An earlier cut was a single narrow centred column with the command
+ * log squeezed into a strip at the foot. That buried the teaching
+ * surface — the log is not a footnote, it is half the point of the
+ * screen.
+ */
 const StageInner = styled.div`
   width: 100%;
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
+  max-width: 1240px;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: ${tokens.space.xl};
+  align-items: start;
+
+  @media (min-width: 1080px) {
+    grid-template-columns: minmax(0, 1fr) 300px 320px;
+  }
 `;
 
-const StepHeading = styled.h1`
+const FormColumn = styled.div`
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.lg};
+`;
+
+const PlateColumn = styled.div`
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.lg};
+`;
+
+/**
+ * The log column. ⚠ It carries the still-missing line and the commit
+ * action at its foot, as the mock has them — what is left to do and the
+ * act that ends it belong with the record of what you have already
+ * done.
+ */
+const LogColumn = styled.div`
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.sm};
+  padding: ${tokens.space.lg};
+  background: ${tokens.color.surface};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+`;
+
+/** Compact inline chips — the mock's field rows, not card grids. */
+const ChipRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${tokens.space.sm};
+`;
+
+const Chip = styled.button<{ $selected?: boolean }>`
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  min-height: 32px;
+  background: ${(p) =>
+    p.$selected ? tokens.color.surface : tokens.color.surfaceAlt};
+  border: 1px solid
+    ${(p) => (p.$selected ? tokens.color.seal : tokens.color.border)};
+  border-radius: ${tokens.radius.sm};
+  color: ${tokens.color.fg};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  cursor: pointer;
+
+  &:hover {
+    border-color: ${tokens.color.fgEmphasis};
+  }
+`;
+
+/** The Articles header — a sealed panel, as the mock has it. */
+const ArticlesPanel = styled.div`
+  padding: ${tokens.space.lg};
+  background: ${tokens.color.surface};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+`;
+
+const ArticlesTitle = styled.h1`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.md};
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: ${tokens.color.fgEmphasis};
+  font-family: ${tokens.font.engraved};
+  font-size: 17px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.19em;
+  color: ${tokens.color.fg};
+`;
+
+/**
+ * The species plate. ⚠ Paper ground, not the app's — an author's
+ * illustration is the one warm surface in the frame, and it gets a
+ * mount rather than sitting flush on the chrome.
+ */
+const Plate = styled.div`
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: ${tokens.color.paper};
+  border: 1px solid ${tokens.color.paperLine};
+  border-radius: ${tokens.radius.sm};
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const PlateEmpty = styled.div`
+  padding: ${tokens.space.lg};
+  text-align: center;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.micro};
+  line-height: 1.7;
+  color: ${tokens.color.paperInk};
+  opacity: 0.65;
 `;
 
 /**
@@ -120,42 +237,6 @@ const SignOutLink = styled.button`
   }
 `;
 
-/* --- Option cards ------------------------------------------------- */
-
-const OptionGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: ${tokens.space.md};
-`;
-
-const OptionCard = styled.button<{ $selected?: boolean }>`
-  display: flex;
-  flex-direction: column;
-  gap: ${tokens.space.xs};
-  text-align: left;
-  padding: ${tokens.space.lg};
-  background: ${(p) =>
-    p.$selected ? tokens.color.surface : tokens.color.surfaceAlt};
-  color: ${tokens.color.fg};
-  border: 1px solid
-    ${(p) => (p.$selected ? tokens.color.primary : tokens.color.border)};
-  box-shadow: ${(p) =>
-    p.$selected ? `inset 0 0 0 1px ${tokens.color.primary}` : "none"};
-  border-radius: ${tokens.radius.md};
-  font-family: ${tokens.font.family};
-  cursor: pointer;
-
-  &:hover {
-    border-color: ${tokens.color.accent};
-    background: ${tokens.color.surface};
-  }
-`;
-
-const OptionLabel = styled.span`
-  font-size: ${tokens.font.body};
-  font-weight: 600;
-`;
-
 const OptionDesc = styled.span`
   font-size: ${tokens.font.small};
   color: ${tokens.color.fgMuted};
@@ -180,107 +261,7 @@ const FieldGroupHeading = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
-/**
- * The seal row: what is still open on the left, the one committing
- * action on the right. Pinned outside the scrolling stage body so both
- * stay visible regardless of dossier height.
- */
-const NavRow = styled.div`
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: ${tokens.space.md};
-  padding: ${tokens.space.md} ${tokens.space.xl};
-  border-top: 1px solid ${tokens.color.border};
-  background: ${tokens.color.surfaceSunken};
-`;
-
 /* --- Illustrated step: cards + detail pane ------------------------ */
-
-/**
- * Two-column band used on illustrated steps (species, aspiration):
- * the option grid on the left, an illustration-led detail pane on the
- * right. Stacks to a single column on narrow viewports.
- */
-const IllustratedLayout = styled.div`
-  display: flex;
-  align-items: flex-start;
-  gap: ${tokens.space.xl};
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-  }
-`;
-
-const OptionColumn = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-/**
- * The detail pane — the illustration is the hero. Its width is fixed
- * so the 3:4 image slot has a stable footprint; the grid flexes
- * around it.
- */
-const DetailPane = styled.aside`
-  width: 260px;
-  flex-shrink: 0;
-
-  /* One column at phone width — a fixed 260px pane in a ~350px content
-     box reads as a stray card rather than a detail pane. */
-  @media (max-width: 640px) {
-    width: auto;
-    max-width: 100%;
-  }
-  display: flex;
-  flex-direction: column;
-  gap: ${tokens.space.md};
-  padding: ${tokens.space.lg};
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.md};
-  /* The dossier can be long; keep it within the stage and scroll it in
-     place so the option cards stay put. */
-  max-height: calc(100vh - 13rem);
-  overflow-y: auto;
-
-  @media (max-width: 640px) {
-    width: 100%;
-    max-height: none;
-  }
-`;
-
-/**
- * The 3:4 portrait slot. Holds the option's illustration when one
- * exists; otherwise a framed placeholder that keeps the exact
- * footprint so nothing reflows when real art lands. `aspect-ratio`
- * pins the shape independent of content.
- */
-const DetailImage = styled.div`
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  /* Keep the 3:4 portrait box from being crushed by the scrolling
-     (overflow-y) flex column when the dossier below it is long. */
-  flex-shrink: 0;
-  border-radius: ${tokens.radius.sm};
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${tokens.color.surfaceSunken};
-  border: 1px dashed ${tokens.color.borderMuted};
-  color: ${tokens.color.fgMuted};
-  font-size: ${tokens.font.small};
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
 
 const DetailLabel = styled.div`
   font-size: 18px;
@@ -333,13 +314,6 @@ const CertificateNote = styled.span`
   color: ${tokens.color.fgMuted};
 `;
 
-const NameChoiceRow = styled.div`
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: ${tokens.space.sm};
-`;
-
 const NameChoiceHint = styled.span`
   font-size: ${tokens.font.micro};
   color: ${tokens.color.fgMuted};
@@ -382,51 +356,9 @@ const DossierValue = styled.dd`
 
 const NameForm = styled.form`
   display: flex;
-  flex-direction: column;
-  gap: ${tokens.space.lg};
-  padding: ${tokens.space.xl};
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.md};
-  align-items: flex-start;
-`;
-
-const NameAccountRef = styled.div`
-  font-size: ${tokens.font.small};
-  color: ${tokens.color.fgMuted};
-
-  strong {
-    color: ${tokens.color.fg};
-    font-weight: 600;
-  }
-`;
-
-const NameFieldRow = styled.div`
-  display: flex;
-  gap: ${tokens.space.lg};
-  width: 100%;
-
-  @media (max-width: 520px) {
-    flex-direction: column;
-  }
-`;
-
-const NameField = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: ${tokens.space.xs};
-`;
-
-const NameFieldLabel = styled.label`
-  font-size: ${tokens.font.small};
-  color: ${tokens.color.fgMuted};
-`;
-
-const NameOptional = styled.span`
-  color: ${tokens.color.fgMuted};
-  opacity: 0.7;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${tokens.space.sm};
 `;
 
 const NameInput = styled.input`
@@ -441,29 +373,6 @@ const NameInput = styled.input`
   &:focus {
     outline: none;
     border-color: ${tokens.color.primary};
-  }
-`;
-
-const StageButton = styled.button<{ $primary?: boolean }>`
-  padding: ${tokens.space.sm} ${tokens.space.xl};
-  background: ${(p) =>
-    p.$primary ? tokens.color.primary : tokens.color.actionBg};
-  color: ${(p) => (p.$primary ? tokens.color.onField : tokens.color.fg)};
-  border: 1px solid
-    ${(p) => (p.$primary ? tokens.color.primary : tokens.color.borderEmphasis)};
-  border-radius: ${tokens.radius.sm};
-  font-family: ${tokens.font.family};
-  font-size: ${tokens.font.body};
-  cursor: pointer;
-
-  &:hover {
-    background: ${(p) =>
-      p.$primary ? tokens.color.primaryHover : tokens.color.actionBgHover};
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 `;
 
@@ -531,6 +440,27 @@ const TerminalStrip = styled.div`
 
 
 /** The server's own "still missing" list, rendered verbatim. */
+/** The commit action. `$primary` carries the seal red. */
+const StageButton = styled.button<{ $primary?: boolean }>`
+  padding: ${tokens.space.md} ${tokens.space.lg};
+  min-height: 40px;
+  border-radius: ${tokens.radius.md};
+  border: 1px solid
+    ${(p) => (p.$primary ? tokens.color.sealInk : tokens.color.border)};
+  background: ${(p) =>
+    p.$primary ? tokens.color.seal : tokens.color.actionBg};
+  color: ${(p) => (p.$primary ? tokens.color.sealInk : tokens.color.fg)};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.body};
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+`;
+
 const MissingLine = styled.div`
   flex: 1;
   min-width: 0;
@@ -639,7 +569,15 @@ export function CharGenStage({
   // client-side; the server is a field state machine that doesn't care.
   // The detail pane previews this option on card hover; null falls
   // through to the chosen card, then the first option.
-  const [focusedValue, setFocusedValue] = useState<string | null>(null);
+  /**
+   * What the plate column is showing. ⚠ Keyed by FIELD as well as
+   * value: the plate follows whichever illustrated field you are
+   * touching, and two fields could offer the same option token.
+   */
+  const [focused, setFocused] = useState<{
+    field: string;
+    value: string;
+  } | null>(null);
   // Editable text fields, keyed by field name, pre-filled from the
   // existing value (else the suggestion); refilled only when that
   // source changes (e.g. a reroll), not on every keystroke.
@@ -752,97 +690,80 @@ export function CharGenStage({
    */
   const canConfirm = missing.length === 0;
 
+  /**
+   * ⚠ Compact chips, not a card grid. The mock puts every closed choice
+   * on one wrapping row so the whole form fits a screen — a grid of
+   * 180px cards made five fields into five screenfuls, which is what
+   * pushed the predecessor into paginating in the first place.
+   *
+   * The illustration and dossier are NOT here: they belong to the plate
+   * column, driven by whatever the player is hovering or has picked.
+   */
   const renderCards = (f: CharGenFieldState) => {
     const opts = f.options ?? [];
     const selected = f.value ?? null;
-    // ⭐ Illustrated is DERIVED, not declared. A field is illustrated
-    // when its options actually carry an image or a dossier — which
-    // deletes the old `ILLUSTRATED_FIELDS` set rather than replacing it
-    // with a wire field that says the same thing twice.
-    const illustrated = opts.some((o) => o.image || o.dossier);
-    const grid = (
-      <OptionGrid>
-        {opts.map((opt) => (
-          <OptionCard
-            key={opt.value}
-            data-testid={`chargen-option-${opt.value}`}
-            $selected={opt.value === selected || opt.label === selected}
-            aria-pressed={opt.value === selected || opt.label === selected}
-            onClick={() => setField(f.field, opt.value)}
-            onMouseEnter={() => {
-              if (illustrated) setFocusedValue(opt.value);
-              onCommandPreview(`enroll ${f.field} ${opt.value}`);
-            }}
-            onMouseLeave={() => {
-              if (illustrated) setFocusedValue(null);
-              onCommandPreview(null);
-            }}
-          >
-            <OptionLabel>{opt.label}</OptionLabel>
-            {!illustrated && opt.description ? (
-              <OptionDesc>{opt.description}</OptionDesc>
-            ) : null}
-          </OptionCard>
-        ))}
-      </OptionGrid>
-    );
-    if (!illustrated) return grid;
-    const focused =
-      opts.find(
-        (o) => o.value === (focusedValue ?? selected) || o.label === selected,
-      ) ??
-      opts[0] ??
-      null;
     return (
-      <IllustratedLayout>
-        <OptionColumn>{grid}</OptionColumn>
-        <DetailPane data-testid="chargen-detail-pane">
-          <DetailImage data-testid="chargen-detail-image">
-            {focused?.image ? (
-              <img src={mediaUrl(focused.image)} alt={focused.label} />
-            ) : (
-              <span>illustration</span>
-            )}
-          </DetailImage>
-          {focused ? (
-            <DetailLabel data-testid="chargen-detail-label">
-              {focused.label}
-            </DetailLabel>
-          ) : null}
-          {focused?.dossier?.binomial ? (
-            <Binomial data-testid="chargen-detail-binomial">
-              {focused.dossier.binomial}
-            </Binomial>
-          ) : null}
-          {focused?.description ? (
-            <DetailDesc>{focused.description}</DetailDesc>
-          ) : null}
-          {focused?.dossier?.sections.length ? (
-            <DossierBox data-testid="chargen-detail-dossier">
-              {/*
-                ⭐ Titled, as the art has it. The dossier is not a
-                sidebar of stats — it is a CERTIFICATE read off the
-                model, and saying so is what makes "every row is real
-                data" land as a claim rather than decoration.
-              */}
-              <CertificateTitle>
-                Certificate of species
-                <CertificateNote>read off the model</CertificateNote>
-              </CertificateTitle>
-              {focused.dossier.sections.map((section) => (
-                <DossierSectionView
-                  key={section.heading}
-                  heading={section.heading}
-                  rows={section.rows}
-                />
-              ))}
-            </DossierBox>
-          ) : null}
-        </DetailPane>
-      </IllustratedLayout>
+      <ChipRow>
+        {opts.map((opt) => {
+          const isOn = opt.value === selected || opt.label === selected;
+          return (
+            <Chip
+              key={opt.value}
+              data-testid={`chargen-option-${opt.value}`}
+              $selected={isOn}
+              aria-pressed={isOn}
+              title={opt.description}
+              onClick={() => setField(f.field, opt.value)}
+              onMouseEnter={() => {
+                setFocused({ field: f.field, value: opt.value });
+                onCommandPreview(`enroll ${f.field} ${opt.value}`);
+              }}
+              onMouseLeave={() => {
+                setFocused(null);
+                onCommandPreview(null);
+              }}
+            >
+              {opt.label}
+            </Chip>
+          );
+        })}
+      </ChipRow>
     );
   };
 
+  /**
+   * The plate column's subject: whatever is hovered, else whatever is
+   * chosen, else the first illustrated option on the form. ⚠ Returns
+   * null when nothing illustrated exists, so the column can say "no
+   * species yet" instead of drawing an empty frame.
+   */
+  const plateOption = (() => {
+    const illustrated = shown.filter((f) =>
+      (f.options ?? []).some((o) => o.image || o.dossier),
+    );
+    for (const f of illustrated) {
+      const opts = f.options ?? [];
+      if (focused?.field === f.field) {
+        const hit = opts.find((o) => o.value === focused.value);
+        if (hit) return hit;
+      }
+    }
+    for (const f of illustrated) {
+      const opts = f.options ?? [];
+      const hit = opts.find(
+        (o) => o.value === f.value || o.label === f.value,
+      );
+      if (hit) return hit;
+    }
+    return null;
+  })();
+
+  /**
+   * ⚠ A compact inline row, not a bordered form block. The mock puts the
+   * value and its three choices on ONE line beside the label; a panel
+   * made the name field twice the height of every other field and broke
+   * the rhythm of the form.
+   */
   const renderTextField = (f: CharGenFieldState) => {
     const two = isTwoPart(f);
     const d = draftOf(f.field);
@@ -853,72 +774,47 @@ export function CharGenStage({
           submitText(f);
         }}
       >
-        {accountName ? (
-          <NameAccountRef>
-            Signed in as <strong>{accountName}</strong>
-          </NameAccountRef>
+        <NameInput
+          id={`chargen-${f.field}-a`}
+          data-testid="chargen-given-input"
+          value={d.a}
+          onChange={(e) => setDraft(f.field, { a: e.target.value })}
+          onBlur={() => submitText(f)}
+          placeholder={two ? "Given name" : f.label}
+          autoComplete="off"
+        />
+        {two ? (
+          <NameInput
+            id={`chargen-${f.field}-b`}
+            data-testid="chargen-surname-input"
+            value={d.b}
+            onChange={(e) => setDraft(f.field, { b: e.target.value })}
+            onBlur={() => submitText(f)}
+            placeholder="Surname (optional)"
+            autoComplete="off"
+          />
         ) : null}
-        <NameFieldRow>
-          <NameField>
-            <NameFieldLabel htmlFor={`chargen-${f.field}-a`}>
-              {two ? "Given name" : f.label}
-            </NameFieldLabel>
-            <NameInput
-              id={`chargen-${f.field}-a`}
-              data-testid="chargen-given-input"
-              value={d.a}
-              onChange={(e) => setDraft(f.field, { a: e.target.value })}
-              onBlur={() => submitText(f)}
-              placeholder={two ? "Given name" : f.label}
-              autoComplete="off"
-            />
-          </NameField>
-          {two ? (
-            <NameField>
-              <NameFieldLabel htmlFor={`chargen-${f.field}-b`}>
-                Surname <NameOptional>(optional)</NameOptional>
-              </NameFieldLabel>
-              <NameInput
-                id={`chargen-${f.field}-b`}
-                data-testid="chargen-surname-input"
-                value={d.b}
-                onChange={(e) => setDraft(f.field, { b: e.target.value })}
-                onBlur={() => submitText(f)}
-                placeholder="Surname"
-                autoComplete="off"
-              />
-            </NameField>
-          ) : null}
-        </NameFieldRow>
-        {f.hint ? <NameAccountRef>{f.hint}</NameAccountRef> : null}
         {/*
-          ⭐ Keep · re-roll · type my own — three named choices, as the
-          art has them, not one ambiguous button. "Keep" is the reason
-          this matters: with only a re-roll control there was no way to
-          SAY you accepted the suggestion, so the player had to guess
-          that leaving it alone counted.
+          ⭐ keep · re-roll · type your own — three NAMED choices, as the
+          mock has them. "keep" is why it matters: with only a re-roll
+          control there was no way to SAY you accepted the suggestion,
+          so the player had to guess that leaving it alone counted.
         */}
         {f.suggestion ? (
-          <NameChoiceRow>
-            <StageButton
-              type="button"
-              data-testid="chargen-keep"
-              onClick={() => submitText(f)}
-            >
+          <>
+            <Chip type="button" data-testid="chargen-keep" onClick={() => submitText(f)}>
               keep
-            </StageButton>
-            <StageButton
+            </Chip>
+            <Chip
               type="button"
               data-testid="chargen-reroll"
               onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
             >
-              ⟳ re-roll
-            </StageButton>
-            <NameChoiceHint>
-              or type your own above — it sends when you leave the field
-            </NameChoiceHint>
-          </NameChoiceRow>
+              re-roll
+            </Chip>
+          </>
         ) : null}
+        {f.hint ? <NameChoiceHint>{f.hint}</NameChoiceHint> : null}
         {/* Hidden submit so Enter in a field commits the value. */}
         <button type="submit" hidden aria-hidden="true" />
       </NameForm>
@@ -957,95 +853,130 @@ export function CharGenStage({
       </StageTopBar>
       <StageBody>
         <StageInner>
-          <div>
-            <StepHeading data-testid="chargen-step">
-              Articles of Enrolment
-            </StepHeading>
-            {accountName ? (
-              <RecordLine data-testid="chargen-record-line">
-                Entered on the record for <strong>{accountName}</strong> ·
-                struck from it only by your own hand
-              </RecordLine>
+          <FormColumn>
+            <ArticlesPanel>
+              <ArticlesTitle>
+                <Seal size={26} id="sx-seal-intake" />
+                <span>Articles of Enrolment</span>
+              </ArticlesTitle>
+              {accountName ? (
+                <RecordLine data-testid="chargen-record-line">
+                  Entered on the record for <strong>{accountName}</strong> ·
+                  struck from it only by your own hand
+                </RecordLine>
+              ) : null}
+              <StepSub>
+                No classes, no levels, no stat points. You declare a body and
+                a name; competence comes from doing the work.{" "}
+                <strong>Fill the fields in any order</strong> — every entry
+                reads the whole draft back to you, and whatever is still open
+                is listed beside the seal.
+              </StepSub>
+            </ArticlesPanel>
+
+            {error ? (
+              <ErrorBanner data-testid="chargen-error">
+                {error.message}
+              </ErrorBanner>
             ) : null}
-            <StepSub>
-              No classes, no levels, no stat points. You declare a body and a
-              name; competence comes from doing the work.{" "}
-              <strong>Fill the fields in any order</strong> — every entry reads
-              the whole draft back to you, and whatever is still open is listed
-              at the bottom.
-            </StepSub>
-          </div>
 
-          {error ? (
-            <ErrorBanner data-testid="chargen-error">
-              {error.message}
-            </ErrorBanner>
-          ) : null}
+            {/*
+              ⭐ Every applicable field, in server order. A field this
+              client has no opinion about still appears — on one page
+              there is nowhere for one to hide.
+            */}
+            {shown.map((f) => (
+              <FieldGroup key={f.field}>
+                <FieldGroupHeading>{f.label}</FieldGroupHeading>
+                {renderField(f)}
+              </FieldGroup>
+            ))}
+          </FormColumn>
 
-          {/*
-            ⭐ Every applicable field, in server order, on one page. A
-            field this client has no opinion about still appears here —
-            there is nowhere on a single page for one to hide, which is
-            what makes a server-added field safe by construction rather
-            than by a rule.
-          */}
-          {shown.map((f) => (
-            <FieldGroup key={f.field}>
-              <FieldGroupHeading>{f.label}</FieldGroupHeading>
-              {renderField(f)}
-            </FieldGroup>
-          ))}
+          <PlateColumn>
+            <Plate data-testid="chargen-detail-image">
+              {plateOption?.image ? (
+                <img src={mediaUrl(plateOption.image)} alt={plateOption.label} />
+              ) : (
+                <PlateEmpty>
+                  portrait · author-supplied
+                  <br />
+                  {plateOption ? "no plate for this one" : "no species yet"}
+                </PlateEmpty>
+              )}
+            </Plate>
+            <DossierBox data-testid="chargen-detail-dossier">
+              <CertificateTitle>
+                Certificate of species
+                <CertificateNote>read off the model</CertificateNote>
+              </CertificateTitle>
+              {plateOption ? (
+                <>
+                  {plateOption.dossier?.binomial ? (
+                    <Binomial data-testid="chargen-detail-binomial">
+                      {plateOption.dossier.binomial}
+                    </Binomial>
+                  ) : null}
+                  <DetailLabel data-testid="chargen-detail-label">
+                    {plateOption.label}
+                  </DetailLabel>
+                  {plateOption.description ? (
+                    <DetailDesc>{plateOption.description}</DetailDesc>
+                  ) : null}
+                  {plateOption.dossier?.sections.map((section) => (
+                    <DossierSectionView
+                      key={section.heading}
+                      heading={section.heading}
+                      rows={section.rows}
+                    />
+                  ))}
+                </>
+              ) : (
+                <DetailDesc>—</DetailDesc>
+              )}
+            </DossierBox>
+          </PlateColumn>
+
+          <LogColumn>
+            <LogHeader>
+              what you are typing
+              <LogCount data-testid="chargen-log-count">{sentCount}</LogCount>
+            </LogHeader>
+            <LogNote>
+              Every card you click sends a real command. They appear here as
+              you go — the same ones you could type in a bare text client,
+              and the same interface you will use all night.
+            </LogNote>
+            <TerminalStrip>
+              <Terminal
+                frames={frames}
+                onCommandClick={onCommandClick}
+                onCommandPreview={onCommandPreview}
+              />
+            </TerminalStrip>
+            {/*
+              ⚠ The still-missing list is the SERVER's, verbatim. The
+              client never composes it — that is why it can be trusted to
+              gate the button beside it.
+            */}
+            <MissingLine data-testid="chargen-missing">
+              {missing.length > 0
+                ? `still missing: ${missing.join(", ")}`
+                : "nothing missing — you can enter the world"}
+            </MissingLine>
+            <StageButton
+              $primary
+              data-testid="chargen-confirm"
+              disabled={!canConfirm}
+              onClick={() => onSendCommand("enroll confirm")}
+              onMouseEnter={() => onCommandPreview("enroll confirm")}
+              onMouseLeave={() => onCommandPreview(null)}
+            >
+              enroll confirm ⏎
+            </StageButton>
+          </LogColumn>
         </StageInner>
       </StageBody>
-
-      {/*
-        The seal row: what is still open, and the one committing action.
-        Pinned below the scrolling body so both stay reachable however
-        tall the dossier gets.
-      */}
-      <NavRow>
-        {/*
-          ⚠ The still-missing list is the SERVER's, rendered verbatim.
-          The client never composes it — that is the whole reason it can
-          be trusted to gate the button beside it.
-        */}
-        {missing.length > 0 ? (
-          <MissingLine data-testid="chargen-missing">
-            still missing: {missing.join(", ")}
-          </MissingLine>
-        ) : (
-          <MissingLine data-testid="chargen-missing">
-            nothing missing — you can enter the world
-          </MissingLine>
-        )}
-        <StageButton
-          $primary
-          data-testid="chargen-confirm"
-          disabled={!canConfirm}
-          onClick={() => onSendCommand("enroll confirm")}
-          onMouseEnter={() => onCommandPreview("enroll confirm")}
-          onMouseLeave={() => onCommandPreview(null)}
-        >
-          enroll confirm ⏎
-        </StageButton>
-      </NavRow>
-
-      {/* ⭐ The teaching surface, named. See LogHeader. */}
-      <LogHeader>
-        what you are typing
-        <LogCount data-testid="chargen-log-count">{sentCount}</LogCount>
-        <LogNote>
-          every card you click sends a real command — the same one you could
-          type in a bare text client
-        </LogNote>
-      </LogHeader>
-      <TerminalStrip>
-        <Terminal
-          frames={frames}
-          onCommandClick={onCommandClick}
-          onCommandPreview={onCommandPreview}
-        />
-      </TerminalStrip>
 
       {/* The one preview surface — previews the `enroll …` an affordance
           runs. Intake keeps it because intake renders command-sending

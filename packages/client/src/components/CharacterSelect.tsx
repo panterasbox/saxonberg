@@ -41,6 +41,7 @@ import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
 import { Button } from "./ui/Button";
 import { Figure, UnbuiltGround } from "./ui";
+import { Seal } from "./frame/Seal";
 import type { FigureState } from "./ui";
 
 const Screen = styled.div`
@@ -52,6 +53,82 @@ const Screen = styled.div`
   background: ${tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
   font-family: ${tokens.font.family};
+`;
+
+/**
+ * ⭐ The header band, per the mock: identity on the left, the ACCOUNT's
+ * standing on the right as compact meters, and the account action.
+ *
+ * ⚠ Account standing belongs up here rather than as cards in the body.
+ * It is the frame for everything below — the subject of this screen is
+ * the person, and the roster is what they own.
+ */
+const HeaderBand = styled.div`
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 2px solid ${tokens.color.seal};
+  border-bottom: 1px solid ${tokens.color.border};
+  background: ${tokens.color.surface};
+  padding: ${tokens.space.lg} ${tokens.space.xl};
+`;
+
+const HeaderInner = styled.div`
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${tokens.space.xl};
+`;
+
+const HeaderIdentity = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.lg};
+  flex: 1;
+  min-width: 0;
+`;
+
+/** The account meters — label, value, and a bar. */
+const Meters = styled.div`
+  display: flex;
+  gap: ${tokens.space.xxl};
+  flex-wrap: wrap;
+`;
+
+const Meter = styled.div`
+  min-width: 7rem;
+`;
+
+const MeterHead = styled.div`
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: ${tokens.space.md};
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+`;
+
+const MeterValue = styled.span<{ $live?: boolean }>`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
+  color: ${(p) => (p.$live ? tokens.color.accent : tokens.color.fgMuted)};
+`;
+
+const MeterBar = styled.div<{ $live?: boolean }>`
+  margin-top: 3px;
+  height: 3px;
+  border-radius: 2px;
+  background: ${(p) =>
+    p.$live ? tokens.color.accent : tokens.color.borderMuted};
+  opacity: ${(p) => (p.$live ? 1 : 0.5)};
+`;
+
+const MeterNote = styled.div`
+  margin-top: ${tokens.space.xs};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
 `;
 
 const Inner = styled.div`
@@ -102,12 +179,6 @@ const SectionLabel = styled.div`
   margin-bottom: ${tokens.space.md};
 `;
 
-const AccountRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${tokens.space.md};
-`;
-
 const RosterList = styled.ul`
   list-style: none;
   margin: 0;
@@ -117,6 +188,15 @@ const RosterList = styled.ul`
   gap: ${tokens.space.md};
 `;
 
+/**
+ * ⚠ A WIDE row, not a card in a column. The mock gives each character
+ * the full width of the roster so the play bar has somewhere to run and
+ * the meta line (when they were last out · where they are) can sit
+ * across the bottom.
+ *
+ * ⭐ The selected row takes the seal red — this is the one screen where
+ * "which of these am I about to become" is the whole question.
+ */
 const CharacterCard = styled.li<{ $selected?: boolean }>`
   display: flex;
   align-items: flex-start;
@@ -124,15 +204,77 @@ const CharacterCard = styled.li<{ $selected?: boolean }>`
   padding: ${tokens.space.lg};
   background: ${tokens.color.surfaceAlt};
   border: 1px solid
-    ${(p) => (p.$selected ? tokens.color.fgEmphasis : tokens.color.border)};
+    ${(p) => (p.$selected ? tokens.color.seal : tokens.color.border)};
+  box-shadow: ${(p) =>
+    p.$selected ? `inset 0 0 0 1px ${tokens.color.seal}` : "none"};
   border-radius: ${tokens.radius.md};
   cursor: pointer;
   min-height: 44px;
   text-align: left;
 
   &:hover {
-    border-color: ${tokens.color.borderEmphasis};
+    border-color: ${(p) =>
+      p.$selected ? tokens.color.seal : tokens.color.borderEmphasis};
   }
+`;
+
+/** The per-row play meter — label, bar, value. */
+const PlayBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.md};
+  margin-top: ${tokens.space.sm};
+`;
+
+const PlayTrack = styled.div`
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: ${tokens.color.borderMuted};
+`;
+
+const MetaRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: ${tokens.space.md};
+  margin-top: ${tokens.space.sm};
+  font-size: ${tokens.font.label};
+  font-family: ${tokens.font.mono};
+  color: ${tokens.color.fgMuted};
+`;
+
+/** "Make someone new" — a dashed row, not a button in a toolbar. */
+const MakeNewRow = styled.button`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.lg};
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  padding: ${tokens.space.lg};
+  margin-top: ${tokens.space.md};
+  background: transparent;
+  border: 1px dashed ${tokens.color.fgEmphasis};
+  border-radius: ${tokens.radius.md};
+  color: ${tokens.color.fg};
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: ${tokens.color.surfaceAlt};
+  }
+`;
+
+const PlusBox = styled.span`
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  font-size: ${tokens.font.display};
+  color: ${tokens.color.fgMuted};
 `;
 
 const CharacterBody = styled.div`
@@ -418,23 +560,30 @@ function RosterCard({
       <CharacterBody>
         <NameRow>
           <CharacterName>{entry.name}</CharacterName>
+          {entry.binomial ? (
+            <Binomial as="span">{entry.binomial}</Binomial>
+          ) : entry.species ? (
+            <CharacterSpecies as="span">{entry.species}</CharacterSpecies>
+          ) : null}
           {entry.lastSeen === undefined ? <Flag>NEW</Flag> : null}
         </NameRow>
-        {entry.binomial ? (
-          <Binomial>{entry.binomial}</Binomial>
-        ) : entry.species ? (
-          <CharacterSpecies>{entry.species}</CharacterSpecies>
+        {entry.description ? (
+          <CharacterSpecies as="div">{entry.description}</CharacterSpecies>
         ) : null}
-        <CharacterMeta>
-          {lastSeenLabel(entry)}
-          {entry.lastLocation ? ` · ${entry.lastLocation}` : ""}
-        </CharacterMeta>
+        <PlayBar>
+          <SectionLabel as="span" style={{ margin: 0 }}>
+            Play
+          </SectionLabel>
+          <PlayTrack />
+          <MeterValue $live={Boolean(entry.playStanding)}>
+            {entry.playStanding ?? "—"}
+          </MeterValue>
+        </PlayBar>
+        <MetaRow>
+          <span>{lastSeenLabel(entry)}</span>
+          <span>{entry.lastLocation ? `◆ ${entry.lastLocation}` : ""}</span>
+        </MetaRow>
       </CharacterBody>
-      <Figure
-        label="Play"
-        variant="chip"
-        figure={playFigure(entry)}
-      />
     </CharacterCard>
   );
 }
@@ -612,7 +761,9 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
 
   const listPane = (
     <div>
-      <SectionLabel>Your characters</SectionLabel>
+      <SectionLabel>
+        Your characters · {roster.length}
+      </SectionLabel>
       <RosterList>
         {roster.map((entry) => (
           <RosterCard
@@ -623,17 +774,20 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
           />
         ))}
       </RosterList>
-      <Actions>
-        <Button
-          variant="action"
-          data-testid="roster-create"
-          onClick={() => onSendCommand("enroll")}
-          aria-label="Make someone new"
-        >
-          Make someone new
-        </Button>
+      <MakeNewRow
+        data-testid="roster-create"
+        onClick={() => onSendCommand("enroll")}
+        aria-label="Make someone new"
+      >
+        <PlusBox aria-hidden="true">+</PlusBox>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <CharacterName as="div">Make someone new</CharacterName>
+          <CharacterMeta>
+            Runs the same Articles of Enrolment.
+          </CharacterMeta>
+        </span>
         <SendsAs>sends as enroll</SendsAs>
-      </Actions>
+      </MakeNewRow>
     </div>
   );
 
@@ -647,51 +801,59 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
 
   return (
     <Screen data-testid="roster-screen">
+      <HeaderBand>
+        <HeaderInner>
+          <HeaderIdentity>
+            <Seal size={40} id="sx-seal-roster" title="Saxonberg" />
+            <div>
+              <Heading>Who are you tonight?</Heading>
+              <Subhead>
+                {accountName ? (
+                  <>
+                    Signed in as <strong>{accountName}</strong>
+                  </>
+                ) : (
+                  "Signed in"
+                )}
+              </Subhead>
+            </div>
+          </HeaderIdentity>
+
+          {/*
+            ⚠ Account standing, as meters rather than cards. Make is
+            LIVE when the server resolved the account; Fund never is —
+            the capital stock has no faucet — and each says which.
+          */}
+          <Meters data-testid="account-standing">
+            <Meter>
+              <MeterHead>
+                <span>Make</span>
+                <MeterValue $live={Boolean(account.make)}>
+                  {account.make ?? "╌╌"}
+                </MeterValue>
+              </MeterHead>
+              <MeterBar $live={Boolean(account.make)} />
+              <MeterNote>
+                {account.make
+                  ? "summed across your characters"
+                  : "this account could not be resolved"}
+              </MeterNote>
+            </Meter>
+            <Meter>
+              <MeterHead>
+                <span>Fund</span>
+                <MeterValue>╌╌</MeterValue>
+              </MeterHead>
+              <MeterBar />
+              <MeterNote>the capital stock has no faucet yet</MeterNote>
+            </Meter>
+          </Meters>
+
+          <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
+        </HeaderInner>
+      </HeaderBand>
+
       <Inner>
-        <div>
-          <Heading>Who are you tonight?</Heading>
-          <Subhead>
-            {accountName ? (
-              <>
-                Signed in as <strong>{accountName}</strong> ·{" "}
-              </>
-            ) : null}
-            {roster.length === 1
-              ? "one character on this account"
-              : `${roster.length} characters on this account`}
-          </Subhead>
-        </div>
-
-        {/*
-          Account standing. ⚠ Make is account-level and arrives only
-          when the server could resolve the account; Fund has no faucet
-          at all, so it is ALWAYS hatched — and the two reasons differ
-          because the gaps differ.
-        */}
-        <div>
-          <SectionLabel>Account standing</SectionLabel>
-          <AccountRow>
-            <Figure
-              label="Make"
-              figure={
-                account.make
-                  ? { state: "live", value: account.make }
-                  : {
-                      state: "unwired",
-                      reason: "this account could not be resolved",
-                    }
-              }
-            />
-            <Figure
-              label="Fund"
-              figure={{
-                state: "unwired",
-                reason: "the capital stock has no faucet yet",
-              }}
-            />
-          </AccountRow>
-        </div>
-
         {showDetailOnly ? (
           <CharacterDetail
             entry={selected!}
@@ -718,9 +880,6 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
           </TwoPane>
         )}
 
-        <Actions>
-          <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
-        </Actions>
       </Inner>
     </Screen>
   );

@@ -13,7 +13,9 @@ describe("App", () => {
   it("boots to the front door", () => {
     render(<App />);
     expect(screen.getByTestId("start-screen")).toBeDefined();
-    expect(screen.getByText("Saxonberg")).toBeDefined();
+    // ⚠ Engraved caps, as the mock has it — matched case-insensitively so
+    // the assertion is about the mark being present, not its casing.
+    expect(screen.getByText(/^SAXONBERG$/i)).toBeDefined();
   });
 
   /**
