@@ -61,9 +61,31 @@ type CharGenField = "species" | "sex" | "name" | "pronouns" | "aspiration";
 import { SpeciesApi } from "../../../api/species";
 import { SourceTreeApi } from "../../../api/source-tree";
 
-// Pronoun options derive from the `Pronouns` enum (the single source of
-// truth for the values); the display labels are colocated with the enum.
-const PRONOUN_OPTIONS: CharGenOption[] = Object.values(Pronouns).map((v) => ({
+/**
+ * Pronoun options for a PLAYER CHARACTER.
+ *
+ * Derived from the `Pronouns` enum (the single source of truth for the
+ * values); the display labels are colocated with the enum.
+ *
+ * ⚠⚠ **`it/its` is excluded here and MUST stay in the enum.** The two
+ * are different questions. The enum is the world's pronoun vocabulary —
+ * the command parser resolves "take it", and objects, animals and
+ * constructs are referred to that way all the time. Removing it there
+ * would break referring to a chair.
+ *
+ * What this list governs is narrower: what a person may choose for
+ * *themselves* at intake. ⭐ Because `pronouns.validate` checks against
+ * this same array, the roster and the gate cannot drift — dropping an
+ * option here also refuses `enroll pronouns it` from the command line,
+ * with no second list to keep in step.
+ */
+const PLAYER_PRONOUNS: readonly Pronouns[] = [
+  Pronouns.He,
+  Pronouns.She,
+  Pronouns.They,
+];
+
+const PRONOUN_OPTIONS: CharGenOption[] = PLAYER_PRONOUNS.map((v) => ({
   value: v,
   label: PRONOUN_LABELS[v] ?? v,
 }));

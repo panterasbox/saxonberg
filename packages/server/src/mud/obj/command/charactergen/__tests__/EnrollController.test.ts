@@ -280,6 +280,26 @@ describe('EnrollController step model', () => {
     });
   });
 
+  /**
+   * ⭐⭐ A player may not choose `it/its` for themselves — but the
+   * `Pronouns` ENUM keeps it, because that is the world's pronoun
+   * vocabulary and the parser resolves "take it" against it. Removing
+   * it there would break referring to a chair.
+   *
+   * ⚠ The roster and the validator read the SAME array, so this also
+   * refuses the command-line path. A test that only checked the option
+   * list would miss a bare-client player typing it directly.
+   */
+  it('offers he/she/they for a character and refuses it/its', async () => {
+    await run('species human');
+    const values = field('pronouns').options!.map((o) => o.value);
+    expect(values).toEqual(['he', 'she', 'they']);
+
+    await run('pronouns it');
+    expect(login.getEnrollmentDraft()!.pronouns).toBeUndefined();
+    expect(frames.at(-1)!.error?.field).toBe('pronouns');
+  });
+
   it('re-picking the same species does NOT wipe downstream fields', async () => {
     await run('species human');
     await run('sex female');
