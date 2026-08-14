@@ -792,6 +792,137 @@ substrate's re-projection without any descriptor changes.
 
 These land in follow-up scope when concrete consumers demand them.
 
+## ⭐ The pane feasibility survey
+
+*Record-layer phase 6, 2026-08-14. What the design handoff's screens
+want a pane to say, and whether the substrate can say it today.*
+
+**Why a survey and not rows.** `Panes.ts` states its own rule — *every
+entry is a pane the client actually opens; adding a row for a pane
+nobody opens is how a vocabulary ends up sized to a mockup rather than
+to the game.* So this build delivers the **finding**, not the schema.
+Each row's answer converts Wave 4's biggest unknown into a list, and
+the wave that opens a pane adds its row then.
+
+Three questions per pane, exactly as the requirements pose them: can
+**MQL** answer it today; does it need a **hold** beyond the five; does
+it need a **field** no `subscribableFields` declares?
+
+### The panes the screens want
+
+| Pane | Screen | MQL today? | Hold | Fields missing |
+|---|---|---|---|---|
+| `inspect` — what you are looking at | Play Surface | ✅ shipped (`$focus`) | none (paint/clear) | see *Composition* + *Measured rows* below |
+| `location` — where you are | Play Surface | ✅ shipped (`here`) | none | — |
+| `self` — your own figures | Global Chrome | ✅ shipped (`me`) | none | — |
+| **FORM** — a question you owe a reply to | Explore, Prompt System | ⚠ **no** — the subject is a pending *prompt*, not a Stuff | `unanswered` ✅ | the prompt itself (id, title, options, asking command) |
+| **AGENT** — a person you are dealing with | Explore | ✅ `peers:<name>` | `present` ✅ | `kind`, the measured rows, active mixins |
+| **INSTRUMENT** — a reading with a window | Explore, Play Surface | ✅ `here:<thing>` | `inReach` ✅ | the reading, its unit, its working window, its provenance |
+| **PLACE** — ways out and what is here | Explore | ✅ `here` | `here` ✅ | per-row readings on `contents` |
+| **MANIFEST** — your pack | Explore, Mobile | ✅ `me` / `inventory` | `carried` ✅ | bulk used/capacity, nested-vessel count |
+
+⚠ **The art has FIVE pane kinds, not four.** `Manifest` (*your pack* —
+carried mass, bulk, nested vessels, hold `carried`) is a full pane in
+`Explore - Two Feeds` and a pinned chip in `Mobile - Live Client`; the
+plan's body table names four. Called out rather than silently resolved,
+per the method rule.
+
+### The two structural findings
+
+**1. ⚠⚠ A FORM pane's subject is not a Stuff, and MQL only speaks
+Stuff.** Every other pane resolves an MQL scope to objects and projects
+fields off them. A form is a pending `PromptApi` interaction: its
+subject is a prompt id, its content is a question and a set of reply
+commands, and the thing that ends it is an answer rather than a
+movement. The `unanswered` hold *already* knows this — `holdSubject`
+carries a prompt id and `evaluateHold` asks `PromptApi.isPending`, not
+where anything is.
+
+So the FORM pane is not an MQL subscription with a missing field. It is
+the prompt substrate rendered as a card, and the prompt substrate
+already pushes its own envelopes. **The finding: build FORM off the
+prompt channel, and do not widen MQL to resolve non-Stuff subjects.**
+Widening it would put a second, weaker prompt model beside the real one.
+
+**2. ⚠ The measured rows are the real gap, and they are per-mixin.**
+What every non-trivial pane body in the art actually shows is a short
+list of *readings*:
+
+> `Temperature 1240 °C` · `Working window 1150–1300 °C` · `Fuel 4.1 kg
+> charcoal` · `Mass 54.4 kg` · `Condition sound · 94%` · `Bearing
+> preoccupied` · `Trade wheelwright` · `On shift yes` · `Lines 4 pours`
+> · `Cellar temp 11 °C` · `Slices 5 of 8` · `Routes 4 posted`
+
+`subscribableFields` declares **twenty-three** field descriptors in the
+whole tree today:
+
+| Host | Fields |
+|---|---|
+| `Stuff` | `displayName` |
+| `Perceptible` | `primaryKeyword` |
+| `Named` | `name` |
+| `Visible` | `shortDescription`, `longDescription`, `illustration` |
+| `Detailed` | `details` |
+| `Tangible` | `mass`, `bulkMaterial`, `detailMaterial` |
+| `Container` | `contents` |
+| `Exitable` | `exits` |
+| `Globbable` | `quantity` |
+| `Focused` | `focus` |
+| `LoadBearing` | `borneBurden`, `carryCapacity`, `loadRatio` |
+| `Branded` | `brand`, `corpo` |
+| `Advancement` | `practisingCompetence`, `competenceDigest` |
+| `Avatar` | `playStanding`, `makeStanding`, `renown` |
+| `Party` | `name`, `memberIds`, `captainId`, `combatSide`, `durable`, `formationPath` |
+| `AirTank` | `airGauge` |
+
+Of the readings the art wants, exactly **two** are declared (`mass`,
+and the `LoadBearing` trio behind MANIFEST's *Carried*). Temperature,
+the working window, fuel, condition, stock, shift state, cellar temp,
+bulk-in-litres and nested-vessel count are all absent — not because the
+substrate cannot compute them (it can; they are ordinary reads on
+`Thermal`, `Combustible`, `Durable`, `Bulkable`, `Employed`) but
+because **no mixin has declared them subscribable**.
+
+⭐ That is a good shape for the gap to have. Each is one descriptor on
+the mixin that owns the reading, declared where the value lives, with
+`dependsOnFields` naming what wakes it — the pattern `AirTank.airGauge`
+already exemplifies. It is not a substrate change; it is a per-mixin
+todo list, and each entry is cheap.
+
+⚠ **The pane body must therefore hatch, not invent.** Until a mixin
+declares its reading, `projectFields` omits the field and the client
+renders an honest absence. A pane that filled the gap with a plausible
+number would be the exact defect the `Figure` convention exists to
+prevent.
+
+### The three smaller gaps
+
+- **`kind`** (*npc · service*, *fixture · smithing*, *thing · food*) —
+  the one-line classification under the pane title. Nothing declares it.
+  It is derivable from composition, which makes it a candidate for
+  `Stuff.subscribableFields` rather than a per-mixin descriptor.
+- **Active composition** (the mixin chip row, `+11`) —
+  `CommandApi.resolveAffordances` already returns the **active**
+  composition (augments, implants, innates, on-shift conferral), which
+  is why the `mx` digest was cut. ⭐ The chips should read the resolver,
+  not a new subscribable field: a composition projected onto a
+  subscription would go stale exactly as the digest would.
+- **Per-row readings on `contents`** — `REF_FIELDS` is
+  `displayName`/`quantity`/`primaryKeyword`, so a PLACE pane's *Here*
+  list can name each item but cannot say `1240 °C` beside it. This is
+  the one gap that is a **substrate** question rather than a descriptor
+  one: it asks for a nested projection, and the honest v1 answer is that
+  each row is clickable and opens its own pane.
+
+### What this means for the client wave
+
+Nothing in the survey blocks the pane feed. The four spatial kinds
+resolve today; FORM rides the prompt channel it already has; every
+missing reading degrades to a hatch rather than to a wrong number. The
+survey's value is that the wave knows which of its bodies will be
+sparse on day one and **why** — rather than discovering it against live
+content and reaching for a plausible default.
+
 ## Build history
 
 - **Canonical-kind registry retired during MR iteration.** Wave 1
