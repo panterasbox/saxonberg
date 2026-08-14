@@ -133,6 +133,27 @@ describe('the frame store', () => {
     expect(storedFor('p1')).toHaveLength(1);
   });
 
+  it('⚠⚠ keeps a BODY-LESS control frame out of the store', async () => {
+    const avatar = makeAvatar('p1');
+    /*
+     * `shell.control` and `self.group` carry everything in `payload`,
+     * which the row deliberately drops. Stored, they come back on
+     * backfill as bare coloured bars in the transcript — and measured
+     * live they were 43% of every row in the collection, so nearly half
+     * the retention window went to frames that can never be rendered.
+     */
+    deliver(avatar, { ...frame('', 'shell.control'), tags: ['control:schema'] });
+    deliver(avatar, frame('   ', 'self.group'));
+    deliver(avatar, frame('a bell rings'));
+    await RecordApi.flush();
+
+    const rows = storedFor('p1');
+    // Both directions: the junk is gone AND the real frame survived —
+    // a filter that took everything would satisfy half of this.
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.body).toBe('a bell rings');
+  });
+
   it('keeps a guest out of the store', async () => {
     const guest = makeAvatar('g1');
     (guest as unknown as { isGuest: boolean }).isGuest = true;

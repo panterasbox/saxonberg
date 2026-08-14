@@ -137,6 +137,8 @@ export function PaneCard({
    */
   const title =
     card.records[0]?.displayName ||
+    // A husk keeps the name it had — see `lastTitle` in the slice.
+    card.lastTitle ||
     (card.paneId ? PANE_LABEL[card.paneId] : undefined) ||
     "a pane";
 

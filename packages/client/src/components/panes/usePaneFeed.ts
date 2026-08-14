@@ -124,13 +124,43 @@ export function usePaneFeed(): void {
   const closePaneCard = useStore((s) => s.closePaneCard);
 
   useEffect(() => {
-    const placeId = websocketClient.subscribeMql({ pane: "place" });
-    openPaneCard({
-      subscriptionId: placeId,
-      paneId: "place",
-      kind: "place",
-      hold: "here",
-    });
+    /*
+     * The one standing card this hook owns. Kept in a box because the
+     * handle changes every time the world releases it and we open the
+     * next one — see `reopenPlace` below.
+     */
+    let placeId = websocketClient.subscribeMql({ pane: "place" });
+    const openPlace = (): void => {
+      openPaneCard({
+        subscriptionId: placeId,
+        paneId: "place",
+        kind: "place",
+        hold: "here",
+      });
+    };
+    openPlace();
+
+    /**
+     * ⚠⚠ **`place` is STANDING, so a lapse re-opens it for the new room.**
+     *
+     * Its hold is `here`, so walking out releases it — correctly, and
+     * the husk is the honest record of the room you left. But without
+     * this, that was the END of it: the subscription was opened once on
+     * mount, so **one movement cost you the place card for the rest of
+     * the session**, and the mode's arrangement silently degraded to
+     * nothing. Found by driving; a teleport out of the lounge left a
+     * stale card and no live one.
+     *
+     * ⭐ This is not the client deciding arrangement semantics. The hook
+     * already owns "the standing `place` card exists" — it opens it
+     * unconditionally on mount. Re-opening it after the world ends the
+     * old one is that same decision, not a new one; what the card SHOWS
+     * still comes entirely from the server's catalogue.
+     */
+    const reopenPlace = (): void => {
+      placeId = websocketClient.subscribeMql({ pane: "place" });
+      openPlace();
+    };
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;
@@ -190,6 +220,7 @@ export function usePaneFeed(): void {
       const env = envelope as MqlSubscriptionReleasedEnvelope;
       const store = useStore.getState();
       if (!store.paneCards[env.subscriptionId]) return;
+      const wasStandingPlace = env.subscriptionId === placeId;
       store.releasePane(env);
       /*
        * ⚠ The server has already torn the subscription down — the
@@ -198,6 +229,11 @@ export function usePaneFeed(): void {
        * resurrect a pane the world ended.
        */
       websocketClient.unsubscribe(env.subscriptionId);
+      // ⚠ Only the standing card comes back. A subject pane the radial
+      // opened is about ONE thing, and re-opening it after that thing
+      // went out of reach would be a card asserting a condition the
+      // world just denied.
+      if (wasStandingPlace) reopenPlace();
     };
 
     websocketClient.onEnvelope("mql-subscription-result", handleResult);

@@ -11,6 +11,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useStore } from "../store/index";
+import { frameFeeds } from "../store/routingActions";
 import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { useIsCompact } from "../lib/style/useIsCompact";
@@ -23,6 +24,7 @@ import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
 import { PromptFormatBar } from "../components/PromptFormatBar";
 import { PaneFeed } from "../components/panes/PaneFeed";
+import { usePaneFeed } from "../components/panes/usePaneFeed";
 import { RadialOverlay } from "../components/panes/RadialOverlay";
 import {
   InlinePane,
@@ -147,6 +149,46 @@ const RoutingToggle = styled.button`
   }
 `;
 
+/** The count-vs-body reconciler. Only ever on screen when they differ. */
+const FilteredNotice = styled.div`
+  flex: none;
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+  max-width: 100%;
+`;
+
+/**
+ * ⚠ Not a command preview, because changing a tab's facet predicate is
+ * not a command — it is a saved viewport setting, the same line
+ * `open <feed>` and the tab strip already sit on.
+ */
+const FilterLink = styled.button`
+  font: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: ${tokens.color.fgEmphasis};
+  text-decoration: underline;
+`;
+
+/**
+ * The two settings controls, sharing one line on a phone.
+ *
+ * ⚠ On desktop they stack, which costs nothing. At 390px they were two
+ * separate full-width rows above the input, and with the format bar's
+ * chips wrapping that came to ~180px of an 844px screen — over a fifth
+ * of the phone, permanently, for controls you touch once a month.
+ */
+const SettingsRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+`;
+
 /** The inline pane stack, between the transcript and the command bar. */
 const InlineStack = styled.div`
   flex: none;
@@ -174,6 +216,16 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onCommandClick,
   onCommandPreview,
 }) => {
+  /*
+   * ⚠⚠ **Here, not in `PaneFeed`.** This hook opens the `place`
+   * subscription and registers the three subscription handlers, and it
+   * has to run at BOTH form factors — `PaneFeed` is the desktop right
+   * column, so hanging the wiring off it left the phone with a pane
+   * store nothing ever wrote to. Panes the server pushed for a saved
+   * arrangement were discarded, and a card the radial opened stayed
+   * empty forever.
+   */
+  usePaneFeed();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [routingOpen, setRoutingOpen] = useState(false);
   const rightPane = useStore((s) => s.rightPane);
@@ -207,6 +259,19 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         : [],
     [isCompact, allFrames, activeFeed, getTopicDescriptor],
   );
+  /*
+   * How many frames the ACTIVE FEED holds — the switcher's own number,
+   * derived the same way so the notice below can never quote a
+   * different one than the tab it is explaining.
+   */
+  const hiddenHere = React.useMemo(
+    () =>
+      allFrames.filter((f) => frameFeeds(f.feeds).includes(activeFeed)).length,
+    [allFrames, activeFeed],
+  );
+  const activeTabName = useStore(
+    (s) => (s.clientState["console.activeTab"] as string | undefined) ?? "All",
+  );
 
   return (
     <Cockpit style={isCompact ? { flexDirection: "column" } : undefined}>
@@ -231,6 +296,33 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCommandClick={onCommandClick}
           onCommandPreview={onCommandPreview}
         />
+        {/*
+          ⚠⚠ **The count and the body have to agree, or say why not.**
+
+          Found by driving: the switcher read `Diag 10`, the Diag feed
+          rendered NOTHING, and there was no third thing on screen to
+          reconcile them. Each half is right on its own — the count is
+          over the FEED (naming it from an already-filtered list would
+          make `World 1077` report the tab), and the body also applies
+          the tab's standing facet predicate. Together they are a lie of
+          exactly the kind an unwired figure is: a number promising
+          content that is not there.
+
+          So the third thing exists. It appears only in the disagreeing
+          case, states both numbers, and names the filter doing it.
+        */}
+        {frames.length === 0 && hiddenHere > 0 && (
+          <FilteredNotice data-testid="all-filtered-notice">
+            {hiddenHere} in {activeFeed}, all hidden by the filter on{" "}
+            <strong>{activeTabName}</strong>.{" "}
+            <FilterLink
+              aria-label="open the filter drawer"
+              onClick={() => setDrawerOpen(true)}
+            >
+              change it
+            </FilterLink>
+          </FilteredNotice>
+        )}
         {/*
           ⭐⭐ **On a phone the panes come INLINE.** Interleave what is
           causally related, switch what is independent: a pane is caused
@@ -270,12 +362,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
             <RoutingTable frames={allFrames} />
           </RoutingDrawer>
         )}
-        <RoutingToggle
-          aria-label="routing"
-          onClick={() => setRoutingOpen((v) => !v)}
-        >
-          routing
-        </RoutingToggle>
         {/*
           ⭐ One slot, three occupants — in the order they sit on
           screen. Everything WAITING is above the input; the format bar
@@ -288,10 +374,19 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCommandPreview={onCommandPreview}
           compact={isCompact}
         />
-        <PromptFormatBar
-          onSendCommand={onCommandClick}
-          onCommandPreview={onCommandPreview}
-        />
+        <SettingsRow>
+          <RoutingToggle
+            aria-label="routing"
+            onClick={() => setRoutingOpen((v) => !v)}
+          >
+            routing
+          </RoutingToggle>
+          <PromptFormatBar
+            onSendCommand={onCommandClick}
+            onCommandPreview={onCommandPreview}
+            compact={isCompact}
+          />
+        </SettingsRow>
         <CommandBar
           barId="world"
           onSendCommand={onSendCommand}

@@ -96,6 +96,14 @@ export interface PaneCardState {
   openedAt: number;
   /** Set once the hold lapsed: the card is a faded husk from here on. */
   released?: PaneReleaseReason;
+  /**
+   * The subject's name as it stood when the hold lapsed.
+   *
+   * ⚠ Not a cached record — the records are cleared on release
+   * deliberately. This is only the card's IDENTITY, kept so a husk can
+   * still say *which* place you left.
+   */
+  lastTitle?: string;
 }
 
 /**
@@ -273,9 +281,19 @@ export const createPaneFeedSlice = (
         [envelope.subscriptionId]: {
           ...card,
           released: envelope.reason,
-          // ⚠ The body goes with the hold. What is left is a statement
-          // about the past, and rendering yesterday's contents as if
-          // they were current is the failure the fade exists to avoid.
+          /*
+           * ⚠ The NAME survives; the body does not.
+           *
+           * The body going with the hold is the point — rendering
+           * yesterday's contents as if they were current is the failure
+           * the fade exists to avoid. But the subject's name is not
+           * contents, it is which card this is, and a husk that cannot
+           * say what it was about is less honest rather than more.
+           * Found by driving: teleporting out of the lounge left a card
+           * reading `PLACE where you are · stale · you left`, which
+           * names nothing at all.
+           */
+          lastTitle: card.records[0]?.displayName ?? card.lastTitle,
           records: [],
         },
       };

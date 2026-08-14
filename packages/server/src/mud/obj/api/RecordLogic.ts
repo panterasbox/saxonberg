@@ -215,6 +215,24 @@ export class RecordLogic extends ApiLogic {
   public record(owner: string, frame: MessageFrame): void {
     if (!owner) return;
     if (!connected()) return;
+    /*
+     * ⚠⚠ **A frame with no body is not scrollback.**
+     *
+     * `shell.control` (command-schema pushes) and `self.group` carry
+     * their whole content in `payload`, and the row deliberately drops
+     * `payload` — its consumers re-resolve on connect, and storing it
+     * would make the highest-volume write unbounded in row size. So a
+     * body-less frame stores a row that **can never be rendered**: on
+     * backfill it comes back as a bare coloured bar in the transcript.
+     *
+     * Found by driving. It was not a cosmetic share either — measured
+     * live, **32 of 75 stored rows (43%) were body-less**, so nearly
+     * half of every player's retention window was spent on frames with
+     * nothing in them. Dropping them at the writer is the only place
+     * that fixes both the junk and the budget; a renderer-side skip
+     * would still have paid for the rows.
+     */
+    if (!frame.body || !frame.body.trim()) return;
     const now = Date.now();
     const prev = this.lastSeq.get(owner) ?? 0;
     const seq = now > prev ? now : prev + 1;

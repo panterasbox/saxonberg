@@ -75,6 +75,21 @@ const Chip = styled.button`
 export interface PromptFormatBarProps {
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
+  /**
+   * Phone layout — the four token chips collapse behind one control.
+   *
+   * ⚠ Found by driving at 390px. The chips wrap onto three rows there,
+   * so this bar plus the routing toggle were holding **~180px of an
+   * 844px screen permanently above the input** — over a fifth of the
+   * phone, given to two controls that EDIT SETTINGS rather than play.
+   * The rendered prompt stays (it is information); appending a token to
+   * your format is a settings act and can cost a tap.
+   *
+   * ⭐ The toggle is honest about being local: it changes what this
+   * strip shows and nothing else, so it carries no command preview —
+   * the same line `open <feed>` and the tab strip sit on.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -90,35 +105,51 @@ export function commandForToken(current: string, token: string): string {
 export function PromptFormatBar({
   onSendCommand,
   onCommandPreview,
+  compact = false,
 }: PromptFormatBarProps): React.ReactElement {
   // What the SERVER rendered. Never re-evaluated here.
   const basePrompt = useStore((s) => s.basePrompt);
   const clientState = useStore((s) => s.clientState);
   const preview = onCommandPreview ?? (() => undefined);
+  const [expanded, setExpanded] = React.useState(false);
   const current =
     typeof clientState["prompt.format"] === "string"
       ? (clientState["prompt.format"] as string)
       : "";
+  const showTokens = !compact || expanded;
 
   return (
     <Bar data-testid="prompt-format-bar">
       <span>prompt</span>
       <Rendered data-testid="prompt-format-rendered">{basePrompt}</Rendered>
-      {TOKENS.map((token) => {
-        const command = commandForToken(current, token);
-        return (
-          <Chip
-            key={token}
-            title={`Click to send: ${command}`}
-            aria-label={command}
-            onClick={() => onSendCommand(command)}
-            onMouseEnter={() => preview(command)}
-            onMouseLeave={() => preview(null)}
-          >
-            {token}
-          </Chip>
-        );
-      })}
+      {compact && (
+        <Chip
+          data-testid="prompt-format-toggle"
+          aria-label={
+            expanded ? "hide prompt format tokens" : "edit prompt format"
+          }
+          aria-expanded={expanded}
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded ? "×" : "⋯"}
+        </Chip>
+      )}
+      {showTokens &&
+        TOKENS.map((token) => {
+          const command = commandForToken(current, token);
+          return (
+            <Chip
+              key={token}
+              title={`Click to send: ${command}`}
+              aria-label={command}
+              onClick={() => onSendCommand(command)}
+              onMouseEnter={() => preview(command)}
+              onMouseLeave={() => preview(null)}
+            >
+              {token}
+            </Chip>
+          );
+        })}
     </Bar>
   );
 }

@@ -24,7 +24,6 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { PaneCard } from "./PaneCard";
 import { PaneBody } from "./PaneBodies";
-import { usePaneFeed } from "./usePaneFeed";
 import { InspectionPane } from "../InspectionPane";
 
 const Column = styled.aside<{ $compact: boolean }>`
@@ -127,12 +126,24 @@ export interface PaneFeedProps {
   compact?: boolean;
 }
 
+/*
+ * ⚠⚠ `usePaneFeed()` is NOT called here. It used to be, and that made
+ * the entire phone surface dead: this column only renders on a desktop,
+ * so on a phone nothing opened the `place` subscription and nothing
+ * registered the three envelope handlers. Server-pushed arrangement
+ * panes were dropped on the floor, and a card opened by the radial
+ * never received a record.
+ *
+ * It lives in `WorldLayout` now — the one component that renders at
+ * both form factors. Found by driving at 390px; every unit test in
+ * `MobilePlaySurface.test.tsx` passed throughout, because they render
+ * `InlinePane` with a hand-built card and never touch the wiring.
+ */
 export function PaneFeed({
   onSendCommand,
   onCommandPreview,
   compact = false,
 }: PaneFeedProps): React.ReactElement {
-  usePaneFeed();
   const paneCards = useStore((s) => s.paneCards);
 
   // Derived here rather than read from state: see the header note.

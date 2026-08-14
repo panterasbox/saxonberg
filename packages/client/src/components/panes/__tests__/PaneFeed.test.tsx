@@ -14,10 +14,11 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, renderHook, screen, fireEvent } from "@testing-library/react";
 import type { MqlSubscriptionReleasedEnvelope } from "@saxonberg/types";
 import { useStore } from "../../../store/index";
 import { PaneFeed } from "../PaneFeed";
+import { usePaneFeed } from "../usePaneFeed";
 import { websocketClient } from "../../../services/websocket";
 
 function resetStore(): void {
@@ -215,5 +216,120 @@ describe("the feed's bound", () => {
     // holds exist to make visible.
     expect(husks.length).toBeLessThanOrEqual(3);
     expect(cards.some((c) => c.subscriptionId === "live")).toBe(true);
+  });
+});
+
+/**
+ * ⭐ The three defects driving found in the pane lifecycle. Each was
+ * invisible to every test above, because each lives in the WIRING
+ * rather than in a card's rendering.
+ */
+describe("⚠⚠ what only a real session showed", () => {
+  it("keeps the husk's NAME so a stale card says which place you left", () => {
+    openCard("s-place", "place", "the lounge", "here");
+    useStore.getState().releasePane({
+      type: "mql-subscription-released",
+      frameId: 1,
+      subscriptionId: "s-place",
+      hold: "here",
+      reason: "left",
+    });
+    render(<PaneFeed onSendCommand={() => undefined} />);
+
+    /*
+     * The BODY going with the hold is the point — a husk must not
+     * render yesterday's contents as if they were current. The subject
+     * NAME is not contents, it is which card this is. Live, the husk
+     * read `PLACE where you are · stale · you left`, naming nothing.
+     */
+    expect(screen.getAllByText("the lounge").length).toBeGreaterThan(0);
+    expect(useStore.getState().paneCards["s-place"]!.records).toEqual([]);
+  });
+
+  /**
+   * Mount the feed with the wire faked, and hand back the release
+   * handler plus the live subscription handles.
+   *
+   * ⚠ Counts are never asserted: React double-mounts an effect in the
+   * test renderer, so "subscribed once" is false for a correct
+   * implementation. What matters is WHICH handles exist.
+   */
+  function mountWithWire(): {
+    release: (e: MqlSubscriptionReleasedEnvelope) => void;
+    handles: string[];
+  } {
+    const handles: string[] = [];
+    let n = 0;
+    vi.spyOn(websocketClient, "subscribeMql").mockImplementation(() => {
+      n += 1;
+      const id = `place-${n}`;
+      handles.push(id);
+      return id;
+    });
+    let released: ((e: MqlSubscriptionReleasedEnvelope) => void) | null = null;
+    vi.spyOn(websocketClient, "onEnvelope").mockImplementation(
+      (kind: string, handler: unknown) => {
+        if (kind === "mql-subscription-released") {
+          released = handler as (e: MqlSubscriptionReleasedEnvelope) => void;
+        }
+      },
+    );
+    /*
+     * ⚠ The HOOK, not `PaneFeed`. The hook lives in `WorldLayout` now
+     * precisely because `PaneFeed` is the desktop-only right column —
+     * rendering the column here would test the wiring on the one form
+     * factor where it was never broken.
+     */
+    renderHook(() => usePaneFeed());
+    return {
+      release: (e) => (released as unknown as (x: unknown) => void)(e),
+      handles,
+    };
+  }
+
+  it("re-opens the STANDING place card when the world ends the old one", () => {
+    /*
+     * ⚠⚠ `place` is held by `here`, so walking out releases it — and
+     * before this, that was the END of it. The subscription was opened
+     * once on mount, so ONE movement cost the player the place card for
+     * the rest of the session and the mode's arrangement silently
+     * degraded to nothing.
+     */
+    const { release, handles } = mountWithWire();
+    const live = handles[handles.length - 1]!;
+    const openBefore = handles.length;
+
+    release({
+      type: "mql-subscription-released",
+      frameId: 1,
+      subscriptionId: live,
+      hold: "here",
+      reason: "left",
+    });
+
+    // A fresh handle, and both cards present: the husk you left and the
+    // live one you arrived in.
+    expect(handles.length).toBe(openBefore + 1);
+    const cards = useStore.getState().paneCards;
+    expect(cards[live]!.released).toBe("left");
+    expect(cards[handles[handles.length - 1]!]!.released).toBeUndefined();
+  });
+
+  it("⚠ does NOT re-open a subject pane the world put out of reach", () => {
+    const { release, handles } = mountWithWire();
+    const openBefore = handles.length;
+
+    openCard("agent-1", "agent", "Tomas", "present");
+    release({
+      type: "mql-subscription-released",
+      frameId: 2,
+      subscriptionId: "agent-1",
+      hold: "present",
+      reason: "departed",
+    });
+
+    // A subject pane is about ONE thing. Re-opening it after that thing
+    // left would be a card asserting a condition the world just denied.
+    expect(handles.length).toBe(openBefore);
   });
 });
