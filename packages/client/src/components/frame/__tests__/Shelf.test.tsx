@@ -29,6 +29,7 @@ vi.mock('../../../services/websocket', () => ({
 const LIVE_FIGURES: SelfFigureRecord = {
   stuffId: 'me',
   playStanding: { band: 'nascent' },
+  makeStanding: { band: 'dormant' },
   renown: { value: 4 },
   practisingCompetence: { discipline: 'metalwork', band: 'apprentice' },
 };
@@ -189,35 +190,57 @@ describe('Shelf', () => {
     });
   });
 
-  describe('the six hatched rows', () => {
+  describe('the five hatched rows', () => {
     it('render unwired, with NO digit anywhere in them', () => {
       pinAll();
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
-      for (const label of ['MAKE', 'COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
+      for (const label of ['COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
         const g = groupFor(label);
         expect(g.getAttribute('data-figure-state'), label).toBe('unwired');
-        // ⚠ Not just "no value" — no digit at all. `MAKE` is the row
-        // where a real number exists and is deliberately withheld.
         expect(g.textContent ?? '', label).not.toMatch(/\d/);
       }
     });
 
     /*
-     * ⭐ THE decision of this build, asserted as a decision. `MAKE` has
-     * a real number on the server; it hatches because the figure's
-     * LEVEL is wrong — an account-level claim answered per-character.
-     * An untested reason string decays into the generic one the first
-     * time somebody copies a neighbouring line.
+     * ⭐⭐ MAKE left this set when the account roll-up landed, and the
+     * REASON left with it. Its hatch copy said the account arithmetic
+     * was unbuilt — true when written, false the moment
+     * `standingForAccount` shipped, and still on screen.
+     *
+     * ⚠ This is the second time a stale reason has shipped here (the
+     * round-trip row once claimed nothing measured round trip while the
+     * protocol existed end to end), and both were found by DRIVING, not
+     * by the suite. So the retired string is guarded: a reason pointing
+     * at the wrong place is worse than no reason, because it is
+     * confidently actionable and false.
      */
-    it("⭐ MAKE's reason names the ACCOUNT gap, not a generic 'not wired'", () => {
+    it('⭐⭐ MAKE is live, and its retired reason is gone from the source', () => {
       pinAll();
+      useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
       const make = groupFor('MAKE');
-      const reason = make.getAttribute('aria-label') ?? '';
-      expect(reason).toContain('account');
-      expect(reason).not.toContain(HATCH_COPY.unexposed);
-      expect(reason).not.toContain(HATCH_COPY['not-self']);
+      expect(make.getAttribute('data-figure-state')).toBe('live');
+      expect(make.textContent ?? '').toContain('dormant');
+
+      for (const copy of Object.values(HATCH_COPY)) {
+        expect(copy).not.toMatch(/account arithmetic/i);
+      }
+    });
+
+    /*
+     * ⚠ Absent is NOT zero and NOT a per-character fallback. When the
+     * server could not resolve the account the row must say so.
+     */
+    it('MAKE hatches with an account reason when the server sent none', () => {
+      pinAll();
+      useStore.setState({
+        shelfFigures: { ...LIVE_FIGURES, makeStanding: undefined },
+      });
+      render(<Shelf />);
+      const make = groupFor('MAKE');
+      expect(make.getAttribute('data-figure-state')).toBe('empty');
+      expect(make.getAttribute('aria-label') ?? '').toMatch(/account/i);
     });
 
     /*
@@ -226,14 +249,17 @@ describe('Shelf', () => {
      * account-level gap is arithmetic, and a world figure needs a
      * different pane entirely. One generic string erases all of that.
      */
-    it('⭐ the three hatch reasons are pairwise distinct', () => {
+    it('⭐ the hatch reasons are pairwise distinct', () => {
       const reasons = Object.values(HATCH_COPY);
       expect(new Set(reasons).size).toBe(reasons.length);
-      expect(reasons).toHaveLength(3);
+      // ⚠ Two, not three: `level` was retired with the account
+      // roll-up. The count is asserted so SHRINKING the vocabulary
+      // stays as deliberate an act as widening it.
+      expect(reasons).toHaveLength(2);
     });
 
     it.each([
-      ['make', 'level'],
+      ['make', 'live'],
       ['coin', 'unexposed'],
       ['status', 'unexposed'],
       ['time', 'not-self'],

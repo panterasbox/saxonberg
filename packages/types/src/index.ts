@@ -1248,13 +1248,14 @@ export interface StuffExitDoor {
  * absence as the not-wired state with its own reason rather than
  * substituting a zero.
  *
- * ⭐ **`makeStanding` is deliberately not here.** The server has the
- * number, but *Make* is an account-level stock and the account
- * arithmetic is unbuilt, so the figure's LEVEL is wrong — a figure
- * whose level is wrong cannot be rendered. It is kept off the wire
- * entirely rather than sent-and-declined, so the shelf's `MAKE` hatch
- * is structural instead of a matter of client discipline. See the
- * `self` entry in `lib/connection/Panes.ts`.
+ * ⭐ **`makeStanding` joined this record when the account roll-up
+ * landed.** It had been kept off the wire entirely — not
+ * sent-and-declined — because *Make* is an account-level stock whose
+ * arithmetic was unbuilt, so the figure's LEVEL was wrong, and a figure
+ * whose level is wrong cannot be rendered. What made it safe was the
+ * arithmetic PLUS an honest absence: the descriptor returns `undefined`
+ * when the account cannot be resolved, so the shelf hatches rather than
+ * showing a per-character number under an account-level label.
  *
  * ⭐ `renown` is absent — not `0` — for a scope that was never
  * materialized. `RenownApi.measuredRenownOf` preserves that
@@ -1265,6 +1266,11 @@ export interface SelfFigureRecord {
   stuffId: string;
   /** Influence earned by living in the world. Band NAME, not a value object. */
   playStanding?: { band: string };
+  /**
+   * Influence earned by building — the ACCOUNT's band, summed across
+   * its characters. Absent when the account could not be resolved.
+   */
+  makeStanding?: { band: string };
   /** Signed standing. Present only when the scope is materialized. */
   renown?: { value: number };
   /**

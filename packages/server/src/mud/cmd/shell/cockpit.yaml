@@ -218,9 +218,9 @@ subcommands:
       Most of them will not be showing you a number. That is not a
       fault — a figure the server cannot stand behind renders as
       hatched, with the reason it is not there, rather than as a
-      confident guess. `make` has a number and still hatches: it is an
-      account-level standing and the account arithmetic is not built,
-      so the figure would be answering at the wrong level.
+      confident guess. `make` reads at the account level: it sums what
+      every character on your account has built, so it is the same
+      figure whichever of them you are playing.
 
       Identity and connection are not on this list. They are not
       widgets — they are the two things that must be true at a glance,

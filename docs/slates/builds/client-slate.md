@@ -795,12 +795,19 @@ also the **first client consumer of S1's wire at all**: `packages/client`
 has two subscription call sites today, both `InspectionPane` panes, and
 nothing reads a standing field.
 
-⚠⚠ **`makeStanding` is a *level* collision, not a missing figure.** Its
-own comment records that the account arithmetic is deliberately unbuilt,
-so it reads per-character while § 6 / CONVENTIONS #4 call Make
-account-level. Labelling it account-level in the shelf would render a
-claim the server cannot back — the honesty rule applied to a level rather
-than a value.
+⚠⚠ **`makeStanding` was a *level* collision, not a missing figure** —
+it read per-character while § 6 / CONVENTIONS #4 call Make
+account-level, and labelling it account-level in the shelf would have
+rendered a claim the server could not back: the honesty rule applied to
+a level rather than a value.
+
+✅ **RESOLVED in Wave 2.** The account roll-up shipped, the field joined
+`PANES.self`, and the shelf row went live — all in one commit, because
+splitting them would have meant either a wrong-level number on the wire
+or a computed number nobody painted. ⚠ The hatch category `level`,
+whose only member this was, is **retired**: its sentence named a gap
+that had been closed, and *a reason pointing at the wrong place is worse
+than no reason.* Found by driving a browser, not by the suite.
 
 ✅ **Open question 5 (fonts) — CLOSED by precedent, not decided.**
 `GlobalFonts.ts` already self-hosts subset OFL woff2 from `public/fonts/`

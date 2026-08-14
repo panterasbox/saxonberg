@@ -70,16 +70,30 @@ import { useStore } from "../../store/index";
 import { Figure, tokens, type FigureState } from "../ui";
 
 /** Why a row is not showing a number. See the ⚠ block above. */
-export type HatchReason = "level" | "unexposed" | "not-self";
+export type HatchReason = "unexposed" | "not-self";
 
 /**
- * The three claims, in one table so a test can assert they differ.
+ * The claims, in one table so a test can assert they differ.
  * ⚠ Editing one of these to match another is the regression — the
  * distinction between them is the information.
+ *
+ * ⚠⚠ **A third category, `level`, was RETIRED when the account roll-up
+ * landed**, and retiring it mattered more than adding the figure did.
+ * It read *"account arithmetic unbuilt — Make is account-level, and the
+ * account roll-up is not built"*, and the moment `standingForAccount`
+ * shipped that sentence became **false while still being displayed** —
+ * it named a gap that had been closed and pointed the next reader at
+ * work already done.
+ *
+ * This is the second time this exact failure has occurred here: the
+ * round-trip row once claimed nothing measured round trip when the
+ * protocol existed end to end. ⭐ **A reason pointing at the wrong
+ * place is worse than no reason, because it is confidently actionable
+ * and false** — so a build that closes a gap must retire the sentence
+ * describing it in the same commit. A guard test greps for the retired
+ * string.
  */
 export const HATCH_COPY: Record<HatchReason, string> = {
-  level:
-    "account arithmetic unbuilt — Make is account-level, and the account roll-up is not built",
   unexposed: "no subscribable field yet",
   "not-self":
     "not a figure about you — a world figure, which the self pane cannot carry",
@@ -126,7 +140,11 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
     id: "make",
     label: "MAKE",
     desc: "influence · earned by building",
-    source: "level",
+    // ⭐ Live since the account roll-up landed. `makeStanding` joined
+    // `PANES.self` in the same commit as the arithmetic, so the band on
+    // the wire is the ACCOUNT's — the same figure `standing` and
+    // `profile` report, through the same seam.
+    source: "live",
   },
   {
     id: "coin",
@@ -245,6 +263,16 @@ export function figureFor(
         : // A band floor (`dormant`) is a real derivation, not an
           // absence — the server measured and this is the answer.
           { state: "live", value: band };
+    }
+    case "make": {
+      const band = figures?.makeStanding?.band;
+      // ⚠ Absent means the server could not resolve the account — it
+      // does NOT mean zero, and it must not fall back to a
+      // per-character figure. That substitution is the defect the
+      // roll-up was built to end.
+      return band === undefined
+        ? { state: "empty", reason: "no account resolved for this session" }
+        : { state: "live", value: band };
     }
     case "renown": {
       const value = figures?.renown?.value;

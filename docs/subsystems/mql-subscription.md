@@ -219,15 +219,22 @@ or location. Declaring a flag nothing needs is the inverse of the
 `HOLD_WAKES_ON` lesson: a dependency that fires for reasons unrelated to
 the content is churn dressed as liveness.
 
-⭐⭐ **`makeStanding` is deliberately absent from `self`'s field list —
-do not "fix" it.** `Avatar` declares the field and it returns a real
-band, but *Make* is an account-level stock whose account arithmetic is
-unbuilt, so what it returns is a per-CHARACTER figure answering a
+⭐⭐ **`makeStanding` JOINED `self`'s field list when the account
+roll-up landed** — which was the condition its absence had been recorded
+against, and it moved in the same commit as the arithmetic.
+
+It had been kept off the wire entirely rather than sent-and-declined,
+because *Make* is an account-level stock whose arithmetic was unbuilt,
+so what the field returned was a per-CHARACTER figure answering a
 per-person claim. A figure whose level is wrong cannot be rendered, and
-the strongest form of that is keeping it off the wire entirely rather
-than sending it and declining to paint it: a number sitting unused in
-the client store is a number the next builder wires up in one line. It
-joins the list the day the account roll-up lands.
+a number sitting unused in the client store is a number the next builder
+wires up in one line.
+
+⚠ What made it safe was the arithmetic **plus an honest absence**, not
+the arithmetic alone: the descriptor returns `undefined` when the
+account cannot be resolved, `projectFields` omits it, and the shelf
+hatches. Had it returned a fallback, the field would have gone back to
+answering at the wrong level in exactly the case nobody tests.
 
 ⚠ The durable index is built from the **subscription's** field list —
 `deriveAndInstallDependencies` skips any descriptor whose name is not in
