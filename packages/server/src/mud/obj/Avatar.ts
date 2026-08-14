@@ -58,7 +58,9 @@ import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
   MessageFrame,
+  RoutingRule,
 } from "@saxonberg/types";
+import { DEFAULT_ROUTING } from "@saxonberg/types";
 import type { CommandContributions } from "../api/command";
 import type Interactive from "./Interactive";
 import type TopicCatalogue from "./TopicCatalogue";
@@ -68,6 +70,9 @@ import type { FieldMeta } from "../lib/mixin";
 import type { SubscribableFieldDescriptor } from '../api/mql-subscription';
 import { InfluenceApi } from '../api/influence';
 import { RenownApi } from '../api/renown';
+
+/** Where the per-player routing table lives on `clientState`. */
+const ROUTING_STATE_KEY = "console.routing";
 
 /**
  * The sockets a delivery to `body` should actually reach.
@@ -1177,9 +1182,52 @@ export default class Avatar extends AvatarBase {
      * That is an unbounded set of small leaks, not a bounded one.
      */
     if (!this.getIsGuest()) RecordApi.record(this, frame);
+    /*
+     * ⭐⭐ **Feed routing, decided here and stamped on the frame.**
+     *
+     * One stream, several destinations, an ordered per-player table:
+     * first match wins for a `move`, a `copy` routes and keeps going.
+     * The predicates read the topic's FACETS, which live on the
+     * server's catalogue — so the frame arrives already knowing where
+     * it belongs and the client never re-derives a rule. Two evaluators
+     * disagree the first time one of them changes, and nothing about
+     * the disagreement is visible until somebody's message is in the
+     * wrong tab.
+     *
+     * ⚠ Stamped per-RECIPIENT, because the table is per-player: the
+     * frame object itself is shared across an audience, so a copy is
+     * made rather than mutated. `sendMessageToInteractive` already
+     * copies to stamp `frameId`, so this adds one shallow spread per
+     * delivery, not per socket.
+     */
+    const routed: MessageFrame = {
+      ...frame,
+      meta: {
+        ...frame.meta,
+        feeds: MessageApi.feedsFor(frame.topic, this.getRoutingRules()),
+      },
+    };
     for (const interactive of forwardingTargets(this)) {
-      ConnectionApi.sendMessage(interactive, frame);
+      ConnectionApi.sendMessage(interactive, routed);
     }
+  }
+
+  /**
+   * This player's routing table, as stored on `console.routing`.
+   *
+   * ⚠⚠ **The undeletable catch-all is NOT here.** It is appended by the
+   * evaluator, so it cannot be edited away by writing the clientState
+   * key directly. *Every frame must land somewhere* is an invariant,
+   * not a default a client gets to overwrite.
+   *
+   * A player who has never touched routing gets {@link DEFAULT_ROUTING},
+   * whose copy-to-Attention rule ships **on** — a convenience on a
+   * desktop, where the frame is in World anyway, and the safety net on
+   * a phone, where World may not be the feed you are looking at.
+   */
+  public getRoutingRules(): readonly RoutingRule[] {
+    const raw = this.getClientState(ROUTING_STATE_KEY);
+    return Array.isArray(raw) ? (raw as RoutingRule[]) : DEFAULT_ROUTING;
   }
 
   /**

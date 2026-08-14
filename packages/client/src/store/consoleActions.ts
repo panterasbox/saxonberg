@@ -14,7 +14,7 @@
  * server-persisted `console.tabs` / `console.activeTab` keys.
  */
 
-import type { ConsoleTab } from '@saxonberg/types';
+import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
 import { useStore } from './index';
 import { websocketClient } from '../services/websocket';
 
@@ -142,5 +142,58 @@ export function removeMuteForActiveTab(topic: string): ConsoleTab[] {
   });
   if (!mutated) return tabs;
   writeTabs(next);
+  return next;
+}
+
+/**
+ * ⭐ The active tab's standing FACET predicate.
+ *
+ * A tab IS a saved filter set — which is why this upgraded the existing
+ * primitive rather than adding a third mechanism beside tabs and mutes.
+ * `undefined` means "no facet filter", which passes everything.
+ */
+export function getActiveFacetFilter(): FacetFilter {
+  const name = getActiveTab();
+  return getTabs().find((t) => t.name === name)?.facets ?? {};
+}
+
+/**
+ * Replace the active tab's facet filter.
+ *
+ * ⚠ Persisted like every other tab edit, because a filter you have to
+ * re-apply every session is a filter nobody uses. It rides the same
+ * `console.tabs` key, so a saved set survives a reconnect and follows
+ * you to a second device.
+ */
+export function setActiveFacetFilter(facets: FacetFilter): ConsoleTab[] {
+  const name = getActiveTab();
+  const next = getTabs().map((t) =>
+    t.name === name ? { ...t, facets } : t,
+  );
+  writeTabs(next);
+  return next;
+}
+
+/**
+ * Save the current filter set as a NEW tab and switch to it — the
+ * panel's *"open as its own terminal"*.
+ *
+ * ⭐ There is no separate "saved filter set" object. A filter set that
+ * you can open is a terminal, and a terminal you can name is a tab, so
+ * the three collapse into one primitive rather than three that have to
+ * be kept in step.
+ */
+export function saveFilterSetAsTab(
+  name: string,
+  facets: FacetFilter,
+): ConsoleTab[] {
+  const trimmed = name.trim();
+  if (!trimmed) return getTabs();
+  const tabs = getTabs();
+  const next = tabs.some((t) => t.name === trimmed)
+    ? tabs.map((t) => (t.name === trimmed ? { ...t, facets } : t))
+    : [...tabs, { name: trimmed, muted: [], facets }];
+  writeTabs(next);
+  writeActive(trimmed);
   return next;
 }

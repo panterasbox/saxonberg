@@ -43,6 +43,8 @@ import {
   MAX_SAVED_ARRANGEMENTS_PER_MODE,
   SHELF_ROW_IDS,
   DEFAULT_SHELF,
+  DEFAULT_ROUTING,
+  FEED_DESTINATIONS,
   type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
@@ -247,6 +249,51 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         description:
           'Cockpit tabbed-terminal tabs. Each tab carries its ' +
           'own name and a list of muted topic strings.',
+      },
+      {
+        /**
+         * ⭐ The feed routing table — one stream, several destinations.
+         *
+         * An ORDERED list, and the order is the semantics: first match
+         * wins for a `move`, a `copy` routes and keeps going. Each rule
+         * is a predicate over the frame's topic FACETS, which is why a
+         * "quiet" rule is one entry rather than a list of sixty topic
+         * paths that drifts every time a topic is added.
+         *
+         * ⚠⚠ **The undeletable catch-all is deliberately NOT stored
+         * here.** The evaluator appends it, so writing this key
+         * directly cannot remove it. Every frame must land somewhere —
+         * without one, a mistyped predicate silently drops output, and
+         * *in a world where a frame can be "you are on fire", a lost
+         * message is not a cosmetic bug.*
+         *
+         * The default's copy-to-Attention rule ships **on**: a
+         * convenience on a desktop, where the frame is in World anyway,
+         * and the safety net on a phone, where World may not be the
+         * feed you are looking at.
+         */
+        key: 'console.routing',
+        defaultValue: DEFAULT_ROUTING,
+        description:
+          'Feed routing rules — an ordered table of facet predicates, ' +
+          'each naming a destination (world | attention | channels | ' +
+          'diagnostics) and MOVE (stop) or COPY (continue). The ' +
+          'undeletable catch-all is appended by the evaluator, not ' +
+          'stored here.',
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every(
+            (r) =>
+              typeof r === 'object' &&
+              r !== null &&
+              (FEED_DESTINATIONS as readonly string[]).includes(
+                (r as { to?: unknown }).to as string,
+              ) &&
+              ((r as { disposition?: unknown }).disposition === 'move' ||
+                (r as { disposition?: unknown }).disposition === 'copy'),
+          )
+            ? true
+            : 'must be a list of { when, to, disposition } rules',
       },
       {
         key: 'console.activeTab',

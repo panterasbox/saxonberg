@@ -20,10 +20,14 @@ import { tokens } from './ui';
 import { useStore } from '../store/index';
 import {
   addMuteForActiveTab,
+  getActiveFacetFilter,
   getActiveTab,
   getTabs,
   removeMuteForActiveTab,
+  saveFilterSetAsTab,
+  setActiveFacetFilter,
 } from '../store/consoleActions';
+import { FacetFilterPanel } from './FacetFilterPanel';
 import type { TopicDescriptor } from '@saxonberg/types';
 
 const DrawerPanel = styled.div`
@@ -174,6 +178,32 @@ export function FilterDrawer({ onClose }: FilterDrawerProps) {
         ×
       </CloseButton>
       <Title>Filter — {activeTab}</Title>
+      {/*
+        ⭐⭐ **The facet predicate comes first, and the topic tree stays
+        below it.**
+
+        Filters run on the topic FACETS — "quiet" is one rule rather
+        than a list of sixty paths that drifts every time a topic is
+        added — and that is what the S2 facet taxonomy was built for.
+
+        ⚠ But the tree is NOT replaced, and dropping it would lose a
+        real capability. Facets fix cross-cutting questions; only the
+        tree fixes SUBTREE mutes (*everything about the air in here*),
+        which is a prefix operation no facet can express. The topics
+        doc states both halves are needed; this panel is one of them.
+      */}
+      <FacetFilterPanel
+        frames={frames}
+        filter={getActiveFacetFilter()}
+        onChange={(f) => setActiveFacetFilter(f)}
+        onSaveSet={(f) => {
+          const name = window.prompt('Name this filter set');
+          if (name) saveFilterSetAsTab(name, f);
+        }}
+      />
+      <FamilyHeader>
+        <RowName>Mute individual topics</RowName>
+      </FamilyHeader>
       {groups.map((group) => {
         const familyMuteCount = group.leaves.reduce(
           (acc, d) => acc + (mutedSinceSessionStart[d.topic] ?? 0),

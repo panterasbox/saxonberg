@@ -33,6 +33,8 @@ import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
 import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
+import { facetFilterPasses } from "./components/FacetFilterPanel";
+import { frameFeeds } from "./store/routingActions";
 import type {
   ConsoleTab,
   LayoutName,
@@ -327,14 +329,47 @@ function App() {
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
   const activeTab = tabs.find((t) => t.name === activeTabName);
   const mutedSet = new Set(activeTab?.muted ?? []);
-  // `social.react.alwaysAggregate` — hide reaction prose lines (frames
-  // carrying `inReactionTo`); the chip on the target message carries the
-  // aggregate instead.
-  const visibleFrames = frames.filter(
-    (f) =>
-      !mutedSet.has(f.topic) &&
-      !(reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined),
-  );
+  /*
+   * ⭐⭐ **Three filters, in the order they answer three different
+   * questions.**
+   *
+   *  1. **Which FEED** — where the SERVER routed the frame, read off
+   *     `meta.feeds`. Routed feeds are independent of each other, so
+   *     this is a switch rather than a narrowing. Nothing here
+   *     evaluates a routing rule: the decision is already made and
+   *     stamped, and a second evaluator would disagree the first time
+   *     one of them changed.
+   *  2. **The standing FACET predicate** — the active tab's saved
+   *     filter set. "Quiet" is one rule over `weight`, not a list of
+   *     sixty topic paths that drifts every time a topic is added.
+   *  3. **Muted topics** — the tree half. Facets cannot express a
+   *     subtree ("everything about the air in here"), which is a
+   *     prefix operation, so both halves stay.
+   */
+  const activeFeed = useStore((state) => state.activeFeed);
+  const getTopicDescriptor = useStore((state) => state.getTopicDescriptor);
+  const facetFilter = activeTab?.facets;
+  const visibleFrames = frames.filter((f) => {
+    if (!frameFeeds(f.feeds).includes(activeFeed)) return false;
+    const d = getTopicDescriptor(f.topic);
+    if (
+      !facetFilterPasses(facetFilter, {
+        address: d.address,
+        actor: d.actor,
+        weight: d.weight,
+      })
+    ) {
+      return false;
+    }
+    if (mutedSet.has(f.topic)) return false;
+    // `social.react.alwaysAggregate` — hide reaction prose lines (frames
+    // carrying `inReactionTo`); the chip on the target message carries
+    // the aggregate instead.
+    if (reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined) {
+      return false;
+    }
+    return true;
+  });
   // Hover preview lives in the ghost command line (store-backed), not in
   // a command bar — under per-bar mode a moded bar would prepend its
   // prefix, so the preview would lie about what sends. The restore on
@@ -416,6 +451,13 @@ function App() {
           : {}),
         ...(frame.meta?.frameId !== undefined
           ? { frameId: frame.meta.frameId }
+          : {}),
+        // ⭐ Which feeds this frame belongs in — decided SERVER-side
+        // against the player's routing table and stamped on the
+        // envelope, so the client renders the answer instead of
+        // re-deriving the rules.
+        ...(frame.meta?.feeds !== undefined
+          ? { feeds: frame.meta.feeds }
           : {}),
         ...(typeof (frame.payload as { channelName?: unknown } | undefined)
           ?.channelName === "string"

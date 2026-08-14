@@ -24,6 +24,7 @@ import type {
   ConnectionEstablishedPayload,
   ConnectionState,
   ConsoleTab,
+  FeedDestination,
   ForumChange,
   ForumEntryRecord,
   ForumSubscriptionScope,
@@ -219,6 +220,21 @@ export interface Frame {
    * the server resolves the gutter → commandId.
    */
   frameId?: number;
+  /**
+   * ⭐⭐ Which feeds this frame was routed to (`meta.feeds`).
+   *
+   * Decided **server-side** against the player's routing table, because
+   * the predicates read the topic's FACETS and the facets live on the
+   * server's catalogue. The client groups by this and never evaluates a
+   * rule: two evaluators disagree the first time one of them changes,
+   * and nothing about the disagreement is visible until somebody's
+   * message is in the wrong tab.
+   *
+   * Absent on a frame delivered before the player had a table — the
+   * reader treats absence as `world`, the same answer the catch-all
+   * gives.
+   */
+  feeds?: FeedDestination[];
   /**
    * Chat channel name (`payload.channelName`), when this is a chat frame.
    * Lets a client-side view (the forum chat sidecar) filter the feed to a
@@ -608,6 +624,16 @@ interface StoreState
    * every frame matching an inactive tab's filter; cleared on tab
    * switch. Keys are tab names; missing keys treated as 0.
    */
+  /**
+   * ⭐ Which routed feed the terminal is showing.
+   *
+   * Session-scoped, deliberately: a feed is *where you are looking
+   * right now*, not a preference. Persisting it would mean logging in
+   * tomorrow into Diagnostics because that is where you were when you
+   * closed the tab.
+   */
+  activeFeed: FeedDestination;
+  setActiveFeed: (feed: FeedDestination) => void;
   unreadCounts: Record<string, number>;
   /** Bump the counter for one tab by 1. */
   incrementUnread: (tabName: string) => void;
@@ -1856,6 +1882,8 @@ export const useStore = create<StoreState>((set, get) => ({
           },
     ),
 
+  activeFeed: "world",
+  setActiveFeed: (feed) => set(() => ({ activeFeed: feed })),
   unreadCounts: {},
   incrementUnread: (tabName) =>
     set((state) => ({

@@ -29,7 +29,9 @@ import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type {
   EnvelopeTemplate,
+  FeedDestination,
   MessageFrame,
+  RoutingRule,
   StuffRef,
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
@@ -190,6 +192,36 @@ export class MessageApi {
    */
   static isCommunicative(topic: string): boolean {
     return logic().isCommunicative(topic);
+  }
+
+  /**
+   * ⭐⭐ **Which feeds this frame belongs in.**
+   *
+   * One stream, several destinations, an ordered table:
+   *
+   * - **first match wins** for a `move` — later rules never see it;
+   * - a `copy` routes and **keeps going**, which is how a tell reaches
+   *   Attention *and* still lands in World;
+   * - ⚠⚠ the table always ends in an **undeletable catch-all**, because
+   *   every frame must land somewhere. Without one a mistyped predicate
+   *   silently drops output, and *in a world where a frame can be "you
+   *   are on fire", a lost message is not a cosmetic bug.*
+   *
+   * ⭐ The predicates read the frame's topic FACETS, not topic strings.
+   * `weight = diagnostic` is one rule; the same rule as topic paths is
+   * a list of sixty that drifts silently every time a topic is added.
+   * This is the payoff the facet taxonomy was built for.
+   *
+   * ⚠ Evaluated **server-side**, beside the envelope. The client
+   * renders the answer and never re-derives it: two evaluators disagree
+   * the first time one of them changes, and the disagreement is
+   * invisible until somebody's message is in the wrong tab.
+   */
+  static feedsFor(
+    topic: string,
+    rules: readonly RoutingRule[],
+  ): FeedDestination[] {
+    return logic().feedsFor(topic, rules);
   }
 }
 

@@ -90,6 +90,23 @@ export interface MessageFrame<T = unknown> {
      * docs/subsystems/reactions.md.
      */
     inReactionTo?: string;
+    /**
+     * ⭐⭐ **Which feeds this frame belongs in, decided server-side.**
+     *
+     * Routing is a predicate over the frame's topic FACETS, and the
+     * facets live on the server's topic catalogue — so the frame
+     * arrives already knowing where it goes and the client never
+     * re-derives a rule. A client that evaluated the table would be
+     * holding a server semantic, and two evaluators disagree the first
+     * time one of them is changed.
+     *
+     * Stamped per-RECIPIENT (the table is per-player), which is why it
+     * lands at the Avatar's delivery seam rather than at compose time.
+     * Absent on frames delivered before a player has a table — the
+     * client treats absence as `world`, the same answer the catch-all
+     * gives.
+     */
+    feeds?: FeedDestination[];
   };
 }
 
@@ -2209,7 +2226,163 @@ export interface ConsoleTab {
   name: string;
   /** Leaf topic strings the tab suppresses. */
   muted: string[];
+  /**
+   * ⭐⭐ The tab's standing **facet predicate** — its filter set.
+   *
+   * A tab IS a saved filter set, which is why this upgraded the
+   * existing primitive rather than adding a third. `muted` stays
+   * beside it and neither replaces the other: facets fix cross-cutting
+   * questions (*everything that matters*), and only the topic TREE
+   * fixes subtree mutes (*everything about the air in here*), which is
+   * a prefix operation no facet can express.
+   */
+  facets?: FacetFilter;
 }
+
+/**
+ * ⭐ A standing predicate over topic FACETS.
+ *
+ * **Within an axis, OR; across axes, AND; an absent axis means any.**
+ * That is the whole grammar, and it is enough: *"quiet"* is
+ * `weight: ['consequence','activity']` — **one rule**, where the same
+ * filter as topic strings is a list of sixty paths that drifts every
+ * time a topic is added, silently.
+ *
+ * This is the payoff the S2 facet taxonomy was built for. The facet
+ * names here are the shipped ones, verified against the corpus rather
+ * than taken from the reference art (which predates it) — they agree.
+ */
+export interface FacetFilter {
+  address?: TopicAddress[];
+  actor?: TopicActor[];
+  weight?: TopicWeight[];
+}
+
+/** A named filter preset — what the panel offers before any tuning. */
+export interface FilterPreset {
+  name: string;
+  filter: FacetFilter;
+  /** One line saying what it does, shown beside the chip. */
+  note: string;
+}
+
+/**
+ * The four presets.
+ *
+ * ⚠ Exported from here so the panel and any future server-side reader
+ * (a `filter` verb) cannot drift — the `DEFAULT_SHELF` precedent.
+ */
+export const FILTER_PRESETS: readonly FilterPreset[] = [
+  { name: 'Everything', filter: {}, note: 'the full firehose' },
+  {
+    name: 'Quiet',
+    filter: { weight: ['consequence', 'activity'] },
+    note: 'consequence and activity only — one rule, not sixty paths',
+  },
+  {
+    name: 'Only me',
+    filter: { address: ['direct', 'personal'] },
+    note: 'aimed at you, not at the room',
+  },
+  {
+    name: 'No diagnostics',
+    filter: { weight: ['consequence', 'activity', 'chatter'] },
+    note: 'everything except the machine talking to itself',
+  },
+];
+
+// ============================================================================
+// Feed routing — one stream, several destinations
+// ============================================================================
+
+/**
+ * Where a frame can land.
+ *
+ * A closed set, exported so the server's evaluator and the client's tab
+ * strip cannot drift — the `TOPIC_ROOTS` precedent. A fifth destination
+ * is a deliberate edit here, not something a rule can invent.
+ */
+export type FeedDestination =
+  | 'world'
+  | 'attention'
+  | 'channels'
+  | 'diagnostics';
+
+export const FEED_DESTINATIONS: readonly FeedDestination[] = [
+  'world',
+  'attention',
+  'channels',
+  'diagnostics',
+];
+
+/**
+ * What a rule does once it matches.
+ *
+ * - `move` — routes here and **stops**; later rules never see the frame.
+ * - `copy` — routes here and **keeps going**, which is how a tell
+ *   reaches Attention *and* still lands in World.
+ */
+export type FeedDisposition = 'move' | 'copy';
+
+/**
+ * ⭐ **A predicate over the frame's FACETS, not over topic strings.**
+ *
+ * This is why the S2 facet work exists. `weight = diagnostic` is one
+ * rule; the same rule expressed as topic paths is a list of sixty that
+ * drifts every time a topic is added, and the drift is silent.
+ *
+ * Every field present must match (AND). `topic` is the one tree
+ * operation — an exact leaf, or a `*`-suffixed prefix, because subtree
+ * containment is what the tree is FOR and no facet can express it.
+ *
+ * An empty predicate matches everything: that is the catch-all.
+ */
+export interface FeedPredicate {
+  address?: TopicAddress;
+  actor?: TopicActor;
+  weight?: TopicWeight;
+  /** `'speech.channel'` or `'speech.*'`. */
+  topic?: string;
+}
+
+/** One ordered routing rule. */
+export interface RoutingRule {
+  when: FeedPredicate;
+  to: FeedDestination;
+  disposition: FeedDisposition;
+}
+
+/**
+ * ⚠⚠ **The last rule is a catch-all and cannot be deleted.**
+ *
+ * Every frame must land somewhere. Without one, a mistyped predicate
+ * silently drops output — and *in a world where a frame can be "you are
+ * on fire", a lost message is not a cosmetic bug.* The client states
+ * that reason where the rule is, rather than in a doc nobody reading
+ * the table will open.
+ *
+ * It is appended by the evaluator rather than stored, so it cannot be
+ * edited away by writing the clientState key directly.
+ */
+export const CATCH_ALL_RULE: RoutingRule = {
+  when: {},
+  to: 'world',
+  disposition: 'move',
+};
+
+/**
+ * The routing table a player starts with.
+ *
+ * ⚠⚠ **Copy-to-Attention ships ON.** On a desktop it is a convenience —
+ * the frame is visible in World anyway. On a phone World may not be the
+ * feed you are looking at, so it stops being a convenience and becomes
+ * the safety net; turning it off has to state what it costs.
+ */
+export const DEFAULT_ROUTING: readonly RoutingRule[] = [
+  { when: { weight: 'diagnostic' }, to: 'diagnostics', disposition: 'move' },
+  { when: { topic: 'speech.channel' }, to: 'channels', disposition: 'move' },
+  { when: { address: 'direct' }, to: 'attention', disposition: 'copy' },
+];
 
 /**
  * The cockpit layout vocabulary — the server-authoritative axis on the

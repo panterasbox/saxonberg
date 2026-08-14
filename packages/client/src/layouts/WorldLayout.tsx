@@ -15,6 +15,8 @@ import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { TabStrip } from "../components/TabStrip";
+import { FeedSwitcher } from "../components/routing/FeedSwitcher";
+import { RoutingTable } from "../components/routing/RoutingTable";
 import { Terminal } from "../components/Terminal";
 import { FilterDrawer } from "../components/FilterDrawer";
 import { CommandBar } from "../components/CommandBar";
@@ -95,6 +97,48 @@ const PaneSlot = styled.div<{ $compact?: boolean }>`
       : ""}
 `;
 
+/** The routing table's slide-out, mirroring the filter drawer's shell. */
+const RoutingDrawer = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24rem;
+  max-width: 100%;
+  background: ${tokens.color.surface};
+  border-left: 1px solid ${tokens.color.borderEmphasis};
+  overflow-y: auto;
+  z-index: 40;
+`;
+
+const RoutingClose = styled.button`
+  position: absolute;
+  top: ${tokens.space.md};
+  right: ${tokens.space.md};
+  background: transparent;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.title};
+  cursor: pointer;
+  min-height: 44px;
+`;
+
+const RoutingToggle = styled.button`
+  align-self: flex-start;
+  font: inherit;
+  font-size: ${tokens.font.label};
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  padding: 0 ${tokens.space.md};
+  min-height: 44px;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
 const PaneTab = styled.button<{ $active: boolean }>`
   background: ${(p) => (p.$active ? tokens.color.surfaceAlt : "transparent")};
   border: 1px solid ${tokens.color.borderEmphasis};
@@ -114,7 +158,15 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onCommandPreview,
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [routingOpen, setRoutingOpen] = useState(false);
   const rightPane = useStore((s) => s.rightPane);
+  const activeFeed = useStore((s) => s.activeFeed);
+  const setActiveFeed = useStore((s) => s.setActiveFeed);
+  // ⚠ The UNFILTERED buffer. Every count in the feed switcher is
+  // derived from the frames it names, and naming them from an
+  // already-filtered list would make `World 1077` report how many the
+  // current tab happens to show rather than how many landed there.
+  const allFrames = useStore((s) => s.frames);
   const setRightPane = useStore((s) => s.setRightPane);
   // ⚠ Subscribes to `matchMedia` — dragging a desktop window narrow is
   // the cheapest way anyone will test this, and a one-shot read would
@@ -124,6 +176,20 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   return (
     <Cockpit style={isCompact ? { flexDirection: "column" } : undefined}>
       <LeftColumn>
+        {/*
+          ⭐ Two strips, two questions. The FEED switcher is WHERE the
+          server routed a frame — independent destinations you switch
+          between. The tab strip below it is a saved filter set WITHIN
+          the feed you are in. Collapsing them would make "show me only
+          direct messages" and "show me the Attention feed" the same
+          control, and they are not: one is a predicate you tune, the
+          other is a place a rule sent something.
+        */}
+        <FeedSwitcher
+          frames={allFrames}
+          active={activeFeed}
+          onSelect={setActiveFeed}
+        />
         <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
         <Terminal
           frames={frames}
@@ -131,6 +197,23 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCommandPreview={onCommandPreview}
         />
         {drawerOpen && <FilterDrawer onClose={() => setDrawerOpen(false)} />}
+        {routingOpen && (
+          <RoutingDrawer>
+            <RoutingClose
+              aria-label="close routing"
+              onClick={() => setRoutingOpen(false)}
+            >
+              ×
+            </RoutingClose>
+            <RoutingTable frames={allFrames} />
+          </RoutingDrawer>
+        )}
+        <RoutingToggle
+          aria-label="routing"
+          onClick={() => setRoutingOpen((v) => !v)}
+        >
+          routing
+        </RoutingToggle>
         <CommandBar
           barId="world"
           onSendCommand={onSendCommand}
