@@ -79,6 +79,17 @@ const StepHeading = styled.h1`
   color: ${tokens.color.fgEmphasis};
 `;
 
+/**
+ * ⚠ The record line, from the art. It is not decoration: it states the
+ * two facts that make enrolment feel like an act rather than a form —
+ * whose record this enters, and that only they can strike it.
+ */
+const RecordLine = styled.div`
+  margin-top: ${tokens.space.xs};
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+`;
+
 const StepSub = styled.p`
   margin: 0;
   font-size: ${tokens.font.body};
@@ -300,6 +311,40 @@ const Binomial = styled.div`
  * Biology, Anatomy, Composition) renders as a labeled key/value grid.
  * Every row is real data; the client is purely presentational.
  */
+/** The certificate's title block — see the ⭐ note at its use site. */
+const CertificateTitle = styled.div`
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: ${tokens.space.sm};
+  margin-bottom: ${tokens.space.sm};
+  padding-bottom: ${tokens.space.xs};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.small};
+  letter-spacing: 0.06em;
+  color: ${tokens.color.fg};
+`;
+
+const CertificateNote = styled.span`
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0;
+  color: ${tokens.color.fgMuted};
+`;
+
+const NameChoiceRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${tokens.space.sm};
+`;
+
+const NameChoiceHint = styled.span`
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fgMuted};
+`;
+
 const DossierBox = styled.div`
   display: flex;
   flex-direction: column;
@@ -439,6 +484,43 @@ const ErrorBanner = styled.div`
  * Secondary to the stage — present so the player still sees the
  * server's prose, but not the focal element.
  */
+/**
+ * ⭐ The log's title bar, from the art.
+ *
+ * The strip always showed the commands; what it lacked was the sentence
+ * that makes them mean something. "What you are typing" plus the count
+ * turns a scrollback into the teaching surface the design intends —
+ * every card you click IS a command, and this is where you watch that
+ * happen.
+ */
+const LogHeader = styled.div`
+  display: flex;
+  align-items: baseline;
+  gap: ${tokens.space.sm};
+  padding: ${tokens.space.xs} ${tokens.space.xl};
+  border-top: 1px solid ${tokens.color.border};
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: ${tokens.color.sectionLabel};
+`;
+
+const LogCount = styled.span`
+  font-family: ${tokens.font.mono};
+  letter-spacing: 0;
+  color: ${tokens.color.fgDim};
+`;
+
+const LogNote = styled.span`
+  margin-left: auto;
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
+  letter-spacing: 0;
+  text-transform: none;
+  color: ${tokens.color.fgMuted};
+`;
+
 const TerminalStrip = styled.div`
   display: flex;
   flex-direction: column;
@@ -626,6 +708,10 @@ export function CharGenStage({
 
   const { fields, accountName, missing, error } = charGenState;
 
+  // Command echoes carry a `sigil`; narration does not. So this counts
+  // what the PLAYER sent, which is what the log claims to be showing.
+  const sentCount = frames.filter((f) => f.sigil !== undefined).length;
+
   // ⭐ Every applicable field, in SERVER order. No chunking, no cursor —
   // the form is the whole draft, and the server decides what is on it.
   const shown = fields.filter((f) => f.applicable);
@@ -733,6 +819,16 @@ export function CharGenStage({
           ) : null}
           {focused?.dossier?.sections.length ? (
             <DossierBox data-testid="chargen-detail-dossier">
+              {/*
+                ⭐ Titled, as the art has it. The dossier is not a
+                sidebar of stats — it is a CERTIFICATE read off the
+                model, and saying so is what makes "every row is real
+                data" land as a claim rather than decoration.
+              */}
+              <CertificateTitle>
+                Certificate of species
+                <CertificateNote>read off the model</CertificateNote>
+              </CertificateTitle>
               {focused.dossier.sections.map((section) => (
                 <DossierSectionView
                   key={section.heading}
@@ -795,14 +891,33 @@ export function CharGenStage({
           ) : null}
         </NameFieldRow>
         {f.hint ? <NameAccountRef>{f.hint}</NameAccountRef> : null}
+        {/*
+          ⭐ Keep · re-roll · type my own — three named choices, as the
+          art has them, not one ambiguous button. "Keep" is the reason
+          this matters: with only a re-roll control there was no way to
+          SAY you accepted the suggestion, so the player had to guess
+          that leaving it alone counted.
+        */}
         {f.suggestion ? (
-          <StageButton
-            type="button"
-            data-testid="chargen-reroll"
-            onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
-          >
-            ⟳ Suggest another
-          </StageButton>
+          <NameChoiceRow>
+            <StageButton
+              type="button"
+              data-testid="chargen-keep"
+              onClick={() => submitText(f)}
+            >
+              keep
+            </StageButton>
+            <StageButton
+              type="button"
+              data-testid="chargen-reroll"
+              onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
+            >
+              ⟳ re-roll
+            </StageButton>
+            <NameChoiceHint>
+              or type your own above — it sends when you leave the field
+            </NameChoiceHint>
+          </NameChoiceRow>
         ) : null}
         {/* Hidden submit so Enter in a field commits the value. */}
         <button type="submit" hidden aria-hidden="true" />
@@ -846,6 +961,12 @@ export function CharGenStage({
             <StepHeading data-testid="chargen-step">
               Articles of Enrolment
             </StepHeading>
+            {accountName ? (
+              <RecordLine data-testid="chargen-record-line">
+                Entered on the record for <strong>{accountName}</strong> ·
+                struck from it only by your own hand
+              </RecordLine>
+            ) : null}
             <StepSub>
               No classes, no levels, no stat points. You declare a body and a
               name; competence comes from doing the work.{" "}
@@ -909,7 +1030,15 @@ export function CharGenStage({
         </StageButton>
       </NavRow>
 
-      {/* Slim narration strip — secondary to the stage. */}
+      {/* ⭐ The teaching surface, named. See LogHeader. */}
+      <LogHeader>
+        what you are typing
+        <LogCount data-testid="chargen-log-count">{sentCount}</LogCount>
+        <LogNote>
+          every card you click sends a real command — the same one you could
+          type in a bare text client
+        </LogNote>
+      </LogHeader>
       <TerminalStrip>
         <Terminal
           frames={frames}

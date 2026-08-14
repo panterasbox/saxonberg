@@ -2602,6 +2602,24 @@ export interface CharGenRosterEntry {
   lastLocation?: string;
   /** The practice record: every discipline with evidence, and its band. */
   practice?: { discipline: string; band: string }[];
+  /**
+   * The scientific binomial (`Homo sapiens`). The roster names a
+   * character by species the way the dossier does — the world models
+   * species properly, and the one screen listing your characters is a
+   * good place to show it.
+   */
+  binomial?: string;
+  /**
+   * Portrait, as a **bucket-relative media key** — same contract as
+   * `CharGenOption.image`; the client prepends `MEDIA_BASE_URL`.
+   *
+   * ⚠ This is the character's SPECIES portrait, not a bespoke likeness:
+   * no per-character art exists, and inventing a URL for one would be a
+   * fabricated asset. Rendering the species plate is the honest
+   * available answer, and a real per-character portrait would replace
+   * this field's source without changing its shape.
+   */
+  portrait?: string;
 }
 
 /**
@@ -2626,6 +2644,12 @@ export interface AccountStandingPayload {
 /** `system.charactergen.roster` payload — the character-select list. */
 export interface CharGenRosterPayload {
   characters: CharGenRosterEntry[];
+  /**
+   * The signed-in account's display name. The roster header names the
+   * PERSON, because this is the one screen whose subject is the account
+   * rather than any character on it.
+   */
+  accountName?: string;
   /** The account-level figures. Absent when none could be derived. */
   account?: AccountStandingPayload;
 }

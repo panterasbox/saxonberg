@@ -37,6 +37,7 @@ import type { CharGenRosterEntry } from "@saxonberg/types";
 import { useStore } from "../store/index";
 import { signOut } from "../services/auth";
 import { useIsCompact } from "../lib/style/useIsCompact";
+import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
 import { Button } from "./ui/Button";
 import { Figure, UnbuiltGround } from "./ui";
@@ -146,6 +147,68 @@ const CharacterName = styled.div`
   font-size: ${tokens.font.title};
   font-weight: 600;
   color: ${tokens.color.fg};
+`;
+
+/**
+ * ⚠ The species PLATE, not a bespoke likeness — no per-character art
+ * exists, and minting a URL for one would be a fabricated asset. When a
+ * real portrait lands it replaces this field's source, not its shape.
+ */
+const Portrait = styled.div`
+  flex: none;
+  width: 44px;
+  height: 58px;
+  overflow: hidden;
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.sm};
+  background: ${tokens.color.surfaceMuted};
+  display: grid;
+  place-items: center;
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+/**
+ * ⭐ NEW is DERIVED from `lastSeen` being absent — the server already
+ * says "never played" and a second field asserting it could disagree.
+ * ⚠ There is deliberately no RETIRED badge: nothing can retire a
+ * character, so a badge for it would advertise a state the world cannot
+ * enter.
+ */
+const Flag = styled.span`
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.1em;
+  padding: 1px ${tokens.space.xs};
+  border: 1px solid ${tokens.color.borderEmphasis};
+  border-radius: ${tokens.radius.sm};
+  color: ${tokens.color.fgDim};
+`;
+
+const DetailHead = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: ${tokens.space.lg};
+`;
+
+const NameRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.sm};
+`;
+
+/** The binomial — italic, the way a field guide prints it. */
+const Binomial = styled.div`
+  font-size: ${tokens.font.small};
+  font-style: italic;
+  color: ${tokens.color.fgEmphasis};
 `;
 
 const CharacterSpecies = styled.div`
@@ -274,6 +337,36 @@ const UNBUILT_ACTIONS: ReadonlyArray<{ label: string; reason: string }> = [
   { label: "Retire", reason: "no retire command exists" },
 ];
 
+/** Two-letter stand-in when no plate is authored. */
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function CharacterPortrait({
+  entry,
+  scope = "roster",
+}: {
+  entry: CharGenRosterEntry;
+  /** ⚠ A one-character account renders BOTH the row and the detail, so
+   *  the two portraits need distinct ids or a query matches two nodes. */
+  scope?: "roster" | "detail";
+}) {
+  return (
+    <Portrait data-testid={`${scope}-portrait-${entry.playerId}`}>
+      {entry.portrait ? (
+        <img src={mediaUrl(entry.portrait)} alt="" />
+      ) : (
+        initials(entry.name)
+      )}
+    </Portrait>
+  );
+}
+
 /** Relative "last seen", or the honest never. */
 function lastSeenLabel(entry: CharGenRosterEntry): string {
   if (entry.lastSeen === undefined) return "never taken out";
@@ -321,9 +414,15 @@ function RosterCard({
       data-testid={`roster-card-${entry.playerId}`}
       onClick={onSelect}
     >
+      <CharacterPortrait entry={entry} />
       <CharacterBody>
-        <CharacterName>{entry.name}</CharacterName>
-        {entry.species ? (
+        <NameRow>
+          <CharacterName>{entry.name}</CharacterName>
+          {entry.lastSeen === undefined ? <Flag>NEW</Flag> : null}
+        </NameRow>
+        {entry.binomial ? (
+          <Binomial>{entry.binomial}</Binomial>
+        ) : entry.species ? (
           <CharacterSpecies>{entry.species}</CharacterSpecies>
         ) : null}
         <CharacterMeta>
@@ -358,13 +457,19 @@ function CharacterDetail({
         </BackLink>
       ) : null}
 
-      <div>
-        <Heading as="h2">{entry.name}</Heading>
+      <DetailHead>
+        <CharacterPortrait entry={entry} scope="detail" />
+        <div>
+        <NameRow>
+          <Heading as="h2">{entry.name}</Heading>
+          {entry.lastSeen === undefined ? <Flag>NEW</Flag> : null}
+        </NameRow>
         <Subhead>
-          {entry.species}
+          <em>{entry.binomial ?? entry.species}</em>
           {entry.description ? ` · ${entry.description}` : ""}
         </Subhead>
-      </div>
+        </div>
+      </DetailHead>
 
       {/*
         ⚠ Whole-card hatch, not a hatched value. There is no mailbox,
@@ -463,6 +568,7 @@ function CharacterDetail({
 export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
   const roster = useStore((s) => s.charGenRoster);
   const account = useStore((s) => s.accountStanding);
+  const accountName = useStore((s) => s.accountName);
   const isCompact = useIsCompact();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -545,9 +651,14 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
         <div>
           <Heading>Who are you tonight?</Heading>
           <Subhead>
+            {accountName ? (
+              <>
+                Signed in as <strong>{accountName}</strong> ·{" "}
+              </>
+            ) : null}
             {roster.length === 1
-              ? "One character on this account."
-              : `${roster.length} characters on this account.`}
+              ? "one character on this account"
+              : `${roster.length} characters on this account`}
           </Subhead>
         </div>
 

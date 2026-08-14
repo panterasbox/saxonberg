@@ -232,6 +232,7 @@ class WebSocketClient {
           .setCharGenRoster(
             (payload as CharGenRosterPayload).characters,
             (payload as CharGenRosterPayload).account,
+            (payload as CharGenRosterPayload).accountName,
           );
         return;
       }

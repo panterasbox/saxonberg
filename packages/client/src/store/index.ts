@@ -519,10 +519,17 @@ interface StoreState extends CmsSlice, StudioSlice {
    * absent member means the server could not answer, never zero.
    */
   accountStanding: AccountStandingPayload;
+  /**
+   * The signed-in account's display name, from the roster frame. The
+   * character-select header names the PERSON — that screen's subject is
+   * the account, not any one character on it.
+   */
+  accountName?: string;
   /** Store the roster and flip to `character-select`. */
   setCharGenRoster: (
     roster: CharGenRosterEntry[],
     account?: AccountStandingPayload,
+    accountName?: string,
   ) => void;
   /**
    * The current char-gen step state, from the most recent
@@ -1308,10 +1315,11 @@ export const useStore = create<StoreState>((set, get) => ({
   charGenRoster: [],
   accountStanding: {},
 
-  setCharGenRoster: (roster, account) =>
+  setCharGenRoster: (roster, account, accountName) =>
     set(() => ({
       charGenRoster: roster,
       accountStanding: account ?? {},
+      accountName,
       connectionPhase: "character-select",
     })),
 
