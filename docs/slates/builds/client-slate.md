@@ -863,6 +863,36 @@ knowledge, traceable only to a commit message describing the result.
   and Fund standing. Each renders with its own reason rather than being
   omitted.
 
+### ⚠⚠ 7.15 OPEN DEBT — the mocks were audited by TEXT, not by SIGHT
+
+Recorded 2026-08-13, during Wave 2.
+
+**The `.dc.html` files were read by extracting their text and never
+opened in a browser.** Stripped text preserves *what words appear* and
+destroys *how they are arranged* — so a one-page form was built as a
+five-screen wizard, a banded hero was built as a two-column rail, and a
+three-column workspace was built as a single centred column. All three
+were caught only when the user looked at the built screens.
+
+⭐ **The method fix, for every wave from here:** render the mock and
+compare by eye. The files are React walkthroughs — pin the phase flag
+in a scratch copy to reach panels behind a step (`isDoor` / `isIntake`
+/ `isLounge` in *Arrival — First 60 Seconds*). Reading the source text
+is a supplement, never the audit.
+
+⚠ **Unverified, and it is real debt:** Wave 1's three builds (civic
+ground · honest chrome · chrome on a phone) were built the same way, by
+sessions that left no record of rendering a mock. Their references —
+`Global Chrome.dc.html`, `Global Chrome - Mobile.dc.html`,
+`Unbuilt States.dc.html` — have **not** been visually diffed against
+what shipped. This is a bounded check (three files) and should happen
+before Wave 4 builds on that chrome, NOT a rebuild assumed in advance:
+Build C found six real bugs by driving, so some visual attention was
+paid and the result may come back clean.
+
+⭐ Waves 4, 6 and 7 are unbuilt, so their mocks carry no debt — only the
+method rule above.
+
 ### 7.2 The program resequenced — 2026-08-13
 
 Decided while scoping Wave 2, when the remaining waves were sequenced as
