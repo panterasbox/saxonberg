@@ -140,6 +140,7 @@ const STRUCTURAL: GroundRole[] = [
   'white',
   'accent-ink',
   'paper-ink',
+  'brand-google',
   'brand-twitch',
   'brand-youtube',
   'brand-kick',
@@ -228,6 +229,7 @@ describe('⭐ red never touches blue, as an assertion', () => {
 
   it('the platform marks are identical in every ground', () => {
     for (const role of [
+      'brand-google',
       'brand-twitch',
       'brand-youtube',
       'brand-kick',

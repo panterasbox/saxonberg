@@ -39,18 +39,53 @@ import type { EnrollmentDraft } from "../../Login";
 import type Species from "../../species/Species";
 import type {
   CharGenOption,
-  CharGenPicks,
+  CharGenFieldKind,
+  CharGenFieldState,
   CharGenStatePayload,
-  CharGenField,
   SpeciesDossier,
 } from "@saxonberg/types";
 import { Pronouns, PRONOUN_LABELS } from "@saxonberg/types";
+
+/**
+ * The settable char-gen field keys.
+ *
+ * ⭐ **Server-internal, deliberately.** This used to be an exported
+ * closed union on the wire, which meant the payload named every field
+ * twice — once here and again as a `<field>Options` array — and made a
+ * new concept a `types` change plus a client change. The wire now
+ * carries `CharGenFieldState[]` with a plain-string key, so this union
+ * is only the local `FIELDS` table's index type and widening it costs
+ * nobody outside this file.
+ */
+type CharGenField = "species" | "sex" | "name" | "pronouns" | "aspiration";
 import { SpeciesApi } from "../../../api/species";
 import { SourceTreeApi } from "../../../api/source-tree";
 
-// Pronoun options derive from the `Pronouns` enum (the single source of
-// truth for the values); the display labels are colocated with the enum.
-const PRONOUN_OPTIONS: CharGenOption[] = Object.values(Pronouns).map((v) => ({
+/**
+ * Pronoun options for a PLAYER CHARACTER.
+ *
+ * Derived from the `Pronouns` enum (the single source of truth for the
+ * values); the display labels are colocated with the enum.
+ *
+ * ⚠⚠ **`it/its` is excluded here and MUST stay in the enum.** The two
+ * are different questions. The enum is the world's pronoun vocabulary —
+ * the command parser resolves "take it", and objects, animals and
+ * constructs are referred to that way all the time. Removing it there
+ * would break referring to a chair.
+ *
+ * What this list governs is narrower: what a person may choose for
+ * *themselves* at intake. ⭐ Because `pronouns.validate` checks against
+ * this same array, the roster and the gate cannot drift — dropping an
+ * option here also refuses `enroll pronouns it` from the command line,
+ * with no second list to keep in step.
+ */
+const PLAYER_PRONOUNS: readonly Pronouns[] = [
+  Pronouns.He,
+  Pronouns.She,
+  Pronouns.They,
+];
+
+const PRONOUN_OPTIONS: CharGenOption[] = PLAYER_PRONOUNS.map((v) => ({
   value: v,
   label: PRONOUN_LABELS[v] ?? v,
 }));
@@ -140,12 +175,34 @@ function validateNameToken(token: string, label: string): string | undefined {
 
 // ---- Field handlers (a set, not an ordered flow) ------------------
 
+/**
+ * ⭐⭐ **This table is the single definition of a char-gen field**, and
+ * the wire payload is projected from it by {@link projectFields}.
+ *
+ * It used to be the single definition of a field's *behaviour* while
+ * `emitState` separately hand-assembled the field's *description* — so
+ * every new concept was a table entry plus a payload edit plus a client
+ * edit, and the client grew an `optionsFor(field)` switch to adapt the
+ * mismatch. Adding `kind`/`label` here and projecting closed that gap:
+ * **a new field is now one entry in this table and nothing else.**
+ *
+ * `enroll-projection.test.ts` asserts exactly that, by adding a field
+ * and checking it reaches the wire with no other edit.
+ */
 interface FieldHandler {
+  /** Which client renderer this field dispatches to. */
+  kind: CharGenFieldKind;
+  /** Human-facing heading, server-owned so the client holds no copy. */
+  label: string;
   /** Whether this field currently applies (e.g. sex only for sexed species). */
   applicable(draft: EnrollmentDraft, cfg: CharGenConfig): boolean;
   /** Whether the draft has a value for this field. */
   isSet(draft: EnrollmentDraft): boolean;
   options(draft: EnrollmentDraft, cfg: CharGenConfig): CharGenOption[];
+  /** The current value as a display string, when set. */
+  display(draft: EnrollmentDraft): string | undefined;
+  /** Optional one-line note rendered under the field. */
+  hint?(draft: EnrollmentDraft, cfg: CharGenConfig): string | undefined;
   validate(
     value: string,
     draft: EnrollmentDraft,
@@ -159,10 +216,30 @@ interface FieldHandler {
   ): Promise<void> | void;
 }
 
-const FIELDS: Record<CharGenField, FieldHandler> = {
+/**
+ * @internal Exported as a **white-box test seam only**, so
+ * `EnrollController.test.ts` can add a field and prove it reaches the
+ * wire with no edit to {@link projectFields}. That property is the
+ * entire justification for the projected payload, and a test that
+ * cannot add a field cannot assert it.
+ *
+ * ⚠ No production consumer outside this module. A caller that reads
+ * this table instead of the emitted payload is reintroducing the
+ * duplication the projection removed.
+ *
+ * ⚠ The key type stays the narrow union rather than `string`: under
+ * `noUncheckedIndexedAccess` a `Record<string, …>` makes every lookup
+ * in `projectFields` and `computeMissing` possibly-undefined, which
+ * would cost production code seven null-guards to buy a test one cast.
+ * The test casts.
+ */
+export const FIELDS: Record<CharGenField, FieldHandler> = {
   species: {
+    kind: "choose-one",
+    label: "species",
     applicable: () => true,
     isSet: (d) => !!d.speciesPath,
+    display: (d) => d.speciesCommonName ?? d.speciesKey,
     options: (_d, cfg) =>
       cfg.species.map((s) => {
         // Presentation (dossier + illustration) for this species, warmed
@@ -207,11 +284,20 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     },
   },
   sex: {
+    kind: "choose-one",
+    label: "sex",
     // Reads the cached sex-determination system the species pick
     // resolved — reliable + sync (no re-materialization here).
     applicable: (d) =>
       !!d.speciesPath && !!d.sexSystem && d.sexSystem !== "none",
+    hint: (d) =>
+      !d.speciesPath
+        ? "Pick a species first."
+        : d.sexSystem === "none"
+          ? "This species has no sexes."
+          : undefined,
     isSet: (d) => !!d.sex,
+    display: (d) => (d.sex ? cap(d.sex) : undefined),
     options: (d) =>
       validSexSet(d.sexSystem ?? "").map((s) => ({ value: s, label: cap(s) })),
     validate: (v, d) => {
@@ -225,8 +311,38 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     },
   },
   name: {
-    applicable: () => true,
+    kind: "text",
+    label: "name",
+    /**
+     * ⭐ A REAL dependency, not a sequencing preference. The suggester
+     * draws from the species' own name banks — `refreshSuggestion`
+     * returns early without a `speciesPath` — and changing species
+     * deliberately wipes the name. Offering the field first would hand
+     * the player an empty box whose contents a later pick discards.
+     *
+     * ⚠ Sex is deliberately NOT part of this. `Species.suggestName`
+     * takes only the account name; gating on sex would encode a
+     * dependency the model does not have, and the server is the wrong
+     * place to invent one.
+     */
+    applicable: (d) => !!d.speciesPath,
     isSet: (d) => !!d.name,
+    // The joined display name. ⚠ The client does NOT parse this back
+    // apart — it composes `enroll name <given> <surname>` from its own
+    // two inputs, which the `suggestion` shape tells it to show.
+    display: (d) =>
+      [d.name, d.surname].filter(Boolean).join(" ") || undefined,
+    /**
+     * Doubles as the INAPPLICABLE reason. A field that cannot be filled
+     * yet says why, in the server's words — the client renders the hint
+     * either way and never composes a reason of its own.
+     */
+    hint: (d) =>
+      !d.speciesPath
+        ? "Pick a species first — names come from its name banks."
+        : d.suggestion
+          ? "Suggested from your account name and the species' name banks."
+          : undefined,
     // No card options — the client renders editable given/surname fields
     // + a reroll button. `reroll` regenerates the suggestion; any other
     // value is the typed `<given> [surname]`.
@@ -261,8 +377,12 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     },
   },
   pronouns: {
+    kind: "choose-one",
+    label: "pronouns",
     applicable: () => true,
     isSet: (d) => !!d.pronouns,
+    display: (d) =>
+      PRONOUN_OPTIONS.find((p) => p.value === d.pronouns)?.label ?? d.pronouns,
     options: () => PRONOUN_OPTIONS,
     validate: (v) =>
       PRONOUN_OPTIONS.some((p) => p.value === v.toLowerCase())
@@ -273,8 +393,11 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
     },
   },
   aspiration: {
+    kind: "choose-one",
+    label: "aspiration",
     applicable: () => true,
     isSet: (d) => !!d.aspiration,
+    display: (d) => d.aspiration,
     options: (_d, cfg) =>
       cfg.aspirations.map((a) => ({
         value: a.key,
@@ -292,12 +415,19 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
   },
 };
 
-/** Settable fields in canonical order (drives `missing` + iteration). */
-const FIELD_ORDER: CharGenField[] = [
+/**
+ * Settable fields in canonical order (drives `missing` + iteration).
+ *
+ * @internal Exported alongside {@link FIELDS} as the same test seam.
+ */
+export const FIELD_ORDER: CharGenField[] = [
   "species",
   "sex",
-  "name",
+  // ⭐ Pronouns sit WITH sex, not after the name. They answer the same
+  // question — how this body is referred to — and separating them put
+  // an unrelated text field between two halves of one thought.
   "pronouns",
+  "name",
   "aspiration",
 ];
 
@@ -309,6 +439,55 @@ function computeMissing(
   return FIELD_ORDER.filter(
     (f) => FIELDS[f].applicable(draft, cfg) && !FIELDS[f].isSet(draft),
   );
+}
+
+/**
+ * Project the {@link FIELDS} table onto the wire.
+ *
+ * ⭐ The whole point of the generalized payload: this is the ONLY place
+ * a field's description is built, and it reads the same handler that
+ * owns the field's behaviour. Adding a field to `FIELDS` + `FIELD_ORDER`
+ * puts it on the wire with no edit here — which is what
+ * `enroll-projection.test.ts` asserts.
+ *
+ * ⚠ Inapplicable fields are still emitted, carrying `applicable: false`.
+ * The predecessor signalled inapplicability by sending an EMPTY option
+ * array, which conflated *this species has no sexes* with *this species
+ * has no sexes authored yet* — a distinction the client needs and could
+ * not make. Emitting the field lets the client say why it is absent.
+ */
+function projectFields(
+  draft: EnrollmentDraft,
+  cfg: CharGenConfig,
+): CharGenFieldState[] {
+  return FIELD_ORDER.map((key) => {
+    const h = FIELDS[key];
+    const applicable = h.applicable(draft, cfg);
+    const state: CharGenFieldState = {
+      field: key,
+      kind: h.kind,
+      label: h.label,
+      applicable,
+    };
+    // Options only when the field applies — a non-sexed species has no
+    // sexes to offer, and shipping a stale set would invite a click that
+    // the validator would then reject.
+    if (applicable) {
+      const options = h.options(draft, cfg);
+      if (options.length) state.options = options;
+    }
+    const value = h.display(draft);
+    if (value) state.value = value;
+    const hint = h.hint?.(draft, cfg);
+    if (hint) state.hint = hint;
+    // The name field's suggestion rides the field it belongs to as well
+    // as the payload root, so a renderer never has to reach outward for
+    // the thing that tells it how many inputs to draw.
+    if (h.kind === "text" && draft.suggestion) {
+      state.suggestion = draft.suggestion;
+    }
+    return state;
+  });
 }
 
 /**
@@ -452,27 +631,8 @@ export default class EnrollController extends CommandController<EnrollModel> {
     cfg: CharGenConfig,
     error?: { field: CharGenField; message: string },
   ): void {
-    const picks: CharGenPicks = {};
-    if (draft.speciesPath) {
-      picks.species = {
-        key: draft.speciesKey ?? "",
-        commonName: draft.speciesCommonName ?? "",
-      };
-    }
-    if (draft.sex) picks.sex = draft.sex;
-    if (draft.name) picks.name = draft.name;
-    if (draft.surname) picks.surname = draft.surname;
-    if (draft.pronouns) picks.pronouns = draft.pronouns;
-    if (draft.aspiration) picks.aspiration = draft.aspiration;
-
     const payload: CharGenStatePayload = {
-      picks,
-      speciesOptions: FIELDS.species.options(draft, cfg),
-      sexOptions: FIELDS.sex.applicable(draft, cfg)
-        ? FIELDS.sex.options(draft, cfg)
-        : [],
-      pronounOptions: FIELDS.pronouns.options(draft, cfg),
-      aspirationOptions: FIELDS.aspiration.options(draft, cfg),
+      fields: projectFields(draft, cfg),
       missing: computeMissing(draft, cfg),
     };
     if (draft.suggestion) payload.suggestion = draft.suggestion;

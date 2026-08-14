@@ -74,7 +74,7 @@ formula fits. Raw logs stay per-faucet.
 ⚠ **Vocabulary, not arithmetic.** Declaring producer account-level says
 nothing about *how* an account's figure derives from its characters'.
 
-### ⚠⚠ `standingForHost` — the seam, and its stub
+### ⭐ `standingForHost` — the seam, and the account roll-up
 
 `InfluenceApi.standingForHost(host, stock)` is the read every
 player-facing surface goes through: the `standing` verb, the `profile`
@@ -82,36 +82,95 @@ digest, and the `makeStanding` live field. That is the whole point —
 three surfaces reading one figure through one function **cannot
 disagree**.
 
-**The account-level aggregation inside it is a stub. It does not
-aggregate.** For an account-level stock it returns the host's own
-subject standing, exactly as a character-level read would. So make
-standing is still per-character today, and that is *visible rather than
-pretended*.
+**The account roll-up shipped in the Arrival build.** Two entry points,
+one formula:
 
-This is deliberate. How an account's make standing derives from its
-characters' — sum, best, decayed differently, something else — is an
-open design question and its own piece of work. Committing to a formula
-would ship a number players can see derived from a placeholder, and
-every surface reading it would encode the placeholder by reference.
+| Function | Used by | What it does |
+|---|---|---|
+| `standingForAccount(subject, members, stock)` | `Login`'s roster — no host exists at character select, because the player is not embodied | Holds the arithmetic |
+| `standingForHost(host, stock)` | the `standing` verb, `profile`, `makeStanding` | Resolves the host's account, then delegates |
 
-An earlier attempt did commit to one (banding the sum of the account's
-scalars, computed inside `Avatar`) and produced three defects worth
-naming, because they are the failure modes any retry should avoid:
+#### The formula: **sum**
 
-1. **Split-brain** — only the dashboard was changed, so `standing` and
-   `profile` still answered per-character and one player could see two
-   different make bands.
+The members' producer scalars are summed and the sum is banded with the
+**configured** producer cutoffs (`ProducerLogic.standingForAccount`,
+which is where the thresholds already live).
+
+⭐ **Sum, not best or mean, and the argument is the level claim itself.**
+The account is the subject, so *how a person distributes work across
+bodies must not change their figure* — and sum is the only combinator
+with that property. Max and mean both **penalise** minting a second
+character, which would make an account-level figure move when you create
+a body: not a measurement of the account at all. Sum is also neutral
+against splitting, so there is nothing to gain and nothing to lose by
+spreading authorship.
+
+Two supporting facts:
+
+- the scalars are already recency-decayed **rates**, and a sum of rates
+  is a rate — consistent with *standing is a rate, not a total*;
+- double-counting is impossible by construction: appends dedupe on
+  `{author, actor, bucket}` and each character is a distinct `author`,
+  so two of one account's characters credit separately **because they
+  are separate content**.
+
+#### ⚠⚠ Unresolved is a first-class outcome
+
+`standingForHost` returns `InfluenceStanding | undefined`, and
+`undefined` means *this account could not be resolved*. **No caller may
+substitute a per-character figure for it.** The account resolves through
+the host's runtime `User`, which is unpersisted, so "no account in hand"
+is a reachable state — a guest, a seed, a body nobody has played.
+
+The convention is not invented here: `measuredRenownOf` already returns
+`undefined` for an unmaterialized scope, precisely so a reader can tell
+*never measured* from *measured at zero*. The three surfaces each handle
+it: the live field omits (and the client hatches), the `profile` digest
+omits `make`, and the `standing` verb says so in the machine voice.
+
+⚠ **This was a deliberate behaviour change.** A body with no account
+used to report a make band and now reports none. That is worse-looking
+and more honest — the band it printed was a per-character number wearing
+an account-level label.
+
+#### How each of the earlier attempt's three defects is answered
+
+An earlier attempt banded the sum inside `Avatar` and produced three
+defects. ⚠ Note that **none of them was "sum is wrong"** — the formula
+was never the objection, which is why the retry could keep it:
+
+1. **Split-brain** — only the dashboard changed, so `standing` and
+   `profile` still answered per-character. *Answered structurally:* both
+   entry points run one function, so disagreement is unreachable rather
+   than merely avoided.
 2. **Wrong cutoffs** — `Band.fromScalar(total)` with no argument
    silently uses `DEFAULT_BAND_THRESHOLDS` while every real producer
-   band uses the configured ones from AppSettings.
-3. **Silent downgrade** — it read `getUser()`, which is runtime-only and
-   unpersisted; unset, it quietly fell back to per-character with
-   nothing saying so.
+   band uses the configured ones. *Answered by placement:* the
+   arithmetic lives in `ProducerLogic` beside `bandThresholds()`.
+3. **Silent downgrade** — it read `getUser()`, unset, and quietly fell
+   back with nothing saying so. *Answered by the return type:*
+   `undefined` is not a fallback, and every caller must handle it.
 
 ⚠ `producer_events` is **not** re-keyed by any of this. Re-keying has a
 wrong answer available — silently dropping the history of anyone with
-more than one character — so whatever formula lands should aggregate on
-**read**, which derive-on-read makes possible.
+more than one character — so the aggregation happens on **read**, which
+derive-on-read makes possible.
+
+#### The account seam
+
+`standingForHost` cannot ask `Avatar` for its account directly: `Avatar`
+imports `InfluenceApi` (its `subscribableFields` read standing), so an
+import back — or to `PlayerApi`, which reaches `Avatar` through
+`PlayerLogic` — closes a module cycle. The capability is therefore an
+interface, `AccountScoped` in `lib/standing/AccountScoped.ts`, which
+`api/influence` already depends on and which depends on nothing.
+
+⚠ Narrowing is a `typeof` guard on a private static rather than
+`MixinApi.isX`, because no mixin owns account ownership — it is a fact
+about the `Avatar` class — and minting one for a single method would
+invent a subsystem concept nothing else needs. The guard is confined to
+one method so there is exactly one place to change if that stops being
+true.
 
 ## The producer stock (the make faucet)
 

@@ -316,17 +316,21 @@ describe("char-gen frame routing", () => {
       body: "",
       meta: { timestamp: 0 },
       payload: {
-        picks: {},
-        speciesOptions: [{ value: "human", label: "Human" }],
-        sexOptions: [],
-        pronounOptions: [],
-        aspirationOptions: [],
+        fields: [
+          {
+            field: "species",
+            kind: "choose-one",
+            label: "species",
+            applicable: true,
+            options: [{ value: "human", label: "Human" }],
+          },
+        ],
         missing: ["species"],
       },
     });
 
     const state = useStore.getState().charGenState;
-    expect(state?.speciesOptions).toEqual([
+    expect(state?.fields[0]?.options).toEqual([
       { value: "human", label: "Human" },
     ]);
     expect(state?.missing).toContain("species");

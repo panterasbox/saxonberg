@@ -1248,13 +1248,14 @@ export interface StuffExitDoor {
  * absence as the not-wired state with its own reason rather than
  * substituting a zero.
  *
- * ⭐ **`makeStanding` is deliberately not here.** The server has the
- * number, but *Make* is an account-level stock and the account
- * arithmetic is unbuilt, so the figure's LEVEL is wrong — a figure
- * whose level is wrong cannot be rendered. It is kept off the wire
- * entirely rather than sent-and-declined, so the shelf's `MAKE` hatch
- * is structural instead of a matter of client discipline. See the
- * `self` entry in `lib/connection/Panes.ts`.
+ * ⭐ **`makeStanding` joined this record when the account roll-up
+ * landed.** It had been kept off the wire entirely — not
+ * sent-and-declined — because *Make* is an account-level stock whose
+ * arithmetic was unbuilt, so the figure's LEVEL was wrong, and a figure
+ * whose level is wrong cannot be rendered. What made it safe was the
+ * arithmetic PLUS an honest absence: the descriptor returns `undefined`
+ * when the account cannot be resolved, so the shelf hatches rather than
+ * showing a per-character number under an account-level label.
  *
  * ⭐ `renown` is absent — not `0` — for a scope that was never
  * materialized. `RenownApi.measuredRenownOf` preserves that
@@ -1265,6 +1266,11 @@ export interface SelfFigureRecord {
   stuffId: string;
   /** Influence earned by living in the world. Band NAME, not a value object. */
   playStanding?: { band: string };
+  /**
+   * Influence earned by building — the ACCOUNT's band, summed across
+   * its characters. Absent when the account could not be resolved.
+   */
+  makeStanding?: { band: string };
   /** Signed standing. Present only when the scope is materialized. */
   renown?: { value: number };
   /**
@@ -2411,16 +2417,59 @@ export interface ConnectionEstablishedPayload {
  */
 
 /**
- * The settable char-gen fields. Each is set by a live `enroll <field>
- * <value>` command; the client lays them out however it likes (one per
- * screen, grouped, or all on one page) — the server is layout-agnostic.
+ * How a char-gen field is rendered. The **renderer discriminator** — the
+ * thing that lets the payload be a generic list instead of one option
+ * array per field.
+ *
+ * ⭐ A new interaction is a new member here plus one client renderer.
+ * Nothing about the shell, the gating or the flow changes, which is the
+ * property the lineage model needs (see char-gen.md).
+ *
+ * - `choose-one` — pick one of `options`.
+ * - `text` — free text. When the field carries a `suggestion` whose
+ *   `surname` is set, the renderer shows two inputs; that shape is the
+ *   one/two-input discriminator and there is deliberately no second
+ *   mechanism for it.
  */
-export type CharGenField =
-  | 'species'
-  | 'sex'
-  | 'name'
-  | 'pronouns'
-  | 'aspiration';
+export type CharGenFieldKind = 'choose-one' | 'text';
+
+/**
+ * One settable char-gen field, as the server describes it.
+ *
+ * ⭐⭐ `field` is a **plain string, not a closed union** — deliberately.
+ * The predecessor named every field twice (a `CharGenField` union *and*
+ * a `<field>Options` array per member), so every new char-gen concept
+ * was a `types` change plus a client change. The field key vocabulary
+ * now lives in exactly one place: the server's `FIELDS` table, which
+ * this list is projected from.
+ *
+ * The client must therefore render a field it does not recognize rather
+ * than dropping it — an unrendered field can still gate `enroll confirm`
+ * through `missing`, which is a dead end the player cannot diagnose.
+ */
+export interface CharGenFieldState {
+  /** The token the client sends as `enroll <field> <value>`. */
+  field: string;
+  /** Which renderer to dispatch to. */
+  kind: CharGenFieldKind;
+  /** Human-facing heading. Server-supplied so the client holds no copy. */
+  label: string;
+  /**
+   * Whether this field currently applies — e.g. `sex` does not, for a
+   * non-sexed species. Replaces the predecessor's implicit
+   * "`sexOptions` is empty ⇒ N/A", which conflated *no options* with
+   * *not applicable*.
+   */
+  applicable: boolean;
+  /** The closed choice set, for `choose-one`. */
+  options?: CharGenOption[];
+  /** The current value as a display string, when set. */
+  value?: string;
+  /** Current suggestion for a `text` field (drives pre-fill + reroll). */
+  suggestion?: { name: string; surname?: string };
+  /** Optional one-line note under the field. */
+  hint?: string;
+}
 
 /** One closed-choice option for the current char-gen step. */
 export interface CharGenOption {
@@ -2454,7 +2503,29 @@ export interface CharGenOption {
 /** One labeled section of a {@link SpeciesDossier} (e.g. "Classification"). */
 export interface DossierSection {
   heading: string;
-  rows: { label: string; value: string }[];
+  rows: DossierRow[];
+}
+
+/**
+ * One dossier row.
+ *
+ * ⭐ `spoiler` carries the field's **reveal level** across the char-gen
+ * boundary. It is declared on `fieldMeta` precisely so it travels
+ * "wherever it surfaces — a wiki panel, the Studio, help, a future
+ * codex", and it used to be dropped here, so char-gen rendered expanded
+ * what every other surface renders collapsed.
+ *
+ * ⚠ Level 1 means **collapsed by default, not forbidden** — a renderer
+ * puts the row behind a disclosure, it does not withhold it. This is an
+ * *appetite* axis ("does this reader want to be spoiled"), not an
+ * epistemic one ("does this character know it"); the latter has no
+ * substrate. A collapse toggle is not a lock.
+ */
+export interface DossierRow {
+  label: string;
+  value: string;
+  /** Reveal level from `fieldMeta`; absent or 0 = show expanded. */
+  spoiler?: number;
 }
 
 /**
@@ -2468,48 +2539,45 @@ export interface SpeciesDossier {
   sections: DossierSection[];
 }
 
-/** The accumulated picks so far (client-readable draft). */
-export interface CharGenPicks {
-  species?: { key: string; commonName: string };
-  sex?: string;
-  name?: string;
-  surname?: string;
-  pronouns?: string;
-  aspiration?: string;
-}
-
 /**
  * `system.charactergen.state` payload — the complete live draft state.
  * The server re-emits the whole thing after every `enroll <field>
  * <value>`; the client renders whatever layout it wants from it. No
  * notion of a "current step" — flow/layout is entirely client-side.
+ *
+ * ⭐ The payload is **projected from the server's `FIELDS` table**, not
+ * assembled beside it. Adding a char-gen concept is one table entry; it
+ * used to be a `types` change plus a payload change plus a client
+ * change.
  */
 export interface CharGenStatePayload {
-  /** Current chosen values (the live draft). */
-  picks: CharGenPicks;
-  /** Species options (carry the dossier + illustration). */
-  speciesOptions: CharGenOption[];
   /**
-   * Sex options for the chosen species — EMPTY when the species isn't
-   * sexed, which is also how the client knows the field doesn't apply.
+   * Every settable field, in canonical order, each carrying its own
+   * options and current value.
+   *
+   * ⚠ Replaced `picks` + four `<field>Options` arrays. Two sources of
+   * truth for one fact is what forced the client's `optionsFor(field)`
+   * adapter switch; a field now describes itself.
    */
-  sexOptions: CharGenOption[];
-  pronounOptions: CharGenOption[];
-  aspirationOptions: CharGenOption[];
-  /** Current name suggestion (drives the name fields' pre-fill). */
+  fields: CharGenFieldState[];
+  /**
+   * Required fields still unset — gates `enroll confirm` and lets the
+   * client show what's left. A `sex` entry appears only when applicable.
+   *
+   * ⚠ The client must gate on THIS and never on a field list of its
+   * own, or it re-encodes which fields exist and in what order they are
+   * required — the coupling this payload shape exists to remove.
+   */
+  missing: string[];
+  /** Current name suggestion (also mirrored on the `name` field). */
   suggestion?: { name: string; surname?: string };
   /**
    * The player's real account display name (Google `displayName`; Twitch
    * later), shown on the name field for reference. Absent if unavailable.
    */
   accountName?: string;
-  /**
-   * Required fields still unset — gates `enroll confirm` and lets the
-   * client show what's left. A `sex` entry appears only when applicable.
-   */
-  missing: CharGenField[];
   /** Last validation rejection, scoped to the field it concerns. */
-  error?: { field: CharGenField; message: string };
+  error?: { field: string; message: string };
 }
 
 /** One character in the post-login roster. */
@@ -2534,11 +2602,56 @@ export interface CharGenRosterEntry {
   lastLocation?: string;
   /** The practice record: every discipline with evidence, and its band. */
   practice?: { discipline: string; band: string }[];
+  /**
+   * The scientific binomial (`Homo sapiens`). The roster names a
+   * character by species the way the dossier does — the world models
+   * species properly, and the one screen listing your characters is a
+   * good place to show it.
+   */
+  binomial?: string;
+  /**
+   * Portrait, as a **bucket-relative media key** — same contract as
+   * `CharGenOption.image`; the client prepends `MEDIA_BASE_URL`.
+   *
+   * ⚠ This is the character's SPECIES portrait, not a bespoke likeness:
+   * no per-character art exists, and inventing a URL for one would be a
+   * fabricated asset. Rendering the species plate is the honest
+   * available answer, and a real per-character portrait would replace
+   * this field's source without changing its shape.
+   */
+  portrait?: string;
+}
+
+/**
+ * The account's own standing — the figures that belong to the PERSON,
+ * not to any one character.
+ *
+ * ⭐ Character select is the one screen where the account is the
+ * subject, so this rides beside the roster rather than on an entry.
+ *
+ * ⚠ Every member is optional and an absent one means **the server
+ * cannot answer**, never zero. `fund` has no faucet at all today and is
+ * therefore always absent; `make` is absent when the account could not
+ * be resolved. The client hatches either with its own reason.
+ */
+export interface AccountStandingPayload {
+  /** Make (creation) band — summed across the account's characters. */
+  make?: string;
+  /** Fund (capital) band. No faucet exists, so this never arrives yet. */
+  fund?: string;
 }
 
 /** `system.charactergen.roster` payload — the character-select list. */
 export interface CharGenRosterPayload {
   characters: CharGenRosterEntry[];
+  /**
+   * The signed-in account's display name. The roster header names the
+   * PERSON, because this is the one screen whose subject is the account
+   * rather than any character on it.
+   */
+  accountName?: string;
+  /** The account-level figures. Absent when none could be derived. */
+  account?: AccountStandingPayload;
 }
 
 /**
@@ -2634,6 +2747,29 @@ export interface ApiResponse<T = unknown> {
  */
 export interface AuthStatusResponse {
   isAuthenticated: boolean;
+  /**
+   * How many live sessions the server currently holds — an **aggregate
+   * only**, never names or identities.
+   *
+   * ⭐ The front door's "it is usually quiet · you may be the only
+   * person on" note was static apologetic copy nobody maintained. This
+   * replaces it with the fact. The websocket opens only after auth, so
+   * this counts signed-in sessions rather than page views.
+   */
+  online?: number;
+  /**
+   * How often the world is reset, in words, when it is reset at all.
+   *
+   * ⚠⚠ **Absent means the server makes no such promise, and the client
+   * must then say nothing.** The handoff art shipped "the world resets
+   * nightly · nothing survives to tomorrow yet" as fixed copy while no
+   * cron, CI job or script implemented a wipe, and three design
+   * documents went on to reason *from* it. A claim about whether the
+   * player's own work survives the night is the most expensive kind to
+   * get wrong, so it is reported by the server that would do the
+   * resetting or it is not rendered.
+   */
+  resetPolicy?: string;
   /**
    * The login providers this server has configured (env-gated strategy
    * registration). Drives start-screen button *enablement* only — the

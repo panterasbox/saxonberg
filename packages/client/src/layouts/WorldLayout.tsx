@@ -13,6 +13,7 @@ import styled from "styled-components";
 import { useStore } from "../store/index";
 import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
+import { useIsCompact } from "../lib/style/useIsCompact";
 import { TabStrip } from "../components/TabStrip";
 import { Terminal } from "../components/Terminal";
 import { FilterDrawer } from "../components/FilterDrawer";
@@ -29,10 +30,40 @@ import { WikiPane } from "../components/WikiPane";
  * declares its own fixed width); `PaneSlot` is `flex: 1` so the pane's
  * `height: 100%` resolves against the space below the switch.
  */
-const RightColumn = styled.div`
+const RightColumn = styled.div<{ $compact?: boolean }>`
   display: flex;
   flex-direction: column;
   min-height: 0;
+
+  /*
+   * ⭐ **The rail stops being a fixed column on a phone.**
+   *
+   * Each pane declares its own fixed 360px width/min-width/max-width,
+   * so beside a terminal the in-world document computed ~698px at a
+   * 390px viewport. Under the mobile viewport model an overflowing
+   * document WIDENS the initial containing block, which is what
+   * position:fixed resolves against — so the shell's own fixed
+   * surfaces (the shelf screen, the command sheet) rendered off-screen
+   * and unreachable. The arrival path terminates here, and an arrival
+   * that delivers you somewhere broken has not arrived.
+   *
+   * ⚠ This is the COLLAPSE and nothing more. Redesigning the play
+   * surface for a phone — what the panes should be, whether they
+   * belong inline in the feed — is Wave 4's, and this must not
+   * pre-empt it.
+   *
+   * ⚠ the !important below because the panes set their own width at equal
+   * specificity and the injection order between styled-components
+   * classes is not a contract. Narrowly scoped to the pane slot's
+   * direct child so nothing else inherits it.
+   */
+  ${(p) =>
+    p.$compact
+      ? `
+    width: 100%;
+    max-width: 100%;
+  `
+      : ""}
 `;
 
 const PaneSwitch = styled.div`
@@ -46,10 +77,21 @@ const PaneSwitch = styled.div`
   background: ${tokens.color.surfaceAlt};
 `;
 
-const PaneSlot = styled.div`
+const PaneSlot = styled.div<{ $compact?: boolean }>`
   flex: 1;
   min-height: 0;
   display: flex;
+
+  ${(p) =>
+    p.$compact
+      ? `
+    & > * {
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+  `
+      : ""}
 `;
 
 const PaneTab = styled.button<{ $active: boolean }>`
@@ -73,9 +115,13 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const rightPane = useStore((s) => s.rightPane);
   const setRightPane = useStore((s) => s.setRightPane);
+  // ⚠ Subscribes to `matchMedia` — dragging a desktop window narrow is
+  // the cheapest way anyone will test this, and a one-shot read would
+  // make exactly that not work.
+  const isCompact = useIsCompact();
 
   return (
-    <Cockpit>
+    <Cockpit style={isCompact ? { flexDirection: "column" } : undefined}>
       <LeftColumn>
         <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
         <Terminal
@@ -113,7 +159,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
        * happened to pick a transcript or menu affordance, so the gap
        * was invisible to the suite.
        */}
-      <RightColumn>
+      <RightColumn $compact={isCompact}>
         <PaneSwitch>
           <PaneTab
             $active={rightPane === "inspect"}
@@ -140,7 +186,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
             Wiki
           </PaneTab>
         </PaneSwitch>
-        <PaneSlot>
+        <PaneSlot $compact={isCompact}>
           {rightPane === "who" ? (
             <WhoPane
               onSendCommand={onCommandClick}

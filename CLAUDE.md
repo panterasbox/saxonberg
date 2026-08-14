@@ -86,7 +86,7 @@ behavior. Read the relevant doc before editing in its area.
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
-  - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: top bar, widget shelf, status bar, the mobile bar + pull-down + command sheet, start screen, anonymous-guest path, reconnect machine, the honest-state primitives
+  - [client-shell.md](./docs/subsystems/client-shell.md) — client front door: top bar, widget shelf, status bar, the mobile bar + pull-down + command sheet, the front door + character select, anonymous-guest path, reconnect machine, the honest-state primitives
   - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `cockpit shelf` + `first`
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
@@ -145,7 +145,7 @@ behavior. Read the relevant doc before editing in its area.
   - [advancement.md](./docs/subsystems/advancement.md) — growth measurement: Discipline catalog, Transcript, derive-on-read Competence bands, conferrals
   - [trait.md](./docs/subsystems/trait.md) — the personality layer: 17 opposed pairs, `disposition_events`, derive-on-read TraitPosition, regard baseline
   - [renown.md](./docs/subsystems/renown.md) — measured standing: `renown_events` → RenownStanding, reaction + reception signals, per-scope derive
-  - [influence.md](./docs/subsystems/influence.md) — the three-stock contract: InfluenceApi dispatcher, the producer stock, conviction hold/flip/tally
+  - [influence.md](./docs/subsystems/influence.md) — the three-stock contract: InfluenceApi dispatcher, the producer stock, the account roll-up seam, conviction hold/flip/tally
   - [provenance.md](./docs/subsystems/provenance.md) — authorship ledger: `authoring_events`, context-derived author, the `recordAuthoring` gate, CreditRouting
   - [crafting.md](./docs/subsystems/crafting.md) — craft-resolve, Grade/Tool/Durable/Crafted mixins, Recipe docs, the by-hand manual build, Dave's Bar
   - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`

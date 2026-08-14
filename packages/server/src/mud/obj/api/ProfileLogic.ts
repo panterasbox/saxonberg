@@ -267,12 +267,16 @@ export class ProfileLogic extends ApiLogic {
     target: Stuff,
     subjectId: string
   ): Promise<ProfileDigest> {
+    // ⚠ Through the shared host seam — see StandingController. It
+    // returns `undefined` when the account cannot be resolved; the
+    // digest then OMITS make rather than reporting the per-character
+    // figure under an account-level label.
+    const make = InfluenceApi.standingForHost(target, 'producer');
     const digest: ProfileDigest = {
       renown: Band.fromScalar(RenownApi.renownOf(subjectId)).name,
       influence: {
         play: InfluenceApi.bandOf(subjectId, 'consumer').name,
-        // ⚠ Through the shared host seam — see StandingController.
-        make: InfluenceApi.standingForHost(target, 'producer').band.name,
+        ...(make ? { make: make.band.name } : {}),
       },
     };
     const competence = await AdvancementApi.bandsFor(target);

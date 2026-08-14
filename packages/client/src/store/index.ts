@@ -19,6 +19,7 @@ import type {
   AuthState,
   ReleaseRow,
   CharGenRosterEntry,
+  AccountStandingPayload,
   CharGenStatePayload,
   ConnectionEstablishedPayload,
   ConnectionState,
@@ -257,6 +258,19 @@ interface StoreState extends CmsSlice, StudioSlice {
    */
   configuredProviders: string[] | null;
   setConfiguredProviders: (providers: string[] | null) => void;
+  /**
+   * Facts the server reports about itself, for the front door.
+   *
+   * ⚠ Each is optional and **absent means the server did not answer**,
+   * never a default. `resetPolicy` especially: the handoff art shipped
+   * "the world resets nightly" as fixed copy while nothing implemented
+   * a wipe, so the notice renders only when a server says it is true.
+   */
+  serverFacts: { online?: number; resetPolicy?: string };
+  setServerFacts: (facts: {
+    online?: number;
+    resetPolicy?: string;
+  }) => void;
 
   // Connection state
   connection: ConnectionState;
@@ -496,8 +510,27 @@ interface StoreState extends CmsSlice, StudioSlice {
    * arrives. Setting it flips the phase to `character-select`.
    */
   charGenRoster: CharGenRosterEntry[];
+  /**
+   * The ACCOUNT's own standing, from the same roster frame.
+   *
+   * ⚠ Character select is the one screen where the account is the
+   * subject, and it is also the one screen with no character — so no
+   * subscription is available and these must ride the payload. An
+   * absent member means the server could not answer, never zero.
+   */
+  accountStanding: AccountStandingPayload;
+  /**
+   * The signed-in account's display name, from the roster frame. The
+   * character-select header names the PERSON — that screen's subject is
+   * the account, not any one character on it.
+   */
+  accountName?: string;
   /** Store the roster and flip to `character-select`. */
-  setCharGenRoster: (roster: CharGenRosterEntry[]) => void;
+  setCharGenRoster: (
+    roster: CharGenRosterEntry[],
+    account?: AccountStandingPayload,
+    accountName?: string,
+  ) => void;
   /**
    * The current char-gen step state, from the most recent
    * `session.identity` frame. `null` until char-gen begins.
@@ -1079,6 +1112,9 @@ export const useStore = create<StoreState>((set, get) => ({
   setConfiguredProviders: (providers) =>
     set({ configuredProviders: providers }),
 
+  serverFacts: {},
+  setServerFacts: (facts) => set({ serverFacts: facts }),
+
   setAuth: (auth) =>
     set((state) => {
       const nextAuth = { ...state.auth, ...auth };
@@ -1277,10 +1313,13 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Char-gen slices (initial cleared state).
   charGenRoster: [],
+  accountStanding: {},
 
-  setCharGenRoster: (roster) =>
+  setCharGenRoster: (roster, account, accountName) =>
     set(() => ({
       charGenRoster: roster,
+      accountStanding: account ?? {},
+      accountName,
       connectionPhase: "character-select",
     })),
 

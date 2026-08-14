@@ -21,6 +21,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import Avatar from '../Avatar';
 import { MqlSubscriptionApi, collectSubscribableFields } from '../../api/mql-subscription';
 import { StuffApi } from '../../api/stuff';
+import { User } from '../../lib/identity/User';
 import { ShadowApi } from '../../api/shadow';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
@@ -54,6 +55,24 @@ const FIGURES = [
  */
 function makeAvatar(playerId: string): Avatar {
   return makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+}
+
+/**
+ * An avatar attached to an account of one.
+ *
+ * ⚠ `makeStanding` is ACCOUNT-level: with no `User` in hand the account
+ * cannot be resolved and the field is omitted rather than falling back
+ * to the per-character figure. So a test about the SHAPE of that figure
+ * has to give the body an account first — otherwise it is asserting the
+ * unresolved path while believing it asserts the resolved one.
+ */
+function makeAccountedAvatar(playerId: string): Avatar {
+  const avatar = makeAvatar(playerId);
+  const user = new User();
+  user.playerIds = [playerId];
+  avatar.setPlayerId(playerId);
+  avatar.setUser(user);
+  return avatar;
 }
 
 describe('Avatar standing figures — declaration', () => {
@@ -134,7 +153,7 @@ describe('Avatar standing figures — projection', () => {
   });
 
   it('projects the sync figures as structured values, never strings', () => {
-    const avatar = makeAvatar('tester');
+    const avatar = makeAccountedAvatar('tester');
     // ⚠ Renown must be MEASURED for it to project at all — an
     // unmaterialized scope is omitted, not zeroed (see the cold-cache
     // test below). This one is about the SHAPE of a figure that

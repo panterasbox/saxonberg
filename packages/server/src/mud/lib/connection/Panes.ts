@@ -96,21 +96,29 @@ export const PANES: Readonly<Record<PaneId, PaneDefinition>> = {
    * `HOLD_WAKES_ON` lesson: a dependency that fires for reasons
    * unrelated to the content is churn, not liveness.
    *
-   * ⭐⭐ **`makeStanding` is absent on purpose — do not "fix" this.**
-   * `Avatar` declares it and it returns a real band, but *Make* is an
-   * account-level stock whose account arithmetic is deliberately
-   * unbuilt, so what the field returns is a per-CHARACTER figure for an
-   * account-level claim. A figure whose level is wrong cannot be
-   * rendered, and the strongest form of that is never putting it on the
-   * wire — a number sitting unused in the client store is a number the
-   * next builder wires up in one line. It joins this list the day the
-   * account roll-up lands.
+   * ⭐⭐ **`makeStanding` joined this list when the account roll-up
+   * landed**, which was the condition its absence was recorded against.
+   * It had been held back because *Make* is an account-level stock whose
+   * arithmetic was unbuilt, so the field returned a per-CHARACTER figure
+   * for an account-level claim — and a figure whose level is wrong
+   * cannot be rendered.
+   *
+   * ⚠ The field now returns `undefined` rather than a wrong-level number
+   * when an account cannot be resolved, and `projectFields` omits an
+   * undefined field, so the client hatches it. That is what made it
+   * safe to put on the wire — not the arithmetic alone, but the
+   * arithmetic plus an honest absence.
    */
   self: {
     label: 'your own figures',
     query: 'me',
     cardinality: 'one',
-    fields: ['playStanding', 'renown', 'practisingCompetence'],
+    fields: [
+      'playStanding',
+      'makeStanding',
+      'renown',
+      'practisingCompetence',
+    ],
   },
 };
 

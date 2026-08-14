@@ -50,6 +50,7 @@ import { SubjectSubscriberMixin } from "../lib/forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../lib/party/PartyMember";
 import { Events } from "../lib/events";
 import type { User } from "../lib/identity/User";
+import type { AccountSubjects } from "../lib/standing/AccountScoped";
 import type { MortalArc } from "../lib/mortality/MortalArc";
 import type {
   ConnectionEstablishedPayload,
@@ -319,19 +320,24 @@ export default class Avatar extends AvatarBase {
        * something the person does, not the character.
        *
        * ⚠ Read through `standingForHost`, the shared seam — NOT through
-       * a local aggregation. The account arithmetic is deliberately
-       * unbuilt (see that method), so this is still a per-character
-       * figure today. Deriving one here would put a formula in a
+       * a local aggregation. Deriving one here would put a formula in a
        * concrete class, which is where the previous attempt went wrong:
        * it made the dashboard disagree with `standing` and `profile`.
+       * The account roll-up now lives behind that seam, so all three
+       * surfaces report the same figure by construction.
        */
       name: 'makeStanding',
       read: (stuff, viewer) => {
         if (!standingSubject(stuff, viewer)) return undefined;
+        // ⭐ `undefined` when the account cannot be resolved, so
+        // `projectFields` OMITS the field and the client hatches it —
+        // the same "never measured vs measured at zero" distinction
+        // `renown` draws below. Substituting the per-character figure
+        // here is exactly the silent downgrade this roll-up replaced.
+        const standing = InfluenceApi.standingForHost(stuff, 'producer');
+        if (!standing) return undefined;
         // Band NAME on the wire, as `playStanding` — see there.
-        return {
-          band: InfluenceApi.standingForHost(stuff, 'producer').band.name,
-        };
+        return { band: standing.band.name };
       },
       durableKey: (stuff) => stuff.getTemplatePath() ?? undefined,
     },
@@ -491,6 +497,35 @@ export default class Avatar extends AvatarBase {
   }
   public setUser(value: User | undefined): void {
     this.user = value;
+  }
+
+  /**
+   * The account this body belongs to, for account-level standing
+   * (`AccountScoped`). `undefined` when there is no `User` in hand.
+   *
+   * ⭐ **`undefined` is a real answer and must stay one.** The `user`
+   * slot is runtime-only and unpersisted, so an unowned body — a guest,
+   * a seed, a clone nobody has played — genuinely has no account. An
+   * earlier attempt at the account roll-up read this same slot and,
+   * finding it unset, silently fell back to the per-character figure;
+   * the caller then rendered a per-character number under an
+   * account-level label. Returning `undefined` is what makes that
+   * failure visible instead of plausible. See
+   * `InfluenceApi.standingForHost`.
+   *
+   * Members are the durable `/obj/Avatar/<playerId>` subject keys the
+   * standing ledgers are stored under — NOT live objects, so a character
+   * that is offline (or has never been loaded) still contributes.
+   */
+  public getAccountSubjects(): AccountSubjects | undefined {
+    const user = this.user;
+    if (!user) return undefined;
+    const ids = user.playerIds ?? [];
+    if (!ids.length) return undefined;
+    return {
+      subject: `account:${String(user._id ?? '')}`,
+      members: ids.map((id) => Avatar.getTemplatePath(id)),
+    };
   }
 
   /**

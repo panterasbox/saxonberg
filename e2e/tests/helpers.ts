@@ -180,12 +180,16 @@ export async function enterWorld(
   // Enter the world, resiliently. Clicking "Play" sends `play <id>` over
   // the WebSocket; if the socket isn't open yet the command is dropped
   // and the roster just stays up. So we retry the click until the
-  // cockpit's command input actually appears (the "Play" button only
+  // cockpit's command input actually appears (the enter button only
   // exists on the real picker, not the transient "Connecting…" state, so
   // a missing button between attempts is fine — the next poll re-checks).
+  //
+  // ⚠ The button reads "Enter as <name>" — a single-character account
+  // opens straight on the detail pane, which is where it lives. It used
+  // to be a per-row "Play <name>" on the list.
   await expect(async () => {
     if (await input.isVisible().catch(() => false)) return;
-    const play = page.getByRole('button', { name: /^Play / }).first();
+    const play = page.getByRole('button', { name: /^Enter as / }).first();
     if (await play.isVisible().catch(() => false)) {
       await play.click().catch(() => {});
     }
@@ -210,7 +214,7 @@ export async function reenterWorld(page: Page): Promise<void> {
   await expect(roster.or(input).first()).toBeVisible({ timeout: 25_000 });
   await expect(async () => {
     if (await input.isVisible().catch(() => false)) return;
-    const play = page.getByRole('button', { name: /^Play / }).first();
+    const play = page.getByRole('button', { name: /^Enter as / }).first();
     if (await play.isVisible().catch(() => false)) {
       await play.click().catch(() => {});
     }

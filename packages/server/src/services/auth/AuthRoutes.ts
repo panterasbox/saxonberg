@@ -22,6 +22,9 @@ import type {
 import { Backend } from '../../backend/Backend';
 import { CmsSession } from '../../backend/CmsSession';
 import { AccessApi } from '../../mud/api/access';
+import { ConnectionApi } from '../../mud/api/connection';
+import { AppApi } from '../../mud/api/app';
+import { AppSettingKeys } from '../../mud/lib/config/AppSettings';
 import { ExecutionContextApi } from '../../mud/api/execution-context';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import { AuthMiddleware } from './AuthMiddleware';
@@ -140,6 +143,24 @@ export class AuthRoutes {
         // start-screen button enablement; routes guard independently.
         providers: PassportConfig.configuredProviders(),
       };
+
+      // ⭐ Two facts the front door renders instead of static copy.
+      // Both are best-effort: this endpoint is the unauthenticated
+      // front door, and it must paint even if the world is still
+      // booting or a setting cannot be read.
+      try {
+        response.online = ConnectionApi.getConnectionCount();
+      } catch {
+        /* world not up — omit rather than claim zero */
+      }
+      try {
+        const policy = AppApi.setting(AppSettingKeys.worldResetPolicy);
+        // ⚠ Absent ⇒ omitted ⇒ the client says nothing about resets.
+        // Never default this to a reassuring string.
+        if (policy) response.resetPolicy = policy;
+      } catch {
+        /* same */
+      }
 
       if (req.isAuthenticated() && req.user) {
         const user = req.user as { id: string };

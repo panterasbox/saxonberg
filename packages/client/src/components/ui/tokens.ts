@@ -129,6 +129,7 @@ export const tokens = {
   // because the alternative is three hex literals loose in
   // `relayTemplate`, and an evasion is worse than a home.
   brand: {
+    google: SX["brand-google"],
     twitch: SX["brand-twitch"],
     youtube: SX["brand-youtube"],
     kick: SX["brand-kick"],

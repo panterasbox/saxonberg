@@ -255,6 +255,45 @@ function standingOfImpl(authorId: string): InfluenceStanding {
 }
 
 /**
+ * The account roll-up: **sum** the members' scalars, band the sum.
+ *
+ * ⭐ **Why sum, and not best or mean.** The account is the subject, so
+ * how a person distributes their work across bodies must not change
+ * their figure — and sum is the only combinator with that property.
+ * Max and mean both *penalise* minting a second character, which would
+ * make the level claim incoherent: a figure that moves when you create
+ * a body is not measuring the account. Sum is also neutral against
+ * splitting, so there is nothing to gain and nothing to lose by
+ * spreading authorship, which is the anti-gaming property worth having.
+ *
+ * The scalars are already recency-decayed rates and a sum of rates is a
+ * rate, so this stays consistent with *standing is a rate, not a total*.
+ * Double-counting is impossible by construction: appends dedupe on
+ * `{author, actor, bucket}` and each character is a distinct `author`,
+ * so two of one account's characters credit separately because they are
+ * separate content.
+ *
+ * ⚠ Banded with {@link bandThresholds}, the CONFIGURED cutoffs — never
+ * `Band.fromScalar(total)` with no argument, which silently uses
+ * `DEFAULT_BAND_THRESHOLDS` while every real producer band uses the
+ * AppSettings ones. That mismatch is one of the three defects recorded
+ * against the previous attempt at this roll-up.
+ */
+function standingForAccountImpl(
+  subject: string,
+  members: readonly string[]
+): InfluenceStanding {
+  let total = 0;
+  for (const m of members) total += producerOfImpl(m);
+  return new InfluenceStanding(
+    subject,
+    'producer',
+    total,
+    Band.fromScalar(total, bandThresholds())
+  );
+}
+
+/**
  * ProducerLogic — the hot-reloadable logic singleton behind
  * {@link ProducerApi}.
  *
@@ -342,6 +381,15 @@ export class ProducerLogic extends ApiLogic {
   @CallSecurity(ProducerApiCallers)
   public producerOf(authorId: string): number {
     return producerOfImpl(authorId);
+  }
+
+  /** See {@link ProducerApi.standingForAccount}. */
+  @CallSecurity(ProducerApiCallers)
+  public standingForAccount(
+    subject: string,
+    members: readonly string[]
+  ): InfluenceStanding {
+    return standingForAccountImpl(subject, members);
   }
 
   /** See {@link ProducerApi.standingOf}. */

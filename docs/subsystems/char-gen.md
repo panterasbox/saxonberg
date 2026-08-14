@@ -101,19 +101,30 @@ pure data; all validation and mutation lives in the controller.
 
 ```
 const FIELDS: Record<CharGenField, FieldHandler> = {
-  species: { applicable, isSet, options, validate, apply },
+  species: { kind, label, applicable, isSet, options, display, validate, apply },
   sex:     { … },
-  name:    { … },
+  name:    { … },   // kind: 'text', carries a hint
   pronouns:{ … },
   aspiration: { … },
 };
 ```
 
-`CharGenField` is `'species' | 'sex' | 'name' | 'pronouns' | 'aspiration'`
-(`types/src/index.ts:936`). A `FieldHandler` knows how to: decide if the
-field `applicable` to the current draft (sex only applies to a sexed
-species), report whether it `isSet`, produce its option list, `validate`
-a value, and `apply` it to the draft.
+⭐⭐ **This table is the single definition of a char-gen field, and the
+wire payload is PROJECTED from it** (`projectFields`). It used to define
+only a field's *behaviour* while the emitter separately hand-assembled
+its *description*, so a new concept was a table entry plus a payload
+edit plus a client edit — and the client grew an `optionsFor(field)`
+switch to adapt the mismatch. **A new field is now one entry here and
+nothing else**, which `EnrollController.test.ts` asserts by adding one
+and finding it on the wire.
+
+`CharGenField` is `'species' | 'sex' | 'name' | 'pronouns' |
+'aspiration'` — **server-internal**, the local table's index type. It is
+not on the wire. A `FieldHandler` knows how to: name its renderer
+(`kind`) and heading (`label`), decide if the field is `applicable` to
+the current draft (sex only applies to a sexed species), report whether
+it `isSet`, produce its option list and current `display` value, offer
+an optional `hint`, `validate` a value, and `apply` it to the draft.
 
 `execute` (`EnrollController.ts:479`) dispatches on the rest-of-line:
 
@@ -151,25 +162,90 @@ picture, every time:
 
 ```
 interface CharGenStatePayload {
-  picks: CharGenPicks;            // what's chosen so far
-  speciesOptions: CharGenOption[];
-  sexOptions: CharGenOption[];    // empty ⇒ field N/A (non-sexed species)
-  pronounOptions: CharGenOption[];
-  aspirationOptions: CharGenOption[];
+  fields: CharGenFieldState[];    // every field, self-describing
+  missing: string[];              // drives the client's gating
   suggestion?: { name; surname? };
   accountName?: string;
-  missing: CharGenField[];        // drives the client's gating
-  error?: { field; message };
+  error?: { field: string; message };
+}
+
+interface CharGenFieldState {
+  field: string;                  // NOT a closed union
+  kind: 'choose-one' | 'text';    // which renderer to dispatch to
+  label: string;
+  applicable: boolean;            // false ⇒ does not apply to this draft
+  options?: CharGenOption[];
+  value?: string;                 // the current pick, as a display string
+  suggestion?: { name; surname? };
+  hint?: string;
 }
 ```
 
-The payload is **layout-agnostic**: option lists for every field, the
-accumulated picks, and the `missing` set. The client renders whatever
+The payload is **layout-agnostic**: one self-describing entry per field,
+and the `missing` set.
+
+⚠ An **inapplicable** field is still emitted, carrying
+`applicable: false`. The predecessor signalled inapplicability with an
+EMPTY option array, which conflated *this species has no sexes* with
+*sexes are not authored yet* — a distinction the client needs and could
+not make. The client renders whatever
 screens it wants from this — it never asks the server "what step am I
 on?" A `CharGenOption` carries `value`/`label`/`description`/`image` and,
 for species, a `SpeciesDossier` (below).
 
-## ⭐ Forward compatibility — read this before rebuilding the client
+## ⭐ Forward compatibility — SHIPPED in the Arrival build
+
+> **Status: the generalization described below is BUILT.** This section
+> was written as instructions for a client-build agent; it is kept
+> because the *reasoning* is what a lineage build will need, and the
+> shape it argued for is the shape that shipped. What changed:
+>
+> - `CharGenStatePayload` carries **`fields: CharGenFieldState[]`** with
+>   a renderer `kind`. The four `<field>Options` arrays and `picks` are
+>   gone; `missing` is `string[]`; `error.field` is a string.
+> - The payload is **projected from `EnrollController`'s `FIELDS`
+>   table** by one function, so a new field is one table entry and
+>   nothing else. `EnrollController.test.ts` asserts exactly that by
+>   adding a field and finding it on the wire.
+> - `CharGenField` is **server-internal** — it left the wire.
+> - `DossierSection.rows` carries **`spoiler?`**, and the client
+>   collapses rows at level ≥ 1.
+> - The client's `optionsFor(field)` switch, `FIELD_HEADING` and
+>   `ILLUSTRATED_FIELDS` are **deleted**. Illustrated is derived (do the
+>   options carry an image or a dossier).
+>
+> ⭐⭐ **Two rules the build added that this section did not anticipate,
+> and which are what make "additive" true in practice:**
+>
+> 1. **An unnamed field must still render.** The client holds no list of
+>    which fields exist; it draws *every* field the payload carries, in
+>    server order. (The first cut of this build shipped a client-side
+>    screen config and demoted it to an ordering *hint* so an unnamed
+>    field fell through to its own screen; the single-page rebuild
+>    deleted the config outright, which is the stronger form of the same
+>    rule — there is no config left for a field to be missing from.)
+> 2. **A field whose `kind` the client cannot draw renders hatched**,
+>    naming the reason and pointing at the command line.
+>
+> Without those, a server-added field would be **invisible while still
+> gating `enroll confirm` through `missing`** — a dead confirm button
+> with nothing on screen explaining it. The honest-state rule, applied
+> to the intake's own extensibility.
+>
+> ⚠ An inapplicable field is now **emitted** carrying
+> `applicable: false`, rather than being signalled by an empty option
+> array. The old encoding conflated *this species has no sexes* with
+> *sexes are not authored yet*.
+>
+> Still **not** built, and still the right call — see *the three
+> interaction kinds* below: the gallery grid, filters/query, budget
+> allocation, and a generic reroll action. Reroll stays the
+> name-specific `enroll name reroll` because the only second variant
+> anyone has described is lineage's, and lineage does not exist; a
+> generic action list with one real consumer is speculative, and it
+> costs the same to add later as now.
+
+### The original argument, kept for the lineage build
 
 Char-gen is scheduled to be **replaced** by the lineage model (pick a
 household from a gallery; species and aspiration demote from *fields* to
@@ -250,8 +326,9 @@ The payoff is that lineage's new surfaces become *additive*: a new
 
 ### The three interaction kinds lineage needs and this model lacks
 
-Today char-gen can express exactly one interaction: **choose one of a
-closed list**. Lineage needs three more, and they are the reason `kind`
+Today char-gen can express two interactions — `choose-one` and `text`.
+Lineage needs more, and they are the reason `kind` matters more than the
+field list does. Lineage needs three more, and they are the reason `kind`
 matters more than the field list does:
 
 | interaction | what it needs |
@@ -324,6 +401,12 @@ level on the row (`{ label, value, spoiler? }`) and let the renderer
 collapse. That is cheap, it is the same generalization the rest of this
 section argues for, and it puts char-gen back inside the model rather
 than beside it.
+
+> ✅ **SHIPPED (Arrival).** `DossierRow` carries `spoiler`, stamped from
+> `Material.fieldMeta` rather than hardcoded, and the client collapses
+> level ≥ 1 behind a disclosure. ⚠ Collapsed is not withheld — level 1
+> means one click, and this stays an *appetite* axis, not an epistemic
+> one.
 
 The Biology, Classification and Anatomy sections are all level 0.
 
@@ -453,15 +536,47 @@ character-select roster; `session.identity.state` flips to the
 char-gen stage and drives it; `session.link` (always
 carrying an avatar) is the unconditional in-world flip.
 
-`CharGenStage.tsx` owns the layout. A `SCREENS` config
-(`CharGenStage.tsx:457`) chunks the fields into screens —
-species · sex+pronouns · name · aspiration · review — with client-side
-Back/Next navigation. Card clicks live-fire `enroll <field> <value>`;
-the name field flushes `enroll name <given> <surname>` on blur/Next
-(deduped); the review screen's confirm fires `enroll confirm`. Continue
-and Back are pure client pagination and send no command. Because the
-server is layout-agnostic, the whole screen set is reconfigurable
-client-side (the single-page A/B variant).
+`CharGenStage.tsx` owns the layout: **one page, every field, filled in
+any order**, in three columns — the form, the species plate, and a slim
+narration log. Chip clicks live-fire `enroll <field> <value>`; a `text`
+field flushes `enroll <field> <a> <b>` on blur or its keep button
+(deduped, and the button reports back that the value landed); the
+footer carries the server's `still missing:` list verbatim and the
+`enroll confirm` action, both visible throughout.
+
+⭐⭐ **There is no client-side screen config, and that is the point.**
+The client holds no list of which fields exist, no cursor, no order of
+its own — it draws *every* field the payload carries, in server order.
+Two rules keep the generic payload safe:
+
+1. **an unnamed field still renders**, using its server-supplied
+   `label`, because there is no config for it to be missing from;
+2. a field whose `kind` the client cannot draw renders **hatched**,
+   naming the reason and pointing at the command line.
+
+Both exist because an omitted field would still gate `enroll confirm`
+through `missing` — leaving the player on a confirm button that never
+enables with nothing on screen explaining why. Both are tested
+(`charGenFields.test.tsx`).
+
+⚠ The first cut of the Arrival build paginated this into five screens
+with Back/Continue, carrying the old client's shape forward instead of
+the design's. It was wrong twice: the reference art puts every field
+group in a single panel under *"fill the fields in any order"*, and the
+**server is deliberately step-less** — pagination re-imposed a sequence
+the substrate does not have and made a player walk it to reach a field
+they could have set first.
+
+Two gates the single page does keep, both server-side and both about
+meaning rather than sequence: `name` is inapplicable until `species` is
+chosen (the name suggester is a species faculty), and the player-facing
+pronoun options are `he`/`she`/`they` — the `Pronouns` enum keeps `It`
+for objects and the parser, but a character is not an it.
+
+⚠ A **two-part text field** (given + surname) is signalled by its
+`suggestion` carrying a `surname`. There is deliberately no second
+mechanism — a `parts` array would be the same duplication the projected
+payload removed.
 
 ## History
 

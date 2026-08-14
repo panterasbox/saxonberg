@@ -291,28 +291,28 @@ describe('the self pane', () => {
   });
 
   /*
-   * ⭐⭐ `makeStanding` is ABSENT from this list ON PURPOSE, and the
-   * next person to read it will assume an omission — so it is asserted
-   * as a decision.
+   * ⭐⭐ `makeStanding` was held OFF this list until the account
+   * roll-up existed, and this assertion is the other half of that
+   * record: it is now ON, and it arrived with the arithmetic.
    *
-   * The server has the number and `Avatar` declares the field. But
-   * *Make* is an account-level stock whose account arithmetic is
-   * deliberately unbuilt, so the value's LEVEL is wrong: it is a
-   * per-character figure standing in for a per-person claim. A figure
-   * whose level is wrong cannot be rendered, and the strongest form of
-   * that is keeping it off the wire — a number sitting in the client
-   * store is a number the next builder paints in one line.
+   * The condition was never "does the server have a number" — it always
+   * had one. It was that *Make* is an account-level stock whose account
+   * arithmetic was unbuilt, so the value's LEVEL was wrong: a
+   * per-character figure standing in for a per-person claim. What made
+   * it renderable is the roll-up PLUS an honest absence — the field
+   * returns `undefined` when an account cannot be resolved, and an
+   * undefined field is omitted rather than filled in.
    */
-  it('carries exactly the three fields the shelf renders — and not makeStanding', () => {
+  it('carries the four fields the shelf renders, makeStanding among them', () => {
     expect(PANES.self.query).toBe('me');
     expect(PANES.self.cardinality).toBe('one');
     expect(Array.isArray(PANES.self.fields)).toBe(true);
     expect(PANES.self.fields).toEqual([
       'playStanding',
+      'makeStanding',
       'renown',
       'practisingCompetence',
     ]);
-    expect(PANES.self.fields).not.toContain('makeStanding');
   });
 
   /*
@@ -343,7 +343,12 @@ describe('the self pane', () => {
     expect(typeof (rec!.playStanding as { band: unknown }).band).toBe(
       'string',
     );
-    // And the field kept off the wire is genuinely not on it.
+    // ⭐ `makeStanding` is OMITTED here, and that is the honest path
+    // working rather than the field being absent from the pane: this
+    // avatar has no `User` in hand, so the account cannot be resolved,
+    // the read returns `undefined`, and `projectFields` drops it. The
+    // client hatches. What must never appear is a per-character number
+    // wearing an account-level label.
     expect(rec).not.toHaveProperty('makeStanding');
   });
 

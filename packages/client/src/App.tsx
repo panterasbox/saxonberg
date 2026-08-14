@@ -453,6 +453,17 @@ function App() {
           Array.isArray(data.providers) ? data.providers : null,
         );
 
+      // ⚠ Copied across only when the server actually sent them. An
+      // absent field must stay absent — the front door renders each of
+      // these as a claim, and a defaulted one would be a claim nobody
+      // made.
+      useStore.getState().setServerFacts({
+        ...(typeof data.online === "number" ? { online: data.online } : {}),
+        ...(typeof data.resetPolicy === "string" && data.resetPolicy
+          ? { resetPolicy: data.resetPolicy }
+          : {}),
+      });
+
       if (data.isAuthenticated) {
         useStore.getState().setAuth({
           isAuthenticated: true,
