@@ -556,20 +556,10 @@ export const Shelf: React.FC<ShelfProps> = ({
                   onBlur={() => preview(null)}
                   onClick={() => send(command)}
                 >
-                  {/*
-                   * ⚠⚠ **`add`, not `—`.** This column names the ACTION
-                   * the row offers, and every row offers one — the menu
-                   * item is a button that pins or unpins. `—` named no
-                   * action, and worse, it is the glyph an `empty`
-                   * figure uses, so an unpinned row read as a broken
-                   * one. `MAKE` made that concrete: it is live and
-                   * pinnable, sat under a `—` with no reason line
-                   * beneath it (live rows have no reason), and so read
-                   * as the most broken row in a list of hatched ones.
-                   * The phone's shelf screen already labels its actions
-                   * (`pin` / `to bar` / `remove`); this is the desktop
-                   * half catching up.
-                   */}
+                  {/* ⚠ Names the ACTION, never `—` — that glyph means
+                      an empty FIGURE, and this column describes the
+                      affordance. See client-shell.md § The pull-down,
+                      and the shelf screen. */}
                   <MenuState data-testid="shelf-menu-state">
                     {isPinned ? "pinned" : "add"}
                   </MenuState>

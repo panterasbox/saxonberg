@@ -10,7 +10,11 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { SHELF_ROW_IDS, type SelfFigureRecord } from '@saxonberg/types';
+import {
+  DEFAULT_SHELF,
+  SHELF_ROW_IDS,
+  type SelfFigureRecord,
+} from '@saxonberg/types';
 import { Shelf, SHELF_CATALOGUE, HATCH_COPY } from '../Shelf';
 import { useStore } from '../../../store/index';
 
@@ -356,7 +360,12 @@ describe('Shelf', () => {
       expect(states).not.toContain('—');
       // Every row offers an action, and only these two exist.
       expect(new Set(states)).toEqual(new Set(['pinned', 'add']));
-      expect(states.filter((s) => s === 'pinned')).toHaveLength(3);
+      // ⚠ Derived from `DEFAULT_SHELF`, not the literal 3 — a count
+      // beside a list is computed from that list, or it is the next
+      // figure asserted next to data that did not produce it.
+      expect(states.filter((s) => s === 'pinned')).toHaveLength(
+        DEFAULT_SHELF.length,
+      );
     });
 
     /*

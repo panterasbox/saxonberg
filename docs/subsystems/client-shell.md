@@ -310,19 +310,6 @@ no hover, so a tooltip reason is a reason nobody can read — which would
 make *"each with its reason"* true of the markup and false of the
 surface.
 
-⚠⚠ **A catalogue row's state column names its ACTION — `pinned` or
-`add` — never a placeholder.** It read `pinned` or `—` until the Wave 1
-mock audit, and `—` is the glyph an *empty figure* uses, so an unpinned
-row wore a broken row's costume. `MAKE` made that concrete: it went
-live with the account roll-up, and a live row carries no reason line,
-so it sat under a bare `—` reading as **more** broken than the hatched
-rows around it, every one of which at least explained itself. Every
-item in this menu is a button that does something; labelling one with
-the vocabulary of absence describes the figure when the column is
-describing the affordance. The phone's shelf screen always named its
-actions (`pin` / `to bar` / `remove`) — this was the desktop half
-catching up.
-
 ⚠ **Identity and connection are absent from the chooser by design.**
 They are not shelf rows at all; `cockpit shelf unpin identity` refuses
 with *unknown shelf row*, and that refusal is a stronger guarantee than
@@ -523,11 +510,27 @@ Clicking a catalogue entry sends `cockpit shelf pin <row>` /
 string in the status bar — the same constant, so preview and send cannot
 drift into two call sites that merely agree today.
 
+⚠⚠ **A row's state column names its ACTION — `pinned` or `add` — never
+a placeholder.** It read `pinned` or `—` until the Wave 1 mock audit,
+and `—` is the glyph an *empty figure* uses, so an unpinned row wore a
+broken row's costume. `MAKE` made it concrete: it went live with the
+account roll-up, and a live row carries no reason line, so it sat under
+a bare `—` reading as **more** broken than the hatched rows around it,
+every one of which at least explained itself. Every item here is a
+button that does something — labelling one with the vocabulary of
+absence describes the *figure* where the column describes the
+*affordance*. The phone's shelf screen always named its actions (`pin`
+/ `to bar` / `remove`); this was the desktop half catching up.
+
 The 30px chip has no room for a visible reason line, so the reason rides
-`title` **and** the `aria-label` `Figure` already emits (*"not wired —
-&lt;reason&gt;"*, in words, so a screen reader gets it). The `＋ widget`
-menu is where every row's reason is **visible text** — the chip is the
-compact face of the same fact, never the only place it appears.
+`title` **and** the `aria-label` `Figure` emits — and they are the
+**same string**, built once (*"none — &lt;reason&gt;"* for an empty
+figure, *"not wired — &lt;reason&gt;"* for an unwired one, in words, so
+a screen reader gets it). ⚠ The `title` was once built separately with
+`not wired` hardcoded; see § *The honest-state primitives* for why that
+made an `empty` chip lie. The `＋ widget` menu is where every row's
+reason is **visible text** — the chip is the compact face of the same
+fact, never the only place it appears.
 
 ⚠ The menu carries more weight than it looks like it should, because
 the hatched six **do not start on the bar**: it is the only place a

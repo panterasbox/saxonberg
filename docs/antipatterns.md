@@ -3013,3 +3013,59 @@ its name for `${` rather than trusting the build.
 ⭐ Found by **driving the client**, not by the suite: eleven green
 tests covered the roll-up and none of them read the rendered line. See
 [influence.md](./subsystems/influence.md) § `standingForHost`.
+
+## One fact rendered twice, described twice
+
+**Don't** build a second copy of a string another function already
+computes for the same fact. Two renderings of one thing drift, and the
+copy is where the drift lands — usually with a state name hardcoded
+into it, because the second author knew which case they were looking at.
+
+### BAD
+
+```tsx
+// `ariaLabelFor` switches correctly over all three figure states.
+const ariaLabel = ariaLabelFor(label, figure);
+
+// ...and then the tooltip is built again, from scratch, for a chip.
+// `not wired` is hardcoded, so an `empty` figure — one the server DID
+// answer, with nothing — tells every pointer user it has no endpoint.
+// `empty` and `unwired` are the two states the unbuilt-state
+// convention says must look nothing alike.
+const titled =
+  variant === 'chip' && figure.state !== 'live'
+    ? { title: `${label}: not wired — ${figure.reason}` }
+    : {};
+```
+
+### GOOD
+
+```tsx
+const ariaLabel = ariaLabelFor(label, figure);
+// One builder, two sinks. The words may change; the two can no longer
+// disagree about which state they are describing.
+const titled =
+  variant === 'chip' && figure.state !== 'live' ? { title: ariaLabel } : {};
+```
+
+**The rule: render once, feed both sinks.** A tooltip, an accessible
+name, a log line and a notification body describing the same fact are
+one computation with several consumers — never several computations
+that currently agree.
+
+⚠ **And test the EQUALITY, not the words.** A test per state on the
+first rendering passes while the second one lies, which is exactly what
+happened here: `Figure`'s three `aria-label` tests were correct and
+nothing read the other attribute. `expect(title).toBe(aria)` is the
+assertion that cannot drift; re-asserting the sentence in both places
+just adds a third copy to maintain.
+
+⭐ The tell is a **state name inside a template literal** — `not wired`,
+`pending`, `failed` — sitting near a function whose whole job is to
+name the state. Nobody writes a test for the attribute they forgot
+existed, so this class is found by *looking at the rendered surface*,
+not by coverage.
+
+Same family as
+[§ An optional figure interpolated into player-visible prose](#an-optional-figure-interpolated-into-player-visible-prose):
+a value crossing into a string is where the type system stops looking.
