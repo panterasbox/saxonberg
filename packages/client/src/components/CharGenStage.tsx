@@ -109,30 +109,6 @@ const SignOutLink = styled.button`
   }
 `;
 
-/* --- Picks summary ------------------------------------------------ */
-
-const Picks = styled.dl`
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: ${tokens.space.sm} ${tokens.space.xl};
-  margin: 0;
-  padding: ${tokens.space.md} ${tokens.space.xl};
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.md};
-  font-size: ${tokens.font.small};
-`;
-
-const PickKey = styled.dt`
-  color: ${tokens.color.fgMuted};
-  text-transform: lowercase;
-`;
-
-const PickVal = styled.dd`
-  margin: 0;
-  color: ${tokens.color.fg};
-`;
-
 /* --- Option cards ------------------------------------------------- */
 
 const OptionGrid = styled.div`
@@ -176,9 +152,9 @@ const OptionDesc = styled.span`
 `;
 
 /**
- * A field group within a screen. When a screen holds more than one
- * field (e.g. sex + pronouns), each gets a small heading; a single-field
- * screen relies on the screen heading and shows no group heading.
+ * One field on the form. Every group carries its server-supplied label
+ * as a heading — on a single page there is no screen title to lean on,
+ * and the label is the only thing that says what a card grid is FOR.
  */
 const FieldGroup = styled.div`
   display: flex;
@@ -194,9 +170,9 @@ const FieldGroupHeading = styled.div`
 `;
 
 /**
- * Navigation footer: Back on the left, the forward action (Continue /
- * Step into the world) on the right. Pinned outside the scrolling stage
- * body so it stays visible regardless of dossier height.
+ * The seal row: what is still open on the left, the one committing
+ * action on the right. Pinned outside the scrolling stage body so both
+ * stay visible regardless of dossier height.
  */
 const NavRow = styled.div`
   flex-shrink: 0;
@@ -474,7 +450,8 @@ const TerminalStrip = styled.div`
 
 /** The server's own "still missing" list, rendered verbatim. */
 const MissingLine = styled.div`
-  padding: 0 ${tokens.space.xl} ${tokens.space.md};
+  flex: 1;
+  min-width: 0;
   font-size: ${tokens.font.micro};
   color: ${tokens.color.fgMuted};
   font-family: ${tokens.font.mono};
@@ -504,102 +481,36 @@ const SpoilerDetails = styled.details`
   }
 `;
 
-/* --- Screen layout (client-owned) --------------------------------- */
-
-interface ScreenDef {
-  id: string;
-  heading: string;
-  sub: string;
-  fields: string[];
-}
+/* --- The form (client-owned layout) ------------------------------- */
 
 /**
- * ⭐⭐ **An ordering HINT, not an exhaustive list.**
+ * ⭐⭐ **One screen, every field, filled in any order.**
  *
- * Layout stays entirely client-side — the server is a field state
- * machine that does not care how fields are grouped, and that split is
- * what lets a single-page A/B variant be a pure client change.
+ * The predecessor paginated this into five screens with Back/Continue,
+ * and that was wrong twice over. It carried forward the OLD client's
+ * shape rather than the design's — the reference art lists every field
+ * group in a single panel under the copy *"Fill the fields in any
+ * order"*, with `still missing:` and `enroll confirm` standing at the
+ * bottom throughout.
  *
- * But the payload is now a generic field LIST, so a config that named
- * every field would silently drop a field the server added: it would
- * never render, while still gating `enroll confirm` through `missing` —
- * a dead end the player cannot diagnose and cannot escape. So this
- * names the fields it has an opinion about, and {@link buildScreens}
- * appends everything else.
+ * And more than a layout preference: **the server is deliberately
+ * step-less.** It holds an unordered draft and reports what is still
+ * `missing`; there is no `currentStep`, no cursor, no order. Pagination
+ * re-imposed a sequence the substrate does not have, and made the
+ * player walk it to reach a field they could have set first.
  *
- * The honest-state rule, applied to the intake's own extensibility.
+ * ⚠ This also makes the extensibility rule trivial rather than clever.
+ * The paginated version needed a "field no screen config names still
+ * renders somewhere" rule to avoid silently dropping a server-added
+ * field; on one page **every applicable field renders, in server
+ * order**, and there is nowhere for one to hide.
+ *
+ * Layout stays client-owned — `char-gen.md` always named the
+ * single-page form as a pure client change, and this is it.
  */
-const SCREEN_HINTS: ScreenDef[] = [
-  {
-    id: "species",
-    heading: "Choose your species",
-    sub: "Pick the kind of being you are stepping into.",
-    fields: ["species"],
-  },
-  {
-    id: "identity",
-    heading: "Sex & pronouns",
-    sub: "Your biological sex, and how others will refer to you.",
-    fields: ["sex", "pronouns"],
-  },
-  {
-    id: "name",
-    heading: "Choose a name",
-    sub: "Edit the suggested name, or write your own.",
-    fields: ["name"],
-  },
-  {
-    id: "aspiration",
-    heading: "Choose an aspiration",
-    sub: "Who you are becoming — this seeds your story and your attire.",
-    fields: ["aspiration"],
-  },
-];
-
-const REVIEW_SCREEN: ScreenDef = {
-  id: "review",
-  heading: "Review your character",
-  sub: "Check everything over, then step into the world.",
-  fields: [],
-};
 
 /** Every renderer kind this client knows how to draw. */
 const KNOWN_KINDS = new Set<string>(["choose-one", "text"]);
-
-/**
- * Chunk the server's fields into screens.
- *
- * Three rules, in order:
- *   1. a field a hint names renders in that hint's group and order;
- *   2. **a field no hint names still renders**, on its own screen, using
- *      its server-supplied label;
- *   3. an inapplicable field renders nowhere — the server said it does
- *      not apply (a non-sexed species has no sex), which is different
- *      from having no options authored.
- */
-function buildScreens(fields: CharGenFieldState[]): ScreenDef[] {
-  const applicable = fields.filter((f) => f.applicable);
-  const has = (name: string) => applicable.some((f) => f.field === name);
-  const hinted = new Set(SCREEN_HINTS.flatMap((s) => s.fields));
-
-  const screens: ScreenDef[] = SCREEN_HINTS.map((s) => ({
-    ...s,
-    fields: s.fields.filter(has),
-  })).filter((s) => s.fields.length > 0);
-
-  // Rule 2. In server order, so a field's position is the server's
-  // decision rather than an accident of this file.
-  for (const f of applicable) {
-    if (hinted.has(f.field)) continue;
-    screens.push({
-      id: f.field,
-      heading: f.label,
-      sub: "",
-      fields: [f.field],
-    });
-  }
-  return screens;
-}
 
 /** Two text inputs, or one — see {@link isTwoPart}. */
 interface TextDraft {
@@ -644,7 +555,6 @@ export function CharGenStage({
   const charGenState = useStore((s) => s.charGenState);
   // Which screen the client is showing — flow/layout is entirely
   // client-side; the server is a field state machine that doesn't care.
-  const [screenIndex, setScreenIndex] = useState(0);
   // The detail pane previews this option on card hover; null falls
   // through to the chosen card, then the first option.
   const [focusedValue, setFocusedValue] = useState<string | null>(null);
@@ -715,16 +625,10 @@ export function CharGenStage({
   }
 
   const { fields, accountName, missing, error } = charGenState;
-  const fieldNamed = (name: string): CharGenFieldState | undefined =>
-    fields.find((f) => f.field === name);
 
-  const screens = [...buildScreens(fields), REVIEW_SCREEN];
-  const clampedIndex = Math.min(screenIndex, screens.length - 1);
-  const screen = screens[clampedIndex]!;
-  const isReview = clampedIndex >= screens.length - 1;
-  const screenFields = screen.fields
-    .map(fieldNamed)
-    .filter((f): f is CharGenFieldState => f !== undefined);
+  // ⭐ Every applicable field, in SERVER order. No chunking, no cursor —
+  // the form is the whole draft, and the server decides what is on it.
+  const shown = fields.filter((f) => f.applicable);
 
   const draftOf = (name: string): TextDraft =>
     drafts[name] ?? { a: "", b: "" };
@@ -750,23 +654,17 @@ export function CharGenStage({
   const setField = (name: string, value: string) =>
     onSendCommand(`enroll ${name} ${value}`);
 
-  // Nav: a text field is satisfied via its local box (it fires on blur /
-  // Next), everything else via the server's `missing`.
-  //
-  // ⚠ Gating reads `missing` and never a client-side list of required
-  // fields — the client must not re-encode which fields exist or in what
-  // order they are required.
-  const fieldSatisfied = (f: CharGenFieldState): boolean =>
-    f.kind === "text"
-      ? draftOf(f.field).a.trim() !== ""
-      : !missing.includes(f.field);
-  const canAdvance = screenFields.every(fieldSatisfied);
-
-  const goNext = () => {
-    for (const f of screenFields) if (f.kind === "text") submitText(f);
-    setScreenIndex((i) => Math.min(i + 1, screens.length - 1));
-  };
-  const goBack = () => setScreenIndex((i) => Math.max(0, i - 1));
+  /**
+   * ⚠ The confirm gate reads the server's `missing` and NOTHING else —
+   * never a client-side list of required fields, which would re-encode
+   * which fields exist and in what order they are required.
+   *
+   * ⭐ A text field reaches the server on blur, so the sequence is
+   * self-correcting: type → blur → `enroll name …` → the server drops
+   * `name` from `missing` → confirm enables. There is no way to click
+   * confirm before the value has actually landed.
+   */
+  const canConfirm = missing.length === 0;
 
   const renderCards = (f: CharGenFieldState) => {
     const opts = f.options ?? [];
@@ -946,9 +844,15 @@ export function CharGenStage({
         <StageInner>
           <div>
             <StepHeading data-testid="chargen-step">
-              {screen.heading}
+              Articles of Enrolment
             </StepHeading>
-            {screen.sub ? <StepSub>{screen.sub}</StepSub> : null}
+            <StepSub>
+              No classes, no levels, no stat points. You declare a body and a
+              name; competence comes from doing the work.{" "}
+              <strong>Fill the fields in any order</strong> — every entry reads
+              the whole draft back to you, and whatever is still open is listed
+              at the bottom.
+            </StepSub>
           </div>
 
           {error ? (
@@ -957,68 +861,53 @@ export function CharGenStage({
             </ErrorBanner>
           ) : null}
 
-          {isReview ? (
-            <Picks data-testid="chargen-review">
-              {fields
-                .filter((f) => f.applicable && f.value)
-                .map((f) => (
-                  <PickRow key={f.field} label={f.label} value={f.value!} />
-                ))}
-            </Picks>
-          ) : (
-            screenFields.map((f) => (
-              <FieldGroup key={f.field}>
-                {screenFields.length > 1 ? (
-                  <FieldGroupHeading>{f.label}</FieldGroupHeading>
-                ) : null}
-                {renderField(f)}
-              </FieldGroup>
-            ))
-          )}
+          {/*
+            ⭐ Every applicable field, in server order, on one page. A
+            field this client has no opinion about still appears here —
+            there is nowhere on a single page for one to hide, which is
+            what makes a server-added field safe by construction rather
+            than by a rule.
+          */}
+          {shown.map((f) => (
+            <FieldGroup key={f.field}>
+              <FieldGroupHeading>{f.label}</FieldGroupHeading>
+              {renderField(f)}
+            </FieldGroup>
+          ))}
         </StageInner>
       </StageBody>
 
-      {/* Client-side screen nav, pinned below the scrolling stage so it
-          stays reachable regardless of dossier height. Back/Next just
-          change which screen shows; the field commands already fired. */}
+      {/*
+        The seal row: what is still open, and the one committing action.
+        Pinned below the scrolling body so both stay reachable however
+        tall the dossier gets.
+      */}
       <NavRow>
-        {clampedIndex > 0 ? (
-          <StageButton data-testid="chargen-back" onClick={goBack}>
-            ← Back
-          </StageButton>
+        {/*
+          ⚠ The still-missing list is the SERVER's, rendered verbatim.
+          The client never composes it — that is the whole reason it can
+          be trusted to gate the button beside it.
+        */}
+        {missing.length > 0 ? (
+          <MissingLine data-testid="chargen-missing">
+            still missing: {missing.join(", ")}
+          </MissingLine>
         ) : (
-          <span />
+          <MissingLine data-testid="chargen-missing">
+            nothing missing — you can enter the world
+          </MissingLine>
         )}
-        {isReview ? (
-          <StageButton
-            $primary
-            data-testid="chargen-confirm"
-            disabled={missing.length > 0}
-            onClick={() => onSendCommand("enroll confirm")}
-            onMouseEnter={() => onCommandPreview("enroll confirm")}
-            onMouseLeave={() => onCommandPreview(null)}
-          >
-            Step into the world
-          </StageButton>
-        ) : (
-          <StageButton
-            $primary
-            data-testid="chargen-next"
-            disabled={!canAdvance}
-            onClick={goNext}
-          >
-            Continue →
-          </StageButton>
-        )}
+        <StageButton
+          $primary
+          data-testid="chargen-confirm"
+          disabled={!canConfirm}
+          onClick={() => onSendCommand("enroll confirm")}
+          onMouseEnter={() => onCommandPreview("enroll confirm")}
+          onMouseLeave={() => onCommandPreview(null)}
+        >
+          enroll confirm ⏎
+        </StageButton>
       </NavRow>
-
-      {/* The still-missing line, verbatim from the server. The client
-          never composes this list — see `fieldSatisfied`. */}
-      {isReview && missing.length > 0 ? (
-        <MissingLine data-testid="chargen-missing">
-          still missing: {missing.join(", ")}
-        </MissingLine>
-      ) : null}
 
       {/* Slim narration strip — secondary to the stage. */}
       <TerminalStrip>
@@ -1099,11 +988,3 @@ function DossierSectionView({
   );
 }
 
-function PickRow({ label, value }: { label: string; value: string }) {
-  return (
-    <>
-      <PickKey>{label}</PickKey>
-      <PickVal>{value}</PickVal>
-    </>
-  );
-}

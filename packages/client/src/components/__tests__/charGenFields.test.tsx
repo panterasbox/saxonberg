@@ -67,9 +67,13 @@ describe('char-gen renders what the server sends', () => {
   });
 
   /**
-   * ⭐ Rule 1. `SCREEN_HINTS` names species / sex / pronouns / name /
-   * aspiration. A sixth field belongs to no hint — and must still be
-   * reachable.
+   * ⭐ Every applicable field renders, in server order, on one page.
+   *
+   * The predecessor paginated, which meant a field no screen config
+   * named could be silently dropped — so this test used to have to walk
+   * Back/Continue to prove the field was reachable. On a single page
+   * there is nowhere for one to hide, and the assertion collapses to
+   * "it is on the screen".
    */
   it('renders a field no screen config mentions', () => {
     seed({
@@ -85,28 +89,28 @@ describe('char-gen renders what the server sends', () => {
     });
     renderStage();
 
-    // It gets its own screen, appended after the hinted ones, so it is
-    // not on screen 0 — but it IS in the screen set, which is what the
-    // Back/Next nav walks. Walk to it the way a player would.
-    const next = screen.getByTestId('chargen-next');
-    // Species is unset, so Continue is disabled — set it the way the
-    // server would report it, then advance.
+    expect(screen.getByTestId('chargen-option-red')).toBeTruthy();
+    // And its server-supplied label heads it, since there is no screen
+    // title to lean on.
+    expect(document.body.textContent).toMatch(/favourite colour/);
+  });
+
+  /**
+   * ⚠ Order is the SERVER's. A client that sorted or grouped these
+   * would be re-encoding a sequence the substrate deliberately does not
+   * have.
+   */
+  it('renders fields in the order the server sent them', () => {
     seed({
       fields: [
-        field({ value: 'human' }),
-        field({
-          field: 'favourite_colour',
-          label: 'favourite colour',
-          options: [{ value: 'red', label: 'Red' }],
-        }),
+        field({ field: 'aspiration', label: 'aspiration', options: [{ value: 'healer', label: 'Healer' }] }),
+        field({ field: 'species', label: 'species' }),
       ],
-      missing: ['favourite_colour'],
+      missing: [],
     });
-    act(() => {
-      next.click();
-    });
-
-    expect(screen.getByTestId('chargen-option-red')).toBeTruthy();
+    renderStage();
+    const text = document.body.textContent ?? '';
+    expect(text.indexOf('aspiration')).toBeLessThan(text.indexOf('species'));
   });
 
   /**
@@ -168,13 +172,24 @@ describe('char-gen renders what the server sends', () => {
       missing: ['aspiration'],
     });
     renderStage();
-    act(() => {
-      screen.getByTestId('chargen-next').click();
-    });
     const confirm = screen.getByTestId('chargen-confirm') as HTMLButtonElement;
     expect(confirm.disabled).toBe(true);
     expect(screen.getByTestId('chargen-missing').textContent).toMatch(
       /aspiration/,
     );
+  });
+
+  /**
+   * ⭐ The still-missing line is present THROUGHOUT, not only at the
+   * end. It used to appear on a review screen you had to page to, which
+   * meant the one surface telling you what was left was the one you
+   * could not see while filling the form.
+   */
+  it('shows what is still missing while the form is being filled', () => {
+    seed({ fields: [field({})], missing: ['species', 'aspiration'] });
+    renderStage();
+    const line = screen.getByTestId('chargen-missing').textContent ?? '';
+    expect(line).toMatch(/species/);
+    expect(line).toMatch(/aspiration/);
   });
 });
