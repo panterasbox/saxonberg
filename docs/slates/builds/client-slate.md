@@ -863,9 +863,10 @@ knowledge, traceable only to a commit message describing the result.
   and Fund standing. Each renders with its own reason rather than being
   omitted.
 
-### ⚠⚠ 7.15 OPEN DEBT — the mocks were audited by TEXT, not by SIGHT
+### ⚠⚠ 7.15 the mocks were audited by TEXT, not by SIGHT — ✅ DEBT CLEARED
 
-Recorded 2026-08-13, during Wave 2.
+Recorded 2026-08-13 during Wave 2; **Wave 1's three mocks were rendered
+and diffed on 2026-08-14** — findings at the end of this section.
 
 **The `.dc.html` files were read by extracting their text and never
 opened in a browser.** Stripped text preserves *what words appear* and
@@ -880,18 +881,58 @@ in a scratch copy to reach panels behind a step (`isDoor` / `isIntake`
 / `isLounge` in *Arrival — First 60 Seconds*). Reading the source text
 is a supplement, never the audit.
 
-⚠ **Unverified, and it is real debt:** Wave 1's three builds (civic
-ground · honest chrome · chrome on a phone) were built the same way, by
-sessions that left no record of rendering a mock. Their references —
-`Global Chrome.dc.html`, `Global Chrome - Mobile.dc.html`,
-`Unbuilt States.dc.html` — have **not** been visually diffed against
-what shipped. This is a bounded check (three files) and should happen
-before Wave 4 builds on that chrome, NOT a rebuild assumed in advance:
-Build C found six real bugs by driving, so some visual attention was
-paid and the result may come back clean.
-
 ⭐ Waves 4, 6 and 7 are unbuilt, so their mocks carry no debt — only the
 method rule above.
+
+#### The Wave 1 audit — done 2026-08-14
+
+`Global Chrome.dc.html`, `Global Chrome - Mobile.dc.html` and
+`Unbuilt States.dc.html` were served over HTTP, rendered, every menu and
+pull-down opened, and diffed against the live client driven at both form
+factors. **It came back nearly clean** — the prediction held: Build C
+paid visual attention by driving, and Wave 1's *content* decisions were
+argued from written rules in this slate rather than from pixels, so
+text-reading cost far less here than it did in Wave 2, where the mocks
+carry the layouts themselves.
+
+**Two real defects, both fixed:**
+
+1. ⚠⚠ **An `empty` chip's tooltip said "not wired".** `Figure` built its
+   `title` as a second copy of the sentence with the state hardcoded,
+   so `RENOWN —` (the server answered; nothing recorded) told every
+   pointer user it had no endpoint. These are the two states the
+   convention says must **look nothing alike**, and on a chip the
+   tooltip is the only place either reason surfaces. The `aria-label`
+   builder had all three states right — nothing read the other
+   attribute. Now one builder feeds both.
+2. ⚠ **The desktop shelf menu labelled every unpinned row `—`**, which
+   is the empty-figure glyph, where the art says `add`. `MAKE` made it
+   concrete: it went live in Wave 2, and a live-but-unpinned row has no
+   reason line, so it sat under a bare `—` reading as *more* broken
+   than the hatched rows around it. The phone's shelf screen already
+   named its actions (`pin` / `to bar` / `remove`); this was the
+   desktop half catching up.
+
+**Four departures from the art, examined and KEPT.** Recording them so
+the next reader does not re-open them:
+
+| Art | Shipped | Why it stands |
+|---|---|---|
+| notification bell + badge | folded into the account menu | cut twice, on the record — the tray's classification belongs to `NotifyPolicy`, and a badge over an unclassified count is a figure nobody measured |
+| status bar right region `here:forge · 1,240 frames` | `click to send`, nothing at rest | nothing counts frames and `here:` has no subscription; painting them in the one surface that advertises honesty is the violation it exists to prevent |
+| 52px left nav rail (◆ ▭ ▶) | the `Views` menu | same job, and migrating the frame off `cockpit.layout` is an explicit Wave 4 non-goal |
+| feed gutter of register names (ROOM · SAY · TELL) | `GutterStripe`, hue hashed from topic family | a fixed three-label set predates the facet-based topic taxonomy; the stripe carries the same distinction over the vocabulary that actually shipped |
+
+⚠ **Two art elements are cut and stay cut**, both already on the record
+in § 7's Build C row: the held-commands queue on a dropped socket
+(mock 6D's `held› true rim · quench axle`), and the mobile feed's
+per-frame timestamps.
+
+⭐ **One place the live client is BETTER than the art, and it is worth
+naming**: the connection popover hatches `frames behind` with *"nothing
+measures it — needs a server sequence number"*. The mock printed
+`frames behind 0`, which is the plausible fake its sibling document
+exists to forbid. The convention beat the drawing.
 
 ### 7.2 The program resequenced — 2026-08-13
 

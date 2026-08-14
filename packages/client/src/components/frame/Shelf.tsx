@@ -556,7 +556,13 @@ export const Shelf: React.FC<ShelfProps> = ({
                   onBlur={() => preview(null)}
                   onClick={() => send(command)}
                 >
-                  <MenuState>{isPinned ? "pinned" : "—"}</MenuState>
+                  {/* ⚠ Names the ACTION, never `—` — that glyph means
+                      an empty FIGURE, and this column describes the
+                      affordance. See client-shell.md § The pull-down,
+                      and the shelf screen. */}
+                  <MenuState data-testid="shelf-menu-state">
+                    {isPinned ? "pinned" : "add"}
+                  </MenuState>
                   <MenuLabel>{row.label}</MenuLabel>
                   <MenuDesc>{row.desc}</MenuDesc>
                   {row.source === "live" ? null : (

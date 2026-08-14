@@ -510,11 +510,27 @@ Clicking a catalogue entry sends `cockpit shelf pin <row>` /
 string in the status bar — the same constant, so preview and send cannot
 drift into two call sites that merely agree today.
 
+⚠⚠ **A row's state column names its ACTION — `pinned` or `add` — never
+a placeholder.** It read `pinned` or `—` until the Wave 1 mock audit,
+and `—` is the glyph an *empty figure* uses, so an unpinned row wore a
+broken row's costume. `MAKE` made it concrete: it went live with the
+account roll-up, and a live row carries no reason line, so it sat under
+a bare `—` reading as **more** broken than the hatched rows around it,
+every one of which at least explained itself. Every item here is a
+button that does something — labelling one with the vocabulary of
+absence describes the *figure* where the column describes the
+*affordance*. The phone's shelf screen always named its actions (`pin`
+/ `to bar` / `remove`); this was the desktop half catching up.
+
 The 30px chip has no room for a visible reason line, so the reason rides
-`title` **and** the `aria-label` `Figure` already emits (*"not wired —
-&lt;reason&gt;"*, in words, so a screen reader gets it). The `＋ widget`
-menu is where every row's reason is **visible text** — the chip is the
-compact face of the same fact, never the only place it appears.
+`title` **and** the `aria-label` `Figure` emits — and they are the
+**same string**, built once (*"none — &lt;reason&gt;"* for an empty
+figure, *"not wired — &lt;reason&gt;"* for an unwired one, in words, so
+a screen reader gets it). ⚠ The `title` was once built separately with
+`not wired` hardcoded; see § *The honest-state primitives* for why that
+made an `empty` chip lie. The `＋ widget` menu is where every row's
+reason is **visible text** — the chip is the compact face of the same
+fact, never the only place it appears.
 
 ⚠ The menu carries more weight than it looks like it should, because
 the hatched six **do not start on the bar**: it is the only place a
@@ -1114,6 +1130,20 @@ Two decisions worth keeping:
 Accessibility carries the honesty to a screen reader, to which a dashed
 border is invisible and `╌╌` is noise: `role="group"` plus an
 `aria-label` that says "not wired" / "none" in words, with the reason.
+
+⚠⚠ **The chip's `title` IS that `aria-label`, not a second copy of it.**
+It was once built separately with `not wired` hardcoded for every
+non-live state, so an `empty` chip — a figure the server *did* answer,
+with nothing — told every pointer user it had no endpoint. That is the
+one collapse this whole vocabulary exists to prevent, and it landed in
+the attribute that, on a chip, is the *only* place the reason appears:
+the glyphs `—` and `╌╌` do not spell out which state they mean.
+`Figure.test.tsx` now asserts the two attributes are the **same
+string** rather than re-asserting the words, because two descriptions
+of one thing is the defect and equality is the form that cannot drift.
+⭐ Found by rendering the design mock beside the live chrome — the
+aria-label tests covered all three states correctly and nothing read
+the other attribute.
 
 **Two carve-outs, neither belonging to these components.** *Prose never
 hedges* — a room description carries no engineering stamp, because
