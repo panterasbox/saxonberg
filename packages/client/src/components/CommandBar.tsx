@@ -877,8 +877,28 @@ export function CommandBar({
                       {promptDrafts[p.promptId]!.slice(0, 32)}
                     </DraftPreview>
                   ) : null}
-                  <XButton onClick={() => onCancelPrompt(p.promptId)}>
-                    X
+                  {/*
+                    ⚠⚠ **The button names the command that dies.**
+                    Cancelling is not dismissing a dialog — it rejects
+                    the awaiting command with `PromptCancelledError`, so
+                    a bare "X" is a lie about what it does. Where the
+                    server could not say who asked, the label says so
+                    rather than naming something it never claimed.
+                  */}
+                  <XButton
+                    aria-label={
+                      p.askedBy
+                        ? `cancel — abandons ${p.askedBy}`
+                        : 'cancel — abandons the command that asked'
+                    }
+                    title={
+                      p.askedBy
+                        ? `Cancelling abandons \`${p.askedBy}\` — not just this card.`
+                        : 'Cancelling abandons the command that asked — not just this card.'
+                    }
+                    onClick={() => onCancelPrompt(p.promptId)}
+                  >
+                    ✕ {p.askedBy ?? 'cancel'}
                   </XButton>
                 </SlotRow>
               ))}

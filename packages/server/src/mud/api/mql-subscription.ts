@@ -334,6 +334,28 @@ export class MqlSubscriptionApi {
    * (this registry), which the codebase's rule says is a method call
    * rather than a broadcast — the `notifyDurableSubject` shape.
    */
+  /**
+   * ⭐⭐ Open exactly the panes an arrangement names — the SERVER
+   * resolving a workspace, not the client replaying it.
+   *
+   * The client sends one command and renders what arrives. That is what
+   * makes *the client owns zero command semantics* literally true: the
+   * alternative puts the meaning of an arrangement, and the pane order,
+   * in the client, and costs a round trip per pane.
+   *
+   * ⚠ Subject panes (`agent` / `instrument` / `manifest`) are skipped.
+   * An arrangement is a statement about a workspace; a pane about a
+   * particular person is a statement about a moment, and restoring one
+   * next week would be restoring an answer to a question nobody is
+   * asking.
+   */
+  public static applyArrangement(
+    interactive: Interactive,
+    panes: readonly PaneId[],
+  ): { opened: number; closed: number } {
+    return logic().applyArrangement(interactive, panes);
+  }
+
   public static notifyPromptSettled(
     interactive: Interactive,
     promptId: string,

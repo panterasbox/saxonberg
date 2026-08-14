@@ -20,6 +20,8 @@ import { RoutingTable } from "../components/routing/RoutingTable";
 import { Terminal } from "../components/Terminal";
 import { FilterDrawer } from "../components/FilterDrawer";
 import { CommandBar } from "../components/CommandBar";
+import { PromptStrip } from "../components/PromptStrip";
+import { PromptFormatBar } from "../components/PromptFormatBar";
 import { PaneFeed } from "../components/panes/PaneFeed";
 import { RadialOverlay } from "../components/panes/RadialOverlay";
 import { WhoPane } from "../components/WhoPane";
@@ -214,6 +216,21 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         >
           routing
         </RoutingToggle>
+        {/*
+          ⭐ One slot, three occupants — in the order they sit on
+          screen. Everything WAITING is above the input; the format bar
+          describes what the slot shows at rest; the input itself holds
+          the foreground prompt when there is one.
+        */}
+        <PromptStrip
+          onCancelPrompt={onCancelPrompt}
+          onSendCommand={onCommandClick}
+          onCommandPreview={onCommandPreview}
+        />
+        <PromptFormatBar
+          onSendCommand={onCommandClick}
+          onCommandPreview={onCommandPreview}
+        />
         <CommandBar
           barId="world"
           onSendCommand={onSendCommand}

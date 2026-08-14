@@ -580,7 +580,37 @@ export interface PromptChoice {
  * The server's `PromptOpts.foreground` opt is the source of truth;
  * this field carries that decision onto the wire.
  */
-export interface ChoicePromptNote {
+/**
+ * ⭐⭐ **A prompt remembers who asked, and that is what makes an
+ * abandoned one judgeable.**
+ *
+ * Every prompt is pushed from inside a running command, so the verb,
+ * its one-line description, and when it started waiting are facts the
+ * server already has. Carrying them turns two otherwise-impossible
+ * surfaces into ordinary ones:
+ *
+ * - the WAITING strip can say *what* is waiting rather than just *that*
+ *   something is;
+ * - ⚠⚠ **cancel can name the command it kills.** Cancelling is not
+ *   dismissing a dialog — it rejects the awaiting command with
+ *   `PromptCancelledError` — so a button that says only *"cancel"* is a
+ *   lie about what it does.
+ *
+ * Every field is optional: a prompt pushed outside a command frame
+ * (engine-initiated, a future scheduled ask) genuinely has no answer,
+ * and inventing one would be worse than the absence. The client hatches
+ * rather than guessing.
+ */
+export interface PromptProvenance {
+  /** The command that is waiting on this answer, as it was dispatched. */
+  askedBy?: string;
+  /** That verb's one-line description, from its own spec. */
+  askedByDescription?: string;
+  /** Epoch ms the prompt was pushed — the elapsed clock's origin. */
+  askedAt?: number;
+}
+
+export interface ChoicePromptNote extends PromptProvenance {
   kind: 'prompt-choice';
   label: string;
   choices: PromptChoice[];
@@ -588,14 +618,14 @@ export interface ChoicePromptNote {
   foreground: boolean;
 }
 
-export interface ConfirmPromptNote {
+export interface ConfirmPromptNote extends PromptProvenance {
   kind: 'prompt-confirm';
   label: string;
   defaultAnswer: 'yes' | 'no';
   foreground: boolean;
 }
 
-export interface TextPromptNote {
+export interface TextPromptNote extends PromptProvenance {
   kind: 'prompt-text';
   label: string;
   placeholder?: string;
@@ -610,7 +640,7 @@ export interface TextPromptNote {
  * rich editor ships. A *shared* PromptApi/client capability, not
  * forum-only. The response is a plain string (the markdown body).
  */
-export interface ComposePromptNote {
+export interface ComposePromptNote extends PromptProvenance {
   kind: 'prompt-compose';
   label: string;
   placeholder?: string;
@@ -639,14 +669,14 @@ export interface MqlMatchSummary {
   displayName: string;
 }
 
-export interface MqlObjectPromptNote {
+export interface MqlObjectPromptNote extends PromptProvenance {
   kind: 'prompt-mql-object';
   label: string;
   matches: MqlMatchSummary[];
   foreground: boolean;
 }
 
-export interface MqlManyPromptNote {
+export interface MqlManyPromptNote extends PromptProvenance {
   kind: 'prompt-mql-many';
   label: string;
   matches: MqlMatchSummary[];
@@ -1037,7 +1067,16 @@ export type PaneReleaseReason =
   | "departed"
   | "out-of-reach"
   | "dropped"
-  | "dismissed";
+  | "dismissed"
+  /**
+   * ⭐ The workspace changed, not the world. A mode switch resolves its
+   * saved arrangement server-side and pushes the pane set, so panes the
+   * new arrangement does not name are closed — and they need a reason
+   * that does not claim somebody walked out. A pane that vanishes
+   * without a reason reads as a bug, which is what this envelope exists
+   * to prevent.
+   */
+  | "rearranged";
 
 /**
  * A pane's hold lapsed and the pane is gone. Distinct from
@@ -2481,6 +2520,29 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
   watch: ["viewer", "streamer"],
   build: ["default"],
   govern: ["default"],
+};
+
+/**
+ * ⭐ The panes a SHIPPED arrangement opens.
+ *
+ * A saved arrangement carries its own `panes` (that is what `cockpit
+ * layout save` records). A shipped one has no stored spec, so this is
+ * what it resolves to.
+ *
+ * ⚠ Sparse on purpose. Only `play` opens a pane today, because only
+ * `play` has one the client actually opens — `Panes.ts`' own rule.
+ * `chat`, `watch`, `build` and `govern` get their panes from the waves
+ * that build their surfaces (forums, livestream, the CMS), and
+ * pre-filling them here would be sizing a vocabulary to a mockup.
+ */
+export const SHIPPED_ARRANGEMENT_PANES: Readonly<
+  Record<CockpitMode, readonly PaneId[]>
+> = {
+  chat: [],
+  play: ['place'],
+  watch: [],
+  build: [],
+  govern: [],
 };
 
 /**

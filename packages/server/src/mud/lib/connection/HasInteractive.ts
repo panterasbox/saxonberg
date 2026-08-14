@@ -45,9 +45,12 @@ import {
   DEFAULT_SHELF,
   DEFAULT_ROUTING,
   FEED_DESTINATIONS,
+  PANE_IDS,
+  SHIPPED_ARRANGEMENT_PANES,
   type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
+  type PaneId,
 } from '@saxonberg/types';
 
 /**
@@ -199,6 +202,17 @@ export interface HasInteractive {
 
   /** This player's saved arrangements for one mode. */
   savedArrangementsFor(mode: CockpitMode): Record<string, ArrangementSpec>;
+
+  /**
+   * ⭐ The panes an arrangement opens — a saved one's own list, or the
+   * shipped default for the mode.
+   *
+   * ⚠ Names only. An arrangement is a statement about a WORKSPACE, so
+   * it names panes by catalogue id and nothing else; a pane about a
+   * particular person is a statement about a MOMENT and belongs to the
+   * pin, which is session-scoped for exactly that reason.
+   */
+  arrangementPanes(mode: CockpitMode, name: string): readonly PaneId[];
 
   /** Error string for a player-supplied arrangement name, or null if fine. */
   validateArrangementName(mode: CockpitMode, raw: string): string | null;
@@ -774,6 +788,23 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     }
 
     /** This player's saved arrangements for one mode (never null). */
+    /** See {@link HasInteractive.arrangementPanes}. */
+    public arrangementPanes(
+      mode: CockpitMode,
+      name: string,
+    ): readonly PaneId[] {
+      const saved = this.savedArrangementsFor(mode)[name];
+      if (saved) {
+        // ⚠ Filter to the catalogue. A saved list is player data that
+        // has outlived a rename before, and an unknown name would make
+        // the whole arrangement fail to open rather than one pane.
+        return saved.panes.filter((p): p is PaneId =>
+          (PANE_IDS as readonly string[]).includes(p),
+        );
+      }
+      return SHIPPED_ARRANGEMENT_PANES[mode];
+    }
+
     public savedArrangementsFor(
       mode: CockpitMode,
     ): Record<string, ArrangementSpec> {

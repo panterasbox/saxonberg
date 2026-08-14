@@ -88,7 +88,27 @@ export type ConnectionPhase =
  * alive via `prompt-validation-failed`. The renderer surfaces it
  * inline; the player retries on the same id.
  */
-export type PromptEntry =
+/**
+ * ⭐⭐ **What a prompt remembers about who asked it.**
+ *
+ * Every prompt is pushed from inside a running command, so the verb,
+ * its description and how long it has waited ride the envelope. That is
+ * what makes an abandoned prompt judgeable — and what lets the cancel
+ * button NAME the command that dies, because cancelling rejects the
+ * awaiting command with `PromptCancelledError` and a button reading
+ * only "cancel" is a lie about what it does.
+ *
+ * ⚠ Every field is optional and absent means absent. A prompt with no
+ * command frame behind it has no honest answer, and the UI hatches.
+ */
+export interface PromptAsker {
+  askedBy?: string;
+  askedByDescription?: string;
+  askedAt?: number;
+}
+
+export type PromptEntry = PromptAsker &
+  (
   | {
       kind: "choice";
       promptId: string;
@@ -142,7 +162,8 @@ export type PromptEntry =
       max?: number;
       foreground: boolean;
       validationError?: string;
-    };
+    }
+  );
 
 /**
  * Reserved key for the always-present base command slot on the

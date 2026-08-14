@@ -1040,6 +1040,35 @@ class WebSocketClient {
     promptId: string,
     note: Note,
   ): PromptEntry | null {
+    /*
+     * ⭐ Provenance rides every push-shape note, so it is spread in
+     * once here rather than repeated across six branches. Absent
+     * fields stay absent — a prompt pushed outside a command frame has
+     * no honest answer, and the UI hatches rather than guessing.
+     */
+    const asker = {
+      ...((note as { askedBy?: string }).askedBy !== undefined
+        ? { askedBy: (note as { askedBy?: string }).askedBy }
+        : {}),
+      ...((note as { askedByDescription?: string }).askedByDescription !==
+      undefined
+        ? {
+            askedByDescription: (note as { askedByDescription?: string })
+              .askedByDescription,
+          }
+        : {}),
+      ...((note as { askedAt?: number }).askedAt !== undefined
+        ? { askedAt: (note as { askedAt?: number }).askedAt }
+        : {}),
+    };
+    const entry = this.promptShapeFromNote(promptId, note);
+    return entry ? ({ ...entry, ...asker } as PromptEntry) : null;
+  }
+
+  private promptShapeFromNote(
+    promptId: string,
+    note: Note,
+  ): PromptEntry | null {
     switch (note.kind) {
       case "prompt-choice":
         return {

@@ -59,6 +59,7 @@ import {
 } from '../api/execution-context';
 import { MqlApi, MqlPermissionError } from '../api/mql';
 import { StuffApi } from '../api/stuff';
+import { SecurityApi } from '../api/security';
 import { EventApi } from '../api/event';
 import { MessageApi } from '../api/message';
 import { ShellApi } from '../api/shell';
@@ -1297,6 +1298,77 @@ export default class MqlSubscriptionRegistry extends Idea {
       pinned: sub.pinned,
     };
     MessageApi.sendEnvelope(holder as Stuff & Sensor, template);
+  }
+
+  /**
+   * ⭐⭐ **Open exactly the panes an arrangement names, server-side.**
+   *
+   * The client sends ONE command (`cockpit mode play`) and knows
+   * nothing about what an arrangement means. That is what keeps *the
+   * client owns zero command semantics* literally true — the
+   * alternative, a client replaying `cockpit pane open <name>` per
+   * pane, puts both the meaning of an arrangement and the pane ORDER in
+   * the client and costs a round trip each.
+   *
+   * ⚠ The cost is accepted knowingly: **the server now holds view state
+   * per player.** It already holds `cockpit.layout`, `cockpit.mode` and
+   * `console.tabs`, so this is the same seam widened, not a new one.
+   *
+   * ⚠ **Subject panes are skipped.** `agent` / `instrument` / `manifest`
+   * are about a particular thing, and an arrangement is a statement
+   * about a WORKSPACE — "keep the pane about Bob open" is a statement
+   * about a MOMENT, which is why the pin is session-scoped. Restoring
+   * one next week, when Bob is long gone, would be restoring an answer
+   * to a question nobody is asking.
+   *
+   * Returns the (opened, closed) counts for the verb's report.
+   */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public applyArrangement(
+    interactive: Interactive,
+    panes: readonly PaneId[],
+  ): { opened: number; closed: number } {
+    const wanted = new Set<PaneId>(
+      panes.filter((p) => PANES_BY_NAME[p]?.needsSubject !== true),
+    );
+    const bucket = this.registry.get(interactive);
+    let closed = 0;
+
+    // Close the catalogue panes this arrangement does not name. ⚠ Only
+    // NAMED ones: a pane opened by shape has no durable identity, so an
+    // arrangement never claimed to describe it and must not close it.
+    if (bucket) {
+      for (const [subscriptionId, sub] of [...bucket.entries()]) {
+        if (sub.paneId === undefined) continue;
+        if (wanted.has(sub.paneId)) {
+          // Already open and still wanted — leave it alone rather than
+          // closing and reopening, which would blank the card and lose
+          // any pin on it for no reason the player asked for.
+          wanted.delete(sub.paneId);
+          continue;
+        }
+        if (PANES_BY_NAME[sub.paneId]?.needsSubject === true) continue;
+        this.emitReleased(sub, 'rearranged');
+        this.teardownSubscription(sub);
+        bucket.delete(subscriptionId);
+        closed++;
+      }
+      if (bucket.size === 0) this.registry.delete(interactive);
+    }
+
+    let opened = 0;
+    for (const pane of wanted) {
+      this.handleSubscribe({
+        interactive,
+        // ⚠ Server-minted. The client has never seen this handle, which
+        // is precisely why the result envelope echoes `pane` and `hold`
+        // — without them the client could not know which body to draw.
+        subscriptionId: `srv-${pane}-${SecurityApi.uuid()}`,
+        pane,
+      });
+      opened++;
+    }
+    return { opened, closed };
   }
 
   /** Open panes for one interactive, for the `cockpit pane` report. */
