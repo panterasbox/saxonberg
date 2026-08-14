@@ -114,6 +114,28 @@ describe('recall', () => {
     expect(body).toContain('anvil');
   });
 
+  it('⚠ renders as lines, not as a comma-joined array', async () => {
+    deliver(giver, 'the anvil rang like a bell');
+    deliver(giver, 'the anvil rang again');
+    await RecordApi.flush();
+
+    const { body } = await run({ terms: 'anvil' });
+    /*
+     * Found by DRIVING. `Mml.compose` interpolating an array stringifies
+     * it with commas, so the readout shipped as
+     * `,\n  sense.survey · 4m ago\n,    the lounge…` — one stray comma
+     * per line, on every hit.
+     *
+     * ⚠⚠ Every assertion in this file was `toContain`, and a comma
+     * sitting beside the text you are looking for is precisely what
+     * `toContain` cannot notice. So this one asserts the SHAPE: no line
+     * begins with a separator.
+     */
+    for (const line of body.split('\n')) {
+      expect(line.trimStart().startsWith(',')).toBe(false);
+    }
+  });
+
   it('refuses an unknown scope by NAME rather than defaulting', async () => {
     const { body, notes } = await run({ terms: 'anvil', scope: 'chronicle' });
     expect(reasons(notes)).toContain('unknown-scope');

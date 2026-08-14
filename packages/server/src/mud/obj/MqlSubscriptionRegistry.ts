@@ -579,6 +579,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       // opened itself; load-bearing for one it has never seen.
       ...(req.pane ? { pane: req.pane } : {}),
       ...(hold ? { hold } : {}),
+      ...(req.pushed ? { pushed: true as const } : {}),
     };
     MessageApi.sendEnvelope(viewer, template);
   }
@@ -1365,6 +1366,10 @@ export default class MqlSubscriptionRegistry extends Idea {
         // — without them the client could not know which body to draw.
         subscriptionId: `srv-${pane}-${SecurityApi.uuid()}`,
         pane,
+        // ⚠ The flag, not the id prefix. A client that keyed on `srv-`
+        // would be inferring intent from a string shape the server is
+        // free to change.
+        pushed: true,
       });
       opened++;
     }

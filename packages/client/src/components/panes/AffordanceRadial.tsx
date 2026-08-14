@@ -143,6 +143,22 @@ export function groupIntoSlots(
   return out;
 }
 
+/**
+ * ⚠⚠ **How many refusals one quadrant shows before it counts the rest.**
+ *
+ * Found by driving: an ordinary fixture affords roughly forty verbs and
+ * most of them are refused, so the first live radial was a scrolling
+ * wall — the geometry was technically fixed and completely unreadable,
+ * which is the same as not being fixed at all. Muscle memory needs a
+ * SHAPE, and a shape needs a bound.
+ *
+ * ⭐ Enabled and pending-operand verbs are NEVER cut. The cap applies
+ * only to refusals, and what it drops is COUNTED — dimming a verb with
+ * its reason is the design fact, and silently omitting the rest without
+ * saying how many would trade one honest surface for a tidy lie.
+ */
+const REFUSALS_SHOWN = 3;
+
 const Sheet = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -166,6 +182,14 @@ const Quadrant = styled.div<{ $area: string }>`
   flex-direction: column;
   gap: ${tokens.space.xs};
   min-width: 0;
+  /* The quadrant scrolls INSIDE its slot rather than growing the sheet:
+     a slot that stretches moves the other three, which is the reflow
+     the fixed geometry exists to prevent. */
+  /* Three rows plus gaps must fit the 80vh the overlay allows, or the
+     sheet grows its own scrollbar and the four slots stop being
+     simultaneously visible — which is the whole point of a radial. */
+  max-height: 23vh;
+  overflow-y: auto;
 `;
 
 const QuadrantLabel = styled.div`
@@ -227,6 +251,14 @@ const Reason = styled.span`
   color: ${tokens.color.fgMuted};
 `;
 
+/** `+4 more refused` — the count of what the cap dropped. */
+const MoreRefused = styled.div`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+`;
+
 const Waiting = styled.div`
   padding: ${tokens.space.md};
   font-family: ${tokens.font.mono};
@@ -286,10 +318,23 @@ export function AffordanceRadial({
   const slots = groupIntoSlots(answer.verbs);
   const keyword = displayName;
 
-  const renderSlot = (slot: RadialSlot) => (
+  const renderSlot = (slot: RadialSlot) => {
+    /*
+     * ⭐ Available first, refusals after, and the refusals bounded.
+     * Sorting rather than filtering keeps the promise the design makes
+     * — "unavailable verbs render dimmed with their reason" — while
+     * stopping forty of them burying the four you can actually run.
+     */
+    const all = slots[slot];
+    const available = all.filter((e) => e.state !== "disabled");
+    const refused = all.filter((e) => e.state === "disabled");
+    const shownRefusals = refused.slice(0, REFUSALS_SHOWN);
+    const hidden = refused.length - shownRefusals.length;
+    const shown = [...available, ...shownRefusals];
+    return (
     <Quadrant $area={slot} key={slot} data-testid={`radial-${slot}`}>
       <QuadrantLabel>{SLOT_LABEL[slot]}</QuadrantLabel>
-      {slots[slot].map((entry) => {
+      {shown.map((entry) => {
         const command = commandFor(entry, keyword);
         return (
           <VerbButton
@@ -313,8 +358,14 @@ export function AffordanceRadial({
           </VerbButton>
         );
       })}
+      {hidden > 0 && (
+        <MoreRefused data-testid={`radial-${slot}-more`}>
+          +{hidden} more refused
+        </MoreRefused>
+      )}
     </Quadrant>
-  );
+    );
+  };
 
   return (
     <Sheet data-testid="affordance-radial" data-stuff-id={stuffId}>

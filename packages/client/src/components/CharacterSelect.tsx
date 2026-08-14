@@ -676,18 +676,27 @@ function CharacterDetail({
       </EnterBlock>
 
       {/*
-        ⚠ Whole-card hatch, not a hatched value. There is no mailbox,
-        no offline-notice store and no queue — nothing anywhere records
-        what happened while you were away — so hatching one row inside
-        a confident panel would understate how absent this is.
+        ⚠ Whole-card hatch, not a hatched value — but the REASON changed
+        when the record layer shipped, and that half is not cosmetic.
+
+        It used to read *"nothing records what happened while you were
+        away… tells, civic notices and guild business are not kept for
+        you between sessions."* That was true when there was no store at
+        all; it is now false, and a hatch whose stated reason is a
+        falsehood is worse than no hatch — it tells the player their
+        work is being dropped when it is being kept.
+
+        What is genuinely still missing is the DIGEST: the store keeps
+        frames, and nothing yet reads them back as "here is what
+        happened." So the card stays hatched and says precisely that.
       */}
       <div>
         <SectionLabel>Since you left</SectionLabel>
         <HatchedCard data-testid="since-you-left">
           <HatchReason>
-            Nothing records what happened while you were away yet. Tells,
-            civic notices and guild business are not kept for you between
-            sessions.
+            The server keeps what you were told, but nothing reads it back
+            to you as a summary yet. Enter and scroll up — your last
+            session is waiting in the transcript.
           </HatchReason>
         </HatchedCard>
       </div>

@@ -123,6 +123,54 @@ const Prose = styled.div`
 const CHIP_LIMIT = 3;
 
 /**
+ * Mixins that are framework plumbing rather than a fact about the
+ * thing.
+ *
+ * ⚠ Found by driving: the lounge's chip row read `PostRegistrationMixin
+ * · ExitableMixin · DetailedMixin`, so two of the three visible slots
+ * on a **teaching surface** were spent on machinery. The chips exist to
+ * show a player the composition palette they would author with; a
+ * lifecycle hook is not part of that palette.
+ *
+ * ⚠ Sorted LAST rather than removed. The resolver's answer is the
+ * ACTIVE composition and it is true — hiding part of it would be the
+ * client editing a server fact. Demoting it is a presentation decision,
+ * which is the client's; the overflow count still includes them.
+ */
+const PLUMBING: ReadonlySet<string> = new Set([
+  "PostRegistration",
+  "Propertied",
+  "Persistable",
+  "Forkable",
+  "Shadowable",
+  "ClientState",
+]);
+
+/**
+ * `ExitableMixin` → `Exitable`.
+ *
+ * ⚠ The suffix is an implementation technique, not part of the name.
+ * The codebase's own convention says so — the marker is
+ * `_mixinName = 'PropertiedMixin'` while the file, the concept and
+ * every doc call it `Propertied` — and the reference art's chips carry
+ * no suffix either.
+ */
+export function chipLabel(mixin: string): string {
+  return mixin.endsWith("Mixin") ? mixin.slice(0, -"Mixin".length) : mixin;
+}
+
+/** The chips, most-interesting first. */
+export function orderComposition(
+  composition: readonly string[],
+): string[] {
+  const labelled = composition.map(chipLabel);
+  return [
+    ...labelled.filter((m) => !PLUMBING.has(m)),
+    ...labelled.filter((m) => PLUMBING.has(m)),
+  ];
+}
+
+/**
  * Field names that are DESCRIPTION rather than measurement — the header
  * and the prose already render them, so they must not double as rows.
  *
@@ -250,8 +298,9 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
     if (stuffId) websocketClient.resolveAffordances(stuffId);
   }, [stuffId]);
   if (!answer || answer.composition.length === 0) return null;
-  const shown = answer.composition.slice(0, CHIP_LIMIT);
-  const rest = answer.composition.length - shown.length;
+  const ordered = orderComposition(answer.composition);
+  const shown = ordered.slice(0, CHIP_LIMIT);
+  const rest = ordered.length - shown.length;
   return (
     <Chips data-testid="pane-composition">
       {shown.map((m) => (

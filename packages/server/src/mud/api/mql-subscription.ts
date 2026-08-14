@@ -195,6 +195,12 @@ export interface SubscribeRequest {
    * what a pane about a thing resolves and projects.
    */
   subject?: string;
+  /**
+   * ⭐ The SERVER opened this pane (the arrangement resolver), not the
+   * client. Echoed onto the result envelope so the pane feed knows to
+   * adopt a handle it never minted.
+   */
+  pushed?: true;
   /** Required UNLESS `pane` names one. */
   query?: string;
   /** Required UNLESS `pane` names one. */

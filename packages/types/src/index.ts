@@ -1447,6 +1447,21 @@ export interface MqlSubscriptionResultEnvelope {
    * KEEP direction was silent.
    */
   pinned?: boolean | null;
+  /**
+   * ⭐⭐ **The SERVER opened this pane; the client did not ask for it.**
+   *
+   * Set only by the arrangement resolver. The pane feed adopts a card
+   * for a handle it has never seen — that is how a mode switch paints —
+   * and this flag is what tells it *which* unseen handles to adopt.
+   *
+   * ⚠ Guessing was tried and is wrong. "A handle the client does not
+   * currently know" catches a result that arrives after the client's own
+   * unsubscribe, which React's double-mount produces on every dev page
+   * load; the chrome's own named panes (`inspect`, `location`, `self`)
+   * echo `pane` on their results too. Both showed up live as spurious
+   * cards. A flag says what the inference was trying to infer.
+   */
+  pushed?: true;
 }
 
 export interface Change {

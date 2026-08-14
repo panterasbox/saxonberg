@@ -55,6 +55,25 @@ export const PANE_KIND_BY_ID: Readonly<Record<PaneId, PaneKind>> = {
 };
 
 /**
+ * What a card is called before its subject arrives.
+ *
+ * ⚠ Client-side for the same reason `PANE_KIND_BY_ID` is: the server
+ * owns what a pane IS; what a waiting card should say is a rendering
+ * question only the client observes. These mirror the catalogue's own
+ * `label` fields — if they drift, the cost is a placeholder reading
+ * slightly differently for a fraction of a second.
+ */
+export const PANE_LABEL: Readonly<Record<PaneId, string>> = {
+  inspect: "what you are looking at",
+  location: "where you are",
+  self: "your own figures",
+  place: "where you are",
+  agent: "someone you are dealing with",
+  instrument: "something you are reading",
+  manifest: "what you are carrying",
+};
+
+/**
  * Apply a wire `Change[]` batch to a card's cached records.
  *
  * The four ops mirror `InspectionPane`'s reducer, which is the shape
@@ -117,13 +136,22 @@ export function usePaneFeed(): void {
       const env = envelope as MqlSubscriptionResultEnvelope;
       const store = useStore.getState();
       /*
-       * ⭐ A result for a handle the store has never seen is a pane the
-       * SERVER opened — a mode switch resolving its saved arrangement
-       * and pushing the set. The envelope carries `pane` and `hold` for
-       * exactly this: the client has to know which body to draw and
-       * what words to put in the header for a handle it did not mint.
+       * ⭐ A result flagged `pushed` is a pane the SERVER opened — a mode
+       * switch resolving its saved arrangement and pushing the set. The
+       * envelope carries `pane` and `hold` for exactly this: the client
+       * has to know which body to draw and what words to put in the
+       * header for a handle it did not mint.
+       *
+       * ⚠⚠ The FLAG, not an inference. "A handle I do not currently
+       * know" was tried and is wrong twice over: the chrome's own named
+       * panes (`inspect`, `location`, `self`) echo `pane` too, and a
+       * result arriving after the client's own unsubscribe — which
+       * React's double-mount produces on every dev page load — looks
+       * unknown as well. Both showed up live as spurious cards, and no
+       * unit test could see either, because the adoption path only
+       * fires for an envelope a test would have to mint by hand.
        */
-      if (!store.paneCards[env.subscriptionId] && env.pane) {
+      if (!store.paneCards[env.subscriptionId] && env.pane && env.pushed) {
         store.openPaneCard({
           subscriptionId: env.subscriptionId,
           paneId: env.pane,

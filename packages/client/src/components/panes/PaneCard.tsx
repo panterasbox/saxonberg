@@ -29,6 +29,7 @@ import React from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
 import { holdReason, type PaneCardState } from "../../store/paneFeedSlice";
+import { PANE_LABEL } from "./usePaneFeed";
 
 const Card = styled.article<{ $faded: boolean; $pinned: boolean }>`
   border: 1px solid
@@ -127,7 +128,17 @@ export function PaneCard({
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
   const faded = card.released !== undefined;
-  const title = card.records[0]?.displayName ?? card.paneId ?? "a pane";
+  /*
+   * ⚠ Before the subject arrives, the title falls back to the pane's
+   * LABEL, not its catalogue id. Found by driving: a freshly-opened
+   * `place` card read `PLACE place`, which says nothing and looks like
+   * a placeholder somebody forgot. "where you are" is true the whole
+   * time and stops being needed the moment the room's name lands.
+   */
+  const title =
+    card.records[0]?.displayName ||
+    (card.paneId ? PANE_LABEL[card.paneId] : undefined) ||
+    "a pane";
 
   return (
     <Card

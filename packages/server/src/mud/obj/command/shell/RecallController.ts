@@ -89,23 +89,36 @@ export default class RecallController extends CommandController<RecallModel> {
     hits: readonly RecallHit[],
   ): Mml {
     const now = Date.now();
-    const parts: Mml[] = [
-      // The count is derived from the list beside it, never tracked.
-      Mml.compose`\n${String(hits.length)} in ${scope} for "${search}":\n`,
+    /*
+     * ⚠ Built as ONE markup string rather than an array of `Mml`.
+     *
+     * `Mml.compose` interpolating an array stringifies it with commas —
+     * the readout shipped as `,\n  sense.survey · 4m ago\n,    the
+     * lounge…`, one stray comma per line. Found by driving; no unit
+     * test saw it because they all asserted `toContain`, and a comma
+     * beside the text they were looking for is exactly what `toContain`
+     * cannot notice.
+     *
+     * Every interpolated value is escaped at the point it goes in. The
+     * count comes from the list beside it, never tracked.
+     */
+    const parts: string[] = [
+      `\n${hits.length} in ${Mml.escape(scope)} for ` +
+        `"${Mml.escape(search)}":\n`,
     ];
     for (const hit of hits) {
       const when = hit.at ? ` · ${ago(hit.at, now)}` : '';
-      parts.push(Mml.compose`\n  ${hit.title}${when}\n`);
-      parts.push(Mml.compose`    ${hit.excerpt}\n`);
+      parts.push(`\n  ${Mml.escape(hit.title + when)}\n`);
+      parts.push(`    ${Mml.escape(hit.excerpt)}\n`);
       // Every clickable previews exactly what it sends — a hit that can
       // be opened says so with the command, not with a word like "open".
       if (hit.command) {
         parts.push(
-          Mml.compose`    ${Mml.link(`mudcmd:${hit.command}`, hit.command)}\n`,
+          `    ${Mml.link(`mudcmd:${hit.command}`, hit.command).toString()}\n`,
         );
       }
     }
-    return Mml.compose`${parts}`;
+    return Mml.fromMarkup(parts.join(''));
   }
 
   private fail(
