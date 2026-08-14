@@ -127,6 +127,22 @@ export class AccessLogic extends ApiLogic {
     return reg.setWizardMembership(playerId, makeWizard);
   }
 
+  /** See {@link AccessApi.reseedSystemGroups}. */
+  @CallSecurity(AccessApiCallers)
+  public async reseedSystemGroups(): Promise<void> {
+    const reg = lookupRegistry();
+    if (!reg) return;
+    await reg.reseedSystemGroups();
+  }
+
+  /** See {@link AccessApi.reconcileIdentityGrants}. */
+  @CallSecurity(AccessApiCallers)
+  public async reconcileIdentityGrants(avatar: Stuff): Promise<void> {
+    const reg = lookupRegistry();
+    if (!reg) return;
+    await reg.reconcileIdentityGrants(avatar);
+  }
+
   /** See {@link AccessApi.resolveSourceFolderZone}. */
   @CallSecurity(AccessApiCallers)
   public async resolveSourceFolderZone(

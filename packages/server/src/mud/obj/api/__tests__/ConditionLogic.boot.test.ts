@@ -28,6 +28,7 @@
  * one out from under a fixture, and it goes red.
  */
 
+import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';

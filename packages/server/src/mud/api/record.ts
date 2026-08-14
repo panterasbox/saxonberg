@@ -48,8 +48,26 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ExecutionContextApi } from './execution-context';
 import { SecurityApi } from './security';
-import { RecordLogic } from '../obj/api/RecordLogic';
+import { AccessApi } from './access';
+import { AppApi } from './app';
+import { ScheduleApi } from './schedule';
+import { AppSettingKeys } from '../lib/config/AppSettings';
+import { RecordLogic, type WipeReport } from '../obj/api/RecordLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
+
+export type { WipeReport, WipeLine } from '../obj/api/RecordLogic';
+
+/** A day. The reset is nightly by name and by default. */
+const DEFAULT_RESET_MS = 24 * 60 * 60 * 1000;
+
+/** One AppSettings read that survives an unwarmed store. */
+function readSetting(key: string): string {
+  try {
+    return AppApi.setting(key) ?? '';
+  } catch {
+    return '';
+  }
+}
 
 const LOGIC_PATH = '/obj/api/record';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -173,6 +191,92 @@ export class RecordApi {
     search: string,
   ): Promise<RecallHit[]> {
     return logic().recall(actingOwner(), scope, search);
+  }
+
+  /* ─── the nightly reset ─── */
+
+  /**
+   * Remove every collection the reset policy marks, and re-establish
+   * what the world cannot run without.
+   *
+   * ⚠⚠ **Destructive by design, and there is no reflog.** Three things
+   * make that survivable and all three are load-bearing:
+   *
+   *  - `dryRun` counts what it would take, using the SAME predicate the
+   *    enforce path deletes on;
+   *  - every run logs, loudly, per collection;
+   *  - `RESET_DISPOSITIONS` is a total `Record<Collections, …>`, so a
+   *    new collection cannot ship without a decision — the coverage
+   *    fails closed at build time rather than at an audit.
+   *
+   * ⭐ The survivors: `documents` where `kind === 'release'`, plus the
+   * seeded / pack-installed world content the boot-only installers
+   * cannot replace mid-process. Everything else is player state and it
+   * goes. See `lib/persistence/ResetPolicy.ts` for the reason on each
+   * row.
+   *
+   * ⚠ The re-seed afterwards is not tidiness — `groups` carries the
+   * system groups, so without it every resource-targeted access read
+   * fails closed until somebody restarts the process.
+   */
+  public static async wipe(
+    opts: { dryRun?: boolean } = {},
+  ): Promise<WipeReport> {
+    const dryRun = opts.dryRun ?? true;
+    const report = await logic().wipe({ dryRun });
+    if (!dryRun) {
+      try {
+        await AccessApi.reseedSystemGroups();
+      } catch (err) {
+        // Loud, and not swallowed into the report: a wipe that left the
+        // world without its system groups is a broken world, and the
+        // operator has to know that from the log rather than from a
+        // player reporting that nothing works.
+        console.error('[reset] system-group re-seed FAILED', err);
+      }
+    }
+    return report;
+  }
+
+  /**
+   * Install the recurring reset, if this server is armed for one.
+   *
+   * ⚠⚠ **Off unless explicitly armed.** `world.reset.mode` follows the
+   * residency-sweep precedent: absent or `dry-run` logs what it would
+   * remove and removes nothing; only `enforce` deletes. A destructive
+   * job that ships on by default is a data-loss bug with a schedule.
+   *
+   * ⚠ It also refuses to run enforcing while `world.resetPolicy` is
+   * unset. That setting is the PROSE the front door prints, and a
+   * server that wipes without printing it is a server whose front page
+   * is silently lying about what happens to your work. The two are
+   * armed together or not at all.
+   */
+  public static boot(): void {
+    const mode = readSetting(AppSettingKeys.worldResetMode);
+    if (!mode || mode === 'off') return;
+    if (mode === 'enforce' && !readSetting(AppSettingKeys.worldResetPolicy)) {
+      console.error(
+        '[reset] REFUSING to arm: `world.reset.mode` is `enforce` but ' +
+          '`world.resetPolicy` is unset. The front door would say nothing ' +
+          'about resets while the server performed them. Set both or neither.',
+      );
+      return;
+    }
+    const intervalMs = Number(
+      readSetting(AppSettingKeys.worldResetIntervalMs) || DEFAULT_RESET_MS,
+    );
+    const every = Number.isFinite(intervalMs) && intervalMs > 0
+      ? intervalMs
+      : DEFAULT_RESET_MS;
+    console.warn(
+      `[reset] armed in ${mode} mode, every ${Math.round(every / 3600000)}h`,
+    );
+    ScheduleApi.recurring(every, () => {
+      void RecordApi.wipe({ dryRun: mode !== 'enforce' }).catch((err) =>
+        console.error('[reset] run failed', err),
+      );
+    });
   }
 
   /* ─── test seams ─── */

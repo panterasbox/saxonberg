@@ -32,6 +32,8 @@ import { GroupApi } from '../api/group';
 import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
 import { ParcelApi } from '../api/parcel';
+import { PersistApi } from '../api/persist';
+import { Collections } from '../lib/persistence/Collections';
 import { Template } from '../lib/stuff/Template';
 import { Group } from '../lib/social/Group';
 import type { GroupRef } from '../lib/social/GroupProvider';
@@ -42,6 +44,23 @@ import FolderZone from './FolderZone';
 import Avatar from './Avatar';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
+
+/**
+ * A comma-separated env list of email addresses, lowercased.
+ *
+ * A module-private function rather than a method: it reads deploy-time
+ * config and touches no registry state, matching how the sibling
+ * `*_PLAYER_IDS` seeds already read `process.env` directly (no
+ * boot-ordering dependency on AppSettings).
+ */
+function envEmails(key: string): ReadonlySet<string> {
+  return new Set(
+    (process.env[key] ?? '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s.length > 0),
+  );
+}
 
 // AccessApi's logic now lives in the /obj/api/access logic singleton
 // (the Api face is a thin forwarding shell). Admit both the face module
@@ -256,6 +275,72 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   /**
+   * See {@link AccessApi.reconcileIdentityGrants}. Grant `wizards` /
+   * `archwizards` by ACCOUNT EMAIL rather than by character id.
+   *
+   * ⭐ The env-id seeds (`WIZARD_PLAYER_IDS`) name characters, and a
+   * character is the thing a nightly reset destroys. Email is the
+   * durable half of the identity: it survives the wipe on the OAuth
+   * provider's side, so a founder who signs in again is recognised
+   * without an operator editing config.
+   *
+   * ⚠ The email is read from the account's already-verified provider
+   * profile — never from anything the player can set. This confers
+   * nothing that `WIZARD_PLAYER_IDS` did not already confer; it only
+   * changes the key it is looked up by.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async reconcileIdentityGrants(avatar: Stuff): Promise<void> {
+    const wizardEmails = envEmails('WIZARD_EMAILS');
+    const archEmails = envEmails('ARCHWIZARD_EMAILS');
+    if (wizardEmails.size === 0 && archEmails.size === 0) return;
+
+    const holder = avatar as unknown as {
+      getUser?: () => { googleProfileId?: string } | undefined;
+      getPlayerId?: () => string;
+    };
+    const playerId = holder.getPlayerId?.() ?? '';
+    if (!playerId) return;
+    const profileId = holder.getUser?.()?.googleProfileId;
+    if (!profileId) return;
+
+    const rows = await PersistApi.find(Collections.GoogleProfiles, {
+      _id: profileId,
+    });
+    const email = String(rows[0]?.email ?? '')
+      .trim()
+      .toLowerCase();
+    if (!email) return;
+
+    const memberKey = Avatar.getTemplatePath(playerId);
+    if (wizardEmails.has(email)) {
+      await this.addToManagedGroup('wizards', memberKey);
+    }
+    if (archEmails.has(email)) {
+      await this.addToManagedGroup('archwizards', memberKey);
+    }
+  }
+
+  /** Additive, idempotent membership write with cache invalidation. */
+  private async addToManagedGroup(
+    name: 'wizards' | 'archwizards',
+    memberKey: string,
+  ): Promise<void> {
+    const reg = await GroupApi.registry();
+    const provider = reg.managed();
+    const group = await provider.findByName(name);
+    if (!group || !group._id) return;
+    if (!group.addMember(memberKey, 'member')) return;
+    await group.save();
+    provider.fireChange(group._id);
+    if (name === 'wizards') this.cachedWizardPlayerIds = null;
+    else this.cachedArchwizardPlayerIds = null;
+    console.info(
+      `[access] identity grant: ${memberKey} added to \`${name}\` by email`,
+    );
+  }
+
+  /**
    * Walk a source-tree path against the template tree
    * most-specific-first, returning the closest extant FolderZone
    * instance. Used by workspace controllers in source/mirror mode to
@@ -451,6 +536,40 @@ export default class AccessRegistry extends AccessRegistryBase {
     });
     this.archwizardCacheCancel = handle?.cancel ?? null;
     return cache;
+  }
+
+  /**
+   * ⭐⭐ **Re-establish the system groups after they have been deleted.**
+   *
+   * The nightly reset wipes `groups`, and the system groups (`core`,
+   * `wizards`, `archwizards`, `streamers`) live there beside the player
+   * ones. They are minted in CODE rather than by a seed file — and the
+   * seeder is insert-only and runs at boot — so without this the world
+   * would come back every morning with no `core` group at all, every
+   * `can` read failing closed, and the founder locked out of a running
+   * process until somebody restarted it.
+   *
+   * ⚠ The cached refs are dropped FIRST. They hold `managed:<_id>`
+   * strings pointing at rows the wipe just deleted; re-seeding without
+   * clearing them mints new groups that nothing ever consults, which
+   * reads exactly like the feature working.
+   *
+   * ⚠ This restores the GROUPS, not the founder's membership of them.
+   * `WIZARD_PLAYER_IDS` names character ids, and a wipe takes the
+   * characters — see `AccessApi.reseedSystemGroups` for the honest
+   * limit and what actually closes it.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async reseedSystemGroups(): Promise<void> {
+    this.cachedCoreRef = null;
+    this.cachedWizardsRef = null;
+    this.cachedStreamersRef = null;
+    this.cachedArchwizardsRef = null;
+    this.cachedWizardPlayerIds = null;
+    this.cachedStreamerPlayerIds = null;
+    this.cachedArchwizardPlayerIds = null;
+    this.cachedAuthorGroups = null;
+    await this.postRegister();
   }
 
   // ── Seeding (idempotent; called from postRegister) ──

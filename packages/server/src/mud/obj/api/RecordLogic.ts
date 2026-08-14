@@ -11,6 +11,7 @@ import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Collections } from '../../lib/persistence/Collections';
+import { RESET_DISPOSITIONS } from '../../lib/persistence/ResetPolicy';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { AppApi } from '../../api/app';
 import { PersistApi } from '../../api/persist';
@@ -71,6 +72,23 @@ function connected(): boolean {
  */
 interface StoredFrameRow extends StoredFrameRecord {
   owner: string;
+}
+
+/** One collection's line in a reset report. `-1` means the write threw. */
+export interface WipeLine {
+  readonly collection: string;
+  readonly verb: 'wipe' | 'wipe-except' | 'keep';
+  readonly count: number;
+}
+
+/** What a reset run did, or would have done. */
+export interface WipeReport {
+  readonly dryRun: boolean;
+  readonly lines: readonly WipeLine[];
+  readonly removed: number;
+  /** How many collections were left alone. */
+  readonly kept: number;
+  readonly ms: number;
 }
 
 /** Rows out of Mongo, narrowed to the wire shape. */
@@ -467,6 +485,83 @@ export class RecordLogic extends ApiLogic {
         command: `forum thread ${threadId}`,
       };
     });
+  }
+
+  /* ─── the nightly reset ─── */
+
+  /** See {@link RecordApi.wipe}. */
+  @CallSecurity(RecordApiCallers)
+  public async wipe(opts: { dryRun: boolean }): Promise<WipeReport> {
+    const started = Date.now();
+    const lines: WipeLine[] = [];
+    if (!connected()) {
+      return { dryRun: opts.dryRun, lines, removed: 0, kept: 0, ms: 0 };
+    }
+
+    for (const name of Object.keys(RESET_DISPOSITIONS) as Collections[]) {
+      const d = RESET_DISPOSITIONS[name];
+      if (d.verb === 'keep') {
+        lines.push({ collection: name, verb: 'keep', count: 0 });
+        continue;
+      }
+      const filter = d.verb === 'wipe-except' ? { $nor: [d.keep] } : {};
+      try {
+        if (opts.dryRun) {
+          // ⚠ A dry run must READ the same predicate the enforce path
+          // deletes on. Counting a different query is how a dry run
+          // reassures you about a wipe that then takes something else.
+          const doomed = await PersistApi.find(name, filter);
+          lines.push({ collection: name, verb: d.verb, count: doomed.length });
+        } else {
+          const n = await PersistApi.deleteMany(name, filter);
+          lines.push({ collection: name, verb: d.verb, count: n });
+        }
+      } catch (err) {
+        console.error(`[reset] ${name} failed`, err);
+        lines.push({ collection: name, verb: d.verb, count: -1 });
+      }
+    }
+
+    const removed = lines
+      .filter((l) => l.verb !== 'keep' && l.count > 0)
+      .reduce((a, l) => a + l.count, 0);
+    const kept = lines.filter((l) => l.verb === 'keep').length;
+    const report: WipeReport = {
+      dryRun: opts.dryRun,
+      lines,
+      removed,
+      kept,
+      ms: Date.now() - started,
+    };
+
+    /*
+     * ⚠⚠ **Loud, always, and loudest on a dry run.** Destructive work
+     * whose only record is a return value is destructive work nobody
+     * can audit after the fact, and there is no reflog here.
+     */
+    console.warn(
+      `[reset] ${opts.dryRun ? 'DRY RUN — nothing removed' : 'ENFORCED'}: ` +
+        `${removed} rows across ${lines.filter((l) => l.verb !== 'keep').length} ` +
+        `collections in ${report.ms}ms; ${kept} kept`,
+    );
+    for (const l of lines) {
+      if (l.verb === 'keep') continue;
+      if (l.count === 0) continue;
+      console.warn(
+        `[reset]   ${l.collection}: ${l.count === -1 ? 'FAILED' : l.count}`,
+      );
+    }
+
+    // In-memory state that mirrors wiped rows has to go with them, or
+    // the next flush writes frames back into a store that was just
+    // emptied — with sequence numbers a fresh session would then
+    // disagree with.
+    if (!opts.dryRun) {
+      this.buffer = [];
+      this.lastSeq.clear();
+      this.sinceEvict.clear();
+    }
+    return report;
   }
 
   /* ─── test seams ─── */

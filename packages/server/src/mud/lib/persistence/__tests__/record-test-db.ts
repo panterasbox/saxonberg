@@ -75,6 +75,18 @@ function matches(
   query: Record<string, unknown>,
 ): boolean {
   for (const [key, want] of Object.entries(query)) {
+    // Top-level logical operators. `$nor` is the one the reset job
+    // actually issues — "everything except the survivors" is a filter
+    // inversion, and a fake that silently ignored it would let a wipe
+    // test pass while the wipe deleted nothing.
+    if (key === '$nor' || key === '$or' || key === '$and') {
+      const clauses = (want as Array<Record<string, unknown>>) ?? [];
+      const hits = clauses.filter((c) => matches(row, c)).length;
+      if (key === '$nor' && hits > 0) return false;
+      if (key === '$or' && hits === 0) return false;
+      if (key === '$and' && hits !== clauses.length) return false;
+      continue;
+    }
     if (key === '$text') {
       const search = String(
         (want as { $search?: unknown }).$search ?? '',
