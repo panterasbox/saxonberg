@@ -432,6 +432,42 @@ export const AppSettingKeys = {
    * resetting. Surfaced on `/auth/status` as `resetPolicy`.
    */
   worldResetPolicy: "world.resetPolicy",
+
+  /**
+   * The record layer (docs/subsystems/record-layer.md).
+   *
+   * `record.frames.window` — how many frames the server retains per
+   * player. A **rolling window**, not an archive: the oldest are evicted
+   * first, because a frame's value decays fast and its volume does not.
+   *
+   * `record.frames.flushMs` — how often the buffered writer drains to
+   * Mongo. ⚠ The write must never sit on the render hot path; this is
+   * the cadence that keeps it off.
+   *
+   * `record.recall.limit` — how many hits one `recall` returns per
+   * scope.
+   */
+  recordFrameWindow: "record.frames.window",
+  recordFrameFlushMs: "record.frames.flushMs",
+  recordRecallLimit: "record.recall.limit",
+
+  /**
+   * The nightly reset job (docs/subsystems/record-layer.md § The wipe).
+   *
+   * ⚠⚠ **Destructive by design, and off unless explicitly armed.**
+   * `world.reset.mode` follows the residency-sweep precedent — `dry-run`
+   * (default: log what it WOULD remove, remove nothing) vs `enforce`.
+   * There is no reflog; a wipe that quietly takes one category too many
+   * is indistinguishable from a data-loss bug.
+   *
+   * ⚠ `world.resetPolicy` (above) is the PROSE the front door prints.
+   * Setting it without arming the job is a claim the server does not
+   * keep; arming the job without setting it is a reset nobody was told
+   * about. The job's installer sets both together.
+   */
+  worldResetMode: "world.reset.mode",
+  /** Real-time cadence in ms between reset runs. */
+  worldResetIntervalMs: "world.reset.intervalMs",
   /** Eviction — sweep cadence in ms. */
   residencyEvictionIntervalMs: "residency.eviction.intervalMs",
   /** Eviction — idle grace window (ms) before an object is a candidate. */

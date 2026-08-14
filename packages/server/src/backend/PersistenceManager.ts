@@ -47,6 +47,15 @@ export type HookOperation = 'save' | 'delete';
 export interface FindOptions {
   sort?: Record<string, 1 | -1>;
   limit?: number;
+  /**
+   * Rows to skip before the first returned one.
+   *
+   * Added for the record layer's window trim, which asks a question no
+   * other caller has: *what is the sequence number of my Nth-newest
+   * row?* — one indexed lookup that turns "keep the newest N" into a
+   * single range delete instead of a count-and-scan.
+   */
+  skip?: number;
 }
 
 /**
@@ -144,6 +153,12 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.AuthoringEvents]: { verb: 'pass', mark: true },
   [Collections.AccountabilityEvents]: { verb: 'pass', mark: true },
   [Collections.Diagnostics]: { verb: 'pass', mark: true },
+  // The frame store is *what happened to you* — the epistemic shape
+  // exactly. A frame delivered inside a circle was genuinely delivered
+  // and genuinely read; STAMP would revert your own scrollback out from
+  // under you on exit, which is the one thing a record of what you were
+  // told must never do. MARK records that it happened in-circle.
+  [Collections.PlayerFrames]: { verb: 'pass', mark: true },
   // ── PASS(unmarked): authored truth + the mechanism's own stores ──
   [Collections.Domain]: { verb: 'pass' },
   [Collections.Documents]: { verb: 'pass' },
@@ -524,6 +539,7 @@ export class PersistenceManager {
       const filtered = this.composeScopeReadFilter(collectionName, query);
       let cursor = collection.find(filtered);
       if (options?.sort) cursor = cursor.sort(options.sort);
+      if (options?.skip != null) cursor = cursor.skip(options.skip);
       if (options?.limit != null) cursor = cursor.limit(options.limit);
       const docs = await cursor.toArray();
 
@@ -1431,6 +1447,39 @@ export class PersistenceManager {
       );
       await this.getCollection(Collections.WikiRevisions).createIndex({
         author: 1,
+      });
+
+      // Player frames: the record layer's rolling window. `{owner, seq}`
+      // is the load-bearing one — it serves the backfill read (newest N
+      // for one owner), the `recall` scan, AND the eviction delete
+      // (`seq <= high - window`), which is why the window bound costs one
+      // indexed range delete rather than a count-and-scan. The TEXT index
+      // is what makes `recall` a query instead of a regex crawl.
+      await this.getCollection(Collections.PlayerFrames).createIndex({
+        owner: 1,
+        seq: -1,
+      });
+      // ⚠ The text index is COMPOUND on `owner` first. Mongo allows one
+      // text index per collection, and an equality prefix is the only
+      // way a per-owner text search uses it — a bare `{body:'text'}`
+      // would scan every player's frames and filter afterwards, which
+      // on the highest-volume collection in the system is the whole
+      // difference between a query and a crawl.
+      await this.getCollection(Collections.PlayerFrames).createIndex({
+        owner: 1,
+        body: 'text',
+      });
+
+      // Wiki + forum text indexes — the other two `recall` corpora.
+      // Mongo allows exactly ONE text index per collection, so each is a
+      // compound over every field the verb searches.
+      await this.getCollection(Collections.Wiki).createIndex({
+        title: 'text',
+        body: 'text',
+      });
+      await this.getCollection(Collections.ForumEntries).createIndex({
+        title: 'text',
+        body: 'text',
       });
 
       // Sandbox: partial circleScope index on every STAMP collection —

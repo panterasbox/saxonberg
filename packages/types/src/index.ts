@@ -2406,6 +2406,90 @@ export interface ConnectionEstablishedPayload {
    * when nothing is published.
    */
   releaseWindow: ReleaseRow[];
+  /**
+   * ⭐⭐ **The record layer's backfill — the frames the server retained
+   * for this player, oldest→newest.**
+   *
+   * Before this existed the client buffer was the ONLY copy of your
+   * scrollback: clearing site data destroyed it and a second device
+   * started empty. After it, the buffer is a **cache** over a
+   * server-side rolling window.
+   *
+   * ⚠ **This changes the meaning of an existing behaviour** rather than
+   * adding one — `clearFrames` on disconnect stops being a data
+   * question. The old path is deliberately left in place until the
+   * backfill has been driven live.
+   *
+   * Absent when the store is empty or unreachable; the client renders
+   * whatever arrives and never invents a frame.
+   */
+  frameBackfill?: StoredFrameRecord[];
+}
+
+// ============================================================================
+// The record layer — what the server remembers for you
+// ============================================================================
+
+/**
+ * One retained frame in a player's record.
+ *
+ * ⚠ **Deliberately a projection of `MessageFrame`, not the frame
+ * itself.** `meta.frameId` is stamped per-Interactive at send time, so
+ * the same logical frame multiplexed to two devices carries two of
+ * them; storing one would make the record a statement about a socket
+ * rather than about the player. `payload` is likewise absent — it is
+ * per-topic structured data whose consumers are live surfaces
+ * (subscriptions, rosters, feeds) that re-resolve on connect anyway,
+ * and carrying it would make the highest-volume write in the system
+ * unbounded in row size.
+ */
+export interface StoredFrameRecord {
+  /** The frame's own id, as delivered. */
+  id: string;
+  topic: string;
+  /** The MML body, verbatim — the client re-renders it unchanged. */
+  body: string;
+  tags?: string[];
+  /** `meta.timestamp` of the delivered frame. */
+  at: number;
+  /**
+   * Per-owner monotonic order key.
+   *
+   * ⚠ Ordering is NOT by `at`: two frames composed in the same
+   * millisecond are common (a scene fans several at once) and a
+   * timestamp sort would shuffle them. `seq` is also what eviction
+   * deletes on, so the window bound is one indexed range delete.
+   */
+  seq: number;
+}
+
+/** The corpora `recall` searches. Scope is an argument, not a verb. */
+export type RecallScope = 'frames' | 'wiki' | 'forums';
+
+/**
+ * The closed scope list, exported for the same reason `TOPIC_ROOTS` is:
+ * the verb's validator and any client affordance must not drift.
+ */
+export const RECALL_SCOPES: readonly RecallScope[] = [
+  'frames',
+  'wiki',
+  'forums',
+];
+
+/** One `recall` hit, already shaped for display. */
+export interface RecallHit {
+  scope: RecallScope;
+  /** What the hit is called — a topic label, a page title, a thread title. */
+  title: string;
+  /** The matching text, plain (never MML — `recall` output is quoted). */
+  excerpt: string;
+  /**
+   * The command that opens the hit, when one exists. Absent for a frame
+   * (scrollback has no address); present for a wiki page or a thread.
+   */
+  command?: string;
+  /** When it happened / was last edited. */
+  at?: number;
 }
 
 /**

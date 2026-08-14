@@ -38,6 +38,7 @@ import {
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
 import { PressApi } from "../api/press";
+import { RecordApi } from "../api/record";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
 import { ForkableMixin } from "../lib/persistence/Forkable";
@@ -189,6 +190,11 @@ export default class Avatar extends AvatarBase {
       "perception/analyze.yaml",
       "social/subject.yaml",
       "shell/script.yaml",
+      // The record layer's retrieval verb. It lives on Avatar rather
+      // than on a mixin because its subject IS the durable player
+      // identity — `recall --scope frames` reads a store keyed on
+      // `playerId`, which nothing without one has.
+      "shell/recall.yaml",
       "stream/watch.yaml",
       "stream/tune.yaml",
       "crafting/make.yaml",
@@ -826,6 +832,22 @@ export default class Avatar extends AvatarBase {
       "/obj/TopicCatalogue",
     );
     const portraitUrl = await this.getPortraitUrl();
+    /*
+     * ⭐ The record layer's backfill — what this player was told, from
+     * the server rather than from whatever this device happens to have
+     * in memory. Rides the welcome payload for the same reason
+     * `releaseWindow` does: it is a snapshot the client seeds a surface
+     * from, not a live channel, and a separate envelope would cost a
+     * round trip to say the same thing.
+     *
+     * ⚠ The read is owner-derived, never owner-parameterised, so the
+     * call has to say WHO is acting — and `enter` runs outside any
+     * command frame. `RecordApi.backfill` opens that frame inside the
+     * Api tier, because only framework files may push or tag one; a
+     * `runRoot` here is refused, correctly, by the guard that stops
+     * mudlib code from claiming to be somebody.
+     */
+    const frameBackfill = await RecordApi.backfill(this);
     const payload: ConnectionEstablishedPayload = {
       userId: interactive.getUserId() ?? "",
       socketId: interactive.getSocketId(),
@@ -849,6 +871,7 @@ export default class Avatar extends AvatarBase {
       // client seeds its feed pane from this as a `snapshot`, exactly as it
       // caches `topicCatalogue`; live deltas ride `publication.press`.
       releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
+      ...(frameBackfill.length > 0 ? { frameBackfill } : {}),
       clientState: this.snapshotClientState(),
       reactionPrefs: {
         intensity:
@@ -1124,6 +1147,27 @@ export default class Avatar extends AvatarBase {
    * shadowable extension point on SensorMixin) has had its say.
    */
   protected override handleMessage(frame: MessageFrame): void {
+    /*
+     * ⭐⭐ **The record layer's one producer.**
+     *
+     * The frame is retained HERE — above the multiplex, below
+     * `filterMessage` — which is the only point in the system that is
+     * reached exactly once per *delivery to a player*. A tap on the
+     * socket write would record twice for someone on two devices; a tap
+     * further up would record frames the recipient's sensorium dropped.
+     *
+     * ⚠ It is also reached when the avatar is linkdead (the loop below
+     * is a no-op then), which is correct: a frame delivered while you
+     * were disconnected is still a frame you were told, and it is
+     * waiting when you come back.
+     *
+     * ⚠ Guests are skipped deliberately. A guest body is reaped when its
+     * connection drops and can never reconnect, so its rows would never
+     * be read — and because every guest is a NEW owner key, the
+     * per-owner window that bounds everyone else would never bound them.
+     * That is an unbounded set of small leaks, not a bounded one.
+     */
+    if (!this.getIsGuest()) RecordApi.record(this, frame);
     for (const interactive of forwardingTargets(this)) {
       ConnectionApi.sendMessage(interactive, frame);
     }
