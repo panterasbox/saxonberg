@@ -248,10 +248,13 @@ const OptionDesc = styled.span`
  * as a heading — on a single page there is no screen title to lean on,
  * and the label is the only thing that says what a card grid is FOR.
  */
-const FieldGroup = styled.div`
+const FieldGroup = styled.div<{ $muted?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.sm};
+  /* ⚠ Dimmed, not hidden — the field keeps its place in the form so
+     nothing reflows when it becomes available. */
+  opacity: ${(p) => (p.$muted ? 0.45 : 1)};
 `;
 
 const FieldGroupHeading = styled.div`
@@ -312,6 +315,18 @@ const CertificateNote = styled.span`
   font-size: ${tokens.font.label};
   letter-spacing: 0;
   color: ${tokens.color.fgMuted};
+`;
+
+/** The "it landed" report. See the ⚠ note where `committed` is derived. */
+const CommittedMark = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+  border-radius: ${tokens.radius.sm};
+  background: ${tokens.color.accentWash};
+  color: ${tokens.color.accent};
+  font-size: ${tokens.font.small};
 `;
 
 const NameChoiceHint = styled.span`
@@ -650,9 +665,16 @@ export function CharGenStage({
   // what the PLAYER sent, which is what the log claims to be showing.
   const sentCount = frames.filter((f) => f.sigil !== undefined).length;
 
-  // ⭐ Every applicable field, in SERVER order. No chunking, no cursor —
-  // the form is the whole draft, and the server decides what is on it.
-  const shown = fields.filter((f) => f.applicable);
+  /**
+   * ⭐ EVERY field, in server order — including the ones that do not
+   * apply yet, rendered dimmed with the server's own reason.
+   *
+   * ⚠ They used to be filtered out entirely, which made the form jump
+   * as fields appeared and left the player guessing why a control they
+   * had just seen was gone. Showing the gap and naming it is the same
+   * rule the hatched figures follow.
+   */
+  const shown = fields;
 
   const draftOf = (name: string): TextDraft =>
     drafts[name] ?? { a: "", b: "" };
@@ -767,6 +789,16 @@ export function CharGenStage({
   const renderTextField = (f: CharGenFieldState) => {
     const two = isTwoPart(f);
     const d = draftOf(f.field);
+    /**
+     * ⚠ Committed means the SERVER holds this exact value — not that the
+     * box has text in it. Comparing against `f.value` is what makes the
+     * marker a report rather than a guess: edit the box and it drops
+     * away until the new value lands.
+     */
+    const typed = [d.a.trim(), two ? d.b.trim() : ""]
+      .filter(Boolean)
+      .join(" ");
+    const committed = Boolean(f.value) && f.value === typed;
     return (
       <NameForm
         onSubmit={(e) => {
@@ -795,24 +827,36 @@ export function CharGenStage({
           />
         ) : null}
         {/*
-          ⭐ keep · re-roll · type your own — three NAMED choices, as the
-          mock has them. "keep" is why it matters: with only a re-roll
-          control there was no way to SAY you accepted the suggestion,
-          so the player had to guess that leaving it alone counted.
+          ⭐⭐ The commit control says what it DOES, and the field says
+          whether it took.
+          
+          "keep" was the bug: it read as "you must click this to apply",
+          and clicking it produced no visible change, so the player could
+          not tell whether anything had happened. Two fixes, and the
+          second matters more — a button whose effect is invisible is
+          worse than no button.
         */}
+        {committed ? (
+          <CommittedMark data-testid="chargen-name-set">
+            ✓ set — {f.value}
+          </CommittedMark>
+        ) : f.suggestion ? (
+          <Chip
+            type="button"
+            data-testid="chargen-keep"
+            onClick={() => submitText(f)}
+          >
+            use this name
+          </Chip>
+        ) : null}
         {f.suggestion ? (
-          <>
-            <Chip type="button" data-testid="chargen-keep" onClick={() => submitText(f)}>
-              keep
-            </Chip>
-            <Chip
-              type="button"
-              data-testid="chargen-reroll"
-              onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
-            >
-              re-roll
-            </Chip>
-          </>
+          <Chip
+            type="button"
+            data-testid="chargen-reroll"
+            onClick={() => onSendCommand(`enroll ${f.field} reroll`)}
+          >
+            suggest another
+          </Chip>
         ) : null}
         {f.hint ? <NameChoiceHint>{f.hint}</NameChoiceHint> : null}
         {/* Hidden submit so Enter in a field commits the value. */}
@@ -886,9 +930,15 @@ export function CharGenStage({
               there is nowhere for one to hide.
             */}
             {shown.map((f) => (
-              <FieldGroup key={f.field}>
+              <FieldGroup key={f.field} $muted={!f.applicable}>
                 <FieldGroupHeading>{f.label}</FieldGroupHeading>
-                {renderField(f)}
+                {f.applicable ? (
+                  renderField(f)
+                ) : (
+                  <NameChoiceHint data-testid={`chargen-blocked-${f.field}`}>
+                    {f.hint ?? "not available yet"}
+                  </NameChoiceHint>
+                )}
               </FieldGroup>
             ))}
           </FormColumn>

@@ -268,6 +268,12 @@ export const FIELDS: Record<CharGenField, FieldHandler> = {
     // resolved — reliable + sync (no re-materialization here).
     applicable: (d) =>
       !!d.speciesPath && !!d.sexSystem && d.sexSystem !== "none",
+    hint: (d) =>
+      !d.speciesPath
+        ? "Pick a species first."
+        : d.sexSystem === "none"
+          ? "This species has no sexes."
+          : undefined,
     isSet: (d) => !!d.sex,
     display: (d) => (d.sex ? cap(d.sex) : undefined),
     options: (d) =>
@@ -285,17 +291,36 @@ export const FIELDS: Record<CharGenField, FieldHandler> = {
   name: {
     kind: "text",
     label: "name",
-    applicable: () => true,
+    /**
+     * ⭐ A REAL dependency, not a sequencing preference. The suggester
+     * draws from the species' own name banks — `refreshSuggestion`
+     * returns early without a `speciesPath` — and changing species
+     * deliberately wipes the name. Offering the field first would hand
+     * the player an empty box whose contents a later pick discards.
+     *
+     * ⚠ Sex is deliberately NOT part of this. `Species.suggestName`
+     * takes only the account name; gating on sex would encode a
+     * dependency the model does not have, and the server is the wrong
+     * place to invent one.
+     */
+    applicable: (d) => !!d.speciesPath,
     isSet: (d) => !!d.name,
     // The joined display name. ⚠ The client does NOT parse this back
     // apart — it composes `enroll name <given> <surname>` from its own
     // two inputs, which the `suggestion` shape tells it to show.
     display: (d) =>
       [d.name, d.surname].filter(Boolean).join(" ") || undefined,
+    /**
+     * Doubles as the INAPPLICABLE reason. A field that cannot be filled
+     * yet says why, in the server's words — the client renders the hint
+     * either way and never composes a reason of its own.
+     */
     hint: (d) =>
-      d.suggestion
-        ? "Suggested from your account name and the species' name banks."
-        : undefined,
+      !d.speciesPath
+        ? "Pick a species first — names come from its name banks."
+        : d.suggestion
+          ? "Suggested from your account name and the species' name banks."
+          : undefined,
     // No card options — the client renders editable given/surname fields
     // + a reroll button. `reroll` regenerates the suggestion; any other
     // value is the typed `<given> [surname]`.
@@ -376,8 +401,11 @@ export const FIELDS: Record<CharGenField, FieldHandler> = {
 export const FIELD_ORDER: CharGenField[] = [
   "species",
   "sex",
-  "name",
+  // ⭐ Pronouns sit WITH sex, not after the name. They answer the same
+  // question — how this body is referred to — and separating them put
+  // an unrelated text field between two halves of one thought.
   "pronouns",
+  "name",
   "aspiration",
 ];
 

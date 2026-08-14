@@ -144,20 +144,35 @@ describe('char-gen renders what the server sends', () => {
   });
 
   /**
-   * ⚠ An inapplicable field renders NOWHERE — that is different from
-   * an unknown one. The server said it does not apply (a non-sexed
-   * species has no sex), which is a real answer rather than a gap.
+   * ⭐ An inapplicable field renders DIMMED with the server's reason —
+   * it does not vanish.
+   *
+   * ⚠ Filtering them out made the form JUMP as fields appeared, and
+   * left the player guessing why a control they had just seen was gone.
+   * The reason is the server's words, never composed here: this client
+   * does not know why a field is unavailable and must not invent one.
    */
-  it('omits an inapplicable field entirely', () => {
+  it('shows an inapplicable field dimmed, with the server reason', () => {
     seed({
       fields: [
         field({}),
-        field({ field: 'sex', label: 'sex', applicable: false, options: undefined }),
+        field({
+          field: 'name',
+          kind: 'text',
+          label: 'name',
+          applicable: false,
+          options: undefined,
+          hint: 'Pick a species first — names come from its name banks.',
+        }),
       ],
       missing: [],
     });
     renderStage();
-    expect(screen.queryByTestId('chargen-unknown-kind-sex')).toBeNull();
+
+    const blocked = screen.getByTestId('chargen-blocked-name');
+    expect(blocked.textContent).toMatch(/pick a species first/i);
+    // Its input is not offered — the field is present, not usable.
+    expect(screen.queryByTestId('chargen-given-input')).toBeNull();
   });
 
   /**
