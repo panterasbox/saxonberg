@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { GlobalFonts } from "./styles/GlobalFonts";
+import { GlobalReset } from "./styles/GlobalReset";
 import { applyGround } from "./lib/style/useGround";
 import { INK_THEME } from "./lib/style/themes/ink";
 
@@ -26,6 +27,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         style sheet, so it has nothing to be removed. That is why
         useGround() can live inside StrictMode and read the store. */}
     <GlobalFonts />
+    {/* Same StrictMode caveat as GlobalFonts — see GlobalReset. */}
+    <GlobalReset />
     <React.StrictMode>
       <App />
     </React.StrictMode>
