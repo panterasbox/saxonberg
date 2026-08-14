@@ -9,9 +9,11 @@ grab-bag: **what the server remembers for you, and how you get it
 back.** The per-player frame store, search over it and its neighbours,
 and the reset policy that decides what survives the night.
 
-> ⚠ **This plan has one blocking product decision inside it** — the
-> wipe's survivors list (D6 / flag 1). It is not a detail and it cannot
-> be defaulted. Read it before phase 5 is scheduled.
+> ✅ **The blocking decision is ANSWERED** (2026-08-14, by the user):
+> the survivors list is **published press releases and nothing else**.
+> See D6. This plan now runs as the server half of the combined
+> play-surface build — see
+> [play-surface-requirements](../requirements/play-surface-requirements.md).
 
 ---
 
@@ -125,31 +127,45 @@ half-remember*, and the corpora are small.
 Recorded because search invites scope: relevance tuning, facets and
 typo-tolerance are all real and none of them is this build.
 
-### D6 — ⚠⚠ The wipe needs a survivors list, and the list is a product decision
+### D6 — ✅ The survivors list: published releases, and nothing else
 
-The reset job cannot be written without answering **what survives it**,
-and the answer is not derivable from the code.
+**Answered 2026-08-14.** The nightly reset removes all persistent state
+except **`documents` rows with `kind: 'release'`** — the press releases
+the front door's press room displays. Accounts included.
 
-The handoff's own front door states both sides of the tension, in the
-same file:
+That is a sharp, testable list precisely because it is short:
+`RELEASE_DOCUMENT_KIND` already exists as a discriminator, so the
+survivor predicate is one equality rather than a policy table.
+
+⚠⚠ **It makes the front door's own copy false, and fixing that is in
+this build.** The handoff states both sides of the tension in one file:
 
 > *"Your character, your record, and everything you build persist to an
 > account."*
 >
 > *"the world resets nightly · Nothing survives to tomorrow yet."*
 
-Those are not reconcilable without an explicit list, and
-[gazette-slate](../slates/builds/gazette-slate.md) already assumes one
-exists by requiring that bulletins survive.
+Under this decision the second is true and the first is not. That is the
+same class of defect as *"Sign in to save"* — copy the player **acts
+on** — so the persistence sentence is replaced in the commit that ships
+the job, not after it. See
+[play-surface-requirements](../requirements/play-surface-requirements.md) D2.
 
-So: **the wipe ships with an enumerated survivors list or it does not
-ship.** Candidate axes — accounts and their character roster; the
-standing ledgers; the chronicle; wiki and forum content; parcels and
-chattel titles; the bank ledger; world state and the clock. Each is a
-separate call and several change what the front door may claim.
+⚠ **Seeded world content is not player state.** The seeder is
+INSERT-ONLY; the job leaves `domain` alone or reseeds it. "Wipe
+everything" read literally empties the world, which is a broken game
+rather than a reset one.
 
-This is flag 1, and it is the one thing in this plan that should be
-settled before the phase is scheduled rather than during it.
+⚠ **The wipe makes the wiped-DB traps a nightly event.** The
+figures-on-the-wire build recorded them: a character dies on restart
+because a fresh `playerId` voids id-keyed grants, seeding a log does not
+move a materialized standing, and `WIZARD_PLAYER_IDS` is boot-only.
+Whatever re-establishes founder access is part of this phase, not an
+operator's memory.
+
+⭐ [gazette-slate](../slates/builds/gazette-slate.md)'s requirement that
+bulletins survive is satisfied exactly and only by this list — which is
+a good sign the list is the right shape rather than an arbitrary one.
 
 ### D7 — The reset policy is reported, not inferred
 
@@ -196,11 +212,15 @@ they are the corpus this build owns.
 Text indexes on `wiki` and the forum Subject layer; the two extra
 scopes. Nothing new in the verb.
 
-## Phase 5 — The nightly wipe ⚠ blocked on D6
+## Phase 5 — The nightly wipe ✅ unblocked
 
-The scheduled job, its enumerated survivors list, and `resetPolicy`
-reporting it. **Do not start this phase until the survivors list is
-decided.**
+The scheduled job, its survivors list (D6: `documents` where
+`kind === 'release'`, nothing else), and `resetPolicy` reporting it.
+
+⚠ **Three things ship in this phase, not near it:** the front door's
+persistence sentence is replaced (it becomes false the moment the job
+runs); the seeded `domain` content survives or is reseeded; and founder
+access is re-established after a wipe rather than by hand.
 
 ⚠ Destructive-by-design work: it wants a dry-run mode, a loud log of
 what it removed, and a test that asserts each survivor category is still
@@ -229,8 +249,11 @@ client-slate § 3.1's box resolves.
 
 ## ⚠ Flags
 
-1. ⚠⚠ **The survivors list (D6) is blocking and is a product decision.**
-   Everything else in this plan can proceed without it.
+1. ✅ **The survivors list (D6) is answered** — releases only. What
+   remains is that the wipe is **destructive by design**: dry-run mode,
+   a loud log, and a test asserting the survivor survives AND that a
+   representative row from each wiped collection does not. There is no
+   reflog.
 2. **Frame-store volume is the risk in this build**, not complexity. It
    is the highest-frequency write in the system and the phase-1 note
    about the hot path is the whole engineering problem.
