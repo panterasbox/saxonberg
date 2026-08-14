@@ -156,17 +156,25 @@ describe('CharacterSelect', () => {
   });
 
   /**
-   * ⚠ The unbuilt controls RENDER, disabled, naming their reason. A
-   * missing control hides the gap; a live one promises a command that
-   * does not exist.
+   * ⚠ Retire RENDERS, disabled, naming its reason — a missing control
+   * would hide a gap the screen itself raises (a roster grows and
+   * nothing shelves a character), and a live one would promise a
+   * command that does not exist.
+   *
+   * ⭐ Rename and appearance are GONE, not hatched. Hatching is for a
+   * gap the surface implies; it is not an obligation to enumerate every
+   * verb the world lacks, and a disabled control that exists only to
+   * say "not built" is clutter dressed as honesty.
    */
-  it('renders the unbuilt controls disabled rather than omitting them', () => {
+  it('keeps retire as a reasoned stub and drops the rest', () => {
     seed([entry()]);
     renderSelect();
-    for (const id of ['rename', 'appearance', 'retire']) {
-      const el = screen.getByTestId(`roster-unbuilt-${id}`);
-      expect((el as HTMLButtonElement).disabled).toBe(true);
-    }
+    const retire = screen.getByTestId('roster-unbuilt-retire');
+    expect((retire as HTMLButtonElement).disabled).toBe(true);
+    expect(retire.textContent).toMatch(/no retire command exists/i);
+
+    expect(screen.queryByTestId('roster-unbuilt-rename')).toBeNull();
+    expect(screen.queryByTestId('roster-unbuilt-appearance')).toBeNull();
   });
 
   /**

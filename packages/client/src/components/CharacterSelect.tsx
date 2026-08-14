@@ -39,7 +39,6 @@ import { signOut } from "../services/auth";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
-import { Button } from "./ui/Button";
 import { Figure, UnbuiltGround } from "./ui";
 import { Seal } from "./frame/Seal";
 import type { FigureState } from "./ui";
@@ -334,6 +333,41 @@ const Flag = styled.span`
   color: ${tokens.color.fgDim};
 `;
 
+/**
+ * The commit action. ⚠ Full width and the seal red — this is the ONE
+ * committing act on the screen, which is exactly what that red is
+ * reserved for, and the reason nothing else here carries it.
+ */
+const EnterBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${tokens.space.xs};
+`;
+
+const EnterButton = styled.button`
+  width: 100%;
+  min-height: 52px;
+  padding: ${tokens.space.md} ${tokens.space.xl};
+  border: 1px solid ${tokens.color.sealInk};
+  border-radius: ${tokens.radius.md};
+  background: ${tokens.color.seal};
+  color: ${tokens.color.sealInk};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.prose};
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${tokens.color.fgEmphasis};
+    outline-offset: 2px;
+  }
+`;
+
 const DetailHead = styled.div`
   display: flex;
   align-items: flex-start;
@@ -400,15 +434,6 @@ const PracticeChip = styled.span`
   color: ${tokens.color.fgDim};
 `;
 
-const Actions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: ${tokens.space.md};
-  padding-top: ${tokens.space.md};
-  border-top: 1px solid ${tokens.color.borderMuted};
-`;
-
 /**
  * ⭐ Every clickable previews exactly what it sends. The axiom does not
  * switch off before the command bar exists — this screen has no bar, so
@@ -472,10 +497,20 @@ const DisabledAction = styled.button`
   cursor: not-allowed;
 `;
 
-/** Controls the art shows and no command backs. */
+/**
+ * The one control the art shows and no command backs.
+ *
+ * ⭐ **Retire is kept as a stub; rename and appearance are dropped.**
+ * The difference is whether the absence is worth advertising. Retire
+ * answers a question the screen itself raises — a roster grows and
+ * nothing shelves a character — so naming the gap is useful. Rename and
+ * appearance answer nothing anyone asked here, and a disabled control
+ * that exists only to say "not built" is clutter dressed as honesty.
+ *
+ * ⚠ Hatching is for a gap the surface implies. It is not an obligation
+ * to enumerate every verb the world lacks.
+ */
 const UNBUILT_ACTIONS: ReadonlyArray<{ label: string; reason: string }> = [
-  { label: "Rename", reason: "no rename command exists" },
-  { label: "Appearance", reason: "no appearance command exists" },
   { label: "Retire", reason: "no retire command exists" },
 ];
 
@@ -621,6 +656,25 @@ function CharacterDetail({
       </DetailHead>
 
       {/*
+        ⭐ The commit action sits at the TOP, directly under the name.
+        Everything below it — what waited, standing, practice, where
+        they are — is READ-ONLY context for a decision you have usually
+        already made. Putting the act under all of it made the one thing
+        a returning player came to do the last thing they could reach.
+      */}
+      <EnterBlock>
+        <EnterButton
+          data-testid={`roster-play-${entry.playerId}`}
+          onClick={() => onSendCommand(enterCmd)}
+          aria-label={`Enter as ${entry.name}`}
+        >
+          Enter as {entry.name}
+        </EnterButton>
+        {/* The axiom, on a screen with no command bar. */}
+        <SendsAs data-testid="roster-sends-as">sends as {enterCmd}</SendsAs>
+      </EnterBlock>
+
+      {/*
         ⚠ Whole-card hatch, not a hatched value. There is no mailbox,
         no offline-notice store and no queue — nothing anywhere records
         what happened while you were away — so hatching one row inside
@@ -685,18 +739,6 @@ function CharacterDetail({
           }
         />
       </div>
-
-      <Actions>
-        <Button
-          variant="primary"
-          data-testid={`roster-play-${entry.playerId}`}
-          onClick={() => onSendCommand(enterCmd)}
-          aria-label={`Enter as ${entry.name}`}
-        >
-          Enter as {entry.name}
-        </Button>
-        <SendsAs data-testid="roster-sends-as">sends as {enterCmd}</SendsAs>
-      </Actions>
 
       <div>
         {UNBUILT_ACTIONS.map((a) => (
