@@ -236,9 +236,14 @@ const Action = styled.button`
   box-sizing: border-box;
   padding: ${tokens.space.md} ${tokens.space.lg};
   border-radius: ${tokens.radius.md};
-  border: 1px solid ${tokens.color.border};
-  background: ${tokens.color.actionBg};
-  color: ${tokens.color.fg};
+  /*
+   * ⚠ Old Glory Red NEVER touches another colour without white — the
+   * rim is what makes this legal under the flag rule and legible at
+   * 2.66:1, which bare red text would not be.
+   */
+  border: 1px solid ${tokens.color.sealInk};
+  background: ${tokens.color.seal};
+  color: ${tokens.color.sealInk};
   font-family: inherit;
   font-size: ${tokens.font.body};
   font-weight: 600;
@@ -249,8 +254,14 @@ const Action = styled.button`
     filter: brightness(1.07);
   }
 
+  /*
+   * ⚠ Dimmed IN THE FAMILY rather than demoted to an outline style.
+   * Demoting would make an unconfigured provider look like a different
+   * KIND of option, which is the reading this screen already had to
+   * correct once — the distinction here is availability, not rank.
+   */
   &:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 
@@ -300,39 +311,45 @@ const Facts = styled.div`
 /**
  * The platform marks.
  *
- * ⚠ Somebody else's trademarks, so the colours come from the
- * **invariant** ground — identical in every theme, because a brand does
- * not restyle itself for our dark mode. The glyphs are simplified
- * monochrome forms, which is what a sign-in row wants and what most
- * brand guidelines permit at this size.
+ * ⚠ Somebody else's trademarks. On the red field they render in
+ * **white**, not in brand colour: Twitch purple and Kick green both sit
+ * badly on Old Glory red, and every one of these brands publishes a
+ * monochrome form for exactly this case. The red/white pairing is also
+ * the project's own rule — red never carries anything but white.
  *
- * ⚠ `currentColor` is deliberately NOT used: these must read as the
- * platform's colour, not the button's.
+ * ⭐ The Google mark is the **authentic four-path G**, rendered in one
+ * colour. An earlier cut invented a single-path approximation, which is
+ * both wrong and the kind of thing a brand owner minds; the geometry
+ * here is the real one, so switching it back to full colour later is a
+ * fill change rather than a redraw.
  */
-const Glyph = styled.svg<{ $tint: string }>`
+const Glyph = styled.svg`
   flex: none;
-  width: 16px;
-  height: 16px;
-  fill: ${(p) => p.$tint};
+  width: 18px;
+  height: 18px;
+  fill: ${tokens.color.sealInk};
 `;
 
 function ProviderMark({ provider }: { provider: string }) {
   if (provider === "google") {
     return (
-      <Glyph $tint={tokens.brand.google} viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M21.35 11.1H12v2.99h5.35c-.23 1.46-1.7 4.28-5.35 4.28-3.22 0-5.85-2.66-5.85-5.94S8.78 6.5 12 6.5c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.66 3.9 14.5 3 12 3 6.98 3 2.9 7.03 2.9 12s4.08 9 9.1 9c5.25 0 8.73-3.69 8.73-8.88 0-.6-.06-1.05-.15-1.5l-1.23.48z" />
+      <Glyph viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.29 6.16-4.29z" />
       </Glyph>
     );
   }
   if (provider === "twitch") {
     return (
-      <Glyph $tint={tokens.brand.twitch} viewBox="0 0 24 24" aria-hidden="true">
+      <Glyph viewBox="0 0 24 24" aria-hidden="true">
         <path d="M4.3 3 3 6.5v12.2h4.2V21h2.3l2.2-2.3h3.4L20 14.5V3H4.3zm14.2 10.7-2.6 2.6h-3.9l-2.2 2.2v-2.2H6.5V4.6h12v9.1zM15 7.7v4.6h-1.6V7.7H15zm-4.2 0v4.6H9.2V7.7h1.6z" />
       </Glyph>
     );
   }
   return (
-    <Glyph $tint={tokens.brand.kick} viewBox="0 0 24 24" aria-hidden="true">
+    <Glyph viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 3h5.4v5.4h2.7V5.7h2.7V3h5.4v8.1h-2.7v1.8h2.7V21h-5.4v-2.7h-2.7v-2.7H8.4V21H3V3z" />
     </Glyph>
   );
@@ -412,6 +429,19 @@ const DevRow = styled.div`
   gap: ${tokens.space.sm};
 `;
 
+/**
+ * ⚠ Neutral, NOT the sign-in red. These are a local-only debug
+ * affordance; inheriting `Action`'s red made a dev shortcut the loudest
+ * control on the panel and diluted the one signal the red carries.
+ */
+const DevAction = styled(Action)`
+  justify-content: center;
+  border-color: ${tokens.color.border};
+  background: ${tokens.color.actionBg};
+  color: ${tokens.color.fg};
+  font-weight: 500;
+`;
+
 /** Dev-only no-OAuth login. Stripped from production by `import.meta.env.DEV`. */
 function DevLogin() {
   const [handle, setHandle] = useState("dev");
@@ -446,12 +476,12 @@ function DevLogin() {
         aria-label="dev login handle"
       />
       <DevRow>
-        <Action disabled={busy} onClick={() => login(false)}>
+        <DevAction disabled={busy} onClick={() => login(false)}>
           {busy ? "Connecting…" : "New character →"}
-        </Action>
-        <Action disabled={busy} onClick={() => login(true)}>
+        </DevAction>
+        <DevAction disabled={busy} onClick={() => login(true)}>
           {busy ? "Connecting…" : "Skip to world"}
-        </Action>
+        </DevAction>
       </DevRow>
     </DevBox>
   );
@@ -524,7 +554,7 @@ export const StartScreen: React.FC = () => {
         <div>
           <Masthead>
             <SealWrap>
-              <Seal size={38} id="sx-seal-door" title="Saxonberg" />
+              <Seal size={56} id="sx-seal-door" title="Saxonberg" />
             </SealWrap>
             <div>
               <WordMark>Saxonberg</WordMark>
