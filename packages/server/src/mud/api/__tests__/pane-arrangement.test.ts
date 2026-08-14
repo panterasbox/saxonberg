@@ -70,9 +70,11 @@ async function setup(): Promise<Harness> {
 }
 
 function openPaneIds(h: Harness): string[] {
-  return MqlSubscriptionApi.listPanes(h.interactive)
-    .map((p) => p.paneId)
-    .filter((p): p is string => p !== undefined);
+  const out: string[] = [];
+  for (const p of MqlSubscriptionApi.listPanes(h.interactive)) {
+    if (p.paneId !== undefined) out.push(p.paneId);
+  }
+  return out;
 }
 
 beforeEach(() => {
