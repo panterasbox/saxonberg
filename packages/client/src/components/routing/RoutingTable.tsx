@@ -40,6 +40,7 @@ import {
   removeRoutingRule,
   toggleRoutingDisposition,
 } from "../../store/routingActions";
+import { RuleBuilder } from "./RuleBuilder";
 import { tokens } from "../ui";
 
 const Wrap = styled.section`
@@ -209,6 +210,23 @@ export function matchCounts(
   return counts;
 }
 
+/**
+ * Is the copy-to-Attention safety net still in the table?
+ *
+ * ⚠ Matched on the RULE's shape rather than on an index or a flag: a
+ * player can reorder, retarget or re-word their table, and any of those
+ * would defeat a positional check while leaving the net intact — or,
+ * worse, claim a net that had been retargeted somewhere else.
+ */
+export function isSafetyNetPresent(rules: readonly RoutingRule[]): boolean {
+  return rules.some(
+    (r) =>
+      r.disposition === "copy" &&
+      r.to === "attention" &&
+      r.when.address === "direct",
+  );
+}
+
 export interface RoutingTableProps {
   frames: readonly Frame[];
 }
@@ -218,6 +236,7 @@ export function RoutingTable({ frames }: RoutingTableProps): React.ReactElement 
   useStore((s) => s.clientState);
   const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
 
+  const [builderOpen, setBuilderOpen] = React.useState(false);
   const effective = getEffectiveRoutingRules();
   const editableCount = getRoutingRules().length;
   const counts = React.useMemo(
@@ -282,6 +301,47 @@ export function RoutingTable({ frames }: RoutingTableProps): React.ReactElement 
           </Rule>
         );
       })}
+
+      {/*
+        ⭐ On a phone the routing table IS a settings screen, and the
+        one thing a settings screen must not ask for is a hand-typed
+        predicate. `from a frame…` opens the envelope picker.
+      */}
+      <Controls>
+        <Small
+          aria-label="add a rule"
+          onClick={() => setBuilderOpen((v) => !v)}
+        >
+          {builderOpen ? "× cancel" : "+ from a frame…"}
+        </Small>
+      </Controls>
+      {builderOpen && (
+        <RuleBuilder frames={frames} onDone={() => setBuilderOpen(false)} />
+      )}
+
+      {/*
+        ⚠⚠ **Copy-to-Attention ships ON, and turning it off states the
+        cost.**
+
+        On a desktop it is a convenience: the frame is visible in World
+        anyway. On a phone World may not be the feed you are looking at,
+        so it stops being a convenience and becomes the safety net —
+        and a safety net you can remove without being told what it
+        caught is a trapdoor.
+      */}
+      {isSafetyNetPresent(effective) ? (
+        <Note data-testid="safety-net-note">
+          Direct messages are copied to Attention. Remove that rule and a
+          message aimed at you lands only in the feed the rules send it to
+          — which may not be the one you are watching.
+        </Note>
+      ) : (
+        <Note data-testid="safety-net-gone">
+          ⚠ Nothing copies direct messages to Attention. A message aimed
+          at you now lands only where the rules send it — if that is not
+          the feed you are watching, you will not see it arrive.
+        </Note>
+      )}
 
       <Why data-testid="catch-all-reason">
         <WhyLabel>WHY THE LAST RULE CANNOT BE DELETED</WhyLabel>

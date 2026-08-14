@@ -115,6 +115,10 @@ const RELEASE_WORDS: Readonly<Record<PaneReleaseReason, string>> = {
   "out-of-reach": "stale · out of reach",
   dropped: "stale · not carried",
   dismissed: "dismissed by you",
+  // ⚠ The WORKSPACE changed, not the world — a mode switch resolved a
+  // different arrangement. Wording it like the spatial reasons would
+  // tell the player somebody walked out.
+  rearranged: "closed · you changed layout",
 };
 
 /** How each live hold reads in the header — the art's exact words. */

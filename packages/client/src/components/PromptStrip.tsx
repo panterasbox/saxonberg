@@ -53,7 +53,7 @@ const KIND_BADGE: Readonly<Record<PromptEntry["kind"], string>> = {
   "mql-many": "MQL-MANY",
 };
 
-const Strip = styled.div`
+const Strip = styled.div<{ $sheet: boolean }>`
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.xs};
@@ -62,6 +62,25 @@ const Strip = styled.div`
   background: ${tokens.color.surfaceMuted};
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.small};
+  max-width: 100%;
+
+  /*
+   * ⚠⚠ **On a phone the strip is a SHEET that keeps its slot and is
+   * never hidden.** A prompt is a demand on you, so it must not be
+   * something you can scroll away from — but it must also not be a
+   * modal, because the terminal is never blind. Sticky above the
+   * command bar is both: always present, never covering.
+   */
+  ${(p) =>
+    p.$sheet
+      ? `
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    max-height: 40vh;
+    overflow-y: auto;
+  `
+      : ""}
 `;
 
 const Head = styled.div`
@@ -186,18 +205,29 @@ export function cancelSentence(entry: PromptEntry): string {
     : "Cancelling abandons the command that asked — not just this card.";
 }
 
+/** The footnote, shown where the sheet has room for it. */
+const Footnote = styled.p`
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+  line-height: 1.5;
+  margin: ${tokens.space.xs} 0 0;
+`;
+
 export interface PromptStripProps {
   /** `prompt-cancel` for ONE prompt — the prompt channel, not the bus. */
   onCancelPrompt: (promptId: string) => void;
   /** `prompt cancel` — the VERB, over the command bus. All of them. */
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
+  /** True on a phone: the strip becomes a sticky sheet. */
+  compact?: boolean;
 }
 
 export function PromptStrip({
   onCancelPrompt,
   onSendCommand,
   onCommandPreview,
+  compact = false,
 }: PromptStripProps): React.ReactElement | null {
   const prompts = useStore((s) => s.prompts);
   const activeSlot = useStore((s) => s.activeSlot);
@@ -223,7 +253,7 @@ export function PromptStrip({
   if (waiting.length === 0) return null;
 
   return (
-    <Strip data-testid="prompt-strip">
+    <Strip $sheet={compact} data-testid="prompt-strip">
       <Head>
         <Label>Waiting</Label>
         <Meta data-testid="prompt-waiting-count">{waiting.length}</Meta>
@@ -287,6 +317,17 @@ export function PromptStrip({
           </Dismiss>
         </Card>
       ))}
+      {/*
+        ⚠⚠ On the sheet the sentence is VISIBLE, not a tooltip. A phone
+        has no hover, so a `title` there is a fact nobody can read — and
+        this is the fact that stops a tap destroying a command the
+        player did not know was waiting on it.
+      */}
+      {compact && waiting[0] && (
+        <Footnote data-testid="prompt-cancel-footnote">
+          {cancelSentence(waiting[0])}
+        </Footnote>
+      )}
     </Strip>
   );
 }

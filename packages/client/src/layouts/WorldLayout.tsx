@@ -24,6 +24,12 @@ import { PromptStrip } from "../components/PromptStrip";
 import { PromptFormatBar } from "../components/PromptFormatBar";
 import { PaneFeed } from "../components/panes/PaneFeed";
 import { RadialOverlay } from "../components/panes/RadialOverlay";
+import {
+  InlinePane,
+  LeftBehindCard,
+  PinnedChipRow,
+  leftBehind,
+} from "../components/panes/MobilePlaySurface";
 import { WhoPane } from "../components/WhoPane";
 import { NewsTickerPane } from "../components/NewsTickerPane";
 import { WikiPane } from "../components/WikiPane";
@@ -141,6 +147,15 @@ const RoutingToggle = styled.button`
   }
 `;
 
+/** The inline pane stack, between the transcript and the command bar. */
+const InlineStack = styled.div`
+  flex: none;
+  max-height: 45vh;
+  overflow-y: auto;
+  max-width: 100%;
+  padding: 0 ${tokens.space.md};
+`;
+
 const PaneTab = styled.button<{ $active: boolean }>`
   background: ${(p) => (p.$active ? tokens.color.surfaceAlt : "transparent")};
   border: 1px solid ${tokens.color.borderEmphasis};
@@ -169,11 +184,29 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   // already-filtered list would make `World 1077` report how many the
   // current tab happens to show rather than how many landed there.
   const allFrames = useStore((s) => s.frames);
+  const paneCards = useStore((s) => s.paneCards);
+  const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
   const setRightPane = useStore((s) => s.setRightPane);
   // ⚠ Subscribes to `matchMedia` — dragging a desktop window narrow is
   // the cheapest way anyone will test this, and a one-shot read would
   // make exactly that not work.
   const isCompact = useIsCompact();
+  // Newest last, so a pane sits AFTER the frames that caused it.
+  const inlineCards = React.useMemo(
+    () => Object.values(paneCards).sort((a, b) => a.openedAt - b.openedAt),
+    [paneCards],
+  );
+  const stubs = React.useMemo(
+    () =>
+      isCompact
+        ? leftBehind(
+            allFrames,
+            activeFeed,
+            (t) => getTopicDescriptor(t).weight,
+          )
+        : [],
+    [isCompact, allFrames, activeFeed, getTopicDescriptor],
+  );
 
   return (
     <Cockpit style={isCompact ? { flexDirection: "column" } : undefined}>
@@ -198,6 +231,33 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCommandClick={onCommandClick}
           onCommandPreview={onCommandPreview}
         />
+        {/*
+          ⭐⭐ **On a phone the panes come INLINE.** Interleave what is
+          causally related, switch what is independent: a pane is caused
+          by what you just did, so it belongs where that happened — not
+          in a second column, and not in a drawer you forget exists.
+        */}
+        {isCompact && (
+          <InlineStack data-testid="inline-pane-stack">
+            {inlineCards.map((card) => (
+              <InlinePane
+                key={card.subscriptionId}
+                card={card}
+                onSendCommand={onCommandClick}
+                onCommandPreview={onCommandPreview}
+              />
+            ))}
+            {stubs.slice(-3).map(({ frame: f, feed }) => (
+              <LeftBehindCard
+                key={f.id}
+                frame={f}
+                feed={feed}
+                onOpenFeed={setActiveFeed}
+              />
+            ))}
+          </InlineStack>
+        )}
+        {isCompact && <PinnedChipRow onSendCommand={onCommandClick} />}
         {drawerOpen && <FilterDrawer onClose={() => setDrawerOpen(false)} />}
         {routingOpen && (
           <RoutingDrawer>
@@ -226,6 +286,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCancelPrompt={onCancelPrompt}
           onSendCommand={onCommandClick}
           onCommandPreview={onCommandPreview}
+          compact={isCompact}
         />
         <PromptFormatBar
           onSendCommand={onCommandClick}
@@ -260,6 +321,14 @@ export const WorldLayout: React.FC<LayoutProps> = ({
        * happened to pick a transcript or menu affordance, so the gap
        * was invisible to the suite.
        */}
+      {/*
+        ⚠ The rail is ABSENT on a phone, not collapsed to full width.
+        A collapsed rail is a second screenful the player has to scroll
+        past to reach their own input — and the panes it held are now
+        inline in the feed above, so keeping it would show every card
+        twice.
+      */}
+      {!isCompact && (
       <RightColumn $compact={isCompact}>
         <PaneSwitch>
           <PaneTab
@@ -320,6 +389,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           )}
         </PaneSlot>
       </RightColumn>
+      )}
       {/*
         ⭐ Mounted once, at the layout, so the gesture on `EntityName`
         works on every named thing in the cockpit rather than on the
