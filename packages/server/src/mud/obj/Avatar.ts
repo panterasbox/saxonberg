@@ -37,6 +37,7 @@ import {
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
+import { CardApi } from "../api/card";
 import { PressApi } from "../api/press";
 import { ReactionApi } from "../api/reaction";
 import { RecordApi } from "../api/record";
@@ -938,6 +939,26 @@ export default class Avatar extends AvatarBase {
     // resets focus first) rather than reimplementing the
     // description rendering here.
     await this.autoSenseOnArrival();
+
+    /*
+     * ⭐⭐ **Apply the mode's arrangement on LOGIN, not only on a
+     * `cockpit mode` / `cockpit layout` switch.**
+     *
+     * `applyArrangement` was called from those two controllers alone,
+     * which meant a player who logged straight into `build` — or into
+     * any mode they had already saved — saw an empty feed until they
+     * switched modes and switched back. An arrangement that only
+     * applies when you change your mind is a workspace you cannot
+     * simply return to.
+     *
+     * ⚠ After `autoSenseOnArrival`, so the room card the arrangement
+     * pushes lands beside a transcript that already says where you are.
+     */
+    const mode = this.getCockpitMode();
+    CardApi.applyArrangement(
+      interactive,
+      this.arrangementCards(mode, this.getCockpitArrangement(mode)),
+    );
 
     // Avatar is in-world; the user is playable. Engine-level presence
     // event for any observer (audit, achievements, the social presence

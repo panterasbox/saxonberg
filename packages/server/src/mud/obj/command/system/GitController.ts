@@ -19,6 +19,7 @@
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
+import { CardApi } from '../../../api/card';
 import { Mml } from '../../../api/mml';
 import { GitApi, GitError } from '../../../api/git';
 import type {
@@ -41,6 +42,18 @@ interface GitModel extends CommandModel {
 export default class GitController extends CommandController<GitModel> {
   async execute(model: GitModel, context: CommandContext): Promise<void> {
     const sub = model.subcommand ?? 'status';
+    /*
+     * ⭐ Bare `git` (which falls through to `status`) opens the version
+     * -control CARD as well as printing. The card's body is the
+     * client's own `/api/git/*` surface, so this is the open and
+     * nothing more — and it declares `noProse`, so a `terminal`-only
+     * `shell.result` cannot take the panel away.
+     *
+     * ⚠ Only the bare/status form. `git publish` is an ACT, and an act
+     * that also rearranged your workspace would be doing two things on
+     * one keystroke.
+     */
+    if (sub === 'status') CardApi.open(context, 'git');
     try {
       switch (sub) {
         case 'diff':

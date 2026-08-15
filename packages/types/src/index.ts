@@ -1296,6 +1296,28 @@ export interface AffordanceEntry {
    * rather than being pattern-matched off the verb's name.
    */
   category?: string;
+  /**
+   * ⭐ **Where this verb came from: the SUBJECT, or the actor.**
+   *
+   * `'subject'` — the target itself affords it (an NPC's `talk`, a
+   * noticeboard's `read`, a door's `open`). `'actor'` — the viewer can
+   * always do it and the target merely happens to be a legal operand
+   * (`cast`, `defend`, `destruct`).
+   *
+   * ⚠⚠ **This is what a card's action row was missing.** It shipped
+   * showing `cast · defend · destruct` on everything, because the entry
+   * could not tell *the actor can always do this* from *this subject
+   * affords it* — so the row said the same three words on a lamp, a
+   * person and a room. The resolver ALREADY computed the distinction
+   * (`fromTarget`) and used it as a filter; it simply never carried it
+   * onto the entry, so nothing downstream could tell the two apart.
+   *
+   * ⚠ The RADIAL still shows both, deliberately: a radial is *what can
+   * I do here*, and hiding the actor's own verbs would make it answer a
+   * narrower question than the one the gesture asks. The card's action
+   * row is *what is this thing for*, which is the other question.
+   */
+  source?: 'subject' | 'actor';
 }
 
 /**
@@ -2814,7 +2836,7 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
  * (`viewer`, `streamer`) and one flat list cannot express them.
  *
  * ⚠ A mode's entry need not be total over
- * {@link SHIPPED_ARRANGEMENTS}: an arrangement with no row here simply
+ * {@link COCKPIT_ARRANGEMENTS}: an arrangement with no row here simply
  * opens nothing, which is what `govern` still does.
  */
 export const SHIPPED_ARRANGEMENT_CARDS: Readonly<

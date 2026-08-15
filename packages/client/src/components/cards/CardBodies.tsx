@@ -38,6 +38,7 @@
 import React from "react";
 import styled from "styled-components";
 import type {
+  CardId,
   HelpTopic,
   PresenceStatus,
   ReleaseRow,
@@ -52,6 +53,10 @@ import { Figure, EntityName, tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
 import { MmlRenderer } from "../MmlRenderer";
+import { CmsExplorer } from "../cms/CmsExplorer";
+import { CmsEditor } from "../cms/CmsEditor";
+import { CmsGitPanel } from "../cms/CmsGitPanel";
+import { StudioPanel } from "../cms/studio/StudioPanel";
 
 /* ─── shared pieces ─── */
 
@@ -418,6 +423,74 @@ function Measured({
  * about something the radial may never have been pointed at. Deduped
  * inside `resolveAffordances`, so a re-render costs nothing.
  */
+/**
+ * ⭐⭐ **The card's action row — what this thing is FOR.**
+ *
+ * It shipped showing `cast · defend · destruct` on everything, because
+ * `AffordanceEntry` could not tell *the actor can always do this* from
+ * *this subject affords it*. The resolver already computed the
+ * distinction and used it as a filter; it now carries it as
+ * `entry.source`, and this row renders `'subject'` only.
+ *
+ * ⚠ **A subject-afforded set of size zero renders NOTHING**, and for an
+ * ordinary lamp with no `commandContributions` that is most of the
+ * time. That is correct per *a section that does not apply is absent,
+ * not hatched* — but it is worth saying plainly, because "the row is
+ * usually missing" and "the row does not work" look identical from the
+ * outside. A noticeboard's `read`, an NPC's `talk` and a door's `open`
+ * are what it is for.
+ *
+ * ⚠ The RADIAL still shows both sources: a radial answers *what can I
+ * do here*, which is the wider question the gesture asks.
+ */
+function ActionRow({
+  stuffId,
+  keyword,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  stuffId?: string;
+  /** The subject's own keyword — the word the player would type. */
+  keyword?: string;
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement | null {
+  const answer = useStore((s) => (stuffId ? s.affordances[stuffId] : undefined));
+  if (!answer) return null;
+  const afforded = answer.verbs.filter(
+    (v) => v.source === "subject" && v.state !== "disabled",
+  );
+  if (afforded.length === 0) return null;
+  return (
+    <>
+      <Label>What it affords</Label>
+      <Chips data-testid="card-action-row">
+        {afforded.map((v) => {
+          /*
+           * ⚠ Named with the subject's own KEYWORD, so the command
+           * reads as one the player could have typed — the same rule
+           * the refresh control follows. A verb with no operand slot
+           * sends bare.
+           */
+          const send = keyword ? `${v.verb} ${keyword}` : v.verb;
+          return (
+            <InlineLink
+              key={v.verb}
+              title={`Click to send: ${send}`}
+              aria-label={send}
+              onClick={() => onSendCommand(send)}
+              onMouseEnter={() => onCommandPreview?.(send)}
+              onMouseLeave={() => onCommandPreview?.(null)}
+            >
+              {v.verb}
+            </InlineLink>
+          );
+        })}
+      </Chips>
+    </>
+  );
+}
+
 function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | null {
   const [expanded, setExpanded] = React.useState(false);
   const answer = useStore((s) =>
@@ -808,7 +881,94 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
    */
   if (card.payload) return <PayloadBody {...props} />;
   if (card.promptId) return <PromptCardBody card={card} />;
+  if (CLIENT_BODIES[card.cardId]) return <ClientBody card={card} />;
   return <MqlBody {...props} />;
+}
+
+/**
+ * ⭐ The `client`-source bodies — the authoring surfaces.
+ *
+ * The SERVER owns these cards' existence, identity, lifetime and
+ * pinned-ness; only the BODY is the client's, because the CMS tree, the
+ * git panel and the Studio catalogue all speak their own REST routes.
+ * That is what a `client` source means, and it is the only tier where
+ * the client fills a card at all.
+ *
+ * ⚠ A map rather than a switch inside the body, so `CardBody`'s
+ * dispatch can ask *is this a client card* without knowing which one.
+ */
+const CLIENT_BODIES: Partial<Record<CardId, React.ComponentType>> = {
+  cms: CmsEditorBody,
+  git: CmsGitPanel,
+  studio: StudioComposerBody,
+};
+
+function ClientBody({ card }: { card: CardState }): React.ReactElement {
+  const Body = CLIENT_BODIES[card.cardId]!;
+  /*
+   * ⚠ `cmsInit` mints the CSRF token the REST routes need, and it is
+   * idempotent. It runs here rather than in each body so a second
+   * authoring card opening does not race a second mint.
+   */
+  const cmsInit = useStore((s) => s.cmsInit);
+  React.useEffect(() => {
+    void cmsInit();
+  }, [cmsInit]);
+  return (
+    <ClientSurface data-testid={`client-body-${card.cardId}`}>
+      <Body />
+    </ClientSurface>
+  );
+}
+
+/**
+ * ⚠ The authoring bodies need HEIGHT — Monaco is not a paragraph. The
+ * card frame is otherwise content-sized, which is right for a room and
+ * wrong for an editor, so this is the one body that asks for a floor.
+ */
+const ClientSurface = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 24rem;
+  max-height: 70vh;
+  overflow: hidden;
+`;
+
+const ExplorerColumn = styled.div`
+  flex: 0 0 16rem;
+  min-width: 0;
+  overflow: auto;
+  border-right: 1px solid ${tokens.color.borderMuted};
+`;
+
+const EditorSplit = styled.div`
+  display: flex;
+  flex: 1;
+  min-height: 0;
+`;
+
+/** The content editor: the tree beside Monaco. */
+function CmsEditorBody(): React.ReactElement {
+  return (
+    <EditorSplit>
+      <ExplorerColumn>
+        <CmsExplorer />
+      </ExplorerColumn>
+      <CmsEditor />
+    </EditorSplit>
+  );
+}
+
+/**
+ * The composer.
+ *
+ * ⚠ `onOpenInFiles` sends the `cms` VERB rather than flipping a local
+ * tab, because the editor is a different card now: the Studio's
+ * "open in Files" is a request to open another card, and the one way to
+ * open a card is a command.
+ */
+function StudioComposerBody(): React.ReactElement {
+  return <StudioPanel onOpenInFiles={() => undefined} />;
 }
 
 /**
@@ -954,6 +1114,12 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
       />
       <HereList
         record={record}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
+      <ActionRow
+        stuffId={stuffId}
+        keyword={record?.primaryKeyword}
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />

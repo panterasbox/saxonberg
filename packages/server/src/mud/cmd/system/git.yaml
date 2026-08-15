@@ -1,5 +1,6 @@
 verbs: [git]
 controller: /obj/command/system/GitController
+opens_card: git
 description: "In-runtime version control: status / diff / log / publish / revert engine source edits"
 help: |
   Capture your live source edits into version control. The box tracks a

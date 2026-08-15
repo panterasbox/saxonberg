@@ -83,10 +83,15 @@ describe('affordance routing', () => {
      * reduce this test to `expect([]).toEqual([])` — a verification
      * sharing the blind spot it exists to cover. So it asserts it
      * actually FOUND the render sites it claims to be checking.
+     *
+     * ⚠ The count is the SITES, not the component names: `CardFeed`
+     * renders in three layouts (`play`'s right column, `build`'s
+     * dominant column, `chat`'s rail) and `InlineCard` in the phone's
+     * stack. A count derived from the component list would have gone
+     * stale the moment a second layout adopted the feed — which is
+     * exactly what Wave 7 did.
      */
-    expect(inspected, 'the scan matched no card render sites').toBe(
-      AFFORDANCE_CARDS.length,
-    );
+    expect(inspected, 'the scan matched no card render sites').toBe(4);
   });
 
   /*

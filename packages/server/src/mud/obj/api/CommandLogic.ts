@@ -1650,7 +1650,17 @@ async function resolveAffordancesImpl(
     }
 
     seen.add(verb);
-    entries.push(await evaluateAffordance(cmd, verb, target, viewer, fields));
+    /*
+     * ⭐ Carry `fromTarget` ONTO the entry. It was computed here and
+     * used only as a filter, so nothing downstream could tell *this
+     * subject affords it* from *the actor can always do it* — which is
+     * why a card's action row said `cast · defend · destruct` on
+     * everything.
+     */
+    entries.push({
+      ...(await evaluateAffordance(cmd, verb, target, viewer, fields)),
+      source: fromTarget ? ('subject' as const) : ('actor' as const),
+    });
   }
 
   entries.sort((a, b) => a.verb.localeCompare(b.verb));

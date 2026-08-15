@@ -1,0 +1,121 @@
+/**
+ * ⭐ **Every mode resolves a non-empty arrangement** (AC 13), and the
+ * arrangement is applied on **login** (Wave 7).
+ *
+ * `SHIPPED_ARRANGEMENT_CARDS` was `{chat: [], play: ['place'], watch:
+ * [], build: [], govern: []}` — sparse on purpose, because *"pre-filling
+ * them here would be sizing a vocabulary to a mockup."* This build ships
+ * the surfaces those modes were waiting for, so the argument expires and
+ * the map fills.
+ *
+ * ⚠ It is also **re-keyed by (mode, arrangement)**. `watch` ships two
+ * arrangements — `viewer` and `streamer` — and one flat list per mode
+ * cannot express them. The mode-only shape survived only because the map
+ * was empty; filling it is what makes the churn argument expire too.
+ */
+
+import '../../../test-bootstrap';
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  CARD_IDS,
+  COCKPIT_MODES,
+  SHIPPED_ARRANGEMENT_CARDS,
+  COCKPIT_ARRANGEMENTS,
+  type CardId,
+  type CockpitMode,
+} from '@saxonberg/types';
+import { CardApi } from '../card';
+import { StuffApi } from '../stuff';
+import { EventApi } from '../event';
+import { ShadowApi } from '../shadow';
+import { MqlSubscriptionApi } from '../mql-subscription';
+import { makeHarness } from './card-harness';
+
+describe('the shipped arrangements', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+    MqlSubscriptionApi._clearAllForTesting();
+    CardApi._clearAllForTesting();
+  });
+
+  it('is total over the modes, and keyed by (mode, arrangement)', () => {
+    expect(Object.keys(SHIPPED_ARRANGEMENT_CARDS).sort()).toEqual(
+      [...COCKPIT_MODES].sort(),
+    );
+    for (const mode of COCKPIT_MODES) {
+      const byArrangement = SHIPPED_ARRANGEMENT_CARDS[mode];
+      expect(typeof byArrangement, `${mode}`).toBe('object');
+      // Every arrangement named here is one the mode actually ships.
+      for (const name of Object.keys(byArrangement)) {
+        expect(
+          (COCKPIT_ARRANGEMENTS[mode] as readonly string[]).includes(name),
+          `${mode} names an arrangement it does not ship: ${name}`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('⭐ `watch` expresses its TWO arrangements separately', () => {
+    // The row a mode-keyed map could not have held at all.
+    expect(Object.keys(SHIPPED_ARRANGEMENT_CARDS.watch).sort()).toEqual([
+      'streamer',
+      'viewer',
+    ]);
+  });
+
+  it('every named card is a real one', () => {
+    for (const mode of COCKPIT_MODES) {
+      for (const [name, cards] of Object.entries(
+        SHIPPED_ARRANGEMENT_CARDS[mode],
+      )) {
+        for (const id of cards) {
+          expect(
+            (CARD_IDS as readonly string[]).includes(id),
+            `${mode}/${name} names unknown card '${id}'`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('⭐ `build`, `chat` and `play` resolve a NON-EMPTY arrangement', () => {
+    const nonEmpty = (mode: CockpitMode, arrangement: string): CardId[] => [
+      ...(SHIPPED_ARRANGEMENT_CARDS[mode][arrangement] ?? []),
+    ];
+    expect(nonEmpty('build', 'default')).toEqual(['cms', 'git', 'studio']);
+    expect(nonEmpty('chat', 'default')).toEqual(['who']);
+    expect(nonEmpty('play', 'default')).toEqual(['place']);
+  });
+
+  /**
+   * ⚠ `watch` and `govern` ship EMPTY, and that is a decision rather
+   * than an omission: the watch surfaces are the embed and the overlay
+   * (chrome, not cards), and `govern` has no card of its own yet. A row
+   * pre-filled with a card that does not exist would be sizing the
+   * vocabulary to a mockup, which is the rule this map was written
+   * under.
+   */
+  it('⚠ `watch` and `govern` ship empty, deliberately', () => {
+    expect(SHIPPED_ARRANGEMENT_CARDS.watch.viewer).toEqual([]);
+    expect(SHIPPED_ARRANGEMENT_CARDS.watch.streamer).toEqual([]);
+    expect(SHIPPED_ARRANGEMENT_CARDS.govern.default).toEqual([]);
+  });
+
+  it("applying `build`'s arrangement opens the three authoring cards", async () => {
+    const h = await makeHarness();
+    const { opened } = CardApi.applyArrangement(h.interactive, [
+      ...SHIPPED_ARRANGEMENT_CARDS.build.default!,
+    ]);
+    expect(opened).toBe(3);
+    expect(CardApi.list(h.interactive).map((c) => c.cardId).sort()).toEqual([
+      'cms',
+      'git',
+      'studio',
+    ]);
+    // ⚠ All three ship PINNED: an editor that aged out mid-edit would
+    // be a data-loss bug wearing a lifetime rule.
+    expect(CardApi.list(h.interactive).every((c) => c.pinned)).toBe(true);
+  });
+});

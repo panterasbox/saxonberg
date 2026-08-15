@@ -74,6 +74,19 @@ const MODE_READERS_ALLOWED = [
   'obj/command/shell/CockpitController.ts',
   'obj/command/shell/CockpitModeController.ts',
   'obj/command/shell/LayoutController.ts',
+  /*
+   * ⭐ `Avatar.enter` reads the mode to apply its ARRANGEMENT on login
+   * — the seam that made a saved workspace something you can simply
+   * return to, rather than something you had to switch modes twice to
+   * get back.
+   *
+   * ⚠ A VIEW read, and the distinction is the whole criterion: it asks
+   * the mode *which cards to open*, which is the mode doing exactly
+   * what it owns. It never asks the mode whether an action is
+   * permitted, and the behavioural half below still proves a verb
+   * resolves identically in every mode.
+   */
+  'obj/Avatar.ts',
 ];
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}

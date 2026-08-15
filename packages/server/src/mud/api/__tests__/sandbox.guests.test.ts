@@ -126,16 +126,37 @@ describe('the palette assertion (zero new verbs)', () => {
   it('mud/cmd gains no sandbox-named command file', () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const cmdDir = join(here, '../../cmd');
-    const files: string[] = [];
+    const files: Array<{ name: string; rel: string }> = [];
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {
         const p = join(dir, entry);
         if (statSync(p).isDirectory()) walk(p);
-        else if (p.endsWith('.yaml')) files.push(entry);
+        else if (p.endsWith('.yaml')) {
+          files.push({
+            name: entry,
+            rel: p.slice(cmdDir.length + 1).replace(/\\/g, '/'),
+          });
+        }
       }
     };
     walk(cmdDir);
     const forbidden = /^(sandbox|conjure|holodeck|studio|wardrobe|circle)\.yaml$/;
-    expect(files.filter((f) => forbidden.test(f))).toEqual([]);
+    /*
+     * ⚠ `author/studio.yaml` is the CMS **composer**, not the
+     * sandbox's shared `/studio/<collective>` scope — two concepts
+     * that happen to share a word, and the composer is the one the
+     * shipped subsystem doc is named after.
+     *
+     * The guard says *the sandbox build ships no verbs*, not *the word
+     * `studio` is reserved forever*, so the exemption is by PATH: a
+     * sandbox verb would land in `cmd/system` or a sandbox category,
+     * never under `author/`. Narrowing it here rather than deleting
+     * the name from the list keeps the sandbox half of the guard live.
+     */
+    const offenders = files
+      .filter(({ name }) => forbidden.test(name))
+      .filter(({ rel }) => rel !== 'author/studio.yaml')
+      .map(({ rel }) => rel);
+    expect(offenders).toEqual([]);
   });
 });

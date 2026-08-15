@@ -86,7 +86,7 @@ describe('a card is born on the server, or not at all', () => {
       if (rel === 'mud/obj/api/CardLogic.ts') continue;
       if (rel === 'mud/api/card.ts') continue;
       const text = readFileSync(file, 'utf8');
-      for (const m of text.matchAll(/CardApi\.(open|push)\(/g)) {
+      for (const m of text.matchAll(/CardApi\.(open|push|applyArrangement)\(/g)) {
         sites.push(`${rel}:${m[1]}`);
       }
       /*
@@ -100,16 +100,28 @@ describe('a card is born on the server, or not at all', () => {
     }
 
     /*
-     * The shipped mint sites, by name — five controllers (six calls;
-     * `look` opens two) plus the prompt substrate. Asserted as a set so
-     * a new one is a deliberate edit here rather than a silent
-     * widening.
+     * ⭐ Every shipped mint site, by name.
+     *
+     * Eight controllers open cards directly (nine calls — `look` opens
+     * two). Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
+     * layout`, and — new here — `Avatar.enter`, which is what made a
+     * saved workspace something you can simply return to rather than
+     * something you have to switch modes twice to get back.
+     *
+     * Asserted as a SET so a new one is a deliberate edit here rather
+     * than a silent widening.
      */
     expect(sites.sort()).toEqual(
       [
+        'mud/obj/Avatar.ts:applyArrangement',
+        'mud/obj/command/author/CmsController.ts:open',
+        'mud/obj/command/author/StudioController.ts:open',
         'mud/obj/command/perception/LookController.ts:open',
         'mud/obj/command/perception/LookController.ts:open',
+        'mud/obj/command/shell/CockpitModeController.ts:applyArrangement',
+        'mud/obj/command/shell/LayoutController.ts:applyArrangement',
         'mud/obj/command/social/WhoController.ts:open',
+        'mud/obj/command/system/GitController.ts:open',
         'mud/obj/command/system/HelpController.ts:open',
         'mud/obj/command/system/PressController.ts:open',
         'mud/obj/command/system/WikiController.ts:open',
@@ -147,11 +159,23 @@ describe('a card is born on the server, or not at all', () => {
         }
       }
     }
-    // The six command-opened rows. `prompt` is PUSHED (there is no
-    // verb for being asked a question), and the three authoring rows
-    // get their verbs in the Wave 7 phase.
+    /*
+     * Every row a command opens. `prompt` is the one that is PUSHED —
+     * there is no verb for being asked a question — and it is the only
+     * one absent here.
+     */
     expect([...declared].sort()).toEqual(
-      ['help', 'news', 'place', 'subject', 'who', 'wiki'].sort(),
+      [
+        'cms',
+        'git',
+        'help',
+        'news',
+        'place',
+        'studio',
+        'subject',
+        'who',
+        'wiki',
+      ].sort(),
     );
   });
 
