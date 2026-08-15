@@ -56,7 +56,7 @@ and, where it matters, *satisfying*.
   sensor, so what you're told reflects what *you* could perceive — the
   feedback is honest to your vantage, not a global broadcast.
 - **Live world-state feedback.** MQL subscriptions and the inspection
-  pane ([inspection-pane.md](../subsystems/inspection-pane.md)) update
+  card ([card-surface.md](../subsystems/card-surface.md)) update
   the cockpit as the world changes — feedback that doesn't wait for you
   to ask.
 - **Interactive loops.** The prompt substrate
@@ -100,7 +100,7 @@ and, where it matters, *satisfying*.
    actionable rejection messages the default for the controller-rejected
    path — "the door won't budge; it's barred from the other side," not
    "precondition failed." The seam exists; the discipline is using it.
-4. **Lean on unbidden feedback (the inspection pane, ambient sensory
+4. **Lean on unbidden feedback (the inspection card, ambient sensory
    frames)** so the player learns what changed without having to
    interrogate the world — feedback that arrives is better than feedback
    you have to request.

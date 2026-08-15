@@ -35,8 +35,8 @@ See also:
 - [docs/slates/tails/recognition-slate.md](./recognition-slate.md) —
   `introduce` and the recognition substrate the disclosure model anchors
   on.
-- [docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md)
-  — the MQL-subscription-backed right-column pane the `profile` card
+- [docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
+  — the MQL-subscription-backed right-column card the `profile` card
   renders into.
 - [docs/subsystems/influence.md](../../subsystems/influence.md),
   [renown.md](../../subsystems/renown.md),
@@ -202,7 +202,7 @@ Recommended default (open to revision):
   arg, `MessageApi.scene(actor).topic(...).send()`).
 - **Data sources (all shipped):**
   - online set → `PlayerApi.getAllAvatars()` for v1; **promote a thin
-    `PresenceApi.online()` accessor** once the live `who` pane needs a
+    `PresenceApi.online()` accessor** once the live `who` card needs a
     single privacy-filtered read rather than every consumer re-scanning.
   - country → `ConnectionApi.originOf(playerId) → { country? }`.
   - viewer-aware naming → `RecognitionApi.describe(viewer, target)`.
@@ -214,27 +214,27 @@ Recommended default (open to revision):
 - **The card is one viewer-aware composer** — the redaction logic lives
   in one place (a `ProfileApi.composeCard(viewer, target)` style seam,
   the cardinality-one sibling of the social-graph occupant formatter), so
-  `who` rows, the `profile` card, and the live pane all share it.
+  `who` rows, the `profile` card, and the live card all share it.
 
 ---
 
 ## Client design
 
-- **`who` — a live pane.** A "Who's Online" cockpit pane, fed off the
+- **`who` — a live card.** A "Who's Online" cockpit card, fed off the
   presence deltas the relay already emits (`PlayerLoggedIn` /
   `Reconnected` / `LoggedOut` / `Disconnected`). Rows are the viewer-lensed
   roster. This is the consumer that justifies promoting
   `PresenceApi.online()`.
-- **`profile` — the inspection pane.** Render the card into the existing
-  right-column inspection pane (already MQL-subscription-backed and
+- **`profile` — the inspection card.** Render the card into the existing
+  right-column inspection card (already MQL-subscription-backed and
   cardinality-polymorphic). The honest tradeoff:
-  - *Refresh-button pane* — cheapest, bespoke, no subscription.
-  - *Inspection-pane render* — reuses what's there and gets **live for
+  - *Refresh-button card* — cheapest, bespoke, no subscription.
+  - *Inspection-card render* — reuses what's there and gets **live for
     free**, at the cost of making the projection **per-viewer** so
     redaction (recognition gating the name, disclosure gating soft
     fields) resolves correctly through the subscription — the
     viewer-aware-query / Shadow seam.
-  - **Lean:** render through the inspection pane and build the card
+  - **Lean:** render through the inspection card and build the card
     renderer viewer-aware from the start, so live is the default and
     "refresh" is the degraded path if the per-viewer projection proves
     fiddly. Same renderer either way.
@@ -301,11 +301,11 @@ axis. Park it.
 - `privacy.*` settings (status, species threshold) on the social mixin.
 - Country pinned unconditional; the standing-split default.
 
-**Wave 2 — the live client panes.**
+**Wave 2 — the live client cards.**
 
 - `PresenceApi.online()` thin accessor over the scan, privacy-filtered.
-- Live "Who's Online" pane off presence deltas.
-- `profile` card into the inspection pane; per-viewer subscribable
+- Live "Who's Online" card off presence deltas.
+- `profile` card into the inspection card; per-viewer subscribable
   projection (or refresh-button fallback per Q6).
 - Clickable / command-previewing rows.
 

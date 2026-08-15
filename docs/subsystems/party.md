@@ -178,7 +178,7 @@ handshake) · `leave` · `kick` · `disband` · `transfer` · `setSide` ·
 ## Deferred
 
 Party economic/reputation facets,
-party morale (Thesis 13), the client party pane, coordinated party-retreat
+party morale (Thesis 13), the client party card, coordinated party-retreat
 (rout/rally) and pursuit (wayfaring), and an NPC-vs-NPC **crew** standup (a
 durable-party seeder so two NPCs share a side without a live player forming
 the party) — the 2v1 demonstrator (you + a recruited Mercenary vs the

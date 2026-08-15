@@ -15,31 +15,31 @@ Layouts (`world` / `forum` / `livestream-viewer` / `streamer` / `builder` /
 2. **Chrome is fixed; content is fluid.** The status header (top), the
    command bar(s) (bottom of their terminal), and the layout/mode indicators
    are constant, fixed-size regions in the *same position every layout* —
-   the *matte*. Everything between is fluid panes — the *frame*. Constant
+   the *matte*. Everything between is fluid cards — the *frame*. Constant
    chrome is muscle memory (consistent framing across a series).
 3. **The split encodes hierarchy — so it is rarely 50/50.** A 50/50 split
    asserts two things matter equally, which is almost never true and reads as
    subjectless. Choose the split from *what is the subject right now* (see
    Canonical splits).
 4. **Fixed-ratio content sizes first.** A livestream embed is 16:9 — it
-   claims a 16:9 box in the focal area and the fluid panes fill the
+   claims a 16:9 box in the focal area and the fluid cards fill the
    remainder. Never stretch fixed-ratio content; flex the layout around it.
 5. **The terminal has a legibility floor.** Its share is "whatever the
    subject leaves," but never below readable (a min height ≈ N lines / min
    width). Law 1 with teeth.
 6. **No modals.** A would-be modal is routed to one of two tiers (Layouts /
-   Summoned panes) so it never blanks the screen or blocks input. A modal is
-   just a layout or pane that forgot to keep a terminal.
+   Summoned panels) so it never blanks the screen or blocks input. A modal is
+   just a layout or card that forgot to keep a terminal.
 
 ## Canonical splits (the compositional "breakpoints")
 
-Every pane arrangement is one of these. Tie the choice to hierarchy, not to
+Every card arrangement is one of these. Tie the choice to hierarchy, not to
 pixels.
 
 | Split | Ratio | Use |
 |---|---|---|
-| **Focal** | ~62/38 (golden) or a clean 2:1 | one subject pane + one support. Default for content layouts (video, editor). |
-| **Even** | 50/50 | only when two panes are genuine peers. Rare. |
+| **Focal** | ~62/38 (golden) or a clean 2:1 | one subject card + one support. Default for content layouts (video, editor). |
+| **Even** | 50/50 | only when two cards are genuine peers. Rare. |
 | **Monitor** | ~75/25, or a slim rail/strip | a dominant work surface + a glance terminal. |
 | **Single** | 100% + a fixed rail | the terminal *is* the subject (world layout + the inspection rail). |
 
@@ -55,7 +55,7 @@ Mobile is **out of scope**, but the grammar must not hard-code desktop-pixel
 grids — so a future mobile pass (and small laptops today) get a clean
 collapse for free. Three tiers:
 
-- **compact** — panes stack / a rail collapses to a toggle. (Also the
+- **compact** — cards stack / a rail collapses to a toggle. (Also the
   small-screen path.)
 - **standard** — the canonical side-by-side.
 - **wide** — room for a third column / a wider focal.
@@ -120,7 +120,7 @@ hover.
 *Touch:* hover doesn't exist; the ghost line is a desktop affordance — mobile
 uses tap = preview + run (per the slate). Out of scope, not designed against.
 
-## Modals → panes (two tiers)
+## Modals → cards (two tiers)
 
 The no-modal rule (law 6) routes every would-be-modal into one of two tiers,
 both of which keep a terminal on screen:
@@ -128,13 +128,13 @@ both of which keep a terminal on screen:
 - **Layout tier** — big, sticky, you are *in* it (builder, livestream-viewer,
   forum, …). Entered via the `layout` verb / the Views menu. Server-
   authoritative.
-- **Summoned-pane tier** — transient things that share the screen with the
+- **Summoned-panel tier** — transient things that share the screen with the
   current layout's terminal and never block input: item/detail (the
-  **inspection pane** is the existing proof), confirmations (the prompt
+  **inspection card** is the existing proof), confirmations (the prompt
   stack does this inline), and **settings**. The replacement for "pop a
-  modal" is "fill a pane slot; the terminal stays beside it."
+  modal" is "fill a card slot; the terminal stays beside it."
 
 Known modal candidates and their tier: detail/inspection → done (inspection
-pane); confirm → done (prompt stack); character creation → its own flow;
-**settings** (notifications, env/user vars) → summoned pane (the first new
+card); confirm → done (prompt stack); character creation → its own flow;
+**settings** (notifications, env/user vars) → summoned panel (the first new
 consumer of this tier).

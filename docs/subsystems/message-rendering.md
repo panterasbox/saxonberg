@@ -695,11 +695,11 @@ when the model went from three voices to four.
 
 The model applies **across the whole client**, not just the transcript:
 `tokens.font.family` defaults to **chrome** (nav, tabs, start/char-gen
-screens, menus, buttons, and the inspection-pane chrome), `GlobalFonts`
+screens, menus, buttons, and the inspection-card chrome), `GlobalFonts`
 sets a `body` chrome base for unstyled/portaled text, the command
 console (`CommandBar`) and `<pre>`/`<code>` (`MmlRenderer`) opt into
 **command**, and the transcript paints **narrative**/**command** per
-register. The **inspection-pane body** paints narrative too, so the pane
+register. The **inspection-card body** paints narrative too, so the card
 reads like the transcript's look frame while its chrome stays chrome.
 
 ⚠ **`tokens.font.engraved` is the display FACE; `tokens.font.display` is
@@ -876,7 +876,7 @@ sweep distilled them to:
 - [connection.md](./connection.md) — `HasInteractiveMixin`,
   `_clientState` storage, welcome-payload snapshot,
   `client-state-update` outbound push.
-- [inspection-pane.md](./inspection-pane.md) — consumes
+- [card-surface.md](./card-surface.md) — consumes
   `MmlRenderer.commandFor` and the stuff registry the markdown
   parser's `mudref:` links resolve against.
 - [shell-environment.md](./shell-environment.md) — `EnvironmentMixin`
@@ -914,7 +914,7 @@ sweep distilled them to:
     two weights and compare the returned URLs.
   - ⭐ **The root `color` defect, found only by driving.** Nothing in
     the client set a base `color`, so every element inheriting one
-    resolved to the browser default black — the right-rail pane tabs at
+    resolved to the browser default black — the right-rail card tabs at
     **1.21:1** in high-contrast. Pre-existing; the token layer only made
     it visible. `contrast.test.ts` could not have caught it, because it
     checks values a theme *declares* and this was a value **no theme

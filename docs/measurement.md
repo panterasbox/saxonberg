@@ -594,5 +594,5 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
 3. **How is "cheap exit" verified?** Part 8 makes it non-negotiable
    without saying how a build demonstrates it.
 4. **Does the reading rule survive contact with the client?** A cockpit
-   pane is under constant pressure to display a number. Part 6.3 is the
+   card is under constant pressure to display a number. Part 6.3 is the
    rule most likely to be eroded by UI convenience.

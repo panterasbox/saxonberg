@@ -365,14 +365,14 @@ kind of quiet.
 `prompt-validation-failed` and the prompt stays alive. The UI must never
 clear the answer.
 
-## ⭐ A settled prompt wakes its pane
+## ⭐ A settled prompt wakes its card
 
 `PromptLogic.cleanup` calls `MqlSubscriptionApi.notifyPromptSettled`.
 
-`HOLD_WAKES_ON` records that an `unanswered` pane needs no location
+`HOLD_WAKES_ON` records that an `unanswered` card needs no location
 dependency because *the prompt's own resolution is what wakes it* — this
 call is what makes that true. Before it, nothing poked the subscription
-registry when a prompt resolved, so an `unanswered` pane was
+registry when a prompt resolved, so an `unanswered` card was
 **immortal**: the player answered and the card stayed.
 
 One known producer poking one known consumer, which is a method call

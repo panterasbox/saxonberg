@@ -75,7 +75,7 @@ See also:
 - [onboarding-slate.md](../builds/onboarding-slate.md) — starts at campus
   arrival, downstream of the lounge. Not touched here.
 - [mql-subscription-slate.md](./mql-subscription-slate.md) +
-  [inspection-pane.md](../../subsystems/inspection-pane.md) *(shipped;
+  [card-surface.md](../../subsystems/card-surface.md) *(shipped;
   slate retired)* — the
   live-state substrate the game body's regions consume.
 - [docs/deployment.md](../../deployment.md) — `mud.panterasbox.com`, the
@@ -144,7 +144,7 @@ Within an interactive surface the chrome is two layers:
   constant across every mode of that surface: identity/account,
   connection awareness, current-mode indicator, search. Small.
 - **Body** — the mode-specific composition of regions (terminal,
-  command bar, inspection pane, content/lesson surface, dashboard
+  command bar, inspection card, content/lesson surface, dashboard
   widgets, stream embed, …) drawn from a shared region library.
 
 This generalizes the cockpit slate's **"always-on minimum"** (status
@@ -217,7 +217,7 @@ expressed as a body composition + its own status + its own chrome:
 
 | Mode | Foregrounds | Status it cares about | Source |
 |---|---|---|---|
-| **RPG play** (= cockpit World) | terminal + command bar + inspection pane | game/character | base game |
+| **RPG play** (= cockpit World) | terminal + command bar + inspection card | game/character | base game |
 | **Educational** (≈ Study/Classroom) | cockpit + lesson/content surface | progress, current lesson | education vertical |
 | **Author** | live-edit affordances over the player client | HMR, eval, entity-under-test | builders (cross-cutting) |
 | **Viewer** | stream embed + companion game, lean-back | what's live | livestream vertical |
@@ -251,7 +251,7 @@ genuinely different intents, and only the first drives the design:
 - **Document discovery** (help now; wiki later): keyword lookup,
   returns docs/sections. The reason search exists.
 - **Gamestate query** (MQL): returns live Stuff. Overlaps what already
-  exists — the command line runs MQL, the inspection pane is MQL-driven.
+  exists — the command line runs MQL, the inspection card is MQL-driven.
   So this is a **deferred result facet**, not a co-equal driver.
 
 Shape: **one box, results grouped by kind** (Docs now · Wiki later ·

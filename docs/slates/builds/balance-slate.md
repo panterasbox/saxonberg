@@ -883,7 +883,7 @@ boundary.**
 
 And the notification path already exists: a compliance failure surfaces as
 a **diagnostic on the holder's own content**
-([diagnostics.md](../../subsystems/diagnostics.md)), in the `errors` pane
+([diagnostics.md](../../subsystems/diagnostics.md)), in the `errors` card
 they already use.
 
 ## When grandfathering cannot apply

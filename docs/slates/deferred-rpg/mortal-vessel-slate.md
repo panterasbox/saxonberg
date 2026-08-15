@@ -34,7 +34,7 @@ A "player" is three layers, and the platform already half-models them:
   unconscious, or dead. This is the `User` / `Login` / `Interactive` /
   connection layer and the **shared-not-wrapped client frame**
   (`ConnectionIndicator` / `AccountMenu`) that persists no matter what is on
-  the world pane.
+  the world card.
 - **The Vessel / Body** — the mortal embodied avatar in the physical sim:
   vitals, trauma, poise, location, loadout. Disposable, re-mintable. What
   combat acts on. The `Avatar` / `Character` / vitals layer.
@@ -64,7 +64,7 @@ physical-layer state.** The diegetic simulation is a layer you are
 So being strangled means you can't shout across the tavern — but you are
 still fully in the livestream chat and can still vote. Not immersion-
 breaking once **legible**: you are the *audience/citizen* in that moment,
-not the fighter, and the client already models it — the **world pane goes
+not the fighter, and the client already models it — the **world card goes
 dark/spectator, the platform frame stays lit**. Losing your vessel dims one
 view; it never logs you out.
 

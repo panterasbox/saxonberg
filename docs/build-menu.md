@@ -60,7 +60,7 @@ economy gap list — what must exist before launch, readiness-tagged).
 - **Thermal Wave 2** — phase-change/ice (latent-heat reserve) + frostbite + per-region coverage + sauna. *(thermal)*
 - **Locomotion as activity** — `TraverseActivity` + sneak/crawl modes + trap/sound seams. *(locomotion-as-activity)*
 - **`analyze X with Y`** — the pedagogical identification instrument: real Material chemistry, partial ID, misidentification. *(identification)*
-- **Map client pane** — a 2D/3D spatial renderer over the honest coordinate system. *(map)*
+- **Map client card** — a 2D/3D spatial renderer over the honest coordinate system. *(map)*
 - **Scripting piping** — multi-stage pipelines over the built `Pipeline` AST node + the value→field binder. *(scripting)*
 
 ## 🏔️ Expedition — multi-day epic, big open design (the meaty ones)

@@ -470,7 +470,7 @@ via the bar's `populates: { onto }` — see [spatial.md](./spatial.md)),
 so they read "on the back-bar," reachable but **not loose room
 clutter**. The shared rule is `ContainmentApi.looseContents(items)`: it
 filters out any item whose `getRestingOn()` is itself in the set, and is
-applied by `look`/`sense` (room branch) **and** the inspection pane
+applied by `look`/`sense` (room branch) **and** the inspection card
 (`Container.contents`). Examining the surface (`look back-bar` /
 `sense back-bar`) reveals what rests on it via an "── On it:" drill-in
 (`Surfaced.getResting()`). This is the discovery path that keeps the

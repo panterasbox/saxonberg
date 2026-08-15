@@ -149,7 +149,7 @@ The web does **not** replace the CLI — per the standing rule (every clickable
 previews its command on hover), the web board **emits the same commands** and so
 *teaches* the CLI: drag a string, the command bar shows `link 2 --supports T4`.
 And because the board is an **MQL-subscribed view**, it drops straight into the
-existing **inspection pane** (live, multiplayer-updating) and renders as the
+existing **inspection card** (live, multiplayer-updating) and renders as the
 corkboard-with-string. Same substrate: **dense-but-playable in the terminal,
 spatial-and-teaching on the web.** Fifty contributors stay legible because
 everyone subscribes to the live delta (no one re-reads the wall).
@@ -168,7 +168,7 @@ multiplayer crux.**
   [chronicle.md](../../subsystems/chronicle.md) (the casebook is owned knowledge
   state; deeds vs claims provenance reused).
 - **The live shared board** → [mql-subscription.md](../../subsystems/mql-subscription.md)
-  + [inspection-pane.md](../../subsystems/inspection-pane.md) (the web readout for
+  + [card-surface.md](../../subsystems/card-surface.md) (the web readout for
   free).
 - **The reconstruction** → [prose.md](../../subsystems/prose.md) (Liquid-templated
   prose montage).

@@ -116,4 +116,4 @@ The fairness-cap-under-contention (active-hogging beyond idle + re-queue-to-back
 appointment/scheduling beyond FIFO + ticket; the full take-a-number "now serving"
 dynamic-Detail board + ticket idle-expiry wiring; the lifted shared
 exclusive-lease primitive; player-run/player-staffed points; a client
-queue-position pane; the self-service machine's cash ops.
+queue-position card; the self-service machine's cash ops.

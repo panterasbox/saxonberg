@@ -69,7 +69,7 @@ The load-bearing decisions:
    model): a sense reveals facts gated by *(have the sense) + (signal
    reaches you / you made contact) + (skill/instrument)*. Two beings in
    the same room perceive different things. The senses substrate is the
-   physics under the inspection-pane percept.
+   physics under the inspection-card percept.
 
 5. **Messaging *is* sensing — and ESP is a sense.** Anything that
    receives a frame is a `Sensor`; `SensorMixin.onMessage` *is* "a signal
@@ -110,9 +110,9 @@ See also:
   `PerceptionChannel`s; the baseline implant provides the ESP channels.
 - [docs/subsystems/perception.md](../../subsystems/perception.md) — the
   viewer-aware-query pattern; per-viewer Shadow overrides.
-- [docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md) /
+- [docs/subsystems/card-surface.md](../../subsystems/card-surface.md) /
   [message-rendering-slate.md](../tails/message-rendering-slate.md) — the
-  percept feeds the pane; the pedagogical seam (prose vs instrument)
+  percept feeds the card; the pedagogical seam (prose vs instrument)
   is the rendering.
 - [docs/slates/access-slate.md](../tails/access-slate.md) /
   [command affordances](../../subsystems/command-routing.md) — **skills
@@ -397,7 +397,7 @@ in:**
 - **Pedagogical-seam mode** — a sectioned/measured variant (Sight /
   Sound / Smell with real units) for student/instrument use, same engine.
 
-The gestalt feeds the **inspection-pane** room focus as the multi-sense
+The gestalt feeds the **inspection-card** room focus as the multi-sense
 percept; drill into a single sense for depth.
 
 ## Single-sense verbs (deliberate focus)
@@ -411,11 +411,11 @@ explicit act.
 
 ---
 
-## The percept connection (the physics under the pane)
+## The percept connection (the physics under the card)
 
 A sense reveals facts gated by **(have the sense) + (signal reaches you /
 contact) + (skill/instrument/capability)**; the revealed facts feed the
-percept that renders in the inspection pane (per the percept model).
+percept that renders in the inspection card (per the percept model).
 `look` adds visual facts, `smell` adds odor facts, a thermometer adds the
 measured temp, `appraise` (a skill) adds quality. Internal state never
 appears unless a perception reveals it; the raw dump stays admin-gated.
@@ -567,7 +567,7 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
 - **vitals** — organ *condition* modulates channel quality (a damaged
   eye/ear); body/ambient temperature; consumables for taste.
 - **perception.md** — the viewer-aware substrate this layers on.
-- **inspection-pane / message-rendering** — the percept render + the
+- **inspection-card / message-rendering** — the percept render + the
   pedagogical seam.
 - **access / command affordances** — skills gate revelation + afford
   perception verbs (a skill is a source object that contributes the
@@ -609,8 +609,8 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
    genuinely open, low-stakes.* The output shape (salient weave,
    viewer-relative, dark-playable) is the load-bearing part.
 5. **Gestalt: accumulate vs fresh.** Does re-`sense`ing accumulate with
-   prior single-sense percepts in the pane, or refresh? (Ties to the
-   inspection-pane accumulate-vs-latest question.) *Lean accumulate-per-
+   prior single-sense percepts in the card, or refresh? (Ties to the
+   inspection-card accumulate-vs-latest question.) *Lean accumulate-per-
    focus.*
 6. **Wave cut.** Substrate + field senses (smell, ambient-temp) + the
    gestalt first; contact senses (touch-texture, taste) + smell-trails
@@ -661,7 +661,7 @@ channel exists iff its organ does) + the field-family propagation walk
 trails yet) + ambient-temperature; the **gestalt** verb + auto-on-entry +
 salient-weave output + dark-playable behavior + **per-channel
 differential rendering**; `olfactoryProfile`. Hook the percept into the
-pane. Also: **register the ESP channels** (verbal + emotive) as
+card. Also: **register the ESP channels** (verbal + emotive) as
 `PerceptionChannel`s with the implant as organ + network physics — mostly
 recognizing what comms/emotes already deliver, now as senses (the
 `SensorMixin` reception = sensing unification); they render to the comms
@@ -684,7 +684,7 @@ pedagogical-seam sectioned/measured gestalt mode.
 
 ## What this slate does NOT cover
 
-- **The inspection-pane / percept rendering** — consumed; the pane slate
+- **The inspection-card / percept rendering** — consumed; the card slate
   + percept model own how facts display.
 - **The deep acoustic spec** — now folded into the **Deep acoustic
   spec** section above as the hearing instance's depth source.
@@ -976,7 +976,7 @@ This slate boils down to:
 - The **gestalt verb** (`sense`) + auto-on-entry + the salient-weave,
   viewer-relative, dark-playable output + the pedagogical-seam mode; the
   single-sense verbs.
-- The **percept tie** (senses reveal facts → the inspection-pane percept;
+- The **percept tie** (senses reveal facts → the inspection-card percept;
   capability-gated; raw state admin-only).
 - **Smell persistence/trails** as a designed-for seam (built later).
 - Tests: a being perceives only what its profile + the reaching signal

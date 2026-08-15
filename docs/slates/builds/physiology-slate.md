@@ -1073,10 +1073,10 @@ error — **the body has no jurisdiction over the client's interface.**
 |---|---|---|
 | **body** — move, act, perceive the room, speak aloud | anatomy + consciousness | **blocked** |
 | **implant / aether** — `dm`, `tell`, channels | the implant existing and working | **survives** — it never used the body |
-| **client interface** — the stream pane, layouts, help, settings | **nothing in-world** | **NOT GATED AT ALL** |
+| **client interface** — the stream card, layouts, help, settings | **nothing in-world** | **NOT GATED AT ALL** |
 
 > ⭐⭐ **SERVER-AUTHORITATIVE ≠ DIEGETIC.** `cockpit.layout` is
-> server-driven, so the stream pane is fully server-authoritative *and*
+> server-driven, so the stream card is fully server-authoritative *and*
 > not part of the world. *Nothing is pure client* constrains where
 > **authority** lives; it says nothing about what is **fiction**.
 

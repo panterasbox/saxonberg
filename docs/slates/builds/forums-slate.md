@@ -334,12 +334,12 @@ structured channels by concern, plus the CLI as a parallel string client.
 Forums are in-fiction (aether boards), so they live **inside the game cockpit**,
 not as a leave-the-game tool. The client shell has no router — a
 `connectionPhase` machine + a terminal-centric cockpit (Frame / LeftColumn
-[TabStrip + Terminal + CommandBar] / 360px InspectionPane). The forum is **not**
+[TabStrip + Terminal + CommandBar] / 360px InspectionCard). The forum is **not**
 a new phase (that hides the terminal/command-bar — a context switch out of the
 game). It is a **new primary-view axis inside `in-world`**: a `mainView:
 'terminal' | 'forum'` switch renders `Terminal` or `ForumView` in the LeftColumn
 slot, while **Frame + CommandBar persist** and the **right column is
-view-sensitive** (terminal → InspectionPane; forum → the chat sidecar). **Live
+view-sensitive** (terminal → InspectionCard; forum → the chat sidecar). **Live
 awareness persists** — scene says/emotes/DMs surface as a peek while you read.
 Navigation is **verb-driven** (`forum` / `forum <board>` flips `mainView` +
 target) and click-driven. This encodes the diegetic split: **forum = in-cockpit

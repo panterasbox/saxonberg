@@ -137,7 +137,7 @@ are actually designed.) Grouped by what they interrogate.
   imagination budget; verbosity is the ceiling; precision vs. evocation
   is resolved by the layered seam.
 - ✍️ **[Transparency](./transparency.md)** — the cockpit, inspection
-  pane, command bar. Does the interface disappear? A CLI's transparency
+  card, command bar. Does the interface disappear? A CLI's transparency
   is *earned* via the learnability gradient.
 - ✍️ **[Feedback](./feedback.md)** — every event carries a failsafe
   string; the response envelope; the scene composer. Strong substrate;

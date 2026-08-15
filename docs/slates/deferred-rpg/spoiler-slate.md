@@ -51,8 +51,8 @@ See also:
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) — server-
   side fact-gating = don't *send* the unrevealed fact (the Scene/percept
   projection withholds it).
-- [docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md) —
-  the pane shows percepts; spoiler-gated facts simply aren't in the
+- [docs/subsystems/card-surface.md](../../subsystems/card-surface.md) —
+  the card shows percepts; spoiler-gated facts simply aren't in the
   projection.
 - the **quest/progress system** (consumed — supplies the "have you earned
   it?" reveal condition) and the future **assessment/education-vertical**
@@ -86,7 +86,7 @@ you've *earned* it / your role permits."
 ### Server-side fact-gating (the enforcement)
 
 When the server projects what a viewer perceives (the percept / the
-inspection-pane projection / a `look`/`analyze`), it **omits secret facts
+inspection-card projection / a `look`/`analyze`), it **omits secret facts
 whose reveal condition isn't met for that viewer.** The unrevealed fact
 never crosses the wire, so no in-game inspection surfaces it. This is the
 whole "effort" — cheap, and it defeats the realistic (casual, in-game)

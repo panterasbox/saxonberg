@@ -305,8 +305,8 @@ appended without reasoning about the credentialed routes it also governs.
   `onCommandPreview` (both are required props), so nothing reaches the
   command bus on a surface with no connection. Accepted residual: a
   clickable inside a release looks clickable and does nothing.
-- **`NewsTickerPane`** — the post-login ticker on the client-owned third
-  `rightPane` tab (`inspect | who | news`). The store `feed`/`feedOrder`
+- **`NewsTickerCard`** — the post-login ticker on the client-owned third
+  `rightCard` tab (`inspect | who | news`). The store `feed`/`feedOrder`
   slice mirrors the roster slice; `orderFeed` mirrors the server's display
   ordering so incrementally-`upsert`ed frames land deterministically,
   while the **authoritative semantics** (pin cap, expiry/retract
@@ -425,7 +425,7 @@ publishes without being a news outlet at all.
 ⚠ Two carry **stored state**, and the choice was deliberate rather than
 incidental: the seeded **Topic** the client subscribes to by name, and the
 **AppSettings keys** (renaming leaves orphan `app_settings` rows — unread,
-harmless, untidy). `NewsTickerPane` keeps its name: it is a ticker, not a
+harmless, untidy). `NewsTickerCard` keeps its name: it is a ticker, not a
 bulletin.
 
 ## Cross-references

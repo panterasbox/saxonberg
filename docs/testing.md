@@ -417,10 +417,10 @@ passed** — because each seeded the store directly
 lets a shelf be tested without a socket, and is therefore structurally
 blind to the question *does anything ask?*
 
-The same shape had already bitten the pane holds, where eleven green
-tests missed an immortal pane because all of them hand-refreshed.
+The same shape had already bitten the card holds, where eleven green
+tests missed an immortal card because all of them hand-refreshed.
 
-So for anything that **derives on read** — a pane hold, a standing, a
+So for anything that **derives on read** — a card hold, a standing, a
 reconcile-on-read projection, a subscription-fed widget — write the
 read test *and* a second test that asserts the thing which is supposed
 to wake it actually does:

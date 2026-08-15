@@ -1,45 +1,45 @@
-# Inspection pane
+# Inspection card
 
 The persistent right-column cockpit surface that displays what the
 player is currently **focused** on. Sourced from two long-lived
-subscriptions opened **by name** — the `inspect` pane for the
-focused-thing body and the `location` pane for the breadcrumb root —
-the pane composes a live-updated header (focus display name), a
+subscriptions opened **by name** — the `inspect` card for the
+focused-thing body and the `location` card for the breadcrumb root —
+the card composes a live-updated header (focus display name), a
 paint/clear-gated body (detail when single-focus, list when
 multi-focus), a unified breadcrumb that combines the player's
 current location, past focus shifts, and any active detail drill,
 plus a Refresh button.
 
-⭐⭐ **The client names a pane; the server says what it is.** The
-catalogue (`lib/connection/Panes.ts`) owns each pane's query,
+⭐⭐ **The client names a card; the server says what it is.** The
+catalogue (`lib/connection/Cards.ts`) owns each card's query,
 cardinality, field set, dependency flags and hold, and the client sends
-`{ pane: "inspect" }` and nothing else. It used to send
+`{ card: "inspect" }` and nothing else. It used to send
 `query: "$focus", cardinality: "many", fields: "detail"` — MQL, in a
 `.tsx` file — which is the client holding a server semantic, the same
 category error as a client deciding its own affordances.
 
 ⚠ The forcing reason was identity, not tidiness. A `subscriptionId` is a
-client-minted `nanoid` that dies on reconnect, so it could name a pane
+client-minted `nanoid` that dies on reconnect, so it could name a card
 for one socket and nothing longer — which is why `cockpit layout save`
-could only ever write an empty pane list. **A pane is a NAMED
+could only ever write an empty card list. **A card is a NAMED
 subscription; a hold is an optional property of one.** Neither of this
-pane's two carries a hold, and that is correct: paint/clear means a
-focus change clears the body rather than closing the pane.
+card's two carries a hold, and that is correct: paint/clear means a
+focus change clears the body rather than closing the card.
 
-⚠ **This pane is no longer the catalogue's only consumer.** A third
+⚠ **This card is no longer the catalogue's only consumer.** A third
 entry, `self`, feeds the top bar's widget shelf — and it is the one
 whose field set is an explicit list rather than an alias, because
 neither alias carries a figure *about* the subject. See
-[mql-subscription.md § The pane catalogue's field sets](./mql-subscription.md)
+[mql-subscription.md § The card catalogue's field sets](./mql-subscription.md)
 and [client-shell.md § The widget shelf](./client-shell.md).
 
-Pane policy is **paint/clear**: focus changes clear the body to a
+Card policy is **paint/clear**: focus changes clear the body to a
 placeholder; an explicit `look` against the current focus paints
 it from the live subscription record. The substrate is policy-
 agnostic — paint/clear is a client concern that exists to teach
 the verbs: *focus is a pointer; look is the verb that paints what
 the pointer points at.* A first-delivery auto-paint exception
-fires on fresh-session mount so the pane lights up without
+fires on fresh-session mount so the card lights up without
 requiring an explicit `look` from the player.
 
 See:
@@ -55,11 +55,11 @@ See:
 - `docs/subsystems/command-routing.md` — phase-effect option
   declarations (`effects: [{phase: 'focus-update', action: 'skip'}]`)
   back the `look --peek` flow.
-- `docs/subsystems/prompt.md` — the prompt's focus token; the pane
+- `docs/subsystems/prompt.md` — the prompt's focus token; the card
   header mirrors it visually but reads from the subscription, not
   the prompt push.
 - `docs/slates/tails/client-cockpit-slate.md` — the cockpit layout the
-  pane slots into.
+  card slots into.
 
 ## File layout
 
@@ -72,7 +72,7 @@ See:
 | `packages/server/src/mud/lib/command/Focused.ts` | `setFocus` / `clearFocus` fire `FieldChangedEvent { field: 'focus' }`; `subscribableFields` declares the `focus` descriptor so the index entry installs |
 | `packages/server/src/mud/lib/description/Visible.ts` | `getMarkupLong(viewer)` — runs the long description through every contributing mixin's `markupAugmenters` |
 | `packages/server/src/mud/lib/description/Detailed.ts` | `wrapDetailKeysAugmenter` contributed via `DetailedMixin.markupAugmenters` — wraps canonical detail keys in `<detail>` MML inline |
-| `packages/server/src/mud/lib/boundary/Exitable.ts` | `exits` descriptor on `ExitableMixin.subscribableFields` — ships direction + door affordance for the pane's exit block |
+| `packages/server/src/mud/lib/boundary/Exitable.ts` | `exits` descriptor on `ExitableMixin.subscribableFields` — ships direction + door affordance for the card's exit block |
 | `packages/server/src/mud/cmd/perception/find.yaml` | `find` verb YAML view (snapshot enumeration, no `updates_focus`) |
 | `packages/server/src/mud/obj/command/perception/FindController.ts` | `find` controller — renders one MML row per match, admin viewers see template-path suffix |
 | `packages/server/src/mud/cmd/perception/look.yaml` | `--peek` option declares `effects: [{phase: 'focus-update', action: 'skip'}]` |
@@ -80,15 +80,15 @@ See:
 | `packages/server/src/mud/api/mml.ts` | `MarkupAugmenter` type + `augmentMarkup` helper — substrate for `getMarkupLong` and future inline-affordance pipelines |
 | `packages/server/src/mud/api/mixin.ts` | `MixinApi.getAllMarkupAugmenters` — prototype-chain walker the augmenter pipeline consumes |
 | `packages/types/src/index.ts` | `MqlQueryMessage` / `MqlQueryResultEnvelope` / `MqlQueryErrorEnvelope` wire types; `StuffRefRecord.primaryKeyword`; `focusDependent?` / `locationDependent?` on `MqlSubscribeMessage` |
-| `packages/client/src/store/index.ts` | Pane slice (paint flag, breadcrumb root, breadcrumb trail, detail path, door context, focus name, last result), stuff-registry slice (`Map<stuffId, StuffMetadata>`), `upsertStuffMetadata` |
+| `packages/client/src/store/index.ts` | Card slice (paint flag, breadcrumb root, breadcrumb trail, detail path, door context, focus name, last result), stuff-registry slice (`Map<stuffId, StuffMetadata>`), `upsertStuffMetadata` |
 | `packages/client/src/services/websocket.ts` | `subscribeMql(spec)` / `unsubscribe`, subscription envelope routing, recursive ref-walk that feeds `upsertStuffMetadata` |
-| `packages/client/src/components/InspectionPane.tsx` | Pane component — unified breadcrumb (root + trail + detail segments), header, paint/clear body, Refresh, door-context exit synthesis |
+| `packages/client/src/components/InspectionCard.tsx` | Card component — unified breadcrumb (root + trail + detail segments), header, paint/clear body, Refresh, door-context exit synthesis |
 | `packages/client/src/components/ui/` | Shared cockpit primitives: `<List>` / `<ListItem>` / `<EntityName>` / `<Button>` + semantic theme `tokens` (see "Shared UI components and theme tokens" below) |
 | `packages/client/src/components/MmlRenderer.tsx` | `commandFor()` extended to `<item>` / `<name>` / `<location>` / `<object>` + `<detail>` — registry lookup → `look <primaryKeyword>`, label fallback |
 
-## The pane's two subscriptions
+## The card's two subscriptions
 
-The pane mounts two long-lived MQL subscriptions through the
+The card mounts two long-lived MQL subscriptions through the
 wire client's `subscribeMql(spec)` method — raw specs, no
 indirection layer:
 
@@ -141,7 +141,7 @@ Parallel to `focusDependent`. Installs the dep entry
 `(FieldChangedEvent.KIND, 'field', 'container')` against the
 holder so the subscription wakes on `Containable.setContainer`
 fires — i.e., when the player walks, teleports, boards, or
-disembarks. The pane uses it to keep the breadcrumb root
+disembarks. The card uses it to keep the breadcrumb root
 synchronized with the current room; without the flag, walking
 into a new room would not trigger a re-resolve of `here`.
 
@@ -161,29 +161,29 @@ elevation.
 The location subscription is `cardinality: 'one'`. When the
 player walks from room A to room B, the substrate's diff
 produces a single `op: 'replace'` carrying the *new* stuffId —
-the old slot is implicitly evicted. The pane's delta handler
+the old slot is implicitly evicted. The card's delta handler
 consumes the replace op directly rather than running it through
 the generic `applyChanges` helper (which keys by stuffId and
 would append a duplicate). The flat-cardinality `me.focus`
 projection uses `applyChanges` normally.
 
-## ⭐ The pane set — N panes, each held by a condition
+## ⭐ The card set — N cards, each held by a condition
 
-The single focus slot became an **N-pane set**. Each pane's lifetime is
+The single focus slot became an **N-card set**. Each card's lifetime is
 governed by a **hold condition**, evaluated **server-side**, because
 these are facts about the world — a client guessing at them is the same
 category error as a client guessing at affordances.
 
-### ⚠ A pane is a subscription plus a lifetime rule
+### ⚠ A card is a subscription plus a lifetime rule
 
 That is the whole shape, and it is what keeps criterion 11 honest. An
-N-pane set *is* N subscriptions, so `hold` is a field on the ordinary
-`SubscribeRequest`, the pane set **is** the existing subscription
+N-card set *is* N subscriptions, so `hold` is a field on the ordinary
+`SubscribeRequest`, the card set **is** the existing subscription
 registry, and there is no second registry to drift out of step.
 
 Holds are evaluated on the **drain that was already running**
 (`MqlSubscriptionRegistry.reresolveAndEmit`), not on a timer of their
-own. A pane set with its own tick would be a second clock, and two
+own. A card set with its own tick would be a second clock, and two
 clocks disagree.
 
 ### The five conditions
@@ -204,7 +204,7 @@ It reads `PromptApi.isPending`: absence from the interactive's bucket
 **is** "answered", so there is no second flag to go stale.
 
 `here` captures its anchor (the viewer's container) at subscribe time —
-"here" is only meaningful relative to a *where*, and the pane's own
+"here" is only meaningful relative to a *where*, and the card's own
 subject is not it.
 
 ### ⚠ The spatial holds are containment predicates, not MQL scopes
@@ -214,10 +214,10 @@ Answering them by re-resolving the viewer's own MQL seeds (`peers` /
 scopes include the room and the viewer themselves, so the scope is never
 empty and a hold keyed on "is anything still in scope" can never lapse.
 
-A pane that can never close is worse than no pane lifetime at all,
+A card that can never close is worse than no card lifetime at all,
 because the feature reads as working. The tests caught it. They are
 direct containment predicates now, and the viewer never counts as its
-own subject — a pane about *you* would otherwise satisfy `carried` and
+own subject — a card about *you* would otherwise satisfy `carried` and
 `present` forever.
 
 ### ⚠⚠ A hold must install the dependency that lets it fire
@@ -228,15 +228,15 @@ hold except `unanswered` implies `locationDependent` — they are all
 questions about where things are relative to the viewer, and without the
 holder-level container dependency nothing wakes them.
 
-**Found by driving it live, with eleven passing tests.** A `here` pane
+**Found by driving it live, with eleven passing tests.** A `here` card
 was immortal: the viewer walked out, nothing woke the subscription, the
-hold was never evaluated, and the pane never closed. The suite was green
+hold was never evaluated, and the card never closed. The suite was green
 throughout because **every test called `refreshForInteractive` by hand**
 — the manual refresh stood in for the wake production would never
 perform, so the tests asserted the *condition* was right while never
 exercising whether anything would ask it.
 
-The lesson generalizes past panes: **a derive-on-read answer is dead
+The lesson generalizes past cards: **a derive-on-read answer is dead
 unless something invalidates it**, and a test that pokes the deriver
 directly cannot see the difference. Any test for this shape should
 perform only the world change and assert the consequence — no manual
@@ -250,32 +250,32 @@ not a position, and the prompt's own resolution is what should wake it.
 
 `mql-subscription-released { subscriptionId, hold, reason }` — a
 distinct envelope from the error one, precisely because nothing went
-wrong: the pane reached the end of its stated lifetime. **A pane that
+wrong: the card reached the end of its stated lifetime. **A card that
 vanishes without a reason reads as a bug**, and the player cannot tell a
 rule from a defect.
 
 ### ⚠ The pin overrides in BOTH directions
 
-`cockpit pane pin|dismiss|auto|list`.
+`cockpit card pin|dismiss|auto|list`.
 
 Pinning is **not a sixth hold condition** — it is an override on the
-other five. A sixth condition could only ever *keep* a pane; it could
+other five. A sixth condition could only ever *keep* a card; it could
 never dismiss one whose condition still holds, which is half of what a
 player needs.
 
-`dismiss` does not tear the pane down inline. It marks the override and
+`dismiss` does not tear the card down inline. It marks the override and
 lets the next drain apply it, so a dismissal is released down the same
 reasoned path as every other release. A second teardown path is how a
-pane ends up vanishing without its reason.
+card ends up vanishing without its reason.
 
-## ⭐⭐ The column is a FEED, and the focus pane is one slot in it
+## ⭐⭐ The column is a FEED, and the focus card is one slot in it
 
-The right column stopped being one pane. It is now a **feed of cards,
-newest → oldest**, with the focus pane pinned at the bottom under an
+The right column stopped being one card. It is now a **feed of cards,
+newest → oldest**, with the focus card pinned at the bottom under an
 `IN FOCUS` label.
 
 ```
-PANES  newest → oldest                    1 pinned
+CARDS  newest → oldest                    1 pinned
 ┌──────────────────────────────────────────────┐
 │ PLACE  the lounge          held · you are here ⚲│
 │ Exitable · Detailed · Visible  +9               │
@@ -294,11 +294,11 @@ IN FOCUS
 oldest → newest and this runs the other way; a reader who is not told
 reads a card appearing at the top as a bug.
 
-⚠ **`IN FOCUS` is load-bearing too.** The focus pane used to be the
+⚠ **`IN FOCUS` is load-bearing too.** The focus card used to be the
 whole column, so nothing had to name it. Under a stack of cards its
 breadcrumb renders as a bare orphan word above an unlabelled box —
 found by driving, a room called *Terminus Terminal, the station hall*
-put a lone `hall` between the PLACE card and the pane, attached to
+put a lone `hall` between the PLACE card and the card, attached to
 nothing.
 
 ### ⭐⭐ One card, and the subject decides what is in it
@@ -469,10 +469,10 @@ three things you do to a card.
 ### ⭐ Husks age out; live cards never do
 
 A released husk removes itself after two minutes, swept on an interval
-by `usePaneFeed` (at the layout, so it runs on a phone too).
+by `useCardFeed` (at the layout, so it runs on a phone too).
 
-⚠⚠ **This is the one legitimate duration in the pane model.** A live
-pane's lifetime is a fact about the world — is that person still here —
+⚠⚠ **This is the one legitimate duration in the card model.** A live
+card's lifetime is a fact about the world — is that person still here —
 and putting a clock on it would end something still actionable, which is
 the property the whole design rests on. A husk is already dead: it is a
 note saying *what you last saw*, its value decays, and how long the
@@ -493,10 +493,10 @@ names nothing at all.
 `place` is held by `here`, so walking out releases it — correctly. But
 it is opened once, on mount, so without a re-open **one movement costs
 the player the place card for the rest of the session** and the mode's
-arrangement silently degrades to nothing. `usePaneFeed` opens the next
+arrangement silently degrades to nothing. `useCardFeed` opens the next
 one for the room you arrived in.
 
-⚠ A **subject** pane (`agent` / `instrument` / `manifest`) deliberately
+⚠ A **subject** card (`agent` / `instrument` / `manifest`) deliberately
 does not come back. It is about one thing, and re-opening it after that
 thing went out of reach would be a card asserting a condition the world
 just denied.
@@ -514,18 +514,18 @@ duplicate?* is **not yet known**, and the honest render is nothing.
 
 ### ⚠⚠ The wiring lives at the LAYOUT, not at this column
 
-`usePaneFeed()` — which opens the `place` subscription and registers all
+`useCardFeed()` — which opens the `place` subscription and registers all
 three subscription handlers — is called in `WorldLayout`, the one
 component that renders at both form factors. It used to be called
-inside `PaneFeed`, which is the desktop right column: on a phone
-**nothing ever wired the store**, so panes the server pushed for a saved
+inside `CardFeed`, which is the desktop right column: on a phone
+**nothing ever wired the store**, so cards the server pushed for a saved
 arrangement were dropped on the floor and a card the radial opened
 stayed empty forever. Every mobile unit test passed throughout, because
 they render a card with a hand-built state and never touch the wiring.
 
 ### On a phone the cards come INLINE
 
-Interleave what is causally related, switch what is independent. A pane
+Interleave what is causally related, switch what is independent. A card
 is caused by what you just did, so on a phone it renders **in the feed,
 in causal position** — not a second column, not a drawer. Pinned cards
 keep a chip row above the command bar, because a phone cannot hold a
@@ -632,11 +632,11 @@ export const DETAIL_FIELDS: FieldSet = [
 
 > ⚠ **`details` is per-viewer too, and was the widest identification
 > leak in the codebase.** Its descriptor read `(stuff)` while its
-> neighbour `longDescription` read `(stuff, viewer)` — so the pane
+> neighbour `longDescription` read `(stuff, viewer)` — so the card
 > enumerated every detail key *and* description regardless of what the
 > reader knew, and a detail key names the part by what it does
 > (`sigil`, `scorch`). `look` at least had to be asked a question; the
-> pane just handed it over. Both layers (`read` and `perDetailRead`)
+> card just handed it over. Both layers (`read` and `perDetailRead`)
 > now pass the viewer they were always given, through to
 > `Detailed.detailRoot(viewer)`. See
 > [magic-items.md](./magic-items.md) § *The parts leak harder than the
@@ -673,8 +673,8 @@ the moment to split.
 
 ## Paint/clear policy
 
-Client-side; the substrate is policy-agnostic. The pane's body is
-gated by `paneBodyPainted` (a flag on the inspection-pane Zustand
+Client-side; the substrate is policy-agnostic. The card's body is
+gated by `cardBodyPainted` (a flag on the inspection-card Zustand
 slice):
 
 - **On mount** — initially cleared; the placeholder text is
@@ -683,7 +683,7 @@ slice):
   (sends `look`).
 - **First-delivery auto-paint exception**: the very first
   non-empty `me.focus` subscription result on a fresh session
-  flips `paneBodyPainted = true` immediately. On a fresh login
+  flips `cardBodyPainted = true` immediately. On a fresh login
   the player would otherwise sit on the placeholder until they
   typed `look`; auto-paint elides that step without changing
   the focus-shift-clears rule for subsequent deltas.
@@ -694,13 +694,13 @@ slice):
 - **On `look` against the current focus** (player typed `look`
   with no target, or `look <X>` where `<X>` matched the focus):
   set painted = true, capture the most recent subscription
-  result snapshot to `paneLastResult`, render from it.
-- **While painted**: deltas update `paneLastResult` and the body
+  result snapshot to `cardLastResult`, render from it.
+- **While painted**: deltas update `cardLastResult` and the body
   re-renders in place (React's natural diff). Containment add /
   remove diffs patch the contents list without re-painting the
   rest of the body.
-- **While cleared**: deltas update `paneFocusName` (header
-  tracks live focus) and `paneLastResult` (cache stays warm)
+- **While cleared**: deltas update `cardFocusName` (header
+  tracks live focus) and `cardLastResult` (cache stays warm)
   but the body stays in placeholder mode.
 
 The two paths to "the body just changed" — outbound `look` paint
@@ -711,25 +711,25 @@ renders. The fragment-change-clears-the-body rule applies to
 itself the verb whose semantic is *paint the body*).
 
 Pedagogically this matters: auto-painting on focus change would
-blur `focus` and `look` into "the thing that updates the pane"
+blur `focus` and `look` into "the thing that updates the card"
 and erase the lesson at the moment players are most likely to
 internalize the model. Keeping them visibly distinct teaches the
 verb pair.
 
 ## Body discipline: percepts, not state dump
 
-The pane body renders **what a perception verb would reveal to
+The card body renders **what a perception verb would reveal to
 this viewer**, not the focused thing's internal state. `look` is
 vision — it reveals appearance and gross features; an estimate at
 best for hidden quantities ("looks warm," never "37.4°C").
 Internal properties are not perceivable just because they exist.
 
-This is the inspection-pane reconciliation principle (see the
-inspection-pane slate's *Reconciliation note* and the
+This is the inspection-card reconciliation principle (see the
+inspection-card slate's *Reconciliation note* and the
 [message-rendering-slate](../slates/tails/message-rendering-slate.md)):
 every fact has a *revelation condition* — which modality /
 instrument / skill reveals it, at what fidelity. The viewer
-perceives only the facts whose condition they satisfy. The pane's
+perceives only the facts whose condition they satisfy. The card's
 v1 surface walks this back to the simplest cut:
 
 - **Player body = percept projection.** The substrate's `'detail'`
@@ -738,12 +738,12 @@ v1 surface walks this back to the simplest cut:
   filtered server-side in `ContainerMixin.contents`); the renderer
   shows them as the look output. No slot maps, mixin lists, raw
   fields, or property bags surface here.
-- **Raw internal state is server-side; the v1 pane has no admin
+- **Raw internal state is server-side; the v1 card has no admin
   surface.** Template path, stuff id, mixin composition, raw JSON
   dump, and `clone` / `reload` / `eval` quick actions all belong
   in a future admin surface — but the substrate doesn't project
   those fields today and no client `isAdmin` flag exists. Until
-  both ship, the pane carries no admin block; what authors can do
+  both ship, the card carries no admin block; what authors can do
   is use the typed-command interface (`clone <template>`,
   `reload <template>`) just like any verb.
 - **Per-fact revelation gating beyond visible is parked.**
@@ -756,16 +756,16 @@ v1 surface walks this back to the simplest cut:
 ### Accumulate vs. latest — v1 ships latest-only
 
 When a viewer performs successive perception acts on the same
-focus (look, then measure, then appraise), does the pane show
+focus (look, then measure, then appraise), does the card show
 the *union* of percepts each act has revealed, or just the
 *latest* act's output?
 
-**Choice: latest-only.** The pane's `paneLastResult` snapshot is
+**Choice: latest-only.** The card's `cardLastResult` snapshot is
 replaced by each subscription result / delta; there is no per-
 fact union across multiple `look` / `examine` / `measure`
 invocations. The latest-only path stays internally consistent
 because the substrate re-projects the *currently-perceivable*
-field set on every re-resolve — what the pane shows is what's
+field set on every re-resolve — what the card shows is what's
 true *now*, from this viewer, by the modalities currently in
 play.
 
@@ -971,7 +971,7 @@ time. The renderer reads the registry directly from the global
 store snapshot (`useStore.getState().stuffRegistry.get(stuffId)`)
 — not via a React subscription, since the renderer just needs
 the snapshot at render time. Re-renders happen naturally when
-the parent (terminal, pane body) re-renders.
+the parent (terminal, card body) re-renders.
 
 **No eviction in v1.** Sessions are bounded; the registry is
 cheap memory. The "forgotten ref leads to broken click" failure
@@ -1028,8 +1028,8 @@ subscription, not a tag attribute.
 
 ## Shared UI components and theme tokens
 
-The pane composes from a small **shared** primitive set under
-`packages/client/src/components/ui/`, not pane-private styled
+The card composes from a small **shared** primitive set under
+`packages/client/src/components/ui/`, not card-private styled
 divs. Three rules govern it:
 
 1. **Reusable primitives, not bespoke JSX.** Future cockpit
@@ -1039,7 +1039,7 @@ divs. Three rules govern it:
    schedules for its Wave 2. When that lands, its `<table>` /
    `<list>` / `<field>` tags map onto these same React
    components, so the subscription-driven rendering path and the
-   message-rendered path converge on one DOM shape. The pane
+   message-rendered path converge on one DOM shape. The card
    does not block on that library; it ships its own
    subscription-record → React-component path today.
 
@@ -1073,7 +1073,7 @@ button. The same attribute drives **two** layers from one source:
   `stuffId` (via the stuff registry's `primaryKeyword`) to the
   command this affordance sends. `MmlRenderer.commandFor`
   applies the same registry-then-label fallback for identity
-  tags; the pane mirrors it for contents-list rows and multi-
+  tags; the card mirrors it for contents-list rows and multi-
   focus rows via the parent's `onSendCommand` sink.
 - **Styling** — a future theme stylesheet selects on
   `[data-stuff-id]` against the viewer's social-graph bucket
@@ -1082,7 +1082,7 @@ button. The same attribute drives **two** layers from one source:
   [message-rendering slate](../slates/tails/message-rendering-slate.md)
   describe the bucket model. The attribute is emitted today;
   bucket selectors land when that subsystem does, without any
-  pane changes.
+  card changes.
 
 One attribute, two duties — that's the slate's economy. **There
 is no `<color>` or `<size>` MML tag**, and no per-tag color
@@ -1093,10 +1093,10 @@ semantic markup.
 
 Per [grouping.md](./grouping.md), the multi-
 cardinality `$focus` result is in principle a **group** — `focus
-friends` resolves a group via `GroupApi`; the pane renders its
+friends` resolves a group via `GroupApi`; the card renders its
 members. v1 has neither `GroupApi` nor friend/foe bucketing, so
 the row shape is just "a list of styled names" — and that's the
-shape it stays. When `GroupApi` lands, the pane resolves the
+shape it stays. When `GroupApi` lands, the card resolves the
 group server-side via the same `$focus` subscription and the row
 component (`<EntityName>` already carrying `stuff-id`) absorbs
 the bucket selector without further work.
@@ -1112,7 +1112,7 @@ sources of context:
    from the `here` (`locationDependent`) subscription. Movement
    reroots the strip; the room is always the first segment.
 2. **Trail segments** — past focus shifts since the last reroot.
-   Pushed by `applyOutgoingCommandToPane` (in `App.tsx`) when an
+   Pushed by `applyOutgoingCommandToCard` (in `App.tsx`) when an
    outgoing `look <target>` or `focus <target>` doesn't match
    the current root. Capped at 6 entries; the head dedups
    against re-clicks of the same target.
@@ -1136,8 +1136,8 @@ discarded.
 When the player clicks a door affordance inside an exit
 projection (e.g. `the front doors` rendered next to `south` in
 the lobby's exits), the click site stashes a
-`paneDoorContext: {stuffId, direction}` annotation in the store.
-The door's own pane then synthesizes an "Obvious exits:
+`cardDoorContext: {stuffId, direction}` annotation in the store.
+The door's own card then synthesizes an "Obvious exits:
 <direction>" link in its body so the player can walk through
 from the inspection view. The annotation clears on the next
 focus shift to a different stuffId.
@@ -1148,7 +1148,7 @@ relationship from the click site that has both pieces in scope.
 
 ### Refresh button
 
-In the pane header. Clicks send `look` through the command bus
+In the card header. Clicks send `look` through the command bus
 exactly like any other click affordance — no special API. Stays
 enabled in the cleared-body state (that's its primary use).
 Clicks queue if a command is in-flight.
@@ -1159,7 +1159,7 @@ On WebSocket `connection-established`, the wire client replays
 every active subscription's stored spec (the full
 `{query, cardinality, fields, focusDependent?, locationDependent?,
 detailKey?}` shape it was opened with). The server's substrate
-ships the initial result. The pane's header populates from the
+ships the initial result. The card's header populates from the
 first record; the first-delivery auto-paint rule fires the body
 into the painted state.
 
@@ -1174,7 +1174,7 @@ Per the closed-scope requirements:
 
 - **Tabs / tab strip.** v1 ships a single focus tab with no
   strip UI.
-- **Pinned `find` results in the pane.** `find` renders to the
+- **Pinned `find` results in the card.** `find` renders to the
   terminal scroll; pinning lands with tabs.
 - **Display-flag vocabulary on `find`** (`--bare`, `--with
   vitals`, etc.).
@@ -1200,7 +1200,7 @@ Per the closed-scope requirements:
   `look <label>` is the universal default; tag-specific
   alternative actions ship when the broader gesture vocabulary
   lands.
-- **Multi-pane / split view.** Single pane only.
+- **Multi-card / split view.** Single card only.
 - **Persistent breadcrumb history across reconnects.**
 - **Animated focus transitions.**
 - **Mobile responsiveness.**
@@ -1210,8 +1210,8 @@ Per the closed-scope requirements:
   `refresh: true`. Only the `mql-query` one-shot ships here
   because `find` motivates it.
 - **Cardinality-adaptive projection** — `'detail'` always.
-- **Other client-issued subscriptions** — the pane uses two
-  (`$focus`, `here`); future panes / widgets will issue their
+- **Other client-issued subscriptions** — the card uses two
+  (`$focus`, `here`); future cards / widgets will issue their
   own raw specs through `subscribeMql`. There is no server-side
   registry of "named" subscriptions; each consumer owns its
   spec.
@@ -1225,7 +1225,7 @@ Per the closed-scope requirements:
   (perceivable as part of the look output) or not surfaced.
   Per-fact provenance (which act revealed this fact, at what
   fidelity) ships with the perception subsystem.
-- **Admin / author surface on the pane.** No `isAdmin` flag on
+- **Admin / author surface on the card.** No `isAdmin` flag on
   the auth slice today and no `templatePath` / `mixins` /
   `containerPath` projection on the wire. When admin needs
   arrive, they land with verified substrate (descriptor set,
@@ -1336,7 +1336,7 @@ weren't always the obvious ones:
   `DetailTrail` was deleted.
 - **First-delivery auto-paint.** The original spec said "focus
   changes clear the body; explicit `look` paints." On a fresh
-  session that left the pane sitting on the placeholder until
+  session that left the card sitting on the placeholder until
   the player typed `look`. First-delivery auto-paint elides
   the cold-start step without changing the focus-shift-clears
   rule.

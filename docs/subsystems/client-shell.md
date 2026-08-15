@@ -189,7 +189,7 @@ So `AppContainer` refuses to exceed `100vw` when compact, and
 `ContentRow` takes the overflow into **its own** scroller. The rail
 stays reachable by scrolling the *content* — where a phone user would
 look for it — instead of by scrolling the whole page, which broke the
-chrome. Clipping it instead would have made a shipped pane unreachable,
+chrome. Clipping it instead would have made a shipped card unreachable,
 which is a worse answer than the bug.
 
 ⚠⚠ **Neither suite could see this, and one of them lied by omission.**
@@ -276,7 +276,7 @@ suites. The art puts `◔ 3` in row one and calls it never removable; it
 is not built, not hatched and not placeholdered, because what belongs in
 that tray is whatever the receiver *said* they wanted — which wants
 `NotifyPolicy` read first — and nothing about a smaller screen changes
-what is behind it. `SocialNotificationsPane` stays reachable from the
+what is behind it. `SocialNotificationsPanel` stays reachable from the
 account menu, so the capability has a home; it does not get a permanent
 slot in the scarcest row on the screen.
 
@@ -546,7 +546,7 @@ go back to being one rule.
 The rule is **interleave what is causally related, switch what is
 independent**:
 
-- **Panes render inline in the feed**, in causal position. You analysed
+- **Cards render inline in the feed**, in causal position. You analysed
   the forge; the forge's card belongs where that happened — not in a
   second column, and not in a drawer you forget exists.
 - **Named views get the strip**, because there is no causal reason a
@@ -582,7 +582,7 @@ screen permanently** — over a fifth of the phone, for two controls that
 edit settings rather than play. They share one 52px row now, and the
 tokens collapse behind a single control.
 
-⚠ Re-check the **ICB trap** at 390px on every pass: a fixed-width pane
+⚠ Re-check the **ICB trap** at 390px on every pass: a fixed-width card
 inside an overflowing document widens the initial containing block and
 pushes `position: fixed` chrome off-screen. jsdom lays out nothing, so
 only a real browser with `isMobile: true` can see it.
@@ -648,9 +648,9 @@ wired" erases exactly that:
    figures about you, simply not on the wire. A one-field addition
    unhatches each.
 3. ⭐ **`not-self` — the wrong scope** (`TIME`, `ONLINE`, `DOCKET`).
-   These are **world** figures. The `self` pane structurally cannot
+   These are **world** figures. The `self` card structurally cannot
    carry them *no matter what is added to `Avatar`*; they need a
-   different source — a world-scoped pane, or a different subscription
+   different source — a world-scoped card, or a different subscription
    entirely — and that is a design conversation, not a field addition.
    Recording the distinction is the point: a reason saying "no
    subscribable field yet" would send the next builder into `Avatar`
@@ -724,8 +724,8 @@ them. Driven at 900px in `e2e/tests/shelf.spec.ts`.
 
 ### The subscription
 
-One `self` pane, opened by name in a `useEffect` and torn down on
-unmount — the shape `InspectionPane` established, with no new service
+One `self` card, opened by name in a `useEffect` and torn down on
+unmount — the shape `InspectionCard` established, with no new service
 layer and no second registry. Results land in the store
 (`shelfFigures`) rather than component state, so tests drive the shelf
 without a socket.
@@ -788,7 +788,7 @@ that the showing costs a tap instead of a hover.
 ⭐⭐ **The interception is at `App.handleCommandClick`, and that
 placement is the whole design.** Every affordance in the tree —
 transcript tags, shelf entries, `ViewsMenu`, the pull-down, the
-right-column panes — routes through that one handler, so the confirm
+right-column cards — routes through that one handler, so the confirm
 step is **one interception point for the entire app** rather than an
 `isCompact` prop threaded into every renderer. `MmlRenderer`,
 `EntityName` and `Shelf` needed no changes at all. One `sendDirect`
@@ -797,16 +797,16 @@ sheet showed* and *what got sent* cannot become two strings that merely
 agree today.
 
 ⚠⚠ **"Every affordance" is a claim about WIRING, and it was false for
-one family until it was driven.** The four right-column panes
-(`InspectionPane`, `WhoPane`, `NewsTickerPane`, `WikiPane`) took
+one family until it was driven.** The four right-column cards
+(`InspectionCard`, `WhoCard`, `NewsTickerCard`, `WikiCard`) took
 `onSendCommand` — the raw send — so they bypassed the sheet entirely:
 tapping `north` in the transcript opened a sheet naming the command,
-while tapping the identical `north` in the pane six inches away sent it
+while tapping the identical `north` in the card six inches away sent it
 instantly. **Two rules on one screen is worse than either rule alone**,
 and it is precisely the unpredictability the no-exceptions policy above
 exists to prevent. `WorldLayout` now passes `onCommandClick` to all
 four, and `layouts/__tests__/affordanceRouting.test.ts` guards it —
-because a new pane wired to the wrong prop is one copy-paste away.
+because a new card wired to the wrong prop is one copy-paste away.
 
 ⚠ `CommandBar` keeps the raw send, correctly: **typed input is not an
 affordance** and must never be confirmed.
@@ -1072,7 +1072,7 @@ this one. The **account** block (`account.make`) is the second entry
 point to the standing roll-up — see
 [influence.md](./influence.md) § *`standingForHost`*.
 
-⭐ **Two panes on a desktop, two screens on a phone, and the split is by
+⭐ **Two cards on a desktop, two screens on a phone, and the split is by
 QUESTION**: the list answers *who*, the detail answers *what happened
 while I was gone*. Most accounts have one character, so the list is a
 way-station rather than a destination — **a single-character account
@@ -1101,7 +1101,7 @@ has been measured.
 
 ⭐ The Enter control previews the command it sends (`sends as play
 <id>`) — the axiom does not switch off before the command bar exists.
-It **leads the detail pane** rather than closing it: this screen exists
+It **leads the detail card** rather than closing it: this screen exists
 to be left, and the one control that leaves it should not be the last
 thing found. The screen's header band names the **account** — the
 person, not any character on it — and carries the account's own meters.
@@ -1115,12 +1115,12 @@ control for an unasked question is clutter pretending to be candour.
 
 ## Intake on a phone, and the in-world rail
 
-Intake is one column at phone width; the species detail pane stops being
+Intake is one column at phone width; the species detail card stops being
 a fixed 260px card.
 
 ⚠⚠ **The in-world rail collapses on compact**, and it is in this build
 rather than the play-surface wave for one reason: **the arrival path
-terminates there.** Each right-column pane declares its own fixed 360px
+terminates there.** Each right-column card declares its own fixed 360px
 width, so beside a terminal the in-world document computed ~698px at a
 390px viewport — and under the mobile viewport model an overflowing
 document widens the **initial containing block**, which is what
@@ -1128,7 +1128,7 @@ document widens the **initial containing block**, which is what
 (the shelf screen, the command sheet) rendered off the right edge. An
 arrival that delivers you somewhere broken has not arrived.
 
-⚠ **The collapse and nothing more.** What the panes should be on a
+⚠ **The collapse and nothing more.** What the cards should be on a
 phone, and whether they belong inline in the feed, is the play-surface
 wave's, and this must not pre-empt it.
 
@@ -1381,7 +1381,7 @@ that a primitive with no consumer can drift. Build B closed it.)
 - **The mobile Arrival path** (front door, intake, lounge, character
   select) — Wave 2, with its own `- Mobile` art. `CharGenStage` is
   untouched here.
-- **The mobile live client / play surface** — the two feeds, the pane
+- **The mobile live client / play surface** — the two feeds, the card
   feed and its hold policy, focus chain, filters, routing, prompts.
   Wave 4, which is where the feed itself is owned, and where the
   `WorldLayout` rail's phone-width overflow belongs.

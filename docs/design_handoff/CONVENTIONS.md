@@ -57,7 +57,7 @@ interaction in the product — reacting — is the last place this should lapse.
 The rule that decides each case: **interleave what is causally related, switch
 what is independent.**
 
-- Panes are caused by what you just did → inline in the feed, not a second column.
+- Cards are caused by what you just did → inline in the feed, not a second column.
 - Routed feeds are independent streams → a switcher.
 - Prompts are demands on you → keep a slot, never hidden.
 - The widget shelf wraps on desktop; on a phone it becomes a **pull-down**,

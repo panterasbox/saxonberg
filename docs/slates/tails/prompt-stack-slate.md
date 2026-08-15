@@ -131,13 +131,13 @@ entry without dismissing the prompts.
   selection. Default state when the stack is empty.
 - **Prompt mode** — input is bound to one specific active prompt's
   response channel. Sigil `?`, distinct background tint, the
-  active prompt highlighted in the prompt pane. The Send button
+  active prompt highlighted in the prompt card. The Send button
   reads `Respond to: <prompt header>`. Entered through gesture or
   auto-focus.
 
 #### Mode gestures
 
-- Click any prompt entry in the pane → enter prompt mode for that
+- Click any prompt entry in the card → enter prompt mode for that
   prompt.
 - Click the "command mode" affordance (an empty slot at the top of
   the stack, or a dedicated chip when prompts are active) → return

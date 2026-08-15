@@ -337,7 +337,7 @@ costs one adapter rather than a rewrite.
 
 | Room | What it is for, mechanically |
 |---|---|
-| **Lecture hall** | scheduled, many-to-one; a blackboard as a shared writable surface; the client's **watch embed** plays a video lesson in-pane while you sit in it |
+| **Lecture hall** | scheduled, many-to-one; a blackboard as a shared writable surface; the client's **watch embed** plays a video lesson in-card while you sit in it |
 | **Exam hall** | proctored — diegetically, a proctor who *recognizes* you (the belief substrate doing identity verification) |
 | **Laboratory** | the Practicum, which already has five runnable experiments and a calorimeter |
 | **Library** | published laws as teachable goods (inquiry slate) |
@@ -345,7 +345,7 @@ costs one adapter rather than a rewrite.
 
 Two notes worth keeping.
 
-**The video pane is free.** The client already has a watch embed for
+**The video card is free.** The client already has a watch embed for
 streams. A study.com video lesson plays there while the player sits in
 the hall; then they walk down the corridor to the lab and do it. That
 is a complete demo sequence with no new client work.
@@ -725,7 +725,7 @@ should know:
 3. **Enrollment as contract + Transcript wiring** — mostly assembly of
    shipped parts.
 4. **The lecture hall and exam hall** — plus the watch-embed lesson
-   pane. Two rooms.
+   card. Two rooms.
 5. **Practical assessment** — the inquiry slate's predict gate.
    *Depends on the inquiry build.*
 6. **Teaching as employment** — TA positions, sections, the mixed

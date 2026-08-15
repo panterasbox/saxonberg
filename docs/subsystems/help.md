@@ -2,7 +2,7 @@
 
 The in-game **rulebook**: a uniform, searchable, navigable index of how
 the world *works* — its commands and its engine/API surface — served as a
-structured server-side data contract a future client help pane will
+structured server-side data contract a future client help card will
 consume. Governing posture: **transparent by default, hidden only by an
 explicit spoiler gate**. A specific product thesis rides it: the API
 browse is the **player → contributor on-ramp** — the surface through
@@ -33,7 +33,7 @@ interface HelpTopic {
 ```
 
 `body` is an MML markup string — the same field the verb's terminal
-output and the future pane both render through the existing MML pipeline.
+output and the future card both render through the existing MML pipeline.
 The light `HelpIndexEntry` (`{ id, kind, title, summary, keywords }`) is
 the instant-render + client-local-typeahead slice. The REST
 request/response DTOs (`HelpIndexResult` / `HelpKindListResult` /
@@ -123,7 +123,7 @@ here.
 
 ## Typed relations — derived, never authored
 
-Relations fall out of the projection so the pane navigates a hierarchy,
+Relations fall out of the projection so the card navigates a hierarchy,
 not a flat see-also list. Each edge denormalizes its `targetTitle`:
 
 - **method-of** — every member topic → its parent face/mixin/type topic.
@@ -206,13 +206,13 @@ boot warning (guarded); command topics and boot itself are unaffected.
 Topic ids and the `mixin` relations are designed so a later
 inspection→help cross-link ("this bed is `Surfaced` → open the `Surfaced`
 topic") is a clean add, not a rework: a `mixin.<Concept>` id is exactly
-what an inspection pane already knows (the mixin name), and the relation
+what an inspection card already knows (the mixin name), and the relation
 graph is the navigation substrate. Wiring that bridge is Wave 2 and is not
 built here.
 
 ## Deferred (later waves / non-goals)
 
-- **The client React help pane** — designed in a layout-system session;
+- **The client React help card** — designed in a layout-system session;
   this build ships the server data contract it consumes.
 - **The inspection↔help bridge wiring** (Wave 2).
 - **Wave 2 subdivisions** — taxonomies / immutable defs / units, mechanics

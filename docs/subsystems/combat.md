@@ -21,7 +21,7 @@ every exchange **advances** the fighter (combat `Discipline`s + a costed
 `assess`). **Cycle 2** turns the 1v1 into an N-party melee — a threat
 graph, join/merge, focus-fire, the `defend` family, fleeing, and the party
 friend/foe seam (see [§ Cycle 2](#cycle-2--multi-party-the-threat-graph--the-party-seam)
-+ [party.md](./party.md)); the client pane and NPC-vs-NPC crews are later.
++ [party.md](./party.md)); the client card and NPC-vs-NPC crews are later.
 Design surface lives in
 [combat-slate](../slates/deferred-rpg/combat-slate.md) +
 [combat-experience-slate](../slates/deferred-rpg/combat-experience-slate.md).
@@ -184,7 +184,7 @@ afford existing gambits bodily — see
 an impaired slot is *rejected when attempted* (`Vitals.isSlotImpairedByTrauma`
 → the wielding grip's `bodyPart`), and `disarm` is rejected when the
 opponent is unarmed. This is the "injury edits the menu" behaviour — the
-visible menu-greying is a client-pane concern, deferred with the pane; the
+visible menu-greying is a client-card concern, deferred with the card; the
 terminal build needs only the reject. Humanoids declare **no** innate attack
 (fisticuffs deferred), so a disarmed or fractured-grip humanoid genuinely
 loses `strike`, while a natural-weapon beast keeps it.
@@ -691,7 +691,7 @@ Named at their sites; nothing inherited:
   weapon crafting/repair economy, full morale / de-escalation, stealth,
   pursuit / the chase (wayfaring) and coordinated party-retreat (rout/rally),
   non-humanoid bestiary, death/recovery + moderation, and the client
-  `CombatPane` (and the contextual gambit affordances — terse verbs afforded
+  `CombatCard` (and the contextual gambit affordances — terse verbs afforded
   only in a fight — that supersede the static ones). Party formation-roles
   **landed** — the combat-formations build (see
   [combat-formations.md](./combat-formations.md)): `CombatFormation` Idea

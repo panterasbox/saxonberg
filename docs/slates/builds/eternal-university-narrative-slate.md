@@ -121,7 +121,7 @@ reconciliation is a discipline, not a rail:
    diegetic guidance, so a new player discovers the route space *in fiction*
    rather than being handed it (or hitting a wall).
 3. **The breadcrumb is the next question, never a quest marker** (§13). The
-   inspection pane and MQL (the magnifying glass) always surface a thread to
+   inspection card and MQL (the magnifying glass) always surface a thread to
    pull, with a parallel records track so the player is never hard-stuck on any
    one route.
 

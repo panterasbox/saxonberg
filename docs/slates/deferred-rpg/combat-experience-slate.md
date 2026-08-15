@@ -894,7 +894,7 @@ from the event-feed spam), competence-layered:
 twin) · poise + one exchange through `inflict` · emergent tempo · gambits-as-
 affordances (minimal) + reactive dispatch · the expressive baseline + a
 brain-driven NPC · severity three-case + blame ledger + two-stage death ·
-advancement disciplines + the summoned pane + the cull & consented-duel demos.
+advancement disciplines + the summoned panel + the cull & consented-duel demos.
 
 **Deferred → owning thesis/slate:** multi-party / threat-graph / focus-fire /
 party / Master-Apprentice → combat-slate + party-slate + combat-tactics-slate ·

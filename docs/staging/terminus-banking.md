@@ -535,7 +535,7 @@ building), and none is Stuff or lives in a room:**
 welcome, the officer's greeting, *the refusal line*); the enrollment
 `SustainedEngagement` (its *outcome* — Circle membership — persists as a record;
 the conversation doesn't); per-viewer `clientState` (board render, inspection
-pane).
+card).
 
 **Shadows — the per-viewer override seam:** access *presentation* (the salon door
 open-to-worthy / closed-to-unworthy per viewer); recognition-driven naming

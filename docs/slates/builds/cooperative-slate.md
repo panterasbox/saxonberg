@@ -1099,7 +1099,7 @@ and deserves a bang.
 
 | Tier | What | Home |
 |---|---|---|
-| **ambient** | the live gauge — always available, **never pushed** | inspection pane + live MQL subscription |
+| **ambient** | the live gauge — always available, **never pushed** | inspection card + live MQL subscription |
 | **digest** | flips, platform changes, new positions — batched | the **aggregate + cadence-flush** shape [reactions](../../subsystems/reactions.md) already uses |
 | **interrupt** | a crossing imminent on a bill you carry; a **high-conviction** flip | pushed note / ticker |
 

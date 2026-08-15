@@ -217,12 +217,12 @@ Field inventory, as best I know it — **confirm exact names against
   catalog alone is "88,000+ video lessons with transcripts"
   (strategy doc). This is the answer to the brief's softest-but-important
   question: **your text-first client can render a study.com lesson as
-  text natively**, and the watch-embed pane can play the video for
+  text natively**, and the watch-embed card can play the video for
   learners who want it (college-slate.md:342-346). No transcription work
   on either side.
 - Practically: a lesson's transcript is a first-class asset you can pull
   and render as MML prose; the video is the same asset for the embed
-  pane. **A study.com lesson is already dual-register** (watch or read),
+  card. **A study.com lesson is already dual-register** (watch or read),
   which is exactly the `look` vs `analyze` ethos pointed at content.
 
 ---

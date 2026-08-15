@@ -294,7 +294,7 @@ not entangle the review model with a specific store.
 The editor toolbar carries a button that steps the author's game
 session into their sandbox circle. It has **no endpoint of its own** —
 it sends `go wardrobe` over the game tab's existing socket
-(`websocketClient.sendCommand`), the way the forum panes' buttons
+(`websocketClient.sendCommand`), the way the forum cards' buttons
 dispatch commands, and the ordinary refusal comes back in-fiction when
 the author isn't standing at a door.
 

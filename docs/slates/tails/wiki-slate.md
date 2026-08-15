@@ -2,7 +2,7 @@
 
 > **⭐ SHIPPED 2026-08-04** → [wiki.md](../../subsystems/wiki.md).
 > Wave 1 landed end to end plus the article dialect, the reader rung,
-> the client pane and the per-surface tag policy. What remains is the
+> the client card and the per-surface tag policy. What remains is the
 > **tail** below: Wave 2 richness (search integration, the level-3
 > source embed, the rest of the transclusion palette), and open
 > questions 5–7. Moved from `builds/` to `tails/` accordingly.
@@ -335,7 +335,7 @@ re-litigated from the slate.
    slice than the wiki.
 3. ~~**Edit-submission transport**~~ — **the command bus**, through the
    shared `compose` prompt. No private payload path; every affordance
-   the pane draws is a command it emits.
+   the card draws is a command it emits.
 4. ~~**Categorization**~~ — **both**: namespaces for access and
    identity, cross-cutting `tags` in frontmatter.
 

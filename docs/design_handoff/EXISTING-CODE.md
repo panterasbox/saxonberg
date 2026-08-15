@@ -19,7 +19,7 @@ and are one-line changes once they land, not redesigns.
 | `styles/faces.ts` — Source Serif / Sans / Code Pro | Faces change to Spectral / Public Sans / Newsreader / Plex Mono. The three-voice model is **kept** and extended to four. |
 | The VS Code dark palette (`#1e1e1e`, `#4ec9b0`, `#007acc`) | Replaced wholesale by the civic tokens. Mechanical, but it touches everything, which is why it is step 1. |
 | `GhostCommandLine.tsx` | The hover preview **moves out of the command bar into a global status bar**, browser-style. The command bar then shows only what you are composing. |
-| `InspectionPane.tsx` — a single focus slot | Becomes a **pane feed**: panes are frames with structured payloads, they accrete, age out, and can be pinned. A single slot could only ever show one thing while the room, the drilled object and an open form all competed for it. |
+| `InspectionCard.tsx` — a single focus slot | Becomes a **card feed**: cards are frames with structured payloads, they accrete, age out, and can be pinned. A single slot could only ever show one thing while the room, the drilled object and an open form all competed for it. |
 
 ## The one architectural change
 
@@ -28,16 +28,16 @@ and are one-line changes once they land, not redesigns.
 hierarchy is:
 
 ```
-one frame  →  modes  →  layouts  →  panes
+one frame  →  modes  →  layouts  →  cards
 ```
 
 - **Modes** are the front doors — Chat, Play, Watch, and the Build / Govern
   ascent. They answer "what am I here to do".
-- **Layouts** demote to *savable pane arrangements inside a mode*.
-- **Panes** are the shared bricks.
+- **Layouts** demote to *savable card arrangements inside a mode*.
+- **Cards** are the shared bricks.
 
 What makes it one client rather than five apps: the persistent shell, and the
-**command bar present in every mode**, since every pane speaks the same bus.
+**command bar present in every mode**, since every card speaks the same bus.
 
 Existing layout components map onto modes rather than being deleted — `WorldLayout`
 becomes Play's default layout, the livestream layouts become Watch's.

@@ -105,7 +105,7 @@ The substrate is in place. Major shipped surfaces:
   (client-driven live-state: subscribe via MQL, server diffs
   deltas), [prompt.md](./subsystems/prompt.md) (`PromptApi`
   Tier-1 surface + cardinality/onExcess disambiguation), and
-  [inspection-pane.md](./subsystems/inspection-pane.md) (the
+  [card-surface.md](./subsystems/card-surface.md) (the
   focus pane — `$focus` subscription, detail-drill, exits/door
   projection, hover/click routing). These graduated from slates
   to subsystems.
@@ -631,7 +631,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   all three graduated to subsystems
   ([message-rendering.md](./subsystems/message-rendering.md),
   [prompt.md](./subsystems/prompt.md),
-  [inspection-pane.md](./subsystems/inspection-pane.md)); see
+  [card-surface.md](./subsystems/card-surface.md)); see
   **Foundation**. Message rendering shipped 2026-06 (nested-aware
   renderer, stylesheet engine + three themes, per-message-type
   templates, Discord-dialect markdown, custom URI schemes, mentions,
@@ -889,7 +889,7 @@ slate flags them as separate projects):
   landed with waves 2.5 + 4: one card per thing you look at, stacking
   and ageing, one strip of named views, the radial and the prompt
   strip, all at both form factors. See
-  [inspection-pane.md](./subsystems/inspection-pane.md) and
+  [card-surface.md](./subsystems/card-surface.md) and
   [client-shell.md](./subsystems/client-shell.md).
 
   ⚠ Two pieces named here were deliberately NOT built, and the reasons

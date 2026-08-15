@@ -189,7 +189,7 @@ subcommand — the `settings set` list-type gap).
 
 `GET /api/cms/diagnostics` (on `CmsRoutes`) binds 1:1 through the
 `CmsSession.runAsSessionPlayer` attribution bridge to `DiagnosticApi.list`
-— **no new authorization surface**. The client `CmsDiagnosticsPane` is a
+— **no new authorization surface**. The client `CmsDiagnosticsPanel` is a
 third tab in `CmsSurface`; since the CMS tab opens no WebSocket it
 **polls** the route on an interval, defaulting to the spoof-safe `mine`
 lens (author resolved server-side) with an "all" toggle. A `cms-delta` WS

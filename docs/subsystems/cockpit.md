@@ -1,6 +1,6 @@
 # The cockpit
 
-The client front-of-house layer: **one verb, two axes, a pane set, and a
+The client front-of-house layer: **one verb, two axes, a card set, and a
 client that is a pure view over all of it.** The governing principle:
 **the client owns zero command semantics.** Every mode switch, every
 arrangement recall and every scope change is a real command on the wire
@@ -21,11 +21,11 @@ noticing it.
 ```
 cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
-cockpit layout <name>         the pane arrangement inside that mode
+cockpit layout <name>         the card arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
 cockpit shelf list|pin|unpin|first  which figures ride the top bar
 cockpit style <sub> …         appearance
-cockpit pane pin|dismiss …    override what holds a pane open
+cockpit card pin|dismiss …    override what holds a card open
 ```
 
 `layout` and `style` are **removed** as standalone verbs, not kept as
@@ -98,7 +98,7 @@ new player's first impression should not be six dead boxes. They are one
 discovers them — which is why `list` prints the whole catalogue rather
 than only what is pinned.
 
-Mirrors `cockpit pane` in every respect — `list` / verb / `<id>`, two
+Mirrors `cockpit card` in every respect — `list` / verb / `<id>`, two
 positional slots (`action`, `row`) dispatched in the controller, and a
 refusal in the machine voice naming the known set. Four artifacts: a
 YAML `subcommands:` block, `CockpitShelfController`, a two-line seed,
@@ -172,7 +172,7 @@ They answer different questions, and conflating them is what the old
 | Axis | Question | Key |
 |---|---|---|
 | **mode** | what am I here to do | `cockpit.mode` |
-| **arrangement** | how do the panes sit inside that | `cockpit.arrangements` |
+| **arrangement** | how do the cards sit inside that | `cockpit.arrangements` |
 
 ### The mode axis — the front doors
 
@@ -193,7 +193,7 @@ mode to enforce it, so "who reads it" is the complete list of places one
 could hide.
 
 A mode owns which arrangements ship, which one you land in, and which
-pane kinds may be summoned. Nothing else.
+card kinds may be summoned. Nothing else.
 
 ⚠ `govern` ships as a peer of `build` rather than a tier inside it. The
 seeding slate writes the pair as "the Build / Govern ascent", which
@@ -205,22 +205,22 @@ rather than silently resolved.
 ### ⚠ What the arrangement axis ships, and what it does not
 
 **Storage and vocabulary — not behaviour.** `cockpit layout save`
-captures the panes that are open, by catalogue name; `recall` sets the
+captures the cards that are open, by catalogue name; `recall` sets the
 active arrangement in `cockpit.arrangements`. **Nothing opens or closes
-a pane in response**, on either side of the wire: no client code reads
+a card in response**, on either side of the wire: no client code reads
 `cockpit.arrangements` today.
 
 That is deliberate scoping rather than a gap to be patched. The consumer
 is the client rebuild, and inventing a restore path before that client
 exists is how the same feature gets built twice. But it is stated here
-because the surface *looks* complete: `save` reports a pane count,
-`list` shows names, `recall` succeeds, and none of it moves a pane.
+because the surface *looks* complete: `save` reports a card count,
+`list` shows names, `recall` succeeds, and none of it moves a card.
 
 ⭐ **The unstated half is who acts on a recall.** The server has no way
 to tell a client to open a subscription — the client always initiates —
 so either that mechanism gets invented, or the client reads the
-arrangement and opens the named panes itself. The second works with what
-exists and keeps the split the pane catalogue already established: the
+arrangement and opens the named cards itself. The second works with what
+exists and keeps the split the card catalogue already established: the
 **client initiates, the server owns the vocabulary**.
 
 ⚠ Saved arrangements are capped per mode
@@ -315,13 +315,13 @@ player-saved arrangement has none by construction. Both fall back to the
 mode's first mapping — the honest answer, since the old client cannot
 render them and renders the nearest thing it has.
 
-## Panes held by a condition
+## Cards held by a condition
 
-See [inspection-pane.md](./inspection-pane.md) for the pane set itself.
-The cockpit's half is the override verb: `cockpit pane pin|dismiss|auto|list`.
+See [card-surface.md](./card-surface.md) for the card set itself.
+The cockpit's half is the override verb: `cockpit card pin|dismiss|auto|list`.
 
 ⚠ **The pin is a command, and its answer is mirrored, never assumed.**
-`cockpit pane pin <id>` can be refused, so the client renders the
+`cockpit card pin <id>` can be refused, so the client renders the
 server's `pinned` value off the subscription result rather than
 toggling locally — a local toggle shows a pin that is not there, and it
 does not survive the tab.
@@ -335,13 +335,13 @@ subcommand.
 ## ⭐⭐ A mode switch opens its arrangement, server-side
 
 `cockpit mode <name>` resolves the saved arrangement **on the server**
-and pushes the pane set. The client sends one command and renders what
+and pushes the card set. The client sends one command and renders what
 arrived.
 
 This is what keeps *the client owns zero command semantics* literally
-true. The alternative — the client replaying `cockpit pane open <name>`
-per pane — puts the meaning of an arrangement, and the pane ORDER, in
-the client, and costs a round trip per pane.
+true. The alternative — the client replaying `cockpit card open <name>`
+per card — puts the meaning of an arrangement, and the card ORDER, in
+the client, and costs a round trip per card.
 
 ⚠ The cost is accepted knowingly: **the server now holds view state per
 player.** It already holds `cockpit.layout`, `cockpit.mode` and
@@ -349,13 +349,13 @@ player.** It already holds `cockpit.layout`, `cockpit.mode` and
 
 The rules `applyArrangement` follows:
 
-- **Subject panes are skipped.** An arrangement is a statement about a
-  workspace; a pane about a particular person is a statement about a
+- **Subject cards are skipped.** An arrangement is a statement about a
+  workspace; a card about a particular person is a statement about a
   moment, and restoring one next week would restore an answer to a
   question nobody is asking.
-- **An already-open pane is left alone**, rather than closed and
+- **An already-open card is left alone**, rather than closed and
   reopened — the reopen would lose its pin and its hold.
-- **A shape-opened pane is never closed.** The player opened it; a mode
+- **A shape-opened card is never closed.** The player opened it; a mode
   switch is not a licence to throw it away.
 
 ### ⚠⚠ The `pushed` flag, not an inference
@@ -363,7 +363,7 @@ The rules `applyArrangement` follows:
 A result the server pushed carries `pushed: true`, and the client adopts
 a card only for a handle it does not know **and** that flag. "A handle I
 do not know" was tried and is wrong twice over: the chrome's own named
-panes echo `pane` too, and a result arriving after the client's own
+cards echo `card` too, and a result arriving after the client's own
 unsubscribe — which React's double-mount produces on every dev page
 load — looks unknown as well. Both showed up live as spurious cards, and
 no unit test could see either, because the adoption path only fires for
@@ -409,14 +409,14 @@ are **deleted** — all view-switching lives in the one server axis.
 
 | Layout | Shape (canonical split) | Notes |
 |---|---|---|
-| `world` | terminal + a right rail with an **Inspect \| Who's Online** pane switch (Single + rail) | the classic cockpit; the rail pane is chosen by the `rightPane` store slice (inspection detail vs the social-inspection roster) |
+| `world` | terminal + a right rail with an **Inspect \| Who's Online** card switch (Single + rail) | the classic cockpit; the rail card is chosen by the `rightCard` store slice (inspection detail vs the social-inspection roster) |
 | `forum` | board view + chat sidecar | the old `mainView === 'forum'`; live-scene peek keeps it never-blind |
 | `livestream-viewer` | video embed (focal) + game terminal + chat rail | see below |
 | `streamer` | a **control deck** (focal) + game terminal + a widened chat rail | `StreamerDeck`; see below |
 | `builder` | CMS editor (dominant) + glance terminal rail (Monitor) | the CMS re-homed in-session |
 
-`LivestreamViewerLayout` and `StreamerLayout` share `LivestreamPanes`
-(the game terminal + chat rail + bar); only the focal pane differs (the
+`LivestreamViewerLayout` and `StreamerLayout` share `LivestreamPanels`
+(the game terminal + chat rail + bar); only the focal card differs (the
 viewer's video embed vs the streamer's control deck), and the streamer
 passes `railWide` so its chat — the broadcaster's lifeline — gets more
 room. The shared side rail is the tokenized `SideColumn` primitive
@@ -553,23 +553,23 @@ discredits the axiom rather than merely looking wrong. There is now
 exactly ONE preview surface, guarded by a source scan. See
 [client-shell.md § The status bar](./client-shell.md).
 
-## The summoned-pane tier
+## The summoned-panel tier
 
 The no-modal rule (composition law 6) routes would-be modals into two
 tiers that both keep a terminal on screen: the **layout tier** (above)
-and the **summoned-pane tier** — transient panes that dock *beside* the
-current layout's terminal (the inspection pane is the existing proof).
-This build establishes the summoned-pane tier as a first-class mechanism:
-a `summonedPane` store slice (`open`/`closePane`) and an `App`-level
-`ContentRow` that docks the pane beside the active layout.
+and the **summoned-panel tier** — transient panels that dock *beside* the
+current layout's terminal (the inspection card is the existing proof).
+This build establishes the summoned-panel tier as a first-class mechanism:
+a `summonedPanel` store slice (`openPanel`/`closePanel`) and an
+`App`-level `ContentRow` that docks the panel beside the active layout.
 
-**Settings** is the first consumer (`components/settings/SettingsPane.tsx`):
+**Settings** is the first consumer (`components/settings/SettingsPanel.tsx`):
 a non-modal side panel whose controls each **send the real command**
 (`settings set …` / `var set …`, un-moded) per command-bus primacy — no
 client-only settings state. Its notification section consumes the
 (separately-built) notification-settings backend when present and
 **degrades to a "coming soon" placeholder** when absent (the case on this
-branch). Opening the pane is client UI state (like the inspection pane),
+branch). Opening the card is client UI state (like the inspection card),
 not a `layout` switch — it coexists with the current layout.
 
 ## The client frame renders from both axes (Wave 6)
@@ -625,7 +625,7 @@ the shortest path back.
 ## History
 
 Built in five phases (`84f79f63`→`7ca1573f`): layout axis → livestream-
-viewer + embed → streamer/builder → per-bar input mode → summoned-pane
+viewer + embed → streamer/builder → per-bar input mode → summoned-panel
 tier. A visual-review pass (`0146b7b2`) then evolved the chrome and a few
 layouts past the original spec, and two follow-ons refined the input-mode
 model — so the doc above describes the *shipped* shape, which diverges
@@ -643,8 +643,8 @@ from the retired requirements/plan in four deliberate ways:
   affordance can scope a named bar.
 
 The `world` layout's right rail gained the **Inspect | Who's Online**
-pane switch when the social-inspection feature merged from master — the
-roster pane is that subsystem's; the cockpit just hosts it in the rail.
+card switch when the social-inspection feature merged from master — the
+roster card is that subsystem's; the cockpit just hosts it in the rail.
 
 ## Crossing into a sandbox circle
 

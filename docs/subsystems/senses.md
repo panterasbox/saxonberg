@@ -118,7 +118,7 @@ host.setDetail(['bookcase'], { vision: "...", touch: "..." });           // new
 Per-field invariants on the slot-map shape: at least one slot must
 be populated; every populated slot must be a string. The wire
 projection (`getDetailEntries` / `getDetailEntry` consumed by the
-inspection-pane subscription substrate) projects the `vision` slot
+inspection-card subscription substrate) projects the `vision` slot
 into the existing `description` field — non-vision slots are
 server-side state only; the v1 wire stays single-channel for back-compat.
 Persistence migration is implicit — pre-existing documents with
@@ -194,7 +194,7 @@ location.getMarkupLong(viewer, { filter: PerceptionApi.sensorium(viewer) }); // 
 location.getMarkupLong(viewer);                                     // subscription — gestalt default
 ```
 
-The inspection-pane subscription's `read = (stuff, viewer) =>
+The inspection-card subscription's `read = (stuff, viewer) =>
 stuff.getMarkupLong(viewer)` passes no opts and naturally gets the
 viewer's full sensorium — the right "what does this viewer perceive
 right now?" projection for the cockpit.
@@ -684,7 +684,7 @@ seeds/lib/perception/modalities/   Seven seed YAMLs
   `hearingProfile` / `tactileProfile` / `gustatoryProfile` yet.
 - **Vitals organ-condition modulation.** Slate Wave 2.
 - **Per-channel instruments tie.** No instruments-emit-as-sense yet.
-- **Inspection-pane wiring changes.** Pane consumes
+- **Inspection-card wiring changes.** Card consumes
   `getMarkupLong(viewer)` today; that path still works because the
   augmenter walk is per-viewer (default-absent opts → full sensorium).
 - **Active-sense / emit-and-perceive-the-return pattern.** Slate Wave 3.

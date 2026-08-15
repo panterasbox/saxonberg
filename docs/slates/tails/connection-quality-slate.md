@@ -143,7 +143,7 @@ developer-gated. **Country-not-IP is band-not-milliseconds.** Follow it.
 1. ⭐ **How many bands, and where are the cuts?** *Leans three* —
    *fine / laggy / unstable* — because the actionable distinction is only
    ever *"can this person keep up."* ⚠ More bands re-create the number.
-2. **Is it a status like `AFK`, or a party-pane readout?** *Leans status* —
+2. **Is it a status like `AFK`, or a party-card readout?** *Leans status* —
    it composes with everything that already renders presence, and it is
    self-asserted rather than measured-about-you.
 3. ⚠ **Self-asserted or system-derived?** A player claiming *"unstable"*

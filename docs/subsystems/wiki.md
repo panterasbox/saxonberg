@@ -43,7 +43,7 @@ time and cannot go stale.
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
 | Verb | `cmd/system/wiki.yaml` + `obj/command/system/WikiController.ts` |
 | Starter articles | `config/wiki-pages.yaml` + `backend/WikiSeeder.ts` |
-| Client pane | `client/components/WikiPane.tsx`, fed by `publication.wiki` |
+| Client card | `client/components/WikiCard.tsx`, fed by `publication.wiki` |
 
 **No `*Api` was added**, by constraint. `obj/<Name>Registry.ts` is the
 shipped shape for a gated, state-owning singleton with no Api face
@@ -586,7 +586,7 @@ Two properties worth keeping:
   Refusing somebody who has just written an article is technically
   identical and humanly very different.
 
-`mayEdit` rides the `publication.wiki` frame, so the pane simply does
+`mayEdit` rides the `publication.wiki` frame, so the card simply does
 not draw an Edit button for a guest.
 
 **A review queue is deliberately absent.** Open editing plus fast
@@ -726,33 +726,33 @@ or a `# comment` in a shell sample acquires an anchor.
 
 ---
 
-## The client — one pane, everything a command
+## The client — one card, everything a command
 
 `wiki <page>` sends the article's prose to the scroll on
 `shell.result.wiki` **and** a structured twin on `publication.wiki`.
-`WikiPane` reads the twin: title, handle/rev/author, the outline, the
+`WikiCard` reads the twin: title, handle/rev/author, the outline, the
 body, the subject binding, tags and see-alsos.
 
 > ⭐ **The frame carries the body that was already RENDERED.** That is
-> the security argument for having a pane at all: the payload inherits
+> the security argument for having a card at all: the payload inherits
 > the pipeline's gate instead of re-deriving it, so there is no second
-> path to the reader. A pane fed from the source would be exactly that
+> path to the reader. A card fed from the source would be exactly that
 > path — and the leak would be invisible from the scroll, which would
-> still look correct. The pane holds no article source and cannot
+> still look correct. The card holds no article source and cannot
 > render one.
 
-Every affordance is a **command the pane composes and emits** — `wiki
+Every affordance is a **command the card composes and emits** — `wiki
 edit`, `wiki history`, `wiki links`, and per-section `wiki edit …
 --section <anchor>` — on the shared bus, previewing on hover like every
 other clickable. Bus-primacy: there is no private wiki channel from the
-client, so anything the pane can do can also be typed.
+client, so anything the card can do can also be typed.
 
 An outline row opens **that section for editing** rather than scrolling
 to it: section editing is the wiki's real concurrency control, and a
 reader who only wants to look has the whole body directly below. For a
 reader who may not edit, the same row re-reads the page.
 
-`mayEdit` rides the frame so the pane does not draw an affordance that
+`mayEdit` rides the frame so the card does not draw an affordance that
 is certain to be refused. It is a display hint — **the verb re-checks
 on arrival**, which is where the decision lives.
 
@@ -830,9 +830,9 @@ history records as having happened.
 
 ### The Wave 6 pass — what was hatched, and what was cut
 
-The pane's guarantees are unchanged: the body still arrives **already
+The card's guarantees are unchanged: the body still arrives **already
 rendered and already gated**, and every affordance is still a command the
-pane composes. Wave 6 touched only what the design handoff added.
+card composes. Wave 6 touched only what the design handoff added.
 
 **Search is hatched.** Track C records the wiki search port as *not
 wired*, and the convention's first preference is *ship the surface, hatch

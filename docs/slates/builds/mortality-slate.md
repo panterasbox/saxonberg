@@ -277,7 +277,7 @@ corpse + shade + the two ledger writes.
 - **The shade** as above: the Participant intact, embodiment gone. Platform
   acts (chat, forums, vote, watch) ride the Participant and are **never**
   severed — mortal-vessel § Thesis 2 is a hard floor, and the client already
-  models it (world pane dark, platform frame lit).
+  models it (world card dark, platform frame lit).
 - **Perceptibility is network presence, not spirit-fabric.** A shade is
   perceptible because *being dead doesn't log you off* — the Participant
   never left the network. **The aether is the internet and nothing more**;

@@ -51,7 +51,7 @@ Against Csikszentmihalyi's four conditions:
 - **Direct, immediate feedback.** The response-envelope + failsafe-string
   substrate (see [Feedback](./feedback.md)) answers every action at
   once.
-- **No distractions.** The cockpit's focus and the inspection pane keep
+- **No distractions.** The cockpit's focus and the inspection card keep
   the relevant thing present (see [Transparency](./transparency.md)).
 - **Challenge matched to skill.** Char-gen is closed-choice and
   forgiving — low initial challenge, no early anxiety — and "depth is

@@ -1283,10 +1283,10 @@ to find a second house.
 
 - **The gauge is a live MQL subscription.** The subscription layer
   already registers per-`Interactive`, indexes deps, batches
-  re-resolve, and diffs — so a live tally in the inspection pane is
+  re-resolve, and diffs — so a live tally in the inspection card is
   nearly free, with no polling invented.
 - **The ticker is the on-ramp.** A bill nearing its crossing is
-  *news* — the bulletin/`NewsTickerPane` seam already exists — and
+  *news* — the bulletin/`NewsTickerCard` seam already exists — and
   the stance must be takeable **from the ticker item itself**. Ticker
   → countdown → check-in → stance is the honest funnel.
 

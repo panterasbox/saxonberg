@@ -15,7 +15,7 @@ Four things look adjacent and none of them is this:
 | | why not |
 |---|---|
 | `NotifyPolicy` / the `notify` verb | attention rules keyed on a **group ref** — a *who* axis. This is a *what* axis. |
-| MQL subscriptions | live reactive panes, per-`Interactive`, torn down on disconnect |
+| MQL subscriptions | live reactive cards, per-`Interactive`, torn down on disconnect |
 | forum subscriptions | same shape, same teardown |
 | `Bulletin` | staff→everyone broadcast; not per-user, not subject-keyed |
 | the `*_events` ledgers | durable **records**, with no delivery |
@@ -43,7 +43,7 @@ would otherwise invent its own.
 4. **Derive on read.** No fan-out writes. The house pattern (renown,
    participation, competence).
 5. **Client-agnostic.** A major client rewrite is expected; the substrate
-   must not assume a pane, a ticker, or a widget. It answers queries.
+   must not assume a card, a ticker, or a widget. It answers queries.
 
 ---
 

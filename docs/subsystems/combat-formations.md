@@ -201,8 +201,8 @@ script) — zero new NPC content.
   covers v1; a clean later addition to the same read.
 - **Shift costs** (poise/tempo on a mid-fight adopt) — wait for evidence
   of shift-spam.
-- **The client `CombatPane` formation selector** — verb surface only
-  until the pane lands.
+- **The client `CombatCard` formation selector** — verb surface only
+  until the card lands.
 - **Bang!-style composed rosters** (role decks scaled to party size) —
   a different feature; no preset wants it yet.
 

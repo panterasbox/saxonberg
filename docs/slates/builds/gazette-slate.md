@@ -34,7 +34,7 @@ Four independent gates, all verified against the source:
 | the live fan | `BulletinLogic.fanFeedImpl` → `PlayerApi.getAllAvatars()` — **requires an Avatar** |
 | the initial window | rides `ConnectionEstablishedPayload.bulletinWindow` — **post-auth** |
 | the archive | `GET /api/bulletins/archive` is **`requireAuth`** |
-| the pane | `NewsTickerPane`, a right-column tab in `WorldLayout` — **the post-login cockpit** |
+| the card | `NewsTickerCard`, a right-column tab in `WorldLayout` — **the post-login cockpit** |
 
 **You cannot see the news without logging in.** That is the whole of the
 launch gap, and it is small.

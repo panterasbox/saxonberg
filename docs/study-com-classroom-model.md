@@ -133,7 +133,7 @@ stale; one that *cites* the feed stays current for free. Decomposed:
   Discipline catalogue, the generator **spec** + misconception bank.
 - **Generated (never authored):** exam items as `(spec, seed)` with a
   **computed** key from the running simulation (college-slate.md:158-239).
-- **Fed live from Study.com:** lesson content (the watch-embed pane plays
+- **Fed live from Study.com:** lesson content (the watch-embed card plays
   a Study video in-room, no new client work, college-slate.md:335,345-347)
   — that is *content delivery*; the live **lecture** is a separate mode
   (§6), not a video;
@@ -319,10 +319,10 @@ lab raw material** — the video is demoted to a prop.
 ### 7.2 Why the interface is "built for LLMs"
 
 Saxonberg exposes the world as **structured, queryable state** (MQL, the
-viewer-aware perception face, the inspection pane —
+viewer-aware perception face, the inspection card —
 [mql.md](./subsystems/mql.md),
 [perception.md](./subsystems/perception.md),
-[inspection-pane.md](./subsystems/inspection-pane.md)) and a **command
+[card-surface.md](./subsystems/card-surface.md)) and a **command
 grammar with structured response envelopes**
 ([command-routing.md](./subsystems/command-routing.md),
 [response-envelope.md](./subsystems/response-envelope.md)). That is exactly

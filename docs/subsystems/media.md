@@ -47,7 +47,7 @@ carries the **key**, same as it carries `longDescription` prose.
 bucket) and `mediaUrl(key)`. **Server emits keys; the client prepends the
 base** — one contract for every surface:
 
-- `InspectionPane.tsx` `renderSingle` — `<img src={mediaUrl(detail.illustration)}>`
+- `InspectionCard.tsx` `renderSingle` — `<img src={mediaUrl(detail.illustration)}>`
   at the top of the body, `onError` hide, `alt` from `shortDescription`.
 - `CharGenStage.tsx` — the race picker's 3:4 portrait slot renders
   `mediaUrl(option.image)`.
