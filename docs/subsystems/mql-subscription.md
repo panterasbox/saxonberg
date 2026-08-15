@@ -821,6 +821,16 @@ it need a **field** no `subscribableFields` declares?
 | **PLACE** — ways out and what is here | Explore | ✅ `here` | `here` ✅ | per-row readings on `contents` |
 | **MANIFEST** — your pack | Explore, Mobile | ✅ `me` / `inventory` | `carried` ✅ | bulk used/capacity, nested-vessel count |
 
+> ⚠⚠ **This table is the SURVEY, and the shipped surface collapsed it.**
+> The five kinds became one card whose body renders the sections its
+> subject has — a room has exits, a lamp does not — because four
+> hand-written bodies made a room and a lamp two components with two
+> sets of controls for a difference nobody could name. The table below
+> stays because its *findings* are still live (what MQL can answer,
+> which hold each needs, which field is missing); read it as the
+> analysis it was, not as a description of the cards.
+> See [inspection-pane.md](./inspection-pane.md).
+
 ⚠ **The art has FIVE pane kinds, not four.** `Manifest` (*your pack* —
 carried mass, bulk, nested vessels, hold `carried`) is a full pane in
 `Explore - Two Feeds` and a pinned chip in `Mobile - Live Client`; the

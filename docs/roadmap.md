@@ -884,13 +884,21 @@ slate flags them as separate projects):
   per-type / bespoke content editors + the zone/map canvas, the
   external-editor/LSP / engine-typed IntelliSense path, drafts/publish + the
   law==code forums-review gate, and versioning.
-- **Mobile cockpit** — the **chrome half shipped** 2026-08-12 (Build C,
-  client-rebuild Wave 1): the two-row bar, the shelf as a pull-down +
-  chooser, the command sheet, and the dropped-link row. See
-  [client-shell.md](./subsystems/client-shell.md). What remains is the
-  **play surface** — the two feeds, the pane feed, focus chain, filters
-  and routing on a phone — which is Wave 4's, and until then the
-  desktop layout's fixed rail simply scrolls inside the content row.
+- ~~**Mobile cockpit**~~ — **shipped**. The chrome half landed
+  2026-08-12 (Build C, client-rebuild Wave 1); the **play surface**
+  landed with waves 2.5 + 4: one card per thing you look at, stacking
+  and ageing, one strip of named views, the radial and the prompt
+  strip, all at both form factors. See
+  [inspection-pane.md](./subsystems/inspection-pane.md) and
+  [client-shell.md](./subsystems/client-shell.md).
+
+  ⚠ Two pieces named here were deliberately NOT built, and the reasons
+  are recorded rather than deferred by omission: **routed feeds** were
+  retired (a routing stamp applied at delivery cannot re-sort history,
+  and the frame store does not persist it — so every backfilled frame
+  fell to `world`), and the **focus chain** became a detail trail
+  scoped to one card, because the card stack is the history a
+  breadcrumb used to stand in for.
 
 ---
 

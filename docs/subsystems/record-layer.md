@@ -76,6 +76,12 @@ volume does not. Giving frames the mailbox model would grow without
 bound for every player forever, to serve a case attestation covers
 better.
 
+⚠⚠ **The frame store is not a back door to clips or attestation**, and
+must not become one. Those stay deferred: a clip is evidence in a
+dispute, with a retention model, a chain of custody and a deletion
+story this collection deliberately does not have. Anything that needs
+those wants the attestation substrate, not a longer window here.
+
 ⭐ Eviction is **lazy** and reads its cut point from the store. Trimming
 on every flush would cost two indexed operations per active player per
 second to delete, on average, one row; letting the store run to

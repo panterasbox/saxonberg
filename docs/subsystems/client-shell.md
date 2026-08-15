@@ -549,21 +549,29 @@ independent**:
 - **Panes render inline in the feed**, in causal position. You analysed
   the forge; the forge's card belongs where that happened — not in a
   second column, and not in a drawer you forget exists.
-- **Routed feeds get the switcher**, because there is no causal reason
-  a channel message should sit between two room descriptions.
+- **Named views get the strip**, because there is no causal reason a
+  channel message should sit between two room descriptions — but which
+  messages you are reading is a predicate you choose, not a place a
+  rule sent something.
 
 Getting this backwards produces the two familiar mobile failures: a
 drawer you forget exists, and a single stream where unrelated things
 fight for the same position.
 
-- **A pinned chip row** sits above the command bar — pinned panes are
+- **A pinned chip row** sits above the command bar — pinned cards are
   the ones you told the world to keep, so on a phone they keep a
   permanent handle instead of scrolling away.
-- **The left-behind card**: a frame routed to a feed you are not
-  watching leaves a bordered stub in the one you are, naming the
-  destination and offering `open <feed>` / `reply here`. ⚠ **Except
-  diagnostics** — a stub per log line would recreate exactly the noise
-  the routing rule was written to remove.
+
+⚠ **The left-behind card is gone**, with the routed feeds it belonged
+to. A stub reading *"one `speech.channel` went to Channels — open
+Channels"* only means something when feeds are exclusive destinations. A
+frame is now in every view whose predicate it satisfies, so nothing is
+ever routed out of view and there is nothing to leave behind.
+
+⚠ **Copy-to-Attention is gone for the same reason.** It shipped on by
+default on a phone as the safety net for "World may not be the feed you
+are looking at" — a problem that only exists when a MOVE can take a
+frame somewhere you are not.
 
 ### ⚠ Screen budget is a design constraint, not a detail
 

@@ -80,6 +80,7 @@ behavior. Read the relevant doc before editing in its area.
   of truth for its area — read it before editing. Map entries are ONE-LINE pointers by design — a build that grows a subsystem expands the DOC, never this blurb.
   - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant
   - [persistence.md](./docs/subsystems/persistence.md) — Document vs Templates→Stuff, PersistenceManager, hooks; the self-persistence spine (PersistableMixin → `holder_snapshots`)
+  - [record-layer.md](./docs/subsystems/record-layer.md) — what the server remembers for you: the per-player frame store, `recall` over three corpora, the nightly reset policy
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
@@ -975,6 +976,7 @@ side — `backend/PersistenceManager` re-exports it).
 - `chattel` / `chattel_events` — per-instance ownership row + chain-of-title (chattel.md)
 - `diagnostics` — the author-diagnostics store, TTL-rotated (diagnostics.md)
 - `holder_snapshots` — the self-persistence spine's records; written only by the gated PersistableLogic (persistence.md)
+- `player_frames` — the per-player rolling window of delivered frames; owner-only reads, lazy oldest-first eviction (record-layer.md)
 - `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
 - `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
 - `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)

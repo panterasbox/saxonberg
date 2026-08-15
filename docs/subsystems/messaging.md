@@ -855,6 +855,14 @@ ping you* is a real question that wants exactly this shape, and it is
 the next thing this substrate should drive. Recorded here so the stamp
 is a deliberate holding pattern rather than a mystery.
 
+⚠ **Read `NotifyPolicy` / `NotifyRule` before designing anything on top
+of it.** A notification model already exists in the social graph
+([social-graph.md](./social-graph.md)); a second one grown out of these
+rules would be two answers to *what should reach me*, with the weaker
+one in the way. The bell has been cut twice for that reason. Whichever
+survives, this predicate vocabulary is the shape the rules want — not a
+new one.
+
 ⚠ The catch-all rule remains undeletable in the model. Every frame must
 land somewhere, and in a world where a frame can be *you are on fire*, a
 lost message is not a cosmetic bug — that invariant should survive
