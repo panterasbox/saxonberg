@@ -35,10 +35,16 @@ import { TemplatePaths } from '../lib/paths';
 
 /* ─────────────────────────── public surface ─────────────────────── */
 
-/** The closed v1 set of topics whose frames denote a reactable act. */
+/**
+ * The closed v1 set of topics whose frames denote a reactable act.
+ *
+ * ⚠ This list once held `'speech.vocal'` three times — say, shout and
+ * whisper were distinct topics before the S2 collapse folded them onto
+ * one name, and the duplicates survived the rename. A `Set` deduped
+ * them, so nothing failed and the literal quietly claimed a size it did
+ * not have. `reaction.test.ts` now asserts the count.
+ */
 const REACTABLE_TOPICS: ReadonlySet<string> = new Set([
-  'speech.vocal',
-  'speech.vocal',
   'speech.vocal',
   'act.emote',
   'speech.channel',

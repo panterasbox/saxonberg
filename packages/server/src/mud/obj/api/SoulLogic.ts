@@ -7,6 +7,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePaths } from '../../lib/paths';
 import type { Emote } from '../../lib/social/Emote';
+import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type SoulCatalogue from '../SoulCatalogue';
 import type { EmoteSpec } from '../SoulCatalogue';
 
@@ -76,6 +77,12 @@ export class SoulLogic extends ApiLogic {
   @CallSecurity(SoulApiCallers)
   public async all(): Promise<Emote[]> {
     return (await requireCatalogue()).all();
+  }
+
+  /** See {@link SoulApi.snapshot}. */
+  @CallSecurity(SoulApiCallers)
+  public async snapshot(): Promise<EmoteCatalogueEntry[]> {
+    return (await requireCatalogue()).snapshot();
   }
 
   /** See {@link SoulApi.invalidateCache}. */

@@ -17,7 +17,7 @@
  * (hover tooltip + click-action popover).
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { GutterStripe } from './GutterStripe';
 import { ReactionBar, REVEAL_REACTION_ADD } from './ReactionBar';
@@ -27,6 +27,8 @@ import { parseMml } from '../lib/mml/parseMml';
 import { pickTemplate } from '../lib/templates/TemplateRegistry';
 import { useStylesheet } from '../lib/style/useStylesheet';
 import { tokens } from './ui';
+import { EmoteSheet } from './social/EmoteSheet';
+import { useLongPress } from './social/useLongPress';
 
 const TerminalContainer = styled.div`
   flex: 1;
@@ -93,6 +95,7 @@ export function Terminal({
   const selfAvatarId = useStore((s) => s.selfAvatarId);
   const effectiveViewerId = viewerStuffId ?? selfAvatarId ?? undefined;
   const stylesheet = useStylesheet(effectiveViewerId ?? null);
+  const [sheetFor, setSheetFor] = useState<SheetTarget | null>(null);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -107,26 +110,98 @@ export function Terminal({
   return (
     <TerminalContainer ref={containerRef} data-testid="terminal">
       {frames.map((frame) => (
-        <FrameRow key={frame.id}>
-          <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
-          <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
-            {frame.sigil ? `${frame.sigil} ` : ''}
-            <FrameBody
-              frame={frame}
-              onCommandClick={onCommandClick}
-              onCommandPreview={onCommandPreview}
-              viewerStuffId={effectiveViewerId}
-              stylesheet={stylesheet}
-            />
-            <ReactionBar
-              frame={frame}
-              onCommandClick={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          </Body>
-        </FrameRow>
+        <TranscriptRow
+          key={frame.id}
+          frame={frame}
+          stylesheet={stylesheet}
+          effectiveViewerId={effectiveViewerId}
+          onCommandClick={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          onLongPress={setSheetFor}
+        />
       ))}
+      {/*
+        ⭐ ONE sheet for the whole transcript, mounted here rather than
+        per row — a sheet per frame would be N scrims stacked on one
+        another, and only the last one would ever be reachable.
+      */}
+      {sheetFor !== null && (
+        <EmoteSheet
+          frameId={sheetFor.frameId}
+          mine={sheetFor.mine}
+          onSend={onCommandClick}
+          onClose={() => setSheetFor(null)}
+        />
+      )}
     </TerminalContainer>
+  );
+}
+
+/** What the long-press opened the sheet for. */
+interface SheetTarget {
+  frameId: number;
+  mine: readonly string[];
+}
+
+interface TranscriptRowProps {
+  frame: Frame;
+  stylesheet: ReturnType<typeof useStylesheet>;
+  effectiveViewerId?: string;
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
+  onLongPress: (target: SheetTarget) => void;
+}
+
+/**
+ * One transcript row.
+ *
+ * Split out of the map so the long-press hook can live at the row — a
+ * hook cannot be called inside a `.map` callback, and the gesture has to
+ * know which frame it is on.
+ */
+function TranscriptRow({
+  frame,
+  stylesheet,
+  effectiveViewerId,
+  onCommandClick,
+  onCommandPreview,
+  onLongPress,
+}: TranscriptRowProps) {
+  const reactable = useStore((s) => s.reactableTopics);
+  const mine = useStore((s) =>
+    frame.commandId ? (s.reactions[frame.commandId]?.mine ?? []) : [],
+  );
+  // The gesture exists only where the affordance does: a reactable act
+  // with a gutter number to target, and never a reaction's own line.
+  const canReact =
+    frame.frameId !== undefined &&
+    frame.inReactionTo === undefined &&
+    reactable.has(frame.topic);
+
+  const press = useLongPress(
+    () => onLongPress({ frameId: frame.frameId!, mine }),
+    canReact,
+  );
+
+  return (
+    <FrameRow {...press}>
+      <GutterStripe topic={frame.topic} timestamp={frame.timestamp} />
+      <Body $fontFamily={stylesheet.fontFamilyForTopic(frame.topic)}>
+        {frame.sigil ? `${frame.sigil} ` : ''}
+        <FrameBody
+          frame={frame}
+          onCommandClick={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          viewerStuffId={effectiveViewerId}
+          stylesheet={stylesheet}
+        />
+        <ReactionBar
+          frame={frame}
+          onCommandClick={onCommandClick}
+          onCommandPreview={onCommandPreview}
+        />
+      </Body>
+    </FrameRow>
   );
 }
 

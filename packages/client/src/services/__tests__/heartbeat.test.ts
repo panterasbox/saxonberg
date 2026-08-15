@@ -366,6 +366,8 @@ describe("the retry countdown", () => {
         portraitUrl: "",
       },
       topicCatalogue: [],
+      emoteCatalogue: [],
+      reactableTopics: [],
       releaseWindow: [],
       clientState: {},
     });

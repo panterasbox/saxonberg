@@ -38,6 +38,8 @@ import {
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
 import { PressApi } from "../api/press";
+import { SoulApi } from "../api/soul";
+import { ReactionApi } from "../api/reaction";
 import { RecordApi } from "../api/record";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
@@ -871,6 +873,15 @@ export default class Avatar extends AvatarBase {
         isGuest: this.getIsGuest(),
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
+      // The emote picker's palette, cached for the session on exactly
+      // the terms `topicCatalogue` is: authored, global, and edits land
+      // at next login. The client had been holding a hardcoded six-emoji
+      // array in its place.
+      emoteCatalogue: await SoulApi.snapshot(),
+      // Which topics are reactable, so the client stops keeping its own
+      // copy of the answer. Its copy had already drifted — `act.combat`
+      // is reactable and was never offered.
+      reactableTopics: [...ReactionApi.REACTABLE_TOPICS],
       // The live news-ticker window (pins-first, recency-ordered, already
       // retract/expiry-filtered + length-capped by the PressBoard). The
       // client seeds its feed pane from this as a `snapshot`, exactly as it

@@ -23,6 +23,7 @@ import { SecurityApi } from '../api/security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Emote } from '../lib/social/Emote';
+import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
@@ -117,6 +118,40 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const seen = new Set<Emote>();
     for (const e of map.values()) seen.add(e);
     return [...seen];
+  }
+
+  /**
+   * The catalogue projected for the client's emote picker.
+   *
+   * Canonical verbs only — the cache indexes each alias to the same
+   * `Emote`, so iterating it directly would emit one grid cell per
+   * alias. Aliases ride their canonical entry instead.
+   *
+   * Slot order is `Object.entries` order over `grammar.slots`, which is
+   * the order the author declared them in and the order
+   * `EmoteGrammarRunner.bind` consumes tokens in. The picker offers its
+   * controls in that same order, so what the player fills in binds the
+   * way they expect.
+   *
+   * Player-readable by design: this is the READ face of the catalogue.
+   * `soul list` remains the author face and keeps its `requiresCoreAccess`
+   * gate — a player seeing the palette is not a player authoring it.
+   */
+  @CallSecurity(SoulApiCallers)
+  public async snapshot(): Promise<EmoteCatalogueEntry[]> {
+    const emotes = await this.all();
+    return emotes.map((e) => ({
+      verb: e.verb,
+      ...(e.emoji !== undefined ? { emoji: e.emoji } : {}),
+      aliases: [...e.aliases],
+      tags: [...e.tags],
+      slots: Object.entries(e.grammar.slots).map(([name, spec]) => ({
+        name,
+        kind: spec.kind,
+        required: spec.optional !== true,
+        ...(spec.scope !== undefined ? { scope: spec.scope } : {}),
+      })),
+    }));
   }
 
   /**

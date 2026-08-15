@@ -38,6 +38,7 @@ import type {
   StuffRefRecord,
   TopicDescriptor,
   WikiPageFrame,
+  EmoteCatalogueEntry,
 } from "@saxonberg/types";
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
@@ -687,6 +688,25 @@ interface StoreState
   setTopicCatalogue: (records: TopicDescriptor[]) => void;
   /** Resolve a topic via the three-tier chain. Always returns a value. */
   getTopicDescriptor: (topic: string) => TopicDescriptor;
+
+  // Emote catalogue — session-wide cache of the authored palette.
+  /**
+   * `Map<verb, EmoteCatalogueEntry>`, canonical verbs only. Replaced
+   * wholesale on session-establish from `payload.emoteCatalogue`.
+   *
+   * ⚠ **This is the only source the picker may draw from.** It replaced
+   * a hardcoded six-entry array whose emoji were typed out beside the
+   * verbs they were meant to match — a pairing that drifts from the
+   * server's catalogue with nothing failing when it does.
+   */
+  emoteCatalogue: Map<string, EmoteCatalogueEntry>;
+  /**
+   * The topics whose frames are reactable acts, as the SERVER defines
+   * them. Empty until session-establish, which is the honest state: with
+   * no answer from the server the client offers no reaction affordance
+   * rather than guessing at one.
+   */
+  reactableTopics: Set<string>;
 
   // Stuff registry — session-wide metadata cache (no eviction in v1).
   /**
@@ -1435,6 +1455,14 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const d of payload.topicCatalogue ?? []) {
       topicMap.set(d.topic, d);
     }
+    // The emote palette + the reactable-topic set, on the same terms as
+    // the topic catalogue: authored server-side, cached for the session,
+    // never synthesized here.
+    const emoteMap = new Map<string, EmoteCatalogueEntry>();
+    for (const e of payload.emoteCatalogue ?? []) {
+      emoteMap.set(e.verb, e);
+    }
+    const reactable = new Set<string>(payload.reactableTopics ?? []);
     // Seed the news-ticker feed from the welcome snapshot, exactly as the
     // topic catalogue is consumed — releases have no presence event to
     // hang a snapshot on, so the welcome window is the initial `snapshot`.
@@ -1508,6 +1536,8 @@ export const useStore = create<StoreState>((set, get) => ({
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
+      emoteCatalogue: emoteMap,
+      reactableTopics: reactable,
       feed,
       feedOrder: orderFeed(feed),
       clientState: { ...(payload.clientState ?? {}) },
@@ -1930,6 +1960,12 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Topic catalogue slice
   topicCatalogue: new Map<string, TopicDescriptor>(),
+
+  // Emote catalogue slice. Both start empty and stay empty until the
+  // server answers — an empty palette shows no picker, which is the
+  // honest state for "we have not been told yet".
+  emoteCatalogue: new Map<string, EmoteCatalogueEntry>(),
+  reactableTopics: new Set<string>(),
 
   setTopicCatalogue: (records) =>
     set(() => {

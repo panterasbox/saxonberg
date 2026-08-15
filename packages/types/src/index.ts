@@ -1632,6 +1632,45 @@ export interface ForumSubscriptionErrorEnvelope {
 }
 
 // ============================================================================
+// The emote catalogue (what the picker draws)
+// ============================================================================
+
+/**
+ * One declared slot of an emote's grammar, projected for the picker.
+ *
+ * The picker offers one control per slot, in declaration order, because
+ * an emote with grammar (`;wave <at> <manner>`) cannot be reached from a
+ * flat grid otherwise. `stuff` slots resolve by MQL; `free` slots take
+ * arbitrary text and render in the free treatment.
+ */
+export interface EmoteSlotSpec {
+  name: string;
+  kind: 'stuff' | 'free';
+  required: boolean;
+  /** MQL resolution scope for a `stuff` slot; absent for `free`. */
+  scope?: string;
+}
+
+/**
+ * One canonical emote, projected for the client's picker.
+ *
+ * Rides {@link ConnectionEstablishedPayload.emoteCatalogue}. Aliases are
+ * carried on their canonical entry rather than appearing as entries of
+ * their own — the grid shows verbs you can send, and an alias is the
+ * same verb by another name.
+ */
+export interface EmoteCatalogueEntry {
+  verb: string;
+  /** Present only for emoji-bearing emotes; glyph-less emotes render as
+   *  prose and never as a chip, so the grid skips them. */
+  emoji?: string;
+  aliases: string[];
+  tags: string[];
+  /** Declaration order — the order the picker offers the controls in. */
+  slots: EmoteSlotSpec[];
+}
+
+// ============================================================================
 // Reactions (act-scoped emote aggregation)
 // ============================================================================
 
@@ -2757,6 +2796,29 @@ export interface ConnectionEstablishedPayload {
    * runs the same three-tier resolution against its cached snapshot.
    */
   topicCatalogue: TopicDescriptor[];
+  /**
+   * The authored emote catalogue — what the emote picker draws.
+   *
+   * Cached for the session exactly like {@link topicCatalogue} and for
+   * the same reasons: it is authored reference data, it is global rather
+   * than per-viewer, and a mid-session `soul make` lands at next login.
+   * Canonical verbs only; an emote's aliases ride its own entry.
+   *
+   * ⚠ The client renders the picker FROM THIS and from nothing else. A
+   * hardcoded emoji/verb pair drifts from the catalogue silently, which
+   * is the failure this field exists to make impossible.
+   */
+  emoteCatalogue: EmoteCatalogueEntry[];
+  /**
+   * The topics whose frames denote a reactable act, as the server
+   * defines them.
+   *
+   * Sent so the client cannot hold its own copy of the answer. It held
+   * one (`REACTABLE_PREFIXES`), the S2 topic collapse moved the server
+   * set underneath it, and combat frames stopped offering the
+   * affordance without anything failing.
+   */
+  reactableTopics: string[];
   /**
    * Client UI state persisted server-side (tabs, theme, notification
    * prefs, etc.). Dense snapshot — schema-declared keys carry their
