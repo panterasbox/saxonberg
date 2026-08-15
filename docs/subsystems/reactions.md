@@ -29,7 +29,12 @@ cross-viewer aggregation falls out **for free** from keying on
 
 `ReactionApi.REACTABLE_TOPICS` / `ReactionApi.isReactableTopic`:
 
-- `speech.vocal`, `speech.quiet`
+- `speech.vocal` — say / shout / whisper, which the S2 topic collapse
+  folded onto one name. ⚠ This list read `speech.vocal, speech.quiet`
+  before Wave 6; `speech.quiet` is not in the set and the literal itself
+  carried three copies of `speech.vocal`, left over from the same
+  collapse. `reactableTopics.test.ts` now asserts the **count**, because
+  a membership assertion passes either way.
 - `act.emote`
 - `speech.channel`
 - `act.combat` — a **dramatic** combat beat (a hit / break /

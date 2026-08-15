@@ -63,14 +63,30 @@ export default class TuneController extends CommandController<TuneModel> {
    */
   private async publishTuned(actor: Stuff): Promise<void> {
     if (!MixinApi.isHasInteractive(actor)) return;
-    const channels = await StreamApi.tunedTargetsFor(actor as never);
-    const rows: TunedTarget[] = channels.map((c) => ({
-      platform: c.service,
-      handle: c.handle,
-      canPost: c.service === 'twitch',
-    }));
-    actor.setClientState(TUNED_KEY, rows);
-    actor.pushClientStateUpdate(TUNED_KEY, rows);
+    try {
+      const channels = await StreamApi.tunedTargetsFor(actor as never);
+      const rows: TunedTarget[] = channels.map((c) => ({
+        platform: c.service,
+        handle: c.handle,
+        canPost: c.service === 'twitch',
+      }));
+      actor.setClientState(TUNED_KEY, rows);
+      actor.pushClientStateUpdate(TUNED_KEY, rows);
+    } catch {
+      /*
+       * ⚠ **Refreshing the rail must never fail the tune.**
+       *
+       * This is a UI PROJECTION of state the relay already holds
+       * authoritatively — the player is tuned in either way. A world
+       * without the relay singleton resident (every test that does not
+       * need one) would otherwise turn a working `tune` into a thrown
+       * command, which is a much worse outcome than a rail that lags by
+       * one action.
+       *
+       * The same posture as the emote catalogue on the connect path: a
+       * projection failing is not the act failing.
+       */
+    }
   }
 
   async execute(model: TuneModel, context: CommandContext): Promise<void> {
