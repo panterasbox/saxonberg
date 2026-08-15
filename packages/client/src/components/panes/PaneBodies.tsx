@@ -47,6 +47,18 @@ import { MmlRenderer } from "../MmlRenderer";
 
 /* ─── shared pieces ─── */
 
+const Trail = styled.div`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+  margin-bottom: ${tokens.space.xs};
+  overflow-wrap: anywhere;
+`;
+
+const TrailTail = styled.span`
+  color: ${tokens.color.fg};
+`;
+
 const ChipToggle = styled.button`
   font: inherit;
   font-family: ${tokens.font.mono};
@@ -520,15 +532,19 @@ function PlaceIllustration({
  */
 function RoomDescription({
   record,
+  text: override,
   onSendCommand,
   onCommandPreview,
 }: {
   record: StuffDetailRecord | undefined;
+  /** A drilled detail's prose, replacing the subject's own. */
+  text?: string;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
   const [expanded, setExpanded] = React.useState(false);
-  const text = record?.longDescription ?? record?.shortDescription ?? "";
+  const text =
+    override ?? record?.longDescription ?? record?.shortDescription ?? "";
   if (!text) return null;
   return (
     <>
@@ -696,6 +712,60 @@ function ReleasedBody(): React.ReactElement {
  * silently renders the wrong one.
  */
 /**
+ * The detail trail — **only ever about details**.
+ *
+ * ⚠⚠ It appears the moment you drill into the FIRST detail and not
+ * before. A breadcrumb on an undrilled card would be a trail of one,
+ * which says nothing; and this trail has no job outside details, so a
+ * card you have not drilled shows none.
+ *
+ * The root segment is the object itself: clicking it leaves the detail
+ * entirely and puts the object's own description back. Intermediate
+ * segments pop to that level. The tail is plain text, because clicking
+ * it would back you out to where you already are.
+ */
+function DetailTrail({
+  rootName,
+  path,
+  onPopTo,
+}: {
+  rootName: string;
+  path: readonly string[];
+  onPopTo: (depth: number) => void;
+}): React.ReactElement | null {
+  if (path.length === 0) return null;
+  return (
+    <Trail aria-label="detail breadcrumbs" data-testid="detail-trail">
+      <InlineLink
+        data-testid="detail-trail-root"
+        title={`Back to ${rootName}`}
+        onClick={() => onPopTo(0)}
+      >
+        {rootName}
+      </InlineLink>
+      {path.map((key, i) => {
+        const isTail = i === path.length - 1;
+        return (
+          <React.Fragment key={`${key}-${i}`}>
+            {" › "}
+            {isTail ? (
+              <TrailTail>{key}</TrailTail>
+            ) : (
+              <InlineLink
+                title={`Back to ${key}`}
+                onClick={() => onPopTo(i + 1)}
+              >
+                {key}
+              </InlineLink>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </Trail>
+  );
+}
+
+/**
  * ⭐⭐ **One body, and the subject decides what is in it.**
  *
  * There is no location view and no thing view — there is one card, and
@@ -714,16 +784,81 @@ function ReleasedBody(): React.ReactElement {
  */
 export function PaneBody(props: PaneBodyProps): React.ReactElement {
   const { card, onSendCommand, onCommandPreview } = props;
-  if (card.released) return <ReleasedBody />;
   const record = card.records[0] as StuffDetailRecord | undefined;
   const stuffId = record?.stuffId;
 
+  /*
+   * ⚠⚠ **The drill is per CARD, and it stays inside the card.**
+   *
+   * Clicking a detail word does not send `look <key>` — it descends a
+   * level here. The Stuff never changes, only how closely you are
+   * looking at it, which is exactly what a detail is. Sending the
+   * command would move the player's FOCUS and open a whole new card
+   * for something that is not a separate object.
+   */
+  const [detailPath, setDetailPath] = React.useState<readonly string[]>([]);
+  // A different subject means a different set of details. Keeping the
+  // path would leave the card claiming to be inside a detail the new
+  // subject does not have.
+  React.useEffect(() => setDetailPath([]), [stuffId]);
+
+  const detailAliases = React.useMemo(() => {
+    const out = new Set<string>();
+    for (const entry of record?.details ?? []) {
+      for (const id of entry.ids) out.add(id);
+    }
+    return out;
+  }, [record]);
+
+  /**
+   * Intercept a detail click; let everything else through.
+   *
+   * ⚠ Only `look <one-word>` where the word is one of THIS subject's
+   * detail aliases. `look noticeboard` in a room's prose is a different
+   * object and must still travel as a command.
+   */
+  const handleProseClick = React.useCallback(
+    (text: string) => {
+      const match = /^look (\S+)$/.exec(text);
+      if (match && detailAliases.has(match[1]!)) {
+        setDetailPath((p) => [...p, match[1]!]);
+        return;
+      }
+      onSendCommand(text);
+    },
+    [detailAliases, onSendCommand],
+  );
+
+  if (card.released) return <ReleasedBody />;
+
+  const tail = detailPath[detailPath.length - 1];
+  const drilled = tail
+    ? record?.details?.find((d) => d.ids.includes(tail))
+    : undefined;
+
   return (
     <>
-      <PlaceIllustration record={record} />
+      <DetailTrail
+        rootName={record?.displayName || "it"}
+        path={detailPath}
+        onPopTo={(depth) => setDetailPath((p) => p.slice(0, depth))}
+      />
+      {/*
+        ⚠ The illustration is the OBJECT's, so it goes while you are
+        inside a detail — the hall's photograph beside the loudspeaker's
+        prose would be a picture of the wrong thing. When details carry
+        their own media this is where it renders.
+      */}
+      {!drilled && <PlaceIllustration record={record} />}
+      {/*
+        ⭐ The description is what the drill replaces. Everything below
+        belongs to the object and stays put; the trail above says which
+        level you are reading.
+      */}
       <RoomDescription
         record={record}
-        onSendCommand={onSendCommand}
+        text={drilled?.description}
+        onSendCommand={handleProseClick}
         onCommandPreview={onCommandPreview}
       />
       <Measured record={record} />

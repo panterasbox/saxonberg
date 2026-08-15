@@ -82,27 +82,35 @@ const Controls = styled.div`
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: ${tokens.space.xs};
   flex: none;
 `;
 
+/*
+ * ⚠ They read as BUTTONS, not as faint marks. A borderless glyph in a
+ * dim colour is discoverable only to someone already looking for it,
+ * and these are the three things you do to a card.
+ */
 const IconButton = styled.button<{ $on?: boolean }>`
-  font: inherit;
-  font-size: ${tokens.font.label};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.body};
   line-height: 1;
   cursor: pointer;
-  background: transparent;
+  background: ${(p) =>
+    p.$on ? tokens.color.accentWash : tokens.color.surfaceAlt};
   border: 1px solid
-    ${(p) => (p.$on ? tokens.color.fgEmphasis : "transparent")};
+    ${(p) => (p.$on ? tokens.color.fgEmphasis : tokens.color.borderMuted)};
   border-radius: ${tokens.radius.sm};
-  color: ${(p) => (p.$on ? tokens.color.fgEmphasis : tokens.color.fgMuted)};
-  padding: 0 ${tokens.space.xs};
+  color: ${(p) => (p.$on ? tokens.color.fgEmphasis : tokens.color.fg)};
+  padding: 0 ${tokens.space.sm};
   /* 44px minimum touch target via min-height — never by shrinking the
      box the glyph sits in. */
   min-height: 44px;
-  min-width: 26px;
+  min-width: 34px;
 
   &:hover {
-    color: ${tokens.color.fg};
+    border-color: ${tokens.color.fgEmphasis};
+    color: ${tokens.color.fgEmphasis};
   }
 `;
 

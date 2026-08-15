@@ -400,3 +400,82 @@ describe("⚠⚠ no action row", () => {
     expect(screen.queryByText("defend")).toBeNull();
   });
 });
+
+/**
+ * ⭐⭐ Breadcrumbs are for DETAILS, and nothing else.
+ *
+ * A detail is not a separate object — it is the same Stuff, looked at
+ * more closely. So the drill stays inside the card, swaps the
+ * description, and leaves a trail back.
+ */
+describe("⭐⭐ drilling into a detail", () => {
+  const withDetail = () =>
+    placeCard({
+      displayName: "the station hall",
+      longDescription:
+        'A hall. A <detail id="loudspeaker">loudspeaker</detail> crackles.',
+      details: [
+        { ids: ["loudspeaker"], description: "A brass horn, wired away.", hasChildren: false },
+      ],
+    } as never);
+
+  it("⚠ shows NO trail until you have drilled", () => {
+    // A breadcrumb on an undrilled card is a trail of one, which says
+    // nothing — and this trail has no job outside details.
+    render(<PaneBody card={withDetail()} onSendCommand={() => undefined} />);
+    expect(screen.queryByTestId("detail-trail")).toBeNull();
+  });
+
+  it("swaps the description and does NOT send a command", () => {
+    const sent: string[] = [];
+    render(<PaneBody card={withDetail()} onSendCommand={(t) => sent.push(t)} />);
+
+    fireEvent.click(screen.getByText("loudspeaker"));
+
+    expect(screen.getByTestId("place-prose").textContent).toContain(
+      "A brass horn",
+    );
+    /*
+     * ⚠⚠ Nothing on the wire. The Stuff has not changed — only how
+     * closely you are looking at it. Sending `look loudspeaker` would
+     * move the player's FOCUS and open a whole new card for something
+     * that is not a separate object.
+     */
+    expect(sent).toEqual([]);
+  });
+
+  it("leaves a trail back to the object", () => {
+    render(<PaneBody card={withDetail()} onSendCommand={() => undefined} />);
+    fireEvent.click(screen.getByText("loudspeaker"));
+
+    const trail = screen.getByTestId("detail-trail");
+    expect(trail.textContent).toContain("the station hall");
+    expect(trail.textContent).toContain("loudspeaker");
+
+    fireEvent.click(screen.getByTestId("detail-trail-root"));
+    // Back to the object's own prose, and the trail is gone with it.
+    expect(screen.getByTestId("place-prose").textContent).toContain("A hall.");
+    expect(screen.queryByTestId("detail-trail")).toBeNull();
+  });
+
+  it("⚠ still SENDS a look at something that is not one of its details", () => {
+    const sent: string[] = [];
+    render(
+      <PaneBody
+        card={placeCard({
+          longDescription:
+            'A hall with <thing id="x">a noticeboard</thing> on it.',
+          details: [
+            { ids: ["walls"], description: "Papered.", hasChildren: false },
+          ],
+        } as never)}
+        onSendCommand={(t) => sent.push(t)}
+      />,
+    );
+    fireEvent.click(screen.getByText("a noticeboard"));
+    // A separate object, so it travels as a command and opens its own
+    // card — only THIS subject's own detail aliases are intercepted.
+    expect(sent.length).toBe(1);
+    expect(screen.queryByTestId("detail-trail")).toBeNull();
+  });
+});

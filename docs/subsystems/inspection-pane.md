@@ -424,19 +424,42 @@ else would make the stack a lie. The signal opens a per-subject
 subscription (`subject` in the catalogue) and that one stays about the
 thing it was opened for.
 
-### ⚠ No breadcrumb — the stack IS the trail
+### ⭐⭐ Breadcrumbs are for DETAILS, and nothing else
 
-The breadcrumb existed because there was ONE slot: you needed a trail to
-know how you got to what it was showing. With a card per thing looked
-at, the history is on screen, and a breadcrumb on one card among many
-reads as a stray fragment — reported as *"they seem to be only on one of
-the cards and since cards stack it's a little weird."*
+A detail is not a separate object — it is the same Stuff, looked at more
+closely. So drilling **stays inside the card**:
 
-⭐ Removing it also removed the flash. The focus card had to be
-deduplicated against a standing `place` card, the two subscriptions
-resolved in either order, and on entry a card for the room you were
-standing in appeared and then vanished. There is nothing to deduplicate
-any more.
+- Clicking a detail word **sends nothing**. It descends a level in that
+  card's own state. Sending `look <key>` would move the player's FOCUS
+  and open a whole new card for something that is not a separate thing.
+- The **description swaps** to the detail's prose. Everything below it
+  belongs to the object and stays put; the trail above says which level
+  you are reading. The object's illustration goes while you are inside a
+  detail — the hall's photograph beside the loudspeaker's prose is a
+  picture of the wrong thing. When details carry their own media, that
+  is where it renders.
+- The **trail appears only once you have drilled**, and never before. A
+  breadcrumb on an undrilled card is a trail of one, which says nothing.
+- Its root is the object: clicking it leaves the detail entirely.
+  Intermediate segments pop to that level; the tail is plain text,
+  because clicking it would back you out to where you already are.
+- ⚠ Only **this subject's own** detail aliases are intercepted. `look
+  noticeboard` in a room's prose is a different object and still travels
+  as a command, opening its own card.
+- ⚠ The path resets when the card's subject changes — a different
+  subject has different details, and keeping it would leave the card
+  claiming to be inside one that does not exist.
+
+⚠ **The trail has no job outside details.** It used to be the focus
+history, back when there was ONE slot and you needed to know how you had
+got to what it showed. The card stack is that history now.
+
+### The card's controls, and why they are loud
+
+`↻ refresh · ⚲ pin · × close`, top right of every card, rendered as
+buttons rather than faint glyphs — a borderless mark in a dim colour is
+discoverable only to someone already looking for it, and these are the
+three things you do to a card.
 
 ### ⭐ Husks age out; live cards never do
 
