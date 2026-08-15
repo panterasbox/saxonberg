@@ -89,27 +89,29 @@ describe('affordance routing', () => {
   });
 
   /*
-   * ⭐ The feed forwards its sink UNCHANGED to the panes inside it.
+   * ⭐ The feed forwards its sink UNCHANGED to the cards inside it.
    *
    * `PaneFeed` is wired to `onCommandClick` at the layout (above), so
-   * every card, every pin and the inspection pane it hosts inherit the
-   * sheet's interception — but only if the feed passes its own prop
-   * straight through rather than reaching for something else.
+   * every card and every control on one inherits the sheet's
+   * interception — but only if the feed passes its own prop straight
+   * through rather than reaching for something else.
+   *
+   * ⚠ It used to also assert the hosted `InspectionPane`. The feed no
+   * longer renders one: there is a single card kind now, and what the
+   * player is looking at is one of those cards like anything else.
    */
-  it('⭐ the pane feed forwards its sink to the panes it hosts', () => {
+  it('⭐ the pane feed forwards its sink to the cards it hosts', () => {
     const feed = readFileSync(
       resolve(layoutsDir, '..', 'components', 'panes', 'PaneFeed.tsx'),
       'utf8',
     );
-    const inspection = /<InspectionPane\b[\s\S]*?\/>/.exec(feed)?.[0] ?? '';
-    expect(inspection, 'PaneFeed no longer renders InspectionPane').toContain(
-      'InspectionPane',
-    );
-    expect(inspection).toContain('onSendCommand={onSendCommand}');
-
     const card = /<PaneCard\b[\s\S]*?>/.exec(feed)?.[0] ?? '';
     expect(card, 'PaneFeed no longer renders PaneCard').toContain('PaneCard');
     expect(card).toContain('onSendCommand={onSendCommand}');
+
+    const body = /<PaneBody\b[\s\S]*?\/>/.exec(feed)?.[0] ?? '';
+    expect(body, 'PaneFeed no longer renders PaneBody').toContain('PaneBody');
+    expect(body).toContain('onSendCommand={onSendCommand}');
   });
 
   /*

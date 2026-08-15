@@ -198,3 +198,63 @@ describe("⚠ density", () => {
     expect(south.getAttribute("title")).toBe("Click to send: go south");
   });
 });
+
+/**
+ * ⭐⭐ **One card, and the subject decides what is in it.**
+ *
+ * There is no location view and no thing view: the body renders the
+ * sections the record HAS. This is the property the whole restructure
+ * rests on, so it is asserted from both ends.
+ */
+describe("⭐⭐ sections appear only when the subject has them", () => {
+  it("a room gets exits; a thing does not", () => {
+    const { unmount } = render(
+      <PaneBody
+        card={placeCard({ exits: [{ direction: "north" }] as never })}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.getByText("Exits")).toBeTruthy();
+    unmount();
+
+    render(
+      <PaneBody
+        card={placeCard({ mass: "0 kg" } as never)}
+        onSendCommand={() => undefined}
+      />,
+    );
+    // Not "Exits: none" and not a hatch — absent. A lamp having no
+    // exits is not a gap in the lamp.
+    expect(screen.queryByText("Exits")).toBeNull();
+  });
+
+  it("⚠ a subject with no readings shows NO measured section", () => {
+    /*
+     * An unwired hatch is right for a figure the surface promised and
+     * cannot fill. This section promises nothing, so hatching it put
+     * *"nothing about this declares a reading yet"* on every location
+     * card — noise claiming to be honesty.
+     */
+    render(
+      <PaneBody
+        card={placeCard({ exits: [{ direction: "north" }] as never })}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(
+      screen.queryByText(/declares a reading yet/i),
+    ).toBeNull();
+  });
+
+  it("every card refreshes the same way, by looking at its subject", () => {
+    const sent: string[] = [];
+    render(
+      <PaneBody
+        card={placeCard({ primaryKeyword: "lounge" })}
+        onSendCommand={(t) => sent.push(t)}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("card-refresh"));
+    expect(sent).toEqual(["look lounge"]);
+  });
+});

@@ -76,12 +76,17 @@ describe("the two feeds", () => {
 });
 
 describe("a card", () => {
-  it("names its kind, its subject and what holds it", () => {
+  it("names its subject and what holds it — but not a 'kind'", () => {
     openCard("s1", "agent", "Tomas", "present");
     render(<PaneFeed onSendCommand={() => undefined} />);
 
     expect(screen.getByText("Tomas")).toBeTruthy();
-    expect(screen.getByText("agent")).toBeTruthy();
+    /*
+     * ⚠ No kind chip. Every card is *what I am looking at*, so a label
+     * saying so on each one never varies — and what actually differs
+     * between a room and a lamp is which sections the body renders.
+     */
+    expect(screen.queryByText("agent")).toBeNull();
     // The art's exact words. Never an age — a pane's lifetime is a fact
     // about the world, and a duration in that slot would invite the
     // reader to believe recency had something to do with it.
@@ -287,34 +292,6 @@ describe("⚠⚠ what only a real session showed", () => {
     };
   }
 
-  it("re-opens the STANDING place card when the world ends the old one", () => {
-    /*
-     * ⚠⚠ `place` is held by `here`, so walking out releases it — and
-     * before this, that was the END of it. The subscription was opened
-     * once on mount, so ONE movement cost the player the place card for
-     * the rest of the session and the mode's arrangement silently
-     * degraded to nothing.
-     */
-    const { release, handles } = mountWithWire();
-    const live = handles[handles.length - 1]!;
-    const openBefore = handles.length;
-
-    release({
-      type: "mql-subscription-released",
-      frameId: 1,
-      subscriptionId: live,
-      hold: "here",
-      reason: "left",
-    });
-
-    // A fresh handle, and both cards present: the husk you left and the
-    // live one you arrived in.
-    expect(handles.length).toBe(openBefore + 1);
-    const cards = useStore.getState().paneCards;
-    expect(cards[live]!.released).toBe("left");
-    expect(cards[handles[handles.length - 1]!]!.released).toBeUndefined();
-  });
-
   it("⚠ does NOT re-open a subject pane the world put out of reach", () => {
     const { release, handles } = mountWithWire();
     const openBefore = handles.length;
@@ -340,103 +317,67 @@ describe("⚠⚠ what only a real session showed", () => {
  * correctly on its own — which is exactly the shape a component test
  * cannot catch and an assembled screen can.
  */
-describe("⚠⚠ the focus card never repeats the PLACE card", () => {
-  it("is absent when the focus subject IS the place subject", () => {
-    openCard("s-place", "place", "the lounge", "here");
-    // Same stuffId the place card is holding — `openCard` stamps
-    // `stuff-s-place`.
-    useStore.setState({
-      paneLastResult: [
-        { stuffId: "stuff-s-place", displayName: "the lounge" },
-      ] as never,
-      paneFocusName: "the lounge",
-    });
-    render(<PaneFeed onSendCommand={() => undefined} />);
-
-    expect(screen.queryByTestId("pane-focus-card")).toBeNull();
-    // The place card is still there — this suppresses the DUPLICATE,
-    // never the room itself.
-    expect(screen.getAllByText("the lounge").length).toBeGreaterThan(0);
-  });
-
-  it("appears as soon as the focus is something else", () => {
-    openCard("s-place", "place", "the lounge", "here");
-    useStore.setState({
-      paneLastResult: [
-        { stuffId: "stuff-terminal", displayName: "a Teleport terminal" },
-      ] as never,
-      paneFocusName: "a Teleport terminal",
-    });
-    render(<PaneFeed onSendCommand={() => undefined} />);
-
-    const card = screen.getByTestId("pane-focus-card");
-    expect(card.textContent).toContain("looking at");
-    expect(card.textContent).toContain("a Teleport terminal");
-  });
-
-  it("⚠ keys on the SUBJECT, not on whether anything is focused", () => {
-    /*
-     * After `look` at the room the focus subject IS the room, so a rule
-     * written as "hide the focus card when nothing is focused" would
-     * let the duplicate straight back in — something *is* focused, and
-     * it is the thing already on screen above.
-     */
-    openCard("s-place", "place", "the lounge", "here");
-    useStore.setState({
-      paneLastResult: [
-        { stuffId: "stuff-s-place", displayName: "the lounge" },
-      ] as never,
-      paneFocusName: "the lounge",
-      paneBodyPainted: true,
-    });
-    render(<PaneFeed onSendCommand={() => undefined} />);
-    expect(screen.queryByTestId("pane-focus-card")).toBeNull();
-  });
-});
-
 /**
- * ⚠⚠ The flash: *"I see 'looking at' for a while and then it vanishes."*
+ * ⭐⭐ **Attention drives the feed.** Every thing you look at gets its
+ * own card; they stack newest-first and age away.
  *
- * The `place` card opens with no records and fills in when its
- * subscription resolves; the focus subscription resolves separately and
- * usually first. For that beat the dedupe had nothing to compare
- * against, so a LOOKING AT card for the room you are standing in
- * appeared — and then vanished when place caught up.
+ * This replaced a focus card that had to be deduplicated against a
+ * standing place card — two subscriptions racing, which is what produced
+ * the flash. There is nothing to deduplicate any more.
  */
-describe("⚠⚠ the focus card never flashes", () => {
-  it("stays hidden while the place card is open but unresolved", () => {
-    const store = useStore.getState();
-    // Place is OPEN — as it is from the moment the feed mounts — but
-    // has not been given its records yet.
-    store.openPaneCard({
-      subscriptionId: "s-place",
-      paneId: "place",
-      kind: "place",
-      hold: "here",
+describe("⭐⭐ a card per thing you look at", () => {
+  function mountWithWire(): { handles: string[] } {
+    const handles: string[] = [];
+    let n = 0;
+    vi.spyOn(websocketClient, "subscribeMql").mockImplementation(() => {
+      n += 1;
+      const id = `sub-${n}`;
+      handles.push(id);
+      return id;
     });
+    renderHook(() => usePaneFeed());
+    return { handles };
+  }
+
+  it("opens one when the focus resolves to something", () => {
     useStore.setState({
       paneLastResult: [
-        { stuffId: "stuff-room", displayName: "the lounge" },
+        { stuffId: "stuff-lamp", displayName: "a lamp" },
       ] as never,
-      paneFocusName: "the lounge",
     });
-    render(<PaneFeed onSendCommand={() => undefined} />);
+    const { handles } = mountWithWire();
 
-    // The honest answer to "is this a duplicate?" is *not yet known*,
-    // and the honest render is nothing.
-    expect(screen.queryByTestId("pane-focus-card")).toBeNull();
+    const card = useStore.getState().paneCards[handles[handles.length - 1]!];
+    expect(card?.paneId).toBe("subject");
+    expect(card?.kind).toBe("subject");
   });
 
-  it("appears once place has resolved to something else", () => {
-    openCard("s-place", "place", "the lounge", "here");
+  it("⚠ does NOT stack a second card for something already on screen", () => {
+    /*
+     * Re-looking at a thing brings its card back into view; it does not
+     * mint a duplicate. Without this, `look lamp` twice would leave two
+     * identical cards and the stack would stop reading as a history.
+     */
     useStore.setState({
       paneLastResult: [
-        { stuffId: "stuff-terminal", displayName: "a terminal" },
+        { stuffId: "stuff-lamp", displayName: "a lamp" },
       ] as never,
-      paneFocusName: "a terminal",
     });
-    render(<PaneFeed onSendCommand={() => undefined} />);
-    expect(screen.getByTestId("pane-focus-card")).toBeTruthy();
+    const { handles } = mountWithWire();
+    const openBefore = handles.length;
+
+    const store = useStore.getState();
+    store.setPaneRecords(handles[handles.length - 1]!, [
+      { stuffId: "stuff-lamp", displayName: "a lamp" } as never,
+    ]);
+    // Same subject resolves again.
+    useStore.setState({
+      paneLastResult: [
+        { stuffId: "stuff-lamp", displayName: "a lamp" },
+      ] as never,
+    });
+
+    expect(handles.length).toBe(openBefore);
   });
 });
 

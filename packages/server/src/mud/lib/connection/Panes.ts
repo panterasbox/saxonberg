@@ -181,6 +181,32 @@ export const PANES: Readonly<Record<PaneId, PaneDefinition>> = {
    * room — `present`, not `inReach`: a conversation survives them
    * stepping across the yard, and does not survive them leaving.
    */
+  /**
+   * ⭐⭐ **The one card: whatever you are looking at.**
+   *
+   * A location, a person, yourself, a thing — one pane, one field set,
+   * one set of controls. What differs is only what the SUBJECT HAS:
+   * `exits` is absent on a thing, `contents` on an empty one,
+   * `illustration` on most. The body shows the sections that are there,
+   * so "a location view" and "a thing view" are not two views at all.
+   *
+   * ⚠ **No hold.** The other subject panes are held by a world
+   * condition — still present, still in reach — because they are claims
+   * about the world. This one is a record of your ATTENTION, which is a
+   * fact about you, not the room: it stacks as you look at things and
+   * ages out, and `look` brings any of it back. Putting a world
+   * condition on it would end a card for a reason the player never
+   * asked about.
+   */
+  subject: {
+    label: 'what you are looking at',
+    query: '$subject',
+    cardinality: 'one',
+    fields: 'detail',
+    needsSubject: true,
+    locationDependent: true,
+  },
+
   agent: {
     label: 'someone you are dealing with',
     query: '$subject',

@@ -24,10 +24,7 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { PaneCard } from "./PaneCard";
 import { PaneBody } from "./PaneBodies";
-import {
-  InspectionPane,
-  useInspectionSubscriptions,
-} from "../InspectionPane";
+import { useInspectionSubscriptions } from "../InspectionPane";
 
 const Column = styled.aside<{ $compact: boolean }>`
   display: flex;
@@ -102,54 +99,6 @@ const List = styled.div`
   padding: ${tokens.space.sm};
 `;
 
-/**
- * The in-focus card.
- *
- * ⭐ It wears the same frame as every other card — kind, then name —
- * so a mixture of kinds reads as one feed. What it does NOT get is a
- * pin: pinning is *keep this after its hold lapses*, and your focus has
- * no hold to lapse. A control that cannot do what it says is worse than
- * a missing one.
- *
- * ⚠ It keeps the existing inspection pane as its BODY — breadcrumb,
- * paint/clear policy, detail drill and all. Rebuilding that here to
- * make the feed look uniform would have thrown away a working surface
- * for a cosmetic win.
- */
-const FocusCard = styled.article`
-  border: 1px solid ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.md};
-  background: ${tokens.color.surface};
-  padding: ${tokens.space.md};
-  max-width: 100%;
-  min-width: 0;
-`;
-
-const FocusHead = styled.header`
-  display: flex;
-  align-items: baseline;
-  gap: ${tokens.space.sm};
-  margin-bottom: ${tokens.space.sm};
-`;
-
-const FocusKind = styled.span`
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: ${tokens.color.fgMuted};
-`;
-
-const FocusTitle = styled.h3`
-  margin: 0;
-  font-family: ${tokens.font.serif};
-  font-size: ${tokens.font.title};
-  font-weight: 500;
-  color: ${tokens.color.fg};
-  min-width: 0;
-  overflow-wrap: anywhere;
-`;
-
 export interface PaneFeedProps {
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
@@ -180,6 +129,12 @@ export function PaneFeed({
    * note. The focus CARD is conditional; the subscription that decides
    * whether there is anything to show must never be.
    */
+  /*
+   * ⚠ Still mounted, but purely as the ATTENTION SIGNAL now — it keeps
+   * `paneLastResult` pointed at what the player is looking at, and
+   * `usePaneFeed` turns each new subject into its own card. Nothing
+   * renders the inspection pane itself any more.
+   */
   useInspectionSubscriptions();
   const paneCards = useStore((s) => s.paneCards);
 
@@ -194,50 +149,19 @@ export function PaneFeed({
   );
 
   /*
-   * ⚠⚠ **The focus card is suppressed when it would repeat the PLACE
-   * card**, which at rest is almost always.
+   * ⚠⚠ **No focus card, and no breadcrumb.**
    *
-   * The focus pane falls back to the room when nothing is focused, and
-   * `place` is the room — so the default screen showed *the lounge*
-   * twice, stacked, one directly above the other. Absorbing the pane
-   * into the feed alone would not have fixed that; it would have made
-   * the two copies look even more like each other.
+   * Both existed because there was ONE slot: you needed a trail to know
+   * how you had got to what it was showing. The stack IS the trail now —
+   * each thing you looked at is a card below the last — so a breadcrumb
+   * on one card among many was, as reported, *"a little weird"*.
    *
-   * The rule is by SUBJECT, not by "is anything focused": after
-   * `look` at the room the focus subject *is* the room, and a rule
-   * keyed on focus-existence would let the duplicate straight back in.
+   * It also takes the flash with it. The old focus card had to be
+   * deduplicated against the standing place card, and the two
+   * subscriptions resolved in either order, so on entry a LOOKING AT
+   * card for the room you were standing in appeared and then vanished.
+   * There is nothing to deduplicate against any more.
    */
-  const focusStuffId = useStore(
-    (s) => s.paneLastResult?.[0]?.stuffId ?? null,
-  );
-  const focusName = useStore(
-    (s) => s.paneFocusName ?? s.paneLastResult?.[0]?.displayName ?? null,
-  );
-  const placeCard = React.useMemo(
-    () => cards.find((c) => c.paneId === "place" && !c.released),
-    [cards],
-  );
-  const placeSubjectId = placeCard?.records[0]?.stuffId ?? null;
-  /*
-   * ⚠⚠ **Do not render a claim you cannot yet check.**
-   *
-   * The `place` card opens with no records and fills in when its
-   * subscription resolves. The focus subscription resolves separately,
-   * and on entry it usually wins — so for one beat `placeSubjectId` was
-   * null, the dedupe had nothing to compare against, and a LOOKING AT
-   * card for the room you are standing in appeared and then vanished
-   * when place caught up. Reported exactly as it looks: *"I see flash
-   * in the right side 'looking at' for a while and then it vanishes."*
-   *
-   * While place is open but unresolved the honest answer to "is this a
-   * duplicate?" is *not yet known*, and the honest render is nothing.
-   */
-  const placeUnresolved = placeCard !== undefined && placeSubjectId === null;
-  const showFocus =
-    focusStuffId !== null &&
-    focusStuffId !== placeSubjectId &&
-    !placeUnresolved;
-
   return (
     <Column $compact={compact} data-testid="pane-feed">
       <Header>
@@ -247,24 +171,6 @@ export function PaneFeed({
         </PinnedCount>
       </Header>
       <List>
-        {/*
-          ⭐ The focus card sits FIRST, because the feed runs
-          newest → oldest and looking at something is the most recent
-          thing you did.
-        */}
-        {showFocus && (
-          <FocusCard data-testid="pane-focus-card">
-            <FocusHead>
-              <FocusKind>looking at</FocusKind>
-              <FocusTitle>{focusName ?? "something"}</FocusTitle>
-            </FocusHead>
-            <InspectionPane
-              embedded
-              onSendCommand={onSendCommand}
-              onCommandPreview={onCommandPreview}
-            />
-          </FocusCard>
-        )}
         {cards.map((card) => (
           <PaneCard
             key={card.subscriptionId}

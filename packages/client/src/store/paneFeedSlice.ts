@@ -67,6 +67,14 @@ export type PaneRecord = StuffRefRecord | StuffDetailRecord;
  */
 export type PaneKind =
   | "form"
+  /**
+   * ⭐⭐ **The one card.** A location, a person, yourself, a thing — one
+   * body, showing the sections the subject HAS. It replaced a switch
+   * over `place` / `agent` / `instrument` / `manifest`, which made a
+   * room and a lamp two different components with two different sets of
+   * controls for no reason the player could see.
+   */
+  | "subject"
   | "agent"
   | "instrument"
   | "place"
@@ -167,7 +175,13 @@ export function holdReason(card: PaneCardState): string {
   if (card.pinned === true) return "held by you";
   if (card.pinned === false) return "dismissed by you";
   if (card.hold) return HOLD_WORDS[card.hold];
-  return "open";
+  /*
+   * ⚠ Nothing, not "open". An attention card is not held by anything —
+   * it is a record of what you looked at, and it ages away. A word in
+   * this slot would be describing a condition that does not exist, and
+   * the slot is for saying WHY a card is still here.
+   */
+  return "";
 }
 
 export interface PaneFeedSlice {

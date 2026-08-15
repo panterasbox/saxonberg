@@ -881,10 +881,12 @@ export type PaneId =
   | "place"
   | "agent"
   | "instrument"
-  | "manifest";
+  | "manifest"
+  | "subject";
 
 /** Every {@link PaneId}. The server validates against this; the client picks from it. */
 export const PANE_IDS: readonly PaneId[] = [
+  "subject",
   "inspect",
   "location",
   "self",

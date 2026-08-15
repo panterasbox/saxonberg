@@ -52,6 +52,7 @@ export const PANE_KIND_BY_ID: Readonly<Record<PaneId, PaneKind>> = {
   agent: "agent",
   instrument: "instrument",
   manifest: "manifest",
+  subject: "subject",
 };
 
 /**
@@ -71,6 +72,7 @@ export const PANE_LABEL: Readonly<Record<PaneId, string>> = {
   agent: "someone you are dealing with",
   instrument: "something you are reading",
   manifest: "what you are carrying",
+  subject: "what you are looking at",
 };
 
 /**
@@ -121,7 +123,6 @@ export function usePaneFeed(): void {
   const openPaneCard = useStore((s) => s.openPaneCard);
   const setPaneRecords = useStore((s) => s.setPaneRecords);
   const releasePane = useStore((s) => s.releasePane);
-  const closePaneCard = useStore((s) => s.closePaneCard);
 
   /*
    * ⭐ The husk sweep. Here rather than in the feed component for the
@@ -138,44 +139,6 @@ export function usePaneFeed(): void {
   }, []);
 
   useEffect(() => {
-    /*
-     * The one standing card this hook owns. Kept in a box because the
-     * handle changes every time the world releases it and we open the
-     * next one — see `reopenPlace` below.
-     */
-    let placeId = websocketClient.subscribeMql({ pane: "place" });
-    const openPlace = (): void => {
-      openPaneCard({
-        subscriptionId: placeId,
-        paneId: "place",
-        kind: "place",
-        hold: "here",
-      });
-    };
-    openPlace();
-
-    /**
-     * ⚠⚠ **`place` is STANDING, so a lapse re-opens it for the new room.**
-     *
-     * Its hold is `here`, so walking out releases it — correctly, and
-     * the husk is the honest record of the room you left. But without
-     * this, that was the END of it: the subscription was opened once on
-     * mount, so **one movement cost you the place card for the rest of
-     * the session**, and the mode's arrangement silently degraded to
-     * nothing. Found by driving; a teleport out of the lounge left a
-     * stale card and no live one.
-     *
-     * ⭐ This is not the client deciding arrangement semantics. The hook
-     * already owns "the standing `place` card exists" — it opens it
-     * unconditionally on mount. Re-opening it after the world ends the
-     * old one is that same decision, not a new one; what the card SHOWS
-     * still comes entirely from the server's catalogue.
-     */
-    const reopenPlace = (): void => {
-      placeId = websocketClient.subscribeMql({ pane: "place" });
-      openPlace();
-    };
-
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;
       const store = useStore.getState();
@@ -234,7 +197,6 @@ export function usePaneFeed(): void {
       const env = envelope as MqlSubscriptionReleasedEnvelope;
       const store = useStore.getState();
       if (!store.paneCards[env.subscriptionId]) return;
-      const wasStandingPlace = env.subscriptionId === placeId;
       store.releasePane(env);
       /*
        * ⚠ The server has already torn the subscription down — the
@@ -243,11 +205,6 @@ export function usePaneFeed(): void {
        * resurrect a pane the world ended.
        */
       websocketClient.unsubscribe(env.subscriptionId);
-      // ⚠ Only the standing card comes back. A subject pane the radial
-      // opened is about ONE thing, and re-opening it after that thing
-      // went out of reach would be a card asserting a condition the
-      // world just denied.
-      if (wasStandingPlace) reopenPlace();
     };
 
     websocketClient.onEnvelope("mql-subscription-result", handleResult);
@@ -258,11 +215,46 @@ export function usePaneFeed(): void {
       websocketClient.offEnvelope("mql-subscription-result", handleResult);
       websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
       websocketClient.offEnvelope("mql-subscription-released", handleReleased);
-      websocketClient.unsubscribe(placeId);
-      closePaneCard(placeId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /*
+   * ⭐⭐ **Attention drives the feed.** Every time the focus resolves to
+   * a subject the client has not already got a live card for, it opens
+   * one. That is the whole model: you look at things, and the things
+   * you looked at stack up newest-first and age away.
+   *
+   * ⚠ The `inspect` subscription is the SIGNAL, not the card. It
+   * re-points as focus moves — one subscription, changing subject —
+   * which is exactly what you do not want a card to do: a card that
+   * silently became about something else would make the stack a lie.
+   * So the signal opens a per-subject subscription and that one stays
+   * about the thing it was opened for.
+   */
+  const focusStuffId = useStore((s) => s.paneLastResult?.[0]?.stuffId ?? null);
+  useEffect(() => {
+    if (!focusStuffId) return;
+    const store = useStore.getState();
+    const already = Object.values(store.paneCards).some(
+      (c) =>
+        c.released === undefined &&
+        c.paneId === "subject" &&
+        c.records[0]?.stuffId === focusStuffId,
+    );
+    // ⚠ Re-looking at something you already have a live card for brings
+    // it back into view rather than stacking a second identical card.
+    if (already) return;
+    const subscriptionId = websocketClient.subscribeMql({
+      pane: "subject",
+      subject: focusStuffId,
+    });
+    store.openPaneCard({
+      subscriptionId,
+      paneId: "subject",
+      kind: "subject",
+    });
+  }, [focusStuffId]);
 
   void openPaneCard;
   void setPaneRecords;

@@ -1,10 +1,12 @@
 /**
  * `PaneCard` — the one skeleton every pane kind wears.
  *
- * `KIND` (mono, dim) · **name** (serif) · the hold reason, right-aligned
- * · the pin. Five bodies hang off it and none of them re-implements the
- * frame, which is what keeps a mixture of kinds reading as one feed
- * rather than as five widgets that happen to be stacked.
+ **name** (serif) · why it is still here, right-aligned · the pin.
+ *
+ * ⭐ There is one body, and it shows the sections its subject HAS — a
+ * room has exits, a lamp does not. So the frame carries no kind label:
+ * every card is *what I am looking at*, and a word saying so on each
+ * one never varies.
  *
  * ## ⚠ The header states WHY, not how long
  *
@@ -46,14 +48,6 @@ const Head = styled.header`
   align-items: baseline;
   gap: ${tokens.space.sm};
   margin-bottom: ${tokens.space.sm};
-`;
-
-const Kind = styled.span`
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: ${tokens.color.fgMuted};
 `;
 
 const Title = styled.h3`
@@ -151,7 +145,13 @@ export function PaneCard({
       data-pane-released={card.released ?? ""}
     >
       <Head>
-        <Kind>{card.kind}</Kind>
+        {/*
+          ⚠ No kind chip. Every card is the same kind now — *what I am
+          looking at* — so a label saying so on every one is a word that
+          never varies, in a column where space is the constraint. What
+          differs between a room and a lamp is the sections in the body,
+          which is where the reader can actually see it.
+        */}
         <Title>{title}</Title>
         <Reason data-testid="pane-hold-reason">{holdReason(card)}</Reason>
         {/*

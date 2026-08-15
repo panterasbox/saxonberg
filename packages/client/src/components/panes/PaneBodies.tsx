@@ -362,22 +362,19 @@ function Measured({
   record,
 }: {
   record: StuffDetailRecord | StuffRefRecord | undefined;
-}): React.ReactElement {
+}): React.ReactElement | null {
   const rows = measuredRows(record);
-  if (rows.length === 0) {
-    return (
-      <Rows>
-        <Figure
-          label="measured"
-          variant="row"
-          figure={{
-            state: "unwired",
-            reason: "nothing about this declares a reading yet",
-          }}
-        />
-      </Rows>
-    );
-  }
+  /*
+   * ⚠ Absent, not hatched.
+   *
+   * An unwired hatch is the right answer for a figure the surface
+   * PROMISED and cannot fill. This section promises nothing: the card
+   * shows the sections its subject HAS, and a room having no readings is
+   * not a gap in the room — it is what a room is. Hatching it put
+   * *"nothing about this declares a reading yet"* on every location
+   * card, which is noise claiming to be honesty.
+   */
+  if (rows.length === 0) return null;
   return (
     <Rows>
       {rows.map((r) => (
@@ -544,7 +541,7 @@ function WaysOut({
   const preview = onCommandPreview ?? (() => undefined);
   return (
     <>
-      <Label>Ways out</Label>
+      <Label>Exits</Label>
       <InlineLinks>
         {exits.map((exit, i) => {
           const command = `go ${exit.direction}`;
@@ -661,76 +658,121 @@ function ReleasedBody(): React.ReactElement {
  * alternative is a `kind` check inside every body and a default that
  * silently renders the wrong one.
  */
+/**
+ * The details a thing reveals when you look closer.
+ *
+ * ⚠ Each is a real `look <keyword>`, which is why they are commands and
+ * not an expander: the detail's prose comes from the server the same way
+ * the body's did, and faking it client-side would be a second renderer
+ * of the same text.
+ */
+function Details({
+  record,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  record: StuffDetailRecord | undefined;
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement | null {
+  const details = record?.details ?? [];
+  if (details.length === 0) return null;
+  const preview = onCommandPreview ?? (() => undefined);
+  return (
+    <>
+      <Label>Details</Label>
+      <InlineLinks>
+        {details.map((entry, i) => {
+          const key = entry.ids[0] ?? "";
+          if (!key) return null;
+          const command = `look ${key}`;
+          return (
+            <React.Fragment key={key}>
+              {i > 0 && ", "}
+              <InlineLink
+                title={`Click to send: ${command}`}
+                onClick={() => onSendCommand(command)}
+                onMouseEnter={() => preview(command)}
+                onMouseLeave={() => preview(null)}
+              >
+                {key}
+              </InlineLink>
+            </React.Fragment>
+          );
+        })}
+      </InlineLinks>
+    </>
+  );
+}
+
+/**
+ * ⭐⭐ **One body, and the subject decides what is in it.**
+ *
+ * There is no location view and no thing view — there is one card, and
+ * it shows the sections the subject HAS. `exits` is absent on anything
+ * that is not Exitable, `contents` on anything empty, `illustration` on
+ * most things; each section renders itself away when its field is not
+ * there. What differs between a room, a person and a lamp is what they
+ * are associated with, which is exactly what the record already says.
+ *
+ * It shipped as a switch over four "kinds" with four hand-written
+ * bodies, taken from the reference art. That made a room and a thing
+ * two different components with two different sets of controls, and it
+ * was reported as the confusion it is: *"they all have the same
+ * controls, they just differ in what they spotlight because they have
+ * different associates."*
+ */
 export function PaneBody(props: PaneBodyProps): React.ReactElement {
   const { card, onSendCommand, onCommandPreview } = props;
   if (card.released) return <ReleasedBody />;
   const record = card.records[0] as StuffDetailRecord | undefined;
   const stuffId = record?.stuffId;
+  const refresh = record?.primaryKeyword
+    ? `look ${record.primaryKeyword}`
+    : "look";
 
-  switch (card.kind) {
-    case "place":
-      return (
-        <>
-          <PlaceIllustration record={record} />
-          <RoomDescription record={record} />
-          <Composition stuffId={stuffId} />
-          <WaysOut
-            record={record}
-            onSendCommand={onSendCommand}
-            onCommandPreview={onCommandPreview}
-          />
-          <HereList
-            record={record}
-            onSendCommand={onSendCommand}
-            onCommandPreview={onCommandPreview}
-          />
-        </>
-      );
-    case "agent":
-      return (
-        <>
-          <Composition stuffId={stuffId} />
-          <Measured record={record} />
-          <ActionRow
-            stuffId={stuffId}
-            onSendCommand={onSendCommand}
-            onCommandPreview={onCommandPreview}
-          />
-        </>
-      );
-    case "instrument":
-      return (
-        <>
-          <Composition stuffId={stuffId} />
-          <Measured record={record} />
-          {record?.shortDescription && <Prose>{record.shortDescription}</Prose>}
-          <ActionRow
-            stuffId={stuffId}
-            onSendCommand={onSendCommand}
-            onCommandPreview={onCommandPreview}
-          />
-        </>
-      );
-    case "manifest":
-      return (
-        <>
-          <Composition stuffId={stuffId} />
-          <Measured record={record} />
-          <HereList
-            record={record}
-            onSendCommand={onSendCommand}
-            onCommandPreview={onCommandPreview}
-          />
-        </>
-      );
-    case "form":
-    case "inspect":
-    default:
-      // Both have bodies of their own: `form` is rendered from the
-      // prompt queue (its subject is a prompt, not a Stuff), and
-      // `inspect` keeps the existing inspection pane. Neither reaches
-      // this switch in practice; the branch exists so the union is
-      // exhaustive rather than defaulted.
-      return <ReleasedBody />;
-  }
+  return (
+    <>
+      <PlaceIllustration record={record} />
+      <RoomDescription record={record} />
+      <Composition stuffId={stuffId} />
+      <Measured record={record} />
+      <WaysOut
+        record={record}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
+      <HereList
+        record={record}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
+      <Details
+        record={record}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
+      <ActionRow
+        stuffId={stuffId}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
+      {/*
+        ⭐ Every card refreshes the same way, because every card is the
+        same thing: `look` at its subject. Named with the subject's own
+        keyword so the command reads as one the player could have typed.
+      */}
+      <InlineLinks>
+        <InlineLink
+          data-testid="card-refresh"
+          title={`Click to send: ${refresh}`}
+          onClick={() => onSendCommand(refresh)}
+          onMouseEnter={() => onCommandPreview?.(refresh)}
+          onMouseLeave={() => onCommandPreview?.(null)}
+        >
+          refresh
+        </InlineLink>
+      </InlineLinks>
+    </>
+  );
 }

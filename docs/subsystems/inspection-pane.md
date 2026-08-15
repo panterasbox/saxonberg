@@ -301,33 +301,68 @@ found by driving, a room called *Terminus Terminal, the station hall*
 put a lone `hall` between the PLACE card and the pane, attached to
 nothing.
 
-### The four card bodies
+### ⭐⭐ One card, and the subject decides what is in it
 
-Every kind wears the **same skeleton** — `KIND` (mono, dim) · **name**
-(serif) · the hold reason, right-aligned · the pin — and differs only
-in its body. That is what keeps a mixture of kinds reading as one feed
-rather than five widgets that happen to be stacked.
+There is no location view and no thing view. There is **one card** —
+*what I am looking at* — and its body renders the sections its subject
+HAS:
 
-| Kind | Body |
+| section | present when |
 |---|---|
-| `FORM` | the question in serif, replies as command buttons, a primary action |
-| `AGENT` | mixin chips with an overflow count, measured label/value rows, action buttons |
-| `INSTRUMENT` | mixin chips, one large reading with a unit, a gauge bar, a provenance caption |
-| `PLACE` | a capped illustration band, the room's prose clamped to two lines, mixin chips, `WAYS OUT` as inline links, `HERE` as a capped contents list |
+| illustration | the subject has one |
+| description | clamped to two lines, with `more` |
+| mixins | always — everything composes something |
+| measured | the subject declares a reading |
+| **exits** | the subject is Exitable |
+| here | the subject contains something |
+| details | the subject has look-closer keywords |
+| actions | the radial resolved verbs for it |
+| refresh | always — `look <keyword>` |
 
-⚠ **The header states WHY, never how long.** *"held · owes a reply"*,
-*"held · you are here"*, *"stale · you left"*. A pane's lifetime is a
-fact about the world — is that person still here — and a duration in
-the same slot would invite the reader to believe recency had something
-to do with it. It does not.
+⚠ A section that does not apply is **absent, not hatched**. An unwired
+hatch is the right answer for a figure the surface *promised* and cannot
+fill; this body promises nothing, and a room having no readings is not a
+gap in the room. Hatching it put *"nothing about this declares a reading
+yet"* on every location card — noise claiming to be honesty.
 
-⚠ **The chip row truncates with a count** (`+9`), and it **demotes
-plumbing rather than removing it**. Found by driving: the row led with
-`PostRegistrationMixin` and `ExitableMixin`, which teaches the wrong
-half of the composition. `Mixin` is stripped from the label and
-framework mixins sort last — but they still appear, because the row is
-a teaching surface and a hidden mixin is a lie about what the object
-is.
+⚠ **No kind chip.** Every card is the same kind, so a label saying so on
+each one never varies, in a column where space is the constraint. What
+differs between a room and a lamp is which sections render, which is
+where a reader can actually see it.
+
+It shipped as a switch over four kinds — `PLACE` / `AGENT` /
+`INSTRUMENT` / `MANIFEST` — with four hand-written bodies taken from the
+reference art. That made a room and a lamp two components with two sets
+of controls for a difference the player cannot name, and it was reported
+as exactly that: *"they all have the same controls, they just differ in
+what they spotlight because they have different associates."*
+
+### ⭐⭐ Attention drives the feed
+
+Every subject the focus resolves to gets **its own card**, stacking
+newest-first. Re-looking at something you already have a live card for
+brings it back into view rather than minting a duplicate.
+
+⚠ The `inspect` subscription is the SIGNAL, not the card. It re-points
+as focus moves — one subscription, changing subject — which is precisely
+what a card must not do: a card that silently became about something
+else would make the stack a lie. The signal opens a per-subject
+subscription (`subject` in the catalogue) and that one stays about the
+thing it was opened for.
+
+### ⚠ No breadcrumb — the stack IS the trail
+
+The breadcrumb existed because there was ONE slot: you needed a trail to
+know how you got to what it was showing. With a card per thing looked
+at, the history is on screen, and a breadcrumb on one card among many
+reads as a stray fragment — reported as *"they seem to be only on one of
+the cards and since cards stack it's a little weird."*
+
+⭐ Removing it also removed the flash. The focus card had to be
+deduplicated against a standing `place` card, the two subscriptions
+resolved in either order, and on entry a card for the room you were
+standing in appeared and then vanished. There is nothing to deduplicate
+any more.
 
 ### ⭐ Husks age out; live cards never do
 
