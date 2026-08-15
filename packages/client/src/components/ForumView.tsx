@@ -675,11 +675,27 @@ function ArgumentNode({
 interface ForumViewProps {
   onSendCommand: (text: string) => void;
   onCommandPreview: (command: string | null) => void;
+  /**
+   * The organizer of the board being shown, when the caller knows it.
+   *
+   * ⚠⚠ **An EMPTY argument board has no rows to infer from.** The mode
+   * was derived from the projected records (`some(r => r.organizer ===
+   * 'argument')`), which works only once somebody has posted — so a
+   * freshly-lit argument board rendered the popularity chrome: a sort
+   * bar, a "Post thread" composer, and none of the claim-graph. Found by
+   * driving.
+   *
+   * The subject shell knows which SURFACE it opened, so it says. Falling
+   * back to the row-derived guess keeps the standalone/legacy path
+   * working.
+   */
+  organizer?: "popularity" | "argument";
 }
 
 export function ForumView({
   onSendCommand,
   onCommandPreview,
+  organizer,
 }: ForumViewProps): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
   const forumRecords = useStore((s) => s.forumRecords);
@@ -706,10 +722,22 @@ export function ForumView({
       setBoardSub(null);
       return;
     }
-    const id = subscribeForumScope({ kind: "board", id: forumNav.boardHandle });
+    /*
+     * ⚠ Subscribe by board ID when the shell supplied one. The handle
+     * addresses the SUBJECT, and a subject with both forum surfaces lit
+     * resolves it to a documented winner — so a handle-only subscription
+     * showed the popularity board however you got here.
+     */
+    const id = subscribeForumScope({
+      kind: "board",
+      id: forumNav.boardId ?? forumNav.boardHandle,
+    });
     setBoardSub(id);
     return () => unsubscribeForumScope(id);
-  }, [forumNav.boardHandle]);
+    // ⚠ `boardId` in the deps: switching surfaces keeps the handle and
+    // changes only the id, so a handle-only dep list never re-subscribed
+    // — which is what made the Argument tab appear to do nothing.
+  }, [forumNav.boardHandle, forumNav.boardId]);
 
   // Thread subscription — opened only when a thread is selected.
   useEffect(() => {
@@ -808,7 +836,12 @@ export function ForumView({
   // lens (a single claim-graph from the board scope), NOT the ranked
   // thread-list/post-tree. Additive — the popularity view below is
   // untouched. Detected from the projected records' `organizer`.
-  const argumentMode = boardEntries.some((r) => r.organizer === "argument");
+  // Told, when the caller knows; inferred only as a fallback — an empty
+  // board can say nothing about itself.
+  const argumentMode =
+    organizer !== undefined
+      ? organizer === "argument"
+      : boardEntries.some((r) => r.organizer === "argument");
   if (argumentMode) {
     const spine = boardEntries.find((r) => r.parent === null) ?? null;
     const argChildren = buildChildren(boardEntries);

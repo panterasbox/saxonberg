@@ -526,9 +526,24 @@ interface StoreState
    * subject-title handle of the open board; `threadId` is the open
    * thread's entry id (null at the board's thread-list level).
    */
-  forumNav: { boardHandle: string | null; threadId: string | null };
+  /**
+   * Where the forum is pointed.
+   *
+   * ⚠ `boardHandle` addresses the SUBJECT and is what commands are
+   * composed from (`forum post <handle>`); `boardId` addresses the
+   * BOARD and is what the subscription watches. They are two facts, not
+   * one: a subject that lights both forum surfaces has one handle and
+   * two boards, and resolving the handle picks a documented winner —
+   * which made the Argument tab silently re-render Popularity.
+   */
+  forumNav: {
+    boardHandle: string | null;
+    boardId: string | null;
+    threadId: string | null;
+  };
   setForumNav: (nav: {
     boardHandle?: string | null;
+    boardId?: string | null;
     threadId?: string | null;
   }) => void;
 
@@ -1385,7 +1400,7 @@ export const useStore = create<StoreState>((set, get) => ({
       return { feed, feedOrder: orderFeed(feed) };
     }),
 
-  forumNav: { boardHandle: null, threadId: null },
+  forumNav: { boardHandle: null, boardId: null, threadId: null },
   setForumNav: (nav) =>
     set((state) => ({
       forumNav: {
@@ -1393,6 +1408,8 @@ export const useStore = create<StoreState>((set, get) => ({
           nav.boardHandle !== undefined
             ? nav.boardHandle
             : state.forumNav.boardHandle,
+        boardId:
+          nav.boardId !== undefined ? nav.boardId : state.forumNav.boardId,
         threadId:
           nav.threadId !== undefined ? nav.threadId : state.forumNav.threadId,
       },

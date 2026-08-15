@@ -46,6 +46,7 @@ const SUBJECT: ForumSubjectRecord = {
   parent: null,
   audience: { kind: "open", label: "open" },
   surfaces: ["popularity-forum"],
+  surfaceRefs: { "popularity-forum": "board-1" },
   openObjections: 0,
 };
 
@@ -53,7 +54,7 @@ beforeEach(() => {
   useStore.setState({
     forumRecords: { "sub-subjects": [SUBJECT] },
     forumScopes: { "sub-subjects": { kind: "subjects", id: "" } },
-    forumNav: { boardHandle: null, threadId: null },
+    forumNav: { boardHandle: null, boardId: null, threadId: null },
   });
 });
 

@@ -31,7 +31,7 @@ function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord
 
 beforeEach(() => {
   useStore.setState({
-    forumNav: { boardHandle: null, threadId: null },
+    forumNav: { boardHandle: null, boardId: null, threadId: null },
     forumRecords: {},
     forumScopes: {},
   });
@@ -68,12 +68,40 @@ describe("forum store slice", () => {
     useStore.getState().setForumNav({ boardHandle: "gossip" });
     expect(useStore.getState().forumNav).toEqual({
       boardHandle: "gossip",
+      boardId: null,
       threadId: null,
     });
     useStore.getState().setForumNav({ threadId: "e1" });
     expect(useStore.getState().forumNav).toEqual({
       boardHandle: "gossip",
+      boardId: null,
       threadId: "e1",
+    });
+  });
+
+  /**
+   * ⚠⚠ `boardHandle` and `boardId` are TWO facts, not one.
+   *
+   * The handle addresses the SUBJECT — it is what commands are composed
+   * from. The id addresses the BOARD. A subject that lights both forum
+   * surfaces has one handle and two boards, and resolving the handle
+   * picks a documented winner ("Popularity wins the rare both-lit
+   * case"), which is exactly how the Argument tab came to re-render the
+   * popularity board while appearing to do nothing.
+   */
+  it("⭐ keeps the board id beside the handle, and patches it alone", () => {
+    useStore.getState().setForumNav({
+      boardHandle: "gossip",
+      boardId: "board-pop",
+    });
+    expect(useStore.getState().forumNav.boardId).toBe("board-pop");
+
+    // Switching surface keeps the handle and changes only the board.
+    useStore.getState().setForumNav({ boardId: "board-arg" });
+    expect(useStore.getState().forumNav).toEqual({
+      boardHandle: "gossip",
+      boardId: "board-arg",
+      threadId: null,
     });
   });
 

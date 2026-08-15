@@ -41,6 +41,11 @@ function subject(over: Partial<ForumSubjectRecord> = {}): ForumSubjectRecord {
     parent: null,
     audience: { kind: "open", label: "open" },
     surfaces: ["argument-forum", "popularity-forum", "free-chat"],
+    surfaceRefs: {
+      "argument-forum": "board-arg",
+      "popularity-forum": "board-pop",
+      "free-chat": "chan-1",
+    },
     openObjections: 3,
     ...over,
   };
@@ -206,6 +211,35 @@ describe("the header", () => {
     // Singular, because "1 open objections" is the tell that a count and
     // its sentence were written by different people.
     expect(screen.getByText(/1 open objection$/)).toBeTruthy();
+  });
+});
+
+describe("⭐⭐ the two forum surfaces are addressed separately", () => {
+  /*
+   * A subject's HANDLE addresses the subject; `resolveBoardByHandle`
+   * resolves it to a board with a documented tie-break —
+   * "Popularity wins the rare both-lit case." That held while nothing
+   * let you light both. The surface tabs invite exactly that, so
+   * switching to Argument silently re-rendered Popularity: the tab
+   * highlighted, the board did not change, and nothing said why.
+   *
+   * The record carries a ref per surface for this reason alone.
+   */
+  it("carries a backing ref per lit surface", () => {
+    const s = subject();
+    expect(s.surfaceRefs["argument-forum"]).not.toBe(
+      s.surfaceRefs["popularity-forum"],
+    );
+  });
+
+  it("⚠ the two forum refs must never be the same board", () => {
+    // The assertion that would have caught it: not "is there a ref" but
+    // "do the two surfaces resolve to DIFFERENT boards".
+    const s = subject();
+    const forumRefs = (["argument-forum", "popularity-forum"] as const)
+      .map((k) => s.surfaceRefs[k])
+      .filter(Boolean);
+    expect(new Set(forumRefs).size).toBe(forumRefs.length);
   });
 });
 

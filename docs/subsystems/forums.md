@@ -709,6 +709,47 @@ parked, so it renders in the not-wired treatment and sends nothing. A
 control that reliably refuses is worse than one that says it is not
 there yet.
 
+⚠⚠ **A subject's HANDLE does not address a BOARD.** `ForumSubjectRecord`
+carries `surfaceRefs` — the backing document id per lit surface —
+because `resolveBoardByHandle` resolves a handle with a documented
+tie-break (*"Popularity wins the rare both-lit case"*). That assumption
+held while nothing let a player light both forum surfaces; the subject
+tabs invite exactly that, and switching to Argument silently re-rendered
+the popularity board — the tab highlighted, the board did not change,
+nothing said why. `forumNav` now carries `boardId` beside `boardHandle`:
+the id is what the subscription watches, the handle is what commands are
+composed from.
+
+⚠ **And an EMPTY argument board cannot describe itself.** `ForumView`
+derived its render mode from the projected rows
+(`some(r => r.organizer === 'argument')`), so a freshly-lit argument
+board showed the popularity chrome — a sort bar and a "Post thread"
+composer over a claim graph. The shell knows which surface it opened, so
+it passes `organizer` explicitly; the row-derived guess survives only as
+the fallback for the standalone path.
+
+⭐ **The chat surface is a TERMINAL.** It stood in with
+`ForumChatSidecar`, a fixed-width rail built to sit *beside* the forum,
+whose input needed a "Talk here" click to put the global command bar
+into a `chat <handle>` prefix. If you are looking at a subject's chat,
+what you type goes to that chat — the scoping is implied by where you
+are. `ChatSurface` owns its own composer, filters the one shared frame
+buffer by `channelName`, and still states its verb.
+
+⚠⚠ **`chat`, not `chan`.** The reference mock draws `chan <handle>
+<msg>` and the first cut composed exactly that; the server answered *"I
+don't understand 'chan'."* Same mistake as the reaction sigil and from
+the same cause — **the command form was copied from a mock rather than
+read off the verb spec.**
+
+⭐ **The forum shows the server's last reply.** `chat` mode renders no
+transcript, so every command answer landed nowhere: clicking a vote
+arrow on your own thread produced *"You cannot change the vote on your
+own entry"* — correct and informative — and the player saw an unmoved
+score and no reason. It was reported as *voting doesn't work*; voting
+worked fine. **A surface that lets you send has to show you the
+answer.**
+
 ⭐ **On a phone the shell is MASTER-DETAIL, not two columns.** At 390px
 the desktop arrangement left the rail its 14–18rem and the body about
 200px — a forum post four words to a line. A subject and its surfaces

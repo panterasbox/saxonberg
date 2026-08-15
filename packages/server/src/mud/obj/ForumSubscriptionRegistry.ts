@@ -336,6 +336,13 @@ export default class ForumSubscriptionRegistry extends Idea {
         surfaces: SURFACE_ORDER.filter((surface) =>
           s.hasManifestation(surface),
         ),
+        // The backing doc per lit surface, so a client can address the
+        // ARGUMENT board of a subject that also lights a popularity one.
+        surfaceRefs: Object.fromEntries(
+          s
+            .getManifestations()
+            .map((m) => [m.surface, m.ref] as const),
+        ),
         openObjections,
       });
     }
@@ -756,7 +763,8 @@ function subjectRecordsEqual(
     a.audience.label === b.audience.label &&
     a.openObjections === b.openObjections &&
     a.surfaces.length === b.surfaces.length &&
-    a.surfaces.every((s, i) => s === b.surfaces[i])
+    a.surfaces.every((s, i) => s === b.surfaces[i]) &&
+    a.surfaces.every((s) => a.surfaceRefs[s] === b.surfaceRefs[s])
   );
 }
 

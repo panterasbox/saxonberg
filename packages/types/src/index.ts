@@ -1604,6 +1604,19 @@ export interface ForumSubjectRecord {
   /** The surfaces this subject has lit, in vocabulary order. */
   surfaces: SubjectSurfaceName[];
   /**
+   * The backing document id per lit surface — a `Board` for the forum
+   * surfaces, a `Channel` for the chat ones.
+   *
+   * ⚠⚠ **Without this the two forum surfaces are indistinguishable to a
+   * client.** A subject's handle addresses the SUBJECT, and
+   * `resolveBoardByHandle` resolves it to a board with a documented
+   * tie-break — *"Popularity wins the rare both-lit case."* That
+   * assumption held while no surface let you light both; the subject
+   * tabs invite exactly that, and switching to Argument then silently
+   * re-rendered the popularity board. Found by driving.
+   */
+  surfaceRefs: Partial<Record<SubjectSurfaceName, string>>;
+  /**
    * Objections on this subject's argument board that nothing answers.
    * Zero when there is no argument surface. ⚠ Derived from the SAME
    * `openObjection` computation the entry projection uses — the badge and

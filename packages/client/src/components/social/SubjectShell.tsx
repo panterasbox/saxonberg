@@ -24,7 +24,8 @@ import { tokens } from "../ui";
 import { SubjectRail } from "./SubjectRail";
 import { SubjectHeader } from "./SubjectHeader";
 import { ForumView } from "../ForumView";
-import { ForumChatSidecar } from "../ForumChatSidecar";
+import { ChatSurface } from "./ChatSurface";
+import { useStore } from "../../store";
 import { openForumBoard } from "../../store/forumActions";
 import { useIsCompact } from "../../lib/style/useIsCompact";
 import { isForumSurface } from "./surfaces";
@@ -74,6 +75,29 @@ const Empty = styled.p`
   margin: 0;
 `;
 
+/**
+ * ⚠⚠ **What the server just said, because otherwise nothing does.**
+ *
+ * `chat` mode renders no transcript, so every command reply landed
+ * nowhere: clicking a vote arrow on your own thread produced *"You
+ * cannot change the vote on your own entry"* — a correct, informative
+ * refusal — and the player saw a score that did not move and no reason.
+ * Reported as "voting doesn't work"; voting worked fine.
+ *
+ * ⭐ The command line is never silent, and that cuts both ways: a
+ * surface that lets you SEND has to show you the ANSWER. This is the
+ * smallest honest form of that — the last reply, where you are looking.
+ */
+const Reply = styled.output`
+  display: block;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+  border-top: 1px solid ${tokens.color.border};
+  padding: ${tokens.space.xs} ${tokens.space.lg};
+  white-space: pre-wrap;
+`;
+
 export interface SubjectShellProps {
   onSendCommand: (text: string, barId?: string) => void;
   onCommandPreview: (command: string | null) => void;
@@ -111,26 +135,56 @@ export const SubjectShell: React.FC<SubjectShellProps> = ({
    * waits for one is the surface-tab treatment inside the body.
    */
   const isCompact = useIsCompact();
+  /*
+   * The most recent command reply. `shell.result` is the verb's own
+   * answer; `shell.diagnostic` carries a refusal. Both are things the
+   * player asked for and must be able to read from here.
+   */
+  const lastReply = useStore((st) => {
+    for (let i = st.frames.length - 1; i >= 0; i--) {
+      const f = st.frames[i]!;
+      if (f.topic === "shell.result" || f.topic === "shell.diagnostic") {
+        return f;
+      }
+    }
+    return null;
+  });
   const [selected, setSelected] = React.useState<ForumSubjectRecord | null>(
     null,
   );
   const [surface, setSurface] = React.useState<SubjectSurfaceName | null>(null);
 
-  const selectSubject = React.useCallback((s: ForumSubjectRecord) => {
-    setSelected(s);
-    const first = defaultSurface(s);
-    setSurface(first);
-    // `ForumView` reads the board out of `forumNav`; the subject's handle
-    // IS the board handle for a lit forum surface.
-    if (first && isForumSurface(first)) openForumBoard(s.handle);
-  }, []);
+  /*
+   * ⚠ Point at the SPECIFIC board, not just the subject's handle. One
+   * subject with both forum surfaces lit has one handle and two boards;
+   * resolving by handle picks a documented winner, which is how the
+   * Argument tab came to silently re-render Popularity.
+   */
+  const openSurface = React.useCallback(
+    (s: ForumSubjectRecord, next: SubjectSurfaceName | null) => {
+      if (next && isForumSurface(next)) {
+        openForumBoard(s.handle, s.surfaceRefs[next] ?? null);
+      }
+    },
+    [],
+  );
+
+  const selectSubject = React.useCallback(
+    (s: ForumSubjectRecord) => {
+      setSelected(s);
+      const first = defaultSurface(s);
+      setSurface(first);
+      openSurface(s, first);
+    },
+    [openSurface],
+  );
 
   const selectSurface = React.useCallback(
     (next: SubjectSurfaceName) => {
       setSurface(next);
-      if (selected && isForumSurface(next)) openForumBoard(selected.handle);
+      if (selected) openSurface(selected, next);
     },
-    [selected],
+    [selected, openSurface],
   );
 
   // On a phone the rail and the body take turns; on a desktop both show.
@@ -183,12 +237,26 @@ export const SubjectShell: React.FC<SubjectShellProps> = ({
                 <ForumView
                   onSendCommand={onSendCommand}
                   onCommandPreview={onCommandPreview}
+                  // The shell knows which surface it opened; an empty
+                  // board cannot tell ForumView what it is.
+                  organizer={
+                    surface === "argument-forum" ? "argument" : "popularity"
+                  }
                 />
               ) : (
-                <ForumChatSidecar onSendCommand={onSendCommand} />
+                <ChatSurface
+                  handle={selected.handle}
+                  onSendCommand={onSendCommand}
+                  onCommandPreview={onCommandPreview}
+                />
               )}
             </Body>
           </>
+        )}
+        {lastReply && (
+          <Reply data-testid="forum-reply" aria-live="polite">
+            {lastReply.body.replace(/<[^>]+>/g, "").trim()}
+          </Reply>
         )}
       </Main>
     </Shell>
