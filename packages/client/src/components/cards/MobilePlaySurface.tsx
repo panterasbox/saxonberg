@@ -95,6 +95,14 @@ export function PinnedChipRow({
   onSendCommand,
 }: PinnedChipRowProps): React.ReactElement | null {
   const cards = useStore((s) => s.cards);
+  /*
+   * ⚠ **Deliberately NOT filtered by `visibleCards`.** This row is
+   * chrome about your PINS, not a rendering of card content: under
+   * `shell.result: terminal` the card's content is in the transcript
+   * and the card itself is hidden, but the pin is still real and still
+   * yours to release — and hiding the chip would strand it with no way
+   * to un-pin. Verified at 390px.
+   */
   const pinned = Object.values(cards).filter((c) => c.pinned);
   if (pinned.length === 0) return null;
   return (
@@ -102,7 +110,11 @@ export function PinnedChipRow({
       {pinned.map((card) => {
         const name =
           card.title ?? card.records[0]?.displayName ?? card.cardId;
-        const ref = card.cardId;
+        // ⚠ The KEY, not the catalogue id — two cards of one kind can be
+        // open at once. See `Card.tsx`'s `cardRef`.
+        const ref = /\s|"/.test(card.key)
+          ? `"${card.key.replace(/(["\\])/g, "\\$1")}"`
+          : card.key;
         return (
           <Chip
             key={card.instanceId}

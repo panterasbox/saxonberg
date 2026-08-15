@@ -142,6 +142,26 @@ export interface CardProps {
 }
 
 /**
+ * ⚠⚠ **The card's ref is its KEY, not its catalogue id** — and that is
+ * a defect found by driving.
+ *
+ * Two `who` cards can be open at once (`who` and `who --here` are
+ * different commands, so they are different cards). Keyed on `cardId`,
+ * both rendered `cockpit card pin who` and the server acted on
+ * whichever it found first: **two controls, identical labels, acting on
+ * one thing.** A control that does not act on the card it is on is
+ * worse than a missing one.
+ *
+ * The key is quoted when it contains whitespace, because
+ * `cockpit card pin who --here` would bind `--here` as an option of
+ * `cockpit` rather than as part of the name.
+ */
+function cardRef(card: CardState): string {
+  if (!/\s|"/.test(card.key)) return card.key;
+  return `"${card.key.replace(/(["\\])/g, "\\$1")}"`;
+}
+
+/**
  * What the pin does next, and the command that does it.
  *
  * A pinned card hands the decision back to the catalogue's own default;
@@ -151,7 +171,7 @@ export interface CardProps {
  * holding.
  */
 function pinAction(card: CardState): { command: string; label: string } {
-  const ref = card.cardId;
+  const ref = cardRef(card);
   if (card.pinned) {
     return { command: `cockpit card auto ${ref}`, label: "⚲" };
   }
@@ -175,7 +195,7 @@ export function Card({
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
   const faded = card.closed !== undefined;
-  const close = `cockpit card dismiss ${card.cardId}`;
+  const close = `cockpit card dismiss ${cardRef(card)}`;
   /*
    * ⭐⭐ **Refresh re-issues the card's own key** — the normalized
    * command that produced it. Not a new concept, not an API: the
@@ -206,6 +226,7 @@ export function Card({
       $pinned={card.pinned === true}
       data-testid={`card-${card.cardId}`}
       data-card-kind={card.cardId}
+      data-card-key={card.key}
       data-card-live={card.live ? "true" : "false"}
       data-card-closed={card.closed ?? ""}
     >

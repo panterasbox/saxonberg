@@ -192,6 +192,19 @@ export default class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "system/wiki.yaml",
+      /*
+       * ⭐ The news sits beside `help` and `wiki` for the same reason:
+       * it is a reference surface a player carries, and bare `press`
+       * is the READ.
+       *
+       * ⚠ It used to be contributed by `AuthorMixin` alone, which made
+       * the news the one shipped surface an ordinary player could not
+       * ask for — the ticker arrived on connect and no verb showed it
+       * again. Found by driving. The PUBLISHING subcommands carry
+       * `requiresPublisher` for themselves, so opening the read to
+       * everyone opens nothing else.
+       */
+      "system/press.yaml",
       "system/clear.yaml",
       "system/affordances.yaml",
       "author/player.yaml",

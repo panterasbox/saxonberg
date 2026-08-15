@@ -109,6 +109,43 @@ describe('⭐ every social surface is actually mounted', () => {
   });
 });
 
+/**
+ * ⚠⚠ **A rule implemented in one of two render paths silently does
+ * nothing in the other** — the wiring-at-the-layout shape, one level
+ * down, and found the same way: by driving.
+ *
+ * The `shell.result` filter and the named-view filter lived inside
+ * `CardFeed` (the DESKTOP rail), so the phone's inline stack honoured
+ * neither. The per-viewport override's whole payoff is on the phone,
+ * and the phone was the path that ignored it. Both paths call
+ * `visibleCards` now, and this asserts they still do.
+ */
+describe('⚠⚠ the feed rules are not re-implemented per render path', () => {
+  const RENDER_PATHS = [
+    'components/cards/CardFeed.tsx',
+    'layouts/WorldLayout.tsx',
+  ];
+
+  it.each(RENDER_PATHS)('%s filters through visibleCards', (file) => {
+    const text = readFileSync(resolve(src, file), 'utf8');
+    const code = text
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    expect(/visibleCards\s*\(/.test(code), `${file} must call visibleCards`).toBe(
+      true,
+    );
+    /*
+     * ⚠ And must NOT re-derive it. A hand-rolled `prose === undefined`
+     * or `kinds.has(...)` in a render path is the divergence this guard
+     * exists to catch, not a second opinion.
+     */
+    expect(
+      /prose\s*===\s*undefined/.test(code),
+      `${file} must not re-implement the noProse rule`,
+    ).toBe(false);
+  });
+});
+
 describe('⚠⚠ subscription wiring', () => {
   it('is never called from a form-factor-specific component', () => {
     const offenders: string[] = [];

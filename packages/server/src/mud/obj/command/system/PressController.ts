@@ -73,11 +73,22 @@ export default class PressController extends CommandController<ReleaseModel> {
        * ⭐ Bare `press` with NO headline is the READ — the news, and the
        * command that opens the `news` card.
        *
-       * ⚠ It used to refuse with *headline required*, which made the
-       * news the one shipped surface a player could not ask for: the
-       * ticker arrived on connect and there was no verb to see it again.
-       * A card whose only birth path is an arrangement would contradict
-       * *a command opens a card; nothing else does*.
+       * ⚠ It used to refuse — first with *headline required*, and
+       * (found by DRIVING) before that with *you hold no publishing
+       * position, so there is nobody you can press as*, because
+       * `requiresPublisher` was a VERB-level validator. That is a
+       * publishing answer to a reading question, and it made the news
+       * the one shipped surface a player could not ask for: the ticker
+       * arrived on connect and no verb showed it again. A card whose
+       * only birth path is an arrangement would contradict *a command
+       * opens a card; nothing else does*.
+       *
+       * ⚠⚠ The gate moved to the `post` / `edit` / `retract`
+       * subcommands, NOT away: the bare `press <headline>` fallthrough
+       * publish form is still refused, at `PressApi.publish`'s own
+       * `EmploymentApi.mayPublishAs` entitlement — which runs BEFORE
+       * anything is minted or persisted, and which the verb validator
+       * was only ever duplicating.
        */
       case undefined:
         if (!(model.headline ?? '').trim()) {

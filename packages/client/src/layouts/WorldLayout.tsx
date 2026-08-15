@@ -31,6 +31,8 @@ import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
 import { CardFeed } from "../components/cards/CardFeed";
+import { visibleCards } from "../store/cardFeedSlice";
+import { activeCardKinds } from "../store/cardViewActions";
 import { RadialOverlay } from "../components/cards/RadialOverlay";
 import {
   InlineCard,
@@ -164,10 +166,24 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   // the cheapest way anyone will test this, and a one-shot read would
   // make exactly that not work.
   const isCompact = useIsCompact();
-  // Newest last, so a card sits AFTER the frames that caused it.
+  /*
+   * ⚠⚠ **The same visibility rules as the rail**, via `visibleCards` —
+   * they used to live only inside `CardFeed`, so the phone's inline
+   * stack honoured neither the `shell.result` filter nor a named view.
+   * That is the form factor the per-viewport override exists FOR. Found
+   * by driving at 390px; every component test passed.
+   *
+   * ⭐ Newest LAST here rather than first: a card sits after the frames
+   * that caused it, because on a phone the feed is the transcript and
+   * causal order is reading order.
+   */
+  const kinds = activeCardKinds();
   const inlineCards = React.useMemo(
-    () => Object.values(cards).sort((a, b) => a.openedAt - b.openedAt),
-    [cards],
+    () =>
+      visibleCards(cards, { resultDisplay, kinds }).sort(
+        (a, b) => a.openedAt - b.openedAt,
+      ),
+    [cards, resultDisplay, kinds],
   );
   /*
    * The whole buffer — the denominator the reconciler quotes. Every

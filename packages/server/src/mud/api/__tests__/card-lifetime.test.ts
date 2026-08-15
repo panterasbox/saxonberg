@@ -114,6 +114,36 @@ describe('a card lives on one axis: pinned or not', () => {
     expect(h.ofType('card-closed')[0]!.reason).toBe('aged-out');
   });
 
+  /**
+   * ⚠⚠ Found by DRIVING. Two `who` cards can be open at once (`who` and
+   * `who --here` are different commands, so different cards), and
+   * resolving the pin by catalogue name first meant both cards' controls
+   * sent `cockpit card pin who` — **two controls, identical labels,
+   * acting on one thing.** The KEY is the card's identity and is unique
+   * by construction, so it resolves first.
+   */
+  it('⚠⚠ setPinned resolves the KEY first, so two of a kind are distinct', async () => {
+    const h = await makeHarness();
+    openWho(h, 'who');
+    openWho(h, 'who --here');
+    expect(CardApi.list(h.interactive).length).toBe(2);
+
+    expect(CardApi.setPinned(h.interactive, 'who --here', true)).toBe(true);
+    const byKey = new Map(
+      CardApi.list(h.interactive).map((c) => [c.key, c.pinned]),
+    );
+    expect(byKey.get('who --here')).toBe(true);
+    // ⭐ The OTHER one is untouched — which is the whole point.
+    expect(byKey.get('who')).toBe(false);
+  });
+
+  it('the catalogue name still resolves — the form the verb\'s help shows', async () => {
+    const h = await makeHarness();
+    openWho(h, 'who');
+    expect(CardApi.setPinned(h.interactive, 'who', true)).toBe(true);
+    expect(CardApi.list(h.interactive)[0]!.pinned).toBe(true);
+  });
+
   it('an explicit close states its own reason', async () => {
     const h = await makeHarness();
     const id = openWho(h);

@@ -160,6 +160,63 @@ export function cardReason(card: CardState): string {
   return "";
 }
 
+/**
+ * ⭐⭐ **The ONE place the feed's visibility rules live.**
+ *
+ * ⚠⚠ Extracted because they were not one place, and driving found it:
+ * the `resultDisplay` filter and the named-view filter lived inside
+ * `CardFeed` — the DESKTOP rail — so the phone's inline stack ignored
+ * both. Decision 11's entire payoff is *mobile may default to filtering
+ * `shell.result` out of the terminal*, and the mobile path was the one
+ * that did not honour it. The same shape as the wiring-at-the-layout
+ * bug, one level down: a rule implemented in one of two render paths
+ * silently does nothing in the other, and a component test on the path
+ * that has it passes.
+ *
+ * Both render paths call this. There is no third.
+ */
+export function visibleCards(
+  cards: Record<string, CardState>,
+  opts: {
+    /** The effective `shell.result` for THIS viewport. */
+    resultDisplay?: "card" | "terminal" | "both";
+    /** The active named view's kinds, or `null` for no filter at all. */
+    kinds?: ReadonlySet<CardId> | null;
+  } = {},
+): CardState[] {
+  const { resultDisplay = "card", kinds = null } = opts;
+  return Object.values(cards).filter(
+    (c) =>
+      /*
+       * ⚠ `terminal` suppresses a card only when it HAS prose to fall
+       * back to. A card that declares `noProse` — the CMS editor, the
+       * git panel, the studio composer — has no terminal rendering, so
+       * suppressing it would take the authoring surface away on a
+       * setting that never claimed to.
+       */
+      (resultDisplay !== "terminal" || c.prose === undefined) &&
+      (kinds === null || kinds.has(c.cardId)),
+  );
+}
+
+/**
+ * ⭐ The feed order: the **pinned block first**, stable by arrival, then
+ * the unpinned block newest-touched-first.
+ *
+ * ⚠ A pinned card holds its position. One that jumped to the front every
+ * time you touched something else would be worse than one that sits
+ * still — the whole reason to pin is that you want it where you left it.
+ */
+export function orderCards(cards: readonly CardState[]): CardState[] {
+  const held = cards
+    .filter((c) => c.pinned)
+    .sort((a, b) => a.openedAt - b.openedAt);
+  const rest = cards
+    .filter((c) => !c.pinned)
+    .sort((a, b) => b.openedAt - a.openedAt);
+  return [...held, ...rest];
+}
+
 export interface CardFeedSlice {
   /** Every card, keyed by instance id. */
   cards: Record<string, CardState>;
@@ -328,16 +385,7 @@ export const createCardFeedSlice = (
       return { cards: next };
     }),
 
-  cardFeed: () => {
-    const all = Object.values(get().cards);
-    const pinned = all
-      .filter((c) => c.pinned)
-      .sort((a, b) => a.openedAt - b.openedAt);
-    const rest = all
-      .filter((c) => !c.pinned)
-      .sort((a, b) => b.openedAt - a.openedAt);
-    return [...pinned, ...rest];
-  },
+  cardFeed: () => orderCards(Object.values(get().cards)),
 
   pinnedCardCount: () =>
     Object.values(get().cards).filter((c) => c.pinned).length,

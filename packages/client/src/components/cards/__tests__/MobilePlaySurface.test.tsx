@@ -51,10 +51,17 @@ describe("the pinned chip row", () => {
     expect(screen.getByText(/The Yard/)).toBeTruthy();
     expect(screen.queryByText(/who/)).toBeNull();
 
-    fireEvent.click(screen.getByLabelText("cockpit card auto place"));
+    /*
+     * ⚠ The chip names the card by its KEY (`look`), not by its
+     * catalogue id — two cards of one kind can be open at once, and a
+     * chip that acted on whichever the server found first would be a
+     * control that does not act on the card it is on. See `Card.tsx`'s
+     * `cardRef`.
+     */
+    fireEvent.click(screen.getByLabelText("cockpit card auto look"));
     // ⭐ A real command, like every other pin control. The chip is a
     // handle on a server-side decision, not a local toggle.
-    expect(sent).toEqual(["cockpit card auto place"]);
+    expect(sent).toEqual(["cockpit card auto look"]);
   });
 
   it("renders nothing when nothing is pinned", () => {

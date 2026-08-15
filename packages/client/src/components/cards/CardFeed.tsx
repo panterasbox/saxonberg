@@ -25,6 +25,7 @@ import { tokens } from "../ui";
 import { Card } from "./Card";
 import { CardBody } from "./CardBodies";
 import { CardViewStrip } from "./CardViewStrip";
+import { orderCards, visibleCards } from "../../store/cardFeedSlice";
 import { activeCardKinds } from "../../store/cardViewActions";
 
 const Column = styled.aside<{ $compact: boolean }>`
@@ -164,16 +165,15 @@ export function CardFeed({
    * it.
    */
   const kinds = activeCardKinds();
-  const cards = React.useMemo(() => {
-    const all = Object.values(cardsById).filter(
-      (c) =>
-        (resultDisplay !== "terminal" || c.prose === undefined) &&
-        (kinds === null || kinds.has(c.cardId)),
-    );
-    const held = all.filter((c) => c.pinned).sort((a, b) => a.openedAt - b.openedAt);
-    const rest = all.filter((c) => !c.pinned).sort((a, b) => b.openedAt - a.openedAt);
-    return [...held, ...rest];
-  }, [cardsById, resultDisplay, kinds]);
+  /*
+   * ⚠⚠ Both filters come from `visibleCards`, which the PHONE's inline
+   * stack calls too. They lived here alone, and the phone ignored them —
+   * see that function's own note.
+   */
+  const cards = React.useMemo(
+    () => orderCards(visibleCards(cardsById, { resultDisplay, kinds })),
+    [cardsById, resultDisplay, kinds],
+  );
   const pinned = React.useMemo(
     () => cards.filter((c) => c.pinned).length,
     [cards],

@@ -1108,6 +1108,17 @@ keys on a per-frame `meta.carded` marker instead — exact by
 construction, because the producer that opens the card is the producer
 that stamps the frame.
 
+⭐⭐ **And the live drive found four defects a green suite could not**,
+two of them the same shape as § 7.17's: a rule implemented in one of two
+render paths. Two cards of one kind rendered the *same* pin command; the
+phone ignored both feed filters (and the per-viewport override's whole
+payoff is on the phone); the news card was unreachable by command
+because a verb-level validator answered a reading question with a
+publishing refusal; and `cms`/`studio` did not exist as verbs at all,
+because a command YAML nothing CONTRIBUTES is not reachable. Full
+account in [card-surface.md § What the live drive
+found](../../subsystems/card-surface.md).
+
 **The residue § 7.16–7.17 recorded:** the wiki-search hatch is closed
 (it cited an audit that was already stale — *the hatch was written from
 a table rather than from the tree*); the action row can now tell

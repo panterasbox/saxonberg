@@ -1347,6 +1347,21 @@ export const useStore = create<StoreState>((set, get) => ({
      * place below: the old path is not deleted until the backfill has
      * been driven live.
      */
+    /*
+     * ⭐ **A backfilled frame never carries `carded`, and that is a
+     * decision.**
+     *
+     * The `shell.result` filter hides a frame because a card is showing
+     * the same content RIGHT NOW. A backfilled frame has no card — it is
+     * your history — so hiding it would lose exactly what the
+     * filter-not-placement design promised to keep: *filtering keeps
+     * your `who` history searchable while keeping it out of sight.*
+     *
+     * ⚠ Stated rather than left to the field list below, because "the
+     * mapper happens not to copy it" and "history is deliberately
+     * unfiltered" look identical from the code and only one of them
+     * survives a refactor.
+     */
     const backfill: Frame[] = (payload.frameBackfill ?? []).map((f) => ({
       id: f.id,
       topic: f.topic,

@@ -287,11 +287,26 @@ export default class CardRegistry extends Idea {
   }
 
   /**
-   * Pin / unpin. `cardRef` resolves by CATALOGUE NAME first and instance
-   * id second — in that order, because that is the order the player can
-   * type: `cockpit card list` prints the catalogue id, and a surface
-   * that names things one way and accepts them another is worse than
-   * one that is consistently awkward.
+   * Pin / unpin.
+   *
+   * ⚠⚠ **`cardRef` resolves by KEY first**, then catalogue name, then
+   * instance id — and the order is a defect found by DRIVING.
+   *
+   * Two `who` cards can be open at once (`who` and `who --here` are
+   * different commands, so they are different cards). Resolving by
+   * catalogue name first meant both cards' pin controls sent
+   * `cockpit card pin who`, and the server acted on whichever it found
+   * first: **two controls, identical labels, acting on one thing.** A
+   * control that does not act on the card it is on is worse than a
+   * missing one.
+   *
+   * The KEY is the card's identity and is unique by construction, so it
+   * is the ref the client sends. The catalogue name still resolves —
+   * `cockpit card pin place` is the form the verb's own help shows, and
+   * it is unambiguous whenever only one card of that kind is open. The
+   * instance id resolves last and is never SHOWN: it is a server-minted
+   * `card-<uuid>`, and printing that at a player is the transport
+   * leaking into the interface.
    */
   @CallSecurity(CardApiCallers)
   public setPinned(
@@ -303,9 +318,17 @@ export default class CardRegistry extends Idea {
     if (!bucket) return false;
     let state: CardState | undefined;
     for (const candidate of bucket.values()) {
-      if (candidate.cardId === cardRef) {
+      if (candidate.key === cardRef) {
         state = candidate;
         break;
+      }
+    }
+    if (!state) {
+      for (const candidate of bucket.values()) {
+        if (candidate.cardId === cardRef) {
+          state = candidate;
+          break;
+        }
       }
     }
     state ??= bucket.get(cardRef);

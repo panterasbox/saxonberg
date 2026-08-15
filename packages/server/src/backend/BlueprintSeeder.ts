@@ -81,13 +81,18 @@ export class BlueprintSeeder {
     }
 
     let inserted = 0;
-    inserted += await BlueprintSeeder.#deriveSkeleton(bySignature, byId);
+    const unresolvable: string[] = [];
+    inserted += await BlueprintSeeder.#deriveSkeleton(
+      bySignature,
+      byId,
+      unresolvable
+    );
     inserted += await BlueprintSeeder.#curatedOverlay(
       bySignature,
       byBlueprintId,
       opts
     );
-    const reaped = await BlueprintSeeder.#reapOrphans(existing);
+    const reaped = await BlueprintSeeder.#reapOrphans(existing, unresolvable);
 
     console.info(
       `BlueprintSeeder: ${inserted} new blueprint${inserted === 1 ? '' : 's'}` +
@@ -118,8 +123,11 @@ export class BlueprintSeeder {
    * The log carries the exact `deleteMany` instead — an operator
    * decision, made once, with the command in front of them.
    */
-  static async #reapOrphans(existing: Blueprint[]): Promise<number> {
-    const orphanClasses: string[] = [];
+  static async #reapOrphans(
+    existing: Blueprint[],
+    unresolvable: string[]
+  ): Promise<number> {
+    const orphanClasses: string[] = [...unresolvable];
     let reaped = 0;
     for (const bp of existing) {
       // Curated rows have no `classPath`; a blessed row is authored.
@@ -160,7 +168,8 @@ export class BlueprintSeeder {
    */
   static async #deriveSkeleton(
     bySignature: Map<string, Blueprint>,
-    byId: Set<string>
+    byId: Set<string>,
+    unresolvable: string[]
   ): Promise<number> {
     let classPaths: string[];
     try {
@@ -182,11 +191,15 @@ export class BlueprintSeeder {
       let ctor: AnyConstructor;
       try {
         ctor = (await StuffApi.loadClassByPath(classPath)) as AnyConstructor;
-      } catch (err) {
-        console.warn(
-          `BlueprintSeeder: skipping ${classPath} (unresolvable): ` +
-            (err as Error).message
-        );
+      } catch {
+        /*
+         * ⚠ Collected, not warned per-row. The old shape printed one
+         * `skipping X (unresolvable)` line per orphan at EVERY boot —
+         * a warning nobody could act on, because it named the row
+         * without saying what to do about it. They are reported once,
+         * together, with the exact command, below.
+         */
+        unresolvable.push(classPath);
         continue;
       }
       const signature = Blueprint.signatureOf(ctor);

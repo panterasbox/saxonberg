@@ -41,10 +41,11 @@ help: |
   retract <id>` soft-deletes it (the document stays in the archive
   but drops out of the live window).
 
-  The verb is offered to anyone holding a publishing position
-  anywhere — if you hold none, the game won't offer it.
-validators:
-  - /lib/command/validators/requiresPublisher
+  ⭐ Bare `press` READS — the live ticker window, and the command
+  that opens the news card. Anyone can read the news; the publishing
+  subcommands are the ones that need a position, and each one says so
+  for itself.
+validators: []
 fallthrough: true
 options:
   as:
@@ -88,6 +89,14 @@ options:
 subcommands:
   post:
     description: "Publish a new release to the ticker"
+    # ⚠ The publisher gate lives HERE, not on the verb.
+    #
+    # It was verb-level, so a player holding no publishing position was
+    # refused *"there is nobody you can press as"* for BARE `press` —
+    # a publishing answer to a reading question, and it made the news
+    # the one surface a player could not ask for. Found by driving.
+    validators:
+      - /lib/command/validators/requiresPublisher
     help: |
       Publish an announcement to the news ticker. Give the headline
       inline and the publisher with `--as`; the verb-scoped
@@ -100,6 +109,8 @@ subcommands:
         greedy: true
   edit:
     description: "Edit an existing release in place (by id)"
+    validators:
+      - /lib/command/validators/requiresPublisher
     help: |
       Revise a release you published. Give its id, then the new
       headline inline (or leave it off to edit only the flags). The
@@ -115,6 +126,8 @@ subcommands:
         greedy: true
   retract:
     description: "Retract a release (soft delete — kept in the archive)"
+    validators:
+      - /lib/command/validators/requiresPublisher
     help: |
       Drop a release out of the live ticker. It is a soft delete: the
       row stays in the archive for truthfulness, but no longer shows in

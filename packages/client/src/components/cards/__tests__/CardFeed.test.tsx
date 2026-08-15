@@ -195,6 +195,28 @@ describe("⭐ the honesty rule: a static card looks static", () => {
 });
 
 describe("the pin", () => {
+  /**
+   * ⚠⚠ **Two cards of one KIND can be open at once**, and this is the
+   * regression for the defect driving found: keyed on `cardId`, both
+   * `who` cards rendered `cockpit card pin who` and the server acted on
+   * whichever it found first — two controls, identical labels, acting
+   * on one thing.
+   */
+  it("⚠⚠ names the card by its KEY, so two of a kind are distinguishable", () => {
+    landCard(opened({ instanceId: "a", cardId: "who", key: "who" }));
+    landCard(
+      opened({ instanceId: "b", cardId: "who", key: "who --here" }),
+    );
+    render(<CardFeed onSendCommand={noop} />);
+    // The one with a space in its key is quoted, or `--here` would bind
+    // as an option of `cockpit`.
+    expect(screen.getByLabelText('cockpit card pin "who --here"')).toBeTruthy();
+    expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
+    expect(
+      screen.getByLabelText('cockpit card dismiss "who --here"'),
+    ).toBeTruthy();
+  });
+
   it("⚠ sends a real command; it does not toggle locally", () => {
     landCard(opened({ instanceId: "c1", cardId: "who" }));
     const sent: string[] = [];

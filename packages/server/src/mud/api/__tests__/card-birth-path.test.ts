@@ -179,6 +179,32 @@ describe('a card is born on the server, or not at all', () => {
     );
   });
 
+  /**
+   * ⚠⚠ **Found by DRIVING.** A verb whose card is reachable only by an
+   * arrangement contradicts the governing rule; a verb-level validator
+   * makes it exactly that for anyone the validator refuses.
+   *
+   * `press` carried `requiresPublisher` at VERB level, so a player
+   * holding no publishing position was refused *"there is nobody you
+   * can press as"* for a bare `press` — a publishing answer to a
+   * reading question. The gate moved to the publishing SUBCOMMANDS.
+   */
+  it('⚠⚠ no card-opening verb is gated by a verb-level validator its READ does not need', () => {
+    const press = readFileSync(
+      join(SERVER_SRC, 'mud', 'cmd', 'system', 'press.yaml'),
+      'utf8',
+    );
+    // The verb itself gates nothing — bare `press` is the read.
+    expect(press).toMatch(/^validators: \[\]$/m);
+    // …and each publishing subcommand carries the gate itself. Three,
+    // asserted as a count: a gate that quietly moved to two of three
+    // would be a hole.
+    expect(
+      [...press.matchAll(/requiresPublisher/g)].length,
+      'post / edit / retract must each carry the publisher gate',
+    ).toBe(3);
+  });
+
   it('the CLIENT never writes into the card set except from a card-* envelope', () => {
     const files = sourceFiles(CLIENT_SRC).filter(
       (f) => !f.includes('__tests__'),

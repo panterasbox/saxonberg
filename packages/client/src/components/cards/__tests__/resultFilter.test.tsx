@@ -27,6 +27,7 @@ import { useStore } from "../../../store/index";
 import { CardFeed } from "../CardFeed";
 import { websocketClient } from "../../../services/websocket";
 import type { CardState } from "../../../store/cardFeedSlice";
+import { visibleCards } from "../../../store/cardFeedSlice";
 import type { CardId } from "@saxonberg/types";
 
 let clock = 1_000;
@@ -102,5 +103,75 @@ describe("shell.result", () => {
      * server-side lifetime, which this side does not own.
      */
     expect(Object.keys(useStore.getState().cards)).toEqual(["i-who"]);
+  });
+});
+
+/**
+ * ⚠⚠ **The rule lives in ONE place, and this is why.**
+ *
+ * Both filters lived inside `CardFeed` — the DESKTOP rail — so the
+ * phone's inline stack honoured neither. Decision 11's entire payoff is
+ * *mobile may default to filtering `shell.result` out of the terminal*,
+ * and the mobile path was the one that ignored it. Found by driving at
+ * 390px; every component test passed, because they all render the path
+ * that HAS the rule.
+ *
+ * So the rule is a function both render paths call, and it is tested
+ * directly — a test through one component would share the blind spot it
+ * exists to cover.
+ */
+describe("⚠⚠ visibleCards — the one rule both render paths call", () => {
+  const set = (...cards: CardState[]): Record<string, CardState> => {
+    const byId: Record<string, CardState> = {};
+    for (const c of cards) byId[c.instanceId] = c;
+    return byId;
+  };
+
+  it("`terminal` drops a card WITH prose and keeps one without", () => {
+    const cards = set(
+      card("who", { prose: "Alice" }),
+      card("cms"),
+    );
+    expect(
+      visibleCards(cards, { resultDisplay: "terminal" }).map((c) => c.cardId),
+    ).toEqual(["cms"]);
+  });
+
+  it("`card` and `both` keep everything", () => {
+    const cards = set(card("who", { prose: "Alice" }), card("cms"));
+    for (const mode of ["card", "both"] as const) {
+      expect(
+        visibleCards(cards, { resultDisplay: mode }).map((c) => c.cardId).sort(),
+      ).toEqual(["cms", "who"]);
+    }
+  });
+
+  it("a named view narrows to its kinds; `null` narrows nothing", () => {
+    const cards = set(card("who"), card("news"), card("wiki"));
+    expect(
+      visibleCards(cards, { kinds: new Set<CardId>(["wiki"]) }).map(
+        (c) => c.cardId,
+      ),
+    ).toEqual(["wiki"]);
+    expect(visibleCards(cards, { kinds: null }).length).toBe(3);
+  });
+
+  it("the two filters compose", () => {
+    const cards = set(
+      card("who", { prose: "Alice" }),
+      card("wiki", { prose: "page" }),
+      card("cms"),
+    );
+    expect(
+      visibleCards(cards, {
+        resultDisplay: "terminal",
+        kinds: new Set<CardId>(["wiki", "cms"]),
+      }).map((c) => c.cardId),
+    ).toEqual(["cms"]);
+  });
+
+  it("⚠ the defaults are the permissive ones — an unset filter hides nothing", () => {
+    const cards = set(card("who", { prose: "Alice" }), card("cms"));
+    expect(visibleCards(cards).length).toBe(2);
   });
 });

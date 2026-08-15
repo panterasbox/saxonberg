@@ -336,6 +336,14 @@ suppressing it would take the authoring surface away on a setting that
 never claimed to. The absence of `prose` on the wire IS that
 declaration arriving.
 
+⚠ **A backfilled frame is never filtered, and that is a decision.** The
+filter hides a frame because a card is showing the same content *right
+now*; a backfilled frame has no card — it is your history — so hiding it
+would lose exactly what the filter promised to keep. Found by driving:
+the previous session's `who` prose renders in the transcript while the
+live one does not, which is the correct asymmetry and reads as one until
+you know why.
+
 ⭐ **`both` is safe because there is only one rendering.** The card
 carries the same `Mml` the controller emitted, materialized once against
 the same viewer with the same `Mml.toString(recipient)` the Scene
@@ -963,6 +971,60 @@ build was written from exactly that kind of stale table.
   land with verified substrate rather than client-side speculation.
 - **Channel stylesheets, `<color>` / `<size>` / heavy layout tags.**
   The core stays semantic.
+
+## ⭐⭐ What the LIVE DRIVE found that the suite could not
+
+Four defects, driven at 1440×900 and 390×844. None was visible to any
+test, and two share the shape this program keeps hitting: **a rule
+implemented in one of two paths silently does nothing in the other, and
+a test on the path that has it passes.**
+
+1. ⚠⚠ **Two cards of one kind rendered the SAME pin command.** `who`
+   and `who --here` are different commands, so different cards — but
+   both controls read `cockpit card pin who`, and the server resolved
+   the catalogue name first and acted on whichever it found. **Two
+   controls, identical labels, acting on one thing.** Fixed by making
+   the card's ref its KEY (quoted when it contains whitespace, or
+   `--here` binds as an option of `cockpit`), and by resolving the key
+   first server-side. *A control that does not act on the card it is on
+   is worse than a missing one.*
+2. ⚠⚠ **The phone ignored both feed filters.** `shell.result` and the
+   named-view filter lived inside `CardFeed` — the DESKTOP rail — so the
+   inline stack honoured neither. The per-viewport override's *entire
+   payoff* is on the phone, and the phone was the path that ignored it.
+   Both paths call `visibleCards` now, and a source guard asserts they
+   still do rather than re-deriving it.
+3. ⚠ **The news card was unreachable by command.** `press` carried
+   `requiresPublisher` at VERB level, so a player holding no publishing
+   position was refused *"there is nobody you can press as"* for a bare
+   `press` — a publishing answer to a reading question. The gate moved
+   to the `post` / `edit` / `retract` subcommands; `PressApi.publish`'s
+   own `EmploymentApi.mayPublishAs` entitlement was doing the real work
+   all along. `press` also left `AuthorMixin`'s contribution list for
+   the ordinary one — contributed only there, the news was a surface an
+   ordinary player could not ask for at all.
+4. ⚠ **`cms` and `studio` did not exist as verbs.** A command YAML that
+   nothing CONTRIBUTES is not reachable, whatever the catalogue says.
+   They join the author suite beside `git`.
+
+⭐ **And three things the drive CONFIRMED** that only driving could:
+the arrangement really does apply on login (a cold reload into `build`
+comes up with the editor and the git panel); the live `place` card
+really does carry no timestamp and no refresh while every static card
+does; and the action row really does show `register terminal` on the
+TPA terminal rather than `cast · defend · destruct` on everything.
+
+### ⚠ One finding for the reader, outside this build
+
+At 390px a long unbroken **monospace command echo** (`settings set
+shell.result.mobile terminal`) forces the terminal's row past the
+viewport, and the terminal's own `overflow-x: auto` scrolls the prose
+out of reach. It is not the ICB trap — `documentElement.scrollWidth`
+stays 390 — and it is not this build: `Terminal.tsx`, `TabStrip.tsx`
+and `primitives.ts` are untouched by the branch, and a `clear` restores
+a 390px terminal exactly. Any long command does it. Recorded here
+because it is a real phone problem that a card-surface reader will hit
+while checking these findings.
 
 ### ⚠ Recorded, not closed
 
