@@ -469,7 +469,11 @@ Shipped waves left these, and they close here:
 
 ---
 
-## Sizing — surfaced, not decided
+## Sizing — ✅ DECIDED: one build
+
+**One branch, all of it** — decided 2026-08-15. The three-way cut below
+was offered and declined; it is recorded because the *ordering* inside
+it still holds even though the boundaries do not.
 
 ⚠ **This is materially bigger than Wave 6**, which was itself
 under-estimated as "almost pure client". Honest shape:
@@ -481,10 +485,24 @@ under-estimated as "almost pure client". Honest shape:
 | **C — authoring + the filter** | Wave 7 cards, named views, the `shell.result` setting + override, the residue sweep | Depends on B's catalogue; independent of each other. |
 
 Wave 1 was cut into three builds for exactly this reason and the
-boundaries held. **Recommend the same cut**; the alternative is one
-branch large enough that a review cannot see the design through the
-rename. The decision is the user's — the requirements above are the
-full scope either way.
+boundaries held. The cut was **declined** — one build.
+
+⭐ **What survives the decision is the sequence, and the planner must
+keep it.** A → B → C is a dependency order, not just a review
+convenience:
+
+- **The rename lands first, as its own commit(s), before any design
+  change.** ~1,500 occurrences mixed into the same diff as the
+  mechanism is how a reviewer stops being able to see either. This is
+  the one ordering constraint that is non-negotiable.
+- **The mechanism precedes the surfaces.** Nothing — not the switcher's
+  removal, not who/news/wiki, not a single Wave 7 card — can be built
+  until cards have one birth path, because every one of them is a
+  consumer of it.
+- **Authoring and the filter are independent of each other** and may
+  interleave freely once the mechanism is in.
+
+The commit story therefore carries the boundaries the branch does not.
 
 ---
 
