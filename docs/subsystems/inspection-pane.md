@@ -310,14 +310,38 @@ HAS:
 | section | present when |
 |---|---|
 | illustration | the subject has one |
-| description | clamped to two lines, with `more` |
-| mixins | always — everything composes something |
+| description | clamped to two lines, with `more` — **and its detail words are the links** |
 | measured | the subject declares a reading |
 | **exits** | the subject is Exitable |
 | here | the subject contains something |
-| details | the subject has look-closer keywords |
 | actions | the radial resolved verbs for it |
+| mixins | at the FOOT, collapsed to `N mixins` |
 | refresh | always — `look <keyword>` |
+
+⭐⭐ **The details ARE the description.** The body renders the subject's
+own markup, so `loudspeaker`, `benches`, `walls` are clickable where
+they are written — each a real `look <keyword>` that opens its own card.
+A separate `DETAILS` row beneath said the same words twice, once as
+prose and once as a list.
+
+⚠ The clamp hides some of those links until `more`. That was the
+argument for flattening the prose to plain text, and it is answered by
+the toggle rather than by taking the links away.
+
+⚠ **The mixin row is collapsed, at the foot.** It is a teaching surface
+— how a player meets the content-development palette on real objects —
+but it is not what they came to the card for, and at the top it was the
+first thing after the name on every card. It re-asks the resolver
+whenever its answer is MISSING, not only when the subject changes:
+`clearAffordances` runs after every command, so a card that asked once
+on mount lost its composition and never got it back.
+
+⚠⚠ **A zero quantity is "not declared", not "weighs nothing".** `mass`
+rides `DETAIL_FIELDS`, so the projection carries it for anything
+Tangible whether or not the object set one — an implant that never
+declared a weight came back `0 kg`, putting `MASS 0 kg` on card after
+card. The knowing cost: a thing that genuinely masses zero shows no MASS
+row, and nothing in the world models one.
 
 ⚠ A section that does not apply is **absent, not hatched**. An unwired
 hatch is the right answer for a figure the surface *promised* and cannot

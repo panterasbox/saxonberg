@@ -43,6 +43,7 @@ import type { PaneCardState } from "../../store/paneFeedSlice";
 import { Figure, EntityName, tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
+import { MmlRenderer } from "../MmlRenderer";
 
 /* ─── shared pieces ─── */
 
@@ -62,10 +63,6 @@ const Chip = styled.span`
   padding: 0 ${tokens.space.xs};
 `;
 
-const MoreChip = styled(Chip)`
-  color: ${tokens.color.fgMuted};
-  border-style: dashed;
-`;
 
 /** The card's picture — full-bleed to the card's padding box. */
 /**
@@ -222,16 +219,6 @@ const Prose = styled.div`
 `;
 
 /**
- * How many mixin chips ride the row before the overflow count.
- *
- * ⚠ The row **truncates with a count** (`+11`). It is a teaching
- * surface — *this is what the thing is made of, and those names are
- * the palette you would author with* — not a manifest. A full list
- * would be a wall of thirty names on a person and would teach nothing.
- */
-const CHIP_LIMIT = 3;
-
-/**
  * Mixins that are framework plumbing rather than a fact about the
  * thing.
  *
@@ -329,6 +316,21 @@ function formatValue(value: unknown): string | null {
   if (typeof value === "object") {
     const q = value as { value?: unknown; unit?: unknown };
     if (typeof q.value === "number" && typeof q.unit === "string") {
+      /*
+       * ⚠⚠ **Zero is "not declared", not "weighs nothing".**
+       *
+       * `mass` rides `DETAIL_FIELDS`, so the projection carries it for
+       * anything Tangible whether or not the object ever set one — and
+       * an implant that never declared a weight came back `0 kg`,
+       * putting `MASS 0 kg` on card after card. That is the substrate
+       * saying *nothing here*, printed as though the subject had told
+       * you something.
+       *
+       * The knowing cost: a thing that genuinely masses zero shows no
+       * MASS row. Nothing in the world models one, and a row of
+       * meaningless zeroes on every card is the worse failure.
+       */
+      if (q.value === 0) return null;
       return `${Math.round(q.value * 100) / 100} ${q.unit}`;
     }
   }
@@ -397,23 +399,68 @@ function Measured({
  * inside `resolveAffordances`, so a re-render costs nothing.
  */
 function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | null {
+  const [expanded, setExpanded] = React.useState(false);
   const answer = useStore((s) =>
     stuffId ? s.affordances[stuffId] : undefined,
   );
+  /*
+   * ⚠⚠ Re-asks whenever the answer is MISSING, not only when the
+   * subject changes.
+   *
+   * `clearAffordances` runs after every command the player sends —
+   * coarse on purpose, because knowing which subjects a command touched
+   * is a server semantic. So a card that asked once on mount lost its
+   * composition on the next command and never got it back: the effect's
+   * only dependency was `stuffId`, which had not changed.
+   * `resolveAffordances` dedupes in flight, so this costs one round
+   * trip, not a loop.
+   */
   React.useEffect(() => {
-    if (stuffId) websocketClient.resolveAffordances(stuffId);
-  }, [stuffId]);
+    if (stuffId && !answer) websocketClient.resolveAffordances(stuffId);
+  }, [stuffId, answer]);
   if (!answer || answer.composition.length === 0) return null;
   const ordered = orderComposition(answer.composition);
-  const shown = ordered.slice(0, CHIP_LIMIT);
-  const rest = ordered.length - shown.length;
+  /*
+   * ⚠ Collapsed by default, and at the FOOT of the card.
+   *
+   * The chip row is a teaching surface — it is how a player meets the
+   * content-development palette on real objects — but it is not what
+   * they came to the card for. At the top it was the first thing after
+   * the name on every single card, in a column where space is the
+   * constraint; the count says it is there and one click opens it.
+   */
+  if (!expanded) {
+    return (
+      <InlineLinks>
+        <InlineLink
+          data-testid="pane-composition-toggle"
+          aria-expanded={false}
+          aria-label="show what this is made of"
+          onClick={() => setExpanded(true)}
+        >
+          {ordered.length} mixins
+        </InlineLink>
+      </InlineLinks>
+    );
+  }
   return (
-    <Chips data-testid="pane-composition">
-      {shown.map((m) => (
-        <Chip key={m}>{m}</Chip>
-      ))}
-      {rest > 0 && <MoreChip>+{rest}</MoreChip>}
-    </Chips>
+    <>
+      <Chips data-testid="pane-composition">
+        {ordered.map((m) => (
+          <Chip key={m}>{m}</Chip>
+        ))}
+      </Chips>
+      <InlineLinks>
+        <InlineLink
+          data-testid="pane-composition-toggle"
+          aria-expanded
+          aria-label="hide what this is made of"
+          onClick={() => setExpanded(false)}
+        >
+          less
+        </InlineLink>
+      </InlineLinks>
+    </>
   );
 }
 
@@ -498,22 +545,37 @@ function PlaceIllustration({
  */
 function RoomDescription({
   record,
+  onSendCommand,
+  onCommandPreview,
 }: {
   record: StuffDetailRecord | undefined;
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
   const [expanded, setExpanded] = React.useState(false);
   const text = record?.longDescription ?? record?.shortDescription ?? "";
   if (!text) return null;
-  /*
-   * ⚠ Plain text, not `MmlRenderer`. A clamped box that hides half its
-   * own clickable words would offer affordances the reader cannot see,
-   * and the same words are live in the transcript two inches away.
-   */
-  const flat = text.replace(/<[^>]*>/g, "");
   return (
     <>
+      {/*
+        ⭐⭐ **The details ARE the description.** This renders the
+        subject's own markup, so `loudspeaker`, `benches`, `walls` are
+        clickable where they are written — each one a real
+        `look <keyword>` that opens its own card.
+
+        It used to strip the tags and print a separate DETAILS row
+        beneath, which said the same words twice: once as prose and
+        once as a list. Reported as exactly that. The reasoning for
+        flattening was that a clamped box hides some of its own
+        clickable words — true, and answered by `more` rather than by
+        taking the links away.
+      */}
       <RoomProse $expanded={expanded} data-testid="place-prose">
-        {flat}
+        <MmlRenderer
+          text={text}
+          onCommandClick={onSendCommand}
+          onCommandPreview={onCommandPreview ?? (() => undefined)}
+        />
       </RoomProse>
       <MoreToggle
         aria-label={expanded ? "show less" : "show more"}
@@ -659,53 +721,6 @@ function ReleasedBody(): React.ReactElement {
  * silently renders the wrong one.
  */
 /**
- * The details a thing reveals when you look closer.
- *
- * ⚠ Each is a real `look <keyword>`, which is why they are commands and
- * not an expander: the detail's prose comes from the server the same way
- * the body's did, and faking it client-side would be a second renderer
- * of the same text.
- */
-function Details({
-  record,
-  onSendCommand,
-  onCommandPreview,
-}: {
-  record: StuffDetailRecord | undefined;
-  onSendCommand: (text: string) => void;
-  onCommandPreview?: (command: string | null) => void;
-}): React.ReactElement | null {
-  const details = record?.details ?? [];
-  if (details.length === 0) return null;
-  const preview = onCommandPreview ?? (() => undefined);
-  return (
-    <>
-      <Label>Details</Label>
-      <InlineLinks>
-        {details.map((entry, i) => {
-          const key = entry.ids[0] ?? "";
-          if (!key) return null;
-          const command = `look ${key}`;
-          return (
-            <React.Fragment key={key}>
-              {i > 0 && ", "}
-              <InlineLink
-                title={`Click to send: ${command}`}
-                onClick={() => onSendCommand(command)}
-                onMouseEnter={() => preview(command)}
-                onMouseLeave={() => preview(null)}
-              >
-                {key}
-              </InlineLink>
-            </React.Fragment>
-          );
-        })}
-      </InlineLinks>
-    </>
-  );
-}
-
-/**
  * ⭐⭐ **One body, and the subject decides what is in it.**
  *
  * There is no location view and no thing view — there is one card, and
@@ -734,8 +749,11 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
   return (
     <>
       <PlaceIllustration record={record} />
-      <RoomDescription record={record} />
-      <Composition stuffId={stuffId} />
+      <RoomDescription
+        record={record}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
       <Measured record={record} />
       <WaysOut
         record={record}
@@ -747,16 +765,12 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />
-      <Details
-        record={record}
-        onSendCommand={onSendCommand}
-        onCommandPreview={onCommandPreview}
-      />
       <ActionRow
         stuffId={stuffId}
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />
+      <Composition stuffId={stuffId} />
       {/*
         ⭐ Every card refreshes the same way, because every card is the
         same thing: `look` at its subject. Named with the subject's own

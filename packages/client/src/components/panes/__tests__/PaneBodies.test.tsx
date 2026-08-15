@@ -258,3 +258,98 @@ describe("⭐⭐ sections appear only when the subject has them", () => {
     expect(sent).toEqual(["look lounge"]);
   });
 });
+
+describe("⭐⭐ details are links in the description, not a list", () => {
+  it("renders the subject's markup, so a detail word is clickable in place", () => {
+    const sent: string[] = [];
+    render(
+      <PaneBody
+        card={placeCard({
+          longDescription:
+            'A hall with <detail id="benches">benches</detail> along one wall.',
+        })}
+        onSendCommand={(t) => sent.push(t)}
+      />,
+    );
+    fireEvent.click(screen.getByText("benches"));
+    // ⚠ The renderer sends the VISIBLE word, which is what the
+    // transcript has always done — the player types what they read.
+    expect(sent).toEqual(["look benches"]);
+  });
+
+  it("⚠ carries NO separate details list", () => {
+    /*
+     * It used to print `DETAILS  loudspeaker, benches, board, walls` under
+     * the prose — the same words the description already contains, said
+     * twice. The description is where they are written and where the
+     * reader is looking.
+     */
+    render(
+      <PaneBody
+        card={placeCard({
+          longDescription: "A hall.",
+          details: [{ ids: ["benches"], text: "worn" }],
+        } as never)}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.queryByText("Details")).toBeNull();
+  });
+});
+
+describe("⚠ a projected default is not a reading", () => {
+  it("hides a zero quantity", () => {
+    /*
+     * `mass` rides DETAIL_FIELDS, so the projection carries it for
+     * anything Tangible whether or not the object set one — an implant
+     * that never declared a weight came back `0 kg`, putting
+     * `MASS 0 kg` on card after card. That is the substrate saying
+     * *nothing here*, printed as though the subject had told you
+     * something.
+     */
+    render(
+      <PaneBody
+        card={placeCard({ mass: { value: 0, unit: "kg" } } as never)}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.queryByText(/mass/i)).toBeNull();
+  });
+
+  it("shows a real one", () => {
+    render(
+      <PaneBody
+        card={placeCard({ mass: { value: 2.5, unit: "kg" } } as never)}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.getByText("2.5 kg")).toBeTruthy();
+  });
+});
+
+describe("the composition row", () => {
+  it("is collapsed to a count, and opens on demand", () => {
+    useStore.setState({
+      affordances: {
+        room: {
+          stuffId: "room",
+          verbs: [],
+          composition: ["Exitable", "Detailed", "Visible"],
+          kind: "thing",
+          at: 1,
+        },
+      },
+    } as never);
+    render(
+      <PaneBody card={placeCard({})} onSendCommand={() => undefined} />,
+    );
+    // A teaching surface, but not what the player came to the card for.
+    expect(screen.getByTestId("pane-composition-toggle").textContent).toBe(
+      "3 mixins",
+    );
+    expect(screen.queryByTestId("pane-composition")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("pane-composition-toggle"));
+    expect(screen.getByText("Exitable")).toBeTruthy();
+  });
+});
