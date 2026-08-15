@@ -209,7 +209,7 @@ are the canonical case: present on both Avatars (which have
 branch out of every consumer, the subsystem exports a free function:
 
 ```ts
-resolveSetting<T>(host: Stuff, key: string): T | undefined;
+resolveSetting<T>(host: Stuff, key: string, factor?: FormFactor): T | undefined;
 ```
 
 - If `host` composes `EnvironmentMixin`, delegates to
@@ -219,6 +219,43 @@ resolveSetting<T>(host: Stuff, key: string): T | undefined;
   entry, and returns its `default`.
 - Returns `undefined` when the key isn't declared anywhere on the
   host's chain.
+
+### ⭐ The per-form-factor rung
+
+An entry may declare `perFactor: true`. That is **one key with an
+OPTIONAL override**, not two mandatory keys — a player who wants the
+same behaviour everywhere sets one value, and two independent keys
+guarantee eventual silent drift.
+
+Three rungs, and the order is the whole feature:
+
+1. the stored override at `<key>.<factor>`, when a factor is named;
+2. the stored override at `<key>`;
+3. the schema default.
+
+`setSetting` accepts a suffixed key **only** for a `perFactor` entry and
+only for `desktop` / `mobile`; `findSchema` resolves the suffix back to
+the base entry, so `shell.interpolate-vars.mobile` refuses as *no such
+setting*. That is what keeps this an optional override rather than an
+open namespace. The value is stored under the key as WRITTEN, beside
+the base rather than replacing it.
+
+⚠ **Rung 1 reads `getOwnSetting`, not `getSetting`.** `getSetting` falls
+back to the schema default, so a suffixed read would ALWAYS return
+something and rung 2 could never be reached — the override would
+silently become mandatory, which is exactly the shape this refused.
+
+⚠⚠ **This does not break the no-`cockpit.formFactor` rule.** That key
+was never built because *the server cannot know a viewport, so such a
+key would be a fake fact*. Two stored PREFERENCES assert nothing about
+which is in force: the server resolves both and ships both, and the
+client — which genuinely knows its own width — picks. Same split as
+`cockpit.shelf`.
+
+`shell.result` is the first consumer: `card` (default) · `terminal` ·
+`both`, deciding whether a structured command result appears on a card,
+in the transcript, or in both. See
+[card-surface.md](./card-surface.md).
 
 This is **not** a `SettingsApi` — there's no Api boundary, no
 registry, no proxy. It's a colocated helper in the same file as the

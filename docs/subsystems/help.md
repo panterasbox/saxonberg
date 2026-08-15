@@ -241,3 +241,23 @@ built here.
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
 | Verb | `mud/cmd/system/help.yaml` + `mud/obj/command/system/HelpController.ts` |
 | Boot wiring | `mud/bootstrap.ts`, `mud/lib/paths.ts`, `mud/seeds/obj/HelpCatalogue.yaml` |
+
+## ⭐ The help card exists now
+
+`help <topic>` opens the `help` card, carrying the `HelpTopic` the read
+already resolved as its `payload`. It is the one Wave 7 surface that had
+no client-side existence at all — the REST catalogue shipped and nothing
+rendered it.
+
+⚠ The card carries **the topic the controller resolved**, not a second
+fetch. One read, two renderings: the prose it emitted to the terminal
+and the card body, which renders the same already-gated MML through the
+same `MmlRenderer`. That is why `shell.result: both` is safe here —
+there is one rendering, shown twice, and the test asserts the two are
+EQUAL.
+
+⚠ Only the TOPIC read opens a card. The landing page, the verb list and
+the search results open none, so filtering them would leave `help`
+doing nothing.
+
+See [card-surface.md](./card-surface.md).

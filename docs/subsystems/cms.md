@@ -304,3 +304,28 @@ merge. The method was `enter` under another name, and the name asserted
 something the model denies: there is no act of *launching* a session. A
 session is bookkeeping that exists because a body is on the far side of
 a door. See [sandbox.md](./sandbox.md).
+
+## ⭐ The CMS is a CARD now
+
+`cms` is a verb (`mud/cmd/author/cms.yaml`, `requiresWizard`) and it
+opens a `client`-source card. The **server** owns the card's existence,
+identity, lifetime and pinned-ness; only the BODY is the client's,
+because the explorer, the tree and Monaco all speak the `/api/cms/*`
+routes — which is where what a wizard may see and write is actually
+decided. A controller that answered that would be a second
+authorization surface for one question.
+
+⚠ Pinned by default, and it declares `noProse`. An editor that aged out
+of a relevance window mid-edit would be a data-loss bug wearing a
+lifetime rule; and a `terminal`-only `shell.result` must not take
+Monaco away, which is what the declaration prevents.
+
+⭐⭐ **`CmsSurface`'s four-tab mode bar is gone.** Files · Kinds ·
+Diagnostics · Git was a second switcher, in the second column, doing
+exactly what the right column's switcher did — and for the same reason
+that had expired. `cms`, `git` and `studio` are three cards in one feed
+now, each opened by its own verb. `BuilderLayout` renders that feed
+FILLING its column rather than at the rail's fixed width: in `build`
+mode the cards are the work.
+
+See [card-surface.md](./card-surface.md).

@@ -327,3 +327,24 @@ than silently placing nothing.
 The BUC roll fires on the freshly cloned object at the mint site inside
 the sweep — deliberately **not** in `StuffApi.clone`, so an author's
 clone, a crafted output and a restocked consignment never roll.
+
+## ⚠ A second installed sweep
+
+`CardApi.boot` installs one recurring `ScheduleApi` callback that evicts
+the cold tail of the **card set** — the same shape as the eviction sweep
+here, for a different population. See
+[card-surface.md § One sweep, and exactly one clock](./card-surface.md).
+
+Worth cross-referencing for two reasons:
+
+- ⚠ It is a **second** installed sweep, so the pattern is now a pattern
+  rather than a one-off. A third wants the same three properties: one
+  handle for the whole population, a coarse cadence with a fine window,
+  and an explicit principal.
+- ⚠ **The principal is re-planted.** A scheduled callback fires long
+  after the frame that installed it, so the execution context has no
+  target and a gated registry call would be denied on every tick —
+  silently, because a scheduled callback has nobody to report to. The
+  card sweep wraps itself in `ExecutionContextApi.runRoot` with its
+  logic singleton as principal; the eviction sweep reaches only
+  ungated surfaces and does not need to.

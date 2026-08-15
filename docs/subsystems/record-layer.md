@@ -322,3 +322,16 @@ Two traps, both recorded before they were hit:
 - [client-shell.md](./client-shell.md) — the buffer that is now a cache
 - [press.md](./press.md) — `RELEASE_DOCUMENT_KIND`, the one survivor
 - [connection.md](./connection.md) — the welcome payload
+
+## ⭐ `recall --scope` is wired to the wiki card
+
+The wiki card's search box sends `recall --scope wiki <terms>` — a real
+command, previewed exactly as sent, with the results landing in the
+transcript like every other answer.
+
+⚠ It shipped hatched, reading *there is no search port yet*, citing an
+audit that was already stale: `recall --scope wiki` had merged **before**
+the wave that wrote the hatch. The hatch was written from a table rather
+than from the tree, which is the failure mode a stale hatch always is —
+it tells a reader the surface does not exist when it does. A test now
+greps the client SOURCE for the retired string.

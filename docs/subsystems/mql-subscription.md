@@ -960,3 +960,32 @@ content and reaching for a plausible default.
   hosts contribute one.
 
 Commit range: `41240c7..HEAD` on the `inspection` branch.
+
+## ⚠ The card catalogue LEFT this substrate
+
+A subscription used to be able to name a card (`{ card: 'inspect' }`),
+and the server described it from `lib/connection/Cards.ts`; a
+subscription carrying a `hold` **was** a card. All of that is gone.
+
+What remains here is the plain shape: a caller-supplied `query`,
+`cardinality` and field set. Cards are their own substrate with their
+own birth path, their own registry and their own lifetime —
+[card-surface.md](./card-surface.md).
+
+Two seams survive the split:
+
+- **`silent: true`** — register and resolve, but do NOT emit the initial
+  result envelope; return the records instead. A LIVE card owns its
+  subscription handle (`instanceId === subscriptionId`) and carries the
+  first resolve on its own `card-opened`; emitting a second envelope for
+  one open is how a card ends up briefly showing nothing while the
+  client reconciles two shapes for the same content.
+- **`mql-subscription-delta`** still carries a live card's updates,
+  because the ids are the same by construction. No new envelope, no
+  join table.
+
+⚠ The wire lost `card`, `subject`, `hold` and `holdSubject` from
+`MqlSubscribeMessage` and gained exactly one field: `chrome?: 'self'`,
+the widget shelf's subscription. **A client cannot name a card at the
+protocol level** — which is a stronger guarantee than a source grep,
+because a missing field cannot be used at all.

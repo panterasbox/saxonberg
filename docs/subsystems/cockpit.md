@@ -315,16 +315,28 @@ player-saved arrangement has none by construction. Both fall back to the
 mode's first mapping — the honest answer, since the old client cannot
 render them and renders the nearest thing it has.
 
-## Cards held by a condition
+## Cards: pinned, or aged out
 
 See [card-surface.md](./card-surface.md) for the card set itself.
 The cockpit's half is the override verb: `cockpit card pin|dismiss|auto|list`.
 
+⭐ **Pinned or unpinned is the WHOLE lifetime.** The five hold
+conditions this verb used to override are gone: four were spatial and
+each cost a wake to fire, and `unanswered`'s guarantee — *nothing still
+actionable ever leaves* — moved onto this axis, where a prompt card
+opens pinned and auto-releases when answered. `auto` hands the decision
+back to the catalogue's own default rather than to a condition.
+
 ⚠ **The pin is a command, and its answer is mirrored, never assumed.**
 `cockpit card pin <id>` can be refused, so the client renders the
-server's `pinned` value off the subscription result rather than
+server's `pinned` value off the `card-pinned` envelope rather than
 toggling locally — a local toggle shows a pin that is not there, and it
 does not survive the tab.
+
+⭐ `cockpit card list` says which cards are LIVE. Liveness is the axis a
+player cannot otherwise observe: a static card shows a timestamp and a
+refresh, a live one shows neither, and without the word here the only
+way to tell them apart is to watch one fail to update.
 
 ⚠ **Dismiss is not on the pin control.** It is a different intent —
 *drop this even though it still holds* — and putting it in the same
@@ -357,6 +369,17 @@ The rules `applyArrangement` follows:
   reopened — the reopen would lose its pin and its hold.
 - **A shape-opened card is never closed.** The player opened it; a mode
   switch is not a licence to throw it away.
+
+⭐ **It also runs on LOGIN** (`Avatar.enter`), not only on a mode or
+layout switch. It was called from those two controllers alone, so a
+player who logged straight into `build` saw an empty feed until they
+switched modes and switched back — an arrangement that only applies when
+you change your mind is a workspace you cannot simply return to.
+
+⚠ `SHIPPED_ARRANGEMENT_CARDS` is keyed by **(mode, arrangement)**, not
+by mode alone: `watch` ships two arrangements and one flat list per mode
+cannot express them. The mode-only shape survived only while the map was
+empty.
 
 ### ⚠⚠ The `pushed` flag, not an inference
 
@@ -562,6 +585,14 @@ current layout's terminal (the inspection card is the existing proof).
 This build establishes the summoned-panel tier as a first-class mechanism:
 a `summonedPanel` store slice (`openPanel`/`closePanel`) and an
 `App`-level `ContentRow` that docks the panel beside the active layout.
+
+⚠ **It is a PANEL, not a card**, and the word matters. A card is a
+container for structured content in the feed, with an identity, a
+lifetime and a pin; a summoned panel is chrome that docks beside the
+layout and closes when you close it. The card build renamed these
+deliberately (`SettingsPanel`, `SocialNotificationsPanel`,
+`LivestreamPanels`, `CmsDiagnosticsPanel`) rather than sweeping them
+into `*Card`, which would have been a lie.
 
 **Settings** is the first consumer (`components/settings/SettingsPanel.tsx`):
 a non-modal side panel whose controls each **send the real command**

@@ -311,3 +311,23 @@ Three design→implementation shifts are worth recording:
   drifted curated row's signature/composition **in place** in
   `#curatedOverlay` — the reconcile-by-`blueprintId` fix. A base-class mixin
   addition is now a safe, boot-surviving re-seed.
+
+## ⭐ The Studio is a CARD
+
+`studio` is a verb (`mud/cmd/author/studio.yaml`, `requiresWizard`)
+opening a `client`-source card. The catalogue, the template form and the
+class composer speak the Studio REST routes; the server owns the card's
+existence, identity, lifetime and pinned-ness.
+
+⚠ Pinned by default and `noProse`, for the same two reasons the content
+editor is — see [cms.md](./cms.md).
+
+⚠ **`studio` collides with the sandbox's `/studio/<collective>` scope**,
+and that is two concepts sharing a word rather than one concept in two
+places. The sandbox build's zero-new-verbs guard listed `studio.yaml`
+as forbidden; it is exempted **by path** (`author/studio.yaml`), because
+the guard says *the sandbox build ships no verbs*, not *the word is
+reserved forever* — and the composer is the one this subsystem doc is
+named after.
+
+See [card-surface.md](./card-surface.md).

@@ -1400,3 +1400,42 @@ that a primitive with no consumer can drift. Build B closed it.)
   `Login`, the hardcoded guest-surname fallback list was deleted (real
   `common` NameBank only), and `PRONOUN_LABELS` was colocated with the
   `Pronouns` enum in `@saxonberg/types`.
+
+## ⭐ The card surface, and where the honest-state convention lands on it
+
+The right column is a **feed of cards** — the `Inspect · Who's Online ·
+News · Wiki` switcher is gone, and those three are catalogue rows now.
+See [card-surface.md](./card-surface.md).
+
+Three of this doc's own conventions do real work there:
+
+- **Honest state, on a new axis.** A **static** card renders its
+  timestamp (*taken 14:32*) and a refresh control; a **live** card
+  renders neither. A static card that looked live would be a lie, and a
+  refresh button on a live card is a bandage over a wake that does not
+  fire — *and, worse, it is how nobody finds out.*
+- **Every clickable previews exactly what it sends.** A refresh
+  control's label, its `aria-label` and its payload are the card's own
+  `key` — the normalized command that produced it — so the preview and
+  the send are literally the same string. The pin sends
+  `cockpit card pin <id>` and mirrors the server's answer rather than
+  toggling locally.
+- **A section that does not apply is absent, not hatched.** The card's
+  action row renders only subject-afforded verbs, so on an ordinary
+  object with no `commandContributions` it is absent entirely.
+
+⚠ **The wiring lives in `App`, above the mode registry** — the third
+position it has occupied, and the one with no fourth. It sat in
+`CardFeed` (desktop only), which left the whole phone card surface
+dead; it moved to `WorldLayout`, which fixed the phone and left `build`,
+`chat` and `watch` — different layout components entirely — with the
+same defect. Every unit test passed through both, because **a component
+test proves rendering, never wiring**; the guard is over the source.
+
+⚠ **The summoned-overlay tier is called `panel`, not `card`.**
+`SettingsPanel`, `SocialNotificationsPanel`, `LivestreamPanels`,
+`CmsDiagnosticsPanel` dock beside the layout and close when you close
+them; they have no identity, no lifetime and no pin. Renaming them
+`*Card` during the `pane`→`card` sweep would have been a lie about what
+they are.
+

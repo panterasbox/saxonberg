@@ -953,7 +953,9 @@ Recorded so Wave 7's identical claim gets checked rather than believed.
    `tune`'s prose to read. Fixed with `cockpit.tuned`.
 4. **`SHIPPED_ARRANGEMENT_CARDS` is keyed by mode alone**, so `watch`'s
    two arrangements are inexpressible. ⚠ **Not fixed** — nothing in Wave
-   6 needed to fill it, and re-keying an empty map is churn. Still open.
+   6 needed to fill it, and re-keying an empty map is churn. ✅ **CLOSED
+   by the card-surface build**: filling the map is what expired the
+   churn argument, and it is now keyed `(mode, arrangement)`.
 
 **One drift:** `act.combat` was reactable server-side and the client
 never offered it, because `REACTABLE_PREFIXES` claimed to mirror
@@ -1064,6 +1066,59 @@ notifications — designed only as a stub, and `NotifyPolicy` /
 `NotifyRule` should be read before the UI is designed, because what
 belongs in that tray is *whatever the receiver said they wanted*, not
 everything that happened.
+
+### ✅ 7.18 Wave 7 — the card surface — SHIPPED (`build/card-surface`)
+
+The last client wave, and it does four things that only make sense
+together.
+
+**One birth path.** A card exists because a **command** caused the
+server to push it. The client's focus-watching inference retires, and —
+stronger than any guard — `MqlSubscribeMessage` loses every field that
+could name a card. It keeps exactly one: `chrome: 'self'`, the widget
+shelf's subscription, which is not a card. *A source scan can be
+defeated by a clever call site; a missing protocol field cannot be used
+at all.*
+
+**One lifetime axis.** Pinned, or aged out of a relevance window. The
+four spatial holds are retired (each cost a wake); `unanswered`'s
+guarantee — *nothing still actionable ever leaves* — moves onto the
+pinned axis, where a prompt card opens pinned and auto-releases when
+answered.
+
+**Liveness is orthogonal and opt-in.** Static by default, stamped with
+when, carrying a refresh. ⚠ **`place` ships LIVE** — a deviation from
+the plan, which marked every row static while its own driving script
+drove "the one live card". A `live` field nothing reads is
+indistinguishable from a broken one.
+
+**The switcher dies.** `Inspect · Who's Online · News · Wiki` was four
+hand-written surfaces with their own data paths in a tab strip; it
+existed *because* the only way a card could be born was a focus change,
+and none of the other three is one. So did the CMS's own four-tab mode
+bar. Both are one feed now.
+
+⭐⭐ **And one finding that changed a decision.** The requirements keyed
+the `shell.result` filter on the **topic** `shell.result`, on the
+premise that *every structured command result already carries it*. The
+per-card prose audit the plan required falsified the premise: `look`'s
+two cards ride `sense.survey`, which twelve other verbs share. A topic
+key would either miss `look` entirely or silence all twelve. The filter
+keys on a per-frame `meta.carded` marker instead — exact by
+construction, because the producer that opens the card is the producer
+that stamps the frame.
+
+**The residue § 7.16–7.17 recorded:** the wiki-search hatch is closed
+(it cited an audit that was already stale — *the hatch was written from
+a table rather than from the tree*); the action row can now tell
+subject-afforded from actor-afforded; `BlueprintSeeder` reconciles
+rather than warning forever. Three items are **recorded rather than
+closed**, with reasons, in
+[card-surface.md](../../subsystems/card-surface.md): `chat on`'s rail
+wake, the radial's `stuffId` on transcript nouns, and the `HERE`-rows
+`something` — whose requirements framing turned out to be **wrong** (the
+two gates answer different questions; the likely defect is the light
+band of ordinary rooms).
 
 ---
 

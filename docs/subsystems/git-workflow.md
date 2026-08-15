@@ -190,3 +190,19 @@ per-avatar `--author`) so commits succeed on a checkout with no configured
 git identity — the author assertion (`%an/%ae`) is unaffected. The
 real-remote authenticated push is the one path tests can't cover (they use
 a local bare remote); its token-secrecy invariants are enforced in code.
+
+## ⭐ The git panel is a CARD
+
+Bare `git` (which falls through to `status`) opens the `git` card as
+well as printing. Its body is the client's own `/api/git/*` surface —
+a `client`-source card, so the server owns its existence, identity,
+lifetime and pinned-ness and the client owns only the body.
+
+⚠ **Only the bare / status form.** `git publish` is an ACT, and an act
+that also rearranged your workspace would be doing two things on one
+keystroke.
+
+⚠ Pinned by default and `noProse`: it has no terminal rendering to
+degrade to, so a `terminal`-only `shell.result` must leave it alone.
+
+See [card-surface.md](./card-surface.md).

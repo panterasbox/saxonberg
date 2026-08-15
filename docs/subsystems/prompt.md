@@ -442,3 +442,27 @@ for the dispatcher decision matrix.
   the existing MQL substrate, composed client-side).
 - **FocusedMixin subscribableFields**. Not needed under MUD-style
   refresh.
+
+## ⭐ A prompt card is PINNED, and settling closes it
+
+`PromptLogic.cleanup` pokes `CardApi.notifyPromptSettled`, which closes
+the prompt's card with reason `answered`.
+
+⚠⚠ **This is where the `unanswered` hold's guarantee went.** The card
+substrate retired five hold conditions for one relevance window plus one
+boolean — and `unanswered` was not symmetric with the other four. Its
+subject was a pending **command**, and it is the one the design leans
+on: *nothing that is still actionable ever leaves*. A prompt card that
+timed out while still owing a reply is precisely the failure the hold
+model was built to prevent.
+
+So a prompt card opens **pinned**, which is what keeps the relevance
+window away from it, and the settle is the only thing that ends it.
+Same guarantee, one axis, no hold vocabulary.
+
+⚠ The card carries **no body of its own** — only the `promptId`. The
+client already holds one prompt model (the prompt queue) and the card
+joins it by that id; rendering a second copy of the question would be
+two renderings of one payload that can drift.
+
+See [card-surface.md](./card-surface.md).
