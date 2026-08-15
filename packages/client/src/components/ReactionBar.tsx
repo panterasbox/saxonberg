@@ -21,7 +21,7 @@
  * See docs/subsystems/reactions.md.
  */
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled, { keyframes, css } from "styled-components";
 import type { ReactionBucket } from "@saxonberg/types";
 import { useStore, type Frame } from "../store/index";
@@ -210,13 +210,26 @@ const Palette = styled.div`
   z-index: 5;
 `;
 
-/** The full palette's shell — wider than the quick row, same anchor. */
-const FullPalette = styled.div`
+/**
+ * The full palette's shell.
+ *
+ * ⚠⚠ **It anchors to whichever side keeps it on screen.** The `＋` sits
+ * at the END of the message text, so on a long line it is far right — and
+ * a left-anchored 30rem panel then ran past the transcript's edge,
+ * clipping its own header and its SEND control and giving the transcript
+ * a horizontal scrollbar. Found by driving.
+ *
+ * ⭐ Neither side works alone: right-anchoring breaks the short-message
+ * case, where the `＋` is near the left edge and the panel would hang off
+ * that side instead. So the side is MEASURED at open — see
+ * `useEdgeAware` — and this styled component only obeys it.
+ */
+const FullPalette = styled.div<{ $alignRight: boolean }>`
   position: absolute;
   bottom: 120%;
-  left: 0;
+  ${(p) => (p.$alignRight ? "right: 0;" : "left: 0;")}
   width: 30rem;
-  max-width: 80vw;
+  max-width: min(80vw, 30rem);
   z-index: 6;
 `;
 
@@ -232,6 +245,40 @@ const PaletteBtn = styled.button`
     background: ${tokens.color.actionBgHover};
   }
 `;
+
+/**
+ * Which side the full palette should hang from so it stays inside its
+ * scroll container.
+ *
+ * ⚠ Measured after paint, not guessed from a breakpoint: the deciding
+ * fact is where the `＋` ended up, which depends on the length of the
+ * message it trails — nothing static can know that.
+ */
+function useEdgeAware(open: boolean): {
+  ref: React.RefObject<HTMLDivElement>;
+  alignRight: boolean;
+} {
+  const ref = useRef<HTMLDivElement>(null);
+  const [alignRight, setAlignRight] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setAlignRight(false);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    // The nearest scrolling ancestor is the transcript; its right edge is
+    // the boundary that matters, not the window's.
+    const container =
+      el.closest('[data-testid="terminal"]') ?? document.documentElement;
+    const box = el.getBoundingClientRect();
+    const bounds = container.getBoundingClientRect();
+    if (box.right > bounds.right) setAlignRight(true);
+  }, [open]);
+
+  return { ref, alignRight };
+}
 
 interface ReactionBarProps {
   frame: Frame;
@@ -263,6 +310,7 @@ export function ReactionBar({
   const [open, setOpen] = useState(false);
   // The full slot-aware palette, pulled from behind the quick row.
   const [full, setFull] = useState(false);
+  const { ref: paletteRef, alignRight } = useEdgeAware(open && full);
 
   // Pulse the counts briefly whenever the act moves.
   const [pulsing, setPulsing] = useState(false);
@@ -422,7 +470,7 @@ export function ReactionBar({
                 so an emote with grammar is reachable on both — the grid
                 alone can only ever offer slotless verbs.
               */
-              <FullPalette>
+              <FullPalette ref={paletteRef} $alignRight={alignRight}>
                 <EmotePicker
                   frameId={gutter}
                   mine={mine}
