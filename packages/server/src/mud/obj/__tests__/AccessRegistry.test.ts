@@ -16,6 +16,8 @@ import GroupRegistry from "../GroupRegistry";
 import ParcelRegistry from "../ParcelRegistry";
 import Avatar from "../Avatar";
 import { AccessApi } from "../../api/access";
+import { CompactApi } from "../../api/compact";
+import { Office } from "../../lib/governance/Office";
 import { ParcelApi } from "../../api/parcel";
 import { GroupApi } from "../../api/group";
 import { StuffApi } from "../../api/stuff";
@@ -377,5 +379,106 @@ describe("AccessRegistry — author scope from parcel group owners", () => {
 
     // Now a member of the resolved owner group is an author of that area.
     expect(await AccessApi.isAuthor(player)).toBe(true);
+  });
+});
+
+/**
+ * ⭐⭐ **The Prime Minister is always a wizard and an archwizard, and it
+ * is DERIVED.**
+ *
+ * The world ships with no wizards and no seeded operator identities.
+ * There is exactly one credential anywhere in the system — the
+ * founder's provider id, read by `OfficeRegistry` — and all it does is
+ * make the founder the default HOLDER of the offices until somebody is
+ * seated explicitly. Everything downstream is playerIds.
+ *
+ * ⚠⚠ Derived rather than stored is the property under test. A stored
+ * grant survives the handoff that was supposed to end it: hand the
+ * office on and the old holder silently keeps code trust, because a
+ * group row outlives the seat.
+ */
+describe("the Prime Minister backstop", () => {
+  beforeEach(() => {
+    delete process.env[ENV_KEY];
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("⚠ keys on an office that actually exists", () => {
+    // The registry names the seat as a string literal. If the
+    // governance vocabulary renames it, the backstop would point at
+    // nothing and silently confer nothing at all.
+    expect(Office.byKey("prime-minister")).toBeTruthy();
+  });
+
+  it("makes the office-holder a wizard AND an archwizard", async () => {
+    installInMemoryStore();
+    await bootRegistry();
+    const pm = makeAvatar("pm");
+    vi.spyOn(CompactApi, "holdsOffice").mockImplementation(
+      async (_subject, key) => key === "prime-minister",
+    );
+
+    expect(await AccessApi.isWizard(pm)).toBe(true);
+    expect(await AccessApi.isArchwizard(pm)).toBe(true);
+  });
+
+  it("⚠⚠ confers nothing on somebody who does not hold it", async () => {
+    installInMemoryStore();
+    await bootRegistry();
+    const other = makeAvatar("other");
+    vi.spyOn(CompactApi, "holdsOffice").mockResolvedValue(false);
+
+    expect(await AccessApi.isWizard(other)).toBe(false);
+    expect(await AccessApi.isArchwizard(other)).toBe(false);
+  });
+
+  it("⭐ follows the seat — asked every time, never stored", async () => {
+    /*
+     * The whole reason it is derived. A stored grant would leave the
+     * old holder with code trust after the office moved on.
+     */
+    installInMemoryStore();
+    await bootRegistry();
+    const holder = makeAvatar("holder");
+    let seated = true;
+    vi.spyOn(CompactApi, "holdsOffice").mockImplementation(async () => seated);
+
+    expect(await AccessApi.isWizard(holder)).toBe(true);
+    seated = false; // the seat is handed on
+    expect(await AccessApi.isWizard(holder)).toBe(false);
+  });
+
+  it("⚠ fails closed when the governance substrate is not up", async () => {
+    // A backstop layered on top of the ordinary group answer must not
+    // turn a plain "no" into a throw at a security gate.
+    installInMemoryStore();
+    await bootRegistry();
+    const someone = makeAvatar("someone");
+    vi.spyOn(CompactApi, "holdsOffice").mockRejectedValue(
+      new Error("governance not up"),
+    );
+
+    expect(await AccessApi.isWizard(someone)).toBe(false);
+  });
+
+  it("⚠ an explicit wizard needs no office read at all", async () => {
+    // The group cache is consulted FIRST, so the backstop costs an
+    // ordinary wizard nothing.
+    installInMemoryStore();
+    await bootRegistry();
+    const reg = await GroupApi.registry();
+    const wizards = await reg.managed().findByName("wizards");
+    wizards!.addMember("/obj/Avatar/plain");
+    await wizards!.save();
+    if (wizards!._id) reg.managed().fireChange(wizards!._id);
+
+    const holdsOffice = vi.spyOn(CompactApi, "holdsOffice");
+    const plain = makeAvatar("plain");
+
+    expect(await AccessApi.isWizard(plain)).toBe(true);
+    expect(holdsOffice).not.toHaveBeenCalled();
   });
 });

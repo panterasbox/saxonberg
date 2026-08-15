@@ -278,12 +278,24 @@ Two traps, both recorded before they were hit:
    first (they point at rows the wipe just deleted).
 
 2. **`WIZARD_PLAYER_IDS` names CHARACTERS**, and the wipe takes the
-   characters. The founder's next sign-in mints a `playerId` the env var
-   has never heard of, and the env seed is boot-only on top of that.
-   `WIZARD_EMAILS` / `ARCHWIZARD_EMAILS` key the grant on the **account
-   email** — the half of the identity a reset cannot reach — read from
-   the already-verified provider profile at `Avatar.enter`. Additive and
-   idempotent; a no-op on every deployment that does not reset.
+   characters — so a grant keyed on `playerId` is void by the next
+   morning, and the env seed is boot-only on top of that.
+
+   ⭐⭐ **The answer is not a second credential — it is the office.**
+   Whoever holds the Prime Minister's seat is a wizard and an
+   archwizard, derived on every check (`AccessRegistry.holdsPrimeMinister`).
+   The world ships with **no wizards at all**; there is exactly one
+   credential anywhere in the system — the founder's provider id, read
+   by `OfficeRegistry` — and all it does is make the founder the DEFAULT
+   HOLDER until somebody is seated explicitly. A reset cannot sever
+   that, because it was never a stored grant.
+
+   ⚠ An earlier pass added `WIZARD_EMAILS` / `ARCHWIZARD_EMAILS`,
+   granting group membership by account email at `Avatar.enter`. It is
+   **removed**: it was a second credential surface beside the founder
+   id, and a stored grant survives the handoff that was supposed to end
+   it — hand the office on and the old holder silently keeps code trust.
+   *Check offices, never the founder.*
 
 ## Configuration
 
@@ -296,7 +308,6 @@ Two traps, both recorded before they were hit:
 | `world.reset.intervalMs` | 86400000 | |
 | `world.resetPolicy` | absent | the front door's words |
 
-Env: `WIZARD_EMAILS`, `ARCHWIZARD_EMAILS` (comma-separated, optional).
 
 ## Cross-references
 

@@ -32,7 +32,7 @@ import { GroupApi } from '../api/group';
 import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
 import { ParcelApi } from '../api/parcel';
-import { PersistApi } from '../api/persist';
+import { CompactApi } from '../api/compact';
 import { Collections } from '../lib/persistence/Collections';
 import { Template } from '../lib/stuff/Template';
 import { Group } from '../lib/social/Group';
@@ -43,24 +43,16 @@ import { Zone } from '../lib/zone/Zone';
 import FolderZone from './FolderZone';
 import Avatar from './Avatar';
 
-const AccessRegistryBase = PostRegistrationMixin(Idea);
-
 /**
- * A comma-separated env list of email addresses, lowercased.
- *
- * A module-private function rather than a method: it reads deploy-time
- * config and touches no registry state, matching how the sibling
- * `*_PLAYER_IDS` seeds already read `process.env` directly (no
- * boot-ordering dependency on AppSettings).
+ * The one office that carries code trust. Named here rather than
+ * imported from the governance vocabulary so this module keeps its
+ * existing import surface; the key is asserted against `Office.byKey`
+ * by the test beside it, so a rename cannot leave this pointing at
+ * nothing.
  */
-function envEmails(key: string): ReadonlySet<string> {
-  return new Set(
-    (process.env[key] ?? '')
-      .split(',')
-      .map((s) => s.trim().toLowerCase())
-      .filter((s) => s.length > 0),
-  );
-}
+const PRIME_MINISTER = 'prime-minister';
+
+const AccessRegistryBase = PostRegistrationMixin(Idea);
 
 // AccessApi's logic now lives in the /obj/api/access logic singleton
 // (the Api face is a thin forwarding shell). Admit both the face module
@@ -205,7 +197,8 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const cache = await this.ensureWizardCache();
-    return cache.has(memberKey);
+    if (cache.has(memberKey)) return true;
+    return this.holdsPrimeMinister(subject);
   }
 
   /**
@@ -237,7 +230,43 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const cache = await this.ensureArchwizardCache();
-    return cache.has(memberKey);
+    if (cache.has(memberKey)) return true;
+    return this.holdsPrimeMinister(subject);
+  }
+
+  /**
+   * ⭐⭐ **The backstop: whoever holds the Prime Minister's office is a
+   * wizard and an archwizard, derived — never stored.**
+   *
+   * The world ships with NO wizards and no seeded operator identities.
+   * There is exactly one credential anywhere in the system — the
+   * founder's provider id, read by `OfficeRegistry` — and it does one
+   * thing: it makes the founder the DEFAULT HOLDER of the offices until
+   * somebody is seated explicitly. Everything downstream of that is
+   * playerIds.
+   *
+   * ⚠⚠ **Derived is the whole point.** A stored grant survives the
+   * handoff that was supposed to end it: hand the office on and the old
+   * holder keeps code trust, silently, because a group row outlives the
+   * seat. Asking the office each time means authority follows the seat
+   * in both directions, which is the codebase's own rule — *check
+   * offices, never the founder.*
+   *
+   * ⚠ It is a floor, not a ceiling: an explicit `wizards` membership
+   * still stands on its own, and the group cache is consulted FIRST so
+   * an ordinary wizard costs no office read. The cost of this path is
+   * one indexed lookup on the refusal branch, which is what
+   * `OfficeRegistry` already does per check by design.
+   */
+  private async holdsPrimeMinister(subject: Stuff): Promise<boolean> {
+    try {
+      return await CompactApi.holdsOffice(subject, PRIME_MINISTER);
+    } catch {
+      // ⚠ Fail CLOSED and stay quiet. This is a backstop on top of the
+      // ordinary group answer, so a governance substrate that is not up
+      // yet must not turn a plain "no" into a throw at a security gate.
+      return false;
+    }
   }
 
   /**
@@ -272,72 +301,6 @@ export default class AccessRegistry extends AccessRegistryBase {
       this.cachedWizardPlayerIds = null;
     }
     return changed;
-  }
-
-  /**
-   * See {@link AccessApi.reconcileIdentityGrants}. Grant `wizards` /
-   * `archwizards` by ACCOUNT EMAIL rather than by character id.
-   *
-   * ⭐ The env-id seeds (`WIZARD_PLAYER_IDS`) name characters, and a
-   * character is the thing a nightly reset destroys. Email is the
-   * durable half of the identity: it survives the wipe on the OAuth
-   * provider's side, so a founder who signs in again is recognised
-   * without an operator editing config.
-   *
-   * ⚠ The email is read from the account's already-verified provider
-   * profile — never from anything the player can set. This confers
-   * nothing that `WIZARD_PLAYER_IDS` did not already confer; it only
-   * changes the key it is looked up by.
-   */
-  @CallSecurity(AccessApiCallers)
-  public async reconcileIdentityGrants(avatar: Stuff): Promise<void> {
-    const wizardEmails = envEmails('WIZARD_EMAILS');
-    const archEmails = envEmails('ARCHWIZARD_EMAILS');
-    if (wizardEmails.size === 0 && archEmails.size === 0) return;
-
-    const holder = avatar as unknown as {
-      getUser?: () => { googleProfileId?: string } | undefined;
-      getPlayerId?: () => string;
-    };
-    const playerId = holder.getPlayerId?.() ?? '';
-    if (!playerId) return;
-    const profileId = holder.getUser?.()?.googleProfileId;
-    if (!profileId) return;
-
-    const rows = await PersistApi.find(Collections.GoogleProfiles, {
-      _id: profileId,
-    });
-    const email = String(rows[0]?.email ?? '')
-      .trim()
-      .toLowerCase();
-    if (!email) return;
-
-    const memberKey = Avatar.getTemplatePath(playerId);
-    if (wizardEmails.has(email)) {
-      await this.addToManagedGroup('wizards', memberKey);
-    }
-    if (archEmails.has(email)) {
-      await this.addToManagedGroup('archwizards', memberKey);
-    }
-  }
-
-  /** Additive, idempotent membership write with cache invalidation. */
-  private async addToManagedGroup(
-    name: 'wizards' | 'archwizards',
-    memberKey: string,
-  ): Promise<void> {
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    const group = await provider.findByName(name);
-    if (!group || !group._id) return;
-    if (!group.addMember(memberKey, 'member')) return;
-    await group.save();
-    provider.fireChange(group._id);
-    if (name === 'wizards') this.cachedWizardPlayerIds = null;
-    else this.cachedArchwizardPlayerIds = null;
-    console.info(
-      `[access] identity grant: ${memberKey} added to \`${name}\` by email`,
-    );
   }
 
   /**

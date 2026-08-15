@@ -135,13 +135,6 @@ export class AccessLogic extends ApiLogic {
     await reg.reseedSystemGroups();
   }
 
-  /** See {@link AccessApi.reconcileIdentityGrants}. */
-  @CallSecurity(AccessApiCallers)
-  public async reconcileIdentityGrants(avatar: Stuff): Promise<void> {
-    const reg = lookupRegistry();
-    if (!reg) return;
-    await reg.reconcileIdentityGrants(avatar);
-  }
 
   /** See {@link AccessApi.resolveSourceFolderZone}. */
   @CallSecurity(AccessApiCallers)

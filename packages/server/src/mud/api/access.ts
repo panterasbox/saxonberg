@@ -171,58 +171,17 @@ export class AccessApi {
   }
 
   /**
-   * ⭐ **Re-mint the system groups after a reset deleted them.**
+   * ⭐⭐ **Re-establish the system groups after they have been deleted.**
    *
-   * The nightly wipe takes `groups`, and `core` / `wizards` /
-   * `archwizards` / `streamers` live there. They are minted in code
-   * (`AccessRegistry.postRegister`) rather than by a seed file, and the
-   * seeder runs only at boot — so without this the world comes back
-   * with no `core` group, every resource-targeted `can` read failing
-   * closed, and no way to fix it short of a restart.
-   *
-   * ⚠⚠ **This restores the groups, not the founder's membership, and
-   * the difference is the whole trap.** `WIZARD_PLAYER_IDS` names
-   * CHARACTER ids; the wipe takes the characters, so the founder's next
-   * login mints a new `playerId` the env var has never heard of. The
-   * env seed is boot-only on top of that. What actually closes the gap
-   * is {@link AccessApi.reconcileIdentityGrants}, keyed on the one
-   * thing a wipe cannot change — the account's email.
-   *
-   * Gated to the reset job: re-seeding groups is not a general-purpose
-   * capability, it is one step of one destructive sequence.
+   * The nightly reset wipes `groups`, and the system groups (`core`,
+   * `wizards`, `archwizards`, `streamers`) live there beside the player
+   * ones. They are minted in CODE rather than by a seed file — and the
+   * seeder is insert-only and boot-only — so without this the world
+   * comes back with no `core` group at all, every resource-targeted
+   * `can` read failing closed, and no fix short of a restart.
    */
-  @CallSecurity(SecurityPolicies.FromModule('/api/record#RecordApi'))
   public static async reseedSystemGroups(): Promise<void> {
     await asAuthorityQuery(() => logic().reseedSystemGroups());
-  }
-
-  /**
-   * ⭐⭐ **Grant the operator tiers named by EMAIL, on the character
-   * that is entering.**
-   *
-   * `WIZARD_PLAYER_IDS` / `ARCHWIZARD_PLAYER_IDS` name characters, and
-   * a character is exactly what a reset destroys. `WIZARD_EMAILS` /
-   * `ARCHWIZARD_EMAILS` name accounts, which survive the *identity* of
-   * the person even when the row does not: the founder signs in with
-   * Google again, the email matches, and the freshly-minted character
-   * carries the grant. Keying on the durable half of the identity is
-   * what turns "re-establish founder access" from an operator's memory
-   * into a mechanism.
-   *
-   * ⚠ Additive and idempotent, never subtractive — the same
-   * merge-missing philosophy as the env-id seed. Revoking is still
-   * `wizard revoke`.
-   *
-   * ⚠ Not a login provider and not an authentication decision: the
-   * email is read from the account's ALREADY-VERIFIED provider profile,
-   * never from anything a player supplies.
-   *
-   * Runs once per session start, not per connection. A no-op — one
-   * string compare against an empty list — when the env vars are unset,
-   * which is every deployment that is not a resetting demo.
-   */
-  public static async reconcileIdentityGrants(avatar: Stuff): Promise<void> {
-    await asAuthorityQuery(() => logic().reconcileIdentityGrants(avatar));
   }
 
   /**

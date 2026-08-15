@@ -39,7 +39,6 @@ import {
 import { ShellApi } from "../api/shell";
 import { PressApi } from "../api/press";
 import { RecordApi } from "../api/record";
-import { AccessApi } from "../api/access";
 import { PostRegistrationMixin } from "../lib/stuff/PostRegistration";
 import { PersistableMixin } from "../lib/persistence/Persistable";
 import { ForkableMixin } from "../lib/persistence/Forkable";
@@ -816,14 +815,6 @@ export default class Avatar extends AvatarBase {
     // identification) into its in-memory belief store. Serves the naming
     // path from memory thereafter — no Mongo read on look/listing.
     await BeliefStoreApi.hydrate(this);
-
-    // ⭐ Operator tiers named by ACCOUNT EMAIL rather than by character
-    // id. On a resetting instance the wipe takes every character, so a
-    // grant keyed on `playerId` is void by the next morning; the email
-    // is the half of the identity a wipe cannot reach. A no-op — one
-    // empty-set check — wherever `WIZARD_EMAILS` is unset, which is
-    // every deployment that does not reset.
-    await AccessApi.reconcileIdentityGrants(this);
 
     // First-arrival deed — minted once, ever. Called unconditionally
     // (not gated on `opts.firstArrival`): the greeting flag only selects
