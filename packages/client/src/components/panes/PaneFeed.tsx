@@ -106,6 +106,26 @@ const List = styled.div`
  * it here would have thrown away a working surface to make the feed
  * look uniform.
  */
+/**
+ * ⚠ The focus pane needs a name now that it has neighbours.
+ *
+ * It used to be the whole column, so nothing had to say what it was.
+ * Sitting under a stack of cards, its breadcrumb renders as a bare
+ * orphan word above an unlabelled box — live, a room called *Terminus
+ * Terminal, the station hall* put a lone `hall` between the PLACE card
+ * and the pane, attached to nothing. `IN FOCUS` is the mock's own label
+ * for this slot; it re-attaches the crumb and tells a reader why this
+ * one does not scroll away with the cards.
+ */
+const FocusLabel = styled.div`
+  padding: ${tokens.space.sm} ${tokens.space.md} 0;
+  font-family: ${tokens.font.engraved};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: ${tokens.color.sectionLabel};
+`;
+
 const FocusSlot = styled.div`
   min-height: 0;
   display: flex;
@@ -179,6 +199,7 @@ export function PaneFeed({
             />
           </PaneCard>
         ))}
+        <FocusLabel data-testid="pane-focus-label">In focus</FocusLabel>
         <FocusSlot>
           <InspectionPane
             onSendCommand={onSendCommand}

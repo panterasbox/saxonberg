@@ -15,6 +15,7 @@
 import { CommandApi } from '../../mud/api/command';
 import { MessageApi } from '../../mud/api/message';
 import { MixinApi } from '../../mud/api/mixin';
+import { RecognitionApi } from '../../mud/api/recognition';
 import { StuffApi } from '../../mud/api/stuff';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type { Sensor } from '../../mud/lib/message/Sensor';
@@ -67,6 +68,10 @@ export const handleAffordanceResolve: InboundHandler = async (ctx, message) => {
     stuffId: payload.stuffId,
     verbs: resolution.verbs,
     composition: resolution.composition,
+    // The centre chip's middle term. Viewer-aware by the same gates
+    // the prose path uses, so the menu and the scrollback cannot call
+    // one object two different things.
+    kind: RecognitionApi.kindOf(viewer, target as Stuff),
   };
   MessageApi.sendEnvelope(viewer, template);
 };

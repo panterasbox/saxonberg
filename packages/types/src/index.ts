@@ -1742,6 +1742,17 @@ export interface AffordanceResultEnvelope {
    * change it at runtime.
    */
   composition: string[];
+  /**
+   * What the subject IS, to this viewer — the centre chip's middle
+   * term (*"cast-iron anvil · thing · 6 mixins"*).
+   *
+   * ⚠ Viewer-aware, via the same `RecognitionApi.kindOf` gates the
+   * prose path uses: a viewer who cannot see, or who is looking at a
+   * mask, is told `npc` rather than `player`. A third "unknown" value
+   * would announce *that* something is being withheld, which is the
+   * honest-fog failure the whole face is built to avoid.
+   */
+  kind: 'player' | 'npc' | 'thing';
 }
 
 /**

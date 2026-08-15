@@ -39,6 +39,12 @@ export interface AffordanceAnswer {
   verbs: AffordanceEntry[];
   /** The subject's ACTIVE mixin composition — never its declared one. */
   composition: string[];
+  /**
+   * What the subject IS, to this viewer — the centre chip's middle
+   * term. Viewer-aware server-side (`RecognitionApi.kindOf`), so a
+   * masked being reads `npc` in the menu and in the scrollback alike.
+   */
+  kind: "player" | "npc" | "thing";
   /** When it was answered, for the staleness sweep. */
   at: number;
 }

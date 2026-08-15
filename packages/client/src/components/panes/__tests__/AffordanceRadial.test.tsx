@@ -28,11 +28,16 @@ function entry(over: Partial<AffordanceEntry>): AffordanceEntry {
   };
 }
 
-function answer(verbs: AffordanceEntry[], composition: string[] = []): void {
+function answer(
+  verbs: AffordanceEntry[],
+  composition: string[] = [],
+  kind: "player" | "npc" | "thing" = "thing",
+): void {
   useStore.getState().setAffordances({
     stuffId: "anvil",
     verbs,
     composition,
+    kind,
   });
 }
 
@@ -187,7 +192,7 @@ describe("the composition", () => {
       />,
     );
     expect(screen.getByTestId("radial-composition-count").textContent).toBe(
-      "4 mixins",
+      "thing · 4 mixins",
     );
   });
 
@@ -204,7 +209,7 @@ describe("the composition", () => {
       />,
     );
     expect(screen.getByTestId("radial-composition-count").textContent).toBe(
-      "0 mixins",
+      "thing · 0 mixins",
     );
   });
 });
@@ -235,5 +240,28 @@ describe("the cold and refused paths", () => {
     // "No such object" and "you may not see that object" are the same
     // answer; distinguishing them would map what is hidden nearby.
     expect(screen.getByTestId("radial-unresolvable")).toBeTruthy();
+  });
+});
+
+describe("the centre chip's kind", () => {
+  it("prints what the SERVER said the subject is", () => {
+    /*
+     * The plan states the chip as *"cast-iron anvil · thing · 6
+     * mixins"*. The kind is the server's answer, through the same
+     * `RecognitionApi.kindOf` gates the prose path uses — a masked
+     * being reads `npc` in the menu and in the scrollback alike, so
+     * neither surface gives the other away.
+     */
+    answer([entry({ verb: "look" })], ["Visible"], "npc");
+    render(
+      <AffordanceRadial
+        stuffId="anvil"
+        displayName="the hooded figure"
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.getByTestId("radial-composition-count").textContent).toBe(
+      "npc · 1 mixins",
+    );
   });
 });

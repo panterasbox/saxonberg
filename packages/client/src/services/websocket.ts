@@ -974,6 +974,7 @@ class WebSocketClient {
         stuffId: env.stuffId,
         verbs: env.verbs,
         composition: env.composition,
+        kind: env.kind,
       });
       return;
     }

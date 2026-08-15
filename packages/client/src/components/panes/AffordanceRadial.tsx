@@ -381,7 +381,14 @@ export function AffordanceRadial({
           one.
         */}
         <CentreMeta data-testid="radial-composition-count">
-          {answer.composition.length} mixins
+          {/*
+            ⚠ The KIND is the server's answer, not a guess from the
+            composition. It runs the same `RecognitionApi.kindOf` gates
+            the prose path uses, so a masked being reads `npc` here and
+            in the scrollback rather than one surface giving the other
+            away.
+          */}
+          {answer.kind} · {answer.composition.length} mixins
         </CentreMeta>
       </Centre>
       {renderSlot("east")}
