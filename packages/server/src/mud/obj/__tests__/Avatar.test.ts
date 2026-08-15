@@ -50,6 +50,25 @@ function makeFrame(topic: string, body: string = ''): MessageFrame {
   };
 }
 
+/**
+ * What a frame looks like on the far side of `handleMessage`.
+ *
+ * ⚠ Not the same object. The delivery seam stamps `meta.feeds` — the
+ * player's routing table's answer for this frame — so an exact-equality
+ * assertion here would be asserting that the routing layer does not
+ * exist. These tests are about the FAN-OUT (does it reach both
+ * surfaces, are both topics forwarded), so they match on identity; the
+ * stamp has its own test below and `feed-routing.test.ts` owns the
+ * routing decision itself.
+ */
+function forwarded(frame: MessageFrame): unknown {
+  return expect.objectContaining({
+    id: frame.id,
+    topic: frame.topic,
+    body: frame.body,
+  });
+}
+
 describe('Avatar', () => {
   describe('TEMPLATE_PATH_PREFIX', () => {
     it('should have correct template path prefix', () => {
@@ -383,11 +402,11 @@ describe('Avatar', () => {
       expect(sendMessage).toHaveBeenCalledTimes(2);
       expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
-        message
+        forwarded(message)
       );
       expect(sendMessage).toHaveBeenCalledWith(
         interactive2,
-        message
+        forwarded(message)
       );
     });
 
@@ -401,7 +420,7 @@ describe('Avatar', () => {
       expect(sendMessage).toHaveBeenCalledTimes(1);
       expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
-        message
+        forwarded(message)
       );
     });
 
@@ -429,12 +448,32 @@ describe('Avatar', () => {
       // Both devices receive the message
       expect(sendMessage).toHaveBeenCalledWith(
         laptop,
-        message
+        forwarded(message)
       );
       expect(sendMessage).toHaveBeenCalledWith(
         phone,
-        message
+        forwarded(message)
       );
+    });
+
+    it('⚠ stamps the routing answer on the frame it forwards', () => {
+      /*
+       * The assertions above match on identity, which would pass just
+       * as happily if the stamp vanished. This one is why they can.
+       *
+       * ⚠ It asserts the SEAM, not the destination. The topic
+       * catalogue is not warmed in this file, so every weight derives
+       * to the same default and asserting `['diagnostics']` here would
+       * be asserting the fallback. Which feed a topic lands in is
+       * `api/__tests__/feed-routing.test.ts`, which installs a
+       * catalogue precisely so it can.
+       */
+      avatar.addInteractive(interactive1);
+      avatar.onMessage(makeFrame('shell.diagnostic', 'Error'));
+
+      const [, sent] = sendMessage.mock.calls[0] as [unknown, MessageFrame];
+      expect(Array.isArray(sent.meta?.feeds)).toBe(true);
+      expect(sent.meta?.feeds?.length).toBeGreaterThan(0);
     });
 
     it('should work with different message types', () => {
@@ -448,11 +487,11 @@ describe('Avatar', () => {
 
       expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
-        outputMsg
+        forwarded(outputMsg)
       );
       expect(sendMessage).toHaveBeenCalledWith(
         interactive1,
-        errorMsg
+        forwarded(errorMsg)
       );
     });
   });
