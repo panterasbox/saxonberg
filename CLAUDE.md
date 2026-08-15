@@ -310,12 +310,25 @@ and the launch aborts rather than starting into `EADDRINUSE`.
 
 ```bash
 pnpm build            # pnpm -r build
-pnpm test             # all tests (Vitest) — ONE full run per build
+pnpm test             # all tests (Vitest) — ~15 MIN. ONE full run per build
 pnpm test:near        # only the tests beside what you changed (fast loop)
 pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
 ```
+
+⚠⚠ **`pnpm test` costs ~15 minutes, and a green run stays valid until a
+SOURCE file changes.** Before starting one, check — do not assume that
+"about to commit" is a reason:
+
+```bash
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+```
+
+Empty means the last run still stands: cite its number and move on.
+`pnpm test:near` stays reflexive — it is the full suite that is
+expensive, not the habit of checking. And a narrowed run is not a full
+run: never report `test:near` green as though the suite passed.
 
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
