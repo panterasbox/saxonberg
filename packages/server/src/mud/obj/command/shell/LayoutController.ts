@@ -37,7 +37,7 @@ import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import Avatar from '../../Avatar';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
-import type { ArrangementSpec, CockpitMode, PaneId } from '@saxonberg/types';
+import type { ArrangementSpec, CockpitMode, CardId } from '@saxonberg/types';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 
 const LAYOUT_KEY = 'cockpit.layout';
@@ -105,17 +105,17 @@ export default class LayoutController extends CommandController<LayoutModel> {
     /*
      * ⭐⭐ **Recalling an arrangement now OPENS it.**
      *
-     * ⚠ Until this build, `save` wrote a pane list that `recall` never
+     * ⚠ Until this build, `save` wrote a card list that `recall` never
      * read: the name appeared in `list`, recalling it restored nothing,
-     * and the whole feature was a naming feature. The pane catalogue
-     * fixed the first half — panes finally had a durable id worth
+     * and the whole feature was a naming feature. The card catalogue
+     * fixed the first half — cards finally had a durable id worth
      * saving — and this is the second.
      */
     const interactive = context.interactive;
     if (interactive) {
       MqlSubscriptionApi.applyArrangement(
         interactive,
-        host.arrangementPanes(mode, name),
+        host.arrangementCards(mode, name),
       );
     }
     this.send(
@@ -146,32 +146,32 @@ export default class LayoutController extends CommandController<LayoutModel> {
     const existed = forMode[name] !== undefined;
 
     /*
-     * ⭐ Capture the panes that are actually open, by their CATALOGUE
+     * ⭐ Capture the cards that are actually open, by their CATALOGUE
      * name.
      *
-     * ⚠ This used to write `panes: []` and say "saved", which made the
+     * ⚠ This used to write `cards: []` and say "saved", which made the
      * whole feature a naming feature: the name appeared in `list`,
      * recalling it restored nothing, and no code path anywhere ever
      * filled the array. That was not laziness — it was the only honest
-     * thing to write, because the only id a pane HAD was the
+     * thing to write, because the only id a card HAD was the
      * client-minted `subscriptionId`, a `nanoid` that dies on
      * reconnect. Saving those would have produced an arrangement that
      * decayed to garbage the moment the socket dropped.
      *
      * ⚠ A held subscription opened by SHAPE rather than by name has no
-     * `paneId` and is skipped — there is nothing durable to record. It
+     * `cardId` and is skipped — there is nothing durable to record. It
      * is dropped silently on purpose: the alternative is refusing the
-     * save over a pane the player never asked for by name.
+     * save over a card the player never asked for by name.
      */
     const open = context.interactive
-      ? MqlSubscriptionApi.listPanes(context.interactive)
+      ? MqlSubscriptionApi.listCards(context.interactive)
       : [];
-    const panes = [
+    const cards = [
       ...new Set(
-        open.map((p) => p.paneId).filter((id): id is PaneId => id !== undefined),
+        open.map((p) => p.cardId).filter((id): id is CardId => id !== undefined),
       ),
     ];
-    forMode[name] = { panes };
+    forMode[name] = { cards };
     saved[mode] = forMode;
     host.setClientState(SAVED_KEY, saved);
 
@@ -181,7 +181,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
       Mml.fromMarkup(
         Mml.escape(
           `\n${existed ? 'updated' : 'saved'} ${mode} arrangement ` +
-            `'${name}' — ${panes.length} pane${panes.length === 1 ? '' : 's'}\n`,
+            `'${name}' — ${cards.length} card${cards.length === 1 ? '' : 's'}\n`,
         ),
       ),
     );

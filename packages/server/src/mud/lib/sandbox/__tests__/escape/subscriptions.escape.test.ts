@@ -57,7 +57,7 @@ describe('sandbox-escape: subscriptions', () => {
   it('a circle-born subscription dies at reap; a field-born one survives', async () => {
     await bootRegistry();
 
-    // Field subscription (ordinary client pane).
+    // Field subscription (ordinary client card).
     const field = await makeAvatarInteractive('field');
     MqlSubscriptionApi.handleSubscribe({
       interactive: field.interactive,
@@ -68,7 +68,7 @@ describe('sandbox-escape: subscriptions', () => {
 
     // Circle subscription: registered from a circle-scoped context —
     // the whole holder rig is minted in-scope, the way a wire body's
-    // panes would be.
+    // cards would be.
     await ExecutionContextApi.runRootGuarded(
       null,
       'escape',

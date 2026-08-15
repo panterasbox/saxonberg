@@ -17,7 +17,7 @@
  * ## ⚠⚠ Owner-only, and structurally so
  *
  * A player's frame store is readable by that player: not by a wizard
- * through an ordinary read, not by another character, not by a pane.
+ * through an ordinary read, not by another character, not by a card.
  * **There is no read on this face that takes an owner.** Every read
  * derives its subject from the acting context, so "read someone else's
  * record" is not a call that can be written, rather than one that is

@@ -2,7 +2,7 @@
  * `<EntityName>` — clickable styled name carrying a Stuff identity
  * handle.
  *
- * Per the message-rendering slate (and the inspection-pane
+ * Per the message-rendering slate (and the inspection-card
  * reconciliation), the `stuff-id` attribute carries DOUBLE DUTY:
  * (1) interactivity — the click target resolution layer maps
  *     `stuffId` (via the client stuff registry's `primaryKeyword`)
@@ -95,7 +95,7 @@ interface EntityNameProps {
  *
  * Wired here rather than at ~40 call sites, and that is the whole
  * reason it is here: a menu you can reach on a room's exits but not on
- * a pane's contents list is a menu the player cannot rely on, and
+ * a card's contents list is a menu the player cannot rely on, and
  * "which surfaces support it" is exactly the kind of inconsistency the
  * no-exceptions command-sheet policy was written against.
  *

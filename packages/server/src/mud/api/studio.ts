@@ -130,7 +130,7 @@ export class StudioApi {
   }
 
   /**
-   * Describe a single mixin for the composer's inspector pane: its FULL
+   * Describe a single mixin for the composer's inspector card: its FULL
    * multi-paragraph concept comment, the authorable fields it contributes
    * (name + best-effort type shape) and its runtime-state field names — all
    * from the always-available server source scan — plus optional HelpApi

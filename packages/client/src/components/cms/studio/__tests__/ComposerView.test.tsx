@@ -17,7 +17,7 @@ import type { MixinDetail, MixinPalette } from "@saxonberg/types";
 import { useStore } from "../../../../store/index";
 import { ComposerView } from "../ComposerView";
 
-// Stub the lazy Monaco editor so mounting the source pane in jsdom doesn't pull
+// Stub the lazy Monaco editor so mounting the source card in jsdom doesn't pull
 // in the real `monaco-editor` bundle + its web workers. The stub just surfaces
 // the source text it is handed, which is all these tests observe.
 vi.mock("../../MonacoLazy", () => ({
@@ -100,7 +100,7 @@ function seedComposer(): void {
 }
 
 // ---------------------------------------------------------------------------
-describe("ComposerView mixin inspector pane", () => {
+describe("ComposerView mixin inspector card", () => {
   beforeEach(() => {
     describeMixinMock.mockReset();
     seedComposer();
@@ -125,12 +125,12 @@ describe("ComposerView mixin inspector pane", () => {
 
   it("shows the empty state before any hover", () => {
     render(<ComposerView />);
-    const pane = screen.getByTestId("mixin-inspector");
-    expect(pane.textContent).toMatch(/Hover or focus a mixin to inspect it/);
+    const card = screen.getByTestId("mixin-inspector");
+    expect(card.textContent).toMatch(/Hover or focus a mixin to inspect it/);
     expect(describeMixinMock).not.toHaveBeenCalled();
   });
 
-  it("loads a mixin's description + fields into the pane on hover", async () => {
+  it("loads a mixin's description + fields into the card on hover", async () => {
     describeMixinMock.mockResolvedValue(GLOBBABLE_DETAIL);
     render(<ComposerView />);
 
@@ -140,12 +140,12 @@ describe("ComposerView mixin inspector pane", () => {
     expect(
       await screen.findByText(/Three guarantees/),
     ).toBeTruthy();
-    const pane = screen.getByTestId("mixin-inspector");
-    expect(pane.textContent).toContain("fungible-stack substrate");
-    expect(pane.textContent).toContain("One Stuff, N units");
+    const card = screen.getByTestId("mixin-inspector");
+    expect(card.textContent).toContain("fungible-stack substrate");
+    expect(card.textContent).toContain("One Stuff, N units");
     // The contributed field surfaces with its type shape.
-    expect(pane.textContent).toContain("quantity");
-    expect(pane.textContent).toContain("(number)");
+    expect(card.textContent).toContain("quantity");
+    expect(card.textContent).toContain("(number)");
     expect(describeMixinMock).toHaveBeenCalledWith("GlobbableMixin");
   });
 
@@ -157,11 +157,11 @@ describe("ComposerView mixin inspector pane", () => {
     fireEvent.mouseEnter(chip);
     await screen.findByText(/Three guarantees/);
 
-    // Mouse leaves the chip — the pane must NOT clear.
+    // Mouse leaves the chip — the card must NOT clear.
     fireEvent.mouseLeave(chip);
-    const pane = screen.getByTestId("mixin-inspector");
-    expect(pane.textContent).toContain("fungible-stack substrate");
-    expect(pane.textContent).not.toMatch(/Hover or focus a mixin/);
+    const card = screen.getByTestId("mixin-inspector");
+    expect(card.textContent).toContain("fungible-stack substrate");
+    expect(card.textContent).not.toMatch(/Hover or focus a mixin/);
   });
 
   it("caches per mixin — re-hovering never refetches", async () => {

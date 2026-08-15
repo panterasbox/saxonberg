@@ -110,7 +110,7 @@ export default class NotifyController extends CommandController<NotifyModel> {
     const lines = ["Your notify rules (top = highest precedence):"];
     for (const r of rules) lines.push(`  ${renderRuleLine(r)}`);
     this.send(context, Mml.fromMarkup(`\n${lines.join("\n")}\n`));
-    // A bare `notify` is how the settings pane requests a fresh
+    // A bare `notify` is how the settings card requests a fresh
     // projection on mount — push the effective list back.
     this.pushProjection(host);
   }
@@ -214,9 +214,9 @@ export default class NotifyController extends CommandController<NotifyModel> {
 
   /**
    * Push the viewer's effective ordered rule list as the `social.rules`
-   * client-state projection (the Phase-4 settings-pane feed). A pure
+   * client-state projection (the Phase-4 settings-card feed). A pure
    * server→client push — `social.rules` is NOT a persisted client-state
-   * key; the rule store stays the single source of truth, and the pane
+   * key; the rule store stays the single source of truth, and the card
    * reads this as a read-only cache (writes go back through `notify`).
    * Skipped silently when the giver is an NPC with a policy but no
    * connected Interactive (the store mutation still stands).
@@ -336,8 +336,8 @@ function buildPatch(model: NotifyModel): Partial<NotifyRule> | string {
 
 /**
  * Flatten the host's effective ordered rule list into the wire
- * projection the settings pane reads. `reserved` is `true` for a virtual
- * baseline row not yet materialized into the stored list (so the pane can
+ * projection the settings card reads. `reserved` is `true` for a virtual
+ * baseline row not yet materialized into the stored list (so the card can
  * style it as an un-pinned default); `label` is the friendly display name.
  */
 function buildRulesProjection(host: NotifyHost): SocialRuleProjection[] {
@@ -359,7 +359,7 @@ function buildRulesProjection(host: NotifyHost): SocialRuleProjection[] {
  * The friendly display label for a `GroupRef`: a contacts ref shows its
  * bare label (`contacts:<pid>:friends` → `friends`); everything else
  * (managed / MQL / the bare pseudo-subjects) shows the ref verbatim. The
- * pane addresses commands by `groupRef`, never the label.
+ * card addresses commands by `groupRef`, never the label.
  */
 function labelFor(ref: string): string {
   if (ref.startsWith("contacts:")) {

@@ -32,7 +32,7 @@ import { tokens } from "../ui";
 // (the `@monaco-editor/react` default). Pointing the loader at the
 // installed `monaco-editor` makes Vite include it in THIS lazy chunk, so
 // the whole editor — wrapper + engine — code-splits together and loads
-// only when this module is first imported (the editor pane mounting).
+// only when this module is first imported (the editor card mounting).
 loader.config({ monaco });
 
 // Route Monaco's worker requests to the Vite-bundled workers. `yaml`

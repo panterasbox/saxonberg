@@ -245,7 +245,7 @@ interface ExportSources {
   topSummaries: Map<string, string>;
   /**
    * mixin name → its file's FULL top concept comment (multi-paragraph, list
-   * structure preserved) + any `docs/…` ref — the inspector-pane substance.
+   * structure preserved) + any `docs/…` ref — the inspector-card substance.
    */
   topDescriptions: Map<string, TopDescription>;
   /** exported `interface <Name>` → its TSDoc summary — the companion fallback. */
@@ -1003,7 +1003,7 @@ export class StudioLogic extends ApiLogic {
    * `describeClass` uses (`getAll*Fields` + a throwaway class-default read).
    * ANY failure (a mixin that needs a richer base, a throwing constructor)
    * degrades to a static read of the mixin's own `fieldMeta` with a `json`
-   * shape — the pane is always useful, and the names are now the declared
+   * shape — the card is always useful, and the names are now the declared
    * ones rather than guessed candidates.
    */
   private async describeMixinFields(

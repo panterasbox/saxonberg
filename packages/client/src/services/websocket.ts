@@ -27,7 +27,7 @@
  */
 
 import type {
-  PaneId,
+  CardId,
   ReleaseFeedFrame,
   CharGenRosterPayload,
   CharGenStatePayload,
@@ -67,18 +67,18 @@ type EnvelopeHandler = (envelope: Envelope) => void;
  */
 export interface MqlSubscribeSpec {
   /**
-   * ⭐ Open a pane the server knows by name. The server supplies the
+   * ⭐ Open a card the server knows by name. The server supplies the
    * query, cardinality, fields and dependency flags; NOTHING else in
-   * this spec is read when `pane` is set. A pane's query is a server
+   * this spec is read when `card` is set. A card's query is a server
    * semantic and the client is not allowed to hold one.
    */
-  pane?: PaneId;
-  /** Required unless `pane` names one. */
+  card?: CardId;
+  /** Required unless `card` names one. */
   query?: string;
-  /** Required unless `pane` names one. */
+  /** Required unless `card` names one. */
   cardinality?: "one" | "many";
   /**
-   * ⭐ The `stuffId` a **subject pane** (`agent` / `instrument` /
+   * ⭐ The `stuffId` a **subject card** (`agent` / `instrument` /
    * `manifest`) is about.
    *
    * ⚠ An identity, not a query. The server substitutes it into its own
@@ -86,7 +86,7 @@ export interface MqlSubscribeSpec {
    * parameter superficially resembles the hole the catalogue closes.
    */
   subject?: string;
-  /** Required unless `pane` names one. */
+  /** Required unless `card` names one. */
   fields?: string[] | "ref" | "detail";
   detailKey?: string;
   focusDependent?: boolean;
@@ -129,7 +129,7 @@ class WebSocketClient {
   private topicHandlers: Map<string, FrameHandler[]> = new Map();
   /**
    * Catch-all frame handlers. Fired AFTER per-topic dispatch so
-   * existing per-topic call sites (inspection pane, prompt slice)
+   * existing per-topic call sites (inspection card, prompt slice)
    * keep working unmodified. The console-foundations frame store
    * uses this single subscription to consume every inbound frame.
    */
@@ -301,10 +301,10 @@ class WebSocketClient {
       }
     });
 
-    // The wiki pane's side-channel (`publication.wiki`). Empty body —
+    // The wiki card's side-channel (`publication.wiki`). Empty body —
     // the article's prose already went to the scroll on
     // `shell.result`; this is the structured twin, carrying the
-    // SAME rendered body so the pane inherits the server's gate rather
+    // SAME rendered body so the card inherits the server's gate rather
     // than re-deriving it.
     this.onTopic("publication.wiki", (frame) => {
       const payload = frame.payload as WikiPageFrame | undefined;
@@ -699,7 +699,7 @@ class WebSocketClient {
         // subscription result / delta envelope BEFORE dispatching to
         // widget handlers. Walks the top-level result records plus any
         // nested `'ref'`-shape fields (v1: `contents`). Per
-        // inspection-pane plan W7: the registry is the wire-fed cache
+        // inspection-card plan W7: the registry is the wire-fed cache
         // every `MmlRenderer.commandFor` lookup reads.
         this.feedStuffRegistry(envelope);
 
@@ -711,7 +711,7 @@ class WebSocketClient {
         this.applyPromptSideEffects(envelope);
 
         // Side-effect: cache the affordance answer. Both the radial and
-        // every pane body's composition chips read it, so it lands in
+        // every card body's composition chips read it, so it lands in
         // the store rather than in a component — one answer, two
         // consumers, and the chips cannot drift from the menu.
         this.applyAffordanceSideEffects(envelope);
@@ -859,7 +859,7 @@ class WebSocketClient {
   /**
    * ⭐ Ask what this viewer can do with `stuffId`, right now.
    *
-   * The radial's cold path, and the pane bodies' composition chips.
+   * The radial's cold path, and the card bodies' composition chips.
    * Deduped against anything already in flight or already answered, so
    * hovering a row repeatedly costs nothing; `clearAffordances` (fired
    * on every command send) is what makes a stale answer impossible.

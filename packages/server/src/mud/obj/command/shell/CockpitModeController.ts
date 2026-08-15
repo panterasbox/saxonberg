@@ -7,7 +7,7 @@
  * one string.
  *
  * ⚠ **A mode gates nothing.** It selects which arrangements ship, which
- * one you land in, and which pane kinds may be summoned. It does not
+ * one you land in, and which card kinds may be summoned. It does not
  * decide what you may run — everything runnable in `play` is runnable
  * in `build`. A mode that forbade a verb would be a permission system
  * wearing a UI costume, with its checks in the wrong layer; that is
@@ -103,22 +103,22 @@ export default class CockpitModeController extends CommandController<CockpitMode
 
     const arrangement = this.commit(host, mode, wanted);
     /*
-     * ⭐⭐ **A mode switch OPENS its arrangement's panes, server-side.**
+     * ⭐⭐ **A mode switch OPENS its arrangement's cards, server-side.**
      *
      * S3 shipped arrangements as storage, not behaviour: nothing opened
-     * or closed a pane on recall, on either side, so a saved workspace
+     * or closed a card on recall, on either side, so a saved workspace
      * was a name that did nothing. This is that behaviour.
      *
      * ⚠ The client sends ONE command and renders what arrives. It never
      * learns what an arrangement means, which is what keeps *the client
      * owns zero command semantics* literally true — and it costs one
-     * round trip rather than one per pane.
+     * round trip rather than one per card.
      */
     const interactive = context.interactive;
     if (interactive) {
       MqlSubscriptionApi.applyArrangement(
         interactive,
-        host.arrangementPanes(mode, arrangement),
+        host.arrangementCards(mode, arrangement),
       );
     }
     this.send(

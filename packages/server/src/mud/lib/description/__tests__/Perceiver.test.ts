@@ -32,7 +32,7 @@ describe('PerceiverMixin', () => {
     // Discovery wiring sanity-check — `find.yaml` lives here next to
     // `look` because find is a snapshot-shaped perception verb, not
     // a focus-management verb. The acceptance criterion (inspection-
-    // pane plan Wave 5) is that find rides on the Perceiver
+    // card plan Wave 5) is that find rides on the Perceiver
     // contribution surface so every Sensor/Perceiver actor (Avatar +
     // future NPCs) gets the verb for free.
     class Looker extends PerceiverMixin(SensorMixin(Idea)) {}

@@ -1,7 +1,7 @@
 /**
  * CharacterSelect — the account's screen (phase `character-select`).
  *
- * Two panes on a desktop, two screens on a phone, and **the split is by
+ * Two cards on a desktop, two screens on a phone, and **the split is by
  * question**: the list answers *who*, the detail answers *what happened
  * while I was gone*. Most accounts have one character, so the list is a
  * way-station rather than a destination — a single-character account
@@ -156,7 +156,7 @@ const Inner = styled.div`
   min-height: 0;
 `;
 
-const TwoPane = styled.div`
+const TwoColumn = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: ${tokens.space.xl};
@@ -823,7 +823,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
     );
   }
 
-  const listPane = (
+  const listColumn = (
     <div>
       <SectionLabel>
         Your characters · {roster.length}
@@ -855,7 +855,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
     </div>
   );
 
-  // ⭐ On a phone the two panes become two SCREENS, split by question:
+  // ⭐ On a phone the two cards become two SCREENS, split by question:
   // the list answers who, the detail answers what happened while I was
   // gone. Only one is mounted at a time — a phone cannot show both, and
   // rendering both to hide one would make "exactly one screen" an
@@ -927,10 +927,10 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
             }
           />
         ) : showListOnly ? (
-          listPane
+          listColumn
         ) : (
-          <TwoPane>
-            {listPane}
+          <TwoColumn>
+            {listColumn}
             {selected ? (
               <CharacterDetail
                 entry={selected}
@@ -941,7 +941,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
                 <Waiting>Pick a character to see what waited for them.</Waiting>
               </Panel>
             )}
-          </TwoPane>
+          </TwoColumn>
         )}
 
       </Inner>

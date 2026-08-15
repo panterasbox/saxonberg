@@ -6,7 +6,7 @@
  * walk would not have installed a focus dep (the result set doesn't
  * include the Focused host itself).
  *
- * The inspection pane's `$focus` subscription is the canonical
+ * The inspection card's `$focus` subscription is the canonical
  * consumer; this file exercises the substrate behavior directly.
  */
 

@@ -161,7 +161,7 @@ subcommands:
         required: false
 
   pane:
-    controller: /obj/command/shell/CockpitPaneController
+    controller: /obj/command/shell/CockpitCardController
     description: "Keep or drop an inspection pane, overriding what holds it open."
     help: |
       Panes stay open while something about the world keeps them
@@ -189,7 +189,7 @@ subcommands:
       - name: action
         type: string
         required: false
-      - name: paneId
+      - name: cardId
         type: string
         required: false
 

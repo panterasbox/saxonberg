@@ -109,7 +109,7 @@ export class RecognitionApi {
    * Like {@link RecognitionApi.describe}, but weaves the activity-status
    * affix (`StatusMixin`) onto the resolved identity — "the crossing
    * guard, watching the empty road". For the **presence-scan** surfaces
-   * only (room-occupant listing, look-at a being, the inspection pane),
+   * only (room-occupant listing, look-at a being, the inspection card),
    * where the viewer is taking stock of who's present and what they're
    * doing. Act-subject naming ("X says …", "X arrives") uses `describe`
    * so the idle status never contradicts the act in flight.

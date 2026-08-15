@@ -147,7 +147,7 @@ export const PALETTE_TOKENS: readonly PaletteToken[] = [
  * resolve (localhost / private IPs).
  *
  * Players customize this freely (`settings set social.presenceFormat "…"`
- * or the Social pane); a syntactically broken template falls back to this
+ * or the Social card); a syntactically broken template falls back to this
  * default at render.
  */
 export const PRESENCE_FORMAT_DEFAULT =

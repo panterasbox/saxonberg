@@ -162,7 +162,7 @@ export interface SocialNotificationPayload {
  * A NOTABLE presence status on a `world.social.roster` row. Mirrors the
  * server `PresenceApi.PresenceStatus`. A bare `active` (online, nothing
  * notable) is represented by the **absence** of `RosterRow.status`, so the
- * "Who's Online" pane only badges the exceptional states.
+ * "Who's Online" card only badges the exceptional states.
  */
 export type PresenceStatus = 'active' | 'idle' | 'engaged' | 'reconnecting';
 
@@ -287,7 +287,7 @@ export interface PublicReleaseRow {
  * (the welcome payload, not a frame) — there is no request RPC.
  */
 /**
- * One heading in an article, as the wiki pane's outline shows it.
+ * One heading in an article, as the wiki card's outline shows it.
  * `anchor` is the **sticky** anchor — the durable citation target, not
  * a slug re-derived from the title, so a reworded heading keeps it.
  */
@@ -298,26 +298,26 @@ export interface WikiSectionSummary {
 }
 
 /**
- * `world.wiki.page` payload — the article the wiki pane is showing.
+ * `world.wiki.page` payload — the article the wiki card is showing.
  *
  * The **same rendered body** the terminal received, which is the
  * point: it has already been through the render pipeline's gate, so
  * over-capability content is absent from this payload for the same
- * reason it is absent from the scroll. The pane never re-renders and
+ * reason it is absent from the scroll. The card never re-renders and
  * never sees a source it was not sent.
  *
- * Everything the pane can act on is a **command** it composes and
+ * Everything the card can act on is a **command** it composes and
  * emits (`wiki edit <handle>`, `wiki history <handle>`) — bus-primacy;
  * there is no private wiki channel from the client.
  *
- * `mayEdit` is the server's answer, sent so the pane can hide an
+ * `mayEdit` is the server's answer, sent so the card can hide an
  * affordance that would be refused. It is a display hint and nothing
  * more — the verb re-checks on arrival, which is where the decision
  * actually lives.
  */
 export interface WikiPageFrame {
   kind: 'wiki-page';
-  /** `namespace:slug` — what every command the pane emits addresses. */
+  /** `namespace:slug` — what every command the card emits addresses. */
   handle: string;
   title: string;
   rev: number;
@@ -331,7 +331,7 @@ export interface WikiPageFrame {
   updatedAt: number;
   mayEdit: boolean;
   /**
-   * True when this is an unsaved `wiki preview`. The pane says so, or
+   * True when this is an unsaved `wiki preview`. The card says so, or
    * a preview is indistinguishable from the saved page it is not.
    */
   preview?: boolean;
@@ -345,10 +345,10 @@ export type ReleaseFeedFrame =
 /**
  * One row of the `social.rules` client-state projection — a flattened,
  * wire-safe view of a `NotifyRule` for the "Social / Notifications"
- * settings pane. The server pushes the viewer's effective ordered list
+ * settings card. The server pushes the viewer's effective ordered list
  * (stored rules spliced into the virtual reserved baseline) via
  * `host.pushClientStateUpdate('social.rules', SocialRulesState)` after
- * every `notify` mutation; the pane reads it as a **read-only cache** —
+ * every `notify` mutation; the card reads it as a **read-only cache** —
  * the per-character rule store stays the single source of truth, and all
  * writes go back through the `notify` verb.
  *
@@ -359,7 +359,7 @@ export type ReleaseFeedFrame =
  *   label, else the ref itself) — display only; commands address
  *   `groupRef`.
  * - `reserved` is `true` for a virtual baseline row not yet materialized
- *   into the stored list (the pane styles it as a default that
+ *   into the stored list (the card styles it as a default that
  *   editing/reordering will pin).
  * - `color` is a named theme-palette token (never raw hex), mapped
  *   client-side through `tokens.palette`.
@@ -380,7 +380,7 @@ export interface SocialRuleProjection {
  * The `social.rules` client-state projection value — the viewer's
  * effective ordered notify-rule list, top = highest precedence. Pushed
  * server→client (`client-state-update`) after every `notify` mutation
- * (and on a bare `notify` list) so the settings pane re-renders without a
+ * (and on a bare `notify` list) so the settings card re-renders without a
  * reconnect snapshot. Not a persisted client-state key — a pure push
  * cache.
  */
@@ -388,7 +388,7 @@ export interface SocialRulesState {
   rules: SocialRuleProjection[];
   /**
    * The viewer's current `social.presenceFormat` Liquid template (the
-   * per-character presence-line format). The pane shows + edits it; writes
+   * per-character presence-line format). The card shows + edits it; writes
    * go back through `settings set social.presenceFormat "…"`. A pure push
    * cache like `rules` — the setting store is the source of truth.
    */
@@ -845,36 +845,36 @@ export interface PromptEnvelope {
  * dependency entries the result-walk wouldn't naturally find — the
  * subscription wakes on `setFocus` / `setContainer` respectively.
  * Used by client subscriptions that watch the holder's pointer
- * fields (e.g., a focus-pane query like `$focus` or a current-room
+ * fields (e.g., a focus-card query like `$focus` or a current-room
  * query like `here`).
  */
 /**
- * A **pane** the server knows by name.
+ * A **card** the server knows by name.
  *
  * ⭐⭐ **The server owns this vocabulary, and that is the whole point.**
  * A subscription's `subscriptionId` is a client-minted `nanoid` — a
- * transport handle that dies on reconnect — so it can name a pane for
+ * transport handle that dies on reconnect — so it can name a card for
  * the length of one socket and nothing longer. Anything durable that
- * refers to a pane (a saved arrangement, a pin, a future authored
+ * refers to a card (a saved arrangement, a pin, a future authored
  * layout) needs an identity the server issues and can still recognise
  * tomorrow. That is this.
  *
- * ⚠ **Naming a pane is not the same as describing one.** The client
- * sends `pane: 'inspect'` and NOTHING else — the server supplies the
+ * ⚠ **Naming a card is not the same as describing one.** The client
+ * sends `card: 'inspect'` and NOTHING else — the server supplies the
  * query, the cardinality, the field set, the dependency flags and the
- * hold. Before this, `InspectionPane.tsx` hardcoded `query: "$focus"`,
+ * hold. Before this, `InspectionCard.tsx` hardcoded `query: "$focus"`,
  * which is the client holding a server semantic: the same category
  * error as a client deciding its own affordances, and the reason a
  * wrong figure on the wire becomes a wrong figure on screen.
  *
  * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
- * It is not a menu of hypothetical panes — every entry here is one the
+ * It is not a menu of hypothetical cards — every entry here is one the
  * client actually opens. The server-side definitions live in
- * `lib/connection/Panes.ts`. `inspect` and `location` are the
- * inspection pane's two; `self` is the **widget shelf's** — the one
+ * `lib/connection/Cards.ts`. `inspect` and `location` are the
+ * inspection card's two; `self` is the **widget shelf's** — the one
  * subscription behind every self-scoped figure the shelf renders.
  */
-export type PaneId =
+export type CardId =
   | "inspect"
   | "location"
   | "self"
@@ -884,8 +884,8 @@ export type PaneId =
   | "manifest"
   | "subject";
 
-/** Every {@link PaneId}. The server validates against this; the client picks from it. */
-export const PANE_IDS: readonly PaneId[] = [
+/** Every {@link CardId}. The server validates against this; the client picks from it. */
+export const CARD_IDS: readonly CardId[] = [
   "subject",
   "inspect",
   "location",
@@ -899,7 +899,7 @@ export const PANE_IDS: readonly PaneId[] = [
 /**
  * A row on the **widget shelf** — the pinnable figures in the top bar.
  *
- * Shaped exactly like {@link PaneId}, and for the same reason: pinning
+ * Shaped exactly like {@link CardId}, and for the same reason: pinning
  * is a real command persisting to the `cockpit.shelf` clientState key,
  * so the server validates a row name against this list and the client
  * picks from it. A shelf the client owned would falsify the one claim
@@ -978,31 +978,31 @@ export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
   /**
-   * Open a **named** pane — the server supplies query, cardinality,
+   * Open a **named** card — the server supplies query, cardinality,
    * fields, dependency flags and hold from its own catalogue, and every
-   * one of those fields below is ignored. See {@link PaneId}.
+   * one of those fields below is ignored. See {@link CardId}.
    */
-  pane?: PaneId;
+  card?: CardId;
   /**
-   * ⭐ The Stuff a **subject pane** is about, by `stuffId`.
+   * ⭐ The Stuff a **subject card** is about, by `stuffId`.
    *
-   * Three catalogue panes (`agent`, `instrument`, `manifest`) are about
+   * Three catalogue cards (`agent`, `instrument`, `manifest`) are about
    * a particular thing rather than about a fixed place, so their
    * server-owned query carries a `$subject` slot the request fills.
    *
    * ⚠⚠ **An identity, not a query.** The client says *this object*; the
-   * server still decides what a pane about an object resolves and
+   * server still decides what a card about an object resolves and
    * projects. Letting the client send the query instead is exactly the
    * hole the catalogue closes, and it is worth restating here because a
    * parameter looks superficially like one.
    *
-   * Ignored by panes whose query has no `$subject`; required (and an
-   * error when absent) by panes whose query has one.
+   * Ignored by cards whose query has no `$subject`; required (and an
+   * error when absent) by cards whose query has one.
    */
   subject?: string;
-  /** Required UNLESS `pane` names one, in which case the server owns it. */
+  /** Required UNLESS `card` names one, in which case the server owns it. */
   query?: string;
-  /** Required UNLESS `pane` names one. */
+  /** Required UNLESS `card` names one. */
   cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
@@ -1010,17 +1010,17 @@ export interface MqlSubscribeMessage {
   locationDependent?: boolean;
   /**
    * Optional lifetime rule. A subscription carrying a hold is a
-   * **pane**: it lives until its condition lapses, then is released
+   * **card**: it lives until its condition lapses, then is released
    * with a reason. Absent = lives until unsubscribed, the classic
    * shape.
    */
-  hold?: PaneHold;
-  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  hold?: CardHold;
+  /** The pending prompt id a `hold: 'unanswered'` card waits on. */
   holdSubject?: string;
 }
 
 /**
- * What keeps a pane open. Evaluated **server-side**, because these are
+ * What keeps a card open. Evaluated **server-side**, because these are
  * facts about the world — a client guessing at them is the same
  * category error as a client guessing at affordances.
  *
@@ -1038,15 +1038,15 @@ export interface MqlSubscribeMessage {
  * | `inReach` | in reach | out of reach |
  * | `carried` | on you | not carried |
  */
-export type PaneHold =
+export type CardHold =
   | "unanswered"
   | "here"
   | "present"
   | "inReach"
   | "carried";
 
-/** Every {@link PaneHold}. Server validator and client both read this. */
-export const PANE_HOLDS: readonly PaneHold[] = [
+/** Every {@link CardHold}. Server validator and client both read this. */
+export const CARD_HOLDS: readonly CardHold[] = [
   "unanswered",
   "here",
   "present",
@@ -1055,15 +1055,15 @@ export const PANE_HOLDS: readonly PaneHold[] = [
 ];
 
 /**
- * Why a pane went away. A pane that vanishes without a reason reads as
+ * Why a card went away. A card that vanishes without a reason reads as
  * a bug, so the reason is on the wire rather than inferred.
  *
  * `dismissed` and `kept` are the manual-pin outcomes: pinning is not a
  * sixth hold, it is an override on the other five in **both**
- * directions — keep a pane whose condition lapsed, drop one whose
+ * directions — keep a card whose condition lapsed, drop one whose
  * condition still holds.
  */
-export type PaneReleaseReason =
+export type CardReleaseReason =
   | "answered"
   | "left"
   | "departed"
@@ -1072,16 +1072,16 @@ export type PaneReleaseReason =
   | "dismissed"
   /**
    * ⭐ The workspace changed, not the world. A mode switch resolves its
-   * saved arrangement server-side and pushes the pane set, so panes the
+   * saved arrangement server-side and pushes the card set, so cards the
    * new arrangement does not name are closed — and they need a reason
-   * that does not claim somebody walked out. A pane that vanishes
+   * that does not claim somebody walked out. A card that vanishes
    * without a reason reads as a bug, which is what this envelope exists
    * to prevent.
    */
   | "rearranged";
 
 /**
- * A pane's hold lapsed and the pane is gone. Distinct from
+ * A card's hold lapsed and the card is gone. Distinct from
  * {@link MqlSubscriptionErrorEnvelope}: nothing went wrong, the
  * subscription simply reached the end of its stated lifetime.
  */
@@ -1089,8 +1089,8 @@ export interface MqlSubscriptionReleasedEnvelope {
   type: 'mql-subscription-released';
   frameId: number;
   subscriptionId: string;
-  hold: PaneHold;
-  reason: PaneReleaseReason;
+  hold: CardHold;
+  reason: CardReleaseReason;
 }
 
 export interface MqlUnsubscribeMessage {
@@ -1341,7 +1341,7 @@ export interface StuffExitDoor {
 }
 
 /**
- * What the `self` pane puts on the wire — the viewer's own figures, as
+ * What the `self` card puts on the wire — the viewer's own figures, as
  * the widget shelf reads them.
  *
  * ⚠ **Every field is optional, and an absent key is the honest
@@ -1419,48 +1419,48 @@ export interface MqlSubscriptionResultEnvelope {
    */
   result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
   /**
-   * ⭐ Which catalogue pane this is, when it was opened by name.
+   * ⭐ Which catalogue card this is, when it was opened by name.
    *
    * Redundant for a subscription the client opened itself — it already
    * knows what it asked for. Load-bearing for one the **server** opened:
    * a mode switch resolves the saved arrangement server-side and pushes
-   * the pane set, and the client has to know which body to draw for a
+   * the card set, and the client has to know which body to draw for a
    * handle it has never seen. Without this the arrangement could only
-   * ever be replayed by the client, which is the round trip per pane the
+   * ever be replayed by the client, which is the round trip per card the
    * server-side resolve exists to avoid.
    */
-  pane?: PaneId;
+  card?: CardId;
   /**
-   * What holds it open, echoed for the same reason as `pane`: a
+   * What holds it open, echoed for the same reason as `card`: a
    * server-pushed card needs its header words on arrival, not after a
    * second exchange.
    */
-  hold?: PaneHold;
+  hold?: CardHold;
   /**
-   * The manual override, when the pane has one. `null` = the condition
-   * decides; `true` keeps a lapsed pane; `false` drops a held one.
+   * The manual override, when the card has one. `null` = the condition
+   * decides; `true` keeps a lapsed card; `false` drops a held one.
    *
    * ⚠⚠ **The pin's answer, and the reason the client never sets one
-   * optimistically.** `cockpit pane pin` is a real command; a local
+   * optimistically.** `cockpit card pin` is a real command; a local
    * toggle would show a pin the server had refused, and it would not
    * survive the tab. The server re-emits this envelope when the
    * override changes — the *dismiss* direction is already visible (the
-   * pane releases with reason `dismissed`), so without this only the
+   * card releases with reason `dismissed`), so without this only the
    * KEEP direction was silent.
    */
   pinned?: boolean | null;
   /**
-   * ⭐⭐ **The SERVER opened this pane; the client did not ask for it.**
+   * ⭐⭐ **The SERVER opened this card; the client did not ask for it.**
    *
-   * Set only by the arrangement resolver. The pane feed adopts a card
+   * Set only by the arrangement resolver. The card feed adopts a card
    * for a handle it has never seen — that is how a mode switch paints —
    * and this flag is what tells it *which* unseen handles to adopt.
    *
    * ⚠ Guessing was tried and is wrong. "A handle the client does not
    * currently know" catches a result that arrives after the client's own
    * unsubscribe, which React's double-mount produces on every dev page
-   * load; the chrome's own named panes (`inspect`, `location`, `self`)
-   * echo `pane` on their results too. Both showed up live as spurious
+   * load; the chrome's own named cards (`inspect`, `location`, `self`)
+   * echo `card` on their results too. Both showed up live as spurious
    * cards. A flag says what the inference was trying to infer.
    */
   pushed?: true;
@@ -2685,7 +2685,7 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
  * is runnable in `build`. A mode that forbade a verb would be a
  * permission system wearing a UI costume, with its checks in the wrong
  * layer entirely. A mode owns which arrangements ship, which one you
- * land in, and which pane kinds may be summoned — nothing else.
+ * land in, and which card kinds may be summoned — nothing else.
  *
  * ⚠ `govern` ships as a peer of `build` rather than a tier inside it.
  * The seeding slate writes the pair as "the Build / Govern ascent",
@@ -2720,7 +2720,7 @@ export const COCKPIT_MODES: readonly CockpitMode[] = [
 export const DEFAULT_COCKPIT_MODE: CockpitMode = "play";
 
 /**
- * The **arrangement axis** — savable pane arrangements *inside* a mode.
+ * The **arrangement axis** — savable card arrangements *inside* a mode.
  * These are the shipped defaults; a player composes and names their own
  * with `cockpit layout save <name>`, so this is a floor, not a closed
  * vocabulary. The first entry of each list is that mode's default
@@ -2741,20 +2741,20 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
 };
 
 /**
- * ⭐ The panes a SHIPPED arrangement opens.
+ * ⭐ The cards a SHIPPED arrangement opens.
  *
- * A saved arrangement carries its own `panes` (that is what `cockpit
+ * A saved arrangement carries its own `cards` (that is what `cockpit
  * layout save` records). A shipped one has no stored spec, so this is
  * what it resolves to.
  *
- * ⚠ Sparse on purpose. Only `play` opens a pane today, because only
- * `play` has one the client actually opens — `Panes.ts`' own rule.
- * `chat`, `watch`, `build` and `govern` get their panes from the waves
+ * ⚠ Sparse on purpose. Only `play` opens a card today, because only
+ * `play` has one the client actually opens — `Cards.ts`' own rule.
+ * `chat`, `watch`, `build` and `govern` get their cards from the waves
  * that build their surfaces (forums, livestream, the CMS), and
  * pre-filling them here would be sizing a vocabulary to a mockup.
  */
-export const SHIPPED_ARRANGEMENT_PANES: Readonly<
-  Record<CockpitMode, readonly PaneId[]>
+export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
+  Record<CockpitMode, readonly CardId[]>
 > = {
   chat: [],
   play: ['place'],
@@ -2815,13 +2815,13 @@ export const LEGACY_LAYOUT_FOR: Readonly<
 };
 
 /**
- * A saved pane arrangement. `panes` is the ordered list of pane kinds
- * the arrangement opens with; it is empty until the pane set exists to
+ * A saved card arrangement. `cards` is the ordered list of card kinds
+ * the arrangement opens with; it is empty until the card set exists to
  * capture, which is deliberate — naming an arrangement and populating
  * it are separate acts.
  */
 export interface ArrangementSpec {
-  panes: string[];
+  cards: string[];
 }
 
 /**
@@ -2967,7 +2967,7 @@ export interface ConnectionEstablishedPayload {
   /**
    * The live news-ticker window at connect time — the pins-first,
    * recency-ordered, retract/expiry-filtered slice the client seeds its
-   * feed pane from (consumed as a `snapshot`, exactly as `topicCatalogue`
+   * feed card from (consumed as a `snapshot`, exactly as `topicCatalogue`
    * is). Live deltas thereafter ride `world.press.feed` frames. Empty
    * when nothing is published.
    */
@@ -3131,7 +3131,7 @@ export interface CharGenOption {
   description?: string;
   /**
    * Optional illustration for the option, surfaced in the char-gen
-   * detail pane (3:4 portrait). A bucket-relative media key (e.g.
+   * detail card (3:4 portrait). A bucket-relative media key (e.g.
    * `species/khazadicus.png`), or `null` when no asset exists (the
    * client renders a framed placeholder). The client prepends its
    * configured `MEDIA_BASE_URL` to resolve it — same key contract as
@@ -3139,7 +3139,7 @@ export interface CharGenOption {
    */
   image?: string | null;
   /**
-   * Optional structured dossier shown in the detail pane — the
+   * Optional structured dossier shown in the detail card — the
    * showcase of how deeply the species is modeled (scientific name,
    * full taxonomic classification, biology, anatomy, material). Derived
    * server-side from the real `Species` template and its resolved
@@ -4207,7 +4207,7 @@ export interface ClassCommitResult {
 // ---- Mixin inspector (Studio composer) ----------------------------------
 
 /**
- * One field a mixin contributes, for the Studio inspector pane. `kind`
+ * One field a mixin contributes, for the Studio inspector card. `kind`
  * mirrors {@link StudioFieldDescriptor.kind}; `typeShape` is best-effort
  * (the same inference `describeClass` uses), degrading to `json` when the
  * mixin can't be composed for a live read.
@@ -4226,11 +4226,11 @@ export interface MixinFieldDetail {
 
 /**
  * The rich detail for a single mixin — the Studio composer's inspector
- * pane reads this. Assembled from multiple sources with graceful
+ * card reads this. Assembled from multiple sources with graceful
  * degradation: `description` + `authorableFields` + `runtimeState` come
  * from the always-available server source scan; `relations` + `methods`
  * are optional HelpApi enrichment (empty when the help artifact is
- * absent — the pane never throws on a missing topic).
+ * absent — the card never throws on a missing topic).
  */
 export interface MixinDetail {
   /** The mixin's `_mixinName` (e.g. `'GlobbableMixin'`). */
@@ -4239,7 +4239,7 @@ export interface MixinDetail {
    * The mixin file's FULL top TSDoc concept comment as clean text —
    * paragraph breaks and numbered/bulleted list structure preserved,
    * `{@link}` wrappers and `**bold**` markdown stripped. `''` when the
-   * mixin carries no doc comment. The substance of the pane.
+   * mixin carries no doc comment. The substance of the card.
    */
   description: string;
   /** The authorable fields the mixin contributes (name + best-effort type). */
@@ -4311,7 +4311,7 @@ export interface HelpTopic {
   source: HelpSource;
 }
 
-/** Light index entry — instant pane render + client-local typeahead. */
+/** Light index entry — instant card render + client-local typeahead. */
 export interface HelpIndexEntry {
   id: string;
   kind: HelpKind;

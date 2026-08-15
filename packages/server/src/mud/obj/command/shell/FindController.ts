@@ -14,9 +14,9 @@
  *   - Empty result → friendly "no matches" line.
  *   - Non-empty → one row per match, each row carrying the canonical
  *     display name via `Mml.thing(stuff)`. The MML identity tag
- *     makes each row clickable in the inspection-pane / terminal
+ *     makes each row clickable in the inspection-card / terminal
  *     client (the click resolves to `look <primaryKeyword>` via the
- *     client stuff registry — see the inspection-pane wave plan).
+ *     client stuff registry — see the inspection-card wave plan).
  *
  * Admin-gated row suffix:
  *   - Viewers whose `commandGiver` composes `AuthorMixin`
@@ -37,8 +37,8 @@
  *     terminal scroll. The `mql-query` wire channel (Wave 4) exists
  *     as the substrate surface for future programmatic consumers
  *     that want a one-shot read without bouncing through the command
- *     bus + prose pipeline; the v1 inspection pane does not consume
- *     it. See the inspection-pane build plan, Wave 5 note.
+ *     bus + prose pipeline; the v1 inspection card does not consume
+ *     it. See the inspection-card build plan, Wave 5 note.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

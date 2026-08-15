@@ -13,7 +13,7 @@
  */
 
 import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
-import { PANE_HOLDS, PANE_IDS } from '@saxonberg/types';
+import { CARD_HOLDS, CARD_IDS } from '@saxonberg/types';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
@@ -24,12 +24,12 @@ import type { InboundHandler } from './index';
 export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlSubscribeMessage | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
-  // ⚠ A NAMED pane needs neither: the server supplies both from its
+  // ⚠ A NAMED card needs neither: the server supplies both from its
   // catalogue. Requiring them here would make the whole point of naming
-  // a pane — that the client stops describing one — impossible to use.
+  // a card — that the client stops describing one — impossible to use.
   const named =
-    typeof payload.pane === 'string' &&
-    (PANE_IDS as readonly string[]).includes(payload.pane);
+    typeof payload.card === 'string' &&
+    (CARD_IDS as readonly string[]).includes(payload.card);
   if (
     !named &&
     (typeof payload.query !== 'string' ||
@@ -40,8 +40,8 @@ export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
   MqlSubscriptionApi.handleSubscribe({
     interactive: ctx.interactive,
     subscriptionId: payload.subscriptionId,
-    pane: named ? payload.pane : undefined,
-    // ⚠ A subject is only meaningful on a NAMED pane — the catalogue's
+    card: named ? payload.card : undefined,
+    // ⚠ A subject is only meaningful on a NAMED card — the catalogue's
     // query is the only string with a `$subject` slot in it. Threaded
     // as a raw string; the registry validates its shape, because that
     // is where the substitution happens and a check far from the
@@ -55,13 +55,13 @@ export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
     detailKey: payload.detailKey,
     focusDependent: payload.focusDependent,
     locationDependent: payload.locationDependent,
-    // A hold makes this subscription a pane. Validated here rather than
+    // A hold makes this subscription a card. Validated here rather than
     // trusted: `hold` drives a server-side lifetime decision, and an
     // unrecognized value would otherwise fall through the evaluator's
-    // default and silently produce an immortal pane.
+    // default and silently produce an immortal card.
     hold:
       payload.hold !== undefined &&
-      (PANE_HOLDS as readonly string[]).includes(payload.hold)
+      (CARD_HOLDS as readonly string[]).includes(payload.hold)
         ? payload.hold
         : undefined,
     holdSubject:
@@ -83,7 +83,7 @@ export const handleMqlUnsubscribe: InboundHandler = (ctx, message) => {
 export const handleMqlQuery: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlQueryMessage | undefined;
   if (!payload || typeof payload.queryId !== 'string') return;
-  // ⚠ NOT pane-aware, deliberately. A one-shot query is not a pane: it
+  // ⚠ NOT card-aware, deliberately. A one-shot query is not a card: it
   // has no lifetime, nothing durable refers to it, and giving it a
   // catalogue name would imply a persistence it does not have.
   if (

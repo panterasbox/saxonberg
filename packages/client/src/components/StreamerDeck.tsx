@@ -1,6 +1,6 @@
 /**
  * StreamerDeck — the broadcaster's control deck (the streamer layout's
- * focal pane).
+ * focal card).
  *
  * NOT a stats readout: while live, a streamer mostly needs quick-action
  * shortcuts to the commands they fire at the community — moderation,

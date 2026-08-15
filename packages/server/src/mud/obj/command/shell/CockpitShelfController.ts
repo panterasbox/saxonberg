@@ -37,7 +37,7 @@
  * dispatch here, because subcommands are one level deep framework-wide
  * and `cockpit shelf` has already spent that level. So an unknown
  * action must be refused HERE — the matcher's `unknown-subcommand` path
- * never sees it. Same shape as `cockpit pane`, which is the closest
+ * never sees it. Same shape as `cockpit card`, which is the closest
  * exemplar in every respect: `list` / verb / `<id>`, two positionals, a
  * refusal that names the known set.
  *

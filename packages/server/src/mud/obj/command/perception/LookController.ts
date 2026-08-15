@@ -243,7 +243,7 @@ export default class LookController extends CommandController<LookModel> {
       // Items resting on a listed surface (the bottles on the back-bar) are
       // not loose room contents — they're represented by their surface and
       // discovered by examining it (`look back-bar`). Shared with `sense` and
-      // the inspection pane via `ContainmentApi.looseContents`.
+      // the inspection card via `ContainmentApi.looseContents`.
       const topLevel = ContainmentApi.looseContents(visibleContents);
       if (topLevel.length > 0) {
         // Organism occupants route through the display-lensing formatter
@@ -396,7 +396,7 @@ export default class LookController extends CommandController<LookModel> {
       // the client turns it into the affordance that sends `go <dir>`.
       // The door's name rides its own `<item>` tag so it's clickable
       // too (renderer resolves stuff-id → primaryKeyword and emits
-      // `look <doorKeyword>`) — same affordance the inspection pane
+      // `look <doorKeyword>`) — same affordance the inspection card
       // gives, kept consistent across surfaces.
       const tagged = Mml.exit(exit);
       const door = exit.getDoor();

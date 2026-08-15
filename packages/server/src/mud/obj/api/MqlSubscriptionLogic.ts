@@ -14,7 +14,7 @@ import type {
   QueryRequest,
   SubscribeRequest,
 } from '../../api/mql-subscription';
-import type { PaneHold, PaneId } from '@saxonberg/types';
+import type { CardHold, CardId } from '@saxonberg/types';
 
 const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
 );
@@ -141,9 +141,9 @@ export class MqlSubscriptionLogic extends ApiLogic {
   @CallSecurity(MqlSubscriptionApiCallers)
   public applyArrangement(
     interactive: Interactive,
-    panes: readonly PaneId[],
+    cards: readonly CardId[],
   ): { opened: number; closed: number } {
-    return resolveRegistry().applyArrangement(interactive, panes);
+    return resolveRegistry().applyArrangement(interactive, cards);
   }
 
   /** See {@link MqlSubscriptionApi.notifyPromptSettled}. */
@@ -161,27 +161,27 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().notifyDurableSubject(subject);
   }
 
-  /** See {@link MqlSubscriptionApi.setPanePinned}. */
+  /** See {@link MqlSubscriptionApi.setCardPinned}. */
   @CallSecurity(MqlSubscriptionApiCallers)
-  public setPanePinned(
+  public setCardPinned(
     interactive: Interactive,
     subscriptionId: string,
     pinned: boolean | null
   ): boolean {
-    return resolveRegistry().setPanePinned(interactive, subscriptionId, pinned);
+    return resolveRegistry().setCardPinned(interactive, subscriptionId, pinned);
   }
 
-  /** See {@link MqlSubscriptionApi.listPanes}. */
+  /** See {@link MqlSubscriptionApi.listCards}. */
   @CallSecurity(MqlSubscriptionApiCallers)
-  public listPanes(
+  public listCards(
     interactive: Interactive
   ): {
     subscriptionId: string;
-    paneId?: PaneId;
-    hold?: PaneHold;
+    cardId?: CardId;
+    hold?: CardHold;
     pinned: boolean | null;
   }[] {
-    return resolveRegistry().listPanes(interactive);
+    return resolveRegistry().listCards(interactive);
   }
 
   /** See {@link MqlSubscriptionApi.cancelAllForScope}. */

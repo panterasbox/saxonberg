@@ -295,7 +295,7 @@ export class PromptApi {
   /**
    * Is `promptId` still awaiting an answer from `interactive`?
    *
-   * The read behind the `unanswered` pane hold — *nothing that is still
+   * The read behind the `unanswered` card hold — *nothing that is still
    * actionable ever leaves*. A prompt that has been answered, cancelled
    * or timed out is gone from the interactive's bucket, so absence IS
    * the answer; there is no separate "answered" flag to go stale.

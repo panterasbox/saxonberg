@@ -16,7 +16,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { useStore } from "../../store/index";
-import { WikiPane } from "../WikiPane";
+import { WikiCard } from "../WikiCard";
 
 const PAGE = {
   kind: "wiki-page" as const,
@@ -39,7 +39,7 @@ beforeEach(() => {
 
 describe("wiki search", () => {
   it("renders in the not-wired treatment", () => {
-    render(<WikiPane onSendCommand={() => undefined} />);
+    render(<WikiCard onSendCommand={() => undefined} />);
     const field = screen.getByTestId("wiki-search-unwired");
     // `╌╌` where the value would be — the convention's own glyph.
     expect(field.textContent).toContain("╌╌");
@@ -47,11 +47,11 @@ describe("wiki search", () => {
   });
 
   it("⚠ is not an input, disabled or otherwise", () => {
-    const { container } = render(<WikiPane onSendCommand={() => undefined} />);
+    const { container } = render(<WikiCard onSendCommand={() => undefined} />);
     const field = screen.getByTestId("wiki-search-unwired");
     expect(field.querySelector("input")).toBeNull();
     expect(field.tagName.toLowerCase()).not.toBe("input");
-    // Nor anywhere else in the pane — a search box parked elsewhere would
+    // Nor anywhere else in the card — a search box parked elsewhere would
     // be the same lie in a different place.
     expect(
       container.querySelector('input[type="search"], input[placeholder*="earch"]'),
@@ -62,7 +62,7 @@ describe("wiki search", () => {
     // "Cut the widget if it says nothing without data" is the second
     // preference; this one says something — it tells the reader the tree
     // is the way in, which is true and actionable.
-    render(<WikiPane onSendCommand={() => undefined} />);
+    render(<WikiCard onSendCommand={() => undefined} />);
     expect(
       screen.getByTestId("wiki-search-unwired").textContent,
     ).toMatch(/tree is the way in/i);
@@ -76,7 +76,7 @@ describe("what the wiki does NOT claim", () => {
     // `WikiPageFrame`, not in `wiki.md`. It is an unbuilt GOVERNANCE
     // feature, not an unwired read, so the widget is cut rather than
     // hatched — three hatches on one page would read as a broken page.
-    const { container } = render(<WikiPane onSendCommand={() => undefined} />);
+    const { container } = render(<WikiCard onSendCommand={() => undefined} />);
     expect(container.textContent).not.toMatch(/official/i);
     expect(container.textContent).not.toMatch(/canon/i);
   });

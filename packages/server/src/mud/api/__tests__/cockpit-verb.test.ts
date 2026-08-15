@@ -84,7 +84,7 @@ describe('the cockpit verb', () => {
       'style',
     ]);
     expect(cockpit!.controllerForSubcommand('pane')).toBe(
-      '/obj/command/shell/CockpitPaneController'
+      '/obj/command/shell/CockpitCardController'
     );
     expect(cockpit!.controllerForSubcommand('shelf')).toBe(
       '/obj/command/shell/CockpitShelfController'
@@ -170,7 +170,7 @@ describe('the cockpit verb', () => {
       const pin = bind('cockpit pane pin focus');
       expect(pin.subcommand).toBe('pane');
       expect(pin.action).toBe('pin');
-      expect(pin.paneId).toBe('focus');
+      expect(pin.cardId).toBe('focus');
 
       expect(bind('cockpit pane dismiss focus').action).toBe('dismiss');
       expect(bind('cockpit pane').action).toBeUndefined();

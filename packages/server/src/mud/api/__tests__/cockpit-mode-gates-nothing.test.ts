@@ -2,7 +2,7 @@
  * Acceptance criterion 9: **a mode gates nothing.**
  *
  * A mode is a view — it owns which arrangements ship, which one you
- * land in, and which pane kinds may be summoned. It does not own
+ * land in, and which card kinds may be summoned. It does not own
  * permission. Everything runnable in `play` is runnable in `build`.
  *
  * ⚠ This test exists because "study mode shouldn't allow combat" is a
@@ -55,7 +55,7 @@ const MUD_ROOT = fileURLToPath(new URL('../..', import.meta.url));
  * registry that resolves a mode's saved arrangement, and tests.
  *
  * ⚠ **The registry is a VIEW reader, not a gate**, and the distinction
- * is the whole criterion. `applyArrangement` asks the mode which panes
+ * is the whole criterion. `applyArrangement` asks the mode which cards
  * to open — which is the mode doing exactly what this file's header
  * says a mode owns (*"which arrangements ship, which one you land
  * in"*). It never asks the mode whether an action is permitted, and

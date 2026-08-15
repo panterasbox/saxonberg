@@ -27,10 +27,10 @@
  */
 
 import type {
-  PaneId,
+  CardId,
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
-  PaneHold,
+  CardHold,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -182,45 +182,45 @@ export interface SubscribeRequest {
   interactive: Interactive;
   subscriptionId: string;
   /**
-   * Open a **named** pane. When set, the server reads query,
+   * Open a **named** card. When set, the server reads query,
    * cardinality, fields, dependency flags and hold from its own
-   * catalogue (`lib/connection/Panes.ts`) and IGNORES whatever else the
-   * caller passed — a pane's shape is a server semantic, and the point
+   * catalogue (`lib/connection/Cards.ts`) and IGNORES whatever else the
+   * caller passed — a card's shape is a server semantic, and the point
    * of naming one is that the caller does not get to describe it.
    */
-  pane?: PaneId;
+  card?: CardId;
   /**
-   * The `stuffId` a **subject pane** is about — `agent`, `instrument`,
+   * The `stuffId` a **subject card** is about — `agent`, `instrument`,
    * `manifest`. An identity, never a query: the catalogue still owns
-   * what a pane about a thing resolves and projects.
+   * what a card about a thing resolves and projects.
    */
   subject?: string;
   /**
-   * ⭐ The SERVER opened this pane (the arrangement resolver), not the
-   * client. Echoed onto the result envelope so the pane feed knows to
+   * ⭐ The SERVER opened this card (the arrangement resolver), not the
+   * client. Echoed onto the result envelope so the card feed knows to
    * adopt a handle it never minted.
    */
   pushed?: true;
-  /** Required UNLESS `pane` names one. */
+  /** Required UNLESS `card` names one. */
   query?: string;
-  /** Required UNLESS `pane` names one. */
+  /** Required UNLESS `card` names one. */
   cardinality?: SubscriptionCardinality;
   fields?: FieldSet | FieldAlias;
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
   /**
-   * Optional lifetime rule — a subscription carrying one is a **pane**.
+   * Optional lifetime rule — a subscription carrying one is a **card**.
    *
    * ⚠ Deliberately a field on the ordinary subscribe request rather
-   * than a parallel "pane" concept: an N-pane set IS N subscriptions
-   * plus a lifetime rule, so the pane set is the existing registry, and
+   * than a parallel "card" concept: an N-card set IS N subscriptions
+   * plus a lifetime rule, so the card set is the existing registry, and
    * there is no second registry to keep in step. Evaluated on the
-   * existing re-resolve batch — a pane set with its own tick would be a
+   * existing re-resolve batch — a card set with its own tick would be a
    * second clock.
    */
-  hold?: PaneHold;
-  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
+  hold?: CardHold;
+  /** The pending prompt id a `hold: 'unanswered'` card waits on. */
   holdSubject?: string;
 }
 
@@ -309,7 +309,7 @@ export class MqlSubscriptionApi {
       // viewer-blind so the perception/belief dependency never enters
       // the root `Stuff` module (cycle avoidance). Same
       // `RecognitionApi.describe` routine the prose path uses, so the
-      // pane and the scrollback can't show different *names*. The
+      // card and the scrollback can't show different *names*. The
       // activity-status affix is a presence decoration (not identity), so
       // it rides `describeWithStatus` in the prose occupant-listing only,
       // never this general identity field.
@@ -328,12 +328,12 @@ export class MqlSubscriptionApi {
   }
 
   /**
-   * ⭐ A prompt settled — wake any pane held by it.
+   * ⭐ A prompt settled — wake any card held by it.
    *
-   * `HOLD_WAKES_ON` records that an `unanswered` pane needs no location
+   * `HOLD_WAKES_ON` records that an `unanswered` card needs no location
    * dependency because "the prompt's own resolution is what wakes it".
    * This is the call that makes that true. Before it, nothing poked the
-   * registry when a prompt resolved, so an `unanswered` pane was
+   * registry when a prompt resolved, so an `unanswered` card was
    * immortal — the player answered and the card stayed.
    *
    * One known producer (the prompt substrate) poking one known consumer
@@ -341,25 +341,25 @@ export class MqlSubscriptionApi {
    * rather than a broadcast — the `notifyDurableSubject` shape.
    */
   /**
-   * ⭐⭐ Open exactly the panes an arrangement names — the SERVER
+   * ⭐⭐ Open exactly the cards an arrangement names — the SERVER
    * resolving a workspace, not the client replaying it.
    *
    * The client sends one command and renders what arrives. That is what
    * makes *the client owns zero command semantics* literally true: the
-   * alternative puts the meaning of an arrangement, and the pane order,
-   * in the client, and costs a round trip per pane.
+   * alternative puts the meaning of an arrangement, and the card order,
+   * in the client, and costs a round trip per card.
    *
-   * ⚠ Subject panes (`agent` / `instrument` / `manifest`) are skipped.
-   * An arrangement is a statement about a workspace; a pane about a
+   * ⚠ Subject cards (`agent` / `instrument` / `manifest`) are skipped.
+   * An arrangement is a statement about a workspace; a card about a
    * particular person is a statement about a moment, and restoring one
    * next week would be restoring an answer to a question nobody is
    * asking.
    */
   public static applyArrangement(
     interactive: Interactive,
-    panes: readonly PaneId[],
+    cards: readonly CardId[],
   ): { opened: number; closed: number } {
-    return logic().applyArrangement(interactive, panes);
+    return logic().applyArrangement(interactive, cards);
   }
 
   public static notifyPromptSettled(
@@ -390,7 +390,7 @@ export class MqlSubscriptionApi {
   /**
    * Re-resolve every subscription this Interactive holds — the seam the
    * sandbox crossing calls after moving a socket between bodies, so the
-   * client's panes re-render for the body it now drives. @internal
+   * client's cards re-render for the body it now drives. @internal
    */
   public static refreshForInteractive(interactive: Interactive): void {
     logic().refreshForInteractive(interactive);
@@ -406,34 +406,34 @@ export class MqlSubscriptionApi {
   }
 
   /**
-   * Pin or dismiss a pane — the manual override on its hold condition,
-   * in **both** directions. `true` keeps a pane whose condition has
+   * Pin or dismiss a card — the manual override on its hold condition,
+   * in **both** directions. `true` keeps a card whose condition has
    * lapsed; `false` drops one whose condition still holds; `null`
    * returns it to the condition's judgement.
    *
-   * Returns false when the subscription is unknown or is not a pane
+   * Returns false when the subscription is unknown or is not a card
    * (carries no hold). Takes effect on the next drain, so a dismiss
    * emits its release reason down the same path every other release
    * uses.
    */
-  public static setPanePinned(
+  public static setCardPinned(
     interactive: Interactive,
     subscriptionId: string,
     pinned: boolean | null,
   ): boolean {
-    return logic().setPanePinned(interactive, subscriptionId, pinned);
+    return logic().setCardPinned(interactive, subscriptionId, pinned);
   }
 
-  /** The open panes for one interactive (subscriptions carrying a hold). */
-  public static listPanes(
+  /** The open cards for one interactive (subscriptions carrying a hold). */
+  public static listCards(
     interactive: Interactive,
   ): {
     subscriptionId: string;
-    paneId?: PaneId;
-    hold?: PaneHold;
+    cardId?: CardId;
+    hold?: CardHold;
     pinned: boolean | null;
   }[] {
-    return logic().listPanes(interactive);
+    return logic().listCards(interactive);
   }
 
   /* ─── test seams ─── */

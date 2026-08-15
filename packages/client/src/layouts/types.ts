@@ -14,7 +14,7 @@
  * click handlers, and the prompt handlers. Each command bar owns its own
  * input draft locally and submits its `barId` (so the server applies
  * that bar's mode); preview/flash live in the ghost command line, not in
- * a bar. Each layout fans these out to its terminals, bar(s), and panes.
+ * a bar. Each layout fans these out to its terminals, bar(s), and cards.
  */
 
 import type React from "react";

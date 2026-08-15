@@ -152,7 +152,7 @@ export class SocialApi {
   /**
    * Boot seam (idempotent). Installs both social-graph presence consumers:
    * the notify-gated login/logout **notification** relay and the
-   * presence-PUBLIC **roster** delta tap (feeding the "Who's Online" pane).
+   * presence-PUBLIC **roster** delta tap (feeding the "Who's Online" card).
    * Both ride the same four presence events. Wired from `AppBootstrap.run()`.
    */
   public static boot(): void {
@@ -165,7 +165,7 @@ export class SocialApi {
   /**
    * Every currently-connected player avatar — the cheap filter over the
    * online set (linkdead / destroyed excluded). The roster source for
-   * `who` and the live pane.
+   * `who` and the live card.
    */
   public static online(): Avatar[] {
     return presenceLogic().online();
@@ -179,7 +179,7 @@ export class SocialApi {
   public static statusOf(target: Avatar): PresenceStatus {
     // Boundary read aperture: a roster row is composed for a viewer who
     // may be on the other side of a circle from the person it describes
-    // (`who` from inside, the roster pane from outside). Reading their
+    // (`who` from inside, the roster card from outside). Reading their
     // engagements is a pure read that yields a display string.
     return SecurityApi.projectAcross(target, undefined, () =>
       presenceLogic().statusOf(target),
@@ -188,7 +188,7 @@ export class SocialApi {
   }
 
   /**
-   * Push a full viewer-lensed roster snapshot to one viewer (pane open /
+   * Push a full viewer-lensed roster snapshot to one viewer (card open /
    * session establish) as a `self.group` frame. Fire-and-forget.
    */
   public static snapshotFor(viewer: Avatar): void {
@@ -210,7 +210,7 @@ export class SocialApi {
 
   /**
    * The one viewer-lensed roster row — header + country + (gated) status —
-   * shared by `who` and the live roster pane.
+   * shared by `who` and the live roster card.
    */
   public static composeRow(viewer: Stuff, target: Stuff): Promise<RosterRow> {
     // The roster row IS the per-viewer projection of a person — the
@@ -258,7 +258,7 @@ export class SocialApi {
   /**
    * The viewer's effective ordered rule list — stored rules spliced into
    * the virtual reserved baseline. Backs the `notify` bare-list view and
-   * the settings pane projection.
+   * the settings card projection.
    */
   public static listRules(viewer: Stuff): NotifyRule[] {
     return logic().listRules(viewer);

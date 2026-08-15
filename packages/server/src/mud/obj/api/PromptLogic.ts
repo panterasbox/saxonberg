@@ -255,13 +255,13 @@ function cleanup(record: ResolverRecord): void {
     }
   }
   /*
-   * ⚠⚠ **Wake any pane held by this prompt.**
+   * ⚠⚠ **Wake any card held by this prompt.**
    *
    * `HOLD_WAKES_ON` declares `unanswered: { location: false }` — its
    * subject is a pending PROMPT, not a position, "and the prompt's own
    * resolution is what wakes it". That sentence described an intention
    * with no mechanism behind it: nothing poked the subscription
-   * registry when a prompt settled, so a `hold: 'unanswered'` pane was
+   * registry when a prompt settled, so a `hold: 'unanswered'` card was
    * **immortal**. The player answered, the card stayed, and nothing
    * about it looked broken.
    *

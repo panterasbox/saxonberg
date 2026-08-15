@@ -1,7 +1,7 @@
 /**
  * Shared UI primitives for the cockpit.
  *
- * Consumers (the inspection pane today; future widgets tomorrow)
+ * Consumers (the inspection card today; future widgets tomorrow)
  * compose `<List>` / `<ListItem>` for sequences, `<EntityName>` for
  * clickable name affordances carrying a `stuff-id`, and `<Button>`
  * for action targets. Theme treatments come from `tokens`.

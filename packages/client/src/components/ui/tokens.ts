@@ -1,6 +1,6 @@
 /**
  * Semantic theme tokens consumed by the shared `ui/` components and
- * the inspection pane. Per the message-rendering slate, styling is a
+ * the inspection card. Per the message-rendering slate, styling is a
  * client stylesheet mapped from semantic selectors to visual
  * treatments — components reference these tokens by *role*
  * (`surface`, `fg`, `accent`, `border`), not by literal color.
@@ -193,7 +193,7 @@ export const tokens = {
     wideMinWidth: "18rem",
   },
   // The focal split — the canonical content-vs-content vertical ratio
-  // (composition grammar): the focal pane (video / stats) claims the
+  // (composition grammar): the focal card (video / stats) claims the
   // dominant share, the never-blind game terminal keeps the rest.
   ratio: {
     focal: 62,

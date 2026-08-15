@@ -2,7 +2,7 @@
  * StreamerLayout — the broadcaster's control deck.
  *
  * Not the viewer-minus-video: a streamer doesn't watch their own embed,
- * they DRIVE the broadcast. So the focal pane is the `StreamerDeck`
+ * they DRIVE the broadcast. So the focal card is the `StreamerDeck`
  * (grouped command shortcuts + a live readout — see StreamerDeck), the
  * compressed game terminal stays beneath it (never-blind), and the chat
  * rail is widened (`railWide`) because chat is the streamer's lifeline
@@ -12,12 +12,12 @@
 
 import React from "react";
 import type { LayoutProps } from "./types";
-import { LivestreamPanes } from "./LivestreamPanes";
+import { LivestreamPanels } from "./LivestreamPanels";
 import { StreamerDeck } from "../components/StreamerDeck";
 
 export const StreamerLayout: React.FC<LayoutProps> = (props) => {
   return (
-    <LivestreamPanes
+    <LivestreamPanels
       {...props}
       railWide
       focal={<StreamerDeck onCommandPreview={props.onCommandPreview} />}

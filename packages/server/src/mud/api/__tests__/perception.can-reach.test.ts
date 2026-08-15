@@ -3,8 +3,8 @@
  *
  * ⭐ **Why this file exists.** Reach was hand-rolled twice and the two
  * copies disagreed. The `canReach` validator counted doors attached to
- * the location's exits; the pane-hold evaluator compared container ids
- * and so did not. The result was a live contradiction: a pane held
+ * the location's exits; the card-hold evaluator compared container ids
+ * and so did not. The result was a live contradiction: a card held
  * `inReach` on a door released as `out-of-reach` while `open north` on
  * that same door worked perfectly.
  *

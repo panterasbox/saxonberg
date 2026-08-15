@@ -51,7 +51,7 @@ beforeEach(() => {
   vi.spyOn(websocketClient, "offEnvelope").mockImplementation(noop);
   vi.spyOn(websocketClient, "resolveAffordances").mockImplementation(noop);
   useStore.setState({
-    paneCards: {},
+    cards: {},
     frames: [diagnosticFrame("a"), diagnosticFrame("b")],
     clientState: {
       "console.activeTab": "All",

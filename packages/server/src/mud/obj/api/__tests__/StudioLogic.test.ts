@@ -730,7 +730,7 @@ describe('StudioLogic.listMixins — bases with implied mixin sets', () => {
   });
 });
 
-// ---- describeMixin (mixin inspector pane) -------------------------------
+// ---- describeMixin (mixin inspector card) -------------------------------
 
 describe('StudioLogic.describeMixin', () => {
   it('returns the FULL multi-paragraph concept comment + contributed fields', async () => {

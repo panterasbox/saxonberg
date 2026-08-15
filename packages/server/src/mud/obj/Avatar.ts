@@ -879,7 +879,7 @@ export default class Avatar extends AvatarBase {
       reactableTopics: [...ReactionApi.REACTABLE_TOPICS],
       // The live news-ticker window (pins-first, recency-ordered, already
       // retract/expiry-filtered + length-capped by the PressBoard). The
-      // client seeds its feed pane from this as a `snapshot`, exactly as it
+      // client seeds its feed card from this as a `snapshot`, exactly as it
       // caches `topicCatalogue`; live deltas ride `publication.press`.
       releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
       ...(frameBackfill.length > 0 ? { frameBackfill } : {}),

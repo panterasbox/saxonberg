@@ -1,5 +1,5 @@
 /**
- * Wave 4 (inspection-pane build): `mql-query` one-shot channel.
+ * Wave 4 (inspection-card build): `mql-query` one-shot channel.
  *
  * `MqlSubscriptionApi.handleQuery(req)` reuses ONLY the substrate's
  * parse + resolve + project pipeline — no registry insertion, no

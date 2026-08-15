@@ -26,7 +26,7 @@
  * 2. **`unexposed`** (`COIN`, `STATUS`) — genuinely figures about you,
  *    simply not on the wire. A one-field addition unhatches each.
  * 3. ⭐ **`not-self`** (`TIME`, `ONLINE`, `DOCKET`) — **world** figures,
- *    not self fields. The `self` pane structurally cannot carry them no
+ *    not self fields. The `self` card structurally cannot carry them no
  *    matter what is added to `Avatar`; they need a different source,
  *    and that is a design conversation rather than a field addition. A
  *    reason saying "no subscribable field yet" here would send the next
@@ -49,8 +49,8 @@
  *
  * ## The subscription
  *
- * One `self` pane, opened here in a `useEffect`, torn down on unmount —
- * byte-for-byte the shape `InspectionPane` established. No new service
+ * One `self` card, opened here in a `useEffect`, torn down on unmount —
+ * byte-for-byte the shape `InspectionCard` established. No new service
  * layer and no second registry. Results land in the store rather than
  * component state so tests can drive the shelf without a socket.
  */
@@ -96,7 +96,7 @@ export type HatchReason = "unexposed" | "not-self";
 export const HATCH_COPY: Record<HatchReason, string> = {
   unexposed: "no subscribable field yet",
   "not-self":
-    "not a figure about you — a world figure, which the self pane cannot carry",
+    "not a figure about you — a world figure, which the self card cannot carry",
 };
 
 export interface ShelfRow {
@@ -141,7 +141,7 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
     label: "MAKE",
     desc: "influence · earned by building",
     // ⭐ Live since the account roll-up landed. `makeStanding` joined
-    // `PANES.self` in the same commit as the arithmetic, so the band on
+    // `CARDS.self` in the same commit as the arithmetic, so the band on
     // the wire is the ACCOUNT's — the same figure `standing` and
     // `profile` report, through the same seam.
     source: "live",
@@ -443,7 +443,7 @@ interface ShelfProps {
 }
 
 /**
- * Open the `self` pane for as long as the caller is mounted, feeding
+ * Open the `self` card for as long as the caller is mounted, feeding
  * `store.shelfFigures`.
  *
  * ⭐⭐ **A HOOK, because the subscription belongs to whoever shows the
@@ -460,14 +460,14 @@ interface ShelfProps {
  * `useStore.setState({ shelfFigures })`, which is the seam that makes
  * the shelf testable without a socket — and is therefore blind to the
  * question *does anything ask for them?* This is the wake-vs-read
- * distinction the pane holds taught: a derive-on-read surface needs its
+ * distinction the card holds taught: a derive-on-read surface needs its
  * WAKE tested, not just its read. Found by driving.
  */
 export function useSelfFigures(): void {
   useEffect(() => {
     // ⭐ Opened BY NAME. The server owns the query, the cardinality and
-    // the field set — the client sends `pane: 'self'` and nothing else.
-    const selfId = websocketClient.subscribeMql({ pane: "self" });
+    // the field set — the client sends `card: 'self'` and nothing else.
+    const selfId = websocketClient.subscribeMql({ card: "self" });
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;

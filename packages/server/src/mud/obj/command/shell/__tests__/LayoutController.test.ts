@@ -136,7 +136,7 @@ describe('LayoutController', () => {
     expect(rejection(refused)).toBe('unknown-arrangement');
 
     await run({ name: 'save', target: 'wide' });
-    expect(saved().play?.wide).toEqual({ panes: [] });
+    expect(saved().play?.wide).toEqual({ cards: [] });
 
     const ok = await run({ name: 'wide' });
     expect(rejection(ok)).toBeUndefined();

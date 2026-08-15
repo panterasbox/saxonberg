@@ -121,7 +121,7 @@ export type { MarkdownOptions };
  *
  * Today's only customer is `DetailedMixin`'s `wrapDetailKeysAugmenter`
  * (auto-wraps canonical detail aliases in `<detail>` MML so the look
- * prose and the pane projection both see the inline drill targets).
+ * prose and the card projection both see the inline drill targets).
  * Future contributors (exit-direction auto-link, name auto-link,
  * language gating, spoilers) plug in via the same static slot
  * without touching the host method.
@@ -227,7 +227,7 @@ const ACTOR_TAG = 'actor';
  * (one item per line) when the item count crosses this threshold.
  * Picked at 4 so two/three/four items stay on one wrap-line and
  * five+ items split out — matching the vertical-space discipline
- * documented in `docs/subsystems/inspection-pane.md`.
+ * documented in `docs/subsystems/inspection-card.md`.
  */
 const INLINE_LIST_THRESHOLD = 4;
 
@@ -675,7 +675,7 @@ export class Mml {
    * count crosses `INLINE_LIST_THRESHOLD`. Empty list emits `nothing`.
    * Single item emits as-is.
    *
-   * Vertical-space discipline (see `inspection-pane.md`): a short
+   * Vertical-space discipline (see `inspection-card.md`): a short
    * list reads better inline (one wrap-line), but past ~5 items the
    * comma-string degrades into a wall of text. The multi-line shape
    * trades one extra newline per item for far better scannability

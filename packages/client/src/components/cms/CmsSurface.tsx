@@ -18,7 +18,7 @@ import { useStore } from "../../store/index";
 import { CmsExplorer } from "./CmsExplorer";
 import { CmsEditor } from "./CmsEditor";
 import { StudioPanel } from "./studio/StudioPanel";
-import { CmsDiagnosticsPane } from "./CmsDiagnosticsPane";
+import { CmsDiagnosticsPanel } from "./CmsDiagnosticsPanel";
 import { CmsGitPanel } from "./CmsGitPanel";
 import { tokens } from "../ui";
 
@@ -146,7 +146,7 @@ export const CmsSurface: React.FC = () => {
       ) : mode === "kinds" ? (
         <StudioPanel onOpenInFiles={openInFiles} />
       ) : mode === "diagnostics" ? (
-        <CmsDiagnosticsPane />
+        <CmsDiagnosticsPanel />
       ) : (
         <CmsGitPanel />
       )}

@@ -296,7 +296,7 @@ export class AppBootstrap {
     // each Avatar's own persistence).
     // SocialApi.boot() installs BOTH the notify-gated presence relay and
     // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
-    // pane) — same four presence events, two consumers. In-memory.
+    // card) — same four presence events, two consumers. In-memory.
     SocialApi.boot();
 
     // Party operational core — register the `party:` grouping provider with

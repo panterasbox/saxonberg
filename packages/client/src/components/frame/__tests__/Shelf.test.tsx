@@ -283,7 +283,7 @@ describe('Shelf', () => {
      * ⭐ The three claims must stay three. They tell the next builder
      * WHERE to look — a missing field is one field away, an
      * account-level gap is arithmetic, and a world figure needs a
-     * different pane entirely. One generic string erases all of that.
+     * different card entirely. One generic string erases all of that.
      */
     it('⭐ the hatch reasons are pairwise distinct', () => {
       const reasons = Object.values(HATCH_COPY);

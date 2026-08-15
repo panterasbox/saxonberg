@@ -265,7 +265,7 @@ const FieldGroupHeading = styled.div`
   color: ${tokens.color.fgMuted};
 `;
 
-/* --- Illustrated step: cards + detail pane ------------------------ */
+/* --- Illustrated step: cards + detail card ------------------------ */
 
 const DetailLabel = styled.div`
   font-size: 18px;

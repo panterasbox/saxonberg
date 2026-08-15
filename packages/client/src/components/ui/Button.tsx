@@ -11,7 +11,7 @@
  *   - `action`:  secondary admin action (clone / reload / eval).
  *   - `ghost`:   minimal-chrome target used as a placeholder /
  *                paint-the-body call-to-action (the cleared-body
- *                affordance in the inspection pane).
+ *                affordance in the inspection card).
  *
  * The component returns a real `<button>` so keyboard, focus
  * outline, and a11y come from the platform.

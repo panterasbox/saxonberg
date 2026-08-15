@@ -7,7 +7,7 @@
  * should show its label — a ration, a labelled bottle. It contributes a
  * `markupAugmenter` that appends the profile to the host's long
  * description, so the label shows wherever the long description renders
- * (`look`, the inspection pane, …) via the same augmenter seam the bulk
+ * (`look`, the inspection card, …) via the same augmenter seam the bulk
  * substrate and detail-keys use — NOT a `look`-controller special case.
  *
  * What this is NOT:

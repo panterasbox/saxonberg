@@ -196,7 +196,7 @@ export default class SenseController extends CommandController<SenseModel> {
     }
     // Surface-resting items (the back-bar's bottles) aren't loose room
     // contents — represented by their surface, found by examining it. Shared
-    // rule with `look` + the inspection pane.
+    // rule with `look` + the inspection card.
     const topLevel = ContainmentApi.looseContents(visibleContents);
     if (topLevel.length > 0) {
       // ⚠ `Mml.actor`, not `Mml.thing`: room contents include PEOPLE.

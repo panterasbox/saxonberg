@@ -71,9 +71,9 @@ interface WikiModel extends CommandModel {
 const TOPIC = 'shell.result';
 
 /**
- * The structured side-channel the wiki pane reads. A `world.` topic
+ * The structured side-channel the wiki card reads. A `world.` topic
  * rather than `shell.result.` because it is world content, and because
- * a player who filters the shell family should still get the pane.
+ * a player who filters the shell family should still get the card.
  */
 const PAGE_TOPIC = 'publication.wiki';
 
@@ -919,20 +919,20 @@ export default class WikiController extends CommandController<WikiModel> {
 
   /**
    * Push the structured twin of what just went to the scroll, so the
-   * wiki pane has something to show.
+   * wiki card has something to show.
    *
    * ⭐ It carries **the body that was already rendered** — not the
    * source, and not a second render. That is the whole security
-   * argument for the pane: the payload inherits the gate rather than
+   * argument for the card: the payload inherits the gate rather than
    * re-deriving it, so there is no second path along which
    * over-capability content could reach a client (criterion 24). A
-   * pane that re-rendered from source would be exactly that second
+   * card that re-rendered from source would be exactly that second
    * path.
    *
    * `sectionsFrom` reads the **stored** source, which is markdown, and
    * yields only heading text and anchors — public structure, not
    * content. When a preview is being shown the outline comes from the
-   * DRAFT, or the pane's outline would describe the saved page while
+   * DRAFT, or the card's outline would describe the saved page while
    * its body shows the unsaved one.
    */
   private async pushPage(

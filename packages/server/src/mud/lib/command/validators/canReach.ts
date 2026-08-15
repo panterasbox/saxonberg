@@ -45,7 +45,7 @@ const validator: FieldValidator = (value, field, context) => {
   const viaExit = isViaShape(value) ? Boolean(value.via?.exit) : false;
 
   for (const stuff of stuffs) {
-    // ⭐ One definition of reach, shared with the pane holds. This
+    // ⭐ One definition of reach, shared with the card holds. This
     // validator used to hand-roll it; so did the hold evaluator, and
     // they disagreed about doors.
     if (

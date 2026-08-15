@@ -113,7 +113,7 @@ export const studioClient = {
   },
 
   /**
-   * Describe a single mixin for the composer's inspector pane — its full
+   * Describe a single mixin for the composer's inspector card — its full
    * concept comment, contributed fields, and optional HelpApi enrichment
    * (relations + methods). Read-only; the session cookie rides the call.
    */

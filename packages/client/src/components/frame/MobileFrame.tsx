@@ -44,7 +44,7 @@
  * they wanted, which wants `NotifyPolicy` read first — and nothing
  * about a smaller screen changes what is behind it. A stub would be an
  * interface promising a model that does not exist, in the scarcest row
- * on the screen. `SocialNotificationsPane` stays reachable from the
+ * on the screen. `SocialNotificationsPanel` stays reachable from the
  * account menu, so the capability has a home.
  */
 
@@ -173,9 +173,9 @@ interface MobileFrameProps {
   /** Hover-preview a command (`null` = stop). Unused on touch; threaded
    *  because `ViewsMenu` takes it and a phone may have a pointer. */
   onCommandPreview?: (command: string | null) => void;
-  /** Whether the settings pane is currently open. */
+  /** Whether the settings card is currently open. */
   settingsActive?: boolean;
-  /** Toggle the settings pane; absent → the affordance is hidden. */
+  /** Toggle the settings card; absent → the affordance is hidden. */
   onToggleSettings?: () => void;
 }
 
@@ -221,7 +221,7 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
         {onToggleSettings ? (
           <SettingsItem
             role="menuitem"
-            aria-label="Toggle settings pane"
+            aria-label="Toggle settings card"
             onClick={onToggleSettings}
           >
             Settings{settingsActive ? " ✓" : ""}
@@ -231,7 +231,7 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
     ) : onToggleSettings ? (
       <SettingsItem
         role="menuitem"
-        aria-label="Toggle settings pane"
+        aria-label="Toggle settings card"
         onClick={onToggleSettings}
       >
         Settings{settingsActive ? " ✓" : ""}

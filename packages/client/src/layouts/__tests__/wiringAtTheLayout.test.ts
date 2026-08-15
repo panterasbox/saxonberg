@@ -4,9 +4,9 @@
  *
  * This has been the same defect twice in one build:
  *
- *  1. `usePaneFeed()` hung off `PaneFeed` — the DESKTOP right column —
+ *  1. `useCardFeed()` hung off `CardFeed` — the DESKTOP right column —
  *     so on a phone nothing opened the `place` subscription and nothing
- *     registered the envelope handlers. The whole mobile pane surface
+ *     registered the envelope handlers. The whole mobile card surface
  *     was dead.
  *  2. Fixed, and then `useInspectionSubscriptions()` was put in exactly
  *     the same place. That one is the ATTENTION SIGNAL every card is
@@ -28,15 +28,15 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = resolve(here, '..', '..');
 
 /** Hooks that open subscriptions or register envelope handlers. */
-const WIRING_HOOKS = ['usePaneFeed', 'useInspectionSubscriptions'];
+const WIRING_HOOKS = ['useCardFeed', 'useInspectionSubscriptions'];
 
 /**
  * Components that render at ONE form factor only. Wiring called from
  * any of these is dead on the other.
  */
 const FORM_FACTOR_SPECIFIC = [
-  'components/panes/PaneFeed.tsx',
-  'components/panes/MobilePlaySurface.tsx',
+  'components/cards/CardFeed.tsx',
+  'components/cards/MobilePlaySurface.tsx',
 ];
 
 /**
@@ -71,9 +71,9 @@ const SURFACE_MOUNTS: Array<{ file: string; renders: string }> = [
   // leave the header describing a subject nobody could pick.
   { file: 'components/social/SubjectShell.tsx', renders: 'SubjectRail' },
   { file: 'layouts/ForumLayout.tsx', renders: 'SubjectShell' },
-  // The tuned rail reads `cockpit.tuned`; if the panes stop rendering
+  // The tuned rail reads `cockpit.tuned`; if the cards stop rendering
   // it, the livestream side loses its only view of what it follows.
-  { file: 'layouts/LivestreamPanes.tsx', renders: 'TunedRail' },
+  { file: 'layouts/LivestreamPanels.tsx', renders: 'TunedRail' },
   // The reaction picker and its touch sheet both hang off the
   // transcript, which is the one component both form factors share.
   { file: 'components/Terminal.tsx', renders: 'EmoteSheet' },
@@ -85,7 +85,7 @@ describe('⭐ every social surface is actually mounted', () => {
     /*
      * ⚠ A component test would pass over any of these while the thing
      * was unreachable in the running app — which is exactly how the
-     * mobile pane surface shipped dead with every mobile test green.
+     * mobile card surface shipped dead with every mobile test green.
      */
     const text = readFileSync(resolve(src, file), 'utf8');
     const code = text

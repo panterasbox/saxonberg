@@ -104,7 +104,7 @@ describe('durable-subject witness', () => {
     await MqlSubscriptionApi._drainScheduledForTesting();
 
     // The index matches the exact key, so one player's renown append
-    // does not wake every other player's standing pane.
+    // does not wake every other player's standing card.
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

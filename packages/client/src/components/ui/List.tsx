@@ -7,9 +7,9 @@
  * slate). Bullets are suppressed visually; the list role is what
  * carries meaning to assistive tech.
  *
- * The inspection pane consumes this for the contents list under a
+ * The inspection card consumes this for the contents list under a
  * single-focus body and for the row list under a multi-focus body.
- * Other surfaces should reuse it; do NOT mint pane-private `<ul>`
+ * Other surfaces should reuse it; do NOT mint card-private `<ul>`
  * styling.
  */
 

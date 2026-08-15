@@ -6,7 +6,7 @@
  * synthesize that wrapper directly — parse / permission paths are
  * covered by `command-pronoun.test.ts` and `mql.test.ts`.
  *
- * Acceptance criteria from the inspection-pane Wave 5 plan:
+ * Acceptance criteria from the inspection-card Wave 5 plan:
  *   - one match → single row carrying the display name
  *   - many matches → one row per match
  *   - empty result → friendly "no matches" line

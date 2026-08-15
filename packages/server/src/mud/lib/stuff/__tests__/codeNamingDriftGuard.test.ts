@@ -217,7 +217,7 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   },
   // Studio describeMixin introspection: resolves an already-registered
   // mixin factory to compose over a bare `Idea` and read the fields it
-  // contributes (the inspector pane). Only committed mixin code resolves;
+  // contributes (the inspector card). Only committed mixin code resolves;
   // no author-named new code.
   {
     site: "obj/api/StudioLogic.ts::resolveExport",

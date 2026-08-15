@@ -382,7 +382,7 @@ async function enterImpl(
   );
 
   // Run the session ceremony on the vessel for each moved socket: the
-  // client needs its connection-established payload (it re-binds panes
+  // client needs its connection-established payload (it re-binds cards
   // to the new body) and an auto-sense of the circle. Without this the
   // player types `go wardrobe` and the screen simply doesn't change.
   // Presence stays silent — `WireBody.announceSessionPresence` is a
@@ -395,7 +395,7 @@ async function enterImpl(
       'swallow',
       { circleScope: scope }
     );
-    // The socket now drives a different body — re-render its panes.
+    // The socket now drives a different body — re-render its cards.
     MqlSubscriptionApi.refreshForInteractive(interactive);
   }
 
@@ -452,7 +452,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
   );
 
   // Re-orient each returning socket on the field body: the client
-  // re-binds its panes and the player sees the room they left. Same
+  // re-binds its cards and the player sees the room they left. Same
   // ceremony as entering, and just as necessary — walking out must not
   // leave a blank screen either.
   for (const interactive of returned) {

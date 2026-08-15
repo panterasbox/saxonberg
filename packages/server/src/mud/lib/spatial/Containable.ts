@@ -263,7 +263,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.environment = container;
       // Fire a `FieldChangedEvent { field: 'container' }` so MQL
       // subscriptions flagged `locationDependent` wake on movement
-      // (the inspection pane's breadcrumb-root subscription is the
+      // (the inspection card's breadcrumb-root subscription is the
       // current consumer). Containability change is the load-bearing
       // signal for "the player walked to a new room" / "this item
       // entered/left an inventory" — same shape `addContainable` /

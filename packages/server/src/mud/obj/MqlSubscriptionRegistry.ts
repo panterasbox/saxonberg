@@ -35,13 +35,13 @@ import type {
   MqlQueryResultEnvelope,
   MqlQueryErrorEnvelope,
   MqlSubscriptionReleasedEnvelope,
-  PaneHold,
-  PaneId,
-  PaneReleaseReason,
+  CardHold,
+  CardId,
+  CardReleaseReason,
 } from '@saxonberg/types';
 import { PromptApi } from '../api/prompt';
 import { PerceptionApi } from '../api/perception';
-import { PANES_BY_NAME } from '../lib/connection/Panes';
+import { CARDS_BY_NAME } from '../lib/connection/Cards';
 import { Idea } from '../lib/stuff/Idea';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
@@ -103,8 +103,8 @@ interface SubscriptionState {
   fields: FieldSet;
   detailKey?: string;
   focusDependent: boolean;
-  /** The catalogue name this pane was opened by, when it was named. */
-  paneId?: PaneId;
+  /** The catalogue name this card was opened by, when it was named. */
+  cardId?: CardId;
   locationDependent: boolean;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
@@ -117,21 +117,21 @@ interface SubscriptionState {
    */
   birthScope: string | null;
   /**
-   * Lifetime rule. A subscription carrying one is a **pane**: it lives
+   * Lifetime rule. A subscription carrying one is a **card**: it lives
    * until its condition lapses, then is released with a reason on the
    * wire. `undefined` = the classic shape, lives until unsubscribed.
    */
-  hold?: PaneHold;
-  /** The pending prompt id an `unanswered` pane waits on. */
+  hold?: CardHold;
+  /** The pending prompt id an `unanswered` card waits on. */
   holdSubject?: string;
   /**
-   * ⭐ For a **subject pane** (`agent` / `instrument` / `manifest`): the
+   * ⭐ For a **subject card** (`agent` / `instrument` / `manifest`): the
    * `stuffId` it is about.
    *
    * When set, the subscription resolves by direct lookup **behind the
    * perception gate** instead of by running MQL. ⚠⚠ The obvious
    * alternative — an `#<stuffId>` seed in the catalogue's query — is
-   * authoring-tier and resolves with NO perception gate, so a pane
+   * authoring-tier and resolves with NO perception gate, so a card
    * built on it would open a card about anything whose id had ever
    * appeared on a frame. That is a peep-hole into every room in the
    * game, and it would look exactly like the feature working.
@@ -139,13 +139,13 @@ interface SubscriptionState {
   subjectId?: string;
   /**
    * For `hold: 'here'` — the container the viewer occupied when the
-   * pane opened. "Here" is only meaningful relative to a where, and
-   * the pane's own subject is not it.
+   * card opened. "Here" is only meaningful relative to a where, and
+   * the card's own subject is not it.
    */
   holdAnchor?: string;
   /**
    * Manual override on the hold, in BOTH directions. `true` keeps a
-   * pane whose condition has lapsed; `false` drops one whose condition
+   * card whose condition has lapsed; `false` drops one whose condition
    * still holds; `null` means the condition decides.
    *
    * ⚠ Not a sixth hold condition — an override on the other five. A
@@ -156,11 +156,11 @@ interface SubscriptionState {
    * beside it ARE persistent, so the asymmetry otherwise reads as a
    * miss.
    *
-   * A pin is about one pane and one subject: *keep the pane about Bob
+   * A pin is about one card and one subject: *keep the card about Bob
    * open even though Bob walked out.* Restoring that next week, when
    * Bob is long gone and the subscription that framed him no longer
    * exists, would be restoring an answer to a question nobody is
-   * asking. An ARRANGEMENT is durable because it names panes by
+   * asking. An ARRANGEMENT is durable because it names cards by
    * catalogue id — a statement about a workspace. A pin is a statement
    * about a moment, and it dies with the moment.
    */
@@ -269,15 +269,15 @@ function resolveByQuery(
 }
 
 /**
- * Resolve a **subject pane's** one Stuff, behind the perception gate.
+ * Resolve a **subject card's** one Stuff, behind the perception gate.
  *
  * ⚠⚠ The gate is the whole reason this is not an MQL `#<stuffId>`
- * seed. That seed is authoring-tier and ungated, so a pane on it would
+ * seed. That seed is authoring-tier and ungated, so a card on it would
  * answer for anything whose id the viewer had ever seen on a frame.
  *
  * ⭐ Re-checked on **every** resolve, not only at open: losing sight of
  * the subject empties the list, which is precisely what the spatial
- * holds read as "gone" — so the pane fades with a reason rather than
+ * holds read as "gone" — so the card fades with a reason rather than
  * quietly continuing to report a thing you can no longer see.
  */
 function resolveSubject(subjectId: string, viewer: Stuff & Sensor): Stuff[] {
@@ -287,7 +287,7 @@ function resolveSubject(subjectId: string, viewer: Stuff & Sensor): Stuff[] {
 }
 
 /**
- * What each pane hold needs woken to be answerable — declared beside
+ * What each card hold needs woken to be answerable — declared beside
  * the vocabulary rather than inferred from it.
  *
  * `location`: the hold reads where things are relative to the viewer, so
@@ -303,7 +303,7 @@ function resolveSubject(subjectId: string, viewer: Stuff & Sensor): Stuff[] {
  * row with no mechanism behind it is the failure this table exists to
  * make visible.
  */
-const HOLD_WAKES_ON: Readonly<Record<PaneHold, { location: boolean }>> = {
+const HOLD_WAKES_ON: Readonly<Record<CardHold, { location: boolean }>> = {
   unanswered: { location: false },
   here: { location: true },
   present: { location: true },
@@ -354,37 +354,37 @@ export default class MqlSubscriptionRegistry extends Idea {
     }
 
     /*
-     * ⭐⭐ A NAMED pane is described by the server, not by the caller.
+     * ⭐⭐ A NAMED card is described by the server, not by the caller.
      * Everything below comes from the catalogue and the request's own
      * query / cardinality / fields / hold are ignored — that is the
-     * difference between naming a pane and describing one, and it is
+     * difference between naming a card and describing one, and it is
      * what makes a stored arrangement mean anything a session later.
      *
      * ⚠ An unknown name is an ERROR, not a fallback to the caller's
      * fields. Falling back would let a client open an arbitrary
-     * subscription by misspelling a pane, which is exactly the
+     * subscription by misspelling a card, which is exactly the
      * client-supplies-semantics hole the catalogue closes.
      */
-    const pane = req.pane === undefined ? undefined : PANES_BY_NAME[req.pane];
-    if (req.pane !== undefined && !pane) {
+    const card = req.card === undefined ? undefined : CARDS_BY_NAME[req.card];
+    if (req.card !== undefined && !card) {
       this.emitError(
         interactive,
         subscriptionId,
         'parse',
-        `unknown pane '${req.pane}'`,
+        `unknown card '${req.card}'`,
       );
       return;
     }
 
     /*
-     * ⭐ **Subject panes.** Three catalogue rows are about a particular
+     * ⭐ **Subject cards.** Three catalogue rows are about a particular
      * thing rather than a fixed place. The request carries a `stuffId`;
-     * the pane's own resolution is a direct lookup **behind the
+     * the card's own resolution is a direct lookup **behind the
      * perception gate**, not an MQL query.
      *
      * ⚠⚠ **Deliberately NOT `#<stuffId>` in MQL.** That seed exists, is
      * authoring-tier, and resolves with **no perception gate** — so a
-     * pane built on it would let any player open a card about anything
+     * card built on it would let any player open a card about anything
      * whose id they had ever seen on a frame, which is a peep-hole into
      * every room in the game. `resolveSubject` below asks
      * `PerceptionApi.perceives` on every resolve, so losing sight of the
@@ -396,22 +396,22 @@ export default class MqlSubscriptionRegistry extends Idea {
      * feature working.
      */
     let subjectId: string | undefined;
-    if (pane?.needsSubject) {
+    if (card?.needsSubject) {
       const subject = req.subject?.trim();
       if (!subject) {
         this.emitError(
           interactive,
           subscriptionId,
           'parse',
-          `pane '${req.pane}' is about something — it needs a subject`,
+          `card '${req.card}' is about something — it needs a subject`,
         );
         return;
       }
       subjectId = subject;
     }
 
-    const rawQuery = pane ? pane.query : req.query;
-    const rawCardinality = pane ? pane.cardinality : req.cardinality;
+    const rawQuery = card ? card.query : req.query;
+    const rawCardinality = card ? card.cardinality : req.cardinality;
     if (typeof rawQuery !== 'string') {
       this.emitError(interactive, subscriptionId, 'parse', 'query required');
       return;
@@ -427,16 +427,16 @@ export default class MqlSubscriptionRegistry extends Idea {
     }
     const query = rawQuery;
     const cardinality = rawCardinality;
-    const fields = resolveFieldSet(pane ? pane.fields : req.fields);
+    const fields = resolveFieldSet(card ? card.fields : req.fields);
     const detailKey = req.detailKey;
     /**
      * ⚠⚠ **A hold must install the dependency that lets it fire.**
      *
      * A hold is only evaluated when its subscription re-resolves, and a
      * subscription only re-resolves when something marks it dirty.
-     * Without the dependency, a `here` pane is **immortal**: the viewer
+     * Without the dependency, a `here` card is **immortal**: the viewer
      * walks out, nothing wakes the subscription, the hold is never
-     * evaluated, and the pane sits there forever. Found by driving it
+     * evaluated, and the card sits there forever. Found by driving it
      * live — the unit tests all called `refreshForInteractive` by hand,
      * so none of them exercised the wake path at all.
      *
@@ -448,12 +448,12 @@ export default class MqlSubscriptionRegistry extends Idea {
      * makes forgetting structurally impossible instead of merely
      * fixed.
      */
-    const hold = pane ? pane.hold : req.hold;
-    const focusDependent = pane
-      ? pane.focusDependent === true
+    const hold = card ? card.hold : req.hold;
+    const focusDependent = card
+      ? card.focusDependent === true
       : req.focusDependent === true;
     const locationDependent =
-      (pane ? pane.locationDependent === true : req.locationDependent === true) ||
+      (card ? card.locationDependent === true : req.locationDependent === true) ||
       (hold !== undefined && HOLD_WAKES_ON[hold].location);
 
     if (detailKey !== undefined && cardinality !== 'one') {
@@ -524,26 +524,26 @@ export default class MqlSubscriptionRegistry extends Idea {
       lastResult,
       dependencyHandles: [],
       birthScope: registrantScope === OMNI_SCOPE ? null : registrantScope,
-      paneId: req.pane,
+      cardId: req.card,
       hold,
       holdSubject: req.holdSubject,
       ...(subjectId ? { subjectId } : {}),
       // `here` means "where I was when this opened", so the anchor is
-      // captured now — the pane's own subject cannot supply it.
+      // captured now — the card's own subject cannot supply it.
       holdAnchor:
         hold === 'here' ? (containerIdOf(viewer) ?? undefined) : undefined,
       pinned: null,
     };
 
     /*
-     * ⚠⚠ **A pane that opens already-lapsed never paints once first.**
+     * ⚠⚠ **A card that opens already-lapsed never paints once first.**
      *
      * The hold predicate IS the scope gate — `present` means "in the
      * room with you", `inReach` asks the one definition of reach,
      * `carried` means "on you". Evaluating it only on the re-resolve
-     * left a one-frame leak: a subject pane opened about something out
+     * left a one-frame leak: a subject card opened about something out
      * of scope emitted a full `detail` projection of it and only THEN
-     * released. For a pane whose subject the client names by `stuffId`,
+     * released. For a card whose subject the client names by `stuffId`,
      * that one frame is the whole exploit — a peep-hole into any room
      * whose contents you have ever seen an id for.
      *
@@ -573,11 +573,11 @@ export default class MqlSubscriptionRegistry extends Idea {
       type: 'mql-subscription-result',
       subscriptionId,
       result,
-      // ⭐ Echoed so a pane the SERVER opened (a mode switch resolving
+      // ⭐ Echoed so a card the SERVER opened (a mode switch resolving
       // its arrangement) tells the client which body to draw and what
-      // words to put in the header. Redundant for a pane the client
+      // words to put in the header. Redundant for a card the client
       // opened itself; load-bearing for one it has never seen.
-      ...(req.pane ? { pane: req.pane } : {}),
+      ...(req.card ? { card: req.card } : {}),
       ...(hold ? { hold } : {}),
       ...(req.pushed ? { pushed: true as const } : {}),
     };
@@ -708,9 +708,9 @@ export default class MqlSubscriptionRegistry extends Idea {
    * Subscriptions re-resolve when a tracked DEPENDENCY changes — but
    * swapping the body behind a socket isn't a dependency of any query,
    * it's a change of who the query is *for*. After the sandbox crossing
-   * moves a socket to a wire body (or back), its panes would otherwise
+   * moves a socket to a wire body (or back), its cards would otherwise
    * keep rendering the room the player already left (found live: the
-   * location pane still read "the wire alcove" from inside the circle).
+   * location card still read "the wire alcove" from inside the circle).
    */
   @CallSecurity(MqlSubscriptionApiCallers)
   public refreshForInteractive(interactive: Interactive): void {
@@ -742,13 +742,13 @@ export default class MqlSubscriptionRegistry extends Idea {
    * dependency because "the prompt's own resolution is what wakes it".
    * This is that resolution. Without it the hold was evaluated only
    * when something *else* happened to mark the subscription dirty, so
-   * a form pane outlived the question it was about — and a pane that
-   * cannot close is worse than no pane lifetime at all, because the
+   * a form card outlived the question it was about — and a card that
+   * cannot close is worse than no card lifetime at all, because the
    * feature reads as working.
    *
    * ⚠ Marks dirty rather than releasing inline: a dismissal must be
    * released down the same path that emits every other reason, or a
-   * pane can vanish without one.
+   * card can vanish without one.
    */
   @CallSecurity(MqlSubscriptionApiCallers)
   public notifyPromptSettled(
@@ -1004,9 +1004,9 @@ export default class MqlSubscriptionRegistry extends Idea {
       // things dirty, so each re-resolve must run as ITS OWN
       // subscription, never the mutator.
       //
-      // The effective scope is the CURRENT HOLDER's — a pane renders
+      // The effective scope is the CURRENT HOLDER's — a card renders
       // what the body behind it sees, and a socket that follows its
-      // player into a circle takes its panes along. Birth scope is the
+      // player into a circle takes its cards along. Birth scope is the
       // fallback for a holderless/detached moment. (A field-born
       // subscription whose holder is now a wire body therefore
       // re-resolves in-circle; when the player walks out and the socket
@@ -1075,8 +1075,8 @@ export default class MqlSubscriptionRegistry extends Idea {
       newResult.set(stuff.stuffId, rec);
     }
 
-    // ⚠ Pane lifetime is evaluated HERE — on the batch that was already
-    // running — not on a timer of its own. A pane set with its own tick
+    // ⚠ Card lifetime is evaluated HERE — on the batch that was already
+    // running — not on a timer of its own. A card set with its own tick
     // would be a second clock, and two clocks disagree.
     if (sub.hold) {
       const release = this.evaluateHold(sub, stuffList, viewer);
@@ -1112,11 +1112,11 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
-   * Evaluate a pane's hold. Returns the release reason, or null to keep
-   * the pane open.
+   * Evaluate a card's hold. Returns the release reason, or null to keep
+   * the card open.
    *
    * ⚠ A manual pin is consulted FIRST and overrides in both directions:
-   * `true` keeps a pane whose condition has lapsed, `false` drops one
+   * `true` keeps a card whose condition has lapsed, `false` drops one
    * whose condition still holds. Pinning is an override on the five
    * conditions, not a sixth condition — a sixth condition could only
    * ever keep, never dismiss.
@@ -1128,14 +1128,14 @@ export default class MqlSubscriptionRegistry extends Idea {
    * `reachable` / `inventory`) was tried first and is wrong: those
    * scopes include the room and the viewer themselves, so the scope is
    * never empty and a hold keyed on "is anything still in scope" can
-   * never lapse. A pane that can never close is worse than no pane
+   * never lapse. A card that can never close is worse than no card
    * lifetime at all, because the feature reads as working.
    */
   private evaluateHold(
     sub: SubscriptionState,
     stuffList: Stuff[],
     viewer: Stuff & Sensor,
-  ): PaneReleaseReason | null {
+  ): CardReleaseReason | null {
     if (sub.pinned === true) return null;
     if (sub.pinned === false) return 'dismissed';
 
@@ -1164,7 +1164,7 @@ export default class MqlSubscriptionRegistry extends Idea {
         // ⭐ Asks the ONE definition of reach rather than re-deriving it.
         // This used to compare container ids, which silently excluded
         // doors — they are attached to exits and live in no container —
-        // so a pane on a door released `out-of-reach` while `open north`
+        // so a card on a door released `out-of-reach` while `open north`
         // on that same door worked. The `canReach` validator had the
         // door clause; this did not. Two hand-rolled definitions of one
         // world concept, disagreeing.
@@ -1187,10 +1187,10 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
-   * Does any of the pane's subjects satisfy `pred`?
+   * Does any of the card's subjects satisfy `pred`?
    *
-   * An empty subject list releases: a pane about nothing has nothing to
-   * hold it open. The viewer never counts as its own subject — a pane
+   * An empty subject list releases: a card about nothing has nothing to
+   * hold it open. The viewer never counts as its own subject — a card
    * about you would otherwise satisfy `carried` and `present` forever.
    */
   private anySubject(
@@ -1204,13 +1204,13 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
-   * Tell the client the pane went away, and why. A pane that vanishes
+   * Tell the client the card went away, and why. A card that vanishes
    * without a reason reads as a bug — this is a distinct envelope from
    * the error one precisely because nothing went wrong.
    */
   private emitReleased(
     sub: SubscriptionState,
-    reason: PaneReleaseReason,
+    reason: CardReleaseReason,
   ): void {
     const holder = sub.interactive.getHolder();
     if (!holder || !MixinApi.isSensor(holder)) return;
@@ -1224,15 +1224,15 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
-   * Manual pin / dismiss. Marks the pane dirty so the override is
+   * Manual pin / dismiss. Marks the card dirty so the override is
    * applied by the same drain that evaluates every other hold —
-   * a dismiss must not tear down inline, or a pane could be released
+   * a dismiss must not tear down inline, or a card could be released
    * on a path that never emitted its reason.
    */
   @CallSecurity(MqlSubscriptionApiCallers)
-  public setPanePinned(
+  public setCardPinned(
     interactive: Interactive,
-    paneRef: string,
+    cardRef: string,
     pinned: boolean | null,
   ): boolean {
     const bucket = this.registry.get(interactive);
@@ -1241,26 +1241,26 @@ export default class MqlSubscriptionRegistry extends Idea {
      * ⚠ Resolve by CATALOGUE NAME first, subscription handle second —
      * in that order, because that is the order the player can type.
      *
-     * `cockpit pane list` prints the catalogue id (`place`), deliberately:
+     * `cockpit card list` prints the catalogue id (`place`), deliberately:
      * the handle is a client-minted nanoid, and printing
      * `X9aYf67qws_FobUqk6M6I` at a player is the transport leaking into
      * the interface. But `pin` only ever looked the handle up, so
-     * `cockpit pane pin place` — the form the verb's own help and
-     * examples show — answered "no open pane 'place'". A surface that
+     * `cockpit card pin place` — the form the verb's own help and
+     * examples show — answered "no open card 'place'". A surface that
      * names things one way and accepts them another is worse than one
      * that is consistently awkward.
      *
-     * The handle still resolves, because a pane opened by SHAPE has no
+     * The handle still resolves, because a card opened by SHAPE has no
      * catalogue name and the handle is genuinely all it has.
      */
     let sub: SubscriptionState | undefined;
     for (const candidate of bucket.values()) {
-      if (candidate.paneId === paneRef) {
+      if (candidate.cardId === cardRef) {
         sub = candidate;
         break;
       }
     }
-    sub ??= bucket.get(paneRef);
+    sub ??= bucket.get(cardRef);
     if (!sub || !sub.hold) return false;
     sub.pinned = pinned;
     this.markDirty(sub);
@@ -1268,7 +1268,7 @@ export default class MqlSubscriptionRegistry extends Idea {
      * ⚠ Tell the client the override took.
      *
      * The DISMISS direction was already visible — the next drain
-     * releases the pane with reason `dismissed`. The KEEP direction was
+     * releases the card with reason `dismissed`. The KEEP direction was
      * silent: nothing about the world changed, so the diff was empty
      * and no envelope went out, and the card's pin would have sat
      * un-lit after a command that succeeded. A control that does not
@@ -1280,9 +1280,9 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
-   * Re-send a pane's current result carrying the new override.
+   * Re-send a card's current result carrying the new override.
    *
-   * Reuses the result envelope rather than minting a `pane-state` one:
+   * Reuses the result envelope rather than minting a `card-state` one:
    * the client already has a handler that lands records + header state
    * from this shape, and a second envelope for one boolean would be a
    * second code path to keep in step with the first.
@@ -1294,7 +1294,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       type: 'mql-subscription-result',
       subscriptionId: sub.subscriptionId,
       result: [...sub.lastResult.values()],
-      ...(sub.paneId ? { pane: sub.paneId } : {}),
+      ...(sub.cardId ? { card: sub.cardId } : {}),
       ...(sub.hold ? { hold: sub.hold } : {}),
       pinned: sub.pinned,
     };
@@ -1302,22 +1302,22 @@ export default class MqlSubscriptionRegistry extends Idea {
   }
 
   /**
-   * ⭐⭐ **Open exactly the panes an arrangement names, server-side.**
+   * ⭐⭐ **Open exactly the cards an arrangement names, server-side.**
    *
    * The client sends ONE command (`cockpit mode play`) and knows
    * nothing about what an arrangement means. That is what keeps *the
    * client owns zero command semantics* literally true — the
-   * alternative, a client replaying `cockpit pane open <name>` per
-   * pane, puts both the meaning of an arrangement and the pane ORDER in
+   * alternative, a client replaying `cockpit card open <name>` per
+   * card, puts both the meaning of an arrangement and the card ORDER in
    * the client and costs a round trip each.
    *
    * ⚠ The cost is accepted knowingly: **the server now holds view state
    * per player.** It already holds `cockpit.layout`, `cockpit.mode` and
    * `console.tabs`, so this is the same seam widened, not a new one.
    *
-   * ⚠ **Subject panes are skipped.** `agent` / `instrument` / `manifest`
+   * ⚠ **Subject cards are skipped.** `agent` / `instrument` / `manifest`
    * are about a particular thing, and an arrangement is a statement
-   * about a WORKSPACE — "keep the pane about Bob open" is a statement
+   * about a WORKSPACE — "keep the card about Bob open" is a statement
    * about a MOMENT, which is why the pin is session-scoped. Restoring
    * one next week, when Bob is long gone, would be restoring an answer
    * to a question nobody is asking.
@@ -1327,28 +1327,28 @@ export default class MqlSubscriptionRegistry extends Idea {
   @CallSecurity(MqlSubscriptionApiCallers)
   public applyArrangement(
     interactive: Interactive,
-    panes: readonly PaneId[],
+    cards: readonly CardId[],
   ): { opened: number; closed: number } {
-    const wanted = new Set<PaneId>(
-      panes.filter((p) => PANES_BY_NAME[p]?.needsSubject !== true),
+    const wanted = new Set<CardId>(
+      cards.filter((p) => CARDS_BY_NAME[p]?.needsSubject !== true),
     );
     const bucket = this.registry.get(interactive);
     let closed = 0;
 
-    // Close the catalogue panes this arrangement does not name. ⚠ Only
-    // NAMED ones: a pane opened by shape has no durable identity, so an
+    // Close the catalogue cards this arrangement does not name. ⚠ Only
+    // NAMED ones: a card opened by shape has no durable identity, so an
     // arrangement never claimed to describe it and must not close it.
     if (bucket) {
       for (const [subscriptionId, sub] of [...bucket.entries()]) {
-        if (sub.paneId === undefined) continue;
-        if (wanted.has(sub.paneId)) {
+        if (sub.cardId === undefined) continue;
+        if (wanted.has(sub.cardId)) {
           // Already open and still wanted — leave it alone rather than
           // closing and reopening, which would blank the card and lose
           // any pin on it for no reason the player asked for.
-          wanted.delete(sub.paneId);
+          wanted.delete(sub.cardId);
           continue;
         }
-        if (PANES_BY_NAME[sub.paneId]?.needsSubject === true) continue;
+        if (CARDS_BY_NAME[sub.cardId]?.needsSubject === true) continue;
         this.emitReleased(sub, 'rearranged');
         this.teardownSubscription(sub);
         bucket.delete(subscriptionId);
@@ -1358,14 +1358,14 @@ export default class MqlSubscriptionRegistry extends Idea {
     }
 
     let opened = 0;
-    for (const pane of wanted) {
+    for (const card of wanted) {
       this.handleSubscribe({
         interactive,
         // ⚠ Server-minted. The client has never seen this handle, which
-        // is precisely why the result envelope echoes `pane` and `hold`
+        // is precisely why the result envelope echoes `card` and `hold`
         // — without them the client could not know which body to draw.
-        subscriptionId: `srv-${pane}-${SecurityApi.uuid()}`,
-        pane,
+        subscriptionId: `srv-${card}-${SecurityApi.uuid()}`,
+        card,
         // ⚠ The flag, not the id prefix. A client that keyed on `srv-`
         // would be inferring intent from a string shape the server is
         // free to change.
@@ -1376,41 +1376,41 @@ export default class MqlSubscriptionRegistry extends Idea {
     return { opened, closed };
   }
 
-  /** Open panes for one interactive, for the `cockpit pane` report. */
+  /** Open cards for one interactive, for the `cockpit card` report. */
   @CallSecurity(MqlSubscriptionApiCallers)
-  public listPanes(
+  public listCards(
     interactive: Interactive,
   ): {
     subscriptionId: string;
-    paneId?: PaneId;
-    hold?: PaneHold;
+    cardId?: CardId;
+    hold?: CardHold;
     pinned: boolean | null;
   }[] {
     const bucket = this.registry.get(interactive);
     if (!bucket) return [];
     const out: {
       subscriptionId: string;
-      paneId?: PaneId;
-      hold?: PaneHold;
+      cardId?: CardId;
+      hold?: CardHold;
       pinned: boolean | null;
     }[] = [];
     /*
-     * ⚠ A pane is a NAMED subscription; a hold is an optional property
+     * ⚠ A card is a NAMED subscription; a hold is an optional property
      * of one. Filtering on `hold` alone conflated the two and made
      * `inspect` and `location` invisible here — they are catalogue
-     * panes that deliberately carry no lifetime, because the pane
+     * cards that deliberately carry no lifetime, because the card
      * policy is paint/clear: a focus change clears the body, it does
-     * not close the pane. An arrangement that could not see them could
+     * not close the card. An arrangement that could not see them could
      * not save them.
      */
     for (const sub of bucket.values()) {
-      if (!sub.hold && sub.paneId === undefined) continue;
+      if (!sub.hold && sub.cardId === undefined) continue;
       out.push({
         subscriptionId: sub.subscriptionId,
-        // ⚠ Absent for a hand-rolled held subscription — a pane opened
+        // ⚠ Absent for a hand-rolled held subscription — a card opened
         // by shape rather than by name. Those cannot be saved into an
         // arrangement, because there is nothing durable to save.
-        paneId: sub.paneId,
+        cardId: sub.cardId,
         hold: sub.hold,
         pinned: sub.pinned,
       });

@@ -9,8 +9,8 @@
  *     demonstrative gambits `strike` / `disarm` / `subdue` / `shove`),
  *     contributed statically and gated at **attempt-time** by
  *     `CombatApi.eligibilityFor` (the terminal-only build needs only the
- *     attempt-time reject; the client-pane "menu greys itself" defers with
- *     the pane);
+ *     attempt-time reject; the client-card "menu greys itself" defers with
+ *     the card);
  *   - the **innate attack** hook: a species-declared natural weapon
  *     (`naturalAttackChannel`, e.g. a wolf's `point` bite). Humanoids
  *     leave it empty — fisticuffs / grapple depth is deferred in
