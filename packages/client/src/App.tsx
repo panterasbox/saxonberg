@@ -775,6 +775,7 @@ function App() {
         onCancelPrompt: cancelPrompt,
         onCommandClick: handleCommandClick,
         onCommandPreview: handleCommandPreview,
+        onCommandSend: sendDirect,
       };
       const ActiveLayout = resolved.def.Component;
       return (

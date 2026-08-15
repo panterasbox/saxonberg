@@ -35,6 +35,16 @@ export interface LayoutProps {
   onCancelPrompt: (promptId: string) => void;
   /** Click-to-send an affordance's command, un-moded (command-bus primacy). */
   onCommandClick: (command: string) => void;
+  /**
+   * Send WITHOUT the phone's confirm interception.
+   *
+   * ⚠ For surfaces that have already named the command they are about
+   * to send — the emote sheet shows it verbatim above its own send
+   * control. The command sheet's job is to be that naming moment; a
+   * surface that already is one does not need it, and routing through it
+   * asks the same question twice. See `Terminal.onCommandSend`.
+   */
+  onCommandSend: (command: string) => void;
   /** Hover-preview an affordance's command in the ghost line (`null` = stop). */
   onCommandPreview: (command: string | null) => void;
 }

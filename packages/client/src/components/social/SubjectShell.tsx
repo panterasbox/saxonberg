@@ -26,6 +26,7 @@ import { SubjectHeader } from "./SubjectHeader";
 import { ForumView } from "../ForumView";
 import { ForumChatSidecar } from "../ForumChatSidecar";
 import { openForumBoard } from "../../store/forumActions";
+import { useIsCompact } from "../../lib/style/useIsCompact";
 import { isForumSurface } from "./surfaces";
 
 const Shell = styled.div`
@@ -34,6 +35,23 @@ const Shell = styled.div`
   min-height: 0;
   background: ${tokens.color.surfaceMuted};
   color: ${tokens.color.fg};
+`;
+
+/**
+ * The phone's back control — the only way out of a subject once the rail
+ * has given the screen over to it.
+ */
+const Back = styled.button`
+  appearance: none;
+  align-self: flex-start;
+  font: inherit;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.accent};
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: ${tokens.space.sm} ${tokens.space.md} 0;
 `;
 
 const Main = styled.div`
@@ -79,6 +97,20 @@ export const SubjectShell: React.FC<SubjectShellProps> = ({
   onSendCommand,
   onCommandPreview,
 }) => {
+  /*
+   * ⭐ **Master-detail, not two columns.**
+   *
+   * A rail beside a body is right on a desktop and wrong on a phone: at
+   * 390px it left the rail ~180px and the BODY ~200px, which is a forum
+   * post rendered four words to a line. Found by driving.
+   *
+   * A subject and its surfaces are a drill-down, so the phone SWITCHES
+   * rather than interleaving — the rail owns the screen until you pick,
+   * then the subject does, with a way back. That is the ordinary
+   * master-detail answer and it needs no mock to get right; what still
+   * waits for one is the surface-tab treatment inside the body.
+   */
+  const isCompact = useIsCompact();
   const [selected, setSelected] = React.useState<ForumSubjectRecord | null>(
     null,
   );
@@ -101,10 +133,30 @@ export const SubjectShell: React.FC<SubjectShellProps> = ({
     [selected],
   );
 
+  // On a phone the rail and the body take turns; on a desktop both show.
+  const showRail = !isCompact || selected === null;
+  const showBody = !isCompact || selected !== null;
+
   return (
     <Shell data-testid="subject-shell">
-      <SubjectRail selectedId={selected?.id ?? null} onSelect={selectSubject} />
-      <Main>
+      {showRail && (
+        <SubjectRail
+          selectedId={selected?.id ?? null}
+          onSelect={selectSubject}
+        />
+      )}
+      <Main style={showBody ? undefined : { display: "none" }}>
+        {isCompact && selected !== null && (
+          <Back
+            data-testid="subject-back"
+            onClick={() => {
+              setSelected(null);
+              setSurface(null);
+            }}
+          >
+            ‹ Subjects
+          </Back>
+        )}
         {selected === null ? (
           <Empty>Pick a subject.</Empty>
         ) : (

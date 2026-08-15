@@ -156,6 +156,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onSendPromptResponse,
   onCancelPrompt,
   onCommandClick,
+  onCommandSend,
   onCommandPreview,
 }) => {
   /*
@@ -271,6 +272,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           frames={frames}
           onCommandClick={onCommandClick}
           onCommandPreview={onCommandPreview}
+          onCommandSend={onCommandSend}
         />
         {/*
           ⚠⚠ **The count and the body have to agree, or say why not.**

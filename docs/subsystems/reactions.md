@@ -306,6 +306,17 @@ driving; no test could see it, because every test asserted the client's
 own string against itself. The verb's help already said the expression is
 "any ordinary emote, exactly as you'd type it bare".
 
+⭐⭐ **The sheet sends DIRECTLY, and it is the one exception to the
+command sheet.** `CommandSheet` exists to insert a naming moment a phone
+otherwise lacks — every affordance gets one, deliberately, with no
+obvious-case exception. **The emote sheet is already that moment**: it
+prints the verbatim command above its own send control. Routing it
+through the command sheet added no pedagogical dividend and asked the
+same question twice — found by driving, where reacting on a phone cost a
+hold plus three taps and showed `react --msg 22 agree` on two
+consecutive sheets. `LayoutProps.onCommandSend` is the direct path;
+`EmoteSheetSend.test.tsx` keeps the exception narrow.
+
 **Touch.** Desktop hides the bare `+` until row hover; a phone has no
 hover and a permanent `+` on every frame is the vertical spend the inline
 row exists to avoid. So the gesture is **long-press the frame**

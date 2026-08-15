@@ -709,6 +709,15 @@ parked, so it renders in the not-wired treatment and sends nothing. A
 control that reliably refuses is worse than one that says it is not
 there yet.
 
+⭐ **On a phone the shell is MASTER-DETAIL, not two columns.** At 390px
+the desktop arrangement left the rail its 14–18rem and the body about
+200px — a forum post four words to a line. A subject and its surfaces
+are a drill-down, so the phone switches: the rail owns the screen until
+you pick, then the subject does, with a `‹ Subjects` way back. Found by
+driving; no component test saw it, because they all render at jsdom's
+default width. ⚠ What still waits for a mock is the surface-tab
+treatment *inside* the body, not this.
+
 ⚠ **`ForumView` was NOT retired.** Its argument lens, popularity list and
 comment tree render the server's projection correctly; the defect was one
 level up, in navigation. It is now a *body inside a subject* rather than

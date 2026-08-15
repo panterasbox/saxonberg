@@ -27,6 +27,7 @@ import {
   unsubscribeForumScope,
 } from "../../store/forumActions";
 import { tokens } from "../ui";
+import { COMPACT_QUERY } from "../../lib/style/useIsCompact";
 import { SURFACE_LABEL, SURFACE_HUE } from "./surfaces";
 
 const Rail = styled.nav`
@@ -37,6 +38,18 @@ const Rail = styled.nav`
   border-right: 1px solid ${tokens.color.border};
   overflow-y: auto;
   padding: ${tokens.space.sm} 0;
+
+  /*
+   * ⚠ On a phone the rail OWNS the screen (see SubjectShell's
+   * master-detail switch), so the desktop width bounds have to lift —
+   * otherwise it keeps its 18rem cap and leaves dead space beside it.
+   */
+  @media ${COMPACT_QUERY} {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    border-right: none;
+  }
 `;
 
 const Label = styled.div`
