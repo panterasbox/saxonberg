@@ -11,8 +11,7 @@ import React from "react";
 import styled from "styled-components";
 import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
-import { ForumView } from "../components/ForumView";
-import { ForumChatSidecar } from "../components/ForumChatSidecar";
+import { SubjectShell } from "../components/social/SubjectShell";
 import { CommandBar } from "../components/CommandBar";
 
 /**
@@ -59,7 +58,12 @@ export const ForumLayout: React.FC<LayoutProps> = ({
     <>
       <Cockpit>
         <LeftColumn>
-          <ForumView
+          {/*
+            ⭐ The forum is entered through its SUBJECTS now, not through
+            a flat board list. `SubjectShell` owns which subject and which
+            surface; `ForumView` still renders the board it lands on.
+          */}
+          <SubjectShell
             onSendCommand={onSendCommand}
             onCommandPreview={onCommandPreview}
           />
@@ -70,7 +74,6 @@ export const ForumLayout: React.FC<LayoutProps> = ({
             onCancelPrompt={onCancelPrompt}
           />
         </LeftColumn>
-        <ForumChatSidecar onSendCommand={onSendCommand} />
       </Cockpit>
       {scenePeek && <ScenePeek>{scenePeek}</ScenePeek>}
     </>

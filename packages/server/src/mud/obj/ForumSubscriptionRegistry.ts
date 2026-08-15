@@ -44,9 +44,13 @@ import type Interactive from './Interactive';
 import type { Subscription } from '../api/event';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
+import { SubjectApi } from '../api/subject';
 import type {
   ForumSubscriptionScope,
   ForumEntryRecord,
+  ForumSubjectRecord,
+  SubjectAudience,
+  SubjectSurfaceName,
   ForumChange,
   ForumSubscriptionResultEnvelope,
   ForumSubscriptionDeltaEnvelope,
@@ -57,12 +61,19 @@ import type {
 const ForumSubscriptionApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi',
 );
 
+/**
+ * What a scope projects to. Discriminated by the scope's own `kind`, not
+ * by a tag on the record — a `subjects` scope yields subject records and
+ * every other scope yields entry records.
+ */
+type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
+
 /** A live forum subscription's server-side state. */
 interface ForumSubState {
   interactive: Interactive;
   subscriptionId: string;
   scope: ForumSubscriptionScope;
-  lastResult: Map<string, ForumEntryRecord>;
+  lastResult: Map<string, ForumProjectedRecord>;
 }
 
 /** The subscribe request the Api forwards in. */
@@ -106,7 +117,7 @@ export default class ForumSubscriptionRegistry extends Idea {
     }
     const validScope =
       scope &&
-      ((scope.kind === 'index') ||
+      ((scope.kind === 'index' || scope.kind === 'subjects') ||
         ((scope.kind === 'board' || scope.kind === 'thread') && !!scope.id));
     if (!validScope) {
       this.emitError(interactive, subscriptionId, 'parse', 'scope required');
@@ -132,7 +143,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       return;
     }
 
-    let records: ForumEntryRecord[] | null;
+    let records: ForumProjectedRecord[] | null;
     try {
       records = await this.projectScope(canonical, viewer);
     } catch (err) {
@@ -149,7 +160,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       return;
     }
 
-    const lastResult = new Map<string, ForumEntryRecord>();
+    const lastResult = new Map<string, ForumProjectedRecord>();
     for (const r of records) lastResult.set(r.id, r);
     const state: ForumSubState = {
       interactive,
@@ -185,6 +196,10 @@ export default class ForumSubscriptionRegistry extends Idea {
   private async normalizeScope(
     scope: ForumSubscriptionScope,
   ): Promise<ForumSubscriptionScope | null> {
+    if (scope.kind === 'subjects') {
+      // No backing doc — the rail watches the whole visible SUBJECT set.
+      return { kind: 'subjects', id: '' };
+    }
     if (scope.kind === 'index') {
       // No backing doc — the index watches the whole visible board set.
       return { kind: 'index', id: '' };
@@ -242,7 +257,10 @@ export default class ForumSubscriptionRegistry extends Idea {
   private async projectScope(
     scope: ForumSubscriptionScope,
     viewer: Stuff & Sensor,
-  ): Promise<ForumEntryRecord[] | null> {
+  ): Promise<ForumEntryRecord[] | ForumSubjectRecord[] | null> {
+    if (scope.kind === 'subjects') {
+      return this.projectSubjects(viewer);
+    }
     if (scope.kind === 'index') {
       // The forum landing: the boards this viewer can see, each projected
       // as a record whose `id` is the board's flat title handle (so the
@@ -273,6 +291,55 @@ export default class ForumSubscriptionRegistry extends Idea {
     }
     const { posts } = await ForumsApi.readThread(root, 'new');
     return this.projectEntries([root, ...posts]);
+  }
+
+  /**
+   * The subject rail: every Subject this viewer's audience membership
+   * lets them see, with the surfaces it has lit.
+   *
+   * ⭐ A subject is ONE record — identity, audience, and its surfaces —
+   * which is why switching surfaces changes the rendering and not the
+   * room. The client had only ever been given a flat list of BOARDS
+   * (`kind: 'index'`), and a board is one surface of a subject; no
+   * arrangement of that list can express a subject with two.
+   *
+   * ⚠ `openObjections` is counted from `readArgumentLens`, the SAME read
+   * whose `openObjection` flags the per-row projection uses. The rail
+   * badge and the rows it summarises therefore cannot disagree — a
+   * second count computed some other way is exactly how they would.
+   */
+  private async projectSubjects(
+    viewer: Stuff & Sensor,
+  ): Promise<ForumSubjectRecord[]> {
+    const subjects = await SubjectApi.visibleSubjects(viewer);
+    const backing = await SubjectApi.getBackingGroupIds();
+    const out: ForumSubjectRecord[] = [];
+    for (const s of subjects) {
+      const argRef = s.manifestationRef('argument-forum');
+      let openObjections = 0;
+      if (argRef) {
+        const board = await safeFind(() => ForumsApi.getBoard(argRef));
+        if (board) {
+          const nodes = await ForumsApi.readArgumentLens(board);
+          openObjections = nodes.filter((n) => n.openObjection).length;
+        }
+      }
+      out.push({
+        id: s._id ?? '',
+        title: s.getTitle(),
+        grain: s.getGrain(),
+        // Both grains address by `title`: a venue's is flat-global, a
+        // topic's is already the board-scoped `parent/name` string.
+        handle: s.getTitle(),
+        parent: s.getParentSubject(),
+        audience: describeAudience(s.getGroupRef(), backing),
+        surfaces: SURFACE_ORDER.filter((surface) =>
+          s.hasManifestation(surface),
+        ),
+        openObjections,
+      });
+    }
+    return out;
   }
 
   /**
@@ -356,7 +423,9 @@ export default class ForumSubscriptionRegistry extends Idea {
   /* ─── private: dependency index + listener ─── */
 
   private indexAdd(state: ForumSubState): void {
-    if (state.scope.kind === 'index') {
+    // `subjects` and `index` are both whole-set watchers with no backing
+    // doc to key on, so they share the broad bucket.
+    if (state.scope.kind === 'index' || state.scope.kind === 'subjects') {
       this.indexSubs.add(state);
       return;
     }
@@ -370,7 +439,7 @@ export default class ForumSubscriptionRegistry extends Idea {
   }
 
   private indexRemove(state: ForumSubState): void {
-    if (state.scope.kind === 'index') {
+    if (state.scope.kind === 'index' || state.scope.kind === 'subjects') {
       this.indexSubs.delete(state);
       return;
     }
@@ -444,7 +513,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       return;
     }
 
-    let records: ForumEntryRecord[] | null;
+    let records: ForumProjectedRecord[] | null;
     try {
       records = await this.projectScope(state.scope, viewer);
     } catch {
@@ -452,7 +521,7 @@ export default class ForumSubscriptionRegistry extends Idea {
     }
     if (records === null) return;
 
-    const newMap = new Map<string, ForumEntryRecord>();
+    const newMap = new Map<string, ForumProjectedRecord>();
     for (const r of records) newMap.set(r.id, r);
     const changes = diffRecords(state.lastResult, newMap);
     state.lastResult = newMap;
@@ -525,6 +594,42 @@ async function resolveAuthorNames(
 }
 
 /**
+ * Vocabulary order for a subject's lit surfaces — deliberation first,
+ * then chatter, then the live rooms. The rail and the tab bar both read
+ * this, so a subject's surfaces are in the same order everywhere.
+ */
+const SURFACE_ORDER: readonly SubjectSurfaceName[] = [
+  'argument-forum',
+  'popularity-forum',
+  'free-chat',
+  'rules-chat',
+];
+
+/**
+ * Describe a subject's audience for display.
+ *
+ * ⭐ The three cases are genuinely different acts, not three labels: an
+ * OPEN subject binds nothing, a BOUND one consumes a group that already
+ * existed and mints nothing, and a CURATED one had a managed group minted
+ * alongside it. `backing` is the catalogue's own record of which managed
+ * groups it minted, so the curated case is recognised rather than
+ * guessed at from the ref's shape.
+ */
+function describeAudience(
+  groupRef: string,
+  backing: ReadonlySet<string>,
+): SubjectAudience {
+  if (groupRef === '') return { kind: 'open', label: 'open' };
+  const managedId = groupRef.startsWith('managed:')
+    ? groupRef.slice('managed:'.length)
+    : null;
+  if (managedId && backing.has(managedId)) {
+    return { kind: 'curated', label: 'managed group' };
+  }
+  return { kind: 'bound', label: groupRef };
+}
+
+/**
  * Project a board into the shared `ForumEntryRecord` shape for the
  * landing index. The record's `id` is the subject's flat title handle, so
  * the client opens it with `forum <handle>` / `openForumBoard(id)`;
@@ -578,8 +683,8 @@ function resolveCircle(viewer: Stuff & Sensor): Set<string> {
  * by id. Replace fires when a record's projected fields change.
  */
 function diffRecords(
-  oldMap: Map<string, ForumEntryRecord>,
-  newMap: Map<string, ForumEntryRecord>,
+  oldMap: Map<string, ForumProjectedRecord>,
+  newMap: Map<string, ForumProjectedRecord>,
 ): ForumChange[] {
   const changes: ForumChange[] = [];
   for (const [key, rec] of newMap) {
@@ -610,7 +715,52 @@ async function safeFind<T>(fn: () => Promise<T | null>): Promise<T | null> {
   }
 }
 
-function recordsEqual(a: ForumEntryRecord, b: ForumEntryRecord): boolean {
+/** A subject record, told apart from an entry record by its own shape. */
+function isSubjectRecord(r: ForumProjectedRecord): r is ForumSubjectRecord {
+  return Array.isArray((r as ForumSubjectRecord).surfaces);
+}
+
+/**
+ * ⚠⚠ **Dispatch, not a widened field list.**
+ *
+ * The obvious move — leaving this comparing entry fields and letting a
+ * subject record fall through it — reads as working and never fires a
+ * `replace`: every entry field is `undefined` on both sides, so two
+ * different subjects compare equal and the rail freezes at whatever it
+ * showed first. Nothing throws, nothing logs. The comparison has to know
+ * which kind of record it is holding.
+ */
+function recordsEqual(
+  a: ForumProjectedRecord,
+  b: ForumProjectedRecord,
+): boolean {
+  if (isSubjectRecord(a) || isSubjectRecord(b)) {
+    if (!isSubjectRecord(a) || !isSubjectRecord(b)) return false;
+    return subjectRecordsEqual(a, b);
+  }
+  return entryRecordsEqual(a, b);
+}
+
+/** The rail's fields: a surface lighting up or an objection being
+ *  answered both have to move it. */
+function subjectRecordsEqual(
+  a: ForumSubjectRecord,
+  b: ForumSubjectRecord,
+): boolean {
+  return (
+    a.title === b.title &&
+    a.grain === b.grain &&
+    a.handle === b.handle &&
+    a.parent === b.parent &&
+    a.audience.kind === b.audience.kind &&
+    a.audience.label === b.audience.label &&
+    a.openObjections === b.openObjections &&
+    a.surfaces.length === b.surfaces.length &&
+    a.surfaces.every((s, i) => s === b.surfaces[i])
+  );
+}
+
+function entryRecordsEqual(a: ForumEntryRecord, b: ForumEntryRecord): boolean {
   return (
     a.up === b.up &&
     a.down === b.down &&

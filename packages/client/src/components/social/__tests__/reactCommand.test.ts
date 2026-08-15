@@ -12,6 +12,7 @@ import { describe, it, expect } from "vitest";
 import type { EmoteCatalogueEntry } from "@saxonberg/types";
 import {
   composeReactCommand,
+  type ReactCommandInput,
   firstUnfilledRequiredSlot,
   quickRow,
   paletteEntries,
@@ -102,7 +103,7 @@ describe("composeReactCommand", () => {
     // One call feeds both surfaces in the component; here we assert the
     // property that makes that safe — same input, same string — across
     // a table of shapes rather than restating any expected literal.
-    const cases = [
+    const cases: ReactCommandInput[] = [
       { frameId: 1, verb: "nod" },
       { frameId: 2, verb: "nod", remove: true },
       { frameId: 3, verb: "wave", slots: wave.slots, values: { at: "bob" } },

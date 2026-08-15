@@ -11,13 +11,40 @@
  */
 
 import type {
+  ForumEntryRecord,
+  ForumSubjectRecord,
   ForumSubscriptionResultEnvelope,
   ForumSubscriptionDeltaEnvelope,
   ForumSubscriptionErrorEnvelope,
   ForumSubscriptionScope,
 } from "@saxonberg/types";
-import { useStore } from "./index";
+import { useStore, type ForumProjectedRecord } from "./index";
 import { websocketClient } from "../services/websocket";
+
+/**
+ * Narrow a subscription's records to the kind its scope produces.
+ *
+ * ⭐ The store holds ONE `forumRecords` map because two maps could
+ * disagree about which subscription is which. The narrowing happens
+ * here, at the read, by asking the record about its own shape — a cast
+ * would assert the scope's kind rather than check it, and a `subjects`
+ * subscription rendered as entries is a blank board with no error.
+ */
+export function asSubjects(
+  records: readonly ForumProjectedRecord[] | undefined,
+): ForumSubjectRecord[] {
+  return (records ?? []).filter(
+    (r): r is ForumSubjectRecord => "surfaces" in r,
+  );
+}
+
+export function asEntries(
+  records: readonly ForumProjectedRecord[] | undefined,
+): ForumEntryRecord[] {
+  return (records ?? []).filter(
+    (r): r is ForumEntryRecord => !("surfaces" in r),
+  );
+}
 
 let installed = false;
 

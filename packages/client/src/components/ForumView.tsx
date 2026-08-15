@@ -23,6 +23,7 @@ import {
   postForumThread,
   replyForumEntry,
   attachArgumentClaim,
+  asEntries,
   matureArgument,
   openForumThread,
   openForumBoard,
@@ -728,13 +729,23 @@ export function ForumView({
     ? forumRecords[threadSub] ?? EMPTY_RECORDS
     : EMPTY_RECORDS;
 
-  const threads = useMemo(() => sortRecords(boardRecords, sort), [boardRecords, sort]);
-  const root = threadRecords.find((r) => r.id === forumNav.threadId) ?? null;
+  // Narrow at the read: these subscriptions are board/thread scopes, so
+  // their records are entries. `asEntries` checks rather than asserts.
+  const boardEntries = useMemo(() => asEntries(boardRecords), [boardRecords]);
+  const threadEntries = useMemo(
+    () => asEntries(threadRecords),
+    [threadRecords],
+  );
+  const threads = useMemo(
+    () => sortRecords(boardEntries, sort),
+    [boardEntries, sort],
+  );
+  const root = threadEntries.find((r) => r.id === forumNav.threadId) ?? null;
   // The post-tree, grouped by parent for nested rendering; siblings are
   // sorted per level (the chosen ordering applies at every depth).
   const childrenMap = useMemo(
-    () => buildChildren(threadRecords.filter((r) => r.parent !== null)),
-    [threadRecords],
+    () => buildChildren(threadEntries.filter((r) => r.parent !== null)),
+    [threadEntries],
   );
   const topComments = useMemo(
     () => sortRecords(childrenMap.get(root?.id ?? "") ?? [], sort),
@@ -749,7 +760,7 @@ export function ForumView({
   const submitted = () => onCommandPreview(null);
 
   if (!forumNav.boardHandle) {
-    const boards = indexSub ? forumRecords[indexSub] ?? [] : [];
+    const boards = asEntries(indexSub ? forumRecords[indexSub] : undefined);
     return (
       <Wrap>
         <Bar>
@@ -797,10 +808,10 @@ export function ForumView({
   // lens (a single claim-graph from the board scope), NOT the ranked
   // thread-list/post-tree. Additive — the popularity view below is
   // untouched. Detected from the projected records' `organizer`.
-  const argumentMode = boardRecords.some((r) => r.organizer === "argument");
+  const argumentMode = boardEntries.some((r) => r.organizer === "argument");
   if (argumentMode) {
-    const spine = boardRecords.find((r) => r.parent === null) ?? null;
-    const argChildren = buildChildren(boardRecords);
+    const spine = boardEntries.find((r) => r.parent === null) ?? null;
+    const argChildren = buildChildren(boardEntries);
     return (
       <Wrap>
         <Bar>

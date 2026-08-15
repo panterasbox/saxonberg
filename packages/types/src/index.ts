@@ -1528,16 +1528,83 @@ export interface MqlQueryErrorEnvelope {
 
 /**
  * What a forum subscription watches:
+ *   - `subjects` — the Subjects the viewer can see, each with the
+ *     surfaces it lights up; `id` is unused. This is the rail.
  *   - `index` — the set of boards the viewer can see (the forum landing
  *     list); `id` is unused.
  *   - `board` — a board's thread-list; `id` is the board `_id` or its flat
  *     title handle.
  *   - `thread` — a thread's post-tree; `id` is the thread-root entry `_id`.
+ *
+ * ⭐ `subjects` and `index` are not the same question. A board is one
+ * SURFACE of a subject; the rail is a list of subjects, and a subject may
+ * light up as many as four. Watching boards can only ever produce a flat
+ * list of boards, which is the shape the client was stuck in.
  */
 export interface ForumSubscriptionScope {
-  kind: 'index' | 'board' | 'thread';
+  kind: 'subjects' | 'index' | 'board' | 'thread';
   id: string;
 }
+
+/** The audience a subject binds, projected for display. */
+export interface SubjectAudience {
+  /**
+   * `open` — every player. `bound` — an existing group ref the subject
+   * consumes and did not mint. `curated` — a managed group minted
+   * alongside the subject, carrying owner/admin/member roles.
+   */
+  kind: 'open' | 'bound' | 'curated';
+  /** What to show beside the title: the ref, or a word for the kind. */
+  label: string;
+}
+
+/**
+ * One Subject projected for the rail.
+ *
+ * ⭐ **A subject is ONE record: identity + audience + the surfaces it
+ * lights up.** It is not a board — a board is one of the four surfaces a
+ * subject can light. Which is why switching surfaces changes the
+ * rendering and not the room: one audience, one membership, one invite
+ * list, whichever surface you are looking at.
+ */
+export interface ForumSubjectRecord {
+  id: string;
+  title: string;
+  /**
+   * `venue` — board-grain, addressed by a flat-global handle.
+   * `topic` — a promoted thread, addressed by the board-scoped
+   * `parent/name` handle and inheriting the parent's audience.
+   */
+  grain: 'venue' | 'topic';
+  /** How every command addressing this subject names it. */
+  handle: string;
+  /** For a topic-grain subject, its parent subject's id. */
+  parent: string | null;
+  audience: SubjectAudience;
+  /** The surfaces this subject has lit, in vocabulary order. */
+  surfaces: SubjectSurfaceName[];
+  /**
+   * Objections on this subject's argument board that nothing answers.
+   * Zero when there is no argument surface. ⚠ Derived from the SAME
+   * `openObjection` computation the entry projection uses — the badge and
+   * the rows must never be able to disagree.
+   */
+  openObjections: number;
+}
+
+/**
+ * The four surfaces a subject can light up, at most one of each.
+ *
+ * ⚠ `rules-chat` is **parked** server-side, not merely unbuilt in the
+ * client: `chat on --rules` describes itself as deferred. It is in the
+ * vocabulary so the client can show it as unavailable rather than
+ * offering a control that reliably refuses.
+ */
+export type SubjectSurfaceName =
+  | 'popularity-forum'
+  | 'argument-forum'
+  | 'free-chat'
+  | 'rules-chat';
 
 /** One forum entry projected for the client (thread root or post). */
 export interface ForumEntryRecord {
@@ -1600,18 +1667,26 @@ export interface ForumUnsubscribeMessage {
   subscriptionId: string;
 }
 
+/**
+ * ⚠ `records` is discriminated by `scope.kind`, not by a second tag: a
+ * `subjects` subscription carries {@link ForumSubjectRecord}s, every
+ * other scope carries {@link ForumEntryRecord}s. The client already knows
+ * its own scope — it asked for it — so a tag here would be a second copy
+ * of a fact that cannot get out of step.
+ */
 export interface ForumSubscriptionResultEnvelope {
   type: 'forum-subscription-result';
   frameId: number;
   subscriptionId: string;
   scope: ForumSubscriptionScope;
-  records: ForumEntryRecord[];
+  records: (ForumEntryRecord | ForumSubjectRecord)[];
 }
 
 export interface ForumChange {
   op: 'add' | 'replace' | 'remove';
   key: string;
-  fields?: ForumEntryRecord;
+  /** Same discrimination as the result envelope's `records`. */
+  fields?: ForumEntryRecord | ForumSubjectRecord;
 }
 
 export interface ForumSubscriptionDeltaEnvelope {

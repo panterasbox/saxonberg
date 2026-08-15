@@ -240,6 +240,30 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     subject.addManifestation(surface, ref);
     await subject.save();
     this.indexSubject(subject);
+    /*
+     * ⚠ **No event is fired here, and that is deliberate.**
+     *
+     * The obvious move is to fire `ForumEventFired` so the subject-rail
+     * subscriptions wake. Two things rule it out:
+     *
+     *  - `forum_events` is persist-then-fire — no listener may see a
+     *    live event whose durable row has not landed, and
+     *    `ForumSubscriptionRegistry.test.ts` asserts it. A bare fire
+     *    from here breaks that invariant.
+     *  - The forum path ALREADY records one. `ForumsLogic` calls this
+     *    method after creating the Board, and the Board's own
+     *    `board-created` event carries the wake. A fire here would
+     *    double it.
+     *
+     * What is left uncovered is the CHAT path: `chat on` lights a
+     * `free-chat` surface through `ChannelCatalogue`, which records no
+     * forum event, so a rail already on screen does not learn about it
+     * until it is re-opened. Closing that wants a durable `surface-lit`
+     * event kind recorded from `ForumsLogic` (which owns `recordEvent`)
+     * — routing it from here would make `SubjectCatalogue` import
+     * `ForumsApi`, and `ForumsLogic` already imports `SubjectApi`, so
+     * that is a cycle.
+     */
   }
 
   /**

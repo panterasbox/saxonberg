@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 import { useStore } from "../index";
+import { asEntries } from "../forumActions";
 import type { ForumEntryRecord } from "@saxonberg/types";
 
 function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord {
@@ -53,7 +54,7 @@ describe("forum store slice", () => {
       { op: "replace", key: "e1", fields: rec("e1", { score: 5, up: 5 }) },
       { op: "add", key: "e2", fields: rec("e2") },
     ]);
-    const recs = useStore.getState().forumRecords["s1"]!;
+    const recs = asEntries(useStore.getState().forumRecords["s1"]);
     expect(recs).toHaveLength(2);
     expect(recs.find((r) => r.id === "e1")!.score).toBe(5);
 
@@ -100,7 +101,7 @@ describe("forum store slice", () => {
       displayScore: null,
     });
     s.applyForumResult("a1", { kind: "board", id: "b1" }, [con]);
-    const first = useStore.getState().forumRecords["a1"]![0]!;
+    const first = asEntries(useStore.getState().forumRecords["a1"])[0]!;
     expect(first.organizer).toBe("argument");
     expect(first.relation).toBe("objects-to");
     expect(first.openObjection).toBe(true);
@@ -119,7 +120,9 @@ describe("forum store slice", () => {
         }),
       },
     ]);
-    expect(useStore.getState().forumRecords["a1"]![0]!.openObjection).toBe(false);
+    expect(
+      asEntries(useStore.getState().forumRecords["a1"])[0]!.openObjection,
+    ).toBe(false);
   });
 
   it("clearForumSubscription drops the cache", () => {

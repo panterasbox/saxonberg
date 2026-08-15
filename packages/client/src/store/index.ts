@@ -39,7 +39,15 @@ import type {
   TopicDescriptor,
   WikiPageFrame,
   EmoteCatalogueEntry,
+  ForumSubjectRecord,
 } from "@saxonberg/types";
+
+/**
+ * What a forum subscription's records are, discriminated by its scope.
+ * Kept as one union so the store holds ONE map rather than two that
+ * could disagree about which subscription is which.
+ */
+export type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
 import { createPaneFeedSlice, type PaneFeedSlice } from "./paneFeedSlice";
@@ -530,13 +538,19 @@ interface StoreState
    * (live changes). Mirrors the MQL feed-registry pattern but for forum
    * Documents. See `store/forumActions.ts`.
    */
-  forumRecords: Record<string, ForumEntryRecord[]>;
-  /** The scope each subscription watches (board/thread + id). */
+  forumRecords: Record<string, ForumProjectedRecord[]>;
+  /**
+   * The scope each subscription watches. ⭐ It is also the DISCRIMINANT
+   * for that subscription's records: a `subjects` scope holds
+   * `ForumSubjectRecord`s, every other scope holds `ForumEntryRecord`s.
+   * Readers narrow with `forumSubjects` / `forumEntries` rather than
+   * casting at each call site.
+   */
   forumScopes: Record<string, ForumSubscriptionScope>;
   applyForumResult: (
     subscriptionId: string,
     scope: ForumSubscriptionScope,
-    records: ForumEntryRecord[],
+    records: ForumProjectedRecord[],
   ) => void;
   applyForumDelta: (subscriptionId: string, changes: ForumChange[]) => void;
   clearForumSubscription: (subscriptionId: string) => void;
