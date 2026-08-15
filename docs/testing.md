@@ -13,6 +13,42 @@ a 15-minute suite to rediscover a decision already made and measured.
 
 Process lives in [workflow.md](./workflow.md); this is the cost model.
 
+## ⭐⭐ A green suite means self-consistent, not working
+
+Wave 6 shipped four defects that the whole suite was green over. Three
+share one shape: **a test compared the client's output to the client's
+own assumption.**
+
+- A reaction command carried a `;` sigil that the *parser* splits on, so
+  reacting from the GUI had never worked. Every test asserted the
+  composed string against the string the test expected — never against
+  the thing that reads it.
+- The inbound WS handler kept a second literal copy of a scope
+  vocabulary and dropped the new kind **silently**. The rail rendered its
+  honest empty state over data that existed. ⭐ *An honest empty state is
+  indistinguishable from a dropped message.*
+- Mongo returns an explicit `null` for an omitted optional field; every
+  fixture had used `undefined`. The test data was not the shape the
+  database holds.
+
+Three checks follow from this, and they are cheap:
+
+1. **Assert a composed command against the parser**, not against a
+   literal. If the surface builds a command string, something in the
+   suite should hand that string to the thing that executes it.
+2. **Derive a shared vocabulary; never list it twice.** When a check is
+   a hardcoded list of a type's members, the test to write is *"every
+   member the type declares is admitted"*, not *"these four are"*.
+3. **Fixture the shape storage yields**, not the shape the declaration
+   suggests. An optional field that round-trips through Mongo comes back
+   `null`.
+
+None of this replaces driving. It narrows what driving has to catch.
+
+⚠ This sits beside the Wave 4 lesson, and they compose: **a component
+test proves rendering, never wiring; a client-side test proves neither
+the wire nor the parser.**
+
 ## How often to run it
 
 A build cycle was running the full suite three or four times — about an

@@ -976,6 +976,39 @@ by*). Four hatches on one page reads as a broken page.
 `reserved`. `argument-forum` shipped in forums cycle 2. Only `rules-chat`
 is parked.
 
+### ⭐⭐ 7.17 What the LIVE DRIVE found that the suite could not
+
+Four defects, none visible to any test, all found by driving the built
+client. Three share one shape: **a test compared the client's output to
+the client's own assumption.**
+
+1. ⚠⚠ **Reacting from the GUI had never worked.** The composed command
+   carried a `;` sigil (`react --msg 22 ;wave`). `;` marks an emote only
+   at the START of a line; mid-line it separates statements, so the
+   server saw `react --msg 22` — an arity failure — followed by `wave`.
+   The SHIPPED `ReactionBar` had composed exactly that for every chip.
+   **The most-used interaction in the product, broken, with a green
+   suite**, because every test asserted the client's string against
+   itself and never against the parser.
+2. ⚠⚠ **The subject rail was silently unsubscribed.** The inbound WS
+   handler kept its own literal list of scope kinds and returned
+   silently on the new one. The rail rendered *"No subjects you can see
+   yet"* over four subjects that existed. ⭐ **An honest empty state is
+   indistinguishable from a dropped message** — which is what lets this
+   class of bug survive.
+3. ⚠ **Glyph-less emotes drew empty grid cells.** Mongo returns an
+   explicit `null` for an omitted optional field; every fixture had used
+   `undefined`. The test data was not the shape the database holds.
+4. ⚠ **`Avatar.enter` began resolving a template**, breaking a
+   deliberate "enter is pure ceremony" assertion — caught by the suite,
+   unlike the other three.
+
+⭐ The generalisation worth keeping: **a green suite tells you the
+client is self-consistent, not that it works.** Wave 4 learned that a
+component test proves rendering and never wiring; this wave adds that a
+client-side test proves neither the WIRE nor the PARSER. The only thing
+that found any of these was opening the app and using it.
+
 **Open, and deliberately so:** the coalesced *"7 people reacted to what
 you said"* line. Where a client-composed sentence lives without
 impersonating server prose or reviving the notification surface Wave 1C
