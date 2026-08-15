@@ -143,9 +143,29 @@ describe('SoulCatalogue.snapshot', () => {
   it('omits emoji entirely for a glyph-less emote', async () => {
     seed(cat, [emote('sigh')]);
     const [sigh] = await SoulApi.snapshot();
-    // Present-but-undefined and absent read the same on the wire, but
-    // the client filters on `emoji !== undefined` to keep glyph-less
-    // emotes out of the grid, so this is the field that matters.
     expect(sigh!.emoji).toBeUndefined();
   });
+
+  it.each([null, ''])(
+    '⚠ treats a %p emoji as absent — the shapes storage actually yields',
+    async (stored) => {
+      /*
+       * Found by DRIVING, not by a unit test. `emoji` is declared
+       * `emoji?: string` and the seed YAML omits it for a glyph-less
+       * emote — but the round trip through Mongo brings the field back
+       * as an explicit `null`, so a projection checking `!== undefined`
+       * passed it straight through. The picker, filtering on presence,
+       * drew a grid cell with a verb and no glyph: eight of them, live.
+       *
+       * Every fixture in this file had used `undefined`, which is not
+       * what the database holds — which is exactly why the unit tests
+       * were green over it. Both falsy shapes are pinned here.
+       */
+      const blink = emote('blink');
+      (blink as unknown as { emoji: string | null }).emoji = stored;
+      seed(cat, [blink]);
+      const [projected] = await SoulApi.snapshot();
+      expect(projected!.emoji).toBeUndefined();
+    },
+  );
 });

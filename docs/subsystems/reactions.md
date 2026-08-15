@@ -281,8 +281,25 @@ command rather than shifting a later value into an earlier slot.
 **One `composeReactCommand`** feeds the preview and the send, and
 `reactCommand.test.ts` asserts their *equality* rather than writing the
 expected string twice. The selector is always explicit `--msg <gutter#>`:
-`re ;nod` is a real command but means *the most recent act in view*,
-which is not what a picker opened on message 112 does.
+the selector-less form means *the most recent act in view*, which is not
+what a picker opened on message 112 does.
+
+⚠⚠ **The verb goes in BARE — `react --msg 22 nod`, never `;nod`.** `;`
+marks an emote only at the START of a line (`msh.detectEmotePrefix`
+checks the first character); mid-line it separates statements. So
+`react --msg 22 ;wave` parsed as `react --msg 22` — an arity failure,
+because `expression` is required — followed by `wave`, and produced:
+
+```
+That doesn't match any known command shape: react.
+I don't understand 'wave'.
+```
+
+**The shipped client had composed exactly that for every chip and every
+quick-react, so reacting from the GUI had never worked.** It was found by
+driving; no test could see it, because every test asserted the client's
+own string against itself. The verb's help already said the expression is
+"any ordinary emote, exactly as you'd type it bare".
 
 **Touch.** Desktop hides the bare `+` until row hover; a phone has no
 hover and a permanent `+` on every frame is the vertical spend the inline

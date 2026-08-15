@@ -9,7 +9,7 @@
  * literal twice. Two copies of one sentence is exactly how a second
  * renderer starts lying while every per-surface test still passes.
  *
- * The selector is always explicit. `re ;nod` is a real command, but it
+ * The selector is always explicit. `re nod` is a real command, but it
  * means *the most recent act in view* — which is not what a picker
  * opened on message 112 does, and would silently retarget between the
  * hover and the click if anything else arrived in between.
@@ -43,7 +43,7 @@ export interface ReactCommandInput {
  * ⚠ **A blank slot is skipped, not sent empty — but only a `stuff` one.**
  * The binder tries one token per slot and *skips on mismatch* for a
  * `stuff` slot that will not resolve, so omitting `<at>` and supplying
- * `<manner>` still binds correctly (`;wave happily` → the free text
+ * `<manner>` still binds correctly (`wave happily` → the free text
  * fails to resolve as a target, the binder moves on, `manner` takes it).
  * A `free` slot accepts anything, so the same omission there would bind
  * the later value into the earlier slot instead — the command stops at
@@ -61,7 +61,29 @@ export function composeReactCommand(input: ReactCommandInput): string {
     }
     parts.push(raw);
   }
-  const expression = [`;${verb}`, ...parts].join(" ");
+  /*
+   * ⚠⚠ **The verb goes in BARE — no `;` sigil.**
+   *
+   * `;` marks an emote only at the START of a line (`msh`'s
+   * `detectEmotePrefix` checks the first character). Mid-line it is a
+   * statement separator, so `react --msg 22 ;wave` parses as TWO
+   * commands: `react --msg 22`, which fails arity because `expression`
+   * is required, and `wave`. Live, that produced
+   *
+   *     That doesn't match any known command shape: react.
+   *     I don't understand 'wave'.
+   *
+   * ⚠ This is inherited, not introduced: the shipped `ReactionBar`
+   * composed `react … ;${verb}` for every chip and every quick-react, so
+   * the most-used interaction in the product had never worked. Found by
+   * driving; no test could see it, because every test asserted the
+   * client's own string against itself.
+   *
+   * `react --msg 22 nod` is the form that works, and the verb's own help
+   * already says the expression is "any ordinary emote, exactly as you'd
+   * type it bare".
+   */
+  const expression = [verb, ...parts].join(" ");
   return `react ${remove ? "--remove " : ""}--msg ${frameId} ${expression}`;
 }
 
@@ -99,9 +121,11 @@ export function quickRow(
   recentVerbs: readonly string[],
   limit = 6,
 ): EmoteCatalogueEntry[] {
-  const emojiBearing = [...catalogue.values()].filter(
-    (e) => e.emoji !== undefined,
-  );
+  // ⚠ Truthiness, not `!== undefined`. A glyph-less emote comes back
+  // from Mongo as an explicit `null`, so a presence check passes and the
+  // grid draws a verb with no glyph — eight of them, found live. The
+  // projection strips it server-side too; this is the second belt.
+  const emojiBearing = [...catalogue.values()].filter((e) => e.emoji);
   const rank = new Map(recentVerbs.map((v, i) => [v, i]));
   emojiBearing.sort((a, b) => {
     const ra = rank.get(a.verb) ?? Number.MAX_SAFE_INTEGER;
@@ -117,6 +141,6 @@ export function paletteEntries(
   catalogue: ReadonlyMap<string, EmoteCatalogueEntry>,
 ): EmoteCatalogueEntry[] {
   return [...catalogue.values()]
-    .filter((e) => e.emoji !== undefined)
+    .filter((e) => e.emoji)
     .sort((a, b) => a.verb.localeCompare(b.verb));
 }

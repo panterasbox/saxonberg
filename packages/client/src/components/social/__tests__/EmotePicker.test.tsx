@@ -145,7 +145,7 @@ describe("slots", () => {
       />,
     );
     fireEvent.click(document.querySelector('[data-emote="nod"]')!);
-    expect(onClick).toHaveBeenCalledWith("react --msg 1 ;nod");
+    expect(onClick).toHaveBeenCalledWith("react --msg 1 nod");
     // …and it never opens a slot row it has no slots for.
     expect(screen.queryByTestId("emote-slots")).toBeNull();
   });
@@ -211,6 +211,6 @@ describe("the command line", () => {
       />,
     );
     fireEvent.click(document.querySelector('[data-emote="nod"]')!);
-    expect(onClick).toHaveBeenCalledWith("react --remove --msg 4 ;nod");
+    expect(onClick).toHaveBeenCalledWith("react --remove --msg 4 nod");
   });
 });

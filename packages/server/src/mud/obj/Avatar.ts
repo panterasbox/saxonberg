@@ -57,6 +57,7 @@ import type { AccountSubjects } from "../lib/standing/AccountScoped";
 import type { MortalArc } from "../lib/mortality/MortalArc";
 import type {
   ConnectionEstablishedPayload,
+  EmoteCatalogueEntry,
   EnvelopeTemplate,
   MessageFrame,
   RoutingRule,
@@ -120,6 +121,31 @@ function forwardingTargets(body: Avatar): Iterable<Interactive> {
  * A module-private function rather than a method: it is a policy the
  * descriptors share, not behaviour the Avatar offers.
  */
+/**
+ * The emote catalogue for the welcome payload, or an empty list.
+ *
+ * ⚠ **Fails soft, like the `topicCatalogue` line beside it.** A world
+ * that has not registered the SoulCatalogue singleton — which is every
+ * test that does not need one — must still let a player in. The palette
+ * is a convenience; logging in is not, and the client's honest state for
+ * an empty catalogue is already "offer no picker" rather than a guess.
+ *
+ * `SoulApi.snapshot` already answers `[]` for an absent catalogue rather
+ * than minting one (`enter` is pure ceremony and resolves no templates).
+ * This catch is the second belt, for a catalogue that is present but
+ * throws.
+ *
+ * A module-private function rather than a method: it is a resilience
+ * policy of the connect path, not behaviour the Avatar offers.
+ */
+async function emoteCatalogueOrEmpty(): Promise<EmoteCatalogueEntry[]> {
+  try {
+    return await SoulApi.snapshot();
+  } catch {
+    return [];
+  }
+}
+
 function standingSubject(stuff: Stuff, viewer: Stuff): string | undefined {
   if (viewer?.stuffId !== stuff.stuffId) return undefined;
   return stuff.getTemplatePath() ?? undefined;
@@ -873,11 +899,21 @@ export default class Avatar extends AvatarBase {
         isGuest: this.getIsGuest(),
       },
       topicCatalogue: catalogue?.getSnapshot() ?? [],
-      // The emote picker's palette, cached for the session on exactly
-      // the terms `topicCatalogue` is: authored, global, and edits land
-      // at next login. The client had been holding a hardcoded six-emoji
-      // array in its place.
-      emoteCatalogue: await SoulApi.snapshot(),
+      /*
+       * The emote picker's palette, cached for the session on exactly
+       * the terms `topicCatalogue` is: authored, global, and edits land
+       * at next login. The client had been holding a hardcoded six-emoji
+       * array in its place.
+       *
+       * ⚠ **Fails SOFT, like the `topicCatalogue` line above it.** The
+       * palette is a nicety; logging in is not. A world booted without
+       * the catalogue singleton — which is every test that does not
+       * register one — must still let a player in, and the client's
+       * honest state for an empty palette is already "offer no picker".
+       * Throwing here would turn a missing convenience into a failed
+       * login.
+       */
+      emoteCatalogue: await emoteCatalogueOrEmpty(),
       // Which topics are reactable, so the client stops keeping its own
       // copy of the answer. Its copy had already drifted — `act.combat`
       // is reactable and was never offered.

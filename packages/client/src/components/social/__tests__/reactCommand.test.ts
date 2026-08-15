@@ -48,16 +48,25 @@ const point: EmoteCatalogueEntry = {
 describe("composeReactCommand", () => {
   it("uses the explicit --msg selector, never the implicit form", () => {
     const cmd = composeReactCommand({ frameId: 112, verb: "nod" });
-    expect(cmd).toBe("react --msg 112 ;nod");
-    // The bare `re ;nod` form means "the most recent act in view", which
+    expect(cmd).toBe("react --msg 112 nod");
+    // The selector-less form means "the most recent act in view", which
     // is not what a picker opened on 112 does.
     expect(cmd).not.toMatch(/^re\s/);
+    /*
+     * ⚠⚠ And NO `;` sigil. It marks an emote only at the start of a
+     * line; mid-line it separates statements, so `react --msg 112 ;nod`
+     * parsed as `react --msg 112` (arity failure) plus `nod`. The
+     * shipped client composed exactly that for every chip, so reacting
+     * had never worked — found by driving, invisible to any test that
+     * asserted the client's string against itself.
+     */
+    expect(cmd).not.toContain(";");
   });
 
   it("marks an un-react with --remove", () => {
     expect(
       composeReactCommand({ frameId: 5, verb: "nod", remove: true }),
-    ).toBe("react --remove --msg 5 ;nod");
+    ).toBe("react --remove --msg 5 nod");
   });
 
   it("appends slot values positionally, in declaration order", () => {
@@ -68,11 +77,11 @@ describe("composeReactCommand", () => {
         slots: wave.slots,
         values: { at: "bob", manner: "happily" },
       }),
-    ).toBe("react --msg 113 ;wave bob happily");
+    ).toBe("react --msg 113 wave bob happily");
   });
 
   it("skips a blank stuff slot — the binder skips on mismatch", () => {
-    // `;wave happily` still binds: the free text fails to resolve as a
+    // `wave happily` still binds: the free text fails to resolve as a
     // target, the binder moves on, and `manner` takes it.
     expect(
       composeReactCommand({
@@ -81,7 +90,7 @@ describe("composeReactCommand", () => {
         slots: wave.slots,
         values: { manner: "happily" },
       }),
-    ).toBe("react --msg 113 ;wave happily");
+    ).toBe("react --msg 113 wave happily");
   });
 
   it("stops at a blank free slot rather than shifting a later value", () => {
@@ -96,7 +105,7 @@ describe("composeReactCommand", () => {
         slots,
         values: { extra: "loudly" },
       }),
-    ).toBe("react --msg 9 ;mutter");
+    ).toBe("react --msg 9 mutter");
   });
 
   it("⭐⭐ previews exactly what it sends", () => {

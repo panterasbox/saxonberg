@@ -142,7 +142,24 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const emotes = await this.all();
     return emotes.map((e) => ({
       verb: e.verb,
-      ...(e.emoji !== undefined ? { emoji: e.emoji } : {}),
+      /*
+       * ⚠ **A glyph-less emote stores `null`, not `undefined`.** The
+       * field is declared `emoji?: string` and the seed YAML simply
+       * omits it — but the round trip through Mongo brings it back as an
+       * explicit `null`, so a `!== undefined` check passes and ships
+       * `emoji: null` to the client. The picker, filtering on presence,
+       * then drew a grid cell with a verb and no glyph: eight of them,
+       * live.
+       *
+       * That is not cosmetic. The reaction registry is **glyph-gated** —
+       * a glyph-less react is never tallied and never becomes a chip —
+       * so a cell for one promises a chip that cannot appear.
+       *
+       * ⚠⚠ Found by DRIVING, and only by driving: every unit fixture
+       * here had used `undefined`, which is not the shape the database
+       * holds. A truthiness check covers all three.
+       */
+      ...(e.emoji ? { emoji: e.emoji } : {}),
       aliases: [...e.aliases],
       tags: [...e.tags],
       slots: Object.entries(e.grammar.slots).map(([name, spec]) => ({
