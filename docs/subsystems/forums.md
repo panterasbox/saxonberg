@@ -750,13 +750,29 @@ composer over a claim graph. The shell knows which surface it opened, so
 it passes `organizer` explicitly; the row-derived guess survives only as
 the fallback for the standalone path.
 
-⭐ **The chat surface is a TERMINAL.** It stood in with
-`ForumChatSidecar`, a fixed-width rail built to sit *beside* the forum,
-whose input needed a "Talk here" click to put the global command bar
-into a `chat <handle>` prefix. If you are looking at a subject's chat,
-what you type goes to that chat — the scoping is implied by where you
-are. `ChatSurface` owns its own composer, filters the one shared frame
-buffer by `channelName`, and still states its verb.
+⭐⭐ **The chat surface is a terminal, and the scoping is the INPUT MODE
+— not a second input.** Three shapes were tried and the differences are
+the lesson:
+
+1. `ForumChatSidecar` — a rail whose input needed a **"Talk here"** click
+   to set the prefix. One click too many: being on a subject's chat
+   already says where your typing goes.
+2. Its own composer — removed the click, and put **two command bars on
+   one screen**, with the channel name retyped into every message.
+3. ⭐ Entering the surface sets the forum command line's
+   server-authoritative prefix (`cockpit cli --prefix "chat <handle>"`,
+   per-bar on `cockpit.inputModes`); leaving clears it. **One bar, no
+   retyping, and the prefix is visible in it.**
+
+⚠ The prefix is real server state, which is why the surface SENDS a
+command to enter rather than setting a local flag — the client owns zero
+command semantics, including this one. The effect is guarded on the
+CURRENT prefix: the send updates `cockpit.inputModes`, which re-renders
+the surface, which would send again.
+
+⚠ And the surface says what the command line is carrying. A prefixed
+command line that does not announce its prefix silently rewrites what
+you type.
 
 ⚠⚠ **`chat`, not `chan`.** The reference mock draws `chan <handle>
 <msg>` and the first cut composed exactly that; the server answered *"I

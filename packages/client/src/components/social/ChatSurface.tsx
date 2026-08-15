@@ -1,18 +1,28 @@
 /**
  * ChatSurface — a subject's chat, as a terminal.
  *
- * ⭐⭐ **A chat surface IS a terminal scoped to a channel.** It was
- * standing in with `ForumChatSidecar`, a fixed-width RAIL built to sit
- * *beside* the forum, whose input required clicking "Talk here" to put
- * the global command bar into a `chat <handle>` prefix. That is one
- * click too many and one concept too many: if you are looking at a
- * subject's chat, the thing you type goes to that chat. The scoping is
- * implied by where you are.
+ * ⭐⭐ **A chat surface IS a terminal scoped to a channel**, and the
+ * scoping is the INPUT MODE, not a second input.
  *
- * So this owns its own input and sends `chan <handle> <msg>` directly.
- * ⚠ It still STATES the command it sends — the axiom does not bend for
- * a surface that happens to feel like a chat box, and a player who
- * learns `chan` here can use it anywhere.
+ * This went through two wrong shapes first, and the difference is worth
+ * keeping. It stood in with `ForumChatSidecar`, whose input needed a
+ * "Talk here" click to set the mode — one click too many, since being on
+ * a subject's chat already says where your typing goes. The fix was then
+ * to give the surface its own composer, which removed the click and
+ * introduced two command bars on one screen, with the channel name
+ * retyped into every message.
+ *
+ * ⭐ Both are solved by the mechanism that already existed: entering the
+ * surface sets the forum command line's server-authoritative prefix
+ * (`cockpit cli --prefix "chat <handle>"`), and leaving clears it. **One
+ * bar, no retyping, and the prefix is visible in it** — so the player
+ * can see they are speaking to `#Gossip` and can still type any other
+ * command by clearing.
+ *
+ * ⚠ The prefix is real server state (`cockpit.inputModes`, per bar), not
+ * a client convenience. That is why the surface SENDS a command to enter
+ * rather than setting a local flag: the client owns zero command
+ * semantics, including this one.
  *
  * ⭐ The log is a client-side filter over the one shared frame buffer,
  * not a second store. Chat frames carry `channelName`; that is the whole
@@ -77,42 +87,30 @@ const Boundary = styled.div`
   margin-bottom: ${tokens.space.xs};
 `;
 
-const Composer = styled.form`
+/**
+ * Where your typing goes. ⚠ Not a control — the command bar below is the
+ * input. This states the prefix that bar is carrying, because a prefixed
+ * command line that does not say so is a command line that silently
+ * rewrites what you type.
+ */
+const Scope = styled.div`
   display: flex;
   align-items: center;
   gap: ${tokens.space.sm};
   padding: ${tokens.space.sm} ${tokens.space.lg};
   border-top: 1px solid ${tokens.color.border};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
 `;
 
 const Prefix = styled.span`
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.small};
   color: ${tokens.color.accent};
   flex: none;
 `;
 
-const Input = styled.input`
-  flex: 1;
-  min-width: 0;
-  font: inherit;
-  color: ${tokens.color.fg};
-  background: ${tokens.color.surfaceSunken};
-  border: 1px solid ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.sm};
-  padding: ${tokens.space.xs} ${tokens.space.sm};
-  &:focus {
-    outline: none;
-    border-color: ${tokens.color.accent};
-  }
-`;
-
-const Sends = styled.div`
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.small};
-  color: ${tokens.color.fgMuted};
-  padding: 0 ${tokens.space.lg} ${tokens.space.sm};
-`;
+/** The forum layout's command bar id — must match `ForumLayout`. */
+export const FORUM_BAR_ID = "forum";
 
 export interface ChatSurfaceProps {
   /** The subject's handle — the channel this surface speaks to. */
@@ -122,18 +120,17 @@ export interface ChatSurfaceProps {
 }
 
 /**
- * The command a message sends. Exported so the preview, the "sends as"
- * line and the submit are provably one string.
+ * The prefix this surface puts on the forum command line.
  *
  * ⚠⚠ The verb is `chat`, not `chan`. The reference mock writes
- * `chan measure-14 <msg>` and this shipped composing exactly that, which
- * the server answered with *"I don't understand 'chan'."* — the same
- * mistake as the reaction sigil, and from the same cause: the command
- * form was copied from a MOCK rather than read off the verb spec.
- * `cmd/social/chat.yaml` declares `verbs: [chat]`.
+ * `chan measure-14 <msg>` and an earlier cut composed exactly that,
+ * which the server answered with *"I don't understand 'chan'."* — the
+ * same mistake as the reaction sigil, and from the same cause: the
+ * command form was copied from a MOCK rather than read off the verb
+ * spec. `cmd/social/chat.yaml` declares `verbs: [chat]`.
  */
-export function chatCommand(handle: string, message: string): string {
-  return `chat ${handle} ${message}`;
+export function chatPrefix(handle: string): string {
+  return `chat ${handle}`;
 }
 
 /** The channel's own slice of the shared frame buffer. */
@@ -151,10 +148,16 @@ export const ChatSurface: React.FC<ChatSurfaceProps> = ({
   onCommandPreview,
 }) => {
   const frames = useStore((s) => s.frames);
-  const [draft, setDraft] = React.useState("");
+  const activePrefix = useStore((s) => {
+    const modes = s.clientState["cockpit.inputModes"] as
+      | Record<string, string>
+      | undefined;
+    return modes?.[FORUM_BAR_ID] ?? "";
+  });
   const logRef = React.useRef<HTMLDivElement>(null);
 
   const lines = React.useMemo(() => chatLines(frames, handle), [frames, handle]);
+  const wanted = chatPrefix(handle);
 
   React.useEffect(() => {
     if (logRef.current) {
@@ -162,13 +165,26 @@ export const ChatSurface: React.FC<ChatSurfaceProps> = ({
     }
   }, [lines.length]);
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = draft.trim();
-    if (text === "") return;
-    onSendCommand(chatCommand(handle, text));
-    setDraft("");
-  };
+  /*
+   * ⭐ Entering the surface scopes the command line; leaving unscopes it.
+   *
+   * ⚠ Guarded on the CURRENT prefix, not fired blindly: the send updates
+   * `cockpit.inputModes`, which re-renders this component, which would
+   * send again. The guard is what makes an effect that writes
+   * server state safe to hang off render.
+   */
+  React.useEffect(() => {
+    if (activePrefix !== wanted) {
+      onSendCommand(`cockpit cli --prefix "${wanted}"`, FORUM_BAR_ID);
+    }
+    return () => {
+      // Leaving the surface — another tab, another subject, another
+      // mode. A prefix that outlived the screen that set it would
+      // silently rewrite the next thing typed.
+      onSendCommand("cockpit cli --clear", FORUM_BAR_ID);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted]);
 
   return (
     <Wrap data-testid="chat-surface">
@@ -200,24 +216,19 @@ export const ChatSurface: React.FC<ChatSurfaceProps> = ({
         ))}
       </Log>
 
-      <Composer onSubmit={submit}>
-        <Prefix>#{handle}›</Prefix>
-        <Input
-          data-testid="chat-composer"
-          placeholder="say something…"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onFocus={() => onCommandPreview(chatCommand(handle, "<msg>"))}
-          onBlur={() => onCommandPreview(null)}
-        />
-      </Composer>
       {/*
-        ⭐ The surface names its own verb. It would be easy to argue a
-        chat box is the one place the command line may go quiet — it is
-        the opposite: this is where a player most often types, so it is
-        where `chan` is most cheaply learned.
+        ⭐ The command bar below IS the input. This says what it is
+        carrying — a prefixed command line that does not announce its
+        prefix silently rewrites what you type, and the whole point of
+        the prefix is that you stop retyping the channel.
       */}
-      <Sends>sends as {chatCommand(handle, "<msg>")}</Sends>
+      <Scope data-testid="chat-scope">
+        <Prefix>#{handle}›</Prefix>
+        <span>
+          the command line is prefixed <code>{wanted}</code> — type a
+          message, or clear it with <code>cockpit cli --clear</code>
+        </span>
+      </Scope>
     </Wrap>
   );
 };
