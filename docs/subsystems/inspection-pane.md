@@ -268,6 +268,108 @@ lets the next drain apply it, so a dismissal is released down the same
 reasoned path as every other release. A second teardown path is how a
 pane ends up vanishing without its reason.
 
+## ⭐⭐ The column is a FEED, and the focus pane is one slot in it
+
+The right column stopped being one pane. It is now a **feed of cards,
+newest → oldest**, with the focus pane pinned at the bottom under an
+`IN FOCUS` label.
+
+```
+PANES  newest → oldest                    1 pinned
+┌──────────────────────────────────────────────┐
+│ PLACE  the lounge          held · you are here ⚲│
+│ Exitable · Detailed · Visible  +9               │
+│ WAYS OUT   [go north]                           │
+│ HERE       a Teleport Authority terminal …      │
+└──────────────────────────────────────────────┘
+IN FOCUS
+┌──────────────────────────────────────────────┐
+│ hall                                            │
+│ the lounge                          [Refresh]   │
+│ …                                               │
+└──────────────────────────────────────────────┘
+```
+
+⚠ **The direction note is not decoration.** The terminal runs
+oldest → newest and this runs the other way; a reader who is not told
+reads a card appearing at the top as a bug.
+
+⚠ **`IN FOCUS` is load-bearing too.** The focus pane used to be the
+whole column, so nothing had to name it. Under a stack of cards its
+breadcrumb renders as a bare orphan word above an unlabelled box —
+found by driving, a room called *Terminus Terminal, the station hall*
+put a lone `hall` between the PLACE card and the pane, attached to
+nothing.
+
+### The four card bodies
+
+Every kind wears the **same skeleton** — `KIND` (mono, dim) · **name**
+(serif) · the hold reason, right-aligned · the pin — and differs only
+in its body. That is what keeps a mixture of kinds reading as one feed
+rather than five widgets that happen to be stacked.
+
+| Kind | Body |
+|---|---|
+| `FORM` | the question in serif, replies as command buttons, a primary action |
+| `AGENT` | mixin chips with an overflow count, measured label/value rows, action buttons |
+| `INSTRUMENT` | mixin chips, one large reading with a unit, a gauge bar, a provenance caption |
+| `PLACE` | mixin chips, `WAYS OUT` as exit buttons, `HERE` as a contents list |
+
+⚠ **The header states WHY, never how long.** *"held · owes a reply"*,
+*"held · you are here"*, *"stale · you left"*. A pane's lifetime is a
+fact about the world — is that person still here — and a duration in
+the same slot would invite the reader to believe recency had something
+to do with it. It does not.
+
+⚠ **The chip row truncates with a count** (`+9`), and it **demotes
+plumbing rather than removing it**. Found by driving: the row led with
+`PostRegistrationMixin` and `ExitableMixin`, which teaches the wrong
+half of the composition. `Mixin` is stripped from the label and
+framework mixins sort last — but they still appear, because the row is
+a teaching surface and a hidden mixin is a lie about what the object
+is.
+
+### ⚠⚠ A husk keeps its name; it does not keep its body
+
+On release the card fades, states its reason, and **clears its
+records** — rendering yesterday's contents as if they were current is
+the failure the fade exists to avoid. The subject's *name* is kept
+(`lastTitle`), because that is not contents, it is which card this is.
+Without it a husk read `PLACE where you are · stale · you left`, which
+names nothing at all.
+
+### ⚠⚠ `place` is standing, so a lapse re-opens it
+
+`place` is held by `here`, so walking out releases it — correctly. But
+it is opened once, on mount, so without a re-open **one movement costs
+the player the place card for the rest of the session** and the mode's
+arrangement silently degrades to nothing. `usePaneFeed` opens the next
+one for the room you arrived in.
+
+⚠ A **subject** pane (`agent` / `instrument` / `manifest`) deliberately
+does not come back. It is about one thing, and re-opening it after that
+thing went out of reach would be a card asserting a condition the world
+just denied.
+
+### ⚠⚠ The wiring lives at the LAYOUT, not at this column
+
+`usePaneFeed()` — which opens the `place` subscription and registers all
+three subscription handlers — is called in `WorldLayout`, the one
+component that renders at both form factors. It used to be called
+inside `PaneFeed`, which is the desktop right column: on a phone
+**nothing ever wired the store**, so panes the server pushed for a saved
+arrangement were dropped on the floor and a card the radial opened
+stayed empty forever. Every mobile unit test passed throughout, because
+they render a card with a hand-built state and never touch the wiring.
+
+### On a phone the cards come INLINE
+
+Interleave what is causally related, switch what is independent. A pane
+is caused by what you just did, so on a phone it renders **in the feed,
+in causal position** — not a second column, not a drawer. Pinned cards
+keep a chip row above the command bar, because a phone cannot hold a
+card permanently beside the feed.
+
 ## Focus-change signaling
 
 `FocusedMixin.setFocus(fragment)` and `clearFocus()` both fire

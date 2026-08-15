@@ -409,6 +409,78 @@ A countdown is a promise, and reporting when the next attempt fires
 obliges the next attempt to actually fire. The three frozen guard files
 still pass unmodified.
 
+## ⭐ Two strips, two questions
+
+Above the terminal sit two controls that look similar and are not:
+
+- **The feed switcher** — `World 98 · Attention 1 · Channels 0 ·
+  Diag 3 · All`, each tab carrying its count, horizontally scrollable.
+  This is **where the server routed a frame**: independent destinations
+  you switch between. See [messaging.md](./messaging.md).
+- **The tab strip** — a saved **filter set within** the feed you are in.
+
+Collapsing them would make *"show me only direct messages"* and *"show
+me the Attention feed"* the same control, and they are not: one is a
+predicate you tune, the other is a place a rule sent something.
+
+⚠ The counts are derived from the **unfiltered** buffer. Naming them
+from an already-filtered list would make `World 1077` report how many
+the current tab happens to show rather than how many landed there.
+
+⚠ Switching a feed is a **viewport act, not a command** — like a scroll
+position. What feeds exist and what lands in them is the server's
+business; which one you happen to be looking at is not. Dressing it as
+a command would be a fake claim, which is the honesty failure one level
+up from a fake figure. The same goes for the filter drawer and the
+prompt format bar's expand control: neither carries a `Click to send:`
+promise, because neither sends anything.
+
+### Filtering is a standing predicate over topic facets
+
+Three axes — `address`, `actor`, `weight` — with presets
+(`Everything`, `Quiet`, `Only me`, `No diagnostics`) and a
+`SHOWING n of m` readout. A preset is one rule, not sixty topic paths
+that drift every time a topic is added. Muting individual topics stays
+alongside it, because facets cannot express a subtree.
+
+## The phone's play surface
+
+The rule is **interleave what is causally related, switch what is
+independent**:
+
+- **Panes render inline in the feed**, in causal position. You analysed
+  the forge; the forge's card belongs where that happened — not in a
+  second column, and not in a drawer you forget exists.
+- **Routed feeds get the switcher**, because there is no causal reason
+  a channel message should sit between two room descriptions.
+
+Getting this backwards produces the two familiar mobile failures: a
+drawer you forget exists, and a single stream where unrelated things
+fight for the same position.
+
+- **A pinned chip row** sits above the command bar — pinned panes are
+  the ones you told the world to keep, so on a phone they keep a
+  permanent handle instead of scrolling away.
+- **The left-behind card**: a frame routed to a feed you are not
+  watching leaves a bordered stub in the one you are, naming the
+  destination and offering `open <feed>` / `reply here`. ⚠ **Except
+  diagnostics** — a stub per log line would recreate exactly the noise
+  the routing rule was written to remove.
+
+### ⚠ Screen budget is a design constraint, not a detail
+
+Found by driving at 390px: the routing toggle and the prompt format bar
+each took a full row above the input, and with the format bar's four
+token chips wrapping onto three lines they held **~180px of an 844px
+screen permanently** — over a fifth of the phone, for two controls that
+edit settings rather than play. They share one 52px row now, and the
+tokens collapse behind a single control.
+
+⚠ Re-check the **ICB trap** at 390px on every pass: a fixed-width pane
+inside an overflowing document widens the initial containing block and
+pushes `position: fixed` chrome off-screen. jsdom lays out nothing, so
+only a real browser with `isMobile: true` can see it.
+
 ## The widget shelf
 
 `components/frame/Shelf.tsx`. The player-pinned row of figures across

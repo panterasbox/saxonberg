@@ -829,6 +829,52 @@ and writes to the WebSocket. For non-Avatar Sensors (NPCs, custom
 observers), `handleMessage` does whatever that Sensor does — there's no
 special path.
 
+## ⭐ Feed routing — one stream, many destinations
+
+A **rule is a filter with an address**. `Avatar.handleMessage` stamps
+`meta.feeds` on every frame it forwards, from the player's own ordered
+rule table (`console.routing` clientState, defaulting to
+`DEFAULT_ROUTING`).
+
+```
+1  MOVE  weight = diagnostic     → diagnostics    62
+2  MOVE  topic  = speech.channel → channels        0
+3  COPY  address = direct        → attention      18
+4  MOVE  everything else         → world          39
+```
+
+- **First match wins, and order matters.**
+- **MOVE** routes here and stops; later rules never see it.
+- **COPY** routes here and keeps going — which is how a tell reaches
+  Attention *and* still lands in World.
+
+⚠⚠ **The last rule is a catch-all and cannot be deleted.** Every frame
+must land somewhere. Without one, a mistyped predicate silently drops
+output — and in a world where a frame can be *you are on fire*, a lost
+message is not a cosmetic bug. `CATCH_ALL_RULE` is appended by the
+reader, not stored, so there is no state in which it is absent.
+
+⚠ **The predicates are topic FACETS**, not topic strings: `address`,
+`actor`, `weight` off the `TopicDescriptor`. "Quiet" is one rule over
+`weight`, not a list of sixty paths that drifts every time a topic is
+added. The one string predicate is `topic`, which is a prefix match —
+facets cannot express a subtree, which is what makes both halves stay.
+
+⚠ **The stamp happens once, at the delivery seam**, beside the record
+write. Two evaluators would disagree the first time one of them
+changed, and the client is emphatically not the second one — it reads
+`meta.feeds` and never re-derives it.
+
+### ⚠⚠ A count and a body that disagree must say so
+
+The feed switcher counts over the FEED; the terminal body also applies
+the active tab's standing facet predicate. Both are right alone.
+Together they produced `Diag 10` above an empty feed, with nothing on
+screen to reconcile them — a number promising content that is not
+there, which is the same class of lie an unwired figure is. A notice
+now appears **only in the disagreeing case**, naming both halves and
+the filter responsible.
+
 ## Sensor extension points
 
 `SensorMixin` is shaped as a template method — `onMessage` is

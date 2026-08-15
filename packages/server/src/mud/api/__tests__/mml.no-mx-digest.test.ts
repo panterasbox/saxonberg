@@ -29,6 +29,7 @@
  * registry does not know what attributes an emitter writes.
  */
 
+import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { KNOWN_TAGS } from '../mml/tags';
 import { readFileSync, readdirSync } from 'fs';
