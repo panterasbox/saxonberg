@@ -30,7 +30,17 @@ import {
 import { FacetFilterPanel } from './FacetFilterPanel';
 import type { TopicDescriptor } from '@saxonberg/types';
 
-const DrawerPanel = styled.div`
+const DrawerPanel = styled.div<{ $inline?: boolean }>`
+  ${(p) =>
+    p.$inline
+      ? `
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    background: transparent;
+    border-left: none;
+  `
+      : ""}
   position: absolute;
   top: 0;
   right: 0;
@@ -96,6 +106,16 @@ const CloseButton = styled.button`
 
 interface FilterDrawerProps {
   onClose: () => void;
+  /**
+   * Render as a settings section rather than a slide-over.
+   *
+   * ⚠ The drawer used to hang off a bare ⚙ on the tab strip, which is
+   * where it was reported as *"there's a settings thing but what am I
+   * setting?"* — the answer (the facets of whichever tab happens to be
+   * selected) was not on the screen anywhere. Inline in Settings it
+   * sits under a heading that says so.
+   */
+  inline?: boolean;
 }
 
 interface FamilyGroup {
@@ -104,7 +124,7 @@ interface FamilyGroup {
   leaves: TopicDescriptor[];
 }
 
-export function FilterDrawer({ onClose }: FilterDrawerProps) {
+export function FilterDrawer({ onClose, inline = false }: FilterDrawerProps) {
   const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
   const catalogue = useStore((s) => s.topicCatalogue);
   const frames = useStore((s) => s.frames);
@@ -173,10 +193,12 @@ export function FilterDrawer({ onClose }: FilterDrawerProps) {
   }
 
   return (
-    <DrawerPanel data-testid="filter-drawer">
-      <CloseButton onClick={onClose} aria-label="Close drawer">
-        ×
-      </CloseButton>
+    <DrawerPanel $inline={inline} data-testid="filter-drawer">
+      {!inline && (
+        <CloseButton onClick={onClose} aria-label="Close drawer">
+          ×
+        </CloseButton>
+      )}
       <Title>Filter — {activeTab}</Title>
       {/*
         ⭐⭐ **The facet predicate comes first, and the topic tree stays

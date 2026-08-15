@@ -8,17 +8,17 @@
  * (the live roster). This is the "Single + fixed rail" canonical split.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { useStore } from "../store/index";
 import { frameFeeds } from "../store/routingActions";
+import { applyPreset } from "../store/consoleActions";
 import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { TabStrip } from "../components/TabStrip";
 import { FeedSwitcher } from "../components/routing/FeedSwitcher";
 import { Terminal } from "../components/Terminal";
-import { FilterDrawer } from "../components/FilterDrawer";
 import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
 import { PaneFeed } from "../components/panes/PaneFeed";
@@ -202,7 +202,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
    * empty forever.
    */
   usePaneFeed();
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const rightPane = useStore((s) => s.rightPane);
   const activeFeed = useStore((s) => s.activeFeed);
   const setActiveFeed = useStore((s) => s.setActiveFeed);
@@ -276,7 +275,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
             onSelect={setActiveFeed}
           />
           <StripDivider aria-hidden="true" />
-          <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
+          <TabStrip presetsOnly />
         </StripRow>
         <Terminal
           frames={frames}
@@ -302,11 +301,18 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           <FilteredNotice data-testid="all-filtered-notice">
             {hiddenHere} in {activeFeed}, all hidden by the filter on{" "}
             <strong>{activeTabName}</strong>.{" "}
+            {/*
+              ⚠ It offers the WAY OUT, not the editor. With two shipped
+              presets the answer to "everything here is hidden" is
+              always "switch to All" — sending the reader to a facet
+              editor to work that out themselves would be a worse
+              version of the control this notice exists to explain.
+            */}
             <FilterLink
-              aria-label="open the filter drawer"
-              onClick={() => setDrawerOpen(true)}
+              aria-label="show All"
+              onClick={() => applyPreset("All")}
             >
-              change it
+              show All
             </FilterLink>
           </FilteredNotice>
         )}
@@ -337,7 +343,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           </InlineStack>
         )}
         {isCompact && <PinnedChipRow onSendCommand={onCommandClick} />}
-        {drawerOpen && <FilterDrawer onClose={() => setDrawerOpen(false)} />}
         {/*
           ⭐ One slot, three occupants — in the order they sit on
           screen. Everything WAITING is above the input; the format bar

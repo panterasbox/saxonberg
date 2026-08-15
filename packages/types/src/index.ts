@@ -2321,6 +2321,24 @@ export interface FacetFilter {
   address?: TopicAddress[];
   actor?: TopicActor[];
   weight?: TopicWeight[];
+  /**
+   * Topic-prefix ALLOWLIST — `['speech.channel']` passes
+   * `speech.channel` and anything under it.
+   *
+   * ⚠⚠ **Facets cannot express every filter worth having, and the
+   * `Aether` preset is the proof.** *Talking out loud in a room* and
+   * *talking on a channel* carry **identical facets** — both
+   * `address: broadcast, actor: person` — so no combination of the
+   * three axes separates the room from the network. A preset that
+   * means "the electronic layer" has to name topics.
+   *
+   * This is the include direction of the tree half the model already
+   * had: `ConsoleTab.muted` is the same operation pointed the other
+   * way. Facets stay the default because they do not drift when a
+   * topic is added; this is for the cases where the facet space is
+   * genuinely not fine-grained enough.
+   */
+  topics?: string[];
 }
 
 /** A named filter preset — what the panel offers before any tuning. */
@@ -2338,21 +2356,21 @@ export interface FilterPreset {
  * (a `filter` verb) cannot drift — the `DEFAULT_SHELF` precedent.
  */
 export const FILTER_PRESETS: readonly FilterPreset[] = [
-  { name: 'Everything', filter: {}, note: 'the full firehose' },
+  { name: 'All', filter: {}, note: 'everything the feed carries' },
   {
-    name: 'Quiet',
-    filter: { weight: ['consequence', 'activity'] },
-    note: 'consequence and activity only — one rule, not sixty paths',
-  },
-  {
-    name: 'Only me',
-    filter: { address: ['direct', 'personal'] },
-    note: 'aimed at you, not at the room',
-  },
-  {
-    name: 'No diagnostics',
-    filter: { weight: ['consequence', 'activity', 'chatter'] },
-    note: 'everything except the machine talking to itself',
+    name: 'Aether',
+    /*
+     * ⚠ Topics, not facets, and not by choice — see `FacetFilter.topics`.
+     * `speech.vocal` is facet-identical to `speech.channel`, so a facet
+     * rule for "the electronic layer" would drag the room in with it,
+     * which is the exact opposite of what the word means.
+     *
+     * `speech.relay` is in because stream chat forwarded into the world
+     * is chat: it arrives over the network and nobody in the room hears
+     * it.
+     */
+    filter: { topics: ['speech.comms', 'speech.channel', 'speech.relay'] },
+    note: 'dms and chat — what reaches you over the network',
   },
 ];
 

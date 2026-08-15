@@ -57,15 +57,7 @@ beforeEach(() => {
   useStore.setState({ frames: [], clientState: {} });
 });
 
-describe("⭐⭐ `Quiet` is one rule", () => {
-  it("is a single predicate over `weight`, not a list of topics", () => {
-    const quiet = FILTER_PRESETS.find((p) => p.name === "Quiet")!;
-    // The whole claim, as data: ONE axis, and no topic strings at all.
-    expect(Object.keys(quiet.filter)).toEqual(["weight"]);
-    expect(quiet.filter.weight).toEqual(["consequence", "activity"]);
-    expect(quiet.filter).not.toHaveProperty("topic");
-  });
-
+describe("⭐⭐ a facet rule beats a topic list — where one is available", () => {
   it("catches a topic nobody enumerated", () => {
     // ⭐ The payoff. A brand-new topic with a `chatter` weight is
     // filtered by a rule written before it existed — which is exactly
@@ -179,8 +171,10 @@ describe("the panel", () => {
         onChange={(f) => (applied = f)}
       />,
     );
-    fireEvent.click(screen.getByTestId("preset-Quiet"));
-    expect(applied).toEqual({ weight: ["consequence", "activity"] });
+    fireEvent.click(screen.getByTestId("preset-Aether"));
+    expect(applied).toEqual(
+      FILTER_PRESETS.find((p) => p.name === "Aether")!.filter,
+    );
   });
 
   it("toggles one chip without disturbing another axis", () => {
@@ -195,5 +189,69 @@ describe("the panel", () => {
     );
     fireEvent.click(screen.getByTestId("facet-address-direct"));
     expect(applied).toEqual({ actor: ["self"], address: ["direct"] });
+  });
+});
+
+/**
+ * ⚠⚠ The `topics` allowlist, and why it had to exist.
+ *
+ * The whole point of facet filtering is *one rule, not sixty topic
+ * paths that drift*. `Aether` is the case where that is not available:
+ * **`speech.vocal` and `speech.channel` carry identical facets** — both
+ * `address: broadcast, actor: person` — so no combination of the three
+ * axes separates the room from the network.
+ */
+describe("the topic allowlist", () => {
+  const aether = FILTER_PRESETS.find((p) => p.name === "Aether")!.filter;
+
+  const facets = (topic: string) => ({
+    address: "broadcast" as const,
+    actor: "person" as const,
+    weight: "chatter" as const,
+    topic,
+  });
+
+  it("passes dms and chat", () => {
+    expect(facetFilterPasses(aether, facets("speech.comms"))).toBe(true);
+    expect(facetFilterPasses(aether, facets("speech.channel"))).toBe(true);
+  });
+
+  it("⚠⚠ excludes talking out loud, which no FACET rule could", () => {
+    // The proof the allowlist is load-bearing: these facets are byte
+    // for byte what `speech.channel` carries. Only the topic separates
+    // them.
+    expect(facetFilterPasses(aether, facets("speech.vocal"))).toBe(false);
+  });
+
+  it("matches a subtree, not just the exact topic", () => {
+    expect(facetFilterPasses(aether, facets("speech.channel.guild"))).toBe(
+      true,
+    );
+    // ⚠ Prefix, not `startsWith` — `speech.channelling` is a different
+    // topic and must not ride in on the shared stem.
+    expect(facetFilterPasses(aether, facets("speech.channelling"))).toBe(
+      false,
+    );
+  });
+
+  it("passes nothing when the topic is withheld", () => {
+    /*
+     * The safe direction. A filter that silently ignored its own rule
+     * would show the player a feed their preset says they excluded,
+     * which is worse than showing them an empty one.
+     */
+    expect(
+      facetFilterPasses(aether, {
+        address: "broadcast",
+        actor: "person",
+        weight: "chatter",
+      }),
+    ).toBe(false);
+  });
+
+  it("ships exactly two presets", () => {
+    // Four facet presets plus a differently-shaped `All` tab was the
+    // reported confusion. One list, one kind of thing.
+    expect(FILTER_PRESETS.map((p) => p.name)).toEqual(["All", "Aether"]);
   });
 });

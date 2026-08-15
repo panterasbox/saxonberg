@@ -435,13 +435,43 @@ up from a fake figure. The same goes for the filter drawer and the
 prompt format bar's expand control: neither carries a `Click to send:`
 promise, because neither sends anything.
 
-### Filtering is a standing predicate over topic facets
+### Filtering ships as TWO presets
 
-Three axes — `address`, `actor`, `weight` — with presets
-(`Everything`, `Quiet`, `Only me`, `No diagnostics`) and a
-`SHOWING n of m` readout. A preset is one rule, not sixty topic paths
-that drift every time a topic is added. Muting individual topics stays
-alongside it, because facets cannot express a subtree.
+`All` and `Aether`. Not four facet presets plus a differently-shaped
+`All` tab in a different control — that shipped, and the report was
+*"it's weird to have 4 presets + all and they're not all treated the
+same."* One list, one kind of thing.
+
+⚠ **No `+`, and no ⚙, on the play surface.** Creating a tab and then
+discovering you had to go back and select it before its filter meant
+anything is a flow whose effect you can only learn by leaving it and
+returning. The custom-tab machinery still exists and still works; the
+facet editor and the topic-mute tree live in **Settings**, under a
+heading that names what they tune. A bare gear that edits *whichever
+tab happens to be selected* answers no question the player was asking.
+
+⭐ `applyPreset` is **self-healing**: `console.tabs` is persisted per
+player, so anyone who logged in before a preset shipped carries a stale
+list, and a preset the code ships must be selectable on the next login
+without the player repairing their own state.
+
+### ⚠⚠ `Aether` is a topic list, and that is a finding
+
+Facets are still the default, for the reason they were built: one rule
+does not drift when a topic is added. But **`speech.vocal` and
+`speech.channel` carry identical facets** — both `address: broadcast,
+actor: person` — so no combination of the three axes separates *talking
+out loud in a room* from *talking on a channel*. A preset meaning "the
+electronic layer" cannot be a facet rule.
+
+`FacetFilter.topics` is therefore a topic-prefix **allowlist** — the
+include direction of the tree half the model already had, since
+`ConsoleTab.muted` is the same operation pointed the other way.
+
+⚠ Worth a separate look: two topics that a player experiences as
+completely different things being facet-identical is arguably a gap in
+the S2 taxonomy rather than a gap in the filter. Fixing it there would
+let `Aether` go back to being one rule.
 
 ## The phone's play surface
 

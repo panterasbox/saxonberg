@@ -14,9 +14,11 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
+import { FILTER_PRESETS } from '@saxonberg/types';
 import type { ConsoleTab } from '@saxonberg/types';
 import {
   addTab,
+  applyPreset,
   deleteTab,
   renameTab,
   setActiveTab,
@@ -151,9 +153,25 @@ const ConfirmButton = styled.button`
 
 interface TabStripProps {
   onToggleDrawer?: () => void;
+  /**
+   * Show the shipped presets only — no create, no rename, no delete, no
+   * filter drawer.
+   *
+   * ⚠ The custom-tab machinery is still here and still works; it is
+   * simply not what belongs on the play surface. Reported from a real
+   * login: *"there's a settings thing but what am I setting? … it's not
+   * obvious that I have to go back after hitting + to set my filters."*
+   * A control whose effect you can only discover by leaving it and
+   * coming back is not a control, and a player choosing what to read
+   * should not have to build a tab first.
+   */
+  presetsOnly?: boolean;
 }
 
-export function TabStrip({ onToggleDrawer }: TabStripProps = {}) {
+export function TabStrip({
+  onToggleDrawer,
+  presetsOnly = false,
+}: TabStripProps = {}) {
   const clientState = useStore((s) => s.clientState);
   const tabs = (clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [
     { name: ALL_TAB, muted: [] },
@@ -231,6 +249,27 @@ export function TabStrip({ onToggleDrawer }: TabStripProps = {}) {
   function cancelRename() {
     setEditingName(null);
     setEditValue('');
+  }
+
+  if (presetsOnly) {
+    return (
+      <Strip data-testid="tab-strip">
+        {FILTER_PRESETS.map((preset) => (
+          <Tab
+            key={preset.name}
+            $active={preset.name === active}
+            data-testid={`tab-${preset.name}`}
+            /* The note is the only explanation there is room for, and a
+               preset the player cannot explain to themselves is a
+               preset they will not use. */
+            title={preset.note}
+            onClick={() => applyPreset(preset.name)}
+          >
+            {preset.name}
+          </Tab>
+        ))}
+      </Strip>
+    );
   }
 
   return (

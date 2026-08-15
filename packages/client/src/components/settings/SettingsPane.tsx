@@ -24,6 +24,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
 import { RoutingTable } from "../routing/RoutingTable";
+import { FilterDrawer } from "../FilterDrawer";
 import { PromptFormatBar } from "../PromptFormatBar";
 import type { Frame } from "../../store/index";
 
@@ -225,6 +226,18 @@ export function SettingsPane({
           ✕
         </CloseButton>
       </Header>
+
+      <Section>
+        <SectionTitle>Filters for the selected tab</SectionTitle>
+        {/*
+          ⚠ The heading names its own subject, which is the whole fix.
+          As a bare ⚙ on the tab strip this was reported as *"there's a
+          settings thing but what am I setting?"* — and the honest
+          answer, *the facets of whichever tab you have selected*, was
+          nowhere on the screen.
+        */}
+        <FilterDrawer inline onClose={() => undefined} />
+      </Section>
 
       <Section>
         <SectionTitle>Prompt format</SectionTitle>

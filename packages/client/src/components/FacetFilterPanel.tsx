@@ -69,9 +69,28 @@ const WEIGHTS: readonly TopicWeight[] = [
  */
 export function facetFilterPasses(
   filter: FacetFilter | undefined,
-  facets: { address: TopicAddress; actor: TopicActor; weight: TopicWeight },
+  facets: {
+    address: TopicAddress;
+    actor: TopicActor;
+    weight: TopicWeight;
+    /**
+     * The topic string, for the `topics` allowlist. Optional so the
+     * three facet axes can still be checked on their own; a filter that
+     * names topics and is handed no topic passes nothing, which is the
+     * safe direction — a filter that silently ignored its own rule
+     * would show the player a feed their preset says they excluded.
+     */
+    topic?: string;
+  },
 ): boolean {
   if (!filter) return true;
+  if (filter.topics?.length) {
+    const topic = facets.topic ?? '';
+    const under = filter.topics.some(
+      (t) => topic === t || topic.startsWith(`${t}.`),
+    );
+    if (!under) return false;
+  }
   if (filter.address?.length && !filter.address.includes(facets.address)) {
     return false;
   }
@@ -176,7 +195,12 @@ export function FacetFilterPanel({
     () =>
       frames.map((f) => {
         const d = getTopicDescriptor(f.topic);
-        return { address: d.address, actor: d.actor, weight: d.weight };
+        return {
+          address: d.address,
+          actor: d.actor,
+          weight: d.weight,
+          topic: f.topic,
+        };
       }),
     [frames, getTopicDescriptor],
   );

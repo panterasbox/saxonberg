@@ -313,7 +313,7 @@ rather than five widgets that happen to be stacked.
 | `FORM` | the question in serif, replies as command buttons, a primary action |
 | `AGENT` | mixin chips with an overflow count, measured label/value rows, action buttons |
 | `INSTRUMENT` | mixin chips, one large reading with a unit, a gauge bar, a provenance caption |
-| `PLACE` | mixin chips, `WAYS OUT` as exit buttons, `HERE` as a contents list |
+| `PLACE` | the room's illustration, mixin chips, `WAYS OUT` as exit buttons, `HERE` as a contents list |
 
 ⚠ **The header states WHY, never how long.** *"held · owes a reply"*,
 *"held · you are here"*, *"stale · you left"*. A pane's lifetime is a

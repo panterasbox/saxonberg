@@ -42,6 +42,7 @@ import { useStore } from "../../store/index";
 import type { PaneCardState } from "../../store/paneFeedSlice";
 import { Figure, EntityName, tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
+import { mediaUrl } from "../../config";
 
 /* ─── shared pieces ─── */
 
@@ -64,6 +65,15 @@ const Chip = styled.span`
 const MoreChip = styled(Chip)`
   color: ${tokens.color.fgMuted};
   border-style: dashed;
+`;
+
+/** The card's picture — full-bleed to the card's padding box. */
+const CardIllustration = styled.img`
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: ${tokens.radius.sm};
+  margin-bottom: ${tokens.space.sm};
 `;
 
 const Label = styled.div`
@@ -361,6 +371,31 @@ function ActionRow({
 }
 
 /** The exits block — one command chip per way out. */
+/**
+ * The room's picture.
+ *
+ * ⚠ Hidden on a broken key rather than left as a broken-image icon —
+ * the same rule the inspection pane's illustration follows. A missing
+ * asset is not information; a broken icon claims something failed.
+ */
+function PlaceIllustration({
+  record,
+}: {
+  record: StuffDetailRecord | undefined;
+}): React.ReactElement | null {
+  const illustration = record?.illustration;
+  if (!illustration) return null;
+  return (
+    <CardIllustration
+      src={mediaUrl(illustration)}
+      alt={record?.shortDescription ?? record?.displayName ?? ""}
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  );
+}
+
 function WaysOut({
   record,
   onSendCommand,
@@ -387,7 +422,19 @@ function WaysOut({
               onMouseEnter={() => preview(command)}
               onMouseLeave={() => preview(null)}
             >
-              {command}
+              {/*
+                ⚠ The LABEL is the bare direction; the command is still
+                `go <direction>` and still previews in the title and on
+                hover. Under a heading that already says WAYS OUT the
+                verb is implied, and printing it on every chip made a
+                row of exits read as a row of sentences.
+
+                This is not a break with *every clickable previews
+                exactly what it sends* — the preview is the contract,
+                not the label. The transcript has always done the same
+                thing: `Obvious exits: north` sends `go north`.
+              */}
+              {exit.direction}
             </CommandChip>
           );
         })}
@@ -479,6 +526,7 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
     case "place":
       return (
         <>
+          <PlaceIllustration record={record} />
           <Composition stuffId={stuffId} />
           <WaysOut
             record={record}

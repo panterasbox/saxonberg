@@ -15,12 +15,26 @@
  */
 
 import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
+import { FILTER_PRESETS } from '@saxonberg/types';
 import { useStore } from './index';
 import { websocketClient } from '../services/websocket';
 
 const KEY_TABS = 'console.tabs';
 const KEY_ACTIVE = 'console.activeTab';
-const DEFAULT_TABS: ConsoleTab[] = [{ name: 'All', muted: [] }];
+/**
+ * ⭐ The shipped presets ARE the default tabs.
+ *
+ * Two, not five. The play surface used to offer four facet presets
+ * *plus* an `All` tab that was a different kind of thing, sitting in a
+ * different control, and nothing said which was which — reported from a
+ * real login as *"it's weird to have 4 presets + all and they're not
+ * all treated the same."* One list, one kind of thing.
+ */
+const DEFAULT_TABS: ConsoleTab[] = FILTER_PRESETS.map((preset) => ({
+  name: preset.name,
+  muted: [],
+  facets: preset.filter,
+}));
 const ALL_TAB = 'All';
 
 /** Read the current tabs list with the default fallback. */
@@ -165,6 +179,29 @@ export function getActiveFacetFilter(): FacetFilter {
  * `console.tabs` key, so a saved set survives a reconnect and follows
  * you to a second device.
  */
+/**
+ * Select a shipped preset, creating or repairing its tab first.
+ *
+ * ⚠ **Self-healing on purpose.** `console.tabs` is persisted per
+ * player, so anyone who logged in before a preset shipped — or before
+ * its filter changed — carries a stale list, and `setActiveTab` refuses
+ * a name it cannot find. A preset the code ships must be selectable on
+ * the next login without the player having to repair their own state.
+ */
+export function applyPreset(name: string): ConsoleTab[] {
+  const preset = FILTER_PRESETS.find((p) => p.name === name);
+  if (!preset) return getTabs();
+  const tabs = getTabs();
+  const existing = tabs.find((t) => t.name === name);
+  const next = existing
+    ? tabs.map((t) => (t.name === name ? { ...t, facets: preset.filter } : t))
+    : [...tabs, { name, muted: [], facets: preset.filter }];
+  writeTabs(next);
+  writeActive(name);
+  useStore.getState().clearUnreadFor(name);
+  return next;
+}
+
 export function setActiveFacetFilter(facets: FacetFilter): ConsoleTab[] {
   const name = getActiveTab();
   const next = getTabs().map((t) =>

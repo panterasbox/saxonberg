@@ -357,6 +357,7 @@ function App() {
         address: d.address,
         actor: d.actor,
         weight: d.weight,
+        topic: f.topic,
       })
     ) {
       return false;
