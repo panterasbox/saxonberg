@@ -572,6 +572,47 @@ client-only settings state. Its notification section consumes the
 branch). Opening the pane is client UI state (like the inspection pane),
 not a `layout` switch — it coexists with the current layout.
 
+## The client frame renders from both axes (Wave 6)
+
+`cockpit.layout` shipped as a **compatibility projection painted from
+(mode, arrangement) so the shipped client keeps working** — explicitly
+meant to die with that client. Wave 6 is where it died.
+
+`packages/client/src/layouts/modes.ts` holds `MODE_REGISTRY`, keyed
+`(mode, arrangement)`, and `resolveMode`, which is the **one** place the
+legacy key is still read.
+
+⭐ **`watch` is why the axes are two and not one.** `livestream-viewer`
+and `streamer` were never different activities — they are two
+arrangements of one, which is why `LEGACY_LAYOUT_MIGRATION` is a mapping
+rather than a rename, and why the collapse is lossy in the mode column
+with only the arrangement column keeping them apart. No single-axis
+registry can express that; `modeResolution.test.ts` asserts it directly.
+
+⚠ **The legacy key is read exactly where the SERVER reads it.**
+`cockpit.mode` defaults to `null` deliberately, so `getCockpitMode()` can
+treat that null as its cue to migrate a stored `cockpit.layout` instead
+of silently answering `play`. A client skipping the same step would land
+every returning player in the world layout regardless of what they had
+saved. Once a mode *is* set, the legacy key is not consulted — it is a
+migration cue, never a live source of truth.
+
+⚠ **`govern` falls back to `play` VISIBLY** (`ResolvedMode.fallbackFrom`).
+A silent substitution makes an unbuilt mode indistinguishable from a
+finished one.
+
+**`ViewsMenu`** now enumerates `COCKPIT_MODES × COCKPIT_ARRANGEMENTS`
+rather than the five legacy layout names. It was already *sending*
+`cockpit mode` commands — it was building them from the wrong list, so a
+mode with two arrangements could only ever be offered once. An entry the
+client cannot render yet is labelled `╌╌ not built` rather than hidden:
+the command works, it just lands on the floor, and hiding it would make
+the cockpit's vocabulary look smaller than it is.
+
+`noLayoutKey` (in `layouts/__tests__/modeResolution.test.ts`) keeps the
+registry deleted — the key is still on the wire, and reading it is always
+the shortest path back.
+
 ## Cross-references
 
 - [cockpit-composition.md](../cockpit-composition.md) — the binding layout grammar

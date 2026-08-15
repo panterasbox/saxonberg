@@ -643,6 +643,78 @@ the nav target) and click-driven; the player stays in
   and offers the outbound ops; the store slice (`forumRecords` keyed by
   `subscriptionId`, `forumNav`) stays pure state.
 
+### The subject rail — the client catches up (Wave 6)
+
+⭐⭐ **Until Wave 6 the client had never heard of a Subject.**
+`packages/client` held ZERO references to `argument-forum` /
+`popularity-forum` / `free-chat` / `rules-chat`, and its only unit of
+navigation was a **board**. A board is one *surface* of a subject, so a
+subject lighting three of them appeared as three unrelated things, and no
+arrangement of a board list can say otherwise.
+
+**The fourth subscription scope.** `ForumSubscriptionScope.kind` gains
+`'subjects'` beside `index` / `board` / `thread`. It reuses the whole
+existing observer — validation, dependency index, dirty-batch, delta
+envelope — rather than inventing a channel, which is why the rail is
+live: a subject appearing moves it without a reload. Like `index`, it is
+a whole-set watcher with no backing doc, so it shares the broad bucket
+and re-resolves on any forum event.
+
+`ForumSubjectRecord` carries identity, grain, handle, parent, audience,
+lit surfaces and `openObjections`. Two things about it are load-bearing:
+
+- ⭐ **`openObjections` is counted from the SAME `readArgumentLens` read**
+  whose `openObjection` flags the per-row projection uses. The rail badge
+  and the rows it summarises therefore cannot disagree; a second count
+  computed another way is exactly how they would.
+- ⭐ **The audience is recognised, not inferred from the ref's shape.**
+  `curated` is checked against `SubjectCatalogue`'s own record of the
+  managed groups it minted (`getBackingGroupIds`) — the only thing that
+  distinguishes it from `bound`, since both are `managed:` refs.
+
+⚠⚠ **`recordsEqual` dispatches on record kind.** Letting subject records
+fall through the entry comparison reads as working and never fires a
+`replace`: every entry field is `undefined` on both sides, so two
+different subjects compare equal and the rail freezes at whatever it
+showed first — silently, with nothing thrown and nothing logged.
+
+**Client shape.** `SubjectRail` (live; topic-grain subjects nested under
+their parent, since a promoted thread is board-scoped and inherits its
+audience, so a flat list would present it as a peer venue it is not),
+`SubjectHeader` (identity + audience + surface tabs), `SubjectShell` (the
+app). The audience chip sits beside the **title**, not inside any one
+surface, because it governs all of them at once — that placement is the
+claim the subject model makes.
+
+**An unlit surface is an affordance.** `+ Argument` previews and sends
+`forum on <handle> --argument`; `+ Chat` sends `chat on <handle>`. ⚠
+`rules-chat` is the exception and it is a *server* fact: the surface is
+parked, so it renders in the not-wired treatment and sends nothing. A
+control that reliably refuses is worse than one that says it is not
+there yet.
+
+⚠ **`ForumView` was NOT retired.** Its argument lens, popularity list and
+comment tree render the server's projection correctly; the defect was one
+level up, in navigation. It is now a *body inside a subject* rather than
+the whole app, with `SubjectShell` setting `forumNav` from the subject's
+handle. The store holds one `forumRecords` union rather than two maps
+that could disagree about which subscription is which; `asEntries` /
+`asSubjects` narrow at the read by asking a record its shape, never by
+casting.
+
+⚠ **Known seam: `chat on` does not wake an open rail.** Lighting a forum
+surface fires `board-created` through `ForumsLogic.recordEvent`, which
+carries the wake. Lighting a *chat* surface goes through
+`ChannelCatalogue` and records no forum event, so a rail already on
+screen does not learn about it until re-opened. Firing a bare
+`ForumEventFired` from `SubjectCatalogue.addManifestation` was tried and
+reverted: it breaks **persist-then-fire** (asserted by
+`ForumSubscriptionRegistry.test.ts`) and would double-fire the forum
+path. Closing it properly wants a durable `surface-lit` event kind
+recorded from `ForumsLogic`, which owns `recordEvent` — routing it from
+`SubjectCatalogue` would be an import cycle, since `ForumsLogic` already
+imports `SubjectApi`.
+
 ## Open questions / deferred
 
 - **The latent "watch a collection for changes" abstraction (deferred,

@@ -249,6 +249,72 @@ affordance is a **clickable command** — it routes through the shared
 the command bar on hover, send on click) exactly like every other
 clickable in the client; it never sends a websocket frame directly.
 
+### The emote picker (Wave 6)
+
+⭐ **There is no reaction picker, because a reaction is an ordinary emote
+carrying `inReactionTo`.** What the `+` opens is an *emote* picker that
+happens to be pointed at an earlier act — which is the same thing the
+data model says.
+
+The quick row is six emoji-bearing emotes; `all` opens the full
+slot-aware palette (`components/social/EmotePicker.tsx`), shared verbatim
+by the desktop popover and the phone sheet so **grammar survives the
+phone**. Every cell prints its canonical verb under the glyph: emoji are
+an alias surface over verbs, and this is the most-used interaction in the
+product — the last place the command line should go quiet.
+
+**The palette is DERIVED, never listed.** It draws from
+`ConnectionEstablishedPayload.emoteCatalogue` — a session-cached
+projection of `SoulCatalogue`, canonical verbs only, riding the same
+payload and the same semantics as `topicCatalogue`. It replaced a
+hardcoded six-entry `{ verb, emoji }` array in `ReactionBar`;
+`noHardcodedEmoji.test.ts` guards both files against it returning.
+
+**Slots.** An emote with grammar (`;wave <at> <manner>`) cannot fit a
+flat grid, so selecting one reveals a control per declared slot in
+**declaration order** — the order `EmoteGrammarRunner.bind` consumes
+tokens in. `stuff` slots render solid (MQL-resolved server-side), `free`
+slots dashed. A blank `stuff` slot is skipped (the binder skips on
+mismatch, so `;wave happily` still binds); a blank `free` slot stops the
+command rather than shifting a later value into an earlier slot.
+
+**One `composeReactCommand`** feeds the preview and the send, and
+`reactCommand.test.ts` asserts their *equality* rather than writing the
+expected string twice. The selector is always explicit `--msg <gutter#>`:
+`re ;nod` is a real command but means *the most recent act in view*,
+which is not what a picker opened on message 112 does.
+
+**Touch.** Desktop hides the bare `+` until row hover; a phone has no
+hover and a permanent `+` on every frame is the vertical spend the inline
+row exists to avoid. So the gesture is **long-press the frame**
+(`useLongPress`, branching on pointer TYPE rather than viewport width — a
+touch laptop is real and a narrow window is not a phone). Existing chips
+stay tappable where they sit; only the empty case needs the gesture. One
+`EmoteSheet` for the whole transcript, mounted at `Terminal` — a sheet
+per frame would stack N scrims and leave only the last reachable.
+
+⚠⚠ **The client no longer holds its own copy of "what is reactable".**
+`ReactionBar` carried a `REACTABLE_PREFIXES` array described as mirroring
+`REACTABLE_TOPICS`. It had stopped: `act.combat` became reactable
+server-side and the copy never learned, so combat frames silently offered
+nothing — a drifted mirror looks exactly like a working one. The set now
+rides `ConnectionEstablishedPayload.reactableTopics`, and an empty set
+offers no affordance rather than guessing.
+
+⚠ `REACTABLE_TOPICS` itself listed `'speech.vocal'` three times, a
+leftover of the S2 collapse folding say/shout/whisper onto one name. A
+`Set` deduped it, so nothing failed and the literal quietly claimed a
+size it did not have. `reactableTopics.test.ts` asserts the **count**,
+because a membership assertion passes either way.
+
+**Not built, and it is a design question rather than an omission.** The
+handoff's coalesced *"7 people reacted to what you said"* line for acts
+you have scrolled away from. Where a client-composed sentence lives
+without either impersonating server prose or reviving the notification
+surface Wave 1C cut is unresolved. What ships instead: above the
+threshold — where the server suppresses per-reaction prose — the counter
+distinguishes your own acts (`✦ 12 reactions to yours`).
+
 ### Per-user controls
 
 `SoulMixin.settings` defines five keys; each is **honored where its data

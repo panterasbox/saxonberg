@@ -401,6 +401,32 @@ singleton — the catalogue reads the just-populated collection at
 its `postRegister` hook). The starter roster covers greetings, joy /
 approval, displeasure, surprise, playful, and abstraction registers.
 
+## The client read face — `SoulApi.snapshot()` (Wave 6)
+
+The catalogue had one reader surface, `soul list`, gated
+`requiresCoreAccess` — the **authoring** face. Players need to see the
+palette they can already type, so Wave 6 added a player-readable
+projection.
+
+`SoulCatalogue.snapshot()` → `EmoteCatalogueEntry[]`: canonical verbs
+only (the warm cache indexes every alias to the same `Emote`, so
+iterating it directly would emit one grid cell per alias — the aliases
+ride their canonical entry), each with its emoji, tags and declared slots
+in **declaration order**, which is the order `EmoteGrammarRunner.bind`
+consumes tokens in. `required` is derived from the author's `optional`
+flag rather than restated. `soul list` keeps its gate: seeing the palette
+is not authoring it.
+
+It rides `ConnectionEstablishedPayload.emoteCatalogue`, cached by the
+client for the session on exactly the terms `topicCatalogue` is —
+authored, global, and a mid-session `soul make` landing at next login.
+No new transport, and the semantics were already documented one field up.
+
+⭐ The client draws its picker from this **and from nothing else**. It
+previously drew from a hardcoded six-entry `{ verb, emoji }` array; a
+hardcoded pairing drifts from the catalogue with nothing failing when it
+does. See [reactions.md § The emote picker](./reactions.md).
+
 ## What's deferred
 
 Each of the following stays in [emotes-slate.md](../slates/tails/emotes-slate.md)

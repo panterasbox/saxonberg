@@ -616,8 +616,8 @@ Ordered so each ships independently. The handoff's build order is a good
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
 | **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
 | ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned pane catalogue**: the client opens a pane BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a pane on recall, on either side. | done |
-| **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |
-| **7** | **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
+| ~~**6**~~ ✅ | **Social — SHIPPED 2026-08-15.** Reactions + the emote picker, the forum client learning the Subject model, honest wiki search, the livestream tuned rail, and the `cockpit.layout` retirement. ⚠ It was **not** "almost pure client": four server gaps and one drift, listed below. | 4 ✅ |
+| **7** | ⭐ **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
 | ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
 
 ### 7.1 Wave 1 cut into three builds — sized 2026-08-11
@@ -933,6 +933,53 @@ naming**: the connection popover hatches `frames behind` with *"nothing
 measures it — needs a server sequence number"*. The mock printed
 `frames behind 0`, which is the plausible fake its sibling document
 exists to forbid. The convention beat the drawing.
+
+### ⚠ 7.16 Wave 6 was NOT "almost pure client" — 2026-08-15
+
+This slate said every server half was already shipped. Rendering the four
+reference screens and auditing them against the tree found otherwise.
+Recorded so Wave 7's identical claim gets checked rather than believed.
+
+**Four server gaps:**
+
+1. **The emote catalogue had no player-readable surface.** `soul list` is
+   gated `requiresCoreAccess` — the authoring face. The client's picker
+   palette was a hardcoded six-entry `{ verb, emoji }` array. Fixed with
+   `SoulApi.snapshot()` on the connection payload.
+2. **The forum Subject model was server-only.** `packages/client` had
+   ZERO references to the four surface names. Fixed with a fourth
+   subscription scope, `subjects`.
+3. **No structured tuned-target state.** The rail had only a bare
+   `tune`'s prose to read. Fixed with `cockpit.tuned`.
+4. **`SHIPPED_ARRANGEMENT_PANES` is keyed by mode alone**, so `watch`'s
+   two arrangements are inexpressible. ⚠ **Not fixed** — nothing in Wave
+   6 needed to fill it, and re-keying an empty map is churn. Still open.
+
+**One drift:** `act.combat` was reactable server-side and the client
+never offered it, because `REACTABLE_PREFIXES` claimed to mirror
+`REACTABLE_TOPICS` and had stopped.
+
+⭐⭐ **And one finding that was WRONG.** The requirements doc first
+reported `StreamEmbed` as Twitch/YouTube-only. It handles Kick; the
+*file's header comment* was stale. The audit read the comment instead of
+the switch below it — the same failure mode as § 7.15's mocks-by-text,
+one level down. **A stale comment is worse than no comment: confidently
+actionable and false.**
+
+**Two mock features with no server half**, both cut rather than hatched:
+the wiki's `OFFICIAL` page-standing badge (an unbuilt *governance*
+feature — "adopted by the Make chamber" — not an unwired read), and its
+three derived blocks (*what it affords* / *seen in play* / *composed
+by*). Four hatches on one page reads as a broken page.
+
+**One mock that is simply stale:** it badges the Argument surface
+`reserved`. `argument-forum` shipped in forums cycle 2. Only `rules-chat`
+is parked.
+
+**Open, and deliberately so:** the coalesced *"7 people reacted to what
+you said"* line. Where a client-composed sentence lives without
+impersonating server prose or reviving the notification surface Wave 1C
+cut is a real design question.
 
 ### 7.2 The program resequenced — 2026-08-13
 

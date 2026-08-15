@@ -828,6 +828,38 @@ history records as having happened.
 
 ---
 
+### The Wave 6 pass — what was hatched, and what was cut
+
+The pane's guarantees are unchanged: the body still arrives **already
+rendered and already gated**, and every affordance is still a command the
+pane composes. Wave 6 touched only what the design handoff added.
+
+**Search is hatched.** Track C records the wiki search port as *not
+wired*, and the convention's first preference is *ship the surface, hatch
+the value*. ⚠ Deliberately **not a disabled input** — that still reads as
+a search box that is temporarily off, and it is the shape this would
+quietly drift back into, so `wikiSearch.test.tsx` asserts no input
+element exists at all. The field names the way in that *does* exist: the
+tree.
+
+**Four blocks are CUT, not hatched.** The handoff's page furniture —
+the `OFFICIAL` standing badge, *what it affords*, *seen in play*, and
+*composed by* — has no server half at all:
+
+| Block | Why cut |
+|---|---|
+| `OFFICIAL` page standing | No canon/standing concept exists anywhere in this subsystem or in `WikiPageFrame`. The mock's own rationale ("pages the Make chamber has adopted") makes it an unbuilt **governance** feature, not an unwired read. |
+| *What it affords* | Class-level affordance introspection — a real derivation, and closer to Studio's `describeClass` than to anything here. |
+| *Seen in play* | Per-viewer encounter memory. Nothing records it. |
+| *Composed by* | A reverse composition index. Nothing builds it. |
+
+⭐ The reasoning is the unbuilt-state convention's **second** preference:
+*cut the widget if it says nothing without data*. Hatching all four would
+make one page carry four hatches, which reads as a broken page rather
+than an honest one. Page standing in particular belongs to the wiki tail
+as a governance question — *who adopts a page, and does adoption mean
+anything the reveal model has to respect?*
+
 ## What this build does NOT do
 
 Three shared substrates the wiki depends on and does not own:
