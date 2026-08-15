@@ -14,12 +14,11 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
-import { FILTER_PRESETS } from '@saxonberg/types';
+import { DEFAULT_VIEWS } from '@saxonberg/types';
 import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
 import { facetFilterPasses } from './FacetFilterPanel';
 import {
   addTab,
-  applyPreset,
   deleteTab,
   renameTab,
   saveFilterSetAsTab,
@@ -195,6 +194,15 @@ export function TabStrip({
 }: TabStripProps = {}) {
   const frames = useStore((s) => s.frames);
   const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
+  /**
+   * The one-line hint, for views that arrived with one.
+   *
+   * ⚠ A hint, not a marker of a category. A view the player renames or
+   * composes simply has none, and nothing about the tab looks different
+   * for it.
+   */
+  const noteFor = (name: string): string | undefined =>
+    DEFAULT_VIEWS.find((v) => v.name === name)?.note;
   const countFor = (filter: FacetFilter): number =>
     frames.filter((f) => {
       const d = getTopicDescriptor(f.topic);
@@ -309,35 +317,30 @@ export function TabStrip({
 
   if (presetsOnly) {
     /*
-     * ⚠⚠ **Shipped views AND the player's own, in one list.**
+     * ⭐⭐ **One list, one mechanism.** Every tab here is a view the
+     * player owns: select it, edit it, rename it, delete it. Some of
+     * them arrived pre-made — that is the ONLY thing that was ever
+     * different about `All`, `Aether` and `Diag`, and after seeding it
+     * is not a difference at all.
      *
-     * An earlier pass rendered `FILTER_PRESETS` alone, which quietly
-     * deleted the whole point of the feature: a saved view could be
-     * created and would then never appear anywhere. "Keep two presets"
-     * was about the shipped DEFAULTS being four-plus-an-odd-one-out; it
-     * was never about taking away the ability to compose your own.
-     *
-     * They interleave rather than sitting in separate groups because
-     * they are the same kind of thing — a named predicate over the
-     * whole buffer. Which ones happen to ship with the client is not a
-     * distinction the reader has to care about.
+     * It shipped the other way for one pass: three shipped views that
+     * could not be touched, sitting in the same strip as one that
+     * could, and selecting a shipped one re-applied its filter from
+     * code so any edit vanished. Reported exactly as it looked —
+     * *"'forge watch' I can edit but aether and diag I can't? I thought
+     * a filter was a filter."*
      */
-    const shipped = new Set(FILTER_PRESETS.map((p) => p.name));
-    const mine = tabs.filter((t) => !shipped.has(t.name));
     return (
       <Strip data-testid="tab-strip">
-        {FILTER_PRESETS.map((preset) => (
+        {tabs.map((tab) => (
           <Tab
-            key={preset.name}
-            $active={preset.name === active}
-            data-testid={`tab-${preset.name}`}
-            /* The note is the only explanation there is room for, and a
-               view the player cannot explain to themselves is a view
-               they will not use. */
-            title={preset.note}
-            onClick={() => applyPreset(preset.name)}
+            key={tab.name}
+            $active={tab.name === active}
+            data-testid={`tab-${tab.name}`}
+            title={noteFor(tab.name)}
+            onClick={() => setActiveTab(tab.name)}
           >
-            {preset.name}
+            {tab.name}
             {/*
               ⚠ **Derived at render, over the WHOLE buffer** — never
               tracked beside it, and never counted from an
@@ -347,20 +350,6 @@ export function TabStrip({
               re-sorts your history instead of only affecting what
               arrives next.
             */}
-            <TabCount data-testid={`tab-count-${preset.name}`}>
-              {countFor(preset.filter)}
-            </TabCount>
-          </Tab>
-        ))}
-        {mine.map((tab) => (
-          <Tab
-            key={tab.name}
-            $active={tab.name === active}
-            data-testid={`tab-${tab.name}`}
-            title={`Your view — ${tab.name}`}
-            onClick={() => setActiveTab(tab.name)}
-          >
-            {tab.name}
             <TabCount data-testid={`tab-count-${tab.name}`}>
               {countFor(tab.facets ?? {})}
             </TabCount>
@@ -388,7 +377,6 @@ export function TabStrip({
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteTab(tab.name);
-                  applyPreset(FILTER_PRESETS[0]!.name);
                 }}
               >
                 ×

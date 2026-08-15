@@ -451,7 +451,37 @@ question that wants exactly this shape. Its UI returns when there is
 something for it to drive; a settings screen for rules that change
 nothing observable would be a control lying about its own effect.
 
-### Composing a view
+### ⚠⚠ A shipped view is just a view
+
+`DEFAULT_VIEWS` is the set a player **starts** with. The moment it is
+seeded into `console.tabs` it is ordinary player data — editable,
+renamable and deletable exactly like one they composed. Nothing in the
+strip marks which is which, because after seeding it is not a
+difference.
+
+It shipped the other way for one pass: three shipped views that could
+not be touched, in the same strip as one that could, and selecting a
+shipped one re-applied its filter **from code**, so tuning `Aether` and
+clicking away lost the change silently. Reported as it looked —
+*"'forge watch' I can edit but aether and diag I can't? I thought a
+filter was a filter."*
+
+- **Seeding is additive and one-time.** `console.seededViews` records
+  what has been OFFERED, not what exists, so a deleted view stays
+  deleted instead of returning on the next login. Without it "delete"
+  would mean "hide until you reconnect".
+- **Every view is deletable, `All` included.** A shipped view the player
+  cannot remove is the un-editable special case in another form. What is
+  guaranteed is the LIST: deleting the last one re-seeds the defaults,
+  because a strip with nothing in it and no way to make one is not a
+  state anyone can get out of.
+- **No preset row inside the editor.** Chips named after the shipped
+  views used to sit at the top of the facet panel and overwrite the
+  filter being edited — inside an editor titled *Filter — Forge watch*
+  that is a third mechanism, neither the view you are editing nor the
+  strip you chose it from.
+
+### Composing one
 
 `+` **names it, activates it and opens the editor in one gesture.** The
 earlier version made an empty tab and stopped, leaving the player to
@@ -460,14 +490,15 @@ it meant anything — *"it's not obvious that I have to go back after
 hitting + to set my filters."* A control whose effect you can only
 discover by leaving it and coming back is not a control.
 
-Edit (`⋯`) and delete (`×`) ride the **active** view only, and only your
-own — a row of controls on every tab is noise, and `All` is not
-deletable. The editor carries the three facet axes with live per-value
-counts, a `SHOWING n of m` readout, and the topic-mute tree beneath it.
+Edit (`⋯`) and delete (`×`) ride the **active** view only: a row of
+controls on every tab is noise, and on the one you are looking at they
+are where you reach for them. The editor carries the three facet axes
+with live per-value counts, a `SHOWING n of m` readout, and the
+topic-mute tree beneath it.
 
-⚠ There is exactly **one** entry to that editor. A second one in
-Settings would give no way to tell, from that screen, which view it was
-about to change.
+⚠ There is exactly **one** entry to that editor. A second in Settings
+would give no way to tell, from that screen, which view it was about to
+change.
 
 ### ⚠⚠ `Aether` is a topic list, and that is a finding
 

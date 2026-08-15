@@ -53,15 +53,38 @@ describe("consoleActions", () => {
     expect(sendSpy).not.toHaveBeenCalled();
   });
 
-  it("deleteTab is a no-op on 'All' (uncloseable invariant)", () => {
+  it("⚠ deletes `All` like any other view — the special case is gone", () => {
+    /*
+     * This used to assert `All` was uncloseable. That invariant was
+     * deliberately dropped: a shipped view the player cannot remove is
+     * the un-editable special case coming back in another form, and it
+     * was reported as exactly that — *"'forge watch' I can edit but
+     * aether and diag I can't? I thought a filter was a filter."*
+     */
     addTab("Other");
-    sendSpy.mockClear();
     deleteTab("All");
     const tabs = useStore.getState().clientState[
       "console.tabs"
     ] as { name: string }[];
-    expect(tabs.map((t) => t.name)).toContain("All");
-    expect(sendSpy).not.toHaveBeenCalled();
+    expect(tabs.map((t) => t.name)).not.toContain("All");
+    expect(tabs.map((t) => t.name)).toContain("Other");
+  });
+
+  it("⭐ but never leaves the player with NO view", () => {
+    // The floor. Every view is deletable; the LIST is what is
+    // guaranteed, because a strip with nothing in it and no way to make
+    // one is not a state the player can get out of.
+    const tabs = useStore.getState().clientState[
+      "console.tabs"
+    ] as { name: string }[];
+    for (const t of [...tabs]) deleteTab(t.name);
+    const after = useStore.getState().clientState[
+      "console.tabs"
+    ] as { name: string }[];
+    expect(after.length).toBeGreaterThan(0);
+    expect(useStore.getState().clientState["console.activeTab"]).toBe(
+      after[0]!.name,
+    );
   });
 
   it("deleteTab removes a non-All tab and emits the wire write", () => {

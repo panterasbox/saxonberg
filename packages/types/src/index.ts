@@ -2341,8 +2341,19 @@ export interface FacetFilter {
   topics?: string[];
 }
 
-/** A named filter preset — what the panel offers before any tuning. */
-export interface FilterPreset {
+/**
+ * A named view — a predicate over the frame buffer, with a label.
+ *
+ * ⚠⚠ **There is no such thing as a "preset" here, and that is the
+ * point.** `DEFAULT_VIEWS` below is the set a player STARTS with;
+ * the moment it is seeded into `console.tabs` it is ordinary player
+ * data, editable and deletable like anything they compose themselves.
+ * A shipped view the player could not touch, sitting in the same strip
+ * as one they could, is two mechanisms wearing one costume — which is
+ * exactly how it was reported: *"'forge watch' I can edit but aether
+ * and diag I can't? I thought a filter was a filter."*
+ */
+export interface ViewDefinition {
   name: string;
   filter: FacetFilter;
   /** One line saying what it does, shown beside the chip. */
@@ -2355,7 +2366,7 @@ export interface FilterPreset {
  * ⚠ Exported from here so the panel and any future server-side reader
  * (a `filter` verb) cannot drift — the `DEFAULT_SHELF` precedent.
  */
-export const FILTER_PRESETS: readonly FilterPreset[] = [
+export const DEFAULT_VIEWS: readonly ViewDefinition[] = [
   { name: 'All', filter: {}, note: 'everything, in arrival order' },
   {
     name: 'Aether',

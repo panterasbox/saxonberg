@@ -11,7 +11,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { FacetFilter, TopicDescriptor } from "@saxonberg/types";
-import { FILTER_PRESETS } from "@saxonberg/types";
+import { DEFAULT_VIEWS } from "@saxonberg/types";
 import { useStore, type Frame } from "../../store/index";
 import {
   FacetFilterPanel,
@@ -161,20 +161,22 @@ describe("⚠ the counts", () => {
 });
 
 describe("the panel", () => {
-  it("applies a preset wholesale", () => {
+  it("⚠ offers NO preset row — that was a third mechanism", () => {
+    /*
+     * Chips named after the shipped views used to sit at the top of
+     * this panel and overwrite the filter being edited. Inside an
+     * editor titled *Filter — Forge watch*, buttons labelled `All` /
+     * `Aether` / `Diag` are neither the view you are editing nor the
+     * strip you selected it from. The shipped views are ordinary views
+     * in that strip.
+     */
     installFacets({});
-    let applied: FacetFilter | null = null;
     render(
-      <FacetFilterPanel
-        frames={[]}
-        filter={{}}
-        onChange={(f) => (applied = f)}
-      />,
+      <FacetFilterPanel frames={[]} filter={{}} onChange={() => undefined} />,
     );
-    fireEvent.click(screen.getByTestId("preset-Aether"));
-    expect(applied).toEqual(
-      FILTER_PRESETS.find((p) => p.name === "Aether")!.filter,
-    );
+    for (const v of DEFAULT_VIEWS) {
+      expect(screen.queryByTestId(`preset-${v.name}`)).toBeNull();
+    }
   });
 
   it("toggles one chip without disturbing another axis", () => {
@@ -202,7 +204,7 @@ describe("the panel", () => {
  * axes separates the room from the network.
  */
 describe("the topic allowlist", () => {
-  const aether = FILTER_PRESETS.find((p) => p.name === "Aether")!.filter;
+  const aether = DEFAULT_VIEWS.find((p) => p.name === "Aether")!.filter;
 
   const facets = (topic: string) => ({
     address: "broadcast" as const,
@@ -256,7 +258,7 @@ describe("the topic allowlist", () => {
      * routed feeds in a third. One list now, and every entry is the
      * same kind of thing: a named predicate over the whole buffer.
      */
-    expect(FILTER_PRESETS.map((p) => p.name)).toEqual([
+    expect(DEFAULT_VIEWS.map((p) => p.name)).toEqual([
       "All",
       "Aether",
       "Diag",

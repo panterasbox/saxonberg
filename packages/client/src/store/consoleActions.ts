@@ -15,12 +15,13 @@
  */
 
 import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
-import { FILTER_PRESETS } from '@saxonberg/types';
+import { DEFAULT_VIEWS } from '@saxonberg/types';
 import { useStore } from './index';
 import { websocketClient } from '../services/websocket';
 
 const KEY_TABS = 'console.tabs';
 const KEY_ACTIVE = 'console.activeTab';
+const KEY_SEEDED = 'console.seededViews';
 /**
  * ⭐ The shipped presets ARE the default tabs.
  *
@@ -30,7 +31,7 @@ const KEY_ACTIVE = 'console.activeTab';
  * real login as *"it's weird to have 4 presets + all and they're not
  * all treated the same."* One list, one kind of thing.
  */
-const DEFAULT_TABS: ConsoleTab[] = FILTER_PRESETS.map((preset) => ({
+const DEFAULT_TABS: ConsoleTab[] = DEFAULT_VIEWS.map((preset) => ({
   name: preset.name,
   muted: [],
   facets: preset.filter,
@@ -53,6 +54,11 @@ export function getActiveTab(): string {
 function writeTabs(tabs: ConsoleTab[]): void {
   useStore.getState().setLocalClientState(KEY_TABS, tabs);
   websocketClient.sendClientStateWrite(KEY_TABS, tabs);
+}
+
+function writeSeeded(names: string[]): void {
+  useStore.getState().setLocalClientState(KEY_SEEDED, names);
+  websocketClient.sendClientStateWrite(KEY_SEEDED, names);
 }
 
 function writeActive(name: string): void {
@@ -102,13 +108,22 @@ export function renameTab(oldName: string, newName: string): ConsoleTab[] {
  * silently rejected. If the deleted tab was active, falls back to
  * `'All'`.
  */
+/**
+ * ⚠ The floor: a player must always have somewhere to look.
+ *
+ * Every view is deletable, `All` included — a shipped view you cannot
+ * remove is the un-editable special case coming back in another form.
+ * What is guaranteed is that the LIST is never empty, so deleting the
+ * last one re-seeds the defaults rather than leaving a strip with
+ * nothing in it and no way to make one.
+ */
 export function deleteTab(name: string): ConsoleTab[] {
-  if (name === ALL_TAB) return getTabs();
   const tabs = getTabs();
-  const next = tabs.filter((t) => t.name !== name);
-  if (next.length === tabs.length) return tabs;
+  const remaining = tabs.filter((t) => t.name !== name);
+  if (remaining.length === tabs.length) return tabs;
+  const next = remaining.length > 0 ? remaining : DEFAULT_TABS;
   writeTabs(next);
-  if (getActiveTab() === name) writeActive(ALL_TAB);
+  if (getActiveTab() === name) writeActive(next[0]!.name);
   return next;
 }
 
@@ -180,25 +195,41 @@ export function getActiveFacetFilter(): FacetFilter {
  * you to a second device.
  */
 /**
- * Select a shipped preset, creating or repairing its tab first.
+ * Offer any shipped view the player has never been offered before.
  *
- * ⚠ **Self-healing on purpose.** `console.tabs` is persisted per
- * player, so anyone who logged in before a preset shipped — or before
- * its filter changed — carries a stale list, and `setActiveTab` refuses
- * a name it cannot find. A preset the code ships must be selectable on
- * the next login without the player having to repair their own state.
+ * ⚠⚠ **Additive, once, and it never overwrites.** The previous version
+ * re-applied the shipped filter every time you SELECTED the view, which
+ * made `Aether` and `Diag` silently un-editable: tune one, click away,
+ * click back, and your change was gone. That is the behaviour that made
+ * them feel like a different kind of thing from a view you made
+ * yourself. They are not, and now nothing treats them as such.
+ *
+ * ⚠ `console.seeded` records what has been OFFERED, not what exists —
+ * so deleting a shipped view makes it stay deleted instead of coming
+ * back on the next login. Without it, "delete" would mean "hide until
+ * you reconnect", which is not what the word means.
  */
-export function applyPreset(name: string): ConsoleTab[] {
-  const preset = FILTER_PRESETS.find((p) => p.name === name);
-  if (!preset) return getTabs();
-  const tabs = getTabs();
-  const existing = tabs.find((t) => t.name === name);
-  const next = existing
-    ? tabs.map((t) => (t.name === name ? { ...t, facets: preset.filter } : t))
-    : [...tabs, { name, muted: [], facets: preset.filter }];
+export function ensureSeededViews(): ConsoleTab[] {
+  const raw = useStore.getState().clientState[KEY_TABS];
+  const seededRaw = useStore.getState().clientState[KEY_SEEDED];
+  const seeded = Array.isArray(seededRaw) ? (seededRaw as string[]) : [];
+  // First run: no stored tabs at all. Take the defaults wholesale.
+  if (!Array.isArray(raw)) {
+    writeTabs(DEFAULT_TABS);
+    writeSeeded(DEFAULT_VIEWS.map((v) => v.name));
+    return DEFAULT_TABS;
+  }
+  const tabs = raw as ConsoleTab[];
+  const missing = DEFAULT_VIEWS.filter((v) => !seeded.includes(v.name));
+  if (missing.length === 0) return tabs;
+  const next = [
+    ...tabs,
+    ...missing
+      .filter((v) => !tabs.some((t) => t.name === v.name))
+      .map((v) => ({ name: v.name, muted: [], facets: v.filter })),
+  ];
   writeTabs(next);
-  writeActive(name);
-  useStore.getState().clearUnreadFor(name);
+  writeSeeded([...seeded, ...missing.map((v) => v.name)]);
   return next;
 }
 

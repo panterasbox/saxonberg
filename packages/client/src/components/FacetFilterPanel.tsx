@@ -41,7 +41,6 @@ import type {
   TopicActor,
   TopicWeight,
 } from "@saxonberg/types";
-import { FILTER_PRESETS } from "@saxonberg/types";
 import { useStore, type Frame } from "../store/index";
 import { tokens } from "./ui";
 
@@ -255,23 +254,15 @@ export function FacetFilterPanel({
         SHOWING {passing} of {frames.length}
       </Showing>
 
-      <Section>
-        <Label>Presets</Label>
-        <Chips>
-          {FILTER_PRESETS.map((preset) => (
-            <Chip
-              key={preset.name}
-              $on={JSON.stringify(preset.filter) === JSON.stringify(filter)}
-              title={preset.note}
-              data-testid={`preset-${preset.name}`}
-              onClick={() => onChange({ ...preset.filter })}
-            >
-              {preset.name}
-            </Chip>
-          ))}
-        </Chips>
-      </Section>
-
+      {/*
+        ⚠⚠ **No "presets" row.** It used to sit here — chips named after
+        the shipped views, which overwrote the filter you were editing.
+        Inside an editor titled *Filter — Forge watch*, a row of buttons
+        labelled `All` / `Aether` / `Diag` is a THIRD mechanism: neither
+        the view you are editing nor the strip you selected it from. The
+        shipped views are ordinary views in that strip; if you want one
+        of them, select it there.
+      */}
       {axis("Address", "address", ADDRESSES)}
       {axis("Actor", "actor", ACTORS)}
       {axis("Weight", "weight", WEIGHTS)}

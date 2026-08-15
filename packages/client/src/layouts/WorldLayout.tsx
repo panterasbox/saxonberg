@@ -11,7 +11,10 @@
 import React from "react";
 import styled from "styled-components";
 import { useStore } from "../store/index";
-import { applyPreset } from "../store/consoleActions";
+import {
+  ensureSeededViews,
+  setActiveFacetFilter,
+} from "../store/consoleActions";
 import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { useIsCompact } from "../lib/style/useIsCompact";
@@ -171,6 +174,14 @@ export const WorldLayout: React.FC<LayoutProps> = ({
    * which was the version nobody could explain to themselves.
    */
   const [viewEditorOpen, setViewEditorOpen] = React.useState(false);
+  /*
+   * ⚠ Seeding runs here, once, at the surface that owns the strip —
+   * additive and never overwriting, so a view the player edited or
+   * deleted stays edited or deleted. See `ensureSeededViews`.
+   */
+  React.useEffect(() => {
+    ensureSeededViews();
+  }, []);
   const rightPane = useStore((s) => s.rightPane);
   // ⚠ The UNFILTERED buffer. Every count in the feed switcher is
   // derived from the frames it names, and naming them from an
@@ -264,17 +275,17 @@ export const WorldLayout: React.FC<LayoutProps> = ({
             {hiddenHere} in the buffer, all hidden by{" "}
             <strong>{activeTabName}</strong>.{" "}
             {/*
-              ⚠ It offers the WAY OUT, not the editor. With two shipped
-              presets the answer to "everything here is hidden" is
-              always "switch to All" — sending the reader to a facet
-              editor to work that out themselves would be a worse
-              version of the control this notice exists to explain.
+              ⚠ It offers the WAY OUT, and the way out has to be one
+              that always exists. Naming a specific view would assume a
+              view the player may have deleted — every view is theirs to
+              remove. Clearing THIS view's filter is always available
+              and always works.
             */}
             <FilterLink
-              aria-label="show All"
-              onClick={() => applyPreset("All")}
+              aria-label="clear this view's filter"
+              onClick={() => setActiveFacetFilter({})}
             >
-              show All
+              clear it
             </FilterLink>
           </FilteredNotice>
         )}
