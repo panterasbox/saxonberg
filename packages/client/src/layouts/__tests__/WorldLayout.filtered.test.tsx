@@ -51,7 +51,6 @@ beforeEach(() => {
   vi.spyOn(websocketClient, "resolveAffordances").mockImplementation(noop);
   useStore.setState({
     paneCards: {},
-    activeFeed: "diagnostics",
     frames: [diagnosticFrame("a"), diagnosticFrame("b")],
     clientState: {
       "console.activeTab": "All",
@@ -66,7 +65,7 @@ describe("the count-vs-body reconciler", () => {
     renderLayout([]);
 
     const notice = screen.getByTestId("all-filtered-notice");
-    expect(notice.textContent).toContain("2 in diagnostics");
+    expect(notice.textContent).toContain("2 in the buffer");
     // Named, so the reader knows which control to reach for.
     expect(notice.textContent).toContain("All");
   });

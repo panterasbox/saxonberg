@@ -11,13 +11,12 @@
 import React from "react";
 import styled from "styled-components";
 import { useStore } from "../store/index";
-import { frameFeeds } from "../store/routingActions";
 import { applyPreset } from "../store/consoleActions";
 import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { TabStrip } from "../components/TabStrip";
-import { FeedSwitcher } from "../components/routing/FeedSwitcher";
+import { FilterDrawer } from "../components/FilterDrawer";
 import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
@@ -26,9 +25,7 @@ import { usePaneFeed } from "../components/panes/usePaneFeed";
 import { RadialOverlay } from "../components/panes/RadialOverlay";
 import {
   InlinePane,
-  LeftBehindCard,
   PinnedChipRow,
-  leftBehind,
 } from "../components/panes/MobilePlaySurface";
 import { WhoPane } from "../components/WhoPane";
 import { NewsTickerPane } from "../components/NewsTickerPane";
@@ -130,41 +127,6 @@ const FilterLink = styled.button`
   text-decoration: underline;
 `;
 
-/**
- * The feed tabs and the saved-filter tabs, on ONE line.
- *
- * ⚠ They shipped as two stacked full-width tab strips and read as the
- * same control repeated — the difference between them was documented in
- * a code comment rather than shown on the screen. They remain two
- * questions (a FEED is where a rule sent something; a TAB is a saved
- * filter within the feed you are in), and the divider is what says so.
- *
- * Each strip was authored as a standalone row, so their own bottom
- * rules and backgrounds are suppressed here — two rules inside one row
- * would draw a line through its middle.
- */
-const StripRow = styled.div`
-  display: flex;
-  align-items: stretch;
-  max-width: 100%;
-  overflow-x: auto;
-  background: ${tokens.color.surfaceMuted};
-  border-bottom: 1px solid ${tokens.color.borderMuted};
-
-  & > * {
-    border-bottom: none;
-    flex: 0 0 auto;
-  }
-`;
-
-const StripDivider = styled.span`
-  flex: 0 0 auto;
-  align-self: center;
-  width: 1px;
-  height: 1.4em;
-  background: ${tokens.color.borderMuted};
-`;
-
 /** The inline pane stack, between the transcript and the command bar. */
 const InlineStack = styled.div`
   flex: none;
@@ -202,16 +164,20 @@ export const WorldLayout: React.FC<LayoutProps> = ({
    * empty forever.
    */
   usePaneFeed();
+  /*
+   * ⭐ The view editor. Opened by `+` (which has just created and
+   * activated the view) and by the `⋯` on your own active view — never
+   * by a bare gear that edits "whichever tab happens to be selected",
+   * which was the version nobody could explain to themselves.
+   */
+  const [viewEditorOpen, setViewEditorOpen] = React.useState(false);
   const rightPane = useStore((s) => s.rightPane);
-  const activeFeed = useStore((s) => s.activeFeed);
-  const setActiveFeed = useStore((s) => s.setActiveFeed);
   // ⚠ The UNFILTERED buffer. Every count in the feed switcher is
   // derived from the frames it names, and naming them from an
   // already-filtered list would make `World 1077` report how many the
   // current tab happens to show rather than how many landed there.
   const allFrames = useStore((s) => s.frames);
   const paneCards = useStore((s) => s.paneCards);
-  const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
   const setRightPane = useStore((s) => s.setRightPane);
   // ⚠ Subscribes to `matchMedia` — dragging a desktop window narrow is
   // the cheapest way anyone will test this, and a one-shot read would
@@ -222,27 +188,12 @@ export const WorldLayout: React.FC<LayoutProps> = ({
     () => Object.values(paneCards).sort((a, b) => a.openedAt - b.openedAt),
     [paneCards],
   );
-  const stubs = React.useMemo(
-    () =>
-      isCompact
-        ? leftBehind(
-            allFrames,
-            activeFeed,
-            (t) => getTopicDescriptor(t).weight,
-          )
-        : [],
-    [isCompact, allFrames, activeFeed, getTopicDescriptor],
-  );
   /*
-   * How many frames the ACTIVE FEED holds — the switcher's own number,
-   * derived the same way so the notice below can never quote a
-   * different one than the tab it is explaining.
+   * The whole buffer — the denominator the reconciler quotes. Every
+   * tab is a view over exactly these frames now, so "N in the buffer"
+   * is the honest number: there is no second place a frame could be.
    */
-  const hiddenHere = React.useMemo(
-    () =>
-      allFrames.filter((f) => frameFeeds(f.feeds).includes(activeFeed)).length,
-    [allFrames, activeFeed],
-  );
+  const hiddenHere = allFrames.length;
   const activeTabName = useStore(
     (s) => (s.clientState["console.activeTab"] as string | undefined) ?? "All",
   );
@@ -260,23 +211,34 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           other is a place a rule sent something.
         */}
         {/*
-          ⚠ **One row, not two.** These shipped as two full-width tab
-          strips stacked on each other, and they read as the same
-          control repeated — the difference between them lived in a
-          code comment, not on the screen. They are still two questions
-          (a FEED is where a rule sent something; a TAB is a saved
-          filter within it) and the divider says so, but a reader is no
-          longer asked to work out why there appear to be two tab bars.
+          ⭐⭐ **One strip, and every tab is a VIEW over the whole
+          buffer** — not a destination a rule moved something into.
+
+          There used to be a second strip of routed feeds
+          (`World | Attention | Channels | Diag`) above this one, and it
+          was the same act performed by a second control: both
+          partitioned the same scrollback into exclusive things you
+          switch between. Two properties settled it, and neither was
+          patchable inside the destination model:
+
+          - the routing stamp was applied at DELIVERY, so changing a
+            rule never re-sorted your history; and
+          - the frame store does not persist the stamp, so on reconnect
+            every backfilled frame landed in `world` regardless. Live,
+            that read `World 244 · Attention 1 · Channels 0` — the
+            non-World counts were only what had arrived since the socket
+            opened. Your dm history was not in Attention.
+
+          A predicate has neither problem: it is recomputed over the
+          buffer every render, so it is retroactive by construction and
+          survives backfill for free. MOVE/COPY disappears with the
+          buckets — a frame is simply in every view whose predicate it
+          satisfies, which is what COPY was straining to fake.
         */}
-        <StripRow>
-          <FeedSwitcher
-            frames={allFrames}
-            active={activeFeed}
-            onSelect={setActiveFeed}
-          />
-          <StripDivider aria-hidden="true" />
-          <TabStrip presetsOnly />
-        </StripRow>
+        <TabStrip
+          presetsOnly
+          onToggleDrawer={() => setViewEditorOpen((v) => !v)}
+        />
         <Terminal
           frames={frames}
           onCommandClick={onCommandClick}
@@ -299,7 +261,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         */}
         {frames.length === 0 && hiddenHere > 0 && (
           <FilteredNotice data-testid="all-filtered-notice">
-            {hiddenHere} in {activeFeed}, all hidden by the filter on{" "}
+            {hiddenHere} in the buffer, all hidden by{" "}
             <strong>{activeTabName}</strong>.{" "}
             {/*
               ⚠ It offers the WAY OUT, not the editor. With two shipped
@@ -316,6 +278,9 @@ export const WorldLayout: React.FC<LayoutProps> = ({
             </FilterLink>
           </FilteredNotice>
         )}
+        {viewEditorOpen && (
+          <FilterDrawer onClose={() => setViewEditorOpen(false)} />
+        )}
         {/*
           ⭐⭐ **On a phone the panes come INLINE.** Interleave what is
           causally related, switch what is independent: a pane is caused
@@ -330,14 +295,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
                 card={card}
                 onSendCommand={onCommandClick}
                 onCommandPreview={onCommandPreview}
-              />
-            ))}
-            {stubs.slice(-3).map(({ frame: f, feed }) => (
-              <LeftBehindCard
-                key={f.id}
-                frame={f}
-                feed={feed}
-                onOpenFeed={setActiveFeed}
               />
             ))}
           </InlineStack>

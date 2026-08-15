@@ -15,16 +15,37 @@ import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
 import { FILTER_PRESETS } from '@saxonberg/types';
-import type { ConsoleTab } from '@saxonberg/types';
+import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
+import { facetFilterPasses } from './FacetFilterPanel';
 import {
   addTab,
   applyPreset,
   deleteTab,
   renameTab,
+  saveFilterSetAsTab,
   setActiveTab,
 } from '../store/consoleActions';
 
 const ALL_TAB = 'All';
+
+/** A control that rides inside a tab — edit, delete. */
+const TabAction = styled.span`
+  margin-left: ${tokens.space.xs};
+  padding: 0 0.15rem;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
+const TabCount = styled.span`
+  margin-left: ${tokens.space.xs};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+`;
 
 const Strip = styled.div`
   display: flex;
@@ -172,6 +193,18 @@ export function TabStrip({
   onToggleDrawer,
   presetsOnly = false,
 }: TabStripProps = {}) {
+  const frames = useStore((s) => s.frames);
+  const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
+  const countFor = (filter: FacetFilter): number =>
+    frames.filter((f) => {
+      const d = getTopicDescriptor(f.topic);
+      return facetFilterPasses(filter, {
+        address: d.address,
+        actor: d.actor,
+        weight: d.weight,
+        topic: f.topic,
+      });
+    }).length;
   const clientState = useStore((s) => s.clientState);
   const tabs = (clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [
     { name: ALL_TAB, muted: [] },
@@ -226,6 +259,29 @@ export function TabStrip({
     setEditValue('');
   }
 
+  /**
+   * ⚠ Create AND activate AND open the editor, in one gesture.
+   *
+   * The old `+` made an empty tab and stopped, leaving the player to
+   * work out that they had to select it and then find a separate gear
+   * before it meant anything — reported as *"it's not obvious that I
+   * have to go back after hitting + to set my filters."* A control
+   * whose effect you can only discover by leaving it and coming back
+   * is not a control.
+   */
+  function commitNewView() {
+    if (pendingNew === null) return;
+    const name = editValue.trim();
+    setPendingNew(null);
+    setEditValue('');
+    if (!name) return;
+    // Upserts by name, and activates. A brand-new view starts empty —
+    // showing everything — so the editor opens on a view whose count
+    // matches `All`, and every narrowing is visible as it happens.
+    saveFilterSetAsTab(name, {});
+    onToggleDrawer?.();
+  }
+
   function cancelNew() {
     setPendingNew(null);
     setEditValue('');
@@ -252,6 +308,22 @@ export function TabStrip({
   }
 
   if (presetsOnly) {
+    /*
+     * ⚠⚠ **Shipped views AND the player's own, in one list.**
+     *
+     * An earlier pass rendered `FILTER_PRESETS` alone, which quietly
+     * deleted the whole point of the feature: a saved view could be
+     * created and would then never appear anywhere. "Keep two presets"
+     * was about the shipped DEFAULTS being four-plus-an-odd-one-out; it
+     * was never about taking away the ability to compose your own.
+     *
+     * They interleave rather than sitting in separate groups because
+     * they are the same kind of thing — a named predicate over the
+     * whole buffer. Which ones happen to ship with the client is not a
+     * distinction the reader has to care about.
+     */
+    const shipped = new Set(FILTER_PRESETS.map((p) => p.name));
+    const mine = tabs.filter((t) => !shipped.has(t.name));
     return (
       <Strip data-testid="tab-strip">
         {FILTER_PRESETS.map((preset) => (
@@ -260,14 +332,95 @@ export function TabStrip({
             $active={preset.name === active}
             data-testid={`tab-${preset.name}`}
             /* The note is the only explanation there is room for, and a
-               preset the player cannot explain to themselves is a
-               preset they will not use. */
+               view the player cannot explain to themselves is a view
+               they will not use. */
             title={preset.note}
             onClick={() => applyPreset(preset.name)}
           >
             {preset.name}
+            {/*
+              ⚠ **Derived at render, over the WHOLE buffer** — never
+              tracked beside it, and never counted from an
+              already-filtered list. That is also what makes a view
+              retroactive: the count and the contents are the same
+              predicate applied to the same frames, so changing a view
+              re-sorts your history instead of only affecting what
+              arrives next.
+            */}
+            <TabCount data-testid={`tab-count-${preset.name}`}>
+              {countFor(preset.filter)}
+            </TabCount>
           </Tab>
         ))}
+        {mine.map((tab) => (
+          <Tab
+            key={tab.name}
+            $active={tab.name === active}
+            data-testid={`tab-${tab.name}`}
+            title={`Your view — ${tab.name}`}
+            onClick={() => setActiveTab(tab.name)}
+          >
+            {tab.name}
+            <TabCount data-testid={`tab-count-${tab.name}`}>
+              {countFor(tab.facets ?? {})}
+            </TabCount>
+            {/*
+              ⭐ Edit and delete ride the ACTIVE view only. A row of
+              controls on every tab is noise; on the one you are looking
+              at they are exactly where you reach for them.
+            */}
+            {tab.name === active && onToggleDrawer && (
+              <TabAction
+                aria-label={`Edit ${tab.name}`}
+                data-testid={`tab-edit-${tab.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleDrawer();
+                }}
+              >
+                ⋯
+              </TabAction>
+            )}
+            {tab.name === active && (
+              <TabAction
+                aria-label={`Delete ${tab.name}`}
+                data-testid={`tab-delete-${tab.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTab(tab.name);
+                  applyPreset(FILTER_PRESETS[0]!.name);
+                }}
+              >
+                ×
+              </TabAction>
+            )}
+          </Tab>
+        ))}
+        {pendingNew !== null ? (
+          <Tab $active={false} data-testid="tab-new-pending">
+            <NameInput
+              ref={editInputRef}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={commitNewView}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitNewView();
+                else if (e.key === 'Escape') cancelNew();
+              }}
+              placeholder="Name this view"
+              data-testid="tab-new-input"
+            />
+          </Tab>
+        ) : (
+          <PlusButton
+            onClick={startCreate}
+            aria-label="New view"
+            data-testid="tab-add"
+            title="Compose a view of your own"
+          >
+            +
+          </PlusButton>
+        )}
       </Strip>
     );
   }

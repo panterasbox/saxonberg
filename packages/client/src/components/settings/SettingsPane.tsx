@@ -23,10 +23,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
-import { RoutingTable } from "../routing/RoutingTable";
-import { FilterDrawer } from "../FilterDrawer";
 import { PromptFormatBar } from "../PromptFormatBar";
-import type { Frame } from "../../store/index";
 
 const Pane = styled.aside`
   display: flex;
@@ -171,12 +168,6 @@ interface SettingsPaneProps {
    * branch (it lands separately on master), so the section degrades.
    */
   notificationsAvailable?: boolean;
-  /**
-   * The unfiltered frame buffer — the routing table derives a live
-   * count per rule from it, so a rule can say what it is actually
-   * catching rather than asserting that it works.
-   */
-  frames?: readonly Frame[];
 }
 
 /*
@@ -195,7 +186,6 @@ export function SettingsPane({
   onSendCommand,
   onClose,
   notificationsAvailable = false,
-  frames = [],
 }: SettingsPaneProps): JSX.Element {
   const [settingKey, setSettingKey] = useState("");
   const [settingValue, setSettingValue] = useState("");
@@ -227,18 +217,14 @@ export function SettingsPane({
         </CloseButton>
       </Header>
 
-      <Section>
-        <SectionTitle>Filters for the selected tab</SectionTitle>
-        {/*
-          ⚠ The heading names its own subject, which is the whole fix.
-          As a bare ⚙ on the tab strip this was reported as *"there's a
-          settings thing but what am I setting?"* — and the honest
-          answer, *the facets of whichever tab you have selected*, was
-          nowhere on the screen.
-        */}
-        <FilterDrawer inline onClose={() => undefined} />
-      </Section>
-
+      {/*
+        ⚠ The filter editor is NOT here. It lives on the play surface,
+        opened by `+` (which has just created and activated the view you
+        are about to edit) or by the `⋯` on your own active view. Here
+        it would be a second entry point to the same editor, with no way
+        to tell from this screen which view it was about to change —
+        which is the confusion the whole pass was fixing.
+      */}
       <Section>
         <SectionTitle>Prompt format</SectionTitle>
         <PromptFormatBar
@@ -247,11 +233,22 @@ export function SettingsPane({
         />
       </Section>
 
-      <Section>
-        <SectionTitle>Feed routing</SectionTitle>
-        <RoutingTable frames={frames} />
-      </Section>
+      {/*
+        ⚠⚠ **The routing table is not here, because it no longer does
+        anything you could see.**
 
+        Its only observable effect was placing a frame into one of four
+        feeds, and feeds are gone — every tab is a view over the whole
+        buffer. A settings screen for rules that change nothing would be
+        a control lying about its own effect, which is worse than a
+        missing one.
+
+        The rules themselves are retained (`DEFAULT_ROUTING`, the
+        predicate vocabulary, `MessageApi.feedsFor` and its tests) as
+        the substrate for notification policy — *which frames should
+        ping you* is a real question that wants exactly this shape. The
+        UI returns when there is something for it to drive.
+      */}
       <Section>
         <SectionTitle>Notifications</SectionTitle>
         {notificationsAvailable ? (

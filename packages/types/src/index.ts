@@ -2356,7 +2356,7 @@ export interface FilterPreset {
  * (a `filter` verb) cannot drift — the `DEFAULT_SHELF` precedent.
  */
 export const FILTER_PRESETS: readonly FilterPreset[] = [
-  { name: 'All', filter: {}, note: 'everything the feed carries' },
+  { name: 'All', filter: {}, note: 'everything, in arrival order' },
   {
     name: 'Aether',
     /*
@@ -2371,6 +2371,11 @@ export const FILTER_PRESETS: readonly FilterPreset[] = [
      */
     filter: { topics: ['speech.comms', 'speech.channel', 'speech.relay'] },
     note: 'dms and chat — what reaches you over the network',
+  },
+  {
+    name: 'Diag',
+    filter: { weight: ['diagnostic'] },
+    note: 'the machine talking to itself',
   },
 ];
 

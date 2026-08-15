@@ -34,7 +34,6 @@ import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
 import { facetFilterPasses } from "./components/FacetFilterPanel";
-import { frameFeeds } from "./store/routingActions";
 import type {
   ConsoleTab,
   LayoutName,
@@ -346,11 +345,15 @@ function App() {
    *     subtree ("everything about the air in here"), which is a
    *     prefix operation, so both halves stay.
    */
-  const activeFeed = useStore((state) => state.activeFeed);
   const getTopicDescriptor = useStore((state) => state.getTopicDescriptor);
   const facetFilter = activeTab?.facets;
   const visibleFrames = frames.filter((f) => {
-    if (!frameFeeds(f.feeds).includes(activeFeed)) return false;
+    /*
+     * ⭐ No feed check. Every tab is a VIEW over the whole buffer now —
+     * a frame is not placed anywhere at delivery, so there is nothing
+     * to match against. See `WorldLayout`'s strip note for why the
+     * destination model was retired.
+     */
     const d = getTopicDescriptor(f.topic);
     if (
       !facetFilterPasses(facetFilter, {
@@ -786,11 +789,7 @@ function App() {
           <ContentRow $compact={isCompact}>
             <ActiveLayout {...layoutProps} />
             {summonedPane === "settings" ? (
-              <SettingsPane
-                onSendCommand={sendCommand}
-                onClose={closePane}
-                frames={frames}
-              />
+              <SettingsPane onSendCommand={sendCommand} onClose={closePane} />
             ) : null}
           </ContentRow>
           {/* The Social / Notifications pane (master's notify surface),

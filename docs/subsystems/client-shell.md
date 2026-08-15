@@ -409,69 +409,83 @@ A countdown is a promise, and reporting when the next attempt fires
 obliges the next attempt to actually fire. The three frozen guard files
 still pass unmodified.
 
-## ⭐ Two strips, two questions
+## ⭐⭐ One strip, and every tab is a VIEW over the whole buffer
 
-Above the terminal sit two controls that look similar and are not:
+`All 252 · Aether 0 · Diag 87 · Forge watch 109 ⋯ × · +`
 
-- **The feed switcher** — `World 98 · Attention 1 · Channels 0 ·
-  Diag 3 · All`, each tab carrying its count, horizontally scrollable.
-  This is **where the server routed a frame**: independent destinations
-  you switch between. See [messaging.md](./messaging.md).
-- **The tab strip** — a saved **filter set within** the feed you are in.
+A tab is a **named predicate**, evaluated at render over every frame in
+the buffer. Shipped views (`FILTER_PRESETS`) and the player's own sit in
+one list, interleaved, because they are the same kind of thing — which
+of them happens to ship with the client is not a distinction a reader
+has to care about.
 
-Collapsing them would make *"show me only direct messages"* and *"show
-me the Attention feed"* the same control, and they are not: one is a
-predicate you tune, the other is a place a rule sent something.
+⚠ Counts are derived from the predicate, over the **unfiltered** buffer.
+The count and the contents are the same rule applied to the same frames,
+which is also what makes a view retroactive: changing one re-sorts your
+whole history rather than affecting only what arrives next.
 
-⚠ The counts are derived from the **unfiltered** buffer. Naming them
-from an already-filtered list would make `World 1077` report how many
-the current tab happens to show rather than how many landed there.
+### ⚠⚠ Routed feeds were retired, and why
 
-⚠ Switching a feed is a **viewport act, not a command** — like a scroll
-position. What feeds exist and what lands in them is the server's
-business; which one you happen to be looking at is not. Dressing it as
-a command would be a fake claim, which is the honesty failure one level
-up from a fake figure. The same goes for the filter drawer and the
-prompt format bar's expand control: neither carries a `Click to send:`
-promise, because neither sends anything.
+There used to be a second strip above this one —
+`World | Attention | Channels | Diag` — where the routing table MOVEd or
+COPYed each frame into one destination at delivery. It was the same act
+performed by a second control, and two properties finished it, neither
+patchable inside the destination model:
 
-### Filtering ships as TWO presets
+- **The stamp was applied at delivery**, so changing a rule never
+  re-sorted history; old frames kept their old routing forever.
+- **The frame store does not persist the stamp**, so on reconnect every
+  backfilled frame fell to `world`. Measured live:
+  `World 244 · Attention 1 · Channels 0` — the non-World counts were
+  only what had arrived since the socket opened. The player's dm history
+  was not in Attention.
 
-`All` and `Aether`. Not four facet presets plus a differently-shaped
-`All` tab in a different control — that shipped, and the report was
-*"it's weird to have 4 presets + all and they're not all treated the
-same."* One list, one kind of thing.
+A predicate has neither problem. **MOVE/COPY disappears with the
+buckets**: a frame is simply in every view whose predicate it satisfies,
+which is what COPY was straining to fake.
 
-⚠ **No `+`, and no ⚙, on the play surface.** Creating a tab and then
-discovering you had to go back and select it before its filter meant
-anything is a flow whose effect you can only learn by leaving it and
-returning. The custom-tab machinery still exists and still works; the
-facet editor and the topic-mute tree live in **Settings**, under a
-heading that names what they tune. A bare gear that edits *whichever
-tab happens to be selected* answers no question the player was asking.
+⚠ The rules themselves are retained — `DEFAULT_ROUTING`, the predicate
+vocabulary, `MessageApi.feedsFor` and its tests — as the substrate for
+**notification policy**. *Which frames should ping you* is a real
+question that wants exactly this shape. Its UI returns when there is
+something for it to drive; a settings screen for rules that change
+nothing observable would be a control lying about its own effect.
 
-⭐ `applyPreset` is **self-healing**: `console.tabs` is persisted per
-player, so anyone who logged in before a preset shipped carries a stale
-list, and a preset the code ships must be selectable on the next login
-without the player repairing their own state.
+### Composing a view
+
+`+` **names it, activates it and opens the editor in one gesture.** The
+earlier version made an empty tab and stopped, leaving the player to
+work out that they had to select it and then find a separate gear before
+it meant anything — *"it's not obvious that I have to go back after
+hitting + to set my filters."* A control whose effect you can only
+discover by leaving it and coming back is not a control.
+
+Edit (`⋯`) and delete (`×`) ride the **active** view only, and only your
+own — a row of controls on every tab is noise, and `All` is not
+deletable. The editor carries the three facet axes with live per-value
+counts, a `SHOWING n of m` readout, and the topic-mute tree beneath it.
+
+⚠ There is exactly **one** entry to that editor. A second one in
+Settings would give no way to tell, from that screen, which view it was
+about to change.
 
 ### ⚠⚠ `Aether` is a topic list, and that is a finding
 
-Facets are still the default, for the reason they were built: one rule
-does not drift when a topic is added. But **`speech.vocal` and
+Facets are the default, for the reason they were built: one rule does
+not drift when a topic is added. But **`speech.vocal` and
 `speech.channel` carry identical facets** — both `address: broadcast,
 actor: person` — so no combination of the three axes separates *talking
-out loud in a room* from *talking on a channel*. A preset meaning "the
+out loud in a room* from *talking on a channel*. A view meaning "the
 electronic layer" cannot be a facet rule.
 
 `FacetFilter.topics` is therefore a topic-prefix **allowlist** — the
 include direction of the tree half the model already had, since
 `ConsoleTab.muted` is the same operation pointed the other way.
 
-⚠ Worth a separate look: two topics that a player experiences as
-completely different things being facet-identical is arguably a gap in
-the S2 taxonomy rather than a gap in the filter. Fixing it there would
-let `Aether` go back to being one rule.
+⚠ Worth a separate look: two topics a player experiences as completely
+different things being facet-identical is arguably a gap in the S2
+taxonomy rather than in the filter. Fixing it there would let `Aether`
+go back to being one rule.
 
 ## The phone's play surface
 

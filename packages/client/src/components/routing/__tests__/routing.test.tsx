@@ -15,7 +15,6 @@ import type { TopicDescriptor } from "@saxonberg/types";
 import { DEFAULT_ROUTING } from "@saxonberg/types";
 import { useStore, type Frame } from "../../../store/index";
 import { websocketClient } from "../../../services/websocket";
-import { FeedSwitcher, countByFeed, framesInFeed } from "../FeedSwitcher";
 import { RoutingTable, matchCounts } from "../RoutingTable";
 import {
   getEffectiveRoutingRules,
@@ -63,49 +62,6 @@ beforeEach(() => {
   vi.spyOn(websocketClient, "sendClientStateWrite").mockImplementation(
     () => undefined,
   );
-});
-
-describe("the feed switcher", () => {
-  it("⚠ counts are DERIVED from the frames they name", () => {
-    const frames = [
-      frame({ feeds: ["world"] }),
-      frame({ feeds: ["world"] }),
-      frame({ feeds: ["attention", "world"] }),
-      frame({ feeds: ["diagnostics"] }),
-    ];
-    const counts = countByFeed(frames);
-    // A `copy` lands in two feeds, so the totals deliberately sum to
-    // more than the frame count. Anything else would mean the copy
-    // rule had quietly become a move.
-    expect(counts.world).toBe(3);
-    expect(counts.attention).toBe(1);
-    expect(counts.diagnostics).toBe(1);
-    expect(counts.channels).toBe(0);
-  });
-
-  it("treats an unstamped frame as World, like the catch-all does", () => {
-    // A frame delivered before the player had a table is not a frame
-    // with nowhere to go.
-    expect(countByFeed([frame({})]).world).toBe(1);
-    expect(framesInFeed([frame({})], "world")).toHaveLength(1);
-  });
-
-  it("renders every destination, even an empty one", () => {
-    render(
-      <FeedSwitcher
-        frames={[frame({ feeds: ["world"] })]}
-        active="world"
-        onSelect={() => undefined}
-      />,
-    );
-    // An absent tab is indistinguishable from a feed that does not
-    // exist, and a player cannot notice they are missing something
-    // they cannot see a name for.
-    for (const feed of ["world", "attention", "channels", "diagnostics"]) {
-      expect(screen.getByTestId(`feed-count-${feed}`)).toBeTruthy();
-    }
-    expect(screen.getByTestId("feed-count-channels").textContent).toBe("0");
-  });
 });
 
 describe("⚠⚠ the routing table", () => {

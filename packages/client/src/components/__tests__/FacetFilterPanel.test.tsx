@@ -249,9 +249,17 @@ describe("the topic allowlist", () => {
     ).toBe(false);
   });
 
-  it("ships exactly two presets", () => {
-    // Four facet presets plus a differently-shaped `All` tab was the
-    // reported confusion. One list, one kind of thing.
-    expect(FILTER_PRESETS.map((p) => p.name)).toEqual(["All", "Aether"]);
+  it("ships one short list of views, all the same kind of thing", () => {
+    /*
+     * The reported confusion was four facet presets PLUS a
+     * differently-shaped `All` tab, in a second control, beside four
+     * routed feeds in a third. One list now, and every entry is the
+     * same kind of thing: a named predicate over the whole buffer.
+     */
+    expect(FILTER_PRESETS.map((p) => p.name)).toEqual([
+      "All",
+      "Aether",
+      "Diag",
+    ]);
   });
 });
