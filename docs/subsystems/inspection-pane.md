@@ -314,8 +314,7 @@ HAS:
 | measured | the subject declares a reading |
 | **exits** | the subject is Exitable |
 | here | the subject contains something |
-| actions | the radial resolved verbs for it |
-| mixins | at the FOOT, collapsed to `N mixins` |
+| mixins | at the FOOT — one line of chips, `+N more` inline |
 | refresh | always — `look <keyword>` |
 
 ⭐⭐ **The details ARE the description.** The body renders the subject's
@@ -328,13 +327,33 @@ prose and once as a list.
 argument for flattening the prose to plain text, and it is answered by
 the toggle rather than by taking the links away.
 
-⚠ **The mixin row is collapsed, at the foot.** It is a teaching surface
-— how a player meets the content-development palette on real objects —
-but it is not what they came to the card for, and at the top it was the
-first thing after the name on every card. It re-asks the resolver
-whenever its answer is MISSING, not only when the subject changes:
-`clearAffordances` runs after every command, so a card that asked once
-on mount lost its composition and never got it back.
+⚠ **The mixin row sits at the foot: one line of chips with `+N more`
+inline.** It is a teaching surface — how a player meets the
+content-development palette on real objects — so some of it has to be
+legible without a click; a bare count taught nothing. The toggle is
+inline with the chips because a toggle underneath turns a one-line row
+into a two-line one, which is the space moving it down here saved.
+
+⚠ It re-asks the resolver whenever its answer is MISSING, not only when
+the subject changes: `clearAffordances` runs after every command, so a
+card that asked once on mount lost its composition and never got it
+back.
+
+### ⚠⚠ There is no action row, and that is a SERVER gap
+
+It showed the first few enabled verbs from the resolver, which put
+`cast · defend · destruct` on a noticeboard, a room and an implant
+alike. They are enabled because **the ACTOR can always do them**, not
+because the subject affords anything — and `AffordanceEntry` carries
+nothing that tells the two apart (`verb`, `description`, `state`,
+`reason`, `operand`, `category`). A client-side filter would have to
+guess, and a guess dressed as a recommendation is worse than no row.
+
+The radial already answers *what can I do with this* properly: every
+verb, with the validator's own words beside the ones you cannot run.
+**Until the resolver can say which verbs a SUBJECT affords, that is the
+honest place for it** — and that distinction is the thing to build if a
+card-level action row is wanted.
 
 ⚠⚠ **A zero quantity is "not declared", not "weighs nothing".** `mass`
 rides `DETAIL_FIELDS`, so the projection carries it for anything

@@ -328,28 +328,86 @@ describe("⚠ a projected default is not a reading", () => {
 });
 
 describe("the composition row", () => {
-  it("is collapsed to a count, and opens on demand", () => {
+  function withComposition(names: string[]) {
     useStore.setState({
       affordances: {
         room: {
           stuffId: "room",
           verbs: [],
-          composition: ["Exitable", "Detailed", "Visible"],
+          composition: names,
           kind: "thing",
           at: 1,
         },
       },
     } as never);
-    render(
-      <PaneBody card={placeCard({})} onSendCommand={() => undefined} />,
-    );
-    // A teaching surface, but not what the player came to the card for.
+  }
+
+  it("shows ONE LINE of mixins with the rest counted inline", () => {
+    withComposition([
+      "Exitable",
+      "Detailed",
+      "Visible",
+      "Tangible",
+      "Containable",
+    ]);
+    render(<PaneBody card={placeCard({})} onSendCommand={() => undefined} />);
+
+    // A line of chips, not a bare count — the row is a teaching
+    // surface, so some of it has to be legible without a click.
+    expect(screen.getByText("Exitable")).toBeTruthy();
+    expect(screen.queryByText("Containable")).toBeNull();
     expect(screen.getByTestId("pane-composition-toggle").textContent).toBe(
-      "3 mixins",
+      "+2 more",
     );
-    expect(screen.queryByTestId("pane-composition")).toBeNull();
+  });
+
+  it("expands to the whole list and back", () => {
+    withComposition(["Exitable", "Detailed", "Visible", "Tangible"]);
+    render(<PaneBody card={placeCard({})} onSendCommand={() => undefined} />);
 
     fireEvent.click(screen.getByTestId("pane-composition-toggle"));
-    expect(screen.getByText("Exitable")).toBeTruthy();
+    expect(screen.getByText("Tangible")).toBeTruthy();
+    expect(screen.getByTestId("pane-composition-toggle").textContent).toBe(
+      "less",
+    );
+
+    fireEvent.click(screen.getByTestId("pane-composition-toggle"));
+    expect(screen.queryByText("Tangible")).toBeNull();
+  });
+
+  it("offers no toggle when everything already fits", () => {
+    withComposition(["Exitable", "Detailed"]);
+    render(<PaneBody card={placeCard({})} onSendCommand={() => undefined} />);
+    expect(screen.queryByTestId("pane-composition-toggle")).toBeNull();
+  });
+});
+
+describe("⚠⚠ no action row", () => {
+  it("shows no verb buttons, however many the resolver returns", () => {
+    /*
+     * It put `cast · defend · destruct` on a noticeboard, a room and an
+     * implant alike — enabled because the ACTOR can always do them, not
+     * because the subject affords anything. `AffordanceEntry` carries
+     * nothing that tells the two apart, so a client filter would be a
+     * guess dressed as a recommendation. The radial answers *what can I
+     * do with this* properly, with reasons.
+     */
+    useStore.setState({
+      affordances: {
+        room: {
+          stuffId: "room",
+          verbs: [
+            { verb: "cast", description: "", state: "enabled" },
+            { verb: "defend", description: "", state: "enabled" },
+          ],
+          composition: ["Visible"],
+          kind: "thing",
+          at: 1,
+        },
+      },
+    } as never);
+    render(<PaneBody card={placeCard({})} onSendCommand={() => undefined} />);
+    expect(screen.queryByText("cast")).toBeNull();
+    expect(screen.queryByText("defend")).toBeNull();
   });
 });

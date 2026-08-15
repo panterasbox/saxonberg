@@ -47,6 +47,18 @@ import { MmlRenderer } from "../MmlRenderer";
 
 /* ─── shared pieces ─── */
 
+const ChipToggle = styled.button`
+  font: inherit;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.micro};
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  white-space: nowrap;
+  color: ${tokens.color.fgEmphasis};
+`;
+
 const Chips = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -145,12 +157,6 @@ const Rows = styled.div`
   gap: ${tokens.space.xs};
 `;
 
-const Actions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${tokens.space.xs};
-  margin-top: ${tokens.space.sm};
-`;
 
 /**
  * Exits, as inline links rather than buttons.
@@ -161,6 +167,15 @@ const Actions = styled.div`
  * say `south north east`. The transcript renders exits as links and
  * always has; this now matches it.
  */
+/**
+ * How many mixin chips fit on one line of the rail.
+ *
+ * ⚠ A count, not a measurement — three is what fits at 360px with the
+ * longest names in the shipped set. The row wraps rather than clipping
+ * if a longer one appears, which is the safe direction.
+ */
+const MIXIN_LINE = 3;
+
 /** How many contents rows a card shows before counting the rest. */
 const HERE_SHOWN = 5;
 
@@ -194,21 +209,6 @@ const InlineLink = styled.button`
   }
 `;
 
-const CommandChip = styled.button`
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.micro};
-  cursor: pointer;
-  background: ${tokens.color.surfaceAlt};
-  border: 1px solid ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.sm};
-  color: ${tokens.color.fg};
-  padding: ${tokens.space.xs} ${tokens.space.sm};
-  min-height: 44px;
-
-  &:hover {
-    border-color: ${tokens.color.fgEmphasis};
-  }
-`;
 
 const Prose = styled.div`
   font-family: ${tokens.font.serif};
@@ -429,89 +429,53 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
    * the name on every single card, in a column where space is the
    * constraint; the count says it is there and one click opens it.
    */
-  if (!expanded) {
-    return (
-      <InlineLinks>
-        <InlineLink
-          data-testid="pane-composition-toggle"
-          aria-expanded={false}
-          aria-label="show what this is made of"
-          onClick={() => setExpanded(true)}
-        >
-          {ordered.length} mixins
-        </InlineLink>
-      </InlineLinks>
-    );
-  }
+  const shown = expanded ? ordered : ordered.slice(0, MIXIN_LINE);
+  const rest = ordered.length - shown.length;
   return (
-    <>
-      <Chips data-testid="pane-composition">
-        {ordered.map((m) => (
-          <Chip key={m}>{m}</Chip>
-        ))}
-      </Chips>
-      <InlineLinks>
-        <InlineLink
+    <Chips data-testid="pane-composition">
+      {shown.map((m) => (
+        <Chip key={m}>{m}</Chip>
+      ))}
+      {/*
+        ⚠ Inline with the chips, not on a line of its own. The row is
+        *one line of mixins and a way to see the rest* — a toggle
+        underneath turns a one-line teaching surface into a two-line
+        one, which is the space it was moved down here to stop taking.
+      */}
+      {(rest > 0 || expanded) && (
+        <ChipToggle
           data-testid="pane-composition-toggle"
-          aria-expanded
-          aria-label="hide what this is made of"
-          onClick={() => setExpanded(false)}
+          aria-expanded={expanded}
+          aria-label={
+            expanded ? "hide the rest" : `show all ${ordered.length} mixins`
+          }
+          onClick={() => setExpanded((v) => !v)}
         >
-          less
-        </InlineLink>
-      </InlineLinks>
-    </>
+          {expanded ? "less" : `+${rest} more`}
+        </ChipToggle>
+      )}
+    </Chips>
   );
 }
 
-/**
- * Action buttons — the verbs this viewer can actually run, from the
- * resolver.
+/*
+ * ⚠⚠ **There is no action row, and it is a SERVER gap rather than a
+ * design choice.**
  *
- * ⚠⚠ **Enabled only.** A pane body is a place to act, not a menu of
- * what you cannot do; the dimmed-with-a-reason treatment belongs to the
- * radial, where the player has asked *what are my options*. Putting
- * refusals in a card would make every pane a list of disappointments.
+ * It showed the first few enabled verbs from the resolver, which put
+ * `cast · defend · destruct` on a noticeboard, on a room and on an
+ * implant — the same three on everything. They are enabled because the
+ * ACTOR can always do them, not because the subject affords anything,
+ * and `AffordanceEntry` carries nothing that tells the two apart:
+ * `verb`, `description`, `state`, `reason`, `operand`, `category`. A
+ * client-side filter would have to guess, and a guess dressed as a
+ * recommendation is worse than no row at all.
+ *
+ * The radial already answers *what can I do with this* properly — every
+ * verb, with the validator's own words beside the ones you cannot run.
+ * Until the resolver can say which verbs a SUBJECT affords, that is the
+ * honest place for it.
  */
-function ActionRow({
-  stuffId,
-  onSendCommand,
-  onCommandPreview,
-  limit = 3,
-}: {
-  stuffId?: string;
-  onSendCommand: (text: string) => void;
-  onCommandPreview?: (command: string | null) => void;
-  limit?: number;
-}): React.ReactElement | null {
-  const answer = useStore((s) =>
-    stuffId ? s.affordances[stuffId] : undefined,
-  );
-  if (!answer) return null;
-  const verbs = answer.verbs
-    .filter((v) => v.state === "enabled")
-    .slice(0, limit);
-  if (verbs.length === 0) return null;
-  const preview = onCommandPreview ?? (() => undefined);
-  return (
-    <Actions>
-      {verbs.map((v) => {
-        const command = v.verb;
-        return (
-          <CommandChip
-            key={v.verb}
-            title={`Click to send: ${command}`}
-            onClick={() => onSendCommand(command)}
-            onMouseEnter={() => preview(command)}
-            onMouseLeave={() => preview(null)}
-          >
-            {command}
-          </CommandChip>
-        );
-      })}
-    </Actions>
-  );
-}
 
 /** The exits block — one command chip per way out. */
 /**
@@ -762,11 +726,6 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
       />
       <HereList
         record={record}
-        onSendCommand={onSendCommand}
-        onCommandPreview={onCommandPreview}
-      />
-      <ActionRow
-        stuffId={stuffId}
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />
