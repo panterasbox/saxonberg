@@ -7,7 +7,7 @@
  * `popularity-forum` / `argument-forum` manifestation).
  *
  * **Per-board organizer axis.** `organizer` selects ordering + vote
- * semantics: `'popularity'` (vote-ranked reply tree) or `'argument'`
+ * semantics: `'open'` (vote-ranked reply tree) or `'ordered'`
  * (typed claim-graph / argument-map — the neutral structural lens, no
  * ranking). Two organizers over one board primitive, not two subsystems.
  *
@@ -19,7 +19,7 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { FieldMeta } from '../mixin';
 
-export type BoardOrganizer = 'popularity' | 'argument';
+export type BoardOrganizer = 'open' | 'ordered';
 
 export default class Board extends Document {
   static collectionName = Collections.ForumBoards;
@@ -34,8 +34,8 @@ export default class Board extends Document {
   /** The `_id` of the {@link Subject} this board manifests. */
   subject = '';
 
-  /** Ordering + vote semantics: `'popularity'` or `'argument'`. */
-  organizer: BoardOrganizer = 'popularity';
+  /** Ordering + vote semantics: `'open'` or `'ordered'`. */
+  organizer: BoardOrganizer = 'open';
 
   /** Display name (mirrors the Subject title). */
   name = '';

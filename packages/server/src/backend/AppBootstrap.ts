@@ -14,6 +14,7 @@
 
 import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
+import { SurfaceVocabularyMigration } from './SurfaceVocabularyMigration';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
 import { EmoteSeeder } from './EmoteSeeder';
@@ -173,6 +174,14 @@ export class AppBootstrap {
     await BlueprintSeeder.run();
     await ScriptSeeder.run();
     await ChannelSeeder.run();
+    /*
+     * ⚠ BEFORE the catalogues warm. `SubjectCatalogue` / `ChannelCatalogue`
+     * read exactly the fields this rewrites, so a migration running after
+     * them would leave every warm cache holding the pre-rename values
+     * until a restart — which is a stale-cache bug that only appears on
+     * the boot AFTER the one that mattered.
+     */
+    await SurfaceVocabularyMigration.run();
     await AppSettingsSeeder.run();
     // Groups before parcels: a parcel's owner group (`duncan-hall`) is
     // authored here with its staff members, so the owner-ref resolution the

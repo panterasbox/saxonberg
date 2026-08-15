@@ -8,13 +8,13 @@
  * of them at once.
  *
  * ⭐ **An unlit surface is an affordance, not an absence.** A subject
- * with no argument board shows `+ Argument`, and it previews the real
- * command (`forum on <handle> --argument`) like every other clickable.
+ * with no ordered board shows `+ Ordered`, and it previews the real
+ * command (`forum on <handle> --ordered`) like every other clickable.
  * The verb re-checks ownership on arrival; the control's job is to say
  * what would be sent, not to decide who may send it.
  *
- * ⚠ `rules-chat` is the exception, and it is a SERVER fact: the surface
- * is parked (`chat on --rules` calls itself deferred), so it renders in
+ * ⚠ `ordered-chat` is the exception, and it is a SERVER fact: the surface
+ * is parked (`chat on --ordered` calls itself deferred), so it renders in
  * the not-wired treatment and sends nothing. A control that reliably
  * refuses is worse than one that says it is not there yet.
  */

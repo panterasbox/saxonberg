@@ -69,11 +69,11 @@ export class Channel extends Document {
   name: string = '';
   kind: ChannelKind = 'player-created';
   subject: string = '';                 // _id of the owning Subject
-  procedure: ChannelProcedure = 'free'; // 'free' (cycle 1) | 'rules-of-order'
+  procedure: ChannelProcedure = 'free'; // 'free' (cycle 1) | 'ordered'
 }
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
-export type ChannelProcedure = 'free' | 'rules-of-order';
+export type ChannelProcedure = 'free' | 'ordered';
 ```
 
 > **Since forums cycle-1:** `Channel` no longer carries its own
@@ -82,7 +82,7 @@ export type ChannelProcedure = 'free' | 'rules-of-order';
 > [forums.md](./forums.md)); a chat channel is now just *one surface*
 > on a Subject, addressed via `Channel.subject` (the Subject's `_id`).
 > The Channel additionally carries a `procedure` — `'free'` (cycle 1)
-> or the deferred `'rules-of-order'` (recognized-speaker discipline; the
+> or the deferred `'ordered'` (recognized-speaker discipline; the
 > flag ships, the behavior doesn't). `Subject.owner` and
 > `Subject.groupRef` are the fields that `Channel.owner` /
 > `Channel.groupRef` lifted into. See [§ History](#history).
@@ -171,7 +171,7 @@ Since forums cycle-1, subscription state moved off a per-channel
 `subjectId → { followed, mutedSurfaces }`). `ChannelCatalogue`'s
 `getSubscription` / `setSubscription` map the chat-facing
 `{ tunedIn, muted }` shape onto the subject's `{ followed,
-mutedSurfaces }` (`muted` ⇔ the `'free-chat'` surface being in
+mutedSurfaces }` (`muted` ⇔ the `'open-chat'` surface being in
 `mutedSurfaces`), and migrate any legacy `chat.subscription.<channelId>`
 property on first read. See [forums.md](./forums.md) and
 [§ History](#history).

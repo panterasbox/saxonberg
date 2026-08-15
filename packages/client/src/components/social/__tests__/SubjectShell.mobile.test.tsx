@@ -45,8 +45,8 @@ const SUBJECT: ForumSubjectRecord = {
   handle: "gossip",
   parent: null,
   audience: { kind: "open", label: "open" },
-  surfaces: ["popularity-forum"],
-  surfaceRefs: { "popularity-forum": "board-1" },
+  surfaces: ["open-forum"],
+  surfaceRefs: { "open-forum": "board-1" },
   openObjections: 0,
 };
 

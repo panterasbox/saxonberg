@@ -119,7 +119,7 @@ describe("forum store slice", () => {
     const s = useStore.getState();
     const con = rec("c1", {
       parent: "spine",
-      organizer: "argument",
+      organizer: "ordered",
       relation: "objects-to",
       openObjection: true,
       inCircle: true,
@@ -130,7 +130,7 @@ describe("forum store slice", () => {
     });
     s.applyForumResult("a1", { kind: "board", id: "b1" }, [con]);
     const first = asEntries(useStore.getState().forumRecords["a1"])[0]!;
-    expect(first.organizer).toBe("argument");
+    expect(first.organizer).toBe("ordered");
     expect(first.relation).toBe("objects-to");
     expect(first.openObjection).toBe(true);
     expect(first.inCircle).toBe(true);
@@ -142,7 +142,7 @@ describe("forum store slice", () => {
         key: "c1",
         fields: rec("c1", {
           parent: "spine",
-          organizer: "argument",
+          organizer: "ordered",
           relation: "objects-to",
           openObjection: false,
         }),

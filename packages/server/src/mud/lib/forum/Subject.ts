@@ -41,10 +41,10 @@ import type { FieldMeta } from '../mixin';
  * types (taxonomy ships now, behavior later).
  */
 export type SubjectSurface =
-  | 'popularity-forum'
-  | 'argument-forum'
-  | 'free-chat'
-  | 'rules-chat';
+  | 'open-forum'
+  | 'ordered-forum'
+  | 'open-chat'
+  | 'ordered-chat';
 
 /** One lit surface: which kind, and the backing Document's id. */
 export interface SubjectManifestation {

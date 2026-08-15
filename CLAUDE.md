@@ -100,7 +100,7 @@ behavior. Read the relevant doc before editing in its area.
   - [chat.md](./docs/subsystems/chat.md) — Channel Document, three kinds, ChannelCatalogue; rides the forums Subject layer
   - [contacts.md](./docs/subsystems/contacts.md) — per-Avatar named lists, durable identifiers only, owner-only privacy
   - [social-graph.md](./docs/subsystems/social-graph.md) — attention rules (NotifyPolicy), display-lensing, presence relay, the `notify` verb
-  - [forums.md](./docs/subsystems/forums.md) — Subject layer, Board→Thread→Post + Entry tree, popularity/argument organizers, `forum_events`
+  - [forums.md](./docs/subsystems/forums.md) — Subject layer, Board→Thread→Post + Entry tree, ordered/open organizers, `forum_events`
   - [press.md](./docs/subsystems/press.md) — publishers, releases, the news ticker: PublisherMixin, appointing-authority-appoints/position-publishes, Release docs, `press` verb, the anonymous press room
   - [shell-environment.md](./docs/subsystems/shell-environment.md) — EnvironmentMixin settings keyspace, lookup chain, `settings`/`var`
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — per-character verb aliases, expandAliases, the `alias` verb

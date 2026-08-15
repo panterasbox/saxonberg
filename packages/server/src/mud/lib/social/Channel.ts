@@ -33,10 +33,10 @@ export type ChannelKind = 'player-created' | 'open-join-standalone';
 
 /**
  * Chat procedure — the two `chat` surfaces a Subject can light up.
- * Cycle 1 is `'free'`-only; `'rules-of-order'` (recognized-speaker
+ * Cycle 1 is `'free'`-only; `'ordered'` (recognized-speaker
  * discipline) is the deferred surface (the flag ships, behavior doesn't).
  */
-export type ChannelProcedure = 'free' | 'rules-of-order';
+export type ChannelProcedure = 'open' | 'ordered';
 
 export class Channel extends Document {
   static collectionName = 'channels';
@@ -60,6 +60,6 @@ export class Channel extends Document {
    */
   subject: string = '';
 
-  /** Which chat surface — `'free'` (cycle 1) or `'rules-of-order'` (deferred). */
-  procedure: ChannelProcedure = 'free';
+  /** Which chat surface — `'open'` (cycle 1) or `'ordered'` (deferred). */
+  procedure: ChannelProcedure = 'open';
 }

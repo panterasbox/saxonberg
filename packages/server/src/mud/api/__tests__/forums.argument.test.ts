@@ -2,7 +2,7 @@
  * ForumsApi — the argument organizer (forums cycle 2, Wave 1): the typed
  * claim-graph contribution surface over the shared Board/Entry store.
  *
- *   - `makeForum({ organizer: 'argument' })` lights an `argument-forum`
+ *   - `makeForum({ organizer: 'ordered' })` lights an `argument-forum`
  *     manifestation; a root Entry is the prose **spine** (no vote seeding —
  *     argument entries are reputation-blind).
  *   - `attachClaim` builds a typed edge (`supports` / `objects-to` /
@@ -56,7 +56,7 @@ function makeActor(): Stuff {
 async function makeArgumentBoard(creator: Stuff) {
   const { board, subject } = await ForumsApi.makeForum(creator, 'RCV', {
     open: true,
-    organizer: 'argument',
+    organizer: 'ordered',
   });
   const spine = await ForumsApi.postThread(
     creator,
@@ -103,9 +103,9 @@ describe('argument board creation + the spine', () => {
     const creator = makeActor();
     const { board, subject, spine } = await makeArgumentBoard(creator);
 
-    expect(board.getOrganizer()).toBe('argument');
-    expect(subject.hasManifestation('argument-forum')).toBe(true);
-    expect(subject.manifestationRef('argument-forum')).toBe(board._id);
+    expect(board.getOrganizer()).toBe('ordered');
+    expect(subject.hasManifestation('ordered-forum')).toBe(true);
+    expect(subject.manifestationRef('ordered-forum')).toBe(board._id);
     // The spine is a root (parent: null) and is NOT vote-seeded.
     expect(spine.isRoot()).toBe(true);
     expect(spine.up).toBe(0);
@@ -114,7 +114,7 @@ describe('argument board creation + the spine', () => {
     // Resolvable by its flat handle (argument manifestation, not popularity).
     const view = await ForumsApi.resolveBoardByHandle('RCV');
     expect(view?.board._id).toBe(board._id);
-    expect(view?.board.getOrganizer()).toBe('argument');
+    expect(view?.board.getOrganizer()).toBe('ordered');
   });
 });
 
@@ -171,7 +171,7 @@ describe('organizer-scoped vocabulary', () => {
     );
   });
 
-  it('a popularity board refuses a typed edge', async () => {
+  it('an open board refuses a typed edge', async () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
@@ -179,7 +179,7 @@ describe('organizer-scoped vocabulary', () => {
     const thread = await ForumsApi.postThread(creator, board, 'Hi', 'body');
     await expect(
       ForumsApi.attachClaim(creator, thread, 'supports', 'nope'),
-    ).rejects.toThrow(/not valid on a popularity/i);
+    ).rejects.toThrow(/not valid on an open/i);
   });
 });
 

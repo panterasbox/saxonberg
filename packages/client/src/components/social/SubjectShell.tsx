@@ -217,7 +217,7 @@ export const SubjectShell: React.FC<SubjectShellProps> = ({
           <>
             <SubjectHeader
               subject={selected}
-              activeSurface={surface ?? "popularity-forum"}
+              activeSurface={surface ?? "open-forum"}
               onSelectSurface={selectSurface}
               onSendCommand={onSendCommand}
               onCommandPreview={onCommandPreview}
@@ -240,7 +240,7 @@ export const SubjectShell: React.FC<SubjectShellProps> = ({
                   // The shell knows which surface it opened; an empty
                   // board cannot tell ForumView what it is.
                   organizer={
-                    surface === "argument-forum" ? "argument" : "popularity"
+                    surface === "ordered-forum" ? "ordered" : "open"
                   }
                 />
               ) : (

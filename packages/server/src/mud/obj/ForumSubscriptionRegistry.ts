@@ -275,7 +275,7 @@ export default class ForumSubscriptionRegistry extends Idea {
       // the argument organizer. The scope-kind plumbing, dependency index,
       // dirty-batch and diff are all reused verbatim; only the per-scope
       // projection function changes. (MqlSubscriptionRegistry untouched.)
-      if (board.getOrganizer() === 'argument') {
+      if (board.getOrganizer() === 'ordered') {
         const nodes = await ForumsApi.readArgumentLens(board);
         return this.projectArgumentNodes(nodes, viewer);
       }
@@ -285,7 +285,7 @@ export default class ForumSubscriptionRegistry extends Idea {
     const root = await ForumsApi.getEntry(scope.id);
     if (!root) return null;
     const board = await ForumsApi.getBoard(root.getBoard());
-    if (board?.getOrganizer() === 'argument') {
+    if (board?.getOrganizer() === 'ordered') {
       const nodes = await ForumsApi.readArgumentThread(root);
       return this.projectArgumentNodes(nodes, viewer);
     }
@@ -315,7 +315,7 @@ export default class ForumSubscriptionRegistry extends Idea {
     const backing = await SubjectApi.getBackingGroupIds();
     const out: ForumSubjectRecord[] = [];
     for (const s of subjects) {
-      const argRef = s.manifestationRef('argument-forum');
+      const argRef = s.manifestationRef('ordered-forum');
       let openObjections = 0;
       if (argRef) {
         const board = await safeFind(() => ForumsApi.getBoard(argRef));
@@ -383,7 +383,7 @@ export default class ForumSubscriptionRegistry extends Idea {
         subject: e.getSubject(),
         createdAt: e.createdAt.getTime(),
         editedAt: edited ? edited.getTime() : null,
-        organizer: 'argument',
+        organizer: 'ordered',
         relation: e.getRelation(),
         openObjection: n.openObjection,
         inCircle: author !== '' && circle.has(author),
@@ -606,10 +606,10 @@ async function resolveAuthorNames(
  * this, so a subject's surfaces are in the same order everywhere.
  */
 const SURFACE_ORDER: readonly SubjectSurfaceName[] = [
-  'argument-forum',
-  'popularity-forum',
-  'free-chat',
-  'rules-chat',
+  'ordered-forum',
+  'open-forum',
+  'open-chat',
+  'ordered-chat',
 ];
 
 /**
@@ -626,7 +626,17 @@ function describeAudience(
   groupRef: string,
   backing: ReadonlySet<string>,
 ): SubjectAudience {
-  if (groupRef === '') return { kind: 'open', label: 'open' };
+  /*
+   * ⚠ The LABEL is "everyone", not "open".
+   *
+   * The rename made `open` a surface name, and the audience chip sits on
+   * the same header as the surface tabs — so a subject would have read
+   * `Gossip [open] … [Ordered] [Open]`, with one word meaning two
+   * different things a centimetre apart. The `kind` stays `'open'`
+   * (a distinct enum, never displayed); only what a reader sees changes,
+   * and "everyone" is the plainer word for it anyway.
+   */
+  if (groupRef === '') return { kind: 'open', label: 'everyone' };
   const managedId = groupRef.startsWith('managed:')
     ? groupRef.slice('managed:'.length)
     : null;

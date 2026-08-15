@@ -80,7 +80,7 @@ async function buildMap() {
   const creator = makeActor();
   const { board } = await ForumsApi.makeForum(creator, 'RCV', {
     open: true,
-    organizer: 'argument',
+    organizer: 'ordered',
   });
   const spine = await ForumsApi.postThread(
     creator,

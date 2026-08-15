@@ -40,11 +40,11 @@ function subject(over: Partial<ForumSubjectRecord> = {}): ForumSubjectRecord {
     handle: "measure-14",
     parent: null,
     audience: { kind: "open", label: "open" },
-    surfaces: ["argument-forum", "popularity-forum", "free-chat"],
+    surfaces: ["ordered-forum", "open-forum", "open-chat"],
     surfaceRefs: {
-      "argument-forum": "board-arg",
-      "popularity-forum": "board-pop",
-      "free-chat": "chan-1",
+      "ordered-forum": "board-arg",
+      "open-forum": "board-pop",
+      "open-chat": "chan-1",
     },
     openObjections: 3,
     ...over,
@@ -95,11 +95,15 @@ describe("the rail", () => {
     expect(row).not.toBeNull();
     // Four-letter chips, one per LIT surface — the rail's whole claim is
     // that a subject carries its surfaces with it.
-    expect(row.textContent).toContain("Argu");
-    expect(row.textContent).toContain("Popu");
-    expect(row.textContent).toContain("Chat");
+    //
+    // ⚠ These are EXPLICIT chips, not `label.slice(0, 4)`: "Ordered" and
+    // "Ordered chat" both cut to `ORDE`, so a subject lighting both
+    // would show the same chip twice with no way to tell them apart.
+    expect(row.textContent).toContain("ORDR");
+    expect(row.textContent).toContain("OPEN");
+    expect(row.textContent).toContain("CHAT");
     // …and nothing for a surface it has not lit.
-    expect(row.textContent).not.toContain("Rule");
+    expect(row.textContent).not.toContain("RULE");
   });
 
   it("shows the open-objection count, and only when there is one", () => {
@@ -131,7 +135,7 @@ describe("the header", () => {
     render(
       <SubjectHeader
         subject={subject({ audience: { kind: "curated", label: "managed group" } })}
-        activeSurface="argument-forum"
+        activeSurface="ordered-forum"
         onSelectSurface={noop}
         onSendCommand={noop}
         onCommandPreview={noop}
@@ -145,16 +149,16 @@ describe("the header", () => {
   it("renders a tab per lit surface and an offer per unlit one", () => {
     render(
       <SubjectHeader
-        subject={subject({ surfaces: ["popularity-forum"] })}
-        activeSurface="popularity-forum"
+        subject={subject({ surfaces: ["open-forum"] })}
+        activeSurface="open-forum"
         onSelectSurface={noop}
         onSendCommand={noop}
         onCommandPreview={noop}
       />,
     );
-    expect(document.querySelector('[data-surface="popularity-forum"]')).not.toBeNull();
-    expect(document.querySelector('[data-surface-unlit="argument-forum"]')).not.toBeNull();
-    expect(document.querySelector('[data-surface-unlit="free-chat"]')).not.toBeNull();
+    expect(document.querySelector('[data-surface="open-forum"]')).not.toBeNull();
+    expect(document.querySelector('[data-surface-unlit="ordered-forum"]')).not.toBeNull();
+    expect(document.querySelector('[data-surface-unlit="open-chat"]')).not.toBeNull();
   });
 
   it("⭐ an unlit surface previews and sends the real command", () => {
@@ -162,28 +166,28 @@ describe("the header", () => {
     const preview = vi.fn();
     render(
       <SubjectHeader
-        subject={subject({ surfaces: ["popularity-forum"] })}
-        activeSurface="popularity-forum"
+        subject={subject({ surfaces: ["open-forum"] })}
+        activeSurface="open-forum"
         onSelectSurface={noop}
         onSendCommand={send}
         onCommandPreview={preview}
       />,
     );
-    const offer = document.querySelector('[data-surface-unlit="argument-forum"]')!;
+    const offer = document.querySelector('[data-surface-unlit="ordered-forum"]')!;
     fireEvent.mouseEnter(offer);
     fireEvent.click(offer);
     // Previewed and sent are the same string — the axiom, asserted as an
     // equality rather than as the literal written twice.
     expect(send).toHaveBeenCalledWith(preview.mock.calls[0]![0]);
-    expect(send.mock.calls[0]![0]).toContain("--argument");
+    expect(send.mock.calls[0]![0]).toContain("--ordered");
   });
 
-  it("⚠ renders rules-chat as parked, and it sends nothing", () => {
+  it("⚠ renders ordered-chat as parked, and it sends nothing", () => {
     const send = vi.fn();
     render(
       <SubjectHeader
-        subject={subject({ surfaces: ["popularity-forum"] })}
-        activeSurface="popularity-forum"
+        subject={subject({ surfaces: ["open-forum"] })}
+        activeSurface="open-forum"
         onSelectSurface={noop}
         onSendCommand={send}
         onCommandPreview={noop}
@@ -191,9 +195,9 @@ describe("the header", () => {
     );
     // Parked SERVER-side: it is in the vocabulary and there is nothing
     // behind it, so it is not an offer.
-    const parked = document.querySelector('[data-surface-parked="rules-chat"]')!;
+    const parked = document.querySelector('[data-surface-parked="ordered-chat"]')!;
     expect(parked).not.toBeNull();
-    expect(document.querySelector('[data-surface-unlit="rules-chat"]')).toBeNull();
+    expect(document.querySelector('[data-surface-unlit="ordered-chat"]')).toBeNull();
     fireEvent.click(parked);
     expect(send).not.toHaveBeenCalled();
   });
@@ -202,7 +206,7 @@ describe("the header", () => {
     render(
       <SubjectHeader
         subject={subject({ openObjections: 1 })}
-        activeSurface="argument-forum"
+        activeSurface="ordered-forum"
         onSelectSurface={noop}
         onSendCommand={noop}
         onCommandPreview={noop}
@@ -227,8 +231,8 @@ describe("⭐⭐ the two forum surfaces are addressed separately", () => {
    */
   it("carries a backing ref per lit surface", () => {
     const s = subject();
-    expect(s.surfaceRefs["argument-forum"]).not.toBe(
-      s.surfaceRefs["popularity-forum"],
+    expect(s.surfaceRefs["ordered-forum"]).not.toBe(
+      s.surfaceRefs["open-forum"],
     );
   });
 
@@ -236,7 +240,7 @@ describe("⭐⭐ the two forum surfaces are addressed separately", () => {
     // The assertion that would have caught it: not "is there a ref" but
     // "do the two surfaces resolve to DIFFERENT boards".
     const s = subject();
-    const forumRefs = (["argument-forum", "popularity-forum"] as const)
+    const forumRefs = (["ordered-forum", "open-forum"] as const)
       .map((k) => s.surfaceRefs[k])
       .filter(Boolean);
     expect(new Set(forumRefs).size).toBe(forumRefs.length);
@@ -245,8 +249,8 @@ describe("⭐⭐ the two forum surfaces are addressed separately", () => {
 
 describe("defaultSurface", () => {
   it("opens on the first surface the subject actually lit", () => {
-    expect(defaultSurface(subject({ surfaces: ["free-chat"] }))).toBe(
-      "free-chat",
+    expect(defaultSurface(subject({ surfaces: ["open-chat"] }))).toBe(
+      "open-chat",
     );
   });
 

@@ -356,7 +356,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     }
     return this.setSubscription(avatar, subjectId, {
       followed: legacy.tunedIn,
-      mutedSurfaces: legacy.muted ? ['free-chat'] : [],
+      mutedSurfaces: legacy.muted ? ['open-chat'] : [],
     });
   }
 

@@ -689,7 +689,7 @@ interface ForumViewProps {
    * back to the row-derived guess keeps the standalone/legacy path
    * working.
    */
-  organizer?: "popularity" | "argument";
+  organizer?: "open" | "ordered";
 }
 
 export function ForumView({
@@ -823,7 +823,7 @@ export function ForumView({
             >
               <Body>
                 <TitleLine>{b.title}</TitleLine>
-                {b.organizer === "argument" && <Meta>⚖ argument forum</Meta>}
+                {b.organizer === "ordered" && <Meta>⚖ argument forum</Meta>}
                 {b.body && <Meta>{b.body}</Meta>}
               </Body>
             </Card>
@@ -840,8 +840,8 @@ export function ForumView({
   // board can say nothing about itself.
   const argumentMode =
     organizer !== undefined
-      ? organizer === "argument"
-      : boardEntries.some((r) => r.organizer === "argument");
+      ? organizer === "ordered"
+      : boardEntries.some((r) => r.organizer === "ordered");
   if (argumentMode) {
     const spine = boardEntries.find((r) => r.parent === null) ?? null;
     const argChildren = buildChildren(boardEntries);

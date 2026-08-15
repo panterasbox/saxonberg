@@ -28,7 +28,7 @@ import {
 } from "../../store/forumActions";
 import { tokens } from "../ui";
 import { COMPACT_QUERY } from "../../lib/style/useIsCompact";
-import { SURFACE_LABEL, SURFACE_HUE } from "./surfaces";
+import { SURFACE_CHIP, SURFACE_HUE } from "./surfaces";
 
 const Rail = styled.nav`
   display: flex;
@@ -215,7 +215,7 @@ export const SubjectRail: React.FC<SubjectRailProps> = ({
           <Chips>
             {s.surfaces.map((surface: SubjectSurfaceName) => (
               <Chip key={surface} $hue={SURFACE_HUE[surface]}>
-                {SURFACE_LABEL[surface].slice(0, 4)}
+                {SURFACE_CHIP[surface]}
               </Chip>
             ))}
           </Chips>

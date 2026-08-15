@@ -52,13 +52,13 @@ describe('Board', () => {
   it('round-trips + belongs to a subject', async () => {
     const b = new Board();
     b.subject = 'subj-1';
-    b.organizer = 'popularity';
+    b.organizer = 'open';
     b.name = 'Gossip';
     b.description = 'idle chatter';
     await b.save();
 
     const [f] = await Board.find({ subject: 'subj-1' });
-    expect(f!.getOrganizer()).toBe('popularity');
+    expect(f!.getOrganizer()).toBe('open');
     expect(f!.getName()).toBe('Gossip');
     expect(f!.getDescription()).toBe('idle chatter');
   });
@@ -66,12 +66,12 @@ describe('Board', () => {
   it('round-trips the argument organizer', async () => {
     const b = new Board();
     b.subject = 'subj-2';
-    b.organizer = 'argument';
+    b.organizer = 'ordered';
     b.name = 'Ranked-choice voting';
     await b.save();
 
     const [f] = await Board.find({ subject: 'subj-2' });
-    expect(f!.getOrganizer()).toBe('argument');
+    expect(f!.getOrganizer()).toBe('ordered');
   });
 });
 

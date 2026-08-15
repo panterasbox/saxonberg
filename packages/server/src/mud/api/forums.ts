@@ -57,7 +57,7 @@ export interface ArgumentLensNode {
 /** Options for `makeForum` — passthrough to the subject mint + board meta. */
 export interface MakeForumOptions extends MakeSubjectOptions {
   description?: string;
-  /** Which organizer to light (default `'popularity'`). */
+  /** Which organizer to light (default `'open'`). */
   organizer?: BoardOrganizer;
 }
 

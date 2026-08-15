@@ -231,7 +231,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
   async function makeArgumentBoard(creator: Stuff) {
     const { board } = await ForumsApi.makeForum(creator, 'RCV', {
       open: true,
-      organizer: 'argument',
+      organizer: 'ordered',
     });
     const spine = await ForumsApi.postThread(
       creator,
@@ -264,7 +264,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     const conRec = records.find((r) => r.id === con._id)!;
     // Argument projection: organizer stamped, reputation-blind (no score),
     // and the childless objection is flagged open.
-    expect(conRec.organizer).toBe('argument');
+    expect(conRec.organizer).toBe('ordered');
     expect(conRec.displayScore).toBeNull();
     expect(conRec.openObjection).toBe(true);
 
@@ -358,7 +358,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     // ⭐ The rail's unit is the SUBJECT: one record carrying the surfaces
     // it lights. A board-index projection could only ever say "one
     // board", which cannot express a subject that lights two.
-    expect(gossip.surfaces).toEqual(['popularity-forum']);
+    expect(gossip.surfaces).toEqual(['open-forum']);
     expect(gossip.grain).toBe('venue');
     expect(gossip.handle).toBe('Gossip');
     expect(gossip.audience.kind).toBe('open');
@@ -369,7 +369,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     const creator = makeActor();
     const { board } = await ForumsApi.makeForum(creator, 'Measure', {
       open: true,
-      organizer: 'argument',
+      organizer: 'ordered',
     });
     const thesis = await ForumsApi.postThread(
       creator,
@@ -394,7 +394,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
       snapshot as unknown as { records: ForumSubjectRecord[] }
     ).records;
     const measure = records.find((r) => r.title === 'Measure')!;
-    expect(measure.surfaces).toContain('argument-forum');
+    expect(measure.surfaces).toContain('ordered-forum');
     // An `objects-to` with nothing answering it. The badge and the rows
     // read ONE `readArgumentLens`, so they cannot disagree.
     expect(measure.openObjections).toBe(1);

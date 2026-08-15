@@ -1634,10 +1634,10 @@ export interface ForumSubjectRecord {
  * offering a control that reliably refuses.
  */
 export type SubjectSurfaceName =
-  | 'popularity-forum'
-  | 'argument-forum'
-  | 'free-chat'
-  | 'rules-chat';
+  | 'open-forum'
+  | 'ordered-forum'
+  | 'open-chat'
+  | 'ordered-chat';
 
 /** One forum entry projected for the client (thread root or post). */
 export interface ForumEntryRecord {
@@ -1671,9 +1671,9 @@ export interface ForumEntryRecord {
   /**
    * The board's organizer, stamped so the client picks its render mode
    * explicitly rather than inferring. Present on every argument record;
-   * absent (or `'popularity'`) for the popularity view.
+   * absent (or `'open'`) for the open view.
    */
-  organizer?: 'popularity' | 'argument';
+  organizer?: 'open' | 'ordered';
   /** The typed edge to the parent (argument boards): pro/con/neutral. */
   relation?: 'reply' | 'supports' | 'objects-to' | 'responds-to';
   /**
