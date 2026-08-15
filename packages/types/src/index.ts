@@ -1542,9 +1542,29 @@ export interface MqlQueryErrorEnvelope {
  * list of boards, which is the shape the client was stuck in.
  */
 export interface ForumSubscriptionScope {
-  kind: 'subjects' | 'index' | 'board' | 'thread';
+  kind: ForumScopeKind;
   id: string;
 }
+
+/**
+ * Every forum subscription scope kind.
+ *
+ * ⚠⚠ **Exported because the vocabulary had a second copy, and it
+ * drifted.** The inbound WS handler listed the kinds literally as a
+ * shape-check; adding `subjects` to the type and to the registry left
+ * that list stale, and it **returned silently** — the client subscribed,
+ * the server dropped the message with no error envelope, and the rail
+ * rendered its honest empty state over a subject that existed. Nothing
+ * failed, because the failure was the silence. Both sides read this now.
+ */
+export const FORUM_SCOPE_KINDS = [
+  'subjects',
+  'index',
+  'board',
+  'thread',
+] as const;
+
+export type ForumScopeKind = (typeof FORUM_SCOPE_KINDS)[number];
 
 /** The audience a subject binds, projected for display. */
 export interface SubjectAudience {

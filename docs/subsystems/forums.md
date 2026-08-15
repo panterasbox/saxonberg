@@ -652,6 +652,22 @@ navigation was a **board**. A board is one *surface* of a subject, so a
 subject lighting three of them appeared as three unrelated things, and no
 arrangement of a board list can say otherwise.
 
+⚠⚠ **The scope vocabulary had a SECOND copy, and it drifted.** Adding
+`subjects` to the type, to the registry's validation, to its projection
+and to its dependency index was not enough: the inbound WS handler
+(`backend/inbound/forumSubscription.ts`) listed the kinds *literally* as
+a shape-check, did not know the new one, and **returned silently**. The
+client subscribed, the server dropped the message with no error
+envelope, and the rail sat on its honest empty state — *"No subjects you
+can see yet"* — over four subjects that existed.
+
+Nothing failed. **The failure was the silence**, and an honest empty
+state is indistinguishable from a dropped message, which is exactly what
+lets this class of bug survive a green suite. Both sides now read
+`FORUM_SCOPE_KINDS` from `@saxonberg/types`, and
+`inbound/__tests__/forumSubscription.test.ts` asserts every declared kind
+is admitted rather than the four somebody remembered.
+
 **The fourth subscription scope.** `ForumSubscriptionScope.kind` gains
 `'subjects'` beside `index` / `board` / `thread`. It reuses the whole
 existing observer — validation, dependency index, dirty-batch, delta
