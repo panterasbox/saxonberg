@@ -484,7 +484,20 @@ identity for a member.
 - **Seeding is additive and one-time.** `console.seededViews` records
   what has been OFFERED, not what exists, so a deleted view stays
   deleted instead of returning on the next login. Without it "delete"
-  would mean "hide until you reconnect".
+  would mean "hide until you reconnect". ⚠ The key must be declared in
+  `HasInteractiveMixin.clientStateSchema` — it shipped missing, so every
+  write of it was rejected and logged, and the guarantee was quietly
+  not there.
+- ⚠⚠ **Absent client state means NOT LOADED YET, and nothing is
+  written.** The seeder read an absent `console.tabs` as "first run" and
+  wrote the ship defaults wholesale — a write of defaults over state it
+  had not read. `App` renders the layout on its `default:` branch, so it
+  can mount before the connection payload lands, and the seeder then
+  clobbered the player's saved views. Found by driving: two views
+  composed on a desktop were simply gone on the next connection, and the
+  persisted document confirmed they had never been written. The seeding
+  effect is keyed on the value being present, so it re-runs when state
+  arrives and seeds additively then.
 - **No preset row inside the editor.** Chips named after the seeded
   views used to sit at the top of the facet panel and overwrite the
   filter being edited — inside an editor titled *Filter — Forge watch*

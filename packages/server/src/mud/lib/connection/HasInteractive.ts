@@ -310,6 +310,32 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
             : 'must be a list of { when, to, disposition } rules',
       },
       {
+        /**
+         * ⚠⚠ Which shipped views this player has already been OFFERED
+         * — not which ones they still have.
+         *
+         * The distinction is the whole point: seeding is additive, so
+         * without a record of what has been offered a view the player
+         * deliberately DELETED would be re-added on their next login.
+         * "Delete" would mean "hide until you reconnect", which is not
+         * what the word means.
+         *
+         * ⚠ It shipped missing from this schema, so every write of it
+         * was rejected and logged — and the guarantee it exists to
+         * provide was quietly not there.
+         */
+        key: 'console.seededViews',
+        defaultValue: [],
+        description:
+          'Names of the shipped default views this player has already ' +
+          'been offered. Additive seeding consults it so a deleted ' +
+          'view stays deleted across reconnects.',
+        validator: (v) =>
+          Array.isArray(v) && v.every((n) => typeof n === 'string')
+            ? true
+            : 'must be a list of view names',
+      },
+      {
         key: 'console.activeTab',
         defaultValue: 'All',
         description:

@@ -25,6 +25,7 @@ import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
 import { PaneFeed } from "../components/panes/PaneFeed";
 import { usePaneFeed } from "../components/panes/usePaneFeed";
+import { useInspectionSubscriptions } from "../components/InspectionPane";
 import { RadialOverlay } from "../components/panes/RadialOverlay";
 import {
   InlinePane,
@@ -168,6 +169,15 @@ export const WorldLayout: React.FC<LayoutProps> = ({
    */
   usePaneFeed();
   /*
+   * ⚠⚠ Here for the same reason `usePaneFeed` is, and it has been the
+   * same mistake twice. This hook keeps `paneLastResult` pointed at
+   * what the player is looking at — the ATTENTION SIGNAL every card is
+   * minted from. Hung off `PaneFeed` (the desktop-only right column) it
+   * meant a phone never got a focus result, so it never opened a card
+   * at all: the feed was not broken, it was never fed.
+   */
+  useInspectionSubscriptions();
+  /*
    * ⭐ The view editor. Opened by `+` (which has just created and
    * activated the view) and by the `⋯` on your own active view — never
    * by a bare gear that edits "whichever tab happens to be selected",
@@ -175,13 +185,20 @@ export const WorldLayout: React.FC<LayoutProps> = ({
    */
   const [viewEditorOpen, setViewEditorOpen] = React.useState(false);
   /*
-   * ⚠ Seeding runs here, once, at the surface that owns the strip —
-   * additive and never overwriting, so a view the player edited or
-   * deleted stays edited or deleted. See `ensureSeededViews`.
+   * ⚠⚠ Seeding waits for client state to actually ARRIVE.
+   *
+   * It ran on mount alone, and `App` renders this layout on its
+   * `default:` branch — so it could fire before the connection payload
+   * landed, read "no tabs", and write the ship defaults over the
+   * player's saved views. Keyed on the value being present, the effect
+   * re-runs when it lands and seeds additively then.
    */
+  const tabsLoaded = useStore((s) =>
+    Array.isArray(s.clientState["console.tabs"]),
+  );
   React.useEffect(() => {
-    ensureSeededViews();
-  }, []);
+    if (tabsLoaded) ensureSeededViews();
+  }, [tabsLoaded]);
   const rightPane = useStore((s) => s.rightPane);
   // ⚠ The UNFILTERED buffer. Every count in the feed switcher is
   // derived from the frames it names, and naming them from an

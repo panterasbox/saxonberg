@@ -24,7 +24,6 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { PaneCard } from "./PaneCard";
 import { PaneBody } from "./PaneBodies";
-import { useInspectionSubscriptions } from "../InspectionPane";
 
 const Column = styled.aside<{ $compact: boolean }>`
   display: flex;
@@ -129,13 +128,6 @@ export function PaneFeed({
    * note. The focus CARD is conditional; the subscription that decides
    * whether there is anything to show must never be.
    */
-  /*
-   * ⚠ Still mounted, but purely as the ATTENTION SIGNAL now — it keeps
-   * `paneLastResult` pointed at what the player is looking at, and
-   * `usePaneFeed` turns each new subject into its own card. Nothing
-   * renders the inspection pane itself any more.
-   */
-  useInspectionSubscriptions();
   const paneCards = useStore((s) => s.paneCards);
 
   // Derived here rather than read from state: see the header note.

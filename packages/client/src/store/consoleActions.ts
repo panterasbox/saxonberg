@@ -223,12 +223,24 @@ export function ensureSeededViews(): ConsoleTab[] {
   const raw = useStore.getState().clientState[KEY_TABS];
   const seededRaw = useStore.getState().clientState[KEY_SEEDED];
   const seeded = Array.isArray(seededRaw) ? (seededRaw as string[]) : [];
-  // First run: no stored tabs at all. Take the defaults wholesale.
-  if (!Array.isArray(raw)) {
-    writeTabs(DEFAULT_TABS);
-    writeSeeded(DEFAULT_VIEWS.map((v) => v.name));
-    return DEFAULT_TABS;
-  }
+  /*
+   * ⚠⚠ **Absent means NOT LOADED YET, and we write nothing.**
+   *
+   * This used to read absence as "first run" and write `DEFAULT_TABS`
+   * wholesale — which is a write of defaults over state we had not
+   * read. `App` renders the layout on its `default:` branch, so the
+   * layout can mount before the connection payload lands, and the
+   * seeder then clobbered the player's saved views with the ship
+   * defaults. Found by driving: two views composed on a desktop were
+   * simply gone on the next connection, and the persisted document
+   * confirmed they had never been written.
+   *
+   * The server declares `defaultValue: [{ name: 'All', muted: [] }]`
+   * for this key, so once state arrives the value IS an array and the
+   * additive path below runs. A brand-new player therefore still gets
+   * every shipped view — from the branch that only ever ADDS.
+   */
+  if (!Array.isArray(raw)) return [];
   const tabs = raw as ConsoleTab[];
   const missing = DEFAULT_VIEWS.filter((v) => !seeded.includes(v.name));
   if (missing.length === 0) return tabs;

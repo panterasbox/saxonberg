@@ -284,3 +284,76 @@ describe("⚠⚠ the unfiltered view", () => {
     expect(screen.getByTestId("tab-count-All").textContent).toBe("2");
   });
 });
+
+/**
+ * ⚠⚠ **Never write defaults over state you have not read.**
+ *
+ * `ensureSeededViews` treated an absent `console.tabs` as "first run"
+ * and wrote the ship defaults wholesale. `App` renders the layout on
+ * its `default:` branch, so it can mount before the connection payload
+ * lands — and the seeder then clobbered the player's saved views.
+ * Found by driving: two views composed on a desktop were simply gone on
+ * the next connection, and the persisted document confirmed they had
+ * never been written.
+ */
+describe("⚠⚠ seeding never clobbers", () => {
+  it("writes NOTHING when client state has not arrived", () => {
+    const write = vi
+      .spyOn(websocketClient, "sendClientStateWrite")
+      .mockImplementation(() => undefined);
+    useStore.setState({ clientState: {} });
+
+    ensureSeededViews();
+
+    // Absence means NOT LOADED YET. Writing here is how the player's
+    // views were lost.
+    expect(write).not.toHaveBeenCalled();
+    expect(useStore.getState().clientState["console.tabs"]).toBeUndefined();
+  });
+
+  it("⭐ seeds additively once it HAS arrived", () => {
+    // The server declares a default for the key, so a real connection
+    // always yields an array — and a brand-new player gets every
+    // shipped view from the branch that only ever ADDS.
+    vi.spyOn(websocketClient, "sendClientStateWrite").mockImplementation(
+      () => undefined,
+    );
+    useStore.setState({
+      clientState: {
+        "console.tabs": [{ name: "All", muted: [] }],
+        "console.activeTab": "All",
+      },
+    });
+
+    ensureSeededViews();
+
+    const tabs = useStore.getState().clientState["console.tabs"] as Array<{
+      name: string;
+    }>;
+    expect(tabs.map((t) => t.name)).toContain("Aether");
+    expect(tabs.map((t) => t.name)).toContain("All");
+  });
+
+  it("⚠ leaves a player's own views alone", () => {
+    vi.spyOn(websocketClient, "sendClientStateWrite").mockImplementation(
+      () => undefined,
+    );
+    useStore.setState({
+      clientState: {
+        "console.tabs": [
+          { name: "All", muted: [] },
+          { name: "Forge watch", muted: [], facets: {} },
+        ],
+        "console.seededViews": ["Aether"],
+        "console.activeTab": "All",
+      },
+    });
+
+    ensureSeededViews();
+
+    const tabs = useStore.getState().clientState["console.tabs"] as Array<{
+      name: string;
+    }>;
+    expect(tabs.map((t) => t.name)).toContain("Forge watch");
+  });
+});
