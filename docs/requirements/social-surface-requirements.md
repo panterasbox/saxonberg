@@ -10,12 +10,20 @@ Mobile.dc.html`, `Apps - Forums and Wiki.dc.html`, `Livestream.dc.html`.
 The slate calls this wave *"almost pure client — every server half is
 already shipped."* **That is not quite true, and the differences are the
 reason this doc exists.** Rendering all four mocks and auditing them
-against the tree found three real server gaps (a player-readable emote
-catalogue, a client-facing subjects/surfaces read, per-arrangement pane
-resolution), two client/server drifts (`act.combat` reactable but not
-offered; Kick shipped but not embeddable), and one mock feature with no
-server half at all (wiki page standing). Wave 6 is a client wave with a
-server tail, not a restyle.
+against the tree found four real server gaps (a player-readable emote
+catalogue, a client-facing subjects/surfaces read, no structured
+tuned-target state, per-arrangement pane resolution), one client/server
+drift (`act.combat` reactable but never offered), and one mock feature
+with no server half at all (wiki page standing). Wave 6 is a client wave
+with a server tail, not a restyle.
+
+⚠ **One earlier finding is retracted.** `StreamEmbed` was reported here
+as Twitch/YouTube-only. It handles Kick as well — the *file's doc
+comment* is stale ("Both platforms are wired" sitting above a
+three-platform switch). That is a comment fix, not a feature gap. It is
+recorded rather than quietly dropped because the error came from reading
+a header instead of the code, which is the exact failure this project
+has paid for before.
 
 It is **one build**, not three: the three surfaces are independent
 products but they share the frame migration, and splitting them would
@@ -102,9 +110,11 @@ Load-bearing background: [forums.md](../subsystems/forums.md),
 
 - **`watch` becomes a real mode with two arrangements** (`viewer`,
   `streamer`) rather than two peer layouts.
-- **Kick is embeddable.** The Kick transport shipped server-side and the
-  embed handles only Twitch and YouTube; a Kick target currently renders
-  as an unsupported platform.
+- **The tuned rail reads structured state.** The set of targets a viewer
+  is tuned to — with each one's platform and whether it is read-only or
+  read-and-post — exists only as prose from a bare `tune`. The rail
+  needs it as state, the way `cockpit.watch` already carries the focal
+  target.
 - The split between the focal embed and the world feed is
   reader-controlled — `reading` / `even` / `theater` presets plus a
   drag — and the world keeps running underneath it (the never-blind
@@ -132,6 +142,9 @@ Load-bearing background: [forums.md](../subsystems/forums.md),
 - A **client-facing subjects read** carrying, per visible subject:
   title, grain, handle, audience binding, lit surfaces, and the
   unanswered-objection count.
+- **A structured tuned-target projection** — a `cockpit.tuned`
+  clientState key beside the existing `cockpit.watch`, carrying each
+  tuned target's platform and post capability.
 - **Per-arrangement pane resolution** — `SHIPPED_ARRANGEMENT_PANES` is
   keyed by mode alone, which cannot express `watch`'s two arrangements.
 
@@ -336,7 +349,9 @@ corrected in this wave, since this is the wave that reads them.
 
 **Livestream**
 
-15. A Kick `WatchTarget` renders a working embed.
+15. The tuned rail renders from structured server state, not from parsed
+    prose, and a test asserts a newly-tuned target appears without a
+    reconnect.
 16. The three split presets and the drag all change the focal share, and
     the world feed remains visible in every one of them.
 17. The tuned rail renders each target's read/post capability from
