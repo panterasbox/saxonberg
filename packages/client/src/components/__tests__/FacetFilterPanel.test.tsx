@@ -251,17 +251,13 @@ describe("the topic allowlist", () => {
     ).toBe(false);
   });
 
-  it("ships one short list of views, all the same kind of thing", () => {
+  it("seeds exactly one view, and `All` is not one of them", () => {
     /*
-     * The reported confusion was four facet presets PLUS a
-     * differently-shaped `All` tab, in a second control, beside four
-     * routed feeds in a third. One list now, and every entry is the
-     * same kind of thing: a named predicate over the whole buffer.
+     * ⚠ `All` is absent on purpose: it is the ABSENCE of a filter, a
+     * locked structural entry in the strip rather than a member of the
+     * list a player owns. Everything the player starts with is
+     * editable, and the one thing that is not is not in the list.
      */
-    expect(DEFAULT_VIEWS.map((p) => p.name)).toEqual([
-      "All",
-      "Aether",
-      "Diag",
-    ]);
+    expect(DEFAULT_VIEWS.map((p) => p.name)).toEqual(["Aether"]);
   });
 });

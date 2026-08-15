@@ -217,3 +217,70 @@ describe("⚠⚠ a shipped view is just a view", () => {
     expect(tabs.map((t) => t.name)).toContain("Aether");
   });
 });
+
+/**
+ * ⚠⚠ `All` is locked — and it is locked because of WHAT IT IS, not
+ * because it is on a privilege list.
+ */
+describe("⚠⚠ the unfiltered view", () => {
+  it("renders even though it is not in `console.tabs`", () => {
+    useStore.setState({
+      clientState: {
+        "console.tabs": [{ name: "Aether", muted: [], facets: {} }],
+        "console.activeTab": "All",
+      },
+    });
+    render(<TabStrip presetsOnly onToggleDrawer={() => undefined} />);
+    expect(screen.getByTestId("tab-All")).toBeTruthy();
+  });
+
+  it("carries NO edit and NO delete", () => {
+    useStore.setState({
+      clientState: {
+        "console.tabs": [{ name: "Aether", muted: [], facets: {} }],
+        "console.activeTab": "All",
+      },
+    });
+    render(<TabStrip presetsOnly onToggleDrawer={() => undefined} />);
+    // Active, and still no controls — there is nothing in an empty
+    // predicate to edit, and nothing to delete.
+    expect(screen.queryByTestId("tab-edit-All")).toBeNull();
+    expect(screen.queryByTestId("tab-delete-All")).toBeNull();
+  });
+
+  it("⚠ is never rendered twice, even with a stale stored `All` row", () => {
+    // Players seeded before the lock carry an `All` entry in their
+    // stored tabs. It must not produce a second, editable copy.
+    useStore.setState({
+      clientState: {
+        "console.tabs": [
+          { name: "All", muted: [], facets: { weight: ["chatter"] } },
+          { name: "Aether", muted: [], facets: {} },
+        ],
+        "console.activeTab": "All",
+      },
+    });
+    render(<TabStrip presetsOnly onToggleDrawer={() => undefined} />);
+    expect(screen.getAllByTestId("tab-All")).toHaveLength(1);
+    expect(screen.queryByTestId("tab-delete-All")).toBeNull();
+  });
+
+  it("counts the WHOLE buffer, never a stored filter", () => {
+    useStore.setState({
+      frames: [
+        { id: "a", topic: "speech.vocal", body: "" },
+        { id: "b", topic: "shell.diagnostic", body: "" },
+      ] as never,
+      clientState: {
+        // A stale, edited `All` row — honouring it would make the
+        // locked view quietly filter.
+        "console.tabs": [
+          { name: "All", muted: [], facets: { weight: ["chatter"] } },
+        ],
+        "console.activeTab": "All",
+      },
+    });
+    render(<TabStrip presetsOnly />);
+    expect(screen.getByTestId("tab-count-All").textContent).toBe("2");
+  });
+});

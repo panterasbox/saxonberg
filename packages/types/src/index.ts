@@ -2367,7 +2367,6 @@ export interface ViewDefinition {
  * (a `filter` verb) cannot drift — the `DEFAULT_SHELF` precedent.
  */
 export const DEFAULT_VIEWS: readonly ViewDefinition[] = [
-  { name: 'All', filter: {}, note: 'everything, in arrival order' },
   {
     name: 'Aether',
     /*
@@ -2383,12 +2382,22 @@ export const DEFAULT_VIEWS: readonly ViewDefinition[] = [
     filter: { topics: ['speech.comms', 'speech.channel', 'speech.relay'] },
     note: 'dms and chat — what reaches you over the network',
   },
-  {
-    name: 'Diag',
-    filter: { weight: ['diagnostic'] },
-    note: 'the machine talking to itself',
-  },
 ];
+
+/**
+ * The unfiltered view, and it is **not** one of the above.
+ *
+ * ⚠⚠ `All` is the ABSENCE of a filter, not a filter that happens to
+ * pass everything — which is why it is locked rather than merely
+ * privileged. There is nothing in it to edit (the predicate is empty by
+ * definition), and it is what guarantees the player can always get back
+ * to seeing everything, so there is nothing to delete either.
+ *
+ * It is therefore not stored in `console.tabs` at all. A locked ROW in
+ * a list of editable rows would be a special case; a structural first
+ * entry that is simply a different thing is not.
+ */
+export const ALL_VIEW = 'All';
 
 // ============================================================================
 // Feed routing — one stream, several destinations

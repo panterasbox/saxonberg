@@ -53,38 +53,30 @@ describe("consoleActions", () => {
     expect(sendSpy).not.toHaveBeenCalled();
   });
 
-  it("⚠ deletes `All` like any other view — the special case is gone", () => {
+  it("⚠⚠ refuses to delete `All` — it is the absence of a filter", () => {
     /*
-     * This used to assert `All` was uncloseable. That invariant was
-     * deliberately dropped: a shipped view the player cannot remove is
-     * the un-editable special case coming back in another form, and it
-     * was reported as exactly that — *"'forge watch' I can edit but
-     * aether and diag I can't? I thought a filter was a filter."*
+     * Not a privileged view: `All` is not in this list at all. It is a
+     * structural entry in the strip meaning *no predicate*, so there is
+     * nothing here to remove — and nothing in it to edit either, which
+     * is why it carries no controls. A locked ROW among editable rows
+     * would be the special case; a different kind of thing is not.
      */
     addTab("Other");
     deleteTab("All");
     const tabs = useStore.getState().clientState[
       "console.tabs"
     ] as { name: string }[];
-    expect(tabs.map((t) => t.name)).not.toContain("All");
     expect(tabs.map((t) => t.name)).toContain("Other");
   });
 
-  it("⭐ but never leaves the player with NO view", () => {
-    // The floor. Every view is deletable; the LIST is what is
-    // guaranteed, because a strip with nothing in it and no way to make
-    // one is not a state the player can get out of.
-    const tabs = useStore.getState().clientState[
-      "console.tabs"
-    ] as { name: string }[];
-    for (const t of [...tabs]) deleteTab(t.name);
-    const after = useStore.getState().clientState[
-      "console.tabs"
-    ] as { name: string }[];
-    expect(after.length).toBeGreaterThan(0);
-    expect(useStore.getState().clientState["console.activeTab"]).toBe(
-      after[0]!.name,
-    );
+  it("⭐ deleting your last view is safe — `All` is the floor", () => {
+    // No re-seeding needed. Whatever the player removes, the unfiltered
+    // view is always in the strip, so they can never end up with
+    // nowhere to look.
+    addTab("Other");
+    setActiveTab("Other");
+    deleteTab("Other");
+    expect(getActiveTab()).toBe("All");
   });
 
   it("deleteTab removes a non-All tab and emits the wire write", () => {

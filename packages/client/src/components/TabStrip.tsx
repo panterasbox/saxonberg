@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
-import { DEFAULT_VIEWS } from '@saxonberg/types';
+import { ALL_VIEW, DEFAULT_VIEWS } from '@saxonberg/types';
 import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
 import { facetFilterPasses } from './FacetFilterPanel';
 import {
@@ -332,7 +332,33 @@ export function TabStrip({
      */
     return (
       <Strip data-testid="tab-strip">
-        {tabs.map((tab) => (
+        {/*
+          ⚠⚠ **`All` is not in `tabs`, and that is the encoding.**
+
+          It is the ABSENCE of a filter, not a filter that happens to
+          pass everything — so there is nothing in it to edit and
+          nothing to delete, and it carries no `⋯` or `×` for the same
+          reason a blank page has no undo. Storing it as a locked ROW
+          among editable rows would be a special case; a structural
+          first entry that is simply a different kind of thing is not.
+
+          It is also the floor: deleting your last view leaves this, so
+          the player can never end up with nowhere to look.
+        */}
+        <Tab
+          $active={active === ALL_VIEW}
+          data-testid={`tab-${ALL_VIEW}`}
+          title="Everything, unfiltered"
+          onClick={() => setActiveTab(ALL_VIEW)}
+        >
+          {ALL_VIEW}
+          <TabCount data-testid={`tab-count-${ALL_VIEW}`}>
+            {frames.length}
+          </TabCount>
+        </Tab>
+        {tabs
+          .filter((tab) => tab.name !== ALL_VIEW)
+          .map((tab) => (
           <Tab
             key={tab.name}
             $active={tab.name === active}

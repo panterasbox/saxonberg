@@ -15,7 +15,7 @@
  */
 
 import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
-import { DEFAULT_VIEWS } from '@saxonberg/types';
+import { ALL_VIEW, DEFAULT_VIEWS } from '@saxonberg/types';
 import { useStore } from './index';
 import { websocketClient } from '../services/websocket';
 
@@ -31,12 +31,19 @@ const KEY_SEEDED = 'console.seededViews';
  * real login as *"it's weird to have 4 presets + all and they're not
  * all treated the same."* One list, one kind of thing.
  */
+/**
+ * ⭐ The views a player starts with — **just `Aether`**.
+ *
+ * ⚠ `All` is deliberately absent: it is the absence of a filter, not a
+ * member of this list. It renders as a locked structural entry in the
+ * strip, which is why deleting every view here is safe.
+ */
 const DEFAULT_TABS: ConsoleTab[] = DEFAULT_VIEWS.map((preset) => ({
   name: preset.name,
   muted: [],
   facets: preset.filter,
 }));
-const ALL_TAB = 'All';
+const ALL_TAB = ALL_VIEW;
 
 /** Read the current tabs list with the default fallback. */
 export function getTabs(): ConsoleTab[] {
@@ -109,21 +116,24 @@ export function renameTab(oldName: string, newName: string): ConsoleTab[] {
  * `'All'`.
  */
 /**
- * ⚠ The floor: a player must always have somewhere to look.
+ * ⚠ `All` is not deletable, and not because it is privileged.
  *
- * Every view is deletable, `All` included — a shipped view you cannot
- * remove is the un-editable special case coming back in another form.
- * What is guaranteed is that the LIST is never empty, so deleting the
- * last one re-seeds the defaults rather than leaving a strip with
- * nothing in it and no way to make one.
+ * It is not in this list at all — it is the ABSENCE of a filter, a
+ * structural first entry in the strip (see `ALL_VIEW`). So there is
+ * nothing here to remove, and the guard is a belt-and-braces refusal
+ * for a caller that passes the name anyway.
+ *
+ * ⭐ It is also why there is no re-seeding floor: deleting your last
+ * view leaves `All`, which is always there. The player can never end up
+ * with nowhere to look.
  */
 export function deleteTab(name: string): ConsoleTab[] {
+  if (name === ALL_TAB) return getTabs();
   const tabs = getTabs();
-  const remaining = tabs.filter((t) => t.name !== name);
-  if (remaining.length === tabs.length) return tabs;
-  const next = remaining.length > 0 ? remaining : DEFAULT_TABS;
+  const next = tabs.filter((t) => t.name !== name);
+  if (next.length === tabs.length) return tabs;
   writeTabs(next);
-  if (getActiveTab() === name) writeActive(next[0]!.name);
+  if (getActiveTab() === name) writeActive(ALL_TAB);
   return next;
 }
 

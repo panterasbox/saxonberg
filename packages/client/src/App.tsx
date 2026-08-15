@@ -34,6 +34,7 @@ import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
 import { facetFilterPasses } from "./components/FacetFilterPanel";
+import { ALL_VIEW } from "@saxonberg/types";
 import type {
   ConsoleTab,
   LayoutName,
@@ -321,12 +322,23 @@ function App() {
   const summonedPane = useStore((state) => state.summonedPane);
   const openPane = useStore((state) => state.openPane);
   const closePane = useStore((state) => state.closePane);
-  // Filter frames by the active tab's muted set. The 'All' default
-  // mutes nothing, so a fresh player sees the full firehose.
   const activeTabName =
-    (clientState["console.activeTab"] as string | undefined) ?? "All";
+    (clientState["console.activeTab"] as string | undefined) ?? ALL_VIEW;
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
-  const activeTab = tabs.find((t) => t.name === activeTabName);
+  /*
+   * ⚠⚠ **`All` resolves to NOTHING, structurally.**
+   *
+   * It is the absence of a filter, so it is not looked up in
+   * `console.tabs` at all — and deliberately not, rather than merely
+   * not being there: a player who edited `All` before it was locked
+   * still has a stored row with facets on it, and honouring that would
+   * make the locked view quietly filter. The lock has to hold against
+   * state that predates it.
+   */
+  const activeTab =
+    activeTabName === ALL_VIEW
+      ? undefined
+      : tabs.find((t) => t.name === activeTabName);
   const mutedSet = new Set(activeTab?.muted ?? []);
   /*
    * ⭐⭐ **Three filters, in the order they answer three different

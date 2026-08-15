@@ -451,31 +451,41 @@ question that wants exactly this shape. Its UI returns when there is
 something for it to drive; a settings screen for rules that change
 nothing observable would be a control lying about its own effect.
 
-### ⚠⚠ A shipped view is just a view
+### ⚠⚠ `All` is locked, and `Aether` is the only default
 
-`DEFAULT_VIEWS` is the set a player **starts** with. The moment it is
-seeded into `console.tabs` it is ordinary player data — editable,
-renamable and deletable exactly like one they composed. Nothing in the
-strip marks which is which, because after seeding it is not a
-difference.
+Two different things sit in the strip, and the difference is *what they
+are*, not a privilege list:
 
-It shipped the other way for one pass: three shipped views that could
-not be touched, in the same strip as one that could, and selecting a
-shipped one re-applied its filter **from code**, so tuning `Aether` and
-clicking away lost the change silently. Reported as it looked —
-*"'forge watch' I can edit but aether and diag I can't? I thought a
-filter was a filter."*
+- **`All` is the ABSENCE of a filter.** It is not stored in
+  `console.tabs` at all — it is a structural first entry. There is
+  nothing in an empty predicate to edit and nothing to delete, so it
+  carries no `⋯` and no `×`. It is also the floor: whatever the player
+  removes, the unfiltered view is always there, so they can never end up
+  with nowhere to look and no re-seeding is needed.
+- **Everything else is the player's.** `DEFAULT_VIEWS` seeds exactly one
+  — `Aether` — and the moment it lands in `console.tabs` it is ordinary
+  data: select, edit, rename, delete, exactly like one composed by hand.
+
+⚠ The lock holds against **state that predates it**. A player seeded
+before `All` was structural still carries a stored `All` row, possibly
+with facets on it; the strip renders it once (never twice) and `App`
+resolves the active view to `undefined` for `All` rather than looking it
+up, so a stale edit cannot make the locked view quietly filter.
+
+It shipped wrong twice on the way here, and both are worth keeping
+written down. First, three shipped views that could not be touched sat
+in the same strip as one that could — and selecting a shipped one
+re-applied its filter **from code**, so tuning `Aether` and clicking
+away lost the change silently: *"'forge watch' I can edit but aether and
+diag I can't? I thought a filter was a filter."* Then the correction
+over-swung and made `All` deletable like the rest, which mistook the
+identity for a member.
 
 - **Seeding is additive and one-time.** `console.seededViews` records
   what has been OFFERED, not what exists, so a deleted view stays
   deleted instead of returning on the next login. Without it "delete"
   would mean "hide until you reconnect".
-- **Every view is deletable, `All` included.** A shipped view the player
-  cannot remove is the un-editable special case in another form. What is
-  guaranteed is the LIST: deleting the last one re-seeds the defaults,
-  because a strip with nothing in it and no way to make one is not a
-  state anyone can get out of.
-- **No preset row inside the editor.** Chips named after the shipped
+- **No preset row inside the editor.** Chips named after the seeded
   views used to sit at the top of the facet panel and overwrite the
   filter being edited — inside an editor titled *Filter — Forge watch*
   that is a third mechanism, neither the view you are editing nor the
