@@ -68,21 +68,78 @@ const MoreChip = styled(Chip)`
 `;
 
 /** The card's picture — full-bleed to the card's padding box. */
+/**
+ * ⚠ Capped, and cropped rather than letterboxed.
+ *
+ * At the rail's full width a room plate came out ~280px tall — the
+ * single biggest thing on the card, pushing the exits and contents off
+ * the screen. A card is a handle for a thing, not a display of it: the
+ * picture is here to make the room recognisable at a glance, which a
+ * band does as well as a plate.
+ */
 const CardIllustration = styled.img`
   display: block;
   width: 100%;
-  height: auto;
+  max-height: 6.5rem;
+  object-fit: cover;
+  object-position: center;
   border-radius: ${tokens.radius.sm};
-  margin-bottom: ${tokens.space.sm};
+  margin-bottom: ${tokens.space.xs};
 `;
 
+/*
+ * ⚠ The right column is NARROW and holds a stack of cards. Every rule
+ * here is about density: a card that spends 44px of height on one exit
+ * pushes the next card off the screen, and the whole point of a feed is
+ * that you can see more than one thing in it.
+ */
 const Label = styled.div`
   font-family: ${tokens.font.engraved};
   font-size: ${tokens.font.label};
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: ${tokens.color.sectionLabel};
-  margin: ${tokens.space.md} 0 ${tokens.space.xs};
+  margin: ${tokens.space.sm} 0 2px;
+`;
+
+/**
+ * The room's prose, clamped.
+ *
+ * ⚠ Two lines by default. The full description is the transcript's job
+ * — it is already there, in full, where you arrived — and a card that
+ * reprints it pushes everything else out of view. Two lines is enough
+ * to say *which* room without the card becoming the room.
+ */
+const RoomProse = styled.p<{ $expanded: boolean }>`
+  margin: 0 0 ${tokens.space.xs};
+  font-size: ${tokens.font.small};
+  line-height: 1.45;
+  color: ${tokens.color.fgMuted};
+  overflow-wrap: anywhere;
+
+  ${(p) =>
+    p.$expanded
+      ? ""
+      : `
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  `}
+`;
+
+/**
+ * ⚠ A viewport act, so it carries no command preview — it changes how
+ * much of a thing you can see and nothing about the world.
+ */
+const MoreToggle = styled.button`
+  font: inherit;
+  font-size: ${tokens.font.label};
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: ${tokens.color.fgEmphasis};
 `;
 
 const Rows = styled.div`
@@ -95,7 +152,49 @@ const Actions = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${tokens.space.xs};
-  margin-top: ${tokens.space.md};
+  margin-top: ${tokens.space.sm};
+`;
+
+/**
+ * Exits, as inline links rather than buttons.
+ *
+ * ⚠ They were 44px chips — the touch-target minimum — which is right
+ * for a primary action on a phone and wrong for a list of five
+ * directions in a 360px rail, where it cost most of a card's height to
+ * say `south north east`. The transcript renders exits as links and
+ * always has; this now matches it.
+ */
+/** How many contents rows a card shows before counting the rest. */
+const HERE_SHOWN = 5;
+
+/** The remainder count — dim, and never a control. */
+const Overflow = styled.div`
+  margin-top: 2px;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+`;
+
+const InlineLinks = styled.div`
+  font-size: ${tokens.font.small};
+  line-height: 1.5;
+  color: ${tokens.color.fgMuted};
+`;
+
+const InlineLink = styled.button`
+  font: inherit;
+  font-family: ${tokens.font.mono};
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: ${tokens.color.fgEmphasis};
+  text-decoration: underline;
+  text-decoration-style: dotted;
+
+  &:hover {
+    color: ${tokens.color.fgEmphasis};
+  }
 `;
 
 const CommandChip = styled.button`
@@ -396,6 +495,41 @@ function PlaceIllustration({
   );
 }
 
+/**
+ * The room's description, clamped to two lines with a way to see the
+ * rest. The full prose is in the transcript where you arrived.
+ */
+function RoomDescription({
+  record,
+}: {
+  record: StuffDetailRecord | undefined;
+}): React.ReactElement | null {
+  const [expanded, setExpanded] = React.useState(false);
+  const text = record?.longDescription ?? record?.shortDescription ?? "";
+  if (!text) return null;
+  /*
+   * ⚠ Plain text, not `MmlRenderer`. A clamped box that hides half its
+   * own clickable words would offer affordances the reader cannot see,
+   * and the same words are live in the transcript two inches away.
+   */
+  const flat = text.replace(/<[^>]*>/g, "");
+  return (
+    <>
+      <RoomProse $expanded={expanded} data-testid="place-prose">
+        {flat}
+      </RoomProse>
+      <MoreToggle
+        aria-label={expanded ? "show less" : "show more"}
+        aria-expanded={expanded}
+        data-testid="place-prose-toggle"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        {expanded ? "less" : "more"}
+      </MoreToggle>
+    </>
+  );
+}
+
 function WaysOut({
   record,
   onSendCommand,
@@ -411,34 +545,34 @@ function WaysOut({
   return (
     <>
       <Label>Ways out</Label>
-      <Actions>
-        {exits.map((exit) => {
+      <InlineLinks>
+        {exits.map((exit, i) => {
           const command = `go ${exit.direction}`;
           return (
-            <CommandChip
-              key={exit.direction}
-              title={`Click to send: ${command}`}
-              onClick={() => onSendCommand(command)}
-              onMouseEnter={() => preview(command)}
-              onMouseLeave={() => preview(null)}
-            >
+            <React.Fragment key={exit.direction}>
+              {i > 0 && ", "}
               {/*
                 ⚠ The LABEL is the bare direction; the command is still
                 `go <direction>` and still previews in the title and on
                 hover. Under a heading that already says WAYS OUT the
-                verb is implied, and printing it on every chip made a
-                row of exits read as a row of sentences.
+                verb is implied.
 
-                This is not a break with *every clickable previews
-                exactly what it sends* — the preview is the contract,
-                not the label. The transcript has always done the same
-                thing: `Obvious exits: north` sends `go north`.
+                Not a break with *every clickable previews exactly what
+                it sends* — the preview is the contract, not the label,
+                and the transcript has always done this.
               */}
-              {exit.direction}
-            </CommandChip>
+              <InlineLink
+                title={`Click to send: ${command}`}
+                onClick={() => onSendCommand(command)}
+                onMouseEnter={() => preview(command)}
+                onMouseLeave={() => preview(null)}
+              >
+                {exit.direction}
+              </InlineLink>
+            </React.Fragment>
           );
         })}
-      </Actions>
+      </InlineLinks>
     </>
   );
 }
@@ -466,11 +600,19 @@ function HereList({
   const contents = record?.contents ?? [];
   if (contents.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
+  /*
+   * ⚠ Capped, with the remainder COUNTED rather than dropped — the same
+   * rule the mixin chip row follows. A busy room ran to a dozen rows
+   * and buried every card below it; a silent truncation would instead
+   * tell the player the room is emptier than it is.
+   */
+  const shown = contents.slice(0, HERE_SHOWN);
+  const hidden = contents.length - shown.length;
   return (
     <>
       <Label>Here</Label>
       <Rows>
-        {contents.map((row) => {
+        {shown.map((row) => {
           const target = row.primaryKeyword ?? row.displayName;
           const command = `look ${target}`;
           return (
@@ -487,6 +629,9 @@ function HereList({
           );
         })}
       </Rows>
+      {hidden > 0 && (
+        <Overflow data-testid="here-overflow">+{hidden} more</Overflow>
+      )}
     </>
   );
 }
@@ -527,6 +672,7 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
       return (
         <>
           <PlaceIllustration record={record} />
+          <RoomDescription record={record} />
           <Composition stuffId={stuffId} />
           <WaysOut
             record={record}

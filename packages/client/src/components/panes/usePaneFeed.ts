@@ -123,6 +123,20 @@ export function usePaneFeed(): void {
   const releasePane = useStore((s) => s.releasePane);
   const closePaneCard = useStore((s) => s.closePaneCard);
 
+  /*
+   * ⭐ The husk sweep. Here rather than in the feed component for the
+   * same reason the subscriptions are: this hook runs at BOTH form
+   * factors, and a sweep hung off the desktop column would never run on
+   * a phone.
+   */
+  useEffect(() => {
+    const handle = window.setInterval(
+      () => useStore.getState().expireHusks(),
+      10_000,
+    );
+    return () => window.clearInterval(handle);
+  }, []);
+
   useEffect(() => {
     /*
      * The one standing card this hook owns. Kept in a box because the

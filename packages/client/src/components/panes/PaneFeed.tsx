@@ -213,12 +213,30 @@ export function PaneFeed({
   const focusName = useStore(
     (s) => s.paneFocusName ?? s.paneLastResult?.[0]?.displayName ?? null,
   );
-  const placeSubjectId = React.useMemo(() => {
-    const place = cards.find((c) => c.paneId === "place" && !c.released);
-    return place?.records[0]?.stuffId ?? null;
-  }, [cards]);
+  const placeCard = React.useMemo(
+    () => cards.find((c) => c.paneId === "place" && !c.released),
+    [cards],
+  );
+  const placeSubjectId = placeCard?.records[0]?.stuffId ?? null;
+  /*
+   * ⚠⚠ **Do not render a claim you cannot yet check.**
+   *
+   * The `place` card opens with no records and fills in when its
+   * subscription resolves. The focus subscription resolves separately,
+   * and on entry it usually wins — so for one beat `placeSubjectId` was
+   * null, the dedupe had nothing to compare against, and a LOOKING AT
+   * card for the room you are standing in appeared and then vanished
+   * when place caught up. Reported exactly as it looks: *"I see flash
+   * in the right side 'looking at' for a while and then it vanishes."*
+   *
+   * While place is open but unresolved the honest answer to "is this a
+   * duplicate?" is *not yet known*, and the honest render is nothing.
+   */
+  const placeUnresolved = placeCard !== undefined && placeSubjectId === null;
   const showFocus =
-    focusStuffId !== null && focusStuffId !== placeSubjectId;
+    focusStuffId !== null &&
+    focusStuffId !== placeSubjectId &&
+    !placeUnresolved;
 
   return (
     <Column $compact={compact} data-testid="pane-feed">

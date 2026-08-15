@@ -313,7 +313,7 @@ rather than five widgets that happen to be stacked.
 | `FORM` | the question in serif, replies as command buttons, a primary action |
 | `AGENT` | mixin chips with an overflow count, measured label/value rows, action buttons |
 | `INSTRUMENT` | mixin chips, one large reading with a unit, a gauge bar, a provenance caption |
-| `PLACE` | the room's illustration, mixin chips, `WAYS OUT` as exit buttons, `HERE` as a contents list |
+| `PLACE` | a capped illustration band, the room's prose clamped to two lines, mixin chips, `WAYS OUT` as inline links, `HERE` as a capped contents list |
 
 ⚠ **The header states WHY, never how long.** *"held · owes a reply"*,
 *"held · you are here"*, *"stale · you left"*. A pane's lifetime is a
@@ -328,6 +328,19 @@ half of the composition. `Mixin` is stripped from the label and
 framework mixins sort last — but they still appear, because the row is
 a teaching surface and a hidden mixin is a lie about what the object
 is.
+
+### ⭐ Husks age out; live cards never do
+
+A released husk removes itself after two minutes, swept on an interval
+by `usePaneFeed` (at the layout, so it runs on a phone too).
+
+⚠⚠ **This is the one legitimate duration in the pane model.** A live
+pane's lifetime is a fact about the world — is that person still here —
+and putting a clock on it would end something still actionable, which is
+the property the whole design rests on. A husk is already dead: it is a
+note saying *what you last saw*, its value decays, and how long the
+corpse lingers is purely presentational. The count-based bound
+(`MAX_RELEASED`) stays alongside it for the player who walks fast.
 
 ### ⚠⚠ A husk keeps its name; it does not keep its body
 
@@ -350,6 +363,17 @@ one for the room you arrived in.
 does not come back. It is about one thing, and re-opening it after that
 thing went out of reach would be a card asserting a condition the world
 just denied.
+
+### ⚠⚠ The focus card must not FLASH
+
+The `place` card opens with no records and fills in when its
+subscription resolves; the focus subscription resolves separately and on
+entry usually first. For that beat the duplicate check had nothing to
+compare against, so a `LOOKING AT` card for the room you are standing in
+appeared and then vanished when place caught up.
+
+⭐ While `place` is open but unresolved the honest answer to *is this a
+duplicate?* is **not yet known**, and the honest render is nothing.
 
 ### ⚠⚠ The wiring lives at the LAYOUT, not at this column
 

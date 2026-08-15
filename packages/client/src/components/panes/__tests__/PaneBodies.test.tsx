@@ -99,3 +99,102 @@ describe("the picture", () => {
     expect(document.querySelector("img")).toBeNull();
   });
 });
+
+describe("the room's description", () => {
+  const long =
+    "A low-ceilinged room that has clearly been furnished by whoever " +
+    "passed through and left something behind. Mismatched armchairs " +
+    "and a sagging couch cluster around a rug worn pale down the middle.";
+
+  it("shows it, clamped, with a way to see the rest", () => {
+    render(
+      <PaneBody
+        card={placeCard({ longDescription: long })}
+        onSendCommand={() => undefined}
+      />,
+    );
+    // The text is all present — the clamp is presentational, so the
+    // card never silently truncates what it claims to show.
+    expect(screen.getByTestId("place-prose").textContent).toContain(
+      "Mismatched armchairs",
+    );
+    expect(screen.getByTestId("place-prose-toggle").textContent).toBe("more");
+  });
+
+  it("expands and collapses", () => {
+    render(
+      <PaneBody
+        card={placeCard({ longDescription: long })}
+        onSendCommand={() => undefined}
+      />,
+    );
+    const toggle = screen.getByTestId("place-prose-toggle");
+    // ⚠ A viewport act — it carries no `Click to send:` promise,
+    // because it sends nothing.
+    expect(toggle.getAttribute("title")).toBeNull();
+    fireEvent.click(toggle);
+    expect(screen.getByTestId("place-prose-toggle").textContent).toBe("less");
+  });
+
+  it("renders nothing when the room has no prose", () => {
+    render(
+      <PaneBody card={placeCard({})} onSendCommand={() => undefined} />,
+    );
+    expect(screen.queryByTestId("place-prose")).toBeNull();
+  });
+});
+
+describe("⚠ density", () => {
+  it("caps the HERE list and COUNTS the remainder", () => {
+    const contents = Array.from({ length: 9 }, (_, i) => ({
+      stuffId: `s${i}`,
+      displayName: `thing ${i}`,
+    }));
+    render(
+      <PaneBody
+        card={placeCard({ contents } as never)}
+        onSendCommand={() => undefined}
+      />,
+    );
+    // Counted, not dropped: a silent truncation would tell the player
+    // the room is emptier than it is.
+    expect(screen.getByTestId("here-overflow").textContent).toBe("+4 more");
+    expect(screen.getByText("thing 0")).toBeTruthy();
+    expect(screen.queryByText("thing 8")).toBeNull();
+  });
+
+  it("shows no overflow line when everything fits", () => {
+    render(
+      <PaneBody
+        card={placeCard({
+          contents: [{ stuffId: "s0", displayName: "a kettle" }],
+        } as never)}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.queryByTestId("here-overflow")).toBeNull();
+  });
+
+
+  it("renders exits as inline links, not 44px buttons", () => {
+    render(
+      <PaneBody
+        card={placeCard({
+          exits: [{ direction: "south" }, { direction: "north" }] as never,
+        })}
+        onSendCommand={() => undefined}
+      />,
+    );
+    /*
+     * The 44px touch minimum is right for a primary action and wrong
+     * for a list of directions in a 360px rail — five exits cost most
+     * of a card's height, and the point of a feed is seeing more than
+     * one card at a time.
+     */
+    const south = screen.getByText("south");
+    expect(south.tagName).toBe("BUTTON");
+    expect(getComputedStyle(south).minHeight).not.toBe("44px");
+    // Still a real command, still previewed.
+    expect(south.getAttribute("title")).toBe("Click to send: go south");
+  });
+});

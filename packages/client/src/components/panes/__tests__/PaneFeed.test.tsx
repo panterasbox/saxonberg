@@ -393,3 +393,107 @@ describe("⚠⚠ the focus card never repeats the PLACE card", () => {
     expect(screen.queryByTestId("pane-focus-card")).toBeNull();
   });
 });
+
+/**
+ * ⚠⚠ The flash: *"I see 'looking at' for a while and then it vanishes."*
+ *
+ * The `place` card opens with no records and fills in when its
+ * subscription resolves; the focus subscription resolves separately and
+ * usually first. For that beat the dedupe had nothing to compare
+ * against, so a LOOKING AT card for the room you are standing in
+ * appeared — and then vanished when place caught up.
+ */
+describe("⚠⚠ the focus card never flashes", () => {
+  it("stays hidden while the place card is open but unresolved", () => {
+    const store = useStore.getState();
+    // Place is OPEN — as it is from the moment the feed mounts — but
+    // has not been given its records yet.
+    store.openPaneCard({
+      subscriptionId: "s-place",
+      paneId: "place",
+      kind: "place",
+      hold: "here",
+    });
+    useStore.setState({
+      paneLastResult: [
+        { stuffId: "stuff-room", displayName: "the lounge" },
+      ] as never,
+      paneFocusName: "the lounge",
+    });
+    render(<PaneFeed onSendCommand={() => undefined} />);
+
+    // The honest answer to "is this a duplicate?" is *not yet known*,
+    // and the honest render is nothing.
+    expect(screen.queryByTestId("pane-focus-card")).toBeNull();
+  });
+
+  it("appears once place has resolved to something else", () => {
+    openCard("s-place", "place", "the lounge", "here");
+    useStore.setState({
+      paneLastResult: [
+        { stuffId: "stuff-terminal", displayName: "a terminal" },
+      ] as never,
+      paneFocusName: "a terminal",
+    });
+    render(<PaneFeed onSendCommand={() => undefined} />);
+    expect(screen.getByTestId("pane-focus-card")).toBeTruthy();
+  });
+});
+
+/**
+ * ⭐ Husks age out. *"I'm expecting cards to stack and scroll away and
+ * then fade off over time."*
+ */
+describe("⭐ a husk expires; a live card never does", () => {
+  it("drops a husk once its time is up", () => {
+    vi.useFakeTimers();
+    try {
+      openCard("s1", "place", "the lounge", "here");
+      useStore.getState().releasePane({
+        type: "mql-subscription-released",
+        frameId: 1,
+        subscriptionId: "s1",
+        hold: "here",
+        reason: "left",
+      });
+      expect(useStore.getState().paneCards["s1"]).toBeDefined();
+
+      vi.setSystemTime(Date.now() + 121_000);
+      useStore.getState().expireHusks();
+
+      expect(useStore.getState().paneCards["s1"]).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("⚠⚠ leaves a LIVE card alone however old it is", () => {
+    /*
+     * The bound on the live set is the HOLD. If it grew without limit
+     * the fault would be a hold that never lapses, and expiring one on
+     * age would hide exactly the bug the holds exist to make visible.
+     */
+    vi.useFakeTimers();
+    try {
+      openCard("live", "place", "the lounge", "here");
+      vi.setSystemTime(Date.now() + 10 * 60_000);
+      useStore.getState().expireHusks();
+      expect(useStore.getState().paneCards["live"]).toBeDefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps a husk that is still within its time", () => {
+    openCard("s2", "agent", "Tomas", "present");
+    useStore.getState().releasePane({
+      type: "mql-subscription-released",
+      frameId: 2,
+      subscriptionId: "s2",
+      hold: "present",
+      reason: "departed",
+    });
+    useStore.getState().expireHusks();
+    expect(useStore.getState().paneCards["s2"]).toBeDefined();
+  });
+});

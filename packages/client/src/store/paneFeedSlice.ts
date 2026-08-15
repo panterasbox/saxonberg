@@ -96,6 +96,8 @@ export interface PaneCardState {
   openedAt: number;
   /** Set once the hold lapsed: the card is a faded husk from here on. */
   released?: PaneReleaseReason;
+  /** When the hold lapsed — the husk ages out from here. */
+  releasedAt?: number;
   /**
    * The subject's name as it stood when the hold lapsed.
    *
@@ -114,6 +116,21 @@ export interface PaneCardState {
  * pane feed works is that it is bounded by *what you can still act on*.
  */
 const MAX_RELEASED = 3;
+
+/**
+ * How long a husk lingers before it removes itself.
+ *
+ * ⭐ **This is a duration, and it is the ONE place a duration is
+ * legitimate.** A live pane's lifetime is a fact about the world — is
+ * that person still here — and putting a clock on it would end
+ * something still actionable. A husk is already dead: it is a note
+ * saying *what you last saw*, whose value decays, and how long the
+ * corpse lingers is purely presentational.
+ *
+ * Two minutes: long enough to glance back at the room you just left,
+ * short enough that the feed does not silt up on a walk.
+ */
+const HUSK_TTL_MS = 120_000;
 
 /** How each release reason reads in the header. */
 const RELEASE_WORDS: Readonly<Record<PaneReleaseReason, string>> = {
@@ -192,6 +209,11 @@ export interface PaneFeedSlice {
   pinnedPaneCount: () => number;
   /** Forget everything (disconnect / character switch). */
   clearPanes: () => void;
+  /**
+   * Drop husks older than {@link HUSK_TTL_MS}. Live cards are never
+   * touched — see `pruneReleased`.
+   */
+  expireHusks: () => void;
 }
 
 /**
@@ -281,6 +303,7 @@ export const createPaneFeedSlice = (
         [envelope.subscriptionId]: {
           ...card,
           released: envelope.reason,
+          releasedAt: Date.now(),
           /*
            * ⚠ The NAME survives; the body does not.
            *
@@ -315,4 +338,26 @@ export const createPaneFeedSlice = (
     Object.values(get().paneCards).filter((c) => c.pinned === true).length,
 
   clearPanes: () => set(() => ({ paneCards: {} })),
+
+  expireHusks: () =>
+    set((s) => {
+      const now = Date.now();
+      const next: Record<string, PaneCardState> = {};
+      let dropped = false;
+      for (const [id, card] of Object.entries(s.paneCards)) {
+        /*
+         * ⚠ Live cards are untouched, whatever their age. The bound on
+         * the live set is the HOLD — if it grows without limit the
+         * fault is a hold that never lapses, and expiring one here
+         * would hide exactly the bug the holds exist to make visible.
+         */
+        const expired =
+          card.released !== undefined &&
+          card.releasedAt !== undefined &&
+          now - card.releasedAt >= HUSK_TTL_MS;
+        if (expired) dropped = true;
+        else next[id] = card;
+      }
+      return dropped ? { paneCards: next } : {};
+    }),
 });
