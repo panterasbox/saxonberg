@@ -242,7 +242,7 @@ describe('MobileFrame', () => {
     it('⚠ are reachable from the account menu', () => {
       render(
         <MobileFrame
-          layout="world"
+          mode="play"
           onCommandClick={() => {}}
           onCommandPreview={() => {}}
           onToggleSettings={() => {}}
@@ -262,13 +262,13 @@ describe('MobileFrame', () => {
       const sent: string[] = [];
       render(
         <MobileFrame
-          layout="world"
+          mode="play"
           onCommandClick={(c) => sent.push(c)}
           onCommandPreview={() => {}}
         />,
       );
       fireEvent.click(screen.getByText('Bartleby'));
-      fireEvent.click(screen.getByTestId('views-item-world'));
+      fireEvent.click(screen.getByTestId('views-item-play:default'));
       // The legacy-layout migration's own mapping — asserted as the
       // real string so the two form factors are pinned to ONE command,
       // not to two hand-written literals that agree today.

@@ -29,7 +29,8 @@ import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPane } from "./components/settings/SettingsPane";
-import { LAYOUT_REGISTRY, type LayoutProps } from "./layouts";
+import type { LayoutProps } from "./layouts";
+import { resolveMode } from "./layouts/modes";
 import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
@@ -38,6 +39,7 @@ import { ALL_VIEW } from "@saxonberg/types";
 import type {
   ConsoleTab,
   LayoutName,
+  CockpitMode,
   RelayMessagePayload,
 } from "@saxonberg/types";
 
@@ -316,9 +318,23 @@ function App() {
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
-  // The active cockpit layout — server-authoritative on `cockpit.layout`.
-  const layout =
-    (clientState["cockpit.layout"] as LayoutName | undefined) ?? "world";
+  /*
+   * ⭐⭐ The frame renders from the TWO cockpit axes — `cockpit.mode` and
+   * the per-mode arrangement — not from the single `cockpit.layout` key.
+   * That key is a compatibility projection the S3 build wrote in order
+   * for it to die with the old client; this is that death.
+   *
+   * `cockpit.layout` is still read, but only where the server itself
+   * reads it: as the migration cue when `cockpit.mode` has never been
+   * set. See `resolveMode`.
+   */
+  const resolved = resolveMode(
+    clientState["cockpit.mode"] as CockpitMode | null | undefined,
+    clientState["cockpit.arrangements"] as
+      | Record<string, string>
+      | undefined,
+    clientState["cockpit.layout"] as LayoutName | null | undefined,
+  );
   const summonedPane = useStore((state) => state.summonedPane);
   const openPane = useStore((state) => state.openPane);
   const closePane = useStore((state) => state.closePane);
@@ -760,9 +776,7 @@ function App() {
         onCommandClick: handleCommandClick,
         onCommandPreview: handleCommandPreview,
       };
-      const ActiveLayout = (
-        LAYOUT_REGISTRY[layout] ?? LAYOUT_REGISTRY.world!
-      ).Component;
+      const ActiveLayout = resolved.def.Component;
       return (
         <AppContainer $compact={isCompact}>
           {/* Always-on chrome (the matte): bus-health + identity + the
@@ -776,7 +790,8 @@ function App() {
               above the breakpoint" unassertable. */}
           {isCompact ? (
             <MobileFrame
-              layout={layout}
+              mode={resolved.mode}
+              arrangement={resolved.arrangement}
               onCommandClick={handleCommandClick}
               onCommandPreview={handleCommandPreview}
               settingsActive={summonedPane === "settings"}
@@ -786,7 +801,8 @@ function App() {
             />
           ) : (
             <Frame
-              layout={layout}
+              mode={resolved.mode}
+              arrangement={resolved.arrangement}
               onCommandClick={handleCommandClick}
               onCommandPreview={handleCommandPreview}
               settingsActive={summonedPane === "settings"}

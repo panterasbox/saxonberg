@@ -23,11 +23,11 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import {
-  LAYOUT_NAMES,
-  LEGACY_LAYOUT_MIGRATION,
-  type LayoutName,
+  COCKPIT_MODES,
+  COCKPIT_ARRANGEMENTS,
+  type CockpitMode,
 } from "@saxonberg/types";
-import { LAYOUT_REGISTRY } from "../layouts";
+import { MODE_REGISTRY } from "../layouts/modes";
 import { tokens } from "./ui";
 
 const Wrap = styled.div`
@@ -122,22 +122,22 @@ const ItemVerb = styled.span`
 `;
 
 /**
- * Display label for a layout name — the registry's label when the layout
- * is built, else a title-cased fallback so a not-yet-registered name
- * still reads sensibly in the menu.
+ * Fallback label for a (mode, arrangement) the client has no component
+ * for — title-cased so an unbuilt entry still reads sensibly rather than
+ * vanishing from a vocabulary the server does have.
  */
-function labelFor(name: LayoutName): string {
-  const def = LAYOUT_REGISTRY[name];
-  if (def) return def.label;
-  return name
-    .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+function labelFor(mode: CockpitMode, arrangement: string): string {
+  const title = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+  return arrangement === "default"
+    ? title(mode)
+    : `${title(mode)} · ${title(arrangement)}`;
 }
 
 interface ViewsMenuProps {
-  /** The active layout (from `cockpit.layout`), to mark the current item. */
-  current: LayoutName;
+  /** The active cockpit mode, to mark the current item. */
+  currentMode: CockpitMode;
+  /** The active arrangement within that mode. */
+  currentArrangement: string;
   /** Click-to-send a command (command-bus primacy). */
   onCommandClick: (command: string) => void;
   /** Hover-preview a command in the ghost line (`null` = stop). */
@@ -156,7 +156,8 @@ interface ViewsMenuProps {
 }
 
 export function ViewsMenu({
-  current,
+  currentMode,
+  currentArrangement,
   onCommandClick,
   onCommandPreview,
   inline = false,
@@ -166,26 +167,45 @@ export function ViewsMenu({
 
   const items = (
     <Menu data-testid="views-menu" $inline={inline}>
-      {LAYOUT_NAMES.map((name) => {
-        const { mode, arrangement } = LEGACY_LAYOUT_MIGRATION[name];
-        const cmd = `cockpit mode ${mode} ${arrangement}`;
-        return (
-          <Item
-            key={name}
-            data-testid={`views-item-${name}`}
-            $active={name === current}
-            onMouseEnter={() => onCommandPreview(cmd)}
-            onMouseLeave={() => onCommandPreview(null)}
-            onClick={() => {
-              onCommandClick(cmd);
-              setOpen(false);
-            }}
-          >
-            <span>{labelFor(name)}</span>
-            <ItemVerb>{cmd}</ItemVerb>
-          </Item>
-        );
-      })}
+      {/*
+        ⭐ The menu offers the cockpit's OWN vocabulary — every mode
+        crossed with its arrangements — instead of the five legacy layout
+        names it used to walk. It was already SENDING `cockpit mode`; it
+        was just enumerating the wrong list to build them from, so a mode
+        with two arrangements could only ever be offered once.
+      */}
+      {COCKPIT_MODES.flatMap((mode) =>
+        (COCKPIT_ARRANGEMENTS[mode] ?? ["default"]).map((arrangement) => {
+          const cmd = `cockpit mode ${mode} ${arrangement}`;
+          const key = `${mode}:${arrangement}`;
+          const built = MODE_REGISTRY[mode]?.[arrangement];
+          return (
+            <Item
+              key={key}
+              data-testid={`views-item-${key}`}
+              $active={mode === currentMode && arrangement === currentArrangement}
+              onMouseEnter={() => onCommandPreview(cmd)}
+              onMouseLeave={() => onCommandPreview(null)}
+              onClick={() => {
+                onCommandClick(cmd);
+                setOpen(false);
+              }}
+            >
+              <span>
+                {built ? built.label : labelFor(mode, arrangement)}
+                {/*
+                  ⚠ A mode the client cannot render yet is LABELLED as
+                  such rather than omitted. Hiding it would make the
+                  cockpit's vocabulary look smaller than it is, and the
+                  command still works — it just lands on the floor.
+                */}
+                {!built && <ItemVerb> ╌╌ not built</ItemVerb>}
+              </span>
+              <ItemVerb>{cmd}</ItemVerb>
+            </Item>
+          );
+        }),
+      )}
     </Menu>
   );
 

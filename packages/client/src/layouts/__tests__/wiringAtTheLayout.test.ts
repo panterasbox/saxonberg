@@ -55,6 +55,46 @@ function callsHook(text: string, hook: string): boolean {
   return new RegExp(`(^|[^.\\w])${hook}\\s*\\(`, 'm').test(code);
 }
 
+/**
+ * Wave 6's surfaces and the hook each one needs alive, keyed by the
+ * layout that must call it.
+ *
+ * ⭐ The pattern generalises: a surface is dead unless something that
+ * actually renders calls its subscription. `SubjectRail` opens the
+ * `subjects` scope in its own `useSubjectRail`, so the guard is that the
+ * rail is REACHED — asserted by the shell rendering it and the layout
+ * rendering the shell.
+ */
+const SURFACE_MOUNTS: Array<{ file: string; renders: string }> = [
+  // The forum app is nothing without its rail: the rail holds the
+  // `subjects` subscription, so a shell that stopped rendering it would
+  // leave the header describing a subject nobody could pick.
+  { file: 'components/social/SubjectShell.tsx', renders: 'SubjectRail' },
+  { file: 'layouts/ForumLayout.tsx', renders: 'SubjectShell' },
+  // The tuned rail reads `cockpit.tuned`; if the panes stop rendering
+  // it, the livestream side loses its only view of what it follows.
+  { file: 'layouts/LivestreamPanes.tsx', renders: 'TunedRail' },
+  // The reaction picker and its touch sheet both hang off the
+  // transcript, which is the one component both form factors share.
+  { file: 'components/Terminal.tsx', renders: 'EmoteSheet' },
+  { file: 'components/ReactionBar.tsx', renders: 'EmotePicker' },
+];
+
+describe('⭐ every social surface is actually mounted', () => {
+  it.each(SURFACE_MOUNTS)('$file renders <$renders>', ({ file, renders }) => {
+    /*
+     * ⚠ A component test would pass over any of these while the thing
+     * was unreachable in the running app — which is exactly how the
+     * mobile pane surface shipped dead with every mobile test green.
+     */
+    const text = readFileSync(resolve(src, file), 'utf8');
+    const code = text
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    expect(new RegExp(`<${renders}[\\s/>]`).test(code)).toBe(true);
+  });
+});
+
 describe('⚠⚠ subscription wiring', () => {
   it('is never called from a form-factor-specific component', () => {
     const offenders: string[] = [];
