@@ -45,6 +45,26 @@ function lookupRegistry(): AccessRegistry | null {
  * internal sub-logic is in module-private free functions, so there are
  * no intra-singleton self-calls).
  *
+ * ## ⚠⚠ Every predicate here FAILS CLOSED when the Registry is absent
+ *
+ * `lookupRegistry()` returns null before `/obj/AccessRegistry` is
+ * registered — during early boot, and in any test that does not stand
+ * one up. Five of these predicates used to answer **`true`** in that
+ * window, undocumented, while `isAuthor` alone answered `false`.
+ *
+ * A missing authority is not a grant. `isWizard` is the code-trust
+ * axis — it gates `eval`, `reload`, source-tree writes and the
+ * executable code-naming fields on a content template — so an
+ * unanswerable question resolving to *yes* is the worst available
+ * default, and it made the most dangerous door in the system the one
+ * that opened when the lock was missing.
+ *
+ * ⚠ The cost is real and is the reason it was ever written the other
+ * way: a test that exercises a wizard-gated path now has to stand up a
+ * Registry, or assert the refusal. That is the correct direction — a
+ * test that passed only because the gate was absent was not testing the
+ * gate.
+ *
  * @internal
  */
 @Unshadowable
@@ -58,7 +78,8 @@ export class AccessLogic extends ApiLogic {
   ): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
-    if (!reg) return true;
+    // ⚠⚠ FAIL CLOSED. See the note above the class.
+    if (!reg) return false;
     if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.can(subject, action, resource);
   }
@@ -71,7 +92,8 @@ export class AccessLogic extends ApiLogic {
   ): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
-    if (!reg) return true;
+    // ⚠⚠ FAIL CLOSED. See the note above the class.
+    if (!reg) return false;
     if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.canMutateZone(subject, zone);
   }
@@ -91,7 +113,8 @@ export class AccessLogic extends ApiLogic {
   public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
-    if (!reg) return true;
+    // ⚠⚠ FAIL CLOSED. See the note above the class.
+    if (!reg) return false;
     if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isWizard(subject);
   }
@@ -101,7 +124,8 @@ export class AccessLogic extends ApiLogic {
   public async isStreamer(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
-    if (!reg) return true;
+    // ⚠⚠ FAIL CLOSED. See the note above the class.
+    if (!reg) return false;
     if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isStreamer(subject);
   }
@@ -111,7 +135,8 @@ export class AccessLogic extends ApiLogic {
   public async isArchwizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();
-    if (!reg) return true;
+    // ⚠⚠ FAIL CLOSED. See the note above the class.
+    if (!reg) return false;
     if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.isArchwizard(subject);
   }

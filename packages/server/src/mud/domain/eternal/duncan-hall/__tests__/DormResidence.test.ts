@@ -45,6 +45,7 @@ import {
   withRootContext,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { AccessApi } from '../../../../api/access';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -199,6 +200,19 @@ function reset(): void {
   ParcelApi._resetRegistryRefForReload();
   StuffApi.clearAll();
   DormThemes.themesSource = null;
+  /*
+   * ⚠ Re-stubbed AFTER `restoreAllMocks`, and that ordering is the
+   * point — a stub installed in a file-level `beforeEach` is wiped by
+   * this call, which every describe block makes.
+   *
+   * None of this file is about authorization. The permission answer
+   * used to be assumed: the access predicates returned true whenever no
+   * `AccessRegistry` was registered, which is every test here. That
+   * fail-open is gone — a missing authority is not a grant — so the
+   * dependency is declared where a reader can see it.
+   */
+  vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+  vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
 }
 
 const snapshots = () => col('holder_snapshots');

@@ -38,6 +38,7 @@ import { RELEASE_DOCUMENT_KIND } from '../../lib/press/Release';
 import { SecurityError } from '../../lib/security/errors';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import { AccessApi } from '../../api/access';
 
 class TestAuthor extends Idea {
   static _mixinName = 'TestAuthor';
@@ -107,6 +108,17 @@ async function asAuthor<T>(fn: () => Promise<T>): Promise<T> {
 beforeEach(() => {
   StuffApi.clearAll();
   installStore();
+    /*
+   * ⚠ Stubbed because this file is not about authorization. The
+   * permission answer used to be assumed: the access predicates
+   * returned true whenever no `AccessRegistry` was registered, which
+   * is every test here. That fail-open is gone — a missing authority
+   * is not a grant — so the dependency is declared where a reader
+   * can see it.
+   */
+  vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+  vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true);
+
   void makeStuffAtPath(() => new PressBoard(), '/obj/PressBoard');
 });
 
