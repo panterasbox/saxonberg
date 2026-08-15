@@ -412,6 +412,7 @@ describe("⭐⭐ drilling into a detail", () => {
   const withDetail = () =>
     placeCard({
       displayName: "the station hall",
+      primaryKeyword: "hall",
       longDescription:
         'A hall. A <detail id="loudspeaker">loudspeaker</detail> crackles.',
       details: [
@@ -449,7 +450,14 @@ describe("⭐⭐ drilling into a detail", () => {
     fireEvent.click(screen.getByText("loudspeaker"));
 
     const trail = screen.getByTestId("detail-trail");
-    expect(trail.textContent).toContain("the station hall");
+    /*
+     * ⚠ The root is the primaryKeyword, not the display name. Every
+     * other segment is a detail keyword, so anchoring on prose would
+     * change register halfway through — and the keyword is the word the
+     * player would type, which is what the surface is teaching.
+     */
+    expect(trail.textContent).toContain("hall");
+    expect(trail.textContent).not.toContain("the station hall");
     expect(trail.textContent).toContain("loudspeaker");
 
     fireEvent.click(screen.getByTestId("detail-trail-root"));

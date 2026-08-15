@@ -443,6 +443,11 @@ closely. So drilling **stays inside the card**:
 - Its root is the object: clicking it leaves the detail entirely.
   Intermediate segments pop to that level; the tail is plain text,
   because clicking it would back you out to where you already are.
+- ⚠ The root is the subject's **`primaryKeyword`**, not its display
+  name. Every other segment is a detail keyword, so anchoring on prose
+  changed register halfway: *"the Terminus arrival gate › avenue"*
+  against *"gate › avenue"*. The keyword is also the word the player
+  would type, which is what the rest of the surface is teaching.
 - ⚠ Only **this subject's own** detail aliases are intercepted. `look
   noticeboard` in a room's prose is a different object and still travels
   as a command, opening its own card.

@@ -723,6 +723,13 @@ function ReleasedBody(): React.ReactElement {
  * entirely and puts the object's own description back. Intermediate
  * segments pop to that level. The tail is plain text, because clicking
  * it would back you out to where you already are.
+ *
+ * ⚠ The root is the subject's **primaryKeyword**, not its display name.
+ * Every other segment is a detail keyword, so a trail reading
+ * *"the Terminus ticket office › pigeonholes"* changes register
+ * halfway: one prose name and then a run of keywords. `office ›
+ * pigeonholes` is one vocabulary — and it is the word the player would
+ * type, which is what the rest of the surface is teaching them.
  */
 function DetailTrail({
   rootName,
@@ -839,7 +846,7 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
   return (
     <>
       <DetailTrail
-        rootName={record?.displayName || "it"}
+        rootName={record?.primaryKeyword || record?.displayName || "it"}
         path={detailPath}
         onPopTo={(depth) => setDetailPath((p) => p.slice(0, depth))}
       />
