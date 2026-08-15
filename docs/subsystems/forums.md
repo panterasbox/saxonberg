@@ -937,3 +937,22 @@ retained for the remaining deferred design space (the ephemeral lifecycle,
 the procedure modes, the latent collection-watch abstraction); the
 argument organizer's scale tail lives in the
 [argument-map slate](../slates/tails/argument-map-slate.md).
+
+### Wave 6 (client rebuild) — 2026-08-15
+
+Two renames and one client catch-up, all in one branch:
+
+- **`ordered` / `open` replaced four words.** `argument`/`popularity`
+  (board organizer) and `rules-of-order`/`free` (chat procedure) became
+  one axis asked of both. **No migration** — see § The four surfaces for
+  why the reset policy makes one unnecessary, and why that reasoning
+  generalises.
+- **The client learned the Subject model.** It had known only boards;
+  `ForumSubscriptionScope` gained a `subjects` kind and
+  `ForumSubjectRecord` gained `surfaceRefs`, because a subject's handle
+  does not address a board.
+- **Four faults found by DRIVING, none visible to the suite** — a
+  silently-dropped subscription scope, the Argument tab re-rendering
+  Popularity, an empty ordered board wearing popularity chrome, and a
+  command reply with nowhere to land. Each is written up at its cause
+  above; the generalisation is in [testing.md](../testing.md).

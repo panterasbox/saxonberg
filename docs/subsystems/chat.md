@@ -69,11 +69,11 @@ export class Channel extends Document {
   name: string = '';
   kind: ChannelKind = 'player-created';
   subject: string = '';                 // _id of the owning Subject
-  procedure: ChannelProcedure = 'free'; // 'free' (cycle 1) | 'ordered'
+  procedure: ChannelProcedure = 'open'; // 'open' (cycle 1) | 'ordered'
 }
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
-export type ChannelProcedure = 'free' | 'ordered';
+export type ChannelProcedure = 'open' | 'ordered';
 ```
 
 > **Since forums cycle-1:** `Channel` no longer carries its own
@@ -81,9 +81,12 @@ export type ChannelProcedure = 'free' | 'ordered';
 > membership binding) moved onto a shared **`Subject`** record (see
 > [forums.md](./forums.md)); a chat channel is now just *one surface*
 > on a Subject, addressed via `Channel.subject` (the Subject's `_id`).
-> The Channel additionally carries a `procedure` — `'free'` (cycle 1)
+> The Channel additionally carries a `procedure` — `'open'` (cycle 1)
 > or the deferred `'ordered'` (recognized-speaker discipline; the
-> flag ships, the behavior doesn't). `Subject.owner` and
+> flag ships, the behavior doesn't). ⭐ It is the SAME word the forum's
+> organizer uses, because it is the same question: *does a procedure
+> govern what may be said and when?* See
+> [forums.md § The four surfaces](./forums.md). `Subject.owner` and
 > `Subject.groupRef` are the fields that `Channel.owner` /
 > `Channel.groupRef` lifted into. See [§ History](#history).
 
@@ -480,8 +483,10 @@ into this doc as they ship.
   (the mutation gate) and audience (the membership binding) now live on
   `Subject` (`Subject.owner` + `Subject.groupRef`), and a chat channel is
   one *surface* on a Subject (`Channel.subject` → `Subject._id`).
-  `Channel` gained a `procedure` field (`'free'` cycle-1, `'rules-of-
-  order'` deferred). Subscription state moved from a per-channel
+  `Channel` gained a `procedure` field (`'open'` cycle-1, `'ordered'`
+  deferred — renamed from `'free'` / `'rules-of-order'` in Wave 6, when
+  the forum organizer and the chat procedure were unified onto one
+  ordered/open axis). Subscription state moved from a per-channel
   `PropertiedMixin` key (`chat.subscription.<channelId>`) to a
   **per-subject** store on `SubjectSubscriberMixin` (`{ followed,
   mutedSurfaces }`); `ChannelCatalogue.getSubscription` /
@@ -548,3 +553,11 @@ Once the audience is field avatars and the speaker may be a vessel,
 from inside their own circle received their own line twice, once as
 "You" and once as a stranger. Expect this wherever a comparison means
 *person* rather than *object*. See [sandbox.md](./sandbox.md).
+
+### Wave 6 (client rebuild) — 2026-08-15
+
+`Channel.procedure` renamed `'free'` → `'open'` and `'rules-of-order'`
+→ `'ordered'`, unifying with the forum's organizer onto one axis (see
+[forums.md § The four surfaces](./forums.md)). The chat SURFACE in the
+client became a terminal that scopes the forum command line via
+`cockpit cli --prefix`, rather than carrying an input of its own.

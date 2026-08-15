@@ -654,3 +654,11 @@ inside a circle discards with it). The vessel is a baseline body, and
 maker who has to retype full verbs, re-pick a theme, or re-open a
 layout inside their own workshop is being punished for using it. See
 [sandbox.md](./sandbox.md) § the crossing.
+
+### Wave 6 (client rebuild) — 2026-08-15
+
+`cockpit.layout` stopped driving the client frame. `MODE_REGISTRY` is
+keyed `(mode, arrangement)`; the legacy key survives on the wire and is
+read in exactly one place, as the migration cue for a player with no
+`cockpit.mode` — which is what the server's own `getCockpitMode()` does
+with it. See § The client frame renders from both axes.

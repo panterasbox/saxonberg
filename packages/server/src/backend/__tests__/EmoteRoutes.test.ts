@@ -92,9 +92,10 @@ describe('GET /api/emotes', () => {
     it('answers 304 with NO body when the catalogue has not changed', async () => {
       vi.spyOn(SoulApi, 'snapshot').mockResolvedValue([NOD]);
       const first = await agent.get('/api/emotes').expect(200);
+      const tag = String(first.headers.etag);
       const second = await agent
         .get('/api/emotes')
-        .set('If-None-Match', first.headers.etag)
+        .set('If-None-Match', tag)
         .expect(304);
       // The point of the whole exercise: a returning client pays a
       // conditional request and no payload.
@@ -104,17 +105,18 @@ describe('GET /api/emotes', () => {
     it('⭐ changes the ETag when the catalogue changes', async () => {
       const snap = vi.spyOn(SoulApi, 'snapshot').mockResolvedValue([NOD]);
       const first = await agent.get('/api/emotes').expect(200);
+      const tag = String(first.headers.etag);
 
       snap.mockResolvedValue([NOD, { ...NOD, verb: 'wave', emoji: '\u{1F44B}' }]);
       const second = await agent
         .get('/api/emotes')
-        .set('If-None-Match', first.headers.etag)
+        .set('If-None-Match', tag)
         .expect(200);
 
       // ⚠ Derived from the payload, not a version counter — a counter is
       // a second thing to remember to bump, and a hash cannot drift from
       // what it describes.
-      expect(second.headers.etag).not.toBe(first.headers.etag);
+      expect(second.headers.etag).not.toBe(tag);
       expect(second.body.emotes).toHaveLength(2);
     });
 

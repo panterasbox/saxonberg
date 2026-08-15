@@ -556,7 +556,7 @@ all answerable someday by disciplines already designed — the
 plinth carries a single line in the **lost Eternal-age script**
 (a standing decipherment target, authored now, method later —
 the Ferrow vertical's campus sibling), and the missing object is
-an argument-forum-shaped question (a lamp, a tool, a coin, a
+an ordered-forum-shaped question (a lamp, a tool, a coin, a
 blade — each implying a different Eternal City).
 Ratification-invariant by construction (fixed ruins-history
 only). The bible's relic discipline holds: a dry footnote, not a

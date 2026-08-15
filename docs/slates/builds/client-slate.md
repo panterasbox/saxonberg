@@ -973,8 +973,8 @@ three derived blocks (*what it affords* / *seen in play* / *composed
 by*). Four hatches on one page reads as a broken page.
 
 **One mock that is simply stale:** it badges the Argument surface
-`reserved`. `argument-forum` shipped in forums cycle 2. Only `rules-chat`
-is parked.
+`reserved`. The ordered organizer shipped in forums cycle 2. Only the
+ordered CHAT surface is parked.
 
 ### ⭐⭐ 7.17 What the LIVE DRIVE found that the suite could not
 
