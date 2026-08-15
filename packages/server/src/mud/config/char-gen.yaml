@@ -10,7 +10,7 @@
 # is the starter bio prose seeded onto PersonaMixin.
 #
 # `species[].image` / `aspirations[].image` (OPTIONAL) — a resolvable
-# illustration URL surfaced in the char-gen detail pane (3:4 portrait).
+# illustration URL surfaced in the char-gen detail card (3:4 portrait).
 # Omitted until image assets exist; the client renders a framed
 # placeholder in the meantime. The asset subsystem owns how these URLs
 # are produced; char-gen only consumes the field.

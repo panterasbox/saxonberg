@@ -76,14 +76,14 @@ describe('the cockpit verb', () => {
 
   it('declares the absorbed controls as subcommands, each with a controller', () => {
     expect(cockpit!.getSubcommandNames().sort()).toEqual([
+      'card',
       'cli',
       'layout',
       'mode',
-      'pane',
       'shelf',
       'style',
     ]);
-    expect(cockpit!.controllerForSubcommand('pane')).toBe(
+    expect(cockpit!.controllerForSubcommand('card')).toBe(
       '/obj/command/shell/CockpitCardController'
     );
     expect(cockpit!.controllerForSubcommand('shelf')).toBe(
@@ -166,14 +166,33 @@ describe('the cockpit verb', () => {
       expect(bind('cockpit layout list').name).toBe('list');
     });
 
-    it('binds the cockpit pane override', () => {
-      const pin = bind('cockpit pane pin focus');
-      expect(pin.subcommand).toBe('pane');
+    it('binds the cockpit card override', () => {
+      const pin = bind('cockpit card pin focus');
+      expect(pin.subcommand).toBe('card');
       expect(pin.action).toBe('pin');
       expect(pin.cardId).toBe('focus');
 
-      expect(bind('cockpit pane dismiss focus').action).toBe('dismiss');
-      expect(bind('cockpit pane').action).toBeUndefined();
+      expect(bind('cockpit card dismiss focus').action).toBe('dismiss');
+      expect(bind('cockpit card').action).toBeUndefined();
+    });
+
+    /*
+     * ⚠ `cockpit pane` is REFUSED, not aliased. The old name was a
+     * typed subcommand with its own help and examples; leaving it
+     * accepted would leave two names for one thing, which is the
+     * vocabulary drift the rename exists to end. Asserted on the
+     * assembler's own error rather than on a thrown string, so a
+     * future alias would fail this test rather than pass it silently.
+     */
+    it('refuses the retired `cockpit pane` name', () => {
+      const parsed = CommandLineApi.parsePipeline('cockpit pane list')
+        .commands[0]!;
+      const asm = CommandApi.assemble(parsed, cockpit!, {
+        commandGiver: giver as unknown as Stuff & CommandGiver,
+        location: location as unknown as Stuff & Container,
+      });
+      expect('error' in asm).toBe(true);
+      expect((asm as { error: string }).error).toBe('unknown-subcommand');
     });
 
     /*

@@ -13,7 +13,7 @@ help: |
 
   There is one focal video — a second `watch` swaps it; `watch off`
   clears it. Watching also follows the stream's chat (Twitch this
-  cycle) so the chat pane fills in alongside the video.
+  cycle) so the chat card fills in alongside the video.
 
   Most forms need no setup — a Twitch handle, a Kick slug, a YouTube
   URL / video id / channel id all resolve with no external call, so
