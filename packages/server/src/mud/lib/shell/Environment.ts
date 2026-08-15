@@ -75,6 +75,24 @@ export interface SettingsSchemaEntry<T = unknown> {
   enumValues?: T[];
   /** Returns `true` on success, an error message string on failure. */
   validator?: (value: T) => true | string;
+  /**
+   * ⭐ **One key with an optional per-form-factor override**, not two
+   * mandatory keys.
+   *
+   * When true, `setSetting` also accepts `<key>.desktop` /
+   * `<key>.mobile`, and `ShellApi.resolveSetting(host, key, factor)`
+   * resolves `<key>.<factor>` → `<key>` → the schema default. A player
+   * who wants the same behaviour everywhere sets one value; two
+   * independent keys guarantee eventual silent drift.
+   *
+   * ⚠⚠ **This does not break the no-`cockpit.formFactor` rule.** That
+   * key was never built because the server cannot know a viewport, so
+   * such a key would be a fake fact. Two STORED PREFERENCES assert
+   * nothing about which is in force: the server owns what is shown, and
+   * the client — which genuinely knows its own viewport — picks. Same
+   * split as `cockpit.shelf`.
+   */
+  perFactor?: true;
 }
 
 /**
@@ -161,7 +179,24 @@ function findSchema(
   host: object,
   key: string,
 ): { entry: SettingsSchemaEntry; sourceMixin: string } | undefined {
-  return collectSchema(host).find((x) => x.entry.key === key);
+  const exact = collectSchema(host).find((x) => x.entry.key === key);
+  if (exact) return exact;
+  /*
+   * ⭐ A per-form-factor override (`shell.result.mobile`) is not its own
+   * schema entry — it is the SAME setting, stored under a suffix. So a
+   * suffixed key resolves to the base entry, and only when that entry
+   * declares `perFactor`. Writing `shell.interpolate-vars.mobile`
+   * therefore refuses as *no such setting*, which is what makes this
+   * "one key with an optional override" rather than an open namespace.
+   */
+  const dot = key.lastIndexOf('.');
+  if (dot <= 0) return undefined;
+  const suffix = key.slice(dot + 1);
+  if (suffix !== 'desktop' && suffix !== 'mobile') return undefined;
+  const base = collectSchema(host).find(
+    (x) => x.entry.key === key.slice(0, dot),
+  );
+  return base?.entry.perFactor === true ? base : undefined;
 }
 
 /**
@@ -253,6 +288,42 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
           'literal `$X` text).',
       },
       {
+        /*
+         * ⭐ **A FILTER, not a placement** — the server still sends the
+         * frame; the client decides whether to render it.
+         *
+         * Placement (the server declines to send) saves the wire, but
+         * the frame then never reaches the frame store and `recall`
+         * cannot find it. Filtering keeps your `who` history searchable
+         * while keeping it out of sight.
+         *
+         * ⚠ `both` is the two-copies-of-one-sentence shape: two
+         * renderings of one payload that can drift. It is a legitimate
+         * player choice, and it is safe here only because the card
+         * carries the SAME MML the terminal rendered — so the assertion
+         * is that the two are EQUAL, never that each contains the
+         * expected words.
+         *
+         * ⭐ `terminal` is a first-class mode, not a fallback: MML
+         * renders markdown, inline wiki and spoiler tags, so a player
+         * who wants one scrollback is well served.
+         */
+        key: 'shell.result',
+        type: SettingTypes.String,
+        default: 'card',
+        perFactor: true,
+        description:
+          'Where a structured command result appears: `card` (the ' +
+          'default — the feed only), `terminal` (the prose only), or ' +
+          '`both`. Override per viewport with `shell.result.mobile` / ' +
+          '`shell.result.desktop`; the client picks, because only it ' +
+          'knows its own width.',
+        validator: (v) =>
+          v === 'card' || v === 'terminal' || v === 'both'
+            ? true
+            : `expected card | terminal | both, got '${String(v)}'`,
+      },
+      {
         key: 'prompt.format',
         type: SettingTypes.String,
         default: '{{ focus }}>',
@@ -342,6 +413,9 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       const lifetime = entry.lifetime ?? 'persistent';
+      // ⚠ Stored under the key as WRITTEN, suffix included: the whole
+      // point of the override is that it sits beside the base value
+      // rather than replacing it.
       if (lifetime === 'persistent') {
         if (!this.persistentStore) this.persistentStore = {};
         this.persistentStore[key] = value;

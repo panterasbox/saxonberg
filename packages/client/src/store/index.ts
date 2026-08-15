@@ -245,6 +245,15 @@ export interface Frame {
    */
   inReactionTo?: string;
   /**
+   * ⭐ **This frame's content is also on a card** (`meta.carded`).
+   *
+   * The `shell.result` setting filters on it: `card` drops the frame,
+   * `terminal` hides the card, `both` renders both. Stamped by the
+   * producer that opens the card, so the two cannot disagree about
+   * which content is duplicated.
+   */
+  carded?: true;
+  /**
    * The per-Interactive gutter number (`meta.frameId`). Used as the
    * `react --msg <#>` selector for the per-row quick-react affordance;
    * the server resolves the gutter → commandId.
@@ -1393,7 +1402,19 @@ export const useStore = create<StoreState>((set, get) => ({
       reactableTopics: reactable,
       feed,
       feedOrder: orderFeed(feed),
-      clientState: { ...(payload.clientState ?? {}) },
+      /*
+       * ⭐ `shell.result` seeds into clientState rather than into a
+       * field of its own, because the WRITE path pushes it there: a
+       * `client-state-update` from `SettingsController` is how the
+       * setting takes effect without a reconnect. Two homes for one
+       * answer would drift the first time only one of them was written.
+       */
+      clientState: {
+        ...(payload.clientState ?? {}),
+        ...(payload.resultDisplay
+          ? { "shell.result": payload.resultDisplay }
+          : {}),
+      },
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),

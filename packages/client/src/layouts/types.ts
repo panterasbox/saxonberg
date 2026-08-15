@@ -45,6 +45,18 @@ export interface LayoutProps {
    * asks the same question twice. See `Terminal.onCommandSend`.
    */
   onCommandSend: (command: string) => void;
+  /**
+   * ⭐ The effective `shell.result` mode for THIS viewport — `App`
+   * resolved it, because the server ships both answers and only the
+   * client knows its own width.
+   *
+   * Threaded to the layout rather than read from the store by the card
+   * feed, because the resolution is one decision made in one place: a
+   * second `useIsCompact` inside the feed would be a second answer to
+   * *which width am I* and the two would disagree while a window is
+   * being dragged.
+   */
+  resultDisplay?: "card" | "terminal" | "both";
   /** Hover-preview an affordance's command in the ghost line (`null` = stop). */
   onCommandPreview: (command: string | null) => void;
 }

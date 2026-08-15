@@ -295,6 +295,10 @@ export default class LookController extends CommandController<LookModel> {
 
     MessageApi.scene(actor)
       .topic('sense.survey')
+      // ⭐ Says *this content is also on a card*, so `shell.result` can
+      // filter it. A topic key could not: `sense.survey` is shared by
+      // twelve verbs that open no card at all.
+      .meta({ carded: true })
       .toSelf(body)
       .send();
 
@@ -394,6 +398,7 @@ export default class LookController extends CommandController<LookModel> {
 
     MessageApi.scene(actor)
       .topic('sense.survey')
+      .meta({ carded: true })
       .toSelf(body)
       .send();
 

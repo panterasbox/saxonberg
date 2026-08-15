@@ -84,7 +84,21 @@ export interface CardState {
   title?: string;
   subjectId?: string;
   promptId?: string;
-  /** The MML the producing controller emitted; absent when `noProse`. */
+  /**
+   * The MML the producing controller emitted; absent when the card
+   * declares `noProse`.
+   *
+   * ⭐ **It is the SAME payload the terminal rendered**, materialized
+   * once server-side against this viewer — not a second rendering. That
+   * is what makes `terminal` a first-class mode rather than a fallback,
+   * and what makes the equality assertion literal rather than
+   * aspirational.
+   *
+   * ⚠ Its ABSENCE is also load-bearing: a card with no prose cannot
+   * degrade to the terminal, so the `terminal` filter must leave it on
+   * screen. A Monaco editor silently disappearing because a setting
+   * said "prose only" is the failure `noProse` exists to prevent.
+   */
   prose?: string;
   records: CardRecord[];
   payload?: CardPayload;

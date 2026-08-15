@@ -81,6 +81,26 @@ export interface MessageFrame<T = unknown> {
      */
     channelId?: string;
     /**
+     * ⭐⭐ **This frame's content is also on a CARD.**
+     *
+     * The `shell.result` setting is a filter over this flag: under
+     * `card` the client drops a carded frame; under `terminal` it hides
+     * the card instead; under `both` it renders both.
+     *
+     * ⚠ **A per-frame marker, not a topic key, and the difference is
+     * a plan finding.** Decision 10 keyed the filter on the topic
+     * `shell.result`, on the premise that *every structured command
+     * result already carries it*. The card build falsifies that
+     * premise: `look`'s two cards ride `sense.survey`, which twelve
+     * other verbs share — `get`, `drop`, `inventory`, `wear`… A topic
+     * key would either miss `look` entirely or silence all twelve.
+     *
+     * The marker is exact by construction: the producer that opens the
+     * card is the producer that stamps the frame, so the two cannot
+     * disagree about which content is duplicated.
+     */
+    carded?: true;
+    /**
      * Reaction scope. Present on a frame that is itself a *reaction* —
      * an emote aimed at a prior act — carrying the `meta.commandId` of
      * the act being reacted to. The client uses it for render-correlation
@@ -1043,6 +1063,36 @@ export type CardCloseReason =
 
 /** Which viewport a per-form-factor setting override addresses. */
 export type FormFactor = 'desktop' | 'mobile';
+
+/**
+ * One named view over the **card feed** — the terminal tab strip's
+ * sibling for the other column.
+ *
+ * ⚠ `All` is never one of these. It is the *absence* of a filter, which
+ * is what makes it locked, unstored and undeletable: a stored `All` row
+ * could be edited into a view that quietly filtered, and the lock has
+ * to hold against state that predates it.
+ *
+ * ⚠ Views filter on card **kind**, not on topic paths. A card's kind is
+ * the one axis a player can name (*"just the wiki and the news"*);
+ * asking the terminal's facet question in this column would be
+ * borrowing a vocabulary that does not fit what is being filtered.
+ */
+export interface CardView {
+  name: string;
+  kinds: CardId[];
+}
+
+/**
+ * Where a structured command result appears.
+ *
+ * ⭐ A **filter**, not a placement: the server still sends the frame in
+ * every mode, and the client decides whether to render it. Placement
+ * would save the wire, but the frame would then never reach the frame
+ * store and `recall` could not find it — filtering keeps your `who`
+ * history searchable while keeping it out of sight.
+ */
+export type ResultDisplay = 'card' | 'terminal' | 'both';
 
 /**
  * What a `payload`-source card carries instead of MQL records.
@@ -2978,6 +3028,21 @@ export interface ConnectionEstablishedPayload {
     /** `social.react.muteChannels` — no reaction widgets on chat lines. */
     muteChannels: boolean;
   };
+  /**
+   * ⭐ **Where a structured command result appears — BOTH answers, so
+   * the client can pick.**
+   *
+   * `shell.result` is one setting with an optional per-form-factor
+   * override, resolved server-side into the two values it can take.
+   * The server ships both because **it cannot know a viewport**: a
+   * `cockpit.formFactor` key would be a fake fact. Two stored
+   * preferences assert nothing about which is in force — the server
+   * owns what is SHOWN, the client (which genuinely knows its own
+   * width) picks which applies. Same split as `cockpit.shelf`.
+   *
+   * Optional on the wire; the client falls back to `card` when absent.
+   */
+  resultDisplay?: Record<FormFactor, ResultDisplay>;
   /**
    * The live news-ticker window at connect time — the pins-first,
    * recency-ordered, retract/expiry-filtered slice the client seeds its

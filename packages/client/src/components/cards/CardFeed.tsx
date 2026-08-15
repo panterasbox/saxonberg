@@ -24,6 +24,8 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { Card } from "./Card";
 import { CardBody } from "./CardBodies";
+import { CardViewStrip } from "./CardViewStrip";
+import { activeCardKinds } from "../../store/cardViewActions";
 
 const Column = styled.aside<{ $compact: boolean }>`
   display: flex;
@@ -103,6 +105,19 @@ export interface CardFeedProps {
   onCommandPreview?: (command: string | null) => void;
   /** True on a phone — the column stops being a fixed-width rail. */
   compact?: boolean;
+  /**
+   * ⭐ The effective `shell.result` mode, already resolved for this
+   * viewport by `App` (the server ships both; only the client knows its
+   * own width).
+   *
+   * ⚠ **`terminal` suppresses a card only when it HAS prose to fall
+   * back to.** A card that declares `noProse` — the CMS editor, the git
+   * panel, the studio composer — has no terminal rendering at all, so
+   * suppressing it would take the authoring surface away on a setting
+   * that never claimed to. The absence of `prose` IS the declaration
+   * arriving on the wire.
+   */
+  resultDisplay?: "card" | "terminal" | "both";
 }
 
 /*
@@ -122,6 +137,7 @@ export function CardFeed({
   onSendCommand,
   onCommandPreview,
   compact = false,
+  resultDisplay = "card",
 }: CardFeedProps): React.ReactElement {
   /*
    * ⚠⚠ Unconditional, and that is the whole point — see the hook's own
@@ -140,12 +156,24 @@ export function CardFeed({
    * you left it. Derived here rather than read from state: a second
    * stored ordering is a second thing to keep in step.
    */
+  /*
+   * ⭐ The active named view, as a kind filter. `null` means NO filter
+   * at all — `All` — rather than "every kind", because a view listing
+   * every kind and the absence of one look identical until a card kind
+   * is added, at which point the enumerated one silently stops showing
+   * it.
+   */
+  const kinds = activeCardKinds();
   const cards = React.useMemo(() => {
-    const all = Object.values(cardsById);
+    const all = Object.values(cardsById).filter(
+      (c) =>
+        (resultDisplay !== "terminal" || c.prose === undefined) &&
+        (kinds === null || kinds.has(c.cardId)),
+    );
     const held = all.filter((c) => c.pinned).sort((a, b) => a.openedAt - b.openedAt);
     const rest = all.filter((c) => !c.pinned).sort((a, b) => b.openedAt - a.openedAt);
     return [...held, ...rest];
-  }, [cardsById]);
+  }, [cardsById, resultDisplay, kinds]);
   const pinned = React.useMemo(
     () => cards.filter((c) => c.pinned).length,
     [cards],
@@ -173,6 +201,7 @@ export function CardFeed({
           {pinned} pinned
         </PinnedCount>
       </Header>
+      <CardViewStrip />
       <List>
         {cards.map((card) => (
           <Card

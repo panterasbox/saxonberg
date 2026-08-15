@@ -169,7 +169,7 @@ export default class WikiController extends CommandController<WikiModel> {
     const header = viaAlias
       ? `${page.getTitle()}  (via '${WikiPage.normalizeName(ref)}' → ${page.getHandle()})`
       : `${page.getTitle()}  (${page.getHandle()}, rev ${page.getRev()})`;
-    this.send(
+    this.sendCarded(
       context,
       Mml.fromMarkup(
         `\n${Mml.escape(header)}\n\n${rendered}\n`,
@@ -916,6 +916,18 @@ export default class WikiController extends CommandController<WikiModel> {
 
   private send(context: CommandContext, body: Mml): void {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
+  }
+
+  /**
+   * The page read's prose — the twin of the card `pushPage` opens, so
+   * it carries `carded` and `shell.result` can filter one or the other.
+   */
+  private sendCarded(context: CommandContext, body: Mml): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(TOPIC)
+      .meta({ carded: true })
+      .toSelf(body)
+      .send();
   }
 
   /**

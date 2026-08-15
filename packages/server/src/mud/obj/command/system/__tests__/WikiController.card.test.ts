@@ -41,6 +41,8 @@ class Principal extends Idea {}
 
 interface SentFrame {
   topic: string;
+  /** `meta.carded` — set when the frame's content is also on a card. */
+  carded?: true;
   body: string;
   payload: unknown;
 }
@@ -95,6 +97,13 @@ beforeEach(() => {
     const b: Record<string, unknown> = {};
     b.topic = (t: string) => {
       frame.topic = t;
+      return b;
+    };
+    // ⭐ `meta({ carded: true })` — the marker the `shell.result`
+    // filter reads. Recorded so a test can assert the read's prose
+    // says it is duplicated on a card.
+    b.meta = (partial: Record<string, unknown>) => {
+      if (partial.carded === true) frame.carded = true;
       return b;
     };
     b.toSelf = (body: unknown, payload?: unknown) => {

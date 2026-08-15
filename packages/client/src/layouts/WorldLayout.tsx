@@ -119,6 +119,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onCommandClick,
   onCommandSend,
   onCommandPreview,
+  resultDisplay,
 }) => {
   /*
    * ⚠⚠ **The card wiring is NOT here any more — it is in `App`.**
@@ -345,6 +346,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onSendCommand={onCommandClick}
           onCommandPreview={onCommandPreview}
           compact={isCompact}
+          resultDisplay={resultDisplay}
         />
       </RightColumn>
       )}

@@ -90,6 +90,7 @@ export default class WhoController extends CommandController<WhoModel> {
     const body = this.render(rows, model);
     MessageApi.scene(viewer)
       .topic(TOPIC)
+      .meta({ carded: true })
       .toSelf(body)
       .send();
 

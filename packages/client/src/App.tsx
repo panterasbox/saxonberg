@@ -42,6 +42,8 @@ import type {
   LayoutName,
   CockpitMode,
   RelayMessagePayload,
+  FormFactor,
+  ResultDisplay,
 } from "@saxonberg/types";
 
 /** Relay-chat topics that carry a `RelayMessagePayload` (all transports). */
@@ -268,6 +270,27 @@ function App() {
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
   /*
+   * ⭐⭐ **Where a structured command result appears — the client picks
+   * which of the server's two answers applies.**
+   *
+   * The server ships both because it cannot know a viewport; only this
+   * side does. `card` (the default) suppresses the prose frame and
+   * leaves the card; `terminal` suppresses the card and leaves the
+   * prose; `both` renders both.
+   *
+   * ⚠ It is a FILTER, not a placement. The frame still arrived and is
+   * still in the frame store, so `recall` finds your `who` history
+   * whichever way this is set.
+   */
+  const resultDisplay = clientState["shell.result"] as
+    | Record<FormFactor, ResultDisplay>
+    | undefined;
+  // ⚠ `card` until the payload lands — the schema's own default. A
+  // client that guessed `both` would double every result for the
+  // fraction of a second before the answer arrives.
+  const effectiveResultDisplay: ResultDisplay =
+    resultDisplay?.[isCompact ? "mobile" : "desktop"] ?? "card";
+  /*
    * ⭐⭐ The frame renders from the TWO cockpit axes — `cockpit.mode` and
    * the per-mode arrangement — not from the single `cockpit.layout` key.
    * That key is a compatibility projection the S3 build wrote in order
@@ -359,6 +382,26 @@ function App() {
       return false;
     }
     if (mutedSet.has(f.topic)) return false;
+    /*
+     * ⭐⭐ `shell.result` — one clause, keyed on the frame's own
+     * `carded` marker rather than on a topic.
+     *
+     * ⚠ **A plan finding.** Decision 10 keyed this on the topic
+     * `shell.result`, on the premise that *every structured command
+     * result already carries it*. The card build falsifies that:
+     * `look`'s two cards ride `sense.survey`, which twelve other verbs
+     * share — `get`, `drop`, `inventory`, `wear`… A topic key would
+     * either miss `look` entirely or silence all twelve. The marker is
+     * exact, because the producer that opens the card is the producer
+     * that stamps the frame.
+     *
+     * ⚠ Nothing is LOST: the frame still arrived and is still in the
+     * frame store, so `recall` finds your history whichever way this is
+     * set. That is the whole reason it is a filter and not a placement.
+     */
+    if (f.carded === true && effectiveResultDisplay === "card") {
+      return false;
+    }
     // `social.react.alwaysAggregate` — hide reaction prose lines (frames
     // carrying `inReactionTo`); the chip on the target message carries
     // the aggregate instead.
@@ -446,6 +489,7 @@ function App() {
         ...(frame.meta?.inReactionTo !== undefined
           ? { inReactionTo: frame.meta.inReactionTo }
           : {}),
+        ...(frame.meta?.carded === true ? { carded: true as const } : {}),
         ...(frame.meta?.frameId !== undefined
           ? { frameId: frame.meta.frameId }
           : {}),
@@ -730,6 +774,7 @@ function App() {
         onCommandClick: handleCommandClick,
         onCommandPreview: handleCommandPreview,
         onCommandSend: sendDirect,
+        resultDisplay: effectiveResultDisplay,
       };
       const ActiveLayout = resolved.def.Component;
       return (

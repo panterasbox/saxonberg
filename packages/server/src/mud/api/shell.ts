@@ -43,6 +43,7 @@
  * `dest /obj/api/shell` reloads it.
  */
 
+import type { FormFactor } from '@saxonberg/types';
 import type { Stuff } from "../lib/stuff/Stuff";
 import type { Alias } from "../lib/shell/Alias";
 import type { AliasExpansionInfo } from "./command";
@@ -156,7 +157,8 @@ export class ShellApi {
   }
 
   /**
-   * Cross-host setting resolution.
+   * Cross-host setting resolution, with the optional per-form-factor
+   * rung.
    *
    * Settings declared on a mixin that may be composed by hosts without
    * `EnvironmentMixin` (notably `MobileMixin` settings on NPCs) need a
@@ -164,8 +166,12 @@ export class ShellApi {
    * host type. This walks the schema and falls back to the declared
    * default when the host can't carry overrides.
    */
-  public static resolveSetting<T>(host: Stuff, key: string): T | undefined {
-    return logic().resolveSetting<T>(host, key);
+  public static resolveSetting<T>(
+    host: Stuff,
+    key: string,
+    factor?: FormFactor,
+  ): T | undefined {
+    return logic().resolveSetting<T>(host, key, factor);
   }
 
 }

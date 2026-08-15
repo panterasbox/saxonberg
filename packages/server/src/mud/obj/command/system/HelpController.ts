@@ -168,7 +168,7 @@ export default class HelpController extends CommandController<HelpModel> {
       }
       composed = Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`;
     }
-    this.tell(context, composed);
+    this.tell(context, composed, true);
     /*
      * ⭐ The card carries **the topic this read already resolved**, and
      * the prose it just emitted. The help card is the one Wave 7 surface
@@ -186,10 +186,15 @@ export default class HelpController extends CommandController<HelpModel> {
     this.tell(context, Mml.compose`${text}`);
   }
 
-  private tell(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver)
-      .topic("shell.result")
-      .toSelf(body)
-      .send();
+  /**
+   * `carded` says *this content is also on a card*, which is what
+   * `shell.result` filters on. Only the topic read sets it — the
+   * landing page, the verb list and the search results open no card,
+   * so suppressing them would leave `help` doing nothing.
+   */
+  private tell(context: CommandContext, body: Mml, carded = false): void {
+    const scene = MessageApi.scene(context.commandGiver).topic("shell.result");
+    if (carded) scene.meta({ carded: true });
+    scene.toSelf(body).send();
   }
 }

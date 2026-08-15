@@ -91,6 +91,8 @@ beforeEach(() => {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
+    // ⭐ `meta({ carded: true })` — the marker `shell.result` filters on.
+    b.meta = () => b;
     b.toSelf = (body: unknown) => {
       sent.push(String(body));
       return b;

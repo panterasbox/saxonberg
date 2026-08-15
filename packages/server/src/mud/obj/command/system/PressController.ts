@@ -119,6 +119,7 @@ export default class PressController extends CommandController<ReleaseModel> {
           );
     MessageApi.scene(context.commandGiver)
       .topic('shell.result')
+      .meta({ carded: true })
       .toSelf(body)
       .send();
     /*

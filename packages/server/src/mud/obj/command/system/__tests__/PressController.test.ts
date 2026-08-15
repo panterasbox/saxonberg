@@ -72,6 +72,9 @@ describe('PressController', () => {
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
       const b: Record<string, unknown> = {};
       b.topic = () => b;
+      // ⭐ `meta({ carded: true })` — the marker `shell.result` filters
+      // on. Present so a stub does not have to know about it to pass.
+      b.meta = () => b;
       b.toSelf = () => b;
       b.send = () => {};
       return b as never;
@@ -204,10 +207,30 @@ describe('PressController', () => {
     );
   });
 
-  it('rejects a missing headline', async () => {
-    await run({ as: PUBLISHER, kind: 'notice' });
+  /**
+   * ⭐ `press post` with no headline still refuses — but BARE `press`
+   * no longer does, because bare `press` is the READ now (the news, and
+   * the command that opens the `news` card).
+   *
+   * ⚠ The old shape refused on both, which made the news the one
+   * shipped surface a player could not ask for: the ticker arrived on
+   * connect and no verb showed it again. A card whose only birth path
+   * is an arrangement contradicts *a command opens a card; nothing else
+   * does*.
+   */
+  it('rejects a missing headline on an explicit `post`', async () => {
+    await run({ subcommand: 'post', as: PUBLISHER, kind: 'notice' });
     expect(publish).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'headline-required' }),
+    );
+  });
+
+  it('⭐ bare `press` READS instead of refusing', async () => {
+    await run({});
+    expect(publish).not.toHaveBeenCalled();
+    // No refusal at all — it answered the question it was asked.
+    expect(note).not.toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'headline-required' }),
     );
   });

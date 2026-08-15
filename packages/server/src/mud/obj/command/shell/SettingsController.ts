@@ -24,6 +24,9 @@ import type {
   Environment,
   SettingsSchemaEntry,
 } from '../../../lib/shell/Environment';
+import { ShellApi } from '../../../api/shell';
+import type { HasInteractive } from '../../../lib/connection/HasInteractive';
+import type { ResultDisplay } from '@saxonberg/types';
 
 type EnvHost = Stuff & Environment;
 
@@ -128,11 +131,48 @@ export default class SettingsController extends CommandController<SettingsModel>
     } catch (err) {
       return this.fail(context, (err as Error).message, 'set-failed');
     }
+    this.pushResultDisplay(avatar, key);
     this.send(
       context,
       Mml.fromMarkup(`\n${key} set to ${formatValue(coerced)}.\n`),
     );
     return;
+  }
+
+  /**
+   * ⭐ Push `shell.result`'s two resolved answers when either changes,
+   * so the filter takes effect **without a reconnect**.
+   *
+   * ⚠ Both values, always — the server cannot know a viewport, so it
+   * ships what each width would resolve to and the client picks. The
+   * `social.rules` projection is the precedent: a server→client push,
+   * not a persisted client-state key.
+   *
+   * ⚠ Keyed on the BASE setting, so a write to `shell.result.mobile`
+   * re-pushes too. A per-factor override that only took effect after a
+   * reconnect would be indistinguishable from one that did not work.
+   */
+  private pushResultDisplay(avatar: EnvHost, key: string): void {
+    if (key !== 'shell.result' && !key.startsWith('shell.result.')) return;
+    if (!MixinApi.isHasInteractive(avatar)) return;
+    const host = avatar as unknown as Stuff;
+    (avatar as unknown as HasInteractive).pushClientStateUpdate(
+      'shell.result',
+      {
+        desktop:
+          ShellApi.resolveSetting<ResultDisplay>(
+            host,
+            'shell.result',
+            'desktop',
+          ) ?? 'card',
+        mobile:
+          ShellApi.resolveSetting<ResultDisplay>(
+            host,
+            'shell.result',
+            'mobile',
+          ) ?? 'card',
+      },
+    );
   }
 
   private executeUnset(
@@ -148,6 +188,7 @@ export default class SettingsController extends CommandController<SettingsModel>
     } catch (err) {
       return this.fail(context, (err as Error).message, 'unset-failed');
     }
+    this.pushResultDisplay(avatar, key);
     this.send(
       context,
       Mml.fromMarkup(`\n${key} cleared (default applies).\n`),

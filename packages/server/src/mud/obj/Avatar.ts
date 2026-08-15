@@ -58,6 +58,7 @@ import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
   MessageFrame,
+  ResultDisplay,
   RoutingRule,
 } from "@saxonberg/types";
 import { DEFAULT_ROUTING } from "@saxonberg/types";
@@ -898,6 +899,26 @@ export default class Avatar extends AvatarBase {
         muteChannels:
           ShellApi.resolveSetting<boolean>(this, "social.react.muteChannels") ??
           false,
+      },
+      /*
+       * ⭐ BOTH answers, resolved through the per-form-factor rung. The
+       * server cannot know a viewport, so it ships what each width
+       * would resolve to and the client picks — the `cockpit.shelf`
+       * split, restated for a setting rather than a list.
+       */
+      resultDisplay: {
+        desktop:
+          ShellApi.resolveSetting<ResultDisplay>(
+            this,
+            "shell.result",
+            "desktop",
+          ) ?? "card",
+        mobile:
+          ShellApi.resolveSetting<ResultDisplay>(
+            this,
+            "shell.result",
+            "mobile",
+          ) ?? "card",
       },
     };
     // First arrival (just created in char-gen) gets a fresh greeting;

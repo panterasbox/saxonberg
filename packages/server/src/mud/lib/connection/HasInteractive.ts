@@ -266,6 +266,48 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
       },
       {
         /**
+         * ⭐ Named views over the CARD feed — the terminal's tab strip,
+         * for the other column.
+         *
+         * ⚠ `All` is deliberately NOT in the default: it is the
+         * *absence* of a filter rather than a member of the list, which
+         * is what makes it locked, unstored and undeletable. A stored
+         * `All` row could be edited into a view that quietly filtered,
+         * and the lock has to hold against state that predates it.
+         *
+         * Views filter on **card kind** (`cardId`) — the one axis a
+         * player can name. Filtering on topic paths would be the
+         * terminal's question asked in the wrong column.
+         */
+        key: 'cards.views',
+        defaultValue: [],
+        description:
+          'Named views over the card feed. Each carries a name and a ' +
+          'list of card kinds it shows; `All` is structural and is ' +
+          'never stored here.',
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every(
+            (r) =>
+              typeof r === 'object' &&
+              r !== null &&
+              typeof (r as { name?: unknown }).name === 'string' &&
+              Array.isArray((r as { kinds?: unknown }).kinds),
+          )
+            ? true
+            : 'expected an array of { name, kinds[] }',
+      },
+      {
+        key: 'cards.activeView',
+        defaultValue: 'All',
+        description:
+          'Which card view is showing. `All` is the absence of a ' +
+          'filter and is always valid.',
+        validator: (v) =>
+          typeof v === 'string' ? true : 'expected a view name',
+      },
+      {
+        /**
          * ⭐ The feed routing table — one stream, several destinations.
          *
          * An ORDERED list, and the order is the semantics: first match
