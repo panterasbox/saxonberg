@@ -27,7 +27,6 @@
  */
 
 import type {
-  CardId,
   ReleaseFeedFrame,
   CharGenRosterPayload,
   CharGenStatePayload,
@@ -67,26 +66,21 @@ type EnvelopeHandler = (envelope: Envelope) => void;
  */
 export interface MqlSubscribeSpec {
   /**
-   * ⭐ Open a card the server knows by name. The server supplies the
-   * query, cardinality, fields and dependency flags; NOTHING else in
-   * this spec is read when `card` is set. A card's query is a server
-   * semantic and the client is not allowed to hold one.
-   */
-  card?: CardId;
-  /** Required unless `card` names one. */
-  query?: string;
-  /** Required unless `card` names one. */
-  cardinality?: "one" | "many";
-  /**
-   * ⭐ The `stuffId` a **subject card** (`agent` / `instrument` /
-   * `manifest`) is about.
+   * ⭐⭐ **The one thing a client may still open for itself.**
    *
-   * ⚠ An identity, not a query. The server substitutes it into its own
-   * `#<id>` seed; the client still holds no MQL. Worth saying because a
-   * parameter superficially resembles the hole the catalogue closes.
+   * `chrome: 'self'` is the widget shelf's subscription — the viewer's
+   * own figures — and it is deliberately NOT a card: it has no
+   * pinned-ness and no lifetime. Every real card is born because a
+   * command caused the server to push it, so there is no field here
+   * that would name one. That is acceptance criterion 1 enforced by the
+   * protocol rather than by a source grep.
    */
-  subject?: string;
-  /** Required unless `card` names one. */
+  chrome?: "self";
+  /** Required unless `chrome` names one. */
+  query?: string;
+  /** Required unless `chrome` names one. */
+  cardinality?: "one" | "many";
+  /** Required unless `chrome` names one. */
   fields?: string[] | "ref" | "detail";
   detailKey?: string;
   focusDependent?: boolean;

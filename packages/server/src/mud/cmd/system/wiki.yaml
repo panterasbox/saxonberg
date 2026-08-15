@@ -1,5 +1,6 @@
 verbs: [wiki]
 controller: /obj/command/system/WikiController
+opens_card: wiki
 description: "Read and write the world's encyclopedia (create / edit / history / rollback / move / delete / protect)"
 help: |
   The wiki is the community-maintained encyclopedia of the world's

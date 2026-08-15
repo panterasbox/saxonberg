@@ -18,11 +18,11 @@ import { websocketClient } from "../../../services/websocket";
 
 function placeCard(record: Partial<StuffDetailRecord>): CardState {
   return {
-    subscriptionId: "s1",
+    instanceId: "s1",
     cardId: "place",
-    kind: "place",
-    hold: "here",
-    pinned: null,
+    key: "look",
+    live: true,
+    pinned: false,
     openedAt: 1,
     records: [
       { stuffId: "room", displayName: "the lounge", ...record },

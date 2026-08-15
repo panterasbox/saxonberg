@@ -27,6 +27,7 @@ import {
 import { readFileSync, readdirSync } from 'fs';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
+import { CARD_IDS } from '@saxonberg/types';
 import { SourceTreeApi } from '../../api/source-tree';
 import type {
   MessageFrame,
@@ -1482,10 +1483,37 @@ export class CommandLogic extends ApiLogic {
   @CallSecurity(CommandApiCallers)
   public validateCommandView(view: unknown): string | null {
     const validate = commandSpecValidator();
-    if (validate(view)) return null;
-    return (validate.errors ?? [])
-      .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
-      .join('\n');
+    if (!validate(view)) {
+      return (validate.errors ?? [])
+        .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
+        .join('\n');
+    }
+    /*
+     * ⭐ `opens_card` resolves against the CATALOGUE, not against the
+     * schema.
+     *
+     * JSON Schema could carry the enum, but then the vocabulary would
+     * live in two places and the copy in the schema would drift the
+     * first time a card is added. Checking the real `CARD_IDS` here
+     * means a typo fails at BOOT — the same posture as the lint family —
+     * rather than at first invocation, where it would look like the card
+     * silently not opening.
+     */
+    const raw = (view as { opens_card?: unknown }).opens_card;
+    const declared =
+      raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
+    for (const id of declared) {
+      if (
+        typeof id !== 'string' ||
+        !(CARD_IDS as readonly string[]).includes(id)
+      ) {
+        return (
+          `  /opens_card '${String(id)}' is not a card ` +
+          `(known: ${CARD_IDS.join(', ')})`
+        );
+      }
+    }
+    return null;
   }
 
   /** See {@link CommandApi.validateAgainstJsonSchema}. */

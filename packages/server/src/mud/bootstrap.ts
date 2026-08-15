@@ -231,6 +231,15 @@ export const bootstrapManifest: BootstrapEntry[] = [
     templatePath: '/obj/MqlSubscriptionRegistry',
     dependsOn: ['/obj/EventSubscriptions'],
   },
+  // CardRegistry — the card set: per-Interactive open cards keyed by
+  // instance id, their normalized-command identity, their pinned-ness
+  // and their relevance window. Depends on MqlSubscriptionRegistry
+  // because a LIVE card owns an MQL subscription handle
+  // (`instanceId === subscriptionId`) and tears it down on close.
+  {
+    templatePath: '/obj/CardRegistry',
+    dependsOn: ['/obj/MqlSubscriptionRegistry'],
+  },
   // ForumSubscriptionRegistry — the forum document-change observer. Holds
   // the per-Interactive registry, the board/thread dependency index, and
   // the setImmediate-batched dirty queue. Listens on EventApi for

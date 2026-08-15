@@ -1,5 +1,6 @@
 verbs: [press]
 controller: /obj/command/system/PressController
+opens_card: news
 description: "The news ticker — the staff→player broadcast feed (post / edit / retract)"
 help: |
   Put something out under a publisher's name, and manage what is

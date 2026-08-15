@@ -1,5 +1,10 @@
 verbs: [look, l, examine, exa]
 controller: /obj/command/perception/LookController
+# ⭐ Two cards, because `look` genuinely opens two: bare `look` is about
+# the room (`place`, whose own refresh key IS `look`, so a bare look
+# TOUCHES it rather than minting a duplicate), and `look <thing>` stacks
+# a card about what you looked at.
+opens_card: [place, subject]
 description: "Examine your surroundings or an object"
 help: |
   With no target, `look` surveys your whole location — its

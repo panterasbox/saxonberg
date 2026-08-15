@@ -38,7 +38,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import Avatar from '../../Avatar';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import type { ArrangementSpec, CockpitMode, CardId } from '@saxonberg/types';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { CardApi } from '../../../api/card';
 
 const LAYOUT_KEY = 'cockpit.layout';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
@@ -113,7 +113,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
      */
     const interactive = context.interactive;
     if (interactive) {
-      MqlSubscriptionApi.applyArrangement(
+      CardApi.applyArrangement(
         interactive,
         host.arrangementCards(mode, name),
       );
@@ -164,7 +164,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
      * save over a card the player never asked for by name.
      */
     const open = context.interactive
-      ? MqlSubscriptionApi.listCards(context.interactive)
+      ? CardApi.list(context.interactive)
       : [];
     const cards = [
       ...new Set(

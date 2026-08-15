@@ -1233,6 +1233,29 @@ export interface CommandView {
    * `command-routing.md` for the detach seam.
    */
   async?: boolean;
+  /**
+   * ⭐ **The card this verb opens**, by catalogue id.
+   *
+   * A DECLARATION, not the push. The controller still calls
+   * `CardApi.open`, because only the controller knows the resolved
+   * operand (`look`'s target, `wiki`'s slug); this is the **gate** that
+   * call is checked against, and it is what makes the card vocabulary
+   * declarative and greppable rather than scattered across controller
+   * bodies.
+   *
+   * Validated against `CARD_IDS` at load, so a typo fails at boot rather
+   * than at first invocation — the same posture as the lint family.
+   *
+   * ⚠ A **view-level** declaration, not a phase effect: it says what
+   * this verb is capable of opening, not that running it always does.
+   *
+   * ⚠ A LIST where a verb legitimately opens more than one: bare `look`
+   * touches `place` while `look <thing>` opens `subject`, and forcing
+   * one of those through a second verb would be sizing the vocabulary to
+   * the declaration rather than to the game. A scalar is sugar for a
+   * one-element list.
+   */
+  opens_card?: string | string[];
 }
 
 /**

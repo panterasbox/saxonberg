@@ -21,7 +21,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type Interactive from '../Interactive';
 import type { Sensor } from '../../lib/message/Sensor';
 import { MessageApi } from '../../api/message';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { CardApi } from '../../api/card';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -272,8 +272,13 @@ function cleanup(record: ResolverRecord): void {
    *
    * One known producer poking one known consumer, so it is a method
    * call rather than an event — the `notifyDurableSubject` shape.
+   *
+   * ⚠ It now pokes the CARD substrate rather than the MQL one. The
+   * guarantee is unchanged and its expression is simpler: a prompt card
+   * opens PINNED, so the relevance window can never reach it, and this
+   * settle is the only thing that ends it.
    */
-  MqlSubscriptionApi.notifyPromptSettled(record.interactive, record.promptId);
+  CardApi.notifyPromptSettled(record.interactive, record.promptId);
 }
 
 function emitValidationFailed(record: ResolverRecord, message: string): void {

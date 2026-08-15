@@ -19,6 +19,7 @@
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
+import { CardApi } from '../../../api/card';
 import { Mml } from '../../../api/mml';
 import { PromptApi } from '../../../api/prompt';
 import { StuffApi } from '../../../api/stuff';
@@ -974,6 +975,17 @@ export default class WikiController extends CommandController<WikiModel> {
       .topic(PAGE_TOPIC)
       .toSelf(Mml.fromMarkup(''), frame)
       .send();
+
+    /*
+     * ⭐ The card carries **the very frame that just went out** — one
+     * object, two deliveries. That inherits the render gate rather than
+     * re-deriving it, which is the whole security argument for the
+     * card: a second render from source would be a second path along
+     * which over-capability content could reach a client.
+     */
+    CardApi.open(context, 'wiki', {
+      payload: { kind: 'wikiPage', page: frame },
+    });
   }
 }
 

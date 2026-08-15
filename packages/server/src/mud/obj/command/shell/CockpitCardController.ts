@@ -1,33 +1,28 @@
 /**
- * CockpitCardController — `cockpit card`, the manual override on a
- * card's hold condition.
+ * CockpitCardController — `cockpit card`, the player's override on the
+ * one lifetime axis.
  *
- *   cockpit card list            what is open, and why it is staying
- *   cockpit card pin <id>        keep it even once its condition lapses
- *   cockpit card dismiss <id>    drop it even though its condition holds
- *   cockpit card auto <id>       hand the decision back to the condition
+ *   cockpit card list            what is open, its state, and its key
+ *   cockpit card pin <id>        keep it out of the relevance window
+ *   cockpit card dismiss <id>    let it age out again
+ *   cockpit card auto <id>       hand the decision back to the catalogue
  *
- * ⚠ Pinning is an **override on the five hold conditions, in both
- * directions** — not a sixth condition. A sixth condition could only
- * ever keep a card; it could never dismiss one whose condition still
- * holds, which is half of what a player needs.
+ * ⭐ **Pinned or unpinned is the WHOLE lifetime.** The five hold
+ * conditions this verb used to override are gone: four were spatial and
+ * each cost a wake to fire, and `unanswered`'s guarantee — *nothing
+ * still actionable ever leaves* — moved onto this axis, where a prompt
+ * card opens pinned and auto-releases when answered.
  *
  * ⚠ This is a command, not a client-side toggle, for the same reason
  * everything else here is: the card set is server-authoritative, so the
  * override has to reach the server as a real dispatch — replayable,
  * scriptable, attributable, visible to a stream overlay.
- *
- * `dismiss` does not tear the card down inline. It marks the override
- * and lets the next re-resolve apply it, so a dismissal is released
- * down the same path — and emits the same reasoned envelope — as every
- * other release. A second teardown path is how a card ends up vanishing
- * without a reason.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { CardApi } from '../../../api/card';
 import { Mml } from '../../../api/mml';
 
 interface CardModel extends CommandModel {
@@ -70,8 +65,9 @@ export default class CockpitCardController extends CommandController<CardModel> 
       );
     }
 
+    // `auto` hands the decision back to the catalogue's own default.
     const pinned = action === 'pin' ? true : action === 'dismiss' ? false : null;
-    const ok = MqlSubscriptionApi.setCardPinned(interactive, cardId, pinned);
+    const ok = CardApi.setPinned(interactive, cardId, pinned);
     if (!ok) {
       return this.fail(
         context,
@@ -84,8 +80,8 @@ export default class CockpitCardController extends CommandController<CardModel> 
       action === 'pin'
         ? 'pinned — it will stay until you dismiss it'
         : action === 'dismiss'
-          ? 'dismissed'
-          : 'released to its hold condition';
+          ? 'dismissed — it will age out of the relevance window'
+          : 'returned to its default';
     this.send(
       context,
       Mml.fromMarkup(Mml.escape(`\ncard ${cardId} ${said}\n`)),
@@ -93,37 +89,27 @@ export default class CockpitCardController extends CommandController<CardModel> 
   }
 
   private executeList(context: CommandContext): void {
-    const cards = MqlSubscriptionApi.listCards(context.interactive!);
+    const cards = CardApi.list(context.interactive!);
     if (cards.length === 0) {
       return this.send(context, Mml.fromMarkup('\nno cards open\n'));
     }
     const lines = ['\ncards'];
-    for (const p of cards) {
+    for (const c of cards) {
       /*
-       * ⚠ Name it by its CATALOGUE id. The `subscriptionId` is a
-       * client-minted `nanoid` — showing it printed
-       * `X9aYf67qws_FobUqk6M6I` at the player, which is the transport
-       * handle the card catalogue exists to stop being an identity.
-       * A card opened by shape rather than by name has no durable id;
-       * it falls back to the handle, because that is genuinely all it
-       * has.
+       * ⚠ Name it by its CATALOGUE id. The instance id is server-minted
+       * transport plumbing — printing `card-X9aYf67qws…` at a player is
+       * the transport leaking into the interface, and it is the id the
+       * catalogue exists to stop being an identity.
        */
-      const name = p.cardId ?? p.subscriptionId;
+      const state = c.pinned ? 'pinned' : 'open';
       /*
-       * ⚠ A card need not have a hold — `inspect` and `location` do
-       * not, because paint/clear means a focus change clears the body
-       * rather than closing the card. This branch rendered `held while
-       * undefined` until it was driven.
+       * ⭐ **Say which cards are live.** Liveness is the axis a player
+       * cannot otherwise observe: a static card shows a timestamp and a
+       * refresh, a live one shows neither, and without the word here the
+       * only way to tell them apart is to watch one fail to update.
        */
-      const state =
-        p.pinned === true
-          ? 'pinned'
-          : p.pinned === false
-            ? 'dismissed'
-            : p.hold
-              ? `held while ${p.hold}`
-              : 'open';
-      lines.push(`  ${name} (${state})`);
+      const liveness = c.live ? 'live' : 'static';
+      lines.push(`  ${c.cardId} (${state}, ${liveness}) — ${c.key}`);
     }
     lines.push('');
     this.send(context, Mml.fromMarkup(Mml.escape(lines.join('\n'))));

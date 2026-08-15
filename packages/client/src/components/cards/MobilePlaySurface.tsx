@@ -95,16 +95,17 @@ export function PinnedChipRow({
   onSendCommand,
 }: PinnedChipRowProps): React.ReactElement | null {
   const cards = useStore((s) => s.cards);
-  const pinned = Object.values(cards).filter((c) => c.pinned === true);
+  const pinned = Object.values(cards).filter((c) => c.pinned);
   if (pinned.length === 0) return null;
   return (
     <Chips data-testid="pinned-chip-row">
       {pinned.map((card) => {
-        const name = card.records[0]?.displayName ?? card.cardId ?? "a card";
-        const ref = card.cardId ?? card.subscriptionId;
+        const name =
+          card.title ?? card.records[0]?.displayName ?? card.cardId;
+        const ref = card.cardId;
         return (
           <Chip
-            key={card.subscriptionId}
+            key={card.instanceId}
             aria-label={`cockpit card auto ${ref}`}
             title={`Click to send: cockpit card auto ${ref}`}
             onClick={() => onSendCommand(`cockpit card auto ${ref}`)}
@@ -130,7 +131,7 @@ export function InlineCard({
   onCommandPreview,
 }: InlineCardProps): React.ReactElement {
   return (
-    <InlineWrap data-testid={`inline-card-${card.subscriptionId}`}>
+    <InlineWrap data-testid={`inline-card-${card.instanceId}`}>
       <Card
         card={card}
         onSendCommand={onSendCommand}

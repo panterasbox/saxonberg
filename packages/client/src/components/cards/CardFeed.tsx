@@ -130,13 +130,24 @@ export function CardFeed({
    */
   const cardsById = useStore((s) => s.cards);
 
-  // Derived here rather than read from state: see the header note.
-  const cards = React.useMemo(
-    () => Object.values(cardsById).sort((a, b) => b.openedAt - a.openedAt),
-    [cardsById],
-  );
+  /*
+   * ⭐ The pinned block first, stable by arrival; then the unpinned
+   * block newest-touched-first.
+   *
+   * ⚠ **A pinned card holds its position.** One that jumped to the
+   * front every time you touched something else would be worse than one
+   * that sits still — the whole reason to pin is that you want it where
+   * you left it. Derived here rather than read from state: a second
+   * stored ordering is a second thing to keep in step.
+   */
+  const cards = React.useMemo(() => {
+    const all = Object.values(cardsById);
+    const held = all.filter((c) => c.pinned).sort((a, b) => a.openedAt - b.openedAt);
+    const rest = all.filter((c) => !c.pinned).sort((a, b) => b.openedAt - a.openedAt);
+    return [...held, ...rest];
+  }, [cardsById]);
   const pinned = React.useMemo(
-    () => cards.filter((c) => c.pinned === true).length,
+    () => cards.filter((c) => c.pinned).length,
     [cards],
   );
 
@@ -157,7 +168,7 @@ export function CardFeed({
   return (
     <Column $compact={compact} data-testid="card-feed">
       <Header>
-        Cards <Direction>newest → oldest</Direction>
+        Cards <Direction>pinned, then newest → oldest</Direction>
         <PinnedCount data-testid="card-pinned-count">
           {pinned} pinned
         </PinnedCount>
@@ -165,7 +176,7 @@ export function CardFeed({
       <List>
         {cards.map((card) => (
           <Card
-            key={card.subscriptionId}
+            key={card.instanceId}
             card={card}
             onSendCommand={onSendCommand}
             onCommandPreview={onCommandPreview}

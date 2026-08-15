@@ -73,7 +73,7 @@ describe('MobileFrame', () => {
   it('⭐⭐ OPENS the self subscription — the figures do not arrive by themselves', () => {
     subscribed.length = 0;
     render(<MobileFrame />);
-    expect(subscribed).toEqual([{ card: 'self' }]);
+    expect(subscribed).toEqual([{ chrome: 'self' }]);
   });
 
   it('closes it on unmount, so switching form factor leaks nothing', () => {

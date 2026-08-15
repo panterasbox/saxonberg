@@ -24,7 +24,6 @@ import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { AffordanceRadial } from "./AffordanceRadial";
-import { openSubjectCard } from "./useCardFeed";
 
 const Scrim = styled.div`
   position: fixed;
@@ -44,24 +43,6 @@ const Holder = styled.div`
   overflow-y: auto;
 `;
 
-/**
- * Which subject card a composition calls for.
- *
- * ⚠ Ordered, and the order is the point: something can be both a
- * container and a person, and a person's card is the more useful of the
- * two. First match wins, and `instrument` is the floor because every
- * object can at least be read.
- */
-export function cardKindForComposition(
-  composition: readonly string[],
-): "agent" | "manifest" | "instrument" {
-  const has = (name: string) =>
-    composition.some((m) => m.toLowerCase().startsWith(name.toLowerCase()));
-  if (has("Organism") || has("Vocal") || has("CommandGiver")) return "agent";
-  if (has("Container") || has("Slotted")) return "manifest";
-  return "instrument";
-}
-
 export interface RadialOverlayProps {
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
@@ -73,10 +54,6 @@ export function RadialOverlay({
 }: RadialOverlayProps): React.ReactElement | null {
   const subject = useStore((s) => s.radialSubject);
   const closeRadial = useStore((s) => s.closeRadial);
-  const answer = useStore((s) =>
-    subject ? s.affordances[subject.stuffId] : undefined,
-  );
-
   React.useEffect(() => {
     if (!subject) return;
     const onKey = (e: KeyboardEvent) => {
@@ -90,17 +67,17 @@ export function RadialOverlay({
 
   const send = (text: string) => {
     /*
-     * ⚠ Open the card BEFORE sending. `sendCommand` clears the
-     * affordance cache (a command moves the world), and the card kind
-     * is derived from the composition in that cache — reading it after
-     * the send would always fall through to the floor.
+     * ⭐⭐ **The radial no longer opens a card; the COMMAND does.**
+     *
+     * It used to open one here, guessing the card KIND from the
+     * subject's mixin composition — `Organism` → agent, `Container` →
+     * manifest, everything else → instrument. That guess is gone with
+     * the three cards it chose between: there is one subject card, and
+     * whichever verb the player picked opens whatever card its own view
+     * declares. A client inferring a card from a composition is the
+     * same category error as a client inferring one from a changed
+     * query result.
      */
-    if (answer) {
-      openSubjectCard(
-        cardKindForComposition(answer.composition),
-        subject.stuffId,
-      );
-    }
     closeRadial();
     onSendCommand(text);
   };

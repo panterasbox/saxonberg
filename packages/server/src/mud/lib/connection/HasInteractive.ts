@@ -868,7 +868,13 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
           (CARD_IDS as readonly string[]).includes(p),
         );
       }
-      return SHIPPED_ARRANGEMENT_CARDS[mode];
+      /*
+       * ⚠ Keyed by (mode, arrangement), not by mode alone. `watch` ships
+       * two arrangements and one flat list cannot express them. A mode's
+       * entry need not be total over the shipped arrangements — an
+       * arrangement with no row simply opens nothing.
+       */
+      return SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? [];
     }
 
     public savedArrangementsFor(

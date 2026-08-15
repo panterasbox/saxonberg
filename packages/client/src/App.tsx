@@ -29,6 +29,7 @@ import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPanel } from "./components/settings/SettingsPanel";
+import { useCardFeed } from "./components/cards/useCardFeed";
 import type { LayoutProps } from "./layouts";
 import { resolveMode } from "./layouts/modes";
 import { useGround } from "./lib/style/useGround";
@@ -159,71 +160,19 @@ const ContentRow = styled.div<{ $compact?: boolean }>`
   ${(p) => (p.$compact ? "overflow-x: auto;" : "")}
 `;
 
-/**
- * Tokenise the leading verb of a command line. The shell's parser is
- * server-side; this is a deliberately-coarse client-side peek that
- * only the card consumes for paint/clear gating. Whitespace-split
- * the first token, lowercase it, and trust the server for everything
- * else. Aliases that compile to `look` / `focus` (e.g. `l`, `f`) are
- * not expanded here; in practice the cockpit slate gestures send the
- * canonical verbs.
- */
-function parseLeadingVerb(text: string): { verb: string; rest: string } {
-  const trimmed = text.trim();
-  if (!trimmed) return { verb: "", rest: "" };
-  const spaceAt = trimmed.indexOf(" ");
-  if (spaceAt < 0) return { verb: trimmed.toLowerCase(), rest: "" };
-  return {
-    verb: trimmed.slice(0, spaceAt).toLowerCase(),
-    rest: trimmed.slice(spaceAt + 1).trim(),
-  };
-}
-
-/**
- * Strip the `--peek` flag (and any other flag tokens) so the
- * remainder reads as the bare target the player typed.
- */
-function stripFlags(rest: string): string {
-  return rest
-    .split(/\s+/)
-    .filter((tok) => tok.length > 0 && !tok.startsWith("--"))
-    .join(" ");
-}
-
-/**
- * Apply the card-side paint/clear consequences of an outgoing
- * command. Bare `look` paints against the current focus; `look <X>
- * --peek` is observe-only and does not paint; `focus <X>` clears
- * the body until the next look. Every other verb is a card no-op.
+/*
+ * ⭐⭐ **The paint/clear policy is gone, and so is the parser that fed
+ * it.**
  *
- * For `look <X>` / `focus <X>` with a typed target, also stash the
- * typed fragment as the pending breadcrumb-trail label. The
- * inspection card's focus-subscription handler consumes it when
- * the focus change confirms server-side, so the trail entry reads
- * as what the player typed instead of the resolved Stuff's
- * primaryKeyword. The breadcrumb-push wiring still skips when
- * focus didn't actually change, so a cancelled disambiguation or a
- * rejected command never adds a trail entry.
+ * The client used to peek at an outgoing command's leading verb —
+ * `look` paints the card body, `focus` clears it — because there was
+ * ONE card slot and it had to be told what the player was doing.
+ * Cards are minted per command now, so `look` does not paint a slot: it
+ * opens a card, and the lesson the policy taught (*focus is a pointer;
+ * look is the verb that paints*) is taught by that instead, which is
+ * stronger. With the focus signal retired there is no cleared body to
+ * paint.
  */
-function applyOutgoingCommandToCard(text: string): void {
-  const { verb, rest } = parseLeadingVerb(text);
-  const store = useStore.getState();
-  if (verb === "look") {
-    const isPeek = / --peek(\s|$)/.test(" " + text + " ");
-    if (isPeek) return; // peek is a card no-op
-    store.setCardPainted(true);
-    const target = stripFlags(rest);
-    if (target) store.setPendingTrailLabel(target);
-    return;
-  }
-  if (verb === "focus") {
-    store.setCardPainted(false);
-    const target = stripFlags(rest);
-    if (target) store.setPendingTrailLabel(target);
-    return;
-  }
-  // Other verbs: leave card state alone.
-}
 
 /**
  * Render the player-facing label for a prompt response. For chip-
@@ -335,6 +284,22 @@ function App() {
       | undefined,
     clientState["cockpit.layout"] as LayoutName | null | undefined,
   );
+  /*
+   * ⭐⭐ **The card wiring lives HERE, above the mode registry.**
+   *
+   * Third occurrence of the wiring-at-the-layout bug, and this is the
+   * position that has no fourth. It sat in `CardFeed` (the desktop
+   * right column), so a phone got a card store nothing ever wrote to;
+   * it moved to `WorldLayout`, which fixed the phone and left `build`,
+   * `chat` and `watch` — different layout components entirely — with
+   * the same defect. Wave 7 puts the authoring cards in `build`, so
+   * hoisting is not optional.
+   *
+   * ⚠ Unconditional, and above the phase switch: React hooks are, and
+   * the alternative (mounting it inside the `in-world` branch) is
+   * exactly the conditional wiring this note exists to end.
+   */
+  useCardFeed();
   const summonedPanel = useStore((state) => state.summonedPanel);
   const openPanel = useStore((state) => state.openPanel);
   const closePanel = useStore((state) => state.closePanel);
@@ -563,17 +528,6 @@ function App() {
       console.warn("Cannot send command: not connected");
       return;
     }
-
-    // Card paint/clear policy lives at the outgoing-command seam:
-    //   - `look ...` paints the card body (and, when targeted,
-    //     refreshes the breadcrumb trail with the target as a
-    //     "we've looked at this" anchor).
-    //   - `focus ...` clears the card body (the next look will
-    //     re-paint) and records the new fragment.
-    // Other verbs leave the card state untouched; subscription
-    // deltas continue to update the cached result and the live
-    // header regardless of which verb triggered them.
-    applyOutgoingCommandToCard(text);
 
     // Push an echo-pairing snapshot for non-empty commands. The
     // server's empty-command short-circuit doesn't fire an input-

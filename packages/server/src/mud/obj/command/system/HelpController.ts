@@ -17,6 +17,7 @@
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
+import { CardApi } from "../../../api/card";
 import { Mml } from "../../../api/mml";
 import { HelpApi } from "../../../api/help";
 import type {
@@ -157,15 +158,27 @@ export default class HelpController extends CommandController<HelpModel> {
     // through verbatim; the "See also" chrome is plain text and is escaped
     // by `compose`.
     const body = Mml.fromMarkup(topic.body);
+    let composed: Mml;
     if (topic.relations.length === 0) {
-      this.tell(context, Mml.compose`\n${body}\n`);
-      return;
+      composed = Mml.compose`\n${body}\n`;
+    } else {
+      const seeAlso: string[] = ["", "See also:"];
+      for (const rel of topic.relations) {
+        seeAlso.push(`  ${rel.kind}: ${rel.targetTitle}`);
+      }
+      composed = Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`;
     }
-    const seeAlso: string[] = ["", "See also:"];
-    for (const rel of topic.relations) {
-      seeAlso.push(`  ${rel.kind}: ${rel.targetTitle}`);
-    }
-    this.tell(context, Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`);
+    this.tell(context, composed);
+    /*
+     * ⭐ The card carries **the topic this read already resolved**, and
+     * the prose it just emitted. The help card is the one Wave 7 surface
+     * with no client-side existence today; the REST catalogue is what
+     * fills its body, and this is what opens it.
+     */
+    CardApi.open(context, "help", {
+      payload: { kind: "helpTopic", topic },
+      prose: composed,
+    });
   }
 
   /** Escape a plain-text chrome block to MML and send it. */

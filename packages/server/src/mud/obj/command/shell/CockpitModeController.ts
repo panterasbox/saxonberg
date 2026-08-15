@@ -27,7 +27,7 @@
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
-import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { CardApi } from '../../../api/card';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -116,7 +116,7 @@ export default class CockpitModeController extends CommandController<CockpitMode
      */
     const interactive = context.interactive;
     if (interactive) {
-      MqlSubscriptionApi.applyArrangement(
+      CardApi.applyArrangement(
         interactive,
         host.arrangementCards(mode, arrangement),
       );

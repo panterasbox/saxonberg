@@ -2,10 +2,17 @@
  * WorldLayout — the classic terminal cockpit (the default layout).
  *
  * The single-terminal arrangement: a tabbed-filter strip + the scrollback
- * Terminal + its command bar in the primary column, with a view-sensitive
- * right column as the side rail. A small card switch chooses the right
- * column's card — Inspection (the focused-object detail) or Who's Online
- * (the live roster). This is the "Single + fixed rail" canonical split.
+ * Terminal + its command bar in the primary column, with the **card
+ * feed** as the side rail. This is the "Single + fixed rail" canonical
+ * split.
+ *
+ * ⭐⭐ **The switcher is gone.** `Inspect · Who's Online · News · Wiki`
+ * was four hand-written client surfaces with their own data paths in a
+ * tab strip, and it existed *because* the only way a card could be born
+ * was a focus change — none of the other three is one. A command opens
+ * a card now, so the constraint that produced the switcher is gone and
+ * with it the switcher's only justification. The right column renders
+ * the feed and nothing else.
  */
 
 import React from "react";
@@ -24,23 +31,15 @@ import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
 import { CardFeed } from "../components/cards/CardFeed";
-import { useCardFeed } from "../components/cards/useCardFeed";
-import { useInspectionSubscriptions } from "../components/InspectionCard";
 import { RadialOverlay } from "../components/cards/RadialOverlay";
 import {
   InlineCard,
   PinnedChipRow,
 } from "../components/cards/MobilePlaySurface";
-import { WhoCard } from "../components/WhoCard";
-import { NewsTickerCard } from "../components/NewsTickerCard";
-import { WikiCard } from "../components/WikiCard";
 
 /**
- * The view-sensitive right column — a small card switch above the active
- * cockpit card (Inspection | Who's Online | News | Wiki). Sizes to the
- * card child (each
- * declares its own fixed width); `CardSlot` is `flex: 1` so the card's
- * `height: 100%` resolves against the space below the switch.
+ * The right column — the card feed, and nothing else. Sizes to the feed
+ * (which declares its own fixed width on a desktop rail).
  */
 const RightColumn = styled.div<{ $compact?: boolean }>`
   display: flex;
@@ -74,34 +73,6 @@ const RightColumn = styled.div<{ $compact?: boolean }>`
       ? `
     width: 100%;
     max-width: 100%;
-  `
-      : ""}
-`;
-
-const CardSwitch = styled.div`
-  display: flex;
-  gap: 0.25rem;
-  width: 100%;
-  box-sizing: border-box;
-  padding: ${tokens.space.sm} ${tokens.space.md};
-  border-left: 1px solid ${tokens.color.border};
-  border-bottom: 1px solid ${tokens.color.borderMuted};
-  background: ${tokens.color.surfaceAlt};
-`;
-
-const CardSlot = styled.div<{ $compact?: boolean }>`
-  flex: 1;
-  min-height: 0;
-  display: flex;
-
-  ${(p) =>
-    p.$compact
-      ? `
-    & > * {
-      width: 100% !important;
-      min-width: 0 !important;
-      max-width: 100% !important;
-    }
   `
       : ""}
 `;
@@ -140,16 +111,6 @@ const InlineStack = styled.div`
   padding: 0 ${tokens.space.md};
 `;
 
-const CardTab = styled.button<{ $active: boolean }>`
-  background: ${(p) => (p.$active ? tokens.color.surfaceAlt : "transparent")};
-  border: 1px solid ${tokens.color.borderEmphasis};
-  border-radius: 4px;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.15rem 0.6rem;
-  font: inherit;
-`;
-
 export const WorldLayout: React.FC<LayoutProps> = ({
   frames,
   onSendCommand,
@@ -160,24 +121,16 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onCommandPreview,
 }) => {
   /*
-   * ⚠⚠ **Here, not in `CardFeed`.** This hook opens the `place`
-   * subscription and registers the three subscription handlers, and it
-   * has to run at BOTH form factors — `CardFeed` is the desktop right
-   * column, so hanging the wiring off it left the phone with a card
-   * store nothing ever wrote to. Cards the server pushed for a saved
-   * arrangement were discarded, and a card the radial opened stayed
-   * empty forever.
+   * ⚠⚠ **The card wiring is NOT here any more — it is in `App`.**
+   *
+   * It sat here because this layout renders at both form factors, which
+   * fixed the phone. It did not fix `build`, `chat` or `watch`, whose
+   * layouts are different components entirely — and Wave 7 puts the
+   * authoring cards in `build`. So the hook moved up one more level, to
+   * the one place that renders above the mode registry. Third
+   * occurrence of the wiring-at-the-layout bug; this is the position
+   * that has no fourth.
    */
-  useCardFeed();
-  /*
-   * ⚠⚠ Here for the same reason `useCardFeed` is, and it has been the
-   * same mistake twice. This hook keeps `cardLastResult` pointed at
-   * what the player is looking at — the ATTENTION SIGNAL every card is
-   * minted from. Hung off `CardFeed` (the desktop-only right column) it
-   * meant a phone never got a focus result, so it never opened a card
-   * at all: the feed was not broken, it was never fed.
-   */
-  useInspectionSubscriptions();
   /*
    * ⭐ The view editor. Opened by `+` (which has just created and
    * activated the view) and by the `⋯` on your own active view — never
@@ -200,14 +153,12 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   React.useEffect(() => {
     if (tabsLoaded) ensureSeededViews();
   }, [tabsLoaded]);
-  const rightCard = useStore((s) => s.rightCard);
   // ⚠ The UNFILTERED buffer. Every count in the feed switcher is
   // derived from the frames it names, and naming them from an
   // already-filtered list would make `World 1077` report how many the
   // current tab happens to show rather than how many landed there.
   const allFrames = useStore((s) => s.frames);
   const cards = useStore((s) => s.cards);
-  const setRightCard = useStore((s) => s.setRightCard);
   // ⚠ Subscribes to `matchMedia` — dragging a desktop window narrow is
   // the cheapest way anyone will test this, and a one-shot read would
   // make exactly that not work.
@@ -321,7 +272,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           <InlineStack data-testid="inline-card-stack">
             {inlineCards.map((card) => (
               <InlineCard
-                key={card.subscriptionId}
+                key={card.instanceId}
                 card={card}
                 onSendCommand={onCommandClick}
                 onCommandPreview={onCommandPreview}
@@ -381,64 +332,20 @@ export const WorldLayout: React.FC<LayoutProps> = ({
       */}
       {!isCompact && (
       <RightColumn $compact={isCompact}>
-        <CardSwitch>
-          <CardTab
-            $active={rightCard === "inspect"}
-            onClick={() => setRightCard("inspect")}
-          >
-            Inspect
-          </CardTab>
-          <CardTab
-            $active={rightCard === "who"}
-            onClick={() => setRightCard("who")}
-          >
-            Who&apos;s Online
-          </CardTab>
-          <CardTab
-            $active={rightCard === "news"}
-            onClick={() => setRightCard("news")}
-          >
-            News
-          </CardTab>
-          <CardTab
-            $active={rightCard === "wiki"}
-            onClick={() => setRightCard("wiki")}
-          >
-            Wiki
-          </CardTab>
-        </CardSwitch>
-        <CardSlot $compact={isCompact}>
-          {rightCard === "who" ? (
-            <WhoCard
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          ) : rightCard === "news" ? (
-            <NewsTickerCard
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          ) : rightCard === "wiki" ? (
-            <WikiCard
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          ) : (
-            /*
-             * ⭐⭐ **The one focus slot is now a FEED.** N cards, each
-             * held open by a server-side condition rather than by
-             * recency, each naming which condition holds it. The
-             * inspection card did not go away — it is the `inspect`
-             * card's body, at the foot of the feed, still owning its
-             * own breadcrumb and paint/clear policy.
-             */
-            <CardFeed
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-              compact={isCompact}
-            />
-          )}
-        </CardSlot>
+        {/*
+          ⭐⭐ **One slot became a FEED, and then the switcher went
+          too.** N cards, each opened by a command, each ageing out of
+          one server-owned relevance window unless the player pins it.
+          `who` / `news` / `wiki` are catalogue rows in this feed now —
+          their row-rendering knowledge was salvaged into `CardBodies`;
+          what died is the pane shell, its 360px chrome, its own data
+          path and its tab.
+        */}
+        <CardFeed
+          onSendCommand={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          compact={isCompact}
+        />
       </RightColumn>
       )}
       {/*

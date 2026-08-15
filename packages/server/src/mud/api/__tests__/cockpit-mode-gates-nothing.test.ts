@@ -51,16 +51,19 @@ const MUD_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
 /**
  * The only places allowed to read `cockpit.mode`: the mixin that
- * declares it, the cockpit's own controllers, the subscription
- * registry that resolves a mode's saved arrangement, and tests.
+ * declares it, the cockpit's own controllers, and tests.
  *
- * ⚠ **The registry is a VIEW reader, not a gate**, and the distinction
- * is the whole criterion. `applyArrangement` asks the mode which cards
- * to open — which is the mode doing exactly what this file's header
- * says a mode owns (*"which arrangements ship, which one you land
- * in"*). It never asks the mode whether an action is permitted, and
- * the behavioural half below still proves a verb resolves identically
- * in every mode, which is the half that guards permission.
+ * ⭐ **`MqlSubscriptionRegistry` left this list, and that is the card
+ * build shrinking the surface rather than widening it.** The registry
+ * used to resolve a mode's saved arrangement; arrangements are now the
+ * card substrate's business, and `CardRegistry` is handed the card list
+ * by the controller rather than reading the mode itself. One fewer
+ * reader is one fewer place a mode could quietly become a gate.
+ *
+ * ⚠ **A legitimate entry is a VIEW reader, never a gate**, and the
+ * distinction is the whole criterion: asking the mode which
+ * arrangements ship is the mode doing what it owns; asking it whether
+ * an action is permitted is not.
  *
  * ⚠ Adding a line here is a design decision, not a lint fix. The next
  * entry needs the same sentence: what does it do with the mode, and is
@@ -71,7 +74,6 @@ const MODE_READERS_ALLOWED = [
   'obj/command/shell/CockpitController.ts',
   'obj/command/shell/CockpitModeController.ts',
   'obj/command/shell/LayoutController.ts',
-  'obj/MqlSubscriptionRegistry.ts',
 ];
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}

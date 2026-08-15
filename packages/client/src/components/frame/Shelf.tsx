@@ -465,9 +465,18 @@ interface ShelfProps {
  */
 export function useSelfFigures(): void {
   useEffect(() => {
-    // ⭐ Opened BY NAME. The server owns the query, the cardinality and
-    // the field set — the client sends `card: 'self'` and nothing else.
-    const selfId = websocketClient.subscribeMql({ card: "self" });
+    /*
+     * ⭐ Opened BY NAME, and it is the ONLY subscription the client
+     * still opens for itself. The server owns the query, the
+     * cardinality and the field set; the client sends `chrome: 'self'`
+     * and nothing else.
+     *
+     * ⚠ It is deliberately not a CARD — no pinned-ness, no lifetime —
+     * which is why it lives beside the catalogue as `SHELF_SUBSCRIPTION`
+     * rather than in it. Forcing it to declare both axes would make the
+     * catalogue's required-fields gate meaningless.
+     */
+    const selfId = websocketClient.subscribeMql({ chrome: "self" });
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;

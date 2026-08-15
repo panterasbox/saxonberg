@@ -8,14 +8,20 @@
  * only true if affordance-bearing components are actually WIRED to it —
  * and one family was not.
  *
- * The right-column cards (`InspectionCard`, `WhoCard`, `NewsTickerCard`,
- * `WikiCard`) took `onSendCommand`, the RAW send. Every call they make
- * is a click on a control — a breadcrumb, a refresh, a content row, an
- * exit — so on a phone, tapping `north` in the transcript opened a
- * sheet naming the command while tapping the identical `north` in the
- * card six inches away sent it instantly. **Two rules on one screen is
- * worse than either rule alone**, and it is exactly the
- * unpredictability the no-exceptions sheet policy exists to prevent.
+ * The right column's four hand-written pane surfaces took
+ * `onSendCommand`, the RAW send. Every call they made was a click on a
+ * control — a breadcrumb, a refresh, a content row, an exit — so on a
+ * phone, tapping `north` in the transcript opened a sheet naming the
+ * command while tapping the identical `north` in the pane six inches
+ * away sent it instantly. **Two rules on one screen is worse than
+ * either rule alone**, and it is exactly the unpredictability the
+ * no-exceptions sheet policy exists to prevent.
+ *
+ * ⭐ Those four are now ONE: the right column renders `CardFeed` and
+ * nothing else, and every card body inside it inherits the feed's sink.
+ * That is a smaller surface for this guard to cover, not a reason to
+ * retire it — the failure mode is *a new render site wired to the wrong
+ * prop*, which is one careless copy-paste away.
  *
  * ⚠ Found by DRIVING. Every unit and e2e assertion about the sheet
  * happened to pick a transcript or menu affordance, so the gap was
@@ -36,22 +42,17 @@ const here = dirname(fileURLToPath(import.meta.url));
 const layoutsDir = resolve(here, '..');
 
 /**
- * The cards whose every dispatch is a click on a control.
+ * The card surfaces a layout renders, whose every dispatch is a click
+ * on a control.
  *
- * ⚠ `InspectionCard` left this list when the card FEED replaced the
- * single focus slot: the layout no longer renders it, `CardFeed` does.
- * Its wiring is still checked — one level down, by the second case
- * below — because "the layout stopped rendering it" is precisely the
- * kind of refactor that would otherwise drop a card out of the guard
- * silently, which is the failure the inspected-count assertion exists
- * to catch.
+ * ⚠ `WhoCard`, `NewsTickerCard` and `WikiCard` left this list when the
+ * switcher died: they are catalogue rows in the feed now, and their
+ * bodies inherit `CardFeed`'s sink (checked one level down, by the
+ * second case below). `InlineCard` is the phone's inline renderer and
+ * is checked for the same reason it exists — it is a second render site
+ * for the same cards.
  */
-const AFFORDANCE_CARDS = [
-  'CardFeed',
-  'WhoCard',
-  'NewsTickerCard',
-  'WikiCard',
-];
+const AFFORDANCE_CARDS = ['CardFeed', 'InlineCard'];
 
 function layoutSources(): Array<{ file: string; text: string }> {
   return readdirSync(layoutsDir)

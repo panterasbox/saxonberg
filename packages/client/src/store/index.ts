@@ -462,8 +462,6 @@ interface StoreState
    * client-only UI state, never persisted. Consulted by the world
    * layout's right-column card switch.
    */
-  rightCard: "inspect" | "who" | "news" | "wiki";
-  setRightCard: (card: "inspect" | "who" | "news" | "wiki") => void;
 
   /**
    * The article the wiki card is showing (`publication.wiki`), or
@@ -796,185 +794,6 @@ interface StoreState
    * muteChannels). Defaults until the payload arrives.
    */
   reactionPrefs: NonNullable<ConnectionEstablishedPayload["reactionPrefs"]>;
-
-  // Inspection-card slice ---------------------------------------------
-  /**
-   * Display name shown in the card header. Tracks the live focus name
-   * from the canonical `me.focus` subscription's first record; falls
-   * back to `cardFocusFragment` (the raw fragment text) when the
-   * subscription's records have not yet arrived or when focus is
-   * multi-cardinality. The header is always-live; deltas update it
-   * irrespective of `cardBodyPainted`.
-   */
-  cardFocusName: string | null;
-  /**
-   * The literal focus fragment string as understood server-side (e.g.
-   * `'here'`, `'apple'`, `'friends'`). The client tracks it
-   * separately so the paint/clear policy can compare across deltas:
-   * a fragment change clears the body, an unchanged fragment lets
-   * deltas patch in place.
-   */
-  cardFocusFragment: string;
-  /**
-   * Body paint/clear flag. False on mount and after any focus-verb
-   * driven focus change; true after a `look` against the current
-   * focus. While cleared, deltas update `cardLastResult` (cache stays
-   * warm) but the body renders the placeholder. While painted,
-   * deltas update the body in place.
-   */
-  cardBodyPainted: boolean;
-  /**
-   * Most recent canonical `me.focus` subscription record set. Held in
-   * a single slot so the body renderer can branch on cardinality
-   * without re-deriving from individual deltas. Patched in place by
-   * every subscription envelope; rendered only when `cardBodyPainted`.
-   */
-  cardLastResult: (StuffRefRecord | StuffDetailRecord)[] | null;
-  /**
-   * Inspection-card breadcrumb root — the player's current
-   * physical location (room or vessel). Sourced from the
-   * `me.location` canonical subscription, NOT from focus changes.
-   * Movement reroots this; focus changes don't.
-   *
-   * Shape mirrors what `<EntityName>` needs: display name for
-   * label, primaryKeyword (or fallback) for the click-target
-   * command, stuffId for `data-stuff-id`. Null when the player
-   * has no current location (pre-login / disconnect).
-   */
-  cardBreadcrumbRoot: {
-    stuffId: string;
-    displayName: string;
-    primaryKeyword?: string;
-  } | null;
-  /**
-   * Trail segments pushed since the last reroot — each entry is a
-   * past focus that wasn't the location. Click on a segment sends
-   * the look command that originally produced it. Capped at
-   * `CARD_BREADCRUMB_CAP` entries.
-   */
-  cardBreadcrumbTrail: {
-    label: string;
-    command: string;
-    stuffId?: string;
-  }[];
-  /**
-   * Detail-drill stack on the currently-focused Stuff. Empty means
-   * the card is viewing the Stuff itself (long description, exits,
-   * contents). Non-empty means the card has descended through one
-   * or more detail keys — `['counter']` means the player is
-   * looking AT the counter detail (its description replaces the
-   * long, contents hide, exits stay marked as parent-Stuff). The
-   * focused Stuff itself doesn't change as you drill; only the
-   * level of inspection descends.
-   *
-   * Cleared on any focus change (subscription delta with a new
-   * fragment) and on explicit pop. v1 supports one-level drilling
-   * because the wire shape doesn't ship nested-detail children;
-   * the stack is array-shaped to make extension trivial.
-   */
-  cardDetailPath: string[];
-  /**
-   * Flip the paint/clear flag. Called from outgoing `look`-detection
-   * (paints) and from the focus-change delta path (clears). The
-   * paint policy is client-side, not substrate-driven — the server
-   * always ships the up-to-date result, the client decides whether
-   * to render it.
-   */
-  setCardPainted: (painted: boolean) => void;
-  /**
-   * Replace the cached subscription result snapshot. Called by the
-   * canonical-kind subscription consumer (see InspectionCard.tsx).
-   */
-  setCardResult: (
-    result: (StuffRefRecord | StuffDetailRecord)[] | null,
-  ) => void;
-  /**
-   * Replace the live header name (display name from the first
-   * subscription record, or fragment fallback when the record set
-   * is empty / multi-cardinality).
-   */
-  setCardFocusName: (name: string | null) => void;
-  /**
-   * Replace the tracked focus fragment. The paint/clear policy
-   * compares this across deltas to decide whether a focus change
-   * just happened.
-   */
-  setCardFocusFragment: (fragment: string) => void;
-  /**
-   * Push a detail key onto the detail-drill stack — the player is
-   * descending into a detail of the focused Stuff. Idempotent on
-   * the head (clicking the same detail twice is a no-op).
-   */
-  pushCardDetail: (key: string) => void;
-  /**
-   * Slice the detail stack so position `index` is the new tail.
-   * Used by detail-breadcrumb clicks to back out to that level
-   * without traversing one pop at a time. `index < 0` clears.
-   */
-  popCardDetailToIndex: (index: number) => void;
-  /**
-   * Clear the detail-drill stack entirely. Called from the
-   * focus-change path so a focus shift resets the drill state.
-   */
-  clearCardDetail: () => void;
-  /**
-   * Replace the breadcrumb root from a `me.location` subscription
-   * delivery. Clears the trail — movement re-roots and starts a
-   * fresh push series.
-   */
-  setCardBreadcrumbRoot: (
-    root: {
-      stuffId: string;
-      displayName: string;
-      primaryKeyword?: string;
-    } | null,
-  ) => void;
-  /**
-   * Push a trail segment from a focus change. Dedupes against the
-   * head, caps at `CARD_BREADCRUMB_CAP`.
-   */
-  pushCardBreadcrumbTrail: (entry: {
-    label: string;
-    command: string;
-    stuffId?: string;
-  }) => void;
-  /**
-   * Pop the trail to a specific index (inclusive). Used by trail
-   * segment clicks to back out to that level.
-   */
-  popCardBreadcrumbTrail: (index: number) => void;
-  /**
-   * Ephemeral door-context annotation. Stashed when the player
-   * clicks a door affordance inside an exits projection — carries
-   * the direction the door belongs to so the card can synthesise
-   * an exit link when the focused thing is that door. Cleared
-   * whenever focus changes to a different stuffId (so a stale
-   * context never bleeds into the wrong inspection).
-   *
-   * Pure UI sugar — the door Stuff itself has no notion of "which
-   * exit am I"; the client reconstructs the relationship from the
-   * click site that has both pieces in scope.
-   */
-  cardDoorContext: { stuffId: string; direction: string } | null;
-  /** Replace the door-context annotation. Null clears it. */
-  setCardDoorContext: (
-    ctx: { stuffId: string; direction: string } | null,
-  ) => void;
-  /**
-   * Typed keyword/fragment from the player's most recent
-   * focus-changing command (`look <X>` / `focus <X>`), stashed so
-   * the breadcrumb-trail push can label entries by what the player
-   * actually typed instead of the focused Stuff's primaryKeyword.
-   *
-   * Set by the outgoing-command seam in App.tsx; consumed (read +
-   * cleared) by the focus-subscription delivery path in
-   * InspectionCard when it pushes a trail entry. `null` between
-   * commands or after consumption — in which case the trail push
-   * falls back to primaryKeyword.
-   */
-  pendingTrailLabel: string | null;
-  /** Set the pending typed label for the next breadcrumb push. */
-  setPendingTrailLabel: (label: string | null) => void;
 
   // Prompt-stack slice -------------------------------------------------
   /**
@@ -1348,16 +1167,13 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Right-column cockpit card axis (world layout): inspection | who's-online
   // | news-ticker.
-  rightCard: "inspect",
-  setRightCard: (card) =>
-    set((state) => (state.rightCard === card ? {} : { rightCard: card })),
 
   wikiPage: null,
   // Reading a page SWITCHES to the card. The verb's whole purpose is
   // to put an article in front of somebody, and leaving it behind a
   // tab they have to know about would make the card a thing you find
   // rather than a thing you use.
-  setWikiPage: (page) => set(() => ({ wikiPage: page, rightCard: "wiki" })),
+  setWikiPage: (page) => set(() => ({ wikiPage: page })),
 
   // "Who's Online" roster (self.group). Keyed by stable handle;
   // ordering recomputed on every mutation (recognized first, then header).
@@ -1673,121 +1489,6 @@ export const useStore = create<StoreState>((set, get) => ({
     }),
 
   // Inspection-card slice (initial cleared state)
-  cardFocusName: null,
-  cardFocusFragment: "",
-  cardBodyPainted: false,
-  cardLastResult: null,
-  cardBreadcrumbRoot: null,
-  cardBreadcrumbTrail: [],
-  cardDetailPath: [],
-  cardDoorContext: null,
-  pendingTrailLabel: null,
-
-  setPendingTrailLabel: (label) =>
-    set((state) =>
-      state.pendingTrailLabel === label ? {} : { pendingTrailLabel: label },
-    ),
-
-  setCardPainted: (painted) =>
-    set(() => ({
-      cardBodyPainted: painted,
-    })),
-
-  pushCardDetail: (key) =>
-    set((state) => {
-      const trimmed = key.trim();
-      if (!trimmed) return {};
-      if (state.cardDetailPath[state.cardDetailPath.length - 1] === trimmed) {
-        return {};
-      }
-      return { cardDetailPath: [...state.cardDetailPath, trimmed] };
-    }),
-
-  popCardDetailToIndex: (index) =>
-    set((state) => {
-      if (index < 0) {
-        if (state.cardDetailPath.length === 0) return {};
-        return { cardDetailPath: [] };
-      }
-      const target = index + 1;
-      if (target >= state.cardDetailPath.length) return {};
-      return { cardDetailPath: state.cardDetailPath.slice(0, target) };
-    }),
-
-  clearCardDetail: () =>
-    set((state) => {
-      if (state.cardDetailPath.length === 0) return {};
-      return { cardDetailPath: [] };
-    }),
-
-  setCardBreadcrumbRoot: (root) =>
-    set((state) => {
-      // Same stuffId → no-op. Different stuffId → reroot (clear
-      // trail). Null → clear root + trail (disconnect / pre-login).
-      if (root === null) {
-        if (state.cardBreadcrumbRoot === null) return {};
-        return { cardBreadcrumbRoot: null, cardBreadcrumbTrail: [] };
-      }
-      if (
-        state.cardBreadcrumbRoot &&
-        state.cardBreadcrumbRoot.stuffId === root.stuffId
-      ) {
-        // Same room — refresh the projection in case displayName /
-        // keyword changed, but keep the trail intact.
-        return { cardBreadcrumbRoot: root };
-      }
-      return { cardBreadcrumbRoot: root, cardBreadcrumbTrail: [] };
-    }),
-
-  pushCardBreadcrumbTrail: (entry) =>
-    set((state) => {
-      const head =
-        state.cardBreadcrumbTrail[state.cardBreadcrumbTrail.length - 1];
-      if (head && head.command === entry.command) return {};
-      const next = [...state.cardBreadcrumbTrail, entry];
-      if (next.length > CARD_BREADCRUMB_CAP) next.shift();
-      return { cardBreadcrumbTrail: next };
-    }),
-
-  popCardBreadcrumbTrail: (index) =>
-    set((state) => {
-      if (index < 0 || index >= state.cardBreadcrumbTrail.length) return {};
-      return {
-        cardBreadcrumbTrail: state.cardBreadcrumbTrail.slice(0, index),
-      };
-    }),
-
-  setCardDoorContext: (ctx) =>
-    set((state) => {
-      if (ctx === null) {
-        return state.cardDoorContext === null ? {} : { cardDoorContext: null };
-      }
-      const current = state.cardDoorContext;
-      if (
-        current &&
-        current.stuffId === ctx.stuffId &&
-        current.direction === ctx.direction
-      ) {
-        return {};
-      }
-      return { cardDoorContext: ctx };
-    }),
-
-  setCardResult: (result) =>
-    set(() => ({
-      cardLastResult: result,
-    })),
-
-  setCardFocusName: (name) =>
-    set(() => ({
-      cardFocusName: name,
-    })),
-
-  setCardFocusFragment: (fragment) =>
-    set(() => ({
-      cardFocusFragment: fragment,
-    })),
-
   // Prompt-stack slice (initial cleared state)
   prompts: [],
   promptDrafts: { [BASE_SLOT]: "" },

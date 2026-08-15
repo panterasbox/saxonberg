@@ -1,22 +1,27 @@
 /**
  * `Card` — the one skeleton every card kind wears.
  *
- **name** (serif) · why it is still here, right-aligned · the pin.
+ **name** (serif) · why it is still here, right-aligned · the controls.
  *
  * ⭐ There is one body, and it shows the sections its subject HAS — a
  * room has exits, a lamp does not. So the frame carries no kind label:
- * every card is *what I am looking at*, and a word saying so on each
- * one never varies.
+ * a word that never varies costs a column that is already the
+ * constraint.
  *
- * ## ⚠ The header states WHY, not how long
+ * ## ⭐⭐ The honesty rule: a static card looks static
  *
- * *"held · owes a reply"*, *"held · still in the room"*, *"stale · they
- * left"*. Never an age. A card's lifetime is a fact about the world —
- * is that person still here, is that thing still in reach — and a
- * duration in the same slot would invite the reader to believe recency
- * had something to do with it. It does not: **nothing still actionable
- * ever leaves**, and that is the property that makes the feed
- * tractable.
+ * **A static card renders its timestamp and a refresh control; a live
+ * card renders neither** (AC 6). A static card that looked live would
+ * be a lie, and a refresh button on a LIVE card is worse than
+ * redundant — it is a bandage over a wake that does not fire, and it is
+ * how nobody finds out. A `here` card was immortal through eleven
+ * passing tests because every one of them refreshed by hand.
+ *
+ * ⭐ The refresh control's label, preview and payload are the card's
+ * own **`key`** — the normalized command that produced it. So the
+ * control previews exactly what it sends, and "refresh" is not a new
+ * concept or an API: it re-issues the command through the ordinary
+ * command bus (AC 7).
  *
  * ## ⚠ The pin sends a command
  *
@@ -30,7 +35,7 @@
 import React from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
-import { holdReason, type CardState } from "../../store/cardFeedSlice";
+import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
 
 const Shell = styled.article<{ $faded: boolean; $pinned: boolean }>`
@@ -58,6 +63,20 @@ const Title = styled.h3`
   color: ${tokens.color.fg};
   min-width: 0;
   overflow-wrap: anywhere;
+`;
+
+/**
+ * ⭐ *taken 14:32* — a static card's honesty stamp, beside the title.
+ *
+ * ⚠ A TIME, not an age. "3 minutes ago" is a duration that keeps
+ * changing without the content changing, which invites the reader to
+ * believe recency is the lifetime rule. It is not: pinned-ness is.
+ */
+const Taken = styled.span`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+  white-space: nowrap;
 `;
 
 /** Right-aligned, small, and never a duration. See the header note. */
@@ -125,18 +144,26 @@ export interface CardProps {
 /**
  * What the pin does next, and the command that does it.
  *
- * Three states cycle through two commands: an automatic card pins; a
- * pinned card hands the decision back. **Dismiss is not on this
- * control** — it is a different intent (*drop this even though it still
- * holds*) and putting it in the same cycle would make one accidental
- * extra click destroy a card the world says is still relevant.
+ * A pinned card hands the decision back to the catalogue's own default;
+ * an unpinned one pins. **Dismiss is not on this control** — it is a
+ * different intent (*drop this now*) and putting it in the same cycle
+ * would make one accidental extra click destroy a card the player was
+ * holding.
  */
 function pinAction(card: CardState): { command: string; label: string } {
-  const ref = card.cardId ?? card.subscriptionId;
-  if (card.pinned === true) {
+  const ref = card.cardId;
+  if (card.pinned) {
     return { command: `cockpit card auto ${ref}`, label: "⚲" };
   }
   return { command: `cockpit card pin ${ref}`, label: "⚲" };
+}
+
+/** `taken 14:32` — short, local, and never a duration. */
+function takenLabel(takenAt: number): string {
+  const d = new Date(takenAt);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `taken ${hh}:${mm}`;
 }
 
 export function Card({
@@ -147,16 +174,17 @@ export function Card({
 }: CardProps): React.ReactElement {
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
-  const faded = card.released !== undefined;
-  const close = `cockpit card dismiss ${card.cardId ?? card.subscriptionId}`;
+  const faded = card.closed !== undefined;
+  const close = `cockpit card dismiss ${card.cardId}`;
   /*
-   * ⭐ Every card refreshes the same way, because every card is the same
-   * thing: `look` at its subject. Named with the subject's own keyword,
-   * so the command reads as one the player could have typed.
+   * ⭐⭐ **Refresh re-issues the card's own key** — the normalized
+   * command that produced it. Not a new concept, not an API: the
+   * ordinary command bus, previewing exactly what it sends.
+   *
+   * ⚠ **Only on a STATIC card.** See the header note: a refresh on a
+   * live card is a bandage over a wake that does not fire.
    */
-  const keyword = (card.records[0] as { primaryKeyword?: string } | undefined)
-    ?.primaryKeyword;
-  const refresh = keyword ? `look ${keyword}` : null;
+  const refresh = card.live ? null : card.key;
   /*
    * ⚠ Before the subject arrives, the title falls back to the card's
    * LABEL, not its catalogue id. Found by driving: a freshly-opened
@@ -165,19 +193,21 @@ export function Card({
    * time and stops being needed the moment the room's name lands.
    */
   const title =
+    card.title ||
     card.records[0]?.displayName ||
     // A husk keeps the name it had — see `lastTitle` in the slice.
     card.lastTitle ||
-    (card.cardId ? CARD_LABEL[card.cardId] : undefined) ||
+    CARD_LABEL[card.cardId] ||
     "a card";
 
   return (
     <Shell
       $faded={faded}
       $pinned={card.pinned === true}
-      data-testid={`card-${card.cardId ?? card.subscriptionId}`}
-      data-card-kind={card.kind}
-      data-card-released={card.released ?? ""}
+      data-testid={`card-${card.cardId}`}
+      data-card-kind={card.cardId}
+      data-card-live={card.live ? "true" : "false"}
+      data-card-closed={card.closed ?? ""}
     >
       <Head>
         {/*
@@ -188,7 +218,15 @@ export function Card({
           which is where the reader can actually see it.
         */}
         <Title>{title}</Title>
-        <Reason data-testid="card-hold-reason">{holdReason(card)}</Reason>
+        {/*
+          ⭐ The honesty stamp. A static card says WHEN its answer was
+          taken; a live card has no stale answer to stamp, so it says
+          nothing here rather than something reassuring.
+        */}
+        {!faded && card.takenAt !== undefined && (
+          <Taken data-testid="card-taken">{takenLabel(card.takenAt)}</Taken>
+        )}
+        <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>
         {/*
           ⚠ A released husk keeps no controls. Pinning or refreshing
           something the world has already ended would promise to act on
@@ -211,7 +249,7 @@ export function Card({
           )}
           {!faded && (
             <IconButton
-              $on={card.pinned === true}
+              $on={card.pinned}
               title={`Click to send: ${command}`}
               aria-label={command}
               onClick={() => onSendCommand(command)}

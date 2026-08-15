@@ -868,32 +868,44 @@ export interface PromptEnvelope {
  * wrong figure on the wire becomes a wrong figure on screen.
  *
  * ⚠ The vocabulary is deliberately SMALL and grows with real consumers.
- * It is not a menu of hypothetical cards — every entry here is one the
- * client actually opens. The server-side definitions live in
- * `lib/connection/Cards.ts`. `inspect` and `location` are the
- * inspection card's two; `self` is the **widget shelf's** — the one
- * subscription behind every self-scoped figure the shelf renders.
+ * It is not a menu of hypothetical cards — every entry here is one a
+ * COMMAND actually opens. The server-side definitions live in
+ * `lib/connection/Cards.ts`.
+ *
+ * ⚠⚠ **`self` is not here, and that is structural.** The widget shelf's
+ * subscription has no pinned-ness and no lifetime; forcing it to declare
+ * them would make the catalogue's required-fields gate meaningless. It
+ * lives beside the catalogue as `SHELF_SUBSCRIPTION`, explicitly not a
+ * card, and the client names it on the wire as `chrome: 'self'`.
+ *
+ * ⚠ `inspect` and `location` are gone with the focus signal: `inspect`
+ * was the client-side inference this build retires, and `location`'s
+ * detail trail already lives on the card body.
  */
 export type CardId =
-  | "inspect"
-  | "location"
-  | "self"
+  | "subject"
   | "place"
-  | "agent"
-  | "instrument"
-  | "manifest"
-  | "subject";
+  | "who"
+  | "news"
+  | "wiki"
+  | "help"
+  | "prompt"
+  | "cms"
+  | "git"
+  | "studio";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
   "subject",
-  "inspect",
-  "location",
-  "self",
   "place",
-  "agent",
-  "instrument",
-  "manifest",
+  "who",
+  "news",
+  "wiki",
+  "help",
+  "prompt",
+  "cms",
+  "git",
+  "studio",
 ];
 
 /**
@@ -978,119 +990,158 @@ export interface MqlSubscribeMessage {
   type: 'mql-subscribe';
   subscriptionId: string;
   /**
-   * Open a **named** card — the server supplies query, cardinality,
-   * fields, dependency flags and hold from its own catalogue, and every
-   * one of those fields below is ignored. See {@link CardId}.
+   * ⭐⭐ **The client can no longer name a CARD at the wire level.**
+   *
+   * A card exists because a command caused the server to push it, so
+   * there is nothing for a client to ask for. What remains is exactly
+   * one **chrome** subscription — the widget shelf's `self` figures,
+   * which is not a card (no pinned-ness, no lifetime) and is the only
+   * standing query the client legitimately opens for itself.
+   *
+   * ⚠ This is acceptance criterion 1 enforced by the PROTOCOL rather
+   * than by a source grep: a client cannot mint a card even if its code
+   * tried to, because the message has no field that would say which.
    */
-  card?: CardId;
-  /**
-   * ⭐ The Stuff a **subject card** is about, by `stuffId`.
-   *
-   * Three catalogue cards (`agent`, `instrument`, `manifest`) are about
-   * a particular thing rather than about a fixed place, so their
-   * server-owned query carries a `$subject` slot the request fills.
-   *
-   * ⚠⚠ **An identity, not a query.** The client says *this object*; the
-   * server still decides what a card about an object resolves and
-   * projects. Letting the client send the query instead is exactly the
-   * hole the catalogue closes, and it is worth restating here because a
-   * parameter looks superficially like one.
-   *
-   * Ignored by cards whose query has no `$subject`; required (and an
-   * error when absent) by cards whose query has one.
-   */
-  subject?: string;
-  /** Required UNLESS `card` names one, in which case the server owns it. */
+  chrome?: 'self';
   query?: string;
-  /** Required UNLESS `card` names one. */
   cardinality?: 'one' | 'many';
   fields?: string[] | 'ref' | 'detail';
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
-  /**
-   * Optional lifetime rule. A subscription carrying a hold is a
-   * **card**: it lives until its condition lapses, then is released
-   * with a reason. Absent = lives until unsubscribed, the classic
-   * shape.
-   */
-  hold?: CardHold;
-  /** The pending prompt id a `hold: 'unanswered'` card waits on. */
-  holdSubject?: string;
 }
 
 /**
- * What keeps a card open. Evaluated **server-side**, because these are
- * facts about the world — a client guessing at them is the same
- * category error as a client guessing at affordances.
+ * Why a card closed. A card that vanishes without a reason reads as a
+ * bug and the player cannot tell a rule from a defect — so the reason
+ * is on the wire rather than inferred.
  *
- * ⭐ `unanswered` is the one the design leans on: *nothing that is
- * still actionable ever leaves*. It is also the odd one out — its
- * subject is a pending **command**, not a Stuff — which is exactly why
- * it must be built first. A shape derived from the four spatial holds
- * would not fit it.
- *
- * | Hold | Held while | Released when |
- * |---|---|---|
- * | `unanswered` | it owes a reply | answered |
- * | `here` | you are where you were | you left |
- * | `present` | they are still in the room | they left |
- * | `inReach` | in reach | out of reach |
- * | `carried` | on you | not carried |
+ * ⚠⚠ **The five HOLDS are gone and this is not their replacement.**
+ * The four spatial holds (`here`, `present`, `inReach`, `carried`) were
+ * world-condition lifetimes, each costing a wake to fire; they are
+ * retired for one relevance window plus `pinned`. `unanswered` was the
+ * one the design leaned on — *nothing still actionable ever leaves* —
+ * and its guarantee moves onto the pinned axis: a prompt card opens
+ * PINNED and auto-releases with `answered` when the prompt settles.
  */
-export type CardHold =
-  | "unanswered"
-  | "here"
-  | "present"
-  | "inReach"
-  | "carried";
-
-/** Every {@link CardHold}. Server validator and client both read this. */
-export const CARD_HOLDS: readonly CardHold[] = [
-  "unanswered",
-  "here",
-  "present",
-  "inReach",
-  "carried",
-];
-
-/**
- * Why a card went away. A card that vanishes without a reason reads as
- * a bug, so the reason is on the wire rather than inferred.
- *
- * `dismissed` and `kept` are the manual-pin outcomes: pinning is not a
- * sixth hold, it is an override on the other five in **both**
- * directions — keep a card whose condition lapsed, drop one whose
- * condition still holds.
- */
-export type CardReleaseReason =
+export type CardCloseReason =
+  /** A prompt card's prompt settled. */
   | "answered"
-  | "left"
-  | "departed"
-  | "out-of-reach"
-  | "dropped"
+  /** The relevance window lapsed. States its reason (AC 4). */
+  | "aged-out"
+  /** The player dropped it. */
   | "dismissed"
   /**
    * ⭐ The workspace changed, not the world. A mode switch resolves its
-   * saved arrangement server-side and pushes the card set, so cards the
-   * new arrangement does not name are closed — and they need a reason
-   * that does not claim somebody walked out. A card that vanishes
-   * without a reason reads as a bug, which is what this envelope exists
-   * to prevent.
+   * arrangement server-side and pushes the card set, so cards the new
+   * arrangement does not name are closed — and they need a reason that
+   * does not claim somebody walked out.
    */
-  | "rearranged";
+  | "rearranged"
+  /** A live card's subject stopped existing. */
+  | "gone";
+
+/** Which viewport a per-form-factor setting override addresses. */
+export type FormFactor = 'desktop' | 'mobile';
 
 /**
- * A card's hold lapsed and the card is gone. Distinct from
- * {@link MqlSubscriptionErrorEnvelope}: nothing went wrong, the
- * subscription simply reached the end of its stated lifetime.
+ * What a `payload`-source card carries instead of MQL records.
+ *
+ * ⭐ **The catalogue cannot be MQL-only, and this is why.** MQL speaks
+ * **Stuff**. The roster is `RosterRow[]`, releases are `Release`
+ * documents, a wiki page is a rendered payload and a help topic is a
+ * `HelpTopic` — none of them is a Stuff, so three of the ten shipped
+ * rows would be unbuildable if a card's only content source were a
+ * query. The producer forwards to the Api that already owns the read;
+ * no new read Apis exist for this.
  */
-export interface MqlSubscriptionReleasedEnvelope {
-  type: 'mql-subscription-released';
+export type CardPayload =
+  | { kind: 'roster'; rows: RosterRow[] }
+  | { kind: 'releases'; rows: ReleaseRow[] }
+  | { kind: 'wikiPage'; page: WikiPageFrame }
+  | { kind: 'helpTopic'; topic: HelpTopic };
+
+/**
+ * A card opened (or re-opened after being closed). **Every** card
+ * arrives this way: there is exactly one birth path and the server owns
+ * it, so there is no `pushed` flag to distinguish a server push from a
+ * client one — the client never opens a card at all.
+ */
+export interface CardOpenedEnvelope {
+  type: 'card-opened';
   frameId: number;
-  subscriptionId: string;
-  hold: CardHold;
-  reason: CardReleaseReason;
+  /**
+   * Server-minted, and **IS the subscription id when the card is
+   * live** — which is what lets a live card's deltas keep riding
+   * `mql-subscription-delta` with no new envelope and no join table.
+   */
+  instanceId: string;
+  cardId: CardId;
+  /**
+   * ⭐ The normalized command that produced this card. It is the card's
+   * IDENTITY (the dedup key) and it is exactly what a refresh control
+   * re-issues — so the control previews what it sends, per the
+   * every-clickable-previews-its-command rule.
+   */
+  key: string;
+  live: boolean;
+  pinned: boolean;
+  /**
+   * When the content was resolved. **Static cards only** — a live card
+   * has no stale answer to stamp, and a timestamp on one would invite
+   * the refresh control that hides a wake that never fires (AC 6).
+   */
+  takenAt?: number;
+  title?: string;
+  subjectId?: string;
+  promptId?: string;
+  /**
+   * ⭐ The MML the controller already emitted to the terminal, carried
+   * so `shell.result: terminal` is a real rendering rather than a
+   * second one. Absent when the card declares `noProse` — a Monaco
+   * editor cannot degrade to prose.
+   */
+  prose?: string;
+  /** `mql`-source cards. */
+  result?: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+  /** `payload`-source cards. */
+  payload?: CardPayload;
+}
+
+/**
+ * The same command was re-issued: bring the card forward, reset its
+ * relevance window, and — for a static card — re-resolve it.
+ */
+export interface CardTouchedEnvelope {
+  type: 'card-touched';
+  frameId: number;
+  instanceId: string;
+  key: string;
+  takenAt?: number;
+  title?: string;
+  prose?: string;
+  result?: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+  payload?: CardPayload;
+}
+
+/** The card went away, and why. */
+export interface CardClosedEnvelope {
+  type: 'card-closed';
+  frameId: number;
+  instanceId: string;
+  reason: CardCloseReason;
+}
+
+/**
+ * The pin override took. Mirrored from the server, never set
+ * optimistically: `cockpit card pin` is a real command the server may
+ * refuse, and a local toggle would show a pin that is not there.
+ */
+export interface CardPinnedEnvelope {
+  type: 'card-pinned';
+  frameId: number;
+  instanceId: string;
+  pinned: boolean;
 }
 
 export interface MqlUnsubscribeMessage {
@@ -1418,52 +1469,6 @@ export interface MqlSubscriptionResultEnvelope {
    * envelope shape carries both.
    */
   result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
-  /**
-   * ⭐ Which catalogue card this is, when it was opened by name.
-   *
-   * Redundant for a subscription the client opened itself — it already
-   * knows what it asked for. Load-bearing for one the **server** opened:
-   * a mode switch resolves the saved arrangement server-side and pushes
-   * the card set, and the client has to know which body to draw for a
-   * handle it has never seen. Without this the arrangement could only
-   * ever be replayed by the client, which is the round trip per card the
-   * server-side resolve exists to avoid.
-   */
-  card?: CardId;
-  /**
-   * What holds it open, echoed for the same reason as `card`: a
-   * server-pushed card needs its header words on arrival, not after a
-   * second exchange.
-   */
-  hold?: CardHold;
-  /**
-   * The manual override, when the card has one. `null` = the condition
-   * decides; `true` keeps a lapsed card; `false` drops a held one.
-   *
-   * ⚠⚠ **The pin's answer, and the reason the client never sets one
-   * optimistically.** `cockpit card pin` is a real command; a local
-   * toggle would show a pin the server had refused, and it would not
-   * survive the tab. The server re-emits this envelope when the
-   * override changes — the *dismiss* direction is already visible (the
-   * card releases with reason `dismissed`), so without this only the
-   * KEEP direction was silent.
-   */
-  pinned?: boolean | null;
-  /**
-   * ⭐⭐ **The SERVER opened this card; the client did not ask for it.**
-   *
-   * Set only by the arrangement resolver. The card feed adopts a card
-   * for a handle it has never seen — that is how a mode switch paints —
-   * and this flag is what tells it *which* unseen handles to adopt.
-   *
-   * ⚠ Guessing was tried and is wrong. "A handle the client does not
-   * currently know" catches a result that arrives after the client's own
-   * unsubscribe, which React's double-mount produces on every dev page
-   * load; the chrome's own named cards (`inspect`, `location`, `self`)
-   * echo `card` on their results too. Both showed up live as spurious
-   * cards. A flag says what the inference was trying to infer.
-   */
-  pushed?: true;
 }
 
 export interface Change {
@@ -1968,7 +1973,6 @@ export type Envelope =
   | MqlSubscriptionResultEnvelope
   | MqlSubscriptionDeltaEnvelope
   | MqlSubscriptionErrorEnvelope
-  | MqlSubscriptionReleasedEnvelope
   | MqlQueryResultEnvelope
   | MqlQueryErrorEnvelope
   | ForumSubscriptionResultEnvelope
@@ -1979,7 +1983,11 @@ export type Envelope =
   | AffordanceResultEnvelope
   | AffordanceErrorEnvelope
   | StreamStateEnvelope
-  | RelayChatEnvelope;
+  | RelayChatEnvelope
+  | CardOpenedEnvelope
+  | CardTouchedEnvelope
+  | CardClosedEnvelope
+  | CardPinnedEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -1992,7 +2000,6 @@ export type EnvelopeTemplate =
   | Omit<MqlSubscriptionResultEnvelope, 'frameId'>
   | Omit<MqlSubscriptionDeltaEnvelope, 'frameId'>
   | Omit<MqlSubscriptionErrorEnvelope, 'frameId'>
-  | Omit<MqlSubscriptionReleasedEnvelope, 'frameId'>
   | Omit<MqlQueryResultEnvelope, 'frameId'>
   | Omit<MqlQueryErrorEnvelope, 'frameId'>
   | Omit<ForumSubscriptionResultEnvelope, 'frameId'>
@@ -2003,7 +2010,11 @@ export type EnvelopeTemplate =
   | Omit<AffordanceResultEnvelope, 'frameId'>
   | Omit<AffordanceErrorEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
-  | Omit<RelayChatEnvelope, 'frameId'>;
+  | Omit<RelayChatEnvelope, 'frameId'>
+  | Omit<CardOpenedEnvelope, 'frameId'>
+  | Omit<CardTouchedEnvelope, 'frameId'>
+  | Omit<CardClosedEnvelope, 'frameId'>
+  | Omit<CardPinnedEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -2741,26 +2752,29 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
 };
 
 /**
- * ⭐ The cards a SHIPPED arrangement opens.
+ * ⭐ The cards a SHIPPED arrangement opens, keyed **(mode, arrangement)**.
  *
  * A saved arrangement carries its own `cards` (that is what `cockpit
  * layout save` records). A shipped one has no stored spec, so this is
  * what it resolves to.
  *
- * ⚠ Sparse on purpose. Only `play` opens a card today, because only
- * `play` has one the client actually opens — `Cards.ts`' own rule.
- * `chat`, `watch`, `build` and `govern` get their cards from the waves
- * that build their surfaces (forums, livestream, the CMS), and
- * pre-filling them here would be sizing a vocabulary to a mockup.
+ * ⚠ **Keyed by mode AND arrangement, not by mode alone.** The mode-only
+ * shape was left in place because "re-keying an empty map is churn";
+ * filling it expires that argument — `watch` ships two arrangements
+ * (`viewer`, `streamer`) and one flat list cannot express them.
+ *
+ * ⚠ A mode's entry need not be total over
+ * {@link SHIPPED_ARRANGEMENTS}: an arrangement with no row here simply
+ * opens nothing, which is what `govern` still does.
  */
 export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
-  Record<CockpitMode, readonly CardId[]>
+  Record<CockpitMode, Readonly<Record<string, readonly CardId[]>>>
 > = {
-  chat: [],
-  play: ['place'],
-  watch: [],
-  build: [],
-  govern: [],
+  chat: { default: ['who'] },
+  play: { default: ['place'] },
+  watch: { viewer: [], streamer: [] },
+  build: { default: ['cms', 'git', 'studio'] },
+  govern: { default: [] },
 };
 
 /**

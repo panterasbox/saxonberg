@@ -1,19 +1,26 @@
 /**
- * ⚠⚠ **Subscription wiring lives at the LAYOUT, never at a
- * form-factor-specific component.**
+ * ⚠⚠ **Subscription wiring lives ABOVE the mode registry, never at a
+ * form-factor-specific component and never at one layout.**
  *
- * This has been the same defect twice in one build:
+ * This has been the same defect three times:
  *
  *  1. `useCardFeed()` hung off `CardFeed` — the DESKTOP right column —
- *     so on a phone nothing opened the `place` subscription and nothing
- *     registered the envelope handlers. The whole mobile card surface
- *     was dead.
+ *     so on a phone nothing registered the envelope handlers. The whole
+ *     mobile card surface was dead.
  *  2. Fixed, and then `useInspectionSubscriptions()` was put in exactly
- *     the same place. That one is the ATTENTION SIGNAL every card is
+ *     the same place. That one was the attention signal every card was
  *     minted from, so a phone never opened a card at all — the feed was
  *     not broken, it was never fed.
+ *  3. Fixed by moving both to `WorldLayout`, which renders at both form
+ *     factors — and is still only ONE of five layouts. `build`, `chat`
+ *     and `watch` are different components entirely, and Wave 7 puts
+ *     the authoring cards in `build`.
  *
- * Both times every unit test passed: they render a card from a
+ * ⭐ So the wiring is in **`App`**, above the mode registry: the one
+ * place that renders for every mode at every width. There is no fourth
+ * position.
+ *
+ * Every time, every unit test passed: they render a card from a
  * hand-built state object and never touch the wiring. **A component
  * test proves rendering, never wiring.** So this is a guard over the
  * source, which is the only thing that can see it.
@@ -27,16 +34,19 @@ import { dirname, resolve } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const src = resolve(here, '..', '..');
 
-/** Hooks that open subscriptions or register envelope handlers. */
-const WIRING_HOOKS = ['useCardFeed', 'useInspectionSubscriptions'];
+/** Hooks that register envelope handlers or open subscriptions. */
+const WIRING_HOOKS = ['useCardFeed'];
 
 /**
- * Components that render at ONE form factor only. Wiring called from
- * any of these is dead on the other.
+ * Components that render at ONE form factor, or in ONE mode. Wiring
+ * called from any of these is dead everywhere else.
  */
 const FORM_FACTOR_SPECIFIC = [
   'components/cards/CardFeed.tsx',
   'components/cards/MobilePlaySurface.tsx',
+  'layouts/WorldLayout.tsx',
+  'layouts/BuilderLayout.tsx',
+  'layouts/ForumLayout.tsx',
 ];
 
 /**
@@ -74,6 +84,10 @@ const SURFACE_MOUNTS: Array<{ file: string; renders: string }> = [
   // The tuned rail reads `cockpit.tuned`; if the cards stop rendering
   // it, the livestream side loses its only view of what it follows.
   { file: 'layouts/LivestreamPanels.tsx', renders: 'TunedRail' },
+  // The right column IS the card feed now — the switcher is gone, so
+  // a layout that stopped rendering it would leave a player with no
+  // cards at all and no tab to notice were missing.
+  { file: 'layouts/WorldLayout.tsx', renders: 'CardFeed' },
   // The reaction picker and its touch sheet both hang off the
   // transcript, which is the one component both form factors share.
   { file: 'components/Terminal.tsx', renders: 'EmoteSheet' },
@@ -107,20 +121,15 @@ describe('⚠⚠ subscription wiring', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('⭐ is called from the layout, which renders at both', () => {
+  it('⭐ is called from App, which renders above the mode registry', () => {
     /*
      * ⚠⚠ The half that stops this being a guard that passes by
      * matching nothing. "Not called in the wrong place" is satisfied
      * just as well by "not called anywhere", which is the actual bug.
      */
-    const layout = readFileSync(
-      resolve(src, 'layouts', 'WorldLayout.tsx'),
-      'utf8',
-    );
+    const app = readFileSync(resolve(src, 'App.tsx'), 'utf8');
     for (const hook of WIRING_HOOKS) {
-      expect(callsHook(layout, hook), `WorldLayout does not call ${hook}()`).toBe(
-        true,
-      );
+      expect(callsHook(app, hook), `App does not call ${hook}()`).toBe(true);
     }
   });
 });

@@ -37,7 +37,15 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { StuffDetailRecord, StuffRefRecord } from "@saxonberg/types";
+import type {
+  HelpTopic,
+  PresenceStatus,
+  ReleaseRow,
+  RosterRow,
+  StuffDetailRecord,
+  StuffRefRecord,
+  WikiPageFrame,
+} from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import type { CardState } from "../../store/cardFeedSlice";
 import { Figure, EntityName, tokens } from "../ui";
@@ -790,6 +798,76 @@ function DetailTrail({
  * different associates."*
  */
 export function CardBody(props: CardBodyProps): React.ReactElement {
+  const { card } = props;
+  /*
+   * ⭐ **Three sources, three bodies.** An MQL card renders the
+   * projected record below; a PAYLOAD card renders what its producing
+   * controller already computed; a CLIENT card fills itself from its
+   * own transport. One dispatch, in one place — a `kind` check inside
+   * every body would be a default that silently renders the wrong one.
+   */
+  if (card.payload) return <PayloadBody {...props} />;
+  if (card.promptId) return <PromptCardBody card={card} />;
+  return <MqlBody {...props} />;
+}
+
+/**
+ * ⭐ A `payload` card's body — the roster, the releases, the wiki page,
+ * the help topic. The producing controller computed these; nothing here
+ * re-derives them, which is what keeps the card and the scrollback from
+ * disagreeing about the same answer.
+ */
+function PayloadBody(props: CardBodyProps): React.ReactElement {
+  const { card, onSendCommand, onCommandPreview } = props;
+  const payload = card.payload!;
+  switch (payload.kind) {
+    case 'roster':
+      return (
+        <RosterBody
+          rows={payload.rows}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      );
+    case 'releases':
+      return (
+        <ReleasesBody
+          rows={payload.rows}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      );
+    case 'wikiPage':
+      return (
+        <WikiPageBody
+          page={payload.page}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      );
+    case 'helpTopic':
+      return <HelpTopicBody topic={payload.topic} />;
+  }
+}
+
+/**
+ * ⚠ A prompt card has **no body here**. The client already holds one
+ * prompt model (the prompt queue) and the card joins it by `promptId` —
+ * one prompt model, and the feed reads it. Rendering a second copy of
+ * the question would be two renderings of one payload that can drift.
+ */
+function PromptCardBody({ card }: { card: CardState }): React.ReactElement {
+  const prompt = useStore((s) =>
+    s.prompts.find((p) => p.promptId === card.promptId),
+  );
+  return (
+    <Prose>
+      {prompt ? prompt.label : 'Waiting on your answer.'}
+    </Prose>
+  );
+}
+
+function MqlBody(props: CardBodyProps): React.ReactElement {
   const { card, onSendCommand, onCommandPreview } = props;
   const record = card.records[0] as StuffDetailRecord | undefined;
   const stuffId = record?.stuffId;
@@ -836,7 +914,7 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
     [detailAliases, onSendCommand],
   );
 
-  if (card.released) return <ReleasedBody />;
+  if (card.closed) return <ReleasedBody />;
 
   const tail = detailPath[detailPath.length - 1];
   const drilled = tail
@@ -881,5 +959,339 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
       />
       <Composition stuffId={stuffId} />
     </>
+  );
+}
+
+/* ─── the payload bodies, salvaged from the retired pane shells ─── */
+
+/*
+ * ⭐ **What was salvaged, and what died.** `WhoPane`, `NewsTickerPane`
+ * and `WikiPane` were hand-written client surfaces with their own data
+ * paths, sitting in a tab switcher. The ROW-RENDERING knowledge — the
+ * recognized/stranger styling, the pin-first release rows and their
+ * expand, the wiki outline and its section-edit click — was real work
+ * and moves here. What died is the pane *shell*: its 360px chrome, its
+ * own read of the store, and its tab.
+ */
+
+const RosterRowButton = styled.button<{ $recognized: boolean }>`
+  display: flex;
+  align-items: baseline;
+  gap: ${tokens.space.md};
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: ${tokens.radius.sm};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+  cursor: pointer;
+  font: inherit;
+  color: ${(p) => (p.$recognized ? tokens.color.fg : tokens.color.fgMuted)};
+
+  &:hover {
+    background: ${tokens.color.actionBg};
+  }
+`;
+
+const RosterHeader = styled.span<{ $recognized: boolean }>`
+  flex: 1;
+  font-weight: ${(p) => (p.$recognized ? 600 : 400)};
+  color: ${(p) => (p.$recognized ? tokens.color.accent : tokens.color.fgMuted)};
+  word-break: break-word;
+`;
+
+const RosterCountry = styled.span`
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
+  white-space: nowrap;
+`;
+
+const STATUS_TINT: Record<PresenceStatus, string> = {
+  active: tokens.color.fgMuted,
+  idle: tokens.color.fgMuted,
+  engaged: tokens.color.accent,
+  reconnecting: tokens.color.warning,
+};
+
+const StatusBadge = styled.span<{ $status: PresenceStatus }>`
+  flex: 0 0 auto;
+  font-size: ${tokens.font.micro};
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+  border-radius: ${tokens.radius.sm};
+  border: 1px solid ${(p) => STATUS_TINT[p.$status]};
+  color: ${(p) => STATUS_TINT[p.$status]};
+  white-space: nowrap;
+`;
+
+/**
+ * ⚠ **The rows come from the CARD, not from the roster store slice.**
+ *
+ * `self.group` presence frames still keep that slice current — it is
+ * subsystem state, not pane state — but this card carries the roster
+ * `WhoController` itself rendered. Reading the slice instead would make
+ * the card and the `who` output two answers to one question, drifting
+ * apart the moment a filter (`--here`, `--friends`) is applied.
+ */
+function RosterBody({
+  rows,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  rows: readonly RosterRow[];
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement {
+  if (rows.length === 0) {
+    return <Prose>No one else is around right now.</Prose>;
+  }
+  return (
+    <div data-testid="card-roster" aria-label="online characters">
+      {rows.map((row) => {
+        const command = `profile ${row.header}`;
+        return (
+          <RosterRowButton
+            key={row.handle}
+            $recognized={row.recognized}
+            data-handle={row.handle}
+            title={`Click to send: ${command}`}
+            onClick={() => onSendCommand(command)}
+            onMouseEnter={
+              onCommandPreview ? () => onCommandPreview(command) : undefined
+            }
+            onMouseLeave={
+              onCommandPreview ? () => onCommandPreview(null) : undefined
+            }
+          >
+            <RosterHeader $recognized={row.recognized}>
+              {row.header}
+            </RosterHeader>
+            {row.status && (
+              <StatusBadge $status={row.status}>{row.status}</StatusBadge>
+            )}
+            {row.country && <RosterCountry>— {row.country}</RosterCountry>}
+          </RosterRowButton>
+        );
+      })}
+    </div>
+  );
+}
+
+const ReleaseRowBox = styled.div<{ $pinned: boolean }>`
+  border-left: 2px solid
+    ${(p) => (p.$pinned ? tokens.color.accent : "transparent")};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+`;
+
+const HeadlineButton = styled.button`
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: ${tokens.color.fg};
+`;
+
+const ReleaseBodyText = styled.div`
+  margin-top: ${tokens.space.xs};
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
+`;
+
+/** Pinned releases first, then recency — the ticker's own order. */
+function ReleasesBody({
+  rows,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  rows: readonly ReleaseRow[];
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement {
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
+  if (rows.length === 0) return <Prose>Nothing on the wire.</Prose>;
+  const ordered = [...rows].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return b.publishedAt - a.publishedAt;
+  });
+  return (
+    <div data-testid="card-releases">
+      {ordered.map((row) => (
+        <ReleaseRowBox key={row.releaseId} $pinned={row.pinned}>
+          <HeadlineButton
+            onClick={() =>
+              setExpanded((p) => ({
+                ...p,
+                [row.releaseId]: !p[row.releaseId],
+              }))
+            }
+          >
+            <MmlRenderer
+              text={row.headline}
+              onCommandClick={onSendCommand}
+              onCommandPreview={onCommandPreview ?? (() => undefined)}
+            />
+          </HeadlineButton>
+          {expanded[row.releaseId] && row.body && (
+            <ReleaseBodyText>
+              <MmlRenderer
+                text={row.body}
+                onCommandClick={onSendCommand}
+                onCommandPreview={onCommandPreview ?? (() => undefined)}
+              />
+            </ReleaseBodyText>
+          )}
+        </ReleaseRowBox>
+      ))}
+    </div>
+  );
+}
+
+const OutlineRow = styled.button<{ $level: 1 | 2 | 3 }>`
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: ${tokens.color.fgEmphasis};
+  padding: 0 0 0 ${(p) => (p.$level - 1) * 0.75}rem;
+`;
+
+const SearchField = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  background: ${tokens.color.surfaceAlt};
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.sm};
+  color: ${tokens.color.fg};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+  margin-bottom: ${tokens.space.sm};
+`;
+
+/**
+ * ⭐ **Wiki search, wired.**
+ *
+ * It shipped as a not-wired treatment saying there was no port behind
+ * it and that the tree was the way in, citing an audit that was already
+ * stale: `recall --scope wiki` had merged BEFORE the wave that wrote
+ * the hatch. The hatch was written from a table rather than from the
+ * tree. (The retired sentence is deliberately not quoted here — a
+ * source grep is what keeps it gone.)
+ *
+ * ⚠ It sends a REAL command, previewed exactly as sent — no private
+ * search channel, and the results land in the transcript like every
+ * other answer.
+ */
+function WikiSearch({
+  onSendCommand,
+  onCommandPreview,
+}: {
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement {
+  const [terms, setTerms] = React.useState('');
+  const command = `recall --scope wiki ${terms.trim()}`;
+  return (
+    <SearchField
+      data-testid="wiki-search"
+      aria-label="Search the wiki"
+      placeholder="Search the wiki…"
+      value={terms}
+      onChange={(e) => setTerms(e.target.value)}
+      onFocus={() => onCommandPreview?.(command)}
+      onBlur={() => onCommandPreview?.(null)}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter' || terms.trim().length === 0) return;
+        onSendCommand(command);
+        setTerms('');
+      }}
+    />
+  );
+}
+
+function WikiPageBody({
+  page,
+  onSendCommand,
+  onCommandPreview,
+}: {
+  page: WikiPageFrame;
+  onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}): React.ReactElement {
+  return (
+    <div data-testid="card-wiki-page">
+      <WikiSearch
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+      />
+      {page.sections.length > 0 && (
+        <>
+          <Label>Contents</Label>
+          {page.sections.map((sec) => {
+            /*
+             * ⭐ A section EDIT, not a jump. Section editing is the
+             * wiki's real concurrency control — two people in different
+             * sections never collide — so the outline's most useful
+             * click is the one that opens one. Readers who only want to
+             * look already have the whole body right below.
+             */
+            const command = page.mayEdit
+              ? `wiki edit ${page.handle} --section ${sec.anchor}`
+              : `wiki ${page.handle}`;
+            return (
+              <OutlineRow
+                key={sec.anchor}
+                $level={sec.level}
+                title={`Click to send: ${command}`}
+                onClick={() => onSendCommand(command)}
+                onMouseEnter={() => onCommandPreview?.(command)}
+                onMouseLeave={() => onCommandPreview?.(null)}
+              >
+                {sec.title}
+              </OutlineRow>
+            );
+          })}
+        </>
+      )}
+      <MmlRenderer
+        text={page.body}
+        onCommandClick={onSendCommand}
+        onCommandPreview={onCommandPreview ?? (() => undefined)}
+      />
+    </div>
+  );
+}
+
+/**
+ * ⚠ The topic body is **already valid, gated MML** — the catalogue
+ * escaped it. Rendering it through the ordinary renderer is what makes
+ * the card and the scrollback the same rendering.
+ */
+function HelpTopicBody({ topic }: { topic: HelpTopic }): React.ReactElement {
+  return (
+    <div data-testid="card-help-topic">
+      <MmlRenderer
+        text={topic.body}
+        onCommandClick={() => undefined}
+        onCommandPreview={() => undefined}
+      />
+      {topic.relations.length > 0 && (
+        <>
+          <Label>See also</Label>
+          {topic.relations.map((rel) => (
+            <Prose key={`${rel.kind}-${rel.targetTitle}`}>
+              {rel.kind}: {rel.targetTitle}
+            </Prose>
+          ))}
+        </>
+      )}
+    </div>
   );
 }

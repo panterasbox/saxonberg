@@ -28,6 +28,7 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { AppApi } from '../../../api/app';
+import { CardApi } from '../../../api/card';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import {
   PressApi,
@@ -68,9 +69,21 @@ export default class PressController extends CommandController<ReleaseModel> {
     context: CommandContext,
   ): Promise<void> {
     switch (model.subcommand) {
-      // Bare `release <headline>` falls through with no subcommand; the
-      // explicit `post` subcommand is the same publish path.
+      /*
+       * ⭐ Bare `press` with NO headline is the READ — the news, and the
+       * command that opens the `news` card.
+       *
+       * ⚠ It used to refuse with *headline required*, which made the
+       * news the one shipped surface a player could not ask for: the
+       * ticker arrived on connect and there was no verb to see it again.
+       * A card whose only birth path is an arrangement would contradict
+       * *a command opens a card; nothing else does*.
+       */
       case undefined:
+        if (!(model.headline ?? '').trim()) {
+          return this.executeRead(context);
+        }
+        return this.executePublish(model, context);
       case 'post':
         return this.executePublish(model, context);
       case 'edit':
@@ -84,6 +97,38 @@ export default class PressController extends CommandController<ReleaseModel> {
           'unknown-subcommand',
         );
     }
+  }
+
+  /** Bare `press` — the live ticker window, as prose and as a card. */
+  private executeRead(context: CommandContext): void {
+    const releases = PressApi.recent();
+    const rows = releases.map((r) => PressApi.toRow(r));
+    const body =
+      rows.length === 0
+        ? Mml.fromMarkup('\nNothing on the wire.\n')
+        : Mml.fromMarkup(
+            '\n' +
+              rows
+                .map(
+                  (r) =>
+                    `${r.pinned ? '📌 ' : ''}${Mml.escape(r.headline)}` +
+                    ` — ${Mml.escape(r.publisher)}`,
+                )
+                .join('\n') +
+              '\n',
+          );
+    MessageApi.scene(context.commandGiver)
+      .topic('shell.result')
+      .toSelf(body)
+      .send();
+    /*
+     * ⭐ The card carries **the rows this read already projected**. One
+     * `PressApi.recent` call, two renderings.
+     */
+    CardApi.open(context, 'news', {
+      payload: { kind: 'releases', rows },
+      prose: body,
+    });
   }
 
   private async executePublish(

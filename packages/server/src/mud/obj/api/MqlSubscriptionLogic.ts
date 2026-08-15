@@ -13,8 +13,8 @@ import type MqlSubscriptionRegistry from '../MqlSubscriptionRegistry';
 import type {
   QueryRequest,
   SubscribeRequest,
+  SubscriptionRecord,
 } from '../../api/mql-subscription';
-import type { CardHold, CardId } from '@saxonberg/types';
 
 const MqlSubscriptionApiCallers = SecurityPolicies.FromModule('/api/mql-subscription#MqlSubscriptionApi'
 );
@@ -103,8 +103,8 @@ export class MqlSubscriptionLogic extends ApiLogic {
 
   /** See {@link MqlSubscriptionApi.handleSubscribe}. */
   @CallSecurity(MqlSubscriptionApiCallers)
-  public handleSubscribe(req: SubscribeRequest): void {
-    resolveRegistry().handleSubscribe(req);
+  public handleSubscribe(req: SubscribeRequest): SubscriptionRecord[] | null {
+    return resolveRegistry().handleSubscribe(req);
   }
 
   /** See {@link MqlSubscriptionApi.handleQuery}. */
@@ -137,51 +137,10 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().refreshForInteractive(interactive);
   }
 
-  /** See {@link MqlSubscriptionApi.applyArrangement}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public applyArrangement(
-    interactive: Interactive,
-    cards: readonly CardId[],
-  ): { opened: number; closed: number } {
-    return resolveRegistry().applyArrangement(interactive, cards);
-  }
-
-  /** See {@link MqlSubscriptionApi.notifyPromptSettled}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public notifyPromptSettled(
-    interactive: Interactive,
-    promptId: string,
-  ): void {
-    resolveRegistry().notifyPromptSettled(interactive, promptId);
-  }
-
   /** See {@link MqlSubscriptionApi.notifyDurableSubject}. */
   @CallSecurity(MqlSubscriptionApiCallers)
   public notifyDurableSubject(subject: string): void {
     resolveRegistry().notifyDurableSubject(subject);
-  }
-
-  /** See {@link MqlSubscriptionApi.setCardPinned}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public setCardPinned(
-    interactive: Interactive,
-    subscriptionId: string,
-    pinned: boolean | null
-  ): boolean {
-    return resolveRegistry().setCardPinned(interactive, subscriptionId, pinned);
-  }
-
-  /** See {@link MqlSubscriptionApi.listCards}. */
-  @CallSecurity(MqlSubscriptionApiCallers)
-  public listCards(
-    interactive: Interactive
-  ): {
-    subscriptionId: string;
-    cardId?: CardId;
-    hold?: CardHold;
-    pinned: boolean | null;
-  }[] {
-    return resolveRegistry().listCards(interactive);
   }
 
   /** See {@link MqlSubscriptionApi.cancelAllForScope}. */

@@ -24,6 +24,7 @@
  *      subsumes "optional cannot precede greedy".
  */
 
+import type { CardId } from '@saxonberg/types';
 import { SourceTreeApi } from '../../api/source-tree';
 import type {
   CommandView,
@@ -85,6 +86,12 @@ export class CommandDefinition {
    * per-invocation by the reserved `--async` / `--sync` flags.
    */
   public readonly async: boolean;
+  /**
+   * ⭐ The cards this verb declares it opens (`opens_card:` in the
+   * YAML), normalized to a list. `CardApi.open` refuses any card a
+   * running command did not declare — see {@link CommandView.opens_card}.
+   */
+  public readonly opensCards: readonly CardId[];
   public readonly verbOptions: Record<string, OptionDefinition>;
   /**
    * Structured-form-only fields. Populated exclusively through
@@ -146,6 +153,12 @@ export class CommandDefinition {
     this.subcommands = view.subcommands || {};
     this.fallthrough = view.fallthrough === true;
     this.async = view.async === true;
+    this.opensCards =
+      view.opens_card === undefined
+        ? []
+        : ((Array.isArray(view.opens_card)
+            ? view.opens_card
+            : [view.opens_card]) as CardId[]);
     this.verbOptions = normaliseOptions(view.options);
     this.payload = normaliseOptions(view.payload);
     this.validators = view.validators ?? [];

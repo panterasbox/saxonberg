@@ -25,18 +25,21 @@ describe("the pinned chip row", () => {
     useStore.setState({
       cards: {
         a: {
-          subscriptionId: "a",
+          instanceId: "a",
           cardId: "place",
-          kind: "place",
+          key: "look",
+          live: true,
           pinned: true,
+          title: "The Yard",
           records: [{ stuffId: "s", displayName: "The Yard" } as never],
           openedAt: 1,
         },
         b: {
-          subscriptionId: "b",
-          cardId: "agent",
-          kind: "agent",
-          pinned: null,
+          instanceId: "b",
+          cardId: "who",
+          key: "who",
+          live: false,
+          pinned: false,
           records: [],
           openedAt: 2,
         },
@@ -46,7 +49,7 @@ describe("the pinned chip row", () => {
     render(<PinnedChipRow onSendCommand={(t) => sent.push(t)} />);
 
     expect(screen.getByText(/The Yard/)).toBeTruthy();
-    expect(screen.queryByText(/agent/)).toBeNull();
+    expect(screen.queryByText(/who/)).toBeNull();
 
     fireEvent.click(screen.getByLabelText("cockpit card auto place"));
     // ⭐ A real command, like every other pin control. The chip is a

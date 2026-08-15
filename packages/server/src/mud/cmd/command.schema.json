@@ -78,6 +78,13 @@
       "type": "boolean",
       "description": "Opt-in flag permitting top-level `args:` AND `subcommands:` to coexist. When set, the matcher tries subcommands first; on an unknown first token it falls through to bind against the top-level `args:` (Phase 3a). Required together with both `args:` and `subcommands:` \u2014 schema rejects any other combination."
     },
+    "opens_card": {
+      "oneOf": [
+        {"type": "string", "minLength": 1},
+        {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}
+      ],
+      "description": "The card this verb declares it opens, by catalogue id (see CARD_IDS). A DECLARATION, not the push: the controller still calls CardApi.open (only it knows the resolved operand), and this is the gate that call is checked against. Validated against the catalogue at load, so a typo fails at boot."
+    },
     "async": {
       "type": "boolean",
       "description": "Default async-dispatch mode for this verb (default false). When true, the controller body detaches from the giver's own input chain at accept-time (spawned, not awaited), so the giver's prompt frees immediately and the single dispatch-response envelope fires late. A player overrides per-invocation with the reserved `--async` / `--sync` flags. Only for commands whose output tolerates arriving out of order (never `look`); see command-spec.md."

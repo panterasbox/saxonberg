@@ -34,6 +34,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
+import { CardApi } from '../../../api/card';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
 import { PerceptionApi } from '../../../api/perception';
@@ -297,6 +298,16 @@ export default class LookController extends CommandController<LookModel> {
       .toSelf(body)
       .send();
 
+    /*
+     * ⭐ Bare `look` TOUCHES the room card rather than minting a second
+     * one, because `place`'s key IS `look` — decisions 4 and 6
+     * composed. An arrangement-pushed `place` and a typed bare `look`
+     * collide **on purpose**, which retires the *"the focus card must
+     * not FLASH"* special case structurally rather than by a duplicate
+     * check.
+     */
+    CardApi.open(context, 'place', { prose: body });
+
     return;
   }
 
@@ -385,6 +396,17 @@ export default class LookController extends CommandController<LookModel> {
       .topic('sense.survey')
       .toSelf(body)
       .send();
+
+    /*
+     * ⚠ `look` still STACKS — attention-stacking survives. What changed
+     * is that it is something `look` now DECLARES (`opens_card:` in its
+     * view) rather than something the client infers from a changed
+     * subscription result.
+     */
+    CardApi.open(context, 'subject', {
+      subjectId: target.stuffId,
+      prose: body,
+    });
 
     return;
   }
