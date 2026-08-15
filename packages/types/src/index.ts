@@ -2926,19 +2926,6 @@ export interface ConnectionEstablishedPayload {
    */
   topicCatalogue: TopicDescriptor[];
   /**
-   * The authored emote catalogue — what the emote picker draws.
-   *
-   * Cached for the session exactly like {@link topicCatalogue} and for
-   * the same reasons: it is authored reference data, it is global rather
-   * than per-viewer, and a mid-session `soul make` lands at next login.
-   * Canonical verbs only; an emote's aliases ride its own entry.
-   *
-   * ⚠ The client renders the picker FROM THIS and from nothing else. A
-   * hardcoded emoji/verb pair drifts from the catalogue silently, which
-   * is the failure this field exists to make impossible.
-   */
-  emoteCatalogue: EmoteCatalogueEntry[];
-  /**
    * The topics whose frames denote a reactable act, as the server
    * defines them.
    *
@@ -2946,6 +2933,11 @@ export interface ConnectionEstablishedPayload {
    * one (`REACTABLE_PREFIXES`), the S2 topic collapse moved the server
    * set underneath it, and combat frames stopped offering the
    * affordance without anything failing.
+   *
+   * ⚠ This STAYS on the payload while the emote catalogue moved off it
+   * to `GET /api/emotes`. Four strings, and they gate whether the `＋`
+   * exists at all — a client that had to fetch before it could decide
+   * whether to offer anything would flash the affordance in and out.
    */
   reactableTopics: string[];
   /**

@@ -417,10 +417,47 @@ consumes tokens in. `required` is derived from the author's `optional`
 flag rather than restated. `soul list` keeps its gate: seeing the palette
 is not authoring it.
 
-It rides `ConnectionEstablishedPayload.emoteCatalogue`, cached by the
-client for the session on exactly the terms `topicCatalogue` is —
-authored, global, and a mid-session `soul make` landing at next login.
-No new transport, and the semantics were already documented one field up.
+### ⭐⭐ It is fetched, not pushed — `GET /api/emotes`
+
+It rode `ConnectionEstablishedPayload` first, beside `topicCatalogue`.
+**That is the wrong home for something expected to grow**: `Avatar.enter()`
+runs on **reconnect** as well as fresh login, so a flaky connection
+re-shipped the whole catalogue every drop — onto a packet already
+carrying the topic catalogue, the news window and the frame backfill.
+
+The catalogue is authored, global, and changes only when somebody runs
+`soul make`, which is the textbook case for HTTP caching. So
+`backend/EmoteRoutes.ts` serves it read-only on the {@link HelpRoutes}
+pattern with a **strong ETag over the payload**, and the client fetches
+**lazily, on the first reaction affordance opened**:
+
+| | bytes |
+|---|---|
+| reconnect | 0 |
+| later session, unchanged catalogue | 0 (`304`) |
+| player who never reacts | 0 |
+
+⚠ The ETag is a hash of the payload, not a version counter: `soul mint` /
+`edit` / `delete` write through to the cache, and a counter would be a
+second thing to remember to bump. A hash cannot drift from what it
+describes.
+
+⚠ `Cache-Control: private, no-cache` means *revalidate*, not *do not
+store*. A `max-age` would serve a stale catalogue for its duration, and
+an author who mints an emote should see it next session rather than next
+hour.
+
+⚠ **`reactableTopics` deliberately stays on the connection payload.** It
+is four strings and it gates whether the `＋` exists at all; a client
+that had to fetch before deciding whether to offer anything would flash
+the affordance in and out.
+
+⚠⚠ **A failed fetch is not an empty catalogue.** The route answers `503`
+rather than `[]`, and the client holds a distinct `failed` state. An
+empty catalogue is a legitimate answer — a world with nothing authored —
+which the picker renders as "no emotes authored yet"; a failure that
+looked identical would be an unwired state wearing an empty state's
+clothes, and the client would cache the lie.
 
 ⭐ The client draws its picker from this **and from nothing else**. It
 previously drew from a hardcoded six-entry `{ verb, emoji }` array; a

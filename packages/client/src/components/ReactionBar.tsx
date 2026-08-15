@@ -29,6 +29,7 @@ import { tokens } from "./ui";
 import { expandReactors } from "../store/reactionActions";
 import { EmotePicker } from "./social/EmotePicker";
 import { composeReactCommand, quickRow } from "./social/reactCommand";
+import { ensureEmoteCatalogue } from "../store/emoteCatalogue";
 
 /**
  * Whether a frame is a reactable act.
@@ -233,6 +234,15 @@ const FullPalette = styled.div<{ $alignRight: boolean }>`
   z-index: 6;
 `;
 
+/** Loading / failed / empty copy inside the quick row. */
+const PaletteNote = styled.span`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+  padding: 1px ${tokens.space.sm};
+  white-space: nowrap;
+`;
+
 const PaletteBtn = styled.button`
   appearance: none;
   border: none;
@@ -306,11 +316,22 @@ export function ReactionBar({
   const prefs = useStore((s) => s.reactionPrefs);
   const reactable = useStore((s) => s.reactableTopics);
   const catalogue = useStore((s) => s.emoteCatalogue);
+  const catalogueState = useStore((s) => s.emoteCatalogueState);
   const selfAvatarId = useStore((s) => s.selfAvatarId);
   const [open, setOpen] = useState(false);
   // The full slot-aware palette, pulled from behind the quick row.
   const [full, setFull] = useState(false);
   const { ref: paletteRef, alignRight } = useEdgeAware(open && full);
+
+  /*
+   * ⭐ The catalogue is fetched the first time a player opens a reaction
+   * — not at boot. Somebody who never reacts never pays for it, and the
+   * browser's ETag makes every later session free. Idempotent and
+   * request-sharing, so calling it on every open is fine.
+   */
+  useEffect(() => {
+    if (open) void ensureEmoteCatalogue();
+  }, [open]);
 
   // Pulse the counts briefly whenever the act moves.
   const [pulsing, setPulsing] = useState(false);
@@ -452,7 +473,7 @@ export function ReactionBar({
         <Names>[ {expanded.map((e) => e.reactorName).join(", ")} ]</Names>
       )}
 
-      {gutter !== undefined && quick.length > 0 && (
+      {gutter !== undefined && (quick.length > 0 || catalogueState !== "loaded") && (
         <AddWrap className="reaction-add" $open={open}>
           <MiniButton
             onClick={() => {
@@ -484,6 +505,22 @@ export function ReactionBar({
               </FullPalette>
             ) : (
               <Palette>
+                {/*
+                  ⚠ Three states, and they must not look alike. Loading
+                  is transient and says so; a FAILED fetch is not an
+                  empty catalogue — an empty one is a real answer (a
+                  world with nothing authored) and would be a lie to
+                  render as an error, or the reverse.
+                */}
+                {catalogueState === "loading" && quick.length === 0 && (
+                  <PaletteNote>loading…</PaletteNote>
+                )}
+                {catalogueState === "failed" && (
+                  <PaletteNote>╌╌ could not load the emote catalogue</PaletteNote>
+                )}
+                {catalogueState === "loaded" && quick.length === 0 && (
+                  <PaletteNote>no emotes authored yet</PaletteNote>
+                )}
                 {quick.map((q) => (
                   <PaletteBtn
                     key={q.verb}
@@ -497,12 +534,14 @@ export function ReactionBar({
                     {q.emoji}
                   </PaletteBtn>
                 ))}
-                <PaletteBtn
-                  onClick={() => setFull(true)}
-                  title="the full palette, with slots"
-                >
-                  all
-                </PaletteBtn>
+                {quick.length > 0 && (
+                  <PaletteBtn
+                    onClick={() => setFull(true)}
+                    title="the full palette, with slots"
+                  >
+                    all
+                  </PaletteBtn>
+                )}
               </Palette>
             ))}
         </AddWrap>

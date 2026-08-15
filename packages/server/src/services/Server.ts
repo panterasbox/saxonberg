@@ -23,6 +23,7 @@ import { CmsRoutes } from '../backend/CmsRoutes';
 import { GitRoutes } from '../backend/GitRoutes';
 import { StudioRoutes } from '../backend/StudioRoutes';
 import { HelpRoutes } from '../backend/HelpRoutes';
+import { EmoteRoutes } from '../backend/EmoteRoutes';
 import { PressRoutes } from '../backend/PressRoutes';
 import { KickWebhookRoutes } from '../backend/KickWebhookRoutes';
 import { PassportConfig } from './auth/PassportConfig';
@@ -191,6 +192,7 @@ export class Server {
     // Help REST data surface (the future client help pane's transport).
     // Read-only; same auth/ordering constraints as the CMS routes.
     HelpRoutes.setup(this.app);
+    EmoteRoutes.setup(this.app);
 
     // Release (news-ticker) REST archive — the client pane's "load older"
     // transport. Read-only; same auth/ordering constraints as the routes

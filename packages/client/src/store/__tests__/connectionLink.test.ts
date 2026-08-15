@@ -72,7 +72,6 @@ describe("connection.link state machine", () => {
         portraitUrl: "",
       },
       topicCatalogue: [],
-      emoteCatalogue: [],
       reactableTopics: [],
       releaseWindow: [],
       clientState: {},

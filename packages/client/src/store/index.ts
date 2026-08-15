@@ -730,6 +730,17 @@ interface StoreState
    */
   emoteCatalogue: Map<string, EmoteCatalogueEntry>;
   /**
+   * How the catalogue's lazy fetch is doing.
+   *
+   * ⚠ `failed` is a distinct state from an empty catalogue on purpose.
+   * An empty catalogue is a real answer — a world with nothing authored
+   * — and the picker renders it as "nothing to pick". A failure that
+   * looked the same would be an unwired state wearing an empty state's
+   * clothes, which is the exact confusion the honest-state convention
+   * exists to prevent.
+   */
+  emoteCatalogueState: "idle" | "loading" | "loaded" | "failed";
+  /**
    * The topics whose frames are reactable acts, as the SERVER defines
    * them. Empty until session-establish, which is the honest state: with
    * no answer from the server the client offers no reaction affordance
@@ -1486,13 +1497,9 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const d of payload.topicCatalogue ?? []) {
       topicMap.set(d.topic, d);
     }
-    // The emote palette + the reactable-topic set, on the same terms as
-    // the topic catalogue: authored server-side, cached for the session,
-    // never synthesized here.
-    const emoteMap = new Map<string, EmoteCatalogueEntry>();
-    for (const e of payload.emoteCatalogue ?? []) {
-      emoteMap.set(e.verb, e);
-    }
+    // ⚠ The reactable-topic set rides the payload; the emote CATALOGUE
+    // does not — it is fetched lazily from `/api/emotes` on the first
+    // picker open. See `store/emoteCatalogue.ts` for why.
     const reactable = new Set<string>(payload.reactableTopics ?? []);
     // Seed the news-ticker feed from the welcome snapshot, exactly as the
     // topic catalogue is consumed — releases have no presence event to
@@ -1567,7 +1574,6 @@ export const useStore = create<StoreState>((set, get) => ({
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
-      emoteCatalogue: emoteMap,
       reactableTopics: reactable,
       feed,
       feedOrder: orderFeed(feed),
@@ -1996,6 +2002,7 @@ export const useStore = create<StoreState>((set, get) => ({
   // server answers — an empty palette shows no picker, which is the
   // honest state for "we have not been told yet".
   emoteCatalogue: new Map<string, EmoteCatalogueEntry>(),
+  emoteCatalogueState: "idle",
   reactableTopics: new Set<string>(),
 
   setTopicCatalogue: (records) =>
