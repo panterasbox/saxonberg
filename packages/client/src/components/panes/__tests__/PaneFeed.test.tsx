@@ -111,14 +111,21 @@ describe("a card", () => {
     // vanished silently would read as a bug — which is exactly why the
     // release envelope carries a reason at all.
     expect(screen.getByText("stale · they left")).toBeTruthy();
-    // ⚠ …and it keeps no pin. Pinning something the world has already
-    // ended would promise to hold open a card whose subscription no
-    // longer exists — a control that cannot do what it says. Scoped to
-    // THIS card: the feed's own `place` card is live and keeps its pin.
+    /*
+     * ⚠ …and it keeps no PIN and no REFRESH. Either would promise to
+     * act on a subscription the world has already torn down — a control
+     * that cannot do what it says.
+     *
+     * ⭐ Close survives, deliberately: dismissing a husk is still
+     * something you can do to it.
+     */
     const husk = screen.getByTestId("pane-agent");
+    expect(husk.querySelector('[aria-label^="cockpit pane pin"]')).toBeNull();
+    expect(husk.querySelector('[aria-label^="cockpit pane auto"]')).toBeNull();
+    expect(husk.querySelector('[data-testid="card-refresh"]')).toBeNull();
     expect(
-      husk.querySelector('[aria-label^="cockpit pane"]'),
-    ).toBeNull();
+      husk.querySelector('[aria-label^="cockpit pane dismiss"]'),
+    ).toBeTruthy();
   });
 
   it("drops the body when released — it must not show stale contents", () => {
@@ -436,5 +443,42 @@ describe("⭐ a husk expires; a live card never does", () => {
     });
     useStore.getState().expireHusks();
     expect(useStore.getState().paneCards["s2"]).toBeDefined();
+  });
+});
+
+/**
+ * ⭐ Three controls, top right, on every card: refresh · pin · close.
+ */
+describe("⭐ the card's controls", () => {
+  it("carries all three, as commands", () => {
+    openCard("s1", "place", "the lounge", "here");
+    useStore
+      .getState()
+      .setPaneRecords("s1", [
+        { stuffId: "r", displayName: "the lounge", primaryKeyword: "lounge" },
+      ] as never);
+    render(<PaneFeed onSendCommand={() => undefined} />);
+
+    const card = screen.getByTestId("pane-place");
+    // Every one previews exactly what it sends.
+    expect(
+      card.querySelector('[aria-label="look lounge"]'),
+    ).toBeTruthy();
+    expect(
+      card.querySelector('[aria-label="cockpit pane pin place"]'),
+    ).toBeTruthy();
+    expect(
+      card.querySelector('[aria-label="cockpit pane dismiss place"]'),
+    ).toBeTruthy();
+  });
+
+  it("⚠ omits refresh when there is nothing to look at yet", () => {
+    // A card whose subject has not resolved has no keyword to name, and
+    // a control that cannot do what it says is worse than a missing one.
+    openCard("s2", "place", "", "here");
+    render(<PaneFeed onSendCommand={() => undefined} />);
+    expect(
+      screen.getByTestId("pane-place").querySelector('[data-testid="card-refresh"]'),
+    ).toBeNull();
   });
 });

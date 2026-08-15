@@ -68,9 +68,27 @@ const Reason = styled.span`
   white-space: nowrap;
 `;
 
-const Pin = styled.button<{ $on: boolean }>`
+/**
+ * The card's controls: refresh · pin · close, top right, on every card.
+ *
+ * ⚠ Glyphs for now, and they are placeholders for a real icon set —
+ * the shapes are the decision, the typeface is not.
+ *
+ * ⚠ Refresh is absent when there is nothing to look at yet. A control
+ * that cannot do what it says is worse than a missing one, and a card
+ * whose subject has not resolved has no keyword to name.
+ */
+const Controls = styled.div`
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex: none;
+`;
+
+const IconButton = styled.button<{ $on?: boolean }>`
   font: inherit;
   font-size: ${tokens.font.label};
+  line-height: 1;
   cursor: pointer;
   background: transparent;
   border: 1px solid
@@ -81,7 +99,7 @@ const Pin = styled.button<{ $on: boolean }>`
   /* 44px minimum touch target via min-height — never by shrinking the
      box the glyph sits in. */
   min-height: 44px;
-  min-width: 30px;
+  min-width: 26px;
 
   &:hover {
     color: ${tokens.color.fg};
@@ -108,7 +126,7 @@ export interface PaneCardProps {
 function pinAction(card: PaneCardState): { command: string; label: string } {
   const ref = card.paneId ?? card.subscriptionId;
   if (card.pinned === true) {
-    return { command: `cockpit pane auto ${ref}`, label: "⚲ held" };
+    return { command: `cockpit pane auto ${ref}`, label: "⚲" };
   }
   return { command: `cockpit pane pin ${ref}`, label: "⚲" };
 }
@@ -122,6 +140,15 @@ export function PaneCard({
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
   const faded = card.released !== undefined;
+  const close = `cockpit pane dismiss ${card.paneId ?? card.subscriptionId}`;
+  /*
+   * ⭐ Every card refreshes the same way, because every card is the same
+   * thing: `look` at its subject. Named with the subject's own keyword,
+   * so the command reads as one the player could have typed.
+   */
+  const keyword = (card.records[0] as { primaryKeyword?: string } | undefined)
+    ?.primaryKeyword;
+  const refresh = keyword ? `look ${keyword}` : null;
   /*
    * ⚠ Before the subject arrives, the title falls back to the pane's
    * LABEL, not its catalogue id. Found by driving: a freshly-opened
@@ -155,23 +182,48 @@ export function PaneCard({
         <Title>{title}</Title>
         <Reason data-testid="pane-hold-reason">{holdReason(card)}</Reason>
         {/*
-          ⚠ A released husk keeps no pin. Pinning something the world
-          has already ended would promise to hold open a card whose
-          subscription no longer exists — a control that cannot do what
-          it says.
+          ⚠ A released husk keeps no controls. Pinning or refreshing
+          something the world has already ended would promise to act on
+          a subscription that no longer exists — a control that cannot
+          do what it says. Close stays, because dismissing the husk is
+          still a thing you can do to it.
         */}
-        {!faded && (
-          <Pin
-            $on={card.pinned === true}
-            title={`Click to send: ${command}`}
-            aria-label={command}
-            onClick={() => onSendCommand(command)}
-            onMouseEnter={() => preview(command)}
+        <Controls>
+          {!faded && refresh && (
+            <IconButton
+              data-testid="card-refresh"
+              title={`Click to send: ${refresh}`}
+              aria-label={refresh}
+              onClick={() => onSendCommand(refresh)}
+              onMouseEnter={() => preview(refresh)}
+              onMouseLeave={() => preview(null)}
+            >
+              ↻
+            </IconButton>
+          )}
+          {!faded && (
+            <IconButton
+              $on={card.pinned === true}
+              title={`Click to send: ${command}`}
+              aria-label={command}
+              onClick={() => onSendCommand(command)}
+              onMouseEnter={() => preview(command)}
+              onMouseLeave={() => preview(null)}
+            >
+              {label}
+            </IconButton>
+          )}
+          <IconButton
+            data-testid="card-close"
+            title={`Click to send: ${close}`}
+            aria-label={close}
+            onClick={() => onSendCommand(close)}
+            onMouseEnter={() => preview(close)}
             onMouseLeave={() => preview(null)}
           >
-            {label}
-          </Pin>
-        )}
+            ×
+          </IconButton>
+        </Controls>
       </Head>
       {children}
     </Card>

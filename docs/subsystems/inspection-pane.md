@@ -314,7 +314,7 @@ HAS:
 | measured | the subject declares a reading |
 | **exits** | the subject is Exitable |
 | here | the subject contains something |
-| mixins | at the FOOT — one line of chips, `+N more` inline |
+| interfaces | at the FOOT — one labelled line of chips, `+N more` inline |
 | refresh | always — `look <keyword>` |
 
 ⭐⭐ **The details ARE the description.** The body renders the subject's
@@ -327,7 +327,38 @@ prose and once as a list.
 argument for flattening the prose to plain text, and it is answered by
 the toggle rather than by taking the links away.
 
-⚠ **The mixin row sits at the foot: one line of chips with `+N more`
+### The card's controls
+
+**`↻ refresh · ⚲ pin · × close`**, as icons, top right of every card.
+
+⚠ Glyphs are placeholders for a real icon set — the shapes are the
+decision, the typeface is not.
+
+⚠ **Refresh is absent when there is nothing to look at yet.** A card
+whose subject has not resolved has no keyword to name, and a control
+that cannot do what it says is worse than a missing one. A released
+husk keeps only `close`: pin and refresh would both promise to act on a
+subscription the world has already torn down, while dismissing a husk is
+still something you can do to it.
+
+### ⚠ "Interfaces", not "mixins"
+
+The word is the player's, not the engine's. `Trait`, `Property`,
+`Capability`, `Facet` and `Faculty` are all defined terms elsewhere in
+the engine and were ruled out on that ground; `Interfaces` was chosen
+knowing it assumes a programming background, because the row's whole
+purpose is that a player learns these names — *"oh, Visible, I
+understand what that means applied to something"*.
+
+⚠ **Sorted plumbing-last, and nothing is hidden.** `PostRegistration`
+and friends are internal, but a row that dropped them would misrepresent
+what the object composes, and an author learning the palette from these
+rows would never learn they exist. ⭐ The real fix is authored per-mixin
+metadata — a one-line description and a player-facing flag — which is
+also what a tooltip explaining each one would read from. Until then the
+ordering does the work.
+
+⚠ **The row sits at the foot: one labelled line of chips with `+N more`
 inline.** It is a teaching surface — how a player meets the
 content-development palette on real objects — so some of it has to be
 legible without a click; a bare count taught nothing. The toggle is

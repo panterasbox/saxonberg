@@ -62,8 +62,8 @@ const ChipToggle = styled.button`
 const Chips = styled.div`
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   gap: ${tokens.space.xs};
-  margin-bottom: ${tokens.space.md};
 `;
 
 const Chip = styled.span`
@@ -432,29 +432,40 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
   const shown = expanded ? ordered : ordered.slice(0, MIXIN_LINE);
   const rest = ordered.length - shown.length;
   return (
-    <Chips data-testid="pane-composition">
-      {shown.map((m) => (
-        <Chip key={m}>{m}</Chip>
-      ))}
+    <>
+      {/*
+        ⚠ Labelled, and in the same rhythm as every other section. It
+        used to be a bare row of chips with its own margin, which read
+        as indented next to the labelled blocks around it — the label
+        was the missing thing, not the alignment.
+      */}
+      <Label>Interfaces</Label>
+      <Chips data-testid="pane-composition">
+        {shown.map((m) => (
+          <Chip key={m}>{m}</Chip>
+        ))}
       {/*
         ⚠ Inline with the chips, not on a line of its own. The row is
         *one line of mixins and a way to see the rest* — a toggle
         underneath turns a one-line teaching surface into a two-line
         one, which is the space it was moved down here to stop taking.
       */}
-      {(rest > 0 || expanded) && (
-        <ChipToggle
-          data-testid="pane-composition-toggle"
-          aria-expanded={expanded}
-          aria-label={
-            expanded ? "hide the rest" : `show all ${ordered.length} mixins`
-          }
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? "less" : `+${rest} more`}
-        </ChipToggle>
-      )}
-    </Chips>
+        {(rest > 0 || expanded) && (
+          <ChipToggle
+            data-testid="pane-composition-toggle"
+            aria-expanded={expanded}
+            aria-label={
+              expanded
+                ? "hide the rest"
+                : `show all ${ordered.length} interfaces`
+            }
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? "less" : `+${rest} more`}
+          </ChipToggle>
+        )}
+      </Chips>
+    </>
   );
 }
 
@@ -706,9 +717,6 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
   if (card.released) return <ReleasedBody />;
   const record = card.records[0] as StuffDetailRecord | undefined;
   const stuffId = record?.stuffId;
-  const refresh = record?.primaryKeyword
-    ? `look ${record.primaryKeyword}`
-    : "look";
 
   return (
     <>
@@ -730,22 +738,6 @@ export function PaneBody(props: PaneBodyProps): React.ReactElement {
         onCommandPreview={onCommandPreview}
       />
       <Composition stuffId={stuffId} />
-      {/*
-        ⭐ Every card refreshes the same way, because every card is the
-        same thing: `look` at its subject. Named with the subject's own
-        keyword so the command reads as one the player could have typed.
-      */}
-      <InlineLinks>
-        <InlineLink
-          data-testid="card-refresh"
-          title={`Click to send: ${refresh}`}
-          onClick={() => onSendCommand(refresh)}
-          onMouseEnter={() => onCommandPreview?.(refresh)}
-          onMouseLeave={() => onCommandPreview?.(null)}
-        >
-          refresh
-        </InlineLink>
-      </InlineLinks>
     </>
   );
 }

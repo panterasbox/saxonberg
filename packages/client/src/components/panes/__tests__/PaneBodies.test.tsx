@@ -246,17 +246,6 @@ describe("⭐⭐ sections appear only when the subject has them", () => {
     ).toBeNull();
   });
 
-  it("every card refreshes the same way, by looking at its subject", () => {
-    const sent: string[] = [];
-    render(
-      <PaneBody
-        card={placeCard({ primaryKeyword: "lounge" })}
-        onSendCommand={(t) => sent.push(t)}
-      />,
-    );
-    fireEvent.click(screen.getByTestId("card-refresh"));
-    expect(sent).toEqual(["look lounge"]);
-  });
 });
 
 describe("⭐⭐ details are links in the description, not a list", () => {
