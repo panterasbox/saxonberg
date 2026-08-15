@@ -19,6 +19,9 @@ import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { StreamApi } from '../../../api/stream';
 import { PlayerApi } from '../../../api/player';
+import { MixinApi } from '../../../api/mixin';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { TunedTarget } from '@saxonberg/types';
 import { StreamerTarget } from '../../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../../lib/streaming/StreamerTarget';
 
@@ -37,7 +40,39 @@ type ServiceHandle =
   | { ok: true; service: Service; handle: string }
   | { ok: false };
 
+const TUNED_KEY = 'cockpit.tuned';
+
 export default class TuneController extends CommandController<TuneModel> {
+  /**
+   * Republish the viewer's tuned set to `cockpit.tuned`.
+   *
+   * ⭐ **Derived from the relay, never accumulated here.** The rail reads
+   * this key, and the temptation is to push/splice a row as each `tune`
+   * lands — which makes the client's list a SECOND record of who is
+   * following what, free to drift from the relay's own. Re-reading
+   * `tunedTargetsFor` after every change keeps one source of truth.
+   *
+   * `canPost` is the server's answer about outbound posting: only Twitch
+   * has the path this cycle (YouTube and Kick chat are read-only, as the
+   * verb's own help says), so the rail can disable a composer instead of
+   * letting somebody type into a channel that will refuse.
+   *
+   * ⚠ Not called from the relay's own drop paths — a YouTube stream
+   * ending (`StreamApi.dropChannel`) leaves a stale row until the next
+   * tune. Logout is covered because the key is transient.
+   */
+  private async publishTuned(actor: Stuff): Promise<void> {
+    if (!MixinApi.isHasInteractive(actor)) return;
+    const channels = await StreamApi.tunedTargetsFor(actor as never);
+    const rows: TunedTarget[] = channels.map((c) => ({
+      platform: c.service,
+      handle: c.handle,
+      canPost: c.service === 'twitch',
+    }));
+    actor.setClientState(TUNED_KEY, rows);
+    actor.pushClientStateUpdate(TUNED_KEY, rows);
+  }
+
   async execute(model: TuneModel, context: CommandContext): Promise<void> {
     switch (model.subcommand) {
       case undefined:
@@ -94,6 +129,7 @@ export default class TuneController extends CommandController<TuneModel> {
     if (!resolved.ok) return this.rejectResolve(context, parsed, resolved.reason);
 
     const res = await StreamApi.tune(actor, resolved.target);
+    await this.publishTuned(actor);
     this.send(
       context,
       Mml.compose`\nFollowing ${res.ok ? res.service : ''} #${
@@ -182,6 +218,7 @@ export default class TuneController extends CommandController<TuneModel> {
         'unknown-target',
       );
     }
+    await this.publishTuned(actor);
     this.send(
       context,
       Mml.compose`\nStopped following ${sh.service} #${res.handle ?? sh.handle}.\n`,

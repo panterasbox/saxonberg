@@ -2833,6 +2833,27 @@ export type WatchTarget =
   | { platform: "kick"; channel: string };
 
 /**
+ * One channel the viewer is tuned to, as the rail needs it.
+ *
+ * ⭐ `canPost` is a SERVER fact, not a client guess: posting outbound
+ * needs a linked identity with chat authorized, and only Twitch has that
+ * path this cycle. The rail's composer branches on the same flag its
+ * copy describes — a live input over a read-only channel would refuse
+ * after the player had typed.
+ *
+ * Distinct from {@link WatchTarget}, and deliberately: `watch` picks the
+ * ONE focal embed, `tune` follows as many chats as you like. Conflating
+ * them would make watching a stream imply reading its chat and vice
+ * versa, which is not how either verb behaves.
+ */
+export interface TunedTarget {
+  platform: "twitch" | "youtube" | "kick";
+  /** The channel's display handle — what `tune off <handle>` names. */
+  handle: string;
+  canPost: boolean;
+}
+
+/**
  * Payload of the `system.connection.established` MessageFrame.
  * Server composes at connection-finalization; client stashes
  * `interactiveStuffId` as `selfInteractiveId` for own-echo

@@ -542,6 +542,46 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         },
       },
       {
+        key: 'cockpit.tuned',
+        // Transient for the same reason `cockpit.watch` is: what you are
+        // following belongs to the live session, and the relay drops you
+        // from every channel at logout anyway (`StreamApi.dropPlayer`),
+        // so a persisted list would outlive the thing it describes.
+        transient: true,
+        defaultValue: [],
+        description:
+          'The channels this viewer is tuned to — an array of ' +
+          '{ platform, handle, canPost }. Written by `tune` / `tune off`; ' +
+          'the client renders the tuned rail from it. ⭐ `canPost` is the ' +
+          "server's answer about outbound posting (a linked identity with " +
+          'chat authorized — Twitch only this cycle), sent so the rail can ' +
+          'disable a composer rather than let a player type into a channel ' +
+          'that will refuse. Transient — clears on a fresh session.',
+        validator: (v) => {
+          if (!Array.isArray(v)) return 'must be an array of tuned targets';
+          for (const row of v) {
+            if (typeof row !== 'object' || row === null) {
+              return 'every tuned target must be an object';
+            }
+            const o = row as Record<string, unknown>;
+            if (
+              o.platform !== 'twitch' &&
+              o.platform !== 'youtube' &&
+              o.platform !== 'kick'
+            ) {
+              return `unknown platform '${String(o.platform)}'`;
+            }
+            if (typeof o.handle !== 'string' || o.handle === '') {
+              return 'every tuned target needs a handle';
+            }
+            if (typeof o.canPost !== 'boolean') {
+              return 'canPost must be a boolean';
+            }
+          }
+          return true;
+        },
+      },
+      {
         key: 'cockpit.shelf',
         // ⚠ NOT transient, unlike `inputModes` and `watch`. A shelf is a
         // preference — the same kind of thing as `cockpit.layout` — and
