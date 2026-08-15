@@ -73,13 +73,23 @@ both organizers and/or both chat procedures at once.
 ⚠ **These were four unrelated words until Wave 6** — `popularity` /
 `argument` for a board, `free` / `rules-of-order` for a channel — which
 hid the fact that a subject lighting an argument board AND a
-rules-of-order chat had made the same decision twice. The rename is
-carried through the persisted values by
-`backend/SurfaceVocabularyMigration.ts`, which runs at boot **before the
-catalogues warm** (they read exactly these fields, so a later migration
-would leave every cache holding pre-rename values until a restart). It is
-idempotent and matches only the old values, so a half-migrated database
-converges.
+rules-of-order chat had made the same decision twice.
+
+⭐ **The rename shipped with NO migration, and that is a property of the
+reset policy rather than a shortcut.** `forum_subjects`, `forum_boards`
+and `channels` are all `wipe` in `lib/persistence/ResetPolicy.ts`, so a
+stored old value survives at most one night, and the seeders re-insert
+with the new vocabulary on the next boot. A one-shot migration was
+written and then deleted: it would have been a permanent line in
+`AppBootstrap` — which `SeederManager` explicitly puts out of scope
+(*"Schema migrations on already-seeded templates are out of scope"*) —
+paid at every boot forever to protect rows with a 24-hour lifespan.
+
+⚠ The window it leaves is real and bounded: between a deploy and the
+next reset, a subject whose manifestations still name the old surfaces
+lists with no surfaces. **Any future rename of these three collections
+gets the same answer for the same reason** — check the reset policy
+first; a `wipe` collection does not need a migration.
 
 ⚠ The verb flag is `--ordered` on both: `forum on <subject> --ordered`
 and `chat on <subject> --ordered`. It replaced `--argument` and
