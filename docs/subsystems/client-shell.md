@@ -409,6 +409,184 @@ A countdown is a promise, and reporting when the next attempt fires
 obliges the next attempt to actually fire. The three frozen guard files
 still pass unmodified.
 
+## ⭐⭐ One strip, and every tab is a VIEW over the whole buffer
+
+`All 252 · Aether 0 · Diag 87 · Forge watch 109 ⋯ × · +`
+
+A tab is a **named predicate**, evaluated at render over every frame in
+the buffer. Shipped views (`FILTER_PRESETS`) and the player's own sit in
+one list, interleaved, because they are the same kind of thing — which
+of them happens to ship with the client is not a distinction a reader
+has to care about.
+
+⚠ Counts are derived from the predicate, over the **unfiltered** buffer.
+The count and the contents are the same rule applied to the same frames,
+which is also what makes a view retroactive: changing one re-sorts your
+whole history rather than affecting only what arrives next.
+
+### ⚠⚠ Routed feeds were retired, and why
+
+There used to be a second strip above this one —
+`World | Attention | Channels | Diag` — where the routing table MOVEd or
+COPYed each frame into one destination at delivery. It was the same act
+performed by a second control, and two properties finished it, neither
+patchable inside the destination model:
+
+- **The stamp was applied at delivery**, so changing a rule never
+  re-sorted history; old frames kept their old routing forever.
+- **The frame store does not persist the stamp**, so on reconnect every
+  backfilled frame fell to `world`. Measured live:
+  `World 244 · Attention 1 · Channels 0` — the non-World counts were
+  only what had arrived since the socket opened. The player's dm history
+  was not in Attention.
+
+A predicate has neither problem. **MOVE/COPY disappears with the
+buckets**: a frame is simply in every view whose predicate it satisfies,
+which is what COPY was straining to fake.
+
+⚠ The rules themselves are retained — `DEFAULT_ROUTING`, the predicate
+vocabulary, `MessageApi.feedsFor` and its tests — as the substrate for
+**notification policy**. *Which frames should ping you* is a real
+question that wants exactly this shape. Its UI returns when there is
+something for it to drive; a settings screen for rules that change
+nothing observable would be a control lying about its own effect.
+
+### ⚠⚠ `All` is locked, and `Aether` is the only default
+
+Two different things sit in the strip, and the difference is *what they
+are*, not a privilege list:
+
+- **`All` is the ABSENCE of a filter.** It is not stored in
+  `console.tabs` at all — it is a structural first entry. There is
+  nothing in an empty predicate to edit and nothing to delete, so it
+  carries no `⋯` and no `×`. It is also the floor: whatever the player
+  removes, the unfiltered view is always there, so they can never end up
+  with nowhere to look and no re-seeding is needed.
+- **Everything else is the player's.** `DEFAULT_VIEWS` seeds exactly one
+  — `Aether` — and the moment it lands in `console.tabs` it is ordinary
+  data: select, edit, rename, delete, exactly like one composed by hand.
+
+⚠ The lock holds against **state that predates it**. A player seeded
+before `All` was structural still carries a stored `All` row, possibly
+with facets on it; the strip renders it once (never twice) and `App`
+resolves the active view to `undefined` for `All` rather than looking it
+up, so a stale edit cannot make the locked view quietly filter.
+
+It shipped wrong twice on the way here, and both are worth keeping
+written down. First, three shipped views that could not be touched sat
+in the same strip as one that could — and selecting a shipped one
+re-applied its filter **from code**, so tuning `Aether` and clicking
+away lost the change silently: *"'forge watch' I can edit but aether and
+diag I can't? I thought a filter was a filter."* Then the correction
+over-swung and made `All` deletable like the rest, which mistook the
+identity for a member.
+
+- **Seeding is additive and one-time.** `console.seededViews` records
+  what has been OFFERED, not what exists, so a deleted view stays
+  deleted instead of returning on the next login. Without it "delete"
+  would mean "hide until you reconnect". ⚠ The key must be declared in
+  `HasInteractiveMixin.clientStateSchema` — it shipped missing, so every
+  write of it was rejected and logged, and the guarantee was quietly
+  not there.
+- ⚠⚠ **Absent client state means NOT LOADED YET, and nothing is
+  written.** The seeder read an absent `console.tabs` as "first run" and
+  wrote the ship defaults wholesale — a write of defaults over state it
+  had not read. `App` renders the layout on its `default:` branch, so it
+  can mount before the connection payload lands, and the seeder then
+  clobbered the player's saved views. Found by driving: two views
+  composed on a desktop were simply gone on the next connection, and the
+  persisted document confirmed they had never been written. The seeding
+  effect is keyed on the value being present, so it re-runs when state
+  arrives and seeds additively then.
+- **No preset row inside the editor.** Chips named after the seeded
+  views used to sit at the top of the facet panel and overwrite the
+  filter being edited — inside an editor titled *Filter — Forge watch*
+  that is a third mechanism, neither the view you are editing nor the
+  strip you chose it from.
+
+### Composing one
+
+`+` **names it, activates it and opens the editor in one gesture.** The
+earlier version made an empty tab and stopped, leaving the player to
+work out that they had to select it and then find a separate gear before
+it meant anything — *"it's not obvious that I have to go back after
+hitting + to set my filters."* A control whose effect you can only
+discover by leaving it and coming back is not a control.
+
+Edit (`⋯`) and delete (`×`) ride the **active** view only: a row of
+controls on every tab is noise, and on the one you are looking at they
+are where you reach for them. The editor carries the three facet axes
+with live per-value counts, a `SHOWING n of m` readout, and the
+topic-mute tree beneath it.
+
+⚠ There is exactly **one** entry to that editor. A second in Settings
+would give no way to tell, from that screen, which view it was about to
+change.
+
+### ⚠⚠ `Aether` is a topic list, and that is a finding
+
+Facets are the default, for the reason they were built: one rule does
+not drift when a topic is added. But **`speech.vocal` and
+`speech.channel` carry identical facets** — both `address: broadcast,
+actor: person` — so no combination of the three axes separates *talking
+out loud in a room* from *talking on a channel*. A view meaning "the
+electronic layer" cannot be a facet rule.
+
+`FacetFilter.topics` is therefore a topic-prefix **allowlist** — the
+include direction of the tree half the model already had, since
+`ConsoleTab.muted` is the same operation pointed the other way.
+
+⚠ Worth a separate look: two topics a player experiences as completely
+different things being facet-identical is arguably a gap in the S2
+taxonomy rather than in the filter. Fixing it there would let `Aether`
+go back to being one rule.
+
+## The phone's play surface
+
+The rule is **interleave what is causally related, switch what is
+independent**:
+
+- **Panes render inline in the feed**, in causal position. You analysed
+  the forge; the forge's card belongs where that happened — not in a
+  second column, and not in a drawer you forget exists.
+- **Named views get the strip**, because there is no causal reason a
+  channel message should sit between two room descriptions — but which
+  messages you are reading is a predicate you choose, not a place a
+  rule sent something.
+
+Getting this backwards produces the two familiar mobile failures: a
+drawer you forget exists, and a single stream where unrelated things
+fight for the same position.
+
+- **A pinned chip row** sits above the command bar — pinned cards are
+  the ones you told the world to keep, so on a phone they keep a
+  permanent handle instead of scrolling away.
+
+⚠ **The left-behind card is gone**, with the routed feeds it belonged
+to. A stub reading *"one `speech.channel` went to Channels — open
+Channels"* only means something when feeds are exclusive destinations. A
+frame is now in every view whose predicate it satisfies, so nothing is
+ever routed out of view and there is nothing to leave behind.
+
+⚠ **Copy-to-Attention is gone for the same reason.** It shipped on by
+default on a phone as the safety net for "World may not be the feed you
+are looking at" — a problem that only exists when a MOVE can take a
+frame somewhere you are not.
+
+### ⚠ Screen budget is a design constraint, not a detail
+
+Found by driving at 390px: the routing toggle and the prompt format bar
+each took a full row above the input, and with the format bar's four
+token chips wrapping onto three lines they held **~180px of an 844px
+screen permanently** — over a fifth of the phone, for two controls that
+edit settings rather than play. They share one 52px row now, and the
+tokens collapse behind a single control.
+
+⚠ Re-check the **ICB trap** at 390px on every pass: a fixed-width pane
+inside an overflowing document widens the initial containing block and
+pushes `position: fixed` chrome off-screen. jsdom lays out nothing, so
+only a real browser with `isMobile: true` can see it.
+
 ## The widget shelf
 
 `components/frame/Shelf.tsx`. The player-pinned row of figures across

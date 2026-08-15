@@ -82,11 +82,23 @@ const HeaderInner = styled.div`
   gap: ${tokens.space.xl};
 `;
 
+/*
+ * ⚠ The basis is `16rem`, not `0`. `HeaderInner` wraps, but a flex item
+ * with a zero basis never *causes* a wrap — it just shrinks, and at
+ * 390px the meters' own `min-width` left this band **14px wide** while
+ * its children (a 40px seal plus the heading) needed 128. The heading
+ * overflowed and rendered straight across the seal.
+ *
+ * A basis wide enough to not fit beside the meters makes the band wrap
+ * onto its own line, which is what the mock shows at phone width.
+ * Found by driving at 390px; jsdom lays out nothing, so no test could
+ * have seen it.
+ */
 const HeaderIdentity = styled.div`
   display: flex;
   align-items: center;
   gap: ${tokens.space.lg};
-  flex: 1;
+  flex: 1 1 16rem;
   min-width: 0;
 `;
 
@@ -676,18 +688,27 @@ function CharacterDetail({
       </EnterBlock>
 
       {/*
-        ⚠ Whole-card hatch, not a hatched value. There is no mailbox,
-        no offline-notice store and no queue — nothing anywhere records
-        what happened while you were away — so hatching one row inside
-        a confident panel would understate how absent this is.
+        ⚠ Whole-card hatch, not a hatched value — but the REASON changed
+        when the record layer shipped, and that half is not cosmetic.
+
+        It used to read *"nothing records what happened while you were
+        away… tells, civic notices and guild business are not kept for
+        you between sessions."* That was true when there was no store at
+        all; it is now false, and a hatch whose stated reason is a
+        falsehood is worse than no hatch — it tells the player their
+        work is being dropped when it is being kept.
+
+        What is genuinely still missing is the DIGEST: the store keeps
+        frames, and nothing yet reads them back as "here is what
+        happened." So the card stays hatched and says precisely that.
       */}
       <div>
         <SectionLabel>Since you left</SectionLabel>
         <HatchedCard data-testid="since-you-left">
           <HatchReason>
-            Nothing records what happened while you were away yet. Tells,
-            civic notices and guild business are not kept for you between
-            sessions.
+            The server keeps what you were told, but nothing reads it back
+            to you as a summary yet. Enter and scroll up — your last
+            session is waiting in the transcript.
           </HatchReason>
         </HatchedCard>
       </div>

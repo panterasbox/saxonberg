@@ -102,6 +102,22 @@ export default class LayoutController extends CommandController<LayoutModel> {
     }
 
     this.commit(host, mode, name);
+    /*
+     * ⭐⭐ **Recalling an arrangement now OPENS it.**
+     *
+     * ⚠ Until this build, `save` wrote a pane list that `recall` never
+     * read: the name appeared in `list`, recalling it restored nothing,
+     * and the whole feature was a naming feature. The pane catalogue
+     * fixed the first half — panes finally had a durable id worth
+     * saving — and this is the second.
+     */
+    const interactive = context.interactive;
+    if (interactive) {
+      MqlSubscriptionApi.applyArrangement(
+        interactive,
+        host.arrangementPanes(mode, name),
+      );
+    }
     this.send(
       context,
       Mml.fromMarkup(

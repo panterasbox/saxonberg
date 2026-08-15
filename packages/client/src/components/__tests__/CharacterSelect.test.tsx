@@ -121,7 +121,12 @@ describe('CharacterSelect', () => {
     const retire =
       screen.getByTestId('roster-unbuilt-retire').textContent ?? '';
 
-    expect(since).toMatch(/nothing records what happened/i);
+    // ⚠ The reason CHANGED when the record layer shipped: the server
+    // now keeps what you were told, so the old sentence ("nothing
+    // records what happened…") became false. What is still missing is
+    // the DIGEST that reads it back, and that is what the hatch says.
+    expect(since).toMatch(/nothing reads it back/i);
+    expect(since).not.toMatch(/not kept for you between sessions/i);
     expect(meters).toMatch(/no faucet/i);
     expect(retire).toMatch(/no retire command exists/i);
 

@@ -24,6 +24,7 @@ import type {
   ConnectionEstablishedPayload,
   ConnectionState,
   ConsoleTab,
+  FeedDestination,
   ForumChange,
   ForumEntryRecord,
   ForumSubscriptionScope,
@@ -40,6 +41,11 @@ import type {
 } from "@saxonberg/types";
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
+import { createPaneFeedSlice, type PaneFeedSlice } from "./paneFeedSlice";
+import {
+  createAffordanceSlice,
+  type AffordanceSlice,
+} from "./affordanceSlice";
 
 /**
  * The mutually-exclusive top-level UI phase. Derived from the auth /
@@ -82,7 +88,27 @@ export type ConnectionPhase =
  * alive via `prompt-validation-failed`. The renderer surfaces it
  * inline; the player retries on the same id.
  */
-export type PromptEntry =
+/**
+ * ⭐⭐ **What a prompt remembers about who asked it.**
+ *
+ * Every prompt is pushed from inside a running command, so the verb,
+ * its description and how long it has waited ride the envelope. That is
+ * what makes an abandoned prompt judgeable — and what lets the cancel
+ * button NAME the command that dies, because cancelling rejects the
+ * awaiting command with `PromptCancelledError` and a button reading
+ * only "cancel" is a lie about what it does.
+ *
+ * ⚠ Every field is optional and absent means absent. A prompt with no
+ * command frame behind it has no honest answer, and the UI hatches.
+ */
+export interface PromptAsker {
+  askedBy?: string;
+  askedByDescription?: string;
+  askedAt?: number;
+}
+
+export type PromptEntry = PromptAsker &
+  (
   | {
       kind: "choice";
       promptId: string;
@@ -136,7 +162,8 @@ export type PromptEntry =
       max?: number;
       foreground: boolean;
       validationError?: string;
-    };
+    }
+  );
 
 /**
  * Reserved key for the always-present base command slot on the
@@ -215,6 +242,21 @@ export interface Frame {
    */
   frameId?: number;
   /**
+   * ⭐⭐ Which feeds this frame was routed to (`meta.feeds`).
+   *
+   * Decided **server-side** against the player's routing table, because
+   * the predicates read the topic's FACETS and the facets live on the
+   * server's catalogue. The client groups by this and never evaluates a
+   * rule: two evaluators disagree the first time one of them changes,
+   * and nothing about the disagreement is visible until somebody's
+   * message is in the wrong tab.
+   *
+   * Absent on a frame delivered before the player had a table — the
+   * reader treats absence as `world`, the same answer the catch-all
+   * gives.
+   */
+  feeds?: FeedDestination[];
+  /**
    * Chat channel name (`payload.channelName`), when this is a chat frame.
    * Lets a client-side view (the forum chat sidecar) filter the feed to a
    * single channel — a CLIENT filter, like the console tabs; nothing
@@ -245,7 +287,11 @@ export interface Frame {
  * Combined store state. Extends {@link CmsSlice} (the CMS editor's
  * state + actions) — composed in via `createCmsSlice` in the store body.
  */
-interface StoreState extends CmsSlice, StudioSlice {
+interface StoreState
+  extends CmsSlice,
+    StudioSlice,
+    PaneFeedSlice,
+    AffordanceSlice {
   // Auth state
   auth: AuthState;
   setAuth: (auth: Partial<AuthState>) => void;
@@ -599,6 +645,16 @@ interface StoreState extends CmsSlice, StudioSlice {
    * every frame matching an inactive tab's filter; cleared on tab
    * switch. Keys are tab names; missing keys treated as 0.
    */
+  /**
+   * ⭐ Which routed feed the terminal is showing.
+   *
+   * Session-scoped, deliberately: a feed is *where you are looking
+   * right now*, not a preference. Persisting it would mean logging in
+   * tomorrow into Diagnostics because that is where you were when you
+   * closed the tab.
+   */
+  activeFeed: FeedDestination;
+  setActiveFeed: (feed: FeedDestination) => void;
   unreadCounts: Record<string, number>;
   /** Bump the counter for one tab by 1. */
   incrementUnread: (tabName: string) => void;
@@ -1064,6 +1120,26 @@ function orderFeed(feed: Record<string, ReleaseRow>): string[] {
 }
 
 /**
+ * Append every backfilled frame the buffer does not already hold.
+ *
+ * ⚠ Deduped by frame `id`, not by position: a reconnect's backfill
+ * window overlaps whatever the buffer kept, and the overlap is the
+ * normal case rather than the edge one. Order is the server's — the
+ * store returns oldest→newest — so appending the tail is the only
+ * placement that is right without re-sorting, and re-sorting is not
+ * available anyway: several frames legitimately share a millisecond.
+ */
+function appendMissing(
+  buffer: readonly Frame[],
+  backfill: readonly Frame[],
+): Frame[] {
+  if (backfill.length === 0) return buffer as Frame[];
+  const have = new Set(buffer.map((f) => f.id));
+  const missing = backfill.filter((f) => !have.has(f.id));
+  return missing.length === 0 ? (buffer as Frame[]) : [...buffer, ...missing];
+}
+
+/**
  * Initial auth state.
  */
 const initialAuthState: AuthState = {
@@ -1103,6 +1179,21 @@ export const useStore = create<StoreState>((set, get) => ({
   ...createStudioSlice(
     set as Parameters<typeof createStudioSlice>[0],
     get as Parameters<typeof createStudioSlice>[1],
+  ),
+
+  // The pane feed — the right column's cards, keyed by subscription
+  // handle. Only touches `paneCards`; same narrow set/get shape.
+  ...createPaneFeedSlice(
+    set as Parameters<typeof createPaneFeedSlice>[0],
+    get as Parameters<typeof createPaneFeedSlice>[1],
+  ),
+
+  // The affordance cache — one answer per subject, read by BOTH the
+  // radial and every pane body's composition chips. Only touches the
+  // `affordance*` keys.
+  ...createAffordanceSlice(
+    set as Parameters<typeof createAffordanceSlice>[0],
+    get as Parameters<typeof createAffordanceSlice>[1],
   ),
 
   // Auth state
@@ -1351,14 +1442,45 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const row of payload.releaseWindow ?? []) {
       feed[row.releaseId] = row;
     }
+    /*
+     * ⭐⭐ **The record layer's backfill — the buffer stops being the
+     * only copy.**
+     *
+     * Before this, clearing site data destroyed your scrollback and a
+     * second device started empty. The server now retains a bounded
+     * per-player window and ships it with the welcome payload, so the
+     * client buffer is a CACHE over it.
+     *
+     * ⚠ This changes the meaning of an existing behaviour rather than
+     * adding one, which is why `clearFrames` is deliberately left in
+     * place below: the old path is not deleted until the backfill has
+     * been driven live.
+     */
+    const backfill: Frame[] = (payload.frameBackfill ?? []).map((f) => ({
+      id: f.id,
+      topic: f.topic,
+      body: f.body,
+      timestamp: f.at,
+    }));
     set((state) => ({
       // Entering the world from char-gen or the roster starts a fresh
       // terminal — drop the buffer (and its unread/muted bookkeeping) so
       // the player doesn't carry the `enroll …` command echoes into the
-      // world. A reconnect (already in-world) keeps its scrollback.
+      // world, and seed it from the server's record instead of from
+      // nothing. A reconnect (already in-world) keeps its scrollback and
+      // takes only what it MISSED: frames delivered while it was
+      // linkdead are the whole reason a reconnect needs the store at
+      // all, and appending is order-correct because those are by
+      // definition the newest ones.
       ...(state.connectionPhase === "in-world"
-        ? {}
-        : { frames: [], unreadCounts: {}, mutedSinceSessionStart: {} }),
+        ? {
+            frames: appendMissing(state.frames, backfill),
+          }
+        : {
+            frames: backfill,
+            unreadCounts: {},
+            mutedSinceSessionStart: {},
+          }),
       connection: {
         link: "connected",
         isConnected: true,
@@ -1781,6 +1903,8 @@ export const useStore = create<StoreState>((set, get) => ({
           },
     ),
 
+  activeFeed: "world",
+  setActiveFeed: (feed) => set(() => ({ activeFeed: feed })),
   unreadCounts: {},
   incrementUnread: (tabName) =>
     set((state) => ({

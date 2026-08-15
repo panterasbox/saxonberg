@@ -320,6 +320,55 @@ render them and renders the nearest thing it has.
 See [inspection-pane.md](./inspection-pane.md) for the pane set itself.
 The cockpit's half is the override verb: `cockpit pane pin|dismiss|auto|list`.
 
+⚠ **The pin is a command, and its answer is mirrored, never assumed.**
+`cockpit pane pin <id>` can be refused, so the client renders the
+server's `pinned` value off the subscription result rather than
+toggling locally — a local toggle shows a pin that is not there, and it
+does not survive the tab.
+
+⚠ **Dismiss is not on the pin control.** It is a different intent —
+*drop this even though it still holds* — and putting it in the same
+cycle would make one accidental extra click destroy a card the world
+says is still relevant. The pin cycles pin ↔ auto; dismiss is its own
+subcommand.
+
+## ⭐⭐ A mode switch opens its arrangement, server-side
+
+`cockpit mode <name>` resolves the saved arrangement **on the server**
+and pushes the pane set. The client sends one command and renders what
+arrived.
+
+This is what keeps *the client owns zero command semantics* literally
+true. The alternative — the client replaying `cockpit pane open <name>`
+per pane — puts the meaning of an arrangement, and the pane ORDER, in
+the client, and costs a round trip per pane.
+
+⚠ The cost is accepted knowingly: **the server now holds view state per
+player.** It already holds `cockpit.layout`, `cockpit.mode` and
+`console.tabs`, so this is the same seam widened, not a new one.
+
+The rules `applyArrangement` follows:
+
+- **Subject panes are skipped.** An arrangement is a statement about a
+  workspace; a pane about a particular person is a statement about a
+  moment, and restoring one next week would restore an answer to a
+  question nobody is asking.
+- **An already-open pane is left alone**, rather than closed and
+  reopened — the reopen would lose its pin and its hold.
+- **A shape-opened pane is never closed.** The player opened it; a mode
+  switch is not a licence to throw it away.
+
+### ⚠⚠ The `pushed` flag, not an inference
+
+A result the server pushed carries `pushed: true`, and the client adopts
+a card only for a handle it does not know **and** that flag. "A handle I
+do not know" was tried and is wrong twice over: the chrome's own named
+panes echo `pane` too, and a result arriving after the client's own
+unsubscribe — which React's double-mount produces on every dev page
+load — looks unknown as well. Both showed up live as spurious cards, and
+no unit test could see either, because the adoption path only fires for
+an envelope a test would have to mint by hand.
+
 ## The old layout axis (still the client's shape)
 
 Layout is per-player UI state, identical in kind to `console.tabs` — so

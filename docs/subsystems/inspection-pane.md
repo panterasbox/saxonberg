@@ -268,6 +268,269 @@ lets the next drain apply it, so a dismissal is released down the same
 reasoned path as every other release. A second teardown path is how a
 pane ends up vanishing without its reason.
 
+## ⭐⭐ The column is a FEED, and the focus pane is one slot in it
+
+The right column stopped being one pane. It is now a **feed of cards,
+newest → oldest**, with the focus pane pinned at the bottom under an
+`IN FOCUS` label.
+
+```
+PANES  newest → oldest                    1 pinned
+┌──────────────────────────────────────────────┐
+│ PLACE  the lounge          held · you are here ⚲│
+│ Exitable · Detailed · Visible  +9               │
+│ WAYS OUT   [go north]                           │
+│ HERE       a Teleport Authority terminal …      │
+└──────────────────────────────────────────────┘
+IN FOCUS
+┌──────────────────────────────────────────────┐
+│ hall                                            │
+│ the lounge                          [Refresh]   │
+│ …                                               │
+└──────────────────────────────────────────────┘
+```
+
+⚠ **The direction note is not decoration.** The terminal runs
+oldest → newest and this runs the other way; a reader who is not told
+reads a card appearing at the top as a bug.
+
+⚠ **`IN FOCUS` is load-bearing too.** The focus pane used to be the
+whole column, so nothing had to name it. Under a stack of cards its
+breadcrumb renders as a bare orphan word above an unlabelled box —
+found by driving, a room called *Terminus Terminal, the station hall*
+put a lone `hall` between the PLACE card and the pane, attached to
+nothing.
+
+### ⭐⭐ One card, and the subject decides what is in it
+
+There is no location view and no thing view. There is **one card** —
+*what I am looking at* — and its body renders the sections its subject
+HAS:
+
+| section | present when |
+|---|---|
+| illustration | the subject has one |
+| description | clamped to two lines, with `more` — **and its detail words are the links** |
+| measured | the subject declares a reading |
+| **exits** | the subject is Exitable |
+| here | the subject contains something |
+| interfaces | at the FOOT — one labelled line of chips, `+N more` inline |
+| refresh | always — `look <keyword>` |
+
+⭐⭐ **The details ARE the description.** The body renders the subject's
+own markup, so `loudspeaker`, `benches`, `walls` are clickable where
+they are written — each a real `look <keyword>` that opens its own card.
+A separate `DETAILS` row beneath said the same words twice, once as
+prose and once as a list.
+
+⚠ The clamp hides some of those links until `more`. That was the
+argument for flattening the prose to plain text, and it is answered by
+the toggle rather than by taking the links away.
+
+### The card's controls
+
+**`↻ refresh · ⚲ pin · × close`**, as icons, top right of every card.
+
+⚠ Glyphs are placeholders for a real icon set — the shapes are the
+decision, the typeface is not.
+
+⚠ **Refresh is absent when there is nothing to look at yet.** A card
+whose subject has not resolved has no keyword to name, and a control
+that cannot do what it says is worse than a missing one. A released
+husk keeps only `close`: pin and refresh would both promise to act on a
+subscription the world has already torn down, while dismissing a husk is
+still something you can do to it.
+
+### ⚠ "Interfaces", not "mixins"
+
+The word is the player's, not the engine's. `Trait`, `Property`,
+`Capability`, `Facet` and `Faculty` are all defined terms elsewhere in
+the engine and were ruled out on that ground; `Interfaces` was chosen
+knowing it assumes a programming background, because the row's whole
+purpose is that a player learns these names — *"oh, Visible, I
+understand what that means applied to something"*.
+
+⚠ **Sorted plumbing-last, and nothing is hidden.** `PostRegistration`
+and friends are internal, but a row that dropped them would misrepresent
+what the object composes, and an author learning the palette from these
+rows would never learn they exist. ⭐ The real fix is authored per-mixin
+metadata — a one-line description and a player-facing flag — which is
+also what a tooltip explaining each one would read from. Until then the
+ordering does the work.
+
+⚠ **The row sits at the foot: one labelled line of chips with `+N more`
+inline.** It is a teaching surface — how a player meets the
+content-development palette on real objects — so some of it has to be
+legible without a click; a bare count taught nothing. The toggle is
+inline with the chips because a toggle underneath turns a one-line row
+into a two-line one, which is the space moving it down here saved.
+
+⚠ It re-asks the resolver whenever its answer is MISSING, not only when
+the subject changes: `clearAffordances` runs after every command, so a
+card that asked once on mount lost its composition and never got it
+back.
+
+### ⚠⚠ There is no action row, and that is a SERVER gap
+
+It showed the first few enabled verbs from the resolver, which put
+`cast · defend · destruct` on a noticeboard, a room and an implant
+alike. They are enabled because **the ACTOR can always do them**, not
+because the subject affords anything — and `AffordanceEntry` carries
+nothing that tells the two apart (`verb`, `description`, `state`,
+`reason`, `operand`, `category`). A client-side filter would have to
+guess, and a guess dressed as a recommendation is worse than no row.
+
+The radial already answers *what can I do with this* properly: every
+verb, with the validator's own words beside the ones you cannot run.
+**Until the resolver can say which verbs a SUBJECT affords, that is the
+honest place for it** — and that distinction is the thing to build if a
+card-level action row is wanted.
+
+⚠⚠ **A zero quantity is "not declared", not "weighs nothing".** `mass`
+rides `DETAIL_FIELDS`, so the projection carries it for anything
+Tangible whether or not the object set one — an implant that never
+declared a weight came back `0 kg`, putting `MASS 0 kg` on card after
+card. The knowing cost: a thing that genuinely masses zero shows no MASS
+row, and nothing in the world models one.
+
+⚠ A section that does not apply is **absent, not hatched**. An unwired
+hatch is the right answer for a figure the surface *promised* and cannot
+fill; this body promises nothing, and a room having no readings is not a
+gap in the room. Hatching it put *"nothing about this declares a reading
+yet"* on every location card — noise claiming to be honesty.
+
+⚠ **No kind chip.** Every card is the same kind, so a label saying so on
+each one never varies, in a column where space is the constraint. What
+differs between a room and a lamp is which sections render, which is
+where a reader can actually see it.
+
+It shipped as a switch over four kinds — `PLACE` / `AGENT` /
+`INSTRUMENT` / `MANIFEST` — with four hand-written bodies taken from the
+reference art. That made a room and a lamp two components with two sets
+of controls for a difference the player cannot name, and it was reported
+as exactly that: *"they all have the same controls, they just differ in
+what they spotlight because they have different associates."*
+
+### ⭐⭐ Attention drives the feed
+
+Every subject the focus resolves to gets **its own card**, stacking
+newest-first. Re-looking at something you already have a live card for
+brings it back into view rather than minting a duplicate.
+
+⚠ The `inspect` subscription is the SIGNAL, not the card. It re-points
+as focus moves — one subscription, changing subject — which is precisely
+what a card must not do: a card that silently became about something
+else would make the stack a lie. The signal opens a per-subject
+subscription (`subject` in the catalogue) and that one stays about the
+thing it was opened for.
+
+### ⭐⭐ Breadcrumbs are for DETAILS, and nothing else
+
+A detail is not a separate object — it is the same Stuff, looked at more
+closely. So drilling **stays inside the card**:
+
+- Clicking a detail word **sends nothing**. It descends a level in that
+  card's own state. Sending `look <key>` would move the player's FOCUS
+  and open a whole new card for something that is not a separate thing.
+- The **description swaps** to the detail's prose. Everything below it
+  belongs to the object and stays put; the trail above says which level
+  you are reading. The object's illustration goes while you are inside a
+  detail — the hall's photograph beside the loudspeaker's prose is a
+  picture of the wrong thing. When details carry their own media, that
+  is where it renders.
+- The **trail appears only once you have drilled**, and never before. A
+  breadcrumb on an undrilled card is a trail of one, which says nothing.
+- Its root is the object: clicking it leaves the detail entirely.
+  Intermediate segments pop to that level; the tail is plain text,
+  because clicking it would back you out to where you already are.
+- ⚠ The root is the subject's **`primaryKeyword`**, not its display
+  name. Every other segment is a detail keyword, so anchoring on prose
+  changed register halfway: *"the Terminus arrival gate › avenue"*
+  against *"gate › avenue"*. The keyword is also the word the player
+  would type, which is what the rest of the surface is teaching.
+- ⚠ Only **this subject's own** detail aliases are intercepted. `look
+  noticeboard` in a room's prose is a different object and still travels
+  as a command, opening its own card.
+- ⚠ The path resets when the card's subject changes — a different
+  subject has different details, and keeping it would leave the card
+  claiming to be inside one that does not exist.
+
+⚠ **The trail has no job outside details.** It used to be the focus
+history, back when there was ONE slot and you needed to know how you had
+got to what it showed. The card stack is that history now.
+
+### The card's controls, and why they are loud
+
+`↻ refresh · ⚲ pin · × close`, top right of every card, rendered as
+buttons rather than faint glyphs — a borderless mark in a dim colour is
+discoverable only to someone already looking for it, and these are the
+three things you do to a card.
+
+### ⭐ Husks age out; live cards never do
+
+A released husk removes itself after two minutes, swept on an interval
+by `usePaneFeed` (at the layout, so it runs on a phone too).
+
+⚠⚠ **This is the one legitimate duration in the pane model.** A live
+pane's lifetime is a fact about the world — is that person still here —
+and putting a clock on it would end something still actionable, which is
+the property the whole design rests on. A husk is already dead: it is a
+note saying *what you last saw*, its value decays, and how long the
+corpse lingers is purely presentational. The count-based bound
+(`MAX_RELEASED`) stays alongside it for the player who walks fast.
+
+### ⚠⚠ A husk keeps its name; it does not keep its body
+
+On release the card fades, states its reason, and **clears its
+records** — rendering yesterday's contents as if they were current is
+the failure the fade exists to avoid. The subject's *name* is kept
+(`lastTitle`), because that is not contents, it is which card this is.
+Without it a husk read `PLACE where you are · stale · you left`, which
+names nothing at all.
+
+### ⚠⚠ `place` is standing, so a lapse re-opens it
+
+`place` is held by `here`, so walking out releases it — correctly. But
+it is opened once, on mount, so without a re-open **one movement costs
+the player the place card for the rest of the session** and the mode's
+arrangement silently degrades to nothing. `usePaneFeed` opens the next
+one for the room you arrived in.
+
+⚠ A **subject** pane (`agent` / `instrument` / `manifest`) deliberately
+does not come back. It is about one thing, and re-opening it after that
+thing went out of reach would be a card asserting a condition the world
+just denied.
+
+### ⚠⚠ The focus card must not FLASH
+
+The `place` card opens with no records and fills in when its
+subscription resolves; the focus subscription resolves separately and on
+entry usually first. For that beat the duplicate check had nothing to
+compare against, so a `LOOKING AT` card for the room you are standing in
+appeared and then vanished when place caught up.
+
+⭐ While `place` is open but unresolved the honest answer to *is this a
+duplicate?* is **not yet known**, and the honest render is nothing.
+
+### ⚠⚠ The wiring lives at the LAYOUT, not at this column
+
+`usePaneFeed()` — which opens the `place` subscription and registers all
+three subscription handlers — is called in `WorldLayout`, the one
+component that renders at both form factors. It used to be called
+inside `PaneFeed`, which is the desktop right column: on a phone
+**nothing ever wired the store**, so panes the server pushed for a saved
+arrangement were dropped on the floor and a card the radial opened
+stayed empty forever. Every mobile unit test passed throughout, because
+they render a card with a hand-built state and never touch the wiring.
+
+### On a phone the cards come INLINE
+
+Interleave what is causally related, switch what is independent. A pane
+is caused by what you just did, so on a phone it renders **in the feed,
+in causal position** — not a second column, not a drawer. Pinned cards
+keep a chip row above the command bar, because a phone cannot hold a
+card permanently beside the feed.
+
 ## Focus-change signaling
 
 `FocusedMixin.setFocus(fragment)` and `clearFocus()` both fire

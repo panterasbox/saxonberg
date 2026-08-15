@@ -35,9 +35,19 @@ import { dirname, resolve, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const layoutsDir = resolve(here, '..');
 
-/** The panes whose every dispatch is a click on a control. */
+/**
+ * The panes whose every dispatch is a click on a control.
+ *
+ * ⚠ `InspectionPane` left this list when the pane FEED replaced the
+ * single focus slot: the layout no longer renders it, `PaneFeed` does.
+ * Its wiring is still checked — one level down, by the second case
+ * below — because "the layout stopped rendering it" is precisely the
+ * kind of refactor that would otherwise drop a pane out of the guard
+ * silently, which is the failure the inspected-count assertion exists
+ * to catch.
+ */
 const AFFORDANCE_PANES = [
-  'InspectionPane',
+  'PaneFeed',
   'WhoPane',
   'NewsTickerPane',
   'WikiPane',
@@ -76,6 +86,32 @@ describe('affordance routing', () => {
     expect(inspected, 'the scan matched no pane render sites').toBe(
       AFFORDANCE_PANES.length,
     );
+  });
+
+  /*
+   * ⭐ The feed forwards its sink UNCHANGED to the cards inside it.
+   *
+   * `PaneFeed` is wired to `onCommandClick` at the layout (above), so
+   * every card and every control on one inherits the sheet's
+   * interception — but only if the feed passes its own prop straight
+   * through rather than reaching for something else.
+   *
+   * ⚠ It used to also assert the hosted `InspectionPane`. The feed no
+   * longer renders one: there is a single card kind now, and what the
+   * player is looking at is one of those cards like anything else.
+   */
+  it('⭐ the pane feed forwards its sink to the cards it hosts', () => {
+    const feed = readFileSync(
+      resolve(layoutsDir, '..', 'components', 'panes', 'PaneFeed.tsx'),
+      'utf8',
+    );
+    const card = /<PaneCard\b[\s\S]*?>/.exec(feed)?.[0] ?? '';
+    expect(card, 'PaneFeed no longer renders PaneCard').toContain('PaneCard');
+    expect(card).toContain('onSendCommand={onSendCommand}');
+
+    const body = /<PaneBody\b[\s\S]*?\/>/.exec(feed)?.[0] ?? '';
+    expect(body, 'PaneFeed no longer renders PaneBody').toContain('PaneBody');
+    expect(body).toContain('onSendCommand={onSendCommand}');
   });
 
   /*

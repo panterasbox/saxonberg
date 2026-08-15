@@ -488,7 +488,7 @@ describe('CommandBar — meta affordances', () => {
     resetStore();
   });
 
-  it('dropdown row X cancels the corresponding prompt', () => {
+  it('dropdown row cancel abandons the corresponding prompt', () => {
     const spies = makeSpies();
     renderBar(spies);
     act(() => {
@@ -501,10 +501,35 @@ describe('CommandBar — meta affordances', () => {
     });
     // Open the dropdown.
     fireEvent.click(screen.getByLabelText('Open slot picker'));
-    // Each prompt row carries an X button. (The base row doesn't.)
-    const xButtons = screen.getAllByText('X');
-    expect(xButtons).toHaveLength(1);
-    fireEvent.click(xButtons[0]!);
+    // ⚠ Found by LABEL, not by the glyph. The button now names what it
+    // kills — cancelling rejects the awaiting command rather than
+    // dismissing a dialog — so a test keyed on the character "X" would
+    // have been asserting the lie.
+    const cancel = screen.getByLabelText(
+      'cancel — abandons the command that asked',
+    );
+    fireEvent.click(cancel);
+    expect(spies.onCancelPrompt).toHaveBeenCalledWith('p1');
+  });
+
+  it('⚠⚠ names the command a cancel abandons, when the server said one', () => {
+    const spies = makeSpies();
+    renderBar(spies);
+    act(() => {
+      pushPrompt({
+        kind: 'text',
+        promptId: 'p1',
+        label: 'Which first?',
+        foreground: true,
+        askedBy: 'true rim',
+      });
+    });
+    fireEvent.click(screen.getByLabelText('Open slot picker'));
+    // "cancel" alone is a lie about what the control does: it rejects
+    // `true rim` with PromptCancelledError, and the verb stops.
+    const cancel = screen.getByLabelText('cancel — abandons true rim');
+    expect(cancel.textContent).toContain('true rim');
+    fireEvent.click(cancel);
     expect(spies.onCancelPrompt).toHaveBeenCalledWith('p1');
   });
 

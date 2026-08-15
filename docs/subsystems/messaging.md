@@ -829,6 +829,45 @@ and writes to the WebSocket. For non-Avatar Sensors (NPCs, custom
 observers), `handleMessage` does whatever that Sensor does — there's no
 special path.
 
+## Routing rules — retained, not currently driving placement
+
+A **rule is a filter with an address**: an ordered table, first match
+wins, each rule a predicate over the envelope
+(`address` / `actor` / `weight` / `topic` prefix) plus a destination and
+a MOVE-or-COPY disposition. `Avatar.handleMessage` still evaluates it
+and stamps `meta.feeds` at the delivery seam.
+
+⚠⚠ **Nothing reads that stamp any more.** The client's tabs are
+predicates over the whole buffer, not destinations a rule placed
+something in — see
+[client-shell.md](./client-shell.md). Two properties retired the
+destination model and neither was patchable within it:
+
+- the stamp is applied at **delivery**, so changing a rule never
+  re-sorts history; and
+- the frame store does not persist it, so backfilled frames carry none
+  and fall to the catch-all. Measured live, that put a player's entire
+  dm history outside their Attention feed.
+
+The rules are kept — `DEFAULT_ROUTING`, `MessageApi.feedsFor`, the
+undeletable catch-all and their tests — because *which frames should
+ping you* is a real question that wants exactly this shape, and it is
+the next thing this substrate should drive. Recorded here so the stamp
+is a deliberate holding pattern rather than a mystery.
+
+⚠ **Read `NotifyPolicy` / `NotifyRule` before designing anything on top
+of it.** A notification model already exists in the social graph
+([social-graph.md](./social-graph.md)); a second one grown out of these
+rules would be two answers to *what should reach me*, with the weaker
+one in the way. The bell has been cut twice for that reason. Whichever
+survives, this predicate vocabulary is the shape the rules want — not a
+new one.
+
+⚠ The catch-all rule remains undeletable in the model. Every frame must
+land somewhere, and in a world where a frame can be *you are on fire*, a
+lost message is not a cosmetic bug — that invariant should survive
+whatever consumes the rules next.
+
 ## Sensor extension points
 
 `SensorMixin` is shaped as a template method — `onMessage` is

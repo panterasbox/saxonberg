@@ -79,19 +79,50 @@ import { MmlRenderer } from "./MmlRenderer";
 import { Button, EntityName, List, ListItem, tokens } from "./ui";
 import { mediaUrl } from "../config";
 
-const PaneContainer = styled.aside`
+/**
+ * ⚠⚠ **`$embedded` is the pane living INSIDE a card, and it is the
+ * default arrangement now.**
+ *
+ * Standalone, this was the whole right column: its own width, its own
+ * border, its own `overflow: hidden` and its own inner scroll. Sitting
+ * under a stack of cards all four are wrong — the fixed width fights
+ * the column, the border draws a seam mid-list, and the inner scroll
+ * **absorbs the overflow so the cards above can never scroll**. That
+ * last one is why the feed felt stuck: the list was never the thing
+ * overflowing.
+ */
+const PaneContainer = styled.aside<{ $embedded?: boolean }>`
   display: flex;
   flex-direction: column;
-  width: 360px;
-  min-width: 360px;
-  max-width: 360px;
-  height: 100%;
-  background: ${tokens.color.surface};
-  color: ${tokens.color.fg};
-  border-left: 1px solid ${tokens.color.border};
   font-family: ${tokens.font.family};
   font-size: ${tokens.font.body};
-  overflow: hidden;
+
+  ${(p) =>
+    p.$embedded
+      ? `
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    background: transparent;
+    overflow: visible;
+  `
+      : `
+    width: 360px;
+    min-width: 360px;
+    max-width: 360px;
+    height: 100%;
+    background: ${tokens.color.surface};
+    color: ${tokens.color.fg};
+    border-left: 1px solid ${tokens.color.border};
+    overflow: hidden;
+  `}
+`;
+
+/** The embedded pane's one control, below the body rather than above it. */
+const EmbeddedActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  padding-top: ${tokens.space.sm};
 `;
 
 const Breadcrumbs = styled.nav`
@@ -196,6 +227,14 @@ const TagSuffix = styled.span`
 `;
 
 export interface InspectionPaneProps {
+  /**
+   * Render inside a pane card rather than as its own column.
+   *
+   * Suppresses the pane's own header — the card's header carries the
+   * name — and drops the width, border and inner scroll that only make
+   * sense for a standalone column.
+   */
+  embedded?: boolean;
   /**
    * Outbound command sink. Routes through the same path
    * `CommandBar.onSend` does, so breadcrumb clicks, the Refresh
@@ -403,9 +442,161 @@ function commandForRow(row: StuffRefRecord): string {
   return `look ${row.primaryKeyword ?? row.displayName}`;
 }
 
+/**
+ * ⚠⚠ **The inspection subscriptions, lifted OUT of the component.**
+ *
+ * They were a `useEffect` inside `InspectionPane`, which was fine while
+ * the pane was the whole right column and therefore always mounted. It
+ * now renders as a CARD that is suppressed when it would only repeat
+ * the PLACE card — and **a component gated on a subscription's result
+ * cannot also be the thing that opens it.** Live, the focus card simply
+ * never appeared.
+ *
+ * ⭐ This is the same defect as the dead mobile surface earlier in this
+ * build — wiring hung off a conditionally-rendered component — so it
+ * takes the same fix: the hook lives at the surface that always
+ * renders, and the component is free to come and go.
+ *
+ * ⚠ Exactly one caller (`PaneFeed`). A second would double-subscribe.
+ */
+export function useInspectionSubscriptions(): void {
+useEffect(() => {
+  // ⭐ Panes are opened BY NAME. The server owns what each one
+  // subscribes to — the query, the cardinality, the field set, the
+  // dependency flags. This used to send `query: "$focus"` and
+  // `query: "here"` from here, which put MQL, a server semantic, in a
+  // .tsx file; the client is not allowed to re-derive semantics, and
+  // a pane's query is one.
+  const focusId = websocketClient.subscribeMql({ pane: "inspect" });
+  const locationId = websocketClient.subscribeMql({ pane: "location" });
+
+  const handleResult = (envelope: Envelope) => {
+    const env = envelope as MqlSubscriptionResultEnvelope;
+    if (env.subscriptionId === focusId) {
+      const records = env.result as (StuffRefRecord | StuffDetailRecord)[];
+      const store = useStore.getState();
+      const hadPriorResult = store.paneLastResult !== null;
+      const previousStuffId = store.paneLastResult?.[0]?.stuffId;
+      const nextStuffId = records[0]?.stuffId;
+      maybePushFocusBreadcrumb(store.paneLastResult, records);
+      store.setPaneResult(records);
+      store.setPaneFocusName(
+        deriveHeaderName(records, store.paneFocusFragment)
+      );
+      if (previousStuffId !== nextStuffId) {
+        store.clearPaneDetail();
+      }
+      // First-delivery auto-paint: on a fresh session the focus
+      // subscription's initial result arrives before the player
+      // has sent any explicit `look`. Without this, the body sits
+      // on the placeholder even though the data is in hand. Only
+      // applies to the very first result (no prior snapshot); the
+      // focus-change-clears policy still governs everything after.
+      if (!hadPriorResult && records.length > 0) {
+        store.setPanePainted(true);
+      }
+      // Drop the door annotation as soon as focus leaves the door
+      // it was captured against.
+      const doorCtx = store.paneDoorContext;
+      if (doorCtx && doorCtx.stuffId !== nextStuffId) {
+        store.setPaneDoorContext(null);
+      }
+    } else if (env.subscriptionId === locationId) {
+      const records = env.result as StuffRefRecord[];
+      const store = useStore.getState();
+      const top = records[0];
+      store.setPaneBreadcrumbRoot(
+        top
+          ? {
+              stuffId: top.stuffId,
+              displayName: top.displayName,
+              primaryKeyword: top.primaryKeyword,
+            }
+          : null
+      );
+    }
+  };
+  const handleDelta = (envelope: Envelope) => {
+    const env = envelope as MqlSubscriptionDeltaEnvelope;
+    if (env.subscriptionId === focusId) {
+      const store = useStore.getState();
+      const previous = store.paneLastResult ?? [];
+      const previousStuffId = previous[0]?.stuffId;
+      const patched = applyChanges(previous, env.changes);
+      const nextStuffId = patched[0]?.stuffId;
+      maybePushFocusBreadcrumb(store.paneLastResult, patched);
+      store.setPaneResult(patched);
+      store.setPaneFocusName(
+        deriveHeaderName(patched, store.paneFocusFragment)
+      );
+      if (previousStuffId !== nextStuffId) {
+        store.clearPaneDetail();
+      }
+      const doorCtx = store.paneDoorContext;
+      if (doorCtx && doorCtx.stuffId !== nextStuffId) {
+        store.setPaneDoorContext(null);
+      }
+    } else if (env.subscriptionId === locationId) {
+      // The `me.location` projection is single-cardinality. The
+      // substrate's diff for a slot-replacement (player walked
+      // from room A to room B) produces a single `replace` op
+      // keyed by the NEW stuffId — the old entry is implicitly
+      // evicted. The generic `applyChanges` would key its lookup
+      // by stuffId and fail to find the prior entry, appending a
+      // second record. Single-cardinality bypass: read the last
+      // change directly and reduce to {replace,update,remove}.
+      const store = useStore.getState();
+      let nextRoot:
+        | { stuffId: string; displayName: string; primaryKeyword?: string }
+        | null = store.paneBreadcrumbRoot;
+      for (const change of env.changes) {
+        if (change.op === "remove") {
+          nextRoot = null;
+          continue;
+        }
+        if (change.op === "replace" || change.op === "add") {
+          const fields = (change.fields ?? {}) as Partial<StuffRefRecord>;
+          nextRoot = {
+            stuffId: change.key,
+            displayName: fields.displayName ?? "",
+            primaryKeyword: fields.primaryKeyword,
+          };
+          continue;
+        }
+        // op === 'update' — slot's record kept its identity; merge.
+        if (nextRoot && change.key === nextRoot.stuffId && change.fields) {
+          const fields = change.fields as Partial<StuffRefRecord>;
+          nextRoot = {
+            stuffId: nextRoot.stuffId,
+            displayName: fields.displayName ?? nextRoot.displayName,
+            primaryKeyword:
+              fields.primaryKeyword ?? nextRoot.primaryKeyword,
+          };
+        }
+      }
+      store.setPaneBreadcrumbRoot(nextRoot);
+    }
+  };
+
+  websocketClient.onEnvelope("mql-subscription-result", handleResult);
+  websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
+
+  return () => {
+    websocketClient.offEnvelope(
+      "mql-subscription-result",
+      handleResult
+    );
+    websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
+    websocketClient.unsubscribe(focusId);
+    websocketClient.unsubscribe(locationId);
+  };
+}, []);
+}
+
 export function InspectionPane({
   onSendCommand,
   onCommandPreview,
+  embedded = false,
 }: InspectionPaneProps) {
   // Stable no-op fallback so child affordances always receive a
   // function — the preview API stays uniform whether the parent
@@ -422,137 +613,6 @@ export function InspectionPane({
   const paneDetailPath = useStore((s) => s.paneDetailPath);
   const paneDoorContext = useStore((s) => s.paneDoorContext);
 
-  useEffect(() => {
-    // ⭐ Panes are opened BY NAME. The server owns what each one
-    // subscribes to — the query, the cardinality, the field set, the
-    // dependency flags. This used to send `query: "$focus"` and
-    // `query: "here"` from here, which put MQL, a server semantic, in a
-    // .tsx file; the client is not allowed to re-derive semantics, and
-    // a pane's query is one.
-    const focusId = websocketClient.subscribeMql({ pane: "inspect" });
-    const locationId = websocketClient.subscribeMql({ pane: "location" });
-
-    const handleResult = (envelope: Envelope) => {
-      const env = envelope as MqlSubscriptionResultEnvelope;
-      if (env.subscriptionId === focusId) {
-        const records = env.result as (StuffRefRecord | StuffDetailRecord)[];
-        const store = useStore.getState();
-        const hadPriorResult = store.paneLastResult !== null;
-        const previousStuffId = store.paneLastResult?.[0]?.stuffId;
-        const nextStuffId = records[0]?.stuffId;
-        maybePushFocusBreadcrumb(store.paneLastResult, records);
-        store.setPaneResult(records);
-        store.setPaneFocusName(
-          deriveHeaderName(records, store.paneFocusFragment)
-        );
-        if (previousStuffId !== nextStuffId) {
-          store.clearPaneDetail();
-        }
-        // First-delivery auto-paint: on a fresh session the focus
-        // subscription's initial result arrives before the player
-        // has sent any explicit `look`. Without this, the body sits
-        // on the placeholder even though the data is in hand. Only
-        // applies to the very first result (no prior snapshot); the
-        // focus-change-clears policy still governs everything after.
-        if (!hadPriorResult && records.length > 0) {
-          store.setPanePainted(true);
-        }
-        // Drop the door annotation as soon as focus leaves the door
-        // it was captured against.
-        const doorCtx = store.paneDoorContext;
-        if (doorCtx && doorCtx.stuffId !== nextStuffId) {
-          store.setPaneDoorContext(null);
-        }
-      } else if (env.subscriptionId === locationId) {
-        const records = env.result as StuffRefRecord[];
-        const store = useStore.getState();
-        const top = records[0];
-        store.setPaneBreadcrumbRoot(
-          top
-            ? {
-                stuffId: top.stuffId,
-                displayName: top.displayName,
-                primaryKeyword: top.primaryKeyword,
-              }
-            : null
-        );
-      }
-    };
-    const handleDelta = (envelope: Envelope) => {
-      const env = envelope as MqlSubscriptionDeltaEnvelope;
-      if (env.subscriptionId === focusId) {
-        const store = useStore.getState();
-        const previous = store.paneLastResult ?? [];
-        const previousStuffId = previous[0]?.stuffId;
-        const patched = applyChanges(previous, env.changes);
-        const nextStuffId = patched[0]?.stuffId;
-        maybePushFocusBreadcrumb(store.paneLastResult, patched);
-        store.setPaneResult(patched);
-        store.setPaneFocusName(
-          deriveHeaderName(patched, store.paneFocusFragment)
-        );
-        if (previousStuffId !== nextStuffId) {
-          store.clearPaneDetail();
-        }
-        const doorCtx = store.paneDoorContext;
-        if (doorCtx && doorCtx.stuffId !== nextStuffId) {
-          store.setPaneDoorContext(null);
-        }
-      } else if (env.subscriptionId === locationId) {
-        // The `me.location` projection is single-cardinality. The
-        // substrate's diff for a slot-replacement (player walked
-        // from room A to room B) produces a single `replace` op
-        // keyed by the NEW stuffId — the old entry is implicitly
-        // evicted. The generic `applyChanges` would key its lookup
-        // by stuffId and fail to find the prior entry, appending a
-        // second record. Single-cardinality bypass: read the last
-        // change directly and reduce to {replace,update,remove}.
-        const store = useStore.getState();
-        let nextRoot:
-          | { stuffId: string; displayName: string; primaryKeyword?: string }
-          | null = store.paneBreadcrumbRoot;
-        for (const change of env.changes) {
-          if (change.op === "remove") {
-            nextRoot = null;
-            continue;
-          }
-          if (change.op === "replace" || change.op === "add") {
-            const fields = (change.fields ?? {}) as Partial<StuffRefRecord>;
-            nextRoot = {
-              stuffId: change.key,
-              displayName: fields.displayName ?? "",
-              primaryKeyword: fields.primaryKeyword,
-            };
-            continue;
-          }
-          // op === 'update' — slot's record kept its identity; merge.
-          if (nextRoot && change.key === nextRoot.stuffId && change.fields) {
-            const fields = change.fields as Partial<StuffRefRecord>;
-            nextRoot = {
-              stuffId: nextRoot.stuffId,
-              displayName: fields.displayName ?? nextRoot.displayName,
-              primaryKeyword:
-                fields.primaryKeyword ?? nextRoot.primaryKeyword,
-            };
-          }
-        }
-        store.setPaneBreadcrumbRoot(nextRoot);
-      }
-    };
-
-    websocketClient.onEnvelope("mql-subscription-result", handleResult);
-    websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
-
-    return () => {
-      websocketClient.offEnvelope(
-        "mql-subscription-result",
-        handleResult
-      );
-      websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
-      websocketClient.unsubscribe(focusId);
-      websocketClient.unsubscribe(locationId);
-    };
-  }, []);
 
   // Header text: pane slice's live name when present, else derived
   // from the latest cached result + fragment.
@@ -637,7 +697,7 @@ export function InspectionPane({
   };
 
   return (
-    <PaneContainer>
+    <PaneContainer $embedded={embedded}>
       {paneBreadcrumbRoot && (
         <Breadcrumbs aria-label="focus breadcrumbs">
           {(() => {
@@ -721,19 +781,39 @@ export function InspectionPane({
           })}
         </Breadcrumbs>
       )}
-      <Header>
-        <HeaderTitle>{headerName ?? "nothing focused"}</HeaderTitle>
-        <Button
-          variant="primary"
-          aria-label="refresh pane"
-          command="look"
-          onPreview={previewSink}
-          onClick={handleRefresh}
-        >
-          Refresh
-        </Button>
-      </Header>
+      {/*
+        ⚠ Embedded, the card's header carries the name — repeating it
+        here is the duplication this change exists to remove. The
+        Refresh control still belongs to the pane, so it rides the body.
+      */}
+      {!embedded && (
+        <Header>
+          <HeaderTitle>{headerName ?? "nothing focused"}</HeaderTitle>
+          <Button
+            variant="primary"
+            aria-label="refresh pane"
+            command="look"
+            onPreview={previewSink}
+            onClick={handleRefresh}
+          >
+            Refresh
+          </Button>
+        </Header>
+      )}
       <Body>{renderBody()}</Body>
+      {embedded && (
+        <EmbeddedActions>
+          <Button
+            variant="primary"
+            aria-label="refresh pane"
+            command="look"
+            onPreview={previewSink}
+            onClick={handleRefresh}
+          >
+            Refresh
+          </Button>
+        </EmbeddedActions>
+      )}
     </PaneContainer>
   );
 }

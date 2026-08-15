@@ -23,6 +23,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
+import { PromptFormatBar } from "../PromptFormatBar";
 
 const Pane = styled.aside`
   display: flex;
@@ -169,6 +170,18 @@ interface SettingsPaneProps {
   notificationsAvailable?: boolean;
 }
 
+/*
+ * ⚠⚠ **Routing and the prompt format live HERE, not on the play
+ * surface.**
+ *
+ * They shipped docked above the command input, which meant a player who
+ * had just logged in was shown a bare word `routing` and a row of raw
+ * Liquid (`{{ focus }} {{ posture }} {{ time }} {{ hp }}`) with nothing
+ * saying what either was for. Neither is something you touch while
+ * playing; both are settings, and the format bar was additionally
+ * printing a prompt the command input already displays two inches
+ * below it. Permanent screen space has to be earned.
+ */
 export function SettingsPane({
   onSendCommand,
   onClose,
@@ -204,6 +217,38 @@ export function SettingsPane({
         </CloseButton>
       </Header>
 
+      {/*
+        ⚠ The filter editor is NOT here. It lives on the play surface,
+        opened by `+` (which has just created and activated the view you
+        are about to edit) or by the `⋯` on your own active view. Here
+        it would be a second entry point to the same editor, with no way
+        to tell from this screen which view it was about to change —
+        which is the confusion the whole pass was fixing.
+      */}
+      <Section>
+        <SectionTitle>Prompt format</SectionTitle>
+        <PromptFormatBar
+          onSendCommand={onSendCommand}
+          onCommandPreview={() => undefined}
+        />
+      </Section>
+
+      {/*
+        ⚠⚠ **The routing table is not here, because it no longer does
+        anything you could see.**
+
+        Its only observable effect was placing a frame into one of four
+        feeds, and feeds are gone — every tab is a view over the whole
+        buffer. A settings screen for rules that change nothing would be
+        a control lying about its own effect, which is worse than a
+        missing one.
+
+        The rules themselves are retained (`DEFAULT_ROUTING`, the
+        predicate vocabulary, `MessageApi.feedsFor` and its tests) as
+        the substrate for notification policy — *which frames should
+        ping you* is a real question that wants exactly this shape. The
+        UI returns when there is something for it to drive.
+      */}
       <Section>
         <SectionTitle>Notifications</SectionTitle>
         {notificationsAvailable ? (

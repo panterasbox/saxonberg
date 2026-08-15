@@ -21,6 +21,8 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type Interactive from '../Interactive';
 import type { Sensor } from '../../lib/message/Sensor';
 import { MessageApi } from '../../api/message';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ProseApi } from '../../api/prose';
@@ -136,10 +138,47 @@ function push<T>(
     const template: Omit<PromptEnvelope, 'frameId'> = {
       type: 'prompt',
       promptId,
-      outcome: { notes: [note] },
+      // ⭐⭐ **A prompt remembers who asked.** Every prompt is pushed
+      // from inside a running command, so the verb, its description and
+      // when it started waiting are facts the server already has. They
+      // are what let the WAITING strip say what is waiting, and what
+      // let cancel NAME the command it kills — cancelling rejects the
+      // awaiting command, so a button reading only "cancel" is a lie
+      // about what it does.
+      outcome: { notes: [{ ...note, ...currentAsker() }] },
     };
     MessageApi.sendEnvelope(holder, template);
   });
+}
+
+/**
+ * The command this prompt is being pushed from, if any.
+ *
+ * ⚠ The INNERMOST command frame, not the outermost: a verb that
+ * dispatches another verb which then asks a question has the inner one
+ * blocked on the answer, and naming the outer one would tell the player
+ * the wrong thing dies when they cancel.
+ *
+ * ⚠ Every field is optional and absent means absent. A prompt pushed
+ * outside a command frame has no honest answer here, and the client
+ * hatches rather than inventing one.
+ */
+function currentAsker(): {
+  askedBy?: string;
+  askedByDescription?: string;
+  askedAt: number;
+} {
+  const stack = ExecutionContextApi.getCommandStack();
+  const innermost = stack[stack.length - 1];
+  if (!innermost) return { askedAt: Date.now() };
+  const ctx = innermost.context;
+  const text = ctx.commandText?.trim();
+  const description = ctx.command?.description;
+  return {
+    ...(text ? { askedBy: text } : {}),
+    ...(description ? { askedByDescription: description } : {}),
+    askedAt: Date.now(),
+  };
 }
 
 /**
@@ -215,6 +254,26 @@ function cleanup(record: ResolverRecord): void {
       byInteractive.delete(record.interactive);
     }
   }
+  /*
+   * ⚠⚠ **Wake any pane held by this prompt.**
+   *
+   * `HOLD_WAKES_ON` declares `unanswered: { location: false }` — its
+   * subject is a pending PROMPT, not a position, "and the prompt's own
+   * resolution is what wakes it". That sentence described an intention
+   * with no mechanism behind it: nothing poked the subscription
+   * registry when a prompt settled, so a `hold: 'unanswered'` pane was
+   * **immortal**. The player answered, the card stayed, and nothing
+   * about it looked broken.
+   *
+   * Found by driving it — the same way the `here` hold's missing wake
+   * was found, and the reason `HOLD_WAKES_ON` exists at all: a row in
+   * that table with no wake behind it is precisely what it is there to
+   * make visible.
+   *
+   * One known producer poking one known consumer, so it is a method
+   * call rather than an event — the `notifyDurableSubject` shape.
+   */
+  MqlSubscriptionApi.notifyPromptSettled(record.interactive, record.promptId);
 }
 
 function emitValidationFailed(record: ResolverRecord, message: string): void {

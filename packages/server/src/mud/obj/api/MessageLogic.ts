@@ -11,9 +11,14 @@ import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
 import type {
   EnvelopeTemplate,
+  FeedDestination,
+  FeedPredicate,
   MessageFrame,
+  RoutingRule,
   StuffRef,
+  TopicDescriptor,
 } from "@saxonberg/types";
+import { CATCH_ALL_RULE } from "@saxonberg/types";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { Scene } from "../../lib/message/Scene";
@@ -134,4 +139,88 @@ export class MessageLogic extends ApiLogic {
     );
     return cat ? cat.isCommunicative(topic) : false;
   }
+
+  /** See {@link MessageApi.feedsFor}. */
+  @CallSecurity(MessageApiCallers)
+  public feedsFor(
+    topic: string,
+    rules: readonly RoutingRule[]
+  ): FeedDestination[] {
+    const cat = StuffApi.findByTemplatePath<TopicCatalogue>(
+      "/obj/TopicCatalogue"
+    );
+    /*
+     * ⚠ An unwarmed catalogue is not a reason to drop a frame. Before
+     * boot completes there are no facets to match on, so every rule
+     * falls through to the catch-all — which is precisely the state the
+     * catch-all exists to cover. Failing OPEN here and closed anywhere
+     * else would be backwards: a lost frame is the expensive mistake.
+     */
+    const facets = cat?.getDescriptor(topic);
+    return routeFrame(topic, facets, rules);
+  }
+}
+
+/**
+ * Walk the ordered table and collect the destinations.
+ *
+ * A module-private free function: it holds no state, and an
+ * intra-singleton `this.x()` would have to satisfy the external gate
+ * for no benefit (the `DiagnosticLogic` shape).
+ *
+ * ⚠⚠ The **catch-all is appended here**, not stored with the player's
+ * rules. Storing it would make it something a client could delete by
+ * writing the clientState key directly, and "every frame lands
+ * somewhere" is not a default — it is an invariant.
+ */
+function routeFrame(
+  topic: string,
+  facets: TopicDescriptor | undefined,
+  rules: readonly RoutingRule[]
+): FeedDestination[] {
+  const out: FeedDestination[] = [];
+  for (const rule of [...rules, CATCH_ALL_RULE]) {
+    if (!predicateMatches(rule.when, topic, facets)) continue;
+    if (!out.includes(rule.to)) out.push(rule.to);
+    // ⭐ `move` stops; `copy` keeps going. That single asymmetry is what
+    // lets a tell reach Attention AND still land in World.
+    if (rule.disposition === "move") break;
+  }
+  return out;
+}
+
+/**
+ * Every field present must match (AND). An empty predicate matches
+ * everything, which is what makes the catch-all a rule rather than a
+ * special case in the walk.
+ */
+function predicateMatches(
+  when: FeedPredicate,
+  topic: string,
+  facets: TopicDescriptor | undefined
+): boolean {
+  if (when.address !== undefined && facets?.address !== when.address) {
+    return false;
+  }
+  if (when.actor !== undefined && facets?.actor !== when.actor) return false;
+  if (when.weight !== undefined && facets?.weight !== when.weight) return false;
+  if (when.topic !== undefined && !topicMatches(topic, when.topic)) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * The one TREE operation in the predicate language: an exact leaf, or a
+ * `*`-suffixed prefix.
+ *
+ * ⚠ Both halves are needed and neither replaces the other. Facets fix
+ * cross-cutting queries (*everything that matters*); only the tree
+ * fixes subtree containment (*everything about speech*), which is a
+ * prefix operation no facet can express.
+ */
+function topicMatches(topic: string, pattern: string): boolean {
+  if (!pattern.endsWith("*")) return topic === pattern;
+  const prefix = pattern.slice(0, -1);
+  return topic === prefix.replace(/\.$/, "") || topic.startsWith(prefix);
 }

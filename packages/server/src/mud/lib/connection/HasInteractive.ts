@@ -43,9 +43,14 @@ import {
   MAX_SAVED_ARRANGEMENTS_PER_MODE,
   SHELF_ROW_IDS,
   DEFAULT_SHELF,
+  DEFAULT_ROUTING,
+  FEED_DESTINATIONS,
+  PANE_IDS,
+  SHIPPED_ARRANGEMENT_PANES,
   type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
+  type PaneId,
 } from '@saxonberg/types';
 
 /**
@@ -198,6 +203,17 @@ export interface HasInteractive {
   /** This player's saved arrangements for one mode. */
   savedArrangementsFor(mode: CockpitMode): Record<string, ArrangementSpec>;
 
+  /**
+   * ⭐ The panes an arrangement opens — a saved one's own list, or the
+   * shipped default for the mode.
+   *
+   * ⚠ Names only. An arrangement is a statement about a WORKSPACE, so
+   * it names panes by catalogue id and nothing else; a pane about a
+   * particular person is a statement about a MOMENT and belongs to the
+   * pin, which is session-scoped for exactly that reason.
+   */
+  arrangementPanes(mode: CockpitMode, name: string): readonly PaneId[];
+
   /** Error string for a player-supplied arrangement name, or null if fine. */
   validateArrangementName(mode: CockpitMode, raw: string): string | null;
 
@@ -247,6 +263,77 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         description:
           'Cockpit tabbed-terminal tabs. Each tab carries its ' +
           'own name and a list of muted topic strings.',
+      },
+      {
+        /**
+         * ⭐ The feed routing table — one stream, several destinations.
+         *
+         * An ORDERED list, and the order is the semantics: first match
+         * wins for a `move`, a `copy` routes and keeps going. Each rule
+         * is a predicate over the frame's topic FACETS, which is why a
+         * "quiet" rule is one entry rather than a list of sixty topic
+         * paths that drifts every time a topic is added.
+         *
+         * ⚠⚠ **The undeletable catch-all is deliberately NOT stored
+         * here.** The evaluator appends it, so writing this key
+         * directly cannot remove it. Every frame must land somewhere —
+         * without one, a mistyped predicate silently drops output, and
+         * *in a world where a frame can be "you are on fire", a lost
+         * message is not a cosmetic bug.*
+         *
+         * The default's copy-to-Attention rule ships **on**: a
+         * convenience on a desktop, where the frame is in World anyway,
+         * and the safety net on a phone, where World may not be the
+         * feed you are looking at.
+         */
+        key: 'console.routing',
+        defaultValue: DEFAULT_ROUTING,
+        description:
+          'Feed routing rules — an ordered table of facet predicates, ' +
+          'each naming a destination (world | attention | channels | ' +
+          'diagnostics) and MOVE (stop) or COPY (continue). The ' +
+          'undeletable catch-all is appended by the evaluator, not ' +
+          'stored here.',
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every(
+            (r) =>
+              typeof r === 'object' &&
+              r !== null &&
+              (FEED_DESTINATIONS as readonly string[]).includes(
+                (r as { to?: unknown }).to as string,
+              ) &&
+              ((r as { disposition?: unknown }).disposition === 'move' ||
+                (r as { disposition?: unknown }).disposition === 'copy'),
+          )
+            ? true
+            : 'must be a list of { when, to, disposition } rules',
+      },
+      {
+        /**
+         * ⚠⚠ Which shipped views this player has already been OFFERED
+         * — not which ones they still have.
+         *
+         * The distinction is the whole point: seeding is additive, so
+         * without a record of what has been offered a view the player
+         * deliberately DELETED would be re-added on their next login.
+         * "Delete" would mean "hide until you reconnect", which is not
+         * what the word means.
+         *
+         * ⚠ It shipped missing from this schema, so every write of it
+         * was rejected and logged — and the guarantee it exists to
+         * provide was quietly not there.
+         */
+        key: 'console.seededViews',
+        defaultValue: [],
+        description:
+          'Names of the shipped default views this player has already ' +
+          'been offered. Additive seeding consults it so a deleted ' +
+          'view stays deleted across reconnects.',
+        validator: (v) =>
+          Array.isArray(v) && v.every((n) => typeof n === 'string')
+            ? true
+            : 'must be a list of view names',
       },
       {
         key: 'console.activeTab',
@@ -727,6 +814,23 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     }
 
     /** This player's saved arrangements for one mode (never null). */
+    /** See {@link HasInteractive.arrangementPanes}. */
+    public arrangementPanes(
+      mode: CockpitMode,
+      name: string,
+    ): readonly PaneId[] {
+      const saved = this.savedArrangementsFor(mode)[name];
+      if (saved) {
+        // ⚠ Filter to the catalogue. A saved list is player data that
+        // has outlived a rename before, and an unknown name would make
+        // the whole arrangement fail to open rather than one pane.
+        return saved.panes.filter((p): p is PaneId =>
+          (PANE_IDS as readonly string[]).includes(p),
+        );
+      }
+      return SHIPPED_ARRANGEMENT_PANES[mode];
+    }
+
     public savedArrangementsFor(
       mode: CockpitMode,
     ): Record<string, ArrangementSpec> {

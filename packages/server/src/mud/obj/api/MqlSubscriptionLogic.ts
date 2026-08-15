@@ -137,6 +137,24 @@ export class MqlSubscriptionLogic extends ApiLogic {
     resolveRegistry().refreshForInteractive(interactive);
   }
 
+  /** See {@link MqlSubscriptionApi.applyArrangement}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public applyArrangement(
+    interactive: Interactive,
+    panes: readonly PaneId[],
+  ): { opened: number; closed: number } {
+    return resolveRegistry().applyArrangement(interactive, panes);
+  }
+
+  /** See {@link MqlSubscriptionApi.notifyPromptSettled}. */
+  @CallSecurity(MqlSubscriptionApiCallers)
+  public notifyPromptSettled(
+    interactive: Interactive,
+    promptId: string,
+  ): void {
+    resolveRegistry().notifyPromptSettled(interactive, promptId);
+  }
+
   /** See {@link MqlSubscriptionApi.notifyDurableSubject}. */
   @CallSecurity(MqlSubscriptionApiCallers)
   public notifyDurableSubject(subject: string): void {

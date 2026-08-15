@@ -398,6 +398,46 @@ variant is pure seed data (see [crafting.md](./crafting.md)). A
 shadowing implementation must merge the inner contributor's buckets
 (both consumers show the pattern).
 
+## ⭐ Affordance categories — the radial's fixed geometry
+
+Every `AffordanceEntry` carries a `category`: `perception`,
+`manipulation`, `social`, `movement`. The client's radial maps them to
+**fixed compass positions** — perception north, manipulation east,
+social west, movement south.
+
+⚠⚠ **The geometry must not reflow to fit the available verbs.** Muscle
+memory across objects is the entire point; a menu that reflows has
+none. A quadrant with nothing in it renders empty rather than being
+collapsed away.
+
+- A `disabled` verb renders dimmed with **the validator's verbatim
+  reason** — *"a public noticeboard isn't alive"*, *"you can't change
+  posture on a public noticeboard"*. Never a paraphrase: the reason is
+  the teaching.
+- A `pending-operand` verb opens the right prompt rather than guessing,
+  and the entry names the field.
+- The centre chip is *name · kind · N mixins*. The **kind** is the
+  server's answer via `RecognitionApi.kindOf`, running the same gates
+  the prose path uses, so a masked being reads `npc` in the menu and in
+  the scrollback alike rather than one surface giving the other away.
+  It is not derived client-side from the composition, which would be a
+  second taxonomy.
+
+⚠ Refusals are capped at three per quadrant with a derived
+`+N more refused`. Found by driving: uncapped, a common object produced
+a scrolling wall of ~40 verbs, which buries the afforded ones the menu
+exists to show.
+
+⚠ **Both lists are filtered, and filtering means DELETION.** A verb the
+viewer is not entitled to know about is absent — never present and
+flagged — because a response that admits a hidden verb exists leaks the
+fact that it exists.
+
+⚠ The radial opens from an element that carries a `stuffId`. Transcript
+nouns emitted through identity-less MML tags carry none, so the radial
+cannot open from those — the residue of the S2 identity-tag work, not a
+property of this surface.
+
 ## Recency stack
 
 Per-giver, chronological. Each entry is `(source, bucket,

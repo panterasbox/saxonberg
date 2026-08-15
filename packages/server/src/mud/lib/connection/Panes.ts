@@ -57,6 +57,28 @@ export interface PaneDefinition {
   readonly fields: FieldSet | FieldAlias;
   /** Lifetime rule, when this pane has one. */
   readonly hold?: PaneHold;
+  /**
+   * ⭐ A pane about a **particular thing** rather than about a fixed
+   * place. The request supplies a `stuffId`; the subscription resolves
+   * it by direct lookup **behind the perception gate** rather than by
+   * running MQL, and `query` is the inert marker `'$subject'`.
+   *
+   * ⚠⚠ **Not an `#<stuffId>` MQL seed, and the difference is
+   * security.** That seed is authoring-tier and resolves with NO
+   * perception gate, so a pane built on it would answer for anything
+   * whose id the viewer had ever seen on a frame — a peep-hole into
+   * every room in the game, looking exactly like the feature working.
+   *
+   * ⚠ The client supplies an IDENTITY, never a query. The catalogue
+   * still decides what a pane about a thing projects and what holds it
+   * open, which is the whole point of naming a pane.
+   *
+   * Declared rather than inferred from the query string, for the same
+   * reason `HOLD_WAKES_ON` is declared: a subscribe that quietly
+   * resolved `$subject` to nothing would be a pane about the empty set,
+   * which releases immediately and looks like it worked.
+   */
+  readonly needsSubject?: boolean;
   /** Re-resolve when the viewer's focus fragment changes. */
   readonly focusDependent?: boolean;
   /** Re-resolve when the viewer or a subject moves. */
@@ -119,6 +141,110 @@ export const PANES: Readonly<Record<PaneId, PaneDefinition>> = {
       'renown',
       'practisingCompetence',
     ],
+  },
+
+  /*
+   * ─── The play surface's cards (wave 4) ───
+   *
+   * ⚠ These rows exist because the pane feed OPENS them, which is this
+   * catalogue's own rule. They were deliberately not pre-added by the
+   * record-layer half, which delivered a feasibility survey instead —
+   * a vocabulary sized to a mockup is the failure the rule names.
+   */
+
+  /**
+   * ⭐ **Where you are, as a card** — and deliberately not the same
+   * thing as `location`.
+   *
+   * `location` is the breadcrumb root: chrome, holdless, `ref` fields,
+   * and it must never close. `place` is a card in the feed: `detail`
+   * fields (ways out, what is here) and a `here` hold, so walking out
+   * fades it and the room you walked into opens its own.
+   *
+   * Two subscriptions on one query is a real cost and it is accepted
+   * knowingly. Collapsing them would mean either a breadcrumb that
+   * closes when you walk — chrome that vanishes — or a card that
+   * outlives the room it describes, which is the stale-pane problem the
+   * holds exist to solve.
+   */
+  place: {
+    label: 'where you are',
+    query: 'here',
+    cardinality: 'one',
+    fields: 'detail',
+    hold: 'here',
+    locationDependent: true,
+  },
+
+  /**
+   * A person you are dealing with. Held while they are still in the
+   * room — `present`, not `inReach`: a conversation survives them
+   * stepping across the yard, and does not survive them leaving.
+   */
+  /**
+   * ⭐⭐ **The one card: whatever you are looking at.**
+   *
+   * A location, a person, yourself, a thing — one pane, one field set,
+   * one set of controls. What differs is only what the SUBJECT HAS:
+   * `exits` is absent on a thing, `contents` on an empty one,
+   * `illustration` on most. The body shows the sections that are there,
+   * so "a location view" and "a thing view" are not two views at all.
+   *
+   * ⚠ **No hold.** The other subject panes are held by a world
+   * condition — still present, still in reach — because they are claims
+   * about the world. This one is a record of your ATTENTION, which is a
+   * fact about you, not the room: it stacks as you look at things and
+   * ages out, and `look` brings any of it back. Putting a world
+   * condition on it would end a card for a reason the player never
+   * asked about.
+   */
+  subject: {
+    label: 'what you are looking at',
+    query: '$subject',
+    cardinality: 'one',
+    fields: 'detail',
+    needsSubject: true,
+    locationDependent: true,
+  },
+
+  agent: {
+    label: 'someone you are dealing with',
+    query: '$subject',
+    cardinality: 'one',
+    fields: 'detail',
+    hold: 'present',
+    needsSubject: true,
+    locationDependent: true,
+  },
+
+  /**
+   * A thing you are reading or working. Held while it is `inReach`,
+   * which is the honest boundary for a card whose whole content is a
+   * live measurement: a reading you cannot re-take is a memory.
+   */
+  instrument: {
+    label: 'something you are reading',
+    query: '$subject',
+    cardinality: 'one',
+    fields: 'detail',
+    hold: 'inReach',
+    needsSubject: true,
+    locationDependent: true,
+  },
+
+  /**
+   * What you are carrying. `carried` on the SUBJECT — so a pane about
+   * your pack fades when you put the pack down, which is exactly when
+   * its contents stop being yours to reach.
+   */
+  manifest: {
+    label: 'what you are carrying',
+    query: '$subject',
+    cardinality: 'one',
+    fields: 'detail',
+    hold: 'carried',
+    needsSubject: true,
+    locationDependent: true,
   },
 };
 

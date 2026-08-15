@@ -43,6 +43,7 @@ import { BankingApi } from '../mud/api/banking';
 // Loaded for its side effect: registers banking's `bank-circle` dialogue
 // effect into the generic DialogueEffectRegistry (consumer → substrate).
 import { DiagnosticApi } from '../mud/api/diagnostics';
+import { RecordApi } from '../mud/api/record';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
@@ -328,6 +329,15 @@ export class AppBootstrap {
     // and cheap in every environment; nothing fires it if no producer runs.
     DiagnosticApi.startRouter();
 
+    // The nightly reset — ⚠⚠ destructive, and OFF unless the operator
+    // armed it. `world.reset.mode` absent means nothing is installed at
+    // all; `dry-run` logs what it would remove; only `enforce` deletes.
+    // It also refuses to arm enforcing while `world.resetPolicy` is
+    // unset, because a server that wipes without printing the notice is
+    // a server whose front page lies. Booted last: it must see every
+    // registry it may have to re-seed afterwards.
+    RecordApi.boot();
+
     // Author diagnostics Producer 3 — the TS compile watcher. Dev-only:
     // production runs compiled JS with no TS source to watch. Best-effort:
     // a missing tsconfig / watcher failure logs and continues (diagnostics
@@ -366,6 +376,16 @@ export class AppBootstrap {
       await WorldClockApi.shutdown();
     } catch (err) {
       console.error('AppBootstrap: world-clock shutdown failed:', err);
+    }
+    try {
+      // Drain the record layer's write buffer. It is deliberately
+      // async-batched — the frame write is the highest-volume one in the
+      // system and must never sit on the render hot path — so a clean
+      // shutdown is the one moment the last interval's worth of
+      // scrollback can be saved rather than dropped.
+      await RecordApi.flush();
+    } catch (err) {
+      console.error('AppBootstrap: record-layer flush failed:', err);
     }
   }
 }

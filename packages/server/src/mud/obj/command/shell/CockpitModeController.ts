@@ -27,6 +27,7 @@
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
+import { MqlSubscriptionApi } from '../../../api/mql-subscription';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -101,6 +102,25 @@ export default class CockpitModeController extends CommandController<CockpitMode
     }
 
     const arrangement = this.commit(host, mode, wanted);
+    /*
+     * ⭐⭐ **A mode switch OPENS its arrangement's panes, server-side.**
+     *
+     * S3 shipped arrangements as storage, not behaviour: nothing opened
+     * or closed a pane on recall, on either side, so a saved workspace
+     * was a name that did nothing. This is that behaviour.
+     *
+     * ⚠ The client sends ONE command and renders what arrives. It never
+     * learns what an arrangement means, which is what keeps *the client
+     * owns zero command semantics* literally true — and it costs one
+     * round trip rather than one per pane.
+     */
+    const interactive = context.interactive;
+    if (interactive) {
+      MqlSubscriptionApi.applyArrangement(
+        interactive,
+        host.arrangementPanes(mode, arrangement),
+      );
+    }
     this.send(
       context,
       Mml.fromMarkup(

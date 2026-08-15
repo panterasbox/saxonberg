@@ -90,6 +90,23 @@ export interface MessageFrame<T = unknown> {
      * docs/subsystems/reactions.md.
      */
     inReactionTo?: string;
+    /**
+     * ⭐⭐ **Which feeds this frame belongs in, decided server-side.**
+     *
+     * Routing is a predicate over the frame's topic FACETS, and the
+     * facets live on the server's topic catalogue — so the frame
+     * arrives already knowing where it goes and the client never
+     * re-derives a rule. A client that evaluated the table would be
+     * holding a server semantic, and two evaluators disagree the first
+     * time one of them is changed.
+     *
+     * Stamped per-RECIPIENT (the table is per-player), which is why it
+     * lands at the Avatar's delivery seam rather than at compose time.
+     * Absent on frames delivered before a player has a table — the
+     * client treats absence as `world`, the same answer the catch-all
+     * gives.
+     */
+    feeds?: FeedDestination[];
   };
 }
 
@@ -563,7 +580,37 @@ export interface PromptChoice {
  * The server's `PromptOpts.foreground` opt is the source of truth;
  * this field carries that decision onto the wire.
  */
-export interface ChoicePromptNote {
+/**
+ * ⭐⭐ **A prompt remembers who asked, and that is what makes an
+ * abandoned one judgeable.**
+ *
+ * Every prompt is pushed from inside a running command, so the verb,
+ * its one-line description, and when it started waiting are facts the
+ * server already has. Carrying them turns two otherwise-impossible
+ * surfaces into ordinary ones:
+ *
+ * - the WAITING strip can say *what* is waiting rather than just *that*
+ *   something is;
+ * - ⚠⚠ **cancel can name the command it kills.** Cancelling is not
+ *   dismissing a dialog — it rejects the awaiting command with
+ *   `PromptCancelledError` — so a button that says only *"cancel"* is a
+ *   lie about what it does.
+ *
+ * Every field is optional: a prompt pushed outside a command frame
+ * (engine-initiated, a future scheduled ask) genuinely has no answer,
+ * and inventing one would be worse than the absence. The client hatches
+ * rather than guessing.
+ */
+export interface PromptProvenance {
+  /** The command that is waiting on this answer, as it was dispatched. */
+  askedBy?: string;
+  /** That verb's one-line description, from its own spec. */
+  askedByDescription?: string;
+  /** Epoch ms the prompt was pushed — the elapsed clock's origin. */
+  askedAt?: number;
+}
+
+export interface ChoicePromptNote extends PromptProvenance {
   kind: 'prompt-choice';
   label: string;
   choices: PromptChoice[];
@@ -571,14 +618,14 @@ export interface ChoicePromptNote {
   foreground: boolean;
 }
 
-export interface ConfirmPromptNote {
+export interface ConfirmPromptNote extends PromptProvenance {
   kind: 'prompt-confirm';
   label: string;
   defaultAnswer: 'yes' | 'no';
   foreground: boolean;
 }
 
-export interface TextPromptNote {
+export interface TextPromptNote extends PromptProvenance {
   kind: 'prompt-text';
   label: string;
   placeholder?: string;
@@ -593,7 +640,7 @@ export interface TextPromptNote {
  * rich editor ships. A *shared* PromptApi/client capability, not
  * forum-only. The response is a plain string (the markdown body).
  */
-export interface ComposePromptNote {
+export interface ComposePromptNote extends PromptProvenance {
   kind: 'prompt-compose';
   label: string;
   placeholder?: string;
@@ -622,14 +669,14 @@ export interface MqlMatchSummary {
   displayName: string;
 }
 
-export interface MqlObjectPromptNote {
+export interface MqlObjectPromptNote extends PromptProvenance {
   kind: 'prompt-mql-object';
   label: string;
   matches: MqlMatchSummary[];
   foreground: boolean;
 }
 
-export interface MqlManyPromptNote {
+export interface MqlManyPromptNote extends PromptProvenance {
   kind: 'prompt-mql-many';
   label: string;
   matches: MqlMatchSummary[];
@@ -827,10 +874,27 @@ export interface PromptEnvelope {
  * inspection pane's two; `self` is the **widget shelf's** — the one
  * subscription behind every self-scoped figure the shelf renders.
  */
-export type PaneId = "inspect" | "location" | "self";
+export type PaneId =
+  | "inspect"
+  | "location"
+  | "self"
+  | "place"
+  | "agent"
+  | "instrument"
+  | "manifest"
+  | "subject";
 
 /** Every {@link PaneId}. The server validates against this; the client picks from it. */
-export const PANE_IDS: readonly PaneId[] = ["inspect", "location", "self"];
+export const PANE_IDS: readonly PaneId[] = [
+  "subject",
+  "inspect",
+  "location",
+  "self",
+  "place",
+  "agent",
+  "instrument",
+  "manifest",
+];
 
 /**
  * A row on the **widget shelf** — the pinnable figures in the top bar.
@@ -919,6 +983,23 @@ export interface MqlSubscribeMessage {
    * one of those fields below is ignored. See {@link PaneId}.
    */
   pane?: PaneId;
+  /**
+   * ⭐ The Stuff a **subject pane** is about, by `stuffId`.
+   *
+   * Three catalogue panes (`agent`, `instrument`, `manifest`) are about
+   * a particular thing rather than about a fixed place, so their
+   * server-owned query carries a `$subject` slot the request fills.
+   *
+   * ⚠⚠ **An identity, not a query.** The client says *this object*; the
+   * server still decides what a pane about an object resolves and
+   * projects. Letting the client send the query instead is exactly the
+   * hole the catalogue closes, and it is worth restating here because a
+   * parameter looks superficially like one.
+   *
+   * Ignored by panes whose query has no `$subject`; required (and an
+   * error when absent) by panes whose query has one.
+   */
+  subject?: string;
   /** Required UNLESS `pane` names one, in which case the server owns it. */
   query?: string;
   /** Required UNLESS `pane` names one. */
@@ -988,7 +1069,16 @@ export type PaneReleaseReason =
   | "departed"
   | "out-of-reach"
   | "dropped"
-  | "dismissed";
+  | "dismissed"
+  /**
+   * ⭐ The workspace changed, not the world. A mode switch resolves its
+   * saved arrangement server-side and pushes the pane set, so panes the
+   * new arrangement does not name are closed — and they need a reason
+   * that does not claim somebody walked out. A pane that vanishes
+   * without a reason reads as a bug, which is what this envelope exists
+   * to prevent.
+   */
+  | "rearranged";
 
 /**
  * A pane's hold lapsed and the pane is gone. Distinct from
@@ -1091,6 +1181,20 @@ export interface AffordanceEntry {
    * client can open the right prompt rather than guessing.
    */
   operand?: string;
+  /**
+   * ⭐ Which category the verb belongs to — the directory its spec
+   * lives in (`perception`, `movement`, `social`, `inventory`, …), or
+   * `'domain'` for a locality's own verb.
+   *
+   * ⚠⚠ **The radial's geometry is FIXED per category and must never
+   * reflow to fit the verbs a particular object affords.** Muscle
+   * memory across objects is the entire point of a radial menu; one
+   * that rearranges itself has none. Which quadrant a category sits in
+   * is a client rendering decision — several categories share a slot —
+   * but WHICH category a verb is in is a server fact, so it rides here
+   * rather than being pattern-matched off the verb's name.
+   */
+  category?: string;
 }
 
 /**
@@ -1314,6 +1418,52 @@ export interface MqlSubscriptionResultEnvelope {
    * envelope shape carries both.
    */
   result: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
+  /**
+   * ⭐ Which catalogue pane this is, when it was opened by name.
+   *
+   * Redundant for a subscription the client opened itself — it already
+   * knows what it asked for. Load-bearing for one the **server** opened:
+   * a mode switch resolves the saved arrangement server-side and pushes
+   * the pane set, and the client has to know which body to draw for a
+   * handle it has never seen. Without this the arrangement could only
+   * ever be replayed by the client, which is the round trip per pane the
+   * server-side resolve exists to avoid.
+   */
+  pane?: PaneId;
+  /**
+   * What holds it open, echoed for the same reason as `pane`: a
+   * server-pushed card needs its header words on arrival, not after a
+   * second exchange.
+   */
+  hold?: PaneHold;
+  /**
+   * The manual override, when the pane has one. `null` = the condition
+   * decides; `true` keeps a lapsed pane; `false` drops a held one.
+   *
+   * ⚠⚠ **The pin's answer, and the reason the client never sets one
+   * optimistically.** `cockpit pane pin` is a real command; a local
+   * toggle would show a pin the server had refused, and it would not
+   * survive the tab. The server re-emits this envelope when the
+   * override changes — the *dismiss* direction is already visible (the
+   * pane releases with reason `dismissed`), so without this only the
+   * KEEP direction was silent.
+   */
+  pinned?: boolean | null;
+  /**
+   * ⭐⭐ **The SERVER opened this pane; the client did not ask for it.**
+   *
+   * Set only by the arrangement resolver. The pane feed adopts a card
+   * for a handle it has never seen — that is how a mode switch paints —
+   * and this flag is what tells it *which* unseen handles to adopt.
+   *
+   * ⚠ Guessing was tried and is wrong. "A handle the client does not
+   * currently know" catches a result that arrives after the client's own
+   * unsubscribe, which React's double-mount produces on every dev page
+   * load; the chrome's own named panes (`inspect`, `location`, `self`)
+   * echo `pane` on their results too. Both showed up live as spurious
+   * cards. A flag says what the inference was trying to infer.
+   */
+  pushed?: true;
 }
 
 export interface Change {
@@ -1594,6 +1744,17 @@ export interface AffordanceResultEnvelope {
    * change it at runtime.
    */
   composition: string[];
+  /**
+   * What the subject IS, to this viewer — the centre chip's middle
+   * term (*"cast-iron anvil · thing · 6 mixins"*).
+   *
+   * ⚠ Viewer-aware, via the same `RecognitionApi.kindOf` gates the
+   * prose path uses: a viewer who cannot see, or who is looking at a
+   * mask, is told `npc` rather than `player`. A third "unknown" value
+   * would announce *that* something is being withheld, which is the
+   * honest-fog failure the whole face is built to avoid.
+   */
+  kind: 'player' | 'npc' | 'thing';
 }
 
 /**
@@ -2132,7 +2293,206 @@ export interface ConsoleTab {
   name: string;
   /** Leaf topic strings the tab suppresses. */
   muted: string[];
+  /**
+   * ⭐⭐ The tab's standing **facet predicate** — its filter set.
+   *
+   * A tab IS a saved filter set, which is why this upgraded the
+   * existing primitive rather than adding a third. `muted` stays
+   * beside it and neither replaces the other: facets fix cross-cutting
+   * questions (*everything that matters*), and only the topic TREE
+   * fixes subtree mutes (*everything about the air in here*), which is
+   * a prefix operation no facet can express.
+   */
+  facets?: FacetFilter;
 }
+
+/**
+ * ⭐ A standing predicate over topic FACETS.
+ *
+ * **Within an axis, OR; across axes, AND; an absent axis means any.**
+ * That is the whole grammar, and it is enough: *"quiet"* is
+ * `weight: ['consequence','activity']` — **one rule**, where the same
+ * filter as topic strings is a list of sixty paths that drifts every
+ * time a topic is added, silently.
+ *
+ * This is the payoff the S2 facet taxonomy was built for. The facet
+ * names here are the shipped ones, verified against the corpus rather
+ * than taken from the reference art (which predates it) — they agree.
+ */
+export interface FacetFilter {
+  address?: TopicAddress[];
+  actor?: TopicActor[];
+  weight?: TopicWeight[];
+  /**
+   * Topic-prefix ALLOWLIST — `['speech.channel']` passes
+   * `speech.channel` and anything under it.
+   *
+   * ⚠⚠ **Facets cannot express every filter worth having, and the
+   * `Aether` preset is the proof.** *Talking out loud in a room* and
+   * *talking on a channel* carry **identical facets** — both
+   * `address: broadcast, actor: person` — so no combination of the
+   * three axes separates the room from the network. A preset that
+   * means "the electronic layer" has to name topics.
+   *
+   * This is the include direction of the tree half the model already
+   * had: `ConsoleTab.muted` is the same operation pointed the other
+   * way. Facets stay the default because they do not drift when a
+   * topic is added; this is for the cases where the facet space is
+   * genuinely not fine-grained enough.
+   */
+  topics?: string[];
+}
+
+/**
+ * A named view — a predicate over the frame buffer, with a label.
+ *
+ * ⚠⚠ **There is no such thing as a "preset" here, and that is the
+ * point.** `DEFAULT_VIEWS` below is the set a player STARTS with;
+ * the moment it is seeded into `console.tabs` it is ordinary player
+ * data, editable and deletable like anything they compose themselves.
+ * A shipped view the player could not touch, sitting in the same strip
+ * as one they could, is two mechanisms wearing one costume — which is
+ * exactly how it was reported: *"'forge watch' I can edit but aether
+ * and diag I can't? I thought a filter was a filter."*
+ */
+export interface ViewDefinition {
+  name: string;
+  filter: FacetFilter;
+  /** One line saying what it does, shown beside the chip. */
+  note: string;
+}
+
+/**
+ * The four presets.
+ *
+ * ⚠ Exported from here so the panel and any future server-side reader
+ * (a `filter` verb) cannot drift — the `DEFAULT_SHELF` precedent.
+ */
+export const DEFAULT_VIEWS: readonly ViewDefinition[] = [
+  {
+    name: 'Aether',
+    /*
+     * ⚠ Topics, not facets, and not by choice — see `FacetFilter.topics`.
+     * `speech.vocal` is facet-identical to `speech.channel`, so a facet
+     * rule for "the electronic layer" would drag the room in with it,
+     * which is the exact opposite of what the word means.
+     *
+     * `speech.relay` is in because stream chat forwarded into the world
+     * is chat: it arrives over the network and nobody in the room hears
+     * it.
+     */
+    filter: { topics: ['speech.comms', 'speech.channel', 'speech.relay'] },
+    note: 'dms and chat — what reaches you over the network',
+  },
+];
+
+/**
+ * The unfiltered view, and it is **not** one of the above.
+ *
+ * ⚠⚠ `All` is the ABSENCE of a filter, not a filter that happens to
+ * pass everything — which is why it is locked rather than merely
+ * privileged. There is nothing in it to edit (the predicate is empty by
+ * definition), and it is what guarantees the player can always get back
+ * to seeing everything, so there is nothing to delete either.
+ *
+ * It is therefore not stored in `console.tabs` at all. A locked ROW in
+ * a list of editable rows would be a special case; a structural first
+ * entry that is simply a different thing is not.
+ */
+export const ALL_VIEW = 'All';
+
+// ============================================================================
+// Feed routing — one stream, several destinations
+// ============================================================================
+
+/**
+ * Where a frame can land.
+ *
+ * A closed set, exported so the server's evaluator and the client's tab
+ * strip cannot drift — the `TOPIC_ROOTS` precedent. A fifth destination
+ * is a deliberate edit here, not something a rule can invent.
+ */
+export type FeedDestination =
+  | 'world'
+  | 'attention'
+  | 'channels'
+  | 'diagnostics';
+
+export const FEED_DESTINATIONS: readonly FeedDestination[] = [
+  'world',
+  'attention',
+  'channels',
+  'diagnostics',
+];
+
+/**
+ * What a rule does once it matches.
+ *
+ * - `move` — routes here and **stops**; later rules never see the frame.
+ * - `copy` — routes here and **keeps going**, which is how a tell
+ *   reaches Attention *and* still lands in World.
+ */
+export type FeedDisposition = 'move' | 'copy';
+
+/**
+ * ⭐ **A predicate over the frame's FACETS, not over topic strings.**
+ *
+ * This is why the S2 facet work exists. `weight = diagnostic` is one
+ * rule; the same rule expressed as topic paths is a list of sixty that
+ * drifts every time a topic is added, and the drift is silent.
+ *
+ * Every field present must match (AND). `topic` is the one tree
+ * operation — an exact leaf, or a `*`-suffixed prefix, because subtree
+ * containment is what the tree is FOR and no facet can express it.
+ *
+ * An empty predicate matches everything: that is the catch-all.
+ */
+export interface FeedPredicate {
+  address?: TopicAddress;
+  actor?: TopicActor;
+  weight?: TopicWeight;
+  /** `'speech.channel'` or `'speech.*'`. */
+  topic?: string;
+}
+
+/** One ordered routing rule. */
+export interface RoutingRule {
+  when: FeedPredicate;
+  to: FeedDestination;
+  disposition: FeedDisposition;
+}
+
+/**
+ * ⚠⚠ **The last rule is a catch-all and cannot be deleted.**
+ *
+ * Every frame must land somewhere. Without one, a mistyped predicate
+ * silently drops output — and *in a world where a frame can be "you are
+ * on fire", a lost message is not a cosmetic bug.* The client states
+ * that reason where the rule is, rather than in a doc nobody reading
+ * the table will open.
+ *
+ * It is appended by the evaluator rather than stored, so it cannot be
+ * edited away by writing the clientState key directly.
+ */
+export const CATCH_ALL_RULE: RoutingRule = {
+  when: {},
+  to: 'world',
+  disposition: 'move',
+};
+
+/**
+ * The routing table a player starts with.
+ *
+ * ⚠⚠ **Copy-to-Attention ships ON.** On a desktop it is a convenience —
+ * the frame is visible in World anyway. On a phone World may not be the
+ * feed you are looking at, so it stops being a convenience and becomes
+ * the safety net; turning it off has to state what it costs.
+ */
+export const DEFAULT_ROUTING: readonly RoutingRule[] = [
+  { when: { weight: 'diagnostic' }, to: 'diagnostics', disposition: 'move' },
+  { when: { topic: 'speech.channel' }, to: 'channels', disposition: 'move' },
+  { when: { address: 'direct' }, to: 'attention', disposition: 'copy' },
+];
 
 /**
  * The cockpit layout vocabulary — the server-authoritative axis on the
@@ -2231,6 +2591,29 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
   watch: ["viewer", "streamer"],
   build: ["default"],
   govern: ["default"],
+};
+
+/**
+ * ⭐ The panes a SHIPPED arrangement opens.
+ *
+ * A saved arrangement carries its own `panes` (that is what `cockpit
+ * layout save` records). A shipped one has no stored spec, so this is
+ * what it resolves to.
+ *
+ * ⚠ Sparse on purpose. Only `play` opens a pane today, because only
+ * `play` has one the client actually opens — `Panes.ts`' own rule.
+ * `chat`, `watch`, `build` and `govern` get their panes from the waves
+ * that build their surfaces (forums, livestream, the CMS), and
+ * pre-filling them here would be sizing a vocabulary to a mockup.
+ */
+export const SHIPPED_ARRANGEMENT_PANES: Readonly<
+  Record<CockpitMode, readonly PaneId[]>
+> = {
+  chat: [],
+  play: ['place'],
+  watch: [],
+  build: [],
+  govern: [],
 };
 
 /**
@@ -2406,6 +2789,90 @@ export interface ConnectionEstablishedPayload {
    * when nothing is published.
    */
   releaseWindow: ReleaseRow[];
+  /**
+   * ⭐⭐ **The record layer's backfill — the frames the server retained
+   * for this player, oldest→newest.**
+   *
+   * Before this existed the client buffer was the ONLY copy of your
+   * scrollback: clearing site data destroyed it and a second device
+   * started empty. After it, the buffer is a **cache** over a
+   * server-side rolling window.
+   *
+   * ⚠ **This changes the meaning of an existing behaviour** rather than
+   * adding one — `clearFrames` on disconnect stops being a data
+   * question. The old path is deliberately left in place until the
+   * backfill has been driven live.
+   *
+   * Absent when the store is empty or unreachable; the client renders
+   * whatever arrives and never invents a frame.
+   */
+  frameBackfill?: StoredFrameRecord[];
+}
+
+// ============================================================================
+// The record layer — what the server remembers for you
+// ============================================================================
+
+/**
+ * One retained frame in a player's record.
+ *
+ * ⚠ **Deliberately a projection of `MessageFrame`, not the frame
+ * itself.** `meta.frameId` is stamped per-Interactive at send time, so
+ * the same logical frame multiplexed to two devices carries two of
+ * them; storing one would make the record a statement about a socket
+ * rather than about the player. `payload` is likewise absent — it is
+ * per-topic structured data whose consumers are live surfaces
+ * (subscriptions, rosters, feeds) that re-resolve on connect anyway,
+ * and carrying it would make the highest-volume write in the system
+ * unbounded in row size.
+ */
+export interface StoredFrameRecord {
+  /** The frame's own id, as delivered. */
+  id: string;
+  topic: string;
+  /** The MML body, verbatim — the client re-renders it unchanged. */
+  body: string;
+  tags?: string[];
+  /** `meta.timestamp` of the delivered frame. */
+  at: number;
+  /**
+   * Per-owner monotonic order key.
+   *
+   * ⚠ Ordering is NOT by `at`: two frames composed in the same
+   * millisecond are common (a scene fans several at once) and a
+   * timestamp sort would shuffle them. `seq` is also what eviction
+   * deletes on, so the window bound is one indexed range delete.
+   */
+  seq: number;
+}
+
+/** The corpora `recall` searches. Scope is an argument, not a verb. */
+export type RecallScope = 'frames' | 'wiki' | 'forums';
+
+/**
+ * The closed scope list, exported for the same reason `TOPIC_ROOTS` is:
+ * the verb's validator and any client affordance must not drift.
+ */
+export const RECALL_SCOPES: readonly RecallScope[] = [
+  'frames',
+  'wiki',
+  'forums',
+];
+
+/** One `recall` hit, already shaped for display. */
+export interface RecallHit {
+  scope: RecallScope;
+  /** What the hit is called — a topic label, a page title, a thread title. */
+  title: string;
+  /** The matching text, plain (never MML — `recall` output is quoted). */
+  excerpt: string;
+  /**
+   * The command that opens the hit, when one exists. Absent for a frame
+   * (scrollback has no address); present for a wiki page or a thread.
+   */
+  command?: string;
+  /** When it happened / was last edited. */
+  at?: number;
 }
 
 /**

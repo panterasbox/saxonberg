@@ -107,6 +107,35 @@ export class CommandDefinition {
   public _resolvedValidators?: CommandValidator[];
   public readonly filePath: string;
 
+  /**
+   * ⭐ The verb's **category** — the directory its spec lives in.
+   *
+   * Derived rather than declared, because it already is: a spec at
+   * `mud/cmd/<category>/<verb>.yaml` states its category by where it
+   * sits, and a second `category:` key in the YAML would be a fact
+   * expressible two ways and therefore a fact two authors can disagree
+   * about.
+   *
+   * The affordance radial reads this and nothing else does. Geometry
+   * is fixed per category and must never reflow to fit the verbs a
+   * particular object happens to afford — muscle memory across objects
+   * is the entire point of a radial, and a menu that rearranges itself
+   * has none.
+   *
+   * ⚠ A **domain-local** verb (`domain/<sphere>/<locality>/cmd/…`)
+   * reports `'domain'`. Its category is its content, not one of the
+   * core ones, and forcing it into `perception` or `device` would put
+   * a locality's private verb in a slot the player's muscle memory has
+   * assigned to something else.
+   */
+  public get category(): string {
+    const parts = this.filePath.replace(/\\/g, '/').split('/');
+    if (parts.includes('domain')) return 'domain';
+    // …/cmd/<category>/<verb>.yaml → the segment before the file.
+    const dir = parts[parts.length - 2];
+    return dir && dir !== 'cmd' ? dir : 'system';
+  }
+
   private constructor(view: CommandView, filePath: string) {
     this.verbs = view.verbs || [];
     this.controller = view.controller;

@@ -47,6 +47,15 @@ export type HookOperation = 'save' | 'delete';
 export interface FindOptions {
   sort?: Record<string, 1 | -1>;
   limit?: number;
+  /**
+   * Rows to skip before the first returned one.
+   *
+   * Added for the record layer's window trim, which asks a question no
+   * other caller has: *what is the sequence number of my Nth-newest
+   * row?* — one indexed lookup that turns "keep the newest N" into a
+   * single range delete instead of a count-and-scan.
+   */
+  skip?: number;
 }
 
 /**
@@ -144,6 +153,12 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.AuthoringEvents]: { verb: 'pass', mark: true },
   [Collections.AccountabilityEvents]: { verb: 'pass', mark: true },
   [Collections.Diagnostics]: { verb: 'pass', mark: true },
+  // The frame store is *what happened to you* — the epistemic shape
+  // exactly. A frame delivered inside a circle was genuinely delivered
+  // and genuinely read; STAMP would revert your own scrollback out from
+  // under you on exit, which is the one thing a record of what you were
+  // told must never do. MARK records that it happened in-circle.
+  [Collections.PlayerFrames]: { verb: 'pass', mark: true },
   // ── PASS(unmarked): authored truth + the mechanism's own stores ──
   [Collections.Domain]: { verb: 'pass' },
   [Collections.Documents]: { verb: 'pass' },
@@ -524,6 +539,7 @@ export class PersistenceManager {
       const filtered = this.composeScopeReadFilter(collectionName, query);
       let cursor = collection.find(filtered);
       if (options?.sort) cursor = cursor.sort(options.sort);
+      if (options?.skip != null) cursor = cursor.skip(options.skip);
       if (options?.limit != null) cursor = cursor.limit(options.limit);
       const docs = await cursor.toArray();
 
@@ -942,8 +958,66 @@ export class PersistenceManager {
   }
 
   /**
+   * Create ONE text index, replacing a differently-shaped one.
+   *
+   * ⚠⚠ **Mongo allows exactly one text index per collection**, and
+   * `createIndex` on a second SHAPE does not merge or no-op — it throws
+   * `CannotCreateIndex`, which (before the per-index isolation below)
+   * aborted every remaining index in the whole boot.
+   *
+   * Found by driving: a dev database carrying an older `{body:'text'}`
+   * on `player_frames` rejected the compound `{owner:1, body:'text'}`,
+   * and the failure was survivable-looking — the server booted, and
+   * `recall` quietly fell back to its bounded scan **forever**. A search
+   * that silently stops using its index is exactly the kind of
+   * degradation nothing complains about.
+   *
+   * ⭐ Dropping and recreating is safe here in a way it would not be for
+   * a unique or a TTL index: a text index is a pure derived structure
+   * over data that is still there, so the rebuild costs time and
+   * nothing else.
+   */
+  private async ensureTextIndex(
+    collection: string,
+    spec: Record<string, 1 | -1 | 'text'>
+  ): Promise<void> {
+    const coll = this.getCollection(collection);
+    try {
+      await coll.createIndex(spec);
+      return;
+    } catch (error) {
+      const code = (error as { code?: number }).code;
+      // 67 CannotCreateIndex (a second text index) / 85
+      // IndexOptionsConflict (same name, different shape).
+      if (code !== 67 && code !== 85) throw error;
+    }
+    const existing = await coll.indexes();
+    for (const index of existing) {
+      const isText = Object.values(index.key ?? {}).includes('text');
+      if (!isText || !index.name) continue;
+      console.warn(
+        `PersistenceManager: replacing text index '${index.name}' on ` +
+          `${collection} — its shape no longer matches what the code asks ` +
+          `for, and a stale one makes every text query silently fall back.`
+      );
+      await coll.dropIndex(index.name);
+    }
+    await coll.createIndex(spec);
+  }
+
+  /**
    * Create indexes for collections.
    * Called during connection setup.
+   *
+   * ⚠⚠ **Every index is attempted independently.** This used to be one
+   * `try` around the whole list, so the FIRST failure skipped every
+   * index after it — and the log said "Error creating indexes" once,
+   * which reads like one index failed rather than forty. Found by
+   * driving: a text-index conflict on `player_frames` silently skipped
+   * the wiki index, the forum index and every sandbox partial index
+   * below it. Indexes are optional for correctness and load-bearing for
+   * speed, which is precisely the combination that makes a silent skip
+   * survive.
    */
   private async createIndexes(): Promise<void> {
     try {
@@ -1433,20 +1507,83 @@ export class PersistenceManager {
         author: 1,
       });
 
+      // Player frames: the record layer's rolling window. `{owner, seq}`
+      // is the load-bearing one — it serves the backfill read (newest N
+      // for one owner), the `recall` scan, AND the eviction delete
+      // (`seq <= high - window`), which is why the window bound costs one
+      // indexed range delete rather than a count-and-scan. The TEXT index
+      // is what makes `recall` a query instead of a regex crawl.
+      await this.getCollection(Collections.PlayerFrames).createIndex({
+        owner: 1,
+        seq: -1,
+      });
+      // ⚠ The text index is COMPOUND on `owner` first. Mongo allows one
+      // text index per collection, and an equality prefix is the only
+      // way a per-owner text search uses it — a bare `{body:'text'}`
+      // would scan every player's frames and filter afterwards, which
+      // on the highest-volume collection in the system is the whole
+      // difference between a query and a crawl.
+      //
+      // ⚠⚠ The three text indexes and the sandbox partials below sit in
+      // their OWN try, because they are last in the list and a failure
+      // anywhere above would otherwise skip them silently — which is
+      // exactly what happened when a stale text index was found by
+      // driving. Per-index isolation for all 80-odd would be a large
+      // mechanical rewrite; guarding the tail is the proportionate
+      // half, and the catch below now says what a failure costs.
+      try {
+        await this.ensureTextIndex(Collections.PlayerFrames, {
+          owner: 1,
+          body: 'text',
+        });
+
+      // Wiki + forum text indexes — the other two `recall` corpora.
+      // Mongo allows exactly ONE text index per collection, so each is a
+      // compound over every field the verb searches.
+        await this.ensureTextIndex(Collections.Wiki, {
+          title: 'text',
+          body: 'text',
+        });
+        await this.ensureTextIndex(Collections.ForumEntries, {
+          title: 'text',
+          body: 'text',
+        });
+
       // Sandbox: partial circleScope index on every STAMP collection —
       // serves circle-side $or reads and exit's deleteMany({circleScope})
       // while costing nothing for the (overwhelming) unscoped majority.
       // Partial beats sparse: same storage win, clearer semantics.
-      for (const stampCollection of STAMP_COLLECTIONS) {
-        await this.getCollection(stampCollection).createIndex(
-          { circleScope: 1 },
-          { partialFilterExpression: { circleScope: { $exists: true } } }
+        for (const stampCollection of STAMP_COLLECTIONS) {
+          await this.getCollection(stampCollection).createIndex(
+            { circleScope: 1 },
+            { partialFilterExpression: { circleScope: { $exists: true } } }
+          );
+        }
+      } catch (error) {
+        // Loud and specific: a text/partial index that fails to build
+        // makes `recall` and the circle-scoped reads fall back to a
+        // scan, which is slow rather than wrong — the shape of failure
+        // nobody notices until the data is large.
+        console.error(
+          'PersistenceManager: search / sandbox indexes NOT built — ' +
+            'text queries and circle-scoped reads will fall back to a ' +
+            'collection scan:',
+          error
         );
       }
 
       console.info('PersistenceManager: Indexes created successfully');
     } catch (error) {
-      console.error('PersistenceManager: Error creating indexes:', error);
+      // ⚠⚠ Everything AFTER the failing index is skipped. Worth saying
+      // out loud: the old message read like one index failed, and the
+      // real cost is every index below it — found by driving, when a
+      // stale text index quietly took the wiki index, the forum index
+      // and every sandbox partial with it.
+      console.error(
+        'PersistenceManager: index creation stopped at the first failure ' +
+          '— every index declared after it was SKIPPED:',
+        error
+      );
       // Don't throw - indexes are optional for basic functionality
     }
   }

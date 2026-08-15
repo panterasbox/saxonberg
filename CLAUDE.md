@@ -80,6 +80,7 @@ behavior. Read the relevant doc before editing in its area.
   of truth for its area — read it before editing. Map entries are ONE-LINE pointers by design — a build that grows a subsystem expands the DOC, never this blurb.
   - [templates.md](./docs/subsystems/templates.md) — clone pipeline, Hydrator, TemplateApi, folder/leaf invariant
   - [persistence.md](./docs/subsystems/persistence.md) — Document vs Templates→Stuff, PersistenceManager, hooks; the self-persistence spine (PersistableMixin → `holder_snapshots`)
+  - [record-layer.md](./docs/subsystems/record-layer.md) — what the server remembers for you: the per-player frame store, `recall` over three corpora, the nightly reset policy
   - [lifecycle.md](./docs/subsystems/lifecycle.md) — create/destroy choreography, construction sentinel, onDestruct
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
@@ -309,12 +310,25 @@ and the launch aborts rather than starting into `EADDRINUSE`.
 
 ```bash
 pnpm build            # pnpm -r build
-pnpm test             # all tests (Vitest) — ONE full run per build
+pnpm test             # all tests (Vitest) — ~15 MIN. ONE full run per build
 pnpm test:near        # only the tests beside what you changed (fast loop)
 pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
 ```
+
+⚠⚠ **`pnpm test` costs ~15 minutes, and a green run stays valid until a
+SOURCE file changes.** Before starting one, check — do not assume that
+"about to commit" is a reason:
+
+```bash
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+```
+
+Empty means the last run still stands: cite its number and move on.
+`pnpm test:near` stays reflexive — it is the full suite that is
+expensive, not the habit of checking. And a narrowed run is not a full
+run: never report `test:near` green as though the suite passed.
 
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
@@ -975,6 +989,7 @@ side — `backend/PersistenceManager` re-exports it).
 - `chattel` / `chattel_events` — per-instance ownership row + chain-of-title (chattel.md)
 - `diagnostics` — the author-diagnostics store, TTL-rotated (diagnostics.md)
 - `holder_snapshots` — the self-persistence spine's records; written only by the gated PersistableLogic (persistence.md)
+- `player_frames` — the per-player rolling window of delivered frames; owner-only reads, lazy oldest-first eviction (record-layer.md)
 - `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
 - `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
 - `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)

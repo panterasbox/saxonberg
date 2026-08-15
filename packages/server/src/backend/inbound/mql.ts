@@ -41,6 +41,14 @@ export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
     interactive: ctx.interactive,
     subscriptionId: payload.subscriptionId,
     pane: named ? payload.pane : undefined,
+    // ⚠ A subject is only meaningful on a NAMED pane — the catalogue's
+    // query is the only string with a `$subject` slot in it. Threaded
+    // as a raw string; the registry validates its shape, because that
+    // is where the substitution happens and a check far from the
+    // substitution is a check that drifts from it.
+    subject: named && typeof payload.subject === 'string'
+      ? payload.subject
+      : undefined,
     query: payload.query,
     cardinality: payload.cardinality,
     fields: payload.fields,

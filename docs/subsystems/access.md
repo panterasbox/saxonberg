@@ -15,6 +15,30 @@ the only legitimate calling path is through the Api — external code
 that grabs the Registry instance via `StuffApi.findByTemplatePath`
 gets a reference but `SecurityError` thrown on any method call.
 
+## ⚠⚠ Every predicate fails CLOSED when the Registry is absent
+
+`lookupRegistry()` returns null before `/obj/AccessRegistry` is
+registered — during early boot, and in any test that does not stand one
+up. Five predicates (`can`, `canMutateZone`, `isWizard`, `isStreamer`,
+`isArchwizard`) used to answer **`true`** in that window, undocumented,
+while `isAuthor` alone answered `false`.
+
+**A missing authority is not a grant.** `isWizard` is the code-trust
+axis — it gates `eval`, `reload`, source-tree writes and the executable
+code-naming fields on a content template — so an unanswerable question
+resolving to *yes* made the most dangerous door in the system the one
+that opened when the lock was missing.
+
+⚠ The cost is real, and it is why it was written the other way: a test
+that exercises a gated path must now stand up a Registry or stub the
+predicate. Closing it turned up **12 tests across three files** that
+were passing only because the gate was absent — clone placement,
+dorm provisioning and the release write transport. None was testing
+authorization; each now declares the permission answer it depends on, at
+its own setup, where a reader can see it. *A test that passed only
+because the gate was missing was not testing the gate.*
+
+
 ## The six axes
 
 The substrate ships six orthogonal predicates:

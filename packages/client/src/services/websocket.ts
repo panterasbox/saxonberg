@@ -44,6 +44,8 @@ import type {
   StuffDetailRecord,
   StuffRefRecord,
   WikiPageFrame,
+  AffordanceResultEnvelope,
+  AffordanceErrorEnvelope,
 } from "@saxonberg/types";
 import { INTENTIONAL_LEAVE_CLOSE_CODE } from "@saxonberg/types";
 import { nanoid } from "nanoid";
@@ -75,6 +77,16 @@ export interface MqlSubscribeSpec {
   query?: string;
   /** Required unless `pane` names one. */
   cardinality?: "one" | "many";
+  /**
+   * ⭐ The `stuffId` a **subject pane** (`agent` / `instrument` /
+   * `manifest`) is about.
+   *
+   * ⚠ An identity, not a query. The server substitutes it into its own
+   * `#<id>` seed; the client still holds no MQL. Worth saying because a
+   * parameter superficially resembles the hole the catalogue closes.
+   */
+  subject?: string;
+  /** Required unless `pane` names one. */
   fields?: string[] | "ref" | "detail";
   detailKey?: string;
   focusDependent?: boolean;
@@ -698,6 +710,12 @@ class WebSocketClient {
         // optionally carry a `prompt-refresh` Note.
         this.applyPromptSideEffects(envelope);
 
+        // Side-effect: cache the affordance answer. Both the radial and
+        // every pane body's composition chips read it, so it lands in
+        // the store rather than in a component — one answer, two
+        // consumers, and the chips cannot drift from the menu.
+        this.applyAffordanceSideEffects(envelope);
+
         const handlers = this.envelopeHandlers.get(envelope.type);
         if (handlers) {
           for (const handler of handlers) handler(envelope);
@@ -839,6 +857,31 @@ class WebSocketClient {
   }
 
   /**
+   * ⭐ Ask what this viewer can do with `stuffId`, right now.
+   *
+   * The radial's cold path, and the pane bodies' composition chips.
+   * Deduped against anything already in flight or already answered, so
+   * hovering a row repeatedly costs nothing; `clearAffordances` (fired
+   * on every command send) is what makes a stale answer impossible.
+   *
+   * ⚠ A **read**, never an authorization. A verb reported `enabled`
+   * still faces the full validator chain when it is actually run —
+   * nothing on this path may treat the answer as permission.
+   */
+  public resolveAffordances(stuffId: string): void {
+    if (!stuffId) return;
+    const state = useStore.getState();
+    if (state.affordances[stuffId]) return;
+    if (state.affordancePending[stuffId]) return;
+    if (state.affordanceUnresolvable[stuffId]) return;
+    state.markAffordancePending(stuffId);
+    this.send({
+      type: "affordance-resolve",
+      payload: { requestId: nanoid(), stuffId },
+    });
+  }
+
+  /**
    * Open a `forum-subscribe` watching a board's thread-list or a
    * thread's post-tree. Tracked locally + re-issued on reconnect, like
    * `subscribeMql`. Returns the subscriptionId.
@@ -887,6 +930,19 @@ class WebSocketClient {
     if (opts?.fields) payload.fields = opts.fields;
     if (opts?.barId !== undefined) payload.barId = opts.barId;
     this.send({ type: "command", payload });
+    /*
+     * ⚠ Drop every cached affordance answer. A command is the one thing
+     * that reliably moves the world, and a menu answering from before
+     * your last action is confidently wrong — the exact failure mode
+     * the `mx` composition digest was cut to avoid.
+     *
+     * Coarse deliberately: knowing WHICH subjects a command touched is
+     * a server semantic, and the client re-deriving it would be the
+     * same category error as the client deciding its own affordances.
+     * The cost of coarse is one round trip; the cost of clever is a
+     * stale menu that looks right.
+     */
+    useStore.getState().clearAffordances();
   }
 
   /**
@@ -901,6 +957,33 @@ class WebSocketClient {
    * PromptArea / CommandBar subscribe to the resulting state — the
    * websocket layer never talks to them directly.
    */
+  /**
+   * Land an `affordance-result` / `affordance-error` in the cache.
+   *
+   * ⚠ An error is cached as *unresolvable* rather than dropped. The
+   * server answers with **one** reason code deliberately — "no such
+   * object" and "you may not see it" are the same answer, because
+   * distinguishing them maps what is hidden nearby — so retrying would
+   * be a probe, and a retry loop over a hidden id is exactly the shape
+   * the single reason code exists to refuse.
+   */
+  private applyAffordanceSideEffects(envelope: Envelope): void {
+    if (envelope.type === "affordance-result") {
+      const env = envelope as AffordanceResultEnvelope;
+      useStore.getState().setAffordances({
+        stuffId: env.stuffId,
+        verbs: env.verbs,
+        composition: env.composition,
+        kind: env.kind,
+      });
+      return;
+    }
+    if (envelope.type === "affordance-error") {
+      const env = envelope as AffordanceErrorEnvelope;
+      useStore.getState().setAffordanceUnresolvable(env.stuffId);
+    }
+  }
+
   private applyPromptSideEffects(envelope: Envelope): void {
     if (envelope.type === "prompt") {
       this.handlePromptEnvelope(envelope as PromptEnvelope);
@@ -955,6 +1038,35 @@ class WebSocketClient {
    * dismissed branches.
    */
   private promptEntryFromNote(
+    promptId: string,
+    note: Note,
+  ): PromptEntry | null {
+    /*
+     * ⭐ Provenance rides every push-shape note, so it is spread in
+     * once here rather than repeated across six branches. Absent
+     * fields stay absent — a prompt pushed outside a command frame has
+     * no honest answer, and the UI hatches rather than guessing.
+     */
+    const asker = {
+      ...((note as { askedBy?: string }).askedBy !== undefined
+        ? { askedBy: (note as { askedBy?: string }).askedBy }
+        : {}),
+      ...((note as { askedByDescription?: string }).askedByDescription !==
+      undefined
+        ? {
+            askedByDescription: (note as { askedByDescription?: string })
+              .askedByDescription,
+          }
+        : {}),
+      ...((note as { askedAt?: number }).askedAt !== undefined
+        ? { askedAt: (note as { askedAt?: number }).askedAt }
+        : {}),
+    };
+    const entry = this.promptShapeFromNote(promptId, note);
+    return entry ? ({ ...entry, ...asker } as PromptEntry) : null;
+  }
+
+  private promptShapeFromNote(
     promptId: string,
     note: Note,
   ): PromptEntry | null {

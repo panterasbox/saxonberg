@@ -642,9 +642,25 @@ export const StartScreen: React.FC = () => {
       <Inner>
         <Panel>
           <PanelHeading>Sign in</PanelHeading>
+          {/*
+            ⚠⚠ **This sentence used to promise persistence, and the
+            promise became false the day the reset job shipped.**
+
+            It read: *"Your character, your record, and everything you
+            build persist to an account."* Under a nightly total wipe
+            that is the same class of defect as *"Sign in to save"* —
+            copy the player ACTS ON, believing their work is banked.
+
+            What is left is what remains true on every server: an
+            account is how you are the same person twice. Whether that
+            person's work survives the night is the RESET NOTICE's job,
+            in the right-hand column, and it says nothing at all unless
+            the server states a policy.
+          */}
           <PanelNote>
-            Your character, your record, and everything you build persist to
-            an account. One click — no password to make.
+            An account is how the world knows you are the same person
+            twice — your name, your characters, your standing. One click,
+            no password to make.
           </PanelNote>
 
           {PROVIDERS.map((p) =>
@@ -706,9 +722,18 @@ export const StartScreen: React.FC = () => {
             {facts.resetPolicy ? (
               <Fact>
                 <SectionLabel as="div">The world resets</SectionLabel>
+                {/*
+                  ⚠ The notice APPEARS with no client change — that is
+                  the mechanism Arrival shipped and it is untouched. What
+                  changed is the sentence: "Nothing survives to tomorrow
+                  yet" was written when nothing did, and the reset job
+                  ships with exactly one survivor. Naming it is the
+                  difference between a policy and a shrug.
+                */}
                 <div data-testid="reset-notice">
-                  {facts.resetPolicy}. Nothing survives to tomorrow yet — it
-                  means you can try anything.
+                  {facts.resetPolicy}. Published news survives; everything
+                  else — characters, standing, what you built — starts over.
+                  It means you can try anything.
                 </div>
               </Fact>
             ) : null}

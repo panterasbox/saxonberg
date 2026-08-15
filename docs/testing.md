@@ -31,6 +31,32 @@ The post-review and sweep runs are where the duplication is.
 the full lint/test/build runs once before merge; re-running it locally
 for a docs-only change is doing CI's job by hand.
 
+### ⚠⚠ A full run stays valid until SOURCE changes — check, don't re-run
+
+The most common waste is not a second run someone decided to do; it is
+a second run nobody thought about, because "am I about to commit?" felt
+like reason enough. It is not. **A green full run remains the answer
+until a source file changes.**
+
+Before starting `pnpm test`, answer one question mechanically:
+
+```bash
+# Has anything but docs changed since the last full run?
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+```
+
+Empty output means **the last run still stands — do not re-run it.**
+Say so, cite the number it gave, and move on. The same check applies to
+committed work: `git diff <last-full-run-sha>..HEAD --name-only` with
+the same filter.
+
+⚠ This is a rule about the FULL suite only. `pnpm test:near` is cheap
+and should stay reflexive — the cost being managed here is ~15 minutes
+of wall-clock, not the habit of checking your work.
+
+⚠ It cuts the other way too: **a run whose scope you narrowed is not a
+full run.** Do not report `test:near` green as though the suite passed.
+
 ⚠ A sweep that edits code is not docs-only, and *does* want the full
 run — the sweep is the last place a mechanical cleanup can quietly
 break something. Judge by what the sweep commit actually changed, not

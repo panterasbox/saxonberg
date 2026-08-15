@@ -1,3 +1,4 @@
+import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
@@ -7,7 +8,26 @@ import type {
 } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { websocketClient } from "../../services/websocket";
-import { InspectionPane } from "../InspectionPane";
+import {
+  InspectionPane,
+  useInspectionSubscriptions,
+} from "../InspectionPane";
+
+/**
+ * ⚠ The pane no longer opens its own subscriptions.
+ *
+ * They live in `useInspectionSubscriptions`, mounted by `PaneFeed` —
+ * because the pane now renders as a card that is SUPPRESSED when it
+ * would only repeat the PLACE card, and a component gated on a
+ * subscription's result cannot also be the thing that opens it. This
+ * harness is what `PaneFeed` does, so these tests keep exercising the
+ * real arrangement rather than one that no longer ships.
+ */
+function Harness(props: React.ComponentProps<typeof InspectionPane>) {
+  useInspectionSubscriptions();
+  return <InspectionPane {...props} />;
+}
+
 
 /**
  * Minimal mock WebSocket sufficient for the wire client's `send` +
@@ -110,7 +130,7 @@ describe("InspectionPane", () => {
   it("mounts with cleared body and a placeholder", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
 
     // Header shows the empty-focused fallback.
     expect(screen.getByText("nothing focused")).toBeDefined();
@@ -122,7 +142,7 @@ describe("InspectionPane", () => {
   it("subscribes to the focus + location queries on mount and unsubscribes on unmount", () => {
     const mock = attachMockWs();
     const onSend = vi.fn();
-    const { unmount } = render(<InspectionPane onSendCommand={onSend} />);
+    const { unmount } = render(<Harness onSendCommand={onSend} />);
 
     const subscribes = mock.sent.filter(
       (m) => (m as { type?: string }).type === "mql-subscribe"
@@ -156,7 +176,7 @@ describe("InspectionPane", () => {
   it("updates the header from the initial result envelope and auto-paints the body", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     const env: MqlSubscriptionResultEnvelope = {
@@ -187,7 +207,7 @@ describe("InspectionPane", () => {
   it("paints the body when the player issues `look`", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     deliver({
@@ -214,7 +234,7 @@ describe("InspectionPane", () => {
   it("patches the contents list in place from a delta while painted", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     deliver({
@@ -263,7 +283,7 @@ describe("InspectionPane", () => {
   it("renders a list when the result is multi-cardinality", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     deliver({
@@ -287,7 +307,7 @@ describe("InspectionPane", () => {
   it("Refresh button sends `look` through the command sink", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
 
     fireEvent.click(screen.getByLabelText("refresh pane"));
     expect(onSend).toHaveBeenCalledWith("look");
@@ -296,7 +316,7 @@ describe("InspectionPane", () => {
   it("placeholder click sends `look` through the command sink", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
 
     fireEvent.click(screen.getByLabelText("paint pane body"));
     expect(onSend).toHaveBeenCalledWith("look");
@@ -316,7 +336,7 @@ describe("InspectionPane", () => {
         { label: "counter", command: "look counter" },
       ],
     });
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
 
     fireEvent.click(screen.getByText("apple"));
     expect(onSend).toHaveBeenCalledWith("look apple");
@@ -333,7 +353,7 @@ describe("InspectionPane", () => {
       },
       paneBreadcrumbTrail: [],
     });
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
 
     // Root label uses the primaryKeyword for brevity + consistency
     // with the trail entries; the displayName ("the lobby") is the
@@ -345,7 +365,7 @@ describe("InspectionPane", () => {
   it("contents row click sends `look <primaryKeyword>` (fallback to displayName)", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     deliver({
@@ -379,7 +399,7 @@ describe("InspectionPane", () => {
   it("contents rows carry data-stuff-id (interactivity + styling double duty)", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     deliver({
@@ -408,7 +428,7 @@ describe("InspectionPane", () => {
   it("multi-focus rows carry data-stuff-id", () => {
     attachMockWs();
     const onSend = vi.fn();
-    render(<InspectionPane onSendCommand={onSend} />);
+    render(<Harness onSendCommand={onSend} />);
     const subId = currentSubscriptionId();
 
     deliver({
@@ -443,7 +463,7 @@ describe("InspectionPane", () => {
       paneBreadcrumbTrail: [],
     });
     render(
-      <InspectionPane onSendCommand={onSend} onCommandPreview={onPreview} />
+      <Harness onSendCommand={onSend} onCommandPreview={onPreview} />
     );
     const subId = currentSubscriptionId();
 

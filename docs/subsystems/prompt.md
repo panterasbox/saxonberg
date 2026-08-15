@@ -325,6 +325,64 @@ subscriptions — already in the Phase 3 cockpit plan. The prompt
 is for short stateful labels (focus, mode, posture, time-of-day)
 that don't fire often.
 
+## The prompt strip — one slot, three occupants
+
+In screen order: everything **waiting** sits above the input, the format
+bar describes what the slot shows at rest, and the input itself holds
+the **foreground** prompt when there is one.
+
+```
+WAITING  [CHOICE Tomas asks · true rim · 4m · background · waiting]
+         [MQL-MANY Guild dues vote · guild vote 14 · 22m · background]
+         one seizes input · the rest queue          [prompt cancel]
+prompt   here>   ⋯
+```
+
+⭐ **Only one seizes input.** `foreground: false` joins the stack without
+taking the slot, so a guild vote can arrive mid-forge and wait its turn
+rather than interrupting. Picking one from the strip swaps it into the
+slot; the rest keep waiting.
+
+⚠ **A prompt remembers who asked.** Every prompt is pushed from inside a
+running command, so the verb, its description and how long it has waited
+are all knowable at push time — they ride the envelope. That is what
+makes an abandoned prompt judgeable.
+
+### ⚠⚠ Two cancels, and they are different acts
+
+| Control | Verb | What dies |
+|---|---|---|
+| the `×` on a card | `prompt-cancel` | that one prompt |
+| `prompt cancel` on the strip | `prompt cancel` | all of them |
+
+**Cancelling is not dismissing a dialog.** It rejects the awaiting
+command with `PromptCancelledError` — so the card has to say *which
+command dies*: *"Cancelling abandons `true rim` — not just this card."*
+A control that silently killed a running command would be the worst
+kind of quiet.
+
+⚠ **Failure is not dismissal.** A validator returning a string emits
+`prompt-validation-failed` and the prompt stays alive. The UI must never
+clear the answer.
+
+## ⭐ A settled prompt wakes its pane
+
+`PromptLogic.cleanup` calls `MqlSubscriptionApi.notifyPromptSettled`.
+
+`HOLD_WAKES_ON` records that an `unanswered` pane needs no location
+dependency because *the prompt's own resolution is what wakes it* — this
+call is what makes that true. Before it, nothing poked the subscription
+registry when a prompt resolved, so an `unanswered` pane was
+**immortal**: the player answered and the card stayed.
+
+One known producer poking one known consumer, which is a method call
+rather than a broadcast.
+
+⚠ The regression test drives a **real** prompt rather than stubbing
+`isPending`. A stub would have satisfied the assertion while the actual
+wake path stayed broken — and a leaked spy between cases produces a
+false pass of exactly the bug the file exists to catch.
+
 ## Cardinality vocabulary
 
 The command-spec layer carries three optional knobs on `object` /

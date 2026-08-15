@@ -35,6 +35,11 @@ vi.mock('../services/websocket', () => ({
     unsubscribe: () => {},
     sendCommand: (text: string) => sent.push({ text }),
     reconnectNow: () => {},
+    // ⚠ The layout seeds the player's default views on mount, which
+    // persists them. A mock missing this method takes the whole
+    // component down with a TypeError that says nothing about chrome.
+    sendClientStateWrite: () => {},
+    resolveAffordances: () => {},
   },
 }));
 

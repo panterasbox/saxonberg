@@ -32,6 +32,8 @@ import { GroupApi } from '../api/group';
 import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
 import { ParcelApi } from '../api/parcel';
+import { CompactApi } from '../api/compact';
+import { Collections } from '../lib/persistence/Collections';
 import { Template } from '../lib/stuff/Template';
 import { Group } from '../lib/social/Group';
 import type { GroupRef } from '../lib/social/GroupProvider';
@@ -40,6 +42,15 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
 import FolderZone from './FolderZone';
 import Avatar from './Avatar';
+
+/**
+ * The one office that carries code trust. Named here rather than
+ * imported from the governance vocabulary so this module keeps its
+ * existing import surface; the key is asserted against `Office.byKey`
+ * by the test beside it, so a rename cannot leave this pointing at
+ * nothing.
+ */
+const PRIME_MINISTER = 'prime-minister';
 
 const AccessRegistryBase = PostRegistrationMixin(Idea);
 
@@ -186,7 +197,8 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const cache = await this.ensureWizardCache();
-    return cache.has(memberKey);
+    if (cache.has(memberKey)) return true;
+    return this.holdsPrimeMinister(subject);
   }
 
   /**
@@ -218,7 +230,43 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const cache = await this.ensureArchwizardCache();
-    return cache.has(memberKey);
+    if (cache.has(memberKey)) return true;
+    return this.holdsPrimeMinister(subject);
+  }
+
+  /**
+   * ⭐⭐ **The backstop: whoever holds the Prime Minister's office is a
+   * wizard and an archwizard, derived — never stored.**
+   *
+   * The world ships with NO wizards and no seeded operator identities.
+   * There is exactly one credential anywhere in the system — the
+   * founder's provider id, read by `OfficeRegistry` — and it does one
+   * thing: it makes the founder the DEFAULT HOLDER of the offices until
+   * somebody is seated explicitly. Everything downstream of that is
+   * playerIds.
+   *
+   * ⚠⚠ **Derived is the whole point.** A stored grant survives the
+   * handoff that was supposed to end it: hand the office on and the old
+   * holder keeps code trust, silently, because a group row outlives the
+   * seat. Asking the office each time means authority follows the seat
+   * in both directions, which is the codebase's own rule — *check
+   * offices, never the founder.*
+   *
+   * ⚠ It is a floor, not a ceiling: an explicit `wizards` membership
+   * still stands on its own, and the group cache is consulted FIRST so
+   * an ordinary wizard costs no office read. The cost of this path is
+   * one indexed lookup on the refusal branch, which is what
+   * `OfficeRegistry` already does per check by design.
+   */
+  private async holdsPrimeMinister(subject: Stuff): Promise<boolean> {
+    try {
+      return await CompactApi.holdsOffice(subject, PRIME_MINISTER);
+    } catch {
+      // ⚠ Fail CLOSED and stay quiet. This is a backstop on top of the
+      // ordinary group answer, so a governance substrate that is not up
+      // yet must not turn a plain "no" into a throw at a security gate.
+      return false;
+    }
   }
 
   /**
@@ -451,6 +499,40 @@ export default class AccessRegistry extends AccessRegistryBase {
     });
     this.archwizardCacheCancel = handle?.cancel ?? null;
     return cache;
+  }
+
+  /**
+   * ⭐⭐ **Re-establish the system groups after they have been deleted.**
+   *
+   * The nightly reset wipes `groups`, and the system groups (`core`,
+   * `wizards`, `archwizards`, `streamers`) live there beside the player
+   * ones. They are minted in CODE rather than by a seed file — and the
+   * seeder is insert-only and runs at boot — so without this the world
+   * would come back every morning with no `core` group at all, every
+   * `can` read failing closed, and the founder locked out of a running
+   * process until somebody restarted it.
+   *
+   * ⚠ The cached refs are dropped FIRST. They hold `managed:<_id>`
+   * strings pointing at rows the wipe just deleted; re-seeding without
+   * clearing them mints new groups that nothing ever consults, which
+   * reads exactly like the feature working.
+   *
+   * ⚠ This restores the GROUPS, not the founder's membership of them.
+   * `WIZARD_PLAYER_IDS` names character ids, and a wipe takes the
+   * characters — see `AccessApi.reseedSystemGroups` for the honest
+   * limit and what actually closes it.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async reseedSystemGroups(): Promise<void> {
+    this.cachedCoreRef = null;
+    this.cachedWizardsRef = null;
+    this.cachedStreamersRef = null;
+    this.cachedArchwizardsRef = null;
+    this.cachedWizardPlayerIds = null;
+    this.cachedStreamerPlayerIds = null;
+    this.cachedArchwizardPlayerIds = null;
+    this.cachedAuthorGroups = null;
+    await this.postRegister();
   }
 
   // ── Seeding (idempotent; called from postRegister) ──

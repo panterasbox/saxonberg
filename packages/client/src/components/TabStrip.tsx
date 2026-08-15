@@ -14,15 +14,37 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { tokens } from './ui';
 import { useStore } from '../store/index';
-import type { ConsoleTab } from '@saxonberg/types';
+import { ALL_VIEW, DEFAULT_VIEWS } from '@saxonberg/types';
+import type { ConsoleTab, FacetFilter } from '@saxonberg/types';
+import { facetFilterPasses } from './FacetFilterPanel';
 import {
   addTab,
   deleteTab,
   renameTab,
+  saveFilterSetAsTab,
   setActiveTab,
 } from '../store/consoleActions';
 
 const ALL_TAB = 'All';
+
+/** A control that rides inside a tab — edit, delete. */
+const TabAction = styled.span`
+  margin-left: ${tokens.space.xs};
+  padding: 0 0.15rem;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fg};
+  }
+`;
+
+const TabCount = styled.span`
+  margin-left: ${tokens.space.xs};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgMuted};
+`;
 
 const Strip = styled.div`
   display: flex;
@@ -151,9 +173,46 @@ const ConfirmButton = styled.button`
 
 interface TabStripProps {
   onToggleDrawer?: () => void;
+  /**
+   * Show the shipped presets only — no create, no rename, no delete, no
+   * filter drawer.
+   *
+   * ⚠ The custom-tab machinery is still here and still works; it is
+   * simply not what belongs on the play surface. Reported from a real
+   * login: *"there's a settings thing but what am I setting? … it's not
+   * obvious that I have to go back after hitting + to set my filters."*
+   * A control whose effect you can only discover by leaving it and
+   * coming back is not a control, and a player choosing what to read
+   * should not have to build a tab first.
+   */
+  presetsOnly?: boolean;
 }
 
-export function TabStrip({ onToggleDrawer }: TabStripProps = {}) {
+export function TabStrip({
+  onToggleDrawer,
+  presetsOnly = false,
+}: TabStripProps = {}) {
+  const frames = useStore((s) => s.frames);
+  const getTopicDescriptor = useStore((s) => s.getTopicDescriptor);
+  /**
+   * The one-line hint, for views that arrived with one.
+   *
+   * ⚠ A hint, not a marker of a category. A view the player renames or
+   * composes simply has none, and nothing about the tab looks different
+   * for it.
+   */
+  const noteFor = (name: string): string | undefined =>
+    DEFAULT_VIEWS.find((v) => v.name === name)?.note;
+  const countFor = (filter: FacetFilter): number =>
+    frames.filter((f) => {
+      const d = getTopicDescriptor(f.topic);
+      return facetFilterPasses(filter, {
+        address: d.address,
+        actor: d.actor,
+        weight: d.weight,
+        topic: f.topic,
+      });
+    }).length;
   const clientState = useStore((s) => s.clientState);
   const tabs = (clientState['console.tabs'] as ConsoleTab[] | undefined) ?? [
     { name: ALL_TAB, muted: [] },
@@ -208,6 +267,29 @@ export function TabStrip({ onToggleDrawer }: TabStripProps = {}) {
     setEditValue('');
   }
 
+  /**
+   * ⚠ Create AND activate AND open the editor, in one gesture.
+   *
+   * The old `+` made an empty tab and stopped, leaving the player to
+   * work out that they had to select it and then find a separate gear
+   * before it meant anything — reported as *"it's not obvious that I
+   * have to go back after hitting + to set my filters."* A control
+   * whose effect you can only discover by leaving it and coming back
+   * is not a control.
+   */
+  function commitNewView() {
+    if (pendingNew === null) return;
+    const name = editValue.trim();
+    setPendingNew(null);
+    setEditValue('');
+    if (!name) return;
+    // Upserts by name, and activates. A brand-new view starts empty —
+    // showing everything — so the editor opens on a view whose count
+    // matches `All`, and every narrowing is visible as it happens.
+    saveFilterSetAsTab(name, {});
+    onToggleDrawer?.();
+  }
+
   function cancelNew() {
     setPendingNew(null);
     setEditValue('');
@@ -231,6 +313,130 @@ export function TabStrip({ onToggleDrawer }: TabStripProps = {}) {
   function cancelRename() {
     setEditingName(null);
     setEditValue('');
+  }
+
+  if (presetsOnly) {
+    /*
+     * ⭐⭐ **One list, one mechanism.** Every tab here is a view the
+     * player owns: select it, edit it, rename it, delete it. Some of
+     * them arrived pre-made — that is the ONLY thing that was ever
+     * different about `All`, `Aether` and `Diag`, and after seeding it
+     * is not a difference at all.
+     *
+     * It shipped the other way for one pass: three shipped views that
+     * could not be touched, sitting in the same strip as one that
+     * could, and selecting a shipped one re-applied its filter from
+     * code so any edit vanished. Reported exactly as it looked —
+     * *"'forge watch' I can edit but aether and diag I can't? I thought
+     * a filter was a filter."*
+     */
+    return (
+      <Strip data-testid="tab-strip">
+        {/*
+          ⚠⚠ **`All` is not in `tabs`, and that is the encoding.**
+
+          It is the ABSENCE of a filter, not a filter that happens to
+          pass everything — so there is nothing in it to edit and
+          nothing to delete, and it carries no `⋯` or `×` for the same
+          reason a blank page has no undo. Storing it as a locked ROW
+          among editable rows would be a special case; a structural
+          first entry that is simply a different kind of thing is not.
+
+          It is also the floor: deleting your last view leaves this, so
+          the player can never end up with nowhere to look.
+        */}
+        <Tab
+          $active={active === ALL_VIEW}
+          data-testid={`tab-${ALL_VIEW}`}
+          title="Everything, unfiltered"
+          onClick={() => setActiveTab(ALL_VIEW)}
+        >
+          {ALL_VIEW}
+          <TabCount data-testid={`tab-count-${ALL_VIEW}`}>
+            {frames.length}
+          </TabCount>
+        </Tab>
+        {tabs
+          .filter((tab) => tab.name !== ALL_VIEW)
+          .map((tab) => (
+          <Tab
+            key={tab.name}
+            $active={tab.name === active}
+            data-testid={`tab-${tab.name}`}
+            title={noteFor(tab.name)}
+            onClick={() => setActiveTab(tab.name)}
+          >
+            {tab.name}
+            {/*
+              ⚠ **Derived at render, over the WHOLE buffer** — never
+              tracked beside it, and never counted from an
+              already-filtered list. That is also what makes a view
+              retroactive: the count and the contents are the same
+              predicate applied to the same frames, so changing a view
+              re-sorts your history instead of only affecting what
+              arrives next.
+            */}
+            <TabCount data-testid={`tab-count-${tab.name}`}>
+              {countFor(tab.facets ?? {})}
+            </TabCount>
+            {/*
+              ⭐ Edit and delete ride the ACTIVE view only. A row of
+              controls on every tab is noise; on the one you are looking
+              at they are exactly where you reach for them.
+            */}
+            {tab.name === active && onToggleDrawer && (
+              <TabAction
+                aria-label={`Edit ${tab.name}`}
+                data-testid={`tab-edit-${tab.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleDrawer();
+                }}
+              >
+                ⋯
+              </TabAction>
+            )}
+            {tab.name === active && (
+              <TabAction
+                aria-label={`Delete ${tab.name}`}
+                data-testid={`tab-delete-${tab.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTab(tab.name);
+                }}
+              >
+                ×
+              </TabAction>
+            )}
+          </Tab>
+        ))}
+        {pendingNew !== null ? (
+          <Tab $active={false} data-testid="tab-new-pending">
+            <NameInput
+              ref={editInputRef}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={commitNewView}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') commitNewView();
+                else if (e.key === 'Escape') cancelNew();
+              }}
+              placeholder="Name this view"
+              data-testid="tab-new-input"
+            />
+          </Tab>
+        ) : (
+          <PlusButton
+            onClick={startCreate}
+            aria-label="New view"
+            data-testid="tab-add"
+            title="Compose a view of your own"
+          >
+            +
+          </PlusButton>
+        )}
+      </Strip>
+    );
   }
 
   return (

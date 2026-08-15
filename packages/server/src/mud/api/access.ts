@@ -171,6 +171,20 @@ export class AccessApi {
   }
 
   /**
+   * ⭐⭐ **Re-establish the system groups after they have been deleted.**
+   *
+   * The nightly reset wipes `groups`, and the system groups (`core`,
+   * `wizards`, `archwizards`, `streamers`) live there beside the player
+   * ones. They are minted in CODE rather than by a seed file — and the
+   * seeder is insert-only and boot-only — so without this the world
+   * comes back with no `core` group at all, every resource-targeted
+   * `can` read failing closed, and no fix short of a restart.
+   */
+  public static async reseedSystemGroups(): Promise<void> {
+    await asAuthorityQuery(() => logic().reseedSystemGroups());
+  }
+
+  /**
    * Walk a source-tree path against the template tree
    * most-specific-first, returning the closest extant FolderZone
    * instance. Workspace controllers in source/mirror mode pass the

@@ -53,15 +53,30 @@ describe("consoleActions", () => {
     expect(sendSpy).not.toHaveBeenCalled();
   });
 
-  it("deleteTab is a no-op on 'All' (uncloseable invariant)", () => {
+  it("⚠⚠ refuses to delete `All` — it is the absence of a filter", () => {
+    /*
+     * Not a privileged view: `All` is not in this list at all. It is a
+     * structural entry in the strip meaning *no predicate*, so there is
+     * nothing here to remove — and nothing in it to edit either, which
+     * is why it carries no controls. A locked ROW among editable rows
+     * would be the special case; a different kind of thing is not.
+     */
     addTab("Other");
-    sendSpy.mockClear();
     deleteTab("All");
     const tabs = useStore.getState().clientState[
       "console.tabs"
     ] as { name: string }[];
-    expect(tabs.map((t) => t.name)).toContain("All");
-    expect(sendSpy).not.toHaveBeenCalled();
+    expect(tabs.map((t) => t.name)).toContain("Other");
+  });
+
+  it("⭐ deleting your last view is safe — `All` is the floor", () => {
+    // No re-seeding needed. Whatever the player removes, the unfiltered
+    // view is always in the strip, so they can never end up with
+    // nowhere to look.
+    addTab("Other");
+    setActiveTab("Other");
+    deleteTab("Other");
+    expect(getActiveTab()).toBe("All");
   });
 
   it("deleteTab removes a non-All tab and emits the wire write", () => {

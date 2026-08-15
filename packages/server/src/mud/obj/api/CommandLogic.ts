@@ -1698,6 +1698,7 @@ async function evaluateAffordance(
         description: cmd.description,
         state: 'pending-operand',
         operand: note.field,
+        category: cmd.category,
       };
     }
 
@@ -1706,6 +1707,7 @@ async function evaluateAffordance(
       description: cmd.description,
       state: 'disabled',
       reason: note?.detail ?? 'You cannot do that here.',
+      category: cmd.category,
     };
   }
 
@@ -1720,10 +1722,16 @@ async function evaluateAffordance(
       description: cmd.description,
       state: 'pending-operand',
       operand,
+      category: cmd.category,
     };
   }
 
-  return { verb, description: cmd.description, state: 'enabled' };
+  return {
+    verb,
+    description: cmd.description,
+    state: 'enabled',
+    category: cmd.category,
+  };
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */

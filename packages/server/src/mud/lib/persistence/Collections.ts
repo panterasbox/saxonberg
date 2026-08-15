@@ -75,5 +75,15 @@ export enum Collections {
   OfficeHolders = 'office_holders',
   Wiki = 'wiki',
   WikiRevisions = 'wiki_revisions',
+  /**
+   * The record layer's per-player frame store — a bounded rolling
+   * window of the frames each player was actually delivered.
+   *
+   * ⚠ Deliberately **not** an archive: a frame's value decays fast and
+   * its volume does not, so retention is a frame COUNT with oldest-first
+   * eviction rather than the mailbox model clips get. See
+   * docs/subsystems/record-layer.md.
+   */
+  PlayerFrames = 'player_frames',
 }
 

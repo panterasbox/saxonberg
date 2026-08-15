@@ -29,6 +29,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
+import { AccessApi } from '../../../../api/access';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))
@@ -104,6 +105,16 @@ describe('CloneController.execute — hydrate-first', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
+    /*
+     * ⚠ This file is about CLONE PLACEMENT, not authorization — so the
+     * permission answer is stubbed rather than assumed.
+     *
+     * It used to be assumed: `AccessApi.can` returned true whenever no
+     * `AccessRegistry` was registered, which is every test here. That
+     * fail-open is gone (a missing authority is not a grant), so the
+     * dependency is now declared where a reader can see it.
+     */
+    vi.spyOn(AccessApi, "can").mockResolvedValue(true);
   });
 
   afterEach(() => {
