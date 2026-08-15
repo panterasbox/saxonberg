@@ -612,12 +612,12 @@ Ordered so each ships independently. The handoff's build order is a good
 | ~~**0**~~ ✅ | **Shipped as S1** — the extended `<quantity>`, the five facets, ledger witnesses, and the live standing figures (Track C folded in). | done |
 | ~~**1**~~ ✅ | **Foundation — CLOSED 2026-08-12.** Civic tokens, four-voice type, the unbuilt-state convention (hatch / stamp / `╌╌`), global chrome desktop AND phone. **Shipped as three builds — see § 7.1.** | done |
 | ~~**2**~~ ✅ | **Arrival — SHIPPED 2026-08-13.** Front door, intake, character select, + mobile; the char-gen payload generalized; account-level Make standing. ⚠ **The lounge is CUT** — see § 7.2. | done |
-| **2.5** | ⭐ **The read surfaces** — one SERVER build batching every remaining endpoint the 23 screens need, so waves 4/6/7 are pure client. See § 7.2. | 2 |
+| ~~**2.5**~~ ✅ | **The read surfaces — SHIPPED 2026-08-15 (MR !195)**, with Wave 4 in one branch. The record layer (per-player frame store, `recall`, the nightly reset), the pane catalogue's remaining entries, `prompt.format` rendering. See [record-layer.md](../../subsystems/record-layer.md). | done |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
-| **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
+| ~~**4**~~ ✅ | **Play surface — SHIPPED 2026-08-15 (MR !195).** ⚠ It did NOT ship as described here, and the differences are decisions rather than drift: **one card** for whatever you are looking at (not four kinds), **named views** over the whole buffer (routed feeds retired — a delivery-time stamp cannot re-sort history and the store does not persist it), and breadcrumbs **scoped to detail drilling** (the card stack is the focus history). See [inspection-pane.md](../../subsystems/inspection-pane.md) and [client-shell.md](../../subsystems/client-shell.md). | done |
 | ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned pane catalogue**: the client opens a pane BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a pane on recall, on either side. | done |
-| **6** | **Social** — reactions/emotes, forums + wiki, livestream. | 4 |
-| **7** | **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
+| **6** | ⭐ **Social** — reactions/emotes, forums + wiki, livestream. **Unblocked** (4 shipped) and **almost pure client** — every server half is already shipped. | 4 ✅ |
+| **7** | ⭐ **Authoring** — CMS editor, help panel, git panel restyled into the frame. **Unblocked** and almost pure client for the same reason. | 1 ✅ |
 | ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
 
 ### 7.1 Wave 1 cut into three builds — sized 2026-08-11
@@ -988,6 +988,23 @@ everything that happened.
 ---
 
 ## 8 · Open questions
+
+0. ⭐ **Where does a card-level action row get its verbs?** (new,
+   2026-08-15) A card showed the first few enabled verbs from the
+   resolver, which put `cast · defend · destruct` on a noticeboard, a
+   room and an implant alike — enabled because the ACTOR can always do
+   them, not because the subject affords anything. `AffordanceEntry`
+   carries nothing that tells the two apart, so the row was cut rather
+   than guessed at. **Marking subject-afforded verbs is a Track B
+   follow-on**, and it is the blocker for any per-card action UI.
+
+0b. ⚠ **Should `speech.vocal` and `speech.channel` share facets?** (new,
+   2026-08-15) They are identical — both `address: broadcast, actor:
+   person` — so no facet rule separates the room from the network, and
+   the `Aether` view had to become a topic allowlist. Two topics a
+   player experiences as completely different things being
+   facet-identical is arguably an S2 taxonomy gap; fixing it there would
+   let the view go back to being one rule.
 
 1. ~~**Per-player frame store — yes or no?**~~ (§ 4.3) ✅ **ANSWERED:
    yes** (2026-08-13). The server retains a player's frames; the client
