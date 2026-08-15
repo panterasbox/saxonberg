@@ -233,6 +233,31 @@ export function firstCommand(row: ShelfRowId): string {
 }
 
 /**
+ * Renown, at glance resolution.
+ *
+ * ⚠ This rendered `String(value)`, which put
+ * `RENOWN 1.1004871063830723` in the shelf — found by driving.
+ *
+ * ⭐ **Sixteen significant digits assert a precision the value-function
+ * does not have.** Renown is a signed, continuous, log-saturated score
+ * (`receptionValence × ln(1 + Σ decayed)`) with no natural unit; the
+ * digits past the first decimal are float residue, not measurement. The
+ * shelf is a glance surface, and a glance wants the magnitude.
+ *
+ * ⚠ A value that rounds to `0.0` is not a fabricated zero: the row
+ * already distinguishes *measured-and-neutral* from *never materialized*
+ * (the latter omits the key and hatches), so `0.0` here means the engine
+ * measured and the answer is neutral at the resolution shown. That is
+ * the honest reading of a real number too small to matter at a glance —
+ * `profile` is where the full figure belongs if anyone ever needs it.
+ *
+ * Negative is real (notoriety) and keeps its sign.
+ */
+export function formatRenown(value: number): string {
+  return value.toFixed(1);
+}
+
+/**
  * Wire → honest state, one mapping per live row.
  *
  * ⚠ **Exported, because the mobile bar and the pull-down render the
@@ -278,7 +303,7 @@ export function figureFor(
       const value = figures?.renown?.value;
       return value === undefined
         ? { state: "empty", reason: "no renown recorded yet" }
-        : { state: "live", value: String(value) };
+        : { state: "live", value: formatRenown(value) };
     }
     case "skill": {
       const c = figures?.practisingCompetence;

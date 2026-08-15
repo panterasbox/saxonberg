@@ -161,7 +161,39 @@ describe('Shelf', () => {
       render(<Shelf />);
       const renown = groupFor('RENOWN');
       expect(renown.getAttribute('data-figure-state')).toBe('live');
-      expect(renown.getAttribute('aria-label')).toBe('RENOWN: 0');
+      // `0.0`, not `0` — see `formatRenown`. The point of this test is
+      // that a measured zero is LIVE rather than empty, which is
+      // unchanged; only the rendered precision moved.
+      expect(renown.getAttribute('aria-label')).toBe('RENOWN: 0.0');
+    });
+
+    /**
+     * ⚠ Found by DRIVING: the shelf read `RENOWN 1.1004871063830723`.
+     *
+     * Renown is a signed, continuous, log-saturated score with no
+     * natural unit, so the digits past the first decimal are float
+     * residue rather than measurement — sixteen of them assert a
+     * precision the value-function does not have. The shelf is a glance
+     * surface; a glance wants the magnitude.
+     */
+    it('⭐ renders a float renown at glance resolution, not raw', () => {
+      useStore.setState({
+        shelfFigures: { stuffId: 'me', renown: { value: 1.1004871063830723 } },
+      });
+      render(<Shelf />);
+      const renown = groupFor('RENOWN');
+      expect(renown.getAttribute('data-figure-state')).toBe('live');
+      expect(renown.getAttribute('aria-label')).toBe('RENOWN: 1.1');
+    });
+
+    it('keeps the sign on a negative renown — notoriety is real', () => {
+      useStore.setState({
+        shelfFigures: { stuffId: 'me', renown: { value: -2.47 } },
+      });
+      render(<Shelf />);
+      expect(groupFor('RENOWN').getAttribute('aria-label')).toBe(
+        'RENOWN: -2.5',
+      );
     });
 
     it('renders an ABSENT renown as empty, with a reason', () => {
