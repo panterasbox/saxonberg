@@ -11,16 +11,16 @@
  * `forum <board>` read):
  *   - `list` — visible boards.
  *   - `make <name>` — create a subject + board (sugar); `--open`/`--group`
- *     pick the audience; `--argument` lights the argument organizer.
- *   - `on <subject>` — attach a board to an owned subject (`--argument`).
- *   - `post <board> <body>` — start a thread / the argument **spine**.
+ *     pick the audience; `--ordered` lights the ordered organizer.
+ *   - `on <subject>` — attach a board to an owned subject (`--ordered`).
+ *   - `post <board> <body>` — start a thread / the ordered board's **spine**.
  *   - `reply <entry> <body>` — reply (popularity) or attach a typed claim
- *     on an argument board with `--pro` / `--con` / `--rebut`.
+ *     on an ordered board with `--pro` / `--con` / `--rebut`.
  *   - `edit <entry> <body>` — edit a body in place (author/owner;
  *     lossless `'entry-edited'` trail).
  *   - `read <board> [thread]` — board thread-list or a thread's tree.
- *   - `vote <entry> up|down` — vote (popularity only; refused on argument).
- *   - `mature <board>` — mark an argument forum matured (owner;
+ *   - `vote <entry> up|down` — vote (open only; refused on ordered).
+ *   - `mature <board>` — mark an ordered forum matured (owner;
  *     emits the decoupled `mature` event, no consumer in v1).
  *   - `promote <board> <thread> <name>` — mint a thread-subject + chat.
  *   - `follow <subject>` — follow all the subject's lit surfaces.
@@ -55,7 +55,7 @@ interface ForumModel extends CommandModel {
   description?: string;
   open?: boolean;
   group?: string;
-  argument?: boolean;
+  ordered?: boolean;
   pro?: boolean;
   con?: boolean;
   rebut?: boolean;
@@ -144,16 +144,16 @@ export default class ForumController extends CommandController<ForumModel> {
     const name = (model.name ?? '').trim();
     if (!name) return this.fail(context, 'forum name required', 'name-required');
     const group = (model.group ?? '').trim();
-    const argument = model.argument === true;
+    const ordered = model.ordered === true;
     try {
       const { subject } = await ForumsApi.makeForum(context.commandGiver, name, {
         open: model.open === true,
-        organizer: argument ? 'argument' : 'popularity',
+        organizer: ordered ? 'ordered' : 'open',
         ...(group ? { groupRef: group } : {}),
         ...(model.description ? { description: model.description } : {}),
       });
-      const kind = argument ? 'argument forum' : 'forum';
-      const hint = argument
+      const kind = ordered ? 'ordered forum' : 'forum';
+      const hint = ordered
         ? ` Post the proposal with \`forum post ${subject.getTitle()} <thesis>\`.`
         : '';
       this.send(
@@ -177,12 +177,12 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!ownsSubject(actor, subject)) {
       return this.fail(context, 'Only the subject owner may attach a surface.', 'not-owner');
     }
-    const argument = model.argument === true;
+    const ordered = model.ordered === true;
     try {
       await ForumsApi.createBoardOnSubject(subject, {
-        organizer: argument ? 'argument' : 'popularity',
+        organizer: ordered ? 'ordered' : 'open',
       });
-      const kind = argument ? 'an argument forum' : 'a forum';
+      const kind = ordered ? 'an ordered forum' : 'a forum';
       this.send(
         context,
         Mml.compose`\nAttached ${kind} to '${subject.getTitle()}'.\n`,
@@ -229,15 +229,15 @@ export default class ForumController extends CommandController<ForumModel> {
       return this.fail(context, 'You are not in this board’s audience.', 'not-member');
     }
 
-    const isArgument = view?.board.getOrganizer() === 'argument';
+    const isOrdered = view?.board.getOrganizer() === 'ordered';
     const { relation, count } = valence(model);
 
-    if (isArgument) {
+    if (isOrdered) {
       // A typed claim: exactly one valence flag selects the edge.
       if (count !== 1 || !relation) {
         return this.fail(
           context,
-          'On an argument board, attach a claim with exactly one of --pro, --con, or --rebut.',
+          'On an ordered board, attach a claim with exactly one of --pro, --con, or --rebut.',
           'valence-required',
         );
       }
@@ -256,7 +256,7 @@ export default class ForumController extends CommandController<ForumModel> {
     if (count > 0) {
       return this.fail(
         context,
-        'The --pro / --con / --rebut flags apply only to argument boards.',
+        'The --pro / --con / --rebut flags apply only to ordered boards.',
         'valence-not-allowed',
       );
     }
@@ -349,10 +349,10 @@ export default class ForumController extends CommandController<ForumModel> {
     const entry = await ForumsApi.getEntry(entryId);
     if (!entry) return this.fail(context, `No entry '${entryId}'.`, 'no-such-entry');
     const view = await this.boardViewFor(entry.getBoard());
-    if (view?.board.getOrganizer() === 'argument') {
+    if (view?.board.getOrganizer() === 'ordered') {
       return this.fail(
         context,
-        'Voting is not available on an argument board — nothing is ranked here.',
+        'Voting is not available on an ordered board — nothing is ranked here.',
         'vote-not-allowed',
       );
     }
@@ -380,11 +380,11 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!handle) return this.fail(context, 'board required', 'board-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
     if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
-    if (view.board.getOrganizer() !== 'argument') {
+    if (view.board.getOrganizer() !== 'ordered') {
       return this.fail(
         context,
-        'Only an argument forum can be matured.',
-        'not-argument',
+        'Only an ordered forum can be matured.',
+        'not-ordered',
       );
     }
     if (!ownsSubject(actor, view.subject)) {

@@ -86,10 +86,10 @@ describe('ForumsApi.makeForum', () => {
     const { board, subject } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
     });
-    expect(board.getOrganizer()).toBe('popularity');
+    expect(board.getOrganizer()).toBe('open');
     expect(board.getSubject()).toBe(subject._id);
-    expect(subject.hasManifestation('popularity-forum')).toBe(true);
-    expect(subject.manifestationRef('popularity-forum')).toBe(board._id);
+    expect(subject.hasManifestation('open-forum')).toBe(true);
+    expect(subject.manifestationRef('open-forum')).toBe(board._id);
 
     // Resolvable by its flat handle.
     const view = await ForumsApi.resolveBoardByHandle('GOSSIP');

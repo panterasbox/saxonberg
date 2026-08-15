@@ -23,6 +23,7 @@ import {
   postForumThread,
   replyForumEntry,
   attachArgumentClaim,
+  asEntries,
   matureArgument,
   openForumThread,
   openForumBoard,
@@ -674,11 +675,27 @@ function ArgumentNode({
 interface ForumViewProps {
   onSendCommand: (text: string) => void;
   onCommandPreview: (command: string | null) => void;
+  /**
+   * The organizer of the board being shown, when the caller knows it.
+   *
+   * ⚠⚠ **An EMPTY argument board has no rows to infer from.** The mode
+   * was derived from the projected records (`some(r => r.organizer ===
+   * 'argument')`), which works only once somebody has posted — so a
+   * freshly-lit argument board rendered the popularity chrome: a sort
+   * bar, a "Post thread" composer, and none of the claim-graph. Found by
+   * driving.
+   *
+   * The subject shell knows which SURFACE it opened, so it says. Falling
+   * back to the row-derived guess keeps the standalone/legacy path
+   * working.
+   */
+  organizer?: "open" | "ordered";
 }
 
 export function ForumView({
   onSendCommand,
   onCommandPreview,
+  organizer,
 }: ForumViewProps): JSX.Element {
   const forumNav = useStore((s) => s.forumNav);
   const forumRecords = useStore((s) => s.forumRecords);
@@ -705,10 +722,22 @@ export function ForumView({
       setBoardSub(null);
       return;
     }
-    const id = subscribeForumScope({ kind: "board", id: forumNav.boardHandle });
+    /*
+     * ⚠ Subscribe by board ID when the shell supplied one. The handle
+     * addresses the SUBJECT, and a subject with both forum surfaces lit
+     * resolves it to a documented winner — so a handle-only subscription
+     * showed the popularity board however you got here.
+     */
+    const id = subscribeForumScope({
+      kind: "board",
+      id: forumNav.boardId ?? forumNav.boardHandle,
+    });
     setBoardSub(id);
     return () => unsubscribeForumScope(id);
-  }, [forumNav.boardHandle]);
+    // ⚠ `boardId` in the deps: switching surfaces keeps the handle and
+    // changes only the id, so a handle-only dep list never re-subscribed
+    // — which is what made the Argument tab appear to do nothing.
+  }, [forumNav.boardHandle, forumNav.boardId]);
 
   // Thread subscription — opened only when a thread is selected.
   useEffect(() => {
@@ -728,13 +757,23 @@ export function ForumView({
     ? forumRecords[threadSub] ?? EMPTY_RECORDS
     : EMPTY_RECORDS;
 
-  const threads = useMemo(() => sortRecords(boardRecords, sort), [boardRecords, sort]);
-  const root = threadRecords.find((r) => r.id === forumNav.threadId) ?? null;
+  // Narrow at the read: these subscriptions are board/thread scopes, so
+  // their records are entries. `asEntries` checks rather than asserts.
+  const boardEntries = useMemo(() => asEntries(boardRecords), [boardRecords]);
+  const threadEntries = useMemo(
+    () => asEntries(threadRecords),
+    [threadRecords],
+  );
+  const threads = useMemo(
+    () => sortRecords(boardEntries, sort),
+    [boardEntries, sort],
+  );
+  const root = threadEntries.find((r) => r.id === forumNav.threadId) ?? null;
   // The post-tree, grouped by parent for nested rendering; siblings are
   // sorted per level (the chosen ordering applies at every depth).
   const childrenMap = useMemo(
-    () => buildChildren(threadRecords.filter((r) => r.parent !== null)),
-    [threadRecords],
+    () => buildChildren(threadEntries.filter((r) => r.parent !== null)),
+    [threadEntries],
   );
   const topComments = useMemo(
     () => sortRecords(childrenMap.get(root?.id ?? "") ?? [], sort),
@@ -749,7 +788,7 @@ export function ForumView({
   const submitted = () => onCommandPreview(null);
 
   if (!forumNav.boardHandle) {
-    const boards = indexSub ? forumRecords[indexSub] ?? [] : [];
+    const boards = asEntries(indexSub ? forumRecords[indexSub] : undefined);
     return (
       <Wrap>
         <Bar>
@@ -784,7 +823,7 @@ export function ForumView({
             >
               <Body>
                 <TitleLine>{b.title}</TitleLine>
-                {b.organizer === "argument" && <Meta>⚖ argument forum</Meta>}
+                {b.organizer === "ordered" && <Meta>⚖ argument forum</Meta>}
                 {b.body && <Meta>{b.body}</Meta>}
               </Body>
             </Card>
@@ -797,10 +836,15 @@ export function ForumView({
   // lens (a single claim-graph from the board scope), NOT the ranked
   // thread-list/post-tree. Additive — the popularity view below is
   // untouched. Detected from the projected records' `organizer`.
-  const argumentMode = boardRecords.some((r) => r.organizer === "argument");
+  // Told, when the caller knows; inferred only as a fallback — an empty
+  // board can say nothing about itself.
+  const argumentMode =
+    organizer !== undefined
+      ? organizer === "ordered"
+      : boardEntries.some((r) => r.organizer === "ordered");
   if (argumentMode) {
-    const spine = boardRecords.find((r) => r.parent === null) ?? null;
-    const argChildren = buildChildren(boardRecords);
+    const spine = boardEntries.find((r) => r.parent === null) ?? null;
+    const argChildren = buildChildren(boardEntries);
     return (
       <Wrap>
         <Bar>

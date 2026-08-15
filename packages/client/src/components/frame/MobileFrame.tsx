@@ -50,7 +50,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { LayoutName } from "@saxonberg/types";
+import type { CockpitMode } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { Figure, tokens } from "../ui";
 import { Seal } from "./Seal";
@@ -164,8 +164,10 @@ const SettingsItem = styled.button`
 `;
 
 interface MobileFrameProps {
-  /** The active layout (`cockpit.layout`); enables the Views switcher. */
-  layout?: LayoutName;
+  /** The active cockpit mode; enables the Views switcher. */
+  mode?: CockpitMode;
+  /** The active arrangement within that mode. */
+  arrangement?: string;
   /** Click-to-send a command (command-bus primacy). */
   onCommandClick?: (command: string) => void;
   /** Hover-preview a command (`null` = stop). Unused on touch; threaded
@@ -178,7 +180,8 @@ interface MobileFrameProps {
 }
 
 export const MobileFrame: React.FC<MobileFrameProps> = ({
-  layout,
+  mode,
+  arrangement,
   onCommandClick,
   onCommandPreview,
   settingsActive,
@@ -206,11 +209,12 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
     .filter((r): r is (typeof SHELF_CATALOGUE)[number] => r !== undefined);
 
   const extras =
-    layout && onCommandClick && onCommandPreview ? (
+    mode && onCommandClick && onCommandPreview ? (
       <>
         <ViewsMenu
           inline
-          current={layout}
+          currentMode={mode}
+          currentArrangement={arrangement ?? "default"}
           onCommandClick={onCommandClick}
           onCommandPreview={onCommandPreview}
         />

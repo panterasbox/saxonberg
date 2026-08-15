@@ -38,7 +38,16 @@ import type {
   StuffRefRecord,
   TopicDescriptor,
   WikiPageFrame,
+  EmoteCatalogueEntry,
+  ForumSubjectRecord,
 } from "@saxonberg/types";
+
+/**
+ * What a forum subscription's records are, discriminated by its scope.
+ * Kept as one union so the store holds ONE map rather than two that
+ * could disagree about which subscription is which.
+ */
+export type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
 import { createPaneFeedSlice, type PaneFeedSlice } from "./paneFeedSlice";
@@ -517,9 +526,24 @@ interface StoreState
    * subject-title handle of the open board; `threadId` is the open
    * thread's entry id (null at the board's thread-list level).
    */
-  forumNav: { boardHandle: string | null; threadId: string | null };
+  /**
+   * Where the forum is pointed.
+   *
+   * ⚠ `boardHandle` addresses the SUBJECT and is what commands are
+   * composed from (`forum post <handle>`); `boardId` addresses the
+   * BOARD and is what the subscription watches. They are two facts, not
+   * one: a subject that lights both forum surfaces has one handle and
+   * two boards, and resolving the handle picks a documented winner —
+   * which made the Argument tab silently re-render Popularity.
+   */
+  forumNav: {
+    boardHandle: string | null;
+    boardId: string | null;
+    threadId: string | null;
+  };
   setForumNav: (nav: {
     boardHandle?: string | null;
+    boardId?: string | null;
     threadId?: string | null;
   }) => void;
 
@@ -529,13 +553,19 @@ interface StoreState
    * (live changes). Mirrors the MQL feed-registry pattern but for forum
    * Documents. See `store/forumActions.ts`.
    */
-  forumRecords: Record<string, ForumEntryRecord[]>;
-  /** The scope each subscription watches (board/thread + id). */
+  forumRecords: Record<string, ForumProjectedRecord[]>;
+  /**
+   * The scope each subscription watches. ⭐ It is also the DISCRIMINANT
+   * for that subscription's records: a `subjects` scope holds
+   * `ForumSubjectRecord`s, every other scope holds `ForumEntryRecord`s.
+   * Readers narrow with `forumSubjects` / `forumEntries` rather than
+   * casting at each call site.
+   */
   forumScopes: Record<string, ForumSubscriptionScope>;
   applyForumResult: (
     subscriptionId: string,
     scope: ForumSubscriptionScope,
-    records: ForumEntryRecord[],
+    records: ForumProjectedRecord[],
   ) => void;
   applyForumDelta: (subscriptionId: string, changes: ForumChange[]) => void;
   clearForumSubscription: (subscriptionId: string) => void;
@@ -687,6 +717,36 @@ interface StoreState
   setTopicCatalogue: (records: TopicDescriptor[]) => void;
   /** Resolve a topic via the three-tier chain. Always returns a value. */
   getTopicDescriptor: (topic: string) => TopicDescriptor;
+
+  // Emote catalogue — session-wide cache of the authored palette.
+  /**
+   * `Map<verb, EmoteCatalogueEntry>`, canonical verbs only. Replaced
+   * wholesale on session-establish from `payload.emoteCatalogue`.
+   *
+   * ⚠ **This is the only source the picker may draw from.** It replaced
+   * a hardcoded six-entry array whose emoji were typed out beside the
+   * verbs they were meant to match — a pairing that drifts from the
+   * server's catalogue with nothing failing when it does.
+   */
+  emoteCatalogue: Map<string, EmoteCatalogueEntry>;
+  /**
+   * How the catalogue's lazy fetch is doing.
+   *
+   * ⚠ `failed` is a distinct state from an empty catalogue on purpose.
+   * An empty catalogue is a real answer — a world with nothing authored
+   * — and the picker renders it as "nothing to pick". A failure that
+   * looked the same would be an unwired state wearing an empty state's
+   * clothes, which is the exact confusion the honest-state convention
+   * exists to prevent.
+   */
+  emoteCatalogueState: "idle" | "loading" | "loaded" | "failed";
+  /**
+   * The topics whose frames are reactable acts, as the SERVER defines
+   * them. Empty until session-establish, which is the honest state: with
+   * no answer from the server the client offers no reaction affordance
+   * rather than guessing at one.
+   */
+  reactableTopics: Set<string>;
 
   // Stuff registry — session-wide metadata cache (no eviction in v1).
   /**
@@ -1351,7 +1411,7 @@ export const useStore = create<StoreState>((set, get) => ({
       return { feed, feedOrder: orderFeed(feed) };
     }),
 
-  forumNav: { boardHandle: null, threadId: null },
+  forumNav: { boardHandle: null, boardId: null, threadId: null },
   setForumNav: (nav) =>
     set((state) => ({
       forumNav: {
@@ -1359,6 +1419,8 @@ export const useStore = create<StoreState>((set, get) => ({
           nav.boardHandle !== undefined
             ? nav.boardHandle
             : state.forumNav.boardHandle,
+        boardId:
+          nav.boardId !== undefined ? nav.boardId : state.forumNav.boardId,
         threadId:
           nav.threadId !== undefined ? nav.threadId : state.forumNav.threadId,
       },
@@ -1435,6 +1497,10 @@ export const useStore = create<StoreState>((set, get) => ({
     for (const d of payload.topicCatalogue ?? []) {
       topicMap.set(d.topic, d);
     }
+    // ⚠ The reactable-topic set rides the payload; the emote CATALOGUE
+    // does not — it is fetched lazily from `/api/emotes` on the first
+    // picker open. See `store/emoteCatalogue.ts` for why.
+    const reactable = new Set<string>(payload.reactableTopics ?? []);
     // Seed the news-ticker feed from the welcome snapshot, exactly as the
     // topic catalogue is consumed — releases have no presence event to
     // hang a snapshot on, so the welcome window is the initial `snapshot`.
@@ -1508,6 +1574,7 @@ export const useStore = create<StoreState>((set, get) => ({
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
+      reactableTopics: reactable,
       feed,
       feedOrder: orderFeed(feed),
       clientState: { ...(payload.clientState ?? {}) },
@@ -1930,6 +1997,13 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // Topic catalogue slice
   topicCatalogue: new Map<string, TopicDescriptor>(),
+
+  // Emote catalogue slice. Both start empty and stay empty until the
+  // server answers — an empty palette shows no picker, which is the
+  // honest state for "we have not been told yet".
+  emoteCatalogue: new Map<string, EmoteCatalogueEntry>(),
+  emoteCatalogueState: "idle",
+  reactableTopics: new Set<string>(),
 
   setTopicCatalogue: (records) =>
     set(() => {

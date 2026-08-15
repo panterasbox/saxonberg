@@ -6,11 +6,16 @@ help: |
   threads that outlast the moment, unlike room chat. Each board hangs
   off a subject (see `subject`) that owns who can see it.
 
-  A board has one of two organizers. The default is a popularity feed:
-  threads and replies, sorted by votes. The other is an argument
-  board (`--argument`) — a typed claim-graph where replies are
+  A board has one of two organizers. The default is OPEN: threads and
+  replies, sorted by votes. The other
+  is ORDERED (`--ordered`): a typed claim-graph where replies are
   supporting (`--pro`), objecting (`--con`), or clarifying (`--rebut`)
-  edges rather than a ranked list.
+  edges rather than a ranked list, and the board matures to a vote
+  rather than being ranked by one.
+
+  The same word runs through chat: `chat on --ordered` attaches the
+  rules-of-order surface. Ordered means a procedure governs what may be
+  said and when; open means it does not.
 
   Bare `forum <board>` reads a board. The subcommands below manage and
   post to them.
@@ -30,10 +35,10 @@ subcommands:
       Spin up a new board and the subject that owns it in one step,
       with you as owner. The audience is your contacts by default;
       `--open` makes it world-visible, or `--group` binds an existing
-      ref. Add `--argument` for a claim-graph board instead of a feed.
+      ref. Add `--ordered` for a claim-graph board instead of a feed.
     examples:
-      - cmd: forum make proposals --argument Town charter debate
-        note: Create an argument board with a description
+      - cmd: forum make proposals --ordered Town charter debate
+        note: Create an ordered (claim-graph) board with a description
     options:
       open:
         type: boolean
@@ -44,10 +49,10 @@ subcommands:
         type: string
         field: group
         description: "Bind an existing guild:/mql:/contacts:/managed: ref"
-      argument:
+      ordered:
         type: boolean
-        field: argument
-        description: "Use the argument organizer (a typed claim-graph, not a ranked feed)"
+        field: ordered
+        description: "Use the ordered organizer (a typed claim-graph, not a ranked feed)"
     args:
       - name: name
         type: string
@@ -60,12 +65,12 @@ subcommands:
     description: "Attach a board to an existing subject you own"
     help: |
       Add another board to a subject you already own — e.g. give a
-      guild subject both a feed board and an argument board.
+      guild subject both an open board and an ordered board.
     options:
-      argument:
+      ordered:
         type: boolean
-        field: argument
-        description: "Use the argument organizer (a typed claim-graph, not a ranked feed)"
+        field: ordered
+        description: "Use the ordered organizer (a typed claim-graph, not a ranked feed)"
     args:
       - name: name
         type: string
@@ -96,14 +101,14 @@ subcommands:
         required: false
         greedy: true
   reply:
-    description: "Reply (popularity) or attach a typed claim (argument: --pro/--con/--rebut)"
+    description: "Reply (open board) or attach a typed claim (ordered: --pro/--con/--rebut)"
     help: |
       Respond to an entry. On a feed board this is a plain reply. On
-      an argument board, pick the edge your reply forms: `--pro`
+      an ordered board, pick the edge your reply forms: `--pro`
       supports it, `--con` objects, `--rebut` asks a neutral question.
     examples:
       - cmd: forum reply 7 --con costs are understated
-        note: Attach an objection on an argument board
+        note: Attach an objection on an ordered board
     options:
       pro:
         type: boolean
@@ -173,9 +178,9 @@ subcommands:
         type: string
         required: true
   mature:
-    description: "Mark an argument forum matured (owner only); hands it to the deferred vote layer"
+    description: "Mark an ordered forum matured (owner only); hands it to the deferred vote layer"
     help: |
-      Owner-only: declare an argument board's debate settled enough to
+      Owner-only: declare an ordered board's debate settled enough to
       hand off to the (deferred) voting layer. Closes the claim-graph
       to further structural change.
     args:

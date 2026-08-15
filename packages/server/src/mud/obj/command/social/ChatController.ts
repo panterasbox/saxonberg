@@ -31,7 +31,7 @@ interface ChatModel extends CommandModel {
   old_name?: string;
   new_name?: string;
   handle?: string;
-  rules?: boolean;
+  ordered?: boolean;
 }
 
 export default class ChatController extends CommandController<ChatModel> {
@@ -261,7 +261,7 @@ export default class ChatController extends CommandController<ChatModel> {
     }
     const title = (model.name ?? '').trim();
     if (!title) return this.fail(context, 'subject name required', 'name-required');
-    if (model.rules) {
+    if (model.ordered) {
       return this.fail(
         context,
         'The rules-of-order chat surface is not available yet.',
@@ -276,7 +276,7 @@ export default class ChatController extends CommandController<ChatModel> {
       return this.fail(context, 'Only the subject owner may attach a surface.', 'not-owner');
     }
     try {
-      const c = await ChatApi.attachChatToSubject(subject, 'free');
+      const c = await ChatApi.attachChatToSubject(subject, 'open');
       this.send(context, Mml.compose`\nAttached chat to '${c.name}'.\n`);
     } catch (err) {
       return this.fail(context, (err as Error).message, 'attach-failed');

@@ -7,6 +7,7 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePaths } from '../../lib/paths';
 import type { Emote } from '../../lib/social/Emote';
+import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type SoulCatalogue from '../SoulCatalogue';
 import type { EmoteSpec } from '../SoulCatalogue';
 
@@ -76,6 +77,32 @@ export class SoulLogic extends ApiLogic {
   @CallSecurity(SoulApiCallers)
   public async all(): Promise<Emote[]> {
     return (await requireCatalogue()).all();
+  }
+
+  /**
+   * See {@link SoulApi.snapshot}.
+   *
+   * ⚠ **Resolves the catalogue only if it is ALREADY resident** — the one
+   * method here that does not go through `requireCatalogue`.
+   *
+   * Two reasons, and they point the same way. `requireCatalogue` falls
+   * back to `StuffApi.singleton`, which MINTS the singleton; minting a
+   * catalogue in order to read a palette off it produces an unwarmed
+   * one, so the answer would be an empty list either way. And this is
+   * called from `Avatar.enter`, which is *pure ceremony* — a test
+   * asserts it performs no template resolution at all, and that
+   * assertion is worth keeping: the login path should not be the thing
+   * that decides a world singleton exists.
+   *
+   * So an absent catalogue answers `[]`, which is the client's honest
+   * state for "no palette" and already renders as "offer no picker".
+   */
+  @CallSecurity(SoulApiCallers)
+  public async snapshot(): Promise<EmoteCatalogueEntry[]> {
+    const cat =
+      catalogueRef ?? StuffApi.findByTemplatePath<SoulCatalogue>(CATALOGUE_PATH);
+    if (!cat) return [];
+    return cat.snapshot();
   }
 
   /** See {@link SoulApi.invalidateCache}. */

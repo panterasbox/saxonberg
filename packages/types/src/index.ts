@@ -1528,16 +1528,116 @@ export interface MqlQueryErrorEnvelope {
 
 /**
  * What a forum subscription watches:
+ *   - `subjects` — the Subjects the viewer can see, each with the
+ *     surfaces it lights up; `id` is unused. This is the rail.
  *   - `index` — the set of boards the viewer can see (the forum landing
  *     list); `id` is unused.
  *   - `board` — a board's thread-list; `id` is the board `_id` or its flat
  *     title handle.
  *   - `thread` — a thread's post-tree; `id` is the thread-root entry `_id`.
+ *
+ * ⭐ `subjects` and `index` are not the same question. A board is one
+ * SURFACE of a subject; the rail is a list of subjects, and a subject may
+ * light up as many as four. Watching boards can only ever produce a flat
+ * list of boards, which is the shape the client was stuck in.
  */
 export interface ForumSubscriptionScope {
-  kind: 'index' | 'board' | 'thread';
+  kind: ForumScopeKind;
   id: string;
 }
+
+/**
+ * Every forum subscription scope kind.
+ *
+ * ⚠⚠ **Exported because the vocabulary had a second copy, and it
+ * drifted.** The inbound WS handler listed the kinds literally as a
+ * shape-check; adding `subjects` to the type and to the registry left
+ * that list stale, and it **returned silently** — the client subscribed,
+ * the server dropped the message with no error envelope, and the rail
+ * rendered its honest empty state over a subject that existed. Nothing
+ * failed, because the failure was the silence. Both sides read this now.
+ */
+export const FORUM_SCOPE_KINDS = [
+  'subjects',
+  'index',
+  'board',
+  'thread',
+] as const;
+
+export type ForumScopeKind = (typeof FORUM_SCOPE_KINDS)[number];
+
+/** The audience a subject binds, projected for display. */
+export interface SubjectAudience {
+  /**
+   * `open` — every player. `bound` — an existing group ref the subject
+   * consumes and did not mint. `curated` — a managed group minted
+   * alongside the subject, carrying owner/admin/member roles.
+   */
+  kind: 'open' | 'bound' | 'curated';
+  /** What to show beside the title: the ref, or a word for the kind. */
+  label: string;
+}
+
+/**
+ * One Subject projected for the rail.
+ *
+ * ⭐ **A subject is ONE record: identity + audience + the surfaces it
+ * lights up.** It is not a board — a board is one of the four surfaces a
+ * subject can light. Which is why switching surfaces changes the
+ * rendering and not the room: one audience, one membership, one invite
+ * list, whichever surface you are looking at.
+ */
+export interface ForumSubjectRecord {
+  id: string;
+  title: string;
+  /**
+   * `venue` — board-grain, addressed by a flat-global handle.
+   * `topic` — a promoted thread, addressed by the board-scoped
+   * `parent/name` handle and inheriting the parent's audience.
+   */
+  grain: 'venue' | 'topic';
+  /** How every command addressing this subject names it. */
+  handle: string;
+  /** For a topic-grain subject, its parent subject's id. */
+  parent: string | null;
+  audience: SubjectAudience;
+  /** The surfaces this subject has lit, in vocabulary order. */
+  surfaces: SubjectSurfaceName[];
+  /**
+   * The backing document id per lit surface — a `Board` for the forum
+   * surfaces, a `Channel` for the chat ones.
+   *
+   * ⚠⚠ **Without this the two forum surfaces are indistinguishable to a
+   * client.** A subject's handle addresses the SUBJECT, and
+   * `resolveBoardByHandle` resolves it to a board with a documented
+   * tie-break — *"Popularity wins the rare both-lit case."* That
+   * assumption held while no surface let you light both; the subject
+   * tabs invite exactly that, and switching to Argument then silently
+   * re-rendered the popularity board. Found by driving.
+   */
+  surfaceRefs: Partial<Record<SubjectSurfaceName, string>>;
+  /**
+   * Objections on this subject's argument board that nothing answers.
+   * Zero when there is no argument surface. ⚠ Derived from the SAME
+   * `openObjection` computation the entry projection uses — the badge and
+   * the rows must never be able to disagree.
+   */
+  openObjections: number;
+}
+
+/**
+ * The four surfaces a subject can light up, at most one of each.
+ *
+ * ⚠ `rules-chat` is **parked** server-side, not merely unbuilt in the
+ * client: `chat on --rules` describes itself as deferred. It is in the
+ * vocabulary so the client can show it as unavailable rather than
+ * offering a control that reliably refuses.
+ */
+export type SubjectSurfaceName =
+  | 'open-forum'
+  | 'ordered-forum'
+  | 'open-chat'
+  | 'ordered-chat';
 
 /** One forum entry projected for the client (thread root or post). */
 export interface ForumEntryRecord {
@@ -1571,9 +1671,9 @@ export interface ForumEntryRecord {
   /**
    * The board's organizer, stamped so the client picks its render mode
    * explicitly rather than inferring. Present on every argument record;
-   * absent (or `'popularity'`) for the popularity view.
+   * absent (or `'open'`) for the open view.
    */
-  organizer?: 'popularity' | 'argument';
+  organizer?: 'open' | 'ordered';
   /** The typed edge to the parent (argument boards): pro/con/neutral. */
   relation?: 'reply' | 'supports' | 'objects-to' | 'responds-to';
   /**
@@ -1600,18 +1700,26 @@ export interface ForumUnsubscribeMessage {
   subscriptionId: string;
 }
 
+/**
+ * ⚠ `records` is discriminated by `scope.kind`, not by a second tag: a
+ * `subjects` subscription carries {@link ForumSubjectRecord}s, every
+ * other scope carries {@link ForumEntryRecord}s. The client already knows
+ * its own scope — it asked for it — so a tag here would be a second copy
+ * of a fact that cannot get out of step.
+ */
 export interface ForumSubscriptionResultEnvelope {
   type: 'forum-subscription-result';
   frameId: number;
   subscriptionId: string;
   scope: ForumSubscriptionScope;
-  records: ForumEntryRecord[];
+  records: (ForumEntryRecord | ForumSubjectRecord)[];
 }
 
 export interface ForumChange {
   op: 'add' | 'replace' | 'remove';
   key: string;
-  fields?: ForumEntryRecord;
+  /** Same discrimination as the result envelope's `records`. */
+  fields?: ForumEntryRecord | ForumSubjectRecord;
 }
 
 export interface ForumSubscriptionDeltaEnvelope {
@@ -1629,6 +1737,45 @@ export interface ForumSubscriptionErrorEnvelope {
   subscriptionId: string;
   reason: ForumSubscriptionErrorReason;
   detail?: string;
+}
+
+// ============================================================================
+// The emote catalogue (what the picker draws)
+// ============================================================================
+
+/**
+ * One declared slot of an emote's grammar, projected for the picker.
+ *
+ * The picker offers one control per slot, in declaration order, because
+ * an emote with grammar (`;wave <at> <manner>`) cannot be reached from a
+ * flat grid otherwise. `stuff` slots resolve by MQL; `free` slots take
+ * arbitrary text and render in the free treatment.
+ */
+export interface EmoteSlotSpec {
+  name: string;
+  kind: 'stuff' | 'free';
+  required: boolean;
+  /** MQL resolution scope for a `stuff` slot; absent for `free`. */
+  scope?: string;
+}
+
+/**
+ * One canonical emote, projected for the client's picker.
+ *
+ * Rides {@link ConnectionEstablishedPayload.emoteCatalogue}. Aliases are
+ * carried on their canonical entry rather than appearing as entries of
+ * their own — the grid shows verbs you can send, and an alias is the
+ * same verb by another name.
+ */
+export interface EmoteCatalogueEntry {
+  verb: string;
+  /** Present only for emoji-bearing emotes; glyph-less emotes render as
+   *  prose and never as a chip, so the grid skips them. */
+  emoji?: string;
+  aliases: string[];
+  tags: string[];
+  /** Declaration order — the order the picker offers the controls in. */
+  slots: EmoteSlotSpec[];
 }
 
 // ============================================================================
@@ -2719,6 +2866,27 @@ export type WatchTarget =
   | { platform: "kick"; channel: string };
 
 /**
+ * One channel the viewer is tuned to, as the rail needs it.
+ *
+ * ⭐ `canPost` is a SERVER fact, not a client guess: posting outbound
+ * needs a linked identity with chat authorized, and only Twitch has that
+ * path this cycle. The rail's composer branches on the same flag its
+ * copy describes — a live input over a read-only channel would refuse
+ * after the player had typed.
+ *
+ * Distinct from {@link WatchTarget}, and deliberately: `watch` picks the
+ * ONE focal embed, `tune` follows as many chats as you like. Conflating
+ * them would make watching a stream imply reading its chat and vice
+ * versa, which is not how either verb behaves.
+ */
+export interface TunedTarget {
+  platform: "twitch" | "youtube" | "kick";
+  /** The channel's display handle — what `tune off <handle>` names. */
+  handle: string;
+  canPost: boolean;
+}
+
+/**
  * Payload of the `system.connection.established` MessageFrame.
  * Server composes at connection-finalization; client stashes
  * `interactiveStuffId` as `selfInteractiveId` for own-echo
@@ -2757,6 +2925,21 @@ export interface ConnectionEstablishedPayload {
    * runs the same three-tier resolution against its cached snapshot.
    */
   topicCatalogue: TopicDescriptor[];
+  /**
+   * The topics whose frames denote a reactable act, as the server
+   * defines them.
+   *
+   * Sent so the client cannot hold its own copy of the answer. It held
+   * one (`REACTABLE_PREFIXES`), the S2 topic collapse moved the server
+   * set underneath it, and combat frames stopped offering the
+   * affordance without anything failing.
+   *
+   * ⚠ This STAYS on the payload while the emote catalogue moved off it
+   * to `GET /api/emotes`. Four strings, and they gate whether the `＋`
+   * exists at all — a client that had to fetch before it could decide
+   * whether to offer anything would flash the affordance in and out.
+   */
+  reactableTopics: string[];
   /**
    * Client UI state persisted server-side (tabs, theme, notification
    * prefs, etc.). Dense snapshot — schema-declared keys carry their

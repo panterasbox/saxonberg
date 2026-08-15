@@ -47,7 +47,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { LayoutName } from "@saxonberg/types";
+import type { CockpitMode } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { Seal } from "./Seal";
 import { ConnectionChip } from "./ConnectionChip";
@@ -91,8 +91,10 @@ const SettingsButton = styled.button<{ $active: boolean }>`
 `;
 
 interface FrameProps {
-  /** The active layout (`cockpit.layout`); enables the Views switcher. */
-  layout?: LayoutName;
+  /** The active cockpit mode; enables the Views switcher. */
+  mode?: CockpitMode;
+  /** The active arrangement within that mode. */
+  arrangement?: string;
   /** Click-to-send a command (command-bus primacy). */
   onCommandClick?: (command: string) => void;
   /** Hover-preview a command in the status bar (`null` = stop). */
@@ -104,7 +106,8 @@ interface FrameProps {
 }
 
 export const Frame: React.FC<FrameProps> = ({
-  layout,
+  mode,
+  arrangement,
   onCommandClick,
   onCommandPreview,
   settingsActive,
@@ -120,9 +123,10 @@ export const Frame: React.FC<FrameProps> = ({
       {...(onCommandClick ? { onCommandClick } : {})}
       {...(onCommandPreview ? { onCommandPreview } : {})}
     />
-    {layout && onCommandClick && onCommandPreview ? (
+    {mode && onCommandClick && onCommandPreview ? (
       <ViewsMenu
-        current={layout}
+        currentMode={mode}
+        currentArrangement={arrangement ?? "default"}
         onCommandClick={onCommandClick}
         onCommandPreview={onCommandPreview}
       />

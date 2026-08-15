@@ -13,6 +13,7 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Emote } from '../lib/social/Emote';
+import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type { EmoteSpec } from '../obj/SoulCatalogue';
 import { SoulLogic } from '../obj/api/SoulLogic';
 import { fileURLToPath } from 'url';
@@ -55,6 +56,21 @@ export class SoulApi {
 
   static all(): Promise<Emote[]> {
     return logic().all();
+  }
+
+  /**
+   * The catalogue projected for the client's emote picker — canonical
+   * verbs, their emoji and aliases, and each emote's declared grammar
+   * slots in declaration order.
+   *
+   * ⭐ **The read face, and deliberately ungated.** `soul list` is the
+   * AUTHOR face and keeps `requiresCoreAccess`; seeing the palette you
+   * can already type is not authoring it. Rides
+   * `ConnectionEstablishedPayload.emoteCatalogue`, cached by the client
+   * for the session exactly as `topicCatalogue` is.
+   */
+  static snapshot(): Promise<EmoteCatalogueEntry[]> {
+    return logic().snapshot();
   }
 
   /**

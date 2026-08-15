@@ -5,8 +5,8 @@
  * **Board → Thread → Post.** A **Thread** is a root `Entry` (`parent:
  * null`) — a submission carrying a `title` + `body`. A **Post** is a
  * child `Entry` (`parent` = another entry's `_id`). The `relation` edge
- * is **organizer-scoped**: a `'popularity'` board uses only `'reply'`
- * (the Reddit comment tree); an `'argument'` board uses only the typed
+ * is **organizer-scoped**: an `'open'` board uses only `'reply'`
+ * (the Reddit comment tree); an `'ordered'` board uses only the typed
  * claim-graph edges `'supports'` (pro) / `'objects-to'` (con) /
  * `'responds-to'` (neutral question/clarification). The node's *role* in
  * the argument is derived from its edge — there is no separate node-type

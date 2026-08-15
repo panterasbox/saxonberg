@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 import { useStore } from "../index";
+import { asEntries } from "../forumActions";
 import type { ForumEntryRecord } from "@saxonberg/types";
 
 function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord {
@@ -30,7 +31,7 @@ function rec(id: string, over: Partial<ForumEntryRecord> = {}): ForumEntryRecord
 
 beforeEach(() => {
   useStore.setState({
-    forumNav: { boardHandle: null, threadId: null },
+    forumNav: { boardHandle: null, boardId: null, threadId: null },
     forumRecords: {},
     forumScopes: {},
   });
@@ -53,7 +54,7 @@ describe("forum store slice", () => {
       { op: "replace", key: "e1", fields: rec("e1", { score: 5, up: 5 }) },
       { op: "add", key: "e2", fields: rec("e2") },
     ]);
-    const recs = useStore.getState().forumRecords["s1"]!;
+    const recs = asEntries(useStore.getState().forumRecords["s1"]);
     expect(recs).toHaveLength(2);
     expect(recs.find((r) => r.id === "e1")!.score).toBe(5);
 
@@ -67,12 +68,40 @@ describe("forum store slice", () => {
     useStore.getState().setForumNav({ boardHandle: "gossip" });
     expect(useStore.getState().forumNav).toEqual({
       boardHandle: "gossip",
+      boardId: null,
       threadId: null,
     });
     useStore.getState().setForumNav({ threadId: "e1" });
     expect(useStore.getState().forumNav).toEqual({
       boardHandle: "gossip",
+      boardId: null,
       threadId: "e1",
+    });
+  });
+
+  /**
+   * ⚠⚠ `boardHandle` and `boardId` are TWO facts, not one.
+   *
+   * The handle addresses the SUBJECT — it is what commands are composed
+   * from. The id addresses the BOARD. A subject that lights both forum
+   * surfaces has one handle and two boards, and resolving the handle
+   * picks a documented winner ("Popularity wins the rare both-lit
+   * case"), which is exactly how the Argument tab came to re-render the
+   * popularity board while appearing to do nothing.
+   */
+  it("⭐ keeps the board id beside the handle, and patches it alone", () => {
+    useStore.getState().setForumNav({
+      boardHandle: "gossip",
+      boardId: "board-pop",
+    });
+    expect(useStore.getState().forumNav.boardId).toBe("board-pop");
+
+    // Switching surface keeps the handle and changes only the board.
+    useStore.getState().setForumNav({ boardId: "board-arg" });
+    expect(useStore.getState().forumNav).toEqual({
+      boardHandle: "gossip",
+      boardId: "board-arg",
+      threadId: null,
     });
   });
 
@@ -90,7 +119,7 @@ describe("forum store slice", () => {
     const s = useStore.getState();
     const con = rec("c1", {
       parent: "spine",
-      organizer: "argument",
+      organizer: "ordered",
       relation: "objects-to",
       openObjection: true,
       inCircle: true,
@@ -100,8 +129,8 @@ describe("forum store slice", () => {
       displayScore: null,
     });
     s.applyForumResult("a1", { kind: "board", id: "b1" }, [con]);
-    const first = useStore.getState().forumRecords["a1"]![0]!;
-    expect(first.organizer).toBe("argument");
+    const first = asEntries(useStore.getState().forumRecords["a1"])[0]!;
+    expect(first.organizer).toBe("ordered");
     expect(first.relation).toBe("objects-to");
     expect(first.openObjection).toBe(true);
     expect(first.inCircle).toBe(true);
@@ -113,13 +142,15 @@ describe("forum store slice", () => {
         key: "c1",
         fields: rec("c1", {
           parent: "spine",
-          organizer: "argument",
+          organizer: "ordered",
           relation: "objects-to",
           openObjection: false,
         }),
       },
     ]);
-    expect(useStore.getState().forumRecords["a1"]![0]!.openObjection).toBe(false);
+    expect(
+      asEntries(useStore.getState().forumRecords["a1"])[0]!.openObjection,
+    ).toBe(false);
   });
 
   it("clearForumSubscription drops the cache", () => {

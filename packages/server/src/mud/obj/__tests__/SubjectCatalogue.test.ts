@@ -210,12 +210,12 @@ describe('SubjectCatalogue subscriptions', () => {
     expect(cat.getSubscription(av, sid).followed).toBe(false);
 
     cat.follow(av, sid, true);
-    cat.mute(av, sid, 'free-chat', true);
+    cat.mute(av, sid, 'open-chat', true);
     const sub = cat.getSubscription(av, sid);
     expect(sub.followed).toBe(true);
-    expect(sub.mutedSurfaces).toEqual(['free-chat']);
+    expect(sub.mutedSurfaces).toEqual(['open-chat']);
 
-    cat.mute(av, sid, 'free-chat', false);
+    cat.mute(av, sid, 'open-chat', false);
     expect(cat.getSubscription(av, sid).mutedSurfaces).toEqual([]);
   });
 
@@ -231,14 +231,14 @@ describe('SubjectCatalogue subscriptions', () => {
       tunedIn: false,
       muted: true,
     });
-    expect(migrated).toEqual({ followed: false, mutedSurfaces: ['free-chat'] });
+    expect(migrated).toEqual({ followed: false, mutedSurfaces: ['open-chat'] });
 
     // Idempotent: a second migrate doesn't clobber the now-set value.
     const again = cat.migrateLegacySubscription(av, sid, {
       tunedIn: true,
       muted: false,
     });
-    expect(again).toEqual({ followed: false, mutedSurfaces: ['free-chat'] });
+    expect(again).toEqual({ followed: false, mutedSurfaces: ['open-chat'] });
   });
 });
 

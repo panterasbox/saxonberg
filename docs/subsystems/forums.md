@@ -5,15 +5,14 @@ implant — the persistent twin of [chat](./chat.md). Where a chat channel
 is an ephemeral 200-frame ring, a forum board, every entry, and the vote
 tally **persist** as Documents in their own collections; the board *is*
 the archive. One board primitive (`Subject → Board → Thread → Post`)
-carries a per-board **organizer** axis: `organizer: 'popularity'` (the
-Reddit shape — cycle 1) and `organizer: 'argument'` (the **argument-map**
+carries a per-board **organizer** axis: `organizer: 'open'` (the
+Reddit shape — cycle 1) and `organizer: 'ordered'` (the **argument-map**
 — a typed claim-graph read by a neutral structural lens, no ranking;
 cycle 2). Both organizers persist into the same collections; the axis is
 a field, never a schema migration.
 
-The governing thesis: **popularity forums and structured-argument
-deliberation are two organizers over one board primitive, not two
-subsystems.** What separates them is how sibling entries are ordered and
+The governing thesis: **open forums and ordered deliberation are two
+organizers over one board primitive, not two subsystems.** What separates them is how sibling entries are ordered and
 how votes are read — not the bones (persistence, audience, access,
 threading, command surface). This doc is the source of truth for the
 area (both organizers); read it before editing. The argument organizer
@@ -50,23 +49,56 @@ Fields (persistent, public for the Hydrator):
 - `grain: 'venue' | 'topic'` + `parentSubject` + `boardScopedName` — the
   grain polymorphism (below).
 
-### The four surfaces
+### The four surfaces — one axis, twice
 
-A subject declares **any non-empty subset of four surfaces**, at most
-one of each (`SubjectSurface`):
+⭐⭐ **ORDERED vs OPEN is a single question asked of both halves.**
+*Ordered* means a procedure governs what may be said and when: a typed
+claim-graph that matures to a vote, or rules of order with a recognized
+speaker. *Open* means no procedure — say what you like, and others rank
+it.
 
-| Surface | Backing doc | Cycle 1 |
+A subject declares **any non-empty subset of four surfaces**, at most one
+of each (`SubjectSurface`):
+
+| Surface | Backing doc | Status |
 |---|---|---|
-| `popularity-forum` | `Board`, `organizer: 'popularity'` | **shipped** (cycle 1) |
-| `argument-forum` | `Board`, `organizer: 'argument'` | **shipped** (cycle 2) |
-| `free-chat` | `Channel`, `procedure: 'free'` | **shipped** |
-| `rules-chat` | `Channel`, `procedure: 'rules-of-order'` | reserved (parked) |
+| `open-forum` | `Board`, `organizer: 'open'` | **shipped** (cycle 1) |
+| `ordered-forum` | `Board`, `organizer: 'ordered'` | **shipped** (cycle 2) |
+| `open-chat` | `Channel`, `procedure: 'open'` | **shipped** |
+| `ordered-chat` | `Channel`, `procedure: 'ordered'` | reserved (parked) |
 
-So *forum* = {popularity, argument} (the two `Board` organizers) and
-*chat* = {free, rules} (the two `Channel` procedures). A subject may hold
-both organizers and/or both chat procedures at once. Both forum surfaces
-now ship (`popularity-forum` cycle 1, `argument-forum` cycle 2); `free-chat`
-ships, `rules-chat` is parked.
+So the axis is `{forum, chat} × {ordered, open}`, and a subject may hold
+both organizers and/or both chat procedures at once.
+
+⚠ **These were four unrelated words until Wave 6** — `popularity` /
+`argument` for a board, `free` / `rules-of-order` for a channel — which
+hid the fact that a subject lighting an argument board AND a
+rules-of-order chat had made the same decision twice.
+
+⭐ **The rename shipped with NO migration, and that is a property of the
+reset policy rather than a shortcut.** `forum_subjects`, `forum_boards`
+and `channels` are all `wipe` in `lib/persistence/ResetPolicy.ts`, so a
+stored old value survives at most one night, and the seeders re-insert
+with the new vocabulary on the next boot. A one-shot migration was
+written and then deleted: it would have been a permanent line in
+`AppBootstrap` — which `SeederManager` explicitly puts out of scope
+(*"Schema migrations on already-seeded templates are out of scope"*) —
+paid at every boot forever to protect rows with a 24-hour lifespan.
+
+⚠ The window it leaves is real and bounded: between a deploy and the
+next reset, a subject whose manifestations still name the old surfaces
+lists with no surfaces. **Any future rename of these three collections
+gets the same answer for the same reason** — check the reset policy
+first; a `wipe` collection does not need a migration.
+
+⚠ The verb flag is `--ordered` on both: `forum on <subject> --ordered`
+and `chat on <subject> --ordered`. It replaced `--argument` and
+`--rules`.
+
+⚠ A subject's audience label reads **"everyone"**, not "open", precisely
+because `open` now names a surface and the audience chip shares a header
+with the surface tabs. The `SubjectAudience.kind` enum still uses
+`'open'`; only the displayed word changed.
 
 ### Subject grain — venue vs topic
 
@@ -133,23 +165,23 @@ now.
 
 `migrateLegacySubscription` ports a retrofitted channel's legacy
 `{tunedIn, muted}` onto the per-subject store **lazily on first read**,
-idempotently (`tunedIn → followed`, `muted → 'free-chat'` in
+idempotently (`tunedIn → followed`, `muted → 'open-chat'` in
 `mutedSurfaces`). Lazy-on-read avoids a boot-time write storm.
 
 ## The hierarchy — Board → Thread → Post
 
 - **`Board`** (`lib/forum/Board.ts`, `forum_boards`) — a long-lived venue
   holding many Threads. Fields: `subject` ref (every board belongs to a
-  Subject — the universal root), `organizer: 'popularity' | 'argument'`,
+  Subject — the universal root), `organizer: 'open' | 'ordered'`,
   `name`, `description`, and an `override` bag (designed-in but inert —
   the deferred per-board moderation layer).
 - **`Entry`** (`lib/forum/Entry.ts`, `forum_entries`) — a node in a
   board's reply tree. A **Thread** is a root Entry (`parent: null`)
   carrying a `title` + `body`; a **Post** is a child Entry (`parent` =
   another entry's `_id`). The `relation` edge is **organizer-scoped**: a
-  `'popularity'` board uses only `'reply'` (a strict reply-tree,
+  `'open'` board uses only `'reply'` (a strict reply-tree,
   **Reddit-style nested** — a `parent` edge to any entry, arbitrary
-  depth); an `'argument'` board uses only the typed claim-graph edges
+  depth); an `'ordered'` board uses only the typed claim-graph edges
   `'supports' | 'objects-to' | 'responds-to'` (see [The argument
   organizer](#the-argument-organizer-cycle-2)).
 
@@ -281,7 +313,7 @@ state per `(entry, voter)` ∈ {up, none, down}**, one row per pair in
 `forum_votes` (`Vote`, `lib/forum/Vote.ts`), with a unique compound index
 on `(entry, voter)` enforcing **one-account-one-vote**. The Entry carries
 a **denormalized `up`/`down` aggregate** recomputed from the vote store
-on each cast, so the popularity sorts + the live score delta read off the
+on each cast, so the open-board sorts + the live score delta read off the
 Entry without scanning votes.
 
 `ForumsLogic.castVote(actor, entry, direction)`:
@@ -314,11 +346,11 @@ one-account-one-vote; trust-weighting deferred.
 
 ## The argument organizer (cycle 2)
 
-The **argument-map** is the `organizer: 'argument'` reading of the same
+The **argument-map** is the `organizer: 'ordered'` reading of the same
 `Board`/`Entry` store — the polity's load-bearing **deliberation
 surface**, where a proposal is reasoned through before a vote. It is
 **not new storage**: a typed claim-graph interpretation + verb mode + a
-computed read projection over the documents the popularity organizer
+computed read projection over the documents the open organizer
 uses. The governing principle (from the cooperative slate): **load-bearing
 deliberation must be organized by the argument's structure, not by any
 user-signal ranking** — in a gamified polity any outcome-affecting ranking
@@ -344,7 +376,7 @@ case, a canonical claim reused under many parents, is the deferred
 claim-dedup problem). The vocabulary is **organizer-scoped** and enforced
 at contribution time by the off-class `legalRelationsFor(organizer)`:
 `reply()` rejects on an argument board, `attachClaim()` rejects on a
-popularity board. Claims are **reputation-blind** — never vote-seeded;
+open board. Claims are **reputation-blind** — never vote-seeded;
 `up`/`down` are never read under this organizer (no `castVote` —
 `ForumsLogic.castVote` and the `forum vote` verb both refuse).
 
@@ -383,15 +415,15 @@ structural projection.
 
 Argument boards ride the **same** `ForumSubscriptionRegistry` — the
 single organizer-aware branch is in `projectScope`: when the resolved
-board's `getOrganizer() === 'argument'` it routes through
+board's `getOrganizer() === 'ordered'` it routes through
 `readArgumentLens`/`readArgumentThread` and `projectArgumentNodes`
-instead of the popularity `readBoard`/`readThread`. The scope kinds, the
+instead of the open board's `readBoard`/`readThread`. The scope kinds, the
 dependency index, the dirty-batch, and `diffRecords` are reused verbatim;
 `MqlSubscriptionRegistry` is untouched. `projectArgumentNodes` zeroes
 `up`/`down`/`score` and nulls `displayScore` (reputation-blind) and
 stamps the argument-only `ForumEntryRecord` fields (`organizer`,
 `relation`, `openObjection`, `inCircle`, `editedAt`) — all optional, so a
-popularity projection is byte-identical when they're absent. `recordsEqual`
+open projection is byte-identical when they're absent. `recordsEqual`
 compares them so the open-objection badge, the edited marker, and the
 highlight update live.
 
@@ -643,6 +675,160 @@ the nav target) and click-driven; the player stays in
   and offers the outbound ops; the store slice (`forumRecords` keyed by
   `subscriptionId`, `forumNav`) stays pure state.
 
+### The subject rail — the client catches up (Wave 6)
+
+⭐⭐ **Until Wave 6 the client had never heard of a Subject.**
+`packages/client` held ZERO references to `ordered-forum` /
+`open-forum` / `open-chat` / `ordered-chat`, and its only unit of
+navigation was a **board**. A board is one *surface* of a subject, so a
+subject lighting three of them appeared as three unrelated things, and no
+arrangement of a board list can say otherwise.
+
+⚠⚠ **The scope vocabulary had a SECOND copy, and it drifted.** Adding
+`subjects` to the type, to the registry's validation, to its projection
+and to its dependency index was not enough: the inbound WS handler
+(`backend/inbound/forumSubscription.ts`) listed the kinds *literally* as
+a shape-check, did not know the new one, and **returned silently**. The
+client subscribed, the server dropped the message with no error
+envelope, and the rail sat on its honest empty state — *"No subjects you
+can see yet"* — over four subjects that existed.
+
+Nothing failed. **The failure was the silence**, and an honest empty
+state is indistinguishable from a dropped message, which is exactly what
+lets this class of bug survive a green suite. Both sides now read
+`FORUM_SCOPE_KINDS` from `@saxonberg/types`, and
+`inbound/__tests__/forumSubscription.test.ts` asserts every declared kind
+is admitted rather than the four somebody remembered.
+
+**The fourth subscription scope.** `ForumSubscriptionScope.kind` gains
+`'subjects'` beside `index` / `board` / `thread`. It reuses the whole
+existing observer — validation, dependency index, dirty-batch, delta
+envelope — rather than inventing a channel, which is why the rail is
+live: a subject appearing moves it without a reload. Like `index`, it is
+a whole-set watcher with no backing doc, so it shares the broad bucket
+and re-resolves on any forum event.
+
+`ForumSubjectRecord` carries identity, grain, handle, parent, audience,
+lit surfaces and `openObjections`. Two things about it are load-bearing:
+
+- ⭐ **`openObjections` is counted from the SAME `readArgumentLens` read**
+  whose `openObjection` flags the per-row projection uses. The rail badge
+  and the rows it summarises therefore cannot disagree; a second count
+  computed another way is exactly how they would.
+- ⭐ **The audience is recognised, not inferred from the ref's shape.**
+  `curated` is checked against `SubjectCatalogue`'s own record of the
+  managed groups it minted (`getBackingGroupIds`) — the only thing that
+  distinguishes it from `bound`, since both are `managed:` refs.
+
+⚠⚠ **`recordsEqual` dispatches on record kind.** Letting subject records
+fall through the entry comparison reads as working and never fires a
+`replace`: every entry field is `undefined` on both sides, so two
+different subjects compare equal and the rail freezes at whatever it
+showed first — silently, with nothing thrown and nothing logged.
+
+**Client shape.** `SubjectRail` (live; topic-grain subjects nested under
+their parent, since a promoted thread is board-scoped and inherits its
+audience, so a flat list would present it as a peer venue it is not),
+`SubjectHeader` (identity + audience + surface tabs), `SubjectShell` (the
+app). The audience chip sits beside the **title**, not inside any one
+surface, because it governs all of them at once — that placement is the
+claim the subject model makes.
+
+**An unlit surface is an affordance.** `+ Argument` previews and sends
+`forum on <handle> --argument`; `+ Chat` sends `chat on <handle>`. ⚠
+`ordered-chat` is the exception and it is a *server* fact: the surface is
+parked, so it renders in the not-wired treatment and sends nothing. A
+control that reliably refuses is worse than one that says it is not
+there yet.
+
+⚠⚠ **A subject's HANDLE does not address a BOARD.** `ForumSubjectRecord`
+carries `surfaceRefs` — the backing document id per lit surface —
+because `resolveBoardByHandle` resolves a handle with a documented
+tie-break (*"Popularity wins the rare both-lit case"*). That assumption
+held while nothing let a player light both forum surfaces; the subject
+tabs invite exactly that, and switching to Argument silently re-rendered
+the popularity board — the tab highlighted, the board did not change,
+nothing said why. `forumNav` now carries `boardId` beside `boardHandle`:
+the id is what the subscription watches, the handle is what commands are
+composed from.
+
+⚠ **And an EMPTY argument board cannot describe itself.** `ForumView`
+derived its render mode from the projected rows
+(`some(r => r.organizer === 'ordered')`), so a freshly-lit ordered
+board showed the popularity chrome — a sort bar and a "Post thread"
+composer over a claim graph. The shell knows which surface it opened, so
+it passes `organizer` explicitly; the row-derived guess survives only as
+the fallback for the standalone path.
+
+⭐⭐ **The chat surface is a terminal, and the scoping is the INPUT MODE
+— not a second input.** Three shapes were tried and the differences are
+the lesson:
+
+1. `ForumChatSidecar` — a rail whose input needed a **"Talk here"** click
+   to set the prefix. One click too many: being on a subject's chat
+   already says where your typing goes.
+2. Its own composer — removed the click, and put **two command bars on
+   one screen**, with the channel name retyped into every message.
+3. ⭐ Entering the surface sets the forum command line's
+   server-authoritative prefix (`cockpit cli --prefix "chat <handle>"`,
+   per-bar on `cockpit.inputModes`); leaving clears it. **One bar, no
+   retyping, and the prefix is visible in it.**
+
+⚠ The prefix is real server state, which is why the surface SENDS a
+command to enter rather than setting a local flag — the client owns zero
+command semantics, including this one. The effect is guarded on the
+CURRENT prefix: the send updates `cockpit.inputModes`, which re-renders
+the surface, which would send again.
+
+⚠ And the surface says what the command line is carrying. A prefixed
+command line that does not announce its prefix silently rewrites what
+you type.
+
+⚠⚠ **`chat`, not `chan`.** The reference mock draws `chan <handle>
+<msg>` and the first cut composed exactly that; the server answered *"I
+don't understand 'chan'."* Same mistake as the reaction sigil and from
+the same cause — **the command form was copied from a mock rather than
+read off the verb spec.**
+
+⭐ **The forum shows the server's last reply.** `chat` mode renders no
+transcript, so every command answer landed nowhere: clicking a vote
+arrow on your own thread produced *"You cannot change the vote on your
+own entry"* — correct and informative — and the player saw an unmoved
+score and no reason. It was reported as *voting doesn't work*; voting
+worked fine. **A surface that lets you send has to show you the
+answer.**
+
+⭐ **On a phone the shell is MASTER-DETAIL, not two columns.** At 390px
+the desktop arrangement left the rail its 14–18rem and the body about
+200px — a forum post four words to a line. A subject and its surfaces
+are a drill-down, so the phone switches: the rail owns the screen until
+you pick, then the subject does, with a `‹ Subjects` way back. Found by
+driving; no component test saw it, because they all render at jsdom's
+default width. ⚠ What still waits for a mock is the surface-tab
+treatment *inside* the body, not this.
+
+⚠ **`ForumView` was NOT retired.** Its argument lens, popularity list and
+comment tree render the server's projection correctly; the defect was one
+level up, in navigation. It is now a *body inside a subject* rather than
+the whole app, with `SubjectShell` setting `forumNav` from the subject's
+handle. The store holds one `forumRecords` union rather than two maps
+that could disagree about which subscription is which; `asEntries` /
+`asSubjects` narrow at the read by asking a record its shape, never by
+casting.
+
+⚠ **Known seam: `chat on` does not wake an open rail.** Lighting a forum
+surface fires `board-created` through `ForumsLogic.recordEvent`, which
+carries the wake. Lighting a *chat* surface goes through
+`ChannelCatalogue` and records no forum event, so a rail already on
+screen does not learn about it until re-opened. Firing a bare
+`ForumEventFired` from `SubjectCatalogue.addManifestation` was tried and
+reverted: it breaks **persist-then-fire** (asserted by
+`ForumSubscriptionRegistry.test.ts`) and would double-fire the forum
+path. Closing it properly wants a durable `surface-lit` event kind
+recorded from `ForumsLogic`, which owns `recordEvent` — routing it from
+`SubjectCatalogue` would be an import cycle, since `ForumsLogic` already
+imports `SubjectApi`.
+
 ## Open questions / deferred
 
 - **The latent "watch a collection for changes" abstraction (deferred,
@@ -656,7 +842,7 @@ the nav target) and click-driven; the player stays in
   and **not** a shared forums/wiki/CMS engine (CMS/wiki are
   request-response authoring, not live subscribers). When a second real
   watcher appears, extract the generic layer from the two concretes.
-- **The argument organizer / argument-forum** — the typed claim-graph,
+- **The ordered organizer / ordered-forum** — the typed claim-graph,
   `supports`/`objects-to`/`responds-to` edges, the neutral default lens,
   open-objection, the circle highlight, the mature seam, and the client
   argument mode — **shipped (cycle 2)**; see [The argument
@@ -751,3 +937,22 @@ retained for the remaining deferred design space (the ephemeral lifecycle,
 the procedure modes, the latent collection-watch abstraction); the
 argument organizer's scale tail lives in the
 [argument-map slate](../slates/tails/argument-map-slate.md).
+
+### Wave 6 (client rebuild) — 2026-08-15
+
+Two renames and one client catch-up, all in one branch:
+
+- **`ordered` / `open` replaced four words.** `argument`/`popularity`
+  (board organizer) and `rules-of-order`/`free` (chat procedure) became
+  one axis asked of both. **No migration** — see § The four surfaces for
+  why the reset policy makes one unnecessary, and why that reasoning
+  generalises.
+- **The client learned the Subject model.** It had known only boards;
+  `ForumSubscriptionScope` gained a `subjects` kind and
+  `ForumSubjectRecord` gained `surfaceRefs`, because a subject's handle
+  does not address a board.
+- **Four faults found by DRIVING, none visible to the suite** — a
+  silently-dropped subscription scope, the Argument tab re-rendering
+  Popularity, an empty ordered board wearing popularity chrome, and a
+  command reply with nowhere to land. Each is written up at its cause
+  above; the generalisation is in [testing.md](../testing.md).

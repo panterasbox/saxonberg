@@ -35,8 +35,8 @@
 > model is now pinned to the **cycle-1 forum substrate** — the structure
 > organizer is an *interpretation + verb mode over the same `Board`/`Entry`
 > store*, not new storage (the seams already ship inert: `Board.organizer:
-> 'structure'`, the `Entry.relation` enum, the `'argument-forum'`
-> manifestation, the `--argument` flag); see **The substrate** below. (2) The
+> 'structure'`, the `Entry.relation` enum, the `'ordered-forum'`
+> manifestation, the `--ordered` flag); see **The substrate** below. (2) The
 > reading half is sharpened into a **store/lens split** — the record and the
 > *default* lens stay neutral; *your* lens is free — which supersedes the flat
 > "never rank" framing; see **Reading the map** below. This is the documented
@@ -148,7 +148,7 @@ the seams ship inert in cycle 1 and this build lights them up:
   spine). The **root spine** is the `parent: null` `Entry` — the proposal as
   prose. The four node-kinds above are a *taxonomy of roles*, all carried by
   the one `relation` field.
-- **The `'argument-forum'` manifestation + the `--argument` flag** — already
+- **The `'ordered-forum'` manifestation + the `--ordered` flag** — already
   reserved on `Subject` and the `forum` verb.
 - **The vote aggregate is inert here.** `Entry.up`/`down` (the Wave-2
   popularity aggregate) is never read under `'structure'`; nothing ranks, so
@@ -156,7 +156,7 @@ the seams ship inert in cycle 1 and this build lights them up:
 
 **Verb surface — reuse `reply`, don't invent.** Contribution is the existing
 `forum reply <node>` with valence flags: `--pro` → `supports`, `--con` →
-`objects-to`, `--rebut` → `responds-to`. The spine is `forum make … --argument`
+`objects-to`, `--rebut` → `responds-to`. The spine is `forum make … --ordered`
 + the root post. (The structure organizer is a verb *mode*, not a new verb.)
 
 **Three provisional model decisions** (settled in conversation; flagged to

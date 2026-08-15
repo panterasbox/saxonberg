@@ -98,7 +98,7 @@ export class ChatLogic extends ApiLogic {
   @CallSecurity(ChatApiCallers)
   public async attachChatToSubject(
     subject: Subject,
-    procedure?: 'free' | 'rules-of-order'
+    procedure?: 'open' | 'ordered'
   ): Promise<Channel> {
     return (await requireCatalogue()).attachChatToSubject(subject, procedure);
   }

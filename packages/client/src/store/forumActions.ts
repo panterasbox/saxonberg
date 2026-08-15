@@ -11,13 +11,40 @@
  */
 
 import type {
+  ForumEntryRecord,
+  ForumSubjectRecord,
   ForumSubscriptionResultEnvelope,
   ForumSubscriptionDeltaEnvelope,
   ForumSubscriptionErrorEnvelope,
   ForumSubscriptionScope,
 } from "@saxonberg/types";
-import { useStore } from "./index";
+import { useStore, type ForumProjectedRecord } from "./index";
 import { websocketClient } from "../services/websocket";
+
+/**
+ * Narrow a subscription's records to the kind its scope produces.
+ *
+ * ⭐ The store holds ONE `forumRecords` map because two maps could
+ * disagree about which subscription is which. The narrowing happens
+ * here, at the read, by asking the record about its own shape — a cast
+ * would assert the scope's kind rather than check it, and a `subjects`
+ * subscription rendered as entries is a blank board with no error.
+ */
+export function asSubjects(
+  records: readonly ForumProjectedRecord[] | undefined,
+): ForumSubjectRecord[] {
+  return (records ?? []).filter(
+    (r): r is ForumSubjectRecord => "surfaces" in r,
+  );
+}
+
+export function asEntries(
+  records: readonly ForumProjectedRecord[] | undefined,
+): ForumEntryRecord[] {
+  return (records ?? []).filter(
+    (r): r is ForumEntryRecord => !("surfaces" in r),
+  );
+}
 
 let installed = false;
 
@@ -109,8 +136,23 @@ export function matureArgument(boardHandle: string): void {
  * the layout is the server-authoritative `cockpit.layout` axis and is
  * not flipped here (no client-side auto-switch).
  */
-export function openForumBoard(boardHandle: string): void {
-  useStore.getState().setForumNav({ boardHandle, threadId: null });
+/**
+ * Point the forum at a board.
+ *
+ * ⚠ `boardId` is what the SUBSCRIPTION watches and `boardHandle` is what
+ * COMMANDS are composed from. Passing only the handle is how the
+ * Argument tab came to silently re-render the popularity board: one
+ * handle, two boards, and a documented tie-break resolving it.
+ */
+export function openForumBoard(
+  boardHandle: string,
+  boardId?: string | null,
+): void {
+  useStore.getState().setForumNav({
+    boardHandle,
+    boardId: boardId ?? null,
+    threadId: null,
+  });
 }
 
 export function openForumThread(threadId: string): void {

@@ -48,8 +48,8 @@ describe('Subject', () => {
     s.owner = '/obj/Avatar/p1';
     s.groupRef = 'managed:g1';
     s.grain = 'venue';
-    s.addManifestation('free-chat', 'chan-1');
-    s.addManifestation('popularity-forum', 'board-1');
+    s.addManifestation('open-chat', 'chan-1');
+    s.addManifestation('open-forum', 'board-1');
     await s.save();
 
     const found = await Subject.find({ title: 'Gossip' });
@@ -59,10 +59,10 @@ describe('Subject', () => {
     expect(f.getGroupRef()).toBe('managed:g1');
     expect(f.getGrain()).toBe('venue');
     expect(f.isOpen()).toBe(false);
-    expect(f.hasManifestation('free-chat')).toBe(true);
-    expect(f.hasManifestation('popularity-forum')).toBe(true);
-    expect(f.hasManifestation('argument-forum')).toBe(false);
-    expect(f.manifestationRef('free-chat')).toBe('chan-1');
+    expect(f.hasManifestation('open-chat')).toBe(true);
+    expect(f.hasManifestation('open-forum')).toBe(true);
+    expect(f.hasManifestation('ordered-forum')).toBe(false);
+    expect(f.manifestationRef('open-chat')).toBe('chan-1');
   });
 
   it('an open subject has an empty groupRef', async () => {
@@ -76,10 +76,10 @@ describe('Subject', () => {
 
   it('addManifestation is idempotent on surface (at most one of each)', () => {
     const s = new Subject();
-    s.addManifestation('free-chat', 'chan-1');
-    s.addManifestation('free-chat', 'chan-2');
+    s.addManifestation('open-chat', 'chan-1');
+    s.addManifestation('open-chat', 'chan-2');
     expect(s.getManifestations()).toHaveLength(1);
-    expect(s.manifestationRef('free-chat')).toBe('chan-2');
+    expect(s.manifestationRef('open-chat')).toBe('chan-2');
   });
 
   it('persists thread-grain fields (board-scoped handle)', async () => {

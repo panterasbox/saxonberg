@@ -84,10 +84,10 @@ subcommands:
   on:
     description: "Attach a chat surface to an existing subject you own (default free)"
     options:
-      rules:
+      ordered:
         type: boolean
-        field: rules
-        description: "Attach the rules-of-order surface (deferred; reserved)"
+        field: ordered
+        description: "Attach the ORDERED chat surface — rules of order (deferred; reserved)"
     args:
       - name: name
         type: string

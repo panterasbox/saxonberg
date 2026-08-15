@@ -75,9 +75,9 @@ export class ChannelSeeder {
       c.name = entry.name;
       c.kind = entry.kind ?? 'open-join-standalone';
       c.subject = subject._id ?? '';
-      c.procedure = 'free';
+      c.procedure = 'open';
       await c.save();
-      subject.addManifestation('free-chat', c._id ?? '');
+      subject.addManifestation('open-chat', c._id ?? '');
       await subject.save();
       inserted++;
     }

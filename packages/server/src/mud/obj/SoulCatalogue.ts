@@ -23,6 +23,7 @@ import { SecurityApi } from '../api/security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Emote } from '../lib/social/Emote';
+import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
@@ -117,6 +118,57 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const seen = new Set<Emote>();
     for (const e of map.values()) seen.add(e);
     return [...seen];
+  }
+
+  /**
+   * The catalogue projected for the client's emote picker.
+   *
+   * Canonical verbs only — the cache indexes each alias to the same
+   * `Emote`, so iterating it directly would emit one grid cell per
+   * alias. Aliases ride their canonical entry instead.
+   *
+   * Slot order is `Object.entries` order over `grammar.slots`, which is
+   * the order the author declared them in and the order
+   * `EmoteGrammarRunner.bind` consumes tokens in. The picker offers its
+   * controls in that same order, so what the player fills in binds the
+   * way they expect.
+   *
+   * Player-readable by design: this is the READ face of the catalogue.
+   * `soul list` remains the author face and keeps its `requiresCoreAccess`
+   * gate — a player seeing the palette is not a player authoring it.
+   */
+  @CallSecurity(SoulApiCallers)
+  public async snapshot(): Promise<EmoteCatalogueEntry[]> {
+    const emotes = await this.all();
+    return emotes.map((e) => ({
+      verb: e.verb,
+      /*
+       * ⚠ **A glyph-less emote stores `null`, not `undefined`.** The
+       * field is declared `emoji?: string` and the seed YAML simply
+       * omits it — but the round trip through Mongo brings it back as an
+       * explicit `null`, so a `!== undefined` check passes and ships
+       * `emoji: null` to the client. The picker, filtering on presence,
+       * then drew a grid cell with a verb and no glyph: eight of them,
+       * live.
+       *
+       * That is not cosmetic. The reaction registry is **glyph-gated** —
+       * a glyph-less react is never tallied and never becomes a chip —
+       * so a cell for one promises a chip that cannot appear.
+       *
+       * ⚠⚠ Found by DRIVING, and only by driving: every unit fixture
+       * here had used `undefined`, which is not the shape the database
+       * holds. A truthiness check covers all three.
+       */
+      ...(e.emoji ? { emoji: e.emoji } : {}),
+      aliases: [...e.aliases],
+      tags: [...e.tags],
+      slots: Object.entries(e.grammar.slots).map(([name, spec]) => ({
+        name,
+        kind: spec.kind,
+        required: spec.optional !== true,
+        ...(spec.scope !== undefined ? { scope: spec.scope } : {}),
+      })),
+    }));
   }
 
   /**

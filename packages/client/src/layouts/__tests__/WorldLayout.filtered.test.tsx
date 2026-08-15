@@ -37,6 +37,7 @@ function renderLayout(visible: Frame[]) {
       onSendPromptResponse={noop}
       onCancelPrompt={noop}
       onCommandClick={noop}
+      onCommandSend={noop}
       onCommandPreview={noop}
     />,
   );

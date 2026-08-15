@@ -423,7 +423,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const sub = subjects.getSubscription(avatar, channel.subject);
     return {
       tunedIn: sub.followed,
-      muted: sub.mutedSurfaces.includes('free-chat'),
+      muted: sub.mutedSurfaces.includes('open-chat'),
     };
   }
 
@@ -438,12 +438,12 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       subjects.follow(avatar, channel.subject, next.tunedIn);
     }
     if (next.muted !== undefined) {
-      subjects.mute(avatar, channel.subject, 'free-chat', next.muted);
+      subjects.mute(avatar, channel.subject, 'open-chat', next.muted);
     }
     const sub = subjects.getSubscription(avatar, channel.subject);
     return {
       tunedIn: sub.followed,
-      muted: sub.mutedSurfaces.includes('free-chat'),
+      muted: sub.mutedSurfaces.includes('open-chat'),
     };
   }
 
@@ -486,9 +486,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     c.name = newName;
     c.kind = 'player-created';
     c.subject = subject._id!;
-    c.procedure = 'free';
+    c.procedure = 'open';
     await c.save();
-    await subjects.addManifestation(subject, 'free-chat', c._id!);
+    await subjects.addManifestation(subject, 'open-chat', c._id!);
 
     const map = await this.ensureNameCache();
     map.set(newName.toLowerCase(), c);
@@ -529,9 +529,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     c.name = name;
     c.kind = 'player-created';
     c.subject = subject._id!;
-    c.procedure = 'free';
+    c.procedure = 'open';
     await c.save();
-    await subjects.addManifestation(subject, 'free-chat', c._id!);
+    await subjects.addManifestation(subject, 'open-chat', c._id!);
 
     const map = await this.ensureNameCache();
     map.set(name.toLowerCase(), c);
@@ -568,9 +568,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     c.name = name;
     c.kind = "player-created";
     c.subject = subject._id!;
-    c.procedure = "free";
+    c.procedure = "open";
     await c.save();
-    await subjects.addManifestation(subject, "free-chat", c._id!);
+    await subjects.addManifestation(subject, "open-chat", c._id!);
 
     const map = await this.ensureNameCache();
     map.set(name.toLowerCase(), c);
@@ -584,13 +584,13 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    */
   public async attachChatToSubject(
     subject: Subject,
-    procedure: 'free' | 'rules-of-order' = 'free',
+    procedure: 'open' | 'ordered' = 'open',
   ): Promise<Channel> {
     // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'attachChatToSubject');
     const subjects = await this.requireSubjects();
-    const surface = procedure === 'free' ? 'free-chat' : 'rules-chat';
+    const surface = procedure === 'open' ? 'open-chat' : 'ordered-chat';
     if (subject.hasManifestation(surface)) {
       const existingId = subject.manifestationRef(surface);
       const existing = existingId

@@ -34,7 +34,7 @@
 import React from "react";
 import styled from "styled-components";
 import { useStore } from "../store/index";
-import { tokens } from "./ui";
+import { tokens, UnbuiltGround } from "./ui";
 import { MmlRenderer } from "./MmlRenderer";
 import type { WikiSectionSummary } from "@saxonberg/types";
 
@@ -114,6 +114,27 @@ const Action = styled.button`
   &:hover {
     background: ${tokens.color.actionBg};
   }
+`;
+
+/**
+ * The not-wired search field.
+ *
+ * ⚠ Deliberately NOT an `<input>`. A disabled input still reads as a
+ * search box that is temporarily off; the hatched ground with `╌╌` where
+ * the affordance would be reads as a thing that does not exist yet,
+ * which is the truth. `wikiSearch.test.tsx` asserts it is not an input,
+ * because "disabled input" is the shape this would quietly drift back
+ * into.
+ */
+const NotWiredSearch = styled(UnbuiltGround)`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  margin: ${tokens.space.sm} 0;
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
 `;
 
 const Body = styled.div`
@@ -321,6 +342,27 @@ export function WikiPane({
         </Actions>
       </Header>
       <Body>
+        {/*
+          ⚠⚠ **Search is honestly missing, and says so.**
+
+          The design handoff gives the wiki a search field. Track C's
+          audit records wiki search as *not wired* — there is no port
+          behind it — so the field renders in the not-wired treatment
+          rather than as an input that swallows what you type. The
+          sidebar tree is the only way in, which is why the tree has to
+          be good, and the field states that rather than pretending.
+
+          Order-of-preference #1 from the conventions: ship the surface,
+          hatch the value. Never hardcode, including "just for now".
+        */}
+        <NotWiredSearch
+          data-testid="wiki-search-unwired"
+          role="note"
+          aria-label="Wiki search is not available yet"
+        >
+          <span aria-hidden>⌕</span> ╌╌ no search port yet — the tree is
+          the way in
+        </NotWiredSearch>
         {page.sections.length > 0 && (
           <Section>
             <SectionLabel>Contents</SectionLabel>

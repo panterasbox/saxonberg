@@ -21,22 +21,35 @@
  * See docs/subsystems/reactions.md.
  */
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled, { keyframes, css } from "styled-components";
 import type { ReactionBucket } from "@saxonberg/types";
 import { useStore, type Frame } from "../store/index";
 import { tokens } from "./ui";
 import { expandReactors } from "../store/reactionActions";
+import { EmotePicker } from "./social/EmotePicker";
+import { composeReactCommand, quickRow } from "./social/reactCommand";
+import { ensureEmoteCatalogue } from "../store/emoteCatalogue";
 
-/** Topics whose frames are reactable acts (mirrors REACTABLE_TOPICS). */
-const REACTABLE_PREFIXES = [
-  "speech.",
-  "act.emote",
-  "speech.channel",
-];
-
-function isReactableTopic(topic: string): boolean {
-  return REACTABLE_PREFIXES.some((p) => topic.startsWith(p));
+/**
+ * Whether a frame is a reactable act.
+ *
+ * ⚠⚠ **The server answers this; the client no longer guesses.** There
+ * used to be a `REACTABLE_PREFIXES` array here "mirroring"
+ * `ReactionApi.REACTABLE_TOPICS`. It stopped mirroring it: the server
+ * added `act.combat` (a hit landing is a beat the room cheers) and the
+ * list here never learned, so combat frames offered no reaction and
+ * nothing failed — a mirror that has drifted looks exactly like a mirror
+ * that has not. The set now arrives on the connection payload.
+ *
+ * An empty set means the server has not told us yet, and the honest
+ * response to that is to offer nothing rather than to assume.
+ */
+function isReactableTopic(
+  topic: string,
+  reactable: ReadonlySet<string>,
+): boolean {
+  return reactable.has(topic);
 }
 
 /**
@@ -52,17 +65,12 @@ function chipTitle(b: ReactionBucket, mine: boolean): string {
   return `${who} — ${mine ? "click to remove yours" : "click to react"}`;
 }
 
-// The quick-react palette — glyphs match the server emote's emoji so the
-// button you click is the chip you get. Only emoji-bearing emotes belong
-// here (glyph-less reacts render as prose, never a chip).
-const QUICK = [
-  { verb: "smile", emoji: "😊" },
-  { verb: "laugh", emoji: "😆" },
-  { verb: "applaud", emoji: "👏" },
-  { verb: "nod", emoji: "🙂" },
-  { verb: "cheer", emoji: "🎉" },
-  { verb: "agree", emoji: "👍" },
-];
+// ⚠ The quick-react palette used to be a hardcoded array of six
+// `{ verb, emoji }` pairs. It is now DERIVED from the server's catalogue
+// (`quickRow`), because a hardcoded pairing drifts from the catalogue
+// with nothing failing when it does — and the design conventions rule
+// out hardcoding "including just for now". `noHardcodedEmoji.test.ts`
+// guards this file against the array coming back.
 
 // Pulse strength is the `social.react.intensity` setting: `off` plays
 // nothing, the rest scale the bump. (`vivid` is the "train"ّ end.)
@@ -203,6 +211,38 @@ const Palette = styled.div`
   z-index: 5;
 `;
 
+/**
+ * The full palette's shell.
+ *
+ * ⚠⚠ **It anchors to whichever side keeps it on screen.** The `＋` sits
+ * at the END of the message text, so on a long line it is far right — and
+ * a left-anchored 30rem panel then ran past the transcript's edge,
+ * clipping its own header and its SEND control and giving the transcript
+ * a horizontal scrollbar. Found by driving.
+ *
+ * ⭐ Neither side works alone: right-anchoring breaks the short-message
+ * case, where the `＋` is near the left edge and the panel would hang off
+ * that side instead. So the side is MEASURED at open — see
+ * `useEdgeAware` — and this styled component only obeys it.
+ */
+const FullPalette = styled.div<{ $alignRight: boolean }>`
+  position: absolute;
+  bottom: 120%;
+  ${(p) => (p.$alignRight ? "right: 0;" : "left: 0;")}
+  width: 30rem;
+  max-width: min(80vw, 30rem);
+  z-index: 6;
+`;
+
+/** Loading / failed / empty copy inside the quick row. */
+const PaletteNote = styled.span`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgMuted};
+  padding: 1px ${tokens.space.sm};
+  white-space: nowrap;
+`;
+
 const PaletteBtn = styled.button`
   appearance: none;
   border: none;
@@ -215,6 +255,40 @@ const PaletteBtn = styled.button`
     background: ${tokens.color.actionBgHover};
   }
 `;
+
+/**
+ * Which side the full palette should hang from so it stays inside its
+ * scroll container.
+ *
+ * ⚠ Measured after paint, not guessed from a breakpoint: the deciding
+ * fact is where the `＋` ended up, which depends on the length of the
+ * message it trails — nothing static can know that.
+ */
+function useEdgeAware(open: boolean): {
+  ref: React.RefObject<HTMLDivElement>;
+  alignRight: boolean;
+} {
+  const ref = useRef<HTMLDivElement>(null);
+  const [alignRight, setAlignRight] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setAlignRight(false);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    // The nearest scrolling ancestor is the transcript; its right edge is
+    // the boundary that matters, not the window's.
+    const container =
+      el.closest('[data-testid="terminal"]') ?? document.documentElement;
+    const box = el.getBoundingClientRect();
+    const bounds = container.getBoundingClientRect();
+    if (box.right > bounds.right) setAlignRight(true);
+  }, [open]);
+
+  return { ref, alignRight };
+}
 
 interface ReactionBarProps {
   frame: Frame;
@@ -240,7 +314,24 @@ export function ReactionBar({
     commandId ? s.reactionExpansions[commandId] : undefined,
   );
   const prefs = useStore((s) => s.reactionPrefs);
+  const reactable = useStore((s) => s.reactableTopics);
+  const catalogue = useStore((s) => s.emoteCatalogue);
+  const catalogueState = useStore((s) => s.emoteCatalogueState);
+  const selfAvatarId = useStore((s) => s.selfAvatarId);
   const [open, setOpen] = useState(false);
+  // The full slot-aware palette, pulled from behind the quick row.
+  const [full, setFull] = useState(false);
+  const { ref: paletteRef, alignRight } = useEdgeAware(open && full);
+
+  /*
+   * ⭐ The catalogue is fetched the first time a player opens a reaction
+   * — not at boot. Somebody who never reacts never pays for it, and the
+   * browser's ETag makes every later session free. Idempotent and
+   * request-sharing, so calling it on every open is fine.
+   */
+  useEffect(() => {
+    if (open) void ensureEmoteCatalogue();
+  }, [open]);
 
   // Pulse the counts briefly whenever the act moves.
   const [pulsing, setPulsing] = useState(false);
@@ -262,7 +353,7 @@ export function ReactionBar({
   if (
     !commandId ||
     frame.inReactionTo !== undefined ||
-    !isReactableTopic(frame.topic)
+    !isReactableTopic(frame.topic, reactable)
   ) {
     return null;
   }
@@ -280,29 +371,63 @@ export function ReactionBar({
   // other clickable in the client — never a direct websocket send.
   // Reacting is add-only; an emote the viewer already reacted with
   // toggles OFF via `--remove` (the explicit un-react op).
-  const cmd = (verb: string) =>
-    `react ${isMine(verb) ? "--remove " : ""}--msg ${frame.frameId} ;${verb}`;
+  //
+  // ⚠ A frame with no gutter number cannot be TARGETED — `--msg` needs
+  // one. Its chips still render (the counts are true and worth seeing),
+  // but they do not act: the old code interpolated the undefined
+  // straight into the command and sent `--msg undefined`.
+  const gutter = frame.frameId;
+  const cmd = (verb: string): string | null =>
+    gutter === undefined
+      ? null
+      : composeReactCommand({ frameId: gutter, verb, remove: isMine(verb) });
   const send = (verb: string) => {
-    onCommandClick(cmd(verb));
+    const c = cmd(verb);
+    if (c === null) return;
+    onCommandClick(c);
     setOpen(false);
+    setFull(false);
   };
   const preview = (verb: string | null) =>
     onCommandPreview(verb === null ? null : cmd(verb));
+
+  // The quick row is derived from the catalogue and ranked by what this
+  // viewer actually reaches for; `mine` is a decent free signal until a
+  // real recency list exists.
+  const quick = quickRow(catalogue, mine);
 
   const total = act?.total ?? 0;
   const buckets = act?.buckets ?? [];
   const sample = act?.sample ?? [];
   const aggregated = act?.aggregated ?? false;
+  // `subjectId` is the act author's stuffId, so this is "somebody
+  // reacted to something I did" without the client guessing at it.
+  const isSelfAct = act !== undefined && act.subjectId === selfAvatarId;
 
   return (
     <Bar>
       {aggregated && (
+        /*
+         * ⭐ Above the threshold the SERVER stops fanning out a prose
+         * line per reaction (`suppressFanOut`), so this counter is the
+         * only thing that tells you anything happened — and when the act
+         * is your own, that is the thing you actually care about. The
+         * two states are worded apart because "12 reactions" on a
+         * stranger's line and "12 reactions to what you said" are
+         * different pieces of news.
+         *
+         * ⚠ Both numbers are the server's `total`; nothing here sums.
+         */
         <Counter
           $pulse={pulsing}
           $intensity={prefs.intensity}
-          title="Reactions on this act"
+          title={
+            isSelfAct
+              ? "Reactions to your act — the per-reaction lines are suppressed above the threshold"
+              : "Reactions on this act"
+          }
         >
-          ✦ {total} reactions
+          ✦ {total} {isSelfAct ? "reactions to yours" : "reactions"}
         </Counter>
       )}
 
@@ -348,28 +473,77 @@ export function ReactionBar({
         <Names>[ {expanded.map((e) => e.reactorName).join(", ")} ]</Names>
       )}
 
-      {isReactableTopic(frame.topic) && frame.frameId !== undefined && (
+      {gutter !== undefined && (quick.length > 0 || catalogueState !== "loaded") && (
         <AddWrap className="reaction-add" $open={open}>
-          <MiniButton onClick={() => setOpen((o) => !o)} title="React">
+          <MiniButton
+            onClick={() => {
+              setOpen((o) => !o);
+              setFull(false);
+            }}
+            title="React"
+          >
             ＋
           </MiniButton>
-          {open && (
-            <Palette>
-              {QUICK.map((q) => (
-                <PaletteBtn
-                  key={q.verb}
-                  onClick={() => send(q.verb)}
-                  onMouseEnter={() => preview(q.verb)}
-                  onMouseLeave={() => preview(null)}
-                  onFocus={() => preview(q.verb)}
-                  onBlur={() => preview(null)}
-                  title={q.verb}
-                >
-                  {q.emoji}
-                </PaletteBtn>
-              ))}
-            </Palette>
-          )}
+          {open &&
+            (full ? (
+              /*
+                The full palette. Same component the phone sheet renders,
+                so an emote with grammar is reachable on both — the grid
+                alone can only ever offer slotless verbs.
+              */
+              <FullPalette ref={paletteRef} $alignRight={alignRight}>
+                <EmotePicker
+                  frameId={gutter}
+                  mine={mine}
+                  onCommandClick={(c) => {
+                    onCommandClick(c);
+                    setOpen(false);
+                    setFull(false);
+                  }}
+                  onCommandPreview={onCommandPreview}
+                />
+              </FullPalette>
+            ) : (
+              <Palette>
+                {/*
+                  ⚠ Three states, and they must not look alike. Loading
+                  is transient and says so; a FAILED fetch is not an
+                  empty catalogue — an empty one is a real answer (a
+                  world with nothing authored) and would be a lie to
+                  render as an error, or the reverse.
+                */}
+                {catalogueState === "loading" && quick.length === 0 && (
+                  <PaletteNote>loading…</PaletteNote>
+                )}
+                {catalogueState === "failed" && (
+                  <PaletteNote>╌╌ could not load the emote catalogue</PaletteNote>
+                )}
+                {catalogueState === "loaded" && quick.length === 0 && (
+                  <PaletteNote>no emotes authored yet</PaletteNote>
+                )}
+                {quick.map((q) => (
+                  <PaletteBtn
+                    key={q.verb}
+                    onClick={() => send(q.verb)}
+                    onMouseEnter={() => preview(q.verb)}
+                    onMouseLeave={() => preview(null)}
+                    onFocus={() => preview(q.verb)}
+                    onBlur={() => preview(null)}
+                    title={q.verb}
+                  >
+                    {q.emoji}
+                  </PaletteBtn>
+                ))}
+                {quick.length > 0 && (
+                  <PaletteBtn
+                    onClick={() => setFull(true)}
+                    title="the full palette, with slots"
+                  >
+                    all
+                  </PaletteBtn>
+                )}
+              </Palette>
+            ))}
         </AddWrap>
       )}
     </Bar>

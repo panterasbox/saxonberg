@@ -5,11 +5,21 @@
  * Renders the viewer's `watch`-selected target as a sandboxed iframe. The
  * target is a single server-authoritative `WatchTarget` (the per-viewer
  * `cockpit.watch` clientState) — there is no picker; the `watch` verb is
- * the one control. Both platforms are wired: Twitch uses the Twitch player
- * (with `parent` derived from the host domain — correct-by-construction,
- * never hard-coded, satisfying the embed-safety constraint); YouTube uses
- * the standard `/embed/<videoId>` player, or `/embed/live_stream?channel=
- * <channelId>` for the durable channel form.
+ * the one control.
+ *
+ * ⚠ **All THREE platforms are wired.** This paragraph read "Both
+ * platforms are wired" above a three-way switch for a whole build after
+ * Kick landed, and an audit believed the comment over the code and
+ * reported Kick as a gap. A stale comment is worse than no comment: it
+ * is confidently actionable and false.
+ *
+ *  - **Twitch** — the Twitch player, with `parent` derived from the host
+ *    domain (correct-by-construction, never hard-coded, which is what
+ *    satisfies the embed-safety constraint).
+ *  - **YouTube** — `/embed/<videoId>`, or `/embed/live_stream?channel=
+ *    <channelId>` for the durable channel form.
+ *  - **Kick** — `player.kick.com/<slug>`, which renders an offline
+ *    channel gracefully.
  *
  * Fixed-ratio (16:9) content sizes first per the composition grammar — the
  * box claims its aspect and the surrounding panes fill the remainder.

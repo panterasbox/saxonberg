@@ -105,8 +105,8 @@ export class ForumsLogic extends ApiLogic {
     // whichever exists (the board carries its own organizer for callers
     // that need to branch). Popularity wins the rare both-lit case.
     const ref =
-      subject.manifestationRef('popularity-forum') ??
-      subject.manifestationRef('argument-forum');
+      subject.manifestationRef('open-forum') ??
+      subject.manifestationRef('ordered-forum');
     if (!ref) return null;
     const board = await Board.findById(ref);
     if (!board) return null;
@@ -126,8 +126,8 @@ export class ForumsLogic extends ApiLogic {
     const out: BoardView[] = [];
     for (const subject of subjects) {
       const ref =
-        subject.manifestationRef('popularity-forum') ??
-        subject.manifestationRef('argument-forum');
+        subject.manifestationRef('open-forum') ??
+        subject.manifestationRef('ordered-forum');
       if (!ref) continue;
       const board = await Board.findById(ref);
       if (board) out.push({ board, subject });
@@ -148,7 +148,7 @@ export class ForumsLogic extends ApiLogic {
     const author = authorIdOf(actor);
     // On an argument board a root Entry is the prose **spine** — reputation-
     // blind, so it is never vote-seeded; the popularity thread is.
-    const isArgument = board.getOrganizer() === 'argument';
+    const isArgument = board.getOrganizer() === 'ordered';
     const entry = new Entry();
     entry.board = board._id!;
     entry.parent = null;
@@ -182,7 +182,7 @@ export class ForumsLogic extends ApiLogic {
       throw new Error('That thread is locked.');
     }
     const board = await Board.findById(parent.board);
-    if (board && board.getOrganizer() === 'argument') {
+    if (board && board.getOrganizer() === 'ordered') {
       // Organizer-scoped vocabulary: a popularity `'reply'` is illegal on
       // an argument board — contribute with --pro/--con/--ask instead.
       throw new Error(
@@ -227,7 +227,11 @@ export class ForumsLogic extends ApiLogic {
     // The single organizer-scoped vocabulary gate (contribution-time).
     if (!legalRelationsFor(board.getOrganizer()).includes(relation)) {
       throw new Error(
-        `Relation '${relation}' is not valid on a ${board.getOrganizer()} board.`,
+        // ⚠ "an", not "a": the rename made BOTH organizer values
+        // vowel-initial (`ordered` / `open`), so a fixed article is
+        // correct for the whole closed vocabulary — it was `a` before,
+        // and read "a open board" the moment the rename landed.
+        `Relation '${relation}' is not valid on an ${board.getOrganizer()} board.`,
       );
     }
     const author = authorIdOf(actor);
@@ -288,7 +292,7 @@ export class ForumsLogic extends ApiLogic {
     direction: VoteValue,
   ): Promise<Entry> {
     const board = await Board.findById(entry.board);
-    if (board && board.getOrganizer() === 'argument') {
+    if (board && board.getOrganizer() === 'ordered') {
       // Principle 1: nothing is ranked under the argument organizer, so
       // there is no vote to cast (up/down are never read here).
       throw new Error('Voting is not available on an argument board.');
@@ -681,9 +685,9 @@ async function buildBoard(
   subject: Subject,
   opts: { description?: string; organizer?: BoardOrganizer },
 ): Promise<Board> {
-  const organizer: BoardOrganizer = opts.organizer ?? 'popularity';
+  const organizer: BoardOrganizer = opts.organizer ?? 'open';
   const surface =
-    organizer === 'argument' ? 'argument-forum' : 'popularity-forum';
+    organizer === 'ordered' ? 'ordered-forum' : 'open-forum';
   if (subject.hasManifestation(surface)) {
     const ref = subject.manifestationRef(surface);
     const existing = ref ? await Board.findById(ref) : null;
@@ -717,7 +721,7 @@ async function buildBoard(
  * contribution time (`reply` / `attachClaim`).
  */
 function legalRelationsFor(organizer: BoardOrganizer): EntryRelation[] {
-  return organizer === 'argument'
+  return organizer === 'ordered'
     ? ['supports', 'objects-to', 'responds-to']
     : ['reply'];
 }

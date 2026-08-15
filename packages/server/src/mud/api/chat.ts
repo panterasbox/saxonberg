@@ -85,7 +85,7 @@ export class ChatApi {
 
   static async attachChatToSubject(
     subject: Subject,
-    procedure?: 'free' | 'rules-of-order',
+    procedure?: 'open' | 'ordered',
   ): Promise<Channel> {
     return logic().attachChatToSubject(subject, procedure);
   }

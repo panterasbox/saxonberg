@@ -142,7 +142,7 @@ describe('ChannelCatalogue.createPlayerChannel (Subject retrofit)', () => {
 
     expect(channel.kind).toBe('player-created');
     expect(channel.subject).toBeTruthy();
-    expect(channel.procedure).toBe('free');
+    expect(channel.procedure).toBe('open');
     // The retrofitted Channel no longer carries identity/audience.
     expect((channel as unknown as { owner?: unknown }).owner).toBeUndefined();
     expect((channel as unknown as { groupRef?: unknown }).groupRef).toBeUndefined();
@@ -150,7 +150,7 @@ describe('ChannelCatalogue.createPlayerChannel (Subject retrofit)', () => {
     const subject = await channels.subjectFor(channel);
     expect(subject?.getOwner()).toBe('p1');
     expect(subject?.getGroupRef().startsWith('managed:')).toBe(true);
-    expect(subject?.hasManifestation('free-chat')).toBe(true);
+    expect(subject?.hasManifestation('open-chat')).toBe(true);
   });
 });
 

@@ -32,6 +32,7 @@ import { MixinApi } from '../../api/mixin';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type Interactive from '../Interactive';
+import type { ForumSubjectRecord } from '@saxonberg/types';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -230,7 +231,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
   async function makeArgumentBoard(creator: Stuff) {
     const { board } = await ForumsApi.makeForum(creator, 'RCV', {
       open: true,
-      organizer: 'argument',
+      organizer: 'ordered',
     });
     const spine = await ForumsApi.postThread(
       creator,
@@ -263,7 +264,7 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     const conRec = records.find((r) => r.id === con._id)!;
     // Argument projection: organizer stamped, reputation-blind (no score),
     // and the childless objection is flagged open.
-    expect(conRec.organizer).toBe('argument');
+    expect(conRec.organizer).toBe('ordered');
     expect(conRec.displayScore).toBeNull();
     expect(conRec.openObjection).toBe(true);
 
@@ -331,5 +332,121 @@ describe('ForumSubscriptionRegistry — argument organizer', () => {
     expect(recA.map((r) => r.id)).toEqual(recB.map((r) => r.id));
     expect(claimA.inCircle).toBe(true);
     expect(claimB.inCircle).toBe(false);
+  });
+  /* ─── the subject rail (`kind: 'subjects'`) ─── */
+
+  it('projects a subject with its lit surfaces, not a flat board list', async () => {
+    const creator = makeActor();
+    await ForumsApi.makeForum(creator, 'Gossip', { open: true });
+
+    const interactive = fakeInteractive();
+    await ForumsApi.handleSubscribe({
+      interactive,
+      subscriptionId: 's1',
+      scope: { kind: 'subjects', id: '' },
+    });
+
+    const snapshot = envelopes.find(
+      (e) => e.type === 'forum-subscription-result',
+    );
+    const records = (
+      snapshot as unknown as { records: ForumSubjectRecord[] }
+    ).records;
+    expect(records).toHaveLength(1);
+    const gossip = records[0]!;
+    expect(gossip.title).toBe('Gossip');
+    // ⭐ The rail's unit is the SUBJECT: one record carrying the surfaces
+    // it lights. A board-index projection could only ever say "one
+    // board", which cannot express a subject that lights two.
+    expect(gossip.surfaces).toEqual(['open-forum']);
+    expect(gossip.grain).toBe('venue');
+    expect(gossip.handle).toBe('Gossip');
+    expect(gossip.audience.kind).toBe('open');
+    expect(gossip.openObjections).toBe(0);
+  });
+
+  it('counts open objections from the same read the rows use', async () => {
+    const creator = makeActor();
+    const { board } = await ForumsApi.makeForum(creator, 'Measure', {
+      open: true,
+      organizer: 'ordered',
+    });
+    const thesis = await ForumsApi.postThread(
+      creator,
+      board,
+      'Shorten it',
+      'four days is enough',
+    );
+    const objector = makeActor();
+    await ForumsApi.attachClaim(objector, thesis, 'objects-to', 'the six quiet days are not idle');
+
+    const interactive = fakeInteractive();
+    await ForumsApi.handleSubscribe({
+      interactive,
+      subscriptionId: 's2',
+      scope: { kind: 'subjects', id: '' },
+    });
+
+    const snapshot = envelopes.find(
+      (e) => e.type === 'forum-subscription-result',
+    );
+    const records = (
+      snapshot as unknown as { records: ForumSubjectRecord[] }
+    ).records;
+    const measure = records.find((r) => r.title === 'Measure')!;
+    expect(measure.surfaces).toContain('ordered-forum');
+    // An `objects-to` with nothing answering it. The badge and the rows
+    // read ONE `readArgumentLens`, so they cannot disagree.
+    expect(measure.openObjections).toBe(1);
+  });
+
+  it('wakes on a forum event, like the board index does', async () => {
+    const creator = makeActor();
+    await ForumsApi.makeForum(creator, 'Gossip', { open: true });
+
+    const interactive = fakeInteractive();
+    await ForumsApi.handleSubscribe({
+      interactive,
+      subscriptionId: 's3',
+      scope: { kind: 'subjects', id: '' },
+    });
+    envelopes.length = 0;
+
+    // A second subject appears; the rail is a whole-set watcher, so any
+    // forum event re-resolves it.
+    await ForumsApi.makeForum(creator, 'Trade', { open: true });
+    await flush();
+
+    const delta = envelopes.find((e) => e.type === 'forum-subscription-delta');
+    expect(delta).toBeDefined();
+    const changes = (
+      delta as unknown as { changes: Array<{ op: string }> }
+    ).changes;
+    expect(changes.some((c) => c.op === 'add')).toBe(true);
+  });
+
+  it('shows a viewer only the subjects their audience membership reaches', async () => {
+    const creator = makeActor();
+    await ForumsApi.makeForum(creator, 'Public', { open: true });
+    await ForumsApi.makeForum(creator, 'Private', {
+      groupRef: 'guild:smiths',
+    });
+
+    const interactive = fakeInteractive();
+    await ForumsApi.handleSubscribe({
+      interactive,
+      subscriptionId: 's4',
+      scope: { kind: 'subjects', id: '' },
+    });
+
+    const snapshot = envelopes.find(
+      (e) => e.type === 'forum-subscription-result',
+    );
+    const titles = (
+      snapshot as unknown as { records: ForumSubjectRecord[] }
+    ).records.map((r) => r.title);
+    expect(titles).toContain('Public');
+    // The viewer is in no guild, so the bound subject is not theirs to see.
+    expect(titles).not.toContain('Private');
   });
 });

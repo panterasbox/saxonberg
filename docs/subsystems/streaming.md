@@ -268,6 +268,44 @@ feed / one owner is preserved. Full seam in [livestream.md](./livestream.md).
 - **No hardcoded streamer list** anywhere except the single overlay-owner
   account.
 
+## The tuned rail — `cockpit.tuned` (Wave 6)
+
+The set of channels a viewer follows lived only in the relay and as prose
+from a bare `tune`. The client's rail needs it as **state**: scraping the
+verb's own output would make the rail a reader of its own scrollback.
+
+`cockpit.tuned` is a transient `clientState` key beside `cockpit.watch`,
+an array of `{ platform, handle, canPost }`. Transient for the same
+reason: what you are following belongs to the live session, and
+`StreamApi.dropPlayer` drops you from every channel at logout anyway, so
+a persisted list would outlive the thing it describes.
+
+⭐ **Derived from the relay after every change, never accumulated.**
+`TuneController.publishTuned` re-reads `tunedTargetsFor` and republishes.
+Pushing a row per `tune` would make the client's list a *second* record
+of who follows what, free to drift from the relay's own.
+
+⭐⭐ **`canPost` is a server fact, and it is what the composer branches
+on.** Outbound posting needs a linked identity with chat authorized, and
+only Twitch has that path this cycle — YouTube and Kick chat are
+read-only, as the verb's own help says. The rail's composer is *dead* for
+a read-only target and its copy says why, which is Convention 3 (controls
+branch on the state their copy describes). Keying off the flag rather
+than the platform name means the day a Twitch authorization lapses, the
+composer dies with it and no client edit is needed.
+
+⚠ **Known seam.** The relay's own drop paths do not republish, so a
+channel dropped by `StreamApi.dropChannel` (a YouTube stream ending)
+leaves a stale row until the next `tune`. Logout is covered by the key
+being transient.
+
+⚠ **All three platforms embed.** `StreamEmbed` handles Twitch, YouTube
+(both `videoId` and the durable `channelId` form) and Kick. Its header
+comment said "Both platforms are wired" over a three-way switch for a
+whole build after Kick landed, and an audit believed the comment over the
+code and reported Kick as a gap — a stale comment being worse than none,
+since it is confidently actionable and false.
+
 ## Deferred / non-goals
 
 YouTube + Kick outbound (posting — Kick's is the `kick-reauth` +
