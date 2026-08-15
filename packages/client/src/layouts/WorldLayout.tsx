@@ -17,12 +17,10 @@ import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { TabStrip } from "../components/TabStrip";
 import { FeedSwitcher } from "../components/routing/FeedSwitcher";
-import { RoutingTable } from "../components/routing/RoutingTable";
 import { Terminal } from "../components/Terminal";
 import { FilterDrawer } from "../components/FilterDrawer";
 import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
-import { PromptFormatBar } from "../components/PromptFormatBar";
 import { PaneFeed } from "../components/panes/PaneFeed";
 import { usePaneFeed } from "../components/panes/usePaneFeed";
 import { RadialOverlay } from "../components/panes/RadialOverlay";
@@ -107,48 +105,6 @@ const PaneSlot = styled.div<{ $compact?: boolean }>`
       : ""}
 `;
 
-/** The routing table's slide-out, mirroring the filter drawer's shell. */
-const RoutingDrawer = styled.div`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 24rem;
-  max-width: 100%;
-  background: ${tokens.color.surface};
-  border-left: 1px solid ${tokens.color.borderEmphasis};
-  overflow-y: auto;
-  z-index: 40;
-`;
-
-const RoutingClose = styled.button`
-  position: absolute;
-  top: ${tokens.space.md};
-  right: ${tokens.space.md};
-  background: transparent;
-  border: none;
-  color: ${tokens.color.fgMuted};
-  font-size: ${tokens.font.title};
-  cursor: pointer;
-  min-height: 44px;
-`;
-
-const RoutingToggle = styled.button`
-  align-self: flex-start;
-  font: inherit;
-  font-size: ${tokens.font.label};
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  color: ${tokens.color.fgMuted};
-  padding: 0 ${tokens.space.md};
-  min-height: 44px;
-
-  &:hover {
-    color: ${tokens.color.fg};
-  }
-`;
-
 /** The count-vs-body reconciler. Only ever on screen when they differ. */
 const FilteredNotice = styled.div`
   flex: none;
@@ -175,18 +131,38 @@ const FilterLink = styled.button`
 `;
 
 /**
- * The two settings controls, sharing one line on a phone.
+ * The feed tabs and the saved-filter tabs, on ONE line.
  *
- * ⚠ On desktop they stack, which costs nothing. At 390px they were two
- * separate full-width rows above the input, and with the format bar's
- * chips wrapping that came to ~180px of an 844px screen — over a fifth
- * of the phone, permanently, for controls you touch once a month.
+ * ⚠ They shipped as two stacked full-width tab strips and read as the
+ * same control repeated — the difference between them was documented in
+ * a code comment rather than shown on the screen. They remain two
+ * questions (a FEED is where a rule sent something; a TAB is a saved
+ * filter within the feed you are in), and the divider is what says so.
+ *
+ * Each strip was authored as a standalone row, so their own bottom
+ * rules and backgrounds are suppressed here — two rules inside one row
+ * would draw a line through its middle.
  */
-const SettingsRow = styled.div`
+const StripRow = styled.div`
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: stretch;
   max-width: 100%;
+  overflow-x: auto;
+  background: ${tokens.color.surfaceMuted};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+
+  & > * {
+    border-bottom: none;
+    flex: 0 0 auto;
+  }
+`;
+
+const StripDivider = styled.span`
+  flex: 0 0 auto;
+  align-self: center;
+  width: 1px;
+  height: 1.4em;
+  background: ${tokens.color.borderMuted};
 `;
 
 /** The inline pane stack, between the transcript and the command bar. */
@@ -227,7 +203,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
    */
   usePaneFeed();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [routingOpen, setRoutingOpen] = useState(false);
   const rightPane = useStore((s) => s.rightPane);
   const activeFeed = useStore((s) => s.activeFeed);
   const setActiveFeed = useStore((s) => s.setActiveFeed);
@@ -285,12 +260,24 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           control, and they are not: one is a predicate you tune, the
           other is a place a rule sent something.
         */}
-        <FeedSwitcher
-          frames={allFrames}
-          active={activeFeed}
-          onSelect={setActiveFeed}
-        />
-        <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
+        {/*
+          ⚠ **One row, not two.** These shipped as two full-width tab
+          strips stacked on each other, and they read as the same
+          control repeated — the difference between them lived in a
+          code comment, not on the screen. They are still two questions
+          (a FEED is where a rule sent something; a TAB is a saved
+          filter within it) and the divider says so, but a reader is no
+          longer asked to work out why there appear to be two tab bars.
+        */}
+        <StripRow>
+          <FeedSwitcher
+            frames={allFrames}
+            active={activeFeed}
+            onSelect={setActiveFeed}
+          />
+          <StripDivider aria-hidden="true" />
+          <TabStrip onToggleDrawer={() => setDrawerOpen((v) => !v)} />
+        </StripRow>
         <Terminal
           frames={frames}
           onCommandClick={onCommandClick}
@@ -351,17 +338,6 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         )}
         {isCompact && <PinnedChipRow onSendCommand={onCommandClick} />}
         {drawerOpen && <FilterDrawer onClose={() => setDrawerOpen(false)} />}
-        {routingOpen && (
-          <RoutingDrawer>
-            <RoutingClose
-              aria-label="close routing"
-              onClick={() => setRoutingOpen(false)}
-            >
-              ×
-            </RoutingClose>
-            <RoutingTable frames={allFrames} />
-          </RoutingDrawer>
-        )}
         {/*
           ⭐ One slot, three occupants — in the order they sit on
           screen. Everything WAITING is above the input; the format bar
@@ -374,19 +350,7 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           onCommandPreview={onCommandPreview}
           compact={isCompact}
         />
-        <SettingsRow>
-          <RoutingToggle
-            aria-label="routing"
-            onClick={() => setRoutingOpen((v) => !v)}
-          >
-            routing
-          </RoutingToggle>
-          <PromptFormatBar
-            onSendCommand={onCommandClick}
-            onCommandPreview={onCommandPreview}
-            compact={isCompact}
-          />
-        </SettingsRow>
+
         <CommandBar
           barId="world"
           onSendCommand={onSendCommand}

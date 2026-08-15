@@ -333,3 +333,63 @@ describe("⚠⚠ what only a real session showed", () => {
     expect(handles.length).toBe(openBefore);
   });
 });
+
+/**
+ * ⚠⚠ The duplication the user saw on the live screen: *the lounge*,
+ * twice, stacked. Nothing guarded it, because each half rendered
+ * correctly on its own — which is exactly the shape a component test
+ * cannot catch and an assembled screen can.
+ */
+describe("⚠⚠ the focus card never repeats the PLACE card", () => {
+  it("is absent when the focus subject IS the place subject", () => {
+    openCard("s-place", "place", "the lounge", "here");
+    // Same stuffId the place card is holding — `openCard` stamps
+    // `stuff-s-place`.
+    useStore.setState({
+      paneLastResult: [
+        { stuffId: "stuff-s-place", displayName: "the lounge" },
+      ] as never,
+      paneFocusName: "the lounge",
+    });
+    render(<PaneFeed onSendCommand={() => undefined} />);
+
+    expect(screen.queryByTestId("pane-focus-card")).toBeNull();
+    // The place card is still there — this suppresses the DUPLICATE,
+    // never the room itself.
+    expect(screen.getAllByText("the lounge").length).toBeGreaterThan(0);
+  });
+
+  it("appears as soon as the focus is something else", () => {
+    openCard("s-place", "place", "the lounge", "here");
+    useStore.setState({
+      paneLastResult: [
+        { stuffId: "stuff-terminal", displayName: "a Teleport terminal" },
+      ] as never,
+      paneFocusName: "a Teleport terminal",
+    });
+    render(<PaneFeed onSendCommand={() => undefined} />);
+
+    const card = screen.getByTestId("pane-focus-card");
+    expect(card.textContent).toContain("looking at");
+    expect(card.textContent).toContain("a Teleport terminal");
+  });
+
+  it("⚠ keys on the SUBJECT, not on whether anything is focused", () => {
+    /*
+     * After `look` at the room the focus subject IS the room, so a rule
+     * written as "hide the focus card when nothing is focused" would
+     * let the duplicate straight back in — something *is* focused, and
+     * it is the thing already on screen above.
+     */
+    openCard("s-place", "place", "the lounge", "here");
+    useStore.setState({
+      paneLastResult: [
+        { stuffId: "stuff-s-place", displayName: "the lounge" },
+      ] as never,
+      paneFocusName: "the lounge",
+      paneBodyPainted: true,
+    });
+    render(<PaneFeed onSendCommand={() => undefined} />);
+    expect(screen.queryByTestId("pane-focus-card")).toBeNull();
+  });
+});

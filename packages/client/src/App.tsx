@@ -785,7 +785,11 @@ function App() {
           <ContentRow $compact={isCompact}>
             <ActiveLayout {...layoutProps} />
             {summonedPane === "settings" ? (
-              <SettingsPane onSendCommand={sendCommand} onClose={closePane} />
+              <SettingsPane
+                onSendCommand={sendCommand}
+                onClose={closePane}
+                frames={frames}
+              />
             ) : null}
           </ContentRow>
           {/* The Social / Notifications pane (master's notify surface),

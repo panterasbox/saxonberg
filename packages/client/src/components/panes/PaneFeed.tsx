@@ -24,7 +24,10 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { PaneCard } from "./PaneCard";
 import { PaneBody } from "./PaneBodies";
-import { InspectionPane } from "../InspectionPane";
+import {
+  InspectionPane,
+  useInspectionSubscriptions,
+} from "../InspectionPane";
 
 const Column = styled.aside<{ $compact: boolean }>`
   display: flex;
@@ -100,43 +103,51 @@ const List = styled.div`
 `;
 
 /**
- * The in-focus card keeps the existing inspection pane as its body —
- * breadcrumb, paint/clear policy, detail drill and all. It is the one
- * pane whose behaviour is not "a card about a subject", and rebuilding
- * it here would have thrown away a working surface to make the feed
- * look uniform.
- */
-/**
- * ⚠ The focus pane needs a name now that it has neighbours.
+ * The in-focus card.
  *
- * It used to be the whole column, so nothing had to say what it was.
- * Sitting under a stack of cards, its breadcrumb renders as a bare
- * orphan word above an unlabelled box — live, a room called *Terminus
- * Terminal, the station hall* put a lone `hall` between the PLACE card
- * and the pane, attached to nothing. `IN FOCUS` is the mock's own label
- * for this slot; it re-attaches the crumb and tells a reader why this
- * one does not scroll away with the cards.
+ * ⭐ It wears the same frame as every other card — kind, then name —
+ * so a mixture of kinds reads as one feed. What it does NOT get is a
+ * pin: pinning is *keep this after its hold lapses*, and your focus has
+ * no hold to lapse. A control that cannot do what it says is worse than
+ * a missing one.
+ *
+ * ⚠ It keeps the existing inspection pane as its BODY — breadcrumb,
+ * paint/clear policy, detail drill and all. Rebuilding that here to
+ * make the feed look uniform would have thrown away a working surface
+ * for a cosmetic win.
  */
-const FocusLabel = styled.div`
-  padding: ${tokens.space.sm} ${tokens.space.md} 0;
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: ${tokens.color.sectionLabel};
+const FocusCard = styled.article`
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.md};
+  background: ${tokens.color.surface};
+  padding: ${tokens.space.md};
+  max-width: 100%;
+  min-width: 0;
 `;
 
-const FocusSlot = styled.div`
-  min-height: 0;
+const FocusHead = styled.header`
   display: flex;
+  align-items: baseline;
+  gap: ${tokens.space.sm};
+  margin-bottom: ${tokens.space.sm};
+`;
 
-  /* The pane declares its own 360px; inside the feed it is the column. */
-  & > * {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    border-left: none;
-  }
+const FocusKind = styled.span`
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: ${tokens.color.fgMuted};
+`;
+
+const FocusTitle = styled.h3`
+  margin: 0;
+  font-family: ${tokens.font.serif};
+  font-size: ${tokens.font.title};
+  font-weight: 500;
+  color: ${tokens.color.fg};
+  min-width: 0;
+  overflow-wrap: anywhere;
 `;
 
 export interface PaneFeedProps {
@@ -164,6 +175,12 @@ export function PaneFeed({
   onCommandPreview,
   compact = false,
 }: PaneFeedProps): React.ReactElement {
+  /*
+   * ⚠⚠ Unconditional, and that is the whole point — see the hook's own
+   * note. The focus CARD is conditional; the subscription that decides
+   * whether there is anything to show must never be.
+   */
+  useInspectionSubscriptions();
   const paneCards = useStore((s) => s.paneCards);
 
   // Derived here rather than read from state: see the header note.
@@ -176,15 +193,60 @@ export function PaneFeed({
     [cards],
   );
 
+  /*
+   * ⚠⚠ **The focus card is suppressed when it would repeat the PLACE
+   * card**, which at rest is almost always.
+   *
+   * The focus pane falls back to the room when nothing is focused, and
+   * `place` is the room — so the default screen showed *the lounge*
+   * twice, stacked, one directly above the other. Absorbing the pane
+   * into the feed alone would not have fixed that; it would have made
+   * the two copies look even more like each other.
+   *
+   * The rule is by SUBJECT, not by "is anything focused": after
+   * `look` at the room the focus subject *is* the room, and a rule
+   * keyed on focus-existence would let the duplicate straight back in.
+   */
+  const focusStuffId = useStore(
+    (s) => s.paneLastResult?.[0]?.stuffId ?? null,
+  );
+  const focusName = useStore(
+    (s) => s.paneFocusName ?? s.paneLastResult?.[0]?.displayName ?? null,
+  );
+  const placeSubjectId = React.useMemo(() => {
+    const place = cards.find((c) => c.paneId === "place" && !c.released);
+    return place?.records[0]?.stuffId ?? null;
+  }, [cards]);
+  const showFocus =
+    focusStuffId !== null && focusStuffId !== placeSubjectId;
+
   return (
     <Column $compact={compact} data-testid="pane-feed">
       <Header>
-        Panes <Direction>newest → oldest</Direction>
+        Cards <Direction>newest → oldest</Direction>
         <PinnedCount data-testid="pane-pinned-count">
           {pinned} pinned
         </PinnedCount>
       </Header>
       <List>
+        {/*
+          ⭐ The focus card sits FIRST, because the feed runs
+          newest → oldest and looking at something is the most recent
+          thing you did.
+        */}
+        {showFocus && (
+          <FocusCard data-testid="pane-focus-card">
+            <FocusHead>
+              <FocusKind>looking at</FocusKind>
+              <FocusTitle>{focusName ?? "something"}</FocusTitle>
+            </FocusHead>
+            <InspectionPane
+              embedded
+              onSendCommand={onSendCommand}
+              onCommandPreview={onCommandPreview}
+            />
+          </FocusCard>
+        )}
         {cards.map((card) => (
           <PaneCard
             key={card.subscriptionId}
@@ -199,13 +261,6 @@ export function PaneFeed({
             />
           </PaneCard>
         ))}
-        <FocusLabel data-testid="pane-focus-label">In focus</FocusLabel>
-        <FocusSlot>
-          <InspectionPane
-            onSendCommand={onSendCommand}
-            onCommandPreview={onCommandPreview}
-          />
-        </FocusSlot>
       </List>
     </Column>
   );

@@ -23,6 +23,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { tokens } from "../ui";
+import { RoutingTable } from "../routing/RoutingTable";
+import { PromptFormatBar } from "../PromptFormatBar";
+import type { Frame } from "../../store/index";
 
 const Pane = styled.aside`
   display: flex;
@@ -167,12 +170,31 @@ interface SettingsPaneProps {
    * branch (it lands separately on master), so the section degrades.
    */
   notificationsAvailable?: boolean;
+  /**
+   * The unfiltered frame buffer — the routing table derives a live
+   * count per rule from it, so a rule can say what it is actually
+   * catching rather than asserting that it works.
+   */
+  frames?: readonly Frame[];
 }
 
+/*
+ * ⚠⚠ **Routing and the prompt format live HERE, not on the play
+ * surface.**
+ *
+ * They shipped docked above the command input, which meant a player who
+ * had just logged in was shown a bare word `routing` and a row of raw
+ * Liquid (`{{ focus }} {{ posture }} {{ time }} {{ hp }}`) with nothing
+ * saying what either was for. Neither is something you touch while
+ * playing; both are settings, and the format bar was additionally
+ * printing a prompt the command input already displays two inches
+ * below it. Permanent screen space has to be earned.
+ */
 export function SettingsPane({
   onSendCommand,
   onClose,
   notificationsAvailable = false,
+  frames = [],
 }: SettingsPaneProps): JSX.Element {
   const [settingKey, setSettingKey] = useState("");
   const [settingValue, setSettingValue] = useState("");
@@ -203,6 +225,19 @@ export function SettingsPane({
           ✕
         </CloseButton>
       </Header>
+
+      <Section>
+        <SectionTitle>Prompt format</SectionTitle>
+        <PromptFormatBar
+          onSendCommand={onSendCommand}
+          onCommandPreview={() => undefined}
+        />
+      </Section>
+
+      <Section>
+        <SectionTitle>Feed routing</SectionTitle>
+        <RoutingTable frames={frames} />
+      </Section>
 
       <Section>
         <SectionTitle>Notifications</SectionTitle>
