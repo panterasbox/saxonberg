@@ -967,11 +967,25 @@ export default class Avatar extends AvatarBase {
      * ⚠ After `autoSenseOnArrival`, so the room card the arrangement
      * pushes lands beside a transcript that already says where you are.
      */
-    const mode = this.getCockpitMode();
-    CardApi.applyArrangement(
-      interactive,
-      this.arrangementCards(mode, this.getCockpitArrangement(mode)),
-    );
+    /*
+     * ⚠ Guarded, and the guard is the point: **a session must never
+     * fail because a workspace convenience could not open.** The cost
+     * of being wrong here is a missing card the player can re-open with
+     * one command; the cost of letting it throw is a player who cannot
+     * log in at all.
+     */
+    try {
+      const mode = this.getCockpitMode();
+      CardApi.applyArrangement(
+        interactive,
+        this.arrangementCards(mode, this.getCockpitArrangement(mode)),
+      );
+    } catch (err) {
+      console.warn(
+        `Avatar.enter: could not apply the ${this.getPlayerId()} ` +
+          `arrangement: ${(err as Error).message}`,
+      );
+    }
 
     // Avatar is in-world; the user is playable. Engine-level presence
     // event for any observer (audit, achievements, the social presence

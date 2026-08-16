@@ -480,12 +480,33 @@ export default class CardRegistry extends Idea {
    * suggestion. Returns how many closed, for the test and the log.
    */
   @CallSecurity(CardApiCallers)
-  public sweep(windowMs: number, now: number = Date.now()): number {
+  public sweep(fallbackMs: number, now: number = Date.now()): number {
     let closed = 0;
     for (const [interactive, bucket] of [...this.cards.entries()]) {
+      /*
+       * ⭐⭐ **The `cards.window` SETTING is the window — there is no
+       * second source.**
+       *
+       * `fallbackMs` is reached only when the holder carries no
+       * settings schema at all (a holderless moment, an NPC body). For
+       * a player it never wins, and that is deliberate: a parameter
+       * that could disagree with the setting is a number with two
+       * homes, and the one the player cannot see is the one that would
+       * quietly be in force.
+       *
+       * ⭐ Read PER PLAYER inside the loop. One sweep, many windows —
+       * which is what lets a player shorten theirs to watch a card age
+       * out and say so, without changing anybody else's.
+       */
+      const holder = this.viewerOf(interactive);
+      const seconds = holder
+        ? ShellApi.resolveSetting<number>(holder as Stuff, 'cards.window')
+        : undefined;
+      const effective =
+        typeof seconds === 'number' && seconds > 0 ? seconds * 1000 : fallbackMs;
       for (const [instanceId, state] of [...bucket.entries()]) {
         if (state.pinned) continue;
-        if (now - state.lastTouchedAt < windowMs) continue;
+        if (now - state.lastTouchedAt < effective) continue;
         this.close(interactive, instanceId, 'aged-out');
         closed++;
       }
@@ -637,9 +658,17 @@ export default class CardRegistry extends Idea {
   /**
    * The Sensor behind an interactive, or null. A card is a message to a
    * viewer; without one there is nobody to send to.
+   *
+   * ⚠ **Fails soft on a partial interactive.** The card layer runs
+   * inside `Avatar.enter`, and a session must never fail because a
+   * workspace convenience could not resolve a viewer — the cost of
+   * being wrong here is a missing card, and the cost of throwing is a
+   * player who cannot log in.
    */
   private viewerOf(interactive: Interactive): (Stuff & Sensor) | null {
-    const holder = interactive.getHolder();
+    const get = (interactive as { getHolder?: () => unknown }).getHolder;
+    if (typeof get !== 'function') return null;
+    const holder = get.call(interactive) as Stuff | null;
     if (!holder || !MixinApi.isSensor(holder)) return null;
     if (!MixinApi.isCommandGiver(holder)) return null;
     return holder as Stuff & Sensor;

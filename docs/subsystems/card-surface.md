@@ -209,8 +209,20 @@ arguments. The server owns the window, so `cockpit card list` and the
 client agree by construction.
 
 ⚠ The cadence is not the window. A coarse sweep (~30 s) with a fine
-window (~10 min) is the residency shape; conflating them means changing
-one silently changes the other.
+window is the residency shape; conflating them means changing one
+silently changes the other.
+
+⭐ **The window is the `cards.window` SETTING** (600 s by default), read
+per player *inside* the sweep — one sweep, many windows, which is what
+lets a player shorten theirs to watch a card age out and say so without
+changing anybody else's. There is no constant beside it: a number with
+two homes would have the one the player cannot see quietly in force.
+
+⚠ It is a legitimate duration because it is **a fact about TIME, not
+about the world**. A card's lifetime used to be a world condition, and a
+clock on one of those ends something still actionable; a relevance
+window is the husk-TTL argument (*"the one legitimate duration in the
+card model"*) generalised.
 
 ⚠ **The scheduled callback re-plants the principal.** It fires long
 after the frame that installed it, so the execution context has no

@@ -84,9 +84,14 @@ describe('a card owns its subscription handle', () => {
     CardApi.setPinned(h.interactive, 'place', false);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
-    expect(
-      CardApi._sweepNowForTesting(60_000, Date.now() + 60_001),
-    ).toBe(1);
+    /*
+     * ⚠ The WINDOW is the `cards.window` setting (600 s by default),
+     * not the sweep's fallback argument — the fallback is reached only
+     * for a holder carrying no settings schema at all. Shorten the
+     * player's own, which is exactly what the drive does.
+     */
+    h.avatar.setSetting('cards.window', 5, h.avatar);
+    expect(CardApi._sweepNowForTesting(60_000, Date.now() + 6_000)).toBe(1);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 

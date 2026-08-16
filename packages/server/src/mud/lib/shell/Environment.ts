@@ -324,6 +324,39 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
             : `expected card | terminal | both, got '${String(v)}'`,
       },
       {
+        /*
+         * ⭐ **The card feed's relevance window**, in seconds.
+         *
+         * ⚠ **A fact about TIME, not about the world** — which is the
+         * distinction that makes it a legitimate duration. A card's
+         * lifetime used to be a world CONDITION (is that person still
+         * here), and a clock on one of those would end something still
+         * actionable. A relevance window is the husk-TTL argument
+         * generalised: how long an answer you asked for stays worth
+         * keeping on screen.
+         *
+         * ⚠ The window is not the sweep's CADENCE. The sweep is how
+         * often we look (coarse, ~30 s); this is how long a card stays.
+         * Conflating them means changing one silently changes the
+         * other.
+         *
+         * ⚠ Pinned cards never see it — pinned-ness IS the lifetime
+         * axis, and a clock that could end a pinned card would make the
+         * axis a suggestion.
+         */
+        key: 'cards.window',
+        type: SettingTypes.Number,
+        default: 600,
+        description:
+          'How long an unpinned card stays in the feed after you last ' +
+          'touched it, in seconds. Pinned cards ignore it entirely. ' +
+          'Set it short to watch a card age out and say so.',
+        validator: (v) =>
+          typeof v === 'number' && v >= 5 && v <= 86_400
+            ? true
+            : 'expected 5–86400 seconds',
+      },
+      {
         key: 'prompt.format',
         type: SettingTypes.String,
         default: '{{ focus }}>',

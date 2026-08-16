@@ -51,7 +51,13 @@ const LOGIC_CLASS_FILE = fileURLToPath(
 );
 
 /**
- * The relevance window's default, in ms.
+ * The sweep's FALLBACK window, in ms — reached only for a holder that
+ * carries no settings schema at all.
+ *
+ * ⭐ The window itself is the **`cards.window` setting** (600 s), read
+ * per player inside the sweep. One number, one home: a constant that
+ * could disagree with the setting would be the one the player cannot
+ * see, quietly in force.
  *
  * ⚠ **The cadence is not the window.** A coarse sweep with a fine window
  * is the residency shape: the sweep is how often we look, the window is
