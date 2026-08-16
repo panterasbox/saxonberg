@@ -297,34 +297,26 @@ export default class LookController extends CommandController<LookModel> {
       }`;
     }
 
-    MessageApi.scene(actor)
-      .topic('sense.survey')
-      // ⭐ Says *this content is also on a card*, so `shell.result` can
-      // filter it. A topic key could not: `sense.survey` is shared by
-      // twelve verbs that open no card at all.
-      .meta({ carded: true })
-      .toSelf(body)
-      .send();
-
     /*
-     * ⭐ Bare `look` TOUCHES the room card rather than minting a second
-     * one, because `place`'s key IS `look` — decisions 4 and 6
-     * composed. An arrangement-pushed `place` and a typed bare `look`
-     * collide **on purpose**, which retires the *"the focus card must
-     * not FLASH"* special case structurally rather than by a duplicate
-     * check.
-     *
-     * ⚠⚠ **The key is `place`'s own, NOT the sentence you typed** — and
-     * the case that forces it is `look dave's bar`, which resolves to
-     * the room and lands here. Keyed on the normalized command that
-     * would mint a SECOND room card, keyed `look dave's bar`, pinned by
-     * default like every `place` card, showing the same room as the
-     * first and outliving every sweep. **There is one "here", so there
-     * is one card for it**; a card is identified by the command only
-     * where the command picks out which of several things it is about.
-     * Found by driving.
+     * ⚠⚠ **Open the card FIRST, then say whether the frame is carded.**
+     * Stamping `carded` before the open is a promise, not a fact: this
+     * path TOUCHES the room card when one is already open, and the
+     * suppressed prose then had nothing to replace it. `look dave` in
+     * Dave's Bar printed its echo and nothing else. The id also lets
+     * the client re-show the prose when a named view filters this kind
+     * out of the feed.
      */
-    CardApi.open(context, 'place', { prose: body, key: CARDS.place.command });
+    const opened = CardApi.open(context, 'place', {
+      prose: body,
+      key: CARDS.place.command,
+    });
+
+    const scene = MessageApi.scene(actor).topic('sense.survey');
+    // ⭐ Says *this content is also on a card*, so `shell.result` can
+    // filter it. A topic key could not: `sense.survey` is shared by
+    // twelve verbs that open no card at all.
+    if (opened) scene.meta({ carded: opened });
+    scene.toSelf(body).send();
 
     return;
   }
@@ -410,22 +402,15 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
 
-    MessageApi.scene(actor)
-      .topic('sense.survey')
-      .meta({ carded: true })
-      .toSelf(body)
-      .send();
-
-    /*
-     * ⚠ `look` still STACKS — attention-stacking survives. What changed
-     * is that it is something `look` now DECLARES (`opens_card:` in its
-     * view) rather than something the client infers from a changed
-     * subscription result.
-     */
-    CardApi.open(context, 'subject', {
+    // Card first — see the room path: `carded` must be a fact.
+    const openedSubject = CardApi.open(context, 'subject', {
       subjectId: target.stuffId,
       prose: body,
     });
+
+    const subjectScene = MessageApi.scene(actor).topic('sense.survey');
+    if (openedSubject) subjectScene.meta({ carded: openedSubject });
+    subjectScene.toSelf(body).send();
 
     return;
   }

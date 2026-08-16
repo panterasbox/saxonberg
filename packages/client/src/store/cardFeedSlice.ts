@@ -207,6 +207,39 @@ export function visibleCards(
  * time you touched something else would be worse than one that sits
  * still — the whole reason to pin is that you want it where you left it.
  */
+/**
+ * ⭐⭐ **Is a carded frame's card actually ON SCREEN?**
+ *
+ * `meta.carded` carries a card's `instanceId`, and the terminal copy of
+ * that content is suppressed only when this says yes. As a bare boolean
+ * the marker was a PROMISE made before the card opened, and two things
+ * cashed it for nothing:
+ *
+ *  - a controller that TOUCHED an already-open card rather than opening
+ *    a new one — `look dave` in Dave's Bar printed its echo and stopped,
+ *    because the room card was already there and nothing new appeared;
+ *  - a named view filtering that card's KIND out of the feed, which
+ *    silenced the prose as well as the card.
+ *
+ * *Suppressing prose is only safe if something visible replaced it.*
+ *
+ * ⚠ Extracted rather than left inline in the frame filter, because a
+ * rule that lives in one render path is a rule the other path does not
+ * have — this build has been bitten by that three times.
+ */
+export function cardedFrameIsCovered(
+  carded: string | undefined,
+  cards: Record<string, CardState>,
+  kinds: ReadonlySet<CardId> | null,
+): boolean {
+  if (carded === undefined) return false;
+  const card = cards[carded];
+  if (card === undefined) return false;
+  // A husk has shed its body; the prose is the only copy left.
+  if (card.closed !== undefined) return false;
+  return kinds === null || kinds.has(card.cardId);
+}
+
 export function orderCards(cards: readonly CardState[]): CardState[] {
   const held = cards
     .filter((c) => c.pinned)

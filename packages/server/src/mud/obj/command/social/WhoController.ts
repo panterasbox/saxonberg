@@ -88,21 +88,23 @@ export default class WhoController extends CommandController<WhoModel> {
     }
 
     const body = this.render(rows, model);
-    MessageApi.scene(viewer)
-      .topic(TOPIC)
-      .meta({ carded: true })
-      .toSelf(body)
-      .send();
-
     /*
      * ⭐ The card carries **the rows this controller already built** —
      * not a second read of the roster. One computation, two renderings,
      * so the card and the scrollback cannot disagree about who is here.
+     *
+     * ⚠ Opened BEFORE the frame is sent, so `carded` states a fact
+     * rather than a promise — a frame suppressed in favour of a card
+     * that never appeared is a command that did nothing.
      */
-    CardApi.open(context, 'who', {
+    const opened = CardApi.open(context, 'who', {
       payload: { kind: 'roster', rows },
       prose: body,
     });
+
+    const scene = MessageApi.scene(viewer).topic(TOPIC);
+    if (opened) scene.meta({ carded: opened });
+    scene.toSelf(body).send();
   }
 
   /** Render the roster — known people named, strangers collapsed when dense. */

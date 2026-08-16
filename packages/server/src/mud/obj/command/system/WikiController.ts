@@ -169,13 +169,15 @@ export default class WikiController extends CommandController<WikiModel> {
     const header = viaAlias
       ? `${page.getTitle()}  (via '${WikiPage.normalizeName(ref)}' → ${page.getHandle()})`
       : `${page.getTitle()}  (${page.getHandle()}, rev ${page.getRev()})`;
+    // Card first, so `carded` states a fact rather than a promise.
+    const opened = await this.pushPage(context, page, rendered);
     this.sendCarded(
       context,
       Mml.fromMarkup(
         `\n${Mml.escape(header)}\n\n${rendered}\n`,
       ),
+      opened,
     );
-    await this.pushPage(context, page, rendered);
   }
 
   // ── Write ──
@@ -919,15 +921,21 @@ export default class WikiController extends CommandController<WikiModel> {
   }
 
   /**
-   * The page read's prose — the twin of the card `pushPage` opens, so
-   * it carries `carded` and `shell.result` can filter one or the other.
+   * The page read's prose — the twin of the card `pushPage` opens.
+   *
+   * ⚠ `carded` is the card's instance id and is passed only when the
+   * card actually opened. Stamped unconditionally it is a promise, and
+   * a suppressed frame whose card never appeared is a command that did
+   * nothing at all.
    */
-  private sendCarded(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(TOPIC)
-      .meta({ carded: true })
-      .toSelf(body)
-      .send();
+  private sendCarded(
+    context: CommandContext,
+    body: Mml,
+    carded: string | null,
+  ): void {
+    const scene = MessageApi.scene(context.commandGiver).topic(TOPIC);
+    if (carded) scene.meta({ carded });
+    scene.toSelf(body).send();
   }
 
   /**
@@ -954,7 +962,7 @@ export default class WikiController extends CommandController<WikiModel> {
     rendered: string,
     draft?: string,
     preview = false,
-  ): Promise<void> {
+  ): Promise<string | null> {
     const registry = await this.registry();
     let mayEdit = false;
     try {
@@ -995,7 +1003,7 @@ export default class WikiController extends CommandController<WikiModel> {
      * card: a second render from source would be a second path along
      * which over-capability content could reach a client.
      */
-    CardApi.open(context, 'wiki', {
+    return CardApi.open(context, 'wiki', {
       payload: { kind: 'wikiPage', page: frame },
     });
   }

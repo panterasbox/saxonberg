@@ -252,7 +252,7 @@ export interface Frame {
    * producer that opens the card, so the two cannot disagree about
    * which content is duplicated.
    */
-  carded?: true;
+  carded?: string;
   /**
    * The per-Interactive gutter number (`meta.frameId`). Used as the
    * `react --msg <#>` selector for the per-row quick-react affordance;

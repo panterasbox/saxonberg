@@ -30,6 +30,8 @@ import { CharGenStage } from "./components/CharGenStage";
 import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPanel } from "./components/settings/SettingsPanel";
 import { useCardFeed } from "./components/cards/useCardFeed";
+import { activeCardKinds } from "./store/cardViewActions";
+import { cardedFrameIsCovered } from "./store/cardFeedSlice";
 import type { LayoutProps } from "./layouts";
 import { resolveMode } from "./layouts/modes";
 import { useGround } from "./lib/style/useGround";
@@ -291,6 +293,12 @@ function App() {
   const effectiveResultDisplay: ResultDisplay =
     resultDisplay?.[isCompact ? "mobile" : "desktop"] ?? "card";
   /*
+   * Subscribed, not read once: whether a carded frame's prose is
+   * suppressed depends on whether its card is on screen RIGHT NOW, and
+   * a card closing has to bring the transcript copy back into view.
+   */
+  const cards = useStore((s) => s.cards);
+  /*
    * ⭐⭐ The frame renders from the TWO cockpit axes — `cockpit.mode` and
    * the per-mode arrangement — not from the single `cockpit.layout` key.
    * That key is a compatibility projection the S3 build wrote in order
@@ -398,8 +406,22 @@ function App() {
      * ⚠ Nothing is LOST: the frame still arrived and is still in the
      * frame store, so `recall` finds your history whichever way this is
      * set. That is the whole reason it is a filter and not a placement.
+     *
+     * ⚠⚠ **And the card has to be ON SCREEN, not merely promised.**
+     * `carded` carries the card's instance id, and the frame is dropped
+     * only when a card with that id is actually visible in the feed —
+     * which means it exists AND survives the active named view's kind
+     * filter. Two ways this bit before: a controller that TOUCHED an
+     * already-open card suppressed its own prose in favour of nothing
+     * new (`look dave` printed its echo and stopped), and a named view
+     * filtering a kind out silenced that kind's prose as well as its
+     * card. *Suppressing prose is only safe if something visible
+     * replaced it.*
      */
-    if (f.carded === true && effectiveResultDisplay === "card") {
+    if (
+      effectiveResultDisplay === "card" &&
+      cardedFrameIsCovered(f.carded, cards, activeCardKinds())
+    ) {
       return false;
     }
     // `social.react.alwaysAggregate` — hide reaction prose lines (frames
@@ -489,7 +511,9 @@ function App() {
         ...(frame.meta?.inReactionTo !== undefined
           ? { inReactionTo: frame.meta.inReactionTo }
           : {}),
-        ...(frame.meta?.carded === true ? { carded: true as const } : {}),
+        ...(typeof frame.meta?.carded === "string"
+          ? { carded: frame.meta.carded }
+          : {}),
         ...(frame.meta?.frameId !== undefined
           ? { frameId: frame.meta.frameId }
           : {}),

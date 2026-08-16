@@ -98,8 +98,23 @@ export interface MessageFrame<T = unknown> {
      * The marker is exact by construction: the producer that opens the
      * card is the producer that stamps the frame, so the two cannot
      * disagree about which content is duplicated.
+     *
+     * ⚠⚠ **It carries the card's `instanceId`, not `true`, and that is
+     * the difference between a promise and a fact.** As a boolean it
+     * was stamped BEFORE the card opened — so a controller that then
+     * touched an existing card, or failed to open one, suppressed its
+     * own prose in favour of a card the player never saw. `look dave`
+     * in Dave's Bar printed the echo and **nothing else**: the room
+     * path marked the frame carded and then merely touched the room
+     * card that was already open.
+     *
+     * With the id, the client drops the terminal copy only when a card
+     * with that id is actually on screen — which also closes the case
+     * where a named view filters that card's kind out of the feed.
+     * *Suppressing prose is only safe if something visible replaced
+     * it.*
      */
-    carded?: true;
+    carded?: string;
     /**
      * Reaction scope. Present on a frame that is itself a *reaction* —
      * an emote aimed at a prior act — carrying the `meta.commandId` of

@@ -128,19 +128,18 @@ export default class PressController extends CommandController<ReleaseModel> {
                 .join('\n') +
               '\n',
           );
-    MessageApi.scene(context.commandGiver)
-      .topic('shell.result')
-      .meta({ carded: true })
-      .toSelf(body)
-      .send();
     /*
      * ⭐ The card carries **the rows this read already projected**. One
-     * `PressApi.recent` call, two renderings.
+     * `PressApi.recent` call, two renderings. Opened before the frame so
+     * `carded` is a fact — see the note on `MessageFrame.meta.carded`.
      */
-    CardApi.open(context, 'news', {
+    const opened = CardApi.open(context, 'news', {
       payload: { kind: 'releases', rows },
       prose: body,
     });
+    const scene = MessageApi.scene(context.commandGiver).topic('shell.result');
+    if (opened) scene.meta({ carded: opened });
+    scene.toSelf(body).send();
   }
 
   private async executePublish(

@@ -168,17 +168,19 @@ export default class HelpController extends CommandController<HelpModel> {
       }
       composed = Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`;
     }
-    this.tell(context, composed, true);
+    // Card first — `carded` must be a fact, not a promise. See
+    // `MessageFrame.meta.carded`.
+    const opened = CardApi.open(context, "help", {
+      payload: { kind: "helpTopic", topic },
+      prose: composed,
+    });
+    this.tell(context, composed, opened);
     /*
      * ⭐ The card carries **the topic this read already resolved**, and
      * the prose it just emitted. The help card is the one Wave 7 surface
      * with no client-side existence today; the REST catalogue is what
      * fills its body, and this is what opens it.
      */
-    CardApi.open(context, "help", {
-      payload: { kind: "helpTopic", topic },
-      prose: composed,
-    });
   }
 
   /** Escape a plain-text chrome block to MML and send it. */
@@ -192,9 +194,13 @@ export default class HelpController extends CommandController<HelpModel> {
    * landing page, the verb list and the search results open no card,
    * so suppressing them would leave `help` doing nothing.
    */
-  private tell(context: CommandContext, body: Mml, carded = false): void {
+  private tell(
+    context: CommandContext,
+    body: Mml,
+    carded: string | null = null,
+  ): void {
     const scene = MessageApi.scene(context.commandGiver).topic("shell.result");
-    if (carded) scene.meta({ carded: true });
+    if (carded) scene.meta({ carded });
     scene.toSelf(body).send();
   }
 }
