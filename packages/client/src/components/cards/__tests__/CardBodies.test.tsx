@@ -651,3 +651,90 @@ describe("the four inspection bodies", () => {
     expect(container.textContent ?? "").not.toMatch(/north/);
   });
 });
+
+/**
+ * ⭐⭐ **Only PREFORMATTED bodies keep their source line breaks.**
+ *
+ * `MmlRenderer` emits inline nodes; the TERMINAL supplies
+ * `white-space: pre-wrap` itself, which is why the same markup reads
+ * correctly there and came out as one unreadable wall in a card.
+ *
+ * ⚠⚠ But applying pre-wrap everywhere fixed help and BROKE the wiki in
+ * the same change: wiki and press prose is ordinary text hard-wrapped
+ * for an 80-column terminal, so preserving those wraps in a 360px
+ * column snaps sentences in half mid-clause. Found by looking at a
+ * screenshot, not by reading the diff.
+ *
+ * The test is *does the author control where the lines end*.
+ */
+describe("which card bodies keep their line breaks", () => {
+  it("⭐ a HELP topic is preformatted — its breaks are structure", () => {
+    const { container } = render(
+      <CardBody
+        card={
+          {
+            instanceId: "h1",
+            cardId: "help",
+            key: "help look",
+            live: false,
+            pinned: false,
+            records: [],
+            openedAt: 1,
+            payload: {
+              kind: "helpTopic",
+              topic: {
+                id: "command.look",
+                kind: "command",
+                title: "look",
+                summary: "",
+                keywords: [],
+                body: "LOOK\n\nSyntax:\n  look [target]",
+                relations: [],
+              },
+            },
+          } as never
+        }
+        onSendCommand={() => undefined}
+      />,
+    );
+    const el = container.querySelector('[data-testid="card-help-topic"]');
+    expect(el).toBeTruthy();
+    // The wrapper carries the rule; jsdom has no layout, so assert the style.
+    const styled = el!.firstElementChild as HTMLElement;
+    expect(getComputedStyle(styled).whiteSpace).toBe("pre-wrap");
+  });
+
+  it("⚠ a WIKI page reflows — its wraps are an artefact of the terminal", () => {
+    const { container } = render(
+      <CardBody
+        card={
+          {
+            instanceId: "w1",
+            cardId: "wiki",
+            key: "wiki x",
+            live: false,
+            pinned: false,
+            records: [],
+            openedAt: 1,
+            payload: {
+              kind: "wikiPage",
+              page: {
+                handle: "lore:x",
+                title: "X",
+                body: "a sentence that was\nhard wrapped for a terminal",
+                sections: [],
+                mayEdit: false,
+                rev: 1,
+              },
+            },
+          } as never
+        }
+        onSendCommand={() => undefined}
+      />,
+    );
+    const pre = Array.from(container.querySelectorAll("*")).filter(
+      (n) => getComputedStyle(n as HTMLElement).whiteSpace === "pre-wrap",
+    );
+    expect(pre.length).toBe(0);
+  });
+});

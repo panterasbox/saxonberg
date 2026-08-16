@@ -236,6 +236,31 @@ const InlineLink = styled.button`
 `;
 
 
+/**
+ * ⭐⭐ **PREFORMATTED MML — the body whose line breaks are meaning.**
+ *
+ * `MmlRenderer` emits inline nodes and pre-wraps only inside a code
+ * block; the TERMINAL supplies `white-space: pre-wrap` on its own frame
+ * body, which is why the same markup reads correctly there. A card
+ * rendering it without that turns every newline into a space, and the
+ * help topic came out as one unreadable wall.
+ *
+ * ⚠⚠ **But it belongs ONLY on preformatted bodies, and driving proved
+ * it.** A help topic is laid out — blank lines between sections, an
+ * indented syntax block — so its breaks carry structure. Wiki and press
+ * prose is ordinary text HARD-WRAPPED for an 80-column terminal, and
+ * preserving those wraps in a 360px card column breaks sentences in
+ * half mid-clause. Applying this everywhere fixed help and broke the
+ * wiki in the same commit.
+ *
+ * The test is *does the author control where the lines end* — not *is
+ * it MML*.
+ */
+const PreformattedMml = styled.div`
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+`;
+
 const Prose = styled.div`
   font-family: ${tokens.font.serif};
   font-size: ${tokens.font.body};
@@ -1499,11 +1524,13 @@ function WikiPageBody({
 function HelpTopicBody({ topic }: { topic: HelpTopic }): React.ReactElement {
   return (
     <div data-testid="card-help-topic">
-      <MmlRenderer
-        text={topic.body}
-        onCommandClick={() => undefined}
-        onCommandPreview={() => undefined}
-      />
+      <PreformattedMml>
+        <MmlRenderer
+          text={topic.body}
+          onCommandClick={() => undefined}
+          onCommandPreview={() => undefined}
+        />
+      </PreformattedMml>
       {topic.relations.length > 0 && (
         <>
           <Label>See also</Label>
