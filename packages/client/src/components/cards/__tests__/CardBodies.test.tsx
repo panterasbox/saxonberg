@@ -668,7 +668,7 @@ describe("the four inspection bodies", () => {
  * The test is *does the author control where the lines end*.
  */
 describe("which card bodies keep their line breaks", () => {
-  it("⭐ a HELP topic is preformatted — its breaks are structure", () => {
+  it("⭐ a HELP topic keeps the author's spacing where it is structure", () => {
     const { container } = render(
       <CardBody
         card={
@@ -699,9 +699,10 @@ describe("which card bodies keep their line breaks", () => {
     );
     const el = container.querySelector('[data-testid="card-help-topic"]');
     expect(el).toBeTruthy();
-    // The wrapper carries the rule; jsdom has no layout, so assert the style.
-    const styled = el!.firstElementChild as HTMLElement;
-    expect(getComputedStyle(styled).whiteSpace).toBe("pre-wrap");
+    // The indented run survives verbatim; the labels became headings.
+    expect(el!.querySelector('[data-help-block="pre"]')!.textContent).toBe(
+      "  look [target]",
+    );
   });
 
   it("⚠ a WIKI page reflows — its wraps are an artefact of the terminal", () => {
@@ -736,5 +737,79 @@ describe("which card bodies keep their line breaks", () => {
       (n) => getComputedStyle(n as HTMLElement).whiteSpace === "pre-wrap",
     );
     expect(pre.length).toBe(0);
+  });
+});
+
+/**
+ * ⭐ **A help topic renders as sections, not as one run.**
+ *
+ * Labelled headings, indented syntax/example blocks, and prose that
+ * reflows — three treatments, because the source uses its line endings
+ * for three different jobs.
+ */
+describe("the help card's sections", () => {
+  function helpCard(body: string) {
+    return {
+      instanceId: "h1",
+      cardId: "help",
+      key: "help look",
+      live: false,
+      pinned: false,
+      records: [],
+      openedAt: 1,
+      payload: {
+        kind: "helpTopic",
+        topic: {
+          id: "command.look",
+          kind: "command",
+          title: "look",
+          summary: "",
+          keywords: [],
+          body,
+          relations: [],
+        },
+      },
+    } as never;
+  }
+
+  it("⭐ heads a `Label:` line, keeps its indented block preformatted", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("Syntax:\n  look [target]")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    const el = container.querySelector('[data-testid="card-help-topic"]')!;
+    expect(el.textContent).toContain("Syntax");
+    const pre = el.querySelector('[data-help-block="pre"]');
+    expect(pre).toBeTruthy();
+    // ⚠ Asserted on the CONTENT, not the computed style: jsdom has no
+    // real cascade for styled-components, and the fact that matters is
+    // that the block kept the author's spacing.
+    expect(pre!.textContent).toBe("  look [target]");
+  });
+
+  it("⚠ REFLOWS prose — its wraps came from an 80-column terminal", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("a sentence that was\nhard wrapped for a terminal")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    const prose = container.querySelector('[data-help-block="prose"]')!;
+    // Joined into one line, not carrying the source break.
+    expect(prose.textContent).toBe("a sentence that was hard wrapped for a terminal");
+  });
+
+  it("splits `Label: value` into a heading and its value", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("Aliases: l, examine, exa")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    const el = container.querySelector('[data-testid="card-help-topic"]')!;
+    expect(el.textContent).toContain("Aliases");
+    expect(el.textContent).toContain("l, examine, exa");
   });
 });

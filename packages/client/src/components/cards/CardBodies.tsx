@@ -259,6 +259,24 @@ const InlineLink = styled.button`
 const PreformattedMml = styled.div`
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.label};
+  color: ${tokens.color.fgEmphasis};
+`;
+
+/**
+ * A help topic's prose paragraphs.
+ *
+ * ⚠ Its own top margin: a paragraph butting straight against the
+ * syntax block above it read as part of that block.
+ */
+const HelpProse = styled.div`
+  font-family: ${tokens.font.serif};
+  font-size: ${tokens.font.body};
+  line-height: 1.5;
+  color: ${tokens.color.fgDim};
+  margin: 2px 0 ${tokens.space.sm};
+  overflow-wrap: anywhere;
 `;
 
 const Prose = styled.div`
@@ -1521,16 +1539,88 @@ function WikiPageBody({
  * escaped it. Rendering it through the ordinary renderer is what makes
  * the card and the scrollback the same rendering.
  */
+/**
+ * ⭐⭐ **A help topic is not one blob — it is labelled sections,
+ * indented blocks and prose, and they want three different treatments.**
+ *
+ * Rendered as a single preformatted run it is readable but ugly: the
+ * prose keeps the hard wraps it was given for an 80-column terminal, so
+ * a 360px column breaks every third line mid-clause, and `Syntax:` /
+ * `Options:` / `Examples:` sit flat in the same weight as everything
+ * around them.
+ *
+ * The shape is regular enough to key off directly:
+ *
+ *   - a line ending in `:` heads a section  → the card's own section
+ *     label, the same one EXITS and HERE use;
+ *   - an INDENTED block is syntax or examples → preformatted mono, the
+ *     one place where the author's spacing is the content;
+ *   - anything else is prose → reflows, because its line endings are an
+ *     artefact of the medium it was written for.
+ *
+ * ⚠ Each block still renders through `MmlRenderer`, so tags inside it
+ * (links, names) keep working. This splits the body; it does not
+ * re-implement the renderer.
+ */
+function helpBlocks(body: string): { kind: 'label' | 'pre' | 'prose'; text: string }[] {
+  const out: { kind: 'label' | 'pre' | 'prose'; text: string }[] = [];
+  for (const raw of body.split(/\n\s*\n/)) {
+    const block = raw.replace(/\s+$/, '');
+    if (!block.trim()) continue;
+    for (const run of splitLabelledRuns(block)) out.push(run);
+  }
+  return out;
+}
+
+/** One block may hold a `Label:` line and then an indented run under it. */
+function splitLabelledRuns(
+  block: string,
+): { kind: 'label' | 'pre' | 'prose'; text: string }[] {
+  const out: { kind: 'label' | 'pre' | 'prose'; text: string }[] = [];
+  let buffer: string[] = [];
+  const flush = (): void => {
+    if (buffer.length === 0) return;
+    const indented = buffer.every((l) => /^\s{2,}/.test(l));
+    out.push({
+      kind: indented ? 'pre' : 'prose',
+      // ⚠ Prose is UNWRAPPED — the source breaks are the terminal's.
+      text: indented ? buffer.join('\n') : buffer.join(' ').replace(/\s+/g, ' '),
+    });
+    buffer = [];
+  };
+  for (const line of block.split('\n')) {
+    // A bare `Word:` (or `Word: value`) at the left margin heads a section.
+    const head = /^([A-Z][\w '-]*):\s*(.*)$/.exec(line);
+    if (head && !/^\s/.test(line)) {
+      flush();
+      out.push({ kind: 'label', text: head[1]! });
+      if (head[2]) out.push({ kind: 'prose', text: head[2] });
+      continue;
+    }
+    buffer.push(line);
+  }
+  flush();
+  return out;
+}
+
 function HelpTopicBody({ topic }: { topic: HelpTopic }): React.ReactElement {
+  const blocks = React.useMemo(() => helpBlocks(topic.body), [topic.body]);
   return (
     <div data-testid="card-help-topic">
-      <PreformattedMml>
-        <MmlRenderer
-          text={topic.body}
-          onCommandClick={() => undefined}
-          onCommandPreview={() => undefined}
-        />
-      </PreformattedMml>
+      {blocks.map((b, i) => {
+        const key = `${b.kind}-${i}`;
+        if (b.kind === 'label') return <Label key={key}>{b.text}</Label>;
+        const Wrap = b.kind === 'pre' ? PreformattedMml : HelpProse;
+        return (
+          <Wrap key={key} data-help-block={b.kind}>
+            <MmlRenderer
+              text={b.text}
+              onCommandClick={() => undefined}
+              onCommandPreview={() => undefined}
+            />
+          </Wrap>
+        );
+      })}
       {topic.relations.length > 0 && (
         <>
           <Label>See also</Label>
