@@ -21,11 +21,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { CardView } from "@saxonberg/types";
+import { INSPECTION_CARD_IDS } from "@saxonberg/types";
 import { useStore } from "../../../store/index";
 import { websocketClient } from "../../../services/websocket";
 import { CardViewStrip } from "../CardViewStrip";
 import {
   ALL_CARDS,
+  LOOK_CARDS,
   activeCardKinds,
   addCardView,
   deleteCardView,
@@ -290,5 +292,49 @@ describe("the editor follows the selection", () => {
     fireEvent.click(screen.getByTestId("card-view-All"));
     expect(getCardViews().map((v) => v.name)).toEqual(["Rooms"]);
     expect(screen.queryByTestId("card-view-rename-input")).toBeNull();
+  });
+});
+
+/**
+ * ⭐⭐ **Two structural views: `All` and `Look`.**
+ *
+ * `Look` is the one grouping a player can name without being taught it
+ * — *the things I've looked at* — as against a roster, a wiki page or
+ * an editor, which arrive from interactions with nothing to do with
+ * inspection. Named for the verb that makes them.
+ *
+ * ⚠ Structural like `All`: not stored, not deletable, no editor. A
+ * stored default would put a write on the connection path, which is
+ * exactly the seeding-clobber shape `console.tabs` lost saved views to.
+ */
+describe("the Look view", () => {
+  it("⭐ filters the feed to the inspection cards", () => {
+    setActiveCardView(LOOK_CARDS);
+    const kinds = activeCardKinds();
+    expect(kinds).not.toBeNull();
+    expect([...kinds!].sort()).toEqual([...INSPECTION_CARD_IDS].sort());
+  });
+
+  it("⚠ is selectable — the guard admits structural names, not just `All`", () => {
+    setActiveCardView(LOOK_CARDS);
+    expect(getActiveCardView()).toBe(LOOK_CARDS);
+  });
+
+  it("⚠ writes nothing to the stored views", () => {
+    setActiveCardView(LOOK_CARDS);
+    expect(writes.some((w) => w.key === "cards.views")).toBe(false);
+  });
+
+  it("⚠ opens no editor — there is nothing about it to edit", () => {
+    setActiveCardView(LOOK_CARDS);
+    render(<CardViewStrip />);
+    fireEvent.click(screen.getByTestId("card-view-Look"));
+    expect(screen.queryByTestId("card-view-editor")).toBeNull();
+  });
+
+  it("⚠ a name that is neither structural nor stored is still refused", () => {
+    setActiveCardView(LOOK_CARDS);
+    setActiveCardView("Nonsense");
+    expect(getActiveCardView()).toBe(LOOK_CARDS);
   });
 });

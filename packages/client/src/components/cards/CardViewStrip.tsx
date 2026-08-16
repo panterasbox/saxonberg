@@ -24,6 +24,7 @@ import { tokens } from "../ui";
 import { CARD_LABEL } from "./useCardFeed";
 import {
   ALL_CARDS,
+  STRUCTURAL_VIEWS,
   addCardView,
   deleteCardView,
   getActiveCardView,
@@ -134,17 +135,26 @@ export function CardViewStrip(): React.ReactElement {
        * appears to be on* — and it is worse here, because one of the
        * controls is `delete`. Found by driving.
        */}
-      <ViewButton
-        $active={active === ALL_CARDS}
-        data-testid="card-view-All"
-        onClick={() => {
-          setActiveCardView(ALL_CARDS);
-          setEditing(null);
-          setRenaming(null);
-        }}
-      >
-        {ALL_CARDS}
-      </ViewButton>
+      {/*
+        ⭐ The two STRUCTURAL views. Neither is stored, neither can be
+        renamed or deleted, and neither opens an editor — `All` is the
+        absence of a filter and `Look` is the one grouping a player can
+        name without being taught it: the things you have looked at.
+      */}
+      {STRUCTURAL_VIEWS.map((name) => (
+        <ViewButton
+          key={name}
+          $active={active === name}
+          data-testid={`card-view-${name}`}
+          onClick={() => {
+            setActiveCardView(name);
+            setEditing(null);
+            setRenaming(null);
+          }}
+        >
+          {name}
+        </ViewButton>
+      ))}
       {views.map((v) => (
         <ViewButton
           key={v.name}

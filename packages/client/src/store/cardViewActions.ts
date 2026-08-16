@@ -28,6 +28,7 @@
  */
 
 import type { CardId, CardView } from "@saxonberg/types";
+import { INSPECTION_CARD_IDS } from "@saxonberg/types";
 import { useStore } from "./index";
 import { websocketClient } from "../services/websocket";
 
@@ -36,6 +37,25 @@ const KEY_ACTIVE = "cards.activeView";
 
 /** The structural view: everything, unfiltered, unstored, undeletable. */
 export const ALL_CARDS = "All";
+
+/**
+ * ⭐⭐ **The second structural view: the things you have LOOKED at.**
+ *
+ * Named for the verb that makes them, so a player can connect the tab to
+ * something they did. (`Stuff` is the engine's word for objects and a
+ * room is not one; `Inspect` is not a verb anyone types.)
+ *
+ * ⚠ Structural like `All` — **not stored, not deletable, always there.**
+ * Shipping it as a stored default would put a write on the connection
+ * path, and that is exactly the seeding-clobber shape `console.tabs`
+ * lost saved views to: a layout mounting before the payload lands reads
+ * "no views", concludes *first run*, and writes ship defaults over what
+ * is still in flight. Nothing is written, so there is nothing to race.
+ */
+export const LOOK_CARDS = "Look";
+
+/** The structural views, in strip order. Neither is a stored row. */
+export const STRUCTURAL_VIEWS: readonly string[] = [ALL_CARDS, LOOK_CARDS];
 
 /**
  * The stored views, or `null` when the key has **not arrived yet**.
@@ -127,7 +147,17 @@ export function deleteCardView(name: string): CardView[] {
 
 /** Switch views. */
 export function setActiveCardView(name: string): void {
-  if (name !== ALL_CARDS && !getCardViews().some((v) => v.name === name)) {
+  /*
+   * ⚠ The guard admits the STRUCTURAL views as well as stored ones.
+   * Checking only `ALL_CARDS` silently refused `Look` — the tab
+   * highlighted nothing, the feed did not filter, and there was no
+   * error anywhere, because a rejected write looks exactly like a
+   * write that happened.
+   */
+  if (
+    !STRUCTURAL_VIEWS.includes(name) &&
+    !getCardViews().some((v) => v.name === name)
+  ) {
     return;
   }
   writeActive(name);
@@ -143,6 +173,9 @@ export function setActiveCardView(name: string): void {
 export function activeCardKinds(): ReadonlySet<CardId> | null {
   const active = getActiveCardView();
   if (active === ALL_CARDS) return null;
+  // ⭐ The inspection grouping, derived from the shared constant rather
+  // than re-listed here — a second list is a second thing to drift.
+  if (active === LOOK_CARDS) return new Set(INSPECTION_CARD_IDS);
   const view = getCardViews().find((v) => v.name === active);
   if (!view) return null;
   return new Set(view.kinds);

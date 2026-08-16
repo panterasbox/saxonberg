@@ -13,7 +13,7 @@
 
 import '../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import { CARD_IDS, type CardId } from '@saxonberg/types';
+import { CARD_IDS, INSPECTION_CARD_IDS, type CardId } from '@saxonberg/types';
 import {
   CARDS,
   CARDS_BY_NAME,
@@ -102,7 +102,14 @@ describe('the card catalogue', () => {
      * by what the subject is. A room card bound to the relative `here`
      * followed the viewer out of the room and rewrote itself.
      */
-    expect(needsSubject.sort()).toEqual(['place', 'subject']);
+    /*
+     * ⭐⭐ **The client's `INSPECTION_CARD_IDS` and the catalogue's
+     * `needsSubject` rows are the same set, and this is what keeps them
+     * that way.** The feed's `Look` tab filters on the shared constant;
+     * a new inspection card added here and not there would simply not
+     * appear in the one tab that is about inspection.
+     */
+    expect([...needsSubject].sort()).toEqual([...INSPECTION_CARD_IDS].sort());
     /*
      * ⚠⚠ The query is the inert marker `$subject`, never an
      * `#<stuffId>` MQL seed. That seed is authoring-tier and ungated,

@@ -1151,6 +1151,21 @@ export type CardPayload =
  * framework attachment riding another Stuff, not a thing you can look
  * at.)
  */
+/**
+ * ⭐⭐ **The cards born of LOOKING at something.**
+ *
+ * The one grouping the feed's tabs need, and the axis a player can
+ * actually name: *the things I've looked at*, as against a roster, a
+ * wiki page or an editor, which arrive from interactions that have
+ * nothing to do with inspection.
+ *
+ * ⚠ It is the same set as the catalogue's `needsSubject` rows —
+ * `card-catalogue.test.ts` asserts the two cannot drift. A card is an
+ * inspection card exactly when it is ABOUT a subject you looked at,
+ * which is also why those are the cards that carry a `StuffKind`.
+ */
+export const INSPECTION_CARD_IDS: readonly CardId[] = ['place', 'subject'];
+
 export type StuffKind = "location" | "agent" | "thing" | "idea";
 
 export interface CardOpenedEnvelope {
