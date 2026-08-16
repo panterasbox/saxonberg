@@ -241,3 +241,54 @@ describe("rename happens IN the strip", () => {
     expect(screen.queryByTestId("card-view-rename-input")).toBeNull();
   });
 });
+
+/**
+ * ⚠⚠ **An editor belongs to the view the strip is highlighting.**
+ *
+ * Switching to another view used to leave the previous one's editor open
+ * beneath it — an unlabelled panel of kind toggles plus `rename` and
+ * `delete`, acting on a view no longer shown as active. Same failure as
+ * two cards sharing one pin command, and worse, because one of the
+ * controls is `delete`. Found by driving.
+ */
+describe("the editor follows the selection", () => {
+  it("⭐ selecting `All` closes an open view editor", () => {
+    addCardView("Rooms");
+    setActiveCardView("Rooms");
+    render(<CardViewStrip />);
+    fireEvent.click(screen.getByTestId("card-view-Rooms")); // open its editor
+    expect(screen.getByTestId("card-view-editor")).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId("card-view-All"));
+    expect(screen.queryByTestId("card-view-editor")).toBeNull();
+    expect(getActiveCardView()).toBe(ALL_CARDS);
+  });
+
+  it("⭐ selecting a DIFFERENT view closes the first one's editor", () => {
+    addCardView("Rooms");
+    addCardView("People");
+    setActiveCardView("Rooms");
+    render(<CardViewStrip />);
+    fireEvent.click(screen.getByTestId("card-view-Rooms"));
+    expect(screen.getByTestId("card-view-editor")).toBeTruthy();
+
+    fireEvent.click(screen.getByTestId("card-view-People"));
+    expect(screen.queryByTestId("card-view-editor")).toBeNull();
+    expect(getActiveCardView()).toBe("People");
+  });
+
+  it("⚠ and abandons a rename in flight rather than carrying it across", () => {
+    addCardView("Rooms");
+    setActiveCardView("Rooms");
+    render(<CardViewStrip />);
+    fireEvent.click(screen.getByTestId("card-view-Rooms"));
+    fireEvent.click(screen.getByTestId("card-view-rename"));
+    fireEvent.change(screen.getByTestId("card-view-rename-input"), {
+      target: { value: "Halfway" },
+    });
+
+    fireEvent.click(screen.getByTestId("card-view-All"));
+    expect(getCardViews().map((v) => v.name)).toEqual(["Rooms"]);
+    expect(screen.queryByTestId("card-view-rename-input")).toBeNull();
+  });
+});

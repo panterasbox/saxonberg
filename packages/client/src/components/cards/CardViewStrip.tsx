@@ -124,10 +124,24 @@ export function CardViewStrip(): React.ReactElement {
 
   return (
     <Strip data-testid="card-view-strip">
+      {/*
+       * ⚠⚠ **Selecting a view closes any other view's editor.** Without
+       * this, switching to `All` left the previous view's editor open
+       * beneath it: an unlabelled panel of kind toggles plus `rename`
+       * and `delete`, acting on a view the strip was no longer
+       * highlighting. That is the same failure as two cards sharing one
+       * pin command — *a control that does not act on the thing it
+       * appears to be on* — and it is worse here, because one of the
+       * controls is `delete`. Found by driving.
+       */}
       <ViewButton
         $active={active === ALL_CARDS}
         data-testid="card-view-All"
-        onClick={() => setActiveCardView(ALL_CARDS)}
+        onClick={() => {
+          setActiveCardView(ALL_CARDS);
+          setEditing(null);
+          setRenaming(null);
+        }}
       >
         {ALL_CARDS}
       </ViewButton>
@@ -136,11 +150,16 @@ export function CardViewStrip(): React.ReactElement {
           key={v.name}
           $active={active === v.name}
           data-testid={`card-view-${v.name}`}
-          onClick={() =>
-            active === v.name
-              ? setEditing(editing === v.name ? null : v.name)
-              : setActiveCardView(v.name)
-          }
+          onClick={() => {
+            if (active === v.name) {
+              setEditing(editing === v.name ? null : v.name);
+              setRenaming(null);
+              return;
+            }
+            setActiveCardView(v.name);
+            setEditing(null);
+            setRenaming(null);
+          }}
         >
           {v.name}
           {active === v.name ? " ⋯" : ""}

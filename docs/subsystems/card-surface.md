@@ -356,7 +356,20 @@ filter on **card kind**, the one axis a player can name.
 
 ⭐ **`All` is the absence of a filter**, not a stored row. That is what
 makes it locked and undeletable *rather than merely not currently
-deleted*, and it is why deleting every view a player made is safe.
+deleted*, and it is why deleting every view a player made is safe. It
+also opens no editor: there is nothing about it to edit.
+
+⚠ **Rename is INLINE**, like `TabStrip`'s — not a `window.prompt`. A
+native modal is a different gesture in the one place the two strips were
+meant to be indistinguishable, and the phone pays for it.
+
+⚠⚠ **Selecting a view closes any other view's editor.** Without that,
+switching away left the previous view's editor open beneath the new
+selection: an unlabelled panel of kind toggles plus `rename` and
+`delete`, acting on a view the strip was no longer highlighting. It is
+the same failure as two cards sharing one pin command — *a control that
+does not act on the thing it appears to be on* — and worse, because one
+of the controls is `delete`. Both found by driving.
 
 ⚠⚠ **The seeding clobber, closed one step earlier than the fix it
 learns from.** `console.tabs` shipped a bug where an ABSENT key read as
