@@ -56,17 +56,21 @@ describe('a prompt card holds until it is answered', () => {
     const promptId = latestPromptId(h);
     expect(PromptApi.isPending(h.interactive, promptId)).toBe(true);
 
-    // The card the prompt substrate pushes.
-    const instanceId = CardApi.push(h.interactive, 'prompt', {
-      key: `prompt ${promptId}`,
-      promptId,
-    });
-    expect(instanceId).not.toBeNull();
-
+    /*
+     * ⚠⚠ **Nothing here opens the card.** `PromptApi.confirm` above did,
+     * because the prompt substrate pushes it — and for one pass it did
+     * NOT: every test in this file hand-pushed the card it was about to
+     * assert on, so the whole lifetime passed over a card production
+     * could never create. `CardApi.push` had zero call sites. Found by
+     * driving `wiki create`: the prompt strip opened and the feed stayed
+     * empty.
+     */
     const opened = h.ofType('card-opened');
     expect(opened.length).toBe(1);
     expect(opened[0]!.pinned).toBe(true);
     expect(opened[0]!.promptId).toBe(promptId);
+    expect(opened[0]!.key).toBe(`prompt ${promptId}`);
+    const instanceId = opened[0]!.instanceId as string;
 
     // ⚠ Well past any relevance window, and it is still there.
     expect(
@@ -95,11 +99,8 @@ describe('a prompt card holds until it is answered', () => {
       () => 'resolved',
       () => 'rejected',
     );
-    const promptId = latestPromptId(h);
-    CardApi.push(h.interactive, 'prompt', {
-      key: `prompt ${promptId}`,
-      promptId,
-    });
+    latestPromptId(h);
+    // Pushed by the substrate, not by this test.
     expect(CardApi._getSizeForTesting()).toBe(1);
 
     PromptApi.cancelAll(h.interactive, 'cancelled');
@@ -113,16 +114,10 @@ describe('a prompt card holds until it is answered', () => {
     const h = await makeHarness();
     const first = PromptApi.confirm(h.interactive, 'One?');
     const firstId = latestPromptId(h);
-    CardApi.push(h.interactive, 'prompt', {
-      key: `prompt ${firstId}`,
-      promptId: firstId,
-    });
     const second = PromptApi.confirm(h.interactive, 'Two?');
     const secondId = latestPromptId(h);
-    CardApi.push(h.interactive, 'prompt', {
-      key: `prompt ${secondId}`,
-      promptId: secondId,
-    });
+    // ⭐ TWO cards, because two questions — the key carries the
+    // `promptId` precisely so the second cannot retarget the first.
     expect(CardApi._getSizeForTesting()).toBe(2);
 
     PromptApi.handleResponse(h.interactive, {
@@ -151,10 +146,6 @@ describe('a prompt card holds until it is answered', () => {
     const h = await makeHarness();
     const answer = PromptApi.confirm(h.interactive, 'Proceed?');
     const promptId = latestPromptId(h);
-    CardApi.push(h.interactive, 'prompt', {
-      key: `prompt ${promptId}`,
-      promptId,
-    });
     const opened = h.ofType('card-opened')[0]!;
     expect(opened.promptId).toBe(promptId);
     expect(opened.result).toBeUndefined();

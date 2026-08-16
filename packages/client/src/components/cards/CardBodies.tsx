@@ -1020,11 +1020,19 @@ function PromptCardBody({ card }: { card: CardState }): React.ReactElement {
   const prompt = useStore((s) =>
     s.prompts.find((p) => p.promptId === card.promptId),
   );
-  return (
-    <Prose>
-      {prompt ? prompt.label : 'Waiting on your answer.'}
-    </Prose>
-  );
+  /*
+   * ⚠⚠ **A settled card must not say it is waiting.** The prompt leaves
+   * the queue the moment it is answered, and the card closes in the same
+   * beat — so the fallback fires exactly when it is FALSE, and the husk
+   * of an answered question read *"Waiting on your answer."* under a
+   * header saying `answered · settled`. Found by driving.
+   *
+   * The fallback belongs to the open case only: a card whose question
+   * has not arrived in the queue yet. A closed one says nothing; its
+   * header already says what became of it.
+   */
+  if (card.closed !== undefined) return <ReleasedBody />;
+  return <Prose>{prompt ? prompt.label : 'Waiting on your answer.'}</Prose>;
 }
 
 function MqlBody(props: CardBodyProps): React.ReactElement {

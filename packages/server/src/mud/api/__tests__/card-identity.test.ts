@@ -24,6 +24,10 @@ import { ShadowApi } from '../shadow';
 import { CommandLineApi } from '../command-line';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
+import { CARDS } from '../../lib/connection/Cards';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 /** The canonical text the parser round-trips `input` to. */
 function canonical(input: string, canonicalVerb: string): string {
@@ -176,5 +180,71 @@ describe('a card is identified by its normalized command', () => {
       verbs: ['who'],
     });
     expect(() => CardApi.open(undeclared, 'who')).toThrow(/it declares none/);
+  });
+});
+
+/**
+ * ⚠⚠ **There is one "here", so there is one card for it.**
+ *
+ * A card is identified by the command only where the command picks out
+ * WHICH of several things it is about. `place` is about wherever the
+ * body is, and there is only ever one of those — so the room card is
+ * keyed on the catalogue's own `look`, never on the sentence.
+ *
+ * The case that forces it, found by driving: `look dave's bar` resolves
+ * to the ROOM and lands on `lookAtRoom`. Keyed on the typed command it
+ * minted a **second** room card — same room, pinned by default like
+ * every `place` card, outliving every sweep, sitting under the first.
+ */
+describe('the room card is a singleton', () => {
+  it('⭐ a look that resolves to the ROOM touches `place` instead of minting', async () => {
+    const h = await makeHarness();
+
+    // Bare `look` — the ordinary path.
+    CardApi.open(
+      makeContext(h, {
+        commandText: 'look',
+        verbs: ['look', 'l', 'examine', 'exa'],
+        opensCard: 'place',
+      }),
+      'place',
+      { key: CARDS.place.command },
+    );
+    // …and a look at the room BY NAME, which lands on the same path.
+    CardApi.open(
+      makeContext(h, {
+        commandText: "look dave's bar",
+        verbs: ['look', 'l', 'examine', 'exa'],
+        opensCard: 'place',
+      }),
+      'place',
+      { key: CARDS.place.command },
+    );
+
+    const cards = CardApi.list(h.interactive);
+    expect(cards.filter((c) => c.cardId === 'place').length).toBe(1);
+    expect(cards[0]!.key).toBe('look');
+  });
+
+  /**
+   * ⚠ The guard that keeps the call site honest — a `key` dropped from
+   * `LookController` is exactly how this comes back, and it comes back
+   * silently, as *two identical pinned cards nobody wrote a test for*.
+   */
+  it('⚠ `LookController` passes `place`s catalogue command as the key', () => {
+    const src = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '..',
+        '..',
+        'obj',
+        'command',
+        'perception',
+        'LookController.ts',
+      ),
+      'utf8',
+    );
+    expect(src).toContain("CardApi.open(context, 'place'");
+    expect(src).toMatch(/key:\s*CARDS\.place\.command/);
   });
 });

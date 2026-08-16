@@ -487,3 +487,62 @@ describe("⭐⭐ drilling into a detail", () => {
     expect(screen.queryByTestId("detail-trail")).toBeNull();
   });
 });
+
+/**
+ * ⚠⚠ **A settled question does not say it is still waiting.**
+ *
+ * The prompt leaves the queue the instant it is answered and the card
+ * closes in the same beat, so the "waiting" fallback fired exactly when
+ * it was false: the husk of an answered prompt read *"Waiting on your
+ * answer."* under a header saying `answered · settled`. Found by
+ * driving.
+ */
+describe("the prompt card's body", () => {
+  it("says it is waiting only while it IS", () => {
+    useStore.setState({
+      prompts: [{ promptId: "p1", label: "Write the article:" }] as never,
+    });
+    render(
+      <CardBody
+        card={
+          {
+            instanceId: "c1",
+            cardId: "prompt",
+            key: "prompt p1",
+            promptId: "p1",
+            live: false,
+            pinned: true,
+            records: [],
+            openedAt: 1,
+          } as never
+        }
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.getByText(/Write the article:/)).toBeTruthy();
+  });
+
+  it("⭐ a closed prompt card says what a husk says, not 'waiting'", () => {
+    useStore.setState({ prompts: [] as never });
+    render(
+      <CardBody
+        card={
+          {
+            instanceId: "c1",
+            cardId: "prompt",
+            key: "prompt p1",
+            promptId: "p1",
+            live: false,
+            pinned: true,
+            records: [],
+            openedAt: 1,
+            closed: "answered",
+          } as never
+        }
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(screen.queryByText(/Waiting on your answer/)).toBeNull();
+    expect(screen.getByText(/What you last saw/)).toBeTruthy();
+  });
+});

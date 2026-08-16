@@ -203,8 +203,14 @@ export function Card({
    *
    * ⚠ **Only on a STATIC card.** See the header note: a refresh on a
    * live card is a bandage over a wake that does not fire.
+   *
+   * ⚠⚠ **And never on a prompt card**, which is static but is not a
+   * re-issuable READING — it is a question. Its key carries a
+   * `promptId`, so "refresh" would send a uuid at the parser; and the
+   * thing a waiting question wants is an answer, not another copy of
+   * itself.
    */
-  const refresh = card.live ? null : card.key;
+  const refresh = card.live || card.promptId !== undefined ? null : card.key;
   /*
    * ⚠ Before the subject arrives, the title falls back to the card's
    * LABEL, not its catalogue id. Found by driving: a freshly-opened

@@ -148,6 +148,38 @@ function push<T>(
       outcome: { notes: [{ ...note, ...currentAsker() }] },
     };
     MessageApi.sendEnvelope(holder, template);
+
+    /*
+     * ⭐⭐ **The card that says a question is still waiting.**
+     *
+     * It opens **pinned**, which is the whole of the guarantee the
+     * retired `unanswered` hold used to carry: the relevance window can
+     * never reach a pinned card, so nothing still actionable ever ages
+     * out, and `notifyPromptSettled` below is the only thing that ends
+     * it — with the reason `answered`.
+     *
+     * ⚠⚠ **This call is the one that was missing.** The catalogue
+     * declared a `prompt` row, the settle path was written, and
+     * `card-prompt.test.ts` exercised the whole lifetime — through
+     * `CardApi.push`, which **no production code called**. The suite
+     * was green over a card that could never be born. Found by driving:
+     * `wiki create` opened the prompt strip and the feed stayed empty.
+     *
+     * ⚠ The BODY is not on the card. The client already holds one
+     * prompt model (the prompt queue); the card joins it by `promptId`,
+     * so there is one prompt model and the feed reads it.
+     */
+    /*
+     * ⚠ **One card per QUESTION, so the key carries the `promptId`.**
+     * Keyed on the bare catalogue command, a second prompt arriving
+     * while the first still waited would TOUCH the first card and
+     * silently retarget it at the newer question — one card answering
+     * for two, and the older one with nothing left pointing at it.
+     */
+    CardApi.push(interactive, 'prompt', {
+      promptId,
+      key: `prompt ${promptId}`,
+    });
   });
 }
 

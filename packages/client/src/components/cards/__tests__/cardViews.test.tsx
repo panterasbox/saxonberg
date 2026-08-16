@@ -192,3 +192,52 @@ describe("a player's own views", () => {
     });
   });
 });
+
+/**
+ * ⚠⚠ **Rename is a control on the strip, not a browser dialog.**
+ *
+ * It shipped as `window.prompt` for one pass. The strip's whole claim is
+ * *the terminal's tab strip, for the other column — same gestures* — and
+ * `TabStrip` renames inline. A native modal is a different gesture in
+ * the one place the two were meant to be indistinguishable, and it is
+ * the phone that pays for it. Found by driving; guarded here, because
+ * every other rename test in this file calls the store action directly
+ * and would pass over a strip with no rename control at all.
+ */
+describe("rename happens IN the strip", () => {
+  it("⭐ renames through an inline field, with no window.prompt", () => {
+    const prompt = vi
+      .spyOn(window, "prompt")
+      .mockImplementation(() => "should never be called");
+    addCardView("Reading");
+    setActiveCardView("Reading");
+    render(<CardViewStrip />);
+
+    // Click the active view to open its editor, then `rename`.
+    fireEvent.click(screen.getByTestId("card-view-Reading"));
+    fireEvent.click(screen.getByTestId("card-view-rename"));
+
+    const input = screen.getByTestId("card-view-rename-input");
+    fireEvent.change(input, { target: { value: "Study" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(prompt).not.toHaveBeenCalled();
+    expect(getCardViews().map((v) => v.name)).toEqual(["Study"]);
+    expect(getActiveCardView()).toBe("Study");
+  });
+
+  it("⚠ Escape abandons the rename and keeps the old name", () => {
+    addCardView("Reading");
+    setActiveCardView("Reading");
+    render(<CardViewStrip />);
+    fireEvent.click(screen.getByTestId("card-view-Reading"));
+    fireEvent.click(screen.getByTestId("card-view-rename"));
+
+    const input = screen.getByTestId("card-view-rename-input");
+    fireEvent.change(input, { target: { value: "Study" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+
+    expect(getCardViews().map((v) => v.name)).toEqual(["Reading"]);
+    expect(screen.queryByTestId("card-view-rename-input")).toBeNull();
+  });
+});

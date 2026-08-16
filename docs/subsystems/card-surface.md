@@ -64,6 +64,30 @@ a wake that does not fire — **and, worse, it is how nobody finds out**.
 A `here` card was immortal through eleven passing tests because every
 one of them called `refreshForInteractive` by hand.
 
+⚠⚠ **What "live" costs, and the three ways it was quietly dead.** The
+one live row (`place`) shipped not-updating, and each of these alone was
+enough — none of them visible to a green suite:
+
+1. **The delta was unapplicable.** A `cardinality: 'one'` answer that
+   moves to a different subject emitted a lone `replace` under a key the
+   consumer had never seen; every consumer looks its record up by
+   `stuffId`, misses, and **appends**. The old room survived at index 0.
+   `MqlSubscriptionRegistry.diff` now emits the `remove` beside it —
+   *the answer moved, so it is a removal and an arrival*. ⚠ Two
+   consumers had private bypasses for this already, which is why it
+   outlived them; the generic path everything else uses still had it.
+2. **Touch re-asserted the birth body.** A live card's `records` are its
+   first resolve and are never written again, so a bare `look` pushed
+   the room you LEFT back over a client that already knew better.
+   **Whoever owns the body owns every update to it**: a live card's
+   touch carries none.
+3. **The name was frozen at open.** `card.title` is stamped once; the
+   body names the card, and `title` only fills in until it arrives.
+
+The lesson under all three: *asserting that a delta was SENT is not
+asserting that a card updated.* The test now applies the changes by the
+wire's own rule and asserts the result.
+
 All four combinations are meaningful, and neither axis implies the
 other. Both fields are non-optional in a `Record<CardId,
 CardDefinition>` — the `COLLECTION_POLICIES` trick from `ResetPolicy` —
@@ -123,6 +147,18 @@ arrangement-pushed `place` and a typed bare `look` collide **on
 purpose** — which retires the *"the focus card must not FLASH"* special
 case structurally rather than by a duplicate check.
 
+⚠⚠ **And it is `look` ALWAYS — the room card is a singleton.** A card is
+identified by the command only where the command picks out *which of
+several things* it is about; there is one "here", so there is one card
+for it. `LookController`'s room path therefore passes `place`'s own
+catalogue command as the key rather than the sentence. The case that
+forces it is `look dave's bar`, which resolves to the ROOM and lands on
+the same path: keyed on what was typed it minted a **second** room card
+— same room, pinned by default like every `place` card, outliving every
+sweep, sitting under the first. Found by driving; guarded by
+`card-identity.test.ts`, including a source check on the call site,
+because a dropped `key:` brings it back silently.
+
 ## The catalogue — three sources
 
 MQL speaks **Stuff**. The roster is `RosterRow[]`, releases are `Release`
@@ -150,6 +186,20 @@ shipped rows at all, so `CardSource` is a discriminated union:
 - **`prompt`** — no body at all. The client already holds one prompt
   model and the card joins it by `promptId`.
 
+  ⚠ **Pushed by `PromptApi`'s own push path**, not by a command — a
+  question is the one card nobody types a command to get. Its key is
+  `prompt <promptId>`, so two questions waiting at once are two cards;
+  keyed on the bare command the second would TOUCH the first and
+  silently retarget it. Being a question rather than a reading, it
+  carries **no refresh control** even though it is static.
+
+  ⚠⚠ **This push was missing for a whole build.** The row, the settle
+  path, the client body and five green tests all existed; `CardApi.push`
+  had **zero production callers**, and every test hand-pushed the card
+  it then asserted on. `card-birth-path.test.ts` now asserts the other
+  half of the question — *is every declared kind reachable* — beside the
+  list of mint sites it already had.
+
 The ten shipped rows:
 
 | id | source | live | pinned | key | prose |
@@ -160,7 +210,7 @@ The ten shipped rows:
 | `news` | payload `releases` | ✗ | ✗ | `press` | `PressController` |
 | `wiki` | payload `wikiPage` | ✗ | ✗ | `wiki <slug>` | the page read |
 | `help` | payload `helpTopic` | ✗ | ✗ | `help <topic>` | the topic read |
-| `prompt` | prompt | ✗ | ✓ | `prompt` | `noProse` |
+| `prompt` | prompt | ✗ | ✓ | `prompt <promptId>` | `noProse` |
 | `cms` | client | ✗ | ✓ | `cms` | `noProse` |
 | `git` | client | ✗ | ✓ | `git` | `noProse` |
 | `studio` | client | ✗ | ✓ | `studio` | `noProse` |

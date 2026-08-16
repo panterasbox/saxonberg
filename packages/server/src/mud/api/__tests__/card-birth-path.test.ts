@@ -21,7 +21,7 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, relative } from 'path';
-import { CARD_IDS } from '@saxonberg/types';
+import { CARD_IDS, SHIPPED_ARRANGEMENT_CARDS } from '@saxonberg/types';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(HERE, '..', '..', '..');
@@ -106,7 +106,9 @@ describe('a card is born on the server, or not at all', () => {
      * two). Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
      * layout`, and — new here — `Avatar.enter`, which is what made a
      * saved workspace something you can simply return to rather than
-     * something you have to switch modes twice to get back.
+     * something you have to switch modes twice to get back. And the
+     * prompt substrate PUSHES, because a question is the one card
+     * nobody types a command to get.
      *
      * Asserted as a SET so a new one is a deliberate edit here rather
      * than a silent widening.
@@ -114,6 +116,7 @@ describe('a card is born on the server, or not at all', () => {
     expect(sites.sort()).toEqual(
       [
         'mud/obj/Avatar.ts:applyArrangement',
+        'mud/obj/api/PromptLogic.ts:push',
         'mud/obj/command/author/CmsController.ts:open',
         'mud/obj/command/author/StudioController.ts:open',
         'mud/obj/command/perception/LookController.ts:open',
@@ -227,5 +230,58 @@ describe('a card is born on the server, or not at all', () => {
       }
     }
     expect(writers).toEqual(['components/cards/useCardFeed.ts']);
+  });
+});
+
+/**
+ * ⭐⭐ **Every declared card kind has a way to be BORN.**
+ *
+ * The site list above enumerates eleven mint sites by name and would
+ * have gone on passing forever with a card kind that had none — which
+ * is exactly what happened: `prompt` was a full catalogue row with a
+ * settle path, a client body and five green tests, and **`CardApi.push`
+ * had zero production callers**. The card could not exist. Found by
+ * driving `wiki create`: the prompt strip opened and the feed stayed
+ * empty.
+ *
+ * ⚠ The list and this are different questions — *is every mint
+ * accounted for* versus *is every kind reachable* — and a build needs
+ * both. This one is the harder half to notice missing.
+ */
+describe('a declared card is a reachable card', () => {
+  it('⭐ every CardId is minted by a command or shipped in an arrangement', () => {
+    const files = sourceFiles(join(SERVER_SRC, 'mud')).filter(
+      (f) => !f.includes('__tests__'),
+    );
+    const born = new Set<string>();
+
+    // Named in a shipped arrangement — pushed at login / mode switch.
+    for (const byArrangement of Object.values(SHIPPED_ARRANGEMENT_CARDS)) {
+      for (const list of Object.values(byArrangement)) {
+        for (const id of list) born.add(id);
+      }
+    }
+
+    // Minted directly by server code.
+    for (const file of files) {
+      const rel = relative(SERVER_SRC, file).replace(/\\/g, '/');
+      if (rel === 'mud/obj/CardRegistry.ts') continue;
+      if (rel === 'mud/obj/api/CardLogic.ts') continue;
+      if (rel === 'mud/api/card.ts') continue;
+      const text = readFileSync(file, 'utf8');
+      for (const m of text.matchAll(
+        /CardApi\.(?:open|push)\(\s*[A-Za-z0-9_.]+\s*,\s*['"]([a-z]+)['"]/g,
+      )) {
+        born.add(m[1]!);
+      }
+    }
+
+    const orphans = CARD_IDS.filter((id) => !born.has(id));
+    expect(
+      orphans,
+      `these card kinds are declared but nothing can open them: ${orphans.join(', ')}`,
+    ).toEqual([]);
+    // ⚠ A scan that matched nothing would pass identically.
+    expect(born.size).toBeGreaterThanOrEqual(CARD_IDS.length);
   });
 });

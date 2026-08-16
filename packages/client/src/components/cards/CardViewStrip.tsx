@@ -63,6 +63,19 @@ const Editor = styled.div`
   padding: ${tokens.space.xs} 0;
 `;
 
+/** The terminal strip's rename field, same shape, same gesture. */
+const NameInput = styled.input`
+  background: ${tokens.color.surface};
+  border: 1px solid ${tokens.color.fgEmphasis};
+  border-radius: ${tokens.radius.sm};
+  color: inherit;
+  font: inherit;
+  font-size: ${tokens.font.label};
+  padding: 0.1rem 0.5rem;
+  min-height: 32px;
+  max-width: 12rem;
+`;
+
 const KindToggle = styled.button<{ $on: boolean }>`
   background: ${(p) => (p.$on ? tokens.color.accentWash : "transparent")};
   border: 1px solid
@@ -84,8 +97,30 @@ export function CardViewStrip(): React.ReactElement {
   const views = getCardViews();
   const active = getActiveCardView();
   const [editing, setEditing] = React.useState<string | null>(null);
+  /**
+   * ⚠⚠ **Rename is INLINE, not a `window.prompt`.**
+   *
+   * This strip's whole claim is *same gestures as the terminal's*, and
+   * `TabStrip` renames inline (`tab-rename-input`). A native dialog is a
+   * different gesture in the one place the two strips were supposed to
+   * be indistinguishable — and on the phone it is a browser modal over
+   * a surface that has no other modals, which is how a player learns
+   * that one of these two strips is not really the same thing. Found by
+   * driving.
+   */
+  const [renaming, setRenaming] = React.useState<string | null>(null);
 
   const editingView = views.find((v) => v.name === editing);
+
+  function commitRename(): void {
+    if (editingView === undefined || renaming === null) return;
+    const value = renaming.trim();
+    if (value && value !== editingView.name) {
+      renameCardView(editingView.name, value);
+      setEditing(value);
+    }
+    setRenaming(null);
+  }
 
   return (
     <Strip data-testid="card-view-strip">
@@ -152,19 +187,28 @@ export function CardViewStrip(): React.ReactElement {
               </KindToggle>
             );
           })}
-          <KindToggle
-            $on={false}
-            data-testid="card-view-rename"
-            onClick={() => {
-              const next = window.prompt("Rename view", editingView.name);
-              if (next) {
-                renameCardView(editingView.name, next);
-                setEditing(next.trim());
-              }
-            }}
-          >
-            rename
-          </KindToggle>
+          {renaming === null ? (
+            <KindToggle
+              $on={false}
+              data-testid="card-view-rename"
+              onClick={() => setRenaming(editingView.name)}
+            >
+              rename
+            </KindToggle>
+          ) : (
+            <NameInput
+              autoFocus
+              value={renaming}
+              aria-label="rename view"
+              data-testid="card-view-rename-input"
+              onChange={(e) => setRenaming(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitRename();
+                else if (e.key === "Escape") setRenaming(null);
+              }}
+            />
+          )}
           <KindToggle
             $on={false}
             data-testid="card-view-delete"
