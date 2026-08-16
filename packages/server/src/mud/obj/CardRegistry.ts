@@ -553,9 +553,56 @@ export default class CardRegistry extends Idea {
         typeof seconds === 'number' && seconds > 0 ? seconds * 1000 : fallbackMs;
       for (const [instanceId, state] of [...bucket.entries()]) {
         if (state.pinned) continue;
-        if (now - state.lastTouchedAt < effective) continue;
+        /*
+         * ⭐ The window is per KIND when the player has said so:
+         * `cards.window.place 3600` keeps room cards an hour while
+         * everything else ages normally. One key, optional overrides.
+         */
+        /*
+         * ⚠⚠ **The STORED override only** — never `resolveSetting`.
+         * The suffixed key resolves to the same schema entry, so
+         * `resolveSetting` would fall through to that entry's DEFAULT
+         * for a player who never set a per-kind value, and 600 would
+         * silently outrank their own `cards.window 5`. An override that
+         * is not there must contribute nothing.
+         */
+        const perKind =
+          holder && MixinApi.isEnvironment(holder)
+            ? holder.getOwnSetting<number>(`cards.window.${state.cardId}`)
+            : undefined;
+        const window =
+          typeof perKind === 'number' && perKind > 0
+            ? perKind * 1000
+            : effective;
+        if (now - state.lastTouchedAt < window) continue;
         this.close(interactive, instanceId, 'aged-out');
         closed++;
+      }
+
+      /*
+       * ⭐⭐ **The keep-count, which is the other half of a scrollback.**
+       *
+       * A duration alone cannot bound a feed: a player who walks around
+       * for ten minutes has ten minutes of cards whatever the window
+       * says. `cards.keep` is the count a terminal would call
+       * scrollback — oldest goes first.
+       *
+       * ⚠ Pinned cards are exempt from the CAP as well as the clock,
+       * because pinning now means *survives* and half a guarantee is
+       * worse than none.
+       */
+      const keep = holder
+        ? ShellApi.resolveSetting<number>(holder as Stuff, 'cards.keep')
+        : undefined;
+      if (typeof keep === 'number' && keep > 0) {
+        const droppable = [...bucket.entries()]
+          .filter(([, st]) => !st.pinned)
+          .sort((a, b) => a[1].openedAt - b[1].openedAt);
+        const excess = bucket.size - keep;
+        for (let i = 0; i < excess && i < droppable.length; i++) {
+          this.close(interactive, droppable[i]![0], 'aged-out');
+          closed++;
+        }
       }
     }
     return closed;

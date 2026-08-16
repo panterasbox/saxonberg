@@ -282,3 +282,66 @@ describe('a card lives on one axis: pinned or not', () => {
     ]);
   });
 });
+
+/**
+ * ⭐⭐ **Three knobs, so lifetime reads as configurable rather than
+ * hardwired** — a duration, a keep-count, and a per-kind override of the
+ * duration. The vocabulary is deliberately small: players will say what
+ * they actually want to set, and this is enough to show them it is
+ * theirs to set.
+ */
+describe('the lifetime knobs', () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    ShadowApi._clearAllForTesting();
+    EventApi._clearAllForTesting();
+    MqlSubscriptionApi._clearAllForTesting();
+    CardApi._clearAllForTesting();
+  });
+
+  it('⭐ `cards.keep` bounds the feed like scrollback — oldest goes first', async () => {
+    const h = await makeHarness();
+    h.avatar.setSetting('cards.keep', 3, h.avatar);
+    for (let i = 0; i < 6; i++) openWho(h);
+    expect(CardApi._getSizeForTesting()).toBe(6);
+
+    // The sweep enforces the cap even though nothing has aged out.
+    CardApi._sweepNowForTesting(FALLBACK, Date.now());
+    expect(CardApi._getSizeForTesting()).toBe(3);
+  });
+
+  it('⚠ a PINNED card never counts against the cap and never falls off', async () => {
+    const h = await makeHarness();
+    h.avatar.setSetting('cards.keep', 3, h.avatar);
+    const first = openWho(h);
+    CardApi.setPinned(h.interactive, first!, true);
+    for (let i = 0; i < 5; i++) openWho(h);
+
+    CardApi._sweepNowForTesting(FALLBACK, Date.now());
+    const survivors = CardApi.list(h.interactive).map((c) => c.instanceId);
+    expect(survivors).toContain(first);
+  });
+
+  it('⭐ `cards.window.<kind>` overrides the duration for one kind', async () => {
+    const h = await makeHarness();
+    h.avatar.setSetting('cards.window', 5, h.avatar);
+    // …but `who` cards get an hour.
+    h.avatar.setSetting('cards.window.who', 3600, h.avatar);
+    openWho(h);
+
+    // The override is a real setting and reads back as the player's own.
+    expect(h.avatar.getOwnSetting<number>('cards.window.who')).toBe(3600);
+    // Well past the general window, comfortably inside the per-kind one.
+    expect(
+      CardApi._sweepNowForTesting(FALLBACK, Date.now() + 60_000),
+    ).toBe(0);
+    expect(CardApi._getSizeForTesting()).toBe(1);
+  });
+
+  it('⚠ a suffix that is not a real card kind is not a setting at all', async () => {
+    const h = await makeHarness();
+    expect(() =>
+      h.avatar.setSetting('cards.window.nonsense', 10, h.avatar),
+    ).toThrow();
+  });
+});

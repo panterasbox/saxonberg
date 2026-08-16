@@ -32,6 +32,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { CARD_IDS } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
@@ -93,6 +94,15 @@ export interface SettingsSchemaEntry<T = unknown> {
    * split as `cockpit.shelf`.
    */
   perFactor?: true;
+  /**
+   * ⭐ **Suffixable by CARD KIND** — `cards.window.place` overrides
+   * `cards.window` for room cards alone.
+   *
+   * Same shape as `perFactor` and the same reason: one key with an
+   * optional override, not an open namespace. A suffix that is not a
+   * real `CardId` refuses as *no such setting*.
+   */
+  perKind?: true;
 }
 
 /**
@@ -192,11 +202,18 @@ function findSchema(
   const dot = key.lastIndexOf('.');
   if (dot <= 0) return undefined;
   const suffix = key.slice(dot + 1);
-  if (suffix !== 'desktop' && suffix !== 'mobile') return undefined;
   const base = collectSchema(host).find(
     (x) => x.entry.key === key.slice(0, dot),
   );
-  return base?.entry.perFactor === true ? base : undefined;
+  if (!base) return undefined;
+  if (suffix === 'desktop' || suffix === 'mobile') {
+    return base.entry.perFactor === true ? base : undefined;
+  }
+  // ⭐ …or by card kind, for an entry that declares it.
+  if (base.entry.perKind === true && (CARD_IDS as readonly string[]).includes(suffix)) {
+    return base;
+  }
+  return undefined;
 }
 
 /**
@@ -347,14 +364,41 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         key: 'cards.window',
         type: SettingTypes.Number,
         default: 600,
+        perKind: true,
         description:
           'How long an unpinned card stays in the feed after you last ' +
           'touched it, in seconds. Pinned cards ignore it entirely. ' +
-          'Set it short to watch a card age out and say so.',
+          'Override one kind by suffixing it — `cards.window.place 3600` ' +
+          'keeps room cards an hour while everything else ages normally.',
         validator: (v) =>
           typeof v === 'number' && v >= 5 && v <= 86_400
             ? true
             : 'expected 5–86400 seconds',
+      },
+      {
+        /**
+         * ⭐ **How many cards the feed keeps** — the scrollback bound.
+         *
+         * A duration alone cannot bound a feed: walk around for ten
+         * minutes and you have ten minutes of cards whatever the window
+         * says. This is the count a terminal would call scrollback, and
+         * the oldest goes first.
+         *
+         * ⚠ Pinned cards are exempt from the cap as well as the clock.
+         * Pinning means *survives*, and half a guarantee is worse than
+         * none.
+         */
+        key: 'cards.keep',
+        type: SettingTypes.Number,
+        default: 40,
+        description:
+          'How many cards the feed keeps before the oldest falls off, ' +
+          'like terminal scrollback. Pinned cards never count against ' +
+          'it and never fall off.',
+        validator: (v) =>
+          typeof v === 'number' && v >= 3 && v <= 500
+            ? true
+            : 'expected 3–500 cards',
       },
       {
         key: 'prompt.format',
