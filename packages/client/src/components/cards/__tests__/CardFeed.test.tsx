@@ -97,7 +97,7 @@ describe("the feed's own header", () => {
   it("says which way this one runs", () => {
     render(<CardFeed onSendCommand={noop} />);
     expect(screen.getByTestId("card-feed").textContent).toMatch(
-      /pinned, then newest → oldest/,
+      /oldest → newest, like the transcript/,
     );
   });
 });
@@ -249,7 +249,16 @@ describe("the pin", () => {
 });
 
 describe("⭐ the feed's order", () => {
-  it("puts the pinned block first, and a pinned card HOLDS its position", () => {
+  /**
+   * ⭐⭐ **One column, oldest → newest, exactly like the transcript.**
+   *
+   * It was a pinned block nailed to the top and newest-first below it —
+   * two orderings in one column running in opposite directions. Cards
+   * scroll BY now: the newest sits at the bottom, beside the command
+   * that produced it, and reading down the column is reading forward in
+   * time.
+   */
+  it("⭐ runs oldest → newest, with pinning NOT a position", () => {
     landCard(opened({ instanceId: "pin", cardId: "place", pinned: true }));
     landCard(opened({ instanceId: "a", cardId: "who" }));
     landCard(opened({ instanceId: "b", cardId: "news" }));
@@ -259,14 +268,13 @@ describe("⭐ the feed's order", () => {
         .getState()
         .cardFeed()
         .map((c) => c.instanceId);
-    expect(order()).toEqual(["pin", "b", "a"]);
+    // Arrival order, pinned or not.
+    expect(order()).toEqual(["pin", "a", "b"]);
 
-    // Touch the pinned card: it must NOT jump anywhere.
-    useStore.getState().touchCard("pin", { key: "look" });
-    expect(order()).toEqual(["pin", "b", "a"]);
-
-    // Touch an unpinned one: it comes to the front of its own block.
+    // ⚠ A touch does not re-date anything — position is ARRIVAL.
     useStore.getState().touchCard("a", { key: "who" });
+    expect(order()).toEqual(["pin", "a", "b"]);
+    useStore.getState().touchCard("pin", { key: "look" });
     expect(order()).toEqual(["pin", "a", "b"]);
   });
 

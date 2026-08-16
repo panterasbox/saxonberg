@@ -241,13 +241,22 @@ export function cardedFrameIsCovered(
 }
 
 export function orderCards(cards: readonly CardState[]): CardState[] {
-  const held = cards
-    .filter((c) => c.pinned)
-    .sort((a, b) => a.openedAt - b.openedAt);
-  const rest = cards
-    .filter((c) => !c.pinned)
-    .sort((a, b) => b.openedAt - a.openedAt);
-  return [...held, ...rest];
+  /*
+   * ⭐⭐ **One column, oldest → newest, exactly like the transcript.**
+   *
+   * It used to be a pinned block nailed to the top and then
+   * newest-first below it — two orderings in one column, running in
+   * opposite directions. That is not a feed; it is a stack with a
+   * mantelpiece. Cards SCROLL BY like the terminal does: the newest is
+   * at the bottom, next to the command that produced it.
+   *
+   * ⚠ **So pinning stops meaning "floats to the top".** It means
+   * *survives* — a pinned card does not age out and does not fall off
+   * the keep-count. It holds its place in the order like everything
+   * else, because moving it would break the one thing the order is
+   * for: reading down the column is reading forward in time.
+   */
+  return [...cards].sort((a, b) => a.openedAt - b.openedAt);
 }
 
 export interface CardFeedSlice {
@@ -353,8 +362,12 @@ export const createCardFeedSlice = (
           [instanceId]: {
             ...card,
             ...patch,
-            // ⚠ Only an UNPINNED card moves. See `cardFeed`.
-            openedAt: card.pinned ? card.openedAt : Date.now(),
+            /*
+             * ⚠ Position is ARRIVAL and never moves. The feed reads
+             * oldest → newest like the transcript, so re-dating a
+             * touched card would shuffle history — something you looked
+             * at ten minutes ago would appear to have just happened.
+             */
             // A touch un-husks: the server re-opened it, so it is live
             // content again and the husk's reason no longer applies.
             closed: undefined,

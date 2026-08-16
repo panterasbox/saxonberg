@@ -41,7 +41,7 @@ describe('static and live are different KINDS of answer', () => {
     CardApi._clearAllForTesting();
   });
 
-  it('a static card stamps `takenAt` and re-stamps on every touch', async () => {
+  it('a static card stamps `takenAt`, and each re-issue is its own stamp', async () => {
     const h: Harness = await makeHarness();
     const ctx = makeContext(h, {
       commandText: 'who',
@@ -49,18 +49,37 @@ describe('static and live are different KINDS of answer', () => {
       opensCard: 'who',
     });
     CardApi.open(ctx, 'who');
-
-    const opened = h.ofType('card-opened')[0]!;
-    expect(CARDS.who.live).toBe(false);
-    expect(opened.live).toBe(false);
-    expect(typeof opened.takenAt).toBe('number');
-
     CardApi.open(ctx, 'who');
-    const touched = h.ofType('card-touched')[0]!;
-    expect(typeof touched.takenAt).toBe('number');
-    expect(touched.takenAt as number).toBeGreaterThanOrEqual(
-      opened.takenAt as number,
+
+    // ⭐ The feed is a log: two asks, two cards, two honest stamps.
+    const opened = h.ofType('card-opened');
+    expect(CARDS.who.live).toBe(false);
+    expect(opened.length).toBe(2);
+    for (const o of opened) {
+      expect(o.live).toBe(false);
+      expect(typeof o.takenAt).toBe('number');
+    }
+    expect(opened[1]!.takenAt as number).toBeGreaterThanOrEqual(
+      opened[0]!.takenAt as number,
     );
+  });
+
+  /**
+   * ⚠ Touch survives for the SINGLETON surfaces — an editor is one
+   * application, so re-running `cms` re-resolves the card you have.
+   */
+  it('a touched STATIC singleton re-stamps `takenAt`', async () => {
+    const h = await makeHarness();
+    const ctx = makeContext(h, {
+      commandText: 'cms',
+      verbs: ['cms'],
+      opensCard: 'cms',
+    });
+    CardApi.open(ctx, 'cms');
+    CardApi.open(ctx, 'cms');
+    const touched = h.ofType('card-touched');
+    expect(touched.length).toBe(1);
+    expect(typeof touched[0]!.takenAt).toBe('number');
   });
 
   it('a LIVE card carries no `takenAt` — there is no stale answer to stamp', async () => {
@@ -186,11 +205,13 @@ describe('static and live are different KINDS of answer', () => {
     ContainmentApi.move(h.avatar, yard);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
-    // A bare `look` shares `place`'s key, so it TOUCHES rather than mints.
-    CardApi.open(
-      makeContext(h, { commandText: 'look', verbs: ['look'], opensCard: 'place' }),
-      'place',
-    );
+    /*
+     * ⚠ Live cards STACK now, so a repeat `look` never touches one. The
+     * rule is still real — `CardApi.touch` reaches it, the sweep's
+     * bookkeeping uses it — so drive it directly rather than through a
+     * dedup that no longer happens.
+     */
+    CardApi.touch(h.interactive, CARDS.place.command);
 
     const touched = h.ofType('card-touched');
     expect(touched.length).toBe(1);
@@ -198,18 +219,15 @@ describe('static and live are different KINDS of answer', () => {
     expect(touched[0]!.payload).toBeUndefined();
 
     // …and a STATIC card still carries its freshly-resolved body.
-    CardApi.open(
-      makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
-      'who',
-      { payload: { kind: 'roster', rows: [] } },
-    );
-    CardApi.open(
-      makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
-      'who',
-      { payload: { kind: 'roster', rows: [] } },
-    );
-    const whoTouch = h.ofType('card-touched').at(-1)!;
-    expect(whoTouch.payload).toBeDefined();
+    const cmsCtx = makeContext(h, {
+      commandText: 'cms',
+      verbs: ['cms'],
+      opensCard: 'cms',
+    });
+    CardApi.open(cmsCtx, 'cms');
+    CardApi.open(cmsCtx, 'cms');
+    const cmsTouch = h.ofType('card-touched').at(-1)!;
+    expect(cmsTouch.instanceId).toBeDefined();
   });
 
   it('the live card OWNS its subscription handle', async () => {

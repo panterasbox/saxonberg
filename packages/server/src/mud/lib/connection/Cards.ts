@@ -145,6 +145,22 @@ export interface CardDefinition {
    * where this is absent.
    */
   readonly noProse?: true;
+  /**
+   * ⭐⭐ **This card is a SINGLETON: re-running its command touches the
+   * one that is open rather than stacking another.**
+   *
+   * The feed is a **log**, so stacking is the default — look at two
+   * things and you have two cards; look at the same thing twice and you
+   * have two cards, because you asked twice and the feed records what
+   * you asked. That is the model, and the index-keyed-on-command model
+   * it replaces is what made `look` at an already-carded thing produce
+   * nothing visible at all.
+   *
+   * The exceptions are the surfaces that ARE one thing: an editor, a
+   * git panel, a composer. A second Monaco with its own unsaved buffer
+   * is not a second reading, it is a second application.
+   */
+  readonly singleton?: true;
 }
 
 /**
@@ -291,6 +307,7 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     live: false,
     command: 'cms',
     noProse: true,
+    singleton: true,
   },
 
   git: {
@@ -300,6 +317,7 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     live: false,
     command: 'git',
     noProse: true,
+    singleton: true,
   },
 
   studio: {
@@ -309,6 +327,7 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     live: false,
     command: 'studio',
     noProse: true,
+    singleton: true,
   },
 };
 

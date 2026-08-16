@@ -94,16 +94,33 @@ describe('a card lives on one axis: pinned or not', () => {
     );
   });
 
-  it('touching a card resets its window', async () => {
+  /**
+   * ⚠ Re-issuing no longer touches — the feed is a LOG, so asking twice
+   * gives two cards, each with its own window. Touch survives for the
+   * singleton surfaces, and there it still resets the clock.
+   */
+  it('touching a SINGLETON card resets its window', async () => {
     const h = await makeHarness();
-    openWho(h);
+    const ctx = makeContext(h, {
+      commandText: 'cms',
+      verbs: ['cms'],
+      opensCard: 'cms',
+    });
+    CardApi.open(ctx, 'cms');
     const later = Date.now() + DEFAULT_WINDOW - 1;
 
-    // Re-issue just before it would lapse…
-    openWho(h);
+    // Re-run just before it would lapse…
+    CardApi.open(ctx, 'cms');
     // …and the sweep at the moment it WOULD have lapsed finds it fresh.
     expect(CardApi._sweepNowForTesting(FALLBACK, later)).toBe(0);
     expect(CardApi._getSizeForTesting()).toBe(1);
+  });
+
+  it('⭐ two asks are two cards, each with its own window', async () => {
+    const h = await makeHarness();
+    openWho(h);
+    openWho(h);
+    expect(CardApi._getSizeForTesting()).toBe(2);
   });
 
   it('a dismissed card ages out again — the override goes both ways', async () => {

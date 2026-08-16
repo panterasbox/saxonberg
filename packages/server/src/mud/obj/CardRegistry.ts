@@ -194,10 +194,26 @@ export default class CardRegistry extends Idea {
     if (!def) return null;
 
     const key = opts.key ?? def.command;
-    const existing = this.findByKey(interactive, key);
-    if (existing) {
-      this.touchState(existing, opts);
-      return existing.instanceId;
+    /*
+     * ⭐⭐ **The feed is a LOG, so a card STACKS by default.**
+     *
+     * It was an index keyed on the normalized command: asking twice
+     * touched one card and moved it. That reads well on paper and badly
+     * in the hand — you looked at something and the column did not
+     * change, and when the touched card was already on screen the prose
+     * was suppressed too, so the command appeared to do nothing at all.
+     * A transcript does not dedupe; neither does this.
+     *
+     * ⚠ Only the surfaces that ARE one thing stay singletons — an
+     * editor, a git panel, a composer. `prompt` is keyed on its
+     * `promptId`, so it is unique by construction rather than by flag.
+     */
+    if (def.singleton === true) {
+      const existing = this.findByKey(interactive, key);
+      if (existing) {
+        this.touchState(existing, opts);
+        return existing.instanceId;
+      }
     }
 
     const holder = this.viewerOf(interactive);
@@ -562,7 +578,12 @@ export default class CardRegistry extends Idea {
     const def = CARDS[state.cardId];
     const holder = this.viewerOf(state.interactive);
     state.lastTouchedAt = Date.now();
-    if (!state.pinned) state.openedAt = state.lastTouchedAt;
+    /*
+     * ⚠ `openedAt` is ARRIVAL and never moves. The feed reads
+     * oldest → newest like the transcript, so re-dating a touched card
+     * would shuffle history: a thing you looked at ten minutes ago
+     * would appear to have happened just now.
+     */
     if (opts.subjectId) state.subjectId = opts.subjectId;
     if (opts.promptId) state.promptId = opts.promptId;
     if (opts.prose && !def.noProse && holder) {

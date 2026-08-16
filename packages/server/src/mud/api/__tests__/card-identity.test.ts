@@ -37,7 +37,19 @@ function canonical(input: string, canonicalVerb: string): string {
   return space === -1 ? canonicalVerb : `${canonicalVerb}${formatted.slice(space)}`;
 }
 
-describe('a card is identified by its normalized command', () => {
+/**
+ * ⭐⭐ **The normalized command is the card's REFRESH, not its identity.**
+ *
+ * It was the identity: two opens with the same key were one card,
+ * touched and moved. That is an index, and the feed is a **log** — a
+ * transcript does not dedupe, and neither does this. Asking twice gives
+ * you two cards because you asked twice.
+ *
+ * The key still matters, and the canonicalisation with it: it is what a
+ * card's refresh control re-issues, so `examine a` and `look a` must
+ * both compose to `look a`.
+ */
+describe('the normalized command is what a card re-issues', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     ShadowApi._clearAllForTesting();
@@ -58,7 +70,7 @@ describe('a card is identified by its normalized command', () => {
     );
   });
 
-  it('`who` twice is ONE card, brought forward', async () => {
+  it('⭐ `who` twice is TWO cards — you asked twice', async () => {
     const h = await makeHarness();
     const ctx = makeContext(h, {
       commandText: 'who',
@@ -68,10 +80,30 @@ describe('a card is identified by its normalized command', () => {
     const first = CardApi.open(ctx, 'who');
     const second = CardApi.open(ctx, 'who');
     expect(first).not.toBeNull();
+    expect(second).not.toBe(first);
+    expect(CardApi.list(h.interactive).length).toBe(2);
+    // Two opens on the wire, and nothing touched.
+    expect(h.ofType('card-opened').length).toBe(2);
+    expect(h.ofType('card-touched').length).toBe(0);
+  });
+
+  /**
+   * ⚠ **The exception, and it is about what a surface IS.** An editor, a
+   * git panel and a composer are one application each — a second Monaco
+   * with its own unsaved buffer is not a second reading. Those declare
+   * `singleton` and are the only cards that still dedupe.
+   */
+  it('⚠ an authoring surface is a SINGLETON — `cms` twice is one editor', async () => {
+    const h = await makeHarness();
+    const ctx = makeContext(h, {
+      commandText: 'cms',
+      verbs: ['cms'],
+      opensCard: 'cms',
+    });
+    const first = CardApi.open(ctx, 'cms');
+    const second = CardApi.open(ctx, 'cms');
     expect(second).toBe(first);
     expect(CardApi.list(h.interactive).length).toBe(1);
-    // The second open is a TOUCH, and says so on the wire.
-    expect(h.ofType('card-opened').length).toBe(1);
     expect(h.ofType('card-touched').length).toBe(1);
   });
 
@@ -94,7 +126,7 @@ describe('a card is identified by its normalized command', () => {
     expect(new Set(open.map((c) => c.key)).size).toBe(2);
   });
 
-  it('`look a` / `look b` / `look a` is TWO cards, with `a` in front', async () => {
+  it('⭐ `look a` / `look b` / `look a` is THREE cards — the feed is a LOG', async () => {
     const h = await makeHarness();
     const look = (text: string): string | null =>
       CardApi.open(
@@ -109,22 +141,16 @@ describe('a card is identified by its normalized command', () => {
     const b = look('look b');
     const a2 = look('look a');
 
-    expect(a2).toBe(a1);
-    expect(b).not.toBe(a1);
-    expect(CardApi.list(h.interactive).length).toBe(2);
-
-    /*
-     * ⚠ "In front" is asserted on the TOUCH, not on a list order the
-     * server does not own. Ordering is the feed's rendering of
-     * `openedAt`, and what the server guarantees is that re-issuing
-     * brings the card forward — which is exactly the touch envelope.
-     */
-    const touched = h.ofType('card-touched');
-    expect(touched.length).toBe(1);
-    expect(touched[0]!.instanceId).toBe(a1);
+    expect(new Set([a1, b, a2]).size).toBe(3);
+    expect(CardApi.list(h.interactive).length).toBe(3);
+    // ⚠ Nothing is TOUCHED: stacking cards never dedupe.
+    expect(h.ofType('card-touched').length).toBe(0);
+    // …and the re-looked card carries the same refresh command.
+    const keys = CardApi.list(h.interactive).map((c) => c.key);
+    expect(keys.filter((k) => k === 'look a').length).toBe(2);
   });
 
-  it('⭐ `examine a` and `look a` are ONE card — the synonym rung', async () => {
+  it('⭐ `examine a` and `look a` compose the SAME key — the synonym rung', async () => {
     const h = await makeHarness();
     const first = CardApi.open(
       makeContext(h, {
@@ -142,8 +168,10 @@ describe('a card is identified by its normalized command', () => {
       }),
       'subject',
     );
-    expect(second).toBe(first);
-    expect(CardApi.list(h.interactive).length).toBe(1);
+    // Two cards (the log), one refresh command (the canonicalisation).
+    expect(second).not.toBe(first);
+    const keys = CardApi.list(h.interactive).map((c) => c.key);
+    expect(keys).toEqual(['look a', 'look a']);
   });
 
   it('⚠ `look lamp` and `look brass lamp` are TWO cards — the knowing cost', async () => {
@@ -184,52 +212,47 @@ describe('a card is identified by its normalized command', () => {
 });
 
 /**
- * ⚠⚠ **There is one "here", so there is one card for it.**
+ * ⚠⚠ **The room card is NOT a singleton any more.**
  *
- * A card is identified by the command only where the command picks out
- * WHICH of several things it is about. `place` is about wherever the
- * body is, and there is only ever one of those — so the room card is
- * keyed on the catalogue's own `look`, never on the sentence.
+ * It was, and the reason was sound under the old model: `look dave's
+ * bar` resolves to the ROOM, and keyed on the sentence it minted a
+ * second `place` card — pinned by default, outliving every sweep,
+ * sitting under the first. The fix was to force the room's own key.
  *
- * The case that forces it, found by driving: `look dave's bar` resolves
- * to the ROOM and lands on `lookAtRoom`. Keyed on the typed command it
- * minted a **second** room card — same room, pinned by default like
- * every `place` card, outliving every sweep, sitting under the first.
+ * The log model removes the premise. Two looks at the room are two
+ * cards because you looked twice, exactly as two looks at a lamp are.
+ * What survives from that episode is the KEY: the room card's refresh
+ * must still re-issue `look`, not the sentence you happened to type.
  */
-describe('the room card is a singleton', () => {
-  it('⭐ a look that resolves to the ROOM touches `place` instead of minting', async () => {
+describe('the room card', () => {
+  it('⭐ stacks like everything else, and keeps `look` as its refresh', async () => {
     const h = await makeHarness();
+    const lookRoom = (text: string): string | null =>
+      CardApi.open(
+        makeContext(h, {
+          commandText: text,
+          verbs: ['look', 'l', 'examine', 'exa'],
+          opensCard: 'place',
+        }),
+        'place',
+        { key: CARDS.place.command },
+      );
+    const first = lookRoom('look');
+    const second = lookRoom("look dave's bar");
 
-    // Bare `look` — the ordinary path.
-    CardApi.open(
-      makeContext(h, {
-        commandText: 'look',
-        verbs: ['look', 'l', 'examine', 'exa'],
-        opensCard: 'place',
-      }),
-      'place',
-      { key: CARDS.place.command },
+    expect(second).not.toBe(first);
+    const cards = CardApi.list(h.interactive).filter(
+      (c) => c.cardId === 'place',
     );
-    // …and a look at the room BY NAME, which lands on the same path.
-    CardApi.open(
-      makeContext(h, {
-        commandText: "look dave's bar",
-        verbs: ['look', 'l', 'examine', 'exa'],
-        opensCard: 'place',
-      }),
-      'place',
-      { key: CARDS.place.command },
-    );
-
-    const cards = CardApi.list(h.interactive);
-    expect(cards.filter((c) => c.cardId === 'place').length).toBe(1);
-    expect(cards[0]!.key).toBe('look');
+    expect(cards.length).toBe(2);
+    // ⚠ Both re-issue the room's own command, not the typed sentence.
+    expect(cards.map((c) => c.key)).toEqual(['look', 'look']);
   });
 
   /**
    * ⚠ The guard that keeps the call site honest — a `key` dropped from
-   * `LookController` is exactly how this comes back, and it comes back
-   * silently, as *two identical pinned cards nobody wrote a test for*.
+   * `LookController` puts the typed sentence on the refresh control,
+   * and it comes back silently.
    */
   it('⚠ `LookController` passes `place`s catalogue command as the key', () => {
     const src = readFileSync(
