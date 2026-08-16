@@ -34,6 +34,7 @@
 
 import React from "react";
 import styled from "styled-components";
+import type { CardId } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
@@ -307,7 +308,61 @@ export function Card({
           </IconButton>
         </Controls>
       </Head>
-      {children}
+      <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
     </Shell>
   );
+}
+
+const BodyFailure = styled.div`
+  padding: ${tokens.space.sm} ${tokens.space.md};
+  color: ${tokens.color.fgMuted};
+  font-style: italic;
+`;
+
+/**
+ * ⚠⚠ **One card's body must never be able to blank the whole app.**
+ *
+ * The feed renders bodies this build does not own — Monaco, the git
+ * panel, the Studio catalogue — and React's default for a throwing
+ * component is to unmount the entire tree. That is not a hypothetical:
+ * opening a file in the CMS card threw inside Monaco's `defineTheme`
+ * and took the **whole client to a white screen**, with the server fine
+ * and the socket still open. There was no error boundary anywhere in
+ * the client at all.
+ *
+ * ⭐ The failure a card can survive is a card that says it broke. The
+ * head — the name, the timestamp, pin, close — is rendered OUTSIDE this
+ * boundary on purpose, so a card whose body died can still be read and
+ * still be dismissed.
+ */
+class CardBodyBoundary extends React.Component<
+  { cardId: CardId; children?: React.ReactNode },
+  { failed: boolean }
+> {
+  public constructor(props: { cardId: CardId; children?: React.ReactNode }) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  public static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  public componentDidCatch(error: Error): void {
+    // Loud in the console, quiet in the feed: an author needs the stack,
+    // a player needs the rest of the page.
+    console.error(`card body '${this.props.cardId}' failed to render`, error);
+  }
+
+  public render(): React.ReactNode {
+    if (this.state.failed) {
+      return (
+        <BodyFailure data-testid="card-body-failed">
+          This card&rsquo;s contents could not be shown. Nothing else is
+          affected — close it, or try the command again.
+        </BodyFailure>
+      );
+    }
+    return this.props.children;
+  }
 }

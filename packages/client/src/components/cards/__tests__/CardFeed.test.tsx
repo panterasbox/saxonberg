@@ -30,6 +30,7 @@ import type {
 } from "@saxonberg/types";
 import { useStore } from "../../../store/index";
 import { CardFeed } from "../CardFeed";
+import { Card } from "../Card";
 import { useCardFeed } from "../useCardFeed";
 import { websocketClient } from "../../../services/websocket";
 
@@ -435,5 +436,52 @@ describe("a LIVE card's name follows its body", () => {
     expect(screen.getByTestId("card-place").textContent).toContain(
       "Dave's Bar",
     );
+  });
+});
+
+/**
+ * ⚠⚠ **One card's body must never blank the whole app.**
+ *
+ * The feed renders bodies this build does not own — Monaco, the git
+ * panel, the Studio catalogue — and React's default for a throwing
+ * component is to unmount the ENTIRE tree. Found by driving: opening a
+ * file in the CMS card threw inside Monaco's `defineTheme` and took the
+ * whole client to a white screen, server fine and socket still open.
+ * There was no error boundary anywhere in the client at all.
+ */
+describe("a failing card body", () => {
+  function Boom(): React.ReactElement {
+    throw new Error("body exploded");
+  }
+
+  it("⭐ is contained: the card says so and the rest of the feed lives", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    landCard(opened({ instanceId: "c1", cardId: "who", key: "who" }));
+    render(
+      <>
+        <Card card={useStore.getState().cards["c1"]!} onSendCommand={noop}>
+          <Boom />
+        </Card>
+        <div data-testid="the-rest-of-the-page">still here</div>
+      </>,
+    );
+    expect(screen.getByTestId("card-body-failed")).toBeTruthy();
+    expect(screen.getByTestId("the-rest-of-the-page")).toBeTruthy();
+    spy.mockRestore();
+  });
+
+  it("⭐ keeps the head, so a dead card can still be READ and CLOSED", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    landCard(
+      opened({ instanceId: "c1", cardId: "who", key: "who", title: "who's online" }),
+    );
+    render(
+      <Card card={useStore.getState().cards["c1"]!} onSendCommand={noop}>
+        <Boom />
+      </Card>,
+    );
+    expect(screen.getByText("who's online")).toBeTruthy();
+    expect(screen.getByTestId("card-close")).toBeTruthy();
+    spy.mockRestore();
   });
 });

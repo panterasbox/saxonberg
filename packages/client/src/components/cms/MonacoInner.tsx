@@ -56,27 +56,64 @@ export interface MonacoInnerProps {
   onChange: (text: string) => void;
 }
 
-// Strip the leading '#' Monaco's theme API wants raw 6-hex with no hash;
-// our tokens are CSS hex strings. This keeps the token file the single
-// color source rather than re-hardcoding hexes here.
-function hex(token: string): string {
-  return token.replace(/^#/, "");
+/**
+ * ⚠⚠ **Monaco's theme API is a NON-CSS context**, and `tokens.color.*`
+ * stopped being hex the day the civic palette landed — every one of them
+ * is now a `var(--sx-…)` reference. `tokens.ts` warns about exactly this
+ * ("do not write one into a non-CSS context … both break with no type
+ * error"); this file's own comment still claimed *"our tokens are CSS
+ * hex strings"*, which had quietly become false.
+ *
+ * The result was `#var(--sx-fg)` handed to `defineTheme`, Monaco
+ * throwing `Illegal value for token color`, and — with no error boundary
+ * above it — **the entire app unmounting to a white screen** the moment
+ * a file was opened in the CMS. Found by driving the authoring card.
+ *
+ * So resolve the variable against the live document — the only place its
+ * value exists — and refuse to emit anything that is not a literal
+ * `#rrggbb`.
+ *
+ * ⭐ **A colour that will not resolve is OMITTED, not defaulted.** The
+ * obvious repair was a table of fallback hexes, and `noHexLiterals`
+ * rejects it — correctly: a literal here is a colour that cannot repaint
+ * when the theme changes, which is the whole reason the palette became
+ * `var()` in the first place. `inherit: true` means an unspecified key
+ * takes `vs-dark`'s own value, so omitting is both safe and the only
+ * option that cannot drift from the palette.
+ */
+
+/** A token resolved to a literal `#rrggbb`, or `null` if it cannot be. */
+function resolveColor(token: string): string | null {
+  const direct = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+  if (direct.test(token)) return token;
+  const name = /^var\(\s*(--[\w-]+)\s*\)$/.exec(token.trim());
+  if (!name || typeof window === "undefined") return null;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name[1]!)
+    .trim();
+  return direct.test(value) ? value : null;
 }
 
 const THEME_NAME = "saxonberg-cms-dark";
 
 const handleBeforeMount: BeforeMount = (monaco) => {
+  const wanted: Record<string, string> = {
+    "editor.background": tokens.color.surfaceSunken,
+    "editor.foreground": tokens.color.fg,
+    "editorLineNumber.foreground": tokens.color.fgMuted,
+    "editorCursor.foreground": tokens.color.accent,
+    "editor.selectionBackground": tokens.color.surfaceAlt,
+  };
+  const colors: Record<string, string> = {};
+  for (const [key, token] of Object.entries(wanted)) {
+    const resolved = resolveColor(token);
+    if (resolved !== null) colors[key] = resolved;
+  }
   monaco.editor.defineTheme(THEME_NAME, {
     base: "vs-dark",
     inherit: true,
     rules: [],
-    colors: {
-      "editor.background": `#${hex(tokens.color.surfaceSunken)}`,
-      "editor.foreground": `#${hex(tokens.color.fg)}`,
-      "editorLineNumber.foreground": `#${hex(tokens.color.fgMuted)}`,
-      "editorCursor.foreground": `#${hex(tokens.color.accent)}`,
-      "editor.selectionBackground": `#${hex(tokens.color.surfaceAlt)}`,
-    },
+    colors,
   });
 };
 
