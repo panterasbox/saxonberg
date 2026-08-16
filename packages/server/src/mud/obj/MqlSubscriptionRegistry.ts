@@ -880,7 +880,28 @@ export default class MqlSubscriptionRegistry extends Idea {
         changes.push({ op: 'remove', key: oldKey });
         return changes;
       }
+      /*
+       * ⭐⭐ **The answer moved to a different SUBJECT, so it is a
+       * removal and an arrival — two changes, not one.**
+       *
+       * A lone `replace` under a key the consumer has never seen is
+       * unapplicable: every consumer finds its record by `stuffId`,
+       * misses, and **appends**, so the old subject survives at index 0
+       * and the new one lands behind it. The card then renders the room
+       * you left, forever, while looking exactly like a card that
+       * updates. Found by DRIVING the one live card: walk out of the
+       * lounge and the `place` card still says *the lounge*.
+       *
+       * ⚠ **Two consumers had already worked around this privately**
+       * (the shelf's `self` handler says so at length; the retired
+       * inspection pane's location handler was the other), which is
+       * exactly why it survived — the generic path everything else uses
+       * still carried the defect, and each bypass made the next reader
+       * likelier to write a third. The fix belongs HERE, once: emit the
+       * `remove` the consumer needs, and no consumer needs a bypass.
+       */
       if (oldKey !== newKey) {
+        changes.push({ op: 'remove', key: oldKey! });
         changes.push({
           op: 'replace',
           key: newKey!,

@@ -489,13 +489,20 @@ export function useSelfFigures(): void {
       const env = envelope as MqlSubscriptionDeltaEnvelope;
       if (env.subscriptionId !== selfId) return;
       /*
-       * ⚠ **The single-cardinality trap.** `self` is `cardinality:
-       * 'one'`, so a slot replacement arrives as ONE `replace` keyed by
-       * the NEW stuffId with the old entry implicitly evicted. The
-       * generic `applyChanges` keys its lookup by stuffId, fails to
-       * find the prior entry, and APPENDS a second record. This is the
-       * bypass the location handler already documents at length: read
-       * the changes directly and reduce to {replace, update, remove}.
+       * ⚠ **The single-cardinality trap — fixed at the SOURCE, and this
+       * is no longer the workaround it was written as.** A
+       * `cardinality: 'one'` answer that moves to a different subject
+       * used to arrive as ONE `replace` keyed by the NEW stuffId, with
+       * the old entry only implicitly evicted; every consumer looked up
+       * by stuffId, missed, and APPENDED. `MqlSubscriptionRegistry.diff`
+       * now emits the `remove` alongside it, so the generic path is
+       * correct and no consumer needs a private bypass. (Two of them had
+       * one, which is precisely why the defect outlived both: the card
+       * feed used the generic path and rendered the room you left.)
+       *
+       * What survives here is not a bypass but a **shape**: the shelf
+       * holds ONE figure record, not a list, so reading the changes
+       * directly is simpler than reducing a list and taking `[0]`.
        */
       const store = useStore.getState();
       for (const change of env.changes) {

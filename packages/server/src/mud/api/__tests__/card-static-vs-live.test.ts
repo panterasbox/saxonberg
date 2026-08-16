@@ -106,6 +106,112 @@ describe('static and live are different KINDS of answer', () => {
     expect(deltas.some((d) => d.subscriptionId === instanceId)).toBe(true);
   });
 
+  /**
+   * ⭐⭐ **The delta has to be APPLICABLE, not merely present** — and
+   * asserting only that one arrived is how this shipped broken.
+   *
+   * A cardinality-`one` answer that moves to a different subject used to
+   * emit a lone `replace` under a key the consumer had never seen. Every
+   * consumer looks its record up by `stuffId`, misses, and **appends**,
+   * so the old room survived at index 0 and the card rendered the place
+   * you left — while a passing test watched the envelope go by.
+   *
+   * Two consumers had already written private bypasses for exactly this
+   * (the shelf's `self` handler documents it at length). The fix is one
+   * `remove` at the source; this asserts the ops, and then asserts the
+   * consequence by applying them the way the wire says they apply.
+   */
+  it('⭐ the delta REPLACES the answer rather than appending a second one', async () => {
+    const h = await makeHarness();
+    const lounge = await makeRoom('the lounge');
+    const yard = await makeRoom('the yard');
+    ContainmentApi.move(h.avatar, lounge);
+
+    const instanceId = CardApi.push(h.interactive, 'place');
+    const opened = h.ofType('card-opened')[0]!;
+    const records = [
+      ...((opened.result ?? []) as { stuffId: string; displayName?: string }[]),
+    ];
+    expect(records.map((r) => r.displayName)).toEqual(['the lounge']);
+
+    ContainmentApi.move(h.avatar, yard);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+
+    const delta = h
+      .ofType('mql-subscription-delta')
+      .find((d) => d.subscriptionId === instanceId)!;
+    const changes = delta.changes as {
+      op: string;
+      key: string;
+      fields?: Record<string, unknown>;
+    }[];
+    expect(changes.map((c) => c.op)).toEqual(['remove', 'replace']);
+
+    // Apply them exactly as the wire contract says: `remove` drops by
+    // key, `replace` overwrites in place or lands as the new record.
+    for (const change of changes) {
+      const idx = records.findIndex((r) => r.stuffId === change.key);
+      if (change.op === 'remove') {
+        if (idx >= 0) records.splice(idx, 1);
+        continue;
+      }
+      const record = {
+        ...(change.fields as { displayName?: string }),
+        stuffId: change.key,
+      };
+      if (idx >= 0) records[idx] = record;
+      else records.push(record);
+    }
+
+    // ⚠ ONE record, and it is the room the body is actually standing in.
+    expect(records.map((r) => r.displayName)).toEqual(['the yard']);
+  });
+
+  /**
+   * ⚠⚠ **Touching a live card must not re-assert its birth body.**
+   *
+   * `state.records` on a live card is the subscription's first resolve
+   * and is never written again — deltas go straight at the client. So a
+   * bare `look` in a new room used to push the OLD room's records back
+   * over a client that had already been told the truth, confidently and
+   * with no way to tell.
+   */
+  it('⚠ a live card is touched WITHOUT a body — the subscription owns it', async () => {
+    const h = await makeHarness();
+    const lounge = await makeRoom('the lounge');
+    const yard = await makeRoom('the yard');
+    ContainmentApi.move(h.avatar, lounge);
+
+    CardApi.push(h.interactive, 'place');
+    ContainmentApi.move(h.avatar, yard);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+
+    // A bare `look` shares `place`'s key, so it TOUCHES rather than mints.
+    CardApi.open(
+      makeContext(h, { commandText: 'look', verbs: ['look'], opensCard: 'place' }),
+      'place',
+    );
+
+    const touched = h.ofType('card-touched');
+    expect(touched.length).toBe(1);
+    expect(touched[0]!.result).toBeUndefined();
+    expect(touched[0]!.payload).toBeUndefined();
+
+    // …and a STATIC card still carries its freshly-resolved body.
+    CardApi.open(
+      makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
+      'who',
+      { payload: { kind: 'roster', rows: [] } },
+    );
+    CardApi.open(
+      makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
+      'who',
+      { payload: { kind: 'roster', rows: [] } },
+    );
+    const whoTouch = h.ofType('card-touched').at(-1)!;
+    expect(whoTouch.payload).toBeDefined();
+  });
+
   it('the live card OWNS its subscription handle', async () => {
     const h = await makeHarness();
     const room = await makeRoom('the lounge');

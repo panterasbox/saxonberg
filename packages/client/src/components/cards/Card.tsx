@@ -212,9 +212,18 @@ export function Card({
    * a placeholder somebody forgot. "where you are" is true the whole
    * time and stops being needed the moment the room's name lands.
    */
+  /*
+   * ⚠⚠ **The BODY names the card, and the opening envelope only fills
+   * in until it arrives.** The other order — `title` first — is stale by
+   * construction on a live card: `card.title` is stamped once, at open,
+   * and a delta rewrites the records without ever touching it, so a
+   * `place` card kept the name of the room you left while showing the
+   * one you were standing in. One name, taken from the thing being
+   * shown.
+   */
   const title =
-    card.title ||
     card.records[0]?.displayName ||
+    card.title ||
     // A husk keeps the name it had — see `lastTitle` in the slice.
     card.lastTitle ||
     CARD_LABEL[card.cardId] ||

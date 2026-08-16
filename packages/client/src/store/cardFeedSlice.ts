@@ -369,7 +369,14 @@ export const createCardFeedSlice = (
            * it is which card this is, and a husk that cannot say what
            * it was about is less honest rather than more.
            */
-          lastTitle: card.title ?? card.lastTitle,
+          /*
+           * ⚠ Records FIRST, for the same reason `Card.tsx` renders them
+           * first: on a live card `title` is the name it had at open, so
+           * taking it here would freeze the husk under the name of a
+           * room the player left ten minutes ago.
+           */
+          lastTitle:
+            card.records[0]?.displayName ?? card.title ?? card.lastTitle,
           records: [],
           payload: undefined,
         },

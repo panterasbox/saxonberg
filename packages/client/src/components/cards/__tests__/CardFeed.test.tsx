@@ -377,3 +377,63 @@ describe("the card's controls", () => {
     expect(screen.getByTestId("card-close")).toBeTruthy();
   });
 });
+
+/**
+ * ⭐⭐ **The card is named by what it is SHOWING, not by what it was
+ * called when it opened.**
+ *
+ * Found by driving the one live card: walk out of the lounge and the
+ * `place` card kept the lounge's name over the new room's body, because
+ * `title` is stamped once on `card-opened` and a delta rewrites the
+ * records without ever touching it. Two independent sources for one
+ * name is one too many, and the stale one was winning.
+ */
+describe("a LIVE card's name follows its body", () => {
+  it("⭐ renders the new subject's name after a delta replaces the body", () => {
+    landCard(
+      opened({
+        instanceId: "c1",
+        cardId: "place",
+        key: "look",
+        live: true,
+        title: "the lounge",
+        result: [{ stuffId: "s1", displayName: "the lounge" }] as never,
+      }),
+    );
+    // Exactly what `remove` + `replace` leaves behind on the client.
+    useStore
+      .getState()
+      .setCardRecords("c1", [
+        { stuffId: "s2", displayName: "Dave's Bar" },
+      ] as never);
+
+    render(<CardFeed onSendCommand={noop} />);
+    const card = screen.getByTestId("card-place");
+    expect(card.textContent).toContain("Dave's Bar");
+    expect(card.textContent).not.toContain("the lounge");
+  });
+
+  it("⚠ and its husk keeps the CURRENT name, not the birth one", () => {
+    landCard(
+      opened({
+        instanceId: "c1",
+        cardId: "place",
+        key: "look",
+        live: true,
+        title: "the lounge",
+        result: [{ stuffId: "s1", displayName: "the lounge" }] as never,
+      }),
+    );
+    useStore
+      .getState()
+      .setCardRecords("c1", [
+        { stuffId: "s2", displayName: "Dave's Bar" },
+      ] as never);
+    useStore.getState().closeCard("c1", "aged-out");
+
+    render(<CardFeed onSendCommand={noop} />);
+    expect(screen.getByTestId("card-place").textContent).toContain(
+      "Dave's Bar",
+    );
+  });
+});

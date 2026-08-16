@@ -575,6 +575,20 @@ export default class CardRegistry extends Idea {
     }
 
     if (!holder) return;
+    /*
+     * ⚠⚠ **A live card's touch carries NO body.** `state.records` is the
+     * subscription's *first* resolve and is never written again — the
+     * substrate emits deltas straight at the client and does not report
+     * back here. Shipping that stale array on every touch means a bare
+     * `look` in a new room re-asserts the room you left, and it does it
+     * confidently, over a client that had already been told the truth.
+     *
+     * The rule the two axes imply: **whoever owns the body owns every
+     * update to it.** A static card's body is re-resolved here on each
+     * touch; a live card's body belongs to its subscription, and touch
+     * is only about the card's PLACE in the feed.
+     */
+    const carriesBody = !def.live;
     const template: Omit<CardTouchedEnvelope, 'frameId'> = {
       type: 'card-touched',
       instanceId: state.instanceId,
@@ -582,8 +596,8 @@ export default class CardRegistry extends Idea {
       ...(state.takenAt !== undefined ? { takenAt: state.takenAt } : {}),
       ...(state.title !== undefined ? { title: state.title } : {}),
       ...(state.prose ? { prose: state.prose } : {}),
-      ...(state.records ? { result: state.records } : {}),
-      ...(state.payload ? { payload: state.payload } : {}),
+      ...(carriesBody && state.records ? { result: state.records } : {}),
+      ...(carriesBody && state.payload ? { payload: state.payload } : {}),
     };
     MessageApi.sendEnvelope(holder, template);
   }
