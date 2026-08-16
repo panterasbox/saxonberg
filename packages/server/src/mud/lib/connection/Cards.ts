@@ -253,24 +253,20 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     },
     pinnedByDefault: false,
     /*
-     * ⚠⚠ **Static today, and the reason is a substrate gap rather than
-     * a decision.**
+     * ⭐⭐ **Live while it is the newest, silent once it is history.**
      *
-     * The intent is *live while it is the newest card, silent once it is
-     * history* — and that half is BUILT: opening a live card demotes its
-     * predecessors (`CardRegistry.demoteLive`), tearing down the
-     * subscription, stamping `takenAt` and telling the client so the
-     * card grows a refresh control like any snapshot.
+     * While this is the current room card it tracks its room — someone
+     * walks in, something is set down, and it shows. The moment a newer
+     * room card arrives, `CardRegistry.demoteLive` tears its
+     * subscription down and it becomes an ordinary snapshot with a
+     * `takenAt` and a refresh. Behind you there is nothing to track,
+     * and a subscription still running would be a wake with no reader.
      *
-     * What is missing is a subscription bound to a SPECIFIC subject. The
-     * only forms the substrate takes are relative (`here`, `$subject`),
-     * and a relative query re-answers against the asker on every wake —
-     * so a "live" room card re-resolves to wherever you now are and
-     * silently becomes a different room's card. That is the exact
-     * replacement this model exists to stop, so the row does not opt in
-     * until a subject-bound subscription exists.
+     * ⚠ This works only because the subscription is bound to the
+     * SUBJECT. On the relative `here` it followed the viewer instead of
+     * the room.
      */
-    live: false,
+    live: true,
     command: 'look',
   },
 

@@ -51,6 +51,8 @@ import {
   OMNI_SCOPE,
 } from '../api/execution-context';
 import { MqlApi, MqlPermissionError } from '../api/mql';
+import { StuffApi } from '../api/stuff';
+import { PerceptionApi } from '../api/perception';
 import { EventApi } from '../api/event';
 import { MessageApi } from '../api/message';
 import { ShellApi } from '../api/shell';
@@ -95,6 +97,13 @@ interface SubscriptionState {
   detailKey?: string;
   focusDependent: boolean;
   locationDependent: boolean;
+  /**
+   * ⭐ Bound to ONE Stuff by id, instead of to a query. See
+   * `SubscribeRequest.subjectId`: every query form is relative and
+   * re-answers against the asker, which is wrong for a card about a
+   * particular thing.
+   */
+  subjectId?: string;
   lastResult: Map<string, RecordValue>;
   dependencyHandles: DependencyHandle[];
   /**
@@ -194,6 +203,27 @@ function projectStuffInto(
  * satisfy the external gate for no benefit (the `DiagnosticLogic`
  * shape).
  */
+/**
+ * Resolve a subject-bound subscription — the SAME Stuff every time,
+ * **behind the perception gate**.
+ *
+ * ⚠⚠ The gate is re-applied on every re-resolve, not just at mint. A
+ * stuffId is not a capability: resolving one straight through
+ * `findById` is the ungated `#<stuffId>` seed by another route, and a
+ * card built on it would keep answering for a room you have left, or
+ * for something that has been hidden from you since. An unperceivable
+ * subject resolves to nothing, and the diff turns that into a `remove`
+ * the subscriber can act on.
+ */
+function resolveSubjectBound(
+  subjectId: string,
+  viewer: Stuff & Sensor,
+): Stuff[] {
+  const found = StuffApi.findById(subjectId);
+  if (!found) return [];
+  return PerceptionApi.perceives(viewer, found) ? [found] : [];
+}
+
 function resolveByQuery(
   query: string,
   cardinality: SubscriptionCardinality,
@@ -320,9 +350,12 @@ export default class MqlSubscriptionRegistry extends Idea {
     const giver = holder as Stuff & CommandGiver;
     const viewer = holder as Stuff & Sensor;
 
+    const subjectId = req.subjectId;
     let stuffList: Stuff[];
     try {
-      stuffList = resolveByQuery(query, cardinality, giver);
+      stuffList = subjectId
+        ? resolveSubjectBound(subjectId, viewer)
+        : resolveByQuery(query, cardinality, giver);
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'parse';
@@ -351,6 +384,7 @@ export default class MqlSubscriptionRegistry extends Idea {
       detailKey,
       focusDependent,
       locationDependent,
+      ...(subjectId !== undefined ? { subjectId } : {}),
       lastResult,
       dependencyHandles: [],
       birthScope: registrantScope === OMNI_SCOPE ? null : registrantScope,
@@ -814,7 +848,9 @@ export default class MqlSubscriptionRegistry extends Idea {
 
     let stuffList: Stuff[];
     try {
-      stuffList = resolveByQuery(sub.query, sub.cardinality, giver);
+      stuffList = sub.subjectId
+        ? resolveSubjectBound(sub.subjectId, viewer)
+        : resolveByQuery(sub.query, sub.cardinality, giver);
     } catch (err) {
       const reason: MqlSubscriptionErrorReason =
         err instanceof MqlPermissionError ? 'permission' : 'resolve';

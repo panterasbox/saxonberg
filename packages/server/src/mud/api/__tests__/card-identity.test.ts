@@ -25,6 +25,8 @@ import { CommandLineApi } from '../command-line';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { CARDS } from '../../lib/connection/Cards';
+import { ContainmentApi } from '../containment';
+import Room from '../../obj/location/Room';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -227,6 +229,9 @@ describe('the normalized command is what a card re-issues', () => {
 describe('the room card', () => {
   it('⭐ stacks like everything else, and keeps `look` as its refresh', async () => {
     const h = await makeHarness();
+    const room = await StuffApi.create(() => new Room());
+    room.setShortDescription("Dave's Bar");
+    ContainmentApi.move(h.avatar, room);
     const lookRoom = (text: string): string | null =>
       CardApi.open(
         makeContext(h, {
@@ -235,7 +240,7 @@ describe('the room card', () => {
           opensCard: 'place',
         }),
         'place',
-        { key: CARDS.place.command },
+        { key: CARDS.place.command, subjectId: room.stuffId },
       );
     const first = lookRoom('look');
     const second = lookRoom("look dave's bar");

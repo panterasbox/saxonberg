@@ -126,6 +126,14 @@ export interface CardState {
   prose?: string;
   /** What the subject IS — inspection cards only. */
   subjectKind?: StuffKind;
+  /**
+   * ⚠ This live card has been superseded and already gave its
+   * subscription up (`demoteLive`). Its own marker rather than reusing
+   * `takenAt`: a demoted card gains a stamp, but so does every ordinary
+   * static card, and guarding teardown on the stamp made teardown skip
+   * cards that had never subscribed OR been demoted.
+   */
+  demoted?: true;
   records?: CardRecord[];
   payload?: CardPayload;
 }
@@ -252,6 +260,25 @@ export default class CardRegistry extends Idea {
     const holder = this.viewerOf(interactive);
     if (!holder) return null;
 
+    /*
+     * ⚠ **A subject-bound card pushed without a subject defaults to
+     * where the viewer IS.** An arrangement names a card KIND, not a
+     * thing — `play` asks for "where you are" and cannot know the room
+     * — so `place` at login would otherwise resolve to nothing. This is
+     * the one card whose name answers the question, which is why the
+     * fallback is safe rather than a guess: "where you are" *is* the
+     * viewer's container.
+     */
+    if (
+      def.source.kind === 'mql' &&
+      def.source.needsSubject === true &&
+      opts.subjectId === undefined &&
+      MixinApi.isContainable(holder)
+    ) {
+      const here = holder.getContainer();
+      if (here) opts = { ...opts, subjectId: here.stuffId };
+    }
+
     const now = Date.now();
     const state: CardState = {
       interactive,
@@ -276,6 +303,12 @@ export default class CardRegistry extends Idea {
      * how a card ends up briefly showing nothing.
      */
     if (def.live && def.source.kind === 'mql') {
+      /*
+       * ⭐⭐ A `needsSubject` card subscribes to THAT SUBJECT, not to a
+       * query. Every query form is relative and re-answers against the
+       * asker on every wake, so a room card on `here` follows you out of
+       * the room and silently becomes a different room's card.
+       */
       const initial = MqlSubscriptionApi.handleSubscribe({
         interactive,
         subscriptionId: state.instanceId,
@@ -283,6 +316,9 @@ export default class CardRegistry extends Idea {
         cardinality: def.source.cardinality,
         fields: def.source.fields,
         locationDependent: def.source.locationDependent === true,
+        ...(def.source.needsSubject === true && state.subjectId
+          ? { subjectId: state.subjectId }
+          : {}),
         silent: true,
       });
       if (initial === null) return null;
@@ -505,9 +541,26 @@ export default class CardRegistry extends Idea {
       }
     }
 
+    /*
+     * ⚠ An arrangement names a card KIND, not a thing — so a
+     * subject-bound row needs one supplied. "Where you are" is the
+     * viewer's container, which the resolver knows and the arrangement
+     * cannot.
+     */
+    const viewer = this.viewerOf(interactive);
+    const here =
+      viewer && MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+
     let opened = 0;
     for (const cardId of want) {
-      if (this.open(interactive, cardId) !== null) opened++;
+      const def = CARDS_BY_NAME[cardId];
+      const needsSubject =
+        def !== undefined &&
+        def.source.kind === 'mql' &&
+        def.source.needsSubject === true;
+      const opts: CardOpenOptions =
+        needsSubject && here ? { subjectId: here.stuffId } : {};
+      if (this.open(interactive, cardId, opts) !== null) opened++;
     }
     return { opened, closed };
   }
@@ -644,8 +697,9 @@ export default class CardRegistry extends Idea {
     const holder = this.viewerOf(interactive);
     for (const state of bucket.values()) {
       if (state.cardId !== cardId) continue;
-      if (state.takenAt !== undefined) continue; // already static
+      if (state.demoted === true) continue; // already demoted
       MqlSubscriptionApi.handleUnsubscribe(interactive, state.instanceId);
+      state.demoted = true;
       state.takenAt = Date.now();
       if (!holder) continue;
       const template: Omit<CardTouchedEnvelope, 'frameId'> = {
@@ -819,8 +873,8 @@ export default class CardRegistry extends Idea {
    */
   private teardown(state: CardState): void {
     if (!CARDS[state.cardId].live) return;
-    // ⚠ A demoted card already gave its handle up; `takenAt` is the mark.
-    if (state.takenAt !== undefined) return;
+    // ⚠ A demoted card already gave its handle up.
+    if (state.demoted === true) return;
     MqlSubscriptionApi.handleUnsubscribe(state.interactive, state.instanceId);
   }
 

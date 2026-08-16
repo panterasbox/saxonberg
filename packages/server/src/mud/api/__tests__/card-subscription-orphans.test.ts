@@ -101,7 +101,13 @@ describe('a card owns its subscription handle', () => {
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    CardApi.applyArrangement(h.interactive, ['place']);
+    /*
+     * ⚠ Opened with an explicit subject rather than through the
+     * arrangement's own container lookup — this test is about TEARDOWN,
+     * and routing it through a second mechanism would make it fail for
+     * reasons that have nothing to do with the handle.
+     */
+    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     CardApi.applyArrangement(h.interactive, ['who']);

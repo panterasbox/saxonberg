@@ -24,6 +24,7 @@ import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
 import Room from '../../obj/location/Room';
+import Prop from '../../obj/Prop';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 
 async function makeRoom(name: string): Promise<Room> {
@@ -95,34 +96,88 @@ describe('static and live are different KINDS of answer', () => {
   });
 
   /**
-   * ⭐ The whole liveness claim, and it is asserted the only honest
-   * way: move the body, then look at what the client was told. No
-   * refresh, no drain-by-hand — if the wake does not fire, this fails.
+   * ⭐⭐ **The whole liveness claim, and what it is NOT.**
+   *
+   * A live room card tracks **its own room** — someone walks in and it
+   * shows, with no refresh touched. It does **not** follow the viewer:
+   * your own movement is not a change to the room you left, it is a new
+   * card, and the old one is demoted to a snapshot.
+   *
+   * ⚠⚠ This test used to assert the opposite — move the avatar, expect
+   * the card to become the new room. That was the defect written down
+   * as a requirement: the subscription rode the RELATIVE query `here`,
+   * so every wake re-answered against the asker and the lounge card
+   * silently became the bar's. Reported as *"you're just replacing
+   * cards still."* It is subject-bound now, and this asserts the
+   * difference in both directions.
    */
-  it('a live card wakes on the world change, with no refresh', async () => {
+  it('⭐ a live card tracks ITS subject when the world changes', async () => {
     const h = await makeHarness();
     const lounge = await makeRoom('the lounge');
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    const instanceId = CardApi.push(h.interactive, 'place', {
+      subjectId: lounge.stuffId,
+    });
     expect(instanceId).not.toBeNull();
-    const opened = h.ofType('card-opened')[0]!;
-    const first = (opened.result as { displayName?: string }[])[0];
-    expect(first?.displayName).toBe('the lounge');
 
-    // The world moves. Nothing else happens.
-    ContainmentApi.move(h.avatar, yard);
+    // Something arrives IN the lounge. Nothing else happens.
+    const lamp = await StuffApi.create(() => new Prop());
+    lamp.setShortDescription('a brass lamp');
+    ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
-    /*
-     * The live card's own subscription handle IS its instance id, so
-     * its update rides the ordinary delta envelope — no join table, no
-     * second correlation key.
-     */
     const deltas = h.ofType('mql-subscription-delta');
-    expect(deltas.length).toBeGreaterThanOrEqual(1);
     expect(deltas.some((d) => d.subscriptionId === instanceId)).toBe(true);
+    void yard;
+  });
+
+  /**
+   * ⚠⚠ **Walking away does NOT rewrite the card.** This is the exact
+   * failure the subject binding exists to prevent.
+   */
+  it('⚠ moving the VIEWER leaves the card on the room it is about', async () => {
+    const h = await makeHarness();
+    const lounge = await makeRoom('the lounge');
+    const yard = await makeRoom('the yard');
+    ContainmentApi.move(h.avatar, lounge);
+
+    const instanceId = CardApi.push(h.interactive, 'place', {
+      subjectId: lounge.stuffId,
+    });
+    const opened = h.ofType('card-opened')[0]!;
+    /*
+     * ⚠ SNAPSHOT the wire records now. The envelope carries the card's
+     * own array by reference, so reading it after the world moves tells
+     * you what the card holds NOW, not what it was told — which would
+     * make this test unable to see the very drift it exists to catch.
+     */
+    const records = ((opened.result ?? []) as {
+      stuffId: string;
+      displayName?: string;
+    }[]).map((r) => ({ ...r }));
+    expect(records.map((r) => r.displayName)).toEqual(['the lounge']);
+
+    ContainmentApi.move(h.avatar, yard);
+    await MqlSubscriptionApi._drainScheduledForTesting();
+    // It may WAKE (the lounge's contents changed — you left it), but it
+    // must still be answering about the lounge.
+    for (const d of h
+      .ofType('mql-subscription-delta')
+      .filter((x) => x.subscriptionId === instanceId)) {
+      for (const c of d.changes as { op: string; key: string; fields?: Record<string, unknown> }[]) {
+        const idx = records.findIndex((r) => r.stuffId === c.key);
+        if (c.op === 'remove') {
+          if (idx >= 0) records.splice(idx, 1);
+          continue;
+        }
+        const rec = { ...(c.fields as { displayName?: string }), stuffId: c.key };
+        if (idx >= 0) records[idx] = rec;
+        else records.push(rec);
+      }
+    }
+    expect(records.map((r) => r.displayName)).toEqual(['the lounge']);
   });
 
   /**
@@ -140,20 +195,25 @@ describe('static and live are different KINDS of answer', () => {
    * `remove` at the source; this asserts the ops, and then asserts the
    * consequence by applying them the way the wire says they apply.
    */
-  it('⭐ the delta REPLACES the answer rather than appending a second one', async () => {
+  it('⭐ the delta is APPLICABLE — an update in place, not an append', async () => {
     const h = await makeHarness();
     const lounge = await makeRoom('the lounge');
-    const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    const instanceId = CardApi.push(h.interactive, 'place', {
+      subjectId: lounge.stuffId,
+    });
     const opened = h.ofType('card-opened')[0]!;
-    const records = [
-      ...((opened.result ?? []) as { stuffId: string; displayName?: string }[]),
-    ];
+    const records = ((opened.result ?? []) as {
+      stuffId: string;
+      displayName?: string;
+    }[]).map((r) => ({ ...r }));
     expect(records.map((r) => r.displayName)).toEqual(['the lounge']);
 
-    ContainmentApi.move(h.avatar, yard);
+    // Something arrives in the room: same subject, new reading.
+    const lamp = await StuffApi.create(() => new Prop());
+    lamp.setShortDescription('a brass lamp');
+    ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
     const delta = h
@@ -164,10 +224,18 @@ describe('static and live are different KINDS of answer', () => {
       key: string;
       fields?: Record<string, unknown>;
     }[];
-    expect(changes.map((c) => c.op)).toEqual(['remove', 'replace']);
+    /*
+     * ⭐ An `update`, because the subject's IDENTITY did not change —
+     * which is the whole point of binding to a subject.
+     *
+     * ⚠ The identity-CHANGE path (`remove` + `replace`) is what a
+     * relative subscription produces, and it is still real: the shelf's
+     * `self` subscription rides it. It shipped as a lone `replace`
+     * under a key no consumer had seen, so every consumer missed and
+     * APPENDED — the defect that made a card render the room you left.
+     */
+    expect(changes.map((c) => c.op)).toEqual(['update']);
 
-    // Apply them exactly as the wire contract says: `remove` drops by
-    // key, `replace` overwrites in place or lands as the new record.
     for (const change of changes) {
       const idx = records.findIndex((r) => r.stuffId === change.key);
       if (change.op === 'remove') {
@@ -178,12 +246,13 @@ describe('static and live are different KINDS of answer', () => {
         ...(change.fields as { displayName?: string }),
         stuffId: change.key,
       };
-      if (idx >= 0) records[idx] = record;
+      if (idx >= 0) records[idx] = { ...records[idx], ...record };
       else records.push(record);
     }
 
-    // ⚠ ONE record, and it is the room the body is actually standing in.
-    expect(records.map((r) => r.displayName)).toEqual(['the yard']);
+    // ⚠ ONE record, still the room this card is about.
+    expect(records.length).toBe(1);
+    expect(records[0]!.displayName).toBe('the lounge');
   });
 
   /**
@@ -201,7 +270,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    CardApi.push(h.interactive, 'place', { subjectId: lounge.stuffId });
     ContainmentApi.move(h.avatar, yard);
     await MqlSubscriptionApi._drainScheduledForTesting();
 

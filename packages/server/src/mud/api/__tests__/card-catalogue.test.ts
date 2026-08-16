@@ -49,9 +49,15 @@ describe('the card catalogue', () => {
     const unpinnedAndStatic = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && !CARDS[id].live,
     );
+    // ⚠ `place` is unpinned now: with a card per arrival, a room card
+    // that pinned itself would make "kept" meaningless within a minute.
     expect(pinnedAndStatic.length).toBe(4);
-    expect(pinnedAndLive.length).toBe(1);
+    expect(pinnedAndLive.length).toBe(0);
     expect(unpinnedAndStatic.length).toBe(5);
+    const unpinnedAndLive = CARD_IDS.filter(
+      (id) => !CARDS[id].pinnedByDefault && CARDS[id].live,
+    );
+    expect(unpinnedAndLive).toEqual(['place']);
   });
 
   /**
@@ -90,7 +96,13 @@ describe('the card catalogue', () => {
       const src = CARDS[id].source;
       return src.kind === 'mql' && src.needsSubject === true;
     });
-    expect(needsSubject).toEqual(['subject']);
+    /*
+     * ⭐ TWO rows take a subject now, and it is the same fact twice:
+     * `place` and `subject` are one INSPECTION card whose body is chosen
+     * by what the subject is. A room card bound to the relative `here`
+     * followed the viewer out of the room and rewrote itself.
+     */
+    expect(needsSubject.sort()).toEqual(['place', 'subject']);
     /*
      * ⚠⚠ The query is the inert marker `$subject`, never an
      * `#<stuffId>` MQL seed. That seed is authoring-tier and ungated,

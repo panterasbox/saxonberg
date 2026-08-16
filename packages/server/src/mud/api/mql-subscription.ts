@@ -194,6 +194,29 @@ export interface SubscribeRequest {
   focusDependent?: boolean;
   locationDependent?: boolean;
   /**
+   * ⭐⭐ **Bind this subscription to ONE Stuff, by id, instead of a
+   * query.**
+   *
+   * Every other form is RELATIVE — `here`, `$subject`, `person` all
+   * re-answer against whoever is asking, on every wake. That is right
+   * for a widget that tracks *your* situation and wrong for a card
+   * about a particular thing: a room card subscribed to `here` walks
+   * out of the room with you and silently becomes a different room's
+   * card, because leaving changes the room's contents, which wakes it,
+   * which re-answers `here`.
+   *
+   * A subject-bound subscription re-resolves the SAME Stuff every time,
+   * so it tracks that thing and nothing else.
+   *
+   * ⚠⚠ **Perception-gated on every re-resolve, not just at mint.** The
+   * id is not a capability. Resolving it through `StuffApi.findById`
+   * alone would be the ungated `#<stuffId>` seed by another route — a
+   * peep-hole into any room whose id you had ever seen on a frame. A
+   * subject that stops being perceivable resolves to nothing, and the
+   * subscriber is told it went.
+   */
+  subjectId?: string;
+  /**
    * ⭐ Register and resolve, but do NOT emit the initial result
    * envelope — return the records to the caller instead.
    *
