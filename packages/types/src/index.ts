@@ -1132,8 +1132,34 @@ export type CardPayload =
  * it, so there is no `pushed` flag to distinguish a server push from a
  * client one — the client never opens a card at all.
  */
+/**
+ * ⭐⭐ **The four top-level Stuff branches, which is what an inspection
+ * card's layout keys on.**
+ *
+ * A card opened by LOOKING at something is laid out by what that thing
+ * IS — a place, a person, an object, an idea — because those want to
+ * spotlight genuinely different material. This is the whole taxonomy
+ * on purpose: narrower splits (a weapon vs a lamp, an NPC vs a player)
+ * wait until something forces them.
+ *
+ * ⚠ Not every card is an inspection card. `who`, `news`, `wiki`,
+ * `help`, `prompt` and the authoring surfaces are born of interactions
+ * that have nothing to do with looking at a thing, and they carry their
+ * own bodies rather than one of these.
+ *
+ * (`Shadow` is the fifth branch and never appears here — it is a
+ * framework attachment riding another Stuff, not a thing you can look
+ * at.)
+ */
+export type StuffKind = "location" | "agent" | "thing" | "idea";
+
 export interface CardOpenedEnvelope {
   type: 'card-opened';
+  /**
+   * What the card's subject IS — present on inspection cards, absent on
+   * every card born of something other than looking at a thing.
+   */
+  subjectKind?: StuffKind;
   frameId: number;
   /**
    * Server-minted, and **IS the subscription id when the card is

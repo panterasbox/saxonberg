@@ -43,9 +43,12 @@ import type {
   CardPinnedEnvelope,
   StuffDetailRecord,
   StuffRefRecord,
+  StuffKind,
 } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../lib/connection/Cards';
 import { Idea } from '../lib/stuff/Idea';
+import { Agent } from '../lib/stuff/Agent';
+import Location from '../lib/stuff/Location';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 import { CallSecurity } from '../lib/security/decorators';
@@ -121,6 +124,8 @@ export interface CardState {
   promptId?: string;
   /** The MML the controller already emitted; absent when `noProse`. */
   prose?: string;
+  /** What the subject IS — inspection cards only. */
+  subjectKind?: StuffKind;
   records?: CardRecord[];
   payload?: CardPayload;
 }
@@ -162,6 +167,26 @@ export interface CardOpenOptions {
    * error, not a rendering variation.
    */
   payload?: CardPayload;
+}
+
+/**
+ * ⭐⭐ **Which of the four top-level branches a subject belongs to.**
+ *
+ * An inspection card is laid out by what the thing IS — a place, a
+ * person, an object, an idea — and this is where that question is
+ * answered, once, on the server that knows. `instanceof` against the
+ * branch classes rather than a mixin sniff: the branches are the
+ * taxonomy, and a mixin test would be guessing at it from the outside.
+ *
+ * ⚠ Deliberately not narrower. A weapon and a lamp are both `thing`; an
+ * NPC and a player are both `agent`. Splitting further waits until
+ * something needs it.
+ */
+function subjectKindOf(stuff: Stuff): StuffKind {
+  if (stuff instanceof Location) return 'location';
+  if (stuff instanceof Agent) return 'agent';
+  if (stuff instanceof Idea) return 'idea';
+  return 'thing';
 }
 
 export default class CardRegistry extends Idea {
@@ -255,6 +280,11 @@ export default class CardRegistry extends Idea {
       if (initial === null) return null;
       state.records = initial as CardRecord[];
       state.title = initial[0]?.displayName as string | undefined;
+      // A live card is an inspection card too — `place` is the room.
+      const liveSubject = StuffApi.findById(
+        (initial[0] as { stuffId?: string } | undefined)?.stuffId ?? '',
+      );
+      if (liveSubject) state.subjectKind = subjectKindOf(liveSubject);
     } else {
       this.resolveInto(def, state, holder, opts);
       state.takenAt = now;
@@ -281,6 +311,7 @@ export default class CardRegistry extends Idea {
       ...(state.prose ? { prose: state.prose } : {}),
       ...(state.records ? { result: state.records } : {}),
       ...(state.payload ? { payload: state.payload } : {}),
+      ...(state.subjectKind ? { subjectKind: state.subjectKind } : {}),
     };
     MessageApi.sendEnvelope(holder, template);
     return state.instanceId;
@@ -677,6 +708,8 @@ export default class CardRegistry extends Idea {
         ) as unknown as CardRecord,
     );
     state.title = state.records[0]?.displayName as string | undefined;
+    const subject = stuffList[0];
+    if (subject) state.subjectKind = subjectKindOf(subject);
   }
 
   /**

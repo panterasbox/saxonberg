@@ -23,10 +23,24 @@ function placeCard(record: Partial<StuffDetailRecord>): CardState {
     key: "look",
     live: true,
     pinned: false,
+    subjectKind: "location",
     openedAt: 1,
     records: [
       { stuffId: "room", displayName: "the lounge", ...record },
     ] as never,
+  };
+}
+
+/**
+ * ⚠ A THING card — the kind whose material and weight earn a line. A
+ * place has no mass, so the measured-row tests belong here.
+ */
+function thingCard(record: Partial<StuffDetailRecord>): CardState {
+  return {
+    ...placeCard(record),
+    cardId: "subject",
+    key: "look lamp",
+    subjectKind: "thing",
   };
 }
 
@@ -298,7 +312,7 @@ describe("⚠ a projected default is not a reading", () => {
      */
     render(
       <CardBody
-        card={placeCard({ mass: { value: 0, unit: "kg" } } as never)}
+        card={thingCard({ mass: { value: 0, unit: "kg" } } as never)}
         onSendCommand={() => undefined}
       />,
     );
@@ -308,7 +322,7 @@ describe("⚠ a projected default is not a reading", () => {
   it("shows a real one", () => {
     render(
       <CardBody
-        card={placeCard({ mass: { value: 2.5, unit: "kg" } } as never)}
+        card={thingCard({ mass: { value: 2.5, unit: "kg" } } as never)}
         onSendCommand={() => undefined}
       />,
     );
@@ -544,5 +558,96 @@ describe("the prompt card's body", () => {
     );
     expect(screen.queryByText(/Waiting on your answer/)).toBeNull();
     expect(screen.getByText(/What you last saw/)).toBeTruthy();
+  });
+});
+
+/**
+ * ⭐⭐ **An inspection card is laid out by what its subject IS.**
+ *
+ * Four kinds — the four top-level Stuff branches — and the difference is
+ * which sections are offered at all, not cosmetics:
+ *
+ *  - a **place** has ways out and things in it, and no mass;
+ *  - an **agent** is a who, not a container to enumerate — listing a
+ *    person's contents in a look card would be reading their pockets;
+ *  - a **thing** is the kind whose material and weight earn a line;
+ *  - an **idea** is not perceived in the usual way at all.
+ */
+describe("the four inspection bodies", () => {
+  function body(kind: "location" | "agent" | "thing" | "idea"): string {
+    const { container } = render(
+      <CardBody
+        card={
+          {
+            instanceId: "c1",
+            cardId: kind === "location" ? "place" : "subject",
+            key: "look x",
+            live: false,
+            pinned: false,
+            subjectKind: kind,
+            records: [
+              {
+                stuffId: "s1",
+                displayName: "the subject",
+                primaryKeyword: "subject",
+                shortDescription: "a subject",
+                exits: [{ direction: "north" }],
+                contents: [{ stuffId: "s2", displayName: "a thing inside" }],
+                mass: { value: 2, unit: "kg" },
+              },
+            ] as never,
+            openedAt: 1,
+          } as never
+        }
+        onSendCommand={() => undefined}
+      />,
+    );
+    return container.textContent ?? "";
+  }
+
+  it("⭐ a PLACE offers ways out and what is here", () => {
+    const text = body("location");
+    expect(text).toMatch(/north/);
+    expect(text).toMatch(/a thing inside/);
+  });
+
+  it("⚠ an AGENT lists no contents — those are their pockets", () => {
+    const text = body("agent");
+    expect(text).not.toMatch(/a thing inside/);
+    expect(text).not.toMatch(/north/);
+  });
+
+  it("⭐ a THING may show contents, and never ways out", () => {
+    const text = body("thing");
+    expect(text).toMatch(/a thing inside/);
+    expect(text).not.toMatch(/north/);
+  });
+
+  it("⚠ an IDEA offers neither, and no picture", () => {
+    const text = body("idea");
+    expect(text).not.toMatch(/a thing inside/);
+    expect(text).not.toMatch(/north/);
+  });
+
+  it("⚠ an unmarked card falls back to `thing` rather than guessing", () => {
+    const { container } = render(
+      <CardBody
+        card={
+          {
+            instanceId: "c2",
+            cardId: "subject",
+            key: "look x",
+            live: false,
+            pinned: false,
+            records: [
+              { stuffId: "s1", displayName: "the subject", exits: [{ direction: "north" }] },
+            ] as never,
+            openedAt: 1,
+          } as never
+        }
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(container.textContent ?? "").not.toMatch(/north/);
   });
 });

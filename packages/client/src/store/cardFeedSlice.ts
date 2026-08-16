@@ -51,6 +51,7 @@ import type {
   CardId,
   CardPayload,
   StuffDetailRecord,
+  StuffKind,
   StuffRefRecord,
 } from "@saxonberg/types";
 
@@ -83,6 +84,12 @@ export interface CardState {
   takenAt?: number;
   title?: string;
   subjectId?: string;
+  /**
+   * ⭐ What the subject IS — one of the four top-level Stuff branches.
+   * An inspection card's LAYOUT keys on it; cards born of anything other
+   * than looking at a thing carry no kind and render their own body.
+   */
+  subjectKind?: StuffKind;
   promptId?: string;
   /**
    * The MML the producing controller emitted; absent when the card

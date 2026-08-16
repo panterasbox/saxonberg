@@ -118,6 +118,7 @@ export function useCardFeed(): void {
         ...(env.takenAt !== undefined ? { takenAt: env.takenAt } : {}),
         ...(env.title !== undefined ? { title: env.title } : {}),
         ...(env.subjectId ? { subjectId: env.subjectId } : {}),
+        ...(env.subjectKind ? { subjectKind: env.subjectKind } : {}),
         ...(env.promptId ? { promptId: env.promptId } : {}),
         ...(env.prose ? { prose: env.prose } : {}),
         ...(env.payload ? { payload: env.payload } : {}),

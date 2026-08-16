@@ -44,6 +44,7 @@ import type {
   ReleaseRow,
   RosterRow,
   StuffDetailRecord,
+  StuffKind,
   StuffRefRecord,
   WikiPageFrame,
 } from "@saxonberg/types";
@@ -1089,6 +1090,47 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
     ? record?.details?.find((d) => d.ids.includes(tail))
     : undefined;
 
+  /*
+   * ⭐⭐ **An inspection card is laid out by what its subject IS.**
+   *
+   * Four kinds, and they are the four top-level Stuff branches — a
+   * place, a person, an object, an idea. Not narrower: a weapon and a
+   * lamp are both `thing`, an NPC and a player are both `agent`, and
+   * splitting further waits until something needs it.
+   *
+   * ⚠ **It is a composition, not four hand-written components.** The
+   * sections already existed and each renders itself away when its
+   * field is absent; what differs by kind is WHICH ones are offered at
+   * all, and that is a real difference rather than a cosmetic one:
+   *
+   *  - a **place** has ways out and things in it; it has no mass;
+   *  - an **agent** is a who, not a container to enumerate — listing a
+   *    person's contents in a look card would be reading their pockets;
+   *  - a **thing** is the one kind whose material and weight are worth
+   *    the line, and whose contents you may legitimately see;
+   *  - an **idea** is not perceived at all in the usual way — no
+   *    picture, no exits, no measure. Mostly it is reached through the
+   *    authoring and wiki surfaces rather than by looking.
+   *
+   * ⚠ This deliberately re-opens a call that was closed the other way.
+   * The per-kind bodies were built from reference art and removed after
+   * *"they all have the same controls, they just differ in what they
+   * spotlight"* — which was true of THOSE bodies, four hand-written
+   * shells duplicating one another. The difference now is that the
+   * shell is shared and only the section set varies.
+   */
+  /*
+   * ⚠ The fallback reads the card's own kind rather than defaulting
+   * blind: a `place` card IS a location even on an older envelope that
+   * carries no `subjectKind`, and treating it as a thing would take its
+   * exits away.
+   */
+  const kind: StuffKind =
+    card.subjectKind ?? (card.cardId === "place" ? "location" : "thing");
+  const isPlace = kind === "location";
+  const isAgent = kind === "agent";
+  const isIdea = kind === "idea";
+
   return (
     <>
       <DetailTrail
@@ -1102,7 +1144,7 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
         prose would be a picture of the wrong thing. When details carry
         their own media this is where it renders.
       */}
-      {!drilled && <PlaceIllustration record={record} />}
+      {!drilled && !isIdea && <PlaceIllustration record={record} />}
       {/*
         ⭐ The description is what the drill replaces. Everything below
         belongs to the object and stays put; the trail above says which
@@ -1114,17 +1156,23 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
         onSendCommand={handleProseClick}
         onCommandPreview={onCommandPreview}
       />
-      <Measured record={record} />
-      <WaysOut
-        record={record}
-        onSendCommand={onSendCommand}
-        onCommandPreview={onCommandPreview}
-      />
-      <HereList
-        record={record}
-        onSendCommand={onSendCommand}
-        onCommandPreview={onCommandPreview}
-      />
+      {/* Mass and material are a THING's line. A room has no weight. */}
+      {!isPlace && !isAgent && !isIdea && <Measured record={record} />}
+      {isPlace && (
+        <WaysOut
+          record={record}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      )}
+      {/* ⚠ Never for an agent: a person's contents are their pockets. */}
+      {!isAgent && !isIdea && (
+        <HereList
+          record={record}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      )}
       <ActionRow
         stuffId={stuffId}
         keyword={record?.primaryKeyword}
