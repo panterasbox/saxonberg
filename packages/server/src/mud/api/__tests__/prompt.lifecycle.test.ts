@@ -74,8 +74,9 @@ describe('PromptApi — lifecycle (choice / confirm / text)', () => {
       { label: 'A', response: 'a' },
       { label: 'B', response: 'b' },
     ]);
-    expect(envelopes).toHaveLength(1);
-    expect(envelopes[0]!.type).toBe('prompt');
+    // The prompt envelope, then the `card-opened` for the prompt card
+    // the substrate pushes so a waiting question is in the feed too.
+    expect(envelopes.map((e) => e.type)).toEqual(['prompt', 'card-opened']);
     const promptId = envelopes[0]!.promptId!;
     expect(envelopes[0]!.outcome!.notes[0]!.kind).toBe('prompt-choice');
 

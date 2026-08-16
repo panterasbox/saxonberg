@@ -82,12 +82,22 @@ describe('PromptApi — body MessageFrame correlation', () => {
       body: 'Please enter the name you want for your character.',
     });
 
-    // Frame first, envelope second.
-    expect(events).toHaveLength(2);
-    expect(events[0]!.kind).toBe('frame');
-    expect((events[0]! as { topic: string }).topic).toBe('shell.prompt');
-    expect(events[1]!.kind).toBe('envelope');
-    expect((events[1]! as { type: string }).type).toBe('prompt');
+    /*
+     * Frame first, prompt envelope second — and THIRD the `card-opened`
+     * for the prompt card, which the substrate pushes so a waiting
+     * question is visible in the feed as well as the strip.
+     *
+     * ⚠ Asserted as the exact sequence rather than "at least these":
+     * the ordering claim this file exists for is only meaningful if a
+     * fourth thing sliding in between would fail it.
+     */
+    expect(
+      events.map((e) =>
+        e.kind === 'frame'
+          ? `frame:${(e as { topic: string }).topic}`
+          : `envelope:${(e as { type: string }).type}`,
+      ),
+    ).toEqual(['frame:shell.prompt', 'envelope:prompt', 'envelope:card-opened']);
 
     // Frame's payload carries the promptId; matches the envelope's.
     const framePayload = (events[0]! as { payload: { promptId: string } })
@@ -134,7 +144,10 @@ describe('PromptApi — body MessageFrame correlation', () => {
 
     const p = PromptApi.text(interactive, 'Name?');
     expect(frames).toHaveLength(0);
-    expect(envelopes).toHaveLength(1);
+    // The prompt envelope, and the prompt CARD the substrate pushes.
+    expect(
+      (envelopes as { type: string }[]).map((e) => e.type),
+    ).toEqual(['prompt', 'card-opened']);
     PromptApi.cancelAll(interactive, 'cancelled');
     await expect(p).rejects.toThrow();
   });
