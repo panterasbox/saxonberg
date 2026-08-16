@@ -1005,6 +1005,9 @@ export default class WikiController extends CommandController<WikiModel> {
      */
     return CardApi.open(context, 'wiki', {
       payload: { kind: 'wikiPage', page: frame },
+      // ⭐ Named by the PAGE, not by "the wiki". A column of cards all
+      // called "the wiki" is a column you cannot scan.
+      title: page.getTitle(),
     });
   }
 }

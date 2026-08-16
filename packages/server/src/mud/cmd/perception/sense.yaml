@@ -1,5 +1,11 @@
 verbs: [sense]
 controller: /obj/command/perception/SenseController
+# ⭐⭐ Arrival auto-senses (`Mobile.autoSenseOnArrival`), so this is the
+# seam where WALKING INTO A ROOM mints its card. Each room you enter
+# gets its own; the one you left stays in the feed as the record of a
+# place you were, which is what makes the column a history rather than
+# a display that keeps being overwritten.
+opens_card: place
 description: "Take in your surroundings across every sense you possess"
 help: |
   Open every sense at once. `sense` gathers sight, sound, smell,

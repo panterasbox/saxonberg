@@ -199,39 +199,78 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
   },
 
   /**
-   * ⭐ **Where you are.** Pinned by default, because the room is the one
-   * card you want to survive everything else you look at.
+   * ⭐⭐ **Where you are — a new card per arrival, live only while it is
+   * the current one.**
    *
-   * ⚠ **Its key is `look`, and that is load-bearing.** Nothing runs
-   * `look` on arrival, so dropping this row would leave an empty feed at
-   * login; giving the arrangement-pushed card the key of its own refresh
-   * command means a bare `look` touches it instead of minting a
-   * duplicate.
+   * Walking into a room mints that room's card (`sense` opens it, and
+   * arrival auto-senses). The card for the room you LEFT stays in the
+   * feed as the record of a place you were, so the column is a history
+   * of where you have been.
    *
-   * ⭐⭐ **The one LIVE row, and it is the one that earns it.** A card
-   * pinned by default is a card that outlives everything around it, so a
-   * stale one is the classic failure the liveness axis exists to
-   * prevent — and `locationDependent` is a wake that already exists and
-   * is already proven, rather than one this build would have to invent
-   * (which is exactly why `who` ships static). Being live, it carries no
-   * refresh control and no `takenAt`: walking into a room re-resolves it
-   * in place.
+   * ⭐ **Live is scoped to the newest.** While a room card is the
+   * current one it tracks its room, so something changing around you
+   * shows up without asking. The moment a newer room card arrives the
+   * old one's subscription is torn down and it becomes an ordinary
+   * snapshot — `takenAt` stamped, refresh control offered, like every
+   * other static card. Once it is behind you there is nothing for it to
+   * track, and a subscription still running would be a wake with no
+   * reader.
    *
-   * ⚠ It also means the liveness axis ships EXERCISED. A catalogue where
-   * every row is static would leave `live` a field nothing reads, and a
-   * declaration nothing reads is indistinguishable from a broken one.
+   * ⚠⚠ **It shipped as ONE live card that mutated in place**, which
+   * meant walking out of the lounge rewrote the lounge card into the
+   * bar — replacement dressed up as freshness, and reported as exactly
+   * that. Liveness was never the error; unbounded liveness on a card
+   * that should have been superseded was.
+   *
+   * ⚠ Not pinned by default any more. With a card per arrival, a room
+   * card that pinned itself would make "kept" meaningless within a
+   * minute and put a floor under the sweep that nothing could clear.
    */
   place: {
     label: 'where you are',
     source: {
       kind: 'mql',
-      query: 'here',
+      query: '$subject',
       cardinality: 'one',
       fields: 'detail',
-      locationDependent: true,
+      /*
+       * ⚠⚠ **Bound to the ROOM, not to `here` — and `here` was the bug.**
+       *
+       * `here` is a RELATIVE query: it re-evaluates against whoever is
+       * asking, so *any* re-resolve snaps the card to wherever you now
+       * are. Leaving the lounge changes the lounge's own contents (you
+       * left), that wakes the card, and the card re-answers `here` —
+       * which is the bar. The lounge card silently became a bar card.
+       * Dropping `locationDependent` did not help, because the room's
+       * own contents were enough to trigger it.
+       *
+       * A card about a place has to be pinned to THAT place. So it
+       * carries its subject like every other inspection card — which is
+       * the same thing said twice: `place` and `subject` are one card
+       * whose body is chosen by what the subject IS.
+       */
+      needsSubject: true,
     },
-    pinnedByDefault: true,
-    live: true,
+    pinnedByDefault: false,
+    /*
+     * ⚠⚠ **Static today, and the reason is a substrate gap rather than
+     * a decision.**
+     *
+     * The intent is *live while it is the newest card, silent once it is
+     * history* — and that half is BUILT: opening a live card demotes its
+     * predecessors (`CardRegistry.demoteLive`), tearing down the
+     * subscription, stamping `takenAt` and telling the client so the
+     * card grows a refresh control like any snapshot.
+     *
+     * What is missing is a subscription bound to a SPECIFIC subject. The
+     * only forms the substrate takes are relative (`here`, `$subject`),
+     * and a relative query re-answers against the asker on every wake —
+     * so a "live" room card re-resolves to wherever you now are and
+     * silently becomes a different room's card. That is the exact
+     * replacement this model exists to stop, so the row does not opt in
+     * until a subject-bound subscription exists.
+     */
+    live: false,
     command: 'look',
   },
 

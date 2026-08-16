@@ -108,7 +108,9 @@ describe('a card is born on the server, or not at all', () => {
      * saved workspace something you can simply return to rather than
      * something you have to switch modes twice to get back. And the
      * prompt substrate PUSHES, because a question is the one card
-     * nobody types a command to get.
+     * nobody types a command to get. And `sense` opens one because
+     * ARRIVAL auto-senses — walking into a room is how most room cards
+     * are born, and nobody types a command for that either.
      *
      * Asserted as a SET so a new one is a deliberate edit here rather
      * than a silent widening.
@@ -121,6 +123,7 @@ describe('a card is born on the server, or not at all', () => {
         'mud/obj/command/author/StudioController.ts:open',
         'mud/obj/command/perception/LookController.ts:open',
         'mud/obj/command/perception/LookController.ts:open',
+        'mud/obj/command/perception/SenseController.ts:open',
         'mud/obj/command/shell/CockpitModeController.ts:applyArrangement',
         'mud/obj/command/shell/LayoutController.ts:applyArrangement',
         'mud/obj/command/social/WhoController.ts:open',

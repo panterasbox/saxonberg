@@ -97,7 +97,7 @@ describe("the feed's own header", () => {
   it("says which way this one runs", () => {
     render(<CardFeed onSendCommand={noop} />);
     expect(screen.getByTestId("card-feed").textContent).toMatch(
-      /oldest → newest, like the transcript/,
+      /newest at the bottom/,
     );
   });
 });
@@ -118,7 +118,7 @@ describe("a card in the feed", () => {
     const card = screen.getByTestId("card-place");
     expect(card.getAttribute("data-card-closed")).toBe("aged-out");
     expect(screen.getByTestId("card-hold-reason").textContent).toMatch(
-      /went quiet/,
+      /older cards fall off/,
     );
   });
 
@@ -234,7 +234,7 @@ describe("the pin", () => {
     render(<CardFeed onSendCommand={noop} />);
     expect(screen.getByLabelText("cockpit card auto who")).toBeTruthy();
     expect(screen.getByTestId("card-hold-reason").textContent).toBe(
-      "held by you",
+      "kept",
     );
   });
 

@@ -27,6 +27,8 @@ import type Interactive from '../obj/Interactive';
 import type { CardOpenOptions } from '../obj/CardRegistry';
 import type { CommandContext } from './command';
 import { SecurityApi } from './security';
+import { MixinApi } from './mixin';
+import type { Stuff } from '../lib/stuff/Stuff';
 import { ScheduleApi, type ScheduleHandle } from './schedule';
 import { ExecutionContextApi } from './execution-context';
 import { StuffApi } from './stuff';
@@ -133,7 +135,25 @@ export class CardApi {
     cardId: CardId,
     opts: Omit<CardOpenOptions, 'key'> & { key?: string } = {},
   ): string | null {
-    const interactive = context.interactive;
+    /*
+     * ⚠⚠ **A forced command carries no `interactive`, and arrival is a
+     * forced command.**
+     *
+     * `context.interactive` is *the connection that originated the
+     * command*, and it is genuinely optional: `Mobile.autoSenseOnArrival`
+     * forces a `sense` from inside the traverse, so nothing originated it
+     * from a socket. Read literally, that made every room card born of
+     * WALKING return `null` — silently, because a null open is how a
+     * card politely declines. Every room card came from the arrangement
+     * or a typed `look`, and walking around simply mutated the one.
+     *
+     * A card belongs to the PLAYER, not to the keystroke, so fall back
+     * to the giver's own connections. A giver with several (multiplexed
+     * sessions) gets the card on each, which is the same thing every
+     * other push does.
+     */
+    const interactive =
+      context.interactive ?? CardApi.#interactiveFor(context.commandGiver);
     if (!interactive) return null;
     const declared = context.command?.opensCards ?? [];
     if (!declared.includes(cardId)) {
@@ -147,6 +167,20 @@ export class CardApi {
     }
     const key = opts.key ?? CardApi.keyFor(context, cardId);
     return logic().open(interactive, cardId, { ...opts, key });
+  }
+
+  /**
+   * The giver's own connection, for a command nobody typed.
+   *
+   * ⚠ First of the set: a multiplexed player has several, and the card
+   * substrate is per-Interactive. Pushing to one is the shape every
+   * other single-connection surface already has; fanning out is a
+   * separate decision from making arrival work at all.
+   */
+  static #interactiveFor(giver: Stuff | null): Interactive | null {
+    if (!giver || !MixinApi.isHasInteractive(giver)) return null;
+    for (const i of giver.getInteractives()) return i;
+    return null;
   }
 
   /**

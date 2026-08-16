@@ -173,6 +173,8 @@ export default class HelpController extends CommandController<HelpModel> {
     const opened = CardApi.open(context, "help", {
       payload: { kind: "helpTopic", topic },
       prose: composed,
+      // ⭐ Named by the TOPIC, not by "the rulebook".
+      title: topic.title,
     });
     this.tell(context, composed, opened);
     /*

@@ -41,7 +41,7 @@ describe('a card owns its subscription handle', () => {
     ContainmentApi.move(h.avatar, room);
 
     // A live card (owns a handle), and three static ones (own none).
-    CardApi.push(h.interactive, 'place');
+    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     CardApi.open(
       makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
       'who',
@@ -80,7 +80,7 @@ describe('a card owns its subscription handle', () => {
     ContainmentApi.move(h.avatar, room);
 
     // `place` ships pinned; unpin it so the window can reach it.
-    CardApi.push(h.interactive, 'place');
+    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     CardApi.setPinned(h.interactive, 'place', false);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
@@ -115,7 +115,7 @@ describe('a card owns its subscription handle', () => {
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    CardApi.push(h.interactive, 'place');
+    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     CardApi.open(
       makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
       'who',

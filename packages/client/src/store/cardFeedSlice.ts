@@ -139,7 +139,7 @@ const CLOSE_WORDS: Readonly<Record<CardCloseReason, string>> = {
   answered: "answered · settled",
   // ⚠ The window lapsed, and it SAYS SO. Timing out is a reason, and a
   // card that timed out silently is indistinguishable from a defect.
-  "aged-out": "closed · went quiet",
+  "aged-out": "closed · older cards fall off",
   dismissed: "dismissed by you",
   // ⚠ The WORKSPACE changed, not the world — a mode switch resolved a
   // different arrangement. Wording it like a world event would tell the
@@ -158,7 +158,14 @@ const CLOSE_WORDS: Readonly<Record<CardCloseReason, string>> = {
  */
 export function cardReason(card: CardState): string {
   if (card.closed) return CLOSE_WORDS[card.closed];
-  if (card.pinned) return "held by you";
+  /*
+   * ⚠ **"held by you" was jargon.** It meant *pinned, so the relevance
+   * window can never reach it* — which is exactly the sentence a player
+   * cannot reconstruct from two words they have never been taught.
+   * Reported as confusing by someone who already knew what it meant.
+   * Say the consequence instead: this one is not going anywhere.
+   */
+  if (card.pinned) return "kept";
   /*
    * ⚠ Nothing, not "open". An unpinned card is not held by anything —
    * it is a record of what you asked for, and it ages away. A word in
@@ -286,7 +293,7 @@ export interface CardFeedSlice {
     patch: Partial<
       Pick<
         CardState,
-        "takenAt" | "title" | "prose" | "records" | "payload" | "key"
+        "takenAt" | "title" | "prose" | "records" | "payload" | "key" | "live"
       >
     >,
   ) => void;

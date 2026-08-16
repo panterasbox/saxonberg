@@ -196,7 +196,7 @@ export function CardFeed({
   return (
     <Column $compact={compact} data-testid="card-feed">
       <Header>
-        Cards <Direction>oldest → newest, like the transcript</Direction>
+        Cards <Direction>newest at the bottom</Direction>
         <PinnedCount data-testid="card-pinned-count">
           {pinned} pinned
         </PinnedCount>

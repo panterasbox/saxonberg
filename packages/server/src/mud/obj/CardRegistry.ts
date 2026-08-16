@@ -152,6 +152,14 @@ export interface CardOpenOptions {
   /** Overrides the catalogue default (an arrangement never does). */
   pinned?: boolean;
   /**
+   * ⭐ What this card is CALLED, when the producer knows better than the
+   * catalogue does. A `payload` card has no projected record to take a
+   * name from, so without this a column of wiki reads is a column of
+   * cards all called "the wiki" — unscannable. An mql card derives its
+   * own from the subject and ignores this.
+   */
+  title?: string;
+  /**
    * ⭐ A `payload`-source card's body, **supplied by the controller that
    * already computed it**.
    *
@@ -289,6 +297,21 @@ export default class CardRegistry extends Idea {
       this.resolveInto(def, state, holder, opts);
       state.takenAt = now;
     }
+
+    /*
+     * ⭐⭐ **Only the NEWEST card of a live kind stays live.**
+     *
+     * Liveness is about being the current answer. Once you have walked
+     * on, the card for the room you left is a record of a place you
+     * were — there is nothing for it to track, and a subscription still
+     * running against it would be a wake with no reader plus a handle
+     * that never closes. So opening a live card DEMOTES its
+     * predecessors: the subscription goes, `takenAt` is stamped (it is
+     * a snapshot now, and says when it was taken), and the client is
+     * told so it stops hiding the refresh control on a card that is no
+     * longer tracking anything.
+     */
+    if (def.live) this.demoteLive(interactive, cardId);
 
     let bucket = this.cards.get(interactive);
     if (!bucket) {
@@ -608,6 +631,34 @@ export default class CardRegistry extends Idea {
     return closed;
   }
 
+  /**
+   * Turn every still-live card of `cardId` into a static snapshot.
+   *
+   * ⚠ The subscription teardown goes through the same path everything
+   * else does, so the orphan-count guarantee still holds: a demoted
+   * card owns no handle.
+   */
+  private demoteLive(interactive: Interactive, cardId: CardId): void {
+    const bucket = this.cards.get(interactive);
+    if (!bucket) return;
+    const holder = this.viewerOf(interactive);
+    for (const state of bucket.values()) {
+      if (state.cardId !== cardId) continue;
+      if (state.takenAt !== undefined) continue; // already static
+      MqlSubscriptionApi.handleUnsubscribe(interactive, state.instanceId);
+      state.takenAt = Date.now();
+      if (!holder) continue;
+      const template: Omit<CardTouchedEnvelope, 'frameId'> = {
+        type: 'card-touched',
+        instanceId: state.instanceId,
+        key: state.key,
+        takenAt: state.takenAt,
+        live: false,
+      };
+      MessageApi.sendEnvelope(holder, template);
+    }
+  }
+
   /* ─── test seams ─── */
 
   @CallSecurity(CardApiCallers)
@@ -724,6 +775,7 @@ export default class CardRegistry extends Idea {
         );
       }
       if (supplied) state.payload = supplied;
+      if (opts.title) state.title = opts.title;
       return;
     }
     if (def.source.kind !== 'mql') return;
@@ -767,6 +819,8 @@ export default class CardRegistry extends Idea {
    */
   private teardown(state: CardState): void {
     if (!CARDS[state.cardId].live) return;
+    // ⚠ A demoted card already gave its handle up; `takenAt` is the mark.
+    if (state.takenAt !== undefined) return;
     MqlSubscriptionApi.handleUnsubscribe(state.interactive, state.instanceId);
   }
 

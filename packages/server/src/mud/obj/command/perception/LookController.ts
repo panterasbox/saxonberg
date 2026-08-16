@@ -309,6 +309,7 @@ export default class LookController extends CommandController<LookModel> {
     const opened = CardApi.open(context, 'place', {
       prose: body,
       key: CARDS.place.command,
+      subjectId: location.stuffId,
     });
 
     const scene = MessageApi.scene(actor).topic('sense.survey');

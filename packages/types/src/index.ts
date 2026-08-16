@@ -1205,6 +1205,16 @@ export interface CardOpenedEnvelope {
  */
 export interface CardTouchedEnvelope {
   type: 'card-touched';
+  /**
+   * ⭐ A card that has stopped being LIVE.
+   *
+   * Only the newest card of a live kind tracks anything — once you have
+   * walked on, the card for the room you left is a record of a place you
+   * were, and its subscription is torn down. Sent as `false` so the
+   * client stops treating it as live: it gains its `takenAt` stamp and
+   * its refresh control, like any other snapshot.
+   */
+  live?: boolean;
   frameId: number;
   instanceId: string;
   key: string;

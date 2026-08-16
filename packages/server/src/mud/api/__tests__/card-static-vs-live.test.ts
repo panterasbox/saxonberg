@@ -87,7 +87,7 @@ describe('static and live are different KINDS of answer', () => {
     const room = await makeRoom('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    CardApi.push(h.interactive, 'place');
+    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     const opened = h.ofType('card-opened')[0]!;
     expect(CARDS.place.live).toBe(true);
     expect(opened.live).toBe(true);
@@ -105,7 +105,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place');
+    const instanceId = CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     expect(instanceId).not.toBeNull();
     const opened = h.ofType('card-opened')[0]!;
     const first = (opened.result as { displayName?: string }[])[0];
@@ -146,7 +146,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place');
+    const instanceId = CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     const opened = h.ofType('card-opened')[0]!;
     const records = [
       ...((opened.result ?? []) as { stuffId: string; displayName?: string }[]),
@@ -201,7 +201,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    CardApi.push(h.interactive, 'place');
+    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     ContainmentApi.move(h.avatar, yard);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
@@ -236,7 +236,7 @@ describe('static and live are different KINDS of answer', () => {
     ContainmentApi.move(h.avatar, room);
 
     const before = MqlSubscriptionApi._getRegistrySizeForTesting();
-    const instanceId = CardApi.push(h.interactive, 'place');
+    const instanceId = CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before + 1);
 
     CardApi.close(h.interactive, instanceId!, 'dismissed');

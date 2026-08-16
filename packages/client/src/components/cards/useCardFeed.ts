@@ -131,6 +131,8 @@ export function useCardFeed(): void {
       const env = envelope as CardTouchedEnvelope;
       useStore.getState().touchCard(env.instanceId, {
         key: env.key,
+        // ⭐ A demotion: this card stopped being the current one.
+        ...(env.live !== undefined ? { live: env.live } : {}),
         ...(env.takenAt !== undefined ? { takenAt: env.takenAt } : {}),
         ...(env.title !== undefined ? { title: env.title } : {}),
         ...(env.prose ? { prose: env.prose } : {}),
