@@ -39,8 +39,8 @@ See also:
   pattern.
 - [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md)
   — every right-sidebar widget is a subscription consumer.
-- [docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md)
-  — focus-pane body is a subscription on the focused thing's
+- [docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
+  — focus-card body is a subscription on the focused thing's
   detail.
 - [docs/slates/prompt-stack-slate.md](../tails/prompt-stack-slate.md)
   — token-format base prompts (future Wave 8) become a
@@ -336,7 +336,7 @@ interface StuffRefRecord {
 ### Detail record (`'detail'` alias)
 
 For single-cardinality queries returning one focused Stuff. The
-inspection pane's primary food source.
+inspection card's primary food source.
 
 ```ts
 interface StuffDetailRecord extends StuffRefRecord {
@@ -884,10 +884,10 @@ shapes ergonomic.
 | Name | Query | Field-set | Used by |
 |---|---|---|---|
 | `inventory` | `all things in me` | `ref` | Inventory widget |
-| `things-here` | `all things in here` | `ref` | Pre-inspection-pane things-here, NPCs / players in room |
-| `exits` | `all exits of here` | `ref` (with `iconKind: 'door'` semantics) | Inspection pane exits row |
+| `things-here` | `all things in here` | `ref` | Pre-inspection-card things-here, NPCs / players in room |
+| `exits` | `all exits of here` | `ref` (with `iconKind: 'door'` semantics) | Inspection card exits row |
 | `slots` | `all slots of me` | custom (`occupant`, `slot.name`, `accepts`) | Slot map widget |
-| `focus-detail` | `$focus` | `detail` | Inspection pane body |
+| `focus-detail` | `$focus` | `detail` | Inspection card body |
 | `atmosphere-here` | `here.atmosphere` | structured | Atmosphere readout |
 | `lighting-here` | `here.lighting` | structured | Lighting band, sources |
 | `vitals` | `me.{ hp, maxhp, mv, maxmv }` | structured | Prompt format tokens (future) |
@@ -932,21 +932,21 @@ just authored ad-hoc).
 
 ---
 
-## Worked example: inspection pane
+## Worked example: inspection card
 
-The pane subscribes to `$focus` with `detail` fields. When focus
+The card subscribes to `$focus` with `detail` fields. When focus
 changes:
 
 ```
 1. Player runs `examine thermometer`.
 2. FocusController calls setFocus → FocusChangedEvent fires.
-3. The pane's subscription on `$focus` is triggered.
+3. The card's subscription on `$focus` is triggered.
 4. Re-resolves: now returns the thermometer Stuff.
 5. Projects detail fields (long desc, properties, material, ...).
 6. Server diffs against the previous focused thing's detail.
 7. Sends mql-subscription-delta with `op: 'replace'` (single-
    cardinality semantics).
-8. Client renders the new detail in the pane body.
+8. Client renders the new detail in the card body.
 
 Subsequent mutations on the thermometer (e.g., setProperty)
 emit PropertyChangedEvent; the subscription re-resolves;
@@ -954,7 +954,7 @@ diffs only the changed properties; ships an `op: 'update'`
 with the patched fields.
 ```
 
-This is exactly the inspection-pane slate's "header/body
+This is exactly the inspection-card slate's "header/body
 decouple" semantics implemented as a subscription: header
 follows live focus (because the FocusChangedEvent updates the
 subscription's resolved target); body shows the current
@@ -1085,7 +1085,7 @@ wants short description + maybe weight. Three approaches:
 Default to (1) with conservative extra fields. Widgets that
 genuinely need detail-on-hover use (2).
 
-### Refresh button on the inspection pane
+### Refresh button on the inspection card
 
 The button has two reasonable interpretations:
 
@@ -1096,7 +1096,7 @@ The button has two reasonable interpretations:
   `mql-subscribe-update { refresh: true }` on the MQL channel.
   Silent resync. No prose, no terminal output.
 
-These are different gestures. The inspection-pane slate's
+These are different gestures. The inspection-card slate's
 prominent button is **Look again** (the player-visible action);
 a smaller ↻ icon next to it is the silent resync. Both real,
 neither subsumes the other.
@@ -1112,10 +1112,10 @@ No subscription survives the widget being unmounted unless
 another widget is referencing the same query. Memory bounded by
 visible widgets.
 
-### MQL-query results in a pane tab
+### MQL-query results in a card tab
 
 User runs `mql 'all sleeping things in here'` and wants results
-in a pane tab. Default to **one-shot** (`mql-query`): a snapshot
+in a card tab. Default to **one-shot** (`mql-query`): a snapshot
 that's stale immediately but cheap. Tab UI has a "Make live"
 toggle that promotes to a subscription on demand. Matches the
 player's mental model of a query as a single-shot operation.
@@ -1125,7 +1125,7 @@ player's mental model of a query as a single-shot operation.
 Player examines a thing in the inventory chip strip. The
 `inspection` subscription's `$focus` re-resolves to the new
 target. The chip strip itself doesn't change (still showing the
-same inventory). Pane body shifts. Two subscriptions affected,
+same inventory). Card body shifts. Two subscriptions affected,
 no cross-coupling — they're independent.
 
 Same when the player walks: `things-here` re-resolves, but
@@ -1153,7 +1153,7 @@ render the lobby from.
 
 Other surfaces with the same shape:
 
-- **Recent rooms breadcrumb** in the inspection pane (history
+- **Recent rooms breadcrumb** in the inspection card (history
   of visited locations)
 - **Long-distance perception** when sound / scent / view-through-
   windows surfaces want state on the far side of a boundary
@@ -1782,7 +1782,7 @@ layers on once that's solid.
    disconnect.
 9. **First consumer widgets** — inventory chip strip; slot map;
    atmosphere readout. ~50-150 LoC each against the slice.
-10. **Inspection pane consumer** — `$focus` subscription
+10. **Inspection card consumer** — `$focus` subscription
     re-binds as focus shifts; renders detail records.
 11. **`CapabilityChangedEvent` + full capabilities in detail
     records** — actor-side capability tracking, dependency
@@ -1808,7 +1808,7 @@ Waves 5-6 are the canon + client. Waves 7+ ship per widget.
 
 - **Cockpit slate's "state-sync consumer" section** rewrites to
   "MQL-subscription consumer" with the same intent.
-- **Inspection pane slate's wire shape (`InspectionFrame`)
+- **Inspection card slate's wire shape (`InspectionFrame`)
   goes away** — replaced by a `focus-detail` subscription. The
   panel just subscribes to `$focus` with `detail` fields and
   renders the result. Less protocol, same behavior.

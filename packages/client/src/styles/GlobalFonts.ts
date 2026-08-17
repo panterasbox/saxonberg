@@ -66,7 +66,7 @@ export const GlobalFonts = createGlobalStyle`
      ⚠ The base COLOUR belongs here for the same reason, and its absence
      was a live defect the civic browser drive surfaced: nothing set a
      root colour, so every element inheriting its colour resolved to the
-     browser default BLACK. On a dark ground that is the pane-rail tabs
+     browser default BLACK. On a dark ground that is the card-rail tabs
      at 1.6:1, and in high-contrast — the theme whose entire purpose is
      legibility — 1.21:1. Invisible to the unit suite, because jsdom has
      no cascade worth the name; obvious the moment a browser painted it.

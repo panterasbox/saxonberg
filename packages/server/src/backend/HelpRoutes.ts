@@ -1,6 +1,6 @@
 /**
  * HelpRoutes — the read-only REST data surface for the help system (the
- * future client help pane's transport).
+ * future client help card's transport).
  *
  * Four GET routes, each 1:1 with a `HelpApi` read:
  *

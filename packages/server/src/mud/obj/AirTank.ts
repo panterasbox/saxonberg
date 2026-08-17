@@ -43,7 +43,7 @@ export default class AirTank extends AirTankBase {
   }
 
   /**
-   * The gauge as an MQL-projected field so the inspection pane can show
+   * The gauge as an MQL-projected field so the inspection card can show
    * the air remaining. Marked `static` (not field-change-driven): the
    * bulk substrate does not fire `FieldChangedEvent` on debit today, so
    * the gauge re-reads on each projection rather than live-pushing on

@@ -1003,7 +1003,7 @@ describe('DetailedMixin', () => {
       const peek = obj.peekDetails().get('bookcase');
       expect(peek?.vision).toBe('Pre-existing legacy text.');
       // Re-serializing for persistence (the wire projection used by
-      // the inspection-pane subscription) reads the new-shape slot.
+      // the inspection-card subscription) reads the new-shape slot.
       const entries = obj.getDetailEntries();
       expect(entries[0]?.description).toBe('Pre-existing legacy text.');
     });

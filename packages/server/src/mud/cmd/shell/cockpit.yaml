@@ -8,13 +8,13 @@ help: |
 
     cockpit                       report everything in effect
     cockpit mode <name>           what you are here to do
-    cockpit layout <name>         the pane arrangement inside that mode
+    cockpit layout <name>         the card arrangement inside that mode
     cockpit scope <prefix…>       scope a command bar's bare input
     cockpit shelf <sub> …         which figures ride the top bar
     cockpit style <sub> …         appearance: theme, colors, plain mode
 
   Two axes, and they are different questions. A MODE is the front door
-  — chat, play, watch, build, govern. A LAYOUT is how the panes sit
+  — chat, play, watch, build, govern. A LAYOUT is how the cards sit
   inside the mode you are in, and each mode remembers its own.
 
   Cockpit control is interface, not fiction — so `cockpit` and every
@@ -70,9 +70,9 @@ subcommands:
 
   layout:
     controller: /obj/command/shell/LayoutController
-    description: "Recall, save, list or forget a pane arrangement in this mode."
+    description: "Recall, save, list or forget a card arrangement in this mode."
     help: |
-      A layout is a named arrangement of panes *inside* the mode you
+      A layout is a named arrangement of cards *inside* the mode you
       are in. Each mode ships at least one, and you can compose and
       name your own — so this is not a fixed menu.
 
@@ -160,36 +160,36 @@ subcommands:
         type: string
         required: false
 
-  pane:
-    controller: /obj/command/shell/CockpitPaneController
-    description: "Keep or drop an inspection pane, overriding what holds it open."
+  card:
+    controller: /obj/command/shell/CockpitCardController
+    description: "Keep or drop a card, overriding what holds it open."
     help: |
-      Panes stay open while something about the world keeps them
+      Cards stay open while something about the world keeps them
       relevant — a question you have not answered, a person still in
-      the room, a thing still in reach. When that lapses the pane is
+      the room, a thing still in reach. When that lapses the card is
       released and tells you why.
 
       This is the override, and it works both ways:
 
-        cockpit pane list           what is open, and what holds it
-        cockpit pane pin <pane>     keep it after its hold lapses
-        cockpit pane dismiss <pane> drop it while its hold still holds
-        cockpit pane auto <pane>    hand the decision back
+        cockpit card list           what is open, and what holds it
+        cockpit card pin <card>     keep it after its hold lapses
+        cockpit card dismiss <card> drop it while its hold still holds
+        cockpit card auto <card>    hand the decision back
 
       Pinning is not another kind of hold — it is you overruling the
       one that is there.
     examples:
-      - cmd: cockpit pane list
-        note: List open panes and what is keeping each one
-      - cmd: cockpit pane pin focus
-        note: Keep a pane after whatever held it lapses
-      - cmd: cockpit pane dismiss focus
-        note: Drop a pane that is still being held open
+      - cmd: cockpit card list
+        note: List open cards and what is keeping each one
+      - cmd: cockpit card pin focus
+        note: Keep a card after whatever held it lapses
+      - cmd: cockpit card dismiss focus
+        note: Drop a card that is still being held open
     args:
       - name: action
         type: string
         required: false
-      - name: paneId
+      - name: cardId
         type: string
         required: false
 

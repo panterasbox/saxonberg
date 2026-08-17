@@ -283,7 +283,7 @@ if you'd rather Limen *be* the whole welcome and drop the gate-person.
 Two caveats first:
 
 **Client teaching is preliminary; the terminal already has the whole world.**
-The cockpit (pane / focus / click-to-explore / breadcrumb / scrollback) is
+The cockpit (card / focus / click-to-explore / breadcrumb / scrollback) is
 client UI we haven't built — so teaching *those* is tentative, deferred to
 when the client exists. But the **terminal exposes the entire server state via
 commands**, so every *world/server* concept (movement, perception, comms,
@@ -303,7 +303,7 @@ room); *never* gate progress on "completing a lesson." Help is on-demand.
 
 ### The curriculum (C = core / S = secondary / D = defer)
 
-- **A. Cockpit *(client — preliminary)*:** pane+focus · breadcrumb ·
+- **A. Cockpit *(client — preliminary)*:** card+focus · breadcrumb ·
   click-to-explore · command bar+verb grammar · scrollback — all **C** *but
   client-dependent* (taught when the client exists; terminal exposes the same
   via commands).
@@ -334,7 +334,7 @@ room); *never* gate progress on "completing a lesson." Help is on-demand.
 | **Chapel** | *(opt-in: deity; not core-teaching)* |
 | **Duncan Hall** (lobby → room) | **verticality** (elevator/stairs/floors — the *real* lesson) **· containment · authoring** (the climax) |
 | **Academic hall** | future hook (no v1 teaching; lessons later) |
-| *(cockpit affordances)* | pane/focus/click/breadcrumb/scrollback — **preliminary**, taught via the client when built; ambient throughout |
+| *(cockpit affordances)* | card/focus/click/breadcrumb/scrollback — **preliminary**, taught via the client when built; ambient throughout |
 
 Every Core concept has a home; the **journey carries the bulk of the
 world-basics** (so it's content-rich, not corridor), and the **dorm teaches

@@ -48,6 +48,8 @@ import { GlobbableApi } from '../mud/api/glob';
 import { registerSchedulerRegistryClass } from '../mud/api/scheduler';
 import { registerWorldClockRegistryClass } from '../mud/api/worldclock';
 import { registerMqlSubscriptionRegistryClass } from '../mud/api/mql-subscription';
+import { registerCardRegistryClass } from '../mud/api/card';
+import CardRegistry from '../mud/obj/CardRegistry';
 import EventSubscriptions from '../mud/obj/EventSubscriptions';
 import SchedulerRegistry from '../mud/obj/SchedulerRegistry';
 import WorldClockRegistry from '../mud/obj/WorldClockRegistry';
@@ -115,6 +117,7 @@ export class BootstrapManager {
     registerSchedulerRegistryClass(SchedulerRegistry);
     registerWorldClockRegistryClass(WorldClockRegistry);
     registerMqlSubscriptionRegistryClass(MqlSubscriptionRegistry);
+    registerCardRegistryClass(CardRegistry);
     SecurityApi._registerShadowApi(ShadowApi);
     CommandApi.installShadowBridge();
     GlobbableApi.installMergeOnArrival();

@@ -37,6 +37,7 @@ import {
   type SettingsSchemaEntry,
 } from "../lib/shell/Environment";
 import { ShellApi } from "../api/shell";
+import { CardApi } from "../api/card";
 import { PressApi } from "../api/press";
 import { ReactionApi } from "../api/reaction";
 import { RecordApi } from "../api/record";
@@ -58,6 +59,7 @@ import type {
   ConnectionEstablishedPayload,
   EnvelopeTemplate,
   MessageFrame,
+  ResultDisplay,
   RoutingRule,
 } from "@saxonberg/types";
 import { DEFAULT_ROUTING } from "@saxonberg/types";
@@ -190,6 +192,19 @@ export default class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "system/wiki.yaml",
+      /*
+       * ⭐ The news sits beside `help` and `wiki` for the same reason:
+       * it is a reference surface a player carries, and bare `press`
+       * is the READ.
+       *
+       * ⚠ It used to be contributed by `AuthorMixin` alone, which made
+       * the news the one shipped surface an ordinary player could not
+       * ask for — the ticker arrived on connect and no verb showed it
+       * again. Found by driving. The PUBLISHING subcommands carry
+       * `requiresPublisher` for themselves, so opening the read to
+       * everyone opens nothing else.
+       */
+      "system/press.yaml",
       "system/clear.yaml",
       "system/affordances.yaml",
       "author/player.yaml",
@@ -879,7 +894,7 @@ export default class Avatar extends AvatarBase {
       reactableTopics: [...ReactionApi.REACTABLE_TOPICS],
       // The live news-ticker window (pins-first, recency-ordered, already
       // retract/expiry-filtered + length-capped by the PressBoard). The
-      // client seeds its feed pane from this as a `snapshot`, exactly as it
+      // client seeds its feed card from this as a `snapshot`, exactly as it
       // caches `topicCatalogue`; live deltas ride `publication.press`.
       releaseWindow: PressApi.recent().map((b) => PressApi.toRow(b)),
       ...(frameBackfill.length > 0 ? { frameBackfill } : {}),
@@ -899,6 +914,26 @@ export default class Avatar extends AvatarBase {
           ShellApi.resolveSetting<boolean>(this, "social.react.muteChannels") ??
           false,
       },
+      /*
+       * ⭐ BOTH answers, resolved through the per-form-factor rung. The
+       * server cannot know a viewport, so it ships what each width
+       * would resolve to and the client picks — the `cockpit.shelf`
+       * split, restated for a setting rather than a list.
+       */
+      resultDisplay: {
+        desktop:
+          ShellApi.resolveSetting<ResultDisplay>(
+            this,
+            "shell.result",
+            "desktop",
+          ) ?? "card",
+        mobile:
+          ShellApi.resolveSetting<ResultDisplay>(
+            this,
+            "shell.result",
+            "mobile",
+          ) ?? "card",
+      },
     };
     // First arrival (just created in char-gen) gets a fresh greeting;
     // a returning player gets the welcome-back register.
@@ -917,6 +952,40 @@ export default class Avatar extends AvatarBase {
     // resets focus first) rather than reimplementing the
     // description rendering here.
     await this.autoSenseOnArrival();
+
+    /*
+     * ⭐⭐ **Apply the mode's arrangement on LOGIN, not only on a
+     * `cockpit mode` / `cockpit layout` switch.**
+     *
+     * `applyArrangement` was called from those two controllers alone,
+     * which meant a player who logged straight into `build` — or into
+     * any mode they had already saved — saw an empty feed until they
+     * switched modes and switched back. An arrangement that only
+     * applies when you change your mind is a workspace you cannot
+     * simply return to.
+     *
+     * ⚠ After `autoSenseOnArrival`, so the room card the arrangement
+     * pushes lands beside a transcript that already says where you are.
+     */
+    /*
+     * ⚠ Guarded, and the guard is the point: **a session must never
+     * fail because a workspace convenience could not open.** The cost
+     * of being wrong here is a missing card the player can re-open with
+     * one command; the cost of letting it throw is a player who cannot
+     * log in at all.
+     */
+    try {
+      const mode = this.getCockpitMode();
+      CardApi.applyArrangement(
+        interactive,
+        this.arrangementCards(mode, this.getCockpitArrangement(mode)),
+      );
+    } catch (err) {
+      console.warn(
+        `Avatar.enter: could not apply the ${this.getPlayerId()} ` +
+          `arrangement: ${(err as Error).message}`,
+      );
+    }
 
     // Avatar is in-world; the user is playable. Engine-level presence
     // event for any observer (audit, achievements, the social presence

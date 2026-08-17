@@ -1,12 +1,12 @@
 /**
- * CmsEditor — the editor pane: header + save bar + the lazy Monaco.
+ * CmsEditor — the editor card: header + save bar + the lazy Monaco.
  *
  * Header shows `backend:path` and the node kind. The Save button is
  * disabled unless the draft is dirty and shows a spinner while saving;
  * on success it surfaces the go-live note (`reloadDetail`), on failure
  * the mapped `CmsErrorBody.message` inline — never a silent no-op
  * (acceptance criterion). Monaco loads lazily via {@link MonacoLazy} so
- * its bundle is fetched only when this pane first shows a leaf.
+ * its bundle is fetched only when this card first shows a leaf.
  */
 
 import React from "react";
@@ -17,7 +17,7 @@ import { MonacoLazy } from "./MonacoLazy";
 import { StudioForm } from "./studio/StudioForm";
 import { tokens } from "../ui";
 
-const Pane = styled.div`
+const Card = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -199,7 +199,7 @@ export const CmsEditor: React.FC = () => {
   }, [studioSerialize, cmsEditDraft, cmsSave, studioLoadData]);
 
   // Step into the sandbox from the editor. This rides the COMMAND BUS,
-  // like the forum panes' buttons and like every other clickable in the
+  // like the forum cards' buttons and like every other clickable in the
   // client: it sends the same `go wardrobe` the player could type, over
   // the game tab's existing socket.
   //
@@ -225,7 +225,7 @@ export const CmsEditor: React.FC = () => {
 
   if (!open) {
     return (
-      <Pane>
+      <Card>
         {error && (
           <ErrorBar role="alert">
             <span>{error}</span>
@@ -235,12 +235,12 @@ export const CmsEditor: React.FC = () => {
           </ErrorBar>
         )}
         <Empty>Select a leaf in the explorer to edit it.</Empty>
-      </Pane>
+      </Card>
     );
   }
 
   return (
-    <Pane>
+    <Card>
       <Header>
         <PathLabel title={`${open.backend}:${open.path}`}>
           {open.backend}:{open.path}
@@ -306,6 +306,6 @@ export const CmsEditor: React.FC = () => {
           />
         )}
       </EditorBody>
-    </Pane>
+    </Card>
   );
 };

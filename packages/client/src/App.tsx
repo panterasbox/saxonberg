@@ -23,12 +23,15 @@ import { Frame } from "./components/frame/Frame";
 import { MobileFrame } from "./components/frame/MobileFrame";
 import { CommandSheet } from "./components/frame/CommandSheet";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
-import { SocialNotificationsPane } from "./components/settings/SocialNotificationsPane";
+import { SocialNotificationsPanel } from "./components/settings/SocialNotificationsPanel";
 import { StartScreen } from "./components/StartScreen";
 import { CharacterSelect } from "./components/CharacterSelect";
 import { CharGenStage } from "./components/CharGenStage";
 import { StatusBar } from "./components/frame/StatusBar";
-import { SettingsPane } from "./components/settings/SettingsPane";
+import { SettingsPanel } from "./components/settings/SettingsPanel";
+import { useCardFeed } from "./components/cards/useCardFeed";
+import { activeCardKinds } from "./store/cardViewActions";
+import { cardedFrameIsCovered } from "./store/cardFeedSlice";
 import type { LayoutProps } from "./layouts";
 import { resolveMode } from "./layouts/modes";
 import { useGround } from "./lib/style/useGround";
@@ -41,6 +44,8 @@ import type {
   LayoutName,
   CockpitMode,
   RelayMessagePayload,
+  FormFactor,
+  ResultDisplay,
 } from "@saxonberg/types";
 
 /** Relay-chat topics that carry a `RelayMessagePayload` (all transports). */
@@ -141,7 +146,7 @@ const Splash = styled.div`
 `;
 
 /**
- * The fluid content row: the active layout fills it, and a summoned pane
+ * The fluid content row: the active layout fills it, and a summoned card
  * (settings, future detail) docks beside it as a non-modal side panel —
  * the terminal stays visible (never-blind, no-modal).
  */
@@ -153,77 +158,25 @@ const ContentRow = styled.div<{ $compact?: boolean }>`
    * ⚠ The overflow the shell above refuses has to go somewhere, and
    * here is the right somewhere: the rail scrolls WITH the content
    * rather than with the page. Clipping it instead would have made a
-   * shipped pane unreachable, which is a worse answer than the bug.
+   * shipped card unreachable, which is a worse answer than the bug.
    * Redesigning the play surface for a phone is Wave 4's.
    */
   ${(p) => (p.$compact ? "overflow-x: auto;" : "")}
 `;
 
-/**
- * Tokenise the leading verb of a command line. The shell's parser is
- * server-side; this is a deliberately-coarse client-side peek that
- * only the pane consumes for paint/clear gating. Whitespace-split
- * the first token, lowercase it, and trust the server for everything
- * else. Aliases that compile to `look` / `focus` (e.g. `l`, `f`) are
- * not expanded here; in practice the cockpit slate gestures send the
- * canonical verbs.
- */
-function parseLeadingVerb(text: string): { verb: string; rest: string } {
-  const trimmed = text.trim();
-  if (!trimmed) return { verb: "", rest: "" };
-  const spaceAt = trimmed.indexOf(" ");
-  if (spaceAt < 0) return { verb: trimmed.toLowerCase(), rest: "" };
-  return {
-    verb: trimmed.slice(0, spaceAt).toLowerCase(),
-    rest: trimmed.slice(spaceAt + 1).trim(),
-  };
-}
-
-/**
- * Strip the `--peek` flag (and any other flag tokens) so the
- * remainder reads as the bare target the player typed.
- */
-function stripFlags(rest: string): string {
-  return rest
-    .split(/\s+/)
-    .filter((tok) => tok.length > 0 && !tok.startsWith("--"))
-    .join(" ");
-}
-
-/**
- * Apply the pane-side paint/clear consequences of an outgoing
- * command. Bare `look` paints against the current focus; `look <X>
- * --peek` is observe-only and does not paint; `focus <X>` clears
- * the body until the next look. Every other verb is a pane no-op.
+/*
+ * ⭐⭐ **The paint/clear policy is gone, and so is the parser that fed
+ * it.**
  *
- * For `look <X>` / `focus <X>` with a typed target, also stash the
- * typed fragment as the pending breadcrumb-trail label. The
- * inspection pane's focus-subscription handler consumes it when
- * the focus change confirms server-side, so the trail entry reads
- * as what the player typed instead of the resolved Stuff's
- * primaryKeyword. The breadcrumb-push wiring still skips when
- * focus didn't actually change, so a cancelled disambiguation or a
- * rejected command never adds a trail entry.
+ * The client used to peek at an outgoing command's leading verb —
+ * `look` paints the card body, `focus` clears it — because there was
+ * ONE card slot and it had to be told what the player was doing.
+ * Cards are minted per command now, so `look` does not paint a slot: it
+ * opens a card, and the lesson the policy taught (*focus is a pointer;
+ * look is the verb that paints*) is taught by that instead, which is
+ * stronger. With the focus signal retired there is no cleared body to
+ * paint.
  */
-function applyOutgoingCommandToPane(text: string): void {
-  const { verb, rest } = parseLeadingVerb(text);
-  const store = useStore.getState();
-  if (verb === "look") {
-    const isPeek = / --peek(\s|$)/.test(" " + text + " ");
-    if (isPeek) return; // peek is a pane no-op
-    store.setPanePainted(true);
-    const target = stripFlags(rest);
-    if (target) store.setPendingTrailLabel(target);
-    return;
-  }
-  if (verb === "focus") {
-    store.setPanePainted(false);
-    const target = stripFlags(rest);
-    if (target) store.setPendingTrailLabel(target);
-    return;
-  }
-  // Other verbs: leave pane state alone.
-}
 
 /**
  * Render the player-facing label for a prompt response. For chip-
@@ -311,13 +264,40 @@ function App() {
   const auth = useStore((state) => state.auth);
   const connection = useStore((state) => state.connection);
   const connectionPhase = useStore((state) => state.connectionPhase);
-  // The Social / Notifications settings pane (master's notify surface),
-  // opened from the AccountMenu. Independent of the summoned-pane tier.
-  const socialPaneOpen = useStore((state) => state.socialPaneOpen);
-  const setSocialPaneOpen = useStore((state) => state.setSocialPaneOpen);
+  // The Social / Notifications settings card (master's notify surface),
+  // opened from the AccountMenu. Independent of the summoned-card tier.
+  const socialPanelOpen = useStore((state) => state.socialPanelOpen);
+  const setSocialPanelOpen = useStore((state) => state.setSocialPanelOpen);
   const frames = useStore((state) => state.frames);
   const clientState = useStore((state) => state.clientState);
   const reactionPrefs = useStore((state) => state.reactionPrefs);
+  /*
+   * ⭐⭐ **Where a structured command result appears — the client picks
+   * which of the server's two answers applies.**
+   *
+   * The server ships both because it cannot know a viewport; only this
+   * side does. `card` (the default) suppresses the prose frame and
+   * leaves the card; `terminal` suppresses the card and leaves the
+   * prose; `both` renders both.
+   *
+   * ⚠ It is a FILTER, not a placement. The frame still arrived and is
+   * still in the frame store, so `recall` finds your `who` history
+   * whichever way this is set.
+   */
+  const resultDisplay = clientState["shell.result"] as
+    | Record<FormFactor, ResultDisplay>
+    | undefined;
+  // ⚠ `card` until the payload lands — the schema's own default. A
+  // client that guessed `both` would double every result for the
+  // fraction of a second before the answer arrives.
+  const effectiveResultDisplay: ResultDisplay =
+    resultDisplay?.[isCompact ? "mobile" : "desktop"] ?? "card";
+  /*
+   * Subscribed, not read once: whether a carded frame's prose is
+   * suppressed depends on whether its card is on screen RIGHT NOW, and
+   * a card closing has to bring the transcript copy back into view.
+   */
+  const cards = useStore((s) => s.cards);
   /*
    * ⭐⭐ The frame renders from the TWO cockpit axes — `cockpit.mode` and
    * the per-mode arrangement — not from the single `cockpit.layout` key.
@@ -335,9 +315,25 @@ function App() {
       | undefined,
     clientState["cockpit.layout"] as LayoutName | null | undefined,
   );
-  const summonedPane = useStore((state) => state.summonedPane);
-  const openPane = useStore((state) => state.openPane);
-  const closePane = useStore((state) => state.closePane);
+  /*
+   * ⭐⭐ **The card wiring lives HERE, above the mode registry.**
+   *
+   * Third occurrence of the wiring-at-the-layout bug, and this is the
+   * position that has no fourth. It sat in `CardFeed` (the desktop
+   * right column), so a phone got a card store nothing ever wrote to;
+   * it moved to `WorldLayout`, which fixed the phone and left `build`,
+   * `chat` and `watch` — different layout components entirely — with
+   * the same defect. Wave 7 puts the authoring cards in `build`, so
+   * hoisting is not optional.
+   *
+   * ⚠ Unconditional, and above the phase switch: React hooks are, and
+   * the alternative (mounting it inside the `in-world` branch) is
+   * exactly the conditional wiring this note exists to end.
+   */
+  useCardFeed();
+  const summonedPanel = useStore((state) => state.summonedPanel);
+  const openPanel = useStore((state) => state.openPanel);
+  const closePanel = useStore((state) => state.closePanel);
   const activeTabName =
     (clientState["console.activeTab"] as string | undefined) ?? ALL_VIEW;
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
@@ -394,6 +390,40 @@ function App() {
       return false;
     }
     if (mutedSet.has(f.topic)) return false;
+    /*
+     * ⭐⭐ `shell.result` — one clause, keyed on the frame's own
+     * `carded` marker rather than on a topic.
+     *
+     * ⚠ **A plan finding.** Decision 10 keyed this on the topic
+     * `shell.result`, on the premise that *every structured command
+     * result already carries it*. The card build falsifies that:
+     * `look`'s two cards ride `sense.survey`, which twelve other verbs
+     * share — `get`, `drop`, `inventory`, `wear`… A topic key would
+     * either miss `look` entirely or silence all twelve. The marker is
+     * exact, because the producer that opens the card is the producer
+     * that stamps the frame.
+     *
+     * ⚠ Nothing is LOST: the frame still arrived and is still in the
+     * frame store, so `recall` finds your history whichever way this is
+     * set. That is the whole reason it is a filter and not a placement.
+     *
+     * ⚠⚠ **And the card has to be ON SCREEN, not merely promised.**
+     * `carded` carries the card's instance id, and the frame is dropped
+     * only when a card with that id is actually visible in the feed —
+     * which means it exists AND survives the active named view's kind
+     * filter. Two ways this bit before: a controller that TOUCHED an
+     * already-open card suppressed its own prose in favour of nothing
+     * new (`look dave` printed its echo and stopped), and a named view
+     * filtering a kind out silenced that kind's prose as well as its
+     * card. *Suppressing prose is only safe if something visible
+     * replaced it.*
+     */
+    if (
+      effectiveResultDisplay === "card" &&
+      cardedFrameIsCovered(f.carded, cards, activeCardKinds())
+    ) {
+      return false;
+    }
     // `social.react.alwaysAggregate` — hide reaction prose lines (frames
     // carrying `inReactionTo`); the chip on the target message carries
     // the aggregate instead.
@@ -481,6 +511,9 @@ function App() {
         ...(frame.meta?.inReactionTo !== undefined
           ? { inReactionTo: frame.meta.inReactionTo }
           : {}),
+        ...(typeof frame.meta?.carded === "string"
+          ? { carded: frame.meta.carded }
+          : {}),
         ...(frame.meta?.frameId !== undefined
           ? { frameId: frame.meta.frameId }
           : {}),
@@ -563,17 +596,6 @@ function App() {
       console.warn("Cannot send command: not connected");
       return;
     }
-
-    // Pane paint/clear policy lives at the outgoing-command seam:
-    //   - `look ...` paints the pane body (and, when targeted,
-    //     refreshes the breadcrumb trail with the target as a
-    //     "we've looked at this" anchor).
-    //   - `focus ...` clears the pane body (the next look will
-    //     re-paint) and records the new fragment.
-    // Other verbs leave the pane state untouched; subscription
-    // deltas continue to update the cached result and the live
-    // header regardless of which verb triggered them.
-    applyOutgoingCommandToPane(text);
 
     // Push an echo-pairing snapshot for non-empty commands. The
     // server's empty-command short-circuit doesn't fire an input-
@@ -661,7 +683,7 @@ function App() {
    * ⭐⭐ **Below the breakpoint this opens the sheet instead of
    * sending**, and doing it HERE is the whole design. Every affordance
    * in the tree — transcript tags, shelf menu entries, the Views menu,
-   * the pull-down, future panes — routes through this one handler. So
+   * the pull-down, future cards — routes through this one handler. So
    * the phone's confirm step is **one interception point for the entire
    * app** rather than a `isCompact` prop threaded into every renderer.
    * `MmlRenderer`, `EntityName` and `Shelf` need no changes at all, and
@@ -776,6 +798,7 @@ function App() {
         onCommandClick: handleCommandClick,
         onCommandPreview: handleCommandPreview,
         onCommandSend: sendDirect,
+        resultDisplay: effectiveResultDisplay,
       };
       const ActiveLayout = resolved.def.Component;
       return (
@@ -795,9 +818,9 @@ function App() {
               arrangement={resolved.arrangement}
               onCommandClick={handleCommandClick}
               onCommandPreview={handleCommandPreview}
-              settingsActive={summonedPane === "settings"}
+              settingsActive={summonedPanel === "settings"}
               onToggleSettings={() =>
-                summonedPane === "settings" ? closePane() : openPane("settings")
+                summonedPanel === "settings" ? closePanel() : openPanel("settings")
               }
             />
           ) : (
@@ -806,27 +829,27 @@ function App() {
               arrangement={resolved.arrangement}
               onCommandClick={handleCommandClick}
               onCommandPreview={handleCommandPreview}
-              settingsActive={summonedPane === "settings"}
+              settingsActive={summonedPanel === "settings"}
               onToggleSettings={() =>
-                summonedPane === "settings" ? closePane() : openPane("settings")
+                summonedPanel === "settings" ? closePanel() : openPanel("settings")
               }
             />
           )}
           <ReconnectBanner />
           {/* The active layout fills the fluid content area; a summoned
-              pane (settings) docks beside it — non-modal, terminal stays. */}
+              card (settings) docks beside it — non-modal, terminal stays. */}
           <ContentRow $compact={isCompact}>
             <ActiveLayout {...layoutProps} />
-            {summonedPane === "settings" ? (
-              <SettingsPane onSendCommand={sendCommand} onClose={closePane} />
+            {summonedPanel === "settings" ? (
+              <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
             ) : null}
           </ContentRow>
-          {/* The Social / Notifications pane (master's notify surface),
+          {/* The Social / Notifications card (master's notify surface),
               opened from the AccountMenu — independent of the summoned
-              settings pane above. */}
-          {socialPaneOpen && (
-            <SocialNotificationsPane
-              onClose={() => setSocialPaneOpen(false)}
+              settings card above. */}
+          {socialPanelOpen && (
+            <SocialNotificationsPanel
+              onClose={() => setSocialPanelOpen(false)}
               onSendCommand={sendCommand}
               onCommandPreview={handleCommandPreview}
               onCommandClick={handleCommandClick}

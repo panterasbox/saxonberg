@@ -27,7 +27,7 @@ in flight has already answered better.
 Related: [client-shell.md](../../subsystems/client-shell.md),
 [cockpit.md](../../subsystems/cockpit.md),
 [message-rendering.md](../../subsystems/message-rendering.md),
-[inspection-pane.md](../../subsystems/inspection-pane.md),
+[card-surface.md](../../subsystems/card-surface.md),
 [messaging.md](../../subsystems/messaging.md),
 [topics.md](../../subsystems/topics.md),
 [prompt.md](../../subsystems/prompt.md),
@@ -65,7 +65,7 @@ Not a restyle. Three things at once:
 | | From | To |
 |---|---|---|
 | **Dress** ✅ | VS Code dark (`#1e1e1e`, `#4ec9b0`, `#007acc`), Source Serif/Sans/Code Pro | The civic frame — ink/marble, Old Glory blue + red, Spectral / Public Sans / Newsreader / Plex Mono. **Shipped in Build A**; see [message-rendering.md § The custom-property colour layer](../../subsystems/message-rendering.md) |
-| **Architecture** | Five peer layouts (`world`, `forum`, `livestream-viewer`, `streamer`, `builder`) | `one frame → modes → layouts → panes` |
+| **Architecture** | Five peer layouts (`world`, `forum`, `livestream-viewer`, `streamer`, `builder`) | `one frame → modes → layouts → cards` |
 | **Honesty** | Implicit | An enforced convention: never render a figure the server did not send |
 
 The dress is mechanical and touches everything. The architecture is a
@@ -136,27 +136,27 @@ Same shape one level up: **controls branch on the state their copy
 describes.** If the panel says a character cannot be taken out, the
 Enter button cannot be live.
 
-### 3.3 `one frame → modes → layouts → panes`
+### 3.3 `one frame → modes → layouts → cards`
 
 - **Modes** are the front doors — Chat, Play, Watch, and the Build /
   Govern ascent. They answer *what am I here to do*.
-- **Layouts** demote to **savable pane arrangements inside a mode**.
-- **Panes** are the shared bricks.
+- **Layouts** demote to **savable card arrangements inside a mode**.
+- **Cards** are the shared bricks.
 
 What makes it one client rather than five apps: the persistent shell,
-and the **command bar present in every mode**, because every pane
+and the **command bar present in every mode**, because every card
 speaks the same bus.
 
 Existing layout components map onto modes rather than being deleted —
 `WorldLayout` becomes Play's default layout, the livestream layouts
 become Watch's. **This is a wire change, not a refactor** — see § 4.4.
 
-### 3.4 ⭐⭐ A pane is held by a condition, never by recency
+### 3.4 ⭐⭐ A card is held by a condition, never by recency
 
-The single best idea in the handoff, and the thing that makes a pane
-*feed* tractable where a pane *list* would not be.
+The single best idea in the handoff, and the thing that makes a card
+*feed* tractable where a card *list* would not be.
 
-`InspectionPane`'s one focus slot becomes a feed of frames with
+`InspectionCard`'s one focus slot becomes a feed of frames with
 structured payloads. What bounds that feed is not age — it is whether
 you can still act on the thing:
 
@@ -196,7 +196,7 @@ familiar.
 One rule decides every case: **interleave what is causally related,
 switch what is independent.**
 
-- Panes are caused by what you just did → inline in the feed, not a
+- Cards are caused by what you just did → inline in the feed, not a
   second column.
 - Routed feeds are independent streams → a switcher.
 - Prompts are demands on you → keep a slot, never hidden.
@@ -431,7 +431,7 @@ one:
 
 ### 4.4 ⚠⚠ Track D — the cockpit contract change  *(not in the handoff)*
 
-The handoff calls `one frame → modes → layouts → panes` a client
+The handoff calls `one frame → modes → layouts → cards` a client
 architecture change. It is not only that. Today:
 
 - `cockpit.layout` is a **server-authoritative `clientState` key** on
@@ -441,13 +441,13 @@ architecture change. It is not only that. Today:
   `cockpit.watch`, `console.tabs`, `console.activeTab`.
 - `layout <name>` is the **only** way to change layout, following the
   write → save → push commit triple.
-- `InspectionPane`'s single slot is fed by **two MQL subscriptions**
-  ([inspection-pane.md](../../subsystems/inspection-pane.md)).
+- `InspectionCard`'s single slot is fed by **two MQL subscriptions**
+  ([card-surface.md](../../subsystems/card-surface.md)).
 
 Demoting layouts under modes means: a new `cockpit.mode` axis with its
 own vocabulary and verb; `LAYOUT_NAMES` becomes per-mode arrangements
-rather than five peers; and the pane feed replaces one subscription slot
-with an N-pane subscription set whose lifetime is governed by the § 3.4
+rather than five peers; and the card feed replaces one subscription slot
+with an N-card subscription set whose lifetime is governed by the § 3.4
 hold conditions — which are **server-side facts** (*are they still
 here*, *is it still in reach*), not client guesses.
 
@@ -462,27 +462,27 @@ MRs !177 / !178 / !179. What landed, and the four things a client build
 should know:
 
 - **One `cockpit` verb** with subcommands (`mode` / `layout` / `cli` /
-  `pane` / `style`); `layout` / `style` / `mode` were absorbed and
+  `card` / `style`); `layout` / `style` / `mode` were absorbed and
   **deleted**. `applyInputMode`'s exemption moved from the literal
   `'mode'` to `'cockpit'`, which lets it finally state its rule:
   *interface control is not world input.*
-- ⭐⭐ **The server owns the pane vocabulary AND what a pane IS.** A
-  client sends `{ pane: "inspect" }` and nothing else — the catalogue
-  (`lib/connection/Panes.ts`) supplies query, cardinality, field set,
-  dependency flags and hold. `InspectionPane.tsx` used to send
+- ⭐⭐ **The server owns the card vocabulary AND what a card IS.** A
+  client sends `{ card: "inspect" }` and nothing else — the catalogue
+  (`lib/connection/Cards.ts`) supplies query, cardinality, field set,
+  dependency flags and hold. `InspectionCard.tsx` used to send
   `query: "$focus"`, which was the client holding a server semantic.
-  ⚠ **The catalogue ships TWO entries.** Every pane the 23 screens want
-  needs one — a one-line server addition, but a real per-pane
+  ⚠ **The catalogue ships TWO entries.** Every card the 23 screens want
+  needs one — a one-line server addition, but a real per-card
   dependency to plan around rather than discover.
 - ⚠⚠ **Arrangements ship storage and vocabulary, NOT behaviour.**
-  `save` captures the open panes by durable name, `recall` sets the
-  active arrangement — and nothing opens or closes a pane in response,
+  `save` captures the open cards by durable name, `recall` sets the
+  active arrangement — and nothing opens or closes a card in response,
   on either side. ⭐ The undecided half: the server cannot tell a client
   to open a subscription (the client always initiates), so either that
   mechanism gets invented or **the client reads the arrangement and
-  opens the named panes itself** — which works with what exists and
+  opens the named cards itself** — which works with what exists and
   preserves *client initiates, server owns the vocabulary*. **Decide
-  this before the pane feed is built.**
+  this before the card feed is built.**
 - **`cockpit.layout` survives as a compatibility projection** painted
   from (mode, arrangement) so the SHIPPED client keeps working. The
   rebuild does not read it; it dies with the old client.
@@ -507,7 +507,7 @@ orthogonal to the restyle; dragging it through a rewrite buys nothing.
 | ✅ `styles/faces.ts` — Source Serif / Sans / Code Pro | **SHIPPED (Build A).** Spectral / Public Sans / Newsreader / Plex Mono; the three-voice model kept and extended to four with `display`, which maps to no transcript topic. Six woff2, not seven — Spectral is static upstream (400 + 500 as real files, and 500 must be real or the engraved weight rounds away) while Public Sans is one variable file declared `font-weight: 100 900`. Newsreader requested **without** the `opsz` axis, and `globalFonts.test.tsx` now bans the axis in a tuple position. |
 | ✅ The VS Code dark palette | **SHIPPED (Build A)** as the `--sx-*` custom-property ground: a 44-role vocabulary in `styles/ground.ts`, one `ground` record of hex per theme, and `tokens.color` / `tokens.palette` / `Theme.palette` all reduced to `var()` references. Zero call sites changed. Four guard tests plus an e2e drive. |
 | `GhostCommandLine.tsx` | Hover preview moves to the global status bar (§ 3.5). ⚠ Note the input-prefix surface it sits beside is now `cockpit cli` (not `cockpit scope`), bare invocation REPORTS rather than clears, and prefixes are genuinely per-command-line — verified with two lines prefixed independently. |
-| `InspectionPane.tsx` | Becomes the pane feed (§ 3.4). ⚠ Already **half-moved**: it opens `pane: "inspect"` / `pane: "location"` by name rather than sending MQL, so the subscription half is done and the N-pane feed is what remains. |
+| `InspectionCard.tsx` | Becomes the card feed (§ 3.4). ⚠ Already **half-moved**: it opens `card: "inspect"` / `card: "location"` by name rather than sending MQL, so the subscription half is done and the N-card feed is what remains. |
 | `layouts/` (`LAYOUT_REGISTRY`) | Layouts demote under modes (§ 3.3, § 4.4) — **done server-side**; the client still swaps its whole frame off the `cockpit.layout` compatibility key. Components map over; the registry's *level* changes. |
 
 ### ✅ The three "verify first" items — answered 2026-08-11
@@ -614,8 +614,8 @@ Ordered so each ships independently. The handoff's build order is a good
 | ~~**2**~~ ✅ | **Arrival — SHIPPED 2026-08-13.** Front door, intake, character select, + mobile; the char-gen payload generalized; account-level Make standing. ⚠ **The lounge is CUT** — see § 7.2. | done |
 | **2.5** | ⭐ **The read surfaces** — one SERVER build batching every remaining endpoint the 23 screens need, so waves 4/6/7 are pure client. See § 7.2. | 2 |
 | ~~**3**~~ ✅ | **Track A + B shipped as S2** — MR A the topic corpus + the four-part totality gate + the `affordance` facet; MR B the `thing`/`actor` tag collapse + `CommandApi.resolveAffordances`. | 1 |
-| **4** | **Play surface** — the two feeds, the pane feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
-| ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned pane catalogue**: the client opens a pane BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a pane on recall, on either side. | done |
+| **4** | **Play surface** — the two feeds, the card feed and its hold policy, focus chain, filters + routing, prompt system, mobile live client. The biggest wave. | 3, and 5 (Track D — now SHIPPED, so unblocked) |
+| ~~**5**~~ ✅ | **Track D shipped as S3** (MRs !177 / !178 / !179) — the one `cockpit` verb, the mode × arrangement axes, the legacy layout migration, and a **server-owned card catalogue**: the client opens a card BY NAME and the server supplies the query. ⚠ Arrangements ship **storage, not behaviour** — nothing opens or closes a card on recall, on either side. | done |
 | ~~**6**~~ ✅ | **Social — SHIPPED 2026-08-15.** Reactions + the emote picker, the forum client learning the Subject model, honest wiki search, the livestream tuned rail, and the `cockpit.layout` retirement. ⚠ It was **not** "almost pure client": four server gaps and one drift, listed below. | 4 ✅ |
 | **7** | ⭐ **Authoring** — CMS editor, help panel, git panel restyled into the frame. | 1 |
 | ~~**—**~~ ✅ | Track C — **done for standing**: the read Apis already existed; what was missing was a structured channel, now `subscribableFields` + the `durableKey` witness. Search, clips and the frame store remain. | partly done |
@@ -628,7 +628,7 @@ are for reasons worth keeping:
 | Build | Ships | Requirements |
 |---|---|---|
 | ✅ **A — civic ground** — **SHIPPED 2026-08-11** | theme-aware colour, Ink + Marble + civic `high-contrast`, four voices + the `display` role, the `ink`/`marble` rename across client+server+yaml, the three honest-state primitives. **Zero features.** | shipped — see [message-rendering.md](../../subsystems/message-rendering.md) § The custom-property colour layer + § Font-by-register, and [client-shell.md](../../subsystems/client-shell.md) § The honest-state primitives |
-| ✅ **B — honest chrome** — **SHIPPED 2026-08-11** | desktop top bar (seal, connection chip + popover, identity, the nine-row shelf), the status bar replacing `GhostCommandLine`, and the server work: the `self` pane, `PaneDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf`, `RenownApi.measuredRenownOf`. ⚠ **The read-only mode indicator is CUT** — see below. | shipped — see [client-shell.md](../../subsystems/client-shell.md) §§ The top bar / The widget shelf / The status bar / The connection popover, [cockpit.md](../../subsystems/cockpit.md) § `cockpit shelf`, [mql-subscription.md](../../subsystems/mql-subscription.md) § The pane catalogue's field sets |
+| ✅ **B — honest chrome** — **SHIPPED 2026-08-11** | desktop top bar (seal, connection chip + popover, identity, the nine-row shelf), the status bar replacing `GhostCommandLine`, and the server work: the `self` card, `CardDefinition.fields` widening, `cockpit shelf` + `cockpit.shelf`, `RenownApi.measuredRenownOf`. ⚠ **The read-only mode indicator is CUT** — see below. | shipped — see [client-shell.md](../../subsystems/client-shell.md) §§ The top bar / The widget shelf / The status bar / The connection popover, [cockpit.md](../../subsystems/cockpit.md) § `cockpit shelf`, [mql-subscription.md](../../subsystems/mql-subscription.md) § The card catalogue's field sets |
 | ✅ **C — chrome on a phone** — **SHIPPED 2026-08-12** | the mobile *inversion* — two-row bar, no status bar, the shelf leaves the bar for a pull-down + shelf screen, the command sheet, a dropped socket claiming the first row, safe areas; plus `cockpit shelf first`, the round-trip heartbeat and the retry countdown. ⚠ **The held-commands queue and the notification bell are CUT** — see below. | shipped — see [client-shell.md](../../subsystems/client-shell.md) §§ The server owns what is shown / The mobile bar / The command sheet, and [cockpit.md](../../subsystems/cockpit.md) § `first`, and the glance-line |
 
 #### ⭐ **WAVE 1 IS CLOSED.** Wave 2 (Arrival) is unblocked.
@@ -704,7 +704,7 @@ only from a real phone emulation:
    and every action off-screen and **unreachable**. Playwright's plain
    `viewport` is a narrow DESKTOP context where this cannot happen;
    `isMobile: true` is the difference.
-5. **The right-column panes bypassed the command sheet**, taking the raw
+5. **The right-column cards bypassed the command sheet**, taking the raw
    send — so one screen had two rules for the same tap.
 6. ⭐⭐ **The client never reconnected after a server restart** — the
    standup-deploy path the backoff exists for — because `App`'s connect
@@ -776,12 +776,12 @@ them with no consumer; B is their first.
 
 ⚠ **Wave 1 is not client-only.** The theme vocabulary is server-owned
 (`StyleController.KNOWN_THEMES`), pinning must be a real command or § 3.5's
-axiom lapses on the chrome that advertises it, and the shelf needs a pane
+axiom lapses on the chrome that advertises it, and the shelf needs a card
 catalogue entry.
 
-⭐ **One pane entry feeds the whole shelf, not one per figure** — every
-shelf figure is a field on the viewer's own Avatar. `self` joins `PaneId`;
-`PaneDefinition.fields` widens from `'ref' | 'detail'` to `FieldSet |
+⭐ **One card entry feeds the whole shelf, not one per figure** — every
+shelf figure is a field on the viewer's own Avatar. `self` joins `CardId`;
+`CardDefinition.fields` widens from `'ref' | 'detail'` to `FieldSet |
 FieldAlias`, because neither alias carries standing (`REF_FIELDS` /
 `DETAIL_FIELDS` are object-description fields) while the subscribe path
 already accepts an explicit name list.
@@ -792,7 +792,7 @@ already accepts an explicit name list.
 `Global Chrome.dc.html`'s shelf catalogue hatches, which is what makes the
 shelf the right first consumer of the honesty convention. The shelf is
 also the **first client consumer of S1's wire at all**: `packages/client`
-has two subscription call sites today, both `InspectionPane` panes, and
+has two subscription call sites today, both `InspectionCard` cards, and
 nothing reads a standing field.
 
 ⚠⚠ **`makeStanding` was a *level* collision, not a missing figure** —
@@ -802,7 +802,7 @@ rendered a claim the server could not back: the honesty rule applied to
 a level rather than a value.
 
 ✅ **RESOLVED in Wave 2.** The account roll-up shipped, the field joined
-`PANES.self`, and the shelf row went live — all in one commit, because
+`CARDS.self`, and the shelf row went live — all in one commit, because
 splitting them would have meant either a wrong-level number on the wire
 or a computed number nobody painted. ⚠ The hatch category `level`,
 whose only member this was, is **retired**: its sentence named a gap
@@ -837,7 +837,7 @@ knowledge, traceable only to a commit message describing the result.
 - ⭐ **Account-level Make standing shipped**, ending the level collision
   Build B recorded. Sum, not max or mean — *the account is the subject,
   so distributing work across bodies must not move the figure*, and sum
-  is the only combinator with that property. `PANES.self` gained
+  is the only combinator with that property. `CARDS.self` gained
   `makeStanding` in the same commit as the arithmetic, which was the
   condition its absence had been recorded against.
 - ⚠ **`standingForHost` returns `undefined`** for an unresolvable
@@ -951,9 +951,11 @@ Recorded so Wave 7's identical claim gets checked rather than believed.
    subscription scope, `subjects`.
 3. **No structured tuned-target state.** The rail had only a bare
    `tune`'s prose to read. Fixed with `cockpit.tuned`.
-4. **`SHIPPED_ARRANGEMENT_PANES` is keyed by mode alone**, so `watch`'s
+4. **`SHIPPED_ARRANGEMENT_CARDS` is keyed by mode alone**, so `watch`'s
    two arrangements are inexpressible. ⚠ **Not fixed** — nothing in Wave
-   6 needed to fill it, and re-keying an empty map is churn. Still open.
+   6 needed to fill it, and re-keying an empty map is churn. ✅ **CLOSED
+   by the card-surface build**: filling the map is what expired the
+   churn argument, and it is now keyed `(mode, arrangement)`.
 
 **One drift:** `act.combat` was reactable server-side and the client
 never offered it, because `REACTABLE_PREFIXES` claimed to mirror
@@ -1029,10 +1031,10 @@ help and git all have shipped server halves — while Wave 4 does not.
 So a **server build (2.5) sits between Arrival and the Play surface**,
 batching every remaining read surface into one pass. What it carries:
 
-- **Pane catalogue entries.** The catalogue ships **three** (`inspect`,
-  `location`, `self`); every pane across the 23 screens needs one. This
+- **Card catalogue entries.** The catalogue ships **three** (`inspect`,
+  `location`, `self`); every card across the 23 screens needs one. This
   is the item most likely to stall a client wave mid-flight, and § 4.4
-  already flagged it as "a real per-pane dependency to plan around
+  already flagged it as "a real per-card dependency to plan around
   rather than discover".
 - **The per-player frame store** — open question 1, **ANSWERED: yes**
   (2026-08-13). Everything about search scope, a second device, and
@@ -1044,8 +1046,8 @@ batching every remaining read surface into one pass. What it carries:
 - **The nightly wipe** (§ 3.1's box).
 - Whatever else § 4.3's *not wired* column still lists at that point.
 
-⚠ **Still to decide before the pane feed is built** (§ 4.4's undecided
-half): does the client read an arrangement and open the named panes
+⚠ **Still to decide before the card feed is built** (§ 4.4's undecided
+half): does the client read an arrangement and open the named cards
 itself? That remains open and belongs to Wave 4's requirements — the
 server build does not settle it, because it is a question about who
 initiates, not about which endpoint exists.
@@ -1064,6 +1066,97 @@ notifications — designed only as a stub, and `NotifyPolicy` /
 `NotifyRule` should be read before the UI is designed, because what
 belongs in that tray is *whatever the receiver said they wanted*, not
 everything that happened.
+
+### ✅ 7.18 Wave 7 — the card surface — SHIPPED (`build/card-surface`)
+
+The last client wave, and it does four things that only make sense
+together.
+
+**One birth path.** A card exists because a **command** caused the
+server to push it. The client's focus-watching inference retires, and —
+stronger than any guard — `MqlSubscribeMessage` loses every field that
+could name a card. It keeps exactly one: `chrome: 'self'`, the widget
+shelf's subscription, which is not a card. *A source scan can be
+defeated by a clever call site; a missing protocol field cannot be used
+at all.*
+
+**One lifetime axis.** Pinned, or aged out of a relevance window. The
+four spatial holds are retired (each cost a wake); `unanswered`'s
+guarantee — *nothing still actionable ever leaves* — moves onto the
+pinned axis, where a prompt card opens pinned and auto-releases when
+answered.
+
+**Liveness is scoped to ATTENTION.** Static by default, stamped with
+when, carrying a refresh. The one live row is the **inspection** card,
+and only the NEWEST one holds a subscription — opening another demotes
+its predecessor to an ordinary snapshot. ⚠ Shipping it live at all was
+a deviation from the plan, which marked every row static while its own
+driving script drove "the one live card"; a `live` field nothing reads
+is indistinguishable from a broken one.
+
+⭐⭐ **And inspection is ONE card.** A room, a person, an object and an
+idea are `StuffKind`s of the card's subject, laid out differently by the
+body — not four cards, and not the two (`place` + `subject`) the build
+shipped mid-flight. The tell was a command view reading `opens_card:
+[place, subject]`: `look` takes one target, that target is exactly one
+kind of thing, and a verb declaring it opens one of two kinds of card is
+a verb reporting that the model is not unified.
+
+**The switcher dies.** `Inspect · Who's Online · News · Wiki` was four
+hand-written surfaces with their own data paths in a tab strip; it
+existed *because* the only way a card could be born was a focus change,
+and none of the other three is one. So did the CMS's own four-tab mode
+bar. Both are one feed now.
+
+⭐⭐ **And one finding that changed a decision.** The requirements keyed
+the `shell.result` filter on the **topic** `shell.result`, on the
+premise that *every structured command result already carries it*. The
+per-card prose audit the plan required falsified the premise: `look`'s
+two cards ride `sense.survey`, which twelve other verbs share. A topic
+key would either miss `look` entirely or silence all twelve. The filter
+keys on a per-frame `meta.carded` marker instead — exact by
+construction, because the producer that opens the card is the producer
+that stamps the frame.
+
+⭐⭐ **And the live drive found four defects a green suite could not**,
+two of them the same shape as § 7.17's: a rule implemented in one of two
+render paths. Two cards of one kind rendered the *same* pin command; the
+phone ignored both feed filters (and the per-viewport override's whole
+payoff is on the phone); the news card was unreachable by command
+because a verb-level validator answered a reading question with a
+publishing refusal; and `cms`/`studio` did not exist as verbs at all,
+because a command YAML nothing CONTRIBUTES is not reachable. Full
+account in [card-surface.md § What the live drive
+found](../../subsystems/card-surface.md).
+
+⭐⭐⭐ **And then the whole model was rejected and redone.** *"We're
+clearly not on the same page as far as the experience we're trying to
+create."* Four changes, each with a symptom no green suite could see:
+the feed became a **LOG** (dedup-on-command made asking twice look like
+the command had done nothing at all); liveness moved onto **attention**;
+inspection collapsed to **one card**; and `meta.carded` became a fact
+rather than a promise. Underneath all of it, one substrate fix — **a
+relative query (`here`, `$focus`, `person`) can never back a card about
+a THING**, because it re-answers against the asker, which is how a card
+about the lounge silently became a card about the bar.
+
+⚠ **What Wave 7 ships unfinished, and it is worth naming for the next
+client build:** no tables, no forms, no interactive cards — the widest
+gap between what a card is *for* and what it does; and fixed `All` +
+`Look` tabs where the design wants **tagging**, which needs a fuller set
+of card kinds to form a tag library around.
+
+**The residue § 7.16–7.17 recorded:** the wiki-search hatch is closed
+(it cited an audit that was already stale — *the hatch was written from
+a table rather than from the tree*); the action row can now tell
+subject-afforded from actor-afforded; `BlueprintSeeder` reconciles
+rather than warning forever. Three items are **recorded rather than
+closed**, with reasons, in
+[card-surface.md](../../subsystems/card-surface.md): `chat on`'s rail
+wake, the radial's `stuffId` on transcript nouns, and the `HERE`-rows
+`something` — whose requirements framing turned out to be **wrong** (the
+two gates answer different questions; the likely defect is the light
+band of ordinary rooms).
 
 ---
 

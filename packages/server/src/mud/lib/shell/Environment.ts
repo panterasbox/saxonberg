@@ -32,6 +32,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { CARD_IDS } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
@@ -75,6 +76,34 @@ export interface SettingsSchemaEntry<T = unknown> {
   enumValues?: T[];
   /** Returns `true` on success, an error message string on failure. */
   validator?: (value: T) => true | string;
+  /**
+   * ⭐ **One key with an optional per-form-factor override**, not two
+   * mandatory keys.
+   *
+   * When true, `setSetting` also accepts `<key>.desktop` /
+   * `<key>.mobile`, and `ShellApi.resolveSetting(host, key, factor)`
+   * resolves `<key>.<factor>` → `<key>` → the schema default. A player
+   * who wants the same behaviour everywhere sets one value; two
+   * independent keys guarantee eventual silent drift.
+   *
+   * ⚠⚠ **This does not break the no-`cockpit.formFactor` rule.** That
+   * key was never built because the server cannot know a viewport, so
+   * such a key would be a fake fact. Two STORED PREFERENCES assert
+   * nothing about which is in force: the server owns what is shown, and
+   * the client — which genuinely knows its own viewport — picks. Same
+   * split as `cockpit.shelf`.
+   */
+  perFactor?: true;
+  /**
+   * ⭐ **Suffixable by CARD KIND** — `cards.window.subject` overrides
+   * `cards.window` for the cards you get by looking at things, leaving
+   * the roster, the wiki and the editors on the general figure.
+   *
+   * Same shape as `perFactor` and the same reason: one key with an
+   * optional override, not an open namespace. A suffix that is not a
+   * real `CardId` refuses as *no such setting*.
+   */
+  perKind?: true;
 }
 
 /**
@@ -161,7 +190,31 @@ function findSchema(
   host: object,
   key: string,
 ): { entry: SettingsSchemaEntry; sourceMixin: string } | undefined {
-  return collectSchema(host).find((x) => x.entry.key === key);
+  const exact = collectSchema(host).find((x) => x.entry.key === key);
+  if (exact) return exact;
+  /*
+   * ⭐ A per-form-factor override (`shell.result.mobile`) is not its own
+   * schema entry — it is the SAME setting, stored under a suffix. So a
+   * suffixed key resolves to the base entry, and only when that entry
+   * declares `perFactor`. Writing `shell.interpolate-vars.mobile`
+   * therefore refuses as *no such setting*, which is what makes this
+   * "one key with an optional override" rather than an open namespace.
+   */
+  const dot = key.lastIndexOf('.');
+  if (dot <= 0) return undefined;
+  const suffix = key.slice(dot + 1);
+  const base = collectSchema(host).find(
+    (x) => x.entry.key === key.slice(0, dot),
+  );
+  if (!base) return undefined;
+  if (suffix === 'desktop' || suffix === 'mobile') {
+    return base.entry.perFactor === true ? base : undefined;
+  }
+  // ⭐ …or by card kind, for an entry that declares it.
+  if (base.entry.perKind === true && (CARD_IDS as readonly string[]).includes(suffix)) {
+    return base;
+  }
+  return undefined;
 }
 
 /**
@@ -253,6 +306,103 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
           'literal `$X` text).',
       },
       {
+        /*
+         * ⭐ **A FILTER, not a placement** — the server still sends the
+         * frame; the client decides whether to render it.
+         *
+         * Placement (the server declines to send) saves the wire, but
+         * the frame then never reaches the frame store and `recall`
+         * cannot find it. Filtering keeps your `who` history searchable
+         * while keeping it out of sight.
+         *
+         * ⚠ `both` is the two-copies-of-one-sentence shape: two
+         * renderings of one payload that can drift. It is a legitimate
+         * player choice, and it is safe here only because the card
+         * carries the SAME MML the terminal rendered — so the assertion
+         * is that the two are EQUAL, never that each contains the
+         * expected words.
+         *
+         * ⭐ `terminal` is a first-class mode, not a fallback: MML
+         * renders markdown, inline wiki and spoiler tags, so a player
+         * who wants one scrollback is well served.
+         */
+        key: 'shell.result',
+        type: SettingTypes.String,
+        default: 'card',
+        perFactor: true,
+        description:
+          'Where a structured command result appears: `card` (the ' +
+          'default — the feed only), `terminal` (the prose only), or ' +
+          '`both`. Override per viewport with `shell.result.mobile` / ' +
+          '`shell.result.desktop`; the client picks, because only it ' +
+          'knows its own width.',
+        validator: (v) =>
+          v === 'card' || v === 'terminal' || v === 'both'
+            ? true
+            : `expected card | terminal | both, got '${String(v)}'`,
+      },
+      {
+        /*
+         * ⭐ **The card feed's relevance window**, in seconds.
+         *
+         * ⚠ **A fact about TIME, not about the world** — which is the
+         * distinction that makes it a legitimate duration. A card's
+         * lifetime used to be a world CONDITION (is that person still
+         * here), and a clock on one of those would end something still
+         * actionable. A relevance window is the husk-TTL argument
+         * generalised: how long an answer you asked for stays worth
+         * keeping on screen.
+         *
+         * ⚠ The window is not the sweep's CADENCE. The sweep is how
+         * often we look (coarse, ~30 s); this is how long a card stays.
+         * Conflating them means changing one silently changes the
+         * other.
+         *
+         * ⚠ Pinned cards never see it — pinned-ness IS the lifetime
+         * axis, and a clock that could end a pinned card would make the
+         * axis a suggestion.
+         */
+        key: 'cards.window',
+        type: SettingTypes.Number,
+        default: 600,
+        perKind: true,
+        description:
+          'How long an unpinned card stays in the feed after you last ' +
+          'touched it, in seconds. Pinned cards ignore it entirely. ' +
+          'Override one kind by suffixing it — `cards.window.subject ' +
+          '3600` keeps what you have looked at for an hour while ' +
+          'everything else ages normally.',
+        validator: (v) =>
+          typeof v === 'number' && v >= 5 && v <= 86_400
+            ? true
+            : 'expected 5–86400 seconds',
+      },
+      {
+        /**
+         * ⭐ **How many cards the feed keeps** — the scrollback bound.
+         *
+         * A duration alone cannot bound a feed: walk around for ten
+         * minutes and you have ten minutes of cards whatever the window
+         * says. This is the count a terminal would call scrollback, and
+         * the oldest goes first.
+         *
+         * ⚠ Pinned cards are exempt from the cap as well as the clock.
+         * Pinning means *survives*, and half a guarantee is worse than
+         * none.
+         */
+        key: 'cards.keep',
+        type: SettingTypes.Number,
+        default: 40,
+        description:
+          'How many cards the feed keeps before the oldest falls off, ' +
+          'like terminal scrollback. Pinned cards never count against ' +
+          'it and never fall off.',
+        validator: (v) =>
+          typeof v === 'number' && v >= 3 && v <= 500
+            ? true
+            : 'expected 3–500 cards',
+      },
+      {
         key: 'prompt.format',
         type: SettingTypes.String,
         default: '{{ focus }}>',
@@ -342,6 +492,9 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       const lifetime = entry.lifetime ?? 'persistent';
+      // ⚠ Stored under the key as WRITTEN, suffix included: the whole
+      // point of the override is that it sits beside the base value
+      // rather than replacing it.
       if (lifetime === 'persistent') {
         if (!this.persistentStore) this.persistentStore = {};
         this.persistentStore[key] = value;

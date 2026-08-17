@@ -13,7 +13,7 @@
  */
 
 import { MqlSubscriptionApi } from '../../mud/api/mql-subscription';
-import { PANE_HOLDS, PANE_IDS } from '@saxonberg/types';
+import { SHELF_SUBSCRIPTION } from '../../mud/lib/connection/Cards';
 import type {
   MqlSubscribeMessage,
   MqlUnsubscribeMessage,
@@ -24,50 +24,41 @@ import type { InboundHandler } from './index';
 export const handleMqlSubscribe: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlSubscribeMessage | undefined;
   if (!payload || typeof payload.subscriptionId !== 'string') return;
-  // ⚠ A NAMED pane needs neither: the server supplies both from its
-  // catalogue. Requiring them here would make the whole point of naming
-  // a pane — that the client stops describing one — impossible to use.
-  const named =
-    typeof payload.pane === 'string' &&
-    (PANE_IDS as readonly string[]).includes(payload.pane);
+
+  /*
+   * ⭐⭐ **The client cannot name a CARD here, and that is AC 1 enforced
+   * by the protocol.** A card exists because a command caused the server
+   * to push it, so there is nothing for a client to ask for. What
+   * remains is exactly one CHROME subscription — the widget shelf's
+   * `self` figures, which is not a card (no pinned-ness, no lifetime)
+   * and whose whole shape still comes from the server's own catalogue.
+   */
+  if (payload.chrome === 'self') {
+    MqlSubscriptionApi.handleSubscribe({
+      interactive: ctx.interactive,
+      subscriptionId: payload.subscriptionId,
+      query: SHELF_SUBSCRIPTION.query,
+      cardinality: SHELF_SUBSCRIPTION.cardinality,
+      fields: SHELF_SUBSCRIPTION.fields,
+    });
+    return;
+  }
+
   if (
-    !named &&
-    (typeof payload.query !== 'string' ||
-      (payload.cardinality !== 'one' && payload.cardinality !== 'many'))
+    typeof payload.query !== 'string' ||
+    (payload.cardinality !== 'one' && payload.cardinality !== 'many')
   ) {
     return;
   }
   MqlSubscriptionApi.handleSubscribe({
     interactive: ctx.interactive,
     subscriptionId: payload.subscriptionId,
-    pane: named ? payload.pane : undefined,
-    // ⚠ A subject is only meaningful on a NAMED pane — the catalogue's
-    // query is the only string with a `$subject` slot in it. Threaded
-    // as a raw string; the registry validates its shape, because that
-    // is where the substitution happens and a check far from the
-    // substitution is a check that drifts from it.
-    subject: named && typeof payload.subject === 'string'
-      ? payload.subject
-      : undefined,
     query: payload.query,
     cardinality: payload.cardinality,
     fields: payload.fields,
     detailKey: payload.detailKey,
     focusDependent: payload.focusDependent,
     locationDependent: payload.locationDependent,
-    // A hold makes this subscription a pane. Validated here rather than
-    // trusted: `hold` drives a server-side lifetime decision, and an
-    // unrecognized value would otherwise fall through the evaluator's
-    // default and silently produce an immortal pane.
-    hold:
-      payload.hold !== undefined &&
-      (PANE_HOLDS as readonly string[]).includes(payload.hold)
-        ? payload.hold
-        : undefined,
-    holdSubject:
-      typeof payload.holdSubject === 'string'
-        ? payload.holdSubject
-        : undefined,
   });
 };
 
@@ -83,7 +74,7 @@ export const handleMqlUnsubscribe: InboundHandler = (ctx, message) => {
 export const handleMqlQuery: InboundHandler = (ctx, message) => {
   const payload = message.payload as MqlQueryMessage | undefined;
   if (!payload || typeof payload.queryId !== 'string') return;
-  // ⚠ NOT pane-aware, deliberately. A one-shot query is not a pane: it
+  // ⚠ NOT card-aware, deliberately. A one-shot query is not a card: it
   // has no lifetime, nothing durable refers to it, and giving it a
   // catalogue name would imply a persistence it does not have.
   if (

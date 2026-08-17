@@ -492,7 +492,7 @@ your own footing precisely; you read the **enemy's** only as well as your
 competence allows (an unskilled fighter misreads a feint as a real opening
 and gets countered on the commit). **Reading the fight is itself a skill
 expression** ([belief](../../subsystems/belief.md)/perception gating).
-Openings surface as **previewed-command affordances** in the combat pane
+Openings surface as **previewed-command affordances** in the combat card
 ("*Mary is open — [disarm] [subdue] [strike]*").
 
 ### Multi-party, tactics, and Master-Apprentice fall out
@@ -867,8 +867,8 @@ obey.*
 Two tiers, both server-authoritative (the client owns **zero** command
 semantics):
 
-- **Default — a summary pane**, summoned on `combat.session.opened` and
-  dismissed on `combat.session.resolved` (the `SettingsPane` summoned-pane
+- **Default — a summary card**, summoned on `combat.session.opened` and
+  dismissed on `combat.session.resolved` (the `SettingsPanel` summoned-panel
   tier; additive, degrades gracefully). One glanceable box: terms, the graph
   in miniature, your state, the gambit bar. **The world/prose stream stays
   primary** — the fight happens *in the room*, and the per-viewer combat
@@ -930,7 +930,7 @@ your own precise, buttons that are really verbs.
    a stat.
 7. **Each actor banks their own `ActSignature`s**; per-act (not per-enemy)
    difficulty.
-8. **Combat is a summoned summary pane by default; `layout combat` is an
+8. **Combat is a summoned summary card by default; `layout combat` is an
    opt-in denser arrangement** — not a layout swap; the world/prose stays
    primary; the client owns zero command semantics.
 9. **Hit-location is core, not deferred** — believable armor is coverage,

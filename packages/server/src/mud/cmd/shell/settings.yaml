@@ -10,6 +10,13 @@ help: |
   Bare `settings` (or `settings list`) shows every declared key
   grouped by the system that owns it. From there get, set, unset,
   and describe work on one key at a time.
+
+  A few settings take an optional **per-screen** override: set the
+  key on its own for everywhere, or suffix it with `.desktop` /
+  `.mobile` for just that screen. `settings set shell.result
+  terminal` puts structured results in the transcript on every
+  device; `settings set shell.result.mobile terminal` does it only
+  on your phone, where a card costs a row the feed loses.
 validators:
   - /lib/command/validators/requiresEnvironment
 subcommands:
@@ -38,6 +45,10 @@ subcommands:
     examples:
       - cmd: settings set workspace.tree source
         note: Override a dotted key with a value
+      - cmd: settings set shell.result terminal
+        note: Put structured results in the transcript instead of on cards
+      - cmd: settings set shell.result.mobile both
+        note: Override one setting for the phone only
     args:
       - name: key
         type: string

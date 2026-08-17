@@ -449,7 +449,7 @@ landed (with the design refined past the original sketch above):
   replacing the "priority integer" / "max salience" rules; the dedicated
   **`notify` verb** (not a `bucket policy` subcommand); the
   `NotifyPolicyMixin` per-character store (sibling of `_contacts`); named
-  theme-palette **`color`** tokens; and the thin **settings pane** over
+  theme-palette **`color`** tokens; and the thin **settings card** over
   `notify` (every control previews+issues its command).
 
 Two deferrals carried out of Wave 3 (flagged in the subsystem doc):

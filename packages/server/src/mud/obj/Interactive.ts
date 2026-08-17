@@ -26,6 +26,7 @@ import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 import { ConnectionApi } from '../api/connection';
 import { MqlSubscriptionApi } from '../api/mql-subscription';
+import { CardApi } from '../api/card';
 import { ForumsApi } from '../api/forums';
 import { ReactionApi } from '../api/reaction';
 import { PromptApi } from '../api/prompt';
@@ -163,6 +164,7 @@ export default class Interactive extends Idea {
    */
   public teardownSubstrateState(): void {
     MqlSubscriptionApi.cancelAllForInteractive(this);
+    CardApi.cancelAllForInteractive(this);
     ForumsApi.cancelAllForInteractive(this);
     ReactionApi.cancelAllForInteractive(this);
     PromptApi.cancelAll(this, 'host-disconnected');

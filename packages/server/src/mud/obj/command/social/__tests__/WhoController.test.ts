@@ -23,6 +23,8 @@ function captureBody(): void {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
+    // ⭐ `meta({ carded: true })` — the marker `shell.result` filters on.
+    b.meta = () => b;
     b.toSelf = (body: Mml) => {
       captured = body.toString();
       return b;

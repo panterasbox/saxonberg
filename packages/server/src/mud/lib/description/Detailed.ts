@@ -91,7 +91,7 @@ export interface Detail {
  * representation surfaces it; clients decide whether to fetch).
  *
  * The `description` field projects the Detail's `vision` slot for
- * wire back-compat with the inspection-pane subscription substrate
+ * wire back-compat with the inspection-card subscription substrate
  * (the v1 wire shape stays single-channel; non-vision slots are
  * server-side state only). An entry with no vision slot populated
  * surfaces here with an empty `description` string.
@@ -261,8 +261,8 @@ export function DetailedMixin<TBase extends MixinConstructor>(Base: TBase) {
       {
         name: 'details',
         // ⚠ Both layers take the `viewer` the descriptor already hands
-        // them. Before this they ignored it, so the INSPECTION PANE
-        // enumerated every key and description to anyone with the pane
+        // them. Before this they ignored it, so the INSPECTION CARD
+        // enumerated every key and description to anyone with the card
         // open — a wider leak than `look`, which at least had to be
         // asked a question. `longDescription`'s projection next door was
         // viewer-aware from the start; this one simply never was.

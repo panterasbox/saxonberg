@@ -98,7 +98,7 @@ demand through a re-consent flow this build adds:
 ## The frame: identity bridge + provenance
 
 Relay frames ride the relay's own topic `speech.relay` (a distinct
-genre, so the cockpit panes them separately) and are **subscription-gated,
+genre, so the cockpit cards them separately) and are **subscription-gated,
 not implant-gated** — they carry no `modality`, so they reach every tuned-in
 Avatar regardless of in-world implant. Delivery hand-builds the frame and
 goes through the lone `MessageApi.sendMessage` chokepoint (never

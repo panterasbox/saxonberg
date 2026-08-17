@@ -24,7 +24,7 @@ glowing pink, "compresses like cotton candy").
 > Old Road was the first road ever laid here, and it shows — eons of footfall have worn its spine into a smooth trough, the old cement long since crumbled back toward dust. There's an eerie permanence to it: it was here before nearly everything, and it has outlasted all of it.
 
 **Glass Way** — *a slick greenish-glass plane you literally slip and fall on (no grip possible); prismatic, "colors of all hues reflect." Casts the green-tinted light onto Eternal Way. Site of Eotl's Palace of Wizards (a glass temple).*
-> Glass Way is one near-perfect pane of thick, green-tinted glass polished to a mirror — and you *will* go down on it, because there's no purchase to be had anywhere on its surface. Light shatters across it in every color as you slip and scrabble for footing.
+> Glass Way is one near-perfect card of thick, green-tinted glass polished to a mirror — and you *will* go down on it, because there's no purchase to be had anywhere on its surface. Light shatters across it in every color as you slip and scrabble for footing.
 
 **Infinity Way** — *the deadpan joke: a perfectly mundane dark-asphalt road with two yellow lines and keep-right traffic — the grandest name on the map painted on the dullest road.*
 > Infinity Way is, against everything its name promises, an ordinary strip of dark asphalt — two yellow lines down the middle, everyone drifting right out of pure habit, the pavement warm from soaking up the everywhere-light. The grandest name on the map, given to the dullest road on it.

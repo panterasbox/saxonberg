@@ -27,7 +27,6 @@
  */
 
 import type {
-  PaneId,
   ReleaseFeedFrame,
   CharGenRosterPayload,
   CharGenStatePayload,
@@ -67,26 +66,21 @@ type EnvelopeHandler = (envelope: Envelope) => void;
  */
 export interface MqlSubscribeSpec {
   /**
-   * ⭐ Open a pane the server knows by name. The server supplies the
-   * query, cardinality, fields and dependency flags; NOTHING else in
-   * this spec is read when `pane` is set. A pane's query is a server
-   * semantic and the client is not allowed to hold one.
-   */
-  pane?: PaneId;
-  /** Required unless `pane` names one. */
-  query?: string;
-  /** Required unless `pane` names one. */
-  cardinality?: "one" | "many";
-  /**
-   * ⭐ The `stuffId` a **subject pane** (`agent` / `instrument` /
-   * `manifest`) is about.
+   * ⭐⭐ **The one thing a client may still open for itself.**
    *
-   * ⚠ An identity, not a query. The server substitutes it into its own
-   * `#<id>` seed; the client still holds no MQL. Worth saying because a
-   * parameter superficially resembles the hole the catalogue closes.
+   * `chrome: 'self'` is the widget shelf's subscription — the viewer's
+   * own figures — and it is deliberately NOT a card: it has no
+   * pinned-ness and no lifetime. Every real card is born because a
+   * command caused the server to push it, so there is no field here
+   * that would name one. That is acceptance criterion 1 enforced by the
+   * protocol rather than by a source grep.
    */
-  subject?: string;
-  /** Required unless `pane` names one. */
+  chrome?: "self";
+  /** Required unless `chrome` names one. */
+  query?: string;
+  /** Required unless `chrome` names one. */
+  cardinality?: "one" | "many";
+  /** Required unless `chrome` names one. */
   fields?: string[] | "ref" | "detail";
   detailKey?: string;
   focusDependent?: boolean;
@@ -129,7 +123,7 @@ class WebSocketClient {
   private topicHandlers: Map<string, FrameHandler[]> = new Map();
   /**
    * Catch-all frame handlers. Fired AFTER per-topic dispatch so
-   * existing per-topic call sites (inspection pane, prompt slice)
+   * existing per-topic call sites (inspection card, prompt slice)
    * keep working unmodified. The console-foundations frame store
    * uses this single subscription to consume every inbound frame.
    */
@@ -301,10 +295,10 @@ class WebSocketClient {
       }
     });
 
-    // The wiki pane's side-channel (`publication.wiki`). Empty body —
+    // The wiki card's side-channel (`publication.wiki`). Empty body —
     // the article's prose already went to the scroll on
     // `shell.result`; this is the structured twin, carrying the
-    // SAME rendered body so the pane inherits the server's gate rather
+    // SAME rendered body so the card inherits the server's gate rather
     // than re-deriving it.
     this.onTopic("publication.wiki", (frame) => {
       const payload = frame.payload as WikiPageFrame | undefined;
@@ -699,7 +693,7 @@ class WebSocketClient {
         // subscription result / delta envelope BEFORE dispatching to
         // widget handlers. Walks the top-level result records plus any
         // nested `'ref'`-shape fields (v1: `contents`). Per
-        // inspection-pane plan W7: the registry is the wire-fed cache
+        // inspection-card plan W7: the registry is the wire-fed cache
         // every `MmlRenderer.commandFor` lookup reads.
         this.feedStuffRegistry(envelope);
 
@@ -711,7 +705,7 @@ class WebSocketClient {
         this.applyPromptSideEffects(envelope);
 
         // Side-effect: cache the affordance answer. Both the radial and
-        // every pane body's composition chips read it, so it lands in
+        // every card body's composition chips read it, so it lands in
         // the store rather than in a component — one answer, two
         // consumers, and the chips cannot drift from the menu.
         this.applyAffordanceSideEffects(envelope);
@@ -859,7 +853,7 @@ class WebSocketClient {
   /**
    * ⭐ Ask what this viewer can do with `stuffId`, right now.
    *
-   * The radial's cold path, and the pane bodies' composition chips.
+   * The radial's cold path, and the card bodies' composition chips.
    * Deduped against anything already in flight or already answered, so
    * hovering a row repeatedly costs nothing; `clearAffordances` (fired
    * on every command send) is what makes a stale answer impossible.
@@ -1148,25 +1142,50 @@ class WebSocketClient {
    * are extracted and forwarded to the registry's `upsertStuffMetadata`
    * — fields-present overwrite, fields-absent leave intact.
    */
+  /**
+   * ⚠⚠ **Every envelope that carries projected records feeds this, and
+   * the card envelopes are two of them.**
+   *
+   * This fed only from `mql-subscription-*` — correct while the panes
+   * WERE subscriptions. The card build moved every static card's records
+   * onto `card-opened` / `card-touched` and left this behind, so the
+   * registry starved to a single entry. `MmlRenderer.commandFor` needs
+   * it to turn a `stuff-id` into a keyword, so every clickable noun in
+   * the TRANSCRIPT silently degraded to `look <display name>` — which
+   * does not parse for anything articled or multi-word:
+   *
+   *     click "a chalkboard menu"  →  look a chalkboard menu
+   *     →  "That doesn't match any known command shape: look."
+   *
+   * ⭐ And it was invisible because the CARD bodies never used this
+   * path: they read `primaryKeyword` straight off their own records, so
+   * the same noun worked inside a card and was dead in the transcript.
+   * Two render paths, one of them holding the data — the third time this
+   * build has been bitten by that exact shape.
+   */
   private feedStuffRegistry(envelope: Envelope): void {
-    if (
-      envelope.type !== "mql-subscription-result" &&
-      envelope.type !== "mql-subscription-delta"
-    ) {
-      return;
-    }
     const collected: StuffMetadata[] = [];
-    if (envelope.type === "mql-subscription-result") {
-      this.collectRefRecords(
-        (envelope as MqlSubscriptionResultEnvelope).result,
-        collected,
-      );
-    } else {
-      for (const change of (envelope as MqlSubscriptionDeltaEnvelope).changes) {
-        if (change.fields) {
-          this.collectRefRecords([change.fields], collected);
+    switch (envelope.type) {
+      case "mql-subscription-result":
+        this.collectRefRecords(
+          (envelope as MqlSubscriptionResultEnvelope).result,
+          collected,
+        );
+        break;
+      case "mql-subscription-delta":
+        for (const change of (envelope as MqlSubscriptionDeltaEnvelope)
+          .changes) {
+          if (change.fields) this.collectRefRecords([change.fields], collected);
         }
+        break;
+      case "card-opened":
+      case "card-touched": {
+        const result = (envelope as { result?: unknown }).result;
+        if (Array.isArray(result)) this.collectRefRecords(result, collected);
+        break;
       }
+      default:
+        return;
     }
     if (collected.length > 0) {
       useStore.getState().upsertStuffMetadata(collected);

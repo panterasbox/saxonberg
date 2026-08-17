@@ -2,7 +2,7 @@
 
 Working slate for **console filtering** — the suite of client-side
 tools that let players manage what they see in the terminal scroll.
-Sister surface to the inspection pane: that slate handles "show me
+Sister surface to the inspection card: that slate handles "show me
 the structured state of the world"; this one handles "let me
 control the firehose of prose."
 
@@ -21,11 +21,11 @@ discipline on the server.
 
 See also:
 
-- [docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md)
+- [docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
   — the persistent inspection surface that obviates the need to
   re-`look` for state queries. The filtering tools here manage
   the *narrative* scroll (events, actions, speech), where the
-  pane manages *state*.
+  card manages *state*.
 - [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md)
   — terminal component, topic taxonomy, MML renderer.
 - [docs/slates/chat-slate.md](../tails/chat-slate.md) — **channels** (a
@@ -340,9 +340,9 @@ configuration surface.
    show?" prompt)? Or does muting hide from search too? Lean
    "search ignores mutes, offers to unmute." More useful, less
    confusing.
-4. **Brief mode and the inspection pane** — if brief mode is on
-   but the inspection pane is showing the full long description,
-   is the brief just a terminal-scroll thing? Lean yes — pane
+4. **Brief mode and the inspection card** — if brief mode is on
+   but the inspection card is showing the full long description,
+   is the brief just a terminal-scroll thing? Lean yes — card
    gets full content always; brief mode only affects scroll-prose
    verbosity.
 5. **Topic discovery** — how does the player learn what topics

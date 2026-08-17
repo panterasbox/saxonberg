@@ -19,7 +19,7 @@ halves, over one shared resolution primitive:
 Both halves call **one** `SocialApi.ruleFor(viewer, person)` primitive.
 The store is a `NotifyPolicyMixin` per-character rule list — the
 structural sibling of `_contacts`. The player surface is one dedicated
-verb, `notify`, plus a thin client settings pane over it.
+verb, `notify`, plus a thin client settings card over it.
 
 Seeded by
 [social-graph-slate.md](../slates/tails/social-graph-slate.md);
@@ -41,7 +41,7 @@ builds on [contacts.md](./contacts.md),
 | The `notify` verb | `cmd/social/notify.yaml` + `obj/command/social/NotifyController.ts` |
 | Presence events | `Avatar.enter` / `Avatar.onLinkdead` (+ `setLeaveIntent`), `lib/events.ts` (`PlayerLoggedIn`/`PlayerLoggedOut`/`PlayerReconnected`/`PlayerDisconnected`) |
 | Country of origin | `api/connection.ts` (`ConnectionApi.originOf`/`recordOrigin`, `geoip-lite`), captured at the WS handshake |
-| Client settings pane | `components/settings/SocialNotificationsPane.tsx` (presence frames render inline — no bespoke client component) |
+| Client settings panel | `components/settings/SocialNotificationsPanel.tsx` (presence frames render inline — no bespoke client component) |
 
 No new module category: `SocialApi`/`SocialLogic` mirror the
 `RecognitionApi`/`RecognitionLogic` and `RenownApi`/`RenownLogic`
@@ -200,7 +200,7 @@ handle carrying its room-scope MQL seed (`dwarves in red robes` /
 `others`). **What v1 ships is the painted seed only** — the seed is
 present and tested, but the four richer client interactions it's meant
 to feed ([client-shell.md](./client-shell.md) hover→command-bar
-preview, expand-on-pull, the [inspection-pane](./inspection-pane.md)
+preview, expand-on-pull, the [inspection-card](./card-surface.md)
 drill-in roster, and the [prompt.md](./prompt.md) `mqlMany` verb-time
 pick-list) are **not yet wired client-side** (`mudq:` renders as an
 inert painted span); that wiring is a deferred seam. The principle
@@ -294,9 +294,9 @@ pronouns, time-of-day) with no plumbing change:
 Default: `{{ who }} has {{ action }}{% if country %} from {{ country }}{% endif %}.`
 Set it via `settings set social.presenceFormat "<template>"` (quote it so
 the Liquid `{{ … }}` survives the command tokenizer — `settings set`
-strips the wrapping quotes on store) or the Social pane's "presence line"
+strips the wrapping quotes on store) or the Social card's "presence line"
 field. The pushed `social.rules` projection carries the current value so
-the pane shows + edits it; writes route back through the same `settings`
+the card shows + edits it; writes route back through the same `settings`
 command (the buttons-preview-their-command contract).
 
 ### Bounds + privacy
@@ -382,10 +382,10 @@ social highlight in one edit). The structured `SocialNotificationPayload`
 (`{kind, event, actor, color, country?}`) rides along for any future
 structured consumer.
 
-### The settings pane
+### The settings card
 
-`SocialNotificationsPane.tsx` ("Social / Notifications", reachable from
-the `AccountMenu`, toggled via a `socialPaneOpen` store flag) is a **thin
+`SocialNotificationsPanel.tsx` ("Social / Notifications", reachable from
+the `AccountMenu`, toggled via a `socialPanelOpen` store flag) is a **thin
 front over `notify`**:
 
 - **Reads** the server-pushed `clientState['social.rules']` projection
@@ -395,8 +395,8 @@ front over `notify`**:
   style-overlay precedent; skipped for an NPC host with no connected
   Interactive). `social.rules` is **not** a persisted client-state key —
   a pure push cache. The rule store stays the single source of truth; the
-  pane never writes it directly. On mount with no cached projection the
-  pane issues a bare `notify` to request one.
+  card never writes it directly. On mount with no cached projection the
+  card issues a bare `notify` to request one.
 - **Every control previews its command** (the global "buttons preview
   their command in the command bar" contract): hovering a control
   previews the equivalent `notify …` via `onCommandPreview`, and
@@ -486,7 +486,7 @@ country" remain deferred to the slate.
   deployment-default baseline-rule seeds.
 - [client-shell.md](./client-shell.md) — the frame / store pattern
   presence frames render through + the command-bar preview
-  contract; [inspection-pane.md](./inspection-pane.md) — the drill-in
+  contract; [card-surface.md](./card-surface.md) — the drill-in
   roster; [prompt.md](./prompt.md) — `mqlMany` verb-time disambiguation.
 - [social-graph-slate.md](../slates/tails/social-graph-slate.md) — the
   seeding slate (Wave 3 shipped here).

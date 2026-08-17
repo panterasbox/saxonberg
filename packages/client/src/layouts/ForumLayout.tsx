@@ -13,6 +13,7 @@ import type { LayoutProps } from "./types";
 import { Cockpit, LeftColumn, tokens } from "./primitives";
 import { SubjectShell } from "../components/social/SubjectShell";
 import { CommandBar } from "../components/CommandBar";
+import { CardFeed } from "../components/cards/CardFeed";
 
 /**
  * A live-scene peek so the player never goes dark on live play while the
@@ -39,6 +40,8 @@ export const ForumLayout: React.FC<LayoutProps> = ({
   onSendPromptResponse,
   onCancelPrompt,
   onCommandPreview,
+  onCommandClick,
+  resultDisplay,
 }) => {
   // Most recent in-world scene frame, MML-stripped, for the peek toast.
   const scenePeek = React.useMemo(() => {
@@ -74,6 +77,18 @@ export const ForumLayout: React.FC<LayoutProps> = ({
             onCancelPrompt={onCancelPrompt}
           />
         </LeftColumn>
+        {/*
+          ⭐ `chat` mode gets the card feed too — its arrangement opens
+          `who`, and a mode whose arrangement pushed cards nowhere would
+          make the arrangement a name that did nothing (which is exactly
+          what `cockpit layout save` was before it could see the cards).
+          The wiring already runs in `App`; this is placement only.
+        */}
+        <CardFeed
+          onSendCommand={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          resultDisplay={resultDisplay}
+        />
       </Cockpit>
       {scenePeek && <ScenePeek>{scenePeek}</ScenePeek>}
     </>

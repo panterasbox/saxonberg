@@ -640,7 +640,7 @@ The forum is a **primary view inside the cockpit**, not a
 leave-the-game context switch). Instead a `mainView: 'terminal' | 'forum'`
 slice renders `Terminal` or `ForumView` in the LeftColumn content slot
 while **Frame + CommandBar persist**, the **right column is
-view-sensitive** (terminal → `InspectionPane`; forum →
+view-sensitive** (terminal → `InspectionCard`; forum →
 `ForumChatSidecar`), and live scene events still surface as a peek/toast.
 Navigation is verb-driven (`forum` / `forum <board>` flips `mainView` +
 the nav target) and click-driven; the player stays in

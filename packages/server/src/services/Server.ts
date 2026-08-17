@@ -189,12 +189,12 @@ export class Server {
     // behind the CMS Studio tab. Same auth/ordering constraints as CMS.
     StudioRoutes.setup(this.app);
 
-    // Help REST data surface (the future client help pane's transport).
+    // Help REST data surface (the future client help card's transport).
     // Read-only; same auth/ordering constraints as the CMS routes.
     HelpRoutes.setup(this.app);
     EmoteRoutes.setup(this.app);
 
-    // Release (news-ticker) REST archive — the client pane's "load older"
+    // Release (news-ticker) REST archive — the client card's "load older"
     // transport. Read-only; same auth/ordering constraints as the routes
     // above (registered before the SPA `*` fallback).
     PressRoutes.setup(this.app);

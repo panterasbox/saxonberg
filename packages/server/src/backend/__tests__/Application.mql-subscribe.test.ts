@@ -54,7 +54,7 @@ describe('Application — MQL subscription routes', () => {
     );
     const spy = vi
       .spyOn(MqlSubscriptionApi, 'handleSubscribe')
-      .mockImplementation(() => {});
+      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-subscribe',
       payload: {
@@ -83,7 +83,7 @@ describe('Application — MQL subscription routes', () => {
     );
     const spy = vi
       .spyOn(MqlSubscriptionApi, 'handleUnsubscribe')
-      .mockImplementation(() => {});
+      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-unsubscribe',
       payload: { type: 'mql-unsubscribe', subscriptionId: 's1' },
@@ -100,7 +100,7 @@ describe('Application — MQL subscription routes', () => {
     );
     const spy = vi
       .spyOn(MqlSubscriptionApi, 'handleSubscribe')
-      .mockImplementation(() => {});
+      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-subscribe',
       payload: { subscriptionId: 's1' }, // missing query + cardinality
@@ -116,7 +116,7 @@ describe('Application — MQL subscription routes', () => {
     );
     const spy = vi
       .spyOn(MqlSubscriptionApi, 'handleSubscribe')
-      .mockImplementation(() => {});
+      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-subscribe',
       payload: {
@@ -148,7 +148,7 @@ describe('Application — MQL subscription routes', () => {
     );
     const spy = vi
       .spyOn(MqlSubscriptionApi, 'handleQuery')
-      .mockImplementation(() => {});
+      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-query',
       payload: {
@@ -177,7 +177,7 @@ describe('Application — MQL subscription routes', () => {
     );
     const spy = vi
       .spyOn(MqlSubscriptionApi, 'handleQuery')
-      .mockImplementation(() => {});
+      .mockImplementation(() => null);
     app.processUserMessage('sock-1', {
       type: 'mql-query',
       payload: { queryId: 'q1' }, // missing query + cardinality

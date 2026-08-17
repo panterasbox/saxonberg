@@ -2,7 +2,7 @@
 #
 # "Duncan Hall" the building is a proper name (NamedMixin on the
 # enclosing Zone); "the lobby of Duncan Hall" is a generic-label
-# room — shortDescription only, no NamedMixin. The pane header
+# room — shortDescription only, no NamedMixin. The card header
 # falls back to displayName which falls back to shortDescription
 # for non-Named hosts; the building's identity rides through the
 # zone path, not the room's own label.
@@ -14,7 +14,7 @@
 # Exitable.applyExits.
 #
 # `populates:` seeds a couple of instrument instances into the
-# lobby on hydrate so the inspection pane's contents list has
+# lobby on hydrate so the inspection card's contents list has
 # something to render — demonstrating the contents projection
 # end-to-end against real content.
 class: /obj/location/Room

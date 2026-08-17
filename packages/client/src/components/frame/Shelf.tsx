@@ -26,7 +26,7 @@
  * 2. **`unexposed`** (`COIN`, `STATUS`) — genuinely figures about you,
  *    simply not on the wire. A one-field addition unhatches each.
  * 3. ⭐ **`not-self`** (`TIME`, `ONLINE`, `DOCKET`) — **world** figures,
- *    not self fields. The `self` pane structurally cannot carry them no
+ *    not self fields. The `self` card structurally cannot carry them no
  *    matter what is added to `Avatar`; they need a different source,
  *    and that is a design conversation rather than a field addition. A
  *    reason saying "no subscribable field yet" here would send the next
@@ -49,8 +49,8 @@
  *
  * ## The subscription
  *
- * One `self` pane, opened here in a `useEffect`, torn down on unmount —
- * byte-for-byte the shape `InspectionPane` established. No new service
+ * One `self` card, opened here in a `useEffect`, torn down on unmount —
+ * byte-for-byte the shape `InspectionCard` established. No new service
  * layer and no second registry. Results land in the store rather than
  * component state so tests can drive the shelf without a socket.
  */
@@ -96,7 +96,7 @@ export type HatchReason = "unexposed" | "not-self";
 export const HATCH_COPY: Record<HatchReason, string> = {
   unexposed: "no subscribable field yet",
   "not-self":
-    "not a figure about you — a world figure, which the self pane cannot carry",
+    "not a figure about you — a world figure, which the self card cannot carry",
 };
 
 export interface ShelfRow {
@@ -141,7 +141,7 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
     label: "MAKE",
     desc: "influence · earned by building",
     // ⭐ Live since the account roll-up landed. `makeStanding` joined
-    // `PANES.self` in the same commit as the arithmetic, so the band on
+    // `CARDS.self` in the same commit as the arithmetic, so the band on
     // the wire is the ACCOUNT's — the same figure `standing` and
     // `profile` report, through the same seam.
     source: "live",
@@ -443,7 +443,7 @@ interface ShelfProps {
 }
 
 /**
- * Open the `self` pane for as long as the caller is mounted, feeding
+ * Open the `self` card for as long as the caller is mounted, feeding
  * `store.shelfFigures`.
  *
  * ⭐⭐ **A HOOK, because the subscription belongs to whoever shows the
@@ -460,14 +460,23 @@ interface ShelfProps {
  * `useStore.setState({ shelfFigures })`, which is the seam that makes
  * the shelf testable without a socket — and is therefore blind to the
  * question *does anything ask for them?* This is the wake-vs-read
- * distinction the pane holds taught: a derive-on-read surface needs its
+ * distinction the card holds taught: a derive-on-read surface needs its
  * WAKE tested, not just its read. Found by driving.
  */
 export function useSelfFigures(): void {
   useEffect(() => {
-    // ⭐ Opened BY NAME. The server owns the query, the cardinality and
-    // the field set — the client sends `pane: 'self'` and nothing else.
-    const selfId = websocketClient.subscribeMql({ pane: "self" });
+    /*
+     * ⭐ Opened BY NAME, and it is the ONLY subscription the client
+     * still opens for itself. The server owns the query, the
+     * cardinality and the field set; the client sends `chrome: 'self'`
+     * and nothing else.
+     *
+     * ⚠ It is deliberately not a CARD — no pinned-ness, no lifetime —
+     * which is why it lives beside the catalogue as `SHELF_SUBSCRIPTION`
+     * rather than in it. Forcing it to declare both axes would make the
+     * catalogue's required-fields gate meaningless.
+     */
+    const selfId = websocketClient.subscribeMql({ chrome: "self" });
 
     const handleResult = (envelope: Envelope) => {
       const env = envelope as MqlSubscriptionResultEnvelope;
@@ -480,13 +489,20 @@ export function useSelfFigures(): void {
       const env = envelope as MqlSubscriptionDeltaEnvelope;
       if (env.subscriptionId !== selfId) return;
       /*
-       * ⚠ **The single-cardinality trap.** `self` is `cardinality:
-       * 'one'`, so a slot replacement arrives as ONE `replace` keyed by
-       * the NEW stuffId with the old entry implicitly evicted. The
-       * generic `applyChanges` keys its lookup by stuffId, fails to
-       * find the prior entry, and APPENDS a second record. This is the
-       * bypass the location handler already documents at length: read
-       * the changes directly and reduce to {replace, update, remove}.
+       * ⚠ **The single-cardinality trap — fixed at the SOURCE, and this
+       * is no longer the workaround it was written as.** A
+       * `cardinality: 'one'` answer that moves to a different subject
+       * used to arrive as ONE `replace` keyed by the NEW stuffId, with
+       * the old entry only implicitly evicted; every consumer looked up
+       * by stuffId, missed, and APPENDED. `MqlSubscriptionRegistry.diff`
+       * now emits the `remove` alongside it, so the generic path is
+       * correct and no consumer needs a private bypass. (Two of them had
+       * one, which is precisely why the defect outlived both: the card
+       * feed used the generic path and rendered the room you left.)
+       *
+       * What survives here is not a bypass but a **shape**: the shelf
+       * holds ONE figure record, not a list, so reading the changes
+       * directly is simpler than reducing a list and taking `[0]`.
        */
       const store = useStore.getState();
       for (const change of env.changes) {

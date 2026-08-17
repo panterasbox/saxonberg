@@ -92,7 +92,7 @@ function sendRosterImpl(viewer: Avatar, payload: RosterFrame): void {
   }
 }
 
-/** Push the full viewer-lensed roster to one viewer (pane open / login). */
+/** Push the full viewer-lensed roster to one viewer (card open / login). */
 async function snapshotForImpl(viewer: Avatar): Promise<void> {
   if (viewer.isDestroyed() || !viewer.isConnected()) return;
   const rows = [];

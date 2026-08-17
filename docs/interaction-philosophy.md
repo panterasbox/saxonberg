@@ -195,7 +195,7 @@ feasible on a phone — it is the *most familiar* mobile interface
 shape in existence, a chat app. The minimal surface needs no
 learning; people already live in it. Second — and stronger — **the
 floor is per-activity, not just per-device.** Some of the richer
-cockpit surfaces (the inspection pane, the builder, an argument
+cockpit surfaces (the inspection card, the builder, an argument
 map) may genuinely be unwieldy on a small screen. But because every
 activity reduces to the stream and the command — exploring, combat,
 chatting, reading forums, personalizing your home, creating content

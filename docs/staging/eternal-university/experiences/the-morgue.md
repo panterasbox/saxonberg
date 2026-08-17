@@ -62,7 +62,7 @@ without putting it on rails. The scaffold below is how.
    *asking*, not by reading a menu or hitting a wall.
 3. **The breadcrumb is the next question, never a marker** (§13). A stuck player
    always has a thread to pull — *who signed the certificate? who was the last
-   to see him alive?* The inspection pane and MQL (the magnifying glass, §3)
+   to see him alive?* The inspection card and MQL (the magnifying glass, §3)
    surface the next query. Crucially, the **records track runs in parallel** to
    the social one (see the routes): you can't get the body, but the game
    *teaches you to pull the intake log* — so a player who bounces off "earn

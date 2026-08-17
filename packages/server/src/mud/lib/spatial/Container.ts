@@ -282,7 +282,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * Live-query subscribable field: `contents`. Projects each visible
      * contained Stuff as a `REF_FIELDS`-shape record so the inspection
-     * pane (and any future container widget) can render the inside-of
+     * card (and any future container widget) can render the inside-of
      * view from a single subscription without a per-child round trip.
      *
      * Per-viewer visibility filter mirrors `LookController.lookAtLocation`'s
@@ -319,7 +319,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           );
           // Surface-resting items (the back-bar's bottles) render under their
           // surface, not as loose contents — the same rule `look`/`sense` use
-          // (`ContainmentApi.looseContents`), so the inspection pane agrees.
+          // (`ContainmentApi.looseContents`), so the inspection card agrees.
           return ContainmentApi.looseContents(visible).map((child) =>
             MqlSubscriptionApi.projectFields(child, REF_FIELDS, viewer),
           );

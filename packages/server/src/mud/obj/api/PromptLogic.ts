@@ -21,7 +21,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type Interactive from '../Interactive';
 import type { Sensor } from '../../lib/message/Sensor';
 import { MessageApi } from '../../api/message';
-import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import { CardApi } from '../../api/card';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -148,6 +148,38 @@ function push<T>(
       outcome: { notes: [{ ...note, ...currentAsker() }] },
     };
     MessageApi.sendEnvelope(holder, template);
+
+    /*
+     * ⭐⭐ **The card that says a question is still waiting.**
+     *
+     * It opens **pinned**, which is the whole of the guarantee the
+     * retired `unanswered` hold used to carry: the relevance window can
+     * never reach a pinned card, so nothing still actionable ever ages
+     * out, and `notifyPromptSettled` below is the only thing that ends
+     * it — with the reason `answered`.
+     *
+     * ⚠⚠ **This call is the one that was missing.** The catalogue
+     * declared a `prompt` row, the settle path was written, and
+     * `card-prompt.test.ts` exercised the whole lifetime — through
+     * `CardApi.push`, which **no production code called**. The suite
+     * was green over a card that could never be born. Found by driving:
+     * `wiki create` opened the prompt strip and the feed stayed empty.
+     *
+     * ⚠ The BODY is not on the card. The client already holds one
+     * prompt model (the prompt queue); the card joins it by `promptId`,
+     * so there is one prompt model and the feed reads it.
+     */
+    /*
+     * ⚠ **One card per QUESTION, so the key carries the `promptId`.**
+     * Keyed on the bare catalogue command, a second prompt arriving
+     * while the first still waited would TOUCH the first card and
+     * silently retarget it at the newer question — one card answering
+     * for two, and the older one with nothing left pointing at it.
+     */
+    CardApi.push(interactive, 'prompt', {
+      promptId,
+      key: `prompt ${promptId}`,
+    });
   });
 }
 
@@ -255,13 +287,13 @@ function cleanup(record: ResolverRecord): void {
     }
   }
   /*
-   * ⚠⚠ **Wake any pane held by this prompt.**
+   * ⚠⚠ **Wake any card held by this prompt.**
    *
    * `HOLD_WAKES_ON` declares `unanswered: { location: false }` — its
    * subject is a pending PROMPT, not a position, "and the prompt's own
    * resolution is what wakes it". That sentence described an intention
    * with no mechanism behind it: nothing poked the subscription
-   * registry when a prompt settled, so a `hold: 'unanswered'` pane was
+   * registry when a prompt settled, so a `hold: 'unanswered'` card was
    * **immortal**. The player answered, the card stayed, and nothing
    * about it looked broken.
    *
@@ -272,8 +304,13 @@ function cleanup(record: ResolverRecord): void {
    *
    * One known producer poking one known consumer, so it is a method
    * call rather than an event — the `notifyDurableSubject` shape.
+   *
+   * ⚠ It now pokes the CARD substrate rather than the MQL one. The
+   * guarantee is unchanged and its expression is simpler: a prompt card
+   * opens PINNED, so the relevance window can never reach it, and this
+   * settle is the only thing that ends it.
    */
-  MqlSubscriptionApi.notifyPromptSettled(record.interactive, record.promptId);
+  CardApi.notifyPromptSettled(record.interactive, record.promptId);
 }
 
 function emitValidationFailed(record: ResolverRecord, message: string): void {

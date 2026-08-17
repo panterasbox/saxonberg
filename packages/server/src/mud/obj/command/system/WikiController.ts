@@ -19,6 +19,7 @@
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
+import { CardApi } from '../../../api/card';
 import { Mml } from '../../../api/mml';
 import { PromptApi } from '../../../api/prompt';
 import { StuffApi } from '../../../api/stuff';
@@ -71,9 +72,9 @@ interface WikiModel extends CommandModel {
 const TOPIC = 'shell.result';
 
 /**
- * The structured side-channel the wiki pane reads. A `world.` topic
+ * The structured side-channel the wiki card reads. A `world.` topic
  * rather than `shell.result.` because it is world content, and because
- * a player who filters the shell family should still get the pane.
+ * a player who filters the shell family should still get the card.
  */
 const PAGE_TOPIC = 'publication.wiki';
 
@@ -168,13 +169,15 @@ export default class WikiController extends CommandController<WikiModel> {
     const header = viaAlias
       ? `${page.getTitle()}  (via '${WikiPage.normalizeName(ref)}' → ${page.getHandle()})`
       : `${page.getTitle()}  (${page.getHandle()}, rev ${page.getRev()})`;
-    this.send(
+    // Card first, so `carded` states a fact rather than a promise.
+    const opened = await this.pushPage(context, page, rendered);
+    this.sendCarded(
       context,
       Mml.fromMarkup(
         `\n${Mml.escape(header)}\n\n${rendered}\n`,
       ),
+      opened,
     );
-    await this.pushPage(context, page, rendered);
   }
 
   // ── Write ──
@@ -918,21 +921,39 @@ export default class WikiController extends CommandController<WikiModel> {
   }
 
   /**
+   * The page read's prose — the twin of the card `pushPage` opens.
+   *
+   * ⚠ `carded` is the card's instance id and is passed only when the
+   * card actually opened. Stamped unconditionally it is a promise, and
+   * a suppressed frame whose card never appeared is a command that did
+   * nothing at all.
+   */
+  private sendCarded(
+    context: CommandContext,
+    body: Mml,
+    carded: string | null,
+  ): void {
+    const scene = MessageApi.scene(context.commandGiver).topic(TOPIC);
+    if (carded) scene.meta({ carded });
+    scene.toSelf(body).send();
+  }
+
+  /**
    * Push the structured twin of what just went to the scroll, so the
-   * wiki pane has something to show.
+   * wiki card has something to show.
    *
    * ⭐ It carries **the body that was already rendered** — not the
    * source, and not a second render. That is the whole security
-   * argument for the pane: the payload inherits the gate rather than
+   * argument for the card: the payload inherits the gate rather than
    * re-deriving it, so there is no second path along which
    * over-capability content could reach a client (criterion 24). A
-   * pane that re-rendered from source would be exactly that second
+   * card that re-rendered from source would be exactly that second
    * path.
    *
    * `sectionsFrom` reads the **stored** source, which is markdown, and
    * yields only heading text and anchors — public structure, not
    * content. When a preview is being shown the outline comes from the
-   * DRAFT, or the pane's outline would describe the saved page while
+   * DRAFT, or the card's outline would describe the saved page while
    * its body shows the unsaved one.
    */
   private async pushPage(
@@ -941,7 +962,7 @@ export default class WikiController extends CommandController<WikiModel> {
     rendered: string,
     draft?: string,
     preview = false,
-  ): Promise<void> {
+  ): Promise<string | null> {
     const registry = await this.registry();
     let mayEdit = false;
     try {
@@ -974,6 +995,20 @@ export default class WikiController extends CommandController<WikiModel> {
       .topic(PAGE_TOPIC)
       .toSelf(Mml.fromMarkup(''), frame)
       .send();
+
+    /*
+     * ⭐ The card carries **the very frame that just went out** — one
+     * object, two deliveries. That inherits the render gate rather than
+     * re-deriving it, which is the whole security argument for the
+     * card: a second render from source would be a second path along
+     * which over-capability content could reach a client.
+     */
+    return CardApi.open(context, 'wiki', {
+      payload: { kind: 'wikiPage', page: frame },
+      // ⭐ Named by the PAGE, not by "the wiki". A column of cards all
+      // called "the wiki" is a column you cannot scan.
+      title: page.getTitle(),
+    });
   }
 }
 

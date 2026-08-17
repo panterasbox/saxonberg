@@ -1,0 +1,21 @@
+verbs: [studio]
+controller: /obj/command/author/StudioController
+opens_card: studio
+description: "Open the composer — blueprints, templates and the mixin inspector"
+help: |
+  The Studio: the blueprint catalogue, the template form and the
+  class composer, with the mixin inspector beside them. It opens as a
+  CARD in the same feed as everything else, and obeys the same pin.
+
+  ⚠ Pinned by default, for the same reason the content editor is: a
+  composition surface that aged out mid-edit would be a data-loss bug
+  wearing a lifetime rule.
+
+  ⚠ It is a composition surface, not a second content tree. What it
+  writes goes through the same CMS routes the editor uses; the Studio
+  is the shape of the question, not a separate answer.
+examples:
+  - cmd: studio
+    note: Open the composer
+validators:
+  - /lib/command/validators/requiresWizard

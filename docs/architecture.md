@@ -462,6 +462,10 @@ formatter, the login presence relay — see
 `StudioLogic`; the CMS **composition** surface — effective-mixin-set + authorable-field
 description, the blueprint catalogue, and the class scaffold/commit path — the
 `CmsApi`/`CmsLogic` twin; see [studio.md](./subsystems/studio.md)).
+`CardApi` (→ `CardLogic` → the `CardRegistry` state singleton; the right
+column's card feed — one birth path gated on a command view's
+`opens_card:`, one relevance-window sweep, and the subscription handle a
+live card owns; see [card-surface.md](./subsystems/card-surface.md)).
 
 `MqlSubscriptionApi` is the second wire channel alongside prose /
 dispatch-response. Inbound `mql-subscribe` / `mql-unsubscribe`

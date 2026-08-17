@@ -272,7 +272,7 @@ path-addressed help catalogue with a REST API and an in-game browser,
 a CMS, and the magic system the invented science describes — including
 a three-room demonstration area.
 
-**[shipped]** — the client: text-first, with a pane that can embed
+**[shipped]** — the client: text-first, with a card that can embed
 external video (built for livestreaming; a video lesson would play in
 it with no new work).
 

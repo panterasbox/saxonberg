@@ -295,7 +295,7 @@ pick.)
   no-record branch), never re-seeded (`applyPopulates` only retains the specs).
   No field double-owned.
 - **Deferred:** **custom prose** (writing your own room/item descriptions) —
-  a light player input (a `PromptApi.text` box / a summoned pane), validated
+  a light player input (a `PromptApi.text` box / a summoned panel), validated
   prose-only and sealed by the same `capture`; **not** the CMS (that's
   world-building — new rooms/NPCs/code; this is personal expression on a space
   you hold). The **apartment/home shell** reuses `DormThemes`-shaped core; the

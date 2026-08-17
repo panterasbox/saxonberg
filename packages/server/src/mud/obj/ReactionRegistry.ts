@@ -612,7 +612,7 @@ export default class ReactionRegistry extends Idea {
    * reactors the viewer recognizes / has in contacts surface (strangers
    * stay in the count, unnamed); expand passes `false` for the full set.
    * Names come from `RecognitionApi.describe` — the same late-binding
-   * the prose path uses, so the pane and scrollback can't disagree.
+   * the prose path uses, so the card and scrollback can't disagree.
    */
   private entriesFor(
     act: ActRecord,

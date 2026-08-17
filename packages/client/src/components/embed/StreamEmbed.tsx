@@ -22,7 +22,7 @@
  *    channel gracefully.
  *
  * Fixed-ratio (16:9) content sizes first per the composition grammar — the
- * box claims its aspect and the surrounding panes fill the remainder.
+ * box claims its aspect and the surrounding cards fill the remainder.
  */
 
 import React from "react";

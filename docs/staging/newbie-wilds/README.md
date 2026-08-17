@@ -467,7 +467,7 @@ even your *tutor* reinforces the identity you picked.
 - **Combat** *(deferred-rpg — this area is a forcing function)*: the poise loop,
   terms/consent/blame, aggression-setting guardrails, defeat≠death + the
   two-stage coup, the threat graph (the crew), master-apprentice teaching, the
-  summoned combat pane.
+  summoned combat card.
 - **Alignment / governance-record** *(built substrate)*: Law↔Chaos derived from
   institutional-vs-folk conduct; witnessed reputation via **regard/renown**; the
   private **mirror**. Moral axis stays locked Good (the no-murder floor).

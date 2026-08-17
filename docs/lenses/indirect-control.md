@@ -112,8 +112,8 @@ planted mystery you'll want to pull on.
 **Interface as control — the subtle, powerful one.** "What's easy is
 what gets done" is doing quiet work everywhere:
 
-- The cockpit's **inspection pane** is attention-steering rendered as
-  UI: a persistent right-column cockpit pane that keeps the focused
+- The cockpit's **inspection card** is attention-steering rendered as
+  UI: a persistent right-column cockpit card that keeps the focused
   thing and the room's contents in front of the player, so the *easy*
   thing to attend to is the thing the design surfaced. Classic visual
   indirect control, adapted to a text game.

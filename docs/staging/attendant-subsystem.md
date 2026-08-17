@@ -252,4 +252,4 @@ the card works throughout, so "closed" is never a lockout.
 The **fairness-cap-under-contention** (active-hogging); appointment/scheduling
 disciplines beyond FIFO + ticket; multi-server load-balancing niceties; the lifted
 shared **exclusive-lease** primitive (§8); player-run/player-staffed service
-points; a client queue-position pane.
+points; a client queue-position card.

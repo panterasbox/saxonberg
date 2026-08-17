@@ -8,7 +8,7 @@
  * and `ContainerMixin`'s own `contents` descriptor calls it from inside
  * its `read` — so widening `read` to return a promise would make
  * projection async *recursively through nested containment*, on the
- * inspection pane's hot path. The contract is sync for a reason.
+ * inspection card's hot path. The contract is sync for a reason.
  *
  * The other three figures are already sync for the right reason: they
  * read a **materialized standing** (`RenownStanding` and friends keep an

@@ -98,7 +98,7 @@ describe('Frame', () => {
         onToggleSettings={() => {}}
       />,
     );
-    expect(screen.getByLabelText('Toggle settings pane')).toBeTruthy();
+    expect(screen.getByLabelText('Toggle settings card')).toBeTruthy();
     expect(screen.getByText(/Views/i)).toBeTruthy();
   });
 

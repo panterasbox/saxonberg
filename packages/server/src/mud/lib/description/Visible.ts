@@ -95,7 +95,7 @@ export interface Visible {
    *
    * Same affordance-annotated text feeds both the `look` prose
    * composer and the `longDescription` subscription projection, so
-   * the terminal scrollback and the inspection pane see identical
+   * the terminal scrollback and the inspection card see identical
    * clickable wrappers around the same anchors.
    *
    * `viewer` is threaded through to augmenters that need per-recipient

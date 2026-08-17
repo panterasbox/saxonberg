@@ -396,7 +396,7 @@ concrete schema is the next subsection.)*
 Customization is **authoring the room's `DetailedMixin` tree** — the
 codebase already has the shape. Furniture is modeled as **Details** (named,
 nested, *per-instance* descriptions with no template inheritance — precisely
-a per-room authored store, and already inspection-pane-subscribable), **not
+a per-room authored store, and already inspection-card-subscribable), **not
 separate Stuff.** The customizable **fields *are* the Detail descriptions.**
 Functional affordances hang off them via `Slotted`'s **`userFacingDetail`**
 keyword (the bed is "a posture slot whose `userFacingDetail` is the `bed`

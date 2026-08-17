@@ -34,6 +34,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
+import { CardApi } from '../../../api/card';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
 import { PerceptionApi } from '../../../api/perception';
@@ -243,7 +244,7 @@ export default class LookController extends CommandController<LookModel> {
       // Items resting on a listed surface (the bottles on the back-bar) are
       // not loose room contents — they're represented by their surface and
       // discovered by examining it (`look back-bar`). Shared with `sense` and
-      // the inspection pane via `ContainmentApi.looseContents`.
+      // the inspection card via `ContainmentApi.looseContents`.
       const topLevel = ContainmentApi.looseContents(visibleContents);
       if (topLevel.length > 0) {
         // Organism occupants route through the display-lensing formatter
@@ -292,10 +293,26 @@ export default class LookController extends CommandController<LookModel> {
       }`;
     }
 
-    MessageApi.scene(actor)
-      .topic('sense.survey')
-      .toSelf(body)
-      .send();
+    /*
+     * ⚠⚠ **Open the card FIRST, then say whether the frame is carded.**
+     * Stamping `carded` before the open is a promise, not a fact: an
+     * open that touches, fails or is filtered leaves the suppressed
+     * prose with nothing to replace it, and `look dave` in Dave's Bar
+     * printed its echo and nothing else. The id also lets
+     * the client re-show the prose when a named view filters this kind
+     * out of the feed.
+     */
+    const opened = CardApi.open(context, 'subject', {
+      prose: body,
+      subjectId: location.stuffId,
+    });
+
+    const scene = MessageApi.scene(actor).topic('sense.survey');
+    // ⭐ Says *this content is also on a card*, so `shell.result` can
+    // filter it. A topic key could not: `sense.survey` is shared by
+    // twelve verbs that open no card at all.
+    if (opened) scene.meta({ carded: opened });
+    scene.toSelf(body).send();
 
     return;
   }
@@ -381,10 +398,15 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
 
-    MessageApi.scene(actor)
-      .topic('sense.survey')
-      .toSelf(body)
-      .send();
+    // Card first — see the room path: `carded` must be a fact.
+    const openedSubject = CardApi.open(context, 'subject', {
+      subjectId: target.stuffId,
+      prose: body,
+    });
+
+    const subjectScene = MessageApi.scene(actor).topic('sense.survey');
+    if (openedSubject) subjectScene.meta({ carded: openedSubject });
+    subjectScene.toSelf(body).send();
 
     return;
   }
@@ -396,7 +418,7 @@ export default class LookController extends CommandController<LookModel> {
       // the client turns it into the affordance that sends `go <dir>`.
       // The door's name rides its own `<item>` tag so it's clickable
       // too (renderer resolves stuff-id → primaryKeyword and emits
-      // `look <doorKeyword>`) — same affordance the inspection pane
+      // `look <doorKeyword>`) — same affordance the inspection card
       // gives, kept consistent across surfaces.
       const tagged = Mml.exit(exit);
       const door = exit.getDoor();

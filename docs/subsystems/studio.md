@@ -70,7 +70,7 @@ gate closed.
 | Op | Gate | Purpose |
 |---|---|---|
 | `describeClass(classPath, contextPath?)` | `isAuthor` | effective mixin set + authorable field list joined to type shape + effective value/source |
-| `describeMixin(name)` | `isAuthor` | one mixin for the composer's inspector pane — its FULL multi-paragraph concept comment + the authorable fields it contributes (name + type shape) + its runtime-state field names (all from the source scan) + optional HelpApi enrichment (typed relations + conferred method names, degrading to empty when the help artifact is absent) |
+| `describeMixin(name)` | `isAuthor` | one mixin for the composer's inspector card — its FULL multi-paragraph concept comment + the authorable fields it contributes (name + type shape) + its runtime-state field names (all from the source scan) + optional HelpApi enrichment (typed relations + conferred method names, degrading to empty when the help artifact is absent) |
 | `createTemplate(input)` | `isAuthor` (+ the code-field gate on the `class` set) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
 | `listBlueprints()` / `getBlueprint(id)` | `isAuthor` | browse the catalogue (ungated reads over the singleton) |
 | `publishBlueprint(input)` | `isAuthor` | **act #2** — name/publish a composition of approved classes |
@@ -224,7 +224,7 @@ authorization semantics — the server re-gates every write and returns a
   prototype chain. The right column is a **live-scaffolded** Monaco source
   editor (debounced ~300ms `scaffoldClass` on every composition change — never a
   data form) with the commit toolbar + inline disposition, docked above a
-  **resizable mixin inspector pane** (the `describeMixin` consumer: sticky,
+  **resizable mixin inspector card** (the `describeMixin` consumer: sticky,
   lazy-fetched-and-cached, renders the last-hovered/focused mixin's full concept
   comment + contributed fields + relations/methods, degrading gracefully when
   the help artifact is absent). A live **matching-blueprints** panel dedups the
@@ -290,7 +290,7 @@ Three design→implementation shifts are worth recording:
   form, so the earlier `ClassPicker`/`MixinPalette`/single-`StudioForm` shape gave
   way to distinct surfaces, plus the **live-scaffolded** source output (the source
   regenerates as you compose rather than on an explicit "scaffold" click) and the
-  dedicated **resizable mixin inspector** pane.
+  dedicated **resizable mixin inspector** card.
 - **The composer base is any approved class**, not only the 8 fundamental roots —
   "Author a new kind from this →" makes a concrete class (e.g. `Coin`) the
   *superclass*, resolved by name via the export-source scan. The structural
@@ -311,3 +311,23 @@ Three design→implementation shifts are worth recording:
   drifted curated row's signature/composition **in place** in
   `#curatedOverlay` — the reconcile-by-`blueprintId` fix. A base-class mixin
   addition is now a safe, boot-surviving re-seed.
+
+## ⭐ The Studio is a CARD
+
+`studio` is a verb (`mud/cmd/author/studio.yaml`, `requiresWizard`)
+opening a `client`-source card. The catalogue, the template form and the
+class composer speak the Studio REST routes; the server owns the card's
+existence, identity, lifetime and pinned-ness.
+
+⚠ Pinned by default and `noProse`, for the same two reasons the content
+editor is — see [cms.md](./cms.md).
+
+⚠ **`studio` collides with the sandbox's `/studio/<collective>` scope**,
+and that is two concepts sharing a word rather than one concept in two
+places. The sandbox build's zero-new-verbs guard listed `studio.yaml`
+as forbidden; it is exempted **by path** (`author/studio.yaml`), because
+the guard says *the sandbox build ships no verbs*, not *the word is
+reserved forever* — and the composer is the one this subsystem doc is
+named after.
+
+See [card-surface.md](./card-surface.md).

@@ -595,9 +595,9 @@ const ScaffoldEditor: React.FC<{
   );
 };
 
-// ---- right-column mixin inspector pane -----------------------------------
+// ---- right-column mixin inspector card -----------------------------------
 
-const InspectorPane = styled.div<{ $height: number }>`
+const InspectorPanel = styled.div<{ $height: number }>`
   height: ${(p) => p.$height}px;
   flex: none;
   min-height: 96px;
@@ -742,7 +742,7 @@ const InspectorEmpty = styled.div`
 `;
 
 /**
- * The dedicated, scrollable mixin inspector pane. Sticky: it renders whatever
+ * The dedicated, scrollable mixin inspector card. Sticky: it renders whatever
  * mixin was last inspected (hovered/focused) so the author can read it while
  * composing. Fetches lazily on the first inspect and reads the per-mixin cache
  * — a hover never refetches. Content degrades gracefully: the description +
@@ -768,7 +768,7 @@ const MixinInspector: React.FC<{
         aria-label="Resize the inspector"
         onPointerDown={onResizeStart}
       />
-      <InspectorPane $height={height} data-testid="mixin-inspector">
+      <InspectorPanel $height={height} data-testid="mixin-inspector">
         {inspected === null ? (
           <InspectorEmpty>Hover or focus a mixin to inspect it.</InspectorEmpty>
         ) : (
@@ -858,7 +858,7 @@ const MixinInspector: React.FC<{
             </InspectorBody>
           </>
         )}
-      </InspectorPane>
+      </InspectorPanel>
     </>
   );
 };
@@ -885,7 +885,7 @@ export const ComposerView: React.FC = () => {
     if (blueprints === null) void listBlueprints();
   }, [palette, blueprints, listPalette, listBlueprints]);
 
-  // The resizable inspector pane's height (center column, docked below the
+  // The resizable inspector card's height (center column, docked below the
   // source editor). A pointer-drag on the divider adjusts it; the source stays
   // visible above at all times.
   const [inspectorHeight, setInspectorHeight] = React.useState(300);
@@ -894,7 +894,7 @@ export const ComposerView: React.FC = () => {
     const startY = e.clientY;
     const startH = inspectorHeightRef.current;
     const onMove = (ev: PointerEvent): void => {
-      // Dragging up (smaller clientY) grows the pane.
+      // Dragging up (smaller clientY) grows the card.
       const next = startH + (startY - ev.clientY);
       setInspectorHeight(Math.max(96, Math.min(720, next)));
     };

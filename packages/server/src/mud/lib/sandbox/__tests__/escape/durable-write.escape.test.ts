@@ -19,9 +19,22 @@ import {
   SandboxWriteRefusedError,
 } from '../../../../../backend/PersistenceManager';
 import {
+
+
   ExecutionContextApi,
   OMNI_SCOPE,
 } from '../../../../api/execution-context';
+
+/*
+ * ⚠ **20 s, not vitest's 5 s default.** Every sandbox test stands up a
+ * circle and runs at least one session ceremony, which costs seconds —
+ * so on a loaded full-suite run they time out in ones and twos while
+ * passing in isolation, which reads as a flake and is really a budget.
+ * The measurement and the argument for raising it per FILE rather than
+ * globally live in `escape/round-trip.test.ts`.
+ */
+vi.setConfig({ testTimeout: 20_000 });
+
 
 const SCOPE = '/home/escape-tester';
 

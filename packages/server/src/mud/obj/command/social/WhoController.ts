@@ -20,10 +20,18 @@ import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { PlayerApi } from '../../../api/player';
 import { SocialApi, type RosterRow } from '../../../api/social';
+import { CardApi } from '../../../api/card';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
-/** Identity-family self/social readout — reuse, don't invent a topic. */
-const TOPIC = 'act.deed';
+/**
+ * ⭐ **Retopic'd to `shell.result`.** `who` is a structured command
+ * result — it is exactly what the `shell.result` filter is for — and it
+ * was on `act.deed` (the identity-family readout topic) only because
+ * nothing yet distinguished the two. Left on `act.deed` it would be the
+ * one shipped card whose prose the terminal filter could not find,
+ * which is the silent half of decision 10 failing.
+ */
+const TOPIC = 'shell.result';
 
 /** Above this many rows, unrecognized strangers collapse to a count. */
 const COLLAPSE_ABOVE = 40;
@@ -79,10 +87,24 @@ export default class WhoController extends CommandController<WhoModel> {
       rows = rows.filter((r) => r.country?.toLowerCase().includes(q));
     }
 
-    MessageApi.scene(viewer)
-      .topic(TOPIC)
-      .toSelf(this.render(rows, model))
-      .send();
+    const body = this.render(rows, model);
+    /*
+     * ⭐ The card carries **the rows this controller already built** —
+     * not a second read of the roster. One computation, two renderings,
+     * so the card and the scrollback cannot disagree about who is here.
+     *
+     * ⚠ Opened BEFORE the frame is sent, so `carded` states a fact
+     * rather than a promise — a frame suppressed in favour of a card
+     * that never appeared is a command that did nothing.
+     */
+    const opened = CardApi.open(context, 'who', {
+      payload: { kind: 'roster', rows },
+      prose: body,
+    });
+
+    const scene = MessageApi.scene(viewer).topic(TOPIC);
+    if (opened) scene.meta({ carded: opened });
+    scene.toSelf(body).send();
   }
 
   /** Render the roster — known people named, strangers collapsed when dense. */

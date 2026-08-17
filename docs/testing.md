@@ -391,17 +391,53 @@ minutes the CPU figure suggests.
 same shape: fake-clock simulation loops paying the per-call cost above.
 No test-side fix without weakening them.
 
-## The standing flakes
+## The standing flakes — and what they turned out to be
 
-Two tests in `sandbox.guests.test.ts` fail under full-suite load and
-**pass in isolation** (verified: 30/30 green in 17.7s). They are
-load-sensitive, pre-existing, and not caused by any change here. Under
-heavier contention the set widens to `landing.integration`,
-`Consumables`, `sandbox.crossing`, `sandbox.wardrobe`,
-`crossing.escape` — all sandbox/timing tests.
+Two tests in `sandbox.guests.test.ts` failed under full-suite load and
+**passed in isolation** (verified: 30/30 green in 17.7s). Under heavier
+contention the set widened to `landing.integration`, `Consumables`,
+`sandbox.crossing`, `sandbox.wardrobe`, `crossing.escape` — all
+sandbox/timing tests.
 
 **Never quote a failure count without an isolation run.** The count
 tracks machine load, not code health.
+
+### ⭐⭐ The sandbox family was not flaky — it was over budget
+
+Diagnosed during the card-surface sweep (2026-08-17), and the
+distinction matters because it changes what you do about it.
+
+Every sandbox test stands up a circle and runs at least one **session
+ceremony** — mint a vessel, move the sockets, `Avatar.enter`,
+auto-sense. Timed in isolation on an idle box, individual tests cost
+**2.4–5.7 s against vitest's 5 s default**. Several were already over
+the limit *with no contention at all*; the rest were within one spike
+of it. That is not a flake, it is a test budget that had quietly been
+outgrown, and it presented as a flake because isolation runs are faster
+than the full suite by exactly the margin involved.
+
+⚠ **A build can push a marginal test over without being wrong.** The
+card-surface build made arrival open a card, which resolves and
+subscribes. Measured by removing `opens_card` from `sense.yaml` and
+re-running: `sandbox.crossing.test.ts` went 19.3 s → 17.5 s, about
+**10%**, or ~100 ms per arrival. The feature costing what the feature
+costs — but enough to turn "passes most of the time" into "fails most
+of the time" for tests already at 90% of budget.
+
+⭐ **The fix is a per-FILE `vi.setConfig({ testTimeout: 20_000 })`**, now
+on all 18 sandbox test files, with the measurement recorded in
+`escape/round-trip.test.ts`. Per-file rather than global on purpose: a
+global raise would buy these files' honesty at the price of every
+genuine hang in the suite taking four times as long to report.
+
+⚠ **Patching them one at a time as they fail is the wrong shape** —
+that was tried first and it was whack-a-mole, because the whole family
+shares the cost. When a timing failure has a common cause, fix the
+family, not the file that happened to lose the race.
+
+⚠ Not every entry above is explained by this. `landing.integration` and
+`Consumables` are outside the sandbox family and still want their own
+measurement.
 
 ## ⭐⭐ Test the WAKE, not just the read
 
@@ -417,10 +453,10 @@ passed** — because each seeded the store directly
 lets a shelf be tested without a socket, and is therefore structurally
 blind to the question *does anything ask?*
 
-The same shape had already bitten the pane holds, where eleven green
-tests missed an immortal pane because all of them hand-refreshed.
+The same shape had already bitten the card holds, where eleven green
+tests missed an immortal card because all of them hand-refreshed.
 
-So for anything that **derives on read** — a pane hold, a standing, a
+So for anything that **derives on read** — a card hold, a standing, a
 reconcile-on-read projection, a subscription-fed widget — write the
 read test *and* a second test that asserts the thing which is supposed
 to wake it actually does:

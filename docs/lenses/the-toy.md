@@ -113,7 +113,7 @@ stand on.
 Still the structural fight of the medium, and the prior entry was
 right to call it the biggest threat. What's shipped since: every
 clickable previews the command it will type (the ghost command line),
-the inspection pane surfaces what's around you, prompt wheels make
+the inspection card surfaces what's around you, prompt wheels make
 choices tangible, the cockpit's affordances are the "pick me up" that
 a bare prompt can't say. What hasn't happened: a single stranger
 sitting down in front of it. **Q2 is unproven and unprovable until

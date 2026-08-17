@@ -284,7 +284,7 @@ a player-facing economy.
 ## What ships (fidelity)
 
 Surface the **headlines** (a Good-row cell + a Law↔Chaos band, as bands/prose);
-**measure the vectors** underneath so a deep read (inspection pane, investigator
+**measure the vectors** underneath so a deep read (inspection card, investigator
 report, faction dossier) can expand them. Coarse readout, rich substrate. The
 vertical goes live off the chronicle; the horizontal seeds thin pending the
 conviction verbs; the mirror ships reflection-only.

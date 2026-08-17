@@ -503,7 +503,7 @@ function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
 /**
  * A collapsed-group line — a targetable handle carrying its MQL seed in a
  * `mudq:` `<link>` so the four client addressability paths (hover →
- * command-bar preview, expand-on-pull, inspection-pane drill, verb-time
+ * command-bar preview, expand-on-pull, inspection-card drill, verb-time
  * `mqlMany`) have something to resolve. `mudq:` is inert-but-painted in v1
  * (see `message-rendering.md`); the click/preview wiring is the deferred
  * seam. The seed is the human-readable room-scope query (`dwarves in red

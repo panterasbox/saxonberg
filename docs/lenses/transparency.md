@@ -33,7 +33,7 @@ interface intrude, and can that intrusion be designed away?
 ## Why our design prompts it
 
 Because the interface is unusual and load-bearing: a command line, a
-prose stream, and a cockpit of panes. A CLI is famously the *opposite*
+prose stream, and a cockpit of cards. A CLI is famously the *opposite*
 of transparent to a newcomer (a blank prompt tells you nothing), yet
 [interaction-philosophy.md](../interaction-philosophy.md) bets the whole
 interaction model on command primacy. So the question "does this
@@ -51,9 +51,9 @@ interface disappear — and for whom?" is sharp and unavoidable here.
   compose the same command string. There's no mode confusion, no
   "which interface am I in" — structurally one surface, which is a
   precondition for transparency.
-- **The inspection pane keeps the world present, not the menu.** A
-  persistent MQL-driven cockpit pane surfaces the focused thing and the
-  room around you ([inspection-pane.md](../subsystems/inspection-pane.md)),
+- **The inspection card keeps the world present, not the menu.** A
+  persistent MQL-driven cockpit card surfaces the focused thing and the
+  room around you ([card-surface.md](../subsystems/card-surface.md)),
   so attention rests on the world rather than on navigating UI.
 - **The failsafe string + per-message-type rendering.** The
   `MmlRenderer` and message templates
@@ -71,10 +71,10 @@ interface disappear — and for whom?" is sharp and unavoidable here.
   moment, exactly when intrusion hurts most. This is the same
   discoverability gap the [Toy](./the-toy.md) and
   [Flow](./flow.md) lenses hit, viewed from the interface side.
-- **Every pane is a transparency tax.** The cockpit's value is keeping
-  the world present, but each pane added is one more thing the eye
+- **Every card is a transparency tax.** The cockpit's value is keeping
+  the world present, but each card added is one more thing the eye
   looks *at* instead of *through*. The world-of-record is the text
-  stream; panes that compete with it for attention work against
+  stream; cards that compete with it for attention work against
   transparency even when individually useful. (The retired chip strips
   are the precedent for restraint.)
 - **The two-surface fluidity has a small seam.** CLI-plus-forms is
@@ -89,11 +89,11 @@ interface disappear — and for whom?" is sharp and unavoidable here.
    form-to-CLI graduation are *how* a CLI becomes transparent; invest
    in them as such, and measure the first session by how fast the
    interface stops registering.
-2. **Hold the pane budget.** Each cockpit pane must justify its
+2. **Hold the card budget.** Each cockpit card must justify its
    attention cost by making the world *more* present than its absence
-   would — the inspection pane's job is to remove queries you'd
+   would — the inspection card's job is to remove queries you'd
    otherwise type, not to add a thing to watch. Default to the
-   chip-strips-retired instinct: when in doubt, fewer panes.
+   chip-strips-retired instinct: when in doubt, fewer cards.
 3. **Accessibility is transparency for excluded players.** Screen
    readers, transcripts, and themes ride the failsafe-string +
    canonical-command substrate for free

@@ -17,6 +17,7 @@
 import { CommandController } from "../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../api/command";
 import { MessageApi } from "../../../api/message";
+import { CardApi } from "../../../api/card";
 import { Mml } from "../../../api/mml";
 import { HelpApi } from "../../../api/help";
 import type {
@@ -157,15 +158,31 @@ export default class HelpController extends CommandController<HelpModel> {
     // through verbatim; the "See also" chrome is plain text and is escaped
     // by `compose`.
     const body = Mml.fromMarkup(topic.body);
+    let composed: Mml;
     if (topic.relations.length === 0) {
-      this.tell(context, Mml.compose`\n${body}\n`);
-      return;
+      composed = Mml.compose`\n${body}\n`;
+    } else {
+      const seeAlso: string[] = ["", "See also:"];
+      for (const rel of topic.relations) {
+        seeAlso.push(`  ${rel.kind}: ${rel.targetTitle}`);
+      }
+      composed = Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`;
     }
-    const seeAlso: string[] = ["", "See also:"];
-    for (const rel of topic.relations) {
-      seeAlso.push(`  ${rel.kind}: ${rel.targetTitle}`);
-    }
-    this.tell(context, Mml.compose`\n${body}\n${seeAlso.join("\n")}\n`);
+    // Card first — `carded` must be a fact, not a promise. See
+    // `MessageFrame.meta.carded`.
+    const opened = CardApi.open(context, "help", {
+      payload: { kind: "helpTopic", topic },
+      prose: composed,
+      // ⭐ Named by the TOPIC, not by "the rulebook".
+      title: topic.title,
+    });
+    this.tell(context, composed, opened);
+    /*
+     * ⭐ The card carries **the topic this read already resolved**, and
+     * the prose it just emitted. The help card is the one Wave 7 surface
+     * with no client-side existence today; the REST catalogue is what
+     * fills its body, and this is what opens it.
+     */
   }
 
   /** Escape a plain-text chrome block to MML and send it. */
@@ -173,10 +190,19 @@ export default class HelpController extends CommandController<HelpModel> {
     this.tell(context, Mml.compose`${text}`);
   }
 
-  private tell(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver)
-      .topic("shell.result")
-      .toSelf(body)
-      .send();
+  /**
+   * `carded` says *this content is also on a card*, which is what
+   * `shell.result` filters on. Only the topic read sets it — the
+   * landing page, the verb list and the search results open no card,
+   * so suppressing them would leave `help` doing nothing.
+   */
+  private tell(
+    context: CommandContext,
+    body: Mml,
+    carded: string | null = null,
+  ): void {
+    const scene = MessageApi.scene(context.commandGiver).topic("shell.result");
+    if (carded) scene.meta({ carded });
+    scene.toSelf(body).send();
   }
 }

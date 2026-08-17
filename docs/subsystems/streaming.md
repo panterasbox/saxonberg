@@ -3,7 +3,7 @@
 One platform-agnostic surface for **tuning into a livestream** — any live
 broadcast on **Twitch, YouTube, or Kick** — and consuming it inside the
 cockpit: **watch** its video in the focal embed, **follow** its chat in the
-aggregated chat pane, and (Twitch this cycle) **post** to that chat under
+aggregated chat card, and (Twitch this cycle) **post** to that chat under
 your own linked identity. The streamer is named by an argument string (a
 URL, a handle + a platform opt, or an in-game character), resolved lazily
 into a runtime `StreamerTarget` — **nothing is persisted**.
@@ -36,7 +36,7 @@ semantic difference:
   `watch` swaps it; `watch off` clears it. `watch` also **implies** `tune`
   (watching a stream pulls its chat in).
 - **`tune <target>`** — **chat** follow (cardinality **N**). Follows a
-  streamer's chat into the aggregated pane; many at once, interleaved with
+  streamer's chat into the aggregated card; many at once, interleaved with
   per-line provenance. `tune <target> <message>` posts (Twitch, linked
   account). `tune off <target>` stops; bare `tune` lists; `tune
   list`/`who`/`history` behave platform-agnostically.

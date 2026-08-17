@@ -291,7 +291,7 @@ export class PerceptionLogic extends ApiLogic {
     // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
     // — so a containment-only test misses every door in the game. This
     // clause is the entire reason reach could not stay hand-rolled: the
-    // pane hold that omitted it released `out-of-reach` on doors the
+    // card hold that omitted it released `out-of-reach` on doors the
     // `open` verb worked on perfectly well.
     if (location && MixinApi.isExitable(location)) {
       for (const exit of location.getObviousExits()) {

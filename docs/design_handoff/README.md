@@ -36,7 +36,7 @@ Ordered so each step ships independently and nothing blocks on later work.
 ### 3 — The play surface
 | What | Reference |
 |---|---|
-| General play, focus chain, pane feed | `Explore - Two Feeds.dc.html`, `Play Surface - General.dc.html` |
+| General play, focus chain, card feed | `Explore - Two Feeds.dc.html`, `Play Surface - General.dc.html` |
 | Verb affordances from mixins | `Mixin-Derived Affordances.dc.html` |
 | Prompt system (stack, validation, compose) | `Prompt System.dc.html` |
 | Filters, search scopes | `Filters and Search.dc.html` |

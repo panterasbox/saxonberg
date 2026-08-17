@@ -99,9 +99,9 @@ interface FrameProps {
   onCommandClick?: (command: string) => void;
   /** Hover-preview a command in the status bar (`null` = stop). */
   onCommandPreview?: (command: string | null) => void;
-  /** Whether the settings pane is currently open. */
+  /** Whether the settings card is currently open. */
   settingsActive?: boolean;
-  /** Toggle the settings pane; absent → the affordance is hidden. */
+  /** Toggle the settings card; absent → the affordance is hidden. */
   onToggleSettings?: () => void;
 }
 
@@ -134,7 +134,7 @@ export const Frame: React.FC<FrameProps> = ({
     {onToggleSettings ? (
       <SettingsButton
         $active={settingsActive ?? false}
-        aria-label="Toggle settings pane"
+        aria-label="Toggle settings card"
         onClick={onToggleSettings}
       >
         Settings

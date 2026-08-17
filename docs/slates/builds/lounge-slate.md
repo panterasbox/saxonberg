@@ -2080,9 +2080,9 @@ away.**
 |---|---|
 | **the board / the deck** | a **Stuff** on a table, holding state |
 | **the rules** | ⭐⭐⭐ **a BRAIN** — path-resolved stateless module: state + move → state. Existing module category, HMR-able, **zero invention** |
-| **the pane** | a **cockpit layout** — already server-authoritative |
+| **the card** | a **cockpit layout** — already server-authoritative |
 
-> ⭐⭐ **The pane is a COMMAND COMPOSER, not an alternate interface.**
+> ⭐⭐ **The card is a COMMAND COMPOSER, not an alternate interface.**
 
 Clicking a square previews `move e4`, per the standing rule — which
 keeps it playable in plain text, keeps **spectating** free, and makes a
@@ -2238,7 +2238,7 @@ Deck    31 left                              Pot 40
 **`hand` is a LOOK, not a new verb** (`look at my hand` is the same
 thing) — which keeps it out of the verb budget. Suits render as glyphs
 **coloured by suit through MML** (free styling in the shipped renderer),
-degrading to `c d h s` on a plain terminal. **The pane pins the same two
+degrading to `c d h s` on a plain terminal. **The card pins the same two
 blocks so they stop scrolling away — the same content, not more of it.**
 
 ### Verbs: four diegetic, the rest under a dispatch

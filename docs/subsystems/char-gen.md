@@ -476,13 +476,13 @@ the kind's portrait). char-gen reads:
 - `nameBankKeys` — references to one or more `NameBank` Documents that
   feed the name suggester.
 - `illustration` — the bucket-relative key for the species portrait,
-  surfaced on `CharGenOption.image` (the 3:4 detail-pane slot). The client
+  surfaced on `CharGenOption.image` (the 3:4 detail-card slot). The client
   resolves it via `MEDIA_BASE_URL`; see [media.md](./media.md).
 - `getBodyPlanPath()` / Material path — drive the **species dossier**:
   the scientific binomial, the Linnaean classification ladder (derived
   from the taxonomic template path), and anatomy/composition lines. This
   is the showcase of the depth of the world model, rendered in the
-  species detail pane.
+  species detail card.
 
 **The dossier and the illustration are presentation, not controller
 logic.** The dossier is built by `SpeciesApi.buildDossier(species, path)`

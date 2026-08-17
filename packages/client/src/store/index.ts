@@ -8,9 +8,9 @@
  * - Session-wide stuff metadata registry (populated as a side effect
  *   of MQL subscription / query envelope handling — see
  *   `services/websocket.ts`).
- * - Inspection pane state (header focus name + fragment, body
+ * - Inspection card state (header focus name + fragment, body
  *   paint/clear flag, last subscription result snapshot, breadcrumb
- *   trail). Single slice per inspection-pane requirements — no
+ *   trail). Single slice per inspection-card requirements — no
  *   competing-rendering-authority splits.
  */
 
@@ -50,7 +50,7 @@ import type {
 export type ForumProjectedRecord = ForumEntryRecord | ForumSubjectRecord;
 import { createCmsSlice, type CmsSlice } from "./cmsSlice";
 import { createStudioSlice, type StudioSlice } from "./studioSlice";
-import { createPaneFeedSlice, type PaneFeedSlice } from "./paneFeedSlice";
+import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -245,6 +245,15 @@ export interface Frame {
    */
   inReactionTo?: string;
   /**
+   * ⭐ **This frame's content is also on a card** (`meta.carded`).
+   *
+   * The `shell.result` setting filters on it: `card` drops the frame,
+   * `terminal` hides the card, `both` renders both. Stamped by the
+   * producer that opens the card, so the two cannot disagree about
+   * which content is duplicated.
+   */
+  carded?: string;
+  /**
    * The per-Interactive gutter number (`meta.frameId`). Used as the
    * `react --msg <#>` selector for the per-row quick-react affordance;
    * the server resolves the gutter → commandId.
@@ -299,7 +308,7 @@ export interface Frame {
 interface StoreState
   extends CmsSlice,
     StudioSlice,
-    PaneFeedSlice,
+    CardFeedSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -413,11 +422,11 @@ interface StoreState
 
   /**
    * The widget shelf's figures — the latest record from the `self`
-   * pane, or `null` before the first delivery.
+   * card, or `null` before the first delivery.
    *
    * ⚠ Store state rather than component state so a test can drive the
    * shelf with `useStore.setState` and no socket, exactly as the
-   * inspection pane's slices allow.
+   * inspection card's slices allow.
    *
    * ⚠⚠ **Every field is optional and an absent key is meaningful.** The
    * server omits a field its descriptor could not answer for, and the
@@ -436,40 +445,38 @@ interface StoreState
   mergeShelfFigures: (patch: Partial<SelfFigureRecord>) => void;
 
   /**
-   * Whether the "Social / Notifications" settings pane (a modal over the
+   * Whether the "Social / Notifications" settings card (a modal over the
    * `notify` verb) is open. Opened from the account menu; ephemeral
    * client-only UI state, never persisted.
    */
-  socialPaneOpen: boolean;
-  setSocialPaneOpen: (open: boolean) => void;
+  socialPanelOpen: boolean;
+  setSocialPanelOpen: (open: boolean) => void;
 
   /**
-   * The summoned-pane tier — the no-modal replacement for "pop a modal".
-   * A transient pane that renders BESIDE the current layout's terminal
-   * (never full-screen, never blocks input — the inspection pane is the
+   * The summoned-card tier — the no-modal replacement for "pop a modal".
+   * A transient card that renders BESIDE the current layout's terminal
+   * (never full-screen, never blocks input — the inspection card is the
    * existing proof). `null` = none summoned. v1 kind: `'settings'`.
-   * Opening a pane is client UI state (like the inspection pane), not a
+   * Opening a card is client UI state (like the inspection card), not a
    * layout switch; the controls inside send real commands.
    */
-  summonedPane: "settings" | null;
-  openPane: (kind: "settings") => void;
-  closePane: () => void;
+  summonedPanel: "settings" | null;
+  openPanel: (kind: "settings") => void;
+  closePanel: () => void;
 
   /**
-   * Which right-column cockpit pane the world layout shows —
-   * `'inspect'` (the inspection pane), `'who'` (the "Who's Online"
+   * Which right-column cockpit card the world layout shows —
+   * `'inspect'` (the inspection card), `'who'` (the "Who's Online"
    * roster), or `'news'` (the release news-ticker). Ephemeral
    * client-only UI state, never persisted. Consulted by the world
-   * layout's right-column pane switch.
+   * layout's right-column card switch.
    */
-  rightPane: "inspect" | "who" | "news" | "wiki";
-  setRightPane: (pane: "inspect" | "who" | "news" | "wiki") => void;
 
   /**
-   * The article the wiki pane is showing (`publication.wiki`), or
+   * The article the wiki card is showing (`publication.wiki`), or
    * `null` before anything has been read this session.
    *
-   * The body arrives **already rendered and already gated** — the pane
+   * The body arrives **already rendered and already gated** — the card
    * displays it and never re-renders from a source, which is what
    * keeps the reveal model's one gate on the server where it lives.
    * Ephemeral, never persisted: the page is one `wiki <name>` away.
@@ -797,185 +804,6 @@ interface StoreState
    */
   reactionPrefs: NonNullable<ConnectionEstablishedPayload["reactionPrefs"]>;
 
-  // Inspection-pane slice ---------------------------------------------
-  /**
-   * Display name shown in the pane header. Tracks the live focus name
-   * from the canonical `me.focus` subscription's first record; falls
-   * back to `paneFocusFragment` (the raw fragment text) when the
-   * subscription's records have not yet arrived or when focus is
-   * multi-cardinality. The header is always-live; deltas update it
-   * irrespective of `paneBodyPainted`.
-   */
-  paneFocusName: string | null;
-  /**
-   * The literal focus fragment string as understood server-side (e.g.
-   * `'here'`, `'apple'`, `'friends'`). The client tracks it
-   * separately so the paint/clear policy can compare across deltas:
-   * a fragment change clears the body, an unchanged fragment lets
-   * deltas patch in place.
-   */
-  paneFocusFragment: string;
-  /**
-   * Body paint/clear flag. False on mount and after any focus-verb
-   * driven focus change; true after a `look` against the current
-   * focus. While cleared, deltas update `paneLastResult` (cache stays
-   * warm) but the body renders the placeholder. While painted,
-   * deltas update the body in place.
-   */
-  paneBodyPainted: boolean;
-  /**
-   * Most recent canonical `me.focus` subscription record set. Held in
-   * a single slot so the body renderer can branch on cardinality
-   * without re-deriving from individual deltas. Patched in place by
-   * every subscription envelope; rendered only when `paneBodyPainted`.
-   */
-  paneLastResult: (StuffRefRecord | StuffDetailRecord)[] | null;
-  /**
-   * Inspection-pane breadcrumb root — the player's current
-   * physical location (room or vessel). Sourced from the
-   * `me.location` canonical subscription, NOT from focus changes.
-   * Movement reroots this; focus changes don't.
-   *
-   * Shape mirrors what `<EntityName>` needs: display name for
-   * label, primaryKeyword (or fallback) for the click-target
-   * command, stuffId for `data-stuff-id`. Null when the player
-   * has no current location (pre-login / disconnect).
-   */
-  paneBreadcrumbRoot: {
-    stuffId: string;
-    displayName: string;
-    primaryKeyword?: string;
-  } | null;
-  /**
-   * Trail segments pushed since the last reroot — each entry is a
-   * past focus that wasn't the location. Click on a segment sends
-   * the look command that originally produced it. Capped at
-   * `PANE_BREADCRUMB_CAP` entries.
-   */
-  paneBreadcrumbTrail: {
-    label: string;
-    command: string;
-    stuffId?: string;
-  }[];
-  /**
-   * Detail-drill stack on the currently-focused Stuff. Empty means
-   * the pane is viewing the Stuff itself (long description, exits,
-   * contents). Non-empty means the pane has descended through one
-   * or more detail keys — `['counter']` means the player is
-   * looking AT the counter detail (its description replaces the
-   * long, contents hide, exits stay marked as parent-Stuff). The
-   * focused Stuff itself doesn't change as you drill; only the
-   * level of inspection descends.
-   *
-   * Cleared on any focus change (subscription delta with a new
-   * fragment) and on explicit pop. v1 supports one-level drilling
-   * because the wire shape doesn't ship nested-detail children;
-   * the stack is array-shaped to make extension trivial.
-   */
-  paneDetailPath: string[];
-  /**
-   * Flip the paint/clear flag. Called from outgoing `look`-detection
-   * (paints) and from the focus-change delta path (clears). The
-   * paint policy is client-side, not substrate-driven — the server
-   * always ships the up-to-date result, the client decides whether
-   * to render it.
-   */
-  setPanePainted: (painted: boolean) => void;
-  /**
-   * Replace the cached subscription result snapshot. Called by the
-   * canonical-kind subscription consumer (see InspectionPane.tsx).
-   */
-  setPaneResult: (
-    result: (StuffRefRecord | StuffDetailRecord)[] | null,
-  ) => void;
-  /**
-   * Replace the live header name (display name from the first
-   * subscription record, or fragment fallback when the record set
-   * is empty / multi-cardinality).
-   */
-  setPaneFocusName: (name: string | null) => void;
-  /**
-   * Replace the tracked focus fragment. The paint/clear policy
-   * compares this across deltas to decide whether a focus change
-   * just happened.
-   */
-  setPaneFocusFragment: (fragment: string) => void;
-  /**
-   * Push a detail key onto the detail-drill stack — the player is
-   * descending into a detail of the focused Stuff. Idempotent on
-   * the head (clicking the same detail twice is a no-op).
-   */
-  pushPaneDetail: (key: string) => void;
-  /**
-   * Slice the detail stack so position `index` is the new tail.
-   * Used by detail-breadcrumb clicks to back out to that level
-   * without traversing one pop at a time. `index < 0` clears.
-   */
-  popPaneDetailToIndex: (index: number) => void;
-  /**
-   * Clear the detail-drill stack entirely. Called from the
-   * focus-change path so a focus shift resets the drill state.
-   */
-  clearPaneDetail: () => void;
-  /**
-   * Replace the breadcrumb root from a `me.location` subscription
-   * delivery. Clears the trail — movement re-roots and starts a
-   * fresh push series.
-   */
-  setPaneBreadcrumbRoot: (
-    root: {
-      stuffId: string;
-      displayName: string;
-      primaryKeyword?: string;
-    } | null,
-  ) => void;
-  /**
-   * Push a trail segment from a focus change. Dedupes against the
-   * head, caps at `PANE_BREADCRUMB_CAP`.
-   */
-  pushPaneBreadcrumbTrail: (entry: {
-    label: string;
-    command: string;
-    stuffId?: string;
-  }) => void;
-  /**
-   * Pop the trail to a specific index (inclusive). Used by trail
-   * segment clicks to back out to that level.
-   */
-  popPaneBreadcrumbTrail: (index: number) => void;
-  /**
-   * Ephemeral door-context annotation. Stashed when the player
-   * clicks a door affordance inside an exits projection — carries
-   * the direction the door belongs to so the pane can synthesise
-   * an exit link when the focused thing is that door. Cleared
-   * whenever focus changes to a different stuffId (so a stale
-   * context never bleeds into the wrong inspection).
-   *
-   * Pure UI sugar — the door Stuff itself has no notion of "which
-   * exit am I"; the client reconstructs the relationship from the
-   * click site that has both pieces in scope.
-   */
-  paneDoorContext: { stuffId: string; direction: string } | null;
-  /** Replace the door-context annotation. Null clears it. */
-  setPaneDoorContext: (
-    ctx: { stuffId: string; direction: string } | null,
-  ) => void;
-  /**
-   * Typed keyword/fragment from the player's most recent
-   * focus-changing command (`look <X>` / `focus <X>`), stashed so
-   * the breadcrumb-trail push can label entries by what the player
-   * actually typed instead of the focused Stuff's primaryKeyword.
-   *
-   * Set by the outgoing-command seam in App.tsx; consumed (read +
-   * cleared) by the focus-subscription delivery path in
-   * InspectionPane when it pushes a trail entry. `null` between
-   * commands or after consumption — in which case the trail push
-   * falls back to primaryKeyword.
-   */
-  pendingTrailLabel: string | null;
-  /** Set the pending typed label for the next breadcrumb push. */
-  setPendingTrailLabel: (label: string | null) => void;
-
   // Prompt-stack slice -------------------------------------------------
   /**
    * Per-Interactive prompt stack ordered by arrival. Server
@@ -1078,10 +906,10 @@ interface StoreState
 }
 
 /**
- * Maximum breadcrumb history depth — the inspection-pane
+ * Maximum breadcrumb history depth — the inspection-card
  * requirements' "last 6 focus values" rule.
  */
-const PANE_BREADCRUMB_CAP = 6;
+const CARD_BREADCRUMB_CAP = 6;
 
 /**
  * Three-tier topic resolution mirroring
@@ -1241,15 +1069,15 @@ export const useStore = create<StoreState>((set, get) => ({
     get as Parameters<typeof createStudioSlice>[1],
   ),
 
-  // The pane feed — the right column's cards, keyed by subscription
-  // handle. Only touches `paneCards`; same narrow set/get shape.
-  ...createPaneFeedSlice(
-    set as Parameters<typeof createPaneFeedSlice>[0],
-    get as Parameters<typeof createPaneFeedSlice>[1],
+  // The card feed — the right column's cards, keyed by subscription
+  // handle. Only touches `cards`; same narrow set/get shape.
+  ...createCardFeedSlice(
+    set as Parameters<typeof createCardFeedSlice>[0],
+    get as Parameters<typeof createCardFeedSlice>[1],
   ),
 
   // The affordance cache — one answer per subject, read by BOTH the
-  // radial and every pane body's composition chips. Only touches the
+  // radial and every card body's composition chips. Only touches the
   // `affordance*` keys.
   ...createAffordanceSlice(
     set as Parameters<typeof createAffordanceSlice>[0],
@@ -1322,14 +1150,14 @@ export const useStore = create<StoreState>((set, get) => ({
   openCommandSheet: (command) => set(() => ({ commandSheet: command })),
   closeCommandSheet: () => set(() => ({ commandSheet: null })),
 
-  // The widget shelf's `self`-pane record.
+  // The widget shelf's `self`-card record.
   shelfFigures: null,
   setShelfFigures: (record) => set(() => ({ shelfFigures: record })),
   mergeShelfFigures: (patch) =>
     set((s) =>
       s.shelfFigures === null
         ? // A patch with no prior record cannot be merged into
-          // anything. Dropping it is correct: the pane's initial
+          // anything. Dropping it is correct: the card's initial
           // RESULT is what establishes the record, and a delta that
           // arrives first would produce a partial record with an
           // invented `stuffId`.
@@ -1337,27 +1165,24 @@ export const useStore = create<StoreState>((set, get) => ({
         : { shelfFigures: { ...s.shelfFigures, ...patch } },
     ),
 
-  // "Social / Notifications" settings-pane modal toggle (account menu).
-  socialPaneOpen: false,
-  setSocialPaneOpen: (open) => set(() => ({ socialPaneOpen: open })),
+  // "Social / Notifications" settings-card modal toggle (account menu).
+  socialPanelOpen: false,
+  setSocialPanelOpen: (open) => set(() => ({ socialPanelOpen: open })),
 
-  // Summoned-pane tier (the no-modal side panel).
-  summonedPane: null,
-  openPane: (kind) => set(() => ({ summonedPane: kind })),
-  closePane: () => set(() => ({ summonedPane: null })),
+  // Summoned-card tier (the no-modal side panel).
+  summonedPanel: null,
+  openPanel: (kind) => set(() => ({ summonedPanel: kind })),
+  closePanel: () => set(() => ({ summonedPanel: null })),
 
-  // Right-column cockpit pane axis (world layout): inspection | who's-online
+  // Right-column cockpit card axis (world layout): inspection | who's-online
   // | news-ticker.
-  rightPane: "inspect",
-  setRightPane: (pane) =>
-    set((state) => (state.rightPane === pane ? {} : { rightPane: pane })),
 
   wikiPage: null,
-  // Reading a page SWITCHES to the pane. The verb's whole purpose is
+  // Reading a page SWITCHES to the card. The verb's whole purpose is
   // to put an article in front of somebody, and leaving it behind a
-  // tab they have to know about would make the pane a thing you find
+  // tab they have to know about would make the card a thing you find
   // rather than a thing you use.
-  setWikiPage: (page) => set(() => ({ wikiPage: page, rightPane: "wiki" })),
+  setWikiPage: (page) => set(() => ({ wikiPage: page })),
 
   // "Who's Online" roster (self.group). Keyed by stable handle;
   // ordering recomputed on every mutation (recognized first, then header).
@@ -1522,6 +1347,21 @@ export const useStore = create<StoreState>((set, get) => ({
      * place below: the old path is not deleted until the backfill has
      * been driven live.
      */
+    /*
+     * ⭐ **A backfilled frame never carries `carded`, and that is a
+     * decision.**
+     *
+     * The `shell.result` filter hides a frame because a card is showing
+     * the same content RIGHT NOW. A backfilled frame has no card — it is
+     * your history — so hiding it would lose exactly what the
+     * filter-not-placement design promised to keep: *filtering keeps
+     * your `who` history searchable while keeping it out of sight.*
+     *
+     * ⚠ Stated rather than left to the field list below, because "the
+     * mapper happens not to copy it" and "history is deliberately
+     * unfiltered" look identical from the code and only one of them
+     * survives a refactor.
+     */
     const backfill: Frame[] = (payload.frameBackfill ?? []).map((f) => ({
       id: f.id,
       topic: f.topic,
@@ -1577,7 +1417,19 @@ export const useStore = create<StoreState>((set, get) => ({
       reactableTopics: reactable,
       feed,
       feedOrder: orderFeed(feed),
-      clientState: { ...(payload.clientState ?? {}) },
+      /*
+       * ⭐ `shell.result` seeds into clientState rather than into a
+       * field of its own, because the WRITE path pushes it there: a
+       * `client-state-update` from `SettingsController` is how the
+       * setting takes effect without a reconnect. Two homes for one
+       * answer would drift the first time only one of them was written.
+       */
+      clientState: {
+        ...(payload.clientState ?? {}),
+        ...(payload.resultDisplay
+          ? { "shell.result": payload.resultDisplay }
+          : {}),
+      },
       ...(payload.reactionPrefs
         ? { reactionPrefs: payload.reactionPrefs }
         : {}),
@@ -1672,122 +1524,7 @@ export const useStore = create<StoreState>((set, get) => ({
       };
     }),
 
-  // Inspection-pane slice (initial cleared state)
-  paneFocusName: null,
-  paneFocusFragment: "",
-  paneBodyPainted: false,
-  paneLastResult: null,
-  paneBreadcrumbRoot: null,
-  paneBreadcrumbTrail: [],
-  paneDetailPath: [],
-  paneDoorContext: null,
-  pendingTrailLabel: null,
-
-  setPendingTrailLabel: (label) =>
-    set((state) =>
-      state.pendingTrailLabel === label ? {} : { pendingTrailLabel: label },
-    ),
-
-  setPanePainted: (painted) =>
-    set(() => ({
-      paneBodyPainted: painted,
-    })),
-
-  pushPaneDetail: (key) =>
-    set((state) => {
-      const trimmed = key.trim();
-      if (!trimmed) return {};
-      if (state.paneDetailPath[state.paneDetailPath.length - 1] === trimmed) {
-        return {};
-      }
-      return { paneDetailPath: [...state.paneDetailPath, trimmed] };
-    }),
-
-  popPaneDetailToIndex: (index) =>
-    set((state) => {
-      if (index < 0) {
-        if (state.paneDetailPath.length === 0) return {};
-        return { paneDetailPath: [] };
-      }
-      const target = index + 1;
-      if (target >= state.paneDetailPath.length) return {};
-      return { paneDetailPath: state.paneDetailPath.slice(0, target) };
-    }),
-
-  clearPaneDetail: () =>
-    set((state) => {
-      if (state.paneDetailPath.length === 0) return {};
-      return { paneDetailPath: [] };
-    }),
-
-  setPaneBreadcrumbRoot: (root) =>
-    set((state) => {
-      // Same stuffId → no-op. Different stuffId → reroot (clear
-      // trail). Null → clear root + trail (disconnect / pre-login).
-      if (root === null) {
-        if (state.paneBreadcrumbRoot === null) return {};
-        return { paneBreadcrumbRoot: null, paneBreadcrumbTrail: [] };
-      }
-      if (
-        state.paneBreadcrumbRoot &&
-        state.paneBreadcrumbRoot.stuffId === root.stuffId
-      ) {
-        // Same room — refresh the projection in case displayName /
-        // keyword changed, but keep the trail intact.
-        return { paneBreadcrumbRoot: root };
-      }
-      return { paneBreadcrumbRoot: root, paneBreadcrumbTrail: [] };
-    }),
-
-  pushPaneBreadcrumbTrail: (entry) =>
-    set((state) => {
-      const head =
-        state.paneBreadcrumbTrail[state.paneBreadcrumbTrail.length - 1];
-      if (head && head.command === entry.command) return {};
-      const next = [...state.paneBreadcrumbTrail, entry];
-      if (next.length > PANE_BREADCRUMB_CAP) next.shift();
-      return { paneBreadcrumbTrail: next };
-    }),
-
-  popPaneBreadcrumbTrail: (index) =>
-    set((state) => {
-      if (index < 0 || index >= state.paneBreadcrumbTrail.length) return {};
-      return {
-        paneBreadcrumbTrail: state.paneBreadcrumbTrail.slice(0, index),
-      };
-    }),
-
-  setPaneDoorContext: (ctx) =>
-    set((state) => {
-      if (ctx === null) {
-        return state.paneDoorContext === null ? {} : { paneDoorContext: null };
-      }
-      const current = state.paneDoorContext;
-      if (
-        current &&
-        current.stuffId === ctx.stuffId &&
-        current.direction === ctx.direction
-      ) {
-        return {};
-      }
-      return { paneDoorContext: ctx };
-    }),
-
-  setPaneResult: (result) =>
-    set(() => ({
-      paneLastResult: result,
-    })),
-
-  setPaneFocusName: (name) =>
-    set(() => ({
-      paneFocusName: name,
-    })),
-
-  setPaneFocusFragment: (fragment) =>
-    set(() => ({
-      paneFocusFragment: fragment,
-    })),
-
+  // Inspection-card slice (initial cleared state)
   // Prompt-stack slice (initial cleared state)
   prompts: [],
   promptDrafts: { [BASE_SLOT]: "" },

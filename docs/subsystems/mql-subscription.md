@@ -181,7 +181,7 @@ resolveFieldSet(array) === array;
 hosts contribute no descriptor and the substrate's projection
 loop omits the field naturally. `contents` lives on
 `ContainerMixin.subscribableFields` (non-container hosts omit it
-on the wire). See the inspection-pane subsystem doc for the
+on the wire). See the inspection-card subsystem doc for the
 details surface and the per-viewer visibility filter that scopes
 `contents` projection.
 
@@ -189,19 +189,19 @@ details surface and the per-viewer visibility filter that scopes
 limit.** Between them they carry a name, a quantity, a keyword, two
 descriptions, details, material, mass, contents and exits — every one of
 which describes *what a thing is*. **Neither carries a figure ABOUT the
-subject**: no standing, no competence, no renown. So a pane whose whole
+subject**: no standing, no competence, no renown. So a card whose whole
 content is such figures cannot use an alias and has to name its fields.
-That is what widened `PaneDefinition.fields` (below); the subscribe path
+That is what widened `CardDefinition.fields` (below); the subscribe path
 itself needed no change at all, because `resolveFieldSet` has always
 returned an explicit `FieldSet` unchanged.
 
-### The pane catalogue's field sets
+### The card catalogue's field sets
 
-`lib/connection/Panes.ts` declares
-`readonly fields: FieldSet | FieldAlias`, so a shipped pane may name an
-alias or an explicit list. Three panes ship:
+`lib/connection/Cards.ts` declares
+`readonly fields: FieldSet | FieldAlias`, so a shipped card may name an
+alias or an explicit list. Three cards ship:
 
-| Pane | Query | Cardinality | Fields |
+| Card | Query | Cardinality | Fields |
 |---|---|---|---|
 | `inspect` | `$focus` | `many` | `'detail'` |
 | `location` | `here` | `one` | `'ref'` |
@@ -238,9 +238,9 @@ answering at the wrong level in exactly the case nobody tests.
 
 ⚠ The durable index is built from the **subscription's** field list —
 `deriveAndInstallDependencies` skips any descriptor whose name is not in
-`sub.fields` — so a pane naming its fields explicitly still wakes
+`sub.fields` — so a card naming its fields explicitly still wakes
 normally. That was verified rather than assumed
-(`pane-catalogue.test.ts`), because the whole liveness of the shelf
+(`card-catalogue.test.ts`), because the whole liveness of the shelf
 rested on it.
 
 **The wire contract for a band is a NAME, not a value object.**
@@ -278,7 +278,7 @@ holder. `FocusedMixin.setFocus` / `clearFocus` fires
 matches; the subscription marks dirty; re-resolve runs against
 the now-updated `$focus` fragment; the diff produces a delta.
 End-to-end without any synthetic event class. Used by the
-inspection pane's `$focus` subscription.
+inspection card's `$focus` subscription.
 
 #### `locationDependent`
 
@@ -286,7 +286,7 @@ Installs `(FieldChangedEvent.KIND, 'field', 'container')` against
 the holder. `Containable.setContainer` fires
 `FieldChangedEvent { field: 'container' }` on walk / teleport /
 board / disembark; the holder-level entry matches and the
-subscription wakes. Used by the inspection pane's `here`
+subscription wakes. Used by the inspection card's `here`
 breadcrumb-root subscription.
 
 Both flags are meaningless for `mql-query` one-shot reads (no
@@ -348,7 +348,7 @@ Server-side programmatic one-shot reads call `MqlApi.resolveOne`
 / `resolveMany` + `projectFields` directly; this surface is the
 wire-facing channel. v1 consumers of the substrate include the
 `find` verb pattern documented in
-[docs/subsystems/inspection-pane.md](./inspection-pane.md) — the
+[docs/subsystems/card-surface.md](./card-surface.md) — the
 player-typed `find` rides the command bus, while the
 `mql-query` channel is reserved for future programmatic widget
 reads.
@@ -463,7 +463,7 @@ implementation here would drift from it.
 promise.** `MqlSubscriptionApi.projectFields` is
 sync, and `ContainerMixin`'s own `contents` descriptor calls it from
 *inside* its `read` — so a promise would make projection async
-**recursively through nested containment**, on the inspection pane's hot
+**recursively through nested containment**, on the inspection card's hot
 path.
 
 The other three figures are sync for the right reason: they read a
@@ -544,7 +544,7 @@ straight after persisting.
 broadcast with unknown consumers; this is one known producer poking one
 known consumer, which the codebase's rule makes a method call. It also
 matches the **exact** subject, so one player's renown append no longer
-wakes every other player's standing pane.
+wakes every other player's standing card.
 
 Mechanically it reuses everything: the tuple is installed under a
 synthetic `DURABLE_SUBJECT_KIND` so the index, the refcount and the
@@ -671,8 +671,17 @@ drain are dropped silently.
 
 - old null + new top → `op: 'replace'` with full record
 - old top + new null → `op: 'remove'`, no `fields`
-- different top stuffIds → `op: 'replace'` with full record
+- different top stuffIds → ⭐⭐ `op: 'remove'` **and** `op: 'replace'`
 - same top stuffId, fields differ → `op: 'update'` with diffed fields
+
+⚠⚠ **The identity-change case shipped as a lone `replace`, and it was
+unapplicable.** Every consumer looks a record up by `stuffId`, misses
+on a key it has never seen, and **appends** — so the old subject
+survived at index 0 and the new one landed beneath it, which reads as
+*the view never updated*. The answer moving is a **removal and an
+arrival**, and the wire now says both. Two consumers had already grown
+private bypasses for this, which is exactly why it outlived them: the
+generic path everything else uses still had the bug. Fixed once, here.
 
 **Collection cardinality:**
 
@@ -792,25 +801,25 @@ substrate's re-projection without any descriptor changes.
 
 These land in follow-up scope when concrete consumers demand them.
 
-## ⭐ The pane feasibility survey
+## ⭐ The card feasibility survey
 
 *Record-layer phase 6, 2026-08-14. What the design handoff's screens
-want a pane to say, and whether the substrate can say it today.*
+want a card to say, and whether the substrate can say it today.*
 
-**Why a survey and not rows.** `Panes.ts` states its own rule — *every
-entry is a pane the client actually opens; adding a row for a pane
+**Why a survey and not rows.** `Cards.ts` states its own rule — *every
+entry is a card the client actually opens; adding a row for a card
 nobody opens is how a vocabulary ends up sized to a mockup rather than
 to the game.* So this build delivers the **finding**, not the schema.
 Each row's answer converts Wave 4's biggest unknown into a list, and
-the wave that opens a pane adds its row then.
+the wave that opens a card adds its row then.
 
-Three questions per pane, exactly as the requirements pose them: can
+Three questions per card, exactly as the requirements pose them: can
 **MQL** answer it today; does it need a **hold** beyond the five; does
 it need a **field** no `subscribableFields` declares?
 
-### The panes the screens want
+### The cards the screens want
 
-| Pane | Screen | MQL today? | Hold | Fields missing |
+| Card | Screen | MQL today? | Hold | Fields missing |
 |---|---|---|---|---|
 | `inspect` — what you are looking at | Play Surface | ✅ shipped (`$focus`) | none (paint/clear) | see *Composition* + *Measured rows* below |
 | `location` — where you are | Play Surface | ✅ shipped (`here`) | none | — |
@@ -829,18 +838,18 @@ it need a **field** no `subscribableFields` declares?
 > stays because its *findings* are still live (what MQL can answer,
 > which hold each needs, which field is missing); read it as the
 > analysis it was, not as a description of the cards.
-> See [inspection-pane.md](./inspection-pane.md).
+> See [card-surface.md](./card-surface.md).
 
-⚠ **The art has FIVE pane kinds, not four.** `Manifest` (*your pack* —
-carried mass, bulk, nested vessels, hold `carried`) is a full pane in
+⚠ **The art has FIVE card kinds, not four.** `Manifest` (*your pack* —
+carried mass, bulk, nested vessels, hold `carried`) is a full card in
 `Explore - Two Feeds` and a pinned chip in `Mobile - Live Client`; the
 plan's body table names four. Called out rather than silently resolved,
 per the method rule.
 
 ### The two structural findings
 
-**1. ⚠⚠ A FORM pane's subject is not a Stuff, and MQL only speaks
-Stuff.** Every other pane resolves an MQL scope to objects and projects
+**1. ⚠⚠ A FORM card's subject is not a Stuff, and MQL only speaks
+Stuff.** Every other card resolves an MQL scope to objects and projects
 fields off them. A form is a pending `PromptApi` interaction: its
 subject is a prompt id, its content is a question and a set of reply
 commands, and the thing that ends it is an answer rather than a
@@ -848,14 +857,14 @@ movement. The `unanswered` hold *already* knows this — `holdSubject`
 carries a prompt id and `evaluateHold` asks `PromptApi.isPending`, not
 where anything is.
 
-So the FORM pane is not an MQL subscription with a missing field. It is
+So the FORM card is not an MQL subscription with a missing field. It is
 the prompt substrate rendered as a card, and the prompt substrate
 already pushes its own envelopes. **The finding: build FORM off the
 prompt channel, and do not widen MQL to resolve non-Stuff subjects.**
 Widening it would put a second, weaker prompt model beside the real one.
 
 **2. ⚠ The measured rows are the real gap, and they are per-mixin.**
-What every non-trivial pane body in the art actually shows is a short
+What every non-trivial card body in the art actually shows is a short
 list of *readings*:
 
 > `Temperature 1240 °C` · `Working window 1150–1300 °C` · `Fuel 4.1 kg
@@ -899,16 +908,16 @@ the mixin that owns the reading, declared where the value lives, with
 already exemplifies. It is not a substrate change; it is a per-mixin
 todo list, and each entry is cheap.
 
-⚠ **The pane body must therefore hatch, not invent.** Until a mixin
+⚠ **The card body must therefore hatch, not invent.** Until a mixin
 declares its reading, `projectFields` omits the field and the client
-renders an honest absence. A pane that filled the gap with a plausible
+renders an honest absence. A card that filled the gap with a plausible
 number would be the exact defect the `Figure` convention exists to
 prevent.
 
 ### The three smaller gaps
 
 - **`kind`** (*npc · service*, *fixture · smithing*, *thing · food*) —
-  the one-line classification under the pane title. Nothing declares it.
+  the one-line classification under the card title. Nothing declares it.
   It is derivable from composition, which makes it a candidate for
   `Stuff.subscribableFields` rather than a per-mixin descriptor.
 - **Active composition** (the mixin chip row, `+11`) —
@@ -918,15 +927,15 @@ prevent.
   not a new subscribable field: a composition projected onto a
   subscription would go stale exactly as the digest would.
 - **Per-row readings on `contents`** — `REF_FIELDS` is
-  `displayName`/`quantity`/`primaryKeyword`, so a PLACE pane's *Here*
+  `displayName`/`quantity`/`primaryKeyword`, so a PLACE card's *Here*
   list can name each item but cannot say `1240 °C` beside it. This is
   the one gap that is a **substrate** question rather than a descriptor
   one: it asks for a nested projection, and the honest v1 answer is that
-  each row is clickable and opens its own pane.
+  each row is clickable and opens its own card.
 
 ### What this means for the client wave
 
-Nothing in the survey blocks the pane feed. The four spatial kinds
+Nothing in the survey blocks the card feed. The four spatial kinds
 resolve today; FORM rides the prompt channel it already has; every
 missing reading degrades to a hatch rather than to a wrong number. The
 survey's value is that the wave knows which of its bodies will be
@@ -949,7 +958,7 @@ content and reaching for a plausible default.
   so subscriptions on `here` (or any holder-position query) wake
   on movement. `Containable.setContainer` now fires
   `FieldChangedEvent { field: 'container' }`. Used by the
-  inspection pane's breadcrumb root.
+  inspection card's breadcrumb root.
 - **`primaryKeyword` descriptor relocated.** Originally on
   `Stuff.subscribableFields` with an inline mixin gate
   (`MixinApi.isPerceptible`); moved onto
@@ -960,3 +969,51 @@ content and reaching for a plausible default.
   hosts contribute one.
 
 Commit range: `41240c7..HEAD` on the `inspection` branch.
+
+## ⚠ The card catalogue LEFT this substrate
+
+A subscription used to be able to name a card (`{ card: 'inspect' }`),
+and the server described it from `lib/connection/Cards.ts`; a
+subscription carrying a `hold` **was** a card. All of that is gone.
+
+What remains here is the plain shape: a caller-supplied `query`,
+`cardinality` and field set. Cards are their own substrate with their
+own birth path, their own registry and their own lifetime —
+[card-surface.md](./card-surface.md).
+
+Three seams survive the split:
+
+- ⭐⭐ **`subjectId`** — resolve ONE named Stuff instead of running the
+  query. `resolveSubjectBound` looks the id up and returns it only if
+  `PerceptionApi.perceives(viewer, found)`, **re-checked on every
+  re-resolve, not once at subscribe**: a `stuffId` is not a capability,
+  and a subscription that gated at birth would keep answering for a
+  subject since concealed, moved or disguised.
+
+  ⚠⚠ It exists because a **relative query cannot back a subscription
+  about a THING.** `here`, `$focus` and `person` all re-answer against
+  the asker, so any wake re-points the answer at the asker's current
+  situation — which is how a card about the lounge became a card about
+  the bar while looking exactly like a card that tracks its room. The
+  anchor has to be an id on the subscription; no query text can express
+  it.
+
+  ⚠ Not an `#<stuffId>` MQL seed, and the difference is security: that
+  seed is authoring-tier and **ungated**, so a subscription built on it
+  would answer for anything whose id the viewer had ever seen on a
+  frame.
+- **`silent: true`** — register and resolve, but do NOT emit the initial
+  result envelope; return the records instead. A LIVE card owns its
+  subscription handle (`instanceId === subscriptionId`) and carries the
+  first resolve on its own `card-opened`; emitting a second envelope for
+  one open is how a card ends up briefly showing nothing while the
+  client reconciles two shapes for the same content.
+- **`mql-subscription-delta`** still carries a live card's updates,
+  because the ids are the same by construction. No new envelope, no
+  join table.
+
+⚠ The wire lost `card`, `subject`, `hold` and `holdSubject` from
+`MqlSubscribeMessage` and gained exactly one field: `chrome?: 'self'`,
+the widget shelf's subscription. **A client cannot name a card at the
+protocol level** — which is a stronger guarantee than a source grep,
+because a missing field cannot be used at all.

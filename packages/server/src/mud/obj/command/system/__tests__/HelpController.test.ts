@@ -48,6 +48,8 @@ describe("HelpController", () => {
         topicName = t;
         return b;
       };
+      // ⭐ `meta({ carded: true })` — the marker `shell.result` filters on.
+      b.meta = () => b;
       b.toSelf = (body: unknown) => {
         selfBody = body;
         return b;

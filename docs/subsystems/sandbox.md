@@ -467,7 +467,7 @@ would quietly restore the hole.
   on the gate, in the field as well as in a circle.
 - **The CMS button rides the command bus** — it has no endpoint of its
   own. "Test in holodeck" sends `go wardrobe` over the game tab's
-  existing socket, the same way the forum panes' buttons dispatch
+  existing socket, the same way the forum cards' buttons dispatch
   commands, and the ordinary refusal comes back in-fiction when the
   author isn't standing at a door.
 
@@ -500,7 +500,7 @@ would quietly restore the hole.
   blunt on purpose — "nothing threw, nothing
   was denied" is the invariant that actually regressed, and a
   per-verb assertion on output would drift with the content. Assertions target the
-  **location pane heading**, never the message feed — the feed is
+  **location card heading**, never the message feed — the feed is
   append-only scrollback, so a room name from three commands ago is
   still on screen and a "did we move?" assertion against it passes
   without anyone moving. For the same reason, a delivered-message

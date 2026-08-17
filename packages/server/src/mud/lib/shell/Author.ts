@@ -103,11 +103,12 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // carries `requiresArchwizard`, so an author who isn't an
         // archwizard sees the verb but can't run it.
         'author/wizard.yaml',
-        // News-ticker operator surface — post / edit / retract on the
-        // staff→player broadcast feed. Afforded on the operator command
-        // surface like the rest of this suite; `release.yaml` carries
-        // `requiresAuthor`, so a non-author sees nothing.
-        'system/press.yaml',
+        // ⚠ `system/press.yaml` LEFT this list. Bare `press` is the
+        // READ — the news, and the command that opens the news card —
+        // so contributing it only here made the news a surface an
+        // ordinary player could not ask for. It is contributed by
+        // `ShelledCharacter` now, and its publishing SUBCOMMANDS carry
+        // `requiresPublisher` for themselves.
         // Banking operator surface — the central-bank faucet (mint subsidy),
         // wage payment, and the P&L read. Afforded on the operator command
         // surface like the rest of this suite; each carries
@@ -128,6 +129,12 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // can't run it. The per-affected-path `can('write')` refinement
         // stays in `GitLogic`.
         'system/git.yaml',
+        // The authoring CARDS. Afforded on the operator command surface
+        // like the rest of this suite; each carries `requiresWizard`
+        // (they edit engine content), so a non-wizard sees the verb but
+        // cannot run it — the parser floor, not a hidden verb.
+        'author/cms.yaml',
+        'author/studio.yaml',
       ],
       peers: [],
       environment: [],

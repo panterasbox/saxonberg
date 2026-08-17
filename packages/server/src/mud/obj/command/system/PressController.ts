@@ -28,6 +28,7 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { AppApi } from '../../../api/app';
+import { CardApi } from '../../../api/card';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import {
   PressApi,
@@ -68,9 +69,32 @@ export default class PressController extends CommandController<ReleaseModel> {
     context: CommandContext,
   ): Promise<void> {
     switch (model.subcommand) {
-      // Bare `release <headline>` falls through with no subcommand; the
-      // explicit `post` subcommand is the same publish path.
+      /*
+       * ⭐ Bare `press` with NO headline is the READ — the news, and the
+       * command that opens the `news` card.
+       *
+       * ⚠ It used to refuse — first with *headline required*, and
+       * (found by DRIVING) before that with *you hold no publishing
+       * position, so there is nobody you can press as*, because
+       * `requiresPublisher` was a VERB-level validator. That is a
+       * publishing answer to a reading question, and it made the news
+       * the one shipped surface a player could not ask for: the ticker
+       * arrived on connect and no verb showed it again. A card whose
+       * only birth path is an arrangement would contradict *a command
+       * opens a card; nothing else does*.
+       *
+       * ⚠⚠ The gate moved to the `post` / `edit` / `retract`
+       * subcommands, NOT away: the bare `press <headline>` fallthrough
+       * publish form is still refused, at `PressApi.publish`'s own
+       * `EmploymentApi.mayPublishAs` entitlement — which runs BEFORE
+       * anything is minted or persisted, and which the verb validator
+       * was only ever duplicating.
+       */
       case undefined:
+        if (!(model.headline ?? '').trim()) {
+          return this.executeRead(context);
+        }
+        return this.executePublish(model, context);
       case 'post':
         return this.executePublish(model, context);
       case 'edit':
@@ -84,6 +108,38 @@ export default class PressController extends CommandController<ReleaseModel> {
           'unknown-subcommand',
         );
     }
+  }
+
+  /** Bare `press` — the live ticker window, as prose and as a card. */
+  private executeRead(context: CommandContext): void {
+    const releases = PressApi.recent();
+    const rows = releases.map((r) => PressApi.toRow(r));
+    const body =
+      rows.length === 0
+        ? Mml.fromMarkup('\nNothing on the wire.\n')
+        : Mml.fromMarkup(
+            '\n' +
+              rows
+                .map(
+                  (r) =>
+                    `${r.pinned ? '📌 ' : ''}${Mml.escape(r.headline)}` +
+                    ` — ${Mml.escape(r.publisher)}`,
+                )
+                .join('\n') +
+              '\n',
+          );
+    /*
+     * ⭐ The card carries **the rows this read already projected**. One
+     * `PressApi.recent` call, two renderings. Opened before the frame so
+     * `carded` is a fact — see the note on `MessageFrame.meta.carded`.
+     */
+    const opened = CardApi.open(context, 'news', {
+      payload: { kind: 'releases', rows },
+      prose: body,
+    });
+    const scene = MessageApi.scene(context.commandGiver).topic('shell.result');
+    if (opened) scene.meta({ carded: opened });
+    scene.toSelf(body).send();
   }
 
   private async executePublish(

@@ -382,7 +382,7 @@ filter: given a contents snapshot, it drops any item whose
 `getRestingOn()` is itself in the set. It's a pure static (no
 mutation of the walk) applied by **three** callers so the rule is
 uniform: `look` and `sense` (the room branch) and the inspection
-pane (`Container.contents`).
+card (`Container.contents`).
 
 The complementary half is the **drill-in**: examining a
 `Surfaced` host (`look back-bar` / `sense back-bar`) reveals what

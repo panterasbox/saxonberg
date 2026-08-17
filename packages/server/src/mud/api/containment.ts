@@ -271,7 +271,7 @@ export class ContainmentApi {
    * surface (the bottles on the back-bar) are represented by that surface and
    * discovered by examining it (`look <surface>`); listing them as room
    * contents is the clutter we avoid. Shared by every contents-presentation
-   * surface — `look`, `sense`, and the inspection-pane projection — so they
+   * surface — `look`, `sense`, and the inspection-card projection — so they
    * agree. Pure: the containment walk is unchanged; this only shapes what's
    * presented at top level.
    */

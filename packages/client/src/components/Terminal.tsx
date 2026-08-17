@@ -51,6 +51,22 @@ const FrameRow = styled.div`
   display: flex;
   align-items: stretch;
   margin-bottom: 0.5rem;
+  /*
+   * ⚠⚠ POSITIONED, because it anchors an absolutely positioned child —
+   * ReactionBar's AddWrap, the hover-revealed "+". Without this the row
+   * is static, so AddWrap's containing block is the INITIAL containing
+   * block: it escapes the terminal's overflow clipping entirely and
+   * lands at the bottom of the whole transcript's flow height.
+   *
+   * Measured: one 1px span stretched documentElement.scrollHeight to
+   * 17078px against an 800px viewport, so the whole PAGE scrolled and
+   * left a screen-heights-tall empty band under the cockpit. Older than
+   * the card work; it only shows once the transcript is long.
+   *
+   * (No backticks in this comment on purpose — it lives inside a
+   * styled-components template literal, and one would end the string.)
+   */
+  position: relative;
 
   /* The reaction "+" affordance is hover-revealed (Slack/Discord model):
      it is visually hidden + focusable at rest (no footprint, but kept in

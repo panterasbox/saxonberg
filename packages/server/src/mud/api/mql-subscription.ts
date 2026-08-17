@@ -27,10 +27,10 @@
  */
 
 import type {
-  PaneId,
+  StuffRefRecord,
+  StuffDetailRecord,
   StuffDetailFocusRecord,
   MqlSubscriptionErrorReason as _MqlSubscriptionErrorReason,
-  PaneHold,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
@@ -178,50 +178,55 @@ export function projectFocus(
 
 export type SubscriptionCardinality = 'one' | 'many';
 
+/** One resolved record, whichever projection produced it. */
+export type SubscriptionRecord =
+  | (StuffRefRecord & Record<string, unknown>)
+  | (StuffDetailRecord & Record<string, unknown>)
+  | (StuffDetailFocusRecord & Record<string, unknown>);
+
 export interface SubscribeRequest {
   interactive: Interactive;
   subscriptionId: string;
-  /**
-   * Open a **named** pane. When set, the server reads query,
-   * cardinality, fields, dependency flags and hold from its own
-   * catalogue (`lib/connection/Panes.ts`) and IGNORES whatever else the
-   * caller passed — a pane's shape is a server semantic, and the point
-   * of naming one is that the caller does not get to describe it.
-   */
-  pane?: PaneId;
-  /**
-   * The `stuffId` a **subject pane** is about — `agent`, `instrument`,
-   * `manifest`. An identity, never a query: the catalogue still owns
-   * what a pane about a thing resolves and projects.
-   */
-  subject?: string;
-  /**
-   * ⭐ The SERVER opened this pane (the arrangement resolver), not the
-   * client. Echoed onto the result envelope so the pane feed knows to
-   * adopt a handle it never minted.
-   */
-  pushed?: true;
-  /** Required UNLESS `pane` names one. */
   query?: string;
-  /** Required UNLESS `pane` names one. */
   cardinality?: SubscriptionCardinality;
   fields?: FieldSet | FieldAlias;
   detailKey?: string;
   focusDependent?: boolean;
   locationDependent?: boolean;
   /**
-   * Optional lifetime rule — a subscription carrying one is a **pane**.
+   * ⭐⭐ **Bind this subscription to ONE Stuff, by id, instead of a
+   * query.**
    *
-   * ⚠ Deliberately a field on the ordinary subscribe request rather
-   * than a parallel "pane" concept: an N-pane set IS N subscriptions
-   * plus a lifetime rule, so the pane set is the existing registry, and
-   * there is no second registry to keep in step. Evaluated on the
-   * existing re-resolve batch — a pane set with its own tick would be a
-   * second clock.
+   * Every other form is RELATIVE — `here`, `$subject`, `person` all
+   * re-answer against whoever is asking, on every wake. That is right
+   * for a widget that tracks *your* situation and wrong for a card
+   * about a particular thing: a room card subscribed to `here` walks
+   * out of the room with you and silently becomes a different room's
+   * card, because leaving changes the room's contents, which wakes it,
+   * which re-answers `here`.
+   *
+   * A subject-bound subscription re-resolves the SAME Stuff every time,
+   * so it tracks that thing and nothing else.
+   *
+   * ⚠⚠ **Perception-gated on every re-resolve, not just at mint.** The
+   * id is not a capability. Resolving it through `StuffApi.findById`
+   * alone would be the ungated `#<stuffId>` seed by another route — a
+   * peep-hole into any room whose id you had ever seen on a frame. A
+   * subject that stops being perceivable resolves to nothing, and the
+   * subscriber is told it went.
    */
-  hold?: PaneHold;
-  /** The pending prompt id a `hold: 'unanswered'` pane waits on. */
-  holdSubject?: string;
+  subjectId?: string;
+  /**
+   * ⭐ Register and resolve, but do NOT emit the initial result
+   * envelope — return the records to the caller instead.
+   *
+   * A LIVE card owns its subscription handle (`instanceId ===
+   * subscriptionId`) and carries the first resolve on its own
+   * `card-opened`; emitting a second envelope for one open is how a card
+   * ends up briefly showing nothing while the client reconciles two
+   * shapes for the same content.
+   */
+  silent?: true;
 }
 
 export interface QueryRequest {
@@ -309,7 +314,7 @@ export class MqlSubscriptionApi {
       // viewer-blind so the perception/belief dependency never enters
       // the root `Stuff` module (cycle avoidance). Same
       // `RecognitionApi.describe` routine the prose path uses, so the
-      // pane and the scrollback can't show different *names*. The
+      // card and the scrollback can't show different *names*. The
       // activity-status affix is a presence decoration (not identity), so
       // it rides `describeWithStatus` in the prose occupant-listing only,
       // never this general identity field.
@@ -323,50 +328,15 @@ export class MqlSubscriptionApi {
     return out;
   }
 
-  public static handleSubscribe(req: SubscribeRequest): void {
-    logic().handleSubscribe(req);
-  }
-
   /**
-   * ⭐ A prompt settled — wake any pane held by it.
-   *
-   * `HOLD_WAKES_ON` records that an `unanswered` pane needs no location
-   * dependency because "the prompt's own resolution is what wakes it".
-   * This is the call that makes that true. Before it, nothing poked the
-   * registry when a prompt resolved, so an `unanswered` pane was
-   * immortal — the player answered and the card stayed.
-   *
-   * One known producer (the prompt substrate) poking one known consumer
-   * (this registry), which the codebase's rule says is a method call
-   * rather than a broadcast — the `notifyDurableSubject` shape.
+   * Register a live subscription; returns its first resolve, or `null`
+   * when the subscribe failed (the error envelope has already gone
+   * out). See {@link SubscribeRequest.silent}.
    */
-  /**
-   * ⭐⭐ Open exactly the panes an arrangement names — the SERVER
-   * resolving a workspace, not the client replaying it.
-   *
-   * The client sends one command and renders what arrives. That is what
-   * makes *the client owns zero command semantics* literally true: the
-   * alternative puts the meaning of an arrangement, and the pane order,
-   * in the client, and costs a round trip per pane.
-   *
-   * ⚠ Subject panes (`agent` / `instrument` / `manifest`) are skipped.
-   * An arrangement is a statement about a workspace; a pane about a
-   * particular person is a statement about a moment, and restoring one
-   * next week would be restoring an answer to a question nobody is
-   * asking.
-   */
-  public static applyArrangement(
-    interactive: Interactive,
-    panes: readonly PaneId[],
-  ): { opened: number; closed: number } {
-    return logic().applyArrangement(interactive, panes);
-  }
-
-  public static notifyPromptSettled(
-    interactive: Interactive,
-    promptId: string,
-  ): void {
-    logic().notifyPromptSettled(interactive, promptId);
+  public static handleSubscribe(
+    req: SubscribeRequest,
+  ): SubscriptionRecord[] | null {
+    return logic().handleSubscribe(req);
   }
 
   public static handleQuery(
@@ -390,7 +360,7 @@ export class MqlSubscriptionApi {
   /**
    * Re-resolve every subscription this Interactive holds — the seam the
    * sandbox crossing calls after moving a socket between bodies, so the
-   * client's panes re-render for the body it now drives. @internal
+   * client's cards re-render for the body it now drives. @internal
    */
   public static refreshForInteractive(interactive: Interactive): void {
     logic().refreshForInteractive(interactive);
@@ -403,37 +373,6 @@ export class MqlSubscriptionApi {
    */
   public static cancelAllForScope(scope: string): number {
     return logic().cancelAllForScope(scope);
-  }
-
-  /**
-   * Pin or dismiss a pane — the manual override on its hold condition,
-   * in **both** directions. `true` keeps a pane whose condition has
-   * lapsed; `false` drops one whose condition still holds; `null`
-   * returns it to the condition's judgement.
-   *
-   * Returns false when the subscription is unknown or is not a pane
-   * (carries no hold). Takes effect on the next drain, so a dismiss
-   * emits its release reason down the same path every other release
-   * uses.
-   */
-  public static setPanePinned(
-    interactive: Interactive,
-    subscriptionId: string,
-    pinned: boolean | null,
-  ): boolean {
-    return logic().setPanePinned(interactive, subscriptionId, pinned);
-  }
-
-  /** The open panes for one interactive (subscriptions carrying a hold). */
-  public static listPanes(
-    interactive: Interactive,
-  ): {
-    subscriptionId: string;
-    paneId?: PaneId;
-    hold?: PaneHold;
-    pinned: boolean | null;
-  }[] {
-    return logic().listPanes(interactive);
   }
 
   /* ─── test seams ─── */

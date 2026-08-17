@@ -1,5 +1,5 @@
 /**
- * FocusedMixin field-change firing (Wave 2 of the inspection pane
+ * FocusedMixin field-change firing (Wave 2 of the inspection card
  * build).
  *
  * Coverage:

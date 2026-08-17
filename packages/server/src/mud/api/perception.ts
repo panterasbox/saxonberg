@@ -218,11 +218,11 @@ export class PerceptionApi {
    *
    * ⭐ The one definition of reach. It used to exist twice — once
    * hand-rolled inside the `canReach` validator, once again inside the
-   * pane-hold evaluator — and the two disagreed: the validator counted
-   * doors attached to the location's exits, the hold did not. So a pane
+   * card-hold evaluator — and the two disagreed: the validator counted
+   * doors attached to the location's exits, the hold did not. So a card
    * held `inReach` on a door released as `out-of-reach` while `open
    * north` on that same door still worked. Two hand-rolled definitions
-   * of one world concept is one too many; verbs, panes and anything
+   * of one world concept is one too many; verbs, cards and anything
    * later ask here.
    *
    * Reach is satisfied by any of:
@@ -249,7 +249,7 @@ export class PerceptionApi {
    * on-person-first. This is a **membership predicate** on a Stuff
    * that is already resolved, it counts attached doors and the
    * via-exit binding (which the search pool has no reason to), and it
-   * runs per-arg on every dispatch and per-refresh on every pane.
+   * runs per-arg on every dispatch and per-refresh on every card.
    * Answering it by resolving the whole room and testing for inclusion
    * would be the wrong shape and the wrong cost.
    *

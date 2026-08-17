@@ -1,19 +1,26 @@
 /**
- * ⚠⚠ **Subscription wiring lives at the LAYOUT, never at a
- * form-factor-specific component.**
+ * ⚠⚠ **Subscription wiring lives ABOVE the mode registry, never at a
+ * form-factor-specific component and never at one layout.**
  *
- * This has been the same defect twice in one build:
+ * This has been the same defect three times:
  *
- *  1. `usePaneFeed()` hung off `PaneFeed` — the DESKTOP right column —
- *     so on a phone nothing opened the `place` subscription and nothing
- *     registered the envelope handlers. The whole mobile pane surface
- *     was dead.
+ *  1. `useCardFeed()` hung off `CardFeed` — the DESKTOP right column —
+ *     so on a phone nothing registered the envelope handlers. The whole
+ *     mobile card surface was dead.
  *  2. Fixed, and then `useInspectionSubscriptions()` was put in exactly
- *     the same place. That one is the ATTENTION SIGNAL every card is
+ *     the same place. That one was the attention signal every card was
  *     minted from, so a phone never opened a card at all — the feed was
  *     not broken, it was never fed.
+ *  3. Fixed by moving both to `WorldLayout`, which renders at both form
+ *     factors — and is still only ONE of five layouts. `build`, `chat`
+ *     and `watch` are different components entirely, and Wave 7 puts
+ *     the authoring cards in `build`.
  *
- * Both times every unit test passed: they render a card from a
+ * ⭐ So the wiring is in **`App`**, above the mode registry: the one
+ * place that renders for every mode at every width. There is no fourth
+ * position.
+ *
+ * Every time, every unit test passed: they render a card from a
  * hand-built state object and never touch the wiring. **A component
  * test proves rendering, never wiring.** So this is a guard over the
  * source, which is the only thing that can see it.
@@ -27,16 +34,19 @@ import { dirname, resolve } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const src = resolve(here, '..', '..');
 
-/** Hooks that open subscriptions or register envelope handlers. */
-const WIRING_HOOKS = ['usePaneFeed', 'useInspectionSubscriptions'];
+/** Hooks that register envelope handlers or open subscriptions. */
+const WIRING_HOOKS = ['useCardFeed'];
 
 /**
- * Components that render at ONE form factor only. Wiring called from
- * any of these is dead on the other.
+ * Components that render at ONE form factor, or in ONE mode. Wiring
+ * called from any of these is dead everywhere else.
  */
 const FORM_FACTOR_SPECIFIC = [
-  'components/panes/PaneFeed.tsx',
-  'components/panes/MobilePlaySurface.tsx',
+  'components/cards/CardFeed.tsx',
+  'components/cards/MobilePlaySurface.tsx',
+  'layouts/WorldLayout.tsx',
+  'layouts/BuilderLayout.tsx',
+  'layouts/ForumLayout.tsx',
 ];
 
 /**
@@ -71,9 +81,13 @@ const SURFACE_MOUNTS: Array<{ file: string; renders: string }> = [
   // leave the header describing a subject nobody could pick.
   { file: 'components/social/SubjectShell.tsx', renders: 'SubjectRail' },
   { file: 'layouts/ForumLayout.tsx', renders: 'SubjectShell' },
-  // The tuned rail reads `cockpit.tuned`; if the panes stop rendering
+  // The tuned rail reads `cockpit.tuned`; if the cards stop rendering
   // it, the livestream side loses its only view of what it follows.
-  { file: 'layouts/LivestreamPanes.tsx', renders: 'TunedRail' },
+  { file: 'layouts/LivestreamPanels.tsx', renders: 'TunedRail' },
+  // The right column IS the card feed now — the switcher is gone, so
+  // a layout that stopped rendering it would leave a player with no
+  // cards at all and no tab to notice were missing.
+  { file: 'layouts/WorldLayout.tsx', renders: 'CardFeed' },
   // The reaction picker and its touch sheet both hang off the
   // transcript, which is the one component both form factors share.
   { file: 'components/Terminal.tsx', renders: 'EmoteSheet' },
@@ -85,13 +99,50 @@ describe('⭐ every social surface is actually mounted', () => {
     /*
      * ⚠ A component test would pass over any of these while the thing
      * was unreachable in the running app — which is exactly how the
-     * mobile pane surface shipped dead with every mobile test green.
+     * mobile card surface shipped dead with every mobile test green.
      */
     const text = readFileSync(resolve(src, file), 'utf8');
     const code = text
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/^\s*\/\/.*$/gm, '');
     expect(new RegExp(`<${renders}[\\s/>]`).test(code)).toBe(true);
+  });
+});
+
+/**
+ * ⚠⚠ **A rule implemented in one of two render paths silently does
+ * nothing in the other** — the wiring-at-the-layout shape, one level
+ * down, and found the same way: by driving.
+ *
+ * The `shell.result` filter and the named-view filter lived inside
+ * `CardFeed` (the DESKTOP rail), so the phone's inline stack honoured
+ * neither. The per-viewport override's whole payoff is on the phone,
+ * and the phone was the path that ignored it. Both paths call
+ * `visibleCards` now, and this asserts they still do.
+ */
+describe('⚠⚠ the feed rules are not re-implemented per render path', () => {
+  const RENDER_PATHS = [
+    'components/cards/CardFeed.tsx',
+    'layouts/WorldLayout.tsx',
+  ];
+
+  it.each(RENDER_PATHS)('%s filters through visibleCards', (file) => {
+    const text = readFileSync(resolve(src, file), 'utf8');
+    const code = text
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    expect(/visibleCards\s*\(/.test(code), `${file} must call visibleCards`).toBe(
+      true,
+    );
+    /*
+     * ⚠ And must NOT re-derive it. A hand-rolled `prose === undefined`
+     * or `kinds.has(...)` in a render path is the divergence this guard
+     * exists to catch, not a second opinion.
+     */
+    expect(
+      /prose\s*===\s*undefined/.test(code),
+      `${file} must not re-implement the noProse rule`,
+    ).toBe(false);
   });
 });
 
@@ -107,20 +158,15 @@ describe('⚠⚠ subscription wiring', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('⭐ is called from the layout, which renders at both', () => {
+  it('⭐ is called from App, which renders above the mode registry', () => {
     /*
      * ⚠⚠ The half that stops this being a guard that passes by
      * matching nothing. "Not called in the wrong place" is satisfied
      * just as well by "not called anywhere", which is the actual bug.
      */
-    const layout = readFileSync(
-      resolve(src, 'layouts', 'WorldLayout.tsx'),
-      'utf8',
-    );
+    const app = readFileSync(resolve(src, 'App.tsx'), 'utf8');
     for (const hook of WIRING_HOOKS) {
-      expect(callsHook(layout, hook), `WorldLayout does not call ${hook}()`).toBe(
-        true,
-      );
+      expect(callsHook(app, hook), `App does not call ${hook}()`).toBe(true);
     }
   });
 });

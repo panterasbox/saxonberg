@@ -17,6 +17,7 @@ import { MixinApi, type AnyConstructor } from "../../api/mixin";
 import { Mml } from "../../api/mml";
 import { MudlogApi } from "../../api/mudlog";
 import type { SyntheticVarEntry } from "../../api/shell";
+import type { FormFactor } from "@saxonberg/types";
 
 const ShellApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule("/api/shell#ShellApi"),
@@ -112,8 +113,31 @@ export class ShellLogic extends ApiLogic {
 
   /** See {@link ShellApi.resolveSetting}. */
   @CallSecurity(ShellApiCallers)
-  public resolveSetting<T>(host: Stuff, key: string): T | undefined {
+  public resolveSetting<T>(
+    host: Stuff,
+    key: string,
+    factor?: FormFactor,
+  ): T | undefined {
     if (MixinApi.isEnvironment(host)) {
+      /*
+       * ⭐ **Three rungs, and the order is the whole feature:**
+       *
+       *   1. the stored override at `<key>.<factor>`, when a factor was
+       *      named — the per-viewport answer;
+       *   2. the stored override at `<key>` — the player's one answer
+       *      for everywhere;
+       *   3. the schema default.
+       *
+       * ⚠ Rung 1 uses `getOwnSetting`, not `getSetting`. `getSetting`
+       * falls back to the schema default, so a suffixed read would
+       * ALWAYS return something and rung 2 could never be reached —
+       * the override would silently become mandatory, which is exactly
+       * the two-independent-keys shape this design refused.
+       */
+      if (factor !== undefined) {
+        const perFactor = host.getOwnSetting<T>(`${key}.${factor}`);
+        if (perFactor !== undefined) return perFactor;
+      }
       return host.getSetting<T>(key);
     }
     return MixinApi.collectSettingsSchema(host.constructor as AnyConstructor)

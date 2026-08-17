@@ -3,7 +3,7 @@
 # pure data (the bartending precedent); the DisciplineCatalogue harvests
 # every /obj/Discipline/* leaf at boot. No `conferrals` here:
 # combat's gambits are `fight` subcommands, not standalone verbs, so
-# band-gating the gambit menu defers with the client combat pane.
+# band-gating the gambit menu defers with the client combat card.
 class: /obj/Discipline
 hydratorClass: /obj/persistence/PersistentHydrator
 data:

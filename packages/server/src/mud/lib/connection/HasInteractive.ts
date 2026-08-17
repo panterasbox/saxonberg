@@ -45,12 +45,12 @@ import {
   DEFAULT_SHELF,
   DEFAULT_ROUTING,
   FEED_DESTINATIONS,
-  PANE_IDS,
-  SHIPPED_ARRANGEMENT_PANES,
+  CARD_IDS,
+  SHIPPED_ARRANGEMENT_CARDS,
   type ArrangementSpec,
   type CockpitMode,
   type LayoutName,
-  type PaneId,
+  type CardId,
 } from '@saxonberg/types';
 
 /**
@@ -204,15 +204,15 @@ export interface HasInteractive {
   savedArrangementsFor(mode: CockpitMode): Record<string, ArrangementSpec>;
 
   /**
-   * ⭐ The panes an arrangement opens — a saved one's own list, or the
+   * ⭐ The cards an arrangement opens — a saved one's own list, or the
    * shipped default for the mode.
    *
    * ⚠ Names only. An arrangement is a statement about a WORKSPACE, so
-   * it names panes by catalogue id and nothing else; a pane about a
+   * it names cards by catalogue id and nothing else; a card about a
    * particular person is a statement about a MOMENT and belongs to the
    * pin, which is session-scoped for exactly that reason.
    */
-  arrangementPanes(mode: CockpitMode, name: string): readonly PaneId[];
+  arrangementCards(mode: CockpitMode, name: string): readonly CardId[];
 
   /** Error string for a player-supplied arrangement name, or null if fine. */
   validateArrangementName(mode: CockpitMode, raw: string): string | null;
@@ -263,6 +263,48 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         description:
           'Cockpit tabbed-terminal tabs. Each tab carries its ' +
           'own name and a list of muted topic strings.',
+      },
+      {
+        /**
+         * ⭐ Named views over the CARD feed — the terminal's tab strip,
+         * for the other column.
+         *
+         * ⚠ `All` is deliberately NOT in the default: it is the
+         * *absence* of a filter rather than a member of the list, which
+         * is what makes it locked, unstored and undeletable. A stored
+         * `All` row could be edited into a view that quietly filtered,
+         * and the lock has to hold against state that predates it.
+         *
+         * Views filter on **card kind** (`cardId`) — the one axis a
+         * player can name. Filtering on topic paths would be the
+         * terminal's question asked in the wrong column.
+         */
+        key: 'cards.views',
+        defaultValue: [],
+        description:
+          'Named views over the card feed. Each carries a name and a ' +
+          'list of card kinds it shows; `All` is structural and is ' +
+          'never stored here.',
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every(
+            (r) =>
+              typeof r === 'object' &&
+              r !== null &&
+              typeof (r as { name?: unknown }).name === 'string' &&
+              Array.isArray((r as { kinds?: unknown }).kinds),
+          )
+            ? true
+            : 'expected an array of { name, kinds[] }',
+      },
+      {
+        key: 'cards.activeView',
+        defaultValue: 'All',
+        description:
+          'Which card view is showing. `All` is the absence of a ' +
+          'filter and is always valid.',
+        validator: (v) =>
+          typeof v === 'string' ? true : 'expected a view name',
       },
       {
         /**
@@ -433,8 +475,8 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
         // instead of quietly switching modes for you.
         defaultValue: {},
         description:
-          'Player-composed pane arrangements, per mode — a ' +
-          '{ mode → { name → { panes } } } map. Written by ' +
+          'Player-composed card arrangements, per mode — a ' +
+          '{ mode → { name → { cards } } } map. Written by ' +
           '`cockpit layout save` / `forget`. These sit BESIDE the ' +
           'shipped per-mode defaults; a saved name may never shadow a ' +
           'shipped one, so the union is unambiguous.',
@@ -464,9 +506,9 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
               if (
                 typeof spec !== 'object' ||
                 spec === null ||
-                !Array.isArray((spec as { panes?: unknown }).panes)
+                !Array.isArray((spec as { cards?: unknown }).cards)
               ) {
-                return `arrangement '${name}' must carry a panes array`;
+                return `arrangement '${name}' must carry a cards array`;
               }
             }
           }
@@ -854,21 +896,27 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     }
 
     /** This player's saved arrangements for one mode (never null). */
-    /** See {@link HasInteractive.arrangementPanes}. */
-    public arrangementPanes(
+    /** See {@link HasInteractive.arrangementCards}. */
+    public arrangementCards(
       mode: CockpitMode,
       name: string,
-    ): readonly PaneId[] {
+    ): readonly CardId[] {
       const saved = this.savedArrangementsFor(mode)[name];
       if (saved) {
         // ⚠ Filter to the catalogue. A saved list is player data that
         // has outlived a rename before, and an unknown name would make
-        // the whole arrangement fail to open rather than one pane.
-        return saved.panes.filter((p): p is PaneId =>
-          (PANE_IDS as readonly string[]).includes(p),
+        // the whole arrangement fail to open rather than one card.
+        return saved.cards.filter((p): p is CardId =>
+          (CARD_IDS as readonly string[]).includes(p),
         );
       }
-      return SHIPPED_ARRANGEMENT_PANES[mode];
+      /*
+       * ⚠ Keyed by (mode, arrangement), not by mode alone. `watch` ships
+       * two arrangements and one flat list cannot express them. A mode's
+       * entry need not be total over the shipped arrangements — an
+       * arrangement with no row simply opens nothing.
+       */
+      return SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? [];
     }
 
     public savedArrangementsFor(

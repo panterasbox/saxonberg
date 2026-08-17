@@ -11,7 +11,7 @@ help: |
                   `tune xqc --kick`
     - a character: `tune alice` (their linked Twitch or Kick chat)
 
-  Follow as many as you like; they interleave in the chat pane with a
+  Follow as many as you like; they interleave in the chat card with a
   per-line platform tag. `tune off <target>` stops following one; bare
   `tune` lists what you're following.
 

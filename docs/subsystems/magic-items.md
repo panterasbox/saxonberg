@@ -778,7 +778,7 @@ now take the viewer they always had:
 |---|---|
 | `look wand:sigil` (MQL chain → controller) | resolved by key, printed the text |
 | the MQL **candidate walk** | offered authored keys as targets |
-| the **inspection pane** projection | `read: (stuff)` — enumerated every key + description to anyone with the pane open, with no viewer in the signature at all |
+| the **inspection card** projection | `read: (stuff)` — enumerated every key + description to anyone with the card open, with no viewer in the signature at all |
 | the **detail-key augmenter** | anchored any key-matching word in the prose |
 
 > ⚠ **Two rules invert here, and both are deliberate.**

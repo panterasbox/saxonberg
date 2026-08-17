@@ -47,6 +47,7 @@ import { RecordApi } from '../mud/api/record';
 import { CompileWatcher } from './CompileWatcher';
 import { fileURLToPath } from 'url';
 import { ResidencyApi } from '../mud/api/residency';
+import { CardApi } from '../mud/api/card';
 import { SandboxApi } from '../mud/api/sandbox';
 import { EmploymentApi } from '../mud/api/employment';
 import { AttendantApi } from '../mud/api/attendant';
@@ -258,6 +259,12 @@ export class AppBootstrap {
     // operator flips `residency.mode` to `enforce`.
     ResidencyApi.boot();
 
+    // The card surface — install the relevance-window sweep. ONE
+    // recurring callback for the whole card set, never a timer per card:
+    // a card's lifetime is a fact about time, and there is exactly one
+    // clock for it (the client's own husk interval is gone).
+    CardApi.boot();
+
     // Sandbox (the holodeck) — install the orphan sweeper. Sessions are
     // runtime state, so after a restart every circle scope is
     // sessionless and the first sweep discards all scoped rows (the
@@ -296,7 +303,7 @@ export class AppBootstrap {
     // each Avatar's own persistence).
     // SocialApi.boot() installs BOTH the notify-gated presence relay and
     // the presence-PUBLIC roster-delta tap (feeding the "Who's Online"
-    // pane) — same four presence events, two consumers. In-memory.
+    // card) — same four presence events, two consumers. In-memory.
     SocialApi.boot();
 
     // Party operational core — register the `party:` grouping provider with

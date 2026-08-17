@@ -2,7 +2,7 @@
  * MonacoLazy — the code-split boundary for the Monaco editor.
  *
  * `React.lazy(() => import('./MonacoInner'))` makes Vite emit Monaco's
- * bundle as its own chunk, fetched ONLY when the editor pane first
+ * bundle as its own chunk, fetched ONLY when the editor card first
  * mounts (the observable lazy-load: a `monaco`-named chunk appears in the
  * network panel on first leaf open, not on initial app load). A
  * `<Suspense>` boundary shows a lightweight spinner while the chunk

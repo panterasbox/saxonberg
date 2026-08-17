@@ -213,7 +213,7 @@ verification for maintain-violation (a bouncer-shaped consumer first —
 direct witness hook, never `EventApi`); standing/competence claim
 gates; demand/difficulty pricing; entity forms + differential tax rates
 (they read the leg-kind vocabulary); liability scope-context on
-`accountability_events`; the client board pane; the game-time expiry
+`accountability_events`; the client board card; the game-time expiry
 safety-net sweep; NPC claiming brains; the mine as the first real
 piecework venue; the general trusted-recording instrument (the
 `fulfilled` row is its narrowest shipped instance); **gig settlement in

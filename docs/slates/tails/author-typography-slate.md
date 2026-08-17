@@ -7,7 +7,7 @@
 > transcript stream, this one governs the *author-chosen* distinctive
 > faces on the **richer GUI surfaces** (item/object cards, rendered
 > books & letters, signage, lesson/content surfaces, the inspection
-> pane). Rides the shipped message-rendering theme engine but depends on
+> card). Rides the shipped message-rendering theme engine but depends on
 > rich surfaces that aren't all built yet, so it's a later cycle.
 
 The driver: content authors want to make a specific piece of content
@@ -34,7 +34,7 @@ See also:
   an illustrated storybook.
 - [client-cockpit-slate.md](./client-cockpit-slate.md) /
   [client-shell-slate.md](./client-shell-slate.md) — the rich surfaces
-  (content-surface viewer, inspection pane, cards) the palette renders
+  (content-surface viewer, inspection card, cards) the palette renders
   *on*. Some don't fully exist yet — the dependency that defers this.
 
 ---
@@ -52,7 +52,7 @@ content. Three rules enforce balance by design, not willpower:
    makes injecting an arbitrary face impossible.
 2. **Scoped to rich surfaces, never the stream.** The token palette
    applies on cards, rendered books/letters, signage, lesson/content
-   surfaces, the inspection pane. The streaming transcript stays the
+   surfaces, the inspection card. The streaming transcript stays the
    functional faces (terminal-typography slate), always, for legibility
    and calm. *Narration about a letter* stays neutral serif; the
    *letter you pick up and read* can be handwriting.

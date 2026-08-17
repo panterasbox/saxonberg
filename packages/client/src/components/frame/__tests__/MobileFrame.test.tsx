@@ -73,7 +73,7 @@ describe('MobileFrame', () => {
   it('⭐⭐ OPENS the self subscription — the figures do not arrive by themselves', () => {
     subscribed.length = 0;
     render(<MobileFrame />);
-    expect(subscribed).toEqual([{ pane: 'self' }]);
+    expect(subscribed).toEqual([{ chrome: 'self' }]);
   });
 
   it('closes it on unmount, so switching form factor leaks nothing', () => {
@@ -255,7 +255,7 @@ describe('MobileFrame', () => {
       // …but one tap away, inside the identity dropdown.
       fireEvent.click(screen.getByText('Bartleby'));
       expect(screen.getByTestId('views-menu')).toBeTruthy();
-      expect(screen.getByLabelText('Toggle settings pane')).toBeTruthy();
+      expect(screen.getByLabelText('Toggle settings card')).toBeTruthy();
     });
 
     it('sends the same command the desktop menu sends', () => {

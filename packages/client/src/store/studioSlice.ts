@@ -134,9 +134,9 @@ export interface StudioSlice {
     /** The palette vocabulary (`{ mixins, bases }`), or null before load. */
     palette: MixinPalette | null;
 
-    // ---- mixin inspector pane ----
+    // ---- mixin inspector card ----
     /**
-     * The mixin currently loaded into the inspector pane, or null before any
+     * The mixin currently loaded into the inspector card, or null before any
      * inspect. STICKY — it holds the last inspected mixin (it does NOT clear
      * on mouse-out) so the author can read it while composing.
      */
@@ -206,12 +206,12 @@ export interface StudioSlice {
   /** Fetch the composition palette (`{ mixins, bases }`). */
   studioListPalette: () => Promise<void>;
 
-  // ---- mixin inspector pane ----
+  // ---- mixin inspector card ----
   /**
-   * Load a mixin into the inspector pane (sticky). Sets `inspectedMixin` and,
+   * Load a mixin into the inspector card (sticky). Sets `inspectedMixin` and,
    * on the FIRST inspect of that mixin, lazily fetches + caches its detail;
    * an already-cached mixin is a pure state flip (no refetch). Passing null
-   * is a no-op — the pane stays on its last mixin.
+   * is a no-op — the card stays on its last mixin.
    */
   studioInspectMixin: (name: string | null) => void;
 
@@ -538,9 +538,9 @@ export const createStudioSlice = (
     }
   },
 
-  // ---- mixin inspector pane ----
+  // ---- mixin inspector card ----
   studioInspectMixin: (name) => {
-    if (name === null) return; // sticky — a mouse-out never clears the pane
+    if (name === null) return; // sticky — a mouse-out never clears the card
     const { inspectedMixin, mixinDetails } = get().studio;
     // Flip to the mixin (sticky). Re-inspecting the same mixin is idempotent.
     if (inspectedMixin !== name) {

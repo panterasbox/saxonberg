@@ -117,7 +117,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ extras }) => {
   const player = useStore((s) => s.auth.player);
   const displayName = useStore((s) => s.auth.user?.displayName);
   const isWizard = useStore((s) => s.auth.isWizard === true);
-  const setSocialPaneOpen = useStore((s) => s.setSocialPaneOpen);
+  const setSocialPanelOpen = useStore((s) => s.setSocialPanelOpen);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -165,12 +165,12 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ extras }) => {
     websocketClient.sendCommand("cockpit mode build");
   };
 
-  // Open the "Social / Notifications" settings pane — the thin front over
+  // Open the "Social / Notifications" settings card — the thin front over
   // the `notify` verb (display lensing + notification policy). A modal
-  // toggled via a store flag; App renders the pane when it's set.
+  // toggled via a store flag; App renders the card when it's set.
   const openSocial = () => {
     setOpen(false);
-    setSocialPaneOpen(true);
+    setSocialPanelOpen(true);
   };
 
   return (

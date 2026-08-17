@@ -711,3 +711,87 @@ describe("websocket social presence frames", () => {
     expect(seen).toEqual(["f1", "f2"]);
   });
 });
+
+/**
+ * ⚠⚠ **The card envelopes feed the stuff registry too.**
+ *
+ * This fed only from `mql-subscription-*` — right while the panes WERE
+ * subscriptions. The card build moved every static card's records onto
+ * `card-opened` / `card-touched` and left the feeder behind, so the
+ * registry starved to a single entry with null fields.
+ * `MmlRenderer.commandFor` needs it to turn a `stuff-id` into a keyword,
+ * so every clickable noun in the TRANSCRIPT degraded to
+ * `look <display name>` — which does not parse:
+ *
+ *     click "a chalkboard menu" → look a chalkboard menu
+ *     → "That doesn't match any known command shape: look."
+ *
+ * ⭐ Invisible to every test because card BODIES never used this path —
+ * they read `primaryKeyword` straight off their own records. The same
+ * noun worked inside a card and was dead in the transcript.
+ */
+describe("the stuff registry is fed by CARD envelopes too", () => {
+  it("⭐ `card-opened` records land in the registry", () => {
+    attachMockWs();
+    deliver({
+      type: "card-opened",
+      frameId: 1,
+      instanceId: "card-1",
+      cardId: "subject",
+      key: "look menu",
+      live: false,
+      pinned: false,
+      result: [
+        { stuffId: "m", displayName: "a chalkboard menu", primaryKeyword: "board" },
+      ],
+    } as never);
+
+    expect(useStore.getState().stuffRegistry.get("m")?.primaryKeyword).toBe(
+      "board",
+    );
+  });
+
+  it("⭐ and walks their nested `contents` — the room card's occupants", () => {
+    attachMockWs();
+    deliver({
+      type: "card-opened",
+      frameId: 1,
+      instanceId: "card-2",
+      cardId: "subject",
+      key: "look",
+      live: true,
+      pinned: true,
+      result: [
+        {
+          stuffId: "room",
+          displayName: "Dave's Bar",
+          contents: [
+            { stuffId: "bb", displayName: "the back-bar", primaryKeyword: "rail" },
+            { stuffId: "tb", displayName: "the bar", primaryKeyword: "taps" },
+          ],
+        },
+      ],
+    } as never);
+
+    const reg = useStore.getState().stuffRegistry;
+    expect(reg.get("bb")?.primaryKeyword).toBe("rail");
+    expect(reg.get("tb")?.primaryKeyword).toBe("taps");
+  });
+
+  it("⚠ `card-touched` keeps it current when a static card re-resolves", () => {
+    attachMockWs();
+    deliver({
+      type: "card-touched",
+      frameId: 2,
+      instanceId: "card-1",
+      key: "look menu",
+      result: [
+        { stuffId: "m", displayName: "a chalkboard menu", primaryKeyword: "board" },
+      ],
+    } as never);
+
+    expect(useStore.getState().stuffRegistry.get("m")?.primaryKeyword).toBe(
+      "board",
+    );
+  });
+});

@@ -81,17 +81,84 @@ export class BlueprintSeeder {
     }
 
     let inserted = 0;
-    inserted += await BlueprintSeeder.#deriveSkeleton(bySignature, byId);
+    const unresolvable: string[] = [];
+    inserted += await BlueprintSeeder.#deriveSkeleton(
+      bySignature,
+      byId,
+      unresolvable
+    );
     inserted += await BlueprintSeeder.#curatedOverlay(
       bySignature,
       byBlueprintId,
       opts
     );
+    const reaped = await BlueprintSeeder.#reapOrphans(existing, unresolvable);
 
     console.info(
-      `BlueprintSeeder: ${inserted} new blueprint${inserted === 1 ? '' : 's'}`
+      `BlueprintSeeder: ${inserted} new blueprint${inserted === 1 ? '' : 's'}` +
+        (reaped > 0 ? `, ${reaped} orphan(s) dropped` : '')
     );
     return inserted;
+  }
+
+  /**
+   * ⭐ **Drop derived blueprints whose backing class no longer resolves.**
+   *
+   * The seeder was purely additive, and `domain` is `keep` in
+   * `ResetPolicy`, so a class that moved or was renamed left a derived
+   * row that warned *skipping X (unresolvable)* at **every boot,
+   * forever** — dev-DB junk that nobody could act on, because the
+   * warning named the row without saying what to do about it.
+   *
+   * ⚠ **Only DERIVED rows, and only unresolvable ones.** A derived
+   * blueprint is regenerable by construction — it is the introspection
+   * of a class, so deleting one costs nothing but the next boot's
+   * re-derive. A CURATED row is authored content and is never touched
+   * here, even when its class is missing: that is a content bug to
+   * report, not junk to sweep.
+   *
+   * ⚠⚠ **The orphan `domain` rows that CAUSED this are logged, not
+   * deleted.** CMS-authored templates live in the same collection with
+   * no discriminator, so a sweep there could delete a wizard's work.
+   * The log carries the exact `deleteMany` instead — an operator
+   * decision, made once, with the command in front of them.
+   */
+  static async #reapOrphans(
+    existing: Blueprint[],
+    unresolvable: string[]
+  ): Promise<number> {
+    const orphanClasses: string[] = [...unresolvable];
+    let reaped = 0;
+    for (const bp of existing) {
+      // Curated rows have no `classPath`; a blessed row is authored.
+      if (bp.kind !== 'concrete' || !bp.classPath || bp.blessed) continue;
+      try {
+        await StuffApi.loadClassByPath(bp.classPath);
+        continue;
+      } catch {
+        orphanClasses.push(bp.classPath);
+      }
+      try {
+        await bp.delete();
+        reaped++;
+      } catch (err) {
+        console.warn(
+          `BlueprintSeeder: could not drop orphan ${bp.classPath}: ` +
+            (err as Error).message
+        );
+      }
+    }
+    if (orphanClasses.length > 0) {
+      const list = [...new Set(orphanClasses)];
+      console.info(
+        `BlueprintSeeder: ${list.length} domain row(s) name a class that ` +
+          `no longer resolves. The blueprints are re-derivable and have ` +
+          `been dropped; the domain rows are NOT touched (CMS-authored ` +
+          `templates share this collection). To remove them:\n` +
+          `  db.domain.deleteMany({ class: { $in: ${JSON.stringify(list)} } })`
+      );
+    }
+    return reaped;
   }
 
   /**
@@ -101,7 +168,8 @@ export class BlueprintSeeder {
    */
   static async #deriveSkeleton(
     bySignature: Map<string, Blueprint>,
-    byId: Set<string>
+    byId: Set<string>,
+    unresolvable: string[]
   ): Promise<number> {
     let classPaths: string[];
     try {
@@ -123,11 +191,15 @@ export class BlueprintSeeder {
       let ctor: AnyConstructor;
       try {
         ctor = (await StuffApi.loadClassByPath(classPath)) as AnyConstructor;
-      } catch (err) {
-        console.warn(
-          `BlueprintSeeder: skipping ${classPath} (unresolvable): ` +
-            (err as Error).message
-        );
+      } catch {
+        /*
+         * ⚠ Collected, not warned per-row. The old shape printed one
+         * `skipping X (unresolvable)` line per orphan at EVERY boot —
+         * a warning nobody could act on, because it named the row
+         * without saying what to do about it. They are reported once,
+         * together, with the exact command, below.
+         */
+        unresolvable.push(classPath);
         continue;
       }
       const signature = Blueprint.signatureOf(ctor);

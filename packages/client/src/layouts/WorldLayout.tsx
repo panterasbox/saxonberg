@@ -2,10 +2,17 @@
  * WorldLayout — the classic terminal cockpit (the default layout).
  *
  * The single-terminal arrangement: a tabbed-filter strip + the scrollback
- * Terminal + its command bar in the primary column, with a view-sensitive
- * right column as the side rail. A small pane switch chooses the right
- * column's pane — Inspection (the focused-object detail) or Who's Online
- * (the live roster). This is the "Single + fixed rail" canonical split.
+ * Terminal + its command bar in the primary column, with the **card
+ * feed** as the side rail. This is the "Single + fixed rail" canonical
+ * split.
+ *
+ * ⭐⭐ **The switcher is gone.** `Inspect · Who's Online · News · Wiki`
+ * was four hand-written client surfaces with their own data paths in a
+ * tab strip, and it existed *because* the only way a card could be born
+ * was a focus change — none of the other three is one. A command opens
+ * a card now, so the constraint that produced the switcher is gone and
+ * with it the switcher's only justification. The right column renders
+ * the feed and nothing else.
  */
 
 import React from "react";
@@ -23,24 +30,18 @@ import { FilterDrawer } from "../components/FilterDrawer";
 import { Terminal } from "../components/Terminal";
 import { CommandBar } from "../components/CommandBar";
 import { PromptStrip } from "../components/PromptStrip";
-import { PaneFeed } from "../components/panes/PaneFeed";
-import { usePaneFeed } from "../components/panes/usePaneFeed";
-import { useInspectionSubscriptions } from "../components/InspectionPane";
-import { RadialOverlay } from "../components/panes/RadialOverlay";
+import { CardFeed } from "../components/cards/CardFeed";
+import { visibleCards } from "../store/cardFeedSlice";
+import { activeCardKinds } from "../store/cardViewActions";
+import { RadialOverlay } from "../components/cards/RadialOverlay";
 import {
-  InlinePane,
+  InlineCard,
   PinnedChipRow,
-} from "../components/panes/MobilePlaySurface";
-import { WhoPane } from "../components/WhoPane";
-import { NewsTickerPane } from "../components/NewsTickerPane";
-import { WikiPane } from "../components/WikiPane";
+} from "../components/cards/MobilePlaySurface";
 
 /**
- * The view-sensitive right column — a small pane switch above the active
- * cockpit pane (Inspection | Who's Online | News | Wiki). Sizes to the
- * pane child (each
- * declares its own fixed width); `PaneSlot` is `flex: 1` so the pane's
- * `height: 100%` resolves against the space below the switch.
+ * The right column — the card feed, and nothing else. Sizes to the feed
+ * (which declares its own fixed width on a desktop rail).
  */
 const RightColumn = styled.div<{ $compact?: boolean }>`
   display: flex;
@@ -50,7 +51,7 @@ const RightColumn = styled.div<{ $compact?: boolean }>`
   /*
    * ⭐ **The rail stops being a fixed column on a phone.**
    *
-   * Each pane declares its own fixed 360px width/min-width/max-width,
+   * Each card declares its own fixed 360px width/min-width/max-width,
    * so beside a terminal the in-world document computed ~698px at a
    * 390px viewport. Under the mobile viewport model an overflowing
    * document WIDENS the initial containing block, which is what
@@ -60,13 +61,13 @@ const RightColumn = styled.div<{ $compact?: boolean }>`
    * that delivers you somewhere broken has not arrived.
    *
    * ⚠ This is the COLLAPSE and nothing more. Redesigning the play
-   * surface for a phone — what the panes should be, whether they
+   * surface for a phone — what the cards should be, whether they
    * belong inline in the feed — is Wave 4's, and this must not
    * pre-empt it.
    *
-   * ⚠ the !important below because the panes set their own width at equal
+   * ⚠ the !important below because the cards set their own width at equal
    * specificity and the injection order between styled-components
-   * classes is not a contract. Narrowly scoped to the pane slot's
+   * classes is not a contract. Narrowly scoped to the card slot's
    * direct child so nothing else inherits it.
    */
   ${(p) =>
@@ -74,34 +75,6 @@ const RightColumn = styled.div<{ $compact?: boolean }>`
       ? `
     width: 100%;
     max-width: 100%;
-  `
-      : ""}
-`;
-
-const PaneSwitch = styled.div`
-  display: flex;
-  gap: 0.25rem;
-  width: 100%;
-  box-sizing: border-box;
-  padding: ${tokens.space.sm} ${tokens.space.md};
-  border-left: 1px solid ${tokens.color.border};
-  border-bottom: 1px solid ${tokens.color.borderMuted};
-  background: ${tokens.color.surfaceAlt};
-`;
-
-const PaneSlot = styled.div<{ $compact?: boolean }>`
-  flex: 1;
-  min-height: 0;
-  display: flex;
-
-  ${(p) =>
-    p.$compact
-      ? `
-    & > * {
-      width: 100% !important;
-      min-width: 0 !important;
-      max-width: 100% !important;
-    }
   `
       : ""}
 `;
@@ -131,23 +104,13 @@ const FilterLink = styled.button`
   text-decoration: underline;
 `;
 
-/** The inline pane stack, between the transcript and the command bar. */
+/** The inline card stack, between the transcript and the command bar. */
 const InlineStack = styled.div`
   flex: none;
   max-height: 45vh;
   overflow-y: auto;
   max-width: 100%;
   padding: 0 ${tokens.space.md};
-`;
-
-const PaneTab = styled.button<{ $active: boolean }>`
-  background: ${(p) => (p.$active ? tokens.color.surfaceAlt : "transparent")};
-  border: 1px solid ${tokens.color.borderEmphasis};
-  border-radius: 4px;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.15rem 0.6rem;
-  font: inherit;
 `;
 
 export const WorldLayout: React.FC<LayoutProps> = ({
@@ -158,26 +121,19 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   onCommandClick,
   onCommandSend,
   onCommandPreview,
+  resultDisplay,
 }) => {
   /*
-   * ⚠⚠ **Here, not in `PaneFeed`.** This hook opens the `place`
-   * subscription and registers the three subscription handlers, and it
-   * has to run at BOTH form factors — `PaneFeed` is the desktop right
-   * column, so hanging the wiring off it left the phone with a pane
-   * store nothing ever wrote to. Panes the server pushed for a saved
-   * arrangement were discarded, and a card the radial opened stayed
-   * empty forever.
+   * ⚠⚠ **The card wiring is NOT here any more — it is in `App`.**
+   *
+   * It sat here because this layout renders at both form factors, which
+   * fixed the phone. It did not fix `build`, `chat` or `watch`, whose
+   * layouts are different components entirely — and Wave 7 puts the
+   * authoring cards in `build`. So the hook moved up one more level, to
+   * the one place that renders above the mode registry. Third
+   * occurrence of the wiring-at-the-layout bug; this is the position
+   * that has no fourth.
    */
-  usePaneFeed();
-  /*
-   * ⚠⚠ Here for the same reason `usePaneFeed` is, and it has been the
-   * same mistake twice. This hook keeps `paneLastResult` pointed at
-   * what the player is looking at — the ATTENTION SIGNAL every card is
-   * minted from. Hung off `PaneFeed` (the desktop-only right column) it
-   * meant a phone never got a focus result, so it never opened a card
-   * at all: the feed was not broken, it was never fed.
-   */
-  useInspectionSubscriptions();
   /*
    * ⭐ The view editor. Opened by `+` (which has just created and
    * activated the view) and by the `⋯` on your own active view — never
@@ -200,22 +156,34 @@ export const WorldLayout: React.FC<LayoutProps> = ({
   React.useEffect(() => {
     if (tabsLoaded) ensureSeededViews();
   }, [tabsLoaded]);
-  const rightPane = useStore((s) => s.rightPane);
   // ⚠ The UNFILTERED buffer. Every count in the feed switcher is
   // derived from the frames it names, and naming them from an
   // already-filtered list would make `World 1077` report how many the
   // current tab happens to show rather than how many landed there.
   const allFrames = useStore((s) => s.frames);
-  const paneCards = useStore((s) => s.paneCards);
-  const setRightPane = useStore((s) => s.setRightPane);
+  const cards = useStore((s) => s.cards);
   // ⚠ Subscribes to `matchMedia` — dragging a desktop window narrow is
   // the cheapest way anyone will test this, and a one-shot read would
   // make exactly that not work.
   const isCompact = useIsCompact();
-  // Newest last, so a pane sits AFTER the frames that caused it.
+  /*
+   * ⚠⚠ **The same visibility rules as the rail**, via `visibleCards` —
+   * they used to live only inside `CardFeed`, so the phone's inline
+   * stack honoured neither the `shell.result` filter nor a named view.
+   * That is the form factor the per-viewport override exists FOR. Found
+   * by driving at 390px; every component test passed.
+   *
+   * ⭐ Newest LAST here rather than first: a card sits after the frames
+   * that caused it, because on a phone the feed is the transcript and
+   * causal order is reading order.
+   */
+  const kinds = activeCardKinds();
   const inlineCards = React.useMemo(
-    () => Object.values(paneCards).sort((a, b) => a.openedAt - b.openedAt),
-    [paneCards],
+    () =>
+      visibleCards(cards, { resultDisplay, kinds }).sort(
+        (a, b) => a.openedAt - b.openedAt,
+      ),
+    [cards, resultDisplay, kinds],
   );
   /*
    * The whole buffer — the denominator the reconciler quotes. Every
@@ -312,16 +280,16 @@ export const WorldLayout: React.FC<LayoutProps> = ({
           <FilterDrawer onClose={() => setViewEditorOpen(false)} />
         )}
         {/*
-          ⭐⭐ **On a phone the panes come INLINE.** Interleave what is
-          causally related, switch what is independent: a pane is caused
+          ⭐⭐ **On a phone the cards come INLINE.** Interleave what is
+          causally related, switch what is independent: a card is caused
           by what you just did, so it belongs where that happened — not
           in a second column, and not in a drawer you forget exists.
         */}
         {isCompact && (
-          <InlineStack data-testid="inline-pane-stack">
+          <InlineStack data-testid="inline-card-stack">
             {inlineCards.map((card) => (
-              <InlinePane
-                key={card.subscriptionId}
+              <InlineCard
+                key={card.instanceId}
                 card={card}
                 onSendCommand={onCommandClick}
                 onCommandPreview={onCommandPreview}
@@ -351,16 +319,16 @@ export const WorldLayout: React.FC<LayoutProps> = ({
         />
       </LeftColumn>
       {/*
-       * ⚠⚠ **The right-column panes dispatch through `onCommandClick`,
+       * ⚠⚠ **The right-column cards dispatch through `onCommandClick`,
        * not `onSendCommand`, and the distinction is not cosmetic.**
        *
-       * Every call these four panes make is a CLICK ON A CONTROL — a
+       * Every call these four cards make is a CLICK ON A CONTROL — a
        * breadcrumb, a refresh, a content row, an exit. That is an
        * affordance, and affordances are what the command sheet
        * intercepts on a phone. Wired to `onSendCommand` they bypassed
        * it entirely: tapping `north` in the transcript opened a sheet
        * naming the command, tapping the identical `north` in the
-       * inspection pane six inches away sent it instantly. Two rules on
+       * inspection card six inches away sent it instantly. Two rules on
        * one screen, which is worse than either rule alone — and exactly
        * the unpredictability the no-exceptions sheet policy exists to
        * avoid.
@@ -375,70 +343,27 @@ export const WorldLayout: React.FC<LayoutProps> = ({
       {/*
         ⚠ The rail is ABSENT on a phone, not collapsed to full width.
         A collapsed rail is a second screenful the player has to scroll
-        past to reach their own input — and the panes it held are now
+        past to reach their own input — and the cards it held are now
         inline in the feed above, so keeping it would show every card
         twice.
       */}
       {!isCompact && (
       <RightColumn $compact={isCompact}>
-        <PaneSwitch>
-          <PaneTab
-            $active={rightPane === "inspect"}
-            onClick={() => setRightPane("inspect")}
-          >
-            Inspect
-          </PaneTab>
-          <PaneTab
-            $active={rightPane === "who"}
-            onClick={() => setRightPane("who")}
-          >
-            Who&apos;s Online
-          </PaneTab>
-          <PaneTab
-            $active={rightPane === "news"}
-            onClick={() => setRightPane("news")}
-          >
-            News
-          </PaneTab>
-          <PaneTab
-            $active={rightPane === "wiki"}
-            onClick={() => setRightPane("wiki")}
-          >
-            Wiki
-          </PaneTab>
-        </PaneSwitch>
-        <PaneSlot $compact={isCompact}>
-          {rightPane === "who" ? (
-            <WhoPane
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          ) : rightPane === "news" ? (
-            <NewsTickerPane
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          ) : rightPane === "wiki" ? (
-            <WikiPane
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-            />
-          ) : (
-            /*
-             * ⭐⭐ **The one focus slot is now a FEED.** N cards, each
-             * held open by a server-side condition rather than by
-             * recency, each naming which condition holds it. The
-             * inspection pane did not go away — it is the `inspect`
-             * card's body, at the foot of the feed, still owning its
-             * own breadcrumb and paint/clear policy.
-             */
-            <PaneFeed
-              onSendCommand={onCommandClick}
-              onCommandPreview={onCommandPreview}
-              compact={isCompact}
-            />
-          )}
-        </PaneSlot>
+        {/*
+          ⭐⭐ **One slot became a FEED, and then the switcher went
+          too.** N cards, each opened by a command, each ageing out of
+          one server-owned relevance window unless the player pins it.
+          `who` / `news` / `wiki` are catalogue rows in this feed now —
+          their row-rendering knowledge was salvaged into `CardBodies`;
+          what died is the pane shell, its 360px chrome, its own data
+          path and its tab.
+        */}
+        <CardFeed
+          onSendCommand={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          compact={isCompact}
+          resultDisplay={resultDisplay}
+        />
       </RightColumn>
       )}
       {/*

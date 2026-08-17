@@ -10,11 +10,11 @@ audience is investors getting demoed the engine.
 **Status.** Design surface staked out. Implementation broken into
 independent tracks that can be built in parallel — several have since
 shipped. The client today is no longer a bare four-component shell:
-the MQL-subscription substrate, the inspection pane, the PromptApi
+the MQL-subscription substrate, the inspection card, the PromptApi
 client surface, and the console-foundations tabbed/gutter terminal
 (tab strip, filter drawer, per-topic gutter — see
 [subsystems/topics.md](../../subsystems/topics.md)) are all built and
-consuming the response-envelope channel. The inspection-pane and
+consuming the response-envelope channel. The inspection-card and
 prompt-stack sections of this slate are accordingly absorbed /
 superseded (each self-marked below); the rest of this slate remains
 the spec for the tracks still to build.
@@ -38,7 +38,7 @@ See also:
   declares its query + field-set; the substrate ships the
   initial result and diff deltas.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) — MML
-  prose channel + Scene composer. Cockpit's prose pane is an MML
+  prose channel + Scene composer. Cockpit's prose card is an MML
   consumer that gets new semantic tags from this slate.
 - [docs/subsystems/command-parsing.md](../../subsystems/command-parsing.md)
   + [command-routing.md](../../subsystems/command-routing.md) — the
@@ -86,13 +86,13 @@ Three corollaries fall out of this principle:
 **Affordance-first cockpit**, not pure terminal. The choice was
 between:
 
-- **(A) Polished telnet** — single prose pane, single input, status
+- **(A) Polished telnet** — single prose card, single input, status
   header. Honest about the MUD-shaped server. Cheap. Doesn't show
   off what the engine knows.
-- **(B) Affordance-first cockpit** — prose pane in the middle, right
+- **(B) Affordance-first cockpit** — prose card in the middle, right
   sidebar with subscription-driven widgets (slots, engagement,
   lighting, atmosphere, who's-here, exits, inventory), every clickable
-  element in either pane routes through the command bus.
+  element in either card routes through the command bus.
 
 Picked **(B)** because the engine's depth needs visible surface for
 the investor audience, and because the affordances are the educational
@@ -102,7 +102,7 @@ on-ramp from clicker → typist.
 
 ## The click model
 
-Three behaviors on every clickable element (prose-pane MML tags,
+Three behaviors on every clickable element (prose-card MML tags,
 sidebar widget items, modal affordances, future map elements):
 
 | Gesture | Behavior |
@@ -134,7 +134,7 @@ Educational design notes:
 The cockpit reshapes around what the player is currently doing.
 Modes exist because cognitive load — not pixel real estate — is the
 design constraint. A player engaged with a video lesson is not also
-parsing the prose pane at full attention; a player walking through
+parsing the prose card at full attention; a player walking through
 a dungeon is not also consuming structured study content. So the
 layout reflects mode.
 
@@ -143,7 +143,7 @@ layout reflects mode.
 | Mode | Trigger (diegetic) | Layout shape | v1? |
 |---|---|---|---|
 | **World** | Default | Terminal large, widgets sidebar | v1 |
-| **Study** | `study <thing>`, examine a textbook, interact with study NPC | Content pane large, terminal compressed | v1 |
+| **Study** | `study <thing>`, examine a textbook, interact with study NPC | Content card large, terminal compressed | v1 |
 | **Classroom** | `attend lecture`, enter a classroom location | Content huge, roster panel, lecture-scoped chat | later |
 | **Tutor** | `call tutor`, summon a live tutor NPC | Tutor stream + tutor chat prominent | later |
 
@@ -252,7 +252,7 @@ Everything else is mode-dependent.
 
 ### Mobile (out of scope for v1, architecturally accommodated)
 
-Mobile cockpit will be a stream + button bar, not a multi-pane
+Mobile cockpit will be a stream + button bar, not a multi-card
 cockpit. Same wire model (tap = preview + send), different
 layout. Cockpit slate does not specify the mobile shape; the
 slate flags that decisions in this doc must not assume desktop
@@ -281,30 +281,30 @@ mode-bound panels are tracked separately below.
 
 ### Room-state (about the location)
 
-**Folded into the inspection pane.** See
-[docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md)
-— the room-state widgets below render inside the pane body when
+**Folded into the inspection card.** See
+[docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
+— the room-state widgets below render inside the card body when
 focus is `'here'` (the default fragment). Status-header items
 (Room name, Time) remain part of the always-on minimum.
 
 | Panel | Notes | v1? |
 |---|---|---|
 | Room name + brief | Location title; in status header | v1 (header) |
-| Exits | Clickable; `<direction>`-tagged | v1 (in pane body) |
-| Things here | Objects in room; clickable | v1 (in pane body via `contents` projection) |
-| People here | NPCs + players; clickable | v1 (in pane body via `contents` projection) |
-| Lighting | Band + source attribution | v1 (in pane body) |
-| Atmosphere | Temperature, gas mix, pressure, gravity | v1 (in pane body) |
+| Exits | Clickable; `<direction>`-tagged | v1 (in card body) |
+| Things here | Objects in room; clickable | v1 (in card body via `contents` projection) |
+| People here | NPCs + players; clickable | v1 (in card body via `contents` projection) |
+| Lighting | Band + source attribution | v1 (in card body) |
+| Atmosphere | Temperature, gas mix, pressure, gravity | v1 (in card body) |
 | Sound | Ambient + sources | later (with sound subsystem) |
 | Time | Local clock | v1 (in header; world clock shipped — see time.md) |
 
-### Inspection pane
+### Inspection card
 
 **Built.** See
-[docs/subsystems/inspection-pane.md](../../subsystems/inspection-pane.md)
-— the inspection-pane subsystem absorbs the Room-state widgets
+[docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
+— the inspection-card subsystem absorbs the Room-state widgets
 (Exits, Things-here, People-here, Lighting, Atmosphere) AND the
-Focus panel into a single unified right-column pane. Header
+Focus panel into a single unified right-column card. Header
 tracks live focus (matches the prompt's focus token, sourced from
 the `'me.focus'` canonical subscription); body shows the most
 recent `look` output against that focus. Focus-without-look
@@ -356,7 +356,7 @@ history handle navigation.
 
 ## Content surface (mode-bound)
 
-A single pane that renders one of several payload kinds, summoned
+A single card that renders one of several payload kinds, summoned
 diegetically (verb / NPC / item). Reserved for non-world content
 modes (study, classroom, tutor). Replaces the right widget column
 in those modes.
@@ -410,7 +410,7 @@ once the substrate ships.
 ## MML semantic tags (Track 1)
 
 The single highest-leverage decision in this slate. Today the
-prose pane renders MML as literal text. With semantic tags + a
+prose card renders MML as literal text. With semantic tags + a
 renderer, every noun in every description becomes a clickable
 affordance teaching its own command.
 
@@ -472,7 +472,7 @@ source of truth for the wire shape. This slate covers only the
   `$focus`-shaped detail queries) at mount time and unsubscribes
   on unmount. The previous "pre-canned subscription kinds"
   framing has been dropped — widgets issue raw MQL specs through
-  `subscribeMql` directly, the inspection pane is the worked
+  `subscribeMql` directly, the inspection card is the worked
   example.
 - Subscription results and deltas update the store; widgets
   re-render on store changes.
@@ -669,7 +669,7 @@ deferred:
   a Three.js scene or similar. Demoable but separable.
 - **AI-generated location illustrations** — own project. Calls an
   image-gen API on `look`, caches per-location-state, renders in
-  a new pane. Demoable but separable.
+  a new card. Demoable but separable.
 - **Dedicated content CMS** — content authors use the player
   client + in-game shell (`pwd` / `ls` / `cat` / `clone` /
   `reload` / `eval`) until shell strain justifies a dedicated CMS.

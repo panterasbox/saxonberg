@@ -260,7 +260,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      * Projection field for live subscriptions. Reads
      * `getObviousExits()` (explicit ∪ zone-derived, !hidden) and
      * shapes each entry as `{ direction }` for the wire. Destination
-     * paths are deliberately NOT shipped — the pane renders a "go
+     * paths are deliberately NOT shipped — the card renders a "go
      * <dir>" click target, not a hyperlink to the destination.
      *
      * No `dependsOnFields` plumbing today: rooms with explicit exits

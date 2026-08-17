@@ -1,5 +1,12 @@
 verbs: [look, l, examine, exa]
 controller: /obj/command/perception/LookController
+# ⭐ ONE card, because `look` opens one. Bare `look` is about the room
+# and `look <thing>` is about the thing, and those are the same card
+# with a different SUBJECT — a room, a person, an object and an idea are
+# `StuffKind`s the body lays out differently, not four cards and not
+# two. This line used to read `[place, subject]`, which claimed a verb
+# with one target could open either of two kinds of card.
+opens_card: subject
 description: "Examine your surroundings or an object"
 help: |
   With no target, `look` surveys your whole location — its
