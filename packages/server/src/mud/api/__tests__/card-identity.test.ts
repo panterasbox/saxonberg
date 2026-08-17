@@ -24,7 +24,6 @@ import { ShadowApi } from '../shadow';
 import { CommandLineApi } from '../command-line';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
-import { CARDS } from '../../lib/connection/Cards';
 import { ContainmentApi } from '../containment';
 import Room from '../../obj/location/Room';
 import { readFileSync } from 'fs';
@@ -145,8 +144,17 @@ describe('the normalized command is what a card re-issues', () => {
 
     expect(new Set([a1, b, a2]).size).toBe(3);
     expect(CardApi.list(h.interactive).length).toBe(3);
-    // ⚠ Nothing is TOUCHED: stacking cards never dedupe.
-    expect(h.ofType('card-touched').length).toBe(0);
+    /*
+     * ⚠ Nothing is touched as a DEDUP — stacking cards never merge.
+     * The touches that do arrive are the two DEMOTIONS: each new
+     * inspection card takes liveness off the one before it, which is
+     * `live: false` and no body. Asserting a bare count of zero here
+     * would have made the demotion look like a dedup regression.
+     */
+    const touches = h.ofType('card-touched');
+    expect(touches.length).toBe(2);
+    expect(touches.every((t) => t.live === false)).toBe(true);
+    expect(touches.every((t) => t.result === undefined)).toBe(true);
     // …and the re-looked card carries the same refresh command.
     const keys = CardApi.list(h.interactive).map((c) => c.key);
     expect(keys.filter((k) => k === 'look a').length).toBe(2);
@@ -214,20 +222,27 @@ describe('the normalized command is what a card re-issues', () => {
 });
 
 /**
- * ⚠⚠ **The room card is NOT a singleton any more.**
+ * ⚠⚠ **The room card is NOT a singleton, and it is not its own kind.**
  *
- * It was, and the reason was sound under the old model: `look dave's
- * bar` resolves to the ROOM, and keyed on the sentence it minted a
- * second `place` card — pinned by default, outliving every sweep,
- * sitting under the first. The fix was to force the room's own key.
+ * It was both, and each had a reason that has since expired. It was a
+ * singleton because `look dave's bar` resolves to the ROOM, so keyed on
+ * the sentence it minted a second card that sat pinned under the first
+ * forever — and the log model removes that premise, because two looks
+ * are two cards exactly as two looks at a lamp are.
  *
- * The log model removes the premise. Two looks at the room are two
- * cards because you looked twice, exactly as two looks at a lamp are.
- * What survives from that episode is the KEY: the room card's refresh
- * must still re-issue `look`, not the sentence you happened to type.
+ * It was its own `place` kind because it was the live one — and
+ * liveness moved onto attention, at which point the two rows were
+ * identical and the second id was pure surface area.
+ *
+ * ⭐ What survives is the KEY, and it now derives from the command like
+ * every other card's rather than being forced to bare `look`. That is
+ * the more honest of the two: a card about Dave's Bar refreshes by
+ * asking for Dave's Bar, where the forced key asked for *wherever you
+ * are now* — the same relative-reference trap that made the lounge card
+ * become a bar card.
  */
 describe('the room card', () => {
-  it('⭐ stacks like everything else, and keeps `look` as its refresh', async () => {
+  it('⭐ stacks like everything else, and its key names what it is about', async () => {
     const h = await makeHarness();
     const room = await StuffApi.create(() => new Room());
     room.setShortDescription("Dave's Bar");
@@ -237,42 +252,52 @@ describe('the room card', () => {
         makeContext(h, {
           commandText: text,
           verbs: ['look', 'l', 'examine', 'exa'],
-          opensCard: 'place',
+          opensCard: 'subject',
         }),
-        'place',
-        { key: CARDS.place.command, subjectId: room.stuffId },
+        'subject',
+        { subjectId: room.stuffId },
       );
     const first = lookRoom('look');
     const second = lookRoom("look dave's bar");
 
     expect(second).not.toBe(first);
     const cards = CardApi.list(h.interactive).filter(
-      (c) => c.cardId === 'place',
+      (c) => c.cardId === 'subject',
     );
     expect(cards.length).toBe(2);
-    // ⚠ Both re-issue the room's own command, not the typed sentence.
-    expect(cards.map((c) => c.key)).toEqual(['look', 'look']);
+    expect(cards.map((c) => c.key)).toEqual(['look', "look dave's bar"]);
   });
 
   /**
-   * ⚠ The guard that keeps the call site honest — a `key` dropped from
-   * `LookController` puts the typed sentence on the refresh control,
-   * and it comes back silently.
+   * ⚠⚠ **The guard that keeps `place` from growing back.**
+   *
+   * The old version of this test asserted the opposite — that
+   * `LookController` opened `'place'` with a forced key. Both call
+   * sites now open the ONE inspection card and let the key derive, and
+   * this asserts it at the source, because the failure mode of a
+   * re-split is not a broken test: it is a second card id that quietly
+   * works, and a command view that has to name two.
    */
-  it('⚠ `LookController` passes `place`s catalogue command as the key', () => {
-    const src = readFileSync(
-      join(
-        dirname(fileURLToPath(import.meta.url)),
-        '..',
-        '..',
-        'obj',
-        'command',
-        'perception',
-        'LookController.ts',
-      ),
-      'utf8',
-    );
-    expect(src).toContain("CardApi.open(context, 'place'");
-    expect(src).toMatch(/key:\s*CARDS\.place\.command/);
+  it('⚠ both look paths open the ONE inspection card', () => {
+    const read = (name: string): string =>
+      readFileSync(
+        join(
+          dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          'obj',
+          'command',
+          'perception',
+          name,
+        ),
+        'utf8',
+      );
+    for (const name of ['LookController.ts', 'SenseController.ts']) {
+      const src = read(name);
+      expect(src).toContain("CardApi.open(context, 'subject'");
+      // No second inspection id, and no forced key resurrecting one.
+      expect(src).not.toMatch(/CardApi\.open\(context, 'place'/);
+      expect(src).not.toMatch(/key:\s*CARDS\./);
+    }
   });
 });

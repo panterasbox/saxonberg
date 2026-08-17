@@ -916,10 +916,18 @@ export interface PromptEnvelope {
  * ⚠ `inspect` and `location` are gone with the focus signal: `inspect`
  * was the client-side inference this build retires, and `location`'s
  * detail trail already lives on the card body.
+ *
+ * ⚠⚠ **`place` is gone too, and its removal is the point.** A room card
+ * and an item card were two rows whose `source` blocks had become
+ * character-for-character identical — one subject, resolved once,
+ * `fields: 'detail'`. What actually differs between looking at a room
+ * and looking at a lamp is **what the subject IS**, and that is
+ * {@link StuffKind}, carried per-card on the wire and dispatched on by
+ * the body. Two ids for one concept meant every consumer had to know
+ * both, and the second one is the one somebody forgets.
  */
 export type CardId =
   | "subject"
-  | "place"
   | "who"
   | "news"
   | "wiki"
@@ -932,7 +940,6 @@ export type CardId =
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
   "subject",
-  "place",
   "who",
   "news",
   "wiki",
@@ -1163,8 +1170,15 @@ export type CardPayload =
  * `card-catalogue.test.ts` asserts the two cannot drift. A card is an
  * inspection card exactly when it is ABOUT a subject you looked at,
  * which is also why those are the cards that carry a `StuffKind`.
+ *
+ * ⚠⚠ **It is a set of ONE, and that is the shape working rather than a
+ * degenerate case.** Inspection has one card; the four things you can
+ * inspect are {@link StuffKind}s of its subject, not four cards. The
+ * list stays a list because the *tab* is "cards born of looking", and a
+ * second such card (a card about a Shadow, say) would join it without
+ * anything downstream changing.
  */
-export const INSPECTION_CARD_IDS: readonly CardId[] = ['place', 'subject'];
+export const INSPECTION_CARD_IDS: readonly CardId[] = ['subject'];
 
 export type StuffKind = "location" | "agent" | "thing" | "idea";
 
@@ -2909,7 +2923,15 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
   Record<CockpitMode, Readonly<Record<string, readonly CardId[]>>>
 > = {
   chat: { default: ['who'] },
-  play: { default: ['place'] },
+  /*
+   * ⚠ **Empty, and it was already empty in effect.** `play` used to name
+   * the room card here, but an arrangement names a card KIND while an
+   * inspection card is ABOUT a subject the arrangement cannot know —
+   * so `applyArrangement` skips subject cards on both sides and this
+   * row had stopped opening anything. Arrival mints the room card; the
+   * arrangement has no business duplicating it.
+   */
+  play: { default: [] },
   watch: { viewer: [], streamer: [] },
   build: { default: ['cms', 'git', 'studio'] },
   govern: { default: [] },

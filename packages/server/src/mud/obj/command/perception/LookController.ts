@@ -35,10 +35,6 @@ import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { CardApi } from '../../../api/card';
-// The catalogue's own `command`, read rather than re-typed: the room
-// card's key and its refresh command are the same string by definition,
-// and a literal here would be a second copy of it.
-import { CARDS } from '../../../lib/connection/Cards';
 import { BulkableApi } from '../../../api/bulk';
 import { RecognitionApi } from '../../../api/recognition';
 import { PerceptionApi } from '../../../api/perception';
@@ -299,16 +295,15 @@ export default class LookController extends CommandController<LookModel> {
 
     /*
      * ⚠⚠ **Open the card FIRST, then say whether the frame is carded.**
-     * Stamping `carded` before the open is a promise, not a fact: this
-     * path TOUCHES the room card when one is already open, and the
-     * suppressed prose then had nothing to replace it. `look dave` in
-     * Dave's Bar printed its echo and nothing else. The id also lets
+     * Stamping `carded` before the open is a promise, not a fact: an
+     * open that touches, fails or is filtered leaves the suppressed
+     * prose with nothing to replace it, and `look dave` in Dave's Bar
+     * printed its echo and nothing else. The id also lets
      * the client re-show the prose when a named view filters this kind
      * out of the feed.
      */
-    const opened = CardApi.open(context, 'place', {
+    const opened = CardApi.open(context, 'subject', {
       prose: body,
-      key: CARDS.place.command,
       subjectId: location.stuffId,
     });
 

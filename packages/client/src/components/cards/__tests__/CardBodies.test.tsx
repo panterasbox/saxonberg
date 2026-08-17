@@ -19,7 +19,7 @@ import { websocketClient } from "../../../services/websocket";
 function placeCard(record: Partial<StuffDetailRecord>): CardState {
   return {
     instanceId: "s1",
-    cardId: "place",
+    cardId: "subject",
     key: "look",
     live: true,
     pinned: false,
@@ -580,7 +580,7 @@ describe("the four inspection bodies", () => {
         card={
           {
             instanceId: "c1",
-            cardId: kind === "location" ? "place" : "subject",
+            cardId: kind === "location" ? "subject" : "subject",
             key: "look x",
             live: false,
             pinned: false,

@@ -26,7 +26,7 @@ describe("the pinned chip row", () => {
       cards: {
         a: {
           instanceId: "a",
-          cardId: "place",
+          cardId: "subject",
           key: "look",
           live: true,
           pinned: true,

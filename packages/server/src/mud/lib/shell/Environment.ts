@@ -95,8 +95,9 @@ export interface SettingsSchemaEntry<T = unknown> {
    */
   perFactor?: true;
   /**
-   * ⭐ **Suffixable by CARD KIND** — `cards.window.place` overrides
-   * `cards.window` for room cards alone.
+   * ⭐ **Suffixable by CARD KIND** — `cards.window.subject` overrides
+   * `cards.window` for the cards you get by looking at things, leaving
+   * the roster, the wiki and the editors on the general figure.
    *
    * Same shape as `perFactor` and the same reason: one key with an
    * optional override, not an open namespace. A suffix that is not a
@@ -368,8 +369,9 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         description:
           'How long an unpinned card stays in the feed after you last ' +
           'touched it, in seconds. Pinned cards ignore it entirely. ' +
-          'Override one kind by suffixing it — `cards.window.place 3600` ' +
-          'keeps room cards an hour while everything else ages normally.',
+          'Override one kind by suffixing it — `cards.window.subject ' +
+          '3600` keeps what you have looked at for an hour while ' +
+          'everything else ages normally.',
         validator: (v) =>
           typeof v === 'number' && v >= 5 && v <= 86_400
             ? true

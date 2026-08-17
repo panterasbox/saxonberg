@@ -104,18 +104,18 @@ describe("the feed's own header", () => {
 
 describe("a card in the feed", () => {
   it("names its subject", () => {
-    landCard(opened({ instanceId: "c1", title: "the lounge", cardId: "place" }));
+    landCard(opened({ instanceId: "c1", title: "the lounge", cardId: "subject" }));
     render(<CardFeed onSendCommand={noop} />);
-    expect(screen.getByTestId("card-place").textContent).toContain(
+    expect(screen.getByTestId("card-subject").textContent).toContain(
       "the lounge",
     );
   });
 
   it("⚠ FADES with its reason when closed, rather than vanishing", () => {
-    landCard(opened({ instanceId: "c1", title: "the lounge", cardId: "place" }));
+    landCard(opened({ instanceId: "c1", title: "the lounge", cardId: "subject" }));
     useStore.getState().closeCard("c1", "aged-out");
     render(<CardFeed onSendCommand={noop} />);
-    const card = screen.getByTestId("card-place");
+    const card = screen.getByTestId("card-subject");
     expect(card.getAttribute("data-card-closed")).toBe("aged-out");
     expect(screen.getByTestId("card-hold-reason").textContent).toMatch(
       /older cards fall off/,
@@ -123,10 +123,10 @@ describe("a card in the feed", () => {
   });
 
   it("keeps the husk's NAME so a stale card says which place you left", () => {
-    landCard(opened({ instanceId: "c1", title: "the lounge", cardId: "place" }));
+    landCard(opened({ instanceId: "c1", title: "the lounge", cardId: "subject" }));
     useStore.getState().closeCard("c1", "aged-out");
     render(<CardFeed onSendCommand={noop} />);
-    expect(screen.getByTestId("card-place").textContent).toContain(
+    expect(screen.getByTestId("card-subject").textContent).toContain(
       "the lounge",
     );
   });
@@ -135,7 +135,7 @@ describe("a card in the feed", () => {
     landCard(
       opened({
         instanceId: "c1",
-        cardId: "place",
+        cardId: "subject",
         result: [{ stuffId: "s1", displayName: "the lounge" }] as never,
       }),
     );
@@ -158,7 +158,7 @@ describe("⭐ the honesty rule: a static card looks static", () => {
     landCard(
       opened({
         instanceId: "c1",
-        cardId: "place",
+        cardId: "subject",
         key: "look",
         live: true,
         takenAt: undefined,
@@ -259,7 +259,7 @@ describe("⭐ the feed's order", () => {
    * time.
    */
   it("⭐ runs oldest → newest, with pinning NOT a position", () => {
-    landCard(opened({ instanceId: "pin", cardId: "place", pinned: true }));
+    landCard(opened({ instanceId: "pin", cardId: "subject", pinned: true }));
     landCard(opened({ instanceId: "a", cardId: "who" }));
     landCard(opened({ instanceId: "b", cardId: "news" }));
 
@@ -283,7 +283,7 @@ describe("⭐ the feed's order", () => {
       landCard(opened({ instanceId: id, cardId: "who", key: `who ${id}` }));
       useStore.getState().closeCard(id, "aged-out");
     }
-    landCard(opened({ instanceId: "live", cardId: "place", key: "look" }));
+    landCard(opened({ instanceId: "live", cardId: "subject", key: "look" }));
     const ids = Object.keys(useStore.getState().cards).sort();
     // Three husks (the bound) plus the live one.
     expect(ids).toEqual(["h2", "h3", "h4", "live"]);
@@ -402,7 +402,7 @@ describe("a LIVE card's name follows its body", () => {
     landCard(
       opened({
         instanceId: "c1",
-        cardId: "place",
+        cardId: "subject",
         key: "look",
         live: true,
         title: "the lounge",
@@ -417,7 +417,7 @@ describe("a LIVE card's name follows its body", () => {
       ] as never);
 
     render(<CardFeed onSendCommand={noop} />);
-    const card = screen.getByTestId("card-place");
+    const card = screen.getByTestId("card-subject");
     expect(card.textContent).toContain("Dave's Bar");
     expect(card.textContent).not.toContain("the lounge");
   });
@@ -426,7 +426,7 @@ describe("a LIVE card's name follows its body", () => {
     landCard(
       opened({
         instanceId: "c1",
-        cardId: "place",
+        cardId: "subject",
         key: "look",
         live: true,
         title: "the lounge",
@@ -441,7 +441,7 @@ describe("a LIVE card's name follows its body", () => {
     useStore.getState().closeCard("c1", "aged-out");
 
     render(<CardFeed onSendCommand={noop} />);
-    expect(screen.getByTestId("card-place").textContent).toContain(
+    expect(screen.getByTestId("card-subject").textContent).toContain(
       "Dave's Bar",
     );
   });

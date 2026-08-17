@@ -195,7 +195,7 @@ describe("⚠⚠ visibleCards — the one rule both render paths call", () => {
 describe("a carded frame is only suppressed if its card is on screen", () => {
   const cards: Record<string, CardState> = {
     "i-subject": card("subject", { instanceId: "i-subject" }),
-    "i-place": card("place", { instanceId: "i-place" }),
+    "i-roster": card("who", { instanceId: "i-roster" }),
     "i-husk": card("who", { instanceId: "i-husk", closed: "aged-out" }),
   };
 
@@ -208,9 +208,11 @@ describe("a carded frame is only suppressed if its card is on screen", () => {
   });
 
   it("⚠⚠ NOT covered when a named view filters that kind out of the feed", () => {
-    const onlyPlaces = new Set<CardId>(["place"]);
-    expect(cardedFrameIsCovered("i-subject", cards, onlyPlaces)).toBe(false);
-    expect(cardedFrameIsCovered("i-place", cards, onlyPlaces)).toBe(true);
+    // A view showing only the roster: the inspection card is off screen,
+    // so its prose is the only copy the player has.
+    const onlyRoster = new Set<CardId>(["who"]);
+    expect(cardedFrameIsCovered("i-subject", cards, onlyRoster)).toBe(false);
+    expect(cardedFrameIsCovered("i-roster", cards, onlyRoster)).toBe(true);
   });
 
   it("⚠ NOT covered by a HUSK — it shed its body, so the prose is the only copy", () => {

@@ -5,7 +5,7 @@ controller: /obj/command/perception/SenseController
 # gets its own; the one you left stays in the feed as the record of a
 # place you were, which is what makes the column a history rather than
 # a display that keeps being overwritten.
-opens_card: place
+opens_card: subject
 description: "Take in your surroundings across every sense you possess"
 help: |
   Open every sense at once. `sense` gathers sight, sound, smell,

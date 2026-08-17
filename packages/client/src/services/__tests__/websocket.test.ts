@@ -757,7 +757,7 @@ describe("the stuff registry is fed by CARD envelopes too", () => {
       type: "card-opened",
       frameId: 1,
       instanceId: "card-2",
-      cardId: "place",
+      cardId: "subject",
       key: "look",
       live: true,
       pinned: true,

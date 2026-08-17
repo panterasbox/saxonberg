@@ -17,6 +17,8 @@ import { stampTemplatePathForTest } from '../../lib/security/__tests__/test-setu
 import EventRegistry from '../../obj/EventRegistry';
 import Interactive from '../../obj/Interactive';
 import Avatar from '../../obj/Avatar';
+import Room from '../../obj/location/Room';
+import { ContainmentApi } from '../containment';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import type { CommandContext } from '../command';
 import type { CardId } from '@saxonberg/types';
@@ -29,6 +31,17 @@ export interface CapturedEnvelope {
 export interface Harness {
   interactive: Interactive;
   avatar: Avatar;
+  /**
+   * ⚠ **The avatar is SOMEWHERE, because a player always is.**
+   *
+   * Added when inspection collapsed to one card: that card is
+   * subject-bound and live, so an open with no explicit subject falls
+   * back to the viewer's container — and a harness whose avatar was
+   * nowhere made every such open resolve to nothing and return `null`,
+   * which reads as "the card is broken" rather than "the fixture is
+   * unlike every real caller".
+   */
+  room: Room;
   envelopes: CapturedEnvelope[];
   /** Envelopes of one type, in arrival order. */
   ofType(type: string): CapturedEnvelope[];
@@ -44,6 +57,9 @@ export async function makeHarness(name = 'Alice'): Promise<Harness> {
   await bootEventRegistry();
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName(name);
+  const room = await StuffApi.create(() => new Room());
+  room.setShortDescription('the harness room');
+  ContainmentApi.move(avatar, room);
   const interactive = await StuffApi.create(
     () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never),
   );
@@ -55,6 +71,7 @@ export async function makeHarness(name = 'Alice'): Promise<Harness> {
   return {
     interactive,
     avatar,
+    room,
     envelopes,
     ofType: (type) => envelopes.filter((e) => e.type === type),
   };

@@ -262,12 +262,15 @@ export default class CardRegistry extends Idea {
 
     /*
      * ⚠ **A subject-bound card pushed without a subject defaults to
-     * where the viewer IS.** An arrangement names a card KIND, not a
-     * thing — `play` asks for "where you are" and cannot know the room
-     * — so `place` at login would otherwise resolve to nothing. This is
-     * the one card whose name answers the question, which is why the
-     * fallback is safe rather than a guess: "where you are" *is* the
-     * viewer's container.
+     * where the viewer IS.** A push names a card KIND, not a thing, so
+     * a subject-bound row pushed programmatically would otherwise
+     * resolve to nothing. The viewer's container is the one subject
+     * that can be inferred without guessing — it is where they are, not
+     * a pick among things they might have meant.
+     *
+     * ⚠ It is a fallback, not a path anything routes through: `look`
+     * and `sense` both supply the subject, and `applyArrangement` skips
+     * subject cards rather than leaning on this.
      */
     if (
       def.source.kind === 'mql' &&
@@ -324,7 +327,8 @@ export default class CardRegistry extends Idea {
       if (initial === null) return null;
       state.records = initial as CardRecord[];
       state.title = initial[0]?.displayName as string | undefined;
-      // A live card is an inspection card too — `place` is the room.
+      // A live card is by construction an inspection card: the only
+      // live row is the one you get by looking at something.
       const liveSubject = StuffApi.findById(
         (initial[0] as { stuffId?: string } | undefined)?.stuffId ?? '',
       );
@@ -408,7 +412,8 @@ export default class CardRegistry extends Idea {
    *
    * The KEY is the card's identity and is unique by construction, so it
    * is the ref the client sends. The catalogue name still resolves —
-   * `cockpit card pin place` is the form the verb's own help shows, and
+   * `cockpit card pin subject` is the form the verb's own help shows,
+   * and
    * it is unambiguous whenever only one card of that kind is open. The
    * instance id resolves last and is never SHOWN: it is a server-minted
    * `card-<uuid>`, and printing that at a player is the transport
@@ -631,8 +636,9 @@ export default class CardRegistry extends Idea {
         if (state.pinned) continue;
         /*
          * ⭐ The window is per KIND when the player has said so:
-         * `cards.window.place 3600` keeps room cards an hour while
-         * everything else ages normally. One key, optional overrides.
+         * `cards.window.subject 3600` keeps what you have looked at
+         * for an hour while everything else ages normally. One key,
+         * optional overrides.
          */
         /*
          * ⚠⚠ **The STORED override only** — never `resolveSetting`.

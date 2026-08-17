@@ -88,9 +88,9 @@ describe('static and live are different KINDS of answer', () => {
     const room = await makeRoom('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    CardApi.push(h.interactive, 'subject', { subjectId: room.stuffId });
     const opened = h.ofType('card-opened')[0]!;
-    expect(CARDS.place.live).toBe(true);
+    expect(CARDS.subject.live).toBe(true);
     expect(opened.live).toBe(true);
     expect(opened.takenAt).toBeUndefined();
   });
@@ -117,7 +117,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place', {
+    const instanceId = CardApi.push(h.interactive, 'subject', {
       subjectId: lounge.stuffId,
     });
     expect(instanceId).not.toBeNull();
@@ -143,7 +143,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place', {
+    const instanceId = CardApi.push(h.interactive, 'subject', {
       subjectId: lounge.stuffId,
     });
     const opened = h.ofType('card-opened')[0]!;
@@ -200,7 +200,7 @@ describe('static and live are different KINDS of answer', () => {
     const lounge = await makeRoom('the lounge');
     ContainmentApi.move(h.avatar, lounge);
 
-    const instanceId = CardApi.push(h.interactive, 'place', {
+    const instanceId = CardApi.push(h.interactive, 'subject', {
       subjectId: lounge.stuffId,
     });
     const opened = h.ofType('card-opened')[0]!;
@@ -270,7 +270,7 @@ describe('static and live are different KINDS of answer', () => {
     const yard = await makeRoom('the yard');
     ContainmentApi.move(h.avatar, lounge);
 
-    CardApi.push(h.interactive, 'place', { subjectId: lounge.stuffId });
+    CardApi.push(h.interactive, 'subject', { subjectId: lounge.stuffId });
     ContainmentApi.move(h.avatar, yard);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
@@ -280,7 +280,7 @@ describe('static and live are different KINDS of answer', () => {
      * bookkeeping uses it — so drive it directly rather than through a
      * dedup that no longer happens.
      */
-    CardApi.touch(h.interactive, CARDS.place.command);
+    CardApi.touch(h.interactive, CARDS.subject.command);
 
     const touched = h.ofType('card-touched');
     expect(touched.length).toBe(1);
@@ -305,7 +305,7 @@ describe('static and live are different KINDS of answer', () => {
     ContainmentApi.move(h.avatar, room);
 
     const before = MqlSubscriptionApi._getRegistrySizeForTesting();
-    const instanceId = CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    const instanceId = CardApi.push(h.interactive, 'subject', { subjectId: room.stuffId });
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(before + 1);
 
     CardApi.close(h.interactive, instanceId!, 'dismissed');

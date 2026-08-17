@@ -48,7 +48,6 @@ import type { CardRecord } from "../../store/cardFeedSlice";
  */
 export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   subject: "what you are looking at",
-  place: "where you are",
   who: "who's online",
   news: "the news",
   wiki: "the wiki",

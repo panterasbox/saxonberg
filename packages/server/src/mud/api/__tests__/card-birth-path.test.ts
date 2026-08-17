@@ -176,7 +176,6 @@ describe('a card is born on the server, or not at all', () => {
         'git',
         'help',
         'news',
-        'place',
         'studio',
         'subject',
         'who',

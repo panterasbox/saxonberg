@@ -1163,13 +1163,14 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
    * shell is shared and only the section set varies.
    */
   /*
-   * ⚠ The fallback reads the card's own kind rather than defaulting
-   * blind: a `place` card IS a location even on an older envelope that
-   * carries no `subjectKind`, and treating it as a thing would take its
-   * exits away.
+   * ⚠ `thing` is the fallback because it is the LEAST-claiming body:
+   * no exits, no roster, just what the record has. There used to be a
+   * second clause here reading the card's own id — a `place` card is a
+   * location even on an envelope with no `subjectKind` — and it is gone
+   * with the id, which is the point: the kind now travels with the
+   * card instead of being inferable from which of two ids it carried.
    */
-  const kind: StuffKind =
-    card.subjectKind ?? (card.cardId === "place" ? "location" : "thing");
+  const kind: StuffKind = card.subjectKind ?? "thing";
   const isPlace = kind === "location";
   const isAgent = kind === "agent";
   const isIdea = kind === "idea";

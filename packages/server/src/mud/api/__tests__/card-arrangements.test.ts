@@ -2,7 +2,7 @@
  * ⭐ **Every mode resolves a non-empty arrangement** (AC 13), and the
  * arrangement is applied on **login** (Wave 7).
  *
- * `SHIPPED_ARRANGEMENT_CARDS` was `{chat: [], play: ['place'], watch:
+ * `SHIPPED_ARRANGEMENT_CARDS` was `{chat: [], play: ['subject'], watch:
  * [], build: [], govern: []}` — sparse on purpose, because *"pre-filling
  * them here would be sizing a vocabulary to a mockup."* This build ships
  * the surfaces those modes were waiting for, so the argument expires and
@@ -18,6 +18,7 @@ import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   CARD_IDS,
+  INSPECTION_CARD_IDS,
   COCKPIT_MODES,
   SHIPPED_ARRANGEMENT_CARDS,
   COCKPIT_ARRANGEMENTS,
@@ -80,27 +81,57 @@ describe('the shipped arrangements', () => {
     }
   });
 
-  it('⭐ `build`, `chat` and `play` resolve a NON-EMPTY arrangement', () => {
+  it('⭐ `build` and `chat` resolve a NON-EMPTY arrangement', () => {
     const nonEmpty = (mode: CockpitMode, arrangement: string): CardId[] => [
       ...(SHIPPED_ARRANGEMENT_CARDS[mode][arrangement] ?? []),
     ];
     expect(nonEmpty('build', 'default')).toEqual(['cms', 'git', 'studio']);
     expect(nonEmpty('chat', 'default')).toEqual(['who']);
-    expect(nonEmpty('play', 'default')).toEqual(['place']);
   });
 
   /**
-   * ⚠ `watch` and `govern` ship EMPTY, and that is a decision rather
-   * than an omission: the watch surfaces are the embed and the overlay
-   * (chrome, not cards), and `govern` has no card of its own yet. A row
-   * pre-filled with a card that does not exist would be sizing the
-   * vocabulary to a mockup, which is the rule this map was written
-   * under.
+   * ⚠ `watch`, `govern` and `play` ship EMPTY, and each is a decision
+   * rather than an omission: the watch surfaces are the embed and the
+   * overlay (chrome, not cards), and `govern` has no card of its own
+   * yet. A row pre-filled with a card that does not exist would be
+   * sizing the vocabulary to a mockup, which is the rule this map was
+   * written under.
+   *
+   * ⭐⭐ **`play` is empty for a different and better reason.** It used
+   * to name the room card, and an arrangement CANNOT open an inspection
+   * card: an arrangement names a KIND, an inspection card is about a
+   * SUBJECT, and `applyArrangement` skips subject cards on both sides.
+   * The row was already opening nothing. Arrival mints the room card —
+   * the arrangement has no business duplicating it, and the test below
+   * pins that the two never fight over it.
    */
-  it('⚠ `watch` and `govern` ship empty, deliberately', () => {
+  it('⚠ `watch`, `govern` and `play` ship empty, deliberately', () => {
     expect(SHIPPED_ARRANGEMENT_CARDS.watch.viewer).toEqual([]);
     expect(SHIPPED_ARRANGEMENT_CARDS.watch.streamer).toEqual([]);
     expect(SHIPPED_ARRANGEMENT_CARDS.govern.default).toEqual([]);
+    expect(SHIPPED_ARRANGEMENT_CARDS.play.default).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ **No arrangement anywhere may name an inspection card.** Not a
+   * style rule: `applyArrangement` silently drops one, so a row that
+   * named it would be a promise the resolver does not keep — a mode
+   * that looks like it opens a card and does not.
+   */
+  it('⚠ no shipped arrangement names an inspection card', () => {
+    for (const [mode, arrangements] of Object.entries(
+      SHIPPED_ARRANGEMENT_CARDS,
+    )) {
+      for (const [name, ids] of Object.entries(arrangements)) {
+        for (const id of ids) {
+          expect(
+            (INSPECTION_CARD_IDS as readonly string[]).includes(id),
+            `${mode}/${name} names inspection card '${id}', which an ` +
+              `arrangement cannot open`,
+          ).toBe(false);
+        }
+      }
+    }
   });
 
   it("applying `build`'s arrangement opens the three authoring cards", async () => {

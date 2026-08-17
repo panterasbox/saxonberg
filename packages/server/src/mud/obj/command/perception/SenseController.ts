@@ -40,7 +40,6 @@ import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { CardApi } from '../../../api/card';
-import { CARDS } from '../../../lib/connection/Cards';
 import { Mml } from '../../../api/mml';
 import { PerceptionApi } from '../../../api/perception';
 import { SENSE_CHANNELS, type SenseChannel } from '../../../lib/description/Perceiver';
@@ -223,9 +222,8 @@ export default class SenseController extends CommandController<SenseModel> {
      * one behind you drops its subscription and becomes an ordinary
      * snapshot with a `takenAt` and a refresh.
      */
-    const opened = CardApi.open(context, 'place', {
+    const opened = CardApi.open(context, 'subject', {
       prose: body,
-      key: CARDS.place.command,
       subjectId: location.stuffId,
     });
     const scene = MessageApi.scene(actor).topic(SCENE_TOPIC);

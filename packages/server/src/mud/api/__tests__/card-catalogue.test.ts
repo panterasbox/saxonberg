@@ -21,9 +21,9 @@ import {
 } from '../../lib/connection/Cards';
 
 describe('the card catalogue', () => {
-  it('ships exactly ten cards, and the list and the map agree', () => {
-    expect(CARD_IDS.length).toBe(10);
-    expect(Object.keys(CARDS).length).toBe(10);
+  it('ships exactly nine cards, and the list and the map agree', () => {
+    expect(CARD_IDS.length).toBe(9);
+    expect(Object.keys(CARDS).length).toBe(9);
     expect([...CARD_IDS].sort()).toEqual(Object.keys(CARDS).sort());
   });
 
@@ -49,15 +49,16 @@ describe('the card catalogue', () => {
     const unpinnedAndStatic = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && !CARDS[id].live,
     );
-    // ⚠ `place` is unpinned now: with a card per arrival, a room card
-    // that pinned itself would make "kept" meaningless within a minute.
+    // ⚠ `subject` is unpinned: with a card per thing you look at, an
+    // inspection card that pinned itself would make "kept" meaningless
+    // within a minute and put a floor under the sweep.
     expect(pinnedAndStatic.length).toBe(4);
     expect(pinnedAndLive.length).toBe(0);
-    expect(unpinnedAndStatic.length).toBe(5);
+    expect(unpinnedAndStatic.length).toBe(4);
     const unpinnedAndLive = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && CARDS[id].live,
     );
-    expect(unpinnedAndLive).toEqual(['place']);
+    expect(unpinnedAndLive).toEqual(['subject']);
   });
 
   /**
@@ -65,15 +66,30 @@ describe('the card catalogue', () => {
    * is static leaves `live` a field nothing reads, and a declaration
    * nothing reads is indistinguishable from a broken one.
    */
-  it('at least one row is live, and it is `place`', () => {
+  it('at least one row is live, and it is `subject`', () => {
     const live = CARD_IDS.filter((id) => CARDS[id].live);
-    expect(live).toEqual(['place']);
+    expect(live).toEqual(['subject']);
     // A live card's source must be MQL — there is nothing else to wake.
-    expect(CARDS.place.source.kind).toBe('mql');
+    expect(CARDS.subject.source.kind).toBe('mql');
   });
 
-  it('`place` keys on its own refresh command, so bare `look` touches it', () => {
-    expect(CARDS.place.command).toBe('look');
+  /**
+   * ⚠⚠ **The catalogue may not grow a second inspection row.**
+   *
+   * `place` was one, and every difference it carried turned out to be a
+   * lifetime or a layout decision rather than an identity: liveness is
+   * decided by attention and layout by `StuffKind`. Two ids for one
+   * concept is how a command view ends up declaring `opens_card:
+   * [place, subject]` — *this verb opens one of two kinds of card* about
+   * a target that is by construction exactly one kind of thing.
+   */
+  it('⚠ inspection is ONE card, whatever kind of thing you looked at', () => {
+    const inspection = CARD_IDS.filter((id) => {
+      const src = CARDS[id].source;
+      return src.kind === 'mql' && src.needsSubject === true;
+    });
+    expect(inspection).toEqual(['subject']);
+    expect(CARDS.subject.command).toBe('look <subject>');
   });
 
   it('the authoring cards declare they cannot degrade to prose', () => {
@@ -97,10 +113,11 @@ describe('the card catalogue', () => {
       return src.kind === 'mql' && src.needsSubject === true;
     });
     /*
-     * ⭐ TWO rows take a subject now, and it is the same fact twice:
-     * `place` and `subject` are one INSPECTION card whose body is chosen
-     * by what the subject is. A room card bound to the relative `here`
-     * followed the viewer out of the room and rewrote itself.
+     * ⭐ ONE row takes a subject, and the four things you can inspect
+     * are `StuffKind`s of that subject rather than four rows. It was
+     * briefly two — a room card bound to the relative `here` followed
+     * the viewer out of the room and rewrote itself, and binding it to
+     * its subject made it identical to this one.
      */
     /*
      * ⭐⭐ **The client's `INSPECTION_CARD_IDS` and the catalogue's
@@ -159,7 +176,7 @@ describe('the card catalogue', () => {
         `${retired} should have been retired`,
       ).toBe(false);
     }
-    // …and the union really is the ten we expect, by name.
+    // …and the union really is the nine we expect, by name.
     expect([...CARD_IDS].sort()).toEqual(
       (
         [
@@ -167,7 +184,6 @@ describe('the card catalogue', () => {
           'git',
           'help',
           'news',
-          'place',
           'prompt',
           'studio',
           'subject',

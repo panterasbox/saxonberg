@@ -130,11 +130,10 @@ export interface CardDefinition {
    * control re-issues. `<subject>` is filled from the subject's
    * `primaryKeyword` at open.
    *
-   * ⭐ Giving the arrangement-pushed card the key of its own refresh
-   * command is what makes a bare `look` **touch** `place` rather than
-   * mint a duplicate — decisions 4 and 6 composed, which retires the
-   * *"the focus card must not FLASH"* special case structurally rather
-   * than by a duplicate check.
+   * ⚠ It is the dedup key only for a {@link CardDefinition.singleton}
+   * row. For everything else the feed is a log and re-running the
+   * command stacks another card, so this is a refresh label and an
+   * identity, not a uniqueness constraint.
    */
   readonly command: string;
   /**
@@ -179,10 +178,38 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * `illustration` on most. The body shows the sections that are there,
    * so "a location view" and "a thing view" are not two views at all.
    *
-   * ⚠ **Unpinned, and static.** It is a record of your ATTENTION, which
-   * is a fact about you rather than about the room: it stacks as you
-   * look at things and ages out of the relevance window, and looking
-   * again brings it back.
+   * ⚠⚠ **`place` used to be a second row here, and it should never have
+   * been.** A room card and an item card ended this build with
+   * `source` blocks that were identical field for field — one subject,
+   * `cardinality: 'one'`, `fields: 'detail'`, `needsSubject`. Every
+   * difference that survived was a LIFETIME decision (does it start
+   * live) or a LAYOUT decision (does it show exits), and neither of
+   * those is a reason for a second identity: lifetime is decided by
+   * attention and layout is decided by {@link StuffKind}. The residue
+   * showed up where residue always does — a command view reading
+   * `opens_card: [place, subject]`, which says *this verb opens one of
+   * two kinds of card* about a target that is by construction exactly
+   * one kind of thing.
+   *
+   * ⭐ **Unpinned.** It is a record of your ATTENTION, which is a fact
+   * about you rather than about the room: it stacks as you look at
+   * things and ages out of the relevance window, and looking again
+   * mints a new one.
+   *
+   * ⭐⭐ **Live while it is the newest, silent once it is history.**
+   * While this is the current inspection card it tracks its subject —
+   * someone walks into the room, something is set down, the person you
+   * are watching draws a blade — and it shows without asking. The
+   * moment a newer inspection card arrives, `CardRegistry.demoteLive`
+   * tears its subscription down and it becomes an ordinary snapshot
+   * with a `takenAt` and a refresh. Behind you there is nothing to
+   * track, and a subscription still running would be a wake with no
+   * reader. **Liveness is a property of attention, not of a card kind**
+   * — which is exactly why it cannot be what tells two rows apart.
+   *
+   * ⚠ This works only because the subscription is bound to the
+   * SUBJECT. On the relative `here` it followed the viewer instead of
+   * the room, and the lounge card silently became a bar card.
    */
   subject: {
     label: 'what you are looking at',
@@ -194,80 +221,8 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
       needsSubject: true,
     },
     pinnedByDefault: false,
-    live: false,
-    command: 'look <subject>',
-  },
-
-  /**
-   * ⭐⭐ **Where you are — a new card per arrival, live only while it is
-   * the current one.**
-   *
-   * Walking into a room mints that room's card (`sense` opens it, and
-   * arrival auto-senses). The card for the room you LEFT stays in the
-   * feed as the record of a place you were, so the column is a history
-   * of where you have been.
-   *
-   * ⭐ **Live is scoped to the newest.** While a room card is the
-   * current one it tracks its room, so something changing around you
-   * shows up without asking. The moment a newer room card arrives the
-   * old one's subscription is torn down and it becomes an ordinary
-   * snapshot — `takenAt` stamped, refresh control offered, like every
-   * other static card. Once it is behind you there is nothing for it to
-   * track, and a subscription still running would be a wake with no
-   * reader.
-   *
-   * ⚠⚠ **It shipped as ONE live card that mutated in place**, which
-   * meant walking out of the lounge rewrote the lounge card into the
-   * bar — replacement dressed up as freshness, and reported as exactly
-   * that. Liveness was never the error; unbounded liveness on a card
-   * that should have been superseded was.
-   *
-   * ⚠ Not pinned by default any more. With a card per arrival, a room
-   * card that pinned itself would make "kept" meaningless within a
-   * minute and put a floor under the sweep that nothing could clear.
-   */
-  place: {
-    label: 'where you are',
-    source: {
-      kind: 'mql',
-      query: '$subject',
-      cardinality: 'one',
-      fields: 'detail',
-      /*
-       * ⚠⚠ **Bound to the ROOM, not to `here` — and `here` was the bug.**
-       *
-       * `here` is a RELATIVE query: it re-evaluates against whoever is
-       * asking, so *any* re-resolve snaps the card to wherever you now
-       * are. Leaving the lounge changes the lounge's own contents (you
-       * left), that wakes the card, and the card re-answers `here` —
-       * which is the bar. The lounge card silently became a bar card.
-       * Dropping `locationDependent` did not help, because the room's
-       * own contents were enough to trigger it.
-       *
-       * A card about a place has to be pinned to THAT place. So it
-       * carries its subject like every other inspection card — which is
-       * the same thing said twice: `place` and `subject` are one card
-       * whose body is chosen by what the subject IS.
-       */
-      needsSubject: true,
-    },
-    pinnedByDefault: false,
-    /*
-     * ⭐⭐ **Live while it is the newest, silent once it is history.**
-     *
-     * While this is the current room card it tracks its room — someone
-     * walks in, something is set down, and it shows. The moment a newer
-     * room card arrives, `CardRegistry.demoteLive` tears its
-     * subscription down and it becomes an ordinary snapshot with a
-     * `takenAt` and a refresh. Behind you there is nothing to track,
-     * and a subscription still running would be a wake with no reader.
-     *
-     * ⚠ This works only because the subscription is bound to the
-     * SUBJECT. On the relative `here` it followed the viewer instead of
-     * the room.
-     */
     live: true,
-    command: 'look',
+    command: 'look <subject>',
   },
 
   /**

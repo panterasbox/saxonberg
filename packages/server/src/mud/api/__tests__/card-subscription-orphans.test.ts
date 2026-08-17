@@ -41,7 +41,7 @@ describe('a card owns its subscription handle', () => {
     ContainmentApi.move(h.avatar, room);
 
     // A live card (owns a handle), and three static ones (own none).
-    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    CardApi.push(h.interactive, 'subject', { subjectId: room.stuffId });
     CardApi.open(
       makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
       'who',
@@ -80,8 +80,8 @@ describe('a card owns its subscription handle', () => {
     ContainmentApi.move(h.avatar, room);
 
     // `place` ships pinned; unpin it so the window can reach it.
-    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
-    CardApi.setPinned(h.interactive, 'place', false);
+    CardApi.push(h.interactive, 'subject', { subjectId: room.stuffId });
+    CardApi.setPinned(h.interactive, 'subject', false);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     /*
@@ -118,7 +118,7 @@ describe('a card owns its subscription handle', () => {
      * reap it, and each has its own test above. What must not exist is
      * a THIRD outcome where the card is gone and the handle isn't.
      */
-    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    CardApi.push(h.interactive, 'subject', { subjectId: room.stuffId });
     CardApi.open(
       makeContext(h, {
         commandText: 'press',
@@ -133,13 +133,13 @@ describe('a card owns its subscription handle', () => {
 
     // The arrangement-managed card went; the inspection card stayed.
     expect(CardApi.list(h.interactive).map((c) => c.cardId).sort()).toEqual([
-      'place',
+      'subject',
       'who',
     ]);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     // …and closing it by hand still leaves nothing behind.
-    const place = CardApi.list(h.interactive).find((c) => c.cardId === 'place');
+    const place = CardApi.list(h.interactive).find((c) => c.cardId === 'subject');
     CardApi.close(h.interactive, place!.instanceId, 'dismissed');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
@@ -150,7 +150,7 @@ describe('a card owns its subscription handle', () => {
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    CardApi.push(h.interactive, 'subject', { subjectId: room.stuffId });
     CardApi.open(
       makeContext(h, { commandText: 'who', verbs: ['who'], opensCard: 'who' }),
       'who',
