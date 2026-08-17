@@ -1086,11 +1086,21 @@ guarantee — *nothing still actionable ever leaves* — moves onto the
 pinned axis, where a prompt card opens pinned and auto-releases when
 answered.
 
-**Liveness is orthogonal and opt-in.** Static by default, stamped with
-when, carrying a refresh. ⚠ **`place` ships LIVE** — a deviation from
-the plan, which marked every row static while its own driving script
-drove "the one live card". A `live` field nothing reads is
-indistinguishable from a broken one.
+**Liveness is scoped to ATTENTION.** Static by default, stamped with
+when, carrying a refresh. The one live row is the **inspection** card,
+and only the NEWEST one holds a subscription — opening another demotes
+its predecessor to an ordinary snapshot. ⚠ Shipping it live at all was
+a deviation from the plan, which marked every row static while its own
+driving script drove "the one live card"; a `live` field nothing reads
+is indistinguishable from a broken one.
+
+⭐⭐ **And inspection is ONE card.** A room, a person, an object and an
+idea are `StuffKind`s of the card's subject, laid out differently by the
+body — not four cards, and not the two (`place` + `subject`) the build
+shipped mid-flight. The tell was a command view reading `opens_card:
+[place, subject]`: `look` takes one target, that target is exactly one
+kind of thing, and a verb declaring it opens one of two kinds of card is
+a verb reporting that the model is not unified.
 
 **The switcher dies.** `Inspect · Who's Online · News · Wiki` was four
 hand-written surfaces with their own data paths in a tab strip; it
@@ -1118,6 +1128,23 @@ publishing refusal; and `cms`/`studio` did not exist as verbs at all,
 because a command YAML nothing CONTRIBUTES is not reachable. Full
 account in [card-surface.md § What the live drive
 found](../../subsystems/card-surface.md).
+
+⭐⭐⭐ **And then the whole model was rejected and redone.** *"We're
+clearly not on the same page as far as the experience we're trying to
+create."* Four changes, each with a symptom no green suite could see:
+the feed became a **LOG** (dedup-on-command made asking twice look like
+the command had done nothing at all); liveness moved onto **attention**;
+inspection collapsed to **one card**; and `meta.carded` became a fact
+rather than a promise. Underneath all of it, one substrate fix — **a
+relative query (`here`, `$focus`, `person`) can never back a card about
+a THING**, because it re-answers against the asker, which is how a card
+about the lounge silently became a card about the bar.
+
+⚠ **What Wave 7 ships unfinished, and it is worth naming for the next
+client build:** no tables, no forms, no interactive cards — the widest
+gap between what a card is *for* and what it does; and fixed `All` +
+`Look` tabs where the design wants **tagging**, which needs a fuller set
+of card kinds to form a tag library around.
 
 **The residue § 7.16–7.17 recorded:** the wiki-search hatch is closed
 (it cited an audit that was already stale — *the hatch was written from

@@ -257,6 +257,21 @@ client — which genuinely knows its own width — picks. Same split as
 in the transcript, or in both. See
 [card-surface.md](./card-surface.md).
 
+### ⭐ The per-KIND rung — the same shape, a second axis
+
+An entry may instead declare `perKind: true`, which resolves
+`<key>.<CardId>` by exactly the three rungs above. `cards.window` is
+its consumer: `cards.window 600` is how long an unpinned card stays,
+and `cards.window.subject 3600` keeps the things you have looked at for
+an hour while everything else ages normally.
+
+⚠ **Deliberately a second flag rather than a general `perSuffix`.**
+What makes either of these an *optional override* rather than an open
+namespace is that the suffix set is CLOSED and validated — form factors
+for one, `CARD_IDS` for the other. A generalized mechanism would have
+to accept any suffix, which is the open namespace both were written to
+refuse. Two small closed rungs beat one that cannot say no.
+
 This is **not** a `SettingsApi` — there's no Api boundary, no
 registry, no proxy. It's a colocated helper in the same file as the
 mixin. Callers that need defensive handling for undeclared keys can

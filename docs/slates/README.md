@@ -703,13 +703,16 @@ work, so the cycle is server-first.
   testing one, now in [../testing.md](../testing.md): **six bugs that a
   fully green suite could not see**, because jsdom has no layout and a
   narrow desktop window is not a phone. Wave 2 (Arrival) is unblocked.
-  ⚠ Remaining is the rest of the CLIENT: waves 2 (arrival) ·
-  4 (play surface — which still owns the phone-width rail) · 6 (social) ·
-  7 (authoring), and two things a build
-  must decide rather than discover — **who acts on an arrangement
-  recall** (nothing does today, on either side), and that the pane
-  catalogue ships **two entries**, so every new pane is a one-line
-  server addition. ⚠ Carries the ruling that the handoff's pinnable
+  ⭐⭐ **Wave 7 — the card surface — shipped and the CLIENT CUT IS
+  CLOSED** (MR !197). The right column is a feed of cards with one birth
+  path (a command pushes; the wire cannot name a card), pinned as the
+  whole lifetime, liveness scoped to **attention** rather than to a card
+  kind, and **one** inspection card laid out by what its subject IS.
+  ⚠ It shipped in two halves: the substrate, then the model **rejected
+  and redone** — the feed is a LOG rather than an index, and a relative
+  query can never back a card about a thing. ⚠ What it leaves for the
+  next client build: no tables, no forms, no interactive cards, and
+  fixed tabs where the design wants **tagging**. ⚠ Carries the ruling that the handoff's pinnable
   **trait widget must not be built** — it would foreclose the
   psychology vocation.
 - [affordance-suggestion-slate](./builds/affordance-suggestion-slate.md)

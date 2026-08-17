@@ -3069,3 +3069,57 @@ not by coverage.
 Same family as
 [§ An optional figure interpolated into player-visible prose](#an-optional-figure-interpolated-into-player-visible-prose):
 a value crossing into a string is where the type system stops looking.
+
+## A RELATIVE query backing a subscription about a THING
+
+**Don't** back a long-lived, wake-driven view of a *particular subject*
+with a query that re-answers against the asker:
+
+```ts
+// WRONG — a card about the room you are in
+{ query: 'here', cardinality: 'one', locationDependent: true }
+```
+
+**Do** anchor it to the subject's id and re-gate perception on every
+re-resolve:
+
+```ts
+{ query: '$subject', cardinality: 'one', needsSubject: true }
+// → resolveSubjectBound(subjectId, viewer):
+//     found = StuffApi.findById(subjectId)
+//     return PerceptionApi.perceives(viewer, found) ? [found] : []
+```
+
+`here`, `$focus`, `person` and friends are **relative**: they name a
+relationship to whoever is asking, not a thing. That is exactly right
+for a one-shot read and exactly wrong for anything that re-resolves,
+because every wake re-points the answer at the asker's *current*
+situation.
+
+⚠⚠ **The failure looks like the feature working.** The card-surface
+build shipped a room card on `here`. Walking out of the lounge changed
+the lounge's own contents (you left), which woke the card, which
+re-answered `here` — the bar. The lounge card silently *became* the bar
+card: same instance, same header position, new content, no error and no
+envelope out of place. And dropping the `locationDependent` wake did not
+fix it, because the subject's own contents were enough to trigger a
+re-resolve.
+
+⭐ The tell is a **subscription whose query contains a pronoun**. If the
+view is titled after a thing, its query may not be phrased from the
+viewer.
+
+⚠ The same trap has a second head one layer up: a **refresh command**
+is a relative reference too. A card about Dave's Bar whose refresh
+re-issues bare `look` refreshes to wherever you are now. Anything that
+re-derives a subject's content must be anchored to that subject — the
+query *and* the command.
+
+⚠ And do not reach for an `#<stuffId>` MQL seed to fix it. That seed is
+authoring-tier and **ungated**, so the view would answer for anything
+whose id the viewer had ever seen on a frame. The id must be resolved
+behind the perception gate, every time — a `stuffId` is not a
+capability.
+
+See [card-surface.md § Subject-bound subscriptions](./subsystems/card-surface.md)
+and [mql-subscription.md](./subsystems/mql-subscription.md).

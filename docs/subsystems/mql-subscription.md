@@ -671,8 +671,17 @@ drain are dropped silently.
 
 - old null + new top → `op: 'replace'` with full record
 - old top + new null → `op: 'remove'`, no `fields`
-- different top stuffIds → `op: 'replace'` with full record
+- different top stuffIds → ⭐⭐ `op: 'remove'` **and** `op: 'replace'`
 - same top stuffId, fields differ → `op: 'update'` with diffed fields
+
+⚠⚠ **The identity-change case shipped as a lone `replace`, and it was
+unapplicable.** Every consumer looks a record up by `stuffId`, misses
+on a key it has never seen, and **appends** — so the old subject
+survived at index 0 and the new one landed beneath it, which reads as
+*the view never updated*. The answer moving is a **removal and an
+arrival**, and the wire now says both. Two consumers had already grown
+private bypasses for this, which is exactly why it outlived them: the
+generic path everything else uses still had the bug. Fixed once, here.
 
 **Collection cardinality:**
 
@@ -972,8 +981,27 @@ What remains here is the plain shape: a caller-supplied `query`,
 own birth path, their own registry and their own lifetime —
 [card-surface.md](./card-surface.md).
 
-Two seams survive the split:
+Three seams survive the split:
 
+- ⭐⭐ **`subjectId`** — resolve ONE named Stuff instead of running the
+  query. `resolveSubjectBound` looks the id up and returns it only if
+  `PerceptionApi.perceives(viewer, found)`, **re-checked on every
+  re-resolve, not once at subscribe**: a `stuffId` is not a capability,
+  and a subscription that gated at birth would keep answering for a
+  subject since concealed, moved or disguised.
+
+  ⚠⚠ It exists because a **relative query cannot back a subscription
+  about a THING.** `here`, `$focus` and `person` all re-answer against
+  the asker, so any wake re-points the answer at the asker's current
+  situation — which is how a card about the lounge became a card about
+  the bar while looking exactly like a card that tracks its room. The
+  anchor has to be an id on the subscription; no query text can express
+  it.
+
+  ⚠ Not an `#<stuffId>` MQL seed, and the difference is security: that
+  seed is authoring-tier and **ungated**, so a subscription built on it
+  would answer for anything whose id the viewer had ever seen on a
+  frame.
 - **`silent: true`** — register and resolve, but do NOT emit the initial
   result envelope; return the records instead. A LIVE card owns its
   subscription handle (`instanceId === subscriptionId`) and carries the

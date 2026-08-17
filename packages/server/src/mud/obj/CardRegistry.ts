@@ -318,7 +318,16 @@ export default class CardRegistry extends Idea {
         query: def.source.query,
         cardinality: def.source.cardinality,
         fields: def.source.fields,
-        locationDependent: def.source.locationDependent === true,
+        /*
+         * ⚠ No `locationDependent`. The catalogue used to be able to
+         * declare it and the one row that did was the room card — which
+         * is precisely the card the flag broke, because "re-resolve
+         * when the viewer moves" is a wake for a RELATIVE query and an
+         * inspection card is bound to its subject. The wake still
+         * exists for the subscriptions that want it; the catalogue no
+         * longer offers it, because a field no row sets is a field
+         * nothing can be caught getting wrong.
+         */
         ...(def.source.needsSubject === true && state.subjectId
           ? { subjectId: state.subjectId }
           : {}),

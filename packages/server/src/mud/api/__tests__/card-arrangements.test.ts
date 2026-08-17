@@ -1,12 +1,20 @@
 /**
- * ⭐ **Every mode resolves a non-empty arrangement** (AC 13), and the
- * arrangement is applied on **login** (Wave 7).
+ * ⭐ **A mode resolves the arrangement it can actually open** (AC 13),
+ * and the arrangement is applied on **login** (Wave 7).
  *
- * `SHIPPED_ARRANGEMENT_CARDS` was `{chat: [], play: ['subject'], watch:
+ * `SHIPPED_ARRANGEMENT_CARDS` was `{chat: [], play: ['place'], watch:
  * [], build: [], govern: []}` — sparse on purpose, because *"pre-filling
  * them here would be sizing a vocabulary to a mockup."* This build ships
  * the surfaces those modes were waiting for, so the argument expires and
  * the map fills.
+ *
+ * ⚠⚠ **AC 13 said `build`/`chat`/`watch` non-empty and `play` shipped
+ * empty instead** — a deviation, argued rather than drifted. `play`'s
+ * one row was the ROOM card, and an arrangement cannot open an
+ * inspection card: an arrangement names a KIND, an inspection card is
+ * about a SUBJECT the arrangement cannot know, and `applyArrangement`
+ * skips subject cards on both sides. The row was already opening
+ * nothing. Arrival mints the room card, which is the correct owner.
  *
  * ⚠ It is also **re-keyed by (mode, arrangement)**. `watch` ships two
  * arrangements — `viewer` and `streamer` — and one flat list per mode

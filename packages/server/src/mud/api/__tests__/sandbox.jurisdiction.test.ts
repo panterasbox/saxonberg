@@ -18,7 +18,7 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { SandboxApi } from '../sandbox';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
@@ -28,9 +28,22 @@ import { NamedMixin } from '../../lib/description/Named';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import {
+
+
   makeStuff,
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
+
+/*
+ * ⚠ **20 s, not vitest's 5 s default.** Every sandbox test stands up a
+ * circle and runs at least one session ceremony, which costs seconds —
+ * so on a loaded full-suite run they time out in ones and twos while
+ * passing in isolation, which reads as a flake and is really a budget.
+ * The measurement and the argument for raising it per FILE rather than
+ * globally live in `escape/round-trip.test.ts`.
+ */
+vi.setConfig({ testTimeout: 20_000 });
+
 
 const BOUND = '/domain/lounge';
 

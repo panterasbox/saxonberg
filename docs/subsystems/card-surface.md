@@ -47,6 +47,7 @@ export interface CardDefinition {
   readonly live: boolean;              // ⚠ required
   readonly command: string;
   readonly noProse?: true;
+  readonly singleton?: true;           // re-running touches, not stacks
 }
 ```
 
@@ -56,17 +57,35 @@ goes. A pinned card stays until dismissed. The catalogue declares the
 default; the player overrides in both directions with `cockpit card
 pin | dismiss | auto`.
 
-**Live is orthogonal and opt-in.** A card is **static by default** —
-resolved once, stamped with `takenAt`, carrying a refresh control. A
-live card carries neither, because *a static card that looked live
-would be a lie*, and a refresh button on a live card is a bandage over
-a wake that does not fire — **and, worse, it is how nobody finds out**.
-A `here` card was immortal through eleven passing tests because every
-one of them called `refreshForInteractive` by hand.
+**Live is opt-in in the catalogue and SCOPED BY ATTENTION at runtime.**
+A card is **static by default** — resolved once, stamped with
+`takenAt`, carrying a refresh control. A live card carries neither,
+because *a static card that looked live would be a lie*, and a refresh
+button on a live card is a bandage over a wake that does not fire —
+**and, worse, it is how nobody finds out**. A `here` card was immortal
+through eleven passing tests because every one of them called
+`refreshForInteractive` by hand.
 
-⚠⚠ **What "live" costs, and the three ways it was quietly dead.** The
-one live row (`place`) shipped not-updating, and each of these alone was
-enough — none of them visible to a green suite:
+⭐⭐ **Only the NEWEST card of a live kind actually holds a
+subscription.** Opening one calls `CardRegistry.demoteLive`, which
+tears the predecessor's handle down, stamps its `takenAt`, marks it
+`demoted` and tells the client (`card-touched { live: false }`). From
+that moment it is an ordinary snapshot with a refresh, like every other
+static card.
+
+> *"Liveness is expensive so we don't want it on anything more than
+> where you're currently focused."*
+
+That sentence is the design, and newest-card-is-live is a crude but
+honest proxy for it. It is also why liveness **cannot** be what tells
+two catalogue rows apart: it is not a property of a card KIND at all,
+it is a property of where the player is looking. Behind you there is
+nothing to track, and a subscription still running would be a wake with
+no reader.
+
+⚠⚠ **What "live" costs, and the four ways it was quietly dead.** The
+one live row shipped not-updating, and each of these alone was enough —
+none of them visible to a green suite:
 
 1. **The delta was unapplicable.** A `cardinality: 'one'` answer that
    moves to a different subject emitted a lone `replace` under a key the
@@ -83,10 +102,22 @@ enough — none of them visible to a green suite:
    touch carries none.
 3. **The name was frozen at open.** `card.title` is stamped once; the
    body names the card, and `title` only fills in until it arrives.
+4. ⭐⭐ **The query was RELATIVE, which is the one that mattered.** The
+   room card resolved `here`, and `here` re-answers against **whoever is
+   asking** on every wake. Leaving the lounge changes the lounge's own
+   contents (you left), that wakes the card, and the card re-answers
+   `here` — which is the bar. *The lounge card silently became a bar
+   card*, and dropping `locationDependent` did not help, because the
+   room's own contents were enough to trigger it. **A relative query can
+   never back a card about a THING.** Closed by binding the subscription
+   to a subject (below).
 
-The lesson under all three: *asserting that a delta was SENT is not
-asserting that a card updated.* The test now applies the changes by the
-wire's own rule and asserts the result.
+The lesson under the first three: *asserting that a delta was SENT is
+not asserting that a card updated.* The test now applies the changes by
+the wire's own rule and asserts the result. The lesson under the fourth
+is bigger and outlives this subsystem: **a card is about a subject, so
+everything that re-derives its content must be anchored to that subject
+— the query, and the refresh command too.**
 
 All four combinations are meaningful, and neither axis implies the
 other. Both fields are non-optional in a `Record<CardId,
@@ -123,41 +154,49 @@ A card is identified by the command that produced it —
    `examine a` and `look a` are two cards.
 3. `CommandLineApi.format()` — the canonical round-trip.
 
+⭐⭐ **The key is the card's IDENTITY and its REFRESH — it is not a
+uniqueness constraint.** The feed is a **log**. Asking twice mints two
+cards, because you asked twice and the feed records what you asked; a
+transcript does not dedupe and neither does this. Only a
+{@link CardDefinition.singleton} row reuses.
+
 | Sequence | Result |
 |---|---|
-| `who`, `who` | **one** card, brought forward |
-| `who`, `who --wizards` | **two** cards |
-| `look a`, `look b`, `look a` | **two**; the third brings `a` forward |
-| `examine a`, `look a` | **one** — the synonym rung |
+| `who`, `who` | **two** cards, the second below the first |
+| `who`, `who --wizards` | **two** cards, with different keys |
+| `look a`, `look b`, `look a` | **three**; two of them keyed `look a` |
+| `examine a`, `look a` | **two** cards, **one** key — the synonym rung |
+| `cms`, `cms` | **one** — a singleton row |
 
-Re-issuing does three things at once: brings the card forward, resets
-its relevance window, and re-runs it if static.
+⚠⚠ **Dedup-on-command was the model until it was driven, and it failed
+in the worst available way.** Asking again changed nothing visible — and
+when the touched card was already on screen its prose was suppressed as
+`carded` too, so the command appeared to do *nothing at all*. `look
+dave` in Dave's Bar printed its echo and stopped. The singleton
+exceptions are the surfaces that ARE one thing — an editor, a git
+panel, a composer — because a second Monaco with its own unsaved buffer
+is not a second reading, it is a second application.
 
 ⚠ **A knowing cost:** `look lamp` and `look brass lamp` are two cards
 about one thing. That is identity-is-what-you-typed read literally, and
 it is the right trade — but it is a cost, not a defect.
 
-**Ordering.** Unpinned cards reorder to the front on re-issue — the feed
-is newest-touched-first. **Pinned cards hold their position**; a pinned
-card that jumped around every time you touched something else would be
-worse than one that sits still.
+**Ordering.** The feed runs oldest → newest, like the transcript beside
+it, and cards do not reorder. **Pinned cards hold their position** too;
+pinning changes only whether the sweep may take a card, not where it
+sits.
 
-⭐ `place`'s key is `look`, its own refresh command. So an
-arrangement-pushed `place` and a typed bare `look` collide **on
-purpose** — which retires the *"the focus card must not FLASH"* special
-case structurally rather than by a duplicate check.
-
-⚠⚠ **And it is `look` ALWAYS — the room card is a singleton.** A card is
-identified by the command only where the command picks out *which of
-several things* it is about; there is one "here", so there is one card
-for it. `LookController`'s room path therefore passes `place`'s own
-catalogue command as the key rather than the sentence. The case that
-forces it is `look dave's bar`, which resolves to the ROOM and lands on
-the same path: keyed on what was typed it minted a **second** room card
-— same room, pinned by default like every `place` card, outliving every
-sweep, sitting under the first. Found by driving; guarded by
-`card-identity.test.ts`, including a source check on the call site,
-because a dropped `key:` brings it back silently.
+⚠⚠ **The refresh key derives from the command, and forcing it was a
+bug.** The room card used to be given `place`'s catalogue command —
+bare `look` — as its key, so that a typed `look` would touch the
+arrangement-pushed card rather than duplicate it. Two things killed
+that: the log model removed the premise, and bare `look` is a
+**relative command**, the same trap as the relative query in the axis
+section above. A card about Dave's Bar keyed on `look` refreshes to
+*wherever you are now*. Every inspection card now takes the key the
+parser composed from what was actually asked, and
+`card-identity.test.ts` checks the call sites at the source — a forced
+`key:` growing back would not fail a behavioural test.
 
 ## The catalogue — three sources
 
@@ -200,12 +239,11 @@ shipped rows at all, so `CardSource` is a discriminated union:
   half of the question — *is every declared kind reachable* — beside the
   list of mint sites it already had.
 
-The ten shipped rows:
+The nine shipped rows:
 
 | id | source | live | pinned | key | prose |
 |---|---|---|---|---|---|
-| `subject` | mql `$subject`, `detail` | ✗ | ✗ | `look <subject>` | `look`'s target body |
-| `place` | mql `here`, `detail` | **✓** | ✓ | `look` | `look`'s location body |
+| `subject` | mql `$subject`, `detail` | **✓** | ✗ | `look <subject>` | `look`'s / `sense`'s body |
 | `who` | payload `roster` | ✗ | ✗ | `who` | `WhoController` |
 | `news` | payload `releases` | ✗ | ✗ | `press` | `PressController` |
 | `wiki` | payload `wikiPage` | ✗ | ✗ | `wiki <slug>` | the page read |
@@ -215,16 +253,56 @@ The ten shipped rows:
 | `git` | client | ✗ | ✓ | `git` | `noProse` |
 | `studio` | client | ✗ | ✓ | `studio` | `noProse` |
 
-⭐⭐ **`place` is the one LIVE row, and it is the one that earns it.** A
-card pinned by default outlives everything around it, so a stale one is
-the classic failure the liveness axis exists to prevent — and
-`locationDependent` is a wake that already exists and is already proven,
-rather than one this build would have to invent. That last clause is
-exactly why **`who` ships static**: the dependency vocabulary is
-`focusDependent` / `locationDependent` / the `durableKey` poke channel,
-and **nothing wakes on connect or disconnect**. A live `who` would
-resolve once and then be permanently wrong while looking exactly like it
-worked.
+### ⭐⭐⭐ Inspection is ONE row, not two and not four
+
+Looking at something mints a card laid out by what the subject **is** —
+`location` · `agent` · `thing` · `idea`, the four top-level Stuff
+branches, carried per-card as {@link StuffKind} and dispatched on by the
+body. Going narrower (a weapon vs a lamp, an NPC vs a player) waits
+until something forces it.
+
+**Those four are kinds of one card's subject.** The catalogue carried a
+second row — `place`, for rooms — and the tell was a command view that
+had to read:
+
+```yaml
+opens_card: [place, subject]
+```
+
+`look` takes one target; that target is by construction exactly one kind
+of thing. A verb declaring that it opens *one of two kinds of card* is a
+verb reporting that the model is not unified. By then the two rows had
+`source` blocks identical field for field (`$subject`, `cardinality:
+'one'`, `fields: 'detail'`, `needsSubject`), and every difference that
+survived was either a **lifetime** decision (does it start live) or a
+**layout** decision (does it show exits) — neither of which is an
+identity, because lifetime is decided by attention and layout by
+`StuffKind`.
+
+⭐ **A declaration site is where an un-unified vocabulary becomes
+visible.** The two rows read fine in the catalogue, where they sat
+apart; forced to name themselves on one verb's spec they were a list of
+two. When checking whether a vocabulary is really one concept, read the
+DECLARATIONS, not the definitions.
+
+⭐ The evidence the second id was surface area rather than structure:
+after cutting it, **every production file compiled clean** and only
+tests failed.
+
+⚠ `subject` is therefore the one live row, and it is the one that earns
+it: it is the card the player is looking at, which is the whole basis on
+which liveness is granted. **`who` ships static** for a reason that has
+not changed — the dependency vocabulary is `focusDependent` /
+`locationDependent` / the `durableKey` poke channel, and **nothing wakes
+on connect or disconnect**. A live `who` would resolve once and then be
+permanently wrong while looking exactly like it worked.
+
+⚠ `CardSource` no longer offers `locationDependent` at all. The one row
+that ever set it was the room card, which is exactly the card it broke
+— *re-resolve when the viewer moves* is a wake for a relative query, and
+an inspection card is bound to its subject. The wake still exists for
+the subscriptions that want it; a catalogue field no row sets is a field
+nothing can be caught getting wrong.
 
 ⚠ A catalogue where every row was static would leave `live` a field
 nothing reads, and a declaration nothing reads is indistinguishable from
@@ -280,6 +358,64 @@ target and the registry's gate would deny every tick — *silently*,
 because a scheduled callback has nobody to report to. `CardApi.boot`
 wraps it in `ExecutionContextApi.runRoot` with the logic singleton as
 principal.
+
+## ⭐⭐ Subject-bound subscriptions
+
+A live inspection card does **not** run its `query`. `'$subject'` is an
+inert marker; `needsSubject: true` says *this card is about a
+particular thing*, the open supplies a `stuffId`, and the subscription
+resolves it by direct lookup.
+
+```
+SubscribeRequest { subjectId }          →  MqlSubscriptionRegistry
+  resolveSubjectBound(subjectId, viewer):
+    found = StuffApi.findById(subjectId)
+    return PerceptionApi.perceives(viewer, found) ? [found] : []
+```
+
+⭐⭐ **Perception is re-checked on EVERY re-resolve, not once at
+subscribe.** A `stuffId` is not a capability. A card that gated at
+birth and then trusted the id would keep answering for a subject that
+had since been concealed, moved behind a door, or disguised — a
+peep-hole that looks exactly like the feature working. This is the same
+reason the row may not use an `#<stuffId>` MQL seed: that seed is
+authoring-tier and ungated.
+
+⚠ **Why it exists at all** is the fourth liveness failure above: a
+relative query (`here`, `$focus`, `person`) re-answers against the
+**asker**, so any wake re-points the card at the asker's current
+situation. A card about a THING has to be anchored to that thing, and
+nothing about the query text can express that — the anchor has to be
+the subject id, carried on the subscription.
+
+## ⚠ No migration ships, and here is why
+
+This build renamed the stored key (`cockpit.panes` → `cockpit.cards`),
+re-keyed `SHIPPED_ARRANGEMENT_CARDS` by (mode, arrangement), retired the
+five holds and cut a card id — every one of which would normally want a
+migration for the players already carrying the old shape.
+
+None is written, because **`cockpit.arrangements` and the rest of the
+cockpit keyspace live on `holder_snapshots`, which `ResetPolicy` wipes
+nightly.** A migration would run against rows that do not survive the
+night; writing one would be ceremony that could never be observed
+working or failing, which is worse than none.
+
+⚠ **The condition, not the conclusion, is what to check when this
+changes.** The moment any of this keyspace becomes durable — a
+`keep`-policy collection, an export, a per-account rather than
+per-character home — the argument expires and the migration becomes
+real. It is the reset policy that makes it unnecessary, not the shape of
+the change.
+
+⚠ **One thing is NOT covered by that argument and needed a hand step:**
+the seeded `CockpitPaneController` template row in `domain`, because
+`SeederManager` is insert-only and `domain` is a `keep` collection. It
+is `db.domain.deleteOne({path:
+'/obj/command/shell/CockpitPaneController'})`, run by hand; the seeder
+now prints the general case's `deleteMany` at boot but does **not** run
+it, because CMS-authored templates share that collection with no
+discriminator.
 
 ## ⚠ The structural call: a second registry
 
@@ -354,10 +490,30 @@ teleporting out of the lounge left a card naming nothing at all.
 `TabStrip` / `consoleActions` — same gestures, same vocabulary. Views
 filter on **card kind**, the one axis a player can name.
 
-⭐ **`All` is the absence of a filter**, not a stored row. That is what
-makes it locked and undeletable *rather than merely not currently
-deleted*, and it is why deleting every view a player made is safe. It
-also opens no editor: there is nothing about it to edit.
+⭐ **Two STRUCTURAL views ship: `All` and `Look`.** Neither is stored,
+neither can be renamed or deleted, and neither opens an editor.
+
+- **`All` is the absence of a filter**, not a stored row. That is what
+  makes it locked and undeletable *rather than merely not currently
+  deleted*, and it is why deleting every view a player made is safe.
+- **`Look` is `INSPECTION_CARD_IDS`** — the cards born of looking at
+  something, which is the one grouping a player can name without being
+  taught it. It is a shared constant rather than a hardcoded list, and
+  `card-catalogue.test.ts` asserts it is exactly the catalogue's
+  `needsSubject` rows, so the tab and the catalogue cannot drift.
+
+⚠⚠ **Fixed tabs are the LAUNCH shape, not the intended one.** What this
+wants is **tagging** — cards carrying tags, views composed from a tag
+library — and the confusing part of what ships is the `+` that makes an
+empty view. Two named tabs are enough to launch on and the substrate
+underneath is the same either way; the tag library wants a fuller set of
+card kinds to form around, which does not exist yet.
+
+⚠ And a consequence worth stating plainly: with inspection collapsed to
+one card kind, **`Look` and `All` show nearly the same thing in ordinary
+play**. That is not a bug in either tab — it is what happens when a
+filter axis has one populated value, and it is more evidence for tags
+than against them.
 
 ⚠ **Rename is INLINE**, like `TabStrip`'s — not a `window.prompt`. A
 native modal is a different gesture in the one place the two strips were
@@ -1013,7 +1169,7 @@ build was written from exactly that kind of stale table.
   authored or pack-shipped card would be a third tier and wants a
   resolution order across all three — a design conversation, not a
   map edit.
-- **A second LIVE row.** `place` is the only one, and adding another
+- **A second LIVE row.** `subject` is the only one, and adding another
   means either an existing wake or building one. `who` is the worked
   example of why: a presence wake means every login poking every open
   `who`, which is real cost for a list one click refreshes.
@@ -1084,9 +1240,8 @@ a test on the path that has it passes.**
 
 ⭐ **And three things the drive CONFIRMED** that only driving could:
 the arrangement really does apply on login (a cold reload into `build`
-comes up with the editor and the git panel); the live `place` card
-really does carry no timestamp and no refresh while every static card
-does; and the action row really does show `register terminal` on the
+comes up with the editor and the git panel); the live card really does
+carry no timestamp and no refresh while every static card does; and the action row really does show `register terminal` on the
 TPA terminal rather than `cast · defend · destruct` on everything.
 
 ### ⚠ One finding for the reader, outside this build
@@ -1267,7 +1422,48 @@ it retired is the majority of it:
   client never opens a card, so every `card-opened` is a push.
 
 Two things were changed AGAINST the plan and are recorded where they
-live: `place` ships **live** (the plan's table said static while its
-driving script drove "the one live card"), and the `shell.result` filter
-keys on **`meta.carded`** rather than on the topic `shell.result` (the
-per-card prose audit falsified decision 10's premise).
+live: the inspection card ships **live** (the plan's table said static
+while its driving script drove "the one live card"), and the
+`shell.result` filter keys on **`meta.carded`** rather than on the topic
+`shell.result` (the per-card prose audit falsified decision 10's
+premise).
+
+### ⭐⭐ The second half of the same branch (`fda6aeacc..HEAD`)
+
+The substrate above was driven and the verdict was *"we're clearly not
+on the same page as far as the experience we're trying to create."* The
+model was wrong in **shape**, not merely buggy, and the correction is
+the more important half of the branch. Twelve commits, and everything
+above already reads as the corrected model — this note exists so a
+reader who remembers the first version knows what moved and why.
+
+What the model is, stated once:
+
+- The **terminal is the ground-level record of proof** that things
+  happened. Filterable; several views over segments of the record.
+- **Cards are structured views into the same events** — where tables
+  and interactive forms belong. Also a feed, also carvable by filter.
+- The whole thing is about **managing attention**.
+
+Four things changed, each of which had a symptom nobody could see from
+a green suite:
+
+1. **The feed became a LOG.** Dedup-on-command meant asking twice
+   changed nothing visible, and the suppressed prose made it look like
+   the command had done nothing at all. Only `singleton` rows reuse now.
+2. **Liveness moved onto attention.** `demoteLive` — newest card holds
+   the subscription, everything behind it is a snapshot.
+3. **Inspection collapsed to ONE row.** `place` folded into `subject`;
+   the four things you can look at are `StuffKind`s of the subject.
+4. **`meta.carded` became a fact.** It carries the card's `instanceId`,
+   stamped only after an open returned one.
+
+Plus the substrate fix all of it stands on: **subject-bound
+subscriptions**, perception-gated on every re-resolve.
+
+⚠ **What ships unbuilt, restated for this half:** no tables, no forms,
+no interactive cards — the widest gap between the stated vision and what
+ships, and additive on top of this substrate. Fixed tabs rather than
+tags. And on the self card, actor-afforded verbs render as the entire
+verb list, which wants the `+N more` cap the composition row already
+has.

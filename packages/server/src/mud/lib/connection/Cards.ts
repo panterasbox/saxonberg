@@ -82,8 +82,6 @@ export type CardSource =
        * working.
        */
       readonly needsSubject?: true;
-      /** Re-resolve when the viewer or a subject moves. Live cards only. */
-      readonly locationDependent?: true;
     }
   | {
       readonly kind: 'payload';

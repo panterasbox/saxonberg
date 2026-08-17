@@ -32,6 +32,30 @@ import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
 import type { Mobile } from '../../lib/spatial/Mobile';
 
+/*
+ * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
+ * guess.** Every test in this file drives a whole session ceremony —
+ * mint a vessel, move the sockets, run `Avatar.enter`, auto-sense the
+ * circle — which costs 2–3.2 s each on an idle box against vitest's
+ * 5 s default. That is under one contention spike of failing, and on a
+ * loaded full-suite run it duly did: three to five `Test timed out in
+ * 5000ms` in the sandbox files, every one of them green in isolation.
+ *
+ * ⚠ The card-surface build made it worse and the cost was measured, not
+ * assumed: arrival auto-senses, `sense` now opens a card, and a card
+ * open resolves + subscribes. Removing `opens_card` from `sense.yaml`
+ * and re-running took this file from 19.3 s to 17.5 s — **~10%**, or
+ * ~100 ms per arrival. That is the feature costing what the feature
+ * costs, not a regression to chase; it is recorded here so the next
+ * person to see these files time out knows what is in them.
+ *
+ * ⚠ Raised per FILE, deliberately. A global `testTimeout` bump would
+ * buy this file's honesty at the price of every genuine hang in the
+ * suite taking four times as long to report.
+ */
+vi.setConfig({ testTimeout: 20_000 });
+
+
 const PLAYER = 'wardrobe-tester';
 const SCOPE = `/home/${PLAYER}`;
 

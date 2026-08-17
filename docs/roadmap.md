@@ -105,10 +105,10 @@ The substrate is in place. Major shipped surfaces:
   (client-driven live-state: subscribe via MQL, server diffs
   deltas), [prompt.md](./subsystems/prompt.md) (`PromptApi`
   Tier-1 surface + cardinality/onExcess disambiguation), and
-  [card-surface.md](./subsystems/card-surface.md) (the
-  focus pane — `$focus` subscription, detail-drill, exits/door
-  projection, hover/click routing). These graduated from slates
-  to subsystems.
+  [card-surface.md](./subsystems/card-surface.md) (the right
+  column as a feed of cards — one birth path, pinned as the whole
+  lifetime, liveness scoped to attention, one inspection card laid
+  out by `StuffKind`). These graduated from slates to subsystems.
 
 See [docs/architecture.md](./architecture.md) for layout and
 [docs/subsystems/](./subsystems/) for individual references.
