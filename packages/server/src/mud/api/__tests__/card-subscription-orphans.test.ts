@@ -95,24 +95,53 @@ describe('a card owns its subscription handle', () => {
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
-  it('a rearrange tears the handle down too', async () => {
+  it('a rearrange tears down what it manages and leaves inspection alone', async () => {
     const h = await makeHarness();
     const room = await StuffApi.create(() => new Room());
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
     /*
-     * ⚠ Opened with an explicit subject rather than through the
-     * arrangement's own container lookup — this test is about TEARDOWN,
-     * and routing it through a second mechanism would make it fail for
-     * reasons that have nothing to do with the handle.
+     * ⚠⚠ **An arrangement does not own the inspection feed.**
+     *
+     * This test used to assert that a rearrange reaped the `place`
+     * card's handle, and it was right when an arrangement was the only
+     * way a card got born. It is now wrong in shape: a subject-bound
+     * card is minted by LOOKING, so a `cockpit` rearrangement that
+     * closed it would silently wipe the history of everything the
+     * player had inspected — a rearrangement of the furniture that
+     * throws out the mail. `applyArrangement` skips subject cards on
+     * both sides (what it closes and what it names), which is what the
+     * middle assertion here pins.
+     *
+     * The handle is still owned — the sweep and an explicit close both
+     * reap it, and each has its own test above. What must not exist is
+     * a THIRD outcome where the card is gone and the handle isn't.
      */
     CardApi.push(h.interactive, 'place', { subjectId: room.stuffId });
+    CardApi.open(
+      makeContext(h, {
+        commandText: 'press',
+        verbs: ['press'],
+        opensCard: 'news',
+      }),
+      'news',
+    );
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     CardApi.applyArrangement(h.interactive, ['who']);
+
+    // The arrangement-managed card went; the inspection card stayed.
+    expect(CardApi.list(h.interactive).map((c) => c.cardId).sort()).toEqual([
+      'place',
+      'who',
+    ]);
+    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
+
+    // …and closing it by hand still leaves nothing behind.
+    const place = CardApi.list(h.interactive).find((c) => c.cardId === 'place');
+    CardApi.close(h.interactive, place!.instanceId, 'dismissed');
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
-    expect(CardApi.list(h.interactive).map((c) => c.cardId)).toEqual(['who']);
   });
 
   it('disconnect drops the whole set and its handles, silently', async () => {
