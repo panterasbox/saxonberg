@@ -1016,3 +1016,266 @@ testable, and it can land well before step 4 finishes.**
 9. **What is the first trade to build end-to-end?** Baking, per Part 3 —
    but it needs milling and farming beneath it, so the real question is
    how much of the chain ships as one build.
+
+---
+
+# Addendum 2026-08-20 — the installer session
+
+**Captured 2026-08-20.** The session opened on the repo split
+(submodules?) and "every collection needs a seeding model instead of the
+patchwork," and turned into the installer:
+
+> **User: "installing content packs is like a duty for an ops person and
+> we probably want like an actual installer or something that packs then
+> can inform as to what kinds of configuration and parameterization is
+> needed. this also handles the database authority problem hopefully by
+> having some sorta rules-based thing as to what a re-install is/means."**
+
+This addendum answers open questions **#2** and **#3**, and disposes of
+Part 8 gap **#1** (the `PackLogic` gate bypass) by changing what install
+*is*. Status: design conversation, captured. Not requirements.
+
+## A10.1 — The repo split is LAST, and it is not submodules
+
+Not generic submodule FUD — a project-specific one. This repo's most
+expensive scar is *one branch, two working trees, one ref store* (the
+2026-08-02 deletions, CLAUDE.md § Worktrees). Submodules reproduce that
+shape by construction: `git worktree add` does not init submodules, and a
+submodule's gitdir lives under the superproject's common dir — four
+worktrees × N packs is N×4 detached checkouts sharing a ref store. And
+rule 4 (*unpushed work is the only kind you can lose*) multiplies:
+superproject pins a SHA, push the parent, forget the child, the pointer
+dangles.
+
+⭐ **The seam that costs nothing already exists**: packs are discovered by
+npm package name (`@saxonberg/content-*` in server's `package.json`,
+resolved via `require.resolve`). That seam does not care where the files
+physically live. Separate GitLab repos publishing to the GitLab npm
+registry, pinned by version, `link:` for the dev loop — and `pack.yaml`'s
+inert `version` becomes load-bearing as the npm version.
+
+⭐⭐ **And the ordering argument beats the mechanism argument: you cannot
+cut repos along a seam you have not drawn.** 227 seeds are referenced by
+nothing, the trade cut is not made, `seeds/obj/` is full of platform
+singletons. Splitting repos first freezes a wrong boundary in the most
+expensive medium there is. Repo split = a late step, after Part 9's
+migration order completes.
+
+## A10.2 — The sentence that governs DB authority
+
+> ⭐⭐⭐ **The DB is a cache of the packs for everything a pack ships, and
+> the system of record only for what players did.**
+
+The corollary that keeps version control honest: for pack-owned paths
+there is **no DB-authoritative edit**. The round-trip is
+**export → file → commit → MR**, never "the DB wins." A CMS edit to a
+pack-owned template is an *export candidate that reconcile will
+surface* — see the state machine below, which is what makes that safe
+instead of silently lossy.
+
+## A10.3 — The closed set of seeding models (~6, not per-collection)
+
+"Every collection needs a seeding model" resolves to **six models**, not
+fifty policies. Against `Collections.ts`:
+
+| Model | Truth | Collections |
+|---|---|---|
+| **reconciled** — file is truth | file | `domain`; the kinds that collapse into `documents` |
+| **seed-missing** — pack seeds, operator owns after | DB | `app_settings`, `world_state` |
+| **structure-only** — existence from the pack, authority from a procedure | split | `groups`, `parcels`, `office_holders` |
+| **CAS-merged** — has a rev token; conflicts surface | both | `wiki` (+`wiki_revisions`) |
+| **never seeded** — empty is correct | DB | every ledger + `*_events`, `users`, `beliefs`, `chronicles`, `transcripts`, `player_frames`, `holder_snapshots` |
+| **derived cache** — rebuilt, never seeded | neither | `renown`, `participation`, `producer`, `bank_accounts`, `bank_supply` |
+
+⭐ **The last row is what the patchwork hides**: a derived cache needs a
+REBUILD command, not a seeder — conflating the two is how a stale cache
+survives a reboot looking authoritative. ⭐ Acceptance test for the
+vocabulary itself: every collection lands in exactly one row with no
+residue. Three needing special pleading = the vocabulary is wrong.
+
+## A10.4 — ⭐⭐⭐ The install record: three-way reconcile
+
+Today's reconcile is **two-way** (pack file vs. DB row), which cannot
+distinguish *the pack changed this* from *someone with authority changed
+this* — the reason Part 9 hand-waved "compare against what the pack last
+installed" and flagged `sourcePack` as provenance-but-not-modified-since.
+
+An installer has a natural artifact that fixes this: a per-pack
+**install record** — pack id, version, the parameter answers, and a hash
+of each row *as installed*. Reconcile becomes **three-way** and the
+"rules-based thing as to what a re-install means" becomes a small state
+machine instead of policy prose:
+
+| pack file | DB row | action |
+|---|---|---|
+| unchanged | unchanged | nothing |
+| changed | unchanged since install | update, silently |
+| unchanged | diverged | keep the DB — authority did that |
+| changed | diverged | ⭐ **conflict — surface it, never merge** |
+
+Same machine for the operator-tuned setting, the player-modified bakery,
+and the wiki page — except the wiki carries its own CAS token, so there
+the installer *submits the edit* and the wiki's three-body conflict
+machinery fires (§ the wiki shows the general rule). The install record
+is what every other kind was missing to get the same honesty.
+
+**This CLOSES open question #3** (reconcile vs. a player-modified
+venue): both-changed → conflict, surfaced, human-resolved. Skip-and-warn
+was the two-way approximation; three-way makes it exact.
+
+## A10.5 — Reconcile policy is a property of the KIND, never the pack
+
+If a pack could declare `replace` over `app_settings`, a pack update
+stomps what an operator tuned — seed-vs-assert, opted into by the party
+that benefits. The kind's owner (the platform) declares the reinstall
+semantics for that kind; a pack may choose a **gentler** policy than the
+kind allows, never a stronger one.
+
+## A10.6 — Parameterization IS the venue (closes open question #2)
+
+> **"packs can inform [the installer] as to what kinds of configuration
+> and parameterization is needed."**
+
+Q2 asked *do trades declare scale variants, or does the locality pass a
+footprint?* With an installer that takes parameters it stops being
+either/or: the trade pack declares its **parameter schema** (`locality:`,
+`scale: stall|shop|works`, `wage:` …) and installing it *somewhere* is
+supplying the answers.
+
+> ⭐⭐ **The pack is the program; the install parameters are the venue.**
+> One repo per trade, many installs, no repo-per-shop.
+
+⚠ The Helm rule, written down now: **the three-way baseline is the
+RENDERED output (post-parameters)** — otherwise every parameterized row
+reads as operator divergence on the next upgrade.
+
+## A10.7 — The installer is a procedure, not an application
+
+Resist building an installer *app*. The house has the pieces:
+
+- **`requires:` + parameters → one derived checklist** — *what is
+  unfulfilled?* stays a query, never a stored to-do (Part 9's rule,
+  extended to parameters).
+- **`pack provision <id>` walks it via `PromptApi`**
+  (choice/confirm/text/mqlObject) — prompting per item, recording
+  answers into the install record. That IS the installer UI, in-world,
+  ~zero new surface.
+- **Install never blocks.** Unanswered parameters are a legal world
+  state (never-half-grown): the venue sits inert and *visibly* so.
+
+## A10.8 — Ops is an OFFICE, and install is a gated procedure
+
+*"A duty for an ops person"* resolves to an office, not a person
+(check-offices-never-the-founder). "May this principal install this pack
+here" decomposes into three checks that all exist or are slated:
+
+| check | machinery |
+|---|---|
+| holds the ops seat | `holdsOffice` (governance) |
+| title to the claimed extent | pack ↔ parcel fusion (Part 8 gap #5) |
+| review tier vs. manifest claim | the Part 1 tier table — cosmetic installs freely, systemic needs the ledger's owner, constitutional needs the legislature |
+
+⭐⭐ **The installer is the one place those three compose — which
+DISPOSES of Part 8 gap #1** (the `PackLogic` `saveTemplate` bypass): the
+bypass was tolerable while `pack` was wizard-gated and every pack was
+ours; the fix is not re-routing writes but making install a **gated
+procedure with a named principal**, so provenance is checked at the door
+instead of per row.
+
+## A10.9 — Reconcile ≠ go-live; hot go-live is a per-kind capability
+
+> **User: "I'm not sure about installing content packs inside a running
+> game runtime. if it works that's great but I feel like it'd at least
+> want a restart."**
+
+The shipped code already agrees. Runtime `pack sync` works for exactly
+one shape — singletons-by-path with lazy re-resolve (materials, biomes) —
+and the doc defers cloned content as "the harder wave." A trade pack is
+*entirely* the harder wave: rooms, NPCs, fixtures, all cloned, all live,
+some with players standing in them. So, written as a rule:
+
+> ⭐⭐⭐ **Split RECONCILE from GO-LIVE. Reconcile (rows + install record)
+> is always safe — nothing live reads a `domain` row until clone or
+> re-hydrate. Go-live is the dangerous half, and RESTART is the universal
+> go-live that works for every kind.** Hot go-live (materials, quantity
+> tags, name banks) is a per-kind *capability* — an optimization, same
+> per-kind shape as reconcile policy — never a requirement.
+
+Nobody ever has to make runtime world-swapping work under players' feet
+to ship a pack. The architecture has priced in the restart: one box,
+deploy at standup, 502-for-~90s documented normal, and the
+self-persistence spine makes restart a supported world state.
+
+## A10.10 — No companion webapp: stage in-game, apply at boot
+
+> **User: "…if not like a whole separate companion webapp that runs
+> adjacent to the server for installation/configuration and it can own
+> server lifecycle or something."**
+
+Argued against, for one specific reason:
+
+> ⭐⭐ **The authority model lives inside the game.** `holdsOffice`,
+> title, tiers — all mudlib. A companion app either reimplements them
+> (two authority models, drift guaranteed) or phones the running server
+> to ask (at which point it is a UI on the game, not a separate system).
+> It would also be a second lifecycle owner next to the deploy machinery
+> — a category of bug already paid for once.
+
+The shape that gets everything the companion app promises, in-process:
+
+1. **`pack install` / `pack provision` run in-game, gated, and STAGE** —
+   authority checked where the machinery lives, requirements walked,
+   answers recorded, a staged-install intent written. Nothing goes live.
+2. **Boot applies staged installs** in the pre-`loadHooks` window where
+   the installer already runs and nothing is live. requires-kernel + the
+   three-way reconcile run there; a failing pack marks its staged
+   install failed and the server boots **without** it, loudly — ⚠ **an
+   install must never be able to brick the boot.**
+3. **Restart is REQUESTED, not performed** — clean exit; the supervisor
+   that already owns lifecycle brings it back. "The installer owns
+   server lifecycle" collapses to "the installer may ask for a restart."
+
+Staged-but-not-applied is a visible, resumable state — and *what is
+staged / failed / awaiting provision* is the derive-on-read checklist
+again. The ops **screen** rides the CMS (the adjacent web surface with
+attribution already solved): a pack panel is a view over `pack status`,
+not a new app. ⭐ The separate-app instinct becomes right at a scale we
+do not have: multi-node, or operators who genuinely must not hold game
+logins. Neither is foreclosed by doing it in-process now.
+
+## A10.11 — Decisions in git, the ledger in Mongo
+
+> **User (on install records): "probably mongo but co-locating them with
+> the artifacts themselves might have some merit."**
+
+Half-merit, split along a line already trusted. The record cannot live
+in the *pack's* repo — a pack is one-to-many with deployments, and a
+pack that records where it is installed inverts annex-knows-host. So:
+
+| | lives in | examples |
+|---|---|---|
+| ⭐ **Decisions** | **git** | which packs a deployment runs (server `package.json` already IS this), parameter answers, the venues a locality declares — content someone might argue about |
+| **The ledger of application** | **Mongo** | installed version, as-installed row hashes, staged/applied/failed, timestamps — per-deployment runtime state |
+
+The wiped-DB test (the standing trap): wipe Mongo and the install
+*ledger* is cheerfully reconstructible by reinstalling from the decision
+files — whereas parameter answers living only in Mongo would have eaten
+the venues. Decisions in git, application state in Mongo, and the DB
+stays *just the DB* all the way down. (Venue declarations in the
+locality's pack also means "install" trends toward *the locality pack
+declares venues of trade packs* — installs all the way down, with only
+the record of having installed in the DB.)
+
+## Effect on the standing lists
+
+- **Open question #2** — closed: named variants AND a locality footprint,
+  unified as the pack's parameter schema (A10.6).
+- **Open question #3** — closed: three-way state machine; both-changed
+  surfaces as a conflict, never merged, never silently skipped (A10.4).
+- **Part 8 gap #1** — disposed by reframing: install becomes a gated
+  procedure with a named principal (A10.8).
+- **Part 8 gap #3 (versioning/migration)** — advanced: npm versions via
+  the registry make `version` load-bearing at the repo split (A10.1).
+- **Part 9 migration order** — unchanged, with the install record +
+  staged-install substrate joining step 1 (typed contributions), and the
+  repo split confirmed as after step 4.
