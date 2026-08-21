@@ -34,7 +34,7 @@ Status: ✅ shipped · 🔨 designed this session · ⚠ OPEN (format/mechanics 
 | **command-view** | `cmd/**.yaml` at fractal paths | `documents` {kind: command-view} | document strategy + code-naming gate on `controller:`/`validators:` + command-cache invalidation hook | 🔨 A18.2 |
 | **archetype** | `archetypes/*.yaml` | `documents` {kind: archetype} | document strategy; effective archetype DERIVES on read (recipes+positions+residue); zero runtime readers | 🔨 provisional (A14) |
 | **contract form** | `forms/*.yaml` | `documents` {kind: contract-form} | document strategy; executed contracts stay player record | 🔨 sketched (A16.4) |
-| **position def** | ⚠ OPEN — extracted from Business; own file? | ⚠ OPEN | ⚠ OPEN — industry declares the position + conferrals; venue's Business references it. Format undecided | ⚠ |
+| **position def** | `positions/*.yaml` (own file — a conferral change deserves its own diff) | `documents` {kind: position} | industry owns IDENTITY + CONFERRAL (capability-granting, never venue-authorable); venue's Business references by path and owns ECONOMICS + PEOPLE (wage, schedule, roster). Venue-local conferral-free positions are FREE (pre-industry labor); graduation = ADOPTION via the def's `claims:` key list, venue may decline. Proto-industries observable: same key across venues = gap-finding data + wage calibration | 🔨 A19 |
 | **subject** (organizer bundle) | `subjects/*.yaml` | `forum_subjects` + `forum_boards` + `channels` (one file, three collections) | reconcile create/edit; DELETE = archive-never-reap (A11.7); ⚠ OPEN: the file schema (which organizers, how declared) | 🔨 +⚠ schema |
 | **wiki page** | `wiki/**.md`? | `wiki` | CAS-SUBMIT (the rev token; three-body conflict, human resolves); base-rev in install record | 🔨 |
 | **settings defaults** | `settings/*.yaml` | `app_settings` | MERGE-MISSING (seed-missing model; AppSettingsSeeder is the reference impl) | ✅ pattern |
@@ -112,9 +112,7 @@ slots. **A unit type with an unanswered slot is not shippable:**
 
 # The drilling agenda (the ⚠ cells, gathered)
 
-1. **position def** — format + home (own file in the industry pack?
-   how does a venue's Business reference it?)
-2. **subject file schema** — how organizers (board/channel) are
+1. **subject file schema** — how organizers (board/channel) are
    declared inside the subject file
 3. **boot-instance declaration syntax** — flag on the template vs a
    pack-level list

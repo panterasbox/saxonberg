@@ -2340,3 +2340,40 @@ package-carried code · procedure-mediated structure · the asset
 transport), every collision owned, no open boxes. Remaining deferrals
 are all named: staging/parameters · overlay kind · scheduled uninstall
 · the energy pack · the repo split (npm, last).
+
+---
+
+# Addendum 2026-08-21 (13) — position defs: identity vs economics, and proto-industries
+
+**Decided 2026-08-21** (drill #1 off the units index).
+
+- **The industry owns what a smith IS**: key, default label, and the
+  **conferral bundle** (which mixins/verb surfaces on-shift grants).
+  Conferral is capability-granting — never venue-authorable (a venue
+  minting conferrals is content minting capability). Own file per
+  position (`/trade/smithing/positions/smith.yaml`): a conferral change
+  deserves its own diff.
+- **The venue owns the economics and the people**: wage rate, schedule,
+  roster. Its Business references the def by path. ⭐ The systemic-tier
+  detector (money) is now ALL venue-side; the capability side is all
+  industry — the tier analysis cleans up for free.
+- ⭐⭐ **Venue-local positions are free and legal — and they are
+  PRE-industry, not industry-less** (user: *"if you ask a bouncer what
+  industry they work in, I bet they'd say security… I don't think me
+  finding industries for your examples precludes venue-local positions…
+  maybe even that's the model for how proto-industries are formed."*).
+  What bouncer/greeter share is low conferral-NEED, not missing
+  industry. Rule: **anyone can define a position that confers nothing;
+  only an industry can define one that confers.**
+- ⭐⭐⭐ **The proto-industry lifecycle: local → common → claimed.**
+  When `/trade/security` later ships `bouncer`, existing venue-local
+  bouncers are ADOPTED (the installer's adopt-don't-wipe move, applied
+  to labor): venue keeps wage/schedule/person, position gains its
+  conferral. Matching by the def's **`claims:` key list** (exact-string
+  is fragile), and the venue may DECLINE (a venue that meant something
+  different isn't conscripted).
+- ⭐⭐ **Proto-industries become OBSERVABLE**: "how many venues invented
+  a position called bouncer, at what wage" is a query over live
+  Business rows — the vocations register's gap-finding gains an
+  empirical instrument, and the prevailing venue-local wage is the new
+  pack's calibration data. The demand test runs itself.
