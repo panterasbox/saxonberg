@@ -1491,3 +1491,204 @@ ledger nearby. Named once:
 - New kind roster so far: domain · quantity · name-banks (shipped) +
   documents · settings · subjects · **boot-instances** + the
   `requires:` block (planned).
+
+---
+
+# Addendum 2026-08-21 (3) — two packs en toto: the requirements drill-down
+
+**Captured 2026-08-21.** The ask: drill into one or two tier-1 packs and
+enumerate their needs *en toto* — **the comprehensive input for the
+requirements phase.** Exemplars chosen to exercise the whole surface:
+**hearthworks** (the trade pack) and **eternal-university** (the
+locality pack), with the trade⊗locality seam between them. Audited
+against the tree at `0d25ab62c`.
+
+Context: the three-tier pack roster (ship-now carve / slate-implied /
+imagined-but-supported) was drawn in-session; tier 1 ≈ the 3 shipped
+packs + pack zero + substrate packs (conditions, body-plans,
+generic-objects) + institutions (compact, corpo) + 8 locality packs +
+wiki-starter. The tier-3 audit found exactly two unplanned substrate
+gaps: an **overlay kind** (localization annotating rows another pack
+owns — breaks one-stamp-per-row) and **scheduled uninstall**
+(festivals). This addendum is the tier-1 drill-down.
+
+## A12.1 — Hearthworks: the complete bill
+
+**Inventory (what moves):**
+
+| What | Where today | Count |
+|---|---|---|
+| domain seeds | `seeds/domain/hearthworks/` | 23 (4 rooms + floor, stock props, 2 NPCs, Business, 2 menus) |
+| **TS classes** | `src/mud/domain/hearthworks/` | **3** — `SmithyMenu`, `KitchenMenu`, `SealedCellar` |
+| recipes | `config/recipes.yaml` | ~7 (fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin, toasted-ration, root-mash) |
+| tests | `seeds/__tests__/business-authority.test.ts` | 1 → becomes a pack test |
+
+**Zero inbound coupling** — no engine code references
+`/domain/hearthworks`; the only inbound mentions are comments. The
+cleanest pack candidate in the tree.
+
+**The dependency graph it declares:**
+
+- `dependsOn: base-library` — iron, firewood, hide are materials.
+- `dependsOn: generic-objects` — ⭐⭐ **every recipe's `outputTemplate`
+  is another pack's row** (`/obj/arms/fire-poker`, `/obj/CookPot`,
+  `/obj/gear/smiths-hammer`, `/obj/armor/hide-jerkin`,
+  `/obj/items/plated-dish`). Cross-pack template references are
+  LOAD-BEARING from pack one — the installer needs a reference check
+  (does the named path exist in the install set?) alongside
+  requires-kernel, and a dangling-pointer policy.
+- `dependsOn: corpo` (or the institutions pack) — `banksAt: goodkin`.
+- **kernel brains** — NPCs name `/lib/behavior/introduces` /
+  `idles`. ⭐ **requires-kernel must extend beyond `class:` /
+  `hydratorClass:` to `behaviors[].brain`** (already a wizard-gated
+  field — same field set, new check site).
+
+**Kinds it exercises:** domain (reconciled) · recipes (reconciled,
+post-collapse a documents kind) · **boot-instances** — and here the
+audit hit an unresolved fact: ⚠ **nothing in `bootstrap.ts` names
+hearthworks, so how do the Business + cast stand up today?** The
+employment engine's boot comment assumes "the bootstrap manifest stood
+up the Business + cast," but no manifest entry exists. Requirements
+must answer the standup question explicitly — it is exactly the
+reference-ideas-inert-at-boot shape (A11.3), and the boot-instances
+kind is the answer *if* the current standup path is found and folded in.
+
+**Requires (structure):** ⚠ **hearthworks is UNPARCELLED today** — no
+title row, so its extent falls to the `'core'` owner. The pack's
+`requires.title: /domain/hearthworks` is not paperwork; it is the first
+real exercise of claim → gated subdivide → stamped install.
+
+**Tier: systemic, and mechanically detectable.** `wageRate: 5`/`4` on a
+24/7 roster **mints CB money at every shift settlement**. A trade pack
+that ships wages ships a faucet. ⭐ The Part 1 tier-claim check gains a
+second detector: code-naming fields ⇒ ≥ local; **wage/mint touchpoints
+⇒ ≥ systemic** (whoever owns the ledger argues).
+
+**The code problem, small form:** the 3 classes are the whole gap
+between hearthworks and a pure-data pack. Disposition question for
+requirements, likely answers: the two menus are a *general* concept
+(retail already has `PricedOffer` — genericize to a kernel menu-board
+class); `SealedCellar` is probably expressible as mixin composition
+(Sealable + Room, a Studio blueprint). ⭐ **The test: is each class
+content-specific logic, or missing kernel generality wearing a content
+name?** If the latter (likely all three), hearthworks becomes the
+first fully pure-data trade pack — the third-party format, proven.
+
+**Not exercised (deliberately deferred):** parameters — hearthworks v1
+ships its fixed venue, which under Part 4's vocabulary means **the
+showroom IS the venue**. Parameterized installs wait for the second
+venue of some trade.
+
+## A12.2 — Eternal-university: the complete bill
+
+The hard case on purpose — everything hearthworks dodges, this hits.
+
+**Inventory:**
+
+| What | Where today | Count |
+|---|---|---|
+| domain seeds | `seeds/domain/eternal/` | 35 (duncan-hall 17 + university-avenue 18, incl. 7 controller seed rows) |
+| **TS files** | `src/mud/domain/eternal/` | **21** — 7 domain-local controllers (provision/unprovision/remodel + blow/tally/wind/adjust), `Katie.ts`, the DormWarren machinery (9), the crossing kit (4) |
+| misfiled class | `obj/Gus.ts` | 1 — kernel `obj/` class hardcoding `/domain/eternal/university-avenue` paths; ⭐ refile to `domain/eternal/university-avenue/` |
+| civics rows | `seeds/obj/Locality/eternal-campus.yaml`, `seeds/obj/Government/eternal-university.yaml` | 2 — the three-deep jurisdiction proof |
+| group | `config/groups.yaml` `duncan-hall` | member: **the NPC katie** (agent authority) |
+| parcel | `config/parcels.yaml` `/domain/eternal/duncan-hall/dorms` | owner: group `duncan-hall` |
+| boot-instance | `bootstrap.ts` | `dorm-warren` |
+| tests reaching in | 13 files | ⚠⚠ **four live in KERNEL trees** — `lib/behavior/crossing-ritual`, `obj/crossing-objects.smoke`, `api/command-migration`, `seeds/room-archetypes` — the inverted arrow (Part 5), live |
+
+**Inbound seams:** terminus `arrival-gate`, counting-houses
+`avenue-block`, newbie-wilds `crossroads` all link INTO eternal.
+Inter-locality exits are the pack-seams rule made concrete: **the
+declaring side owns the exit** (the annex knows the host); the
+mechanism is `DeferredDestinationExit`, already shipped for exactly
+this shape. Requirements should state it as the rule for cross-pack
+exits rather than leave it convention.
+
+**Kinds and requires it exercises beyond hearthworks:**
+
+- `requires.groups: duncan-hall` + `requires.title:
+  /domain/eternal/duncan-hall/dorms` — the structure half, straight
+  from the slate.
+- ⭐⭐ **Agent membership as a PROVISION item.** Katie's membership in
+  `duncan-hall` is authority, so the pack cannot ship it — but the pack
+  *ships Katie*. Resolution: the pack declares the agency
+  (`provision: grant /npc/katie membership in duncan-hall`), and the
+  installer asks the title-holder to confirm at `pack provision`. The
+  GroupSeeder's ensure-member dies; the conferral survives as a
+  human-confirmed checklist item. This is `WIZARD_PLAYER_IDS` → "first
+  invocation of the fulfillment procedure," second instance.
+- **civics as plain content** — Locality + Government rows are
+  reconciled domain rows + catalogue warm; no new kind.
+- ⚠⚠ **The accumulation rule, load-bearing:** dorm rooms are PLAYER
+  HOMES — `(scope, key)` rows in `holder_snapshots`, furnishing estates,
+  houseplants. *A pack owns what it shipped, never what accumulated
+  around it* is not theory here: any reconcile/uninstall path that can
+  touch dorm contents is a data-loss bug. The never-seeded collections a
+  locality's content accretes (`holder_snapshots`, chattel, furnishing
+  overlays) must be structurally unreachable by the installer — same
+  closed-vocabulary argument as `bank_ledger` (A11.5).
+
+**The code problem, large form — the ladder.** Seven controllers +
+Katie + the warren machinery are not genericizable; they ARE the
+content. So the boundary from content-packs.md ("a pack assumes
+classes, a mod brings them") needs a declared ladder, and requirements
+should pick it:
+
+| Rung | Ships | Trust | Who |
+|---|---|---|---|
+| **data pack** | YAML only | requires-kernel + tier check | anyone (the third-party format) |
+| **capability pack** | YAML + TS under its own `domain/<sphere>/` | code review = wizard code-trust; first-party only until the sandbox/signing story | us |
+| **mod** | kernel changes | an MR | us |
+
+Eternal-university is a **capability pack**: its TS travels with it
+(the `domain/` tree already namespaces it), and the `class:` values
+resolving under its own namespace is checkable at install. ⭐ The
+alternative — grow the scripting subsystem until controllers are
+expressible as data — is real but far; the ladder makes it a migration
+*within* the model (capability → data), not a blocker.
+
+**Test migration:** the 9 colocated `domain/eternal/**` tests travel
+with the pack (they are pack tests misfiled only by repo). The **four
+kernel-tree tests** are the real work: each needs a synthetic fixture
+(`/test/…`, ugly on purpose — Part 5) replacing its reach into eternal
+content. That is the concrete, measurable start of `lint:test-content`.
+
+## A12.3 — The requirements shopping list
+
+What the two bills demand of the substrate, deduped — **this section is
+the hand-off**:
+
+1. **Typed contribution kinds** (A10/A11 roster) with per-kind
+   reconcile; the install record (three-way) underneath.
+2. **requires-kernel widened** to `behaviors[].brain` (+ controller
+   paths for capability packs).
+3. **Cross-pack reference validation** — recipe outputs, exits,
+   `banksAt` targets: resolve against the install set + `dependsOn`;
+   dangling-pointer policy (loud, named).
+4. **boot-instances kind** + answering the hearthworks standup question
+   (how do Business + cast go live today — find it, fold it in).
+5. **`requires:` block**: groups, title — plus ⭐ **provision items for
+   agent membership** (declared agency, title-holder confirms).
+6. **Tier detectors**: code-naming fields ⇒ ≥ local; wage/mint
+   touchpoints ⇒ ≥ systemic.
+7. **The pack ladder**: data / capability / mod — declared in the
+   manifest, enforced at install (a data pack whose `class:` resolves
+   under its own namespace is lying).
+8. **The accumulation firewall**: installer structurally unable to
+   touch `holder_snapshots` / chattel / furnishing overlays; organizer
+   deletes archive, never reap (A11.7).
+9. **Cross-pack exits**: declaring side owns them;
+   `DeferredDestinationExit` is the mechanism; state it as the rule.
+10. **Test migration lane**: pack tests travel; kernel-tree tests get
+    ugly fixtures; `lint:test-content` starts warn-only with these four
+    files as the first shrinking allowlist.
+11. **Genericize the hearthworks three** (menu-board to kernel;
+    SealedCellar via composition) so the first trade pack ships
+    pure-data — the third-party format proven on day one.
+12. **Deferred with a name**: parameterized venues (the showroom is the
+    venue until a trade has a second one); the overlay kind; scheduled
+    uninstall.
+
+⭐ **The two packs were chosen to be exhaustive, and they were**: every
+row in the shopping list traces to a concrete file in one of the two
+bills — nothing here is speculative substrate.
