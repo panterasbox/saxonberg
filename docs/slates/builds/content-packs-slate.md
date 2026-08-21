@@ -2420,3 +2420,55 @@ channel: true
 - Flat-key check runs on EFFECTIVE names (post-derivation — channel/
   board names derive from the subject name unless overridden).
 - Delete: archive-never-reap (A11.7, unchanged).
+
+---
+
+# Addendum 2026-08-21 (15) — eagerness: a boot manifest with reasons (drill #3)
+
+**Decided 2026-08-21, after two swings.** First design: a per-template
+`boot: eager` flag — rejected by the user as an eagerness SUBSIDY
+(*"we shouldn't be doing anything to make eager anything easy… there
+should be friction in our system to doing things eagerly, that's a
+feature"*). Counter-swing to "packs get NO eagerness" — also rejected:
+
+> **User: "your two classes of eager loads are both real and should be
+> supported in content packs. they're probably rare because the
+> platform does so much, but I want content packs to be able to replace
+> entire slices of the platform if you were ambitious enough. don't
+> like our vitals system? model a hitpoints-based alternative and ship
+> it as a content pack."**
+
+The landing:
+
+- **A pack-level BOOT MANIFEST** (a `boot:` section / `boot.yaml`) — a
+  deliberate, single, reviewable list per pack. Never a per-file flag:
+  the friction is the manifest itself, argued as one artifact.
+- **Every entry carries its WHY**, tagged from the two real classes +
+  prose:
+
+```yaml
+boot:
+  - template: /trade/hitpoints/obj/HpRegistry
+    role: sync-read     # sync read paths can't await a first-touch clone
+    reason: hp reads are sync on the combat hot path
+  - template: /trade/hitpoints/obj/DecaySweep
+    role: producer      # self-starting sweep/tick/tap — nothing demands it
+    reason: hp decay ticks even when unobserved
+```
+
+- **The installer REPORTS eager counts + roles** per pack at install —
+  visibility, not a gate.
+- ⭐⭐ **Platform-slice replacement is the design driver**: an ambitious
+  (capability) pack replacing vitals with hitpoints needs both classes.
+  The mechanism is UNIFORM — **pack zero's ~37 registries ride the same
+  boot manifest**, dogfooding it every boot; kernel `bootstrap.ts`
+  shrinks to the code-coupled residue (`awaitInit` entries, which YAML
+  cannot carry — needing one is the smell you're platform).
+- **The lazification worklist stands**: the six CONTENT entries in
+  today's manifest (corpos, press board, lounge terminal, dorm-warren,
+  the Hinkley pair) each have a demand path — move them out one at a
+  time, drive each. Content that wants time passage uses
+  reconcile-on-read (the husbandry pattern), not a boot slot.
+- ⭐ **Inert-at-boot dies by LAZIFICATION, not better warming** —
+  reads that resolve on demand have no warm step to forget
+  (CombatFormation's real fix).

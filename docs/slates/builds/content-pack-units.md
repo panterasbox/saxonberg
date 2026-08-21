@@ -45,7 +45,7 @@ Status: ✅ shipped · 🔨 designed this session · ⚠ OPEN (format/mechanics 
 | Unit | In the pack | Applies to | Apply strategy | Status |
 |---|---|---|---|---|
 | **quantity table** | `quantity/*.yaml` | RAM (no Mongo — cache degree zero) | `loadTagTables` at boot; `reloadTagTables` diff-apply on sync | ✅ |
-| **boot-instance decl** | ⚠ OPEN — flag in the template file vs a pack manifest list | the boot sequencer | clone at boot pre-traffic; narrowed to the GENUINELY EAGER (registries/boards/warrens — A15.2) | ⚠ syntax |
+| **boot manifest** | `boot:` section / `boot.yaml` — ONE deliberate list per pack, never a per-file flag (friction is the feature) | the boot sequencer | clone at boot pre-traffic; every entry tagged `role: sync-read | producer` + prose reason; installer reports eager counts; pack zero rides the same mechanism (platform-slice replacement is the driver); content defaults to LAZY + reconcile-on-read | 🔨 A19/15 |
 | **TS module** | `src/**` (capability packs only) | module registry via npm | package management; wizard code-trust review; classes resolve under the pack's OWN namespace (checkable) | 🔨 ladder (A12.2) |
 | **verb view (capability)** | rides command-view above post-A18.2 | — | (mechanism 4 collapsed into documents) | 🔨 |
 
