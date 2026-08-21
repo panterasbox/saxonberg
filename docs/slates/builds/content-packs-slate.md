@@ -2573,3 +2573,48 @@ is — the governing observation:
 4. **Timing:** the path rename rides wave 3 (the hearthworks re-cut is
    already a batched path-rename + orphan-cleanup event — marginal
    cost); the collection rename lands whenever, standalone.
+
+---
+
+# Addendum 2026-08-21 (18) — archetypes: the code bill, and the author experience
+
+**Captured 2026-08-21.**
+
+## The code bill (kernel, small) — and the piece we skip
+
+1. **The aggregator** — effective archetype = recipes + position defs +
+   residue doc, derived at three cold moments. Small.
+2. **The test-venue generator** — clone the default bindings into a
+   synthetic venue, drop in a test actor. Moderate; where the archetype
+   pays rent.
+3. ⭐⭐⭐ **Capability predicates — NEVER WRITTEN. The mechanics ARE the
+   predicates.** Nothing gates on archetype satisfaction (A14.2), and
+   the completeness check is "can the derived venue RUN the industry" —
+   which invokes the runtime's own gates (`requiresHeatK` at the forge,
+   reachable-heat as a diegetic decline). Static satisfaction-checking
+   would be a second implementation of rules the engine already
+   enforces at act time — the two-copies failure. Consequence: an
+   archetype's "heat ≥ 1400K" is **guidance-plus-default, never
+   contract language** — authors must not expect a checker.
+
+## The author experience (the mine walk-through)
+
+- **An archetype lists NEEDS whose defaults point at COMMONS objects**
+  — mining's mine: vein access (its own) · light (commons lantern) ·
+  air (substrate) · drainage (commons pump). Archetypes never own what
+  the world provides; they announce which bills come due, with a
+  default answer each.
+- ⭐⭐ **The YAML author's verb is CLONE-AND-COMPOSE, never inherit** —
+  behavior arrives by NAMING classes (clone vein-face → deposit
+  mechanics; hire the miner position → conferral). Subclassing is the
+  capability-pack tier; a venue author needing `extends` means the
+  industry pack missed a station or an authorable field.
+- ⭐⭐ **The acceptance test for any industry pack: copy the showroom,
+  rename, adjust fields — a working venue in an afternoon, zero
+  TypeScript.** Showroom = the copyable answer · archetype = the
+  checklist of what you may rip out (the mechanics judge you at act
+  time) · Studio blueprints = new fixture kinds without code.
+- ⚠ **The deposit fork, flagged for the mining drill**: is "this hill
+  contains ore" a STATION property (prop in a room — simple) or a LAND
+  property (parcel/biome — consistent with land-declared/
+  everything-above-measured)? Changes what "vein access" even means.
