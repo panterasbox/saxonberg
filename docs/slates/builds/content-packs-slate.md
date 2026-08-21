@@ -2472,3 +2472,68 @@ boot:
 - ⭐ **Inert-at-boot dies by LAZIFICATION, not better warming** —
   reads that resolve on demand have no warm step to forget
   (CombatFormation's real fix).
+
+---
+
+# Addendum 2026-08-21 (16) — the pack fence, and staffing at install
+
+**Captured 2026-08-21.** Two corrections and a landing.
+
+## A22.1 — The wizard line, stated once
+
+> **User: "wizardness gates one thing and one thing only: the ability
+> to write typescript code. it's not for anything else, period, forever
+> and ever."**
+
+Nothing in the pack machinery consults the wizard axis except
+TypeScript — capability-pack code and the code-naming fields
+(`class:` / `brain:` / `controller:` / `validators:`), which are TS by
+reference. Install authority is **office + title**. Provision, agency,
+membership: never wizard.
+
+## A22.2 — ⭐⭐⭐ The pack fence (the Katie correction)
+
+Katie's `duncan-hall` membership is **mechanism wiring, not a
+governance ceremony**: the pack ships the group, the parcel, AND the
+NPC — the membership never crosses anyone's boundary. The rule
+sharpens:
+
+> **A pack never declares authority over anything it doesn't ship.**
+
+Mechanically checkable at install: a membership row is legal iff the
+member is a pack-shipped NPC under the pack's extent AND the group is
+pack-declared. A human id, or a foreign group → refused, structurally
+(the requires-kernel check class). A11.2's "GroupSeeder seeds authority
+and must die" splits: the HUMAN memberships in groups.yaml die into
+procedures; the NPC-agent rows were never the problem — they reconcile
+as content.
+
+**The provision unit type DEMOTES to nearly nothing:** NPC-agent wiring
+= content · human seats = the derive-from-structure checklist, filled
+in-world by the group's own procedures · cross-boundary agency = the
+agency slate's runtime business, not install machinery. No schema, no
+verbs, no tombstones.
+
+## A22.3 — Staffing at install: ops owns THAT, never WHO
+
+> **User: "filling human seats could be part of our installation
+> process with the ops chief at the helm… most content packs are gonna
+> wanna be staffed by someone if not just for bug reports."**
+
+The two-responsibilities worry resolves by naming ops's writ:
+
+- **Ops owns THAT every pack is staffed** (operational liveness — an
+  unowned pack is bug reports on the floor), **never WHO governs its
+  content.** First-fill happens at install, ops chief at the helm;
+  thereafter membership changes ride the group's own procedures — a
+  receivership that ends the moment it succeeds (founder-default one
+  level down). Ops has no standing inside the group after.
+- ⭐ **Default: the installing principal is the first maintainer**
+  unless they name someone else — no pack exists unowned for a day;
+  the install ceremony is one prompt ("you, or who?").
+- ⭐⭐ **Routing is the enforcement gradient**: pack diagnostics,
+  reconcile conflicts, and bug reports route to the pack's maintainers
+  group (their subject from A14), **falling back to the ops queue only
+  when unstaffed** — every unstaffed pack is noise in the ops chief's
+  own queue, so staffing is the path of least resistance, not a
+  policy.

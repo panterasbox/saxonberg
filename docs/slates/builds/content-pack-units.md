@@ -56,7 +56,7 @@ Status: ✅ shipped · 🔨 designed this session · ⚠ OPEN (format/mechanics 
 | **requires: group** | `pack.yaml` / `requires.yaml` | `groups` | ensure-EXISTS (empty); membership only via provision/procedure | 🔨 |
 | **requires: title** | same | `parcels` | claim → title check on covering parcel → gated subdivide; reconcile bounded by CURRENT title | 🔨 Part 4b |
 | **requires: office** | same | (offices are code/content; holders never) | ensure-exists; seats filled by procedure only | 🔨 |
-| **provision item** | same | install record checklist | human-confirmed at `pack provision` (exemplar: Katie ∈ duncan-hall); derives on read, never stored | 🔨 +⚠ schema |
+| ~~provision item~~ **staffing at install** | (no schema — demoted) | derived checklist | ⭐ THE PACK FENCE: a pack never declares authority over anything it doesn't ship (NPC-in-own-group = content, checkable; human ids/foreign groups refused). Human seats: derive-from-structure checklist; first-fill at install (ops chief; default = installing principal), self-governance after; diagnostics route maintainers-first, ops-fallback | 🔨 A22 |
 | **kind declaration** | `requires.kinds:` | document-store indexes | platform-shaped act: declares a new document kind + indexable fields; creates indexes | ⚠ mechanics |
 | **manifest** | `pack.yaml` | discovery/ordering | id · version (npm-load-bearing at repo split) · dependsOn (topo) · tier claim (checked: code-naming ⇒ ≥local; wage/mint ⇒ ≥systemic) | ✅ +🔨 tier |
 
