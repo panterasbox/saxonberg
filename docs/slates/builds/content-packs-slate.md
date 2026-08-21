@@ -2377,3 +2377,46 @@ are all named: staging/parameters · overlay kind · scheduled uninstall
   Business rows — the vocations register's gap-finding gains an
   empirical instrument, and the prevailing venue-local wage is the new
   pack's calibration data. The demand test runs itself.
+
+---
+
+# Addendum 2026-08-21 (14) — the subject file (drill #2)
+
+**Decided 2026-08-21.** The precedent turned out to be exact: the
+shipped `Subject` record already fuses name + `groupRef` into one
+identity that lights surfaces à la carte (board / channel / both), one
+`groupRef` inherited by all — so the pack file is a serialization of
+`forum_subjects`, and **group-backing was never the deferred case; it
+is the BUILT case.**
+
+```yaml
+# subjects/maintainers.yaml
+name: Smithing Maintainers
+audience: maintainers   # → groupRef managed:<the pack's required group>
+board: true
+channel: true
+```
+
+- ⭐⭐ **The primary case is the MAINTAINERS subject** (user: *"the main
+  case for forums and chat is maintainers of a content pack need
+  somewhere to deliberate and make decisions for that pack"*) — which
+  closes Part 1's dangling loop: the review-tier table's "committee"
+  now has a VENUE, in-world, on the pack's own subject. `pack resolve
+  --export` produces the change; the maintainers subject is where it
+  is argued. The pack's version control and its deliberation live
+  where the pack does.
+- ⭐ **EXPLICIT, never implicit** (user, rejecting installer
+  auto-provisioning): the maintainers group is a `requires:` entry and
+  the subject a file, in every pack that wants them — *"I don't mind
+  the boilerplate, it's instructive of how the whole protocol works."*
+  Membership stays authority (procedure; seeded by the extent's
+  title-holder).
+- Public subjects: `audience` absent = open (the Narnia case); further
+  carving (labor/consumers channels) = more files, maintainer's taste.
+- **No topic field** — topics are message-frame vocabulary (chat
+  already shares `speech.channel`), not community subject matter;
+  discovery is `SubjectCatalogue`'s job. Per-subject topic narrowing =
+  a messaging-layer refinement, parked.
+- Flat-key check runs on EFFECTIVE names (post-derivation — channel/
+  board names derive from the subject name unless overridden).
+- Delete: archive-never-reap (A11.7, unchanged).
