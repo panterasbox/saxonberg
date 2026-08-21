@@ -1928,3 +1928,56 @@ root; the four-namespaces doctrine gains its slot:
 Rejected: squatting under `/obj/<industry>/` (makes the commons a
 landlord's district) and the split (a pack straddling two namespaces,
 its title not covering its own stations).
+
+---
+
+# Addendum 2026-08-21 (7) — the standup mystery, SOLVED: the world is lazy
+
+**Resolved 2026-08-21.** A12's open fact — *nothing in `bootstrap.ts`
+names hearthworks, so how do the Business + cast stand up?* — traced to
+its answer, and the answer revises the boot-instances kind's scope.
+
+## A15.1 — The lazy-fault-in trio (all shipped, all deliberate)
+
+1. **Rooms fault in on first traversal** —
+   `Exit.resolveDestination()` → `StuffApi.singleton(destinationPath)`
+   clones the destination room on demand (`lib/boundary/Exit.ts`).
+2. **Contents + NPCs ride the room's `populates:`** — the smithy's
+   seed lists the forge, ingots, menu, and the smith NPC; the clone
+   cascade stands them up with the room.
+3. **The Business stands up on first demand** —
+   `EmploymentLogic.operatorOf` builds a reverse index
+   `operatingLocation → business template path` from **every Business
+   row in `domain`** (`Template.findDescendants('/')`), then
+   `singletonOrClone`s the operator and runs an immediate roster tick
+   so the cold venue's first customer finds a conferred maker. The
+   code's own comment: *"No manifest entry, no clerk/venue standup
+   hook."*
+
+What looked like the zero-call-sites bug is not one — **the reverse
+index IS the call site.** The `business-authority` test walks seed
+files (shape only), which is why liveness never appears in tests; but
+the liveness path exists and is the design.
+
+## A15.2 — What this changes
+
+- ⭐⭐ **A venue pack needs NO boot-instances declarations.** Install
+  rows; the world faults it in on demand. Pack-installed Business rows
+  are discovered automatically (the operator index scans all `domain`
+  rows). The **boot-instances kind narrows to the genuinely eager**:
+  registries, boards, warrens with sweeps — things that must exist
+  *before* demand. Shopping-list item 4 resolves to "narrow the kind,"
+  not "find the mechanism."
+- ⭐ **An unvisited venue mints nothing** — wage settlement only runs
+  for stood-up businesses, so ghost venues cause no wage inflation.
+  Lazy standup is economically load-bearing, not just a perf nicety
+  (and it is residency's symmetric partner: fault in on demand, evict
+  the cold tail).
+- ⚠ **Hearthworks is UNREACHABLE today** — no exit, no TPA node, no
+  locality names it (only comments do). It stands up only via
+  author `goto`. Not a bug in the lazy trio — a missing inbound seam,
+  which under industry≠venue is precisely **the venue pack's job**: a
+  venue ships its own reachability (an exit declared venue-side into a
+  host place — annex knows host) or it is a showroom by definition.
+  Hearthworks-the-venue is currently a showroom that thinks it is a
+  venue.
