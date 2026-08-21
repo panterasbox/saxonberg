@@ -2178,3 +2178,73 @@ pack pin / unpin <path>
    (*a machine-merged paragraph is nobody's writing*), same muscle
    memory, and literally the same machinery for wiki-kind
    contributions.
+
+---
+
+# Addendum 2026-08-21 (10) — the export census, and verbs move to the document tree
+
+**Captured 2026-08-21.** The question: *what are ALL the mechanisms by
+which a pack's exports reach the runtime?* (Roster context: ~20 tier-1
+packs — 3 shipped + pack zero + 4 substrate + 2 institutions +
+wiki-starter + the 8 locality trees, hearthworks re-cutting to 3.)
+
+## A18.1 — The mechanism census (as audited)
+
+| # | Mechanism | Carries |
+|---|---|---|
+| 1 | **installer → Mongo rows** | domain · documents (+ collapsed kinds) · subjects (writes 3 collections) · settings (merge-missing) · wiki (CAS submit) · descriptor banks |
+| 2 | **installer → RAM, no Mongo** | quantity tag tables — `loadTagTables` reads the pack file each boot. ⭐ Cache degree zero: the purest "DB is a cache" |
+| 3 | **package management → module registry** | TS (classes/controllers/brains) — capability packs; data packs only *reference* code (requires-kernel) |
+| 4 | **boot-time disk scan of the package** | command YAML **views** — `preloadAll` scans `cmd/` + `domain/**/cmd/` from the source tree, never Mongo |
+| 5 | **gated procedures** | `requires:` structure — never raw rows; humans grant authority |
+| 6 | **triggered rebuilds** | nothing shipped — install fires the derived-cache rebuilds |
+
+⚠⚠ **The census surfaced ONE unanswered export type: binary assets.**
+`media_assets` rows exist (single gated writer) and
+`Visible.illustration` → `mediaUrl()`, but a pack shipping pre-made
+room art ships bytes that aren't YAML, and no mechanism carries them.
+Needs either a **media kind** (pack files → `media_assets` rows +
+addressable bytes) or an explicit *packs-don't-ship-art,
+the-pipeline-generates-it* decision. Either is fine; it must be a
+decision, not a surprise. **Open.**
+
+## A18.2 — ⭐⭐ Decided: command views move to the document tree
+
+> **User: "we should probably move command definitions to the document
+> tree out of source."**
+
+Collapses mechanism 4 into 1. What it buys:
+
+1. **Verbs become installable content** — reconciled, baselined,
+   `pack diff`-able like every other kind (`command-view` document
+   kind).
+2. ⭐⭐ **The title system covers verbs FOR FREE** — views live at the
+   fractal paths (`/cmd/perception/look` pack zero ·
+   `/domain/…/cmd/blow` locality · `/trade/smithing/cmd/forge`
+   industry), so the parcel trie already governs who may edit them.
+   Nobody designs verb-edit permissions; longest-prefix supplies them.
+3. **In-game verb authoring** — the CMS edits views with the existing
+   save/go-live split; a wizard iterates a verb without a deploy.
+
+The two must-not-breaks:
+
+1. ⚠⚠ **`controller:` (and `validators:`) are CODE-NAMING fields** —
+   whoever writes the document points the verb at a module. They join
+   the `class:`/`hydratorClass:`/`brain:` wizard code-trust set; the
+   document kind's declared schema carries the same gate (the
+   same-gate spine precedent). Miss this and "locality title governs
+   its verbs" becomes "locality title governs arbitrary dispatch."
+2. ⚠ **Cache invalidation needs a real hook** — a document save /
+   `pack sync` re-keys the command cache for the changed view, else
+   the CMS edit "succeeds" and does nothing (the dead-wire failure).
+
+Also: the zero-packs acceptance criterion sharpens to **zero packs
+besides pack zero** (with views as content, a truly pack-less boot has
+no `look` — pack zero is the platform, not optional). Migration is
+strangler-shaped: store-first read with disk-scan fallback that dies at
+zero; **controller TEMPLATES (the 216 seed rows) stay `domain`** —
+instanceable, only the view half moves.
+
+Post-decision census: a pack's exports are **installer-carried data
+(Mongo or RAM) · package-carried code · procedure-mediated structure**
+— three mechanisms, media the one open box.
