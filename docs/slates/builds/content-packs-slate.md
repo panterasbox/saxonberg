@@ -1279,3 +1279,215 @@ the record of having installed in the DB.)
 - **Part 9 migration order** — unchanged, with the install record +
   staged-install substrate joining step 1 (typed contributions), and the
   repo split confirmed as after step 4.
+
+---
+
+# Addendum 2026-08-20 (2) — the boot audit, the collection buckets, and the subject resolution
+
+**Captured 2026-08-20, same session as the installer addendum.** The
+ask: assign every collection a seeding model, define how a pack
+*expresses* each, and audit `backend/` boot with intent to delete —
+> **User: "I really want to get as much of that gone as possible. Maybe
+> a few general abstractions if there are legitimate patterns, but this
+> eager stuff has gotta go."**
+
+Audited against `AppBootstrap.run` as of `0d25ab62c`.
+
+## A11.1 — The boot is FOUR jobs wearing one sequencer
+
+`AppBootstrap.run` is ~340 hand-ordered lines interleaving four jobs.
+Only one of them is seeding. The dispositions differ per job — which is
+what makes "delete the eager stuff" tractable:
+
+| Job | What | Disposition |
+|---|---|---|
+| 1 | **Seeding** — `SeederManager` + `PackApi.install` + 9 per-collection seeders | → the installer, typed kinds; every seeder file deleted |
+| 2 | **Platform wiring** — `installFrameworkWiring`, marshaller seam, `loadHooks`, `preloadAll`, MQL online-provider | stays, stays hand-ordered — the kernel booting itself |
+| 3 | **Manifest clones** — 43 `bootstrap.ts` entries | split: platform registries stay (or self-declare); **content entries leave for packs** (A11.3) |
+| 4 | **Warm + activate** — 6 `warm()`s, ~16 `*Api.boot()`s, relay readers, nightly reset | not seeding at all → the sequencer abstraction (A11.5) |
+
+## A11.2 — Job 1: the eleven writers, disposed
+
+| Seeder | Collection | Policy today | Becomes |
+|---|---|---|---|
+| SeederManager | `domain` | insert-only | platform pack zero, reconciled |
+| EmoteSeeder | `emotes` | insert-only | reconciled (post doc-store collapse) |
+| RecipeSeeder | `recipes` | insert-only | reconciled (same) |
+| ChannelSeeder | `channels` | insert-only | the **subjects** kind (A11.6) |
+| ScriptSeeder | `documents` | insert-only | the general **document kind** it prototypes |
+| AppSettingsSeeder | `app_settings` | **merge-missing** | seed-missing — ⭐ **already the reference implementation** |
+| GroupSeeder | `groups` | ensure-member | structure-only — must die in current form |
+| ParcelSeeder | `parcels` | insert-only | structure-only (claims via install) |
+| WikiSeeder | `wiki` | insert-only | CAS-merged |
+| BlueprintSeeder | `blueprints` | two-layer | **split** — see below |
+
+Three findings:
+
+- ⭐⭐ **`BlueprintSeeder` (380 lines, the biggest) is two seeding models
+  welded into one collection.** Layer (a) *derives* a skeleton by
+  introspecting every backing class in `domain` — a **derived-cache
+  rebuild wearing a seeder costume**. Layer (b), the curated YAML
+  overlay, is genuine reconciled content. Split: (a) becomes
+  `BlueprintCatalogue`'s rebuild; (b) becomes pack files. The seeder
+  dissolves.
+- ⚠⚠ **`GroupSeeder` seeds AUTHORITY** — it ensures *members* into
+  groups from YAML, exactly what structure-vs-authority forbids as
+  content. Its own header argues conferral-by-the-owner; but
+  conferral-by-YAML-at-boot is conferral by whoever edits the file.
+  This is the `WIZARD_PLAYER_IDS` → first-invocation-of-the-procedure
+  case, generalized.
+- ⚠ **`WikiSeeder`'s insert-only is a silent-loss policy wearing
+  politeness**: a player-edited page is never stomped (good), but a pack
+  *improving* a seeded page never lands either — silently. The CAS kind
+  fixes both directions at once.
+
+## A11.3 — Job 3: content in the manifest, and the inert-at-boot bug
+
+Of the 43 manifest entries, ~37 are platform registries/catalogues. Six
+are **content**: the five `/corpo/*` singletons, `/compact/press` +
+`/compact/executive`, `/domain/lounge/terminal`, `dorm-warren`, and the
+two Hinkley Hills singletons. Content in the engine manifest is the same
+category error as content in `mud/cmd/`.
+
+⚠⚠ And the manifest has a shadow: **reference-ideas-inert-at-boot,
+three times and counting.** `MaterialApi.boot()` and
+`ConditionApi.boot()` are hand-written apology steps for seeds nothing
+warmed; CombatFormation has the same wound today with no apology
+written. **Three mechanisms exist** for "make these rows live at boot"
+— a manifest entry, a prefix expansion, a bespoke `Api.boot()` — and
+the bug lives in the gaps between them.
+
+> ⭐⭐ **So a new contribution kind: `boot-instances`** — a pack declares
+> which of its template paths are cloned-at-boot singletons. The
+> declaration TRAVELS WITH THE CONTENT instead of living in a central
+> list a build forgets to update — which empties the content out of the
+> engine manifest AND structurally kills the inert-at-boot bug for pack
+> content.
+
+## A11.4 — The 50 collections, bucketed
+
+| Model | Collections |
+|---|---|
+| **reconciled** | `domain` · `name_banks` · `descriptor_banks` · `emotes` · `recipes` · `forum_subjects` · `forum_boards` · `channels` (organizer rows — A11.6) · `blueprints` *(curated layer)* · `documents` *(pack-shipped kinds)* |
+| **seed-missing** | `app_settings` |
+| **structure-only** | `groups` · `parcels` |
+| **CAS-merged** | `wiki` (+ `wiki_revisions` as its ledger) |
+| **never seeded** | `users` · 3× `*_profiles` · `parties` · `beliefs` · `chronicles` · `transcripts` · `disposition_events` · `forum_entries` · `forum_votes` · `forum_events` · `renown_events` · `participation_events` · `producer_events` · `authoring_events` · `positions` · `bank_ledger` · `parcel_events` · `chattel` + `chattel_events` · `accountability_events` · `contracts` + `contract_events` · `holder_snapshots` · `player_frames` · `diagnostics` · `media_assets` · `office_holders` · `world_state` · `documents` *(player-authored kinds)* |
+| **derived cache** | `renown` · `participation` · `producer` · `bank_accounts` · `bank_supply` · `blueprints` *(derived layer)* |
+
+The residue is instructive, not embarrassing:
+
+- **`blueprints` lands in two buckets** — confirming two collections
+  cohabiting, not a bad vocabulary.
+- **`world_state`** is never-seeded: `WorldClockApi`'s zero-clock on a
+  fresh DB is lazy init of runtime state, not content.
+- **`office_holders`** is pure authority — sparse, absence = founder
+  default — ⭐ the one collection already living the split.
+
+## A11.5 — How a pack expresses each bucket
+
+Five of six reduce to *files under a typed subdir; the kind carries the
+reconcile semantics* (A10.5 doing its job):
+
+| Bucket | The pack's expression |
+|---|---|
+| reconciled | files under the kind's subdir — the shipped model |
+| seed-missing | a `settings/` defaults file; installer merges missing keys |
+| CAS-merged | page files; install record holds the base-rev; installer *submits an edit* |
+| structure-only | the **`requires:`** block — never rows, never members |
+| derived cache | **nothing** — but an install *triggers* affected rebuilds (new classes ⇒ blueprint-skeleton rebuild) |
+| never seeded | **nothing, enforced** |
+
+> ⭐⭐⭐ **The closed kind vocabulary IS the allowlist.** There is no
+> contribution kind for `bank_ledger`, so a pack physically cannot say
+> it. "Can a pack write the ledger" is not a policy check that could
+> regress — it is a missing noun.
+
+**The abstractions that survive (three, and no more):**
+
+1. **One installer, typed kinds** — nothing in the nine seeders needs
+   more than the six models + `boot-instances`.
+2. **One lifecycle sequencer** for job 4: subsystems declare
+   warm/activate with `dependsOn`; the topo-sort `BootstrapManager`
+   already owns runs them. The ordering constraints currently living in
+   comments ("banking before employment") become data. Keep a single
+   explicit registration list — one line per subsystem — but let
+   dependencies, not list position, carry the order.
+3. **Rebuild commands** for the derived-cache row — the `warm()`s mostly
+   exist; they need a *forced* variant and a name.
+
+End state: `AppBootstrap.run` ≈ *connect → install (platform pack zero +
+shipped packs + anything staged) → framework wiring → sequenced
+lifecycle*. Every seeder file deleted; the manifest shrunk to platform
+registries or gone if those self-declare too.
+
+## A11.6 — ⭐⭐ The subject resolution: social surfaces are CONTENT
+
+The audit's one open cell — is a channel/board reconciled or
+structure-only? — dissolved one layer down:
+
+> **User: "by channels do you mean subjects? because those would ship
+> with content packs the same way emotes do… the prototypical example is
+> the narnia content pack ships with a narnia forum and a narnia chat.
+> maybe even more than one, one for labor and one for consumers. I dunno
+> it's up to the content pack maintainer."**
+
+Chat already rides the forums Subject layer — a channel and a board are
+both **organizers over one Subject**. Stated at that layer there is
+nothing structural about it: a subject is plain content, exactly like an
+emote. The Narnia pack ships `subjects/narnia.yaml` (and
+`narnia-labor.yaml` / `narnia-consumers.yaml` if the maintainer wants
+the chamber split), each declaring which organizers it wants — a board,
+a channel, both. **One reconciled kind (`subjects`), no `requires:`
+entry, no special case.** How many and how sliced is the maintainer's
+call.
+
+The "isn't a social surface authority-shaped?" worry does not survive
+the rows: a standalone channel's `memberIds` is empty by design
+(audience = everyone minus a future banlist) and a group-backed
+channel's membership rides the Group, which structure-vs-authority
+already governs. **There is no authority in the subject/organizer row to
+protect.** Help/Global/Chat stop being a seeded special — they are the
+platform pack zero shipping the same kind; `ChannelSeeder` dies with
+nothing left behind.
+
+## A11.7 — ⭐⭐⭐ The delete direction: archive, never reap
+
+The one per-kind nuance the reconciled kind needs. For materials,
+*stamped row whose file vanished → delete* is fine. For a subject, the
+row may be untouched while the WORLD GREW AROUND IT — a Narnia forum
+with three hundred player threads is not clean to drop because the
+pack's next version removed the file. ⚠ The three-way record cannot
+catch this (the row never diverged), so the rule is stated at the kind:
+
+> **An organizer whose file vanishes is CLOSED/ARCHIVED, never reaped.
+> Player writing is never destroyed as a side effect of a reconcile.**
+> Entries stay, visibly orphaned under a closed subject; actually
+> removing them is a separate deliberate act by someone with authority
+> to do it.
+
+Same spirit as the wiki's no-auto-merge line: the reconcile may retire
+the container, but the contents are somebody's record. And it
+generalizes — it is the slate's *packs seed, they do not own* rule
+(player-*bought* venues) recurring for player-*written* accumulations,
+and it will recur a third time the moment packs ship anything with a
+ledger nearby. Named once:
+
+> ⭐⭐⭐ **A pack owns what it shipped, never what accumulated around
+> it.**
+
+## Effect on the standing lists
+
+- The **third sort test** table (Part 9) gains its worked example: the
+  `subjects` kind is the doc-shaped collapse applied to three more
+  collections' seed paths (`channels` + the two forum organizer rows'
+  starter content), without touching their runtime collections.
+- **Part 9 migration order step 0** widens: the collapse list is
+  `name_banks` · `recipes` · `blueprints`(curated) · `emotes`, and the
+  organizer starter content joins via the `subjects` kind.
+- The **A10.3 six-model table** stands, with `blueprints` split across
+  two rows and the social organizers assigned to reconciled (A11.4
+  supersedes A10.3's row contents where they differ).
+- New kind roster so far: domain · quantity · name-banks (shipped) +
+  documents · settings · subjects · **boot-instances** + the
+  `requires:` block (planned).
