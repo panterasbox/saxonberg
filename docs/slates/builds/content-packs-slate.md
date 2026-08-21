@@ -2675,3 +2675,56 @@ explicitly in requirements.
 Chain: smithing `dependsOn` mining (ore/coal/flux); the energy trade
 beside it (charcoal vs coal); ore→forge→Wardens is the conserved-
 economy loop.
+
+---
+
+# Addendum 2026-08-21 (20) — the socket/furniture rule, and the hospitality cut
+
+**Decided 2026-08-21.**
+
+## A26.1 — ⭐⭐⭐ The platform/content razor
+
+> **The platform ships the SOCKET; content ships the FURNITURE.**
+
+Casting platform / spellbook content · the landing SLOT platform / the
+lounge content · TPA rails platform / the nodes content. The recurring
+"is X platform?" argument now has a razor. Applied to the lounge
+(user: *"every game needs a lounge… but that could just be a shell of a
+room. all our special lounge stuff is really our own design… certainly
+100% of dave's bar is content pack. TPA is platform."*):
+
+- **Pack zero ships the landing shell** (the void/world shell room) +
+  a **`startLocation` settings default**. The lounge pack's settings
+  contribution repoints first-login at its door; an operator override
+  wins forever after (seed-missing). Zero-packs boot lands a login in
+  an honestly empty shell — the acceptance criterion's literal test.
+- **The saxonberg-lounge pack gets 100% of the rest** — warren, pizza,
+  TVs, terminal, cast, neon, offstage/wire-alcove — the richest tier-1
+  pack, fitting for the integration testbed. The 14-class graduation
+  audit stands (extract substrate generalities like TipJar → kernel;
+  keep the local color).
+
+## A26.2 — ⭐⭐ The hospitality trade cut (most of the bar)
+
+**`/trade/hospitality/`** — the first SERVICE trade (product is
+serving, not goods): the working kit (shaker, mixing/cocktail glasses,
+graded receptacle, the bar counter AS the Attendant station, back-bar
+stock) · the cocktail recipes + scripts (venue-local → trade: the
+adoption lifecycle's first exercise) · the bartender position def ·
+the bar archetype · the tip-jar template (mechanics → kernel via the
+graduation audit). Spirits stay base-library.
+
+**The venue keeps only what makes this bar THIS bar**: place, people,
+Business (wages/roster), PRICES, neon + corpo ties, pizza, TVs,
+personality — the correct residue of the razor.
+
+- ⭐⭐ **Two venues compose it on day one** — Dave's Bar AND the
+  hearthworks cookhouse (`order`/maker/attendant is hospitality
+  grammar) — the industry≠venue promise demonstrated live: one trade,
+  multiple venues, opposite vibes; hearthworks composes THREE trades.
+- **Boundary**: hospitality = SERVING (counter, order, attendant,
+  tip); hearth-cooking = PRODUCTION. A bar that cooks composes both —
+  the line the shipped kitchen-vs-counter code already draws.
+- **Sequencing**: cut now (third trade pack) rather than
+  pre-industry-then-adopt — the kit is mature and two venues already
+  prove it; the pre-industry path stays available for everything else.

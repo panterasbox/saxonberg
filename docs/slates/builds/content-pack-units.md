@@ -85,7 +85,8 @@ Counts are from the 2026-08-21 audits; ⚠ marks packs not yet drilled.
 | **smithing** 🔨 | 5 recipes · anvil/whetstone/ingot templates · smith position def ⚠ · smithy archetype |
 | **hearth-cooking** 🔨 | 2 recipes · food stock (interim) · cook position def ⚠ · kitchen archetype |
 | **hearthworks (venue)** 🔨 | 4 room templates + adornment · Business template · 2 NPC templates · menu contents · requires.title · ⚠ the inbound exit |
-| **lounge** ⚠ | 27 templates · scripts · Business (Dave's Bar) · terminal boot-instance; drill: first locality conversion |
+| **saxonberg-lounge** 🔨 | the venue AFTER two cuts: pack zero takes the landing shell + startLocation default (socket/furniture razor); /trade/hospitality takes the bar kit. Keeps: rooms/warren, cast (5 NPCs), Business+prices, neon/corpo ties, pizza, TVs, terminal (→ lazify), offstage/wire-alcove; 14-class graduation audit (extract TipJar-class generalities → kernel) |
+| **hospitality** (trade) 🔨 | the first SERVICE trade: bar-counter Attendant station, glassware kit, cocktail recipes+scripts (adopted from venue-local), bartender position, bar archetype, tip-jar template. Two venues compose it day one (Dave's Bar + hearthworks cookhouse). Serving vs cooking = counter vs kitchen |
 | **eternal-university** ⚠ | 35 templates · 7 controllers + 14 TS (CAPABILITY pack) · requires: group+title · provision: Katie · dorm-warren boot-instance · civics rows; drill: the capability exemplar |
 | **terminus** ⚠ | 52 templates · counting-houses/general-store/Hinkley; drill: retail+banking seams |
 | **newbie-wilds** ⚠ | 21 templates; drill: onboarding deps |
