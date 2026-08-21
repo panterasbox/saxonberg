@@ -1692,3 +1692,106 @@ the hand-off**:
 ⭐ **The two packs were chosen to be exhaustive, and they were**: every
 row in the shopping list traces to a concrete file in one of the two
 bills — nothing here is speculative substrate.
+
+---
+
+# Addendum 2026-08-21 (4) — ⭐⭐⭐ industry ≠ venue
+
+**Captured 2026-08-21, continuing the drill-down.** The user's re-cut of
+Part 2's vertical trade pack:
+
+> **User: "I'm not sure if I wanna mix venues and industries in the same
+> pack. an industry is largely mechanics, not content… the actual
+> specific content whether it's a mine or restaurant or farm or
+> whatever, that should get delivered on its own."**
+
+⭐ **Hearthworks itself is the proof**: it is TWO industries in one venue
+(smith + cook, one roster). Venues compose industries freely — a tavern
+is cooking + brewing + hospitality — so venue-as-the-pack was always
+going to cross industry lines. Part 4's *trade owns the KIT, locality
+owns the PREMISES* had the right instinct; this promotes it to the
+packaging boundary itself.
+
+## A13.1 — What an INDUSTRY pack ships (the trade's grammar)
+
+- **tool + station templates** — anvil, forge, whetstone as clonables
+- **recipes** — industry, never venue
+- **materials it introduces to the chain** (A13.3)
+- **position definitions** — what "a smith" is, which mixins it
+  confers. ⚠ The **wage rate stays VENUE** — each business sets its
+  own, which moves the money-faucet tier consequence (A12.1) to the
+  venue side
+- **venue archetypes** — "a smithy needs: forge, anvil, fuel store."
+  Precedent exists: room archetypes (`seeds/obj/room/kitchen.yaml`) +
+  furnishing's FurnishableRoom archetypes. The industry ships the
+  archetype; a venue fills it with a place.
+
+## A13.2 — What a VENUE pack ships
+
+Rooms, the NPCs, the Business instance (roster, **wages**, `banksAt`),
+menu *contents* (the menu class genericizes to kernel per A12.1), its
+place in the world. Small, **local-tier**, arguable by a locality
+committee. A venue may ship inside a locality pack (the common case) or
+standalone (a flagship/showroom) — maintainer's choice; the line that
+matters is industry/venue, not venue/locality.
+
+## A13.3 — The materials faultline
+
+> **Base-library holds what GENERIC content names; an industry ships
+> what it INTRODUCES to the chain.**
+
+Wood stays universal not because it is common but because
+generic-objects and scenery name it — crates are wooden in worlds with
+no forestry. Hematite ships with mining because nothing outside
+mining's chain says the word. ⭐ **Mechanically checkable** (the topics-
+gate shape): a base-library material referenced only by one industry's
+content is misfiled; an industry material referenced by generic content
+has graduated.
+
+⭐⭐ **And the split itself dissolves the "don't ship ore everywhere"
+worry**: an industry pack with no venues declared is inert vocabulary —
+rows, no rooms, no NPCs, nothing observable. Smithing `dependsOn`
+mining for its ore words; nobody gets a mine unless a locality declares
+one. **The dependency became cheap the moment the venues left it** —
+and the ore existing as a word is what lets a market import it before
+anyone digs locally.
+
+## A13.4 — The observability test, amended
+
+Part 2's test — *a pack that installs and changes nothing observable is
+the wrong cut* — now applies to the **industry + one venue PAIR**,
+never to either alone. An industry pack fails it by design. The
+showroom stops being *in* the trade pack and becomes the **reference
+venue pack shipped beside it**.
+
+## A13.5 — ⭐⭐ Testability: derive the test venue from the archetype
+
+The worry — an industry pack in isolation starves for test content —
+resolves without authoring fixtures:
+
+> **Materialize a synthetic venue FROM the archetype declaration** —
+> the minimum rooms + stations it names — and run the industry through
+> it.
+
+Ugly-fixture-on-purpose without authoring the fixture, and it doubles
+as a **completeness check on the archetype itself**: if the derived
+venue cannot run the industry end-to-end, the declaration is missing
+something a real venue author would also starve for. The test harness
+is the first consumer of the same declaration real venues use —
+derive-don't-author-twice.
+
+## A13.6 — Effect on the standing lists
+
+- **Part 2's vocabulary amends**: trade = industry (grammar) + venues
+  (content); *"install it and a bakery exists"* holds for the pair.
+- **Part 6's roster** re-reads as industry packs; each picks a
+  reference venue.
+- **A12.1's hearthworks bill re-cuts**: smithing industry +
+  hearth-cooking industry + hearthworks-the-venue (which composes
+  both). Recipes/stations/positions → the industries; Business, NPCs,
+  wages, rooms → the venue. The systemic-tier detector (wage/mint)
+  attaches to venues; industries are argued on what their recipes mint.
+- **Open question 1 (trade = one pack or per-business?) closes**:
+  industry = pack, venue = pack, business = rows in a venue pack.
+- **Open question 2's parameter answer refines**: the archetype is the
+  parameter schema's home — a venue *is* answers to an archetype.
