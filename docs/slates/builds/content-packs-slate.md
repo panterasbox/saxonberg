@@ -2086,3 +2086,95 @@ grid slate (generation and wires), combustion-and-delivery the honest
 v1. **Mint it when fuel depletion outpaces trivial gathering** — a
 tunable fact, not a guess; design now (the form-shaped exemplar), ship
 after smithing/cooking prove the format.
+
+---
+
+# Addendum 2026-08-21 (9) — the install record's shape, and the collision surface
+
+**Captured 2026-08-21.** The concrete schema under the three-way
+machine (A10.4), and the ops resolution controls — the user's one
+stated requirement: *"my main concern is collisions and giving ops the
+controls they need to resolve them."*
+
+## A17.1 — The install record (collection: `pack_installs`)
+
+One record per pack per deployment:
+
+```yaml
+packId: trade-smithing
+version: 0.1.0            # pack.yaml version at last successful apply
+appliedAt: …              # wall time
+principal: bootstrap      # or the staging player
+status: applied           # applied | staged | failed
+failure: null             # {step, error, file} — a failed pack boots
+                          #   WITHOUT the pack, loudly (A10.10)
+parameters: {…}           # diagnostic COPY of render-time values;
+                          #   authority stays in decision files (A10.11)
+rows:                     # ⭐ the three-way baseline
+  /trade/smithing/obj/anvil: {kind: domain, hash: "sha256:…"}
+pins: []                  # operator-owned rows (A17.3)
+sideEffects: {kinds: […]} # non-row work applied — for uninstall
+```
+
+Decisions baked in:
+
+1. **One record per pack, not row-per-artifact** — reconcile is a
+   per-pack batch; nothing queries baselines across packs.
+2. **Hash the RENDERED artifact** (post-parameter canonical
+   serialization — the Helm rule): `baseline == current` means
+   untouched-since-install regardless of how the file got there.
+3. **Its own small collection** — system state written only by the
+   installer; A11.5's allowlist property demands the installer's ledger
+   live where no contribution kind can reach (the `parcels`-not-in-
+   `domain` reasoning).
+4. **V1 = the record + the three-way machine only.** With all packs
+   first-party and boot-installed, "staging" is a git commit + deploy;
+   staging/parameters/provision layer on later without schema changes.
+   The record pays immediately: it is what tells "we changed gin's
+   density" from "an operator tuned it."
+5. ⚠ **The adoption baseline**: first apply against a pre-record DB
+   normalizes pre-existing divergence once (the migration bridge) —
+   acceptable, but it gets a loud log line.
+
+## A17.2 — The collision taxonomy: mostly deleted by structure
+
+| Collision | Fate |
+|---|---|
+| two packs, one path | ⭐ **structurally prevented** — install requires title to the extent; two packs cannot hold one title. The parcel registry is the arbiter (the different-pack-stamp refusal stays as the belt to the title's suspenders) |
+| installer vs player record | **structurally prevented** — the accumulation firewall: no kind reaches `holder_snapshots` / ledgers / entries |
+| flat-KEY kinds (emote verbs, subject names, recipe ids) | **install-time refusal, loudly, before any write** — keys aren't carved the way paths are (the verb namespace is the one namespace nobody can carve), so uniqueness is checked across the install set like requires-kernel checks classes. Never first-wins, never silent |
+| pack-changed AND DB-diverged | **the one genuine runtime conflict** — ops controls below |
+
+## A17.3 — The ops resolution surface
+
+File-per-artifact (A16.2) makes the resolution granularity exactly
+right — per recipe, per room, per page:
+
+```
+pack install --dry-run <id>   # what WOULD change; nothing writes
+pack status [<id>]            # applied/staged/failed · unfulfilled requires · open conflicts
+pack diff <id> [<path>]       # THREE bodies: baseline / yours (DB) / theirs (pack)
+pack resolve <id> <path> --take-pack   # pack wins; baseline updated
+pack resolve <id> <path> --keep --pin  # DB wins AND the row becomes operator-owned
+pack resolve <id> <path> --export      # DB version → candidate FILE → MR → upstream
+pack pin / unpin <path>
+```
+
+1. ⭐⭐ **`--keep` without `--pin` does not exist** — keeping without
+   claiming re-fires the same conflict on every future update. Keeping
+   means claiming: the row pins (a per-row downgrade to seed-missing,
+   the operator choosing the gentler policy — the right party),
+   recorded in `pins:`, and **every future reconcile reports pinned
+   rows** so pins cannot rot silently.
+2. ⭐⭐ **`--export` keeps the system honest** — the A10.2 round-trip as
+   a one-word verb: the divergence goes back through git and resolves
+   upstream in an MR. Its existence is what stops ops pinning forever
+   out of friction.
+3. **Conflicts are pull, not interrupt** — diagnostics addressed to
+   the ops office + `pack status` lines; install/sync never blocks (the
+   unresolved artifact keeps its DB state). An open conflict is a
+   legal, visible state (never-half-grown).
+4. `pack diff` presents the wiki's three-body shape — same doctrine
+   (*a machine-merged paragraph is nobody's writing*), same muscle
+   memory, and literally the same machinery for wiki-kind
+   contributions.
