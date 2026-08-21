@@ -1795,3 +1795,91 @@ derive-don't-author-twice.
   industry = pack, venue = pack, business = rows in a venue pack.
 - **Open question 2's parameter answer refines**: the archetype is the
   parameter schema's home — a venue *is* answers to an archetype.
+
+---
+
+# Addendum 2026-08-21 (5) — the archetype, settled in three questions
+
+**Captured 2026-08-21.** The venue archetype (A13) interrogated one
+question at a time. **Status: adopted provisionally** —
+
+> **User: "I'm not entirely convinced we need this document at all, but
+> let's see where it takes us. if it's something that doesn't earn its
+> keep we can always cut it later."**
+
+The cut is cheap by construction: nothing at runtime reads it (Q2/Q3),
+so retiring it orphans no mechanism.
+
+## A14.1 — Prescriptiveness: a derived floor + defaults as content
+
+> **User: "most people just want the defaults because it's
+> interoperability and immersion for free, but the best content usually
+> finds a way to break the rules."**
+
+Two artifacts, two jobs — the trap is making one serve both:
+
+- ⭐⭐ **The floor is stated in CAPABILITIES, not furniture** — not "a
+  forge" but "heat ≥ 1400K, a work surface, fuel storage" — because
+  that is what the mechanics already check (`requiresHeatK` is in
+  recipes.yaml today). Rule-breaking becomes legal by construction:
+  the volcano-vent smithy satisfies the contract without an exemption.
+- ⭐ **Most of the floor is DERIVED** from the industry's own recipes +
+  positions (can't drift; the completeness check is nearly free);
+  hand-authored residue covers only what mechanics can't express.
+- **Defaults are CONTENT, never schema** — the copyable reference
+  venue / a Studio blueprint. Defaults-as-content constrain nobody.
+- The stitch: each capability slot carries a **default binding**
+  (`needs: heat ≥ 1400K, default: forge`) — checker checks the
+  capability; scaffold + derived test venue materialize the default.
+
+## A14.2 — No runtime enforcement
+
+The world never gates on archetype satisfaction — a smith with no forge
+is a legal, VISIBLE state (never-half-grown), and the derive-on-read
+checklist supplies all the observability enforcement would have bought.
+Install/provision/test-time aid only.
+
+## A14.3 — Home: a document; logic stays kernel
+
+- The authored residue is a **declared document kind (`archetype`)** by
+  Part 9's own sort test (one owner, no cross-system queries,
+  path-keyed suffices). Not a `domain` row (never instanced; and
+  reference-data-as-template is the inert-at-boot trap — a document
+  read on demand has no warm step to forget). Not collection #51.
+- The **effective archetype derives on read** (recipes + positions +
+  residue), never stored; consumed at three cold paths (install /
+  provision / test bootstrap).
+- ⭐⭐⭐ **The expressiveness answer** (user: *"are you going to be able
+  to express everything you need as data? I was expecting typescript
+  classes with logic"*): the archetype carries ZERO logic; an
+  industry's behavior lives in kernel ENGINES reading data (crafting,
+  employment, fire) — no generic `Industry` class; "industry" is a
+  cross-section, not an object. Roster walk: most slated industries
+  are pure data over shipped substrates; the exceptions are **kernel
+  gaps, not pack code** — mining/quarrying (deposit depletion),
+  fishing/foraging (unowned population regrowth), brewing
+  (fermentation-over-time). ⭐ **When data can't express it, the move
+  is a kernel mechanism build — which is what the slates already are**
+  (husbandry got built; the farm is data). A mechanism only one pack
+  can use is a mechanism the next industry re-derives.
+- ⭐ **The litmus is mining** — the first industry whose core loop has
+  no substrate. If building it makes us want logic in the pack rather
+  than a Reserve-shaped depletion mechanism in the kernel, the model
+  is wrong.
+
+## A14.4 — Restated in-session (context, not new design)
+
+The document-tree program this rides: the user's standing intent to
+**move some collections into a parcel's document tree** and let
+**parcels carve the tree and dole out access along their own
+boundaries** — already documented as Part 9's documents-wearing-a-
+collection list (`name_banks` · `recipes` · `blueprints` · `emotes`)
+plus the declared-kinds/free-form tiers; the access half is designed,
+not built (`DocumentLogic` never repointed onto `ParcelApi`, the known
+Part 4b gap). The archetype is one more tenant, not a special case;
+install-time reads do not depend on the access work landing first.
+
+**Still open: the industry namespace** — industries aren't places, so
+what root does an industry pack's extent claim (`/industry/<x>`? squat
+under `/obj/<x>`?). "Where do mining's documents live" and "what extent
+does the mining pack claim title to" are the same question.
