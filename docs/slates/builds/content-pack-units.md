@@ -2,7 +2,9 @@
 
 **Started 2026-08-21**, out of the pack-installer design session
 ([content-packs-slate](./content-packs-slate.md), addenda A10–A18).
-This is the WORKING INDEX for the pack-by-pack drill-down: every
+(Names reflect the A17 renames: the template collection is `content`,
+the place root is `/world/`.) This is the WORKING INDEX for the
+pack-by-pack drill-down: every
 shippable unit type, the strategy by which it applies to the platform,
 and the per-pack table of contents. **A cell marked ⚠ OPEN is a
 conversation not yet had** — the drilling agenda, kept honest.
@@ -22,8 +24,8 @@ Status: ✅ shipped · 🔨 designed this session · ⚠ OPEN (format/mechanics 
 
 | Unit | In the pack | Applies to | Apply strategy | Status |
 |---|---|---|---|---|
-| **template** | `obj/**.yaml` (fractal under any root) | `domain` | 3-way reconcile-replace; lazy go-live (the fault-in trio) or `restoreFromTemplate` on sync; delete row on vanish; requires-kernel on `class:`/`hydratorClass:`/`brain:`; code-naming fields wizard-gated | ✅ +🔨 3-way |
-| **material** | `obj/material/**` | `domain` | template strategy + introduces-vs-commons placement rule (A16.3) + closed-vocabulary lint | ✅ |
+| **template** | `obj/**.yaml` (fractal under any root) | `content` | 3-way reconcile-replace; lazy go-live (the fault-in trio) or `restoreFromTemplate` on sync; delete row on vanish; requires-kernel on `class:`/`hydratorClass:`/`brain:`; code-naming fields wizard-gated | ✅ +🔨 3-way |
+| **material** | `obj/material/**` | `content` | template strategy + introduces-vs-commons placement rule (A16.3) + closed-vocabulary lint | ✅ |
 | **document** (generic) | `documents/**.yaml` | `documents` | 3-way reconcile; path-keyed; per-kind indexes only when the kind is DECLARED | 🔨 |
 | **script** | `scripts/*.script` | `documents` {kind: script} | document strategy; source text verbatim | ✅ (ScriptSeeder → migrate) |
 | **recipe** | `recipes/*.yaml` | `documents` {kind: recipe} (post-collapse) | document strategy + FLAT-KEY check (`recipeId`) at install; consumed by crafting engine | 🔨 collapse |

@@ -2537,3 +2537,39 @@ The two-responsibilities worry resolves by naming ops's writ:
   when unstaffed** — every unstaffed pack is noise in the ops chief's
   own queue, so staffing is the path of least resistance, not a
   policy.
+
+---
+
+# Addendum 2026-08-21 (17) — the two renames: `content` and `/world/`
+
+**Decided 2026-08-21.** Both renames, each to what the thing actually
+is — the governing observation:
+
+> ⭐⭐ **The ownership meaning of "domain" already moved out of the path
+> root and into the PARCEL system**, which covers every root uniformly
+> (`/trade/smithing` is exactly as much somebody's domain as
+> `/domain/eternal`). Since `/trade/` landed, the root's actual
+> referent is just geography — a stale name.
+
+1. **The collection: `domain` → `content`.** It holds every template
+   row regardless of root; "the content collection" is what it is, the
+   store of authored content that hydrates into TS source (the user's
+   source/content duality) — and pack repos already keep files under a
+   `content/` root, so the name aligns at every layer. This REVERSES
+   the landed content→domain rename: an enum sweep +
+   `renameCollection` migration, **its own tiny MR** so the diff is
+   pure mechanical rename.
+2. **The path root: `/domain/` → `/world/`.** Places get a place-name
+   (`/world/terminus/hinkley-hills`, `/world/narnia`), and the root
+   family becomes self-describing — `/obj/` the commons · `/trade/`
+   the industries · `/world/` the places · `/compact/` the state ·
+   `/corpo/` the marks — each root says what KIND lives there, the
+   trie says who owns it, everywhere. Source mirrors follow
+   (`src/mud/world/`, `seeds/world/`). Runner-up `/place/` declined
+   ("world" scales to whole spheres like Narnia).
+3. "Domain" retires from path literal back to PROSE, where it was
+   always right: "that's the smithing pack's domain" stays a true
+   sentence about title.
+4. **Timing:** the path rename rides wave 3 (the hearthworks re-cut is
+   already a batched path-rename + orphan-cleanup event — marginal
+   cost); the collection rename lands whenever, standalone.
