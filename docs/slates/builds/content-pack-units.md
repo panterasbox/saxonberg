@@ -90,6 +90,7 @@ Counts are from the 2026-08-21 audits; ⚠ marks packs not yet drilled.
 | **terminus** ⚠ | 52 templates · counting-houses/general-store/Hinkley; drill: retail+banking seams |
 | **newbie-wilds** ⚠ | 21 templates; drill: onboarding deps |
 | **practicum / moor / substation** ⚠ | 7 / 4 / 4 templates; drill: small-pack format floor |
+| **mining** (tier 2) 🔨 | KERNEL FIRST (seam model, warren generator, extraction verbs, hazard wiring — litmus PASSED); pack = materials (ores/coal/flux/gold/gems/salt⚠) · beneficiation+alloy recipes · tools/stations · mine archetype; venue = rooms + warren root + SEED field, parcel = the mineral claim; positions ~none (emergent roles; wage variant only); zero eager. Venues: Ferrow Delving (commons/deep-law) vs Delving 9 (corporate wage) — opposite economic forms, one pack. ⚠ Eternal steel = census-gated WORLD content, never a pack row |
 
 ---
 

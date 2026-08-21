@@ -2618,3 +2618,60 @@ is — the governing observation:
   contains ore" a STATION property (prop in a room — simple) or a LAND
   property (parcel/biome — consistent with land-declared/
   everything-above-measured)? Changes what "vein access" even means.
+
+---
+
+# Addendum 2026-08-21 (19) — the mining drill: the litmus passes, and three bends
+
+**Captured 2026-08-21**, against [mining-slate](./mining-slate.md)
+(deep, mostly DECIDED).
+
+**The kernel build comes first** (the A14 litmus case): the
+seam/deduction model (hidden Grade+extent, `assay` — the one new
+primitive) · the procedural shared-Warren generator (seeded,
+deterministic, lazy, breathe-cycle — rides MultiLocation + residency) ·
+the extraction verb family (kernel verbs, maybe an `extraction`
+category) · hazard wiring into shipped substrates
+(respiration/thermal/light/encumbrance). Smelting already exists (the
+phase engine). Cave-in stays skipped (slate lean). ⭐⭐ **Litmus
+verdict: PASSES — nothing wants to live in the pack**; every
+logic-shaped piece is mechanism the next extraction industry
+(quarrying, salt, placer) reuses.
+
+**`/trade/mining/` ships pure data**: introduced materials (ores, coal,
+limestone flux, gold, silver, gems, salt — ⚠ salt has no solid
+`Material` yet) · beneficiation + alloying recipes (smelting needs
+none) · tools/stations (picks by Grade/ToolCapability, pans, sluices,
+shoring, hoist) · the mine archetype (vein access its own; light, air,
+drainage, shoring → commons defaults).
+
+**The three bends:**
+
+1. ⭐⭐ **The A18 deposit fork resolves to NEITHER option** — deposits
+   are **generated from the mine's SEED** (per-mine seed + depth +
+   branch coordinate; veins are features of generated rooms). Land
+   story clean: **the mine is ONE parcel — the mineral claim**;
+   interior tunnels are interior space, no land minted. A mining venue
+   = surface rooms + warren root + a seed (an authored FIELD — the
+   showroom ships a fixed one; still no parameter machinery needed).
+2. ⭐⭐ **Mining ships almost no positions, and that's a feature** —
+   team roles are emergent, never authored (slate DECIDED). Authored
+   positions exist only for the wage-mine variant, and the slate's
+   paired exemplar proves the venue model: **Ferrow Delving** = a
+   commons under the deep-law (no Business, no wages) vs **Delving 9**
+   = the Ordinance's corporate wage mine (Business, roster). One
+   industry pack, two venue packs, OPPOSITE economic forms.
+3. ⭐ **Zero eager entries** — the whole vertical is lazy by design
+   (materialize on breach, evict on abandon, regenerate from seed).
+   The mining design and the lazy-world doctrine converged before
+   either knew it.
+
+⚠ **Eternal steel is not industry data** — a finite conserved salvage
+tier (found, never smelted); a pack row would make the apex material
+mintable by reconcile. It rides the census-gated-distribution pattern
+(magic-items precedent) as WORLD content with a fixed census — home it
+explicitly in requirements.
+
+Chain: smithing `dependsOn` mining (ore/coal/flux); the energy trade
+beside it (charcoal vs coal); ore→forge→Wardens is the conserved-
+economy loop.
