@@ -1981,3 +1981,108 @@ the liveness path exists and is the design.
   host place — annex knows host) or it is a showroom by definition.
   Hearthworks-the-venue is currently a showroom that thinks it is a
   venue.
+
+---
+
+# Addendum 2026-08-21 (8) — the hearthworks re-cut, file-per-artifact, and the energy sketch
+
+**Captured 2026-08-21.** The industry≠venue cut applied to real content,
+plus three decisions it forced.
+
+## A16.1 — Hearthworks becomes three packs
+
+| Pack | Ships |
+|---|---|
+| **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/obj/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
+| **`/trade/hearth-cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
+| **`/domain/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
+
+**What the cut revealed:**
+
+1. ⭐⭐ **The fire stations were never smithing's.** Forge/Oven/Kiln/
+   CookPot are fire-substrate COMMONS (`/obj/`) — smelting is the phase
+   engine, not a recipe. The capability floor makes it natural: the
+   archetype *requires heat*, `default: /obj/Forge`. Corollary:
+   smithing's cook-pot recipe outputs `/obj/CookPot` — a commons
+   template — so smithing-makes-cooking's-tools creates **no pack
+   edge**. ⭐ Recipes that output commons goods are chain-neutral.
+2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are
+   already thin CommerceMenu subclasses; the residue (verb-surface
+   lighting?) is the actual work, and it is small.
+3. ⚠ **The migration is a PATH RENAME** (`/domain/hearthworks/anvil` →
+   `/trade/smithing/obj/anvil`), and now is the cheapest it will ever
+   be — hearthworks is goto-only, blast radius ≈ one populates list +
+   recipe station refs. ⚠⚠ The re-cut must **DELETE the orphaned
+   unstamped `/domain/hearthworks/*` rows** the new packs don't adopt
+   (the seeder-is-insert-only trap's farewell appearance).
+4. Open: does the venue keep the proper name "Hearthworks" while the
+   industries take generic names? (Lean yes — proper noun for the
+   place.)
+
+## A16.2 — ⭐⭐ File-per-artifact, across the board
+
+> **User: "not only do we want to normalize all our paths but we also
+> want to break up some of our documents e.g. recipes.yaml so each
+> recipe has its own version history. that breakup needs to happen
+> across the board."**
+
+The pack-format law: **one file = one reviewable artifact = one version
+history.** The domain seeds already live this way; the `config/*.yaml`
+aggregates (recipes, emotes, channels, wiki-pages, blueprints) were the
+anomaly — and they all die in the seeder migration anyway, so the
+breakup is free if the migration does it right:
+`/trade/smithing/recipes/belt-knife.yaml`, blameable, arguable in an MR
+on its own. The reconcile unit and the review unit become the same
+thing — which is the whole point of packs.
+
+## A16.3 — Introduces-vs-commons (replaces interim custody)
+
+> **An industry ships only what it INTRODUCES; goods that pre-exist any
+> industry are COMMONS.**
+
+Firewood burns in campfires with no fuel trade in sight; hides exist
+wherever butchery happens — commons (generic-objects / a core-goods
+flavor; the user's instinct: *"those feel like something that will come
+in via like a core-materials pack"*). Industry-shipped is only the
+genuinely introduced: charcoal is the energy trade's, coal is mining's.
+A16.1's hearth-cooking stock rows are interim under this rule too. The
+consumer-custody rule from the re-cut conversation is dead — nothing
+used it yet.
+
+## A16.4 — The energy industry, sketched (the service-industry stress test)
+
+> **User: "I can imagine the smithy hires someone to go out and get
+> coal/wood/whatever for them, or they go to a shop stocked by that
+> person. still I'd keep things like energy sources shared content."**
+
+That sentence contains the design: the trade is **two market forms**,
+both riding shipped substrates —
+
+| It ships | Rides |
+|---|---|
+| recipe: charcoal-burning (wood → charcoal at a clamp) | crafting + fire |
+| material: charcoal (introduced; coal stays mining's, wood base-library) | materials |
+| stations: charcoal clamp; a thin *fuel yard = storage + scale* archetype | commons Kiln mostly |
+| positions: collier / fuel merchant | employment |
+| ⭐⭐⭐ **standing contract FORMS** — "keep this fuel store above N," recurring delivery | **contracts** |
+| a fuel-yard stock pattern | retail |
+
+⭐⭐⭐ **The discovery: blank contract forms are a new artifact type.**
+The `contracts` collection stays never-seeded (executed contracts are
+player record), but the FORM — the standard provisioning clause set —
+is authored content, same relationship as recipe-to-crafted-item.
+Shipped as documents. It will recur: **freight, insurance, and credit
+are all form-shaped trades.**
+
+Why it matters even unbuilt: energy is the first
+**service-and-logistics** industry — archetype nearly empty, recipes
+one line, weight in market forms — proving industries are not all
+crafting-shaped. The demand loop is already mechanized (FireApi
+consumes Combustible: depletion → contract trigger / shop restock →
+collier labors → wage), a closed loop with a shipped sink at one end
+(Part 3 doctrine). Chain: forestry → fuel → every burner, mining
+feeding coal from the side; v2 seam = the electricity substrate + the
+grid slate (generation and wires), combustion-and-delivery the honest
+v1. **Mint it when fuel depletion outpaces trivial gathering** — a
+tunable fact, not a guess; design now (the form-shaped exemplar), ship
+after smithing/cooking prove the format.
