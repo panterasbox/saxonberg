@@ -1883,3 +1883,48 @@ install-time reads do not depend on the access work landing first.
 what root does an industry pack's extent claim (`/industry/<x>`? squat
 under `/obj/<x>`?). "Where do mining's documents live" and "what extent
 does the mining pack claim title to" are the same question.
+
+---
+
+# Addendum 2026-08-21 (6) — the `/trade/` root
+
+**Decided 2026-08-21.** Industries get their own top-level content
+root; the four-namespaces doctrine gains its slot:
+
+> ⭐⭐ **Industry content has no place; venue content is nothing but
+> place.** `/trade/<industry>/**` is the industry pack's whole world —
+> stations, archetype documents, migrated recipes — and its title claim
+> is exactly its root (`requires.title: /trade/mining`), so
+> `sourcePack` ↔ extent align one-to-one. Venues stay place-side under
+> `/domain/…` (or a locality's extent). The same shape as
+> publications-have-no-place.
+
+**Internal layout follows the usual conventions, fractally** (user:
+*"we'll still want our templates to follow usual conventions"*):
+
+```
+/trade/mining/obj/pickaxe        # instanceables under obj/ — the
+/trade/mining/obj/vein-face      #   lib-vs-obj rule, recursed
+/trade/mining/cmd/<verb>.yaml    # trade verbs, the domain-local
+/trade/mining/command/<Name>Controller  #   precedent reused
+/trade/mining/archetypes/mine    # the archetype documents (document
+                                 #   tree, mirrored path)
+```
+
+- `/obj/` stays **the commons** — kernel generics + the generic-objects
+  pack; "is this path core or somebody's?" stays answerable on sight.
+- `/trade/` naming: the TREE word is player/author-facing
+  (`/trade/smithing/obj/forge` reads); **industry/venue stays the
+  packaging vocabulary**. Part 9's `requires:` example already sketched
+  `/trade/baking`.
+- Cost, one-time and deliberately kernel-shaped: a **sixth top-level
+  branch file** (`Stuff._registerTopLevelBranch` — the sanctioned
+  module-scope exception list grows by one). Minting a root SHOULD be a
+  kernel-level act; this happens approximately once.
+- `lint:instanceable` extends unchanged: no `/trade/**` template may
+  name a `/lib/` class, and the `obj/` segment carries the
+  instanceable convention inside the subtree.
+
+Rejected: squatting under `/obj/<industry>/` (makes the commons a
+landlord's district) and the split (a pack straddling two namespaces,
+its title not covering its own stations).
