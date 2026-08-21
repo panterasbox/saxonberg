@@ -2293,3 +2293,50 @@ stragglers → audit-and-delete · `room/` archetypes → generic-objects.
 
 ⭐ With this, **every seed in the tree has a home and every export has
 a mechanism.** The one open box in the whole design is media.
+
+---
+
+# Addendum 2026-08-21 (12) — media: content ships assets; generation is an AUTHORING act
+
+**Decided 2026-08-21, closing the last open box.**
+
+> **User: "image generation would be handled on the content authoring
+> side, if for nothing else than we need them to use their own token
+> budget. maybe we'll hook up api keys in CMS but either way I'd think
+> content ships assets. delivery of those assets into s3 is a separate
+> thing."**
+
+This reverses the derive-at-runtime reading of `MediaAsset`. The
+economics decide it: runtime generation puts every operator on the hook
+for tokens + an external AI dependency; authoring-time generation puts
+the cost with the creative control — and deployments become hermetic
+(the self-hosting/AGPL story).
+
+- **The pipeline is an AUTHORING TOOL, not a runtime service.**
+  MediaAsset's deterministic-regenerate machinery (prompt + model +
+  params; staleness on model bump) is the *author's* re-render loop —
+  eventually in the CMS with the author's own API keys.
+- ⭐ **Packs ship bytes AND receipts.** The image travels with its
+  provenance (prompt/model/params): the receipt keeps regeneration
+  deterministic for the author and gives review its textual half (and
+  MRs render images — art is reviewable).
+- ⭐⭐ **Two-step delivery.** The installer reconciles `media_assets`
+  ROWS (three-way, like every kind); **byte delivery to the bucket is a
+  separate transport step** — made safe by **content-addressed keys**
+  (bucket key = hash of bytes): idempotent sync (upload missing keys),
+  free dedupe, no staleness (new art = new key, the row repoints), and
+  rows-before-bytes degrades to a visible broken image fixed by
+  re-running the sync, never corruption.
+- Repo weight: binaries in pack repos — git-LFS is the standard answer
+  once packs split repos; illustration-scale assets are tolerable
+  meanwhile.
+- `media_assets` therefore leaves the derived-cache row of the A10.3
+  table: the rows are a **reconciled** kind; the bucket is a mirror of
+  pack bytes.
+
+⭐⭐ **With media decided, the design is REQUIREMENTS-COMPLETE**: every
+seed homed, every export mechanized (installer-carried data ·
+package-carried code · procedure-mediated structure · the asset
+transport), every collision owned, no open boxes. Remaining deferrals
+are all named: staging/parameters · overlay kind · scheduled uninstall
+· the energy pack · the repo split (npm, last).
