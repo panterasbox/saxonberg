@@ -74,13 +74,13 @@ Counts are from the 2026-08-21 audits; ⚠ marks packs not yet drilled.
 | **base-library** ✅ | materials · biomes (templates) · quantity tables |
 | **species-and-names** ✅ | species/clade templates · name-banks |
 | **arcane-descriptors** ✅ | descriptor-banks |
-| **conditions-and-afflictions** ⚠ | ~15 Condition templates; drill: boot-instance vs lazy, harm-vertical deps |
-| **body-plans** ⚠ | BodyPlan templates; drill: species-pack seam |
+| ~~conditions-and-afflictions~~ | KILLED (A27) — baseline conditions → pack zero (+ sync-read boot entry); extensions ride carriers (disease, pharma) |
+| ~~body-plans~~ | KILLED (A27) — folded into species-and-names with the 4 straggler species rows |
 | **generic-objects** ⚠ | ~70 goods/props templates + room archetypes + orphan recipes; the SHRINKING commons |
-| **expression** ⚠ | starter emotes (flat-key exemplar); post-collapse documents |
-| **arcane-library** ⚠ | starter spellbook · generic magic items; the shrink guard (A18.11) |
-| **compact** ⚠ | /compact templates · PressBoard boot-instance · realm/city Locality+Government rows · state subjects; drill: swappability |
-| **corpo** ⚠ | 5 corpo templates + boot-instances · brand data; drill: banking seam (goodkin) |
+| **expression** ✅drilled | 35 starter emotes → ~35 document files post-collapse; the flat-key exemplar; nothing special — the simplest pack works |
+| **arcane-library** ✅drilled | the Spell dir + GlowlightOrb/SparkSource (~14 rows); the magic commons + shrink guard; boring in the good way |
+| ~~compact~~ | PLATFORM (A27, user) — /compact templates, PressBoard, realm/city civics rows all → pack zero; state-swapping = forking (AGPL), never a pack |
+| **corpo** ✅confirmed | 5 corpos + brands + their boot entries; a content pack (A27, user); lounge (neon, goodkin) and hearthworks (banksAt) depend on it |
 | **wiki-starter** ⚠ | 4 wiki pages (CAS exemplar) |
 | **smithing** 🔨 | 5 recipes · anvil/whetstone/ingot templates · smith position def ⚠ · smithy archetype |
 | **hearth-cooking** 🔨 | 2 recipes · food stock (interim) · cook position def ⚠ · kitchen archetype |

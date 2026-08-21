@@ -2728,3 +2728,56 @@ personality — the correct residue of the razor.
 - **Sequencing**: cut now (third trade pack) rather than
   pre-industry-then-adopt — the kit is mature and two venues already
   prove it; the pre-industry path stays available for everything else.
+
+---
+
+# Addendum 2026-08-21 (21) — the substrate-vocabulary doctrine; the Compact is platform
+
+**Decided 2026-08-21.**
+
+## A27.1 — The four-pack batch drill: two die
+
+- **conditions-and-afflictions: KILLED as a pack, promoted to a
+  KIND.** The seed tree knew: conditions organize by driving substrate
+  (`magic/ metabolism/ mortality/ respiration/ thermal/`). Baseline
+  roster → pack zero; future packs ship their own (disease its
+  infections, pharma its toxins) as ordinary template rows.
+  `ConditionApi.boot` = a legitimate `role: sync-read` boot-manifest
+  entry in pack zero (inflict is a hot path).
+- **body-plans: KILLED, folded into species-and-names** — BodyPlans
+  live at `seeds/obj/species/BodyPlan/` and species reference them;
+  they were always the species pack's missing half (the 4 straggler
+  species rows are the same migration debt; one `git mv`).
+- **expression + arcane-library: CONFIRMED, boring in the good way**
+  (35 emotes; the Spell dir + 2 items).
+
+> ⭐⭐⭐ **The doctrine (third firing: magic, conditions, body plans):
+> substrate vocabularies don't get their own packs — the baseline
+> rides pack zero (or the substrate's existing pack); extensions ride
+> their CARRIERS.** A standalone vocabulary pack fails
+> install-and-something-exists exactly the way horizontal packs always
+> did.
+
+## A27.2 — ⭐⭐ The Compact is PLATFORM; corpos are a content pack
+
+> **User: "the compact is platform, corpos are a content pack."**
+
+Reverses the tier-1 carve's swappable-compact lean, and it is the more
+coherent position: the Compact is the CONSTITUTION, and
+measurement.md's entrenchment tiers already say tier-B structure
+belongs to *whoever ships the code* — **state-swapping is FORKING the
+platform (the AGPL is the check), never a pack install.** The circular
+alternative made the installer self-referential: the tier checks
+reference Compact institutions, so a pack defining who reviews packs
+reviews itself.
+
+- → pack zero: `/compact/press` + `/compact/executive`, the
+  PressBoard, the realm/city Locality+Government rows (supersedes
+  A18.11's assignment of those to a compact pack). The state
+  aggregator is platform.
+- → the **corpo pack, confirmed**: the five corpos, brands, their
+  boot-manifest entries; the lounge's neon + `banksAt: goodkin` depend
+  on it.
+- Tier-1 roster: **~17 packs.** The tier-3 "swap the state" imagining
+  narrows to norms/policy content only — structure is the fork's
+  business.
