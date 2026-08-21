@@ -2248,3 +2248,48 @@ instanceable, only the view half moves.
 Post-decision census: a pack's exports are **installer-carried data
 (Mongo or RAM) · package-carried code · procedure-mediated structure**
 — three mechanisms, media the one open box.
+
+---
+
+# Addendum 2026-08-21 (11) — magic is a tag; the residue closes
+
+**Decided 2026-08-21.**
+
+> **User: "magic as a mechanic is platform level, you always get
+> casting and mana. but the spellbook and magic items those are in a
+> magic content pack. maaaaaaaaaybe. part of me wants to avoid a magic
+> pack in favor of just putting magic stuff in whatever trade pack or
+> other content pack that would carry it. magic isn't a category it's a
+> tag. but we probably do want a basic magic stuff pack like emotes or
+> materials."**
+
+The two halves aren't in tension — they're the materials/emotes pattern
+applied a third time:
+
+- **Platform**: casting, mana/faculty, the Effect grid, suppression,
+  item-class machinery. Always present. The casting Disciplines stay in
+  pack zero's closed vocabulary (amendment-tier).
+- **The commons tier — an `arcane-library` pack** (sibling of
+  base-library / generic-objects / arcane-descriptors, which already
+  quietly proved the shape): the starter spellbook, generic wands and
+  scrolls — enough that the substrate is alive out of the box.
+- ⭐⭐ **Everything else rides its carrier.** The healing spell ships
+  with medicine, the enchanted anvil with smithing. No `/trade/magic`,
+  no magic monopoly pack — a spell row is just a row, and every pack
+  can ship them already. **The tag, not the bucket.**
+- ⭐ The guard that keeps the *maaaaaybe* honest (Part 6's
+  generic-objects rule, reused): **the arcane-library holds only what
+  has no other home, and it should SHRINK** as carriers claim their own
+  magic. Growth is the smell of magic becoming a category again.
+- Consequence, free: a **mostly-mundane deployment is legal** — casting
+  exists, but omitting arcane-library yields a world where magic is
+  machinery nobody's spellbook feeds. Never endorsed, but a real degree
+  of freedom for adopting communities.
+
+**The pack-zero residue, all homed:** magic → platform + arcane-library
++ carriers · realm/city `Locality`/`Government` rows → the compact pack
+(each locality's own rows → its locality pack) · the 4 `species/`
+stragglers → audit-and-delete · `room/` archetypes → generic-objects.
+
+⭐ With this, **every seed in the tree has a home and every export has
+a mechanism.** The one open box in the whole design is media.
