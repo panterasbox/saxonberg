@@ -2850,3 +2850,52 @@ nothing down-tree widens.
 **Build items**: `DocumentLogic` → `ParcelApi` repoint (the known Part
 4b gap) + the `SourceTreeApi`/CMS write-path consult — the two halves
 of "all three trees resolve through one ownership registry."
+
+---
+
+# Addendum 2026-08-24 (23) — the graduation audits (lounge + eternal, 28 classes)
+
+**Run 2026-08-24 against source.** ⭐⭐ **Headline: the feared code
+problem mostly isn't one** — the substrate graduations already
+happened (CommerceMenu, ManualBuild, Warren, Branded, Graded, Crafted
+all in `lib/`); the residue is dominated by ONE pattern:
+**pure-composition classes** — a mixin stack + a description, existing
+only because YAML cannot declare a composition without a class.
+
+**Lounge (14):** residue: `Menu` (dies with wave 3's seed repoint,
+taking SmithyMenu/KitchenMenu — three thin subclasses → one shared
+`obj/` concrete) · pure composition → genericize: `CraftedDrink`
+`GradedReceptacle` `NeonSign` `CocktailShaker` (templates → trade or
+venue) · real extractions: `Offstage` → **employment** (off-shift NPC
+parking; hearthworks' cast is the second consumer — extract NOW) and
+`TipJar` → **/trade/hospitality** (trade-generality, NOT kernel) ·
+local color kept: `Bar` `Lounge` `LoungeWarren` `LoungeMixin`
+`GlassAlley` (documented one-off) `LoungeTerminal` (→ the lounge
+pack's boot-manifest entry — the first content boot customer) ·
+`paths` trivial.
+
+**Eternal (14 non-controller):** residue: `Footlocker` (repoint to
+`obj/Chest`) · pure composition → generic-objects: `Bed` `Desk`
+`Whistle` `Watch` · real extraction: `MechanicalMovement` — **a mixin
+living in content**; generic windable clockwork under Timekeeping →
+`lib/` · hold-for-second-consumer: `DormThemes` (residence shell
+personalization — extract when the apartment reframe arrives) · local
+color kept: `DormRoom` `DormWarren` `Corridor` `DormDoor`
+`FloorStairExit` `Katie` `CrossingLog` · misfiled+deletable: `Gus`
+(moves to the eternal tree regardless; **deletes entirely if
+spawn-equipment becomes authorable data**).
+
+## The two conclusions that outrank the tables
+
+1. ⭐⭐⭐ **The biggest code-reduction lever is a data-vs-code bridge:
+   AUTHORABLE COMPOSITION.** 9 of 28 classes exist only to name a
+   mixin stack; Studio blueprints are already the composition
+   catalogue — let a template/blueprint declare the stack and those
+   nine become YAML, hospitality ships **pure data**, eternal drops to
+   warren machinery + controllers. (Lands on the known "3 missing
+   data-vs-code bridges" list; spawn-equipment is a second bridge on
+   the same list.)
+2. ⭐⭐ **The second-consumer rule generalizes graduation itself**:
+   extract when the second consumer arrives (Offstage now — hearthworks
+   is the second; DormThemes waits for apartments). The pre-industry
+   lifecycle, applied to code: local until common, claimed when shared.
