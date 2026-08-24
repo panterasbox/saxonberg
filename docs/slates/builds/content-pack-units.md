@@ -95,6 +95,15 @@ Counts are from the 2026-08-21 audits; ⚠ marks packs not yet drilled.
 
 ---
 
+# Access across the trees (A28, 2026-08-24)
+
+One parcel trie owns all three trees (shared path namespace);
+permissions are TREE-QUALIFIED actions (`write-template` /
+`write-document` / `write-source`) — divergence via narrowing policies
+with a tree dimension; source ANDs the wizard axis; parcel transfer
+never conveys source-write (maintainership does); git = pack-repo
+granularity only; the write command is the enforcer.
+
 # Part C — The strategy interface (what every unit type must answer)
 
 The per-kind dispatch in the installer IS a strategy; these are its

@@ -2781,3 +2781,72 @@ reviews itself.
 - Tier-1 roster: **~17 packs.** The tier-3 "swap the state" imagining
   narrows to norms/policy content only — structure is the fork's
   business.
+
+---
+
+# Addendum 2026-08-24 (22) — access across the three trees
+
+**Decided 2026-08-24.** How grants, committees, and packs intersect
+the source / content / document trees.
+
+## A28.1 — One trie for OWNERSHIP; tree-qualified PERMISSIONS
+
+- **One ownership fact.** The parcel trie is the single registry for
+  all three trees — the mirror convention means they share one
+  mud-rooted path namespace, so a title over `/trade/smithing` is one
+  extent, one chain-of-title, one subdivide. Never three registries.
+- ⭐⭐ **But what a title MEANS is tree-qualified** (user's catch: *"you
+  might need to apply different permissions to the same path of
+  different trees"*). `AccessApi.can` answers action-shaped questions —
+  `write-template` / `write-document` / `write-source` against the
+  same path. Defaults: owner holds all three; divergence via:
+  1. **Narrowing policies with a tree dimension** — the `.policy`
+     document at an extent (branch-policy: `writers` NARROWS never
+     widens) can set different writer sets per tree. Same path, three
+     writer sets, one owner, no second registry.
+  2. ⭐⭐ **The commerce asymmetry, a RULE not a config**: parcel
+     transfer conveys content+document rights; **source-write rights
+     never ride a transfer** — they follow maintainership (code trust
+     never flows through a sale — the agency rule). Rare by
+     construction (commercial extents have no source mirror;
+     capability extents aren't for sale); stated so the rare case
+     fails safe.
+
+## A28.2 — The grant ladder (subdivision is delegation)
+
+State (covering title) grants the extent at install (the ceremony,
+A10.8/A22.3) → the maintainers committee **subdivides** its extent
+among teams with the same gated primitive (the trie recursion IS the
+delegation model) → **narrowing policies** below subdivision
+granularity → **group roles** for the last mile. Every rung restricts;
+nothing down-tree widens.
+
+## A28.3 — Source writes: the trie ANDs the wizard axis
+
+> **User: "all writes are going to go through the write command… we
+> just need source trees to express permissions that the write command
+> respects (or the api that the write command uses)."**
+
+- **The game is the permission system, for source like everything
+  else.** `SourceTreeApi`'s write path (and the CMS save path)
+  consults `can(giver, 'write-source', path)`: **title covering the
+  path AND `isWizard`**. The trie answers WHERE; the axis answers WHAT
+  KIND. Wizardness stays exactly one thing (TS), checked alongside
+  jurisdiction, never instead of it. A wizard without title cannot
+  touch the lounge's source; a non-wizard maintainer edits its YAML
+  but never its classes.
+- **Git is transport and history, never the fine-grained enforcer.**
+  Repo permissions carve at PACK lines only (whole-repo membership ≈
+  maintainers, hand-maintained, drift-tolerable — the in-game trie is
+  the real enforcer, so the two-membership problem shrinks to coarse
+  correspondence). Today's shell-based development bypasses the
+  in-game path — acknowledged as the current mode, not a hole to plug
+  now.
+- **Deferred, named**: server-side hooks rejecting commits that touch
+  paths the committer lacks title to, and the authentication that
+  binds a commit to a game identity (anti-spoofing — the hard part is
+  the identity binding, not the hook).
+
+**Build items**: `DocumentLogic` → `ParcelApi` repoint (the known Part
+4b gap) + the `SourceTreeApi`/CMS write-path consult — the two halves
+of "all three trees resolve through one ownership registry."
