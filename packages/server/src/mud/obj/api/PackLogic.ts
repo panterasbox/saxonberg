@@ -44,6 +44,8 @@ import { AppSettings } from '../../lib/config/AppSettings';
 import { GroupApi } from '../../api/group';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type BlueprintCatalogue from '../BlueprintCatalogue';
+import WikiRegistry, { WikiConflict } from '../WikiRegistry';
+import type { WikiPage, WikiSubject } from '../../lib/wiki/WikiPage';
 import type SubjectCatalogue from '../SubjectCatalogue';
 import type ChannelCatalogue from '../ChannelCatalogue';
 import type {
@@ -205,6 +207,30 @@ interface SubjectBody extends Record<string, unknown> {
   boardName: string;
 }
 
+/** A wiki page's frontmatter (the pack file's `---` block). */
+interface WikiFront extends Record<string, unknown> {
+  title: string;
+  subject?: WikiSubject | null;
+  tags?: string[];
+  related?: string[];
+  spoilerLevel?: 0 | 1 | 2 | 3;
+}
+
+/**
+ * One `content/wiki/<namespace>/<slug>.md` — YAML frontmatter + a
+ * markdown body (the article dialect, what `wiki edit` takes), the
+ * CAS-submitted `wiki` kind (requirements D9).
+ */
+interface WikiFile {
+  /** Record key: `/wiki/<namespace>/<slug>`. */
+  key: string;
+  namespace: string;
+  slug: string;
+  front: WikiFront;
+  body: string;
+  relFile: string;
+}
+
 /** The classified content of a pack's `content/` tree. */
 interface PackContent {
   /** The manifest `root` — document paths and owners derive from it. */
@@ -214,6 +240,8 @@ interface PackContent {
   settings: SettingsFile[];
   /** Parsed `content/subjects/*.yaml` (the archive-never-reap kind). */
   subjects: SubjectFile[];
+  /** Parsed `content/wiki/<ns>/<slug>.md` (the CAS kind). */
+  wiki: WikiFile[];
   /** Parsed document-kind files, by kind (absent kinds are absent keys). */
   documents: Map<string, DocumentFile[]>;
   /** Absolute path to `content/quantity/quantity-tags.yaml`, or null. */
@@ -598,6 +626,21 @@ function readContent(pack: ResolvedPack): PackContent {
     });
   }
 
+  // Wiki pages — frontmatter + markdown body, one per `<ns>/<slug>.md`.
+  const wiki: WikiFile[] = [];
+  const wikiRoot = join(pack.contentRoot, 'wiki');
+  for (const file of walkFiles(wikiRoot, 'md')) {
+    const rel = relative(wikiRoot, file).replace(/\.md$/, '').split(/[\\/]/);
+    if (rel.length !== 2) {
+      throw new Error(
+        `PackApi: pack '${pack.manifest.id}': wiki page at ${file} must be content/wiki/<namespace>/<slug>.md`,
+      );
+    }
+    const [namespace, slug] = rel as [string, string];
+    const { front, body } = splitFrontmatter(readFileSync(file, 'utf-8'), pack.manifest.id, file);
+    wiki.push({ key: `/wiki/${namespace}/${slug}`, namespace, slug, front, body, relFile: relative(pack.root, file) });
+  }
+
   // Document kinds — one enumerated reader per declared, un-gated kind.
   const documents = new Map<string, DocumentFile[]>();
   for (const spec of activeDocumentKinds()) {
@@ -611,10 +654,49 @@ function readContent(pack: ResolvedPack): PackContent {
     domain,
     settings,
     subjects,
+    wiki,
     documents,
     quantityYaml: existsSync(quantityYaml) ? quantityYaml : null,
     descriptorBanks,
   };
+}
+
+/** Split `---\n<yaml>\n---\n<body>` into a validated frontmatter + the body verbatim. */
+function splitFrontmatter(
+  text: string,
+  packId: string,
+  file: string,
+): { front: WikiFront; body: string } {
+  const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(text);
+  if (!m) {
+    throw new Error(`PackApi: pack '${packId}': wiki page at ${file} has no frontmatter block`);
+  }
+  const parsed = YAML.parse(m[1]!) as unknown;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`PackApi: pack '${packId}': malformed frontmatter at ${file}`);
+  }
+  const raw = parsed as Record<string, unknown>;
+  if (typeof raw.title !== 'string' || raw.title.trim().length === 0) {
+    throw new Error(`PackApi: pack '${packId}': wiki page at ${file} needs a string 'title'`);
+  }
+  const front: WikiFront = { title: raw.title.trim() };
+  if (raw.subject !== undefined) front.subject = (raw.subject ?? null) as WikiSubject | null;
+  if (Array.isArray(raw.tags)) front.tags = stringArray(raw.tags);
+  if (Array.isArray(raw.related)) front.related = stringArray(raw.related);
+  if (typeof raw.spoilerLevel === 'number' && [0, 1, 2, 3].includes(raw.spoilerLevel)) {
+    front.spoilerLevel = raw.spoilerLevel as 0 | 1 | 2 | 3;
+  }
+  return { front, body: m[2] ?? '' };
+}
+
+/** The inverse of {@link splitFrontmatter} — what `--export` writes. */
+function renderFrontmatter(front: WikiFront, body: string): string {
+  const out: Record<string, unknown> = { title: front.title };
+  if (front.subject) out.subject = front.subject;
+  if (front.tags && front.tags.length > 0) out.tags = front.tags;
+  if (front.related && front.related.length > 0) out.related = front.related;
+  if (front.spoilerLevel) out.spoilerLevel = front.spoilerLevel;
+  return `---\n${YAML.stringify(out)}---\n${body}`;
 }
 
 /** Coerce a parsed YAML value to a string[] (non-strings dropped). */
@@ -742,7 +824,7 @@ async function validatePackTopics(
 // --- the per-kind strategy -------------------------------------------------
 
 /** The DB collections a shipped content kind lands in. */
-type KindName = 'domain' | 'descriptor-banks' | 'document' | 'settings' | 'subject';
+type KindName = 'domain' | 'descriptor-banks' | 'document' | 'settings' | 'subject' | 'wiki';
 
 /** The reconcile policy a kind runs under (requirements D5). */
 type KindPolicy = 'three-way' | 'merge-missing' | 'cas';
@@ -1010,6 +1092,176 @@ async function loadSettingsSingleton(): Promise<(StampedRow & { values?: Record<
     StampedRow & { values?: Record<string, string> }
   >;
   return rows[0] ?? null;
+}
+
+// --- the wiki kind (CAS submit, requirements D9) -----------------------------
+
+/** The live page rendered to the preimage shape: `{ front, body }`. */
+function wikiPageBody(page: WikiPage): { front: WikiFront; body: string } {
+  const front: WikiFront = { title: page.getTitle() };
+  const subject = page.getSubject();
+  if (subject) front.subject = subject;
+  const tags = [...page.getTags()];
+  if (tags.length > 0) front.tags = tags;
+  const related = [...page.getRelated()];
+  if (related.length > 0) front.related = related;
+  const spoiler = page.getSpoilerLevel();
+  if (spoiler) front.spoilerLevel = spoiler;
+  return { front, body: page.getBody() };
+}
+
+/** The file rendered to the same preimage shape. */
+function wikiFileBody(f: WikiFile): { front: WikiFront; body: string } {
+  const front: WikiFront = { title: f.front.title };
+  if (f.front.subject) front.subject = f.front.subject;
+  if (f.front.tags && f.front.tags.length > 0) front.tags = [...f.front.tags];
+  if (f.front.related && f.front.related.length > 0) front.related = [...f.front.related];
+  if (f.front.spoilerLevel) front.spoilerLevel = f.front.spoilerLevel;
+  return { front, body: f.body };
+}
+
+/** The wiki registry (a lazy singleton — resident or minted on first use). */
+async function wikiRegistry(): Promise<WikiRegistry> {
+  return (
+    StuffApi.findByTemplatePath<WikiRegistry>(TemplatePaths.wikiRegistry) ??
+    (await WikiRegistry.instance())
+  );
+}
+
+/**
+ * Wiki pages — submitted through the registry's own create/edit path
+ * AS the pack (`asInstaller`), never written as rows: a page has a
+ * revision log and a compare-and-swap edit, and the pack is one more
+ * editor. Policy `cas`; a vanished file keeps the page (`onVanish:
+ * 'keep'`) — a wiki page is community property the moment it exists.
+ */
+const wikiStrategy: KindStrategy<WikiFile> = {
+  kind: 'wiki',
+  collection: Collections.Wiki,
+  noun: 'wiki page',
+  policy: 'cas',
+  onVanish: 'keep',
+  ext: 'md',
+  recordKeyOf: (f) => f.key,
+  recordKeyOfRow: (r) => String(r.key ?? ''),
+  dbKeyQuery: (f) => ({ namespace: f.namespace, slug: f.slug }),
+  rowOf: (f) => wikiFileBody(f),
+  canonicalBody: (r) => canonical({ front: r.front ?? {}, body: r.body ?? '' }),
+  flatKeysOf: (f) => [`${f.namespace}:${f.slug}`],
+  exportBody: (r) => ({ front: r.front ?? {}, body: r.body ?? '' }),
+};
+
+/**
+ * The CAS planner (wiki): resolve each page by slug OR alias (the
+ * retired seeder's rename-safe rule); absent → `submit` (create);
+ * present with an unchanged file → nothing; present with a changed
+ * file → `submit` (edit) carrying the baseline's `rev` as the CAS
+ * token — the conflict is decided at APPLY, where the registry throws;
+ * present with NO baseline (a seeder-made page) → `normalize` with the
+ * live `rev` (no edit submitted). A vanished file → `keep`, baseline
+ * dropped.
+ */
+async function planCas(
+  strategy: KindStrategy<WikiFile>,
+  files: WikiFile[],
+  record: StoredRecord | null,
+  pins: Set<string>,
+): Promise<KindPlan<WikiFile>> {
+  const actions: PlannedAction[] = [];
+  // The registry is a lazy singleton: a pack shipping no pages never
+  // resolves (or mints) it.
+  const registry = files.length > 0 ? await wikiRegistry() : null;
+  const fileKeys = new Set<string>();
+  for (const f of files) {
+    const key = f.key;
+    fileKeys.add(key);
+    if (pins.has(key)) {
+      actions.push({ op: 'pinned-skip', key });
+      continue;
+    }
+    const body = strategy.canonicalBody(strategy.rowOf(f, ''));
+    const hash = hashOf(body);
+    const hit = await registry!.resolve(`${f.namespace}:${f.slug}`);
+    if (!hit) {
+      actions.push({ op: 'submit', key, file: f, hash, body, submit: 'create' });
+      continue;
+    }
+    const baseline = record?.rows[key] ?? null;
+    if (!baseline) {
+      actions.push({ op: 'normalize', key, hash, body, rev: hit.page.getRev() });
+      continue;
+    }
+    if (hash === baseline.hash) {
+      if (baseline.rev === undefined) actions.push({ op: 'normalize', key, hash, body, rev: hit.page.getRev() });
+      continue;
+    }
+    actions.push({ op: 'submit', key, file: f, hash, body, submit: 'edit', baseRev: baseline.rev });
+  }
+  const label = kindLabel(strategy as KindStrategy<unknown>);
+  for (const [key, baseline] of Object.entries(record?.rows ?? {})) {
+    if (baseline.kind !== label || fileKeys.has(key)) continue;
+    actions.push(pins.has(key) ? { op: 'pinned-skip', key } : { op: 'keep', key, dropBaseline: true });
+  }
+  return { strategy: strategy as KindStrategy<WikiFile>, actions };
+}
+
+/** Apply one wiki `submit`: create or CAS-edit through the registry AS the pack. */
+async function submitWiki(
+  a: PlannedAction,
+  packId: string,
+  now: string,
+): Promise<{ rev: number } | { conflict: PackConflict }> {
+  const f = a.file as WikiFile;
+  const registry = await wikiRegistry();
+  if (a.submit === 'create') {
+    const page = await registry.createPage({
+      namespace: f.namespace,
+      slug: f.slug,
+      title: f.front.title,
+      body: f.body,
+      subject: f.front.subject ?? null,
+      tags: f.front.tags ?? [],
+      related: f.front.related ?? [],
+      spoilerLevel: f.front.spoilerLevel ?? 0,
+      summary: `installed by pack ${packId}`,
+      asInstaller: packId,
+    });
+    return { rev: page.getRev() };
+  }
+  const hit = await registry.resolve(`${f.namespace}:${f.slug}`);
+  if (!hit) {
+    // Vanished between plan and apply: create instead.
+    return submitWiki({ ...a, submit: 'create' }, packId, now);
+  }
+  try {
+    const page = await registry.editPage(hit.page, f.body, {
+      baseRev: a.baseRev,
+      summary: `updated by pack ${packId}`,
+      asInstaller: packId,
+      fields: {
+        title: f.front.title,
+        subject: f.front.subject ?? null,
+        tags: f.front.tags ?? [],
+        related: f.front.related ?? [],
+        spoilerLevel: f.front.spoilerLevel ?? 0,
+      },
+    });
+    return { rev: page.getRev() };
+  } catch (err) {
+    if (!(err instanceof WikiConflict)) throw err;
+    const live = canonical(wikiPageBody(hit.page));
+    return {
+      conflict: {
+        path: a.key,
+        kind: 'wiki',
+        detectedAt: now,
+        baselineHash: a.baselineHash ?? '',
+        dbHash: hashOf(live),
+        packHash: a.hash!,
+        reason: 'wiki-cas',
+      },
+    };
+  }
 }
 
 // --- the subject kind (archive-never-reap, requirements D6) ----------------
@@ -1381,6 +1633,12 @@ interface PlannedAction {
   file?: unknown;
   /** `merge`: the keys (and values) the singleton lacks. */
   missing?: Record<string, string>;
+  /** `submit` (wiki): create, or a CAS edit over `baseRev`. */
+  submit?: 'create' | 'edit';
+  baseRev?: number;
+  baselineHash?: string;
+  /** The page revision the baseline is taken at (CAS kinds). */
+  rev?: number;
 }
 
 interface KindPlan<F> {
@@ -1422,6 +1680,18 @@ async function computeKindPlan<F>(
 
   if (strategy.policy === 'merge-missing') {
     return planMergeMissing(strategy, files, record, pins);
+  }
+  if (strategy.policy === 'cas') {
+    const plan = await planCas(
+      strategy as unknown as KindStrategy<WikiFile>,
+      files as unknown as WikiFile[],
+      record,
+      pins,
+    );
+    for (const a of plan.actions) {
+      if (a.op === 'submit' && a.submit === 'edit') a.baselineHash = record?.rows[a.key]?.hash;
+    }
+    return plan as unknown as KindPlan<F>;
   }
 
   const stampedRows =
@@ -1650,6 +1920,7 @@ async function applyKindPlan<F>(
       kind: kindLabel(strategy as KindStrategy<unknown>),
       hash: a.hash!,
       body: a.body!,
+      ...(a.rev !== undefined ? { rev: a.rev } : {}),
     };
   };
   for (const a of plan.actions) {
@@ -1705,8 +1976,18 @@ async function applyKindPlan<F>(
         delete record.rows[a.key];
         out.archived.push(a.key);
         break;
-      case 'submit':
-        throw new Error(`PackApi: op '${a.op}' has no apply for kind '${strategy.kind}'`);
+      case 'submit': {
+        const r = await submitWiki(a, packId, new Date().toISOString());
+        if ('conflict' in r) {
+          out.conflicts.push(r.conflict);
+          break;
+        }
+        a.rev = r.rev;
+        baseline(a);
+        if (a.submit === 'create') out.changes.inserted.push(a.key);
+        else out.changes.updated.push(a.key);
+        break;
+      }
       case 'converge':
         await rekeyRow(strategy, a);
         baseline(a);
@@ -1739,6 +2020,7 @@ function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
     },
     { strategy: settingsStrategy as KindStrategy<unknown>, files: content.settings },
     { strategy: subjectStrategy(content.subjects) as KindStrategy<unknown>, files: content.subjects },
+    { strategy: wikiStrategy as KindStrategy<unknown>, files: content.wiki },
   ];
   // Every active document kind, files or none: a kind whose files ALL
   // vanished must still be planned so its stamped rows are reaped.
@@ -1761,6 +2043,7 @@ function emptyContent(root: string): PackContent {
     descriptorBanks: [],
     settings: [],
     subjects: [],
+    wiki: [],
   };
 }
 
@@ -1776,6 +2059,7 @@ function strategyForKey(key: string, content: PackContent): KindStrategy<unknown
     return descriptorBankStrategy as KindStrategy<unknown>;
   }
   if (key.startsWith('/settings/')) return settingsStrategy as KindStrategy<unknown>;
+  if (key.startsWith('/wiki/')) return wikiStrategy as KindStrategy<unknown>;
   if (key.startsWith('/subjects/')) {
     return subjectStrategy(content.subjects) as KindStrategy<unknown>;
   }
@@ -1798,6 +2082,12 @@ async function dbRowForKey(
   key: string,
   file: unknown | null,
 ): Promise<StampedRow | null> {
+  if (strategy.kind === 'wiki') {
+    const f = file as WikiFile | null;
+    const ref = f ? `${f.namespace}:${f.slug}` : key.replace(/^\/wiki\//, '').replace('/', ':');
+    const hit = await (await wikiRegistry()).resolve(ref);
+    return hit ? { key, ...wikiPageBody(hit.page) } : null;
+  }
   if (strategy.kind === 'settings') {
     if (!file) return null;
     const singleton = await loadSettingsSingleton();
@@ -1889,6 +2179,8 @@ function filesOfKind(content: PackContent, strategy: KindStrategy<unknown>): unk
       return content.settings;
     case 'subject':
       return content.subjects;
+    case 'wiki':
+      return content.wiki;
   }
 }
 
@@ -2109,7 +2401,9 @@ async function reconcilePack(
         `pack '${packId}': conflict at ${c.path} — ` +
         (c.reason === 'both-changed'
           ? 'pack and database both changed since install'
-          : 'the pack dropped a row the database has edited') +
+          : c.reason === 'wiki-cas'
+            ? 'the pack updated a page somebody has edited since (`pack diff` shows both bodies)'
+            : 'the pack dropped a row the database has edited') +
         `; run \`pack diff ${packId} ${c.path}\` / \`pack resolve ${packId} ${c.path} --take-pack|--keep --pin|--export\``,
     });
   }
@@ -2465,6 +2759,43 @@ export class PackLogic extends ApiLogic {
           values,
         });
         await AppSettings.warm();
+      } else if (strategy.kind === 'wiki') {
+        // Take the pack: an edit over the CURRENT rev (the history keeps
+        // both), or a create when the page is gone.
+        const f = file as WikiFile;
+        const registry = await wikiRegistry();
+        const hit = await registry.resolve(`${f.namespace}:${f.slug}`);
+        const page = hit
+          ? await registry.editPage(hit.page, f.body, {
+              baseRev: hit.page.getRev(),
+              summary: `pack resolve --take-pack (${packId})`,
+              asInstaller: packId,
+              fields: {
+                title: f.front.title,
+                subject: f.front.subject ?? null,
+                tags: f.front.tags ?? [],
+                related: f.front.related ?? [],
+                spoilerLevel: f.front.spoilerLevel ?? 0,
+              },
+            })
+          : await registry.createPage({
+              namespace: f.namespace,
+              slug: f.slug,
+              title: f.front.title,
+              body: f.body,
+              subject: f.front.subject ?? null,
+              tags: f.front.tags ?? [],
+              related: f.front.related ?? [],
+              spoilerLevel: f.front.spoilerLevel ?? 0,
+              summary: `pack resolve --take-pack (${packId})`,
+              asInstaller: packId,
+            });
+        record.rows[path] = { kind: kindLabel(strategy), hash: hashOf(body), body, rev: page.getRev() };
+        record.conflicts = record.conflicts.filter((c) => c.path !== path);
+        await saveRecord(record);
+        const r = emptyResult(packId);
+        r.updated.push(path);
+        return r;
       } else if (strategy.write) {
         await strategy.write(dbRow?._id ? 'update' : 'insert', file, packId, dbRow?._id);
       } else {
@@ -2492,10 +2823,15 @@ export class PackLogic extends ApiLogic {
     const target = join(pack.contentRoot, ...path.replace(/^\//, '').split('/')) + `.${ext}`;
     mkdirSync(dirname(target), { recursive: true });
     const body = strategy.exportBody(dbRow);
-    // A text kind (`.msh`) exports its source verbatim, not YAML.
+    // A text kind exports its text verbatim, not YAML: `.msh` its source,
+    // `.md` its frontmatter + markdown body.
     writeFileSync(
       target,
-      ext === 'msh' ? String(body.source ?? '') : YAML.stringify(body),
+      ext === 'msh'
+        ? String(body.source ?? '')
+        : ext === 'md'
+          ? renderFrontmatter(body.front as WikiFront, String(body.body ?? ''))
+          : YAML.stringify(body),
     );
     return null;
   }

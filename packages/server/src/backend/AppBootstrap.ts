@@ -18,7 +18,6 @@ import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
 import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
-import { WikiSeeder } from './WikiSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
@@ -188,11 +187,12 @@ export class AppBootstrap {
     // parcel/provisioning path does later converges on the seeded group.
     await GroupSeeder.run();
     await ParcelSeeder.run();
-    // Wiki AFTER parcels: a seeded page's namespace resolves its access
-    // through the /wiki parcel row, so the title has to exist first.
-    // Insert-only — a seeded page somebody has edited is never
-    // re-asserted, which would silently revert their work on a boot.
-    await WikiSeeder.run();
+    // The starter wiki pages are the `wiki-starter` pack's `wiki` kind,
+    // submitted by `PackApi.install` above THROUGH the registry's own
+    // create/edit path AS the pack (`asInstaller` — no namespace
+    // protection walk, so the former after-parcels ordering no longer
+    // matters). A page somebody has edited is a compare-and-swap
+    // conflict, never a silent revert.
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {

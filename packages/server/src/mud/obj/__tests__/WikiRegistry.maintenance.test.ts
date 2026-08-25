@@ -13,7 +13,8 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiRegistry from '../WikiRegistry';
 import WikiNamespaceZone from '../WikiNamespaceZone';
-import { WikiSeeder } from '../../../backend/WikiSeeder';
+import { PackApi } from '../../api/pack';
+import { TemplatePaths } from '../../lib/paths';
 import { Idea } from '../../lib/stuff/Idea';
 import { AccessApi } from '../../api/access';
 import { PlayerApi } from '../../api/player';
@@ -24,7 +25,7 @@ import { Template } from '../../lib/stuff/Template';
 import { WikiPage } from '../../lib/wiki/WikiPage';
 import { Collections } from '../../lib/persistence/Collections';
 import { installWikiTestDb, type WikiTestDb } from '../../lib/wiki/__tests__/wiki-test-db';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
@@ -58,7 +59,9 @@ beforeEach(() => {
   vi.restoreAllMocks();
   db = installWikiTestDb();
   db.reset();
-  registry = makeStuff(() => new WikiRegistry());
+  // At the singleton path: the content installer resolves the resident
+  // registry by templatePath and submits the wiki-starter pack through it.
+  registry = makeStuffAtPath(() => new WikiRegistry(), TemplatePaths.wikiRegistry);
   actor = makeStuff(() => new Principal()) as unknown as Stuff;
   zone = makeStuff(() => new WikiNamespaceZone());
   vi.spyOn(StuffApi, 'singleton').mockResolvedValue(zone as never);
@@ -276,29 +279,31 @@ describe('⭐ the wiki grows no inbox (70)', () => {
   });
 });
 
-describe('the seeder (29)', () => {
-  const SEED = fileURLToPath(
-    new URL('../../config/wiki-pages.yaml', import.meta.url),
+describe('the wiki-starter pack (29)', () => {
+  const WIKI_STARTER = fileURLToPath(
+    new URL('../../../../../content/wiki-starter/', import.meta.url),
   );
+  /** Install the real pack through the installer (the wiki kind: CAS submit as the pack). */
+  async function install(): Promise<{ inserted: string[]; updated: string[]; conflicts: string[] }> {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const [r] = await PackApi.install([WIKI_STARTER]);
+    expect(r!.failure).toBeNull();
+    return r!;
+  }
 
   it('installs the starter pages', async () => {
-    const n = await WikiSeeder.run({ seedPath: SEED });
-    expect(n).toBeGreaterThanOrEqual(6);
+    const r = await install();
+    expect(r.inserted.length).toBeGreaterThanOrEqual(6);
     const slugs = db.all(Collections.Wiki).map((r) => r.slug);
     expect(slugs).toContain('saxonberg');
     expect(slugs).toContain('how-to-write-here');
     expect(slugs).toContain('oak');
   });
 
-  it('⭐ seeds a SUBJECT-BOUND page carrying a live panel (29)', async () => {
-    // ⚠ This assertion PINNED THE BUG. It shipped naming
-    // `/obj/material/oak`, which does not exist, so the suite stayed
-    // green while the flagship page rendered "no template at…" where
-    // its panel should be. A test that repeats the seed's own value
-    // only proves the seeder copies it — whether the value is REAL is
-    // `__tests__/wiki-seed-subjects.test.ts`, which checks it against
-    // the template tree on disk.
-    await WikiSeeder.run({ seedPath: SEED });
+  it('⭐ ships a SUBJECT-BOUND page carrying a live panel (29)', async () => {
+    // Whether the ref is REAL is `__tests__/wiki-seed-subjects.test.ts`,
+    // which checks it against the template tree on disk.
+    await install();
     const oak = db.all(Collections.Wiki).find((r) => r.slug === 'oak')!;
     expect(oak.subject).toEqual({
       kind: 'template',
@@ -307,75 +312,62 @@ describe('the seeder (29)', () => {
     expect(String(oak.body)).toContain('<composition');
   });
 
-  it('seeds a snippet, which is an ordinary page (57)', async () => {
-    await WikiSeeder.run({ seedPath: SEED });
+  it('ships a snippet, which is an ordinary page (57)', async () => {
+    await install();
     const stub = db
       .all(Collections.Wiki)
       .find((r) => r.namespace === 'snippet' && r.slug === 'stub')!;
     expect(stub).toBeDefined();
-    // Parameters with defaults, so an un-parameterised use still reads.
     expect(String(stub.body)).toContain('{{{why|');
   });
 
-  it('gives every seeded page a first revision', async () => {
-    // Otherwise a seeded page would be the one page whose first state
-    // was unrecoverable.
-    await WikiSeeder.run({ seedPath: SEED });
+  it('gives every page a first revision, authored by the PACK', async () => {
+    await install();
     const pages = db.all(Collections.Wiki).length;
     expect(db.all(Collections.WikiRevisions)).toHaveLength(pages);
-    expect(db.all(Collections.WikiRevisions)[0]!.author).toBe('system');
+    expect(db.all(Collections.WikiRevisions)[0]!.author).toBe('pack:wiki-starter');
+    expect(db.all(Collections.Wiki)[0]!.createdBy).toBe('pack:wiki-starter');
   });
 
-  it('mints anchors, so seeded sections are citable immediately', async () => {
-    await WikiSeeder.run({ seedPath: SEED });
+  it('mints anchors, so shipped sections are citable immediately', async () => {
+    await install();
     const guide = db
       .all(Collections.Wiki)
       .find((r) => r.slug === 'how-to-write-here')!;
-    // Minted in the syntax the page is written in — markdown — so the
-    // author who opens the source sees what they would have typed.
     expect(String(guide.body)).toContain('{#citing}');
   });
 
-  it('⭐ is INSERT-ONLY — a seeded page somebody edited is never reverted', async () => {
-    // A seeder that re-asserted its version each boot would silently
-    // revert every edit to a seeded page, on a schedule, with no
-    // record of having done it.
-    await WikiSeeder.run({ seedPath: SEED });
+  it('⭐ never reverts a page somebody edited — the second boot submits nothing', async () => {
+    await install();
     const row = db.all(Collections.Wiki).find((r) => r.slug === 'saxonberg')!;
     row.body = 'A PLAYER REWROTE THIS';
-    const second = await WikiSeeder.run({ seedPath: SEED });
-    expect(second).toBe(0);
+    row.rev = 2;
+    const second = await install();
+    expect([...second.inserted, ...second.updated, ...second.conflicts]).toEqual([]);
     expect(
       db.all(Collections.Wiki).find((r) => r.slug === 'saxonberg')!.body,
     ).toBe('A PLAYER REWROTE THIS');
   });
 
-  it('does not re-create a seeded page somebody RENAMED', async () => {
-    await WikiSeeder.run({ seedPath: SEED });
+  it('does not re-create a page somebody RENAMED (resolves by alias)', async () => {
+    await install();
     const row = db.all(Collections.Wiki).find((r) => r.slug === 'oak')!;
     row.slug = 'oak-wood';
     row.aliases = ['oak'];
-    const second = await WikiSeeder.run({ seedPath: SEED });
-    expect(second).toBe(0);
+    const second = await install();
+    expect(second.inserted).toEqual([]);
+    expect(db.all(Collections.Wiki).filter((r) => r.aliases && (r.aliases as string[]).includes('oak'))).toHaveLength(1);
   });
 
-  it('skips silently when the seed file is absent', async () => {
-    expect(await WikiSeeder.run({ seedPath: '/nope/missing.yaml' })).toBe(0);
-  });
-
-  it('the seeded pages link to each other — no orphan front door', async () => {
-    await WikiSeeder.run({ seedPath: SEED });
+  it('the shipped pages link to each other — no orphan front door', async () => {
+    await install();
     const linkers = await registry.backlinks('guide:how-to-write-here');
     expect(linkers.length).toBeGreaterThan(0);
   });
 
-  it('⚠ every seeded link either resolves or is a DELIBERATE redlink', async () => {
-    await WikiSeeder.run({ seedPath: SEED });
+  it('⚠ every shipped link either resolves or is a DELIBERATE redlink', async () => {
+    await install();
     const wanted = await registry.wanted();
-    // The one deliberate redlink: the front door invites somebody to
-    // write it. A redlink is a better empty page than a stub — it says
-    // "somebody wanted this" and turns up in `wiki wanted`, whereas a
-    // stub says "this is done" and does not.
     expect(wanted.map((w) => w.ref)).toEqual(['lore:the-ordinance']);
   });
 });

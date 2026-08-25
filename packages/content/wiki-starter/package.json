@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-wiki-starter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The starter wiki articles — the wiki kind, submitted as the pack through the wiki's own edit path.",
+  "type": "module"
+}

@@ -111,6 +111,11 @@ export interface PackRowBaseline {
    * to).
    */
   body: string;
+  /**
+   * CAS kinds (wiki): the page revision the baseline was taken at — the
+   * `baseRev` the next submit compares against.
+   */
+  rev?: number;
 }
 
 /** An open three-way conflict on one row. Recomputed every reconcile. */
@@ -121,7 +126,7 @@ export interface PackConflict {
   baselineHash: string;
   dbHash: string;
   packHash: string;
-  reason: 'both-changed' | 'deleted-vs-edited';
+  reason: 'both-changed' | 'deleted-vs-edited' | 'wiki-cas';
 }
 
 /**
