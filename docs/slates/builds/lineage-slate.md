@@ -441,67 +441,103 @@ not build on it.
   term — which is what it was always trying to be. The declaration
   survives; only the dead-end field retires.
 
-### ⚠⚠ Reroll pricing does not work — superseded 2026-08-25
+### Reroll is priced, not capped — and the price ESCALATES with pins
 
-The original argument: *you cannot charge money to a character who does
-not exist yet, so charge it to the starting-capital allotment; reroll
-twenty times and you arrive broke but exactly the person you wanted.*
+You cannot charge money to a character who does not exist yet — so
+charge it to the **starting-capital allotment**. Each reroll spends from
+the same pool you would otherwise bank.
 
-**It does not hold.**
+⭐ No arbitrary cap, no scarcity theater: being picky costs, the way it
+does everywhere else.
 
-> **User: "if someone really wants to be adopted, they're going to
-> disconnect and restart char-gen with a fresh budget over and over
-> until they roll what they want. There's no way to stop this if players
-> really want to, except to design systems that make that whole impulse
-> evaporate."**
+#### ⚠ The disconnect reset — real, and NOT fatal
 
-Confirmed in the shipped code: the `EnrollmentDraft` is *"a **transient,
-never-persisted** scratch object"* on `Login`
-([char-gen.md](../../subsystems/char-gen.md)). Disconnect, and the draft
-and its spend are gone. Restart is free and unlimited.
+The `EnrollmentDraft` is *"a **transient, never-persisted** scratch
+object"* on `Login`
+([char-gen.md](../../subsystems/char-gen.md)) — deliberately, since it
+is what makes *"an abandoned or disconnected char-gen leaves no playable
+character and no orphaned template"* true. So a player can disconnect
+and restart with a fresh allotment, and no pricing scheme can stop them.
 
-⚠⚠ **So the price is not a constraint — it is a tax on players who do
-not know to reconnect.** That is the worst available property for a
-project whose thesis is honest measurement, and it is worse than having
-no price at all.
+⚠⚠ **An earlier revision of this section concluded from that the price
+was worthless — "a tax on players who do not know to reconnect," worse
+than no price at all. That was wrong**, on two counts.
 
-⚠ **And it cannot be fixed by persisting the draft.** Transience is
-load-bearing: it is what makes *"an abandoned or disconnected char-gen
-leaves no playable character and no orphaned template"* true. Persisting
-the spend counter separately would tax legitimate abandonment (*I
-changed my mind; I will make a character next week*).
+**First, the reset is not free, because the draft is transient in
+*both* directions:**
 
-The generalization, which outlives this section:
+> ⭐⭐ **Disconnecting loses your pins too.** The farmer does not get a
+> fresh budget — they get a fresh **blank**. Four pins found means four
+> pins to find again. That is a genuine trade of accumulated progress
+> for allotment, not a free reset.
 
-> ⚠⚠ **Any char-gen constraint priced in a within-session budget is not
-> a constraint.**
+**Second, the standard was wrong.** The price never had to be a wall:
 
-#### ⭐⭐⭐ The pin — make the impulse evaporate instead
+> **User: "you're not going to prevent people from disconnecting for a
+> new pool, but you can tax doing that if you want to discourage it…
+> just give people enough zorkmids for maybe a standard deviation or two
+> from the norm and most people are gonna be happy with the results. If
+> someone really wants to min-max, they can write their Selenium scripts
+> to create characters until they get a perfect match — I'm not going to
+> try and stop them."**
 
-The grind exists because of **conjunction**. Wanting *adopted* **and**
-*khazadicus* **and** *a Terminus trade* is `p₁·p₂·p₃` — vanishing, so
-grinding is rational and unbounded.
+⚠ Condemning a mechanic because a determined player can defeat it is a
+recurring error in this project's design conversations — *"it is
+gameable"* is almost never decisive. **A discouragement is a legitimate
+design object.**
 
-> **Pinning dissolves the conjunction.** You need to see each property
-> **once**, then lock it: `p₁`, then `p₂`, then `p₃`, each cheap. There
-> is nothing left to grind for, because the reward for a thousand rolls
-> is identical to the reward for the one roll where you first saw it.
+#### ⭐⭐ The price escalates with the pin count
 
-⭐ **It is barely new machinery.** § *Controls* already has *"lock one,
-reroll the other — keep the mother, spin fathers."* **The lock exists;
-the pin is the same lock pointed at a cell** rather than at a parent.
+The dial that makes the whole screen self-limiting:
 
-⭐⭐⭐ And it converts the cost into the right kind. Every pin narrows
-the pool, so a heavily-pinned gallery returns fewer and more similar
-cards — you trade **breadth for specificity**:
+> ⭐⭐⭐ **A reroll costs more the more cells you have pinned** —
+> superlinear, so the first pin is cheap and the fourth is punitive.
 
-> **Replace scarcity-as-time-cost with scarcity-as-option-cost.** A time
-> cost is defeated by patience, and by reconnecting. An option cost is
-> structural and cannot be reconnected around.
+Consequences, none of them a tuned cap:
 
-⚠ Whether reroll pricing is **dropped outright** or **re-cast as an
-option cost** is not settled here. What is settled is that it may not
-stand as a time/money price pretending to be a constraint.
+- **Pinning stops being free**, so each pin is a **priced decision**
+  rather than a ratchet. The player is always spending to narrow.
+- **The allotment lands most players at two or three pins by itself** —
+  the *standard deviation or two* falls out of the curve rather than
+  being legislated.
+- ⭐ It removes the need for a visible pool counter or any other
+  "you have narrowed too far" gadget. The cost says it.
+
+⚠ **The old card is discarded on reroll, by design.** *"If they wanted
+to keep something they could have pinned it — that's the mechanic; if
+they do the cost/benefit and decide not to, that's on them."* Nothing is
+ever lost by accident, because a reroll is a deliberate act taken
+**after** the chance to pin. Holding candidates would turn the gallery
+into a comparison shop, which is the character-sheet-with-extra-steps
+failure the pin exists to avoid.
+
+#### ⭐⭐⭐ Some cells are UNPINNABLE — the rule that saves the whole screen
+
+If every cell is pinnable, the player converges on a fully-specified
+character and the randomness is pure friction.
+
+> **User: "some things should be unpinnable, like name. This makes it
+> feel like you're actually drawing a new character each roll instead of
+> character-sheet-with-extra-steps."**
+
+The line:
+
+> ⭐⭐⭐ **You may pin what you are shopping for. You may not pin who
+> they are.**
+
+| pinnable — *position* | never pinnable — *identity* |
+|---|---|
+| trade · place · means · hook · standing · knows | **the names** · the two people themselves |
+
+That maps onto what the card already is: § *It is a form, rendered two
+ways* says the columns are **the child's inheritance**, i.e. a starting
+position. **Names are not a position; they are the people.**
+
+⭐⭐ **And it is what keeps a narrow pool from ever *reading* as
+exhausted.** Two cards with identical pinned position are still visibly
+different families, because the names and the parents are redrawn every
+time. Even at four pins the gallery never shows nine identical rows —
+and the last roll never feels like a confirmation dialog.
 
 #### ⚠⚠ …but household `Means` must never finance the shuffle
 
@@ -751,11 +787,11 @@ A toggle undoes the species demotion instantly: anyone wanting species X
 with household Y takes it, adoption becomes the norm, and species is a
 free field again with extra steps.
 
-⚠ **And rarity alone cannot carry it** — see § *Reroll pricing does not
-work*: a low draw rate is a time cost, and time costs are defeated by
-disconnecting. **Adoption is a property you pin once you have seen it**,
-like any other cell. Seeing it once is cheap; the conjunction never
-compounds.
+⭐ **Adoption is a property you pin once you have seen it**, like any
+other position cell — and it pays the same escalating price as any other
+pin (§ *the price escalates with the pin count*). Wanting an adopted
+`khazadicus` raised in Terminus is three pins, and the third one hurts.
+That is the whole discouragement: not a rule against it, a cost for it.
 
 #### One line on handling
 
@@ -1102,9 +1138,8 @@ anything.
 Trades / localities / disciplines vocabulary · the locality→trade join
 and pair plausibility · disposition + transcript seeding (including the
 missing `AdvancementApi.seedClaims` and the `when` fix) · hooks / means /
-standing / status · the balance weights · the budget and whatever
-replaces reroll pricing · body composition · blood type · adoption draw
-rates.
+standing / status · the balance weights · the budget and the pin-cost
+curve · body composition · blood type · adoption draw rates.
 
 ### ⭐ The three seams that make phase 2 additive
 
@@ -1215,13 +1250,16 @@ still where the design risk lives.**
 
 ### Added 2026-08-25 (phasing / adoption / the pin)
 
-15. ⚠ **What replaces reroll pricing?** Dropped outright, or re-cast as
-    an option cost? § *Reroll pricing does not work* settles that it may
-    not stand as-is; it does not settle the successor. **Phase 2.**
-16. **What are the adoption draw rates, and how many pins before the
-    pool goes thin?** The pin dissolves the grind, but a heavily-pinned
-    gallery returning three near-identical cards is its own failure.
-    Needs the real vocabulary to tune. **Phase 2.**
+15. ⚠ **What is the pin-cost curve, and what happens when you cannot
+    afford a reroll at your current pin count?** You are not stuck —
+    unpinning brings the price back down, which is itself a decent
+    decision to face (no refund, just a cheaper next roll). The
+    alternative is that the screen hard-ends and you take what is on it,
+    which is simpler and also defensible. **Phase 2**, with the curve.
+16. **What are the adoption draw rates?** The pin dissolves the grind
+    and unpinnable identity cells keep a narrow pool from reading as
+    exhausted, so what is left is purely how often a mismatch should
+    surface. Needs the real vocabulary to tune. **Phase 2.**
 17. **Does pinning species undo its demotion to a filter?** *"The
     lineage settles what you are"* weakens once species is pinnable. It
     partly does, and the answer is a rate rather than a rule. **Phase 2.**
