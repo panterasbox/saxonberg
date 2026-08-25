@@ -1393,7 +1393,7 @@ phrase are all fine.
 of *nature contributes nothing to capability* — stated before anything
 is at stake.
 
-#### ⭐⭐⭐ Inherited only — and that is what mints the barber
+#### ⭐⭐ Inherited only — changing it is a GOOD, and its price is a DIAL
 
 Every other game lets you dial your appearance at creation. This one
 does not.
@@ -1402,25 +1402,69 @@ does not.
 > modifying your appearance."**
 
 **There is no appearance editor in char-gen.** You get what the
-household gave you; changing it is an **economic act in the world** —
-with a vendor, a price, and a skill.
+household gave you; changing it happens **in the world**, as a purchase.
 
-⭐⭐ Which is the [vocations](../../vocations.md) doctrine closing a
-loop: the register already lists **barber / tailor** as a **GAP**
-(*skill · customers*), and *a vocation exists iff there is unmet
-demand.* **This decision is the demand.** Every player who wants a
-different look is a customer, created by a char-gen rule rather than by
-authoring a need.
+⚠ **Two things this slate briefly claimed and should not.** Both were
+mine, neither was asked for:
 
-⭐ And it makes appearance a *presented* thing rather than a *given*
+1. *"This mints the barber"* — that the char-gen rule creates the unmet
+   demand that promotes the register's `barber / tailor` **GAP** into a
+   vocation. Overreach: whether appearance work is a skilled trade, a
+   kiosk, or a luxury industry is **not decided here.**
+2. *"Your persona is not a reward"* — a proposed platform commitment
+   that appearance must never be economically gated. **Invented.**
+
+> ⭐⭐⭐ **User: "when did I say we didn't want to gate how you look
+> behind an economy? Of course it's an economy — it's just one of our
+> own design, we completely control scarcity. And we're a platform,
+> this sort of thing is a **dial**. Game cosmetics as an industry is
+> probably into the hundreds of billions of dollars; of course someone
+> will see cosmetics in Saxonberg and see dollar signs. **The platform
+> has no opinion on this.**"**
+
+The correct layering, and it is the house one:
+
+| | |
+|---|---|
+| **platform** | the **mechanism** — appearance is mutable, and there is a way to change it |
+| **dial** | price, scarcity, whether it is a trade or a kiosk, whether an operator monetizes it |
+
+Layer 3 at most (see [measurement.md](../../measurement.md) § *the
+enumeration of layer 3*), and probably not even that — **the platform
+has no opinion on the price of hair dye, the same way it has none on the
+price of bread.**
+
+⭐ The consequence for the card is small: **`Looks` is a starting look,
+not a permanent trait.** The cell says where you came *from*; the origin
+stays true whatever you do to your hair afterwards. Inheritance is about
+the **origin**, never about the presentation.
+
+⭐ It also makes appearance a *presented* thing rather than a *given*
 one, which the belief layer already models: your current look is **not
-evidence of your parentage**, and someone who knew you before the dye
-job knows something a stranger does not.
+evidence of your parentage**, and someone who knew you before knows
+something a stranger does not.
 
-⚠ `Looks` is therefore **pinnable and priced** like any other cell.
+⚠ `Looks` is **pinnable and priced** at char-gen like any other cell.
 Players will spend real allotment on something with zero mechanical
-value — honest, true to life, and the alternative (free vanity pins)
-reopens the free-narrowing hole § *Controls* just closed.
+value — honest, and the alternative (free vanity pins) reopens the
+free-narrowing hole § *Controls* just closed.
+
+#### ⭐ The real design question: cosmetics has NO PRODUCTION CHAIN
+
+Not *whether* it costs. This:
+
+> **Nearly every good in Saxonberg gets its scarcity from inputs** — ore
+> → metal → tools, crop → grain → bread. **Appearance change has no
+> natural input, so its scarcity is purely DECLARED.**
+
+Which is the one thing this economy usually refuses. The fork: either
+the price is a straight authored number, or the good is **given** an
+input — a pigment, a material, a Discipline — and becomes a real trade
+with a supply curve like everything else.
+
+That is a dial too, but it is the dial that decides whether cosmetics is
+a **money sink** or a **trade**. Explored in
+[cosmetics-slate](./cosmetics-slate.md).
 
 ### Phase 2 — the generator, after the packs
 
