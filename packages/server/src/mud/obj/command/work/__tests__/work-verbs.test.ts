@@ -318,7 +318,7 @@ describe("work verbs", () => {
   it("both YAML views parse and carry help text (the help criterion)", () => {
     for (const name of ["job", "fulfill"] as const) {
       const raw = readFileSync(
-        fileURLToPath(new URL(`../../../../cmd/work/${name}.yaml`, import.meta.url)),
+        fileURLToPath(new URL(`../../../../../../../content/platform/content/cmd/work/${name}.yaml`, import.meta.url)),
         "utf8",
       );
       const def = CommandDefinition.fromYaml(raw, `${name}.yaml`);

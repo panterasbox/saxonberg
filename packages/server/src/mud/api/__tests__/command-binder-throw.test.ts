@@ -66,7 +66,7 @@ class TestGiver extends ContainerMixin(
  * scope so a test can pin what a *narrower* scope would cost.
  */
 function realThrow(itemScope?: string): CommandDefinition {
-  const path = fileURLToPath(new URL('../../cmd/inventory/throw.yaml', import.meta.url));
+  const path = fileURLToPath(new URL('../../../../../content/platform/content/cmd/inventory/throw.yaml', import.meta.url));
   let text = readFileSync(path, 'utf8');
   if (itemScope !== undefined) {
     text = text.replace(/scope: "reachable"/, `scope: "${itemScope}"`);

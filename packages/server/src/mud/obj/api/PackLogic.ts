@@ -36,6 +36,7 @@ import { TemplateApi } from '../../api/template';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { DiagnosticApi } from '../../api/diagnostics';
 import { SoulApi } from '../../api/soul';
+import { CommandApi } from '../../api/command';
 import { TemplatePaths } from '../../lib/paths';
 import { Emote } from '../../lib/social/Emote';
 import { Recipe } from '../../lib/craft/Recipe';
@@ -128,9 +129,7 @@ interface DocumentFile {
  * drives the reader, the flat-key check and `strategyForKey` alike, so
  * no kind is ever claimed by two strategies.
  */
-const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<DeclaredDocumentKind>([
-  'command-view', // step 9
-]);
+const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<DeclaredDocumentKind>([]);
 
 /**
  * Per-kind shape validation at `read`: what the retired seeders checked
@@ -140,7 +139,22 @@ const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<Declared
 const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => void> = {
   emote: (d) => void Emote.fromData(d),
   recipe: (d) => void Recipe.fromData(d),
+  'command-view': (d) => {
+    const trail = CommandApi.validateCommandView(d);
+    if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
+  },
 };
+
+/**
+ * A command view's document path is the VIEW KEY's path (no `root`
+ * join): `cmd/perception/look.yaml` → `/cmd/perception/look`, and a
+ * locality's `domain/<sphere>/<locality>/cmd/<verb>.yaml` →
+ * `/domain/<sphere>/<locality>/cmd/<verb>` — the dispatcher's key, so
+ * `CommandApi.reload` finds it by the same string.
+ */
+function commandViewPathOf(relKey: string): string {
+  return relKey.startsWith('domain/') ? `/${relKey}` : `/cmd/${relKey}`;
+}
 
 /** The declared kinds the document reader/strategies serve today. */
 function activeDocumentKinds(): DocumentKindSpec[] {
@@ -390,11 +404,30 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
   const out: DocumentFile[] = [];
   const dir = join(pack.contentRoot, spec.contentDir);
   const root = pack.manifest.root;
+  const files: Array<{ file: string; relKey: string }> = [];
   for (const file of walkFiles(dir, spec.ext)) {
+    if (spec.kind === 'command-view' && basename(file) === 'command.schema.json') continue;
+    if (spec.kind === 'command-view' && relative(dir, file).split(/[\\/]/).includes('__tests__')) continue;
     const rel = relative(dir, file).replace(new RegExp(`\\.${spec.ext}$`), '');
-    const relKey = rel.split(/[\\/]/).join('/');
+    files.push({ file, relKey: rel.split(/[\\/]/).join('/') });
+  }
+  if (spec.kind === 'command-view') {
+    // A locality's command views: `content/domain/**/cmd/<verb>.yaml`,
+    // keyed `domain/<…>/cmd/<verb>` (the domain walk skips `cmd`).
+    const domainDir = join(pack.contentRoot, 'domain');
+    for (const file of walkFiles(domainDir, 'yaml')) {
+      const rel = relative(pack.contentRoot, file).split(/[\\/]/).join('/');
+      const parts = rel.split('/');
+      if (!parts.slice(0, -1).includes('cmd')) continue;
+      files.push({ file, relKey: rel.replace(/\.yaml$/, '') });
+    }
+  }
+  for (const { file, relKey } of files) {
     const name = basename(relKey);
-    const key = `/${spec.contentDir}/${relKey}`;
+    const key =
+      spec.kind === 'command-view' && relKey.startsWith('domain/')
+        ? `/${relKey}`
+        : `/${spec.contentDir}/${relKey}`;
     let data: Record<string, unknown>;
     if (spec.ext === 'yaml') {
       data = readYamlObject(pack, file, `${spec.kind} document`);
@@ -421,7 +454,7 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
     }
     out.push({
       key,
-      path: root + key,
+      path: spec.kind === 'command-view' ? commandViewPathOf(relKey) : root + key,
       data,
       relFile: relative(pack.root, file),
     });
@@ -905,10 +938,10 @@ const descriptorBankStrategy: KindStrategy<DescriptorBankFile> = {
   }),
 };
 
-/** The record key of a document row: its path with the pack root stripped. */
+/** The record key of a document row: its path with the pack root stripped (command views: identity). */
 function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknown>): string {
   const path = String(r.path ?? '');
-  void spec;
+  if (spec.kind === 'command-view') return path;
   return path.startsWith(`${root}/`) ? path.slice(root.length) : path;
 }
 
@@ -1948,6 +1981,12 @@ function emptyResult(packId: string): PackReconcileResult {
   };
 }
 
+/** `/cmd/perception/look` → `perception/look.yaml`; `/domain/x/cmd/y` → `domain/x/cmd/y.yaml`. */
+function viewKeyOfDocPath(docPath: string): string {
+  if (docPath.startsWith('/cmd/')) return `${docPath.slice('/cmd/'.length)}.yaml`;
+  return `${docPath.replace(/^\//, '')}.yaml`;
+}
+
 /**
  * The per-document-kind go-live: what a change to rows of `kind` must
  * drop or re-warm so the edit reaches the next read without a restart.
@@ -1955,8 +1994,18 @@ function emptyResult(packId: string): PackReconcileResult {
  * `msh` needs nothing (`ScriptLogic` reads by path per call and drops
  * its AST cache on the CMS write path).
  */
-async function invalidateDocumentKind(kind: string): Promise<void> {
+async function invalidateDocumentKind(
+  kind: string,
+  changedPaths: string[] = [],
+  deletedPaths: string[] = [],
+): Promise<void> {
   switch (kind) {
+    case 'command-view':
+      // Per path: a changed view re-reads from the store; a deleted one
+      // drops its cache entry (the next getCommand falls to disk).
+      for (const p of changedPaths) await CommandApi.reload(p);
+      for (const p of deletedPaths) CommandApi.invalidate(viewKeyOfDocPath(p));
+      return;
     case 'msh':
       return;
     case 'emote':
@@ -2073,7 +2122,19 @@ async function reconcilePack(
     const written = c.inserted.length + c.updated.length + c.adopted.length;
     const touched = written + c.deleted.length + applied.archived.length;
     if (touched > 0 || content.documents.has(kind)) result.documents[kind] = written;
-    if (touched > 0) await invalidateDocumentKind(kind);
+    if (touched > 0 && opts.rehydrate) {
+      // Live sync only: at boot the catalogues / the command preload run
+      // after the install and read the rows themselves.
+      const files = content.documents.get(kind) ?? [];
+      const pathOf = (key: string): string =>
+        files.find((f) => f.key === key)?.path ??
+        (kind === 'command-view' ? key : content.root + key);
+      await invalidateDocumentKind(
+        kind,
+        [...c.inserted, ...c.updated, ...c.adopted].map(pathOf),
+        c.deleted.map(pathOf),
+      );
+    }
   }
 
   // Settings: the sync read cache is a full reload (AppApi unchanged).

@@ -75,7 +75,7 @@ const NEUTRAL_LIGHT_INDEX = LIGHT_BANDS.indexOf('lit');
 /**
  * Seeded-literal dial fallbacks (safe pre-warm / unit-test reads — the
  * harm / electricity / concealment dial idiom). Kept in sync with
- * `config/app-settings.yaml`.
+ * the platform pack's `content/settings/`.
  */
 const DEFAULT_CAPACITY_PER_BAND = 3;
 const DEFAULT_PASSIVE_BASELINE = 0;
@@ -92,7 +92,7 @@ const DEFAULT_MOVEMENT_ATTENTION_SNEAK = 2;
 /** `movement.attention.run` fallback (Phase 5, careless → notices less). */
 const DEFAULT_MOVEMENT_ATTENTION_RUN = -2;
 /** `stealth.hide.*` fallbacks (the hider's derived level — kept in sync
- * with `config/app-settings.yaml`). */
+ * with the platform pack's `content/settings/`). */
 const DEFAULT_HIDE_COMPETENCE_PER_BAND = 2;
 const DEFAULT_HIDE_COVER_WEIGHT = 1;
 const DEFAULT_HIDE_LIGHT_WEIGHT = 1;

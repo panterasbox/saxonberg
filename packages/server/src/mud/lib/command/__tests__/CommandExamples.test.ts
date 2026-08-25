@@ -35,7 +35,8 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const CMD_ROOT = join(here, '..', '..', '..', 'cmd');
+// The engine verbs are the platform pack's content (content-packs wave 2).
+const CMD_ROOT = join(here, '..', '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'cmd');
 
 /**
  * The verb an example leads with, or `null`.

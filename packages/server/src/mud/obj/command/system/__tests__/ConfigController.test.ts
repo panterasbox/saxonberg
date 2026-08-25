@@ -129,7 +129,7 @@ describe("ConfigController", () => {
 describe("config verb — wizard gate", () => {
   it("config.yaml gates the verb with the requiresWizard validator", () => {
     const path = fileURLToPath(
-      new URL("../../../../cmd/system/config.yaml", import.meta.url),
+      new URL("../../../../../../../content/platform/content/cmd/system/config.yaml", import.meta.url),
     );
     const view = YAML.parse(readFileSync(path, "utf-8"));
     expect(view.verbs).toContain("config");

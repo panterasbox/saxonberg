@@ -264,10 +264,11 @@ describe('stampedQuery is load-bearing: two document kinds in one pack', () => {
 describe('the domain walk skips cmd/ under content/domain/', () => {
   it('a command view in a locality is not read as a template', async () => {
     const packRoot = writePack('p', [], { root: '/x' });
-    writeDocumentFile(packRoot, 'domain/x/y/cmd', 'z', { verb: 'z', help: 'no class here' });
+    writeDocumentFile(packRoot, 'domain/x/y/cmd', 'z', { verbs: ['z'], controller: '../command/ZController', description: 'no class here' });
     const [r] = await PackApi.install([packRoot]);
     expect(r!.failure).toBeNull();
-    expect(r!.inserted).toEqual([]);
+    // Read as a command view (step 9), never as a template.
+    expect(r!.inserted).toEqual(['/domain/x/y/cmd/z']);
   });
 });
 
@@ -504,3 +505,52 @@ describe('the blueprint document kind', () => {
     });
   });
 });
+
+/* ───────────── the command-view kind (step 9) ───────────── */
+
+describe('the command-view document kind', () => {
+  const LOOK = {
+    verbs: ['look'],
+    controller: '/obj/command/perception/LookController',
+    description: 'look around',
+  };
+
+  it('a fixture cmd/perception/look.yaml lands at /cmd/perception/look (no root join) with the view as data', async () => {
+    const packRoot = writePack('platform', [], { root: '/platform' });
+    writeDocumentFile(packRoot, 'cmd/perception', 'look', LOOK);
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure).toBeNull();
+    expect(r!.inserted).toEqual(['/cmd/perception/look']);
+    expect(rowsOfKind('command-view')[0]).toMatchObject({
+      path: '/cmd/perception/look',
+      owner: '/platform',
+      kind: 'command-view',
+      data: LOOK,
+    });
+    const [again] = await PackApi.install([packRoot]);
+    expect([...again!.inserted, ...again!.updated, ...again!.deleted]).toEqual([]);
+  });
+
+  it('a malformed view fails the pack at read', async () => {
+    const packRoot = writePack('platform', [], { root: '/platform' });
+    writeDocumentFile(packRoot, 'cmd/perception', 'look', { description: 'no verbs' });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure?.step).toBe('read');
+    expect(r!.failure?.error).toMatch(/command schema/);
+    expect(documentRows()).toHaveLength(0);
+  });
+
+  it('a locality view (domain/x/y/cmd/z.yaml) is a command-view keyed by its domain path, never a template', async () => {
+    const packRoot = writePack('p', [], { root: '/p' });
+    writeDocumentFile(packRoot, 'domain/x/y/cmd', 'z', { verbs: ['z'], controller: '../command/ZController', description: 'z' });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure).toBeNull();
+    expect(r!.inserted).toEqual(['/domain/x/y/cmd/z']);
+    expect(rowsOfKind('command-view')[0]!.path).toBe('/domain/x/y/cmd/z');
+    expect(contentRowsCount()).toBe(0);
+  });
+});
+
+function contentRowsCount(): number {
+  return store.rows.filter((r) => (r.__col ?? 'content') === 'content').length;
+}

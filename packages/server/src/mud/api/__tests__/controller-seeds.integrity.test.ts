@@ -51,7 +51,8 @@ import YAML from "yaml";
 const here = dirname(fileURLToPath(import.meta.url));
 // src/mud/api/__tests__ -> src/mud
 const MUD_ROOT = join(here, "..", "..");
-const CMD_ROOT = join(MUD_ROOT, "cmd");
+// The engine verbs are the platform pack's content (content-packs wave 2).
+const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "cmd");
 const DOMAIN_ROOT = join(MUD_ROOT, "domain");
 const SEEDS_ROOT = join(MUD_ROOT, "seeds");
 

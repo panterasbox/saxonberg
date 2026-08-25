@@ -14,7 +14,8 @@ import { CommandApi } from '../command';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const CMD_DIR = join(__dirname, '../../cmd');
+// The engine verbs are the platform pack's content (content-packs wave 2).
+const CMD_DIR = join(__dirname, '../../../../../content/platform/content/cmd');
 
 describe('Command-YAML migration parity', () => {
   beforeEach(() => CommandApi.clearCache());

@@ -147,9 +147,10 @@ describe('guests and the group cell (Wave 6)', () => {
 });
 
 describe('the palette assertion (zero new verbs)', () => {
-  it('mud/cmd gains no sandbox-named command file', () => {
+  it('the command tree gains no sandbox-named command file', () => {
     const here = dirname(fileURLToPath(import.meta.url));
-    const cmdDir = join(here, '../../cmd');
+    // The engine verbs are the platform pack's content (content-packs wave 2).
+    const cmdDir = join(here, '../../../../../content/platform/content/cmd');
     const files: Array<{ name: string; rel: string }> = [];
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {

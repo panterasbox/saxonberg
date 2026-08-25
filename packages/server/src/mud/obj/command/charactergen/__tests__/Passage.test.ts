@@ -103,7 +103,7 @@ describe('passage — the floor beneath coming back', () => {
 
   it('carries NO requiresEmbodied — the one verb for the disembodied', () => {
     const view = readFileSync(
-      join(__dirname, '../../../../cmd/charactergen/passage.yaml'),
+      join(__dirname, '../../../../../../../content/platform/content/cmd/charactergen/passage.yaml'),
       'utf8',
     );
     expect(view).not.toContain('requiresEmbodied');

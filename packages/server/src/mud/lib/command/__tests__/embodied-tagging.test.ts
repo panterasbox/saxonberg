@@ -23,7 +23,8 @@ import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
-const CMD_ROOT = join(__dirname, '..');
+// The engine verbs are the platform pack's content (content-packs wave 2).
+const CMD_ROOT = join(__dirname, '..', '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'cmd');
 const TAG = '/lib/command/validators/requiresEmbodied';
 
 /** Categories whose verbs act on matter. */
