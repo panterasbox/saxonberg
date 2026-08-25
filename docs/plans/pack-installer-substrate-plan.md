@@ -298,7 +298,7 @@ The bridge from A25, generic (not pack-specific):
 6. **Adopt path on an existing dev DB** comes free from W1.3: the rows exist unstamped → adopt-in-place ($set-by-`_id`, no wipe), record written, one-time normalization line. Fresh DB: 21 inserts.
 7. Update `AppBootstrap.run`'s pack comment block to name the fourth pack.
 
-**Tests** (`PackLogic.newbie-wilds.test.ts`, real pack root via the `packRoots` override — the base-library integration-test precedent): empty store → 21 inserted, record has 21 `domain` baselines; pre-seeded unstamped store (rows built from the real files, distinct `_id`s) → 21 adopted, `_id`s preserved, normalization warn fired; second run → all-zero result, record hashes unchanged. Plus `lint:instanceable` green (it now parses the pack's real YAML).
+**Tests** (`PackLogic.newbie-wilds.test.ts`, real pack root via the `packRoots` override — the base-library integration-test precedent). ⚠ **Scaffolding, not precedent** (slate A32.2): by ring discipline the installer's own tests run against ugly fixture packs and a pack's installability checks live in the pack's ring-2 suite; this real-root test is accepted this cycle to prove the installer on real content and is marked for relocation when ring 2 exists: empty store → 21 inserted, record has 21 `domain` baselines; pre-seeded unstamped store (rows built from the real files, distinct `_id`s) → 21 adopted, `_id`s preserved, normalization warn fired; second run → all-zero result, record hashes unchanged. Plus `lint:instanceable` green (it now parses the pack's real YAML).
 
 ### W1.11 — docs, gates, suite, drive
 
