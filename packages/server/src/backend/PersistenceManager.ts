@@ -199,7 +199,6 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.GoogleProfiles]: { verb: 'refuse' },
   [Collections.TwitchProfiles]: { verb: 'refuse' },
   [Collections.KickProfiles]: { verb: 'refuse' },
-  [Collections.Emotes]: { verb: 'refuse' },
   [Collections.NameBanks]: { verb: 'refuse' },
   // Descriptor banks are immutable authored reference data installed by
   // a content pack — the same posture as name banks. A sandboxed write
@@ -384,6 +383,7 @@ export class PersistenceManager {
       await this.#migrateDomainToContent(this.db);
       await this.#migrateGroupOwners(this.db);
       await this.#migrateScriptKind(this.db);
+      await this.#collapseLegacyCollections(this.db);
 
       // Create indexes
       await this.createIndexes();
@@ -1178,6 +1178,98 @@ export class PersistenceManager {
     return legacy.length;
   }
 
+  /**
+   * The one-off collection → `documents` collapses (content-packs wave
+   * 2): each legacy per-kind collection becomes rows of one document
+   * kind at a provisional path (`/<legacy>/<naturalKey>`), `_id`
+   * PRESERVED, `sourcePack` carried, and the collection dropped. A table,
+   * not code, so the next collapse is a row.
+   */
+  static readonly COLLAPSES: ReadonlyArray<{
+    legacy: string;
+    kind: string;
+    naturalKey: string;
+    /** Legacy fields that do not travel into `data`. */
+    strip: string[];
+  }> = [
+    { legacy: 'emotes', kind: 'emote', naturalKey: 'verb', strip: ['aliases'] },
+  ];
+
+  /** Pure: which legacy collections (present in `names`) still need collapsing. */
+  static planCollapses(names: readonly string[]): string[] {
+    return PersistenceManager.COLLAPSES.map((c) => c.legacy).filter((l) => names.includes(l));
+  }
+
+  /**
+   * Idempotent by construction: the legacy collection is gone after the
+   * first run; a missing collection is a no-op with no log line. Runs
+   * inside `connect()` strictly before `createIndexes()` — a legacy row
+   * with a duplicate natural key would otherwise fail the unique partial
+   * index at boot, so the insert is per row and a duplicate is logged,
+   * not fatal. Returns the rows moved.
+   */
+  async #collapseLegacyCollections(db: {
+    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      insertOne(doc: Record<string, unknown>): Promise<unknown>;
+      drop(): Promise<unknown>;
+    };
+  }): Promise<number> {
+    const names = (await db.listCollections().toArray()).map((c) => c.name);
+    const todo = PersistenceManager.planCollapses(names);
+    let moved = 0;
+    for (const c of PersistenceManager.COLLAPSES) {
+      if (!todo.includes(c.legacy)) continue;
+      const rows = await db.collection(c.legacy).find({}).toArray();
+      const target = db.collection(Collections.Documents);
+      for (const row of rows) {
+        const { _id, sourcePack, ...rest } = row;
+        for (const f of c.strip) delete rest[f];
+        const doc: Record<string, unknown> = {
+          _id,
+          path: `/${c.legacy}/${String(row[c.naturalKey])}`,
+          owner: '',
+          kind: c.kind,
+          data: rest,
+          ...(sourcePack ? { sourcePack } : {}),
+        };
+        try {
+          await target.insertOne(doc);
+        } catch (err) {
+          if ((err as { code?: number }).code !== 11000) throw err;
+          // An `_id` already in `documents` (distinct collections share the
+          // ObjectId space only by chance): re-insert under a fresh id.
+          const { _id: _dropped, ...fresh } = doc;
+          await target.insertOne(fresh);
+          console.warn(
+            `PersistenceManager: collapse '${c.legacy}' → documents: ${c.naturalKey}=` +
+              `${String(row[c.naturalKey])} re-inserted under a fresh _id (collision)`
+          );
+        }
+        moved++;
+      }
+      await db.collection(c.legacy).drop();
+      console.info(
+        `PersistenceManager: collapsed '${c.legacy}' → documents {kind: '${c.kind}'} ` +
+          `(${rows.length} row(s)); collection dropped (one-time migration)`
+      );
+    }
+    return moved;
+  }
+
+  /** Test seam for `#collapseLegacyCollections`. Not used at runtime. */
+  async runCollapseMigrationForTest(db: {
+    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      insertOne(doc: Record<string, unknown>): Promise<unknown>;
+      drop(): Promise<unknown>;
+    };
+  }): Promise<number> {
+    return this.#collapseLegacyCollections(db);
+  }
+
   /** Test seam for `#migrateScriptKind`. Not used at runtime. */
   async runScriptKindMigrationForTest(db: {
     collection(name: string): {
@@ -1258,13 +1350,6 @@ export class PersistenceManager {
         { path: 1 },
         { unique: true }
       );
-
-      // Emotes: unique verb + alias index for verb-resolve hot path.
-      await this.getCollection(Collections.Emotes).createIndex(
-        { verb: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Emotes).createIndex({ aliases: 1 });
 
       // Name banks: unique key for the char-gen suggester's by-key resolve.
       await this.getCollection(Collections.NameBanks).createIndex(

@@ -91,10 +91,6 @@ export const RESET_DISPOSITIONS: Readonly<
     verb: 'keep',
     because: 'the world itself; the seeder is insert-only and runs at boot',
   },
-  [Collections.Emotes]: {
-    verb: 'keep',
-    because: 'seeded soul vocabulary — reference data, not player state',
-  },
   [Collections.NameBanks]: {
     verb: 'keep',
     because: 'pack-installed char-gen name pools',
