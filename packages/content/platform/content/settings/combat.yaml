@@ -1,0 +1,299 @@
+# combat — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Combat (core 1v1) — see docs/subsystems/combat.md. All tuning; no
+  # code defaults. Poise/tempo/energy are the load-bearing curves.
+  - key: combat.tickSeconds
+    value: "3"
+
+  - key: combat.poise.pressedBelow
+    value: "0.75"
+
+  - key: combat.poise.reelingBelow
+    value: "0.5"
+
+  - key: combat.poise.brokenAt
+    value: "0.25"
+
+  - key: combat.poise.openingTicks
+    value: "2"
+
+  - key: combat.poise.erodePerExchange
+    value: "0.12"
+
+  - key: combat.poise.overextendCost
+    value: "0.2"
+
+  - key: combat.poise.restorePerDefense
+    value: "0.15"
+
+  - key: combat.poise.whiffPenalty
+    value: "0.25"
+
+  # Ambush (stealth build): the poise an unaware defender loses at the
+  # opening when struck from concealment. Poise starts at 1.0 and breaks at
+  # combat.poise.brokenAt (0.25); 0.85 drops it to 0.15 < 0.25, arming the
+  # opening — surprise denies the poise contest. See docs/subsystems/stealth.md.
+  - key: combat.ambush.poisePenalty
+    value: "0.85"
+
+  - key: combat.tempo.base
+    value: "1"
+
+  - key: combat.tempo.encumbrancePenalty
+    value: "0.5"
+
+  - key: combat.tempo.enduranceFloor
+    value: "0.4"
+
+  - key: combat.tempo.minRate
+    value: "0.1"
+
+  - key: combat.tempo.maxRate
+    value: "3"
+
+  - key: combat.energy.steady
+    value: "1.2"
+
+  - key: combat.energy.pressed
+    value: "1.6"
+
+  - key: combat.energy.reeling
+    value: "2.2"
+
+  - key: combat.energy.broken
+    value: "3"
+
+  - key: combat.energy.open
+    value: "4.5"
+
+  - key: combat.maxBeats
+    value: "200"
+
+  # Build 2 — consequence & progression.
+  # The coup de grâce window (game-time seconds): a downed sentient is
+  # finished by a slow, telegraphed, interruptible killing stroke, not the
+  # winning blow. Long enough that a present party can stay the hand.
+  - key: combat.coupSeconds
+    value: "6"
+
+  # Regard deltas a witnessed resolution writes. A clean, consented duel
+  # win earns the victor a little regard from onlookers; an unlawful kill
+  # (a non-consenting sentient put to death) makes witnesses recoil.
+  - key: combat.regard.duelWin
+    value: "2"
+
+  - key: combat.regard.unlawfulKill
+    value: "-20"
+
+  # Cycle 2 — multi-party.
+  # Focus-fire: each attacker beyond the first pressing a target erodes
+  # that target's poise this much faster (2 attackers → 1.5x erosion), and
+  # at/above `suppressRecoveryAt` incoming attackers a defender can't spend
+  # a beat recovering — the pin that breaks the lone turtle who beats one
+  # but loses to two.
+  - key: combat.focusFire.erosionPerEdge
+    value: "0.5"
+
+  - key: combat.focusFire.suppressRecoveryAt
+    value: "2"
+
+  # A foe you disengage past gets one parting shot at this inflict energy.
+  - key: combat.flee.partingShotEnergy
+    value: "1.6"
+
+  # Experience pass — the feint (poker, not slots).
+  # The feinter spends little to present the bait (aggression is cheap vs a turtle).
+  - key: combat.poise.feintCost
+    value: "0.08"
+
+  # A baited defender who fails to read the feint over-commits and loses this
+  # much poise — enough to crack a steady guard (1 - brokenAt), arming their
+  # opening for the feinter's next strike.
+  - key: combat.poise.feintBitPenalty
+    value: "0.8"
+
+  # Sharpness at/above which a defender reads a feint (won't bite; sees the tell).
+  - key: combat.fog.readSharpness
+    value: "0.7"
+
+  # Sharpness at/above which ordinary band fog clears (you see the true band).
+  - key: combat.fog.clearSharpness
+    value: "0.7"
+
+  # The competence -> sharpness curve: floor at `untrained`, ceiling at `expert`.
+  - key: combat.sharpness.min
+    value: "0.35"
+
+  - key: combat.sharpness.max
+    value: "1"
+
+  # Weapon playstyle — the derived WeaponProfile curves (shape-vs-magnitude:
+  # form/dimensions are the shape, these are the magnitudes). A bare weapon
+  # still works off these. See docs/subsystems/combat.md (WeaponProfile).
+  # Balance: mass -> tempo (light fast, heavy slow) and -> poise/overextend
+  # (heavy hits harder & commits harder). refMass maps to a neutral 1.0.
+  - key: combat.weapon.balanceRefMass
+    value: "0.9"
+
+  - key: combat.weapon.tempoExponent
+    value: "0.35"
+
+  - key: combat.weapon.tempoMin
+    value: "0.5"
+
+  - key: combat.weapon.tempoMax
+    value: "1.6"
+
+  - key: combat.weapon.poiseDamageExponent
+    value: "0.4"
+
+  - key: combat.weapon.poiseDamageMin
+    value: "0.6"
+
+  - key: combat.weapon.poiseDamageMax
+    value: "1.5"
+
+  - key: combat.weapon.overextendExponent
+    value: "0.35"
+
+  - key: combat.weapon.overextendMin
+    value: "0.6"
+
+  - key: combat.weapon.overextendMax
+    value: "1.5"
+
+  # Balance-class band edges on the tempo factor (below -> heavy, above -> light).
+  - key: combat.weapon.balanceHeavyBelow
+    value: "0.92"
+
+  - key: combat.weapon.balanceLightAbove
+    value: "1.08"
+
+  # Reach-class length thresholds (m): below -> short, above -> long.
+  - key: combat.weapon.reachShortBelow
+    value: "0.5"
+
+  - key: combat.weapon.reachLongAbove
+    value: "1.5"
+
+  # Material hardness (MPa) reference for the guard nudge (hard binds better).
+  - key: combat.weapon.guardHardnessRef
+    value: "300"
+
+  # Reach range tier — the per-edge reach|close state (geometry-free).
+  # Closing costs the closer this much poise. The reach term scales a
+  # strike's erosion/energy by (1 + reachRankDelta * advantageEnergy): a
+  # spear (2 ranks longer) at reach hits ~1.4x, and ~0.6x once closed.
+  # contestStrength = the reach-rank gap a composed holder needs to keep a
+  # closer out.
+  - key: combat.reach.closeCost
+    value: "0.18"
+
+  - key: combat.reach.advantageEnergy
+    value: "0.2"
+
+  - key: combat.reach.contestStrength
+    value: "1"
+
+  # The engagement band ladder. A room's REAL linear extent decides which
+  # bands its arena affords, so a 3 m cell (the default) affords only the
+  # melee tiers — bar fights stay knife fights, by physics — a 6 m hall
+  # arms `near`, and an authored 20 m outdoor cell arms `far`. Nobody
+  # authors a band; outdoor cells are already authored larger, so the
+  # frontier arms itself.
+  - key: combat.range.nearMetres
+    value: "6"
+
+  - key: combat.range.farMetres
+    value: "20"
+
+  - key: combat.range.withdrawCost
+    value: "0.22"
+
+  # Thrown carriers. The envelope is how far a throw reaches; the speed
+  # is the real ½mv² input. The splash fractions divide a BROKEN vessel's
+  # real volume: the primary catches most of it (scaled by how well the
+  # throw landed), each clinched bystander catches a little, and whatever
+  # is left pools on the floor. Volume-conserving, because litres are
+  # real — the dose curve does the rest, so a graded effect scales down
+  # honestly on a bystander and a threshold one may not fire at all.
+  - key: combat.range.thrownEnvelope
+    value: "near"
+
+  - key: combat.range.throwSpeedMs
+    value: "12"
+
+  - key: combat.range.splash.preciseFraction
+    value: "0.85"
+
+  - key: combat.range.splash.primaryFraction
+    value: "0.6"
+
+  - key: combat.range.splash.grazeFraction
+    value: "0.3"
+
+  - key: combat.range.splash.bystanderFraction
+    value: "0.15"
+
+  # Hand-slot economy — switching armament is a vulnerable durative beat;
+  # the sidearm draws fast (the disarm answer). Game-time seconds.
+  - key: combat.switch.seconds
+    value: "6"
+
+  - key: combat.draw.seconds
+    value: "1.5"
+
+  # Guard bonus a wielded shield / dual-wield off-hand adds; dual-wield is a
+  # net penalty at/below this competence rank (a novice fumbles the off-hand),
+  # getting only the reduced novice bonus until they grow into it.
+  - key: combat.offhand.guardBonus
+    value: "0.6"
+
+  - key: combat.dualWield.masteryRank
+    value: "2"
+
+  - key: combat.dualWield.noviceGuardBonus
+    value: "-0.3"
+
+  # Formations — the party-strategy layer (policy shape lives on the
+  # CombatFormation Ideas; these are the magnitudes).
+  # An interceptor already pressed by this many incoming edges is
+  # ineligible to take a redirect (a pinned front can't eat more).
+  - key: combat.formation.intercept.maxIncoming
+    value: "2"
+
+  # Master-Apprentice's `high-threat` trigger: the master steps in only
+  # when the protected apprentice's incoming edge count reaches this
+  # (below it, the apprentice fights their own fight).
+  - key: combat.formation.ma.highThreatEdges
+    value: "2"
+
+  # How long (real seconds) a captain-call coup is held awaiting
+  # `fight finish` before the fallen is spared (mercy by default).
+  - key: combat.formation.coup.directiveWindowSeconds
+    value: "12"
+
+  # Combat hooks — the CombatApi.influence external-instruction bridge
+  # (stagger/expose/steady). Stagger erosion is banded light/heavy and
+  # focus-fire-scaled like exchange erosion (light = the exchange-erosion
+  # literal, heavy = 2.5x); steady restores like a defensive beat
+  # (endurance-capped, suppressed under the focus-fire recovery pin).
+  # `expose` carries no magnitude — it arms the binary opening window.
+  - key: combat.influence.staggerLightErode
+    value: "0.12"
+
+  - key: combat.influence.staggerHeavyErode
+    value: "0.3"
+
+  - key: combat.influence.steadyRestore
+    value: "0.15"
+
+  # The species combat vocabulary — body mass (kg) at/above which a
+  # hint-less natural attack derives large-body reach (one rank) + heavy
+  # balance ("an ogre punches at ogre reach"); below it the derivation is
+  # exactly neutral (1,1,1,0), which byte-preserves every seeded body
+  # (wolves ~40 kg, humanoids ~70-90 kg — the unarmed gym pin proves it).
+  - key: combat.natural.largeBodyMassKg
+    value: "150"

@@ -17,14 +17,12 @@ import { SeederManager } from './SeederManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
 import { BlueprintSeeder } from './BlueprintSeeder';
-import { ChannelSeeder } from './ChannelSeeder';
 import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
 import { WikiSeeder } from './WikiSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
-import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { PackApi } from '../mud/api/pack';
@@ -165,7 +163,8 @@ export class AppBootstrap {
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-          `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
+          `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
+          `${r.conflicts.length} conflict(s), ` +
           `${r.pinnedSkipped} pinned (skipped), ` +
           `${r.quantityTables} quantity table(s)` +
           (Object.keys(r.documents).length > 0
@@ -186,8 +185,6 @@ export class AppBootstrap {
     // BootstrapManager runs the catalogue singletons that warm their
     // caches from these collections.
     await BlueprintSeeder.run();
-    await ChannelSeeder.run();
-    await AppSettingsSeeder.run();
     // Groups before parcels: a parcel's owner group (`duncan-hall`) is
     // authored here with its staff members, so the owner-ref resolution the
     // parcel/provisioning path does later converges on the seeded group.
@@ -211,11 +208,12 @@ export class AppBootstrap {
     installOnlineHoldersProvider();
     await BootstrapManager.run();
 
-    // App settings — warm the synchronous read cache from the seeded
-    // `app_settings` row (AppSettingsSeeder ran in the seeder block above)
-    // before any consumer reads a setting; the evac path in
-    // Container.cleanupOnDestruct cannot await. Warm-only (no seeding here)
-    // — the values come from app-settings.yaml via the seeder. Awaits the
+    // App settings — warm the synchronous read cache from the
+    // `app_settings` row (the `platform` pack merged the defaults above —
+    // its `settings` kind is merge-missing, so an operator's `config`
+    // value is never clobbered) before any consumer reads a setting; the
+    // evac path in Container.cleanupOnDestruct cannot await. Warm-only —
+    // the values come from the pack's content/settings/*.yaml. Awaits the
     // Document directly — no boot method on AppApi (runtime ops only).
     await AppSettings.warm();
 

@@ -1,0 +1,7 @@
+# thermal — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Thermal (Wave 2 wet coupling) — a wet body loses heat faster.
+  - key: thermal.wetHeatLossFactor
+    value: "1.5"

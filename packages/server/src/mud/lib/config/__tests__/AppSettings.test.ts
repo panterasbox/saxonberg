@@ -1,6 +1,6 @@
 /**
  * AppSettings — the cache surface over the seeded singleton row. Seeding
- * itself is AppSettingsSeeder's job (tested separately); this covers warm /
+ * itself is the platform pack's job (tested with the installer); this covers warm /
  * getCached / the unwarmed guard. PersistenceManager is stubbed (no Mongo).
  */
 

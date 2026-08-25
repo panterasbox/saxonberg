@@ -1,0 +1,13 @@
+# retail — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Retail — the general store. The per-consignor listing cap guards the
+  # shared consignment shelf (anti-grief, the withdrawal-quota sibling); the
+  # commission rate is the store's cut of a consignment sale (the remainder
+  # settles to the consignor). See docs/subsystems/retail.md.
+  - key: retail.consignment.listingCap
+    value: "5"
+
+  - key: retail.consignment.commissionRate
+    value: "0.15"

@@ -1,0 +1,33 @@
+# wetness — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Wetness (weather Wave 2) — the per-object saturation gauge (0..1).
+  # Drainage is reconcile-on-read (presence-frozen); accrual is pushed by
+  # rain exposure / immersion. See docs/subsystems/weather.md.
+  - key: wetness.evaporationRatePct
+    value: "1.25"
+
+  - key: wetness.warmthFactor
+    value: "0.03"
+
+  - key: wetness.warmthReferenceK
+    value: "295"
+
+  - key: wetness.rainAccrualPerHour
+    value: "1.5"
+
+  - key: wetness.immersionSaturation
+    value: "1"
+
+  - key: wetness.band.dampAt
+    value: "0.15"
+
+  - key: wetness.band.wetAt
+    value: "0.45"
+
+  - key: wetness.band.soakedAt
+    value: "0.8"
+
+  - key: wetness.absorptionCapacityDefaultPct
+    value: "5"

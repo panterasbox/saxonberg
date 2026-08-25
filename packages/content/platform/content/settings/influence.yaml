@@ -1,0 +1,8 @@
+# influence — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Influence band cutoffs (display-only; the scalar maps to the highest
+  # tier whose `min` it meets). Stock-agnostic — same bands for every stock.
+  - key: influence.bandThresholds
+    value: '[{"name":"dormant","min":0},{"name":"nascent","min":1},{"name":"familiar","min":5},{"name":"established","min":20},{"name":"pillar","min":100}]'

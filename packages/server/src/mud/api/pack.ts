@@ -66,6 +66,10 @@ export interface PackReconcileResult {
   deleted: string[];
   /** Rows the DB changed and the file did not — the DB was kept. */
   kept: string[];
+  /** merge-missing kinds (settings): files whose missing keys were merged in. */
+  merged: string[];
+  /** archive-never-reap kinds (subjects): rows archived because their file vanished. */
+  archived: string[];
   /** Rows both sides changed differently — untouched, recorded, diagnosed. */
   conflicts: string[];
   /** Pinned rows skipped before any comparison. Reported every time. */

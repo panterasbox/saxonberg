@@ -12,7 +12,7 @@
  * is a YAML entry (`mud/config/app-settings.yaml`) plus a consumer.
  *
  * **The values live in the DB, seeded from YAML — there are no code-side
- * defaults.** `AppSettingsSeeder` (a backend seeder, like EmoteSeeder)
+ * defaults.** The `platform` content pack's `settings` kind (merge-missing)
  * populates the row from `app-settings.yaml`; this Document is pure
  * persistence + an in-memory cache. `warm()` loads the seeded row into the
  * cache at boot so the synchronous read surface (`AppApi`) never awaits.
@@ -1334,7 +1334,7 @@ export class AppSettings extends Document {
   /**
    * Load the seeded singleton row into the cache (or an empty instance if
    * nothing has been seeded/set yet). Does NOT seed values — that is
-   * `AppSettingsSeeder`'s job, which runs earlier in the boot sequence.
+   * the platform pack's job (`PackApi.install`), which runs earlier in the boot sequence.
    * Called once from `AppBootstrap`.
    */
   static async warm(): Promise<AppSettings> {

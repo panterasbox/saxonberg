@@ -250,7 +250,8 @@ export default class PackController extends CommandController<PackModel> {
       `${verb} pack '${r.packId}': ` +
       `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
       `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-      `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
+      `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
+      `${r.conflicts.length} conflict(s), ` +
       `${r.pinnedSkipped} row(s) pinned (skipped), ` +
       `${r.quantityTables} quantity table(s)` +
       Object.entries(r.documents)

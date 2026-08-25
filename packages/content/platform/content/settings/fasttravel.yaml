@@ -1,0 +1,19 @@
+# fasttravel — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Fast-travel — the TPA network fee (a flat base + a percentage) levied on
+  # every PAID ride into the TPA operating budget (both budgets recirculate;
+  # the sink lever is a deferred CB drain, not accumulation). The base
+  # guarantees a non-zero fee on any paid ride: min(fee, base + floor(fee ×
+  # rate)). Read try/catch → 0-fallback like banking.salesTaxRate.
+  - key: fasttravel.networkFeeRate
+    value: "0.15"
+
+  - key: fasttravel.networkFeeBase
+    value: "1"
+
+  # Fast-travel — the Teleport Authority Business (the network fee accrues
+  # to its operating account, custodied at its authored banksAt).
+  - key: fasttravel.tpaBusinessPath
+    value: /domain/terminus/terminal/tpa

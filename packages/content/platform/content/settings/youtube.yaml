@@ -1,0 +1,15 @@
+# youtube — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # YouTube relay (read-only) dials — operator knobs for the second chat
+  # transport. pollIntervalMs: the `list`-poll read cadence + overlay
+  # live-status poll floor (the API's pollingIntervalMillis wins when
+  # larger). See docs/subsystems/streaming.md.
+  - key: youtube.pollIntervalMs
+    value: "5000"
+
+  # Overlay-owner live-status re-resolve — 15 min (a search.list costs ~100
+  # quota units, so keep it slow; it only catches the owner's stream restart).
+  - key: youtube.overlayPollIntervalMs
+    value: "900000"

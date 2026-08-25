@@ -1,0 +1,17 @@
+# contract — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Contracts (the work/gig substrate) — claim expiry: how long an exclusive
+  # claim holds before it lapses back to open (game-hours; lazy enforcement,
+  # no sweep). Posting expiry default: 0 = a posting never lapses unless the
+  # post names a lifetime. Breach penalty: the issuer-side regard drop
+  # against a breaching claimant (breach must be felt, cheaply).
+  - key: contract.claimExpiryGameHours
+    value: "48"
+
+  - key: contract.postingExpiryDefaultGameHours
+    value: "0"
+
+  - key: contract.breachRegardPenalty
+    value: "15"

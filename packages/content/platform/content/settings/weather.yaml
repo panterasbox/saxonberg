@@ -1,0 +1,11 @@
+# weather — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Weather (Wave 2 light / sky) — cloud dimming on the sync light path +
+  # the deterministic sky-read forecast window.
+  - key: weather.cloudDimFactor
+    value: "0.6"
+
+  - key: weather.skyForecastSegments
+    value: "2"

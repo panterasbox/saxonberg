@@ -1,0 +1,16 @@
+# hazard — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Hazards / traps (Phase 4). pinSeconds: a snare holds the body slot.
+  # dropFallEnergy: the blunt a pit-fall adds on landing. disarmSeconds:
+  # the hands-slot window to defuse a found trap. Per-trap wound energies
+  # are authored content data, NOT dials. See docs/subsystems/concealment.md.
+  - key: hazard.pinSeconds
+    value: "6"
+
+  - key: hazard.dropFallEnergy
+    value: "4"
+
+  - key: hazard.disarmSeconds
+    value: "5"

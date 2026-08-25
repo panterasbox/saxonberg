@@ -189,6 +189,29 @@ export function writeDocumentFile(
   writeFileSync(file, YAML.stringify(data));
 }
 
+/** A settings section fixture: `content/settings/<section>.yaml` `{ settings: [...] }`. */
+export function writeSettingsFile(
+  root: string,
+  section: string,
+  entries: Array<{ key: string; value: string }>,
+): void {
+  const file = join(root, 'content', 'settings', `${section}.yaml`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, YAML.stringify({ settings: entries }));
+}
+
+/** A subject fixture: `content/subjects/<name>.yaml` (the D6 shape). */
+export function writeSubjectFile(root: string, name: string, body: Record<string, unknown>): void {
+  const file = join(root, 'content', 'subjects', `${name}.yaml`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, YAML.stringify(body));
+}
+
+/** The `app_settings` singleton (the harness store holds at most one). */
+export function settingsSingleton(): (Row & { values: Record<string, string> }) | undefined {
+  return rowsIn('app_settings')[0] as (Row & { values: Record<string, string> }) | undefined;
+}
+
 /** An `msh` script fixture: `content/msh/<name>.msh` holding `source` verbatim. */
 export function writeScriptFile(root: string, name: string, source: string): void {
   const file = join(root, 'content', 'msh', `${name}.msh`);

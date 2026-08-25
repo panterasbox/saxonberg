@@ -1,0 +1,14 @@
+# participation — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Participation — the consumer-influence QUANTITY axis. A member is
+  # credited once per active bucket (10 min real time) in which they take a
+  # recognized action; the decayed bucket count is the quantity half of
+  # `engagement × renown`. Decay is REAL-time (participation = a human
+  # showing up): half-life 14 days, so standing reflects who is present now.
+  - key: participation.bucketSeconds
+    value: "600"
+
+  - key: participation.decayHalfLife
+    value: "1209600"

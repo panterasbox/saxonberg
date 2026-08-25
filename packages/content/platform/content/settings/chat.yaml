@@ -1,0 +1,13 @@
+# chat — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Operator policy knobs lifted out of scattered module constants (the
+  # pre-app-settings sweep). Each was a hardcoded literal in its owning
+  # module; the consumer now reads it here, falling back to this same value
+  # if read before the cache is warmed.
+  #
+  # Chat — how many recent frames each channel keeps in its in-memory
+  # history ring (the storage/bandwidth-vs-scrollback tradeoff).
+  - key: chat.historyCap
+    value: "200"

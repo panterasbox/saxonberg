@@ -41,6 +41,7 @@
     "@saxonberg/content-expression": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-newbie-wilds": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/types": "workspace:*",

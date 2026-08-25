@@ -110,6 +110,8 @@ importers:
 
   packages/content/newbie-wilds: {}
 
+  packages/content/platform: {}
+
   packages/content/saxonberg-lounge: {}
 
   packages/content/species-and-names: {}
@@ -131,6 +133,9 @@ importers:
       '@saxonberg/content-newbie-wilds':
         specifier: workspace:*
         version: link:../content/newbie-wilds
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../content/platform
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:../content/saxonberg-lounge

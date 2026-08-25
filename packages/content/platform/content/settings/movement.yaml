@@ -1,0 +1,33 @@
+# movement — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Care↔speed movement axis (Phase 5). The detection attention a mode
+  # folds into the trap-traverse perceive check, on top of the passive
+  # baseline (walk = 0, no key). sneak (+): careful movement notices more,
+  # so sneak avoids a trap walk springs. run (−): careless movement notices
+  # less, so run springs a trap walk avoids. With capacityPerBand=3, a
+  # novice (capacity 3) walking avoids `subtle`(2) but running (3−2=1) does
+  # not, and walking springs `hidden`(4) but sneaking (3+2=5) avoids it.
+  # See docs/subsystems/concealment.md.
+  - key: movement.attention.sneak
+    value: "2"
+
+  - key: movement.attention.run
+    value: "-2"
+
+  # Motion-degrades (observer-side, the care↔speed sibling above): the
+  # concealment bands a move at each mode strips from a HIDING mover. sneak
+  # holds (0 — a careful crossing keeps cover); walk degrades one band
+  # (you're gradually exposed as you cross); run clears hiding outright (99
+  # → falls to obvious — you can't sprint and stay unseen). Applied at
+  # Mobile.traverse via PerceptionApi.motionExposure. See
+  # docs/subsystems/stealth.md.
+  - key: movement.concealment.sneak
+    value: "0"
+
+  - key: movement.concealment.walk
+    value: "1"
+
+  - key: movement.concealment.run
+    value: "99"

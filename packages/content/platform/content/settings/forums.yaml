@@ -1,0 +1,13 @@
+# forums — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Forums — anti-snowball display gate. The displayed vote score is
+  # suppressed (the client shows a placeholder) until an entry reaches
+  # `minVotes` votes OR ages `minMinutes` minutes. Server-side ranking
+  # always uses true scores; this gates only the rendered number.
+  - key: forums.antiSnowball.minVotes
+    value: "5"
+
+  - key: forums.antiSnowball.minMinutes
+    value: "30"

@@ -39,7 +39,11 @@ import { SoulApi } from '../../api/soul';
 import { TemplatePaths } from '../../lib/paths';
 import { Emote } from '../../lib/social/Emote';
 import { Recipe } from '../../lib/craft/Recipe';
+import { AppSettings } from '../../lib/config/AppSettings';
+import { GroupApi } from '../../api/group';
 import type RecipeCatalogue from '../RecipeCatalogue';
+import type SubjectCatalogue from '../SubjectCatalogue';
+import type ChannelCatalogue from '../ChannelCatalogue';
 import type {
   PackManifest,
   PackReconcileResult,
@@ -144,11 +148,57 @@ function activeDocumentKinds(): DocumentKindSpec[] {
     .map((k) => DOCUMENT_KINDS[k]);
 }
 
+/**
+ * One `content/settings/<section>.yaml` — the `app-settings.yaml` shape
+ * verbatim (`{ settings: [{key, value}] }`), the merge-missing kind.
+ */
+interface SettingsFile {
+  /** Record key: `/settings/<basename>`. */
+  key: string;
+  entries: Array<{ key: string; value: string }>;
+  relFile: string;
+}
+
+/**
+ * One `content/subjects/<name>.yaml` — a forum/chat Subject the pack
+ * ships (requirements D6): the title, an optional audience group (by
+ * name), and which surfaces to light, with optional name overrides.
+ */
+interface SubjectFile {
+  /** Record key: `/subjects/<basename>`. */
+  key: string;
+  name: string;
+  description: string;
+  /** A managed group NAME the subject's audience binds to; absent = open. */
+  audienceGroup?: string;
+  board: boolean;
+  channel: boolean;
+  /** Effective surface names (the title unless overridden). */
+  channelName: string;
+  boardName: string;
+  relFile: string;
+}
+
+/** The rendered, hash-preimage shape of a subject — file side and DB side alike. */
+interface SubjectBody extends Record<string, unknown> {
+  name: string;
+  description: string;
+  audience: string;
+  board: boolean;
+  channel: boolean;
+  channelName: string;
+  boardName: string;
+}
+
 /** The classified content of a pack's `content/` tree. */
 interface PackContent {
   /** The manifest `root` — document paths and owners derive from it. */
   root: string;
   domain: DomainFile[];
+  /** Parsed `content/settings/*.yaml` (the merge-missing kind). */
+  settings: SettingsFile[];
+  /** Parsed `content/subjects/*.yaml` (the archive-never-reap kind). */
+  subjects: SubjectFile[];
   /** Parsed document-kind files, by kind (absent kinds are absent keys). */
   documents: Map<string, DocumentFile[]>;
   /** Absolute path to `content/quantity/quantity-tags.yaml`, or null. */
@@ -449,6 +499,71 @@ function readContent(pack: ResolvedPack): PackContent {
     });
   }
 
+  // Settings — `{ settings: [{key, value}] }` per section file.
+  const settings: SettingsFile[] = [];
+  for (const file of walkYaml(join(pack.contentRoot, 'settings'))) {
+    const doc = readYamlObject(pack, file, 'settings file');
+    const raw = Array.isArray(doc.settings) ? (doc.settings as unknown[]) : null;
+    if (!raw) {
+      throw new Error(
+        `PackApi: pack '${pack.manifest.id}': settings file at ${file} needs a 'settings' list`,
+      );
+    }
+    const entries: Array<{ key: string; value: string }> = [];
+    for (const e of raw) {
+      const entry = e as Record<string, unknown> | null;
+      if (!entry || typeof entry.key !== 'string' || entry.key.length === 0) {
+        throw new Error(
+          `PackApi: pack '${pack.manifest.id}': malformed entry in ${file}: missing 'key'`,
+        );
+      }
+      entries.push({ key: entry.key, value: String(entry.value ?? '') });
+    }
+    settings.push({
+      key: `/settings/${basename(file).replace(/\.yaml$/, '')}`,
+      entries,
+      relFile: relative(pack.root, file),
+    });
+  }
+
+  // Subjects — the D6 shape.
+  const subjects: SubjectFile[] = [];
+  for (const file of walkYaml(join(pack.contentRoot, 'subjects'))) {
+    const doc = readYamlObject(pack, file, 'subject');
+    if (typeof doc.name !== 'string' || doc.name.trim().length === 0) {
+      throw new Error(
+        `PackApi: pack '${pack.manifest.id}': subject at ${file} is missing a string 'name'`,
+      );
+    }
+    const name = doc.name.trim();
+    const surface = (v: unknown): { on: boolean; name?: string } => {
+      if (v === true) return { on: true };
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        const n = (v as { name?: unknown }).name;
+        return { on: true, name: typeof n === 'string' ? n : undefined };
+      }
+      return { on: false };
+    };
+    const board = surface(doc.board);
+    const channel = surface(doc.channel);
+    const audience = doc.audience as { group?: unknown } | undefined;
+    const audienceGroup =
+      audience && typeof audience === 'object' && typeof audience.group === 'string'
+        ? audience.group
+        : undefined;
+    subjects.push({
+      key: `/subjects/${basename(file).replace(/\.yaml$/, '')}`,
+      name,
+      description: typeof doc.description === 'string' ? doc.description.trim() : '',
+      ...(audienceGroup !== undefined ? { audienceGroup } : {}),
+      board: board.on,
+      channel: channel.on,
+      channelName: channel.name ?? name,
+      boardName: board.name ?? name,
+      relFile: relative(pack.root, file),
+    });
+  }
+
   // Document kinds — one enumerated reader per declared, un-gated kind.
   const documents = new Map<string, DocumentFile[]>();
   for (const spec of activeDocumentKinds()) {
@@ -460,6 +575,8 @@ function readContent(pack: ResolvedPack): PackContent {
   return {
     root: pack.manifest.root,
     domain,
+    settings,
+    subjects,
     documents,
     quantityYaml: existsSync(quantityYaml) ? quantityYaml : null,
     descriptorBanks,
@@ -591,7 +708,7 @@ async function validatePackTopics(
 // --- the per-kind strategy -------------------------------------------------
 
 /** The DB collections a shipped content kind lands in. */
-type KindName = 'domain' | 'descriptor-banks' | 'document';
+type KindName = 'domain' | 'descriptor-banks' | 'document' | 'settings' | 'subject';
 
 /** The reconcile policy a kind runs under (requirements D5). */
 type KindPolicy = 'three-way' | 'merge-missing' | 'cas';
@@ -634,6 +751,26 @@ interface KindStrategy<F> {
   stampedQuery?(): Record<string, unknown>;
   /** The source-file extension `--export` writes (default `yaml`). */
   ext?: string;
+  /**
+   * KEY + COLLISION CLASS for a file that claims SEVERAL flat keys (a
+   * settings file claims every key it carries; a subject claims its
+   * title and its surface names). Takes precedence over `flatKeyOf`.
+   */
+  flatKeysOf?(f: F): string[];
+  /**
+   * Load this pack's stamped rows, RENDERED to the hash-preimage shape,
+   * when that needs async lookups (a subject's surfaces live in other
+   * collections). Default: `find(collection, {sourcePack, …stampedQuery})`.
+   */
+  loadStamped?(packId: string): Promise<StampedRow[]>;
+  /**
+   * Custom writer for insert / adopt / update when a row is not one
+   * `PersistApi.save` (a subject mints its surfaces too). Receives the
+   * file and, for adopt/update, the existing row's `_id`.
+   */
+  write?(op: 'insert' | 'adopt' | 'update', f: F, packId: string, id?: string): Promise<void>;
+  /** A pre-write gate over the kind's files (run at `gatePack`). */
+  gate?(packId: string, files: F[]): Promise<void>;
   /**
    * The install-record key — the file's content-root-relative path with
    * a leading slash and no `.yaml`. For the domain kind this IS the
@@ -808,6 +945,287 @@ function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<Do
   };
 }
 
+// --- the settings kind (merge-missing, requirements D5/D7) ------------------
+
+/**
+ * Settings — the `app_settings` singleton's defaults, split by section
+ * file. Policy `merge-missing`: a key the singleton lacks is merged in;
+ * a key the operator has tuned is never touched and never a conflict
+ * (`kept`); a vanished file drops its baseline and keeps every value.
+ * The baseline is the file body, so `pack diff` shows the pack default
+ * against the operator's value.
+ */
+const settingsStrategy: KindStrategy<SettingsFile> = {
+  kind: 'settings',
+  collection: Collections.AppSettings,
+  noun: 'settings',
+  policy: 'merge-missing',
+  onVanish: 'keep',
+  recordKeyOf: (f) => f.key,
+  recordKeyOfRow: () => '',
+  dbKeyQuery: () => ({}),
+  rowOf: (f) => ({ settings: f.entries }),
+  canonicalBody: (r) => canonical({ settings: r.settings ?? [] }),
+  flatKeysOf: (f) => f.entries.map((e) => e.key),
+  exportBody: (r) => ({ settings: r.settings ?? [] }),
+};
+
+/** The `app_settings` singleton row, or null. */
+async function loadSettingsSingleton(): Promise<(StampedRow & { values?: Record<string, string> }) | null> {
+  const rows = (await PersistApi.find(Collections.AppSettings, {})) as Array<
+    StampedRow & { values?: Record<string, string> }
+  >;
+  return rows[0] ?? null;
+}
+
+// --- the subject kind (archive-never-reap, requirements D6) ----------------
+
+/** A URL-ish slug of a title, for a stamped row whose file is gone. */
+function slugOf(title: string): string {
+  return title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function subjectFileBody(f: SubjectFile): SubjectBody {
+  return {
+    name: f.name,
+    description: f.description,
+    audience: f.audienceGroup ?? '',
+    board: f.board,
+    channel: f.channel,
+    channelName: f.channelName,
+    boardName: f.boardName,
+  };
+}
+
+/** A managed group's `managed:<id>` ref by NAME, or null. */
+async function managedGroupRefByName(name: string): Promise<string | null> {
+  const registry = await GroupApi.registry();
+  const g = await registry.managed().findByName(name);
+  return g?._id ? `managed:${g._id}` : null;
+}
+
+/** A managed group's name from its `managed:<id>` ref, or '' (open / unknown). */
+async function managedGroupNameOf(ref: string): Promise<string> {
+  if (!ref) return '';
+  try {
+    const { source, id } = GroupApi.parseRef(ref);
+    if (source !== 'managed') return ref;
+    const rows = (await PersistApi.find(Collections.Groups, { _id: id })) as Array<{ name?: string }>;
+    return rows[0]?.name ?? ref;
+  } catch {
+    return ref;
+  }
+}
+
+type SubjectRow = StampedRow & {
+  title?: string;
+  owner?: string;
+  groupRef?: string;
+  state?: string;
+  manifestations?: Array<{ surface: string; ref: string }>;
+};
+type SurfaceRow = StampedRow & { name?: string; description?: string; archived?: boolean };
+
+async function surfaceRowOf(
+  col: Collections,
+  subject: SubjectRow,
+  surface: string,
+): Promise<SurfaceRow | null> {
+  const ref = subject.manifestations?.find((m) => m.surface === surface)?.ref;
+  if (!ref) return null;
+  const rows = (await PersistApi.find(col, { _id: ref })) as SurfaceRow[];
+  return rows[0] ?? null;
+}
+
+/** Render a stored Subject (+ its surfaces) to the preimage shape. */
+async function renderSubjectRow(row: SubjectRow): Promise<SubjectBody> {
+  const channel = await surfaceRowOf(Collections.Channels, row, 'open-chat');
+  const board = await surfaceRowOf(Collections.ForumBoards, row, 'open-forum');
+  const channelOn = channel !== null && channel.archived !== true;
+  const boardOn = board !== null && board.archived !== true;
+  const name = row.title ?? '';
+  return {
+    name,
+    description: board?.description ?? '',
+    audience: await managedGroupNameOf(row.groupRef ?? ''),
+    board: boardOn,
+    channel: channelOn,
+    channelName: channelOn ? channel!.name ?? name : name,
+    boardName: boardOn ? board!.name ?? name : name,
+  };
+}
+
+/**
+ * Write a subject from its file: the Subject row (owner `pack:<id>`, the
+ * pack IS the author of what it ships), then each lit surface — minted
+ * when missing, renamed when overridden, archived when switched off.
+ * The rows are written the way the retired ChannelSeeder wrote them
+ * (Documents through the PersistApi chokepoint): at boot the catalogues
+ * are not yet resident, and they warm from these rows afterwards; a
+ * live `pack sync` drops the resident caches in the go-live.
+ */
+async function writeSubject(
+  f: SubjectFile,
+  packId: string,
+  existingId?: string,
+): Promise<void> {
+  const groupRef = f.audienceGroup ? await managedGroupRefByName(f.audienceGroup) : '';
+  if (f.audienceGroup && !groupRef) {
+    throw new Error(
+      `PackApi: pack '${packId}': subject '${f.name}' names audience group '${f.audienceGroup}', which does not exist`,
+    );
+  }
+  const existing = existingId
+    ? ((await PersistApi.find(Collections.ForumSubjects, { _id: existingId })) as SubjectRow[])[0]
+    : undefined;
+  const subjectRow: Record<string, unknown> = {
+    ...(existingId ? { _id: existingId } : {}),
+    title: f.name,
+    owner: `pack:${packId}`,
+    groupRef,
+    lifecycleClass: existing?.lifecycleClass ?? 'standing',
+    state: 'active',
+    grain: existing?.grain ?? 'venue',
+    parentSubject: existing?.parentSubject ?? null,
+    boardScopedName: existing?.boardScopedName ?? null,
+    manifestations: existing?.manifestations ?? [],
+    sourcePack: packId,
+  };
+  const subjectId = await PersistApi.save(Collections.ForumSubjects, subjectRow);
+  const manifestations = [...(existing?.manifestations ?? [])];
+  const ensureSurface = async (
+    on: boolean,
+    surface: string,
+    col: Collections,
+    mint: () => Record<string, unknown>,
+    name: string,
+    description?: string,
+  ): Promise<void> => {
+    const idx = manifestations.findIndex((m) => m.surface === surface);
+    const ref = idx >= 0 ? manifestations[idx]!.ref : null;
+    const row = ref ? ((await PersistApi.find(col, { _id: ref })) as SurfaceRow[])[0] : undefined;
+    if (on) {
+      if (row) {
+        const set: Record<string, unknown> = { _id: row._id, archived: false, name };
+        if (description !== undefined) set.description = description;
+        await PersistApi.save(col, set);
+      } else {
+        const id = await PersistApi.save(col, {
+          ...mint(),
+          name,
+          ...(description !== undefined ? { description } : {}),
+          archived: false,
+        });
+        manifestations.push({ surface, ref: id });
+      }
+    } else if (row && row.archived !== true) {
+      await PersistApi.save(col, { _id: row._id, archived: true });
+    }
+  };
+  await ensureSurface(
+    f.channel,
+    'open-chat',
+    Collections.Channels,
+    () => ({
+      kind: groupRef ? 'player-created' : 'open-join-standalone',
+      subject: subjectId,
+      procedure: 'open',
+    }),
+    f.channelName,
+  );
+  await ensureSurface(
+    f.board,
+    'open-forum',
+    Collections.ForumBoards,
+    () => ({ subject: subjectId, organizer: 'open', override: {} }),
+    f.boardName,
+    f.description,
+  );
+  await PersistApi.save(Collections.ForumSubjects, { _id: subjectId, manifestations });
+}
+
+/** Archive a subject and its surfaces. Never a delete. */
+async function archiveSubject(id: string): Promise<void> {
+  const row = ((await PersistApi.find(Collections.ForumSubjects, { _id: id })) as SubjectRow[])[0];
+  if (!row) return;
+  await PersistApi.save(Collections.ForumSubjects, { _id: id, state: 'archived' });
+  for (const m of row.manifestations ?? []) {
+    const col = m.surface.endsWith('-chat') ? Collections.Channels : Collections.ForumBoards;
+    await PersistApi.save(col, { _id: m.ref, archived: true });
+  }
+}
+
+/**
+ * Subjects — `forum_subjects` rows (+ their channel / board surfaces),
+ * adopted by TITLE (the retired ChannelSeeder's rows), rendered to one
+ * preimage shape on both sides so the three-way compares like-for-like.
+ * `onVanish: 'archive'`: never reaped.
+ */
+function subjectStrategy(files: SubjectFile[]): KindStrategy<SubjectFile> {
+  const keyByTitle = new Map(files.map((f) => [f.name.toLowerCase(), f.key]));
+  return {
+    kind: 'subject',
+    collection: Collections.ForumSubjects,
+    noun: 'subject',
+    policy: 'three-way',
+    onVanish: 'archive',
+    recordKeyOf: (f) => f.key,
+    recordKeyOfRow: (r) => {
+      const title = String((r as SubjectRow).title ?? '');
+      return keyByTitle.get(title.toLowerCase()) ?? `/subjects/${slugOf(title)}`;
+    },
+    dbKeyQuery: (f) => ({ title: f.name }),
+    adoptQuery: (f) => ({ title: f.name }),
+    rowOf: (f) => subjectFileBody(f),
+    canonicalBody: (r) =>
+      canonical(
+        (r as { rendered?: SubjectBody }).rendered ??
+          ({
+            name: r.name,
+            description: r.description,
+            audience: r.audience,
+            board: r.board,
+            channel: r.channel,
+            channelName: r.channelName,
+            boardName: r.boardName,
+          } as SubjectBody),
+      ),
+    flatKeysOf: (f) =>
+      [...new Set([f.name, f.channelName, f.boardName].map((n) => n.toLowerCase()))],
+    exportBody: (r) => {
+      const b = ((r as { rendered?: SubjectBody }).rendered ?? r) as SubjectBody;
+      const out: Record<string, unknown> = { name: b.name };
+      if (b.description) out.description = b.description;
+      if (b.audience) out.audience = { group: b.audience };
+      if (b.board) out.board = b.boardName !== b.name ? { name: b.boardName } : true;
+      if (b.channel) out.channel = b.channelName !== b.name ? { name: b.channelName } : true;
+      return out;
+    },
+    loadStamped: async (packId) => {
+      const rows = (await PersistApi.find(Collections.ForumSubjects, {
+        sourcePack: packId,
+      })) as SubjectRow[];
+      const out: StampedRow[] = [];
+      for (const r of rows) {
+        out.push({ ...r, rendered: await renderSubjectRow(r), archived: r.state === 'archived' });
+      }
+      return out;
+    },
+    write: (op, f, packId, id) => writeSubject(f, packId, op === 'insert' ? undefined : id),
+    archive: archiveSubject,
+    gate: async (packId, fs) => {
+      for (const f of fs) {
+        if (f.audienceGroup && !(await managedGroupRefByName(f.audienceGroup))) {
+          throw new Error(
+            `PackApi: pack '${packId}': subject '${f.name}' (${f.relFile}) names audience ` +
+              `group '${f.audienceGroup}', which does not exist`,
+          );
+        }
+      }
+    },
+  };
+}
+
 /** The kind label a baseline / conflict / dry-run action carries. */
 function kindLabel(strategy: KindStrategy<unknown>): string {
   return strategy.documentKind ? `document:${strategy.documentKind}` : strategy.kind;
@@ -925,6 +1343,10 @@ interface PlannedAction {
    * "no content write" while the row lands where the pack says.
    */
   rekey?: { path: string; owner: string };
+  /** The source file (kinds with a custom `write`). */
+  file?: unknown;
+  /** `merge`: the keys (and values) the singleton lacks. */
+  missing?: Record<string, string>;
 }
 
 interface KindPlan<F> {
@@ -964,10 +1386,16 @@ async function computeKindPlan<F>(
   const actions: PlannedAction[] = [];
   const pins = new Set(record?.pins ?? []);
 
-  const stampedRows = (await PersistApi.find(strategy.collection, {
-    sourcePack: packId,
-    ...(strategy.stampedQuery?.() ?? {}),
-  })) as StampedRow[];
+  if (strategy.policy === 'merge-missing') {
+    return planMergeMissing(strategy, files, record, pins);
+  }
+
+  const stampedRows =
+    (await strategy.loadStamped?.(packId)) ??
+    ((await PersistApi.find(strategy.collection, {
+      sourcePack: packId,
+      ...(strategy.stampedQuery?.() ?? {}),
+    })) as StampedRow[]);
   const stampedByKey = new Map(
     stampedRows.map((r) => [strategy.recordKeyOfRow(r), r]),
   );
@@ -996,7 +1424,7 @@ async function computeKindPlan<F>(
         // Adoption bridge / missing baseline: two-way, the file wins,
         // and the baseline is normalized from what is written.
         if (dbHash !== fileHash) {
-          actions.push({ op: 'update', key, _id: stamped._id, row, hash: fileHash, body: fileBody });
+          actions.push({ op: 'update', key, _id: stamped._id, row, file: f, hash: fileHash, body: fileBody });
         } else {
           actions.push({ op: 'normalize', key, _id: stamped._id, hash: fileHash, body: fileBody, rekey });
         }
@@ -1009,7 +1437,7 @@ async function computeKindPlan<F>(
           actions.push({ op: 'normalize', key, _id: stamped._id, hash: fileHash, body: fileBody, rekey });
         }
       } else if (fileChanged && !dbChanged) {
-        actions.push({ op: 'update', key, _id: stamped._id, row, hash: fileHash, body: fileBody });
+        actions.push({ op: 'update', key, _id: stamped._id, row, file: f, hash: fileHash, body: fileBody });
       } else if (!fileChanged && dbChanged) {
         actions.push({ op: 'keep', key, _id: stamped._id, rekey });
       } else if (fileHash === dbHash) {
@@ -1048,9 +1476,9 @@ async function computeKindPlan<F>(
             `is owned by pack '${prior.sourcePack}'`,
         );
       }
-      actions.push({ op: 'adopt', key, _id: prior._id, row, hash: fileHash, body: fileBody });
+      actions.push({ op: 'adopt', key, _id: prior._id, row, file: f, hash: fileHash, body: fileBody });
     } else {
-      actions.push({ op: 'insert', key, row, hash: fileHash, body: fileBody });
+      actions.push({ op: 'insert', key, row, file: f, hash: fileHash, body: fileBody });
     }
   }
 
@@ -1070,7 +1498,10 @@ async function computeKindPlan<F>(
       continue;
     }
     if (onVanish === 'archive') {
-      actions.push({ op: 'archive', key, _id: r._id });
+      // Already archived on an earlier run: nothing to do, nothing to report.
+      if ((r as { archived?: boolean }).archived !== true) {
+        actions.push({ op: 'archive', key, _id: r._id });
+      }
       continue;
     }
     const dbBody = strategy.canonicalBody(r);
@@ -1098,9 +1529,55 @@ async function computeKindPlan<F>(
   return { strategy, actions };
 }
 
+/**
+ * The merge-missing planner (settings): no stamped rows — the target is
+ * the one `app_settings` singleton. Per file: any key the singleton
+ * lacks → `merge` (the baseline is the file body either way); none →
+ * `keep`. A vanished file → `keep` and its baseline drops. No conflict
+ * is ever emitted for this policy: an operator's value is theirs.
+ */
+async function planMergeMissing<F>(
+  strategy: KindStrategy<F>,
+  files: F[],
+  record: StoredRecord | null,
+  pins: Set<string>,
+): Promise<KindPlan<F>> {
+  const actions: PlannedAction[] = [];
+  const singleton = await loadSettingsSingleton();
+  const values = singleton?.values ?? {};
+  const fileKeys = new Set<string>();
+  for (const f of files) {
+    const key = strategy.recordKeyOf(f);
+    fileKeys.add(key);
+    if (pins.has(key)) {
+      actions.push({ op: 'pinned-skip', key });
+      continue;
+    }
+    const row = strategy.rowOf(f, '');
+    const body = strategy.canonicalBody(row);
+    const hash = hashOf(body);
+    const entries = (f as unknown as SettingsFile).entries;
+    const missing: Record<string, string> = {};
+    for (const e of entries) if (values[e.key] === undefined) missing[e.key] = e.value;
+    if (Object.keys(missing).length > 0) {
+      actions.push({ op: 'merge', key, hash, body, missing });
+    } else {
+      actions.push({ op: 'keep', key, hash, body });
+    }
+  }
+  const label = kindLabel(strategy as KindStrategy<unknown>);
+  for (const [key, baseline] of Object.entries(record?.rows ?? {})) {
+    if (baseline.kind !== label || fileKeys.has(key)) continue;
+    actions.push(pins.has(key) ? { op: 'pinned-skip', key } : { op: 'keep', key, dropBaseline: true });
+  }
+  return { strategy, actions };
+}
+
 interface AppliedKind {
   changes: KindChanges;
   kept: string[];
+  /** merge-missing kinds: files whose missing keys were merged. */
+  merged: string[];
   /** archive-never-reap kinds: rows archived because their file vanished. */
   archived: string[];
   conflicts: PackConflict[];
@@ -1124,9 +1601,11 @@ async function applyKindPlan<F>(
   record: StoredRecord,
 ): Promise<AppliedKind> {
   const { strategy } = plan;
+  const packId = record.packId;
   const out: AppliedKind = {
     changes: { inserted: [], updated: [], adopted: [], deleted: [] },
     kept: [],
+    merged: [],
     archived: [],
     conflicts: [],
     pinnedSkipped: 0,
@@ -1142,20 +1621,38 @@ async function applyKindPlan<F>(
   for (const a of plan.actions) {
     switch (a.op) {
       case 'insert':
-        await PersistApi.save(strategy.collection, a.row!);
+        if (strategy.write) await strategy.write('insert', a.file as never, packId);
+        else await PersistApi.save(strategy.collection, a.row!);
         baseline(a);
         out.changes.inserted.push(a.key);
         break;
       case 'update':
-        await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
+        if (strategy.write) await strategy.write('update', a.file as never, packId, a._id);
+        else await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
         baseline(a);
         out.changes.updated.push(a.key);
         break;
       case 'adopt':
-        await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
+        if (strategy.write) await strategy.write('adopt', a.file as never, packId, a._id);
+        else await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
         baseline(a);
         out.changes.adopted.push(a.key);
         break;
+      case 'merge': {
+        // Re-read at apply: an earlier file of this run may have merged.
+        const singleton = await loadSettingsSingleton();
+        const values = { ...(singleton?.values ?? {}) };
+        for (const [k, v] of Object.entries(a.missing ?? {})) {
+          if (values[k] === undefined) values[k] = v;
+        }
+        await PersistApi.save(Collections.AppSettings, {
+          ...(singleton?._id ? { _id: singleton._id } : {}),
+          values,
+        });
+        baseline(a);
+        out.merged.push(a.key);
+        break;
+      }
       case 'delete':
         await PersistApi.delete(strategy.collection, a._id!);
         delete record.rows[a.key];
@@ -1163,6 +1660,7 @@ async function applyKindPlan<F>(
         break;
       case 'keep':
         if (a.dropBaseline) delete record.rows[a.key];
+        else if (a.hash !== undefined) baseline(a); // merge-missing: the file is the baseline
         await rekeyRow(strategy, a);
         out.kept.push(a.key);
         break;
@@ -1173,7 +1671,6 @@ async function applyKindPlan<F>(
         delete record.rows[a.key];
         out.archived.push(a.key);
         break;
-      case 'merge':
       case 'submit':
         throw new Error(`PackApi: op '${a.op}' has no apply for kind '${strategy.kind}'`);
       case 'converge':
@@ -1206,6 +1703,8 @@ function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
       strategy: descriptorBankStrategy as KindStrategy<unknown>,
       files: content.descriptorBanks,
     },
+    { strategy: settingsStrategy as KindStrategy<unknown>, files: content.settings },
+    { strategy: subjectStrategy(content.subjects) as KindStrategy<unknown>, files: content.subjects },
   ];
   // Every active document kind, files or none: a kind whose files ALL
   // vanished must still be planned so its stamped rows are reaped.
@@ -1226,6 +1725,8 @@ function emptyContent(root: string): PackContent {
     documents: new Map(activeDocumentKinds().map((s) => [s.kind, []])),
     quantityYaml: null,
     descriptorBanks: [],
+    settings: [],
+    subjects: [],
   };
 }
 
@@ -1235,9 +1736,14 @@ interface KindPlanInput<F> {
 }
 
 /** The strategy a record key belongs to, by its prefix. */
-function strategyForKey(key: string, root: string): KindStrategy<unknown> {
+function strategyForKey(key: string, content: PackContent): KindStrategy<unknown> {
+  const root = content.root;
   if (key.startsWith('/descriptor-banks/')) {
     return descriptorBankStrategy as KindStrategy<unknown>;
+  }
+  if (key.startsWith('/settings/')) return settingsStrategy as KindStrategy<unknown>;
+  if (key.startsWith('/subjects/')) {
+    return subjectStrategy(content.subjects) as KindStrategy<unknown>;
   }
   for (const spec of activeDocumentKinds()) {
     if (key.startsWith(`/${spec.contentDir}/`)) {
@@ -1245,6 +1751,37 @@ function strategyForKey(key: string, root: string): KindStrategy<unknown> {
     }
   }
   return domainStrategy as KindStrategy<unknown>;
+}
+
+/**
+ * The stamped DB row at a record key, rendered to the preimage shape —
+ * for settings, the singleton's values for the file's keys (there is no
+ * stamped row; `yours` is what the operator has).
+ */
+async function dbRowForKey(
+  strategy: KindStrategy<unknown>,
+  packId: string,
+  key: string,
+  file: unknown | null,
+): Promise<StampedRow | null> {
+  if (strategy.kind === 'settings') {
+    if (!file) return null;
+    const singleton = await loadSettingsSingleton();
+    const values = singleton?.values ?? {};
+    return {
+      settings: (file as SettingsFile).entries.map((e) => ({
+        key: e.key,
+        value: values[e.key] ?? '',
+      })),
+    };
+  }
+  const rows =
+    (await strategy.loadStamped?.(packId)) ??
+    ((await PersistApi.find(strategy.collection, {
+      sourcePack: packId,
+      ...(strategy.stampedQuery?.() ?? {}),
+    })) as StampedRow[]);
+  return rows.find((r) => strategy.recordKeyOfRow(r) === key) ?? null;
 }
 
 /** The file (of any kind) at a record key, or null. */
@@ -1275,13 +1812,14 @@ interface ReadPack {
 function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
   const failures = new Map<string, PackFailure>();
   for (const k of kindsOf(emptyContent('/'))) {
-    if (!k.strategy.flatKeyOf) continue;
+    if (!k.strategy.flatKeyOf && !k.strategy.flatKeysOf) continue;
     const seen = new Map<string, { packId: string; relFile: string }>();
     for (const rp of packs) {
       const files = filesOfKind(rp.content, k.strategy);
       for (const f of files) {
-        const key = k.strategy.flatKeyOf(f);
+        const keys = k.strategy.flatKeysOf?.(f) ?? [k.strategy.flatKeyOf!(f)];
         const relFile = (f as { relFile: string }).relFile;
+        for (const key of keys) {
         const first = seen.get(key);
         if (!first) {
           seen.set(key, { packId: rp.pack.manifest.id, relFile });
@@ -1298,6 +1836,7 @@ function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
             file: relFile,
           });
         }
+        }
       }
     }
   }
@@ -1312,6 +1851,10 @@ function filesOfKind(content: PackContent, strategy: KindStrategy<unknown>): unk
       return content.descriptorBanks;
     case 'document':
       return content.documents.get(strategy.documentKind!) ?? [];
+    case 'settings':
+      return content.settings;
+    case 'subject':
+      return content.subjects;
   }
 }
 
@@ -1359,6 +1902,14 @@ async function gatePack(rp: ReadPack): Promise<void> {
   } catch (err) {
     throw new PackStepError('topics', (err as Error).message);
   }
+  for (const k of kindsOf(rp.content)) {
+    if (!k.strategy.gate || k.files.length === 0) continue;
+    try {
+      await k.strategy.gate(packId, k.files);
+    } catch (err) {
+      throw new PackStepError('reconcile', (err as Error).message);
+    }
+  }
 }
 
 /** Plan every kind of a pack against its record. Reads only. */
@@ -1384,6 +1935,8 @@ function emptyResult(packId: string): PackReconcileResult {
     adopted: [],
     deleted: [],
     kept: [],
+    merged: [],
+    archived: [],
     conflicts: [],
     pinnedSkipped: 0,
     normalized: 0,
@@ -1466,6 +2019,8 @@ async function reconcilePack(
     result.adopted.push(...applied.changes.adopted);
     result.deleted.push(...applied.changes.deleted);
     result.kept.push(...applied.kept);
+    result.merged.push(...applied.merged);
+    result.archived.push(...applied.archived);
     result.pinnedSkipped += applied.pinnedSkipped;
     result.normalized += applied.normalized;
     record.conflicts.push(...applied.conflicts);
@@ -1513,6 +2068,20 @@ async function reconcilePack(
     const touched = written + c.deleted.length + applied.archived.length;
     if (touched > 0 || content.documents.has(kind)) result.documents[kind] = written;
     if (touched > 0) await invalidateDocumentKind(kind);
+  }
+
+  // Settings: the sync read cache is a full reload (AppApi unchanged).
+  if (result.merged.length > 0) await AppSettings.warm();
+
+  // Subjects: drop the RESIDENT catalogues' caches (at boot they are not
+  // yet cloned and warm from these rows afterwards).
+  const sub = perKind.get('subject');
+  if (sub) {
+    const c = sub.changes;
+    if (c.inserted.length + c.updated.length + c.adopted.length + sub.archived.length > 0) {
+      StuffApi.findByTemplatePath<SubjectCatalogue>(TemplatePaths.subjectCatalogue)?.invalidateCache();
+      StuffApi.findByTemplatePath<ChannelCatalogue>(TemplatePaths.channelCatalogue)?.invalidateCache();
+    }
   }
 
   const db = perKind.get('descriptor-banks')!;
@@ -1761,15 +2330,11 @@ export class PackLogic extends ApiLogic {
     const keys = path ? [path] : (record?.conflicts ?? []).map((c) => c.path);
     const entries: PackDiffEntry[] = [];
     for (const key of keys) {
-      const strategy = strategyForKey(key, content.root);
+      const strategy = strategyForKey(key, content);
       const baseline = record?.rows[key] ?? null;
       const file = fileForKey(content, key);
       const theirsBody = file ? strategy.canonicalBody(strategy.rowOf(file, packId)) : null;
-      const rows = (await PersistApi.find(strategy.collection, {
-        sourcePack: packId,
-        ...(strategy.stampedQuery?.() ?? {}),
-      })) as StampedRow[];
-      const dbRow = rows.find((r) => strategy.recordKeyOfRow(r) === key) ?? null;
+      const dbRow = await dbRowForKey(strategy, packId, key, file);
       const yoursBody = dbRow ? strategy.canonicalBody(dbRow) : null;
       const side = (body: string | null): PackDiffBody | null =>
         body === null ? null : { hash: hashOf(body), body: renderBody(body) };
@@ -1797,13 +2362,9 @@ export class PackLogic extends ApiLogic {
     const record = await loadRecord(packId);
     if (!record) throw new Error(`PackApi: pack '${packId}' has no install record`);
     const content = readContent(pack);
-    const strategy = strategyForKey(path, content.root);
+    const strategy = strategyForKey(path, content);
     const file = fileForKey(content, path);
-    const rows = (await PersistApi.find(strategy.collection, {
-      sourcePack: packId,
-      ...(strategy.stampedQuery?.() ?? {}),
-    })) as StampedRow[];
-    const dbRow = rows.find((r) => strategy.recordKeyOfRow(r) === path) ?? null;
+    const dbRow = await dbRowForKey(strategy, packId, path, file);
 
     if (mode === 'keep-pin') {
       if (!record.pins.includes(path)) record.pins.push(path);
@@ -1827,7 +2388,21 @@ export class PackLogic extends ApiLogic {
       }
       const row = strategy.rowOf(file, packId);
       const body = strategy.canonicalBody(row);
-      await PersistApi.save(strategy.collection, dbRow?._id ? { ...row, _id: dbRow._id } : row);
+      if (strategy.kind === 'settings') {
+        // Take the pack: every key of the file at the pack's value.
+        const singleton = await loadSettingsSingleton();
+        const values = { ...(singleton?.values ?? {}) };
+        for (const e of (file as SettingsFile).entries) values[e.key] = e.value;
+        await PersistApi.save(Collections.AppSettings, {
+          ...(singleton?._id ? { _id: singleton._id } : {}),
+          values,
+        });
+        await AppSettings.warm();
+      } else if (strategy.write) {
+        await strategy.write(dbRow?._id ? 'update' : 'insert', file, packId, dbRow?._id);
+      } else {
+        await PersistApi.save(strategy.collection, dbRow?._id ? { ...row, _id: dbRow._id } : row);
+      }
       record.rows[path] = { kind: kindLabel(strategy), hash: hashOf(body), body };
       record.conflicts = record.conflicts.filter((c) => c.path !== path);
       await saveRecord(record);

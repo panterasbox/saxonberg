@@ -1,0 +1,8 @@
+# status — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Status — the max rendered length (characters) of a Character's status
+  # one-liner (a one-liner, not a paragraph).
+  - key: status.maxLength
+    value: "100"

@@ -6,7 +6,7 @@
  * `AppSettings` singleton Document); future operator operations
  * (`shutdown()`, MOTD, maintenance mode) land here as the engine grows.
  *
- * **Runtime operations only.** Seeding (`AppSettingsSeeder`) and the boot
+ * **Runtime operations only.** Seeding (the platform pack's `settings` kind) and the boot
  * cache-warm (`AppSettings.warm`) are backend startup infrastructure, NOT
  * methods here — deliberately unlike `WorldClockApi.boot()`, because the
  * clock's boot starts a running subsystem whereas app settings have nothing

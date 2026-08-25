@@ -1,0 +1,22 @@
+# wiki — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # ── wiki: the render budget. A page is community-authored input that
+  # runs a resolver, so every bound below fails with an inline error
+  # rather than a hang. Operator-tunable without a deploy; absent rows
+  # fall through to RenderBudget.DEFAULTS. See docs/subsystems/wiki.md.
+  - key: wiki.render.snippetDepth
+    value: "8"
+
+  - key: wiki.render.maxSnippets
+    value: "200"
+
+  - key: wiki.render.maxComponents
+    value: "100"
+
+  - key: wiki.render.componentTimeoutMs
+    value: "2000"
+
+  - key: wiki.render.maxOutputChars
+    value: "200000"

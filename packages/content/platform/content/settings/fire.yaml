@@ -1,0 +1,38 @@
+# fire — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Fire (combustion driver) — see docs/subsystems/fire.md. SHAPE (the fire
+  # triangle, the energy balance) is code; these are the magnitudes.
+  - key: fire.burnRatePerMin
+    value: "0.5"
+
+  - key: fire.flameTemperatureK
+    value: "1000"
+
+  - key: fire.ignition.waterLatentHeatJPerKg
+    value: "2260000"
+
+  - key: fire.ignition.maxManualDryingK
+    value: "150"
+
+  - key: fire.tickIntervalSeconds
+    value: "30"
+
+  - key: fire.radiantJoulesPerTick
+    value: "700000"
+
+  - key: fire.crossBoundaryFraction
+    value: "0.4"
+
+  - key: fire.flameTemperatureIncompleteK
+    value: "750"
+
+  - key: fire.air.consumePerTick
+    value: "8"
+
+  - key: fire.air.replenishPerTick
+    value: "30"
+
+  - key: fire.air.completeThresholdPct
+    value: "40"

@@ -1,0 +1,55 @@
+# electricity — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Electricity (the shock channel + conduction) — see
+  # docs/subsystems/electricity.md. Real-world-grounded magnitudes: the
+  # multimeter should read what coursework predicts. SHAPE (I=V/R, the
+  # current-division walk) is code; these are the magnitudes.
+  - key: electricity.body.dryResistanceOhms
+    value: "100000"
+
+  - key: electricity.body.wetFactor
+    value: "100"
+
+  - key: electricity.body.geometryFactor
+    value: "20000"
+
+  - key: electricity.contact.geometryFactor
+    value: "0.01"
+
+  - key: electricity.contact.maxOhms
+    value: "1000000000000"
+
+  - key: electricity.resistanceFloorOhms
+    value: "1"
+
+  - key: electricity.letGoAmps
+    value: "0.01"
+
+  - key: electricity.tetanicAmps
+    value: "0.02"
+
+  - key: electricity.fibrillationAmps
+    value: "0.1"
+
+  - key: electricity.burnThresholdAmps
+    value: "0.02"
+
+  - key: electricity.burnSeverityPerAmp
+    value: "10"
+
+  - key: electricity.pool.minConductivity
+    value: "0.005"
+
+  - key: electricity.insulator.maxConductivity
+    value: "0.001"
+
+  - key: electricity.armor.conductiveSkinFactor
+    value: "0.15"
+
+  - key: electricity.sustain.burnSeverityPerAmpSec
+    value: "2"
+
+  - key: electricity.heartRate.arrestDrivePerSec
+    value: "40"

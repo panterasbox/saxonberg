@@ -35,6 +35,8 @@ const OK: PackReconcileResult = {
   adopted: [],
   deleted: [],
   kept: [],
+  merged: [],
+  archived: [],
   conflicts: [],
   pinnedSkipped: 0,
   normalized: 0,
