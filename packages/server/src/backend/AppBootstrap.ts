@@ -19,7 +19,6 @@ import { MaterialApi } from '../mud/api/material';
 import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
-import { ScriptSeeder } from './ScriptSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
@@ -140,7 +139,10 @@ export class AppBootstrap {
     // into the DB (base-library: materials, biomes, quantity units;
     // species-and-names: the species/clade tree + char-gen name banks;
     // arcane-descriptors: the unidentified-appearance pools; newbie-wilds:
-    // the frontier onboarding zone). Three-way against each pack's
+    // the frontier onboarding zone; saxonberg-lounge: the lounge's msh
+    // world scripts — the `documents` kinds ride the same installer, so
+    // the per-collection seeders below retire one by one as their
+    // content becomes a pack). Three-way against each pack's
     // `pack_installs` record; conflicts are reported, never merged.
     // The installer is the
     // source-of-truth-is-the-file replacement for seeding the migrated
@@ -167,7 +169,13 @@ export class AppBootstrap {
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
           `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
           `${r.pinnedSkipped} pinned (skipped), ` +
-          `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)`
+          `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)` +
+          (Object.keys(r.documents).length > 0
+            ? ', ' +
+              Object.entries(r.documents)
+                .map(([k, n]) => `${n} ${k} document(s)`)
+                .join(', ')
+            : '')
       );
     }
 
@@ -182,7 +190,6 @@ export class AppBootstrap {
     await EmoteSeeder.run();
     await RecipeSeeder.run();
     await BlueprintSeeder.run();
-    await ScriptSeeder.run();
     await ChannelSeeder.run();
     await AppSettingsSeeder.run();
     // Groups before parcels: a parcel's owner group (`duncan-hall`) is

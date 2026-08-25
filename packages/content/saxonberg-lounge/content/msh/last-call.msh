@@ -7,7 +7,7 @@
 # a perpetual `every` reminder that fires on a cadence until someone
 # `stop`s it (the barge-in cancellation path).
 #
-# Run it with `run /domain/lounge/scripts/last-call` (an operator beat) or
+# Run it with `run /domain/lounge/msh/last-call` (an operator beat) or
 # from an NPC bartender's brain.
 say "Last call! Get your final orders in."
 wait 5m

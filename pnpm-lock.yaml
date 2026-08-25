@@ -106,6 +106,8 @@ importers:
 
   packages/content/newbie-wilds: {}
 
+  packages/content/saxonberg-lounge: {}
+
   packages/content/species-and-names: {}
 
   packages/server:
@@ -119,6 +121,9 @@ importers:
       '@saxonberg/content-newbie-wilds':
         specifier: workspace:*
         version: link:../content/newbie-wilds
+      '@saxonberg/content-saxonberg-lounge':
+        specifier: workspace:*
+        version: link:../content/saxonberg-lounge
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:../content/species-and-names

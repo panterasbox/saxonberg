@@ -6,8 +6,9 @@
  *    a `Script` AST (no error), and round-trips through `format()`
  *    idempotently (so the bar's authored recipe-/coroutine-scripts are
  *    real source the CMS can show + edit, not opaque content);
- *  - **the `ScriptSeeder` banks them** into the path-addressed store at
- *    `/domain/lounge/scripts/<name>`, idempotently (the live-content wire);
+ *  - **the `saxonberg-lounge` pack installs them** into the path-addressed
+ *    store at `/domain/lounge/msh/<name>` (the `msh` document kind),
+ *    idempotently — a second install is all-zero (the live-content wire);
  *  - **the engine runs those shapes paced over the real bus** — a
  *    multi-statement script dispatches each statement through the bus, and
  *    a `wait` suspends the detached run until the GAME clock advances (the
@@ -35,8 +36,15 @@ import { ContainmentApi } from "../../../api/containment";
 import { CommandApi } from "../../../api/command";
 import { ScriptApi } from "../../../api/script";
 import { WorldClockApi } from "../../../api/worldclock";
-import { StoredDocument } from "../../document/StoredDocument";
-import { ScriptSeeder } from "../../../../backend/ScriptSeeder";
+import { PackApi } from "../../../api/pack";
+import {
+  stubPersist,
+  quietConsole,
+  rowsOfKind,
+  writePack,
+  writeScriptFile,
+  cleanupPacks,
+} from "../../../obj/api/__tests__/pack-harness";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import {
   PersistenceManager,
@@ -44,14 +52,16 @@ import {
 } from "../../../../backend/PersistenceManager";
 import type { EnvelopeTemplate } from "@saxonberg/types";
 
+// The authored exemplars live in the `saxonberg-lounge` content pack
+// (`content/msh/*.msh`), not in the kernel tree.
 const SCRIPTS_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  "../../../domain/lounge/scripts",
+  "../../../../../../content/saxonberg-lounge/content/msh",
 );
 const DEMO_SCRIPTS = ["martini", "daiquiri", "last-call"];
 
 function readDemo(name: string): string {
-  return readFileSync(join(SCRIPTS_DIR, `${name}.script`), "utf-8");
+  return readFileSync(join(SCRIPTS_DIR, `${name}.msh`), "utf-8");
 }
 
 const TestGiverBase = CommandGiverMixin(
@@ -124,47 +134,46 @@ describe("authored demo scripts are valid language", () => {
   });
 });
 
-/* ───────────────── ScriptSeeder banks them live ───────────────── */
+/* ───────────── the lounge pack installs them live ───────────── */
 
-describe("ScriptSeeder banks the authored scripts", () => {
-  let store: Map<string, Record<string, unknown>>;
-
+describe("the saxonberg-lounge pack installs the authored scripts", () => {
   beforeEach(() => {
-    store = new Map();
-    let idc = 0;
-    const pm = PersistenceManager.get();
-    vi.spyOn(pm, "isConnected").mockReturnValue(true);
-    vi.spyOn(pm, "find").mockImplementation(
-      async (_c: string, query: Record<string, unknown>) =>
-        [...store.values()].filter((d) =>
-          Object.entries(query).every(([k, v]) => d[k] === v),
-        ) as never,
-    );
-    vi.spyOn(pm, "save").mockImplementation(
-      async (_c: string, doc: Record<string, unknown>) => {
-        const id = (doc._id as string | undefined) ?? `id-${idc++}`;
-        store.set(id, { ...doc, _id: id });
-        return id;
-      },
-    );
+    stubPersist();
+    quietConsole();
   });
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    cleanupPacks();
+  });
 
-  it("seeds each .script at /domain/lounge/scripts/<name>, idempotently", async () => {
-    const inserted = await ScriptSeeder.run();
-    expect(inserted).toBeGreaterThanOrEqual(DEMO_SCRIPTS.length);
+  it("installs each .msh at /domain/lounge/msh/<name>, idempotently", async () => {
+    const root = writePack("saxonberg-lounge", [], { root: "/domain/lounge" });
+    for (const name of DEMO_SCRIPTS) writeScriptFile(root, name, readDemo(name));
 
-    const martini = await StoredDocument.findByPath(
-      "/domain/lounge/scripts/martini",
+    const [first] = await PackApi.install([root]);
+    expect(first!.inserted.sort()).toEqual(
+      DEMO_SCRIPTS.map((n) => `/msh/${n}`).sort(),
     );
-    expect(martini).not.toBeNull();
-    expect(martini!.getKind()).toBe("script");
-    expect(martini!.getOwner()).toBe("/domain/lounge");
-    expect((martini!.getData().source as string)).toBe(readDemo("martini"));
+    expect(first!.documents).toEqual({ msh: DEMO_SCRIPTS.length });
 
-    // Re-running inserts nothing (matched by path).
-    const again = await ScriptSeeder.run();
-    expect(again).toBe(0);
+    const rows = rowsOfKind("msh");
+    expect(rows).toHaveLength(DEMO_SCRIPTS.length);
+    const martini = rows.find((r) => r.path === "/domain/lounge/msh/martini")!;
+    expect(martini.owner).toBe("/domain/lounge");
+    expect(martini.sourcePack).toBe("saxonberg-lounge");
+    expect((martini.data as { source: string }).source).toBe(readDemo("martini"));
+
+    // A second install writes nothing (three-way: same / same).
+    const [again] = await PackApi.install([root]);
+    expect([
+      ...again!.inserted,
+      ...again!.updated,
+      ...again!.adopted,
+      ...again!.deleted,
+      ...again!.kept,
+      ...again!.conflicts,
+    ]).toEqual([]);
+    expect(rowsOfKind("msh")).toHaveLength(DEMO_SCRIPTS.length);
   });
 });
 
