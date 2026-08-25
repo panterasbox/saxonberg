@@ -148,6 +148,15 @@ export class TemplateApi {
    * Used by `DomainHook.aroundDelete`. Looks up the doc by `_id` to
    * discover its path and class — the delete primitive only carries an id.
    */
+  /**
+   * Every distinct backing `class` path across the templates collection —
+   * the blueprint catalogue's derive input (one structural blueprint per
+   * class). Strings only; a malformed row's `class` is dropped.
+   */
+  public static async distinctClasses(): Promise<string[]> {
+    return logic().distinctClasses();
+  }
+
   public static async validateFolderLeafDelete(id: string): Promise<void> {
     return logic().validateFolderLeafDelete(id);
   }

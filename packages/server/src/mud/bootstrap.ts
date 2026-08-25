@@ -42,9 +42,11 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // Resolvable via `CraftingApi` after this entry's postRegister fires.
   { templatePath: '/obj/RecipeCatalogue' },
   // BlueprintCatalogue singleton — the Studio composition catalogue's runtime
-  // index. Warmed at postRegister from the `blueprints` collection (populated
-  // by `BlueprintSeeder.run` earlier in boot). Resolvable via `StudioApi`'s
-  // catalog ops after this entry's postRegister fires.
+  // index. At postRegister it REBUILDS the derived skeleton (one blueprint
+  // per backing class, a cache in `blueprints`) and warms from it plus the
+  // curated `documents {kind: blueprint}` rows the platform pack installed
+  // earlier in boot. Resolvable via `StudioApi`'s catalog ops after this
+  // entry's postRegister fires.
   { templatePath: '/obj/BlueprintCatalogue' },
   // The two seeded organizations — the Compact's own press office and the
   // Office of the Prime Minister. Warmed here rather than stood up lazily

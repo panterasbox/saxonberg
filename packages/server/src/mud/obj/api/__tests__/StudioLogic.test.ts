@@ -27,6 +27,7 @@ import { HelpApi } from '../../../api/help';
 import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { ProvenanceApi } from '../../../api/provenance';
+import { DocumentApi } from '../../../api/document';
 import { SourceTreeApi } from '../../../api/source-tree';
 import { HotReloadApi } from '../../../api/hot-reload';
 import { TemplateApi, TemplateError } from '../../../api/template';
@@ -210,9 +211,30 @@ function makeFakeCatalogue(): BlueprintCatalogue {
 }
 
 describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => {
+  let docSave: ReturnType<typeof vi.fn>;
   beforeEach(() => {
-    vi.spyOn(Blueprint.prototype, 'save').mockResolvedValue(undefined);
+    // The curated layer is a `kind: 'blueprint'` document on /blueprints/;
+    // DocumentApi.save records provenance itself (no synthetic path here).
+    docSave = vi.spyOn(DocumentApi, 'save').mockResolvedValue(undefined) as never;
     vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined);
+  });
+
+  it('writes the curated document at /blueprints/<id> and never a second provenance row', async () => {
+    stubAuthorGateOpen();
+    const catalogue = makeFakeCatalogue();
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(catalogue as unknown as never);
+    const r = await StudioApi.publishBlueprint({
+      name: 'Coin',
+      kind: 'concrete',
+      baseClass: 'Thing',
+      mixinNames: ['GlobbableMixin'],
+    });
+    expect(r.disposition).toBe('committed');
+    expect(docSave).toHaveBeenCalledTimes(1);
+    expect(docSave.mock.calls[0]![0]).toBe(`/blueprints/${r.blueprintId}`);
+    expect(docSave.mock.calls[0]![1]).toBe('blueprint');
+    expect(docSave.mock.calls[0]![2]).toMatchObject({ blueprintId: r.blueprintId, name: 'Coin', baseClass: 'Thing' });
+    expect(ProvenanceApi.recordAuthoring).not.toHaveBeenCalled();
   });
 
   it('reuses the existing blueprintId on a signature collision (rename)', async () => {
@@ -300,7 +322,7 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
     expect(record).not.toHaveBeenCalled();
   });
 
-  it('records an AuthoringEvent against the synthetic blueprint path', async () => {
+  it('attributes the naming act through the document store, keyed on the document path', async () => {
     stubAuthorGateOpen();
     const catalogue = makeFakeCatalogue();
     vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(
@@ -309,6 +331,7 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
     const record = vi
       .spyOn(ProvenanceApi, 'recordAuthoring')
       .mockResolvedValue(undefined);
+    const docSave = vi.spyOn(DocumentApi, 'save').mockResolvedValue(undefined);
 
     const out = await StudioApi.publishBlueprint({
       name: 'Attributed',
@@ -317,11 +340,16 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
       mixinNames: ['NamedMixin'],
     });
     expect(out.disposition).toBe('committed');
-    expect(record).toHaveBeenCalledWith({
-      path: `/obj/BlueprintCatalogue/${out.blueprintId}`,
-    });
+    // ONE ledger row, written by DocumentApi.save keyed on the document path
+    // — the former synthetic per-id path is gone.
+    expect(docSave).toHaveBeenCalledWith(
+      `/blueprints/${out.blueprintId}`,
+      'blueprint',
+      expect.objectContaining({ blueprintId: out.blueprintId }),
+    );
+    expect(record).not.toHaveBeenCalled();
     // There is no actor parameter — the anti-spoof contract (author derives
-    // from context inside ProvenanceLogic, never a publishBlueprint arg).
+    // from context inside DocumentLogic, never a publishBlueprint arg).
   });
 });
 

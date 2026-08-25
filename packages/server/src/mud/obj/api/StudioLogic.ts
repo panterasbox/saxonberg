@@ -15,6 +15,7 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type { AnyConstructor } from '../../api/mixin';
 import { ProvenanceApi } from '../../api/provenance';
+import { DocumentApi } from '../../api/document';
 import { TemplateApi, TemplateError } from '../../api/template';
 import { Template } from '../../lib/stuff/Template';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../api/source-tree';
@@ -103,13 +104,11 @@ const PALETTE_BASE_CLASSES = Object.keys(
 const CATALOGUE_PATH = '/obj/BlueprintCatalogue';
 
 /**
- * Synthetic provenance path for a blueprint's naming act. The curated
- * commons has no per-owner namespace, so `publishBlueprint` attributes the
- * naming act against this stable per-id path.
+ * Where a published curated blueprint's document lands — the platform's
+ * own `/blueprints/` branch (the `/emotes/` convention: untitled ⇒ the
+ * state; the pack that later ships the id adopts it by natural key).
  */
-function blueprintProvenancePath(blueprintId: string): string {
-  return `${CATALOGUE_PATH}/${blueprintId}`;
-}
+const BLUEPRINT_MINT_BRANCH = '/blueprints';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 /** Root of the mudlib source tree (`.../src/mud`) — the classification scan. */
@@ -774,15 +773,18 @@ export class StudioLogic extends ApiLogic {
     bp.parent = input.parent ?? '';
     bp.blessed = input.blessed ?? false;
     bp.description = input.description ?? '';
-    await bp.save();
-    catalogue.upsert(bp);
 
-    // Attribute the naming act to the context-derived author (never a param).
-    // `Blueprint.save` bypasses the `saveTemplate` chokepoint, so the row is
-    // recorded here against the synthetic per-id provenance path.
-    await ProvenanceApi.recordAuthoring({
-      path: blueprintProvenancePath(blueprintId),
-    });
+    // The curated layer's source of truth is a `kind: 'blueprint'` document
+    // on the platform's own `/blueprints/` branch (untitled ⇒ the state —
+    // the `/emotes/` convention). `DocumentApi.save` gates the write,
+    // stamps the owner, and records provenance keyed on the document path
+    // (one ledger row, not two — the former synthetic per-id path is gone).
+    await DocumentApi.save(
+      `${BLUEPRINT_MINT_BRANCH}/${blueprintId}`,
+      'blueprint',
+      bp.toCuratedData() as unknown as Record<string, unknown>,
+    );
+    catalogue.upsert(bp);
 
     return { disposition: 'committed', blueprintId };
   }

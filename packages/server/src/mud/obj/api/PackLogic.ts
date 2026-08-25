@@ -42,6 +42,7 @@ import { Recipe } from '../../lib/craft/Recipe';
 import { AppSettings } from '../../lib/config/AppSettings';
 import { GroupApi } from '../../api/group';
 import type RecipeCatalogue from '../RecipeCatalogue';
+import type BlueprintCatalogue from '../BlueprintCatalogue';
 import type SubjectCatalogue from '../SubjectCatalogue';
 import type ChannelCatalogue from '../ChannelCatalogue';
 import type {
@@ -1978,6 +1979,11 @@ async function invalidateDocumentKind(kind: string): Promise<void> {
       // the next char-gen suggest.
       NameBank.clearCache();
       return;
+    case 'blueprint': {
+      const cat = StuffApi.findByTemplatePath<BlueprintCatalogue>('/obj/BlueprintCatalogue');
+      if (cat) await cat.invalidateCache();
+      return;
+    }
     default:
       return;
   }

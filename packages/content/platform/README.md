@@ -12,3 +12,5 @@ that makes it a real pack zero is later).
 Every settings key is unique across the install set (two files claiming
 one key fail the claimant pack at `flat-key`); so are subject titles and
 their surface names. The per-key comments travel with their keys.
+| `content/blueprints/<blueprintId>.yaml` | `blueprint` — the curated overlay of the Studio composition catalogue: named / blessed compositions and logic-bearing kinds, matched to the derived skeleton by structural signature (a `classPath` is introspected) | three-way, like any document kind; the derived skeleton itself is a cache `BlueprintCatalogue.rebuild()` regenerates at boot |
+| `content/blueprints/<blueprintId>.yaml` | `blueprint` — the curated overlay of the Studio composition catalogue: named / blessed compositions and logic-bearing kinds, matched to the derived skeleton by structural signature (a `classPath` is introspected) | three-way, like any document kind; the derived skeleton itself is a cache `BlueprintCatalogue.rebuild()` regenerates at boot |

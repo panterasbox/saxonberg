@@ -479,3 +479,28 @@ describe('the recipe document kind', () => {
     expect(documentRows()).toHaveLength(0);
   });
 });
+
+/* ───────────── the blueprint kind: one cell ───────────── */
+
+describe('the blueprint document kind', () => {
+  it('installs a curated blueprint at /platform/blueprints/<id> and adopts by blueprintId', async () => {
+    store.rows.push({
+      _id: 'minted',
+      __col: 'documents',
+      path: '/blueprints/coin',
+      owner: '/obj/Avatar/x',
+      kind: 'blueprint',
+      data: { blueprintId: 'coin', name: 'Coin', baseClass: 'Thing' },
+    });
+    const packRoot = writePack('platform', [], { root: '/platform' });
+    writeDocumentFile(packRoot, 'blueprints', 'coin', { name: 'Coin', kind: 'concrete', baseClass: 'Thing', classPath: '/obj/Coin' });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.adopted).toEqual(['/blueprints/coin']);
+    expect(rowsOfKind('blueprint')[0]).toMatchObject({
+      _id: 'minted',
+      path: '/platform/blueprints/coin',
+      owner: '/platform',
+      data: { blueprintId: 'coin', classPath: '/obj/Coin' },
+    });
+  });
+});

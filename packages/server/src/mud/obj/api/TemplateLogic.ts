@@ -3,6 +3,8 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
+import { Collections } from '../../lib/persistence/Collections';
+import { PersistApi } from '../../api/persist';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { ZoneApi } from '../../api/zone';
@@ -188,6 +190,13 @@ export class TemplateLogic extends ApiLogic {
           `author by cloning/customizing wizard-made templates`,
       );
     }
+  }
+
+  /** See {@link TemplateApi.distinctClasses}. */
+  @CallSecurity(TemplateApiCallers)
+  public async distinctClasses(): Promise<string[]> {
+    const raw = await PersistApi.distinct(Collections.Content, 'class');
+    return raw.filter((c): c is string => typeof c === 'string' && c.length > 0);
   }
 
   /** See {@link TemplateApi.validateFolderLeafSave}. */

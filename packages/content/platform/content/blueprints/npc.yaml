@@ -1,0 +1,10 @@
+blueprintId: npc
+name: NPC
+kind: composition
+baseClass: Character
+classPath: /obj/NPC
+parent: creatures
+blessed: true
+description: 'A non-player character: a Behaved, post-registering Character. Behaviour is supplied as data (the `behaviors:` spec), so the class itself is a bare composition — the reusable NPC shell.
+
+  '

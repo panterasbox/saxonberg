@@ -3,12 +3,16 @@
  * base + effective mixin set, named and (optionally) blessed for the CMS
  * Studio composer's class picker.
  *
- * NOT a Stuff and NOT a template. A blueprint is **authored reference data**
- * (the `Recipe` precedent): a {@link Document} in the `blueprints` collection,
- * loaded by the {@link BlueprintCatalogue} singleton, seeded at boot by
- * `BlueprintSeeder` (a derived skeleton from every backing class + a curated
- * overlay of named/blessed compositions). It carries no lifecycle or behavior
- * beyond answering questions about its own fields.
+ * NOT a Stuff and NOT a template. A blueprint is reference data in two
+ * layers: the DERIVED skeleton — a {@link Document} per backing class in the
+ * `blueprints` collection (a cache `BlueprintCatalogue.rebuild()` regenerates
+ * at every boot) — and the CURATED overlay — `documents` rows of
+ * `kind: 'blueprint'` the `platform` content pack ships (and an author
+ * publishes at `/blueprints/<id>`), whose source of truth is the document.
+ * `warm()` blesses a derived row in place from its curated document by
+ * signature, or holds a pure-composition curated blueprint in memory. It
+ * carries no lifecycle or behavior beyond answering questions about its own
+ * fields.
  *
  * Two kinds:
  *   - `composition` — a pure mixin-over-base composition (no custom
@@ -37,6 +41,20 @@ import { Document } from '../persistence/Document';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import type { BlueprintKind } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
+import type { StoredDocument } from '../document/StoredDocument';
+
+/** The curated document shape (`data` of a `kind: 'blueprint'` row). */
+export interface CuratedBlueprintData {
+  blueprintId: string;
+  name?: string;
+  kind?: BlueprintKind;
+  baseClass: string;
+  mixinNames?: string[];
+  classPath?: string;
+  parent?: string;
+  blessed?: boolean;
+  description?: string;
+}
 
 export class Blueprint extends Document {
   static collectionName = 'blueprints';
@@ -82,6 +100,56 @@ export class Blueprint extends Document {
 
   /** Optional author-facing description. */
   description: string = '';
+
+  /**
+   * The curated `data` of a `kind: 'blueprint'` document, validated the
+   * way the retired seeder validated it (a string `blueprintId` and
+   * `baseClass`). The signature is NOT stored — `warm` computes it (by
+   * introspecting `classPath` when no `mixinNames` are declared).
+   */
+  static curatedDataOf(doc: StoredDocument): CuratedBlueprintData {
+    return Blueprint.curatedData(doc.getData());
+  }
+
+  static curatedData(data: Record<string, unknown>): CuratedBlueprintData {
+    if (typeof data.blueprintId !== 'string' || !data.blueprintId) {
+      throw new Error(`Blueprint: curated document is missing 'blueprintId'`);
+    }
+    if (typeof data.baseClass !== 'string' || !data.baseClass) {
+      throw new Error(`Blueprint '${data.blueprintId}' missing 'baseClass'`);
+    }
+    const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
+    const out: CuratedBlueprintData = { blueprintId: data.blueprintId, baseClass: data.baseClass };
+    const name = str(data.name);
+    if (name !== undefined) out.name = name;
+    if (data.kind === 'composition' || data.kind === 'concrete') out.kind = data.kind;
+    if (Array.isArray(data.mixinNames)) {
+      out.mixinNames = data.mixinNames.filter((m): m is string => typeof m === 'string');
+    }
+    const classPath = str(data.classPath);
+    if (classPath !== undefined) out.classPath = classPath;
+    const parent = str(data.parent);
+    if (parent !== undefined) out.parent = parent;
+    if (typeof data.blessed === 'boolean') out.blessed = data.blessed;
+    const description = str(data.description);
+    if (description !== undefined) out.description = description.trim();
+    return out;
+  }
+
+  /** The curated document `data` of this blueprint (what `publishBlueprint` writes). */
+  toCuratedData(): CuratedBlueprintData {
+    return {
+      blueprintId: this.blueprintId,
+      name: this.name,
+      kind: this.kind,
+      baseClass: this.baseClass,
+      mixinNames: [...this.mixinNames],
+      classPath: this.classPath,
+      parent: this.parent,
+      blessed: this.blessed,
+      description: this.description,
+    };
+  }
 
   getBlueprintId(): string {
     return this.blueprintId;

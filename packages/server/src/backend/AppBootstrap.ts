@@ -16,7 +16,6 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
-import { BlueprintSeeder } from './BlueprintSeeder';
 import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
 import { WikiSeeder } from './WikiSeeder';
@@ -184,7 +183,6 @@ export class AppBootstrap {
     // chokepoint indirectly via Document.save) and before the
     // BootstrapManager runs the catalogue singletons that warm their
     // caches from these collections.
-    await BlueprintSeeder.run();
     // Groups before parcels: a parcel's owner group (`duncan-hall`) is
     // authored here with its staff members, so the owner-ref resolution the
     // parcel/provisioning path does later converges on the seeded group.

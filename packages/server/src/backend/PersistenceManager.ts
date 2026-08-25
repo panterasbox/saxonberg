@@ -596,6 +596,14 @@ export class PersistenceManager {
   }
 
   /**
+   * The distinct values of `field` across `collectionName` (the
+   * blueprint catalogue's class enumeration). Read-only.
+   */
+  public async distinct(collectionName: string, field: string): Promise<unknown[]> {
+    return this.getCollection(collectionName).distinct(field) as Promise<unknown[]>;
+  }
+
+  /**
    * Find a document by MongoDB _id.
    *
    * @param collectionName - Collection name
