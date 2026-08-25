@@ -430,16 +430,66 @@ store already models exactly that divergence. It is a good story engine
 like a bait-and-switch if handled carelessly. The seam exists; v1 should
 not build on it.
 
-### Controls, so it is a search and not a slot machine
+### Controls — ⭐⭐ ONE mechanic: the pin. Filters retire.
 
-- **Lock one, reroll the other.** Keep the mother, spin fathers. Halves
-  the space and turns rerolling into a search.
-- **Filters** on the legible axes — locality, trade, species.
-- ⭐ **Aspiration survives as the gallery's query.** You say *"I mean to
-  be a medic"* and the gallery biases toward households where that is
-  plausible. It stops being a meaningless field and becomes the search
-  term — which is what it was always trying to be. The declaration
-  survives; only the dead-end field retires.
+An earlier revision listed **filters** ("on the legible axes — locality,
+trade, species") *alongside* pinning. Those are the same act:
+
+> ⚠ *"Filter to Terminus"* and *"pin `Place: Terminus`"* do identical
+> work. With filters free and pins priced (§ *the price escalates*), the
+> escalating cost is meaningless — nobody would ever pay to pin what the
+> control beside it narrows for nothing.
+
+> **User: "I didn't realize filters were still a thing. I thought pins
+> replaced them. You're right it doesn't make sense to have both."**
+
+**They do.** One dial: *how far have you constrained the draw, and what
+does the next roll cost?* A filter was only ever **a pin set before you
+had seen a card** — which § *no pin menu* forbids anyway.
+
+#### ⭐⭐⭐ The rule that sorts this out
+
+> **Narrowing the pool is a pin, and it is priced. Reordering the pool
+> is free.**
+
+Because a sort **removes nothing**. Every household is still reachable;
+you simply meet the relevant part of the pool first. That is not a
+constraint and needs no price.
+
+#### ⭐ Which is how aspiration survives — as a SORT, not a filter
+
+*"I mean to be a medic"* now **biases the ordering**: medic-plausible
+households come up first, and nothing is locked away. The declaration
+still does its onboarding job — a new player who names an intent meets
+relevant families on page one — while the pool stays whole and free.
+
+⭐⭐ This is strictly better than the filter version it replaces. A
+filter would have hidden households a player might have preferred once
+they saw them; a sort cannot.
+
+#### The surviving controls
+
+- **Lock one, reroll the other.** Keep the mother, spin fathers — the
+  original form of the pin, and the reason the pin is cheap to build.
+- **Pin any position cell you can see**, at the escalating price.
+- **Sort by aspiration**, free.
+- ⚠ **No filters, and no pin menu.** Both are ways of choosing a value
+  you have not been shown, which is the direct-authorial-control failure
+  the whole gallery exists to avoid.
+
+#### ⭐ Consequence: species is PINNABLE, and priced
+
+§ *Species — decision A* demotes species to *"a gallery filter, not a
+char-gen field."* With filters retired, species is a **pin** — you can
+have it, and it costs like anything else.
+
+That resolves the open worry about whether making species selectable
+undoes *"the lineage settles what you are"*: **it holds for everyone who
+does not spend on it**, and the players who arrive wanting to be an elf
+can buy it. ⚠ It also **retires a suggestion floated during this
+conversation** — that species be moved to the *unpinnable identity* side
+— which would have been a real product regression for no gain now that
+the price does the work.
 
 ### Reroll is priced, not capped — and the price ESCALATES with pins
 
@@ -708,8 +758,11 @@ returns, is narrative and social — never a blended stat line.
 
 Consequences:
 
-- ⭐ **Species becomes a gallery filter, not a char-gen field** — the
-  same demotion aspiration gets. You say "elf" and get elf-heavy
+- ⭐ **Species becomes a gallery constraint, not a char-gen field** —
+  the same demotion aspiration gets. *(Written as "filter"; filters were
+  since retired into the one pin mechanic — § Controls. Species is a
+  **priced pin**, which preserves the demotion for anyone who does not
+  spend on it.)* You say "elf" and get elf-heavy
   households; the lineage settles what you are.
 - ⚠ **Store the parent species anyway.** Redundant today, since both
   match. It makes a future mixed-parentage option a *content* change to
@@ -781,17 +834,145 @@ You get the **belonging-nowhere fiction** — the most-cited reason
 players want half-elves — at zero taxonomy cost, and the breeding
 question never arises.
 
-#### ⚠ It must be a pinnable draw, never a checkbox
+#### ⚠ It is a constraint you BUY, never a checkbox or a mode
 
 A toggle undoes the species demotion instantly: anyone wanting species X
 with household Y takes it, adoption becomes the norm, and species is a
 free field again with extra steps.
 
-⭐ **Adoption is a property you pin once you have seen it**, like any
-other position cell — and it pays the same escalating price as any other
-pin (§ *the price escalates with the pin count*). Wanting an adopted
-`khazadicus` raised in Terminus is three pins, and the third one hurts.
-That is the whole discouragement: not a rule against it, a cost for it.
+⭐ Instead, *adopted* is **a constraint on the draw, priced on the same
+escalating curve as any other** (§ *the price escalates with the pin
+count*). Wanting an adopted `khazadicus` raised in Terminus is three
+constraints, and the third one hurts. **That is the whole
+discouragement: not a rule against it, a cost for it.**
+
+⚠ Note it is not a *cell* — there is no `Adopted:` column to hold across
+draws. It constrains the **shape** of the card, which is exactly what a
+filter used to be for; § *Controls* retires that distinction, so a shape
+constraint and a value constraint ride one dial and one price.
+
+#### ⭐⭐ Never a mode you "drop into"
+
+**Adoption cards simply appear in the normal gallery, already split.**
+You take one or you do not. No flag, no branch, no second flow — the
+split is a property of the card, not a state of the UI.
+
+That is also what *a draw, not a checkbox* requires: if it is a draw,
+there is nothing to enter. ⭐ And it answers the new-user worry
+directly — **a player who never rolls one never learns the feature
+exists, and loses nothing.**
+
+#### ⭐⭐⭐ The split is PER-SLOT, not per-card
+
+The shapes are a **count on one axis**, not three cases to author. Each
+*raising slot* carries one flag: **did this person also contribute your
+biology?**
+
+| | biology | raised you |
+|---|---|---|
+| ordinary parent | ✅ | ✅ |
+| adoptive / step parent | ❌ | ✅ |
+| absent birth parent | ✅ | ❌ |
+
+| both raisers biological | **0 blanks** | ordinary |
+| one raiser biological | **1 blank** | ⭐ step / blended — *you know half your biology* |
+| neither | **2 blanks** | full adoption |
+
+> **User: "I'm just thinking what it means to draw a split father card
+> and a singleton mother card. Or do both need to be split for your
+> thing to work?"**
+
+**Neither needs the other, and the asymmetric one is the better card.**
+A split father with a singleton mother is the **step family**: you have
+your mother's whole life and your father's whole body, and neither of
+the other halves. That is the sharpest form of *you carry a body you
+cannot explain and a life you did not inherit.*
+
+⭐ And you are not selecting two people. **You take the household** (§
+*the grid compares outcomes*); a blank is a consequence of the household
+you took, not a second choice you make.
+
+#### The blank has THREE states, and belief already models them
+
+> **User: "stepparents… is a little different because you usually know
+> your birth parent."**
+
+Exactly — so the absent half is not binary:
+
+| state | you have |
+|---|---|
+| **unknown** | no record you can reach |
+| **known of** | a name, not a life |
+| **known** | the full record |
+
+⭐⭐ That is `BeliefStore`'s recognized-vs-identified dissociation —
+[belief.md](../../subsystems/belief.md)'s own *"the stranger you keep
+seeing"* — pointed at someone you have never met. **Nothing new to
+build**, and the step case and the full-adoption case become one reveal
+mechanic entered at two different starting points. The record is
+authored and stashed; what changes on discovery is your **belief row**,
+not the record.
+
+#### Body / life, not genotype / phenotype
+
+⚠ A terminology correction that sharpens the split. *"Phenotype from the
+adoptive parents"* cannot work: § *decision A* has **genotype stored,
+phenotype derives** — both halves of that pair come from birth. What the
+raising household supplies is a **third** thing.
+
+| birth parents | raising household |
+|---|---|
+| species, appearance, blood — and everything deriving from them | disposition, competence, trade, place, standing, means, hooks, name |
+
+Which makes the unknown halves symmetric, and gives the whole feature
+its line: **you carry a body you cannot explain and a life you did not
+inherit.**
+
+#### ⭐⭐⭐ Where the game states its opinion on nature vs nurture
+
+> **User: "there's a lot of mystery here still in terms of what we know
+> to be nature vs nurture and the game is going to have some opinion on
+> that. I'd prefer to confront that head on."**
+
+The mechanics have already committed, and the position is unusually
+strong:
+
+| axis | source | mutable |
+|---|---|---|
+| species · appearance · blood | birth | never |
+| disposition | upbringing (claim evidence) | yes — decays, and deeds overwrite |
+| competence | upbringing + your own deeds | yes, and never decays |
+| position | upbringing | entirely |
+
+> ⭐⭐ **Nature fixes what you ARE. Nurture sets where you START.
+> Everything that decides what you DO is earned.**
+
+And the sharp edge: **nature contributes nothing to capability.** No
+inherited stat, no inherited disposition, no inherited skill. Species
+confers capabilities, but those are *species*, not *parentage* — every
+member has them. So the game asserts **biology is not destiny, and not
+even advantage**, which is an unusual position for the genre and is
+already fully implemented.
+
+> ⭐⭐⭐ **Adoption is what makes that observable instead of asserted.**
+> Find your birth mother, learn she was famously wrathful — **and your
+> trait ledger does not move.** Not because a rule forbids it, but
+> because disposition is seeded by the household that raised you and
+> hers was never in your evidence.
+
+The game *demonstrates* its position rather than claiming it — the
+[measurement](../../measurement.md) doctrine's *property, not promise*,
+applied to nature versus nurture. It is the best pedagogical object in
+this whole area.
+
+#### ⚠ The one guardrail: the reveal must not PAY
+
+If finding your birth parents unlocks something mechanically valuable,
+adoption becomes a delayed-gratification power path and everyone hunts
+it. Under the thesis above it **cannot** pay in capability — but it can
+pay in **position**, since a found parent may surface a hook. That is
+legitimate **only if the hook is weighted in the balance table like any
+other**, never as a bonus for having taken the interesting card.
 
 #### One line on handling
 
@@ -1260,9 +1441,11 @@ still where the design risk lives.**
     and unpinnable identity cells keep a narrow pool from reading as
     exhausted, so what is left is purely how often a mismatch should
     surface. Needs the real vocabulary to tune. **Phase 2.**
-17. **Does pinning species undo its demotion to a filter?** *"The
-    lineage settles what you are"* weakens once species is pinnable. It
-    partly does, and the answer is a rate rather than a rule. **Phase 2.**
+17. ✅ **Does pinning species undo its demotion?** *Resolved* — filters
+    retired, so species is a **priced pin** (§ *Controls*). *"The
+    lineage settles what you are"* holds for everyone who does not spend
+    on it, and players who arrive wanting an elf can buy it. What is
+    left is the curve, which is question 15.
 18. **Do birth parents get records, or only a species + appearance
     stamp?** A record makes `missing` a real quest seed; a stamp is
     cheaper and enough for phase 1. **Phase 1 can defer by storing the
@@ -1270,6 +1453,25 @@ still where the design risk lives.**
 19. **Which appearance axes ship?** Eye / hair / skin is the obvious
     three, but only if `Visible` / `RecognitionApi.describe` render them
     — an inert axis is worse than an absent one. **Phase 1.**
+
+### Added 2026-08-25 (adoption model / filters retired)
+
+20. ⚠ **Do the slot role-flags ship in phase 1?** They should — every
+    phase-1 card sets both flags true and no blank ever appears, but
+    retrofitting a slot role onto existing records is a migration while
+    shipping the field is free. The same insurance as *store the parent
+    species anyway*, which has now paid off twice. **The drawn cases
+    (step, full adoption) can arrive whenever the content is worth it,
+    with no schema work.**
+21. **How is a constraint on card SHAPE priced against one on a cell
+    VALUE?** *Adopted* narrows the pool like `Place: Terminus` does, but
+    it is not a cell. Same curve, or its own? **Phase 2**, with the
+    curve.
+22. **Does aspiration-as-a-sort need a second sort axis?** One free
+    ordering is enough for onboarding; whether a player can re-sort
+    later (by place, by trade) without it becoming a filter in disguise
+    is unexamined. ⚠ The test is § *Controls*' rule — **does it remove
+    anything?**
 
 ⭐ Questions **2** (*the hook vocabulary*) and **6** (*how much the
 trade gives you*) are now substantially answered — by
