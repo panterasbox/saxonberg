@@ -72,6 +72,13 @@ export const RESET_DISPOSITIONS: Readonly<
   },
 
   // ── Seeded / pack-installed world content: keep, or the world empties ──
+  [Collections.PackInstalls]: {
+    verb: 'keep',
+    because:
+      'the pack installer’s ledger — the baselines the next boot’s ' +
+      'three-way reconcile compares against; wiping it would re-run the ' +
+      'one-time adoption and silently overwrite operator divergence',
+  },
   [Collections.Content]: {
     verb: 'keep',
     because: 'the world itself; the seeder is insert-only and runs at boot',

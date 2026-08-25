@@ -32,6 +32,15 @@ export enum Collections {
    * `PersistenceManager.#migrateDomainToContent`.
    */
   Content = 'content',
+  /**
+   * The pack installer's per-deployment ledger — one record per content
+   * pack: version, baselines (the hash + canonical body of every row as
+   * installed), pins, open conflicts, failure. Written only by
+   * `PackLogic`. Deliberately its OWN collection so no contribution kind
+   * can ever reach it — the `parcels`-not-in-`content` reasoning (slate
+   * A17.1). See docs/subsystems/content-packs.md.
+   */
+  PackInstalls = 'pack_installs',
   Emotes = 'emotes',
   NameBanks = 'name_banks',
   /**
