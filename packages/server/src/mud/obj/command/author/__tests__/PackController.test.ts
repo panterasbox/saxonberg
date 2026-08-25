@@ -28,9 +28,14 @@ const OK: PackReconcileResult = {
   updated: ['/obj/material/spirit/gin'],
   adopted: [],
   deleted: [],
+  kept: [],
+  conflicts: [],
+  pinnedSkipped: 0,
+  normalized: 0,
   quantityTables: 0,
   nameBanks: 0,
   rehydrated: 1,
+  failure: null,
 };
 
 let note: ReturnType<typeof vi.fn>;

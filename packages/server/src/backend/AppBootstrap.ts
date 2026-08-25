@@ -138,7 +138,10 @@ export class AppBootstrap {
 
     // Content packs — reconcile every shipped `@saxonberg/content-*` pack
     // into the DB (base-library: materials, biomes, quantity units;
-    // species-and-names: the species/clade tree + char-gen name banks).
+    // species-and-names: the species/clade tree + char-gen name banks;
+    // arcane-descriptors: the unidentified-appearance pools; newbie-wilds:
+    // the frontier onboarding zone). Three-way against each pack's
+    // `pack_installs` record; conflicts are reported, never merged.
     // The installer is the
     // source-of-truth-is-the-file replacement for seeding the migrated
     // trees, AND folds in the former standalone `QuantityApi.loadTagTables`
@@ -153,10 +156,17 @@ export class AppBootstrap {
     // marshaller/`tag()` consumers and the DomainHook clone depend on.
     const packResults = await PackApi.install();
     for (const r of packResults) {
+      if (r.failure) {
+        // Already logged loudly by the installer; the boot continues
+        // WITHOUT this pack (a failed pack never bricks the boot).
+        continue;
+      }
       console.info(
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
+          `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
+          `${r.pinnedSkipped} pinned (skipped), ` +
           `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)`
       );
     }

@@ -143,6 +143,11 @@ function nameBankRows(): Row[] {
   return rows.filter((r) => r.__col === 'name_banks');
 }
 
+/** The `content` rows — the store also holds the `pack_installs` record. */
+function contentRows(): Row[] {
+  return rows.filter((r) => r.__col === 'content');
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
   stubPersist();
@@ -166,9 +171,9 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
       '/obj/material/element/iron',
       '/obj/material/spirit/gin',
     ]);
-    expect(rows).toHaveLength(2);
-    expect(rows.every((row) => row.sourcePack === 'p')).toBe(true);
-    expect(rows.find((row) => row.path === '/obj/material/spirit/gin')!.data).toEqual(
+    expect(contentRows()).toHaveLength(2);
+    expect(contentRows().every((row) => row.sourcePack === 'p')).toBe(true);
+    expect(contentRows().find((row) => row.path === '/obj/material/spirit/gin')!.data).toEqual(
       { name: 'gin' },
     );
   });
@@ -190,7 +195,7 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     );
     const [r2] = await PackApi.install([root]);
     expect(r2!.updated).toEqual(['/obj/material/spirit/gin']);
-    expect(rows[0]!.data).toEqual({ name: 'gin', density: 950 });
+    expect(contentRows()[0]!.data).toEqual({ name: 'gin', density: 950 });
 
     // No further edit → no-op (key-order-insensitive equality).
     const [r3] = await PackApi.install([root]);
@@ -204,12 +209,12 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
       { rel: 'obj/material/spirit/rum.yaml' },
     ]);
     await PackApi.install([root]);
-    expect(rows).toHaveLength(2);
+    expect(contentRows()).toHaveLength(2);
 
     rmSync(join(root, 'content/obj/material/spirit/rum.yaml'));
     const [r2] = await PackApi.install([root]);
     expect(r2!.deleted).toEqual(['/obj/material/spirit/rum']);
-    expect(rows.map((row) => row.path)).toEqual(['/obj/material/spirit/gin']);
+    expect(contentRows().map((row) => row.path)).toEqual(['/obj/material/spirit/gin']);
   });
 
   it('adoption: an unstamped legacy row is stamped + matched, no duplicate', async () => {
@@ -228,10 +233,10 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     const [r] = await PackApi.install([root]);
     expect(r!.adopted).toEqual(['/obj/material/spirit/gin']);
     expect(r!.inserted).toEqual([]);
-    expect(rows).toHaveLength(1); // adopted in place — no duplicate
-    expect(rows[0]!._id).toBe('legacy-1');
-    expect(rows[0]!.sourcePack).toBe('p');
-    expect(rows[0]!.data).toEqual({ name: 'gin' }); // matched to file
+    expect(contentRows()).toHaveLength(1); // adopted in place — no duplicate
+    expect(contentRows()[0]!._id).toBe('legacy-1');
+    expect(contentRows()[0]!.sourcePack).toBe('p');
+    expect(contentRows()[0]!.data).toEqual({ name: 'gin' }); // matched to file
 
     // Second run: now stamped → no-op.
     const [r2] = await PackApi.install([root]);
@@ -261,8 +266,14 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
       { rel: 'obj/material/spirit/gin.yaml' },
       { rel: 'obj/material/bad.yaml', class: '/obj/material/DoesNotExist' },
     ]);
-    await expect(PackApi.install([root])).rejects.toThrow(/DoesNotExist/);
-    expect(rows).toHaveLength(0); // all-or-nothing: nothing written
+    // Per-pack failure isolation: boot continues WITHOUT the pack — the
+    // failure is recorded, never thrown (A17.1 / A10.10).
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure?.step).toBe('requires-kernel');
+    expect(r!.failure?.error).toMatch(/DoesNotExist/);
+    expect(contentRows()).toHaveLength(0); // all-or-nothing: nothing written
+    const record = rows.find((row) => row.__col === 'pack_installs')!;
+    expect(record.status).toBe('failed');
   });
 });
 
@@ -386,7 +397,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // Every written row is stamped by one of the shipped packs — no
     // unstamped leakage.
     expect(
-      rows.every(
+      contentRows().every(
         (r) =>
           r.sourcePack === 'base-library' ||
           r.sourcePack === 'species-and-names' ||

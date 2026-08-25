@@ -15,8 +15,8 @@
  *   file edit goes live with no restart.
  * - {@link PackApi.discoverPacks} — read + order the shipped pack manifests.
  *
- * Reconcile is **ownership-scoped and non-destructive**: every installed
- * row (a `domain` template, or a `name_banks` bank) carries a `sourcePack`
+ * Reconcile is **ownership-scoped, non-destructive, and three-way**: every
+ * installed row (a `content` template, or a `name_banks` bank) carries a `sourcePack`
  * stamp; a run only ever touches rows
  * stamped by *that* pack (adopting pre-existing unstamped rows on first
  * install — migration without a wipe). Anything unstamped/other-stamped is
@@ -46,24 +46,157 @@ export interface PackManifest {
   dependsOn: string[];
 }
 
-/** What a single pack's install/sync run touched. */
+/** What a single pack's install/sync run touched. Change lists hold record keys. */
 export interface PackReconcileResult {
   packId: string;
-  /** Template paths newly written. */
+  /** Record keys newly written. */
   inserted: string[];
-  /** Template paths whose stored `data` was overwritten. */
+  /** Record keys whose stored body was overwritten from the file. */
   updated: string[];
   /** Pre-existing unstamped rows stamped + matched to file (migration). */
   adopted: string[];
   /** Stamped rows whose file vanished, removed. */
   deleted: string[];
+  /** Rows the DB changed and the file did not — the DB was kept. */
+  kept: string[];
+  /** Rows both sides changed differently — untouched, recorded, diagnosed. */
+  conflicts: string[];
+  /** Pinned rows skipped before any comparison. Reported every time. */
+  pinnedSkipped: number;
+  /** Rows whose baseline was (re)normalized from what was written — the
+   * one-time adoption count (or a per-row missing-baseline repair). */
+  normalized: number;
   /** (unit, scale) tag pairs (re)loaded; 0 when the pack has no quantity kind. */
   quantityTables: number;
   /** Name banks written (insert/update/adopt); 0 when the pack has none. */
   nameBanks: number;
   /** Live instances re-hydrated (sync only; 0 at boot). */
   rehydrated: number;
+  /** Set when the pack FAILED — boot continued without it (install only). */
+  failure: PackFailure | null;
 }
+
+/** Why a pack's install failed; recorded on its `pack_installs` row. */
+export interface PackFailure {
+  /** `read` | `flat-key` | `requires-kernel` | `topics` | `reconcile`. */
+  step: string;
+  error: string;
+  file?: string;
+}
+
+/** One row's baseline as installed: kind, hash, and the hash's preimage. */
+export interface PackRowBaseline {
+  kind: string;
+  /** `sha256:<hex>` over the canonical body. */
+  hash: string;
+  /**
+   * The canonical serialization the hash was taken over. Stored beside
+   * the hash because `pack diff` must render three bodies, and in the
+   * both-changed cell the baseline content is recoverable from nowhere
+   * else (not the file, not the DB, not a git ref the DB is not pinned
+   * to).
+   */
+  body: string;
+}
+
+/** An open three-way conflict on one row. Recomputed every reconcile. */
+export interface PackConflict {
+  path: string;
+  kind: string;
+  detectedAt: string;
+  baselineHash: string;
+  dbHash: string;
+  packHash: string;
+  reason: 'both-changed' | 'deleted-vs-edited';
+}
+
+/**
+ * The installer's per-deployment ledger row (`pack_installs`, one per
+ * pack) — slate A17.1's schema plus `rows[].body` and `conflicts`.
+ */
+export interface PackInstallRecord {
+  packId: string;
+  version: string;
+  appliedAt: string;
+  /** Who applied: an Avatar templatePath, or `bootstrap` at boot. */
+  principal: string;
+  /** `staged` is reserved (unwritten this cycle). */
+  status: 'applied' | 'staged' | 'failed';
+  failure: PackFailure | null;
+  /** Reserved; written `{}` this cycle. */
+  parameters: Record<string, unknown>;
+  /** Baselines keyed by record key (`/domain/…`, `/name-banks/<key>`). */
+  rows: Record<string, PackRowBaseline>;
+  /** Record keys the operator has claimed; skipped before any comparison. */
+  pins: string[];
+  conflicts: PackConflict[];
+  /** RAM-only kinds that ran (`quantity`) — noted, never baselined. */
+  sideEffects: { kinds: string[] };
+}
+
+/** One discovered-or-recorded pack, as `pack status` reports it. */
+export interface PackStatusReport {
+  packId: string;
+  /** Present in this build's `@saxonberg/content-*` deps. */
+  discovered: boolean;
+  /** The manifest version (when discovered). */
+  manifestVersion: string | null;
+  /** The install record (when one exists for this deployment). */
+  record: Pick<
+    PackInstallRecord,
+    'version' | 'appliedAt' | 'principal' | 'status' | 'failure' | 'pins' | 'conflicts'
+  > | null;
+}
+
+/** One planned action from a dry run. */
+export interface PackPlannedAction {
+  op:
+    | 'insert'
+    | 'update'
+    | 'adopt'
+    | 'delete'
+    | 'keep'
+    | 'converge'
+    | 'conflict'
+    | 'pinned-skip'
+    | 'normalize';
+  key: string;
+  kind: string;
+}
+
+/** The full change set a `sync` WOULD apply — computed, never written. */
+export interface PackDryRunReport {
+  packId: string;
+  actions: PackPlannedAction[];
+  conflicts: string[];
+  pinnedSkipped: number;
+}
+
+/** One body in a three-way diff: the hash and a readable rendering. */
+export interface PackDiffBody {
+  hash: string;
+  body: string;
+}
+
+/** The three bodies for one record key. Absent sides are `null`. */
+export interface PackDiffEntry {
+  path: string;
+  kind: string;
+  /** As installed (from the record). */
+  baseline: PackDiffBody | null;
+  /** The database row now. */
+  yours: PackDiffBody | null;
+  /** The pack file now. */
+  theirs: PackDiffBody | null;
+}
+
+export interface PackDiffReport {
+  packId: string;
+  entries: PackDiffEntry[];
+}
+
+/** How `pack resolve` settles a conflict. There is no bare keep. */
+export type PackResolveMode = 'take-pack' | 'keep-pin' | 'export';
 
 const LOGIC_PATH = '/obj/api/pack';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -101,18 +234,80 @@ export class PackApi {
   /**
    * Runtime pass: reconcile one pack by id AND re-hydrate the affected live
    * singletons (the `pack sync` verb) so file edits go live with no restart.
-   * `packRoot` overrides discovery with an explicit pack-root dir (tests).
+   * `packRoot` overrides discovery with an explicit pack-root dir, and
+   * `packRoots` the install set the flat-key check runs against (tests).
    */
   public static async sync(
     packId: string,
     packRoot?: string,
+    packRoots?: string[],
   ): Promise<PackReconcileResult> {
-    return logic().sync(packId, packRoot);
+    return logic().sync(packId, packRoot, packRoots);
   }
 
   /** Read + order the shipped pack manifests (`dependsOn` honored). */
   public static async discoverPacks(): Promise<PackManifest[]> {
     return logic().discoverPacks();
+  }
+
+  /**
+   * Join the discovered manifests with the `pack_installs` records:
+   * status, version, principal, open conflicts, pins, failure. Reports
+   * undiscovered-but-recorded and discovered-but-unrecorded packs too.
+   */
+  public static async status(packId?: string): Promise<PackStatusReport[]> {
+    return logic().status(packId);
+  }
+
+  /**
+   * The exact change set a `sync` would apply to one pack — computed
+   * from the same planner `sync` applies, with the apply half never
+   * called. Zero writes by construction.
+   */
+  public static async dryRun(
+    packId: string,
+    packRoot?: string,
+  ): Promise<PackDryRunReport> {
+    return logic().dryRun(packId, packRoot);
+  }
+
+  /**
+   * The three bodies (baseline / yours / theirs) for one record key, or
+   * for every open conflict when `path` is omitted. Presentation is the
+   * verb's job; this returns bodies and hashes.
+   */
+  public static async diff(
+    packId: string,
+    path?: string,
+    packRoot?: string,
+  ): Promise<PackDiffReport> {
+    return logic().diff(packId, path, packRoot);
+  }
+
+  /**
+   * Settle a conflict: `take-pack` writes the file's row and rebaselines;
+   * `keep-pin` claims the DB row (a pin — pinned rows never compare
+   * again); `export` writes the DB row back to the pack's workspace
+   * source file and leaves the conflict open for the next `sync` to
+   * observe file == DB and clear it.
+   */
+  public static async resolve(
+    packId: string,
+    path: string,
+    mode: PackResolveMode,
+    packRoot?: string,
+  ): Promise<PackReconcileResult | null> {
+    return logic().resolve(packId, path, mode, packRoot);
+  }
+
+  /** Claim a row: it is skipped before any comparison until unpinned. */
+  public static async pin(packId: string, path: string): Promise<string[]> {
+    return logic().pin(packId, path);
+  }
+
+  /** Release a pin; the next reconcile compares the row again. */
+  public static async unpin(packId: string, path: string): Promise<string[]> {
+    return logic().unpin(packId, path);
   }
 }
 

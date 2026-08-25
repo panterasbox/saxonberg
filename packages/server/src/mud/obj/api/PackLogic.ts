@@ -1,7 +1,15 @@
 // PackLogic — the hot-reloadable logic singleton behind PackApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
+import {
+  readFileSync,
+  readdirSync,
+  statSync,
+  existsSync,
+  writeFileSync,
+  mkdirSync,
+} from 'fs';
+import { createHash } from 'crypto';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { basename, dirname, join, relative } from 'path';
@@ -19,7 +27,22 @@ import { PersistApi } from '../../api/persist';
 import { StuffApi } from '../../api/stuff';
 import { QuantityApi } from '../../api/quantity';
 import { TemplateApi } from '../../api/template';
-import type { PackManifest, PackReconcileResult } from '../../api/pack';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { DiagnosticApi } from '../../api/diagnostics';
+import type {
+  PackManifest,
+  PackReconcileResult,
+  PackFailure,
+  PackInstallRecord,
+  PackConflict,
+  PackStatusReport,
+  PackDryRunReport,
+  PackPlannedAction,
+  PackDiffReport,
+  PackDiffEntry,
+  PackDiffBody,
+  PackResolveMode,
+} from '../../api/pack';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
 
@@ -465,6 +488,14 @@ interface KindStrategy<F> {
   canonicalBody(rowOrFile: Record<string, unknown>): string;
   /** The human label for the refusal message. */
   noun: string;
+  /**
+   * KEY + COLLISION CLASS — set for kinds whose keys form a flat
+   * namespace across the install set (the banks). Absent for the
+   * path-addressed domain kind.
+   */
+  flatKeyOf?(f: F): string;
+  /** The YAML body `--export` writes back to the workspace file. */
+  exportBody(row: Record<string, unknown>): Record<string, unknown>;
 }
 
 /** The row shape PackLogic writes (a `content` template row + the stamp). */
@@ -507,6 +538,12 @@ const domainStrategy: KindStrategy<DomainFile> = {
       hydratorClass: r.hydratorClass ?? undefined,
       data: r.data ?? {},
     }),
+  exportBody: (r) => {
+    const out: Record<string, unknown> = { class: r.class };
+    if (r.hydratorClass) out.hydratorClass = r.hydratorClass;
+    out.data = r.data ?? {};
+    return out;
+  },
 };
 
 interface NameBankRow extends Record<string, unknown> {
@@ -545,6 +582,14 @@ const nameBankStrategy: KindStrategy<NameBankFile> = {
       surname: r.surname ?? [],
       style: r.style ?? undefined,
     }),
+  flatKeyOf: (f) => f.key,
+  exportBody: (r) => {
+    const out: Record<string, unknown> = {};
+    if (r.style !== undefined && r.style !== null) out.style = r.style;
+    out.given = r.given ?? [];
+    out.surname = r.surname ?? [];
+    return out;
+  },
 };
 
 /** The row shape PackLogic writes for a descriptor bank (a flat `Document` + stamp). */
@@ -592,6 +637,15 @@ const descriptorBankStrategy: KindStrategy<DescriptorBankFile> = {
       unidentifiedLong: r.unidentifiedLong ?? '',
       unidentifiedDetails: r.unidentifiedDetails ?? {},
     }),
+  flatKeyOf: (f) => f.key,
+  exportBody: (r) => ({
+    primaryAxis: r.primaryAxis ?? '',
+    secondaryAxis: r.secondaryAxis ?? '',
+    primary: r.primary ?? [],
+    secondary: r.secondary ?? [],
+    unidentifiedLong: r.unidentifiedLong ?? '',
+    unidentifiedDetails: r.unidentifiedDetails ?? {},
+  }),
 };
 
 type KindChanges = Pick<
@@ -599,27 +653,145 @@ type KindChanges = Pick<
   'inserted' | 'updated' | 'adopted' | 'deleted'
 >;
 
+/** The hash of a canonical body: `sha256:<hex>`. No timestamp, no randomness. */
+function hashOf(body: string): string {
+  return 'sha256:' + createHash('sha256').update(body).digest('hex');
+}
+
+/** Render a canonical body (compact sorted JSON) readably, for `pack diff`. */
+function renderBody(body: string): string {
+  try {
+    return YAML.stringify(JSON.parse(body));
+  } catch {
+    return body;
+  }
+}
+
+// --- the install record ----------------------------------------------------
+
+/** A stored record row (the Api type plus its `_id`). */
+type StoredRecord = PackInstallRecord & { _id?: string };
+
+async function loadRecord(packId: string): Promise<StoredRecord | null> {
+  const rows = (await PersistApi.find(Collections.PackInstalls, {
+    packId,
+  })) as unknown as StoredRecord[];
+  return rows[0] ?? null;
+}
+
+/** The one record writer — every record mutation lands through here. */
+async function saveRecord(record: StoredRecord): Promise<void> {
+  const id = await PersistApi.save(
+    Collections.PackInstalls,
+    record as unknown as Record<string, unknown>,
+  );
+  if (!record._id) record._id = id;
+}
+
+/** Who is applying: the context-derived author, or `bootstrap` at boot. */
+function principalOf(): string {
+  const author = ExecutionContextApi.getActingAuthor() as {
+    getTemplatePath?(): string | null;
+  } | null;
+  return author?.getTemplatePath?.() ?? 'bootstrap';
+}
+
+function freshRecord(pack: ResolvedPack): StoredRecord {
+  return {
+    packId: pack.manifest.id,
+    version: pack.manifest.version,
+    appliedAt: new Date().toISOString(),
+    principal: principalOf(),
+    status: 'applied',
+    failure: null,
+    parameters: {},
+    rows: {},
+    pins: [],
+    conflicts: [],
+    sideEffects: { kinds: [] },
+  };
+}
+
+/** An error that knows which install step it belongs to. */
+class PackStepError extends Error {
+  constructor(
+    public readonly step: string,
+    message: string,
+    public readonly file?: string,
+  ) {
+    super(message);
+  }
+}
+
+function failureOf(err: unknown): PackFailure {
+  if (err instanceof PackStepError) {
+    const f: PackFailure = { step: err.step, error: err.message };
+    if (err.file) f.file = err.file;
+    return f;
+  }
+  return {
+    step: 'reconcile',
+    error: err instanceof Error ? err.message : String(err),
+  };
+}
+
+// --- plan ------------------------------------------------------------------
+
+type PlanOp = PackPlannedAction['op'];
+
+interface PlannedAction {
+  op: PlanOp;
+  key: string;
+  /** The stamped row's `_id` (update/adopt/delete/keep/conflict). */
+  _id?: string;
+  /** The row to write (insert/update/adopt). */
+  row?: Record<string, unknown>;
+  /** The hash + body the baseline becomes (insert/update/adopt/converge/normalize). */
+  hash?: string;
+  body?: string;
+  conflict?: PackConflict;
+}
+
+interface KindPlan<F> {
+  strategy: KindStrategy<F>;
+  actions: PlannedAction[];
+}
+
+type StampedRow = Record<string, unknown> & { _id?: string; sourcePack?: string };
+
 /**
- * The ONE reconcile loop, for every kind: make the DB match the pack for
- * rows stamped `packId`, adopting any pre-existing unstamped row at a
- * pack key, refusing to clobber another pack's row, deleting stamped
- * rows whose file vanished. Writes flow through the {@link PersistApi}
- * chokepoint (`lint:pm`); `save` is `$set`-by-`_id` (update/adopt) or
- * insert. Change lists are record keys.
+ * The pure planner: decide, for every file and every stamped row of one
+ * kind, what the reconcile WOULD do — reads only. `record === null` is
+ * the adoption bridge (no record yet): two-way, what-we-write wins, and
+ * every row's baseline is normalized from what was written. With a
+ * record, the A10.4 three-way machine runs per row:
+ *
+ * | file vs baseline | DB vs baseline | action |
+ * |---|---|---|
+ * | same | same | nothing |
+ * | changed | same | update (baseline := file), silently |
+ * | same | changed | keep the DB (`kept`) |
+ * | changed | changed, file == DB | converge (baseline := shared), no write |
+ * | changed | changed, file ≠ DB | conflict — untouched, recorded, diagnosed |
+ *
+ * A vanished file deletes a clean row and conflicts (`deleted-vs-edited`)
+ * on an edited one. A pinned key is skipped before any comparison. A
+ * stamped row with no baseline (a partial older record) is normalized
+ * like adoption.
  */
-async function reconcileKind<F>(
+async function computeKindPlan<F>(
   packId: string,
   strategy: KindStrategy<F>,
   files: F[],
-): Promise<KindChanges> {
-  const inserted: string[] = [];
-  const updated: string[] = [];
-  const adopted: string[] = [];
-  const deleted: string[] = [];
+  record: StoredRecord | null,
+  now: string,
+): Promise<KindPlan<F>> {
+  const actions: PlannedAction[] = [];
+  const pins = new Set(record?.pins ?? []);
 
   const stampedRows = (await PersistApi.find(strategy.collection, {
     sourcePack: packId,
-  })) as Array<Record<string, unknown> & { _id?: string; sourcePack?: string }>;
+  })) as StampedRow[];
   const stampedByKey = new Map(
     stampedRows.map((r) => [strategy.recordKeyOfRow(r), r]),
   );
@@ -627,14 +799,56 @@ async function reconcileKind<F>(
 
   for (const f of files) {
     const key = strategy.recordKeyOf(f);
+    if (pins.has(key)) {
+      actions.push({ op: 'pinned-skip', key });
+      continue;
+    }
     const row = strategy.rowOf(f, packId);
+    const fileBody = strategy.canonicalBody(row);
+    const fileHash = hashOf(fileBody);
 
     const stamped = stampedByKey.get(key);
     if (stamped) {
-      // (a) we already own this key — update only if it actually differs.
-      if (strategy.canonicalBody(stamped) !== strategy.canonicalBody(row)) {
-        await PersistApi.save(strategy.collection, { ...row, _id: stamped._id });
-        updated.push(key);
+      const dbBody = strategy.canonicalBody(stamped);
+      const dbHash = hashOf(dbBody);
+      const baseline = record?.rows[key] ?? null;
+      if (!baseline) {
+        // Adoption bridge / missing baseline: two-way, the file wins,
+        // and the baseline is normalized from what is written.
+        if (dbHash !== fileHash) {
+          actions.push({ op: 'update', key, _id: stamped._id, row, hash: fileHash, body: fileBody });
+        } else {
+          actions.push({ op: 'normalize', key, hash: fileHash, body: fileBody });
+        }
+        continue;
+      }
+      const fileChanged = fileHash !== baseline.hash;
+      const dbChanged = dbHash !== baseline.hash;
+      if (!fileChanged && !dbChanged) {
+        if (!baseline.body) {
+          actions.push({ op: 'normalize', key, hash: fileHash, body: fileBody });
+        }
+      } else if (fileChanged && !dbChanged) {
+        actions.push({ op: 'update', key, _id: stamped._id, row, hash: fileHash, body: fileBody });
+      } else if (!fileChanged && dbChanged) {
+        actions.push({ op: 'keep', key, _id: stamped._id });
+      } else if (fileHash === dbHash) {
+        actions.push({ op: 'converge', key, hash: fileHash, body: fileBody });
+      } else {
+        actions.push({
+          op: 'conflict',
+          key,
+          _id: stamped._id,
+          conflict: {
+            path: key,
+            kind: strategy.kind,
+            detectedAt: now,
+            baselineHash: baseline.hash,
+            dbHash,
+            packHash: fileHash,
+            reason: 'both-changed',
+          },
+        });
       }
       continue;
     }
@@ -642,37 +856,224 @@ async function reconcileKind<F>(
     const existing = (await PersistApi.find(
       strategy.collection,
       strategy.dbKeyQuery(f),
-    )) as Array<Record<string, unknown> & { _id?: string; sourcePack?: string }>;
+    )) as StampedRow[];
     const prior = existing[0];
     if (prior) {
-      // (b) a row exists at this key. Adopt it iff unstamped; refuse to
+      // A row exists at this key. Adopt it iff unstamped; refuse to
       // clobber another pack's content.
       if (prior.sourcePack && prior.sourcePack !== packId) {
-        throw new Error(
+        throw new PackStepError(
+          'reconcile',
           `PackApi: pack '${packId}' wants ${strategy.noun} '${key}' but it ` +
             `is owned by pack '${prior.sourcePack}'`,
         );
       }
-      await PersistApi.save(strategy.collection, { ...row, _id: prior._id });
-      adopted.push(key);
+      actions.push({ op: 'adopt', key, _id: prior._id, row, hash: fileHash, body: fileBody });
     } else {
-      // (c) nothing here — insert (no _id → insertOne).
-      await PersistApi.save(strategy.collection, row);
-      inserted.push(key);
+      actions.push({ op: 'insert', key, row, hash: fileHash, body: fileBody });
     }
   }
 
-  // Delete our stamped rows whose file vanished.
+  // Stamped rows whose file vanished.
   for (const r of stampedRows) {
     const key = strategy.recordKeyOfRow(r);
-    if (!fileKeys.has(key) && r._id) {
-      await PersistApi.delete(strategy.collection, r._id);
-      deleted.push(key);
+    if (fileKeys.has(key) || !r._id) continue;
+    if (pins.has(key)) {
+      actions.push({ op: 'pinned-skip', key });
+      continue;
+    }
+    const baseline = record?.rows[key] ?? null;
+    const dbBody = strategy.canonicalBody(r);
+    const dbHash = hashOf(dbBody);
+    if (!baseline || dbHash === baseline.hash) {
+      actions.push({ op: 'delete', key, _id: r._id });
+    } else {
+      actions.push({
+        op: 'conflict',
+        key,
+        _id: r._id,
+        conflict: {
+          path: key,
+          kind: strategy.kind,
+          detectedAt: now,
+          baselineHash: baseline.hash,
+          dbHash,
+          packHash: '',
+          reason: 'deleted-vs-edited',
+        },
+      });
     }
   }
 
-  return { inserted, updated, adopted, deleted };
+  return { strategy, actions };
 }
+
+interface AppliedKind {
+  changes: KindChanges;
+  kept: string[];
+  conflicts: PackConflict[];
+  pinnedSkipped: number;
+  normalized: number;
+}
+
+/**
+ * The write half: perform a plan's writes through the PersistApi
+ * chokepoint and mutate `record.rows` to match. Never called by a dry
+ * run — that is what makes dry-run's zero-write promise structural.
+ */
+async function applyKindPlan<F>(
+  plan: KindPlan<F>,
+  record: StoredRecord,
+): Promise<AppliedKind> {
+  const { strategy } = plan;
+  const out: AppliedKind = {
+    changes: { inserted: [], updated: [], adopted: [], deleted: [] },
+    kept: [],
+    conflicts: [],
+    pinnedSkipped: 0,
+    normalized: 0,
+  };
+  const baseline = (a: PlannedAction): void => {
+    record.rows[a.key] = { kind: strategy.kind, hash: a.hash!, body: a.body! };
+  };
+  for (const a of plan.actions) {
+    switch (a.op) {
+      case 'insert':
+        await PersistApi.save(strategy.collection, a.row!);
+        baseline(a);
+        out.changes.inserted.push(a.key);
+        break;
+      case 'update':
+        await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
+        baseline(a);
+        out.changes.updated.push(a.key);
+        break;
+      case 'adopt':
+        await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
+        baseline(a);
+        out.changes.adopted.push(a.key);
+        break;
+      case 'delete':
+        await PersistApi.delete(strategy.collection, a._id!);
+        delete record.rows[a.key];
+        out.changes.deleted.push(a.key);
+        break;
+      case 'keep':
+        out.kept.push(a.key);
+        break;
+      case 'converge':
+        baseline(a);
+        break;
+      case 'normalize':
+        baseline(a);
+        out.normalized++;
+        break;
+      case 'conflict':
+        out.conflicts.push(a.conflict!);
+        break;
+      case 'pinned-skip':
+        out.pinnedSkipped++;
+        break;
+    }
+  }
+  return out;
+}
+
+/** Every kind's strategy + the files of a pack's content for it. */
+function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
+  return [
+    { strategy: domainStrategy as KindStrategy<unknown>, files: content.domain },
+    { strategy: nameBankStrategy as KindStrategy<unknown>, files: content.nameBanks },
+    {
+      strategy: descriptorBankStrategy as KindStrategy<unknown>,
+      files: content.descriptorBanks,
+    },
+  ];
+}
+
+interface KindPlanInput<F> {
+  strategy: KindStrategy<F>;
+  files: F[];
+}
+
+/** The strategy a record key belongs to, by its prefix. */
+function strategyForKey(key: string): KindStrategy<unknown> {
+  if (key.startsWith('/name-banks/')) return nameBankStrategy as KindStrategy<unknown>;
+  if (key.startsWith('/descriptor-banks/')) {
+    return descriptorBankStrategy as KindStrategy<unknown>;
+  }
+  return domainStrategy as KindStrategy<unknown>;
+}
+
+/** The file (of any kind) at a record key, or null. */
+function fileForKey(content: PackContent, key: string): unknown | null {
+  for (const k of kindsOf(content)) {
+    const hit = k.files.find((f) => k.strategy.recordKeyOf(f) === key);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// --- flat-key uniqueness ---------------------------------------------------
+
+/** A pack whose content has been read, ready to plan. */
+interface ReadPack {
+  pack: ResolvedPack;
+  content: PackContent;
+}
+
+/**
+ * The install-set uniqueness check (A17.2): every kind with a flat key
+ * namespace (the banks — later kinds plug in by giving their strategy a
+ * `flatKeyOf`) must see each key claimed once across the whole install
+ * set. A second claimant marks the CLAIMING pack failed, naming the
+ * kind, the key, and both `(packId, relFile)` pairs. Never first-wins,
+ * never silent. Returns the failures by packId; runs before any write.
+ */
+function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
+  const failures = new Map<string, PackFailure>();
+  for (const k of kindsOf({ domain: [], quantityYaml: null, nameBanks: [], descriptorBanks: [] })) {
+    if (!k.strategy.flatKeyOf) continue;
+    const seen = new Map<string, { packId: string; relFile: string }>();
+    for (const rp of packs) {
+      const files = filesOfKind(rp.content, k.strategy.kind);
+      for (const f of files) {
+        const key = k.strategy.flatKeyOf(f);
+        const relFile = (f as { relFile: string }).relFile;
+        const first = seen.get(key);
+        if (!first) {
+          seen.set(key, { packId: rp.pack.manifest.id, relFile });
+          continue;
+        }
+        if (!failures.has(rp.pack.manifest.id)) {
+          failures.set(rp.pack.manifest.id, {
+            step: 'flat-key',
+            error:
+              `PackApi: pack '${rp.pack.manifest.id}' claims ${k.strategy.noun} ` +
+              `key '${key}' (${relFile}) which pack '${first.packId}' ` +
+              `already claims (${first.relFile}). Keys are unique across ` +
+              `the install set; the second claimant fails.`,
+            file: relFile,
+          });
+        }
+      }
+    }
+  }
+  return failures;
+}
+
+function filesOfKind(content: PackContent, kind: KindName): unknown[] {
+  switch (kind) {
+    case 'domain':
+      return content.domain;
+    case 'name-banks':
+      return content.nameBanks;
+    case 'descriptor-banks':
+      return content.descriptorBanks;
+  }
+}
+
+// --- reconcile -------------------------------------------------------------
 
 /** Re-hydrate / destruct live singletons after a sync's reconcile. */
 async function rehydrate(
@@ -694,55 +1095,151 @@ async function rehydrate(
   return count;
 }
 
-/**
- * The single reconcile implementation, shared by `install` (boot) and
- * `sync` (verb). The only difference is the `rehydrate` tail.
- */
-async function reconcilePack(
-  pack: ResolvedPack,
-  opts: { rehydrate: boolean },
-): Promise<PackReconcileResult> {
-  if (!PersistApi.isConnected()) {
-    throw new Error(
-      `PackApi: cannot install pack '${pack.manifest.id}' — no DB connection`,
+/** Read a pack's content, tagging a malformed file as a `read` failure. */
+function readPack(pack: ResolvedPack): ReadPack {
+  try {
+    return { pack, content: readContent(pack) };
+  } catch (err) {
+    throw new PackStepError('read', err instanceof Error ? err.message : String(err));
+  }
+}
+
+/** Every pre-write gate for one pack: requires-kernel, then topics. */
+async function gatePack(rp: ReadPack): Promise<void> {
+  const packId = rp.pack.manifest.id;
+  try {
+    await assertClassesResolve(packId, rp.content.domain);
+  } catch (err) {
+    throw new PackStepError('requires-kernel', (err as Error).message);
+  }
+  try {
+    await validatePackTopics(packId, rp.content.domain);
+  } catch (err) {
+    throw new PackStepError('topics', (err as Error).message);
+  }
+}
+
+/** Plan every kind of a pack against its record. Reads only. */
+async function planPack(
+  rp: ReadPack,
+  record: StoredRecord | null,
+  now: string,
+): Promise<Array<KindPlan<unknown>>> {
+  const plans: Array<KindPlan<unknown>> = [];
+  for (const k of kindsOf(rp.content)) {
+    plans.push(
+      await computeKindPlan(rp.pack.manifest.id, k.strategy, k.files, record, now),
     );
   }
-  const content = readContent(pack);
+  return plans;
+}
 
-  // requires-kernel: resolve all referenced classes before any write.
-  await assertClassesResolve(pack.manifest.id, content.domain);
+function emptyResult(packId: string): PackReconcileResult {
+  return {
+    packId,
+    inserted: [],
+    updated: [],
+    adopted: [],
+    deleted: [],
+    kept: [],
+    conflicts: [],
+    pinnedSkipped: 0,
+    normalized: 0,
+    quantityTables: 0,
+    nameBanks: 0,
+    rehydrated: 0,
+    failure: null,
+  };
+}
 
-  await validatePackTopics(pack.manifest.id, content.domain);
-  const { inserted, updated, adopted, deleted } = await reconcileKind(
-    pack.manifest.id,
-    domainStrategy,
-    content.domain,
-  );
+/**
+ * The single reconcile implementation, shared by `install` (boot) and
+ * `sync` (verb): gate, plan, apply, record, side effects. The only
+ * difference is the `rehydrate` tail.
+ */
+async function reconcilePack(
+  rp: ReadPack,
+  opts: { rehydrate: boolean },
+): Promise<PackReconcileResult> {
+  const { pack, content } = rp;
+  const packId = pack.manifest.id;
+  await gatePack(rp);
 
-  const nb = await reconcileKind(
-    pack.manifest.id,
-    nameBankStrategy,
-    content.nameBanks,
-  );
-  const nameBanks =
-    nb.inserted.length + nb.updated.length + nb.adopted.length;
+  const prior = await loadRecord(packId);
+  const now = new Date().toISOString();
+  const plans = await planPack(rp, prior, now);
+
+  const record: StoredRecord = prior ?? freshRecord(pack);
+  record.version = pack.manifest.version;
+  record.appliedAt = now;
+  record.principal = principalOf();
+  record.status = 'applied';
+  record.failure = null;
+  const priorConflicts = new Set((prior?.conflicts ?? []).map((c) => c.path));
+  record.conflicts = [];
+
+  const result = emptyResult(packId);
+  const perKind = new Map<KindName, AppliedKind>();
+  for (const plan of plans) {
+    const applied = await applyKindPlan(plan, record);
+    perKind.set(plan.strategy.kind, applied);
+    result.inserted.push(...applied.changes.inserted);
+    result.updated.push(...applied.changes.updated);
+    result.adopted.push(...applied.changes.adopted);
+    result.deleted.push(...applied.changes.deleted);
+    result.kept.push(...applied.kept);
+    result.pinnedSkipped += applied.pinnedSkipped;
+    result.normalized += applied.normalized;
+    record.conflicts.push(...applied.conflicts);
+  }
+  result.conflicts = record.conflicts.map((c) => c.path);
+
+  // Adoption is loud: the one time a record is minted over a pre-record
+  // DB, whatever divergence the DB held was overwritten by the file.
+  if (!prior) {
+    const n = Object.keys(record.rows).length;
+    console.warn(
+      `PackApi: pack '${packId}' — ONE-TIME adoption baseline normalized over ` +
+        `${n} rows (pre-record DB); pre-existing divergence was overwritten; ` +
+        `future reconciles are three-way`,
+    );
+  } else if (result.normalized > 0) {
+    console.warn(
+      `PackApi: pack '${packId}' — ${result.normalized} row(s) had no baseline; ` +
+        `normalized from what was written`,
+    );
+  }
+
+  // A newly-detected conflict lands one diagnostic; a persisting one does not.
+  for (const c of record.conflicts) {
+    if (priorConflicts.has(c.path)) continue;
+    await DiagnosticApi.record({
+      path: c.kind === 'domain' ? c.path : null,
+      severity: 'warning',
+      channel: `pack.${packId}`,
+      message:
+        `pack '${packId}': conflict at ${c.path} — ` +
+        (c.reason === 'both-changed'
+          ? 'pack and database both changed since install'
+          : 'the pack dropped a row the database has edited') +
+        `; run \`pack diff ${packId} ${c.path}\` / \`pack resolve ${packId} ${c.path} --take-pack|--keep --pin|--export\``,
+    });
+  }
+
+  // Side effects (go-live) per kind.
+  const nb = perKind.get('name-banks')!;
+  result.nameBanks =
+    nb.changes.inserted.length + nb.changes.updated.length + nb.changes.adopted.length;
   // Banks are cached by key on first resolve; a live sync that changed any
   // bank must drop the cache so the edit reaches the next char-gen suggest.
-  if (
-    opts.rehydrate &&
-    nameBanks + nb.deleted.length > 0
-  ) {
+  if (opts.rehydrate && result.nameBanks + nb.changes.deleted.length > 0) {
     NameBank.clearCache();
   }
 
-  const db = await reconcileKind(
-    pack.manifest.id,
-    descriptorBankStrategy,
-    content.descriptorBanks,
-  );
+  const db = perKind.get('descriptor-banks')!;
   const descriptorBanks =
-    db.inserted.length + db.updated.length + db.adopted.length;
-  if (descriptorBanks + db.deleted.length > 0) {
+    db.changes.inserted.length + db.changes.updated.length + db.changes.adopted.length;
+  if (descriptorBanks + db.changes.deleted.length > 0) {
     // Two caches: the bank rows themselves, and the memoized rendered
     // descriptor per (class, generation). Both would otherwise serve the
     // pre-edit pool until reboot.
@@ -769,29 +1266,76 @@ async function reconcilePack(
     );
   }
 
-  let quantityTables = 0;
   if (content.quantityYaml) {
-    const result = opts.rehydrate
+    const q = opts.rehydrate
       ? QuantityApi.reloadTagTables(content.quantityYaml)
       : QuantityApi.loadTagTables(content.quantityYaml);
-    quantityTables = result.registered.length;
+    result.quantityTables = q.registered.length;
+    if (!record.sideEffects.kinds.includes('quantity')) {
+      record.sideEffects.kinds.push('quantity');
+    }
   }
 
-  let rehydrated = 0;
+  await saveRecord(record);
+
   if (opts.rehydrate) {
-    rehydrated = await rehydrate([...inserted, ...updated, ...adopted], deleted);
+    const domain = perKind.get('domain')!.changes;
+    result.rehydrated = await rehydrate(
+      [...domain.inserted, ...domain.updated, ...domain.adopted],
+      domain.deleted,
+    );
   }
+  return result;
+}
 
-  return {
-    packId: pack.manifest.id,
-    inserted,
-    updated,
-    adopted,
-    deleted,
-    quantityTables,
-    nameBanks,
-    rehydrated,
-  };
+/** Record a pack's failure (keeping any prior baselines) and report it. */
+async function recordFailure(
+  pack: ResolvedPack,
+  err: unknown,
+): Promise<PackReconcileResult> {
+  const failure = failureOf(err);
+  const record = (await loadRecord(pack.manifest.id)) ?? freshRecord(pack);
+  record.status = 'failed';
+  record.failure = failure;
+  record.appliedAt = new Date().toISOString();
+  record.principal = principalOf();
+  await saveRecord(record);
+  console.error(
+    `PackApi: pack '${pack.manifest.id}' FAILED at step '${failure.step}' — ` +
+      `booting without it: ${failure.error}`,
+  );
+  const result = emptyResult(pack.manifest.id);
+  result.failure = failure;
+  return result;
+}
+
+function requireConnection(packId: string): void {
+  if (!PersistApi.isConnected()) {
+    throw new Error(`PackApi: cannot install pack '${packId}' — no DB connection`);
+  }
+}
+
+/** Resolve a shipped pack by id (or an explicit root, for tests). */
+function resolveOne(packId: string, packRoot?: string): ResolvedPack {
+  const pack = packRoot
+    ? resolvePack(packRoot)
+    : discover().find((p) => p.manifest.id === packId);
+  if (!pack) throw new Error(`PackApi: no shipped pack with id '${packId}'`);
+  return pack;
+}
+
+/** The sibling packs' contents, for the flat-key check around one pack. */
+function siblingsOf(pack: ResolvedPack, packRoots?: string[]): ReadPack[] {
+  const out: ReadPack[] = [];
+  for (const p of discover(packRoots)) {
+    if (p.manifest.id === pack.manifest.id) continue;
+    try {
+      out.push(readPack(p));
+    } catch {
+      // An unreadable sibling is its own failure; it cannot claim keys.
+    }
+  }
+  return out;
 }
 
 /**
@@ -811,11 +1355,37 @@ export class PackLogic extends ApiLogic {
   public async install(
     packRoots?: string[],
   ): Promise<PackReconcileResult[]> {
-    const results: PackReconcileResult[] = [];
-    for (const pack of discover(packRoots)) {
-      results.push(await reconcilePack(pack, { rehydrate: false }));
+    const packs = discover(packRoots);
+    if (packs.length > 0) requireConnection(packs[0]!.manifest.id);
+
+    // Read every pack first: the flat-key check needs the whole install
+    // set before any pack writes.
+    const read: ReadPack[] = [];
+    const results = new Map<string, PackReconcileResult>();
+    for (const pack of packs) {
+      try {
+        read.push(readPack(pack));
+      } catch (err) {
+        results.set(pack.manifest.id, await recordFailure(pack, err));
+      }
     }
-    return results;
+    const flat = flatKeyFailures(read);
+
+    for (const rp of read) {
+      const id = rp.pack.manifest.id;
+      const flatFailure = flat.get(id);
+      if (flatFailure) {
+        results.set(id, await recordFailure(rp.pack, new PackStepError(flatFailure.step, flatFailure.error, flatFailure.file)));
+        continue;
+      }
+      try {
+        results.set(id, await reconcilePack(rp, { rehydrate: false }));
+      } catch (err) {
+        // A failed pack boots WITHOUT the pack; it never bricks the boot.
+        results.set(id, await recordFailure(rp.pack, err));
+      }
+    }
+    return packs.map((p) => results.get(p.manifest.id)!);
   }
 
   /** See {@link PackApi.sync}. */
@@ -823,19 +1393,201 @@ export class PackLogic extends ApiLogic {
   public async sync(
     packId: string,
     packRoot?: string,
+    packRoots?: string[],
   ): Promise<PackReconcileResult> {
-    const pack = packRoot
-      ? resolvePack(packRoot)
-      : discover().find((p) => p.manifest.id === packId);
-    if (!pack) {
-      throw new Error(`PackApi: no shipped pack with id '${packId}'`);
-    }
-    return reconcilePack(pack, { rehydrate: true });
+    const pack = resolveOne(packId, packRoot);
+    requireConnection(packId);
+    const rp = readPack(pack);
+    // An explicit root overrides discovery entirely: its siblings are the
+    // explicit install set, or nothing.
+    const siblings = packRoot && !packRoots ? [] : siblingsOf(pack, packRoots);
+    const flat = flatKeyFailures([...siblings, rp]);
+    const f = flat.get(packId);
+    if (f) throw new PackStepError(f.step, f.error, f.file);
+    // An operator at the keyboard: sync throws rather than recording.
+    return reconcilePack(rp, { rehydrate: true });
   }
 
   /** See {@link PackApi.discoverPacks}. */
   @CallSecurity(PackApiCallers)
   public async discoverPacks(): Promise<PackManifest[]> {
     return discover().map((p) => p.manifest);
+  }
+
+  /** See {@link PackApi.status}. */
+  @CallSecurity(PackApiCallers)
+  public async status(packId?: string): Promise<PackStatusReport[]> {
+    const manifests = new Map(discover().map((p) => [p.manifest.id, p.manifest]));
+    const records = (await PersistApi.find(
+      Collections.PackInstalls,
+      {},
+    )) as unknown as StoredRecord[];
+    const byId = new Map(records.map((r) => [r.packId, r]));
+    const ids = new Set([...manifests.keys(), ...byId.keys()]);
+    const out: PackStatusReport[] = [];
+    for (const id of [...ids].sort()) {
+      if (packId && id !== packId) continue;
+      const m = manifests.get(id);
+      const r = byId.get(id);
+      out.push({
+        packId: id,
+        discovered: m !== undefined,
+        manifestVersion: m?.version ?? null,
+        record: r
+          ? {
+              version: r.version,
+              appliedAt: r.appliedAt,
+              principal: r.principal,
+              status: r.status,
+              failure: r.failure,
+              pins: r.pins,
+              conflicts: r.conflicts,
+            }
+          : null,
+      });
+    }
+    return out;
+  }
+
+  /** See {@link PackApi.dryRun}. Compute only — `applyKindPlan` is never called. */
+  @CallSecurity(PackApiCallers)
+  public async dryRun(packId: string, packRoot?: string): Promise<PackDryRunReport> {
+    const pack = resolveOne(packId, packRoot);
+    requireConnection(packId);
+    const rp = readPack(pack);
+    await gatePack(rp);
+    const record = await loadRecord(packId);
+    const plans = await planPack(rp, record, new Date().toISOString());
+    const actions: PackPlannedAction[] = [];
+    for (const plan of plans) {
+      for (const a of plan.actions) {
+        actions.push({ op: a.op, key: a.key, kind: plan.strategy.kind });
+      }
+    }
+    return {
+      packId,
+      actions,
+      conflicts: actions.filter((a) => a.op === 'conflict').map((a) => a.key),
+      pinnedSkipped: actions.filter((a) => a.op === 'pinned-skip').length,
+    };
+  }
+
+  /** See {@link PackApi.diff}. */
+  @CallSecurity(PackApiCallers)
+  public async diff(packId: string, path?: string, packRoot?: string): Promise<PackDiffReport> {
+    const pack = resolveOne(packId, packRoot);
+    requireConnection(packId);
+    const record = await loadRecord(packId);
+    const content = readContent(pack);
+    const keys = path ? [path] : (record?.conflicts ?? []).map((c) => c.path);
+    const entries: PackDiffEntry[] = [];
+    for (const key of keys) {
+      const strategy = strategyForKey(key);
+      const baseline = record?.rows[key] ?? null;
+      const file = fileForKey(content, key);
+      const theirsBody = file ? strategy.canonicalBody(strategy.rowOf(file, packId)) : null;
+      const rows = (await PersistApi.find(strategy.collection, {
+        sourcePack: packId,
+      })) as StampedRow[];
+      const dbRow = rows.find((r) => strategy.recordKeyOfRow(r) === key) ?? null;
+      const yoursBody = dbRow ? strategy.canonicalBody(dbRow) : null;
+      const side = (body: string | null): PackDiffBody | null =>
+        body === null ? null : { hash: hashOf(body), body: renderBody(body) };
+      entries.push({
+        path: key,
+        kind: strategy.kind,
+        baseline: baseline ? { hash: baseline.hash, body: renderBody(baseline.body) } : null,
+        yours: side(yoursBody),
+        theirs: side(theirsBody),
+      });
+    }
+    return { packId, entries };
+  }
+
+  /** See {@link PackApi.resolve}. */
+  @CallSecurity(PackApiCallers)
+  public async resolve(
+    packId: string,
+    path: string,
+    mode: PackResolveMode,
+    packRoot?: string,
+  ): Promise<PackReconcileResult | null> {
+    const pack = resolveOne(packId, packRoot);
+    requireConnection(packId);
+    const record = await loadRecord(packId);
+    if (!record) throw new Error(`PackApi: pack '${packId}' has no install record`);
+    const strategy = strategyForKey(path);
+    const content = readContent(pack);
+    const file = fileForKey(content, path);
+    const rows = (await PersistApi.find(strategy.collection, {
+      sourcePack: packId,
+    })) as StampedRow[];
+    const dbRow = rows.find((r) => strategy.recordKeyOfRow(r) === path) ?? null;
+
+    if (mode === 'keep-pin') {
+      if (!record.pins.includes(path)) record.pins.push(path);
+      record.conflicts = record.conflicts.filter((c) => c.path !== path);
+      await saveRecord(record);
+      return null;
+    }
+
+    if (mode === 'take-pack') {
+      if (!file) {
+        // The pack dropped the row: taking the pack means deleting it.
+        if (dbRow?._id) await PersistApi.delete(strategy.collection, dbRow._id);
+        delete record.rows[path];
+        record.conflicts = record.conflicts.filter((c) => c.path !== path);
+        await saveRecord(record);
+        const r = emptyResult(packId);
+        r.deleted.push(path);
+        if (strategy.kind === 'domain') r.rehydrated = await rehydrate([], [path]);
+        return r;
+      }
+      const row = strategy.rowOf(file, packId);
+      const body = strategy.canonicalBody(row);
+      await PersistApi.save(strategy.collection, dbRow?._id ? { ...row, _id: dbRow._id } : row);
+      record.rows[path] = { kind: strategy.kind, hash: hashOf(body), body };
+      record.conflicts = record.conflicts.filter((c) => c.path !== path);
+      await saveRecord(record);
+      const r = emptyResult(packId);
+      r.updated.push(path);
+      if (strategy.kind === 'domain') r.rehydrated = await rehydrate([path], []);
+      else if (strategy.kind === 'name-banks') NameBank.clearCache();
+      else {
+        DescriptorBank.clearCache();
+        Appearance.clearMemo();
+      }
+      return r;
+    }
+
+    // export — the DB row back to the pack's workspace source file. The
+    // conflict stays open; the next sync observes file == DB (the
+    // converged cell) and clears it.
+    if (!dbRow) throw new Error(`PackApi: no database row at '${path}' for pack '${packId}'`);
+    const target = join(pack.contentRoot, ...path.replace(/^\//, '').split('/')) + '.yaml';
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, YAML.stringify(strategy.exportBody(dbRow)));
+    return null;
+  }
+
+  /** See {@link PackApi.pin}. */
+  @CallSecurity(PackApiCallers)
+  public async pin(packId: string, path: string): Promise<string[]> {
+    const record = await loadRecord(packId);
+    if (!record) throw new Error(`PackApi: pack '${packId}' has no install record`);
+    if (!record.pins.includes(path)) record.pins.push(path);
+    record.conflicts = record.conflicts.filter((c) => c.path !== path);
+    await saveRecord(record);
+    return [...record.pins];
+  }
+
+  /** See {@link PackApi.unpin}. */
+  @CallSecurity(PackApiCallers)
+  public async unpin(packId: string, path: string): Promise<string[]> {
+    const record = await loadRecord(packId);
+    if (!record) throw new Error(`PackApi: pack '${packId}' has no install record`);
+    record.pins = record.pins.filter((p) => p !== path);
+    await saveRecord(record);
+    return [...record.pins];
   }
 }

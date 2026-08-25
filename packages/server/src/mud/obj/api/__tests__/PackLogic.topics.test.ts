@@ -141,7 +141,9 @@ describe('pack-declared topics', () => {
   it('refuses a pack that mints a new root', async () => {
     const root = writeTopicPack('herbalism', 'botany.pollen');
 
-    await expect(PackApi.install([root])).rejects.toThrow(/root/i);
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure?.step).toBe('topics');
+    expect(r!.failure?.error).toMatch(/root/i);
     // Nothing written before the refusal — a half-applied pack would
     // leave the vocabulary in a state no gate can see.
     expect(topicRows()).toEqual([]);
@@ -150,11 +152,12 @@ describe('pack-declared topics', () => {
   it('refuses a bare root even under a legal name', async () => {
     const root = writeTopicPack('herbalism', 'sense');
 
-    await expect(PackApi.install([root])).rejects.toThrow(/leaves only/i);
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure?.error).toMatch(/leaves only/i);
     expect(topicRows()).toEqual([]);
   });
 
-  // Not a topic-specific gate: `reconcileDomain` refuses cross-pack
+  // Not a topic-specific gate: `reconcileKind` refuses cross-pack
   // path collision for EVERY path. Asserted here so the guarantee is
   // visibly true for topics too, and so a future topic-specific
   // shortcut cannot quietly bypass it.
@@ -168,6 +171,7 @@ describe('pack-declared topics', () => {
     const root = writeTopicPack('herbalism', 'sense.pollen');
 
     // Named so the author knows who to talk to, not just that it failed.
-    await expect(PackApi.install([root])).rejects.toThrow(/flora/);
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure?.error).toMatch(/flora/);
   });
 });
