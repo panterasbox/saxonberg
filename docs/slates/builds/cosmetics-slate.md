@@ -137,6 +137,84 @@ applied, generating a large outcome space.**
 
 ---
 
+# ⭐⭐⭐ The act is GRADED and MARKED — and the grading already ships
+
+> **User: "for cutting hair we actually need like a grading system,
+> right? So if you cut your own hair that's fine, but it'll be observable
+> that it was not done by a professional."**
+
+**No new system is needed**, and what
+[crafting.md](../../subsystems/crafting.md) already ships is better than
+a quality tier:
+
+| shipped | what it gives |
+|---|---|
+| **`Grade`** | an ordinal band — `poor · fair · fine · exceptional · masterful` — and **never a number** |
+| **`CraftedMixin`** | the **maker's mark**: `{maker, recipe, craftedAt}`, stamped once at craft-resolve |
+| **`renderVerdict()`** | a DF-style verdict — band-word headline + grade-keyed prose + **the maker's name**, never a number |
+
+⭐⭐ So it is observable not merely that a cut was **amateur**, but **who
+did it**. *Who cuts your hair* becomes a legible social fact, which is a
+far better object than a quality tier alone — and the tattoo case makes
+the point obvious: signed work is real, and *who did your ink* is
+something people actually ask.
+
+⭐ `renderVerdict()` being **prose, never a number** is exactly what
+appearance needs. The grade is a **description**, not a stat.
+
+## What is actually new: the carrier, not the grade
+
+A haircut is not an item, so `CraftedMixin` cannot ride it directly —
+*"Bob, crafted by Sara"* is nonsense. The mark belongs on **the
+appearance field itself**: a hair slot carrying its own grade and maker.
+
+⭐ Which generalises for free. A **cut**, a **dye job** and a **tattoo**
+are all *applied appearance changes*, and all three want the same three
+things: a band, a maker, a verdict. **One small carrier**, reusing
+`Grade` and the verdict render — not a second grading system.
+
+**Self-service grades badly with no special case:** `personal-services`
+untrained plus an improvised tool feeds the same derive that yields a
+`poor` blade from a bad smith. Nobody is forbidden from cutting their own
+hair; it simply shows.
+
+## ⭐⭐⭐ Why this does not collide with *never selectable*
+
+It looks like it contradicts [lineage-slate](./lineage-slate.md) §
+*describable, never selectable*. It does not, and the distinction is
+worth stating outright because someone will otherwise read that rule as
+banning socially-legible grooming too:
+
+> ⭐⭐⭐ **The rule protects what you did not CHOOSE, not what you
+> PRESENT.**
+
+Eye colour must never be actionable because **you were born into it** —
+making it selectable is sorting people into camps. **A bad haircut is a
+choice**, and the world reacting to your choices is the entire point of a
+social simulation.
+
+So grooming can be socially legible while eye colour cannot. Which is
+also simply true.
+
+⚠ **Keep it descriptive.** No regard input, no NPC reaction keyed on
+grade, no derived quantity. Other players read the verdict and judge or
+do not — that is the whole mechanic, and it is the *platform records, it
+rarely forbids* register
+([measurement.md](../../measurement.md)).
+
+## ⭐ What grading gives the vocations test
+
+Grading is precisely what breaks the objection that killed
+`homemaker` — ***universal demand meets universal self-service***. Here
+self-service **is** available and **visibly worse**, so demand survives
+on its own.
+
+⚠ That is the *evidence* [vocations.md](../../vocations.md)'s demand test
+would examine. It is **not** a conclusion that `barber` ships — see §
+*what this slate does not decide*.
+
+---
+
 # What is changeable, and what is not
 
 ⭐ **Proposal, not settled:** hair and skin presentation are changeable;
@@ -206,7 +284,24 @@ the one appearance axis that could be *acted on*. It must still never be
 5. **Tattoos: same chain or a different one?** Ink is pigment, but
    permanence, skill and the social meaning are all different. Possibly
    its own thing riding the same pigment supply.
-6. **Where does the first content land?** Terminus has a `tailor`
+6. **Does the appearance-mark carrier reuse `CraftedMixin` or mirror
+   it?** A hair slot needs `{grade, maker}` and a verdict render, which
+   is three-quarters of `CraftedMixin` minus `recipe` and minus riding a
+   Stuff. Compose it, or a thinner sibling? ⚠ The
+   [collections](../../subsystems/collections.md) precedent says pick
+   the shape that fits the storage, not the one that shares a name.
+7. **Does a grade decay?** A `masterful` cut grows out. If grade drifts
+   downward with time it is a repeat customer *and* a reason grooming is
+   ongoing rather than a one-time purchase — but it also means your
+   appearance changes without you acting, which touches
+   [lineage-slate](./lineage-slate.md)'s `Looks` cell. Related to
+   question 4.
+8. **Can you grade a *self*-applied change above `poor`?** A competent
+   `personal-services` practitioner cutting their own hair is a real
+   case, and mirrors are a real constraint. *Leans: same derive, with
+   the self-application as a penalty input rather than a hard cap —
+   nothing here should be a rule where a modifier will do.*
+9. **Where does the first content land?** Terminus has a `tailor`
    rostered and 52 built rooms; the dye plants want
    [smallholding](../../subsystems/smallholding.md) ground, which is
    Hinkley Hills. That is a two-locality chain, which is the honest
