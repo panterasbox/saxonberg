@@ -50,15 +50,40 @@ import { Stuff as StuffClass } from '../../stuff/Stuff';
 import { BehavedMixin } from '../Behaved';
 import { brain as ritual } from '../crossing-ritual';
 import type { BrainContext } from '../brain';
-import CrossingLog from '../../../domain/eternal/university-avenue/CrossingLog';
-import Watch from '../../../domain/eternal/university-avenue/Watch';
-import Whistle from '../../../domain/eternal/university-avenue/Whistle';
+import Thing from '../../stuff/Thing';
+import { DetailedMixin } from '../../description/Detailed';
+import { TimekeepingMixin } from '../../time/Timekeeping';
+import { AudibleMixin } from '../../perception/Audible';
+import { Time } from '../../time/Time';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import type { Stuff } from '../../stuff/Stuff';
 
 const RITUAL = '/lib/behavior/crossing-ritual';
 const GREETS = '/lib/behavior/greets';
+
+/*
+ * Synthetic gear — "ugly on purpose" (`/test/ritual/*`). The brain is
+ * duck-typed: a log with the `addMark` contract, any `Timekeeping` item,
+ * any `Audible` item. A KERNEL test proves the brain over these, never
+ * over the University Avenue content classes (which have their own
+ * tests beside their content).
+ */
+class TestLog extends DetailedMixin(Thing) {
+  public marks: Array<number | null> = [];
+  addMark(reading: number | null): void {
+    this.marks.push(reading);
+  }
+  getMarks(): ReadonlyArray<number | null> {
+    return this.marks;
+  }
+}
+class TestWatch extends TimekeepingMixin(Thing) {
+  override currentReading(): Time | null {
+    return Time.ofMinutes(600);
+  }
+}
+class TestWhistle extends AudibleMixin(Thing) {}
 
 class TestNPC extends BehavedMixin(
   EngagedMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea))))
@@ -109,15 +134,15 @@ function ritualCtx(
   };
 }
 
-/** A Gus stand-in carrying a real CrossingLog + Watch (+ optional Whistle). */
-function makeGus(withWhistle = false): { gus: Stuff; log: CrossingLog } {
+/** A Gus stand-in carrying a synthetic log + watch (+ optional whistle). */
+function makeGus(withWhistle = false): { gus: Stuff; log: TestLog } {
   const gus = makeStuff(() => new TestNPC()) as unknown as Stuff;
-  const log = makeStuff(() => new CrossingLog());
-  const watch = makeStuff(() => new Watch());
+  const log = makeStuff(() => new TestLog());
+  const watch = makeStuff(() => new TestWatch());
   ContainmentApi.move(log as never, gus as never);
   ContainmentApi.move(watch as never, gus as never);
   if (withWhistle) {
-    const whistle = makeStuff(() => new Whistle());
+    const whistle = makeStuff(() => new TestWhistle());
     ContainmentApi.move(whistle as never, gus as never);
   }
   return { gus, log };
@@ -251,9 +276,9 @@ describe('crossing-ritual brain (integration — cross-room whistle + no departu
     // Gus in the crossing, carrying his real whistle + log + watch.
     const gus = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(gus as never, crossing as never);
-    const log = makeStuff(() => new CrossingLog());
-    const watch = makeStuff(() => new Watch());
-    const whistle = makeStuff(() => new Whistle());
+    const log = makeStuff(() => new TestLog());
+    const watch = makeStuff(() => new TestWatch());
+    const whistle = makeStuff(() => new TestWhistle());
     ContainmentApi.move(log as never, gus as never);
     ContainmentApi.move(watch as never, gus as never);
     ContainmentApi.move(whistle as never, gus as never);
@@ -287,8 +312,8 @@ describe('crossing-ritual brain (integration — cross-room whistle + no departu
 
     const gus = makeStuff(() => new TestNPC()) as unknown as NPC;
     ContainmentApi.move(gus as never, crossing as never);
-    const log = makeStuff(() => new CrossingLog());
-    const watch = makeStuff(() => new Watch());
+    const log = makeStuff(() => new TestLog());
+    const watch = makeStuff(() => new TestWatch());
     ContainmentApi.move(log as never, gus as never);
     ContainmentApi.move(watch as never, gus as never);
     gus.behaviors = [

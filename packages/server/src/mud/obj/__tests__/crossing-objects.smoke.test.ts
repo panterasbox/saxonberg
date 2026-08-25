@@ -1,11 +1,11 @@
 /**
  * Crossing content classes — composition smoke test. Confirms each thin
- * class carries the capabilities its verbs and seeds rely on.
+ * KERNEL class carries the capabilities its verbs and seeds rely on. (The
+ * University Avenue Whistle has the same smoke beside its content.)
  */
 
 import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import Whistle from '../../domain/eternal/university-avenue/Whistle';
 import Paddle from '../Paddle';
 import Thermos from '../Thermos';
 import Beacon from '../Beacon';
@@ -17,16 +17,6 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('crossing content classes (composition)', () => {
   afterEach(() => StuffApi.clearAll());
-
-  it('Whistle is Audible + Wearable + Detailed and carries blow', () => {
-    const w = makeStuff(() => new Whistle());
-    expect(MixinApi.isAudible(w as never)).toBe(true);
-    expect(MixinApi.isWearable(w as never)).toBe(true);
-    expect(MixinApi.hasMixin(w as never, Mixins.Detailed)).toBe(true);
-    // A carried or worn whistle grants `blow` OUTWARD to its bearer —
-    // the `environment` bucket under the directional model.
-    expect(Whistle.commandContributions.environment).toContain('domain/eternal/university-avenue/cmd/blow.yaml');
-  });
 
   it('Paddle is Wieldable + Detailed with no carried verb', () => {
     const p = makeStuff(() => new Paddle());

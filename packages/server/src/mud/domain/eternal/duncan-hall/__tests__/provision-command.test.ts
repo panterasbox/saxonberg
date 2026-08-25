@@ -1,0 +1,29 @@
+/**
+ * The Duncan Hall `provision` verb — a domain-local command loaded by
+ * its `domain/`-prefixed key, beside its content.
+ */
+
+import "../../../../../test-bootstrap";
+import { describe, it, expect, beforeEach } from 'vitest';
+import { CommandApi } from '../../../../api/command';
+
+describe('the domain-local provision verb', () => {
+  beforeEach(() => CommandApi.clearCache());
+
+  it('loads a domain-local command by its domain-prefixed key', () => {
+    // Domain-local verbs live with their content under
+    // `domain/<sphere>/<locality>/cmd/`, keyed by their `domain/`-prefixed
+    // path (`getCommand` resolves that against MUD_ROOT, not `cmd/`). The
+    // Duncan Hall dorm `provision` verb is an exemplar.
+    const cmd = CommandApi.getCommand(
+      'domain/eternal/duncan-hall/cmd/provision.yaml'
+    );
+    expect(cmd, 'domain-local provision.yaml must load').not.toBeNull();
+    expect(cmd!.verbs).toContain('provision');
+    // Its resolved controller is the content-namespace template path
+    // (dispatch clones it directly).
+    expect(cmd!.resolvedController).toBe(
+      '/domain/eternal/duncan-hall/command/ProvisionController'
+    );
+  });
+});
