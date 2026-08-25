@@ -239,7 +239,7 @@ export class Group extends Document {
   };
 
   name: string = '';
-  owner: string = '';                  // owner's playerId
+  owner: string = '';                  // owner: a templatePath, `system`, or `office:<key>`
   memberIds: string[] = [];
   memberRoles: GroupRole[] = [];
 
@@ -260,6 +260,36 @@ role vocabulary rather than silently coercing.
 The role vocabulary is the coarse common set: `'owner' | 'admin' |
 'member'`. Source systems wanting richer hierarchies model them
 internally — the facade returns the coarse role.
+
+## Office-owned groups
+
+`Group.owner` may be the **`office:<key>` sentinel** (e.g.
+`office:prime-minister`): a group owned by a government *office* rather
+than a person (slate A25 — offices are heads, committees are hands). The
+field, `fieldMeta`, and Document shape are unchanged; it is a string.
+
+Ownership then resolves **on read**, through the one ownership
+resolution — **`GroupApi.ownsGroup(actor, group)`** (Api → `GroupLogic` →
+`GroupRegistry.ownsGroup`; state stays on the registry singleton, the
+Api stays thin):
+
+- a plain owner → `group.owner === actor.getTemplatePath()` (today's
+  comparison, centralized);
+- an `office:` owner → `CompactApi.holdsOffice(actor, key)`, which
+  already encodes *absence of a handoff row = founder default* and fails
+  closed with no registry. **Never** a stamped player id, **never**
+  `isFounder` directly. A bare `office:` fails closed.
+
+Consequence: handing the seat (`office assign`) hands every group the
+office owns, with **no data migration** — the Group row is never
+rewritten. `GroupController`'s four ownership gates (`delete`, `rename`,
+`role` owner-only; `add`, `remove` owner-or-admin) route through it, and
+`group show` renders an office owner as
+`office:prime-minister (held by <holder>)`.
+`ManagedGroupProvider.roleOf` is deliberately untouched — roster roles
+stay roster-based; ownership is a resolution, not a row. First user: the
+`pack-installers` committee
+([content-packs.md](./content-packs.md#who-may-run-it--the-pack-installers-committee)).
 
 ## The `group` verb suite
 
