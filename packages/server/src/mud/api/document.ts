@@ -11,7 +11,7 @@
  *
  * The store is **kind-agnostic** — it persists `{ path, owner, kind, data }`
  * and never inspects `data`; each `kind`'s consumer (e.g. the scripting
- * engine for `kind: 'script'`) owns the meaning + any go-live behavior. The
+ * engine for `kind: 'msh'`) owns the meaning + any go-live behavior. The
  * owner is **always derived from `ExecutionContextApi`** (the in-world
  * command-frame giver or a transport's `tagActingAuthor` stamp), never a
  * parameter (memory: gated-api-actor-from-context); an owner owns their own

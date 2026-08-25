@@ -9,15 +9,16 @@
  * document is **per-owner runtime state** — created and edited live, owned
  * by whoever claims its `/home/<self>/` (or other granted) branch:
  *
- *   /home/<player>/scripts/<name>     a player's recorded recipe-script
+ *   /home/<player>/scripts/<name>     a player's recorded recipe-script (msh)
  *   /home/<player>/dorm/<room>        (future) dorm customization data
- *   /domain/<world>/scripts/<name>    managed world content
+ *   /domain/<world>/msh/<name>        managed world content (a pack's msh/)
  *
  * The record carries a **`kind`** discriminator — what kind of object
- * lives here (`'script'`, later `'dorm'`, …) — and an arbitrary JSON
+ * lives here (`'msh'`, `'emote'`, `'recipe'`, … — the pack-installable
+ * ones are the closed `DocumentKinds` vocabulary) — and an arbitrary JSON
  * **`data`** payload. The store itself is kind-agnostic (it never inspects
  * `data`); each kind's consumer owns the meaning + any go-live behavior.
- * Scripts are `kind: 'script'` with `data: { source }` (re-parsed on
+ * Scripts are `kind: 'msh'` with `data: { source }` (re-parsed on
  * resolution; never compiled — why scripts reach the runtime-writable tree
  * first). Path-addressing reuses the whole ownership stack
  * (`Zone.ownerGroup`/`AccessApi`, `provenance` keyed on `path`).
@@ -45,7 +46,7 @@ export class StoredDocument extends Document {
   /** The owner's durable `templatePath` (who the branch belongs to). */
   owner: string = "";
 
-  /** What kind of object lives here (`'script'`, `'dorm'`, …) — opaque to the store. */
+  /** What kind of object lives here (`'msh'`, `'emote'`, …) — opaque to the store. */
   kind: string = "";
 
   /** The arbitrary JSON payload (a script's `{ source }`, dorm fields, …). */

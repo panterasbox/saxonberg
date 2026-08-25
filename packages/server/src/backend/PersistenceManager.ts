@@ -383,6 +383,7 @@ export class PersistenceManager {
       // collection and make the rename fail forever after.
       await this.#migrateDomainToContent(this.db);
       await this.#migrateGroupOwners(this.db);
+      await this.#migrateScriptKind(this.db);
 
       // Create indexes
       await this.createIndexes();
@@ -1118,6 +1119,76 @@ export class PersistenceManager {
   }
 
   /**
+   * Declared document kinds: one `{kind, data.<naturalKey>}` unique index
+   * per flat-key kind, partial on the kind so path-keyed kinds and
+   * free-form kinds never collide. Lazy import: the vocabulary is
+   * import-free today, but PM must never statically import mudlib models
+   * (the `#migrateGroupOwners` rule) — the cycle risk is structural, not
+   * current.
+   */
+  async #createDocumentKindIndexes(coll: {
+    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
+  }): Promise<void> {
+    const { DOCUMENT_KINDS } = await import('../mud/lib/document/DocumentKinds');
+    for (const spec of Object.values(DOCUMENT_KINDS)) {
+      if (spec.naturalKey === null) continue;
+      await coll.createIndex(
+        { kind: 1, [`data.${spec.naturalKey}`]: 1 },
+        { unique: true, partialFilterExpression: { kind: spec.kind } }
+      );
+    }
+  }
+
+  /** Test seam for `#createDocumentKindIndexes`. Not used at runtime. */
+  async runDocumentKindIndexesForTest(coll: {
+    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
+  }): Promise<void> {
+    return this.#createDocumentKindIndexes(coll);
+  }
+
+  /**
+   * The one-time `documents` kind rename `script` → `msh` (the script
+   * document kind is the language's name — content-packs wave 2), plus
+   * the lounge exemplars' path move `/domain/lounge/scripts/<name>` →
+   * `/domain/lounge/msh/<name>` (the `saxonberg-lounge` pack's `msh/`
+   * dir). Idempotent: a `kind: 'script'` row never exists after the
+   * first run. Returns the number of rows renamed.
+   */
+  async #migrateScriptKind(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    const col = db.collection(Collections.Documents);
+    const legacy = await col.find({ kind: 'script' }).toArray();
+    for (const row of legacy) {
+      const path = String(row.path ?? '');
+      const set: Record<string, unknown> = { kind: 'msh' };
+      if (path.startsWith('/domain/lounge/scripts/')) {
+        set.path = '/domain/lounge/msh/' + path.slice('/domain/lounge/scripts/'.length);
+      }
+      await col.updateOne({ _id: row._id }, { $set: set });
+    }
+    if (legacy.length > 0) {
+      console.info(
+        `PersistenceManager: renamed ${legacy.length} documents row(s) kind 'script' → 'msh' (one-time migration)`
+      );
+    }
+    return legacy.length;
+  }
+
+  /** Test seam for `#migrateScriptKind`. Not used at runtime. */
+  async runScriptKindMigrationForTest(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    return this.#migrateScriptKind(db);
+  }
+
+  /**
    * Create indexes for collections.
    * Called during connection setup.
    *
@@ -1240,6 +1311,11 @@ export class PersistenceManager {
       // violation is visible and fixable.
       await this.getCollection(Collections.Documents).createIndex({ path: 1 });
       await this.getCollection(Collections.Documents).createIndex({ kind: 1 });
+      await this.#createDocumentKindIndexes(
+        this.getCollection(Collections.Documents) as unknown as Parameters<
+          PersistenceManager['runDocumentKindIndexesForTest']
+        >[0]
+      );
 
       // Groups: queryable owner / member shape (Phase 2B).
       await this.getCollection(Collections.Groups).createIndex({ owner: 1 });

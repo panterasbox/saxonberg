@@ -33,6 +33,7 @@ import type { Sensor } from "../../lib/message/Sensor";
 import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { Script, Pipeline, Command, Arg } from "../../lib/script/ast";
 import type { ParsedCommand } from "../../api/command-line";
+import { DOCUMENT_KINDS } from "../../lib/document/DocumentKinds";
 
 const ScriptApiCallers = SecurityPolicies.FromModule("/api/script#ScriptApi");
 
@@ -324,14 +325,14 @@ async function captureManualBuildImpl(
 
 /* ─────────────── scripts over the document store (P7) ─────────── */
 //
-// Scripts are one **kind** of stored document (`kind: 'script'`,
+// Scripts are one **kind** of stored document (`kind: 'msh'`,
 // `data: { source }`) in the generic path-addressed `DocumentApi` store.
 // ScriptLogic owns the script *semantics* — parse source → AST, the AST
 // cache, and the script-specific go-live — while `DocumentApi` owns the
 // storage, the owner-access gate, and provenance.
 
-/** The document-store `kind` scripts are persisted under. */
-const SCRIPT_KIND = "script";
+/** The document-store `kind` scripts are persisted under (`msh`). */
+const SCRIPT_KIND = DOCUMENT_KINDS.msh.kind;
 
 /**
  * Parsed-AST cache keyed on path — the resolve-by-path hot path (the one
@@ -392,7 +393,7 @@ async function resolveScriptImpl(
 }
 
 /**
- * Persist a script's source to the document store as `kind: 'script'`,
+ * Persist a script's source to the document store as `kind: 'msh'`,
  * `data: { source }`. The owner-access gate, owner stamp, and provenance
  * all live in `DocumentApi.save` (the store chokepoint); ScriptLogic adds
  * only the script-specific go-live — invalidate the AST cache so the next

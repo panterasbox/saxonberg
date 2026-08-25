@@ -20,6 +20,7 @@ import { StoredDocument } from '../../lib/document/StoredDocument';
 import { Zone } from '../../lib/zone/Zone';
 import { CmsError } from '../../api/cms';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { DOCUMENT_KINDS } from '../../lib/document/DocumentKinds';
 import type {
   CmsBackend,
   CmsNodeKind,
@@ -48,13 +49,13 @@ function languageForPath(path: string): string {
 }
 
 /**
- * A stored document's editable body + editor language, by `kind`. A
- * `script` kind is plain-text source (`data.source`, the code surface);
+ * A stored document's editable body + editor language, by `kind`. The
+ * `msh` kind is plain-text source (`data.source`, the code surface);
  * any other kind is its `data` pretty-printed as JSON. The `kind` is the
  * metadata that decides the treatment — the generic store stays opaque.
  */
 function documentBody(doc: StoredDocument): { body: string; language: string } {
-  if (doc.getKind() === 'script') {
+  if (doc.getKind() === DOCUMENT_KINDS.msh.kind) {
     const source = doc.getData().source;
     return {
       body: typeof source === 'string' ? source : '',
@@ -484,7 +485,7 @@ export class CmsLogic extends ApiLogic {
    * Document write, routed by the record's `kind`. A **script** kind
    * (the only runtime-CREATABLE kind today — scripts are runtime-authored)
    * goes through `ScriptApi.saveScript`, the script chokepoint: it persists
-   * the source as `kind: 'script'` `data: { source }`, gates on owner
+   * the source as `kind: 'msh'` `data: { source }`, gates on owner
    * access, records provenance, and runs the script go-live (invalidate the
    * AST cache). Any other (existing) kind writes its edited JSON body back
    * via `DocumentApi.save` under its current kind — that path has no live
@@ -499,8 +500,8 @@ export class CmsLogic extends ApiLogic {
     const existing = await DocumentApi.read(path);
     // New docs default to the script kind (the runtime-authored one);
     // creating other kinds via the CMS is out of scope for v1.
-    const kind = existing?.getKind() ?? 'script';
-    if (kind === 'script') {
+    const kind = existing?.getKind() ?? DOCUMENT_KINDS.msh.kind;
+    if (kind === DOCUMENT_KINDS.msh.kind) {
       try {
         await ScriptApi.saveScript(path, body);
       } catch (err) {
