@@ -123,6 +123,16 @@ slots. **A unit type with an unanswered slot is not shippable:**
 
 ---
 
+# The wave ordering (A30, 2026-08-25)
+
+0 rename (`content`) → 1 substrate + ops verbs + **newbie-wilds pack**
+→ 2a plain kinds + 6 seeder retirements + DocumentLogic repoint →
+2b command-view + wiki CAS → 3 **pack zero** (boot manifest, requires,
+SeederManager deleted — the criterion goes testable) → 4 path surgery
+(/world/, /trade/, hearthworks re-cut) + first trades + A23 verdicts →
+5 long tail (retail/terminus, eternal, media, source consult, mining).
+Parallel: the authorable-composition bridge (before wave 4).
+
 # The drilling agenda (the ⚠ cells, gathered)
 
 1. **subject file schema** — how organizers (board/channel) are

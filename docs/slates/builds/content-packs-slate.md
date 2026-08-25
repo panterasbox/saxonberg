@@ -2899,3 +2899,60 @@ spawn-equipment becomes authorable data**).
    extract when the second consumer arrives (Offstage now — hearthworks
    is the second; DormThemes waits for apartments). The pre-industry
    lifecycle, applied to code: local until common, claimed when shared.
+
+---
+
+# Addendum 2026-08-25 (24) — the wave ordering
+
+**Decided 2026-08-25** (wave 2 split per the user). Each wave lands
+something true on its own; this supersedes the A12-era three-wave cut.
+
+- **Wave 0 — the collection rename.** `domain` → `content`, standalone
+  mechanical MR + `renameCollection`, FIRST — no new installer code
+  ever speaks the old name.
+- **Wave 1 — the substrate, proven on the cheapest content.** Install
+  record + three-way machine + policy-per-kind over the EXISTING kinds;
+  the flat-key check; the ops verbs (status / --dry-run / diff /
+  resolve / pin / export). Capstone: **newbie-wilds becomes a pack**
+  (21 seeds, zero code, domain kind only) — first pack through the new
+  machinery, exercises adopt-don't-wipe on every dev DB.
+- **Wave 2a — the plain kinds.** documents / settings / subjects kinds;
+  the doc-store collapse AS the file-per-artifact breakup; the
+  `DocumentLogic` → `ParcelApi` repoint (the wave that makes the
+  document tree load-bearing). **Seeders die one at a time as their
+  kind lands** (Emote, Recipe, Blueprint-curated, Script, Channel,
+  AppSettings). Kernel-test fixtures + `lint:test-content` warn-only.
+- **Wave 2b — the dispatch-adjacent kinds.** The command-view kind on
+  the strangler (store-first, disk fallback dies at zero) + the wiki
+  CAS kind; WikiSeeder retires.
+- **Wave 3 — pack zero, THE HINGE.** Platform pack via bootstrap; the
+  boot manifest (pack zero its first customer); minimal `requires:`
+  (groups-exist + title claims) + staffing-at-install; Group/Parcel
+  seeders retire into the A22 split; **`SeederManager` deleted**;
+  `AppBootstrap.run` end-state; the lazification worklist drains the
+  six content manifest entries. ⭐ After this, "the platform ships
+  clean" is TESTABLE — the acceptance criterion goes green or names
+  what we missed.
+- **Wave 4 — the renames + the first trades, ONE blast radius.**
+  Batched path surgery while everything is goto-only cheap:
+  `/domain/`→`/world/`, the `/trade/` sixth branch, the hearthworks
+  re-cut, orphan-row cleanup. Then on the fresh namespace: smithing ·
+  hearth-cooking · hospitality · the saxonberg-lounge + hearthworks
+  venue packs with the A23 verdicts applied (Offstage → employment,
+  TipJar → hospitality, MechanicalMovement → lib, residue deletes) ·
+  the archetype aggregator + test-venue generator · hearthworks' first
+  inbound exit.
+- **Wave 5 — the long tail, demand-ordered.** Retail + terminus ·
+  eternal as the capability exemplar · the media kind · source-tree
+  write-path consult + tree-qualified actions · mining when its kernel
+  substrate lands.
+- **Floating parallel track: the authorable-composition bridge** —
+  pure kernel work, gates "hospitality ships pure data," lands anytime
+  before wave 4; fits between waves while reviews pend.
+
+**The arguments** (attack these, not the list): rename before writing ·
+prove the machine on content that can't fight back · strangler over
+big-bang for seeders (each retirement independently revertable) · pack
+zero is the hinge because it makes the criterion falsifiable · ONE
+path-surgery window (renames are the only scary operation; twice =
+twice the fear).
