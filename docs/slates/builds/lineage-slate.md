@@ -1297,7 +1297,7 @@ exist yet.
 | **`kind: 'gallery'` + a row payload** | ordered, server-supplied `{label, value}` cells |
 | **gallery UI** — grid, detail, reroll, lock/pin | the expensive UI work, and none of it depends on content |
 | **trivial generator** | draws appearance + surname from banks |
-| **endowed appearance**, *rendering in the world* | the payload |
+| **endowed appearance**, *rendering in descriptions* | the payload — inherited only, no editor (below) |
 | **surname inheritance** | `NameBank` already ships |
 | **commit path** | adopt → two records + your appearance + your name |
 
@@ -1313,6 +1313,114 @@ screen where that rule matters most. It is also where most of phase 1's
 value is: it proves the spine end to end — **draw → adopt → persist →
 observable by someone else** — with content that cannot unbalance
 anything.
+
+### ⭐⭐ What the phase-1 card actually SHOWS
+
+*(Worked 2026-08-25 against the shipped tree.)* Six cells — **four with
+a live consumer today**, two that are honest facts nothing reads yet.
+
+| cell | what it does **today** |
+|---|---|
+| **Species** | `innateMixins`, `facultyProfile`, description. **Relocating it from a declared field onto the card is the demotion § *decision A* already made** — zero new work |
+| **Raised** (2–3 dispositions) | ⭐⭐ `TraitApi.regardBaseline` — trait compatibility sets your **starting regard with every NPC**. Raised guarded, and the barkeep is cooler on you. `TraitApi.seedClaims` already works |
+| **Surname** | your name, everywhere. `name_banks` ships |
+| **Parents' given names** | the **unpinnable** identity cell (§ *Controls*) |
+| **Place** | ⚠ **inert in phase 1** — see below |
+| **Looks** (eye / hair / skin) | nothing, and that is the point |
+
+⭐ **This is not a placeholder card.** It carries real capability, real
+social position, and real identity — and the two cells it lacks are
+exactly the pack-dependent ones.
+
+#### ⚠ `Place` does NOT set where you spawn
+
+An earlier draft had the Place cell drive `startLocation`. **It cannot:
+everyone spawns in the lounge, always.** The cell stays anyway, for two
+honest reasons — it names **real content you can walk to and confirm
+exists** (§ *the consistency rule*), and it is **the phase-2 trade join
+key**, so shipping it early is free forward-compat. It should be
+described as *where you are from*, never as anything mechanical.
+
+#### What does NOT make phase 1
+
+- ⚠ **Faith / patron.** Expected to be cheap; **it is not built at all**
+  — no `Patron` object, no seeds. It is [alignment-slate](./alignment-slate.md),
+  unbuilt. (The `patron` hits in the tree are crafting *customers*.)
+- **Knows (a Discipline).** Tempting — 23 non-magic Disciplines ship —
+  but it needs `AdvancementApi.seedClaims`, the awkward band-to-evidence
+  synthesizer (§ *the seeding surface*), **and** without trades *"your
+  household knew cooking"* is arbitrary. It is the one cell that
+  genuinely requires the vocabulary.
+
+#### What phase 1 does to the five existing char-gen fields
+
+Today: `species · sex · name · pronouns · aspiration`.
+
+| field | phase 1 |
+|---|---|
+| `species` | **moves onto the card** |
+| `aspiration` | becomes the gallery's free **sort** (§ *Controls*) — the demotion, delivered |
+| `name` | given name stays declared; **surname comes from the household** |
+| `sex` · `pronouns` | unchanged, declared |
+
+#### ⭐⭐ Appearance: describable, never SELECTABLE
+
+> **User: "I dunno what's so bad about `getEyeColor()` — most games
+> literally let you set an RGB hex, it's immersive. But obviously you
+> don't want to sort people into camps based on eye colour."**
+
+⚠ An earlier draft of this section proposed making appearance
+structurally unreadable — no accessor anywhere. **That solves the wrong
+problem.** Rendering *"hazel eyes"* in a description is the immersive
+thing you want anyway. The harm is not reading one person's eye colour;
+it is being able to **enumerate everyone who has it.**
+
+> **Appearance may be described. It may never be *selectable*.**
+
+Two surfaces, and only two:
+
+- ⭐ **No MQL predicate.** `MQL_PREDICATES` is a closed
+  `Readonly<Record<>>` behind an `isPredicateName` guard, so appearance
+  cannot become a filter by accident — it would take a deliberate edit,
+  which is exactly the tripwire wanted.
+- **Never a `GroupProvider`.** Also a small closed set.
+
+Nothing else needs restricting. A getter, a stored value, a description
+phrase are all fine.
+
+⭐ And the cheapness is the feature: modelling an axis the engine
+**structurally cannot act on** makes phase 1 the first shipped instance
+of *nature contributes nothing to capability* — stated before anything
+is at stake.
+
+#### ⭐⭐⭐ Inherited only — and that is what mints the barber
+
+Every other game lets you dial your appearance at creation. This one
+does not.
+
+> **User: "inherited only. We have a whole cosmetics industry for
+> modifying your appearance."**
+
+**There is no appearance editor in char-gen.** You get what the
+household gave you; changing it is an **economic act in the world** —
+with a vendor, a price, and a skill.
+
+⭐⭐ Which is the [vocations](../../vocations.md) doctrine closing a
+loop: the register already lists **barber / tailor** as a **GAP**
+(*skill · customers*), and *a vocation exists iff there is unmet
+demand.* **This decision is the demand.** Every player who wants a
+different look is a customer, created by a char-gen rule rather than by
+authoring a need.
+
+⭐ And it makes appearance a *presented* thing rather than a *given*
+one, which the belief layer already models: your current look is **not
+evidence of your parentage**, and someone who knew you before the dye
+job knows something a stranger does not.
+
+⚠ `Looks` is therefore **pinnable and priced** like any other cell.
+Players will spend real allotment on something with zero mechanical
+value — honest, true to life, and the alternative (free vanity pins)
+reopens the free-narrowing hole § *Controls* just closed.
 
 ### Phase 2 — the generator, after the packs
 
@@ -1451,8 +1559,11 @@ still where the design risk lives.**
     cheaper and enough for phase 1. **Phase 1 can defer by storing the
     two roles as separate refs that happen to be equal.**
 19. **Which appearance axes ship?** Eye / hair / skin is the obvious
-    three, but only if `Visible` / `RecognitionApi.describe` render them
-    — an inert axis is worse than an absent one. **Phase 1.**
+    three, but only if `Visible` / `RecognitionApi.describe` render
+    them — an axis nothing even *describes* is worse than an absent one.
+    ⭐ Note *inert* is not the failure here: the axis is **deliberately**
+    unable to decide anything (§ *describable, never selectable*); it
+    must merely be **visible**. **Phase 1.**
 
 ### Added 2026-08-25 (adoption model / filters retired)
 
