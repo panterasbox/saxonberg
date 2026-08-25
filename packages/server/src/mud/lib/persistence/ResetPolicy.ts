@@ -91,17 +91,9 @@ export const RESET_DISPOSITIONS: Readonly<
     verb: 'keep',
     because: 'the world itself; the seeder is insert-only and runs at boot',
   },
-  [Collections.NameBanks]: {
-    verb: 'keep',
-    because: 'pack-installed char-gen name pools',
-  },
   [Collections.DescriptorBanks]: {
     verb: 'keep',
     because: 'pack-installed unidentified-appearance pools',
-  },
-  [Collections.Recipes]: {
-    verb: 'keep',
-    because: 'crafting reference data; never cloned, never player-written',
   },
   [Collections.MediaAssets]: {
     verb: 'keep',

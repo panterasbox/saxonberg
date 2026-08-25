@@ -17,7 +17,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('PersistenceManager.planCollapses', () => {
   it('lists only the legacy collections present, in table order', () => {
     expect(PersistenceManager.planCollapses(['users', 'documents'])).toEqual([]);
-    expect(PersistenceManager.planCollapses(['emotes', 'users'])).toEqual(['emotes']);
+    expect(PersistenceManager.planCollapses(['name_banks', 'emotes', 'users'])).toEqual(['emotes', 'name_banks']);
   });
 });
 
@@ -99,6 +99,33 @@ describe('the emotes → documents collapse (I/O)', () => {
     expect(db.drops).toEqual(['emotes']);
     expect(db.inserts).toBe(2);
     expect(info).toHaveBeenCalledTimes(1);
+  });
+
+  it('recipes and name_banks collapse the same way (path prefix = the pack contentDir; null fields dropped)', async () => {
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const db = fakeDb({
+      recipes: [{ _id: 'r1', recipeId: 'martini', name: 'Gin Martini', inputSlots: [{ slot: 'base' }], outputTemplate: '/t' }],
+      name_banks: [{ _id: 'n1', key: 'common', given: ['A'], surname: ['B'], style: null, sourcePack: 'species-and-names' }],
+    });
+    expect(await PersistenceManager.get().runCollapseMigrationForTest(db)).toBe(2);
+    expect(db.documents).toEqual([
+      {
+        _id: 'r1',
+        path: '/recipes/martini',
+        owner: '',
+        kind: 'recipe',
+        data: { recipeId: 'martini', name: 'Gin Martini', inputSlots: [{ slot: 'base' }], outputTemplate: '/t' },
+      },
+      {
+        _id: 'n1',
+        path: '/name-banks/common',
+        owner: '',
+        kind: 'name-bank',
+        data: { key: 'common', given: ['A'], surname: ['B'] },
+        sourcePack: 'species-and-names',
+      },
+    ]);
+    expect(db.drops.sort()).toEqual(['name_banks', 'recipes']);
   });
 
   it('an _id already present in documents is re-inserted under a fresh id (logged, never fatal)', async () => {

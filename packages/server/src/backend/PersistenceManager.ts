@@ -199,7 +199,6 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.GoogleProfiles]: { verb: 'refuse' },
   [Collections.TwitchProfiles]: { verb: 'refuse' },
   [Collections.KickProfiles]: { verb: 'refuse' },
-  [Collections.NameBanks]: { verb: 'refuse' },
   // Descriptor banks are immutable authored reference data installed by
   // a content pack — the same posture as name banks. A sandboxed write
   // to them would change what every unidentified item in the world looks
@@ -215,7 +214,6 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.ForumEvents]: { verb: 'refuse' },
   [Collections.ProducerEvents]: { verb: 'refuse' },
   [Collections.Positions]: { verb: 'refuse' },
-  [Collections.Recipes]: { verb: 'refuse' },
   [Collections.Parcels]: { verb: 'refuse' },
   [Collections.ParcelEvents]: { verb: 'refuse' },
   [Collections.Contracts]: { verb: 'refuse' },
@@ -1189,10 +1187,15 @@ export class PersistenceManager {
     legacy: string;
     kind: string;
     naturalKey: string;
+    /** The provisional path prefix = the kind's pack `contentDir`, so a
+     * migrated stamped row's record key matches its pack file's key. */
+    pathPrefix: string;
     /** Legacy fields that do not travel into `data`. */
     strip: string[];
   }> = [
-    { legacy: 'emotes', kind: 'emote', naturalKey: 'verb', strip: ['aliases'] },
+    { legacy: 'emotes', kind: 'emote', naturalKey: 'verb', pathPrefix: '/emotes', strip: ['aliases'] },
+    { legacy: 'recipes', kind: 'recipe', naturalKey: 'recipeId', pathPrefix: '/recipes', strip: [] },
+    { legacy: 'name_banks', kind: 'name-bank', naturalKey: 'key', pathPrefix: '/name-banks', strip: [] },
   ];
 
   /** Pure: which legacy collections (present in `names`) still need collapsing. */
@@ -1226,9 +1229,14 @@ export class PersistenceManager {
       for (const row of rows) {
         const { _id, sourcePack, ...rest } = row;
         for (const f of c.strip) delete rest[f];
+        // A null/undefined field is an absent one: the pack file never
+        // writes it, and the three-way compares `data` like-for-like.
+        for (const [k, v] of Object.entries(rest)) {
+          if (v === null || v === undefined) delete rest[k];
+        }
         const doc: Record<string, unknown> = {
           _id,
-          path: `/${c.legacy}/${String(row[c.naturalKey])}`,
+          path: `${c.pathPrefix}/${String(row[c.naturalKey])}`,
           owner: '',
           kind: c.kind,
           data: rest,
@@ -1351,22 +1359,10 @@ export class PersistenceManager {
         { unique: true }
       );
 
-      // Name banks: unique key for the char-gen suggester's by-key resolve.
-      await this.getCollection(Collections.NameBanks).createIndex(
-        { key: 1 },
-        { unique: true }
-      );
-
       // Descriptor banks: unique key (the item class) for the
       // appearance resolver's by-key warm.
       await this.getCollection(Collections.DescriptorBanks).createIndex(
         { key: 1 },
-        { unique: true }
-      );
-
-      // Recipes: unique recipeId for catalogue resolve.
-      await this.getCollection(Collections.Recipes).createIndex(
-        { recipeId: 1 },
         { unique: true }
       );
 
