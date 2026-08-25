@@ -78,8 +78,13 @@ Before starting `pnpm test`, answer one question mechanically:
 
 ```bash
 # Has anything but docs changed since the last full run?
-git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'
 ```
+
+(`packages/content/` is excluded too: a content pack is data the
+installer reconciles, not source the suite compiles — a pack-file edit
+is proven by the installer's own tests and the drive, not by a 15-minute
+run.)
 
 Empty output means **the last run still stands — do not re-run it.**
 Say so, cite the number it gave, and move on. The same check applies to

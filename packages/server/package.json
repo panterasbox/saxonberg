@@ -33,6 +33,7 @@
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
     "lint:test-bootstrap": "tsx scripts/check-test-bootstrap.ts --lint",
+    "lint:test-content": "tsx scripts/check-test-content.ts --lint",
     "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"
   },
   "dependencies": {
