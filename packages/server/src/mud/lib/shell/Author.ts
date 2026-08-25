@@ -116,6 +116,14 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // relationship yet — operator == wizard in v1).
         'banking/reserve.yaml',
         'banking/house.yaml',
+        // The content-pack installer's operator surface — `pack status /
+        // install --dry-run / sync / diff / resolve / pin`. Afforded on the
+        // operator command surface like the rest of this suite, but
+        // *authorized* on the orthogonal committee axis: `pack.yaml`
+        // carries `requiresPackInstaller` (membership of the
+        // `pack-installers` committee, never wizardness), so an author
+        // who is not appointed sees the verb but can't run it.
+        'author/pack.yaml',
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // `errors.yaml` carries `requiresAuthor`, so a non-author sees

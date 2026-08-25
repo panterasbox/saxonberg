@@ -21,6 +21,8 @@ import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import type { GroupProvider, GroupRef, GroupChangeHandle, GroupChangeListener } from '../lib/social/GroupProvider';
 import { GroupApi } from '../api/group';
+import { CompactApi } from '../api/compact';
+import { Group } from '../lib/social/Group';
 import { ManagedGroupProvider } from '../lib/social/providers/ManagedGroupProvider';
 import { MqlGroupProvider } from '../lib/social/providers/MqlGroupProvider';
 import { ContactsGroupProvider } from '../lib/social/providers/ContactsGroupProvider';
@@ -103,6 +105,30 @@ export default class GroupRegistry extends GroupRegistryBase {
       return { cancel: () => undefined };
     }
     return provider.onChange(id, cb);
+  }
+
+  /**
+   * Does `actor` own `group`? The ONE ownership resolution, by the
+   * owner's kind:
+   *  - `system` — nobody;
+   *  - `player` — the actor's templatePath;
+   *  - `office` — `CompactApi.holdsOffice`, which already encodes
+   *    *absence of a handoff row = founder default* and fails closed with
+   *    no registry. Never a stamped player id, never `isFounder` directly.
+   * Roster roles are untouched — ownership is a resolution, not a row.
+   */
+  public async ownsGroup(actor: Stuff, group: Group): Promise<boolean> {
+    const owner = Group.ownerFromStored(group.owner);
+    switch (owner.kind) {
+      case 'system':
+        return false;
+      case 'player': {
+        const path = actor.getTemplatePath();
+        return !!path && owner.templatePath === path;
+      }
+      case 'office':
+        return owner.office.length > 0 && CompactApi.holdsOffice(actor, owner.office);
+    }
   }
 
   /** Internal — managed-provider reference for the controller-side write surface. */

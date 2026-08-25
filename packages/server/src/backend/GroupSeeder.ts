@@ -17,7 +17,7 @@
  * conferral. See `docs/subsystems/residence.md` § provisioning authorization.
  *
  * Source at `mud/config/groups.yaml` (NOT under `mud/seeds/`): a `Group` is a
- * Document, not a Stuff template, so it doesn't belong in the `domain`
+ * Document, not a Stuff template, so it doesn't belong in the `content`
  * collection that `SeederManager` walks — same reasoning as ChannelSeeder.
  *
  * `isMember` reads the group fresh from Mongo (no cache), so a direct
@@ -29,7 +29,7 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
-import { Group, type GroupRole } from '../mud/lib/social/Group';
+import { Group, type GroupRole, type GroupOwner } from '../mud/lib/social/Group';
 
 interface GroupMemberSeed {
   id: string;
@@ -38,7 +38,12 @@ interface GroupMemberSeed {
 
 interface GroupSeedEntry {
   name: string;
-  owner?: string;
+  /**
+   * `system` (the default), or a typed owner — `{ office: <key> }` for
+   * a group owned by a government office, `{ player: <templatePath> }`
+   * for a person. Authoring sugar; the stored shape is `GroupOwner`.
+   */
+  owner?: string | { office?: string; player?: string };
   members?: GroupMemberSeed[];
 }
 
@@ -48,6 +53,19 @@ interface GroupSeedOptions {
 }
 
 export class GroupSeeder {
+  static #ownerOf(entry: GroupSeedEntry, path: string): GroupOwner {
+    const o = entry.owner;
+    if (o === undefined || o === 'system') return Group.systemOwner();
+    if (typeof o === 'object' && o !== null) {
+      if (typeof o.office === 'string' && o.office.length > 0) return Group.officeOwner(o.office);
+      if (typeof o.player === 'string' && o.player.length > 0) return Group.playerOwner(o.player);
+    }
+    throw new Error(
+      `GroupSeeder: group '${entry.name}' in ${path} has a malformed owner ` +
+        `(want 'system', { office: <key> }, or { player: <templatePath> })`,
+    );
+  }
+
   public static async run(opts: GroupSeedOptions = {}): Promise<number> {
     const path = opts.seedPath ?? GroupSeeder.#defaultSeedPath();
     let raw: string;
@@ -71,7 +89,7 @@ export class GroupSeeder {
       if (!group) {
         group = new Group();
         group.name = entry.name;
-        group.owner = entry.owner ?? 'system';
+        group.owner = GroupSeeder.#ownerOf(entry, path);
         await group.save();
       }
       let dirty = false;

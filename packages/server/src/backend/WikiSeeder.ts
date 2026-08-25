@@ -10,7 +10,7 @@
  *
  * Lives in `config/` rather than `seeds/` for the same reason channels
  * do: a `WikiPage` is a Document, not a Stuff template, so it does not
- * belong in the `domain` collection `SeederManager` walks.
+ * belong in the `content` collection `SeederManager` walks.
  *
  * ## ⚠ Seeded pages are written by the SYSTEM, not by a player
  *

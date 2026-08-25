@@ -166,7 +166,7 @@ CI-rule change, `GITLAB_PUSH_TOKEN` provisioning) live in
 
 - **Content / document → git** (templates + scripts live in Mongo, not
   files) — needs a Mongo→file **export** bridge, deferred to the
-  [content-packs](../slates/tails/content-packs-slate.md) round-trip.
+  [content-packs](../slates/builds/content-packs-slate.md) round-trip.
   Source plane only.
 - **History rewrites** (`reset` / force-push) and their admin-tier gating.
 - **Finer-than-branch review** (slice / commit / author-scoped MRs) — rides

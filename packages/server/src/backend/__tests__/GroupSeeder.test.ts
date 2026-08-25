@@ -77,7 +77,7 @@ describe('GroupSeeder', () => {
     expect(dorms, 'duncan-hall group seeded').toBeTruthy();
     // Owner is the platform (system), and Katie's templatePath is a member —
     // conferred by the owner's authored data, the key isDormsAgent checks.
-    expect(dorms!.owner).toBe('system');
+    expect(dorms!.owner).toEqual({ kind: 'system' });
     expect(dorms!.memberIds).toContain(
       '/domain/eternal/duncan-hall/npc/katie',
     );

@@ -63,7 +63,7 @@ describe('ManagedGroupProvider.findByName', () => {
     installInMemoryStore([
       {
         name: 'core',
-        owner: 'system',
+        owner: { kind: 'system' },
         memberIds: [],
         memberRoles: [],
       },

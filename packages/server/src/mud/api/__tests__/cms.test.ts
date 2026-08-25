@@ -74,7 +74,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
   let nextId = store.length + 1;
 
   const save = vi.fn(async (collection: string, doc: Doc) => {
-    if (collection !== Collections.Domain) {
+    if (collection !== Collections.Content) {
       throw new Error(`unexpected collection in test: ${collection}`);
     }
     const copy = { ...doc };
@@ -91,7 +91,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
   const find = vi.fn(
     async (collection: string, query: Record<string, unknown>) => {
-      if (collection !== Collections.Domain) return [];
+      if (collection !== Collections.Content) return [];
       if (typeof query.path === 'string') {
         return store.filter((d) => d.path === query.path);
       }

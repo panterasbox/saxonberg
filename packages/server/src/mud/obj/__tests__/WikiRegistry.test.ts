@@ -300,7 +300,7 @@ describe('⭐ no game model is touched (7)', () => {
     // The binding is one-directional by construction — the ONLY
     // storage is this field on this row, in the wiki's own collection.
     expect(page.getSubject()?.ref).toBe('/obj/material/oak');
-    expect(db.all(Collections.Domain)).toEqual([]);
+    expect(db.all(Collections.Content)).toEqual([]);
   });
 
   it('the whole page model lives in the wiki’s own collections', async () => {

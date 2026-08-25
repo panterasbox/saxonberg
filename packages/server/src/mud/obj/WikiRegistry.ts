@@ -825,7 +825,7 @@ export default class WikiRegistry extends WikiRegistryBase {
     if (existing) return;
     const g = new Group();
     g.name = EDITORS_GROUP;
-    g.owner = 'system';
+    g.owner = Group.systemOwner();
     await g.save();
   }
 

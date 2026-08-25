@@ -12,6 +12,11 @@
 # `id` is the member reference the membership check keys on: a player's
 # `playerId`, or an NPC's `templatePath` (an NPC has no playerId — the same key
 # `isDormsAgent` resolves).
+#
+# `owner` is `system` for seeded structure, `{ office: <key> }` for a group
+# owned by a government OFFICE (resolved on read through
+# `CompactApi.holdsOffice`), or `{ player: <templatePath> }`. Stored as the
+# typed `GroupOwner` (see `Group.owner`).
 groups:
   - name: duncan-hall
     # The dorms-owning landlord group. It owns
@@ -56,6 +61,18 @@ groups:
     # `system`, matching ParcelRegistry's mint-or-find so this seed and
     # the lazy owner-ref resolution converge on one group.
     owner: system
+    members: []
+
+  - name: pack-installers
+    # The executive's content-operations committee (offices are heads;
+    # committees are hands — slate A25). Owned by the PM's OFFICE, not a
+    # player: an `office`-kind owner resolves through holdsOffice on read
+    # (GroupApi.ownsGroup), so handing the PM seat hands this committee
+    # with no data migration. Zero members at birth — structure only;
+    # the seat-holder appoints via the ordinary `group add`. Membership
+    # here is what `requiresPackInstaller` gates the `pack` verb on —
+    # never wizardness.
+    owner: { office: prime-minister }
     members: []
 
   # ── The corpo boards ────────────────────────────────────────────────

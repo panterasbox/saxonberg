@@ -6,7 +6,7 @@
  * convention (the `CorpoCatalogue` / `DisciplineCatalogue` recipe). The
  * cache is transient instance state; the source of truth is the
  * per-`Government` leaf templates under `/obj/Government/` in the
- * `domain` collection. The leaves are pure data, so the catalogue loads
+ * `content` collection. The leaves are pure data, so the catalogue loads
  * descriptors directly from the template docs — never cloning them as
  * live Stuff.
  *
@@ -73,7 +73,7 @@ export default class GovernmentCatalogue extends GovernmentCatalogueBase {
   }
 
   /**
-   * Warm the cache from the `domain` collection. One mongo query at
+   * Warm the cache from the `content` collection. One mongo query at
    * boot, then the public surface is sync.
    */
   public override async postRegister(_context?: unknown): Promise<void> {

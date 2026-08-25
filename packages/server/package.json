@@ -38,6 +38,7 @@
   "dependencies": {
     "@saxonberg/content-arcane-descriptors": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-newbie-wilds": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/types": "workspace:*",
     "@twurple/auth": "^8.1.4",

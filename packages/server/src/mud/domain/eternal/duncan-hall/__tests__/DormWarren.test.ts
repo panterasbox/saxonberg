@@ -70,7 +70,7 @@ function col(collection: string): Doc[] {
 
 /** Seed the domain templates the clone pipeline resolves. */
 function seedDomain(): void {
-  const domain = col('domain');
+  const domain = col('content');
   const add = (path: string, cls: string, data: Record<string, unknown> = {}) =>
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });

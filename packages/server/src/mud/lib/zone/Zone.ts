@@ -21,7 +21,7 @@
  * checks `prototype instanceof Zone`, so any new subclass participates
  * without editing a central allow-list.
  *
- * Zones are stored as CMS templates in the `domain` collection. `Stuff.zone`
+ * Zones are stored as CMS templates in the `content` collection. `Stuff.zone`
  * (on the Stuff base) holds the nearest *spatial* zone reference; non-spatial
  * Zone ancestors (Clades) do NOT stamp onto `Stuff.zone` — see
  * `ZoneApi.resolveZoneForPath` and `ZoneApi.isSpatialZoneClass`.

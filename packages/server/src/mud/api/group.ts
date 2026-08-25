@@ -19,7 +19,7 @@ import type {
   GroupChangeHandle,
   GroupChangeListener,
 } from '../lib/social/GroupProvider';
-import type { GroupRole } from '../lib/social/Group';
+import type { GroupRole, Group } from '../lib/social/Group';
 import type GroupRegistry from '../obj/GroupRegistry';
 import { GroupLogic } from '../obj/api/GroupLogic';
 import { fileURLToPath } from 'url';
@@ -93,6 +93,17 @@ export class GroupApi {
    */
   static async registry(): Promise<GroupRegistry> {
     return logic().registry();
+  }
+
+  /**
+   * Does `actor` own `group`? A plain owner matches the actor's
+   * templatePath; an `office:<key>` owner resolves through
+   * `CompactApi.holdsOffice` on read (founder default included), so a
+   * seat handoff transfers the group with no data migration. The one
+   * ownership resolution — every owner gate routes through it.
+   */
+  static async ownsGroup(actor: Stuff, group: Group): Promise<boolean> {
+    return logic().ownsGroup(actor, group);
   }
 }
 

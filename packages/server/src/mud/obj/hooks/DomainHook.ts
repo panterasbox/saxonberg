@@ -1,5 +1,5 @@
 /**
- * DomainHook — hooks `Collections.Domain` save/delete to enforce the
+ * DomainHook — hooks `Collections.Content` save/delete to enforce the
  * folder/leaf invariant (Phase 7 Decision 12). Validation lives in
  * `TemplateApi`; this hook is the binding of the rule to the operation.
  *

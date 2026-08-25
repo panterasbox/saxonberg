@@ -3123,3 +3123,39 @@ capability.
 
 See [card-surface.md § Subject-bound subscriptions](./subsystems/card-surface.md)
 and [mql-subscription.md](./subsystems/mql-subscription.md).
+
+## A sentinel packed into an existing field
+
+Encoding a new *kind* of value inside a field that already exists —
+`Group.owner = 'office:prime-minister'` on a field that had only ever
+held a player path or `system` — to avoid touching the collection.
+
+### BAD
+
+```ts
+owner: string;                                   // '', a templatePath, 'system', or 'office:<key>'
+if (owner.startsWith('office:')) { … }           // every reader re-parses the prefix
+```
+
+The Document shape is "unchanged", and that is the whole problem: the
+field's meaning now depends on a prefix convention that lives in
+readers' heads, the type system says nothing, and the next kind adds a
+second prefix. The pack-installer review caught exactly this.
+
+### GOOD
+
+```ts
+export type GroupOwner =
+  | { kind: 'system' }
+  | { kind: 'player'; templatePath: string }
+  | { kind: 'office'; office: string };
+owner: GroupOwner;
+switch (owner.kind) { … }                        // the compiler checks the cases
+```
+
+plus a **one-time boot migration** for the rows already stored
+(`PersistenceManager.#migrateGroupOwners`, the `domain → content`
+idiom) and a `fromStored` upgrade the readers also pass through, so no
+row is ever read in the old shape. The precedent is `ParcelOwner`; the
+rule is that nothing pre-launch is legacy — model the thing and migrate
+the rows. See [grouping.md § The owner](./subsystems/grouping.md#the-owner--a-typed-principal).

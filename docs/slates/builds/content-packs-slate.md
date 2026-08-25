@@ -1016,3 +1016,2112 @@ testable, and it can land well before step 4 finishes.**
 9. **What is the first trade to build end-to-end?** Baking, per Part 3 —
    but it needs milling and farming beneath it, so the real question is
    how much of the chain ships as one build.
+
+---
+
+# Addendum 2026-08-20 — the installer session
+
+**Captured 2026-08-20.** The session opened on the repo split
+(submodules?) and "every collection needs a seeding model instead of the
+patchwork," and turned into the installer:
+
+> **User: "installing content packs is like a duty for an ops person and
+> we probably want like an actual installer or something that packs then
+> can inform as to what kinds of configuration and parameterization is
+> needed. this also handles the database authority problem hopefully by
+> having some sorta rules-based thing as to what a re-install is/means."**
+
+This addendum answers open questions **#2** and **#3**, and disposes of
+Part 8 gap **#1** (the `PackLogic` gate bypass) by changing what install
+*is*. Status: design conversation, captured. Not requirements.
+
+## A10.1 — The repo split is LAST, and it is not submodules
+
+Not generic submodule FUD — a project-specific one. This repo's most
+expensive scar is *one branch, two working trees, one ref store* (the
+2026-08-02 deletions, CLAUDE.md § Worktrees). Submodules reproduce that
+shape by construction: `git worktree add` does not init submodules, and a
+submodule's gitdir lives under the superproject's common dir — four
+worktrees × N packs is N×4 detached checkouts sharing a ref store. And
+rule 4 (*unpushed work is the only kind you can lose*) multiplies:
+superproject pins a SHA, push the parent, forget the child, the pointer
+dangles.
+
+⭐ **The seam that costs nothing already exists**: packs are discovered by
+npm package name (`@saxonberg/content-*` in server's `package.json`,
+resolved via `require.resolve`). That seam does not care where the files
+physically live. Separate GitLab repos publishing to the GitLab npm
+registry, pinned by version, `link:` for the dev loop — and `pack.yaml`'s
+inert `version` becomes load-bearing as the npm version.
+
+⭐⭐ **And the ordering argument beats the mechanism argument: you cannot
+cut repos along a seam you have not drawn.** 227 seeds are referenced by
+nothing, the trade cut is not made, `seeds/obj/` is full of platform
+singletons. Splitting repos first freezes a wrong boundary in the most
+expensive medium there is. Repo split = a late step, after Part 9's
+migration order completes.
+
+## A10.2 — The sentence that governs DB authority
+
+> ⭐⭐⭐ **The DB is a cache of the packs for everything a pack ships, and
+> the system of record only for what players did.**
+
+The corollary that keeps version control honest: for pack-owned paths
+there is **no DB-authoritative edit**. The round-trip is
+**export → file → commit → MR**, never "the DB wins." A CMS edit to a
+pack-owned template is an *export candidate that reconcile will
+surface* — see the state machine below, which is what makes that safe
+instead of silently lossy.
+
+## A10.3 — The closed set of seeding models (~6, not per-collection)
+
+"Every collection needs a seeding model" resolves to **six models**, not
+fifty policies. Against `Collections.ts`:
+
+| Model | Truth | Collections |
+|---|---|---|
+| **reconciled** — file is truth | file | `domain`; the kinds that collapse into `documents` |
+| **seed-missing** — pack seeds, operator owns after | DB | `app_settings`, `world_state` |
+| **structure-only** — existence from the pack, authority from a procedure | split | `groups`, `parcels`, `office_holders` |
+| **CAS-merged** — has a rev token; conflicts surface | both | `wiki` (+`wiki_revisions`) |
+| **never seeded** — empty is correct | DB | every ledger + `*_events`, `users`, `beliefs`, `chronicles`, `transcripts`, `player_frames`, `holder_snapshots` |
+| **derived cache** — rebuilt, never seeded | neither | `renown`, `participation`, `producer`, `bank_accounts`, `bank_supply` |
+
+⭐ **The last row is what the patchwork hides**: a derived cache needs a
+REBUILD command, not a seeder — conflating the two is how a stale cache
+survives a reboot looking authoritative. ⭐ Acceptance test for the
+vocabulary itself: every collection lands in exactly one row with no
+residue. Three needing special pleading = the vocabulary is wrong.
+
+## A10.4 — ⭐⭐⭐ The install record: three-way reconcile
+
+Today's reconcile is **two-way** (pack file vs. DB row), which cannot
+distinguish *the pack changed this* from *someone with authority changed
+this* — the reason Part 9 hand-waved "compare against what the pack last
+installed" and flagged `sourcePack` as provenance-but-not-modified-since.
+
+An installer has a natural artifact that fixes this: a per-pack
+**install record** — pack id, version, the parameter answers, and a hash
+of each row *as installed*. Reconcile becomes **three-way** and the
+"rules-based thing as to what a re-install means" becomes a small state
+machine instead of policy prose:
+
+| pack file | DB row | action |
+|---|---|---|
+| unchanged | unchanged | nothing |
+| changed | unchanged since install | update, silently |
+| unchanged | diverged | keep the DB — authority did that |
+| changed | diverged | ⭐ **conflict — surface it, never merge** |
+
+Same machine for the operator-tuned setting, the player-modified bakery,
+and the wiki page — except the wiki carries its own CAS token, so there
+the installer *submits the edit* and the wiki's three-body conflict
+machinery fires (§ the wiki shows the general rule). The install record
+is what every other kind was missing to get the same honesty.
+
+**This CLOSES open question #3** (reconcile vs. a player-modified
+venue): both-changed → conflict, surfaced, human-resolved. Skip-and-warn
+was the two-way approximation; three-way makes it exact.
+
+## A10.5 — Reconcile policy is a property of the KIND, never the pack
+
+If a pack could declare `replace` over `app_settings`, a pack update
+stomps what an operator tuned — seed-vs-assert, opted into by the party
+that benefits. The kind's owner (the platform) declares the reinstall
+semantics for that kind; a pack may choose a **gentler** policy than the
+kind allows, never a stronger one.
+
+## A10.6 — Parameterization IS the venue (closes open question #2)
+
+> **"packs can inform [the installer] as to what kinds of configuration
+> and parameterization is needed."**
+
+Q2 asked *do trades declare scale variants, or does the locality pass a
+footprint?* With an installer that takes parameters it stops being
+either/or: the trade pack declares its **parameter schema** (`locality:`,
+`scale: stall|shop|works`, `wage:` …) and installing it *somewhere* is
+supplying the answers.
+
+> ⭐⭐ **The pack is the program; the install parameters are the venue.**
+> One repo per trade, many installs, no repo-per-shop.
+
+⚠ The Helm rule, written down now: **the three-way baseline is the
+RENDERED output (post-parameters)** — otherwise every parameterized row
+reads as operator divergence on the next upgrade.
+
+## A10.7 — The installer is a procedure, not an application
+
+Resist building an installer *app*. The house has the pieces:
+
+- **`requires:` + parameters → one derived checklist** — *what is
+  unfulfilled?* stays a query, never a stored to-do (Part 9's rule,
+  extended to parameters).
+- **`pack provision <id>` walks it via `PromptApi`**
+  (choice/confirm/text/mqlObject) — prompting per item, recording
+  answers into the install record. That IS the installer UI, in-world,
+  ~zero new surface.
+- **Install never blocks.** Unanswered parameters are a legal world
+  state (never-half-grown): the venue sits inert and *visibly* so.
+
+## A10.8 — Ops is an OFFICE, and install is a gated procedure
+
+*"A duty for an ops person"* resolves to an office, not a person
+(check-offices-never-the-founder). "May this principal install this pack
+here" decomposes into three checks that all exist or are slated:
+
+| check | machinery |
+|---|---|
+| holds the ops seat | `holdsOffice` (governance) |
+| title to the claimed extent | pack ↔ parcel fusion (Part 8 gap #5) |
+| review tier vs. manifest claim | the Part 1 tier table — cosmetic installs freely, systemic needs the ledger's owner, constitutional needs the legislature |
+
+⭐⭐ **The installer is the one place those three compose — which
+DISPOSES of Part 8 gap #1** (the `PackLogic` `saveTemplate` bypass): the
+bypass was tolerable while `pack` was wizard-gated and every pack was
+ours; the fix is not re-routing writes but making install a **gated
+procedure with a named principal**, so provenance is checked at the door
+instead of per row.
+
+## A10.9 — Reconcile ≠ go-live; hot go-live is a per-kind capability
+
+> **User: "I'm not sure about installing content packs inside a running
+> game runtime. if it works that's great but I feel like it'd at least
+> want a restart."**
+
+The shipped code already agrees. Runtime `pack sync` works for exactly
+one shape — singletons-by-path with lazy re-resolve (materials, biomes) —
+and the doc defers cloned content as "the harder wave." A trade pack is
+*entirely* the harder wave: rooms, NPCs, fixtures, all cloned, all live,
+some with players standing in them. So, written as a rule:
+
+> ⭐⭐⭐ **Split RECONCILE from GO-LIVE. Reconcile (rows + install record)
+> is always safe — nothing live reads a `domain` row until clone or
+> re-hydrate. Go-live is the dangerous half, and RESTART is the universal
+> go-live that works for every kind.** Hot go-live (materials, quantity
+> tags, name banks) is a per-kind *capability* — an optimization, same
+> per-kind shape as reconcile policy — never a requirement.
+
+Nobody ever has to make runtime world-swapping work under players' feet
+to ship a pack. The architecture has priced in the restart: one box,
+deploy at standup, 502-for-~90s documented normal, and the
+self-persistence spine makes restart a supported world state.
+
+## A10.10 — No companion webapp: stage in-game, apply at boot
+
+> **User: "…if not like a whole separate companion webapp that runs
+> adjacent to the server for installation/configuration and it can own
+> server lifecycle or something."**
+
+Argued against, for one specific reason:
+
+> ⭐⭐ **The authority model lives inside the game.** `holdsOffice`,
+> title, tiers — all mudlib. A companion app either reimplements them
+> (two authority models, drift guaranteed) or phones the running server
+> to ask (at which point it is a UI on the game, not a separate system).
+> It would also be a second lifecycle owner next to the deploy machinery
+> — a category of bug already paid for once.
+
+The shape that gets everything the companion app promises, in-process:
+
+1. **`pack install` / `pack provision` run in-game, gated, and STAGE** —
+   authority checked where the machinery lives, requirements walked,
+   answers recorded, a staged-install intent written. Nothing goes live.
+2. **Boot applies staged installs** in the pre-`loadHooks` window where
+   the installer already runs and nothing is live. requires-kernel + the
+   three-way reconcile run there; a failing pack marks its staged
+   install failed and the server boots **without** it, loudly — ⚠ **an
+   install must never be able to brick the boot.**
+3. **Restart is REQUESTED, not performed** — clean exit; the supervisor
+   that already owns lifecycle brings it back. "The installer owns
+   server lifecycle" collapses to "the installer may ask for a restart."
+
+Staged-but-not-applied is a visible, resumable state — and *what is
+staged / failed / awaiting provision* is the derive-on-read checklist
+again. The ops **screen** rides the CMS (the adjacent web surface with
+attribution already solved): a pack panel is a view over `pack status`,
+not a new app. ⭐ The separate-app instinct becomes right at a scale we
+do not have: multi-node, or operators who genuinely must not hold game
+logins. Neither is foreclosed by doing it in-process now.
+
+## A10.11 — Decisions in git, the ledger in Mongo
+
+> **User (on install records): "probably mongo but co-locating them with
+> the artifacts themselves might have some merit."**
+
+Half-merit, split along a line already trusted. The record cannot live
+in the *pack's* repo — a pack is one-to-many with deployments, and a
+pack that records where it is installed inverts annex-knows-host. So:
+
+| | lives in | examples |
+|---|---|---|
+| ⭐ **Decisions** | **git** | which packs a deployment runs (server `package.json` already IS this), parameter answers, the venues a locality declares — content someone might argue about |
+| **The ledger of application** | **Mongo** | installed version, as-installed row hashes, staged/applied/failed, timestamps — per-deployment runtime state |
+
+The wiped-DB test (the standing trap): wipe Mongo and the install
+*ledger* is cheerfully reconstructible by reinstalling from the decision
+files — whereas parameter answers living only in Mongo would have eaten
+the venues. Decisions in git, application state in Mongo, and the DB
+stays *just the DB* all the way down. (Venue declarations in the
+locality's pack also means "install" trends toward *the locality pack
+declares venues of trade packs* — installs all the way down, with only
+the record of having installed in the DB.)
+
+## Effect on the standing lists
+
+- **Open question #2** — closed: named variants AND a locality footprint,
+  unified as the pack's parameter schema (A10.6).
+- **Open question #3** — closed: three-way state machine; both-changed
+  surfaces as a conflict, never merged, never silently skipped (A10.4).
+- **Part 8 gap #1** — disposed by reframing: install becomes a gated
+  procedure with a named principal (A10.8).
+- **Part 8 gap #3 (versioning/migration)** — advanced: npm versions via
+  the registry make `version` load-bearing at the repo split (A10.1).
+- **Part 9 migration order** — unchanged, with the install record +
+  staged-install substrate joining step 1 (typed contributions), and the
+  repo split confirmed as after step 4.
+
+---
+
+# Addendum 2026-08-20 (2) — the boot audit, the collection buckets, and the subject resolution
+
+**Captured 2026-08-20, same session as the installer addendum.** The
+ask: assign every collection a seeding model, define how a pack
+*expresses* each, and audit `backend/` boot with intent to delete —
+> **User: "I really want to get as much of that gone as possible. Maybe
+> a few general abstractions if there are legitimate patterns, but this
+> eager stuff has gotta go."**
+
+Audited against `AppBootstrap.run` as of `0d25ab62c`.
+
+## A11.1 — The boot is FOUR jobs wearing one sequencer
+
+`AppBootstrap.run` is ~340 hand-ordered lines interleaving four jobs.
+Only one of them is seeding. The dispositions differ per job — which is
+what makes "delete the eager stuff" tractable:
+
+| Job | What | Disposition |
+|---|---|---|
+| 1 | **Seeding** — `SeederManager` + `PackApi.install` + 9 per-collection seeders | → the installer, typed kinds; every seeder file deleted |
+| 2 | **Platform wiring** — `installFrameworkWiring`, marshaller seam, `loadHooks`, `preloadAll`, MQL online-provider | stays, stays hand-ordered — the kernel booting itself |
+| 3 | **Manifest clones** — 43 `bootstrap.ts` entries | split: platform registries stay (or self-declare); **content entries leave for packs** (A11.3) |
+| 4 | **Warm + activate** — 6 `warm()`s, ~16 `*Api.boot()`s, relay readers, nightly reset | not seeding at all → the sequencer abstraction (A11.5) |
+
+## A11.2 — Job 1: the eleven writers, disposed
+
+| Seeder | Collection | Policy today | Becomes |
+|---|---|---|---|
+| SeederManager | `domain` | insert-only | platform pack zero, reconciled |
+| EmoteSeeder | `emotes` | insert-only | reconciled (post doc-store collapse) |
+| RecipeSeeder | `recipes` | insert-only | reconciled (same) |
+| ChannelSeeder | `channels` | insert-only | the **subjects** kind (A11.6) |
+| ScriptSeeder | `documents` | insert-only | the general **document kind** it prototypes |
+| AppSettingsSeeder | `app_settings` | **merge-missing** | seed-missing — ⭐ **already the reference implementation** |
+| GroupSeeder | `groups` | ensure-member | structure-only — must die in current form |
+| ParcelSeeder | `parcels` | insert-only | structure-only (claims via install) |
+| WikiSeeder | `wiki` | insert-only | CAS-merged |
+| BlueprintSeeder | `blueprints` | two-layer | **split** — see below |
+
+Three findings:
+
+- ⭐⭐ **`BlueprintSeeder` (380 lines, the biggest) is two seeding models
+  welded into one collection.** Layer (a) *derives* a skeleton by
+  introspecting every backing class in `domain` — a **derived-cache
+  rebuild wearing a seeder costume**. Layer (b), the curated YAML
+  overlay, is genuine reconciled content. Split: (a) becomes
+  `BlueprintCatalogue`'s rebuild; (b) becomes pack files. The seeder
+  dissolves.
+- ⚠⚠ **`GroupSeeder` seeds AUTHORITY** — it ensures *members* into
+  groups from YAML, exactly what structure-vs-authority forbids as
+  content. Its own header argues conferral-by-the-owner; but
+  conferral-by-YAML-at-boot is conferral by whoever edits the file.
+  This is the `WIZARD_PLAYER_IDS` → first-invocation-of-the-procedure
+  case, generalized.
+- ⚠ **`WikiSeeder`'s insert-only is a silent-loss policy wearing
+  politeness**: a player-edited page is never stomped (good), but a pack
+  *improving* a seeded page never lands either — silently. The CAS kind
+  fixes both directions at once.
+
+## A11.3 — Job 3: content in the manifest, and the inert-at-boot bug
+
+Of the 43 manifest entries, ~37 are platform registries/catalogues. Six
+are **content**: the five `/corpo/*` singletons, `/compact/press` +
+`/compact/executive`, `/domain/lounge/terminal`, `dorm-warren`, and the
+two Hinkley Hills singletons. Content in the engine manifest is the same
+category error as content in `mud/cmd/`.
+
+⚠⚠ And the manifest has a shadow: **reference-ideas-inert-at-boot,
+three times and counting.** `MaterialApi.boot()` and
+`ConditionApi.boot()` are hand-written apology steps for seeds nothing
+warmed; CombatFormation has the same wound today with no apology
+written. **Three mechanisms exist** for "make these rows live at boot"
+— a manifest entry, a prefix expansion, a bespoke `Api.boot()` — and
+the bug lives in the gaps between them.
+
+> ⭐⭐ **So a new contribution kind: `boot-instances`** — a pack declares
+> which of its template paths are cloned-at-boot singletons. The
+> declaration TRAVELS WITH THE CONTENT instead of living in a central
+> list a build forgets to update — which empties the content out of the
+> engine manifest AND structurally kills the inert-at-boot bug for pack
+> content.
+
+## A11.4 — The 50 collections, bucketed
+
+| Model | Collections |
+|---|---|
+| **reconciled** | `domain` · `name_banks` · `descriptor_banks` · `emotes` · `recipes` · `forum_subjects` · `forum_boards` · `channels` (organizer rows — A11.6) · `blueprints` *(curated layer)* · `documents` *(pack-shipped kinds)* |
+| **seed-missing** | `app_settings` |
+| **structure-only** | `groups` · `parcels` |
+| **CAS-merged** | `wiki` (+ `wiki_revisions` as its ledger) |
+| **never seeded** | `users` · 3× `*_profiles` · `parties` · `beliefs` · `chronicles` · `transcripts` · `disposition_events` · `forum_entries` · `forum_votes` · `forum_events` · `renown_events` · `participation_events` · `producer_events` · `authoring_events` · `positions` · `bank_ledger` · `parcel_events` · `chattel` + `chattel_events` · `accountability_events` · `contracts` + `contract_events` · `holder_snapshots` · `player_frames` · `diagnostics` · `media_assets` · `office_holders` · `world_state` · `documents` *(player-authored kinds)* |
+| **derived cache** | `renown` · `participation` · `producer` · `bank_accounts` · `bank_supply` · `blueprints` *(derived layer)* |
+
+The residue is instructive, not embarrassing:
+
+- **`blueprints` lands in two buckets** — confirming two collections
+  cohabiting, not a bad vocabulary.
+- **`world_state`** is never-seeded: `WorldClockApi`'s zero-clock on a
+  fresh DB is lazy init of runtime state, not content.
+- **`office_holders`** is pure authority — sparse, absence = founder
+  default — ⭐ the one collection already living the split.
+
+## A11.5 — How a pack expresses each bucket
+
+Five of six reduce to *files under a typed subdir; the kind carries the
+reconcile semantics* (A10.5 doing its job):
+
+| Bucket | The pack's expression |
+|---|---|
+| reconciled | files under the kind's subdir — the shipped model |
+| seed-missing | a `settings/` defaults file; installer merges missing keys |
+| CAS-merged | page files; install record holds the base-rev; installer *submits an edit* |
+| structure-only | the **`requires:`** block — never rows, never members |
+| derived cache | **nothing** — but an install *triggers* affected rebuilds (new classes ⇒ blueprint-skeleton rebuild) |
+| never seeded | **nothing, enforced** |
+
+> ⭐⭐⭐ **The closed kind vocabulary IS the allowlist.** There is no
+> contribution kind for `bank_ledger`, so a pack physically cannot say
+> it. "Can a pack write the ledger" is not a policy check that could
+> regress — it is a missing noun.
+
+**The abstractions that survive (three, and no more):**
+
+1. **One installer, typed kinds** — nothing in the nine seeders needs
+   more than the six models + `boot-instances`.
+2. **One lifecycle sequencer** for job 4: subsystems declare
+   warm/activate with `dependsOn`; the topo-sort `BootstrapManager`
+   already owns runs them. The ordering constraints currently living in
+   comments ("banking before employment") become data. Keep a single
+   explicit registration list — one line per subsystem — but let
+   dependencies, not list position, carry the order.
+3. **Rebuild commands** for the derived-cache row — the `warm()`s mostly
+   exist; they need a *forced* variant and a name.
+
+End state: `AppBootstrap.run` ≈ *connect → install (platform pack zero +
+shipped packs + anything staged) → framework wiring → sequenced
+lifecycle*. Every seeder file deleted; the manifest shrunk to platform
+registries or gone if those self-declare too.
+
+## A11.6 — ⭐⭐ The subject resolution: social surfaces are CONTENT
+
+The audit's one open cell — is a channel/board reconciled or
+structure-only? — dissolved one layer down:
+
+> **User: "by channels do you mean subjects? because those would ship
+> with content packs the same way emotes do… the prototypical example is
+> the narnia content pack ships with a narnia forum and a narnia chat.
+> maybe even more than one, one for labor and one for consumers. I dunno
+> it's up to the content pack maintainer."**
+
+Chat already rides the forums Subject layer — a channel and a board are
+both **organizers over one Subject**. Stated at that layer there is
+nothing structural about it: a subject is plain content, exactly like an
+emote. The Narnia pack ships `subjects/narnia.yaml` (and
+`narnia-labor.yaml` / `narnia-consumers.yaml` if the maintainer wants
+the chamber split), each declaring which organizers it wants — a board,
+a channel, both. **One reconciled kind (`subjects`), no `requires:`
+entry, no special case.** How many and how sliced is the maintainer's
+call.
+
+The "isn't a social surface authority-shaped?" worry does not survive
+the rows: a standalone channel's `memberIds` is empty by design
+(audience = everyone minus a future banlist) and a group-backed
+channel's membership rides the Group, which structure-vs-authority
+already governs. **There is no authority in the subject/organizer row to
+protect.** Help/Global/Chat stop being a seeded special — they are the
+platform pack zero shipping the same kind; `ChannelSeeder` dies with
+nothing left behind.
+
+## A11.7 — ⭐⭐⭐ The delete direction: archive, never reap
+
+The one per-kind nuance the reconciled kind needs. For materials,
+*stamped row whose file vanished → delete* is fine. For a subject, the
+row may be untouched while the WORLD GREW AROUND IT — a Narnia forum
+with three hundred player threads is not clean to drop because the
+pack's next version removed the file. ⚠ The three-way record cannot
+catch this (the row never diverged), so the rule is stated at the kind:
+
+> **An organizer whose file vanishes is CLOSED/ARCHIVED, never reaped.
+> Player writing is never destroyed as a side effect of a reconcile.**
+> Entries stay, visibly orphaned under a closed subject; actually
+> removing them is a separate deliberate act by someone with authority
+> to do it.
+
+Same spirit as the wiki's no-auto-merge line: the reconcile may retire
+the container, but the contents are somebody's record. And it
+generalizes — it is the slate's *packs seed, they do not own* rule
+(player-*bought* venues) recurring for player-*written* accumulations,
+and it will recur a third time the moment packs ship anything with a
+ledger nearby. Named once:
+
+> ⭐⭐⭐ **A pack owns what it shipped, never what accumulated around
+> it.**
+
+## Effect on the standing lists
+
+- The **third sort test** table (Part 9) gains its worked example: the
+  `subjects` kind is the doc-shaped collapse applied to three more
+  collections' seed paths (`channels` + the two forum organizer rows'
+  starter content), without touching their runtime collections.
+- **Part 9 migration order step 0** widens: the collapse list is
+  `name_banks` · `recipes` · `blueprints`(curated) · `emotes`, and the
+  organizer starter content joins via the `subjects` kind.
+- The **A10.3 six-model table** stands, with `blueprints` split across
+  two rows and the social organizers assigned to reconciled (A11.4
+  supersedes A10.3's row contents where they differ).
+- New kind roster so far: domain · quantity · name-banks (shipped) +
+  documents · settings · subjects · **boot-instances** + the
+  `requires:` block (planned).
+
+---
+
+# Addendum 2026-08-21 (3) — two packs en toto: the requirements drill-down
+
+**Captured 2026-08-21.** The ask: drill into one or two tier-1 packs and
+enumerate their needs *en toto* — **the comprehensive input for the
+requirements phase.** Exemplars chosen to exercise the whole surface:
+**hearthworks** (the trade pack) and **eternal-university** (the
+locality pack), with the trade⊗locality seam between them. Audited
+against the tree at `0d25ab62c`.
+
+Context: the three-tier pack roster (ship-now carve / slate-implied /
+imagined-but-supported) was drawn in-session; tier 1 ≈ the 3 shipped
+packs + pack zero + substrate packs (conditions, body-plans,
+generic-objects) + institutions (compact, corpo) + 8 locality packs +
+wiki-starter. The tier-3 audit found exactly two unplanned substrate
+gaps: an **overlay kind** (localization annotating rows another pack
+owns — breaks one-stamp-per-row) and **scheduled uninstall**
+(festivals). This addendum is the tier-1 drill-down.
+
+## A12.1 — Hearthworks: the complete bill
+
+**Inventory (what moves):**
+
+| What | Where today | Count |
+|---|---|---|
+| domain seeds | `seeds/domain/hearthworks/` | 23 (4 rooms + floor, stock props, 2 NPCs, Business, 2 menus) |
+| **TS classes** | `src/mud/domain/hearthworks/` | **3** — `SmithyMenu`, `KitchenMenu`, `SealedCellar` |
+| recipes | `config/recipes.yaml` | ~7 (fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin, toasted-ration, root-mash) |
+| tests | `seeds/__tests__/business-authority.test.ts` | 1 → becomes a pack test |
+
+**Zero inbound coupling** — no engine code references
+`/domain/hearthworks`; the only inbound mentions are comments. The
+cleanest pack candidate in the tree.
+
+**The dependency graph it declares:**
+
+- `dependsOn: base-library` — iron, firewood, hide are materials.
+- `dependsOn: generic-objects` — ⭐⭐ **every recipe's `outputTemplate`
+  is another pack's row** (`/obj/arms/fire-poker`, `/obj/CookPot`,
+  `/obj/gear/smiths-hammer`, `/obj/armor/hide-jerkin`,
+  `/obj/items/plated-dish`). Cross-pack template references are
+  LOAD-BEARING from pack one — the installer needs a reference check
+  (does the named path exist in the install set?) alongside
+  requires-kernel, and a dangling-pointer policy.
+- `dependsOn: corpo` (or the institutions pack) — `banksAt: goodkin`.
+- **kernel brains** — NPCs name `/lib/behavior/introduces` /
+  `idles`. ⭐ **requires-kernel must extend beyond `class:` /
+  `hydratorClass:` to `behaviors[].brain`** (already a wizard-gated
+  field — same field set, new check site).
+
+**Kinds it exercises:** domain (reconciled) · recipes (reconciled,
+post-collapse a documents kind) · **boot-instances** — and here the
+audit hit an unresolved fact: ⚠ **nothing in `bootstrap.ts` names
+hearthworks, so how do the Business + cast stand up today?** The
+employment engine's boot comment assumes "the bootstrap manifest stood
+up the Business + cast," but no manifest entry exists. Requirements
+must answer the standup question explicitly — it is exactly the
+reference-ideas-inert-at-boot shape (A11.3), and the boot-instances
+kind is the answer *if* the current standup path is found and folded in.
+
+**Requires (structure):** ⚠ **hearthworks is UNPARCELLED today** — no
+title row, so its extent falls to the `'core'` owner. The pack's
+`requires.title: /domain/hearthworks` is not paperwork; it is the first
+real exercise of claim → gated subdivide → stamped install.
+
+**Tier: systemic, and mechanically detectable.** `wageRate: 5`/`4` on a
+24/7 roster **mints CB money at every shift settlement**. A trade pack
+that ships wages ships a faucet. ⭐ The Part 1 tier-claim check gains a
+second detector: code-naming fields ⇒ ≥ local; **wage/mint touchpoints
+⇒ ≥ systemic** (whoever owns the ledger argues).
+
+**The code problem, small form:** the 3 classes are the whole gap
+between hearthworks and a pure-data pack. Disposition question for
+requirements, likely answers: the two menus are a *general* concept
+(retail already has `PricedOffer` — genericize to a kernel menu-board
+class); `SealedCellar` is probably expressible as mixin composition
+(Sealable + Room, a Studio blueprint). ⭐ **The test: is each class
+content-specific logic, or missing kernel generality wearing a content
+name?** If the latter (likely all three), hearthworks becomes the
+first fully pure-data trade pack — the third-party format, proven.
+
+**Not exercised (deliberately deferred):** parameters — hearthworks v1
+ships its fixed venue, which under Part 4's vocabulary means **the
+showroom IS the venue**. Parameterized installs wait for the second
+venue of some trade.
+
+## A12.2 — Eternal-university: the complete bill
+
+The hard case on purpose — everything hearthworks dodges, this hits.
+
+**Inventory:**
+
+| What | Where today | Count |
+|---|---|---|
+| domain seeds | `seeds/domain/eternal/` | 35 (duncan-hall 17 + university-avenue 18, incl. 7 controller seed rows) |
+| **TS files** | `src/mud/domain/eternal/` | **21** — 7 domain-local controllers (provision/unprovision/remodel + blow/tally/wind/adjust), `Katie.ts`, the DormWarren machinery (9), the crossing kit (4) |
+| misfiled class | `obj/Gus.ts` | 1 — kernel `obj/` class hardcoding `/domain/eternal/university-avenue` paths; ⭐ refile to `domain/eternal/university-avenue/` |
+| civics rows | `seeds/obj/Locality/eternal-campus.yaml`, `seeds/obj/Government/eternal-university.yaml` | 2 — the three-deep jurisdiction proof |
+| group | `config/groups.yaml` `duncan-hall` | member: **the NPC katie** (agent authority) |
+| parcel | `config/parcels.yaml` `/domain/eternal/duncan-hall/dorms` | owner: group `duncan-hall` |
+| boot-instance | `bootstrap.ts` | `dorm-warren` |
+| tests reaching in | 13 files | ⚠⚠ **four live in KERNEL trees** — `lib/behavior/crossing-ritual`, `obj/crossing-objects.smoke`, `api/command-migration`, `seeds/room-archetypes` — the inverted arrow (Part 5), live |
+
+**Inbound seams:** terminus `arrival-gate`, counting-houses
+`avenue-block`, newbie-wilds `crossroads` all link INTO eternal.
+Inter-locality exits are the pack-seams rule made concrete: **the
+declaring side owns the exit** (the annex knows the host); the
+mechanism is `DeferredDestinationExit`, already shipped for exactly
+this shape. Requirements should state it as the rule for cross-pack
+exits rather than leave it convention.
+
+**Kinds and requires it exercises beyond hearthworks:**
+
+- `requires.groups: duncan-hall` + `requires.title:
+  /domain/eternal/duncan-hall/dorms` — the structure half, straight
+  from the slate.
+- ⭐⭐ **Agent membership as a PROVISION item.** Katie's membership in
+  `duncan-hall` is authority, so the pack cannot ship it — but the pack
+  *ships Katie*. Resolution: the pack declares the agency
+  (`provision: grant /npc/katie membership in duncan-hall`), and the
+  installer asks the title-holder to confirm at `pack provision`. The
+  GroupSeeder's ensure-member dies; the conferral survives as a
+  human-confirmed checklist item. This is `WIZARD_PLAYER_IDS` → "first
+  invocation of the fulfillment procedure," second instance.
+- **civics as plain content** — Locality + Government rows are
+  reconciled domain rows + catalogue warm; no new kind.
+- ⚠⚠ **The accumulation rule, load-bearing:** dorm rooms are PLAYER
+  HOMES — `(scope, key)` rows in `holder_snapshots`, furnishing estates,
+  houseplants. *A pack owns what it shipped, never what accumulated
+  around it* is not theory here: any reconcile/uninstall path that can
+  touch dorm contents is a data-loss bug. The never-seeded collections a
+  locality's content accretes (`holder_snapshots`, chattel, furnishing
+  overlays) must be structurally unreachable by the installer — same
+  closed-vocabulary argument as `bank_ledger` (A11.5).
+
+**The code problem, large form — the ladder.** Seven controllers +
+Katie + the warren machinery are not genericizable; they ARE the
+content. So the boundary from content-packs.md ("a pack assumes
+classes, a mod brings them") needs a declared ladder, and requirements
+should pick it:
+
+| Rung | Ships | Trust | Who |
+|---|---|---|---|
+| **data pack** | YAML only | requires-kernel + tier check | anyone (the third-party format) |
+| **capability pack** | YAML + TS under its own `domain/<sphere>/` | code review = wizard code-trust; first-party only until the sandbox/signing story | us |
+| **mod** | kernel changes | an MR | us |
+
+Eternal-university is a **capability pack**: its TS travels with it
+(the `domain/` tree already namespaces it), and the `class:` values
+resolving under its own namespace is checkable at install. ⭐ The
+alternative — grow the scripting subsystem until controllers are
+expressible as data — is real but far; the ladder makes it a migration
+*within* the model (capability → data), not a blocker.
+
+**Test migration:** the 9 colocated `domain/eternal/**` tests travel
+with the pack (they are pack tests misfiled only by repo). The **four
+kernel-tree tests** are the real work: each needs a synthetic fixture
+(`/test/…`, ugly on purpose — Part 5) replacing its reach into eternal
+content. That is the concrete, measurable start of `lint:test-content`.
+
+## A12.3 — The requirements shopping list
+
+What the two bills demand of the substrate, deduped — **this section is
+the hand-off**:
+
+1. **Typed contribution kinds** (A10/A11 roster) with per-kind
+   reconcile; the install record (three-way) underneath.
+2. **requires-kernel widened** to `behaviors[].brain` (+ controller
+   paths for capability packs).
+3. **Cross-pack reference validation** — recipe outputs, exits,
+   `banksAt` targets: resolve against the install set + `dependsOn`;
+   dangling-pointer policy (loud, named).
+4. **boot-instances kind** + answering the hearthworks standup question
+   (how do Business + cast go live today — find it, fold it in).
+5. **`requires:` block**: groups, title — plus ⭐ **provision items for
+   agent membership** (declared agency, title-holder confirms).
+6. **Tier detectors**: code-naming fields ⇒ ≥ local; wage/mint
+   touchpoints ⇒ ≥ systemic.
+7. **The pack ladder**: data / capability / mod — declared in the
+   manifest, enforced at install (a data pack whose `class:` resolves
+   under its own namespace is lying).
+8. **The accumulation firewall**: installer structurally unable to
+   touch `holder_snapshots` / chattel / furnishing overlays; organizer
+   deletes archive, never reap (A11.7).
+9. **Cross-pack exits**: declaring side owns them;
+   `DeferredDestinationExit` is the mechanism; state it as the rule.
+10. **Test migration lane**: pack tests travel; kernel-tree tests get
+    ugly fixtures; `lint:test-content` starts warn-only with these four
+    files as the first shrinking allowlist.
+11. **Genericize the hearthworks three** (menu-board to kernel;
+    SealedCellar via composition) so the first trade pack ships
+    pure-data — the third-party format proven on day one.
+12. **Deferred with a name**: parameterized venues (the showroom is the
+    venue until a trade has a second one); the overlay kind; scheduled
+    uninstall.
+
+⭐ **The two packs were chosen to be exhaustive, and they were**: every
+row in the shopping list traces to a concrete file in one of the two
+bills — nothing here is speculative substrate.
+
+---
+
+# Addendum 2026-08-21 (4) — ⭐⭐⭐ industry ≠ venue
+
+**Captured 2026-08-21, continuing the drill-down.** The user's re-cut of
+Part 2's vertical trade pack:
+
+> **User: "I'm not sure if I wanna mix venues and industries in the same
+> pack. an industry is largely mechanics, not content… the actual
+> specific content whether it's a mine or restaurant or farm or
+> whatever, that should get delivered on its own."**
+
+⭐ **Hearthworks itself is the proof**: it is TWO industries in one venue
+(smith + cook, one roster). Venues compose industries freely — a tavern
+is cooking + brewing + hospitality — so venue-as-the-pack was always
+going to cross industry lines. Part 4's *trade owns the KIT, locality
+owns the PREMISES* had the right instinct; this promotes it to the
+packaging boundary itself.
+
+## A13.1 — What an INDUSTRY pack ships (the trade's grammar)
+
+- **tool + station templates** — anvil, forge, whetstone as clonables
+- **recipes** — industry, never venue
+- **materials it introduces to the chain** (A13.3)
+- **position definitions** — what "a smith" is, which mixins it
+  confers. ⚠ The **wage rate stays VENUE** — each business sets its
+  own, which moves the money-faucet tier consequence (A12.1) to the
+  venue side
+- **venue archetypes** — "a smithy needs: forge, anvil, fuel store."
+  Precedent exists: room archetypes (`seeds/obj/room/kitchen.yaml`) +
+  furnishing's FurnishableRoom archetypes. The industry ships the
+  archetype; a venue fills it with a place.
+
+## A13.2 — What a VENUE pack ships
+
+Rooms, the NPCs, the Business instance (roster, **wages**, `banksAt`),
+menu *contents* (the menu class genericizes to kernel per A12.1), its
+place in the world. Small, **local-tier**, arguable by a locality
+committee. A venue may ship inside a locality pack (the common case) or
+standalone (a flagship/showroom) — maintainer's choice; the line that
+matters is industry/venue, not venue/locality.
+
+## A13.3 — The materials faultline
+
+> **Base-library holds what GENERIC content names; an industry ships
+> what it INTRODUCES to the chain.**
+
+Wood stays universal not because it is common but because
+generic-objects and scenery name it — crates are wooden in worlds with
+no forestry. Hematite ships with mining because nothing outside
+mining's chain says the word. ⭐ **Mechanically checkable** (the topics-
+gate shape): a base-library material referenced only by one industry's
+content is misfiled; an industry material referenced by generic content
+has graduated.
+
+⭐⭐ **And the split itself dissolves the "don't ship ore everywhere"
+worry**: an industry pack with no venues declared is inert vocabulary —
+rows, no rooms, no NPCs, nothing observable. Smithing `dependsOn`
+mining for its ore words; nobody gets a mine unless a locality declares
+one. **The dependency became cheap the moment the venues left it** —
+and the ore existing as a word is what lets a market import it before
+anyone digs locally.
+
+## A13.4 — The observability test, amended
+
+Part 2's test — *a pack that installs and changes nothing observable is
+the wrong cut* — now applies to the **industry + one venue PAIR**,
+never to either alone. An industry pack fails it by design. The
+showroom stops being *in* the trade pack and becomes the **reference
+venue pack shipped beside it**.
+
+## A13.5 — ⭐⭐ Testability: derive the test venue from the archetype
+
+The worry — an industry pack in isolation starves for test content —
+resolves without authoring fixtures:
+
+> **Materialize a synthetic venue FROM the archetype declaration** —
+> the minimum rooms + stations it names — and run the industry through
+> it.
+
+Ugly-fixture-on-purpose without authoring the fixture, and it doubles
+as a **completeness check on the archetype itself**: if the derived
+venue cannot run the industry end-to-end, the declaration is missing
+something a real venue author would also starve for. The test harness
+is the first consumer of the same declaration real venues use —
+derive-don't-author-twice.
+
+## A13.6 — Effect on the standing lists
+
+- **Part 2's vocabulary amends**: trade = industry (grammar) + venues
+  (content); *"install it and a bakery exists"* holds for the pair.
+- **Part 6's roster** re-reads as industry packs; each picks a
+  reference venue.
+- **A12.1's hearthworks bill re-cuts**: smithing industry +
+  hearth-cooking industry + hearthworks-the-venue (which composes
+  both). Recipes/stations/positions → the industries; Business, NPCs,
+  wages, rooms → the venue. The systemic-tier detector (wage/mint)
+  attaches to venues; industries are argued on what their recipes mint.
+- **Open question 1 (trade = one pack or per-business?) closes**:
+  industry = pack, venue = pack, business = rows in a venue pack.
+- **Open question 2's parameter answer refines**: the archetype is the
+  parameter schema's home — a venue *is* answers to an archetype.
+
+---
+
+# Addendum 2026-08-21 (5) — the archetype, settled in three questions
+
+**Captured 2026-08-21.** The venue archetype (A13) interrogated one
+question at a time. **Status: adopted provisionally** —
+
+> **User: "I'm not entirely convinced we need this document at all, but
+> let's see where it takes us. if it's something that doesn't earn its
+> keep we can always cut it later."**
+
+The cut is cheap by construction: nothing at runtime reads it (Q2/Q3),
+so retiring it orphans no mechanism.
+
+## A14.1 — Prescriptiveness: a derived floor + defaults as content
+
+> **User: "most people just want the defaults because it's
+> interoperability and immersion for free, but the best content usually
+> finds a way to break the rules."**
+
+Two artifacts, two jobs — the trap is making one serve both:
+
+- ⭐⭐ **The floor is stated in CAPABILITIES, not furniture** — not "a
+  forge" but "heat ≥ 1400K, a work surface, fuel storage" — because
+  that is what the mechanics already check (`requiresHeatK` is in
+  recipes.yaml today). Rule-breaking becomes legal by construction:
+  the volcano-vent smithy satisfies the contract without an exemption.
+- ⭐ **Most of the floor is DERIVED** from the industry's own recipes +
+  positions (can't drift; the completeness check is nearly free);
+  hand-authored residue covers only what mechanics can't express.
+- **Defaults are CONTENT, never schema** — the copyable reference
+  venue / a Studio blueprint. Defaults-as-content constrain nobody.
+- The stitch: each capability slot carries a **default binding**
+  (`needs: heat ≥ 1400K, default: forge`) — checker checks the
+  capability; scaffold + derived test venue materialize the default.
+
+## A14.2 — No runtime enforcement
+
+The world never gates on archetype satisfaction — a smith with no forge
+is a legal, VISIBLE state (never-half-grown), and the derive-on-read
+checklist supplies all the observability enforcement would have bought.
+Install/provision/test-time aid only.
+
+## A14.3 — Home: a document; logic stays kernel
+
+- The authored residue is a **declared document kind (`archetype`)** by
+  Part 9's own sort test (one owner, no cross-system queries,
+  path-keyed suffices). Not a `domain` row (never instanced; and
+  reference-data-as-template is the inert-at-boot trap — a document
+  read on demand has no warm step to forget). Not collection #51.
+- The **effective archetype derives on read** (recipes + positions +
+  residue), never stored; consumed at three cold paths (install /
+  provision / test bootstrap).
+- ⭐⭐⭐ **The expressiveness answer** (user: *"are you going to be able
+  to express everything you need as data? I was expecting typescript
+  classes with logic"*): the archetype carries ZERO logic; an
+  industry's behavior lives in kernel ENGINES reading data (crafting,
+  employment, fire) — no generic `Industry` class; "industry" is a
+  cross-section, not an object. Roster walk: most slated industries
+  are pure data over shipped substrates; the exceptions are **kernel
+  gaps, not pack code** — mining/quarrying (deposit depletion),
+  fishing/foraging (unowned population regrowth), brewing
+  (fermentation-over-time). ⭐ **When data can't express it, the move
+  is a kernel mechanism build — which is what the slates already are**
+  (husbandry got built; the farm is data). A mechanism only one pack
+  can use is a mechanism the next industry re-derives.
+- ⭐ **The litmus is mining** — the first industry whose core loop has
+  no substrate. If building it makes us want logic in the pack rather
+  than a Reserve-shaped depletion mechanism in the kernel, the model
+  is wrong.
+
+## A14.4 — Restated in-session (context, not new design)
+
+The document-tree program this rides: the user's standing intent to
+**move some collections into a parcel's document tree** and let
+**parcels carve the tree and dole out access along their own
+boundaries** — already documented as Part 9's documents-wearing-a-
+collection list (`name_banks` · `recipes` · `blueprints` · `emotes`)
+plus the declared-kinds/free-form tiers; the access half is designed,
+not built (`DocumentLogic` never repointed onto `ParcelApi`, the known
+Part 4b gap). The archetype is one more tenant, not a special case;
+install-time reads do not depend on the access work landing first.
+
+**Still open: the industry namespace** — industries aren't places, so
+what root does an industry pack's extent claim (`/industry/<x>`? squat
+under `/obj/<x>`?). "Where do mining's documents live" and "what extent
+does the mining pack claim title to" are the same question.
+
+---
+
+# Addendum 2026-08-21 (6) — the `/trade/` root
+
+**Decided 2026-08-21.** Industries get their own top-level content
+root; the four-namespaces doctrine gains its slot:
+
+> ⭐⭐ **Industry content has no place; venue content is nothing but
+> place.** `/trade/<industry>/**` is the industry pack's whole world —
+> stations, archetype documents, migrated recipes — and its title claim
+> is exactly its root (`requires.title: /trade/mining`), so
+> `sourcePack` ↔ extent align one-to-one. Venues stay place-side under
+> `/domain/…` (or a locality's extent). The same shape as
+> publications-have-no-place.
+
+**Internal layout follows the usual conventions, fractally** (user:
+*"we'll still want our templates to follow usual conventions"*):
+
+```
+/trade/mining/obj/pickaxe        # instanceables under obj/ — the
+/trade/mining/obj/vein-face      #   lib-vs-obj rule, recursed
+/trade/mining/cmd/<verb>.yaml    # trade verbs, the domain-local
+/trade/mining/command/<Name>Controller  #   precedent reused
+/trade/mining/archetypes/mine    # the archetype documents (document
+                                 #   tree, mirrored path)
+```
+
+- `/obj/` stays **the commons** — kernel generics + the generic-objects
+  pack; "is this path core or somebody's?" stays answerable on sight.
+- `/trade/` naming: the TREE word is player/author-facing
+  (`/trade/smithing/obj/forge` reads); **industry/venue stays the
+  packaging vocabulary**. Part 9's `requires:` example already sketched
+  `/trade/baking`.
+- Cost, one-time and deliberately kernel-shaped: a **sixth top-level
+  branch file** (`Stuff._registerTopLevelBranch` — the sanctioned
+  module-scope exception list grows by one). Minting a root SHOULD be a
+  kernel-level act; this happens approximately once.
+- `lint:instanceable` extends unchanged: no `/trade/**` template may
+  name a `/lib/` class, and the `obj/` segment carries the
+  instanceable convention inside the subtree.
+
+Rejected: squatting under `/obj/<industry>/` (makes the commons a
+landlord's district) and the split (a pack straddling two namespaces,
+its title not covering its own stations).
+
+---
+
+# Addendum 2026-08-21 (7) — the standup mystery, SOLVED: the world is lazy
+
+**Resolved 2026-08-21.** A12's open fact — *nothing in `bootstrap.ts`
+names hearthworks, so how do the Business + cast stand up?* — traced to
+its answer, and the answer revises the boot-instances kind's scope.
+
+## A15.1 — The lazy-fault-in trio (all shipped, all deliberate)
+
+1. **Rooms fault in on first traversal** —
+   `Exit.resolveDestination()` → `StuffApi.singleton(destinationPath)`
+   clones the destination room on demand (`lib/boundary/Exit.ts`).
+2. **Contents + NPCs ride the room's `populates:`** — the smithy's
+   seed lists the forge, ingots, menu, and the smith NPC; the clone
+   cascade stands them up with the room.
+3. **The Business stands up on first demand** —
+   `EmploymentLogic.operatorOf` builds a reverse index
+   `operatingLocation → business template path` from **every Business
+   row in `domain`** (`Template.findDescendants('/')`), then
+   `singletonOrClone`s the operator and runs an immediate roster tick
+   so the cold venue's first customer finds a conferred maker. The
+   code's own comment: *"No manifest entry, no clerk/venue standup
+   hook."*
+
+What looked like the zero-call-sites bug is not one — **the reverse
+index IS the call site.** The `business-authority` test walks seed
+files (shape only), which is why liveness never appears in tests; but
+the liveness path exists and is the design.
+
+## A15.2 — What this changes
+
+- ⭐⭐ **A venue pack needs NO boot-instances declarations.** Install
+  rows; the world faults it in on demand. Pack-installed Business rows
+  are discovered automatically (the operator index scans all `domain`
+  rows). The **boot-instances kind narrows to the genuinely eager**:
+  registries, boards, warrens with sweeps — things that must exist
+  *before* demand. Shopping-list item 4 resolves to "narrow the kind,"
+  not "find the mechanism."
+- ⭐ **An unvisited venue mints nothing** — wage settlement only runs
+  for stood-up businesses, so ghost venues cause no wage inflation.
+  Lazy standup is economically load-bearing, not just a perf nicety
+  (and it is residency's symmetric partner: fault in on demand, evict
+  the cold tail).
+- ⚠ **Hearthworks is UNREACHABLE today** — no exit, no TPA node, no
+  locality names it (only comments do). It stands up only via
+  author `goto`. Not a bug in the lazy trio — a missing inbound seam,
+  which under industry≠venue is precisely **the venue pack's job**: a
+  venue ships its own reachability (an exit declared venue-side into a
+  host place — annex knows host) or it is a showroom by definition.
+  Hearthworks-the-venue is currently a showroom that thinks it is a
+  venue.
+
+---
+
+# Addendum 2026-08-21 (8) — the hearthworks re-cut, file-per-artifact, and the energy sketch
+
+**Captured 2026-08-21.** The industry≠venue cut applied to real content,
+plus three decisions it forced.
+
+## A16.1 — Hearthworks becomes three packs
+
+| Pack | Ships |
+|---|---|
+| **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/obj/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
+| **`/trade/hearth-cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
+| **`/domain/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
+
+**What the cut revealed:**
+
+1. ⭐⭐ **The fire stations were never smithing's.** Forge/Oven/Kiln/
+   CookPot are fire-substrate COMMONS (`/obj/`) — smelting is the phase
+   engine, not a recipe. The capability floor makes it natural: the
+   archetype *requires heat*, `default: /obj/Forge`. Corollary:
+   smithing's cook-pot recipe outputs `/obj/CookPot` — a commons
+   template — so smithing-makes-cooking's-tools creates **no pack
+   edge**. ⭐ Recipes that output commons goods are chain-neutral.
+2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are
+   already thin CommerceMenu subclasses; the residue (verb-surface
+   lighting?) is the actual work, and it is small.
+3. ⚠ **The migration is a PATH RENAME** (`/domain/hearthworks/anvil` →
+   `/trade/smithing/obj/anvil`), and now is the cheapest it will ever
+   be — hearthworks is goto-only, blast radius ≈ one populates list +
+   recipe station refs. ⚠⚠ The re-cut must **DELETE the orphaned
+   unstamped `/domain/hearthworks/*` rows** the new packs don't adopt
+   (the seeder-is-insert-only trap's farewell appearance).
+4. Open: does the venue keep the proper name "Hearthworks" while the
+   industries take generic names? (Lean yes — proper noun for the
+   place.)
+
+## A16.2 — ⭐⭐ File-per-artifact, across the board
+
+> **User: "not only do we want to normalize all our paths but we also
+> want to break up some of our documents e.g. recipes.yaml so each
+> recipe has its own version history. that breakup needs to happen
+> across the board."**
+
+The pack-format law: **one file = one reviewable artifact = one version
+history.** The domain seeds already live this way; the `config/*.yaml`
+aggregates (recipes, emotes, channels, wiki-pages, blueprints) were the
+anomaly — and they all die in the seeder migration anyway, so the
+breakup is free if the migration does it right:
+`/trade/smithing/recipes/belt-knife.yaml`, blameable, arguable in an MR
+on its own. The reconcile unit and the review unit become the same
+thing — which is the whole point of packs.
+
+## A16.3 — Introduces-vs-commons (replaces interim custody)
+
+> **An industry ships only what it INTRODUCES; goods that pre-exist any
+> industry are COMMONS.**
+
+Firewood burns in campfires with no fuel trade in sight; hides exist
+wherever butchery happens — commons (generic-objects / a core-goods
+flavor; the user's instinct: *"those feel like something that will come
+in via like a core-materials pack"*). Industry-shipped is only the
+genuinely introduced: charcoal is the energy trade's, coal is mining's.
+A16.1's hearth-cooking stock rows are interim under this rule too. The
+consumer-custody rule from the re-cut conversation is dead — nothing
+used it yet.
+
+## A16.4 — The energy industry, sketched (the service-industry stress test)
+
+> **User: "I can imagine the smithy hires someone to go out and get
+> coal/wood/whatever for them, or they go to a shop stocked by that
+> person. still I'd keep things like energy sources shared content."**
+
+That sentence contains the design: the trade is **two market forms**,
+both riding shipped substrates —
+
+| It ships | Rides |
+|---|---|
+| recipe: charcoal-burning (wood → charcoal at a clamp) | crafting + fire |
+| material: charcoal (introduced; coal stays mining's, wood base-library) | materials |
+| stations: charcoal clamp; a thin *fuel yard = storage + scale* archetype | commons Kiln mostly |
+| positions: collier / fuel merchant | employment |
+| ⭐⭐⭐ **standing contract FORMS** — "keep this fuel store above N," recurring delivery | **contracts** |
+| a fuel-yard stock pattern | retail |
+
+⭐⭐⭐ **The discovery: blank contract forms are a new artifact type.**
+The `contracts` collection stays never-seeded (executed contracts are
+player record), but the FORM — the standard provisioning clause set —
+is authored content, same relationship as recipe-to-crafted-item.
+Shipped as documents. It will recur: **freight, insurance, and credit
+are all form-shaped trades.**
+
+Why it matters even unbuilt: energy is the first
+**service-and-logistics** industry — archetype nearly empty, recipes
+one line, weight in market forms — proving industries are not all
+crafting-shaped. The demand loop is already mechanized (FireApi
+consumes Combustible: depletion → contract trigger / shop restock →
+collier labors → wage), a closed loop with a shipped sink at one end
+(Part 3 doctrine). Chain: forestry → fuel → every burner, mining
+feeding coal from the side; v2 seam = the electricity substrate + the
+grid slate (generation and wires), combustion-and-delivery the honest
+v1. **Mint it when fuel depletion outpaces trivial gathering** — a
+tunable fact, not a guess; design now (the form-shaped exemplar), ship
+after smithing/cooking prove the format.
+
+---
+
+# Addendum 2026-08-21 (9) — the install record's shape, and the collision surface
+
+**Captured 2026-08-21.** The concrete schema under the three-way
+machine (A10.4), and the ops resolution controls — the user's one
+stated requirement: *"my main concern is collisions and giving ops the
+controls they need to resolve them."*
+
+## A17.1 — The install record (collection: `pack_installs`)
+
+One record per pack per deployment:
+
+```yaml
+packId: trade-smithing
+version: 0.1.0            # pack.yaml version at last successful apply
+appliedAt: …              # wall time
+principal: bootstrap      # or the staging player
+status: applied           # applied | staged | failed
+failure: null             # {step, error, file} — a failed pack boots
+                          #   WITHOUT the pack, loudly (A10.10)
+parameters: {…}           # diagnostic COPY of render-time values;
+                          #   authority stays in decision files (A10.11)
+rows:                     # ⭐ the three-way baseline
+  /trade/smithing/obj/anvil: {kind: domain, hash: "sha256:…"}
+pins: []                  # operator-owned rows (A17.3)
+sideEffects: {kinds: […]} # non-row work applied — for uninstall
+```
+
+Decisions baked in:
+
+1. **One record per pack, not row-per-artifact** — reconcile is a
+   per-pack batch; nothing queries baselines across packs.
+2. **Hash the RENDERED artifact** (post-parameter canonical
+   serialization — the Helm rule): `baseline == current` means
+   untouched-since-install regardless of how the file got there.
+3. **Its own small collection** — system state written only by the
+   installer; A11.5's allowlist property demands the installer's ledger
+   live where no contribution kind can reach (the `parcels`-not-in-
+   `domain` reasoning).
+4. **V1 = the record + the three-way machine only.** With all packs
+   first-party and boot-installed, "staging" is a git commit + deploy;
+   staging/parameters/provision layer on later without schema changes.
+   The record pays immediately: it is what tells "we changed gin's
+   density" from "an operator tuned it."
+5. ⚠ **The adoption baseline**: first apply against a pre-record DB
+   normalizes pre-existing divergence once (the migration bridge) —
+   acceptable, but it gets a loud log line.
+
+## A17.2 — The collision taxonomy: mostly deleted by structure
+
+| Collision | Fate |
+|---|---|
+| two packs, one path | ⭐ **structurally prevented** — install requires title to the extent; two packs cannot hold one title. The parcel registry is the arbiter (the different-pack-stamp refusal stays as the belt to the title's suspenders) |
+| installer vs player record | **structurally prevented** — the accumulation firewall: no kind reaches `holder_snapshots` / ledgers / entries |
+| flat-KEY kinds (emote verbs, subject names, recipe ids) | **install-time refusal, loudly, before any write** — keys aren't carved the way paths are (the verb namespace is the one namespace nobody can carve), so uniqueness is checked across the install set like requires-kernel checks classes. Never first-wins, never silent |
+| pack-changed AND DB-diverged | **the one genuine runtime conflict** — ops controls below |
+
+## A17.3 — The ops resolution surface
+
+File-per-artifact (A16.2) makes the resolution granularity exactly
+right — per recipe, per room, per page:
+
+```
+pack install --dry-run <id>   # what WOULD change; nothing writes
+pack status [<id>]            # applied/staged/failed · unfulfilled requires · open conflicts
+pack diff <id> [<path>]       # THREE bodies: baseline / yours (DB) / theirs (pack)
+pack resolve <id> <path> --take-pack   # pack wins; baseline updated
+pack resolve <id> <path> --keep --pin  # DB wins AND the row becomes operator-owned
+pack resolve <id> <path> --export      # DB version → candidate FILE → MR → upstream
+pack pin / unpin <path>
+```
+
+1. ⭐⭐ **`--keep` without `--pin` does not exist** — keeping without
+   claiming re-fires the same conflict on every future update. Keeping
+   means claiming: the row pins (a per-row downgrade to seed-missing,
+   the operator choosing the gentler policy — the right party),
+   recorded in `pins:`, and **every future reconcile reports pinned
+   rows** so pins cannot rot silently.
+2. ⭐⭐ **`--export` keeps the system honest** — the A10.2 round-trip as
+   a one-word verb: the divergence goes back through git and resolves
+   upstream in an MR. Its existence is what stops ops pinning forever
+   out of friction.
+3. **Conflicts are pull, not interrupt** — diagnostics addressed to
+   the ops office + `pack status` lines; install/sync never blocks (the
+   unresolved artifact keeps its DB state). An open conflict is a
+   legal, visible state (never-half-grown).
+4. `pack diff` presents the wiki's three-body shape — same doctrine
+   (*a machine-merged paragraph is nobody's writing*), same muscle
+   memory, and literally the same machinery for wiki-kind
+   contributions.
+
+---
+
+# Addendum 2026-08-21 (10) — the export census, and verbs move to the document tree
+
+**Captured 2026-08-21.** The question: *what are ALL the mechanisms by
+which a pack's exports reach the runtime?* (Roster context: ~20 tier-1
+packs — 3 shipped + pack zero + 4 substrate + 2 institutions +
+wiki-starter + the 8 locality trees, hearthworks re-cutting to 3.)
+
+## A18.1 — The mechanism census (as audited)
+
+| # | Mechanism | Carries |
+|---|---|---|
+| 1 | **installer → Mongo rows** | domain · documents (+ collapsed kinds) · subjects (writes 3 collections) · settings (merge-missing) · wiki (CAS submit) · descriptor banks |
+| 2 | **installer → RAM, no Mongo** | quantity tag tables — `loadTagTables` reads the pack file each boot. ⭐ Cache degree zero: the purest "DB is a cache" |
+| 3 | **package management → module registry** | TS (classes/controllers/brains) — capability packs; data packs only *reference* code (requires-kernel) |
+| 4 | **boot-time disk scan of the package** | command YAML **views** — `preloadAll` scans `cmd/` + `domain/**/cmd/` from the source tree, never Mongo |
+| 5 | **gated procedures** | `requires:` structure — never raw rows; humans grant authority |
+| 6 | **triggered rebuilds** | nothing shipped — install fires the derived-cache rebuilds |
+
+⚠⚠ **The census surfaced ONE unanswered export type: binary assets.**
+`media_assets` rows exist (single gated writer) and
+`Visible.illustration` → `mediaUrl()`, but a pack shipping pre-made
+room art ships bytes that aren't YAML, and no mechanism carries them.
+Needs either a **media kind** (pack files → `media_assets` rows +
+addressable bytes) or an explicit *packs-don't-ship-art,
+the-pipeline-generates-it* decision. Either is fine; it must be a
+decision, not a surprise. **Open.**
+
+## A18.2 — ⭐⭐ Decided: command views move to the document tree
+
+> **User: "we should probably move command definitions to the document
+> tree out of source."**
+
+Collapses mechanism 4 into 1. What it buys:
+
+1. **Verbs become installable content** — reconciled, baselined,
+   `pack diff`-able like every other kind (`command-view` document
+   kind).
+2. ⭐⭐ **The title system covers verbs FOR FREE** — views live at the
+   fractal paths (`/cmd/perception/look` pack zero ·
+   `/domain/…/cmd/blow` locality · `/trade/smithing/cmd/forge`
+   industry), so the parcel trie already governs who may edit them.
+   Nobody designs verb-edit permissions; longest-prefix supplies them.
+3. **In-game verb authoring** — the CMS edits views with the existing
+   save/go-live split; a wizard iterates a verb without a deploy.
+
+The two must-not-breaks:
+
+1. ⚠⚠ **`controller:` (and `validators:`) are CODE-NAMING fields** —
+   whoever writes the document points the verb at a module. They join
+   the `class:`/`hydratorClass:`/`brain:` wizard code-trust set; the
+   document kind's declared schema carries the same gate (the
+   same-gate spine precedent). Miss this and "locality title governs
+   its verbs" becomes "locality title governs arbitrary dispatch."
+2. ⚠ **Cache invalidation needs a real hook** — a document save /
+   `pack sync` re-keys the command cache for the changed view, else
+   the CMS edit "succeeds" and does nothing (the dead-wire failure).
+
+Also: the zero-packs acceptance criterion sharpens to **zero packs
+besides pack zero** (with views as content, a truly pack-less boot has
+no `look` — pack zero is the platform, not optional). Migration is
+strangler-shaped: store-first read with disk-scan fallback that dies at
+zero; **controller TEMPLATES (the 216 seed rows) stay `domain`** —
+instanceable, only the view half moves.
+
+Post-decision census: a pack's exports are **installer-carried data
+(Mongo or RAM) · package-carried code · procedure-mediated structure**
+— three mechanisms, media the one open box.
+
+---
+
+# Addendum 2026-08-21 (11) — magic is a tag; the residue closes
+
+**Decided 2026-08-21.**
+
+> **User: "magic as a mechanic is platform level, you always get
+> casting and mana. but the spellbook and magic items those are in a
+> magic content pack. maaaaaaaaaybe. part of me wants to avoid a magic
+> pack in favor of just putting magic stuff in whatever trade pack or
+> other content pack that would carry it. magic isn't a category it's a
+> tag. but we probably do want a basic magic stuff pack like emotes or
+> materials."**
+
+The two halves aren't in tension — they're the materials/emotes pattern
+applied a third time:
+
+- **Platform**: casting, mana/faculty, the Effect grid, suppression,
+  item-class machinery. Always present. The casting Disciplines stay in
+  pack zero's closed vocabulary (amendment-tier).
+- **The commons tier — an `arcane-library` pack** (sibling of
+  base-library / generic-objects / arcane-descriptors, which already
+  quietly proved the shape): the starter spellbook, generic wands and
+  scrolls — enough that the substrate is alive out of the box.
+- ⭐⭐ **Everything else rides its carrier.** The healing spell ships
+  with medicine, the enchanted anvil with smithing. No `/trade/magic`,
+  no magic monopoly pack — a spell row is just a row, and every pack
+  can ship them already. **The tag, not the bucket.**
+- ⭐ The guard that keeps the *maaaaaybe* honest (Part 6's
+  generic-objects rule, reused): **the arcane-library holds only what
+  has no other home, and it should SHRINK** as carriers claim their own
+  magic. Growth is the smell of magic becoming a category again.
+- Consequence, free: a **mostly-mundane deployment is legal** — casting
+  exists, but omitting arcane-library yields a world where magic is
+  machinery nobody's spellbook feeds. Never endorsed, but a real degree
+  of freedom for adopting communities.
+
+**The pack-zero residue, all homed:** magic → platform + arcane-library
++ carriers · realm/city `Locality`/`Government` rows → the compact pack
+(each locality's own rows → its locality pack) · the 4 `species/`
+stragglers → audit-and-delete · `room/` archetypes → generic-objects.
+
+⭐ With this, **every seed in the tree has a home and every export has
+a mechanism.** The one open box in the whole design is media.
+
+---
+
+# Addendum 2026-08-21 (12) — media: content ships assets; generation is an AUTHORING act
+
+**Decided 2026-08-21, closing the last open box.**
+
+> **User: "image generation would be handled on the content authoring
+> side, if for nothing else than we need them to use their own token
+> budget. maybe we'll hook up api keys in CMS but either way I'd think
+> content ships assets. delivery of those assets into s3 is a separate
+> thing."**
+
+This reverses the derive-at-runtime reading of `MediaAsset`. The
+economics decide it: runtime generation puts every operator on the hook
+for tokens + an external AI dependency; authoring-time generation puts
+the cost with the creative control — and deployments become hermetic
+(the self-hosting/AGPL story).
+
+- **The pipeline is an AUTHORING TOOL, not a runtime service.**
+  MediaAsset's deterministic-regenerate machinery (prompt + model +
+  params; staleness on model bump) is the *author's* re-render loop —
+  eventually in the CMS with the author's own API keys.
+- ⭐ **Packs ship bytes AND receipts.** The image travels with its
+  provenance (prompt/model/params): the receipt keeps regeneration
+  deterministic for the author and gives review its textual half (and
+  MRs render images — art is reviewable).
+- ⭐⭐ **Two-step delivery.** The installer reconciles `media_assets`
+  ROWS (three-way, like every kind); **byte delivery to the bucket is a
+  separate transport step** — made safe by **content-addressed keys**
+  (bucket key = hash of bytes): idempotent sync (upload missing keys),
+  free dedupe, no staleness (new art = new key, the row repoints), and
+  rows-before-bytes degrades to a visible broken image fixed by
+  re-running the sync, never corruption.
+- Repo weight: binaries in pack repos — git-LFS is the standard answer
+  once packs split repos; illustration-scale assets are tolerable
+  meanwhile.
+- `media_assets` therefore leaves the derived-cache row of the A10.3
+  table: the rows are a **reconciled** kind; the bucket is a mirror of
+  pack bytes.
+
+⭐⭐ **With media decided, the design is REQUIREMENTS-COMPLETE**: every
+seed homed, every export mechanized (installer-carried data ·
+package-carried code · procedure-mediated structure · the asset
+transport), every collision owned, no open boxes. Remaining deferrals
+are all named: staging/parameters · overlay kind · scheduled uninstall
+· the energy pack · the repo split (npm, last).
+
+---
+
+# Addendum 2026-08-21 (13) — position defs: identity vs economics, and proto-industries
+
+**Decided 2026-08-21** (drill #1 off the units index).
+
+- **The industry owns what a smith IS**: key, default label, and the
+  **conferral bundle** (which mixins/verb surfaces on-shift grants).
+  Conferral is capability-granting — never venue-authorable (a venue
+  minting conferrals is content minting capability). Own file per
+  position (`/trade/smithing/positions/smith.yaml`): a conferral change
+  deserves its own diff.
+- **The venue owns the economics and the people**: wage rate, schedule,
+  roster. Its Business references the def by path. ⭐ The systemic-tier
+  detector (money) is now ALL venue-side; the capability side is all
+  industry — the tier analysis cleans up for free.
+- ⭐⭐ **Venue-local positions are free and legal — and they are
+  PRE-industry, not industry-less** (user: *"if you ask a bouncer what
+  industry they work in, I bet they'd say security… I don't think me
+  finding industries for your examples precludes venue-local positions…
+  maybe even that's the model for how proto-industries are formed."*).
+  What bouncer/greeter share is low conferral-NEED, not missing
+  industry. Rule: **anyone can define a position that confers nothing;
+  only an industry can define one that confers.**
+- ⭐⭐⭐ **The proto-industry lifecycle: local → common → claimed.**
+  When `/trade/security` later ships `bouncer`, existing venue-local
+  bouncers are ADOPTED (the installer's adopt-don't-wipe move, applied
+  to labor): venue keeps wage/schedule/person, position gains its
+  conferral. Matching by the def's **`claims:` key list** (exact-string
+  is fragile), and the venue may DECLINE (a venue that meant something
+  different isn't conscripted).
+- ⭐⭐ **Proto-industries become OBSERVABLE**: "how many venues invented
+  a position called bouncer, at what wage" is a query over live
+  Business rows — the vocations register's gap-finding gains an
+  empirical instrument, and the prevailing venue-local wage is the new
+  pack's calibration data. The demand test runs itself.
+
+---
+
+# Addendum 2026-08-21 (14) — the subject file (drill #2)
+
+**Decided 2026-08-21.** The precedent turned out to be exact: the
+shipped `Subject` record already fuses name + `groupRef` into one
+identity that lights surfaces à la carte (board / channel / both), one
+`groupRef` inherited by all — so the pack file is a serialization of
+`forum_subjects`, and **group-backing was never the deferred case; it
+is the BUILT case.**
+
+```yaml
+# subjects/maintainers.yaml
+name: Smithing Maintainers
+audience: maintainers   # → groupRef managed:<the pack's required group>
+board: true
+channel: true
+```
+
+- ⭐⭐ **The primary case is the MAINTAINERS subject** (user: *"the main
+  case for forums and chat is maintainers of a content pack need
+  somewhere to deliberate and make decisions for that pack"*) — which
+  closes Part 1's dangling loop: the review-tier table's "committee"
+  now has a VENUE, in-world, on the pack's own subject. `pack resolve
+  --export` produces the change; the maintainers subject is where it
+  is argued. The pack's version control and its deliberation live
+  where the pack does.
+- ⭐ **EXPLICIT, never implicit** (user, rejecting installer
+  auto-provisioning): the maintainers group is a `requires:` entry and
+  the subject a file, in every pack that wants them — *"I don't mind
+  the boilerplate, it's instructive of how the whole protocol works."*
+  Membership stays authority (procedure; seeded by the extent's
+  title-holder).
+- Public subjects: `audience` absent = open (the Narnia case); further
+  carving (labor/consumers channels) = more files, maintainer's taste.
+- **No topic field** — topics are message-frame vocabulary (chat
+  already shares `speech.channel`), not community subject matter;
+  discovery is `SubjectCatalogue`'s job. Per-subject topic narrowing =
+  a messaging-layer refinement, parked.
+- Flat-key check runs on EFFECTIVE names (post-derivation — channel/
+  board names derive from the subject name unless overridden).
+- Delete: archive-never-reap (A11.7, unchanged).
+
+---
+
+# Addendum 2026-08-21 (15) — eagerness: a boot manifest with reasons (drill #3)
+
+**Decided 2026-08-21, after two swings.** First design: a per-template
+`boot: eager` flag — rejected by the user as an eagerness SUBSIDY
+(*"we shouldn't be doing anything to make eager anything easy… there
+should be friction in our system to doing things eagerly, that's a
+feature"*). Counter-swing to "packs get NO eagerness" — also rejected:
+
+> **User: "your two classes of eager loads are both real and should be
+> supported in content packs. they're probably rare because the
+> platform does so much, but I want content packs to be able to replace
+> entire slices of the platform if you were ambitious enough. don't
+> like our vitals system? model a hitpoints-based alternative and ship
+> it as a content pack."**
+
+The landing:
+
+- **A pack-level BOOT MANIFEST** (a `boot:` section / `boot.yaml`) — a
+  deliberate, single, reviewable list per pack. Never a per-file flag:
+  the friction is the manifest itself, argued as one artifact.
+- **Every entry carries its WHY**, tagged from the two real classes +
+  prose:
+
+```yaml
+boot:
+  - template: /trade/hitpoints/obj/HpRegistry
+    role: sync-read     # sync read paths can't await a first-touch clone
+    reason: hp reads are sync on the combat hot path
+  - template: /trade/hitpoints/obj/DecaySweep
+    role: producer      # self-starting sweep/tick/tap — nothing demands it
+    reason: hp decay ticks even when unobserved
+```
+
+- **The installer REPORTS eager counts + roles** per pack at install —
+  visibility, not a gate.
+- ⭐⭐ **Platform-slice replacement is the design driver**: an ambitious
+  (capability) pack replacing vitals with hitpoints needs both classes.
+  The mechanism is UNIFORM — **pack zero's ~37 registries ride the same
+  boot manifest**, dogfooding it every boot; kernel `bootstrap.ts`
+  shrinks to the code-coupled residue (`awaitInit` entries, which YAML
+  cannot carry — needing one is the smell you're platform).
+- **The lazification worklist stands**: the six CONTENT entries in
+  today's manifest (corpos, press board, lounge terminal, dorm-warren,
+  the Hinkley pair) each have a demand path — move them out one at a
+  time, drive each. Content that wants time passage uses
+  reconcile-on-read (the husbandry pattern), not a boot slot.
+- ⭐ **Inert-at-boot dies by LAZIFICATION, not better warming** —
+  reads that resolve on demand have no warm step to forget
+  (CombatFormation's real fix).
+
+---
+
+# Addendum 2026-08-21 (16) — the pack fence, and staffing at install
+
+**Captured 2026-08-21.** Two corrections and a landing.
+
+## A22.1 — The wizard line, stated once
+
+> **User: "wizardness gates one thing and one thing only: the ability
+> to write typescript code. it's not for anything else, period, forever
+> and ever."**
+
+Nothing in the pack machinery consults the wizard axis except
+TypeScript — capability-pack code and the code-naming fields
+(`class:` / `brain:` / `controller:` / `validators:`), which are TS by
+reference. Install authority is **office + title**. Provision, agency,
+membership: never wizard.
+
+## A22.2 — ⭐⭐⭐ The pack fence (the Katie correction)
+
+Katie's `duncan-hall` membership is **mechanism wiring, not a
+governance ceremony**: the pack ships the group, the parcel, AND the
+NPC — the membership never crosses anyone's boundary. The rule
+sharpens:
+
+> **A pack never declares authority over anything it doesn't ship.**
+
+Mechanically checkable at install: a membership row is legal iff the
+member is a pack-shipped NPC under the pack's extent AND the group is
+pack-declared. A human id, or a foreign group → refused, structurally
+(the requires-kernel check class). A11.2's "GroupSeeder seeds authority
+and must die" splits: the HUMAN memberships in groups.yaml die into
+procedures; the NPC-agent rows were never the problem — they reconcile
+as content.
+
+**The provision unit type DEMOTES to nearly nothing:** NPC-agent wiring
+= content · human seats = the derive-from-structure checklist, filled
+in-world by the group's own procedures · cross-boundary agency = the
+agency slate's runtime business, not install machinery. No schema, no
+verbs, no tombstones.
+
+## A22.3 — Staffing at install: ops owns THAT, never WHO
+
+> **User: "filling human seats could be part of our installation
+> process with the ops chief at the helm… most content packs are gonna
+> wanna be staffed by someone if not just for bug reports."**
+
+The two-responsibilities worry resolves by naming ops's writ:
+
+- **Ops owns THAT every pack is staffed** (operational liveness — an
+  unowned pack is bug reports on the floor), **never WHO governs its
+  content.** First-fill happens at install, ops chief at the helm;
+  thereafter membership changes ride the group's own procedures — a
+  receivership that ends the moment it succeeds (founder-default one
+  level down). Ops has no standing inside the group after.
+- ⭐ **Default: the installing principal is the first maintainer**
+  unless they name someone else — no pack exists unowned for a day;
+  the install ceremony is one prompt ("you, or who?").
+- ⭐⭐ **Routing is the enforcement gradient**: pack diagnostics,
+  reconcile conflicts, and bug reports route to the pack's maintainers
+  group (their subject from A14), **falling back to the ops queue only
+  when unstaffed** — every unstaffed pack is noise in the ops chief's
+  own queue, so staffing is the path of least resistance, not a
+  policy.
+
+---
+
+# Addendum 2026-08-21 (17) — the two renames: `content` and `/world/`
+
+**Decided 2026-08-21.** Both renames, each to what the thing actually
+is — the governing observation:
+
+> ⭐⭐ **The ownership meaning of "domain" already moved out of the path
+> root and into the PARCEL system**, which covers every root uniformly
+> (`/trade/smithing` is exactly as much somebody's domain as
+> `/domain/eternal`). Since `/trade/` landed, the root's actual
+> referent is just geography — a stale name.
+
+1. **The collection: `domain` → `content`.** It holds every template
+   row regardless of root; "the content collection" is what it is, the
+   store of authored content that hydrates into TS source (the user's
+   source/content duality) — and pack repos already keep files under a
+   `content/` root, so the name aligns at every layer. This REVERSES
+   the landed content→domain rename: an enum sweep +
+   `renameCollection` migration, **its own tiny MR** so the diff is
+   pure mechanical rename.
+2. **The path root: `/domain/` → `/world/`.** Places get a place-name
+   (`/world/terminus/hinkley-hills`, `/world/narnia`), and the root
+   family becomes self-describing — `/obj/` the commons · `/trade/`
+   the industries · `/world/` the places · `/compact/` the state ·
+   `/corpo/` the marks — each root says what KIND lives there, the
+   trie says who owns it, everywhere. Source mirrors follow
+   (`src/mud/world/`, `seeds/world/`). Runner-up `/place/` declined
+   ("world" scales to whole spheres like Narnia).
+3. "Domain" retires from path literal back to PROSE, where it was
+   always right: "that's the smithing pack's domain" stays a true
+   sentence about title.
+4. **Timing:** the path rename rides wave 3 (the hearthworks re-cut is
+   already a batched path-rename + orphan-cleanup event — marginal
+   cost); the collection rename lands whenever, standalone.
+
+---
+
+# Addendum 2026-08-21 (18) — archetypes: the code bill, and the author experience
+
+**Captured 2026-08-21.**
+
+## The code bill (kernel, small) — and the piece we skip
+
+1. **The aggregator** — effective archetype = recipes + position defs +
+   residue doc, derived at three cold moments. Small.
+2. **The test-venue generator** — clone the default bindings into a
+   synthetic venue, drop in a test actor. Moderate; where the archetype
+   pays rent.
+3. ⭐⭐⭐ **Capability predicates — NEVER WRITTEN. The mechanics ARE the
+   predicates.** Nothing gates on archetype satisfaction (A14.2), and
+   the completeness check is "can the derived venue RUN the industry" —
+   which invokes the runtime's own gates (`requiresHeatK` at the forge,
+   reachable-heat as a diegetic decline). Static satisfaction-checking
+   would be a second implementation of rules the engine already
+   enforces at act time — the two-copies failure. Consequence: an
+   archetype's "heat ≥ 1400K" is **guidance-plus-default, never
+   contract language** — authors must not expect a checker.
+
+## The author experience (the mine walk-through)
+
+- **An archetype lists NEEDS whose defaults point at COMMONS objects**
+  — mining's mine: vein access (its own) · light (commons lantern) ·
+  air (substrate) · drainage (commons pump). Archetypes never own what
+  the world provides; they announce which bills come due, with a
+  default answer each.
+- ⭐⭐ **The YAML author's verb is CLONE-AND-COMPOSE, never inherit** —
+  behavior arrives by NAMING classes (clone vein-face → deposit
+  mechanics; hire the miner position → conferral). Subclassing is the
+  capability-pack tier; a venue author needing `extends` means the
+  industry pack missed a station or an authorable field.
+- ⭐⭐ **The acceptance test for any industry pack: copy the showroom,
+  rename, adjust fields — a working venue in an afternoon, zero
+  TypeScript.** Showroom = the copyable answer · archetype = the
+  checklist of what you may rip out (the mechanics judge you at act
+  time) · Studio blueprints = new fixture kinds without code.
+- ⚠ **The deposit fork, flagged for the mining drill**: is "this hill
+  contains ore" a STATION property (prop in a room — simple) or a LAND
+  property (parcel/biome — consistent with land-declared/
+  everything-above-measured)? Changes what "vein access" even means.
+
+---
+
+# Addendum 2026-08-21 (19) — the mining drill: the litmus passes, and three bends
+
+**Captured 2026-08-21**, against [mining-slate](./mining-slate.md)
+(deep, mostly DECIDED).
+
+**The kernel build comes first** (the A14 litmus case): the
+seam/deduction model (hidden Grade+extent, `assay` — the one new
+primitive) · the procedural shared-Warren generator (seeded,
+deterministic, lazy, breathe-cycle — rides MultiLocation + residency) ·
+the extraction verb family (kernel verbs, maybe an `extraction`
+category) · hazard wiring into shipped substrates
+(respiration/thermal/light/encumbrance). Smelting already exists (the
+phase engine). Cave-in stays skipped (slate lean). ⭐⭐ **Litmus
+verdict: PASSES — nothing wants to live in the pack**; every
+logic-shaped piece is mechanism the next extraction industry
+(quarrying, salt, placer) reuses.
+
+**`/trade/mining/` ships pure data**: introduced materials (ores, coal,
+limestone flux, gold, silver, gems, salt — ⚠ salt has no solid
+`Material` yet) · beneficiation + alloying recipes (smelting needs
+none) · tools/stations (picks by Grade/ToolCapability, pans, sluices,
+shoring, hoist) · the mine archetype (vein access its own; light, air,
+drainage, shoring → commons defaults).
+
+**The three bends:**
+
+1. ⭐⭐ **The A18 deposit fork resolves to NEITHER option** — deposits
+   are **generated from the mine's SEED** (per-mine seed + depth +
+   branch coordinate; veins are features of generated rooms). Land
+   story clean: **the mine is ONE parcel — the mineral claim**;
+   interior tunnels are interior space, no land minted. A mining venue
+   = surface rooms + warren root + a seed (an authored FIELD — the
+   showroom ships a fixed one; still no parameter machinery needed).
+2. ⭐⭐ **Mining ships almost no positions, and that's a feature** —
+   team roles are emergent, never authored (slate DECIDED). Authored
+   positions exist only for the wage-mine variant, and the slate's
+   paired exemplar proves the venue model: **Ferrow Delving** = a
+   commons under the deep-law (no Business, no wages) vs **Delving 9**
+   = the Ordinance's corporate wage mine (Business, roster). One
+   industry pack, two venue packs, OPPOSITE economic forms.
+3. ⭐ **Zero eager entries** — the whole vertical is lazy by design
+   (materialize on breach, evict on abandon, regenerate from seed).
+   The mining design and the lazy-world doctrine converged before
+   either knew it.
+
+⚠ **Eternal steel is not industry data** — a finite conserved salvage
+tier (found, never smelted); a pack row would make the apex material
+mintable by reconcile. It rides the census-gated-distribution pattern
+(magic-items precedent) as WORLD content with a fixed census — home it
+explicitly in requirements.
+
+Chain: smithing `dependsOn` mining (ore/coal/flux); the energy trade
+beside it (charcoal vs coal); ore→forge→Wardens is the conserved-
+economy loop.
+
+---
+
+# Addendum 2026-08-21 (20) — the socket/furniture rule, and the hospitality cut
+
+**Decided 2026-08-21.**
+
+## A26.1 — ⭐⭐⭐ The platform/content razor
+
+> **The platform ships the SOCKET; content ships the FURNITURE.**
+
+Casting platform / spellbook content · the landing SLOT platform / the
+lounge content · TPA rails platform / the nodes content. The recurring
+"is X platform?" argument now has a razor. Applied to the lounge
+(user: *"every game needs a lounge… but that could just be a shell of a
+room. all our special lounge stuff is really our own design… certainly
+100% of dave's bar is content pack. TPA is platform."*):
+
+- **Pack zero ships the landing shell** (the void/world shell room) +
+  a **`startLocation` settings default**. The lounge pack's settings
+  contribution repoints first-login at its door; an operator override
+  wins forever after (seed-missing). Zero-packs boot lands a login in
+  an honestly empty shell — the acceptance criterion's literal test.
+- **The saxonberg-lounge pack gets 100% of the rest** — warren, pizza,
+  TVs, terminal, cast, neon, offstage/wire-alcove — the richest tier-1
+  pack, fitting for the integration testbed. The 14-class graduation
+  audit stands (extract substrate generalities like TipJar → kernel;
+  keep the local color).
+
+## A26.2 — ⭐⭐ The hospitality trade cut (most of the bar)
+
+**`/trade/hospitality/`** — the first SERVICE trade (product is
+serving, not goods): the working kit (shaker, mixing/cocktail glasses,
+graded receptacle, the bar counter AS the Attendant station, back-bar
+stock) · the cocktail recipes + scripts (venue-local → trade: the
+adoption lifecycle's first exercise) · the bartender position def ·
+the bar archetype · the tip-jar template (mechanics → kernel via the
+graduation audit). Spirits stay base-library.
+
+**The venue keeps only what makes this bar THIS bar**: place, people,
+Business (wages/roster), PRICES, neon + corpo ties, pizza, TVs,
+personality — the correct residue of the razor.
+
+- ⭐⭐ **Two venues compose it on day one** — Dave's Bar AND the
+  hearthworks cookhouse (`order`/maker/attendant is hospitality
+  grammar) — the industry≠venue promise demonstrated live: one trade,
+  multiple venues, opposite vibes; hearthworks composes THREE trades.
+- **Boundary**: hospitality = SERVING (counter, order, attendant,
+  tip); hearth-cooking = PRODUCTION. A bar that cooks composes both —
+  the line the shipped kitchen-vs-counter code already draws.
+- **Sequencing**: cut now (third trade pack) rather than
+  pre-industry-then-adopt — the kit is mature and two venues already
+  prove it; the pre-industry path stays available for everything else.
+
+---
+
+# Addendum 2026-08-21 (21) — the substrate-vocabulary doctrine; the Compact is platform
+
+**Decided 2026-08-21.**
+
+## A27.1 — The four-pack batch drill: two die
+
+- **conditions-and-afflictions: KILLED as a pack, promoted to a
+  KIND.** The seed tree knew: conditions organize by driving substrate
+  (`magic/ metabolism/ mortality/ respiration/ thermal/`). Baseline
+  roster → pack zero; future packs ship their own (disease its
+  infections, pharma its toxins) as ordinary template rows.
+  `ConditionApi.boot` = a legitimate `role: sync-read` boot-manifest
+  entry in pack zero (inflict is a hot path).
+- **body-plans: KILLED, folded into species-and-names** — BodyPlans
+  live at `seeds/obj/species/BodyPlan/` and species reference them;
+  they were always the species pack's missing half (the 4 straggler
+  species rows are the same migration debt; one `git mv`).
+- **expression + arcane-library: CONFIRMED, boring in the good way**
+  (35 emotes; the Spell dir + 2 items).
+
+> ⭐⭐⭐ **The doctrine (third firing: magic, conditions, body plans):
+> substrate vocabularies don't get their own packs — the baseline
+> rides pack zero (or the substrate's existing pack); extensions ride
+> their CARRIERS.** A standalone vocabulary pack fails
+> install-and-something-exists exactly the way horizontal packs always
+> did.
+
+## A27.2 — ⭐⭐ The Compact is PLATFORM; corpos are a content pack
+
+> **User: "the compact is platform, corpos are a content pack."**
+
+Reverses the tier-1 carve's swappable-compact lean, and it is the more
+coherent position: the Compact is the CONSTITUTION, and
+measurement.md's entrenchment tiers already say tier-B structure
+belongs to *whoever ships the code* — **state-swapping is FORKING the
+platform (the AGPL is the check), never a pack install.** The circular
+alternative made the installer self-referential: the tier checks
+reference Compact institutions, so a pack defining who reviews packs
+reviews itself.
+
+- → pack zero: `/compact/press` + `/compact/executive`, the
+  PressBoard, the realm/city Locality+Government rows (supersedes
+  A18.11's assignment of those to a compact pack). The state
+  aggregator is platform.
+- → the **corpo pack, confirmed**: the five corpos, brands, their
+  boot-manifest entries; the lounge's neon + `banksAt: goodkin` depend
+  on it.
+- Tier-1 roster: **~17 packs.** The tier-3 "swap the state" imagining
+  narrows to norms/policy content only — structure is the fork's
+  business.
+
+---
+
+# Addendum 2026-08-24 (22) — access across the three trees
+
+**Decided 2026-08-24.** How grants, committees, and packs intersect
+the source / content / document trees.
+
+## A28.1 — One trie for OWNERSHIP; tree-qualified PERMISSIONS
+
+- **One ownership fact.** The parcel trie is the single registry for
+  all three trees — the mirror convention means they share one
+  mud-rooted path namespace, so a title over `/trade/smithing` is one
+  extent, one chain-of-title, one subdivide. Never three registries.
+- ⭐⭐ **But what a title MEANS is tree-qualified** (user's catch: *"you
+  might need to apply different permissions to the same path of
+  different trees"*). `AccessApi.can` answers action-shaped questions —
+  `write-template` / `write-document` / `write-source` against the
+  same path. Defaults: owner holds all three; divergence via:
+  1. **Narrowing policies with a tree dimension** — the `.policy`
+     document at an extent (branch-policy: `writers` NARROWS never
+     widens) can set different writer sets per tree. Same path, three
+     writer sets, one owner, no second registry.
+  2. ⭐⭐ **The commerce asymmetry, a RULE not a config**: parcel
+     transfer conveys content+document rights; **source-write rights
+     never ride a transfer** — they follow maintainership (code trust
+     never flows through a sale — the agency rule). Rare by
+     construction (commercial extents have no source mirror;
+     capability extents aren't for sale); stated so the rare case
+     fails safe.
+
+## A28.2 — The grant ladder (subdivision is delegation)
+
+State (covering title) grants the extent at install (the ceremony,
+A10.8/A22.3) → the maintainers committee **subdivides** its extent
+among teams with the same gated primitive (the trie recursion IS the
+delegation model) → **narrowing policies** below subdivision
+granularity → **group roles** for the last mile. Every rung restricts;
+nothing down-tree widens.
+
+## A28.3 — Source writes: the trie ANDs the wizard axis
+
+> **User: "all writes are going to go through the write command… we
+> just need source trees to express permissions that the write command
+> respects (or the api that the write command uses)."**
+
+- **The game is the permission system, for source like everything
+  else.** `SourceTreeApi`'s write path (and the CMS save path)
+  consults `can(giver, 'write-source', path)`: **title covering the
+  path AND `isWizard`**. The trie answers WHERE; the axis answers WHAT
+  KIND. Wizardness stays exactly one thing (TS), checked alongside
+  jurisdiction, never instead of it. A wizard without title cannot
+  touch the lounge's source; a non-wizard maintainer edits its YAML
+  but never its classes.
+- **Git is transport and history, never the fine-grained enforcer.**
+  Repo permissions carve at PACK lines only (whole-repo membership ≈
+  maintainers, hand-maintained, drift-tolerable — the in-game trie is
+  the real enforcer, so the two-membership problem shrinks to coarse
+  correspondence). Today's shell-based development bypasses the
+  in-game path — acknowledged as the current mode, not a hole to plug
+  now.
+- **Deferred, named**: server-side hooks rejecting commits that touch
+  paths the committer lacks title to, and the authentication that
+  binds a commit to a game identity (anti-spoofing — the hard part is
+  the identity binding, not the hook).
+
+**Build items**: `DocumentLogic` → `ParcelApi` repoint (the known Part
+4b gap) + the `SourceTreeApi`/CMS write-path consult — the two halves
+of "all three trees resolve through one ownership registry."
+
+---
+
+# Addendum 2026-08-24 (23) — the graduation audits (lounge + eternal, 28 classes)
+
+**Run 2026-08-24 against source.** ⭐⭐ **Headline: the feared code
+problem mostly isn't one** — the substrate graduations already
+happened (CommerceMenu, ManualBuild, Warren, Branded, Graded, Crafted
+all in `lib/`); the residue is dominated by ONE pattern:
+**pure-composition classes** — a mixin stack + a description, existing
+only because YAML cannot declare a composition without a class.
+
+**Lounge (14):** residue: `Menu` (dies with wave 3's seed repoint,
+taking SmithyMenu/KitchenMenu — three thin subclasses → one shared
+`obj/` concrete) · pure composition → genericize: `CraftedDrink`
+`GradedReceptacle` `NeonSign` `CocktailShaker` (templates → trade or
+venue) · real extractions: `Offstage` → **employment** (off-shift NPC
+parking; hearthworks' cast is the second consumer — extract NOW) and
+`TipJar` → **/trade/hospitality** (trade-generality, NOT kernel) ·
+local color kept: `Bar` `Lounge` `LoungeWarren` `LoungeMixin`
+`GlassAlley` (documented one-off) `LoungeTerminal` (→ the lounge
+pack's boot-manifest entry — the first content boot customer) ·
+`paths` trivial.
+
+**Eternal (14 non-controller):** residue: `Footlocker` (repoint to
+`obj/Chest`) · pure composition → generic-objects: `Bed` `Desk`
+`Whistle` `Watch` · real extraction: `MechanicalMovement` — **a mixin
+living in content**; generic windable clockwork under Timekeeping →
+`lib/` · hold-for-second-consumer: `DormThemes` (residence shell
+personalization — extract when the apartment reframe arrives) · local
+color kept: `DormRoom` `DormWarren` `Corridor` `DormDoor`
+`FloorStairExit` `Katie` `CrossingLog` · misfiled+deletable: `Gus`
+(moves to the eternal tree regardless; **deletes entirely if
+spawn-equipment becomes authorable data**).
+
+## The two conclusions that outrank the tables
+
+1. ⭐⭐⭐ **The biggest code-reduction lever is a data-vs-code bridge:
+   AUTHORABLE COMPOSITION.** 9 of 28 classes exist only to name a
+   mixin stack; Studio blueprints are already the composition
+   catalogue — let a template/blueprint declare the stack and those
+   nine become YAML, hospitality ships **pure data**, eternal drops to
+   warren machinery + controllers. (Lands on the known "3 missing
+   data-vs-code bridges" list; spawn-equipment is a second bridge on
+   the same list.)
+2. ⭐⭐ **The second-consumer rule generalizes graduation itself**:
+   extract when the second consumer arrives (Offstage now — hearthworks
+   is the second; DormThemes waits for apartments). The pre-industry
+   lifecycle, applied to code: local until common, claimed when shared.
+
+---
+
+# Addendum 2026-08-25 (24) — the wave ordering
+
+**Decided 2026-08-25** (wave 2 split per the user). Each wave lands
+something true on its own; this supersedes the A12-era three-wave cut.
+
+- **Wave 0 — the collection rename.** `domain` → `content`, standalone
+  mechanical MR + `renameCollection`, FIRST — no new installer code
+  ever speaks the old name.
+- **Wave 1 — the substrate, proven on the cheapest content.** Install
+  record + three-way machine + policy-per-kind over the EXISTING kinds;
+  the flat-key check; the ops verbs (status / --dry-run / diff /
+  resolve / pin / export). Capstone: **newbie-wilds becomes a pack**
+  (21 seeds, zero code, domain kind only) — first pack through the new
+  machinery, exercises adopt-don't-wipe on every dev DB.
+- **Wave 2a — the plain kinds.** documents / settings / subjects kinds;
+  the doc-store collapse AS the file-per-artifact breakup; the
+  `DocumentLogic` → `ParcelApi` repoint (the wave that makes the
+  document tree load-bearing). **Seeders die one at a time as their
+  kind lands** (Emote, Recipe, Blueprint-curated, Script, Channel,
+  AppSettings). Kernel-test fixtures + `lint:test-content` warn-only.
+- **Wave 2b — the dispatch-adjacent kinds.** The command-view kind on
+  the strangler (store-first, disk fallback dies at zero) + the wiki
+  CAS kind; WikiSeeder retires.
+- **Wave 3 — pack zero, THE HINGE.** Platform pack via bootstrap; the
+  boot manifest (pack zero its first customer); minimal `requires:`
+  (groups-exist + title claims) + staffing-at-install; Group/Parcel
+  seeders retire into the A22 split; **`SeederManager` deleted**;
+  `AppBootstrap.run` end-state; the lazification worklist drains the
+  six content manifest entries. ⭐ After this, "the platform ships
+  clean" is TESTABLE — the acceptance criterion goes green or names
+  what we missed.
+- **Wave 4 — the renames + the first trades, ONE blast radius.**
+  Batched path surgery while everything is goto-only cheap:
+  `/domain/`→`/world/`, the `/trade/` sixth branch, the hearthworks
+  re-cut, orphan-row cleanup. Then on the fresh namespace: smithing ·
+  hearth-cooking · hospitality · the saxonberg-lounge + hearthworks
+  venue packs with the A23 verdicts applied (Offstage → employment,
+  TipJar → hospitality, MechanicalMovement → lib, residue deletes) ·
+  the archetype aggregator + test-venue generator · hearthworks' first
+  inbound exit.
+- **Wave 5 — the long tail, demand-ordered.** Retail + terminus ·
+  eternal as the capability exemplar · the media kind · source-tree
+  write-path consult + tree-qualified actions · mining when its kernel
+  substrate lands.
+- **Floating parallel track: the authorable-composition bridge** —
+  pure kernel work, gates "hospitality ships pure data," lands anytime
+  before wave 4; fits between waves while reviews pend.
+
+**The arguments** (attack these, not the list): rename before writing ·
+prove the machine on content that can't fight back · strangler over
+big-bang for seeders (each retirement independently revertable) · pack
+zero is the hinge because it makes the criterion falsifiable · ONE
+path-surgery window (renames are the only scary operation; twice =
+twice the fear).
+
+---
+
+# Addendum 2026-08-25 (25) — offices are heads; committees are hands
+
+**Decided 2026-08-25**, during requirements for waves 0+1, after the
+wizard-debt proposal was rejected (*"I don't want you using isWizard
+for anything but typescript access… if that means we have to mint new
+offices then that's what we'll do"*). The recurring model for every
+permission surface:
+
+> ⭐⭐⭐ **Law points at OFFICES → offices own COMMITTEES → committees
+> hold permissions → members are appointed by whoever holds the owning
+> seat.**
+
+- **Offices are heads** — one accountable holder the law can name,
+  founder-default (governance.md). **Committees are hands** — managed
+  groups doing work, holding operational permissions. The law never
+  points at a committee; permissions never accumulate on an office (a
+  permission-holding office is a bottleneck AND a prize).
+- ⭐⭐ **The bridge: a managed group's owner can be an OFFICE**,
+  resolved through `holdsOffice` on read (absence = founder default) —
+  never a stamped player id, never `isFounder`. Seat changes hands ⇒
+  every committee follows, no re-parenting.
+- **Charter new offices only when no portfolio covers the domain**
+  (ordinary law, Art VIII §3; offices are political and expensive,
+  committees are cheap).
+- **Applied to pack install (wave 1)**: the `pack-installers`
+  committee, owned by the **PM** (executive — the CB-Governor
+  reasoning); `requiresWizard` dies on the `pack` verb; the "ops
+  chief" (A22.3) was never a designed office — it is whoever holds
+  the seat that owns the committee, PM today, a chartered Minister of
+  Operations if the polity ever says so.
+- ⭐ **What the executive "looks like"**: a shallow tree — PM at the
+  root, chartered ministers beside it as domains earn single
+  accountable heads (CB Governor = the precedent), each seat owning
+  its portfolio's working committees. Not an org chart we design; the
+  accretion of exactly these acts.
+
+---
+
+# Addendum 2026-08-25 (26) — the post-refactor dev loop, and the three test rings
+
+**Captured 2026-08-25**, answering: *what does developing content feel
+like after the refactor?* — the payoff the program is priced against.
+(User: *"anything to reduce the amount of time running tests takes,
+that's the #1 time sink in our development workflow now."*)
+
+## A32.1 — The hot pack (dev loop)
+
+- **A pack WATCHER, dev-only, on the `CompileWatcher` precedent**:
+  watch `packages/content/*/content/**`, debounce, fire the same
+  `PackApi.sync(packId)` the verb runs. Save YAML in the IDE → the
+  reconcile applies → the rehydrate tail pushes it live. Symmetric
+  with `tsx watch` for code. ⭐ **The three-way machine is what makes
+  auto-sync SAFE**: live-world divergence surfaces as a conflict
+  instead of being stomped (in dev you're usually the only writer —
+  the silent-apply cell).
+- **Bidirectional**: iterate in-game/CMS instead → `pack resolve
+  --export` writes the live edit back to the file. Either end can be
+  the editor; git always ends up with the truth.
+- ⚠ **Fields hot, structure warm, never confusing about which**: hot
+  sync covers field edits; structural changes (new rooms, `populates:`
+  on stood-up rooms) need a re-fault or a restart — restart stays the
+  universal go-live, and dev restarts are cheap + self-cleaning.
+- Not wave-1 scope; a small standalone item whenever resync friction
+  first annoys.
+
+## A32.2 — ⭐⭐⭐ The three test rings, and "pack YAML is not source"
+
+Operationalizing Part 5's dependency direction:
+
+| Ring | Runs when | Time |
+|---|---|---|
+| 1 **kernel suite** | kernel SOURCE changes | the ~15 min — and it SHRINKS as reach-into-content tests get synthetic fixtures and colocated content tests leave with their packs |
+| 2 **per-pack suites** | that pack's files change (CI `rules:changes`) | seconds: installability, class resolution, flat keys, schema, the archetype-derived smoke |
+| 3 **e2e** | its own lane | unchanged |
+
+> ⭐⭐⭐ **PACK YAML IS NOT SOURCE.** The green-stays-valid doctrine
+> already says a full run stays valid until a source file changes —
+> pack content files are not source by that rule's own logic (nothing
+> in the kernel suite's import graph touches them). The moment
+> newbie-wilds is a pack, editing its content = ZERO kernel suite
+> runs: pack lint + the pack's seconds-long suite + a drive. The
+> CLAUDE.md `git status | grep` check grows a `packages/content/`
+> exclusion. **The #1 time sink stops applying to content work at
+> all — which is most of what building the wilds actually is.**
+
+⚠ Plan-review note: W1.10's newbie-wilds test uses the real pack root
+inside the kernel suite — pragmatic scaffolding for proving the
+installer this cycle, NOT precedent: by ring discipline the
+installer's tests run against ugly fixture packs, and a pack's own
+installability checks live in ring 2.
+
+---
+
+# Addendum 2026-08-25 (27) — capability packs: code ships IN the pack, and sync is one interface
+
+**Decided 2026-08-25, correcting an over-claim.** The earlier framing
+("sync never touches code, ever") was doctrine outrunning mechanics —
+the platform already hot-reloads TypeScript at runtime (HotReloadApi,
+HMR-able logic singletons, per-invocation brain re-resolution, the
+`reload` verb). The real principle:
+
+> ⭐⭐⭐ **Sync does everything that doesn't require a LINK. In dev,
+> HMR is the linker — so sync moves code too, one interface. In prod,
+> code rides the same deploy+restart every kernel change rides, and
+> sync's job is to say when a restart is OWED.**
+
+## A33.1 — Code IS part of the pack (the ensure-the-code answer)
+
+One npm package carries both:
+
+```
+packages/content/eternal-university/
+├── package.json      # @saxonberg/content-eternal-university
+├── pack.yaml
+├── content/          # YAML — the installer's jurisdiction
+└── src/              # TS — Katie, the warren, the controllers
+```
+
+⭐⭐ **Adding the pack's one dependency line brings code and content
+together as a single versioned artifact — they cannot skew.** No
+separate "is the code in package.json" step exists. Class resolution:
+a **namespace → package table** built at discovery
+(`/domain/eternal/… → @saxonberg/content-eternal-university/src`,
+via Node resolution); `loadClassByPath` consults it before the kernel
+tree.
+
+## A33.2 — The two loops
+
+**Dev (one command):** edit YAML or TS → `pack sync <id>` (or the A32
+watcher) → data three-ways AND the pack's changed modules hot-swap
+through HotReloadApi (the `reload` machinery). Safe because it is your
+workspace — code-trust was settled at authorship; tsx already
+recompiled; sync is delivery.
+
+**Prod / another deployment:** `pnpm add @saxonberg/content-<id>` (one
+act, code+content versioned together) → restart (boot links modules,
+installer reconciles data, requires-kernel resolves classes into the
+pack's namespace + declared deps). Updates = version bump + restart.
+Runtime `sync` moves data but not code — ⭐ **not a pack limitation:
+prod runs compiled JS, kernel code has the same constraint and rides
+the same deploy.** `pack status` compares the record's code version
+against what's linked: *"data current, code stale — restart owed."*
+A brand-new pack on a running server = stage → restart, which was
+always the design (A10.10).
+
+## A33.3 — Cross-pack code + the graph
+
+Pack A importing pack B's classes: A lists B in `package.json`
+dependencies; ⭐ **`dependsOn` DERIVES from those lines — one
+dependency graph, no drift** between what npm links and what the
+installer orders. `import type` free everywhere (erased). Value
+imports are for inheritance/extension; capabilities still flow through
+the gated Apis — imports are never a side-channel around the world.
+
+## A33.4 — What stays deferred
+
+Only the **third-party trust story** (running code you didn't review:
+signing). The mechanism above is unchanged when it arrives; only the
+gate at the front door. Every capability pack for the foreseeable
+future is first-party and MR-reviewed (the ladder's code-trust rung).
+Enforcement carried forward from the access work: no contribution
+kind for code (the installer physically can't ship it); a "data" pack
+whose `class:` resolves into its own namespace is lying about its
+rung (checked at install); `lint:imports` grows a pack profile (own
+tree + declared pack deps + the kernel's projected author surface +
+`@saxonberg/types`).

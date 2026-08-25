@@ -812,9 +812,10 @@ landing first.
   [Tier 2 isolation discussion](./runtime-model.md#isolation-options)
   is the framing. *The **Content** corner has shipped its first
   build as **content packs** — pure-data, no-code deliverables with a
-  reconcile installer (see
+  three-way reconcile installer, an install record, and the `pack`
+  operator verb; four packs ship, newbie-wilds the first locality (see
   [content-packs.md](./subsystems/content-packs.md) /
-  [content-packs-slate.md](./slates/tails/content-packs-slate.md));
+  [content-packs-slate.md](./slates/builds/content-packs-slate.md));
   Capability / Full (new-code mods, needing `isolated-vm`) remain.*
 - **Persistence framework upgrade** — fine-grained per-record
   access patterns. Recognition + identification + social-graph

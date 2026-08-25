@@ -25,7 +25,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { Authority } from '../../lib/employment/Authority';
@@ -49,11 +50,20 @@ function walk(dir: string): string[] {
   return out;
 }
 
-/** Every seed whose `class:` is the concrete Business. */
-const businesses = walk(SEEDS)
-  .map((path) => ({ path, seed: parse(readFileSync(path, 'utf8')) as Seed }))
+/** The newbie-wilds content ships as a pack now — same rows, other root. */
+const WILDS = join(
+  dirname(createRequire(import.meta.url).resolve('@saxonberg/content-newbie-wilds/package.json')),
+  'content',
+);
+
+/** Every seed (or pack row) whose `class:` is the concrete Business. */
+const businesses = [
+  ...walk(SEEDS).map((path) => ({ path, rel: path.slice(SEEDS.length) })),
+  ...walk(WILDS).map((path) => ({ path, rel: path.slice(WILDS.length) })),
+]
+  .map((e) => ({ ...e, seed: parse(readFileSync(e.path, 'utf8')) as Seed }))
   .filter((e) => e.seed?.class === '/obj/Business')
-  .map((e) => ({ rel: e.path.slice(SEEDS.length), data: e.seed.data ?? {} }));
+  .map((e) => ({ rel: e.rel, data: e.seed.data ?? {} }));
 
 const parcels = (
   parse(readFileSync(join(CONFIG, 'parcels.yaml'), 'utf8')) as {

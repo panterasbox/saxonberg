@@ -23,7 +23,7 @@ function installInMemoryStore(): {
   let nextId = 1;
 
   const save = vi.fn(async (collection: string, doc: Doc) => {
-    if (collection !== Collections.Domain) {
+    if (collection !== Collections.Content) {
       throw new Error(`unexpected collection in test: ${collection}`);
     }
     const copy = { ...doc };
@@ -42,7 +42,7 @@ function installInMemoryStore(): {
   });
 
   const find = vi.fn(async (collection: string, query: Record<string, unknown>) => {
-    if (collection !== Collections.Domain) return [];
+    if (collection !== Collections.Content) return [];
     if (typeof query.path === 'string') {
       return store.filter((d) => d.path === query.path);
     }
@@ -55,7 +55,7 @@ function installInMemoryStore(): {
   });
 
   const findById = vi.fn(async (collection: string, id: string) => {
-    if (collection !== Collections.Domain) return null;
+    if (collection !== Collections.Content) return null;
     return store.find((d) => d._id === id) ?? null;
   });
 

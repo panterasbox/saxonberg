@@ -53,7 +53,7 @@ function col(name: string): Record<string, unknown>[] {
 
 /** Seed an existing domain template doc. */
 function seedTemplate(doc: Record<string, unknown>): void {
-  col("domain").push({ _id: String(nextId++), ...doc });
+  col("content").push({ _id: String(nextId++), ...doc });
 }
 
 beforeEach(() => {

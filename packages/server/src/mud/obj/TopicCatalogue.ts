@@ -6,7 +6,7 @@
  * per the singleton-in-`obj/` convention. The cache is transient
  * instance state; the source of truth lives on the per-topic
  * `Topic` template documents under `/obj/Topic/` in the
- * `domain` collection. The catalogue loads its descriptors
+ * `content` collection. The catalogue loads its descriptors
  * directly from those template docs — Topic templates are pure
  * data (`topic` / `family` / `label` / `description`), so there's
  * no need to clone them as live Stuff instances at boot.
@@ -238,7 +238,7 @@ export default class TopicCatalogue extends TopicCatalogueBase {
     // Unit tests warm the catalogue from stubbed templates with no
     // connection behind them, which is exactly this case.
     if (!PersistApi.isConnected()) return;
-    await PersistApi.deleteMany(Collections.Domain, {
+    await PersistApi.deleteMany(Collections.Content, {
       path: { $in: stale.map((t) => t.path) },
     });
     console.log(

@@ -121,7 +121,7 @@ function addSeed(path: string, file: string): void {
     string,
     unknown
   >;
-  col('domain').push({
+  col('content').push({
     _id: `d-${++idCounter}`,
     path,
     class: parsed.class as string,
@@ -143,7 +143,7 @@ const SNAKE_SPECIES =
  * rows they reference.
  */
 function seedDomain(): void {
-  col('domain').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
+  col('content').push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
 
   addSeed(DormWarren.WARREN_PATH, `${SEEDS}domain/eternal/duncan-hall/dorm-warren.yaml`);
   addSeed(DormRoom.SCOPE, `${SEEDS}domain/eternal/duncan-hall/dormroom.yaml`);

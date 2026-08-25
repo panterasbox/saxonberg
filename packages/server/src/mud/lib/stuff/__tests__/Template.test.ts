@@ -20,7 +20,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
   const store: Doc[] = initial.map((d, i) => ({ _id: String(i + 1), ...d }));
 
   const find = vi.fn(async (collection: string, query: Record<string, unknown>) => {
-    if (collection !== Collections.Domain) return [];
+    if (collection !== Collections.Content) return [];
     if (typeof query.path === 'string') {
       return store.filter((d) => d.path === query.path);
     }
@@ -33,7 +33,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
   });
 
   const findById = vi.fn(async (collection: string, id: string) => {
-    if (collection !== Collections.Domain) return null;
+    if (collection !== Collections.Content) return null;
     return store.find((d) => d._id === id) ?? null;
   });
 

@@ -11,7 +11,7 @@
  *
  * Source file is at `mud/config/emotes.yaml` (NOT under `mud/seeds/`):
  * Emote records aren't Stuff templates and don't belong in the
- * `domain` collection that `SeederManager` walks. Keeping the file
+ * `content` collection that `SeederManager` walks. Keeping the file
  * out of the seeds tree avoids the walker double-inserting it as a
  * domain template alongside the per-emote inserts done here.
  *

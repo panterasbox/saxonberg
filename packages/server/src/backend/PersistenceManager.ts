@@ -12,7 +12,7 @@
  *   administrative manifest at boot.
  *
  * PM is collection-agnostic: it ships with no hooks baked in. Validations
- * and side-effects (e.g. the folder/leaf invariant for `Collections.Domain`,
+ * and side-effects (e.g. the folder/leaf invariant for `Collections.Content`,
  * Phase 7 Decision 12) attach via `registerHook`. See PHASE_9_PERSISTENCE_HOOKS.md.
  *
  * This is a singleton - only one instance exists per application.
@@ -160,7 +160,7 @@ export const COLLECTION_POLICIES: Readonly<
   // told must never do. MARK records that it happened in-circle.
   [Collections.PlayerFrames]: { verb: 'pass', mark: true },
   // ── PASS(unmarked): authored truth + the mechanism's own stores ──
-  [Collections.Domain]: { verb: 'pass' },
+  [Collections.Content]: { verb: 'pass' },
   [Collections.Documents]: { verb: 'pass' },
   [Collections.HolderSnapshots]: { verb: 'pass' },
   // The wiki is **authored truth and a communications surface**, so it
@@ -192,6 +192,10 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.Producer]: { verb: 'shadow', mode: 'skip' },
   // ── REFUSE: field-real registries, identity, title, config ──
   [Collections.Users]: { verb: 'refuse' },
+  // The pack installer's per-deployment ledger is field-real system state
+  // (what was installed, the baselines three-way reconciliation compares
+  // against). A circle must never write it.
+  [Collections.PackInstalls]: { verb: 'refuse' },
   [Collections.GoogleProfiles]: { verb: 'refuse' },
   [Collections.TwitchProfiles]: { verb: 'refuse' },
   [Collections.KickProfiles]: { verb: 'refuse' },
@@ -374,12 +378,120 @@ export class PersistenceManager {
 
       console.info(`PersistenceManager: Connected to MongoDB database '${dbName}'`);
 
+      // One-time collection migration. MUST run before createIndexes():
+      // createIndex on `content` would auto-create an empty `content`
+      // collection and make the rename fail forever after.
+      await this.#migrateDomainToContent(this.db);
+      await this.#migrateGroupOwners(this.db);
+
       // Create indexes
       await this.createIndexes();
     } catch (error) {
       console.error('PersistenceManager: Failed to connect to MongoDB:', error);
       throw error;
     }
+  }
+
+  /**
+   * Decide the `domain` → `content` collection migration from the set of
+   * collection names present. Pure so it is testable without Mongo.
+   *
+   * - `content` present → `'noop'`, or `'warn-both'` when a `domain`
+   *   collection ALSO survives (an operator condition: never auto-drop,
+   *   never rename over a live `content`).
+   * - `content` absent, `domain` present → `'rename'`.
+   * - neither (fresh DB) → `'noop'`.
+   */
+  static planDomainRename(names: readonly string[]): 'rename' | 'noop' | 'warn-both' {
+    const hasContent = names.includes(Collections.Content);
+    const hasDomain = names.includes('domain');
+    if (hasContent) return hasDomain ? 'warn-both' : 'noop';
+    return hasDomain ? 'rename' : 'noop';
+  }
+
+  /**
+   * The idempotent boot-time migration of the templates collection from
+   * its pre-2026-08 name. Runs inside `connect()` strictly before
+   * `createIndexes()` (see the call site). Mongo's rename carries the
+   * `path` unique index across, so no index rebuild is needed. Exposed
+   * to tests through the `db` parameter (a minimal driver shim).
+   */
+  async #migrateDomainToContent(db: {
+    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
+    collection(name: string): { rename(newName: string): Promise<unknown> };
+  }): Promise<'rename' | 'noop' | 'warn-both'> {
+    const names = (await db.listCollections().toArray()).map((c) => c.name);
+    const plan = PersistenceManager.planDomainRename(names);
+    if (plan === 'rename') {
+      await db.collection('domain').rename(Collections.Content);
+      console.info(
+        "PersistenceManager: renamed collection 'domain' → 'content' (one-time migration)"
+      );
+    } else if (plan === 'warn-both') {
+      console.warn(
+        "PersistenceManager: both 'domain' and 'content' collections exist — " +
+          "'content' is live; the stale 'domain' collection was NOT touched. " +
+          'Inspect and drop it by hand.'
+      );
+    }
+    return plan;
+  }
+
+  /**
+   * The one-time upgrade of `groups.owner` from a bare string (`system`,
+   * an Avatar templatePath, the short-lived `office:<key>` sentinel) to
+   * the typed `GroupOwner`. Idempotent: rows already carrying an object
+   * are not matched. Returns the number of rows rewritten.
+   */
+  async #migrateGroupOwners(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    const col = db.collection(Collections.Groups);
+    const legacy = await col.find({ owner: { $type: 'string' } }).toArray();
+    if (legacy.length === 0) return 0;
+    // Lazy: the model imports Document → PersistApi → this module; a
+    // static import here is a cycle at load time. By the time connect()
+    // runs, everything is loaded.
+    const { Group } = await import('../mud/lib/social/Group');
+    for (const row of legacy) {
+      await col.updateOne(
+        { _id: row._id },
+        { $set: { owner: Group.ownerFromStored(row.owner) } },
+      );
+    }
+    if (legacy.length > 0) {
+      console.info(
+        `PersistenceManager: upgraded ${legacy.length} groups.owner row(s) to the typed GroupOwner (one-time migration)`
+      );
+    }
+    return legacy.length;
+  }
+
+  /** Test seam for `#migrateGroupOwners`. Not used at runtime. */
+  async runGroupOwnerMigrationForTest(db: Parameters<PersistenceManager['runGroupOwnerMigrationForTestImpl']>[0]): Promise<number> {
+    return this.runGroupOwnerMigrationForTestImpl(db);
+  }
+  private runGroupOwnerMigrationForTestImpl(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    return this.#migrateGroupOwners(db);
+  }
+
+  /**
+   * Test seam for the migration: runs `#migrateDomainToContent` against a
+   * caller-supplied driver shim. Not used at runtime.
+   */
+  async runDomainMigrationForTest(db: {
+    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
+    collection(name: string): { rename(newName: string): Promise<unknown> };
+  }): Promise<'rename' | 'noop' | 'warn-both'> {
+    return this.#migrateDomainToContent(db);
   }
 
   /**
@@ -1071,7 +1183,7 @@ export class PersistenceManager {
       // spec is a no-op; an existing duplicate throws E11000 here,
       // which the outer catch logs without crashing the process,
       // surfacing the admin-fixable condition.
-      await this.getCollection(Collections.Domain).createIndex(
+      await this.getCollection(Collections.Content).createIndex(
         { path: 1 },
         { unique: true }
       );
@@ -1159,6 +1271,12 @@ export class PersistenceManager {
       await this.getCollection(Collections.Parties).createIndex({
         memberIds: 1,
       });
+
+      // Pack installs: one record per content pack per deployment.
+      await this.getCollection(Collections.PackInstalls).createIndex(
+        { packId: 1 },
+        { unique: true }
+      );
 
       // Beliefs: per-viewer identity-memory working set (one doc per
       // {viewerId, realm, referent}). Indexed on `viewerId` so a

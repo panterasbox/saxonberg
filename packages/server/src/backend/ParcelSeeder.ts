@@ -14,7 +14,7 @@
  * by `extent`; existing records are left alone (a second run → no-op).
  *
  * Source file is at `mud/config/parcels.yaml` (NOT under `mud/seeds/`):
- * parcel rows aren't Stuff templates and don't belong in the `domain`
+ * parcel rows aren't Stuff templates and don't belong in the `content`
  * collection that `SeederManager` walks. Runs in bootstrap after
  * `PersistenceManager.connect` and before `BootstrapManager.run` (which
  * warms `ParcelRegistry`'s coverage index from the just-populated

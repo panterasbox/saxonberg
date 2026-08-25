@@ -11,7 +11,7 @@
  *
  * Source file is at `mud/config/channels.yaml` (NOT under `mud/seeds/`):
  * Channel records aren't Stuff templates and don't belong in the
- * `domain` collection that `SeederManager` walks. Same reasoning as
+ * `content` collection that `SeederManager` walks. Same reasoning as
  * EmoteSeeder.
  */
 

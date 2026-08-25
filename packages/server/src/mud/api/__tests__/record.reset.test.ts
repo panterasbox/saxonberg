@@ -149,7 +149,7 @@ describe('an enforced run', () => {
     // Named separately from the loop above because this is the ⚠ in the
     // requirements: "wipe everything" read literally empties the world,
     // which is a broken game rather than a reset one.
-    expect(rowsIn(Collections.Domain)).toHaveLength(1);
+    expect(rowsIn(Collections.Content)).toHaveLength(1);
     expect(rowsIn(Collections.AppSettings)).toHaveLength(1);
     expect(rowsIn(Collections.WorldState)).toHaveLength(1);
   });

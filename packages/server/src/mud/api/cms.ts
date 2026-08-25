@@ -2,7 +2,7 @@
  * CmsApi — the gated structured surface behind the CMS editor.
  *
  * One navigation model over two backends:
- *   - `content` — `Template` docs in the `domain` collection (edit
+ *   - `content` — `Template` docs in the `content` collection (edit
  *     `data`), via `TemplateApi`.
  *   - `source`  — sandboxed files under `packages/`, via
  *     `SourceTreeApi`.

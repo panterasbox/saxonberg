@@ -6,7 +6,7 @@
  * (the `DisciplineCatalogue` / `TopicCatalogue` recipe). The caches are
  * transient instance state; the source of truth is the per-`Corpo` and
  * per-`Brand` leaf templates under `/obj/corpo/Corpo/` and
- * `/obj/corpo/Brand/` in the `domain` collection. Both leaves are pure data
+ * `/obj/corpo/Brand/` in the `content` collection. Both leaves are pure data
  * (`key` / edges / `owner`), so the catalogue loads descriptors directly
  * from the template docs — never cloning them as live Stuff.
  *
@@ -109,7 +109,7 @@ export default class CorpoCatalogue extends CorpoCatalogueBase {
   }
 
   /**
-   * Warm the caches from the `domain` collection. Two mongo queries at
+   * Warm the caches from the `content` collection. Two mongo queries at
    * boot, then the public surface is sync.
    */
   public override async postRegister(_context?: unknown): Promise<void> {

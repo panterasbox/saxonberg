@@ -11,7 +11,7 @@
  *
  * Source at `mud/config/app-settings.yaml` (NOT under `mud/seeds/`): these
  * are `Document` records, not Stuff templates, and don't belong in the
- * `domain` collection `SeederManager` walks — same reasoning as EmoteSeeder.
+ * `content` collection `SeederManager` walks — same reasoning as EmoteSeeder.
  */
 
 import { readFileSync } from 'fs';

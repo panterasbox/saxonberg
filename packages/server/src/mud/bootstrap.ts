@@ -27,7 +27,7 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // guarantees that.
   { templatePath: '/domain/void' },
   // Topic catalogue singleton. The catalogue lazy-loads descriptors
-  // from the `domain` collection on first access — no need to
+  // from the `content` collection on first access — no need to
   // pre-clone the per-topic `Topic` templates at boot. Same pattern
   // as species clades / materials / biomes per the note above.
   { templatePath: '/obj/TopicCatalogue' },
@@ -73,21 +73,21 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // DisciplineCatalogue singleton — the advancement Catalog: the authored,
   // typed field-of-study graph. Warms its descriptor cache in postRegister
   // from the per-Discipline leaf templates under `/lib/advancement/
-  // Discipline/` in the `domain` collection (same lazy-template pattern as
+  // Discipline/` in the `content` collection (same lazy-template pattern as
   // the topic catalogue). Resolvable via the catalogue singleton after this
   // entry's postRegister fires.
   { templatePath: '/obj/DisciplineCatalogue' },
   // CorpoCatalogue singleton — the corpos Catalog: the authored megacorps
   // and their product brands. Warms its descriptor caches + portfolio index
   // in postRegister from the per-Corpo / per-Brand leaf templates under
-  // `/lib/corpo/` in the `domain` collection (the same lazy-template pattern
+  // `/lib/corpo/` in the `content` collection (the same lazy-template pattern
   // as the discipline catalogue). Resolvable via `CorpoApi` after this
   // entry's postRegister fires.
   { templatePath: '/obj/CorpoCatalogue' },
   // GovernmentCatalogue singleton — the roster of diegetic governments
   // (plural authored content — never the Compact's face). Warms its
   // descriptor cache in postRegister from the per-Government leaf templates
-  // under `/obj/Government/` in the `domain` collection (the corpo
+  // under `/obj/Government/` in the `content` collection (the corpo
   // pattern). Resolvable via `GovernmentApi` after this entry's
   // postRegister fires.
   { templatePath: '/obj/GovernmentCatalogue' },
