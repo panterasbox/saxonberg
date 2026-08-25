@@ -376,22 +376,6 @@ function canonical(value: unknown): string {
   return JSON.stringify(norm(value));
 }
 
-/** The row shape PackLogic writes (a `domain` template row + the stamp). */
-interface DomainRow extends Record<string, unknown> {
-  _id?: string;
-  path: string;
-  class: string;
-  hydratorClass?: string;
-  data: Record<string, unknown>;
-  sourcePack: string;
-}
-
-/**
- * Reconcile the `domain`-kind files: make the DB match the pack for rows
- * stamped `packId`, adopting any pre-existing unstamped row at a pack path.
- * Returns the change lists. Writes flow through the {@link PersistApi}
- * chokepoint (`lint:pm`); `save` is `$set`-by-`_id` (update/adopt) or insert.
- */
 /**
  * ⚠ **Gate pack-declared topics before anything is written.**
  *
@@ -446,24 +430,68 @@ async function validatePackTopics(
   }
 }
 
-async function reconcileDomain(
-  packId: string,
-  files: DomainFile[],
-): Promise<Pick<PackReconcileResult, 'inserted' | 'updated' | 'adopted' | 'deleted'>> {
-  await validatePackTopics(packId, files);
 
-  const inserted: string[] = [];
-  const updated: string[] = [];
-  const adopted: string[] = [];
-  const deleted: string[] = [];
+// --- the per-kind strategy -------------------------------------------------
 
-  const stampedRows = (await PersistApi.find(Collections.Content, {
-    sourcePack: packId,
-  })) as DomainRow[];
-  const stampedByPath = new Map(stampedRows.map((r) => [r.path, r]));
-  const filePaths = new Set(files.map((f) => f.path));
+/** The DB collections a shipped content kind lands in. */
+type KindName = 'domain' | 'name-banks' | 'descriptor-banks';
 
-  for (const f of files) {
+/**
+ * The per-kind reconcile strategy — the content-pack-units Part C
+ * interface, kept module-private. Every shipped kind is the same
+ * ownership-scoped insert/update/adopt/delete loop; what differs is the
+ * TARGET collection, the KEY a row is found by, the rendered ROW, the
+ * hash preimage, and the go-live side effect. One `reconcileKind`
+ * drives all of them, so the reconcile policy is written once.
+ */
+interface KindStrategy<F> {
+  kind: KindName;
+  /** TARGET collection. */
+  collection: Collections;
+  /**
+   * The install-record key — the file's content-root-relative path with
+   * a leading slash and no `.yaml`. For the domain kind this IS the
+   * template path; for a bank it is `/name-banks/<key>`. One uniform
+   * address for every kind (`pack diff <id> <path>`).
+   */
+  recordKeyOf(f: F): string;
+  /** The record key of a stored row (the inverse of `recordKeyOf`). */
+  recordKeyOfRow(row: Record<string, unknown>): string;
+  /** The query that finds a row at this file's key. */
+  dbKeyQuery(f: F): Record<string, unknown>;
+  /** The full row to write (stamp included). */
+  rowOf(f: F, packId: string): Record<string, unknown>;
+  /** The hash preimage — rendered content only; never `_id`, stamps, keys. */
+  canonicalBody(rowOrFile: Record<string, unknown>): string;
+  /** The human label for the refusal message. */
+  noun: string;
+}
+
+/** The row shape PackLogic writes (a `content` template row + the stamp). */
+interface DomainRow extends Record<string, unknown> {
+  _id?: string;
+  path: string;
+  class: string;
+  hydratorClass?: string;
+  data: Record<string, unknown>;
+  sourcePack: string;
+}
+
+/**
+ * The domain-kind preimage: `{class, hydratorClass, data}` only. Adding a
+ * field to the row shape means deciding here whether it is content (in)
+ * or bookkeeping (out) — `_id`, `path`, `sourcePack`, timestamps are out.
+ * `JSON.stringify` drops `undefined`, so absent-vs-undefined normalizes
+ * identically on the file side and the BSON round-trip side.
+ */
+const domainStrategy: KindStrategy<DomainFile> = {
+  kind: 'domain',
+  collection: Collections.Content,
+  noun: 'path',
+  recordKeyOf: (f) => f.path,
+  recordKeyOfRow: (r) => String(r.path),
+  dbKeyQuery: (f) => ({ path: f.path }),
+  rowOf: (f, packId) => {
     const row: DomainRow = {
       path: f.path,
       class: f.class,
@@ -471,55 +499,55 @@ async function reconcileDomain(
       sourcePack: packId,
     };
     if (f.hydratorClass) row.hydratorClass = f.hydratorClass;
+    return row;
+  },
+  canonicalBody: (r) =>
+    canonical({
+      class: r.class,
+      hydratorClass: r.hydratorClass ?? undefined,
+      data: r.data ?? {},
+    }),
+};
 
-    const stamped = stampedByPath.get(f.path);
-    if (stamped) {
-      // (a) we already own this path — update only if it actually differs.
-      const same =
-        canonical(stamped.data) === canonical(f.data) &&
-        stamped.class === f.class &&
-        (stamped.hydratorClass ?? undefined) === f.hydratorClass;
-      if (!same) {
-        await PersistApi.save(Collections.Content, { ...row, _id: stamped._id });
-        updated.push(f.path);
-      }
-      continue;
-    }
-
-    const existing = (await PersistApi.find(Collections.Content, {
-      path: f.path,
-    })) as DomainRow[];
-    const prior = existing[0];
-    if (prior) {
-      // (b) a row exists at this path. Adopt it iff unstamped; refuse to
-      // clobber another pack's content.
-      if (prior.sourcePack && prior.sourcePack !== packId) {
-        throw new Error(
-          `PackApi: pack '${packId}' wants path '${f.path}' but it is owned ` +
-            `by pack '${prior.sourcePack}'`,
-        );
-      }
-      await PersistApi.save(Collections.Content, { ...row, _id: prior._id });
-      adopted.push(f.path);
-    } else {
-      // (c) nothing here — insert (no _id → insertOne).
-      await PersistApi.save(Collections.Content, row);
-      inserted.push(f.path);
-    }
-  }
-
-  // Delete our stamped rows whose file vanished.
-  for (const r of stampedRows) {
-    if (!filePaths.has(r.path) && r._id) {
-      await PersistApi.delete(Collections.Content, r._id);
-      deleted.push(r.path);
-    }
-  }
-
-  return { inserted, updated, adopted, deleted };
+interface NameBankRow extends Record<string, unknown> {
+  _id?: string;
+  key: string;
+  given: string[];
+  surname: string[];
+  style?: string;
+  sourcePack: string;
 }
 
-/** The row shape PackLogic writes for a name bank (a flat `Document` + stamp). */
+/**
+ * Name banks — immutable reference data the char-gen suggester unions by
+ * key — into `name_banks`, keyed on the file basename.
+ */
+const nameBankStrategy: KindStrategy<NameBankFile> = {
+  kind: 'name-banks',
+  collection: Collections.NameBanks,
+  noun: 'name bank',
+  recordKeyOf: (f) => `/name-banks/${f.key}`,
+  recordKeyOfRow: (r) => `/name-banks/${String(r.key)}`,
+  dbKeyQuery: (f) => ({ key: f.key }),
+  rowOf: (f, packId) => {
+    const row: NameBankRow = {
+      key: f.key,
+      given: f.given,
+      surname: f.surname,
+      sourcePack: packId,
+    };
+    if (f.style !== undefined) row.style = f.style;
+    return row;
+  },
+  canonicalBody: (r) =>
+    canonical({
+      given: r.given ?? [],
+      surname: r.surname ?? [],
+      style: r.style ?? undefined,
+    }),
+};
+
+/** The row shape PackLogic writes for a descriptor bank (a flat `Document` + stamp). */
 interface DescriptorBankRow extends Record<string, unknown> {
   _id?: string;
   key: string;
@@ -532,183 +560,114 @@ interface DescriptorBankRow extends Record<string, unknown> {
   sourcePack: string;
 }
 
-interface NameBankRow extends Record<string, unknown> {
-  _id?: string;
-  key: string;
-  given: string[];
-  surname: string[];
-  style?: string;
-  sourcePack: string;
-}
+/**
+ * Descriptor banks — the name-bank shape one kind over, into
+ * `descriptor_banks`, keyed on the file basename (= the item class). A
+ * much hotter read path: appearance renders on every look at every
+ * unidentified item, so the cache a write drops matters more here.
+ */
+const descriptorBankStrategy: KindStrategy<DescriptorBankFile> = {
+  kind: 'descriptor-banks',
+  collection: Collections.DescriptorBanks,
+  noun: 'descriptor bank',
+  recordKeyOf: (f) => `/descriptor-banks/${f.key}`,
+  recordKeyOfRow: (r) => `/descriptor-banks/${String(r.key)}`,
+  dbKeyQuery: (f) => ({ key: f.key }),
+  rowOf: (f, packId): DescriptorBankRow => ({
+    key: f.key,
+    primary: f.primary,
+    secondary: f.secondary,
+    primaryAxis: f.primaryAxis,
+    secondaryAxis: f.secondaryAxis,
+    unidentifiedLong: f.unidentifiedLong,
+    unidentifiedDetails: f.unidentifiedDetails,
+    sourcePack: packId,
+  }),
+  canonicalBody: (r) =>
+    canonical({
+      primary: r.primary ?? [],
+      secondary: r.secondary ?? [],
+      primaryAxis: r.primaryAxis ?? '',
+      secondaryAxis: r.secondaryAxis ?? '',
+      unidentifiedLong: r.unidentifiedLong ?? '',
+      unidentifiedDetails: r.unidentifiedDetails ?? {},
+    }),
+};
+
+type KindChanges = Pick<
+  PackReconcileResult,
+  'inserted' | 'updated' | 'adopted' | 'deleted'
+>;
 
 /**
- * Reconcile the `name-bank`-kind files into the `name_banks` collection,
- * keyed on bank `key` (the file basename). Same ownership-scoped
- * insert/update/adopt/delete contract as {@link reconcileDomain}, but
- * over a flat `Document` row rather than a path-addressed template. Banks
- * are immutable reference data the char-gen suggester unions by key —
- * after a sync writes any change, {@link NameBank.clearCache} drops the
- * resolution cache so the edit is live.
+ * The ONE reconcile loop, for every kind: make the DB match the pack for
+ * rows stamped `packId`, adopting any pre-existing unstamped row at a
+ * pack key, refusing to clobber another pack's row, deleting stamped
+ * rows whose file vanished. Writes flow through the {@link PersistApi}
+ * chokepoint (`lint:pm`); `save` is `$set`-by-`_id` (update/adopt) or
+ * insert. Change lists are record keys.
  */
-async function reconcileNameBanks(
+async function reconcileKind<F>(
   packId: string,
-  files: NameBankFile[],
-): Promise<Pick<PackReconcileResult, 'inserted' | 'updated' | 'adopted' | 'deleted'>> {
+  strategy: KindStrategy<F>,
+  files: F[],
+): Promise<KindChanges> {
   const inserted: string[] = [];
   const updated: string[] = [];
   const adopted: string[] = [];
   const deleted: string[] = [];
 
-  const stampedRows = (await PersistApi.find(Collections.NameBanks, {
+  const stampedRows = (await PersistApi.find(strategy.collection, {
     sourcePack: packId,
-  })) as NameBankRow[];
-  const stampedByKey = new Map(stampedRows.map((r) => [r.key, r]));
-  const fileKeys = new Set(files.map((f) => f.key));
+  })) as Array<Record<string, unknown> & { _id?: string; sourcePack?: string }>;
+  const stampedByKey = new Map(
+    stampedRows.map((r) => [strategy.recordKeyOfRow(r), r]),
+  );
+  const fileKeys = new Set(files.map((f) => strategy.recordKeyOf(f)));
 
   for (const f of files) {
-    const row: NameBankRow = {
-      key: f.key,
-      given: f.given,
-      surname: f.surname,
-      sourcePack: packId,
-    };
-    if (f.style !== undefined) row.style = f.style;
+    const key = strategy.recordKeyOf(f);
+    const row = strategy.rowOf(f, packId);
 
-    const stamped = stampedByKey.get(f.key);
+    const stamped = stampedByKey.get(key);
     if (stamped) {
-      const same =
-        canonical({
-          given: stamped.given,
-          surname: stamped.surname,
-          style: stamped.style ?? undefined,
-        }) === canonical({ given: f.given, surname: f.surname, style: f.style });
-      if (!same) {
-        await PersistApi.save(Collections.NameBanks, { ...row, _id: stamped._id });
-        updated.push(f.key);
+      // (a) we already own this key — update only if it actually differs.
+      if (strategy.canonicalBody(stamped) !== strategy.canonicalBody(row)) {
+        await PersistApi.save(strategy.collection, { ...row, _id: stamped._id });
+        updated.push(key);
       }
       continue;
     }
 
-    const existing = (await PersistApi.find(Collections.NameBanks, {
-      key: f.key,
-    })) as NameBankRow[];
+    const existing = (await PersistApi.find(
+      strategy.collection,
+      strategy.dbKeyQuery(f),
+    )) as Array<Record<string, unknown> & { _id?: string; sourcePack?: string }>;
     const prior = existing[0];
     if (prior) {
+      // (b) a row exists at this key. Adopt it iff unstamped; refuse to
+      // clobber another pack's content.
       if (prior.sourcePack && prior.sourcePack !== packId) {
         throw new Error(
-          `PackApi: pack '${packId}' wants name bank '${f.key}' but it is ` +
-            `owned by pack '${prior.sourcePack}'`,
+          `PackApi: pack '${packId}' wants ${strategy.noun} '${key}' but it ` +
+            `is owned by pack '${prior.sourcePack}'`,
         );
       }
-      await PersistApi.save(Collections.NameBanks, { ...row, _id: prior._id });
-      adopted.push(f.key);
+      await PersistApi.save(strategy.collection, { ...row, _id: prior._id });
+      adopted.push(key);
     } else {
-      await PersistApi.save(Collections.NameBanks, row);
-      inserted.push(f.key);
+      // (c) nothing here — insert (no _id → insertOne).
+      await PersistApi.save(strategy.collection, row);
+      inserted.push(key);
     }
   }
 
+  // Delete our stamped rows whose file vanished.
   for (const r of stampedRows) {
-    if (!fileKeys.has(r.key) && r._id) {
-      await PersistApi.delete(Collections.NameBanks, r._id);
-      deleted.push(r.key);
-    }
-  }
-
-  return { inserted, updated, adopted, deleted };
-}
-
-/**
- * Reconcile the `descriptor-banks`-kind files into the
- * `descriptor_banks` collection. The {@link reconcileNameBanks} shape
- * verbatim — same ownership-scoped insert/update/adopt/delete contract,
- * keyed on the bank `key` (the file basename, which is the item class).
- *
- * These are immutable reference data like name banks, but on a much
- * hotter read path: appearance renders on every look at every
- * unidentified item, so the cache the write drops matters more here.
- */
-async function reconcileDescriptorBanks(
-  packId: string,
-  files: DescriptorBankFile[],
-): Promise<Pick<PackReconcileResult, 'inserted' | 'updated' | 'adopted' | 'deleted'>> {
-  const inserted: string[] = [];
-  const updated: string[] = [];
-  const adopted: string[] = [];
-  const deleted: string[] = [];
-
-  const stampedRows = (await PersistApi.find(Collections.DescriptorBanks, {
-    sourcePack: packId,
-  })) as DescriptorBankRow[];
-  const stampedByKey = new Map(stampedRows.map((r) => [r.key, r]));
-  const fileKeys = new Set(files.map((f) => f.key));
-
-  for (const f of files) {
-    const row: DescriptorBankRow = {
-      key: f.key,
-      primary: f.primary,
-      secondary: f.secondary,
-      primaryAxis: f.primaryAxis,
-      secondaryAxis: f.secondaryAxis,
-      unidentifiedLong: f.unidentifiedLong,
-      unidentifiedDetails: f.unidentifiedDetails,
-      sourcePack: packId,
-    };
-    const stamped = stampedByKey.get(f.key);
-    if (stamped) {
-      const same =
-        canonical({
-          primary: stamped.primary,
-          secondary: stamped.secondary,
-          primaryAxis: stamped.primaryAxis,
-          secondaryAxis: stamped.secondaryAxis,
-          unidentifiedLong: stamped.unidentifiedLong ?? '',
-          unidentifiedDetails: stamped.unidentifiedDetails ?? {},
-        }) ===
-        canonical({
-          primary: f.primary,
-          secondary: f.secondary,
-          primaryAxis: f.primaryAxis,
-          secondaryAxis: f.secondaryAxis,
-          unidentifiedLong: f.unidentifiedLong,
-          unidentifiedDetails: f.unidentifiedDetails,
-        });
-      if (!same) {
-        await PersistApi.save(Collections.DescriptorBanks, {
-          ...row,
-          _id: stamped._id,
-        });
-        updated.push(f.key);
-      }
-      continue;
-    }
-
-    const existing = (await PersistApi.find(Collections.DescriptorBanks, {
-      key: f.key,
-    })) as DescriptorBankRow[];
-    const prior = existing[0];
-    if (prior) {
-      if (prior.sourcePack && prior.sourcePack !== packId) {
-        throw new Error(
-          `PackApi: pack '${packId}' wants descriptor bank '${f.key}' but ` +
-            `it is owned by pack '${prior.sourcePack}'`,
-        );
-      }
-      await PersistApi.save(Collections.DescriptorBanks, {
-        ...row,
-        _id: prior._id,
-      });
-      adopted.push(f.key);
-    } else {
-      await PersistApi.save(Collections.DescriptorBanks, row);
-      inserted.push(f.key);
-    }
-  }
-
-  for (const r of stampedRows) {
-    if (!fileKeys.has(r.key) && r._id) {
-      await PersistApi.delete(Collections.DescriptorBanks, r._id);
-      deleted.push(r.key);
+    const key = strategy.recordKeyOfRow(r);
+    if (!fileKeys.has(key) && r._id) {
+      await PersistApi.delete(strategy.collection, r._id);
+      deleted.push(key);
     }
   }
 
@@ -753,12 +712,18 @@ async function reconcilePack(
   // requires-kernel: resolve all referenced classes before any write.
   await assertClassesResolve(pack.manifest.id, content.domain);
 
-  const { inserted, updated, adopted, deleted } = await reconcileDomain(
+  await validatePackTopics(pack.manifest.id, content.domain);
+  const { inserted, updated, adopted, deleted } = await reconcileKind(
     pack.manifest.id,
+    domainStrategy,
     content.domain,
   );
 
-  const nb = await reconcileNameBanks(pack.manifest.id, content.nameBanks);
+  const nb = await reconcileKind(
+    pack.manifest.id,
+    nameBankStrategy,
+    content.nameBanks,
+  );
   const nameBanks =
     nb.inserted.length + nb.updated.length + nb.adopted.length;
   // Banks are cached by key on first resolve; a live sync that changed any
@@ -770,8 +735,9 @@ async function reconcilePack(
     NameBank.clearCache();
   }
 
-  const db = await reconcileDescriptorBanks(
+  const db = await reconcileKind(
     pack.manifest.id,
+    descriptorBankStrategy,
     content.descriptorBanks,
   );
   const descriptorBanks =
