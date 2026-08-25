@@ -2956,3 +2956,41 @@ big-bang for seeders (each retirement independently revertable) · pack
 zero is the hinge because it makes the criterion falsifiable · ONE
 path-surgery window (renames are the only scary operation; twice =
 twice the fear).
+
+---
+
+# Addendum 2026-08-25 (25) — offices are heads; committees are hands
+
+**Decided 2026-08-25**, during requirements for waves 0+1, after the
+wizard-debt proposal was rejected (*"I don't want you using isWizard
+for anything but typescript access… if that means we have to mint new
+offices then that's what we'll do"*). The recurring model for every
+permission surface:
+
+> ⭐⭐⭐ **Law points at OFFICES → offices own COMMITTEES → committees
+> hold permissions → members are appointed by whoever holds the owning
+> seat.**
+
+- **Offices are heads** — one accountable holder the law can name,
+  founder-default (governance.md). **Committees are hands** — managed
+  groups doing work, holding operational permissions. The law never
+  points at a committee; permissions never accumulate on an office (a
+  permission-holding office is a bottleneck AND a prize).
+- ⭐⭐ **The bridge: a managed group's owner can be an OFFICE**,
+  resolved through `holdsOffice` on read (absence = founder default) —
+  never a stamped player id, never `isFounder`. Seat changes hands ⇒
+  every committee follows, no re-parenting.
+- **Charter new offices only when no portfolio covers the domain**
+  (ordinary law, Art VIII §3; offices are political and expensive,
+  committees are cheap).
+- **Applied to pack install (wave 1)**: the `pack-installers`
+  committee, owned by the **PM** (executive — the CB-Governor
+  reasoning); `requiresWizard` dies on the `pack` verb; the "ops
+  chief" (A22.3) was never a designed office — it is whoever holds
+  the seat that owns the committee, PM today, a chartered Minister of
+  Operations if the polity ever says so.
+- ⭐ **What the executive "looks like"**: a shallow tree — PM at the
+  root, chartered ministers beside it as domains earn single
+  accountable heads (CB Governor = the precedent), each seat owning
+  its portfolio's working committees. Not an org chart we design; the
+  accretion of exactly these acts.
