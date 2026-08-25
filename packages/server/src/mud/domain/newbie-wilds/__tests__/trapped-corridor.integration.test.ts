@@ -26,7 +26,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { join } from 'path';
+import { createRequire } from 'module';
+import { join, dirname } from 'path';
 import YAML from 'yaml';
 import Trap from '../../../obj/Trap';
 import { HazardDelivery } from '../../../lib/hazard/HazardDelivery';
@@ -78,6 +79,12 @@ import type Interactive from '../../../obj/Interactive';
 
 const PH = PersistentHydrator.templatePath;
 const SEEDS = fileURLToPath(new URL('../../../seeds', import.meta.url));
+/** The newbie-wilds content now ships as a pack; resolve its root the way
+ *  the installer does (module resolution of the workspace package). */
+const WILDS = join(
+  dirname(createRequire(import.meta.url).resolve('@saxonberg/content-newbie-wilds/package.json')),
+  'content',
+);
 
 type Doc = Record<string, unknown> & { path: string; class: string };
 
@@ -114,12 +121,12 @@ function trapsStore(): Doc[] {
     { path: PH, class: PH, data: {} },
     // The delve zone — now a sub-area of the newbie-wilds locality.
     seedDoc(
-      join(SEEDS, 'domain', 'newbie-wilds', 'delve.yaml'),
+      join(WILDS, 'domain', 'newbie-wilds', 'delve.yaml'),
       '/domain/newbie-wilds/delve',
     ),
     // The delve's rooms + fixtures (the hidden cache, the vault reward).
     ...loadSeedDir(
-      join(SEEDS, 'domain', 'newbie-wilds', 'delve'),
+      join(WILDS, 'domain', 'newbie-wilds', 'delve'),
       '/domain/newbie-wilds/delve',
     ),
     // The generic trap objects, cloned into the corridors via `populates`.

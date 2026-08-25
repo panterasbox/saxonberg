@@ -245,11 +245,17 @@ function* walkYaml(dir: string): Generator<string> {
 /** Classify a pack's `content/` tree by subdir convention. */
 function readContent(pack: ResolvedPack): PackContent {
   const domain: DomainFile[] = [];
-  // `content/obj/` — a pack ships CONTENT, and content is instanceable.
-  // Was `content/lib/` before the lib/obj taxonomy refactor; renaming this
-  // is what makes pack rows land outside the substrate namespace.
-  const domainRoot = join(pack.contentRoot, 'obj');
-  for (const file of walkYaml(domainRoot)) {
+  // The template-kind roots — ENUMERATED, never a catch-all glob: the
+  // sibling subdirs `quantity/`, `name-banks/`, `descriptor-banks/` are
+  // their own kinds and must never be swept into the template kind.
+  //  - `content/obj/` — instanceable substrate content (materials, biomes,
+  //    species). Was `content/lib/` before the lib/obj taxonomy refactor.
+  //  - `content/domain/` — a locality's content (rooms, NPCs, fixtures),
+  //    the `/domain/...` namespace (newbie-wilds is the first). The units
+  //    slate's "fractal under any root" end-state arrives with wave 4's
+  //    path surgery; two enumerated roots is this cycle's honest shape.
+  const domainRoots = [join(pack.contentRoot, 'obj'), join(pack.contentRoot, 'domain')];
+  for (const file of domainRoots.flatMap((r) => [...walkYaml(r)])) {
     const raw = readFileSync(file, 'utf-8');
     const parsed = YAML.parse(raw) as unknown;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {

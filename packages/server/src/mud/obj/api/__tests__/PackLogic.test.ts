@@ -360,7 +360,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)
 });
 
 describe('PackLogic — pack integration (real packs + real class resolution)', () => {
-  it('install() discovers the shipped packs: base-library + species-and-names + arcane-descriptors', async () => {
+  it('install() discovers the shipped packs: base-library + species-and-names + arcane-descriptors + newbie-wilds', async () => {
     // No stub on loadClassByPath — exercises the real resolver against the
     // shipped Material/Biome/Species/Clade classes. No packRoots → real
     // discovery from server deps + module resolution to the
@@ -401,7 +401,8 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
         (r) =>
           r.sourcePack === 'base-library' ||
           r.sourcePack === 'species-and-names' ||
-          r.sourcePack === 'arcane-descriptors',
+          r.sourcePack === 'arcane-descriptors' ||
+          r.sourcePack === 'newbie-wilds',
       ),
     ).toBe(true);
   });

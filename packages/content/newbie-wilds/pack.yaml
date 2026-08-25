@@ -1,0 +1,7 @@
+id: newbie-wilds
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+description: The newbie wilds — frontier onboarding zone (crossroads, delve, cast).
+# requires-kernel checks CLASSES, all kernel-resident (/obj/Business,
+# /obj/NPC, the rooms); the `banksAt: goodkin` / species references are
+# data pointers, not install-order dependencies.
+dependsOn: []

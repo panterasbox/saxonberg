@@ -11,7 +11,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { fileURLToPath } from "url";
-import { join } from "path";
+import { createRequire } from "module";
+import { join, dirname } from "path";
 import YAML from "yaml";
 import { StuffApi } from "../../../api/stuff";
 import { AppSettings } from "../../../lib/config/AppSettings";
@@ -56,6 +57,12 @@ function loadDir(dir: string, pathPrefixFrom: string): Doc[] {
 
 const SEEDS = fileURLToPath(new URL("../../../seeds", import.meta.url));
 
+// The newbie-wilds content ships as a pack now; resolve its root as the
+// installer does (module resolution of the workspace package).
+const WILDS = join(
+  dirname(createRequire(import.meta.url).resolve("@saxonberg/content-newbie-wilds/package.json")),
+  "content",
+);
 const ARRIVAL = "/domain/terminus/terminal/arrival-terminal";
 const GATE_A = "/domain/terminus/terminal/departure-terminal-a";
 const CROSSROADS = "/domain/newbie-wilds/crossroads/terminal";
@@ -85,7 +92,7 @@ describe("destination naming + crossroads (real seeds)", () => {
       { path: PH, class: PH, data: {} },
       { path: "/obj/AddressRegistry", class: "/obj/AddressRegistry", data: {} },
       ...loadDir(join(SEEDS, "domain/terminus"), "domain/terminus"),
-      ...loadDir(join(SEEDS, "domain/newbie-wilds"), "domain/newbie-wilds"),
+      ...loadDir(join(WILDS, "domain/newbie-wilds"), "domain/newbie-wilds"),
       ...loadDir(join(SEEDS, "obj/Locality"), "obj/Locality"),
       ...STUBS,
     ];
