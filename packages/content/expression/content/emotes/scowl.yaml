@@ -1,0 +1,11 @@
+verb: scowl
+emoji: 😠
+tags:
+- displeasure
+valence: -1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} scowl{{ s }}{% if target %} at {{ target }}{% endif %}.'

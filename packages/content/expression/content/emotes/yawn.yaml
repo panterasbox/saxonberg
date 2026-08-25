@@ -1,0 +1,10 @@
+verb: yawn
+emoji: 🥱
+tags:
+- fatigue
+grammar:
+  slots:
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} yawn{{ s }}{% if manner %} {{ manner }}{% endif %}.'

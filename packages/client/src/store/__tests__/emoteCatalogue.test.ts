@@ -18,7 +18,7 @@ import {
   invalidateEmoteCatalogue,
 } from "../emoteCatalogue";
 
-const NOD = { verb: "nod", emoji: "🙂", aliases: [], tags: [], slots: [] };
+const NOD = { verb: "nod", emoji: "🙂", searchTerms: [], tags: [], slots: [] };
 
 function mockFetch(impl: () => Promise<unknown>) {
   const spy = vi.fn(async () => {

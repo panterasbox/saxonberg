@@ -1,0 +1,10 @@
+verb: wink
+emoji: 😉
+tags:
+- playful
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} wink{{ s }}{% if target %} at {{ target }}{% endif %}.'

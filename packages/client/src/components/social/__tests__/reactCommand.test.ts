@@ -21,7 +21,7 @@ import {
 const wave: EmoteCatalogueEntry = {
   verb: "wave",
   emoji: "👋",
-  aliases: [],
+  searchTerms: [],
   tags: [],
   slots: [
     { name: "at", kind: "stuff", required: false },
@@ -32,7 +32,7 @@ const wave: EmoteCatalogueEntry = {
 const nod: EmoteCatalogueEntry = {
   verb: "nod",
   emoji: "🙂",
-  aliases: ["agree"],
+  searchTerms: ["agree"],
   tags: [],
   slots: [],
 };
@@ -40,7 +40,7 @@ const nod: EmoteCatalogueEntry = {
 const point: EmoteCatalogueEntry = {
   verb: "point",
   emoji: "👉",
-  aliases: [],
+  searchTerms: [],
   tags: [],
   slots: [{ name: "at", kind: "stuff", required: true }],
 };
@@ -150,7 +150,7 @@ describe("the palette is derived, never listed", () => {
     ["point", point],
     [
       "sigh",
-      { verb: "sigh", aliases: [], tags: [], slots: [] } as EmoteCatalogueEntry,
+      { verb: "sigh", searchTerms: [], tags: [], slots: [] } as EmoteCatalogueEntry,
     ],
   ]);
 

@@ -32,9 +32,9 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // as species clades / materials / biomes per the note above.
   { templatePath: '/obj/TopicCatalogue' },
   // SoulCatalogue singleton — the runtime verb→Emote cache. Warmed
-  // at postRegister from the `emotes` collection (populated by
-  // `EmoteSeeder.run` earlier in the boot sequence). Resolvable via
-  // `SoulApi.resolve` after this entry's postRegister fires.
+  // at postRegister from `documents {kind: emote}` (installed by the
+  // `expression` content pack earlier in the boot sequence). Resolvable
+  // via `SoulApi.resolve` after this entry's postRegister fires.
   { templatePath: '/obj/SoulCatalogue' },
   // RecipeCatalogue singleton — the runtime recipe index. Warmed at
   // postRegister from the `recipes` collection (populated by

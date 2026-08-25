@@ -18,7 +18,7 @@ subcommands:
     help: |
       Create a brand-new catalog emote. Give the verb name first,
       then its grammar body as YAML or JSON — the spec defines the
-      templates, aliases, tags, and emoji the emote uses.
+      templates, search terms, tags, and emoji the emote uses.
     examples:
       - cmd: "soul make shrug { template: $actor shrugs. }"
         note: Mint a new emote from a grammar spec
@@ -31,14 +31,15 @@ subcommands:
         required: true
         greedy: true
   edit:
-    description: "Edit one field of an existing emote (template / grammar / aliases / tags / emoji / echo)"
+    description: "Edit one field of an existing emote (template / grammar / searchTerms / tags / emoji / echo)"
     help: |
       Change a single field of an existing emote without redefining
       the whole thing. Name the emote, the field (`template`,
-      `grammar`, `aliases`, `tags`, `emoji`, or `echo`), and the new
-      value.
+      `grammar`, `searchTerms`, `tags`, `emoji`, or `echo`), and the
+      new value. Search terms are lookup words for `soul search`; they
+      never dispatch.
     examples:
-      - cmd: soul edit wave aliases "wave,greet"
+      - cmd: soul edit greet searchTerms "[hi, hello]"
         note: Update one field of an existing emote
     args:
       - name: verb
@@ -63,9 +64,19 @@ subcommands:
   show:
     description: "Inspect one emote record"
     help: |
-      Print the full record for one emote — its templates, aliases,
-      tags, and emoji — so you can see exactly how it's defined
+      Print the full record for one emote — its templates, search
+      terms, tags, and emoji — so you can see exactly how it's defined
       before editing.
+    args:
+      - name: verb
+        type: string
+        required: true
+  search:
+    description: "Find emotes by verb, tag, or search term (search terms never dispatch)"
+    help: |
+      Every emote a word finds — by canonical verb, by tag, or by one of
+      its search terms. `;hi` does nothing; `soul search hi` tells you
+      it is `greet`.
     args:
       - name: verb
         type: string

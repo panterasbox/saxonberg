@@ -52,7 +52,7 @@ beforeEach(() => {
   useStore.setState({
     reactableTopics: new Set(SERVER_REACTABLE),
     emoteCatalogue: new Map([
-      ["nod", { verb: "nod", emoji: "🙂", aliases: [], tags: [], slots: [] }],
+      ["nod", { verb: "nod", emoji: "🙂", searchTerms: [], tags: [], slots: [] }],
     ]),
     reactions: {},
     reactionMoved: {},

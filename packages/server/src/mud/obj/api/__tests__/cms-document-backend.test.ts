@@ -1,7 +1,7 @@
 /**
  * CMS third backend ('document') — the path-addressed document store as a
  * browsable/editable backend alongside content + source. Scripts are one
- * `kind` of stored document (kind='script', data={source}).
+ * `kind` of stored document (kind='msh', data={source}).
  *
  * Exercises the CmsApi surface for the document backend: write (create a
  * script) → read (the source as plain text, kind-driven) → stat
@@ -76,7 +76,7 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-describe("CMS document backend (scripts as kind=script)", () => {
+describe("CMS document backend (scripts as kind=msh)", () => {
   it("write creates a script and reports go-live", async () => {
     const result = await runAs(() =>
       CmsApi.write("document", SCRIPT_PATH, "ping; stir"),
@@ -84,7 +84,7 @@ describe("CMS document backend (scripts as kind=script)", () => {
     expect(result.backend).toBe("document");
     expect(result.reloaded).toBe(true);
     expect(scripts).toHaveLength(1);
-    expect(scripts[0]!.kind).toBe("script");
+    expect(scripts[0]!.kind).toBe("msh");
     expect((scripts[0]!.data as { source: string }).source).toBe("ping; stir");
   });
 

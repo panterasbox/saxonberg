@@ -1,0 +1,14 @@
+verb: sigh
+emoji: 😮‍💨
+tags:
+- displeasure
+- fatigue
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} sigh{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} at {{ target }}{% endif %}.'

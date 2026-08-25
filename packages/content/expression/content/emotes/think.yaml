@@ -1,0 +1,10 @@
+verb: think
+emoji: 🤔
+tags:
+- contemplate
+grammar:
+  slots:
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} think{{ s }} carefully{% if manner %} {{ manner }}{% endif %}.'

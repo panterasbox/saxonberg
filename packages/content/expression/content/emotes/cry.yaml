@@ -1,0 +1,13 @@
+verb: cry
+emoji: 😢
+tags:
+- sad
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} cr{{ ies }}{% if manner %} {{ manner }}{% endif %}{% if target %} on {{ target }}{% endif %}.'

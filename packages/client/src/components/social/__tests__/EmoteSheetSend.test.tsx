@@ -26,7 +26,7 @@ import { EmoteSheet } from "../EmoteSheet";
 const NOD: EmoteCatalogueEntry = {
   verb: "nod",
   emoji: "\u{1F642}",
-  aliases: [],
+  searchTerms: [],
   tags: [],
   slots: [],
 };

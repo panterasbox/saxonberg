@@ -130,6 +130,15 @@ export class DocumentApi {
   ): Promise<void> {
     return logic().save(path, kind, data);
   }
+
+  /**
+   * Delete the document at `path`. The same mutation gate as `save`
+   * (self-home, else the ownership stack); no provenance row — a
+   * deletion is not authorship. Returns whether a row existed.
+   */
+  static delete(path: string): Promise<boolean> {
+    return logic().delete(path);
+  }
 }
 
 SecurityApi.decorateApiClass(DocumentApi);

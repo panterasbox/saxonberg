@@ -16,7 +16,6 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
-import { EmoteSeeder } from './EmoteSeeder';
 import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
@@ -187,7 +186,6 @@ export class AppBootstrap {
     // chokepoint indirectly via Document.save) and before the
     // BootstrapManager runs the catalogue singletons that warm their
     // caches from these collections.
-    await EmoteSeeder.run();
     await RecipeSeeder.run();
     await BlueprintSeeder.run();
     await ChannelSeeder.run();

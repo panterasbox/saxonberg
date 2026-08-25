@@ -1,0 +1,10 @@
+verb: glare
+tags:
+- displeasure
+valence: -1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} glare{{ s }}{% if target %} at {{ target }}{% endif %}.'

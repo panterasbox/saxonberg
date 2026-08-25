@@ -9,8 +9,12 @@
  * JSON first then YAML.
  *
  * `soul edit <verb> <field> <newvalue>` — `field` is one of `template`,
- * `grammar`, `aliases`, `tags`, `emoji`, `echo`. `template` is sugar for
- * editing `grammar.template`.
+ * `grammar`, `searchTerms`, `tags`, `emoji`, `echo`. `template` is sugar
+ * for editing `grammar.template`.
+ *
+ * `soul search <term>` — every emote a term finds (verb, tag, or search
+ * term). Search terms never dispatch; this is how an author finds the
+ * verb that does.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -54,6 +58,8 @@ export default class SoulController extends CommandController<SoulModel> {
         return this.executeShow(model, context);
       case 'list':
         return this.executeList(context);
+      case 'search':
+        return this.executeSearch(model, context);
       default:
         return this.fail(context, `Unknown soul subcommand: ${sub}`, 'unknown-subcommand');
     }
@@ -129,16 +135,16 @@ export default class SoulController extends CommandController<SoulModel> {
           patch = { grammar: parsed as EmoteSpec['grammar'] };
           break;
         }
-        case 'aliases': {
+        case 'searchTerms': {
           const parsed = SourceTreeApi.parseYaml(value);
           if (!Array.isArray(parsed)) {
             return this.fail(
               context,
-              'aliases must be a list',
-              'invalid-aliases',
+              'searchTerms must be a list',
+              'invalid-search-terms',
             );
           }
-          patch = { aliases: parsed.map(String) };
+          patch = { searchTerms: parsed.map(String) };
           break;
         }
         case 'tags': {
@@ -209,7 +215,7 @@ export default class SoulController extends CommandController<SoulModel> {
     const lines = [
       '',
       `  verb:     ${e.verb}`,
-      `  aliases:  ${e.aliases.join(', ') || '(none)'}`,
+      `  search terms: ${e.searchTerms.join(', ') || '(none)'}`,
       `  emoji:    ${e.emoji ?? '(none)'}`,
       `  echo:     ${e.echo}`,
       `  tags:     ${e.tags.join(', ') || '(none)'}`,
@@ -217,6 +223,26 @@ export default class SoulController extends CommandController<SoulModel> {
       `  slots:    ${JSON.stringify(e.grammar.slots)}`,
       '',
     ];
+    this.send(context, Mml.fromMarkup(lines.join('\n')));
+  }
+
+  private async executeSearch(
+    model: SoulModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const term = (model.verb ?? '').toLowerCase().trim();
+    if (!term) return this.fail(context, 'term required', 'term-required');
+    const hits = await SoulApi.search(term);
+    if (hits.length === 0) {
+      this.send(context, Mml.fromMarkup(`\nNo emote matches '${term}'.\n`));
+      return;
+    }
+    const lines = ['', `'${term}' finds (${hits.length}):`];
+    for (const e of hits) {
+      const glyph = e.emoji ? `${e.emoji} ` : '   ';
+      lines.push(`  ${glyph}${e.verb}`);
+    }
+    lines.push('');
     this.send(context, Mml.fromMarkup(lines.join('\n')));
   }
 
@@ -281,8 +307,8 @@ function coerceEmoteSpec(
     verb,
     grammar,
   };
-  if (Array.isArray(obj.aliases)) {
-    spec.aliases = obj.aliases.map(String);
+  if (Array.isArray(obj.searchTerms)) {
+    spec.searchTerms = obj.searchTerms.map(String);
   }
   if (Array.isArray(obj.tags)) {
     spec.tags = obj.tags.map(String);

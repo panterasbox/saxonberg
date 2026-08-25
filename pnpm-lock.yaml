@@ -104,6 +104,8 @@ importers:
 
   packages/content/base-library: {}
 
+  packages/content/expression: {}
+
   packages/content/newbie-wilds: {}
 
   packages/content/saxonberg-lounge: {}
@@ -118,6 +120,9 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../content/base-library
+      '@saxonberg/content-expression':
+        specifier: workspace:*
+        version: link:../content/expression
       '@saxonberg/content-newbie-wilds':
         specifier: workspace:*
         version: link:../content/newbie-wilds

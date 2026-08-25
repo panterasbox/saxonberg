@@ -1,0 +1,10 @@
+verb: hug
+emoji: 🤗
+tags:
+- affection
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} hug{{ s }}{% if target %} {{ target }}{% else %} themself{% endif %}.'

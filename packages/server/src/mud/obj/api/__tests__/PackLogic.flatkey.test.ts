@@ -16,6 +16,8 @@ import {
   nameBankRows,
   recordOf,
   writePack,
+  writeDocumentFile,
+  rowsOfKind,
   cleanupPacks,
 } from './pack-harness';
 
@@ -80,5 +82,22 @@ describe('flat-key collisions', () => {
     await PackApi.install([a]);
     await expect(PackApi.sync('beta', b, [a, b])).rejects.toThrow(/'common'.*alpha|alpha.*'common'/);
     expect(nameBankRows().map((r) => r.sourcePack)).toEqual(['alpha']);
+  });
+});
+
+describe('flat-key over a document kind (emote)', () => {
+  it('two packs shipping the same verb: the second claimant fails pre-write, the first applies', async () => {
+    const grin = { verb: 'grin', grammar: { slots: {}, template: 'grins' } };
+    const a = writePack('a', [], { root: '/a' });
+    writeDocumentFile(a, 'emotes', 'grin', grin);
+    const b = writePack('b', [], { root: '/b' });
+    writeDocumentFile(b, 'emotes', 'grin', grin);
+    const [ra, rb] = await PackApi.install([a, b]);
+    expect(ra!.failure).toBeNull();
+    expect(ra!.inserted).toEqual(['/emotes/grin']);
+    expect(rb!.failure?.step).toBe('flat-key');
+    expect(rb!.failure?.error).toMatch(/emote document key 'grin'/);
+    expect(rowsOfKind('emote')).toHaveLength(1);
+    expect(recordOf('b')!.status).toBe('failed');
   });
 });

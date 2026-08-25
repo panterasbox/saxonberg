@@ -1,0 +1,12 @@
+verb: applaud
+emoji: 👏
+tags:
+- approval
+- formal
+valence: 1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} applaud{{ s }}{% if target %} {{ target }}{% endif %}.'

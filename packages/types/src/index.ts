@@ -1919,17 +1919,18 @@ export interface EmoteSlotSpec {
 /**
  * One canonical emote, projected for the client's picker.
  *
- * Rides {@link ConnectionEstablishedPayload.emoteCatalogue}. Aliases are
- * carried on their canonical entry rather than appearing as entries of
- * their own — the grid shows verbs you can send, and an alias is the
- * same verb by another name.
+ * Rides {@link ConnectionEstablishedPayload.emoteCatalogue}. Search terms
+ * are carried on their canonical entry rather than appearing as entries
+ * of their own — the grid shows verbs you can send; a search term is a
+ * typeahead word for finding one, never a verb.
  */
 export interface EmoteCatalogueEntry {
   verb: string;
   /** Present only for emoji-bearing emotes; glyph-less emotes render as
    *  prose and never as a chip, so the grid skips them. */
   emoji?: string;
-  aliases: string[];
+  /** Typeahead corpus — lookup words that never dispatch. */
+  searchTerms: string[];
   tags: string[];
   /** Declaration order — the order the picker offers the controls in. */
   slots: EmoteSlotSpec[];

@@ -35,6 +35,8 @@ import { QuantityApi } from '../../api/quantity';
 import { TemplateApi } from '../../api/template';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { DiagnosticApi } from '../../api/diagnostics';
+import { SoulApi } from '../../api/soul';
+import { TemplatePaths } from '../../lib/paths';
 import type {
   PackManifest,
   PackReconcileResult,
@@ -1446,6 +1448,14 @@ function emptyResult(packId: string): PackReconcileResult {
 async function invalidateDocumentKind(kind: string): Promise<void> {
   switch (kind) {
     case 'msh':
+      return;
+    case 'emote':
+      // Only a RESIDENT catalogue is dropped: at boot the install runs
+      // before BootstrapManager clones it, and minting it here would
+      // race the manifest clone. A resident one re-warms lazily.
+      if (StuffApi.findByTemplatePath(TemplatePaths.soulCatalogue)) {
+        await SoulApi.invalidateCache();
+      }
       return;
     default:
       return;

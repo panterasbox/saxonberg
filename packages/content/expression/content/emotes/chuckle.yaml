@@ -1,0 +1,9 @@
+verb: chuckle
+tags:
+- joy
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} chuckle{{ s }}{% if target %} at {{ target }}{% endif %}.'

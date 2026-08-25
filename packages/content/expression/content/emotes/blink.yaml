@@ -1,0 +1,9 @@
+verb: blink
+tags:
+- surprise
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} blink{{ s }}{% if target %} at {{ target }}{% endif %}.'

@@ -1,0 +1,11 @@
+verb: clap
+emoji: 👏
+tags:
+- approval
+valence: 1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} clap{{ s }}{% if target %} for {{ target }}{% endif %}.'

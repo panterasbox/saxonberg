@@ -1,0 +1,10 @@
+verb: smirk
+tags:
+- playful
+- smug
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} smirk{{ s }}{% if target %} at {{ target }}{% endif %}.'

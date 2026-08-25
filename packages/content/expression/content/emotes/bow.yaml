@@ -1,0 +1,14 @@
+verb: bow
+emoji: 🙇
+tags:
+- greeting
+- formal
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} bow{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} before {{ target }}{% endif %}.'

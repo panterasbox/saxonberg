@@ -79,6 +79,12 @@ export class SoulLogic extends ApiLogic {
     return (await requireCatalogue()).all();
   }
 
+  /** See {@link SoulApi.search}. */
+  @CallSecurity(SoulApiCallers)
+  public async search(term: string): Promise<Emote[]> {
+    return (await requireCatalogue()).search(term);
+  }
+
   /**
    * See {@link SoulApi.snapshot}.
    *

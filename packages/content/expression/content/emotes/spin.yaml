@@ -1,0 +1,9 @@
+verb: spin
+tags:
+- playful
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} spin{{ s }}{% if target %} around {{ target }}{% endif %}.'

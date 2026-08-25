@@ -1,0 +1,10 @@
+verb: smile
+emoji: 😊
+tags:
+- joy
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} smile{{ s }}{% if target %} at {{ target }}{% endif %}.'

@@ -269,3 +269,124 @@ describe('the domain walk skips cmd/ under content/domain/', () => {
     expect(r!.inserted).toEqual([]);
   });
 });
+
+/* ───────────── the flat-key exemplar: emote ───────────── */
+
+const GRIN = { verb: 'grin', grammar: { slots: {}, template: '{{ actor }} grins.' }, tags: [] as string[] };
+const grinRow = () => rowsOfKind('emote').find((r) => (r.data as { verb: string }).verb === 'grin');
+
+async function installEmote(): Promise<string> {
+  const packRoot = writePack('p', [], { root: '/expression' });
+  writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, valence: 0 });
+  await PackApi.install([packRoot]);
+  return packRoot;
+}
+
+describe('the emote document kind (flat-key) — matrix', () => {
+  it('installs at /expression/emotes/grin with data.verb from the file', async () => {
+    await installEmote();
+    expect(grinRow()).toMatchObject({
+      path: '/expression/emotes/grin',
+      owner: '/expression',
+      kind: 'emote',
+      sourcePack: 'p',
+      data: { verb: 'grin', valence: 0 },
+    });
+    expect(recordOf('p')!.rows['/emotes/grin']!.kind).toBe('document:emote');
+  });
+
+  it('a file omitting the natural key gets it from the basename', async () => {
+    const packRoot = writePack('p', [], { root: '/expression' });
+    writeDocumentFile(packRoot, 'emotes', 'grin', { grammar: GRIN.grammar });
+    await PackApi.install([packRoot]);
+    expect((grinRow()!.data as { verb: string }).verb).toBe('grin');
+  });
+
+  it('a file whose verb ≠ basename fails the pack at read', async () => {
+    const packRoot = writePack('p', [], { root: '/expression' });
+    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, verb: 'smirk' });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure?.step).toBe('read');
+    expect(r!.failure?.error).toMatch(/basename IS the key/);
+    expect(documentRows()).toHaveLength(0);
+  });
+
+  it('file changed / DB same → update; file same / DB changed → kept', async () => {
+    const packRoot = await installEmote();
+    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, valence: 1 });
+    let r = await PackApi.sync('p', packRoot);
+    expect(r.updated).toEqual(['/emotes/grin']);
+    expect((grinRow()!.data as { valence: number }).valence).toBe(1);
+
+    grinRow()!.data = { ...GRIN, valence: 7 };
+    r = await PackApi.sync('p', packRoot);
+    expect(r.kept).toEqual(['/emotes/grin']);
+    expect((grinRow()!.data as { valence: number }).valence).toBe(7);
+  });
+
+  it('both changed, file ≠ DB → conflict; file == DB → converged', async () => {
+    const packRoot = await installEmote();
+    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, valence: 1 });
+    grinRow()!.data = { ...GRIN, valence: 2 };
+    let r = await PackApi.sync('p', packRoot);
+    expect(r.conflicts).toEqual(['/emotes/grin']);
+    expect(recordOf('p')!.conflicts[0]!.kind).toBe('document:emote');
+    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, valence: 2 });
+    r = await PackApi.sync('p', packRoot);
+    expect(r.conflicts).toEqual([]);
+    expect(r.updated).toEqual([]);
+  });
+
+  it('vanished file, DB clean → deleted', async () => {
+    const packRoot = await installEmote();
+    rmSync(join(packRoot, 'content', 'emotes', 'grin.yaml'));
+    const r = await PackApi.sync('p', packRoot);
+    expect(r.deleted).toEqual(['/emotes/grin']);
+    expect(rowsOfKind('emote')).toHaveLength(0);
+  });
+});
+
+describe('adoption by natural key (the collapse bridge)', () => {
+  it('adopts an unstamped migrated row at a provisional path in place — same _id, re-pathed, owned, stamped', async () => {
+    store.rows.push({
+      _id: 'legacy-grin',
+      __col: 'documents',
+      path: '/emotes/grin',
+      owner: '',
+      kind: 'emote',
+      data: { ...GRIN, valence: 0 },
+    });
+    const packRoot = writePack('p', [], { root: '/expression' });
+    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, valence: 0 });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.adopted).toEqual(['/emotes/grin']);
+    expect(r!.inserted).toEqual([]);
+    expect(rowsOfKind('emote')).toHaveLength(1);
+    expect(grinRow()).toMatchObject({
+      _id: 'legacy-grin',
+      path: '/expression/emotes/grin',
+      owner: '/expression',
+      sourcePack: 'p',
+    });
+    // Second boot: nothing.
+    const [again] = await PackApi.install([packRoot]);
+    expect([...again!.adopted, ...again!.updated, ...again!.inserted]).toEqual([]);
+  });
+
+  it('refuses to adopt a row another pack stamped', async () => {
+    store.rows.push({
+      _id: 'theirs',
+      __col: 'documents',
+      path: '/q/emotes/grin',
+      owner: '/q',
+      kind: 'emote',
+      data: { ...GRIN },
+      sourcePack: 'q',
+    });
+    const packRoot = writePack('p', [], { root: '/expression' });
+    writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/owned by pack 'q'/);
+  });
+});

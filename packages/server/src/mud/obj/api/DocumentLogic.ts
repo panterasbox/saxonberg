@@ -176,6 +176,16 @@ async function saveImpl(
   await ProvenanceApi.recordAuthoring({ path });
 }
 
+async function deleteImpl(path: string): Promise<boolean> {
+  const actor = actingAuthor();
+  const denial = await gateMutation(actor, path);
+  if (denial !== null) throw new Error(denial);
+  const doc = await StoredDocument.findByPath(path);
+  if (!doc) return false;
+  await doc.delete();
+  return true;
+}
+
 /**
  * DocumentLogic — the hot-reloadable logic singleton behind
  * {@link DocumentApi}.
@@ -231,5 +241,11 @@ export class DocumentLogic extends ApiLogic {
     data: Record<string, unknown>,
   ): Promise<void> {
     return saveImpl(path, kind, data);
+  }
+
+  /** See {@link DocumentApi.delete}. */
+  @CallSecurity(DocumentApiCallers)
+  public async delete(path: string): Promise<boolean> {
+    return deleteImpl(path);
   }
 }

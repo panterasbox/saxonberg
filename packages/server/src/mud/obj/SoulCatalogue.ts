@@ -3,14 +3,20 @@
  *
  * Lives at `/obj/SoulCatalogue`, sibling to `/obj/TopicCatalogue` and
  * `/obj/EventRegistry` per the singleton-in-`obj/` convention. The
- * source of truth lives in the `emotes` MongoDB collection (an `Emote`
- * Document per record). The catalogue warms its verb→Emote map at
- * `postRegister` (after `EmoteSeeder.run` has populated the collection
- * from the seed YAML) and serves dispatch-path lookups.
+ * source of truth is the `documents` collection, `kind: 'emote'` — rows
+ * the `expression` content pack installs (and an author mints at
+ * `/emotes/<verb>`). The catalogue warms its verb→Emote map at
+ * `postRegister` (after `PackApi.install` has reconciled the pack) and
+ * serves dispatch-path lookups; the installer's go-live drops the cache
+ * after a live `pack sync` touches the kind.
  *
- * `mint` / `edit` / `delete` write-through to Mongo AND the cache so
- * author edits land immediately (no restart needed within the
- * authoring process — see the cross-process HMR caveat in the
+ * The cache maps **canonical verbs only** — an emote's `searchTerms`
+ * are indexed in a second map for `search`, never for `resolve`: `;hi`
+ * does not dispatch, `soul search hi` finds `greet`.
+ *
+ * `mint` / `edit` / `delete` write-through to the document store AND
+ * the cache so author edits land immediately (no restart needed within
+ * the authoring process — see the cross-process HMR caveat in the
  * requirements doc).
  *
  * Not a persisted record itself. Seed YAML is `{ class:
@@ -23,6 +29,7 @@ import { SecurityApi } from '../api/security';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import { Emote } from '../lib/social/Emote';
+import { DocumentApi } from '../api/document';
 import type { EmoteCatalogueEntry } from '@saxonberg/types';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
@@ -43,9 +50,22 @@ const SoulApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.SelfOnly
 );
 
+/**
+ * Where an author-minted emote lands: the platform's own `/emotes/`
+ * branch (the same root the collection collapse used). Untitled ⇒
+ * `ownerOf` yields the state, so `soul make` stays a core-member act
+ * exactly as its `requiresCoreAccess` validator says; a pack that later
+ * ships that verb adopts the row by natural key.
+ */
+export const EMOTE_MINT_BRANCH = '/emotes';
+
+/** The document kind an emote is stored under. */
+const EMOTE_KIND = 'emote';
+
 export interface EmoteSpec {
   verb: string;
-  aliases?: string[];
+  /** Catalogue lookup words only — never dispatched. */
+  searchTerms?: string[];
   grammar: Emote['grammar'];
   echo?: Emote['echo'];
   emoji?: string;
@@ -64,14 +84,16 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     return { ok: false, reason: 'system singleton; never culled' };
   }
   /**
-   * Verb → Emote lookup table. `null` means "not warmed yet". Includes
-   * alias entries — each alias maps to the same Emote record as its
-   * canonical verb.
+   * Canonical verb → Emote lookup table. `null` means "not warmed yet".
+   * Canonical verbs ONLY — nothing else dispatches.
    *
    * TypeScript `private` per the domain-code default — the proxy
    * receiver can't reach `#`-private slots.
    */
   private cache: Map<string, Emote> | null = null;
+
+  /** Search term (verb, tag, or `searchTerms` entry) → canonical verbs. */
+  private bySearchTerm: Map<string, Set<string>> = new Map();
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.warmCache();
@@ -83,13 +105,21 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    */
   @CallSecurity(SoulApiCallers)
   public async warmCache(): Promise<void> {
-    const records = await Emote.find({});
+    const docs = await DocumentApi.listOfKind(EMOTE_KIND);
     const map = new Map<string, Emote>();
-    for (const e of records) {
+    for (const doc of docs) {
+      let e: Emote;
+      try {
+        e = Emote.fromDocument(doc);
+      } catch (err) {
+        // A malformed row never takes the catalogue down: skip it loudly.
+        console.warn(`SoulCatalogue: skipping ${doc.getPath()}: ${(err as Error).message}`);
+        continue;
+      }
       map.set(e.verb, e);
-      for (const a of e.aliases) map.set(a, e);
     }
     this.cache = map;
+    this.bySearchTerm = buildSearchIndex(map);
   }
 
   /**
@@ -102,14 +132,28 @@ export default class SoulCatalogue extends SoulCatalogueBase {
   }
 
   /**
-   * Resolve a verb (canonical or alias) to its Emote record. Returns
-   * `null` when nothing matches. Auto-warms the cache on first access
-   * — safe to call from the dispatcher hot path.
+   * Resolve a CANONICAL verb to its Emote record. Returns `null` when
+   * nothing matches — a search term is not a verb (`;grin` where `grin`
+   * is only a search term does nothing). Auto-warms the cache on first
+   * access — safe to call from the dispatcher hot path.
    */
   @CallSecurity(SoulApiCallers)
   public async resolve(verb: string): Promise<Emote | null> {
     const map = await this.ensureCache();
     return map.get(verb.toLowerCase()) ?? null;
+  }
+
+  /**
+   * Every emote a term finds — by canonical verb, tag, or one of its
+   * `searchTerms`. The author-face lookup (`soul search`); nothing here
+   * dispatches.
+   */
+  @CallSecurity(SoulApiCallers)
+  public async search(term: string): Promise<Emote[]> {
+    const map = await this.ensureCache();
+    const verbs = this.bySearchTerm.get(term.toLowerCase());
+    if (!verbs) return [];
+    return [...verbs].sort().map((v) => map.get(v)!).filter(Boolean);
   }
 
   @CallSecurity(SoulApiCallers)
@@ -123,9 +167,8 @@ export default class SoulCatalogue extends SoulCatalogueBase {
   /**
    * The catalogue projected for the client's emote picker.
    *
-   * Canonical verbs only — the cache indexes each alias to the same
-   * `Emote`, so iterating it directly would emit one grid cell per
-   * alias. Aliases ride their canonical entry instead.
+   * Canonical verbs only; an emote's `searchTerms` ride its entry (the
+   * picker's typeahead corpus) and never become cells of their own.
    *
    * Slot order is `Object.entries` order over `grammar.slots`, which is
    * the order the author declared them in and the order
@@ -160,7 +203,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
        * holds. A truthiness check covers all three.
        */
       ...(e.emoji ? { emoji: e.emoji } : {}),
-      aliases: [...e.aliases],
+      searchTerms: [...e.searchTerms],
       tags: [...e.tags],
       slots: Object.entries(e.grammar.slots).map(([name, spec]) => ({
         name,
@@ -188,14 +231,16 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     }
     const record = new Emote();
     record.verb = spec.verb.toLowerCase();
-    record.aliases = (spec.aliases ?? []).map((a) => a.toLowerCase());
+    record.searchTerms = (spec.searchTerms ?? []).map((a) => a.toLowerCase());
     record.grammar = spec.grammar;
     record.echo = spec.echo ?? 'default';
     if (spec.emoji !== undefined) record.emoji = spec.emoji;
     record.tags = spec.tags ?? [];
     record.valence = spec.valence ?? 0;
-    await record.save();
-    this.indexEmoteIntoCache(record, map);
+    record.path = `${EMOTE_MINT_BRANCH}/${record.verb}`;
+    await DocumentApi.save(record.path, EMOTE_KIND, record.toData());
+    map.set(record.verb, record);
+    this.bySearchTerm = buildSearchIndex(map);
     return record;
   }
 
@@ -222,12 +267,8 @@ export default class SoulCatalogue extends SoulCatalogueBase {
         `Cannot rename the verb; delete and re-mint to change the canonical name.`,
       );
     }
-    // Remove existing alias entries before re-indexing.
-    map.delete(existing.verb);
-    for (const a of existing.aliases) map.delete(a);
-
-    if (patch.aliases !== undefined) {
-      existing.aliases = patch.aliases.map((a) => a.toLowerCase());
+    if (patch.searchTerms !== undefined) {
+      existing.searchTerms = patch.searchTerms.map((a) => a.toLowerCase());
     }
     if (patch.grammar !== undefined) existing.grammar = patch.grammar;
     if (patch.echo !== undefined) existing.echo = patch.echo;
@@ -235,8 +276,9 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     if (patch.tags !== undefined) existing.tags = patch.tags;
     if (patch.valence !== undefined) existing.valence = patch.valence;
 
-    await existing.save();
-    this.indexEmoteIntoCache(existing, map);
+    await DocumentApi.save(existing.path, EMOTE_KIND, existing.toData());
+    map.set(existing.verb, existing);
+    this.bySearchTerm = buildSearchIndex(map);
     return existing;
   }
 
@@ -249,8 +291,8 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const existing = map.get(verb.toLowerCase());
     if (!existing) return false;
     map.delete(existing.verb);
-    for (const a of existing.aliases) map.delete(a);
-    await existing.delete();
+    this.bySearchTerm = buildSearchIndex(map);
+    await DocumentApi.delete(existing.path);
     return true;
   }
 
@@ -273,9 +315,21 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     await this.warmCache();
     return this.cache!;
   }
+}
 
-  private indexEmoteIntoCache(record: Emote, map: Map<string, Emote>): void {
-    map.set(record.verb, record);
-    for (const a of record.aliases) map.set(a, record);
+/** term → canonical verbs, over each emote's verb, tags and searchTerms. */
+function buildSearchIndex(map: Map<string, Emote>): Map<string, Set<string>> {
+  const index = new Map<string, Set<string>>();
+  const add = (term: string, verb: string): void => {
+    const t = term.toLowerCase();
+    let set = index.get(t);
+    if (!set) index.set(t, (set = new Set()));
+    set.add(verb);
+  };
+  for (const e of map.values()) {
+    add(e.verb, e.verb);
+    for (const t of e.tags) add(t, e.verb);
+    for (const t of e.searchTerms) add(t, e.verb);
   }
+  return index;
 }
