@@ -105,7 +105,7 @@ field** and index spec:
 
 | kind | natural key | unique index | notes |
 |---|---|---|---|
-| `script` | `path` | — (path-keyed) | source text verbatim in `data.source` |
+| `msh` | `path` | — (path-keyed) | an msh script: source text verbatim in `data.source`. **Renamed from `script`** — the boot migration rewrites stored `kind: 'script'` rows to `msh`; `ScriptLogic`/`CmsLogic` read the kind from `DocumentKinds`, never a literal |
 | `release` | `path` | — | unchanged; press-owned (document-store.md) |
 | `emote` | `data.verb` | `{kind, data.verb}` | flat-key kind |
 | `recipe` | `data.recipeId` | `{kind, data.recipeId}` | flat-key kind |
@@ -141,7 +141,7 @@ the kind has them (D8).
 **Pack layout** (file-per-artifact, A16.2), all under `content/`:
 `emotes/<verb>.yaml` · `recipes/<recipeId>.yaml` ·
 `name-banks/<key>.yaml` · `blueprints/<blueprintId>.yaml` ·
-`scripts/<name>.script` · `cmd/**/<verb>.yaml` · `subjects/<name>.yaml`
+`msh/<name>.msh` · `cmd/**/<verb>.yaml` · `subjects/<name>.yaml`
 · `settings/<file>.yaml` · `wiki/<namespace>/<slug>.md`. The template
 roots stay `obj/` and `domain/`; `quantity/` and `descriptor-banks/`
 stay their own kinds.
@@ -149,7 +149,7 @@ stay their own kinds.
 **Document path.** A document row's `path` is the pack's declared
 `root:` (new manifest field, `pack.yaml`) joined to the record key:
 `root: /expression` + `/emotes/grin` → `/expression/emotes/grin`;
-`root: /domain/lounge` + `/scripts/daiquiri` → `/domain/lounge/scripts/daiquiri`
+`root: /domain/lounge` + `/msh/daiquiri` → `/domain/lounge/msh/daiquiri`
 (unchanged from today's ScriptSeeder path — adopt-in-place covers it).
 `root` defaults to `/<packId>`. Command views are the one exception —
 their path is the **view key** (D8). The root is where wave 3's title
@@ -349,7 +349,7 @@ dimension is **out** (nothing narrows yet).
 | **corpo-aevex** · **corpo-goodkin** · **corpo-hollis** · **corpo-veshko** · **corpo-vionne** | `corpo-<key>` / `/corpo/<key>` | that corpo's `Corpo` data Idea + its `Brand` rows (`/obj/corpo/**` for that key) — one pack per corpo | five `git mv`s; the `mud/bootstrap.ts` boot entries and the `groups.yaml` board rows stay platform-seeded (manifest + `requires:` are wave 3) |
 | **wiki-starter** | `wiki-starter` / `/wiki` | the 7 pages as markdown | new files from `config/wiki-pages.yaml` |
 | **generic-objects** | `generic-objects` / `/generic-objects` | the 11 recipes only | new files from `config/recipes.yaml`; its templates are wave 3 |
-| **saxonberg-lounge** | `saxonberg-lounge` / `/domain/lounge` | the 3 `.script` files only | `git mv mud/domain/lounge/scripts/` ; the rest of the lounge is wave 4 |
+| **saxonberg-lounge** | `saxonberg-lounge` / `/domain/lounge` | the 3 `.msh` files only | `git mv mud/domain/lounge/scripts/` ; the rest of the lounge is wave 4 |
 
 `dependsOn` per the readers: `platform` first (settings/subjects are
 read by everything); `saxonberg-lounge` names the corpos it actually
@@ -399,7 +399,7 @@ run before any reader), ordered after the group-owner migration.
   methods, `PackApi` grows nothing but report fields. No new module
   categories; `DocumentKinds.ts` is a named-vocabulary module.
 - **Mudlib imports nothing** (`lint:imports`); the `.md` wiki files and
-  `.script` files are read by `PackLogic` (the importing tier) — no
+  `.msh` files are read by `PackLogic` (the importing tier) — no
   reader in `lib/`.
 - **The closed kind vocabulary is the allowlist.** There is no
   contribution kind for `bank_ledger`, `users`, `groups`, `parcels`,
@@ -491,7 +491,7 @@ line is what a build agent reports if it stops after it.
   (no migration line, all packs all-zero) — tested at the migration,
   record, and per-kind layers.
 - **Per-kind three-way coverage**: the matrix test from !198 runs over
-  the `document` strategy for at least `emote` (flat-key) and `script`
+  the `document` strategy for at least `emote` (flat-key) and `msh`
   (path-keyed); `settings` proves merge-missing (a tuned key survives a
   changed default, reported `kept`, no conflict); `subject` proves
   archive-never-reap; `wiki` proves CAS (a changed file over an

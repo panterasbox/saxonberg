@@ -11,7 +11,7 @@ Conventions that bind every step (from CLAUDE.md + the requirements' Constraints
 
 - All installer logic is module-private functions in `packages/server/src/mud/obj/api/PackLogic.ts`; public `PackLogic` methods carry `@CallSecurity(SecurityPolicies.FromModule('/api/pack#PackApi'))`; `PackApi` (`mud/api/pack.ts`) stays a thin decorated shell exporting the class + call-shape types. **No new Api classes** — `DocumentApi`, `SoulApi`, `CommandApi`, `AccessApi` grow methods; `PackApi` grows report fields only. No new module categories; `lib/document/DocumentKinds.ts` is a named-vocabulary module; `scripts/check-test-content.ts` is a script.
 - Every DB write in `PackLogic` rides `PersistApi` (`lint:pm`). The catalogues and `WikiRegistry` write through their `Document.save()` (the same chokepoint one layer down) — that is the seeders' shape moved into the readers, not a new write path.
-- The mudlib imports nothing outside `src/mud/` except the Api tier (`lint:imports`): `.md` and `.script` files are read by `PackLogic` (obj/api = the importing tier). No reader in `lib/`.
+- The mudlib imports nothing outside `src/mud/` except the Api tier (`lint:imports`): `.md` and `.msh` files are read by `PackLogic` (obj/api = the importing tier). No reader in `lib/`.
 - Every test touching the wired runtime imports `test-bootstrap` first (`lint:test-bootstrap`). Installer tests use ugly fixture packs through `mud/obj/api/__tests__/pack-harness.ts`, never the real packs.
 - Stage by name (`git add <path>`), never `add -A`. Every tree move is `git mv`. **ONE MR** for the whole build.
 - Commit shape: `feat(pack): …` / `refactor(persistence): …` / `feat(document): …` / `feat(access): …` / `chore(lint): …` / `docs(pack): …`. A seeder retirement is **one commit** that deletes the seeder, its `AppBootstrap.run` call, its `config/*.yaml` (or seed dir), and adds the pack files — revertable as a unit.
@@ -48,12 +48,12 @@ export interface DocumentKindSpec {
   /** The pack subdir the kind's files live under (`emotes`). */
   contentDir: string;
   /** File extension the reader accepts. */
-  ext: 'yaml' | 'script';
+  ext: 'yaml' | 'msh';
   onVanish: DocumentVanishPolicy;
 }
 
 export const DOCUMENT_KINDS = {
-  script:         { kind: 'script',       naturalKey: null,          contentDir: 'scripts',    ext: 'script', onVanish: 'delete' },
+  script:         { kind: 'msh',       naturalKey: null,          contentDir: 'scripts',    ext: 'msh', onVanish: 'delete' },
   release:        { kind: 'release',      naturalKey: null,          contentDir: 'releases',   ext: 'yaml',   onVanish: 'delete' }, // press-owned; no pack ships one this wave
   emote:          { kind: 'emote',        naturalKey: 'verb',        contentDir: 'emotes',     ext: 'yaml',   onVanish: 'delete' },
   recipe:         { kind: 'recipe',       naturalKey: 'recipeId',    contentDir: 'recipes',    ext: 'yaml',   onVanish: 'delete' },
@@ -117,7 +117,7 @@ Also here: the `ResetPolicy.ts` `Documents` row change described above (import `
 
 ```ts
 interface DocumentFile {
-  /** Record key: `/<contentDir>/<rel-no-ext>` (`/emotes/grin`, `/scripts/daiquiri`). */
+  /** Record key: `/<contentDir>/<rel-no-ext>` (`/emotes/grin`, `/msh/daiquiri`). */
   key: string;
   /** The row path: `<root>` + key, except command-view (step 9). */
   path: string;
@@ -141,17 +141,32 @@ function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<Do
     rowOf: (f, packId) => ({ path: f.path, owner: root, kind: spec.kind, data: f.data, sourcePack: packId }),
     canonicalBody: (r) => canonical({ data: r.data ?? {} }),   // owner/path/kind/sourcePack are bookkeeping
     flatKeyOf: nk ? (f) => String(f.data[nk]) : undefined,
-    exportBody: (r) => (spec.ext === 'script' ? r.data : (r.data as Record<string, unknown>)),
+    exportBody: (r) => (spec.ext === 'msh' ? r.data : (r.data as Record<string, unknown>)),
   };
 }
 ```
 
   ⚠ `computeKindPlan` finds stamped rows with `find(collection, { sourcePack })` — for `documents` that returns EVERY kind the pack ships; add `...(strategy.stampedQuery?.() ?? {})` to the query and have the factory set `stampedQuery: () => ({ kind: spec.kind })`. Without this a pack shipping two document kinds sees each kind's rows as the other's "vanished" files.
 
-- `readContent` gains one enumerated per-kind reader (never a glob): for each `spec` in `DOCUMENT_KINDS` with a `contentDir`, walk `content/<contentDir>/` for `*.<ext>`; `.yaml` parses to an object that becomes `data` (a flat-key kind whose file omits the natural key gets it from the basename; a file whose key ≠ basename fails at `read`); `.script` becomes `data: { source }` verbatim (the ScriptSeeder shape). `PackContent` gains `documents: Map<DeclaredDocumentKind, DocumentFile[]>`. `kindsOf(content, root)` appends one `documentStrategy(spec, root)` per kind present. `strategyForKey` learns the document keys by prefix from the same table. `flatKeyFailures` iterates document kinds too (they have `flatKeyOf`). ⚠ `name-banks` stays the OLD `nameBankStrategy` until step 3 — `DOCUMENT_KINDS['name-bank']` is declared now, but its reader is gated off (`if (spec.kind === 'name-bank') continue;` with a `// step 3` comment) so the two strategies never both claim `content/name-banks/`. ⚠ `cmd/` is gated off the same way until step 9, AND the domain-template walk under `content/domain/` must already skip any path segment named `cmd` (a view has no `class:` and would fail the walk) — do it now so step 9 is additive.
+- `readContent` gains one enumerated per-kind reader (never a glob): for each `spec` in `DOCUMENT_KINDS` with a `contentDir`, walk `content/<contentDir>/` for `*.<ext>`; `.yaml` parses to an object that becomes `data` (a flat-key kind whose file omits the natural key gets it from the basename; a file whose key ≠ basename fails at `read`); `.msh` becomes `data: { source }` verbatim (the ScriptSeeder shape). `PackContent` gains `documents: Map<DeclaredDocumentKind, DocumentFile[]>`. `kindsOf(content, root)` appends one `documentStrategy(spec, root)` per kind present. `strategyForKey` learns the document keys by prefix from the same table. `flatKeyFailures` iterates document kinds too (they have `flatKeyOf`). ⚠ `name-banks` stays the OLD `nameBankStrategy` until step 3 — `DOCUMENT_KINDS['name-bank']` is declared now, but its reader is gated off (`if (spec.kind === 'name-bank') continue;` with a `// step 3` comment) so the two strategies never both claim `content/name-banks/`. ⚠ `cmd/` is gated off the same way until step 9, AND the domain-template walk under `content/domain/` must already skip any path segment named `cmd` (a view has no `class:` and would fail the walk) — do it now so step 9 is additive.
 - **`pack.yaml` `root:`** (D2): `PackManifest.root: string` (optional in the file, defaults to `/<id>`; must start with `/`); `readManifest` validates it. Document paths = `root + key`. Owner = `root`.
-- Go-live (D3): `reconcilePack`'s side-effect tail calls `invalidateDocumentKind(kind)` for each document kind with any change — a module-private switch that this step only knows `script` for (no catalogue; nothing to drop — `ScriptLogic` reads by path per call). Later steps add cases.
-- `diff`/`resolve`: no change needed beyond `strategyForKey`; `--export` for a `.script` writes `data.source` as the file text (the `exportBody` special case above — `resolve` checks `spec.ext`).
+- Go-live (D3): `reconcilePack`'s side-effect tail calls `invalidateDocumentKind(kind)` for each document kind with any change — a module-private switch that this step only knows `msh` for (no catalogue; nothing to drop — `ScriptLogic` reads by path per call). Later steps add cases.
+- `diff`/`resolve`: no change needed beyond `strategyForKey`; `--export` for a `.msh` writes `data.source` as the file text (the `exportBody` special case above — `resolve` checks `spec.ext`).
+
+### 1.3b The `script` → `msh` rename (user, at plan review)
+
+The kind is **`msh`** (the language's name), the pack dir `msh/`, the
+file extension `.msh`. Replace the `'script'` kind literal in
+`obj/api/CmsLogic.ts` (L57, L502-503), `obj/api/ScriptLogic.ts` (L327,
+L395 + the `saveScript`/resolve paths), `lib/document/StoredDocument.ts`
+(doc comments) with `DocumentKinds.msh`. The collapse migration (2.1)
+gains a first, kind-only entry: `documents` rows with `kind: 'script'`
+→ `kind: 'msh'`, and path prefix `/domain/lounge/scripts/` →
+`/domain/lounge/msh/` (three rows); `grep -rn "'script'"` over
+`src/mud` must return nothing kind-shaped afterwards. Any lounge content
+that points at `/domain/lounge/scripts/<name>` (grep `scripts/` under
+`mud/seeds/domain/lounge` and `mud/domain/lounge`) is repointed in the
+same commit.
 
 ### 1.4 The `saxonberg-lounge` pack (scripts only) — **ScriptSeeder dies**
 
@@ -164,15 +179,15 @@ function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<Do
    dependsOn: [platform, corpo-goodkin, corpo-vionne]   # written now; the ids exist by step 6 (unknown deps are ignored in v1 — see orderByDependsOn)
    ```
    README noting what is deferred.
-2. `git mv packages/server/src/mud/domain/lounge/scripts/{daiquiri,last-call,martini}.script packages/content/saxonberg-lounge/content/scripts/`. Rows land at `/domain/lounge/scripts/<name>`, `owner: /domain/lounge` — byte-identical to today's seeder, so an existing dev DB **adopts** the three rows in place.
+2. `git mv packages/server/src/mud/domain/lounge/scripts/{daiquiri,last-call,martini}.script packages/content/saxonberg-lounge/content/scripts/`. Rows land at `/domain/lounge/msh/<name>`, `owner: /domain/lounge` — byte-identical to today's seeder, so an existing dev DB **adopts** the three rows in place.
 3. `packages/server/package.json` deps: `"@saxonberg/content-saxonberg-lounge": "workspace:*"`; `pnpm install`.
 4. Delete `backend/ScriptSeeder.ts`; drop its `run()` line in `AppBootstrap.run`; update the pack comment block.
 5. Repoint `mud/lib/script/__tests__/demo-content.test.ts`: its `SCRIPTS_DIR` → the pack's `content/scripts/`; its "seeds idempotently" case becomes an installer-harness case (write the three sources into a fixture pack with `root: /domain/lounge`, install twice, assert one row each + all-zero second run). `ScriptLogic.resolveLimits`' `/domain/` tier is unchanged.
 
 ### Tests (step 1)
 
-- `backend/__tests__/PersistenceManager.documentKinds.test.ts` — with a faked `db` (`collection().createIndex` spy): one unique partial index per flat-key kind, none for `script`/`release`/`command-view`; `ResetPolicy` `Documents.keep` lists every declared kind + `release`.
-- `mud/obj/api/__tests__/PackLogic.document.test.ts` (harness, extended with dotted-key `find` + `documentRows()`): `writeDocumentFile(root, kind, name, data)` / `writeScriptFile(root, name, source)` fixture writers added to the harness; a fixture pack with `root: /x` and `scripts/a.script` → row `{path:'/x/scripts/a', owner:'/x', kind:'script', data:{source}}` stamped; **the full !198 matrix over the document strategy for `script` (path-keyed)** — the five cells, vanish×(clean/edited), pin, converge; second run all-zero; `root` omitted defaults to `/<id>`; a `root` without a leading slash fails at `read`; `--export` writes back the `.script` text.
+- `backend/__tests__/PersistenceManager.documentKinds.test.ts` — with a faked `db` (`collection().createIndex` spy): one unique partial index per flat-key kind, none for `msh`/`release`/`command-view`; `ResetPolicy` `Documents.keep` lists every declared kind + `release`.
+- `mud/obj/api/__tests__/PackLogic.document.test.ts` (harness, extended with dotted-key `find` + `documentRows()`): `writeDocumentFile(root, kind, name, data)` / `writeScriptFile(root, name, source)` fixture writers added to the harness; a fixture pack with `root: /x` and `scripts/a.msh` → row `{path:'/x/scripts/a', owner:'/x', kind:'msh', data:{source}}` stamped; **the full !198 matrix over the document strategy for `msh` (path-keyed)** — the five cells, vanish×(clean/edited), pin, converge; second run all-zero; `root` omitted defaults to `/<id>`; a `root` without a leading slash fails at `read`; `--export` writes back the `.msh` text.
 - Existing `PackLogic.*.test.ts` stay green unchanged.
 
 *Exit: one seeder retired; the document kind proven.*
@@ -513,7 +528,7 @@ Commit: `docs(pack): content packs wave 2 — subsystem docs` (+ the pre-merge s
 |---|---|---|
 | Fresh DB: fourteen packs installed + recorded; `documents` holds every emote/recipe/name-bank/blueprint/script/command-view row with kind/sourcePack/path; the three legacy collections absent | 1–6, 9, 10 | per-kind `PackLogic.*.test.ts` fresh-store cases; drive (1)(3) |
 | Existing dev DB: one boot migrates + adopts by natural key (`_id` preserved) + drops, one loud line each; second boot no-op — migration, record, per-kind layers | 2, 3 | `PersistenceManager.collapse.test.ts` (two-run); `PackLogic.document.test.ts` adoption-by-natural-key + converged name-bank + second-run; drive (1)(2) |
-| Per-kind three-way: `emote` + `script` full matrix; `settings` merge-missing (`kept`, no conflict); `subject` archive-never-reap; `wiki` CAS both branches with three bodies in `diff` | 1, 2, 4, 10 | `PackLogic.document.test.ts`, `PackLogic.settings.test.ts`, `PackLogic.subject.test.ts`, `PackLogic.wiki.test.ts` |
+| Per-kind three-way: `emote` + `msh` full matrix; `settings` merge-missing (`kept`, no conflict); `subject` archive-never-reap; `wiki` CAS both branches with three bodies in `diff` | 1, 2, 4, 10 | `PackLogic.document.test.ts`, `PackLogic.settings.test.ts`, `PackLogic.subject.test.ts`, `PackLogic.wiki.test.ts` |
 | Emotes: no `aliases` in server source/content; `;grin` does not dispatch; `soul search grin` finds it; `AliasMixin` works; `SoulLogic.mint` writes `documents {kind: emote}` | 2 | grep gate; `SoulCatalogue.test.ts`; existing `Alias.test.ts`; drive (4) |
 | Command views: every `/cmd/**` from the store, fallback = domain-local residue listed; CMS edit of `look.yaml` help live without restart; non-wizard `controller:` change refused, wizard admitted | 9 | `CommandLogic.store.test.ts`, `DocumentLogic.commandView.test.ts`, `PackController.test.ts`; drive (6) |
 | Document gate: no `resolveZoneForPath`/`canMutateZone`/`can(…, null)` in `gateMutation`; own-parcel admitted, other's refused, `/home/<self>` admitted via `canAtPath` | 7 | grep gate; `AccessRegistry.canAtPath.test.ts`; `DocumentLogic.test.ts` |
@@ -535,7 +550,7 @@ Commit: `docs(pack): content packs wave 2 — subsystem docs` (+ the pre-merge s
 - **`WikiRegistry` gate widening** is the one place this build adds a second module to a controller-only gate; `asSystem` is reachable only through it. Keep the option out of `WikiController`.
 - **Two-boot idempotence** is tested at three layers again (migration, record, per-kind) and driven once; a regression re-normalizes operator divergence every boot — still the worst failure this program can have.
 - **Hash stability across the name-bank re-point**: the converged cell absorbs the preimage change; a test asserts no write and no conflict. Any other preimage change in this build is a new kind (no prior baselines).
-- **`--export` for `.script`/`.md`** writes text, not YAML — `resolve` branches on the strategy's `ext`.
+- **`--export` for `.msh`/`.md`** writes text, not YAML — `resolve` branches on the strategy's `ext`.
 - **The corpo brand left behind** (`crowsfoot-gin`, `owner: ""`) and the two demo bottles stay in `seeds/`; a later pass decides their home.
 - **`dependsOn` on packs that do not exist yet** (`saxonberg-lounge` names the corpos at step 1): `orderByDependsOn` ignores unknown ids in v1 — harmless until step 6 creates them; do not "fix" it by adding validation this wave.
 
