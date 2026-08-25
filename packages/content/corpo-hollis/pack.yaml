@@ -1,0 +1,5 @@
+id: corpo-hollis
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /corpo/hollis
+description: The hollis corpo — its mark and its brands.
+dependsOn: [platform]

@@ -56,7 +56,7 @@ let catalogueSingleton: SpellCatalogue | null = null;
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../seeds/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/obj/magic/Spell',
 );
 
 async function installCatalogue(): Promise<void> {

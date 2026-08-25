@@ -50,7 +50,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 const SPELL_SEEDS_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../seeds/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/obj/magic/Spell',
 );
 
 class TestCharacter extends Character {}

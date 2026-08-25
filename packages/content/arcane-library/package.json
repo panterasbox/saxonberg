@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-arcane-library",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The arcane library — the twelve spells plus the two magic items every caster meets first (GlowlightOrb, SparkSource).",
+  "type": "module"
+}

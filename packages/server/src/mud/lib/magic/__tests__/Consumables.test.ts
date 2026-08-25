@@ -74,7 +74,7 @@ class TestFlask extends BulkableMixin(ContainableMixin(NamedMixin(Idea))) {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../seeds/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/obj/magic/Spell',
 );
 
 let seq = 0;

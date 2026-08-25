@@ -1,0 +1,5 @@
+id: corpo-goodkin
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /corpo/goodkin
+description: The goodkin corpo — its mark and its brands.
+dependsOn: [platform]

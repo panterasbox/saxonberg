@@ -1,0 +1,5 @@
+id: arcane-library
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /arcane-library
+description: The arcane library — the twelve spells plus the two magic items every caster meets first (GlowlightOrb, SparkSource).
+dependsOn: [platform]

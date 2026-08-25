@@ -408,16 +408,22 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     const desc = results.find((r) => r.packId === 'arcane-descriptors');
     expect(desc).toBeDefined();
 
+    // The template packs of wave 2: the arcane library (14 rows) and the
+    // five corpo packs (a mark + its brands each).
+    const arcane = results.find((r) => r.packId === 'arcane-library');
+    expect(arcane!.inserted).toHaveLength(14);
+    expect(arcane!.inserted).toContain('/obj/magic/Spell/glowlight');
+    expect(arcane!.inserted).toContain('/obj/magic/GlowlightOrb');
+    const hollis = results.find((r) => r.packId === 'corpo-hollis');
+    expect(hollis!.inserted.sort()).toEqual([
+      '/obj/corpo/Brand/hollis-cane',
+      '/obj/corpo/Brand/old-hollis',
+      '/obj/corpo/Corpo/hollis',
+    ]);
+
     // Every written row is stamped by one of the shipped packs — no
     // unstamped leakage.
-    expect(
-      contentRows().every(
-        (r) =>
-          r.sourcePack === 'base-library' ||
-          r.sourcePack === 'species-and-names' ||
-          r.sourcePack === 'arcane-descriptors' ||
-          r.sourcePack === 'newbie-wilds',
-      ),
-    ).toBe(true);
+    const shipped = new Set(results.map((r) => r.packId));
+    expect(contentRows().every((r) => shipped.has(String(r.sourcePack)))).toBe(true);
   });
 });

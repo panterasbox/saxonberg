@@ -41,6 +41,7 @@ import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 const SEEDS = fileURLToPath(new URL('..', import.meta.url));
 const CONFIG = fileURLToPath(new URL('../../config/', import.meta.url));
+const CONTENT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 
 const KEYS = ['aevex', 'goodkin', 'hollis', 'veshko', 'vionne'] as const;
 const BRANCH = '/domain/terminus/counting-houses/business';
@@ -69,7 +70,10 @@ const groups = (
 
 describe('the five corpo organizations, as authored', () => {
   it('⭐ there is one per corpo mark — none missing, none invented', () => {
-    const marks = readdirSync(join(SEEDS, 'obj/corpo/Corpo'))
+    // Each corpo's mark ships in its own pack (corpo-<key>).
+    const marks = readdirSync(CONTENT)
+      .filter((d) => d.startsWith('corpo-'))
+      .flatMap((d) => readdirSync(join(CONTENT, d, 'content/obj/corpo/Corpo')))
       .filter((f) => f.endsWith('.yaml'))
       .map((f) => f.replace('.yaml', ''))
       .sort();

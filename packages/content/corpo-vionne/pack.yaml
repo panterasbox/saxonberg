@@ -1,0 +1,5 @@
+id: corpo-vionne
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /corpo/vionne
+description: The vionne corpo — its mark and its brands.
+dependsOn: [platform]
