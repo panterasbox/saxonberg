@@ -40,6 +40,7 @@ const OK: PackReconcileResult = {
   normalized: 0,
   quantityTables: 0,
   nameBanks: 0,
+  documents: {},
   rehydrated: 1,
   failure: null,
 };

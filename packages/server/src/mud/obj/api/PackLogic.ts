@@ -21,6 +21,12 @@ import { Appearance } from '../../lib/identification/Appearance';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { Collections } from '../../lib/persistence/Collections';
+import {
+  DOCUMENT_KINDS,
+  type DeclaredDocumentKind,
+  type DocumentKindSpec,
+  type DocumentVanishPolicy,
+} from '../../lib/document/DocumentKinds';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
 import { PersistApi } from '../../api/persist';
@@ -100,9 +106,48 @@ interface DescriptorBankFile {
   relFile: string;
 }
 
+/**
+ * A parsed document-kind content file (one `documents` row). The same
+ * shape for every declared kind: a yaml file's object is `data`; an
+ * `.msh` file is `data: { source }` verbatim.
+ */
+interface DocumentFile {
+  /** Record key: `/<contentDir>/<rel-no-ext>` (`/emotes/grin`, `/msh/daiquiri`). */
+  key: string;
+  /** The row path: the pack `root` + key (command-view: the view key's doc path). */
+  path: string;
+  data: Record<string, unknown>;
+  /** Pack-relative file path, for diagnostics. */
+  relFile: string;
+}
+
+/**
+ * Document kinds whose reader is not yet un-gated: the vocabulary
+ * declares them (indexes + reset policy), but their files are still read
+ * by another strategy (`name-bank` → the legacy `nameBankStrategy` until
+ * step 3 of wave 2) or not at all (`command-view` until step 9). One set
+ * drives the reader, the flat-key check and `strategyForKey` alike, so
+ * no kind is ever claimed by two strategies.
+ */
+const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<DeclaredDocumentKind>([
+  'name-bank', // step 3
+  'command-view', // step 9
+]);
+
+/** The declared kinds the document reader/strategies serve today. */
+function activeDocumentKinds(): DocumentKindSpec[] {
+  return (Object.keys(DOCUMENT_KINDS) as DeclaredDocumentKind[])
+    .filter((k) => !GATED_DOCUMENT_KINDS.has(k))
+    .map((k) => DOCUMENT_KINDS[k]);
+}
+
 /** The classified content of a pack's `content/` tree. */
 interface PackContent {
+  /** The manifest `root` — document paths and owners derive from it. */
+  root: string;
   domain: DomainFile[];
+  /** Parsed document-kind files, by kind (absent kinds are absent keys). */
+  documents: Map<string, DocumentFile[]>;
   /** Absolute path to `content/quantity/quantity-tags.yaml`, or null. */
   quantityYaml: string | null;
   /** Parsed `content/name-banks/*.yaml`, one per bank (empty when absent). */
@@ -166,11 +211,23 @@ function readManifest(root: string): PackManifest {
       `PackApi: manifest at ${file} has a malformed 'dependsOn' (want string[])`,
     );
   }
+  const docRoot = m.root ?? `/${m.id}`;
+  if (
+    typeof docRoot !== 'string' ||
+    !docRoot.startsWith('/') ||
+    docRoot.length < 2 ||
+    docRoot.endsWith('/')
+  ) {
+    throw new Error(
+      `PackApi: manifest at ${file} has a malformed 'root' (want an absolute path like '/${m.id}')`,
+    );
+  }
   return {
     id: m.id,
     version: m.version,
     description: typeof m.description === 'string' ? m.description : undefined,
     dependsOn: dependsOn as string[],
+    root: docRoot,
   };
 }
 
@@ -225,8 +282,16 @@ function fileToTemplatePath(contentRoot: string, file: string): string {
   return '/' + rel.split(/[\\/]/).join('/');
 }
 
-/** Recursively yield `.yaml` files under `dir` (skips dotfiles). */
-function* walkYaml(dir: string): Generator<string> {
+/**
+ * Recursively yield `.<ext>` files under `dir` (skips dotfiles). A dir
+ * named in `skipDirs` is not descended — the domain walk skips `cmd`
+ * (a locality's command views are the command-view kind, not templates).
+ */
+function* walkFiles(
+  dir: string,
+  ext: string,
+  skipDirs: ReadonlySet<string> = new Set(),
+): Generator<string> {
   let entries: string[];
   try {
     entries = readdirSync(dir);
@@ -237,9 +302,72 @@ function* walkYaml(dir: string): Generator<string> {
     if (entry.startsWith('.')) continue;
     const full = join(dir, entry);
     const st = statSync(full);
-    if (st.isDirectory()) yield* walkYaml(full);
-    else if (st.isFile() && entry.endsWith('.yaml')) yield full;
+    if (st.isDirectory()) {
+      if (skipDirs.has(entry)) continue;
+      yield* walkFiles(full, ext, skipDirs);
+    } else if (st.isFile() && entry.endsWith(`.${ext}`)) yield full;
   }
+}
+
+/** Recursively yield `.yaml` files under `dir` (skips dotfiles). */
+function* walkYaml(dir: string): Generator<string> {
+  yield* walkFiles(dir, 'yaml');
+}
+
+/** Parse one YAML file to a plain object, or throw a pack-labelled error. */
+function readYamlObject(pack: ResolvedPack, file: string, what: string): Record<string, unknown> {
+  const raw = readFileSync(file, 'utf-8');
+  const parsed = YAML.parse(raw) as unknown;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(
+      `PackApi: pack '${pack.manifest.id}': malformed ${what} at ${file}`,
+    );
+  }
+  return parsed as Record<string, unknown>;
+}
+
+/**
+ * Read one declared document kind's files from `content/<contentDir>/`.
+ * A `.yaml` file's object becomes `data` (a flat-key kind whose file
+ * omits the natural key gets it from the basename; a key that disagrees
+ * with the basename fails at `read`); an `.msh` file becomes
+ * `data: { source }` verbatim (the retired ScriptSeeder's shape). Never a
+ * glob over `content/` — each kind's dir is enumerated by the table.
+ */
+function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentFile[] {
+  const out: DocumentFile[] = [];
+  const dir = join(pack.contentRoot, spec.contentDir);
+  const root = pack.manifest.root;
+  for (const file of walkFiles(dir, spec.ext)) {
+    const rel = relative(dir, file).replace(new RegExp(`\\.${spec.ext}$`), '');
+    const relKey = rel.split(/[\\/]/).join('/');
+    const name = basename(relKey);
+    const key = `/${spec.contentDir}/${relKey}`;
+    let data: Record<string, unknown>;
+    if (spec.ext === 'yaml') {
+      data = readYamlObject(pack, file, `${spec.kind} document`);
+      const nk = spec.naturalKey;
+      if (nk !== null) {
+        if (data[nk] === undefined) data[nk] = name;
+        else if (String(data[nk]) !== name) {
+          throw new Error(
+            `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file} ` +
+              `declares ${nk} '${String(data[nk])}' but its file name says '${name}' ` +
+              `— the basename IS the key`,
+          );
+        }
+      }
+    } else {
+      data = { source: readFileSync(file, 'utf-8') };
+    }
+    out.push({
+      key,
+      path: root + key,
+      data,
+      relFile: relative(pack.root, file),
+    });
+  }
+  return out;
 }
 
 /** Classify a pack's `content/` tree by subdir convention. */
@@ -255,7 +383,11 @@ function readContent(pack: ResolvedPack): PackContent {
   //    slate's "fractal under any root" end-state arrives with wave 4's
   //    path surgery; two enumerated roots is this cycle's honest shape.
   const domainRoots = [join(pack.contentRoot, 'obj'), join(pack.contentRoot, 'domain')];
-  for (const file of domainRoots.flatMap((r) => [...walkYaml(r)])) {
+  // A `cmd/` segment under `content/domain/` is a locality's command
+  // views — the command-view document kind, never a template (a view
+  // has no `class:` and would fail this walk).
+  const skip = new Set(['cmd']);
+  for (const file of domainRoots.flatMap((r) => [...walkFiles(r, 'yaml', skip)])) {
     const raw = readFileSync(file, 'utf-8');
     const parsed = YAML.parse(raw) as unknown;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -329,9 +461,18 @@ function readContent(pack: ResolvedPack): PackContent {
     });
   }
 
+  // Document kinds — one enumerated reader per declared, un-gated kind.
+  const documents = new Map<string, DocumentFile[]>();
+  for (const spec of activeDocumentKinds()) {
+    const files = readDocumentKind(pack, spec);
+    if (files.length > 0) documents.set(spec.kind, files);
+  }
+
   const quantityYaml = join(pack.contentRoot, 'quantity', 'quantity-tags.yaml');
   return {
+    root: pack.manifest.root,
     domain,
+    documents,
     quantityYaml: existsSync(quantityYaml) ? quantityYaml : null,
     nameBanks,
     descriptorBanks,
@@ -463,7 +604,10 @@ async function validatePackTopics(
 // --- the per-kind strategy -------------------------------------------------
 
 /** The DB collections a shipped content kind lands in. */
-type KindName = 'domain' | 'name-banks' | 'descriptor-banks';
+type KindName = 'domain' | 'name-banks' | 'descriptor-banks' | 'document';
+
+/** The reconcile policy a kind runs under (requirements D5). */
+type KindPolicy = 'three-way' | 'merge-missing' | 'cas';
 
 /**
  * The per-kind reconcile strategy — the content-pack-units Part C
@@ -475,8 +619,34 @@ type KindName = 'domain' | 'name-banks' | 'descriptor-banks';
  */
 interface KindStrategy<F> {
   kind: KindName;
+  /**
+   * For the `document` kind: WHICH document kind. Record baselines,
+   * conflicts and dry-run actions carry `document:<documentKind>` as
+   * their kind label so `pack diff` output names it.
+   */
+  documentKind?: string;
   /** TARGET collection. */
   collection: Collections;
+  /** Reconcile policy (D5). Default 'three-way'. */
+  policy?: KindPolicy;
+  /** What a vanished file does to its row. Default 'delete'. */
+  onVanish?: DocumentVanishPolicy;
+  /**
+   * Adoption query for an UNSTAMPED existing row — defaults to
+   * `dbKeyQuery`. Flat-key document kinds override it with
+   * `{kind, 'data.<naturalKey>': …}` so a migrated legacy row at a
+   * provisional path is adopted in place by natural key (D3).
+   */
+  adoptQuery?(f: F): Record<string, unknown>;
+  /**
+   * Extra terms on the "rows stamped by this pack" query. ⚠ Load-bearing
+   * for the `documents` collection: `{ sourcePack }` alone returns EVERY
+   * kind the pack ships, and each kind would see the others' rows as its
+   * own vanished files.
+   */
+  stampedQuery?(): Record<string, unknown>;
+  /** The source-file extension `--export` writes (default `yaml`). */
+  ext?: string;
   /**
    * The install-record key — the file's content-root-relative path with
    * a leading slash and no `.yaml`. For the domain kind this IS the
@@ -502,6 +672,8 @@ interface KindStrategy<F> {
   flatKeyOf?(f: F): string;
   /** The YAML body `--export` writes back to the workspace file. */
   exportBody(row: Record<string, unknown>): Record<string, unknown>;
+  /** Archive a row (archive-never-reap kinds only). */
+  archive?(id: string): Promise<void>;
 }
 
 /** The row shape PackLogic writes (a `content` template row + the stamp). */
@@ -654,6 +826,52 @@ const descriptorBankStrategy: KindStrategy<DescriptorBankFile> = {
   }),
 };
 
+/** The record key of a document row: its path with the pack root stripped. */
+function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknown>): string {
+  const path = String(r.path ?? '');
+  void spec;
+  return path.startsWith(`${root}/`) ? path.slice(root.length) : path;
+}
+
+/**
+ * The document-kind strategy, one per declared kind per pack: rows in
+ * `documents` at `root + key`, owned by `root`, stamped, keyed by path
+ * (and adopted by natural key when the kind has one). The preimage is
+ * `{ data }` only — `owner`/`path`/`kind`/`sourcePack` are bookkeeping.
+ */
+function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<DocumentFile> {
+  const nk = spec.naturalKey;
+  return {
+    kind: 'document',
+    documentKind: spec.kind,
+    collection: Collections.Documents,
+    noun: `${spec.kind} document`,
+    policy: 'three-way',
+    onVanish: spec.onVanish,
+    ext: spec.ext,
+    recordKeyOf: (f) => f.key,
+    recordKeyOfRow: (r) => rowKeyOf(spec, root, r),
+    dbKeyQuery: (f) => ({ kind: spec.kind, path: f.path }),
+    adoptQuery: nk ? (f) => ({ kind: spec.kind, [`data.${nk}`]: f.data[nk] }) : undefined,
+    stampedQuery: () => ({ kind: spec.kind }),
+    rowOf: (f, packId) => ({
+      path: f.path,
+      owner: root,
+      kind: spec.kind,
+      data: f.data,
+      sourcePack: packId,
+    }),
+    canonicalBody: (r) => canonical({ data: r.data ?? {} }),
+    flatKeyOf: nk ? (f) => String(f.data[nk]) : undefined,
+    exportBody: (r) => (r.data ?? {}) as Record<string, unknown>,
+  };
+}
+
+/** The kind label a baseline / conflict / dry-run action carries. */
+function kindLabel(strategy: KindStrategy<unknown>): string {
+  return strategy.documentKind ? `document:${strategy.documentKind}` : strategy.kind;
+}
+
 type KindChanges = Pick<
   PackReconcileResult,
   'inserted' | 'updated' | 'adopted' | 'deleted'
@@ -756,6 +974,8 @@ interface PlannedAction {
   hash?: string;
   body?: string;
   conflict?: PackConflict;
+  /** `keep` for a vanished file of an `onVanish: 'keep'` kind: drop the baseline too. */
+  dropBaseline?: boolean;
 }
 
 interface KindPlan<F> {
@@ -797,6 +1017,7 @@ async function computeKindPlan<F>(
 
   const stampedRows = (await PersistApi.find(strategy.collection, {
     sourcePack: packId,
+    ...(strategy.stampedQuery?.() ?? {}),
   })) as StampedRow[];
   const stampedByKey = new Map(
     stampedRows.map((r) => [strategy.recordKeyOfRow(r), r]),
@@ -847,7 +1068,7 @@ async function computeKindPlan<F>(
           _id: stamped._id,
           conflict: {
             path: key,
-            kind: strategy.kind,
+            kind: kindLabel(strategy as KindStrategy<unknown>),
             detectedAt: now,
             baselineHash: baseline.hash,
             dbHash,
@@ -861,7 +1082,7 @@ async function computeKindPlan<F>(
 
     const existing = (await PersistApi.find(
       strategy.collection,
-      strategy.dbKeyQuery(f),
+      strategy.adoptQuery?.(f) ?? strategy.dbKeyQuery(f),
     )) as StampedRow[];
     const prior = existing[0];
     if (prior) {
@@ -889,6 +1110,16 @@ async function computeKindPlan<F>(
       continue;
     }
     const baseline = record?.rows[key] ?? null;
+    const onVanish = strategy.onVanish ?? 'delete';
+    if (onVanish === 'keep') {
+      // The row stays; only the baseline drops (the kind is never reaped).
+      actions.push({ op: 'keep', key, _id: r._id, dropBaseline: true });
+      continue;
+    }
+    if (onVanish === 'archive') {
+      actions.push({ op: 'archive', key, _id: r._id });
+      continue;
+    }
     const dbBody = strategy.canonicalBody(r);
     const dbHash = hashOf(dbBody);
     if (!baseline || dbHash === baseline.hash) {
@@ -900,7 +1131,7 @@ async function computeKindPlan<F>(
         _id: r._id,
         conflict: {
           path: key,
-          kind: strategy.kind,
+          kind: kindLabel(strategy as KindStrategy<unknown>),
           detectedAt: now,
           baselineHash: baseline.hash,
           dbHash,
@@ -917,6 +1148,8 @@ async function computeKindPlan<F>(
 interface AppliedKind {
   changes: KindChanges;
   kept: string[];
+  /** archive-never-reap kinds: rows archived because their file vanished. */
+  archived: string[];
   conflicts: PackConflict[];
   pinnedSkipped: number;
   normalized: number;
@@ -935,12 +1168,17 @@ async function applyKindPlan<F>(
   const out: AppliedKind = {
     changes: { inserted: [], updated: [], adopted: [], deleted: [] },
     kept: [],
+    archived: [],
     conflicts: [],
     pinnedSkipped: 0,
     normalized: 0,
   };
   const baseline = (a: PlannedAction): void => {
-    record.rows[a.key] = { kind: strategy.kind, hash: a.hash!, body: a.body! };
+    record.rows[a.key] = {
+      kind: kindLabel(strategy as KindStrategy<unknown>),
+      hash: a.hash!,
+      body: a.body!,
+    };
   };
   for (const a of plan.actions) {
     switch (a.op) {
@@ -965,8 +1203,19 @@ async function applyKindPlan<F>(
         out.changes.deleted.push(a.key);
         break;
       case 'keep':
+        if (a.dropBaseline) delete record.rows[a.key];
         out.kept.push(a.key);
         break;
+      case 'archive':
+        // Defined by the archive-never-reap kinds (subjects, step 4); a
+        // strategy that plans it must supply `archive`.
+        await strategy.archive!(a._id!);
+        delete record.rows[a.key];
+        out.archived.push(a.key);
+        break;
+      case 'merge':
+      case 'submit':
+        throw new Error(`PackApi: op '${a.op}' has no apply for kind '${strategy.kind}'`);
       case 'converge':
         baseline(a);
         break;
@@ -987,7 +1236,7 @@ async function applyKindPlan<F>(
 
 /** Every kind's strategy + the files of a pack's content for it. */
 function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
-  return [
+  const out: Array<KindPlanInput<unknown>> = [
     { strategy: domainStrategy as KindStrategy<unknown>, files: content.domain },
     { strategy: nameBankStrategy as KindStrategy<unknown>, files: content.nameBanks },
     {
@@ -995,6 +1244,27 @@ function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
       files: content.descriptorBanks,
     },
   ];
+  // Every active document kind, files or none: a kind whose files ALL
+  // vanished must still be planned so its stamped rows are reaped.
+  for (const spec of activeDocumentKinds()) {
+    out.push({
+      strategy: documentStrategy(spec, content.root) as KindStrategy<unknown>,
+      files: content.documents.get(spec.kind) ?? [],
+    });
+  }
+  return out;
+}
+
+/** The empty content (every strategy, no files) — the flat-key walk's kind list. */
+function emptyContent(root: string): PackContent {
+  return {
+    root,
+    domain: [],
+    documents: new Map(activeDocumentKinds().map((s) => [s.kind, []])),
+    quantityYaml: null,
+    nameBanks: [],
+    descriptorBanks: [],
+  };
 }
 
 interface KindPlanInput<F> {
@@ -1003,10 +1273,15 @@ interface KindPlanInput<F> {
 }
 
 /** The strategy a record key belongs to, by its prefix. */
-function strategyForKey(key: string): KindStrategy<unknown> {
+function strategyForKey(key: string, root: string): KindStrategy<unknown> {
   if (key.startsWith('/name-banks/')) return nameBankStrategy as KindStrategy<unknown>;
   if (key.startsWith('/descriptor-banks/')) {
     return descriptorBankStrategy as KindStrategy<unknown>;
+  }
+  for (const spec of activeDocumentKinds()) {
+    if (key.startsWith(`/${spec.contentDir}/`)) {
+      return documentStrategy(spec, root) as KindStrategy<unknown>;
+    }
   }
   return domainStrategy as KindStrategy<unknown>;
 }
@@ -1038,11 +1313,11 @@ interface ReadPack {
  */
 function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
   const failures = new Map<string, PackFailure>();
-  for (const k of kindsOf({ domain: [], quantityYaml: null, nameBanks: [], descriptorBanks: [] })) {
+  for (const k of kindsOf(emptyContent('/'))) {
     if (!k.strategy.flatKeyOf) continue;
     const seen = new Map<string, { packId: string; relFile: string }>();
     for (const rp of packs) {
-      const files = filesOfKind(rp.content, k.strategy.kind);
+      const files = filesOfKind(rp.content, k.strategy);
       for (const f of files) {
         const key = k.strategy.flatKeyOf(f);
         const relFile = (f as { relFile: string }).relFile;
@@ -1068,14 +1343,16 @@ function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
   return failures;
 }
 
-function filesOfKind(content: PackContent, kind: KindName): unknown[] {
-  switch (kind) {
+function filesOfKind(content: PackContent, strategy: KindStrategy<unknown>): unknown[] {
+  switch (strategy.kind) {
     case 'domain':
       return content.domain;
     case 'name-banks':
       return content.nameBanks;
     case 'descriptor-banks':
       return content.descriptorBanks;
+    case 'document':
+      return content.documents.get(strategy.documentKind!) ?? [];
   }
 }
 
@@ -1153,9 +1430,26 @@ function emptyResult(packId: string): PackReconcileResult {
     normalized: 0,
     quantityTables: 0,
     nameBanks: 0,
+    documents: {},
     rehydrated: 0,
     failure: null,
   };
+}
+
+/**
+ * The per-document-kind go-live: what a change to rows of `kind` must
+ * drop or re-warm so the edit reaches the next read without a restart.
+ * A module-private switch, one case per kind as its reader lands;
+ * `msh` needs nothing (`ScriptLogic` reads by path per call and drops
+ * its AST cache on the CMS write path).
+ */
+async function invalidateDocumentKind(kind: string): Promise<void> {
+  switch (kind) {
+    case 'msh':
+      return;
+    default:
+      return;
+  }
 }
 
 /**
@@ -1185,10 +1479,10 @@ async function reconcilePack(
   record.conflicts = [];
 
   const result = emptyResult(packId);
-  const perKind = new Map<KindName, AppliedKind>();
+  const perKind = new Map<string, AppliedKind>();
   for (const plan of plans) {
     const applied = await applyKindPlan(plan, record);
-    perKind.set(plan.strategy.kind, applied);
+    perKind.set(kindLabel(plan.strategy), applied);
     result.inserted.push(...applied.changes.inserted);
     result.updated.push(...applied.changes.updated);
     result.adopted.push(...applied.changes.adopted);
@@ -1233,6 +1527,16 @@ async function reconcilePack(
   }
 
   // Side effects (go-live) per kind.
+  for (const [label, applied] of perKind) {
+    if (!label.startsWith('document:')) continue;
+    const kind = label.slice('document:'.length);
+    const c = applied.changes;
+    const written = c.inserted.length + c.updated.length + c.adopted.length;
+    const touched = written + c.deleted.length + applied.archived.length;
+    if (touched > 0 || content.documents.has(kind)) result.documents[kind] = written;
+    if (touched > 0) await invalidateDocumentKind(kind);
+  }
+
   const nb = perKind.get('name-banks')!;
   result.nameBanks =
     nb.changes.inserted.length + nb.changes.updated.length + nb.changes.adopted.length;
@@ -1467,7 +1771,7 @@ export class PackLogic extends ApiLogic {
     const actions: PackPlannedAction[] = [];
     for (const plan of plans) {
       for (const a of plan.actions) {
-        actions.push({ op: a.op, key: a.key, kind: plan.strategy.kind });
+        actions.push({ op: a.op, key: a.key, kind: kindLabel(plan.strategy) });
       }
     }
     return {
@@ -1488,12 +1792,13 @@ export class PackLogic extends ApiLogic {
     const keys = path ? [path] : (record?.conflicts ?? []).map((c) => c.path);
     const entries: PackDiffEntry[] = [];
     for (const key of keys) {
-      const strategy = strategyForKey(key);
+      const strategy = strategyForKey(key, content.root);
       const baseline = record?.rows[key] ?? null;
       const file = fileForKey(content, key);
       const theirsBody = file ? strategy.canonicalBody(strategy.rowOf(file, packId)) : null;
       const rows = (await PersistApi.find(strategy.collection, {
         sourcePack: packId,
+        ...(strategy.stampedQuery?.() ?? {}),
       })) as StampedRow[];
       const dbRow = rows.find((r) => strategy.recordKeyOfRow(r) === key) ?? null;
       const yoursBody = dbRow ? strategy.canonicalBody(dbRow) : null;
@@ -1501,7 +1806,7 @@ export class PackLogic extends ApiLogic {
         body === null ? null : { hash: hashOf(body), body: renderBody(body) };
       entries.push({
         path: key,
-        kind: strategy.kind,
+        kind: kindLabel(strategy),
         baseline: baseline ? { hash: baseline.hash, body: renderBody(baseline.body) } : null,
         yours: side(yoursBody),
         theirs: side(theirsBody),
@@ -1522,11 +1827,12 @@ export class PackLogic extends ApiLogic {
     requireConnection(packId);
     const record = await loadRecord(packId);
     if (!record) throw new Error(`PackApi: pack '${packId}' has no install record`);
-    const strategy = strategyForKey(path);
     const content = readContent(pack);
+    const strategy = strategyForKey(path, content.root);
     const file = fileForKey(content, path);
     const rows = (await PersistApi.find(strategy.collection, {
       sourcePack: packId,
+      ...(strategy.stampedQuery?.() ?? {}),
     })) as StampedRow[];
     const dbRow = rows.find((r) => strategy.recordKeyOfRow(r) === path) ?? null;
 
@@ -1547,18 +1853,20 @@ export class PackLogic extends ApiLogic {
         const r = emptyResult(packId);
         r.deleted.push(path);
         if (strategy.kind === 'domain') r.rehydrated = await rehydrate([], [path]);
+        else if (strategy.documentKind) await invalidateDocumentKind(strategy.documentKind);
         return r;
       }
       const row = strategy.rowOf(file, packId);
       const body = strategy.canonicalBody(row);
       await PersistApi.save(strategy.collection, dbRow?._id ? { ...row, _id: dbRow._id } : row);
-      record.rows[path] = { kind: strategy.kind, hash: hashOf(body), body };
+      record.rows[path] = { kind: kindLabel(strategy), hash: hashOf(body), body };
       record.conflicts = record.conflicts.filter((c) => c.path !== path);
       await saveRecord(record);
       const r = emptyResult(packId);
       r.updated.push(path);
       if (strategy.kind === 'domain') r.rehydrated = await rehydrate([path], []);
       else if (strategy.kind === 'name-banks') NameBank.clearCache();
+      else if (strategy.documentKind) await invalidateDocumentKind(strategy.documentKind);
       else {
         DescriptorBank.clearCache();
         Appearance.clearMemo();
@@ -1570,9 +1878,15 @@ export class PackLogic extends ApiLogic {
     // conflict stays open; the next sync observes file == DB (the
     // converged cell) and clears it.
     if (!dbRow) throw new Error(`PackApi: no database row at '${path}' for pack '${packId}'`);
-    const target = join(pack.contentRoot, ...path.replace(/^\//, '').split('/')) + '.yaml';
+    const ext = strategy.ext ?? 'yaml';
+    const target = join(pack.contentRoot, ...path.replace(/^\//, '').split('/')) + `.${ext}`;
     mkdirSync(dirname(target), { recursive: true });
-    writeFileSync(target, YAML.stringify(strategy.exportBody(dbRow)));
+    const body = strategy.exportBody(dbRow);
+    // A text kind (`.msh`) exports its source verbatim, not YAML.
+    writeFileSync(
+      target,
+      ext === 'msh' ? String(body.source ?? '') : YAML.stringify(body),
+    );
     return null;
   }
 

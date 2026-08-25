@@ -30,7 +30,17 @@ export interface Row extends Record<string, unknown> {
 export const store: { rows: Row[]; nextId: number } = { rows: [], nextId: 1 };
 const tmpRoots: string[] = [];
 
-/** An in-memory, collection-aware store behind PersistApi. */
+/** A dotted-key read (`'data.verb'`) over a plain row, Mongo-style. */
+function getPath(row: Record<string, unknown>, key: string): unknown {
+  let cur: unknown = row;
+  for (const part of key.split('.')) {
+    if (cur === null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
+/** An in-memory, collection-aware store behind PersistApi (dotted keys ok). */
 export function stubPersist(): void {
   store.rows = [];
   store.nextId = 1;
@@ -41,7 +51,7 @@ export function stubPersist(): void {
         .filter(
           (r) =>
             (r.__col ?? 'content') === col &&
-            Object.entries(query).every(([k, v]) => r[k] === v),
+            Object.entries(query).every(([k, v]) => getPath(r, k) === v),
         )
         .map((r) => structuredClone(r)) as never,
   );
@@ -91,6 +101,9 @@ export function rowsIn(col: string): Row[] {
 }
 export const contentRows = (): Row[] => rowsIn('content');
 export const nameBankRows = (): Row[] => rowsIn('name_banks');
+export const documentRows = (): Row[] => rowsIn('documents');
+export const rowsOfKind = (kind: string): Row[] =>
+  documentRows().filter((r) => r.kind === kind);
 export function recordOf(packId: string): (PackInstallRecord & Row) | undefined {
   return rowsIn('pack_installs').find((r) => r.packId === packId) as
     | (PackInstallRecord & Row)
@@ -117,14 +130,23 @@ export interface NameBankFixture {
 export function writePack(
   id: string,
   files: FixtureFile[],
-  opts: { dependsOn?: string[]; nameBanks?: NameBankFixture[]; version?: string } = {},
+  opts: {
+    dependsOn?: string[];
+    nameBanks?: NameBankFixture[];
+    version?: string;
+    /** The manifest `root` (document paths derive from it); omitted = `/<id>`. */
+    root?: string;
+  } = {},
 ): string {
   const root = mkdtempSync(join(tmpdir(), `pack-${id}-`));
   tmpRoots.push(root);
-  writeFileSync(
-    join(root, 'pack.yaml'),
-    YAML.stringify({ id, version: opts.version ?? '0.1.0', dependsOn: opts.dependsOn ?? [] }),
-  );
+  const manifest: Record<string, unknown> = {
+    id,
+    version: opts.version ?? '0.1.0',
+    dependsOn: opts.dependsOn ?? [],
+  };
+  if (opts.root !== undefined) manifest.root = opts.root;
+  writeFileSync(join(root, 'pack.yaml'), YAML.stringify(manifest));
   for (const f of files) writeDomainFile(root, f);
   for (const nb of opts.nameBanks ?? []) writeBankFile(root, nb);
   return root;
@@ -150,6 +172,25 @@ export function writeBankFile(root: string, nb: NameBankFixture): void {
     file,
     YAML.stringify({ style: nb.style, given: nb.given, surname: nb.surname }),
   );
+}
+
+/** A document-kind yaml fixture: `content/<dir>/<name>.yaml` holding `data`. */
+export function writeDocumentFile(
+  root: string,
+  dir: string,
+  name: string,
+  data: Record<string, unknown>,
+): void {
+  const file = join(root, 'content', dir, `${name}.yaml`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, YAML.stringify(data));
+}
+
+/** An `msh` script fixture: `content/msh/<name>.msh` holding `source` verbatim. */
+export function writeScriptFile(root: string, name: string, source: string): void {
+  const file = join(root, 'content', 'msh', `${name}.msh`);
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, source);
 }
 
 export function cleanupPacks(): void {
