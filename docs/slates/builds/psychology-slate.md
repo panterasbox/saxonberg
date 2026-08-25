@@ -29,7 +29,11 @@ mental sibling of), [pharma-slate](./pharma-slate.md) (the credence-good
 frame), [enforcement-slate](./enforcement-slate.md) (the evidence
 firewall; testimony as claims), [insurance-slate](./insurance-slate.md),
 [content-packs-slate](./content-packs-slate.md) (sink trades),
-[vocations.md](../../vocations.md).
+[vocations.md](../../vocations.md), and — added 2026-08-25 —
+[narration-slate](./narration-slate.md), which supplies **what the
+player may read of their own record** (*acts, never axes*) and so
+answers *"how does the player know what's available to reveal?"*
+— a hole this slate's disclosure mechanic depends on.
 
 ---
 
