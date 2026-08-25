@@ -1,6 +1,7 @@
 /**
  * The Hearthworks venues — smithy + cookhouse standup over the REAL
- * authored rows: the recipe roster is loaded from `config/recipes.yaml`
+ * authored rows: the recipe roster is loaded from the `generic-objects`
+ * pack's `content/recipes/*.yaml`
  * and the food/metal materials from the base-library pack files, so a
  * drifted seed fails here. Asserts the venue surfaces (menus afford the
  * right verb sets, `CommerceMenu.resolveIn` finds any venue subclass),
@@ -13,7 +14,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { CraftingApi } from '../../../api/crafting';
@@ -55,8 +56,8 @@ import {
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-const RECIPES_YAML = fileURLToPath(
-  new URL('../../../config/recipes.yaml', import.meta.url),
+const RECIPES_DIR = fileURLToPath(
+  new URL('../../../../../../content/generic-objects/content/recipes/', import.meta.url),
 );
 const PACK_MATERIALS = fileURLToPath(
   new URL(
@@ -174,10 +175,21 @@ beforeEach(async () => {
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
-    async (col: string, query: Record<string, unknown>) =>
-      (store[col] ?? []).filter((d) =>
+    async (col: string, query: Record<string, unknown>) => {
+      // Recipes are `documents` rows of kind `recipe` (content-packs wave
+      // 2); the fixtures keep the legacy row shape and are wrapped here.
+      if (col === 'documents' && query.kind === 'recipe') {
+        return (store['recipes'] ?? []).map((d) => ({
+          path: `/generic-objects/recipes/${String(d.recipeId)}`,
+          owner: '/generic-objects',
+          kind: 'recipe',
+          data: d,
+        })) as never;
+      }
+      return (store[col] ?? []).filter((d) =>
         Object.entries(query).every(([k, v]) => d[k] === v),
-      ) as never,
+      ) as never;
+    },
   );
   // The craft-resolve evidence tail (advancement + watch-=-claim) writes
   // through the PM; capture it in the same store.
@@ -191,11 +203,12 @@ beforeEach(async () => {
     },
   );
 
-  // The REAL authored roster — a drifted recipes.yaml fails here.
-  const parsed = YAML.parse(readFileSync(RECIPES_YAML, 'utf-8')) as {
-    recipes: Record<string, unknown>[];
-  };
-  store = { recipes: parsed.recipes };
+  // The REAL authored roster — a drifted pack file fails here.
+  const recipes = readdirSync(RECIPES_DIR)
+    .filter((f) => f.endsWith('.yaml'))
+    .sort()
+    .map((f) => YAML.parse(readFileSync(RECIPES_DIR + f, 'utf-8')) as Record<string, unknown>);
+  store = { recipes };
 
   // The REAL pack materials the roster consumes.
   loadPackMaterial('element/iron');

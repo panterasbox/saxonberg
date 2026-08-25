@@ -37,9 +37,9 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // via `SoulApi.resolve` after this entry's postRegister fires.
   { templatePath: '/obj/SoulCatalogue' },
   // RecipeCatalogue singleton — the runtime recipe index. Warmed at
-  // postRegister from the `recipes` collection (populated by
-  // `RecipeSeeder.run` earlier in the boot sequence). Resolvable via
-  // `CraftingApi` after this entry's postRegister fires.
+  // postRegister from `documents {kind: recipe}` (installed by the
+  // `generic-objects` content pack earlier in the boot sequence).
+  // Resolvable via `CraftingApi` after this entry's postRegister fires.
   { templatePath: '/obj/RecipeCatalogue' },
   // BlueprintCatalogue singleton — the Studio composition catalogue's runtime
   // index. Warmed at postRegister from the `blueprints` collection (populated

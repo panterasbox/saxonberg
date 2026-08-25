@@ -1,0 +1,5 @@
+id: generic-objects
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /generic-objects
+description: Generic objects — this wave the crafting recipe roster (the recipe document kind, one file per recipe).
+dependsOn: [platform]   # the id exists by wave 2 step 4; unknown deps are ignored in v1

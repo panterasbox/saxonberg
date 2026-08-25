@@ -16,7 +16,6 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
-import { RecipeSeeder } from './RecipeSeeder';
 import { BlueprintSeeder } from './BlueprintSeeder';
 import { ChannelSeeder } from './ChannelSeeder';
 import { GroupSeeder } from './GroupSeeder';
@@ -168,7 +167,7 @@ export class AppBootstrap {
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
           `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
           `${r.pinnedSkipped} pinned (skipped), ` +
-          `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)` +
+          `${r.quantityTables} quantity table(s)` +
           (Object.keys(r.documents).length > 0
             ? ', ' +
               Object.entries(r.documents)
@@ -186,7 +185,6 @@ export class AppBootstrap {
     // chokepoint indirectly via Document.save) and before the
     // BootstrapManager runs the catalogue singletons that warm their
     // caches from these collections.
-    await RecipeSeeder.run();
     await BlueprintSeeder.run();
     await ChannelSeeder.run();
     await AppSettingsSeeder.run();

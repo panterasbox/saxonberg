@@ -17,18 +17,29 @@ let store: Record<string, Record<string, unknown>[]>;
 beforeEach(async () => {
   store = {
     recipes: [
-      { recipeId: 'martini', name: 'Gin Martini', keywords: ['martini'], inputSlots: [], toolCapabilities: [], outputTemplate: '/x', outputMaterial: '/y', baseGradeBand: '' },
-      { recipeId: 'daiquiri', name: 'Daiquiri', keywords: ['daiquiri'], inputSlots: [], toolCapabilities: [], outputTemplate: '/x', outputMaterial: '/y', baseGradeBand: '' },
+      { recipeId: 'martini', name: 'Gin Martini', keywords: ['martini'], inputSlots: [{ slot: 'base', category: 'x', minGrade: 'fair' }], toolCapabilities: [], outputTemplate: '/x', outputMaterial: '/y', baseGradeBand: '' },
+      { recipeId: 'daiquiri', name: 'Daiquiri', keywords: ['daiquiri'], inputSlots: [{ slot: 'base', category: 'x', minGrade: 'fair' }], toolCapabilities: [], outputTemplate: '/x', outputMaterial: '/y', baseGradeBand: '' },
     ],
   };
   StuffApi.clearAll();
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
-    async (col: string, query: Record<string, unknown>) =>
-      (store[col] ?? []).filter((d) =>
+    async (col: string, query: Record<string, unknown>) => {
+      // Recipes are `documents` rows of kind `recipe` (content-packs wave
+      // 2); the fixtures keep the legacy row shape and are wrapped here.
+      if (col === 'documents' && query.kind === 'recipe') {
+        return (store['recipes'] ?? []).map((d) => ({
+          path: `/generic-objects/recipes/${String(d.recipeId)}`,
+          owner: '/generic-objects',
+          kind: 'recipe',
+          data: d,
+        })) as never;
+      }
+      return (store[col] ?? []).filter((d) =>
         Object.entries(query).every(([k, v]) => d[k] === v),
-      ) as never,
+      ) as never;
+    },
   );
   const catalogue = makeStuffAtPath(() => new RecipeCatalogue(), '/obj/RecipeCatalogue');
   await catalogue.warm();

@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-generic-objects",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generic objects — this wave the crafting recipe roster (the recipe document kind).",
+  "type": "module"
+}
