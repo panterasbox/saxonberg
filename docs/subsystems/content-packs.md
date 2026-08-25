@@ -449,8 +449,9 @@ unstamped species + `name_banks` rows are adopted in place on first
 install, no wipe, no data migration (no class moved).
 
 `design/pack-installer` (2026-08-25) — the **pack-installer substrate**
-(waves 0+1 of the content-pack program; requirements in
-`docs/requirements/pack-installer-substrate-requirements.md`): the
+(waves 0+1 of the content-pack program — slate addenda A10/A17/A24/A25
+in `docs/slates/builds/content-packs-slate.md`; the requirements and
+plan retired at the sweep): the
 `domain` → `content` rename with its idempotent boot migration; the
 `pack_installs` record with body-beside-hash baselines; the three-way
 reconcile with conflicts, pins, and the adoption bridge; per-pack failure

@@ -967,7 +967,8 @@ name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
 side — `backend/PersistenceManager` re-exports it).
 
 - `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
-- `domain` — object templates for the CMS; pack-installed rows carry `sourcePack` (content-packs.md)
+- `content` — the templates collection (was `domain`; migrated once at boot); pack-installed rows carry `sourcePack` (content-packs.md)
+- `pack_installs` — the pack installer's per-deployment ledger: baselines, pins, conflicts; three-way reconcile reads it (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `name_banks` — char-gen name pools, installed by the species-and-names pack
 - `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)

@@ -45,7 +45,7 @@ The load-bearing decisions:
    git-native). **Content** (templates, `domain` collection) and
    **documents** (scripts, `documents` collection) are **Mongo rows** —
    git can't see them without a DB→file export. That export is the
-   [content-packs](../tails/content-packs-slate.md) round-trip direction
+   [content-packs](../builds/content-packs-slate.md) round-trip direction
    and is **deferred**; content is *not lost* on redeploy (Atlas persists
    independently of the box) — it's just **unversioned**. Source-only this
    cycle.
@@ -299,7 +299,7 @@ review gate (drives on `AuthoringEvent` path→author + the permission
 slice); auto-open-MR via the GitLab API (deferred credential/logic).
 
 **Wave 3+ — content into git + personal repos.** The **Mongo→file export**
-bridge (shared with [content-packs](../tails/content-packs-slate.md)) so
+bridge (shared with [content-packs](../builds/content-packs-slate.md)) so
 template/document content becomes git-trackable; **per-user `/home/<id>/`
 subrepos** (git submodules / personal remotes) so a player branches/merges
 their sandbox freely — *blocked on home code being file-backed* (today
