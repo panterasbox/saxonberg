@@ -380,6 +380,17 @@ warn-only mode). First four shrinks are in scope: the four kernel-tree
 `CLAUDE.md`'s full-suite `git status | grep` rule gains a
 `packages/content/` exclusion: **pack YAML is not source** (A26.2).
 
+### D15 — The installer is the actor
+
+Where an install must perform an operation the runtime models as an
+Avatar's act (a wiki edit, minting a subject), the **pack is the
+principal**: authorization is the installer's module (`PackLogic`
+admitted by the operation's gate — code provenance, the only identity
+call-security has), attribution is the string `pack:<id>` on the row
+(`author`, `owner`) — the same shape as the record's `principal:
+'bootstrap'`. No Stuff is minted to stand in for a pack; `system` is
+not written by anything this wave.
+
 ### D14 — Migration doctrine for this wave
 
 Every move is **adopt-in-place** on an existing dev DB (the !198
