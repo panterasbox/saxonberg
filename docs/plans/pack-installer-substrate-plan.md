@@ -12,7 +12,7 @@ Conventions that bind every step (from CLAUDE.md):
 - All new installer logic lives in module-private functions in `packages/server/src/mud/obj/api/PackLogic.ts`; public `PackLogic` methods carry `@CallSecurity(SecurityPolicies.FromModule('/api/pack#PackApi'))`; `PackApi` (`mud/api/pack.ts`) stays a thin decorated forwarding shell exporting only the class + call-shape types. No new Api, no free-floating helpers, no new module categories.
 - All DB writes ride `PersistApi` (`lint:pm`). No new write path skips the chokepoint.
 - Every new test touching the wired runtime imports `test-bootstrap` (first import). `pnpm test:near` mid-build; **one** full `pnpm test` before the MR.
-- Commit shape: `feat(pack): …` / `refactor(pack): …` / `feat(governance): …` per step; wave 0 is its own leading commit series (per A24, it may even land as its own standalone MR first — the user's call; the plan works either way, and either way no wave-1 code ever speaks the old collection name).
+- Commit shape: `feat(pack): …` / `refactor(pack): …` / `feat(governance): …` per step; wave 0 is the leading commit series. **ONE MR for the whole build** — the user reviews once; never split wave 0 or the design docs into separate MRs. Build on `design/pack-installer` directly (it already carries the slate addenda, requirements, and this plan); push every turn.
 
 ---
 
