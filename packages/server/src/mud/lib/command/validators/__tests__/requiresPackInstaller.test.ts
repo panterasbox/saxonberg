@@ -33,7 +33,7 @@ function stubCommittee(group: Group | null): void {
 function committeeWith(...members: string[]): Group {
   const g = new Group();
   g.name = 'pack-installers';
-  g.owner = 'office:prime-minister';
+  g.owner = Group.officeOwner('prime-minister');
   for (const m of members) g.addMember(m);
   return g;
 }

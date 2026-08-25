@@ -78,6 +78,49 @@ describe('PersistenceManager domain→content migration (I/O)', () => {
   });
 });
 
+describe('PersistenceManager groups.owner migration (I/O)', () => {
+  function fakeGroups(rows: Array<Record<string, unknown>>) {
+    const updateOne = vi.fn(async (q: Record<string, unknown>, u: Record<string, unknown>) => {
+      const row = rows.find((r) => r._id === q._id)!;
+      Object.assign(row, (u as { $set: Record<string, unknown> }).$set);
+    });
+    return {
+      rows,
+      updateOne,
+      collection: (_name: string) => ({
+        find: (q: Record<string, unknown>) => ({
+          toArray: async () =>
+            (q.owner as { $type?: string })?.$type === 'string'
+              ? rows.filter((r) => typeof r.owner === 'string')
+              : rows.slice(),
+        }),
+        updateOne,
+      }),
+    };
+  }
+
+  it('upgrades every string owner shape once; typed rows are untouched; second run is a no-op', async () => {
+    const pm = PersistenceManager.get();
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const db = fakeGroups([
+      { _id: '1', name: 'core', owner: 'system' },
+      { _id: '2', name: 'mine', owner: '/obj/Avatar/alice' },
+      { _id: '3', name: 'pack-installers', owner: 'office:prime-minister' },
+      { _id: '4', name: 'typed', owner: { kind: 'office', office: 'mayor' } },
+    ]);
+    expect(await pm.runGroupOwnerMigrationForTest(db)).toBe(3);
+    expect(db.rows.map((r) => r.owner)).toEqual([
+      { kind: 'system' },
+      { kind: 'player', templatePath: '/obj/Avatar/alice' },
+      { kind: 'office', office: 'prime-minister' },
+      { kind: 'office', office: 'mayor' },
+    ]);
+    expect(db.updateOne).toHaveBeenCalledTimes(3);
+    expect(await pm.runGroupOwnerMigrationForTest(db)).toBe(0);
+    expect(db.updateOne).toHaveBeenCalledTimes(3);
+  });
+});
+
 describe('pack_installs policy', () => {
   it('is refused to circles — installer state is system state', () => {
     expect(COLLECTION_POLICIES[Collections.PackInstalls]?.verb).toBe('refuse');

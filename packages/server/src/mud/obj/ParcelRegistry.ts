@@ -567,7 +567,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     if (!group) {
       group = new Group();
       group.name = name;
-      group.owner = "system";
+      group.owner = Group.systemOwner();
       await group.save();
     }
     if (!group._id) return null;

@@ -437,7 +437,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   ): Promise<Group> {
     const g = new Group();
     g.name = name;
-    g.owner = ownerId;
+    g.owner = Group.playerOwner(ownerId);
     // Go through addMember (not bulk field-writes) so each role is
     // validated and the two parallel arrays stay index-aligned.
     for (let i = 0; i < memberIds.length; i++) {

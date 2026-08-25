@@ -382,6 +382,7 @@ export class PersistenceManager {
       // createIndex on `content` would auto-create an empty `content`
       // collection and make the rename fail forever after.
       await this.#migrateDomainToContent(this.db);
+      await this.#migrateGroupOwners(this.db);
 
       // Create indexes
       await this.createIndexes();
@@ -434,6 +435,52 @@ export class PersistenceManager {
       );
     }
     return plan;
+  }
+
+  /**
+   * The one-time upgrade of `groups.owner` from a bare string (`system`,
+   * an Avatar templatePath, the short-lived `office:<key>` sentinel) to
+   * the typed `GroupOwner`. Idempotent: rows already carrying an object
+   * are not matched. Returns the number of rows rewritten.
+   */
+  async #migrateGroupOwners(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    const col = db.collection(Collections.Groups);
+    const legacy = await col.find({ owner: { $type: 'string' } }).toArray();
+    if (legacy.length === 0) return 0;
+    // Lazy: the model imports Document → PersistApi → this module; a
+    // static import here is a cycle at load time. By the time connect()
+    // runs, everything is loaded.
+    const { Group } = await import('../mud/lib/social/Group');
+    for (const row of legacy) {
+      await col.updateOne(
+        { _id: row._id },
+        { $set: { owner: Group.ownerFromStored(row.owner) } },
+      );
+    }
+    if (legacy.length > 0) {
+      console.info(
+        `PersistenceManager: upgraded ${legacy.length} groups.owner row(s) to the typed GroupOwner (one-time migration)`
+      );
+    }
+    return legacy.length;
+  }
+
+  /** Test seam for `#migrateGroupOwners`. Not used at runtime. */
+  async runGroupOwnerMigrationForTest(db: Parameters<PersistenceManager['runGroupOwnerMigrationForTestImpl']>[0]): Promise<number> {
+    return this.runGroupOwnerMigrationForTestImpl(db);
+  }
+  private runGroupOwnerMigrationForTestImpl(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    return this.#migrateGroupOwners(db);
   }
 
   /**

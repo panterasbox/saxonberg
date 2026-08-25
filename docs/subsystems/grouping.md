@@ -239,7 +239,7 @@ export class Group extends Document {
   };
 
   name: string = '';
-  owner: string = '';                  // owner: a templatePath, `system`, or `office:<key>`
+  owner: GroupOwner = { kind: 'system' };   // a typed principal — see below
   memberIds: string[] = [];
   memberRoles: GroupRole[] = [];
 
@@ -261,31 +261,44 @@ The role vocabulary is the coarse common set: `'owner' | 'admin' |
 'member'`. Source systems wanting richer hierarchies model them
 internally — the facade returns the coarse role.
 
-## Office-owned groups
+## The owner — a typed principal
 
-`Group.owner` may be the **`office:<key>` sentinel** (e.g.
-`office:prime-minister`): a group owned by a government *office* rather
-than a person (slate A25 — offices are heads, committees are hands). The
-field, `fieldMeta`, and Document shape are unchanged; it is a string.
+`Group.owner` is a **`GroupOwner`**, the `ParcelOwner` shape one
+collection over:
 
-Ownership then resolves **on read**, through the one ownership
-resolution — **`GroupApi.ownsGroup(actor, group)`** (Api → `GroupLogic` →
+```ts
+export type GroupOwner =
+  | { kind: 'system' }                          // seeded structure — owned by nobody
+  | { kind: 'player'; templatePath: string }    // the creator (an Avatar)
+  | { kind: 'office'; office: string };         // a government OFFICE (slate A25)
+```
+
+Constructed through `Group.systemOwner()` / `playerOwner(path)` /
+`officeOwner(key)`; authored in `config/groups.yaml` as `system`,
+`{ office: <key> }`, or `{ player: <templatePath> }`. Rows written
+before 2026-08 held a bare string (`system`, a templatePath, briefly an
+`office:<key>` sentinel); `PersistenceManager.#migrateGroupOwners` rewrites
+them once at boot through `Group.ownerFromStored`, which the readers also
+pass through.
+
+Ownership resolves **on read**, through the one ownership resolution —
+**`GroupApi.ownsGroup(actor, group)`** (Api → `GroupLogic` →
 `GroupRegistry.ownsGroup`; state stays on the registry singleton, the
-Api stays thin):
+Api stays thin) — dispatching on `kind`:
 
-- a plain owner → `group.owner === actor.getTemplatePath()` (today's
-  comparison, centralized);
-- an `office:` owner → `CompactApi.holdsOffice(actor, key)`, which
-  already encodes *absence of a handoff row = founder default* and fails
-  closed with no registry. **Never** a stamped player id, **never**
-  `isFounder` directly. A bare `office:` fails closed.
+- `system` → nobody;
+- `player` → `templatePath === actor.getTemplatePath()`;
+- `office` → `CompactApi.holdsOffice(actor, office)`, which already
+  encodes *absence of a handoff row = founder default* and fails closed
+  with no registry. **Never** a stamped player id, **never** `isFounder`
+  directly. An empty office key fails closed.
 
 Consequence: handing the seat (`office assign`) hands every group the
 office owns, with **no data migration** — the Group row is never
 rewritten. `GroupController`'s four ownership gates (`delete`, `rename`,
 `role` owner-only; `add`, `remove` owner-or-admin) route through it, and
 `group show` renders an office owner as
-`office:prime-minister (held by <holder>)`.
+`the office of prime-minister (held by <holder>)`.
 `ManagedGroupProvider.roleOf` is deliberately untouched — roster roles
 stay roster-based; ownership is a resolution, not a row. First user: the
 `pack-installers` committee

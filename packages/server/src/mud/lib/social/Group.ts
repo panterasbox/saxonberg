@@ -25,6 +25,24 @@ import type { FieldMeta } from '../mixin';
 
 export type GroupRole = 'owner' | 'admin' | 'member';
 
+/**
+ * Who owns a managed group — a typed principal, the `ParcelOwner`
+ * shape one collection over:
+ *  - `system` — seeded structure (the core/wizards/streamers groups, the
+ *    parcel-title mint-or-find groups). Owned by nobody.
+ *  - `player` — the creator: an Avatar `templatePath`.
+ *  - `office` — a government OFFICE (slate A25: offices are heads,
+ *    committees are hands). Ownership resolves on read through
+ *    `CompactApi.holdsOffice`, so handing the seat hands the group with
+ *    no data migration.
+ * `GroupApi.ownsGroup` is the one resolution; nothing compares this
+ * field by hand.
+ */
+export type GroupOwner =
+  | { kind: 'system' }
+  | { kind: 'player'; templatePath: string }
+  | { kind: 'office'; office: string };
+
 const VALID_ROLES: ReadonlySet<GroupRole> = new Set([
   'owner',
   'admin',
@@ -43,17 +61,37 @@ export class Group extends Document {
   /** Human-readable name. Unique-indexed at the collection level. */
   name: string = '';
 
+  /** The owning principal. See {@link GroupOwner}. */
+  owner: GroupOwner = { kind: 'system' };
+
+  static systemOwner(): GroupOwner {
+    return { kind: 'system' };
+  }
+  static playerOwner(templatePath: string): GroupOwner {
+    return { kind: 'player', templatePath };
+  }
+  static officeOwner(office: string): GroupOwner {
+    return { kind: 'office', office };
+  }
+
   /**
-   * The owner: a player reference (an Avatar templatePath) of the
-   * creator, `system` for seeded structure, or the **`office:<key>`
-   * sentinel** (`office:prime-minister`) — a group owned by a government
-   * OFFICE rather than a person. Ownership then resolves on read through
-   * `CompactApi.holdsOffice` (`GroupApi.ownsGroup`), so handing the
-   * seat hands the group with no data migration (slate A25: offices are
-   * heads, committees are hands). Still a plain string — the Document
-   * shape is unchanged.
+   * The one-time upgrade of a pre-2026-08 stored owner (a bare string:
+   * `system`, an Avatar templatePath, or the short-lived `office:<key>`
+   * sentinel) to the typed shape. Idempotent: a typed owner passes
+   * through. The boot migration rewrites stored rows once; the readers
+   * (`ownsGroup`, `group show`) also pass through it, so a row minted by
+   * older code between the two is still read correctly.
    */
-  owner: string = '';
+  static ownerFromStored(raw: unknown): GroupOwner {
+    if (raw && typeof raw === 'object' && typeof (raw as GroupOwner).kind === 'string') {
+      return raw as GroupOwner;
+    }
+    if (typeof raw !== 'string' || raw === '' || raw === 'system') {
+      return { kind: 'system' };
+    }
+    if (raw.startsWith('office:')) return { kind: 'office', office: raw.slice('office:'.length) };
+    return { kind: 'player', templatePath: raw };
+  }
 
   /**
    * Index-aligned with `memberRoles`. Each entry is a player reference

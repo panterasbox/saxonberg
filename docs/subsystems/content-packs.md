@@ -358,14 +358,14 @@ room is lightly-trodden ground: **restart remains the universal go-live**
 ### Who may run it — the `pack-installers` committee
 
 `config/groups.yaml` seeds **`pack-installers`** with
-`owner: office:prime-minister` and zero members: the executive's
+`owner: { office: prime-minister }` and zero members: the executive's
 content-operations committee (offices are heads, committees are hands —
 slate A25). Ownership resolves on read through `GroupApi.ownsGroup` →
 `CompactApi.holdsOffice` (founder default included), so handing the PM
 seat hands the committee with **no data migration**; the seat-holder
 appoints with the ordinary `group add pack-installers <player>`. The
-`office:` owner sentinel is documented in
-[grouping.md](./grouping.md#office-owned-groups).
+typed `GroupOwner` is documented in
+[grouping.md](./grouping.md#the-owner--a-typed-principal).
 
 `requiresPackInstaller` (`lib/command/validators/`) gates the verb on
 membership per se: no `isWizard` anywhere in the pack path (the

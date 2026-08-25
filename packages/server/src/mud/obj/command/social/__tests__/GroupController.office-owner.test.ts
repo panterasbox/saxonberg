@@ -129,7 +129,7 @@ beforeEach(async () => {
   // As GroupSeeder seeds it from config/groups.yaml: office-owned, empty.
   const g = new Group();
   g.name = 'pack-installers';
-  g.owner = 'office:prime-minister';
+  g.owner = Group.officeOwner('prime-minister');
   await g.save();
 });
 afterEach(() => {
@@ -169,12 +169,12 @@ describe('the appointment ceremony', () => {
 
     pmHolder = alice.getTemplatePath(); // `office assign alice prime-minister`
     expect(await groupAdd(founder, m2)).toBe(false);
-    expect((await committeeRow()).owner).toBe('office:prime-minister');
+    expect((await committeeRow()).owner).toEqual({ kind: 'office', office: 'prime-minister' });
     expect(await committeeRow()).toEqual(rowBefore); // the handoff wrote nothing here
 
     expect(await groupAdd(alice, m2)).toBe(true);
     expect(await passesGate(m2)).toBe(true);
-    expect((await committeeRow()).owner).toBe('office:prime-minister'); // still the OFFICE
+    expect((await committeeRow()).owner).toEqual({ kind: 'office', office: 'prime-minister' }); // still the OFFICE
   });
 
   it('`group show` names the office and who holds it', async () => {
@@ -200,6 +200,6 @@ describe('the appointment ceremony', () => {
       { subcommand: 'show', name: 'pack-installers' } as unknown as CommandModel,
       ctxFor(anyone),
     );
-    expect(shown).toContain('office:prime-minister (held by the founder)');
+    expect(shown).toContain('the office of prime-minister (held by the founder)');
   });
 });

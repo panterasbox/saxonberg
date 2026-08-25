@@ -547,7 +547,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     }
     const g = new Group();
     g.name = 'core';
-    g.owner = 'system';
+    g.owner = Group.systemOwner();
     await g.save();
     if (g._id) this.cachedCoreRef = `managed:${g._id}`;
   }
@@ -577,7 +577,7 @@ export default class AccessRegistry extends AccessRegistryBase {
       } else {
         const g = new Group();
         g.name = 'wizards';
-        g.owner = 'system';
+        g.owner = Group.systemOwner();
         await g.save();
         wizards = g;
       }
@@ -615,7 +615,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (!streamers) {
       const g = new Group();
       g.name = 'streamers';
-      g.owner = 'system';
+      g.owner = Group.systemOwner();
       await g.save();
       streamers = g;
     }
@@ -652,7 +652,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (!archwizards) {
       const g = new Group();
       g.name = 'archwizards';
-      g.owner = 'system';
+      g.owner = Group.systemOwner();
       await g.save();
       archwizards = g;
     }

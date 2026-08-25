@@ -85,7 +85,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = new Group();
     g.name = name;
-    g.owner = avatar.getTemplatePath() ?? '';
+    g.owner = Group.playerOwner(avatar.getTemplatePath() ?? '');
     g.memberIds = [avatar.getTemplatePath() ?? ''];
     g.memberRoles = ['owner'];
     await g.save();
@@ -273,18 +273,25 @@ export default class GroupController extends CommandController<GroupModel> {
     return g.roleOf(avatar.getTemplatePath() ?? '') === 'admin';
   }
 
-  /** `office:<key>` owners render with who holds the seat right now. */
+  /** An office owner renders with who holds the seat right now. */
   private async describeOwner(g: Group): Promise<string> {
-    const owner = g.owner ?? '';
-    if (!owner.startsWith('office:')) return owner;
-    const holder = await CompactApi.officeHolderOf(owner.slice('office:'.length));
-    const held =
-      holder.kind === 'explicit'
-        ? holder.holderPlayerId
-        : holder.kind === 'founder'
-          ? holder.founderLabel
-          : 'nobody — unknown office';
-    return `${owner} (held by ${held})`;
+    const owner = Group.ownerFromStored(g.owner);
+    switch (owner.kind) {
+      case 'system':
+        return 'system';
+      case 'player':
+        return owner.templatePath;
+      case 'office': {
+        const holder = await CompactApi.officeHolderOf(owner.office);
+        const held =
+          holder.kind === 'explicit'
+            ? holder.holderPlayerId
+            : holder.kind === 'founder'
+              ? holder.founderLabel
+              : 'nobody — unknown office';
+        return `the office of ${owner.office} (held by ${held})`;
+      }
+    }
   }
 
   private async findGroupByName(name: string): Promise<Group | null> {

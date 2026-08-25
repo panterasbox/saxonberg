@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GroupApi } from '../../api/group';
 import { CompactApi } from '../../api/compact';
 import { StuffApi } from '../../api/stuff';
-import { Group } from '../../lib/social/Group';
+import { Group, type GroupOwner } from '../../lib/social/Group';
 import { Idea } from '../../lib/stuff/Idea';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import GroupRegistry from '../GroupRegistry';
@@ -22,7 +22,7 @@ function actor(path: string): Idea {
   return makeStuffAtPath(() => new Idea(), path);
 }
 
-function group(owner: string): Group {
+function group(owner: GroupOwner): Group {
   const g = new Group();
   g.name = 'g';
   g.owner = owner;
@@ -56,18 +56,18 @@ afterEach(() => {
 
 describe('GroupApi.ownsGroup', () => {
   it('plain owner: matches the actor templatePath, and nothing else', async () => {
-    const g = group(ALICE);
+    const g = group(Group.playerOwner(ALICE));
     expect(await GroupApi.ownsGroup(actor(ALICE), g)).toBe(true);
     expect(await GroupApi.ownsGroup(actor(FOUNDER), g)).toBe(false);
   });
 
   it('`system` owner is owned by nobody', async () => {
-    expect(await GroupApi.ownsGroup(actor(ALICE), group('system'))).toBe(false);
+    expect(await GroupApi.ownsGroup(actor(ALICE), group(Group.systemOwner()))).toBe(false);
   });
 
   it('office owner: true for the seat-holder, false otherwise (via holdsOffice)', async () => {
     stubOffices({ 'prime-minister': ALICE });
-    const g = group('office:prime-minister');
+    const g = group(Group.officeOwner('prime-minister'));
     expect(await GroupApi.ownsGroup(actor(ALICE), g)).toBe(true);
     expect(await GroupApi.ownsGroup(actor(FOUNDER), g)).toBe(false);
     expect(CompactApi.holdsOffice).toHaveBeenCalledWith(expect.anything(), 'prime-minister');
@@ -75,14 +75,14 @@ describe('GroupApi.ownsGroup', () => {
 
   it('office owner, no handoff row: the founder holds it by default', async () => {
     stubOffices({});
-    const g = group('office:prime-minister');
+    const g = group(Group.officeOwner('prime-minister'));
     expect(await GroupApi.ownsGroup(actor(FOUNDER), g)).toBe(true);
     expect(await GroupApi.ownsGroup(actor(ALICE), g)).toBe(false);
   });
 
   it('a handoff transfers ownership with the Group document unchanged', async () => {
-    const g = group('office:prime-minister');
-    const before = { owner: g.owner, memberIds: [...g.memberIds], memberRoles: [...g.memberRoles] };
+    const g = group(Group.officeOwner('prime-minister'));
+    const before = { owner: structuredClone(g.owner), memberIds: [...g.memberIds], memberRoles: [...g.memberRoles] };
 
     stubOffices({});
     expect(await GroupApi.ownsGroup(actor(FOUNDER), g)).toBe(true);
@@ -96,8 +96,28 @@ describe('GroupApi.ownsGroup', () => {
     expect({ owner: g.owner, memberIds: g.memberIds, memberRoles: g.memberRoles }).toEqual(before);
   });
 
-  it('a bare `office:` owner fails closed', async () => {
+  it('an office owner with an empty key fails closed', async () => {
     stubOffices({});
-    expect(await GroupApi.ownsGroup(actor(FOUNDER), group('office:'))).toBe(false);
+    expect(await GroupApi.ownsGroup(actor(FOUNDER), group(Group.officeOwner('')))).toBe(false);
+  });
+
+  it('a legacy string owner (a row older code wrote) still resolves through the upgrade', async () => {
+    stubOffices({});
+    const g = group(Group.systemOwner());
+    (g as unknown as { owner: unknown }).owner = FOUNDER; // pre-typed row
+    expect(await GroupApi.ownsGroup(actor(FOUNDER), g)).toBe(true);
+    expect(await GroupApi.ownsGroup(actor(ALICE), g)).toBe(false);
+  });
+});
+
+describe('Group.ownerFromStored', () => {
+  it('maps every legacy string shape and passes typed owners through', () => {
+    expect(Group.ownerFromStored('system')).toEqual({ kind: 'system' });
+    expect(Group.ownerFromStored('')).toEqual({ kind: 'system' });
+    expect(Group.ownerFromStored(undefined)).toEqual({ kind: 'system' });
+    expect(Group.ownerFromStored('/obj/Avatar/x')).toEqual({ kind: 'player', templatePath: '/obj/Avatar/x' });
+    expect(Group.ownerFromStored('office:prime-minister')).toEqual({ kind: 'office', office: 'prime-minister' });
+    const typed = Group.officeOwner('mayor');
+    expect(Group.ownerFromStored(typed)).toBe(typed);
   });
 });
