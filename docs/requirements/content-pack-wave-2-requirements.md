@@ -8,11 +8,11 @@ packs). This wave gives the installer its **plain and dispatch-adjacent
 contribution kinds** — documents, settings, subjects, command views,
 wiki pages — collapses the one-off collections into the document
 store, repoints the document store's write gate onto the parcel
-registry, and **retires seven seeders** as their kinds land. Six packs
+registry, and **retires seven seeders** as their kinds land. Ten packs
 are cut out of `packages/server`: `platform` (the seed of pack zero),
-`expression`, `arcane-library`, `corpo`, `wiki-starter`,
-`generic-objects` (recipes only this wave), plus an early
-`saxonberg-lounge` holding its scripts.
+`expression`, `arcane-library`, the five `corpo-<key>` packs,
+`wiki-starter`, `generic-objects` (recipes only this wave), plus an
+early `saxonberg-lounge` holding its scripts.
 
 Seeding slates: `docs/slates/builds/content-packs-slate.md` (Part 9;
 addenda 2, 8, 10, 14, 16, 18, 22, 24, 26, 27) and
@@ -62,7 +62,7 @@ addenda 2, 8, 10, 14, 16, 18, 22, 24, 26, 27) and
   rebuild + curated pack files), Script, Channel, AppSettings, Wiki.
   Their `config/*.yaml` aggregates and the seed dirs they read are
   deleted — the file-per-artifact breakup rides the migration.
-- **Six packs** exist under `packages/content/`, cut as `git mv`s
+- **Ten packs** exist under `packages/content/`, cut as `git mv`s
   wherever the rows already exist as files, with the installer's
   adopt-in-place bridge covering every existing dev DB.
 - **`lint:test-content`** exists, warn-only, with a shrinking allowlist
@@ -346,15 +346,25 @@ dimension is **out** (nothing narrows yet).
 | **platform** | `platform` / `/platform` | settings defaults (split by section) · Help/Global/Chat subjects · 10 curated blueprints · ~200 core command views | new files from `config/*.yaml` + `git mv mud/cmd → content/cmd` |
 | **expression** | `expression` / `/expression` | 34 emotes, one file each, aliases → `searchTerms` | new files from `config/emotes.yaml` |
 | **arcane-library** | `arcane-library` / `/arcane-library` | the Spell templates + GlowlightOrb + SparkSource (~14 template rows) | `git mv` from `mud/seeds/obj/…` (domain kind, template paths unchanged) |
-| **corpo** | `corpo` / `/corpo` | the 5 Corpo + Brand data Ideas (`/obj/corpo/**`) | `git mv`; the `mud/bootstrap.ts` boot entries stay (manifest is wave 3) |
+| **corpo-aevex** · **corpo-goodkin** · **corpo-hollis** · **corpo-veshko** · **corpo-vionne** | `corpo-<key>` / `/corpo/<key>` | that corpo's `Corpo` data Idea + its `Brand` rows (`/obj/corpo/**` for that key) — one pack per corpo | five `git mv`s; the `mud/bootstrap.ts` boot entries and the `groups.yaml` board rows stay platform-seeded (manifest + `requires:` are wave 3) |
 | **wiki-starter** | `wiki-starter` / `/wiki` | the 7 pages as markdown | new files from `config/wiki-pages.yaml` |
 | **generic-objects** | `generic-objects` / `/generic-objects` | the 11 recipes only | new files from `config/recipes.yaml`; its templates are wave 3 |
 | **saxonberg-lounge** | `saxonberg-lounge` / `/domain/lounge` | the 3 `.script` files only | `git mv mud/domain/lounge/scripts/` ; the rest of the lounge is wave 4 |
 
 `dependsOn` per the readers: `platform` first (settings/subjects are
-read by everything), `corpo` before `saxonberg-lounge` (neon/goodkin
-refs are data pointers, not install-order — declare only what
-`requires-kernel` would catch). Every pack is registered in
+read by everything); `saxonberg-lounge` names the corpos it actually
+references (`corpo-goodkin` for `banksAt`, `corpo-vionne` for the neon)
+— honest, per-corpo dependencies, not "corpos".
+
+**Concept = platform, instance = pack.** Corpos *as a concept* — the
+`Corpo`/`Brand` classes, `CorpoCatalogue`, `BrandedMixin`, the
+`/corpo/<key>` namespace kind, the board-group-holds-title machinery —
+are kernel code and stay platform (the substrate-vocabulary doctrine,
+A21). Each *corpo* is a swappable instance and ships as its own pack,
+whose root `/corpo/<key>` is exactly the branch it holds title over —
+`sourcePack` ↔ extent align one-to-one (A4), and wave 3's
+`requires: title` for a corpo pack is literally its root. Supersedes
+A27.2's single `corpo` pack. Every pack is registered in
 `server/package.json`; `lint:instanceable` covers the template ones
 automatically.
 
@@ -449,8 +459,9 @@ line is what a build agent reports if it stops after it.
 5. **The blueprint split** (D10): `BlueprintCatalogue.rebuild()`; 10
    curated files into `platform`; **BlueprintSeeder dies**. *Exit: six
    seeders retired; 2a's seeder list is done.*
-6. **`arcane-library` and `corpo` packs** (template `git mv`s, the cheap
-   step — placed here so a stop after it still ships two packs).
+6. **`arcane-library` and the five `corpo-<key>` packs** (template
+   `git mv`s, the cheap step — placed here so a stop after it still
+   ships six packs).
 7. **The `DocumentLogic` → `ParcelApi` repoint** (D11) — kernel-only, no
    content moves; independently revertable.
 8. **`lint:test-content`** + the four eternal fixture shrinks + the
@@ -469,8 +480,8 @@ line is what a build agent reports if it stops after it.
 
 ## Acceptance criteria
 
-- **Fresh DB**: boot installs ten packs (the four shipped + the six
-  new), `pack status` lists ten applied records; `documents` holds
+- **Fresh DB**: boot installs fourteen packs (the four shipped + the
+  ten new), `pack status` lists fourteen applied records; `documents` holds
   every emote/recipe/name-bank/blueprint/script/command-view row with
   the right `kind`, `sourcePack`, and `path`; the `emotes`, `recipes`,
   `name_banks` collections do not exist.
@@ -515,7 +526,7 @@ line is what a build agent reports if it stops after it.
 - **Docs**: the subsystem docs listed in step 11 updated; CLAUDE.md
   lines at the sweep.
 - **Drive** (recorded on the MR): boot 1 migrates + adopts, boot 2 is a
-  no-op; `pack status` as a committee member lists ten packs; an emote
+  no-op; `pack status` as a committee member lists fourteen packs; an emote
   from `expression` fires; a recipe from `generic-objects` resolves in
   crafting; `help look` is served from the store; a CMS edit of a verb
   goes live; a wiki page from `wiki-starter` renders.
