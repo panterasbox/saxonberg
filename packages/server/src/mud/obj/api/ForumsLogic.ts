@@ -130,7 +130,7 @@ export class ForumsLogic extends ApiLogic {
         subject.manifestationRef('ordered-forum');
       if (!ref) continue;
       const board = await Board.findById(ref);
-      if (board) out.push({ board, subject });
+      if (board && !board.isArchived()) out.push({ board, subject });
     }
     return out;
   }

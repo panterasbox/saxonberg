@@ -120,13 +120,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // SubjectCatalogue — the Subject-layer runtime view (identity +
   // audience + per-subject subscriptions, the linking spine under chat +
   // forums). Warms from the `forum_subjects` collection (populated by
-  // `ChannelSeeder.run`, which now mints an open Subject per standalone
+  // the platform pack's `subject` kind, which mints an open Subject per standalone
   // channel). Must precede `ChannelCatalogue`, which resolves it
   // synchronously to read audience + subscriptions.
   { templatePath: '/obj/SubjectCatalogue' },
   // ChannelCatalogue — chat substrate singleton. Owns the byName /
   // byHandle / history maps; warms its `byName` cache from the
-  // `channels` collection (populated by `ChannelSeeder.run`). Reads
+  // `channels` collection (populated by the platform pack's subjects). Reads
   // identity + audience through `SubjectCatalogue` (above).
   {
     templatePath: '/obj/ChannelCatalogue',

@@ -29,6 +29,7 @@ export default class Board extends Document {
     name: { persistent: true },
     description: { persistent: true },
     override: { persistent: true },
+    archived: { persistent: true },
   };
 
   /** The `_id` of the {@link Subject} this board manifests. */
@@ -45,6 +46,16 @@ export default class Board extends Document {
 
   /** Inert moderation-override bag (designed-in, not built in v1). */
   override: Record<string, unknown> = {};
+
+  /**
+   * Archived by the content installer (archive-never-reap): hidden from
+   * the board listing; its entries stay.
+   */
+  archived: boolean = false;
+
+  isArchived(): boolean {
+    return this.archived;
+  }
 
   getSubject(): string {
     return this.subject;
