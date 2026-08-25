@@ -299,8 +299,9 @@ operator set), but `kept` is the normal outcome for a tuned key and is
 - `content/wiki/<namespace>/<slug>.md`: YAML frontmatter (`title`,
   `subject?`, `tags?`, `related?`, `spoilerLevel?`, `aliases?`) + the
   markdown body. Target: `wiki` + `wiki_revisions` through
-  `WikiRegistry`'s own mutators (`createPage` / `editPage`), acting as
-  the `system` author — the seeder's bypass ends.
+  `WikiRegistry`'s own mutators (`createPage` / `editPage`), the
+  installer acting **as the pack** — the revision author is `pack:<id>`,
+  never `system` (D15); the seeder's bypass ends.
 - APPLY: page absent → `createPage` (rev 1); present and the file's
   body ≠ the record's baseline body → `editPage` with `baseRev` = the
   rev recorded at last install. `WikiConflict` → a `PackConflict`
