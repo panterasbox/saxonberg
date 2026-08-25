@@ -680,7 +680,7 @@ row discriminator. **The seeding surface is one third built:**
 | ledger | seeder | wired to char-gen |
 |---|---|---|
 | `chronicles` | ✅ `ChronicleApi.seedClaims(owner, {text, order}[])` | ✅ `EnrollController:753` |
-| `disposition_events` | ✅ `TraitApi.seedClaims(owner, {disposition, valence}[])` | ❌ NPCs only (`Behaved._seedDispositions`) |
+| `disposition_events` | ✅ `TraitApi.seedClaims(owner, {disposition, valence}[])` — ⚠ needs a `when` (below) | ❌ NPCs only (`Behaved._seedDispositions`) |
 | `transcripts` | ❌ **missing** | ❌ |
 
 ⚠ And the one wired third is fed from `aspiration?.claimSeeds` — **the
@@ -711,27 +711,45 @@ later re-tune re-scores seeded history exactly like everyone else's.
 ⚠ **The card's `Knows` band is the CHILD's**, not the parent's. Wen is
 better at the forge than you are.
 
-##### ⭐⭐⭐ Seeded claims never decay — which breaks this section's promise
+##### ⭐⭐⭐ The `when` on a seeded claim — ⚠ DIAGNOSED, NOT FIXED
 
-`TraitPosition.derive` computes `age = now - (e.when ?? now)`, and
-`TraitApi.seedClaims` writes `kind` / `disposition` / `valence` and **no
-`when`**. So a seed ages zero seconds forever and holds full weight
-permanently, while your own *deeds* decay on the 180-game-day half-life.
+⚠ **An earlier revision of this section said the opposite and was wrong.**
+It claimed seeded claims never decayed. They do — `buildAndSave` sets
+`entry.when = fields.when ?? WorldClockApi.getNow().rawValue()` for
+**every kind**, and `seedClaims` passes no `when`, so a seed is written
+*dated at seed time* and then ages on the 180-game-day half-life like any
+deed.
 
-> ⚠⚠ Result: **you are permanently marked and only temporarily able to
-> mask it.** Sustained contrary behavior pushes against the seed; stop,
-> your deeds fade, and the upbringing reasserts. That is the exact
-> opposite of *"you can grow out of your upbringing, slowly"* above.
+Which inverts which half is broken:
 
-**The fix is one field: char-gen seeds carry a real `when`** — a
-birth-relative game time — so childhood evidence ages like everything
-else. Your origins then dominate a young character and have largely
-faded from an old one, which is also just correct.
+- **The player half is already correct.** A dated upbringing seed fades,
+  which is exactly *"you can grow out of your upbringing, slowly."*
+- ⚠⚠ **The NPC half is a live bug.** `Behaved._seedDispositions` is
+  idempotent — it skips if any `claim` row exists — so nothing ever
+  refreshes an authored NPC. **Sloane's authored character fades and
+  never comes back.** Every trait test passes throughout, because they
+  derive at a fixed `now`.
 
-⭐ **And the NPC case wants the opposite, from the same field, for
-free.** Sloane should read `guarded` permanently, so authored NPCs keep
-omitting `when`. Same Api, same seed type — **presence of `when` is the
-switch between an authored character and a lived one.**
+**The proposed fix** — specified here, deliberately not built, since the
+trait ledger has no player-side writer for it to serve yet:
+
+Default `when` **by kind**, matching the sibling ledger (a chronicle
+`claim` is likewise always `when: null`):
+
+| kind | default `when` | effect |
+|---|---|---|
+| `deed` | the clock | an event is always located in time |
+| `claim` | **`null`** — timeless | `now - (when ?? now) === 0` ⇒ full weight forever |
+
+…and give `ClaimSeed` an optional `when`, forwarded verbatim, honouring an
+**explicit null** (`!== undefined`, not `??`).
+
+⭐ **The design conclusion holds either way, and it is the reason to want
+the parameter:**
+
+> **Presence of `when` is the switch between an authored character and a
+> lived one.** An NPC omits it and never fades; a char-gen upbringing seed
+> dates it birth-relative and ages.
 
 ⭐ A property worth keeping: `Competence` has **no decay term** and the
 trait estimator does. So a decade on you still know a forge and you are
@@ -953,7 +971,7 @@ expensive half; let the cheap half measure the appetite first.
     it looks, since early play is Terminus / Hinkley Hills / the wilds
     and everyone is from the same vicinity.
 12. **Is 180 game-days the right half-life for a seeded claim?** With
-    `when` set (§ *Seeded claims never decay*), a 55-valence seed drops
+    `when` set (§ *The `when` on a seeded claim*), a 55-valence seed drops
     below `defined` in roughly a game-year and a half. Whether that is
     the right rate at which to outgrow your upbringing is a calibration
     question, and it is entangled with question 7's clock scale.
