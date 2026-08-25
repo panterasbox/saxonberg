@@ -19,7 +19,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { ScriptApi } from "../../../api/script";
 import { StoredDocument } from "../../document/StoredDocument";
 import { AccessApi } from "../../../api/access";
-import { ZoneApi } from "../../../api/zone";
 import { CommandApi } from "../../../api/command";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -106,8 +105,8 @@ beforeEach(() => {
   } as unknown as PersistenceManager);
 
   // Default: path resolves to no zone → the slice-walk can(write) gate.
-  vi.spyOn(ZoneApi, "resolveZoneForPath").mockResolvedValue(null);
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+  vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
 
   actor = makeStuffAtPath(() => new TestGiver(), OWNER);
 });
@@ -123,8 +122,8 @@ describe("script store — save", () => {
 
     const doc = await StoredDocument.findByPath(SCRIPT_PATH);
     expect(doc).not.toBeNull();
-    // Scripts are one kind of stored document: kind='script', data={source}.
-    expect(doc!.getKind()).toBe("script");
+    // Scripts are one kind of stored document: kind=msh, data={source}.
+    expect(doc!.getKind()).toBe("msh");
     expect((doc!.getData().source as string)).toBe("ping; ping");
     expect(doc!.getOwner()).toBe(OWNER);
 
@@ -138,6 +137,7 @@ describe("script store — save", () => {
     // A foreign `/home/<other>/` path the `/home/test` actor doesn't own
     // → not the self-home base case → the slice-walk `can(write)` applies.
     vi.spyOn(AccessApi, "can").mockResolvedValue(false);
+    vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(false);
     await expect(
       runAs(() => ScriptApi.saveScript("/home/other/scripts/greet", "ping")),
     ).rejects.toThrow();
@@ -150,6 +150,7 @@ describe("script store — save", () => {
     // consult `AccessApi.can`. (Regression: the home-bank transcribe was
     // wrongly denied for ordinary players.)
     vi.spyOn(AccessApi, "can").mockResolvedValue(false);
+    vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(false);
     await runAs(() => ScriptApi.saveScript(SCRIPT_PATH, "ping; ping"));
     const doc = await StoredDocument.findByPath(SCRIPT_PATH);
     expect(doc).not.toBeNull();
@@ -163,7 +164,8 @@ describe("script store — save", () => {
     // push/tag frames — the bug this guards) and bank the transcribed
     // recipe to the builder's own `/home/<self>/` store. No giver, no
     // pre-tag here — exactly the scheduler-completion scenario.
-    vi.spyOn(AccessApi, "can").mockResolvedValue(false); // self-home only
+    vi.spyOn(AccessApi, "can").mockResolvedValue(false);
+    vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(false); // self-home only
     const path = await ExecutionContextApi.runRoot(Stuff, "completion", () =>
       ScriptApi.captureManualBuild(actor, "martini", "Gin Martini", [
         "pour gin into shaker",

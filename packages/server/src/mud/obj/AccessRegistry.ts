@@ -32,6 +32,7 @@ import { GroupApi } from '../api/group';
 import { ZoneApi } from '../api/zone';
 import { StuffApi } from '../api/stuff';
 import { ParcelApi } from '../api/parcel';
+import type { TreeAction } from '../api/access';
 import { CompactApi } from '../api/compact';
 import { Collections } from '../lib/persistence/Collections';
 import { Template } from '../lib/stuff/Template';
@@ -135,6 +136,26 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const path = this.zoneOf(resource)?.getTemplatePath() ?? '';
+    const owner = await ParcelApi.ownerOf(path);
+    return this.subjectIsOwnerMember(subject, memberKey, owner);
+  }
+
+  /**
+   * Path-targeted title check (the document store's gate, D11): the
+   * covering owner via `ParcelApi.ownerOf(path)` — rung 1 a parcel, rung
+   * 2 the self-home, rung 3 the state — then the `can()` dispatch of
+   * that owner, verbatim. No zone step, no `core` literal: `ownerOf`'s
+   * rung 3 IS the state default.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async canAtPath(
+    subject: Stuff | null,
+    _action: TreeAction,
+    path: string,
+  ): Promise<boolean> {
+    if (subject === null) return false;
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return false;
     const owner = await ParcelApi.ownerOf(path);
     return this.subjectIsOwnerMember(subject, memberKey, owner);
   }

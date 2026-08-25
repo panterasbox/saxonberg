@@ -15,7 +15,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Transcriber } from "../Transcriber";
 import { ScriptApi } from "../../../api/script";
 import { AccessApi } from "../../../api/access";
-import { ZoneApi } from "../../../api/zone";
 import { CommandApi } from "../../../api/command";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -80,8 +79,8 @@ beforeEach(() => {
     findById: vi.fn(),
     delete: vi.fn(),
   } as unknown as PersistenceManager);
-  vi.spyOn(ZoneApi, "resolveZoneForPath").mockResolvedValue(null);
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+  vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
   actor = makeStuffAtPath(() => new TestGiver(), OWNER);
 });
 

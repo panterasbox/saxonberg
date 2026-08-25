@@ -75,7 +75,31 @@ function asAuthorityQuery<T>(fn: () => Promise<T>): Promise<T> {
   });
 }
 
+/**
+ * The path-tree mutation vocabulary (content-packs slate A22.1): what a
+ * write to one of the three path-addressed trees IS. Closed; only
+ * `write-document` is wired this wave (the document store's gate), the
+ * other two name the template and source trees for the gate that
+ * follows them.
+ */
+export type TreeAction = 'write-document' | 'write-template' | 'write-source';
+
 export class AccessApi {
+  /**
+   * Path-targeted title check: may `subject` perform `action` at `path`
+   * in a path-addressed tree? Resolves the covering title through
+   * `ParcelApi.ownerOf` (rung 1 a parcel, rung 2 the self-home, rung 3
+   * the state) and asks the `can()` dispatch of that owner — no zone
+   * step, no `core` literal. NPCs and null subjects fail closed.
+   */
+  public static async canAtPath(
+    subject: Stuff | null,
+    action: TreeAction,
+    path: string
+  ): Promise<boolean> {
+    return asAuthorityQuery(() => logic().canAtPath(subject, action, path));
+  }
+
   /**
    * Resource-targeted slice walk. Returns true iff `subject` is a
    * member of any group owning the resource's zone-tree slice. NPCs

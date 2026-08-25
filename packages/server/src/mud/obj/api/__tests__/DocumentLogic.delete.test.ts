@@ -8,7 +8,6 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../../../api/document';
 import { AccessApi } from '../../../api/access';
-import { ZoneApi } from '../../../api/zone';
 import { ProvenanceApi } from '../../../api/provenance';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
@@ -45,7 +44,6 @@ beforeEach(() => {
       rows = rows.filter((r) => r._id !== id);
     }),
   } as unknown as PersistenceManager);
-  vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(null);
   vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined as never);
   actor = makeStuffAtPath(() => new Idea(), '/home/test') as unknown as Stuff;
 });
@@ -62,12 +60,14 @@ describe('DocumentApi.delete', () => {
 
   it('is refused for a stranger outside their home', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
     await expect(runAs(() => DocumentApi.delete('/emotes/grin'))).rejects.toThrow(/permission/);
     expect(deleted).toEqual([]);
   });
 
   it('is admitted when the ownership stack says so, and reports a missing row as false', async () => {
     vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     expect(await runAs(() => DocumentApi.delete('/emotes/grin'))).toBe(true);
     expect(await runAs(() => DocumentApi.delete('/emotes/grin'))).toBe(false);
   });

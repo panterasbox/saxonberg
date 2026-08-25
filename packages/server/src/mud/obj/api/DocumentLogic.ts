@@ -4,7 +4,6 @@
 import { ApiLogic } from "../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../lib/security/decorators";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
-import { ZoneApi } from "../../api/zone";
 import { AccessApi } from "../../api/access";
 import { ParcelApi } from "../../api/parcel";
 import { ProvenanceApi } from "../../api/provenance";
@@ -54,25 +53,20 @@ function isOwnHomePath(actor: Stuff, path: string): boolean {
 }
 
 /**
- * Access-gate a document mutation by path, reusing the existing
- * zone/access stack: an owner always owns their own `/home/<self>/`
- * branch (no broader grant needed); else the covering spatial zone gates
- * via `canMutateZone`; absent one, the slice-walk `can(write)` applies.
- * Returns a denial message, or null when permitted.
+ * Access-gate a document mutation by path on PARCEL TITLE (content-packs
+ * wave 2, D11): an owner always owns their own `/home/<self>/` branch
+ * (no broader grant needed); otherwise `AccessApi.canAtPath` resolves
+ * the covering title through `ParcelApi.ownerOf` — rung 1 a parcel, rung
+ * 2 the self-home, rung 3 the state — and asks that owner's `can()`
+ * dispatch. No zone walk, no `core` literal. Returns a denial message,
+ * or null when permitted.
  */
 async function gateMutation(
   actor: Stuff | null,
   path: string,
 ): Promise<string | null> {
   if (actor !== null && isOwnHomePath(actor, path)) return null;
-  const zone = await ZoneApi.resolveZoneForPath(path);
-  if (zone) {
-    if (!(await AccessApi.canMutateZone(actor, zone))) {
-      return "you don't have permission to mutate that document's zone";
-    }
-    return null;
-  }
-  if (!(await AccessApi.can(actor, "write", null))) {
+  if (!(await AccessApi.canAtPath(actor, "write-document", path))) {
     return "you don't have permission to write that document";
   }
   return null;

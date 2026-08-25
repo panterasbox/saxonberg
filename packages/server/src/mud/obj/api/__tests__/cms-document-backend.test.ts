@@ -15,7 +15,6 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CmsApi } from "../../../api/cms";
 import { AccessApi } from "../../../api/access";
-import { ZoneApi } from "../../../api/zone";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
@@ -64,8 +63,8 @@ beforeEach(() => {
     delete: vi.fn(),
   } as unknown as PersistenceManager);
 
-  vi.spyOn(ZoneApi, "resolveZoneForPath").mockResolvedValue(null);
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+  vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
   vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(true);
 
   actor = makeStuffAtPath(() => new Idea(), OWNER) as unknown as Stuff;
