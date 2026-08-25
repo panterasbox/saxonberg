@@ -21,6 +21,7 @@ import { GroupApi } from '../../../api/group';
 import { ChatApi } from '../../../api/chat';
 import Avatar from '../../Avatar';
 import { PlayerApi } from '../../../api/player';
+import { CompactApi } from '../../../api/compact';
 
 interface GroupModel extends CommandModel {
   name?: string;
@@ -100,7 +101,7 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!name) return this.fail(context, 'group name required', 'name-required');
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== (avatar.getTemplatePath() ?? '')) {
+    if (!(await GroupApi.ownsGroup(avatar, g))) {
       return this.fail(context, 'Only the owner may disband.', 'not-owner');
     }
     const id = g._id;
@@ -124,7 +125,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = await this.findGroupByName(oldName);
     if (!g) return this.fail(context, `No group '${oldName}'.`, 'no-such-group');
-    if (g.owner !== (avatar.getTemplatePath() ?? '')) {
+    if (!(await GroupApi.ownsGroup(avatar, g))) {
       return this.fail(context, 'Only the owner may rename.', 'not-owner');
     }
     g.name = newName;
@@ -145,7 +146,7 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!name) return this.fail(context, 'group name required', 'name-required');
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== (avatar.getTemplatePath() ?? '') && g.roleOf(avatar.getTemplatePath() ?? '') !== 'admin') {
+    if (!(await this.ownerOrAdmin(avatar, g))) {
       return this.fail(context, 'Only owners and admins may add.', 'not-permitted');
     }
     const resolved =
@@ -186,7 +187,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== (avatar.getTemplatePath() ?? '') && g.roleOf(avatar.getTemplatePath() ?? '') !== 'admin') {
+    if (!(await this.ownerOrAdmin(avatar, g))) {
       return this.fail(context, 'Only owners and admins may remove.', 'not-permitted');
     }
     const removed = g.removeMember(targetId);
@@ -214,7 +215,7 @@ export default class GroupController extends CommandController<GroupModel> {
     }
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    if (g.owner !== (avatar.getTemplatePath() ?? '')) {
+    if (!(await GroupApi.ownsGroup(avatar, g))) {
       return this.fail(context, 'Only the owner may set roles.', 'not-owner');
     }
     const changed = g.setMemberRole(targetId, role);
@@ -237,7 +238,7 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!name) return this.fail(context, 'group name required', 'name-required');
     const g = await this.findGroupByName(name);
     if (!g) return this.fail(context, `No group '${name}'.`, 'no-such-group');
-    const lines = [`Group '${name}' (owner: ${g.owner}):`];
+    const lines = [`Group '${name}' (owner: ${await this.describeOwner(g)}):`];
     for (let i = 0; i < g.memberIds.length; i++) {
       lines.push(`  ${g.memberIds[i]}  [${g.memberRoles[i]}]`);
     }
@@ -264,6 +265,26 @@ export default class GroupController extends CommandController<GroupModel> {
       lines.push(`  ${g.name}  [${role}]`);
     }
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
+  }
+
+  /** Owner (resolved through `GroupApi.ownsGroup`) OR an `admin` on the roster. */
+  private async ownerOrAdmin(avatar: Avatar, g: Group): Promise<boolean> {
+    if (await GroupApi.ownsGroup(avatar, g)) return true;
+    return g.roleOf(avatar.getTemplatePath() ?? '') === 'admin';
+  }
+
+  /** `office:<key>` owners render with who holds the seat right now. */
+  private async describeOwner(g: Group): Promise<string> {
+    const owner = g.owner ?? '';
+    if (!owner.startsWith('office:')) return owner;
+    const holder = await CompactApi.officeHolderOf(owner.slice('office:'.length));
+    const held =
+      holder.kind === 'explicit'
+        ? holder.holderPlayerId
+        : holder.kind === 'founder'
+          ? holder.founderLabel
+          : 'nobody — unknown office';
+    return `${owner} (held by ${held})`;
   }
 
   private async findGroupByName(name: string): Promise<Group | null> {

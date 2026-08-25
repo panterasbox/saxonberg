@@ -117,4 +117,10 @@ export class GroupLogic extends ApiLogic {
   public async registry(): Promise<GroupRegistry> {
     return requireRegistry();
   }
+
+  /** See {@link GroupApi.ownsGroup}. */
+  @CallSecurity(GroupApiCallers)
+  public async ownsGroup(actor: Stuff, group: Group): Promise<boolean> {
+    return (await requireRegistry()).ownsGroup(actor, group);
+  }
 }

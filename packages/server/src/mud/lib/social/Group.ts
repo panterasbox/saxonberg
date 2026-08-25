@@ -43,7 +43,16 @@ export class Group extends Document {
   /** Human-readable name. Unique-indexed at the collection level. */
   name: string = '';
 
-  /** Player reference (playerId) of the creator / owner. */
+  /**
+   * The owner: a player reference (an Avatar templatePath) of the
+   * creator, `system` for seeded structure, or the **`office:<key>`
+   * sentinel** (`office:prime-minister`) — a group owned by a government
+   * OFFICE rather than a person. Ownership then resolves on read through
+   * `CompactApi.holdsOffice` (`GroupApi.ownsGroup`), so handing the
+   * seat hands the group with no data migration (slate A25: offices are
+   * heads, committees are hands). Still a plain string — the Document
+   * shape is unchanged.
+   */
   owner: string = '';
 
   /**

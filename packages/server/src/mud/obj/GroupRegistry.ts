@@ -21,6 +21,8 @@ import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import type { GroupProvider, GroupRef, GroupChangeHandle, GroupChangeListener } from '../lib/social/GroupProvider';
 import { GroupApi } from '../api/group';
+import { CompactApi } from '../api/compact';
+import type { Group } from '../lib/social/Group';
 import { ManagedGroupProvider } from '../lib/social/providers/ManagedGroupProvider';
 import { MqlGroupProvider } from '../lib/social/providers/MqlGroupProvider';
 import { ContactsGroupProvider } from '../lib/social/providers/ContactsGroupProvider';
@@ -103,6 +105,30 @@ export default class GroupRegistry extends GroupRegistryBase {
       return { cancel: () => undefined };
     }
     return provider.onChange(id, cb);
+  }
+
+  /** The owner-sentinel prefix for a group owned by a government office. */
+  static readonly OFFICE_OWNER_PREFIX = 'office:';
+
+  /**
+   * Does `actor` own `group`? The ONE ownership resolution:
+   *  - a plain owner is the actor's templatePath (today's comparison,
+   *    centralized here);
+   *  - an `office:<key>` owner resolves through `CompactApi.holdsOffice`,
+   *    which already encodes *absence of a handoff row = founder default*
+   *    and fails closed with no registry. Never a stamped player id,
+   *    never `isFounder` directly.
+   * Roster roles are untouched — ownership is a resolution, not a row.
+   */
+  public async ownsGroup(actor: Stuff, group: Group): Promise<boolean> {
+    const owner = group.owner ?? '';
+    if (owner.startsWith(GroupRegistry.OFFICE_OWNER_PREFIX)) {
+      const key = owner.slice(GroupRegistry.OFFICE_OWNER_PREFIX.length);
+      if (!key) return false;
+      return CompactApi.holdsOffice(actor, key);
+    }
+    const path = actor.getTemplatePath();
+    return path !== null && path !== undefined && path !== '' && owner === path;
   }
 
   /** Internal — managed-provider reference for the controller-side write surface. */
