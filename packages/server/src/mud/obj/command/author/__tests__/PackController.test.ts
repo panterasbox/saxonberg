@@ -39,7 +39,6 @@ const OK: PackReconcileResult = {
   pinnedSkipped: 0,
   normalized: 0,
   quantityTables: 0,
-  nameBanks: 0,
   documents: {},
   rehydrated: 1,
   failure: null,

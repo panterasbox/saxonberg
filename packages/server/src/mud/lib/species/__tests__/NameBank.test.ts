@@ -10,6 +10,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Species from '../../../obj/species/Species';
 import { NameBank } from '../NameBank';
+import { DocumentApi } from '../../../api/document';
+import { StoredDocument } from '../../document/StoredDocument';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -21,19 +23,17 @@ afterEach(() => {
 
 describe('NameBank.resolve', () => {
   it('unions the pools across multiple referenced banks', async () => {
-    vi.spyOn(NameBank, 'find').mockImplementation(async (q: unknown) => {
-      const key = (q as { key: string }).key;
-      const bank = new NameBank();
-      bank.key = key;
-      if (key === 'orcish') {
-        bank.given = ['Gorruk', 'Mogra'];
-        bank.surname = ['Ironmaw'];
-      } else if (key === 'common') {
-        bank.given = ['Alden', 'Cora'];
-        bank.surname = ['Reed'];
-      }
-      return [bank];
-    });
+    const doc = (key: string, given: string[], surname: string[]): StoredDocument => {
+      const d = new StoredDocument();
+      d.path = `/species-and-names/name-banks/${key}`;
+      d.kind = 'name-bank';
+      d.data = { key, given, surname };
+      return d;
+    };
+    vi.spyOn(DocumentApi, 'listOfKind').mockResolvedValue([
+      doc('orcish', ['Gorruk', 'Mogra'], ['Ironmaw']),
+      doc('common', ['Alden', 'Cora'], ['Reed']),
+    ]);
 
     const pools = await NameBank.resolve(['orcish', 'common']);
     expect(pools.given).toEqual(
@@ -43,7 +43,7 @@ describe('NameBank.resolve', () => {
   });
 
   it('skips unseeded banks silently', async () => {
-    vi.spyOn(NameBank, 'find').mockResolvedValue([]);
+    vi.spyOn(DocumentApi, 'listOfKind').mockResolvedValue([]);
     const pools = await NameBank.resolve(['missing']);
     expect(pools.given).toEqual([]);
     expect(pools.surname).toEqual([]);

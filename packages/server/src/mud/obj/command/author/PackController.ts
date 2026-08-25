@@ -252,7 +252,11 @@ export default class PackController extends CommandController<PackModel> {
       `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
       `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
       `${r.pinnedSkipped} row(s) pinned (skipped), ` +
-      `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s), ` +
+      `${r.quantityTables} quantity table(s)` +
+      Object.entries(r.documents)
+        .map(([k, n]) => `, ${n} ${k} document(s)`)
+        .join('') +
+      ', ' +
       `${r.rehydrated} live instance(s) re-hydrated` +
       (r.conflicts.length > 0
         ? '\n' +

@@ -100,10 +100,13 @@ export function rowsIn(col: string): Row[] {
   return store.rows.filter((r) => r.__col === col);
 }
 export const contentRows = (): Row[] => rowsIn('content');
-export const nameBankRows = (): Row[] => rowsIn('name_banks');
 export const documentRows = (): Row[] => rowsIn('documents');
 export const rowsOfKind = (kind: string): Row[] =>
   documentRows().filter((r) => r.kind === kind);
+/** Name banks are the `name-bank` document kind: `data.{key,given,surname,style}`. */
+export const nameBankRows = (): Row[] => rowsOfKind('name-bank');
+export const bankData = (key: string): { given: string[]; surname: string[]; style?: string } =>
+  nameBankRows().find((r) => (r.data as { key: string }).key === key)!.data as never;
 export function recordOf(packId: string): (PackInstallRecord & Row) | undefined {
   return rowsIn('pack_installs').find((r) => r.packId === packId) as
     | (PackInstallRecord & Row)

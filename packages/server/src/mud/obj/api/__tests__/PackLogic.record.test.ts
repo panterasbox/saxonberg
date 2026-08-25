@@ -80,8 +80,8 @@ describe('the install record', () => {
       data: { name: 'gin' },
     });
     const bank = rec.rows['/name-banks/common']!;
-    expect(bank.kind).toBe('name-banks');
-    expect(JSON.parse(bank.body)).toEqual({ given: ['A'], surname: ['B'] });
+    expect(bank.kind).toBe('document:name-bank');
+    expect(JSON.parse(bank.body)).toEqual({ data: { key: 'common', given: ['A'], surname: ['B'] } });
     // The one-time line fired exactly once.
     expect(warn.mock.calls.filter((c) => /ONE-TIME adoption/.test(String(c[0])))).toHaveLength(1);
   });

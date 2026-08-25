@@ -25,6 +25,7 @@ import {
   writePack,
   writeScriptFile,
   writeDocumentFile,
+  writeBankFile,
   cleanupPacks,
 } from './pack-harness';
 
@@ -388,5 +389,93 @@ describe('adoption by natural key (the collapse bridge)', () => {
     const [r] = await PackApi.install([packRoot]);
     expect(r!.failure?.step).toBe('reconcile');
     expect(r!.failure?.error).toMatch(/owned by pack 'q'/);
+  });
+});
+
+/* ───────────── the name-bank re-point (step 3) ───────────── */
+
+describe('name banks ride the document kind', () => {
+  it('a migrated, STAMPED row with an old-shape baseline converges: no content write, no conflict, baseline body is now {data}', async () => {
+    // What the collapse left: the species-and-names row at its provisional
+    // path, still stamped; and the record's old `name-banks` baseline whose
+    // preimage was `{given, surname, style}`.
+    store.rows.push({
+      _id: 'nb-common',
+      __col: 'documents',
+      path: '/name-banks/common',
+      owner: '',
+      kind: 'name-bank',
+      data: { key: 'common', given: ['A'], surname: ['B'] },
+      sourcePack: 'sn',
+    });
+    const oldBody = JSON.stringify({ given: ['A'], surname: ['B'] });
+    store.rows.push({
+      _id: 'rec-sn',
+      __col: 'pack_installs',
+      packId: 'sn',
+      version: '0.1.0',
+      appliedAt: 'x',
+      principal: 'bootstrap',
+      status: 'applied',
+      failure: null,
+      parameters: {},
+      rows: { '/name-banks/common': { kind: 'name-banks', hash: 'sha256:old', body: oldBody } },
+      pins: [],
+      conflicts: [],
+      sideEffects: { kinds: [] },
+    });
+    const packRoot = writePack('sn', [], { root: '/sn' });
+    writeBankFile(packRoot, { key: 'common', given: ['A'], surname: ['B'] });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure).toBeNull();
+    expect([...r!.inserted, ...r!.updated, ...r!.adopted, ...r!.deleted, ...r!.conflicts]).toEqual([]);
+    expect(r!.normalized).toBe(0);
+    const row = rowsOfKind('name-bank')[0]!;
+    expect(row._id).toBe('nb-common');
+    expect(row.data).toEqual({ key: 'common', given: ['A'], surname: ['B'] }); // untouched
+    // Bookkeeping only: the row now lives where the pack says.
+    expect(row.path).toBe('/sn/name-banks/common');
+    expect(row.owner).toBe('/sn');
+    const baseline = recordOf('sn')!.rows['/name-banks/common']!;
+    expect(baseline.kind).toBe('document:name-bank');
+    expect(JSON.parse(baseline.body)).toEqual({ data: { key: 'common', given: ['A'], surname: ['B'] } });
+    // Second boot: all-zero.
+    const [again] = await PackApi.install([packRoot]);
+    expect([...again!.updated, ...again!.kept, ...again!.conflicts]).toEqual([]);
+    expect(again!.normalized).toBe(0);
+  });
+});
+
+/* ───────────── the recipe kind: one cell + the read gate ───────────── */
+
+describe('the recipe document kind', () => {
+  const MARTINI = {
+    name: 'Gin Martini',
+    keywords: ['martini'],
+    inputSlots: [{ slot: 'base', category: 'gin', minGrade: 'fair', measureL: 0.06 }],
+    outputTemplate: '/domain/lounge/cocktail-glass',
+  };
+
+  it('installs at /generic-objects/recipes/<recipeId> and updates on a file change', async () => {
+    const packRoot = writePack('g', [], { root: '/generic-objects' });
+    writeDocumentFile(packRoot, 'recipes', 'martini', MARTINI);
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.inserted).toEqual(['/recipes/martini']);
+    expect(rowsOfKind('recipe')[0]).toMatchObject({
+      path: '/generic-objects/recipes/martini',
+      data: { recipeId: 'martini', name: 'Gin Martini' },
+    });
+    writeDocumentFile(packRoot, 'recipes', 'martini', { ...MARTINI, name: 'Dry Martini' });
+    const s = await PackApi.sync('g', packRoot);
+    expect(s.updated).toEqual(['/recipes/martini']);
+  });
+
+  it('a recipe file with empty inputSlots fails the pack at read', async () => {
+    const packRoot = writePack('g', [], { root: '/generic-objects' });
+    writeDocumentFile(packRoot, 'recipes', 'martini', { ...MARTINI, inputSlots: [] });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure?.step).toBe('read');
+    expect(r!.failure?.error).toMatch(/inputSlots/);
+    expect(documentRows()).toHaveLength(0);
   });
 });

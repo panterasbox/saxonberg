@@ -37,6 +37,9 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { DiagnosticApi } from '../../api/diagnostics';
 import { SoulApi } from '../../api/soul';
 import { TemplatePaths } from '../../lib/paths';
+import { Emote } from '../../lib/social/Emote';
+import { Recipe } from '../../lib/craft/Recipe';
+import type RecipeCatalogue from '../RecipeCatalogue';
 import type {
   PackManifest,
   PackReconcileResult,
@@ -71,17 +74,6 @@ interface DomainFile {
   class: string;
   hydratorClass?: string;
   data: Record<string, unknown>;
-  /** Pack-relative file path, for diagnostics. */
-  relFile: string;
-}
-
-/** A parsed `name-bank`-kind content file (one bank). */
-interface NameBankFile {
-  /** Bank key — the file's basename (`common.yaml` → `common`). */
-  key: string;
-  given: string[];
-  surname: string[];
-  style?: string;
   /** Pack-relative file path, for diagnostics. */
   relFile: string;
 }
@@ -132,9 +124,18 @@ interface DocumentFile {
  * no kind is ever claimed by two strategies.
  */
 const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<DeclaredDocumentKind>([
-  'name-bank', // step 3
   'command-view', // step 9
 ]);
+
+/**
+ * Per-kind shape validation at `read`: what the retired seeders checked
+ * before inserting, moved to the pack boundary so a malformed file fails
+ * the pack before any write. A kind with no entry is stored as parsed.
+ */
+const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => void> = {
+  emote: (d) => void Emote.fromData(d),
+  recipe: (d) => void Recipe.fromData(d),
+};
 
 /** The declared kinds the document reader/strategies serve today. */
 function activeDocumentKinds(): DocumentKindSpec[] {
@@ -152,8 +153,6 @@ interface PackContent {
   documents: Map<string, DocumentFile[]>;
   /** Absolute path to `content/quantity/quantity-tags.yaml`, or null. */
   quantityYaml: string | null;
-  /** Parsed `content/name-banks/*.yaml`, one per bank (empty when absent). */
-  nameBanks: NameBankFile[];
   /** Parsed `content/descriptor-banks/*.yaml`, one per item class. */
   descriptorBanks: DescriptorBankFile[];
 }
@@ -359,6 +358,13 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
           );
         }
       }
+      try {
+        DOCUMENT_VALIDATORS[spec.kind]?.(data);
+      } catch (err) {
+        throw new Error(
+          `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file}: ${(err as Error).message}`,
+        );
+      }
     } else {
       data = { source: readFileSync(file, 'utf-8') };
     }
@@ -415,27 +421,7 @@ function readContent(pack: ResolvedPack): PackContent {
       relFile: relative(pack.root, file),
     });
   }
-  const nameBanks: NameBankFile[] = [];
-  const nbRoot = join(pack.contentRoot, 'name-banks');
-  for (const file of walkYaml(nbRoot)) {
-    const raw = readFileSync(file, 'utf-8');
-    const parsed = YAML.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error(
-        `PackApi: pack '${pack.manifest.id}': malformed name bank at ${file}`,
-      );
-    }
-    const doc = parsed as Record<string, unknown>;
-    nameBanks.push({
-      key: basename(file).replace(/\.yaml$/, ''),
-      given: stringArray(doc.given),
-      surname: stringArray(doc.surname),
-      style: typeof doc.style === 'string' ? doc.style : undefined,
-      relFile: relative(pack.root, file),
-    });
-  }
-
-  // Descriptor banks — the `name-banks` shape verbatim, one kind over.
+  // Descriptor banks — the retired name-bank strategy's shape, one kind over.
   const descriptorBanks: DescriptorBankFile[] = [];
   const dbRoot = join(pack.contentRoot, 'descriptor-banks');
   for (const file of walkYaml(dbRoot)) {
@@ -476,7 +462,6 @@ function readContent(pack: ResolvedPack): PackContent {
     domain,
     documents,
     quantityYaml: existsSync(quantityYaml) ? quantityYaml : null,
-    nameBanks,
     descriptorBanks,
   };
 }
@@ -606,7 +591,7 @@ async function validatePackTopics(
 // --- the per-kind strategy -------------------------------------------------
 
 /** The DB collections a shipped content kind lands in. */
-type KindName = 'domain' | 'name-banks' | 'descriptor-banks' | 'document';
+type KindName = 'domain' | 'descriptor-banks' | 'document';
 
 /** The reconcile policy a kind runs under (requirements D5). */
 type KindPolicy = 'three-way' | 'merge-missing' | 'cas';
@@ -652,7 +637,7 @@ interface KindStrategy<F> {
   /**
    * The install-record key — the file's content-root-relative path with
    * a leading slash and no `.yaml`. For the domain kind this IS the
-   * template path; for a bank it is `/name-banks/<key>`. One uniform
+   * template path; for a bank it is `/descriptor-banks/<key>`. One uniform
    * address for every kind (`pack diff <id> <path>`).
    */
   recordKeyOf(f: F): string;
@@ -726,52 +711,6 @@ const domainStrategy: KindStrategy<DomainFile> = {
   },
 };
 
-interface NameBankRow extends Record<string, unknown> {
-  _id?: string;
-  key: string;
-  given: string[];
-  surname: string[];
-  style?: string;
-  sourcePack: string;
-}
-
-/**
- * Name banks — immutable reference data the char-gen suggester unions by
- * key — into `name_banks`, keyed on the file basename.
- */
-const nameBankStrategy: KindStrategy<NameBankFile> = {
-  kind: 'name-banks',
-  collection: Collections.NameBanks,
-  noun: 'name bank',
-  recordKeyOf: (f) => `/name-banks/${f.key}`,
-  recordKeyOfRow: (r) => `/name-banks/${String(r.key)}`,
-  dbKeyQuery: (f) => ({ key: f.key }),
-  rowOf: (f, packId) => {
-    const row: NameBankRow = {
-      key: f.key,
-      given: f.given,
-      surname: f.surname,
-      sourcePack: packId,
-    };
-    if (f.style !== undefined) row.style = f.style;
-    return row;
-  },
-  canonicalBody: (r) =>
-    canonical({
-      given: r.given ?? [],
-      surname: r.surname ?? [],
-      style: r.style ?? undefined,
-    }),
-  flatKeyOf: (f) => f.key,
-  exportBody: (r) => {
-    const out: Record<string, unknown> = {};
-    if (r.style !== undefined && r.style !== null) out.style = r.style;
-    out.given = r.given ?? [];
-    out.surname = r.surname ?? [];
-    return out;
-  },
-};
-
 /** The row shape PackLogic writes for a descriptor bank (a flat `Document` + stamp). */
 interface DescriptorBankRow extends Record<string, unknown> {
   _id?: string;
@@ -786,7 +725,7 @@ interface DescriptorBankRow extends Record<string, unknown> {
 }
 
 /**
- * Descriptor banks — the name-bank shape one kind over, into
+ * Descriptor banks — a flat-keyed bank kind, into
  * `descriptor_banks`, keyed on the file basename (= the item class). A
  * much hotter read path: appearance renders on every look at every
  * unidentified item, so the cache a write drops matters more here.
@@ -978,6 +917,14 @@ interface PlannedAction {
   conflict?: PackConflict;
   /** `keep` for a vanished file of an `onVanish: 'keep'` kind: drop the baseline too. */
   dropBaseline?: boolean;
+  /**
+   * Bookkeeping re-path (document kinds): a migrated row still at its
+   * provisional path (`/emotes/grin`) moves to the pack's `root + key`
+   * and owner without a content write — `path`/`owner` are not in the
+   * hash preimage, so the converged / normalized / kept cell stays
+   * "no content write" while the row lands where the pack says.
+   */
+  rekey?: { path: string; owner: string };
 }
 
 interface KindPlan<F> {
@@ -1041,28 +988,32 @@ async function computeKindPlan<F>(
       const dbBody = strategy.canonicalBody(stamped);
       const dbHash = hashOf(dbBody);
       const baseline = record?.rows[key] ?? null;
+      const rekey =
+        strategy.kind === 'document' && stamped.path !== row.path
+          ? { path: String(row.path), owner: String(row.owner ?? '') }
+          : undefined;
       if (!baseline) {
         // Adoption bridge / missing baseline: two-way, the file wins,
         // and the baseline is normalized from what is written.
         if (dbHash !== fileHash) {
           actions.push({ op: 'update', key, _id: stamped._id, row, hash: fileHash, body: fileBody });
         } else {
-          actions.push({ op: 'normalize', key, hash: fileHash, body: fileBody });
+          actions.push({ op: 'normalize', key, _id: stamped._id, hash: fileHash, body: fileBody, rekey });
         }
         continue;
       }
       const fileChanged = fileHash !== baseline.hash;
       const dbChanged = dbHash !== baseline.hash;
       if (!fileChanged && !dbChanged) {
-        if (!baseline.body) {
-          actions.push({ op: 'normalize', key, hash: fileHash, body: fileBody });
+        if (!baseline.body || rekey) {
+          actions.push({ op: 'normalize', key, _id: stamped._id, hash: fileHash, body: fileBody, rekey });
         }
       } else if (fileChanged && !dbChanged) {
         actions.push({ op: 'update', key, _id: stamped._id, row, hash: fileHash, body: fileBody });
       } else if (!fileChanged && dbChanged) {
-        actions.push({ op: 'keep', key, _id: stamped._id });
+        actions.push({ op: 'keep', key, _id: stamped._id, rekey });
       } else if (fileHash === dbHash) {
-        actions.push({ op: 'converge', key, hash: fileHash, body: fileBody });
+        actions.push({ op: 'converge', key, _id: stamped._id, hash: fileHash, body: fileBody, rekey });
       } else {
         actions.push({
           op: 'conflict',
@@ -1157,6 +1108,12 @@ interface AppliedKind {
   normalized: number;
 }
 
+/** The bookkeeping `$set` of `path`/`owner` a `rekey` action carries. */
+async function rekeyRow<F>(strategy: KindStrategy<F>, a: PlannedAction): Promise<void> {
+  if (!a.rekey || !a._id) return;
+  await PersistApi.save(strategy.collection, { _id: a._id, ...a.rekey });
+}
+
 /**
  * The write half: perform a plan's writes through the PersistApi
  * chokepoint and mutate `record.rows` to match. Never called by a dry
@@ -1206,6 +1163,7 @@ async function applyKindPlan<F>(
         break;
       case 'keep':
         if (a.dropBaseline) delete record.rows[a.key];
+        await rekeyRow(strategy, a);
         out.kept.push(a.key);
         break;
       case 'archive':
@@ -1219,11 +1177,15 @@ async function applyKindPlan<F>(
       case 'submit':
         throw new Error(`PackApi: op '${a.op}' has no apply for kind '${strategy.kind}'`);
       case 'converge':
+        await rekeyRow(strategy, a);
         baseline(a);
         break;
       case 'normalize':
+        await rekeyRow(strategy, a);
         baseline(a);
-        out.normalized++;
+        // A pure re-path over an intact baseline is bookkeeping, not a
+        // normalization the operator needs to hear about.
+        if (!a.rekey || !record.rows[a.key]?.body) out.normalized++;
         break;
       case 'conflict':
         out.conflicts.push(a.conflict!);
@@ -1240,7 +1202,6 @@ async function applyKindPlan<F>(
 function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
   const out: Array<KindPlanInput<unknown>> = [
     { strategy: domainStrategy as KindStrategy<unknown>, files: content.domain },
-    { strategy: nameBankStrategy as KindStrategy<unknown>, files: content.nameBanks },
     {
       strategy: descriptorBankStrategy as KindStrategy<unknown>,
       files: content.descriptorBanks,
@@ -1264,7 +1225,6 @@ function emptyContent(root: string): PackContent {
     domain: [],
     documents: new Map(activeDocumentKinds().map((s) => [s.kind, []])),
     quantityYaml: null,
-    nameBanks: [],
     descriptorBanks: [],
   };
 }
@@ -1276,7 +1236,6 @@ interface KindPlanInput<F> {
 
 /** The strategy a record key belongs to, by its prefix. */
 function strategyForKey(key: string, root: string): KindStrategy<unknown> {
-  if (key.startsWith('/name-banks/')) return nameBankStrategy as KindStrategy<unknown>;
   if (key.startsWith('/descriptor-banks/')) {
     return descriptorBankStrategy as KindStrategy<unknown>;
   }
@@ -1349,8 +1308,6 @@ function filesOfKind(content: PackContent, strategy: KindStrategy<unknown>): unk
   switch (strategy.kind) {
     case 'domain':
       return content.domain;
-    case 'name-banks':
-      return content.nameBanks;
     case 'descriptor-banks':
       return content.descriptorBanks;
     case 'document':
@@ -1431,7 +1388,6 @@ function emptyResult(packId: string): PackReconcileResult {
     pinnedSkipped: 0,
     normalized: 0,
     quantityTables: 0,
-    nameBanks: 0,
     documents: {},
     rehydrated: 0,
     failure: null,
@@ -1456,6 +1412,18 @@ async function invalidateDocumentKind(kind: string): Promise<void> {
       if (StuffApi.findByTemplatePath(TemplatePaths.soulCatalogue)) {
         await SoulApi.invalidateCache();
       }
+      return;
+    case 'recipe': {
+      // The recipe read surface is SYNC, so a resident catalogue is
+      // re-warmed here rather than dropped.
+      const cat = StuffApi.findByTemplatePath<RecipeCatalogue>('/obj/RecipeCatalogue');
+      if (cat) await cat.warm();
+      return;
+    }
+    case 'name-bank':
+      // Banks are cached by key on first resolve; the edit must reach
+      // the next char-gen suggest.
+      NameBank.clearCache();
       return;
     default:
       return;
@@ -1536,7 +1504,7 @@ async function reconcilePack(
     });
   }
 
-  // Side effects (go-live) per kind.
+  // Side effects (go-live) per document kind.
   for (const [label, applied] of perKind) {
     if (!label.startsWith('document:')) continue;
     const kind = label.slice('document:'.length);
@@ -1545,15 +1513,6 @@ async function reconcilePack(
     const touched = written + c.deleted.length + applied.archived.length;
     if (touched > 0 || content.documents.has(kind)) result.documents[kind] = written;
     if (touched > 0) await invalidateDocumentKind(kind);
-  }
-
-  const nb = perKind.get('name-banks')!;
-  result.nameBanks =
-    nb.changes.inserted.length + nb.changes.updated.length + nb.changes.adopted.length;
-  // Banks are cached by key on first resolve; a live sync that changed any
-  // bank must drop the cache so the edit reaches the next char-gen suggest.
-  if (opts.rehydrate && result.nameBanks + nb.changes.deleted.length > 0) {
-    NameBank.clearCache();
   }
 
   const db = perKind.get('descriptor-banks')!;
@@ -1875,7 +1834,6 @@ export class PackLogic extends ApiLogic {
       const r = emptyResult(packId);
       r.updated.push(path);
       if (strategy.kind === 'domain') r.rehydrated = await rehydrate([path], []);
-      else if (strategy.kind === 'name-banks') NameBank.clearCache();
       else if (strategy.documentKind) await invalidateDocumentKind(strategy.documentKind);
       else {
         DescriptorBank.clearCache();

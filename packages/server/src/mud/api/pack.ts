@@ -75,8 +75,6 @@ export interface PackReconcileResult {
   normalized: number;
   /** (unit, scale) tag pairs (re)loaded; 0 when the pack has no quantity kind. */
   quantityTables: number;
-  /** Name banks written (insert/update/adopt); 0 when the pack has none. */
-  nameBanks: number;
   /**
    * Document rows written (insert/update/adopt) per document kind
    * (`{ emote: 34, msh: 3 }`); absent kinds are absent keys.
