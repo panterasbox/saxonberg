@@ -266,6 +266,34 @@ and the practitioner is redundant.
 And act-without-axis is how memory actually works: you remember the thing
 you did, not which trait it scored.
 
+### ⚠⚠ Scope: it protects YOUR derivation, not other people's
+
+*(Added 2026-08-25 after over-applying the rule to
+[lineage-slate](./lineage-slate.md)'s char-gen gallery.)*
+
+The rule is about **the readable record of your own acts**. It does
+**not** say axes may never be displayed about *anyone*.
+
+> **Other people's dispositions are not your derivation**, and reading
+> another person is the thing humans are actually good at.
+
+⭐⭐ The sharpest case is the one that corrected this: **children read
+their parents better than parents read themselves** — highest-exposure
+observers, over a lifetime, with no stake. So the lineage gallery's
+Disposition column showing the *parents* is not a leak; it is the
+best-founded measurement on that screen. What must not appear is the
+same data **labelled as the child's own equilibrium**.
+
+⭐ The residue is one word, not a rule: *say what they are; never label
+it your position.* Knowing you were raised by guarded people is an
+ordinary thing to know. What people are poor at is knowing **what they
+became** — and that gap is what the practitioner examines, undamaged.
+
+⚠ **Also retracted:** the claim that a disposition label fails the
+lineage slate's *"char-gen must not say anything the world cannot later
+confirm"* test. People who knew a household have impressions of it. It
+confirms.
+
 `recall` — one owner-only verb over your own frames, already built for
 *half-remembering* — is probably most of this surface already.
 
@@ -420,7 +448,7 @@ is true.**
 
 | | |
 |---|---|
-| **acts, never axes** | the readable record shows what you did, never which axis it fed or how much. One axis label and the practitioner is redundant |
+| **acts, never axes** | the readable record of **your own** acts shows what you did, never which axis it fed or how much. ⚠ Scoped: says nothing about displaying *other people's* dispositions |
 | **band-blind narration** | identical prose at valence 20 and 70. This is the platform's whole reason to own the frame |
 | **no band-transition triggers** | a gauge with one tick |
 | **author decides whether; platform decides how** | the author is the only one who knows a moment was load-bearing |

@@ -181,7 +181,7 @@ the row is about *people*. What the player is actually comparing is
 |---|---|
 | **Trade** | what you grew up around → shapes the antecedents budget |
 | **Place** | where you are from → where you start, who knows you |
-| **Disposition** | 2–3 pole labels → your equilibrium (`pronouncedFor`'s shape) |
+| **Disposition** | 2–3 pole labels — **what the parents are**, not the child's starting position (`pronouncedFor`'s shape; see the note below) |
 | **Knows** | a Discipline or two, banded |
 | **Standing** | how the household is regarded, one word |
 | **Means** | what they can give you — ⚠ a **type**, never an amount |
@@ -192,6 +192,47 @@ One row per household; the drill-in gives the two people, the
 deviation-descriptors, and the prose that makes you care once you have
 narrowed to two candidates. List-and-detail, because the grid serves the
 decision and the detail serves the commitment.
+
+### ⭐ Say what the PARENTS are — never label it the child's position
+
+*(Correction, 2026-08-25, from the [narration-slate](./narration-slate.md)
+cross-check. The column stays; one phrase goes.)*
+
+An earlier revision of the row above read *"2–3 pole labels → **your
+equilibrium**."* That phrasing — not the column — is the problem, and it
+is the only part of this screen that hands the player a readout of
+themselves.
+
+**Showing the parents' dispositions is fine, and is arguably the best-
+founded measurement on the card:**
+
+> ⭐⭐ **Children read their parents better than parents read
+> themselves.** Highest-exposure observers, over a lifetime, with no
+> stake in the answer. That is the direction the self–other asymmetry
+> actually runs — so a child knowing the household is the *strong* case,
+> not a leak.
+
+And it is not the child's derivation. *Acts, never axes* protects **your
+own position**; your mother's is not yours. Knowing you were raised by
+guarded people is an ordinary thing to know — what people are poor at is
+knowing **what they became**. ⭐ **That gap is exactly what the
+practitioner examines, and it survives with the parents fully legible.**
+
+⚠ Two further reasons the stat-sheet worry does not land here:
+
+- **A roster is complete; this is a highlight.** The column shows
+  deviations from the mean — whatever the generator weights as notable —
+  which is already `pronouncedFor`'s shape, not a sheet.
+- **It is confirmable.** People who knew the household have impressions,
+  so the field passes the consistency rule after all. (An earlier draft
+  of this correction claimed it failed; that was wrong.)
+
+⭐ **A convergence worth noting:** weighting generator output by
+deviation-from-mean is the same principle as
+[trait-slate](./trait-slate.md)'s `expressed = equilibrium + deviation`
+and `measurement.md` Part 6's *"announce the surprising, not the every."*
+**The deviation is the story** arrived here independently, which is
+usually a sign it is right.
 
 ⭐ **Closed vocabularies are why this is buildable.** ONI's grid works
 because its traits are a small icon set; ours would work for the same
