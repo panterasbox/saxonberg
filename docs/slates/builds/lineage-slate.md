@@ -188,10 +188,29 @@ the row is about *people*. What the player is actually comparing is
 | ⭐ **Hook** | typed: a debt, a feud, a shop, a name owed |
 | **Status** | living / gone — consequential either way |
 
-One row per household; the drill-in gives the two people, the
-deviation-descriptors, and the prose that makes you care once you have
-narrowed to two candidates. List-and-detail, because the grid serves the
+One row per household. List-and-detail, because the grid serves the
 decision and the detail serves the commitment.
+
+⚠ **CORRECTED 2026-08-25 — the drill-in is stats too, not prose.** An
+earlier revision said the detail view gives *"the prose that makes you
+care."* It does not:
+
+> **User: "a running game and an actual player doesn't want a novel.
+> They want simple stats they can read through quickly and lock in and
+> shuffle to find the combinations they're looking for, without giving
+> them direct authorial control. It also makes sure pairings are
+> balanced."**
+
+⭐ **Four lines, not four paragraphs**: the two names, each parent's
+trade and faith, the hook's actual target (*counting-house: Vale &
+Sons*), and which one is gone. Prose slows the shuffle to a crawl, and
+the shuffle is the mechanic — procgen-over-picking exists so you *don't*
+author your background.
+
+⭐⭐ And the second half of that quote is the load-bearing one: **prose
+cannot be balanced; a stat block can.** Everything in *The balance
+mechanism* below is only possible because every cell is a drawn value
+from a closed vocabulary.
 
 ### ⭐ Say what the PARENTS are — never label it the child's position
 
@@ -251,6 +270,45 @@ exactly the empty promise the consistency rule exists to prevent. Typed,
 it is a quest seed, a contract, a relationship edge, or a property claim,
 all of which already have machinery.
 
+#### ⭐⭐ `Hook` is two columns wearing one hat
+
+`debt` · `feud` · `missing` are **obligations**. `holding` · `favour` ·
+`apprenticeship` are **openings**. They share one slot, so a card can
+draw all-cost — which is exactly how the *forager · herdsman* card in
+the worked gallery ended up reading as a punishment.
+
+> **The fix uses structure already present: one hook per parent, and the
+> pair may never be two obligations.**
+
+Column count unchanged, and it is diegetic — each parent brings their
+own entanglement.
+
+#### ⭐⭐⭐ An obligation is inherited as REGARD, never as a liability
+
+> **User: "we obviously don't want to saddle the player with debt when
+> they start."**
+
+Correct, and the design already answers it: **the parents are person
+records with their own existence, so the debt is Wen's, not yours.** A
+hook is a fact about your *family*.
+
+What you inherit is the **relationship** — a `REGARD` row on the
+counting-house teller pointed at you, starting negative. That is
+existing machinery: per-viewer regard on the NPC's `BeliefStore`, keyed
+to your `templatePath`, and `TraitApi.regardBaseline` supplies a
+baseline only when no row exists. Seeding one is a single write.
+
+> ⭐⭐ **An obligation hook costs regard and access, never money.**
+
+Onboarding-safe — nobody duns a new character — and better than a
+starting balance: you begin with someone who has a reason to be cool
+with you, and **paying your father's note becomes a goal you may opt
+into**, never a burden you were handed. Same for `feud`: a hostile edge,
+not a debuff.
+
+⭐ The weight table below is unchanged by this. Obligations still debit;
+they debit the **social** column instead of the ledger.
+
 ### ⚠ Comparable means optimizable — and why that is survivable
 
 A grid is an invitation to solve. ONI players reroll for good duplicants;
@@ -266,6 +324,84 @@ capital does the rest.
 
 This is the incomparability doctrine finally doing load-bearing work
 rather than sitting in a design document.
+
+### ⭐⭐ The balance mechanism — internal weight, visible kinds
+
+The incomparability doctrine says no card is better. Left alone, that is
+aspiration rather than a property: `both gone` + `rough` + `feud` is
+plainly a heavier card than `steady` + `coin`, and a gallery with good
+and bad families turns the shuffle into a hunt for the good ones.
+
+The resolution is the firewall the platform uses everywhere else:
+
+> ⭐⭐⭐ **The generator balances on an internal scalar. The card shows
+> only kinds.**
+
+The player cannot compute it — `Means` is a type and never an amount,
+hooks are not scored, `Standing` is one word — so there is **no total
+order to solve**, and simultaneously **no card that is simply worse.**
+Exactly `theta` stored / bands shown, one level up.
+
+⭐ It is also what makes the generator *testable*: net-weight variance
+over ten thousand draws is an assertion you can write. You could never
+write it against prose.
+
+⚠ **The numbers below are placeholders.** Structure is the deliverable;
+calibration waits on a running game, the same posture `Competence` takes
+with its BKT constants.
+
+**Means** — asset only
+
+| | | | |
+|---|---|---|---|
+| `nothing` 0 | `tools` +1 | `stock` +1 | `a name` +2 |
+| `credential` +2 | `coin` +2 | `land-share` +3 | |
+
+**Hook** — split by direction (§ *Hook is two columns*)
+
+| obligations | | openings | |
+|---|---|---|---|
+| `debt` −2 | `feud` −2 | `apprenticeship` +2 | `holding` +2 |
+| `missing` −1 | | `favour` +1 | |
+
+**Standing** — `respected` +2 · `steady` 0 · `rough` −1 · `reduced` −2 ·
+`notorious` −1 ⭐ (*mixed, not merely low — notorious is high renown with
+negative regard, which is different in kind from `rough`*)
+
+**Status** — `living` +1 · `one gone` 0 · `both gone` −1 **+ a Means
+upgrade** (below)
+
+**Knows** — +1 per Discipline at `novice`, +2 at `competent`
+
+**Raised** — **0, always.**
+
+> ⚠⚠ **The disposition column must weigh zero**, or the generator has
+> **priced personality** — and every argument in this project against
+> ranked traits collapses at the one screen where they are most visible.
+
+**Target:** net ≈ 0, ±1 — wide internal variance, narrow net.
+
+#### ⭐⭐ `both gone` carries the estate
+
+Two dead parents means you inherited. As a bare liability it is both
+unbalanced *and wrong*: there is nobody else holding the tools, the
+herd, or the plot.
+
+**Couple it — `both gone` upgrades Means.** Not a balance patch; it is
+what actually happens. The *forager · herdsman* card stops being the
+punishment card because it hands you the animals.
+
+#### ⭐ One scalar hides one thing: liquidity
+
+`coin` and `land-share` both weigh high and are not interchangeable —
+coin is liquid with a low ceiling, land illiquid with the highest
+ceiling in the game. Balance the net and a gallery could still show nine
+liquid cards.
+
+So the generator needs **a second, non-scalar constraint on the visible
+page**: every gallery spans both liquid and illiquid Means, and more
+than one trade family. **Net weight makes cards fair; page composition
+makes the shuffle worth doing.**
 
 ### Two constraints on generation
 
@@ -314,6 +450,39 @@ the same pool you would otherwise bank.
 ⭐ No arbitrary cap, no scarcity theater: reroll twenty times and you
 arrive broke but exactly the person you wanted. Being picky costs, the
 way it does everywhere else.
+
+#### ⚠⚠ …but household `Means` must never finance the shuffle
+
+> **User: "rerolls cost zorkmids, so the more you personalize the less
+> money you start with. That's just coin — but some of these other
+> things probably have the same issue."**
+
+The leak is real and it is narrow. If a household's `coin` fed the same
+pool rerolls are priced against, then **rerolling to find a `coin`
+household finances its own search** — a degenerate loop, and it makes
+`coin` strictly best as the only Means convertible into more shuffling.
+Incomparability breaks at the root.
+
+One rule closes it:
+
+> ⭐⭐ **Char-gen has exactly one currency — the uniform allotment — and
+> it buys exactly three things: body/faculty, banked capital, rerolls.
+> Household `Means` is inventory, not currency.**
+
+**Nothing a household gives you is spendable before you exist.** `coin`
+arrives *with* you.
+
+Checking the rest of the vocabulary for the same leak: `land-share`,
+`tools` and `stock` all convert to money eventually, but only **in-world**,
+where that is simply the economy working — they cannot finance the
+shuffle because the shuffle is over by then. `a name` and `credential`
+never convert. So the leak is `coin`-only, and it is closed by naming
+which pool rerolls draw from.
+
+⭐ Worth noting the cost: this makes `coin` the **least exciting** Means
+— "you start with some money," liquid and low-ceiling. That is fine, and
+probably correct. It is the option for a player who does not want the
+household deciding anything for them.
 
 ---
 
@@ -484,6 +653,100 @@ drive `expressed`.** So the family choice is a permanent baseline rather
 than a permanent verdict — sustained contrary behavior moves equilibrium
 eventually, and **you can grow out of your upbringing, slowly.** That is
 the property an inescapable species field could never have.
+
+#### ⭐⭐ Disposition correlates with CIRCUMSTANCE, never with the trade
+
+The generator has to draw the `Raised` column from *something* or it
+reads as noise stapled to a family. It must not be the trade — *"delvers
+are guarded"* is the same essentialism one axis over, and
+[trade-roster-slate](./trade-roster-slate.md) already bans the identical
+move on faith (*"if a player can conclude 'delvers are Cernunnos,' we
+have built essentialism"*).
+
+> ⭐ **Draw it from `Standing`, `Status` and the hooks — the household's
+> story, not its job.**
+
+A `reduced` household carrying a `debt` plausibly raised you guarded. A
+`both gone` household plausibly raised you self-reliant. That is
+*hardship shapes people*, which is true and teachable — not *smiths are
+a personality type*, which is neither. It is also what makes two
+smallholder cards feel like different families.
+
+#### ⚠⚠ What adopting a household actually WRITES — the seeding surface
+
+Three evidence ledgers, all three carrying a `kind: 'deed' | 'claim'`
+row discriminator. **The seeding surface is one third built:**
+
+| ledger | seeder | wired to char-gen |
+|---|---|---|
+| `chronicles` | ✅ `ChronicleApi.seedClaims(owner, {text, order}[])` | ✅ `EnrollController:753` |
+| `disposition_events` | ✅ `TraitApi.seedClaims(owner, {disposition, valence}[])` | ❌ NPCs only (`Behaved._seedDispositions`) |
+| `transcripts` | ❌ **missing** | ❌ |
+
+⚠ And the one wired third is fed from `aspiration?.claimSeeds` — **the
+field this slate retires.** The only live char-gen seeding path hangs
+off the thing being replaced.
+
+`TranscriptEntry.kind` already declares `claim` ("*a study / LMS
+attestation… no consumer mints claims this increment*"), so the row
+supports it and only the seeder is absent.
+
+##### ⭐ Advancement's seeder is shaped differently from the other two
+
+Trait and chronicle seeds are near-copies of their deed rows. A
+Transcript row cannot be, because `Competence.derive` **folds** rows
+through a Bayesian update — nobody can author *"grew up around a forge"*
+as seven rows at difficulty `hard`, outcome `success`.
+
+The authoring unit is a **band**, which is what the roster already
+speaks (*"`Knows` band comes from the household"*):
+
+> ⭐⭐ **`AdvancementApi.seedClaims(owner, [{discipline, band}])` is a
+> band-to-evidence synthesizer, not a row appender.**
+
+The only place in the platform an estimator runs backwards — which
+deserves the flag, but is sound: the rows stay honest evidence, and a
+later re-tune re-scores seeded history exactly like everyone else's.
+
+⚠ **The card's `Knows` band is the CHILD's**, not the parent's. Wen is
+better at the forge than you are.
+
+##### ⭐⭐⭐ Seeded claims never decay — which breaks this section's promise
+
+`TraitPosition.derive` computes `age = now - (e.when ?? now)`, and
+`TraitApi.seedClaims` writes `kind` / `disposition` / `valence` and **no
+`when`**. So a seed ages zero seconds forever and holds full weight
+permanently, while your own *deeds* decay on the 180-game-day half-life.
+
+> ⚠⚠ Result: **you are permanently marked and only temporarily able to
+> mask it.** Sustained contrary behavior pushes against the seed; stop,
+> your deeds fade, and the upbringing reasserts. That is the exact
+> opposite of *"you can grow out of your upbringing, slowly"* above.
+
+**The fix is one field: char-gen seeds carry a real `when`** — a
+birth-relative game time — so childhood evidence ages like everything
+else. Your origins then dominate a young character and have largely
+faded from an old one, which is also just correct.
+
+⭐ **And the NPC case wants the opposite, from the same field, for
+free.** Sloane should read `guarded` permanently, so authored NPCs keep
+omitting `when`. Same Api, same seed type — **presence of `when` is the
+switch between an authored character and a lived one.**
+
+⭐ A property worth keeping: `Competence` has **no decay term** and the
+trait estimator does. So a decade on you still know a forge and you are
+no longer especially paranoid. **What you were raised *doing* is
+permanent; who you were raised to *be* is outgrowable.** Two estimators
+built separately, and that fell out of them.
+
+##### The valence dial
+
+Mass thresholds are `defined` ≥ 20, `entrenched` ≥ 60, and mass is
+`Σ |valence| · decay`. So a single seed row at 55 lands `defined`; at 70
+it lands `entrenched`. **The generator picking a valence is picking how
+*fixed* your upbringing made you**, and 60 is the line between *this is
+how I was raised* and *this is who I am*. A good dial, and it already
+exists.
 
 ### The migration
 
@@ -673,6 +936,41 @@ expensive half; let the cheap half measure the appetite first.
     is a record, and the grid row is already the household rather than
     the pair — so the variety is free characterization. It also softens
     question 9, since a guardian need not be a biological parent at all.
+
+### Added 2026-08-25 (the balance / seeding pass)
+
+11. ⚠⚠ **Does the `Places` column point the wrong way?** The roster puts
+    localities on the *trade* row (`smallholder → [hinkley-hills,
+    moor]`). The content-pack doctrine says the opposite — *the locality
+    is the annex (it knows the trade); the trade is the host (it knows
+    no locality); a trade is complete with zero localities installed.*
+    Under that rule a locality should declare which trades were raised
+    there, or a trade pack installed without its localities carries a
+    dangling reference. It is **also** the generator's natural seed
+    order: pick the locality first and the *"pair must read as a
+    plausible household"* constraint is satisfied by construction rather
+    than filtered for. **Raised, not decided** — and lower priority than
+    it looks, since early play is Terminus / Hinkley Hills / the wilds
+    and everyone is from the same vicinity.
+12. **Is 180 game-days the right half-life for a seeded claim?** With
+    `when` set (§ *Seeded claims never decay*), a 55-valence seed drops
+    below `defined` in roughly a game-year and a half. Whether that is
+    the right rate at which to outgrow your upbringing is a calibration
+    question, and it is entangled with question 7's clock scale.
+13. **Are the balance weights right?** The table is placeholders. The
+    real question is whether net-≈-0 is even the target, or whether
+    deliberate outliers — a genuinely fortunate household, a genuinely
+    hard one — are worth having as rare cards.
+14. **Does `notorious` need its own treatment?** It is scored −1 with
+    `rough`, but it is high renown with negative regard — different in
+    kind, not merely lower, and the only Standing value that is
+    two-signed.
+
+⭐ Questions **2** (*the hook vocabulary*) and **6** (*how much the
+trade gives you*) are now substantially answered — by
+[trade-roster-slate](./trade-roster-slate.md) and by § *the seeding
+surface* respectively — and should be closed at requirements time rather
+than re-opened.
 
 ---
 
