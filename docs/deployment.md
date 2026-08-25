@@ -127,6 +127,32 @@ credentials.
 > (5 years of shell-user home dirs/keys) before terminating, and the
 > old box dies **last**, only after the new one answers SSH.
 
+## The Mongo environment policy — four databases, ever
+
+The dev Atlas cluster caps at **500 collections cluster-wide**, and one
+world is ~46 collections. On 2026-08-25 the cluster hit the cap under
+thirteen abandoned drive databases (`saxonberg_v3`, `saxonberg_wikidrive`,
+`conditionboot`, `*_verify`, …) and a build could not create a new
+collection. So the rule, from that day:
+
+| Database | Who | Notes |
+|---|---|---|
+| `saxonberg_demo` | the AWS demo box | wiped nightly; **never touched by hand** — it changes only through a deploy. Set in SSM `/saxonberg/dev/MONGODB_DATABASE` (was `saxonberg_eu` until 2026-08-25; the old name lives on until the next deploy lands, then gets dropped). |
+| `saxonberg_build1` | the `build-1` worktree | `packages/server/.env` → `MONGODB_DATABASE` |
+| `saxonberg_build2` | the `build-2` worktree | same |
+| `saxonberg_build3` | the `build-3` worktree | same |
+
+**No fifth database.** A "verify" boot, a drive, a one-off experiment
+runs against the worktree's own database — drop and reboot it if a
+clean world is needed (a boot re-seeds; the packs reconcile). Never
+mint `saxonberg_<feature>`. 4 × ~46 leaves ~300 collections of headroom
+for new collections; a build that adds one adds it four times, so the
+count to watch is `4 × collections`, and it stays under 500 as long as
+this table stays four rows.
+
+CI's e2e job is exempt: it runs against its own `mongo:7` service
+container (`saxonberg_e2e`), never Atlas.
+
 ## Cost
 
 | | Old `panterasbot` stack | This deployment |
