@@ -441,15 +441,67 @@ not build on it.
   term — which is what it was always trying to be. The declaration
   survives; only the dead-end field retires.
 
-### Reroll is priced, not capped
+### ⚠⚠ Reroll pricing does not work — superseded 2026-08-25
 
-You cannot charge money to a character who does not exist yet — so
-charge it to the **starting-capital allotment**. Each reroll spends from
-the same pool you would otherwise bank.
+The original argument: *you cannot charge money to a character who does
+not exist yet, so charge it to the starting-capital allotment; reroll
+twenty times and you arrive broke but exactly the person you wanted.*
 
-⭐ No arbitrary cap, no scarcity theater: reroll twenty times and you
-arrive broke but exactly the person you wanted. Being picky costs, the
-way it does everywhere else.
+**It does not hold.**
+
+> **User: "if someone really wants to be adopted, they're going to
+> disconnect and restart char-gen with a fresh budget over and over
+> until they roll what they want. There's no way to stop this if players
+> really want to, except to design systems that make that whole impulse
+> evaporate."**
+
+Confirmed in the shipped code: the `EnrollmentDraft` is *"a **transient,
+never-persisted** scratch object"* on `Login`
+([char-gen.md](../../subsystems/char-gen.md)). Disconnect, and the draft
+and its spend are gone. Restart is free and unlimited.
+
+⚠⚠ **So the price is not a constraint — it is a tax on players who do
+not know to reconnect.** That is the worst available property for a
+project whose thesis is honest measurement, and it is worse than having
+no price at all.
+
+⚠ **And it cannot be fixed by persisting the draft.** Transience is
+load-bearing: it is what makes *"an abandoned or disconnected char-gen
+leaves no playable character and no orphaned template"* true. Persisting
+the spend counter separately would tax legitimate abandonment (*I
+changed my mind; I will make a character next week*).
+
+The generalization, which outlives this section:
+
+> ⚠⚠ **Any char-gen constraint priced in a within-session budget is not
+> a constraint.**
+
+#### ⭐⭐⭐ The pin — make the impulse evaporate instead
+
+The grind exists because of **conjunction**. Wanting *adopted* **and**
+*khazadicus* **and** *a Terminus trade* is `p₁·p₂·p₃` — vanishing, so
+grinding is rational and unbounded.
+
+> **Pinning dissolves the conjunction.** You need to see each property
+> **once**, then lock it: `p₁`, then `p₂`, then `p₃`, each cheap. There
+> is nothing left to grind for, because the reward for a thousand rolls
+> is identical to the reward for the one roll where you first saw it.
+
+⭐ **It is barely new machinery.** § *Controls* already has *"lock one,
+reroll the other — keep the mother, spin fathers."* **The lock exists;
+the pin is the same lock pointed at a cell** rather than at a parent.
+
+⭐⭐⭐ And it converts the cost into the right kind. Every pin narrows
+the pool, so a heavily-pinned gallery returns fewer and more similar
+cards — you trade **breadth for specificity**:
+
+> **Replace scarcity-as-time-cost with scarcity-as-option-cost.** A time
+> cost is defeated by patience, and by reconnecting. An option cost is
+> structural and cannot be reconnected around.
+
+⚠ Whether reroll pricing is **dropped outright** or **re-cast as an
+option cost** is not settled here. What is settled is that it may not
+stand as a time/money price pretending to be a constraint.
 
 #### ⚠⚠ …but household `Means` must never finance the shuffle
 
@@ -636,6 +688,81 @@ Consequences:
 > half-elves. Recorded here because the door is one generator constraint
 > wide, and reopening it requires no engine work — **provided the parent
 > species is stored.**
+
+### ⭐⭐⭐ Adoption — the two roles come apart
+
+*(Added 2026-08-25.)* The door left open above — *mixed-species parents
+with a single-species child, "the door is one generator constraint
+wide"* — has a better key than the one considered.
+
+> **User: "adopted parents is the only way you're gonna get
+> mixed-species lineage."**
+
+Correct under decision A, and the schema needs **nothing new**, because
+the split already exists:
+
+> **Genotype is inherited. Disposition is learned from.**
+
+| role | supplies |
+|---|---|
+| **birth** | species, appearance, blood — the endowed axis |
+| **raising** | disposition, transcript, trade, place, standing, means, hooks, usually the name |
+
+⭐⭐ **Adoption is not a special case. It is the general case with the
+two roles unbound** — normally one household fills both. The *"store the
+parent species anyway, cheapest insurance in the design"* note above is
+exactly the field this uses.
+
+#### Display: the raising household in the grid; birth lineage rides the cells
+
+Doubling every row to carry two households doubles the scan cost for a
+minority case. Don't.
+
+⭐ **Show the raising household. Species and appearance are already
+cells — and on an adoption card they simply do not match the
+household.** *`smith · shopkeeper | Terminus | Species: khazadicus`*
+with two human parents reads as adoption at a glance, without the card
+ever using the word. Drill-in names the birth parents, or says unknown.
+
+⭐ An unknown birth parent needs no new mechanic: **`missing` is already
+in the hook vocabulary**, defined as *"an unresolved person record."*
+This is its best instance, and it turns the hook into a real quest seed
+rather than decoration.
+
+#### ⭐⭐ Why this beats the shelved option
+
+The recorded *considered-and-not-taken* was mixed-species **parents** —
+*you are human; your mother was an elf*. That smuggles the hybrid
+problem back at the fiction layer: **if an elf and a human had you, what
+are you?** The entire no-hybrids decision exists because that question
+has no honest answer.
+
+> **Adoption deletes the biology instead of finessing it.** A
+> `khazadicus` raised by human shopkeepers makes no genetic claim
+> whatsoever.
+
+You get the **belonging-nowhere fiction** — the most-cited reason
+players want half-elves — at zero taxonomy cost, and the breeding
+question never arises.
+
+#### ⚠ It must be a pinnable draw, never a checkbox
+
+A toggle undoes the species demotion instantly: anyone wanting species X
+with household Y takes it, adoption becomes the norm, and species is a
+free field again with extra steps.
+
+⚠ **And rarity alone cannot carry it** — see § *Reroll pricing does not
+work*: a low draw rate is a time cost, and time costs are defeated by
+disconnecting. **Adoption is a property you pin once you have seen it**,
+like any other cell. Seeing it once is cheap; the conjunction never
+compounds.
+
+#### One line on handling
+
+Adopted-ness carries **no mechanical deficit**, and `missing` should
+read as a thread to pull rather than a wound. It is a starting position
+like any other — which is also what keeps it from becoming the sad card
+nobody picks.
 
 ### ⚠ Traits from lineage are upbringing, not genes
 
@@ -912,6 +1039,108 @@ expensive half; let the cheap half measure the appetite first.
 
 ---
 
+## ⭐⭐ Build phasing — two cycles, far apart
+
+*(Decided 2026-08-25.)*
+
+> **User: "one right now, with very very simple cards — maybe even just
+> shit like eye/skin/hair colour that doesn't actually matter. Then
+> later, after we've built out all our content packs for all our
+> different trades plus whatever other packs we build for localities,
+> we'll come back and do the real procgen algo based on all the
+> knowledge of how the trades go. Probably one of the last things we
+> build before we go live."**
+
+The split is **shell now, generator later**, and it is the right cut
+because every hard part of the generator needs vocabulary that does not
+exist yet.
+
+### Two facts that set the estimate
+
+- ⚠ **Appearance is not modeled anywhere.** `Material.appearance` is for
+  substances and `DescriptorBank` is for unidentified items; there is no
+  eye / hair / skin on a character. Phase-1 "cosmetics" is **new
+  substrate**, not free filler.
+- ⭐ **The char-gen wire is already built for this.**
+  `CharGenFieldState.field` is *"a plain string, not a closed union"*
+  with the vocabulary living only in the server's `FIELDS` table, and
+  the client is **required to render a field it does not recognize**.
+  The forward-compat lesson already landed.
+  ⚠ But `CharGenFieldKind` is `'choose-one' | 'text'` and
+  `CharGenOption` is a flat `{value, label, description?,
+  illustration?}` — a **one-line** option. An eight-column card does not
+  fit, so phase 1 adds one kind and one payload.
+
+### Phase 1 — the shell, plus one real inheritance
+
+| in | why |
+|---|---|
+| **person record `Document`** | the unrealized-person primitive. Needed forever, and what finally makes `chronicle.who` (*"inert in v1"*) mean something |
+| **household record** | the pair + shared fields |
+| **`kind: 'gallery'` + a row payload** | ordered, server-supplied `{label, value}` cells |
+| **gallery UI** — grid, detail, reroll, lock/pin | the expensive UI work, and none of it depends on content |
+| **trivial generator** | draws appearance + surname from banks |
+| **endowed appearance**, *rendering in the world* | the payload |
+| **surname inheritance** | `NameBank` already ships |
+| **commit path** | adopt → two records + your appearance + your name |
+
+⭐ **Cosmetics are not filler — they are the `endowed` category § *the
+four kinds of value* says is missing.** Eye / hair / skin are the same
+kind as blood type: inherited, uncontrolled, **relationship not
+ranking**. Phase 1 therefore ships a real value class the game keeps,
+not a placeholder to throw away.
+
+⚠ **Appearance must actually render** — another player looks at you and
+sees it. Inert appearance breaks § *the consistency rule* at the one
+screen where that rule matters most. It is also where most of phase 1's
+value is: it proves the spine end to end — **draw → adopt → persist →
+observable by someone else** — with content that cannot unbalance
+anything.
+
+### Phase 2 — the generator, after the packs
+
+Trades / localities / disciplines vocabulary · the locality→trade join
+and pair plausibility · disposition + transcript seeding (including the
+missing `AdvancementApi.seedClaims` and the `when` fix) · hooks / means /
+standing / status · the balance weights · the budget and whatever
+replaces reroll pricing · body composition · blood type · adoption draw
+rates.
+
+### ⭐ The three seams that make phase 2 additive
+
+1. **Card cells are an ordered server-supplied list, never named
+   client-side.** Phase 1 ships three cells, phase 2 ships eight, client
+   unchanged. The same move `CharGenFieldState` already made one level
+   up — and that redesign exists precisely because its predecessor
+   *"named every field twice."*
+2. **The commit path is a list of seeders, not a function.** Phase 1
+   registers appearance + name; phase 2 **appends** ledger seeders
+   without touching the adopt flow.
+3. **Store the two roles separately from day one** — birth and raising
+   — even while they always point at the same household (§ *Adoption*).
+   Same insurance as *store the parent species anyway*, and the
+   difference between phase 2 being a generator change and a schema
+   migration.
+
+### ⚠ One copy guardrail
+
+**Phase 1 must not tell the majority-day fiction.** *"What you know, you
+learned there. Who you are, you learned there"* is a promise phase 1
+cannot keep — nothing is seeded. Shipping that copy over a cosmetic
+picker repeats the arrival build's failure: **shipped strings promising
+what the product refuses.** Keep phase 1's language to what it does —
+you pick where your looks and your name came from.
+
+### What phase 1 deliberately does not prove
+
+Stated so the hard part does not look done: phase 1 de-risks **the
+records and the UI**, not **the generator**. Nothing about pair
+plausibility, the balance weights, or the seeding surface is exercised.
+That is the correct cut — all three need the packs — but **phase 2 is
+still where the design risk lives.**
+
+---
+
 ## Open questions
 
 1. **Is the gallery a fresh roll or a persistent pool?** Records are
@@ -983,6 +1212,26 @@ expensive half; let the cheap half measure the appetite first.
     `rough`, but it is high renown with negative regard — different in
     kind, not merely lower, and the only Standing value that is
     two-signed.
+
+### Added 2026-08-25 (phasing / adoption / the pin)
+
+15. ⚠ **What replaces reroll pricing?** Dropped outright, or re-cast as
+    an option cost? § *Reroll pricing does not work* settles that it may
+    not stand as-is; it does not settle the successor. **Phase 2.**
+16. **What are the adoption draw rates, and how many pins before the
+    pool goes thin?** The pin dissolves the grind, but a heavily-pinned
+    gallery returning three near-identical cards is its own failure.
+    Needs the real vocabulary to tune. **Phase 2.**
+17. **Does pinning species undo its demotion to a filter?** *"The
+    lineage settles what you are"* weakens once species is pinnable. It
+    partly does, and the answer is a rate rather than a rule. **Phase 2.**
+18. **Do birth parents get records, or only a species + appearance
+    stamp?** A record makes `missing` a real quest seed; a stamp is
+    cheaper and enough for phase 1. **Phase 1 can defer by storing the
+    two roles as separate refs that happen to be equal.**
+19. **Which appearance axes ship?** Eye / hair / skin is the obvious
+    three, but only if `Visible` / `RecognitionApi.describe` render them
+    — an inert axis is worse than an absent one. **Phase 1.**
 
 ⭐ Questions **2** (*the hook vocabulary*) and **6** (*how much the
 trade gives you*) are now substantially answered — by
