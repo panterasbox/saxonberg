@@ -150,7 +150,7 @@ describe('executeCommand per-bar input mode', () => {
     const find = vi.fn(
       async (collection: string, query: Record<string, unknown>) => {
         if (
-          collection === Collections.Domain &&
+          collection === Collections.Content &&
           query.path === '/obj/command/shell/CliController'
         ) {
           return [

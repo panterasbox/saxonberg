@@ -204,7 +204,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
       'in-circle',
       async () => {
         // author a template under the circle namespace — the deliberate save
-        await PersistApi.save(Collections.Domain, {
+        await PersistApi.save(Collections.Content, {
           path: `${SCOPE}/workshop`,
           class: '/obj/location/Room',
         });
@@ -259,7 +259,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
       { owner: 'someone', check: 'x' },
     ]);
     // …the authored edit persists (the deliberate save is the product)…
-    expect(store.get(Collections.Domain)).toEqual([
+    expect(store.get(Collections.Content)).toEqual([
       { path: `${SCOPE}/workshop`, class: '/obj/location/Room' },
     ]);
     // …and the epistemic record exists, wire-marked.

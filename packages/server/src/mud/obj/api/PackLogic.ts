@@ -457,7 +457,7 @@ async function reconcileDomain(
   const adopted: string[] = [];
   const deleted: string[] = [];
 
-  const stampedRows = (await PersistApi.find(Collections.Domain, {
+  const stampedRows = (await PersistApi.find(Collections.Content, {
     sourcePack: packId,
   })) as DomainRow[];
   const stampedByPath = new Map(stampedRows.map((r) => [r.path, r]));
@@ -480,13 +480,13 @@ async function reconcileDomain(
         stamped.class === f.class &&
         (stamped.hydratorClass ?? undefined) === f.hydratorClass;
       if (!same) {
-        await PersistApi.save(Collections.Domain, { ...row, _id: stamped._id });
+        await PersistApi.save(Collections.Content, { ...row, _id: stamped._id });
         updated.push(f.path);
       }
       continue;
     }
 
-    const existing = (await PersistApi.find(Collections.Domain, {
+    const existing = (await PersistApi.find(Collections.Content, {
       path: f.path,
     })) as DomainRow[];
     const prior = existing[0];
@@ -499,11 +499,11 @@ async function reconcileDomain(
             `by pack '${prior.sourcePack}'`,
         );
       }
-      await PersistApi.save(Collections.Domain, { ...row, _id: prior._id });
+      await PersistApi.save(Collections.Content, { ...row, _id: prior._id });
       adopted.push(f.path);
     } else {
       // (c) nothing here — insert (no _id → insertOne).
-      await PersistApi.save(Collections.Domain, row);
+      await PersistApi.save(Collections.Content, row);
       inserted.push(f.path);
     }
   }
@@ -511,7 +511,7 @@ async function reconcileDomain(
   // Delete our stamped rows whose file vanished.
   for (const r of stampedRows) {
     if (!filePaths.has(r.path) && r._id) {
-      await PersistApi.delete(Collections.Domain, r._id);
+      await PersistApi.delete(Collections.Content, r._id);
       deleted.push(r.path);
     }
   }

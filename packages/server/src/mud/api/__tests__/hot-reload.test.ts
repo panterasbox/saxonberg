@@ -357,7 +357,7 @@ describe('HotReloadApi', () => {
     ): void {
       const find = vi.fn(
         async (collection: string, query: Record<string, unknown>) => {
-          if (collection !== Collections.Domain) return [];
+          if (collection !== Collections.Content) return [];
           if (typeof query.path === 'string') {
             return docs.filter((d) => d.path === query.path);
           }

@@ -12,7 +12,7 @@
  *   administrative manifest at boot.
  *
  * PM is collection-agnostic: it ships with no hooks baked in. Validations
- * and side-effects (e.g. the folder/leaf invariant for `Collections.Domain`,
+ * and side-effects (e.g. the folder/leaf invariant for `Collections.Content`,
  * Phase 7 Decision 12) attach via `registerHook`. See PHASE_9_PERSISTENCE_HOOKS.md.
  *
  * This is a singleton - only one instance exists per application.
@@ -160,7 +160,7 @@ export const COLLECTION_POLICIES: Readonly<
   // told must never do. MARK records that it happened in-circle.
   [Collections.PlayerFrames]: { verb: 'pass', mark: true },
   // ── PASS(unmarked): authored truth + the mechanism's own stores ──
-  [Collections.Domain]: { verb: 'pass' },
+  [Collections.Content]: { verb: 'pass' },
   [Collections.Documents]: { verb: 'pass' },
   [Collections.HolderSnapshots]: { verb: 'pass' },
   // The wiki is **authored truth and a communications surface**, so it
@@ -1071,7 +1071,7 @@ export class PersistenceManager {
       // spec is a no-op; an existing duplicate throws E11000 here,
       // which the outer catch logs without crashing the process,
       // surfacing the admin-fixable condition.
-      await this.getCollection(Collections.Domain).createIndex(
+      await this.getCollection(Collections.Content).createIndex(
         { path: 1 },
         { unique: true }
       );

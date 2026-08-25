@@ -23,7 +23,15 @@ export enum Collections {
   GoogleProfiles = 'google_profiles',
   TwitchProfiles = 'twitch_profiles',
   KickProfiles = 'kick_profiles',
-  Domain = 'domain',
+  /**
+   * The templates collection (`Template.collectionName`). Named `domain`
+   * before 2026-08 — the `/domain/` *template-path namespace* and the
+   * `domain` *command category* are unrelated and unchanged (path
+   * renames are wave 4 of the content-pack program). A pre-rename
+   * deployment is migrated once at boot by
+   * `PersistenceManager.#migrateDomainToContent`.
+   */
+  Content = 'content',
   Emotes = 'emotes',
   NameBanks = 'name_banks',
   /**

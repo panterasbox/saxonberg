@@ -5,7 +5,7 @@
  * A *tree* is the `config` blob of an NPC's `tree-dialogue`
  * `BehaviorSpec` (see `docs/subsystems/behavior.md`). It is **pure
  * declarative data** persisted inside the NPC template's
- * `data.behaviors[].config` in the existing `domain` collection — never
+ * `data.behaviors[].config` in the existing `content` collection — never
  * a Stuff, never its own collection or Document (see
  * `docs/subsystems/npc-dialogue.md`). The interfaces here describe that blob's
  * shape; at runtime the `tree-dialogue` brain reads `spec.config` (a

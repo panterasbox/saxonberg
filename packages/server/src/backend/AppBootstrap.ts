@@ -94,7 +94,7 @@ export class AppBootstrap {
    *      out of `domain`, and the bootstrap manifest may reference
    *      other seeded templates too.
    *
-   *   3. Load PM hooks (folder/leaf invariant on Collections.Domain,
+   *   3. Load PM hooks (folder/leaf invariant on Collections.Content,
    *      etc.) — clones the seeded hook templates and registers
    *      them with the persistence pipeline. Seeds must exist
    *      before this runs.

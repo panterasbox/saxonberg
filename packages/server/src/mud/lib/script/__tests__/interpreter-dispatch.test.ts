@@ -55,7 +55,7 @@ describe("Interpreter — real-bus dispatch via the prompt", () => {
     const find = vi.fn(
       async (collection: string, query: Record<string, unknown>) => {
         if (
-          collection === Collections.Domain &&
+          collection === Collections.Content &&
           query.path === "/obj/command/system/PingController"
         ) {
           return [

@@ -72,7 +72,7 @@ export const RESET_DISPOSITIONS: Readonly<
   },
 
   // ── Seeded / pack-installed world content: keep, or the world empties ──
-  [Collections.Domain]: {
+  [Collections.Content]: {
     verb: 'keep',
     because: 'the world itself; the seeder is insert-only and runs at boot',
   },

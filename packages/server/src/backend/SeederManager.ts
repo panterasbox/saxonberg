@@ -1,11 +1,11 @@
 /**
- * SeederManager — populate the `domain` collection with engine
+ * SeederManager — populate the `content` collection with engine
  * templates from disk.
  *
  * Walks `mud/seeds/` recursively for `.yaml` files. Each file's path
  * (relative to `seeds/`, with `.yaml` stripped, prefixed with `/`)
  * becomes its template path. For each template the seeder inserts
- * the parsed YAML into `Collections.Domain` ONLY when no document
+ * the parsed YAML into `Collections.Content` ONLY when no document
  * exists at that path — re-runs are idempotent, existing docs are
  * left alone.
  *
@@ -37,13 +37,13 @@ interface SeederOptions {
 export class SeederManager {
   /**
    * Walk the seeds directory and insert any missing templates into
-   * the `domain` collection. Resolves with the count of newly
+   * the `content` collection. Resolves with the count of newly
    * inserted templates (zero on subsequent runs).
    */
   public static async run(opts: SeederOptions = {}): Promise<number> {
     const seedsDir = opts.seedsDir ?? this.#defaultSeedsDir();
     const collection = PersistenceManager.get().getCollection(
-      Collections.Domain
+      Collections.Content
     );
 
     let inserted = 0;

@@ -1,6 +1,6 @@
 /**
  * BootstrapManager — clone runtime instances from manifest entries
- * after `SeederManager` has populated the `domain` collection.
+ * after `SeederManager` has populated the `content` collection.
  *
  * The manager owns the `BootstrapEntry` shape; the manifest data
  * (the actual list of templates to bootstrap) lives at
@@ -63,7 +63,7 @@ import MqlSubscriptionRegistry from '../mud/obj/MqlSubscriptionRegistry';
  */
 export interface BootstrapEntry {
   /**
-   * Path of the template to clone — the identifier in the `domain`
+   * Path of the template to clone — the identifier in the `content`
    * collection AND the runtime location of the resulting clone.
    * E.g., `/obj/EventRegistry`.
    *
@@ -72,7 +72,7 @@ export interface BootstrapEntry {
   templatePath?: string;
 
   /**
-   * Prefix to expand into all strict descendants in the `domain`
+   * Prefix to expand into all strict descendants in the `content`
    * collection. The manager queries `Template.findDescendants(prefix)`
    * at boot and clones each match in depth-ascending order (shorter
    * paths first, so ancestor clades exist before their descendants).

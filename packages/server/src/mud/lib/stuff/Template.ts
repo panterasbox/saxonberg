@@ -21,26 +21,27 @@
  * inspecting the `class` field; callers that hold a `Template` get
  * back the correct subclass without needing to know.
  *
- * The folder/leaf invariant on the `domain` collection is enforced by
+ * The folder/leaf invariant on the `content` collection is enforced by
  * `DomainHook` against the `PersistenceManager` chokepoint — see
  * `TemplateApi.validateFolderLeafSave` / `validateFolderLeafDelete`.
  * The Phase Z2 type split is the primary expression of the invariant;
  * the hook is defense-in-depth at the persistence chokepoint.
  */
 import { Document } from '../persistence/Document';
+import { Collections } from '../persistence/Collections';
 import { PersistApi } from '../../api/persist';
 import { type AnyConstructor } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
 import type { FieldMeta } from '../mixin';
 
 /**
- * Doc shape we pull off the `domain` collection. The `class` field drives
+ * Doc shape we pull off the `content` collection. The `class` field drives
  * which concrete `Template` subclass we materialize.
  */
 type DomainDoc = Record<string, unknown> & { class?: unknown };
 
 export abstract class Template extends Document {
-  static collectionName = 'domain';
+  static collectionName = Collections.Content;
   static fieldMeta: FieldMeta = {
     path: { persistent: true },
     class: { persistent: true },

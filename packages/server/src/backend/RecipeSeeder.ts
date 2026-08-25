@@ -9,7 +9,7 @@
  *   db.recipes.deleteOne({recipeId: '<id>'}); restart
  *
  * Source file is at `mud/config/recipes.yaml` (NOT under `mud/seeds/`):
- * Recipe records aren't Stuff templates and don't belong in the `domain`
+ * Recipe records aren't Stuff templates and don't belong in the `content`
  * collection that `SeederManager` walks. Keeping the file out of the seeds
  * tree avoids the walker double-inserting it as a domain template.
  *

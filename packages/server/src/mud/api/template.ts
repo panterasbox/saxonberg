@@ -1,6 +1,6 @@
 /**
  * TemplateApi — typed convenience wrapper + folder/leaf validation
- * utilities for the `domain` collection.
+ * utilities for the `content` collection.
  *
  * Templates themselves are modelled as `Template extends Document`
  * (`lib/stuff/Template`) — the standard CRUD surface

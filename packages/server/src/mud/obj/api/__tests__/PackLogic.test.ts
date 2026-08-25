@@ -50,7 +50,7 @@ function stubPersist(): void {
       rows
         .filter(
           (r) =>
-            (r.__col ?? 'domain') === col &&
+            (r.__col ?? 'content') === col &&
             Object.entries(query).every(([k, v]) => (r as Row)[k] === v),
         )
         .map((r) => ({ ...r })) as never,

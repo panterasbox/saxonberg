@@ -6,7 +6,7 @@
  * Lives at `/obj/DisciplineCatalogue`, per the singleton-in-`obj/`
  * convention. The cache is transient instance state; the source of truth
  * is the per-Discipline leaf templates under
- * `/obj/Discipline/` in the `domain` collection. Discipline
+ * `/obj/Discipline/` in the `content` collection. Discipline
  * templates are pure data (`key` / `channel` / edges / `conferrals`), so
  * the catalogue loads descriptors directly from the template docs — no
  * need to clone them as live Stuff (the `TopicCatalogue` recipe).
@@ -104,7 +104,7 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
   }
 
   /**
-   * Warm the cache from the `domain` collection. One mongo query at boot,
+   * Warm the cache from the `content` collection. One mongo query at boot,
    * then the public surface is sync.
    */
   public override async postRegister(_context?: unknown): Promise<void> {

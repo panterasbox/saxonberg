@@ -61,7 +61,7 @@ describe("named scripts — def persistence + make", () => {
     const find = vi.fn(
       async (collection: string, query: Record<string, unknown>) => {
         const path = query.path as string;
-        if (collection === Collections.Domain && CONTROLLERS[path]) {
+        if (collection === Collections.Content && CONTROLLERS[path]) {
           return [{ path, class: CONTROLLERS[path], data: {} }];
         }
         return [];

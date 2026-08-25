@@ -5,7 +5,7 @@
  * Lives at `/obj/SpellCatalogue` (the `DisciplineCatalogue` /
  * `CorpoCatalogue` recipe verbatim): the cache is transient instance
  * state; the source of truth is the per-Spell leaf templates under
- * `/obj/magic/Spell/` in the `domain` collection, read directly from
+ * `/obj/magic/Spell/` in the `content` collection, read directly from
  * `template.data` at boot — never cloned as live Stuff.
  *
  * Warm-time validation is the **structural half of the governing
@@ -115,7 +115,7 @@ export default class SpellCatalogue extends SpellCatalogueBase {
     );
   }
 
-  /** Warm the cache from the `domain` collection (one query at boot). */
+  /** Warm the cache from the `content` collection (one query at boot). */
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.loadCacheFromTemplates();
   }

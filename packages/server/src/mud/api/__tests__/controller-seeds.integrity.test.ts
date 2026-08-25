@@ -5,7 +5,7 @@
  * Command dispatch clones a fresh controller per execution via
  * `StuffApi.clone(<resolved controller template path>)` (see
  * `CommandGiver._executeOne`). That clone reads a Template out of the
- * `domain` collection, which `SeederManager` populates from
+ * `content` collection, which `SeederManager` populates from
  * `mud/seeds/**` — one YAML file per template path. A `controller:`
  * field in a command spec with no matching seed YAML therefore throws
  * "Template not found" the first time the verb is dispatched on a

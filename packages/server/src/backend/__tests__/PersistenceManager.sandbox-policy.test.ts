@@ -116,7 +116,7 @@ describe('PersistenceManager sandbox policy seam', () => {
       const doc = { foo: 'bar' };
       await pm.save(Collections.BankLedger, { ...doc });
       await pm.save(Collections.Chronicles, { ...doc });
-      await pm.save(Collections.Domain, { ...doc });
+      await pm.save(Collections.Content, { ...doc });
       await pm.save(Collections.Parcels, { ...doc });
       await pm.save(Collections.BankAccounts, { ...doc });
       expect(state.inserts).toEqual([doc, doc, doc, doc, doc]);
@@ -124,7 +124,7 @@ describe('PersistenceManager sandbox policy seam', () => {
 
     it('PASS reads get zero filter injection', async () => {
       const state = installFakeCollection(pm);
-      await pm.find(Collections.Domain, { path: '/x' });
+      await pm.find(Collections.Content, { path: '/x' });
       await pm.find(Collections.Documents, {});
       expect(state.findFilters).toEqual([{ path: '/x' }, {}]);
     });
@@ -165,7 +165,7 @@ describe('PersistenceManager sandbox policy seam', () => {
 
     it('PASS(unmarked): persists untouched', async () => {
       const state = installFakeCollection(pm);
-      await pm.save(Collections.Domain, { path: '/home/x/room' });
+      await pm.save(Collections.Content, { path: '/home/x/room' });
       expect(state.inserts).toEqual([{ path: '/home/x/room' }]);
     });
 

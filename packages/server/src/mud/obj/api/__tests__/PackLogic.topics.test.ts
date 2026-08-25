@@ -50,7 +50,7 @@ function stubPersist(): void {
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (col: string, query: Record<string, unknown>) =>
       rows
-        .filter((r) => (r.__col ?? 'domain') === col)
+        .filter((r) => (r.__col ?? 'content') === col)
         .filter((r) =>
           Object.entries(query).every(([k, v]) => {
             if (v !== null && typeof v === 'object' && '$in' in v) {
@@ -163,7 +163,7 @@ describe('pack-declared topics', () => {
       _id: 'pre',
       path: '/obj/Topic/sense.pollen',
       sourcePack: 'flora',
-      __col: 'domain',
+      __col: 'content',
     });
     const root = writeTopicPack('herbalism', 'sense.pollen');
 

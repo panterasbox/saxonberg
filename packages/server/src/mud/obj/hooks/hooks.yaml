@@ -10,9 +10,9 @@
 # the integrity of the data layer.
 
 hooks:
-  - collection: domain
+  - collection: content
     operation: save
     template: /obj/hooks/DomainHook
-  - collection: domain
+  - collection: content
     operation: delete
     template: /obj/hooks/DomainHook

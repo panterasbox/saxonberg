@@ -2,7 +2,7 @@
  * BlueprintSeeder — populate the `blueprints` collection in two layers:
  *
  *   (a) Derived skeleton — enumerate the DISTINCT backing `class` paths across
- *       the `domain` collection, introspect each (`signatureOf`), and insert a
+ *       the `content` collection, introspect each (`signatureOf`), and insert a
  *       `concrete` structural blueprint when no blueprint with that signature
  *       exists yet. Migration IS the derive step: every existing backing class
  *       gets a catalog entry, deduped on signature.
@@ -19,7 +19,7 @@
  * rename is not reverted.
  *
  * Source file is at `mud/config/blueprints.yaml` (NOT under `mud/seeds/`):
- * Blueprint records aren't Stuff templates and don't belong in the `domain`
+ * Blueprint records aren't Stuff templates and don't belong in the `content`
  * collection that `SeederManager` walks (the `recipes.yaml` rationale).
  *
  * Runs in bootstrap after `PersistenceManager.connect` (indexes) and before
@@ -174,7 +174,7 @@ export class BlueprintSeeder {
     let classPaths: string[];
     try {
       const raw = await PersistenceManager.get()
-        .getCollection(Collections.Domain)
+        .getCollection(Collections.Content)
         .distinct('class');
       classPaths = raw.filter(
         (c): c is string => typeof c === 'string' && c.length > 0

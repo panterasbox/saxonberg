@@ -17,7 +17,7 @@
  * conferral. See `docs/subsystems/residence.md` § provisioning authorization.
  *
  * Source at `mud/config/groups.yaml` (NOT under `mud/seeds/`): a `Group` is a
- * Document, not a Stuff template, so it doesn't belong in the `domain`
+ * Document, not a Stuff template, so it doesn't belong in the `content`
  * collection that `SeederManager` walks — same reasoning as ChannelSeeder.
  *
  * `isMember` reads the group fresh from Mongo (no cache), so a direct
