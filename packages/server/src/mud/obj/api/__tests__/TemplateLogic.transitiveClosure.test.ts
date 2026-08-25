@@ -92,7 +92,7 @@ function asAlice<T>(fn: () => Promise<T>): Promise<T> {
 describe("transitive-closure (protowizard cannot reach code via a reference)", () => {
   it("a protowizard CAN add a transitive reference but CANNOT create the dangerous-class target", async () => {
     // A wizard-made host template the protowizard may edit (class Idea).
-    col("domain").push({
+    col("content").push({
       _id: String(nextId++),
       path: HOST_PATH,
       class: IDEA,
@@ -118,6 +118,6 @@ describe("transitive-closure (protowizard cannot reach code via a reference)", (
 
     // Closure-by-construction: the target template was never created, so
     // the dangling reference can only ever resolve to a gate-passed class.
-    expect(col("domain").some((d) => d.path === TARGET_PATH)).toBe(false);
+    expect(col("content").some((d) => d.path === TARGET_PATH)).toBe(false);
   });
 });
