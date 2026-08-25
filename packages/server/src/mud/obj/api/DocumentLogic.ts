@@ -13,6 +13,7 @@ import { MixinApi } from "../../api/mixin";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Publisher } from "../../lib/press/Publisher";
 import { RELEASE_DOCUMENT_KIND } from "../../lib/press/Release";
+import { CommandApi } from "../../api/command";
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -147,6 +148,62 @@ async function saveReleaseImpl(
   await ProvenanceApi.recordAuthoring({ path });
 }
 
+/**
+ * The gate strings of a command view — everything that names TypeScript:
+ * the verb-level and per-subcommand `controller:` values, and every
+ * validator / `requires` reference at any level. Rendered as a sorted
+ * list so two views compare as sets.
+ */
+function codeFieldsOf(view: Record<string, unknown> | undefined): string[] {
+  if (!view) return [];
+  const out: string[] = [];
+  const list = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  const fieldsOf = (fields: unknown, where: string): void => {
+    const arr = Array.isArray(fields)
+      ? fields
+      : fields && typeof fields === "object"
+        ? Object.values(fields as Record<string, unknown>)
+        : [];
+    for (const f of arr) {
+      const r = (f as { requires?: unknown; validators?: unknown }) ?? {};
+      for (const v of list(r.validators)) out.push(`${where}.validators:${v}`);
+      const req = r.requires;
+      if (typeof req === "string") out.push(`${where}.requires:${req}`);
+      for (const v of list(req)) out.push(`${where}.requires:${v}`);
+    }
+  };
+  if (typeof view.controller === "string") out.push(`controller:${view.controller}`);
+  for (const v of list(view.validators)) out.push(`validators:${v}`);
+  fieldsOf(view.args, "args");
+  fieldsOf(view.options, "options");
+  fieldsOf(view.payload, "payload");
+  const subs = (view.subcommands ?? {}) as Record<string, Record<string, unknown>>;
+  for (const [name, sub] of Object.entries(subs)) {
+    if (!sub || typeof sub !== "object") continue;
+    if (typeof sub.controller === "string") out.push(`sub.${name}.controller:${sub.controller}`);
+    for (const v of list(sub.validators)) out.push(`sub.${name}.validators:${v}`);
+    fieldsOf(sub.args, `sub.${name}.args`);
+    fieldsOf(sub.options, `sub.${name}.options`);
+  }
+  return out.sort();
+}
+
+/**
+ * Did a command view's CODE-naming fields change? `controller` at any
+ * level, or the validator / `requires` SET at any level — any change,
+ * not subset-only: a validator is a gate, and removing one widens
+ * dispatch just as adding one narrows it (the `TemplateLogic` brain
+ * rule's shape). A new view (`prev` undefined) whose fields are set
+ * counts as a change from nothing.
+ */
+function codeFieldsChanged(
+  prev: Record<string, unknown> | undefined,
+  next: Record<string, unknown>,
+): boolean {
+  return JSON.stringify(codeFieldsOf(prev)) !== JSON.stringify(codeFieldsOf(next));
+}
+
 async function saveImpl(
   path: string,
   kind: string,
@@ -156,8 +213,32 @@ async function saveImpl(
   const denial = await gateMutation(actor, path);
   if (denial !== null) throw new Error(denial);
 
+  const existing = await StoredDocument.findByPath(path);
+
+  if (kind === COMMAND_VIEW_KIND) {
+    // ⚠ A command view names TypeScript — its `controller:` and every
+    // validator are code references, and changing one is WIZARD code
+    // trust (access.md), not content authoring. The installer never
+    // sees this (it writes through PersistApi, bootstrap-exempt like
+    // templates); the CMS and any runtime writer do.
+    if (
+      codeFieldsChanged(existing?.getData(), data) &&
+      !(await AccessApi.isWizard(actor))
+    ) {
+      throw new Error(
+        "changing a command view's controller or validators names TypeScript — " +
+          "that is wizard code trust (see access.md)",
+      );
+    }
+    // A malformed view is refused at the chokepoint, never stored.
+    const trail = CommandApi.validateCommandView(data);
+    if (trail !== null) {
+      throw new Error(`command view ${path} does not conform:\n${trail}`);
+    }
+  }
+
   // Persist (find-or-create). Owner = the acting author's durable path.
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
+  const doc = existing ?? new StoredDocument();
   doc.path = path;
   doc.owner = actor?.getTemplatePath() ?? "";
   doc.kind = kind;
@@ -168,7 +249,13 @@ async function saveImpl(
   // context, never a param). DocumentLogic is an admitted authoring
   // transport (the `recordAuthoring` gate names `/obj/api/document`).
   await ProvenanceApi.recordAuthoring({ path });
+
+  // Go-live: a command view reaches the dispatcher without a restart.
+  if (kind === COMMAND_VIEW_KIND) await CommandApi.reload(path);
 }
+
+/** The document kind a command view is stored under. */
+const COMMAND_VIEW_KIND = "command-view";
 
 async function deleteImpl(path: string): Promise<boolean> {
   const actor = actingAuthor();

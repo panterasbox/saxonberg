@@ -24,7 +24,11 @@ import {
   resolve as resolvePath,
   sep,
 } from 'path';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import { createRequire } from 'module';
+import { DocumentApi } from '../../api/document';
+import { PersistApi } from '../../api/persist';
+import type { StoredDocument } from '../../lib/document/StoredDocument';
 import { SecurityApi } from '../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { CARD_IDS } from '@saxonberg/types';
@@ -118,10 +122,72 @@ const __dirname = dirname(__filename);
  * `domain/<sphere>/<locality>/commands/`).
  */
 const MUD_ROOT = resolvePath(__dirname, '../..');
-/** The global engine command tree — `mud/cmd`. */
-const CMD_DIR = join(MUD_ROOT, 'cmd');
+/**
+ * The on-disk engine command trees, in fallback order: the legacy
+ * `mud/cmd` (gone since content-packs wave 2 — kept so a checkout that
+ * still has one keeps working) and the `platform` pack's `content/cmd`
+ * (the views' source files; the STORE serves them once installed).
+ * `getCommand` reads disk only when the store did not serve a key, and
+ * every such read is counted (`diskFallbacks`).
+ */
+function commandTreeDirs(): string[] {
+  const dirs = [join(MUD_ROOT, 'cmd')];
+  try {
+    dirs.push(
+      join(
+        dirname(createRequire(import.meta.url).resolve('@saxonberg/content-platform/package.json')),
+        'content',
+        'cmd',
+      ),
+    );
+  } catch {
+    // No platform pack resolvable (a stripped checkout): disk fallback is
+    // the legacy dir only.
+  }
+  return dirs;
+}
+const CMD_DIRS: string[] = commandTreeDirs();
 /** The content tree — `mud/domain` — scanned for `commands/` bundles. */
 const DOMAIN_DIR = join(MUD_ROOT, 'domain');
+
+/**
+ * View keys served from DISK rather than the `command-view` document
+ * store — the migration residue `pack status` reports. A key lands here
+ * when `preloadAll` found no stored view for it, or when `getCommand`
+ * missed the cache after preload.
+ */
+const diskServed: Set<string> = new Set();
+
+/** `perception/look.yaml` → `/cmd/perception/look`; `domain/x/cmd/y.yaml` → `/domain/x/cmd/y`. */
+function docPathOf(viewKey: string): string {
+  const bare = viewKey.replace(/\.yaml$/, '');
+  return bare.startsWith('domain/') ? `/${bare}` : `/cmd/${bare}`;
+}
+
+/** The inverse of {@link docPathOf}. */
+function viewKeyOf(docPath: string): string {
+  if (docPath.startsWith('/cmd/')) return `${docPath.slice('/cmd/'.length)}.yaml`;
+  return `${docPath.replace(/^\//, '')}.yaml`;
+}
+
+/** Is there a document store to serve views from? (A stubbed PM is not one.) */
+function storeAvailable(): boolean {
+  try {
+    return PersistApi.isConnected();
+  } catch {
+    return false;
+  }
+}
+
+/** The disk file for a view key, or null when no command tree holds it. */
+function diskFileFor(filename: string): string | null {
+  if (filename.startsWith('domain/')) return join(MUD_ROOT, filename);
+  for (const dir of CMD_DIRS) {
+    const file = join(dir, filename);
+    if (existsSync(file)) return file;
+  }
+  return null;
+}
 
 /**
  * Status auto-escalation table. A note of the given kind implies
@@ -283,11 +349,16 @@ export class CommandLogic extends ApiLogic {
     try {
       // A `domain/`-prefixed key is a content-local command bundle and
       // resolves against the MUD root; everything else is an engine verb
-      // under `cmd/`. The key == the `commandContributions` string == the
-      // cache key, so this mapping is the single source of resolution.
-      const filePath = filename.startsWith('domain/')
-        ? join(MUD_ROOT, filename)
-        : join(CMD_DIR, filename);
+      // in a command tree. The key == the `commandContributions` string
+      // == the cache key, so this mapping is the single source of
+      // resolution. A disk read here is the FALLBACK — the store serves
+      // installed views at `preloadAll` — and is counted as such.
+      const filePath =
+        diskFileFor(filename) ??
+        (filename.startsWith('domain/')
+          ? join(MUD_ROOT, filename)
+          : join(CMD_DIRS[CMD_DIRS.length - 1]!, filename));
+      diskServed.add(filename);
       // The read lives here, in the Api tier: `CommandDefinition` is a
       // mudlib value object and may not touch `fs` (the import boundary).
       // The wrapper preserves the operator-facing context the retired
@@ -328,29 +399,80 @@ export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.invalidate}. */
   @CallSecurity(CommandApiCallers)
   public invalidate(filename: string): boolean {
+    diskServed.delete(filename);
     return commands.delete(filename);
+  }
+
+  /** See {@link CommandApi.diskFallbacks}. */
+  @CallSecurity(CommandApiCallers)
+  public diskFallbacks(): string[] {
+    return [...diskServed].sort();
+  }
+
+  /** See {@link CommandApi.reload}. */
+  @CallSecurity(CommandApiCallers)
+  public async reload(docPath: string): Promise<boolean> {
+    const key = viewKeyOf(docPath);
+    commands.delete(key);
+    diskServed.delete(key);
+    if (!storeAvailable()) return false;
+    const doc = await DocumentApi.read(docPath);
+    if (!doc || doc.getKind() !== 'command-view') return false;
+    const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+    await resolveCommandValidators(cmd);
+    validateCommandEffects(cmd);
+    commands.set(key, cmd);
+    return true;
   }
 
   /** See {@link CommandApi.preloadAll}. */
   @CallSecurity(CommandApiCallers)
   public async preloadAll(): Promise<{ loaded: number; failed: string[] }> {
-    let entries: string[];
-    try {
-      // Recursive walk so verbs can be grouped into subdirs
-      // (e.g. `cmd/charactergen/enroll.yaml`). Relative paths come
-      // back subdir-qualified; `getCommand` resolves them via `join`,
-      // and the same qualified string is the cache key + the value
-      // `commandContributions` reference.
-      entries = readdirSync(CMD_DIR, { recursive: true }) as string[];
-    } catch (err) {
-      console.error(`CommandApi: cannot read cmd dir at ${CMD_DIR}:`, err);
-      return { loaded: 0, failed: [] };
+    const failed: string[] = [];
+    let loaded = 0;
+
+    // ── The STORE first: every installed `command-view` document. A
+    // malformed stored view is a `failed` entry, never a throw — the
+    // pack gate keeps them out, the CMS chokepoint refuses them. With
+    // no store (offline — a unit test, a stripped boot) or a store that
+    // cannot be read, every view comes from disk and is counted.
+    let stored: StoredDocument[] = [];
+    if (storeAvailable()) {
+      try {
+        stored = await DocumentApi.listOfKind('command-view');
+      } catch (err) {
+        console.error('CommandApi: could not read the command-view store; serving from disk:', err);
+      }
     }
-    const yamls = entries
-      // Normalize to forward slashes so cache keys match the
-      // subdir-qualified references authored in YAML / contributions.
-      .map((f) => f.split(sep).join('/'))
-      .filter((f) => f.endsWith('.yaml'));
+    for (const doc of stored) {
+      const key = viewKeyOf(doc.getPath());
+      try {
+        const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+        await resolveCommandValidators(cmd);
+        validateCommandEffects(cmd);
+        commands.set(key, cmd);
+        diskServed.delete(key);
+        loaded += 1;
+      } catch (err) {
+        console.error(`CommandApi: stored command view ${doc.getPath()} failed:`, err);
+        failed.push(key);
+      }
+    }
+
+    // ── Then DISK, for whatever the store did not serve (the migration
+    // residue): the command trees, recursively (verbs are grouped into
+    // subdirs — `charactergen/enroll.yaml`; the subdir-qualified string
+    // is the cache key + the `commandContributions` reference). An
+    // absent tree is simply skipped.
+    const yamls: string[] = [];
+    for (const dir of CMD_DIRS) {
+      if (!existsSync(dir)) continue;
+      const entries = readdirSync(dir, { recursive: true }) as string[];
+      for (const f of entries) {
+        const norm = f.split(sep).join('/');
+        if (norm.endsWith('.yaml') && !yamls.includes(norm)) yamls.push(norm);
+      }
+    }
 
     // Content-local command bundles: a locality's bespoke verbs live with
     // its content under `domain/<sphere>/<locality>/cmd/`. Scan the content
@@ -371,9 +493,8 @@ export class CommandLogic extends ApiLogic {
       // No content tree (or unreadable) — nothing content-local to load.
     }
 
-    const failed: string[] = [];
-    let loaded = 0;
     for (const file of yamls) {
+      if (commands.has(file)) continue; // the store served it
       const cmd = this.getCommand(file);
       if (!cmd) {
         failed.push(file);
@@ -390,6 +511,13 @@ export class CommandLogic extends ApiLogic {
         );
         failed.push(file);
       }
+    }
+    const fromDisk = this.diskFallbacks();
+    if (fromDisk.length > 0) {
+      console.info(
+        `CommandApi: ${fromDisk.length} command view(s) served from disk — not yet content: ` +
+          fromDisk.join(', '),
+      );
     }
     return { loaded, failed };
   }
@@ -3308,7 +3436,7 @@ function commandSpecValidator(): ValidateFunction {
   if (_specValidate) return _specValidate;
   const schema = SourceTreeApi.readJsonResource<object>(
     import.meta.url,
-    '../../cmd/command.schema.json',
+    '../../lib/command/command.schema.json',
   );
   _specValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
   return _specValidate;
