@@ -3049,3 +3049,79 @@ inside the kernel suite — pragmatic scaffolding for proving the
 installer this cycle, NOT precedent: by ring discipline the
 installer's tests run against ugly fixture packs, and a pack's own
 installability checks live in ring 2.
+
+---
+
+# Addendum 2026-08-25 (27) — capability packs: code ships IN the pack, and sync is one interface
+
+**Decided 2026-08-25, correcting an over-claim.** The earlier framing
+("sync never touches code, ever") was doctrine outrunning mechanics —
+the platform already hot-reloads TypeScript at runtime (HotReloadApi,
+HMR-able logic singletons, per-invocation brain re-resolution, the
+`reload` verb). The real principle:
+
+> ⭐⭐⭐ **Sync does everything that doesn't require a LINK. In dev,
+> HMR is the linker — so sync moves code too, one interface. In prod,
+> code rides the same deploy+restart every kernel change rides, and
+> sync's job is to say when a restart is OWED.**
+
+## A33.1 — Code IS part of the pack (the ensure-the-code answer)
+
+One npm package carries both:
+
+```
+packages/content/eternal-university/
+├── package.json      # @saxonberg/content-eternal-university
+├── pack.yaml
+├── content/          # YAML — the installer's jurisdiction
+└── src/              # TS — Katie, the warren, the controllers
+```
+
+⭐⭐ **Adding the pack's one dependency line brings code and content
+together as a single versioned artifact — they cannot skew.** No
+separate "is the code in package.json" step exists. Class resolution:
+a **namespace → package table** built at discovery
+(`/domain/eternal/… → @saxonberg/content-eternal-university/src`,
+via Node resolution); `loadClassByPath` consults it before the kernel
+tree.
+
+## A33.2 — The two loops
+
+**Dev (one command):** edit YAML or TS → `pack sync <id>` (or the A32
+watcher) → data three-ways AND the pack's changed modules hot-swap
+through HotReloadApi (the `reload` machinery). Safe because it is your
+workspace — code-trust was settled at authorship; tsx already
+recompiled; sync is delivery.
+
+**Prod / another deployment:** `pnpm add @saxonberg/content-<id>` (one
+act, code+content versioned together) → restart (boot links modules,
+installer reconciles data, requires-kernel resolves classes into the
+pack's namespace + declared deps). Updates = version bump + restart.
+Runtime `sync` moves data but not code — ⭐ **not a pack limitation:
+prod runs compiled JS, kernel code has the same constraint and rides
+the same deploy.** `pack status` compares the record's code version
+against what's linked: *"data current, code stale — restart owed."*
+A brand-new pack on a running server = stage → restart, which was
+always the design (A10.10).
+
+## A33.3 — Cross-pack code + the graph
+
+Pack A importing pack B's classes: A lists B in `package.json`
+dependencies; ⭐ **`dependsOn` DERIVES from those lines — one
+dependency graph, no drift** between what npm links and what the
+installer orders. `import type` free everywhere (erased). Value
+imports are for inheritance/extension; capabilities still flow through
+the gated Apis — imports are never a side-channel around the world.
+
+## A33.4 — What stays deferred
+
+Only the **third-party trust story** (running code you didn't review:
+signing). The mechanism above is unchanged when it arrives; only the
+gate at the front door. Every capability pack for the foreseeable
+future is first-party and MR-reviewed (the ladder's code-trust rung).
+Enforcement carried forward from the access work: no contribution
+kind for code (the installer physically can't ship it); a "data" pack
+whose `class:` resolves into its own namespace is lying about its
+rung (checked at install); `lint:imports` grows a pack profile (own
+tree + declared pack deps + the kernel's projected author surface +
+`@saxonberg/types`).
