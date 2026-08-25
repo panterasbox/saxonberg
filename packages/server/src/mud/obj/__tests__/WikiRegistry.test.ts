@@ -20,6 +20,8 @@
  */
 
 import "../../../test-bootstrap";
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiRegistry, { WikiDenied, WikiConflict } from '../WikiRegistry';
 import WikiNamespaceZone from '../WikiNamespaceZone';
@@ -427,6 +429,40 @@ describe('revisions (8, 10, 11)', () => {
       expect((err as WikiConflict).baseRev).toBe(1);
       expect((err as WikiConflict).currentRev).toBe(2);
     }
+  });
+});
+
+describe('the installer as a writer (content-packs wave 2, D9)', () => {
+  it('asInstaller stamps pack:<id> as the author and skips the protection walk', async () => {
+    // A protected namespace refuses the pinned actor …
+    vi.spyOn(zone, 'lookupField').mockResolvedValue('moderators' as never);
+    pinAccess({ avatar: true, moderator: false });
+    await expect(create('locked')).rejects.toBeInstanceOf(WikiDenied);
+    // … and the installer, submitting AS the pack, is not asked.
+    const page = await raw().createPage({ slug: 'shipped', body: 'b', asInstaller: 'wiki-starter' });
+    expect(page.createdBy).toBe('pack:wiki-starter');
+    const revs = db.all(Collections.WikiRevisions).filter((r) => r.pageId === page._id);
+    expect(revs[0]!.author).toBe('pack:wiki-starter');
+    // An installer edit carries the frontmatter fields and the CAS token.
+    const edited = await raw().editPage(page, 'b2', {
+      baseRev: 1,
+      asInstaller: 'wiki-starter',
+      fields: { title: 'Shipped', tags: ['meta'] },
+    });
+    expect(edited.getTitle()).toBe('Shipped');
+    expect(edited.getTags()).toEqual(['meta']);
+    expect(edited.updatedBy).toBe('pack:wiki-starter');
+    await expect(
+      raw().editPage(page, 'b3', { baseRev: 1, asInstaller: 'wiki-starter' }),
+    ).rejects.toBeInstanceOf(WikiConflict);
+  });
+
+  it('⚠ the controller never passes asInstaller — the option is the installer’s alone', () => {
+    const src = readFileSync(
+      fileURLToPath(new URL('../command/system/WikiController.ts', import.meta.url)),
+      'utf8',
+    );
+    expect(src).not.toContain('asInstaller');
   });
 });
 
