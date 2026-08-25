@@ -74,7 +74,7 @@ beforeEach(() => {
     if (col === "documents") return match(scripts);
     if (col === "authoring_events") return match(authoring);
     if (
-      col === "domain" &&
+      col === "content" &&
       query.path === "/obj/command/system/PingController"
     ) {
       return [
