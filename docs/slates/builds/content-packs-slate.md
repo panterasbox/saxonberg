@@ -2994,3 +2994,58 @@ permission surface:
   accountable heads (CB Governor = the precedent), each seat owning
   its portfolio's working committees. Not an org chart we design; the
   accretion of exactly these acts.
+
+---
+
+# Addendum 2026-08-25 (26) — the post-refactor dev loop, and the three test rings
+
+**Captured 2026-08-25**, answering: *what does developing content feel
+like after the refactor?* — the payoff the program is priced against.
+(User: *"anything to reduce the amount of time running tests takes,
+that's the #1 time sink in our development workflow now."*)
+
+## A32.1 — The hot pack (dev loop)
+
+- **A pack WATCHER, dev-only, on the `CompileWatcher` precedent**:
+  watch `packages/content/*/content/**`, debounce, fire the same
+  `PackApi.sync(packId)` the verb runs. Save YAML in the IDE → the
+  reconcile applies → the rehydrate tail pushes it live. Symmetric
+  with `tsx watch` for code. ⭐ **The three-way machine is what makes
+  auto-sync SAFE**: live-world divergence surfaces as a conflict
+  instead of being stomped (in dev you're usually the only writer —
+  the silent-apply cell).
+- **Bidirectional**: iterate in-game/CMS instead → `pack resolve
+  --export` writes the live edit back to the file. Either end can be
+  the editor; git always ends up with the truth.
+- ⚠ **Fields hot, structure warm, never confusing about which**: hot
+  sync covers field edits; structural changes (new rooms, `populates:`
+  on stood-up rooms) need a re-fault or a restart — restart stays the
+  universal go-live, and dev restarts are cheap + self-cleaning.
+- Not wave-1 scope; a small standalone item whenever resync friction
+  first annoys.
+
+## A32.2 — ⭐⭐⭐ The three test rings, and "pack YAML is not source"
+
+Operationalizing Part 5's dependency direction:
+
+| Ring | Runs when | Time |
+|---|---|---|
+| 1 **kernel suite** | kernel SOURCE changes | the ~15 min — and it SHRINKS as reach-into-content tests get synthetic fixtures and colocated content tests leave with their packs |
+| 2 **per-pack suites** | that pack's files change (CI `rules:changes`) | seconds: installability, class resolution, flat keys, schema, the archetype-derived smoke |
+| 3 **e2e** | its own lane | unchanged |
+
+> ⭐⭐⭐ **PACK YAML IS NOT SOURCE.** The green-stays-valid doctrine
+> already says a full run stays valid until a source file changes —
+> pack content files are not source by that rule's own logic (nothing
+> in the kernel suite's import graph touches them). The moment
+> newbie-wilds is a pack, editing its content = ZERO kernel suite
+> runs: pack lint + the pack's seconds-long suite + a drive. The
+> CLAUDE.md `git status | grep` check grows a `packages/content/`
+> exclusion. **The #1 time sink stops applying to content work at
+> all — which is most of what building the wilds actually is.**
+
+⚠ Plan-review note: W1.10's newbie-wilds test uses the real pack root
+inside the kernel suite — pragmatic scaffolding for proving the
+installer this cycle, NOT precedent: by ring discipline the
+installer's tests run against ugly fixture packs, and a pack's own
+installability checks live in ring 2.
