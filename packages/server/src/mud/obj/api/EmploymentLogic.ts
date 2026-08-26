@@ -197,6 +197,25 @@ function mayPublishAsImpl(
 }
 
 /**
+ * Does `principal` hold any non-exited position at `organization`? The
+ * positionless twin of `mayPublishAsImpl`, over the same single
+ * holder-resolution scan. Fails closed on a principal with no durable
+ * identity.
+ */
+function holdsPositionImpl(
+  principal: Stuff | null,
+  organization: OrganizationStuff,
+): boolean {
+  if (principal === null) return false;
+  const who = principal.getIdentityPath() ?? principal.getTemplatePath();
+  if (!who) return false;
+  for (const holders of holdersByPositionImpl(organization).values()) {
+    if (holders.has(who)) return true;
+  }
+  return false;
+}
+
+/**
  * The organization chain above `organization`, nearest parent first — a
  * department inside a ministry, a desk inside a paper.
  *
@@ -673,6 +692,15 @@ export class EmploymentLogic extends ApiLogic {
     publisher: OrganizationStuff,
   ): boolean {
     return mayPublishAsImpl(principal, publisher);
+  }
+
+  /** See {@link EmploymentApi.holdsPosition}. */
+  @CallSecurity(EmploymentApiCallers)
+  public holdsPosition(
+    principal: Stuff | null,
+    organization: OrganizationStuff,
+  ): boolean {
+    return holdsPositionImpl(principal, organization);
   }
 
   /** See {@link EmploymentApi.holdersOf}. */

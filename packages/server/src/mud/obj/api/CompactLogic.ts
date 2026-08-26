@@ -11,6 +11,12 @@ import { GroupApi } from "../../api/group";
 import { ChatApi } from "../../api/chat";
 import { PlayerApi } from "../../api/player";
 import { ExecutionContextApi } from "../../api/execution-context";
+import { EmploymentApi } from "../../api/employment";
+import { MixinApi } from "../../api/mixin";
+import { MqlApi } from "../../api/mql";
+import type { Organization } from "../../lib/employment/Organization";
+
+type OrganizationStuff = Stuff & Organization;
 import { TemplatePaths } from "../../lib/paths";
 import type {
   OfficeHolderResult,
@@ -79,15 +85,34 @@ async function isFounderImpl(subject: Stuff | null): Promise<boolean> {
 async function committeeOfImpl(path: string): Promise<CommitteeView | null> {
   if (path.length === 0) return null;
   const owner = await ParcelApi.ownerOf(path);
+  if (owner.kind === "organization") {
+    const parcel = await ParcelApi.coveringParcelOf(path);
+    const org = StuffApi.findByTemplatePath(owner.templatePath);
+    return {
+      kind: "organization",
+      name: org?.getPresentation() ?? owner.templatePath,
+      templatePath: owner.templatePath,
+      subdivisionPath: parcel?.getExtent() ?? "",
+    };
+  }
   if (owner.kind !== "group") return null;
   const groupRef = await ParcelApi.resolveOwnerRef(owner);
   if (!groupRef) return null;
   const parcel = await ParcelApi.coveringParcelOf(path);
   return {
+    kind: "group",
     name: owner.name ?? GroupApi.parseRef(groupRef).id,
     groupRef,
     subdivisionPath: parcel?.getExtent() ?? "",
   };
+}
+
+/** The resident organization behind an organization-arm committee, or null. */
+function organizationOf(
+  committee: CommitteeView & { kind: "organization" }
+): OrganizationStuff | null {
+  const org = StuffApi.findByTemplatePath(committee.templatePath);
+  return org && MixinApi.isOrganization(org) ? org : null;
 }
 
 /** The committee channel's well-known name for a committee. */
@@ -125,6 +150,13 @@ export class CompactLogic extends ApiLogic {
   ): Promise<boolean> {
     const committee = await committeeOfImpl(path);
     if (!committee) return false;
+    if (committee.kind === "organization") {
+      // Staff or head — the organization's own chart is the roster.
+      const org = organizationOf(committee);
+      if (!org) return false;
+      if (EmploymentApi.holdsPosition(player, org)) return true;
+      return EmploymentApi.holdsAuthority(player, org.getAppointingAuthority());
+    }
     // The Art. XI pool-of-one backstop, mirroring the office founder
     // default: at founding every committee's work is the founder's.
     if (await isFounderImpl(player)) return true;
@@ -139,6 +171,24 @@ export class CompactLogic extends ApiLogic {
   public async committeeMembersOf(path: string): Promise<Stuff[]> {
     const committee = await committeeOfImpl(path);
     if (!committee) return [];
+    if (committee.kind === "organization") {
+      const org = organizationOf(committee);
+      if (!org) return [];
+      const online = MqlApi.resolveMany("online", {
+        commandGiver: null,
+        scope: "online",
+      }).stuff;
+      const out: Stuff[] = [];
+      for (const who of online) {
+        if (
+          EmploymentApi.holdsPosition(who, org) ||
+          (await EmploymentApi.holdsAuthority(who, org.getAppointingAuthority()))
+        ) {
+          out.push(who);
+        }
+      }
+      return out;
+    }
     return GroupApi.membersOf(committee.groupRef);
   }
 
@@ -148,7 +198,7 @@ export class CompactLogic extends ApiLogic {
     path: string
   ): Promise<CommitteeChannelView | null> {
     const committee = await committeeOfImpl(path);
-    if (!committee) return null;
+    if (!committee || committee.kind === "organization") return null;
     const name = channelNameFor(committee);
     const channel = await ChatApi.resolveByName(name);
     return channel ? { name } : null;
@@ -242,7 +292,8 @@ export class CompactLogic extends ApiLogic {
     path: string
   ): Promise<CommitteeChannelView | null> {
     const committee = await committeeOfImpl(path);
-    if (!committee) return null;
+    // An organization's channel is its own concern — none minted here.
+    if (!committee || committee.kind === "organization") return null;
     const name = channelNameFor(committee);
     const existing = await ChatApi.resolveByName(name);
     if (existing) return { name };

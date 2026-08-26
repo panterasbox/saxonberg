@@ -258,6 +258,10 @@ export default class EvalController extends CommandController<EvalModel> {
         const key = identity.split('/').filter(Boolean).pop();
         return key !== undefined && owner.templatePath === `/home/${key}`;
       }
+      if (owner?.kind === 'organization') {
+        // Staff-or-head, resolved by the access layer's own dispatch.
+        return AccessApi.canAtPath(giver, 'write-template', parcel);
+      }
       if (owner?.kind === 'group' && owner.ref) {
         // Groups key on the member PATH (`/obj/Avatar/<id>`), not the
         // bare playerId — the same key `AccessRegistry.memberKeyOf`

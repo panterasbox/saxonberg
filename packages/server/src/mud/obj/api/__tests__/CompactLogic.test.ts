@@ -16,6 +16,8 @@ import { ExecutionContextApi } from "../../../api/execution-context";
 import { TemplatePaths } from "../../../lib/paths";
 import { Idea } from "../../../lib/stuff/Idea";
 import Avatar from "../../Avatar";
+import { EmploymentApi } from "../../../api/employment";
+import { OrganizationMixin } from "../../../lib/employment/Organization";
 import { StuffApi } from "../../../api/stuff";
 import { ShadowApi } from "../../../api/shadow";
 import type { ParcelOwner } from "../../../lib/parcel/ParcelRecord";
@@ -67,6 +69,8 @@ function stubTitle(): void {
  * (With NO registry installed, the founder predicate fails closed — the
  * default the other tests rely on.)
  */
+class OrganizationEntity extends OrganizationMixin(Idea) {}
+
 class FakeFounderRegistry extends Idea {
   public async isFounder(_playerId: string): Promise<boolean> {
     return true;
@@ -90,6 +94,7 @@ describe("CompactApi — the committee reads", () => {
       "/domain/terminus/registry/office"
     );
     expect(committee).toEqual({
+      kind: "group",
       name: "terminus",
       groupRef: GROUP_REF,
       subdivisionPath: "/domain/terminus/registry",
@@ -126,6 +131,50 @@ describe("CompactApi — the committee reads", () => {
     await expect(
       CompactApi.isCommitteeMember(bob, "/home/alice/parlor")
     ).resolves.toBe(false);
+  });
+
+  it("an organization-held parcel resolves to the organization arm", async () => {
+    vi.spyOn(ParcelApi, "ownerOf").mockResolvedValue({
+      kind: "organization",
+      templatePath: "/compact/executive",
+    });
+    vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue({
+      getExtent: () => "/obj",
+    } as unknown as Awaited<ReturnType<typeof ParcelApi.coveringParcelOf>>);
+    const committee = await CompactApi.committeeOf("/obj/gear/hat");
+    expect(committee).toEqual({
+      kind: "organization",
+      name: "/compact/executive",
+      templatePath: "/compact/executive",
+      subdivisionPath: "/obj",
+    });
+    // No channel through this face for an organization.
+    await expect(CompactApi.committeeChannelOf("/obj/gear/hat")).resolves.toBeNull();
+    await expect(CompactApi.ensureCommitteeChannel("/obj/gear/hat")).resolves.toBeNull();
+  });
+
+  it("isCommitteeMember over an organization is staff-or-head, resident only", async () => {
+    vi.spyOn(ParcelApi, "ownerOf").mockResolvedValue({
+      kind: "organization",
+      templatePath: "/compact/executive",
+    });
+    vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue(null);
+    const staffer = makeAvatar("staffer");
+    const pm = makeAvatar("pm");
+    const eve = makeAvatar("eve");
+    // Not resident yet → nobody.
+    await expect(CompactApi.isCommitteeMember(pm, "/obj/x")).resolves.toBe(false);
+    const org = makeStuffAtPath(() => new OrganizationEntity(), "/compact/executive");
+    org.appointingAuthority = { kind: "office", office: "prime-minister" };
+    vi.spyOn(EmploymentApi, "holdsPosition").mockImplementation(
+      (s) => s?.getIdentityPath() === "/obj/Avatar/staffer",
+    );
+    vi.spyOn(EmploymentApi, "holdsAuthority").mockImplementation(
+      async (s) => s?.getIdentityPath() === "/obj/Avatar/pm",
+    );
+    await expect(CompactApi.isCommitteeMember(staffer, "/obj/x")).resolves.toBe(true);
+    await expect(CompactApi.isCommitteeMember(pm, "/obj/x")).resolves.toBe(true);
+    await expect(CompactApi.isCommitteeMember(eve, "/obj/x")).resolves.toBe(false);
   });
 
   it("isCommitteeMember: the founder backstop (Art. XI pool-of-one)", async () => {

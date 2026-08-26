@@ -34,6 +34,9 @@ import { StuffApi } from '../api/stuff';
 import { ParcelApi } from '../api/parcel';
 import type { TreeAction } from '../api/access';
 import { CompactApi } from '../api/compact';
+import { EmploymentApi } from '../api/employment';
+import { MixinApi } from '../api/mixin';
+import { DiagnosticApi } from '../api/diagnostics';
 import { Collections } from '../lib/persistence/Collections';
 import { Template } from '../lib/stuff/Template';
 import { Group } from '../lib/social/Group';
@@ -94,6 +97,8 @@ export default class AccessRegistry extends AccessRegistryBase {
    *  a `group`-kind parcel owner (via `ParcelApi.groupOwnerRefs`), plus
    *  `'core'`. Warmed lazily on first `isAuthor` read. */
   private cachedAuthorGroups: readonly GroupRef[] | null = null;
+  /** Organization paths already diagnosed as unresolved — once-per-path. */
+  private readonly reportedUnresolvedOrganizations = new Set<string>();
 
   public override async postRegister(_context?: unknown): Promise<void> {
     await this.seedCoreGroup();
@@ -409,6 +414,9 @@ export default class AccessRegistry extends AccessRegistryBase {
     owner: ParcelOwner,
   ): Promise<boolean> {
     if (owner.kind === 'player') return this.subjectOwnsAsPlayer(subject, owner);
+    if (owner.kind === 'organization') {
+      return this.subjectHoldsOrganization(subject, owner);
+    }
     const ref = await ParcelApi.resolveOwnerRef(owner);
     if (!ref) return false;
     return GroupApi.isMember(playerId, ref);
@@ -425,9 +433,62 @@ export default class AccessRegistry extends AccessRegistryBase {
     owner: ParcelOwner,
   ): Promise<boolean> {
     if (owner.kind === 'player') return this.subjectOwnsAsPlayer(subject, owner);
+    // An organization's staff and head all count as `'owner'` — the
+    // chart, not a group role, is the authority structure.
+    if (owner.kind === 'organization') {
+      return this.subjectHoldsOrganization(subject, owner);
+    }
     const ref = await ParcelApi.resolveOwnerRef(owner);
     if (!ref) return false;
     return (await GroupApi.roleOf(playerId, ref)) === 'owner';
+  }
+
+  /**
+   * The `organization`-kind dispatch (wave 3, D2): the title is held by
+   * everyone holding a non-exited position in the organization
+   * (`EmploymentApi.holdsPosition`) and by its appointing authority
+   * (`EmploymentApi.holdsAuthority` — for an office that is
+   * `CompactApi.holdsOffice`, founder default included). The organization
+   * **must be resident** (`/compact/executive` and the corpos are `boot:`
+   * entries for exactly this reason); a non-resident or non-organization
+   * target fails CLOSED with one diagnostic per path.
+   */
+  private async subjectHoldsOrganization(
+    subject: Stuff,
+    owner: ParcelOwner & { kind: 'organization' },
+  ): Promise<boolean> {
+    const org = StuffApi.findByTemplatePath(owner.templatePath);
+    if (!org || !MixinApi.isOrganization(org)) {
+      this.reportUnresolvedOrganization(owner.templatePath);
+      return false;
+    }
+    if (EmploymentApi.holdsPosition(subject, org)) return true;
+    try {
+      return await EmploymentApi.holdsAuthority(
+        subject,
+        org.getAppointingAuthority(),
+      );
+    } catch {
+      // Fail closed: a governance substrate that is not up must not turn
+      // a plain "no" into a throw at a security gate.
+      return false;
+    }
+  }
+
+  /** Once per path: an organization-held title whose organization is not
+   *  resident admits nobody, and that is worth one line, not a flood. */
+  private reportUnresolvedOrganization(templatePath: string): void {
+    if (this.reportedUnresolvedOrganizations.has(templatePath)) return;
+    this.reportedUnresolvedOrganizations.add(templatePath);
+    void DiagnosticApi.record({
+      path: templatePath,
+      channel: 'access.organization-owner',
+      severity: 'warning',
+      message:
+        `A title is held by organization '${templatePath}', which is not ` +
+        `resident (or is not an OrganizationMixin host) — the title admits ` +
+        `nobody until it is. List it under the owning pack's boot: entries.`,
+    });
   }
 
   /**

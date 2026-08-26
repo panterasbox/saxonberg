@@ -106,6 +106,20 @@ export class EmploymentApi {
   }
 
   /**
+   * Does `subject` hold **any non-exited position** at `organization` —
+   * the staff test, the positionless twin of `mayPublishAs` (which filters
+   * on `publishingPositions`). Reads the one holder-resolution path, so an
+   * explicit exit is never resurrected by the roster. Never consults the
+   * appointing authority — the head is `holdsAuthority`, not staff.
+   */
+  public static holdsPosition(
+    subject: Stuff | null,
+    organization: OrganizationStuff,
+  ): boolean {
+    return logic().holdsPosition(subject, organization);
+  }
+
+  /**
    * Whether `subject` may act as the proprietor of `organization` — its
    * appointing authority, or the `AccessApi.isAuthor` operator override.
    * The override rides on top of an authority and is never one itself.
