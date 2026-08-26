@@ -18,7 +18,14 @@
  * This is a singleton - only one instance exists per application.
  */
 
-import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
+import {
+  MongoClient,
+  Db,
+  Collection,
+  ObjectId,
+  type IndexSpecification,
+  type CreateIndexesOptions,
+} from 'mongodb';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, isAbsolute } from 'path';
@@ -1145,6 +1152,16 @@ export class PersistenceManager {
     }
   }
 
+  /** The driver collection narrowed to the one call the kind indexes need. */
+  #indexTarget(coll: Collection): {
+    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
+  } {
+    return {
+      createIndex: (spec, opts) =>
+        coll.createIndex(spec as IndexSpecification, opts as CreateIndexesOptions),
+    };
+  }
+
   /** Test seam for `#createDocumentKindIndexes`. Not used at runtime. */
   async runDocumentKindIndexesForTest(coll: {
     createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
@@ -1401,9 +1418,7 @@ export class PersistenceManager {
       await this.getCollection(Collections.Documents).createIndex({ path: 1 });
       await this.getCollection(Collections.Documents).createIndex({ kind: 1 });
       await this.#createDocumentKindIndexes(
-        this.getCollection(Collections.Documents) as unknown as Parameters<
-          PersistenceManager['runDocumentKindIndexesForTest']
-        >[0]
+        this.#indexTarget(this.getCollection(Collections.Documents))
       );
 
       // Groups: queryable owner / member shape (Phase 2B).

@@ -158,13 +158,7 @@ const DOMAIN_DIR = join(MUD_ROOT, 'domain');
  */
 const diskServed: Set<string> = new Set();
 
-/** `perception/look.yaml` → `/cmd/perception/look`; `domain/x/cmd/y.yaml` → `/domain/x/cmd/y`. */
-function docPathOf(viewKey: string): string {
-  const bare = viewKey.replace(/\.yaml$/, '');
-  return bare.startsWith('domain/') ? `/${bare}` : `/cmd/${bare}`;
-}
-
-/** The inverse of {@link docPathOf}. */
+/** `/cmd/perception/look` → `perception/look.yaml`; `/domain/x/cmd/y` → `domain/x/cmd/y.yaml` (the pack reader's `commandViewPathOf`, inverted). */
 function viewKeyOf(docPath: string): string {
   if (docPath.startsWith('/cmd/')) return `${docPath.slice('/cmd/'.length)}.yaml`;
   return `${docPath.replace(/^\//, '')}.yaml`;

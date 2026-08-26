@@ -3159,3 +3159,33 @@ idiom) and a `fromStored` upgrade the readers also pass through, so no
 row is ever read in the old shape. The precedent is `ParcelOwner`; the
 rule is that nothing pre-launch is legacy — model the thing and migrate
 the rows. See [grouping.md § The owner](./subsystems/grouping.md#the-owner--a-typed-principal).
+
+## Querying a row by `_id` through `find`
+
+Looking a row up by its id with the generic query surface —
+`PersistApi.find(col, { _id: ref })` — instead of `PersistApi.findById`.
+
+### BAD
+
+```ts
+const rows = await PersistApi.find(Collections.Channels, { _id: ref });
+const channel = rows[0];                         // undefined against real Mongo
+```
+
+A stored `_id` is an `ObjectId`; the `ref` a row carries is its string.
+A `{ _id: '…' }` equality query matches **nothing** in Mongo, while every
+in-memory test harness that compares `r._id === v` matches happily — so
+the suite is green and the live server mints a duplicate (the wave-2
+drive: a second `Chat` channel, `E11000`, the platform pack failed).
+
+### GOOD
+
+```ts
+const channel = await PersistApi.findById(Collections.Channels, ref);
+```
+
+`findById` is the one path that converts the id. The rule generalizes:
+a harness that fakes the driver proves the *logic*, never the *driver*
+— a query shape only Mongo can refuse is a query shape the drive has to
+exercise. See [content-packs.md](./subsystems/content-packs.md) (the
+subject kind) and the memory note on the pack harness.

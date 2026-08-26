@@ -43,8 +43,8 @@ import type { BlueprintKind } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
 
-/** The curated document shape (`data` of a `kind: 'blueprint'` row). */
-export interface CuratedBlueprintData {
+/** The curated document shape (`data` of a `kind: 'blueprint'` row). A type alias, not an interface, so it is assignable to the store's `Record<string, unknown>` data. */
+export type CuratedBlueprintData = {
   blueprintId: string;
   name?: string;
   kind?: BlueprintKind;
@@ -54,7 +54,7 @@ export interface CuratedBlueprintData {
   parent?: string;
   blessed?: boolean;
   description?: string;
-}
+};
 
 export class Blueprint extends Document {
   static collectionName = 'blueprints';

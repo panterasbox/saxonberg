@@ -1161,25 +1161,27 @@ const wikiStrategy: KindStrategy<WikiFile> = {
  * live `rev` (no edit submitted). A vanished file → `keep`, baseline
  * dropped.
  */
-async function planCas(
-  strategy: KindStrategy<WikiFile>,
-  files: WikiFile[],
+async function planCas<F>(
+  strategy: KindStrategy<F>,
+  files: F[],
   record: StoredRecord | null,
   pins: Set<string>,
-): Promise<KindPlan<WikiFile>> {
+): Promise<KindPlan<F>> {
   const actions: PlannedAction[] = [];
   // The registry is a lazy singleton: a pack shipping no pages never
   // resolves (or mints) it.
   const registry = files.length > 0 ? await wikiRegistry() : null;
   const fileKeys = new Set<string>();
-  for (const f of files) {
+  // The one CAS kind is the wiki; its files are WikiFile (kindsOf pairs them).
+  const wiki = strategy as unknown as KindStrategy<WikiFile>;
+  for (const f of files as unknown as WikiFile[]) {
     const key = f.key;
     fileKeys.add(key);
     if (pins.has(key)) {
       actions.push({ op: 'pinned-skip', key });
       continue;
     }
-    const body = strategy.canonicalBody(strategy.rowOf(f, ''));
+    const body = wiki.canonicalBody(wiki.rowOf(f, ''));
     const hash = hashOf(body);
     const hit = await registry!.resolve(`${f.namespace}:${f.slug}`);
     if (!hit) {
@@ -1202,7 +1204,7 @@ async function planCas(
     if (baseline.kind !== label || fileKeys.has(key)) continue;
     actions.push(pins.has(key) ? { op: 'pinned-skip', key } : { op: 'keep', key, dropBaseline: true });
   }
-  return { strategy: strategy as KindStrategy<WikiFile>, actions };
+  return { strategy, actions };
 }
 
 /** Apply one wiki `submit`: create or CAS-edit through the registry AS the pack. */
@@ -1712,16 +1714,11 @@ async function computeKindPlan<F>(
     return planMergeMissing(strategy, files, record, pins);
   }
   if (strategy.policy === 'cas') {
-    const plan = await planCas(
-      strategy as unknown as KindStrategy<WikiFile>,
-      files as unknown as WikiFile[],
-      record,
-      pins,
-    );
+    const plan = await planCas(strategy, files, record, pins);
     for (const a of plan.actions) {
       if (a.op === 'submit' && a.submit === 'edit') a.baselineHash = record?.rows[a.key]?.hash;
     }
-    return plan as unknown as KindPlan<F>;
+    return plan;
   }
 
   const stampedRows =

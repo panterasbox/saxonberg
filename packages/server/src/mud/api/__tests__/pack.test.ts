@@ -43,25 +43,31 @@ function stubPersist(): void {
   rows = [];
   nextId = 1;
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
+  // Collection-aware, like Mongo: a `{sourcePack}` query over
+  // `forum_subjects` must not answer with `content` rows (the subject
+  // kind would plan an archive for a template — found at the sweep).
+  const colOf = (r: Row): string => (r as Row & { __col?: string }).__col ?? 'content';
   vi.spyOn(PersistApi, 'find').mockImplementation(
-    async (_col: string, query: Record<string, unknown>) =>
+    async (col: string, query: Record<string, unknown>) =>
       rows
-        .filter((r) =>
-          Object.entries(query).every(([k, v]) => (r as Row)[k] === v),
+        .filter(
+          (r) =>
+            colOf(r) === col &&
+            Object.entries(query).every(([k, v]) => (r as Row)[k] === v),
         )
         .map((r) => ({ ...r })) as never,
   );
   vi.spyOn(PersistApi, 'save').mockImplementation(
-    async (_col: string, doc: Record<string, unknown>) => {
+    async (col: string, doc: Record<string, unknown>) => {
       const d = doc as Row;
       if (d._id) {
         const i = rows.findIndex((r) => r._id === d._id);
         const { _id, ...rest } = d;
-        rows[i] = { ...rows[i]!, ...rest, _id };
+        rows[i] = { ...rows[i]!, ...rest, _id, __col: col } as Row;
         return String(d._id);
       }
       const id = `id-${nextId++}`;
-      rows.push({ ...d, _id: id });
+      rows.push({ ...d, _id: id, __col: col } as Row);
       return id;
     },
   );

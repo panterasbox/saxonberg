@@ -782,7 +782,7 @@ export class StudioLogic extends ApiLogic {
     await DocumentApi.save(
       `${BLUEPRINT_MINT_BRANCH}/${blueprintId}`,
       'blueprint',
-      bp.toCuratedData() as unknown as Record<string, unknown>,
+      bp.toCuratedData(),
     );
     catalogue.upsert(bp);
 
