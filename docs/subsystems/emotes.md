@@ -44,38 +44,35 @@ NOT for: speech (use `VocalMixin`); aether comms (use `AetherMixin`);
 the per-recipient sensorium check (the modality stamp + the shipped
 `SensorMixin.filterMessage` do that automatically).
 
-## The `Emote` Document
+## The `Emote` value shape
 
-Authored catalog records live at `lib/social/Emote.ts`, a plain
-`Document` subclass mapped to the `emotes` MongoDB collection (added
-to the `Collections` enum). The shape is deliberately flat:
+An emote is one `documents` row of **`kind: 'emote'`** (content-packs
+wave 2 — the former `emotes` collection was collapsed into the document
+store by a one-time boot migration, `_id`s preserved). `lib/social/Emote.ts`
+is the **value shape** over that row's `data` — not a `Document` subclass
+any more:
 
 ```typescript
-export class Emote extends Document {
-  static collectionName = 'emotes';
-  static fieldMeta: FieldMeta = {
-    verb: { persistent: true },
-    aliases: { persistent: true },
-    grammar: { persistent: true },
-    echo: { persistent: true },
-    emoji: { persistent: true },
-    tags: { persistent: true },
-    valence: { persistent: true },
-  };
-
+export class Emote {
+  path: string = '';            // the document's path (the edit/delete address)
   verb: string = '';
-  aliases: string[] = [];
+  searchTerms: string[] = [];   // catalogue lookup words — NEVER dispatched
   grammar: EmoteGrammar = { slots: {}, template: '' };
   echo: EmoteEcho = 'default';
   emoji?: string;
   tags: string[] = [];
   valence: number = 0;
+  static fromDocument(doc: StoredDocument): Emote;   // validates verb + grammar.template
+  toData(): Record<string, unknown>;
 }
 ```
 
-`verb` is the canonical lookup key (unique-indexed). `aliases` is a
-narrow exception for true synonyms (`greet` ↔ `hi`, `hello`); the
-convention is to leave it empty. `grammar` carries the Liquid
+`verb` is the canonical lookup key (unique per kind at the collection
+level — `{kind, data.verb}`) and **the only word that dispatches**.
+`searchTerms` replaced `aliases`: an emote's synonyms (`greet` ← `hi`,
+`hello`) are lookup words for `soul search`, never a second dispatch
+namespace — `;hi` does nothing, `soul search hi` says it is `greet`.
+(`aliases` was a second dispatch namespace that shadowed `AliasMixin`.) `grammar` carries the Liquid
 template plus per-slot metadata (see next section). `echo` reserves
 the future remote-emote echo policy. `emoji` is the optional single
 glyph, surfaced on the payload alongside the failsafe prose body.
@@ -242,12 +239,17 @@ The verb→Emote runtime cache lives on a Stuff singleton,
 `/obj/EventRegistry` per the singleton-in-`obj/` convention. The
 catalogue extends `Idea` composed with `PostRegistrationMixin` —
 the `postRegister` hook warms `cache: Map<string, Emote>` from
-Mongo via `Emote.find({})` after `EmoteSeeder.run` has populated the
-collection. The map is keyed by canonical verb AND by every alias.
+`DocumentApi.listOfKind('emote')` after `PackApi.install` has
+reconciled the `expression` pack. The map is keyed by **canonical
+verb only**; a second index (`bySearchTerm`: term → verbs, over each
+emote's verb, tags and `searchTerms`) serves `search` and nothing else.
 
-The catalogue carries the live mutation surface (`resolve` / `mint`
-/ `edit` / `delete` / `all`). `mint` writes a new `Emote` via the
-Document track *and* indexes it into the cache; `edit` mutates in
+The catalogue carries the live mutation surface (`resolve` / `search` /
+`mint` / `edit` / `delete` / `all`). `mint` writes `/emotes/<verb>`
+through `DocumentApi.save` (the platform's own `/emotes/` branch —
+untitled, so the state's group decides, which is exactly the verb's
+`requiresCoreAccess`; a pack that later ships the verb adopts the row
+by natural key) *and* indexes it into the cache; `edit` mutates in
 place, re-runs `save()`, and re-indexes; `delete` drops cache
 entries and `Document.delete()`s the record. `canDestruct` refuses —
 `Application` resolves the catalogue lazily and expects it to stay
@@ -316,10 +318,12 @@ verbs. When the access slate lands the gate moves mechanically to
 `soul make <verb> <yaml-or-json-spec>` mints a new `Emote` via
 `SoulApi.mint`. The spec is a greedy remainder; both YAML and JSON
 parse paths are tried. `soul edit <verb> <field> <newvalue>`
-updates one of `template` / `grammar` / `aliases` / `tags` /
+updates one of `template` / `grammar` / `searchTerms` / `tags` /
 `emoji` / `echo` and re-saves through `SoulApi.edit` (which both
 persists and re-indexes the cache). `soul delete` drops from cache
-and Mongo; `soul show` prints the record; `soul list` enumerates
+and the store (`DocumentApi.delete`); `soul show` prints the record;
+`soul search <term>` lists every emote a word finds (by verb, tag, or
+search term); `soul list` enumerates
 the cache.
 
 Every author edit is write-through to **both** Mongo and the
@@ -377,29 +381,21 @@ recipient's sensorium gates reception independently of where they
 happen to be standing. The same `scope: 'online'` shape powers
 `dm`'s target resolution.
 
-## Starter roster + bootstrap
+## Starter roster — the `expression` pack
 
-The starter catalog (~35 entries) lives at
-`packages/server/src/mud/config/emotes.yaml`. The location matters:
-the file lives under `mud/config/`, **not** under `mud/seeds/`. The
-generic `SeederManager` walks `seeds/*` and inserts every YAML it
-finds as a `Template` into the `domain` collection. Emote records
-aren't Stuff templates and don't belong there; keeping the YAML out
-of the seeds tree avoids double-insertion.
-
-`EmoteSeeder.run()` reads the YAML, walks the entries, and inserts
-each into the `emotes` collection if no record with that `verb`
-exists. **Insert-only by design** — re-runs are idempotent; author
-edits via `soul edit` survive subsequent boots. Dev workflow when
-an entry changes: `db.emotes.deleteOne({verb: '<name>'}); restart`,
-matching the existing `SeederManager` pattern.
-
-The seeder runs from `main()` after `PersistenceManager.connect`
-(which creates the `verb` unique index and the `aliases` index) and
-before `BootstrapManager.run` (which warms the `SoulCatalogue`
-singleton — the catalogue reads the just-populated collection at
-its `postRegister` hook). The starter roster covers greetings, joy /
-approval, displeasure, surprise, playful, and abstraction registers.
+The starter catalog (34 entries) is the **`expression` content pack**
+(`packages/content/expression/content/emotes/<verb>.yaml`, one file per
+verb; the basename IS the key — a file whose `verb:` disagrees fails the
+pack at `read`), installed at `/expression/emotes/<verb>` by
+`PackApi.install` and reconciled **three-way** thereafter: an author's
+`soul edit` is **kept** when the pack file did not change, a changed
+pack file over an untouched row updates it, both changed is a conflict
+for `pack diff` / `pack resolve` ([content-packs.md](./content-packs.md)).
+The roster covers greetings, joy / approval, displeasure, surprise,
+playful, and abstraction registers (the pack README lists them by
+section). The former `EmoteSeeder` + `mud/config/emotes.yaml` are gone;
+the collapse migration carried an existing dev DB's rows across with
+their `_id`s and the first install adopted them in place by `verb`.
 
 ## The client read face — `SoulApi.snapshot()` (Wave 6)
 
@@ -409,9 +405,8 @@ palette they can already type, so Wave 6 added a player-readable
 projection.
 
 `SoulCatalogue.snapshot()` → `EmoteCatalogueEntry[]`: canonical verbs
-only (the warm cache indexes every alias to the same `Emote`, so
-iterating it directly would emit one grid cell per alias — the aliases
-ride their canonical entry), each with its emoji, tags and declared slots
+only, each with its emoji, tags, `searchTerms` (the picker's typeahead
+corpus — never cells of their own) and declared slots
 in **declaration order**, which is the order `EmoteGrammarRunner.bind`
 consumes tokens in. `required` is derived from the author's `optional`
 flag rather than restated. `soul list` keeps its gate: seeing the palette

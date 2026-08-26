@@ -825,9 +825,10 @@ The CMS-composition (**Studio**) build adds `Blueprint` (`lib/studio/`) — a
 reference-data `Document` (`blueprints` collection, the `Recipe` precedent,
 never cloned: a named structural composition `<baseClass>|<sorted mixins>`) —
 plus the boot-warmed `BlueprintCatalogue` singleton (`obj/`, the
-`RecipeCatalogue` shape: id + signature indices) it's loaded into, and the
-`BlueprintSeeder` (`backend/`, a derived skeleton from every backing class + a
-curated `config/blueprints.yaml` overlay). See [studio.md](./subsystems/studio.md).
+`RecipeCatalogue` shape: id + signature indices) it's loaded into — which
+since content-packs wave 2 also `rebuild()`s the derived skeleton at boot
+and overlays the curated `documents {kind: blueprint}` the platform pack
+ships. See [studio.md](./subsystems/studio.md).
 
 The **concealment / traps** build adds two capability mixins and one class,
 both deliberately **without a new Api**: `ConcealableMixin`
@@ -1037,8 +1038,9 @@ for the full rule.
   `mixin.ts`, `containment.ts`, `message.ts`, …
 
 - **Command YAML views**: `perception/look.yaml`, `social/say.yaml`,
-  in `mud/cmd/<category>/` (grouped into category subdirs). Loaded
-  recursively by `CommandApi`.
+  in the platform content pack's `content/cmd/<category>/` (grouped into
+  category subdirs; the `command-view` document kind). Served store-first
+  by `CommandApi`, disk as the counted fallback.
 
 - **Command controllers**: in `mud/obj/command/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts`.
@@ -1063,7 +1065,7 @@ Convention is **layer-based**:
   mediate access for everything else, and `#` ensures internal slots
   are invisible to the wrapping Proxy.
 - **Domain code** — `packages/server/src/mud/lib/`,
-  `packages/server/src/mud/obj/`, `packages/server/src/mud/cmd/` —
+  `packages/server/src/mud/obj/` —
   defaults to TypeScript modifiers. Domain code carries persistent
   fields that the `Hydrator` reflects into; those fields MUST be
   public. Use `protected` for subclass extension points (e.g.
@@ -1287,7 +1289,7 @@ refuse it).
 If you're reading the older planning docs and wondering where Phases
 5 and 6 went: they got **absorbed**, not skipped. Phase 5
 (Communications) shipped as part of Phase 3 messaging plus the
-say/tell controllers in `mud/cmd/` and `mud/obj/command/`. Phase 6
+say/tell controllers in `content/cmd/` and `mud/obj/command/`. Phase 6
 (Extended Object Model) shipped as `Thing.ts`, `Detailed.ts`,
 `Propertied.ts`, `CartesianLocation.ts` in `lib/stuff/` and
 `lib/spatial/`. Implementation status now lives in

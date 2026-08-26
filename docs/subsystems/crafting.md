@@ -135,8 +135,11 @@ is the codebase's pattern for authored reference data that isn't Stuff:
 a **`Document`** managed by a catalogue singleton — the
 `Emote`↔`SoulCatalogue` relationship.
 
-- **`Recipe`** (`lib/craft/Recipe.ts`, `recipes` collection, unique
-  index on `recipeId`) — typed accessors over `name`, `keywords`,
+- **`Recipe`** (`lib/craft/Recipe.ts` — since content-packs wave 2 a
+  **value shape** over one `documents` row of `kind: 'recipe'`, unique
+  per kind on `data.recipeId`; `fromDocument` validates what the retired
+  seeder validated, `toData` is the inverse, `fieldMeta` stays as the
+  wiki's spoiler schema) — typed accessors over `name`, `keywords`,
   `inputSlots: RecipeInputSlot[]`, `toolCapabilities: string[]`,
   `outputTemplate` (a **real** cloneable template), `outputMaterial`,
   `baseGradeBand?`, and the branch fields below. The boundary stays
@@ -173,16 +176,21 @@ a **`Document`** managed by a catalogue singleton — the
     the craft-resolve evidence records (see the knowledge ladder below);
     absent ⇒ no advancement row (every bar row).
 - **`RecipeCatalogue`** (`obj/RecipeCatalogue.ts`, singleton
-  `PostRegistrationMixin(Idea)` at `/obj/RecipeCatalogue`) — caches the
-  collection, resolves by id + keyword (`order martini` → one recipe),
-  `warm()` on `postRegister`. The `SoulCatalogue` shape. **Read methods
+  `PostRegistrationMixin(Idea)` at `/obj/RecipeCatalogue`) — caches
+  `DocumentApi.listOfKind('recipe')`, resolves by id + keyword (`order
+  martini` → one recipe), `warm()` on `postRegister`,
+  `invalidateCache()` + `warm()` as the installer's go-live after a live
+  `pack sync`. The `SoulCatalogue` shape. **Read methods
   are ungated** (the `TopicCatalogue` "public knowledge" precedent — a
   catalogued recipe is openly resolvable; v1 has no minting verb, so no
   `RecipeApi` and no dangling gate string).
-- **`RecipeSeeder`** (`backend/RecipeSeeder.ts`) + `mud/config/recipes.yaml`
-  — the `EmoteSeeder` precedent. Reads `recipes.yaml` (NOT under `seeds/`
-  — recipes are Documents, not templates), idempotent by `recipeId`, runs
-  in the seeder block before `BootstrapManager`.
+- **The `generic-objects` pack** (`packages/content/generic-objects/
+  content/recipes/<recipeId>.yaml`, one file per recipe; the basename IS
+  the `recipeId`) — installed by `PackApi.install` and reconciled
+  three-way; a file with an empty `inputSlots` or no `outputTemplate`
+  fails the pack at `read`. The former `RecipeSeeder` +
+  `mud/config/recipes.yaml` are gone; the collapse migration carried an
+  existing dev DB's `recipes` rows across (`_id`s preserved).
 
 ## Craft-resolve: `CraftingApi` / `CraftingLogic`
 
@@ -355,7 +363,7 @@ venue-generic: a smithy with a menu and an on-shift maker just works.
 
 ## Verbs (the `crafting` command category)
 
-`mud/cmd/crafting/*.yaml` views + `mud/obj/command/crafting/*Controller.ts`.
+`content/cmd/crafting/*.yaml` views + `mud/obj/command/crafting/*Controller.ts`.
 A `CraftController` base centralizes decline rendering
 (`declineToScene`) **and the can-make deed gate** (`requireDeed` — the
 one gate `forge`/`cook`/`make` share; a non-catalogue ref passes
@@ -496,7 +504,7 @@ homed by what they *are*:
 bottles, shaker + mixing-glass, cocktail-glass, bar-menu, dave); the
 `Bar` self-stocks via `populates:` (bottles/tools `onto` the back-bar,
 then dave + menu). Cocktail/spirit `Material`s in `seeds/lib/material/`;
-recipe knowledge in `config/recipes.yaml`. Crafted drinks are transient
+recipe knowledge in the `generic-objects` pack. Crafted drinks are transient
 runtime matter (persisted nowhere; reset on restart).
 
 ## Persistence story
@@ -504,7 +512,7 @@ runtime matter (persisted nowhere; reset on restart).
 | Kind | Form | Lifetime |
 |---|---|---|
 | Room / NPC / bottles / tools / Materials | **templates** (cloned) | re-seeded; cloned fresh |
-| Recipe knowledge | **`Document`** (`recipes` collection) | persisted reference data |
+| Recipe knowledge | **`documents {kind: recipe}`** (the `generic-objects` pack) | persisted reference data, pack-installed |
 | Crafted drinks | transient runtime matter | reset on restart |
 
 ## The knowledge ladder, generalized (open canon, earned shorthand)
@@ -536,7 +544,7 @@ authors a `discipline` appends a Transcript deed
 the declared next crafting wave); the evidence simply accrues honestly,
 and the BKT difficulty coupling already makes trivial-recipe grinding
 worthless. The seeded rosters span a deliberate difficulty ladder per
-branch (trivial → hard rungs in `config/recipes.yaml` — the ZPD
+branch (trivial → hard rungs in the `generic-objects` pack — the ZPD
 obligation: the recipe tiers ARE the ladder a learner climbs).
 
 ## The lifecycle: two wear axes, repair, broken, salvage

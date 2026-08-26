@@ -264,7 +264,7 @@ floor. A puddle is the floor's attribute, not a Stuff. The default-floor
 seed (`seeds/obj/surface/default-floor.yaml`) carries an uncapped
 surface slot, so any room with a floor can pool.
 
-## Verbs (`mud/cmd/bulk/`, `obj/command/bulk/`)
+## Verbs (`content/cmd/bulk/`, `obj/command/bulk/`)
 
 A `bulk/` command category — `fill` / `pour` / `spill` / `drink` /
 `sip` — each a thin direction over `transfer` (`void` + envelope, no
@@ -336,7 +336,7 @@ Each lands in a named home later; none is in this slice.
 | `api/quantity.ts` | `resolveUnitToken` / `isUnitToken` |
 | `api/mql/{lexer,parser,resolver,desugar,scope-walk,types}.ts` | `:b`, material-keyword, `:{N unit}`, measure variant |
 | `obj/Floor.ts` | surface-bulk on the floor |
-| `mud/cmd/bulk/`, `obj/command/bulk/` | the verb roster |
+| `content/cmd/bulk/`, `obj/command/bulk/` | the verb roster |
 | `lib/creature/Creature.ts` | the `ingest` seam |
 | `seeds/lib/material/bulk/`, `seeds/obj/vessel/` | demo content |
 

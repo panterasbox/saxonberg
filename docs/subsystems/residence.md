@@ -211,7 +211,7 @@ a member of the `duncan-hall` group. A player never types the raw verb. See
 point — a self-issued credential is no credential). Katie's membership in the
 `duncan-hall` group is **authored data**: `config/groups.yaml` lists her
 `templatePath`, seeded idempotently by `GroupSeeder` at boot (the
-`ChannelSeeder`/`ParcelSeeder` precedent — a `Group` is a Document, so it's
+`ParcelSeeder` precedent — a `Group` is a Document, so it's
 config-not-`seeds/`). She does **not** enroll herself in her own class code —
 that would be circular (an agent "authorized" only because it wrote its own
 name into the ledger). The same rule governs her master ring (legitimate master

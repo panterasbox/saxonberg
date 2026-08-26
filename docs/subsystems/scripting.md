@@ -77,7 +77,7 @@ Everything else is honored by **delegation**:
   shell-fallback — below). `$` *extends* the shell variable namespace, it
   does not fork it.
 - **`#` at a token boundary is a line comment** (the bash rule), skipped
-  to end-of-line so authored `.script` files can be annotated. A glued `#`
+  to end-of-line so authored `.msh` files can be annotated. A glued `#`
   mid-word stays literal; comments never reach the AST, so `format()`
   drops them.
 
@@ -294,18 +294,21 @@ first build.
 
 ## Authored demo content (P10)
 
-`mud/domain/lounge/scripts/` holds the authored exemplars — all **content**
-over general substrate, **no bar-specific engine class**:
+The **`saxonberg-lounge` content pack** (`packages/content/saxonberg-lounge/
+content/msh/`) holds the authored exemplars — all **content** over general
+substrate, **no bar-specific engine class**:
 
-- `martini.script` / `daiquiri.script` — parameterized recipe-scripts
+- `martini.msh` / `daiquiri.msh` — parameterized recipe-scripts
   (`def <name> ($brand) { … }`), the authored-as-content twin of what the
   Transcriber emits;
-- `last-call.script` — the closing-time coroutine (the shift-change
+- `last-call.msh` — the closing-time coroutine (the shift-change
   exemplar): `say` → `wait 5m` → `say` → a perpetual `every` reminder.
 
-`ScriptSeeder` (`backend/ScriptSeeder.ts`, the `RecipeSeeder` precedent)
-banks each `.script` at `/domain/lounge/scripts/<name>` at boot,
-idempotently — the live wire. These world scripts are the **`invokeByPath`**
+The installer's **`msh` document kind** (`kind: 'msh'`, `data: { source }`
+verbatim) lands each at `/domain/lounge/msh/<name>` (the pack's `root:`)
+and reconciles it three-way at boot — the live wire (the former
+`ScriptSeeder` and the `.script` extension are gone; a one-time boot
+migration renamed `kind: 'script'` → `'msh'` and moved the rows). These world scripts are the **`invokeByPath`**
 targets (an operator beat or an NPC bartender's brain); they are
 deliberately **not** wired into a player's `make` (that resolves the
 player's own session `def` or home recipe-script — the demonstration
@@ -345,8 +348,7 @@ ladder's output).
 | Api façade | `api/script.ts` |
 | Logic singleton (`/obj/api/script`) | `obj/api/ScriptLogic.ts` |
 | `make` verb | `obj/command/crafting/MakeController.ts` + `cmd/crafting/make.yaml` |
-| Boot seeder | `backend/ScriptSeeder.ts` |
-| Authored demo scripts | `mud/domain/lounge/scripts/*.script` |
+| Authored demo scripts | `packages/content/saxonberg-lounge/content/msh/*.msh` (the `msh` document kind, [content-packs.md](./content-packs.md)) |
 
 ## `ScriptApi.mintEvalScratch`
 

@@ -307,7 +307,7 @@ stay roster-based; ownership is a resolution, not a row. First user: the
 ## The `group` verb suite
 
 `GroupController` is the player-facing surface for the managed
-provider. The YAML lives at `mud/cmd/social/group.yaml`; the controller
+provider. The YAML lives at `content/cmd/social/group.yaml`; the controller
 dispatches on the subcommand:
 
 ```

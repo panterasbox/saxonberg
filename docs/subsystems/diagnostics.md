@@ -175,7 +175,7 @@ reach a guarded `runRoot` uncaught — command-controller throws (via the
 
 ## Reader A — the `errors` verb
 
-`mud/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
+`content/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
 AuthorMixin-afforded, author-or-wizard gated in the controller).
 Subcommands: `list` (default) —
 `--channel` / `--severity` / `--source` / `--mine` / `--limit` filters and

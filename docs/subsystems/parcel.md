@@ -326,7 +326,8 @@ else null), exposed as `ParcelApi.selfHomeOwnerOf`. Both `ownerOf` rung 2 and
 
 Ownership is declared as gated platform `parcels` seed rows — never on the
 zone seed. `mud/config/parcels.yaml` (installed by the backend `ParcelSeeder`,
-insert-iff-absent on `extent` — the `RecipeSeeder` precedent) carries the two
+insert-iff-absent on `extent` — platform-seeded until the core
+decomposition) carries the two
 migrated areas: **lounge** (`/obj/lounge` + `/domain/lounge` → the managed
 `lounge` group) and the **Terminus terminal** (`/domain/terminus/terminal` →
 the managed `terminus` group — the first *spatial-zone* ownership stamp,
@@ -440,3 +441,14 @@ Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
   building parcel's own `area`.
 - Unmeasured land is not policed — a parcel with no declared area
   subdivides exactly as it did before these fields existed.
+
+## The document store's gate
+
+`ownerOf` is also what the **document store** gates on (content-packs
+wave 2, D11): `DocumentApi.save` / `delete` ask
+`AccessApi.canAtPath(actor, 'write-document', path)` — the covering title
+through this chain, then that owner's `can()` dispatch — after the
+self-home short-circuit. A pack's document branch (`/expression`,
+`/generic-objects`, `/platform`) is untitled and resolves to the state;
+a player's `/home/<self>/` is rung 2. See
+[document-store.md](./document-store.md) and [access.md](./access.md).

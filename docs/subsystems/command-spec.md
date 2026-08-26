@@ -10,7 +10,7 @@ A command lives in five places:
 
 | Artifact | Where | Sets |
 |---|---|---|
-| **YAML view** | `mud/cmd/<category>/<verb>.yaml` | verbs, args, options, scope, validators |
+| **YAML view** | `content/cmd/<category>/<verb>.yaml` in the **`platform` content pack** (`packages/content/platform/`) | verbs, args, options, scope, validators |
 | **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | execution body |
 | **Controller seed** | `mud/seeds/obj/command/<category>/<Name>.yaml` | template doc for `StuffApi.clone` |
 | **Discovery** | `static commandContributions` on a class or mixin | which givers see this verb on their recency stack |
@@ -27,18 +27,39 @@ labor market — the board-afforded `job` + the travelling `fulfill`, see
 appears in the YAML `controller:` field (`perception/LookController`),
 the seed `class:` path (`/obj/command/perception/LookController`), and
 every `commandContributions` entry (`'perception/look.yaml'`). The
-preloader walks `cmd/` recursively, so a verb collides only within its
+preloader walks the command tree recursively, so a verb collides only within its
 own namespace (a future `play piano` and char-gen's `play` coexist). If
 a new verb doesn't fit an existing category, propose a new one rather
 than dropping it at the `cmd/` root.
 
-The schema for the YAML lives at `mud/cmd/command.schema.json` and is
-enforced at boot.
+The schema for the YAML lives at `mud/lib/command/command.schema.json`
+(the kernel — the validator's home) and is enforced at boot.
+
+### Views are content — the `command-view` document kind
+
+Since content-packs wave 2 the engine verbs' views are **content**: the
+former `mud/cmd/` tree is the platform pack's `content/cmd/` (195 views,
+24 categories), installed as `documents` rows of `kind: 'command-view'`
+at the view key's document path (`perception/look.yaml` →
+`/cmd/perception/look`; a locality's `domain/<…>/cmd/<verb>.yaml` →
+`/domain/<…>/cmd/<verb>`). `CommandApi.preloadAll` serves the **store
+first**, then the on-disk command trees for whatever the store did not
+serve — **counting each disk read**, and `pack status` prints the
+residue (*N command view(s) still served from disk*; the seven
+domain-local views under `mud/domain/eternal/**/cmd/` today, until wave
+4 moves the localities). The cache key stays the view key — the
+`commandContributions` string — so nothing that references a verb
+changed. A CMS edit of a view's help goes live through
+`CommandApi.reload(path)` without a restart; an edit that changes its
+`controller:` or its validator set is **wizard code trust**
+([document-store.md](./document-store.md)). Offline (a unit test, no
+store) every view comes from disk, so a bare `CommandApi.getCommand`
+still works.
 
 ## Domain-local commands — verbs that live with their content
 
 Most verbs are **general engine/capability verbs** and live in the
-global `cmd/<category>/` tree above. But a verb can be **bespoke to one
+platform pack's `content/cmd/<category>/` tree above. But a verb can be **bespoke to one
 locality's object** — a real command with no reuse anywhere else, whose
 only home is a single piece of authored content. Filing such a verb in a
 global engine category is dishonest: it isn't a capability the engine
@@ -51,7 +72,7 @@ tree): the spec goes in a `cmd/` segment, the controller in a sibling
 
 | Artifact | Global engine verb | Domain-local verb |
 |---|---|---|
-| **YAML view** | `mud/cmd/<category>/<verb>.yaml` | `mud/domain/<sphere>/<locality>/cmd/<verb>.yaml` |
+| **YAML view** | the platform pack's `content/cmd/<category>/<verb>.yaml` | `mud/domain/<sphere>/<locality>/cmd/<verb>.yaml` (a pack's `content/domain/<…>/cmd/<verb>.yaml` once the locality is a pack) |
 | **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/command/<Name>Controller.ts` |
 | **Controller seed** | `mud/seeds/obj/command/<category>/<Name>Controller.yaml` | `mud/seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml` |
 | **`controller:` field** | absolute `/obj/command/<category>/<Name>Controller` | relative `../command/<Name>Controller` (sibling of the spec) |

@@ -568,7 +568,14 @@ Identity + audience own a `subject` verb; surfaces light up separately.
 - `subject make <name>` — mint a subject. Default mints a managed group
   (curated); `--group <ref>` binds an existing ref; `--open` leaves the
   audience open. `subject list` — visible subjects + their lit surfaces.
-  (`obj/command/social/SubjectController.ts` + `mud/cmd/social/subject.yaml`.)
+  (`obj/command/social/SubjectController.ts` + the platform pack's `content/cmd/social/subject.yaml`.)
+  The three standing subjects (Help / Global / Chat) are the platform
+  pack's **`subject` content kind** (`content/subjects/<name>.yaml`:
+  `name`, `description`, optional `audience: {group}`, `channel` /
+  `board` à la carte) — archive-never-reap: a vanished file archives the
+  Subject and its surfaces (`Board.archived`, skipped by the board
+  listing); nothing is ever deleted. See
+  [content-packs.md](./content-packs.md).
 - `forum on <subject>` / `chat on <subject>` — attach a surface to an
   owned subject (gated by `Subject.owner`). `--argument` (forum) /
   `--rules` (chat) select the deferred organizer/procedure (flag ships,

@@ -17,8 +17,8 @@ Three small pieces, modeled on the `WorldClockState` (Document) ↔
 | Piece | File | Role |
 |---|---|---|
 | `AppSettings` | `lib/config/AppSettings.ts` | Singleton `Document` (`app_settings` collection) + the `AppSettingKeys` key vocabulary. Pure persistence + the warmed cache. |
-| seed YAML | `mud/config/app-settings.yaml` | The single source of the settings' **values**. |
-| `AppSettingsSeeder` | `backend/AppSettingsSeeder.ts` | Backend seeder (like `EmoteSeeder`/`ChannelSeeder`) — populates `app_settings` from the YAML. |
+| the platform pack's settings | `packages/content/platform/content/settings/<section>.yaml` | The single source of the settings' **values** — split by key prefix (`combat.yaml`, `banking.yaml`, …; un-dotted keys in `core.yaml`). |
+| the `settings` content kind | `PackLogic` (`settingsStrategy`) | Merges the pack's defaults into `app_settings` at boot — **merge-missing** ([content-packs.md](./content-packs.md)). |
 | `AppApi` | `api/app.ts` | The runtime read/write surface (and the future home for app-level ops). |
 | `config` verb | `cmd/system/config.yaml` + `obj/command/system/ConfigController.ts` | Developer-gated in-app editing. |
 
@@ -32,9 +32,10 @@ can set *any* key (open namespace).
 
 ### Values in YAML, keys in code — no code-side defaults
 
-The settings' **values** live only in the DB, seeded from the YAML. There
-is no code defaults map: a code constant duplicating the seeded values
-would just be a second copy on disk of what the seeder already guarantees.
+The settings' **values** live only in the DB, installed from the platform
+pack's settings files. There is no code defaults map: a code constant
+duplicating the shipped values would just be a second copy on disk of
+what the installer already guarantees.
 
 What stays in code is the **key vocabulary** — `AppSettingKeys` (in
 `AppSettings.ts`) — so consumers reference a constant, not a bare string (a
@@ -49,7 +50,7 @@ export const AppSettingKeys = {
 ```
 
 ```yaml
-# mud/config/app-settings.yaml — the single source of the values
+# packages/content/platform/content/settings/core.yaml — the single source of the values
 settings:
   - key: defaultStartLocation
     value: /domain/lounge/warren
@@ -77,8 +78,9 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
   mutates and saves, so there is no separate re-read.
 - **No boot/seed/warm method.** `AppApi` is the home for app-level
   *operations* (settings now; `shutdown()`, MOTD, maintenance mode later —
-  things an operator invokes). Seeding (`AppSettingsSeeder`) and the boot
-  cache-warm (`AppSettings.warm`) are backend infrastructure (below), not
+  things an operator invokes). Installing the defaults (the platform
+  pack's `settings` kind) and the boot
+  cache-warm (`AppSettings.warm`) are bootstrap infrastructure (below), not
   Api methods — deliberately unlike `WorldClockApi.boot()`, because the
   clock's boot starts a running subsystem whereas app settings have nothing
   to start.
@@ -88,25 +90,29 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
 > (`packages/server/src/backend/Application.ts`) is server / OAuth / signup
 > orchestration a layer down. Adjacent names, different layers.
 
-## Seeding + warming is a backend bootstrap concern
+## Installing + warming is a bootstrap concern
 
-**Seed.** `AppSettingsSeeder.run()` runs in `AppBootstrap`'s seeder block
-(next to `EmoteSeeder`/`ChannelSeeder`), reading
-`mud/config/app-settings.yaml`. It is insert / **merge-missing** /
-idempotent: a fresh DB gets the seeded row; on later boots any key *new* to
-the YAML is merged into the existing row, while keys an operator changed via
-`config` are left alone. It lives in a per-collection seeder (not
-`SeederManager`, which seeds *Stuff templates* into `domain`) — same
-reasoning as `EmoteSeeder`.
+**Install.** The `platform` content pack ships the values as the
+**`settings` content kind** (content-packs wave 2 — the former
+`AppSettingsSeeder` + `mud/config/app-settings.yaml` are gone):
+`content/settings/<section>.yaml`, each `{ settings: [{key, value}] }`,
+split by key prefix so a subsystem's dials sit together. `PackApi.install`
+reconciles them **merge-missing**: a fresh DB gets every key; on later
+boots a key *new* to a file is merged into the existing row (reported
+`merged`), while a key an operator changed via `config` is **kept — never
+a conflict** (`pack diff platform /settings/<section>` shows the pack's
+default against the operator's value). A settings key is unique across
+the install set (two files claiming one key fail the claimant pack at
+`flat-key`); a vanished file keeps every value.
 
 **Warm.** The cache is held on the `AppSettings` Document (a `private
 static` singleton slot). `AppBootstrap.run` `await`s `AppSettings.warm()`
-once at startup — after the seeder has populated the row and before any
-consumer reads a setting (the evac path can't `await`). `warm` only loads
-the row into the cache (or an empty instance if nothing's been
-seeded/set); it does **not** seed. Reading a setting before the warm step
-throws loudly (`AppSettings.getCached`) rather than returning a silent
-`undefined`.
+once at startup — after the install has populated the row and before any
+consumer reads a setting (the evac path can't `await`); a live `pack
+sync` that merged a key re-warms it. `warm` only loads the row into the
+cache (or an empty instance if nothing's been installed/set); it does
+**not** install. Reading a setting before the warm step throws loudly
+(`AppSettings.getCached`) rather than returning a silent `undefined`.
 
 ## The `config` verb
 
@@ -179,14 +185,16 @@ migration is behavior-preserving and safe on the hydrate-at-boot path.
 
 ## Adding a setting
 
-1. Add a `key`/`value` entry to `mud/config/app-settings.yaml`.
+1. Add a `key`/`value` entry to the platform pack's
+   `content/settings/<prefix>.yaml` (the file named by the key's prefix;
+   a new prefix is a new file).
 2. Add the key constant to `AppSettingKeys` (`lib/config/AppSettings.ts`).
 3. Read it where it's consumed: `AppApi.setting(AppSettingKeys.yourKey)`.
 
 That's it — no change to `AppSettings`' persisted shape, no new Api. The
-seeder merges the new key into the row on the next boot (existing values
-untouched). A setting nobody reads is inert, so the consumer is the real
-work.
+installer merges the new key into the row on the next boot (existing
+values untouched). A setting nobody reads is inert, so the consumer is
+the real work.
 
 ## Boundaries — what is *not* app settings
 
@@ -216,4 +224,7 @@ only in the DB, seeded from `mud/config/app-settings.yaml` by a backend
 `AppSettingsSeeder` (a code defaults map was a redundant second on-disk copy
 of what the seeder already guarantees). `keys.ts` was deleted (the key
 vocabulary folded into `AppSettings.ts`), `loadOrSeed` became the cache-only
-`warm`, and the `setting` fallback was dropped.
+`warm`, and the `setting` fallback was dropped. Content-packs wave 2
+(2026-08-25) retired the seeder: the values became the `platform` pack's
+`settings` content kind, split by key prefix, merge-missing through the
+installer.
