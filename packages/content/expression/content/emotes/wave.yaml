@@ -1,0 +1,10 @@
+verb: wave
+emoji: 👋
+tags:
+- greeting
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} wave{{ s }}{% if target %} at {{ target }}{% endif %}.'

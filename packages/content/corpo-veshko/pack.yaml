@@ -1,0 +1,5 @@
+id: corpo-veshko
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /corpo/veshko
+description: The veshko corpo — its mark and its brands.
+dependsOn: [platform]

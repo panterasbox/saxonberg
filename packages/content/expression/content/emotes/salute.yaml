@@ -1,0 +1,10 @@
+verb: salute
+tags:
+- greeting
+- formal
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} salute{{ s }}{% if target %} {{ target }}{% endif %}.'

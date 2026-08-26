@@ -1,0 +1,10 @@
+blueprintId: flask
+name: Flask
+kind: concrete
+baseClass: Thing
+classPath: /obj/Flask
+parent: containers
+blessed: true
+description: 'A sealable insulated flask (a thermos): Sealable + Bulkable + Thermal with calorimetric blending and a vacuum-barrier cooling law. Behaviour lives in the class, so it is a whole kind, not a recomposable set.
+
+  '

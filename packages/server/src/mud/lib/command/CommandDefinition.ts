@@ -184,6 +184,17 @@ export class CommandDefinition {
     } catch (error) {
       throw new Error(`Failed to parse YAML in ${filePath}: ${error}`);
     }
+    return CommandDefinition.fromView(view, filePath);
+  }
+
+  /**
+   * Build from an already-parsed view (a `command-view` document's
+   * `data`, or a parsed YAML). Validated against the command schema the
+   * same way `fromYaml` is. `filePath` only labels errors and derives the
+   * category — a store-served view passes the path its view key would
+   * have had on disk.
+   */
+  static fromView(view: unknown, filePath: string = '<inline>'): CommandDefinition {
     const trail = CommandApi.validateCommandView(view);
     if (trail !== null) {
       throw new Error(

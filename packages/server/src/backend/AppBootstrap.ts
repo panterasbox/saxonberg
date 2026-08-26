@@ -16,18 +16,11 @@ import { PersistenceManager } from './PersistenceManager';
 import { SeederManager } from './SeederManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
-import { EmoteSeeder } from './EmoteSeeder';
-import { RecipeSeeder } from './RecipeSeeder';
-import { BlueprintSeeder } from './BlueprintSeeder';
-import { ScriptSeeder } from './ScriptSeeder';
-import { ChannelSeeder } from './ChannelSeeder';
 import { GroupSeeder } from './GroupSeeder';
 import { ParcelSeeder } from './ParcelSeeder';
-import { WikiSeeder } from './WikiSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
-import { AppSettingsSeeder } from './AppSettingsSeeder';
 import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { PackApi } from '../mud/api/pack';
@@ -140,7 +133,10 @@ export class AppBootstrap {
     // into the DB (base-library: materials, biomes, quantity units;
     // species-and-names: the species/clade tree + char-gen name banks;
     // arcane-descriptors: the unidentified-appearance pools; newbie-wilds:
-    // the frontier onboarding zone). Three-way against each pack's
+    // the frontier onboarding zone; saxonberg-lounge: the lounge's msh
+    // world scripts — the `documents` kinds ride the same installer, so
+    // the per-collection seeders below retire one by one as their
+    // content becomes a pack). Three-way against each pack's
     // `pack_installs` record; conflicts are reported, never merged.
     // The installer is the
     // source-of-truth-is-the-file replacement for seeding the migrated
@@ -165,9 +161,16 @@ export class AppBootstrap {
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
           `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-          `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
+          `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
+          `${r.conflicts.length} conflict(s), ` +
           `${r.pinnedSkipped} pinned (skipped), ` +
-          `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s)`
+          `${r.quantityTables} quantity table(s)` +
+          (Object.keys(r.documents).length > 0
+            ? ', ' +
+              Object.entries(r.documents)
+                .map(([k, n]) => `${n} ${k} document(s)`)
+                .join(', ')
+            : '')
       );
     }
 
@@ -179,22 +182,17 @@ export class AppBootstrap {
     // chokepoint indirectly via Document.save) and before the
     // BootstrapManager runs the catalogue singletons that warm their
     // caches from these collections.
-    await EmoteSeeder.run();
-    await RecipeSeeder.run();
-    await BlueprintSeeder.run();
-    await ScriptSeeder.run();
-    await ChannelSeeder.run();
-    await AppSettingsSeeder.run();
     // Groups before parcels: a parcel's owner group (`duncan-hall`) is
     // authored here with its staff members, so the owner-ref resolution the
     // parcel/provisioning path does later converges on the seeded group.
     await GroupSeeder.run();
     await ParcelSeeder.run();
-    // Wiki AFTER parcels: a seeded page's namespace resolves its access
-    // through the /wiki parcel row, so the title has to exist first.
-    // Insert-only — a seeded page somebody has edited is never
-    // re-asserted, which would silently revert their work on a boot.
-    await WikiSeeder.run();
+    // The starter wiki pages are the `wiki-starter` pack's `wiki` kind,
+    // submitted by `PackApi.install` above THROUGH the registry's own
+    // create/edit path AS the pack (`asInstaller` — no namespace
+    // protection walk, so the former after-parcels ordering no longer
+    // matters). A page somebody has edited is a compare-and-swap
+    // conflict, never a silent revert.
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {
@@ -208,11 +206,12 @@ export class AppBootstrap {
     installOnlineHoldersProvider();
     await BootstrapManager.run();
 
-    // App settings — warm the synchronous read cache from the seeded
-    // `app_settings` row (AppSettingsSeeder ran in the seeder block above)
-    // before any consumer reads a setting; the evac path in
-    // Container.cleanupOnDestruct cannot await. Warm-only (no seeding here)
-    // — the values come from app-settings.yaml via the seeder. Awaits the
+    // App settings — warm the synchronous read cache from the
+    // `app_settings` row (the `platform` pack merged the defaults above —
+    // its `settings` kind is merge-missing, so an operator's `config`
+    // value is never clobbered) before any consumer reads a setting; the
+    // evac path in Container.cleanupOnDestruct cannot await. Warm-only —
+    // the values come from the pack's content/settings/*.yaml. Awaits the
     // Document directly — no boot method on AppApi (runtime ops only).
     await AppSettings.warm();
 

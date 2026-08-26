@@ -73,8 +73,16 @@ const STEW_ROW = {
   discipline: 'cooking',
 };
 
+/** A recipe is a `documents` row of kind `recipe`; the legacy row is its `data`. */
+const asDocument = (data: Record<string, unknown>) => ({
+  path: `/generic-objects/recipes/${String(data.recipeId)}`,
+  owner: '/generic-objects',
+  kind: 'recipe',
+  data,
+});
+
 beforeEach(async () => {
-  store = { recipes: [OLD_ROW, KNIFE_ROW, STEW_ROW] };
+  store = { documents: [OLD_ROW, KNIFE_ROW, STEW_ROW].map(asDocument) };
   StuffApi.clearAll();
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
@@ -148,5 +156,28 @@ describe('Recipe schema round-trip', () => {
     const r = new Recipe();
     r.outputApplication = 'garbage';
     expect(r.getOutputApplication()).toBe('bulk');
+  });
+
+  it('carries the document path, and toData round-trips fromData', () => {
+    const r = catalogue.getRecipe('belt-knife')!;
+    expect(r.path).toBe('/generic-objects/recipes/belt-knife');
+    expect(Recipe.fromData(r.toData()).toData()).toEqual(r.toData());
+  });
+
+  it('refuses what the retired seeder refused: empty inputSlots, missing outputTemplate', () => {
+    expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [], outputTemplate: '/t' })).toThrow(/inputSlots/);
+    expect(() => Recipe.fromData({ recipeId: 'x', inputSlots: [{}] })).toThrow(/outputTemplate/);
+  });
+});
+
+describe('RecipeCatalogue.invalidateCache + warm', () => {
+  it('picks up a row added after the first warm', async () => {
+    expect(catalogue.knows('new-thing')).toBe(false);
+    store.documents!.push(asDocument({ ...OLD_ROW, recipeId: 'new-thing', name: 'New', keywords: ['new'] }));
+    catalogue.invalidateCache();
+    expect(catalogue.allRecipes()).toEqual([]); // dropped; the read surface is sync
+    await catalogue.warm();
+    expect(catalogue.knows('new-thing')).toBe(true);
+    expect(catalogue.findByKeyword('new')?.getRecipeId()).toBe('new-thing');
   });
 });

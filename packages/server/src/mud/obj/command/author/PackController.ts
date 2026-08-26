@@ -24,6 +24,7 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
+import { CommandApi } from '../../../api/command';
 import { PackApi } from '../../../api/pack';
 import type {
   PackDiffReport,
@@ -80,7 +81,16 @@ export default class PackController extends CommandController<PackModel> {
       if (reports.length === 0) {
         return this.tell(context, model.packId ? `no pack '${model.packId}'` : 'no packs');
       }
-      this.tell(context, reports.map((r) => this.formatStatus(r)).join('\n\n'));
+      const lines = reports.map((r) => this.formatStatus(r));
+      // The command-view migration residue: views the dispatcher still
+      // serves from DISK because no pack shipped them yet.
+      const fromDisk = CommandApi.diskFallbacks();
+      if (fromDisk.length > 0) {
+        lines.push(
+          `${fromDisk.length} command view(s) still served from disk: ${fromDisk.join(', ')}`,
+        );
+      }
+      this.tell(context, lines.join('\n\n'));
     } catch (err) {
       return this.fail(context, (err as Error).message, 'status-failed');
     }
@@ -250,9 +260,14 @@ export default class PackController extends CommandController<PackModel> {
       `${verb} pack '${r.packId}': ` +
       `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
       `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
-      `${r.kept.length} kept, ${r.conflicts.length} conflict(s), ` +
+      `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
+      `${r.conflicts.length} conflict(s), ` +
       `${r.pinnedSkipped} row(s) pinned (skipped), ` +
-      `${r.quantityTables} quantity table(s), ${r.nameBanks} name bank(s), ` +
+      `${r.quantityTables} quantity table(s)` +
+      Object.entries(r.documents)
+        .map(([k, n]) => `, ${n} ${k} document(s)`)
+        .join('') +
+      ', ' +
       `${r.rehydrated} live instance(s) re-hydrated` +
       (r.conflicts.length > 0
         ? '\n' +

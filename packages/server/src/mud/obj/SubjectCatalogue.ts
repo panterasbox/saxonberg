@@ -95,6 +95,9 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
     const byTitle = new Map<string, Subject>();
     const backed = new Set<string>();
     for (const s of subjects) {
+      // An archived subject (the content installer's archive-never-reap)
+      // is invisible to every read but never reaped.
+      if (s.state === 'archived') continue;
       if (s._id) byId.set(s._id, s);
       byTitle.set(s.title.toLowerCase(), s);
       const backingId = backingGroupIdOf(s);

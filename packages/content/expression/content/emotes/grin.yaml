@@ -1,0 +1,11 @@
+verb: grin
+emoji: 😁
+tags:
+- joy
+valence: 1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} grin{{ s }}{% if target %} at {{ target }}{% endif %}.'

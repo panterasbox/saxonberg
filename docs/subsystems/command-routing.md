@@ -40,8 +40,10 @@ The shape lives in:
   abstract base controllers extend.
 - `packages/server/src/mud/lib/command/validators/<name>.ts` —
   per-validator modules (no registry; YAML references them by path).
-- `packages/server/src/mud/cmd/*.yaml` — command views (declarative).
-- `packages/server/src/mud/cmd/command.schema.json` — Ajv schema the
+- `packages/content/platform/content/cmd/**/*.yaml` — command views
+  (declarative; the `command-view` document kind, served store-first —
+  see [command-spec.md](./command-spec.md)).
+- `packages/server/src/mud/lib/command/command.schema.json` — Ajv schema the
   YAML loader validates against.
 - `packages/server/src/mud/obj/command/*Controller.ts` — controllers.
 
@@ -115,7 +117,7 @@ The MVC mapping inside that pipeline:
 
 | MVC role | Concrete artifact | Lives in |
 |---|---|---|
-| **View** | YAML file declaring verbs, args, options, subcommands | `mud/cmd/*.yaml` |
+| **View** | YAML file declaring verbs, args, options, subcommands | the platform pack's `content/cmd/**/*.yaml` (a `command-view` document at runtime) |
 | **Model** | `CommandModel` — `Record<string, FieldValue \| undefined> & { subcommand? }` | runtime only |
 | **Controller** | `CommandController<T>` subclass extending `Idea`; `execute()` returns `void` and emits outcome via `ctx.note(...)` | `mud/obj/command/*Controller.ts` |
 
@@ -1207,10 +1209,11 @@ dispatched stay in lockstep.
 
 ## YAML view shape
 
-Each file under `mud/cmd/` declares one `CommandView`. The schema
-lives at `mud/cmd/command.schema.json` and is enforced by Ajv on
-load — schema failures throw with the full error trail at boot, not
-at first verb invocation.
+Each file under the platform pack's `content/cmd/` declares one
+`CommandView`. The schema lives at `mud/lib/command/command.schema.json`
+and is enforced by Ajv on load — schema failures throw with the full
+error trail at boot, not at first verb invocation — and again at the
+document-store chokepoint on a CMS save.
 
 **Flat verb (no subcommands):**
 
@@ -1267,8 +1270,9 @@ option or arg name.
 
 ## Adding a new command
 
-1. **Define the YAML** in `mud/cmd/<category>/<verb>.yaml` (one of the
-   ten command categories — see [command-spec.md](./command-spec.md)).
+1. **Define the YAML** in the platform pack's
+   `content/cmd/<category>/<verb>.yaml` (one of the
+   command categories — see [command-spec.md](./command-spec.md)).
    Pick `args:` *or* `subcommands:` (never both). Lowercase filename.
    The schema check surfaces typos / missing fields at boot.
 2. **Implement the controller** in

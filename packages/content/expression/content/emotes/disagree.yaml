@@ -1,0 +1,14 @@
+verb: disagree
+emoji: 👎
+searchTerms:
+- false
+- nope
+tags:
+- negative
+valence: -1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} disagree{{ s }}{% if target %} with {{ target }}{% endif %}.'

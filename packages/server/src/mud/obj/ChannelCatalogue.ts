@@ -127,6 +127,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const channels = await Channel.find({});
     const map = new Map<string, Channel>();
     for (const c of channels) {
+      // An archived channel (the content installer's archive-never-reap)
+      // is invisible to every read but never reaped.
+      if (c.isArchived()) continue;
       map.set(c.name.toLowerCase(), c);
     }
     this.byName = map;

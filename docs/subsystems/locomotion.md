@@ -277,7 +277,7 @@ Adding a new mode (e.g., `slither`):
 2. If the mode needs an enablement scope, create a `*ableMixin` that
    implements `Enablement`, add it to the `Mixins` registry, and set
    the seed's `enablementMixin` field to the registry constant.
-3. Add a verb YAML view (`mud/cmd/movement/slither.yaml`) and a controller
+3. Add a verb YAML view (`content/cmd/movement/slither.yaml`) and a controller
    that extends `LocomotionControllerBase` with `modeName()` returning
    `'slither'`. Author a controller seed at
    `seeds/obj/command/movement/SlitherController.yaml`.

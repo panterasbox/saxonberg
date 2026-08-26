@@ -114,13 +114,21 @@ key**. `kind` is `composition` (a bare recomposable mixin stack) or
 
 - **`BlueprintCatalogue`** (`/obj/BlueprintCatalogue`) is the boot-warmed
   singleton (the `RecipeCatalogue` shape): `cache` by id + `bySignature`
-  index, `canEvict`/`canDestruct` refusals.
-- **`BlueprintSeeder`** is two-layer and idempotent: a **derived skeleton**
-  (every distinct `class` in the `domain` collection → `signatureOf` →
-  a `concrete` entry, deduped on signature — *migration is the derive
-  step*), plus a **curated overlay** (`config/blueprints.yaml` — named,
-  `blessed` pure-composition blueprints and hierarchy, matched onto the
-  derived rows by signature so a name *attaches* rather than duplicates).
+  index, `canEvict`/`canDestruct` refusals. Since content-packs wave 2 it
+  owns both layers itself (the former `BlueprintSeeder` is gone):
+  **`rebuild()`** regenerates the **derived skeleton** at every boot
+  (every distinct `class` — `TemplateApi.distinctClasses()` → `signatureOf`
+  → a `concrete` row in `blueprints`, deduped on signature, drift-safe
+  on id, orphans reaped with the `deleteMany` line logged once — *the
+  `blueprints` collection is a cache*), and **`warm()`** indexes those
+  rows plus the **curated overlay**: `documents {kind: 'blueprint'}`
+  (the `platform` pack's `content/blueprints/<blueprintId>.yaml` — named,
+  `blessed` compositions and hierarchy). A curated document whose
+  signature matches a derived row **blesses it in place** (a cache
+  write that fires once, on an un-blessed or drifted row); a
+  pure-composition one is held in memory — the document is its source
+  of truth, never a `blueprints` row. `invalidateCache()` re-warms (the
+  installer's go-live).
   Both layers are idempotent **across mixin-signature drift**: a class whose
   *signature* changes (e.g. a new mixin composed onto a widely-used base)
   derives the same `blueprintId` but a new `signature`, which the
@@ -302,19 +310,22 @@ Three design→implementation shifts are worth recording:
   `@authorable`/`@runtimeState`/`ref:` read is a fast regex scan over the mud source
   tree (present in the deployed server), with runtime sample-value inference as the
   type-shape fallback.
-- **`BlueprintSeeder` was made idempotent across signature drift** (the
+- **`BlueprintSeeder` (now `BlueprintCatalogue.rebuild()`/`warm()`) was made idempotent across signature drift** (the
   concealment build). Composing `ConcealableMixin` onto `Thing` shifted the
   structural `signature` of every Thing-based blueprint; the seeder's
   signature-dedup passed but the unique `blueprintId` index collided, so a
   re-seed against a populated DB threw `E11000` and killed boot. Fixed by
   guarding the derived pass on the `blueprintId` set and reconciling a
   drifted curated row's signature/composition **in place** in
-  `#curatedOverlay` — the reconcile-by-`blueprintId` fix. A base-class mixin
-  addition is now a safe, boot-surviving re-seed.
+  the curated overlay — the reconcile-by-`blueprintId` fix. A base-class mixin
+  addition is now a safe, boot-surviving re-seed. `publishBlueprint` now
+  writes the curated document at `/blueprints/<id>` through
+  `DocumentApi.save` (one provenance row, keyed on the document path —
+  the synthetic per-id path is gone) and `upsert`s the cache.
 
 ## ⭐ The Studio is a CARD
 
-`studio` is a verb (`mud/cmd/author/studio.yaml`, `requiresWizard`)
+`studio` is a verb (the platform pack's `content/cmd/author/studio.yaml`, `requiresWizard`)
 opening a `client`-source card. The catalogue, the template form and the
 class composer speak the Studio REST routes; the server owns the card's
 existence, identity, lifetime and pinned-ness.

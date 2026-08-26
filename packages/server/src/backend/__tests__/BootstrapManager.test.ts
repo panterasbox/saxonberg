@@ -48,6 +48,25 @@ describe('BootstrapManager.run', () => {
     expect(calls).toEqual(['/obj/A']);
   });
 
+  it('reuses an ALREADY-RESIDENT singleton instead of cloning a second (the lazy-mint race)', async () => {
+    // A lazy `StuffApi.singleton` earlier in the boot (the content
+    // installer's wiki registry → group registry) lands a manifest path
+    // before the manifest runs; a second clone would leave two live
+    // instances and break every `findByTemplatePath` (found by driving).
+    const { calls } = stubClone();
+    const resident = { templatePath: '/obj/A', resident: true } as unknown as Stuff;
+    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockImplementation(
+      (path: string) => (path === '/obj/A' ? [resident] : []) as never,
+    );
+    const seen: Stuff[] = [];
+    await BootstrapManager.run([
+      { templatePath: '/obj/A', awaitInit: async (s) => void seen.push(s) },
+      { templatePath: '/obj/B' },
+    ]);
+    expect(calls).toEqual(['/obj/B']);
+    expect(seen).toEqual([resident]);
+  });
+
   it('orders entries by dependsOn', async () => {
     const { calls } = stubClone();
     const manifest: BootstrapEntry[] = [

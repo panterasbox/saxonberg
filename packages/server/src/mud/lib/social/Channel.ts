@@ -45,6 +45,7 @@ export class Channel extends Document {
     kind: { persistent: true },
     subject: { persistent: true },
     procedure: { persistent: true },
+    archived: { persistent: true },
   };
 
   /** Human-readable name. Unique-indexed at the collection level. */
@@ -62,4 +63,15 @@ export class Channel extends Document {
 
   /** Which chat surface — `'open'` (cycle 1) or `'ordered'` (deferred). */
   procedure: ChannelProcedure = 'open';
+
+  /**
+   * Archived by the content installer (its pack file vanished, or the
+   * subject's `channel:` switched off): invisible to the catalogue, never
+   * reaped — the history and subscriptions stay (archive-never-reap).
+   */
+  archived: boolean = false;
+
+  isArchived(): boolean {
+    return this.archived;
+  }
 }

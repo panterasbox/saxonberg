@@ -16,8 +16,9 @@
  * - {@link PackApi.discoverPacks} — read + order the shipped pack manifests.
  *
  * Reconcile is **ownership-scoped, non-destructive, and three-way**: every
- * installed row (a `content` template, or a `name_banks` bank) carries a `sourcePack`
- * stamp; a run only ever touches rows
+ * installed row (a `content` template, a `descriptor_banks` bank, a
+ * `documents` row of a declared kind) carries a `sourcePack` stamp; a run
+ * only ever touches rows
  * stamped by *that* pack (adopting pre-existing unstamped rows on first
  * install — migration without a wipe). Anything unstamped/other-stamped is
  * invisible. A pack's referenced backing classes must resolve (the
@@ -44,6 +45,12 @@ export interface PackManifest {
   description?: string;
   /** Ids of packs that must install before this one. */
   dependsOn: string[];
+  /**
+   * The pack's document root: every document-kind row the pack ships
+   * lands at `root + '/<contentDir>/<name>'` and is owned by `root`.
+   * Optional in `pack.yaml` (defaults to `/<id>`); must start with `/`.
+   */
+  root: string;
 }
 
 /** What a single pack's install/sync run touched. Change lists hold record keys. */
@@ -59,6 +66,10 @@ export interface PackReconcileResult {
   deleted: string[];
   /** Rows the DB changed and the file did not — the DB was kept. */
   kept: string[];
+  /** merge-missing kinds (settings): files whose missing keys were merged in. */
+  merged: string[];
+  /** archive-never-reap kinds (subjects): rows archived because their file vanished. */
+  archived: string[];
   /** Rows both sides changed differently — untouched, recorded, diagnosed. */
   conflicts: string[];
   /** Pinned rows skipped before any comparison. Reported every time. */
@@ -68,8 +79,11 @@ export interface PackReconcileResult {
   normalized: number;
   /** (unit, scale) tag pairs (re)loaded; 0 when the pack has no quantity kind. */
   quantityTables: number;
-  /** Name banks written (insert/update/adopt); 0 when the pack has none. */
-  nameBanks: number;
+  /**
+   * Document rows written (insert/update/adopt) per document kind
+   * (`{ emote: 34, msh: 3 }`); absent kinds are absent keys.
+   */
+  documents: Record<string, number>;
   /** Live instances re-hydrated (sync only; 0 at boot). */
   rehydrated: number;
   /** Set when the pack FAILED — boot continued without it (install only). */
@@ -97,6 +111,11 @@ export interface PackRowBaseline {
    * to).
    */
   body: string;
+  /**
+   * CAS kinds (wiki): the page revision the baseline was taken at — the
+   * `baseRev` the next submit compares against.
+   */
+  rev?: number;
 }
 
 /** An open three-way conflict on one row. Recomputed every reconcile. */
@@ -107,7 +126,7 @@ export interface PackConflict {
   baselineHash: string;
   dbHash: string;
   packHash: string;
-  reason: 'both-changed' | 'deleted-vs-edited';
+  reason: 'both-changed' | 'deleted-vs-edited' | 'wiki-cas';
 }
 
 /**
@@ -125,7 +144,7 @@ export interface PackInstallRecord {
   failure: PackFailure | null;
   /** Reserved; written `{}` this cycle. */
   parameters: Record<string, unknown>;
-  /** Baselines keyed by record key (`/domain/…`, `/name-banks/<key>`). */
+  /** Baselines keyed by record key (`/domain/…`, `/name-banks/<key>`, `/emotes/<verb>`). */
   rows: Record<string, PackRowBaseline>;
   /** Record keys the operator has claimed; skipped before any comparison. */
   pins: string[];
@@ -159,7 +178,13 @@ export interface PackPlannedAction {
     | 'converge'
     | 'conflict'
     | 'pinned-skip'
-    | 'normalize';
+    | 'normalize'
+    /** archive-never-reap kinds (subjects): a vanished file archives its row. */
+    | 'archive'
+    /** merge-missing kinds (settings): missing keys merged into the singleton. */
+    | 'merge'
+    /** CAS kinds (wiki): the write is submitted to the kind's own edit path. */
+    | 'submit';
   key: string;
   kind: string;
 }

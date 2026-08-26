@@ -1,0 +1,26 @@
+# storm — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Storm (weather Wave 2) — puddle accrual/evaporation + lightning strikes
+  # routed through ElectricityApi.conduct. See docs/subsystems/weather.md.
+  - key: storm.puddle.accrualLitersPerSegment
+    value: "12"
+
+  - key: storm.puddle.evaporationFactor
+    value: "0.2"
+
+  - key: storm.puddle.freshWaterMaterialPath
+    value: "/obj/material/bulk/water"
+
+  - key: storm.strikeRate
+    value: "0.15"
+
+  - key: storm.strikeIntervalS
+    value: "1800"
+
+  - key: storm.strikeVoltage
+    value: "30000000"
+
+  - key: storm.attractorBias
+    value: "4"

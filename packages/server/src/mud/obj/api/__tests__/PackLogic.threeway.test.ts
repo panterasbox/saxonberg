@@ -20,6 +20,7 @@ import {
   quietConsole,
   contentRows,
   nameBankRows,
+  bankData,
   rowsIn,
   recordOf,
   writePack,
@@ -83,7 +84,7 @@ const domainKind: KindUnderTest = {
 };
 
 const bankKind: KindUnderTest = {
-  name: 'name-banks',
+  name: 'document:name-bank',
   key: BANK,
   async install() {
     const root = writePack('p', [], {
@@ -96,13 +97,13 @@ const bankKind: KindUnderTest = {
     writeBankFile(root, { key: 'common', given: [`v${v}`], surname: ['S'] });
   },
   editDb(v) {
-    nameBankRows().find((r) => r.key === 'common')!.given = [`v${v}`];
+    bankData('common').given = [`v${v}`];
   },
   removeFile(root) {
     rmSync(join(root, 'content', 'name-banks', 'common.yaml'));
   },
   dbValue() {
-    return (nameBankRows().find((r) => r.key === 'common')?.given as string[] | undefined)?.[0];
+    return nameBankRows().length ? bankData('common').given[0] : undefined;
   },
   rows: () => nameBankRows(),
 };

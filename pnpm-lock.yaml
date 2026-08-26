@@ -102,26 +102,81 @@ importers:
 
   packages/content/arcane-descriptors: {}
 
+  packages/content/arcane-library: {}
+
   packages/content/base-library: {}
+
+  packages/content/corpo-aevex: {}
+
+  packages/content/corpo-goodkin: {}
+
+  packages/content/corpo-hollis: {}
+
+  packages/content/corpo-veshko: {}
+
+  packages/content/corpo-vionne: {}
+
+  packages/content/expression: {}
+
+  packages/content/generic-objects: {}
 
   packages/content/newbie-wilds: {}
 
+  packages/content/platform: {}
+
+  packages/content/saxonberg-lounge: {}
+
   packages/content/species-and-names: {}
+
+  packages/content/wiki-starter: {}
 
   packages/server:
     dependencies:
       '@saxonberg/content-arcane-descriptors':
         specifier: workspace:*
         version: link:../content/arcane-descriptors
+      '@saxonberg/content-arcane-library':
+        specifier: workspace:*
+        version: link:../content/arcane-library
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../content/base-library
+      '@saxonberg/content-corpo-aevex':
+        specifier: workspace:*
+        version: link:../content/corpo-aevex
+      '@saxonberg/content-corpo-goodkin':
+        specifier: workspace:*
+        version: link:../content/corpo-goodkin
+      '@saxonberg/content-corpo-hollis':
+        specifier: workspace:*
+        version: link:../content/corpo-hollis
+      '@saxonberg/content-corpo-veshko':
+        specifier: workspace:*
+        version: link:../content/corpo-veshko
+      '@saxonberg/content-corpo-vionne':
+        specifier: workspace:*
+        version: link:../content/corpo-vionne
+      '@saxonberg/content-expression':
+        specifier: workspace:*
+        version: link:../content/expression
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../content/generic-objects
       '@saxonberg/content-newbie-wilds':
         specifier: workspace:*
         version: link:../content/newbie-wilds
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../content/platform
+      '@saxonberg/content-saxonberg-lounge':
+        specifier: workspace:*
+        version: link:../content/saxonberg-lounge
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:../content/species-and-names
+      '@saxonberg/content-wiki-starter':
+        specifier: workspace:*
+        version: link:../content/wiki-starter
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../types

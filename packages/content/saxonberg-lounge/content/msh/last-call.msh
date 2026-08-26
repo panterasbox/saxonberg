@@ -1,0 +1,17 @@
+# Last call — the closing-time coroutine (the shift-change exemplar).
+#
+# A coroutine, not a recipe: it detaches and runs on the GAME clock. It
+# announces last call, then `wait`s out the grace period — the coroutine
+# suspends (the prompt stays live, nothing blocks) and the pump resumes it
+# only once the world clock has advanced. It calls time, then settles into
+# a perpetual `every` reminder that fires on a cadence until someone
+# `stop`s it (the barge-in cancellation path).
+#
+# Run it with `run /domain/lounge/msh/last-call` (an operator beat) or
+# from an NPC bartender's brain.
+say "Last call! Get your final orders in."
+wait 5m
+say "Time, please — the tab is closed."
+every 3m {
+  say "Closing up. Settle up and head out, folks."
+}

@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-saxonberg-lounge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The lounge — this wave only its three authored msh world scripts; rooms, NPCs and fixtures follow in wave 4.",
+  "type": "module"
+}

@@ -136,7 +136,7 @@ describe('a card is born on the server, or not at all', () => {
   });
 
   it('⚠ every `opens_card:` names a real card, and every mint is declared', () => {
-    const cmdRoot = join(SERVER_SRC, 'mud', 'cmd');
+    const cmdRoot = join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'cmd');
     const yamls: string[] = [];
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {
@@ -196,7 +196,7 @@ describe('a card is born on the server, or not at all', () => {
    */
   it('⚠⚠ no card-opening verb is gated by a verb-level validator its READ does not need', () => {
     const press = readFileSync(
-      join(SERVER_SRC, 'mud', 'cmd', 'system', 'press.yaml'),
+      join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'cmd', 'system', 'press.yaml'),
       'utf8',
     );
     // The verb itself gates nothing — bare `press` is the read.

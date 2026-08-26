@@ -1,0 +1,18 @@
+# residency — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  - key: residency.eviction.mode
+    value: observe
+
+  - key: residency.eviction.intervalMs
+    value: "60000"
+
+  - key: residency.eviction.idleThresholdMs
+    value: "1800000"
+
+  - key: residency.reset.mode
+    value: enforce
+
+  - key: residency.reset.intervalS
+    value: "3600"

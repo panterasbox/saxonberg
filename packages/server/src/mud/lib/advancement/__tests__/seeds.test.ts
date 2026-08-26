@@ -22,7 +22,8 @@ const SEEDS_DIR = join(
   dirname(__filename),
   "../../../seeds/obj/Discipline"
 );
-const CMD_DIR = join(dirname(__filename), "../../../cmd");
+// The engine verbs are the platform pack's content (content-packs wave 2).
+const CMD_DIR = join(dirname(__filename), "../../../../../../content/platform/content/cmd");
 
 interface DisciplineSeed {
   class: string;

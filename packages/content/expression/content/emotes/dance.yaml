@@ -1,0 +1,14 @@
+verb: dance
+emoji: 💃
+tags:
+- playful
+- joy
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} dance{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} with {{ target }}{% endif %}.'

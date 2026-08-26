@@ -1,7 +1,7 @@
 /**
  * Char-gen landing repoint, post app-settings. The new-player spawn is no
  * longer a seed-YAML literal or a code constant: it's the
- * `defaultStartLocation` app setting (seeded from `app-settings.yaml`,
+ * `defaultStartLocation` app setting (shipped by the platform pack's settings,
  * default the lounge Warren), stamped into each avatar at mint time. The
  * `evacuationFallback` app setting (default `/domain/void`) is the separate,
  * container-typed evac target. The two remain distinct concerns — the ★
@@ -22,7 +22,8 @@ function readYaml(rel: string): Record<string, unknown> {
 }
 
 function appSettings(): Record<string, string> {
-  const parsed = readYaml('../../../config/app-settings.yaml') as {
+  // The platform pack ships the settings; un-dotted keys live in core.yaml.
+  const parsed = readYaml('../../../../../../content/platform/content/settings/core.yaml') as {
     settings: Array<{ key: string; value: string }>;
   };
   return Object.fromEntries(parsed.settings.map((s) => [s.key, s.value]));

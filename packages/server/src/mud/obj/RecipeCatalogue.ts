@@ -2,10 +2,11 @@
  * RecipeCatalogue — singleton Idea owning the runtime recipe index.
  *
  * Lives at `/obj/RecipeCatalogue` (the singleton-in-`obj/` convention,
- * sibling to `TopicCatalogue` / `SoulCatalogue`). The source of truth is the
- * `recipes` collection of {@link Recipe} Documents (seeded by `RecipeSeeder`
- * at boot); this catalogue warms a transient cache from it and resolves
- * recipes by id + keyword.
+ * sibling to `TopicCatalogue` / `SoulCatalogue`). The source of truth is
+ * `documents {kind: 'recipe'}` (installed by the `generic-objects` content
+ * pack at boot); this catalogue warms a transient cache from it and
+ * resolves recipes by id + keyword. The installer's go-live re-warms it
+ * after a live `pack sync` touches the kind.
  *
  * Read-only reference surface (recipes are public knowledge, like topics), so
  * methods are ungated — the `TopicCatalogue` precedent, not the gated
@@ -18,6 +19,7 @@
 import { Idea } from '../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../lib/stuff/PostRegistration';
 import { Recipe } from '../lib/craft/Recipe';
+import { DocumentApi } from '../api/document';
 import type { VetoResult } from '../lib/errors';
 import type { EvictionContext } from '../lib/stuff/Stuff';
 
@@ -72,9 +74,28 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     await this.warm();
   }
 
-  /** (Re)build the cache + keyword index from the `recipes` collection. */
+  /**
+   * Drop the cache; the read surface answers empty until `warm` runs
+   * again (the installer's go-live calls `warm` directly — the reads are
+   * sync and cannot re-warm lazily).
+   */
+  public invalidateCache(): void {
+    this.cache = null;
+    this.byKeyword = new Map();
+  }
+
+  /** (Re)build the cache + keyword index from `documents {kind: recipe}`. */
   public async warm(): Promise<void> {
-    const recipes = await Recipe.find<Recipe>({});
+    const docs = await DocumentApi.listOfKind('recipe');
+    const recipes: Recipe[] = [];
+    for (const doc of docs) {
+      try {
+        recipes.push(Recipe.fromDocument(doc));
+      } catch (err) {
+        // A malformed row never takes the catalogue down: skip it loudly.
+        console.warn(`RecipeCatalogue: skipping ${doc.getPath()}: ${(err as Error).message}`);
+      }
+    }
     const cache = new Map<string, Recipe>();
     const byKeyword = new Map<string, string>();
     for (const recipe of recipes) {

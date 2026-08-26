@@ -1,0 +1,88 @@
+verbs: [soul]
+controller: /obj/command/social/SoulController
+description: "Author the emote catalog (mint / edit / delete / show / list emotes). Author-gated by composition — non-authors don't see the verb in their recency stack."
+help: |
+  Author the catalog of built-in emotes — the curated verbs like
+  `wave`, `nod`, and `cheer` that everyone can perform. This is a
+  building tool, not a player social verb; if you can see it, you
+  have author access.
+
+  Use `soul make` to mint a new emote from a grammar spec, `soul
+  edit` to tweak one field of an existing one, and `soul list` /
+  `soul show` to inspect what's already defined.
+validators:
+  - /lib/command/validators/requiresCoreAccess
+subcommands:
+  make:
+    description: "Mint a new emote: verb, then greedy YAML/JSON grammar body"
+    help: |
+      Create a brand-new catalog emote. Give the verb name first,
+      then its grammar body as YAML or JSON — the spec defines the
+      templates, search terms, tags, and emoji the emote uses.
+    examples:
+      - cmd: "soul make shrug { template: $actor shrugs. }"
+        note: Mint a new emote from a grammar spec
+    args:
+      - name: verb
+        type: string
+        required: true
+      - name: spec
+        type: string
+        required: true
+        greedy: true
+  edit:
+    description: "Edit one field of an existing emote (template / grammar / searchTerms / tags / emoji / echo)"
+    help: |
+      Change a single field of an existing emote without redefining
+      the whole thing. Name the emote, the field (`template`,
+      `grammar`, `searchTerms`, `tags`, `emoji`, or `echo`), and the
+      new value. Search terms are lookup words for `soul search`; they
+      never dispatch.
+    examples:
+      - cmd: soul edit greet searchTerms "[hi, hello]"
+        note: Update one field of an existing emote
+    args:
+      - name: verb
+        type: string
+        required: true
+      - name: field
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+        greedy: true
+  delete:
+    description: "Drop an emote from the catalog (clears Mongo + cache)"
+    help: |
+      Remove an emote from the catalog entirely. It's cleared from
+      storage and the live cache, so nobody can perform it anymore.
+    args:
+      - name: verb
+        type: string
+        required: true
+  show:
+    description: "Inspect one emote record"
+    help: |
+      Print the full record for one emote — its templates, search
+      terms, tags, and emoji — so you can see exactly how it's defined
+      before editing.
+    args:
+      - name: verb
+        type: string
+        required: true
+  search:
+    description: "Find emotes by verb, tag, or search term (search terms never dispatch)"
+    help: |
+      Every emote a word finds — by canonical verb, by tag, or by one of
+      its search terms. `;hi` does nothing; `soul search hi` tells you
+      it is `greet`.
+    args:
+      - name: verb
+        type: string
+        required: true
+  list:
+    description: "List every catalog emote"
+    help: |
+      List every emote currently in the catalog — your index of
+      what authors have already defined.

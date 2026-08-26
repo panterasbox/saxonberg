@@ -78,8 +78,13 @@ Before starting `pnpm test`, answer one question mechanically:
 
 ```bash
 # Has anything but docs changed since the last full run?
-git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'
 ```
+
+(`packages/content/` is excluded too: a content pack is data the
+installer reconciles, not source the suite compiles — a pack-file edit
+is proven by the installer's own tests and the drive, not by a 15-minute
+run.)
 
 Empty output means **the last run still stands — do not re-run it.**
 Say so, cite the number it gave, and move on. The same check applies to
@@ -266,6 +271,28 @@ and the bootstrap is once-guarded. The reverse finding stays
 it doesn't. Only the suite can. Its file discovery is checked against
 `vitest list` across BOTH configs by `--verify` (966 = 966), so no test
 file is invisible to it.
+
+### `lint:test-content` — kernel tests that name shipped content
+
+Content is moving out of the kernel into packs, and a **kernel** test
+that names a `/domain/<locality>` path is a test that breaks — or
+silently passes over nothing — the day that locality is a pack the
+kernel does not ship. `pnpm lint:test-content`
+(`scripts/check-test-content.ts`, CI-gating, **warn-only on the
+listed**) scans the server source, the scripts' tests and the client
+for test files matching `/\/domain\/[a-z]/`, skipping
+`src/mud/domain/**` (a test that lives with its content is exactly
+where a content test belongs), `packages/content/**` and `e2e/**`.
+`scripts/test-content-allowlist.txt` lists today's offenders (104 at
+wave 2), and **the list only shrinks**: a listed offender warns; a NEW
+offender fails; a listed path that no longer offends (or no longer
+exists) is *stale* and fails too — the fix is deleting the line, which
+is the direction we want. A kernel test proves the kernel over
+synthetic fixtures under `/test/**` ("ugly on purpose"); the four
+eternal-tree kernel tests were shrunk that way (`crossing-ritual` over
+duck-typed synthetic gear; the Whistle smoke, the dorm-bed archetype
+cases and the domain-local `provision` case moved beside their content
+under `src/mud/domain/eternal/**/__tests__/`).
 
 ### Rejected — `pool: 'threads'`, ~7%
 

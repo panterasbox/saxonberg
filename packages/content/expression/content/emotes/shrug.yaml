@@ -1,0 +1,10 @@
+verb: shrug
+emoji: 🤷
+tags:
+- neutral
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} shrug{{ s }}{% if target %} at {{ target }}{% endif %}.'

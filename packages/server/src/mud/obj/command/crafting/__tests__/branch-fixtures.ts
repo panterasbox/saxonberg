@@ -255,10 +255,21 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(
-    async (col: string, query: Record<string, unknown>) =>
-      (store[col] ?? []).filter((d) =>
+    async (col: string, query: Record<string, unknown>) => {
+      // Recipes are `documents` rows of kind `recipe` (content-packs wave
+      // 2); the fixtures keep the legacy row shape and are wrapped here.
+      if (col === 'documents' && query.kind === 'recipe') {
+        return (store['recipes'] ?? []).map((d) => ({
+          path: `/generic-objects/recipes/${String(d.recipeId)}`,
+          owner: '/generic-objects',
+          kind: 'recipe',
+          data: d,
+        })) as never;
+      }
+      return (store[col] ?? []).filter((d) =>
         Object.entries(query).every(([k, v]) => d[k] === v),
-      ) as never,
+      ) as never;
+    },
   );
   vi.spyOn(pm, 'save').mockImplementation(
     async (col: string, doc: Record<string, unknown>) => {

@@ -1,0 +1,13 @@
+verb: ponder
+emoji: 🤔
+tags:
+- contemplate
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+    manner:
+      kind: free
+      optional: true
+  template: '{{ actor }} ponder{{ s }}{% if manner %} {{ manner }}{% endif %}{% if target %} {{ target }}{% endif %}.'

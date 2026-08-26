@@ -157,7 +157,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, `sourcePack` stamps, shipped packs
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the fourteen shipped packs
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -181,7 +181,7 @@ behavior. Read the relevant doc before editing in its area.
   - [respiration.md](./docs/subsystems/respiration.md) — air exchange + asphyxiation: the crisis engagement drain, `breathableMedia`, AirTank
   - [shell-workspace.md](./docs/subsystems/shell-workspace.md) — WorkspaceMixin cwd state, `workspace.tree`, read/write verb suite, SourceTreeApi
   - [shell-author.md](./docs/subsystems/shell-author.md) — AuthorMixin lifecycle + code-execution verbs, the EvalScript sandbox
-  - [document-store.md](./docs/subsystems/document-store.md) — the third path-addressed tree: StoredDocument kinds, DocumentApi, self-home ownership
+  - [document-store.md](./docs/subsystems/document-store.md) — the third path-addressed tree: StoredDocument kinds (the closed `DocumentKinds` vocabulary), DocumentApi, the parcel-title gate (`canAtPath`), the command-view code gate
   - [cms.md](./docs/subsystems/cms.md) — the REST CMS surface: unified tree over three backends, the session attribution bridge, Monaco, the save go-live split
   - [diagnostics.md](./docs/subsystems/diagnostics.md) — author diagnostics: three producers, the DiagnosticApi store, the `errors` verb + CMS pane
   - [git-workflow.md](./docs/subsystems/git-workflow.md) — the in-runtime VCS: GitApi snapshot-and-push, the same-gate security spine, the `git` verb + CMS panel
@@ -322,7 +322,7 @@ SOURCE file changes.** Before starting one, check — do not assume that
 "about to commit" is a reason:
 
 ```bash
-git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'
 ```
 
 Empty means the last run still stands: cite its number and move on.
@@ -466,6 +466,13 @@ discoverability.
   exception.** `--report` groups crossings for a sweep.
   CI-gating. Pattern + folds: [architecture.md § The import
   boundary](./docs/architecture.md).
+- `pnpm lint:test-content` (`scripts/check-test-content.ts`) — **kernel
+  tests that name shipped content** (`/domain/<locality>`): a shrinking
+  allowlist (`scripts/test-content-allowlist.txt`) — a listed offender
+  warns, a NEW one fails, a listed path that no longer offends is stale
+  and fails too. A kernel test proves the kernel over synthetic fixtures;
+  a test of real content lives beside the content (`src/mud/domain/**`,
+  exempt). CI-gating. See [testing.md](./docs/testing.md).
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).
@@ -567,8 +574,8 @@ create free-floating helper modules.
 | Named value-object / vocabulary / registry | `lib/<subsystem>/` (or top-level `lib/`) | `PascalCase.ts` / lowercase | A substrate primitive that isn't an instanceable Stuff but IS the module's one concept: value class (`Light`, `Quantity`), enum-like vocabulary + its validation array, or a platform registry (`lib/mixin.ts`, `lib/paths.ts`). The home that kills the `types.ts` reflex. |
 | Api | `api/` | lowercase `feature.ts` | Static `FeatureApi` — a thin, typed, gated **forwarding shell**; ends with `SecurityApi.decorateApiClass(FeatureApi)`. Exports only the class + its call-shape types (nothing instanceable). |
 | Api logic singleton | `obj/api/` | `PascalCaseLogic.ts` | Stateless `Stuff` (`extends ApiLogic`, which extends `Idea`; no `PostRegistrationMixin`) holding a convertible Api's logic + protected internals; `@internal` on the class, methods gated `FromModule('/api/<feature>#<Feature>Api')`; HMR-able at `/obj/api/<feature>`. The `FooApi` statics forward here. (`ApiLogic` is the shared base that makes every logic singleton residency-exempt — see [residency.md](./docs/subsystems/residency.md).) |
-| Controller | `obj/command/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in `mud/cmd/<category>/`). |
-| Command YAML | `mud/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command. |
+| Controller | `obj/command/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in the platform pack's `content/cmd/<category>/`). |
+| Command YAML | `packages/content/platform/content/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command — **content** (the `command-view` document kind), not kernel source. |
 | Hook | `obj/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
 | Decorator | `lib/security/` | `decorators.ts` / `PascalCase.ts` | Decorator factories (`CallSecurity`, `Unshadowable`, `Final`, `Shadowing`, `ShadowSecurity`, `RequiresActive`). A decorator is a function by nature — these files are the only home where `export function` is the *concept*, not a stray helper. |
 
@@ -636,16 +643,19 @@ reason.
   `Thing.ts`, `Location.ts`).
 - **Api files**: lowercase with `.ts` (`stuff.ts`, `player.ts`,
   `mixin.ts`, `containment.ts`, `message.ts`).
-- **Command YAML views**: engine verbs in `mud/cmd/<category>/`,
-  lowercase (`perception/look.yaml`, `social/say.yaml`); **domain-local
+- **Command YAML views**: engine verbs in the **platform content pack**,
+  `packages/content/platform/content/cmd/<category>/`, lowercase
+  (`perception/look.yaml`, `social/say.yaml`) — installed as
+  `command-view` documents and served store-first by `CommandApi`
+  (`mud/cmd/` is gone since content-packs wave 2); **domain-local
   verbs** (a verb that only exists where a locality's content is) in
   `domain/<sphere>/<locality>/cmd/` with their controllers in the sibling
   `domain/<sphere>/<locality>/command/` (the University Avenue `blow`/
   `tally`/`wind`/`adjust` bundle and the Duncan Hall `provision`/
   `unprovision`/`remodel` bundle are the exemplars — see
-  [command-spec.md](./docs/subsystems/command-spec.md)). `mud/cmd/` and
-  `mud/obj/command/` are the **core** trees — nothing content-specific
-  belongs there; a verb that hardcodes one piece of content lives in that
+  [command-spec.md](./docs/subsystems/command-spec.md)). The platform
+  pack's `content/cmd/` and `mud/obj/command/` are the **core** trees —
+  nothing content-specific belongs there; a verb that hardcodes one piece of content lives in that
   content's own `domain/` namespace, seeded at
   `seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml`. A spec's
   `controller:` value is a **path**, resolved by one rule (no domain
@@ -759,8 +769,8 @@ Convention is **layer-based**:
   mediate access for everything else and benefit from the stronger
   runtime guarantee. `#` ensures internal slots are invisible to a
   wrapping Proxy.
-- **Domain code** — `packages/server/src/mud/lib/`, `mud/obj/`,
-  `mud/cmd/` — defaults to TypeScript modifiers. Persistent fields
+- **Domain code** — `packages/server/src/mud/lib/`, `mud/obj/` —
+  defaults to TypeScript modifiers. Persistent fields
   must be public for the `Hydrator` to reflect into. Use `protected`
   for subclass extension points (`prepareDestroy()`-style hooks),
   `private` for class-internal helpers and caches.
@@ -970,7 +980,6 @@ side — `backend/PersistenceManager` re-exports it).
 - `content` — the templates collection (was `domain`; migrated once at boot); pack-installed rows carry `sourcePack` (content-packs.md)
 - `pack_installs` — the pack installer's per-deployment ledger: baselines, pins, conflicts; three-way reconcile reads it (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
-- `name_banks` — char-gen name pools, installed by the species-and-names pack
 - `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
 - `beliefs` — per-viewer identity-memory rows (belief.md)
 - `chronicles` — per-character append-only identity ledger (chronicle.md)
@@ -981,9 +990,8 @@ side — `backend/PersistenceManager` re-exports it).
 - `producer_events` / `producer` — attributed-engagement log + rebuildable standings (influence.md)
 - `authoring_events` — append-only authorship ledger (provenance.md)
 - `positions` — held conviction stakes (influence.md)
-- `recipes` — crafting reference data, never cloned (crafting.md)
 - `blueprints` — the Studio composition catalogue (studio.md)
-- `documents` — the path-addressed, kind-tagged document store (document-store.md)
+- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md; the former `emotes` / `recipes` / `name_banks` collections were collapsed into it once at boot — content-packs.md)
 - `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
 - `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
 - `parcels` / `parcel_events` — property-title registry + chain-of-title; stored SEPARATELY from the `domain` content it gates — the governing security invariant (parcel.md)

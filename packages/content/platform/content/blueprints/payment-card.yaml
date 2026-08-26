@@ -1,0 +1,10 @@
+blueprintId: payment-card
+name: Payment Card
+kind: concrete
+baseClass: Thing
+classPath: /obj/PaymentCard
+parent: things
+blessed: true
+description: 'A carried settlement credential (a CredentialWallet Thing) that affords the pay/wallet verbs wherever you hold it. A kind (born-with credential + afforded verbs).
+
+  '

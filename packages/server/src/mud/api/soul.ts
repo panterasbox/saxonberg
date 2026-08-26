@@ -59,8 +59,16 @@ export class SoulApi {
   }
 
   /**
+   * Every emote a term finds — by canonical verb, tag, or `searchTerms`.
+   * The lookup face; nothing found here dispatches by the term.
+   */
+  static search(term: string): Promise<Emote[]> {
+    return logic().search(term);
+  }
+
+  /**
    * The catalogue projected for the client's emote picker — canonical
-   * verbs, their emoji and aliases, and each emote's declared grammar
+   * verbs, their emoji and search terms, and each emote's declared grammar
    * slots in declaration order.
    *
    * ⭐ **The read face, and deliberately ungated.** `soul list` is the

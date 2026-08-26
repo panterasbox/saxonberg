@@ -1,0 +1,5 @@
+id: platform
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /platform
+description: The platform pack — the seed of pack zero; installed by the ordinary installer this wave.
+dependsOn: []

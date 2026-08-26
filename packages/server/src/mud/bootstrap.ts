@@ -32,19 +32,21 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // as species clades / materials / biomes per the note above.
   { templatePath: '/obj/TopicCatalogue' },
   // SoulCatalogue singleton — the runtime verb→Emote cache. Warmed
-  // at postRegister from the `emotes` collection (populated by
-  // `EmoteSeeder.run` earlier in the boot sequence). Resolvable via
-  // `SoulApi.resolve` after this entry's postRegister fires.
+  // at postRegister from `documents {kind: emote}` (installed by the
+  // `expression` content pack earlier in the boot sequence). Resolvable
+  // via `SoulApi.resolve` after this entry's postRegister fires.
   { templatePath: '/obj/SoulCatalogue' },
   // RecipeCatalogue singleton — the runtime recipe index. Warmed at
-  // postRegister from the `recipes` collection (populated by
-  // `RecipeSeeder.run` earlier in the boot sequence). Resolvable via
-  // `CraftingApi` after this entry's postRegister fires.
+  // postRegister from `documents {kind: recipe}` (installed by the
+  // `generic-objects` content pack earlier in the boot sequence).
+  // Resolvable via `CraftingApi` after this entry's postRegister fires.
   { templatePath: '/obj/RecipeCatalogue' },
   // BlueprintCatalogue singleton — the Studio composition catalogue's runtime
-  // index. Warmed at postRegister from the `blueprints` collection (populated
-  // by `BlueprintSeeder.run` earlier in boot). Resolvable via `StudioApi`'s
-  // catalog ops after this entry's postRegister fires.
+  // index. At postRegister it REBUILDS the derived skeleton (one blueprint
+  // per backing class, a cache in `blueprints`) and warms from it plus the
+  // curated `documents {kind: blueprint}` rows the platform pack installed
+  // earlier in boot. Resolvable via `StudioApi`'s catalog ops after this
+  // entry's postRegister fires.
   { templatePath: '/obj/BlueprintCatalogue' },
   // The two seeded organizations — the Compact's own press office and the
   // Office of the Prime Minister. Warmed here rather than stood up lazily
@@ -120,13 +122,13 @@ export const bootstrapManifest: BootstrapEntry[] = [
   // SubjectCatalogue — the Subject-layer runtime view (identity +
   // audience + per-subject subscriptions, the linking spine under chat +
   // forums). Warms from the `forum_subjects` collection (populated by
-  // `ChannelSeeder.run`, which now mints an open Subject per standalone
+  // the platform pack's `subject` kind, which mints an open Subject per standalone
   // channel). Must precede `ChannelCatalogue`, which resolves it
   // synchronously to read audience + subscriptions.
   { templatePath: '/obj/SubjectCatalogue' },
   // ChannelCatalogue — chat substrate singleton. Owns the byName /
   // byHandle / history maps; warms its `byName` cache from the
-  // `channels` collection (populated by `ChannelSeeder.run`). Reads
+  // `channels` collection (populated by the platform pack's subjects). Reads
   // identity + audience through `SubjectCatalogue` (above).
   {
     templatePath: '/obj/ChannelCatalogue',

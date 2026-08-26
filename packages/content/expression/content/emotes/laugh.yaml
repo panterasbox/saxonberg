@@ -1,0 +1,14 @@
+verb: laugh
+emoji: 😆
+searchTerms:
+- haha
+- lol
+tags:
+- joy
+valence: 1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} laugh{{ s }}{% if target %} at {{ target }}{% endif %}.'

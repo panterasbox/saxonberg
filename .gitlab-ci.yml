@@ -156,6 +156,12 @@ lint:
     # so it confirmed the undercount instead of exposing it. This asks
     # vitest directly, across both configs, with no filtering.
     - pnpm -C packages/server lint:test-bootstrap:verify
+    # Kernel tests that name shipped content (/domain/<locality>) are a
+    # shrinking allowlist: a listed one warns, a NEW one fails, and a
+    # listed path that no longer offends is stale and fails too (the
+    # list only shrinks). A kernel test proves the kernel over synthetic
+    # fixtures; a test of real content lives beside the content.
+    - pnpm -C packages/server lint:test-content
 
 test:
   extends: [.node, .mr-only]

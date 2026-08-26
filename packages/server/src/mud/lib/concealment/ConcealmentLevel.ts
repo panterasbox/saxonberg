@@ -50,7 +50,7 @@ const CONCEALMENT_LEVEL_SET: ReadonlySet<string> = new Set(CONCEALMENT_LEVELS);
  * Seeded-literal fallbacks for each band's effective-perception
  * requirement — used when AppSettings isn't warmed (unit tests, pre-boot).
  * Monotone increasing; `obvious` is a hardcoded 0. Kept in sync with
- * `config/app-settings.yaml`'s `concealment.level.*` values.
+ * the platform pack's `content/settings/concealment.yaml` `concealment.level.*` values.
  */
 const REQUIREMENT_FALLBACK: Record<ConcealmentLevel, number> = {
   obvious: 0,

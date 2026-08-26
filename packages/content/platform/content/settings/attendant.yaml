@@ -1,0 +1,17 @@
+# attendant — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Attendant — the anti-grief lease sweep (real-time). Griefing is a real-time
+  # act, so the watchdog is real-time (the residency pattern), not game-time.
+  # The idle threshold is the venue's generosity dial: a service act resets it,
+  # so a legit-slow customer keeps the counter while an idle hold is revoked.
+  # The queue idle-drop reaps a waiting place (a ticket) held idle.
+  - key: attendant.lease.sweepIntervalMs
+    value: "15000"
+
+  - key: attendant.lease.idleThresholdMs
+    value: "120000"
+
+  - key: attendant.queue.idleThresholdMs
+    value: "180000"

@@ -21,8 +21,9 @@ let stores: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
 
 /**
- * The REAL seeded default-custodian value from `app-settings.yaml` (the
- * yaml is the single source of the value — no code default anywhere).
+ * The REAL shipped default-custodian value from the platform pack's
+ * `content/settings/banking.yaml` (the pack file is the single source of
+ * the value — no code default anywhere).
  * The harness makes just this one key ambient so fixtures read true
  * config; a test that re-stubs `AppApi.setting` overrides the harness
  * and must carry the keys it needs.
@@ -33,7 +34,7 @@ function seededDefaultCustodian(): string {
     const doc = YAML.parse(
       readFileSync(
         fileURLToPath(
-          new URL("../../../config/app-settings.yaml", import.meta.url),
+          new URL("../../../../../../content/platform/content/settings/banking.yaml", import.meta.url),
         ),
         "utf8",
       ),

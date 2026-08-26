@@ -41,7 +41,7 @@ const SocialApiCallers = SecurityPolicies.FromModule("/api/social#SocialApi");
 /**
  * Code-side baseline fallback — used only when AppSettings isn't warmed
  * (pre-boot / unit fixtures). The live defaults are seeded from
- * `social.baselineRules` in `mud/config/app-settings.yaml` (the renown
+ * `social.baselineRules` in the platform pack's `content/settings/social.yaml` (the renown
  * `receptionWindowS` precedent: try AppSettings, fall back to a sane
  * literal so a pre-warm read is still safe).
  */

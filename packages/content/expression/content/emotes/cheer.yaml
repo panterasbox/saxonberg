@@ -1,0 +1,12 @@
+verb: cheer
+emoji: 🎉
+tags:
+- joy
+- approval
+valence: 1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} cheer{{ s }}{% if target %} for {{ target }}{% endif %}!'

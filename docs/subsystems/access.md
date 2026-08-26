@@ -169,9 +169,20 @@ Ownership is no longer stamped on `Zone` — the three ownership fields
 (`ownerGroup` / `accessGroups` / `ownerGroupName`) were **removed** in
 property phase 0a. Title is a **parcel** in the gated `parcels` registry,
 resolved by longest-prefix over parcel extents. `AccessApi.can` /
-`canMutateZone` / `isAuthor` consult `ParcelApi` for ownership; the access
-layer keeps only the *decision* logic (group membership/role vs. player
-identity). See **[parcel.md](./parcel.md)** for the registry, the
+`canMutateZone` / `canAtPath` / `isAuthor` consult `ParcelApi` for
+ownership; the access layer keeps only the *decision* logic (group
+membership/role vs. player identity).
+
+**`canAtPath(subject, action: TreeAction, path)`** (content-packs wave 2)
+is the **path-targeted** form for the three path-addressed trees: the
+covering owner via `ParcelApi.ownerOf(path)` — rung 1 a parcel, rung 2
+the self-home, rung 3 the state — then the same `can()` dispatch of that
+owner. No zone step, no `core` literal: the state default IS `ownerOf`'s
+third rung. `TreeAction` is the closed slate-A22.1 vocabulary
+`'write-document' | 'write-template' | 'write-source'`; only the first
+is wired (the document store's gate, [document-store.md](./document-store.md)),
+the other two name the template and source trees for the gate that
+follows them. See **[parcel.md](./parcel.md)** for the registry, the
 `ownerOf` title → self-home → state chain, the sparse hierarchy, and the
 `subdivide` / `transfer` verbs.
 
@@ -453,7 +464,8 @@ the grant shape extends then.
 The vocabulary in use today: `'destruct'` / `'force-destruct'` /
 `'teleport'` / `'force-teleport'` / `'goto'` / `'force-goto'` /
 `'soul'` / `'broadcast'` / `'clone'` / `'write'` / `'mkdir'` /
-`'rm'` / `'read'`.
+`'rm'` / `'read'`. `canAtPath` takes the **typed** `TreeAction` instead
+(`'write-document'` today).
 
 ## HMR notes
 

@@ -7,8 +7,27 @@ and put any JSON there, tagged with a `kind` that says what kind of
 object lives at that path.
 
 It generalizes the original scripting player-script store. Scripts are now
-just **one kind** of stored document; dorm-room customization will be
-another (the first non-script consumer — see the Warren/lounge work).
+just **one kind** of stored document (`msh`); since content-packs wave 2
+the store also holds the **pack-installed reference data** that used to
+live in per-kind collections — emotes, recipes, name banks, the curated
+blueprints, and every engine verb's command view — each a declared
+kind. Dorm-room customization will be another (the first non-script
+runtime consumer — see the Warren/lounge work).
+
+### The closed kind vocabulary
+
+`lib/document/DocumentKinds.ts` declares every **pack-installable** kind
+— its `kind` string, natural key (`verb`, `recipeId`, `key`,
+`blueprintId`, or none for a path-keyed kind), pack subdir, extension
+and vanish policy. Editing it is a platform act: a kind needs a code
+consumer and a go-live hook ([content-packs.md](./content-packs.md)).
+`PersistenceManager` creates one **unique partial index**
+`{kind, data.<naturalKey>}` per flat-key kind (partial on the kind — a
+path-keyed kind never collides), and the nightly reset **keeps** every
+declared kind beside `release` (`ResetPolicy`) — pack-installed rows are
+world content, not player state. `release` is press-owned; `wiki` is
+deliberately not a document kind (a page has a revision log and a CAS
+edit path of its own).
 
 ## What a record is
 
@@ -18,7 +37,7 @@ another (the first non-script consumer — see the Warren/lounge work).
 |---|---|
 | `path`  | canonical key; owner/scope encoded in the path — see the namespace taxonomy below |
 | `owner` | the owner's durable `templatePath` (set from context, never the caller) |
-| `kind`  | **what kind of object lives here** — `'script'`, later `'dorm'`, … |
+| `kind`  | **what kind of object lives here** — `'msh'` (a script), `'emote'`, `'recipe'`, `'name-bank'`, `'blueprint'`, `'command-view'`, `'release'`, later `'dorm'`, … |
 | `data`  | the arbitrary JSON payload |
 
 The store is **kind-agnostic**: it persists and serves `{path, owner,
@@ -82,7 +101,12 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
 - `DocumentApi.list(prefix)` / `DocumentApi.listOfKind(kind)` — the second
   is the release window's rebuild input.
 - `DocumentApi.save(path, kind, data)` → find-or-create. **Access-gated**,
-  **owner-stamped from context**, **provenance-recorded** (below).
+  **owner-stamped from context**, **provenance-recorded** (below). For
+  `kind: 'command-view'` it also runs the **code-naming gate** and the
+  schema check, and reloads the view (below).
+- `DocumentApi.delete(path)` → the same gate as `save`; no provenance row
+  (a deletion is not authorship); returns whether a row existed. The
+  emote catalogue's `delete` rides it.
 - ⚠⚠ `DocumentApi.saveRelease(publisher, path, data)` — **the named write
   transport**, and an ownership bypass by construction. See below.
 
@@ -90,10 +114,10 @@ The acting **owner is always derived from `ExecutionContextApi`** (the
 in-world command-frame giver, or a transport's `tagActingAuthor` stamp),
 **never a parameter** (memory: gated-api-actor-from-context).
 
-### The gate — self-home ownership
+### The gate — parcel title
 
-`DocumentApi.save` reuses the whole ownership stack, with one base case on
-top:
+`DocumentApi.save` / `delete` gate on **parcel title** (content-packs
+wave 2, D11), with one base case on top:
 
 1. **An owner owns their own `/home/<self>/` branch** — keyed on the
    durable-path basename, so a player owns exactly the subtree the runtime
@@ -102,8 +126,29 @@ top:
    0a this rule is **shared, not forked**: `isOwnHomePath` consumes
    `ParcelApi.selfHomeOwnerOf` (the single implementation, also rung 2 of
    the parcel `ownerOf` chain — see [parcel.md](./parcel.md)).
-2. else the covering spatial zone gates via `AccessApi.canMutateZone`;
-3. else the slice-walk `AccessApi.can(write)`.
+2. else **`AccessApi.canAtPath(actor, 'write-document', path)`** — the
+   covering title through `ParcelApi.ownerOf(path)` (rung 1 a parcel,
+   rung 2 the self-home, rung 3 the state) and that owner's `can()`
+   dispatch, verbatim. No zone walk, no `core` literal: the state default
+   IS `ownerOf`'s third rung. A pack's document branch (`/expression`,
+   `/generic-objects`) is untitled, so the state's group decides; an
+   author-minted emote or blueprint lands on the platform's own
+   `/emotes/` / `/blueprints/` branch for the same reason.
+
+### The command-view code gate
+
+A `kind: 'command-view'` save names TypeScript: its `controller:` (at
+the verb or any subcommand) and every validator / `requires` reference
+are code references. A save that changes any of them — **the set, not a
+subset**: a validator is a gate, and removing one widens dispatch just
+as adding one narrows it — requires `AccessApi.isWizard` (the code-trust
+axis, [access.md](./access.md)); so does a new view naming a controller.
+A cosmetic edit (help text, descriptions) is content authoring. Every
+command-view save is validated against the command schema at the
+chokepoint and then `CommandApi.reload(path)` puts it live — the CMS
+edits `look.yaml`'s help and `help look` changes without a restart. The
+installer never sees this gate (it writes through `PersistApi`,
+bootstrap-exempt like templates).
 
 ### Provenance
 
@@ -148,10 +193,15 @@ covering branch would ride the ticker as a release.
 per-path AST cache, the script-specific go-live — and delegates **storage**
 to `DocumentApi`:
 
-- `ScriptApi.saveScript(path, source)` → `DocumentApi.save(path, 'script',
+- `ScriptApi.saveScript(path, source)` → `DocumentApi.save(path, 'msh',
   { source })`, then invalidate the AST cache (the script go-live).
 - resolve-by-path → `DocumentApi.read(path)`, take `data.source` when
-  `kind === 'script'`, parse + cache.
+  `kind === 'msh'`, parse + cache.
+
+The kind is **`msh`** — the language's name — since content-packs wave
+2 (it was `'script'`; a one-time boot migration renamed the rows and
+moved the lounge exemplars to `/domain/lounge/msh/`). The
+`saxonberg-lounge` pack ships them as `content/msh/*.msh`.
 
 The generic store deliberately does **not** keep an AST cache (an AST is
 script-specific) and runs **no** kind-specific go-live — that all lives
@@ -166,10 +216,10 @@ drives the editor treatment:
 
 - `kind: 'release'` → a press release ([press.md](./press.md)), under its
   publisher's declared feed branch, owned by the publisher.
-- `kind: 'script'` → the source text (`data.source`) as a plain-text code
+- `kind: 'msh'` → the source text (`data.source`) as a plain-text code
   leaf; a write funnels through `ScriptApi.saveScript` (the script
   chokepoint: gate + provenance + AST go-live). Scripts are the one
-  runtime-**creatable** kind.
+  runtime-**creatable** kind through the CMS.
 - any other kind → `data` pretty-printed as JSON; a write parses the JSON
   and persists via `DocumentApi.save` under the doc's existing kind (no
   live re-hydration consumer yet — that lands with dorm).
@@ -182,6 +232,7 @@ Author-tier read gate (like content). Wired end-to-end: the REST
 
 The fuller per-`/home/` access model (sharing, grants beyond the
 self-owner), non-script document **creation** via the CMS, and the first
-non-script consumer (dorm-room customization data, hydrated onto a Warren
-constituent — base-template + customization-document) all land later. The
-substrate is built to accommodate them; only scripts ride it today.
+non-script runtime consumer (dorm-room customization data, hydrated onto
+a Warren constituent — base-template + customization-document) all land
+later. The substrate is built to accommodate them; scripts, the
+pack-installed kinds, and releases ride it today.

@@ -313,7 +313,7 @@ view by opting into the new **subcommand fallthrough** flag — a
 small command-framework extension shipped alongside chat:
 
 ```yaml
-# mud/cmd/social/chat.yaml
+# content/cmd/social/chat.yaml
 verbs: [chat]
 controller: ChatController
 validators:
@@ -410,29 +410,27 @@ The catalogue self-warms at registration time. Its `postRegister`
 hook awaits `Channel.find({})` and populates `byName`, so by the
 time any verb resolves a channel by name the cache is hot.
 
-Seed standalone channels — `Help`, `Global`, `Chat` — come from
-`packages/server/src/mud/config/channels.yaml`, *not* from
-`mud/seeds/`:
+The standing standalone channels — `Help`, `Global`, `Chat` — are the
+**`platform` content pack's `subject` kind** (content-packs wave 2; the
+former `ChannelSeeder` + `mud/config/channels.yaml` are gone):
+`packages/content/platform/content/subjects/<name>.yaml`:
 
 ```yaml
-channels:
-  - name: Help
-    kind: open-join-standalone
-  - name: Global
-    kind: open-join-standalone
-  - name: Chat
-    kind: open-join-standalone
+name: Help
+description: Questions and answers for new players.
+channel: true          # or { name: … } to override the channel name; board: true likewise
 ```
 
-`ChannelSeeder.run()` is invoked from `main()` after Mongo connect,
-parallel to `EmoteSeeder.run()`. It's insert-only and idempotent:
-existing rows are left alone, so an author edit via `chat rename`
-survives subsequent boots. The reason channels.yaml does NOT live
-under `seeds/` is the same as for emotes — Channel records are
-`Document` rows, not Stuff templates, and the `SeederManager` that
-walks `seeds/` writes only into the `domain` (template) collection;
-putting channel YAML under `seeds/` would mis-route into the wrong
-collection.
+`PackApi.install` mints the open Subject (owned by `pack:platform`) and
+its `open-chat` channel the way the seeder did, adopts a seeder-made
+row **by title** (same `_id`, same channel), and reconciles three-way
+thereafter — an author's `chat rename` is **kept** when the pack file
+did not change. The policy is **archive-never-reap**: a vanished file
+(or `channel: false`) sets `Channel.archived`, which `ChannelCatalogue`
+skips on every read; the row, its history and its subscriptions stay
+(`Channel.isArchived()`). Subjects with an `audience: { group }` bind to
+a managed group **by name**. See
+[content-packs.md](./content-packs.md).
 
 After Wave 1, the standalone roster is runtime-mutable through the
 same wizard-tier verbs that manage player-created channels (`chat
@@ -529,8 +527,7 @@ into this doc as they ship.
   combined `subcommands:` + `args:` + `fallthrough: true` YAML
   shape, with `chat.yaml` as the worked example.
 - [persistence.md](./persistence.md) — the `Document` track that
-  `Channel` rides on; the `channels` collection alongside `emotes`
-  and `groups`.
+  `Channel` rides on; the `channels` collection alongside `groups`.
 - [augmentation.md](./augmentation.md) — the baseline AetherImplant
   that makes the `'verbal-esp'` modality universal for players, so
   every chat channel is in-fiction "a frequency on your implant."

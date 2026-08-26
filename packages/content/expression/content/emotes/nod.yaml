@@ -1,0 +1,11 @@
+verb: nod
+emoji: 🙂
+tags:
+- greeting
+- acknowledge
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} nod{{ s }}{% if target %} to {{ target }}{% endif %}.'

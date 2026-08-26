@@ -239,7 +239,7 @@ built here.
 | Index singleton + two projectors | `mud/obj/HelpCatalogue.ts` |
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
-| Verb | `mud/cmd/system/help.yaml` + `mud/obj/command/system/HelpController.ts` |
+| Verb | `content/cmd/system/help.yaml` + `mud/obj/command/system/HelpController.ts` |
 | Boot wiring | `mud/bootstrap.ts`, `mud/lib/paths.ts`, `mud/seeds/obj/HelpCatalogue.yaml` |
 
 ## ⭐ The help card exists now

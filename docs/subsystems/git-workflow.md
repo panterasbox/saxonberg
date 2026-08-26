@@ -136,7 +136,7 @@ credential is shared:
 Both are thin over the one gated `GitApi`; both derive the actor from
 context and hold no authz beyond their entry gate.
 
-- **The `git` verb** — `mud/cmd/system/git.yaml` + `GitController`
+- **The `git` verb** — `content/cmd/system/git.yaml` + `GitController`
   (category `system`, AuthorMixin-afforded, gated by the YAML
   `requiresWizard` validator). Subcommands `status` (default) / `diff` /
   `log` / `publish -m <msg>` / `revert <sha>`; reads render through

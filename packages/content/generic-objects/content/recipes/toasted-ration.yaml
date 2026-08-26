@@ -1,0 +1,19 @@
+recipeId: toasted-ration
+name: Toasted Ration
+keywords:
+- toasted-ration
+- toast
+inputSlots:
+- slot: ration
+  category: preserved
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities: []
+outputTemplate: /obj/items/plated-dish
+outputAppearance: toasted biscuit and crisped sausage, still steaming
+outputApplication: edible
+outputPortionL: 0.3
+requiresHeatK: 450
+difficulty: trivial
+discipline: cooking

@@ -38,6 +38,7 @@
 
 import { Collections } from './Collections';
 import { RELEASE_DOCUMENT_KIND } from '../press/Release';
+import { DECLARED_DOCUMENT_KINDS } from '../document/DocumentKinds';
 
 /**
  * What the reset does to one collection.
@@ -61,14 +62,21 @@ export type ResetDisposition =
 export const RESET_DISPOSITIONS: Readonly<
   Record<Collections, ResetDisposition>
 > = {
-  // ── The one survivor ──
+  // ── The one survivor (plus the pack-installed document kinds) ──
   [Collections.Documents]: {
     verb: 'wipe-except',
-    keep: { kind: RELEASE_DOCUMENT_KIND },
+    keep: {
+      kind: { $in: [RELEASE_DOCUMENT_KIND, ...DECLARED_DOCUMENT_KINDS] },
+    },
     because:
       'published press releases — the front door reads them without an ' +
       'account, and the gazette design requires bulletins to outlive the ' +
-      'night they were published',
+      'night they were published; and every DECLARED document kind ' +
+      '(emotes, recipes, name banks, blueprints, msh scripts, command ' +
+      'views) — pack-installed world content (the expression / ' +
+      'generic-objects / species-and-names / platform / saxonberg-lounge ' +
+      'packs), reference data not player state; wiping it would empty ' +
+      'the soul vocabulary at 04:00 until a reboot re-installed it',
   },
 
   // ── Seeded / pack-installed world content: keep, or the world empties ──
@@ -83,21 +91,9 @@ export const RESET_DISPOSITIONS: Readonly<
     verb: 'keep',
     because: 'the world itself; the seeder is insert-only and runs at boot',
   },
-  [Collections.Emotes]: {
-    verb: 'keep',
-    because: 'seeded soul vocabulary — reference data, not player state',
-  },
-  [Collections.NameBanks]: {
-    verb: 'keep',
-    because: 'pack-installed char-gen name pools',
-  },
   [Collections.DescriptorBanks]: {
     verb: 'keep',
     because: 'pack-installed unidentified-appearance pools',
-  },
-  [Collections.Recipes]: {
-    verb: 'keep',
-    because: 'crafting reference data; never cloned, never player-written',
   },
   [Collections.MediaAssets]: {
     verb: 'keep',

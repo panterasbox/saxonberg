@@ -1,0 +1,11 @@
+verb: groan
+emoji: 😩
+tags:
+- displeasure
+valence: -1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} groan{{ s }}{% if target %} at {{ target }}{% endif %}.'

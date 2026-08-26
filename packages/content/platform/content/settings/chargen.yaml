@@ -1,0 +1,11 @@
+# chargen — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Char-gen — the inclusive min/max length (characters) of a chosen
+  # character name token (the name-policy bounds).
+  - key: chargen.nameMinLength
+    value: "2"
+
+  - key: chargen.nameMaxLength
+    value: "24"

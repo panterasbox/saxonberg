@@ -1,0 +1,14 @@
+# producer — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Producer — the MAKE faucet (the third influence stock). An author is
+  # credited once per (author, actor, 10-min bucket) of attributed
+  # engagement with their released content; the decayed bucket count is the
+  # standing. Engagement-only (no `× regard`); decay is REAL-time (current
+  # draw): half-life 14 days, matching participation.
+  - key: producer.bucketSeconds
+    value: "600"
+
+  - key: producer.decayHalfLife
+    value: "1209600"

@@ -1,0 +1,10 @@
+blueprintId: air-tank
+name: Air Tank
+kind: concrete
+baseClass: Thing
+classPath: /obj/AirTank
+parent: things
+blessed: true
+description: 'A worn breathing-air supply: a wearable, slottable Bulkable with a projected gauge you tap to breathe. A kind (own gauge logic).
+
+  '

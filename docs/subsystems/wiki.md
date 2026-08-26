@@ -42,7 +42,7 @@ time and cannot go stale.
 | Page state + mutations | `obj/WikiRegistry.ts` (`extends Idea`) |
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
 | Verb | `cmd/system/wiki.yaml` + `obj/command/system/WikiController.ts` |
-| Starter articles | `config/wiki-pages.yaml` + `backend/WikiSeeder.ts` |
+| Starter articles | the `wiki-starter` content pack (`packages/content/wiki-starter/content/wiki/<ns>/<slug>.md`) — the installer's `wiki` kind |
 | Client card | `client/components/WikiCard.tsx`, fed by `publication.wiki` |
 
 **No `*Api` was added**, by constraint. `obj/<Name>Registry.ts` is the
@@ -790,6 +790,27 @@ documents `` `[[Oak]]` ``, so this is not hypothetical: it put a
 `guide:oak` nobody could ever satisfy at the top of `wiki wanted`.
 
 ---
+
+## The installer as a writer — the `wiki` content kind
+
+A pack ships pages as `content/wiki/<namespace>/<slug>.md` — YAML
+frontmatter (`title`, `subject`, `tags`, `related`, `spoilerLevel`)
+over a **markdown** body, the article dialect. The installer never
+writes rows: it **submits** through `createPage` / `editPage` **as the
+pack** (`asInstaller: <packId>` — the gate on exactly those two methods
+admits `PackLogic` beside `WikiController`; the revision author is
+`pack:<id>`, never `system`; the namespace protection walk is skipped
+because there is no acting player at boot; `WikiController` never sets
+the option, and a test asserts it). An edit carries the install
+record's baseline `rev` as the **compare-and-swap** token: a changed
+pack file over a page nobody touched is a new revision; over a page
+somebody edited it is a `WikiConflict` → a **`wiki-cas` pack conflict**
+with all three bodies in `pack diff`, settled by `pack resolve
+--take-pack` (an edit over the current rev — the history keeps both)
+or `--keep --pin`. A page that pre-dates its record (the retired
+`WikiSeeder`'s) adopts with its live `rev` and no edit; a renamed page
+resolves by alias, so it is never re-created; a vanished file **keeps**
+the page. See [content-packs.md](./content-packs.md).
 
 ## Collections
 

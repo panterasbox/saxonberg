@@ -1,7 +1,7 @@
 /**
  * CMS third backend ('document') — the path-addressed document store as a
  * browsable/editable backend alongside content + source. Scripts are one
- * `kind` of stored document (kind='script', data={source}).
+ * `kind` of stored document (kind='msh', data={source}).
  *
  * Exercises the CmsApi surface for the document backend: write (create a
  * script) → read (the source as plain text, kind-driven) → stat
@@ -15,7 +15,6 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CmsApi } from "../../../api/cms";
 import { AccessApi } from "../../../api/access";
-import { ZoneApi } from "../../../api/zone";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
@@ -64,8 +63,8 @@ beforeEach(() => {
     delete: vi.fn(),
   } as unknown as PersistenceManager);
 
-  vi.spyOn(ZoneApi, "resolveZoneForPath").mockResolvedValue(null);
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+  vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
   vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(true);
 
   actor = makeStuffAtPath(() => new Idea(), OWNER) as unknown as Stuff;
@@ -76,7 +75,7 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-describe("CMS document backend (scripts as kind=script)", () => {
+describe("CMS document backend (scripts as kind=msh)", () => {
   it("write creates a script and reports go-live", async () => {
     const result = await runAs(() =>
       CmsApi.write("document", SCRIPT_PATH, "ping; stir"),
@@ -84,7 +83,7 @@ describe("CMS document backend (scripts as kind=script)", () => {
     expect(result.backend).toBe("document");
     expect(result.reloaded).toBe(true);
     expect(scripts).toHaveLength(1);
-    expect(scripts[0]!.kind).toBe("script");
+    expect(scripts[0]!.kind).toBe("msh");
     expect((scripts[0]!.data as { source: string }).source).toBe("ping; stir");
   });
 

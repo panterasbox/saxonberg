@@ -15,11 +15,11 @@ import { useStore } from "../../../store";
 import { EmotePicker } from "../EmotePicker";
 
 const CATALOGUE: EmoteCatalogueEntry[] = [
-  { verb: "nod", emoji: "🙂", aliases: ["agree"], tags: [], slots: [] },
+  { verb: "nod", emoji: "🙂", searchTerms: ["agree"], tags: [], slots: [] },
   {
     verb: "wave",
     emoji: "👋",
-    aliases: [],
+    searchTerms: [],
     tags: [],
     slots: [
       { name: "at", kind: "stuff", required: false },
@@ -29,12 +29,12 @@ const CATALOGUE: EmoteCatalogueEntry[] = [
   {
     verb: "point",
     emoji: "👉",
-    aliases: [],
+    searchTerms: [],
     tags: [],
     slots: [{ name: "at", kind: "stuff", required: true }],
   },
   // Glyph-less: renders as prose, never a chip, so never a grid cell.
-  { verb: "sigh", aliases: [], tags: [], slots: [] },
+  { verb: "sigh", searchTerms: [], tags: [], slots: [] },
 ];
 
 function seed(entries = CATALOGUE) {

@@ -1,0 +1,5 @@
+id: wiki-starter
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /wiki
+description: The starter wiki articles (the wiki kind — the front door, a guide, one worked example of each thing the engine can do).
+dependsOn: [platform]

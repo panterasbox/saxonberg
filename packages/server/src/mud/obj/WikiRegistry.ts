@@ -75,6 +75,23 @@ const WikiControllerOnly = SecurityPolicies.FromModule(
   '/obj/command/system/WikiController',
 );
 
+/**
+ * The two callers of `createPage` / `editPage`: the verb, and the
+ * content installer — which submits a pack's `wiki` kind AS the pack
+ * (`asInstaller: <packId>`; the pack is the author of what it ships).
+ * The installer option is reachable only through this gate, and
+ * `WikiController` never sets it.
+ */
+const WikiWriters = SecurityPolicies.AnyOf(
+  WikiControllerOnly,
+  SecurityPolicies.FromModule('/obj/api/PackLogic#PackLogic'),
+);
+
+/** The author key an installer-submitted revision carries. */
+function installerAuthor(packId: string): string {
+  return `pack:${packId}`;
+}
+
 /** The default namespace a bare `[[Oak]]` or `wiki oak` resolves in. */
 export const DEFAULT_NAMESPACE = 'main';
 
@@ -410,7 +427,7 @@ export default class WikiRegistry extends WikiRegistryBase {
    * nothing they can act on, whereas the holder's title tells them
    * whether they wanted that page all along.
    */
-  @CallSecurity(WikiControllerOnly)
+  @CallSecurity(WikiWriters)
   public async createPage(input: {
     namespace?: string;
     slug: string;
@@ -421,16 +438,25 @@ export default class WikiRegistry extends WikiRegistryBase {
     related?: string[];
     spoilerLevel?: 0 | 1 | 2 | 3;
     summary?: string;
+    /**
+     * The content installer submitting a pack's page AS the pack: skips
+     * the namespace protection walk (there is no acting player at boot)
+     * and stamps `pack:<id>` as the author. Reachable only through the
+     * `PackLogic` gate; `WikiController` never sets it.
+     */
+    asInstaller?: string;
   }): Promise<WikiPage> {
     const namespace = WikiPage.normalizeName(
       input.namespace ?? DEFAULT_NAMESPACE,
     );
     const slug = WikiPage.normalizeName(input.slug);
     if (!slug) throw new WikiDenied('a page needs a name');
-    await this.assertMayEditNamespace(namespace);
+    if (!input.asInstaller) await this.assertMayEditNamespace(namespace);
     await this.assertNameFree(namespace, slug);
 
-    const author = this.actorKey();
+    const author = input.asInstaller
+      ? installerAuthor(input.asInstaller)
+      : this.actorKey();
     const page = new WikiPage();
     page.namespace = namespace;
     page.slug = slug;
@@ -446,7 +472,7 @@ export default class WikiRegistry extends WikiRegistryBase {
     page.createdBy = author;
     page.updatedBy = author;
     await page.save();
-    await this.appendRevision(page, 'create', input.summary ?? '', true, null);
+    await this.appendRevision(page, 'create', input.summary ?? '', true, null, undefined, author);
     return page;
   }
 
@@ -459,7 +485,7 @@ export default class WikiRegistry extends WikiRegistryBase {
    * Passing `undefined` skips the check — which is the seeding and
    * scripted path, not the player one.
    */
-  @CallSecurity(WikiControllerOnly)
+  @CallSecurity(WikiWriters)
   public async editPage(
     page: WikiPage,
     body: string,
@@ -469,11 +495,33 @@ export default class WikiRegistry extends WikiRegistryBase {
       draft?: boolean;
       /** Edit only this section's span, leaving the rest byte-identical. */
       section?: string;
+      /** The content installer editing AS the pack — see `createPage`. */
+      asInstaller?: string;
+      /**
+       * Metadata the installer applies beside the body (a pack file's
+       * frontmatter). Honoured under `asInstaller` only.
+       */
+      fields?: {
+        title?: string;
+        subject?: WikiSubject | null;
+        tags?: string[];
+        related?: string[];
+        spoilerLevel?: 0 | 1 | 2 | 3;
+      };
     } = {},
   ): Promise<WikiPage> {
-    await this.assertMayEdit(page);
+    if (!opts.asInstaller) await this.assertMayEdit(page);
     if (opts.baseRev !== undefined && opts.baseRev !== page.getRev()) {
       throw new WikiConflict(opts.baseRev, page.getRev(), opts.section);
+    }
+    const author = opts.asInstaller ? installerAuthor(opts.asInstaller) : this.actorKey();
+    if (opts.asInstaller && opts.fields) {
+      const f = opts.fields;
+      if (f.title !== undefined) page.title = f.title;
+      if (f.subject !== undefined) page.subject = f.subject;
+      if (f.tags !== undefined) page.tags = f.tags;
+      if (f.related !== undefined) page.related = f.related;
+      if (f.spoilerLevel !== undefined) page.spoilerLevel = f.spoilerLevel;
     }
 
     const prior = page.getBody();
@@ -501,7 +549,7 @@ export default class WikiRegistry extends WikiRegistryBase {
 
     const published = opts.draft !== true;
     page.rev += 1;
-    page.updatedBy = this.actorKey();
+    page.updatedBy = author;
     // ⚠ A draft does NOT touch what the page serves (criterion 37).
     // The revision records the proposed text; `page.body` still holds
     // the last published one.
@@ -514,6 +562,7 @@ export default class WikiRegistry extends WikiRegistryBase {
       published,
       null,
       published ? undefined : next,
+      author,
     );
     return page;
   }
@@ -798,12 +847,13 @@ export default class WikiRegistry extends WikiRegistryBase {
     published: boolean,
     restoredFrom: number | null,
     draftBody?: string,
+    author?: string,
   ): Promise<WikiRevision> {
     const rev = new WikiRevision();
     rev.pageId = page._id ?? '';
     rev.rev = page.getRev();
     rev.body = draftBody ?? page.getBody();
-    rev.author = this.actorKey();
+    rev.author = author ?? this.actorKey();
     rev.at = Date.now();
     rev.summary = summary;
     rev.kind = kind;

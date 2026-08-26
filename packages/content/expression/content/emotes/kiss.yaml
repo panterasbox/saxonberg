@@ -1,0 +1,10 @@
+verb: kiss
+emoji: 😘
+tags:
+- affection
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} kiss{{ es }}{% if target %} {{ target }}{% else %} the air{% endif %}.'

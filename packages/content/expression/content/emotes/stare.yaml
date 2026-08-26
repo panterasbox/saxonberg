@@ -1,0 +1,10 @@
+verb: stare
+tags:
+- surprise
+- intense
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} stare{{ s }}{% if target %} at {{ target }}{% endif %}.'

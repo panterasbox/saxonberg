@@ -29,7 +29,7 @@ import { SoulApi } from '../../mud/api/soul';
 const NOD: EmoteCatalogueEntry = {
   verb: 'nod',
   emoji: '\u{1F642}',
-  aliases: ['agree'],
+  searchTerms: ['agree'],
   tags: [],
   slots: [],
 };

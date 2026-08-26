@@ -41,8 +41,6 @@ export enum Collections {
    * A17.1). See docs/subsystems/content-packs.md.
    */
   PackInstalls = 'pack_installs',
-  Emotes = 'emotes',
-  NameBanks = 'name_banks',
   /**
    * Descriptor banks — the pools an unidentified magic item draws its
    * appearance from, one per item class. Immutable reference data
@@ -71,7 +69,6 @@ export enum Collections {
   Producer = 'producer',
   AuthoringEvents = 'authoring_events',
   Positions = 'positions',
-  Recipes = 'recipes',
   Blueprints = 'blueprints',
   Documents = 'documents',
   BankLedger = 'bank_ledger',

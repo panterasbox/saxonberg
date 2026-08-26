@@ -1,0 +1,10 @@
+verb: gasp
+emoji: 😱
+tags:
+- surprise
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} gasp{{ s }}{% if target %} at {{ target }}{% endif %}!'

@@ -307,7 +307,7 @@ a door. See [sandbox.md](./sandbox.md).
 
 ## ⭐ The CMS is a CARD now
 
-`cms` is a verb (`mud/cmd/author/cms.yaml`, `requiresWizard`) and it
+`cms` is a verb (`content/cmd/author/cms.yaml`, `requiresWizard`) and it
 opens a `client`-source card. The **server** owns the card's existence,
 identity, lifetime and pinned-ness; only the BODY is the client's,
 because the explorer, the tree and Monaco all speak the `/api/cms/*`

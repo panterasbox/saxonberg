@@ -493,8 +493,9 @@ choices, write the picks).
 
 ### The name suggester + `NameBank`
 
-`NameBank` (`lib/species/NameBank.ts`) is a `Document` in its own
-`name_banks` collection — **not** inlined on the `Species` template (a
+`NameBank` (`lib/species/NameBank.ts`) is a value shape over a
+`documents` row of `kind: 'name-bank'` (content-packs wave 2 collapsed the
+former `name_banks` collection) — **not** inlined on the `Species` template (a
 shared "common human" bank can back several species). It holds `given`,
 `surname`, and `style` pools. `NameBank.resolve(keys)` unions the pools
 for the species' `nameBankKeys`. Banks are installed from the

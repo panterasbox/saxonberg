@@ -1,0 +1,15 @@
+# behavior — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Behavior — the global ambient-chatter pacing dial + anti-spam floor.
+  # scale multiplies every ambient cadence brain's authored interval
+  # (1.0 = as written; crank it up during playtest to quiet the whole
+  # world at once); floor is the hard minimum (60s) no unprompted ambient
+  # beat may fire faster than. Functional pollers (shifts/covers) are
+  # exempt. See docs/subsystems/behavior.md § Ambient pacing budget.
+  - key: behavior.ambientCadenceScale
+    value: "1"
+
+  - key: behavior.ambientCadenceFloorMs
+    value: "60000"

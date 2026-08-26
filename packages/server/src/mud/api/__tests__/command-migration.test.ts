@@ -14,7 +14,8 @@ import { CommandApi } from '../command';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const CMD_DIR = join(__dirname, '../../cmd');
+// The engine verbs are the platform pack's content (content-packs wave 2).
+const CMD_DIR = join(__dirname, '../../../../../content/platform/content/cmd');
 
 describe('Command-YAML migration parity', () => {
   beforeEach(() => CommandApi.clearCache());
@@ -50,23 +51,6 @@ describe('Command-YAML migration parity', () => {
   it('say.yaml has the literal-quote alias verb', () => {
     const cmd = CommandApi.getCommand('social/say.yaml');
     expect(cmd?.verbs).toContain("'");
-  });
-
-  it('loads a domain-local command by its domain-prefixed key', () => {
-    // Domain-local verbs live with their content under
-    // `domain/<sphere>/<locality>/cmd/`, keyed by their `domain/`-prefixed
-    // path (`getCommand` resolves that against MUD_ROOT, not `cmd/`). The
-    // Duncan Hall dorm `provision` verb is an exemplar.
-    const cmd = CommandApi.getCommand(
-      'domain/eternal/duncan-hall/cmd/provision.yaml'
-    );
-    expect(cmd, 'domain-local provision.yaml must load').not.toBeNull();
-    expect(cmd!.verbs).toContain('provision');
-    // Its resolved controller is the content-namespace template path
-    // (dispatch clones it directly).
-    expect(cmd!.resolvedController).toBe(
-      '/domain/eternal/duncan-hall/command/ProvisionController'
-    );
   });
 
   it('var/settings set use a greedy value field', () => {

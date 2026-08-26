@@ -49,7 +49,7 @@ class TestCharacter extends Character {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  "../../../seeds/obj/magic/Spell",
+  "../../../../../../content/arcane-library/content/obj/magic/Spell",
 );
 
 const SCALE = 12;

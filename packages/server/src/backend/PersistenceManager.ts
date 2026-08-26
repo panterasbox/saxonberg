@@ -18,7 +18,14 @@
  * This is a singleton - only one instance exists per application.
  */
 
-import { MongoClient, Db, Collection, ObjectId } from 'mongodb';
+import {
+  MongoClient,
+  Db,
+  Collection,
+  ObjectId,
+  type IndexSpecification,
+  type CreateIndexesOptions,
+} from 'mongodb';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, isAbsolute } from 'path';
@@ -199,8 +206,6 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.GoogleProfiles]: { verb: 'refuse' },
   [Collections.TwitchProfiles]: { verb: 'refuse' },
   [Collections.KickProfiles]: { verb: 'refuse' },
-  [Collections.Emotes]: { verb: 'refuse' },
-  [Collections.NameBanks]: { verb: 'refuse' },
   // Descriptor banks are immutable authored reference data installed by
   // a content pack — the same posture as name banks. A sandboxed write
   // to them would change what every unidentified item in the world looks
@@ -216,7 +221,6 @@ export const COLLECTION_POLICIES: Readonly<
   [Collections.ForumEvents]: { verb: 'refuse' },
   [Collections.ProducerEvents]: { verb: 'refuse' },
   [Collections.Positions]: { verb: 'refuse' },
-  [Collections.Recipes]: { verb: 'refuse' },
   [Collections.Parcels]: { verb: 'refuse' },
   [Collections.ParcelEvents]: { verb: 'refuse' },
   [Collections.Contracts]: { verb: 'refuse' },
@@ -383,6 +387,8 @@ export class PersistenceManager {
       // collection and make the rename fail forever after.
       await this.#migrateDomainToContent(this.db);
       await this.#migrateGroupOwners(this.db);
+      await this.#migrateScriptKind(this.db);
+      await this.#collapseLegacyCollections(this.db);
 
       // Create indexes
       await this.createIndexes();
@@ -594,6 +600,14 @@ export class PersistenceManager {
     document: Record<string, unknown>
   ): Promise<string> {
     return this.dispatchSave(collectionName, document);
+  }
+
+  /**
+   * The distinct values of `field` across `collectionName` (the
+   * blueprint catalogue's class enumeration). Read-only.
+   */
+  public async distinct(collectionName: string, field: string): Promise<unknown[]> {
+    return this.getCollection(collectionName).distinct(field) as Promise<unknown[]>;
   }
 
   /**
@@ -1118,6 +1132,188 @@ export class PersistenceManager {
   }
 
   /**
+   * Declared document kinds: one `{kind, data.<naturalKey>}` unique index
+   * per flat-key kind, partial on the kind so path-keyed kinds and
+   * free-form kinds never collide. Lazy import: the vocabulary is
+   * import-free today, but PM must never statically import mudlib models
+   * (the `#migrateGroupOwners` rule) — the cycle risk is structural, not
+   * current.
+   */
+  async #createDocumentKindIndexes(coll: {
+    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
+  }): Promise<void> {
+    const { DOCUMENT_KINDS } = await import('../mud/lib/document/DocumentKinds');
+    for (const spec of Object.values(DOCUMENT_KINDS)) {
+      if (spec.naturalKey === null) continue;
+      await coll.createIndex(
+        { kind: 1, [`data.${spec.naturalKey}`]: 1 },
+        { unique: true, partialFilterExpression: { kind: spec.kind } }
+      );
+    }
+  }
+
+  /** The driver collection narrowed to the one call the kind indexes need. */
+  #indexTarget(coll: Collection): {
+    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
+  } {
+    return {
+      createIndex: (spec, opts) =>
+        coll.createIndex(spec as IndexSpecification, opts as CreateIndexesOptions),
+    };
+  }
+
+  /** Test seam for `#createDocumentKindIndexes`. Not used at runtime. */
+  async runDocumentKindIndexesForTest(coll: {
+    createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
+  }): Promise<void> {
+    return this.#createDocumentKindIndexes(coll);
+  }
+
+  /**
+   * The one-time `documents` kind rename `script` → `msh` (the script
+   * document kind is the language's name — content-packs wave 2), plus
+   * the lounge exemplars' path move `/domain/lounge/scripts/<name>` →
+   * `/domain/lounge/msh/<name>` (the `saxonberg-lounge` pack's `msh/`
+   * dir). Idempotent: a `kind: 'script'` row never exists after the
+   * first run. Returns the number of rows renamed.
+   */
+  async #migrateScriptKind(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    const col = db.collection(Collections.Documents);
+    const legacy = await col.find({ kind: 'script' }).toArray();
+    for (const row of legacy) {
+      const path = String(row.path ?? '');
+      const set: Record<string, unknown> = { kind: 'msh' };
+      if (path.startsWith('/domain/lounge/scripts/')) {
+        set.path = '/domain/lounge/msh/' + path.slice('/domain/lounge/scripts/'.length);
+      }
+      await col.updateOne({ _id: row._id }, { $set: set });
+    }
+    if (legacy.length > 0) {
+      console.info(
+        `PersistenceManager: renamed ${legacy.length} documents row(s) kind 'script' → 'msh' (one-time migration)`
+      );
+    }
+    return legacy.length;
+  }
+
+  /**
+   * The one-off collection → `documents` collapses (content-packs wave
+   * 2): each legacy per-kind collection becomes rows of one document
+   * kind at a provisional path (`/<legacy>/<naturalKey>`), `_id`
+   * PRESERVED, `sourcePack` carried, and the collection dropped. A table,
+   * not code, so the next collapse is a row.
+   */
+  static readonly COLLAPSES: ReadonlyArray<{
+    legacy: string;
+    kind: string;
+    naturalKey: string;
+    /** The provisional path prefix = the kind's pack `contentDir`, so a
+     * migrated stamped row's record key matches its pack file's key. */
+    pathPrefix: string;
+    /** Legacy fields that do not travel into `data`. */
+    strip: string[];
+  }> = [
+    { legacy: 'emotes', kind: 'emote', naturalKey: 'verb', pathPrefix: '/emotes', strip: ['aliases'] },
+    { legacy: 'recipes', kind: 'recipe', naturalKey: 'recipeId', pathPrefix: '/recipes', strip: [] },
+    { legacy: 'name_banks', kind: 'name-bank', naturalKey: 'key', pathPrefix: '/name-banks', strip: [] },
+  ];
+
+  /** Pure: which legacy collections (present in `names`) still need collapsing. */
+  static planCollapses(names: readonly string[]): string[] {
+    return PersistenceManager.COLLAPSES.map((c) => c.legacy).filter((l) => names.includes(l));
+  }
+
+  /**
+   * Idempotent by construction: the legacy collection is gone after the
+   * first run; a missing collection is a no-op with no log line. Runs
+   * inside `connect()` strictly before `createIndexes()` — a legacy row
+   * with a duplicate natural key would otherwise fail the unique partial
+   * index at boot, so the insert is per row and a duplicate is logged,
+   * not fatal. Returns the rows moved.
+   */
+  async #collapseLegacyCollections(db: {
+    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      insertOne(doc: Record<string, unknown>): Promise<unknown>;
+      drop(): Promise<unknown>;
+    };
+  }): Promise<number> {
+    const names = (await db.listCollections().toArray()).map((c) => c.name);
+    const todo = PersistenceManager.planCollapses(names);
+    let moved = 0;
+    for (const c of PersistenceManager.COLLAPSES) {
+      if (!todo.includes(c.legacy)) continue;
+      const rows = await db.collection(c.legacy).find({}).toArray();
+      const target = db.collection(Collections.Documents);
+      for (const row of rows) {
+        const { _id, sourcePack, ...rest } = row;
+        for (const f of c.strip) delete rest[f];
+        // A null/undefined field is an absent one: the pack file never
+        // writes it, and the three-way compares `data` like-for-like.
+        for (const [k, v] of Object.entries(rest)) {
+          if (v === null || v === undefined) delete rest[k];
+        }
+        const doc: Record<string, unknown> = {
+          _id,
+          path: `${c.pathPrefix}/${String(row[c.naturalKey])}`,
+          owner: '',
+          kind: c.kind,
+          data: rest,
+          ...(sourcePack ? { sourcePack } : {}),
+        };
+        try {
+          await target.insertOne(doc);
+        } catch (err) {
+          if ((err as { code?: number }).code !== 11000) throw err;
+          // An `_id` already in `documents` (distinct collections share the
+          // ObjectId space only by chance): re-insert under a fresh id.
+          const { _id: _dropped, ...fresh } = doc;
+          await target.insertOne(fresh);
+          console.warn(
+            `PersistenceManager: collapse '${c.legacy}' → documents: ${c.naturalKey}=` +
+              `${String(row[c.naturalKey])} re-inserted under a fresh _id (collision)`
+          );
+        }
+        moved++;
+      }
+      await db.collection(c.legacy).drop();
+      console.info(
+        `PersistenceManager: collapsed '${c.legacy}' → documents {kind: '${c.kind}'} ` +
+          `(${rows.length} row(s)); collection dropped (one-time migration)`
+      );
+    }
+    return moved;
+  }
+
+  /** Test seam for `#collapseLegacyCollections`. Not used at runtime. */
+  async runCollapseMigrationForTest(db: {
+    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      insertOne(doc: Record<string, unknown>): Promise<unknown>;
+      drop(): Promise<unknown>;
+    };
+  }): Promise<number> {
+    return this.#collapseLegacyCollections(db);
+  }
+
+  /** Test seam for `#migrateScriptKind`. Not used at runtime. */
+  async runScriptKindMigrationForTest(db: {
+    collection(name: string): {
+      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
+      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
+    };
+  }): Promise<number> {
+    return this.#migrateScriptKind(db);
+  }
+
+  /**
    * Create indexes for collections.
    * Called during connection setup.
    *
@@ -1188,29 +1384,10 @@ export class PersistenceManager {
         { unique: true }
       );
 
-      // Emotes: unique verb + alias index for verb-resolve hot path.
-      await this.getCollection(Collections.Emotes).createIndex(
-        { verb: 1 },
-        { unique: true }
-      );
-      await this.getCollection(Collections.Emotes).createIndex({ aliases: 1 });
-
-      // Name banks: unique key for the char-gen suggester's by-key resolve.
-      await this.getCollection(Collections.NameBanks).createIndex(
-        { key: 1 },
-        { unique: true }
-      );
-
       // Descriptor banks: unique key (the item class) for the
       // appearance resolver's by-key warm.
       await this.getCollection(Collections.DescriptorBanks).createIndex(
         { key: 1 },
-        { unique: true }
-      );
-
-      // Recipes: unique recipeId for catalogue resolve.
-      await this.getCollection(Collections.Recipes).createIndex(
-        { recipeId: 1 },
         { unique: true }
       );
 
@@ -1240,6 +1417,9 @@ export class PersistenceManager {
       // violation is visible and fixable.
       await this.getCollection(Collections.Documents).createIndex({ path: 1 });
       await this.getCollection(Collections.Documents).createIndex({ kind: 1 });
+      await this.#createDocumentKindIndexes(
+        this.#indexTarget(this.getCollection(Collections.Documents))
+      );
 
       // Groups: queryable owner / member shape (Phase 2B).
       await this.getCollection(Collections.Groups).createIndex({ owner: 1 });

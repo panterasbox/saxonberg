@@ -1,0 +1,31 @@
+# renown — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Renown — the *scalar* value-function parameters (GOVERNANCE-OWNED
+  # ordinary law, NOT deployment config). The engine ships the scoring
+  # algorithm; these numbers are the polity's declared values, re-scored
+  # over history on each recompute. The entrenched invariants
+  # (notoriety→zero governance weight, the engagement×renown form,
+  # renown×no-participation=nothing) are CODE, never keys. Per-emote
+  # VALENCE is NOT here — it lives on the emote (Emote.valence /
+  # emotes.yaml). See docs/requirements/renown-requirements.md.
+  # esteem fast/fragile (7d), notoriety slow/sticky (30d), in game-seconds.
+  - key: renown.decayHalfLives
+    value: '{"esteem":604800,"notoriety":2592000}'
+
+  - key: renown.contextMultipliers
+    value: '{}'
+
+  - key: renown.qualityWeight
+    value: "1"
+
+  # Being heard: a small per-listener engagement reward for the speaker,
+  # well below a reaction (1). Contribution log-saturates over the count,
+  # and a listener only counts once per receptionWindowS (5 min) — reward
+  # reaching new people, not spamming the same ones.
+  - key: renown.receptionValence
+    value: "0.1"
+
+  - key: renown.receptionWindowS
+    value: "300"

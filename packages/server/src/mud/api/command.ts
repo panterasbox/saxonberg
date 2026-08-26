@@ -1385,8 +1385,31 @@ export class CommandApi {
   }
 
   /**
-   * Eager boot-time load: walk every YAML under `mud/cmd/`, parse
-   * it, and resolve every validator reference into a live function.
+   * Re-read one `command-view` document (by its document path,
+   * `/cmd/perception/look`) into the cache: drops the old definition,
+   * parses + validates the stored view, resolves its validators. The
+   * go-live hook for a CMS edit or a pack sync — no restart. Returns
+   * false (and leaves the key to the disk fallback) when the store has
+   * no such view.
+   */
+  static reload(docPath: string): Promise<boolean> {
+    return logic().reload(docPath);
+  }
+
+  /**
+   * The view keys served from DISK rather than the store — the
+   * migration residue (`pack status` prints it). Empty once every view
+   * is content.
+   */
+  static diskFallbacks(): string[] {
+    return logic().diskFallbacks();
+  }
+
+  /**
+   * Eager boot-time load: the `command-view` document store FIRST, then
+   * the on-disk command trees for whatever the store did not serve
+   * (counted as disk fallbacks); parse each view and resolve every
+   * validator reference into a live function.
    * After preload, every cached `CommandDefinition` has its
    * `FieldDefinition._resolvedValidators` populated.
    *

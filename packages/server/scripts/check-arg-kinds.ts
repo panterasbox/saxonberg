@@ -56,7 +56,7 @@
  *   pnpm lint:arg-kinds --by-file  group the report by spec
  */
 
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, relative } from "path";
 import { parse as parseYaml } from "yaml";
@@ -64,7 +64,21 @@ import { Mixins, MixinRefusals } from "../src/mud/lib/mixin";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const MUD_ROOT = join(here, "..", "src", "mud");
-const ROOTS = [join(MUD_ROOT, "cmd"), join(MUD_ROOT, "domain")];
+const CONTENT = join(here, "..", "..", "content");
+/**
+ * Every command tree: the kernel's content-local bundles under
+ * `mud/domain/**\/cmd/`, and each content pack's `content/cmd` (the
+ * platform pack ships the engine verbs since content-packs wave 2) —
+ * discovered the way `check-instanceable-placement` discovers packs.
+ */
+const ROOTS = [
+  join(MUD_ROOT, "domain"),
+  ...(existsSync(CONTENT)
+    ? readdirSync(CONTENT)
+        .map((pack) => join(CONTENT, pack, "content", "cmd"))
+        .filter((dir) => existsSync(dir))
+    : []),
+];
 
 /** Live mixin vocabulary — the thing a declaration is checked against. */
 const KNOWN_MIXINS = new Set<string>(Object.values(Mixins));

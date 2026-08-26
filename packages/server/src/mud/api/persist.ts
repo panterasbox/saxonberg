@@ -185,6 +185,11 @@ export class PersistApi {
     return PersistenceManager.get().find(collection, query, options);
   }
 
+  /** The distinct values of `field` across `collection`. */
+  static async distinct(collection: string, field: string): Promise<unknown[]> {
+    return PersistenceManager.get().distinct(collection, field);
+  }
+
   /** One document by Mongo `_id`, or `null`. */
   static async findById(
     collection: string,

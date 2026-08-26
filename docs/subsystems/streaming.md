@@ -27,7 +27,7 @@ owner's OWN active-stream chat (both platforms) is forwarded onto the
 
 ## The two verbs — `watch` (single) vs `tune` (multi)
 
-Two top-level verbs in the `mud/cmd/stream/` category (beside the
+Two top-level verbs in the `content/cmd/stream/` category (beside the
 overlay-owner `stream` verb), because the cardinalities are a genuine
 semantic difference:
 
@@ -90,7 +90,7 @@ broadcasterId / YouTube liveChatId).
 | `YoutubeClient` / `YoutubeRelayReader` | `backend/` | YouTube transport (per-`liveChatId` read). |
 | `KickClient` / `KickRelayReader` | `backend/` | Kick transport (app-token subscriptions; inbound via the webhook). |
 | `KickWebhookVerifier` / `KickWebhookRoutes` | `backend/` | The signed-inbound receiver (see below). |
-| `tune` / `watch` | `mud/cmd/stream/*.yaml` + `obj/command/stream/*Controller.ts` | The verbs. |
+| `tune` / `watch` | `content/cmd/stream/*.yaml` + `obj/command/stream/*Controller.ts` | The verbs. |
 
 There is **no** `mud/api/youtube.ts` / `YoutubeLogic` (nor a kick
 sibling) — the surface is unified on `StreamApi`; only the *transport* is

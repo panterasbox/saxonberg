@@ -40,6 +40,16 @@ let rows: Row[];
 let nextId: number;
 const tmpRoots: string[] = [];
 
+/** A dotted-key read (`'data.key'`) over a plain row, Mongo-style. */
+function getPath(row: Record<string, unknown>, key: string): unknown {
+  let cur: unknown = row;
+  for (const part of key.split('.')) {
+    if (cur === null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
 /** An in-memory, collection-aware store behind PersistApi. */
 function stubPersist(): void {
   rows = [];
@@ -51,7 +61,7 @@ function stubPersist(): void {
         .filter(
           (r) =>
             (r.__col ?? 'content') === col &&
-            Object.entries(query).every(([k, v]) => (r as Row)[k] === v),
+            Object.entries(query).every(([k, v]) => getPath(r, k) === v),
         )
         .map((r) => ({ ...r })) as never,
   );
@@ -138,10 +148,11 @@ function writePack(
   return root;
 }
 
-/** The name_banks rows currently in the stubbed store. */
+/** The `name-bank` document rows currently in the stubbed store. */
 function nameBankRows(): Row[] {
-  return rows.filter((r) => r.__col === 'name_banks');
+  return rows.filter((r) => r.__col === 'documents' && r.kind === 'name-bank');
 }
+const bankKey = (r: Row): string => (r.data as { key: string }).key;
 
 /** The `content` rows — the store also holds the `pack_installs` record. */
 function contentRows(): Row[] {
@@ -277,12 +288,12 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
   });
 });
 
-describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)', () => {
+describe('PackLogic — reconcile name banks (fixture packs, the name-bank document kind)', () => {
   beforeEach(stubClassResolution);
 
   const HOMO = 'obj/species/animalia/homo/sapiens.yaml';
 
-  it('insert: name-bank files → stamped name_banks rows (key = file basename)', async () => {
+  it('insert: name-bank files → stamped name-bank documents (data.key = file basename)', async () => {
     const root = writePack(
       'p',
       [{ rel: HOMO, class: '/obj/species/Species' }],
@@ -293,12 +304,14 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)
       ],
     );
     const [r] = await PackApi.install([root]);
-    expect(r!.nameBanks).toBe(2);
+    expect(r!.documents['name-bank']).toBe(2);
     const banks = nameBankRows();
-    expect(banks.map((b) => b.key).sort()).toEqual(['common', 'dwarvish']);
+    expect(banks.map(bankKey).sort()).toEqual(['common', 'dwarvish']);
     expect(banks.every((b) => b.sourcePack === 'p')).toBe(true);
-    const common = banks.find((b) => b.key === 'common')!;
-    expect(common.given).toEqual(['Alden', 'Bella']);
+    const common = banks.find((b) => bankKey(b) === 'common')!;
+    expect(common.path).toBe('/p/name-banks/common');
+    expect(common.owner).toBe('/p');
+    expect((common.data as { given: string[] }).given).toEqual(['Alden', 'Bella']);
     // The domain reconcile must NOT see the name-bank rows (collection-scoped).
     expect(r!.deleted).toEqual([]);
   });
@@ -314,35 +327,36 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)
       YAML.stringify({ given: ['Alden', 'Bram'], surname: ['Ashby'] }),
     );
     const [r2] = await PackApi.install([root]);
-    expect(r2!.nameBanks).toBe(1); // the update is counted
-    expect(nameBankRows().find((b) => b.key === 'common')!.given).toEqual([
-      'Alden',
-      'Bram',
-    ]);
+    expect(r2!.documents['name-bank']).toBe(1); // the update is counted
+    expect(
+      (nameBankRows().find((b) => bankKey(b) === 'common')!.data as { given: string[] }).given,
+    ).toEqual(['Alden', 'Bram']);
 
     const [r3] = await PackApi.install([root]);
-    expect(r3!.nameBanks).toBe(0); // no edit → no write
+    expect(r3!.documents['name-bank']).toBe(0); // no edit → no write
   });
 
   it('adoption: an unstamped legacy name bank is stamped + matched, no duplicate', async () => {
-    // Simulate a legacy NameBankSeeder row (unstamped) at a pack key.
+    // Simulate a collapsed legacy row (unstamped) at its provisional path.
     rows.push({
       _id: 'legacy-nb',
-      key: 'common',
-      given: ['Old'],
-      surname: ['Name'],
-      __col: 'name_banks',
+      path: '/name-banks/common',
+      owner: '',
+      kind: 'name-bank',
+      data: { key: 'common', given: ['Old'], surname: ['Name'] },
+      __col: 'documents',
     });
     const root = writePack('p', [], [], [
       { key: 'common', given: ['Alden'], surname: ['Ashby'] },
     ]);
     const [r] = await PackApi.install([root]);
-    expect(r!.nameBanks).toBe(1);
+    expect(r!.documents['name-bank']).toBe(1);
     const banks = nameBankRows();
-    expect(banks).toHaveLength(1); // adopted in place — no duplicate
+    expect(banks).toHaveLength(1); // adopted in place (by natural key) — no duplicate
     expect(banks[0]!._id).toBe('legacy-nb');
     expect(banks[0]!.sourcePack).toBe('p');
-    expect(banks[0]!.given).toEqual(['Alden']); // matched to the file
+    expect(banks[0]!.path).toBe('/p/name-banks/common');
+    expect((banks[0]!.data as { given: string[] }).given).toEqual(['Alden']); // matched to the file
   });
 
   it('delete: a stamped bank whose file vanished is removed', async () => {
@@ -355,7 +369,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank kind)
 
     rmSync(join(root, 'content/name-banks/dwarvish.yaml'));
     await PackApi.install([root]);
-    expect(nameBankRows().map((b) => b.key)).toEqual(['common']);
+    expect(nameBankRows().map(bankKey)).toEqual(['common']);
   });
 });
 
@@ -384,9 +398,9 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     expect(sp!.inserted).toContain(`${HOMO}/sapiens`);
     expect(sp!.inserted).toContain(`${HOMO}/trollius`);
     expect(sp!.inserted).toContain(`${HOMO}/ghulius`);
-    // The name-bank content kind installed its banks.
-    expect(sp!.nameBanks).toBeGreaterThan(0);
-    expect(nameBankRows().some((b) => b.key === 'common')).toBe(true);
+    // The name-bank document kind installed its banks.
+    expect(sp!.documents['name-bank']).toBeGreaterThan(0);
+    expect(nameBankRows().some((b) => bankKey(b) === 'common')).toBe(true);
 
     // The descriptor-bank content kind: the pools an unidentified magic
     // item draws its appearance from (magic-items D32). Same shape as
@@ -394,16 +408,22 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     const desc = results.find((r) => r.packId === 'arcane-descriptors');
     expect(desc).toBeDefined();
 
+    // The template packs of wave 2: the arcane library (14 rows) and the
+    // five corpo packs (a mark + its brands each).
+    const arcane = results.find((r) => r.packId === 'arcane-library');
+    expect(arcane!.inserted).toHaveLength(14);
+    expect(arcane!.inserted).toContain('/obj/magic/Spell/glowlight');
+    expect(arcane!.inserted).toContain('/obj/magic/GlowlightOrb');
+    const hollis = results.find((r) => r.packId === 'corpo-hollis');
+    expect(hollis!.inserted.sort()).toEqual([
+      '/obj/corpo/Brand/hollis-cane',
+      '/obj/corpo/Brand/old-hollis',
+      '/obj/corpo/Corpo/hollis',
+    ]);
+
     // Every written row is stamped by one of the shipped packs — no
     // unstamped leakage.
-    expect(
-      contentRows().every(
-        (r) =>
-          r.sourcePack === 'base-library' ||
-          r.sourcePack === 'species-and-names' ||
-          r.sourcePack === 'arcane-descriptors' ||
-          r.sourcePack === 'newbie-wilds',
-      ),
-    ).toBe(true);
+    const shipped = new Set(results.map((r) => r.packId));
+    expect(contentRows().every((r) => shipped.has(String(r.sourcePack)))).toBe(true);
   });
 });

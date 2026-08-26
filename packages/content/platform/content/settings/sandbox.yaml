@@ -1,0 +1,29 @@
+# sandbox — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Residency — scheduled object self-maintenance. The eviction sweep
+  # (`residency.eviction.*`) is the real-time cold-tail garbage-culler;
+  # it ships in observe mode (logs what it WOULD cull, destructs nothing)
+  # so the go-live memory profile can be measured before enforcement —
+  # flip mode to `enforce` (re-read each sweep, no restart) to cull for
+  # real. The game-time reset (repop) sweep (`residency.reset.*`) is the
+  # eviction sibling — restorative-of-self over ResettableMixin, on the
+  # game clock; it ships in observe mode too (flip to enforce to repop for
+  # real). Only the general store's stock is wired today.
+  # See docs/subsystems/residency.md.
+  # Sandbox (holodeck) — the orphan sweeper discards scoped rows for any
+  # circle scope with no live session (after a restart that is ALL of
+  # them — the discard doctrine: nothing survives a session but the
+  # authored edit). Real-time cadence, the residency pattern.
+  # See docs/subsystems/sandbox.md.
+  - key: sandbox.sweeper.intervalMs
+    value: "300000"
+
+  # A dropped connection mid-visit keeps the circle session alive this
+  # long; reconnecting inside the window lands back on the same wire
+  # body, in the circle (ordinary linkdead-reconnect semantics — losing
+  # a test rig to a wifi blip is exactly the friction that makes
+  # builders hate a tool). Past it, the visit force-exits.
+  - key: sandbox.session.graceMs
+    value: "600000"

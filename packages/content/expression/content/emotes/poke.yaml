@@ -1,0 +1,9 @@
+verb: poke
+tags:
+- playful
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} poke{{ s }}{% if target %} {{ target }}{% else %} the air{% endif %}.'

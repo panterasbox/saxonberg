@@ -117,6 +117,7 @@ beforeEach(() => {
    * can see it.
    */
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+  vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
   vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true);
 
   void makeStuffAtPath(() => new PressBoard(), '/obj/PressBoard');

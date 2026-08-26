@@ -51,7 +51,7 @@ context fails closed at runtime.
 | **PASS (mark)** | `chronicles`, `beliefs`, `authoring_events`, `accountability_events`, `diagnostics` | Identity-real; persists with the epistemic wire mark (`circleScope` recorded, never filtered). What happened to *you* stays yours; readers may lens the mark. |
 | **PASS (unmarked)** | `domain`, `documents`, `holder_snapshots`, `wiki`, `wiki_revisions` | Authored truth + the mechanism's own stores — the deliberate save is the product. |
 | **SHADOW (skip)** | `bank_accounts`, `bank_supply`, `renown`, `participation`, `producer` | Rebuildable caches: the terminal cache write silently no-ops from circle context; in-circle reads derive from events (banking: the per-scope overlay). Overlay mode is specified as the labeled attach point, not built — no collection needs it. |
-| **REFUSE** | everything else (identity/auth, title registries `parcels`/`chattel` + event chains, `contracts`, `positions`, `groups`/`channels`/`parties`/forums, `emotes`, `name_banks`, `recipes`, `bulletins`, `office_holders`, `app_settings`, `world_state`, `producer_events`, `blueprints`, `media_assets`) | Throws `SandboxWriteRefusedError`. Field-real state a sandbox session may not mutate. |
+| **REFUSE** | everything else (identity/auth, title registries `parcels`/`chattel` + event chains, `contracts`, `positions`, `groups`/`channels`/`parties`/forums, `bulletins`, `office_holders`, `app_settings`, `world_state`, `producer_events`, `blueprints`, `media_assets`) | Throws `SandboxWriteRefusedError`. Field-real state a sandbox session may not mutate. |
 
 Audit notes that changed the provisional classification:
 

@@ -36,7 +36,8 @@ const SERVER_ROOT = resolve(MUD, '../..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
 const SEEDS = join(MUD, 'seeds');
 const CONTENT = join(REPO_ROOT, 'packages/content');
-const SEED_FILE = join(MUD, 'config/wiki-pages.yaml');
+/** The starter pages ship in the `wiki-starter` pack as frontmatter `.md`. */
+const WIKI_DIR = join(CONTENT, 'wiki-starter/content/wiki');
 
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
@@ -76,17 +77,27 @@ function templatePaths(): Set<string> {
 interface SeedEntry {
   page: string;
   subject?: { kind?: string; ref?: string } | null;
+  body?: string;
 }
 
 function seededPages(): SeedEntry[] {
-  const doc = YAML.parse(readFileSync(SEED_FILE, 'utf8')) as {
-    pages?: SeedEntry[];
-  };
-  return doc.pages ?? [];
+  const out: SeedEntry[] = [];
+  for (const ns of readdirSync(WIKI_DIR)) {
+    const dir = join(WIKI_DIR, ns);
+    if (!statSync(dir).isDirectory()) continue;
+    for (const f of readdirSync(dir)) {
+      if (!f.endsWith('.md')) continue;
+      const text = readFileSync(join(dir, f), 'utf8');
+      const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(text)!;
+      const front = YAML.parse(m[1]!) as { subject?: SeedEntry['subject'] };
+      out.push({ page: `${ns}:${f.replace(/\.md$/, '')}`, subject: front.subject ?? null, body: m[2] ?? '' } as SeedEntry);
+    }
+  }
+  return out;
 }
 
-describe('seeded wiki subjects', () => {
-  it('the seed file parses and ships pages', () => {
+describe('shipped wiki subjects (the wiki-starter pack)', () => {
+  it('the pack parses and ships pages', () => {
     expect(seededPages().length).toBeGreaterThan(0);
   });
 

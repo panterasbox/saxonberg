@@ -1,0 +1,15 @@
+verb: agree
+emoji: 👍
+searchTerms:
+- true
+- yep
+- yeah
+tags:
+- affirmative
+valence: 1
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} agree{{ s }}{% if target %} with {{ target }}{% endif %}.'

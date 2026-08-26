@@ -24,7 +24,7 @@ import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 function emote(
   verb: string,
   over: Partial<{
-    aliases: string[];
+    searchTerms: string[];
     emoji: string;
     tags: string[];
     slots: Record<string, { kind: 'stuff' | 'free'; optional?: boolean; scope?: string }>;
@@ -32,7 +32,7 @@ function emote(
 ): Emote {
   const e = new Emote();
   e.verb = verb;
-  e.aliases = over.aliases ?? [];
+  e.searchTerms = over.searchTerms ?? [];
   e.tags = over.tags ?? [];
   if (over.emoji !== undefined) e.emoji = over.emoji;
   e.grammar = { slots: over.slots ?? {}, template: '' };
@@ -40,19 +40,15 @@ function emote(
 }
 
 /**
- * Seed the warm cache directly, the way `warmCache` does — including the
- * alias entries, because indexing aliases into the same map is exactly
- * the thing `snapshot` has to undo.
+ * Seed the warm cache directly, the way `warmCache` does — canonical
+ * verbs only; search terms never enter the dispatch map.
  *
  * ⚠ Deliberate white-box seam: `cache` is TypeScript-private, and the
- * alternative is a Mongo round trip for a pure projection test.
+ * alternative is a document-store round trip for a pure projection test.
  */
 function seed(cat: SoulCatalogue, emotes: Emote[]): void {
   const map = new Map<string, Emote>();
-  for (const e of emotes) {
-    map.set(e.verb, e);
-    for (const a of e.aliases) map.set(a, e);
-  }
+  for (const e of emotes) map.set(e.verb, e);
   (cat as unknown as { cache: Map<string, Emote> }).cache = map;
 }
 
@@ -81,15 +77,15 @@ describe('SoulCatalogue.snapshot', () => {
   });
   afterAll(() => StuffApi.clearAll());
 
-  it('emits one entry per canonical verb, never one per alias', async () => {
+  it('emits one entry per canonical verb, never one per search term', async () => {
     seed(cat, [
-      emote('nod', { aliases: ['agree', 'yes'], emoji: '\u{1F642}' }),
+      emote('nod', { searchTerms: ['agree', 'yes'], emoji: '\u{1F642}' }),
       emote('wave', { emoji: '\u{1F44B}' }),
     ]);
     const snap = await SoulApi.snapshot();
     expect(snap.map((e) => e.verb).sort()).toEqual(['nod', 'wave']);
-    // The aliases ride their canonical entry rather than becoming cells.
-    expect(snap.find((e) => e.verb === 'nod')!.aliases).toEqual([
+    // The search terms ride their canonical entry rather than becoming cells.
+    expect(snap.find((e) => e.verb === 'nod')!.searchTerms).toEqual([
       'agree',
       'yes',
     ]);

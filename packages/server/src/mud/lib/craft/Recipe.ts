@@ -5,9 +5,11 @@
  * NOT a Stuff and NOT a template. A recipe is **authored reference data**
  * with no state, lifecycle, or behavior beyond answering questions about its
  * own fields (the derivation math lives on {@link Grade}). So it follows the
- * `Emote` precedent: a {@link Document} in the `recipes` collection, loaded
- * by the {@link RecipeCatalogue} singleton (the `SoulCatalogue`↔`Emote`
- * relationship), seeded at boot by `RecipeSeeder`.
+ * `Emote` precedent: a value shape over one `documents` row of
+ * `kind: 'recipe'` (`data` = {@link Recipe.toData}), installed by the
+ * `generic-objects` content pack at `/generic-objects/recipes/<recipeId>`
+ * and loaded by the {@link RecipeCatalogue} singleton (the
+ * `SoulCatalogue`↔`Emote` relationship).
  *
  * Storage shape:
  *   - `recipeId` — canonical lookup key. Unique-indexed.
@@ -27,9 +29,9 @@
  *   - `baseGradeBand` — optional floor band.
  */
 
-import { Document } from '../persistence/Document';
 import { Grade } from './Grade';
 import type { FieldMeta } from '../mixin';
+import type { StoredDocument } from '../document/StoredDocument';
 
 /**
  * One input slot, by constraint. `category` is a Material classification tag
@@ -66,10 +68,15 @@ export interface RecipeInputSlot {
  */
 export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
-export class Recipe extends Document {
-  static collectionName = 'recipes';
+export class Recipe {
   /**
    * ⭐ **How to FIND a recipe is open; what it takes is level 1.**
+   *
+   * Not persistence metadata any more (a recipe is not a `Document`) —
+   * the static stays because it is the spoiler schema the wiki's
+   * composition components read off the class: which fields are how
+   * you find it, and which are the recipe.
+   *
    *
    * Name, keywords and discipline are how a recipe is looked up at
    * all, and a search index nobody can read indexes nothing. The
@@ -103,7 +110,10 @@ export class Recipe extends Document {
     difficulty: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
-  /** Canonical id; unique-indexed at the collection level. */
+  /** The document's path (`/generic-objects/recipes/martini`). */
+  path: string = '';
+
+  /** Canonical id; unique per kind at the collection level (`{kind, data.recipeId}`). */
   recipeId: string = '';
 
   /** Display name (e.g. `'Gin Martini'`). */
@@ -154,6 +164,70 @@ export class Recipe extends Document {
 
   /** The Discipline id the deed records against; empty ⇒ no advancement. */
   discipline: string = '';
+
+  /**
+   * Hydrate from a `kind: 'recipe'` document. Validates what the retired
+   * `RecipeSeeder` validated — a non-empty `inputSlots` and a string
+   * `outputTemplate` — so a malformed pack file fails at `read`.
+   */
+  static fromDocument(doc: StoredDocument): Recipe {
+    const r = Recipe.fromData(doc.getData());
+    r.path = doc.getPath();
+    return r;
+  }
+
+  /** The same validation over a bare `data` object (the pack reader's use). */
+  static fromData(data: Record<string, unknown>): Recipe {
+    if (typeof data.recipeId !== 'string' || data.recipeId.length === 0) {
+      throw new Error(`Recipe: document is missing a string 'recipeId'`);
+    }
+    if (!Array.isArray(data.inputSlots) || data.inputSlots.length === 0) {
+      throw new Error(`Recipe '${data.recipeId}' needs a non-empty 'inputSlots'`);
+    }
+    if (typeof data.outputTemplate !== 'string' || !data.outputTemplate) {
+      throw new Error(`Recipe '${data.recipeId}' missing 'outputTemplate'`);
+    }
+    const str = (v: unknown, d = ''): string => (typeof v === 'string' ? v : d);
+    const num = (v: unknown): number => (typeof v === 'number' ? v : 0);
+    const list = (v: unknown): string[] =>
+      Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+    const r = new Recipe();
+    r.recipeId = data.recipeId;
+    r.name = str(data.name, data.recipeId);
+    r.keywords = list(data.keywords).map((k) => k.toLowerCase());
+    r.inputSlots = data.inputSlots as RecipeInputSlot[];
+    r.toolCapabilities = list(data.toolCapabilities);
+    r.outputTemplate = data.outputTemplate;
+    r.outputMaterial = str(data.outputMaterial);
+    r.baseGradeBand = str(data.baseGradeBand);
+    r.requiresHeatK = num(data.requiresHeatK);
+    r.outputApplication = str(data.outputApplication);
+    r.outputPortionL = num(data.outputPortionL);
+    r.outputAppearance = str(data.outputAppearance);
+    r.difficulty = str(data.difficulty);
+    r.discipline = str(data.discipline);
+    return r;
+  }
+
+  /** The inverse — the `data` a recipe document carries. */
+  toData(): Record<string, unknown> {
+    return {
+      recipeId: this.recipeId,
+      name: this.name,
+      keywords: [...this.keywords],
+      inputSlots: this.inputSlots,
+      toolCapabilities: [...this.toolCapabilities],
+      outputTemplate: this.outputTemplate,
+      outputMaterial: this.outputMaterial,
+      baseGradeBand: this.baseGradeBand,
+      requiresHeatK: this.requiresHeatK,
+      outputApplication: this.outputApplication,
+      outputPortionL: this.outputPortionL,
+      outputAppearance: this.outputAppearance,
+      difficulty: this.difficulty,
+      discipline: this.discipline,
+    };
+  }
 
   getRecipeId(): string {
     return this.recipeId;

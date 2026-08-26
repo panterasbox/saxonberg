@@ -1,0 +1,62 @@
+# banking — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Banking — THE CURRENCY THE COMPACT TRANSACTS IN. Policy data, not a
+  # property of the money: the substrate never compares a currency to a
+  # literal, it asks which one the Compact uses. Making Compact obligations
+  # payable only in this currency is what makes it the reserve currency BY
+  # CONSTRUCTION rather than by decree. Read only through Currency.compact().
+  - key: banking.compactCurrency
+    value: zorkmid
+
+  # Banking — the DEMO sales-tax rate (a fraction of a purchase remitted to
+  # the placeholder treasury via the remittance-split seam). Authored and
+  # INERT: recorded + instrumented, not governed. Live taxation is the
+  # cooperative build. The treasury account is a placeholder that only
+  # accumulates (no appropriation path).
+  - key: banking.salesTaxRate
+    value: "0.08"
+
+  - key: banking.treasuryAccount
+    value: treasury
+
+  # Banking — the DEMO onboarding coin (minor units) a committed non-guest
+  # char-gen player is granted via issueCash (the CB cash faucet) at commit.
+  # Drink-sized (~a drink + change, or the newbie-wilds fare); anti-farm;
+  # guests get nothing; 0 disables the grant.
+  - key: banking.onboardingStipend
+    value: "20"
+
+  # Banking — the per-account cash-withdrawal cap per game-day (minor units),
+  # the common-pool till guard. Derive-on-read over the ledger (no counter);
+  # per-account, never collective. Generous in v1 — a 20-coin newcomer never
+  # nears it. The Circle cap is the recognized-standing perk (a higher quota).
+  # 0 disables the cap.
+  - key: banking.withdrawalDailyCap
+    value: "500"
+
+  - key: banking.withdrawalDailyCapCircle
+    value: "2000"
+
+  # Banking — the corpo royalty: the fraction of every collected fee split off
+  # the top to the affiliated corpo's treasury (the rest to the branch). Corpo
+  # income begins from the first fee; invisible to the player. 0 disables.
+  - key: banking.corpoRoyaltyRate
+    value: "0.1"
+
+  # Banking — the opening vault float (minor units) minted into a fresh branch's
+  # till at boot, backed 1:1 by the branch's own operating balance (founding
+  # capital) so early ledger-credit withdrawals work before deposits accumulate.
+  # 0 disables.
+  - key: banking.openingFloat
+    value: "500"
+
+  # Banking — the default custodian bank (an INSTITUTION key: your account
+  # exists at the bank; branches are service points). The boot restamp's
+  # last resort for legacy rows with no derivable relationship — a business
+  # banks at its authored banksAt, a worker at the payer's bank, escrow at
+  # the issuer's. Only the state (treasury) banks at the CB. v1: goodkin
+  # (the bank that wants the newcomer).
+  - key: banking.defaultCustodianBank
+    value: goodkin

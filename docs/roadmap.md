@@ -810,10 +810,15 @@ landing first.
   bridged whitelisted Apis, resource limits (CPU / memory /
   timeout), monitoring hooks. The runtime-model
   [Tier 2 isolation discussion](./runtime-model.md#isolation-options)
-  is the framing. *The **Content** corner has shipped its first
-  build as **content packs** — pure-data, no-code deliverables with a
-  three-way reconcile installer, an install record, and the `pack`
-  operator verb; four packs ship, newbie-wilds the first locality (see
+  is the framing. *The **Content** corner has shipped two builds as
+  **content packs** — pure-data, no-code deliverables with a three-way
+  reconcile installer, an install record, and the `pack` operator verb;
+  wave 2 (2026-08) added the document / settings / subject / wiki /
+  command-view kinds, collapsed the per-kind collections into
+  `documents`, retired seven seeders, and ships fourteen packs (the
+  platform pack carries every engine verb's view). Left: the core
+  decomposition (pack zero, `SeederManager` / `GroupSeeder` /
+  `ParcelSeeder`) and the wave-4 path surgery (see
   [content-packs.md](./subsystems/content-packs.md) /
   [content-packs-slate.md](./slates/builds/content-packs-slate.md));
   Capability / Full (new-code mods, needing `isolated-vm`) remain.*

@@ -2,6 +2,7 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
+import type { TreeAction } from '../../api/access';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
@@ -82,6 +83,21 @@ export class AccessLogic extends ApiLogic {
     if (!reg) return false;
     if (!PlayerApi.isAvatarStuff(subject)) return false;
     return reg.can(subject, action, resource);
+  }
+
+  /** See {@link AccessApi.canAtPath}. */
+  @CallSecurity(AccessApiCallers)
+  public async canAtPath(
+    subject: Stuff | null,
+    action: TreeAction,
+    path: string
+  ): Promise<boolean> {
+    if (subject === null) return false;
+    const reg = lookupRegistry();
+    // ⚠⚠ FAIL CLOSED. See the note above the class.
+    if (!reg) return false;
+    if (!PlayerApi.isAvatarStuff(subject)) return false;
+    return reg.canAtPath(subject, action, path);
   }
 
   /** See {@link AccessApi.canMutateZone}. */

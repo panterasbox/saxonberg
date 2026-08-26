@@ -1,0 +1,13 @@
+verb: greet
+emoji: 👋
+searchTerms:
+- hi
+- hello
+tags:
+- greeting
+grammar:
+  slots:
+    target:
+      kind: stuff
+      optional: true
+  template: '{{ actor }} greet{{ s }}{% if target %} {{ target }}{% else %} everyone{% endif %}.'
