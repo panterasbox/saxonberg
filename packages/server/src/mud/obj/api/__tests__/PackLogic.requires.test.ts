@@ -58,14 +58,14 @@ const ROW = (rel: string) => ({ rel, data: { name: rel } });
 
 describe('the requires phase — groups', () => {
   it('a maintainers group per pack, PM-owned, empty after a bootstrap install (UNSTAFFED); declared groups ensure-exist', async () => {
-    const root = writePack('hills', [ROW('domain/hills/gate.yaml')], {
+    const root = writePack('hills', [ROW('studio/hills/gate.yaml')], {
       manifest: {
         requires: {
           groups: [
             { name: 'hinkley-hills', purpose: 'the Improvement District' },
             { name: 'wardens', purpose: 'the gate wardens', owner: { office: 'prime-minister' } },
           ],
-          title: [{ extent: '/domain/hills' }],
+          title: [{ extent: '/studio/hills' }],
         },
       },
     });
@@ -84,8 +84,8 @@ describe('the requires phase — groups', () => {
   });
 
   it('adopt-by-name: a second install FINDS every group and never re-owns it', async () => {
-    const root = writePack('hills', [ROW('domain/hills/gate.yaml')], {
-      manifest: { requires: { groups: [{ name: 'hinkley-hills', purpose: 'p' }], title: [{ extent: '/domain/hills' }] } },
+    const root = writePack('hills', [ROW('studio/hills/gate.yaml')], {
+      manifest: { requires: { groups: [{ name: 'hinkley-hills', purpose: 'p' }], title: [{ extent: '/studio/hills' }] } },
     });
     await PackApi.install([root]);
     groups.find((g) => g.name === 'hinkley-hills')!.owner = { kind: 'player', templatePath: '/obj/Avatar/x' };
@@ -93,12 +93,12 @@ describe('the requires phase — groups', () => {
     expect(r!.requires.groupsCreated).toEqual([]);
     expect(r!.requires.groupsFound).toEqual(['hills-maintainers', 'hinkley-hills']);
     expect(groups.find((g) => g.name === 'hinkley-hills')?.owner).toEqual({ kind: 'player', templatePath: '/obj/Avatar/x' });
-    expect(r!.requires.titlesKept).toEqual(['/domain/hills']);
+    expect(r!.requires.titlesKept).toEqual(['/studio/hills']);
   });
 
   it('a staffed maintainers group reports staffed', async () => {
-    const root = writePack('hills', [ROW('domain/hills/gate.yaml')], {
-      manifest: { requires: { title: [{ extent: '/domain/hills' }] } },
+    const root = writePack('hills', [ROW('studio/hills/gate.yaml')], {
+      manifest: { requires: { title: [{ extent: '/studio/hills' }] } },
     });
     groups.push({ name: 'hills-maintainers', owner: { kind: 'system' }, members: [{ id: '/obj/Avatar/a', role: 'member' }] });
     const [r] = await PackApi.install([root]);
@@ -111,24 +111,24 @@ describe('the requires phase — the NPC-only membership fence', () => {
   const manifestWith = (id: string) => ({
     requires: {
       groups: [{ name: 'duncan-hall', purpose: "the landlord's staff", members: [{ id, role: 'member' }] }],
-      title: [{ extent: '/domain/eternal/duncan-hall', holder: { group: 'duncan-hall' } }],
+      title: [{ extent: '/studio/eternal/duncan-hall', holder: { group: 'duncan-hall' } }],
     },
   });
 
   it('an NPC row under the pack\'s own claim is enrolled (idempotently)', async () => {
-    const root = writePack('world-seed', [ROW('domain/eternal/duncan-hall/npc/katie.yaml')], {
-      manifest: manifestWith('/domain/eternal/duncan-hall/npc/katie'),
+    const root = writePack('world-seed', [ROW('studio/eternal/duncan-hall/npc/katie.yaml')], {
+      manifest: manifestWith('/studio/eternal/duncan-hall/npc/katie'),
     });
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
-    expect(r!.requires.membersAdded).toEqual(['duncan-hall:/domain/eternal/duncan-hall/npc/katie']);
+    expect(r!.requires.membersAdded).toEqual(['duncan-hall:/studio/eternal/duncan-hall/npc/katie']);
     const [again] = await PackApi.install([root]);
     expect(again!.requires.membersAdded).toEqual([]);
     expect(groups.find((g) => g.name === 'duncan-hall')?.members).toHaveLength(1);
   });
 
   it('a /obj/Avatar/<id> is refused — a pack may not enrol a person', async () => {
-    const root = writePack('world-seed', [ROW('domain/eternal/duncan-hall/npc/katie.yaml')], {
+    const root = writePack('world-seed', [ROW('studio/eternal/duncan-hall/npc/katie.yaml')], {
       manifest: manifestWith('/obj/Avatar/founder'),
     });
     const [r] = await PackApi.install([root]);
@@ -139,23 +139,23 @@ describe('the requires phase — the NPC-only membership fence', () => {
   });
 
   it('an NPC the pack ships OUTSIDE its own claim is refused', async () => {
-    const root = writePack('world-seed', [ROW('domain/terminus/npc/clerk.yaml'), ROW('domain/eternal/duncan-hall/lobby.yaml')], {
+    const root = writePack('world-seed', [ROW('studio/terminus/npc/clerk.yaml'), ROW('studio/eternal/duncan-hall/lobby.yaml')], {
       manifest: {
         requires: {
-          groups: [{ name: 'duncan-hall', purpose: 'p', members: [{ id: '/domain/terminus/npc/clerk' }] }],
-          title: [{ extent: '/domain/eternal/duncan-hall', holder: { group: 'duncan-hall' } }, { extent: '/domain/terminus' }],
+          groups: [{ name: 'duncan-hall', purpose: 'p', members: [{ id: '/studio/terminus/npc/clerk' }] }],
+          title: [{ extent: '/studio/eternal/duncan-hall', holder: { group: 'duncan-hall' } }, { extent: '/studio/terminus' }],
         },
       },
     });
     const [r] = await PackApi.install([root]);
-    // The row is under /domain/terminus, which the pack claims — but the
-    // fence demands the pack's own claims cover it, which /domain/terminus does.
+    // The row is under /studio/terminus, which the pack claims — but the
+    // fence demands the pack's own claims cover it, which /studio/terminus does.
     expect(r!.failure).toBeNull();
-    const bad = writePack('world-seed-2', [ROW('domain/terminus/npc/clerk.yaml')], {
+    const bad = writePack('world-seed-2', [ROW('studio/terminus/npc/clerk.yaml')], {
       manifest: {
         requires: {
-          groups: [{ name: 'g', purpose: 'p', members: [{ id: '/domain/terminus/npc/clerk' }] }],
-          title: [{ extent: '/domain/eternal' }],
+          groups: [{ name: 'g', purpose: 'p', members: [{ id: '/studio/terminus/npc/clerk' }] }],
+          title: [{ extent: '/studio/eternal' }],
         },
       },
     });
@@ -170,15 +170,15 @@ describe('the requires phase — titles', () => {
     const root = writePack('lounge', [ROW('obj/lounge/bar.yaml')], {
       manifest: {
         maintainers: 'lounge',
-        requires: { groups: [{ name: 'lounge', purpose: 'the lounge team' }], title: [{ extent: '/obj/lounge' }, { extent: '/domain/lounge', holder: { group: 'lounge' } }] },
+        requires: { groups: [{ name: 'lounge', purpose: 'the lounge team' }], title: [{ extent: '/obj/lounge' }, { extent: '/studio/lounge', holder: { group: 'lounge' } }] },
       },
     });
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
-    expect(r!.requires.titlesGranted).toEqual(['/obj/lounge', '/domain/lounge']);
+    expect(r!.requires.titlesGranted).toEqual(['/obj/lounge', '/studio/lounge']);
     expect(parcels).toEqual([
       { extent: '/obj/lounge', owner: { kind: 'group', name: 'lounge' } },
-      { extent: '/domain/lounge', owner: { kind: 'group', name: 'lounge' } },
+      { extent: '/studio/lounge', owner: { kind: 'group', name: 'lounge' } },
     ]);
     const undeclared = writePack('lounge-2', [ROW('obj/lounge2/bar.yaml')], {
       manifest: { requires: { title: [{ extent: '/obj/lounge2', holder: { group: 'nobody' } }] } },
@@ -203,39 +203,39 @@ describe('the requires phase — titles', () => {
   });
 
   it('kept on a same-holder claim; two packs naming one extent with one holder never conflict', async () => {
-    const a = writePack('a', [ROW('domain/lounge/x.yaml')], {
-      manifest: { requires: { groups: [{ name: 'lounge', purpose: 'p' }], title: [{ extent: '/domain/lounge', holder: { group: 'lounge' } }] } },
+    const a = writePack('a', [ROW('studio/lounge/x.yaml')], {
+      manifest: { requires: { groups: [{ name: 'lounge', purpose: 'p' }], title: [{ extent: '/studio/lounge', holder: { group: 'lounge' } }] } },
     });
-    const b = writePack('b', [ROW('domain/lounge/y.yaml')], {
+    const b = writePack('b', [ROW('studio/lounge/y.yaml')], {
       dependsOn: ['a'],
-      manifest: { requires: { title: [{ extent: '/domain/lounge', holder: { group: 'lounge' } }] } },
+      manifest: { requires: { title: [{ extent: '/studio/lounge', holder: { group: 'lounge' } }] } },
     });
     const [ra, rb] = await PackApi.install([a, b]);
-    expect(ra!.requires.titlesGranted).toEqual(['/domain/lounge']);
-    expect(rb!.requires.titlesKept).toEqual(['/domain/lounge']);
+    expect(ra!.requires.titlesGranted).toEqual(['/studio/lounge']);
+    expect(rb!.requires.titlesKept).toEqual(['/studio/lounge']);
     expect(rb!.requires.titleConflicts).toEqual([]);
     const [ra2, rb2] = await PackApi.install([a, b]);
-    expect(ra2!.requires.titlesKept).toEqual(['/domain/lounge']);
-    expect(rb2!.requires.titlesKept).toEqual(['/domain/lounge']);
+    expect(ra2!.requires.titlesKept).toEqual(['/studio/lounge']);
+    expect(rb2!.requires.titlesKept).toEqual(['/studio/lounge']);
   });
 
   it('a foreign holder → a `title` conflict: recorded, diagnosed, the title untouched', async () => {
-    parcels.push({ extent: '/domain/lounge', owner: { kind: 'group', name: 'terminus' } });
-    const root = writePack('lounge', [ROW('domain/lounge/x.yaml')], {
-      manifest: { requires: { groups: [{ name: 'lounge', purpose: 'p' }], title: [{ extent: '/domain/lounge', holder: { group: 'lounge' } }] } },
+    parcels.push({ extent: '/studio/lounge', owner: { kind: 'group', name: 'terminus' } });
+    const root = writePack('lounge', [ROW('studio/lounge/x.yaml')], {
+      manifest: { requires: { groups: [{ name: 'lounge', purpose: 'p' }], title: [{ extent: '/studio/lounge', holder: { group: 'lounge' } }] } },
     });
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
-    expect(r!.requires.titleConflicts).toEqual(['/domain/lounge']);
-    expect(r!.conflicts).toEqual(['/domain/lounge']);
+    expect(r!.requires.titleConflicts).toEqual(['/studio/lounge']);
+    expect(r!.conflicts).toEqual(['/studio/lounge']);
     expect(parcels[0]!.owner).toEqual({ kind: 'group', name: 'terminus' });
     const rec = recordOf('lounge')!;
-    expect(rec.conflicts[0]).toMatchObject({ path: '/domain/lounge', kind: 'title', reason: 'title' });
+    expect(rec.conflicts[0]).toMatchObject({ path: '/studio/lounge', kind: 'title', reason: 'title' });
     expect(DiagnosticApi.record).toHaveBeenCalledWith(
-      expect.objectContaining({ channel: 'pack.lounge', message: expect.stringMatching(/title conflict at \/domain\/lounge/) }),
+      expect.objectContaining({ channel: 'pack.lounge', message: expect.stringMatching(/title conflict at \/studio\/lounge/) }),
     );
     // The domain row itself was skipped: its extent is held by nobody in the pack's holder set.
-    expect(r!.requires.skippedSold).toEqual(['/domain/lounge/x']);
+    expect(r!.requires.skippedSold).toEqual(['/studio/lounge/x']);
     expect(contentRows()).toHaveLength(0);
   });
 
@@ -286,12 +286,12 @@ describe('the requires phase — titles', () => {
 
 describe('the requires phase — coverage and the bounded reconcile', () => {
   it('a row outside every claim fails at requires-kernel; a row under a dependsOn host\'s claim passes', async () => {
-    const stray = writePack('stray', [ROW('obj/gear/hat.yaml'), ROW('domain/elsewhere/x.yaml')], {
+    const stray = writePack('stray', [ROW('obj/gear/hat.yaml'), ROW('studio/elsewhere/x.yaml')], {
       manifest: { requires: { title: [{ extent: '/obj/gear' }] } },
     });
     const [r] = await PackApi.install([stray]);
     expect(r!.failure?.step).toBe('requires-kernel');
-    expect(r!.failure?.error).toMatch(/row \/domain\/elsewhere\/x is outside every extent/);
+    expect(r!.failure?.error).toMatch(/row \/studio\/elsewhere\/x is outside every extent/);
     expect(contentRows()).toHaveLength(0);
 
     const platform = writePack('platform', [ROW('obj/x.yaml')], { manifest: { requires: { title: [{ extent: '/obj' }] } } });
@@ -330,8 +330,8 @@ describe('the requires phase — coverage and the bounded reconcile', () => {
 
 describe('the requires phase — the non-bootstrap precondition', () => {
   it('a person syncing a pack must hold the covering title of every claim', async () => {
-    const root = writePack('lounge', [ROW('domain/lounge/x.yaml')], {
-      manifest: { requires: { title: [{ extent: '/domain/lounge' }] } },
+    const root = writePack('lounge', [ROW('studio/lounge/x.yaml')], {
+      manifest: { requires: { title: [{ extent: '/studio/lounge' }] } },
     });
     const actor = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/dev');
     actor.setPlayerId('dev');
@@ -341,15 +341,15 @@ describe('the requires phase — the non-bootstrap precondition', () => {
         ExecutionContextApi.tagActingAuthor(actor);
         return PackApi.sync('lounge', root);
       }),
-    ).rejects.toThrow(/claims '\/domain\/lounge', which \/obj\/Avatar\/dev does not hold/);
-    expect(can).toHaveBeenCalledWith(actor, 'write-template', '/domain/lounge');
+    ).rejects.toThrow(/claims '\/studio\/lounge', which \/obj\/Avatar\/dev does not hold/);
+    expect(can).toHaveBeenCalledWith(actor, 'write-template', '/studio/lounge');
     expect(parcels).toEqual([]);
     can.mockResolvedValue(true);
     const r = await withRootContext(null, 'pack.test', () => {
       ExecutionContextApi.tagActingAuthor(actor);
       return PackApi.sync('lounge', root);
     });
-    expect(r.requires.titlesGranted).toEqual(['/domain/lounge']);
+    expect(r.requires.titlesGranted).toEqual(['/studio/lounge']);
   });
 });
 

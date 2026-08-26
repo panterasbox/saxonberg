@@ -95,7 +95,7 @@ describe("GroupApi.ensureMember", () => {
     const { ref } = await GroupApi.ensureGroup("duncan-hall", { kind: "system" });
     // The gate throws synchronously at the Api boundary.
     expect(() =>
-      GroupApi.ensureMember(ref, "/domain/eternal/duncan-hall/npc/katie", "member"),
+      GroupApi.ensureMember(ref, "/studio/eternal/duncan-hall/npc/katie", "member"),
     ).toThrow(SecurityError);
   });
 
@@ -105,14 +105,14 @@ describe("GroupApi.ensureMember", () => {
     // The logic's registry ref is module-cached across tests, so spy on
     // the provider class rather than one registry's instance.
     const fire = vi.spyOn(ManagedGroupProvider.prototype, "fireChange");
-    const added = await rawLogic().ensureMember(ref, "/domain/eternal/duncan-hall/npc/katie", "member");
+    const added = await rawLogic().ensureMember(ref, "/studio/eternal/duncan-hall/npc/katie", "member");
     expect(added).toBe(true);
     expect(fire).toHaveBeenCalledTimes(1);
-    const again = await rawLogic().ensureMember(ref, "/domain/eternal/duncan-hall/npc/katie", "member");
+    const again = await rawLogic().ensureMember(ref, "/studio/eternal/duncan-hall/npc/katie", "member");
     expect(again).toBe(false);
     expect(fire).toHaveBeenCalledTimes(1);
-    expect(await GroupApi.isMember("/domain/eternal/duncan-hall/npc/katie", ref)).toBe(true);
-    expect(await GroupApi.roleOf("/domain/eternal/duncan-hall/npc/katie", ref)).toBe("member");
+    expect(await GroupApi.isMember("/studio/eternal/duncan-hall/npc/katie", ref)).toBe(true);
+    expect(await GroupApi.roleOf("/studio/eternal/duncan-hall/npc/katie", ref)).toBe("member");
   });
 
   it("false for an unknown group; throws for a non-managed ref", async () => {

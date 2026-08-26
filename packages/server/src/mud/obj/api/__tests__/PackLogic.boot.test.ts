@@ -48,20 +48,20 @@ describe('the boot union', () => {
     const platform = writePack('platform', [ROW('obj/EventRegistry.yaml'), ROW('obj/GroupRegistry.yaml')], {
       manifest: { boot: [ENTRY('/obj/EventRegistry', 'sync-read'), ENTRY('/obj/GroupRegistry', 'sync-read')] },
     });
-    const world = writePack('world-seed', [ROW('domain/lounge/terminal.yaml')], {
+    const world = writePack('world-seed', [ROW('studio/lounge/terminal.yaml')], {
       dependsOn: ['platform'],
-      manifest: { boot: [ENTRY('/domain/lounge/terminal', 'producer', ['/obj/GroupRegistry'])] },
+      manifest: { boot: [ENTRY('/studio/lounge/terminal', 'producer', ['/obj/GroupRegistry'])] },
     });
     const [rp, rw] = await PackApi.install([world, platform]);
     expect(rp!.boot).toEqual({ 'sync-read': 2, producer: 0 });
     expect(rw!.boot).toEqual({ 'sync-read': 0, producer: 1 });
-    expect(recordOf('world-seed')!.boot).toEqual([ENTRY('/domain/lounge/terminal', 'producer', ['/obj/GroupRegistry'])]);
+    expect(recordOf('world-seed')!.boot).toEqual([ENTRY('/studio/lounge/terminal', 'producer', ['/obj/GroupRegistry'])]);
 
     const union = await PackApi.bootManifest([platform, world]);
     expect(union).toEqual([
       { templatePath: '/obj/EventRegistry', packId: 'platform', role: 'sync-read' },
       { templatePath: '/obj/GroupRegistry', packId: 'platform', role: 'sync-read' },
-      { templatePath: '/domain/lounge/terminal', packId: 'world-seed', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
+      { templatePath: '/studio/lounge/terminal', packId: 'world-seed', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
     ]);
 
     // And BootstrapManager runs it in dependency order.
@@ -72,7 +72,7 @@ describe('the boot union', () => {
     });
     vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
     await BootstrapManager.run([union[2]!, union[0]!, union[1]!]);
-    expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/domain/lounge/terminal'));
+    expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/studio/lounge/terminal'));
   });
 
   it('a failed pack contributes no entries', async () => {

@@ -120,11 +120,11 @@ describe("ParcelApi.grant", () => {
 
   it("carries landUse / areaM2 / parentParcel through", async () => {
     await boot();
-    await ParcelApi.grant({ extent: "/domain/hills", holder: { kind: "group", name: "hills" }, landUse: "residential", areaM2: 240000 });
-    const r = await ParcelApi.grant({ extent: "/domain/hills/lot-1", holder: { kind: "group", name: "hills" }, parentParcel: "/domain/hills", landUse: "residential", areaM2: 1000 });
+    await ParcelApi.grant({ extent: "/studio/hills", holder: { kind: "group", name: "hills" }, landUse: "residential", areaM2: 240000 });
+    const r = await ParcelApi.grant({ extent: "/studio/hills/lot-1", holder: { kind: "group", name: "hills" }, parentParcel: "/studio/hills", landUse: "residential", areaM2: 1000 });
     expect(r.outcome).toBe("granted");
-    const lot = await ParcelRecord.findByExtent("/domain/hills/lot-1");
-    expect(lot?.getParentParcel()).toBe("/domain/hills");
+    const lot = await ParcelRecord.findByExtent("/studio/hills/lot-1");
+    expect(lot?.getParentParcel()).toBe("/studio/hills");
     expect(lot?.getLandUse()).toBe("residential");
     expect(lot?.getArea()).toBe(1000);
   });
@@ -145,12 +145,12 @@ describe("ParcelApi.grant", () => {
   });
 
   it("a foreign holder → conflict: row untouched, no event, the current holder reported", async () => {
-    seedParcel("/domain/lounge", { kind: "group", name: "lounge" });
+    seedParcel("/studio/lounge", { kind: "group", name: "lounge" });
     await boot();
-    const r = await ParcelApi.grant({ extent: "/domain/lounge", holder: { kind: "group", name: "terminus" } });
+    const r = await ParcelApi.grant({ extent: "/studio/lounge", holder: { kind: "group", name: "terminus" } });
     expect(r).toEqual({ outcome: "conflict", holder: { kind: "group", name: "lounge" } });
-    expect(await ParcelApi.ownerOf("/domain/lounge/bar")).toEqual({ kind: "group", name: "lounge" });
-    expect(await ParcelEvent.findByExtent("/domain/lounge")).toHaveLength(0);
+    expect(await ParcelApi.ownerOf("/studio/lounge/bar")).toEqual({ kind: "group", name: "lounge" });
+    expect(await ParcelEvent.findByExtent("/studio/lounge")).toHaveLength(0);
   });
 
   it("a `core`-held row → migrated: holder replaced, one `transfer` event", async () => {

@@ -67,7 +67,8 @@ import { TOPIC_ROOTS } from "@saxonberg/types";
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, "..", "src");
 const MUD_ROOT = join(SERVER_SRC, "mud");
-const TOPIC_SEEDS = join(MUD_ROOT, "seeds", "obj", "Topic");
+// The topic descriptors are the platform pack's content (content-packs wave 3).
+const TOPIC_SEEDS = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "obj", "Topic");
 const CLIENT_SRC = join(here, "..", "..", "client", "src");
 
 /** Exported for the unit tests — the same white-box seam

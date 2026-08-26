@@ -740,7 +740,7 @@ export class Application {
     if (!seed) {
       throw new Error(
         `Application.createDefaultCharacter: no seed at ` +
-          `'${Avatar.SEED_TEMPLATE_PATH}'. Did SeederManager run?`
+          `'${Avatar.SEED_TEMPLATE_PATH}'. Did the platform pack install?`
       );
     }
     const playerId = SecurityApi.uuid();

@@ -14,7 +14,7 @@
  * `WeaponProfile.test.ts`); this script just walks the shipped roster.
  */
 
-import { readdirSync, statSync, readFileSync } from "fs";
+import { readdirSync, statSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
@@ -28,6 +28,17 @@ const EXIT_ON_FINDINGS = true; // CI-gating
 const WEAPON_CLASS = "/obj/equipment/Weapon";
 
 const SEEDS_DIR = fileURLToPath(new URL("../src/mud/seeds", import.meta.url));
+const CONTENT_DIR = fileURLToPath(new URL("../../content", import.meta.url));
+
+/** Every template root: each pack's `content/`, then the shrinking `seeds/`. */
+function templateRoots(): string[] {
+  const packs = existsSync(CONTENT_DIR)
+    ? readdirSync(CONTENT_DIR)
+        .map((p) => join(CONTENT_DIR, p, "content"))
+        .filter((d) => existsSync(d))
+    : [];
+  return [...packs, ...(existsSync(SEEDS_DIR) ? [SEEDS_DIR] : [])];
+}
 
 function* walkYaml(dir: string): Generator<string> {
   for (const entry of readdirSync(dir)) {
@@ -62,7 +73,7 @@ function main(): void {
   const findings: string[] = [];
   let weapons = 0;
 
-  for (const file of walkYaml(SEEDS_DIR)) {
+  for (const file of templateRoots().flatMap((r) => [...walkYaml(r)])) {
     let doc: { class?: string; data?: Record<string, unknown> };
     try {
       doc = YAML.parse(readFileSync(file, "utf8")) ?? {};
@@ -74,7 +85,7 @@ function main(): void {
     const profile = WeaponProfile.derive(inputsFromSeed(doc.data ?? {}));
     if (profile.isInert()) {
       findings.push(
-        `${file.replace(SEEDS_DIR, "seeds")}: derives an INERT WeaponProfile ` +
+        `${file.replace(SEEDS_DIR, "seeds").replace(CONTENT_DIR, "content")}: derives an INERT WeaponProfile ` +
           `(no delivery form — check 'constructionForm')`,
       );
     }

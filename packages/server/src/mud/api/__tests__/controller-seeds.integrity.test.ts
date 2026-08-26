@@ -55,6 +55,7 @@ const MUD_ROOT = join(here, "..", "..");
 const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "cmd");
 const DOMAIN_ROOT = join(MUD_ROOT, "domain");
 const SEEDS_ROOT = join(MUD_ROOT, "seeds");
+const PLATFORM_CONTENT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content");
 
 function walkYaml(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
@@ -100,10 +101,16 @@ function resolveController(rawController: string, specFilePath: string): string 
   return "/" + relative(MUD_ROOT, abs).split(sep).join("/");
 }
 
-/** Where the seed for a resolved template path lives on disk. */
+/**
+ * Where the template row for a resolved template path lives on disk: the
+ * platform pack's content (the engine controllers, content-packs wave 3),
+ * else the shrinking `mud/seeds/` (the domain-local controllers, until
+ * `world-seed` takes them at wave 3 step 7).
+ */
 function seedPathFor(templatePath: string): string {
-  // templatePath is `/`-rooted; strip the leading slash to join under seeds/.
-  return join(SEEDS_ROOT, `${templatePath.slice(1)}.yaml`);
+  const rel = `${templatePath.slice(1)}.yaml`;
+  const inPlatform = join(PLATFORM_CONTENT, rel);
+  return existsSync(inPlatform) ? inPlatform : join(SEEDS_ROOT, rel);
 }
 
 /**

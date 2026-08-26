@@ -31,7 +31,7 @@ function appSettings(): Record<string, string> {
 
 describe('avatar seed landing repoint', () => {
   it('no longer carries a spawn literal in the seed (injected at mint)', () => {
-    const seed = readYaml('../../../seeds/obj/Avatar/seed.yaml') as {
+    const seed = readYaml('../../../../../../content/platform/content/obj/Avatar/seed.yaml') as {
       data: Record<string, unknown>;
     };
     expect('startLocation' in seed.data).toBe(false);

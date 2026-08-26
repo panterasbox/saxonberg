@@ -93,14 +93,14 @@ describe('PackController routing', () => {
       packId: 'world-seed',
       maintainers: { group: 'world-seed-maintainers', staffed: false, members: [] },
       groups: [{ name: 'duncan-hall', members: 1 }],
-      titles: [{ extent: '/domain/eternal/duncan-hall', holder: "group 'duncan-hall'", outcome: 'held' }],
+      titles: [{ extent: '/studio/eternal/duncan-hall', holder: "group 'duncan-hall'", outcome: 'held' }],
     });
     await run({ subcommand: 'provision', packId: 'world-seed' });
     expect(provision).toHaveBeenCalledWith('world-seed');
     const out = told.join('\n');
     expect(out).toContain('UNSTAFFED');
     expect(out).toContain('duncan-hall (1 member(s))');
-    expect(out).toContain("/domain/eternal/duncan-hall — group 'duncan-hall' [held]");
+    expect(out).toContain("/studio/eternal/duncan-hall — group 'duncan-hall' [held]");
     await run({ subcommand: 'provision' });
     rejected('pack-required');
   });
@@ -110,14 +110,14 @@ describe('PackController routing', () => {
       {
         packId: 'p', discovered: true, manifestVersion: '0.1.0',
         maintainers: { group: 'p-maintainers', staffed: true },
-        titleConflicts: ['/domain/x'],
+        titleConflicts: ['/studio/x'],
         record: { version: '0.1.0', appliedAt: 'T', principal: 'bootstrap', status: 'applied', failure: null, pins: [], conflicts: [] },
       },
     ]);
     await run({ subcommand: 'status' });
     const out = told.join('\n');
     expect(out).toContain('maintainers: p-maintainers — staffed');
-    expect(out).toContain('title conflict: /domain/x');
+    expect(out).toContain('title conflict: /studio/x');
   });
 
   it('sync <packId> → PackApi.sync; defaults to base-library', async () => {
@@ -171,13 +171,13 @@ describe('PackController routing', () => {
       { packId: 'platform', discovered: true, manifestVersion: '0.1.0', record: null, maintainers: null, titleConflicts: [] },
     ]);
     vi.spyOn(CommandApi, 'diskFallbacks').mockReturnValue([
-      'domain/eternal/duncan-hall/cmd/provision.yaml',
-      'domain/eternal/university-avenue/cmd/blow.yaml',
+      'studio/eternal/duncan-hall/cmd/provision.yaml',
+      'studio/eternal/university-avenue/cmd/blow.yaml',
     ]);
     await run({ subcommand: 'status' });
     const out = told.join('\n');
     expect(out).toContain('2 command view(s) still served from disk');
-    expect(out).toContain('domain/eternal/duncan-hall/cmd/provision.yaml');
+    expect(out).toContain('studio/eternal/duncan-hall/cmd/provision.yaml');
   });
 
   it('install --dry-run → PackApi.dryRun; install without it is rejected', async () => {

@@ -427,5 +427,5 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // unstamped leakage.
     const shipped = new Set(results.map((r) => r.packId));
     expect(contentRows().every((r) => shipped.has(String(r.sourcePack)))).toBe(true);
-  });
+  }, 120_000); // the platform pack carries ~460 rows since wave 3
 });
