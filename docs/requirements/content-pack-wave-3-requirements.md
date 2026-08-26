@@ -378,7 +378,7 @@ Own, don't rename: every row keeps its template path this wave.
 | `obj/Locality/` + `obj/Government/` realm and city rows | **platform** (A27.2: the Compact is the constitution) |
 | `obj/Locality/` + `obj/Government/` per-locality rows | **world-seed** (below) |
 | `obj/{items,arms,armor,clothes,gear,vessel,fixture,instrument,traps,pot,plant,seed,crop,bed,surface,exits}/` + the loose objects (`Campfire`, `Forge`, `Kiln`, `Oven`, `CookPot`, `Coin`, `Key`, `Scrap`, `PaymentCard`, `AetherImplant`, `Corpse`, `Casting`) | **generic-objects** (`root` widens from `/generic-objects` to admit `/obj/**` rows — the pack's `root:` is where its *documents* live; template rows are path-addressed and title-bounded, so generic-objects claims title to the `/obj/<cluster>` branches it ships) |
-| `obj/room/` archetypes | **generic-objects** |
+| `obj/room/` archetypes | **generic-objects** — expected to slim as trade packs take their objects; what never finds a home stays here as the junk drawer, and that is a legal end state |
 | `obj/species/` (4) | **species-and-names** |
 | `obj/corpo/` (3 marks) + `seeds/corpo/` (5 org charts) | the five **corpo packs** |
 | `obj/lounge.yaml` | **saxonberg-lounge** |
