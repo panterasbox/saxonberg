@@ -61,6 +61,29 @@ export type ParcelOwner =
   | { kind: "organization"; templatePath: string };
 
 /**
+ * A declared **title claim** — what a content pack's `requires.title`
+ * entry becomes once its holder is resolved (content-packs wave 3). The
+ * installer hands it to `ParcelApi.grant`; the registry decides the
+ * {@link TitleGrantOutcome}.
+ */
+export interface TitleClaim {
+  extent: string;
+  holder: ParcelOwner;
+  parentParcel?: string;
+  landUse?: LandUse;
+  areaM2?: number;
+}
+
+/**
+ * What `ParcelApi.grant` did with a claim: `granted` (no row existed —
+ * written), `kept` (the row exists with the same holder — untouched),
+ * `conflict` (the row exists under a different holder — untouched, the
+ * caller records it), `migrated` (the row was held by the retired state
+ * default and was transferred to the claim's holder — one transfer event).
+ */
+export type TitleGrantOutcome = "granted" | "kept" | "conflict" | "migrated";
+
+/**
  * A **use-grant** on a parcel — the minimal property-0b lease relationship
  * (a tenant's time-bounded right to occupy + use a unit, distinct from its
  * title). `holder` is the tenant's durable player templatePath; `expiresAt`

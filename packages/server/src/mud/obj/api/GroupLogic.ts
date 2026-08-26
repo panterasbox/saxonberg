@@ -14,7 +14,7 @@ import type {
   GroupChangeHandle,
   GroupChangeListener,
 } from '../../lib/social/GroupProvider';
-import type { GroupRole } from '../../lib/social/Group';
+import type { GroupRole, GroupOwner } from '../../lib/social/Group';
 import type GroupRegistry from '../GroupRegistry';
 
 const REGISTRY_PATH = TemplatePaths.groupRegistry;
@@ -88,13 +88,7 @@ export class GroupLogic extends ApiLogic {
   /** See {@link GroupApi.parseRef}. */
   @CallSecurity(GroupApiCallers)
   public parseRef(ref: GroupRef): { source: string; id: string } {
-    const idx = ref.indexOf(':');
-    if (idx < 0) {
-      throw new Error(
-        `GroupApi.parseRef: malformed ref '${ref}' — expected 'source:id'`
-      );
-    }
-    return { source: ref.slice(0, idx), id: ref.slice(idx + 1) };
+    return this.parseRefImpl(ref);
   }
 
   /** See {@link GroupApi.sharedManagedGroups}. */
@@ -116,6 +110,61 @@ export class GroupLogic extends ApiLogic {
   @CallSecurity(GroupApiCallers)
   public async registry(): Promise<GroupRegistry> {
     return requireRegistry();
+  }
+
+  /** See {@link GroupApi.ensureGroup}. */
+  @CallSecurity(GroupApiCallers)
+  public async ensureGroup(
+    name: string,
+    owner: GroupOwner,
+  ): Promise<{ ref: GroupRef; created: boolean }> {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) {
+      throw new Error('GroupApi.ensureGroup: a group needs a name');
+    }
+    const provider = (await requireRegistry()).managed();
+    const existing = await provider.findByName(trimmed);
+    if (existing && existing._id) {
+      return { ref: `managed:${existing._id}`, created: false };
+    }
+    const g = new Group();
+    g.name = trimmed;
+    g.owner = owner;
+    await g.save();
+    if (!g._id) {
+      throw new Error(`GroupApi.ensureGroup: '${trimmed}' saved without an id`);
+    }
+    return { ref: `managed:${g._id}`, created: true };
+  }
+
+  /** See {@link GroupApi.ensureMember}. */
+  @CallSecurity(GroupApiCallers)
+  public async ensureMember(
+    ref: GroupRef,
+    memberKey: string,
+    role: GroupRole,
+  ): Promise<boolean> {
+    const reg = await requireRegistry();
+    const { source, id } = this.parseRefImpl(ref);
+    if (source !== 'managed') {
+      throw new Error(`GroupApi.ensureMember: '${ref}' is not a managed group`);
+    }
+    const group = await Group.findById<Group>(id);
+    if (!group) return false;
+    if (!group.addMember(memberKey, role)) return false;
+    await group.save();
+    reg.managed().fireChange(id);
+    return true;
+  }
+
+  private parseRefImpl(ref: GroupRef): { source: string; id: string } {
+    const idx = ref.indexOf(':');
+    if (idx < 0) {
+      throw new Error(
+        `GroupApi.parseRef: malformed ref '${ref}' — expected 'source:id'`
+      );
+    }
+    return { source: ref.slice(0, idx), id: ref.slice(idx + 1) };
   }
 
   /** See {@link GroupApi.ownsGroup}. */

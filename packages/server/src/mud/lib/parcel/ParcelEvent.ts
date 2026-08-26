@@ -20,7 +20,7 @@ import type { ParcelOwner } from "./ParcelRecord";
 import type { FieldMeta } from "../mixin";
 
 /** The kind of title event a row records. */
-export type ParcelEventKind = "subdivide" | "transfer";
+export type ParcelEventKind = "subdivide" | "transfer" | "grant";
 
 export class ParcelEvent extends Document {
   static collectionName = "parcel_events";
@@ -36,7 +36,7 @@ export class ParcelEvent extends Document {
   /** The parcel's `extent` (the title this event concerns). */
   extent: string = "";
 
-  /** `subdivide` (genesis) or `transfer` (handoff). */
+  /** `subdivide` (genesis), `transfer` (handoff) or `grant` (a pack's declared claim, the installer's genesis). */
   event: ParcelEventKind = "transfer";
 
   /** The prior owner (null at genesis / when unheld). */

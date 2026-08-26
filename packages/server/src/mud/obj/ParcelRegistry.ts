@@ -37,7 +37,12 @@ import { GroupApi } from "../api/group";
 import { ExecutionContextApi } from "../api/execution-context";
 import { Group } from "../lib/social/Group";
 import type { GroupRef } from "../lib/social/GroupProvider";
-import { ParcelRecord, type ParcelOwner } from "../lib/parcel/ParcelRecord";
+import {
+  ParcelRecord,
+  type ParcelOwner,
+  type TitleClaim,
+  type TitleGrantOutcome,
+} from "../lib/parcel/ParcelRecord";
 import { ParcelEvent } from "../lib/parcel/ParcelEvent";
 import { LandUses, type LandUse } from "../lib/parcel/LandUse";
 import type { Quantity } from "../lib/quantity";
@@ -294,6 +299,112 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     return record;
   }
 
+  /**
+   * ⭐ The installer's title seam (content-packs wave 3): apply a pack's
+   * declared claim. Absent → write the row + a `grant` event → `granted`.
+   * Present under the **same holder** → `kept` (no write, no event).
+   * Present under a **different holder** → `conflict` (no write; the
+   * caller records it). Present under the retired state default (the
+   * `core` group) → transferred to the claim's holder with a `transfer`
+   * event and one log line → `migrated`.
+   *
+   * migration-note: the `core`-held branch is the ONE data touch wave 3
+   * makes to existing title — the dev DB's `/studio` and `/compact` rows
+   * were seeded `core`-held, and "no new title over an existing one" is
+   * read as *over one held by someone real*. Delete the branch in wave 4.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async grant(
+    claim: TitleClaim,
+  ): Promise<{ outcome: TitleGrantOutcome; holder: ParcelOwner }> {
+    SecurityApi.assertFieldMutation(this, "grant");
+    ParcelRegistry.validateClaim(claim);
+    const existing = await this.recordFor(claim.extent);
+    if (existing) {
+      this.reindex(claim.extent, existing);
+      const current = existing.getOwner();
+      if (current && (await this.sameHolder(current, claim.holder))) {
+        return { outcome: "kept", holder: current };
+      }
+      // migration-note: the retired state default hands the row over.
+      if (current?.kind === "group" && current.name === "core") {
+        await this.appendEvent("transfer", claim.extent, current, claim.holder);
+        existing.owner = claim.holder;
+        await existing.save();
+        console.info(
+          `ParcelRegistry: migrated '${claim.extent}' from the retired ` +
+            `state default to ${ParcelRegistry.describeHolder(claim.holder)}`,
+        );
+        return { outcome: "migrated", holder: claim.holder };
+      }
+      return { outcome: "conflict", holder: current ?? claim.holder };
+    }
+    const record = new ParcelRecord();
+    record.extent = claim.extent;
+    record.zonePath = claim.extent;
+    record.owner = claim.holder;
+    record.parentParcel = claim.parentParcel ?? null;
+    record.setLandUse(claim.landUse ?? null);
+    record.area = typeof claim.areaM2 === "number" ? claim.areaM2 : 0;
+    await record.save();
+    await this.appendEvent("grant", claim.extent, null, claim.holder);
+    this.reindex(claim.extent, record);
+    return { outcome: "granted", holder: claim.holder };
+  }
+
+  /** The shape checks `ParcelSeeder` used to run, now at the seam. */
+  private static validateClaim(claim: TitleClaim): void {
+    if (typeof claim.extent !== "string" || !claim.extent.startsWith("/")) {
+      throw new Error(`ParcelRegistry.grant: malformed extent '${claim.extent}'`);
+    }
+    const holder = claim.holder;
+    if (!holder || typeof holder.kind !== "string") {
+      throw new Error(`ParcelRegistry.grant: '${claim.extent}' needs a typed holder`);
+    }
+    if (holder.kind === "group" && !holder.name && !holder.ref) {
+      throw new Error(
+        `ParcelRegistry.grant: group holder of '${claim.extent}' needs a name or ref`,
+      );
+    }
+    if (holder.kind !== "group" && !holder.templatePath) {
+      throw new Error(
+        `ParcelRegistry.grant: ${holder.kind} holder of '${claim.extent}' needs a templatePath`,
+      );
+    }
+    // Fail rather than silently seeding an unknown use: a typo reads as
+    // `wild` through the inheritance walk, indistinguishable from
+    // "deliberately unzoned".
+    if (claim.landUse !== undefined && !LandUses.isLandUse(claim.landUse)) {
+      throw new Error(
+        `ParcelRegistry.grant: '${claim.extent}' declares unknown landUse ` +
+          `'${String(claim.landUse)}' (expected one of ${LandUses.ALL.join(", ")})`,
+      );
+    }
+    if (claim.areaM2 !== undefined && !(claim.areaM2 > 0)) {
+      throw new Error(
+        `ParcelRegistry.grant: '${claim.extent}' declares a non-positive areaM2 (${claim.areaM2})`,
+      );
+    }
+  }
+
+  /** Same principal? Kind + key; a ref-only group compares by resolved ref. */
+  private async sameHolder(a: ParcelOwner, b: ParcelOwner): Promise<boolean> {
+    if (a.kind !== b.kind) return false;
+    if (a.kind !== "group" || b.kind !== "group") {
+      return (a as { templatePath: string }).templatePath ===
+        (b as { templatePath: string }).templatePath;
+    }
+    if (a.name && b.name) return a.name === b.name;
+    const refA = await this.resolveRefImpl(a);
+    const refB = await this.resolveRefImpl(b);
+    return refA !== null && refA === refB;
+  }
+
+  private static describeHolder(owner: ParcelOwner): string {
+    if (owner.kind === "group") return `group '${owner.name ?? owner.ref ?? "?"}'`;
+    return `${owner.kind} '${owner.templatePath}'`;
+  }
+
   // ── Lease (use-grant) + unit enumeration (gated) ──
 
   /**
@@ -537,7 +648,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   }
 
   private async appendEvent(
-    kind: "subdivide" | "transfer",
+    kind: "subdivide" | "transfer" | "grant",
     extent: string,
     from: ParcelOwner | null,
     to: ParcelOwner,

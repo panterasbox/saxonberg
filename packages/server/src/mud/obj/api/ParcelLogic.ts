@@ -10,6 +10,8 @@ import {
   ParcelRecord,
   type ParcelOwner,
   type ParcelSpace,
+  type TitleClaim,
+  type TitleGrantOutcome,
 } from "../../lib/parcel/ParcelRecord";
 import type { LandUse } from "../../lib/parcel/LandUse";
 import type { GroupRef } from "../../lib/social/GroupProvider";
@@ -112,6 +114,20 @@ export class ParcelLogic extends ApiLogic {
     return reg
       ? reg.spaceOf(extent)
       : { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
+  }
+
+  /** See {@link ParcelApi.grant}. The grant path MINTS the registry when
+   *  absent (the registry-at-boot rule: the installer's requires phase
+   *  runs before `BootstrapManager` clones the manifest singletons, and
+   *  `BootstrapManager` reuses a resident one). */
+  @CallSecurity(ParcelApiCallers)
+  public async grant(
+    claim: TitleClaim,
+  ): Promise<{ outcome: TitleGrantOutcome; holder: ParcelOwner }> {
+    const reg =
+      lookupRegistry() ??
+      (registryRef = await StuffApi.singleton<ParcelRegistry>(REGISTRY_PATH));
+    return reg.grant(claim);
   }
 
   /** See {@link ParcelApi.transfer}. */
