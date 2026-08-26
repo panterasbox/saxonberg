@@ -87,7 +87,7 @@ gets a different successor, and none of them is a group named anything.
 | 2. Implicit owner of everything unparcelled (the ~20 write/clone/destruct/goto fall-throughs) | **Fail closed.** `AccessApi.can` denies on an untitled resource. The drain: every path a write verb can reach carries a real title by the end of the wave, and a script counts the ones that don't (D10). |
 | 3a. `broadcast` authority | **Title over the extent addressed** (D2c). `broadcast` is reworked, not ported: a forced message to everyone under an extent, by whoever holds that extent. Realm-wide (operational, shutdown) notices are the PM seat's because the seat holds the realm root. Never `isWizard`. |
 | 3b. `soul` authority | **The soul committee** — a `soul` group owned by `{office: prime-minister}`, holding **title to the emote extent** (D2b). `soul`'s mutating subcommands are gated by that title through `canAtPath`, like every other document write; read subcommands are ungated. `requiresCoreAccess` is deleted with its last two consumers. |
-| 4. Author scope (`ensureAuthorGroups` = parcel-owner groups **+ core**) | Drop the `+ core`; add seats. `isAuthor` = *holds a title on behalf of an institution*: a member of any **group**-kind title holder, or the holder of any **office**-kind title (D2). A **player**-kind title (`/home/<self>`) is possession, not stewardship, and never confers it — so `/home` does not make everyone an author. This is what gates the MQL introspection operators, CMS browsing, self-powered `teleport`, `errors`, and template paths in `find`. The dead `requiresAuthor` validator (no view names it) is deleted with `requiresCoreAccess`. |
+| 4. Author scope (`isAuthor`, `ensureAuthorGroups` = parcel-owner groups **+ core**) | **Deleted.** Everyone is an author — every Avatar carries `AuthorMixin`. "Author" was never a capability, only the null-resource fallthrough dressed as a tier. Each of its five consumers gets its own resource-targeted mechanism (D2d). The dead `requiresAuthor` validator goes with it. |
 | 5. `:admin` / `coreMemberIds` | **Deleted** — the predicate, the per-dispatch precompute in `CommandLogic`, the `MqlContext` field, the mql.md/access.md lines. Its only consumer was a test. |
 
 Residue: `AccessRegistry.seedCoreGroup` and `resolveCoreRef` deleted;
@@ -196,6 +196,24 @@ every other act on land this wave:
 The legislature's chambers and the Central Bank are seats without
 organizations today; when they become organizations with premises they
 get a title and this rule covers them. Courts have no substrate yet.
+
+### D2d — The within-your-extent pattern replaces the author tier
+
+`AccessApi.isAuthor` is deleted, and the two account-level axes that
+remain are `isWizard` (code trust) and `isArchwizard` (who confers
+it). Everything `isAuthor` gated becomes a question about a **resource
+and the actor's extents**, on one pattern: *you may do it within an
+extent you hold; cross the boundary and you are everyone.* The PM
+holds the realm root (D2c), so the PM may do all of it anywhere — by
+title, not by a special case.
+
+| Consumer | Mechanism |
+|---|---|
+| **`teleport`** (self-powered) | Admitted iff the actor's **current location and the destination both lie under one extent the actor holds**. Cross the boundary and it is the TPA network like everyone else. A wizard is not exempt (code trust is not geography). |
+| **CMS browse** (content + document backends) | Per path: `canAtPath(actor, 'read', path)` — the tree the CMS shows is the tree the actor can read: what they hold, plus what is public. No tier check at the backend door. |
+| **`errors`** | Routing, not a gate: an actor sees diagnostics for content under extents they hold; a pack's maintainers (D7) see the pack's. The verb is open; an actor holding nothing sees an empty list. |
+| **`find`** template paths | Shown for objects under an extent the actor holds. Concealment already decides what appears at all. |
+| **MQL pre-resolution operators** (`:online`, path seeds, `class:`/`mixin:`/`template:` filters) | **Ungated.** Resolving a query is not permission to act on its result: `attack online:bob` resolves and the attack controller's reachability check refuses it, as it must for any target. Connection status is already public (`who`). The `MqlContext.permission` snapshot, `gateAuthor`, `MqlPermissionError`'s authoring tier and the `:admin` predicate are all deleted together. True invisibility is not a goal; concealment remains the perception layer's business and applies to MQL results as it does today. |
 
 ### D3 — Pack zero's title is held by `pack-installers`
 
@@ -455,8 +473,9 @@ one pack.
 4. `pnpm test:e2e` platform-only boot (D10) passes: login lands in the
    shell room, no boot error, `pack status` lists one pack.
 5. `lint:core-gone` and `lint:untitled` exist, run in CI, and are green.
-   `ownerOf` never returns a group named `core`; `:admin` is absent
-   from the MQL grammar and docs.
+   `ownerOf` never returns a group named `core`; `:admin` and the
+   authoring tier are absent from the MQL grammar, resolver and docs;
+   `AccessApi.isAuthor` and `requiresAuthor` do not exist.
 6. `ParcelOwner.office` is exercised: `/compact` and `/studio` are
    PM-held; a non-founder cannot write under them; the founder can;
    handing the seat off (`office` verb) moves the capability with it.
@@ -465,7 +484,11 @@ one pack.
    parcel; a locality government's member reaches the locality; the
    PM seat reaches everyone under `/domain`; a non-holder is refused
    with their held extents listed; a player reaches guests in their own
-   home; `--to` is gone. `soul` mutations are title-gated (a soul
+   home; `--to` is gone. `isAuthor` does not exist; `teleport` admits
+   a same-extent hop and refuses a cross-boundary one for a holder and
+   admits the PM anywhere; the CMS tree a non-holder sees is the public
+   tree; `errors` lists only held content; `flower:online` resolves for
+   anyone and `attack online:<name>` is refused by reachability. `soul` mutations are title-gated (a soul
    member edits and disables an emote, a non-member is refused, a
    disabled emote neither dispatches nor lists, a later pack change to
    an edited emote is a conflict not an overwrite); `requiresCoreAccess`
