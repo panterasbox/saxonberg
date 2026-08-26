@@ -82,7 +82,7 @@ function asAuthorityQuery<T>(fn: () => Promise<T>): Promise<T> {
  * other two name the template and source trees for the gate that
  * follows them.
  */
-export type TreeAction = 'write-document' | 'write-template' | 'write-source';
+export type TreeAction = 'write-document' | 'write-template' | 'write-source' | 'install';
 
 export class AccessApi {
   /**

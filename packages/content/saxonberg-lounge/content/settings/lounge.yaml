@@ -1,0 +1,10 @@
+# lounge — application settings shipped by the saxonberg-lounge pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks
+# is merged in; a value the operator changed via `config` is never touched).
+settings:
+  # Where a brand-new avatar's startLocation is stamped at mint time. The
+  # lounge owns the landing, so the lounge ships the key (the platform
+  # deliberately does not: first-merged wins, and the platform installs
+  # first).
+  - key: defaultStartLocation
+    value: /domain/lounge/warren

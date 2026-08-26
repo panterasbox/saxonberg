@@ -24,36 +24,8 @@
 # lib/parcel/LandUse.ts.
 
 parcels:
-  # The /studio branch — the sandbox's group-cell namespace (sandbox
-  # build, Decision M). Held by `core` so acting on it is already a
-  # governance-gated act through the shipped AccessApi.can core-default
-  # dispatch: a governor `subdivide`s /studio/<groupId> out of this
-  # parcel and `transfer --group`s the child title to the group. No
-  # self-serve path exists; /home stays personal, always.
-  - extent: /studio
-    owner: { kind: group, name: core }
-
-  # The /compact branch — the PUBLICATIONS namespace, and the fourth kind
-  # in the taxonomy: workspace (/home/<self>, /studio/<group>), content
-  # (/domain/<locality> — a place, locally administered), and this.
-  #
-  # ⚠ The Compact makes no rooms and no NPCs. It PUBLISHES. Its
-  # institutions' diegetic premises are Saxonberg's rooms, administered
-  # locally (DC has its own police under a seated city government) — this
-  # is not a federal enclave, and /studio is NOT the precedent for it
-  # (that is a workspace namespace, the multiseat /home). What /studio IS
-  # the precedent for is the ROW SHAPE below.
-  #
-  # Held by `core` so the branch has a claimed title rather than falling
-  # through to the state default: it gives the press feed paths an owner,
-  # gives `committeeOf('/compact')` a group to resolve, and gives the
-  # branch a chain of title that can be subdivided or transferred later.
-  #
-  # ⚠ No `landUse`, no `areaM2` — a path-branch title, not ground, so the
-  # inheritance walk answers `wild` and admits nothing. That is the
-  # fail-closed default this file's header insists on keeping.
-  - extent: /compact
-    owner: { kind: group, name: core }
+  # (/studio, /compact and /wiki are the platform pack's `requires.title`
+  # claims now — content-packs wave 3.)
 
   # ── The corpo branches ──────────────────────────────────────────────
   #
@@ -158,21 +130,3 @@ parcels:
   - extent: /domain/eternal/duncan-hall/dorms
     owner: { kind: group, name: duncan-hall }
     landUse: residential
-
-  # The /wiki branch — the encyclopedia's namespace tree. Held by the
-  # managed `wiki-editors` group, which is what makes the protection
-  # ladder's upper two rungs resolvable: `editors` is membership in
-  # this group and `moderators` is its 'owner' role, both answered by
-  # the shipped AccessApi against THIS row rather than by anything on
-  # the (editable) zone templates.
-  #
-  # ⚠ The open edit floor is NOT expressed here, and cannot be: there
-  # is no "all signed-in players" group and a parcel has exactly one
-  # owner. `anyone` is a `protection` FIELD on the /wiki zone, resolved
-  # by Zone.lookupField. See seeds/wiki.yaml and docs/subsystems/wiki.md.
-  #
-  # No landUse and no areaM2 — a path-branch title over the template
-  # tree is not ground, and the inheritance walk answers `wild` for it,
-  # which admits nothing. Same shape as /studio and /obj/lounge above.
-  - extent: /wiki
-    owner: { kind: group, name: wiki-editors }

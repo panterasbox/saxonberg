@@ -36,9 +36,9 @@ help: |
   `pack pin <packId> <path>` / `pack unpin <packId> <path>` — claim or
   release a row directly.
 
-  Restricted to the pack-installers committee — the executive's content
-  operations body, owned by the Prime Minister's office and appointed by
-  whoever holds that seat (`group add pack-installers <player>`).
+  Restricted to the executive — the Office of the Prime Minister: the
+  PM (whoever holds the seat) and everyone holding a position there
+  (`appoint` through the Office). The executive holds the platform.
 validators:
   - /lib/command/validators/requiresPackInstaller
 options:

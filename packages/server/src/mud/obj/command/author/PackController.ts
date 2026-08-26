@@ -16,8 +16,8 @@
  *    not exist — keeping means claiming.
  *
  * Authorization is declarative: `pack.yaml` carries
- * `requiresPackInstaller` (membership of the `pack-installers`
- * committee — never the wizard axis). The dispatcher rejects before here.
+ * `requiresPackInstaller` (holding `/compact/executive` — the PM and her
+ * staff; never the wizard axis). The dispatcher rejects before here.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';

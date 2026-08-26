@@ -1,5 +1,77 @@
 id: platform
-version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /platform
-description: The platform pack — the seed of pack zero; installed by the ordinary installer this wave.
+description: >-
+  Pack zero — the platform: controller templates, registries and
+  catalogues, marshallers, the closed vocabularies, the Compact's
+  institutions, the namespace roots and the landing shell.
 dependsOn: []
+
+# The executive holds the platform (content-packs wave 3, D3): the Office
+# of the Prime Minister — the PM (its appointing authority, founder default
+# included) and her staff (its non-exited position holders). The
+# organization row is this pack's own content (compact/executive.yaml) and
+# a boot: entry below, so it is resident whenever a title resolves.
+maintainers: { organization: /compact/executive }
+
+requires:
+  groups:
+    # The encyclopedia's ONE managed group: `editors` is membership, the
+    # `moderators` rung is the owner role. Ships EMPTY — the `anyone` floor
+    # on /wiki is a zone field, not a group. Found by name on a world that
+    # already has it.
+    - name: wiki-editors
+      purpose: the encyclopedia's editors (members) and moderators (owner role)
+    # The soul committee — holds the emote extent (D2b; the `expression`
+    # pack claims /expression for it). PM-owned: the seat appoints.
+    - name: soul
+      purpose: the soul committee — holds the emote extent
+      owner: { office: prime-minister }
+  # There is no implicit root claim: every extent the platform holds is
+  # listed. Every one is held by the executive unless said otherwise.
+  title:
+    - { extent: /platform }        # its documents: settings, subjects, blueprints
+    - { extent: /obj }             # the engine's own rows; the object packs claim their branches under it
+    - { extent: /cmd }             # the engine verbs (command-view documents)
+    - { extent: /blueprints }      # publishBlueprint's mint branch — publishing a curated blueprint is a platform act
+    - { extent: /compact }         # the publications namespace
+    - { extent: /studio }          # the sandbox's group-cell namespace
+    - { extent: /home }            # the personal workspaces' root (each /home/<key> is its player's, rung 2)
+    - { extent: /domain }          # the world's root; every locality claims its own extent under it
+    - { extent: /wiki, holder: { group: wiki-editors } }   # kept — the same holder as before
+
+# Eager at boot — the union of every applied pack's list is what
+# BootstrapManager runs. `sync-read`: something resolves it synchronously;
+# `producer`: its postRegister produces state nothing else would.
+boot:
+  - { template: /obj/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
+  - { template: /domain/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
+  - { template: /obj/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
+  - { template: /obj/SoulCatalogue, role: sync-read, reason: the runtime verb→Emote cache SoulApi.resolve reads }
+  - { template: /obj/RecipeCatalogue, role: sync-read, reason: the runtime recipe index CraftingApi reads }
+  - { template: /obj/BlueprintCatalogue, role: producer, reason: rebuilds the derived skeleton and warms from the curated blueprints at postRegister }
+  - { template: /compact/press, role: producer, reason: appoint and the publish path resolve the organization by templatePath }
+  - { template: /compact/executive, role: producer, reason: "appoint, the publish path and every organization-held title resolve it by templatePath" }
+  - { template: /obj/PressBoard, role: producer, reason: the news-ticker window warms from the release documents at postRegister, dependsOn: [/compact/press, /compact/executive] }
+  - { template: /obj/DisciplineCatalogue, role: sync-read, reason: the advancement Catalog's descriptor cache }
+  - { template: /obj/CorpoCatalogue, role: sync-read, reason: the corpo/brand descriptor caches CorpoApi reads }
+  - { template: /obj/GovernmentCatalogue, role: sync-read, reason: the diegetic-government roster GovernmentApi reads }
+  - { template: /obj/SpellCatalogue, role: sync-read, reason: the authored spell roster MagicApi reads; validates every effect at postRegister }
+  - { template: /obj/HelpCatalogue, role: producer, reason: harvests the loaded command definitions and the api surface at postRegister }
+  - { template: /obj/GroupRegistry, role: sync-read, reason: the provider table every GroupApi read resolves }
+  - { template: /obj/CentralBank, role: sync-read, reason: the monetary mint/sink anchor BankingApi resolves }
+  - { template: /obj/SubjectCatalogue, role: sync-read, reason: the Subject-layer runtime view ChannelCatalogue resolves synchronously }
+  - { template: /obj/ChannelCatalogue, role: sync-read, reason: the chat substrate's byName/byHandle maps, dependsOn: [/obj/SubjectCatalogue] }
+  - { template: /obj/StreamState, role: sync-read, reason: the livestream overlay state the stream verb mutates }
+  - { template: /obj/AccessRegistry, role: sync-read, reason: every access predicate resolves it; seeds the axis groups at postRegister, dependsOn: [/obj/GroupRegistry] }
+  - { template: /obj/ParcelRegistry, role: sync-read, reason: the title coverage trie every ownerOf read walks, dependsOn: [/obj/GroupRegistry] }
+  - { template: /obj/ChattelRegistry, role: sync-read, reason: the chattelId→owner index ChattelApi reads }
+  - { template: /obj/OfficeRegistry, role: sync-read, reason: every holdsOffice read resolves it; warms the founder credential at postRegister }
+  - { template: /obj/AddressRegistry, role: producer, reason: warms the Locality roster and the address coverage trie at postRegister }
+  - { template: /obj/EventSubscriptions, role: sync-read, reason: the live listener registry the EventApi bus dispatches through, dependsOn: [/obj/EventRegistry] }
+  - { template: /obj/WorldClockRegistry, role: sync-read, reason: game-time anchor and the schedule registry WorldClockApi.boot binds, dependsOn: [/obj/EventSubscriptions] }
+  - { template: /obj/SchedulerRegistry, role: sync-read, reason: the engagement index and its timers, dependsOn: [/obj/WorldClockRegistry, /obj/EventSubscriptions] }
+  - { template: /obj/MqlSubscriptionRegistry, role: sync-read, reason: the live-MQL dependency index and dirty queue, dependsOn: [/obj/EventSubscriptions] }
+  - { template: /obj/CardRegistry, role: sync-read, reason: the per-Interactive card set; a live card owns an MQL subscription, dependsOn: [/obj/MqlSubscriptionRegistry] }
+  - { template: /obj/ForumSubscriptionRegistry, role: sync-read, reason: the forum document-change observer listening on the event bus, dependsOn: [/obj/EventSubscriptions] }
+  - { template: /obj/ReactionRegistry, role: sync-read, reason: the act-scoped emote tallies; the flush rides ScheduleApi, dependsOn: [/obj/WorldClockRegistry] }

@@ -29,6 +29,16 @@ import type { FieldMeta } from "../mixin";
  * live in `mud/config/app-settings.yaml`; this is just the typed key
  * vocabulary the engine reads.
  */
+/**
+ * The ONE code-side fallback: a world where no pack ships
+ * `defaultStartLocation` (a platform-only boot) lands a new avatar in the
+ * void rather than nowhere. Every other key has no default — the packs'
+ * `settings` kind is the source of values.
+ */
+export const AppSettingFallbacks: Readonly<Record<string, string>> = {
+  defaultStartLocation: "/domain/void",
+};
+
 export const AppSettingKeys = {
   /**
    * Where a brand-new avatar's `startLocation` is initialized at mint time

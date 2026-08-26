@@ -5,7 +5,7 @@
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import { AppSettings } from '../../lib/config/AppSettings';
+import { AppSettings, AppSettingFallbacks } from '../../lib/config/AppSettings';
 
 const AppApiCallers = SecurityPolicies.FromModule('/api/app#AppApi');
 
@@ -31,7 +31,7 @@ export class AppLogic extends ApiLogic {
   /** See {@link AppApi.setting}. */
   @CallSecurity(AppApiCallers)
   public setting(key: string): string {
-    return AppSettings.getCached().getValue(key) ?? '';
+    return AppSettings.getCached().getValue(key) ?? AppSettingFallbacks[key] ?? '';
   }
 
   /** See {@link AppApi.settings}. */

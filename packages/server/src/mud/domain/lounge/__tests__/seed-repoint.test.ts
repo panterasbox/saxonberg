@@ -22,11 +22,18 @@ function readYaml(rel: string): Record<string, unknown> {
 }
 
 function appSettings(): Record<string, string> {
-  // The platform pack ships the settings; un-dotted keys live in core.yaml.
-  const parsed = readYaml('../../../../../../content/platform/content/settings/core.yaml') as {
-    settings: Array<{ key: string; value: string }>;
-  };
-  return Object.fromEntries(parsed.settings.map((s) => [s.key, s.value]));
+  // The platform pack ships the engine settings (core.yaml); the lounge
+  // pack ships the landing (content-packs wave 3: the platform must NOT
+  // carry defaultStartLocation — merge-missing means first-merged wins).
+  const out: Record<string, string> = {};
+  for (const rel of [
+    '../../../../../../content/platform/content/settings/core.yaml',
+    '../../../../../../content/saxonberg-lounge/content/settings/lounge.yaml',
+  ]) {
+    const parsed = readYaml(rel) as { settings: Array<{ key: string; value: string }> };
+    for (const s of parsed.settings) out[s.key] = s.value;
+  }
+  return out;
 }
 
 describe('avatar seed landing repoint', () => {

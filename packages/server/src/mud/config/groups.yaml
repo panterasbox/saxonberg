@@ -42,38 +42,8 @@ groups:
     owner: system
     members: []
 
-  - name: wiki-editors
-    # The wiki's ONE managed group. It owns /wiki in parcels.yaml, so
-    # the protection ladder's `editors` rung is membership here and the
-    # `moderators` rung is the 'owner' role here.
-    #
-    # ⭐ One group, not two. A separate `wiki-moderators` would need a
-    # controller to call `GroupApi.isMember` directly — which the
-    # antipatterns table forbids — and the substrate ALREADY
-    # distinguishes 'owner' from 'member', so a second group would be
-    # inventing a distinction that exists. Confer moderator status with
-    # `group` by setting a member's role to owner.
-    #
-    # Deliberately EMPTY: an open wiki needs no editors to start, and
-    # the `anyone` floor at /wiki means the encyclopedia is writable on
-    # a fresh world by anyone who logs in. The group exists so the two
-    # rungs ABOVE that floor have somewhere to resolve against. Owner
-    # `system`, matching ParcelRegistry's mint-or-find so this seed and
-    # the lazy owner-ref resolution converge on one group.
-    owner: system
-    members: []
-
-  - name: pack-installers
-    # The executive's content-operations committee (offices are heads;
-    # committees are hands — slate A25). Owned by the PM's OFFICE, not a
-    # player: an `office`-kind owner resolves through holdsOffice on read
-    # (GroupApi.ownsGroup), so handing the PM seat hands this committee
-    # with no data migration. Zero members at birth — structure only;
-    # the seat-holder appoints via the ordinary `group add`. Membership
-    # here is what `requiresPackInstaller` gates the `pack` verb on —
-    # never wizardness.
-    owner: { office: prime-minister }
-    members: []
+  # (`wiki-editors` and the former `pack-installers` are the platform pack's
+  # `requires.groups` / its executive now — content-packs wave 3.)
 
   # ── The corpo boards ────────────────────────────────────────────────
   #

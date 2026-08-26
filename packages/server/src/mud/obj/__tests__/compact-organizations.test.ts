@@ -24,7 +24,6 @@ import { parse } from 'yaml';
 // A32.2 scaffolding: a kernel test reading shipped content by path. The
 // two organizations are the platform pack's rows (content-packs wave 3).
 const SEEDS = fileURLToPath(new URL('../../../../../content/platform/content/', import.meta.url));
-const CONFIG = fileURLToPath(new URL('../../config/', import.meta.url));
 
 interface Seed {
   class?: string;
@@ -124,15 +123,20 @@ describe('the Office of the Prime Minister', () => {
 });
 
 describe('the /compact title', () => {
-  const parcels = parse(
-    readFileSync(join(CONFIG, 'parcels.yaml'), 'utf8'),
-  ) as { parcels: Array<Record<string, unknown>> };
+  const manifest = parse(
+    readFileSync(join(SEEDS, '..', 'pack.yaml'), 'utf8'),
+  ) as {
+    maintainers: unknown;
+    requires: { title: Array<Record<string, unknown>> };
+  };
 
-  const compact = parcels.parcels.find((p) => p.extent === '/compact');
+  const compact = manifest.requires.title.find((t) => t.extent === '/compact');
 
-  it('is a claimed core-held branch, so the feed paths have an owner', () => {
+  it('is a claimed branch held by the executive, so the feed paths have an owner', () => {
     expect(compact).toBeDefined();
-    expect(compact!.owner).toEqual({ kind: 'group', name: 'core' });
+    // No holder of its own → the pack's maintainers: the executive.
+    expect(Object.hasOwn(compact!, 'holder')).toBe(false);
+    expect(manifest.maintainers).toEqual({ organization: '/compact/executive' });
   });
 
   it('⚠ declares NO landUse and NO areaM2 — a path branch is not ground', () => {

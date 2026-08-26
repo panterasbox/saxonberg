@@ -2,9 +2,10 @@
 # `settings` kind: merge-missing — a key the app_settings singleton lacks is
 # merged in; a value the operator changed via `config` is never touched).
 settings:
-  # Where a brand-new avatar's startLocation is stamped at mint time.
-  - key: defaultStartLocation
-    value: /domain/lounge/warren
+  # `defaultStartLocation` is NOT here: merge-missing means first-merged
+  # wins and the platform installs first, so the pack that owns the
+  # landing (saxonberg-lounge) ships the key; with no pack shipping it the
+  # code fallback is the void (a platform-only world lands you there).
 
   # Where an orphaned HasInteractive evacuates when its container destructs
   # with no outer (Container.cleanupOnDestruct). The void is the designed,

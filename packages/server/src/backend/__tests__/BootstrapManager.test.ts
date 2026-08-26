@@ -47,12 +47,13 @@ describe('BootstrapManager.run', () => {
     const { calls } = stubClone();
     vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
     vi.spyOn(PackApi, 'bootManifest').mockResolvedValue([
-      { templatePath: '/domain/fixture/root', packId: 'fixture', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
+      { templatePath: '/obj/GroupRegistry', packId: 'platform', role: 'sync-read' },
+      { templatePath: '/studio/fixture/root', packId: 'fixture', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
     ]);
     await BootstrapManager.run();
-    expect(calls).toContain('/obj/EventRegistry');
-    expect(calls).toContain('/domain/fixture/root');
-    expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/domain/fixture/root'));
+    expect(calls).toContain('/corpo/aevex');
+    expect(calls).toContain('/studio/fixture/root');
+    expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/studio/fixture/root'));
   });
 
   it('clones a single entry', async () => {

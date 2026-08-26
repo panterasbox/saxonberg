@@ -18,14 +18,13 @@ async function see(page: Page, cmd: string, pattern: RegExp, timeout = 15_000) {
   await expect(page.getByText(pattern).first()).toBeVisible({ timeout });
 }
 
-test('pack status as a pack-installers member lists fourteen packs + the disk residue', async ({ browser }) => {
+test('pack status as the founder (head of the executive) lists the packs + the disk residue', async ({ browser }) => {
   test.setTimeout(180_000);
   const { page, close } = await openWorldAsFounder(browser);
   try {
     await sendUntil(page, 'look', page.getByText(/./).first());
-    // The founder holds the PM seat (founder default) and appoints the committee.
-    await runCommand(page, 'group add pack-installers founder');
-    await page.waitForTimeout(800);
+    // The founder holds the PM seat (founder default), so heads the
+    // executive, which holds the platform — no group to join.
     await see(page, 'pack status', /platform/i, 30_000);
     await expect(page.getByText(/wiki-starter/i).first()).toBeVisible();
     await expect(page.getByText(/corpo-vionne/i).first()).toBeVisible();
