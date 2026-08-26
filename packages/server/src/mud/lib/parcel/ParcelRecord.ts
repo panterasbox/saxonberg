@@ -47,10 +47,18 @@ import type { FieldMeta } from "../mixin";
  *     to a runtime ref without the seed knowing the group id).
  *   - `player` — an individual, keyed on the durable `templatePath`
  *     (a self-home owner, or a title transferred to a player).
+ *   - `organization` — an `OrganizationMixin` host, keyed on its
+ *     `templatePath` (`/compact/executive`, `/corpo/<key>`). Held by
+ *     everyone holding a **non-exited position** in the organization AND
+ *     by its **appointing authority** (an office, founder default
+ *     included) — the staff plus the head. The organization must be
+ *     resident for the title to admit anyone; a non-resident target fails
+ *     closed. The wave-3 kind that lets the executive hold the platform.
  */
 export type ParcelOwner =
   | { kind: "group"; name?: string; ref?: GroupRef }
-  | { kind: "player"; templatePath: string };
+  | { kind: "player"; templatePath: string }
+  | { kind: "organization"; templatePath: string };
 
 /**
  * A **use-grant** on a parcel — the minimal property-0b lease relationship

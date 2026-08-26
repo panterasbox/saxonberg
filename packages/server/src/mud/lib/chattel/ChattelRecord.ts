@@ -39,7 +39,8 @@ import type { FieldMeta } from "../mixin";
  */
 export type ChattelOwner =
   | { kind: "group"; name?: string; ref?: GroupRef }
-  | { kind: "player"; templatePath: string };
+  | { kind: "player"; templatePath: string }
+  | { kind: "organization"; templatePath: string };
 
 export class ChattelRecord extends Document {
   static collectionName = Collections.Chattel;

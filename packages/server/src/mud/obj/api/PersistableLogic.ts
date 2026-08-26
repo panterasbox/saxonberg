@@ -61,11 +61,13 @@ function isSlottedSlice(slice: MixinSlice): slice is SlottedSlice {
  * Map a parcel-title owner to the record's `owner` string. A player owner
  * keys on its durable `templatePath` (so the account-deletion cascade is a
  * keyed delete matching a player's path); a group owner keys on a
- * `group:<name|ref>` sentinel; the state default keys on `'core'`. Kept
+ * `group:<name|ref>` sentinel; an organization owner on an
+ * `organization:<templatePath>` sentinel; the state default keys on `'core'`. Kept
  * distinct from any real player `templatePath` so the two never collide.
  */
 function ownerString(owner: ParcelOwner): string {
   if (owner.kind === "player") return owner.templatePath;
+  if (owner.kind === "organization") return `organization:${owner.templatePath}`;
   return `group:${owner.ref ?? owner.name ?? "core"}`;
 }
 

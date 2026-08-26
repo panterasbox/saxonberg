@@ -382,6 +382,11 @@ describe("ParcelApi.resolveOwnerRef — mint-or-find", () => {
     expect(
       await ParcelApi.resolveOwnerRef({ kind: "player", templatePath: "/home/iris" }),
     ).toBeNull();
+    // An organization owner is not a group — no ref, and never a mint.
+    expect(
+      await ParcelApi.resolveOwnerRef({ kind: "organization", templatePath: "/compact/executive" }),
+    ).toBeNull();
+    expect(col("groups").filter((g) => g.name === "/compact/executive")).toHaveLength(0);
   });
 });
 
