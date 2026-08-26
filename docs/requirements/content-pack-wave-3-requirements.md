@@ -125,6 +125,11 @@ The two parcels `core` holds today move to the seat:
   has one accountable speaker — the same holder `broadcast` checks.
 - **`/studio`** → `prime-minister`. The sandbox namespace is
   governance-gated, not stewarded.
+- **`/home`** → `prime-minister`. The root of the residence namespace;
+  each `/home/<self>` beneath it stays the player's own title
+  (`selfHomeOwnerOf`, player-kind), so the seat holds the street and
+  the residents hold their doors. Same for the realm root `/domain`
+  (D2c).
 
 ### D2b — The soul committee holds the emote extent
 
@@ -227,10 +232,11 @@ wave-2 gap where the test-auth founder could not reach the CMS (D2d:
 the CMS shows what you can read, and the platform's tree is theirs).
 
 Pack zero's claimed extents are the path-branch titles the platform
-ships rows under: `/obj`, `/cmd`, `/home`, `/wiki` (the namespace
-roots — `wiki-editors` keeps `/wiki`'s page-edit title as today; the
-platform holds the zone rows), `/compact`, `/studio` and the realm root
-`/domain` via D2/D2c (seat-held), and the platform's own `root`. The planner enumerates them from the rows the
+ships rows under: `/obj`, `/cmd`, `/wiki` (the namespace roots —
+`wiki-editors` keeps `/wiki`'s page-edit title as today; the platform
+holds the zone rows) and the platform's own `root`, held by
+`pack-installers`; and `/compact`, `/studio`, `/home` and the realm root
+`/domain`, held by the `prime-minister` seat (D2/D2c). The planner enumerates them from the rows the
 pack ships; a row under an extent the pack has not claimed is an
 install error (the write-refused-outside-extent rule, Part 4b).
 
@@ -476,8 +482,9 @@ one pack.
    `ownerOf` never returns a group named `core`; `:admin` and the
    authoring tier are absent from the MQL grammar, resolver and docs;
    `AccessApi.isAuthor` and `requiresAuthor` do not exist.
-6. `ParcelOwner.office` is exercised: `/compact` and `/studio` are
-   PM-held; a non-founder cannot write under them; the founder can;
+6. `ParcelOwner.office` is exercised: `/compact`, `/studio`, `/home`
+   and `/domain` are PM-held; a player's `/home/<self>` still resolves
+   to the player; a non-founder cannot write under them; the founder can;
    handing the seat off (`office` verb) moves the capability with it.
    Tests cover the resolve path and the fail-closed empty seat.
 7. `broadcast --at`: a parcel holder reaches only those under their
