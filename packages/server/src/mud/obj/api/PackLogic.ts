@@ -712,23 +712,46 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
 }
 
 /** Classify a pack's `content/` tree by subdir convention. */
+/**
+ * The `content/` subdirs that are NOT the template kind: every other
+ * declared kind's directory (settings, subjects, descriptor-banks,
+ * quantity, and each `DOCUMENT_KINDS` yaml `contentDir`). ENUMERATED by
+ * kind, never guessed: a new kind adds itself here through its spec.
+ */
+function nonTemplateDirs(): ReadonlySet<string> {
+  const out = new Set(['settings', 'subjects', 'descriptor-banks', 'quantity']);
+  for (const spec of Object.values(DOCUMENT_KINDS)) {
+    if (spec.ext === 'yaml') out.add(spec.contentDir);
+  }
+  return out;
+}
+
 function readContent(pack: ResolvedPack): PackContent {
   const domain: DomainFile[] = [];
-  // The template-kind roots — ENUMERATED, never a catch-all glob: the
-  // sibling subdirs `quantity/`, `name-banks/`, `descriptor-banks/` are
-  // their own kinds and must never be swept into the template kind.
-  //  - `content/obj/` — instanceable substrate content (materials, biomes,
-  //    species). Was `content/lib/` before the lib/obj taxonomy refactor.
-  //  - `content/domain/` — a locality's content (rooms, NPCs, fixtures),
-  //    the `/domain/...` namespace (newbie-wilds is the first). The units
-  //    slate's "fractal under any root" end-state arrives with wave 4's
-  //    path surgery; two enumerated roots is this cycle's honest shape.
-  const domainRoots = [join(pack.contentRoot, 'obj'), join(pack.contentRoot, 'domain')];
-  // A `cmd/` segment under `content/domain/` is a locality's command
-  // views — the command-view document kind, never a template (a view
-  // has no `class:` and would fail this walk).
-  const skip = new Set(['cmd']);
-  for (const file of domainRoots.flatMap((r) => [...walkFiles(r, 'yaml', skip)])) {
+  // The template kind is EVERY `.yaml` under `content/` outside the
+  // declared non-template kind dirs (wave 3): a pack ships a row at the
+  // path its file mirrors, wherever in the tree that path lives —
+  // `content/corpo/aevex.yaml` → `/corpo/aevex`, `content/home.yaml` →
+  // `/home`, `content/wiki/main.yaml` → `/wiki/main` (the namespace ZONE
+  // rows; the wiki PAGES beside them are `.md`, a different extension,
+  // read by the wiki kind below). `cmd/` is skipped at ANY depth — a
+  // command view has no `class:` and is the command-view document kind.
+  const kindDirs = nonTemplateDirs();
+  const topLevel = readdirSync(pack.contentRoot, { withFileTypes: true }).filter(
+    (e) => !e.name.startsWith('.'),
+  );
+  const templateFiles: string[] = [];
+  const cmdOnly = new Set(['cmd']);
+  for (const e of topLevel) {
+    const full = join(pack.contentRoot, e.name);
+    if (e.isDirectory()) {
+      if (kindDirs.has(e.name) || e.name === 'cmd') continue;
+      templateFiles.push(...walkFiles(full, 'yaml', cmdOnly));
+    } else if (e.isFile() && e.name.endsWith('.yaml')) {
+      templateFiles.push(full);
+    }
+  }
+  for (const file of templateFiles) {
     const raw = readFileSync(file, 'utf-8');
     const parsed = YAML.parse(raw) as unknown;
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -2636,7 +2659,24 @@ function claimedExtentsOf(manifest: PackManifest, all: ReadonlyMap<string, PackM
   return out;
 }
 
-/** Every path-addressed row a pack ships: domain template paths + document paths + wiki pages. */
+/**
+ * The title-bearing namespace roots — the eight trees a parcel may claim
+ * an extent in, and the ones the covered-extent rule (and `lint:untitled`)
+ * read. A pack's OWN document root outside them (`/expression`,
+ * `/generic-objects`) is the pack's to claim or not.
+ */
+const TITLE_ROOTS: readonly string[] = [
+  '/obj', '/domain', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo',
+];
+
+function underTitleRoot(path: string): boolean {
+  return TITLE_ROOTS.some((r) => underExtent(path, r));
+}
+
+/**
+ * Every path-addressed row a pack ships under a title root: domain
+ * template paths + document paths + wiki pages.
+ */
 function shippedPathsOf(content: PackContent): string[] {
   const out: string[] = [];
   for (const d of content.domain) out.push(d.path);
@@ -2644,7 +2684,7 @@ function shippedPathsOf(content: PackContent): string[] {
     for (const f of files) out.push(f.path.startsWith('/') ? f.path : `/${f.path}`);
   }
   for (const w of content.wiki) out.push(`/wiki/${w.namespace}/${w.slug}`);
-  return out;
+  return out.filter(underTitleRoot);
 }
 
 /**
