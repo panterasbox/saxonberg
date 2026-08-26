@@ -1274,7 +1274,11 @@ function slugOf(title: string): string {
 function subjectFileBody(f: SubjectFile): SubjectBody {
   return {
     name: f.name,
-    description: f.description,
+    // A description lives on the BOARD (a Subject row has none), so a
+    // channel-only subject cannot carry one — rendering it here would
+    // read as a permanent DB divergence (`kept` every boot; found by the
+    // drive: platform's 3 subjects). Both sides render it the same way.
+    description: f.board ? f.description : '',
     audience: f.audienceGroup ?? '',
     board: f.board,
     channel: f.channel,
@@ -1296,8 +1300,11 @@ async function managedGroupNameOf(ref: string): Promise<string> {
   try {
     const { source, id } = GroupApi.parseRef(ref);
     if (source !== 'managed') return ref;
-    const rows = (await PersistApi.find(Collections.Groups, { _id: id })) as Array<{ name?: string }>;
-    return rows[0]?.name ?? ref;
+    // ⚠ By id through findById — a `{_id}` query with a string never
+    // matches a real ObjectId (found by the drive: the platform pack
+    // minted a duplicate "Chat" channel).
+    const row = (await PersistApi.findById(Collections.Groups, id)) as { name?: string } | null;
+    return row?.name ?? ref;
   } catch {
     return ref;
   }
@@ -1319,8 +1326,7 @@ async function surfaceRowOf(
 ): Promise<SurfaceRow | null> {
   const ref = subject.manifestations?.find((m) => m.surface === surface)?.ref;
   if (!ref) return null;
-  const rows = (await PersistApi.find(col, { _id: ref })) as SurfaceRow[];
-  return rows[0] ?? null;
+  return ((await PersistApi.findById(col, ref)) as SurfaceRow | null) ?? null;
 }
 
 /** Render a stored Subject (+ its surfaces) to the preimage shape. */
@@ -1362,7 +1368,8 @@ async function writeSubject(
     );
   }
   const existing = existingId
-    ? ((await PersistApi.find(Collections.ForumSubjects, { _id: existingId })) as SubjectRow[])[0]
+    ? (((await PersistApi.findById(Collections.ForumSubjects, existingId)) as SubjectRow | null) ??
+      undefined)
     : undefined;
   const subjectRow: Record<string, unknown> = {
     ...(existingId ? { _id: existingId } : {}),
@@ -1374,7 +1381,12 @@ async function writeSubject(
     grain: existing?.grain ?? 'venue',
     parentSubject: existing?.parentSubject ?? null,
     boardScopedName: existing?.boardScopedName ?? null,
-    manifestations: existing?.manifestations ?? [],
+    // ⚠ `manifestations` is NOT set here: it is written once, at the end,
+    // after every surface is settled — an earlier revision reset it to
+    // `[]` on this save and, when the surface mint then threw, left the
+    // Subject unlinked from a channel that still existed (found by the
+    // drive: every retry tried to mint a second "Chat").
+    ...(existingId ? {} : { manifestations: [] }),
     sourcePack: packId,
   };
   const subjectId = await PersistApi.save(Collections.ForumSubjects, subjectRow);
@@ -1389,7 +1401,25 @@ async function writeSubject(
   ): Promise<void> => {
     const idx = manifestations.findIndex((m) => m.surface === surface);
     const ref = idx >= 0 ? manifestations[idx]!.ref : null;
-    const row = ref ? ((await PersistApi.find(col, { _id: ref })) as SurfaceRow[])[0] : undefined;
+    let row = ref
+      ? (((await PersistApi.findById(col, ref)) as SurfaceRow | null) ?? undefined)
+      : undefined;
+    if (on && !row) {
+      // Adopt before minting: a surface row that already points at this
+      // subject (a lost manifestation link), or a legacy row by NAME
+      // (the pre-Subject seeder's channels), is this surface.
+      const bySubject = (await PersistApi.find(col, { subject: subjectId })) as SurfaceRow[];
+      const byName = bySubject.length
+        ? []
+        : ((await PersistApi.find(col, { name })) as SurfaceRow[]);
+      const found = bySubject[0] ?? byName[0];
+      if (found?._id) {
+        row = found;
+        if (idx >= 0) manifestations[idx] = { surface, ref: found._id };
+        else manifestations.push({ surface, ref: found._id });
+        await PersistApi.save(col, { _id: found._id, subject: subjectId });
+      }
+    }
     if (on) {
       if (row) {
         const set: Record<string, unknown> = { _id: row._id, archived: false, name };
@@ -1432,7 +1462,7 @@ async function writeSubject(
 
 /** Archive a subject and its surfaces. Never a delete. */
 async function archiveSubject(id: string): Promise<void> {
-  const row = ((await PersistApi.find(Collections.ForumSubjects, { _id: id })) as SubjectRow[])[0];
+  const row = (await PersistApi.findById(Collections.ForumSubjects, id)) as SubjectRow | null;
   if (!row) return;
   await PersistApi.save(Collections.ForumSubjects, { _id: id, state: 'archived' });
   for (const m of row.manifestations ?? []) {

@@ -196,9 +196,22 @@ export class BootstrapManager {
     const expanded = await this.#expandPrefixEntries(manifest);
     const sorted = this.#topologicalSort(expanded);
 
+    let reused = 0;
     for (const entry of sorted) {
       const path = entry.templatePath!; // expansion guarantees templatePath
       let clone: Stuff;
+      // ⚠ A manifest singleton may already be RESIDENT: a lazy
+      // `StuffApi.singleton` mint earlier in the boot (the content
+      // installer resolving the wiki registry, whose postRegister asks
+      // for the group registry) lands it before the manifest runs. A
+      // second clone would leave two live instances at one path and
+      // every `findByTemplatePath` throwing "expected singleton, found 2"
+      // (found by the wave-2 drive). Reuse the resident one instead.
+      const resident = StuffApi.findAllByTemplatePath(path);
+      if (resident.length === 1) {
+        clone = resident[0]!;
+        reused += 1;
+      } else {
       try {
         clone = await StuffApi.clone(path);
       } catch (cause) {
@@ -209,6 +222,8 @@ export class BootstrapManager {
         );
       }
 
+      }
+
       if (entry.awaitInit) {
         await entry.awaitInit(clone);
       }
@@ -216,7 +231,8 @@ export class BootstrapManager {
 
     console.info(
       `BootstrapManager: bootstrapped ${sorted.length} entr` +
-        (sorted.length === 1 ? 'y' : 'ies')
+        (sorted.length === 1 ? 'y' : 'ies') +
+        (reused > 0 ? ` (${reused} already resident, reused)` : '')
     );
   }
 

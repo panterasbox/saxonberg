@@ -164,6 +164,34 @@ describe('flat-key over subjects', () => {
   });
 });
 
+describe('surface adoption before minting (found by the drive)', () => {
+  it('a Subject that lost its manifestation link re-adopts the channel that still points at it — no duplicate mint', async () => {
+    store.rows.push({ _id: 'ch-chat', __col: 'channels', name: 'Chat', kind: 'open-join-standalone', subject: 'subj-chat', procedure: 'open' });
+    store.rows.push({
+      _id: 'subj-chat', __col: 'forum_subjects', title: 'Chat', owner: 'pack:platform', groupRef: '',
+      lifecycleClass: 'standing', state: 'active', grain: 'venue', manifestations: [], sourcePack: 'platform',
+    });
+    const root = writePack('platform', [], { root: '/platform' });
+    writeSubjectFile(root, 'chat', { name: 'Chat', channel: true });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(channels()).toHaveLength(1);
+    expect(refOf(subjectByTitle('Chat')!, 'open-chat')).toBe('ch-chat');
+  });
+
+  it('a legacy channel by NAME with no Subject at all is adopted, not duplicated', async () => {
+    store.rows.push({ _id: 'ch-help', __col: 'channels', name: 'Help', kind: 'open-join-standalone', subject: '', procedure: 'open' });
+    const root = writePack('platform', [], { root: '/platform' });
+    writeSubjectFile(root, 'help', { name: 'Help', channel: true });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(channels()).toHaveLength(1);
+    const s = subjectByTitle('Help')!;
+    expect(channels()[0]).toMatchObject({ _id: 'ch-help', subject: s._id });
+    expect(refOf(s, 'open-chat')).toBe('ch-help');
+  });
+});
+
 describe('adoption of the retired ChannelSeeder rows', () => {
   it('matches by title and stamps in place — the _id is preserved, the channel is reused', async () => {
     store.rows.push({ _id: 'ch-help', __col: 'channels', name: 'Help', kind: 'open-join-standalone', subject: 'subj-help', procedure: 'open' });

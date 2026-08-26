@@ -55,6 +55,12 @@ export function stubPersist(): void {
         )
         .map((r) => structuredClone(r)) as never,
   );
+  vi.spyOn(PersistApi, 'findById').mockImplementation(
+    async (col: string, id: string) => {
+      const r = store.rows.find((x) => (x.__col ?? 'content') === col && x._id === id);
+      return r ? (structuredClone(r) as never) : null;
+    },
+  );
   vi.spyOn(PersistApi, 'save').mockImplementation(
     async (col: string, doc: Record<string, unknown>) => {
       const d = structuredClone(doc) as Row;
