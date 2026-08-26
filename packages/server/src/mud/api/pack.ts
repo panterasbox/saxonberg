@@ -33,8 +33,58 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { PackLogic } from '../obj/api/PackLogic';
+import type { GroupRole } from '../lib/social/Group';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+
+/**
+ * A managed group a pack REQUIRES (`requires.groups[]`, wave 3): found by
+ * name or minted with `owner` (`system` when absent, or an office). Members
+ * are NPC rows the pack ships under its own claims — the only membership a
+ * pack may author (the NPC-only fence, checked at `gatePack`).
+ */
+export interface RequiredGroup {
+  name: string;
+  /** Required prose: what the group is for. */
+  purpose: string;
+  owner?: { office: string };
+  members?: Array<{ id: string; role?: GroupRole }>;
+}
+
+/**
+ * A title a pack CLAIMS (`requires.title[]`, wave 3). `holder` absent means
+ * the pack's maintainers; `{group}` must be declared by this pack or a
+ * `dependsOn` pack; `{organization}` must be a row one of them ships.
+ */
+export interface RequiredTitle {
+  extent: string;
+  holder?: { group: string } | { organization: string };
+  landUse?: string;
+  areaM2?: number;
+  parentParcel?: string;
+}
+
+export interface PackRequires {
+  groups: RequiredGroup[];
+  title: RequiredTitle[];
+}
+
+/**
+ * One eager-at-boot template a pack declares (`boot[]`, wave 3). `role`
+ * says WHY it is eager: `sync-read` (something resolves it synchronously)
+ * or `producer` (its postRegister produces state nothing else would).
+ * `reason` is required prose. The union of every applied pack's list is
+ * what `BootstrapManager` runs.
+ */
+export interface PackBootEntry {
+  template: string;
+  role: 'sync-read' | 'producer';
+  reason: string;
+  dependsOn?: string[];
+}
+
+/** Who maintains a pack: a managed group (default `<id>-maintainers`) or an organization row. */
+export type PackMaintainers = { group: string } | { organization: string };
 
 /** A content pack's manifest (`pack.yaml`). */
 export interface PackManifest {
@@ -51,6 +101,25 @@ export interface PackManifest {
    * Optional in `pack.yaml` (defaults to `/<id>`); must start with `/`.
    */
   root: string;
+  /** What the registries grant this pack at install (wave 3). */
+  requires: PackRequires;
+  /** The pack's eager-at-boot templates (wave 3). */
+  boot: PackBootEntry[];
+  /** Who maintains it (wave 3); default `{ group: '<id>-maintainers' }`. */
+  maintainers: PackMaintainers;
+}
+
+/** What the requires phase did for one pack. */
+export interface PackRequiresResult {
+  groupsCreated: string[];
+  groupsFound: string[];
+  titlesGranted: string[];
+  titlesKept: string[];
+  titlesMigrated: string[];
+  titleConflicts: string[];
+  membersAdded: string[];
+  /** Domain rows skipped because their covering extent is held by nobody in the pack's holder set. */
+  skippedSold: string[];
 }
 
 /** What a single pack's install/sync run touched. Change lists hold record keys. */
@@ -88,6 +157,12 @@ export interface PackReconcileResult {
   rehydrated: number;
   /** Set when the pack FAILED — boot continued without it (install only). */
   failure: PackFailure | null;
+  /** The requires phase's outcomes (wave 3). */
+  requires: PackRequiresResult;
+  /** The pack's `boot:` entries by role (wave 3). */
+  boot: Record<'sync-read' | 'producer', number>;
+  /** A maintainers group with ≥1 member, or an organization with ≥1 position holder. */
+  staffed: boolean;
 }
 
 /** Why a pack's install failed; recorded on its `pack_installs` row. */
@@ -126,7 +201,7 @@ export interface PackConflict {
   baselineHash: string;
   dbHash: string;
   packHash: string;
-  reason: 'both-changed' | 'deleted-vs-edited' | 'wiki-cas';
+  reason: 'both-changed' | 'deleted-vs-edited' | 'wiki-cas' | 'title';
 }
 
 /**
@@ -151,6 +226,11 @@ export interface PackInstallRecord {
   conflicts: PackConflict[];
   /** RAM-only kinds that ran (`quantity`) — noted, never baselined. */
   sideEffects: { kinds: string[] };
+  /** The manifest's `requires:` as applied — what the nightly `reprovision` re-grants. */
+  requires: PackRequires;
+  /** The manifest's `boot:` as applied (`[]` on a failed pack) — what `bootManifest` reads. */
+  boot: PackBootEntry[];
+  maintainers: PackMaintainers;
 }
 
 /** One discovered-or-recorded pack, as `pack status` reports it. */
@@ -165,6 +245,35 @@ export interface PackStatusReport {
     PackInstallRecord,
     'version' | 'appliedAt' | 'principal' | 'status' | 'failure' | 'pins' | 'conflicts'
   > | null;
+  /** Who maintains it and whether anyone actually does (wave 3). */
+  maintainers: { group: string; staffed: boolean } | null;
+  /** Extents the pack claims that somebody else holds. */
+  titleConflicts: string[];
+}
+
+/** One entry of the boot union — `BootstrapManager`'s input shape, from packs. */
+export interface PackBootManifestEntry {
+  templatePath: string;
+  dependsOn?: string[];
+  /** Which pack declared it (the duplicate error names both). */
+  packId: string;
+  role: 'sync-read' | 'producer';
+}
+
+/** `pack provision <id>` — the pack's structure as the registries hold it now. */
+export interface PackProvisionReport {
+  packId: string;
+  maintainers: { group: string; staffed: boolean; members: string[] };
+  groups: Array<{ name: string; members: number }>;
+  titles: Array<{ extent: string; holder: string; outcome: string }>;
+}
+
+/** Who a pack's diagnostics route to. */
+export interface PackMaintainersInfo {
+  maintainers: PackMaintainers;
+  staffed: boolean;
+  /** Where an unstaffed pack's traffic goes: the executive. */
+  fallback: { organization: string };
 }
 
 /** One planned action from a dry run. */
@@ -184,7 +293,9 @@ export interface PackPlannedAction {
     /** merge-missing kinds (settings): missing keys merged into the singleton. */
     | 'merge'
     /** CAS kinds (wiki): the write is submitted to the kind's own edit path. */
-    | 'submit';
+    | 'submit'
+    /** domain rows whose covering extent was sold out of the pack's holder set — never written. */
+    | 'skip-sold';
   key: string;
   kind: string;
 }
@@ -328,6 +439,35 @@ export class PackApi {
   /** Claim a row: it is skipped before any comparison until unpinned. */
   public static async pin(packId: string, path: string): Promise<string[]> {
     return logic().pin(packId, path);
+  }
+
+  /**
+   * The boot union (wave 3, D5): every applied pack's `boot:` entries as
+   * `BootstrapManager` entries, in install order. A template listed by two
+   * packs is an error naming both — dedupe would hide a real disagreement.
+   * `packRoots` overrides discovery with explicit pack-root dirs (tests).
+   */
+  public static async bootManifest(packRoots?: string[]): Promise<PackBootManifestEntry[]> {
+    return logic().bootManifest(packRoots);
+  }
+
+  /** `pack provision <id>` — read-only: the pack's groups, staffing and titles now. */
+  public static async provision(packId: string): Promise<PackProvisionReport> {
+    return logic().provision(packId);
+  }
+
+  /**
+   * Staff a pack's maintainers group with `memberPath` (an identity path).
+   * An organization-maintained pack is refused — staffing an organization
+   * is `appoint`, not a pack verb.
+   */
+  public static async staff(packId: string, memberPath: string): Promise<boolean> {
+    return logic().staff(packId, memberPath);
+  }
+
+  /** Who maintains `packId`, whether anyone does, and the ops fallback. */
+  public static async maintainersOf(packId: string): Promise<PackMaintainersInfo | null> {
+    return logic().maintainersOf(packId);
   }
 
   /** Release a pin; the next reconcile compares the row again. */

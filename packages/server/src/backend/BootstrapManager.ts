@@ -23,6 +23,7 @@ import { StuffApi } from '../mud/api/stuff';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { Template } from '../mud/lib/stuff/Template';
 import { bootstrapManifest } from '../mud/bootstrap';
+import { PackApi } from '../mud/api/pack';
 import { EventApi } from '../mud/api/event';
 import { SecurityApi } from '../mud/api/security';
 import {
@@ -187,12 +188,17 @@ export class BootstrapManager {
    * `StuffApi.clone(...)` in dep-sorted order; `awaitInit` (if
    * provided) runs immediately after that entry's clone resolves.
    *
+   * The default manifest is the UNION of the code manifest
+   * (`mud/bootstrap.ts` — shrinking as packs take its entries, gone at
+   * content-packs wave 3 step 7) and every applied pack's `boot:` list
+   * (`PackApi.bootManifest`). A path present in both is the duplicate
+   * error below — each move is one atomic edit.
+   *
    * Visible for testing — accepts an optional manifest override.
    */
-  public static async run(
-    manifest: BootstrapEntry[] = bootstrapManifest
-  ): Promise<void> {
+  public static async run(manifest?: BootstrapEntry[]): Promise<void> {
     BootstrapManager.installFrameworkWiring();
+    manifest ??= [...bootstrapManifest, ...(await PackApi.bootManifest())];
     const expanded = await this.#expandPrefixEntries(manifest);
     const sorted = this.#topologicalSort(expanded);
 

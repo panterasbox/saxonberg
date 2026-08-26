@@ -20,6 +20,7 @@ import YAML from 'yaml';
 import { PackApi } from '../../../api/pack';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
+import { stubRegistries } from './pack-harness';
 
 const MATERIAL = '/obj/material/Material';
 const HYDRATOR = '/obj/persistence/PersistentHydrator';
@@ -54,6 +55,7 @@ function getPath(row: Record<string, unknown>, key: string): unknown {
 function stubPersist(): void {
   rows = [];
   nextId = 1;
+  stubRegistries();
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (col: string, query: Record<string, unknown>) =>

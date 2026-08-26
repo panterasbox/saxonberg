@@ -170,7 +170,15 @@ export class AppBootstrap {
               Object.entries(r.documents)
                 .map(([k, n]) => `${n} ${k} document(s)`)
                 .join(', ')
-            : '')
+            : '') +
+          `, requires: ${r.requires.groupsCreated.length + r.requires.groupsFound.length} group(s) ` +
+          `(${r.requires.groupsCreated.length} created), ` +
+          `${r.requires.titlesGranted.length + r.requires.titlesKept.length + r.requires.titlesMigrated.length + r.requires.titleConflicts.length} title(s) ` +
+          `(${r.requires.titlesGranted.length} granted, ${r.requires.titlesKept.length} kept, ` +
+          `${r.requires.titlesMigrated.length} migrated, ${r.requires.titleConflicts.length} conflict)` +
+          (r.requires.skippedSold.length > 0 ? `, ${r.requires.skippedSold.length} row(s) skipped (extent sold)` : '') +
+          `, boot: ${r.boot['sync-read']} sync-read + ${r.boot.producer} producer, ` +
+          (r.staffed ? 'staffed' : 'UNSTAFFED')
       );
     }
 

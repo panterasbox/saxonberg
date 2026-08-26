@@ -42,6 +42,13 @@ import { Emote } from '../../lib/social/Emote';
 import { Recipe } from '../../lib/craft/Recipe';
 import { AppSettings } from '../../lib/config/AppSettings';
 import { GroupApi } from '../../api/group';
+import { ParcelApi } from '../../api/parcel';
+import { AccessApi } from '../../api/access';
+import { EmploymentApi } from '../../api/employment';
+import { MixinApi } from '../../api/mixin';
+import { LandUses } from '../../lib/parcel/LandUse';
+import type { ParcelOwner, TitleClaim } from '../../lib/parcel/ParcelRecord';
+import type { GroupRole } from '../../lib/social/Group';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type BlueprintCatalogue from '../BlueprintCatalogue';
 import WikiRegistry, { WikiConflict } from '../WikiRegistry';
@@ -61,6 +68,15 @@ import type {
   PackDiffEntry,
   PackDiffBody,
   PackResolveMode,
+  PackRequires,
+  PackRequiresResult,
+  RequiredGroup,
+  RequiredTitle,
+  PackBootEntry,
+  PackMaintainers,
+  PackBootManifestEntry,
+  PackProvisionReport,
+  PackMaintainersInfo,
 } from '../../api/pack';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
@@ -282,6 +298,173 @@ function resolvePackRootByName(pkgName: string): string {
 }
 
 /** Parse + validate a pack root's `pack.yaml`. */
+/** The closed manifest key set — anything else is a typo, and a typo is an error. */
+const MANIFEST_KEYS: ReadonlySet<string> = new Set([
+  'id', 'version', 'description', 'dependsOn', 'root', 'requires', 'boot', 'maintainers',
+]);
+const BOOT_ROLES: ReadonlySet<string> = new Set(['sync-read', 'producer']);
+const GROUP_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'member']);
+
+/** The default maintainers group for a pack that names none. */
+function defaultMaintainers(id: string): PackMaintainers {
+  return { group: `${id}-maintainers` };
+}
+
+function isAbsolutePath(v: unknown): v is string {
+  return typeof v === 'string' && v.startsWith('/') && v.length > 1 && !v.endsWith('/');
+}
+
+function readRequires(m: Record<string, unknown>, file: string): PackRequires {
+  const out: PackRequires = { groups: [], title: [] };
+  if (m.requires === undefined) return out;
+  const r = m.requires;
+  if (!r || typeof r !== 'object' || Array.isArray(r)) {
+    throw new Error(`PackApi: manifest at ${file} has a malformed 'requires' (want an object)`);
+  }
+  const req = r as Record<string, unknown>;
+  for (const k of Object.keys(req)) {
+    if (k !== 'groups' && k !== 'title') {
+      throw new Error(`PackApi: manifest at ${file} has an unknown key 'requires.${k}' (known: groups, title)`);
+    }
+  }
+  const groups = req.groups ?? [];
+  if (!Array.isArray(groups)) {
+    throw new Error(`PackApi: manifest at ${file} has a malformed 'requires.groups' (want a list)`);
+  }
+  for (const g of groups as Array<Record<string, unknown>>) {
+    if (!g || typeof g.name !== 'string' || g.name.length === 0) {
+      throw new Error(`PackApi: manifest at ${file}: every requires.groups entry needs a 'name'`);
+    }
+    if (typeof g.purpose !== 'string' || g.purpose.trim().length === 0) {
+      throw new Error(`PackApi: manifest at ${file}: group '${g.name}' needs a 'purpose'`);
+    }
+    const entry: RequiredGroup = { name: g.name, purpose: g.purpose.trim() };
+    if (g.owner !== undefined) {
+      const o = g.owner as Record<string, unknown> | null;
+      if (!o || typeof o !== 'object' || typeof o.office !== 'string' || o.office.length === 0) {
+        throw new Error(`PackApi: manifest at ${file}: group '${g.name}' owner must be { office: <key> }`);
+      }
+      entry.owner = { office: o.office };
+    }
+    if (g.members !== undefined) {
+      if (!Array.isArray(g.members)) {
+        throw new Error(`PackApi: manifest at ${file}: group '${g.name}' members must be a list`);
+      }
+      entry.members = (g.members as Array<Record<string, unknown>>).map((mm) => {
+        if (!mm || typeof mm.id !== 'string' || mm.id.length === 0) {
+          throw new Error(`PackApi: manifest at ${file}: group '${g.name}' has a member without an 'id'`);
+        }
+        if (mm.role !== undefined && !(typeof mm.role === 'string' && GROUP_ROLES.has(mm.role))) {
+          throw new Error(`PackApi: manifest at ${file}: member '${mm.id}' of '${g.name}' has an unknown role`);
+        }
+        const member: { id: string; role?: GroupRole } = { id: mm.id };
+        if (mm.role !== undefined) member.role = mm.role as GroupRole;
+        return member;
+      });
+    }
+    out.groups.push(entry);
+  }
+  const title = req.title ?? [];
+  if (!Array.isArray(title)) {
+    throw new Error(`PackApi: manifest at ${file} has a malformed 'requires.title' (want a list)`);
+  }
+  for (const t of title as Array<Record<string, unknown>>) {
+    if (!t || !isAbsolutePath(t.extent)) {
+      throw new Error(`PackApi: manifest at ${file}: every requires.title entry needs an absolute 'extent'`);
+    }
+    const entry: RequiredTitle = { extent: t.extent };
+    if (t.holder !== undefined) {
+      const h = t.holder as Record<string, unknown> | null;
+      if (h && typeof h === 'object' && typeof h.group === 'string' && h.group.length > 0) {
+        entry.holder = { group: h.group };
+      } else if (h && typeof h === 'object' && isAbsolutePath(h.organization)) {
+        entry.holder = { organization: h.organization };
+      } else {
+        throw new Error(
+          `PackApi: manifest at ${file}: title '${t.extent}' holder must be { group: <name> } or { organization: </path> }`,
+        );
+      }
+    }
+    if (t.landUse !== undefined) {
+      if (typeof t.landUse !== 'string' || !LandUses.isLandUse(t.landUse)) {
+        throw new Error(
+          `PackApi: manifest at ${file}: title '${t.extent}' declares unknown landUse ` +
+            `'${String(t.landUse)}' (expected one of ${LandUses.ALL.join(', ')})`,
+        );
+      }
+      entry.landUse = t.landUse;
+    }
+    if (t.areaM2 !== undefined) {
+      if (typeof t.areaM2 !== 'number' || !(t.areaM2 > 0)) {
+        throw new Error(`PackApi: manifest at ${file}: title '${t.extent}' has a non-positive areaM2`);
+      }
+      entry.areaM2 = t.areaM2;
+    }
+    if (t.parentParcel !== undefined) {
+      if (!isAbsolutePath(t.parentParcel)) {
+        throw new Error(`PackApi: manifest at ${file}: title '${t.extent}' has a malformed parentParcel`);
+      }
+      entry.parentParcel = t.parentParcel;
+    }
+    out.title.push(entry);
+  }
+  return out;
+}
+
+function readBoot(m: Record<string, unknown>, file: string): PackBootEntry[] {
+  if (m.boot === undefined) return [];
+  if (!Array.isArray(m.boot)) {
+    throw new Error(`PackApi: manifest at ${file} has a malformed 'boot' (want a list)`);
+  }
+  return (m.boot as Array<Record<string, unknown>>).map((b) => {
+    if (!b || typeof b !== 'object') {
+      throw new Error(`PackApi: manifest at ${file}: every boot entry is an object`);
+    }
+    for (const k of Object.keys(b)) {
+      if (!['template', 'role', 'reason', 'dependsOn'].includes(k)) {
+        throw new Error(
+          `PackApi: manifest at ${file}: boot entry has an unknown key '${k}' (known: template, role, reason, dependsOn)`,
+        );
+      }
+    }
+    if (!isAbsolutePath(b.template)) {
+      throw new Error(`PackApi: manifest at ${file}: every boot entry needs an absolute 'template'`);
+    }
+    if (typeof b.role !== 'string' || !BOOT_ROLES.has(b.role)) {
+      throw new Error(`PackApi: manifest at ${file}: boot entry '${b.template}' role must be sync-read or producer`);
+    }
+    if (typeof b.reason !== 'string' || b.reason.trim().length === 0) {
+      throw new Error(`PackApi: manifest at ${file}: boot entry '${b.template}' needs a 'reason'`);
+    }
+    const entry: PackBootEntry = { template: b.template, role: b.role as PackBootEntry['role'], reason: b.reason.trim() };
+    if (b.dependsOn !== undefined) {
+      if (!Array.isArray(b.dependsOn) || b.dependsOn.some((d) => typeof d !== 'string')) {
+        throw new Error(`PackApi: manifest at ${file}: boot entry '${b.template}' dependsOn must be string[]`);
+      }
+      entry.dependsOn = b.dependsOn as string[];
+    }
+    return entry;
+  });
+}
+
+function readMaintainers(m: Record<string, unknown>, id: string, file: string): PackMaintainers {
+  if (m.maintainers === undefined) return defaultMaintainers(id);
+  const v = m.maintainers;
+  if (typeof v === 'string' && v.length > 0) return { group: v };
+  if (v && typeof v === 'object' && !Array.isArray(v)) {
+    const o = v as Record<string, unknown>;
+    if (typeof o.group === 'string' && o.group.length > 0 && o.organization === undefined) {
+      return { group: o.group };
+    }
+    if (isAbsolutePath(o.organization) && o.group === undefined) {
+      return { organization: o.organization };
+    }
+  }
+  throw new Error(
+    `PackApi: manifest at ${file} has a malformed 'maintainers' (want a group name, { group: <name> } or { organization: </path> })`,
+  );
+}
+
 function readManifest(root: string): PackManifest {
   const file = join(root, 'pack.yaml');
   const raw = readFileSync(file, 'utf-8');
@@ -290,6 +473,13 @@ function readManifest(root: string): PackManifest {
     throw new Error(`PackApi: malformed manifest at ${file}: expected an object`);
   }
   const m = parsed as Record<string, unknown>;
+  for (const k of Object.keys(m)) {
+    if (!MANIFEST_KEYS.has(k)) {
+      throw new Error(
+        `PackApi: manifest at ${file} has an unknown key '${k}' (known: ${[...MANIFEST_KEYS].join(', ')})`,
+      );
+    }
+  }
   if (typeof m.id !== 'string' || m.id.length === 0) {
     throw new Error(`PackApi: manifest at ${file} is missing a string 'id'`);
   }
@@ -322,6 +512,9 @@ function readManifest(root: string): PackManifest {
     description: typeof m.description === 'string' ? m.description : undefined,
     dependsOn: dependsOn as string[],
     root: docRoot,
+    requires: readRequires(m, file),
+    boot: readBoot(m, file),
+    maintainers: readMaintainers(m, m.id, file),
   };
 }
 
@@ -337,6 +530,11 @@ function resolvePack(root: string): ResolvedPack {
  * pack this is a passthrough.
  */
 function orderByDependsOn(packs: ResolvedPack[]): ResolvedPack[] {
+  // Pack zero sorts first regardless (a stable tiebreak): its claims are
+  // the hosts every other pack's coverage rides on.
+  packs = [...packs].sort((a, b) =>
+    a.manifest.id === PLATFORM_PACK ? -1 : b.manifest.id === PLATFORM_PACK ? 1 : 0,
+  );
   const byId = new Map(packs.map((p) => [p.manifest.id, p]));
   const ordered: ResolvedPack[] = [];
   const done = new Set<string>();
@@ -361,11 +559,34 @@ function orderByDependsOn(packs: ResolvedPack[]): ResolvedPack[] {
   return ordered;
 }
 
+const PLATFORM_PACK = 'platform';
+
+/**
+ * The D10 install filter: `SAXONBERG_PACKS=platform,expression` (comma-
+ * separated ids; unset = every discovered pack). Applied AFTER ordering;
+ * an id no shipped pack provides throws at boot. Read from the ambient
+ * environment (obj/api is the importing tier; a global is not an import).
+ */
+function packFilter(): ReadonlySet<string> | null {
+  const raw = process.env.SAXONBERG_PACKS;
+  if (raw === undefined || raw.trim().length === 0) return null;
+  return new Set(raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0));
+}
+
 /** Discover + order the shipped packs (or use explicit roots for tests). */
 function discover(packRoots?: string[]): ResolvedPack[] {
   const roots =
     packRoots ?? packNamesFromServerDeps().map(resolvePackRootByName);
-  return orderByDependsOn(roots.map(resolvePack));
+  const ordered = orderByDependsOn(roots.map(resolvePack));
+  const filter = packFilter();
+  if (!filter) return ordered;
+  const known = new Set(ordered.map((p) => p.manifest.id));
+  for (const id of filter) {
+    if (!known.has(id)) {
+      throw new Error(`PackApi: SAXONBERG_PACKS names '${id}', which no shipped pack provides`);
+    }
+  }
+  return ordered.filter((p) => filter.has(p.manifest.id));
 }
 
 // --- content walk ----------------------------------------------------------
@@ -1610,6 +1831,9 @@ function freshRecord(pack: ResolvedPack): StoredRecord {
     pins: [],
     conflicts: [],
     sideEffects: { kinds: [] },
+    requires: { groups: [], title: [] },
+    boot: [],
+    maintainers: defaultMaintainers(pack.manifest.id),
   };
 }
 
@@ -1706,6 +1930,7 @@ async function computeKindPlan<F>(
   files: F[],
   record: StoredRecord | null,
   now: string,
+  sold?: (path: string) => Promise<boolean>,
 ): Promise<KindPlan<F>> {
   const actions: PlannedAction[] = [];
   const pins = new Set(record?.pins ?? []);
@@ -1736,6 +1961,10 @@ async function computeKindPlan<F>(
     const key = strategy.recordKeyOf(f);
     if (pins.has(key)) {
       actions.push({ op: 'pinned-skip', key });
+      continue;
+    }
+    if (strategy.kind === 'domain' && sold && (await sold(key))) {
+      actions.push({ op: 'skip-sold', key });
       continue;
     }
     const row = strategy.rowOf(f, packId);
@@ -2242,11 +2471,25 @@ function readPack(pack: ResolvedPack): ReadPack {
   }
 }
 
-/** Every pre-write gate for one pack: requires-kernel, then topics. */
-async function gatePack(rp: ReadPack): Promise<void> {
+/** The manifests + shipped paths of an install set, keyed by pack id. */
+interface InstallSet {
+  manifests: ReadonlyMap<string, PackManifest>;
+  shipped: ReadonlyMap<string, ReadonlySet<string>>;
+}
+
+function installSetOf(read: ReadPack[]): InstallSet {
+  return {
+    manifests: new Map(read.map((r) => [r.pack.manifest.id, r.pack.manifest])),
+    shipped: new Map(read.map((r) => [r.pack.manifest.id, new Set(r.content.domain.map((d) => d.path))])),
+  };
+}
+
+/** Every pre-write gate for one pack: requires-kernel (classes + requires), then topics. */
+async function gatePack(rp: ReadPack, set: InstallSet = installSetOf([rp])): Promise<void> {
   const packId = rp.pack.manifest.id;
   try {
     await assertClassesResolve(packId, rp.content.domain);
+    gateRequires(rp, set.manifests, set.shipped);
   } catch (err) {
     throw new PackStepError('requires-kernel', (err as Error).message);
   }
@@ -2270,11 +2513,12 @@ async function planPack(
   rp: ReadPack,
   record: StoredRecord | null,
   now: string,
+  sold?: (path: string) => Promise<boolean>,
 ): Promise<Array<KindPlan<unknown>>> {
   const plans: Array<KindPlan<unknown>> = [];
   for (const k of kindsOf(rp.content)) {
     plans.push(
-      await computeKindPlan(rp.pack.manifest.id, k.strategy, k.files, record, now),
+      await computeKindPlan(rp.pack.manifest.id, k.strategy, k.files, record, now, sold),
     );
   }
   return plans;
@@ -2297,6 +2541,348 @@ function emptyResult(packId: string): PackReconcileResult {
     documents: {},
     rehydrated: 0,
     failure: null,
+    requires: emptyRequiresResult(),
+    boot: { 'sync-read': 0, producer: 0 },
+    staffed: false,
+  };
+}
+
+function emptyRequiresResult(): PackRequiresResult {
+  return {
+    groupsCreated: [],
+    groupsFound: [],
+    titlesGranted: [],
+    titlesKept: [],
+    titlesMigrated: [],
+    titleConflicts: [],
+    membersAdded: [],
+    skippedSold: [],
+  };
+}
+
+// --- the requires phase (wave 3) -------------------------------------------
+
+/** The office every default maintainers group is owned by. */
+const PRIME_MINISTER = 'prime-minister';
+
+/** The ops fallback for an unstaffed pack: the executive itself. */
+const EXECUTIVE = '/compact/executive';
+
+/** A pack plus every pack in its transitive `dependsOn` (the hosts), by manifest. */
+function hostChainOf(manifest: PackManifest, all: ReadonlyMap<string, PackManifest>): PackManifest[] {
+  const out: PackManifest[] = [];
+  const seen = new Set<string>();
+  const visit = (m: PackManifest): void => {
+    if (seen.has(m.id)) return;
+    seen.add(m.id);
+    out.push(m);
+    for (const dep of m.dependsOn) {
+      const host = all.get(dep);
+      if (host) visit(host);
+    }
+  };
+  visit(manifest);
+  return out;
+}
+
+/** `path` is `extent` or strictly under it. */
+function underExtent(path: string, extent: string): boolean {
+  return path === extent || path.startsWith(extent + '/');
+}
+
+/** The typed holder a manifest's maintainers / a title holder resolves to. */
+function holderOfMaintainers(m: PackMaintainers): ParcelOwner {
+  return 'group' in m
+    ? { kind: 'group', name: m.group }
+    : { kind: 'organization', templatePath: m.organization };
+}
+
+function holderOfTitle(t: RequiredTitle, maintainers: PackMaintainers): ParcelOwner {
+  if (!t.holder) return holderOfMaintainers(maintainers);
+  return 'group' in t.holder
+    ? { kind: 'group', name: t.holder.group }
+    : { kind: 'organization', templatePath: t.holder.organization };
+}
+
+/** A comparable key for a holder (a ref-only group keys on its ref). */
+function holderKey(owner: ParcelOwner): string {
+  if (owner.kind === 'group') return `group:${owner.name ?? owner.ref ?? ''}`;
+  return `${owner.kind}:${owner.templatePath}`;
+}
+
+function describeHolder(owner: ParcelOwner): string {
+  if (owner.kind === 'group') return `group '${owner.name ?? owner.ref ?? '?'}'`;
+  return `${owner.kind} '${owner.templatePath}'`;
+}
+
+/**
+ * Every holder a pack's rows may legitimately sit under: its maintainers,
+ * its own claims' holders, and its hosts' (transitive `dependsOn`) — the
+ * set the bounded reconcile compares a covering parcel's holder against.
+ */
+function holderSetOf(manifest: PackManifest, all: ReadonlyMap<string, PackManifest>): Set<string> {
+  const keys = new Set<string>();
+  for (const m of hostChainOf(manifest, all)) {
+    keys.add(holderKey(holderOfMaintainers(m.maintainers)));
+    for (const t of m.requires.title) keys.add(holderKey(holderOfTitle(t, m.maintainers)));
+  }
+  return keys;
+}
+
+/** Every extent the pack or a host claims. */
+function claimedExtentsOf(manifest: PackManifest, all: ReadonlyMap<string, PackManifest>): string[] {
+  const out: string[] = [];
+  for (const m of hostChainOf(manifest, all)) for (const t of m.requires.title) out.push(t.extent);
+  return out;
+}
+
+/** Every path-addressed row a pack ships: domain template paths + document paths + wiki pages. */
+function shippedPathsOf(content: PackContent): string[] {
+  const out: string[] = [];
+  for (const d of content.domain) out.push(d.path);
+  for (const files of content.documents.values()) {
+    for (const f of files) out.push(f.path.startsWith('/') ? f.path : `/${f.path}`);
+  }
+  for (const w of content.wiki) out.push(`/wiki/${w.namespace}/${w.slug}`);
+  return out;
+}
+
+/**
+ * The static half of the requires phase, run at `gatePack` (step
+ * `requires-kernel`, before any write):
+ *  - a `{group}` title holder is declared by this pack or a host;
+ *  - an `{organization}` holder / maintainer is a row this pack or a host
+ *    ships;
+ *  - the NPC-only membership fence: every `members[].id` is a template
+ *    path in THIS pack's domain, under one of THIS pack's own claims, in
+ *    one of THIS pack's own groups;
+ *  - coverage: every shipped path lies under a claim of this pack or a
+ *    host. A pack whose whole host chain claims nothing is pre-wave-3
+ *    shaped and passes vacuously (`lint:untitled` is the static gate).
+ */
+function gateRequires(
+  rp: ReadPack,
+  installSet: ReadonlyMap<string, PackManifest>,
+  shippedByPack: ReadonlyMap<string, ReadonlySet<string>>,
+): void {
+  const manifest = rp.pack.manifest;
+  const hosts = hostChainOf(manifest, installSet);
+  const declaredGroups = new Set<string>();
+  for (const m of hosts) for (const g of m.requires.groups) declaredGroups.add(g.name);
+  const shippedRows = new Set<string>();
+  for (const m of hosts) for (const path of shippedByPack.get(m.id) ?? []) shippedRows.add(path);
+
+  const requireShippedOrganization = (path: string, what: string): void => {
+    if (!shippedRows.has(path)) {
+      throw new Error(
+        `PackApi: pack '${manifest.id}' names organization '${path}' as ${what}, ` +
+          `but neither it nor a dependsOn pack ships that row`,
+      );
+    }
+  };
+  if ('organization' in manifest.maintainers) {
+    requireShippedOrganization(manifest.maintainers.organization, 'its maintainers');
+  }
+  for (const t of manifest.requires.title) {
+    if (!t.holder) continue;
+    if ('group' in t.holder && !declaredGroups.has(t.holder.group)) {
+      throw new Error(
+        `PackApi: pack '${manifest.id}' claims '${t.extent}' for group '${t.holder.group}', ` +
+          `which neither it nor a dependsOn pack declares under requires.groups`,
+      );
+    }
+    if ('organization' in t.holder) {
+      requireShippedOrganization(t.holder.organization, `the holder of '${t.extent}'`);
+    }
+  }
+
+  // The NPC-only membership fence.
+  const ownExtents = manifest.requires.title.map((t) => t.extent);
+  const ownRows = new Set(rp.content.domain.map((d) => d.path));
+  for (const g of manifest.requires.groups) {
+    for (const m of g.members ?? []) {
+      if (!ownRows.has(m.id)) {
+        throw new Error(
+          `PackApi: pack '${manifest.id}' authors member '${m.id}' of group '${g.name}', ` +
+            `but a pack may only enrol NPC rows it ships (the id is not a template in this pack)`,
+        );
+      }
+      if (!ownExtents.some((e) => underExtent(m.id, e))) {
+        throw new Error(
+          `PackApi: pack '${manifest.id}' authors member '${m.id}' of group '${g.name}', ` +
+            `but the row is outside every extent the pack itself claims`,
+        );
+      }
+    }
+  }
+
+  // Coverage.
+  const claims = claimedExtentsOf(manifest, installSet);
+  if (claims.length === 0) return;
+  for (const path of shippedPathsOf(rp.content)) {
+    if (!claims.some((e) => underExtent(path, e))) {
+      throw new Error(
+        `PackApi: pack '${manifest.id}': row ${path} is outside every extent ` +
+          `'${manifest.id}' or its hosts claim (${claims.join(', ')})`,
+      );
+    }
+  }
+}
+
+/** Who is applying, as a principal Stuff (null at boot / outside a command). */
+function actingPrincipal(): { getIdentityPath(): string | null } | null {
+  return ExecutionContextApi.getActingAuthor() as { getIdentityPath(): string | null } | null;
+}
+
+/**
+ * Stand the organizations a manifest names up BEFORE holders resolve —
+ * the registry-at-boot rule applied to organizations: the requires phase
+ * runs after the pack's rows are written and before `BootstrapManager`
+ * clones the manifest, so `/compact/executive` is a row but not yet a
+ * resident Stuff. `StuffApi.singleton` mints-if-absent; the manager
+ * reuses the resident one.
+ */
+async function ensureOrganizationsResident(manifest: PackManifest): Promise<void> {
+  const paths = new Set<string>();
+  if ('organization' in manifest.maintainers) paths.add(manifest.maintainers.organization);
+  for (const t of manifest.requires.title) {
+    if (t.holder && 'organization' in t.holder) paths.add(t.holder.organization);
+  }
+  for (const path of paths) {
+    if (StuffApi.findAllByTemplatePath(path).length > 0) continue;
+    await StuffApi.singleton(path);
+  }
+}
+
+/** Is anyone actually holding this maintainer? */
+async function isStaffed(m: PackMaintainers): Promise<boolean> {
+  if ('group' in m) {
+    const reg = await GroupApi.registry();
+    const g = await reg.managed().findByName(m.group);
+    return (g?.memberIds.length ?? 0) > 0;
+  }
+  const org = StuffApi.findByTemplatePath(m.organization);
+  if (!org || !MixinApi.isOrganization(org)) return false;
+  // The head alone does not count — an office with no staff is unstaffed.
+  return org.getPositions().some((p) => EmploymentApi.holdersOf(org, p.key).length > 0);
+}
+
+/**
+ * The requires phase (D4): groups, memberships, titles — after the pack's
+ * rows are written, before its record is saved. Adopt-by-name throughout:
+ * an existing group is found and never re-owned; an existing title under
+ * the same holder is kept. Bootstrap is exempt from the *precondition*
+ * (who may claim), never from the checks `gateRequires` already ran.
+ */
+async function applyRequires(
+  rp: ReadPack,
+  record: StoredRecord,
+  result: PackReconcileResult,
+): Promise<void> {
+  const manifest = rp.pack.manifest;
+  const packId = manifest.id;
+  const out = result.requires;
+  await ensureOrganizationsResident(manifest);
+
+  // 1. Groups — the maintainers group first (PM-owned), then the declared ones.
+  const refs = new Map<string, string>();
+  const ensure = async (name: string, owner: Parameters<typeof GroupApi.ensureGroup>[1]): Promise<string> => {
+    const { ref, created } = await GroupApi.ensureGroup(name, owner);
+    (created ? out.groupsCreated : out.groupsFound).push(name);
+    refs.set(name, ref);
+    return ref;
+  };
+  if ('group' in manifest.maintainers) {
+    await ensure(manifest.maintainers.group, { kind: 'office', office: PRIME_MINISTER });
+  }
+  for (const g of manifest.requires.groups) {
+    if (refs.has(g.name)) continue;
+    await ensure(g.name, g.owner ? { kind: 'office', office: g.owner.office } : { kind: 'system' });
+  }
+
+  // 2. Memberships — NPC rows under the pack's own claims (fenced at the gate).
+  for (const g of manifest.requires.groups) {
+    const ref = refs.get(g.name);
+    if (!ref) continue;
+    for (const m of g.members ?? []) {
+      if (await GroupApi.ensureMember(ref, m.id, m.role ?? 'member')) {
+        out.membersAdded.push(`${g.name}:${m.id}`);
+      }
+    }
+  }
+
+  // 3. Titles.
+  const principal = record.principal;
+  for (const t of manifest.requires.title) {
+    const holder = holderOfTitle(t, manifest.maintainers);
+    if (principal !== 'bootstrap') {
+      const actor = actingPrincipal();
+      const admitted = actor
+        ? await AccessApi.canAtPath(actor as never, 'write-template', t.extent)
+        : false;
+      if (!admitted) {
+        throw new PackStepError(
+          'requires-kernel',
+          `PackApi: pack '${packId}' claims '${t.extent}', which ${principal} does not hold`,
+        );
+      }
+    }
+    const claim: TitleClaim = { extent: t.extent, holder };
+    if (t.parentParcel !== undefined) claim.parentParcel = t.parentParcel;
+    if (t.landUse !== undefined) claim.landUse = t.landUse as TitleClaim['landUse'];
+    if (t.areaM2 !== undefined) claim.areaM2 = t.areaM2;
+    const r = await ParcelApi.grant(claim);
+    switch (r.outcome) {
+      case 'granted': out.titlesGranted.push(t.extent); break;
+      case 'kept': out.titlesKept.push(t.extent); break;
+      case 'migrated': out.titlesMigrated.push(t.extent); break;
+      case 'conflict':
+        out.titleConflicts.push(t.extent);
+        record.conflicts.push({
+          path: t.extent,
+          kind: 'title',
+          detectedAt: record.appliedAt,
+          baselineHash: '',
+          dbHash: describeHolder(r.holder),
+          packHash: describeHolder(holder),
+          reason: 'title',
+        });
+        break;
+    }
+  }
+
+  // 4. What the record remembers, and what the boot line reports.
+  record.requires = manifest.requires;
+  record.boot = manifest.boot;
+  record.maintainers = manifest.maintainers;
+  for (const b of manifest.boot) result.boot[b.role] += 1;
+  result.staffed = await isStaffed(manifest.maintainers);
+}
+
+/**
+ * The bounded-reconcile predicate (CPS:308) for one pack: a domain row
+ * whose covering parcel is held by nobody in the pack's holder set was
+ * SOLD out from under the pack — skipped and counted, never written. No
+ * resident registry → unbounded. migration-note: a `core`-held covering
+ * parcel is the retired state default, not a sale.
+ */
+function soldPredicateFor(
+  manifest: PackManifest,
+  installSet: ReadonlyMap<string, PackManifest>,
+): (path: string) => Promise<boolean> {
+  const holders = holderSetOf(manifest, installSet);
+  return async (path: string): Promise<boolean> => {
+    const covering = await ParcelApi.coveringParcelOf(path);
+    const owner = covering?.getOwner() ?? null;
+    if (!owner) return false;
+    if (owner.kind === 'group' && owner.name === 'core') return false;
+    if (holders.has(holderKey(owner))) return false;
+    // A ref-only group owner: compare by its resolved name too.
+    if (owner.kind === 'group' && !owner.name && owner.ref) {
+      const name = await managedGroupNameOf(owner.ref);
+      if (holders.has(`group:${name}`)) return false;
+    }
+    return true;
   };
 }
 
@@ -2364,15 +2950,16 @@ async function invalidateDocumentKind(
  */
 async function reconcilePack(
   rp: ReadPack,
-  opts: { rehydrate: boolean },
+  opts: { rehydrate: boolean; installSet?: InstallSet },
 ): Promise<PackReconcileResult> {
   const { pack, content } = rp;
   const packId = pack.manifest.id;
-  await gatePack(rp);
+  const set = opts.installSet ?? installSetOf([rp]);
+  await gatePack(rp, set);
 
   const prior = await loadRecord(packId);
   const now = new Date().toISOString();
-  const plans = await planPack(rp, prior, now);
+  const plans = await planPack(rp, prior, now, soldPredicateFor(pack.manifest, set.manifests));
 
   const record: StoredRecord = prior ?? freshRecord(pack);
   record.version = pack.manifest.version;
@@ -2398,7 +2985,13 @@ async function reconcilePack(
     result.pinnedSkipped += applied.pinnedSkipped;
     result.normalized += applied.normalized;
     record.conflicts.push(...applied.conflicts);
+    for (const a of plan.actions) {
+      if (a.op === 'skip-sold') result.requires.skippedSold.push(a.key);
+    }
   }
+
+  // The requires phase: after the rows, before the record.
+  await applyRequires(rp, record, result);
   result.conflicts = record.conflicts.map((c) => c.path);
 
   // Adoption is loud: the one time a record is minted over a pre-record
@@ -2425,7 +3018,11 @@ async function reconcilePack(
       severity: 'warning',
       channel: `pack.${packId}`,
       message:
-        `pack '${packId}': conflict at ${c.path} — ` +
+        c.reason === 'title'
+          ? `pack '${packId}': title conflict at ${c.path} — the pack claims it for ` +
+            `${c.packHash} but it is held by ${c.dbHash}; the title is untouched ` +
+            `(transfer it, or change the pack's claim)`
+          : `pack '${packId}': conflict at ${c.path} — ` +
         (c.reason === 'both-changed'
           ? 'pack and database both changed since install'
           : c.reason === 'wiki-cas'
@@ -2535,6 +3132,8 @@ async function recordFailure(
   record.failure = failure;
   record.appliedAt = new Date().toISOString();
   record.principal = principalOf();
+  // A failed pack contributes nothing to the boot union.
+  record.boot = [];
   await saveRecord(record);
   console.error(
     `PackApi: pack '${pack.manifest.id}' FAILED at step '${failure.step}' — ` +
@@ -2543,6 +3142,40 @@ async function recordFailure(
   const result = emptyResult(pack.manifest.id);
   result.failure = failure;
   return result;
+}
+
+/**
+ * The boot union: every applied record's `boot[]`, in install order. A
+ * template two packs both list is an error naming both.
+ */
+async function bootManifestImpl(packRoots?: string[]): Promise<PackBootManifestEntry[]> {
+  const records = (await PersistApi.find(Collections.PackInstalls, {})) as unknown as StoredRecord[];
+  const byId = new Map(records.map((r) => [r.packId, r]));
+  // Install order where the pack is still shipped; recorded-only packs last.
+  const order = discover(packRoots).map((p) => p.manifest.id);
+  const ids = [
+    ...order.filter((id) => byId.has(id)),
+    ...[...byId.keys()].filter((id) => !order.includes(id)).sort(),
+  ];
+  const out: PackBootManifestEntry[] = [];
+  const seen = new Map<string, string>();
+  for (const id of ids) {
+    const r = byId.get(id)!;
+    if (r.status !== 'applied') continue;
+    for (const e of r.boot ?? []) {
+      const prior = seen.get(e.template);
+      if (prior !== undefined) {
+        throw new Error(
+          `PackApi: boot template '${e.template}' is listed by both pack '${prior}' and pack '${id}'`,
+        );
+      }
+      seen.set(e.template, id);
+      const entry: PackBootManifestEntry = { templatePath: e.template, packId: id, role: e.role };
+      if (e.dependsOn) entry.dependsOn = e.dependsOn;
+      out.push(entry);
+    }
+  }
+  return out;
 }
 
 function requireConnection(packId: string): void {
@@ -2606,6 +3239,7 @@ export class PackLogic extends ApiLogic {
       }
     }
     const flat = flatKeyFailures(read);
+    const set = installSetOf(read);
 
     for (const rp of read) {
       const id = rp.pack.manifest.id;
@@ -2615,7 +3249,7 @@ export class PackLogic extends ApiLogic {
         continue;
       }
       try {
-        results.set(id, await reconcilePack(rp, { rehydrate: false }));
+        results.set(id, await reconcilePack(rp, { rehydrate: false, installSet: set }));
       } catch (err) {
         // A failed pack boots WITHOUT the pack; it never bricks the boot.
         results.set(id, await recordFailure(rp.pack, err));
@@ -2641,7 +3275,7 @@ export class PackLogic extends ApiLogic {
     const f = flat.get(packId);
     if (f) throw new PackStepError(f.step, f.error, f.file);
     // An operator at the keyboard: sync throws rather than recording.
-    return reconcilePack(rp, { rehydrate: true });
+    return reconcilePack(rp, { rehydrate: true, installSet: installSetOf([...siblings, rp]) });
   }
 
   /** See {@link PackApi.discoverPacks}. */
@@ -2665,6 +3299,7 @@ export class PackLogic extends ApiLogic {
       if (packId && id !== packId) continue;
       const m = manifests.get(id);
       const r = byId.get(id);
+      const maintainers = r?.maintainers ?? m?.maintainers ?? null;
       out.push({
         packId: id,
         discovered: m !== undefined,
@@ -2680,6 +3315,13 @@ export class PackLogic extends ApiLogic {
               conflicts: r.conflicts,
             }
           : null,
+        maintainers: maintainers
+          ? {
+              group: 'group' in maintainers ? maintainers.group : maintainers.organization,
+              staffed: await isStaffed(maintainers),
+            }
+          : null,
+        titleConflicts: (r?.conflicts ?? []).filter((c) => c.reason === 'title').map((c) => c.path),
       });
     }
     return out;
@@ -2861,6 +3503,72 @@ export class PackLogic extends ApiLogic {
           : YAML.stringify(body),
     );
     return null;
+  }
+
+  /** See {@link PackApi.bootManifest}. */
+  @CallSecurity(PackApiCallers)
+  public async bootManifest(packRoots?: string[]): Promise<PackBootManifestEntry[]> {
+    return bootManifestImpl(packRoots);
+  }
+
+  /** See {@link PackApi.provision}. */
+  @CallSecurity(PackApiCallers)
+  public async provision(packId: string): Promise<PackProvisionReport> {
+    const record = await loadRecord(packId);
+    if (!record) throw new Error(`PackApi: no install record for pack '${packId}'`);
+    const m = record.maintainers ?? defaultMaintainers(packId);
+    const reg = await GroupApi.registry();
+    const membersOfGroup = async (name: string): Promise<string[]> =>
+      (await reg.managed().findByName(name))?.memberIds ?? [];
+    const groups: PackProvisionReport['groups'] = [];
+    for (const g of record.requires?.groups ?? []) {
+      groups.push({ name: g.name, members: (await membersOfGroup(g.name)).length });
+    }
+    const titles: PackProvisionReport['titles'] = [];
+    for (const t of record.requires?.title ?? []) {
+      const owner = await ParcelApi.ownerOf(t.extent);
+      const covering = await ParcelApi.coveringParcelOf(t.extent);
+      const wanted = holderOfTitle(t, m);
+      const held = covering?.getExtent() === t.extent;
+      const outcome = !held ? 'unheld' : holderKey(owner) === holderKey(wanted) ? 'held' : 'conflict';
+      titles.push({ extent: t.extent, holder: describeHolder(owner), outcome });
+    }
+    const members = 'group' in m ? await membersOfGroup(m.group) : [];
+    return {
+      packId,
+      maintainers: {
+        group: 'group' in m ? m.group : m.organization,
+        staffed: await isStaffed(m),
+        members,
+      },
+      groups,
+      titles,
+    };
+  }
+
+  /** See {@link PackApi.staff}. */
+  @CallSecurity(PackApiCallers)
+  public async staff(packId: string, memberPath: string): Promise<boolean> {
+    const record = await loadRecord(packId);
+    if (!record) throw new Error(`PackApi: no install record for pack '${packId}'`);
+    const m = record.maintainers ?? defaultMaintainers(packId);
+    if ('organization' in m) {
+      throw new Error(
+        `PackApi: pack '${packId}' is maintained by organization '${m.organization}' — ` +
+          `appoint through the organization, not the pack`,
+      );
+    }
+    const { ref } = await GroupApi.ensureGroup(m.group, { kind: 'office', office: PRIME_MINISTER });
+    return GroupApi.ensureMember(ref, memberPath, 'member');
+  }
+
+  /** See {@link PackApi.maintainersOf}. */
+  @CallSecurity(PackApiCallers)
+  public async maintainersOf(packId: string): Promise<PackMaintainersInfo | null> {
+    const record = await loadRecord(packId);
+    const m = record?.maintainers ?? discover().find((p) => p.manifest.id === packId)?.manifest.maintainers;
+    if (!m) return null;
+    return { maintainers: m, staffed: await isStaffed(m), fallback: { organization: EXECUTIVE } };
   }
 
   /** See {@link PackApi.pin}. */

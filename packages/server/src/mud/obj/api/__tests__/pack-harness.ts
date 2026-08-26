@@ -12,7 +12,11 @@ import { join, dirname } from 'path';
 import YAML from 'yaml';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
+import { GroupApi } from '../../../api/group';
+import { ParcelApi } from '../../../api/parcel';
 import type { PackInstallRecord } from '../../../api/pack';
+import type { ParcelOwner, TitleClaim } from '../../../lib/parcel/ParcelRecord';
+import type { GroupOwner } from '../../../lib/social/Group';
 
 export const MATERIAL = '/obj/material/Material';
 export const HYDRATOR = '/obj/persistence/PersistentHydrator';
@@ -40,10 +44,96 @@ function getPath(row: Record<string, unknown>, key: string): unknown {
   return cur;
 }
 
+/** The in-memory group registry behind the GroupApi seams the installer uses. */
+export interface FakeGroup {
+  name: string;
+  owner: GroupOwner;
+  members: Array<{ id: string; role: string }>;
+}
+export const groups: FakeGroup[] = [];
+/** The in-memory title registry behind the ParcelApi seams the installer uses. */
+export const parcels: Array<{ extent: string; owner: ParcelOwner }> = [];
+
+export function groupRefOf(name: string): string {
+  return `managed:${name}`;
+}
+
+/**
+ * The registries the requires phase (wave 3) reaches: groups through
+ * `GroupApi.ensureGroup` / `ensureMember` / `registry().managed().findByName`,
+ * titles through `ParcelApi.grant` / `coveringParcelOf` / `ownerOf`. Every
+ * pack install now ensures its maintainers group, so every pack suite
+ * needs these; `stubPersist` installs them.
+ */
+export function stubRegistries(): void {
+  groups.length = 0;
+  parcels.length = 0;
+  vi.spyOn(GroupApi, 'ensureGroup').mockImplementation(async (name, owner) => {
+    const found = groups.find((g) => g.name === name);
+    if (found) return { ref: groupRefOf(name), created: false };
+    groups.push({ name, owner, members: [] });
+    return { ref: groupRefOf(name), created: true };
+  });
+  vi.spyOn(GroupApi, 'ensureMember').mockImplementation(async (ref, id, role) => {
+    const g = groups.find((x) => groupRefOf(x.name) === ref);
+    if (!g) return false;
+    if (g.members.some((m) => m.id === id)) return false;
+    g.members.push({ id, role });
+    return true;
+  });
+  vi.spyOn(GroupApi, 'registry').mockResolvedValue({
+    managed: () => ({
+      findByName: async (name: string) => {
+        const g = groups.find((x) => x.name === name);
+        return g ? { name, memberIds: g.members.map((m) => m.id), _id: name } : null;
+      },
+    }),
+  } as never);
+  vi.spyOn(ParcelApi, 'grant').mockImplementation(async (claim: TitleClaim) => {
+    const row = parcels.find((p) => p.extent === claim.extent);
+    if (!row) {
+      parcels.push({ extent: claim.extent, owner: claim.holder });
+      return { outcome: 'granted', holder: claim.holder };
+    }
+    const same =
+      row.owner.kind === claim.holder.kind &&
+      (row.owner.kind === 'group'
+        ? row.owner.name === (claim.holder as { name?: string }).name
+        : (row.owner as { templatePath: string }).templatePath ===
+          (claim.holder as { templatePath: string }).templatePath);
+    if (same) return { outcome: 'kept', holder: row.owner };
+    if (row.owner.kind === 'group' && row.owner.name === 'core') {
+      row.owner = claim.holder;
+      return { outcome: 'migrated', holder: claim.holder };
+    }
+    return { outcome: 'conflict', holder: row.owner };
+  });
+  const covering = (path: string): { extent: string; owner: ParcelOwner } | null => {
+    let best: { extent: string; owner: ParcelOwner } | null = null;
+    for (const p of parcels) {
+      if (
+        (path === p.extent || path.startsWith(p.extent + '/')) &&
+        (!best || p.extent.length > best.extent.length)
+      ) {
+        best = p;
+      }
+    }
+    return best;
+  };
+  vi.spyOn(ParcelApi, 'coveringParcelOf').mockImplementation(async (path: string) => {
+    const c = covering(path);
+    return c ? ({ getExtent: () => c.extent, getOwner: () => c.owner } as never) : null;
+  });
+  vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
+    async (path: string) => covering(path)?.owner ?? ({ kind: 'group', name: 'core' } as ParcelOwner),
+  );
+}
+
 /** An in-memory, collection-aware store behind PersistApi (dotted keys ok). */
 export function stubPersist(): void {
   store.rows = [];
   store.nextId = 1;
+  stubRegistries();
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (col: string, query: Record<string, unknown>) =>
@@ -145,6 +235,8 @@ export function writePack(
     version?: string;
     /** The manifest `root` (document paths derive from it); omitted = `/<id>`. */
     root?: string;
+    /** Extra manifest keys (`requires`, `boot`, `maintainers`, or a typo under test). */
+    manifest?: Record<string, unknown>;
   } = {},
 ): string {
   const root = mkdtempSync(join(tmpdir(), `pack-${id}-`));
@@ -155,6 +247,7 @@ export function writePack(
     dependsOn: opts.dependsOn ?? [],
   };
   if (opts.root !== undefined) manifest.root = opts.root;
+  Object.assign(manifest, opts.manifest ?? {});
   writeFileSync(join(root, 'pack.yaml'), YAML.stringify(manifest));
   for (const f of files) writeDomainFile(root, f);
   for (const nb of opts.nameBanks ?? []) writeBankFile(root, nb);

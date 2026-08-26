@@ -8,6 +8,7 @@ import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BootstrapManager, type BootstrapEntry } from '../BootstrapManager';
 import { StuffApi } from '../../mud/api/stuff';
+import { PackApi } from '../../mud/api/pack';
 import { ShadowApi } from '../../mud/api/shadow';
 import { EventApi } from '../../mud/api/event';
 import { Events } from '../../mud/lib/events';
@@ -40,6 +41,18 @@ describe('BootstrapManager.run', () => {
     const { calls } = stubClone();
     await BootstrapManager.run([]);
     expect(calls).toEqual([]);
+  });
+
+  it('the default manifest is the code manifest UNION every applied pack\'s boot list', async () => {
+    const { calls } = stubClone();
+    vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
+    vi.spyOn(PackApi, 'bootManifest').mockResolvedValue([
+      { templatePath: '/domain/fixture/root', packId: 'fixture', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
+    ]);
+    await BootstrapManager.run();
+    expect(calls).toContain('/obj/EventRegistry');
+    expect(calls).toContain('/domain/fixture/root');
+    expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/domain/fixture/root'));
   });
 
   it('clones a single entry', async () => {

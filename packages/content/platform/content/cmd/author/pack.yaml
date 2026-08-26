@@ -18,6 +18,10 @@ help: |
   `pack sync [<packId>]` — reconcile one pack now and re-hydrate the
   affected live instances; defaults to `base-library`.
 
+  `pack provision <packId>` — what the registries granted the pack:
+  its maintainers group and who is in it, its declared groups, and its
+  title claims with who holds each now.
+
   `pack diff <packId> [<path>]` — the three bodies of a conflicted row:
   baseline (as installed), yours (database), theirs (pack file). With no
   path, every open conflict.
@@ -77,6 +81,12 @@ subcommands:
       - name: packId
         type: string
         required: false
+  provision:
+    description: "The pack's maintainers, groups and titles as held now"
+    args:
+      - name: packId
+        type: string
+        required: true
   diff:
     description: "The three bodies of a conflicted row (or every conflict)"
     args:

@@ -45,6 +45,12 @@ const OK: PackReconcileResult = {
   documents: {},
   rehydrated: 1,
   failure: null,
+  requires: {
+    groupsCreated: [], groupsFound: [], titlesGranted: [], titlesKept: [],
+    titlesMigrated: [], titleConflicts: [], membersAdded: [], skippedSold: [],
+  },
+  boot: { 'sync-read': 0, producer: 0 },
+  staffed: false,
 };
 
 let note: ReturnType<typeof vi.fn>;
@@ -82,6 +88,38 @@ const rejected = (reason: string) =>
   expect(note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'controller-rejected', reason }));
 
 describe('PackController routing', () => {
+  it('provision <packId> → PackApi.provision; prints maintainers, groups and titles', async () => {
+    const provision = vi.spyOn(PackApi, 'provision').mockResolvedValue({
+      packId: 'world-seed',
+      maintainers: { group: 'world-seed-maintainers', staffed: false, members: [] },
+      groups: [{ name: 'duncan-hall', members: 1 }],
+      titles: [{ extent: '/domain/eternal/duncan-hall', holder: "group 'duncan-hall'", outcome: 'held' }],
+    });
+    await run({ subcommand: 'provision', packId: 'world-seed' });
+    expect(provision).toHaveBeenCalledWith('world-seed');
+    const out = told.join('\n');
+    expect(out).toContain('UNSTAFFED');
+    expect(out).toContain('duncan-hall (1 member(s))');
+    expect(out).toContain("/domain/eternal/duncan-hall — group 'duncan-hall' [held]");
+    await run({ subcommand: 'provision' });
+    rejected('pack-required');
+  });
+
+  it('status prints the staffing line and any title conflicts', async () => {
+    vi.spyOn(PackApi, 'status').mockResolvedValue([
+      {
+        packId: 'p', discovered: true, manifestVersion: '0.1.0',
+        maintainers: { group: 'p-maintainers', staffed: true },
+        titleConflicts: ['/domain/x'],
+        record: { version: '0.1.0', appliedAt: 'T', principal: 'bootstrap', status: 'applied', failure: null, pins: [], conflicts: [] },
+      },
+    ]);
+    await run({ subcommand: 'status' });
+    const out = told.join('\n');
+    expect(out).toContain('maintainers: p-maintainers — staffed');
+    expect(out).toContain('title conflict: /domain/x');
+  });
+
   it('sync <packId> → PackApi.sync; defaults to base-library', async () => {
     const sync = vi.spyOn(PackApi, 'sync').mockResolvedValue(OK);
     await run({ subcommand: 'sync', packId: 'species-and-names' });
@@ -97,6 +135,8 @@ describe('PackController routing', () => {
         packId: 'p',
         discovered: true,
         manifestVersion: '0.1.0',
+      maintainers: { group: 'base-library-maintainers', staffed: false },
+      titleConflicts: [],
         record: {
           version: '0.1.0',
           appliedAt: 'T',
@@ -128,7 +168,7 @@ describe('PackController routing', () => {
 
   it('status prints the command-view disk-fallback residue when there is one', async () => {
     vi.spyOn(PackApi, 'status').mockResolvedValue([
-      { packId: 'platform', discovered: true, manifestVersion: '0.1.0', record: null },
+      { packId: 'platform', discovered: true, manifestVersion: '0.1.0', record: null, maintainers: null, titleConflicts: [] },
     ]);
     vi.spyOn(CommandApi, 'diskFallbacks').mockReturnValue([
       'domain/eternal/duncan-hall/cmd/provision.yaml',

@@ -1,0 +1,376 @@
+/**
+ * The requires phase (content-packs wave 3, D4/D7): what the registries
+ * grant a pack at install. Groups ensure-exist (adopt-by-name, never
+ * re-owned); the maintainers group is PM-owned and empty after a
+ * bootstrap install (UNSTAFFED); titles are granted / kept / migrated /
+ * conflicted through `ParcelApi.grant`; the NPC-only membership fence,
+ * the declared-group and shipped-organization rules and coverage all fail
+ * at `requires-kernel` before any write; the bounded reconcile skips a
+ * row whose extent was sold; a non-bootstrap principal must hold the
+ * covering title; an unknown manifest key fails at `read`.
+ *
+ * The group and parcel registries are in-memory stores behind spies on
+ * `GroupApi` / `ParcelApi` — the installer reaches them only through
+ * those seams.
+ */
+
+import '../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { PackApi } from '../../../api/pack';
+import { AccessApi } from '../../../api/access';
+import { StuffApi } from '../../../api/stuff';
+import { DiagnosticApi } from '../../../api/diagnostics';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { Idea } from '../../../lib/stuff/Idea';
+import { OrganizationMixin } from '../../../lib/employment/Organization';
+import Avatar from '../../Avatar';
+import { makeStuffAtPath, withRootContext } from '../../../lib/security/__tests__/test-setup';
+import {
+  store,
+  stubPersist,
+  stubClassResolution,
+  quietConsole,
+  recordOf,
+  contentRows,
+  writePack,
+  cleanupPacks,
+  groups,
+  parcels,
+} from './pack-harness';
+
+class OrganizationEntity extends OrganizationMixin(Idea) {}
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  StuffApi.clearAll();
+  stubPersist();
+  stubClassResolution();
+  quietConsole();
+  vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+  cleanupPacks();
+  StuffApi.clearAll();
+});
+
+const ROW = (rel: string) => ({ rel, data: { name: rel } });
+
+describe('the requires phase — groups', () => {
+  it('a maintainers group per pack, PM-owned, empty after a bootstrap install (UNSTAFFED); declared groups ensure-exist', async () => {
+    const root = writePack('hills', [ROW('domain/hills/gate.yaml')], {
+      manifest: {
+        requires: {
+          groups: [
+            { name: 'hinkley-hills', purpose: 'the Improvement District' },
+            { name: 'wardens', purpose: 'the gate wardens', owner: { office: 'prime-minister' } },
+          ],
+          title: [{ extent: '/domain/hills' }],
+        },
+      },
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.requires.groupsCreated).toEqual(['hills-maintainers', 'hinkley-hills', 'wardens']);
+    expect(r!.requires.groupsFound).toEqual([]);
+    expect(groups.find((g) => g.name === 'hills-maintainers')?.owner).toEqual({ kind: 'office', office: 'prime-minister' });
+    expect(groups.find((g) => g.name === 'hinkley-hills')?.owner).toEqual({ kind: 'system' });
+    expect(groups.find((g) => g.name === 'wardens')?.owner).toEqual({ kind: 'office', office: 'prime-minister' });
+    expect(r!.staffed).toBe(false);
+    // The record remembers what was applied.
+    const rec = recordOf('hills')!;
+    expect(rec.maintainers).toEqual({ group: 'hills-maintainers' });
+    expect(rec.requires.groups.map((g) => g.name)).toEqual(['hinkley-hills', 'wardens']);
+  });
+
+  it('adopt-by-name: a second install FINDS every group and never re-owns it', async () => {
+    const root = writePack('hills', [ROW('domain/hills/gate.yaml')], {
+      manifest: { requires: { groups: [{ name: 'hinkley-hills', purpose: 'p' }], title: [{ extent: '/domain/hills' }] } },
+    });
+    await PackApi.install([root]);
+    groups.find((g) => g.name === 'hinkley-hills')!.owner = { kind: 'player', templatePath: '/obj/Avatar/x' };
+    const [r] = await PackApi.install([root]);
+    expect(r!.requires.groupsCreated).toEqual([]);
+    expect(r!.requires.groupsFound).toEqual(['hills-maintainers', 'hinkley-hills']);
+    expect(groups.find((g) => g.name === 'hinkley-hills')?.owner).toEqual({ kind: 'player', templatePath: '/obj/Avatar/x' });
+    expect(r!.requires.titlesKept).toEqual(['/domain/hills']);
+  });
+
+  it('a staffed maintainers group reports staffed', async () => {
+    const root = writePack('hills', [ROW('domain/hills/gate.yaml')], {
+      manifest: { requires: { title: [{ extent: '/domain/hills' }] } },
+    });
+    groups.push({ name: 'hills-maintainers', owner: { kind: 'system' }, members: [{ id: '/obj/Avatar/a', role: 'member' }] });
+    const [r] = await PackApi.install([root]);
+    expect(r!.staffed).toBe(true);
+    expect(r!.requires.groupsFound).toEqual(['hills-maintainers']);
+  });
+});
+
+describe('the requires phase — the NPC-only membership fence', () => {
+  const manifestWith = (id: string) => ({
+    requires: {
+      groups: [{ name: 'duncan-hall', purpose: "the landlord's staff", members: [{ id, role: 'member' }] }],
+      title: [{ extent: '/domain/eternal/duncan-hall', holder: { group: 'duncan-hall' } }],
+    },
+  });
+
+  it('an NPC row under the pack\'s own claim is enrolled (idempotently)', async () => {
+    const root = writePack('world-seed', [ROW('domain/eternal/duncan-hall/npc/katie.yaml')], {
+      manifest: manifestWith('/domain/eternal/duncan-hall/npc/katie'),
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.requires.membersAdded).toEqual(['duncan-hall:/domain/eternal/duncan-hall/npc/katie']);
+    const [again] = await PackApi.install([root]);
+    expect(again!.requires.membersAdded).toEqual([]);
+    expect(groups.find((g) => g.name === 'duncan-hall')?.members).toHaveLength(1);
+  });
+
+  it('a /obj/Avatar/<id> is refused — a pack may not enrol a person', async () => {
+    const root = writePack('world-seed', [ROW('domain/eternal/duncan-hall/npc/katie.yaml')], {
+      manifest: manifestWith('/obj/Avatar/founder'),
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure?.step).toBe('requires-kernel');
+    expect(r!.failure?.error).toMatch(/may only enrol NPC rows it ships/);
+    expect(contentRows()).toHaveLength(0);
+    expect(groups).toHaveLength(0);
+  });
+
+  it('an NPC the pack ships OUTSIDE its own claim is refused', async () => {
+    const root = writePack('world-seed', [ROW('domain/terminus/npc/clerk.yaml'), ROW('domain/eternal/duncan-hall/lobby.yaml')], {
+      manifest: {
+        requires: {
+          groups: [{ name: 'duncan-hall', purpose: 'p', members: [{ id: '/domain/terminus/npc/clerk' }] }],
+          title: [{ extent: '/domain/eternal/duncan-hall', holder: { group: 'duncan-hall' } }, { extent: '/domain/terminus' }],
+        },
+      },
+    });
+    const [r] = await PackApi.install([root]);
+    // The row is under /domain/terminus, which the pack claims — but the
+    // fence demands the pack's own claims cover it, which /domain/terminus does.
+    expect(r!.failure).toBeNull();
+    const bad = writePack('world-seed-2', [ROW('domain/terminus/npc/clerk.yaml')], {
+      manifest: {
+        requires: {
+          groups: [{ name: 'g', purpose: 'p', members: [{ id: '/domain/terminus/npc/clerk' }] }],
+          title: [{ extent: '/domain/eternal' }],
+        },
+      },
+    });
+    const [r2] = await PackApi.install([bad]);
+    expect(r2!.failure?.step).toBe('requires-kernel');
+    expect(r2!.failure?.error).toMatch(/outside every extent the pack itself claims/);
+  });
+});
+
+describe('the requires phase — titles', () => {
+  it('grants on a fresh store to the maintainers by default; a named group must be declared', async () => {
+    const root = writePack('lounge', [ROW('obj/lounge/bar.yaml')], {
+      manifest: {
+        maintainers: 'lounge',
+        requires: { groups: [{ name: 'lounge', purpose: 'the lounge team' }], title: [{ extent: '/obj/lounge' }, { extent: '/domain/lounge', holder: { group: 'lounge' } }] },
+      },
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.requires.titlesGranted).toEqual(['/obj/lounge', '/domain/lounge']);
+    expect(parcels).toEqual([
+      { extent: '/obj/lounge', owner: { kind: 'group', name: 'lounge' } },
+      { extent: '/domain/lounge', owner: { kind: 'group', name: 'lounge' } },
+    ]);
+    const undeclared = writePack('lounge-2', [ROW('obj/lounge2/bar.yaml')], {
+      manifest: { requires: { title: [{ extent: '/obj/lounge2', holder: { group: 'nobody' } }] } },
+    });
+    const [r2] = await PackApi.install([undeclared]);
+    expect(r2!.failure?.step).toBe('requires-kernel');
+    expect(r2!.failure?.error).toMatch(/group 'nobody'/);
+  });
+
+  it('a claim a dependsOn pack declares the group for is admitted (the annex knows the host)', async () => {
+    const platform = writePack('platform', [ROW('obj/x.yaml')], {
+      manifest: { requires: { groups: [{ name: 'soul', purpose: 'the soul committee' }], title: [{ extent: '/obj' }] } },
+    });
+    const expression = writePack('expression', [ROW('expression/emotes/wave.yaml')], {
+      dependsOn: ['platform'],
+      manifest: { maintainers: 'soul', requires: { title: [{ extent: '/expression', holder: { group: 'soul' } }] } },
+    });
+    const results = await PackApi.install([expression, platform]);
+    expect(results.map((r) => r.packId)).toEqual(['platform', 'expression']);
+    expect(results[1]!.failure).toBeNull();
+    expect(parcels.find((p) => p.extent === '/expression')?.owner).toEqual({ kind: 'group', name: 'soul' });
+  });
+
+  it('kept on a same-holder claim; two packs naming one extent with one holder never conflict', async () => {
+    const a = writePack('a', [ROW('domain/lounge/x.yaml')], {
+      manifest: { requires: { groups: [{ name: 'lounge', purpose: 'p' }], title: [{ extent: '/domain/lounge', holder: { group: 'lounge' } }] } },
+    });
+    const b = writePack('b', [ROW('domain/lounge/y.yaml')], {
+      dependsOn: ['a'],
+      manifest: { requires: { title: [{ extent: '/domain/lounge', holder: { group: 'lounge' } }] } },
+    });
+    const [ra, rb] = await PackApi.install([a, b]);
+    expect(ra!.requires.titlesGranted).toEqual(['/domain/lounge']);
+    expect(rb!.requires.titlesKept).toEqual(['/domain/lounge']);
+    expect(rb!.requires.titleConflicts).toEqual([]);
+    const [ra2, rb2] = await PackApi.install([a, b]);
+    expect(ra2!.requires.titlesKept).toEqual(['/domain/lounge']);
+    expect(rb2!.requires.titlesKept).toEqual(['/domain/lounge']);
+  });
+
+  it('a foreign holder → a `title` conflict: recorded, diagnosed, the title untouched', async () => {
+    parcels.push({ extent: '/domain/lounge', owner: { kind: 'group', name: 'terminus' } });
+    const root = writePack('lounge', [ROW('domain/lounge/x.yaml')], {
+      manifest: { requires: { groups: [{ name: 'lounge', purpose: 'p' }], title: [{ extent: '/domain/lounge', holder: { group: 'lounge' } }] } },
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.requires.titleConflicts).toEqual(['/domain/lounge']);
+    expect(r!.conflicts).toEqual(['/domain/lounge']);
+    expect(parcels[0]!.owner).toEqual({ kind: 'group', name: 'terminus' });
+    const rec = recordOf('lounge')!;
+    expect(rec.conflicts[0]).toMatchObject({ path: '/domain/lounge', kind: 'title', reason: 'title' });
+    expect(DiagnosticApi.record).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: 'pack.lounge', message: expect.stringMatching(/title conflict at \/domain\/lounge/) }),
+    );
+    // The domain row itself was skipped: its extent is held by nobody in the pack's holder set.
+    expect(r!.requires.skippedSold).toEqual(['/domain/lounge/x']);
+    expect(contentRows()).toHaveLength(0);
+  });
+
+  it('migrated over a `core`-held row', async () => {
+    parcels.push({ extent: '/obj/studio', owner: { kind: 'group', name: 'core' } });
+    const root = writePack('platform', [ROW('obj/studio/x.yaml')], {
+      manifest: { requires: { title: [{ extent: '/obj/studio' }] } },
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.requires.titlesMigrated).toEqual(['/obj/studio']);
+    expect(parcels[0]!.owner).toEqual({ kind: 'group', name: 'platform-maintainers' });
+    // The core-held row was NOT treated as sold: the template was written.
+    expect(contentRows().map((c) => c.path)).toEqual(['/obj/studio/x']);
+  });
+
+  it('an organization maintainer must be a shipped row; its titles are granted to it; the head alone is unstaffed', async () => {
+    // (`/obj/executive` stands in for `/compact/executive`: the top-level
+    // template walk widens at step 4; the rule under test is the same.)
+    const unshipped = writePack('platform', [ROW('obj/x.yaml')], {
+      manifest: { maintainers: { organization: '/obj/executive' }, requires: { title: [{ extent: '/obj' }] } },
+    });
+    const [r1] = await PackApi.install([unshipped]);
+    expect(r1!.failure?.step).toBe('requires-kernel');
+    expect(r1!.failure?.error).toMatch(/names organization '\/obj\/executive' as its maintainers/);
+
+    const shipped = writePack('platform-2', [ROW('obj/x.yaml'), ROW('obj/executive.yaml')], {
+      manifest: {
+        maintainers: { organization: '/obj/executive' },
+        requires: { title: [{ extent: '/obj' }, { extent: '/compact' }, { extent: '/blueprints', holder: { organization: '/obj/executive' } }] },
+      },
+    });
+    const singleton = vi.spyOn(StuffApi, 'singleton').mockImplementation(async (path: string) => {
+      const org = makeStuffAtPath(() => new OrganizationEntity(), path);
+      org.appointingAuthority = { kind: 'office', office: 'prime-minister' };
+      return org as never;
+    });
+    const [r2] = await PackApi.install([shipped]);
+    expect(r2!.failure).toBeNull();
+    expect(singleton).toHaveBeenCalledWith('/obj/executive');
+    expect(r2!.requires.titlesGranted).toEqual(['/obj', '/compact', '/blueprints']);
+    for (const p of parcels) expect(p.owner).toEqual({ kind: 'organization', templatePath: '/obj/executive' });
+    expect(r2!.requires.groupsCreated).toEqual([]);
+    expect(r2!.staffed).toBe(false);
+    expect(recordOf('platform-2')!.maintainers).toEqual({ organization: '/obj/executive' });
+  });
+});
+
+describe('the requires phase — coverage and the bounded reconcile', () => {
+  it('a row outside every claim fails at requires-kernel; a row under a dependsOn host\'s claim passes', async () => {
+    const stray = writePack('stray', [ROW('obj/gear/hat.yaml'), ROW('domain/elsewhere/x.yaml')], {
+      manifest: { requires: { title: [{ extent: '/obj/gear' }] } },
+    });
+    const [r] = await PackApi.install([stray]);
+    expect(r!.failure?.step).toBe('requires-kernel');
+    expect(r!.failure?.error).toMatch(/row \/domain\/elsewhere\/x is outside every extent/);
+    expect(contentRows()).toHaveLength(0);
+
+    const platform = writePack('platform', [ROW('obj/x.yaml')], { manifest: { requires: { title: [{ extent: '/obj' }] } } });
+    const annex = writePack('generic-objects', [ROW('obj/Campfire.yaml'), ROW('obj/gear/hat.yaml')], {
+      dependsOn: ['platform'],
+      manifest: { requires: { title: [{ extent: '/obj/gear' }] } },
+    });
+    const [rp, ra] = await PackApi.install([platform, annex]);
+    expect(rp!.failure).toBeNull();
+    expect(ra!.failure).toBeNull();
+    expect(ra!.inserted.sort()).toEqual(['/obj/Campfire', '/obj/gear/hat']);
+  });
+
+  it('a pack whose whole host chain claims nothing passes coverage vacuously (pre-wave-3 shape)', async () => {
+    const root = writePack('base-library', [ROW('obj/material/x.yaml')]);
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.requires.titlesGranted).toEqual([]);
+    expect(r!.requires.groupsCreated).toEqual(['base-library-maintainers']);
+  });
+
+  it('a sold extent\'s rows are skipped-and-counted, never written; the host\'s holder still counts', async () => {
+    parcels.push({ extent: '/obj/gear/lot', owner: { kind: 'player', templatePath: '/obj/Avatar/buyer' } });
+    const platform = writePack('platform', [ROW('obj/x.yaml')], { manifest: { requires: { title: [{ extent: '/obj' }] } } });
+    const annex = writePack('generic-objects', [ROW('obj/gear/hat.yaml'), ROW('obj/gear/lot/tent.yaml')], {
+      dependsOn: ['platform'],
+      manifest: { requires: { title: [{ extent: '/obj/gear' }] } },
+    });
+    const [, ra] = await PackApi.install([platform, annex]);
+    expect(ra!.failure).toBeNull();
+    expect(ra!.requires.skippedSold).toEqual(['/obj/gear/lot/tent']);
+    expect(ra!.inserted).toEqual(['/obj/gear/hat']);
+    expect(contentRows().map((c) => c.path).sort()).toEqual(['/obj/gear/hat', '/obj/x']);
+  });
+});
+
+describe('the requires phase — the non-bootstrap precondition', () => {
+  it('a person syncing a pack must hold the covering title of every claim', async () => {
+    const root = writePack('lounge', [ROW('domain/lounge/x.yaml')], {
+      manifest: { requires: { title: [{ extent: '/domain/lounge' }] } },
+    });
+    const actor = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/dev');
+    actor.setPlayerId('dev');
+    const can = vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
+    await expect(
+      withRootContext(null, 'pack.test', () => {
+        ExecutionContextApi.tagActingAuthor(actor);
+        return PackApi.sync('lounge', root);
+      }),
+    ).rejects.toThrow(/claims '\/domain\/lounge', which \/obj\/Avatar\/dev does not hold/);
+    expect(can).toHaveBeenCalledWith(actor, 'write-template', '/domain/lounge');
+    expect(parcels).toEqual([]);
+    can.mockResolvedValue(true);
+    const r = await withRootContext(null, 'pack.test', () => {
+      ExecutionContextApi.tagActingAuthor(actor);
+      return PackApi.sync('lounge', root);
+    });
+    expect(r.requires.titlesGranted).toEqual(['/domain/lounge']);
+  });
+});
+
+describe('the manifest', () => {
+  // A manifest is read at discovery, before any pack is reconciled — a
+  // malformed one throws out of `install` (nothing is written), exactly
+  // as a malformed `dependsOn` did in wave 2.
+  it('an unknown key fails at read', async () => {
+    const root = writePack('typo', [ROW('obj/x.yaml')], { manifest: { requries: {} } });
+    await expect(PackApi.install([root])).rejects.toThrow(
+      /unknown key 'requries' \(known: id, version, description, dependsOn, root, requires, boot, maintainers\)/,
+    );
+    expect(store.rows.filter((x) => x.__col === 'content')).toHaveLength(0);
+  });
+
+  it('a group without a purpose, a malformed holder and an unknown landUse fail at read', async () => {
+    const noPurpose = writePack('a', [ROW('obj/x.yaml')], { manifest: { requires: { groups: [{ name: 'g' }] } } });
+    await expect(PackApi.install([noPurpose])).rejects.toThrow(/group 'g' needs a 'purpose'/);
+    const badHolder = writePack('b', [ROW('obj/x.yaml')], { manifest: { requires: { title: [{ extent: '/obj', holder: { player: 'x' } }] } } });
+    await expect(PackApi.install([badHolder])).rejects.toThrow(/holder must be/);
+    const badUse = writePack('c', [ROW('obj/x.yaml')], { manifest: { requires: { title: [{ extent: '/obj', landUse: 'spaceport' }] } } });
+    await expect(PackApi.install([badUse])).rejects.toThrow(/unknown landUse 'spaceport'/);
+  });
+});
