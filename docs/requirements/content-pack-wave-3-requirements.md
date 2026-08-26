@@ -222,9 +222,9 @@ under, and the holder is the **`pack-installers`** group — already
 owned by `{office: prime-minister}`. That is the same shape every other
 pack's maintainers group takes (D7): stewardship is group work, with an
 accountable owner one hop up. The founder, PM by default, resolves as
-the group's owner, holds the title, and is an author — which also
-closes the wave-2 gap where the test-auth founder could not reach the
-CMS.
+the group's owner and so holds the title — which also closes the
+wave-2 gap where the test-auth founder could not reach the CMS (D2d:
+the CMS shows what you can read, and the platform's tree is theirs).
 
 Pack zero's claimed extents are the path-branch titles the platform
 ships rows under: `/obj`, `/cmd`, `/home`, `/wiki` (the namespace
