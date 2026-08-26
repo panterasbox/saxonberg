@@ -85,7 +85,7 @@ gets a different successor, and none of them is a group named anything.
 |---|---|
 | 1. Default title holder (`ownerOf` → `{group: core}`) | **Nothing.** An untitled path is untitled: `ownerOf` returns `null`. |
 | 2. Implicit owner of everything unparcelled (the ~20 write/clone/destruct/goto fall-throughs) | **Fail closed.** `AccessApi.can` denies on an untitled resource. The drain: every path a write verb can reach carries a real title by the end of the wave, and a script counts the ones that don't (D10). |
-| 3a. `broadcast` authority | **The Prime Minister seat**, checked through `CompactApi.holdsOffice`. Authority and delivery stay separate: the delivery path must not depend on a healthy world. Never `isWizard`. An empty seat fails closed and says so. |
+| 3a. `broadcast` authority | **Title over the extent addressed** (D2c). `broadcast` is reworked, not ported: a forced message to everyone under an extent, by whoever holds that extent. Realm-wide (operational, shutdown) notices are the PM seat's because the seat holds the realm root. Never `isWizard`. |
 | 3b. `soul` authority | **The soul committee** — a `soul` group owned by `{office: prime-minister}`, holding **title to the emote extent** (D2b). `soul`'s mutating subcommands are gated by that title through `canAtPath`, like every other document write; read subcommands are ungated. `requiresCoreAccess` is deleted with its last two consumers. |
 | 4. Author scope (`ensureAuthorGroups` = parcel-owner groups **+ core**) | Drop the `+ core`. `isAuthor` = *holds any title anywhere*. |
 | 5. `:admin` / `coreMemberIds` | **Deleted** — the predicate, the per-dispatch precompute in `CommandLogic`, the `MqlContext` field, the mql.md/access.md lines. Its only consumer was a test. |
@@ -155,6 +155,48 @@ committee does:
 title, not `core` membership. `SoulCatalogue` invalidates on a `soul`
 write as it does on `pack sync` today.
 
+### D2c — `broadcast` is forced messaging over an extent you hold
+
+Broadcast is reworked rather than ported. Almost everything is
+broadcasting already — chat, channels, releases, the ticker — and all
+of it is opt-in. `broadcast` is the residue: **a message nobody under
+an extent can opt out of.** That case is meant to be rare (a shutdown,
+a safety notice, last call), and its authority is the same rule as
+every other act on land this wave:
+
+- **`broadcast --at <extent> <message>`.** The audience is every online
+  Avatar whose current location is under `<extent>` — sub-titles
+  notwithstanding: holding a parent extent reaches its children, which
+  is what jurisdiction means. `--to <mql>` is removed; the extent is
+  the narrowing.
+- **Authority = you hold the extent.** `AccessApi.can(giver, 'broadcast',
+  extent)` — the covering title admits you: a group member, a seat
+  holder (D2), a player on their own `/home/<self>`. A locality's
+  government reaches its locality because the government's group holds
+  the locality's title (as `terminus` holds the Terminus parcels
+  today). Nothing consults `isWizard`, `isAuthor`, or a group by name.
+- **The realm root is a title.** The platform claims `/domain` (the
+  world root — renamed with it in wave 4) for the **`prime-minister`**
+  seat. Realm-wide notices — operational, shutdown, anything the
+  operator must say to everyone — are therefore the executive's, by
+  office, founder by default, and move with the seat. A spokesperson
+  (comms director, press office) is delegation and rides the agency
+  substrate when that lands; this wave the seat holder speaks.
+- **`--at` is required when ambiguous.** Omitted, it defaults to the
+  covering parcel of where the speaker stands *if they hold it*;
+  otherwise the verb refuses and lists the extents they do hold. No
+  "largest thing you own" guess — a slip should not reach a district.
+- **Delivery** stays the implant channel (`verbal-esp`, its own
+  `<chan>` region, no history, no rate limit — as today). Authority
+  and delivery stay separate: resolving "who is under `/domain`" must
+  not depend on a healthy world, or the outage eats the outage notice.
+- **Spam is a landlord problem.** A holder who abuses their own extent
+  answers to their tenants and the polity, not to a kernel limit.
+
+The legislature's chambers and the Central Bank are seats without
+organizations today; when they become organizations with premises they
+get a title and this rule covers them. Courts have no substrate yet.
+
 ### D3 — Pack zero's title is held by `pack-installers`
 
 The platform pack declares `requires.title` for the extents it ships
@@ -169,8 +211,8 @@ CMS.
 Pack zero's claimed extents are the path-branch titles the platform
 ships rows under: `/obj`, `/cmd`, `/home`, `/wiki` (the namespace
 roots — `wiki-editors` keeps `/wiki`'s page-edit title as today; the
-platform holds the zone rows), `/compact` and `/studio` via D2, and the
-platform's own `root`. The planner enumerates them from the rows the
+platform holds the zone rows), `/compact`, `/studio` and the realm root
+`/domain` via D2/D2c (seat-held), and the platform's own `root`. The planner enumerates them from the rows the
 pack ships; a row under an extent the pack has not claimed is an
 install error (the write-refused-outside-extent rule, Part 4b).
 
@@ -419,7 +461,11 @@ one pack.
    PM-held; a non-founder cannot write under them; the founder can;
    handing the seat off (`office` verb) moves the capability with it.
    Tests cover the resolve path and the fail-closed empty seat.
-7. `broadcast` is PM-gated; `soul` mutations are title-gated (a soul
+7. `broadcast --at`: a parcel holder reaches only those under their
+   parcel; a locality government's member reaches the locality; the
+   PM seat reaches everyone under `/domain`; a non-holder is refused
+   with their held extents listed; a player reaches guests in their own
+   home; `--to` is gone. `soul` mutations are title-gated (a soul
    member edits and disables an emote, a non-member is refused, a
    disabled emote neither dispatches nor lists, a later pack change to
    an edited emote is a conflict not an overwrite); `requiresCoreAccess`
