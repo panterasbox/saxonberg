@@ -19,7 +19,7 @@
  * because templates need a class to clone from; the choice of which
  * Locations include a floor adornment is per-template authoring.
  *
- * Default-floor seed at `seeds/obj/surface/default-floor.yaml`.
+ * Default-floor row at the generic-objects pack's `content/obj/surface/default-floor.yaml`.
  *
  * Surface-bulk: the floor composes `BulkableMixin` so a spilled,
  * over-poured, or drained-through liquid pools as the floor's

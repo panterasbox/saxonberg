@@ -4,4 +4,4 @@ description: >-
   Descriptor banks — the pools an unidentified magic item draws its
   appearance from. One bank per item class, each the product of two
   DECORATIVE axes (never material).
-dependsOn: []
+dependsOn: [platform]

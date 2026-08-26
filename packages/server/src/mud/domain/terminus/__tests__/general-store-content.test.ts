@@ -17,8 +17,9 @@ import YAML from "yaml";
 const STORE_DIR = fileURLToPath(
   new URL("../../../seeds/domain/terminus/general-store/", import.meta.url),
 );
+// The object clusters are the generic-objects pack's rows (content-packs wave 3).
 const OBJ_DIR = fileURLToPath(
-  new URL("../../../seeds/obj/", import.meta.url),
+  new URL("../../../../../../content/generic-objects/content/obj/", import.meta.url),
 );
 const CH_DIR = fileURLToPath(
   new URL("../../../seeds/domain/terminus/counting-houses/", import.meta.url),

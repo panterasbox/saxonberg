@@ -1,4 +1,4 @@
 id: base-library
 version: 0.3.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 description: Foundational substrate — materials, biomes, units.
-dependsOn: []
+dependsOn: [platform]   # the rows under /obj are covered by the platform's /obj claim

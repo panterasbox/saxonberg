@@ -19,7 +19,9 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
-const SEEDS = fileURLToPath(new URL("..", import.meta.url));
+// A32.2 scaffolding: a kernel test reading shipped content by path. The
+// archetypes are the generic-objects pack's rows (content-packs wave 3).
+const SEEDS = fileURLToPath(new URL("../../../../../content/generic-objects/content/", import.meta.url));
 
 interface Seed {
   class?: string;

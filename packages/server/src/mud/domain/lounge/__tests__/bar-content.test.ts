@@ -16,13 +16,13 @@ const LOUNGE_DIR = fileURLToPath(
   new URL("../../../seeds/domain/lounge/", import.meta.url)
 );
 // Brands live in the five corpo packs (each corpo's own marks) plus the
-// kernel seeds for the one independent brand (crowsfoot-gin, `owner: ""`).
+// generic-objects pack for the one independent brand (crowsfoot-gin, `owner: ""`).
 const CONTENT = fileURLToPath(new URL("../../../../../../content/", import.meta.url));
 const BRAND_DIRS = [
   ...["aevex", "goodkin", "hollis", "veshko", "vionne"].map(
     (k) => `${CONTENT}corpo-${k}/content/obj/corpo/Brand/`,
   ),
-  fileURLToPath(new URL("../../../seeds/obj/corpo/Brand/", import.meta.url)),
+  `${CONTENT}generic-objects/content/obj/corpo/Brand/`,
 ];
 
 interface Seed {
