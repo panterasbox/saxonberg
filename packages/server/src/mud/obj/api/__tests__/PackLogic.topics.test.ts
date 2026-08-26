@@ -26,6 +26,7 @@ import { tmpdir } from 'os';
 import { join, dirname } from 'path';
 import YAML from 'yaml';
 import { PackApi } from '../../../api/pack';
+import { stubRegistries } from './pack-harness';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
 
@@ -121,6 +122,7 @@ function topicRows(): Row[] {
 beforeEach(() => {
   vi.restoreAllMocks();
   stubPersist();
+  stubRegistries();
 });
 
 afterEach(() => {
@@ -155,6 +157,13 @@ describe('pack-declared topics', () => {
     const [r] = await PackApi.install([root]);
     expect(r!.failure?.error).toMatch(/leaves only/i);
     expect(topicRows()).toEqual([]);
+  });
+
+  it('pack zero ships the root descriptors — the platform may declare a bare root', async () => {
+    const root = writeTopicPack('platform', 'sense');
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(topicRows().map((t) => t.path)).toEqual(['/obj/Topic/sense']);
   });
 
   // Not a topic-specific gate: `reconcileKind` refuses cross-pack

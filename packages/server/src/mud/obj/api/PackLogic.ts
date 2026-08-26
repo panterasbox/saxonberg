@@ -1055,7 +1055,11 @@ async function validatePackTopics(
           `root breaks subtree muting for every player.`,
       );
     }
-    if (!key.includes('.')) {
+    // Pack zero SHIPS the seven root descriptors (content-packs wave 3):
+    // the closed root set is `TOPIC_ROOTS` in code, and the platform's
+    // rows are its descriptors, not new roots. Every other pack adds
+    // leaves only.
+    if (!key.includes('.') && packId !== PLATFORM_PACK) {
       throw new Error(
         `pack '${packId}' declares topic '${key}', which is a root. ` +
           `Packs may add leaves only.`,
