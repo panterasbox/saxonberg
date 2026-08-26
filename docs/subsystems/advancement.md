@@ -1,8 +1,10 @@
 # Advancement — the measurement substrate
 
-Advancement is how a character **grows**: the engine-level "physics" that
-turns situated practice into a current estimate of what a character is
-good at, and confers verbs when that estimate crosses a threshold. This
+Advancement is how a character **grows**: the **Transcript**, an
+append-only ledger of practice, and the **Competence** bands derived from
+it per **Discipline** — the engine-level "physics" that turns situated
+practice into a current estimate of what a character is good at, and
+confers verbs when that estimate crosses a threshold. This
 build ships the **measurement layer** — Catalog, Transcript, Competence —
 plus the conferral seam that makes growth observable, and a self-contained
 proof harness. It is governed by the same **derive-don't-track** discipline
