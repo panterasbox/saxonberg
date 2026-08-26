@@ -512,8 +512,10 @@ export class CommandLogic extends ApiLogic {
         failed.push(file);
       }
     }
+    // The residue line is for a BOOTED server: offline (no store) every
+    // view comes from disk by design and there is nothing to report.
     const fromDisk = this.diskFallbacks();
-    if (fromDisk.length > 0) {
+    if (storeAvailable() && fromDisk.length > 0) {
       console.info(
         `CommandApi: ${fromDisk.length} command view(s) served from disk — not yet content: ` +
           fromDisk.join(', '),

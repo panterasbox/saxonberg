@@ -200,6 +200,25 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "obj/api/PackLogic.ts::loadClassByPath",
     classification: "gated-direct",
   },
+  // The blueprint catalogue's two layers (moved in from the retired
+  // BlueprintSeeder, content-packs wave 2): the derived skeleton resolves
+  // every DISTINCT template `class` (already gate-passed at saveTemplate)
+  // to introspect its signature; the curated overlay resolves a pack
+  // document's `classPath` for the same introspection; the orphan reap
+  // resolves a derived row's `classPath` to see whether it still exists.
+  // Introspection only — nothing author-named is executed or minted.
+  {
+    site: "obj/BlueprintCatalogue.ts::loadClassByPath",
+    classification: "validation-only",
+  },
+  {
+    site: "obj/BlueprintCatalogue.ts::loadClassByPath",
+    classification: "validation-only",
+  },
+  {
+    site: "obj/BlueprintCatalogue.ts::loadClassByPath",
+    classification: "validation-only",
+  },
   {
     // Sandbox circle materialization: authored templates under the
     // circle path re-clone only when their class is Location-shaped —
