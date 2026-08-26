@@ -1,7 +1,7 @@
 # Bulk — continuous matter as a holder attribute
 
 The substrate for **continuous, formless, measured matter** (liquid in
-v1): water, coffee. Bulk is the sibling of the discrete fungible-stack
+v1) — the **`Bulkable`** holder attribute: water, coffee. Bulk is the sibling of the discrete fungible-stack
 substrate ([glob.md](./glob.md)), built on a fundamentally different
 premise — **bulk is not a Stuff.**
 
