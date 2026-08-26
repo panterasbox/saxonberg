@@ -73,8 +73,6 @@ Load-bearing subsystem docs: [content-packs.md](../subsystems/content-packs.md),
   wave moves them out of the kernel manifest into their packs' `boot:`
   lists (D5). Each one's lazification is its own driven change, on the
   worklist, not a wave-3 deliverable.
-- **The `soul` verb's editing surface reappearing anywhere in-game.**
-  It leaves the game (D2).
 
 ## Surface decisions
 
@@ -88,7 +86,7 @@ gets a different successor, and none of them is a group named anything.
 | 1. Default title holder (`ownerOf` → `{group: core}`) | **Nothing.** An untitled path is untitled: `ownerOf` returns `null`. |
 | 2. Implicit owner of everything unparcelled (the ~20 write/clone/destruct/goto fall-throughs) | **Fail closed.** `AccessApi.can` denies on an untitled resource. The drain: every path a write verb can reach carries a real title by the end of the wave, and a script counts the ones that don't (D10). |
 | 3a. `broadcast` authority | **The Prime Minister seat**, checked through `CompactApi.holdsOffice`. Authority and delivery stay separate: the delivery path must not depend on a healthy world. Never `isWizard`. An empty seat fails closed and says so. |
-| 3b. `soul` authority | **Leaves the game.** The mutating subcommands are deleted; editing the emote catalogue is maintainership of the `expression` pack (a merge, not a verb). Read subcommands (`search`, `list`) survive ungated. `requiresCoreAccess` is deleted with its last two consumers. |
+| 3b. `soul` authority | **The soul committee** — a `soul` group owned by `{office: prime-minister}`, holding **title to the emote extent** (D2b). `soul`'s mutating subcommands are gated by that title through `canAtPath`, like every other document write; read subcommands are ungated. `requiresCoreAccess` is deleted with its last two consumers. |
 | 4. Author scope (`ensureAuthorGroups` = parcel-owner groups **+ core**) | Drop the `+ core`. `isAuthor` = *holds any title anywhere*. |
 | 5. `:admin` / `coreMemberIds` | **Deleted** — the predicate, the per-dispatch precompute in `CommandLogic`, the `MqlContext` field, the mql.md/access.md lines. Its only consumer was a test. |
 
@@ -127,6 +125,35 @@ The two parcels `core` holds today move to the seat:
   has one accountable speaker — the same holder `broadcast` checks.
 - **`/studio`** → `prime-minister`. The sandbox namespace is
   governance-gated, not stewarded.
+
+### D2b — The soul committee holds the emote extent
+
+Emote packs are a starting point, not the catalogue. The in-game
+authority over emotes is the **soul committee**: a managed group named
+`soul`, owned by `{office: prime-minister}` (the `pack-installers`
+shape), declared by the platform's `requires.groups`, holding title to
+the emote document extent (the `expression` pack's root, `/expression`,
+and any other emote-kind root a pack claims beneath it). That title is
+the whole of its power, and it is enough for all three things the
+committee does:
+
+- **Which emote packs install.** Part 4b's precondition — a person
+  installing must hold title to the covering parcel of every claim —
+  means an emote pack's `requires.title` under `/expression` is
+  grantable only by a soul-committee member (or bootstrap, for the
+  shipped `expression` pack).
+- **Modify an installed emote.** `soul set` writes the document; the
+  three-way reconcile keeps the edit (`kept`) and raises a conflict if
+  the pack later changes the same row — the committee's edit is never
+  silently overwritten by a pack update.
+- **Disable an emote.** `Emote` gains a `disabled` flag (the
+  subject/board `archived` shape): a disabled emote is not dispatched
+  and not listed, but the row stays so the reconcile sees a kept edit,
+  not a vanished row. `soul disable <verb>` / `soul enable <verb>`.
+
+`soul` keeps its full subcommand set; the only change is its gate —
+title, not `core` membership. `SoulCatalogue` invalidates on a `soul`
+write as it does on `pack sync` today.
 
 ### D3 — Pack zero's title is held by `pack-installers`
 
@@ -392,9 +419,13 @@ one pack.
    PM-held; a non-founder cannot write under them; the founder can;
    handing the seat off (`office` verb) moves the capability with it.
    Tests cover the resolve path and the fail-closed empty seat.
-7. `broadcast` is PM-gated; `soul` has no mutating subcommand;
-   `requiresCoreAccess` is gone; the test-auth founder can reach the
-   CMS and edit a command view (the wave-2 undriven item), driven.
+7. `broadcast` is PM-gated; `soul` mutations are title-gated (a soul
+   member edits and disables an emote, a non-member is refused, a
+   disabled emote neither dispatches nor lists, a later pack change to
+   an edited emote is a conflict not an overwrite); `requiresCoreAccess`
+   is gone; the test-auth founder can reach the CMS and edit a command
+   view (the wave-2 undriven item), driven. Installing a second emote
+   pack as a non-member of `soul` is refused at the title precondition.
 8. `requires.groups` / `requires.title`: tests cover ensure-exists,
    adopt-by-name, the NPC-only membership fence (Katie admitted; a
    human id refused; a foreign group refused), grant on a fresh
