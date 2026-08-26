@@ -7,8 +7,8 @@ the same reconcile installer third-party content uses; `SeederManager`,
 `bootstrap.ts` for the packs that own the rows it clones; a pack
 declares the structure it needs (`requires:` — groups that exist, title
 it claims) and the registry grants it; and the `core` group — five jobs
-wearing one name — is decomposed into seats, an office-owned group, and
-nothing. After this wave the acceptance criterion the slate has carried
+wearing one name — is decomposed into the executive (an organization), a
+committee, and nothing. After this wave the acceptance criterion the slate has carried
 since Part 7 is falsifiable: *a Saxonberg with zero packs besides pack
 zero boots, accepts a login, and lands in an honestly empty shell room
 without erroring.*
@@ -76,7 +76,7 @@ Load-bearing subsystem docs: [content-packs.md](../subsystems/content-packs.md),
 
 ## Surface decisions
 
-### D1 — `core` decomposes into seats, an office-owned group, and nothing
+### D1 — `core` decomposes into the executive, a committee, and nothing
 
 The core-decomposition slate's audit stands: `core` does five jobs. Each
 gets a different successor, and none of them is a group named anything.
@@ -86,7 +86,7 @@ gets a different successor, and none of them is a group named anything.
 | 1. Default title holder (`ownerOf` → `{group: core}`) | **Nothing.** An untitled path is untitled: `ownerOf` returns `null`. |
 | 2. Implicit owner of everything unparcelled (the ~20 write/clone/destruct/goto fall-throughs) | **Fail closed.** `AccessApi.can` denies on an untitled resource. The drain: every path a write verb can reach carries a real title by the end of the wave, and a script counts the ones that don't (D10). |
 | 3a. `broadcast` authority | **Title over the extent addressed** (D2c). `broadcast` is reworked, not ported: a forced message to everyone under an extent, by whoever holds that extent. Realm-wide (operational, shutdown) notices are the PM seat's because the seat holds the realm root. Never `isWizard`. |
-| 3b. `soul` authority | **The soul committee** — a `soul` group owned by `{office: prime-minister}`, holding **title to the emote extent** (D2b). `soul`'s mutating subcommands are gated by that title through `canAtPath`, like every other document write; read subcommands are ungated. `requiresCoreAccess` is deleted with its last two consumers. |
+| 3b. `soul` authority | **The soul committee** — a `soul` group owned by `{office: prime-minister}`, holding **title to the emote extent** (D2b). (A committee is a group: parallel work, many hands.) `soul`'s mutating subcommands are gated by that title through `canAtPath`, like every other document write; read subcommands are ungated. `requiresCoreAccess` is deleted with its last two consumers. |
 | 4. Author scope (`isAuthor`, `ensureAuthorGroups` = parcel-owner groups **+ core**) | **Deleted.** Everyone is an author — every Avatar carries `AuthorMixin`. "Author" was never a capability, only the null-resource fallthrough dressed as a tier. Each of its five consumers gets its own resource-targeted mechanism (D2d). The dead `requiresAuthor` validator goes with it. |
 | 5. `:admin` / `coreMemberIds` | **Deleted** — the predicate, the per-dispatch precompute in `CommandLogic`, the `MqlContext` field, the mql.md/access.md lines. Its only consumer was a test. |
 
@@ -106,37 +106,58 @@ without inventing anything. The slate's Q1 worry — that `null` invites
 every caller to invent a fallback — is answered by D10's count, not by
 a principal.
 
-### D2 — Title can be held by a seat
+### D2 — Title can be held by an organization
 
-`ParcelOwner` gains a third kind, mirroring `GroupOwner`'s:
+`ParcelOwner` gains a third kind:
 
 ```
-| { kind: "office"; office: string }
+| { kind: "organization"; templatePath: string }
 ```
 
-An office-held title resolves through `CompactApi.holdsOffice` on read
-(founder default included), exactly as an office-owned group does.
-`AccessApi.can` on an office-held resource admits the seat's holder;
-`committeeOf` over an office-held parcel resolves to the seat.
+An organization-held title is held by **everyone who holds a non-exited
+position in the organization** (its staff, through
+`EmploymentApi.holdsPosition`) **and by its appointing authority** (its
+head — an office, resolved through `CompactApi.holdsOffice`, founder
+default included). Staff join by appointment, never by `group add`; a
+seat hand-off moves every title the office's organization holds.
+`AccessApi.can` on an organization-held resource admits that set;
+`committeeOf` over one resolves to the organization.
 
-The two parcels `core` holds today move to the seat:
+**The executive is one holder.** `/compact/executive` already exists as
+*the Office of the Prime Minister* — an `Organization` whose
+`appointingAuthority` is the `prime-minister` seat, with a
+communications director and a press secretary. "The entire executive is
+the Prime Minister and her staff": every namespace the polity holds is
+held by that organization —
 
-- **`/compact`** → `prime-minister`. The state's publications namespace
-  has one accountable speaker — the same holder `broadcast` checks.
-- **`/studio`** → `prime-minister`. The sandbox namespace is
-  governance-gated, not stewarded.
-- **`/home`** → `prime-minister`. The root of the residence namespace;
-  each `/home/<self>` beneath it stays the player's own title
-  (`selfHomeOwnerOf`, player-kind), so the seat holds the street and
-  the residents hold their doors. Same for the realm root `/domain`
-  (D2c).
+- **`/compact`** — the state's publications namespace.
+- **`/studio`** — the sandbox namespace, governance-gated, not stewarded.
+- **`/home`** — the root of the residence namespace; each `/home/<self>`
+  beneath it stays the player's own title (`selfHomeOwnerOf`,
+  player-kind), so the executive holds the street and the residents
+  hold their doors.
+- **`/domain`** — the realm root (D2c), renamed with it in wave 4.
+- **`/obj`, `/cmd`, `/blueprints`, `/platform`** — the platform's own
+  content (D3).
+
+Later agencies are new organizations with their own appointing
+authority holding their own extents — content, no kernel change. The
+`central-bank-governor` seat is the polity's other office; the
+`CentralBank` row is not an organization and holds no path this wave.
+
+**Why not a seat directly, and why not a group.** A seat is one person;
+the work of holding the platform is the office's staff, appointed by
+the seat, attributable to it. A group has no appointing authority and
+no head. The organization is the shape that already exists for exactly
+this (*business = economy, organization = chart; a seat is a position
+the law points at*), and the same shape holds a corpo's extent (D8).
 
 ### D2b — The soul committee holds the emote extent
 
 Emote packs are a starting point, not the catalogue. The in-game
 authority over emotes is the **soul committee**: a managed group named
-`soul`, owned by `{office: prime-minister}` (the `pack-installers`
-shape), declared by the platform's `requires.groups`, holding title to
+`soul`, owned by `{office: prime-minister}`, declared by the platform's
+`requires.groups`, holding title to
 the emote document extent (the `expression` pack's root, `/expression`,
 and any other emote-kind root a pack claims beneath it). That title is
 the whole of its power, and it is enough for all three things the
@@ -181,12 +202,12 @@ every other act on land this wave:
   the locality's title (as `terminus` holds the Terminus parcels
   today). Nothing consults `isWizard`, `isAuthor`, or a group by name.
 - **The realm root is a title.** The platform claims `/domain` (the
-  world root — renamed with it in wave 4) for the **`prime-minister`**
-  seat. Realm-wide notices — operational, shutdown, anything the
-  operator must say to everyone — are therefore the executive's, by
-  office, founder by default, and move with the seat. A spokesperson
-  (comms director, press office) is delegation and rides the agency
-  substrate when that lands; this wave the seat holder speaks.
+  world root — renamed with it in wave 4) for **`/compact/executive`**.
+  Realm-wide notices — operational, shutdown, anything the operator
+  must say to everyone — are therefore the executive's: the Prime
+  Minister, founder by default, or her communications director / press
+  secretary by appointment. The press-office model falls out of the
+  organization holder with no delegation substrate.
 - **`--at` is required when ambiguous.** Omitted, it defaults to the
   covering parcel of where the speaker stands *if they hold it*;
   otherwise the verb refuses and lists the extents they do hold. No
@@ -220,25 +241,31 @@ title, not by a special case.
 | **`find`** template paths | Shown for objects under an extent the actor holds. Concealment already decides what appears at all. |
 | **MQL pre-resolution operators** (`:online`, path seeds, `class:`/`mixin:`/`template:` filters) | **Ungated.** Resolving a query is not permission to act on its result: `attack online:bob` resolves and the attack controller's reachability check refuses it, as it must for any target. Connection status is already public (`who`). The `MqlContext.permission` snapshot, `gateAuthor`, `MqlPermissionError`'s authoring tier and the `:admin` predicate are all deleted together. True invisibility is not a goal; concealment remains the perception layer's business and applies to MQL results as it does today. |
 
-### D3 — Pack zero's title is held by `pack-installers`
+### D3 — Pack zero's title is held by the executive; `pack-installers` folds into it
 
 The platform pack declares `requires.title` for the extents it ships
-under, and the holder is the **`pack-installers`** group — already
-owned by `{office: prime-minister}`. That is the same shape every other
-pack's maintainers group takes (D7): stewardship is group work, with an
-accountable owner one hop up. The founder, PM by default, resolves as
-the group's owner and so holds the title — which also closes the
-wave-2 gap where the test-auth founder could not reach the CMS (D2d:
-the CMS shows what you can read, and the platform's tree is theirs).
+under, and the holder of all of them is **`/compact/executive`** (D2).
+The platform's `maintainers:` names that organization. The founder,
+Prime Minister by default, is its appointing authority and so holds
+every title — which also closes the wave-2 gap where the test-auth
+founder could not reach the CMS (D2d: the CMS shows what you can read,
+and the platform's tree is the executive's).
 
-Pack zero's claimed extents are the path-branch titles the platform
-ships rows under: `/obj`, `/cmd`, `/wiki` (the namespace roots —
-`wiki-editors` keeps `/wiki`'s page-edit title as today; the platform
-holds the zone rows) and the platform's own `root`, held by
-`pack-installers`; and `/compact`, `/studio`, `/home` and the realm root
-`/domain`, held by the `prime-minister` seat (D2/D2c). The planner enumerates them from the rows the
-pack ships; a row under an extent the pack has not claimed is an
-install error (the write-refused-outside-extent rule, Part 4b).
+**`pack-installers` is deleted.** The wave-2 committee behind
+`requiresPackInstaller` was the executive's content-ops committee by
+description; now it *is* the executive: `requiresPackInstaller` admits
+whoever holds `/compact/executive` (staff or head). The ops queue that
+unstaffed packs route to (D7) is the same organization. No group named
+`pack-installers` exists after this wave.
+
+Pack zero's claimed extents: `/obj`, `/cmd`, `/blueprints`, `/platform`
+(its own root — where its settings, subjects and blueprints live),
+`/compact`, `/studio`, `/home`, `/domain` — all held by the executive —
+and `/wiki`, held by `wiki-editors` as today (the platform ships the
+namespace zone rows; the page-edit title stays with the editors). The
+planner enumerates them from the rows the pack ships; a row under an
+extent no pack in its dependency chain has claimed is an install error
+(the write-refused-outside-extent rule, Part 4b).
 
 ### D4 — `requires:` — groups-exist and title claims, and the registry grants
 
@@ -256,6 +283,8 @@ requires:
 
 - **`groups:`** — ensure-exists, **empty**, owner `system` unless the
   entry names `{office: <key>}`. Membership is never declared here.
+  (A group is for a committee — parallel work with no head; an
+  extent held *as an institution* names an organization instead.)
   The one exception the A22 split carves out: a membership row is
   legal iff the member is a **pack-shipped NPC under the pack's own
   extent** and the group is **pack-declared** (Katie in `duncan-hall`).
@@ -264,8 +293,10 @@ requires:
 - **`title:`** — a claim. The pack never writes a `parcels` row; the
   installer calls the gated `ParcelApi` path to grant it, with
   `landUse` / `areaM2` / `parentParcel` carried as today's
-  `parcels.yaml` carries them. Holder = the pack's maintainers group
-  (D7) unless the entry names `{office: <key>}` (D2).
+  `parcels.yaml` carries them. Holder = the pack's maintainers (D7)
+  unless the entry names `{group: <name>}` or `{organization: <path>}`
+  (D2) — the organization must be a row this pack or a `dependsOn`
+  pack ships.
 - **Precondition.** A person installing holds title to the covering
   parcel of every claim (Part 4b). **Bootstrap is exempt**: it is the
   installing principal for shipped packs, and on a fresh database a
@@ -289,8 +320,7 @@ requires:
 `GroupSeeder`, `ParcelSeeder`, `config/groups.yaml`, `config/parcels.yaml`
 are deleted. Their contents become `requires:` entries on the packs
 that ship the rows (D8 for the localities; the corpo packs for the five
-boards; the platform for `pack-installers`, `wiki-editors`, and its own
-claims). Existing group and parcel rows on a deployed database are
+boards; the platform for `wiki-editors`, `soul`, and its own claims). Existing group and parcel rows on a deployed database are
 **adopted** by the claims that name them (same holder → `kept`; same
 name → the group is found, not minted), so a running deployment loses
 nothing.
@@ -345,9 +375,11 @@ The disk fallback for command views goes to **zero**: the seven
 
 ### D7 — Staffing at install: a maintainers group per pack, ops as the fallback
 
-Every pack has a maintainers group named `<id>-maintainers`, declared
-implicitly (the installer ensures it; a pack may name a different
-group in `maintainers:` — the platform names `pack-installers`).
+Every pack has maintainers: by default a group named
+`<id>-maintainers`, declared implicitly (the installer ensures it,
+owned by `{office: prime-minister}`); a pack may instead name a group
+or an organization in `maintainers:` — the platform names
+`/compact/executive`, a corpo pack names its own organization (D8).
 
 - **A person installing** is prompted once — *you, or who?* — through
   `PromptApi` and becomes the first member unless they name someone.
@@ -355,8 +387,8 @@ group in `maintainers:` — the platform names `pack-installers`).
   exists empty, and the pack is *unstaffed*.
 - **Routing is the enforcement.** Pack diagnostics and reconcile
   conflicts route to the maintainers group; an unstaffed pack's route
-  to the ops queue — the `pack-installers` committee, PM-owned, per
-  A25 ("ops chief" is whoever holds the seat that owns the committee).
+  to the ops queue — the executive, `/compact/executive` (A25: "ops
+  chief" is whoever heads it, the Prime Minister today).
   `pack status` shows staffing. No gate, no tombstone.
 - Ops owns *that* every pack is staffed, never *who* governs its
   content; after first fill, membership rides the group's own
@@ -380,7 +412,7 @@ Own, don't rename: every row keeps its template path this wave.
 | `obj/{items,arms,armor,clothes,gear,vessel,fixture,instrument,traps,pot,plant,seed,crop,bed,surface,exits}/` + the loose objects (`Campfire`, `Forge`, `Kiln`, `Oven`, `CookPot`, `Coin`, `Key`, `Scrap`, `PaymentCard`, `AetherImplant`, `Corpse`, `Casting`) | **generic-objects** (`root` widens from `/generic-objects` to admit `/obj/**` rows — the pack's `root:` is where its *documents* live; template rows are path-addressed and title-bounded, so generic-objects claims title to the `/obj/<cluster>` branches it ships) |
 | `obj/room/` archetypes | **generic-objects** — expected to slim as trade packs take their objects; what never finds a home stays here as the junk drawer, and that is a legal end state |
 | `obj/species/` (4) | **species-and-names** |
-| `obj/corpo/` (3 marks) + `seeds/corpo/` (5 org charts) | the five **corpo packs** |
+| `obj/corpo/` (3 marks) + `seeds/corpo/` (5 org charts) | the five **corpo packs** — each pack's `maintainers:` and the holder of `/corpo/<key>` is the corpo's own organization (`/corpo/<key>`, the chart the pack ships); the wave-2 `<key>` board groups are deleted, the board being the organization's appointing authority |
 | `obj/lounge.yaml` | **saxonberg-lounge** |
 | `seeds/compact/`, `seeds/wiki/` (namespace zones), `home.yaml`, `studio.yaml`, `wiki.yaml`, `domain/void.yaml` | **platform** |
 | `seeds/domain/**` (eternal, terminus, lounge, hearthworks, moor, practicum, substation, common — 158 rows) + `domain/eternal/**/cmd/` (7 views) | **world-seed** |
@@ -396,7 +428,7 @@ says in its description that it is deleted piecewise as waves 4–5 home
 each locality. `base-library` is untouched.
 
 Title holders for the claims that move out of `parcels.yaml`:
-`/corpo/<key>` → `<key>` (the board, as today); the locality extents →
+`/corpo/<key>` → the corpo's organization (D8 above); the locality extents →
 their groups as today, held under `world-seed`'s maintainership until
 their packs land; `/wiki` → `wiki-editors`.
 
@@ -417,7 +449,8 @@ Two scripts, both CI-gating:
 
 - **`lint:core-gone`** — no literal `'core'` in `packages/server/src`
   or `packages/content` outside a line carrying a migration-note
-  marker; `ParcelOwner`'s kinds are `group | player | office`; no
+  marker; `ParcelOwner`'s kinds are `group | player | organization`; no
+  group named `pack-installers` is declared by any pack; no
   `requiresCoreAccess` module; no `coreMemberIds`.
 - **`lint:untitled`** — walks every template path a write-capable verb
   can reach (the trees under the parcel registry's coverage: `/obj`,
@@ -482,14 +515,17 @@ one pack.
    `ownerOf` never returns a group named `core`; `:admin` and the
    authoring tier are absent from the MQL grammar, resolver and docs;
    `AccessApi.isAuthor` and `requiresAuthor` do not exist.
-6. `ParcelOwner.office` is exercised: `/compact`, `/studio`, `/home`
-   and `/domain` are PM-held; a player's `/home/<self>` still resolves
-   to the player; a non-founder cannot write under them; the founder can;
-   handing the seat off (`office` verb) moves the capability with it.
-   Tests cover the resolve path and the fail-closed empty seat.
+6. `ParcelOwner.organization` is exercised: `/obj`, `/cmd`, `/compact`,
+   `/studio`, `/home` and `/domain` are held by `/compact/executive`; a
+   player's `/home/<self>` still resolves to the player; a non-member
+   cannot write under them; the founder (head) can; an appointed
+   communications director can; a fired one cannot; handing the seat
+   off (`office` verb) moves the capability with it; `pack status` as
+   the founder needs no `group add`. Tests cover the resolve path and
+   the fail-closed empty seat.
 7. `broadcast --at`: a parcel holder reaches only those under their
    parcel; a locality government's member reaches the locality; the
-   PM seat reaches everyone under `/domain`; a non-holder is refused
+   PM and her press secretary reach everyone under `/domain`; a non-holder is refused
    with their held extents listed; a player reaches guests in their own
    home; `--to` is gone. `isAuthor` does not exist; `teleport` admits
    a same-extent hop and refuses a cross-boundary one for a holder and
@@ -515,11 +551,11 @@ one pack.
 10. Staffing: a person's `pack install` prompts and fills the
     maintainers group; a bootstrap install leaves it empty and `pack
     status` shows *unstaffed*; a diagnostic on an unstaffed pack
-    routes to `pack-installers`.
+    routes to the executive.
 11. `pack provision <id>` lists empty required groups and staffing.
 12. Docs: content-packs.md (the manifest schema, `requires:`, `boot:`,
     staffing, the platform-only criterion, the pack table), parcel.md
-    (the office owner kind), access.md (author scope, the deleted
+    (the organization owner kind), access.md (author scope, the deleted
     axis, no `core`), governance.md (seat-held title), mql.md (`:admin`
     removed), the CLAUDE.md map line and collection list at the sweep;
     the core-decomposition slate retires into parcel.md/access.md; the

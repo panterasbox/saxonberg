@@ -26,9 +26,9 @@ Three cross-cutting mechanics the plan relies on, stated once:
 
 ---
 
-## Step 1 — `ParcelOwner.office` + the group's owner holds what the group holds (D2)
+## Step 1 — `ParcelOwner.organization`: the holder set is the staff plus the head (D2)
 
-Commits: `feat(parcel): the office-held title kind (ParcelOwner.office)` · `feat(access): a group's owner holds what the group holds`.
+Commits: `feat(parcel): the organization-held title kind (ParcelOwner.organization)` · `feat(access): an organization's staff and appointing authority hold what it holds`.
 
 ### 1.1 `lib/parcel/ParcelRecord.ts`
 
@@ -36,26 +36,26 @@ Commits: `feat(parcel): the office-held title kind (ParcelOwner.office)` · `fea
 export type ParcelOwner =
   | { kind: "group"; name?: string; ref?: GroupRef }
   | { kind: "player"; templatePath: string }
-  | { kind: "office"; office: string };
+  | { kind: "organization"; templatePath: string };
 ```
-Doc comment: an office-held title resolves through `CompactApi.holdsOffice` on read (founder default included), mirroring `GroupOwner.office`. No fieldMeta change (the field is already persistent).
+Doc comment: an organization-held title is held by everyone holding a non-exited position in the organization and by its appointing authority (an office, founder default included). No fieldMeta change (the field is already persistent).
 
 ### 1.2 `obj/AccessRegistry.ts`
 
-- `subjectIsOwnerMember(subject, memberKey, owner)`: add `case 'office'` → `CompactApi.holdsOffice(subject, owner.office)`. For `group`: `GroupApi.isMember(memberKey, ref) || GroupApi.ownsGroup(subject, group)` — **planner's choice, required by D3** ("the founder, PM by default, resolves as the group's owner and so holds the title"): the group's owner (an office holder, or a player owner) holds every title the group holds. Load the `Group` by ref through `GroupApi` (add `GroupApi.groupOf(ref): Promise<Group | null>` → `GroupLogic` → the managed provider, if no equivalent exists; check `ManagedGroupProvider` first).
-- `subjectHasOwnerRole` (the `canMutateZone` dispatch): the same two additions — an office holder, or the group's owner, counts as `'owner'`.
-- `ParcelRegistry.resolveOwnerRef` / `resolveRefImpl`: an `office` owner returns `null` (no group). `groupOwnerRefs` skips it.
-- `CompactLogic.committeeOfImpl`: `CommitteeView` becomes a discriminated union — `{ kind: 'group'; name; groupRef } | { kind: 'office'; name: <office>; office }` (**planner's choice**: D2's "resolves to the seat"). `isCommitteeMember` for the office arm → `holdsOffice`; `committeeMembersOf` → the holder (one Stuff, if online) or `[]`; `committeeChannelOf`/`ensureCommitteeChannel` → null for the office arm (no committee channel for a seat). Grep every consumer of `committeeOf` (`EmploymentLogic` `holdsAuthority`, `PressLogic`, the `government`/`office` verbs) and switch on `kind`.
-- `ParcelLogic` (`STATE_OWNER` degraded path) and `PersistableLogic.ownerString` gain the office case: `office:<key>` as the record-owner sentinel.
-- `EvalController.holdsParcel` (~L247) gains the office arm (`holdsOffice`).
+- `subjectIsOwnerMember(subject, memberKey, owner)`: add `case 'organization'` → resolve the organization by `StuffApi.findByTemplatePath(owner.templatePath)` (an `OrganizationMixin` host; **it must be resident** — `/compact/executive` and the corpos are `boot:` entries, which is the reason they stay eager this wave) and admit iff `EmploymentApi.holdsPosition(subject, org)` (any non-exited position — the `holdsPublishingPosition` walk without the `publishingPositions` filter; add it to `EmploymentApi` if only the publishing variant exists) **or** `EmploymentApi.holdsAuthority(subject, org)` (the appointing authority — for `{kind:'office'}` that is `CompactApi.holdsOffice`, founder default included). A non-resident or non-organization target → `false` (fail closed) with one diagnostic.
+- `subjectHasOwnerRole` (the `canMutateZone` dispatch): the same — staff or head counts as `'owner'`.
+- `ParcelRegistry.resolveOwnerRef` / `resolveRefImpl`: an `organization` owner returns `null` (no group). `groupOwnerRefs` skips it.
+- `CompactLogic.committeeOfImpl`: `CommitteeView` becomes a discriminated union — `{ kind: 'group'; name; groupRef } | { kind: 'organization'; name: <label>; templatePath }` (**planner's choice**: D2's "resolves to the organization"). `isCommitteeMember` for the organization arm → staff-or-head as above; `committeeMembersOf` → the online position holders + the head; `committeeChannelOf`/`ensureCommitteeChannel` → null for the organization arm this wave (an organization's channel is its own concern). Grep every consumer of `committeeOf` (`EmploymentLogic` `holdsAuthority`, `PressLogic`, the `government`/`office` verbs) and switch on `kind`. ⚠ `/corpo/<key>`'s committee today is the `<key>` board *group*; after step 6 it is the corpo organization — `appoint` for a corpo must keep working through `holdsAuthority` on the organization's own `appointingAuthority` (read each corpo chart's authority before step 6; if a chart names the board group, the chart is content and the pack file changes to the seat/holder the user decides — flag it in the MR).
+- `ParcelLogic` (`STATE_OWNER` degraded path) and `PersistableLogic.ownerString` gain the organization case: `organization:<templatePath>` as the record-owner sentinel.
+- `EvalController.holdsParcel` (~L247) gains the organization arm.
 
 ### Tests (step 1)
 
-- `mud/obj/__tests__/AccessRegistry.office-owner.test.ts` (stub `ParcelApi.ownerOf`, `CompactApi.holdsOffice`, `GroupApi.isMember`/`ownsGroup`): office-held path admits the seat holder and refuses a non-holder; an **empty seat fails closed** (holdsOffice false); a group-held path admits the group's owner; `canMutateZone` on an office-held zone admits the holder.
-- `CompactLogic.test.ts`: `committeeOf` over an office-held parcel returns the office arm; `isCommitteeMember` uses `holdsOffice`.
-- `ParcelRegistry.test.ts`: `resolveOwnerRef({kind:'office'})` is null.
+- `mud/obj/__tests__/AccessRegistry.organization-owner.test.ts` (stub `ParcelApi.ownerOf`, `StuffApi.findByTemplatePath`, `EmploymentApi.holdsPosition`/`holdsAuthority`): organization-held path admits a position holder and the head, refuses a non-member and an exited position; an **empty seat fails closed**; a non-resident organization fails closed; `canMutateZone` on an organization-held zone admits staff.
+- `CompactLogic.test.ts`: `committeeOf` over an organization-held parcel returns the organization arm; `isCommitteeMember` is staff-or-head.
+- `ParcelRegistry.test.ts`: `resolveOwnerRef({kind:'organization'})` is null.
 
-*Exit: the seat can hold title; nothing holds one yet.*
+*Exit: an organization can hold title; nothing holds one yet.*
 
 ---
 
@@ -75,7 +75,7 @@ export interface TitleClaim {
 }
 export type TitleGrantOutcome = 'granted' | 'kept' | 'conflict' | 'migrated';
 ```
-`ParcelRegistry.grant(claim): Promise<{ outcome, holder: ParcelOwner }>` (gated `ParcelApiCallers`, `assertFieldMutation`): find by extent (trie handle first, then `findByExtent`); absent → write the row (`ParcelSeeder`'s body moved in: `extent`, `zonePath = extent`, `owner`, `parentParcel`, `setLandUse`, `area`), `appendEvent('grant', extent, null, holder)` (the `ParcelEvent.kind` union grows `'grant'`), `reindex` → `granted`; present with the **same holder** (compare `kind` + `name`/`office`/`templatePath`; a `ref`-only group owner compares by resolved ref) → `kept`; present with a different holder → `conflict` (no write); present and held by `{kind:'group', name:'core'}` → `transfer` to the claim's holder with a `transfer` event and one log line → `migrated`. **Planner's choice, flagged loudly:** the `core`-held case is the one data touch the wave needs — without it the dev DB's `/studio` and `/compact` rows stay `core`-held and criterion 6 cannot hold on `saxonberg_build1`; criterion 3's "grants no new title over an existing one" is read as *over an existing one held by someone real*. The `'core'` literal in this branch carries the `// migration-note:` marker `lint:core-gone` exempts, and the branch is deleted in wave 4. `LandUses.isLandUse` / `areaM2 > 0` validation moves here from `ParcelSeeder.#validate`.
+`ParcelRegistry.grant(claim): Promise<{ outcome, holder: ParcelOwner }>` (gated `ParcelApiCallers`, `assertFieldMutation`): find by extent (trie handle first, then `findByExtent`); absent → write the row (`ParcelSeeder`'s body moved in: `extent`, `zonePath = extent`, `owner`, `parentParcel`, `setLandUse`, `area`), `appendEvent('grant', extent, null, holder)` (the `ParcelEvent.kind` union grows `'grant'`), `reindex` → `granted`; present with the **same holder** (compare `kind` + `name`/`templatePath`; a `ref`-only group owner compares by resolved ref) → `kept`; present with a different holder → `conflict` (no write); present and held by `{kind:'group', name:'core'}` → `transfer` to the claim's holder with a `transfer` event and one log line → `migrated`. **Planner's choice, flagged loudly:** the `core`-held case is the one data touch the wave needs — without it the dev DB's `/studio` and `/compact` rows stay `core`-held and criterion 6 cannot hold on `saxonberg_build1`; criterion 3's "grants no new title over an existing one" is read as *over an existing one held by someone real*. The `'core'` literal in this branch carries the `// migration-note:` marker `lint:core-gone` exempts, and the branch is deleted in wave 4. `LandUses.isLandUse` / `areaM2 > 0` validation moves here from `ParcelSeeder.#validate`.
 
 `ParcelApi.grant` is as exposed as `transfer` is today (a public static; authority is the caller's business); its doc comment names the installer as the one caller.
 
@@ -98,28 +98,29 @@ Commits: `feat(pack): requires.groups / requires.title / maintainers — the reg
 
 ```ts
 export interface RequiredGroup { name: string; purpose: string; owner?: { office: string }; members?: { id: string; role?: GroupRole }[] }
-export interface RequiredTitle { extent: string; holder?: { group: string } | { office: string }; landUse?: string; areaM2?: number; parentParcel?: string }
+export interface RequiredTitle { extent: string; holder?: { group: string } | { organization: string }; landUse?: string; areaM2?: number; parentParcel?: string }
 export interface PackRequires { groups: RequiredGroup[]; title: RequiredTitle[] }
 export interface PackBootEntry { template: string; role: 'sync-read' | 'producer'; reason: string; dependsOn?: string[] }
-export interface PackManifest { …; requires: PackRequires; boot: PackBootEntry[]; maintainers: string /* default `${id}-maintainers` */ }
+export type PackMaintainers = { group: string } | { organization: string }
+export interface PackManifest { …; requires: PackRequires; boot: PackBootEntry[]; maintainers: PackMaintainers /* default { group: `${id}-maintainers` } */ }
 ```
 `PackReconcileResult` gains `requires: { groupsCreated: string[]; groupsFound: string[]; titlesGranted: string[]; titlesKept: string[]; titlesMigrated: string[]; titleConflicts: string[]; membersAdded: string[]; skippedSold: string[] }`, `boot: Record<'sync-read' | 'producer', number>`, `staffed: boolean`. `PackConflict.reason` gains `'title'`. `PackInstallRecord` gains `requires: PackRequires` and `boot: PackBootEntry[]` (the record is what `bootManifest()` and the nightly `reprovision()` read — a failed pack writes `boot: []`). `PackStatusReport` gains `maintainers: { group: string; staffed: boolean }` and `titleConflicts: string[]`.
 
 ### 3.2 `readManifest` (`PackLogic.ts` ~L285)
 
 - **Unknown keys are an error**: the known set is `id, version, description, dependsOn, root, requires, boot, maintainers`; anything else throws `PackApi: manifest at … has an unknown key 'requries' (known: …)`.
-- `requires.groups[]`: `name` non-empty; `purpose` required prose; `owner` absent or `{office}`; `members[]` ids strings. `requires.title[]`: `extent` absolute; `holder` absent (→ the maintainers group), `{group}` or `{office}`; `landUse` validated against `LandUses.ALL` at read.
+- `requires.groups[]`: `name` non-empty; `purpose` required prose; `owner` absent or `{office}`; `members[]` ids strings. `requires.title[]`: `extent` absolute; `holder` absent (→ the pack's maintainers), `{group}` or `{organization: <templatePath>}` (the row must be shipped by this pack or a `dependsOn` pack — checked at `gatePack`); `landUse` validated against `LandUses.ALL` at read.
 - `boot[]`: `template` absolute; `role` ∈ the closed pair; `reason` non-empty; `dependsOn` string[]. No `awaitInit` key is accepted (an unknown key).
-- `maintainers` defaults to `<id>-maintainers`.
+- `maintainers` is `{group}` or `{organization}`; defaults to `{ group: '<id>-maintainers' }`; a bare string is read as a group name.
 
 ### 3.3 The requires phase (module-private `applyRequires(rp, record, principal)`, called from `reconcilePack` **after** `applyKindPlan` and before `saveRecord`)
 
-1. **Groups.** `GroupApi.ensureGroup(maintainers, {kind:'office', office:'prime-minister'})` (**planner's choice**: every maintainers group is PM-owned — D3's "the same shape every other pack's maintainers group takes"); then each `requires.groups` entry with owner `system` or `{office}`. Existing names are found, never re-owned (adopt-by-name).
+1. **Groups.** When `maintainers` is a group: `GroupApi.ensureGroup(name, {kind:'office', office:'prime-minister'})` (**planner's choice**: every default maintainers group is PM-owned). When it is an organization: nothing to ensure — the row is the pack's own content (or a host's). Then each `requires.groups` entry with owner `system` or `{office}`. Existing names are found, never re-owned (adopt-by-name).
 2. **The NPC-only membership fence** (at `gatePack`, step `requires-kernel`): every `members[].id` must be (a) a template path in this pack's `content.domain` and (b) under one of this pack's own `requires.title` extents; the group must be one of this pack's own `requires.groups`. Otherwise the pack fails pre-write with a message naming the id and the rule. Passing rows → `GroupApi.ensureMember`.
-3. **Titles.** For each claim: holder = `{kind:'group', name: maintainers}` unless `{group}` (must be declared by this pack or a `dependsOn` pack — else `requires-kernel`) or `{office}`. **Precondition** (principal ≠ `bootstrap`): `AccessApi.canAtPath(actor, 'write-template', extent)` against the *covering parcel of the claim* — refused → the pack fails at step `requires-kernel` naming the extent. Then `ParcelApi.grant(claim)` → outcome into the result; a `conflict` lands in `record.conflicts` as `{ path: extent, kind: 'title', reason: 'title', … }` plus one diagnostic on channel `pack.<id>` (the existing conflict loop).
+3. **Titles.** For each claim: holder = the pack's maintainers (`{kind:'group', name}` or `{kind:'organization', templatePath}`) unless `{group}` (must be declared by this pack or a `dependsOn` pack — else `requires-kernel`) or `{organization}` (same rule, over shipped rows). **Precondition** (principal ≠ `bootstrap`): `AccessApi.canAtPath(actor, 'write-template', extent)` against the *covering parcel of the claim* — refused → the pack fails at step `requires-kernel` naming the extent. Then `ParcelApi.grant(claim)` → outcome into the result; a `conflict` lands in `record.conflicts` as `{ path: extent, kind: 'title', reason: 'title', … }` plus one diagnostic on channel `pack.<id>` (the existing conflict loop).
 4. **Coverage** (at `gatePack`): every domain-row path and every document path of the pack lies under a claim of this pack or of a transitive `dependsOn` pack (manifests only — `discover()` already has them all). Failure step `requires-kernel`, message `row /obj/foo is outside every extent 'x' or its hosts claim`.
 5. **Bounded reconcile** (in `computeKindPlan`, domain kind only): if a resident `ParcelRegistry` exists, `coveringParcelOf(path)`'s holder ∉ the pack's holder set → `{ op: 'skip-sold', key }` (new `PackPlannedAction['op']`), counted into `result.requires.skippedSold`, never written. No registry → unbounded.
-6. `record.requires = manifest.requires; record.boot = manifest.boot`. Report: `result.boot` counts by role; `result.staffed = (await GroupApi.membersOf(maintainersRef)).length > 0`.
+6. `record.requires = manifest.requires; record.boot = manifest.boot; record.maintainers = manifest.maintainers`. Report: `result.boot` counts by role; `result.staffed` = a group with ≥1 member, or an organization with ≥1 non-exited position holder (the head alone does not count — an office with no staff is unstaffed, and the ops queue is the executive itself, so for the platform `staffed` is simply reported).
 
 `AppBootstrap`'s boot line grows: `…, requires: N group(s) (M created), T title(s) (G granted, K kept, C conflict), boot: S sync-read + P producer, staffed|UNSTAFFED`.
 
@@ -137,11 +138,11 @@ export interface PackManifest { …; requires: PackRequires; boot: PackBootEntry
 ### 3.6 `PackApi.provision(packId)` (read-only, D4) and `PackApi.staff(packId, memberPath)`, `PackApi.maintainersOf(packId)`
 
 - `provision` → `{ maintainers: {group, staffed, members}, groups: [{name, members: n}], titles: [{extent, holder, outcome}] }` from the record + live registry reads. `PackController` gains `case 'provision'` printing it; `pack.yaml` (the `author/pack.yaml` view) gains the subcommand.
-- `staff(packId, memberPath)` → `GroupApi.ensureMember(maintainersRef, memberPath, 'member')`; `maintainersOf(packId)` → `{ group: GroupRef; staffed: boolean; fallback: GroupRef /* pack-installers */ }`.
+- `staff(packId, memberPath)` → for a group, `GroupApi.ensureMember(ref, memberPath, 'member')`; for an organization, refused with "appoint through the organization" (staffing an organization is `appoint`, not a pack verb). `maintainersOf(packId)` → `{ maintainers: PackMaintainers; staffed: boolean; fallback: { organization: '/compact/executive' } }`.
 
 ### Tests (step 3)
 
-- `PackLogic.requires.test.ts` (harness gains `writeManifest(root, extra)` and in-memory `groups`/`parcels` stores with `GroupApi.ensureGroup`/`ParcelApi.grant` spied through to them): ensure-exists (created once, found on the second install — **adopt-by-name**); a maintainers group per pack, PM-owned, empty after a bootstrap install (`staffed: false`); grant on a fresh store; `kept` on a same-holder claim; `title` conflict on a foreign holder (recorded, diagnosed, no write); `migrated` over a `core`-held row; the NPC fence — an NPC under the pack's claim admitted, a `/obj/Avatar/x` id refused, a foreign group refused, an NPC outside the claim refused; a claim naming an undeclared group refused; coverage — a row outside every claim fails, a row under a `dependsOn` host's claim passes; bounded reconcile — a sold extent's row is `skip-sold`; the non-bootstrap precondition (stub `canAtPath` false → refused); **unknown manifest key fails at `read`**.
+- `PackLogic.requires.test.ts` (harness gains `writeManifest(root, extra)` and in-memory `groups`/`parcels` stores with `GroupApi.ensureGroup`/`ParcelApi.grant` spied through to them): ensure-exists (created once, found on the second install — **adopt-by-name**); a maintainers group per pack, PM-owned, empty after a bootstrap install (`staffed: false`); an organization maintainer must be a shipped row; a title with an `{organization}` holder is granted to it; grant on a fresh store; `kept` on a same-holder claim; `title` conflict on a foreign holder (recorded, diagnosed, no write); `migrated` over a `core`-held row; the NPC fence — an NPC under the pack's claim admitted, a `/obj/Avatar/x` id refused, a foreign group refused, an NPC outside the claim refused; a claim naming an undeclared group refused; coverage — a row outside every claim fails, a row under a `dependsOn` host's claim passes; bounded reconcile — a sold extent's row is `skip-sold`; the non-bootstrap precondition (stub `canAtPath` false → refused); **unknown manifest key fails at `read`**.
 - `PackLogic.boot.test.ts`: two fixture packs' `boot:` union with cross-pack `dependsOn` topo-sorts; a failed pack contributes no entries; eager counts by role reported; a template listed twice is an error; `readManifest` rejects a bad `role` / missing `reason` / an `awaitInit` key.
 - `backend/__tests__/BootstrapManager.test.ts` (existing): a case for the union default.
 - `PackLogic.discover.test.ts`: `SAXONBERG_PACKS` filters; unknown id throws; `platform` sorts first.
@@ -153,7 +154,7 @@ export interface PackManifest { …; requires: PackRequires; boot: PackBootEntry
 
 ## Step 4 — the platform pack becomes pack zero (D3, D5, D8): the `git mv` wave, the claims, the `soul` group, the boot list
 
-Commits (in this order; each green): `refactor(pack): template walk = every content/*.yaml outside the declared kind dirs` · `feat(pack): platform — controller templates, singletons, vocabularies, marshallers, Compact rows, namespace zones (git mv)` · `feat(pack): platform requires: pack-installers, wiki-editors, soul; the platform's claims; its boot list`.
+Commits (in this order; each green): `refactor(pack): template walk = every content/*.yaml outside the declared kind dirs` · `feat(pack): platform — controller templates, singletons, vocabularies, marshallers, Compact rows, namespace zones (git mv)` · `feat(pack): platform requires: wiki-editors, soul; the executive holds the platform; its boot list; pack-installers folds into the executive`.
 
 ### 4.1 The template walk (`readContent` ~L494) — **planner's choice**
 
@@ -180,27 +181,24 @@ version: 0.2.0
 root: /platform
 description: Pack zero — the platform: controller templates, registries and catalogues, marshallers, the closed vocabularies, the Compact's institutions, the namespace roots and the landing shell.
 dependsOn: []
-maintainers: pack-installers
+maintainers: { organization: /compact/executive }   # the Office of the Prime Minister — the PM and her staff
 requires:
   groups:
-    - name: pack-installers
-      purpose: the executive's content-operations committee; the ops queue
-      owner: { office: prime-minister }
     - name: wiki-editors
       purpose: the encyclopedia's editors (members) and moderators (owner role)
     - name: soul
       purpose: the soul committee — holds the emote extent (D2b)
       owner: { office: prime-minister }
-  title:
-    - { extent: /platform }                         # documents: settings, subjects, blueprints
-    - { extent: /obj }                              # pack-installers (default holder)
+  title:                                              # every one held by the executive unless said otherwise
+    - { extent: /platform }                           # documents: settings, subjects, blueprints
+    - { extent: /obj }
     - { extent: /cmd }
-    - { extent: /blueprints }                       # planner's choice: publishBlueprint's mint branch (see 9.2)
+    - { extent: /blueprints }                         # planner's choice: publishBlueprint's mint branch (see 9.2)
+    - { extent: /compact }
+    - { extent: /studio }
+    - { extent: /home }
+    - { extent: /domain }
     - { extent: /wiki, holder: { group: wiki-editors } }   # kept — same holder as today's row
-    - { extent: /compact, holder: { office: prime-minister } }
-    - { extent: /studio,  holder: { office: prime-minister } }
-    - { extent: /home,    holder: { office: prime-minister } }
-    - { extent: /domain,  holder: { office: prime-minister } }
 boot:
   - { template: /obj/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
   - { template: /domain/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
@@ -209,13 +207,13 @@ boot:
   # /compact/press, /compact/executive, /obj/PressBoard; reason = the existing comment condensed
   # to one line; dependsOn copied verbatim.
 ```
-`mud/bootstrap.ts` shrinks to the eight entries the corpo packs and `world-seed` will take (steps 6–7). `mud/config/groups.yaml` loses `pack-installers`, `wiki-editors`; `mud/config/parcels.yaml` loses `/studio`, `/compact`, `/wiki`. `content/settings/core.yaml` **drops `defaultStartLocation`** (**planner's choice**, required by criterion 2's "the lounge pack's contribution wins": merge-missing means first-merged wins and the platform installs first; the key moves to `saxonberg-lounge` at step 6 and `AppSettings`' code fallback for the key becomes `/domain/void`).
+`mud/bootstrap.ts` shrinks to the eight entries the corpo packs and `world-seed` will take (steps 6–7). `mud/config/groups.yaml` loses `pack-installers`, `wiki-editors`; `mud/config/parcels.yaml` loses `/studio`, `/compact`, `/wiki`. ⚠ The executive's claims need `/compact/executive` **resident** at requires time (step 1's resolve): the requires phase runs after the platform's rows are written, and `/compact/executive` is a `boot:` entry — so the requires phase must clone the organizations it names through `StuffApi.singleton(templatePath)` before resolving holders (the registry-at-boot rule, applied to organizations); `BootstrapManager` reuses them. `content/settings/core.yaml` **drops `defaultStartLocation`** (**planner's choice**, required by criterion 2's "the lounge pack's contribution wins": merge-missing means first-merged wins and the platform installs first; the key moves to `saxonberg-lounge` at step 6 and `AppSettings`' code fallback for the key becomes `/domain/void`).
 
-On the dev DB: `pack-installers`/`wiki-editors` found by name; `soul` created; `/wiki` kept; `/studio` and `/compact` **migrated** from `core` (two log lines); `/obj`, `/cmd`, `/platform`, `/blueprints`, `/home`, `/domain` granted. On a fresh DB everything is granted.
+On the dev DB: `wiki-editors` found by name; `soul` created; `/wiki` kept; `/studio` and `/compact` **migrated** from `core` (two log lines); `/obj`, `/cmd`, `/platform`, `/blueprints`, `/home`, `/domain` granted to the executive. The dev DB's `pack-installers` group row is left in place (unreferenced; the nightly reset or an operator `group` verb removes it — **no data touch**). On a fresh DB everything is granted.
 
-### 4.4 `requiresPackInstaller` — the group's owner is a member for this purpose
+### 4.4 `requiresPackInstaller` — the executive installs
 
-The validator reads `GroupApi.isMember` only; add the owner arm (`GroupApi.ownsGroup`) so the founder (PM) passes without a `group add` — the same rule step 1 put in `AccessRegistry` (**planner's choice**; without it the platform-only e2e cannot run `pack status`). `e2e/tests/drive-wave2.spec.ts`'s `group add pack-installers founder` line becomes unnecessary; leave it (idempotent) and drop its comment about `core`.
+The validator stops reading the `pack-installers` group: it admits whoever `AccessApi.can(giver, 'install', '/compact/executive')` admits — the executive's staff or head (D3: `pack-installers` folds into the executive). `e2e/tests/drive-wave2.spec.ts`'s `group add pack-installers founder` line and its comment are deleted; the founder passes as the head. The `pack` verb's help names the executive.
 
 ### Tests (step 4)
 
@@ -246,8 +244,9 @@ Commit: `feat(pack): generic-objects takes the object clusters + room archetypes
 
 Commit: `feat(pack): corpo packs own /corpo/<key> orgs, boards and boot entries; saxonberg-lounge owns /obj/lounge + defaultStartLocation`.
 
-- Per corpo: `git mv seeds/corpo/<key>.yaml → packages/content/corpo-<key>/content/corpo/<key>.yaml`; `pack.yaml` gains `maintainers: <key>` (**planner's choice**: the board IS the pack's maintainers — the same trick `saxonberg-lounge`/`lounge` and `expression`/`soul` use, and it keeps `committeeOf('/corpo/<key>')` resolving the board as today), `requires.groups: [{name: <key>, purpose: the <Key> board}]`, `requires.title: [{extent: /corpo/<key>, holder: {group: <key>}}]` (kept on the dev DB), `boot: [{template: /corpo/<key>, role: producer, reason: appoint and the chart reads resolve the organization by templatePath}]`. `groups.yaml` loses the five boards; `parcels.yaml` loses the five `/corpo/*` rows; `mud/bootstrap.ts` loses the five entries.
+- Per corpo: `git mv seeds/corpo/<key>.yaml → packages/content/corpo-<key>/content/corpo/<key>.yaml`; `pack.yaml` gains `maintainers: { organization: /corpo/<key> }` (the corpo's own chart — D8), no `requires.groups` (the wave-2 `<key>` board groups are **retired**: the board is the organization's appointing authority; `groups.yaml` loses the five rows and the dev DB's rows are left unreferenced), `requires.title: [{extent: /corpo/<key>}]` (holder = the organization; on the dev DB the row is held by the `<key>` **group** → this is a `title` **conflict** under the plain rule — **planner's choice**: `grant` treats a `{group, name}` holder whose name equals the claiming pack's retired board as `migrated` exactly like the `core` case, one marker-carrying branch listing the five names, deleted in wave 4; on a fresh DB `granted`), `boot: [{template: /corpo/<key>, role: producer, reason: appoint and the chart reads resolve the organization by templatePath}]`. `groups.yaml` loses the five boards; `parcels.yaml` loses the five `/corpo/*` rows; `mud/bootstrap.ts` loses the five entries.
 - `saxonberg-lounge`: `git mv seeds/obj/lounge.yaml → content/obj/lounge.yaml`; `maintainers: lounge`; `requires.groups: [{name: lounge, purpose: the lounge team}]`; `requires.title: [{extent: /obj/lounge, holder: {group: lounge}}, {extent: /domain/lounge, holder: {group: lounge}}]`; `content/settings/lounge.yaml` with `defaultStartLocation: /domain/lounge/warren` (the key the platform dropped at 4.3; merge-missing → on the dev DB the value is already present and `kept`). `parcels.yaml` loses `/obj/lounge` and `/domain/lounge` (world-seed re-declares `/domain/lounge` with the same holder at step 7 → `kept`).
+- Each corpo chart's `appointingAuthority` is read before the move; if it names the board group, the pack file changes it to the holder the user names (flag in the MR — the default assumption is `{kind:'office', office:'prime-minister'}` until a corpo has its own seat).
 - `mud/seeds/__tests__/corpo-organizations.test.ts` → `git mv` to `mud/obj/corpo/__tests__/corpo-organizations.test.ts`, reading the five packs.
 
 ### Tests (step 6)
@@ -339,7 +338,7 @@ Commits: `feat(access): AccessApi.heldExtents + the path-targeted TreeActions` �
 
 ### Tests (step 8)
 
-- `AccessRegistry.heldExtents.test.ts`: group member, group owner (office holder), player, self-home, nothing.
+- `AccessRegistry.heldExtents.test.ts`: group member, organization staff, organization head (office holder), player, self-home, nothing.
 - `BroadcastController.test.ts` (rewrite): a parcel holder reaches only avatars under the parcel; a locality government's member (a `terminus` member) reaches `/domain/terminus/*`; the PM reaches everyone under `/domain` (stub `holdsOffice`); a non-holder is refused with their extents listed; `--at` omitted at a held location defaults; omitted at an unheld location refuses; a player reaches a guest in `/home/<self>`; `--to` is unknown (arg-kinds).
 - `SoulCatalogue.test.ts`: disabled emote resolves null, is absent from `all`/`snapshot`, present via `resolveAny`; `setDisabled` writes through `DocumentApi.save` (spy); mint path under `/expression/emotes`.
 - `PackLogic.document.test.ts`: a disabled (DB-edited) emote against an unchanged file → `kept`; the same row with a later pack change → `conflict`, never overwritten (the D2b guarantee). A second fixture emote pack with `root: /expression/extra` installed by a non-`soul` principal (stub `canAtPath` false) fails the precondition.
@@ -364,14 +363,14 @@ Commits: `feat(access): retire isAuthor — teleport, CMS, errors, find on held 
 
 ### 9.2 The consumers the requirements did not list (found by grep — flagged)
 
-- `StudioLogic.gateRead` (composition reads) → ungated (everyone is an author). `StudioLogic.publishBlueprint` → the document gate decides: it writes `/blueprints/<id>` through `DocumentApi.save`, and the platform claims `/blueprints` (step 4) for `pack-installers` — **planner's choice**: publishing a curated blueprint is a platform act. Its `denied` disposition now comes from catching the gate's throw.
+- `StudioLogic.gateRead` (composition reads) → ungated (everyone is an author). `StudioLogic.publishBlueprint` → the document gate decides: it writes `/blueprints/<id>` through `DocumentApi.save`, and the platform claims `/blueprints` (step 4) for the executive — **planner's choice**: publishing a curated blueprint is a platform act. Its `denied` disposition now comes from catching the gate's throw.
 - `EmploymentLogic.isProprietorOfImpl`'s operator override → `CompactApi.holdsOffice(subject, 'prime-minister')` (**planner's choice**: the accountable person, per D2d's "the PM may do all of it anywhere"; check offices, never the founder). `lib/employment/Authority.ts`'s doc paragraph rewritten.
 - `AccessApi.isAuthor`/`AccessLogic.isAuthor`/`AccessRegistry.isAuthor` + `ensureAuthorGroups` + `cachedAuthorGroups` + `ParcelApi.groupOwnerRefs`'s doc (keep the method — `heldExtents` may use its walk) deleted; `lib/command/validators/requiresAuthor.ts` deleted; `requiresPublisher.ts`'s header paragraph rewritten; the `compact/press.yaml` header comment (now in the platform pack) rewritten ("the committee over `/compact` is the PM seat"). `AccessRegistry.reseedSystemGroups` drops `cachedAuthorGroups`/`cachedCoreRef` (the latter goes at step 10).
 
 ### Tests (step 9)
 
 - `TeleportController.test.ts`: same-extent hop admitted; cross-boundary refused for a holder; PM admitted anywhere under `/domain`; a wizard who holds nothing refused.
-- `CmsLogic.test.ts`: a non-holder's tree is the public tree (`/wiki` visible, `/obj` pruned); the founder (PM → pack-installers owner) sees `/obj`, `/cmd`; `read` refused/admitted.
+- `CmsLogic.test.ts`: a non-holder's tree is the public tree (`/wiki` visible, `/obj` pruned); the founder (PM → head of the executive) sees `/obj`, `/cmd`; `read` refused/admitted.
 - `DiagnosticLogic.test.ts`: `list` for a holder returns only held paths; a maintainer sees `pack.<id>` rows; a nobody gets `[]` with no error.
 - `FindController.test.ts`: paths shown only for held objects.
 - `resolver.test.ts`: `online:x`, `#id`, `world`, `class:` resolve without a snapshot; `:admin` is an unknown predicate; `attack online:bob` (an existing combat test, or a new one) is refused by reachability.
@@ -390,7 +389,7 @@ Commits: `feat(parcel): an untitled path is untitled — ownerOf returns null; A
 
 - `ParcelApi.ownerOf(path): Promise<ParcelOwner | null>`; `ParcelRegistry.ownerOf` returns `covering?.owner ?? selfHome ?? null`; `STATE_GROUP_NAME` deleted; `ParcelLogic.STATE_OWNER` deleted (degraded path → `selfHome ?? null`). Every caller (`AccessRegistry.can`/`canAtPath`/`canMutateZone` → `owner === null ⇒ false`; `CompactLogic.committeeOfImpl` → null; `PersistableLogic.ownerOfScope` → `scope` (the existing catch fallback; the `'core'` default in `ownerString` goes); `EvalController.holdsParcel` → falls to `AccessApi.can` (which is now false for untitled); `ArmController.mayPlaceIn` → `can(...) || (GovernmentApi.governmentAt(address) !== null && owner === null)` where `address` is the room's `AddressableMixin` address (the "ground under a government's jurisdiction with no private title" test — read `ArmController.ts:13` and `ArmController.test.ts` for the address the fixture uses); `ChattelLogic:91` comment).
 - `AccessRegistry`: delete `seedCoreGroup`, `resolveCoreRef`, `cachedCoreRef`, the `'core'` entries in the class doc and `reseedSystemGroups`; `postRegister` seeds `wizards`/`streamers`/`archwizards` only. `ResetPolicy.ts`'s `Groups` comment rewritten.
-- `Application.provisionTestCharacter`: the list becomes `['wizards', 'lounge', 'streamers', 'archwizards']` (**planner's choice**: `lounge` stays because `/domain/lounge` is a *sub-title* and nearest-parcel wins for `can` — the founder reaches everything else by the seat: `/obj`, `/cmd` as `pack-installers`' owner; `/domain`, `/home`, `/studio`, `/compact` as the PM); the long comment is rewritten around "authority comes from the seat; the test character is the founder, so it needs no grant beyond the groups that hold sub-titles it is tested under".
+- `Application.provisionTestCharacter`: the list becomes `['wizards', 'lounge', 'streamers', 'archwizards']` (**planner's choice**: `lounge` stays because `/domain/lounge` is a *sub-title* and nearest-parcel wins for `can` — the founder reaches everything else as head of `/compact/executive`); the long comment is rewritten around "authority comes from the seat; the test character is the founder, so it needs no grant beyond the groups that hold sub-titles it is tested under".
 - `scripts/dev-grant-core.mjs` deleted (its header asks for exactly this).
 - `mud/__tests__/access-test-helpers.ts`: `addGroupMember('core', …)` → `grantTestTitle(extent, groupName, playerId, role)` (a fixture parcel `/test/<name>` titled to a fixture group through `ParcelApi.grant` + `GroupApi.ensureMember`). Rewrite the eighteen test files that name `'core'` (the list from `grep -rl "'core'\|\"core\"" packages/server/src`): `ParcelRegistry.test.ts` (rung 3 → `null`), `AccessRegistry.canAtPath.test.ts`, `access.test.ts`, `ChattelRegistry.test.ts`, `CompactLogic.test.ts`, `ManagedGroupProvider.test.ts`, `Publisher.test.ts`, `Authority.test.ts`, `cold-box-walk.test.ts`, `ArmController.test.ts`, `PersistenceManager.migration.test.ts` (the group-owner migration fixture name → any other name), `HinkleyHills.test.ts`, `registry-authority.test.ts`, `startLocation.test.ts`, `landing.integration.test.ts`, the two moved seeds tests. `e2e/tests/drive-wave2.spec.ts` comments.
 
@@ -400,7 +399,7 @@ Commits: `feat(parcel): an untitled path is untitled — ownerOf returns null; A
 
 ### 10.3 `scripts/check-core-gone.ts` (`pnpm lint:core-gone`)
 
-Walk `packages/server/src`, `packages/server/scripts`, `packages/content`, `e2e` (`.ts`, `.mjs`, `.yaml`); an offending line matches `/'core'|"core"|\bname:\s*core\b|\bcoreMemberIds\b/` and does not contain the marker `migration-note:`; also: `lib/parcel/ParcelRecord.ts`'s `ParcelOwner` union has exactly the kinds `group`, `player`, `office` (regex over the type text); `lib/command/validators/requiresCoreAccess.ts` and `requiresAuthor.ts` do not exist; no `isAuthor(` on `AccessApi`/`AccessLogic`/`AccessRegistry`. Exported `classify(files)`; `scripts/__tests__/check-core-gone.test.ts`. `package.json` script; `.gitlab-ci.yml` lint job line after `lint:test-content`.
+Walk `packages/server/src`, `packages/server/scripts`, `packages/content`, `e2e` (`.ts`, `.mjs`, `.yaml`); an offending line matches `/'core'|"core"|\bname:\s*core\b|\bcoreMemberIds\b/` and does not contain the marker `migration-note:`; also: `lib/parcel/ParcelRecord.ts`'s `ParcelOwner` union has exactly the kinds `group`, `player`, `organization` (regex over the type text); no `pack-installers` in any `pack.yaml` or source; `lib/command/validators/requiresCoreAccess.ts` and `requiresAuthor.ts` do not exist; no `isAuthor(` on `AccessApi`/`AccessLogic`/`AccessRegistry`. Exported `classify(files)`; `scripts/__tests__/check-core-gone.test.ts`. `package.json` script; `.gitlab-ci.yml` lint job line after `lint:test-content`.
 
 ### 10.4 `scripts/check-untitled-paths.ts` (`pnpm lint:untitled`)
 
@@ -422,13 +421,13 @@ Read every `packages/content/*/pack.yaml` (the manifest reader's logic duplicate
 Commit: `feat(pack): pack status shows staffing + orphans; pack sync prompts the installer to staff; pack diagnostics route to maintainers, ops as the fallback`.
 
 - `PackApi.status`: `maintainers: {group, staffed}` per pack; `PackApi.orphans(): Promise<string[]>` — `content` rows with no `sourcePack` (**planner's choice**: templates only; author-minted *documents* are ordinary rows, not seed inventory) — `pack status` prints `N template row(s) under no pack: …` (listed, never deleted).
-- `PackController.executeSync`: after a successful sync whose pack is unstaffed, `PromptApi.text(giver, 'This pack has no maintainers. You, or who? (a name, or enter for you)')` → `PackApi.staff(packId, <path>)`; `pack status` line reads `staffed (3)` / `UNSTAFFED — routes to pack-installers`.
+- `PackController.executeSync`: after a successful sync whose pack is unstaffed, `PromptApi.text(giver, 'This pack has no maintainers. You, or who? (a name, or enter for you)')` → `PackApi.staff(packId, <path>)`; `pack status` line reads `staffed (3)` / `UNSTAFFED — routes to the executive`.
 - `DiagnosticLogic.pushToAuthor`: a diagnostic on channel `pack.<id>` pushes to `GroupApi.membersOf(staffed ? group : fallback)` (each online member gets the existing `diagnostic.<channel>` frame); other channels unchanged (the author path). `DiagnosticApi` gains nothing; the routing reads `PackApi.maintainersOf`.
 
 ### Tests (step 11)
 
 - `PackController.test.ts`: `status` staffing line + orphan line; `sync` on an unstaffed pack prompts (stub `PromptApi.text`) and staffs; a staffed pack does not prompt.
-- `DiagnosticLogic.router.test.ts`: `pack.x` diagnostic → maintainers when staffed, `pack-installers` when not; an author diagnostic → the author.
+- `DiagnosticLogic.router.test.ts`: `pack.x` diagnostic → maintainers when staffed, the executive's staff when not; an author diagnostic → the author.
 - `PackLogic.orphans.test.ts`: an unstamped template row is listed; a stamped one is not; a document is not.
 
 ---
@@ -448,7 +447,7 @@ Commits: `test(e2e): platform-only boot — pack zero lands the founder in the s
 ### 12.3 Gates, the suite, the drive
 
 - `pnpm build`; the whole lint family incl. `lint:core-gone`, `lint:untitled`; **one** full `pnpm test`.
-- **Drive** (recorded on the MR, in this order, against `saxonberg_build1` unless stated): (1) first boot — every pack `inserted 0`, `adopted` = its row count (platform ≈460, generic-objects 107, species 4, corpo 1 each, lounge 1, world-seed 158), `/studio` + `/compact` `migrated`, every other title `kept` or `granted`, groups `found`, `BootstrapManager: bootstrapped 41`, no disk line; (2) second boot — all-zero on every pack, no `migrated` line; (3) `pack status` as the founder (no `group add`) lists sixteen packs, `world-seed` and the corpos UNSTAFFED, orphan count; `pack provision platform`; (4) `broadcast --at /domain/lounge hi` as a `lounge` member reaches a second session in the lounge and not one in Terminus; `broadcast` from a non-holder lists their extents; the founder's `broadcast --at /domain` reaches both; (5) `soul disable wave` as the founder (PM → owner of `soul`) → `;wave` does nothing, `soul list` omits it, `soul show wave` says disabled; `soul enable wave`; as a non-member `soul disable nod` refused; (6) `teleport` within `/domain/lounge` as a lounge member admitted, to Terminus refused, as the founder anywhere; (7) the CMS as the founder shows `/obj` and `/cmd`; edit `look.yaml`'s help → `help look` changes (the wave-2 undriven item); as a non-holder the tree is `/wiki`; (8) `errors` as a nobody → empty list, no error; `find` shows paths only under held extents; (9) `flower:online` resolves for a guest; `attack online:<name>` refused by reachability; (10) `office handoff prime-minister <player>` (the `office` verb) → that player can now `broadcast --at /domain` and write under `/compact`; the founder cannot; hand back; (11) `pnpm test:e2e` and `pnpm test:e2e:platform` green locally; (12) a dry-run `world.reset` → the log shows `reprovision` would run (dry) — do not arm enforce on the dev DB.
+- **Drive** (recorded on the MR, in this order, against `saxonberg_build1` unless stated): (1) first boot — every pack `inserted 0`, `adopted` = its row count (platform ≈460, generic-objects 107, species 4, corpo 1 each, lounge 1, world-seed 158), `/studio` + `/compact` `migrated`, every other title `kept` or `granted`, groups `found`, `BootstrapManager: bootstrapped 41`, no disk line; (2) second boot — all-zero on every pack, no `migrated` line; (3) `pack status` as the founder (no `group add` — head of the executive) lists sixteen packs, `world-seed` UNSTAFFED, orphan count; `appoint` a second test character communications director → they can `pack status` and write under `/obj`; fire them → refused; `pack provision platform`; (4) `broadcast --at /domain/lounge hi` as a `lounge` member reaches a second session in the lounge and not one in Terminus; `broadcast` from a non-holder lists their extents; the founder's `broadcast --at /domain` reaches both; (5) `soul disable wave` as the founder (PM → owner of `soul`) → `;wave` does nothing, `soul list` omits it, `soul show wave` says disabled; `soul enable wave`; as a non-member `soul disable nod` refused; (6) `teleport` within `/domain/lounge` as a lounge member admitted, to Terminus refused, as the founder anywhere; (7) the CMS as the founder shows `/obj` and `/cmd`; edit `look.yaml`'s help → `help look` changes (the wave-2 undriven item); as a non-holder the tree is `/wiki`; (8) `errors` as a nobody → empty list, no error; `find` shows paths only under held extents; (9) `flower:online` resolves for a guest; `attack online:<name>` refused by reachability; (10) `office handoff prime-minister <player>` (the `office` verb) → that player can now `broadcast --at /domain` and write under `/compact`; the founder cannot; hand back; (11) `pnpm test:e2e` and `pnpm test:e2e:platform` green locally; (12) a dry-run `world.reset` → the log shows `reprovision` would run (dry) — do not arm enforce on the dev DB.
 - Push; open the MR (workflow.md phase 3) with the table below filled in.
 
 ---
@@ -462,11 +461,11 @@ Commits: `test(e2e): platform-only boot — pack zero lands the founder in the s
 | 3. Dev DB: first boot adopts, no new title over an existing one, no duplicate group; second boot all-zero | 4–7, 12 | `PackLogic.requires.test` (adopt-by-name, kept); drive (1)(2) |
 | 4. Platform-only e2e | 3, 12 | `platform-only.spec.ts` |
 | 5. The two lints in CI, green; `ownerOf` never `core`; `:admin`/authoring tier/`isAuthor`/`requiresAuthor` absent | 9, 10 | `check-core-gone.test`, `check-untitled-paths.test`; `.gitlab-ci.yml` |
-| 6. `ParcelOwner.office` exercised: four PM-held roots; self-home still the player; non-founder refused, founder admitted; handoff moves it; empty seat fails closed | 1, 4, 10, 12 | `AccessRegistry.office-owner.test`, `ParcelRegistry.grant.test`; drive (10) |
+| 6. `ParcelOwner.organization` exercised: the executive holds the roots; self-home still the player; non-member refused, founder + appointed staff admitted, fired refused; handoff moves it; empty seat fails closed | 1, 4, 10, 12 | `AccessRegistry.organization-owner.test`, `ParcelRegistry.grant.test`; drive (3)(10) |
 | 7. `broadcast --at` matrix; `isAuthor` gone; teleport/CMS/errors/find/MQL; soul title-gated + disabled + conflict-not-overwrite; `requiresCoreAccess` gone; founder edits a view via CMS; second emote pack refused | 8, 9, 12 | the step-8/9 tests; drive (4)–(9) |
 | 8. `requires.groups`/`title` matrix; unknown manifest keys fail | 3 | `PackLogic.requires.test` |
 | 9. `boot:` union, cross-pack deps, eager counts, failed pack contributes nothing; eternal views store-served; no disk line | 3, 7 | `PackLogic.boot.test`, `CommandLogic.store.test`; drive (1) |
-| 10. Staffing: prompt on a person's install; bootstrap leaves empty + UNSTAFFED; routing to `pack-installers` | 3, 11 | `PackController.test`, `DiagnosticLogic.router.test`; drive (3) |
+| 10. Staffing: prompt on a person's install; bootstrap leaves empty + UNSTAFFED; routing to the executive | 3, 11 | `PackController.test`, `DiagnosticLogic.router.test`; drive (3) |
 | 11. `pack provision <id>` | 3 | `PackController.test` |
 | 12. Docs; slate retirement; CLAUDE.md at the sweep | 12 + sweep | doc diff |
 | 13. One full suite; lint family; build | 12 | CI + one `pnpm test` |
@@ -475,7 +474,7 @@ Commits: `test(e2e): platform-only boot — pack zero lands the founder in the s
 
 ## Risks & ordering constraints
 
-- **The group-owner-holds rule (step 1) is load-bearing for everything after step 4.** Without it the founder is a member of nothing and holds nothing once `core` stops covering the world; the platform's `/obj` claim would lock the founder out of `clone`/`goto`. Land it first and test it in isolation.
+- **The organization holder (step 1) is load-bearing for everything after step 4.** The founder is a member of no group; they hold the platform only as head of `/compact/executive`. Without step 1 the platform's `/obj` claim would lock the founder out of `clone`/`goto`. Land it first and test it in isolation — including the resident-organization requirement (a non-resident organization fails closed).
 - **Claims before rung 3.** Steps 4–7 must all be in before step 10 flips `ownerOf` to `null`; `lint:untitled` at step 10 is the proof that no write-reachable path was left behind. Do not reorder.
 - **The `core`-held migration in `grant`** is the one place this build touches existing title data. It fires only for `{group, name: 'core'}` holders, logs, and writes a `transfer` event, so the chain of title records the hand-off. Delete the branch in wave 4.
 - **The nightly reset** wipes `parcels`/`groups`; step 10.2's `reprovision` is what keeps an enforcing deployment alive past 04:00. It is not in the requirements text; flagged in the summary.
@@ -517,4 +516,4 @@ If stopping before step 12, the MR description (or a `docs/plans/content-pack-wa
 4. **`core` status:** which of the five jobs are gone (3a broadcast, 3b soul, 4 author, 5 admin, 1–2 rung 3 / fail-closed) and whether `seedCoreGroup` still runs.
 5. **Tests:** which `test:near` scopes ran green at the last boundary; whether the full suite ran (it should not have unless step 12 was reached — say so).
 6. **Drive:** which of the twelve drive items were exercised, if any; whether the platform-only boot was tried.
-7. **Open flags:** which planner's-choice deviations are already in the tree (the group-owner-holds rule, `grant`'s `core` migration branch, the explicit-claims/no-implicit-root rule and the covered-extent rule, the template-walk widening, the maintainers-are-the-board trick, `/expression/emotes` and `/blueprints` as mint branches, `SAXONBERG_PACKS`, the nightly `reprovision`, the PM-seat operator override in employment, the CMS "public" definition, orphans = unstamped templates only).
+7. **Open flags:** which planner's-choice deviations are already in the tree (the organization holder's staff-or-head rule, `grant`'s `core` and retired-board migration branches, the explicit-claims/no-implicit-root rule and the covered-extent rule, the template-walk widening, the maintainers-are-the-board trick, `/expression/emotes` and `/blueprints` as mint branches, `SAXONBERG_PACKS`, the nightly `reprovision`, the PM-seat operator override in employment, the CMS "public" definition, orphans = unstamped templates only).
