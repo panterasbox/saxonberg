@@ -418,6 +418,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     expect(arcane!.inserted).toContain('/obj/magic/GlowlightOrb');
     const hollis = results.find((r) => r.packId === 'corpo-hollis');
     expect(hollis!.inserted.sort()).toEqual([
+      '/corpo/hollis', // the org chart (content-packs wave 3)
       '/obj/corpo/Brand/hollis-cane',
       '/obj/corpo/Brand/old-hollis',
       '/obj/corpo/Corpo/hollis',

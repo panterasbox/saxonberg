@@ -155,7 +155,14 @@ export class CompactLogic extends ApiLogic {
       const org = organizationOf(committee);
       if (!org) return false;
       if (EmploymentApi.holdsPosition(player, org)) return true;
-      return EmploymentApi.holdsAuthority(player, org.getAppointingAuthority());
+      const authority = org.getAppointingAuthority();
+      // ⚠ An organization whose authority is the committee over its OWN
+      // extent would be asking this question again forever: the head
+      // question has no answer, so only the staff count.
+      if (authority?.kind === "committee" && authority.parcel === committee.subdivisionPath) {
+        return false;
+      }
+      return EmploymentApi.holdsAuthority(player, authority);
     }
     // The Art. XI pool-of-one backstop, mirroring the office founder
     // default: at founding every committee's work is the founder's.

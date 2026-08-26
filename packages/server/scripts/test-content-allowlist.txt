@@ -105,4 +105,4 @@ packages/server/src/mud/obj/command/system/__tests__/ParcelVerbs.test.ts
 packages/server/src/mud/obj/command/tpa/__tests__/ProcureCardController.test.ts
 packages/server/src/mud/obj/command/work/__tests__/work-verbs.test.ts
 packages/server/src/mud/seeds/__tests__/business-authority.test.ts
-packages/server/src/mud/seeds/__tests__/corpo-organizations.test.ts
+packages/server/src/mud/obj/corpo/__tests__/corpo-organizations.test.ts

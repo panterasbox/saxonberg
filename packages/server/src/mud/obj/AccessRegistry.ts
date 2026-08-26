@@ -463,11 +463,20 @@ export default class AccessRegistry extends AccessRegistryBase {
       return false;
     }
     if (EmploymentApi.holdsPosition(subject, org)) return true;
+    const authority = org.getAppointingAuthority();
+    // ⚠ An organization whose appointing authority is the committee over
+    // an extent IT holds would recurse (committee → organization → head →
+    // committee); the head question has no answer there, so only the
+    // staff count.
+    if (
+      authority?.kind === 'committee' &&
+      (await ParcelApi.ownerOf(authority.parcel)).kind === 'organization' &&
+      (await ParcelApi.ownerOf(authority.parcel) as { templatePath: string }).templatePath === owner.templatePath
+    ) {
+      return false;
+    }
     try {
-      return await EmploymentApi.holdsAuthority(
-        subject,
-        org.getAppointingAuthority(),
-      );
+      return await EmploymentApi.holdsAuthority(subject, authority);
     } catch {
       // Fail closed: a governance substrate that is not up must not turn
       // a plain "no" into a throw at a security gate.

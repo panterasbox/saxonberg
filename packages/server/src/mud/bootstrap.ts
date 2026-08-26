@@ -4,9 +4,9 @@
  *
  * TRANSITIONAL (content-packs wave 3): every pack's `boot:` list is
  * unioned with this array by `BootstrapManager.run`; the platform pack
- * took the registries, catalogues and the Compact's two organizations.
- * What remains here is what the corpo packs (step 6) and `world-seed`
- * (step 7) take next, after which this file is deleted. A path present
+ * took the registries, catalogues and the Compact's two organizations;
+ * the corpo packs took their charts.
+ * What remains here is what `world-seed` (step 7) takes next, after which this file is deleted. A path present
  * both here and in a pack's list is the duplicate error — each move is
  * one atomic edit.
  *
@@ -18,16 +18,6 @@
 import type { BootstrapEntry } from '../backend/BootstrapManager';
 
 export const bootstrapManifest: BootstrapEntry[] = [
-  // The five corpo organizations — the chart each `Corpo` mark hangs off,
-  // and the answer to "who runs Veshko?". Warmed rather than stood up
-  // lazily for the same reason the Compact's two are: `appoint` and the
-  // chart reads resolve an organization by templatePath, and an
-  // organization nobody can find is one nobody can be appointed to.
-  { templatePath: '/corpo/aevex' },
-  { templatePath: '/corpo/goodkin' },
-  { templatePath: '/corpo/hollis' },
-  { templatePath: '/corpo/veshko' },
-  { templatePath: '/corpo/vionne' },
   // Lounge TPA terminal — the eager root of the Teleport Authority
   // network. Its `postRegister` self-seats into the lounge Warren's host
   // (standing the lounge host up) and cascades the rest of the network

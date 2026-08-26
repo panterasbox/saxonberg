@@ -170,6 +170,20 @@ describe("ParcelApi.grant", () => {
     expect((await ParcelApi.grant({ extent: "/studio", holder: EXECUTIVE })).outcome).toBe("kept");
   });
 
+  it("a retired corpo-board-held row → migrated to the organization (the wave-2 boards)", async () => {
+    seedParcel("/corpo/goodkin", { kind: "group", name: "goodkin" });
+    await boot();
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const GOODKIN: ParcelOwner = { kind: "organization", templatePath: "/corpo/goodkin" };
+    const r = await ParcelApi.grant({ extent: "/corpo/goodkin", holder: GOODKIN });
+    expect(r).toEqual({ outcome: "migrated", holder: GOODKIN });
+    expect((await ParcelEvent.findByExtent("/corpo/goodkin"))[0]!.from).toEqual({ kind: "group", name: "goodkin" });
+    // Any other group holder is still a conflict.
+    seedParcel("/studio/other", { kind: "group", name: "somebody" });
+    await ParcelApi.rebuildCoverageIndex();
+    expect((await ParcelApi.grant({ extent: "/studio/other", holder: GOODKIN })).outcome).toBe("conflict");
+  });
+
   it("malformed claims throw: unknown landUse, non-positive area, no holder key", async () => {
     await boot();
     await expect(

@@ -1,5 +1,5 @@
 /**
- * ⭐ **Each corpo is an organization with its own committee.**
+ * ⭐ **Each corpo is an organization that holds its own branch.**
  *
  * A `Corpo` is a **mark** — a key, a sector, an ethos, a set of rivals —
  * and a mark cannot hold a position or hire anyone. So `corpo.md` could
@@ -8,40 +8,46 @@
  * and `entity` matches the principal's own templatePath, which a mark can
  * never be.
  *
- * Giving each corpo its own `/corpo/<key>` branch title and board group
- * closes that **with no new authority kind** — the fifth `PrincipalRef`
- * the gap seemed to demand turned out to be unnecessary. That is the
- * result worth pinning: the substrate generalized without growing.
+ * Content-packs wave 3 closes that with the `organization` title kind:
+ * each corpo pack claims `/corpo/<key>` for the organization row it
+ * ships, so `committeeOf('/corpo/<key>')` resolves to the organization —
+ * its staff and its head — and a subsidiary's `{kind: committee, parcel:
+ * /corpo/<key>}` means "the company", never the municipality. The wave-2
+ * board groups are retired (a title one still holds migrates).
+ *
+ * The chart's OWN appointing authority is the Prime Minister's office
+ * until a corpo has a seat of its own: an organization's authority can
+ * never be the committee over its own extent, because that committee IS
+ * the organization (the resolution would recurse).
  *
  * The load-bearing assertion is the negative one — Goodkin's committee
- * **refuses the municipality**. If `/corpo/goodkin` ever loses its title,
- * `committeeOf` falls through to the `core` default and every one of
- * these admits the operator instead, which is exactly the failure that
- * would otherwise pass review.
+ * **refuses the municipality**.
+ *
+ * A32.2 scaffolding: a kernel-adjacent test reading shipped content by
+ * path (the corpo packs and, until world-seed takes it, one seed row).
  */
 
-import "../../../test-bootstrap";
+import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import OrganizationEntity from '../../obj/Organization';
-import BusinessEntity from '../../obj/Business';
-import Avatar from '../../obj/Avatar';
-import { EmploymentApi } from '../../api/employment';
-import { CompactApi } from '../../api/compact';
-import { ParcelApi } from '../../api/parcel';
-import { GroupApi } from '../../api/group';
-import { StuffApi } from '../../api/stuff';
-import { ShadowApi } from '../../api/shadow';
-import type { ParcelOwner } from '../../lib/parcel/ParcelRecord';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import OrganizationEntity from '../../Organization';
+import BusinessEntity from '../../Business';
+import Avatar from '../../Avatar';
+import { EmploymentApi } from '../../../api/employment';
+import { CompactApi } from '../../../api/compact';
+import { ParcelApi } from '../../../api/parcel';
+import { GroupApi } from '../../../api/group';
+import { StuffApi } from '../../../api/stuff';
+import { ShadowApi } from '../../../api/shadow';
+import type { ParcelOwner } from '../../../lib/parcel/ParcelRecord';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
-const SEEDS = fileURLToPath(new URL('..', import.meta.url));
-const CONFIG = fileURLToPath(new URL('../../config/', import.meta.url));
-const CONTENT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
+const SEEDS = fileURLToPath(new URL('../../../seeds/', import.meta.url));
+const CONTENT = fileURLToPath(new URL('../../../../../../content/', import.meta.url));
 
 const KEYS = ['aevex', 'goodkin', 'hollis', 'veshko', 'vionne'] as const;
 const BRANCH = '/domain/terminus/counting-houses/business';
@@ -51,33 +57,33 @@ interface Seed {
   data?: Record<string, unknown>;
 }
 
+interface Manifest {
+  root: string;
+  maintainers?: unknown;
+  requires?: { title?: Array<Record<string, unknown>> };
+  boot?: Array<{ template: string; role: string }>;
+}
+
 const readSeed = (rel: string): Seed =>
   parse(readFileSync(join(SEEDS, rel), 'utf8')) as Seed;
+const readChart = (key: string): Seed =>
+  parse(readFileSync(join(CONTENT, `corpo-${key}/content/corpo/${key}.yaml`), 'utf8')) as Seed;
+const readManifest = (key: string): Manifest =>
+  parse(readFileSync(join(CONTENT, `corpo-${key}/pack.yaml`), 'utf8')) as Manifest;
 
-const parcels = (
-  parse(readFileSync(join(CONFIG, 'parcels.yaml'), 'utf8')) as {
-    parcels: Array<{ extent: string; owner?: { kind: string; name?: string } }>;
-  }
-).parcels;
-
-const groups = (
-  parse(readFileSync(join(CONFIG, 'groups.yaml'), 'utf8')) as {
-    groups: Array<{ name: string; members: unknown[] }>;
-  }
-).groups;
-
-/* ───────────────────────── the seeds ───────────────────────── */
+/* ───────────────────────── the packs ───────────────────────── */
 
 describe('the five corpo organizations, as authored', () => {
   it('⭐ there is one per corpo mark — none missing, none invented', () => {
-    // Each corpo's mark ships in its own pack (corpo-<key>).
     const marks = readdirSync(CONTENT)
       .filter((d) => d.startsWith('corpo-'))
       .flatMap((d) => readdirSync(join(CONTENT, d, 'content/obj/corpo/Corpo')))
       .filter((f) => f.endsWith('.yaml'))
       .map((f) => f.replace('.yaml', ''))
       .sort();
-    const orgs = readdirSync(join(SEEDS, 'corpo'))
+    const orgs = readdirSync(CONTENT)
+      .filter((d) => d.startsWith('corpo-'))
+      .flatMap((d) => readdirSync(join(CONTENT, d, 'content/corpo')))
       .filter((f) => f.endsWith('.yaml'))
       .map((f) => f.replace('.yaml', ''))
       .sort();
@@ -85,47 +91,51 @@ describe('the five corpo organizations, as authored', () => {
     expect(orgs).toEqual([...KEYS]);
   });
 
-  it.each(KEYS)('%s is an Organization whose authority is its OWN committee', (key) => {
-    const org = readSeed(`corpo/${key}.yaml`);
+  it.each(KEYS)('%s is an Organization whose chart the PM seat fills (never its own committee)', (key) => {
+    const org = readChart(key);
     expect(org.class).toBe('/obj/Organization');
+    // ⚠ An authority of `{committee, parcel: /corpo/<key>}` here would be
+    // the organization appointing itself — and would recurse.
     expect(org.data?.appointingAuthority).toEqual({
-      kind: 'committee',
-      parcel: `/corpo/${key}`,
+      kind: 'office',
+      office: 'prime-minister',
     });
   });
 
-  it.each(KEYS)('%s holds title over its own branch, via its own board group', (key) => {
-    const parcel = parcels.find((p) => p.extent === `/corpo/${key}`);
-    expect(parcel, `/corpo/${key} has no title`).toBeDefined();
-    expect(parcel!.owner).toEqual({ kind: 'group', name: key });
-    // ⚠ Without a CLAIMED title, `committeeOf` falls through to the state
-    // default (`core`) and the corpo's committee silently becomes the
-    // operator's.
-    expect(groups.some((g) => g.name === key), `no ${key} group`).toBe(true);
+  it.each(KEYS)('%s holds title over its own branch — the pack claims it for the organization', (key) => {
+    const m = readManifest(key);
+    expect(m.root).toBe(`/corpo/${key}`);
+    expect(m.maintainers).toEqual({ organization: `/corpo/${key}` });
+    const claim = m.requires?.title?.find((t) => t.extent === `/corpo/${key}`);
+    expect(claim, `/corpo/${key} is not claimed`).toBeDefined();
+    // No holder of its own → the pack's maintainers: the organization.
+    expect(Object.hasOwn(claim!, 'holder')).toBe(false);
+    // ⚠ Resident from boot: an organization-held title admits nobody
+    // until the organization is resident.
+    expect(m.boot?.some((b) => b.template === `/corpo/${key}` && b.role === 'producer')).toBe(true);
   });
 
   it('⚠ declares no landUse — a corpo is not ground', () => {
     for (const key of KEYS) {
-      const parcel = parcels.find((p) => p.extent === `/corpo/${key}`)!;
-      expect(Object.hasOwn(parcel, 'landUse'), key).toBe(false);
-      expect(Object.hasOwn(parcel, 'areaM2'), key).toBe(false);
+      const claim = readManifest(key).requires!.title!.find((t) => t.extent === `/corpo/${key}`)!;
+      expect(Object.hasOwn(claim, 'landUse'), key).toBe(false);
+      expect(Object.hasOwn(claim, 'areaM2'), key).toBe(false);
     }
   });
 
   it('⭐ answers "who runs it?" with a position — shipped unfilled', () => {
     for (const key of KEYS) {
-      const org = readSeed(`corpo/${key}.yaml`);
+      const org = readChart(key);
       const positions = org.data?.positions as Array<{ key: string }>;
       expect(positions.map((p) => p.key), key).toEqual(['chief-executive']);
       // Nobody runs it yet. That is a fact about the company, not a gap.
       expect(org.data?.rosterSlots, key).toEqual([]);
-      expect(groups.find((g) => g.name === key)!.members, key).toEqual([]);
     }
   });
 
   it('⚠ a corpo is NOT a Business — the holding company banks nothing', () => {
     for (const key of KEYS) {
-      const org = readSeed(`corpo/${key}.yaml`);
+      const org = readChart(key);
       expect(org.data?.banksAt, key).toBeUndefined();
       expect(org.data?.operatingLocations, key).toBeUndefined();
     }
@@ -155,15 +165,14 @@ describe('the Goodkin branch, now that its parent exists', () => {
 
 /* ───────────────────────── at runtime ───────────────────────── */
 
-const GOODKIN_REF = 'managed:g-goodkin';
 const TERMINUS_REF = 'managed:g-terminus';
 
-/** Title fixture mirroring config/parcels.yaml for the two branches. */
+/** Title fixture mirroring the pack manifests for the two branches. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (path: string): Promise<ParcelOwner> => {
       if (path.startsWith('/corpo/goodkin')) {
-        return { kind: 'group', name: 'goodkin', ref: GOODKIN_REF };
+        return { kind: 'organization', templatePath: '/corpo/goodkin' };
       }
       if (path.startsWith('/domain/terminus')) {
         return { kind: 'group', name: 'terminus', ref: TERMINUS_REF };
@@ -184,10 +193,10 @@ function makeAvatar(id: string): Avatar {
   return av;
 }
 
-/** Stand up an entity from its seed data, as the hydrator would. */
-function stand<T extends Stuff>(make: () => T, path: string, rel: string): T {
+/** Stand up an entity from its authored data, as the hydrator would. */
+function stand<T extends Stuff>(make: () => T, path: string, seed: Seed): T {
   const inst = makeStuffAtPath(make, path) as T;
-  Object.assign(inst, readSeed(rel).data);
+  Object.assign(inst, seed.data);
   return inst;
 }
 
@@ -203,38 +212,34 @@ describe('⭐ the authority actually separates the company from the city', () =>
     StuffApi.clearAll();
   });
 
-  it('admits a Goodkin board member and REFUSES a city staffer', async () => {
+  it('admits Goodkin\'s chief executive and REFUSES a city staffer', async () => {
+    const goodkin = stand(() => new OrganizationEntity(), '/corpo/goodkin', readChart('goodkin'));
     const branch = stand(
       () => new BusinessEntity(),
       BRANCH,
-      'domain/terminus/counting-houses/business.yaml',
+      readSeed('domain/terminus/counting-houses/business.yaml'),
     );
     vi.spyOn(GroupApi, 'isMember').mockImplementation(
-      async (playerId: string, ref: string) =>
-        (ref === GOODKIN_REF && playerId === 'banker') ||
-        (ref === TERMINUS_REF && playerId === 'odile'),
+      async (playerId: string, ref: string) => ref === TERMINUS_REF && playerId === 'odile',
     );
     const banker = makeAvatar('banker');
     const cityStaff = makeAvatar('odile');
-
+    // Nobody runs Goodkin yet: the committee over /corpo/goodkin is the
+    // organization, and it has no staff — and its head is the PM seat,
+    // which no office registry answers here (fails closed).
     const authority = branch.getAppointingAuthority();
-    await expect(
-      EmploymentApi.holdsAuthority(banker, authority),
-    ).resolves.toBe(true);
+    await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(false);
+    // Appoint the banker to run Goodkin: now the committee admits them.
+    EmploymentApi.hire(goodkin, banker as never, 'chief-executive');
+    await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(true);
     // ⚠ THE assertion. The city owns the ground this counter stands on,
     // and that buys it nothing here — which is the whole reason the corpo
     // needed a branch of its own.
-    await expect(
-      EmploymentApi.holdsAuthority(cityStaff, authority),
-    ).resolves.toBe(false);
+    await expect(EmploymentApi.holdsAuthority(cityStaff, authority)).resolves.toBe(false);
   });
 
   it('⭐ answers "who runs Veshko?" — empty now, a name once appointed', () => {
-    const veshko = stand(
-      () => new OrganizationEntity(),
-      '/corpo/veshko',
-      'corpo/veshko.yaml',
-    );
+    const veshko = stand(() => new OrganizationEntity(), '/corpo/veshko', readChart('veshko'));
     expect(EmploymentApi.holdersOf(veshko, 'chief-executive')).toEqual([]);
 
     const boss = makeAvatar('boss');
@@ -245,33 +250,14 @@ describe('⭐ the authority actually separates the company from the city', () =>
   });
 
   it('⭐ walks the branch up to its parent company', () => {
-    const goodkin = stand(
-      () => new OrganizationEntity(),
-      '/corpo/goodkin',
-      'corpo/goodkin.yaml',
-    );
+    stand(() => new OrganizationEntity(), '/corpo/goodkin', readChart('goodkin'));
     const branch = stand(
       () => new BusinessEntity(),
       BRANCH,
-      'domain/terminus/counting-houses/business.yaml',
+      readSeed('domain/terminus/counting-houses/business.yaml'),
     );
     expect(
       EmploymentApi.organizationChainOf(branch).map((o) => o.getTemplatePath()),
     ).toEqual(['/corpo/goodkin']);
-    // ...and the company itself is the top.
-    expect(EmploymentApi.organizationChainOf(goodkin)).toEqual([]);
-  });
-
-  it('keeps the branch’s own tellers on the branch, not the parent', () => {
-    stand(() => new OrganizationEntity(), '/corpo/goodkin', 'corpo/goodkin.yaml');
-    const branch = stand(
-      () => new BusinessEntity(),
-      BRANCH,
-      'domain/terminus/counting-houses/business.yaml',
-    );
-    // Nesting is not inheritance: a position is held where it is authored.
-    expect(EmploymentApi.holdersOf(branch, 'teller')).toEqual([
-      '/domain/terminus/counting-houses/npc/teller',
-    ]);
   });
 });

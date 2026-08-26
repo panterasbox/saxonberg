@@ -61,6 +61,15 @@ const ParcelApiCallers = SecurityPolicies.AnyOf(
 /** The state's default-owner group name (the public-held default). */
 const STATE_GROUP_NAME = "core";
 
+/**
+ * migration-note: the wave-2 corpo board groups, retired by content-packs
+ * wave 3 (each corpo organization holds its own branch). `grant` treats a
+ * title one of them holds exactly like a `core`-held one. Delete in wave 4.
+ */
+const RETIRED_BOARDS: ReadonlySet<string> = new Set([
+  "aevex", "goodkin", "hollis", "veshko", "vionne",
+]);
+
 export default class ParcelRegistry extends ParcelRegistryBase {
   /**
    * Coverage index: parcel `extent` → its `ParcelRecord`. A PathTrie
@@ -326,8 +335,15 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       if (current && (await this.sameHolder(current, claim.holder))) {
         return { outcome: "kept", holder: current };
       }
-      // migration-note: the retired state default hands the row over.
-      if (current?.kind === "group" && current.name === "core") {
+      // migration-note: the retired state default hands the row over —
+      // and so do the five retired wave-2 corpo BOARD groups, whose
+      // /corpo/<key> title passes to the corpo organization that now
+      // claims it. Both branches are deleted in wave 4.
+      if (
+        current?.kind === "group" &&
+        (current.name === "core" ||
+          (current.name !== undefined && RETIRED_BOARDS.has(current.name)))
+      ) {
         await this.appendEvent("transfer", claim.extent, current, claim.holder);
         existing.owner = claim.holder;
         await existing.save();

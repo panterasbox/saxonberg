@@ -1,8 +1,19 @@
 id: saxonberg-lounge
-version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 # The document root: the retired ScriptSeeder's owner path, so every
 # existing dev DB ADOPTS its three rows in place (same path, same owner).
 root: /domain/lounge
-description: The lounge — this wave only its three world scripts (msh); rooms/NPCs are wave 4.
-# The ids exist by wave 2 step 6; unknown deps are ignored in v1 (orderByDependsOn).
+description: >-
+  The lounge — its library root (/obj/lounge), its three world scripts
+  (msh) and the landing setting; rooms/NPCs are world-seed's until a later
+  wave homes them here.
 dependsOn: [platform, corpo-goodkin, corpo-vionne]
+# The lounge team maintains the lounge.
+maintainers: lounge
+requires:
+  groups:
+    - name: lounge
+      purpose: the lounge team
+  title:
+    - { extent: /obj/lounge, holder: { group: lounge } }
+    - { extent: /domain/lounge, holder: { group: lounge } }

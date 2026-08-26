@@ -5,14 +5,21 @@
 # rivals — and a mark cannot hold a position or hire anyone. This is the
 # chart the mark hangs off.
 #
-# ⭐ The appointing authority is Vionne's own COMMITTEE: the `vionne` board
-# group holds title over `/corpo/vionne` (config/parcels.yaml), and
-# `committeeOf` derives the committee from parcel title. So Vionne's board
-# staffs Vionne — not the municipality that happens to own the ground its
-# branches stand on, which was the wrong answer the Goodkin branch had no
-# way to avoid before this existed.
+# ⭐ Vionne HOLDS ITS OWN BRANCH: the organization is the title holder of
+# `/corpo/vionne` (the corpo-vionne pack's claim), so `committeeOf` resolves the
+# committee over it to the organization itself — its staff and its head.
+# That is how Vionne appoints the Goodkin-branch shape of subsidiary: the
+# subsidiary names `{kind: committee, parcel: /corpo/vionne}`, which now
+# means "Vionne's staff or head", never the municipality that owns the
+# ground its branches stand on.
 #
-# It ships UNFILLED and the board ships EMPTY. Nobody works here yet, and
+# The chart's OWN appointing authority — who fills the chief-executive
+# seat — is the Prime Minister's office until a corpo has a seat of its
+# own (content-packs wave 3: an organization's authority cannot be the
+# committee over its own extent, because that committee IS the
+# organization). The wave-2 `vionne` board group is retired.
+#
+# It ships UNFILLED. Nobody works here yet, and
 # that is a fact about the company rather than a gap in the model — the
 # same honest empty state the Compact's press office ships in. The founder
 # passes by the Art. XI pool-of-one backstop, so a cold box can staff it.
@@ -26,8 +33,8 @@ hydratorClass: /obj/persistence/PersistentHydrator
 data:
   label: Vionne
   appointingAuthority:
-    kind: committee
-    parcel: /corpo/vionne
+    kind: office
+    office: prime-minister
   positions:
     # One position, and it is the one the docs kept promising an answer to.
     - key: chief-executive

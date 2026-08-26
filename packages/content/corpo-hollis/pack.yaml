@@ -1,5 +1,17 @@
 id: corpo-hollis
-version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /corpo/hollis
-description: The hollis corpo — its mark and its brands.
-dependsOn: [platform]
+description: The hollis corpo — its mark, its brands, and its org chart.
+dependsOn: [platform]   # /corpo is the platform's; this pack claims its own branch under it
+# The corpo's own chart maintains its pack (content-packs wave 3, D8): the
+# organization row this pack ships, resident from boot.
+maintainers: { organization: /corpo/hollis }
+requires:
+  # The organization holds its own branch — which is what makes it the
+  # committee over /corpo/hollis (the subsidiaries' appointing authority).
+  # On a world where the retired `hollis` board group held it, the title
+  # migrates to the organization.
+  title:
+    - { extent: /corpo/hollis }
+boot:
+  - { template: /corpo/hollis, role: producer, reason: appoint and the chart reads resolve the organization by templatePath }
