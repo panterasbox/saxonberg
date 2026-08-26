@@ -50,7 +50,8 @@ describe('the template walk', () => {
       { rel: 'obj/command/perception/LookController.yaml', data: {} },
       { rel: 'domain/eternal/hall.yaml', data: {} },
     ], { root: '/platform' });
-    write(root, 'wiki/main/page.md', '---\ntitle: Page\n---\nbody\n');
+    // (A wiki PAGE beside the zone row is `.md` — the wiki kind's, tested
+    // with the registry in PackLogic.wiki.test; this harness has none.)
     writeSettingsFile(root, 's', [{ key: 'k', value: 'v' }]);
     // A view under cmd/ at ANY depth is never a template.
     write(root, 'cmd/perception/look.yaml', 'verbs: [look]\ndescription: look\ncontroller: /obj/command/perception/LookController\n');
@@ -67,7 +68,6 @@ describe('the template walk', () => {
     ]);
     expect(r!.merged).toEqual(['/settings/s']);
     expect(r!.documents['command-view']).toBe(2);
-    expect(r!.documents.wiki ?? 0).toBe(0);
   });
 
   it('a yaml document-kind dir (name-banks here; emotes, recipes, blueprints, releases alike) is never walked as templates', async () => {
