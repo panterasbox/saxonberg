@@ -153,6 +153,20 @@ moves — the kernel reads settings by key through `AppApi`, never by
 pack, and merge-missing semantics mean a deployment without arcana
 still boots on the code defaults.
 
+The rule has one shipped violation, which this build fixes rather than
+moves: `MagicLogic` imports `SparkSource` directly and hardcodes
+`/stuff/thing/magic/GlowlightOrb` as the `emit-field` executor's
+emitter. Both classes are one-line generic shapes with spell names
+(`LightSourceMixin(Thing)`, `EnergizedMixin(Thing)`) — a **locus** an
+effect conjures, not a spell. They become arcana's generic building
+blocks, renamed for what they are (`LightLocus`, `ChargeLocus`), and
+**the effect row names the locus it conjures**: `emit-field` and the
+shock `inject-channel` gain a required `locus:` template path, and the
+executor clones what it is told. No default, no fallback. The
+flavoured rows — the glowlight mote with its own prose, spark's locus —
+ship in arcane-library beside their spells. A pack can then ship a new
+emitter kind without a kernel edit.
+
 The `Discipline`, `DisciplineCatalogue` and `SpellCatalogue` *classes*
 stay kernel; only the magic discipline *rows* move. Both catalogues must
 warm by class (or across every title root), not by the
@@ -274,11 +288,13 @@ in the platform pack's boot list.
 ### D9 — What each pack contains, exhaustively
 
 **arcana** (capability; root `/arcana`; requires title `/arcana` →
-group `arcana`):
+group `arcana`). The test for membership: **nothing in arcana is
+specific to one effect** — it is the building blocks effects are made
+from. A class or row that exists for one spell is the library's.
 
 | kind | rows |
 |---|---|
-| `src/` classes | `thing/Wand`, `thing/Scroll`, `thing/Spellbook`, `thing/Conduit`, `thing/GlowlightOrb`, `thing/SparkSource`, **`thing/Ring`**, **`thing/Amulet`**, `idea/material/PotionMaterial`, `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` |
+| `src/` classes | `thing/Wand`, `thing/Scroll`, `thing/Spellbook`, `thing/Conduit`, **`thing/LightLocus`**, **`thing/ChargeLocus`** (the renamed `GlowlightOrb` / `SparkSource`, D3), **`thing/Ring`**, **`thing/Amulet`**, `idea/material/PotionMaterial`, `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` |
 | domain rows | 18 `idea/Discipline/magic-*`, 5 controller templates |
 | command-view | 5 |
 | settings | `magic.yaml` |
@@ -289,7 +305,7 @@ group `arcana`):
 | kind | rows |
 |---|---|
 | spells | the 12 at `/stuff/idea/magic/Spell/` |
-| items | `GlowlightOrb`, `SparkSource`, `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `flask-of-blistering`, `flask-of-veiling` — at `/stuff/thing/magic/` |
+| items | `glowlight-mote` and `spark-locus` (the two effect loci, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `flask-of-blistering`, `flask-of-veiling` — at `/stuff/thing/magic/` |
 | materials | `blistering-draught`, `veiling-draught` (unchanged path) |
 | **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today), so the catalog ships with the new classes exercised |
 
@@ -355,6 +371,10 @@ verbs. `arcane-descriptors` is gone. **Nineteen packs.**
   effect; a ring run flat by the standby draw releases it; a cursed
   ring refuses removal and keeps drawing. Each is a test, and the
   wear/remove pair is driven live.
+- `MagicLogic` imports nothing from and hardcodes no path into any
+  pack; `cast glowlight` conjures the emitter its row names and `cast
+  spark` conducts through the locus its row names; a spell row whose
+  `emit-field` lacks `locus:` fails catalogue validation.
 - Editing `packages/content/arcana/src/thing/Wand.ts` in dev and
   running `reload /arcana/thing/Wand` hot-swaps the class for existing
   instances (the existing hot-reload contract, observed on a pack
