@@ -21,6 +21,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SecurityError } from '../../../lib/security/errors';
 import { StudioApi, StudioError } from '../../../api/studio';
 import { StuffApi } from '../../../api/stuff';
 import { HelpApi } from '../../../api/help';
@@ -55,7 +56,6 @@ const AUTHOR = { getTemplatePath: () => '/obj/Avatar/alice' } as unknown as Stuf
 
 function stubAuthorGateOpen(): void {
   vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(AUTHOR);
-  vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
 }
 
 beforeEach(() => {
@@ -157,36 +157,11 @@ describe('StudioLogic.describeClass — resolution chain', () => {
   });
 });
 
-describe('StudioLogic.describeClass — anti-spoof', () => {
-  it('denies a null-actor context and exposes no actor parameter', async () => {
-    // No stamped author → getActingAuthor is null → the gate fails closed.
+describe('StudioLogic.describeClass — composition reads are everyone\'s', () => {
+  it('a null-actor context still reads (everyone is an author — content-packs wave 3)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    const isAuthor = vi
-      .spyOn(AccessApi, 'isAuthor')
-      .mockImplementation(async (s) => s != null);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(StudioTestThing);
-
-    await expect(StudioApi.describeClass(CLASS_PATH)).rejects.toMatchObject({
-      code: 'denied',
-    });
-    await expect(StudioApi.describeClass(CLASS_PATH)).rejects.toBeInstanceOf(
-      StudioError
-    );
-    // The gate was consulted with the context-derived (null) actor — NOT
-    // any caller-supplied principal. The signature is
-    // `describeClass(classPath, contextPath?)`: there is no actor argument
-    // to substitute, so a caller holding a privileged Avatar reference
-    // (AUTHOR, in scope) cannot pass it. Even an extra positional arg is
-    // ignored — the gate still denied on the null context actor.
-    expect(isAuthor).toHaveBeenCalledWith(null);
-    expect(isAuthor).not.toHaveBeenCalledWith(AUTHOR);
-    await expect(
-      (StudioApi.describeClass as unknown as (...a: unknown[]) => Promise<unknown>)(
-        CLASS_PATH,
-        undefined,
-        AUTHOR
-      )
-    ).rejects.toMatchObject({ code: 'denied' });
+    await expect(StudioApi.describeClass(CLASS_PATH)).resolves.toBeDefined();
   });
 });
 
@@ -303,9 +278,14 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
     vi.spyOn(Blueprint.prototype, 'save').mockResolvedValue(undefined);
   });
 
-  it('denies a non-author gracefully (disposition, not a throw)', async () => {
+  it('denies through the DOCUMENT gate gracefully (disposition, not a throw)', async () => {
+    // The curated blueprint lands under /blueprints (the platform's claim):
+    // the document store's title gate refuses a non-holder.
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(
+      makeFakeCatalogue() as unknown as never
+    );
+    vi.spyOn(DocumentApi, 'save').mockRejectedValue(new SecurityError('no title'));
     const record = vi
       .spyOn(ProvenanceApi, 'recordAuthoring')
       .mockResolvedValue(undefined);
@@ -467,9 +447,8 @@ describe('StudioLogic.scaffoldClass', () => {
     ).rejects.toMatchObject({ code: 'invalid' });
   });
 
-  it('denies a non-author (null context actor)', async () => {
+  it.skip('(retired with the author tier — scaffoldClass is wizard-gated by the source write, tested below)', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
     await expect(
       StudioApi.scaffoldClass({
         name: 'Nope',
@@ -686,9 +665,8 @@ describe('StudioLogic.createTemplate', () => {
     ).rejects.toThrow('mongo is down');
   });
 
-  it('denies a non-author (null context actor) and never writes', async () => {
+  it('denies a null context actor (the content-write gate fails closed) and never writes', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
     const save = vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue('x');
     await expect(
       StudioApi.createTemplate({
@@ -696,7 +674,7 @@ describe('StudioLogic.createTemplate', () => {
         classPath: '/obj/Coin',
         data: {},
       })
-    ).rejects.toMatchObject({ code: 'denied' });
+    ).resolves.toMatchObject({ disposition: 'denied' });
     expect(save).not.toHaveBeenCalled();
   });
 });
@@ -850,16 +828,11 @@ describe('StudioLogic.describeMixin', () => {
     ).toBe(true);
   });
 
-  it('denies a non-author (null context actor) and rejects an empty name', async () => {
+  it('reads for a null context actor (composition reads are everyone\'s) and rejects an empty name', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
-    await expect(
-      StudioApi.describeMixin('GlobbableMixin')
-    ).rejects.toMatchObject({ code: 'denied' });
+    await expect(StudioApi.describeMixin('GlobbableMixin')).resolves.toBeDefined();
 
-    // With the gate open, an empty name is an invalid request.
-    vi.restoreAllMocks();
-    stubAuthorGateOpen();
+    // An empty name is an invalid request.
     await expect(StudioApi.describeMixin('  ')).rejects.toMatchObject({
       code: 'invalid',
     });

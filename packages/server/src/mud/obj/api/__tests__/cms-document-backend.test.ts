@@ -65,7 +65,6 @@ beforeEach(() => {
 
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
   vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
-  vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(true);
 
   actor = makeStuffAtPath(() => new Idea(), OWNER) as unknown as Stuff;
 });

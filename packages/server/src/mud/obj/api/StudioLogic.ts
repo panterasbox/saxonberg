@@ -24,6 +24,7 @@ import { Quantity } from '../../lib/quantity';
 import { Mixins } from '../../lib/mixin';
 import type { FieldMeta } from '../../lib/mixin';
 import { StudioError } from '../../api/studio';
+import { SecurityError } from '../../lib/security/errors';
 import { Blueprint } from '../../lib/studio/Blueprint';
 import { Idea } from '../../lib/stuff/Idea';
 import Thing from '../../lib/stuff/Thing';
@@ -135,17 +136,6 @@ const ARTIFACT_PATH = join(
  */
 function actingActor(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
-}
-
-/**
- * Author-tier read gate on the context-derived actor. Composition reads are
- * author-facing (content-tier, per `docs/subsystems/cms.md`). Throws
- * `StudioError('denied')` on failure (a null actor fails closed).
- */
-async function gateRead(): Promise<void> {
-  if (!(await AccessApi.isAuthor(actingActor()))) {
-    throw new StudioError('denied', 'you must be an author to compose classes');
-  }
 }
 
 /** Call `get<Pascal(field)>()` on a duck-typed host; undefined on any miss. */
@@ -600,7 +590,6 @@ export class StudioLogic extends ApiLogic {
     classPath: string,
     contextPath?: string
   ): Promise<ClassDescription> {
-    await gateRead();
 
     let ctor: AnyConstructor;
     try {
@@ -679,7 +668,6 @@ export class StudioLogic extends ApiLogic {
   /** See {@link StudioApi.describeMixin}. */
   @CallSecurity(StudioApiCallers)
   public async describeMixin(name: string): Promise<MixinDetail> {
-    await gateRead();
     const mixinName = (name ?? '').trim();
     if (!mixinName) {
       throw new StudioError('invalid', 'a mixin name is required');
@@ -717,7 +705,6 @@ export class StudioLogic extends ApiLogic {
   /** See {@link StudioApi.listBlueprints}. */
   @CallSecurity(StudioApiCallers)
   public async listBlueprints(): Promise<BlueprintSummary[]> {
-    await gateRead();
     const catalogue = await this.requireCatalogue();
     return catalogue.allBlueprints().map((bp) => toSummary(bp));
   }
@@ -725,7 +712,6 @@ export class StudioLogic extends ApiLogic {
   /** See {@link StudioApi.getBlueprint}. */
   @CallSecurity(StudioApiCallers)
   public async getBlueprint(blueprintId: string): Promise<BlueprintDetail> {
-    await gateRead();
     const catalogue = await this.requireCatalogue();
     const bp = catalogue.getBlueprint(blueprintId);
     if (!bp) {
@@ -739,14 +725,11 @@ export class StudioLogic extends ApiLogic {
   public async publishBlueprint(
     input: PublishBlueprintInput
   ): Promise<BlueprintWriteResult> {
-    // Act #2 — naming/publishing a composition of already-approved classes is
-    // author-tier (no wizard). Denial is a graceful disposition, not a throw.
-    if (!(await AccessApi.isAuthor(actingActor()))) {
-      return {
-        disposition: 'denied',
-        message: 'you must be an author to publish a blueprint',
-      };
-    }
+    // Act #2 — naming/publishing a composition of already-approved classes.
+    // The document gate decides (content-packs wave 3): the curated
+    // blueprint lands under `/blueprints`, which the platform pack claims
+    // for the executive — publishing one is a platform act. Denial is a
+    // graceful disposition, not a throw, so the gate's refusal is caught.
     if (!input.name || !input.baseClass) {
       throw new StudioError('invalid', 'name and baseClass are required');
     }
@@ -775,15 +758,22 @@ export class StudioLogic extends ApiLogic {
     bp.description = input.description ?? '';
 
     // The curated layer's source of truth is a `kind: 'blueprint'` document
-    // on the platform's own `/blueprints/` branch (untitled ⇒ the state —
-    // the `/emotes/` convention). `DocumentApi.save` gates the write,
+    // on the platform's own `/blueprints/` branch (the platform's claim,
+    // held by the executive). `DocumentApi.save` gates the write,
     // stamps the owner, and records provenance keyed on the document path
     // (one ledger row, not two — the former synthetic per-id path is gone).
-    await DocumentApi.save(
-      `${BLUEPRINT_MINT_BRANCH}/${blueprintId}`,
-      'blueprint',
-      bp.toCuratedData(),
-    );
+    try {
+      await DocumentApi.save(
+        `${BLUEPRINT_MINT_BRANCH}/${blueprintId}`,
+        'blueprint',
+        bp.toCuratedData(),
+      );
+    } catch (err) {
+      if (err instanceof SecurityError) {
+        return { disposition: 'denied', message: 'you do not hold /blueprints' };
+      }
+      throw err;
+    }
     catalogue.upsert(bp);
 
     return { disposition: 'committed', blueprintId };
@@ -792,7 +782,6 @@ export class StudioLogic extends ApiLogic {
   /** See {@link StudioApi.listMixins}. */
   @CallSecurity(StudioApiCallers)
   public async listMixins(): Promise<MixinPalette> {
-    await gateRead();
     const sources = this.getExportSources();
     const mixins: MixinPaletteEntry[] = [];
     for (const base of PALETTE_BASE_CLASSES) {
@@ -839,11 +828,15 @@ export class StudioLogic extends ApiLogic {
     input: CreateTemplateInput
   ): Promise<TemplateWriteResult> {
     // Act #1 — "instantiate a template": save a NEW content template pointing
-    // at an already-approved class. Author-tier to CALL (a null actor fails
-    // the gate closed); the wizard-lockdown code-field gate inside
-    // `saveTemplate` still applies to the `class` set and is surfaced as a
+    // at an already-approved class. A write with no acting principal fails
+    // closed before any I/O (everyone is an author — content-packs wave 3 —
+    // but nobody is not somebody); title over the path is the template
+    // chokepoint's gate, and the wizard-lockdown code-field gate inside
+    // `saveTemplate` still applies to the `class` set — both surfaced as a
     // graceful `denied`, not a 500.
-    await gateRead();
+    if (actingActor() === null) {
+      return { disposition: 'denied', message: 'no acting principal' };
+    }
 
     const path = (input.path ?? '').trim();
     const classPath = (input.classPath ?? '').trim();
@@ -884,7 +877,6 @@ export class StudioLogic extends ApiLogic {
   ): Promise<ScaffoldResult> {
     // Author-tier, open to all — scaffolding is inert client text (a wizard
     // gate applies only at commit). A null actor still fails the read gate.
-    await gateRead();
     const actor = actingActor();
 
     const name = (input.name ?? '').trim();
