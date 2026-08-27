@@ -15,7 +15,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
-import SubjectCatalogue from '../../obj/SubjectCatalogue';
+import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   makeStuff,
@@ -67,7 +67,7 @@ beforeEach(() => {
     async (c: string, id: string) => (col(c).get(id) ?? null) as never,
   );
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false as never);
-  makeStuffAtPath(() => new SubjectCatalogue(), '/obj/SubjectCatalogue');
+  makeStuffAtPath(() => new SubjectCatalogue(), '/platform/idea/SubjectCatalogue');
 });
 
 afterEach(() => {

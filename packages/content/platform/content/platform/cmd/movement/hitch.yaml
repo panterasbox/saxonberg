@@ -1,0 +1,35 @@
+verbs: [hitch]
+controller: /platform/idea/cmd/movement/HitchController
+description: "Hitch yourself (or a draft animal) to a cart to pull it"
+help: |
+  Take hold of a cart so you can drag it along. `hitch cart` grips the
+  handle yourself — your hands fill up, so you can't wield or carry
+  anything loose while you pull, but the cart's cargo rides on the
+  wheels instead of on your back.
+
+  `hitch cart to horse` harnesses a draft animal as the puller instead.
+  The animal bears the load (a strong beast budges a cart you couldn't),
+  and your own hands stay free to ride.
+
+  Once hitched, the cart follows you through exits — but wheels can't
+  climb, swim, fly, or take stairs, and an over-loaded cart won't budge.
+  Use `unhitch` to let go.
+examples:
+  - cmd: hitch cart
+    note: Pull a cart yourself (hands occupied)
+  - cmd: hitch cart to horse
+    note: Harness a draft animal to pull it
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    requires: [VisibleMixin, HaulableMixin]
+  - name: mount
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [to]
+    requires: [VisibleMixin, HaulerMixin]

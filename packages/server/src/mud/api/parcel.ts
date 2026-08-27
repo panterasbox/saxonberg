@@ -3,9 +3,9 @@
  * caller-facing surface for the **real-property title** substrate.
  *
  * Every method delegates through the hot-reloadable {@link ParcelLogic}
- * singleton at `/obj/api/parcel` to the Registry; the Registry's methods
+ * singleton at `/platform/idea/api/parcel` to the Registry; the Registry's methods
  * carry `@CallSecurity(AnyOf(FromModule('/api/parcel#ParcelApi'),
- * FromTemplate('/obj/api/parcel')))` so the gate denies any caller outside
+ * FromTemplate('/platform/idea/api/parcel')))` so the gate denies any caller outside
  * the parcel subsystem. This Api is the only legitimate path — the
  * narrow-entry pattern (one state home, one calling surface).
  *
@@ -18,7 +18,7 @@
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { ParcelLogic } from "../obj/api/ParcelLogic";
+import { ParcelLogic } from "../platform/idea/api/ParcelLogic";
 import {
   ParcelRecord,
   type ParcelOwner,
@@ -29,9 +29,9 @@ import type { GroupRef } from "../lib/social/GroupProvider";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = "/obj/api/parcel";
+const LOGIC_PATH = "/platform/idea/api/parcel";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/ParcelLogic", import.meta.url),
+  new URL("../platform/idea/api/ParcelLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able ParcelLogic singleton (sync). */
@@ -136,7 +136,7 @@ export class ParcelApi {
    *
    * `wild` admits **nothing**, so the default is fail-closed. Most parcel
    * rows are path-branch titles over the template tree (`/studio`,
-   * `/obj/lounge`) rather than ground, and none of them should read as
+   * `/stuff/idea/lounge`) rather than ground, and none of them should read as
    * cultivable merely because nobody zoned them.
    */
   public static landUseOf(path: string): LandUse {

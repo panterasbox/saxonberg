@@ -11,7 +11,7 @@ inputSlots:
   count: 1
 toolCapabilities:
 - mending
-outputTemplate: /obj/armor/hide-jerkin
+outputTemplate: /stuff/thing/armor/hide-jerkin
 outputMaterial: ''
 outputApplication: tangible
 difficulty: hard

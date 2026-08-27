@@ -51,7 +51,7 @@ export function ForumsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
      * with the forum update as `commandSource`.
      */
     static commandContributions: CommandContributions = {
-      self: ['social/forum.yaml'],
+      self: ['platform/cmd/social/forum.yaml'],
       peers: [],
       environment: [],
     };

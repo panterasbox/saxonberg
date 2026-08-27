@@ -1,0 +1,9 @@
+class: /platform/idea/corpo/Brand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: old-hollis
+  name: Old Hollis
+  owner: hollis
+  category: whiskey
+  positioning: cheap and proud of it
+  descriptor: Cheap, cheerful, proud of being cheap — the anti-Vionne.

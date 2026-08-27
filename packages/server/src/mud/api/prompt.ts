@@ -9,8 +9,8 @@
  *
  * This Api is a thin forwarding shell: the registry + push lifecycle
  * live in the hot-reloadable {@link PromptLogic} singleton at
- * `/obj/api/prompt`, reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/prompt` reloads it.
+ * `/platform/idea/api/prompt`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /platform/idea/api/prompt` reloads it.
  *
  * See:
  *   - `docs/subsystems/prompt.md`
@@ -22,13 +22,13 @@ import type {
   PromptRefreshNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 import type { Mml } from './mml';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { PromptLogic } from '../obj/api/PromptLogic';
+import { PromptLogic } from '../platform/idea/api/PromptLogic';
 import { fileURLToPath } from 'url';
 
 /**
@@ -145,9 +145,9 @@ export interface MqlManyPromptOpts extends PromptOpts<Stuff[]> {
 
 /* ─────────────────────────── PromptApi ─────────────────────────── */
 
-const LOGIC_PATH = '/obj/api/prompt';
+const LOGIC_PATH = '/platform/idea/api/prompt';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/PromptLogic', import.meta.url)
+  new URL('../platform/idea/api/PromptLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able PromptLogic singleton (sync). */

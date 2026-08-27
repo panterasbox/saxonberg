@@ -1,0 +1,21 @@
+verbs: [tip]
+controller: /platform/idea/cmd/employment/TipController
+description: "Leave a tip — cash in the jar, or by transfer"
+help: |
+  Leave a tip for whoever's tending the bar — `tip 5`. By default it's
+  cash: you drop coin in the jar (off the books, anonymous). Add `--eft`
+  to send it straight to the server's account instead (recorded), the
+  "put it on the card" tip. If you're short of coin, `tip` sends it by
+  transfer automatically.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: amount
+    type: string
+    required: true
+options:
+  eft:
+    short: e
+    type: boolean
+    description: "Tip the on-shift server by account transfer instead of cash."

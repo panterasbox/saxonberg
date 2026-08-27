@@ -16,18 +16,18 @@ import { MixinApi } from '../api/mixin';
 import { BulkableApi } from '../api/bulk';
 import { ExecutionContextApi } from '../api/execution-context';
 import { WorldClockApi } from '../api/worldclock';
-import '../obj/WorldClockRegistry';
+import '../platform/idea/WorldClockRegistry';
 import { PersistenceManager } from '../../backend/PersistenceManager';
 import { Quantity } from '../lib/quantity';
 import Material from '../lib/material/Material';
-import Condition from '../obj/Condition';
+import Condition from '../platform/idea/Condition';
 import type { ToxinBehavior } from '../lib/metabolism/Metabolic';
 import { Creature } from '../lib/creature/Creature';
 import GradedReceptacle from '../world/lounge/GradedReceptacle';
-import ToolItem from '../obj/ToolItem';
+import ToolItem from '../platform/thing/ToolItem';
 import CraftedDrink from '../world/lounge/CraftedDrink';
 import Menu from '../world/lounge/Menu';
-import RecipeCatalogue from '../obj/RecipeCatalogue';
+import RecipeCatalogue from '../platform/idea/RecipeCatalogue';
 import { Idea } from '../lib/stuff/Idea';
 import { ContainerMixin } from '../lib/spatial/Container';
 import { ContainableMixin } from '../lib/spatial/Containable';
@@ -59,7 +59,7 @@ const ALCOHOL: ToxinBehavior = {
     { threshold: 0.08, severity: 2 },
   ],
 };
-const ALCOHOL_PATH = '/obj/Condition/metabolism/alcohol';
+const ALCOHOL_PATH = '/platform/idea/Condition/metabolism/alcohol';
 function ensureAlcoholCondition(): void {
   if (StuffApi.findByTemplatePath(ALCOHOL_PATH)) return;
   makeStuffAtPath(() => {
@@ -70,9 +70,9 @@ function ensureAlcoholCondition(): void {
   }, ALCOHOL_PATH);
 }
 
-const GIN = '/obj/material/spirit/gin';
-const VERMOUTH = '/obj/material/spirit/vermouth';
-const MARTINI_MAT = '/obj/material/cocktail/martini';
+const GIN = '/stuff/idea/material/spirit/gin';
+const VERMOUTH = '/stuff/idea/material/spirit/vermouth';
+const MARTINI_MAT = '/stuff/idea/material/cocktail/martini';
 const GLASS = '/world/lounge/cocktail-glass';
 const DAVE = '/world/lounge/dave-test';
 
@@ -177,7 +177,7 @@ beforeEach(async () => {
 
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),
-    '/obj/RecipeCatalogue',
+    '/platform/idea/RecipeCatalogue',
   );
   await catalogue.warm();
 

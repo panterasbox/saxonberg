@@ -8,7 +8,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
-import Avatar from '../../../obj/Avatar';
+import Avatar from '../../../platform/agent/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';

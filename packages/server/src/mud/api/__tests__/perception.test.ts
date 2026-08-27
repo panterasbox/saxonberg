@@ -13,11 +13,11 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionApi } from '../perception';
-import { PerceptionLogic } from '../../obj/api/PerceptionLogic';
+import { PerceptionLogic } from '../../platform/idea/api/PerceptionLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Species from '../../obj/species/Species';
-import BodyPlan from '../../obj/species/BodyPlan';
+import Species from '../../platform/idea/species/Species';
+import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
 import Thing from '../../lib/stuff/Thing';
 import {
@@ -29,9 +29,9 @@ import {
   buildAllModalities,
   buildModality,
 } from '../../lib/perception/modalities/__tests__/test-helpers';
-import { VisionModality } from '../../obj/modalities/VisionModality';
-import { SoundModality } from '../../obj/modalities/SoundModality';
-import { SmellModality } from '../../obj/modalities/SmellModality';
+import { VisionModality } from '../../platform/idea/modalities/VisionModality';
+import { SoundModality } from '../../platform/idea/modalities/SoundModality';
+import { SmellModality } from '../../platform/idea/modalities/SmellModality';
 
 const OrganismThingBase = OrganismMixin(Thing);
 class OrganismThing extends OrganismThingBase {}
@@ -44,7 +44,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 function makeBipedSapiens(): Stuff {
   const biped = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/obj/species/BodyPlan/biped',
+    '/stuff/idea/species/BodyPlan/biped',
   );
   biped.setSensoryPorts([
     { modality: 'vision', count: 2, position: 'frontal' },
@@ -53,7 +53,7 @@ function makeBipedSapiens(): Stuff {
   ]);
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/animalia/homo-sapiens',
+    '/stuff/idea/species/animalia/homo-sapiens',
   );
   sapiens.setBodyPlan(biped);
   const actor = makeStuff(() => new OrganismThing());
@@ -64,12 +64,12 @@ function makeBipedSapiens(): Stuff {
 function makePeaceLily(): Stuff {
   const sessile = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    '/obj/species/BodyPlan/sessile',
+    '/stuff/idea/species/BodyPlan/sessile',
   );
   // No sensoryPorts — sessile body plans have empty perception.
   const lily = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/plantae/peace-lily',
+    '/stuff/idea/species/plantae/peace-lily',
   );
   lily.setBodyPlan(sessile);
   const actor = makeStuff(() => new OrganismThing());
@@ -149,7 +149,7 @@ describe('PerceptionApi', () => {
     it('returns [] for a Species without a BodyPlan', () => {
       const orphan = withTemplatePath(
         makeStuff(() => new Species()),
-        '/obj/species/animalia/orphan',
+        '/stuff/idea/species/animalia/orphan',
       );
       const actor = makeStuff(() => new OrganismThing());
       actor.setSpecies(orphan);
@@ -164,7 +164,7 @@ describe('PerceptionApi', () => {
     it('dedupes when the same organ key appears multiple times', () => {
       const biped = withTemplatePath(
         makeStuff(() => new BodyPlan()),
-        '/obj/species/BodyPlan/duplicate',
+        '/stuff/idea/species/BodyPlan/duplicate',
       );
       biped.setSensoryPorts([
         { modality: 'vision', count: 2, position: 'frontal' },
@@ -172,7 +172,7 @@ describe('PerceptionApi', () => {
       ]);
       const species = withTemplatePath(
         makeStuff(() => new Species()),
-        '/obj/species/test/duplicate',
+        '/stuff/idea/species/test/duplicate',
       );
       species.setBodyPlan(biped);
       const actor = makeStuff(() => new OrganismThing());
@@ -256,7 +256,7 @@ describe('PerceptionLogic singleton encapsulation', () => {
     // A facade call lazily creates the logic singleton.
     PerceptionApi.sensorium(makeStuff(() => new Thing()));
     const logic = StuffApi.findByTemplatePath<PerceptionLogic>(
-      '/obj/api/perception'
+      '/platform/idea/api/perception'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/perception#PerceptionApi`, so the

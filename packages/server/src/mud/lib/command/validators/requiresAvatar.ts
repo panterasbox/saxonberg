@@ -8,7 +8,7 @@
  */
 
 import type { CommandValidator } from '../../../api/command';
-import Avatar from '../../../obj/Avatar';
+import Avatar from '../../../platform/agent/Avatar';
 
 const validator: CommandValidator = (context) => {
   if (context.commandGiver instanceof Avatar) return undefined;

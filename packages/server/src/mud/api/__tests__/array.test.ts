@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ArrayApi } from '../array';
 import { StuffApi } from '../stuff';
 import { SecurityError } from '../../lib/security/errors';
-import type { ArrayLogic } from '../../obj/api/ArrayLogic';
+import type { ArrayLogic } from '../../platform/idea/api/ArrayLogic';
 
 describe('ArrayApi.equal', () => {
   it('returns true for the same array reference', () => {
@@ -78,16 +78,16 @@ describe('ArrayLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/array once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/array once the facade has materialized it', () => {
     ArrayApi.equal([], []);
-    const logic = StuffApi.findByTemplatePath('/obj/api/array');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/array');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-ArrayApi caller', () => {
     ArrayApi.equal([], []);
-    const logic = StuffApi.findByTemplatePath<ArrayLogic>('/obj/api/array');
+    const logic = StuffApi.findByTemplatePath<ArrayLogic>('/platform/idea/api/array');
     expect(logic).toBeDefined();
     // The test module is not `mud/api/array#ArrayApi`, so the FromModule
     // gate on the logic's own methods denies the call.

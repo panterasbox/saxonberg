@@ -73,8 +73,8 @@ describe('MobileMixin command contributions', () => {
     // 'sneak'". sneak/run shipped afforded only after a live run caught it;
     // every unit/integration test drove resolveTraversal directly, past the
     // affordance gate.
-    expect(selfContributions).toContain('movement/go.yaml');
-    expect(selfContributions).toContain('movement/sneak.yaml');
-    expect(selfContributions).toContain('movement/run.yaml');
+    expect(selfContributions).toContain('platform/cmd/movement/go.yaml');
+    expect(selfContributions).toContain('platform/cmd/movement/sneak.yaml');
+    expect(selfContributions).toContain('platform/cmd/movement/run.yaml');
   });
 });

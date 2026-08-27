@@ -14,14 +14,14 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AttendantApi } from "../../../api/attendant";
-import AttendancePoint from "../../../obj/AttendancePoint";
-import Ticket from "../../../obj/Ticket";
+import AttendancePoint from "../../../platform/thing/AttendancePoint";
+import Ticket from "../../../platform/thing/Ticket";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
 import { SchedulerApi } from "../../../api/scheduler";
 import { StuffApi } from "../../../api/stuff";
 import { EventApi } from "../../../api/event";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../../platform/idea/EventRegistry";
 import { Stuff } from "../../stuff/Stuff";
 import { Idea } from "../../stuff/Idea";
 import { EngagedMixin } from "../../activity/Engaged";
@@ -40,8 +40,8 @@ class TestCustomer extends SensorMixin(Idea) {
 }
 
 const POINT = "/world/test/counter";
-const ALICE = "/obj/Avatar/alice";
-const BOB = "/obj/Avatar/bob";
+const ALICE = "/platform/agent/Avatar/alice";
+const BOB = "/platform/agent/Avatar/bob";
 
 function makePoint(cfg: Partial<AttendancePoint>): AttendancePoint {
   const p = makeStuffAtPath(() => new AttendancePoint(), POINT);
@@ -68,7 +68,7 @@ beforeEach(async () => {
   StuffApi.clearAll();
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, "/obj/EventRegistry");
+    Stuff._stampTemplatePath(r, "/platform/idea/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);

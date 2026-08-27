@@ -36,7 +36,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { BiomeApi } from '../../api/biome';
 import { MixinApi } from '../../api/mixin';
 import type Biome from './Biome';

@@ -11,8 +11,8 @@
  * `LedgerEntry` or mutates an `AccountBalance`.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link BankingLogic} singleton at `/obj/api/banking`,
- * reached synchronously via `StuffApi.singletonSync`. `dest /obj/api/banking`
+ * hot-reloadable {@link BankingLogic} singleton at `/platform/idea/api/banking`,
+ * reached synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/banking`
  * reloads it. The central-bank mint/drain/float ops are
  * operator/developer-gated at the *verb* layer (`AccessApi.isWizard`),
  * not here; this surface is the mechanism, the verbs are the policy.
@@ -52,7 +52,7 @@ import type { Stuff } from "../lib/stuff/Stuff";
 import type { Globbable } from "../lib/stuff/Globbable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { BankingLogic } from "../obj/api/BankingLogic";
+import { BankingLogic } from "../platform/idea/api/BankingLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
@@ -76,9 +76,9 @@ export type {
   CredentialWallet,
 };
 
-const LOGIC_PATH = "/obj/api/banking";
+const LOGIC_PATH = "/platform/idea/api/banking";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/BankingLogic", import.meta.url),
+  new URL("../platform/idea/api/BankingLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able BankingLogic singleton (sync). */

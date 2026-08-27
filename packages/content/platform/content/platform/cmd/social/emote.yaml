@@ -1,0 +1,19 @@
+verbs: [emote]
+controller: /platform/idea/cmd/social/EmoteController
+description: "Free-form emote — perform any expressive act in your own prose"
+help: |
+  Perform an action in your own words. Whatever you type is shown to
+  the room prefixed with your name, so `emote grins and tips a hat`
+  reads to others as "Bob grins and tips a hat." Reach for it when no
+  built-in social verb captures what you want to express.
+
+  This is the free-form escape hatch. For the curated, grammar-aware
+  emotes (with targets and emoji), use the `soul` verbs like `;wave`
+  or `nod` directly.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: body
+    type: string
+    required: true
+    greedy: true

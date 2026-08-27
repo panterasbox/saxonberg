@@ -1,11 +1,11 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianZone from '../../../obj/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
-import SphericalLocation from '../../../obj/location/SphericalLocation';
-import SphericalZone from '../../../obj/location/SphericalZone';
+import SphericalLocation from '../../../platform/location/SphericalLocation';
+import SphericalZone from '../../../platform/idea/location/SphericalZone';
 import Exit from '../Exit';
-import Door from '../../../obj/Door';
+import Door from '../../../platform/thing/Door';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import {

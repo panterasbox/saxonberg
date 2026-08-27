@@ -25,11 +25,11 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../../backend/PersistenceManager';
-import EventRegistry from '../../../../obj/EventRegistry';
-import Interactive from '../../../../obj/Interactive';
-import Avatar from '../../../../obj/Avatar';
+import EventRegistry from '../../../../platform/idea/EventRegistry';
+import Interactive from '../../../../platform/idea/Interactive';
+import Avatar from '../../../../platform/agent/Avatar';
 import CartesianLocation from '../../../location/CartesianLocation';
-import SandboxCrossing from '../../../../obj/sandbox/SandboxCrossing';
+import SandboxCrossing from '../../../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../SandboxCrossingExit';
 import type { Containable } from '../../../spatial/Containable';
 import type { Container } from '../../../spatial/Container';
@@ -130,7 +130,7 @@ function installFakeStore(pm: PersistenceManager): Map<string, FakeRow[]> {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -206,7 +206,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         // author a template under the circle namespace — the deliberate save
         await PersistApi.save(Collections.Content, {
           path: `${SCOPE}/workshop`,
-          class: '/obj/location/Room',
+          class: '/platform/location/Room',
         });
         // fight + transact — material ledger rows
         await PersistApi.save(Collections.BankLedger, {
@@ -260,7 +260,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     ]);
     // …the authored edit persists (the deliberate save is the product)…
     expect(store.get(Collections.Content)).toEqual([
-      { path: `${SCOPE}/workshop`, class: '/obj/location/Room' },
+      { path: `${SCOPE}/workshop`, class: '/platform/location/Room' },
     ]);
     // …and the epistemic record exists, wire-marked.
     //

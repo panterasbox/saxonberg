@@ -9,19 +9,19 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
-import Species from "../../../obj/species/Species";
+import Species from "../../../platform/idea/species/Species";
 import Thing from "../../stuff/Thing";
 import { LightSourceMixin } from "../../perception/LightSource";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import type { SustainedEffect, AfflictionRecord } from "../../../obj/Condition";
+import type { SustainedEffect, AfflictionRecord } from "../../../platform/idea/Condition";
 import type { MagicProvenance } from "../Grid";
 
 class TestCharacter extends Character {}
@@ -37,14 +37,14 @@ const ORIGIN: MagicProvenance = {
   verb: "create",
   noun: "light",
   spellId: "glowlight",
-  specifiedBy: "/obj/Avatar/test",
-  firedBy: "/obj/Avatar/test",
+  specifiedBy: "/platform/agent/Avatar/test",
+  firedBy: "/platform/agent/Avatar/test",
 };
 
 function makeActor(): TestCharacter {
   const n = seq++;
   const species = makeStuff(() => new Species());
-  stampTemplatePathForTest(species, `/obj/species/test/sustained-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/sustained-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   return actor;
@@ -151,7 +151,7 @@ describe("SustainedEffect — the modifier condition kind", () => {
     const actor = makeActor();
     const dread: AfflictionRecord = {
       kind: "affliction",
-      templatePath: "/obj/Condition/magic/dread",
+      templatePath: "/platform/idea/Condition/magic/dread",
       stage: 2,
       elapsed: 0,
       magicOrigin: { ...ORIGIN, verb: "destroy", noun: "mind", spellId: "dread" },
@@ -170,7 +170,7 @@ describe("SustainedEffect — the modifier condition kind", () => {
     const actor = makeActor();
     const mundane: AfflictionRecord = {
       kind: "affliction",
-      templatePath: "/obj/Condition/metabolism/collapse",
+      templatePath: "/platform/idea/Condition/metabolism/collapse",
       stage: 1,
       elapsed: 0,
     };

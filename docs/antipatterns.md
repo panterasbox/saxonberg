@@ -41,7 +41,7 @@ don't reintroduce it. Enforced by `pnpm lint:thin-forwarder` (CI-gating).
 ## `ApiOnly` as a Substitute for a Real Security Contract
 
 **ANTIPATTERN**: Gating a privileged object mutator `ApiOnly` (any
-`api/**` / `obj/api/**` caller) and adding an Api method purely so
+`api/**` / `platform/idea/api/**` caller) and adding an Api method purely so
 *something in the Api tier* is the caller. The gate then says nothing
 about *who* legitimately performs the mutation.
 
@@ -71,12 +71,12 @@ public _setActivePartyPath(path: string): void { ... }
 Express the contract in terms of **which Stuff is participating in the
 call** (`FromClass` / `FromMixin` + a relational `where` over the call
 args), or name the one privileged caller by its stable identity
-(`FromTemplate('/obj/api/<feature>')` for an owning logic singleton).
+(`FromTemplate('/platform/idea/api/<feature>')` for an owning logic singleton).
 See [subsystems/call-security.md § Participant contracts](./subsystems/call-security.md).
 
 ## Collapsing the Api ↔ Logic Split
 
-**ANTIPATTERN**: Deleting a `obj/api/<X>Logic.ts` singleton and having
+**ANTIPATTERN**: Deleting a `platform/idea/api/<X>Logic.ts` singleton and having
 the `XApi` facade (or a state registry) hold the resolution logic
 directly, on the theory that "the logic tier only forwarded, so it
 earned nothing."
@@ -84,7 +84,7 @@ earned nothing."
 The split is **not** an optimization to be collapsed — it is the
 **hot-reload boundary**. The `XApi` facade is imported directly all over
 the codebase, so it is *not* HMR-able; anything living on it is frozen
-until a full restart. The `XLogic` singleton lives at `/obj/api/<x>` and
+until a full restart. The `XLogic` singleton lives at `/platform/idea/api/<x>` and
 is resolved fresh per call (`StuffApi.singletonSync` +
 `HotReloadApi.getCurrentExport`), so editing it hot-reloads into every
 caller. A logic tier that "only forwards to a registry" still owns
@@ -93,10 +93,10 @@ even if it were a pure forward, the tier must stay so that logic *added
 later* lands in the HMR-able unit, not on the frozen facade.
 
 **INSTEAD**: Every substrate Api keeps its `XApi` (thin interface,
-non-HMR) → `XLogic` (`/obj/api/<x>`, HMR-able) pair. The facade forwards
+non-HMR) → `XLogic` (`/platform/idea/api/<x>`, HMR-able) pair. The facade forwards
 `return logic().m(...)`; the logic holds the behavior. State registries
 (`AccessRegistry`, `OfficeRegistry`) hold durable *state*, gated to admit
-the logic singleton (`FromTemplate('/obj/api/<x>')`) — they are not a
+the logic singleton (`FromTemplate('/platform/idea/api/<x>')`) — they are not a
 substitute for the logic tier. (The 2026-07 sweep briefly collapsed
 `access`/`office` this way and it was reverted — the split is
 mandatory.) See [subsystems/call-security.md § The Api ↔ logic-singleton split is the hot-reload boundary](./subsystems/call-security.md).
@@ -211,7 +211,7 @@ instance's state comes from a live source, not from authored data" is not
 a reason to skip the template — it is the `GlobbableApi.split` shape.
 Clone at a template, then copy the derived fields in. The corpse a death
 leaves behind does exactly this: what a corpse *is* is authored
-(`/obj/Corpse`), whose it *was* is poured in through a gated
+(`/stuff/agent/Corpse`), whose it *was* is poured in through a gated
 applier. `byTemplatePath` is a multi-bucket, so many instances sharing one
 path is ordinary — only `StuffApi.singleton()` objects to it.
 
@@ -492,7 +492,7 @@ const contents = container.getContents();
 
 ```typescript
 // Read the templatePath stamp on a runtime instance (the "I was
-// cloned from /obj/Avatar/foo" identity). Returns null when the
+// cloned from /platform/agent/Avatar/foo" identity). Returns null when the
 // Stuff was created via StuffApi.create with no template.
 const tp = stuff.getTemplatePath();
 
@@ -869,7 +869,7 @@ same shape:
 | Site | Key |
 |---|---|
 | `api/event.ts` — the EventRegistry | `Property.of(eventName)` — one slot per authored event |
-| `obj/api/BankingLogic.ts` — corpo circle membership | `circleProp(corpoKey)` — one flag per corpo |
+| `platform/idea/api/BankingLogic.ts` — corpo circle membership | `circleProp(corpoKey)` — one flag per corpo |
 
 Neither key exists at authoring time, which is the whole point:
 
@@ -1086,8 +1086,8 @@ paths, `TemplatePathPrefixes` for trailing-slash families), a sibling of
 ### BAD
 
 ```typescript
-const REGISTRY_PATH = '/obj/AccessRegistry';          // duplicated per file
-static readonly templatePath = '/obj/persistence/PersistentHydrator';
+const REGISTRY_PATH = '/platform/idea/AccessRegistry';          // duplicated per file
+static readonly templatePath = '/platform/idea/persistence/PersistentHydrator';
 ```
 
 ### GOOD
@@ -1552,11 +1552,11 @@ not `SchedulerApi`.
 
 ## Importing Outside `src/mud/` From the Mudlib
 
-Mudlib code — `lib/`, `obj/` outside `obj/api/`, `cmd/`, `domain/` —
+Mudlib code — `lib/`, `obj/` outside `platform/idea/api/`, `cmd/`, `domain/` —
 must NOT import anything from outside `src/mud/`. That includes Node
 built-ins (`fs`, `path`, `url`, `crypto`, `vm`, `child_process`), npm
 packages, and `../backend/`. Only the Api tier (`mud/api/**` and
-`mud/obj/api/**`) may import outward, and its job is to wrap what it
+`mud/platform/idea/api/**`) may import outward, and its job is to wrap what it
 imports.
 
 The point is capability, not tidiness: mudlib code that cannot import
@@ -1675,7 +1675,7 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
   async and reads via `atmosphere.<field>`; inline walks routinely
   skip the step.
 - **Root universe biome** (chain step 6). The terminal step reads
-  from `/obj/biome/universe`. Inline walks use hardcoded constants
+  from `/stuff/idea/biome/universe`. Inline walks use hardcoded constants
   that drift out of sync with the seeded universe biome.
 
 See [biome.md](./subsystems/biome.md) for the full chain.
@@ -2096,7 +2096,7 @@ surface-architecture refactor exists): call-security gates **only**
 `Stuff` instance methods and Api statics. A plain exported `lib`
 function — or a static on a plain `lib` class — **can't be gated at
 all**. So protection-needing internal logic must be **`Stuff`-shaped**:
-that's exactly the `/obj/api/<feature>` logic singleton, gated
+that's exactly the `/platform/idea/api/<feature>` logic singleton, gated
 `@CallSecurity(FromModule('/api/<feature>#<Feature>Api'))`. See
 [call-security.md § The api↔logic-singleton recipe](./subsystems/call-security.md#the-apilogic-singleton-recipe).
 
@@ -2117,7 +2117,7 @@ face that speaks it — you dissolve the need for a unique home rather than
 out-guessing it. The *definition* can sit on a cycle-breaking dependency
 leaf (a `lib/` value-object); the *import site* is still the face.
 
-**One leaf is off-limits: the `obj/api/*Logic` singleton.** Nothing
+**One leaf is off-limits: the `platform/idea/api/*Logic` singleton.** Nothing
 imports from a logic module except its own facade (the
 `no-restricted-imports` rule — see
 [architecture.md](./architecture.md#export-discipline--the-sanctioned-exception-registry)),
@@ -2138,7 +2138,7 @@ point or a dependency leaf), **not re-exported**.
 export type { TraversalGuard, NoiseLevel };   // defined in lib/, re-exported here
 
 // GOOD — constant placed in the logic/concept file, NOT re-exported
-// obj/api/NavigationLogic.ts
+// platform/idea/api/NavigationLogic.ts
 const DIRECTION_OFFSETS = { ... } as const;   // stays put
 ```
 
@@ -2449,7 +2449,7 @@ policy someone has to enforce.
 
 **Instead.** Material state reaches a body through
 `Vitals.adoptMaterialState(slices)`, which is gated
-(`FromTemplate('/obj/api/condition')`) so only the death choreography can
+(`FromTemplate('/platform/idea/api/condition')`) so only the death choreography can
 call it, and deliberately **not** named `mergeSlice_` so it stays off the
 protocol.
 
@@ -2748,13 +2748,13 @@ own.** Write to it as though somebody else already has.
 const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/obj/Locality/'
 const LOCALITY_CLASS = `${ADDRESS_PREFIX}Locality`;  // ✗
 // …and its cousin, filtering rows on the class's DIRECTORY:
-if (!tpl.class.startsWith('/obj/material/')) continue; // ✗
+if (!tpl.class.startsWith('/stuff/idea/material/')) continue; // ✗
 ```
 
 **Do:** name the class outright.
 
 ```ts
-const LOCALITY_CLASS = '/obj/Locality';
+const LOCALITY_CLASS = '/platform/idea/Locality';
 ```
 
 A template path and a module path are different namespaces that

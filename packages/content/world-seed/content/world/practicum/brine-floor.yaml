@@ -1,12 +1,12 @@
 # The gallery's brine pool — ground + conductive medium (the substation
 # flooded-floor shape): the spark demonstration's honest physics.
-class: /obj/Floor
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a brine-flooded stone floor
   longDescription: A stone floor under a sheet of ankle-deep brine.
   surfaceBulk: true
-  surfaceMaterial: /obj/material/bulk/salt-water
+  surfaceMaterial: /stuff/idea/material/bulk/salt-water
   surfaceAmount: 30
   staticSlots:
     - name: 'ground:1'

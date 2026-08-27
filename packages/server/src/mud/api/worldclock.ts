@@ -3,14 +3,14 @@
  *
  * Stable caller-facing surface. The orchestration + registry resolution
  * live in the hot-reloadable {@link WorldClockLogic} singleton at
- * `/obj/api/worldclock`, reached synchronously via
+ * `/platform/idea/api/worldclock`, reached synchronously via
  * `StuffApi.singletonSync`; the Logic resolves the
- * `WorldClockRegistry` singleton (at `/obj/WorldClockRegistry`) where
- * all clock state actually lives. `dest /obj/api/worldclock` reloads
+ * `WorldClockRegistry` singleton (at `/platform/idea/WorldClockRegistry`) where
+ * all clock state actually lives. `dest /platform/idea/api/worldclock` reloads
  * the Logic; the Registry's state is unaffected.
  *
  * The Registry's public methods carry a gate that admits this module
- * AND the logic singleton (`FromTemplate('/obj/api/worldclock')`), so
+ * AND the logic singleton (`FromTemplate('/platform/idea/api/worldclock')`), so
  * external code that grabs the Registry Stuff via
  * `StuffApi.findByTemplatePath` still cannot call its methods. The
  * narrow-entry pattern holds: state has one home, and one
@@ -29,14 +29,14 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
-import { WorldClockLogic } from '../obj/api/WorldClockLogic';
+import { WorldClockLogic } from '../platform/idea/api/WorldClockLogic';
 import { fileURLToPath } from 'url';
 
 // DI seam: re-exported so `WorldClockRegistry` registers its class through
 // this facade rather than importing the logic singleton directly (the
 // no-import-from-*Logic rule). The load-time mechanism lives in
 // `WorldClockLogic`; this is a pure pass-through re-export.
-export { registerWorldClockRegistryClass } from '../obj/api/WorldClockLogic';
+export { registerWorldClockRegistryClass } from '../platform/idea/api/WorldClockLogic';
 
 /* ─────────────────────────── public surface types ─────────────────────────── */
 
@@ -82,9 +82,9 @@ export interface CronPattern {
 
 /* ─────────────────────────── logic resolution ─────────────────────────── */
 
-const LOGIC_PATH = '/obj/api/worldclock';
+const LOGIC_PATH = '/platform/idea/api/worldclock';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/WorldClockLogic', import.meta.url)
+  new URL('../platform/idea/api/WorldClockLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able WorldClockLogic singleton (sync). */

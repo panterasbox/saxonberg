@@ -10,7 +10,7 @@ inputSlots:
   kind: item
   count: 1
 toolCapabilities: []
-outputTemplate: /obj/items/plated-dish
+outputTemplate: /stuff/thing/items/plated-dish
 outputAppearance: toasted biscuit and crisped sausage, still steaming
 outputApplication: edible
 outputPortionL: 0.3

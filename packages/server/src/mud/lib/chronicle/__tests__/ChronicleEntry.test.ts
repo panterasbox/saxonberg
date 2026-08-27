@@ -43,7 +43,7 @@ afterEach(() => {
 describe('ChronicleEntry', () => {
   it('round-trips its fields and finds by owner', async () => {
     const entry = new ChronicleEntry();
-    entry.owner = '/obj/Avatar/p1';
+    entry.owner = '/platform/agent/Avatar/p1';
     entry.kind = 'deed';
     entry.when = 1234;
     entry.where = '/world/lounge';
@@ -53,7 +53,7 @@ describe('ChronicleEntry', () => {
     entry.key = 'first-arrival';
     await entry.save();
 
-    const found = await ChronicleEntry.find({ owner: '/obj/Avatar/p1' });
+    const found = await ChronicleEntry.find({ owner: '/platform/agent/Avatar/p1' });
     expect(found).toHaveLength(1);
     const f = found[0]!;
     expect(f.kind).toBe('deed');
@@ -67,29 +67,29 @@ describe('ChronicleEntry', () => {
 
   it('owner is the query key — other owners are excluded', async () => {
     const a = new ChronicleEntry();
-    a.owner = '/obj/Avatar/a';
+    a.owner = '/platform/agent/Avatar/a';
     a.text = 'a';
     await a.save();
     const b = new ChronicleEntry();
-    b.owner = '/obj/Avatar/b';
+    b.owner = '/platform/agent/Avatar/b';
     b.text = 'b';
     await b.save();
 
-    const found = await ChronicleEntry.find({ owner: '/obj/Avatar/a' });
+    const found = await ChronicleEntry.find({ owner: '/platform/agent/Avatar/a' });
     expect(found).toHaveLength(1);
     expect(found[0]!.text).toBe('a');
   });
 
   it('persists a claim with order and null when', async () => {
     const claim = new ChronicleEntry();
-    claim.owner = '/obj/Avatar/p2';
+    claim.owner = '/platform/agent/Avatar/p2';
     claim.kind = 'claim';
     claim.order = 1;
     claim.when = null;
     claim.text = 'A prologue line.';
     await claim.save();
 
-    const [f] = await ChronicleEntry.find({ owner: '/obj/Avatar/p2' });
+    const [f] = await ChronicleEntry.find({ owner: '/platform/agent/Avatar/p2' });
     expect(f!.kind).toBe('claim');
     expect(f!.order).toBe(1);
     expect(f!.when).toBeNull();

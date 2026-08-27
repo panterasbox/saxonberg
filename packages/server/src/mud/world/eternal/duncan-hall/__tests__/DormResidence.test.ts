@@ -11,12 +11,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../DormWarren';
 import DormRoom from '../DormRoom';
 import Desk from '../Desk';
-import ProvisionController from '../command/ProvisionController';
-import UnprovisionController from '../command/UnprovisionController';
-import RemodelController from '../command/RemodelController';
+import ProvisionController from '../idea/cmd/ProvisionController';
+import UnprovisionController from '../idea/cmd/UnprovisionController';
+import RemodelController from '../idea/cmd/RemodelController';
 import DormThemes from '../DormThemes';
 import { PromptApi } from '../../../../api/prompt';
-import type Interactive from '../../../../obj/Interactive';
+import type Interactive from '../../../../platform/idea/Interactive';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { StuffApi } from '../../../../api/stuff';
@@ -32,11 +32,11 @@ import Location from '../../../../lib/stuff/Location';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
-import PersistentHydrator from '../../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../../platform/idea/persistence/PersistentHydrator';
 import { Document } from '../../../../lib/persistence/Document';
-import ParcelRegistry from '../../../../obj/ParcelRegistry';
-import GroupRegistry from '../../../../obj/GroupRegistry';
-import Avatar from '../../../../obj/Avatar';
+import ParcelRegistry from '../../../../platform/idea/ParcelRegistry';
+import GroupRegistry from '../../../../platform/idea/GroupRegistry';
+import Avatar from '../../../../platform/agent/Avatar';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import {
@@ -100,7 +100,7 @@ function seedDomain(): void {
   add(FIXTURES[2]!, '/world/eternal/duncan-hall/Footlocker', {
     shortDescription: 'a footlocker',
   });
-  add('/obj/Key', '/obj/Key', { shortDescription: 'a key' });
+  add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
 }
 
 function seedUnit(floor: number, pos: number): string {
@@ -180,9 +180,9 @@ function installStore(): void {
 }
 
 async function bootRegistries(): Promise<void> {
-  const groups = makeStuffAtPath(() => new GroupRegistry(), '/obj/GroupRegistry');
+  const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
   await groups.postRegister();
-  const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/obj/ParcelRegistry');
+  const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
   await parcels.postRegister();
 }
 
@@ -218,7 +218,7 @@ function reset(): void {
 const snapshots = () => col('holder_snapshots');
 
 function makeAvatar(playerId: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
   return av;
 }
@@ -314,7 +314,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     await bootRegistries();
     const w = await warren();
     await w.refreshProvisioned();
-    await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
+    await ParcelApi.grantUse(k1, '/platform/agent/Avatar/iris', null);
     const iris = makeAvatar('iris');
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room); // standing in their room
@@ -350,7 +350,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     await bootRegistries();
     const w = await warren();
     await w.refreshProvisioned();
-    await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
+    await ParcelApi.grantUse(k1, '/platform/agent/Avatar/iris', null);
     const iris = makeAvatar('iris');
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room);
@@ -434,7 +434,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     await bootRegistries();
     const w = await warren();
     await w.refreshProvisioned();
-    await ParcelApi.grantUse(k1, '/obj/Avatar/iris', null);
+    await ParcelApi.grantUse(k1, '/platform/agent/Avatar/iris', null);
     const iris = makeAvatar('iris');
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room);
@@ -456,7 +456,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     );
     expect(rejectionReason(ctx)).toBeNull();
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(0); // record cleared
-    expect(await ParcelApi.hasUseGrant(k1, '/obj/Avatar/iris')).toBe(false);
+    expect(await ParcelApi.hasUseGrant(k1, '/platform/agent/Avatar/iris')).toBe(false);
     expect(await ParcelRecordFor(k1)).toBeNull(); // slot freed
 
     // Re-provision the same slot → a fresh, DEFAULT room (no phantom medic).

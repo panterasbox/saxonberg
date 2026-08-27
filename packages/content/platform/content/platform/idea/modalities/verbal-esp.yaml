@@ -1,0 +1,10 @@
+# VerbalESPModality — addressed-ESP-speech singleton.
+# family: 'field' per the hybrid framing — local aether field +
+# network routing on top. v1 signalAt is inherited null;
+# AetherMixin.dm handles delivery.
+class: /platform/idea/modalities/VerbalESPModality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: verbal-esp
+  family: field
+  modality: verbal-esp

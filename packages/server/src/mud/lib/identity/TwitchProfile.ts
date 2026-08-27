@@ -18,7 +18,7 @@
  */
 
 import { Document } from '../persistence/Document';
-import { EncryptedStringMarshaller } from '../../obj/persistence/EncryptedStringMarshaller';
+import { EncryptedStringMarshaller } from '../../platform/idea/persistence/EncryptedStringMarshaller';
 import type { TwitchProfile as ITwitchProfile } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
 

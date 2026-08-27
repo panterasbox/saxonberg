@@ -13,8 +13,8 @@ import requiresPackInstaller from '../requiresPackInstaller';
 import { AccessApi } from '../../../../api/access';
 import type { CommandContext } from '../../../../api/command';
 
-const MEMBER = '/obj/Avatar/member';
-const STRANGER = '/obj/Avatar/stranger';
+const MEMBER = '/platform/agent/Avatar/member';
+const STRANGER = '/platform/agent/Avatar/stranger';
 
 function ctxFor(path: string | null): CommandContext {
   return {

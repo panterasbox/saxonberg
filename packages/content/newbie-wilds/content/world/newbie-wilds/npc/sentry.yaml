@@ -10,10 +10,10 @@
 # hiding well, from cover and stillness, is the difference between sneaking
 # through and being hailed. Not `hostile`: it challenges, it doesn't open a
 # fight — leaving the player to sneak on, retreat, or ambush it themselves.
-class: /obj/NPC
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: sentry
   shortDescription: a watchful sentry

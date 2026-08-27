@@ -13,25 +13,25 @@
  * given command-giver is currently capable of acting in the world.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link SpeciesLogic} singleton at `/obj/api/species`,
+ * hot-reloadable {@link SpeciesLogic} singleton at `/platform/idea/api/species`,
  * reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/species` reloads it.
+ * `dest /platform/idea/api/species` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Organism } from '../lib/species/Organism';
-import type Clade from '../obj/species/Clade';
-import type Species from '../obj/species/Species';
+import type Clade from '../platform/idea/species/Clade';
+import type Species from '../platform/idea/species/Species';
 import type { SpeciesDossier } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SpeciesLogic } from '../obj/api/SpeciesLogic';
+import { SpeciesLogic } from '../platform/idea/api/SpeciesLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/species';
+const LOGIC_PATH = '/platform/idea/api/species';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SpeciesLogic', import.meta.url)
+  new URL('../platform/idea/api/SpeciesLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able SpeciesLogic singleton (sync). */

@@ -44,7 +44,7 @@ import {
   writePack,
   writeScriptFile,
   cleanupPacks,
-} from "../../../obj/api/__tests__/pack-harness";
+} from "../../../platform/idea/api/__tests__/pack-harness";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import {
   PersistenceManager,
@@ -71,7 +71,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ["system/ping.yaml"],
+    self: ["platform/cmd/system/ping.yaml"],
     environment: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
@@ -190,12 +190,12 @@ describe("the engine runs authored shapes paced over the bus", () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
-          query.path === "/obj/command/system/PingController"
+          query.path === "/platform/idea/cmd/system/PingController"
         ) {
           return [
             {
-              path: "/obj/command/system/PingController",
-              class: "/obj/command/system/PingController",
+              path: "/platform/idea/cmd/system/PingController",
+              class: "/platform/idea/cmd/system/PingController",
               data: {},
             },
           ];

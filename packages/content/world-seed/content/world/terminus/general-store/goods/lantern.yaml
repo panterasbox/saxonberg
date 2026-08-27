@@ -1,8 +1,8 @@
 # A punched-tin lantern — a real, carriable light (steadier + brighter than a
 # torch). A PortableLight (LightSource ⊕ Switchable): sold unlit; `switch
 # lantern on` casts a steady patterned light, off goes dark. Discrete Thing.
-class: /obj/equipment/PortableLight
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/equipment/PortableLight
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a punched-tin lantern
   primaryKeyword: lantern

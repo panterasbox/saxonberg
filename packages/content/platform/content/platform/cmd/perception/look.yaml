@@ -1,0 +1,55 @@
+verbs: [look, l, examine, exa]
+controller: /platform/idea/cmd/perception/LookController
+# ⭐ ONE card, because `look` opens one. Bare `look` is about the room
+# and `look <thing>` is about the thing, and those are the same card
+# with a different SUBJECT — a room, a person, an object and an idea are
+# `StuffKind`s the body lays out differently, not four cards and not
+# two. This line used to read `[place, subject]`, which claimed a verb
+# with one target could open either of two kinds of card.
+opens_card: subject
+description: "Examine your surroundings or an object"
+help: |
+  With no target, `look` surveys your whole location — its
+  description, exits, and what's lying around. Give it a target to
+  examine one thing closely; the target also becomes your focus, so
+  follow-up commands can refer to it without naming it again.
+
+  A close look into a container peers in for anything half-hidden —
+  you may notice something a passing glance would miss. To go over a
+  whole place thoroughly (ties up your hands, takes time), use
+  `search`. `examine` is the same command by another name.
+
+  `look at` (or `look in`) reads the same as plain `look` — the
+  preposition is optional. Use `--peek` to read something without
+  disturbing your focus trail.
+examples:
+  - cmd: look at the brass lantern
+    note: Examine one object up close
+  - cmd: look --peek sign
+    note: Read the sign without changing focus
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [at, in, inside]
+    default: "$focus"
+    # Typed ambiguity → disambiguation prompt. The click-affordance
+    # path is fine without this: MmlRenderer.commandFor emits
+    # `look <primaryKeyword>` which is canonical and resolves to a
+    # single match. Typed queries like `look brass` (in a room with
+    # multiple brass things) now ask which one instead of silently
+    # picking the top match. Cancellation aborts the dispatch.
+    onExcess: prompt
+    requires: any
+options:
+  peek:
+    type: boolean
+    description: "Render prose without changing focus"
+    # When --peek is present, skip the dispatcher's focus-update
+    # phase: prose renders, pronoun memory still updates, but the
+    # focus chain is not advanced. See the phase taxonomy in
+    # api/command.ts for the full vocabulary.
+    effects:
+      - { phase: focus-update, action: skip }

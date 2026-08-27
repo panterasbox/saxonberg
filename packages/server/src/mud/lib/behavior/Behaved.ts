@@ -173,7 +173,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       // names for the same sibling fan-out.)
       return {
         ...inner,
-        peers: [...(inner.peers ?? []), 'social/talk.yaml'],
+        peers: [...(inner.peers ?? []), 'platform/cmd/social/talk.yaml'],
       };
     }
 

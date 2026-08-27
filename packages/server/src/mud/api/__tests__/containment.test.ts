@@ -5,7 +5,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ContainmentApi } from '../containment';
-import { ContainmentLogic } from '../../obj/api/ContainmentLogic';
+import { ContainmentLogic } from '../../platform/idea/api/ContainmentLogic';
 import { SecurityError } from '../../lib/security/errors';
 import Location from '../../lib/stuff/Location';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -417,20 +417,20 @@ describe('ContainmentLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/containment once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/containment once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     const probe = makeStuff(() => new TestContainer());
     ContainmentApi.isContainedIn(probe, probe);
-    const found = StuffApi.findByTemplatePath('/obj/api/containment');
+    const found = StuffApi.findByTemplatePath('/platform/idea/api/containment');
     expect(found).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(found);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(found);
   });
 
   it('denies a direct logic-method call from a non-ContainmentApi caller', () => {
     const probe = makeStuff(() => new TestContainer());
     ContainmentApi.isContainedIn(probe, probe);
     const logic = StuffApi.findByTemplatePath<ContainmentLogic>(
-      '/obj/api/containment'
+      '/platform/idea/api/containment'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/containment#ContainmentApi`, so the

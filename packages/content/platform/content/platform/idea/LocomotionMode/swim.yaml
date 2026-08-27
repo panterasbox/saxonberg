@@ -1,0 +1,18 @@
+# Swim — non-passthrough, enablement-gated. Quieter than walk because
+# water muffles. bodyProfile horizontal — tripwires at ankle height
+# miss a swimming actor.
+class: /platform/idea/LocomotionMode
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: swim
+  speed: 0.5
+  noiseLevel: quiet
+  bodyProfile: horizontal
+  groundContact: none
+  requiresBodyPlanMode: [swim]
+  requiresPosture: []
+  costMultiplier: 2.0
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: SwimmableMixin
+  medium: water

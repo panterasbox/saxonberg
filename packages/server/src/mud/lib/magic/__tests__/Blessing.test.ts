@@ -17,7 +17,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { ConditionApi } from '../../../api/condition';
 import { MixinApi } from '../../../api/mixin';
 import { Blessing } from '../Blessing';
@@ -28,7 +28,7 @@ import { ReservedMixin } from '../../reserve';
 import { GlobbableMixin } from '../../stuff/Globbable';
 import Thing from '../../stuff/Thing';
 import { Creature } from '../../creature/Creature';
-import type { ActiveCondition, SustainedEffect } from '../../../obj/Condition';
+import type { ActiveCondition, SustainedEffect } from '../../../platform/idea/Condition';
 import type { VetoResult } from '../../errors';
 import {
   makeStuff,

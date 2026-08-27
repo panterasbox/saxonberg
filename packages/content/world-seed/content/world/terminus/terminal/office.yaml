@@ -3,8 +3,8 @@
 # exit is declared explicitly here, the `up` on the hall). The terminal clerk
 # works here; `populates` stands the clerk NPC up on hydrate, and the clerk's
 # postRegister stands up the city-budget Business (Phase 4). Generic room.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Terminus ticket office
   primaryKeyword: office

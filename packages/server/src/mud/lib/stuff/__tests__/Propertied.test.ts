@@ -1213,14 +1213,14 @@ describe('PropertiedMixin', () => {
 
   describe('Quantity prop round-trip via marshaller binding', () => {
     let installV1QuantityMarshallers: () => void;
-    let QuantityMarshaller: typeof import('../../../obj/persistence/QuantityMarshaller').QuantityMarshaller;
+    let QuantityMarshaller: typeof import('../../../platform/idea/persistence/QuantityMarshaller').QuantityMarshaller;
 
     beforeEach(async () => {
       ({ installV1QuantityMarshallers } = await import(
         '../../persistence/__tests__/quantity-marshaller-test-helpers'
       ));
       ({ QuantityMarshaller } = await import(
-        '../../../obj/persistence/QuantityMarshaller'
+        '../../../platform/idea/persistence/QuantityMarshaller'
       ));
       installV1QuantityMarshallers();
     });

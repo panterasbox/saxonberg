@@ -86,7 +86,7 @@ export class User extends Document implements IUser {
 
   /**
    * IDs of this user's character slots. Each corresponds to an Avatar
-   * template at `/obj/Avatar/<playerId>` in the `content` collection.
+   * template at `/platform/agent/Avatar/<playerId>` in the `content` collection.
    *
    * This list is the authoritative "what does this user own" source.
    * Appended on character creation; removed on character deletion.

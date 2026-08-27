@@ -12,8 +12,8 @@
 # entry, no bespoke terminal hook): the employment engine reads this Business's
 # `operatingLocations` and stands it up on first `businessAt` at that terminal
 # — the arrival surcharge is the trigger.
-class: /obj/Business
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⚠ No authority, deliberately: this business has NO positions, so there
   # is nothing to appoint anyone to. Authoring one would be structure

@@ -1,0 +1,14 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: speech.comms
+  family: "speech"
+  label: "Over comms"
+  communicative: true
+  description: "Words sent straight to you through an implant. Nobody in the room can overhear a comm."
+  address: direct
+  actor: person
+  weight: activity
+  audience: player
+  durable: false
+  affordance: decays

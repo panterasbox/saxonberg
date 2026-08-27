@@ -1,11 +1,11 @@
-# Gus's STOP paddle — `/obj/Paddle` (Wieldable + Detailed). A single-faced,
+# Gus's STOP paddle — `/platform/thing/Paddle` (Wieldable + Detailed). A single-faced,
 # STOP-only octagon on a stick, wielded in the right hand; equipped at standup
 # by Gus.equipLoadout. It carries NO command and NO movement gate: raising it
 # is theatrical, never a barrier — the player walks right past. That is the
 # joke and the ache; a real movement-gate would ruin both. Generic object:
 # Visible.shortDescription, never Named.
-class: /obj/Paddle
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Paddle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a STOP paddle
   primaryKeyword: paddle
@@ -13,7 +13,7 @@ data:
   longDescription: |
     A crossing guard's STOP paddle — one moulded octagon of red plastic on a stick, STOP the only word it knows. He never lets the imaginary traffic merely slow; it is always a full stop. The grip is worn pale where his thumb rides it.
   slotClaims:
-    "/obj/species/BodyPlan/biped": ["hand:right"]
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
   details:
     face:
       keywords: [face, stop, letters, red]

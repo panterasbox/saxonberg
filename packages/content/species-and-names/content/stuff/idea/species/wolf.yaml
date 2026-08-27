@@ -1,0 +1,37 @@
+# Grey wolf — the combat-demonstrator beast. A quadruped carnivore of
+# kingdom Animalia; a non-sentient natural killer (the cull path — lethal
+# is the natural resolution, no consent, no blame). Smaller blood volume
+# than a human, so a decisive blow ends it. Its natural weapon (fangs) is
+# a `point` channel, set on the NPC that wears this species.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Canis lupus
+  commonNames: ["wolf", "grey wolf", "wolfshead", "beast"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 311, survivableMin: 302, survivableMax: 316 }
+    heartRate: { baseline: 90, survivableMin: 40, survivableMax: 240 }
+    respiratoryRate: { baseline: 24, survivableMin: 8, survivableMax: 60 }
+    bloodPressureSystolic: { baseline: 130, survivableMin: 70, survivableMax: 210 }
+    bloodPressureDiastolic: { baseline: 85, survivableMin: 40, survivableMax: 140 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 3, survivableMin: 2, survivableMax: 3 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 15
+  circadianBand: nocturnal
+  diet: carnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  longDescription: >-
+    A rangy grey wolf, all wire and hunger, its coat matted with the burrs
+    of the deep wood. It moves low and certain, the way a thing moves when
+    it has never once been the prey.
+  nameBankKeys: []

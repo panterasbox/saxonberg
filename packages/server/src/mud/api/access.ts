@@ -3,9 +3,9 @@
  *
  * Stable caller-facing surface for the access substrate. Every method
  * delegates through the hot-reloadable {@link AccessLogic} singleton at
- * `/obj/api/access` to the Registry; the Registry's methods carry
+ * `/platform/idea/api/access` to the Registry; the Registry's methods carry
  * `@CallSecurity(AnyOf(FromModule('/api/access#AccessApi'),
- * FromTemplate('/obj/api/access')))` so the security gate denies any
+ * FromTemplate('/platform/idea/api/access')))` so the security gate denies any
  * caller outside the access subsystem. External code that grabs the
  * Registry Stuff via `StuffApi.findByTemplatePath` cannot call its
  * methods; this Api is the only legitimate path.
@@ -27,13 +27,13 @@ import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { AccessLogic } from '../obj/api/AccessLogic';
+import { AccessLogic } from '../platform/idea/api/AccessLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/access';
+const LOGIC_PATH = '/platform/idea/api/access';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/AccessLogic', import.meta.url)
+  new URL('../platform/idea/api/AccessLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able AccessLogic singleton (sync). */
@@ -198,7 +198,7 @@ export class AccessApi {
    * iff membership changed.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule('/obj/command/author/WizardController')
+    SecurityPolicies.FromModule('/platform/idea/cmd/author/WizardController')
   )
   public static async setWizardMembership(
     playerId: string,

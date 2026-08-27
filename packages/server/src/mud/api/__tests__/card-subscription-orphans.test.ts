@@ -22,7 +22,7 @@ import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
-import Room from '../../obj/location/Room';
+import Room from '../../platform/location/Room';
 import { makeHarness, makeContext } from './card-harness';
 
 describe('a card owns its subscription handle', () => {

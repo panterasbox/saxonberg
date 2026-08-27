@@ -1,9 +1,0 @@
-# Pantry roots — cooking stock (the `vegetable` category slot).
-class: /obj/Prop
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  shortDescription: a bundle of root vegetables
-  primaryKeyword: vegetables
-  keywords: [vegetables, roots, bundle, veg]
-  _materialPath: /obj/material/food/root-vegetable
-  mass: 0.6

@@ -29,7 +29,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 describe('Biome scenario A — cafeteria hearth detail override', () => {
@@ -41,16 +41,16 @@ describe('Biome scenario A — cafeteria hearth detail override', () => {
     // chain instead of templatePath-driven inheritance.
     makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/obj/biome/universe';
+      b._extendsBiomePath = '/stuff/idea/biome/universe';
       b.setDefaultTemperature(Quantity.of(294, 'K'));
       b.setDefaultHumidity(Quantity.of(45, '%'));
       return b;
-    }, '/obj/biome/indoor/baseline');
+    }, '/stuff/idea/biome/indoor/baseline');
     makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/obj/biome/indoor/baseline';
+      b._extendsBiomePath = '/stuff/idea/biome/indoor/baseline';
       return b;
-    }, '/obj/biome/indoor/social/cafeteria');
+    }, '/stuff/idea/biome/indoor/social/cafeteria');
   });
 
   afterEach(() => {
@@ -61,7 +61,7 @@ describe('Biome scenario A — cafeteria hearth detail override', () => {
   it('bulk temperature reads the indoor ancestor default (294 K)', async () => {
     const room = makeStuff(() => new TestLocation());
     const cafeteriaBiome = BiomeApi.findByPath(
-      '/obj/biome/indoor/social/cafeteria',
+      '/stuff/idea/biome/indoor/social/cafeteria',
     );
     expect(cafeteriaBiome).not.toBeNull();
     room.setBiome(cafeteriaBiome!);
@@ -73,7 +73,7 @@ describe('Biome scenario A — cafeteria hearth detail override', () => {
   it('hearth Detail override reads 800 K with detail provenance', async () => {
     const room = makeStuff(() => new TestLocation());
     const cafeteriaBiome = BiomeApi.findByPath(
-      '/obj/biome/indoor/social/cafeteria',
+      '/stuff/idea/biome/indoor/social/cafeteria',
     );
     room.setBiome(cafeteriaBiome!);
     room.setTemperature(Quantity.of(800, 'K'), 'hearth');
@@ -85,7 +85,7 @@ describe('Biome scenario A — cafeteria hearth detail override', () => {
 
   it('hearth.embers inherits 800 K via the prefix walk', async () => {
     const room = makeStuff(() => new TestLocation());
-    room.setBiome(BiomeApi.findByPath('/obj/biome/indoor/social/cafeteria')!);
+    room.setBiome(BiomeApi.findByPath('/stuff/idea/biome/indoor/social/cafeteria')!);
     room.setTemperature(Quantity.of(800, 'K'), 'hearth');
 
     const trace = await BiomeApi.traceResolveTemperatureFor(

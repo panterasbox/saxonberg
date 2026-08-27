@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: sense
+  family: ""
+  label: "Senses"
+  description: "What the world puts in front of your senses, whether or not you went looking for it."
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false
+  affordance: decays

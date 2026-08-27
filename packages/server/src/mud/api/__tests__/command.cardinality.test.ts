@@ -177,7 +177,7 @@ args:
     // Sample a few of the existing commands — they shouldn't have
     // any of the new fields, and the schema validation should not
     // reject them.
-    const samples = ['social/say.yaml', 'perception/look.yaml', 'inventory/get.yaml', 'inventory/drop.yaml', 'system/cancel.yaml'];
+    const samples = ['platform/cmd/social/say.yaml', 'platform/cmd/perception/look.yaml', 'platform/cmd/inventory/get.yaml', 'platform/cmd/inventory/drop.yaml', 'platform/cmd/system/cancel.yaml'];
     void samples;
     // The full preloadAll test runs in `validation.test.ts`; here we
     // assert that a representative bare YAML loads cleanly.

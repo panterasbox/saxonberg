@@ -47,8 +47,8 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-const SUBJECT = '/obj/Avatar/p1';
-const SOURCE = '/obj/Avatar/p2';
+const SUBJECT = '/platform/agent/Avatar/p1';
+const SOURCE = '/platform/agent/Avatar/p2';
 
 describe('RenownApi append + read', () => {
   it('appends a raw row and defaults `at` from the game-clock', async () => {

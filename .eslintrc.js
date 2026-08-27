@@ -51,7 +51,7 @@ module.exports = {
         // The `mql` logic singleton IS the MqlApi's own implementation
         // (the Api face forwards to it), so it shares the facade's
         // privilege to import from the sealed `mql/` pipeline.
-        'packages/server/src/mud/obj/api/MqlLogic.ts',
+        'packages/server/src/mud/platform/idea/api/MqlLogic.ts',
         // White-box pipeline tests exercise the internal stages
         // (lexer / parser / desugar / resolver) directly.
         'packages/server/src/**/__tests__/**'
@@ -95,7 +95,7 @@ module.exports = {
           {
             patterns: [
               {
-                group: ['**/obj/api/*Logic', '**/api/*Logic', './*Logic'],
+                group: ['**/platform/idea/api/*Logic', '**/api/*Logic', './*Logic'],
                 message:
                   'Import from the api/<x>.ts facade, not the obj/api/<X>Logic singleton (logic modules are internal implementation; only the facade imports its own logic).'
               }

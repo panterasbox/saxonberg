@@ -52,7 +52,7 @@ import { SecurityApi } from './security';
  * mud-rooted absolute form with a leading slash (`/api/stuff` rather than
  * the file URL `file:///…/src/mud/api/stuff.ts`) so a module id is the
  * same shape as the clone-namespace template path it parallels
- * (`/obj/command/X`). The two identity spaces are told apart by which
+ * (`/platform/idea/cmd/X`). The two identity spaces are told apart by which
  * policy reads which — `FromModule` matches a caller's class module id,
  * `FromTemplate` matches its instance template path — not by the slash.
  */
@@ -62,10 +62,10 @@ type ModuleId = string;
  * Roots that the URL normaliser strips. The first match wins; order
  * matters when one root is a prefix of another — the `mud/`-rooted
  * hints come first so a mudlib file normalises to a `mud`-relative,
- * leading-slashed id (`/obj/command/…`, `/api/…`, `/lib/…`) rather than a
+ * leading-slashed id (`/platform/idea/cmd/…`, `/api/…`, `/lib/…`) rather than a
  * `src`-relative one (`mud/obj/…`). This makes a module id **identical in
  * shape** to the clone-namespace template path it parallels
- * (`/obj/command/X`); the two are told apart by which policy reads which
+ * (`/platform/idea/cmd/X`); the two are told apart by which policy reads which
  * identity, not by the slash. Only `/mud/` files are ever stamped (the
  * loader transform gate), so every real id is `mud`-rooted; the trailing
  * `src/`/`dist/` hints are a harmless fallback for any stray non-mud
@@ -381,7 +381,7 @@ export class ModuleApi {
       if (idx >= 0) {
         // Root-relative form with a LEADING SLASH, so a module id is an
         // absolute path in the same shape as a clone-namespace template
-        // path — `/obj/command/X`, `/api/foo#Foo`, `/lib/…`. The two are
+        // path — `/platform/idea/cmd/X`, `/api/foo#Foo`, `/lib/…`. The two are
         // then distinguished by *which policy resolves which identity*
         // (FromModule → class module id, FromTemplate → instance template
         // path), not by slash presence.

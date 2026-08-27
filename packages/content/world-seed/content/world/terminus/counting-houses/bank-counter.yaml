@@ -17,8 +17,8 @@
 # vault float is seeded at boot (BankingApi.seedFloat — mint coin into the till
 # backed 1:1 by the branch's own operating balance), so early withdrawals work
 # before customer deposits accumulate.
-class: /obj/BankCounter
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/BankCounter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Goodkin teller counter
   longDescription: |

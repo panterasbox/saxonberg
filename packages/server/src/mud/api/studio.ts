@@ -13,8 +13,8 @@
  * (the source-scan classification, the runtime field/mixin introspection,
  * the effective-value read through the resolution chain, and the read
  * gate) lives in the hot-reloadable {@link StudioLogic} singleton at
- * `/obj/api/studio`, reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/studio` reloads it.
+ * `/platform/idea/api/studio`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /platform/idea/api/studio` reloads it.
  *
  * The error its surface throws (`StudioError`) is homed here, with the
  * surface (a class export, allowed by export discipline).
@@ -22,7 +22,7 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { StudioLogic } from '../obj/api/StudioLogic';
+import { StudioLogic } from '../platform/idea/api/StudioLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type {
@@ -85,9 +85,9 @@ export class StudioError extends Error {
   }
 }
 
-const LOGIC_PATH = '/obj/api/studio';
+const LOGIC_PATH = '/platform/idea/api/studio';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/StudioLogic', import.meta.url)
+  new URL('../platform/idea/api/StudioLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able StudioLogic singleton (sync). */
@@ -116,7 +116,7 @@ export class StudioApi {
    * for a non-author (a null actor fails closed), `('not-found')` when the
    * class can't be resolved.
    *
-   * @param classPath - the backing class path (`/obj/Coin`, a template's
+   * @param classPath - the backing class path (`/stuff/thing/Coin`, a template's
    *   `class` field).
    * @param contextPath - optional template path of a representative live
    *   instance whose zone/biome resolution chain supplies effective

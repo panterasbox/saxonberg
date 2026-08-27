@@ -7,7 +7,7 @@
 # reachable), EAST soft-walled by Gus in dialogue (no real exit that way; the
 # paddle gates nothing — see the crossing-guard sheet).
 #
-# The room is a `/obj/Crossing` (CartesianLocation subclass) for one reason:
+# The room is a `/platform/location/Crossing` (CartesianLocation subclass) for one reason:
 # the dynamic `tower` detail reads the world clock directly and appends the
 # terminal clock tower's honest civic hour (the drift-reveal). The tower
 # itself is prose, not Stuff. Everything else is plain seed data.
@@ -22,15 +22,15 @@
 # so the north gate points at a real loadable stub (`campus-gate`), NOT a
 # dangling path — the locked *veto* never resolves the destination, but boot
 # hydration does.
-class: /obj/Crossing
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Crossing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: University Avenue
   primaryKeyword: crossing
   # Sky-exposed outdoor city street: the biome makes the room weather-eligible
   # (SkyExposedBiome from the base-library content pack) and the address puts
   # it under the University Avenue locality (weather + departures-board name).
-  _biomePath: /obj/biome/outdoor/baseline
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: university-avenue/crossing
   longDescription: |
     A broad city crossing where University Avenue meets the mouth of the Terminus station. The street is loud with strangers — travellers spilling out of the terminal to the south, checking the sky, hurrying on — and empty of anyone who lives here; the locals keep to the districts downtown, and the avenue running east and west is a place people pass through, never stop. Across the way to the north, past a low wall and a set of tall shut gates, the pale terraces of Eternal University rise behind their railings. Underfoot the stone is swept but worn in a diagonal track, the way a hundred thousand arrivals have already crossed it. In all the churn, one thing holds still: the crossing guard at his post, watching a road that no cart ever comes down.
@@ -53,7 +53,7 @@ data:
   details:
     tower:
       keywords: [tower, clock, clocktower, time]
-      # Static base; /obj/Crossing.getDetail appends the world clock's LIVE
+      # Static base; /platform/location/Crossing.getDetail appends the world clock's LIVE
       # civic reading across the avenue (the drift-reveal). Degrades to this
       # string alone when no world clock is running.
       description: |
@@ -89,7 +89,7 @@ data:
   #   - the gutter ticket-stub — one takeable bit of an arrival's litter loose
   #     on the stone (the churn of the terminal made touchable).
   #   - Gus — a plain bare-string populate (an NPC clone moved into the room);
-  #     his gear is NOT populated here (the `/obj/Gus` class equips it at
+  #     his gear is NOT populated here (the `/platform/agent/Gus` class equips it at
   #     standup — no declarative seed path to wear/wield gear on a creature).
   # The thermos rides on Gus (his "won't open"), not loose here.
   populates:

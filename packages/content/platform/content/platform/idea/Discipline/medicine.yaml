@@ -1,0 +1,10 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: medicine
+  channel: skill
+  label: Medicine
+  iscedf: "0913"  # ISCED-F 2013 — Nursing and midwifery (the honest anchor)
+  description: First aid and the care of wounds — assessing a body, dressing a bleed, judging when it has clotted. Improves by doing, in context.
+  specializes:
+    - services

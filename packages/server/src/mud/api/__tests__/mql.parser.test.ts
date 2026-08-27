@@ -71,10 +71,10 @@ describe('MQL parser — seeds', () => {
   });
 
   it('parses a path seed', () => {
-    const q = parse('/obj/Avatar/*');
+    const q = parse('/platform/agent/Avatar/*');
     expect(singleChain(q).head).toEqual({
       kind: 'path',
-      pattern: '/obj/Avatar/*',
+      pattern: '/platform/agent/Avatar/*',
     });
   });
 

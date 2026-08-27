@@ -1,0 +1,21 @@
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a steel-tipped spear
+  primaryKeyword: spear
+  longDescription: >
+    A long ash shaft crowned with a leaf-shaped steel head. It keeps a foe
+    at the end of its reach — and finds the gaps a shorter blade never
+    could — but a man who gets inside it turns all that length into a
+    liability.
+  _materialPath: /stuff/idea/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /stuff/idea/material/wood/oak
+  constructionForm: pointed
+  gradeBand: fine
+  # A long reach weapon — the authored length is what makes it out-reach a
+  # blade (it controls until you close the gap). Two-handed.
+  mass: 1.8
+  length: 2.4
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]

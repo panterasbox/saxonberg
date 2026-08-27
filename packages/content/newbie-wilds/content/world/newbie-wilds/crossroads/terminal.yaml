@@ -20,7 +20,7 @@
 # DISPLAYS the covering Locality name ("The Last Counted Mile") and the ⊙ total
 # fare.
 class: /world/common/tpa/TpaTerminal
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/newbie-wilds/crossroads/hub
   shortDescription: a Teleport Authority terminal

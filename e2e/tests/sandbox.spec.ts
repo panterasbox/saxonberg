@@ -102,7 +102,7 @@ test.describe('sandbox: the wardrobe crossing', () => {
       // under circle scope, so it dies with the session.
       await sendUntil(
         page,
-        'clone /obj/sandbox/wardrobe --here',
+        'clone /platform/thing/sandbox/wardrobe --here',
         page.getByText(/cloned/i).first()
       );
 
@@ -511,7 +511,7 @@ test.describe('sandbox: the wardrobe crossing', () => {
 
       await sendUntil(
         page,
-        'clone /obj/sandbox/wardrobe --here',
+        'clone /platform/thing/sandbox/wardrobe --here',
         page.getByText(/cloned/i).first()
       );
       await runCommand(page, 'go wardrobe');

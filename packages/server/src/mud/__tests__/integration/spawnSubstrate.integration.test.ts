@@ -15,7 +15,7 @@ import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { PopulatesMixin } from '../../lib/stuff/Populates';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import PersistentHydrator from '../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
 import { StuffApi } from '../../api/stuff';
 import { HotReloadApi } from '../../api/hot-reload';
 import {
@@ -100,16 +100,16 @@ class SpawnLibrary extends SingletonMixin(
 }
 
 function registerTestClasses(): void {
-  HotReloadApi._registerForTest(classPathToAbs('/obj/SpawnTreasury'), {
+  HotReloadApi._registerForTest(classPathToAbs('/platform/idea/SpawnTreasury'), {
     SpawnTreasury,
   });
-  HotReloadApi._registerForTest(classPathToAbs('/obj/SpawnSword'), {
+  HotReloadApi._registerForTest(classPathToAbs('/platform/idea/SpawnSword'), {
     SpawnSword,
   });
-  HotReloadApi._registerForTest(classPathToAbs('/obj/SpawnPotion'), {
+  HotReloadApi._registerForTest(classPathToAbs('/platform/idea/SpawnPotion'), {
     SpawnPotion,
   });
-  HotReloadApi._registerForTest(classPathToAbs('/obj/SpawnLibrary'), {
+  HotReloadApi._registerForTest(classPathToAbs('/platform/idea/SpawnLibrary'), {
     SpawnLibrary,
   });
 }
@@ -131,30 +131,30 @@ describe('spawn substrate integration', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/obj/persistence/PersistentHydrator',
+        class: '/platform/idea/persistence/PersistentHydrator',
         data: {},
       },
       {
         path: '/test/treasury',
-        class: '/obj/SpawnTreasury',
+        class: '/platform/idea/SpawnTreasury',
         hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/sword',
-        class: '/obj/SpawnSword',
+        class: '/platform/idea/SpawnSword',
         hydratorClass: PersistentHydrator.templatePath,
         data: { container: '/test/treasury' },
       },
       {
         path: '/test/potion',
-        class: '/obj/SpawnPotion',
+        class: '/platform/idea/SpawnPotion',
         hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/library',
-        class: '/obj/SpawnLibrary',
+        class: '/platform/idea/SpawnLibrary',
         hydratorClass: PersistentHydrator.templatePath,
         data: { populates: ['/test/sword', '/test/potion'] },
       },
@@ -185,18 +185,18 @@ describe('spawn substrate integration', () => {
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/obj/persistence/PersistentHydrator',
+        class: '/platform/idea/persistence/PersistentHydrator',
         data: {},
       },
       {
         path: '/test/treasury',
-        class: '/obj/SpawnTreasury',
+        class: '/platform/idea/SpawnTreasury',
         hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/test/sword',
-        class: '/obj/SpawnSword',
+        class: '/platform/idea/SpawnSword',
         hydratorClass: PersistentHydrator.templatePath,
         data: { container: '/test/treasury' },
       },

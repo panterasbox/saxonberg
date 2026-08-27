@@ -87,7 +87,7 @@ export class StuffApi {
    * global. A genuine cycle is the same path reappearing within a single
    * `clone()`'s own recursive descent (hydrate/postRegister re-entering
    * `clone()`). Two INDEPENDENT concurrent clones of the same shared
-   * template — e.g. two avatars each cloning `/obj/CommsUpdate` for
+   * template — e.g. two avatars each cloning `/platform/idea/CommsUpdate` for
    * their loadout, whose `await` points interleave — must NOT see each
    * other's in-flight paths. A single module-global `Set` conflated
    * "concurrent" with "circular" and spuriously threw on the second
@@ -157,7 +157,7 @@ export class StuffApi {
    * function must be invocable only from within this class — wrapping
    * `clone()` with a Proxy must not be able to redirect or short-circuit it.
    *
-   * @param classPath - Class path relative to /mud/ (e.g., "/obj/Avatar")
+   * @param classPath - Class path relative to /mud/ (e.g., "/platform/agent/Avatar")
    * @returns Normalized path
    * @throws Error if path is invalid
    */
@@ -173,11 +173,11 @@ export class StuffApi {
     }
 
     // Must be in allowed directories. `/lib/` = engine substrate,
-    // `/obj/` = engine objects, `/world/` = content classes for a
-    // managed area (mirrors the area's template namespace, e.g.
+    // `/platform/<branch>/` = the engine's own classes, `/world/` = a
+    // locality's classes (mirrors its template namespace, e.g.
     // `/world/lounge/Lounge`), `/trade/` = an industry pack's own
-    // classes (`/trade/<industry>/command/…`).
-    const allowedPrefixes = ['/obj/', '/lib/', '/world/', '/trade/'];
+    // classes (`/trade/<industry>/idea/cmd/…`).
+    const allowedPrefixes = ['/platform/', '/lib/', '/world/', '/trade/'];
     const hasAllowedPrefix = allowedPrefixes.some((prefix) =>
       classPath.startsWith(prefix)
     );
@@ -191,7 +191,7 @@ export class StuffApi {
   }
 
   /**
-   * Resolve a validated class path (e.g. `/obj/Avatar`) to the absolute
+   * Resolve a validated class path (e.g. `/platform/agent/Avatar`) to the absolute
    * fs path of the module. Prefer `.ts` (dev/test) when present, fall
    * back to `.js` (built artifacts), and finally return the `.ts` path
    * unconditionally so HMR-registered paths without a disk-resident
@@ -221,7 +221,7 @@ export class StuffApi {
    *      `await hydrator.hydrate(backing, doc.data)`. When absent, no
    *      hydration step runs — templates that want generic mixin-field
    *      copy must opt in by naming
-   *      `'/obj/persistence/PersistentHydrator'`.
+   *      `'/platform/idea/persistence/PersistentHydrator'`.
    *   6. If the backing composes `PostRegistrationMixin`, await
    *      `postRegister(context)`, forwarding the caller-supplied context.
    *
@@ -234,12 +234,12 @@ export class StuffApi {
    * Objects that don't care ignore it; objects that do (Avatar) declare a
    * narrower context type locally and read what they need.
    *
-   * @param templatePath - Path to the template (e.g., "/obj/Avatar/<playerId>")
+   * @param templatePath - Path to the template (e.g., "/platform/agent/Avatar/<playerId>")
    * @param context - Optional runtime context passed to `postRegister`
    * @returns The cloned and registered object
    *
    * @example
-   * const avatar = await StuffApi.clone<Avatar>('/obj/Avatar/abc', { user });
+   * const avatar = await StuffApi.clone<Avatar>('/platform/agent/Avatar/abc', { user });
    * const room = await StuffApi.clone('/home/bobalu/workroom');
    */
   /**
@@ -316,7 +316,7 @@ export class StuffApi {
     //    to a bare dynamic import (Node ESM cache; matches the class
     //    identity any static import of the same module would see).
     //    `unload(absPath)` poisons the path: subsequent clones throw.
-    const className = classPath.split('/').pop()!; // "Avatar" from "/obj/Avatar"
+    const className = classPath.split('/').pop()!; // "Avatar" from "/platform/agent/Avatar"
     const absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(classPath);
     if (HotReloadApi.isFrozen(absoluteClassPath)) {
       throw new Error(
@@ -331,8 +331,8 @@ export class StuffApi {
     }
 
     if (!ClassConstructor) {
-      // Cold path: bare dynamic import. Convert "/obj/Avatar" to
-      // "../obj/Avatar.js" relative to this module.
+      // Cold path: bare dynamic import. Convert "/platform/agent/Avatar" to
+      // "../platform/agent/Avatar.js" relative to this module.
       const modulePath = `..${classPath}.js`;
       let module: Record<string, unknown>;
       try {
@@ -607,7 +607,7 @@ export class StuffApi {
   /**
    * Synchronous get-or-create for a path-keyed, **stateless** Stuff
    * singleton — the home for relocated Api logic (the
-   * `/obj/api/<feature>` logic singletons of the surface-architecture
+   * `/platform/idea/api/<feature>` logic singletons of the surface-architecture
    * refactor).
    *
    * Returns the unique live instance for `path` if one is already in
@@ -622,7 +622,7 @@ export class StuffApi {
    * bare `new`, so that `dest`→next-call picks up an edit:
    *
    * ```ts
-   * StuffApi.singletonSync('/obj/api/foo', () =>
+   * StuffApi.singletonSync('/platform/idea/api/foo', () =>
    *   new (HotReloadApi.getCurrentExport(FILE, 'FooLogic') ?? FooLogic)());
    * ```
    *
@@ -632,7 +632,7 @@ export class StuffApi {
    * stuffId is ephemeral (a new one per recreate); the path is the
    * stable handle.
    *
-   * @param path - Address handle, by convention `/obj/api/<feature>`.
+   * @param path - Address handle, by convention `/platform/idea/api/<feature>`.
    * @param factory - Blueprint-resolving constructor closure.
    * @throws if the index already holds more than one instance for
    *   `path` (a singleton-contract violation), mirroring
@@ -815,7 +815,7 @@ export class StuffApi {
    * module throw `SecurityError`.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule('/obj/command/author/DestructController')
+    SecurityPolicies.FromModule('/platform/idea/cmd/author/DestructController')
   )
   public static forceDestruct(object: Stuff): void {
     StuffApi.#destructCore(object, true);
@@ -1134,7 +1134,7 @@ export class StuffApi {
    * Find every runtime instance whose `templatePath` matches `pattern`
    * under {@link PathPatternApi} glob syntax (`*`, `**`, `?`).
    *
-   * Backs the MQL path-glob seed (`/obj/Avatar/*`). Stuff without a
+   * Backs the MQL path-glob seed (`/platform/agent/Avatar/*`). Stuff without a
    * template path are not in the index and never match. Result order
    * is unspecified — callers that need stable ordering must sort.
    */
@@ -1147,7 +1147,7 @@ export class StuffApi {
    * a `path` field) by exact `path`. Backs the MQL path-atom
    * fallback: when `findByPathGlob` returns no clones, the resolver
    * falls back to this so a non-glob path can address the template
-   * record itself (e.g. `destruct /obj/Avatar/foo` to remove the
+   * record itself (e.g. `destruct /platform/agent/Avatar/foo` to remove the
    * template doc when no live clone exists).
    *
    * Walks the registry and structurally matches via `obj.path` —

@@ -39,9 +39,9 @@ describe('WorkspaceMixin', () => {
 
     it('round-trips set / get per tree independently', () => {
       const host = makeStuff(() => new TestHost());
-      host.setCwd('content', '/obj');
+      host.setCwd('content', '/platform/agent');
       host.setCwd('source', '/server/src');
-      expect(host.getCwd('content')).toBe('/obj');
+      expect(host.getCwd('content')).toBe('/platform/agent');
       expect(host.getCwd('source')).toBe('/server/src');
     });
 
@@ -148,9 +148,9 @@ describe('WorkspaceMixin', () => {
   describe('synthetic vars', () => {
     it('$PWD reads the active tree cwd', () => {
       const host = makeStuff(() => new TestHost());
-      host.setCwd('content', '/obj');
+      host.setCwd('content', '/platform/agent');
       const expanded = ShellApi.expandVariables('cd $PWD/Avatar', host);
-      expect(expanded).toBe('cd /obj/Avatar');
+      expect(expanded).toBe('cd /platform/agent/Avatar');
     });
 
     it('$CPWD and $SPWD address each tree explicitly', () => {

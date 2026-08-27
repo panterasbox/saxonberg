@@ -19,7 +19,7 @@ const STORE_DIR = fileURLToPath(
 );
 // The object clusters are the generic-objects pack's rows (content-packs wave 3).
 const OBJ_DIR = fileURLToPath(
-  new URL("../../../../../../content/generic-objects/content/obj/", import.meta.url),
+  new URL("../../../../../../content/generic-objects/content/stuff/", import.meta.url),
 );
 const CH_DIR = fileURLToPath(
   new URL("../../../../../../content/world-seed/content/world/terminus/counting-houses/", import.meta.url),
@@ -44,10 +44,10 @@ describe("general-store content integrity", () => {
       fileURLToPath(new URL("../../../../../../content/world-seed/content/world/terminus/", import.meta.url)),
       "general-store.yaml",
     );
-    expect(zone.class).toBe("/obj/location/CartesianZone");
+    expect(zone.class).toBe("/platform/idea/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
-    expect(room.class).toBe("/obj/location/Room");
+    expect(room.class).toBe("/platform/location/Room");
     expect(room.data?.populates).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
@@ -55,15 +55,15 @@ describe("general-store content integrity", () => {
       "/world/terminus/general-store/npc/keeper",
     ]);
 
-    expect(load(STORE_DIR, "counter.yaml").class).toBe("/obj/Stock");
+    expect(load(STORE_DIR, "counter.yaml").class).toBe("/platform/thing/Stock");
     expect(load(STORE_DIR, "consignment-shelf.yaml").class).toBe(
-      "/obj/ConsignmentShelf",
+      "/platform/thing/ConsignmentShelf",
     );
     expect(load(STORE_DIR, "business.yaml").class).toBe(
-      "/obj/Business",
+      "/platform/idea/Business",
     );
-    expect(load(STORE_DIR, "npc/clerk.yaml").class).toBe("/obj/NPC");
-    expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/obj/NPC");
+    expect(load(STORE_DIR, "npc/clerk.yaml").class).toBe("/platform/agent/NPC");
+    expect(load(STORE_DIR, "npc/keeper.yaml").class).toBe("/platform/agent/NPC");
   });
 
   // The real, discrete item classes the store sells — each extends `Thing`
@@ -71,23 +71,23 @@ describe("general-store content integrity", () => {
   // class would fail the allowlist; the runtime `!isGlobbable` proof lives in
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
-    "/obj/Prop",
-    "/obj/equipment/PortableLight",
-    "/obj/equipment/Weapon",
-    "/obj/Receptacle",
+    "/platform/thing/Prop",
+    "/platform/thing/equipment/PortableLight",
+    "/platform/thing/equipment/Weapon",
+    "/platform/thing/Receptacle",
     // The crafting goods: the sewing kit + the sewing MACHINE (the
     // capability table's data-only variant) are plain ToolItems; the
     // whetstone keeps its class for the Audible rasp (behavior, not
     // affordances); the ingot a Meltable Thing — all discrete, none
     // Globbable.
-    "/obj/ToolItem",
-    "/obj/Whetstone",
-    "/obj/Ingot",
+    "/platform/thing/ToolItem",
+    "/platform/thing/Whetstone",
+    "/platform/thing/Ingot",
     // The gardening line (husbandry phase 1): a pot is a Slotted fixture
     // with a bulk interior for soil, a seed a discrete Thing naming the
     // plant it grows into. Both stocked from ordinary `/obj/` templates.
-    "/obj/PlantPot",
-    "/obj/Seed",
+    "/platform/thing/PlantPot",
+    "/platform/thing/Seed",
   ]);
 
   it("every priced/stocked good is a real, discrete item (never Globbable)", () => {
@@ -108,7 +108,7 @@ describe("general-store content integrity", () => {
       const dir = local ? STORE_DIR : OBJ_DIR;
       const rel = local
         ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
-        : line.itemTemplatePath.replace("/obj/", "");
+        : line.itemTemplatePath.replace("/stuff/", "");
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).
@@ -124,22 +124,22 @@ describe("general-store content integrity", () => {
   it("the goods are backed by real systems (not decorative props)", () => {
     // The rations are genuinely edible — their material is a food material.
     const rations = load(STORE_DIR, "goods/rations.yaml");
-    expect(rations.class).toBe("/obj/Prop");
-    expect(String(rations.data?._materialPath)).toMatch(/^\/obj\/material\/food\//);
+    expect(rations.class).toBe("/platform/thing/Prop");
+    expect(String(rations.data?._materialPath)).toMatch(/^\/stuff\/idea\/material\/food\//);
     // The lights actually emit (authored flux + warmth), start unlit.
     for (const f of ["torch", "lantern"]) {
       const light = load(STORE_DIR, `goods/${f}.yaml`);
-      expect(light.class).toBe("/obj/equipment/PortableLight");
+      expect(light.class).toBe("/platform/thing/equipment/PortableLight");
       expect(Number(light.data?.emittedIntensity)).toBeGreaterThan(0);
       expect(light.data?.on).toBe(false);
     }
     // The waterskin is a real fluid holder (a capacity to fill).
     const skin = load(STORE_DIR, "goods/waterskin.yaml");
-    expect(skin.class).toBe("/obj/Receptacle");
+    expect(skin.class).toBe("/platform/thing/Receptacle");
     expect(Number(skin.data?.interiorCapacity)).toBeGreaterThan(0);
     // The knife is a real bladed weapon (delivers an edge, wieldable).
     const knife = load(STORE_DIR, "goods/clasp-knife.yaml");
-    expect(knife.class).toBe("/obj/equipment/Weapon");
+    expect(knife.class).toBe("/platform/thing/equipment/Weapon");
     expect(knife.data?.constructionForm).toBe("bladed");
   });
 

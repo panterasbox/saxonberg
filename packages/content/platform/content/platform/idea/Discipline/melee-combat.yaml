@@ -1,0 +1,17 @@
+# Melee Combat — the practiced craft of the close fight. The Discipline
+# combat's per-exchange ActSignatures credit (self-credit only). Seeded as
+# pure data (the bartending precedent); the DisciplineCatalogue harvests
+# every /platform/idea/Discipline/* leaf at boot. No `conferrals` here:
+# combat's gambits are `fight` subcommands, not standalone verbs, so
+# band-gating the gambit menu defers with the client combat card.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: melee-combat
+  channel: skill
+  label: Melee Combat
+  iscedf: "1014"
+  description: >-
+    The practiced craft of the close fight — footwork, timing, endurance,
+    and the read of a guard for the moment it opens. Earned one exchange
+    at a time.

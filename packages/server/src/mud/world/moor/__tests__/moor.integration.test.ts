@@ -11,9 +11,9 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../../lib/stuff/Location';
 import Thing from '../../../lib/stuff/Thing';
-import Floor from '../../../obj/Floor';
+import Floor from '../../../platform/thing/Floor';
 import Biome from '../../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';
+import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Material from '../../../lib/material/Material';
 import { WeatherApi } from '../../../api/weather';
 import { BiomeApi } from '../../../api/biome';
@@ -31,7 +31,7 @@ import {
   makeStuffAtPath,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 
 class TestRoom extends Location {}
 class TestOccupant extends HasInteractiveMixin(Thing) {
@@ -52,7 +52,7 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 function installFreshWater(): void {
@@ -61,16 +61,16 @@ function installFreshWater(): void {
     m.setName('water');
     m.setElectricalConductivity(Quantity.of(0.01, 'S/m'));
     return m;
-  }, '/obj/material/bulk/water');
+  }, '/stuff/idea/material/bulk/water');
 }
 
 /** A SkyExposed (modelled-weather-eligible) room. */
 function skyRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/obj/biome/universe';
+    b._extendsBiomePath = '/stuff/idea/biome/universe';
     return b;
-  }, '/obj/biome/outdoor/field');
+  }, '/stuff/idea/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;
@@ -80,9 +80,9 @@ function skyRoom(): TestRoom {
 function indoorRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/obj/biome/universe';
+    b._extendsBiomePath = '/stuff/idea/biome/universe';
     return b;
-  }, '/obj/biome/indoor/hall');
+  }, '/stuff/idea/biome/indoor/hall');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;

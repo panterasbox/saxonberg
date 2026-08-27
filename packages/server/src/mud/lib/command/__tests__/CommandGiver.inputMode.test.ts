@@ -25,7 +25,7 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from '../../stuff/Idea';
-import type Interactive from '../../../obj/Interactive';
+import type Interactive from '../../../platform/idea/Interactive';
 
 class TestGiver extends HasInteractiveMixin(
   CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -36,7 +36,7 @@ class TestGiver extends HasInteractiveMixin(
     // ⚠ `cockpit` is needed by the round-trip case at the bottom: it is
     // the verb that WRITES a prefix, and the seam that test guards is
     // between that write and the read the other cases cover.
-    self: ['shell/cockpit.yaml'],
+    self: ['platform/cmd/shell/cockpit.yaml'],
     environment: [],
   };
 
@@ -151,12 +151,12 @@ describe('executeCommand per-bar input mode', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
-          query.path === '/obj/command/shell/CliController'
+          query.path === '/platform/idea/cmd/shell/CliController'
         ) {
           return [
             {
-              path: '/obj/command/shell/CliController',
-              class: '/obj/command/shell/CliController',
+              path: '/platform/idea/cmd/shell/CliController',
+              class: '/platform/idea/cmd/shell/CliController',
               data: {},
             },
           ];

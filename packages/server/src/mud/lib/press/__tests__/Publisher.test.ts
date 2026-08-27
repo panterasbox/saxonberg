@@ -15,8 +15,8 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import OrganizationEntity from '../../../obj/Organization';
-import Avatar from '../../../obj/Avatar';
+import OrganizationEntity from '../../../platform/idea/Organization';
+import Avatar from '../../../platform/agent/Avatar';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { ParcelApi } from '../../../api/parcel';
@@ -36,7 +36,7 @@ const DIRECTOR = 'communications-director';
 const CLERK = 'filing-clerk';
 
 function makeAvatar(playerId: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
   return av;
 }

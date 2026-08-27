@@ -10,11 +10,11 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Character } from "../../character/Character";
-import Species from "../../../obj/species/Species";
+import Species from "../../../platform/idea/species/Species";
 import { Quantity } from "../../quantity";
 import { MixinApi } from "../../../api/mixin";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry"; // register the registry class
+import "../../../platform/idea/WorldClockRegistry"; // register the registry class
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -34,7 +34,7 @@ function makeActor(profile: FacultyProfile | null, confers = true): TestCharacte
   const species = makeStuff(() => new Species());
   if (profile) species.setFacultyProfile(profile);
   if (confers) species.setInnateMixins(["CasterMixin"]);
-  stampTemplatePathForTest(species, `/obj/species/test/caster-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/caster-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   return actor;

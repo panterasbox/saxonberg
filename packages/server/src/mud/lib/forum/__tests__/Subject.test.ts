@@ -45,7 +45,7 @@ describe('Subject', () => {
   it('round-trips its fields through save/find', async () => {
     const s = new Subject();
     s.title = 'Gossip';
-    s.owner = '/obj/Avatar/p1';
+    s.owner = '/platform/agent/Avatar/p1';
     s.groupRef = 'managed:g1';
     s.grain = 'venue';
     s.addManifestation('open-chat', 'chan-1');
@@ -55,7 +55,7 @@ describe('Subject', () => {
     const found = await Subject.find({ title: 'Gossip' });
     expect(found).toHaveLength(1);
     const f = found[0]!;
-    expect(f.getOwner()).toBe('/obj/Avatar/p1');
+    expect(f.getOwner()).toBe('/platform/agent/Avatar/p1');
     expect(f.getGroupRef()).toBe('managed:g1');
     expect(f.getGrain()).toBe('venue');
     expect(f.isOpen()).toBe(false);
@@ -85,7 +85,7 @@ describe('Subject', () => {
   it('persists thread-grain fields (board-scoped handle)', async () => {
     const s = new Subject();
     s.title = 'gossip/best-soup';
-    s.owner = '/obj/Avatar/p1';
+    s.owner = '/platform/agent/Avatar/p1';
     s.grain = 'topic';
     s.parentSubject = 'subj-parent';
     s.boardScopedName = 'best-soup';

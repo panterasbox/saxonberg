@@ -1,0 +1,23 @@
+# Coin — the one physical cash object, cloned per cash issuance / withdrawal.
+#
+# A BLANK SHELL by design. `issueCash` stamps `currency` and `denomination`
+# (the face value in minor units) on every dispensed stack, and the
+# presentation DERIVES from that pair — "a 25-zorkmid piece" — so no coin
+# name is authored anywhere and a second issuer's coins render correctly the
+# moment its currency record exists.
+#
+# Deliberately carries no `shortDescription`: authoring one here would make
+# every denomination look identical (which is exactly what the pre-currency
+# build did — a 25-value coin read "a credit coin" and answered to `credit`,
+# so the 1/5/25 spread was felt through mass but never seen).
+#
+# Per-coin mass is DERIVED too (`Currency.perCoinMass`, currency-intrinsic),
+# so the `mass` below is only the placeholder a bare clone carries before
+# `issueCash` stamps it; `Coin.getMass` reads the pair and throws if it does
+# not resolve — an unstamped coin is a corrupt object, not a coin worth 1.
+class: /platform/thing/Coin
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [coin, coins, cash, money]
+  mass: 0.002
+  quantity: 1

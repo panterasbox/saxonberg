@@ -1,0 +1,39 @@
+# Campfire — the demo combustion fixture. A fuel reserve (content theme
+# 'combustion') burns down over game-time; while lit the fire is pinned
+# hot (its surface scalds — contact burns through the general thermal
+# hook) and casts light; on burnout it cools to embers. A `log:1` warming
+# slot lets a body sit at the fire to both recover (restQuality) and stay
+# warm (warmth, read by the body's effective-ambient resolver).
+class: /platform/thing/Campfire
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crackling campfire
+  longDescription: >
+    A ring of stones cradles a crackling campfire, its flames licking at
+    split logs. Heat rolls off it in waves.
+  keywords: [campfire, fire, fire, flames, hearth]
+  # Fuel reserve — the combustion layer. Decomposed-scalar stored form.
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  # Light — authored glow (flicker comes for free from the light layer).
+  emittedIntensity: 120
+  emittedColorTemperature: 1800
+  # Warming bonus + recovery for a body in the log-seat (outdoor radiant
+  # warmth reaches only slot-occupants; an indoor fire would warm the room).
+  restQuality: 1.2
+  warmth: 9
+  staticSlots:
+    - name: 'log:1'
+      accepts: SlottableMixin
+      capacity: 4
+      postures: [sit, kneel]
+      userFacingDetail: logs
+  details:
+    logs:
+      keywords: [log, logs, seat, stone, stones]
+      description: Split logs and flat stones ring the fire — somewhere to sit.

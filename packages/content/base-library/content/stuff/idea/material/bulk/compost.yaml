@@ -1,0 +1,32 @@
+# Compost — a granular bulk Material, potting soil's richer sibling. Pours
+# the same way (the shipped `pour`/`transfer` path), but carries the
+# `compost` tag that the `feed` verb looks for, which is the ONLY thing
+# distinguishing it mechanically.
+#
+# Note what is NOT modelled here: there is no N-P-K, no C:N ratio, no
+# maturity. The nutrient this restores is a single `nitrogen` reserve on
+# the BED, and a litre of compost is worth a fixed number of points. Soil
+# chemistry with more than one axis is farming's later business; one
+# limiting nutrient is enough to make an unfed bed yield worse, which is
+# the whole lesson phase 2 is after.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: compost
+  appearance: crumbly black compost
+  keywords: [compost, muck, manure, humus]
+  # Denser and wetter than a peat potting mix — it is rotted matter, not
+  # an aerated growing medium.
+  density: 700
+  thermalConductivity: 0.2
+  specificHeat: 1400
+  electricalConductivity: 0.05
+  # Holds water well, like the soil it becomes.
+  waterAbsorptionCapacity: 70
+  # Emphatically not food, despite being organic.
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [granular, solid, soil, compost, growing-medium]
+  composition: []
+  biologicalSource: null

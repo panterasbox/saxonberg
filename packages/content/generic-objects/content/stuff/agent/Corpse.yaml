@@ -1,0 +1,34 @@
+# The corpse a player's death leaves behind.
+#
+# A plain `Creature` — the tier whose own doc already names "a corpse" as a
+# valid bare Creature, and which brings Container (the loadout), Vitals +
+# BodyPlanSlots (the wound map) and Thermal (algor mortis, as passive drift
+# toward ambient) with it.
+#
+# Everything AUTHORED about a corpse lives here. The per-instance ordinary
+# fields — the name, the species, the cause, the time of death — arrive
+# through the clone's `dataOverlay`, merged over this block at hydration:
+# hydration is state injection, and nothing in its contract says the state
+# has to be authored.
+#
+# The one thing that does NOT ride hydration is the material record (the
+# vital signs as they stood, the wound map, the anatomy). That is poured by
+# the gated `adoptMaterialState`, which has no `mergeSlice_` counterpart —
+# and that absence is what makes a corpse un-reanimatable. Routing it
+# through the hydrator would mean widening the gate to a component any
+# template can name.
+#
+# So: the template says what a corpse IS, the overlay says whose it is, and
+# the pour says what happened to it.
+class: /platform/agent/Corpse
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a body
+  primaryKeyword: body
+  longDescription: >-
+    A body, gone still. Whatever happened to it is still written on it,
+    for as long as anyone cares to look.
+  # Dead on arrival — this template is only ever cloned by the death
+  # transition, and a corpse that had to be flipped after minting would be
+  # briefly alive in the world.
+  lifecycleState: dead

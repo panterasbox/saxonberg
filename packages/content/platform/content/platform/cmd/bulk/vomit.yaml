@@ -1,0 +1,15 @@
+verbs: [vomit]
+controller: /platform/idea/cmd/bulk/VomitController
+description: "Empty your stomach — dump the un-absorbed contents"
+help: |
+  Empties your stomach of whatever hasn't yet been absorbed. Reach
+  for `vomit` when you've eaten or drunk something you'd rather not
+  finish digesting — spoiled food, too much drink, or a bad dose.
+
+  It takes no target; it acts on you. Only the un-absorbed
+  contents come back up, so it won't undo everything already
+  worked through your system.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied

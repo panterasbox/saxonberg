@@ -14,11 +14,11 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Species from "../../../obj/species/Species";
-import BodyPlan from "../../../obj/species/BodyPlan";
+import Species from "../../../platform/idea/species/Species";
+import BodyPlan from "../../../platform/idea/species/BodyPlan";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { TemplatePaths } from "../../paths";
 import {
   makeStuff,
@@ -57,12 +57,12 @@ function ectothermSpecies(): Species {
     const b = new BodyPlan();
     b.setThermalStrategy("ectotherm");
     return b;
-  }, `/obj/species/BodyPlan/_reg/ecto-${speciesCounter}`) as unknown as BodyPlan;
+  }, `/stuff/idea/species/BodyPlan/_reg/ecto-${speciesCounter}`) as unknown as BodyPlan;
   const sp = makeStuffAtPath(() => {
     const s = new Species();
     s.setBodyPlan(bp);
     return s;
-  }, `/obj/species/_reg/ecto-${speciesCounter}`) as unknown as Species;
+  }, `/stuff/idea/species/_reg/ecto-${speciesCounter}`) as unknown as Species;
   return sp;
 }
 

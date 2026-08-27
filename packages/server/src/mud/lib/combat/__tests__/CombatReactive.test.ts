@@ -13,7 +13,7 @@ import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { Mixins, type MixinConstructor } from "../../mixin";
 import Thing from "../../stuff/Thing";
-import Weapon from "../../../obj/equipment/Weapon";
+import Weapon from "../../../platform/thing/equipment/Weapon";
 import { SlottedMixin } from "../../slot/Slotted";
 import type { Slotted } from "../../slot/Slotted";
 import type { Stuff } from "../../stuff/Stuff";

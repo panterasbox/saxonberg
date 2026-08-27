@@ -2,7 +2,7 @@ blueprintId: unbounded-receptacle
 name: Unbounded Receptacle
 kind: composition
 baseClass: Receptacle
-classPath: /obj/UnboundedReceptacle
+classPath: /platform/thing/UnboundedReceptacle
 parent: containers
 blessed: true
 description: 'A Receptacle that never empties — an inexhaustible source of its contents (the demo tap). Adds UnboundedSource to the receptacle.

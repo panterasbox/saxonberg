@@ -50,7 +50,7 @@ function recordKey(record: StoredEmployment): string {
  * (`_upsertEmployment` carries it inside the record; the other two take it
  * as the first argument). An organization can never touch a record it
  * isn't party to. The employment engine keeps a narrow janitorial arm
- * (`FromTemplate('/obj/api/employment')`) for records whose organization
+ * (`FromTemplate('/platform/idea/api/employment')`) for records whose organization
  * Idea isn't standing (lazy standup means a `quit` can outlive its
  * organization's live instance).
  */
@@ -66,7 +66,7 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
       return keyed === path;
     },
   }),
-  SecurityPolicies.FromTemplate('/obj/api/employment'),
+  SecurityPolicies.FromTemplate('/platform/idea/api/employment'),
 );
 
 /**

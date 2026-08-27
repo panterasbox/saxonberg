@@ -12,7 +12,7 @@ inputSlots:
 toolCapabilities:
 - striking
 - anvil
-outputTemplate: /obj/CookPot
+outputTemplate: /stuff/thing/CookPot
 outputMaterial: ''
 outputApplication: tangible
 requiresHeatK: 800

@@ -16,11 +16,11 @@
 #  - master ring → `populates`d into her inventory below (npc/master-ring.yaml),
 #    a physical master key for every pin-tumbler dorm lock.
 class: /world/eternal/duncan-hall/npc/Katie
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Katie
   pronouns: she
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/trollius
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/trollius
   lifecycleState: alive
   primaryKeyword: katie
   # Owner-authored spawn loadout: the super's master ring (a physical master

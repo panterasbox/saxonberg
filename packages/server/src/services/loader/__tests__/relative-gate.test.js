@@ -16,10 +16,10 @@ import {
   transformSource,
 } from '../transform.js';
 
-// A file at src/mud/obj/command/governance/Foo.ts → module dir
-// /obj/command/governance.
+// A file at src/mud/platform/idea/cmd/governance/Foo.ts → module dir
+// /platform/idea/cmd/governance.
 const FILE =
-  'file:///proj/packages/server/src/mud/obj/command/governance/Foo.ts';
+  'file:///proj/packages/server/src/mud/platform/idea/cmd/governance/Foo.ts';
 
 describe('resolveRelativeModuleGates', () => {
   it('resolves ./sibling against the declaring file dir', () => {
@@ -28,7 +28,7 @@ describe('resolveRelativeModuleGates', () => {
       FILE,
     );
     expect(out).toContain(
-      `FromModule('/obj/command/governance/OfficeController')`,
+      `FromModule('/platform/idea/cmd/governance/OfficeController')`,
     );
   });
 
@@ -37,25 +37,25 @@ describe('resolveRelativeModuleGates', () => {
       `FromModule("../author/WizardController")`,
       FILE,
     );
-    expect(out).toContain(`FromModule("/obj/command/author/WizardController")`);
+    expect(out).toContain(`FromModule("/platform/idea/cmd/author/WizardController")`);
   });
 
   it('resolves a relative glob and keeps the ** segment', () => {
     const out = resolveRelativeModuleGates(`FromModule('./**')`, FILE);
-    expect(out).toContain(`FromModule('/obj/command/governance/**')`);
+    expect(out).toContain(`FromModule('/platform/idea/cmd/governance/**')`);
   });
 
   it('preserves a #Export suffix (and resolves ../../../ to root)', () => {
     expect(
       resolveRelativeModuleGates(`FromModule('./Sibling#Export')`, FILE),
-    ).toContain(`FromModule('/obj/command/governance/Sibling#Export')`);
+    ).toContain(`FromModule('/platform/idea/cmd/governance/Sibling#Export')`);
     expect(
-      resolveRelativeModuleGates(`FromModule('../../../api/office#OfficeApi')`, FILE),
+      resolveRelativeModuleGates(`FromModule('../../../../api/office#OfficeApi')`, FILE),
     ).toContain(`FromModule('/api/office#OfficeApi')`);
   });
 
   it('leaves absolute FromModule globs untouched', () => {
-    const src = `FromModule('/obj/command/author/GotoController')`;
+    const src = `FromModule('/platform/idea/cmd/author/GotoController')`;
     expect(resolveRelativeModuleGates(src, FILE)).toBe(src);
   });
 
@@ -75,7 +75,7 @@ describe('transformSource applies the relative-gate rewrite', () => {
       `}\n`;
     const out = transformSource(src, FILE);
     expect(out).toContain(
-      `FromModule('/obj/command/author/DestructController')`,
+      `FromModule('/platform/idea/cmd/author/DestructController')`,
     );
     // ...and still stamps (the two passes coexist).
     expect(out).toContain('__callSecModuleApi.stamp(import.meta.url');

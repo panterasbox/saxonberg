@@ -8,7 +8,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
 import Lounge from '../Lounge';
-import Avatar from '../../../obj/Avatar';
+import Avatar from '../../../platform/agent/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
@@ -127,7 +127,7 @@ describe('lounge landing integration', () => {
     const host = await warren.getHost();
     const player = makeStuffAtPath(
       () => new RecallHost(),
-      '/obj/Avatar/recall',
+      '/platform/agent/Avatar/recall',
     );
     ContainmentApi.move(player as never, host as unknown as Stuff & Container);
 
@@ -135,7 +135,7 @@ describe('lounge landing integration', () => {
     // transient room.
     await PersistableApi.capture(player as unknown as Stuff);
     const rec = store.find(
-      (d) => (d as Record<string, unknown>).scope === '/obj/Avatar/recall',
+      (d) => (d as Record<string, unknown>).scope === '/platform/agent/Avatar/recall',
     ) as Record<string, unknown> | undefined;
     const place = rec?.place as { startLocation?: string } | undefined;
     expect(place?.startLocation).toBe(LoungeWarren.WARREN_PATH);

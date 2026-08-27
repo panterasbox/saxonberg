@@ -8,7 +8,7 @@
 # `startingCount` folds in the souls seen across before this page began.
 # Generic object: Visible.shortDescription, never Named.
 class: /world/eternal/university-avenue/CrossingLog
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a crossing-log clipboard
   primaryKeyword: log

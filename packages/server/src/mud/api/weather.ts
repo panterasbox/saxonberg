@@ -7,8 +7,8 @@
  * coherently, per locality. There is no simulation, no tick, and no
  * stored weather state — `weatherAt(time, locality)` is a pure function.
  * The grammar + compute live in the hot-reloadable {@link WeatherLogic}
- * singleton at `/obj/api/weather`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/weather` reloads it.
+ * singleton at `/platform/idea/api/weather`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/weather` reloads it.
  *
  * **The activation signal is the singleton's presence.** Weather is
  * "configured" iff the `WeatherLogic` singleton exists.
@@ -31,8 +31,8 @@ import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Quantity } from '../lib/quantity';
-import type Locality from '../obj/Locality';
-import { WeatherLogic } from '../obj/api/WeatherLogic';
+import type Locality from '../platform/idea/Locality';
+import { WeatherLogic } from '../platform/idea/api/WeatherLogic';
 import { fileURLToPath } from 'url';
 
 // Re-export the call-shape types so callers import them from the Api face.
@@ -64,9 +64,9 @@ import type {
   SkyRead,
 } from '../lib/weather/WeatherType';
 
-const LOGIC_PATH = '/obj/api/weather';
+const LOGIC_PATH = '/platform/idea/api/weather';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/WeatherLogic', import.meta.url),
+  new URL('../platform/idea/api/WeatherLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able WeatherLogic singleton (sync, creating). */

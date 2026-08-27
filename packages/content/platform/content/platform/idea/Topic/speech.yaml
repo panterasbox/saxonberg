@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: speech
+  family: ""
+  label: "Speech"
+  description: "Somebody said something. Split by how the words reached you, because being overheard is a fact about the world and not about presentation."
+  address: ambient
+  actor: person
+  weight: activity
+  audience: player
+  durable: false
+  affordance: decays

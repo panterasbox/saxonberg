@@ -16,8 +16,8 @@ import { SensorMixin } from "../../message/Sensor";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { AdvancementMixin } from "../Advancement";
-import DisciplineCatalogue from "../../../obj/DisciplineCatalogue";
-import Discipline from "../../../obj/Discipline";
+import DisciplineCatalogue from "../../../platform/idea/DisciplineCatalogue";
+import Discipline from "../../../platform/idea/Discipline";
 import { AdvancementApi } from "../../../api/advancement";
 import { CommandApi } from "../../../api/command";
 import { WorldClockApi } from "../../../api/worldclock";
@@ -43,7 +43,7 @@ const CATALOG_SEED: Loose[] = [
     channel: "skill",
     label: "Mixology",
     requires: ["recipe-knowledge"],
-    conferrals: [{ band: "competent", verbs: ["social/flourish.yaml"] }],
+    conferrals: [{ band: "competent", verbs: ["platform/cmd/social/flourish.yaml"] }],
   },
   { key: "darts", channel: "skill", label: "Darts" },
 ];
@@ -55,7 +55,7 @@ let counter = 0;
 function makeGiver(): TestGiver {
   return makeStuffAtPath(
     () => new TestGiver(),
-    `/obj/Avatar/g${counter++}`
+    `/platform/agent/Avatar/g${counter++}`
   ) as TestGiver;
 }
 
@@ -71,7 +71,7 @@ async function warmCatalogue(): Promise<void> {
   );
   const cat = makeStuffAtPath(
     () => new DisciplineCatalogue(),
-    "/obj/DisciplineCatalogue"
+    "/platform/idea/DisciplineCatalogue"
   );
   await cat.postRegister();
 }
@@ -143,7 +143,7 @@ describe("AdvancementMixin conferral", () => {
       difficulty: "hard",
       outcome: "critical",
     });
-    const catalogue = StuffApi.findByTemplatePath("/obj/DisciplineCatalogue");
+    const catalogue = StuffApi.findByTemplatePath("/platform/idea/DisciplineCatalogue");
     const flourish = giver
       .getAffordances()
       .find((a) => a.command.getPrimaryVerb() === "flourish");

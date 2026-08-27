@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Recipe } from '../Recipe';
-import RecipeCatalogue from '../../../obj/RecipeCatalogue';
+import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 let store: Record<string, Record<string, unknown>[]>;
@@ -28,7 +28,7 @@ const OLD_ROW = {
   ],
   toolCapabilities: ['mixing-glass'],
   outputTemplate: '/world/lounge/cocktail-glass',
-  outputMaterial: '/obj/material/cocktail/martini',
+  outputMaterial: '/stuff/idea/material/cocktail/martini',
   baseGradeBand: '',
 };
 
@@ -41,7 +41,7 @@ const KNIFE_ROW = {
     { slot: 'stock', category: 'ferrous', minGrade: 'fair', kind: 'item', count: 1 },
   ],
   toolCapabilities: ['striking', 'anvil'],
-  outputTemplate: '/obj/arms/belt-knife',
+  outputTemplate: '/stuff/thing/arms/belt-knife',
   outputMaterial: '',
   baseGradeBand: '',
   requiresHeatK: 1300,
@@ -94,7 +94,7 @@ beforeEach(async () => {
   );
   catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),
-    '/obj/RecipeCatalogue',
+    '/platform/idea/RecipeCatalogue',
   );
   await catalogue.warm();
 });
@@ -113,7 +113,7 @@ describe('Recipe schema round-trip', () => {
     expect(r.getInputSlots()).toEqual(OLD_ROW.inputSlots);
     expect(r.getToolCapabilities()).toEqual(['mixing-glass']);
     expect(r.getOutputTemplate()).toBe('/world/lounge/cocktail-glass');
-    expect(r.getOutputMaterial()).toBe('/obj/material/cocktail/martini');
+    expect(r.getOutputMaterial()).toBe('/stuff/idea/material/cocktail/martini');
     expect(r.getBaseGrade()).toBeNull();
     // New fields default: no heat gate, bulk application, no ladder row.
     expect(r.getRequiresHeatK()).toBe(0);

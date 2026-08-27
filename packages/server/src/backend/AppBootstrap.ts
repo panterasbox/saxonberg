@@ -95,7 +95,7 @@ export class AppBootstrap {
    *      installed before this runs.
    *
    *      Controllers are not pre-loaded; dispatch clones a fresh
-   *      one per command via `StuffApi.clone('/obj/command/<Name>')`.
+   *      one per command via `StuffApi.clone('/platform/idea/cmd/<Name>')`.
    *
    *   4. Preload command YAMLs and resolve each `validators: [...]`
    *      spec into a live function. Validators are inert until this

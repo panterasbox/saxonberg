@@ -1,5 +1,5 @@
 verbs: [tally]
-controller: ../command/TallyController
+controller: ../idea/cmd/TallyController
 description: "Add a mark to a tally log"
 help: |
   Add one mark to a tally log — `tally log`. If you can read a timepiece

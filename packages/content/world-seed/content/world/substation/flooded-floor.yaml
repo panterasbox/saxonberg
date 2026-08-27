@@ -3,16 +3,16 @@
 # salt water (~40 L standing water), attached to the cell via its `adornments:`
 # map. The conductive medium the shock model reads: `ElectricityLogic` finds
 # this pooled floor, sees a conductive surface material + a non-zero amount,
-# and grounds anyone standing in it. Mirrors `/obj/surface/default-floor` (the
+# and grounds anyone standing in it. Mirrors `/stuff/thing/surface/default-floor` (the
 # posture `ground:1` slot + the `floor` detail) with the pool authored on top.
-class: /obj/Floor
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a flooded concrete floor
   longDescription: A concrete floor under a skin of brackish standing water.
   # Surface-bulk: an authored brine pool (the conductive medium + ground).
   surfaceBulk: true
-  surfaceMaterial: /obj/material/bulk/salt-water
+  surfaceMaterial: /stuff/idea/material/bulk/salt-water
   surfaceAmount: 40
   staticSlots:
     - name: 'ground:1'

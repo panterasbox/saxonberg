@@ -7,8 +7,8 @@
 #
 # Its Floor pool is authored **empty** (`adornments:`); the rain fills it. No
 # exits wired (reachable by teleport — the substation precedent).
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a storm-lashed heath
   primaryKeyword: heath
@@ -16,7 +16,7 @@ data:
     Open moorland under a bruised, boiling sky. Heather flattens in the wind and the rain comes sideways in grey sheets; far off, a stand of dead birches stands black against the lightning. There is nowhere here that is dry.
   # SkyExposed outdoor biome (from the base-library content pack) — the storm
   # reaches this scope.
-  _biomePath: /obj/biome/outdoor/baseline
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   # Address puts this room under the Weeping Moor Locality's `moor` prefix.
   address: moor/heath
   coords:

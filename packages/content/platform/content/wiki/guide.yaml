@@ -1,7 +1,7 @@
 # guide — how-to pages: playing, working, getting somewhere. Distinct
 # from `main` (which documents what a thing IS) and from `help` (which
 # documents what a verb DOES) by being about what a person should do.
-class: /obj/WikiNamespaceZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/WikiNamespaceZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: guide

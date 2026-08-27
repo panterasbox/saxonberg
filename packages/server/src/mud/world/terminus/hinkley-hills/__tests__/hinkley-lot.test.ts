@@ -40,11 +40,11 @@ describe("the yard ships the kit that makes it workable", () => {
     // ToolCapability at `placement: carried`, so a yard with a bed and a
     // standpipe and no can is ground you cannot actually work — the verb
     // is simply not there. This shipped broken once.
-    expect(populates).toContain("/obj/vessel/watering-can");
+    expect(populates).toContain("/stuff/thing/vessel/watering-can");
   });
 
   it("ships the bed and the water source", () => {
-    expect(populates).toContain("/obj/bed/garden");
+    expect(populates).toContain("/stuff/thing/bed/garden");
     expect(populates).toContain(`/${HINKLEY}/standpipe`);
   });
 
@@ -52,7 +52,7 @@ describe("the yard ships the kit that makes it workable", () => {
     // N lots cannot share one coordinate, and a cartesian yard divided
     // its open sky by the zone's cellSize² down to 16.7 lux — under the
     // light floor its own crop needs.
-    expect(yard.class).toBe("/obj/location/FurnishableRoom");
+    expect(yard.class).toBe("/platform/location/FurnishableRoom");
     expect(yard.data?.coords).toBeUndefined();
   });
 });

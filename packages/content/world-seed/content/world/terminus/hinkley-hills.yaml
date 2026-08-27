@@ -5,8 +5,8 @@
 # between things, and the cell size is what makes a room out here read as
 # a yard rather than an office. Ownership is NOT declared here — it lives
 # in the gated `parcels` collection, the governing security invariant.
-class: /obj/location/CartesianZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Hinkley Hills
   cellSize: 6.0

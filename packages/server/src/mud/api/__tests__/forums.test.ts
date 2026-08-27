@@ -18,7 +18,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
-import SubjectCatalogue from '../../obj/SubjectCatalogue';
+import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
 import { SubjectApi } from '../subject';
 import { Idea } from '../../lib/stuff/Idea';
 import {
@@ -72,7 +72,7 @@ beforeEach(() => {
   // Treat actors as non-avatars: author / owner resolve to stuffId.
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(false as never);
   // Register the SubjectCatalogue singleton the logic chain resolves.
-  makeStuffAtPath(() => new SubjectCatalogue(), '/obj/SubjectCatalogue');
+  makeStuffAtPath(() => new SubjectCatalogue(), '/platform/idea/SubjectCatalogue');
 });
 
 afterEach(() => {

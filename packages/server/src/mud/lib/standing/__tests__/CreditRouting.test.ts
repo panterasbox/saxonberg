@@ -22,13 +22,13 @@ function zoneAt(path: string | null): SpatialZone | null {
   return { getTemplatePath: () => path } as unknown as SpatialZone;
 }
 
-const AUTHOR = '/obj/Avatar/maker';
+const AUTHOR = '/platform/agent/Avatar/maker';
 const LOC = '/world/gallery/room';
 
 describe('CreditRouting.isReleased', () => {
   it('treats only the personal homedir as unreleased; domain + obj are released', () => {
     expect(CreditRouting.isReleased('/world/gallery')).toBe(true);
-    expect(CreditRouting.isReleased('/obj/SoulCatalogue')).toBe(true); // obj is released core content
+    expect(CreditRouting.isReleased('/platform/idea/SoulCatalogue')).toBe(true); // obj is released core content
     expect(CreditRouting.isReleased('/home/alice/studio')).toBe(false);
   });
 });

@@ -1,0 +1,26 @@
+verbs: [undress]
+controller: /platform/idea/cmd/medical/UndressController
+description: "Remove a wound's dressing"
+help: |
+  `undress` takes the dressing off a wound (not to be confused with
+  removing worn clothing — that's `remove`). The bandage is spent, not
+  recovered.
+
+  Timing matters: a wound removed before it has clotted starts bleeding
+  again. Once clotted it is safe to uncover and keeps healing to clear.
+  Use `assess` to judge whether a wound has clotted before you undress it.
+examples:
+  - cmd: undress
+    note: Uncover your own dressed wound
+  - cmd: undress the guard
+    note: Uncover a wound on someone else
+validators:
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [on]
+    requires: [VisibleMixin, VitalsMixin]

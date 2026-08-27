@@ -1,0 +1,19 @@
+verbs: [repair, mend]
+controller: /platform/idea/cmd/crafting/RepairController
+description: "Repair a worn or broken durable good"
+help: |
+  Restore a worn good — `repair knife`. The cost is material, priced by
+  the damage (a broken good costs double): metal work wants a hot forge
+  and metal stock in reach; soft goods want a mending kit and same-kind
+  stock. Restores fully — gear never obsoletes, it asks for care.
+  Repair fixes STRUCTURE; a dull edge just needs `sharpen`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: item
+    type: object
+    required: true
+    scope: "reachable"
+    requires: DurableMixin

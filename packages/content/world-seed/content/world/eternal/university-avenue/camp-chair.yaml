@@ -3,8 +3,8 @@
 # deployed state (a folded chair refuses its `sit` slot via Slotted.canOccupy).
 # It really seats — it's the relief's, and Gus never uses it (behavior, not a
 # dead prop). The someday, in aluminum and canvas.
-class: /obj/FoldingChair
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/FoldingChair
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a folding camp chair
   primaryKeyword: chair

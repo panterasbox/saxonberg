@@ -14,8 +14,8 @@
  * temperature poke.
  *
  * The logic lives in the gated, hot-reloadable {@link ThermalLogic} singleton
- * at `/obj/api/thermal`; this Api is the thin forwarding shell. `dest
- * /obj/api/thermal` reloads it.
+ * at `/platform/idea/api/thermal`; this Api is the thin forwarding shell. `dest
+ * /platform/idea/api/thermal` reloads it.
  *
  * See `docs/subsystems/thermal.md`.
  */
@@ -23,13 +23,13 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ThermalLogic } from '../obj/api/ThermalLogic';
+import { ThermalLogic } from '../platform/idea/api/ThermalLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/thermal';
+const LOGIC_PATH = '/platform/idea/api/thermal';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ThermalLogic', import.meta.url),
+  new URL('../platform/idea/api/ThermalLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able ThermalLogic singleton (sync). */

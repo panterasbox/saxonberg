@@ -1,0 +1,52 @@
+verbs: [var]
+controller: /platform/idea/cmd/shell/VarController
+description: "Manage your ad-hoc session variables"
+help: |
+  Session variables are scratch values you name yourself and reuse
+  on the command line as `$name`. Stash a path you keep typing, a
+  target you're working with, anything — then refer to it by name
+  instead of retyping it.
+
+  These live only for your current session and vanish when you
+  disconnect. A few names are reserved by the shell for built-in
+  values and can't be overwritten. Bare `var` (or `var list`)
+  shows what you've set.
+validators:
+  - /lib/command/validators/requiresEnvironment
+subcommands:
+  list:
+    description: "List session variables"
+    help: |
+      Show every session variable you've set and its value. This
+      is what bare `var` shows too.
+
+  set:
+    description: "Set a session variable"
+    help: |
+      Name a value and store it for the rest of your session. Once
+      set, reference it anywhere on the command line as `$name`.
+      Reserved built-in names are rejected.
+    examples:
+      - cmd: var set spot /world/lounge/lounge
+        note: Store a value under "$spot"
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+        greedy: true
+
+  unset:
+    description: "Clear a session variable"
+    help: |
+      Forget a session variable you set, freeing its name. It would
+      have vanished on disconnect anyway — this clears it now.
+    examples:
+      - cmd: var unset spot
+        note: Clear a session variable
+    args:
+      - name: name
+        type: string
+        required: true

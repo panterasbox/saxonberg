@@ -1,3 +1,3 @@
 # corpo-goodkin
 
-The `domain` kind: the Corpo mark (`/obj/corpo/Corpo/goodkin`) and every Brand whose `data.owner` is `goodkin`. The `/corpo/goodkin` Organization entry in `mud/bootstrap.ts` and the `config/groups.yaml` board row stay platform-seeded (D12).
+The `domain` kind: the Corpo mark (`/stuff/idea/corpo/Corpo/goodkin`) and every Brand whose `data.owner` is `goodkin`. The `/corpo/goodkin` Organization entry in `mud/bootstrap.ts` and the `config/groups.yaml` board row stay platform-seeded (D12).

@@ -12,10 +12,10 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
-import Locality from '../../obj/Locality';
+import Locality from '../../platform/idea/Locality';
 import Biome from '../../lib/biome/Biome';
-import { SkyExposedBiome } from '../../obj/SkyExposedBiome';
-import AddressRegistry from '../../obj/AddressRegistry';
+import { SkyExposedBiome } from '../../platform/idea/SkyExposedBiome';
+import AddressRegistry from '../../platform/idea/AddressRegistry';
 import { WeatherApi } from '../weather';
 import { AddressApi } from '../address';
 import { BiomeApi } from '../biome';
@@ -54,16 +54,16 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(5, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 /** A SkyExposed (weather-eligible) outdoor room. */
 function skyRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/obj/biome/universe';
+    b._extendsBiomePath = '/stuff/idea/biome/universe';
     return b;
-  }, '/obj/biome/outdoor/field');
+  }, '/stuff/idea/biome/outdoor/field');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;
@@ -73,16 +73,16 @@ function skyRoom(): TestLocation {
 function indoorRoom(): TestLocation {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = '/obj/biome/universe';
+    b._extendsBiomePath = '/stuff/idea/biome/universe';
     return b;
-  }, '/obj/biome/indoor/hall');
+  }, '/stuff/idea/biome/indoor/hall');
   const room = makeStuff(() => new TestLocation());
   room.setBiome(biome);
   return room;
 }
 
 function installRegistry(): AddressRegistry {
-  return makeStuffAtPath(() => new AddressRegistry(), '/obj/AddressRegistry');
+  return makeStuffAtPath(() => new AddressRegistry(), '/platform/idea/AddressRegistry');
 }
 
 describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
@@ -206,7 +206,7 @@ describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
       l.setAddress('narnia/moor');
       l.setWeatherPin({ type: 'storm', mode: 'frozen' });
       return l;
-    }, '/obj/Locality/moor');
+    }, '/stuff/idea/Locality/moor');
     AddressApi.registerLocality(moor);
 
     // A room deep under the moor's address — no scope pin of its own.
@@ -225,7 +225,7 @@ describe('WeatherApi.resolveWeatherFor — the coexistence resolve', () => {
       l.setAddress('narnia/moor');
       l.setWeatherPin({ type: 'storm', mode: 'frozen' });
       return l;
-    }, '/obj/Locality/moor');
+    }, '/stuff/idea/Locality/moor');
     AddressApi.registerLocality(moor);
 
     const room = skyRoom();

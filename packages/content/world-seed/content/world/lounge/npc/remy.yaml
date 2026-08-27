@@ -1,12 +1,12 @@
 # Remy — the Connector (swing shift, weekdays). Gregarious, charming, a
 # harmless gossip; the buzz and the rumor-mill. Holds court (more
 # chatter) and reacts to what he sees in the room.
-class: /obj/Crafter
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/Crafter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Remy
   pronouns: he
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
   lifecycleState: alive
   primaryKeyword: remy
   shortDescription: a grinning, fast-talking tiefling

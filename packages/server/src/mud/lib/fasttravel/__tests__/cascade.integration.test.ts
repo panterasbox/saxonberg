@@ -11,7 +11,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import LoungeWarren from "../../../world/lounge/LoungeWarren";
 import { LoungePaths } from "../../../world/lounge/paths";
-import Avatar from "../../../obj/Avatar";
+import Avatar from "../../../platform/agent/Avatar";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { AppSettings } from "../../config/AppSettings";
@@ -25,7 +25,7 @@ import {
   flush,
   type Doc,
 } from "../../../world/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 // Repointed: the lounge routes to the Terminus arrival gate (the standalone
@@ -60,7 +60,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: TERMINUS_ROOM,
-    class: "/obj/VoidLocation",
+    class: "/platform/location/VoidLocation",
     hydratorClass: PH,
     data: { shortDescription: "the Terminus arrival gate" },
   },

@@ -22,13 +22,13 @@
  *
  * Thin, security-gated forwarding shell: the logic lives in the
  * hot-reloadable {@link SourceTreeLogic} singleton at
- * `/obj/api/source-tree`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/source-tree` reloads it.
+ * `/platform/idea/api/source-tree`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/source-tree` reloads it.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SourceTreeLogic } from '../obj/api/SourceTreeLogic';
+import { SourceTreeLogic } from '../platform/idea/api/SourceTreeLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -48,9 +48,9 @@ export interface DirEntry {
   isDir: boolean;
 }
 
-const LOGIC_PATH = '/obj/api/source-tree';
+const LOGIC_PATH = '/platform/idea/api/source-tree';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SourceTreeLogic', import.meta.url)
+  new URL('../platform/idea/api/SourceTreeLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able SourceTreeLogic singleton (sync). */
@@ -138,8 +138,8 @@ export class SourceTreeApi {
   /**
    * Map an absolute source path to its `/`-rooted **mud template path** —
    * the namespace dispatch and the clone pipeline speak
-   * (`…/src/mud/obj/command/perception/LookController.ts` →
-   * `/obj/command/perception/LookController`, extension aside).
+   * (`…/src/mud/platform/idea/cmd/perception/LookController.ts` →
+   * `/platform/idea/cmd/perception/LookController`, extension aside).
    *
    * Pure path arithmetic, no I/O. The mud root is derived once inside the
    * Api tier, which is why callers need neither `path` nor the root

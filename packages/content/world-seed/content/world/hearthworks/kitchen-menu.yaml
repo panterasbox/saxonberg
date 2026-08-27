@@ -3,7 +3,7 @@
 # priced to be climbable: toasted rations near-free, the fine roast a
 # treat.
 class: /world/hearthworks/KitchenMenu
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a kitchen board
   primaryKeyword: board

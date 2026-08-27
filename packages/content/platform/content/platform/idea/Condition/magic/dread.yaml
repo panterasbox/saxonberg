@@ -1,0 +1,21 @@
+# Dread — the mental-axis condition (destroy·mind's Afflict lands this).
+# Onset stage = the mental resolver's authored bands below, evaluated
+# against the spell's potency scalar scaled by the target's LIVE
+# Composure factor (profile band × current mana fraction — a drained
+# mage stages worse). Evolution = the magic decay arm (an impulse fades
+# on magic.dread.decayPerSec); dispel relieves it early; suppression
+# never touches it (it already happened).
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: dread
+  signature: []
+  progression: null
+  resolution:
+    by: rest
+  observableSigns: [wide-eyed, trembling, glancing-at-exits]
+  contagion: null
+  mentalBands:
+    - { threshold: 5, stage: 1 }
+    - { threshold: 15, stage: 2 }
+    - { threshold: 30, stage: 3 }

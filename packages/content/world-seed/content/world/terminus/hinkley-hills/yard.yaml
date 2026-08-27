@@ -29,13 +29,13 @@
 # room's contents are the owner's), it composes Populates, and it is not
 # singleton-shaped. It authors no `air` reserve, which is exactly what
 # "outdoors" means to FireLogic.
-class: /obj/location/FurnishableRoom
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the yard behind the house
   primaryKeyword: yard
   alternateNames: [garden, back, plot]
-  _biomePath: /obj/biome/outdoor/baseline
+  _biomePath: /stuff/idea/biome/outdoor/baseline
   # Full open sky — the whole point of being out here. A carrot wants 120
   # lux to be unlimited by light; a windowsill gives 30.
   ambientIntensity: 600
@@ -48,14 +48,14 @@ data:
     south:
       destination: /world/terminus/hinkley-hills/lane
   populates:
-    - /obj/bed/garden
+    - /stuff/thing/bed/garden
     - /world/terminus/hinkley-hills/standpipe
     # The can is not decoration — `water` is a TOOL-conferred verb
     # (ToolCapability `watering`, placement `carried`), so a yard with a
     # bed and a standpipe and no can is ground you cannot actually work.
     # Born-with, so it lands once on first provisioning and is then the
     # owner's, recorded in their own yard's snapshot.
-    - /obj/vessel/watering-can
+    - /stuff/thing/vessel/watering-can
   details:
     house:
       keywords: [house, wall, weatherboard, windows, door, kitchen, step]

@@ -1,0 +1,7 @@
+# GravityMeter — handheld gravimeter that grants the `measure
+# gravity` verb to its carrier.
+class: /platform/thing/instrument/GravityMeter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pocket gravimeter
+  long: A precision instrument that reports local gravitational acceleration in m/s².

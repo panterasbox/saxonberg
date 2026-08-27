@@ -11,7 +11,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import PaymentCard from "../../../obj/PaymentCard";
+import PaymentCard from "../../../platform/thing/PaymentCard";
 import { AppSettings } from "../../config/AppSettings";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
@@ -57,8 +57,8 @@ async function barWith(funds: number): Promise<{
   operator: TestAvatar;
   barAcct: string;
 }> {
-  const operator = avatar("/obj/Avatar/operator");
-  const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+  const operator = avatar("/platform/agent/Avatar/operator");
+  const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
   ContainmentApi.move(card, operator as never);
   const barAcct = await asOwner(operator, () =>
     BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
@@ -73,12 +73,12 @@ describe("Wages", () => {
 
   it("pays a wage employer → worker as a categorized line", async () => {
     const { barAcct } = await barWith(1000);
-    const worker = avatar("/obj/Avatar/wenna");
+    const worker = avatar("/platform/agent/Avatar/wenna");
     const workerAcct = await asOwner(worker, () =>
       BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
     );
 
-    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(80, Currency.compact()));
+    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(80, Currency.compact()));
     expect(BankingApi.balanceOf(workerAcct).minor).toBe(80);
 
     const pnl = await BankingApi.profitAndLoss(barAcct);
@@ -129,10 +129,10 @@ describe("Deficit-as-target P&L", () => {
     await seedTax("0.08");
     // The bar starts with a small float; a supplier + a worker + a patron.
     const { operator, barAcct } = await barWith(0);
-    const worker = avatar("/obj/Avatar/wenna");
+    const worker = avatar("/platform/agent/Avatar/wenna");
     await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
-    const patron = avatar("/obj/Avatar/patron");
-    const patronCard = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+    const patron = avatar("/platform/agent/Avatar/patron");
+    const patronCard = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
     ContainmentApi.move(patronCard, patron as never);
     const patronAcct = await asOwner(patron, () =>
       BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
@@ -162,7 +162,7 @@ describe("Deficit-as-target P&L", () => {
     await BankingApi.remitDemoTax(barAcct, Money.of(60, Currency.compact()));
 
     // wages: pay the worker
-    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(120, Currency.compact()));
+    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(120, Currency.compact()));
 
     // running balance: 200(float) − 150(cogs) + 60(sales) − 4(tax) − 120(wages)
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-14); // red by design

@@ -19,7 +19,7 @@ describe('pathToChannel', () => {
   });
 
   it('maps command controllers/views to command (before the lib arm)', () => {
-    expect(DiagnosticChannel.pathToChannel('/mud/obj/command/social/SayController.ts')).toBe(
+    expect(DiagnosticChannel.pathToChannel('/mud/platform/idea/cmd/social/SayController.ts')).toBe(
       'command'
     );
     expect(DiagnosticChannel.pathToChannel('/mud/cmd/social/say.yaml')).toBe('command');

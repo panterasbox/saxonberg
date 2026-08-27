@@ -20,7 +20,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { VetoResult } from '../errors';
-import type Door from '../../obj/Door';
+import type Door from '../../platform/thing/Door';
 import type { Mobile, MovementBodies } from '../spatial/Mobile';
 import Exit from './Exit';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
@@ -194,7 +194,7 @@ export interface BidirectionalExitOptions {
 export interface ExitInstruction {
   destination: string;
   /**
-   * Exit-KIND template path (`/obj/exits/<kind>` — e.g. `archway`,
+   * Exit-KIND template path (`/stuff/idea/exits/<kind>` — e.g. `archway`,
    * `stair`). When present, the exit is **cloned from the kind**
    * (hydrating the kind's authored traverse messages / media /
    * concealment / wheelPassable defaults) and then bound to this edge;

@@ -22,7 +22,7 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { CommandLineLogic } from '../obj/api/CommandLineLogic';
+import { CommandLineLogic } from '../platform/idea/api/CommandLineLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -77,9 +77,9 @@ export interface ParsedPipeline {
 
 /* ──────────────────────── Public surface ──────────────────────── */
 
-const LOGIC_PATH = '/obj/api/command-line';
+const LOGIC_PATH = '/platform/idea/api/command-line';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/CommandLineLogic', import.meta.url)
+  new URL('../platform/idea/api/CommandLineLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able CommandLineLogic singleton (sync). */

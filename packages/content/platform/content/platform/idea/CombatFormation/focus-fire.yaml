@@ -1,0 +1,19 @@
+# Focus Fire — the whole side piles its edges onto the captain's called
+# target. The call is DERIVED, not verb-called: the captain leads by
+# attacking (their deliberate engagement is the call; fallback = their
+# first sustained edge). No roles — the policy binds every member. The
+# shipped focus-fire physics (erosion scaling + recovery suppression by
+# incoming-edge count) is what makes the pile-on bite; this preset just
+# coordinates it. Hierarchical: the captain holds the coup call.
+class: /platform/idea/CombatFormation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: focus-fire
+  roles: []
+  allocation: called
+  primaryRole: ""
+  protectsRoles: []
+  interceptorRoles: []
+  interceptTrigger: none
+  coupRight: engaged
+  coupCall: captain

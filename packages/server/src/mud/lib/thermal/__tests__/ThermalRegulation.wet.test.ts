@@ -21,7 +21,7 @@ import {
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 
 class TestRoom extends Location {}
 
@@ -39,15 +39,15 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, "m/s"));
     b.setDefaultAtmosphere("air");
     return b;
-  }, "/obj/biome/universe");
+  }, "/stuff/idea/biome/universe");
 }
 
 function coldRoom(): TestRoom {
   const biome = makeStuffAtPath(() => {
     const b = new Biome();
-    b._extendsBiomePath = "/obj/biome/universe";
+    b._extendsBiomePath = "/stuff/idea/biome/universe";
     return b;
-  }, "/obj/biome/indoor/cell");
+  }, "/stuff/idea/biome/indoor/cell");
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   return room;

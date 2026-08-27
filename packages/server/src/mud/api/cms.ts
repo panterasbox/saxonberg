@@ -13,8 +13,8 @@
  * (mirrored from `WriteController`), and the save→go-live split (source
  * → `HotReloadApi.reload`; content → re-hydrate live instances via
  * `TemplateApi.restoreFromTemplate`) live in the hot-reloadable
- * {@link CmsLogic} singleton at `/obj/api/cms`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/cms` reloads it.
+ * {@link CmsLogic} singleton at `/platform/idea/api/cms`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/cms` reloads it.
  *
  * Thin, security-gated forwarding shell — structural copy of
  * `source-tree.ts`. The error its surface throws (`CmsError`) is homed
@@ -23,7 +23,7 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { CmsLogic } from '../obj/api/CmsLogic';
+import { CmsLogic } from '../platform/idea/api/CmsLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type {
@@ -67,9 +67,9 @@ export class CmsError extends Error {
   }
 }
 
-const LOGIC_PATH = '/obj/api/cms';
+const LOGIC_PATH = '/platform/idea/api/cms';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/CmsLogic', import.meta.url)
+  new URL('../platform/idea/api/CmsLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able CmsLogic singleton (sync). */

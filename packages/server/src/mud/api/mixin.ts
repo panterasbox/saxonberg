@@ -156,7 +156,7 @@ import type { Charged } from '../lib/magic/Charged';
 import type { Blessable } from '../lib/magic/Blessable';
 import type { Builds } from '../lib/craft/ManualBuild';
 import type { Bank } from '../lib/banking/Bank';
-import type { Business } from '../obj/Business';
+import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Attendant } from '../lib/attendant/Attendant';

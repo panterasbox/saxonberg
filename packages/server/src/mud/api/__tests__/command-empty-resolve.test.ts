@@ -33,7 +33,7 @@ import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type Location from '../../lib/stuff/Location';
-import type Interactive from '../../obj/Interactive';
+import type Interactive from '../../platform/idea/Interactive';
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestThing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}

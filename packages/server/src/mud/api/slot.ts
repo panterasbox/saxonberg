@@ -12,9 +12,9 @@
  * sizes; an inverse index can land later if profiling demands.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link SlotLogic} singleton at `/obj/api/slot`,
+ * hot-reloadable {@link SlotLogic} singleton at `/platform/idea/api/slot`,
  * reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/slot` reloads it.
+ * `dest /platform/idea/api/slot` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -22,7 +22,7 @@ import type { Slotted } from '../lib/slot/Slotted';
 import type { Slottable } from '../lib/slot/Slottable';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SlotLogic } from '../obj/api/SlotLogic';
+import { SlotLogic } from '../platform/idea/api/SlotLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -38,9 +38,9 @@ export type SlotResolutionQuery =
   | { detail: string }
   | { accepts: string };
 
-const LOGIC_PATH = '/obj/api/slot';
+const LOGIC_PATH = '/platform/idea/api/slot';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SlotLogic', import.meta.url)
+  new URL('../platform/idea/api/SlotLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able SlotLogic singleton (sync). */

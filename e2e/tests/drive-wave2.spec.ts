@@ -97,8 +97,8 @@ test('help look renders (the view is a store-served command-view document); a no
       headers: { 'X-CMS-CSRF': token },
       data: {
         backend: 'document',
-        path: '/cmd/perception/look',
-        body: JSON.stringify({ verbs: ['look'], controller: '/obj/command/system/PingController', description: 'x' }),
+        path: '/platform/cmd/perception/look',
+        body: JSON.stringify({ verbs: ['look'], controller: '/platform/idea/cmd/system/PingController', description: 'x' }),
       },
     });
     expect(denied.ok()).toBe(false);

@@ -18,14 +18,14 @@ import {
 } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';
-import BodyPlan from '../../../obj/species/BodyPlan';
-import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
 import Material from '../../material/Material';
-import AirTank from '../../../obj/AirTank';
-import Receptacle from '../../../obj/Receptacle';
+import AirTank from '../../../platform/thing/AirTank';
+import Receptacle from '../../../platform/thing/Receptacle';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { SchedulerApi } from '../../../api/scheduler';
 import { ContainmentApi } from '../../../api/containment';
 import { SlotApi } from '../../../api/slot';
@@ -33,7 +33,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { MixinApi } from '../../../api/mixin';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { RESPIRATION_DEFAULTS } from '../Respiration';
 import { StuffApi } from '../../../api/stuff';
@@ -61,7 +61,7 @@ function room(atmosphere: string): TestLocation {
   return r;
 }
 
-const AIR_MATERIAL_PATH = '/obj/material/bulk/air';
+const AIR_MATERIAL_PATH = '/stuff/idea/material/bulk/air';
 const BODYPLAN_PATH = '/test/respiration/tank-bodyplan';
 const SPECIES_PATH = '/test/respiration/tank-species';
 
@@ -100,7 +100,7 @@ describe('RespirationMixin — carried-air supply (scuba)', () => {
     EventApi._clearAllForTesting();
     const reg = await StuffApi.create(() => {
       const r = new EventRegistry();
-      Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+      Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
       return r;
     });
     StuffApi.unregister(reg);

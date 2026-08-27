@@ -15,7 +15,7 @@ import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
-import BankCounter from "../../../obj/BankCounter";
+import BankCounter from "../../../platform/thing/BankCounter";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
@@ -142,8 +142,8 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     // (maps to its institution), a corpo treasury likewise.
     await seedRow({ accountId: "treasury", owner: "", bankPath: "", balance: 80 });
     await seedRow({ accountId: "acct-venue", owner: VENUE, bankPath: VENUE, balance: 500 });
-    await seedRow({ accountId: "acct-worker", owner: "/obj/Avatar/wenna", bankPath: "", balance: 25 });
-    await seedRow({ accountId: "acct-cust", owner: "/obj/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
+    await seedRow({ accountId: "acct-worker", owner: "/platform/agent/Avatar/wenna", bankPath: "", balance: 25 });
+    await seedRow({ accountId: "acct-cust", owner: "/platform/agent/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
     await seedRow({ accountId: "acct-corpo", owner: "corpo:goodkin", bankPath: LIVE_BANK_PATH, balance: 40, corpoKey: "goodkin" });
     await BankingApi.mint("acct-sink", Money.of(735, Currency.compact()));
     await BankingApi.drain("acct-sink", Money.of(735, Currency.compact()));

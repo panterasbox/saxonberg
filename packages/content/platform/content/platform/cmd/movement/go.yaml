@@ -1,0 +1,22 @@
+verbs: [go]
+controller: /platform/idea/cmd/movement/GoController
+description: "Move to a named exit or into a named vessel"
+help: |
+  Travel through an exit or board a vessel by name. Name the
+  direction or the exit (`go north`, `go gate`) or a vehicle you can
+  step into (`go carriage`).
+
+  Most exits also work as bare verbs — typing `north` on its own
+  usually moves you there — but `go` always works and is unambiguous
+  when an exit name collides with something else in the room.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    scope: ["$focus", "reachable"]
+    required: true
+    validators:
+      - /lib/command/validators/canReach
+    requires: any

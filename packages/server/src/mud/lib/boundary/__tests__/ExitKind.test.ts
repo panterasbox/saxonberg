@@ -1,5 +1,5 @@
 /**
- * Exit-KIND templates — an authored kind at `/obj/exits/<kind>` that a
+ * Exit-KIND templates — an authored kind at `/stuff/idea/exits/<kind>` that a
  * room's `exits:` entry references via `kind:`. `applyExits` clones the
  * kind (hydrating its authored defaults) and completes identity via the
  * participant-gated `Exit.bind`. Per-entry fields override the kind's
@@ -11,7 +11,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianZone from '../../../obj/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import Exit from '../Exit';
 import { StuffApi } from '../../../api/stuff';
@@ -19,8 +19,8 @@ import { Template } from '../../stuff/Template';
 import { LeafTemplate } from '../../stuff/LeafTemplate';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-const ARCHWAY = '/obj/exits/archway';
-const STAIR = '/obj/exits/stair';
+const ARCHWAY = '/stuff/idea/exits/archway';
+const STAIR = '/stuff/idea/exits/stair';
 
 /**
  * Path-aware destination stub: `/test/loc-b` resolves to the live room;
@@ -45,7 +45,7 @@ function mockKindTemplates(): void {
         const t = new LeafTemplate();
         t.path = path;
         t.class = '/lib/boundary/Exit';
-        t.hydratorClass = '/obj/persistence/PersistentHydrator';
+        t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
         t.data = {
           media: ['ground'],
           messageOut: '{{ mover }} passes through the archway.',
@@ -53,12 +53,12 @@ function mockKindTemplates(): void {
         };
         return t;
       }
-      if (path === '/obj/persistence/PersistentHydrator') {
+      if (path === '/platform/idea/persistence/PersistentHydrator') {
         // The hydrator's own template (the real seed's base case: no
         // hydratorClass — terminates the clone recursion).
         const t = new LeafTemplate();
         t.path = path;
-        t.class = '/obj/persistence/PersistentHydrator';
+        t.class = '/platform/idea/persistence/PersistentHydrator';
         t.data = {};
         return t;
       }
@@ -66,7 +66,7 @@ function mockKindTemplates(): void {
         const t = new LeafTemplate();
         t.path = path;
         t.class = '/lib/boundary/Exit';
-        t.hydratorClass = '/obj/persistence/PersistentHydrator';
+        t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
         t.data = {
           media: ['ground'],
           wheelPassable: false,

@@ -1,0 +1,57 @@
+verbs: [title]
+controller: /platform/idea/cmd/civics/TitleController
+description: "Ground you hold, and ground for sale"
+help: |
+  Title is who holds a piece of ground. It is recorded by the city
+  Registry, not by whoever is standing on it, and it is the only thing
+  that makes a place yours rather than somewhere you happen to be.
+
+  `title` on its own tells you what you hold and what you may do with
+  it — a lot zoned residential admits a garden; one zoned civic or
+  commercial does not, and the refusal will say so.
+
+  `title list` shows the lots on offer where you are standing. Only the
+  Registry keeps a plat book, so this only answers there.
+
+  `title buy <lot>` is the purchase: the money moves, the Registry
+  writes the row, and the ground is yours from that moment. There is no
+  lease and no instalment — you hold it or you do not.
+
+  Land is not stock. You cannot `buy` a lot off a shelf, and no shop
+  sells one: real property changes hands over a records counter, which
+  is why this is its own verb and not a line in the general store.
+examples:
+  - cmd: title
+    note: What ground do I hold?
+  - cmd: title list
+    note: The lots on offer (at the Registry)
+  - cmd: title buy lot 2
+    note: Buy it — the money moves and the row is written
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  list:
+    description: "The lots on offer here"
+    help: |
+      The plat book: unsold lots, their size and their zoning, with the
+      price. Only the Registry keeps one, so this answers there and
+      nowhere else.
+  buy:
+    description: "Buy a lot outright"
+    help: |
+      Funds are checked, the money moves, and the Registry writes the
+      title row and the chain-of-title event. You must be at the
+      Registry — this is paperwork, and paperwork happens at a counter.
+    args:
+      # GREEDY: a player types `title buy lot 2`, which is two tokens.
+      # A single-token string arg refuses that shape outright ("doesn't
+      # match any known command shape"), and the examples below would be
+      # lying. Greedy takes the rest of the line, and `PlatBook.extentFor`
+      # normalises `lot 2` / `lot-2` / `2` alike.
+      - name: lot
+        type: string
+        required: true
+        greedy: true
+    examples:
+      - cmd: title buy lot 2
+        note: The whole transaction, in one act

@@ -54,12 +54,12 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [
-        'charactergen/chronicle.yaml',
-        'charactergen/traits.yaml',
-        'social/standing.yaml',
-        'social/who.yaml',
-        'social/profile.yaml',
-        'social/score.yaml',
+        'platform/cmd/charactergen/chronicle.yaml',
+        'platform/cmd/charactergen/traits.yaml',
+        'platform/cmd/social/standing.yaml',
+        'platform/cmd/social/who.yaml',
+        'platform/cmd/social/profile.yaml',
+        'platform/cmd/social/score.yaml',
         // The `office`/`offices` verb is afforded universally here — NOT
         // on AuthorMixin — because its roster is public (governance is
         // transparent by constitutional design, Art. VII): every player
@@ -68,16 +68,16 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // validator (the governance-root gate), leaving the bare/`list`
         // roster ungated. Homing it on AuthorMixin would wrongly hide the
         // public roster from non-authors.
-        'governance/office.yaml',
+        'platform/cmd/governance/office.yaml',
         // The `government`/`gov` verb (civics — the FICTION's governments,
         // a different category than the Compact's `governance`) is likewise
         // universal: the jurisdiction chain over where you stand and your
         // residency are public reads.
-        'civics/government.yaml',
+        'platform/cmd/civics/government.yaml',
         // The `committee` verb (system — META administration: the group
         // holding title over a subdivision) — a public read like the two
         // above; the one mutation (channel ensure) is idempotent.
-        'system/committee.yaml',
+        'platform/cmd/system/committee.yaml',
         // The `appoint` verb (employment) — fill a position on an
         // organization's chart. Universal for the same reason `office` is:
         // the gate is the authority, not the affordance. The
@@ -85,13 +85,13 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // organization argument does the refusing — a verb-level one
         // cannot, because the authority belongs to the organization the
         // argument names and `CommandContext` carries no bound model.
-        'employment/appoint.yaml',
+        'platform/cmd/employment/appoint.yaml',
         // The `title` verb (civics) — what ground you hold and what is
         // for sale. Universal for the same reason `government` is: your
         // own holdings are a self-read, and a plat book is public. The
         // one act that changes anything (`title buy`) gates itself on
         // standing at the Registry counter.
-        'civics/title.yaml',
+        'platform/cmd/civics/title.yaml',
       ],
       peers: [],
       environment: [],

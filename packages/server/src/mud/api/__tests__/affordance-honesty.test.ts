@@ -37,9 +37,9 @@ import { TangibleMixin } from '../../lib/material/Tangible';
 import { BeliefStoreMixin } from '../../lib/belief/BeliefStore';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { ContainmentApi } from '../containment';
-import Clade from '../../obj/species/Clade';
-import Species from '../../obj/species/Species';
-import BodyPlan from '../../obj/species/BodyPlan';
+import Clade from '../../platform/idea/species/Clade';
+import Species from '../../platform/idea/species/Species';
+import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { StuffApi } from '../stuff';
 import {
   makeStuff,
@@ -51,28 +51,28 @@ import type { AffordanceEntry } from '@saxonberg/types';
 /** The verbs under test. `smell` is excluded — its validator needs the
  *  modality catalogue, which this lightweight fixture does not boot. */
 const CONTRIBUTED = [
-  'combat/attack.yaml',
-  'bulk/drink.yaml',
-  'social/talk.yaml',
-  'perception/look.yaml',
-  'inventory/get.yaml',
-  'inventory/drop.yaml',
+  'platform/cmd/combat/attack.yaml',
+  'platform/cmd/bulk/drink.yaml',
+  'platform/cmd/social/talk.yaml',
+  'platform/cmd/perception/look.yaml',
+  'platform/cmd/inventory/get.yaml',
+  'platform/cmd/inventory/drop.yaml',
 ];
 
 let seq = 0;
 function animalSpecies(): Species {
   seq += 1;
-  if (!StuffApi.findByTemplatePath('/obj/species/animalia')) {
+  if (!StuffApi.findByTemplatePath('/stuff/idea/species/animalia')) {
     const animalia = makeStuff(() => new Clade());
-    stampTemplatePathForTest(animalia, '/obj/species/animalia');
+    stampTemplatePathForTest(animalia, '/stuff/idea/species/animalia');
     animalia.setName('Animalia');
     animalia.setRank('kingdom');
   }
   const plan = makeStuff(() => new BodyPlan());
-  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/hon-${seq}`);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/hon-${seq}`);
   plan.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const s = makeStuff(() => new Species());
-  stampTemplatePathForTest(s, `/obj/species/animalia/hon-${seq}`);
+  stampTemplatePathForTest(s, `/stuff/idea/species/animalia/hon-${seq}`);
   s.setBodyPlan(plan);
   return s;
 }
@@ -239,7 +239,7 @@ describe('the verb menu stops lying', () => {
    * "fix" it.
    */
   it('leaves cast kind-unconstrained, deliberately', () => {
-    const cast = CommandApi.getCommand('magic/cast.yaml');
+    const cast = CommandApi.getCommand('platform/cmd/magic/cast.yaml');
     const target = cast?.args.find((a) => a.name === 'target');
     expect(target?.requires).toBe('any');
   });

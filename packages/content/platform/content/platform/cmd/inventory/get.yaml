@@ -1,0 +1,24 @@
+verbs: [get, take]
+controller: /platform/idea/cmd/inventory/GetController
+description: "Pick up objects from your location"
+help: |
+  Pick something up off the ground or out of the room and move it
+  into your inventory. You can only get things that are here with
+  you — to take something out of a container or off a surface, name
+  it and `get` reaches in.
+
+  Name several things at once to grab them in one go. You can't get
+  what you're already carrying.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: targets
+    type: objects
+    required: true
+    greedy: true
+    scope: "peers"
+    requires: [VisibleMixin, ContainableMixin]
+    validators:
+      - /lib/command/validators/mustBeInLocation

@@ -38,7 +38,7 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
 
 let counter = 0;
 function makeViewerAt(): InstanceType<typeof Viewer> {
-  return makeStuffAtPath(() => new Viewer(), `/obj/Avatar/p${counter++}`);
+  return makeStuffAtPath(() => new Viewer(), `/platform/agent/Avatar/p${counter++}`);
 }
 function registerReferent(path: string): void {
   makeStuffAtPath(() => new Idea(), path);
@@ -109,7 +109,7 @@ describe('BeliefStoreApi persistence', () => {
     registerReferent('/obj/npc/mara');
 
     // Session 1: learn Mara, which writes through.
-    const path = '/obj/Avatar/roundtrip';
+    const path = '/platform/agent/Avatar/roundtrip';
     const s1 = makeStuffAtPath(() => new Viewer(), path);
     s1.know(RECOGNITION, '/obj/npc/mara', { knownAs: 'Mara' });
     await flush(); // let the fire-and-forget write settle
@@ -190,7 +190,7 @@ describe('BeliefStoreApi persistence — regard realm', () => {
 
   it('player (Avatar) holder round-trips regard through evict/re-hydrate', async () => {
     registerReferent('/obj/npc/bob');
-    const path = '/obj/Avatar/regard-roundtrip';
+    const path = '/platform/agent/Avatar/regard-roundtrip';
     const s1 = makeStuffAtPath(() => new Viewer(), path);
     s1.know(REGARD, '/obj/npc/bob', { regard: 12 });
     await flush();
@@ -219,8 +219,8 @@ describe('BeliefStoreApi persistence — regard realm', () => {
 
   it('reverse {realm, referent} query returns all viewers regarding a subject', async () => {
     registerReferent('/obj/npc/bob');
-    const a = makeStuffAtPath(() => new Viewer(), '/obj/Avatar/alice');
-    const c = makeStuffAtPath(() => new Viewer(), '/obj/Avatar/carol');
+    const a = makeStuffAtPath(() => new Viewer(), '/platform/agent/Avatar/alice');
+    const c = makeStuffAtPath(() => new Viewer(), '/platform/agent/Avatar/carol');
     a.know(REGARD, '/obj/npc/bob', { regard: 4 });
     c.know(REGARD, '/obj/npc/bob', { regard: 9 });
     await flush();

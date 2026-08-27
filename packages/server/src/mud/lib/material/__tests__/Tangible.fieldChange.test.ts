@@ -10,7 +10,7 @@ import { Quantity } from '../../quantity';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { FieldChangedEvent } from '../../events/FieldChangedEvent';
 import { MixinApi } from '../../../api/mixin';
@@ -22,7 +22,7 @@ import {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -45,7 +45,7 @@ describe('TangibleMixin field change firing', () => {
   it('setMaterial(iron) fires FieldChangedEvent { field: "bulkMaterial" }', async () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
@@ -60,7 +60,7 @@ describe('TangibleMixin field change firing', () => {
   it('setMaterial(steel, "head") fires FieldChangedEvent { field: "detailMaterials" }', async () => {
     await bootRegistry();
     const steel = makeStuff(() => new Material());
-    stampTemplatePathForTest(steel, '/obj/material/steel');
+    stampTemplatePathForTest(steel, '/stuff/idea/material/steel');
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     const seen: Array<{ field: string }> = [];
@@ -75,7 +75,7 @@ describe('TangibleMixin field change firing', () => {
   it('re-setting same bulk material noop-skips', async () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     const sword = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(sword)) throw new Error('expected tangible');
     sword.setMaterial(iron);
@@ -92,9 +92,9 @@ describe('TangibleMixin field change firing', () => {
   it('setMaterial(null) on a populated bulk + overrides fires both bulkMaterial and detailMaterials', async () => {
     await bootRegistry();
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     const steel = makeStuff(() => new Material());
-    stampTemplatePathForTest(steel, '/obj/material/steel');
+    stampTemplatePathForTest(steel, '/stuff/idea/material/steel');
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
     axe.setMaterial(iron);

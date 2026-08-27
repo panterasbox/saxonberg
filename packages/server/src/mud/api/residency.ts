@@ -5,17 +5,17 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ResidencyLogic } from '../obj/api/ResidencyLogic';
+import { ResidencyLogic } from '../platform/idea/api/ResidencyLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
-import type { SpawnSweepReport } from '../obj/api/ResidencyLogic';
+import type { SpawnSweepReport } from '../platform/idea/api/ResidencyLogic';
 import type { WorldCensus } from '../lib/residency/Census';
 
 export type { SpawnSweepReport, WorldCensus };
 
-const LOGIC_PATH = '/obj/api/residency';
+const LOGIC_PATH = '/platform/idea/api/residency';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ResidencyLogic', import.meta.url),
+  new URL('../platform/idea/api/ResidencyLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able ResidencyLogic singleton (sync). */

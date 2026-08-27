@@ -8,7 +8,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { AppApi } from "../app";
-import { AppLogic } from "../../obj/api/AppLogic";
+import { AppLogic } from "../../platform/idea/api/AppLogic";
 import { SecurityError } from "../../lib/security/errors";
 import { StuffApi } from "../stuff";
 import { AppSettings, AppSettingKeys } from "../../lib/config/AppSettings";
@@ -51,10 +51,10 @@ describe("AppApi", () => {
 
   it("setting returns the seeded/stored value", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.evacuationFallback]: "/world/void",
+      [AppSettingKeys.evacuationFallback]: "/platform/location/void",
     });
     expect(AppApi.setting(AppSettingKeys.evacuationFallback)).toBe(
-      "/world/void",
+      "/platform/location/void",
     );
   });
 
@@ -108,19 +108,19 @@ describe("AppLogic singleton encapsulation", () => {
     AppSettings._resetForTesting();
   });
 
-  it("lives at /obj/api/app once the facade has materialized it", async () => {
+  it("lives at /platform/idea/api/app once the facade has materialized it", async () => {
     await warmWith(pm, {});
     // A facade call lazily creates the logic singleton.
     AppApi.setting("nonsense");
-    const logic = StuffApi.findByTemplatePath("/obj/api/app");
+    const logic = StuffApi.findByTemplatePath("/platform/idea/api/app");
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob("/obj/api/*")).toContain(logic);
+    expect(StuffApi.findByPathGlob("/platform/idea/api/*")).toContain(logic);
   });
 
   it("denies a direct logic-method call from a non-AppApi caller", async () => {
     await warmWith(pm, {});
     AppApi.setting("nonsense");
-    const logic = StuffApi.findByTemplatePath<AppLogic>("/obj/api/app");
+    const logic = StuffApi.findByTemplatePath<AppLogic>("/platform/idea/api/app");
     expect(logic).toBeDefined();
     // The test module is not `mud/api/app#AppApi`, so the FromModule
     // gate on the logic's own methods denies the call.

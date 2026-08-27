@@ -152,8 +152,8 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      peers: ['perception/read.yaml'],
-      environment: ['perception/read.yaml'],
+      peers: ['platform/cmd/perception/read.yaml'],
+      environment: ['platform/cmd/perception/read.yaml'],
     };
 
     static fieldMeta: FieldMeta = {

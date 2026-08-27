@@ -7,21 +7,21 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlSubscriptionApi } from '../mql-subscription';
-import { MqlSubscriptionLogic } from '../../obj/api/MqlSubscriptionLogic';
+import { MqlSubscriptionLogic } from '../../platform/idea/api/MqlSubscriptionLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
 import { ConnectionApi } from '../connection';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -139,18 +139,18 @@ describe('MqlSubscriptionLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/mql-subscription once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/mql-subscription once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     MqlSubscriptionApi._getRegistrySizeForTesting();
-    const logic = StuffApi.findByTemplatePath('/obj/api/mql-subscription');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/mql-subscription');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-MqlSubscriptionApi caller', () => {
     MqlSubscriptionApi._getRegistrySizeForTesting();
     const logic = StuffApi.findByTemplatePath<MqlSubscriptionLogic>(
-      '/obj/api/mql-subscription'
+      '/platform/idea/api/mql-subscription'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/mql-subscription#MqlSubscriptionApi`,

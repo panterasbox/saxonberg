@@ -6,7 +6,7 @@
  * touch almost nothing. The bound asked each receiver for its
  * `templatePath` and required it to sit under the parcel — but a
  * templatePath is LINEAGE, not location. An avatar's is
- * `/obj/Avatar/<id>` and a cloned corpse's is `/obj/Corpse`,
+ * `/platform/agent/Avatar/<id>` and a cloned corpse's is `/stuff/agent/Corpse`,
  * wherever either happens to be standing, so a governed eval was denied
  * the wizard's own body in the very parcel they hold title to. Worse,
  * the eval scratch is minted and *then* stamped, so at the instant of
@@ -84,9 +84,9 @@ describe('governed eval — the jurisdiction bound', () => {
   });
 
   it('admits a body STANDING in the parcel, whatever its lineage', async () => {
-    // The case the shipped check got wrong. `/obj/Avatar/<id>` is an
+    // The case the shipped check got wrong. `/platform/agent/Avatar/<id>` is an
     // identity; the lounge is where the person is.
-    const avatar = probeAt('/obj/Avatar/player-1', roomAt('/world/lounge'));
+    const avatar = probeAt('/platform/agent/Avatar/player-1', roomAt('/world/lounge'));
     await SandboxApi.runGoverned(BOUND, async () => {
       avatar.setName('changed');
     });
@@ -95,7 +95,7 @@ describe('governed eval — the jurisdiction bound', () => {
 
   it('admits a clone standing in the parcel (a corpse, say)', async () => {
     const corpse = probeAt(
-      '/obj/Corpse',
+      '/stuff/agent/Corpse',
       roomAt('/world/lounge/bar'),
     );
     await SandboxApi.runGoverned(BOUND, async () => {
@@ -114,7 +114,7 @@ describe('governed eval — the jurisdiction bound', () => {
   });
 
   it('DENIES a body standing outside the parcel', async () => {
-    const outsider = probeAt('/obj/Avatar/player-2', roomAt('/world/moor'));
+    const outsider = probeAt('/platform/agent/Avatar/player-2', roomAt('/world/moor'));
     await expect(
       SandboxApi.runGoverned(BOUND, async () => {
         outsider.setName('reached');

@@ -3,7 +3,7 @@
 # of Veshko" mark renders for free (BrandedMixin); the warm amber glow
 # feeds the room's ambient light fixture-side (LightSourceMixin).
 class: /world/lounge/NeonSign
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a Volk neon sign
   keywords: [sign, neon, veshko, volk]

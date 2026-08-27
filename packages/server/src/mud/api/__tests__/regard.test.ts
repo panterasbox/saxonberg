@@ -3,7 +3,7 @@
  *
  * Two concerns:
  *  1. Encapsulation — RegardApi forwards to the RegardLogic singleton at
- *     `/obj/api/regard`, gated `FromModule('/api/regard#RegardApi')`; a
+ *     `/platform/idea/api/regard`, gated `FromModule('/api/regard#RegardApi')`; a
  *     direct logic-method call from any other module is denied.
  *  2. Behavior — get/adjust/set/clear/held-by through the Api against a
  *     real belief-store viewer: accumulation, the -100..+100 clamp,
@@ -15,7 +15,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { RegardApi } from '../regard';
-import { RegardLogic } from '../../obj/api/RegardLogic';
+import { RegardLogic } from '../../platform/idea/api/RegardLogic';
 import { BeliefStoreMixin } from '../../lib/belief/BeliefStore';
 import { Idea } from '../../lib/stuff/Idea';
 import { SecurityError } from '../../lib/security/errors';
@@ -32,8 +32,8 @@ afterEach(() => StuffApi.clearAll());
 
 describe('RegardLogic singleton encapsulation', () => {
   it('denies a direct logic-method call from a non-RegardApi caller', () => {
-    const logic = makeStuffAtPath(() => new RegardLogic(), '/obj/api/regard');
-    expect(StuffApi.findByTemplatePath('/obj/api/regard')).toBe(logic);
+    const logic = makeStuffAtPath(() => new RegardLogic(), '/platform/idea/api/regard');
+    expect(StuffApi.findByTemplatePath('/platform/idea/api/regard')).toBe(logic);
     // The test module is not mud/api/regard#RegardApi nor the singleton
     // itself; the gate denies before the body runs.
     expect(() => logic.getRegard(logic, logic)).toThrow(SecurityError);
@@ -49,13 +49,13 @@ describe('RegardApi behavior', () => {
   }
 
   it('getRegard returns 0 when no opinion is held', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
     const bob = subjectAt('/obj/npc/bob');
     expect(RegardApi.getRegard(alice, bob)).toBe(0);
   });
 
   it('adjustRegard accumulates across calls', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
     const bob = subjectAt('/obj/npc/bob');
     RegardApi.adjustRegard(alice, bob, 3);
     RegardApi.adjustRegard(alice, bob, 3);
@@ -65,7 +65,7 @@ describe('RegardApi behavior', () => {
   });
 
   it('setRegard sets an absolute value', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
     const bob = subjectAt('/obj/npc/bob');
     RegardApi.adjustRegard(alice, bob, 20);
     RegardApi.setRegard(alice, bob, 5);
@@ -73,7 +73,7 @@ describe('RegardApi behavior', () => {
   });
 
   it('clearRegard returns to no opinion', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
     const bob = subjectAt('/obj/npc/bob');
     RegardApi.setRegard(alice, bob, 42);
     RegardApi.clearRegard(alice, bob);
@@ -81,7 +81,7 @@ describe('RegardApi behavior', () => {
   });
 
   it('regardsHeldBy snapshots every regard the viewer holds', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
     const bob = subjectAt('/obj/npc/bob');
     const gus = subjectAt('/obj/npc/gus');
     RegardApi.setRegard(alice, bob, 10);
@@ -93,15 +93,15 @@ describe('RegardApi behavior', () => {
   });
 
   it('regard is directed/asymmetric: A→B does not imply B→A', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
-    const bob = viewerAt('/obj/Avatar/bob');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
+    const bob = viewerAt('/platform/agent/Avatar/bob');
     RegardApi.setRegard(alice, bob, 50);
     expect(RegardApi.getRegard(alice, bob)).toBe(50);
     expect(RegardApi.getRegard(bob, alice)).toBe(0); // untouched
   });
 
   it('clamps into the normative -100..+100 range', () => {
-    const alice = viewerAt('/obj/Avatar/alice');
+    const alice = viewerAt('/platform/agent/Avatar/alice');
     const bob = subjectAt('/obj/npc/bob');
     RegardApi.adjustRegard(alice, bob, 250);
     expect(RegardApi.getRegard(alice, bob)).toBe(100);
@@ -112,18 +112,18 @@ describe('RegardApi behavior', () => {
   it('is kind-agnostic across player/NPC holder and subject combos', () => {
     const combos: Array<[() => Idea, () => Idea, string]> = [
       [
-        () => makeStuffAtPath(() => new PlayerView(), '/obj/Avatar/pv'),
-        () => makeStuffAtPath(() => new Idea(), '/obj/Avatar/ps'),
+        () => makeStuffAtPath(() => new PlayerView(), '/platform/agent/Avatar/pv'),
+        () => makeStuffAtPath(() => new Idea(), '/platform/agent/Avatar/ps'),
         'player→player',
       ],
       [
-        () => makeStuffAtPath(() => new PlayerView(), '/obj/Avatar/pv2'),
+        () => makeStuffAtPath(() => new PlayerView(), '/platform/agent/Avatar/pv2'),
         () => makeStuffAtPath(() => new Idea(), '/obj/npc/ns'),
         'player→npc',
       ],
       [
         () => makeStuffAtPath(() => new NpcView(), '/obj/npc/nv'),
-        () => makeStuffAtPath(() => new Idea(), '/obj/Avatar/ps2'),
+        () => makeStuffAtPath(() => new Idea(), '/platform/agent/Avatar/ps2'),
         'npc→player',
       ],
       [

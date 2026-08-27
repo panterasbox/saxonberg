@@ -507,7 +507,7 @@ describe('ExecutionContextApi', () => {
     });
 
     it('returns the tagged acting author when there is no command frame (CMS/runRoot)', () => {
-      const avatar = { getTemplatePath: () => '/obj/Avatar/cms' };
+      const avatar = { getTemplatePath: () => '/platform/agent/Avatar/cms' };
       ExecutionContextApi.runRoot(null, 'cms.write', () => {
         // The REST boundary names its author in metadata, NOT as the frame
         // target (which stays the boundary's own principal).
@@ -518,7 +518,7 @@ describe('ExecutionContextApi', () => {
 
     it('a command frame takes precedence over a stray acting-author tag', () => {
       const player = { name: 'player' };
-      const other = { getTemplatePath: () => '/obj/Avatar/other' };
+      const other = { getTemplatePath: () => '/platform/agent/Avatar/other' };
       ExecutionContextApi.runRoot(null, 'root', () => {
         ExecutionContextApi.tagActingAuthor(other);
         ExecutionContextApi.run(null, player, 'executeCommand', cmd(player), () => {

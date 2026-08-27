@@ -13,8 +13,8 @@
 # pull into no standup / fast-travel cascade; the GlassAlley failure,
 # avoided by construction). It asserts no exit count, composes no
 # FastTravelMixin, and appears in no TPA manifest. Content-only.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a watchpost in the treeline
   primaryKeyword: watchpost
@@ -41,4 +41,4 @@ data:
   # cloned fresh at standup.
   populates:
     - /world/newbie-wilds/npc/sentry
-    - /obj/traps/trap-kit
+    - /stuff/thing/traps/trap-kit

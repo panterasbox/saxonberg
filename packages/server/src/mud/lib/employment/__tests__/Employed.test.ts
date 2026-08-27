@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { EmployedMixin, type Employed } from '../Employed';
-import BusinessEntity from '../../../obj/Business';
+import BusinessEntity from '../../../platform/idea/Business';
 import type { EmploymentData } from '../Employment';
 import { StuffApi } from '../../../api/stuff';
 import {

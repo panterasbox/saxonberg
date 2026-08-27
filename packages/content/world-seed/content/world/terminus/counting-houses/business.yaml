@@ -12,8 +12,8 @@
 #
 # The banking affiliation (corpoKey: goodkin) lives on the BankCounter fixture,
 # NOT here — a Business has no corpoKey (the map convention).
-class: /obj/Business
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ GOODKIN's board hires Goodkin's tellers — not the city.
   #

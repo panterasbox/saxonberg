@@ -13,7 +13,7 @@
  *     mixins via `MixinApi.getActiveMixins` + `_grantsModalities`).
  *   - `canPerceive(viewer, modality)` — predicate over `sensorium`.
  *
- * Modality singletons live at `/obj/modalities/<name>` and
+ * Modality singletons live at `/platform/idea/modalities/<name>` and
  * are bootstrap-cloned. The logic caches a `Map<name, Modality>` keyed
  * by the modality's own `name` to keep `modalityByName` O(1) on hot
  * paths (every `filterMessage`, every single-sense validator);
@@ -22,8 +22,8 @@
  *
  * Thin, security-gated forwarding shell: the dispatch + caches live in
  * the hot-reloadable {@link PerceptionLogic} singleton at
- * `/obj/api/perception`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/perception` reloads it.
+ * `/platform/idea/api/perception`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/perception` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -36,7 +36,7 @@ import type { Percept } from '../lib/perception/Modality';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
-import { PerceptionLogic } from '../obj/api/PerceptionLogic';
+import { PerceptionLogic } from '../platform/idea/api/PerceptionLogic';
 import { fileURLToPath } from 'url';
 
 /**
@@ -47,9 +47,9 @@ import { fileURLToPath } from 'url';
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
 
-const LOGIC_PATH = '/obj/api/perception';
+const LOGIC_PATH = '/platform/idea/api/perception';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/PerceptionLogic', import.meta.url)
+  new URL('../platform/idea/api/PerceptionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able PerceptionLogic singleton (sync). */

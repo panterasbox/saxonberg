@@ -328,8 +328,8 @@ describe('article dialect — tag passthrough', () => {
   });
 
   it('passes a self-closing component tag through', () => {
-    expect(article('<composition of="/obj/gear/Sword"/>')).toBe(
-      '<composition of="/obj/gear/Sword"/>',
+    expect(article('<composition of="/stuff/thing/gear/Sword"/>')).toBe(
+      '<composition of="/stuff/thing/gear/Sword"/>',
     );
   });
 

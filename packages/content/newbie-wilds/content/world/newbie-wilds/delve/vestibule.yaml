@@ -3,8 +3,8 @@
 # demonstrator: `north` leads into the trapped corridor; `south` climbs back
 # out to the treeline (the one cross-zone edge from inside this sphere — its
 # partner, the inbound `north`, is authored on the treeline seed).
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the mouth of the delve
   primaryKeyword: vestibule

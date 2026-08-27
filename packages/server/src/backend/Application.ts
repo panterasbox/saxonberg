@@ -30,8 +30,8 @@ import { PersistenceManager, Collections } from './PersistenceManager';
 import { ConnectionManager } from './ConnectionManager';
 import { BroadcastFeed } from './BroadcastFeed';
 import { setClientStateUpdatePush } from '../mud/lib/connection/HasInteractive';
-import type Interactive from '../mud/obj/Interactive';
-import Login from '../mud/obj/Login';
+import type Interactive from '../mud/platform/idea/Interactive';
+import Login from '../mud/platform/idea/Login';
 import { ReactionApi } from '../mud/api/reaction';
 import { ConnectionApi } from '../mud/api/connection';
 import { User } from '../mud/lib/identity/User';
@@ -42,7 +42,7 @@ import { StuffApi } from '../mud/api/stuff';
 import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
-import Avatar from '../mud/obj/Avatar';
+import Avatar from '../mud/platform/agent/Avatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { TemplateApi } from '../mud/api/template';
 import { SecurityApi } from '../mud/api/security';
@@ -728,7 +728,7 @@ export class Application {
    * governs the production authoring surface — is not in scope.
    *
    * @returns the generated playerId (identity path:
-   * `/obj/Avatar/<playerId>`)
+   * `/platform/agent/Avatar/<playerId>`)
    */
   private async createDefaultCharacter(
     _user: User,
@@ -823,7 +823,7 @@ export class Application {
     // Unreachable outside AUTH_MODE=test.
     if (wizard && user.playerIds.length > 0) {
       const { GroupApi } = await import('../mud/api/group');
-      const { default: Avatar } = await import('../mud/obj/Avatar');
+      const { default: Avatar } = await import('../mud/platform/agent/Avatar');
       const reg = await GroupApi.registry();
       const provider = reg.managed();
       const memberKey = Avatar.getTemplatePath(user.playerIds[0]!);

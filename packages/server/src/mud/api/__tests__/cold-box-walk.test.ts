@@ -36,13 +36,13 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
-import AppointController from '../../obj/command/employment/AppointController';
+import AppointController from '../../platform/idea/cmd/employment/AppointController';
 import mustHoldAppointingAuthority from '../../lib/command/validators/mustHoldAppointingAuthority';
 import requiresPublisher from '../../lib/command/validators/requiresPublisher';
-import OrganizationEntity from '../../obj/Organization';
-import PressBoard from '../../obj/PressBoard';
-import OfficeRegistry from '../../obj/OfficeRegistry';
-import Avatar from '../../obj/Avatar';
+import OrganizationEntity from '../../platform/idea/Organization';
+import PressBoard from '../../platform/idea/PressBoard';
+import OfficeRegistry from '../../platform/idea/OfficeRegistry';
+import Avatar from '../../platform/agent/Avatar';
 import Location from '../../lib/stuff/Location';
 import { PressRoutes } from '../../../backend/PressRoutes';
 import { PressApi } from '../press';
@@ -191,7 +191,7 @@ function installPressOffice(): OrganizationEntity {
 }
 
 function makeAvatar(playerId: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
   return av;
 }
@@ -274,8 +274,8 @@ describe('⭐⭐ the cold-box walk', () => {
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
       key === AppSettingKeys.pressFrontPage ? PRESS : '',
     );
-    void makeStuffAtPath(() => new PressBoard(), '/obj/PressBoard');
-    const reg = makeStuffAtPath(() => new OfficeRegistry(), '/obj/OfficeRegistry');
+    void makeStuffAtPath(() => new PressBoard(), '/platform/idea/PressBoard');
+    const reg = makeStuffAtPath(() => new OfficeRegistry(), '/platform/idea/OfficeRegistry');
     await reg.postRegister();
     CompactApi._resetOfficeRegistryRefForReload();
   });
@@ -318,7 +318,7 @@ describe('⭐⭐ the cold-box walk', () => {
       false,
     );
     expect(EmploymentApi.holdersOf(org, DIRECTOR)).toEqual([
-      '/obj/Avatar/founder',
+      '/platform/agent/Avatar/founder',
     ]);
 
     // ── Publishing: earned by holding the position, not by being the

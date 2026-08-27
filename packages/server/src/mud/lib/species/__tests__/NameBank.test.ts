@@ -8,7 +8,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import Species from '../../../obj/species/Species';
+import Species from '../../../platform/idea/species/Species';
 import { NameBank } from '../NameBank';
 import { DocumentApi } from '../../../api/document';
 import { StoredDocument } from '../../document/StoredDocument';

@@ -18,7 +18,7 @@ function makeRecord(overrides: Partial<ContractRecord> = {}): ContractRecord {
   r.contractId = "gig-1";
   r.state = "open";
   r.boardPath = "/world/test/board";
-  r.issuer = { kind: "player", templatePath: "/obj/Avatar/issuer" };
+  r.issuer = { kind: "player", templatePath: "/platform/agent/Avatar/issuer" };
   r.issuerAccountId = "acct-issuer";
   r.claimMode = "exclusive";
   r.clause = {
@@ -44,7 +44,7 @@ describe("ContractRecord round-trip + finders", () => {
     const found = await ContractRecord.findByContractId("gig-1");
     expect(found?.issuer).toEqual({
       kind: "player",
-      templatePath: "/obj/Avatar/issuer",
+      templatePath: "/platform/agent/Avatar/issuer",
     });
     expect(found?.clause?.condition.destinationPath).toBe("/world/test/bar");
     expect(found?.rewardMinor).toBe(25);
@@ -57,7 +57,7 @@ describe("ContractRecord round-trip + finders", () => {
       contractId: "b",
       postedAt: 100,
       state: "claimed",
-      claimant: "/obj/Avatar/courier",
+      claimant: "/platform/agent/Avatar/courier",
     }).save();
     await makeRecord({ contractId: "c", state: "settled" }).save();
     await makeRecord({
@@ -72,11 +72,11 @@ describe("ContractRecord round-trip + finders", () => {
     await makeRecord({
       contractId: "held",
       state: "claimed",
-      claimant: "/obj/Avatar/courier",
+      claimant: "/platform/agent/Avatar/courier",
     }).save();
     await makeRecord({ contractId: "other" }).save();
     const active = await ContractRecord.findActiveByClaimant(
-      "/obj/Avatar/courier",
+      "/platform/agent/Avatar/courier",
     );
     expect(active.map((r) => r.contractId)).toEqual(["held"]);
   });

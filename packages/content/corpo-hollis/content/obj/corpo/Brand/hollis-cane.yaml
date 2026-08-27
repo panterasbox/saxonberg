@@ -1,9 +1,0 @@
-class: /obj/corpo/Brand
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  key: hollis-cane
-  name: Hollis Cane
-  owner: hollis
-  category: rum
-  positioning: cheap and proud of it
-  descriptor: A no-nonsense white rum — Hollis selling honest value to honest folk, and saying so right on the label.

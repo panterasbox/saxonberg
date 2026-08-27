@@ -6,7 +6,7 @@
  * path a venue populates must be a file in SOME shipped pack at
  * `content<path>.yaml`. Found live on 2026-08-27: the trade rows shipped
  * from `content/obj/` landed at `/obj/anvil`, and the smithy's populates
- * threw `no template at '/trade/smithing/obj/iron-ingot'` on connect.
+ * threw `no template at '/trade/smithing/thing/iron-ingot'` on connect.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -42,13 +42,13 @@ describe('the hearthworks venue (world-seed) populates rows the packs ship at th
     }
     expect(missing).toEqual([]);
     // The re-cut, by path: the smithing trade's own rows, the commons, the venue's own.
-    expect([...seen].filter((p) => p.startsWith('/trade/smithing/obj/')).sort()).toEqual([
-      '/trade/smithing/obj/anvil', '/trade/smithing/obj/iron-ingot', '/trade/smithing/obj/spare-ingot',
-      '/trade/smithing/obj/whetstone', '/trade/smithing/obj/workbench',
+    expect([...seen].filter((p) => p.startsWith('/trade/smithing/thing/')).sort()).toEqual([
+      '/trade/smithing/thing/anvil', '/trade/smithing/thing/iron-ingot', '/trade/smithing/thing/spare-ingot',
+      '/trade/smithing/thing/whetstone', '/trade/smithing/thing/workbench',
     ]);
-    expect([...seen].filter((p) => p.startsWith('/obj/items/')).sort()).toEqual([
-      '/obj/items/dry-log', '/obj/items/hide-stock', '/obj/items/plated-dish', '/obj/items/prime-cut',
-      '/obj/items/ration-stock', '/obj/items/root-vegetables', '/obj/items/stew-meat', '/obj/items/wet-log',
+    expect([...seen].filter((p) => p.startsWith('/stuff/thing/items/')).sort()).toEqual([
+      '/stuff/thing/items/dry-log', '/stuff/thing/items/hide-stock', '/stuff/thing/items/plated-dish', '/stuff/thing/items/prime-cut',
+      '/stuff/thing/items/ration-stock', '/stuff/thing/items/root-vegetables', '/stuff/thing/items/stew-meat', '/stuff/thing/items/wet-log',
     ]);
   });
 });

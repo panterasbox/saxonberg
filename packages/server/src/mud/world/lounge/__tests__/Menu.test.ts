@@ -7,7 +7,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Menu from '../Menu';
-import RecipeCatalogue from '../../../obj/RecipeCatalogue';
+import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
@@ -41,7 +41,7 @@ beforeEach(async () => {
       ) as never;
     },
   );
-  const catalogue = makeStuffAtPath(() => new RecipeCatalogue(), '/obj/RecipeCatalogue');
+  const catalogue = makeStuffAtPath(() => new RecipeCatalogue(), '/platform/idea/RecipeCatalogue');
   await catalogue.warm();
 });
 

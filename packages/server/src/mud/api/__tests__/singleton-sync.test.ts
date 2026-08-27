@@ -2,7 +2,7 @@
  * StuffApi.singletonSync — the surface-architecture infra primitive.
  *
  * `singletonSync(path, factory)` is the sync, registry-keyed,
- * HMR-aware get-or-create that backs the `/obj/api/<feature>` logic
+ * HMR-aware get-or-create that backs the `/platform/idea/api/<feature>` logic
  * singletons every convertible Api forwards to. These tests pin its
  * contract (acceptance #1):
  *
@@ -30,7 +30,7 @@ import { HotReloadApi } from '../hot-reload';
 import { Idea } from '../../lib/stuff/Idea';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
-const PATH = '/obj/api/__sstest';
+const PATH = '/platform/idea/api/__sstest';
 
 // Swappable logic classes for the deterministic recreate test. Both
 // extend Idea so they flow through createSync / ProxyApi.wrap like a
@@ -62,7 +62,7 @@ describe('StuffApi.singletonSync', () => {
       expect((inst as LogicV1).tag()).toBe('v1');
       // Addressable by path immediately, no Template doc.
       expect(StuffApi.findByTemplatePath(PATH)).toBe(inst);
-      expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(inst);
+      expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(inst);
       expect(inst.getTemplatePath()).toBe(PATH);
     });
 

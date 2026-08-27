@@ -1,0 +1,29 @@
+verbs: [search]
+controller: /platform/idea/cmd/perception/SearchController
+description: "Search for what's concealed here, or inside something"
+help: |
+  `search` is the active, deliberate look — you slow down and go over
+  a place properly, turning up what a passing glance misses: a hidden
+  cache, a secret door, a lurking watcher.
+
+  With no target, you search your whole surroundings (broad but
+  shallow). Name a container to search *inside* it instead (`search
+  chest`) — narrower, but you look deeper, so you find better-hidden
+  things there. A search takes a few moments and occupies your hands;
+  you can be caught out mid-rummage, and being interrupted finds
+  nothing. How much you turn up depends on how sharp your eye is.
+
+  For a quick once-over that doesn't tie up your hands, use `examine`.
+examples:
+  - cmd: search
+    note: Go over your whole surroundings
+  - cmd: search the bookshelf
+    note: Rummage one thing deeply
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    prepositions: [in, inside, through]
+    requires: any

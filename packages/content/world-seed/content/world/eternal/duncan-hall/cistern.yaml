@@ -14,8 +14,8 @@
 # Its way back up to the steps is declared explicitly here (exits are authored
 # on both sides — the steps declare `down` to here, this room declares `up`
 # back). One cell below the steps at [0, 0, -1].
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a flooded cistern
   primaryKeyword: cistern

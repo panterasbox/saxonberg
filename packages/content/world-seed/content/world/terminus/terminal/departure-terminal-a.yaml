@@ -3,7 +3,7 @@
 # the newbie-wilds crossroads (fee 15 — demo split: TPA 3 / city 12). Its two
 # routes satisfy D4 (lounge free + paid destination both reachable from A).
 class: /world/common/tpa/TpaTerminal
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/departure-gate-a
   shortDescription: a Teleport Authority terminal

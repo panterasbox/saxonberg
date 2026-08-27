@@ -9,8 +9,8 @@
 # Stands up **lazily and derived**: no manifest entry, no clerk hook. The
 # employment engine reads this Business's own `operatingLocations` and stands
 # it up on first `businessAt(that fixture)` — the Gate A fare is the trigger.
-class: /obj/Business
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # City-run: the COMMITTEE over the ground it operates on
   # (`/world/terminus/terminal` is the `terminus` group's). Whoever holds

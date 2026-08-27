@@ -1,5 +1,5 @@
 verbs: [blow]
-controller: ../command/BlowController
+controller: ../idea/cmd/BlowController
 description: "Blow a whistle"
 help: |
   Blow a whistle you're carrying or wearing — one sharp blast, heard

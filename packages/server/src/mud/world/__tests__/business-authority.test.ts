@@ -63,7 +63,7 @@ const businesses = [
   ...walk(WILDS).map((path) => ({ path, rel: path.slice(WILDS.length) })),
 ]
   .map((e) => ({ ...e, seed: parse(readFileSync(e.path, 'utf8')) as Seed }))
-  .filter((e) => e.seed?.class === '/obj/Business')
+  .filter((e) => e.seed?.class === '/platform/idea/Business')
   .map((e) => ({ rel: e.rel, data: e.seed.data ?? {} }));
 
 /** The claims as `{extent, owner: {name}}` rows — the shape the seeder's file had. */
@@ -173,7 +173,7 @@ describe('⭐ `committee` — a city department', () => {
     // `TitleController` settles land purchases into its operating account
     // via `ensureOperatorAt` → `operatingAccountOf`. A registry that takes
     // money trades, so the trading half is load-bearing here and the
-    // tempting reclassification to `/obj/Organization` would break `title
+    // tempting reclassification to `/platform/idea/Organization` would break `title
     // buy`.
     const registry = byPath('terminus/registry');
     expect(registry.data.banksAt).toBe('goodkin');

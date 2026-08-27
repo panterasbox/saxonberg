@@ -2,7 +2,7 @@ blueprintId: receptacle
 name: Receptacle
 kind: composition
 baseClass: Thing
-classPath: /obj/Receptacle
+classPath: /platform/thing/Receptacle
 parent: containers
 blessed: true
 description: 'A bulk container that tracks its own temperature — Bulkable + Thermal over a Thing. The base open-mouthed vessel.

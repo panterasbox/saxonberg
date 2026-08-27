@@ -21,32 +21,32 @@
  * combat session (the trap-spring producer precedent).
  *
  * The logic lives in the gated, hot-reloadable {@link MagicLogic}
- * singleton at `/obj/api/magic`; this Api is the thin forwarding shell.
+ * singleton at `/platform/idea/api/magic`; this Api is the thin forwarding shell.
  * See `docs/subsystems/magic.md`.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { MagicLogic } from '../obj/api/MagicLogic';
+import { MagicLogic } from '../platform/idea/api/MagicLogic';
 import type {
   PrepareOutcome,
   CastOutcome,
   SpellsView,
   DischargeOptions,
-} from '../obj/api/MagicLogic';
+} from '../platform/idea/api/MagicLogic';
 import type { MagicSuppression } from '../lib/magic/Suppression';
-import type { SpellDescriptor } from '../obj/magic/Spell';
+import type { SpellDescriptor } from '../platform/idea/magic/Spell';
 import { fileURLToPath } from 'url';
-import type { ChargeTransfer } from '../obj/api/MagicLogic';
+import type { ChargeTransfer } from '../platform/idea/api/MagicLogic';
 import { SecurityApi } from './security';
 
 export type { PrepareOutcome, CastOutcome, SpellsView, DischargeOptions };
 export type { SpellDescriptor };
 
-const LOGIC_PATH = '/obj/api/magic';
+const LOGIC_PATH = '/platform/idea/api/magic';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MagicLogic', import.meta.url),
+  new URL('../platform/idea/api/MagicLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able MagicLogic singleton (sync). */

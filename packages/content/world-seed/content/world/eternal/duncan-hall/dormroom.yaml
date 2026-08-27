@@ -10,7 +10,7 @@
 # in content — no code change. Rooms are runtime clones minted by
 # `DormWarren.admit`. A plain non-coordinate Location; generic label, no Named.
 class: /world/eternal/duncan-hall/DormRoom
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: a dorm room
@@ -30,6 +30,6 @@ data:
     - /world/eternal/duncan-hall/dorm-fixtures/desk
     - /world/eternal/duncan-hall/dorm-fixtures/footlocker
     - /world/eternal/duncan-hall/dorm-fixtures/tap
-    - /obj/vessel/watering-can
-    - template: /obj/pot/starter
+    - /stuff/thing/vessel/watering-can
+    - template: /stuff/thing/pot/starter
       onto: /world/eternal/duncan-hall/dorm-fixtures/desk

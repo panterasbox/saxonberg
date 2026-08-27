@@ -1,0 +1,21 @@
+verbs: [douse, extinguish, snuff]
+controller: /platform/idea/cmd/device/DouseController
+description: "Put out a fire"
+help: |
+  Put out a fire — douse a burning thing within reach (`douse fire`,
+  `extinguish torch`, `snuff candle`). The water soaks it as it goes
+  out, so it won't relight until it dries.
+
+  Something that isn't burning is left alone.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    updates_focus: extend
+    requires: CombustibleMixin|FurnaceMixin
+    validators:
+      - /lib/command/validators/canReach

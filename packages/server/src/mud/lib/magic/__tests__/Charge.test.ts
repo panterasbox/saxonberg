@@ -23,7 +23,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { Charge } from '../Charge';
 import { ChargedMixin, CHARGE_DEFAULTS } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
@@ -250,6 +250,6 @@ describe('ChargedMixin — the battery', () => {
       TestWand as unknown as { commandContributions?: { environment?: string[] } }
     ).commandContributions;
     // A held wand grants OUTWARD to its wielder — `environment`.
-    expect(contributions?.environment).toContain('magic/zap.yaml');
+    expect(contributions?.environment).toContain('platform/cmd/magic/zap.yaml');
   });
 });

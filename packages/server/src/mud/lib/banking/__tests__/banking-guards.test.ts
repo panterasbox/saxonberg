@@ -11,8 +11,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Terms } from "../Terms";
-import BankCounter from "../../../obj/BankCounter";
-import Coin from "../../../obj/Coin";
+import BankCounter from "../../../platform/thing/BankCounter";
+import Coin from "../../../platform/thing/Coin";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
 import { ContainmentApi } from "../../../api/containment";
@@ -41,7 +41,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(PropertiedMixin(Idea)))
 }
 
 const BANK_PATH = "/world/test/goodkin-bank";
-const ALICE = "/obj/Avatar/alice";
+const ALICE = "/platform/agent/Avatar/alice";
 
 function makeBank(terms?: Record<string, number>): InstanceType<typeof BankCounter> {
   return makeStuffAtPath(() => {
@@ -62,7 +62,7 @@ function makeCoinsIn(holder: Stuff, qty: number): Coin {
     coin.currency = "zorkmid";
     coin.denomination = 1;
     return coin;
-  }, "/obj/Coin");
+  }, "/stuff/thing/Coin");
   // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
   // mechanics and the cash faucet may resize a money stack), so a test
   // building a starting stack writes the field, it does not mint.
@@ -85,7 +85,7 @@ function stubSettings(values: Partial<Record<string, string>>): void {
   );
 }
 
-/** A partial withdraw splits a vault stack (clones /obj/Coin) — stub the clone. */
+/** A partial withdraw splits a vault stack (clones /stuff/thing/Coin) — stub the clone. */
 function stubCoinClone(): void {
   vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
     return makeStuffAtPath(() => {

@@ -11,7 +11,7 @@ inputSlots:
   count: 1
 toolCapabilities:
 - pot
-outputTemplate: /obj/items/plated-dish
+outputTemplate: /stuff/thing/items/plated-dish
 outputAppearance: a pale steaming mash
 outputApplication: edible
 outputPortionL: 0.35

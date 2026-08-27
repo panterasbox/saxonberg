@@ -3,7 +3,7 @@
 # a departure from it (status read at authorization). The hub's visible
 # expansion capacity.
 class: /world/common/tpa/TpaTerminal
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/departure-gate-b
   shortDescription: a Teleport Authority terminal

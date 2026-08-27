@@ -9,8 +9,8 @@
 # clones each boot); the Business stands up lazily off its operatingLocations.
 # The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
 # day heists/safe-deposit exist, never a speculative empty room now.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Goodkin banking hall
   primaryKeyword: hall
@@ -29,7 +29,7 @@ data:
       destination: /world/terminus/counting-houses/circle-parlor
       # Exit-kind demonstrator: the parlor sits behind a broad archway
       # (kind defaults: ground media + archway traverse messages).
-      kind: /obj/exits/archway
+      kind: /stuff/idea/exits/archway
   details:
     vault:
       keywords: [vault, grille, door, sunrise, till]

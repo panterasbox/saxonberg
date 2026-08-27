@@ -8,7 +8,7 @@ function resetRoster(): void {
 
 function row(overrides: Partial<RosterRow> = {}): RosterRow {
   return {
-    handle: "/obj/Avatar/p1",
+    handle: "/platform/agent/Avatar/p1",
     header: "Alice",
     recognized: true,
     ...overrides,

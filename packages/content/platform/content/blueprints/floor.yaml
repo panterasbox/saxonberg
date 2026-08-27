@@ -2,7 +2,7 @@ blueprintId: floor
 name: Floor
 kind: composition
 baseClass: Thing
-classPath: /obj/Floor
+classPath: /platform/thing/Floor
 parent: fixtures
 blessed: true
 description: 'A room''s floor surface: a bulk-bearing, postured, slotted, adornable described fixture. The default ground you stand on.

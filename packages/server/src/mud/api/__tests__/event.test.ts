@@ -1,7 +1,7 @@
 /**
  * EventApi tests. Constructs an EventRegistry directly via
  * `StuffApi.create` and stamps a templatePath so EventApi's
- * `findByTemplatePath('/obj/EventRegistry')` resolves it. The
+ * `findByTemplatePath('/platform/idea/EventRegistry')` resolves it. The
  * bootstrap path itself is exercised in Phase 4's integration
  * test.
  */
@@ -10,7 +10,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EventApi } from '../event';
 import { Events } from '../../lib/events';
-import EventRegistry from '../../obj/EventRegistry';
+import EventRegistry from '../../platform/idea/EventRegistry';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
@@ -25,7 +25,7 @@ import { SecurityError } from '../../lib/security/errors';
 async function makeRegistry(): Promise<EventRegistry> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   // The templatePath stamp landed AFTER register, so re-register so

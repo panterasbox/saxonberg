@@ -13,7 +13,7 @@ import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
-import BankCounter from "../../../obj/BankCounter";
+import BankCounter from "../../../platform/thing/BankCounter";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import {
   installBankingHarness,
@@ -104,7 +104,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
     }, "/world/test/veshko-bank");
     const funded = new AccountBalance();
     funded.accountId = ISSUER;
-    funded.owner = "/obj/Avatar/issuer";
+    funded.owner = "/platform/agent/Avatar/issuer";
     funded.bank = "veshko";
     funded.isPrimary = true;
     funded.isActive = true;

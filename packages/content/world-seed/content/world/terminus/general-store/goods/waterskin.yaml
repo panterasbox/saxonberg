@@ -2,8 +2,8 @@
 # sold empty; fill it at a source and it carries the water (its contents
 # have a real, drifting temperature), `drink` from it when the passage runs
 # dry. Capacity ~2 L. A discrete Thing (chattel-stampable, never Globbable).
-class: /obj/Receptacle
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a leather waterskin
   primaryKeyword: waterskin

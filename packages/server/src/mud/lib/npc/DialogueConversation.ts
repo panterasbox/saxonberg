@@ -37,7 +37,7 @@ import type { SustainedEngagement } from "../../api/scheduler";
 import { SchedulerApi } from "../../api/scheduler";
 import { ScheduleApi } from "../../api/schedule";
 import type { AbortReason } from "@saxonberg/types";
-import type Interactive from "../../obj/Interactive";
+import type Interactive from "../../platform/idea/Interactive";
 import { PromptApi, PromptCancelledError } from "../../api/prompt";
 import { RegardApi } from "../../api/regard";
 import { TraitApi } from "../../api/trait";

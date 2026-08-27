@@ -13,7 +13,7 @@ import { AddressApi } from '../address';
 import { WorldClockApi } from '../worldclock';
 import { StuffApi } from '../stuff';
 import { Quantity } from '../../lib/quantity';
-import Locality from '../../obj/Locality';
+import Locality from '../../platform/idea/Locality';
 import Location from '../../lib/stuff/Location';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import {

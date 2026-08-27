@@ -36,7 +36,7 @@ import type { FieldMeta } from "../mixin";
  * `settings` kind is the source of values.
  */
 export const AppSettingFallbacks: Readonly<Record<string, string>> = {
-  defaultStartLocation: "/world/void",
+  defaultStartLocation: "/platform/location/void",
 };
 
 export const AppSettingKeys = {

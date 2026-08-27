@@ -108,7 +108,7 @@ describe("the dorm fixtures earn their classes", () => {
   });
 
   it("the tap has no bespoke class at all — it is already the generic one", () => {
-    // `/obj/UnboundedReceptacle`, same class the bathroom basin uses. Two
+    // `/platform/thing/UnboundedReceptacle`, same class the bathroom basin uses. Two
     // rows over one class with different prose IS the archetype pattern;
     // collapsing them would delete content, not duplication.
     const tap = parse(
@@ -122,7 +122,7 @@ describe("the dorm fixtures earn their classes", () => {
         "utf8",
       ),
     ) as { class?: string };
-    expect(tap.class).toBe("/obj/UnboundedReceptacle");
+    expect(tap.class).toBe("/platform/thing/UnboundedReceptacle");
   });
 
   it("DormRoom composes the four layers whose omission is SILENT", () => {

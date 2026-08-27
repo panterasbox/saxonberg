@@ -4,16 +4,16 @@
  *
  * The registry-backed orchestration + registry resolution live in the
  * hot-reloadable {@link MqlSubscriptionLogic} singleton at
- * `/obj/api/mql-subscription`, reached synchronously via
+ * `/platform/idea/api/mql-subscription`, reached synchronously via
  * `StuffApi.singletonSync`; the Logic resolves the
- * `MqlSubscriptionRegistry` singleton (at `/obj/MqlSubscriptionRegistry`)
+ * `MqlSubscriptionRegistry` singleton (at `/platform/idea/MqlSubscriptionRegistry`)
  * where all subscription state (per-Interactive registry, meta-bus
  * dependency index, listener refcount table, dirty queue) actually
- * lives. `dest /obj/api/mql-subscription` reloads the Logic; the
+ * lives. `dest /platform/idea/api/mql-subscription` reloads the Logic; the
  * Registry's state is unaffected.
  *
  * The Registry's public methods carry a gate that admits this module
- * AND the logic singleton (`FromTemplate('/obj/api/mql-subscription')`),
+ * AND the logic singleton (`FromTemplate('/platform/idea/api/mql-subscription')`),
  * so this Api remains the only legitimate path to mutate or query that
  * state.
  *
@@ -34,7 +34,7 @@ import type {
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -45,14 +45,14 @@ import {
   FieldChangedEvent,
   type FieldChangedPayload,
 } from '../lib/events/FieldChangedEvent';
-import { MqlSubscriptionLogic } from '../obj/api/MqlSubscriptionLogic';
+import { MqlSubscriptionLogic } from '../platform/idea/api/MqlSubscriptionLogic';
 import { fileURLToPath } from 'url';
 
 // DI seam: re-exported so `MqlSubscriptionRegistry` registers its class
 // through this facade rather than importing the logic singleton directly
 // (the no-import-from-*Logic rule). The load-time mechanism lives in
 // `MqlSubscriptionLogic`; this is a pure pass-through re-export.
-export { registerMqlSubscriptionRegistryClass } from '../obj/api/MqlSubscriptionLogic';
+export { registerMqlSubscriptionRegistryClass } from '../platform/idea/api/MqlSubscriptionLogic';
 
 /** Declaration-shaped keep for the wire-error vocabulary import above —
  * the reason strings ride envelopes typed in `@saxonberg/types`; this
@@ -82,7 +82,7 @@ export interface SubscribableFieldDescriptor {
    * ⭐ **Re-resolve me when this durable subject is poked.**
    *
    * The bus indexes on live `stuffId`s. Ledger-derived figures key on a
-   * durable `templatePath` instead (`/obj/Avatar/<playerId>`), which no
+   * durable `templatePath` instead (`/platform/agent/Avatar/<playerId>`), which no
    * `ChangeSource` can match — a descriptor that tried got silently
    * indexed under `null` and never fired at all.
    *
@@ -240,9 +240,9 @@ export interface QueryRequest {
 
 /* ─────────────────────── logic resolution ─────────────────── */
 
-const LOGIC_PATH = '/obj/api/mql-subscription';
+const LOGIC_PATH = '/platform/idea/api/mql-subscription';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MqlSubscriptionLogic', import.meta.url)
+  new URL('../platform/idea/api/MqlSubscriptionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able MqlSubscriptionLogic singleton (sync). */

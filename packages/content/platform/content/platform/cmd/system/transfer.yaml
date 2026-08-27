@@ -1,0 +1,36 @@
+verbs: [transfer]
+controller: /platform/idea/cmd/system/TransferController
+description: "Transfer a parcel's title to another player (bilateral consent)"
+help: |
+  Hand the title to a parcel you own to another player. Name the parcel by
+  its path, then `to` and the player. Because a title carries liability, the
+  recipient must accept — you can't push a title onto someone, so they have
+  to be online to say yes.
+
+  Title-only: no payment changes hands (selling is a later feature). The
+  handoff is recorded permanently in the chain-of-title log, so a parcel's
+  former owners stay on the record — a transfer is never a silent overwrite.
+
+  `--group <name>` transfers to a managed GROUP instead of a player — a
+  governance act (provisioning a studio cell, chartering shared space).
+  A group can't say yes, so there is no consent leg: your authority over
+  the parcel is the whole gate, and the chain-of-title records the act.
+examples:
+  - cmd: transfer /world/lounge to alice
+    note: Offer the lounge title to Alice (she must accept)
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: parcel
+    type: string
+    required: true
+  - name: recipient
+    type: object
+    required: false
+    scope: "online"
+    prepositions: [to]
+    requires: class:Agent
+options:
+  group:
+    type: string
+    description: "Transfer to a managed GROUP by name (a governance act — no consent leg; the governor's act is the acceptance)"

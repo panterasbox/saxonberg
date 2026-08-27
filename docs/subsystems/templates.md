@@ -72,7 +72,7 @@ CRUD goes through the inherited `Document` surface
   dynamic import; validated against an allow-list (below).
 - `hydratorClass` is opt-in. **When absent, no hydrator runs and `data` is
   ignored.** Templates that want generic mixin-field copy must explicitly
-  set `hydratorClass: '/obj/persistence/PersistentHydrator'` (the standard
+  set `hydratorClass: '/platform/idea/persistence/PersistentHydrator'` (the standard
   implementation). Custom hydrators are also class paths under `/lib/`.
 - `data` is pure hydration payload — never carries class paths itself.
 
@@ -89,7 +89,7 @@ domain-specific hydrators per template family).
 - Must NOT contain `..` (no directory traversal)
 - Must start with one of the allowed prefixes: `/obj/` or `/lib/`
 
-Class names are the last path segment (e.g., `/obj/Avatar` →
+Class names are the last path segment (e.g., `/platform/agent/Avatar` →
 `Avatar`); the import succeeds only if a named export with that name
 exists in the resolved module. Anything else throws.
 
@@ -378,7 +378,7 @@ runtime `class` field only.
 
 ```typescript
 class Avatar {
-  static readonly TEMPLATE_PATH_PREFIX = '/obj/Avatar/';
+  static readonly TEMPLATE_PATH_PREFIX = '/platform/agent/Avatar/';
 
   static getTemplatePath(playerId: string): string {
     return `${this.TEMPLATE_PATH_PREFIX}${playerId}`;
@@ -386,7 +386,7 @@ class Avatar {
 }
 ```
 
-Avatar templates are stored at `/obj/Avatar/<playerId>` and created
+Avatar templates are stored at `/platform/agent/Avatar/<playerId>` and created
 automatically when a Player is added to a User. Cloning happens at user
 connect (see `Application.handleUserConnect`).
 

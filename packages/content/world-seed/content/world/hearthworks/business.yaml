@@ -4,8 +4,8 @@
 # Business wiring is load-bearing, not decoration. Both positions confer
 # MakerMixin on a 24/7 roster (a teaching venue never closes). Berta
 # doubles as proprietor.
-class: /obj/Business
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The smith owns the forge: an ENTITY authority.
   appointingAuthority:

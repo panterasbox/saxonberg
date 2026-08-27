@@ -107,10 +107,10 @@ export function CommsMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [
-        "social/dm.yaml",
-        "social/reply.yaml",
-        "social/broadcast.yaml",
-        "social/chat.yaml",
+        "platform/cmd/social/dm.yaml",
+        "platform/cmd/social/reply.yaml",
+        "platform/cmd/social/broadcast.yaml",
+        "platform/cmd/social/chat.yaml",
       ],
       peers: [],
       environment: [],

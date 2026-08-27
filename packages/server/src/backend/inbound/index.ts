@@ -14,7 +14,7 @@
 
 import type { Application } from '../Application';
 import type { IBackend } from '../IBackend';
-import type Interactive from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/platform/idea/Interactive';
 
 export interface HandlerContext {
   socketId: string;

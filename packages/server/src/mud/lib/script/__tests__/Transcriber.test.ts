@@ -33,7 +33,7 @@ class TestGiver extends CommandGiverMixin(
   protected override handleEnvelope(): void {}
 }
 
-const OWNER = "/obj/Avatar/iris";
+const OWNER = "/platform/agent/Avatar/iris";
 const HOME_PATH = "/home/iris/scripts/martini";
 const BUILD = [
   "pour gin into shaker",

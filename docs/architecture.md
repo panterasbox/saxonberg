@@ -190,12 +190,12 @@ stateless `Stuff` **logic singleton** that holds the implementation:
 
 ```
 FooApi (api/foo.ts)              static forwarders + decorateApiClass + types
-   ↓  StuffApi.singletonSync('/obj/api/foo', factory)
-FooLogic (obj/api/FooLogic.ts)   the logic — a stateless Stuff, @internal,
+   ↓  StuffApi.singletonSync('/platform/idea/api/foo', factory)
+FooLogic (platform/idea/api/FooLogic.ts)   the logic — a stateless Stuff, @internal,
                                  instance methods gated to FooApi, HMR-able
 ```
 
-The logic singleton is a `Stuff` (a runtime class, so `obj/api/`),
+The logic singleton is a `Stuff` (a runtime class, so `platform/idea/api/`),
 extends **`ApiLogic`** (a thin `Idea` subclass shared by every logic
 singleton; its job is to make them residency-exempt — see
 [residency.md](./subsystems/residency.md)), composes **no**
@@ -311,7 +311,7 @@ set. Two kinds are recognized:
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
-  Today: `obj/api/ConsumerLogic.ts` ↔ `obj/api/ProducerLogic.ts` (the
+  Today: `platform/idea/api/ConsumerLogic.ts` ↔ `platform/idea/api/ProducerLogic.ts` (the
   class identities feed `EventApi.restrictSubscribe`'s subscriber
   allowlist for the shared `CommandDispatchedEvent` consumer/producer
   tap; cycle-safe). Each opts out with
@@ -320,7 +320,7 @@ set. Two kinds are recognized:
 **Enforcement.** ESLint rules (`.eslintrc.js`): `api/*.ts` bans exported
 functions / function-consts; `lib/**/*.ts` bans the same, exempting
 `*Mixin` factories by name and the two decorator files by path; a
-`no-restricted-imports` rule forbids importing `obj/api/*Logic`
+`no-restricted-imports` rule forbids importing `platform/idea/api/*Logic`
 singletons anywhere except each logic's own `api/*.ts` facade (and
 `__tests__`, which white-box logic internals). All opt out only via an
 `eslint-disable` + justification. (The gate-string resolver and the
@@ -576,8 +576,8 @@ resolver plugin. `--report` prints crossings grouped by module and file.
 
 | Tier | Files | May import |
 |---|---|---|
-| **mudlib** (the default) | `lib/`, `obj/` outside `obj/api/`, `cmd/`, `domain/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
-| **Api** | `mud/api/**` **and** `mud/obj/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
+| **mudlib** (the default) | `lib/`, `obj/` outside `platform/idea/api/`, `cmd/`, `domain/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
+| **Api** | `mud/api/**` **and** `mud/platform/idea/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
 | **test** | `**/__tests__/**` | unrestricted |
 
 The Api tier is **both halves of the `XApi` ↔ `XLogic` split**, not just
@@ -948,7 +948,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/wetness/` | `WetMixin` | the cross-cutting wetness gauge (weather Wave 2): a per-object stored, decaying `0..1` saturation (decomposed-scalar persistence, reconcile-on-read drainage presence-frozen, pushed accrual, banded `dry/damp/wet/soaked`). Drives electricity (wet skin) + thermal (wet heat-loss); dry rate from real `Material.waterAbsorptionCapacity` via evaporation physics. Rides the **matter seam** — composed on `Thing` + `Agent` (so all matter, incl. `Vessel` via `Thing`, is wettable; `Location` is space, not matter). No Api. See [weather.md](./subsystems/weather.md). |
 | `lib/husbandry/` | `GrowingMixin` | the living-world growth model (husbandry phase 1): a cultivated thing's condition as a pure function of `(profile, clock stamp, water, light, root room, interventions)`, reconciled on read over game-time with **no far-past guard and no linkdead freeze** (an owned thing lives the full absence — bounded by a step cap, never a time cap). Three satisfactions combined by the **minimum** (Liebig); a floored root curve makes a pot-bound plant stall AND hold a band; banded `thriving/healthy/stressed/failing/dead` with a separate plain-language cause line. Since phase 2 water lives in the SOIL, so the mixin declares SEVEN host seams (`rootRoom` / `soilMoisture` / `meanSoilMoisture` / `nutrientLevel` / `waterTheSoil` / `onFloweringLatched` / `sampleLux`), takes a **fourth** min() argument (`satNutrient`, `null` → 1, so a pot is unaffected), and records `_worstLimiting` — a monotone minimum that harvest quality reads, which is what makes farming reward your worst moment. Also owns the **harvest + rooting surface** — `harvestTemplatePath`, `nutrientDraw`, `isHarvestable()`, `getBed()`, `transplantDifficulty()` — moved off the `Plant` class, because `harvest` and `repot` declared `requires: GrowingMixin` while their controllers refused `instanceof Plant`: two predicates for one gate. Every one of those is expressed purely in terms of what this mixin already owns, so the class was never the right home; `Plant` was simply the only composer. Composed by `Plant`. No Api. See [husbandry.md](./subsystems/husbandry.md) and [smallholding.md](./subsystems/smallholding.md). |
-| `lib/husbandry/` | `PlantableMixin` | **the capability `plant` needs** — `growsIntoPath`, the `/obj/plant/…` template this thing mints when put in the ground. Extracted from the `Seed` CLASS: `PlantController` refused with `seed instanceof Seed`, which pinned planting to one content class and read against the project's own grain (`instanceof` is for top-level types, not ordinary content). A cutting, a tuber, a bulb and a runner all have a thing-they-grow-into and none should inherit a class whose doc commits to "bought at a store, discrete, never a stack". Composed by `Seed`. No Api. See [husbandry.md](./subsystems/husbandry.md). |
+| `lib/husbandry/` | `PlantableMixin` | **the capability `plant` needs** — `growsIntoPath`, the `/stuff/thing/plant/…` template this thing mints when put in the ground. Extracted from the `Seed` CLASS: `PlantController` refused with `seed instanceof Seed`, which pinned planting to one content class and read against the project's own grain (`instanceof` is for top-level types, not ordinary content). A cutting, a tuber, a bulb and a runner all have a thing-they-grow-into and none should inherit a class whose doc commits to "bought at a store, discrete, never a stack". Composed by `Seed`. No Api. See [husbandry.md](./subsystems/husbandry.md). |
 | `lib/husbandry/` | `CultivableMixin` | **ground that holds plants** (living-world phase 2): a bulk interior of soil plus a plant slot whose authored `capacity` is N — *a pot is a bed with one slot*. Owns the shared-soil division (`rootRoomPerPlant` = soil ÷ occupied, prospective for `fitsSlot`), the soil's OWN checkpoint (`moisture` + `nitrogen` reserves, `soilClockStamp`, `reconcileSoil` behind its own reentry guard, draining by summed occupant demand), the populate-then-adopt applier, and `fixedGround` — the authored flag that decides whether land use applies (a bed is ground; a pot is furniture). Requires `Container` + `Bulkable` + `Slotted` + `Populates` + `Reserved` in its BASE, composed at the call site. Composed by `PlantPot` and `GardenBed`. No Api. See [smallholding.md](./subsystems/smallholding.md). |
 | `lib/thermal/` | `MeltableMixin` | the phase-change capability (fire build): a solid + a latent-heat accumulator; `ThermalApi.reconcilePhase` holds a latent-heat plateau then melts it to a molten `Bulkable` pool in the scope `Floor` (the reverse boils / solidifies a liquid). Reads its material's `meltingPoint`/`latentHeatOfFusion`; gated `ThermalLogic` is the single writer. Composed by `Ingot`/`Casting`/`Candle`. See [fire.md](./subsystems/fire.md). |
 | `lib/fire/` | `CombustibleMixin` | the combustion capability: a `'fuel'` `Reserve` + a `Burning` value-object active state; reads its material's `autoignitionTemperature`/`heatOfCombustion`, pins the flame temperature while aflame (generalized Campfire pin), reconcile-on-read fuel drain → char / structural burn-through. Gated `FireLogic` is the single Burning writer. Composed by `Firewood`/`Candle`. See [fire.md](./subsystems/fire.md). |
@@ -1043,7 +1043,7 @@ for the full rule.
   category subdirs; the `command-view` document kind). Served store-first
   by `CommandApi`, disk as the counted fallback.
 
-- **Command controllers**: in `mud/obj/command/<category>/`, e.g.
+- **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts`.
 
 ## Member Privacy: `#` vs TypeScript Modifiers
@@ -1066,7 +1066,7 @@ Convention is **layer-based**:
   mediate access for everything else, and `#` ensures internal slots
   are invisible to the wrapping Proxy.
 - **Domain code** — `packages/server/src/mud/lib/`,
-  `packages/server/src/mud/obj/` —
+  `packages/server/src/mud/platform/` —
   defaults to TypeScript modifiers. Domain code carries persistent
   fields that the `Hydrator` reflects into; those fields MUST be
   public. Use `protected` for subclass extension points (e.g.
@@ -1290,7 +1290,7 @@ refuse it).
 If you're reading the older planning docs and wondering where Phases
 5 and 6 went: they got **absorbed**, not skipped. Phase 5
 (Communications) shipped as part of Phase 3 messaging plus the
-say/tell controllers in `content/cmd/` and `mud/obj/command/`. Phase 6
+say/tell controllers in `content/cmd/` and `mud/platform/idea/cmd/`. Phase 6
 (Extended Object Model) shipped as `Thing.ts`, `Detailed.ts`,
 `Propertied.ts`, `CartesianLocation.ts` in `lib/stuff/` and
 `lib/spatial/`. Implementation status now lives in

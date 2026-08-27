@@ -74,7 +74,7 @@ export interface ComposerBase {
    * segment of its `classPath`).
    */
   name: string;
-  /** The base's backing class path (`/obj/Coin`); `""` for a bare root. */
+  /** The base's backing class path (`/stuff/thing/Coin`); `""` for a bare root. */
   classPath: string;
   /**
    * The mixins the base already composes — the read-only "inherited from
@@ -105,7 +105,7 @@ export interface ComposerState {
 export interface TemplateDraft {
   /** The new template path (`/obj/MyCoin`). */
   path: string;
-  /** The backing class the template instantiates (`/obj/Coin`). */
+  /** The backing class the template instantiates (`/stuff/thing/Coin`). */
   classPath: string;
   /** The originating blueprint's display name (for the header). */
   blueprintName: string;
@@ -394,7 +394,7 @@ function parseData(raw: string): Record<string, unknown> | null {
   return parsed as Record<string, unknown>;
 }
 
-/** The last `/`-segment of a class path (`/obj/PaymentCard` → `PaymentCard`). */
+/** The last `/`-segment of a class path (`/stuff/thing/PaymentCard` → `PaymentCard`). */
 export function classNameOf(classPath: string): string {
   const seg = classPath.split("/").filter(Boolean).pop();
   return seg ?? classPath;

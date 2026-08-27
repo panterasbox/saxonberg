@@ -13,14 +13,14 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../../obj/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
 import Thing from '../../../lib/stuff/Thing';
 import Material from '../../../lib/material/Material';
-import Firewood from '../../../obj/Firewood';
-import Ingot from '../../../obj/Ingot';
-import Forge from '../../../obj/Forge';
-import Floor from '../../../obj/Floor';
+import Firewood from '../../../platform/thing/Firewood';
+import Ingot from '../../../platform/thing/Ingot';
+import Forge from '../../../platform/thing/Forge';
+import Floor from '../../../platform/thing/Floor';
 import SealedCellar from '../SealedCellar';
 import { Reserve } from '../../../lib/reserve';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
@@ -53,7 +53,7 @@ function oak(): Material {
     m.setHeatOfCombustion(Quantity.of(16, 'MJ/kg'));
     m.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
     return m;
-  }, `/obj/material/_test/hearth-oak-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/hearth-oak-${seq}`) as unknown as Material;
 }
 function iron(): Material {
   seq += 1;
@@ -65,7 +65,7 @@ function iron(): Material {
     m.setMeltingPoint(Quantity.of(1811, 'K'));
     m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
     return m;
-  }, `/obj/material/_test/hearth-iron-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/hearth-iron-${seq}`) as unknown as Material;
 }
 
 function firewood(where: CartesianLocation, massKg: number, wet = false): Firewood {

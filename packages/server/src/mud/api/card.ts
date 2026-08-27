@@ -13,18 +13,18 @@
  * default, resolved once and stamped with when. All four combinations
  * are meaningful, and neither implies the other.
  *
- * The state lives on the `CardRegistry` singleton at `/obj/CardRegistry`;
+ * The state lives on the `CardRegistry` singleton at `/platform/idea/CardRegistry`;
  * the orchestration lives in the hot-reloadable {@link CardLogic}
- * singleton at `/obj/api/card`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/card` reloads the logic
+ * singleton at `/platform/idea/api/card`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/card` reloads the logic
  * without closing anybody's cards.
  *
  * See [card-surface.md](../../../../docs/subsystems/card-surface.md).
  */
 
 import type { CardCloseReason, CardId } from '@saxonberg/types';
-import type Interactive from '../obj/Interactive';
-import type { CardOpenOptions } from '../obj/CardRegistry';
+import type Interactive from '../platform/idea/Interactive';
+import type { CardOpenOptions } from '../platform/idea/CardRegistry';
 import type { CommandContext } from './command';
 import { SecurityApi } from './security';
 import { MixinApi } from './mixin';
@@ -33,7 +33,7 @@ import { ScheduleApi, type ScheduleHandle } from './schedule';
 import { ExecutionContextApi } from './execution-context';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { CardLogic } from '../obj/api/CardLogic';
+import { CardLogic } from '../platform/idea/api/CardLogic';
 import { CARDS, CARDS_BY_NAME } from '../lib/connection/Cards';
 import type { CardDefinition, CardSource } from '../lib/connection/Cards';
 import { fileURLToPath } from 'url';
@@ -45,11 +45,11 @@ export { CARDS, CARDS_BY_NAME };
 // DI seam: re-exported so `CardRegistry` registers its class through this
 // facade rather than importing the logic singleton directly (the
 // no-import-from-*Logic rule). Pure pass-through re-export.
-export { registerCardRegistryClass } from '../obj/api/CardLogic';
+export { registerCardRegistryClass } from '../platform/idea/api/CardLogic';
 
-const LOGIC_PATH = '/obj/api/card';
+const LOGIC_PATH = '/platform/idea/api/card';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/CardLogic', import.meta.url),
+  new URL('../platform/idea/api/CardLogic', import.meta.url),
 );
 
 /**

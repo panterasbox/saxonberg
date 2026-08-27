@@ -13,10 +13,10 @@
 
 import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ForgeController from '../obj/command/crafting/ForgeController';
-import SharpenController from '../obj/command/crafting/SharpenController';
-import RepairController from '../obj/command/crafting/RepairController';
-import SalvageController from '../obj/command/crafting/SalvageController';
+import ForgeController from '../platform/idea/cmd/crafting/ForgeController';
+import SharpenController from '../platform/idea/cmd/crafting/SharpenController';
+import RepairController from '../platform/idea/cmd/crafting/RepairController';
+import SalvageController from '../platform/idea/cmd/crafting/SalvageController';
 import { SchedulerApi } from '../api/scheduler';
 import { WorldClockApi } from '../api/worldclock';
 import { StuffApi } from '../api/stuff';
@@ -26,11 +26,11 @@ import { MixinApi } from '../api/mixin';
 import { RecipeKnowledge } from '../lib/script/RecipeKnowledge';
 import { Quantity } from '../lib/quantity';
 import Material from '../lib/material/Material';
-import Ingot from '../obj/Ingot';
-import Casting from '../obj/Casting';
-import Scrap from '../obj/Scrap';
-import Weapon from '../obj/equipment/Weapon';
-import Whetstone from '../obj/Whetstone';
+import Ingot from '../platform/thing/Ingot';
+import Casting from '../platform/thing/Casting';
+import Scrap from '../platform/thing/Scrap';
+import Weapon from '../platform/thing/equipment/Weapon';
+import Whetstone from '../platform/thing/Whetstone';
 import { Construction } from '../lib/material/Construction';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { CommandContext } from '../api/command';
@@ -44,7 +44,7 @@ import {
   completeStep,
   makeLitForge,
   makeTool,
-} from '../obj/command/crafting/__tests__/branch-fixtures';
+} from '../platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '../lib/security/__tests__/test-setup';
 
 async function executeAs(
@@ -75,12 +75,12 @@ beforeEach(async () => {
       w.setLength(Quantity.of(0.2, 'm'));
       return w as never;
     }
-    if (path === '/obj/Casting') return makeStuff(() => new Casting()) as never;
-    if (path === '/obj/Scrap') return makeStuff(() => new Scrap()) as never;
+    if (path === '/stuff/thing/Casting') return makeStuff(() => new Casting()) as never;
+    if (path === '/stuff/thing/Scrap') return makeStuff(() => new Scrap()) as never;
     throw new Error(`unexpected clone ${path}`);
   });
   room = makeStuff(() => new TestActor());
-  smith = makeStuffAtPath(() => new TestActor(), '/obj/Avatar/lifecycle-smith');
+  smith = makeStuffAtPath(() => new TestActor(), '/platform/agent/Avatar/lifecycle-smith');
   ContainmentApi.move(smith, room);
 });
 

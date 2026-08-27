@@ -1,7 +1,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MaterialApi } from '../material';
-import { MaterialLogic } from '../../obj/api/MaterialLogic';
+import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Material from '../../lib/material/Material';
@@ -194,7 +194,7 @@ describe('materials-response — the response function', () => {
     // Any Api call lazily materializes the logic singleton.
     MaterialApi.previewBand('edge', steel(), Construction.of('plate'), fair, 1);
     const logic = StuffApi.findByTemplatePath<MaterialLogic>(
-      '/obj/api/material',
+      '/platform/idea/api/material',
     );
     expect(logic).toBeDefined();
     expect(() =>

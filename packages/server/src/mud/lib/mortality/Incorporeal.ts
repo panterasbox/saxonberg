@@ -44,7 +44,7 @@ export function IncorporealMixin<TBase extends MixinConstructor<Stuff>>(
      * with no body is never left without one available command.
      */
     static commandContributions: CommandContributions = {
-      self: ['charactergen/passage.yaml'],
+      self: ['platform/cmd/charactergen/passage.yaml'],
       peers: [],
       environment: [],
     };

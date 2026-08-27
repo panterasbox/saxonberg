@@ -1,0 +1,31 @@
+# Potting soil — a granular bulk Material. Pours like a bulk payload (the
+# shipped `pour` path fills a pot from a sack) but is a loose solid, not a
+# liquid: `granular` + `solid` rather than `liquid`, so nothing mistakes it
+# for something you could drink.
+#
+# Soil is a VOLUME and a prerequisite here, not a nutrient model — there is
+# no N/P/K, no pH, no tilth, no organic matter. The six-reserve soil that
+# makes quality mean something is farming's (phase 2/4). What the growth
+# model reads is only how many litres of it a pot holds: the root ceiling.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: potting soil
+  appearance: dark potting soil
+  keywords: [soil, dirt, compost, potting]
+  # Loose peat-based potting mix, not packed earth (~1500) — it is mostly
+  # air by volume, which is the point of it.
+  density: 400
+  thermalConductivity: 0.15
+  specificHeat: 1200
+  # Damp soil conducts a little; dry mix is near-insulating.
+  electricalConductivity: 0.02
+  # Holds a lot of water for its dry mass — that is what a growing medium
+  # is for, and it is what makes a watered pot buffer for about a day.
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [granular, solid, soil, growing-medium]
+  composition: []
+  biologicalSource: null

@@ -8,8 +8,8 @@
 # open", so the seed reflects that as the initial state. Closing
 # them at runtime via the `close` verb stops light and movement
 # through this boundary per the Door substrate doc.
-class: /obj/Door
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Door
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the front doors
   primaryKeyword: doors

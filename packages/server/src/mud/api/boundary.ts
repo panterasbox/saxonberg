@@ -25,8 +25,8 @@
  *
  * Thin, security-gated forwarding shell: the install / teardown logic
  * lives in the hot-reloadable {@link BoundaryLogic} singleton at
- * `/obj/api/boundary`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/boundary` reloads it.
+ * `/platform/idea/api/boundary`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/boundary` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -34,7 +34,7 @@ import type { Boundary } from '../lib/boundary/Boundary';
 import type { Adornable } from '../lib/boundary/Adornable';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { BoundaryLogic } from '../obj/api/BoundaryLogic';
+import { BoundaryLogic } from '../platform/idea/api/BoundaryLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -50,9 +50,9 @@ export interface CreateBoundaryOptions<T extends Boundary = Boundary> {
   hostB: Stuff & Adornable;
 }
 
-const LOGIC_PATH = '/obj/api/boundary';
+const LOGIC_PATH = '/platform/idea/api/boundary';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/BoundaryLogic', import.meta.url)
+  new URL('../platform/idea/api/BoundaryLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able BoundaryLogic singleton (sync). */

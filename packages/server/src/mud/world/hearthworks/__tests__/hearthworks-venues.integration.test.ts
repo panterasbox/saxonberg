@@ -28,19 +28,19 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
 import Thing from '../../../lib/stuff/Thing';
-import Ingot from '../../../obj/Ingot';
-import Forge from '../../../obj/Forge';
-import Oven from '../../../obj/Oven';
-import Chest from '../../../obj/Chest';
-import CookPot from '../../../obj/CookPot';
-import Dish from '../../../obj/Dish';
-import Weapon from '../../../obj/equipment/Weapon';
-import ToolItem from '../../../obj/ToolItem';
+import Ingot from '../../../platform/thing/Ingot';
+import Forge from '../../../platform/thing/Forge';
+import Oven from '../../../platform/thing/Oven';
+import Chest from '../../../platform/thing/Chest';
+import CookPot from '../../../platform/thing/CookPot';
+import Dish from '../../../platform/thing/Dish';
+import Weapon from '../../../platform/thing/equipment/Weapon';
+import ToolItem from '../../../platform/thing/ToolItem';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import LoungeMenu from '../../lounge/Menu';
 import SmithyMenu from '../SmithyMenu';
 import KitchenMenu from '../KitchenMenu';
-import RecipeCatalogue from '../../../obj/RecipeCatalogue';
+import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { Reserve } from '../../../lib/reserve';
 import { Creature } from '../../../lib/creature/Creature';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -67,7 +67,7 @@ const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'generic-objects'
 );
 const PACK_MATERIALS = fileURLToPath(
   new URL(
-    '../../../../../../content/base-library/content/obj/material/',
+    '../../../../../../content/base-library/content/stuff/idea/material/',
     import.meta.url,
   ),
 );
@@ -105,7 +105,7 @@ function loadPackMaterial(rel: string): Material {
       m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
     }
     return m;
-  }, `/obj/material/${rel}`) as unknown as Material;
+  }, `/stuff/idea/material/${rel}`) as unknown as Material;
 }
 
 function makeForge(lit: boolean, bellows = false): Forge {
@@ -230,7 +230,7 @@ beforeEach(async () => {
   // — the faked-Mongo test has no clone pipeline; the substation
   // precedent).
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
-    if (path === '/obj/arms/belt-knife' || path === '/obj/arms/fire-poker') {
+    if (path === '/stuff/thing/arms/belt-knife' || path === '/stuff/thing/arms/fire-poker') {
       const w = makeStuff(() => new Weapon());
       w.setConstruction(
         Construction.of(path.endsWith('poker') ? 'hafted' : 'bladed'),
@@ -239,7 +239,7 @@ beforeEach(async () => {
       w.setLength(Quantity.of(0.2, 'm'));
       return w as never;
     }
-    if (path === '/obj/items/plated-dish') {
+    if (path === '/stuff/thing/items/plated-dish') {
       const d = makeStuff(() => new Dish());
       (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
       d.setInteriorCapacity(Quantity.of(0.6, 'L'));
@@ -250,7 +250,7 @@ beforeEach(async () => {
 
   const catalogue = makeStuffAtPath(
     () => new RecipeCatalogue(),
-    '/obj/RecipeCatalogue',
+    '/platform/idea/RecipeCatalogue',
   );
   await catalogue.warm();
 });
@@ -263,7 +263,7 @@ afterEach(() => {
 describe('the venue menus', () => {
   it('every menu affords commerce only; instruments carry the working verbs', () => {
     // Menus = menu/order, any venue (inherited off the commerce base).
-    const commerce = ['crafting/menu.yaml', 'crafting/order.yaml'];
+    const commerce = ['platform/cmd/crafting/menu.yaml', 'platform/cmd/crafting/order.yaml'];
     for (const cls of [SmithyMenu, KitchenMenu, LoungeMenu]) {
       expect(cls.commandContributions.peers).toEqual(commerce);
       expect(cls.commandContributions.environment).toEqual(commerce);
@@ -274,22 +274,22 @@ describe('the venue menus', () => {
     const anvil = makeStuff(() => new ToolItem());
     anvil.setCapabilities(['anvil']);
     const anvilEnv = anvil.getInstanceContributions().peers ?? [];
-    expect(anvilEnv).toContain('crafting/hammer.yaml');
-    expect(anvilEnv).toContain('crafting/forge.yaml');
-    expect(anvilEnv).toContain('crafting/repair.yaml');
-    expect(anvilEnv).not.toContain('crafting/mix.yaml');
+    expect(anvilEnv).toContain('platform/cmd/crafting/hammer.yaml');
+    expect(anvilEnv).toContain('platform/cmd/crafting/forge.yaml');
+    expect(anvilEnv).toContain('platform/cmd/crafting/repair.yaml');
+    expect(anvilEnv).not.toContain('platform/cmd/crafting/mix.yaml');
 
     const pot = makeStuff(() => new CookPot());
     const potEnv = pot.getInstanceContributions().peers ?? [];
-    expect(potEnv).toContain('crafting/cook.yaml');
-    expect(potEnv).toContain('crafting/pour.yaml');
-    expect(potEnv).not.toContain('crafting/forge.yaml');
+    expect(potEnv).toContain('platform/cmd/crafting/cook.yaml');
+    expect(potEnv).toContain('platform/cmd/crafting/pour.yaml');
+    expect(potEnv).not.toContain('platform/cmd/crafting/forge.yaml');
 
     // `heat` is the furnace's (the fire is the instrument) + the pot's.
     expect(Forge.commandContributions.peers).toContain(
-      'crafting/heat.yaml',
+      'platform/cmd/crafting/heat.yaml',
     );
-    expect(potEnv).toContain('crafting/heat.yaml');
+    expect(potEnv).toContain('platform/cmd/crafting/heat.yaml');
 
     // All three ARE commerce menus (resolveIn's instanceof filter).
     expect(makeStuff(() => new SmithyMenu())).toBeInstanceOf(CommerceMenu);
@@ -325,7 +325,7 @@ describe('the smithy, served', () => {
     ingot.setMass(Quantity.of(0.5, 'kg'));
     ingot.setMaterial(
       StuffApi.findByTemplatePath<Material>(
-        '/obj/material/element/iron',
+        '/stuff/idea/material/element/iron',
       ) as unknown as Material,
     );
     ContainmentApi.move(ingot, room);
@@ -374,9 +374,9 @@ describe('the cookhouse, served', () => {
     ContainmentApi.move(pot, room);
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest, room);
-    ContainmentApi.move(stock('/obj/material/food/root-vegetable', 0.6), chest);
-    ContainmentApi.move(stock('/obj/material/food/root-vegetable', 0.6), chest);
-    ContainmentApi.move(stock('/obj/material/food/stew-meat', 0.4), chest);
+    ContainmentApi.move(stock('/stuff/idea/material/food/root-vegetable', 0.6), chest);
+    ContainmentApi.move(stock('/stuff/idea/material/food/root-vegetable', 0.6), chest);
+    ContainmentApi.move(stock('/stuff/idea/material/food/stew-meat', 0.4), chest);
     chest.setOpen(chestOpen);
     ContainmentApi.move(
       makeStuffAtPath(() => new TestMaker(), `/obj/_test/venue-cook-${chestOpen}`),
@@ -399,7 +399,7 @@ describe('the cookhouse, served', () => {
     // points at the ONE generic cooked base and the payload carries the
     // stew's identity + macros, summed from the ACTUAL pantry inputs
     // (macros in = macros out; the fixed-vocabulary rule live).
-    expect(slot.getMaterialPath()).toBe('/obj/material/food/cooked');
+    expect(slot.getMaterialPath()).toBe('/stuff/idea/material/food/cooked');
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Hearty Stew');
     expect(payload.nutrientAmounts).toMatchObject({
@@ -440,12 +440,12 @@ describe('the cookhouse, served', () => {
       detail: 'meat',
     });
     // …a fine-graded prime cut can.
-    const { default: Provision } = await import('../../../obj/Provision');
+    const { default: Provision } = await import('../../../platform/thing/Provision');
     const prime = makeStuff(() => new Provision());
     prime.setMass(Quantity.of(0.5, 'kg'));
     prime.setMaterial(
       StuffApi.findByTemplatePath<Material>(
-        '/obj/material/food/stew-meat',
+        '/stuff/idea/material/food/stew-meat',
       ) as unknown as Material,
     );
     prime.setGradeBand('fine');

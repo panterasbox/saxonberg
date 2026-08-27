@@ -68,7 +68,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, "..", "src");
 const MUD_ROOT = join(SERVER_SRC, "mud");
 // The topic descriptors are the platform pack's content (content-packs wave 3).
-const TOPIC_SEEDS = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "obj", "Topic");
+const TOPIC_SEEDS = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "platform", "idea", "Topic");
 const CLIENT_SRC = join(here, "..", "..", "client", "src");
 
 /** Exported for the unit tests — the same white-box seam

@@ -1,0 +1,18 @@
+# PersistenceManager hook manifest.
+#
+# Each entry binds a hook template to a (collection, operation) slot. At
+# boot, PM clones the template via StuffApi.clone() and registers the
+# resulting hook instance. Multiple entries may target the same template
+# (one hook implementing multiple capabilities) or the same slot (multiple
+# hooks in a chain — order in this file is order in the chain).
+#
+# Template authorship for hooks is privileged: edits here directly affect
+# the integrity of the data layer.
+
+hooks:
+  - collection: content
+    operation: save
+    template: /platform/idea/hooks/DomainHook
+  - collection: content
+    operation: delete
+    template: /platform/idea/hooks/DomainHook

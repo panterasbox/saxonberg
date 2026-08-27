@@ -1,8 +1,0 @@
-# ChattelRegistry — the movable-good title substrate singleton (the
-# `chattelId → owner` index + mint-a-fresh-id seam behind ChattelApi, the
-# parcel-title twin one cardinality down). Bootstrap clones this template at
-# /obj/ChattelRegistry (see mud/bootstrap.ts); like its peer registries the
-# template is a plain seed so a fresh DB can stand it up. `postRegister`
-# rebuilds the index from the `chattel` collection.
-class: /obj/ChattelRegistry
-data: {}

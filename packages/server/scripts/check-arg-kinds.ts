@@ -75,7 +75,7 @@ const ROOTS = [
   join(MUD_ROOT, "world"),
   ...(existsSync(CONTENT)
     ? readdirSync(CONTENT)
-        .map((pack) => join(CONTENT, pack, "content", "cmd"))
+        .map((pack) => join(CONTENT, pack, "content", "platform", "cmd"))
         .filter((dir) => existsSync(dir))
     : []),
 ];

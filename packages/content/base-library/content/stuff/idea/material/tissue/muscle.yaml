@@ -1,0 +1,18 @@
+# Muscle — contractile animal tissue. The per-part substrate a future
+# strength reading (force over muscle mass) aggregates. `density` (kg/m³)
+# and `thermalConductivity` (W/(m·K)) are Material's real Quantity fields,
+# authored bare + marshalled; the thermal value feeds algor-mortis
+# cooling when the Thermal capability lands.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: muscle
+  density: 1060
+  specificHeat: 3500
+  thermalConductivity: 0.49
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 2
+  toughness: 3
+  edibility: true
+  nutrients: ["protein", "water"]
+  tags: ["tissue", "animal", "muscle", "organic", "living", "edible"]

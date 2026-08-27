@@ -7,8 +7,8 @@
 # Reached by walking west from the treeline (the spawn-override still
 # lands you at the treeline); a duelling-stone holds a knife he takes up.
 # Carries the Last-Counted-Mile locality address like its siblings.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a hollow full of fog
   primaryKeyword: hollow
@@ -47,12 +47,12 @@ data:
   # fresh at standup.
   populates:
     - /world/newbie-wilds/npc/duelist
-    - /obj/arms/steel-dagger
-    - /obj/arms/steel-dagger
+    - /stuff/thing/arms/steel-dagger
+    - /stuff/thing/arms/steel-dagger
     # A rack of longer arms for the reach / shield demo — the spear
     # out-reaches the duelist's knife until he closes; the sword + shield
     # show the wielded-armor covering path. All cloned fresh at standup.
-    - /obj/arms/steel-spear
-    - /obj/arms/steel-sword
-    - /obj/arms/steel-shield
-    - /obj/arms/leather-whip
+    - /stuff/thing/arms/steel-spear
+    - /stuff/thing/arms/steel-sword
+    - /stuff/thing/arms/steel-shield
+    - /stuff/thing/arms/leather-whip

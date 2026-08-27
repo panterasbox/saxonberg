@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BankingApi, Money } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
 import { Employment } from '../../employment/Employment';
-import BusinessEntity from '../../../obj/Business';
+import BusinessEntity from '../../../platform/idea/Business';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { ExecutionContextApi } from '../../../api/execution-context';

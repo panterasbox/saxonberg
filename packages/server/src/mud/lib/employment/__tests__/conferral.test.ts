@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { MakerMixin } from '../../craft/Maker';
 import { EmployedMixin } from '../Employed';
-import BusinessEntity from '../../../obj/Business';
+import BusinessEntity from '../../../platform/idea/Business';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

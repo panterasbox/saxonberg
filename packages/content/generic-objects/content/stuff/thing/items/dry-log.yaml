@@ -1,0 +1,17 @@
+# A dry oak log — a Combustible woodshed content (cloned fresh each standup).
+# Oak's real figures (autoignition 570 K, heat of combustion 16 MJ/kg) drive
+# it; on burnout it chars to carbon.
+class: /platform/thing/Firewood
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a split oak log
+  keywords: [log, oak, firewood, wood]
+  _materialPath: /stuff/idea/material/wood/oak
+  charMaterialPath: /stuff/idea/material/element/carbon
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

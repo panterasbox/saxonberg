@@ -11,14 +11,14 @@
 #
 # `restQuality: 1.5` — a university-issue single with a thin mattress. Better
 # than the floor, well short of the 2.0 you get from a bed you chose and
-# bought yourself (`/obj/fixture/bed`). The ladder should be visible from the
+# bought yourself (`/stuff/thing/fixture/bed`). The ladder should be visible from the
 # bottom rung.
 #
 # The slot spec is DATA, not code — the class supplies the capability and the
 # seed supplies the shape, which is why this retrofit needed no `class:`
 # change and therefore no migration of the live per-unit records.
 class: /world/eternal/duncan-hall/Bed
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a narrow bed
   primaryKeyword: bed

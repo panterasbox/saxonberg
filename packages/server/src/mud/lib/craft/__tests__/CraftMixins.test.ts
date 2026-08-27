@@ -7,7 +7,7 @@ import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { MakerMixin } from '../Maker';
 import { Grade } from '../Grade';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 class GradedHost extends GradedMixin(Idea) {
@@ -67,12 +67,12 @@ describe('ToolMixin', () => {
       t.setCapabilities(['mending']);
       const c = t.getInstanceContributions();
       expect(c.peers).toEqual([
-        'crafting/repair.yaml',
-        'crafting/salvage.yaml',
+        'platform/cmd/crafting/repair.yaml',
+        'platform/cmd/crafting/salvage.yaml',
       ]);
       expect(c.environment).toEqual([
-        'crafting/repair.yaml',
-        'crafting/salvage.yaml',
+        'platform/cmd/crafting/repair.yaml',
+        'platform/cmd/crafting/salvage.yaml',
       ]);
     });
 
@@ -80,7 +80,7 @@ describe('ToolMixin', () => {
       const t = makeStuff(() => new ToolHost());
       t.setCapabilities(['whetstone']);
       const c = t.getInstanceContributions();
-      expect(c.environment).toEqual(['crafting/sharpen.yaml']);
+      expect(c.environment).toEqual(['platform/cmd/crafting/sharpen.yaml']);
       expect(c.peers ?? []).toEqual([]);
     });
 
@@ -98,7 +98,7 @@ describe('ToolMixin', () => {
       t.setCondition(0);
       expect(t.hasCapability('anvil')).toBe(false); // capability lost
       const c = t.getInstanceContributions(); // affordance kept
-      expect(c.peers).toContain('crafting/hammer.yaml');
+      expect(c.peers).toContain('platform/cmd/crafting/hammer.yaml');
     });
   });
 
@@ -158,15 +158,15 @@ describe('ToolMixin', () => {
         { kind: 'whetstone', placement: 'reachable', rate: 4 },
       ]);
       const c = wheel.getInstanceContributions();
-      expect(c.peers).toEqual(['crafting/sharpen.yaml']); // the grinding wheel
-      expect(c.environment).toEqual(['crafting/sharpen.yaml']);
+      expect(c.peers).toEqual(['platform/cmd/crafting/sharpen.yaml']); // the grinding wheel
+      expect(c.environment).toEqual(['platform/cmd/crafting/sharpen.yaml']);
 
       const strapped = makeStuff(() => new ToolHost());
       strapped.setCapabilities([{ kind: 'mending', placement: 'carried' }]);
       const c2 = strapped.getInstanceContributions();
       expect(c2.environment).toEqual([
-        'crafting/repair.yaml',
-        'crafting/salvage.yaml',
+        'platform/cmd/crafting/repair.yaml',
+        'platform/cmd/crafting/salvage.yaml',
       ]);
       expect(c2.peers ?? []).toEqual([]);
     });
@@ -193,12 +193,12 @@ describe('CraftedMixin', () => {
   it('stamps the maker mark and is graded', () => {
     const c = makeStuff(() => new CraftedHost());
     c.stamp({
-      maker: '/obj/Avatar/dave',
+      maker: '/platform/agent/Avatar/dave',
       grade: Grade.of('exceptional'),
       recipe: 'martini',
       craftedAt: 123,
     });
-    expect(c.getMaker()).toBe('/obj/Avatar/dave');
+    expect(c.getMaker()).toBe('/platform/agent/Avatar/dave');
     expect(c.getRecipe()).toBe('martini');
     expect(c.getCraftedAt()).toBe(123);
     expect((c as unknown as { getGrade(): Grade }).getGrade().getBand()).toBe('exceptional');

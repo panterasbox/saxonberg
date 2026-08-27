@@ -4,8 +4,8 @@
 # uses Visible.shortDescription and is never Named. Its faded orange and the
 # pinholes-where-the-badge-re-clips are Detailed sub-features; the CROSSING
 # AUTHORITY badge itself is Gus's own hero detail (on gus.yaml), clipped here.
-class: /obj/equipment/Garment
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a faded hi-vis vest
   primaryKeyword: vest
@@ -13,7 +13,7 @@ data:
   longDescription: |
     A high-visibility orange safety vest gone soft at the seams, the reflective striping worn dull and grey with the years. Down the front, a scatter of pinholes marks where a badge has been clipped and re-clipped a thousand times. It is the whole uniform of a one-man Authority, and he keeps it squared.
   slotClaims:
-    "/obj/species/BodyPlan/biped": [torso]
+    "/stuff/idea/species/BodyPlan/biped": [torso]
   details:
     striping:
       keywords: [striping, stripe, reflective, silver]

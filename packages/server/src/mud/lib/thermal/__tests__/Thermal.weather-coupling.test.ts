@@ -21,7 +21,7 @@ import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
-import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';
+import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import { ThermalMixin } from '../Thermal';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -30,7 +30,7 @@ import { WeatherApi } from '../../../api/weather';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { ConnectionManager } from '../../../../backend/ConnectionManager';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import type { Stuff } from '../../stuff/Stuff';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import type { HasInteractive } from '../../connection/HasInteractive';
@@ -73,7 +73,7 @@ function thermalBody(stampedK: number): ThermalThing {
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
-  }, `/obj/material/_weather/m-${matCounter}`) as unknown as Material;
+  }, `/stuff/idea/material/_weather/m-${matCounter}`) as unknown as Material;
   return makeStuff(() => {
     const t = new ThermalThing();
     t.setMass(Quantity.of(0.3, 'kg'));
@@ -94,7 +94,7 @@ function installRootBiome(): void {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 /** A SkyExposed room (weather-eligible) with a Thermal body inside it. */
@@ -104,9 +104,9 @@ async function skyRoomWithBody(): Promise<{
 }> {
   const biome = makeStuffAtPath(() => {
     const b = new SkyExposedBiome();
-    b._extendsBiomePath = '/obj/biome/universe';
+    b._extendsBiomePath = '/stuff/idea/biome/universe';
     return b;
-  }, '/obj/biome/outdoor/field');
+  }, '/stuff/idea/biome/outdoor/field');
   const room = makeStuff(() => new TestRoom());
   room.setBiome(biome);
   const body = thermalBody(BASE_T);

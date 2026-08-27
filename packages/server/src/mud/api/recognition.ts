@@ -47,24 +47,24 @@
  *
  * This Api is a thin forwarding shell: the logic lives in the
  * hot-reloadable {@link RecognitionLogic} singleton at
- * `/obj/api/recognition`, reached synchronously via
+ * `/platform/idea/api/recognition`, reached synchronously via
  * `StuffApi.singletonSync`. Like the logic file, this face makes **zero
  * static perception imports** — `RecognitionApi` is reachable from the
  * root `Stuff`/`Idea` eval graph (via `Mml` / the MQL projection), so a
  * static perception import would force `Modality` to evaluate before
- * `Idea` is ready and crash boot. `dest /obj/api/recognition` reloads it.
+ * `Idea` is ready and crash boot. `dest /platform/idea/api/recognition` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { RecognitionLogic } from '../obj/api/RecognitionLogic';
+import { RecognitionLogic } from '../platform/idea/api/RecognitionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/recognition';
+const LOGIC_PATH = '/platform/idea/api/recognition';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/RecognitionLogic', import.meta.url)
+  new URL('../platform/idea/api/RecognitionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able RecognitionLogic singleton (sync). */

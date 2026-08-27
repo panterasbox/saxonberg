@@ -47,7 +47,7 @@ import type { Employed } from './Employed';
  */
 const OrganizationSurface = SecurityPolicies.AnyOf(
   SecurityPolicies.SelfOnly,
-  SecurityPolicies.FromTemplate('/obj/api/employment'),
+  SecurityPolicies.FromTemplate('/platform/idea/api/employment'),
 );
 
 /**

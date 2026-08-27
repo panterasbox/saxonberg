@@ -3,7 +3,7 @@
  * longer a seed-YAML literal or a code constant: it's the
  * `defaultStartLocation` app setting (shipped by the platform pack's settings,
  * default the lounge Warren), stamped into each avatar at mint time. The
- * `evacuationFallback` app setting (default `/world/void`) is the separate,
+ * `evacuationFallback` app setting (default `/platform/location/void`) is the separate,
  * container-typed evac target. The two remain distinct concerns — the ★
  * regression guard ensures evac never points at the non-Container Warren.
  */
@@ -38,7 +38,7 @@ function appSettings(): Record<string, string> {
 
 describe('avatar seed landing repoint', () => {
   it('no longer carries a spawn literal in the seed (injected at mint)', () => {
-    const seed = readYaml('../../../../../../content/platform/content/obj/Avatar/seed.yaml') as {
+    const seed = readYaml('../../../../../../content/platform/content/platform/agent/Avatar/seed.yaml') as {
       data: Record<string, unknown>;
     };
     expect('startLocation' in seed.data).toBe(false);
@@ -56,7 +56,7 @@ describe('avatar seed landing repoint', () => {
     // bootstrap-pinned, destruct-refusing one. Repointing it at the
     // (non-Container) Warren would destruct stranded players in
     // Container.cleanupOnDestruct.
-    expect(appSettings()[AppSettingKeys.evacuationFallback]).toBe('/world/void');
+    expect(appSettings()[AppSettingKeys.evacuationFallback]).toBe('/platform/location/void');
     expect(appSettings()[AppSettingKeys.evacuationFallback]).not.toBe(
       LoungeWarren.WARREN_PATH,
     );

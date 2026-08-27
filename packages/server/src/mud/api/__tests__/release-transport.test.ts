@@ -31,14 +31,14 @@ import { DocumentApi } from '../document';
 import { PressApi } from '../press';
 import { StuffApi } from '../stuff';
 import { ExecutionContextApi } from '../execution-context';
-import OrganizationEntity from '../../obj/Organization';
-import PressBoard from '../../obj/PressBoard';
+import OrganizationEntity from '../../platform/idea/Organization';
+import PressBoard from '../../platform/idea/PressBoard';
 import { Idea } from '../../lib/stuff/Idea';
 import { RELEASE_DOCUMENT_KIND } from '../../lib/press/Release';
 import { SecurityError } from '../../lib/security/errors';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
-import { AccessApi } from '../../api/access';
+import { AccessApi } from '../access';
 
 class TestAuthor extends Idea {
   static _mixinName = 'TestAuthor';
@@ -84,7 +84,7 @@ function installPublisher(): OrganizationEntity {
   // so the acting author has to actually hold a publishing position. The
   // authored roster is the cheapest way to say so.
   org.rosterSlots = [
-    { positionKey: 'communications-director', assignee: '/obj/Avatar/staff', schedule: [] },
+    { positionKey: 'communications-director', assignee: '/platform/agent/Avatar/staff', schedule: [] },
   ];
   return org;
 }
@@ -92,8 +92,8 @@ function installPublisher(): OrganizationEntity {
 /** One author per test — a second at the same path is not a singleton. */
 function author(): TestAuthor {
   return (
-    StuffApi.findByTemplatePath<TestAuthor>('/obj/Avatar/staff') ??
-    makeStuffAtPath(() => new TestAuthor(), '/obj/Avatar/staff')
+    StuffApi.findByTemplatePath<TestAuthor>('/platform/agent/Avatar/staff') ??
+    makeStuffAtPath(() => new TestAuthor(), '/platform/agent/Avatar/staff')
   );
 }
 
@@ -120,7 +120,7 @@ beforeEach(() => {
   vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
   vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true);
 
-  void makeStuffAtPath(() => new PressBoard(), '/obj/PressBoard');
+  void makeStuffAtPath(() => new PressBoard(), '/platform/idea/PressBoard');
 });
 
 afterEach(() => {
@@ -161,7 +161,7 @@ describe('the release write transport', () => {
     // The acting author is recorded in the payload — a person wrote it —
     // but the DOCUMENT belongs to the organization.
     expect(doc.getOwner()).toBe(PUBLISHER);
-    expect(doc.getData().author).toBe('/obj/Avatar/staff');
+    expect(doc.getData().author).toBe('/platform/agent/Avatar/staff');
     expect(doc.getKind()).toBe(RELEASE_DOCUMENT_KIND);
   });
 
@@ -199,9 +199,9 @@ describe('the release write transport', () => {
     );
     const docs = await DocumentApi.listOfKind(RELEASE_DOCUMENT_KIND);
     expect(docs).toHaveLength(1);
-    expect(docs[0]!.getOwner()).toBe('/obj/Avatar/staff');
+    expect(docs[0]!.getOwner()).toBe('/platform/agent/Avatar/staff');
 
-    const board = StuffApi.findByTemplatePath<PressBoard>('/obj/PressBoard')!;
+    const board = StuffApi.findByTemplatePath<PressBoard>('/platform/idea/PressBoard')!;
     await board.warm();
     expect(board.recentWindow()).toHaveLength(0);
     expect(board.getRelease('sneaky')).toBeNull();

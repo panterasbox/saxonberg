@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import Floor from '../../../obj/Floor';
+import Floor from '../../../platform/thing/Floor';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { UNBOUNDED_CAPACITY } from '../Slotted';

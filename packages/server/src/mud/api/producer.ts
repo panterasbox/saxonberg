@@ -18,7 +18,7 @@
  * aggregate, replay the log, get identical standings.
  *
  * This Api is a thin forwarding shell: the logic lives in the hot-reloadable
- * {@link ProducerLogic} singleton at `/obj/api/producer`, reached
+ * {@link ProducerLogic} singleton at `/platform/idea/api/producer`, reached
  * synchronously via `StuffApi.singletonSync`.
  */
 
@@ -27,15 +27,15 @@ import type { ProducerEventFields } from '../lib/standing/ProducerEvent';
 import type { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ProducerLogic } from '../obj/api/ProducerLogic';
+import { ProducerLogic } from '../platform/idea/api/ProducerLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { ProducerEventFields };
 
-const LOGIC_PATH = '/obj/api/producer';
+const LOGIC_PATH = '/platform/idea/api/producer';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ProducerLogic', import.meta.url)
+  new URL('../platform/idea/api/ProducerLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ProducerLogic singleton (sync). */

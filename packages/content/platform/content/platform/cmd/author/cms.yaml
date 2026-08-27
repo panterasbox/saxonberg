@@ -1,0 +1,24 @@
+verbs: [cms]
+controller: /platform/idea/cmd/author/CmsController
+opens_card: cms
+description: "Open the content editor — the explorer, the tree and Monaco"
+help: |
+  The content editor: the three-tree explorer (workspace, content,
+  publications) beside a Monaco pane. It opens as a CARD, so it lives
+  in the same feed as everything else you have open and obeys the same
+  pin — `cockpit card pin cms` keeps it, `cockpit card dismiss cms`
+  drops it.
+
+  ⚠ It is pinned by default, because an editor that aged out of a
+  relevance window mid-edit would be a data-loss bug wearing a
+  lifetime rule.
+
+  The card's body is the client's own REST surface — the tree and the
+  editor speak `/api/cms/*` — so this verb opens it and nothing more.
+  What you can SEE and WRITE there is decided by the CMS routes, not by
+  this verb.
+examples:
+  - cmd: cms
+    note: Open the content editor
+validators:
+  - /lib/command/validators/requiresWizard

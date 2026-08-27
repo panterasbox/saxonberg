@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: publication.wiki
+  family: "publication"
+  label: "The wiki"
+  description: "Encyclopedia articles and their revisions."
+  address: personal
+  actor: person
+  weight: activity
+  audience: player
+  durable: true
+  affordance: permanent

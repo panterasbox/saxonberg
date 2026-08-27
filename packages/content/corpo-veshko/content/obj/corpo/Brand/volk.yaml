@@ -1,9 +1,0 @@
-class: /obj/corpo/Brand
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  key: volk
-  name: Volk
-  owner: veshko
-  category: vodka
-  positioning: well-rail default
-  descriptor: The cheap, ubiquitous well-rail vodka — industrially perfect, soulless, fine.

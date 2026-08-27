@@ -36,7 +36,7 @@ import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
  * authority), so the gate names that one caller by its stable template
  * path instead of admitting the whole Api tier.
  */
-const ByChattelLogic = SecurityPolicies.FromTemplate("/obj/api/chattel");
+const ByChattelLogic = SecurityPolicies.FromTemplate("/platform/idea/api/chattel");
 
 /** The public method surface a chattel-bearing good exposes. */
 export interface Chattel {

@@ -4,8 +4,8 @@
 # entirely off this Door — the destination is never resolved on the veto.
 # Keys are a future model; for now the gate is permanently locked and Gus
 # soft-walls it in dialogue ("the gate's for the gown, not yet").
-class: /obj/Door
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Door
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the university gate
   primaryKeyword: gate

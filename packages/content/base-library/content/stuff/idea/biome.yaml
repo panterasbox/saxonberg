@@ -1,0 +1,12 @@
+# /stuff/idea/biome — admin/ownership root for the biome content area.
+#
+# This is a FolderZone (NOT a Biome) — the path tree's role here is
+# to scope write access for the biome team and organize sub-team
+# trees underneath (outdoor / indoor / underground). The actual
+# root of the *atmospheric inheritance* hierarchy is the universe
+# Biome at `/stuff/idea/biome/universe`, which other biomes extend via
+# their `_extendsBiomePath` ref.
+class: /platform/idea/FolderZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: biome

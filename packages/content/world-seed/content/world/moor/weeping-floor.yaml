@@ -3,8 +3,8 @@
 # the chamber's authored (scope-pinned) rain fills it exactly as the heath's
 # modelled storm fills the peat — the source-indifference spine invariant, one
 # floor over from a real sky.
-class: /obj/Floor
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wet flagstones
   longDescription: Worn flagstones under a spreading skin of rainwater that never quite drains.

@@ -8,7 +8,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
-import { WorldClockLogic } from '../../../obj/api/WorldClockLogic';
+import { WorldClockLogic } from '../../../platform/idea/api/WorldClockLogic';
 import { StuffApi } from '../../../api/stuff';
 import { SecurityError } from '../../security/errors';
 
@@ -113,18 +113,18 @@ describe('WorldClockLogic singleton encapsulation', () => {
     WorldClockApi._resetForTesting();
   });
 
-  it('lives at /obj/api/worldclock once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/worldclock once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     WorldClockApi.getScale();
-    const logic = StuffApi.findByTemplatePath('/obj/api/worldclock');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/worldclock');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-WorldClockApi caller', () => {
     WorldClockApi.getScale();
     const logic = StuffApi.findByTemplatePath<WorldClockLogic>(
-      '/obj/api/worldclock'
+      '/platform/idea/api/worldclock'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/worldclock#WorldClockApi`, so the

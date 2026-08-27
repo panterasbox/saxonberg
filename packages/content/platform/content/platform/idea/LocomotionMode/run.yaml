@@ -1,0 +1,24 @@
+# Run — the fast/careless end of the care↔speed axis. A ground mode
+# that brackets above walk: faster, upright, and loud. Any biped/
+# quadruped that can walk can run (same body-plan requirement); the
+# ground medium admits it on every `media: ['ground']` exit with no
+# re-authoring. Its detection penalty (barreling along notices less)
+# is NOT a field here — it's the `movement.attention.run` AppSettings
+# dial read by PerceptionLogic (see docs/subsystems/concealment.md).
+# The `loud` noiseLevel is authored-as-data; its observer-side stealth
+# use is the reserved stealth consumer.
+class: /platform/idea/LocomotionMode
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: run
+  speed: 2.0
+  noiseLevel: loud
+  bodyProfile: upright
+  groundContact: full
+  requiresBodyPlanMode: [walk]
+  requiresPosture: []
+  costMultiplier: 2.0
+  passthrough: false
+  conveyanceMixin: null
+  enablementMixin: null
+  medium: ground

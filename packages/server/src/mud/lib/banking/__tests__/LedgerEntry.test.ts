@@ -24,7 +24,7 @@ describe("LedgerEntry", () => {
     e.amount = 1200;
     e.memo = "a round of drinks";
     e.category = "sales";
-    e.actor = "/obj/Avatar/patron";
+    e.actor = "/platform/agent/Avatar/patron";
     e.locality = "/university-avenue";
     e.txId = "tx-1";
     e.at = 4242;
@@ -39,7 +39,7 @@ describe("LedgerEntry", () => {
     expect(back!.amount).toBe(1200);
     expect(back!.memo).toBe("a round of drinks");
     expect(back!.category).toBe("sales");
-    expect(back!.actor).toBe("/obj/Avatar/patron");
+    expect(back!.actor).toBe("/platform/agent/Avatar/patron");
     expect(back!.locality).toBe("/university-avenue");
     expect(back!.at).toBe(4242);
     expect(back!.realAt).toBe(1_700_000_000_000);

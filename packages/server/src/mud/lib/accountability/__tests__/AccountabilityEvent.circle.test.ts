@@ -28,10 +28,10 @@ function row(overrides: Partial<AccountabilityFields> = {}): AccountabilityEvent
     {
       kind: 'death',
       sessionId: 'fight-1',
-      initiator: '/obj/Avatar/killer',
-      opponent: '/obj/Avatar/killer',
-      victim: '/obj/Avatar/victim',
-      killer: '/obj/Avatar/killer',
+      initiator: '/platform/agent/Avatar/killer',
+      opponent: '/platform/agent/Avatar/killer',
+      victim: '/platform/agent/Avatar/victim',
+      killer: '/platform/agent/Avatar/killer',
       lethality: 'lethal',
       consented: false,
       sentient: true,
@@ -49,7 +49,7 @@ describe('circle-marked rows produce no crime', () => {
     const verdict = AccountabilityEvent.deriveBlame([row()]);
     expect(verdict).not.toBeNull();
     expect(verdict!.crime).toBe(true);
-    expect(verdict!.killer).toBe('/obj/Avatar/killer');
+    expect(verdict!.killer).toBe('/platform/agent/Avatar/killer');
   });
 
   it('the SAME killing, staged in a circle, derives nothing', () => {
@@ -66,12 +66,12 @@ describe('circle-marked rows produce no crime', () => {
       row({
         circleScope: '/home/forger',
         realAt: 1,
-        killer: '/obj/Avatar/framed',
+        killer: '/platform/agent/Avatar/framed',
       } as Partial<AccountabilityFields>),
-      row({ realAt: 2, killer: '/obj/Avatar/actual' }),
+      row({ realAt: 2, killer: '/platform/agent/Avatar/actual' }),
     ]);
     expect(verdict).not.toBeNull();
-    expect(verdict!.killer).toBe('/obj/Avatar/actual');
+    expect(verdict!.killer).toBe('/platform/agent/Avatar/actual');
     expect(verdict!.crime).toBe(true);
   });
 

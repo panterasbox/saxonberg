@@ -16,14 +16,14 @@
  * for them would turn a refusal into a silent downgrade.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link PressLogic} singleton at `/obj/api/press`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/press`
+ * {@link PressLogic} singleton at `/platform/idea/api/press`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/press`
  * reloads it.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { PressLogic } from '../obj/api/PressLogic';
+import { PressLogic } from '../platform/idea/api/PressLogic';
 import { Release, type ReleaseKind } from '../lib/press/Release';
 import type {
   ReleaseRealm,
@@ -95,9 +95,9 @@ export interface ArchiveQuery {
   limit?: number;
 }
 
-const LOGIC_PATH = '/obj/api/press';
+const LOGIC_PATH = '/platform/idea/api/press';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/PressLogic', import.meta.url)
+  new URL('../platform/idea/api/PressLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able PressLogic singleton (sync). */

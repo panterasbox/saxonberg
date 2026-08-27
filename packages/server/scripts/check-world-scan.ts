@@ -12,7 +12,7 @@
  * The three sanctioned homes are allowlisted below:
  *   - `api/mql/resolver.ts` — the `world` seed's OWN implementation
  *     (MQL is the mechanism; its internals legitimately enumerate).
- *   - `obj/api/ResidencyLogic.ts` — the residency sweeps deliberately
+ *   - `platform/idea/api/ResidencyLogic.ts` — the residency sweeps deliberately
  *     walk RAW unwrapped proxies so enumeration never counts as a
  *     touch (documented at both loops), which MQL can't express.
  *   - `api/stuff.ts` — where `getAllObjects` is DEFINED.
@@ -37,7 +37,7 @@ const MUD_ROOT = join(SERVER_SRC, "mud");
 const ALLOWLIST = [
   /\/mud\/api\/stuff\.ts$/, // the definition
   /\/mud\/api\/mql\/resolver\.ts$/, // the `world` seed implementation
-  /\/mud\/obj\/api\/ResidencyLogic\.ts$/, // raw-proxy sweeps (documented)
+  /\/mud\/platform\/idea\/api\/ResidencyLogic\.ts$/, // raw-proxy sweeps (documented)
 ];
 
 const CALL = /\bStuffApi\.getAllObjects\s*\(/;

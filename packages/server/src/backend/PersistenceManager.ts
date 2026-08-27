@@ -660,7 +660,7 @@ export class PersistenceManager {
    * cloned object doesn't compose the required hook capability.
    *
    * @param yamlPath - Optional override; defaults to
-   *   `<src>/mud/obj/hooks/hooks.yaml`.
+   *   `<src>/mud/platform/idea/hooks/hooks.yaml`.
    */
   public async loadHooks(yamlPath?: string): Promise<void> {
     const path = yamlPath ?? this.defaultHookManifestPath();
@@ -716,12 +716,12 @@ export class PersistenceManager {
 
   /**
    * Resolve the default hooks.yaml location relative to this module.
-   * `src/backend/PersistenceManager.ts` → `src/mud/obj/hooks/hooks.yaml`.
+   * `src/backend/PersistenceManager.ts` → `src/mud/platform/idea/hooks/hooks.yaml`.
    * Works in both ts-source (tsx) and built-dist layouts.
    */
   private defaultHookManifestPath(): string {
     const here = dirname(fileURLToPath(import.meta.url));
-    const candidate = join(here, '../mud/obj/hooks/hooks.yaml');
+    const candidate = join(here, '../mud/platform/idea/hooks/hooks.yaml');
     return isAbsolute(candidate) ? candidate : join(process.cwd(), candidate);
   }
 

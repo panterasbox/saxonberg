@@ -32,7 +32,7 @@ import { ContainmentApi } from "../../../api/containment";
 import { SlotApi } from "../../../api/slot";
 import { ParcelApi } from "../../../api/parcel";
 import { MixinApi } from "../../../api/mixin";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { PersistableMixin } from "../Persistable";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Idea } from "../../stuff/Idea";
@@ -49,7 +49,7 @@ import { HasInteractiveMixin } from "../../connection/HasInteractive";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "./quantity-marshaller-test-helpers";
 import { Quantity } from "../../quantity";
-import { QuantityMarshaller } from "../../../obj/persistence/QuantityMarshaller";
+import { QuantityMarshaller } from "../../../platform/idea/persistence/QuantityMarshaller";
 import type { FieldMeta } from "../../mixin";
 
 /* ─────────────────────────── test fixtures ─────────────────────────── */
@@ -419,7 +419,7 @@ describe("two persistable hosts compose (AC #6)", () => {
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) =>
         p === "/world/hostchest"
-          ? { kind: "player", templatePath: "/obj/Avatar/alice" }
+          ? { kind: "player", templatePath: "/platform/agent/Avatar/alice" }
           : { kind: "group", name: "lounge" },
     );
     const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
@@ -440,7 +440,7 @@ describe("two persistable hosts compose (AC #6)", () => {
     });
     // The chest's OWN record holds its contents, keyed to the chest, owner=alice.
     const chestRec = snapshots.find((s) => s.scope === "/world/hostchest")!;
-    expect(chestRec.owner).toBe("/obj/Avatar/alice");
+    expect(chestRec.owner).toBe("/platform/agent/Avatar/alice");
     expect(
       (containerContents(chestRec)[0] as { templatePath: string }).templatePath,
     ).toBe("/world/trinket");
@@ -457,7 +457,7 @@ describe("two persistable hosts compose (AC #6)", () => {
     });
     // Chest's own record untouched (still keyed to the chest).
     expect(snapshots.find((s) => s.scope === "/world/hostchest")!.owner).toBe(
-      "/obj/Avatar/alice",
+      "/platform/agent/Avatar/alice",
     );
   });
 
@@ -469,7 +469,7 @@ describe("two persistable hosts compose (AC #6)", () => {
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) =>
         p === "/world/hostchest"
-          ? { kind: "player", templatePath: "/obj/Avatar/alice" }
+          ? { kind: "player", templatePath: "/platform/agent/Avatar/alice" }
           : { kind: "group", name: "lounge" },
     );
     const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
@@ -501,9 +501,9 @@ describe("room decomposes by owner (AC #7)", () => {
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) => {
         if (p === "/world/chestA")
-          return { kind: "player", templatePath: "/obj/Avatar/alice" };
+          return { kind: "player", templatePath: "/platform/agent/Avatar/alice" };
         if (p === "/world/chestB")
-          return { kind: "player", templatePath: "/obj/Avatar/bob" };
+          return { kind: "player", templatePath: "/platform/agent/Avatar/bob" };
         return { kind: "group", name: "lounge" };
       },
     );
@@ -513,7 +513,7 @@ describe("room decomposes by owner (AC #7)", () => {
     await PersistableApi.capture(chestB);
 
     const owners = snapshots.map((s) => s.owner).sort();
-    expect(owners).toEqual(["/obj/Avatar/alice", "/obj/Avatar/bob"]);
+    expect(owners).toEqual(["/platform/agent/Avatar/alice", "/platform/agent/Avatar/bob"]);
   });
 });
 
@@ -740,7 +740,7 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
       "/world/coat": () => new Garment(),
     };
     const room = makeStuffAtPath(() => new ContentChest(), "/world/lounge");
-    const av = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p1");
+    const av = makeStuffAtPath(() => new AvatarLike(), "/platform/agent/Avatar/p1");
     av.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
     av.setCallsign("Mallow");
     const pack = makeStuffAtPath(() => new ContentChest(), "/world/pack");
@@ -753,14 +753,14 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
     ContainmentApi.move(av, room); // standing in the lounge
 
     await PersistableApi.capture(av);
-    const rec = snapshots.find((s) => s.scope === "/obj/Avatar/p1")!;
-    expect(rec.owner).toBe("/obj/Avatar/p1"); // self-owned
+    const rec = snapshots.find((s) => s.scope === "/platform/agent/Avatar/p1")!;
+    expect(rec.owner).toBe("/platform/agent/Avatar/p1"); // self-owned
     expect(rec.place).toEqual({ container: "/world/lounge" });
 
     // A fresh clone (relogin) restores everything.
     StuffApi.unregister(av);
     for (const c of [pack, coat]) StuffApi.unregister(c);
-    const reborn = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p1");
+    const reborn = makeStuffAtPath(() => new AvatarLike(), "/platform/agent/Avatar/p1");
     reborn.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
     await PersistableApi.materialize(reborn);
 
@@ -778,7 +778,7 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
   it("is skipped from another host's captured contents (never content)", async () => {
     cloneFactories = {};
     const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
-    const av = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p2");
+    const av = makeStuffAtPath(() => new AvatarLike(), "/platform/agent/Avatar/p2");
     ContainmentApi.move(av, room);
     await PersistableApi.capture(room);
     // The room records no content entry for the live avatar occupant.
@@ -1023,10 +1023,10 @@ describe("account deletion cascade (AC #11)", () => {
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) => {
         if (p === "/world/a")
-          return { kind: "player", templatePath: "/obj/Avatar/alice" };
+          return { kind: "player", templatePath: "/platform/agent/Avatar/alice" };
         if (p === "/world/b")
-          return { kind: "player", templatePath: "/obj/Avatar/alice" };
-        return { kind: "player", templatePath: "/obj/Avatar/bob" };
+          return { kind: "player", templatePath: "/platform/agent/Avatar/alice" };
+        return { kind: "player", templatePath: "/platform/agent/Avatar/bob" };
       },
     );
     const a = makeStuffAtPath(() => new HostChest(), "/world/a");
@@ -1037,10 +1037,10 @@ describe("account deletion cascade (AC #11)", () => {
     await PersistableApi.capture(c);
     expect(snapshots).toHaveLength(3);
 
-    const removed = await PersistableApi.deleteAllFor("/obj/Avatar/alice");
+    const removed = await PersistableApi.deleteAllFor("/platform/agent/Avatar/alice");
     expect(removed).toBe(2);
     expect(snapshots).toHaveLength(1);
-    expect(snapshots[0]!.owner).toBe("/obj/Avatar/bob");
+    expect(snapshots[0]!.owner).toBe("/platform/agent/Avatar/bob");
   });
 });
 

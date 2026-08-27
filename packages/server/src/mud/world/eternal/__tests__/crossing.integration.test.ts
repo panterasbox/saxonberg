@@ -31,7 +31,7 @@ import {
   installStore,
   type Doc,
 } from "../../lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 // The rows this stand-up reads live across the packs (content-packs
@@ -75,7 +75,7 @@ const OBJECTS = [
 ];
 
 // Gus + his gear (Phase 4). Gus is a plain populate into the room; his gear
-// is not populated — the `/obj/Gus` class equips it at standup (there is no
+// is not populated — the `/platform/agent/Gus` class equips it at standup (there is no
 // declarative seed path to wear/wield gear on a creature). His equip needs a
 // resolvable species + body plan, so the test store carries a minimal human
 // Species pointing at the real biped body plan.
@@ -87,8 +87,8 @@ const WATCH = "/world/eternal/university-avenue/pocket-watch";
 const LOG = "/world/eternal/university-avenue/crossing-log";
 const THERMOS = "/world/eternal/university-avenue/thermos";
 const HUMAN =
-  "/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
-const BIPED = "/obj/species/BodyPlan/biped";
+  "/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens";
+const BIPED = "/stuff/idea/species/BodyPlan/biped";
 
 /** The real seeds under test + the light forward-ref stubs. */
 function docs(): Doc[] {
@@ -115,12 +115,12 @@ function docs(): Doc[] {
     seed("world/eternal/university-avenue/pocket-watch.yaml", WATCH),
     seed("world/eternal/university-avenue/crossing-log.yaml", LOG),
     seed("world/eternal/university-avenue/thermos.yaml", THERMOS),
-    seed("obj/species/BodyPlan/biped.yaml", BIPED),
+    seed("stuff/idea/species/BodyPlan/biped.yaml", BIPED),
     // Minimal human species → the real biped body plan (the full species
     // tree is content-pack installed and out of scope for this seed test).
     {
       path: HUMAN,
-      class: "/obj/species/Species",
+      class: "/platform/idea/species/Species",
       hydratorClass: PH,
       data: { name: "human", _bodyPlanPath: BIPED },
     },
@@ -136,7 +136,7 @@ function docs(): Doc[] {
     seed("world/terminus/terminal/departure-gate-c.yaml", GATE_C),
   ];
   // Light stubs for the rest of the hub the cascade reaches.
-  const stub = (p: string, cls = "/obj/VoidLocation"): Doc => ({
+  const stub = (p: string, cls = "/platform/location/VoidLocation"): Doc => ({
     path: p,
     class: cls,
     hydratorClass: PH,
@@ -149,7 +149,7 @@ function docs(): Doc[] {
     stub("/world/terminus/terminal/office"),
     // The registry annex off the arrival gate's east frontage (civics).
     stub("/world/terminus/registry/office"),
-    stub("/world/terminus/terminal/departure-terminal-c", "/obj/Prop"),
+    stub("/world/terminus/terminal/departure-terminal-c", "/platform/thing/Prop"),
   ];
   return [...real, ...stubs];
 }

@@ -33,7 +33,7 @@ import type { Unit } from '../../lib/quantity';
  *
  * - `scope` — an MQL fragment string identifying the search area. Per
  *   the unified-scope model, scope is just another query — `"here"`,
- *   `"inventory, here"`, `"online"`, `"/obj/Avatar/*"`, `"#abc123"`.
+ *   `"inventory, here"`, `"online"`, `"/platform/agent/Avatar/*"`, `"#abc123"`.
  *   The dispatcher resolves the fragment to anchor Stuff(s); the
  *   resolver walks each anchor's neighborhood (own keywords, contents,
  *   details, environment, exits) to score query candidates.

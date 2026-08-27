@@ -34,7 +34,7 @@
  *                  consent (default non-consented), and sentience. Its
  *                  crime rule is the terms-free `!consented && sentient`.
  *
- * Durable ids are `templatePath`s (an Avatar's `/obj/Avatar/<id>`, an
+ * Durable ids are `templatePath`s (an Avatar's `/platform/agent/Avatar/<id>`, an
  * NPC's template path) — the same durable keying renown/provenance use,
  * so a victim's blame survives a reclone.
  */

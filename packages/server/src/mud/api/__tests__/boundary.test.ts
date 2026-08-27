@@ -13,12 +13,12 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { BoundaryApi } from '../boundary';
-import { BoundaryLogic } from '../../obj/api/BoundaryLogic';
+import { BoundaryLogic } from '../../platform/idea/api/BoundaryLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import CartesianZone from '../../obj/location/CartesianZone';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 describe('BoundaryApi.create', () => {
@@ -149,11 +149,11 @@ describe('BoundaryLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/boundary once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/boundary once the facade has materialized it', () => {
     const boundary = makeStuff(() => new Boundary());
     // A facade call lazily creates the logic singleton.
     BoundaryApi.destruct(boundary);
-    const logic = StuffApi.findByTemplatePath('/obj/api/boundary');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/boundary');
     expect(logic).toBeDefined();
   });
 
@@ -161,7 +161,7 @@ describe('BoundaryLogic singleton encapsulation', () => {
     const boundary = makeStuff(() => new Boundary());
     BoundaryApi.destruct(boundary);
     const logic = StuffApi.findByTemplatePath<BoundaryLogic>(
-      '/obj/api/boundary'
+      '/platform/idea/api/boundary'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/boundary#BoundaryApi`, so the

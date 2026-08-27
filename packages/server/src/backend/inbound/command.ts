@@ -26,7 +26,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
   // anything that's a CommandGiver dispatches through the real pipeline
   // (Avatar in-world; Login in the pre-world char-gen/roster phase).
   // The Avatar-only branches below narrow with `PlayerApi.isAvatarStuff`,
-  // which reads the durable `/obj/Avatar/` template-path prefix rather
+  // which reads the durable `/platform/agent/Avatar/` template-path prefix rather
   // than the backing class (which can change across HMR cycles).
   if (!holder || !MixinApi.isCommandGiver(holder)) {
     backend.sendMessageToSocket(socketId, {

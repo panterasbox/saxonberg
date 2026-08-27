@@ -29,7 +29,7 @@ import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import type { CommandContributions } from "../../api/command";
 import { CorpoApi } from "../../api/corpo";
-import type { CorpoDescriptor } from "../../obj/corpo/Corpo";
+import type { CorpoDescriptor } from "../../platform/idea/corpo/Corpo";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import type { VetoResult } from "../errors";
@@ -48,7 +48,7 @@ const FromBankingApi = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule("/api/banking#BankingApi", {
     includeSubclasses: false,
   }),
-  SecurityPolicies.FromTemplate("/obj/api/banking"),
+  SecurityPolicies.FromTemplate("/platform/idea/api/banking"),
 );
 
 /** Public shape added by BankMixin. */
@@ -117,7 +117,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      peers: ["banking/bank.yaml"],
+      peers: ["platform/cmd/banking/bank.yaml"],
       environment: [],
     };
 

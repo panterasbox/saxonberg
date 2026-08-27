@@ -1,0 +1,4 @@
+class: /platform/idea/persistence/QuantityMarshaller
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  unit: "%"

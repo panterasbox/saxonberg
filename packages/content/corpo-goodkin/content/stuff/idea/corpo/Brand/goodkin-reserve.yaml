@@ -1,0 +1,9 @@
+class: /platform/idea/corpo/Brand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: goodkin-reserve
+  name: Goodkin Reserve
+  owner: goodkin
+  category: whiskey
+  positioning: nostalgic mid-shelf blend
+  descriptor: A nostalgic blended whiskey — the one your dad drank.

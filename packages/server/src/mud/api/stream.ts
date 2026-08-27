@@ -1,7 +1,7 @@
 /**
  * StreamApi — thin facade over the {@link StreamLogic} singleton (the
  * unified relay + tuning surface). A stateless static shell forwarding to
- * the hot-reloadable logic singleton at `/obj/api/stream` via
+ * the hot-reloadable logic singleton at `/platform/idea/api/stream` via
  * `StuffApi.singletonSync`, decorated by `SecurityApi.decorateApiClass`.
  *
  * The player-facing surface is **platform-agnostic** — `tune`/`watch`, the
@@ -16,18 +16,18 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { StreamLogic } from '../obj/api/StreamLogic';
+import { StreamLogic } from '../platform/idea/api/StreamLogic';
 import { fileURLToPath } from 'url';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type Avatar from '../obj/Avatar';
+import type Avatar from '../platform/agent/Avatar';
 import type { MessageFrame } from '@saxonberg/types';
 import type { StreamerTarget, ParsedTarget } from '../lib/streaming/StreamerTarget';
-import type { RelayChannelRef } from '../obj/StreamRelay';
+import type { RelayChannelRef } from '../platform/idea/StreamRelay';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/stream';
+const LOGIC_PATH = '/platform/idea/api/stream';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/StreamLogic', import.meta.url),
+  new URL('../platform/idea/api/StreamLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able StreamLogic singleton (sync). */

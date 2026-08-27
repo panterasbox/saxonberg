@@ -132,7 +132,7 @@ export interface Containable {
   ): void;
 }
 
-// ContainmentApi's logic now lives in the /obj/api/containment logic
+// ContainmentApi's logic now lives in the /platform/idea/api/containment logic
 // singleton (the Api face is a thin forwarding shell). Admit both the
 // face module and the logic singleton's template path so the
 // `setContainer` / `_setRestingOn` chokepoints stay reachable only
@@ -141,7 +141,7 @@ const FromContainmentApi = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/containment#ContainmentApi', {
     includeSubclasses: false,
   }),
-  SecurityPolicies.FromTemplate('/obj/api/containment'),
+  SecurityPolicies.FromTemplate('/platform/idea/api/containment'),
 );
 
 export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {

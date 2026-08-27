@@ -28,7 +28,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import type { EngagementSlot } from '../activity/Engaged';
 import type { MessageFrame } from '@saxonberg/types';
-import type Interactive from '../../obj/Interactive';
+import type Interactive from '../../platform/idea/Interactive';
 
 /** The canonical export name a brain module marks itself with. */
 export const BRAIN_EXPORT = 'brain' as const;

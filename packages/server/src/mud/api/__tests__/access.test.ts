@@ -17,12 +17,12 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AccessApi } from '../access';
-import AccessRegistry from '../../obj/AccessRegistry';
+import AccessRegistry from '../../platform/idea/AccessRegistry';
 import { StuffApi } from '../stuff';
 import { PersistenceManager } from '../../../backend/PersistenceManager';
 import { SecurityError } from '../../lib/security/errors';
 import { ModuleApi } from '../module';
-import { AccessLogic } from '../../obj/api/AccessLogic';
+import { AccessLogic } from '../../platform/idea/api/AccessLogic';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 interface Doc extends Record<string, unknown> {
@@ -111,8 +111,8 @@ describe('AccessApi facade', () => {
     // NOT `mud/api/access`. The FromModule policy must deny.
     installInMemoryStore([
       {
-        path: '/obj/AccessRegistry',
-        class: '/obj/AccessRegistry',
+        path: '/platform/idea/AccessRegistry',
+        class: '/platform/idea/AccessRegistry',
         data: {},
       },
     ]);
@@ -133,7 +133,7 @@ describe('AccessApi facade', () => {
       // to be cloned. Ignore failures here.
     }
     const reg = StuffApi.findByTemplatePath<AccessRegistry>(
-      '/obj/AccessRegistry',
+      '/platform/idea/AccessRegistry',
     );
     if (!reg) {
       // The simulated bootstrap didn't fully clone; skip this case.
@@ -155,8 +155,8 @@ describe('AccessLogic singleton encapsulation', () => {
   });
 
   it('denies a direct logic-method call from a non-AccessApi caller', () => {
-    const logic = makeStuffAtPath(() => new AccessLogic(), '/obj/api/access');
-    expect(StuffApi.findByTemplatePath('/obj/api/access')).toBe(logic);
+    const logic = makeStuffAtPath(() => new AccessLogic(), '/platform/idea/api/access');
+    expect(StuffApi.findByTemplatePath('/platform/idea/api/access')).toBe(logic);
     // The test module is not mud/api/access#AccessApi nor the singleton
     // itself; the gate denies synchronously (before the async body / the
     // early null-guard), so the args are never touched.

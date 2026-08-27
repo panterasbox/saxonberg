@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
-import EventRegistry from '../../obj/EventRegistry';
+import EventRegistry from '../../platform/idea/EventRegistry';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
 
@@ -25,7 +25,7 @@ const EVT = 'test.sensitive';
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

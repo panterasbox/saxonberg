@@ -23,8 +23,8 @@ import { ShadowApi } from '../shadow';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
-import Room from '../../obj/location/Room';
-import Prop from '../../obj/Prop';
+import Room from '../../platform/location/Room';
+import Prop from '../../platform/thing/Prop';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 
 async function makeRoom(name: string): Promise<Room> {

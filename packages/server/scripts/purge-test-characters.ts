@@ -222,7 +222,7 @@ async function main(): Promise<void> {
         playerIds.add(pid);
       }
     }
-    const avatarPaths = [...playerIds].map((pid) => `/obj/Avatar/${pid}`);
+    const avatarPaths = [...playerIds].map((pid) => `/platform/agent/Avatar/${pid}`);
 
     const doomed = {
       profiles: selected.length,

@@ -1,0 +1,22 @@
+verbs: [destruct]
+controller: /platform/idea/cmd/author/DestructController
+description: "Destruct a runtime instance or template"
+help: |
+  Permanently remove a runtime instance — or a whole template —
+  from the world. Name the target by what you can reach; with no
+  target it acts on your current focus.
+
+  Destruction runs the object's own cleanup and can be vetoed by a
+  `canDestruct` guard. Use `--force` (`-f`) to push past that veto,
+  though that is admin-only and the v1 stub always denies it.
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["reachable"]
+    requires: any
+options:
+  force:
+    short: f
+    type: boolean
+    description: "Bypass canDestruct veto (admin only; v1 stub always denies)"

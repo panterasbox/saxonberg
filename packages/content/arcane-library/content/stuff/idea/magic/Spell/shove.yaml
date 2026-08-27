@@ -1,0 +1,28 @@
+# Unseen shove — control·body: a directed impulse of force. Routes
+# through the posture surface (prone), with a one-exit displacement when
+# an open way stands behind the target. No combat machinery.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: shove
+  name: Unseen Shove
+  verb: control
+  noun: body
+  cost: 12
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 2
+  targeting: creature
+  effects:
+    # [cursed · uncursed · blessed] — displacement is shove's identity,
+    # so both ends stay displacement:
+    #
+    #   cursed   the shove takes YOU instead — you go over backwards
+    #   uncursed it shoves what you aimed at
+    #   blessed  it PINS — strictly more control over the same body
+    - kind: move
+      move: [shove, shove, pin]
+      self: [true, false, false]
+  description: >-
+    A fist of air takes the mark square in the chest. The strong keep
+    their feet; the unready sit down hard.

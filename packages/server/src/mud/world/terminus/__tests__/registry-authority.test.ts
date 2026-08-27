@@ -12,8 +12,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import BusinessEntity from '../../../obj/Business';
-import Avatar from '../../../obj/Avatar';
+import BusinessEntity from '../../../platform/idea/Business';
+import Avatar from '../../../platform/agent/Avatar';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { ParcelApi } from '../../../api/parcel';
@@ -60,7 +60,7 @@ function stubTitle(): void {
 }
 
 function makeAvatar(id: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${id}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${id}`);
   av.setPlayerId(id);
   return av;
 }

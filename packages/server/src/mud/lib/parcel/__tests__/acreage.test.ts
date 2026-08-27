@@ -23,7 +23,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import ParcelRegistry from "../../../obj/ParcelRegistry";
+import ParcelRegistry from "../../../platform/idea/ParcelRegistry";
 import { ParcelApi } from "../../../api/parcel";
 import { StuffApi } from "../../../api/stuff";
 import { Document } from "../../persistence/Document";
@@ -31,7 +31,7 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import type { ParcelOwner } from "../ParcelRecord";
 
-const LANDLORD: ParcelOwner = { kind: "player", templatePath: "/obj/Avatar/lord" };
+const LANDLORD: ParcelOwner = { kind: "player", templatePath: "/platform/agent/Avatar/lord" };
 const LOT = "/world/test/lot";
 const BUILDING = "/world/test/lot/building";
 
@@ -94,7 +94,7 @@ async function boot(): Promise<void> {
   // one, whose in-memory coverage trie holds the previous test's parcels.
   // The DormWarren / KatieProvisioning precedent.
   ParcelApi._resetRegistryRefForReload();
-  const reg = makeStuffAtPath(() => new ParcelRegistry(), "/obj/ParcelRegistry");
+  const reg = makeStuffAtPath(() => new ParcelRegistry(), "/platform/idea/ParcelRegistry");
   await reg.postRegister();
 }
 

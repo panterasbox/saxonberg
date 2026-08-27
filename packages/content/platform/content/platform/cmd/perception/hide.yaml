@@ -1,0 +1,21 @@
+verbs: [hide]
+controller: /platform/idea/cmd/perception/HideController
+description: "Slip out of sight — melt into cover, shadow, and stillness"
+help: |
+  `hide` is the actor-side of concealment: you stop being obvious and
+  try to disappear into the place around you. How well you vanish is a
+  deterministic read of your **stealth**, the cover the room affords,
+  how dark it is, and whether you're holding still in a low posture —
+  not a dice roll. A sharp-eyed watcher may still pick you out; a
+  distracted one walks right past.
+
+  Being hidden is resolved *per observer* — some see you, some don't.
+  It **breaks** when you move carelessly (walk degrades, run clears it;
+  sneak holds), when you attack, and when someone `search`es and beats
+  your concealment. Use `unhide` to step back into the open.
+
+  Hiding well is worth doing from cover and shadow: a lit, empty room
+  hides you barely, a cluttered dark corner hides you deep.
+examples:
+  - cmd: hide
+    note: Slip out of sight where you stand

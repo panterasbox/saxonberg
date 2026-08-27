@@ -3,8 +3,8 @@
 # open-container gather path — flip the lid, cook), the kitchen board,
 # and the cook. Order a meal, or make it yourself with their tools — the
 # DIY floor.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cookhouse
   primaryKeyword: cookhouse
@@ -15,18 +15,18 @@ data:
     y: 0
     z: 0
   populates:
-    - /obj/Oven
-    - /obj/CookPot
+    - /stuff/thing/Oven
+    - /stuff/thing/CookPot
     - /world/hearthworks/kitchen-menu
     - /world/hearthworks/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the
     # chest holds the dear cuts the gather walk reaches for a craft —
     # hand-retrieval from containers isn't a shipped verb yet).
-    - /obj/items/root-vegetables
-    - /obj/items/root-vegetables
-    - /obj/items/stew-meat
+    - /stuff/thing/items/root-vegetables
+    - /stuff/thing/items/root-vegetables
+    - /stuff/thing/items/stew-meat
     # Empty dishes for the DIY floor — `plate` needs a real dish in
     # reach (the served path clones its own; the by-hand path doesn't).
-    - /obj/items/plated-dish
-    - /obj/items/plated-dish
+    - /stuff/thing/items/plated-dish
+    - /stuff/thing/items/plated-dish
     - /world/hearthworks/npc/cook

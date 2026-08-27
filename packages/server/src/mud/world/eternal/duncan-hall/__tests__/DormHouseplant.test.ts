@@ -28,18 +28,18 @@ import DormWarren from '../DormWarren';
 import DormRoom from '../DormRoom';
 import Desk from '../Desk';
 import Footlocker from '../Footlocker';
-import Plant from '../../../../obj/Plant';
-import PlantPot, { PLANT_SLOT } from '../../../../obj/PlantPot';
+import Plant from '../../../../platform/thing/Plant';
+import PlantPot, { PLANT_SLOT } from '../../../../platform/thing/PlantPot';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../lib/husbandry/Cultivable';
 import { Reserve } from '../../../../lib/reserve';
 import { Quantity } from '../../../../lib/quantity';
-import Seed from '../../../../obj/Seed';
-import WateringCan from '../../../../obj/WateringCan';
-import WaterController from '../../../../obj/command/bulk/WaterController';
-import PlantController from '../../../../obj/command/inventory/PlantController';
-import RepotController from '../../../../obj/command/inventory/RepotController';
-import PourController from '../../../../obj/command/bulk/PourController';
-import FillController from '../../../../obj/command/bulk/FillController';
+import Seed from '../../../../platform/thing/Seed';
+import WateringCan from '../../../../platform/thing/WateringCan';
+import WaterController from '../../../../platform/idea/cmd/bulk/WaterController';
+import PlantController from '../../../../platform/idea/cmd/inventory/PlantController';
+import RepotController from '../../../../platform/idea/cmd/inventory/RepotController';
+import PourController from '../../../../platform/idea/cmd/bulk/PourController';
+import FillController from '../../../../platform/idea/cmd/bulk/FillController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
@@ -59,11 +59,11 @@ import {
 } from '../../../../api/command';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import Location from '../../../../lib/stuff/Location';
-import PersistentHydrator from '../../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../../platform/idea/persistence/PersistentHydrator';
 import { Document } from '../../../../lib/persistence/Document';
-import ParcelRegistry from '../../../../obj/ParcelRegistry';
-import GroupRegistry from '../../../../obj/GroupRegistry';
-import Avatar from '../../../../obj/Avatar';
+import ParcelRegistry from '../../../../platform/idea/ParcelRegistry';
+import GroupRegistry from '../../../../platform/idea/GroupRegistry';
+import Avatar from '../../../../platform/agent/Avatar';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import {
@@ -72,12 +72,12 @@ import {
   registerMarshallerForTest,
   withRootContext,
 } from '../../../../lib/security/__tests__/test-setup';
-import { QuantityMarshaller } from '../../../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../../../platform/idea/persistence/QuantityMarshaller';
 import type { Unit } from '../../../../lib/quantity';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { TemplatePaths } from '../../../../lib/paths';
-import '../../../../obj/WorldClockRegistry';
+import '../../../../platform/idea/WorldClockRegistry';
 
 // Every test here simulates hundreds of game-days of growth through the real
 // verb path, and the acceptance walk runs two full stage ladders. The default
@@ -136,10 +136,10 @@ function addSeed(path: string, file: string): void {
 }
 
 const LILY_SPECIES =
-  '/obj/species/plantae/tracheophyta/liliopsida/alismatales/araceae/' +
+  '/stuff/idea/species/plantae/tracheophyta/liliopsida/alismatales/araceae/' +
   'spathiphyllum/wallisii';
 const SNAKE_SPECIES =
-  '/obj/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/' +
+  '/stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/' +
   'dracaena/trifasciata';
 
 /**
@@ -167,49 +167,49 @@ function seedDomain(): void {
     );
   }
   // The gardening objects.
-  addSeed('/obj/pot/starter', `${OBJECTS}obj/pot/starter.yaml`);
-  addSeed('/obj/pot/small', `${OBJECTS}obj/pot/small.yaml`);
-  addSeed('/obj/pot/large', `${OBJECTS}obj/pot/large.yaml`);
-  addSeed('/obj/plant/peace-lily', `${OBJECTS}obj/plant/peace-lily.yaml`);
-  addSeed('/obj/plant/snake-plant', `${OBJECTS}obj/plant/snake-plant.yaml`);
-  addSeed('/obj/seed/peace-lily', `${OBJECTS}obj/seed/peace-lily.yaml`);
-  addSeed('/obj/seed/snake-plant', `${OBJECTS}obj/seed/snake-plant.yaml`);
-  addSeed('/obj/vessel/watering-can', `${OBJECTS}obj/vessel/watering-can.yaml`);
-  addSeed('/obj/vessel/soil-sack', `${OBJECTS}obj/vessel/soil-sack.yaml`);
+  addSeed('/stuff/thing/pot/starter', `${OBJECTS}stuff/thing/pot/starter.yaml`);
+  addSeed('/stuff/thing/pot/small', `${OBJECTS}stuff/thing/pot/small.yaml`);
+  addSeed('/stuff/thing/pot/large', `${OBJECTS}stuff/thing/pot/large.yaml`);
+  addSeed('/stuff/thing/plant/peace-lily', `${OBJECTS}stuff/thing/plant/peace-lily.yaml`);
+  addSeed('/stuff/thing/plant/snake-plant', `${OBJECTS}stuff/thing/plant/snake-plant.yaml`);
+  addSeed('/stuff/thing/seed/peace-lily', `${OBJECTS}stuff/thing/seed/peace-lily.yaml`);
+  addSeed('/stuff/thing/seed/snake-plant', `${OBJECTS}stuff/thing/seed/snake-plant.yaml`);
+  addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
+  addSeed('/stuff/thing/vessel/soil-sack', `${OBJECTS}stuff/thing/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
   addSeed(
-    '/obj/material/bulk/water',
-    `${CONTENT}base-library/content/obj/material/bulk/water.yaml`,
+    '/stuff/idea/material/bulk/water',
+    `${CONTENT}base-library/content/stuff/idea/material/bulk/water.yaml`,
   );
   addSeed(
-    '/obj/material/bulk/potting-soil',
-    `${CONTENT}base-library/content/obj/material/bulk/potting-soil.yaml`,
+    '/stuff/idea/material/bulk/potting-soil',
+    `${CONTENT}base-library/content/stuff/idea/material/bulk/potting-soil.yaml`,
   );
   addSeed(
-    '/obj/material/ceramic/ceramic',
-    `${CONTENT}base-library/content/obj/material/ceramic/ceramic.yaml`,
+    '/stuff/idea/material/ceramic/ceramic',
+    `${CONTENT}base-library/content/stuff/idea/material/ceramic/ceramic.yaml`,
   );
   addSeed(
-    '/obj/material/alloy/steel',
-    `${CONTENT}base-library/content/obj/material/alloy/steel.yaml`,
+    '/stuff/idea/material/alloy/steel',
+    `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
   addSeed(
-    '/obj/material/tissue/plant-tissue',
-    `${CONTENT}base-library/content/obj/material/tissue/plant-tissue.yaml`,
+    '/stuff/idea/material/tissue/plant-tissue',
+    `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,
   );
-  addSeed('/obj/species/BodyPlan/sessile', `${SPECIES}obj/species/BodyPlan/sessile.yaml`);
+  addSeed('/stuff/idea/species/BodyPlan/sessile', `${SPECIES}stuff/idea/species/BodyPlan/sessile.yaml`);
   addSeed(
-    '/obj/species/plantae',
-    `${CONTENT}species-and-names/content/obj/species/plantae.yaml`,
+    '/stuff/idea/species/plantae',
+    `${CONTENT}species-and-names/content/stuff/idea/species/plantae.yaml`,
   );
   addSeed(
     LILY_SPECIES,
-    `${CONTENT}species-and-names/content/obj/species/plantae/tracheophyta/` +
+    `${CONTENT}species-and-names/content/stuff/idea/species/plantae/tracheophyta/` +
       `liliopsida/alismatales/araceae/spathiphyllum/wallisii.yaml`,
   );
   addSeed(
     SNAKE_SPECIES,
-    `${CONTENT}species-and-names/content/obj/species/plantae/tracheophyta/` +
+    `${CONTENT}species-and-names/content/stuff/idea/species/plantae/tracheophyta/` +
       `liliopsida/asparagales/asparagaceae/dracaena/trifasciata.yaml`,
   );
 }
@@ -291,11 +291,11 @@ function installStore(): void {
   // template the test store doesn't hold. The shared
   // `installV1QuantityMarshallers` helper's hand-kept unit list has fallen
   // behind the `Unit` union, so the seed directory is the honest source.
-  for (const file of readdirSync(`${PLATFORM}obj/persistence/QuantityMarshaller/`)) {
+  for (const file of readdirSync(`${PLATFORM}platform/idea/persistence/QuantityMarshaller/`)) {
     if (!file.endsWith('.yaml')) continue;
     const unit = (
       YAML.parse(
-        readFileSync(`${PLATFORM}obj/persistence/QuantityMarshaller/${file}`, 'utf-8'),
+        readFileSync(`${PLATFORM}platform/idea/persistence/QuantityMarshaller/${file}`, 'utf-8'),
       ) as { data?: { unit?: string } }
     ).data?.unit as Unit | undefined;
     if (!unit) continue;
@@ -320,19 +320,19 @@ function installStore(): void {
  * until something materializes it (a content pack's job in production).
  */
 async function bootTaxonomy(): Promise<void> {
-  await StuffApi.singleton('/obj/species/BodyPlan/sessile');
-  await StuffApi.singleton('/obj/species/plantae');
+  await StuffApi.singleton('/stuff/idea/species/BodyPlan/sessile');
+  await StuffApi.singleton('/stuff/idea/species/plantae');
   await StuffApi.singleton(LILY_SPECIES);
   await StuffApi.singleton(SNAKE_SPECIES);
   // Materials resolve the same way — `BulkSlot.getMaterial()` and
   // `Tangible.getMaterial()` both walk `findByTemplatePath`, so an
   // unmaterialized row reads as "this holder is empty".
   for (const path of [
-    '/obj/material/bulk/water',
-    '/obj/material/bulk/potting-soil',
-    '/obj/material/ceramic/ceramic',
-    '/obj/material/alloy/steel',
-    '/obj/material/tissue/plant-tissue',
+    '/stuff/idea/material/bulk/water',
+    '/stuff/idea/material/bulk/potting-soil',
+    '/stuff/idea/material/ceramic/ceramic',
+    '/stuff/idea/material/alloy/steel',
+    '/stuff/idea/material/tissue/plant-tissue',
   ]) {
     await StuffApi.singleton(path);
   }
@@ -341,12 +341,12 @@ async function bootTaxonomy(): Promise<void> {
 async function bootRegistries(): Promise<void> {
   const groups = makeStuffAtPath(
     () => new GroupRegistry(),
-    '/obj/GroupRegistry',
+    '/platform/idea/GroupRegistry',
   );
   await groups.postRegister();
   const parcels = makeStuffAtPath(
     () => new ParcelRegistry(),
-    '/obj/ParcelRegistry',
+    '/platform/idea/ParcelRegistry',
   );
   await parcels.postRegister();
 }
@@ -437,7 +437,7 @@ function tapIn(room: Stuff & Container): Stuff | null {
           MixinApi.isBulkable(s) &&
           !(s instanceof WateringCan) &&
           !(s instanceof PlantPot) &&
-          s.getBulkMaterialPath('interior') === '/obj/material/bulk/water',
+          s.getBulkMaterialPath('interior') === '/stuff/idea/material/bulk/water',
       ) ?? null
   );
 }
@@ -461,7 +461,7 @@ function conditionLines(plant: Plant): string {
 }
 
 async function makeAvatar(playerId: string): Promise<Avatar> {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
   return av;
 }
@@ -623,9 +623,9 @@ describe('the dorm houseplant — content and placement', () => {
     ContainmentApi.move(tenant, room as unknown as Stuff & Container);
 
     // Acquire the kit (buyability itself is proven in the store test).
-    const sack = await StuffApi.clone<Stuff>('/obj/vessel/soil-sack');
-    const small = await StuffApi.clone<PlantPot>('/obj/pot/small');
-    const seed = await StuffApi.clone<Seed>('/obj/seed/snake-plant');
+    const sack = await StuffApi.clone<Stuff>('/stuff/thing/vessel/soil-sack');
+    const small = await StuffApi.clone<PlantPot>('/stuff/thing/pot/small');
+    const seed = await StuffApi.clone<Seed>('/stuff/thing/seed/snake-plant');
     for (const item of [sack, small, seed]) {
       ContainmentApi.move(item as Stuff & Containable, tenant);
     }
@@ -672,9 +672,9 @@ describe('the dorm houseplant — content and placement', () => {
     expect(grown.isAlive()).toBe(true); // stalls, never dies of it
 
     // 4. Buy the large pot, fill it, `repot`.
-    const large = await StuffApi.clone<PlantPot>('/obj/pot/large');
+    const large = await StuffApi.clone<PlantPot>('/stuff/thing/pot/large');
     ContainmentApi.move(large, room as unknown as Stuff & Container);
-    const sack2 = await StuffApi.clone<Stuff>('/obj/vessel/soil-sack');
+    const sack2 = await StuffApi.clone<Stuff>('/stuff/thing/vessel/soil-sack');
     ContainmentApi.move(sack2 as Stuff & Containable, tenant);
     await run(
       makeStuff(() => new PourController()),
@@ -722,7 +722,7 @@ describe('the dorm houseplant — content and placement', () => {
     expect(setSeed).toBeInstanceOf(Seed);
     if (!setSeed) throw new Error('unreachable — asserted above');
     // …and that seed grows the same species: the loop closes with no money.
-    expect(setSeed.getGrowsIntoPath()).toBe('/obj/plant/snake-plant');
+    expect(setSeed.getGrowsIntoPath()).toBe('/stuff/thing/plant/snake-plant');
   });
 });
 
@@ -854,7 +854,7 @@ describe('the dorm houseplant — durability', () => {
     // the dorm is involved.
     const records = col('holder_snapshots');
     const own = records.find(
-      (r) => r.scope === '/obj/plant/peace-lily' && r.owner === key,
+      (r) => r.scope === '/stuff/thing/plant/peace-lily' && r.owner === key,
     );
     expect(own).toBeDefined();
     // The avatar's slice refs it by (ref, key), not by absorbing it.
@@ -862,7 +862,7 @@ describe('the dorm houseplant — durability', () => {
       (r) => r.scope === tenant.getTemplatePath(),
     )!;
     const refs = JSON.stringify(avatarRec.state);
-    expect(refs).toContain('/obj/plant/peace-lily');
+    expect(refs).toContain('/stuff/thing/plant/peace-lily');
     expect(refs).toContain(key);
 
     // Time passes while everything is torn down, then the avatar restores.
@@ -872,7 +872,7 @@ describe('the dorm houseplant — durability', () => {
 
     const reborn = makeStuffAtPath(
       () => new Avatar(),
-      `/obj/Avatar/tenant`,
+      `/platform/agent/Avatar/tenant`,
     );
     reborn.setPlayerId('tenant');
     await PersistableApi.materialize(reborn);
@@ -993,7 +993,7 @@ describe('the dorm houseplant — durability', () => {
     const records = col('holder_snapshots');
     expect(
       records.find(
-        (r) => r.scope === '/obj/plant/peace-lily' && r.owner === key,
+        (r) => r.scope === '/stuff/thing/plant/peace-lily' && r.owner === key,
       ),
     ).toBeUndefined();
     // The room's record still REFERS to the key (it was written while the
@@ -1056,7 +1056,7 @@ describe('the dorm houseplant — durability', () => {
     pot.soilClockStamp = checkpointStamp;
     const restored = makeStuffAtPath(
       () => new Plant(),
-      '/obj/plant/peace-lily',
+      '/stuff/thing/plant/peace-lily',
     );
     restored.setPersistenceKey(key);
     await PersistableApi.materialize(restored, key);
@@ -1091,7 +1091,7 @@ describe('the dorm houseplant — durability', () => {
 
     const restored2 = makeStuffAtPath(
       () => new Plant(),
-      '/obj/plant/peace-lily',
+      '/stuff/thing/plant/peace-lily',
     );
     restored2.setPersistenceKey(key);
     await PersistableApi.materialize(restored2, key);

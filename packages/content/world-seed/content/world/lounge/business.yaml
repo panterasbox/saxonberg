@@ -12,8 +12,8 @@
 # income (OrderController) and shift wages (the roster tick) settle on one
 # account — the deficit P&L reads them together. See
 # docs/subsystems/employment.md.
-class: /obj/Business
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # Who may fill this business's positions. Dave owns the bar, so the
   # authority is the ENTITY edge — a replaceable pointer, not a group.

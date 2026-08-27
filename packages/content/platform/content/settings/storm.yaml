@@ -11,7 +11,7 @@ settings:
     value: "0.2"
 
   - key: storm.puddle.freshWaterMaterialPath
-    value: "/obj/material/bulk/water"
+    value: "/stuff/idea/material/bulk/water"
 
   - key: storm.strikeRate
     value: "0.15"

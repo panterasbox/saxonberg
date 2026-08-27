@@ -42,12 +42,12 @@ import { VisibleMixin } from '../../lib/description/Visible';
 import { StuffApi } from '../stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type Location from '../../lib/stuff/Location';
-import type Interactive from '../../obj/Interactive';
+import type Interactive from '../../platform/idea/Interactive';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 
-const THROW_YAML = 'inventory/throw.yaml';
+const THROW_YAML = 'platform/cmd/inventory/throw.yaml';
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class TestThing extends TangibleMixin(
@@ -66,7 +66,7 @@ class TestGiver extends ContainerMixin(
  * scope so a test can pin what a *narrower* scope would cost.
  */
 function realThrow(itemScope?: string): CommandDefinition {
-  const path = fileURLToPath(new URL('../../../../../content/platform/content/cmd/inventory/throw.yaml', import.meta.url));
+  const path = fileURLToPath(new URL('../../../../../content/platform/content/platform/cmd/inventory/throw.yaml', import.meta.url));
   let text = readFileSync(path, 'utf8');
   if (itemScope !== undefined) {
     text = text.replace(/scope: "reachable"/, `scope: "${itemScope}"`);

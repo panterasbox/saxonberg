@@ -12,7 +12,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GlobbableApi } from '../glob';
-import { GlobbableLogic } from '../../obj/api/GlobbableLogic';
+import { GlobbableLogic } from '../../platform/idea/api/GlobbableLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { ContainmentApi } from '../containment';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -689,22 +689,22 @@ describe('GlobbableLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/glob once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/glob once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton. canMerge over
     // two non-globbable Ideas returns false without side effects.
     const a = makeStuff(() => new Idea());
     const b = makeStuff(() => new Idea());
     GlobbableApi.canMerge(a, b);
-    const logic = StuffApi.findByTemplatePath('/obj/api/glob');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/glob');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-GlobbableApi caller', () => {
     const a = makeStuff(() => new Idea());
     const b = makeStuff(() => new Idea());
     GlobbableApi.canMerge(a, b);
-    const logic = StuffApi.findByTemplatePath<GlobbableLogic>('/obj/api/glob');
+    const logic = StuffApi.findByTemplatePath<GlobbableLogic>('/platform/idea/api/glob');
     expect(logic).toBeDefined();
     // The test module is neither `mud/api/glob#GlobbableApi` (FromModule)
     // nor the singleton itself (SelfOnly), so the gate denies the call.

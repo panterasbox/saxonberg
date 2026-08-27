@@ -24,7 +24,7 @@ import { ExitableMixin, type Exitable } from '../../lib/boundary/Exitable';
 import { MobileMixin, type Mobile } from '../../lib/spatial/Mobile';
 import Exit from '../../lib/boundary/Exit';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
-import Interactive from '../../obj/Interactive';
+import Interactive from '../../platform/idea/Interactive';
 import { SecurityError } from '../../lib/security/errors';
 import { Shadowing } from '../../lib/security/decorators';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';

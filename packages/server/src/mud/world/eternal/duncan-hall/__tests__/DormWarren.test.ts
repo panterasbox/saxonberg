@@ -29,11 +29,11 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { HasInteractiveMixin } from '../../../../lib/connection/HasInteractive';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Idea } from '../../../../lib/stuff/Idea';
-import PersistentHydrator from '../../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../../platform/idea/persistence/PersistentHydrator';
 import { Document } from '../../../../lib/persistence/Document';
-import ParcelRegistry from '../../../../obj/ParcelRegistry';
-import GroupRegistry from '../../../../obj/GroupRegistry';
-import Avatar from '../../../../obj/Avatar';
+import ParcelRegistry from '../../../../platform/idea/ParcelRegistry';
+import GroupRegistry from '../../../../platform/idea/GroupRegistry';
+import Avatar from '../../../../platform/agent/Avatar';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import {
   makeStuffAtPath,
@@ -98,7 +98,7 @@ function seedDomain(): void {
   add(FIXTURES[2]!, '/world/eternal/duncan-hall/Footlocker', {
     shortDescription: 'a footlocker',
   });
-  add('/obj/Key', '/obj/Key', { shortDescription: 'a key' });
+  add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
 }
 
 /** Seed a unit parcel row directly (a provisioned unit). */
@@ -182,9 +182,9 @@ function installStore(): void {
 }
 
 async function bootRegistries(): Promise<void> {
-  const groups = makeStuffAtPath(() => new GroupRegistry(), '/obj/GroupRegistry');
+  const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
   await groups.postRegister();
-  const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/obj/ParcelRegistry');
+  const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
   await parcels.postRegister();
 }
 
@@ -334,9 +334,9 @@ describe('DormWarren — the DormDoor key gate', () => {
     await bootRegistries();
     const w = await warren();
 
-    const iris = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/iris');
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
     iris.setPlayerId('iris');
-    const bob = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/bob');
+    const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
     bob.setPlayerId('bob');
 
     // No keyway yet → the door is locked → nobody passes.
@@ -370,7 +370,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     await w.ensureFloor(1);
     const door = w.doorFor(k1)!;
 
-    const sam = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/sam');
+    const sam = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/sam');
     sam.setPlayerId('sam');
     // No unit key, but a pin-tumbler master → opens regardless of the keyway.
     await CredentialApi.issueMasterKey(sam, 'pin-tumbler');

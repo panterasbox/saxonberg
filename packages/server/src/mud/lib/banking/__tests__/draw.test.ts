@@ -22,7 +22,7 @@ import {
 } from "./banking-test-harness";
 
 const BIZ_ACCT = "acct-business";
-const DAVE = "/obj/Avatar/dave";
+const DAVE = "/platform/agent/Avatar/dave";
 
 class TestOwner extends Idea {
   static _mixinName = "TestOwner";
@@ -76,12 +76,12 @@ describe("BankingApi.payDraw", () => {
   it("refuses when the proprietor has no account", async () => {
     await BankingApi.mint(BIZ_ACCT, Money.of(500, Currency.compact()));
     await expect(
-      BankingApi.payDraw(BIZ_ACCT, "/obj/Avatar/nobody", Money.of(10, Currency.compact())),
+      BankingApi.payDraw(BIZ_ACCT, "/platform/agent/Avatar/nobody", Money.of(10, Currency.compact())),
     ).rejects.toThrow(/no account/);
   });
 
   it("payWage still pays red by design (regression — the deliberate asymmetry)", async () => {
-    const worker = "/obj/Avatar/wenna";
+    const worker = "/platform/agent/Avatar/wenna";
     const workerAcct = await BankingApi.ensureVenueAccount(
       worker,
       BankingApi.defaultCustodianBank(),

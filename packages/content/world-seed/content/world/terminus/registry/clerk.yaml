@@ -6,12 +6,12 @@
 # unhurried, quietly amused by the gap between the city's paperwork and
 # the city. Domiciled at the registry (the NPC residency exemplar — her
 # chain reads [city, realm]). Human (canon).
-class: /obj/NPC
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odile
   pronouns: she
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: registrar
   alternateNames:

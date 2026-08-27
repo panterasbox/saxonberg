@@ -181,10 +181,10 @@ export function CultivableMixin<
     static commandContributions: CommandContributions = {
       self: [],
       peers: [
-        "inventory/plant.yaml",
-        "inventory/repot.yaml",
-        "inventory/harvest.yaml",
-        "bulk/feed.yaml",
+        "platform/cmd/inventory/plant.yaml",
+        "platform/cmd/inventory/repot.yaml",
+        "platform/cmd/inventory/harvest.yaml",
+        "platform/cmd/bulk/feed.yaml",
       ],
       environment: [],
     };

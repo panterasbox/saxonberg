@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
-import Pack from '../../../obj/equipment/Pack';
+import Pack from '../../../platform/thing/equipment/Pack';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import {
   bearerCreature,

@@ -38,14 +38,14 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
 import { EngagedMixin } from '../../activity/Engaged';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../../obj/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
 import { ScheduleApi } from '../../../api/schedule';
 import { SchedulerApi } from '../../../api/scheduler';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff as StuffClass } from '../../stuff/Stuff';
 import { BehavedMixin } from '../Behaved';
 import { brain as ritual } from '../crossing-ritual';
@@ -236,7 +236,7 @@ describe('crossing-ritual brain (integration — cross-room whistle + no departu
     EventApi._clearAllForTesting();
     const reg = await StuffApi.create(() => {
       const r = new EventRegistry();
-      StuffClass._stampTemplatePath(r, '/obj/EventRegistry');
+      StuffClass._stampTemplatePath(r, '/platform/idea/EventRegistry');
       return r;
     });
     StuffApi.unregister(reg);

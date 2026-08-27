@@ -10,8 +10,8 @@
 # to the arrival gate (reoriented 2026-07-12 — the arrival alcove is now the
 # terminal's north frontage onto University Avenue), south to dead Departure
 # Gate C, east/west to departure gates A/B, up to the ticket office mezzanine.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Terminus Terminal, the station hall
   primaryKeyword: hall

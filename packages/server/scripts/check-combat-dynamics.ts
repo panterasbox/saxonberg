@@ -178,7 +178,7 @@ export function scanCombatDynamics(source: string, file: string): Finding[] {
 
 /** The scan scope: the engine + the combat substrate, tests excluded. */
 export function combatDynamicsScope(): string[] {
-  const files = [join(MUD_ROOT, "obj", "api", "CombatLogic.ts")];
+  const files = [join(MUD_ROOT, "platform", "idea", "api", "CombatLogic.ts")];
   const combatDir = join(MUD_ROOT, "lib", "combat");
   for (const name of readdirSync(combatDir)) {
     const full = join(combatDir, name);

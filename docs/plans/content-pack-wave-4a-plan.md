@@ -56,7 +56,7 @@ Delete the local constant; `import { TITLE_ROOTS } from '../src/mud/lib/paths'` 
 
 ### 1.5 `scripts/check-instanceable-placement.ts`
 
-Today's invariants (`:38` class under `/lib/`, `:42` path under `/lib/`, `:46` class resolves) are already root-agnostic — a `/trade/smithing/obj/anvil` file is walked like any other. Add **invariant 7** (planner's choice — D2's "the `obj/` segment rule recursed"): under `/trade/<industry>/`, a template whose `class:` names a concrete engine class must sit under `/trade/<industry>/obj/…` or `/trade/<industry>/command/…` — i.e. the instanceable convention inside the subtree; the `recipes/` dir is a document kind and is skipped by the existing `nonTemplateDirs` mirror (`check-untitled-paths.ts:32 NON_TEMPLATE_DIRS`, which `check-instanceable` must share — hoist that set next to `TITLE_ROOTS` in `lib/paths.ts` as `NON_TEMPLATE_DIRS` if it does not already read one; **check** the script's own skip list first).
+Today's invariants (`:38` class under `/lib/`, `:42` path under `/lib/`, `:46` class resolves) are already root-agnostic — a `/trade/smithing/thing/anvil` file is walked like any other. Add **invariant 7** (planner's choice — D2's "the `obj/` segment rule recursed"): under `/trade/<industry>/`, a template whose `class:` names a concrete engine class must sit under `/trade/<industry>/obj/…` or `/trade/<industry>/command/…` — i.e. the instanceable convention inside the subtree; the `recipes/` dir is a document kind and is skipped by the existing `nonTemplateDirs` mirror (`check-untitled-paths.ts:32 NON_TEMPLATE_DIRS`, which `check-instanceable` must share — hoist that set next to `TITLE_ROOTS` in `lib/paths.ts` as `NON_TEMPLATE_DIRS` if it does not already read one; **check** the script's own skip list first).
 
 ### Tests (step 1)
 
@@ -186,13 +186,13 @@ git mv packages/content/generic-objects/content/recipes/{toasted-ration,root-mas
 # commons — into generic-objects under its /obj/items claim
 git mv …/hearthworks/{prime-cut,stew-meat,ration-stock,root-vegetables,hide-stock,dry-log,wet-log}.yaml packages/content/generic-objects/content/obj/items/
 ```
-Stays in `world-seed` at `/world/hearthworks/…`: `hearthworks.yaml`, `smithy`, `cookhouse`, `cellar`, `woodshed`, `forge-floor`, `business`, `npc/smith`, `npc/cook`, `kitchen-menu`, `smithy-menu`, `pantry-chest`. Resulting paths: `/trade/smithing/obj/anvil` etc., `/trade/smithing/recipes/belt-knife` etc., `/obj/items/prime-cut` etc.
+Stays in `world-seed` at `/world/hearthworks/…`: `hearthworks.yaml`, `smithy`, `cookhouse`, `cellar`, `woodshed`, `forge-floor`, `business`, `npc/smith`, `npc/cook`, `kitchen-menu`, `smithy-menu`, `pantry-chest`. Resulting paths: `/trade/smithing/thing/anvil` etc., `/trade/smithing/recipes/belt-knife` etc., `/obj/items/prime-cut` etc.
 
 **Planner's choice — `/obj/items/` for the commons** (generic-objects already claims `/obj/items`; a Provision/Prop/Firewood is an item). The alternative (`/obj/<Name>` loose rows under the platform's `/obj`) would put shipped goods under the executive's title; the items branch is the pack's own.
 
 ### 4.3 The references that repoint (all inside `world-seed/content/world/hearthworks/`)
 
-- `smithy.yaml:23–31` `populates:` → `/trade/smithing/obj/iron-ingot`, `/trade/smithing/obj/spare-ingot`, `/trade/smithing/obj/anvil`, `/trade/smithing/obj/workbench`, `/obj/items/hide-stock`, `/trade/smithing/obj/whetstone` (the menu + npc stay `/world/hearthworks/…`; `/obj/Forge`, `/obj/gear/smiths-hammer` unchanged).
+- `smithy.yaml:23–31` `populates:` → `/trade/smithing/thing/iron-ingot`, `/trade/smithing/thing/spare-ingot`, `/trade/smithing/thing/anvil`, `/trade/smithing/thing/workbench`, `/obj/items/hide-stock`, `/trade/smithing/thing/whetstone` (the menu + npc stay `/world/hearthworks/…`; `/obj/Forge`, `/obj/gear/smiths-hammer` unchanged).
 - `cookhouse.yaml:20–32` → `/world/hearthworks/kitchen-menu`, `/world/hearthworks/pantry-chest`, `/obj/items/root-vegetables` ×2, `/obj/items/stew-meat`.
 - `pantry-chest.yaml:17–18` → `/obj/items/prime-cut`, `/obj/items/ration-stock`.
 - `cellar.yaml:24`, `woodshed.yaml:17–19` → `/obj/items/dry-log` / `wet-log`.
@@ -203,7 +203,7 @@ Stays in `world-seed` at `/world/hearthworks/…`: `hearthworks.yaml`, `smithy`,
 
 - The covered-extent rule: `trade-smithing`'s rows are under its own claim; the commons rows under generic-objects' `/obj/items`. `lint:untitled` proves it.
 - `PackLogic.discover.test.ts`: the two packs order after `generic-objects` (dependsOn); `pack status` lists eighteen.
-- `src/mud/world/hearthworks/__tests__/hearthworks*.integration.test.ts` and `src/mud/world/__tests__/business-authority.test.ts`: repoint the literals (`/world/hearthworks/anvil` → `/trade/smithing/obj/anvil`, …). `RecipeCatalogue` tests (`grep -rl RecipeCatalogue src --include='*.test.ts'`) that read recipe fixtures from `generic-objects/content/recipes` must find the seven moved files at their new roots — if a test enumerates the directory, point it at all three packs' `recipes/` dirs via `PackApi.contentRoots()`.
+- `src/mud/world/hearthworks/__tests__/hearthworks*.integration.test.ts` and `src/mud/world/__tests__/business-authority.test.ts`: repoint the literals (`/world/hearthworks/anvil` → `/trade/smithing/thing/anvil`, …). `RecipeCatalogue` tests (`grep -rl RecipeCatalogue src --include='*.test.ts'`) that read recipe fixtures from `generic-objects/content/recipes` must find the seven moved files at their new roots — if a test enumerates the directory, point it at all three packs' `recipes/` dirs via `PackApi.contentRoots()`.
 - `e2e/tests/drive-crafting.spec.ts` — unchanged (venue rooms).
 
 ### 4.5 `lint:instanceable` + `lint:untitled` green; `pnpm build`; `test:near`.

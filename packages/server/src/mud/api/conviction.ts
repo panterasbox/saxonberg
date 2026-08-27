@@ -30,7 +30,7 @@
  * drive to exercise the ramp deterministically.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link ConvictionLogic} singleton at `/obj/api/conviction`.
+ * {@link ConvictionLogic} singleton at `/platform/idea/api/conviction`.
  */
 
 import type { ConvictionPosition } from '../lib/standing/Position';
@@ -38,16 +38,16 @@ import { ConvictionTally } from '../lib/standing/ConvictionTally';
 import type { Stock } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ConvictionLogic } from '../obj/api/ConvictionLogic';
+import { ConvictionLogic } from '../platform/idea/api/ConvictionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { ConvictionPosition };
 export { ConvictionTally };
 
-const LOGIC_PATH = '/obj/api/conviction';
+const LOGIC_PATH = '/platform/idea/api/conviction';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ConvictionLogic', import.meta.url)
+  new URL('../platform/idea/api/ConvictionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ConvictionLogic singleton (sync). */

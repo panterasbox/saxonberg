@@ -19,7 +19,7 @@
  * allowlist: the legitimate writer is *the Party acting on this member*
  * (`FromClass(() => Party)` + a relational `where` validating the path
  * being written), with a narrow janitorial arm for the party subsystem's
- * own logic (`FromTemplate('/obj/api/party')`) covering stale-pointer
+ * own logic (`FromTemplate('/platform/idea/api/party')`) covering stale-pointer
  * cleanup when no live Party Idea exists to act.
  */
 
@@ -31,7 +31,7 @@ import {
   Unshadowable,
 } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
-import { Party } from "../../obj/Party";
+import { Party } from "../../platform/idea/Party";
 
 /** Public read surface for PartyMemberMixin. */
 export interface PartyMember {
@@ -67,7 +67,7 @@ const ByRosteringParty = SecurityPolicies.AnyOf(
       );
     },
   }),
-  SecurityPolicies.FromTemplate("/obj/api/party"),
+  SecurityPolicies.FromTemplate("/platform/idea/api/party"),
 );
 
 /**
@@ -83,7 +83,7 @@ const ByInvitingParty = SecurityPolicies.AnyOf(
       return path === "" || path === party.getTemplatePath();
     },
   }),
-  SecurityPolicies.FromTemplate("/obj/api/party"),
+  SecurityPolicies.FromTemplate("/platform/idea/api/party"),
 );
 
 export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -95,7 +95,7 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The `party` verb — a party-capable actor's whole party surface. */
     static commandContributions: CommandContributions = {
-      self: ["social/party.yaml"],
+      self: ["platform/cmd/social/party.yaml"],
       peers: [],
       environment: [],
     };

@@ -1,0 +1,28 @@
+verbs: [disarm]
+controller: /platform/idea/cmd/device/DisarmController
+description: "Defuse a trap you've found"
+help: |
+  Defuse a trap — a spike pit, a poisoned dart, a snare — that you've
+  already spotted. Name the thing (`disarm the pit`). You have to have
+  *found* it first: you can't defuse what you can't see, so give a
+  suspicious spot a `search` or an `examine` before you reach for it.
+
+  Disarming takes a few careful moments and ties up your hands; a sharp
+  eye makes it surer. You can be caught out mid-work, and an interrupted
+  disarm leaves the trap live. A trap that's already sprung or already
+  defused needs nothing from you.
+examples:
+  - cmd: disarm the pit
+    note: Defuse a trap you've spotted
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    requires: HazardMixin
+    validators:
+      - /lib/command/validators/canReach

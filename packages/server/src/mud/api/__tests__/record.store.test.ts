@@ -19,15 +19,15 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { MessageFrame } from '@saxonberg/types';
-import Avatar from '../../obj/Avatar';
-import Interactive from '../../obj/Interactive';
+import Avatar from '../../platform/agent/Avatar';
+import Interactive from '../../platform/idea/Interactive';
 import { User } from '../../lib/identity/User';
 import { RecordApi } from '../record';
 import { AppApi } from '../app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Collections } from '../../lib/persistence/Collections';
-import { ConnectionApi } from '../../api/connection';
-import { ExecutionContextApi } from '../../api/execution-context';
+import { ConnectionApi } from '../connection';
+import { ExecutionContextApi } from '../execution-context';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import {
   installRecordTestDb,

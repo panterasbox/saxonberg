@@ -15,15 +15,15 @@ import { readFileSync, readdirSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
-import { DISCIPLINE_CHANNELS } from "../../../obj/Discipline";
+import { DISCIPLINE_CHANNELS } from "../../../platform/idea/Discipline";
 
 const __filename = fileURLToPath(import.meta.url);
 const SEEDS_DIR = join(
   dirname(__filename),
-  "../../../../../../content/platform/content/obj/Discipline"
+  "../../../../../../content/platform/content/platform/idea/Discipline"
 );
 // The engine verbs are the platform pack's content (content-packs wave 2).
-const CMD_DIR = join(dirname(__filename), "../../../../../../content/platform/content/cmd");
+const CMD_DIR = join(dirname(__filename), "../../../../../../content/platform/content/platform/cmd");
 
 interface DisciplineSeed {
   class: string;
@@ -37,7 +37,7 @@ function loadAll(): Map<string, DisciplineSeed["data"]> {
     const seed = YAML.parse(
       readFileSync(join(SEEDS_DIR, file), "utf-8")
     ) as DisciplineSeed;
-    expect(seed.class, `${file} wrong class`).toBe("/obj/Discipline");
+    expect(seed.class, `${file} wrong class`).toBe("/platform/idea/Discipline");
     const key = seed.data?.key as string | undefined;
     expect(key, `${file} missing key`).toBeTruthy();
     byKey.set(key!, seed.data);

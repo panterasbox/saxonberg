@@ -12,8 +12,8 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import SearchController from '../../../obj/command/perception/SearchController';
-import GoController from '../../../obj/command/movement/GoController';
+import SearchController from '../../../platform/idea/cmd/perception/SearchController';
+import GoController from '../../../platform/idea/cmd/movement/GoController';
 import Bar from '../Bar';
 import CartesianLocation from '../../../lib/location/CartesianLocation';
 import Exit from '../../../lib/boundary/Exit';
@@ -24,7 +24,7 @@ import { MessageApi } from '../../../api/message';
 import { SchedulerApi } from '../../../api/scheduler';
 import { WorldClockApi } from '../../../api/worldclock';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { MqlApi, type MqlOneResult } from '../../../api/mql';
 import {
   PersistenceManager,
@@ -38,7 +38,7 @@ import {
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import { Idea } from '../../../lib/stuff/Idea';
-import type Interactive from '../../../obj/Interactive';
+import type Interactive from '../../../platform/idea/Interactive';
 import type Location from '../../../lib/stuff/Location';
 import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../lib/description/Named';
@@ -49,7 +49,7 @@ import { EngagedMixin } from '../../../lib/activity/Engaged';
 import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
-const PH = '/obj/persistence/PersistentHydrator';
+const PH = '/platform/idea/persistence/PersistentHydrator';
 const HINT = 'a hairline seam and a thread of cool air from the north wall';
 
 class Patron extends BeliefStoreMixin(
@@ -86,15 +86,15 @@ function installStore(): void {
     },
     {
       path: '/world/lounge/office',
-      class: '/obj/location/Room',
+      class: '/platform/location/Room',
       hydratorClass: PH,
       data: { shortDescription: "Dave's office", primaryKeyword: 'office' },
     },
     // The default locomotion mode so `go north` (defaultModeFor → walk) can
     // clone its mode singleton.
     {
-      path: '/obj/LocomotionMode/walk',
-      class: '/obj/LocomotionMode',
+      path: '/platform/idea/LocomotionMode/walk',
+      class: '/platform/idea/LocomotionMode',
       hydratorClass: PH,
       data: {
         name: 'walk',
@@ -168,7 +168,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
     SchedulerApi._clearAllForTesting();
     const reg = await StuffApi.create(() => {
       const r = new EventRegistry();
-      Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+      Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
       return r;
     });
     StuffApi.unregister(reg);

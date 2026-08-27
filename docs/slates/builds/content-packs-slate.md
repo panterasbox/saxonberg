@@ -1914,7 +1914,7 @@ root; the four-namespaces doctrine gains its slot:
 - `/obj/` stays **the commons** — kernel generics + the generic-objects
   pack; "is this path core or somebody's?" stays answerable on sight.
 - `/trade/` naming: the TREE word is player/author-facing
-  (`/trade/smithing/obj/forge` reads); **industry/venue stays the
+  (`/trade/smithing/thing/forge` reads); **industry/venue stays the
   packaging vocabulary**. Part 9's `requires:` example already sketched
   `/trade/baking`.
 - Cost, one-time and deliberately kernel-shaped: a **sixth top-level
@@ -1993,7 +1993,7 @@ plus three decisions it forced.
 
 | Pack | Ships |
 |---|---|
-| **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/obj/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
+| **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/thing/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
 | **`/trade/hearth-cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
 | **`/domain/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
 
@@ -2010,7 +2010,7 @@ plus three decisions it forced.
    already thin CommerceMenu subclasses; the residue (verb-surface
    lighting?) is the actual work, and it is small.
 3. ⚠ **The migration is a PATH RENAME** (`/domain/hearthworks/anvil` →
-   `/trade/smithing/obj/anvil`), and now is the cheapest it will ever
+   `/trade/smithing/thing/anvil`), and now is the cheapest it will ever
    be — hearthworks is goto-only, blast radius ≈ one populates list +
    recipe station refs. ⚠⚠ The re-cut must **DELETE the orphaned
    unstamped `/domain/hearthworks/*` rows** the new packs don't adopt
@@ -2111,7 +2111,7 @@ failure: null             # {step, error, file} — a failed pack boots
 parameters: {…}           # diagnostic COPY of render-time values;
                           #   authority stays in decision files (A10.11)
 rows:                     # ⭐ the three-way baseline
-  /trade/smithing/obj/anvil: {kind: domain, hash: "sha256:…"}
+  /trade/smithing/thing/anvil: {kind: domain, hash: "sha256:…"}
 pins: []                  # operator-owned rows (A17.3)
 sideEffects: {kinds: […]} # non-row work applied — for uninstall
 ```

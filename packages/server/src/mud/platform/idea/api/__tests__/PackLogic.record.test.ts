@@ -1,0 +1,164 @@
+/**
+ * The `pack_installs` record (pack-installer W1.3): one record per pack
+ * with per-row baselines (hash + canonical body), the first-install
+ * normalization, two-boot idempotence at the installer level, per-pack
+ * failure isolation, and hash canonicalization.
+ */
+
+import '../../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { writeFileSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { PackApi } from '../../../../api/pack';
+import { QuantityApi } from '../../../../api/quantity';
+import {
+  MATERIAL,
+  HYDRATOR,
+  store,
+  stubPersist,
+  stubClassResolution,
+  quietConsole,
+  contentRows,
+  rowsIn,
+  recordOf,
+  writePack,
+  cleanupPacks,
+} from './pack-harness';
+
+let warn: ReturnType<typeof vi.spyOn>;
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  stubPersist();
+  stubClassResolution();
+  warn = quietConsole().warn;
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+  cleanupPacks();
+});
+
+const GIN = 'stuff/idea/material/spirit/gin.yaml';
+
+describe('the install record', () => {
+  it('fresh store: one applied record per pack, with baselines for every row', async () => {
+    vi.spyOn(QuantityApi, 'loadTagTables').mockReturnValue({
+      registered: ['mass:kg', 'length:m'],
+    } as never);
+    const root = writePack(
+      'p',
+      [{ rel: GIN, data: { name: 'gin' } }],
+      { nameBanks: [{ key: 'common', given: ['A'], surname: ['B'] }], version: '1.2.3' },
+    );
+    mkdirSync(join(root, 'content', 'quantity'), { recursive: true });
+    writeFileSync(join(root, 'content', 'quantity', 'quantity-tags.yaml'), 'tags: []\n');
+
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(r!.quantityTables).toBe(2);
+
+    const rec = recordOf('p')!;
+    expect(rec.packId).toBe('p');
+    expect(rec.version).toBe('1.2.3');
+    expect(rec.principal).toBe('bootstrap');
+    expect(rec.status).toBe('applied');
+    expect(rec.failure).toBeNull();
+    expect(rec.parameters).toEqual({});
+    expect(rec.pins).toEqual([]);
+    expect(rec.conflicts).toEqual([]);
+    expect(rec.sideEffects.kinds).toEqual(['quantity']);
+    expect(Object.keys(rec.rows).sort()).toEqual([
+      '/name-banks/common',
+      '/stuff/idea/material/spirit/gin',
+    ]);
+    const gin = rec.rows['/stuff/idea/material/spirit/gin']!;
+    expect(gin.kind).toBe('domain');
+    expect(gin.hash).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(JSON.parse(gin.body)).toEqual({
+      class: MATERIAL,
+      hydratorClass: HYDRATOR,
+      data: { name: 'gin' },
+    });
+    const bank = rec.rows['/name-banks/common']!;
+    expect(bank.kind).toBe('document:name-bank');
+    expect(JSON.parse(bank.body)).toEqual({ data: { key: 'common', given: ['A'], surname: ['B'] } });
+    // A first install is quiet: nothing to normalize, nothing adopted.
+    expect(warn.mock.calls.filter((c) => /adopt|normalized/.test(String(c[0])))).toHaveLength(0);
+  });
+
+  it('second run: record rows deep-equal, no second normalization line, store identical', async () => {
+    const root = writePack('p', [{ rel: GIN, data: { name: 'gin', abv: 40 } }], {
+      nameBanks: [{ key: 'common', given: ['A'], surname: ['B'] }],
+    });
+    await PackApi.install([root]);
+    const rows1 = structuredClone(recordOf('p')!.rows);
+    const store1 = structuredClone(store.rows.filter((r) => r.__col !== 'pack_installs'));
+    warn.mockClear();
+
+    const [r2] = await PackApi.install([root]);
+    expect([...r2!.inserted, ...r2!.updated, ...r2!.deleted]).toEqual([]);
+    expect(r2!.normalized).toBe(0);
+    expect(recordOf('p')!.rows).toEqual(rows1);
+    expect(store.rows.filter((r) => r.__col !== 'pack_installs')).toEqual(store1);
+    expect(warn.mock.calls.filter((c) => /adoption|normalized/.test(String(c[0])))).toHaveLength(0);
+  });
+
+  it('failure isolation: a requires-kernel failure records status failed; siblings apply', async () => {
+    const bad = writePack('bad', [
+      { rel: GIN },
+      { rel: 'stuff/idea/material/x.yaml', class: '/stuff/idea/material/DoesNotExist' },
+    ]);
+    const good = writePack('good', [{ rel: 'stuff/idea/material/element/iron.yaml' }]);
+    const results = await PackApi.install([bad, good]);
+    const rb = results.find((r) => r.packId === 'bad')!;
+    const rg = results.find((r) => r.packId === 'good')!;
+    expect(rb.failure?.step).toBe('requires-kernel');
+    expect(rg.failure).toBeNull();
+    expect(rg.inserted).toEqual(['/stuff/idea/material/element/iron']);
+    expect(contentRows().map((r) => r.sourcePack)).toEqual(['good']); // zero writes for bad
+    expect(recordOf('bad')!.status).toBe('failed');
+    expect(recordOf('bad')!.failure!.step).toBe('requires-kernel');
+    expect(recordOf('good')!.status).toBe('applied');
+  });
+
+  it('a failed pack that is later fixed re-applies and clears the failure', async () => {
+    const root = writePack('p', [
+      { rel: 'stuff/idea/material/x.yaml', class: '/stuff/idea/material/DoesNotExist' },
+    ]);
+    await PackApi.install([root]);
+    expect(recordOf('p')!.status).toBe('failed');
+    writeFileSync(
+      join(root, 'content', 'stuff/idea/material/x.yaml'),
+      `class: ${MATERIAL}\nhydratorClass: ${HYDRATOR}\ndata: { name: x }\n`,
+    );
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(recordOf('p')!.status).toBe('applied');
+    expect(recordOf('p')!.failure).toBeNull();
+  });
+
+  it('hash canonicalization: key order is irrelevant; content changes the hash', async () => {
+    const root = writePack('p', [{ rel: GIN, data: { a: 1, b: { c: 2, d: 3 } } }]);
+    await PackApi.install([root]);
+    const h1 = recordOf('p')!.rows['/stuff/idea/material/spirit/gin']!.hash;
+
+    const file = join(root, 'content', GIN);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(
+      file,
+      `hydratorClass: ${HYDRATOR}\ndata:\n  b:\n    d: 3\n    c: 2\n  a: 1\nclass: ${MATERIAL}\n`,
+    );
+    const [r2] = await PackApi.install([root]);
+    expect(r2!.updated).toEqual([]);
+    expect(recordOf('p')!.rows['/stuff/idea/material/spirit/gin']!.hash).toBe(h1);
+
+    writeFileSync(
+      file,
+      `class: ${MATERIAL}\nhydratorClass: ${HYDRATOR}\ndata: { a: 1, b: { c: 2, d: 4 } }\n`,
+    );
+    const [r3] = await PackApi.install([root]);
+    expect(r3!.updated).toEqual(['/stuff/idea/material/spirit/gin']);
+    expect(recordOf('p')!.rows['/stuff/idea/material/spirit/gin']!.hash).not.toBe(h1);
+    expect(rowsIn('pack_installs')).toHaveLength(1);
+  });
+});

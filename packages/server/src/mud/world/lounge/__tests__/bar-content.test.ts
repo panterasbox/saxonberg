@@ -20,9 +20,9 @@ const LOUNGE_DIR = fileURLToPath(
 const CONTENT = fileURLToPath(new URL("../../../../../../content/", import.meta.url));
 const BRAND_DIRS = [
   ...["aevex", "goodkin", "hollis", "veshko", "vionne"].map(
-    (k) => `${CONTENT}corpo-${k}/content/obj/corpo/Brand/`,
+    (k) => `${CONTENT}corpo-${k}/content/stuff/idea/corpo/Brand/`,
   ),
-  `${CONTENT}generic-objects/content/obj/corpo/Brand/`,
+  `${CONTENT}generic-objects/content/stuff/idea/corpo/Brand/`,
 ];
 
 interface Seed {

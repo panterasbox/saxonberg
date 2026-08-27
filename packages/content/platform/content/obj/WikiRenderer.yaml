@@ -1,9 +1,0 @@
-# /obj/WikiRenderer — the article render pipeline singleton.
-#
-# A Stuff rather than methods on WikiPage because `@CallSecurity` is
-# INERT on a Document: a Document is constructed with `new` and never
-# passes through `ProxyApi.wrap`, and instance-method gating is enforced
-# BY that proxy. Putting the render path on an Idea is what makes the
-# one-gate reveal model gateable at all. See docs/subsystems/wiki.md.
-class: /obj/WikiRenderer
-data: {}

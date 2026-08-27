@@ -17,8 +17,8 @@
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link MessageLogic} singleton at
- * `/obj/api/message`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/message` reloads it. The
+ * `/platform/idea/api/message`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/message` reloads it. The
  * `Tags` audience constants and the `Scene` value class stay on this
  * face (frame metadata / a composer value object, not routing logic).
  */
@@ -36,7 +36,7 @@ import type {
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { MessageLogic } from '../obj/api/MessageLogic';
+import { MessageLogic } from '../platform/idea/api/MessageLogic';
 import type { Scene } from '../lib/message/Scene';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
@@ -45,9 +45,9 @@ export { Scene } from '../lib/message/Scene';
 
 type SensorStuff = Stuff & Sensor;
 
-const LOGIC_PATH = '/obj/api/message';
+const LOGIC_PATH = '/platform/idea/api/message';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MessageLogic', import.meta.url)
+  new URL('../platform/idea/api/MessageLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able MessageLogic singleton (sync). */
@@ -73,7 +73,7 @@ export interface MessageBroadcastOptions {
  * Topic strings are emitted as **dotted-path string literals** at
  * call sites (e.g., `.topic('speech.vocal')`). The authored
  * source of truth for the topic vocabulary lives on per-topic YAML
- * leaf Ideas under the platform pack's `content/obj/Topic/` (loaded into the
+ * leaf Ideas under the platform pack's `content/platform/idea/Topic/` (loaded into the
  * `TopicCatalogue` singleton at boot — see
  * `docs/subsystems/topics.md`). Keeping a parallel `TOPICS` constant
  * tree in code led to the same data living in two places; the tree

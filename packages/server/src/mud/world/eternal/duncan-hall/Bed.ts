@@ -22,7 +22,7 @@
  * dorm room holds a record keyed by its unit parcel, and a `class:` edit on
  * a live template row is a data migration rather than a refactor. So the
  * capability lands on the class and the slot spec + `restQuality` land as
- * seed DATA — exactly the way `/obj/Chair` does it, and the reason this
+ * seed DATA — exactly the way `/platform/thing/Chair` does it, and the reason this
  * retrofit is a seed edit instead of a migration.
  */
 

@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GroupApi } from '../group';
 import { StuffApi } from '../stuff';
 import { SecurityError } from '../../lib/security/errors';
-import type { GroupLogic } from '../../obj/api/GroupLogic';
+import type { GroupLogic } from '../../platform/idea/api/GroupLogic';
 import type { GroupRef } from '../../lib/social/GroupProvider';
 
 describe('GroupApi.parseRef', () => {
@@ -34,16 +34,16 @@ describe('GroupLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/group once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/group once the facade has materialized it', () => {
     GroupApi.parseRef('managed:abc' as GroupRef);
-    const logic = StuffApi.findByTemplatePath('/obj/api/group');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/group');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-GroupApi caller', () => {
     GroupApi.parseRef('managed:abc' as GroupRef);
-    const logic = StuffApi.findByTemplatePath<GroupLogic>('/obj/api/group');
+    const logic = StuffApi.findByTemplatePath<GroupLogic>('/platform/idea/api/group');
     expect(logic).toBeDefined();
     // The test module is not `mud/api/group#GroupApi`, so the FromModule
     // gate on the logic's own methods denies the call.

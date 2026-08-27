@@ -1,6 +1,0 @@
-# ForumsUpdate — the default-installed forum capability, an incorporeal
-# update hosted on aether attunement. Created into a host by
-# Avatar.installDefaultLoadout; carries no persistent state in v1 (board
-# and entry data live in their own collections).
-class: /obj/ForumsUpdate
-data: {}

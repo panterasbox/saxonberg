@@ -108,7 +108,7 @@ describe('MQL subscription — MqlSubscriptionApi.projectFields (flat)', () => {
 
   it('DETAIL_FIELDS surfaces description + details + material + mass', () => {
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     iron.setName('iron');
     const obj = makeStuff(() => {
       const t = new FullThing();
@@ -133,7 +133,7 @@ describe('MQL subscription — MqlSubscriptionApi.projectFields (flat)', () => {
     ]);
     expect(rec.bulkMaterial).toEqual({
       materialId: iron.stuffId,
-      templatePath: '/obj/material/iron',
+      templatePath: '/stuff/idea/material/iron',
       name: 'iron',
     });
     expect(rec.mass).toEqual({ value: 2, unit: 'kg' });

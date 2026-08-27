@@ -10,8 +10,8 @@
 # back-exit to the lobby is auto-installed by Exitable.applyExits
 # when the lobby's south exit hydrates (bidirectional default for
 # cardinals).
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall steps
@@ -38,5 +38,5 @@ data:
   # flooded cistern below) and a compressor to refill it. The cistern is
   # the gear-gated water spot — survivable only while the tank has air.
   populates:
-    - /obj/gear/air-tank
-    - /obj/gear/air-compressor
+    - /stuff/thing/gear/air-tank
+    - /stuff/thing/gear/air-compressor

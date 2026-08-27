@@ -1,0 +1,17 @@
+verbs: [play]
+controller: /platform/idea/cmd/charactergen/PlayController
+description: "Enter the world as one of your characters (from the character-select roster)."
+help: |
+  Step into the world as one of your existing characters. At the
+  character-select screen, each character on your roster has an id;
+  `play <id>` hands your session over to that character and starts
+  their session in the world.
+
+  You can only `play` a character you own — an unknown or unowned id
+  is refused, and you stay at the selection screen. Use `enroll`
+  instead when you want to create a brand-new character.
+args:
+  - name: playerId
+    type: string
+    required: true
+    greedy: true

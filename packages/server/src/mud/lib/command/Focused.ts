@@ -89,7 +89,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * inspects/mutates (the focus fragment) is on this mixin.
      */
     static commandContributions: CommandContributions = {
-      self: ['perception/focus.yaml'],
+      self: ['platform/cmd/perception/focus.yaml'],
     };
 
     /**

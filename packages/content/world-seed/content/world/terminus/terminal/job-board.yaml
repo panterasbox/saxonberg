@@ -4,8 +4,8 @@
 # hall; the travel half (`fulfill`) rides the courier's own implant.
 # Populated by the hall's `populates` list. Keyworded as a NOTICEBOARD —
 # the hall's `board` detail is the split-flap departures board.
-class: /obj/JobBoard
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/JobBoard
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a public noticeboard
   primaryKeyword: noticeboard

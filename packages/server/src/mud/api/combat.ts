@@ -3,7 +3,7 @@
  *
  * The sole entry to fight lifecycle, gambit resolution, poise mutation,
  * per-beat advance, and (Build 2) blame reads. The orchestration lives in
- * the hot-reloadable {@link CombatLogic} singleton at `/obj/api/combat`,
+ * the hot-reloadable {@link CombatLogic} singleton at `/platform/idea/api/combat`,
  * reached synchronously via `StuffApi.singletonSync`; the `FooApi`
  * statics forward there. Mirrors the `ConditionApi ↔ ConditionLogic`
  * shape exactly.
@@ -27,7 +27,7 @@ import type { TermsProposal } from "../lib/combat/CombatTerms";
 import type {
   InitiateResult,
   ThrownDelivery,
-} from "../obj/api/CombatLogic";
+} from "../platform/idea/api/CombatLogic";
 import type {
   CombatInfluence,
   InfluenceResult,
@@ -40,7 +40,7 @@ export type {
 } from "../lib/combat/CombatInfluence";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { CombatLogic } from "../obj/api/CombatLogic";
+import { CombatLogic } from "../platform/idea/api/CombatLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
@@ -129,9 +129,9 @@ export interface GambitEligibility {
     | "no-shield";
 }
 
-const LOGIC_PATH = "/obj/api/combat";
+const LOGIC_PATH = "/platform/idea/api/combat";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/CombatLogic", import.meta.url),
+  new URL("../platform/idea/api/CombatLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able CombatLogic singleton (sync). */

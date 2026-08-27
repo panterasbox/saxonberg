@@ -1,0 +1,22 @@
+verbs: [consign]
+controller: /platform/idea/cmd/retail/ConsignController
+description: "Consign a good you own for sale at a store"
+help: |
+  Put a good you own up for sale on a store's consignment shelf —
+  `consign lantern --ask 12`. Custody passes to the shop, but you still
+  own it until it sells; when someone buys it the shop takes a
+  commission and the rest lands in your bank account. Take it back any
+  time it hasn't sold with `reclaim`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: thing
+    type: string
+    required: true
+options:
+  ask:
+    short: a
+    type: string
+    description: "The asking price, in coin."

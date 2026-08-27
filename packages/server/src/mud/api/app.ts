@@ -23,19 +23,19 @@
  * developer-gated `config` verb; the gate lives at the verb.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link AppLogic} singleton at `/obj/api/app`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/app` reloads it.
+ * hot-reloadable {@link AppLogic} singleton at `/platform/idea/api/app`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/app` reloads it.
  */
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { AppLogic } from "../obj/api/AppLogic";
+import { AppLogic } from "../platform/idea/api/AppLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = "/obj/api/app";
+const LOGIC_PATH = "/platform/idea/api/app";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/AppLogic", import.meta.url)
+  new URL("../platform/idea/api/AppLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able AppLogic singleton (sync). */

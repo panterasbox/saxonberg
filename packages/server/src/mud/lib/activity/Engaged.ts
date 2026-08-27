@@ -108,7 +108,7 @@ export function EngagedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * until Wave 2+ content earns it.
      */
     static commandContributions: CommandContributions = {
-      self: ['system/cancel.yaml'],
+      self: ['platform/cmd/system/cancel.yaml'],
       peers: [],
       environment: [],
     };

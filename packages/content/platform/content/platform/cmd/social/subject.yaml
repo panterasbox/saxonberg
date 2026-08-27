@@ -1,0 +1,42 @@
+verbs: [subject]
+controller: /platform/idea/cmd/social/SubjectController
+description: "Own a subject's identity + audience (make / list); light up surfaces with `chat on` / `forum on`"
+help: |
+  A subject is the shared identity and audience that chat channels and
+  forum boards hang off of — a guild, a town hall, a study group. It
+  decides who can see and join the surfaces attached to it, so you set
+  that membership once instead of per board.
+
+  Make a subject here, then light up its surfaces with `chat on` and
+  `forum on`.
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  make:
+    description: "Create a subject (default mints a managed group; --group binds a ref; --open is audience-open)"
+    help: |
+      Create a subject you own. By default it mints a fresh managed
+      group for membership; `--group` binds an existing ref instead,
+      and `--open` makes the audience every player.
+    examples:
+      - cmd: subject make stargazers
+        note: Create a subject with its own managed audience
+    options:
+      group:
+        short: g
+        type: string
+        field: group
+        description: "Bind an existing guild:/mql:/contacts:/managed: ref (mints nothing)"
+      open:
+        type: boolean
+        field: open
+        description: "Leave the audience open to every player"
+    args:
+      - name: name
+        type: string
+        required: true
+  list:
+    description: "List subjects visible to you, with their lit surfaces"
+    help: |
+      Show the subjects you can see and which surfaces — chats, boards —
+      each one currently has lit.

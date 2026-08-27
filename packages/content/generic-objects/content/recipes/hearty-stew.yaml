@@ -16,7 +16,7 @@ inputSlots:
   count: 1
 toolCapabilities:
 - pot
-outputTemplate: /obj/items/plated-dish
+outputTemplate: /stuff/thing/items/plated-dish
 outputAppearance: a thick brown stew, roots and meat in a dark gravy
 outputApplication: edible
 outputPortionL: 0.4

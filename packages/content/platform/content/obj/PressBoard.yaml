@@ -1,5 +1,0 @@
-# PressBoard — the singleton that warms the news-ticker window from the
-# release documents in the path-addressed tree. No field state; the cache
-# is rebuilt on demand.
-class: /obj/PressBoard
-data: {}

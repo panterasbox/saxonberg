@@ -19,10 +19,10 @@
  * So: a strong architectural boundary, not a security perimeter.
  *
  * Four tiers:
- *   - **mudlib** (the default — `lib/`, `obj/` outside `obj/api/`, `cmd/`,
+ *   - **mudlib** (the default — `lib/`, `platform/` outside `platform/idea/api/`,
  *     `world/`, …): relative imports resolving inside `src/mud/`, plus
  *     `@saxonberg/types`, plus any `import type`. Nothing else.
- *   - **api** (`mud/api/**`) and **objapi** (`mud/obj/api/**`): the
+ *   - **api** (`mud/api/**`) and **objapi** (`mud/platform/idea/api/**`): the
  *     wrapping tier — additionally may import an enumerated set of Node
  *     built-ins and npm packages, and may reach `backend/`. These two are
  *     the halves of the mandatory `XApi` <-> `XLogic` split: `api/` is the
@@ -139,7 +139,7 @@ function tierOf(rel: string): Tier {
   if (rel.includes("/__tests__/") || rel.startsWith("__tests__/"))
     return "test";
   if (rel.startsWith("api/")) return "api";
-  if (rel.startsWith("obj/api/")) return "objapi";
+  if (rel.startsWith("platform/idea/api/")) return "objapi";
   return "mudlib";
 }
 
@@ -395,7 +395,7 @@ if (REPORT) {
 if (findings.length > 0) {
   console.error(
     `check-mud-imports: ${findings.length} import(s) cross the mudlib ` +
-      `boundary. Only mud/api/** and mud/obj/api/** may import outside ` +
+      `boundary. Only mud/api/** and mud/platform/idea/api/** may import outside ` +
       `src/mud/ (see docs/architecture.md § The import boundary):`
   );
   for (const f of findings.sort(

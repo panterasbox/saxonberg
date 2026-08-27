@@ -14,9 +14,9 @@
  * own failure summary.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link PostureLogic} singleton at `/obj/api/posture`,
+ * hot-reloadable {@link PostureLogic} singleton at `/platform/idea/api/posture`,
  * reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/posture` reloads it.
+ * `dest /platform/idea/api/posture` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -26,7 +26,7 @@ import type { Postured } from '../lib/slot/Postured';
 import type { Posed } from '../lib/character/Posed';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { PostureLogic } from '../obj/api/PostureLogic';
+import { PostureLogic } from '../platform/idea/api/PostureLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -49,9 +49,9 @@ export type PostureTransferResult =
   | { ok: true; host: Stuff & Slotted; slot: string }
   | { ok: false; reason: string; summary: string };
 
-const LOGIC_PATH = '/obj/api/posture';
+const LOGIC_PATH = '/platform/idea/api/posture';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/PostureLogic', import.meta.url)
+  new URL('../platform/idea/api/PostureLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able PostureLogic singleton (sync). */

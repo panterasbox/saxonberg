@@ -1,0 +1,25 @@
+verbs: [house]
+controller: /platform/idea/cmd/banking/HouseController
+description: "Venue owner — pnl / payroll (operator)"
+help: |
+  The venue-owner surface. `house pnl` reads the present venue's
+  profit-and-loss (categorized flows + a running balance, red by design).
+  `house payroll <worker> <amount>` pays a wage from the venue's account.
+  Operator-gated.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresWizard
+subcommands:
+  pnl:
+    description: "Read the venue's profit-and-loss"
+  payroll:
+    description: "Pay a worker a wage from the house account"
+    args:
+      - name: worker
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: any
+      - name: amount
+        type: string
+        required: true

@@ -1,0 +1,22 @@
+verbs: [spill]
+controller: /platform/idea/cmd/bulk/SpillController
+description: "Spill a vessel's contents onto the floor"
+help: |
+  Dumps a vessel's entire contents onto the ground, leaving it
+  empty. Use `spill` when you want to be rid of what you're
+  carrying — pour out stale water, ditch a drink, or empty a flask
+  fast.
+
+  It's wasteful by design: the liquid hits the floor and is gone.
+  To move the contents somewhere useful instead, use `pour`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot

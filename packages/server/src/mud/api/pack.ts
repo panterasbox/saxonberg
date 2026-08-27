@@ -25,12 +25,12 @@
  * brings them).
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link PackLogic} singleton at `/obj/api/pack`.
+ * {@link PackLogic} singleton at `/platform/idea/api/pack`.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { PackLogic } from '../obj/api/PackLogic';
+import { PackLogic } from '../platform/idea/api/PackLogic';
 import type { GroupRole } from '../lib/social/Group';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
@@ -328,9 +328,9 @@ export interface PackDiffReport {
 /** How `pack resolve` settles a conflict. There is no bare keep. */
 export type PackResolveMode = 'take-pack' | 'keep-pin' | 'export';
 
-const LOGIC_PATH = '/obj/api/pack';
+const LOGIC_PATH = '/platform/idea/api/pack';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/PackLogic', import.meta.url),
+  new URL('../platform/idea/api/PackLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able PackLogic singleton (sync). */

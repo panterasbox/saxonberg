@@ -12,11 +12,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Thing from '../../lib/stuff/Thing';
 import Location from '../../lib/stuff/Location';
 import Material from '../../lib/material/Material';
-import Forge from '../../obj/Forge';
+import Forge from '../../platform/thing/Forge';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalApi } from '../thermal';
 import { FireApi } from '../fire';
-import { ThermalLogic } from '../../obj/api/ThermalLogic';
+import { ThermalLogic } from '../../platform/idea/api/ThermalLogic';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
 import { SecurityError } from '../../lib/security/errors';
@@ -42,7 +42,7 @@ function material(specificHeat: number): Material {
     m.setSpecificHeat(Quantity.of(specificHeat, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
-  }, `/obj/material/_test/thermal-api-${matCounter}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/thermal-api-${matCounter}`) as unknown as Material;
 }
 
 function thing(massKg: number, specificHeat: number, stampedK = 300): ThermalThing {
@@ -110,7 +110,7 @@ describe('ThermalApi.depositHeat', () => {
   it('gates the logic method against a non-ThermalApi caller', () => {
     // Prime the singleton via the Api, then reach the logic directly.
     ThermalApi.depositHeat(thing(1, 1000), 0);
-    const logic = StuffApi.findByTemplatePath<ThermalLogic>('/obj/api/thermal');
+    const logic = StuffApi.findByTemplatePath<ThermalLogic>('/platform/idea/api/thermal');
     expect(logic).toBeDefined();
     expect(() => logic!.depositHeat(thing(1, 1000), 10000)).toThrow(
       SecurityError,

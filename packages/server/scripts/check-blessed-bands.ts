@@ -87,13 +87,13 @@ function contentYaml(): string[] {
 }
 
 /**
- * Classes composing `BlessableMixin`, as `/obj/...` module paths — the
+ * Classes composing `BlessableMixin`, as `/platform/...` module paths — the
  * shape a template's `class:` names. Read from source rather than a
  * hand-kept list, so composing the mixin is itself the opt-in.
  */
 function blessableClasses(): Set<string> {
   const found = new Set<string>();
-  for (const file of walkTs(join(MUD, 'obj'))) {
+  for (const file of walkTs(join(MUD, 'platform'))) {
     const src = readFileSync(file, 'utf-8');
     if (!src.includes('BlessableMixin')) continue;
     const rel = file.slice(MUD.length).replace(/\.ts$/, '').replace(/\\/g, '/');
@@ -125,7 +125,7 @@ function spellsWithBands(): Map<string, boolean> {
         ([k, v]) => k === 'bands' || (Array.isArray(v) && v.length >= 2),
       );
     });
-    out.set(`/obj/magic/Spell/${spellId}`, varies);
+    out.set(`/stuff/idea/magic/Spell/${spellId}`, varies);
   }
   return out;
 }

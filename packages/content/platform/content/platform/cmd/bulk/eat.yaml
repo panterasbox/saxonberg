@@ -1,0 +1,23 @@
+verbs: [eat]
+controller: /platform/idea/cmd/bulk/EatController
+description: "Eat a discrete edible item"
+help: |
+  Consume a whole edible item — an apple, a loaf, a ration. Unlike
+  `drink`, which empties a holder, `eat` is for discrete things you
+  hold and finish off; the item is gone afterward.
+
+  The target has to actually be edible, so you can't eat a rock or
+  a lantern. For liquids in a cup or flask, reach for `drink` or
+  `sip` instead.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustBeEdible

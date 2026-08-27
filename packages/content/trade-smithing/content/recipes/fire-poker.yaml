@@ -12,7 +12,7 @@ inputSlots:
 toolCapabilities:
 - striking
 - anvil
-outputTemplate: /obj/arms/fire-poker
+outputTemplate: /stuff/thing/arms/fire-poker
 outputMaterial: ''
 outputApplication: tangible
 requiresHeatK: 700

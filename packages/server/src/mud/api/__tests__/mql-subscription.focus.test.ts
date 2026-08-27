@@ -36,13 +36,13 @@ describe('MQL subscription — projectFocus', () => {
 
   it('merges DetailedMixin + TangibleMixin slices at the focus key', () => {
     const oak = makeStuff(() => new Material());
-    stampTemplatePathForTest(oak, '/obj/material/oak');
+    stampTemplatePathForTest(oak, '/stuff/idea/material/oak');
     oak.setName('oak');
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     iron.setName('iron');
     const steel = makeStuff(() => new Material());
-    stampTemplatePathForTest(steel, '/obj/material/steel');
+    stampTemplatePathForTest(steel, '/stuff/idea/material/steel');
     steel.setName('steel');
 
     const axe = makeStuff(() => {
@@ -106,10 +106,10 @@ describe('MQL subscription — projectFocus', () => {
 
   it('Tangible prefix-walk resolves at the focus key', () => {
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/iron');
     iron.setName('iron');
     const steel = makeStuff(() => new Material());
-    stampTemplatePathForTest(steel, '/obj/material/steel');
+    stampTemplatePathForTest(steel, '/stuff/idea/material/steel');
     steel.setName('steel');
 
     const axe = makeStuff(() => {

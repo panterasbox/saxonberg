@@ -1,0 +1,20 @@
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an arming sword
+  primaryKeyword: sword
+  longDescription: >
+    A plain, well-balanced single-handed sword of good steel, a straight
+    double edge and an honest crossguard. It neither reaches like a spear nor
+    breaks a guard like a hammer — it parries, ripostes, and rewards a
+    fighter who reads the exchange.
+  _materialPath: /stuff/idea/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fine
+  # The balanced generalist — near-neutral mass (medium tempo/poise), medium
+  # reach, and a good crossguard (parries + ripostes). One-handed, so it
+  # pairs with a shield, a sidearm, or an off-hand dagger.
+  mass: 1.0
+  length: 0.9
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]

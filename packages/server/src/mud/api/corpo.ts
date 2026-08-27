@@ -10,28 +10,28 @@
  * orthogonal to the `AuthoringEvent` provenance ledger.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link CorpoLogic} singleton at `/obj/api/corpo`, reached synchronously
+ * {@link CorpoLogic} singleton at `/platform/idea/api/corpo`, reached synchronously
  * via `StuffApi.singletonSync`; it reads the warmed `CorpoCatalogue`.
- * `dest /obj/api/corpo` reloads it.
+ * `dest /platform/idea/api/corpo` reloads it.
  *
  * The player-facing approval vector / faction gameplay is deferred — this
  * surface is read-only canon + mark resolution.
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
-import type { CorpoDescriptor } from "../obj/corpo/Corpo";
-import type { BrandDescriptor } from "../obj/corpo/Brand";
+import type { CorpoDescriptor } from "../platform/idea/corpo/Corpo";
+import type { BrandDescriptor } from "../platform/idea/corpo/Brand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { CorpoLogic } from "../obj/api/CorpoLogic";
+import { CorpoLogic } from "../platform/idea/api/CorpoLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
 export type { CorpoDescriptor, BrandDescriptor };
 
-const LOGIC_PATH = "/obj/api/corpo";
+const LOGIC_PATH = "/platform/idea/api/corpo";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/CorpoLogic", import.meta.url)
+  new URL("../platform/idea/api/CorpoLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able CorpoLogic singleton (sync). */

@@ -1,8 +1,8 @@
 # A clean bandage — the canonical first-aid dressing (DressingMixin(Thing)).
 # `treat`/`bind`/`dress` consumes one to dress a bleed. Stocked in the
 # glass alley (where you get cut) so the treat loop is playable in-world.
-class: /obj/Bandage
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Bandage
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a clean bandage
   primaryKeyword: bandage

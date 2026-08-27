@@ -46,7 +46,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import type Material from './Material';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { EventApi } from '../../api/event';
 import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
@@ -117,13 +117,13 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [],
       // OUTWARD to whoever holds it…
-      environment: ['inventory/throw.yaml'],
+      environment: ['platform/cmd/inventory/throw.yaml'],
       // …and SIDEWAYS to anyone sharing the room with it, because you
       // do not have to be holding a rock for throwing it to be on the
       // table. Whether the throw picks it up first, refuses, or costs a
       // beat is the CONTROLLER's call — availability and permission are
       // different questions, and only the first lives here.
-      peers: ['inventory/throw.yaml'],
+      peers: ['platform/cmd/inventory/throw.yaml'],
     };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound

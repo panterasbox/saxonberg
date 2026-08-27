@@ -30,7 +30,7 @@ let idCounter = 0;
 let counter = 0;
 
 function makeActor(): Idea {
-  return makeStuffAtPath(() => new Idea(), `/obj/Avatar/p${counter++}`);
+  return makeStuffAtPath(() => new Idea(), `/platform/agent/Avatar/p${counter++}`);
 }
 
 beforeEach(() => {

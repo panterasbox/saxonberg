@@ -10,7 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 
 describe('Quantity — electricity units', () => {
   describe('base units construct + round-trip', () => {
@@ -73,19 +73,19 @@ describe('Quantity — electricity units', () => {
   describe('marshaller path encoding', () => {
     it('encodes S/m as S-per-m', () => {
       expect(QuantityMarshaller.pathFor('S/m')).toBe(
-        '/obj/persistence/QuantityMarshaller/S-per-m',
+        '/platform/idea/persistence/QuantityMarshaller/S-per-m',
       );
     });
 
     it('encodes plain electrical units unchanged', () => {
       expect(QuantityMarshaller.pathFor('V')).toBe(
-        '/obj/persistence/QuantityMarshaller/V',
+        '/platform/idea/persistence/QuantityMarshaller/V',
       );
       expect(QuantityMarshaller.pathFor('A')).toBe(
-        '/obj/persistence/QuantityMarshaller/A',
+        '/platform/idea/persistence/QuantityMarshaller/A',
       );
       expect(QuantityMarshaller.pathFor('Ω')).toBe(
-        '/obj/persistence/QuantityMarshaller/Ω',
+        '/platform/idea/persistence/QuantityMarshaller/Ω',
       );
     });
   });

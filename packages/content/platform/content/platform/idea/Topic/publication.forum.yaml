@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: publication.forum
+  family: "publication"
+  label: "Forums"
+  description: "Boards, threads, and posts."
+  address: personal
+  actor: person
+  weight: activity
+  audience: player
+  durable: true
+  affordance: permanent

@@ -1,9 +1,0 @@
-# Scrap — the fungible salvage stack (quantity by mass, 0.1 kg units).
-# Material / prose are stamped per salvage by CraftingLogic; the seed is
-# deliberately generic (the Casting precedent).
-class: /obj/Scrap
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  shortDescription: a heap of scrap
-  keywords: [scrap, heap, salvage]
-  mass: 0.1

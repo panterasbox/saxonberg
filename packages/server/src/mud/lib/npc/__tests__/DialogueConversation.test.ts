@@ -36,9 +36,9 @@ import { PromptApi, PromptCancelledError } from "../../../api/prompt";
 import { RegardApi } from "../../../api/regard";
 import { TraitApi } from "../../../api/trait";
 import { EventApi } from "../../../api/event";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../../platform/idea/EventRegistry";
 import { Stuff } from "../../stuff/Stuff";
-import type Interactive from "../../../obj/Interactive";
+import type Interactive from "../../../platform/idea/Interactive";
 import type { PromptChoice } from "@saxonberg/types";
 import { brain as treeDialogue } from "../../behavior/tree-dialogue";
 import {
@@ -58,7 +58,7 @@ class TestPlayer extends EngagedMixin(
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, "/obj/EventRegistry");
+    Stuff._stampTemplatePath(r, "/platform/idea/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);

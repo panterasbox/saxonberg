@@ -10,9 +10,9 @@
  * compiled-template type through its face.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link ProseLogic} singleton at `/obj/api/prose`,
+ * hot-reloadable {@link ProseLogic} singleton at `/platform/idea/api/prose`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/prose` reloads it.
+ * /platform/idea/api/prose` reloads it.
  *
  * See [prose.md](../../docs/subsystems/prose.md) for the rendering
  * contract (Mml-aware output, engine config, default filters).
@@ -22,7 +22,7 @@ import type { Mml } from './mml';
 import type { FilterFn } from '../lib/prose/Prose';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ProseLogic } from '../obj/api/ProseLogic';
+import { ProseLogic } from '../platform/idea/api/ProseLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -38,9 +38,9 @@ export type CompiledProse = {
   readonly __compiledProse: unique symbol;
 };
 
-const LOGIC_PATH = '/obj/api/prose';
+const LOGIC_PATH = '/platform/idea/api/prose';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ProseLogic', import.meta.url)
+  new URL('../platform/idea/api/ProseLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ProseLogic singleton (sync). */

@@ -1,7 +1,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MaterialApi } from '../material';
-import { MaterialLogic } from '../../obj/api/MaterialLogic';
+import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import Material from '../../lib/material/Material';
@@ -41,7 +41,7 @@ describe('Tangible.getMaterial (direct object read)', () => {
   it('returns the Material singleton for a Tangible Stuff with a path set', () => {
     const oak = makeStuff(() => new Material());
     oak.setName('oak');
-    stampTemplatePathForTest(oak, '/obj/material/wood/oak');
+    stampTemplatePathForTest(oak, '/stuff/idea/material/wood/oak');
 
     const log = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(log)) throw new Error('expected tangible');
@@ -52,9 +52,9 @@ describe('Tangible.getMaterial (direct object read)', () => {
 
   it('reads per-Detail overrides when detailKey is supplied', () => {
     const oak = makeStuff(() => new Material());
-    stampTemplatePathForTest(oak, '/obj/material/wood/oak');
+    stampTemplatePathForTest(oak, '/stuff/idea/material/wood/oak');
     const iron = makeStuff(() => new Material());
-    stampTemplatePathForTest(iron, '/obj/material/element/iron');
+    stampTemplatePathForTest(iron, '/stuff/idea/material/element/iron');
 
     const axe = makeStuff(() => new Thing());
     if (!MixinApi.isTangible(axe)) throw new Error('expected tangible');
@@ -89,7 +89,7 @@ describe('MaterialApi v2 — classification queries', () => {
   } {
     const iron = withTemplatePath(
       makeStuff(() => new Material()),
-      '/obj/material/element/iron'
+      '/stuff/idea/material/element/iron'
     );
     iron.setName('iron');
     iron.setTags(['element', 'metal', 'ferrous']);
@@ -101,7 +101,7 @@ describe('MaterialApi v2 — classification queries', () => {
 
     const carbon = withTemplatePath(
       makeStuff(() => new Material()),
-      '/obj/material/element/carbon'
+      '/stuff/idea/material/element/carbon'
     );
     carbon.setName('carbon');
     carbon.setTags(['element', 'non-metal']);
@@ -113,13 +113,13 @@ describe('MaterialApi v2 — classification queries', () => {
 
     const steel = withTemplatePath(
       makeStuff(() => new Material()),
-      '/obj/material/alloy/steel'
+      '/stuff/idea/material/alloy/steel'
     );
     steel.setName('steel');
     steel.setTags(['alloy', 'metal', 'ferrous']);
     steel.setComposition([
-      { materialPath: '/obj/material/element/iron', fraction: 0.998 },
-      { materialPath: '/obj/material/element/carbon', fraction: 0.002 },
+      { materialPath: '/stuff/idea/material/element/iron', fraction: 0.998 },
+      { materialPath: '/stuff/idea/material/element/carbon', fraction: 0.002 },
     ]);
 
     return { iron, carbon, steel };
@@ -144,7 +144,7 @@ describe('MaterialApi v2 — classification queries', () => {
     it('a mixture without composition refs yields an empty flat map', () => {
       const granite = withTemplatePath(
         makeStuff(() => new Material()),
-        '/obj/material/rock/granite'
+        '/stuff/idea/material/rock/granite'
       );
       granite.setTags(['rock', 'igneous', 'mixture']);
       // composition empty by default
@@ -208,18 +208,18 @@ describe('MaterialLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/material once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/material once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     MaterialApi.findByTag('nonexistent');
-    const logic = StuffApi.findByTemplatePath('/obj/api/material');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/material');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-MaterialApi caller', () => {
     MaterialApi.findByTag('nonexistent');
     const logic = StuffApi.findByTemplatePath<MaterialLogic>(
-      '/obj/api/material'
+      '/platform/idea/api/material'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/material#MaterialApi`, so the

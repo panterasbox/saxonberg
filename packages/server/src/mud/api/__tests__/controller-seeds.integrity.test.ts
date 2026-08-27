@@ -24,8 +24,8 @@
  *
  * Concretely, the two homes shake out as:
  *   - **Engine verbs** — spec under `cmd/<category>/`, controller written
- *     absolute as `/obj/command/<category>/<Name>Controller`, seeded at
- *     the platform pack's `content/obj/command/<category>/<Name>Controller.yaml`.
+ *     absolute as `/platform/idea/cmd/<category>/<Name>Controller`, seeded at
+ *     the platform pack's `content/platform/idea/cmd/<category>/<Name>Controller.yaml`.
  *   - **Domain-local verbs** — spec under
  *     `world/<sphere>/<locality>/cmd/`, controller written relative as
  *     `../command/<Name>Controller` (the sibling `.../command/` dir),
@@ -52,7 +52,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 // src/mud/api/__tests__ -> src/mud
 const MUD_ROOT = join(here, "..", "..");
 // The engine verbs are the platform pack's content (content-packs wave 2).
-const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "cmd");
+const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "platform", "cmd");
 const DOMAIN_ROOT = join(MUD_ROOT, "world");
 // The domain-local controllers are world-seed's rows (content-packs wave 3).
 const SEEDS_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "world-seed", "content");

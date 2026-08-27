@@ -7,8 +7,8 @@
 # Indoor room. Exit SOUTH back to the banking hall (the mechanical act happens
 # at the hall counter — a little parlor↔hall movement is the design). Halloran
 # is a `populate`; the enrollment tree is his brain config, not its own Stuff.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the Goodkin Circle parlor
   primaryKeyword: parlor

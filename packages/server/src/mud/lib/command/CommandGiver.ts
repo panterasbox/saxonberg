@@ -64,7 +64,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { ScriptApi } from '../../api/script';
 import { CommandDispatchedEvent } from '../events/CommandDispatchedEvent';
 import type { Sensor } from '../message/Sensor';
-import type Interactive from '../../obj/Interactive';
+import type Interactive from '../../platform/idea/Interactive';
 import type { LogLevel, Note } from '@saxonberg/types';
 
 /**

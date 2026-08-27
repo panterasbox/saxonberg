@@ -4,7 +4,7 @@
 # Declares no `protection`, so it inherits `anyone` from /wiki. That
 # inheritance is the mechanism, not an oversight: tightening a
 # namespace is adding one field to its seed, and needs no code.
-class: /obj/WikiNamespaceZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/WikiNamespaceZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: main

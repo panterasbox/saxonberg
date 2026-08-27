@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Quantity } from '../quantity';
 import { QuantityApi } from '../../api/quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 
 const VITALS_SCALES: ReadonlyArray<{
   unit: Parameters<typeof Quantity.registerTagTable>[0];
@@ -89,13 +89,13 @@ describe('Quantity — vitals units', () => {
   describe('marshaller path encoding', () => {
     it('encodes the new units unchanged (no special chars)', () => {
       expect(QuantityMarshaller.pathFor('bpm')).toBe(
-        '/obj/persistence/QuantityMarshaller/bpm'
+        '/platform/idea/persistence/QuantityMarshaller/bpm'
       );
       expect(QuantityMarshaller.pathFor('mmHg')).toBe(
-        '/obj/persistence/QuantityMarshaller/mmHg'
+        '/platform/idea/persistence/QuantityMarshaller/mmHg'
       );
       expect(QuantityMarshaller.pathFor('L')).toBe(
-        '/obj/persistence/QuantityMarshaller/L'
+        '/platform/idea/persistence/QuantityMarshaller/L'
       );
     });
   });

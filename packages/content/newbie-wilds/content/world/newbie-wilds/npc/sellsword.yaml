@@ -22,10 +22,10 @@
 # (the front) at the top of the next beat, narrated to the room; `fight`
 # shows your formation + role; the interception mints her nothing (brain)
 # but yours would mint `command`.
-class: /obj/Mercenary
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/Mercenary
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: sellsword
   alternateNames:

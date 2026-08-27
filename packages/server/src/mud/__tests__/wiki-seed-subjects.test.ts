@@ -2,8 +2,8 @@
  * Every seeded wiki page's subject must name a **real template**.
  *
  * ⚠ The gap this closes, found by a human looking at the running
- * page: `main:oak` shipped bound to `/obj/material/oak`, which does
- * not exist — the material is `/obj/material/wood/oak`. The flagship
+ * page: `main:oak` shipped bound to `/stuff/idea/material/oak`, which does
+ * not exist — the material is `/stuff/idea/material/wood/oak`. The flagship
  * demonstration of the live architecture panel rendered an error
  * message where the panel should be, on the one page whose entire job
  * is to show the panel working.
@@ -133,7 +133,7 @@ describe('shipped wiki subjects (the wiki-starter pack)', () => {
     // both halves depend on.
     const known = templatePaths();
     expect(known.size).toBeGreaterThan(100);
-    expect(known.has('/obj/material/wood/oak')).toBe(true);
-    expect(known.has('/obj/material/oak')).toBe(false);
+    expect(known.has('/stuff/idea/material/wood/oak')).toBe(true);
+    expect(known.has('/stuff/idea/material/oak')).toBe(false);
   });
 });

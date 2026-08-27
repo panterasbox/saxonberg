@@ -31,9 +31,9 @@ import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { BeliefStoreMixin, IDENTIFICATION } from '../../lib/belief/BeliefStore';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { ContainmentApi } from '../containment';
-import Clade from '../../obj/species/Clade';
-import Species from '../../obj/species/Species';
-import BodyPlan from '../../obj/species/BodyPlan';
+import Clade from '../../platform/idea/species/Clade';
+import Species from '../../platform/idea/species/Species';
+import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { StuffApi } from '../stuff';
 import {
   makeStuff,
@@ -54,17 +54,17 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 let seq = 0;
 function animalSpecies(): Species {
   seq += 1;
-  if (!StuffApi.findByTemplatePath('/obj/species/animalia')) {
+  if (!StuffApi.findByTemplatePath('/stuff/idea/species/animalia')) {
     const animalia = makeStuff(() => new Clade());
-    stampTemplatePathForTest(animalia, '/obj/species/animalia');
+    stampTemplatePathForTest(animalia, '/stuff/idea/species/animalia');
     animalia.setName('Animalia');
     animalia.setRank('kingdom');
   }
   const plan = makeStuff(() => new BodyPlan());
-  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/aff-${seq}`);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/aff-${seq}`);
   plan.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const s = makeStuff(() => new Species());
-  stampTemplatePathForTest(s, `/obj/species/animalia/aff-${seq}`);
+  stampTemplatePathForTest(s, `/stuff/idea/species/animalia/aff-${seq}`);
   s.setBodyPlan(plan);
   return s;
 }
@@ -81,7 +81,7 @@ const ViewerBase = CommandGiverMixin(
 
 class Viewer extends ViewerBase {
   static override commandContributions = {
-    self: ['inventory/put.yaml', 'inventory/drop.yaml', 'perception/look.yaml'],
+    self: ['platform/cmd/inventory/put.yaml', 'platform/cmd/inventory/drop.yaml', 'platform/cmd/perception/look.yaml'],
     inventory: [],
     environment: [],
     peers: [],
@@ -106,7 +106,7 @@ class Lever extends VisibleMixin(
   static commandContributions = {
     self: [],
     inventory: [],
-    environment: ['inventory/drop.yaml'],
+    environment: ['platform/cmd/inventory/drop.yaml'],
     peers: [],
   };
 }
@@ -259,7 +259,7 @@ class Wand extends IdentifiableMixin(
   static commandContributions = {
     self: [],
     inventory: [],
-    environment: ['inventory/drop.yaml'],
+    environment: ['platform/cmd/inventory/drop.yaml'],
     peers: [],
   };
 }
@@ -289,7 +289,7 @@ describe('⚠⚠ the spoiler gate DELETES, it does not flag', () => {
     const wand = makeStuff(() => new Wand());
     // ⚠ Belief keys on the TEMPLATE PATH, so an unstamped fixture can
     // never be identified — the record would have nothing to key on.
-    stampTemplatePathForTest(wand, '/obj/gear/test-wand');
+    stampTemplatePathForTest(wand, '/stuff/thing/gear/test-wand');
     wand.setName('a slender rod');
     ContainmentApi.move(viewer, room);
     ContainmentApi.move(wand, room);

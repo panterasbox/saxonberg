@@ -30,16 +30,16 @@ import {
 } from '../mud/api/execution-context';
 import { PersistenceManager } from './PersistenceManager';
 import { ApiLogic } from '../mud/lib/stuff/ApiLogic';
-import Interactive from '../mud/obj/Interactive';
-import PersistentHydrator from '../mud/obj/persistence/PersistentHydrator';
-import Species from '../mud/obj/species/Species';
-import BodyPlan from '../mud/obj/species/BodyPlan';
-import Clade from '../mud/obj/species/Clade';
+import Interactive from '../mud/platform/idea/Interactive';
+import PersistentHydrator from '../mud/platform/idea/persistence/PersistentHydrator';
+import Species from '../mud/platform/idea/species/Species';
+import BodyPlan from '../mud/platform/idea/species/BodyPlan';
+import Clade from '../mud/platform/idea/species/Clade';
 import Material from '../mud/lib/material/Material';
-import Condition from '../mud/obj/Condition';
+import Condition from '../mud/platform/idea/Condition';
 import { Modality } from '../mud/lib/perception/Modality';
-import { CombatFormation } from '../mud/obj/CombatFormation';
-import { LocomotionMode } from '../mud/obj/LocomotionMode';
+import { CombatFormation } from '../mud/platform/idea/CombatFormation';
+import { LocomotionMode } from '../mud/platform/idea/LocomotionMode';
 import { Zone } from '../mud/lib/zone/Zone';
 import { ShadowApi } from '../mud/api/shadow';
 import { CommandApi } from '../mud/api/command';
@@ -48,11 +48,11 @@ import { registerSchedulerRegistryClass } from '../mud/api/scheduler';
 import { registerWorldClockRegistryClass } from '../mud/api/worldclock';
 import { registerMqlSubscriptionRegistryClass } from '../mud/api/mql-subscription';
 import { registerCardRegistryClass } from '../mud/api/card';
-import CardRegistry from '../mud/obj/CardRegistry';
-import EventSubscriptions from '../mud/obj/EventSubscriptions';
-import SchedulerRegistry from '../mud/obj/SchedulerRegistry';
-import WorldClockRegistry from '../mud/obj/WorldClockRegistry';
-import MqlSubscriptionRegistry from '../mud/obj/MqlSubscriptionRegistry';
+import CardRegistry from '../mud/platform/idea/CardRegistry';
+import EventSubscriptions from '../mud/platform/idea/EventSubscriptions';
+import SchedulerRegistry from '../mud/platform/idea/SchedulerRegistry';
+import WorldClockRegistry from '../mud/platform/idea/WorldClockRegistry';
+import MqlSubscriptionRegistry from '../mud/platform/idea/MqlSubscriptionRegistry';
 
 /**
  * One entry in the engine bootstrap manifest. Owned by
@@ -64,7 +64,7 @@ export interface BootstrapEntry {
   /**
    * Path of the template to clone — the identifier in the `content`
    * collection AND the runtime location of the resulting clone.
-   * E.g., `/obj/EventRegistry`.
+   * E.g., `/platform/idea/EventRegistry`.
    *
    * Exactly one of `templatePath` / `templatePathPrefix` must be set.
    */

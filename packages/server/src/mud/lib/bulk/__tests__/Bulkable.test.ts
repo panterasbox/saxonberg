@@ -19,7 +19,7 @@ import { ContainableMixin } from '../../spatial/Containable';
 import type { Containable } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
-import Floor from '../../../obj/Floor';
+import Floor from '../../../platform/thing/Floor';
 import Location from '../../stuff/Location';
 import { Stuff } from '../../stuff/Stuff';
 import { Quantity } from '../../quantity';
@@ -110,7 +110,7 @@ describe('Bulkable — closure scale', () => {
   });
 
   it('liquid requires liquidTight', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
     expect(BulkableApi.requiredClosureFor(water as unknown as Material)).toBe(
       'liquidTight',
     );
@@ -124,7 +124,7 @@ describe('Bulkable — transfer clamp + material rules', () => {
   });
 
   it('accumulates the same material (+=)', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
     const src = makeVessel({ material: water, amountL: 2, capacityL: 5 });
     const dst = makeVessel({ material: water, amountL: 1, capacityL: 5 });
     const r = transfer(
@@ -138,8 +138,8 @@ describe('Bulkable — transfer clamp + material rules', () => {
   });
 
   it('rejects a cross-material pour (material mismatch)', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
-    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', [
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
+    const coffee = makeMaterial('/stuff/idea/material/bulk/coffee', 'coffee', [
       'coffee',
     ]);
     const src = makeVessel({ material: coffee, amountL: 2, capacityL: 5 });
@@ -157,7 +157,7 @@ describe('Bulkable — transfer clamp + material rules', () => {
   });
 
   it('clamps a lenient overflow to what fits', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
     const src = makeVessel({ material: water, amountL: 10, capacityL: 20, unbounded: false });
     const dst = makeVessel({ capacityL: 0.35 });
     const r = transfer(
@@ -173,7 +173,7 @@ describe('Bulkable — transfer clamp + material rules', () => {
   });
 
   it('rejects a strict overflow entirely', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
     const src = makeVessel({ material: water, amountL: 10, capacityL: 20 });
     const dst = makeVessel({ capacityL: 0.35 });
     const r = transfer(
@@ -203,7 +203,7 @@ describe('Bulkable — transfer clamp + material rules', () => {
   });
 
   it('never depletes an unbounded source', () => {
-    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', ['coffee']);
+    const coffee = makeMaterial('/stuff/idea/material/bulk/coffee', 'coffee', ['coffee']);
     const urn = makeVessel({ material: coffee, unbounded: true });
     const mug = makeVessel({ capacityL: 0.35 });
     expect(urn.getBulk('interior').available()).toBe(Infinity);
@@ -217,12 +217,12 @@ describe('Bulkable — transfer clamp + material rules', () => {
     expect(urn.getBulk('interior').isEmpty()).toBe(false);
     expect(mug.getBulk('interior').getAmount().rawValue()).toBeCloseTo(0.35);
     expect(mug.getBulk('interior').getMaterialPath()).toBe(
-      '/obj/material/bulk/coffee',
+      '/stuff/idea/material/bulk/coffee',
     );
   });
 
   it('empties a bounded source via the discard sink (drink)', () => {
-    const coffee = makeMaterial('/obj/material/bulk/coffee', 'coffee', ['coffee']);
+    const coffee = makeMaterial('/stuff/idea/material/bulk/coffee', 'coffee', ['coffee']);
     const mug = makeVessel({ material: coffee, amountL: 0.3, capacityL: 0.35 });
     const r = transfer(mug.getBulk('interior'), null, { kind: 'all' });
     expect(r.applied).toBeCloseTo(0.3);
@@ -238,7 +238,7 @@ describe('Bulkable — closure retention + drain-through', () => {
   });
 
   it('a liquidTight vessel retains liquid', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
     const src = makeVessel({ material: water, amountL: 1, capacityL: 5 });
     const dst = makeVessel({ capacityL: 1, closure: 'liquidTight' });
     const r = transfer(
@@ -251,7 +251,7 @@ describe('Bulkable — closure retention + drain-through', () => {
   });
 
   it('an open vessel drains through to the floor puddle', () => {
-    const water = makeMaterial('/obj/material/bulk/water', 'water', ['water']);
+    const water = makeMaterial('/stuff/idea/material/bulk/water', 'water', ['water']);
     const loc = makeStuff(() => new Location());
     const floor = makeStuff(() => {
       const f = new Floor();

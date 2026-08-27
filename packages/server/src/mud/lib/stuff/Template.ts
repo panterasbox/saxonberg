@@ -49,17 +49,17 @@ export abstract class Template extends Document {
     data: { persistent: true },
   };
 
-  /** Canonical path identifier (e.g. `/obj/Avatar/abc123`, `/narnia/castle`). */
+  /** Canonical path identifier (e.g. `/platform/agent/Avatar/abc123`, `/narnia/castle`). */
   path: string = '';
 
-  /** Runtime backing class path (e.g. `/obj/Avatar`). */
+  /** Runtime backing class path (e.g. `/platform/agent/Avatar`). */
   class: string = '';
 
   /**
    * Optional `Hydrator` class path. When ABSENT, the clone pipeline runs
    * no hydrator and `data` is ignored. Templates that want generic
    * mixin-field copy must opt in by naming
-   * `'/obj/persistence/PersistentHydrator'`.
+   * `'/platform/idea/persistence/PersistentHydrator'`.
    */
   hydratorClass?: string;
 

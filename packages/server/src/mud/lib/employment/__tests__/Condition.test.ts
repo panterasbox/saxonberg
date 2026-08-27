@@ -118,7 +118,7 @@ describe("Condition.matchesItem / holdsFor", () => {
     const room = makeStuffAtPath(() => new TestRoom(), ROOM);
     const courier = makeStuffAtPath(
       () => new Creature(),
-      "/obj/Avatar/courier",
+      "/platform/agent/Avatar/courier",
     );
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     ContainmentApi.move(courier, room);

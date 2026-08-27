@@ -3,12 +3,12 @@
 # a paid pair of hands rather than a gate. Cheerful, encyclopaedic about which
 # torch burns longer. No employment block on the NPC — the Business roster is
 # the single source of truth (the tick lazy-materializes the record).
-class: /obj/NPC
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Pemby
   pronouns: he
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: clerk
   alternateNames: [pemby, shopkeeper, boy]

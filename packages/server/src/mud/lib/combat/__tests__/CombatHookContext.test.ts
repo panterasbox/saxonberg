@@ -16,7 +16,7 @@ import { Quantity } from "../../quantity";
 import { EnergizedMixin } from "../../electricity/Energized";
 import type { Energized } from "../../electricity/Energized";
 import type { Stuff } from "../../stuff/Stuff";
-import type { ActiveCondition } from "../../../obj/Condition";
+import type { ActiveCondition } from "../../../platform/idea/Condition";
 import type { InflictSpec } from "../../../api/condition";
 import { CombatSession } from "../CombatSession";
 import { CombatTerms, DEFAULT_TERMS } from "../CombatTerms";

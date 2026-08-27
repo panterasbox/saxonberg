@@ -10,8 +10,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import PaymentCard from "../../../obj/PaymentCard";
-import CredentialWalletUpdate from "../../../obj/CredentialWalletUpdate";
+import PaymentCard from "../../../platform/thing/PaymentCard";
+import CredentialWalletUpdate from "../../../platform/idea/CredentialWalletUpdate";
 import { MixinApi } from "../../../api/mixin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
@@ -63,8 +63,8 @@ async function pocket(
   cap: number,
   funds: number
 ): Promise<{ alice: TestAvatar; card: PaymentCard; accountId: string }> {
-  const alice = avatar("/obj/Avatar/alice");
-  const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+  const alice = avatar("/platform/agent/Avatar/alice");
+  const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
   ContainmentApi.move(card, alice as never);
   const accountId = await asOwner(alice, () =>
     BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
@@ -119,7 +119,7 @@ describe("Credential risk ladder", () => {
 
     // reissue a fresh card for the same account → spends again
     vi.spyOn(StuffApi, "clone").mockImplementation((async () => {
-      return makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+      return makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
     }) as unknown as typeof StuffApi.clone);
     await asOwner(alice, () => BankingApi.issueCard(accountId, 1000));
     await asOwner(alice, () =>
@@ -131,10 +131,10 @@ describe("Credential risk ladder", () => {
   it("the wallet implant is body-bound (a hosted update, not a carryable Thing)", () => {
     const implant = makeStuffAtPath(
       () => new CredentialWalletUpdate(),
-      "/obj/CredentialWalletUpdate"
+      "/platform/idea/CredentialWalletUpdate"
     );
     // A card is Containable (carryable / losable); the wallet implant is not.
-    const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+    const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
     expect(MixinApi.isContainable(card)).toBe(true);
     expect(MixinApi.isContainable(implant)).toBe(false);
     expect(MixinApi.isCredentialWallet(implant)).toBe(true);

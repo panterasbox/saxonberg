@@ -7,7 +7,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LoungeWarren from '../LoungeWarren';
 import Lounge from '../Lounge';
-import Avatar from '../../../obj/Avatar';
+import Avatar from '../../../platform/agent/Avatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
@@ -123,12 +123,12 @@ describe('recall placement capture in the persistence spine', () => {
       LoungeWarren.WARREN_PATH,
     );
     const host = await warren.getHost();
-    const snap = makeStuffAtPath(() => new SnapHost(), '/obj/Avatar/snap');
+    const snap = makeStuffAtPath(() => new SnapHost(), '/platform/agent/Avatar/snap');
     ContainmentApi.move(snap as never, host as unknown as Stuff & Container);
 
     await PersistableApi.capture(snap as unknown as Stuff);
     const rec = store.find(
-      (d) => (d as Record<string, unknown>).scope === '/obj/Avatar/snap',
+      (d) => (d as Record<string, unknown>).scope === '/platform/agent/Avatar/snap',
     ) as Record<string, unknown> | undefined;
     expect(rec?.place).toEqual({ startLocation: LoungeWarren.WARREN_PATH });
   });
@@ -140,12 +140,12 @@ describe('recall placement capture in the persistence spine', () => {
     const bar = await StuffApi.singleton<Stuff & Container>(
       LoungeWarren.BAR_PATH,
     );
-    const snap = makeStuffAtPath(() => new SnapHost(), '/obj/Avatar/snap2');
+    const snap = makeStuffAtPath(() => new SnapHost(), '/platform/agent/Avatar/snap2');
     ContainmentApi.move(snap as never, bar);
 
     await PersistableApi.capture(snap as unknown as Stuff);
     const rec = store.find(
-      (d) => (d as Record<string, unknown>).scope === '/obj/Avatar/snap2',
+      (d) => (d as Record<string, unknown>).scope === '/platform/agent/Avatar/snap2',
     ) as Record<string, unknown> | undefined;
     expect(rec?.place).toEqual({ container: LoungeWarren.BAR_PATH });
   });

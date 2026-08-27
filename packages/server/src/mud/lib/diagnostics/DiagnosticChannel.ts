@@ -17,7 +17,7 @@
  * | zone content (`/…/zones/<zone>/…`,    | `zone.<zone>`    |
  * |   `/lib/lounge/…`)                     |                  |
  * | `/…/lib/<subsystem>/…`                | `lib.<subsystem>`|
- * | `/…/obj/command/…`                    | `command`        |
+ * | `/…/platform/idea/cmd/…`                    | `command`        |
  * | `/…/api/…`                            | `api`            |
  * | anything else / null                  | `global`         |
  *

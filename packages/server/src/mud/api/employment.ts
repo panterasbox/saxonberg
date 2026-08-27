@@ -20,17 +20,17 @@
  * unmodellable one. Do not couple them.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link EmploymentLogic} singleton at `/obj/api/employment`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/employment`
+ * {@link EmploymentLogic} singleton at `/platform/idea/api/employment`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/employment`
  * reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Business } from '../obj/Business';
+import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { EmploymentLogic } from '../obj/api/EmploymentLogic';
+import { EmploymentLogic } from '../platform/idea/api/EmploymentLogic';
 import { fileURLToPath } from 'url';
 
 export type {
@@ -53,7 +53,7 @@ export type {
   RosterAssignment,
   ShiftEntry,
 } from '../lib/employment/Roster';
-export type { Business } from '../obj/Business';
+export type { Business } from '../platform/idea/Business';
 export type { Organization } from '../lib/employment/Organization';
 export type { Employed } from '../lib/employment/Employed';
 
@@ -62,9 +62,9 @@ import type { PrincipalRef } from '../lib/employment/Authority';
 import type { RemittanceSplit } from './banking';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/employment';
+const LOGIC_PATH = '/platform/idea/api/employment';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/EmploymentLogic', import.meta.url),
+  new URL('../platform/idea/api/EmploymentLogic', import.meta.url),
 );
 
 /** A Business as a live Stuff. */

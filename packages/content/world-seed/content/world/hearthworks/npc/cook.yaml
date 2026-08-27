@@ -1,11 +1,11 @@
 # Odo — the Hearthworks cook: a Crafter (MakerMixin gated by his rostered
 # position; on shift he fulfills `order` at the cookhouse). Human.
-class: /obj/Crafter
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/Crafter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odo
   pronouns: he
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: odo
   alternateNames:

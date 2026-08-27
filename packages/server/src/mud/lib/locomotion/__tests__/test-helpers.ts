@@ -14,7 +14,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
-import { LocomotionMode } from '../../../obj/LocomotionMode';
+import { LocomotionMode } from '../../../platform/idea/LocomotionMode';
 
 function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
   // Tear down any prior instance at this path so repeated buildMode
@@ -152,7 +152,7 @@ const MODE_DEFAULTS: Record<string, ModeData> = {
 
 /**
  * Build and register one LocomotionMode singleton at
- * `/obj/LocomotionMode/<name>`. Hydrates from the matching v1 seed
+ * `/platform/idea/LocomotionMode/<name>`. Hydrates from the matching v1 seed
  * data; pass `overrides` to tweak per-test.
  */
 export function buildMode(
@@ -162,7 +162,7 @@ export function buildMode(
   const data = { ...MODE_DEFAULTS[name], ...overrides };
   const mode = registerAtPath(
     () => new LocomotionMode(),
-    `/obj/LocomotionMode/${name}`,
+    `/platform/idea/LocomotionMode/${name}`,
   );
   if (data.name !== undefined) mode.setName(data.name);
   if (data.speed !== undefined) mode.setSpeed(data.speed);

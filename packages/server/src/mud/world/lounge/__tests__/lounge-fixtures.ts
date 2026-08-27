@@ -8,7 +8,7 @@ import LoungeWarren from '../LoungeWarren';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { Idea } from '../../../lib/stuff/Idea';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   PersistenceManager,
   Collections,

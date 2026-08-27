@@ -12,7 +12,7 @@ inputSlots:
 toolCapabilities:
 - striking
 - anvil
-outputTemplate: /obj/arms/belt-knife
+outputTemplate: /stuff/thing/arms/belt-knife
 outputMaterial: ''
 outputApplication: tangible
 requiresHeatK: 1400

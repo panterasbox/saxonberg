@@ -37,7 +37,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ["system/ping.yaml", "crafting/make.yaml"],
+    self: ["platform/cmd/system/ping.yaml", "platform/cmd/crafting/make.yaml"],
     environment: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
@@ -48,8 +48,8 @@ class TestGiver extends TestGiverBase {
 }
 
 const CONTROLLERS: Record<string, string> = {
-  "/obj/command/system/PingController": "/obj/command/system/PingController",
-  "/obj/command/crafting/MakeController": "/obj/command/crafting/MakeController",
+  "/platform/idea/cmd/system/PingController": "/platform/idea/cmd/system/PingController",
+  "/platform/idea/cmd/crafting/MakeController": "/platform/idea/cmd/crafting/MakeController",
 };
 
 describe("named scripts — def persistence + make", () => {

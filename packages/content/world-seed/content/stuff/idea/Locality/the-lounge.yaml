@@ -1,0 +1,11 @@
+# The Lounge — the social-hub Locality (Dave's Bar). Names the lounge node
+# on departures boards (D13). The lounge arrival room is a Warren host (a
+# runtime role) that may not carry a stable address; if it doesn't, the
+# lounge Locality won't resolve and the board falls back to the lounge
+# terminal's authored shortDescription "The Lounge" ([DECIDE-ADDR]). Either
+# way the board reads "The Lounge".
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Lounge
+  _address: lounge

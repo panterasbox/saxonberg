@@ -1,0 +1,16 @@
+verbs: [cancel]
+controller: /platform/idea/cmd/system/CancelController
+description: "Cancel an in-flight activity. With no argument, cancels every activity. With a type ('reading', 'walking', ...), cancels matching activities."
+help: |
+  Stops whatever you're in the middle of doing. Plain `cancel`
+  drops every ongoing activity at once. Give it a type — like
+  `reading` or `walking` — to stop only matching activities and
+  leave the rest running.
+
+  If you name a type you aren't actually doing, nothing happens and
+  you're told so. This acts on your own in-flight actions, not on
+  anything in the world around you.
+args:
+  - name: type
+    type: string
+    required: false

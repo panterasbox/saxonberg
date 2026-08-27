@@ -43,7 +43,7 @@ import { CommandApi, SUBCOMMAND_FIELD } from '../../api/command';
  *   - otherwise → resolve relative to the spec file's own directory,
  *     then map to the posix `/`-rooted mud template path.
  * This is the one resolution axis for the `controller:` field — no
- * implicit `/obj/command/` prefix, no `world/` special case.
+ * implicit `/platform/idea/cmd/` prefix, no `world/` special case.
  */
 function resolveController(rawController: string, specFilePath: string): string {
   if (rawController.startsWith('/')) return rawController;
@@ -137,12 +137,13 @@ export class CommandDefinition {
    */
   public get category(): string {
     const parts = this.filePath.replace(/\\/g, '/').split('/');
-    // A content-tree view (`<mud>/world/<…>/cmd/<verb>.yaml`,
-    // `<mud>/trade/<…>/cmd/<verb>.yaml`) carries a `cmd` directory
-    // segment; an engine view's path is `<mud>/<category>/<verb>.yaml`
-    // (the `content/cmd/` prefix is not part of its key) and carries none.
-    if (parts.slice(0, -1).includes('cmd')) return 'domain';
-    // …/cmd/<category>/<verb>.yaml → the segment before the file.
+    // Every view lives under a `cmd` dir of its tree: the engine's
+    // `platform/cmd/<category>/<verb>.yaml` names its category as the
+    // segment after `cmd`; a locality's / industry's `<…>/cmd/<verb>.yaml`
+    // has none — it reports `local`.
+    const dirs = parts.slice(0, -1);
+    const at = dirs.lastIndexOf('cmd');
+    if (at >= 0 && at === dirs.length - 1) return 'local';
     const dir = parts[parts.length - 2];
     return dir && dir !== 'cmd' ? dir : 'system';
   }

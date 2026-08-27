@@ -9,9 +9,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
-import Coin from "../../../obj/Coin";
-import BankCounter from "../../../obj/BankCounter";
-import PaymentCard from "../../../obj/PaymentCard";
+import Coin from "../../../platform/thing/Coin";
+import BankCounter from "../../../platform/thing/BankCounter";
+import PaymentCard from "../../../platform/thing/PaymentCard";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -78,10 +78,10 @@ describe("Reconciliation invariant", () => {
       b.setCorpoKey("goodkin");
       return b;
     }, BANK);
-    const alice = avatar("/obj/Avatar/alice");
-    const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+    const alice = avatar("/platform/agent/Avatar/alice");
+    const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
     ContainmentApi.move(card, alice as never);
-    const worker = avatar("/obj/Avatar/wenna");
+    const worker = avatar("/platform/agent/Avatar/wenna");
 
     const expectBalanced = (supply: number) => {
       const r = BankingApi.reconcile(Currency.compact());
@@ -120,7 +120,7 @@ describe("Reconciliation invariant", () => {
       BankingApi.transfer(aliceAcct, "merchant", Money.of(100, Currency.compact()))
     );
     await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
-    await BankingApi.payWage("merchant", "/obj/Avatar/wenna", Money.of(50, Currency.compact()));
+    await BankingApi.payWage("merchant", "/platform/agent/Avatar/wenna", Money.of(50, Currency.compact()));
     expectBalanced(1500);
 
     // 6. drain 100 from the merchant → supply shrinks

@@ -1,0 +1,10 @@
+verbs: [spells]
+controller: /platform/idea/cmd/magic/SpellsController
+description: "Review the workings you can shape"
+help: |
+  `spells` lists the workings you know of, by grid cell (operation ·
+  domain), with how far your command of each sits — bands, never
+  numbers — plus the state of your own faculty: the depth and calm of
+  your pool, and any strain you carry.
+validators:
+  - /lib/command/validators/requiresCastingFaculty

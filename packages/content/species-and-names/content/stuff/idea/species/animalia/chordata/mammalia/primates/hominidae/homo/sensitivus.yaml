@@ -1,0 +1,42 @@
+# Homo sensitivus — THROWAWAY test species (capability-hosting build).
+# A born-attuned near-human sibling of Homo sapiens: shares the biped
+# body plan but intrinsically confers AetherMixin (innateMixins), so a
+# member is attuned with NO cranial implant. Purely a fixture to
+# exercise the intrinsic-conferral path; the rich attuned-species
+# content pass will rename/replace it.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  illustration: species/sapiens.png
+  binomial: Homo sensitivus
+  sentient: true
+  commonNames: ["sensitive", "attuned-born"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/biped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  innateMixins: ["AetherMixin", "CasterMixin"]
+  vitalProfile:
+    coreTemperature: { baseline: 310, survivableMin: 301, survivableMax: 315 }
+    heartRate: { baseline: 70, survivableMin: 30, survivableMax: 220 }
+    respiratoryRate: { baseline: 16, survivableMin: 6, survivableMax: 40 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 130 }
+    spo2: { baseline: 98, survivableMin: 70, survivableMax: 100 }
+    bloodVolume: { baseline: 5, survivableMin: 3.2, survivableMax: 5 }
+  lifecycleStates: ["alive", "dead", "undead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 120
+  circadianBand: diurnal
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  longDescription: >-
+    A person of ordinary build whose gaze carries a faint, listening
+    stillness — as though half their attention rides a channel no one
+    else can hear.
+  nameBankKeys: ["common"]
+  facultyProfile: { depth: high, serenity: high, composure: low }

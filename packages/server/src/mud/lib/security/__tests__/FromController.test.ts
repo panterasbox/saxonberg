@@ -14,9 +14,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
-import DestructController from '../../../obj/command/author/DestructController';
-import TeleportController from '../../../obj/command/author/TeleportController';
-import GotoController from '../../../obj/command/author/GotoController';
+import DestructController from '../../../platform/idea/cmd/author/DestructController';
+import TeleportController from '../../../platform/idea/cmd/author/TeleportController';
+import GotoController from '../../../platform/idea/cmd/author/GotoController';
 import { StuffApi } from '../../../api/stuff';
 
 describe('FromController', () => {

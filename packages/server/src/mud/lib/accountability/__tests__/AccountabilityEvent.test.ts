@@ -21,10 +21,10 @@ function row(
   const ev = new AccountabilityEvent();
   ev.kind = fields.kind ?? 'death';
   ev.sessionId = fields.sessionId ?? 's1';
-  ev.initiator = fields.initiator ?? '/obj/Avatar/attacker';
-  ev.opponent = fields.opponent ?? '/obj/Avatar/attacker';
-  ev.victim = fields.victim ?? '/obj/Avatar/victim';
-  ev.killer = fields.killer ?? '/obj/Avatar/attacker';
+  ev.initiator = fields.initiator ?? '/platform/agent/Avatar/attacker';
+  ev.opponent = fields.opponent ?? '/platform/agent/Avatar/attacker';
+  ev.victim = fields.victim ?? '/platform/agent/Avatar/victim';
+  ev.killer = fields.killer ?? '/platform/agent/Avatar/attacker';
   ev.lethality = fields.lethality ?? 'lethal';
   ev.stopCondition = fields.stopCondition ?? 'death';
   ev.consented = fields.consented ?? false;
@@ -49,11 +49,11 @@ describe('AccountabilityEvent.deriveBlame — combat rows (byte-identical)', () 
   it('attributes the death to the killer named on the death row', () => {
     const v = AccountabilityEvent.deriveBlame([
       row({ kind: 'opened', realAt: 1 }),
-      row({ kind: 'death', killer: '/obj/Avatar/duelist', realAt: 2 }),
+      row({ kind: 'death', killer: '/platform/agent/Avatar/duelist', realAt: 2 }),
     ]);
     expect(v).not.toBeNull();
-    expect(v!.killer).toBe('/obj/Avatar/duelist');
-    expect(v!.victim).toBe('/obj/Avatar/victim');
+    expect(v!.killer).toBe('/platform/agent/Avatar/duelist');
+    expect(v!.victim).toBe('/platform/agent/Avatar/victim');
   });
 
   it('flags a crime: a sentient killed under non-consented lethal terms', () => {
@@ -112,18 +112,18 @@ describe('AccountabilityEvent.deriveBlame — combat rows (byte-identical)', () 
     const v = AccountabilityEvent.deriveBlame([
       row({
         kind: 'death',
-        killer: '/obj/Avatar/second',
+        killer: '/platform/agent/Avatar/second',
         consented: true,
         realAt: 20,
       }),
       row({
         kind: 'death',
-        killer: '/obj/Avatar/first',
+        killer: '/platform/agent/Avatar/first',
         consented: false,
         realAt: 10,
       }),
     ]);
-    expect(v!.killer).toBe('/obj/Avatar/first');
+    expect(v!.killer).toBe('/platform/agent/Avatar/first');
     expect(v!.crime).toBe(true); // the first, non-consented death governs
   });
 });
@@ -136,12 +136,12 @@ describe('AccountabilityEvent.deriveBlame — harm rows (the trap producer)', ()
         lethality: 'non-lethal',
         consented: false,
         sentient: true,
-        killer: '/obj/Avatar/trapper',
+        killer: '/platform/agent/Avatar/trapper',
         realAt: 3,
       }),
     ]);
     expect(v!.crime).toBe(true);
-    expect(v!.killer).toBe('/obj/Avatar/trapper');
+    expect(v!.killer).toBe('/platform/agent/Avatar/trapper');
   });
 
   it('is not a crime when the harmed party is a beast', () => {
@@ -162,19 +162,19 @@ describe('AccountabilityEvent.deriveBlame — harm rows (the trap producer)', ()
     const v = AccountabilityEvent.deriveBlame([
       row({
         kind: 'death',
-        killer: '/obj/Avatar/finisher',
+        killer: '/platform/agent/Avatar/finisher',
         consented: true,
         realAt: 20,
       }),
       row({
         kind: 'harm',
-        killer: '/obj/Avatar/trapper',
+        killer: '/platform/agent/Avatar/trapper',
         consented: false,
         sentient: true,
         realAt: 10,
       }),
     ]);
-    expect(v!.killer).toBe('/obj/Avatar/trapper');
+    expect(v!.killer).toBe('/platform/agent/Avatar/trapper');
     expect(v!.crime).toBe(true);
   });
 });
@@ -184,10 +184,10 @@ describe("deriveBlame — command responsibility (the formation facts)", () => {
     const ev = new AccountabilityEvent();
     ev.kind = "death";
     ev.sessionId = "s-cmd";
-    ev.initiator = "/obj/Avatar/master";
-    ev.opponent = "/obj/Avatar/apprentice";
-    ev.victim = "/obj/Avatar/victim";
-    ev.killer = "/obj/Avatar/apprentice";
+    ev.initiator = "/platform/agent/Avatar/master";
+    ev.opponent = "/platform/agent/Avatar/apprentice";
+    ev.victim = "/platform/agent/Avatar/victim";
+    ev.killer = "/platform/agent/Avatar/apprentice";
     ev.lethality = "lethal";
     ev.stopCondition = "death";
     ev.consented = false;
@@ -200,15 +200,15 @@ describe("deriveBlame — command responsibility (the formation facts)", () => {
   it("an unlawful DIRECTED kill: the striker holds the deed, the commander the responsibility", () => {
     const v = AccountabilityEvent.deriveBlame([
       deathRow({
-        formationPath: "/obj/CombatFormation/master-apprentice",
+        formationPath: "/platform/idea/CombatFormation/master-apprentice",
         killerRole: "apprentice",
-        directedBy: "/obj/Avatar/master",
+        directedBy: "/platform/agent/Avatar/master",
       }),
     ]);
     expect(v).not.toBeNull();
     expect(v!.crime).toBe(true);
-    expect(v!.killer).toBe("/obj/Avatar/apprentice"); // the deed
-    expect(v!.commandResponsible).toBe("/obj/Avatar/master"); // the blame
+    expect(v!.killer).toBe("/platform/agent/Avatar/apprentice"); // the deed
+    expect(v!.commandResponsible).toBe("/platform/agent/Avatar/master"); // the blame
   });
 
   it("an undirected kill carries no command responsibility", () => {
@@ -219,7 +219,7 @@ describe("deriveBlame — command responsibility (the formation facts)", () => {
 
   it("a LAWFUL directed kill carries no command responsibility (no crime, no commander)", () => {
     const v = AccountabilityEvent.deriveBlame([
-      deathRow({ consented: true, directedBy: "/obj/Avatar/master" }),
+      deathRow({ consented: true, directedBy: "/platform/agent/Avatar/master" }),
     ]);
     expect(v!.crime).toBe(false);
     expect(v!.commandResponsible).toBe("");

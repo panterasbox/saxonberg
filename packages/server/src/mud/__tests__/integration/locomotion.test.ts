@@ -13,7 +13,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../../api/locomotion';
 import { ContainmentApi } from '../../api/containment';
-import CartesianZone from '../../obj/location/CartesianZone';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import Exit from '../../lib/boundary/Exit';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';

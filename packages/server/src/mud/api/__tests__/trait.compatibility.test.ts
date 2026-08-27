@@ -29,7 +29,7 @@ let idCounter = 0;
 let counter = 0;
 
 function viewer(): View {
-  return makeStuffAtPath(() => new View(), `/obj/Avatar/c${counter++}`);
+  return makeStuffAtPath(() => new View(), `/platform/agent/Avatar/c${counter++}`);
 }
 
 beforeEach(() => {

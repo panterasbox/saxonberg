@@ -3,8 +3,10 @@
  *
  * The taxonomy this enforces:
  *
- *   /obj/ holds anything INSTANCEABLE — anything a template's `class:`
- *   resolves to, including classes that are further specialized.
+ *   /platform/<branch>/ holds anything INSTANCEABLE — anything a
+ *   template's `class:` resolves to, including classes that are further
+ *   specialized — keyed by the Stuff branch it descends from
+ *   (thing · idea · agent · location).
  *   /lib/  holds substrate that is ONLY EVER INHERITED: abstract roots,
  *   mixins, value objects, and framework attachments.
  *
@@ -17,11 +19,11 @@
  *   5. No redundant `hydratorClass:` — declared with no `data` to apply.
  *   6. No orphaned `data:` — a data block with no `hydratorClass`,
  *      whose every key is therefore silently discarded.
- *   7. Under `/trade/<industry>/`, an instanceable template (one naming
- *      a `class:`) sits under `…/obj/` or `…/command/` — the `obj/`
- *      segment rule recursed into an industry's own subtree (content
- *      packs wave 4a, D2). The `recipes/` dir is a document kind and is
- *      never walked here.
+ *   7. Under `/platform/`, `/stuff/` and `/trade/<industry>/`, an
+ *      instanceable template (one naming a `class:`) sits under a BRANCH
+ *      segment — `thing`, `idea`, `agent` or `location` — the path
+ *      pattern `<root>/<branch>/…` (content packs wave 4a). Document
+ *      kinds (`recipes/`, a tree's `cmd/` views) are never walked here.
  *
  * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
  * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
@@ -118,11 +120,13 @@ function classResolves(classPath: string): boolean {
  * `/trade/<industry>/` must sit under that industry's `obj/` or
  * `command/` segment. Exported for the test beside this script.
  */
+export const BRANCHES = ['thing', 'idea', 'agent', 'location'] as const;
 export function tradePlacementOk(path: string, hasClass: boolean): boolean {
-  const m = /^\/trade\/([^/]+)\/(.*)$/.exec(path);
-  if (!m || !hasClass) return true;
-  const rest = m[2]!;
-  return rest.startsWith('obj/') || rest.startsWith('command/');
+  if (!hasClass) return true;
+  const rooted = /^\/(?:platform|stuff|trade\/[^/]+)\//.test(path);
+  if (!rooted) return true;
+  const m = /^\/(?:platform|stuff|trade\/[^/]+)\/([^/]+)\//.exec(path);
+  return !!m && (BRANCHES as readonly string[]).includes(m[1]!);
 }
 
 function main(): void {
@@ -175,7 +179,7 @@ function main(): void {
     }
     // 7 — the obj/ segment rule inside an industry's subtree
     if (!tradePlacementOk(path, cls !== null)) {
-      findings.push({ invariant: 7, file, detail: `${path} names a class but is not under /trade/<industry>/obj/ or …/command/` });
+      findings.push({ invariant: 7, file, detail: `${path} names a class but its second segment is not a branch (thing|idea|agent|location)` });
     }
   }
 
@@ -227,7 +231,7 @@ function main(): void {
     4: 'hydratorClass: names no template row',
     5: 'redundant hydratorClass (no data to apply)',
     6: 'orphaned data (no hydratorClass — silently discarded)',
-    7: 'instanceable /trade/ template outside its industry\'s obj/ or command/',
+    7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

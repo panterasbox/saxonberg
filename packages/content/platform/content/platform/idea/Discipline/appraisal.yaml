@@ -1,0 +1,12 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: appraisal
+  channel: skill
+  label: Appraisal
+  iscedf: "0416"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - retail-sales
+  description: Judging quality and value at a glance — a merchant's eye. A second-branch leaf (under wholesale and retail sales), so the Catalog spans two ISCED-F branches.
+  synergizes:
+    - mixology

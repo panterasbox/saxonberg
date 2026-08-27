@@ -5,8 +5,8 @@
 # CartesianZone, its own home (the electricity-substation precedent). No
 # inbound exit wired this cycle — reachable by teleport / a future travel node
 # (the treeline reachability precedent keeps content-area standup clean).
-class: /obj/location/CartesianZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The Hearthworks
   cellSize: 3.0

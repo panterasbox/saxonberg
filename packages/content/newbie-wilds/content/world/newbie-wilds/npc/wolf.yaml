@@ -5,10 +5,10 @@
 # Interactive → auto brain-driven); its `naturalAttackChannel` (fangs, a
 # `point` channel) lets it strike back unarmed. A lethal cull: no consent,
 # no blame. Idles with a low growl until something gives it a reason.
-class: /obj/NPC
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  _speciesPath: /obj/species/wolf
+  _speciesPath: /stuff/idea/species/wolf
   lifecycleState: alive
   primaryKeyword: wolf
   shortDescription: a rangy grey wolf

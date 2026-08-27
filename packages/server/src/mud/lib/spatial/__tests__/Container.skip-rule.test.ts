@@ -15,7 +15,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import ChattelRegistry from "../../../obj/ChattelRegistry";
+import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
 import Thing from "../../stuff/Thing";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
@@ -26,7 +26,7 @@ import { EstateMixin } from "../../chattel/Estate";
 import { ContainerMixin } from "../Container";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -38,7 +38,7 @@ import type { FieldMeta } from "../../mixin";
 
 const TORCH_PATH = "/obj/test/Torch";
 const ROOM_PATH = "/world/test/Room";
-const ALICE_PATH = "/obj/Avatar/alice";
+const ALICE_PATH = "/platform/agent/Avatar/alice";
 
 class Torch extends Thing {}
 
@@ -108,7 +108,7 @@ function installStore(): void {
 
 async function boot(): Promise<void> {
   installV1QuantityMarshallers();
-  const reg = makeStuffAtPath(() => new ChattelRegistry(), "/obj/ChattelRegistry");
+  const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
   await reg.postRegister();
   makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(

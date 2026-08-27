@@ -568,29 +568,29 @@ export class SecurityApi {
    */
   static readonly #BOUNDARY_EXEMPT_TEMPLATE_PATHS: ReadonlySet<string> =
     new Set([
-      '/obj/EventRegistry',
-      '/obj/AccessRegistry',
-      '/obj/ParcelRegistry',
-      '/obj/OfficeRegistry',
-      '/obj/ChattelRegistry',
-      '/obj/GroupRegistry',
-      '/obj/ReactionRegistry',
-      '/obj/MqlSubscriptionRegistry',
-      '/obj/SchedulerRegistry',
-      '/obj/WorldClockRegistry',
-      '/obj/EventSubscriptions',
-      '/obj/AddressRegistry',
-      '/obj/TopicCatalogue',
+      '/platform/idea/EventRegistry',
+      '/platform/idea/AccessRegistry',
+      '/platform/idea/ParcelRegistry',
+      '/platform/idea/OfficeRegistry',
+      '/platform/idea/ChattelRegistry',
+      '/platform/idea/GroupRegistry',
+      '/platform/idea/ReactionRegistry',
+      '/platform/idea/MqlSubscriptionRegistry',
+      '/platform/idea/SchedulerRegistry',
+      '/platform/idea/WorldClockRegistry',
+      '/platform/idea/EventSubscriptions',
+      '/platform/idea/AddressRegistry',
+      '/platform/idea/TopicCatalogue',
       // The staff→player news window. Read-only presentation content
       // (writes are REFUSE'd at the PM layer), and the session
       // ceremony reads it to build a client's bootstrap payload — so a
       // player crossing into a circle must be able to reach it, or the
       // whole ceremony throws and they arrive to a blank screen.
-      '/obj/PressBoard',
-      '/obj/SoulCatalogue',
-      '/obj/SubjectCatalogue',
-      '/obj/ChannelCatalogue',
-      '/obj/CorpoCatalogue',
+      '/platform/idea/PressBoard',
+      '/platform/idea/SoulCatalogue',
+      '/platform/idea/SubjectCatalogue',
+      '/platform/idea/ChannelCatalogue',
+      '/platform/idea/CorpoCatalogue',
       // Seeded reference catalogues — authored content the engine reads
       // to answer "what exists in the world": never player-mutable at
       // runtime, and REFUSE'd at the PM layer besides. Same tier as the
@@ -601,12 +601,12 @@ export class SecurityApi {
       // — `help`, `spells`, `recipes`/`craft`, `studio`, `competence`,
       // `government`. A player standing in their own circle could not
       // read the rulebook.
-      '/obj/HelpCatalogue',
-      '/obj/SpellCatalogue',
-      '/obj/RecipeCatalogue',
-      '/obj/BlueprintCatalogue',
-      '/obj/DisciplineCatalogue',
-      '/obj/GovernmentCatalogue',
+      '/platform/idea/HelpCatalogue',
+      '/platform/idea/SpellCatalogue',
+      '/platform/idea/RecipeCatalogue',
+      '/platform/idea/BlueprintCatalogue',
+      '/platform/idea/DisciplineCatalogue',
+      '/platform/idea/GovernmentCatalogue',
     ]);
 
   /**
@@ -764,12 +764,12 @@ export class SecurityApi {
    *      cut of this check tested only the path.
    *   2. **You are standing in it** — an enclosure up your containment
    *      chain is under the bound. An avatar's `templatePath` is
-   *      `/obj/Avatar/<id>`: its IDENTITY, which says nothing about where
+   *      `/platform/agent/Avatar/<id>`: its IDENTITY, which says nothing about where
    *      it is. Judging a person's whereabouts by their lineage denied a
    *      governed eval the one receiver it most obviously covers — the
    *      wizard's own body, standing in the parcel they hold title to.
    *      Same for every clone: a corpse in the lounge is lineage
-   *      `/obj/Corpse` and location `/world/lounge`.
+   *      `/stuff/agent/Corpse` and location `/world/lounge`.
    *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
    *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
    *      and *then* stamps its path, so at the instant of the stamp rules

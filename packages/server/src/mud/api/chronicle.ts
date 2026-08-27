@@ -33,9 +33,9 @@
  * engine-enforced. The substrate offers only the mint seams below.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link ChronicleLogic} singleton at `/obj/api/chronicle`,
+ * hot-reloadable {@link ChronicleLogic} singleton at `/platform/idea/api/chronicle`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/chronicle` reloads it.
+ * /platform/idea/api/chronicle` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -46,15 +46,15 @@ import type {
 } from '../lib/chronicle/ChronicleEntry';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ChronicleLogic } from '../obj/api/ChronicleLogic';
+import { ChronicleLogic } from '../platform/idea/api/ChronicleLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { ChronicleEntryFields, ChronicleClaimSeed };
 
-const LOGIC_PATH = '/obj/api/chronicle';
+const LOGIC_PATH = '/platform/idea/api/chronicle';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ChronicleLogic', import.meta.url)
+  new URL('../platform/idea/api/ChronicleLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ChronicleLogic singleton (sync). */

@@ -1,8 +1,8 @@
 # The smithy floor — a surface-bulk Floor that catches molten metal run off the
 # forge (the puddle precedent). A melting ingot flows its mass here as a
 # pourable liquid pool.
-class: /obj/Floor
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a stone floor
   keywords: [floor, ground, stone]

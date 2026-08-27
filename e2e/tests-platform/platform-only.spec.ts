@@ -17,7 +17,7 @@ import {
  * shell room — the void, the code fallback when no pack contributed
  * `defaultStartLocation` — and `pack status` knows exactly one pack.
  *
- * The landing room is asserted by what it RENDERS: `/world/void` is a
+ * The landing room is asserted by what it RENDERS: `/platform/location/void` is a
  * bare Location (no Named, no Visible, no Exitable), and `look` there
  * prints exactly one line — "Your surroundings are indistinct." — the
  * fallback no authored room ever produces.

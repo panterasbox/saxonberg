@@ -79,11 +79,11 @@ describe('PathTrie', () => {
 
     it('a series of inserts and matching removes leaves the trie empty', () => {
       const trie = new PathTrie<string>();
-      trie.insert('/obj/Avatar/abc', 'a');
-      trie.insert('/obj/Avatar/def', 'b');
+      trie.insert('/platform/agent/Avatar/abc', 'a');
+      trie.insert('/platform/agent/Avatar/def', 'b');
       trie.insert('/lib/spatial/Door', 'c');
-      trie.remove('/obj/Avatar/abc', 'a');
-      trie.remove('/obj/Avatar/def', 'b');
+      trie.remove('/platform/agent/Avatar/abc', 'a');
+      trie.remove('/platform/agent/Avatar/def', 'b');
       trie.remove('/lib/spatial/Door', 'c');
       expect(trie.isEmpty()).toBe(true);
       expect(trie.size).toBe(0);
@@ -124,9 +124,9 @@ describe('PathTrie', () => {
   describe('glob walk', () => {
     function makeWorld(): PathTrie<string> {
       const trie = new PathTrie<string>();
-      trie.insert('/obj/Avatar/abc', 'avatar-abc');
-      trie.insert('/obj/Avatar/def', 'avatar-def');
-      trie.insert('/obj/Avatar/sub/nested', 'avatar-sub-nested');
+      trie.insert('/platform/agent/Avatar/abc', 'avatar-abc');
+      trie.insert('/platform/agent/Avatar/def', 'avatar-def');
+      trie.insert('/platform/agent/Avatar/sub/nested', 'avatar-sub-nested');
       trie.insert('/obj/NPC/orc', 'npc-orc');
       trie.insert('/obj/NPC/troll', 'npc-troll');
       trie.insert('/lib/spatial/Door', 'door-lib');
@@ -135,35 +135,35 @@ describe('PathTrie', () => {
 
     it('exact-pattern glob is equivalent to exact()', () => {
       const trie = makeWorld();
-      expect(trie.glob('/obj/Avatar/abc')).toEqual(['avatar-abc']);
+      expect(trie.glob('/platform/agent/Avatar/abc')).toEqual(['avatar-abc']);
     });
 
     it('* matches a single segment', () => {
       const trie = makeWorld();
-      expect(trie.glob('/obj/Avatar/*').sort()).toEqual(
+      expect(trie.glob('/platform/agent/Avatar/*').sort()).toEqual(
         ['avatar-abc', 'avatar-def'].sort()
       );
     });
 
     it('* does not cross segment boundaries', () => {
       const trie = makeWorld();
-      // /obj/Avatar/* should NOT match /obj/Avatar/sub/nested.
-      expect(trie.glob('/obj/Avatar/*')).not.toContain('avatar-sub-nested');
+      // /platform/agent/Avatar/* should NOT match /platform/agent/Avatar/sub/nested.
+      expect(trie.glob('/platform/agent/Avatar/*')).not.toContain('avatar-sub-nested');
     });
 
     it('** descends into subtrees', () => {
       const trie = makeWorld();
-      expect(trie.glob('/obj/Avatar/**').sort()).toEqual(
+      expect(trie.glob('/platform/agent/Avatar/**').sort()).toEqual(
         ['avatar-abc', 'avatar-def', 'avatar-sub-nested'].sort()
       );
     });
 
     it('? matches a single character within a segment', () => {
       const trie = new PathTrie<string>();
-      trie.insert('/obj/Avatar/aa', 'aa');
-      trie.insert('/obj/Avatar/ab', 'ab');
-      trie.insert('/obj/Avatar/abc', 'abc');
-      expect(trie.glob('/obj/Avatar/a?').sort()).toEqual(['aa', 'ab']);
+      trie.insert('/platform/agent/Avatar/aa', 'aa');
+      trie.insert('/platform/agent/Avatar/ab', 'ab');
+      trie.insert('/platform/agent/Avatar/abc', 'abc');
+      expect(trie.glob('/platform/agent/Avatar/a?').sort()).toEqual(['aa', 'ab']);
     });
 
     it('** at root yields every value', () => {
@@ -188,9 +188,9 @@ describe('PathTrie', () => {
 
     it('multi-value bucket is enumerated under glob', () => {
       const trie = new PathTrie<string>();
-      trie.insert('/obj/Avatar/dup', 'a');
-      trie.insert('/obj/Avatar/dup', 'b');
-      expect(trie.glob('/obj/Avatar/*').sort()).toEqual(['a', 'b']);
+      trie.insert('/platform/agent/Avatar/dup', 'a');
+      trie.insert('/platform/agent/Avatar/dup', 'b');
+      expect(trie.glob('/platform/agent/Avatar/*').sort()).toEqual(['a', 'b']);
     });
   });
 

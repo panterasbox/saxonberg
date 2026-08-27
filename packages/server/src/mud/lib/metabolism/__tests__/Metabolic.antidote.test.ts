@@ -10,10 +10,10 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Condition from "../../../obj/Condition";
+import Condition from "../../../platform/idea/Condition";
 import type { ToxinBehavior } from "../Metabolic";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { StuffApi } from "../../../api/stuff";
 import {
   makeStuff,
@@ -45,7 +45,7 @@ const ACHE: ToxinBehavior = {
     { threshold: 6, severity: 2 },
   ],
 };
-const PATH = "/obj/Condition/metabolism/ache";
+const PATH = "/platform/idea/Condition/metabolism/ache";
 
 /**
  * ⚠ **This fabricates what production's `ConditionApi.boot` stands up.**

@@ -11,21 +11,21 @@
  * verb drives.
  *
  * The orchestration lives in the hot-reloadable {@link PartyLogic}
- * singleton at `/obj/api/party`, reached synchronously via
+ * singleton at `/platform/idea/api/party`, reached synchronously via
  * `StuffApi.singletonSync`; these statics forward there. Mirrors the
  * `GroupApi ↔ GroupLogic` shape.
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
-import type { Party } from "../obj/Party";
+import type { Party } from "../platform/idea/Party";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { PartyLogic } from "../obj/api/PartyLogic";
+import { PartyLogic } from "../platform/idea/api/PartyLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-export type { Party } from "../obj/Party";
-export { DEFAULT_FORMATION_PATH } from "../obj/Party";
+export type { Party } from "../platform/idea/Party";
+export { DEFAULT_FORMATION_PATH } from "../platform/idea/Party";
 
 /**
  * The per-fight alignment key. Equality means allied. Never null: a
@@ -41,9 +41,9 @@ export type PartyOpResult =
 /** Result of a party operation with no return value. */
 export type PartySimpleResult = { ok: true } | { ok: false; reason: string };
 
-const LOGIC_PATH = "/obj/api/party";
+const LOGIC_PATH = "/platform/idea/api/party";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/PartyLogic", import.meta.url),
+  new URL("../platform/idea/api/PartyLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able PartyLogic singleton (sync). */

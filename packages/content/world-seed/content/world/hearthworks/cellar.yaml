@@ -3,7 +3,7 @@
 # incomplete (smoke + carbon monoxide), the medium turns un-breathable, and it
 # self-smothers — an enclosed fire kills by CO, not flame.
 class: /world/hearthworks/SealedCellar
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a sealed cellar
   primaryKeyword: cellar
@@ -21,4 +21,4 @@ data:
       theme: atmosphere
       floorEffect: null
   populates:
-    - /obj/items/dry-log
+    - /stuff/thing/items/dry-log

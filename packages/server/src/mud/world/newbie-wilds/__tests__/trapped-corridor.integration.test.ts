@@ -29,13 +29,13 @@ import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import { join, dirname } from 'path';
 import YAML from 'yaml';
-import Trap from '../../../obj/Trap';
+import Trap from '../../../platform/thing/Trap';
 import { HazardDelivery } from '../../../lib/hazard/HazardDelivery';
-import SearchController from '../../../obj/command/perception/SearchController';
-import DisarmController from '../../../obj/command/device/DisarmController';
+import SearchController from '../../../platform/idea/cmd/perception/SearchController';
+import DisarmController from '../../../platform/idea/cmd/device/DisarmController';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../obj/species/Species';
-import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Thing from '../../../lib/stuff/Thing';
 import Exit from '../../../lib/boundary/Exit';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
@@ -62,20 +62,20 @@ import { MqlApi, type MqlOneResult } from '../../../api/mql';
 import { CommandApi, type CommandContext } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
 import Location from '../../../lib/stuff/Location';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { EventApi } from '../../../api/event';
 import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../obj/Condition';
-import type Interactive from '../../../obj/Interactive';
+import type { Trauma } from '../../../platform/idea/Condition';
+import type Interactive from '../../../platform/idea/Interactive';
 
 const PH = PersistentHydrator.templatePath;
 // The trap rows are the generic-objects pack's (content-packs wave 3).
@@ -116,7 +116,7 @@ function loadSeedDir(dir: string, prefix: string): Doc[] {
 }
 
 /** The whole in-memory store: PH + the delve zone + its rooms + the generic
- *  trap objects (now homed in `/obj/traps/`) + a treeline stub. */
+ *  trap objects (now homed in `/stuff/thing/traps/`) + a treeline stub. */
 function trapsStore(): Doc[] {
   return [
     { path: PH, class: PH, data: {} },
@@ -131,12 +131,12 @@ function trapsStore(): Doc[] {
       '/world/newbie-wilds/delve',
     ),
     // The generic trap objects, cloned into the corridors via `populates`.
-    ...loadSeedDir(join(SEEDS, 'obj', 'traps'), '/obj/traps'),
+    ...loadSeedDir(join(SEEDS, 'stuff', 'thing', 'traps'), '/stuff/thing/traps'),
     // The treeline the vestibule's back-out exit cascades — stubbed as a bare
     // void (the real treeline, with its wolf, is never stood up by a test).
     {
       path: '/world/newbie-wilds/crossroads/treeline',
-      class: '/obj/VoidLocation',
+      class: '/platform/location/VoidLocation',
       hydratorClass: PH,
       data: { shortDescription: 'the treeline' },
     },
@@ -207,7 +207,7 @@ let delverCounter = 0;
 function delver(): Delver {
   const c = makeStuff(() => new Delver());
   c.setSpecies(sharedSpecies);
-  stampTemplatePathForTest(c, `/obj/Avatar/delver-${n}-${++delverCounter}`);
+  stampTemplatePathForTest(c, `/platform/agent/Avatar/delver-${n}-${++delverCounter}`);
   return c;
 }
 
@@ -223,7 +223,7 @@ function steel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/obj/material/alloy/steel-td-${n}-${++delverCounter}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/alloy/steel-td-${n}-${++delverCounter}`);
   return m;
 }
 
@@ -307,7 +307,7 @@ beforeEach(async () => {
   // Movement fires events → bootstrap the registry.
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -315,10 +315,10 @@ beforeEach(async () => {
   EventApi._setRegistryForTesting(reg);
   n++;
   delverCounter = 0;
-  bodyplanPath = `/obj/species/BodyPlan/traps-biped-${n}`;
+  bodyplanPath = `/stuff/idea/species/BodyPlan/traps-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/obj/species/traps/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/stuff/idea/species/traps/biped-${n}`);
   // Stand the whole sphere up from a single anchor (cascades every room +
   // clones every trap + secret).
   await StuffApi.singleton('/world/newbie-wilds/delve/vestibule');

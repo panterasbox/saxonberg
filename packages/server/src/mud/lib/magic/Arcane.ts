@@ -51,7 +51,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MagicGrid } from './Grid';
 import type { MagicNoun, MagicVerb } from './Grid';
-import type SpellCatalogue from '../../obj/SpellCatalogue';
+import type SpellCatalogue from '../../platform/idea/SpellCatalogue';
 
 /** One grid cell — the `MagicProvenance` axes, typed. */
 export interface ArcaneAddress {
@@ -60,7 +60,7 @@ export interface ArcaneAddress {
 }
 
 /** Where the catalogue that resolves a carried `spellId` lives. */
-const SPELL_CATALOGUE_PATH = '/obj/SpellCatalogue';
+const SPELL_CATALOGUE_PATH = '/platform/idea/SpellCatalogue';
 
 export interface Arcane {
   /**
@@ -160,13 +160,13 @@ export function ArcaneMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⚠ A bare id is the mistake this field exists to prevent, and the
       // type system cannot catch it — both are strings. So the setter
       // does, which turns the rename from a naming convention into an
-      // actual guardrail: `firebolt` throws, `/obj/magic/Spell/firebolt`
+      // actual guardrail: `firebolt` throws, `/stuff/idea/magic/Spell/firebolt`
       // does not. Empty clears.
       const v = typeof path === 'string' ? path.trim() : '';
       if (v.length > 0 && !v.startsWith('/')) {
         throw new RangeError(
           `carriedSpellPath: '${v}' is a bare id, not a template path ` +
-            `(did you mean '/obj/magic/Spell/${v}'?)`,
+            `(did you mean '/stuff/idea/magic/Spell/${v}'?)`,
         );
       }
       this.carriedSpellPath = v;

@@ -1,0 +1,10 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: sports
+  channel: knowledge
+  label: Sports
+  iscedf: "1014"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - personal-services
+  description: ISCED-F detailed field — where bar games like darts classify.

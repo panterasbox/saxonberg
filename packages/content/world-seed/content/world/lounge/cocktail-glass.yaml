@@ -2,7 +2,7 @@
 # CraftingLogic fills the bulk slot with the cocktail Material and stamps the
 # maker's mark on clone. A CraftedDrink (Bulkable + Crafted).
 class: /world/lounge/CraftedDrink
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cocktail glass
   longDescription: A stemmed cocktail glass.

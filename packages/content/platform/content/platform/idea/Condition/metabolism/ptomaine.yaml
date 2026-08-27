@@ -1,0 +1,23 @@
+# Ptomaine — food poisoning from spoiled food. A pure poison: its band
+# map has no pleasant low rung (the first meaningful rung is already
+# harm). Burden = dose × potency / bodyMass; moderate absorption (a real
+# vomit window), slow clearance. Acute content.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: food-poisoning
+  signature: []
+  progression: null
+  resolution:
+    by: antitoxin
+  observableSigns: [nauseous, cramping, sweating]
+  contagion: null
+  toxinBehavior:
+    toxinType: ptomaine
+    absorptionRate: 4
+    clearanceRate: 0.02
+    potency: 1
+    bands:
+      - { threshold: 2, severity: 1 }
+      - { threshold: 6, severity: 2 }
+      - { threshold: 12, severity: 3 }

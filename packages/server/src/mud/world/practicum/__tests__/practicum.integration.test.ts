@@ -18,18 +18,18 @@ import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
-import CartesianZone from "../../../obj/location/CartesianZone";
+import CartesianZone from "../../../platform/idea/location/CartesianZone";
 import CartesianLocation from "../../../lib/location/CartesianLocation";
 import Material from "../../../lib/material/Material";
-import Firewood from "../../../obj/Firewood";
-import Floor from "../../../obj/Floor";
-import BodyPlan from "../../../obj/species/BodyPlan";
-import Species from "../../../obj/species/Species";
+import Firewood from "../../../platform/thing/Firewood";
+import Floor from "../../../platform/thing/Floor";
+import BodyPlan from "../../../platform/idea/species/BodyPlan";
+import Species from "../../../platform/idea/species/Species";
 import { Character } from "../../../lib/character/Character";
 import { HasInteractiveMixin } from "../../../lib/connection/HasInteractive";
-import GlowlightOrb from "../../../obj/magic/GlowlightOrb";
-import SpellCatalogue from "../../../obj/SpellCatalogue";
-import Spell from "../../../obj/magic/Spell";
+import GlowlightOrb from "../../../platform/thing/magic/GlowlightOrb";
+import SpellCatalogue from "../../../platform/idea/SpellCatalogue";
+import Spell from "../../../platform/idea/magic/Spell";
 import { Template } from "../../../lib/stuff/Template";
 import { MagicApi } from "../../../api/magic";
 import { AdvancementApi } from "../../../api/advancement";
@@ -37,10 +37,10 @@ import { FireApi } from "../../../api/fire";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { Quantity } from "../../../lib/quantity";
 import { Reserve } from "../../../lib/reserve";
-import type Interactive from "../../../obj/Interactive";
+import type Interactive from "../../../platform/idea/Interactive";
 import {
   makeStuff,
   makeStuffAtPath,
@@ -53,7 +53,7 @@ class MagicTester extends HasInteractiveMixin(Character) {
 }
 
 const __filename = fileURLToPath(import.meta.url);
-const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../../../../content/arcane-library/content/obj/magic/Spell");
+const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../../../../content/arcane-library/content/stuff/idea/magic/Spell");
 
 let seq = 0;
 let real = 0;
@@ -81,7 +81,7 @@ async function installCatalogue(): Promise<void> {
     });
   if (!catalogueSingleton) {
     catalogueSingleton = makeStuff(() => new SpellCatalogue());
-    stampTemplatePathForTest(catalogueSingleton, "/obj/SpellCatalogue");
+    stampTemplatePathForTest(catalogueSingleton, "/platform/idea/SpellCatalogue");
   }
   catalogueSingleton.invalidateCache();
   await catalogueSingleton.postRegister();
@@ -99,7 +99,7 @@ function oak(): Material {
     m.setAutoignitionTemperature(Quantity.of(570, "K"));
     m.setHeatOfCombustion(Quantity.of(16, "MJ/kg"));
     return m;
-  }, `/obj/material/_test/practicum-oak-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/practicum-oak-${seq}`) as unknown as Material;
 }
 
 function saltWater(): Material {
@@ -107,7 +107,7 @@ function saltWater(): Material {
   const m = makeStuff(() => new Material());
   m.setName("salt-water");
   m.setElectricalConductivity(Quantity.of(5, "S/m"));
-  stampTemplatePathForTest(m, `/obj/material/test/practicum-salt-${seq}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/practicum-salt-${seq}`);
   return m;
 }
 
@@ -150,15 +150,15 @@ function casterIn(room: CartesianLocation): MagicTester {
     {
       key: "body.leg.left.foot",
       parent: "body.leg.left",
-      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 0.5 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 0.5 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/practicum-${id}`);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/practicum-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
   species.setFacultyProfile({ depth: "mid", serenity: "mid", composure: "mid" });
   species.setInnateMixins(["CasterMixin"]);
-  stampTemplatePathForTest(species, `/obj/species/test/practicum-${id}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/practicum-${id}`);
   const c = makeStuff(() => new MagicTester());
   c.setSpecies(species);
   stampTemplatePathForTest(c, `/obj/test/practicum-caster-${id}`);

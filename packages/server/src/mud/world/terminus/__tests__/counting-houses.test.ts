@@ -17,8 +17,8 @@ import YAML from "yaml";
 import { DialogueTreeSchema } from "../../../lib/npc/tree";
 // Registers the `bank-circle` dialogue effect so the officer tree validates.
 import { Currency, BankingApi, Money } from "../../../api/banking";
-import Coin from "../../../obj/Coin";
-import BankCounter from "../../../obj/BankCounter";
+import Coin from "../../../platform/thing/Coin";
+import BankCounter from "../../../platform/thing/BankCounter";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { ContainmentApi } from "../../../api/containment";
@@ -49,7 +49,7 @@ function seedData(rel: string): Record<string, unknown> {
 
 const CH = "world/terminus/counting-houses";
 const COUNTER_PATH = "/world/terminus/counting-houses/bank-counter";
-const ALICE = "/obj/Avatar/alice";
+const ALICE = "/platform/agent/Avatar/alice";
 
 // Mirrors a real avatar closely enough for the money arc: Propertied (so the
 // Circle membership can ride a `<corpoKey>.circle` saved prop, as on a real
@@ -178,7 +178,7 @@ describe("Goodkin — the new-player money arc", () => {
     expect(BankingApi.balanceOf(branch).minor).toBe(500);
     expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
     // Idempotent — a second customer's open doesn't re-seed the float.
-    const bob = avatar("/obj/Avatar/bob");
+    const bob = avatar("/platform/agent/Avatar/bob");
     await asOwner(bob, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
     expect(counter.getTillLiquidity().minor).toBe(500);
   });

@@ -13,7 +13,7 @@
 # needs no venue flag: the bar "works" because the maker + matter are
 # present/reachable here. All cloned fresh (transient runtime).
 class: /world/lounge/Bar
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Dave's Bar
   primaryKeyword: bar

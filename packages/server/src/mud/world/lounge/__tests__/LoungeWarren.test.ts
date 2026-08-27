@@ -16,7 +16,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   PersistenceManager,
   Collections,

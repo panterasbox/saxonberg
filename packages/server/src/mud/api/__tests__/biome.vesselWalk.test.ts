@@ -32,7 +32,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 describe('BiomeApi resolve* — vessel walk', () => {

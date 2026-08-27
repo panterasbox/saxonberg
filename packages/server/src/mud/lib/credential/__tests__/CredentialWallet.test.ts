@@ -24,8 +24,8 @@ import {
   CredentialWalletMixin,
   type CredentialWallet,
 } from "../CredentialWallet";
-import CredentialWalletUpdate from "../../../obj/CredentialWalletUpdate";
-import PaymentCard from "../../../obj/PaymentCard";
+import CredentialWalletUpdate from "../../../platform/idea/CredentialWalletUpdate";
+import PaymentCard from "../../../platform/thing/PaymentCard";
 import TravelCard from "../../../world/common/tpa/TravelCard";
 import { BORN_WITH_TRAVEL_NODES } from "../Credential";
 import { makeStuff } from "../../security/__tests__/test-setup";

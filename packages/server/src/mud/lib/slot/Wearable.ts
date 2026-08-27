@@ -22,7 +22,7 @@ import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
 import { SpeciesApi } from '../../api/species';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 
 export interface Wearable extends Slottable {
   getSlotClaim(bodyPlanPath: string): readonly string[];

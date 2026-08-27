@@ -1,9 +1,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../../obj/location/CartesianZone';
-import Window from '../../../obj/Window';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Window from '../../../platform/thing/Window';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
 
@@ -76,20 +76,20 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // The hydrator's own template (no hydratorClass — terminates the recursion).
       {
         path: PersistentHydrator.templatePath,
-        class: '/obj/persistence/PersistentHydrator',
+        class: '/platform/idea/persistence/PersistentHydrator',
         data: {},
       },
       // The zone.
       {
         path: '/test/declarative/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         hydratorClass: PersistentHydrator.templatePath,
         data: { name: 'test zone', cellSize: 25 },
       },
       // Room A — has coords + exits → roomB.
       {
         path: '/test/declarative/zone/roomA',
-        class: '/obj/location/Room',
+        class: '/platform/location/Room',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 0, z: 0 },
@@ -103,7 +103,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // clone when the applier resolves the destination via singleton.
       {
         path: '/test/declarative/zone/roomB',
-        class: '/obj/location/Room',
+        class: '/platform/location/Room',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },
@@ -115,7 +115,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // Window — declarative attachedHosts.
       {
         path: '/test/declarative/window',
-        class: '/obj/Window',
+        class: '/platform/thing/Window',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           baseTransmissivity: 0.9,
@@ -198,18 +198,18 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
     installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/obj/persistence/PersistentHydrator',
+        class: '/platform/idea/persistence/PersistentHydrator',
         data: {},
       },
       {
         path: '/back/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         hydratorClass: PersistentHydrator.templatePath,
         data: {},
       },
       {
         path: '/back/zone/a',
-        class: '/obj/location/Room',
+        class: '/platform/location/Room',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 0, z: 0 },
@@ -221,7 +221,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // and no-op.
       {
         path: '/back/zone/b',
-        class: '/obj/location/Room',
+        class: '/platform/location/Room',
         hydratorClass: PersistentHydrator.templatePath,
         data: {
           coords: { x: 0, y: 1, z: 0 },

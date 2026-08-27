@@ -7,10 +7,10 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import BrandedBottle from "../../../obj/corpo/BrandedBottle";
-import CorpoCatalogue from "../../../obj/CorpoCatalogue";
-import Corpo from "../../../obj/corpo/Corpo";
-import Brand from "../../../obj/corpo/Brand";
+import BrandedBottle from "../../../platform/thing/corpo/BrandedBottle";
+import CorpoCatalogue from "../../../platform/idea/CorpoCatalogue";
+import Corpo from "../../../platform/idea/corpo/Corpo";
+import Brand from "../../../platform/idea/corpo/Brand";
 import Thing from "../../stuff/Thing";
 import { Stuff } from "../../stuff/Stuff";
 import { StuffApi } from "../../../api/stuff";
@@ -48,7 +48,7 @@ async function warmCatalogue(): Promise<void> {
   );
   const cat = makeStuffAtPath(
     () => new CorpoCatalogue(),
-    "/obj/CorpoCatalogue"
+    "/platform/idea/CorpoCatalogue"
   );
   await cat.postRegister();
 }

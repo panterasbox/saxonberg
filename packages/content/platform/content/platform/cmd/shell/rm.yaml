@@ -1,0 +1,33 @@
+verbs: [rm]
+controller: /platform/idea/cmd/shell/RmController
+description: "Remove a content-tree template (default) or source-tree file"
+help: |
+  Delete a path. In the content tree `rm` removes a template; in
+  the source tree it removes a file. It acts on the content tree by
+  default — pass `-s` to target the source tree.
+
+  Use `-r` to remove a directory and everything inside it.
+  Deletion is permanent, so check with `ls` first. Pass `--mql` to
+  remove whatever a query resolves to instead of a literal path.
+args:
+  - name: path
+    type: string
+    required: false
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <path>"
+    requires: any
+  content:
+    short: c
+    type: boolean
+    description: "Force the operation to the content tree (overrides workspace.tree)"
+  source:
+    short: s
+    type: boolean
+    description: "Force the operation to the source tree (overrides workspace.tree)"
+  recursive:
+    short: r
+    type: boolean
+    description: "Recurse into subdirectories"

@@ -16,16 +16,16 @@ import { ConnectionApi } from '../connection';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { HotReloadApi } from '../hot-reload';
-import EventRegistry from '../../obj/EventRegistry';
+import EventRegistry from '../../platform/idea/EventRegistry';
 import { Stuff } from '../../lib/stuff/Stuff';
-import Interactive from '../../obj/Interactive';
+import Interactive from '../../platform/idea/Interactive';
 import { HasInteractiveMixin } from '../../lib/connection/HasInteractive';
 import { Idea } from "../../lib/stuff/Idea";
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

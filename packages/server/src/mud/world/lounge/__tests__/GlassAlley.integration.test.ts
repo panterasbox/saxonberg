@@ -19,9 +19,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GlassAlley from '../GlassAlley';
-import Bandage from '../../../obj/Bandage';
-import TreatController from '../../../obj/command/medical/TreatController';
-import UndressController from '../../../obj/command/medical/UndressController';
+import Bandage from '../../../platform/thing/Bandage';
+import TreatController from '../../../platform/idea/cmd/medical/TreatController';
+import UndressController from '../../../platform/idea/cmd/medical/UndressController';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { WearableMixin } from '../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
@@ -30,23 +30,23 @@ import { Construction } from '../../../lib/material/Construction';
 import Material from '../../../lib/material/Material';
 import { Quantity } from '../../../lib/quantity';
 import { Creature } from '../../../lib/creature/Creature';
-import Species from '../../../obj/species/Species';
-import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Thing from '../../../lib/stuff/Thing';
 import Location from '../../../lib/stuff/Location';
 import Exit from '../../../lib/boundary/Exit';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { HARM_DEFAULTS } from '../../../obj/Condition';
-import type { Trauma } from '../../../obj/Condition';
+import { HARM_DEFAULTS } from '../../../platform/idea/Condition';
+import type { Trauma } from '../../../platform/idea/Condition';
 import type { CommandContext } from '../../../api/command';
 
 const TICK = HARM_DEFAULTS.TICK_INTERVAL_MS;
@@ -72,7 +72,7 @@ function demoSteel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/obj/material/alloy/steel-demo-${n}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/alloy/steel-demo-${n}`);
   return m;
 }
 
@@ -157,10 +157,10 @@ beforeEach(() => {
   real = 100_000;
   WorldClockApi._setNowProviderForTesting(() => real);
   n++;
-  bodyplanPath = `/obj/species/BodyPlan/demo-biped-${n}`;
+  bodyplanPath = `/stuff/idea/species/BodyPlan/demo-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/obj/species/demo/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/stuff/idea/species/demo/biped-${n}`);
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -170,7 +170,7 @@ afterEach(() => {
 
 describe('GlassAlley — coverage gate', () => {
   it('cuts a barefoot foot on entry', async () => {
-    const m = mover('/obj/Avatar/barefoot');
+    const m = mover('/platform/agent/Avatar/barefoot');
     await walkIntoAlley(m);
     const w = wound(m);
     expect(w).toBeDefined();
@@ -180,7 +180,7 @@ describe('GlassAlley — coverage gate', () => {
   });
 
   it('does not cut a stoutly-shod foot', async () => {
-    const m = mover('/obj/Avatar/shod');
+    const m = mover('/platform/agent/Avatar/shod');
     const boot = makeStuff(() => new DemoBoot());
     boot.setSlotClaim(bodyplanPath, ['feet']);
     boot.setMaterial(demoSteel());
@@ -195,7 +195,7 @@ describe('GlassAlley — coverage gate', () => {
 
 describe('GlassAlley — full loop', () => {
   it('step → bleed → treat → arrested → heals to clear', async () => {
-    const m = mover('/obj/Avatar/treated');
+    const m = mover('/platform/agent/Avatar/treated');
     const alley = await walkIntoAlley(m);
     ContainmentApi.move(makeStuff(() => new Bandage()), m);
     expect(wound(m)!.bleeding).toBe(true);
@@ -210,7 +210,7 @@ describe('GlassAlley — full loop', () => {
   });
 
   it('step → treat → undress-while-open → re-bleeds; re-treat → safe', async () => {
-    const m = mover('/obj/Avatar/reopen');
+    const m = mover('/platform/agent/Avatar/reopen');
     const alley = await walkIntoAlley(m);
     ContainmentApi.move(makeStuff(() => new Bandage()), m);
     ContainmentApi.move(makeStuff(() => new Bandage()), m);
@@ -231,7 +231,7 @@ describe('GlassAlley — full loop', () => {
   });
 
   it('step → bleed → untreated → death by exsanguination', async () => {
-    const m = mover('/obj/Avatar/doomed');
+    const m = mover('/platform/agent/Avatar/doomed');
     await walkIntoAlley(m);
     expect(wound(m)!.bleeding).toBe(true);
 

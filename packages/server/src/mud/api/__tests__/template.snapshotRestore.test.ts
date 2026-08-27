@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TemplateApi } from '../template';
 import { Idea } from '../../lib/stuff/Idea';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import PersistentHydrator from '../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
 import { StuffApi } from '../stuff';
 import {
   PersistenceManager,
@@ -87,7 +87,7 @@ describe('TemplateApi.restoreFromTemplate', () => {
     const store = installInMemoryStore([
       {
         path: PersistentHydrator.templatePath,
-        class: '/obj/persistence/PersistentHydrator',
+        class: '/platform/idea/persistence/PersistentHydrator',
         data: {},
       },
       {

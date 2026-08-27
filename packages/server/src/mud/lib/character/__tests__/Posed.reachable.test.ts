@@ -26,13 +26,13 @@ import { Mixins } from "../../mixin";
 import Thing from "../../stuff/Thing";
 import { StuffApi } from "../../../api/stuff";
 import { SlotApi } from "../../../api/slot";
-import PosturedChair from "../../../obj/Chair";
+import PosturedChair from "../../../platform/thing/Chair";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
 
-const BED_PATH = "/obj/fixture/bed";
+const BED_PATH = "/stuff/thing/fixture/bed";
 function makeBed(): PosturedChair {
   const bed = makeStuffAtPath(() => new PosturedChair(), BED_PATH);
   bed.setStaticSlots([
@@ -49,7 +49,7 @@ describe("the posture verbs reach a player", () => {
     };
     const self = Posed.commandContributions?.self ?? [];
     for (const v of ["lie", "sit", "stand", "kneel"]) {
-      expect(self).toContain(`posture/${v}.yaml`);
+      expect(self).toContain(`platform/cmd/posture/${v}.yaml`);
     }
   });
 

@@ -91,10 +91,10 @@ them too:
 
 See [parcel.md](./parcel.md) for the `/compact` title.
 
-## The Api (`api/document.ts` → `obj/api/DocumentLogic.ts`)
+## The Api (`api/document.ts` → `platform/idea/api/DocumentLogic.ts`)
 
 A thin gated forwarding shell over a hot-reloadable logic singleton at
-`/obj/api/document`, the `ScriptLogic`/`CraftingLogic` precedent:
+`/platform/idea/api/document`, the `ScriptLogic`/`CraftingLogic` precedent:
 
 - `DocumentApi.read(path)` → the `StoredDocument` at `path`, or null.
 - `DocumentApi.list(prefix)` → every doc at/under `prefix` (the CMS tree's
@@ -154,7 +154,7 @@ bootstrap-exempt like templates).
 ### Provenance
 
 Every save appends an `AuthoringEvent` keyed on the path —
-`DocumentLogic` (`/obj/api/document`) is a named authoring transport in
+`DocumentLogic` (`/platform/idea/api/document`) is a named authoring transport in
 the `ProvenanceApi.recordAuthoring` gate (alongside the template
 chokepoint). Authorship is *derived*, not a mutable stamp.
 

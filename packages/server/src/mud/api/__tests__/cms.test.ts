@@ -28,7 +28,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { CmsApi, CmsError } from '../cms';
-import { CmsLogic } from '../../obj/api/CmsLogic';
+import { CmsLogic } from '../../platform/idea/api/CmsLogic';
 import { TemplateApi } from '../template';
 import { HotReloadApi } from '../hot-reload';
 import { AccessApi } from '../access';
@@ -114,7 +114,7 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
 
 // Real, resolvable class paths: CartesianZone extends Zone (folder);
 // Idea is a non-Zone leaf class.
-const ZONE_CLASS = '/obj/location/CartesianZone';
+const ZONE_CLASS = '/platform/idea/location/CartesianZone';
 const LEAF_CLASS = '/lib/stuff/Idea';
 
 describe('CmsApi — content backend', () => {
@@ -467,7 +467,7 @@ describe('CmsApi — source backend', () => {
     const names = listing.entries.map((e) => e.name);
     // mud/ top-level dirs; the old monorepo root would have had these.
     expect(names).toContain('api');
-    expect(names).toContain('obj');
+    expect(names).toContain('platform');
     expect(names).not.toContain('server');
     expect(names).not.toContain('client');
   });
@@ -544,8 +544,8 @@ describe('CmsLogic singleton encapsulation', () => {
   });
 
   it('denies a direct logic-method call from a non-CmsApi caller', async () => {
-    const logic = makeStuffAtPath(() => new CmsLogic(), '/obj/api/cms');
-    expect(StuffApi.findByTemplatePath('/obj/api/cms')).toBe(logic);
+    const logic = makeStuffAtPath(() => new CmsLogic(), '/platform/idea/api/cms');
+    expect(StuffApi.findByTemplatePath('/platform/idea/api/cms')).toBe(logic);
     // The test module is not mud/api/cms#CmsApi; the FromModule gate on
     // the logic's own methods denies synchronously.
     expect(() => logic.listTree('content', '/')).toThrow(SecurityError);

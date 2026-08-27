@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: shell.diagnostic
+  family: "shell"
+  label: "Diagnostics"
+  description: "Compiler output and authoring diagnostics. Only authors see these."
+  address: direct
+  actor: system
+  weight: diagnostic
+  audience: author
+  durable: false
+  affordance: decays

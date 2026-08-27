@@ -126,8 +126,8 @@ introduces; goods that pre-exist any industry are commons*):
 
 | Row today (`world-seed`, `/domain/hearthworks/…`) | Lands |
 |---|---|
-| `anvil`, `whetstone`, `workbench` | `trade-smithing` → `/trade/smithing/obj/…` (stations smithing introduces) |
-| `iron-ingot`, `spare-ingot` | `trade-smithing` → `/trade/smithing/obj/…` (stock smithing introduces) |
+| `anvil`, `whetstone`, `workbench` | `trade-smithing` → `/trade/smithing/thing/…` (stations smithing introduces) |
+| `iron-ingot`, `spare-ingot` | `trade-smithing` → `/trade/smithing/thing/…` (stock smithing introduces) |
 | recipes `fire-poker`, `smiths-hammer`, `belt-knife`, `cook-pot`, `leather-jerkin` (today `generic-objects`) | `trade-smithing` → `/trade/smithing/recipes/…` |
 | recipes `toasted-ration`, `root-mash` (today `generic-objects`) | `trade-hearth-cooking` → `/trade/hearth-cooking/recipes/…` |
 | `prime-cut`, `stew-meat`, `ration-stock`, `root-vegetables`, `hide-stock` | **commons** → `generic-objects` `/obj/…` (A16.3: pre-exist any industry) |
@@ -222,7 +222,7 @@ The platform-only e2e still lands the founder in `/world/void`.
    nothing but historical prose in docs (history notes, retired-slate
    quotes). `src/mud/domain/` does not exist; `src/mud/world/` does.
 2. `TITLE_ROOTS` is one exported constant with nine roots; `lint:untitled`
-   reports zero; `lint:instanceable` accepts `/trade/smithing/obj/anvil`
+   reports zero; `lint:instanceable` accepts `/trade/smithing/thing/anvil`
    and rejects a `/trade/**` template naming a `/lib/` class (test).
 3. Two new packs discover, order after `generic-objects`, install on a
    fresh database with every row `inserted` and every claim `granted`;

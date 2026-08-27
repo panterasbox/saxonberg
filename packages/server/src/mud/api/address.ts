@@ -5,8 +5,8 @@
  * named address namespace (independent of `templatePath` and zones)
  * and the upward longest-prefix resolve-walk that finds the `Locality`
  * covering a place. Every method delegates through the hot-reloadable
- * {@link AddressLogic} singleton at `/obj/api/address` to the Registry;
- * the Registry's methods are gated `FromTemplate('/obj/api/address')`
+ * {@link AddressLogic} singleton at `/platform/idea/api/address` to the Registry;
+ * the Registry's methods are gated `FromTemplate('/platform/idea/api/address')`
  * so only the addressing subsystem can reach them.
  *
  * **The seam weather consumes.** {@link AddressApi.resolveLocalityFor}
@@ -23,14 +23,14 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
-import type Locality from '../obj/Locality';
-import { AddressLogic } from '../obj/api/AddressLogic';
+import type Locality from '../platform/idea/Locality';
+import { AddressLogic } from '../platform/idea/api/AddressLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/address';
+const LOGIC_PATH = '/platform/idea/api/address';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/AddressLogic', import.meta.url),
+  new URL('../platform/idea/api/AddressLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able AddressLogic singleton (sync). */

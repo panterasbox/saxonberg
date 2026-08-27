@@ -65,8 +65,8 @@ export function LabelledMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      peers: ['inventory/label.yaml'],
-      environment: ['inventory/label.yaml'],
+      peers: ['platform/cmd/inventory/label.yaml'],
+      environment: ['platform/cmd/inventory/label.yaml'],
     };
 
     static fieldMeta: FieldMeta = {

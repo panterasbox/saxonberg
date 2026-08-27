@@ -8,8 +8,8 @@
 # (`/world/terminus/general-store` → the managed `terminus` group; see
 # mud/config/parcels.yaml). The store owns its *Business* (its P&L account),
 # not the street it stands on.
-class: /obj/location/CartesianZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: The General Store
   cellSize: 3.0

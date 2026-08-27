@@ -18,11 +18,11 @@ import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi, OMNI_SCOPE } from '../execution-context';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
 import CartesianLocation from '../../lib/location/CartesianLocation';
-import SandboxCrossing from '../../obj/sandbox/SandboxCrossing';
+import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
 
@@ -49,7 +49,7 @@ function asSystem<T>(fn: () => T): T {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

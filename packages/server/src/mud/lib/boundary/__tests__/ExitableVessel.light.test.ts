@@ -1,10 +1,10 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
-import Door from '../../../obj/Door';
+import Door from '../../../platform/thing/Door';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../../obj/location/CartesianZone';
-import { VisionModality } from '../../../obj/modalities/VisionModality';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import { Light } from '../../perception/Light';
 import { AmbientLitMixin } from '../../perception/AmbientLit';

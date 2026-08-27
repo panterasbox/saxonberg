@@ -6,9 +6,9 @@
  * here), and the forum board substrate (Wave 1+). Mirrors `ChatApi`.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link SubjectLogic} singleton at `/obj/api/subject`,
+ * hot-reloadable {@link SubjectLogic} singleton at `/platform/idea/api/subject`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/subject` reloads it.
+ * /platform/idea/api/subject` reloads it.
  */
 
 import { StuffApi } from './stuff';
@@ -16,19 +16,19 @@ import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type Subject from '../lib/forum/Subject';
 import type { SubjectSurface } from '../lib/forum/Subject';
-import type SubjectCatalogue from '../obj/SubjectCatalogue';
+import type SubjectCatalogue from '../platform/idea/SubjectCatalogue';
 import type {
   SubjectSubscription,
   MakeSubjectOptions,
-} from '../obj/SubjectCatalogue';
-import type Avatar from '../obj/Avatar';
-import { SubjectLogic } from '../obj/api/SubjectLogic';
+} from '../platform/idea/SubjectCatalogue';
+import type Avatar from '../platform/agent/Avatar';
+import { SubjectLogic } from '../platform/idea/api/SubjectLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/subject';
+const LOGIC_PATH = '/platform/idea/api/subject';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SubjectLogic', import.meta.url),
+  new URL('../platform/idea/api/SubjectLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able SubjectLogic singleton (sync). */

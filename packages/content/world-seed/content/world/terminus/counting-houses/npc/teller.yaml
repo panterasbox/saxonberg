@@ -4,12 +4,12 @@
 # counter loop closes on her). The one deepening: a faint tell that the warmth
 # is corporate-issued — a Goodkin script she's said ten thousand times, and
 # you can hear the seam if you listen. Human (canon).
-class: /obj/NPC
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wenna
   pronouns: she
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: teller
   alternateNames:

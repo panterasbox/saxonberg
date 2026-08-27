@@ -37,7 +37,7 @@ import type { Containable } from './Containable';
 import type { VetoResult } from '../errors';
 import type Exit from '../boundary/Exit';
 import type { Slotted } from '../slot/Slotted';
-import type { LocomotionMode } from '../../obj/LocomotionMode';
+import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
@@ -223,12 +223,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      */
     static commandContributions: CommandContributions = {
       self: [
-        'movement/go.yaml',
-        'movement/sneak.yaml',
-        'movement/run.yaml',
-        'boundary/open.yaml',
-        'boundary/close.yaml',
-        'author/goto.yaml',
+        'platform/cmd/movement/go.yaml',
+        'platform/cmd/movement/sneak.yaml',
+        'platform/cmd/movement/run.yaml',
+        'platform/cmd/boundary/open.yaml',
+        'platform/cmd/boundary/close.yaml',
+        'platform/cmd/author/goto.yaml',
       ],
       peers: [],
       environment: [],

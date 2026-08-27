@@ -23,7 +23,7 @@ describe('the domain-local provision verb', () => {
     // Its resolved controller is the content-namespace template path
     // (dispatch clones it directly).
     expect(cmd!.resolvedController).toBe(
-      '/world/eternal/duncan-hall/command/ProvisionController'
+      '/world/eternal/duncan-hall/idea/cmd/ProvisionController'
     );
   });
 });

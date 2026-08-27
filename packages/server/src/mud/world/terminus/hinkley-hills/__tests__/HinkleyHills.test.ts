@@ -18,24 +18,24 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import PlantController from '../../../../obj/command/inventory/PlantController';
-import WaterController from '../../../../obj/command/bulk/WaterController';
-import FeedController from '../../../../obj/command/bulk/FeedController';
-import HarvestController from '../../../../obj/command/inventory/HarvestController';
-import WateringCan from '../../../../obj/WateringCan';
-import Receptacle from '../../../../obj/Receptacle';
-import Crop from '../../../../obj/Crop';
+import PlantController from '../../../../platform/idea/cmd/inventory/PlantController';
+import WaterController from '../../../../platform/idea/cmd/bulk/WaterController';
+import FeedController from '../../../../platform/idea/cmd/bulk/FeedController';
+import HarvestController from '../../../../platform/idea/cmd/inventory/HarvestController';
+import WateringCan from '../../../../platform/thing/WateringCan';
+import Receptacle from '../../../../platform/thing/Receptacle';
+import Crop from '../../../../platform/thing/Crop';
 import Material from '../../../../lib/material/Material';
 import { PersistableApi } from '../../../../api/persistable';
 import { AdvancementApi } from '../../../../api/advancement';
 import { type GrowthProfileData } from '../../../../lib/husbandry/Growing';
-import GardenBed from '../../../../obj/GardenBed';
-import PlantPot from '../../../../obj/PlantPot';
-import Seed from '../../../../obj/Seed';
-import Plant from '../../../../obj/Plant';
-import FurnishableRoom from '../../../../obj/location/FurnishableRoom';
-import ParcelRegistry from '../../../../obj/ParcelRegistry';
-import GroupRegistry from '../../../../obj/GroupRegistry';
+import GardenBed from '../../../../platform/thing/GardenBed';
+import PlantPot from '../../../../platform/thing/PlantPot';
+import Seed from '../../../../platform/thing/Seed';
+import Plant from '../../../../platform/thing/Plant';
+import FurnishableRoom from '../../../../platform/location/FurnishableRoom';
+import ParcelRegistry from '../../../../platform/idea/ParcelRegistry';
+import GroupRegistry from '../../../../platform/idea/GroupRegistry';
 import { Reserve } from '../../../../lib/reserve';
 import {
   PLANT_SLOT,
@@ -75,7 +75,7 @@ import {
   installV1QuantityTagTables,
 } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
-import '../../../../obj/WorldClockRegistry';
+import '../../../../platform/idea/WorldClockRegistry';
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -168,17 +168,17 @@ function seedParcel(extent: string, landUse: string | null): void {
  * the trie is re-warmed from each test's freshly-seeded store instead.
  */
 async function bootParcels(): Promise<void> {
-  if (!StuffApi.findByTemplatePath('/obj/GroupRegistry')) {
+  if (!StuffApi.findByTemplatePath('/platform/idea/GroupRegistry')) {
     const groups = makeStuffAtPath(
       () => new GroupRegistry(),
-      '/obj/GroupRegistry',
+      '/platform/idea/GroupRegistry',
     );
     await groups.postRegister();
   }
-  if (!StuffApi.findByTemplatePath('/obj/ParcelRegistry')) {
+  if (!StuffApi.findByTemplatePath('/platform/idea/ParcelRegistry')) {
     const parcels = makeStuffAtPath(
       () => new ParcelRegistry(),
-      '/obj/ParcelRegistry',
+      '/platform/idea/ParcelRegistry',
     );
     await parcels.postRegister();
   }
@@ -216,7 +216,7 @@ function makeBed(): GardenBed {
       ),
     );
     return bed;
-  }, fresh('/obj/bed/_hh'));
+  }, fresh('/stuff/thing/bed/_hh'));
 }
 
 function makePot(): PlantPot {
@@ -230,16 +230,16 @@ function makePot(): PlantPot {
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: 1 },
     ]);
     return pot;
-  }, fresh('/obj/pot/_hh'));
+  }, fresh('/stuff/thing/pot/_hh'));
 }
 
 function makeSeed(): Seed {
   return makeStuffAtPath(() => {
     const s = new Seed();
     s.setShortDescription('a packet of carrot seed');
-    s.setGrowsIntoPath('/obj/plant/carrot');
+    s.setGrowsIntoPath('/stuff/thing/plant/carrot');
     return s;
-  }, fresh('/obj/seed/_hh'));
+  }, fresh('/stuff/thing/seed/_hh'));
 }
 
 function stubCommand(): CommandDefinition {
@@ -301,7 +301,7 @@ function walkTissue(): Material {
     m.setSpecificHeat(Quantity.of(3000, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.3, 'W/(m·K)'));
     return m;
-  }, fresh('/obj/material/_test/walk-tissue')) as unknown as Material;
+  }, fresh('/stuff/idea/material/_test/walk-tissue')) as unknown as Material;
 }
 
 function walkWater(): Material {
@@ -313,7 +313,7 @@ function walkWater(): Material {
     m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     return m;
-  }, fresh('/obj/material/_test/walk-water')) as unknown as Material;
+  }, fresh('/stuff/idea/material/_test/walk-water')) as unknown as Material;
 }
 
 function walkCompost(): Material {
@@ -325,7 +325,7 @@ function walkCompost(): Material {
     m.setSpecificHeat(Quantity.of(1400, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(0.2, 'W/(m·K)'));
     return m;
-  }, fresh('/obj/material/_test/walk-compost')) as unknown as Material;
+  }, fresh('/stuff/idea/material/_test/walk-compost')) as unknown as Material;
 }
 
 function makeWalkCan(litres: number): WateringCan {
@@ -337,7 +337,7 @@ function makeWalkCan(litres: number): WateringCan {
     can.setBulkMaterial('interior', walkWater());
     can.setInteriorAmount(Quantity.of(litres, 'L'));
     return can;
-  }, fresh('/obj/vessel/_walk-can'));
+  }, fresh('/stuff/thing/vessel/_walk-can'));
 }
 
 /** Top the can back up — the standpipe in the yard, without the verb. */
@@ -355,7 +355,7 @@ function makeWalkSack(litres: number): Receptacle {
     sack.setBulkMaterial('interior', walkCompost());
     sack.setInteriorAmount(Quantity.of(litres, 'L'));
     return sack;
-  }, fresh('/obj/vessel/_walk-sack'));
+  }, fresh('/stuff/thing/vessel/_walk-sack'));
 }
 
 type WaterExec = Parameters<WaterController['execute']>[0];
@@ -395,7 +395,7 @@ describe('Hinkley Hills — the land-use gate', () => {
         p.setShortDescription('a row of carrots');
         p.setLifecycleState('alive');
         return p;
-      }, `/obj/plant/_hh-minted-${plantSeq}`);
+      }, `/stuff/thing/plant/_hh-minted-${plantSeq}`);
     }) as unknown as typeof StuffApi.clone);
   });
 
@@ -416,7 +416,7 @@ describe('Hinkley Hills — the land-use gate', () => {
       const t = new TestGiver();
       t.setName('Alice');
       return t;
-    }, fresh('/obj/Avatar/_hh'));
+    }, fresh('/platform/agent/Avatar/_hh'));
     ContainmentApi.move(g, room);
     return g;
   }
@@ -507,7 +507,7 @@ describe('Hinkley Hills — the land-use gate', () => {
 
   it('⭐ …but a COVERED branch with no declared use still refuses', async () => {
     // The other half, and why `wild` stays fail-closed. `/studio` and
-    // `/obj/lounge` are titles over the TEMPLATE TREE rather than ground.
+    // `/stuff/idea/lounge` are titles over the TEMPLATE TREE rather than ground.
     // They HAVE parcel rows, declare no use, and so answer `wild` — which
     // admits nothing. Covered-and-unzoned is policed; uncovered is not.
     seedParcel('/studio', null);
@@ -611,12 +611,12 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
     );
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       plantSeq += 1;
-      if (path.startsWith('/obj/crop/')) {
+      if (path.startsWith('/stuff/thing/crop/')) {
         return makeStuffAtPath(() => {
           const c = new Crop();
           c.setShortDescription('a bunch of carrots');
           return c;
-        }, `/obj/crop/_walk-${plantSeq}`);
+        }, `/stuff/thing/crop/_walk-${plantSeq}`);
       }
       return makeStuffAtPath(() => {
         const p = new Plant();
@@ -626,10 +626,10 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
         p.setLastAmbientK(295);
         p.setLifecycleState('alive');
         p.setProfile(carrotProfile());
-        p.setHarvestTemplatePath('/obj/crop/carrot');
+        p.setHarvestTemplatePath('/stuff/thing/crop/carrot');
         p.setNutrientDraw(15);
         return p;
-      }, `/obj/plant/_walk-${plantSeq}`);
+      }, `/stuff/thing/plant/_walk-${plantSeq}`);
     }) as unknown as typeof StuffApi.clone);
   });
 
@@ -645,7 +645,7 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
       const t = new TestGiver();
       t.setName('Alice');
       return t;
-    }, '/obj/Avatar/_walk-alice');
+    }, '/platform/agent/Avatar/_walk-alice');
     ContainmentApi.move(me, yard);
 
     // The ground is mine, and it is zoned for growing.

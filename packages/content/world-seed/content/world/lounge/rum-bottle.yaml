@@ -1,13 +1,13 @@
 # A working bottle of white rum — a graded bulk input on the bar.
 class: /world/lounge/GradedReceptacle
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a bottle of white rum
   longDescription: A working bottle of white rum.
   keywords: [rum, bottle]
   interiorBulk: true
   interiorCapacity: 0.75
-  interiorMaterial: /obj/material/spirit/rum
+  interiorMaterial: /stuff/idea/material/spirit/rum
   interiorAmount: 0.7
   gradeBand: fine
   # The well rum is Hollis — cheap, mass-retail, proud of it. "A product

@@ -22,7 +22,7 @@ class TestVessel extends BulkableMixin(Thing) {
   static _mixinName = 'TestVesselPayload';
 }
 
-const BROTH = '/obj/material/_test/payload-broth';
+const BROTH = '/stuff/idea/material/_test/payload-broth';
 
 function makeVessel(amountL: number): TestVessel {
   const v = makeStuff(() => new TestVessel());

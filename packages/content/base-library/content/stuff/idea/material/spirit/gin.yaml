@@ -1,0 +1,17 @@
+# House gin — a spirit input. Category tag `gin` is what a recipe input
+# slot matches; the brand is generic/unbranded (corpo marks are deferred).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: house gin
+  appearance: clear, juniper-scented gin
+  keywords: [gin]
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 19 }
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, gin]
+  composition: []
+  biologicalSource: null

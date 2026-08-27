@@ -1,0 +1,15 @@
+class: /platform/thing/equipment/Armor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bronze breastplate
+  primaryKeyword: breastplate
+  longDescription: >
+    A muscled cuirass of cast bronze, green at the seams. The same plate
+    form as its steel cousin — but the softer metal turns an edge far less
+    surely.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  _materialPath: /stuff/idea/material/alloy/bronze
+  constructionForm: plate
+  gradeBand: fine
+  mass: 11

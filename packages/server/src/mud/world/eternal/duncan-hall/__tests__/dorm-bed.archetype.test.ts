@@ -39,7 +39,7 @@ describe("the dorm bed against the bedroom archetype", () => {
     // The ladder should be visible from where you start: a university-issue
     // single with a thin mattress, against a bed you chose and paid for.
     const dorm = read("world/eternal/duncan-hall/dorm-fixtures/bed.yaml");
-    const owned = parse(readFileSync(join(OBJECTS, "obj/fixture/bed.yaml"), "utf8")) as Seed;
+    const owned = parse(readFileSync(join(OBJECTS, "stuff/thing/fixture/bed.yaml"), "utf8")) as Seed;
     expect(dorm.data?.restQuality as number).toBeLessThan(
       owned.data?.restQuality as number,
     );

@@ -21,14 +21,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
 import { PersistenceManager, Collections } from '../PersistenceManager';
-import Avatar from '../../mud/obj/Avatar';
+import Avatar from '../../mud/platform/agent/Avatar';
 import { Template } from '../../mud/lib/stuff/Template';
 import { TemplateApi } from '../../mud/api/template';
 import { User } from '../../mud/lib/identity/User';
 import { StuffApi } from '../../mud/api/stuff';
 import { AppApi } from '../../mud/api/app';
 import type { IBackend } from '../IBackend';
-import type Interactive from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/platform/idea/Interactive';
 import type { Container } from '../../mud/lib/spatial/Container';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
 import type {
@@ -79,7 +79,7 @@ function makeFakeInteractive(
  *     `Object.create(Avatar.prototype)`, whose prototype chain carries
  *     the real `CommandGiver` mixin marker, so `hasMixin`'s walk finds it.
  *   - `PlayerApi.isAvatarStuff(holder)` — reads the template-path prefix
- *     (`/obj/Avatar/`), so we stub `getTemplatePath` to an Avatar path.
+ *     (`/platform/agent/Avatar/`), so we stub `getTemplatePath` to an Avatar path.
  *
  * We then patch on the two methods Application actually calls.
  */
@@ -430,9 +430,9 @@ describe('Application', () => {
       } as never);
       vi.spyOn(Template, 'findByPath').mockResolvedValue({
         path: Avatar.SEED_TEMPLATE_PATH,
-        class: '/obj/Avatar',
+        class: '/platform/agent/Avatar',
         data: { species: 'human' },
-        hydratorClass: '/obj/persistence/PersistentHydrator',
+        hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       } as never);
       vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue(undefined as never);
 
@@ -536,9 +536,9 @@ describe('Application', () => {
       // method doc). Mock the seed read + the row write.
       vi.spyOn(Template, 'findByPath').mockResolvedValue({
         path: Avatar.SEED_TEMPLATE_PATH,
-        class: '/obj/Avatar',
+        class: '/platform/agent/Avatar',
         data: {},
-        hydratorClass: '/obj/persistence/PersistentHydrator',
+        hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       } as never);
       const tmplSave = vi
         .spyOn(TemplateApi, 'saveTemplate')
@@ -553,7 +553,7 @@ describe('Application', () => {
         unknown,
         Record<string, unknown>,
       ];
-      expect(path).toMatch(/^\/obj\/Avatar\//);
+      expect(path).toMatch(/^\/platform\/agent\/Avatar\//);
       // Spawn home injected from app config (defaultStartLocation).
       expect(data.startLocation).toBe('/world/lounge/warren');
     });
@@ -568,9 +568,9 @@ describe('Application', () => {
       vi.spyOn(User, 'findById').mockResolvedValue(user as never);
       vi.spyOn(Template, 'findByPath').mockResolvedValue({
         path: Avatar.SEED_TEMPLATE_PATH,
-        class: '/obj/Avatar',
+        class: '/platform/agent/Avatar',
         data: {},
-        hydratorClass: '/obj/persistence/PersistentHydrator',
+        hydratorClass: '/platform/idea/persistence/PersistentHydrator',
       } as never);
       const tmplSave = vi
         .spyOn(TemplateApi, 'saveTemplate')

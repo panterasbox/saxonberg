@@ -31,7 +31,7 @@ import {
 } from '../../../api/command';
 import type { CommandDefinition } from '../CommandDefinition';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import PingController from '../../../obj/command/system/PingController';
+import PingController from '../../../platform/idea/cmd/system/PingController';
 import {
   PersistenceManager,
   Collections,
@@ -44,7 +44,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ['system/ping.yaml'],
+    self: ['platform/cmd/system/ping.yaml'],
     environment: [],
   };
   protected override handleMessage(_frame: unknown): void {
@@ -60,7 +60,7 @@ class InvProvider extends InvProviderBase {
   static commandContributions = {
       peers: [],
     self: [],
-    environment: ['system/ping.yaml'],
+    environment: ['platform/cmd/system/ping.yaml'],
   };
 }
 
@@ -76,12 +76,12 @@ describe('CommandContext.commandSource threading', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
-          query.path === '/obj/command/system/PingController'
+          query.path === '/platform/idea/cmd/system/PingController'
         ) {
           return [
             {
-              path: '/obj/command/system/PingController',
-              class: '/obj/command/system/PingController',
+              path: '/platform/idea/cmd/system/PingController',
+              class: '/platform/idea/cmd/system/PingController',
               data: {},
             },
           ];
@@ -137,7 +137,7 @@ describe('CommandContext.commandSource threading', () => {
   });
 
   it('falls back to the giver on the bound dispatch path', async () => {
-    const pingDef = CommandApi.getCommand('system/ping.yaml')!;
+    const pingDef = CommandApi.getCommand('platform/cmd/system/ping.yaml')!;
     const stubParser: Parser = {
       name: 'stub',
       parse: async () => ({ bound: { command: pingDef, model: {} } }),

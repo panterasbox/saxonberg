@@ -33,12 +33,12 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import type { VitalBand, VitalProfile } from '../../obj/species/Species';
-import type { BodyPart } from '../../obj/species/BodyPlan';
+import type { VitalBand, VitalProfile } from '../../platform/idea/species/Species';
+import type { BodyPart } from '../../platform/idea/species/BodyPlan';
 import type {
   ActiveCondition,
   Trauma,
@@ -46,8 +46,8 @@ import type {
   SustainedEffect,
   AfflictionRecord,
   DyingRecord,
-} from '../../obj/Condition';
-import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../obj/Condition';
+} from '../../platform/idea/Condition';
+import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ElectricityApi } from '../../api/electricity';
@@ -176,7 +176,7 @@ const VITAL_UNITS: Record<VitalSign, Unit> = {
  * hatch that a `mergeSlice_` would have been — see
  * {@link MATERIAL_FORK_SLICES}.
  */
-const ByConditionLogic = SecurityPolicies.FromTemplate('/obj/api/condition');
+const ByConditionLogic = SecurityPolicies.FromTemplate('/platform/idea/api/condition');
 
 /** Backing-field name per vital sign (first-class persistent fields). */
 const VITAL_FIELD: Record<VitalSign, string> = {

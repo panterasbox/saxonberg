@@ -25,7 +25,7 @@ import { CommandLineApi } from '../command-line';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { ContainmentApi } from '../containment';
-import Room from '../../obj/location/Room';
+import Room from '../../platform/location/Room';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -285,8 +285,9 @@ describe('the room card', () => {
           dirname(fileURLToPath(import.meta.url)),
           '..',
           '..',
-          'obj',
-          'command',
+          'platform',
+          'idea',
+          'cmd',
           'perception',
           name,
         ),

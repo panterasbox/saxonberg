@@ -4,7 +4,7 @@
 # (breath/skill) is banked for the future player whistle. Generic object:
 # Visible.shortDescription, never Named.
 class: /world/eternal/university-avenue/Whistle
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a brass pea whistle
   primaryKeyword: whistle
@@ -12,7 +12,7 @@ data:
   longDescription: |
     A brass referee's pea whistle on a boot-lace cord, worn at the neck and gone soft-gold with handling. The mouthpiece is smoothed where his lip meets it. He blows it clean and sharp now and then, at nothing, to keep it sharp.
   slotClaims:
-    "/obj/species/BodyPlan/biped": [neck]
+    "/stuff/idea/species/BodyPlan/biped": [neck]
   details:
     pea:
       keywords: [pea, cork, ball]

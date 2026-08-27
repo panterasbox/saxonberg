@@ -15,7 +15,7 @@ manifest, no `seeds/` tree. The table is in *§ The shipped packs*. The
 short version: **platform** is pack zero — the controller templates, the
 registries and catalogues, the marshallers, the closed vocabularies, the
 Compact's institutions (`/compact/executive`, `/compact/press`), the
-namespace roots and the landing shell (`/world/void`), plus the
+namespace roots and the landing shell (`/platform/location/void`), plus the
 settings, the standing subjects, the curated blueprints and every engine
 verb's command view — and **it alone is a bootable world** (the
 platform-only e2e proves it every pipeline). Everything else `dependsOn`
@@ -67,14 +67,14 @@ packages/content/base-library/
 ├── pack.yaml             # the manifest the installer reads
 └── content/              # content root; MIRRORS the template-path namespace
     └── lib/
-        ├── material/spirit/gin.yaml   →  template path /obj/material/spirit/gin
+        ├── material/spirit/gin.yaml   →  template path /stuff/idea/material/spirit/gin
         └── biome/…
 ```
 
 The `content/` root mirrors the template-path namespace: a file's path
 relative to `content/`, minus `.yaml`, prefixed with `/`, **is** its
-template path (`content/obj/material/spirit/gin.yaml` →
-`/obj/material/spirit/gin`; `content/world/newbie-wilds/crossroads/hub.yaml`
+template path (`content/stuff/idea/material/spirit/gin.yaml` →
+`/stuff/idea/material/spirit/gin`; `content/world/newbie-wilds/crossroads/hub.yaml`
 → `/world/newbie-wilds/crossroads/hub`; `content/corpo/aevex.yaml` →
 `/corpo/aevex`; `content/home.yaml` → `/home`) — the rule the retired
 `SeederManager` used. So the path is a pure namespace identifier,
@@ -90,7 +90,7 @@ descriptor bank it is `/descriptor-banks/<key>`; for a document kind
 `/<contentDir>/<name>` (`/emotes/grin`, `/msh/martini`,
 `/name-banks/common`); for a settings section `/settings/<section>`; for
 a subject `/subjects/<name>`; for a wiki page `/wiki/<ns>/<slug>`; for a
-command view its document path (`/cmd/perception/look`). One uniform
+command view its document path (`/platform/cmd/perception/look`). One uniform
 address for every kind (`pack diff <id> <path>`).
 
 ### The manifest — `pack.yaml`
@@ -107,7 +107,7 @@ requires:                 # what the rows need — see § The requires phase
   groups:
     - { name: lounge, purpose: the lounge team }
   title:
-    - { extent: /obj/lounge,    holder: { group: lounge } }
+    - { extent: /stuff/idea/lounge,    holder: { group: lounge } }
     - { extent: /world/lounge, holder: { group: lounge } }
 boot:                     # which rows are eager, and why — see § The boot union
   - { template: /world/lounge/terminal, role: producer, reason: "…" }
@@ -173,7 +173,7 @@ runtime `pack sync` verb — and the gated `PackApi` is the shared surface:
   `status()` / `dryRun()` / `diff()` / `resolve()` / `pin()` / `unpin()`,
   plus the call-shape types (`PackManifest`, `PackReconcileResult`,
   `PackInstallRecord`, `PackConflict`, the report shapes).
-- **`PackLogic`** (`mud/obj/api/PackLogic.ts`, `/obj/api/pack`,
+- **`PackLogic`** (`mud/platform/idea/api/PackLogic.ts`, `/platform/idea/api/pack`,
   `@internal @Unshadowable`) — the reconcile core; every public method
   gated `FromModule('/api/pack#PackApi')`. All work in module-private
   functions (the `CraftingLogic` precedent), so no intra-singleton
@@ -235,11 +235,12 @@ carry the label `document:<kind>` so `pack diff` output names it. The
 preimage is `{ data }` only — `path`/`owner`/`kind`/`sourcePack` are
 bookkeeping.
 
-> **The domain subdir was `content/lib/` until the lib/obj taxonomy
-> refactor.** It is `content/obj/` now, because a pack ships content and
+> **The template trees are `content/<root>/<branch>/…`** — `platform/`
+> for the platform pack, `stuff/` for every other pack, `trade/<industry>/`
+> for an industry — because a pack ships content and
 > content is instanceable — nothing a pack installs may live under
 > `/lib/`, which is substrate-only. This is a **breaking format change**
-> for any out-of-tree pack: rename `content/lib/` to `content/obj/` and
+> the second segment is the Stuff branch the row's class descends from.
 > repoint every `class:` value. Shipped packs needed no data migration
 > because the installer **reconciles** (unlike `SeederManager`, which is
 > insert-only) — the old rows are stamped, their files vanished, so
@@ -280,14 +281,14 @@ written as Documents through `PersistApi` and the resident catalogues
 are invalidated only on a live sync.
 
 **Command views** (D8) are the `command-view` document kind at the view
-key's document path — `content/cmd/perception/look.yaml` →
-`/cmd/perception/look`, and a **content tree's own** views — a
+key's document path — `content/platform/cmd/perception/look.yaml` →
+`/platform/cmd/perception/look`, and a **content tree's own** views — a
 locality's `content/world/<…>/cmd/<verb>.yaml` → `/world/<…>/cmd/<verb>`,
 an industry's `content/trade/<industry>/cmd/<verb>.yaml` →
 `/trade/<industry>/cmd/<verb>` — by **one rule** (wave 4a): a view key
 whose first segment is not `cmd` and that carries a `cmd` segment is a
 content-tree key at `/<key>`; `cmd/<rel>` is an engine key at
-`/cmd/<rel>`. The installer walks every top-level `content/` dir that is
+`/platform/cmd/<rel>`. The installer walks every top-level `content/` dir that is
 not a kind dir for `cmd/` at any depth; no tree is special-cased (no
 `root` join: the dispatcher's key is the same string, so
 `CommandApi.reload(path)` finds it). Every view is
@@ -461,8 +462,8 @@ skipped (extent sold)], boot: A sync-read + B producer, staffed|UNSTAFFED`
 
 ### Runtime — the `pack` verb
 
-`obj/command/author/PackController.ts` + the platform pack's
-`content/cmd/author/pack.yaml` (declarative `subcommands:` + `options:`;
+`platform/idea/cmd/author/PackController.ts` + the platform pack's
+`content/platform/cmd/author/pack.yaml` (declarative `subcommands:` + `options:`;
 afforded on `AuthorMixin`'s operator surface, **authorized by
 `requiresPackInstaller`** — `AccessApi.canAtPath(giver, 'install',
 '/compact/executive')`, title over the executive, never the wizard axis;
@@ -591,7 +592,7 @@ them; the installer provisions them, adopt-by-name throughout.
   positive; `parentParcel` an absolute path (the Hinkley Hills lot under
   its estate). **There is no implicit root claim**: every claim is an
   explicit entry — the platform's own extents are nine explicit lines
-  (`/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`, `/studio`,
+  (`/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`,
   `/home`, `/world`, and `/wiki` for `wiki-editors`), and two packs may
   name the same extent for the same holder (`world-seed` and
   `saxonberg-lounge` both claim `/world/lounge` for `lounge`: the
@@ -620,7 +621,7 @@ the whole install set:
    template paths, document paths and wiki pages alike) lies under a
    claim of the pack **or a host**. `/trade/<industry>` (wave 4a) is an
    industry pack's root: what the trade **introduces** — its stations
-   and stock under `/trade/<industry>/obj/`, its controllers under
+   and stock under `/trade/<industry>/<branch>/`, its controllers under
    `…/command/`, its recipes at `/trade/<industry>/recipes/<id>` (the
    document root is the pack root), its verbs at `/trade/<industry>/cmd/`
    (reserved; none ship yet); `lint:instanceable`'s invariant 7 keeps
@@ -628,7 +629,7 @@ the whole install set:
    segment. What a trade merely *uses* (fire stations, a cut of meat) is
    commons under `/obj`; where it is *practised* (the smithy) is a venue
    under `/world/`. `base-library`'s rows under `/obj` ride the platform's `/obj`
-   claim; `generic-objects` claims its seventeen `/obj/<cluster>`
+   claim; `generic-objects` claims its seventeen `/stuff/<branch>/<cluster>`
    branches itself; `wiki-starter`'s pages ride `/wiki`. A pack's own
    document root *outside* the title roots (`/expression`,
    `/generic-objects`) is the pack's to claim or not. A pack whose whole
@@ -725,11 +726,11 @@ dependsOn? }`: `template` an absolute template path the pack ships;
 synchronously — it must be resident before the first read) or
 **`producer`** (a row whose `postRegister` *produces* something — warms
 a cache, installs a stair, rebuilds a floor — or that nothing else would
-ever instantiate: `/world/void`, the TPA network's eager root);
+ever instantiate: `/platform/location/void`, the TPA network's eager root);
 `reason` mandatory prose (refused when blank — the manifest is where the
 *why* lives, next to the row, readable in `git blame`); `dependsOn`
-other boot templates that must clone first (`/obj/ChannelCatalogue`
-after `/obj/SubjectCatalogue`, `/obj/PressBoard` after both
+other boot templates that must clone first (`/platform/idea/ChannelCatalogue`
+after `/platform/idea/SubjectCatalogue`, `/platform/idea/PressBoard` after both
 organizations).
 
 `BootstrapManager.run()` with no argument reads **`PackApi.bootManifest()`**:
@@ -745,12 +746,12 @@ already resident when the union runs (a lazy `StuffApi.singleton` mint
 earlier in the boot — the installer standing an organization up) is
 **reused**, never cloned twice.
 
-The platform declares the registries and catalogues (`/obj/EventRegistry`
-first — every emit resolves it; `/obj/AccessRegistry`,
-`/obj/ParcelRegistry` after `/obj/GroupRegistry`; the scheduler chain
-under `/obj/WorldClockRegistry`), the two organizations
-(`/compact/executive`, `/compact/press`), `/obj/PressBoard` and
-`/world/void`; each corpo pack its own organization; `world-seed` the
+The platform declares the registries and catalogues (`/platform/idea/EventRegistry`
+first — every emit resolves it; `/platform/idea/AccessRegistry`,
+`/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the scheduler chain
+under `/platform/idea/WorldClockRegistry`), the two organizations
+(`/compact/executive`, `/compact/press`), `/platform/idea/PressBoard` and
+`/platform/location/void`; each corpo pack its own organization; `world-seed` the
 four locality producers (`/world/lounge/terminal`, the Duncan Hall
 dorm-warren, the Hinkley Hills plat-book and lot-holder). `pnpm
 lint:instanceable` checks each entry names a real row.
@@ -762,7 +763,7 @@ every pipeline: `e2e/playwright.platform.config.ts` boots the server
 with that filter on its own ports (2011 / 5174, stdout captured to a
 log), and `tests-platform/platform-only.spec.ts` proves the founder — as
 head of the executive, a member of no group — logs in and lands in the
-shell room (`/world/void`, the code fallback when no pack contributed
+shell room (`/platform/location/void`, the code fallback when no pack contributed
 `defaultStartLocation`: that setting moved out of the platform into
 `saxonberg-lounge`), that `pack status` knows exactly one pack **in this
 build**, and that the boot logged no `error` / `failed` line. The config
@@ -781,19 +782,19 @@ the installer's walk mirrored in a script; zero is green).
 
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
 |---|---|---|---|---|---|
-| **platform** | — | organization `/compact/executive` | `/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 31 entries: the registries + catalogues (sync-read), the two organizations, `/obj/PressBoard`, `/world/void`, `/obj/BlueprintCatalogue`, `/obj/HelpCatalogue`, `/obj/AddressRegistry` (producer) |
+| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 31 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue`, `/platform/idea/AddressRegistry` (producer) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcane-descriptors** | platform | default | — | — | — |
 | **arcane-library** | platform | default | — (rides `/obj`) | — | — |
-| **generic-objects** | platform | default | seventeen `/obj/<cluster>` branches: `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/obj/items`; the recipes no trade claims stay) | — | — |
+| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches: `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; the recipes no trade claims stay) | — | — |
 | **trade-smithing** | platform, generic-objects | default | `/trade/smithing` → group `smithing` (PM-owned) | `smithing` | — |
 | **trade-hearth-cooking** | platform, generic-objects | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned) | `hearth-cooking` | — |
 | **expression** | platform | group `soul` | `/expression` → group `soul` | — | — |
 | **wiki-starter** | platform | default | — (rides `/wiki`) | — | — |
 | **corpo-{aevex,goodkin,hollis,veshko,vionne}** | platform | organization `/corpo/<key>` | `/corpo/<key>` (holder = maintainers) | — | `/corpo/<key>` (producer) |
 | **newbie-wilds** | platform | default | `/world/newbie-wilds` → group `newbie-wilds` | `newbie-wilds` | — |
-| **saxonberg-lounge** | platform, corpo-goodkin, corpo-vionne | group `lounge` | `/obj/lounge`, `/world/lounge` → group `lounge` | `lounge` | `/world/lounge/terminal` is world-seed's for now |
+| **saxonberg-lounge** | platform, corpo-goodkin, corpo-vionne | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge` | `lounge` | `/world/lounge/terminal` is world-seed's for now |
 | **world-seed** (TRANSITIONAL — the hearthworks VENUE only since wave 4a; its trade rows are the two trade packs') | platform, saxonberg-lounge, corpo-goodkin, corpo-vionne | default | `/world/lounge` → `lounge` (kept); the four Terminus parcels → `terminus` (`terminal`, `counting-houses`, `general-store`, `registry`, with land uses); `/world/terminus/hinkley-hills` + `lots/lot-1` → `hinkley-hills`; `/world/eternal/duncan-hall` + `dorms` → `duncan-hall` | `duncan-hall` (enrols Katie), `hinkley-hills`, `terminus`, `lounge` | `/world/lounge/terminal`, the dorm-warren, the plat-book, the lot-holder (producer) |
 
 Eighteen. The corpo packs became **organizations** in wave 3: each ships
@@ -826,7 +827,7 @@ timelines (separate repos / third-party packs / a marketplace) — the
 same boundary as the repo split — at which point it tracks the pack's
 **public surface** (the paths and tags other content references), not its
 values: editing gin's density breaks nothing (it re-hydrates); renaming
-`/obj/material/spirit/gin` breaks every pointer.
+`/stuff/idea/material/spirit/gin` breaks every pointer.
 
 ## Deferred
 
@@ -846,23 +847,23 @@ junk drawer — expected to slim as trade packs take their objects.
 
 ## Key files
 
-- `packages/content/platform/` — pack zero: `content/obj/` (the
+- `packages/content/platform/` — pack zero: `content/platform/<branch>/` (the
   controllers, registries, catalogues, marshallers, vocabularies, the
   Avatar seed), `content/compact/` (the executive, the press),
-  `content/world/void.yaml`, the namespace roots (`home.yaml`,
+  `content/platform/location/void.yaml`, the namespace roots (`home.yaml`,
   `studio.yaml`, `wiki.yaml`, `content/wiki/*.yaml`), `content/settings/`,
-  `content/subjects/`, `content/blueprints/`, `content/cmd/` (every
+  `content/subjects/`, `content/blueprints/`, `content/platform/cmd/` (every
   engine verb's view).
 - `packages/content/base-library/` — materials, biomes, quantity-units.
 - `packages/content/species-and-names/` — the species/clade tree
-  (`content/obj/species/**`) + the name banks (`content/name-banks/**`).
+  (`content/stuff/idea/species/**`) + the name banks (`content/name-banks/**`).
 - `packages/content/arcane-descriptors/` — the descriptor banks.
-- `packages/content/arcane-library/` — `content/obj/magic/**`.
+- `packages/content/arcane-library/` — `content/stuff/idea/magic/**`.
 - `packages/content/generic-objects/` — the object clusters under
-  `content/obj/<cluster>/`, the loose objects, the recipes no trade
+  `content/stuff/<branch>/<cluster>/`, the loose objects, the recipes no trade
   claims (`daiquiri`, `martini`, `fine-roast`, `hearty-stew`).
 - `packages/content/trade-smithing/` — `root: /trade/smithing`:
-  `content/trade/smithing/obj/` (anvil, whetstone, workbench, the ingots — a template row sits at the path its FILE mirrors; only documents derive from `root`) +
+  `content/trade/smithing/thing/` (anvil, whetstone, workbench, the ingots — a template row sits at the path its FILE mirrors; only documents derive from `root`) +
   `content/recipes/` (fire-poker, smiths-hammer, belt-knife, cook-pot,
   leather-jerkin).
 - `packages/content/trade-hearth-cooking/` — `root: /trade/hearth-cooking`:
@@ -870,9 +871,9 @@ junk drawer — expected to slim as trade packs take their objects.
 - `packages/content/expression/` — the emote roster (`content/emotes/`).
 - `packages/content/wiki-starter/` — `content/wiki/<ns>/<slug>.md`.
 - `packages/content/corpo-<key>/` × 5 — `content/corpo/<key>.yaml` (the
-  organization) + `content/obj/corpo/**` (mark + brands).
+  organization) + `content/stuff/idea/corpo/**` (mark + brands).
 - `packages/content/newbie-wilds/` — `content/world/newbie-wilds/**`.
-- `packages/content/saxonberg-lounge/` — `content/obj/lounge/**`,
+- `packages/content/saxonberg-lounge/` — `content/stuff/{thing,idea}/lounge/**`,
   `content/msh/`, `content/settings/lounge.yaml` (`root: /world/lounge`).
 - `packages/content/world-seed/` — every remaining locality row under
   `content/world/**` (the hearthworks VENUE — rooms, business, NPCs,
@@ -887,21 +888,21 @@ junk drawer — expected to slim as trade packs take their objects.
   vocabulary (kind, natural key, dir, extension, vanish policy).
 - `mud/api/pack.ts` — `PackApi` + the manifest / result / record /
   conflict / report types.
-- `mud/obj/api/PackLogic.ts` — discovery, the per-kind `KindStrategy`
+- `mud/platform/idea/api/PackLogic.ts` — discovery, the per-kind `KindStrategy`
   table, the pure planner + the applier, the record, the three-way
   machine, the flat-key check, `requires-kernel`, the ops surface, the
   re-hydrate tail.
-- `mud/obj/command/author/PackController.ts` + the platform pack's
-  `content/cmd/author/pack.yaml` — the `pack` verb suite;
+- `mud/platform/idea/cmd/author/PackController.ts` + the platform pack's
+  `content/platform/cmd/author/pack.yaml` — the `pack` verb suite;
   `lib/command/validators/requiresPackInstaller.ts` — its gate (title
   over `/compact/executive`).
-- `mud/obj/ParcelRegistry.ts` — `grant` (the three outcomes);
+- `mud/platform/idea/ParcelRegistry.ts` — `grant` (the three outcomes);
   `mud/api/group.ts` — `ensureGroup` /
   `ensureMember`.
 - `backend/BootstrapManager.ts` — `run()` over `PackApi.bootManifest()`.
-- `mud/obj/api/CommandLogic.ts` — the store-only rule (`servedFromStore`)
+- `mud/platform/idea/api/CommandLogic.ts` — the store-only rule (`servedFromStore`)
   + the offline read over `PackApi.contentRoots()`.
-- `mud/obj/api/DiagnosticLogic.ts` — `packRecipients`, the maintainer
+- `mud/platform/idea/api/DiagnosticLogic.ts` — `packRecipients`, the maintainer
   routing.
 - `packages/server/scripts/check-untitled-paths.ts` — `lint:untitled`.
 - `e2e/playwright.platform.config.ts` +
@@ -915,7 +916,7 @@ junk drawer — expected to slim as trade packs take their objects.
   allowlist of kernel tests that still name shipped content.
 - `backend/AppBootstrap.ts` — the boot install pass + the per-pack boot
   line.
-- `mud/obj/api/QuantityLogic.ts` — the quantity-kind loader; its no-arg
+- `mud/platform/idea/api/QuantityLogic.ts` — the quantity-kind loader; its no-arg
   default lazily resolves the pack copy (test-only fallback; production
   always passes the path).
 
@@ -980,7 +981,7 @@ title root (nine; ONE `TITLE_ROOTS` in `lib/paths.ts`) and the
 industry-pack shape (`/trade/<industry>/{obj,command,recipes,cmd}`,
 `lint:instanceable` invariant 7); the hearthworks re-cut into
 `trade-smithing` + `trade-hearth-cooking` (the trades own what they
-introduce, the commons into `/obj/items`, the venue stays in
+introduce, the commons into `/stuff/thing/items`, the venue stays in
 `world-seed`) — eighteen packs; the view-key rule generalised to every
 template tree; wave 3's `migrated` grant outcome and both migration
 branches deleted. **And the junk sweep:** every one-time boot migration
@@ -989,3 +990,22 @@ collapse), the `developers`→`wizards` rename, the `adopt` reconcile cell +
 `adoptQuery` + the adoption bridge, the migration scripts, `lint:core-gone`
 — deleted. This game has never held data a boot of the same checkout did
 not write; nothing is migrated, ever.
+
+**The path pattern (2026-08-28, on the wave-4a branch).** `/obj/` is
+gone. Every template path and every engine source file follows
+`<root>/<branch>/…`: the root is the pack's (`/platform` for the
+platform pack, `/stuff` — the commons — for every other pack,
+`/trade/<industry>` for an industry), the branch is the Stuff branch the
+class descends from (`thing` · `idea` · `agent` · `location`). Source
+mirrors it: `src/mud/obj/` → `src/mud/platform/<branch>/`. `command` is
+`cmd` everywhere: a controller is `<root>/idea/cmd/<category>/<Name>Controller`,
+its view the document `<root>/cmd/<category>/<verb>` (`/cmd` is no longer a
+root; the engine's 195 views live at `/platform/cmd/…` and their keys are
+their paths, `platform/cmd/perception/look.yaml`). ONE walk rule: a `cmd`
+dir holds views unless its parent is `idea`. `TITLE_ROOTS` is
+`/platform /stuff /world /compact /studio /wiki /home /corpo /trade`;
+`lint:instanceable` invariant 7 checks the branch segment under every
+rooted tree. Rosters that ship from two roots (Locality, Government)
+scan `TemplatePathRosters`. Not applied inside `/world/<locality>` rows
+(a place's rooms stay `/world/<locality>/<room>`) — only their
+controllers moved to `<locality>/idea/cmd/`.

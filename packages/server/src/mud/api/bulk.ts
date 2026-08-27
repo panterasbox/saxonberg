@@ -18,9 +18,9 @@
  * kinds (no new kinds).
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link BulkableLogic} singleton at `/obj/api/bulk`,
+ * hot-reloadable {@link BulkableLogic} singleton at `/platform/idea/api/bulk`,
  * reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/bulk` reloads it.
+ * `dest /platform/idea/api/bulk` reloads it.
  *
  * Operational reference: `docs/subsystems/bulk.md`.
  */
@@ -42,7 +42,7 @@ import type Material from '../lib/material/Material';
 import type { MqlQuantity } from './mql';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { BulkableLogic } from '../obj/api/BulkableLogic';
+import { BulkableLogic } from '../platform/idea/api/BulkableLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -89,9 +89,9 @@ export interface TransferResult {
   notes: BulkNote[];
 }
 
-const LOGIC_PATH = '/obj/api/bulk';
+const LOGIC_PATH = '/platform/idea/api/bulk';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/BulkableLogic', import.meta.url)
+  new URL('../platform/idea/api/BulkableLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able BulkableLogic singleton (sync). */

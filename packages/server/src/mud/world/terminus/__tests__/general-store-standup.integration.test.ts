@@ -18,10 +18,10 @@ import YAML from "yaml";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { AppSettings } from "../../../lib/config/AppSettings";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
-import Stock from "../../../obj/Stock";
-import PlantPot from "../../../obj/PlantPot";
-import Seed from "../../../obj/Seed";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
+import Stock from "../../../platform/thing/Stock";
+import PlantPot from "../../../platform/thing/PlantPot";
+import Seed from "../../../platform/thing/Seed";
 import type { Bulkable } from "../../../lib/bulk/Bulkable";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Switchable } from "../../../lib/boundary/Switchable";
@@ -33,7 +33,7 @@ const PH = PersistentHydrator.templatePath;
 const STORE_DIR = fileURLToPath(
   new URL("../../../../../../content/world-seed/content/world/terminus/general-store/", import.meta.url),
 );
-const OBJ_DIR = fileURLToPath(new URL("../../../../../../content/generic-objects/content/obj/", import.meta.url));
+const OBJ_DIR = fileURLToPath(new URL("../../../../../../content/generic-objects/content/stuff/", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/goods/torch";
 
@@ -44,10 +44,10 @@ const TORCH = "/world/terminus/general-store/goods/torch";
  * pots (and two seeds growing the same plant) drifting apart.
  */
 const GARDEN_LINES = [
-  "pot/small",
-  "pot/large",
-  "vessel/soil-sack",
-  "seed/snake-plant",
+  "thing/pot/small",
+  "thing/pot/large",
+  "thing/vessel/soil-sack",
+  "thing/seed/snake-plant",
 ] as const;
 
 function seedDoc(rel: string): Doc {
@@ -68,7 +68,7 @@ function objDoc(rel: string): Doc {
     readFileSync(`${OBJ_DIR}${rel}.yaml`, "utf-8"),
   ) as Record<string, unknown>;
   return {
-    path: `/obj/${rel}`,
+    path: `/stuff/${rel}`,
     class: parsed.class as string,
     hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
@@ -145,15 +145,15 @@ describe("general-store standup (real seeds)", () => {
   it("the gardening line stocks to par and is priced against the ladder", async () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
     for (const rel of GARDEN_LINES) {
-      const path = `/obj/${rel}`;
+      const path = `/stuff/${rel}`;
       expect(counter.onHand(path), `${path} on hand`).toBeGreaterThan(0);
       expect(counter.priceFor(path), `${path} priced`).toBeGreaterThan(0);
     }
     // The large pot is the first purchase a player has a REASON to make, so
     // it must stay affordable against the 20-credit arrival stipend while
     // costing more than the small pot it replaces.
-    const small = counter.priceFor("/obj/pot/small")!;
-    const large = counter.priceFor("/obj/pot/large")!;
+    const small = counter.priceFor("/stuff/thing/pot/small")!;
+    const large = counter.priceFor("/stuff/thing/pot/large")!;
     expect(large).toBeGreaterThan(small);
     expect(large).toBeLessThan(20);
   });
@@ -175,11 +175,11 @@ describe("general-store standup (real seeds)", () => {
     expect(MixinApi.isBulkable(sack)).toBe(true);
     expect(sack.getBulkAmount("interior").rawValue()).toBeGreaterThan(0);
     expect(sack.getBulkMaterialPath("interior")).toBe(
-      "/obj/material/bulk/potting-soil",
+      "/stuff/idea/material/bulk/potting-soil",
     );
 
     // The seed names the plant it grows into (and is discrete, per above).
     const seed = counter.resolveBuy("snake plant seed") as unknown as Seed;
-    expect(seed.getGrowsIntoPath()).toBe("/obj/plant/snake-plant");
+    expect(seed.getGrowsIntoPath()).toBe("/stuff/thing/plant/snake-plant");
   });
 });

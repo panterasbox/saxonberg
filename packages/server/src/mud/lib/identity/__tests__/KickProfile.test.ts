@@ -81,10 +81,10 @@ describe('KickProfile', () => {
     expect(MixinApi.getAllPersistentFields(KickProfile)).toContain('slug');
     expect(MixinApi.getAllPersistentFields(KickProfile)).toContain('broadcasterUserId');
     expect(MixinApi.getAllFieldMarshallers(KickProfile).accessToken).toBe(
-      '/obj/persistence/EncryptedStringMarshaller'
+      '/platform/idea/persistence/EncryptedStringMarshaller'
     );
     expect(MixinApi.getAllFieldMarshallers(KickProfile).refreshToken).toBe(
-      '/obj/persistence/EncryptedStringMarshaller'
+      '/platform/idea/persistence/EncryptedStringMarshaller'
     );
   });
 

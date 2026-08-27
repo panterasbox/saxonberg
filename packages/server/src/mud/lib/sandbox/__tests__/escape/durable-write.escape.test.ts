@@ -162,10 +162,10 @@ describe('sandbox-escape: durable-write', () => {
 
   it('PASS: an epistemic row persists wire-marked and survives field reads', async () => {
     await inScope(() =>
-      pm.save(Collections.Chronicles, { owner: '/obj/Avatar/p1', deed: 'x' })
+      pm.save(Collections.Chronicles, { owner: '/platform/agent/Avatar/p1', deed: 'x' })
     );
     const rows = await pm.find(Collections.Chronicles, {
-      owner: '/obj/Avatar/p1',
+      owner: '/platform/agent/Avatar/p1',
     });
     expect(rows).toHaveLength(1);
     expect(rows[0]!.circleScope).toBe(SCOPE);

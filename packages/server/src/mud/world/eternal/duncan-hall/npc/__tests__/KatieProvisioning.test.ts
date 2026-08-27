@@ -12,12 +12,12 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import GroupRegistry from '../../../../../obj/GroupRegistry';
-import ParcelRegistry from '../../../../../obj/ParcelRegistry';
-import AccessRegistry from '../../../../../obj/AccessRegistry';
-import Avatar from '../../../../../obj/Avatar';
+import GroupRegistry from '../../../../../platform/idea/GroupRegistry';
+import ParcelRegistry from '../../../../../platform/idea/ParcelRegistry';
+import AccessRegistry from '../../../../../platform/idea/AccessRegistry';
+import Avatar from '../../../../../platform/agent/Avatar';
 import Katie from '../Katie';
-import ProvisionController from '../../command/ProvisionController';
+import ProvisionController from '../../idea/cmd/ProvisionController';
 import { GroupApi } from '../../../../../api/group';
 import { CommandApi } from '../../../../../api/command';
 import { MixinApi } from '../../../../../api/mixin';
@@ -29,7 +29,7 @@ import { DialogueTreeSchema } from '../../../../../lib/npc/tree';
 import { type ParcelOwner } from '../../../../../lib/parcel/ParcelRecord';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import { GroupLogic } from '../../../../../obj/api/GroupLogic';
+import { GroupLogic } from '../../../../../platform/idea/api/GroupLogic';
 import { ProxyApi } from '../../../../../api/proxy';
 
 /**
@@ -42,7 +42,7 @@ import { ProxyApi } from '../../../../../api/proxy';
 async function conferDormsStaff(): Promise<void> {
   const { ref } = await GroupApi.ensureGroup('duncan-hall', { kind: 'system' });
   const logic = ProxyApi.unwrap(
-    StuffApi.singletonSync('/obj/api/group', () => new GroupLogic()) as unknown as Stuff,
+    StuffApi.singletonSync('/platform/idea/api/group', () => new GroupLogic()) as unknown as Stuff,
   ) as unknown as GroupLogic;
   await logic.ensureMember(ref, '/world/eternal/duncan-hall/npc/katie', 'member');
 }
@@ -132,11 +132,11 @@ async function bootWithAccess(): Promise<void> {
     () => undefined,
     async () => undefined,
   );
-  const groups = makeStuffAtPath(() => new GroupRegistry(), '/obj/GroupRegistry');
+  const groups = makeStuffAtPath(() => new GroupRegistry(), '/platform/idea/GroupRegistry');
   await groups.postRegister();
-  const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/obj/ParcelRegistry');
+  const parcels = makeStuffAtPath(() => new ParcelRegistry(), '/platform/idea/ParcelRegistry');
   await parcels.postRegister();
-  const access = makeStuffAtPath(() => new AccessRegistry(), '/obj/AccessRegistry');
+  const access = makeStuffAtPath(() => new AccessRegistry(), '/platform/idea/AccessRegistry');
   await access.postRegister();
 }
 
@@ -213,7 +213,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     expect(await ProvisionController.isDormsAgent(katie, DORMS_OWNER)).toBe(true);
 
     // A random online player, neither wizard nor dorms staff → refused.
-    const stranger = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/stranger');
+    const stranger = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/stranger');
     stranger.setPlayerId('stranger');
     expect(await ProvisionController.isDormsAgent(stranger, DORMS_OWNER)).toBe(false);
   });

@@ -15,7 +15,7 @@ import { Events } from '../../mud/lib/events';
 import { Template } from '../../mud/lib/stuff/Template';
 import { LeafTemplate } from '../../mud/lib/stuff/LeafTemplate';
 import type { Stuff } from '../../mud/lib/stuff/Stuff';
-import type EventRegistry from '../../mud/obj/EventRegistry';
+import type EventRegistry from '../../mud/platform/idea/EventRegistry';
 
 function stubClone(): { calls: string[] } {
   const calls: string[] = [];
@@ -47,12 +47,12 @@ describe('BootstrapManager.run', () => {
     const { calls } = stubClone();
     vi.spyOn(StuffApi, 'findAllByTemplatePath').mockReturnValue([]);
     vi.spyOn(PackApi, 'bootManifest').mockResolvedValue([
-      { templatePath: '/obj/GroupRegistry', packId: 'platform', role: 'sync-read' },
-      { templatePath: '/studio/fixture/root', packId: 'fixture', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
+      { templatePath: '/platform/idea/GroupRegistry', packId: 'platform', role: 'sync-read' },
+      { templatePath: '/studio/fixture/root', packId: 'fixture', role: 'producer', dependsOn: ['/platform/idea/GroupRegistry'] },
     ]);
     await BootstrapManager.run();
     expect(calls).toContain('/studio/fixture/root');
-    expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/studio/fixture/root'));
+    expect(calls.indexOf('/platform/idea/GroupRegistry')).toBeLessThan(calls.indexOf('/studio/fixture/root'));
   });
 
   it('clones a single entry', async () => {
@@ -178,9 +178,9 @@ describe('BootstrapManager.run', () => {
   it('expands a templatePathPrefix entry into one clone per descendant', async () => {
     const { calls } = stubClone();
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
-      { path: '/obj/species/animalia/chordata' },
-      { path: '/obj/species/animalia' },
-      { path: '/obj/species/animalia/chordata/mammalia' },
+      { path: '/stuff/idea/species/animalia/chordata' },
+      { path: '/stuff/idea/species/animalia' },
+      { path: '/stuff/idea/species/animalia/chordata/mammalia' },
     ] as unknown as Template[]);
 
     await BootstrapManager.run([
@@ -190,30 +190,30 @@ describe('BootstrapManager.run', () => {
     // Depth-ascending: shorter paths first so kingdom singletons land
     // before their phyla.
     expect(calls).toEqual([
-      '/obj/species/animalia',
-      '/obj/species/animalia/chordata',
-      '/obj/species/animalia/chordata/mammalia',
+      '/stuff/idea/species/animalia',
+      '/stuff/idea/species/animalia/chordata',
+      '/stuff/idea/species/animalia/chordata/mammalia',
     ]);
   });
 
   it('explicit templatePath wins over a prefix-expansion collision', async () => {
     const { calls } = stubClone();
     vi.spyOn(Template, 'findDescendants').mockResolvedValue([
-      { path: '/obj/species/animalia' },
-      { path: '/obj/species/plantae' },
+      { path: '/stuff/idea/species/animalia' },
+      { path: '/stuff/idea/species/plantae' },
     ] as unknown as Template[]);
 
     // The explicit entry should appear in its declared position, NOT
     // be deduplicated as "duplicate". The prefix expansion skips
-    // `/obj/species/animalia` because it's already covered explicitly.
+    // `/stuff/idea/species/animalia` because it's already covered explicitly.
     await BootstrapManager.run([
-      { templatePath: '/obj/species/animalia', awaitInit: async () => {} },
+      { templatePath: '/stuff/idea/species/animalia', awaitInit: async () => {} },
       { templatePathPrefix: '/obj/species' },
     ]);
 
     expect(calls).toEqual([
-      '/obj/species/animalia',
-      '/obj/species/plantae',
+      '/stuff/idea/species/animalia',
+      '/stuff/idea/species/plantae',
     ]);
   });
 
@@ -222,7 +222,7 @@ describe('BootstrapManager.run', () => {
     await expect(
       BootstrapManager.run([
         {
-          templatePath: '/obj/species/animalia',
+          templatePath: '/stuff/idea/species/animalia',
           templatePathPrefix: '/obj/species',
         },
       ])
@@ -263,18 +263,18 @@ describe('BootstrapManager + EventRegistry integration', () => {
     // breaking the recursion).
     vi.spyOn(Template, 'findByPath').mockImplementation(
       async (path: string) => {
-        if (path === '/obj/EventRegistry') {
+        if (path === '/platform/idea/EventRegistry') {
           const t = new LeafTemplate();
           t.path = path;
-          t.class = '/obj/EventRegistry';
-          t.hydratorClass = '/obj/persistence/PersistentHydrator';
+          t.class = '/platform/idea/EventRegistry';
+          t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
           t.data = {};
           return t;
         }
-        if (path === '/obj/persistence/PersistentHydrator') {
+        if (path === '/platform/idea/persistence/PersistentHydrator') {
           const t = new LeafTemplate();
           t.path = path;
-          t.class = '/obj/persistence/PersistentHydrator';
+          t.class = '/platform/idea/persistence/PersistentHydrator';
           t.data = {};
           return t;
         }
@@ -282,10 +282,10 @@ describe('BootstrapManager + EventRegistry integration', () => {
       }
     );
 
-    await BootstrapManager.run([{ templatePath: '/obj/EventRegistry' }]);
+    await BootstrapManager.run([{ templatePath: '/platform/idea/EventRegistry' }]);
 
     const reg = StuffApi.findByTemplatePath<EventRegistry>(
-      '/obj/EventRegistry'
+      '/platform/idea/EventRegistry'
     );
     expect(reg).toBeDefined();
 

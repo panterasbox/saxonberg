@@ -31,7 +31,7 @@ function installRootBiome(): Biome {
     b.setDefaultGravity(Quantity.of(9.81, 'm/s²'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 describe('BiomeApi.resolveWindFor — chain walk', () => {
@@ -53,10 +53,10 @@ describe('BiomeApi.resolveWindFor — chain walk', () => {
   it('a windy biome overrides the universe calm', async () => {
     const windy = makeStuffAtPath(() => {
       const b = new Biome();
-      b._extendsBiomePath = '/obj/biome/universe';
+      b._extendsBiomePath = '/stuff/idea/biome/universe';
       b.setDefaultWind(Quantity.of(8, 'm/s'));
       return b;
-    }, '/obj/biome/outdoor/windy-pass');
+    }, '/stuff/idea/biome/outdoor/windy-pass');
     const room = makeStuff(() => new TestLocation());
     room.setBiome(windy);
     expect((await BiomeApi.resolveWindFor(room)).rawValue()).toBe(8);

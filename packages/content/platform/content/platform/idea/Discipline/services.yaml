@@ -1,0 +1,8 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: services
+  channel: knowledge
+  label: Services
+  iscedf: "10"  # ISCED-F 2013 field-of-education code
+  description: ISCED-F broad field. A structural Catalog node — the impersonal taxonomy the practiced bar disciplines hang under.

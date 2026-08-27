@@ -86,10 +86,10 @@ describe('TwitchProfile', () => {
     expect(MixinApi.getAllPersistentFields(TwitchProfile)).toContain('accessToken');
     expect(MixinApi.getAllPersistentFields(TwitchProfile)).toContain('refreshToken');
     expect(MixinApi.getAllFieldMarshallers(TwitchProfile).accessToken).toBe(
-      '/obj/persistence/EncryptedStringMarshaller'
+      '/platform/idea/persistence/EncryptedStringMarshaller'
     );
     expect(MixinApi.getAllFieldMarshallers(TwitchProfile).refreshToken).toBe(
-      '/obj/persistence/EncryptedStringMarshaller'
+      '/platform/idea/persistence/EncryptedStringMarshaller'
     );
   });
 

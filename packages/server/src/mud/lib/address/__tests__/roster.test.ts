@@ -9,18 +9,18 @@
  * claimed address, pinning namespace independence.
  *
  *   /obj/Locality/                 FolderZone  ← admin root
- *   /obj/Locality/narnia           Locality    ← root Region (fallback)
- *   /obj/Locality/cair-paravel     Locality    ← nested, longest-prefix
- *   /obj/Locality/lantern-waste    Locality    ← sibling discrimination
+ *   /stuff/idea/Locality/narnia           Locality    ← root Region (fallback)
+ *   /stuff/idea/Locality/cair-paravel     Locality    ← nested, longest-prefix
+ *   /stuff/idea/Locality/lantern-waste    Locality    ← sibling discrimination
  *
  * The transit build adds three board-destination Localities (the first
  * non-demonstrative address content) — the TPA departures board names each
  * destination by its covering Locality (see fasttravel.md § destination
  * naming):
  *
- *   /obj/Locality/terminus            Locality  ← the transit hub
- *   /obj/Locality/the-lounge          Locality  ← the social hub
- *   /obj/Locality/last-counted-mile   Locality  ← the frontier crossroads
+ *   /platform/idea/Locality/terminus            Locality  ← the transit hub
+ *   /stuff/idea/Locality/the-lounge          Locality  ← the social hub
+ *   /stuff/idea/Locality/last-counted-mile   Locality  ← the frontier crossroads
  */
 
 import { describe, it, expect } from 'vitest';
@@ -32,8 +32,8 @@ import YAML from 'yaml';
 const __filename = fileURLToPath(import.meta.url);
 // The Locality rows: the realm + city are the platform pack's, the rest
 // world-seed's (content-packs wave 3). Both roots are searched.
-const PLATFORM_DIR = join(dirname(__filename), '../../../../../../content/platform/content/obj/Locality');
-const SEEDS_DIR = join(dirname(__filename), '../../../../../../content/world-seed/content/obj/Locality');
+const PLATFORM_DIR = join(dirname(__filename), '../../../../../../content/platform/content/platform/idea/Locality');
+const SEEDS_DIR = join(dirname(__filename), '../../../../../../content/world-seed/content/stuff/idea/Locality');
 const ROOTS = [SEEDS_DIR, PLATFORM_DIR];
 
 interface AddressSeed {
@@ -61,28 +61,28 @@ function listYamlsRelative(dir: string): string[] {
 }
 
 describe('Address roster — slim demonstrative inventory', () => {
-  it('the /obj/Locality folder template is a FolderZone', () => {
+  it('the /platform/idea/Locality folder template is a FolderZone', () => {
     const seed = YAML.parse(
       readFileSync(join(PLATFORM_DIR, '../Locality.yaml'), 'utf-8'),
     ) as AddressSeed;
-    expect(seed.class).toBe('/obj/FolderZone');
+    expect(seed.class).toBe('/platform/idea/FolderZone');
   });
 
   it('narnia is the root Region claiming the shortest prefix', () => {
     const seed = loadSeed('narnia.yaml');
-    expect(seed.class).toBe('/obj/Locality');
+    expect(seed.class).toBe('/platform/idea/Locality');
     expect(seed.data?._address).toBe('narnia');
   });
 
   it('cair-paravel is a nested Locality (longest-prefix winner)', () => {
     const seed = loadSeed('cair-paravel.yaml');
-    expect(seed.class).toBe('/obj/Locality');
+    expect(seed.class).toBe('/platform/idea/Locality');
     expect(seed.data?._address).toBe('narnia/castle');
   });
 
   it('lantern-waste is a sibling under the root', () => {
     const seed = loadSeed('lantern-waste.yaml');
-    expect(seed.class).toBe('/obj/Locality');
+    expect(seed.class).toBe('/platform/idea/Locality');
     expect(seed.data?._address).toBe('narnia/wild');
   });
 
@@ -102,7 +102,7 @@ describe('Address roster — slim demonstrative inventory', () => {
       'last-counted-mile',
     );
     for (const f of ['terminus.yaml', 'the-lounge.yaml', 'last-counted-mile.yaml']) {
-      expect(loadSeed(f).class).toBe('/obj/Locality');
+      expect(loadSeed(f).class).toBe('/platform/idea/Locality');
     }
   });
 

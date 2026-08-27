@@ -10,7 +10,7 @@
  * forwards to the registry singleton.
  *
  * State lives on the {@link ReactionRegistry} singleton at
- * `/obj/ReactionRegistry`; this Api holds no state. Every registry
+ * `/platform/idea/ReactionRegistry`; this Api holds no state. Every registry
  * method is gated `FromModule('/api/reaction#ReactionApi')`, so the
  * facade is the only legitimate path. Mirrors the
  * `MqlSubscriptionApi` ↔ `MqlSubscriptionRegistry` split, minus the
@@ -23,11 +23,11 @@
 import type { ReactionDeltaEnvelope } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Sensor } from '../lib/message/Sensor';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 // Value-import is safe: `ReactionRegistry`'s import of this module is
 // type-only, so there is no runtime cycle, and `resolveRegistry` reads
 // the binding lazily inside the function body regardless.
-import ReactionRegistry from '../obj/ReactionRegistry';
+import ReactionRegistry from '../platform/idea/ReactionRegistry';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';

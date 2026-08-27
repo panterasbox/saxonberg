@@ -1,0 +1,23 @@
+# The washbasin — REAL WATER, because filling and pouring are shipped acts
+# and a basin that is not a water source is a worse lie than one that is
+# (D13's LOD ladder, middle rung).
+#
+# The dorm tap's exact part: an `UnboundedReceptacle` whose interior is
+# water. ∞ is the honest v1 — the finite, regenerating source that would
+# make a frontier pump mechanically different is already named as deferred
+# in `lib/bulk/UnboundedSource.ts`.
+#
+# ⚠ TIER-AGNOSTIC ON PURPOSE: nothing here says "Terminus" or assumes
+# municipal plumbing, so the tier can pick the fixture later without
+# touching an archetype row. Keep it that way.
+class: /platform/thing/UnboundedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a washbasin
+  primaryKeyword: basin
+  keywords: [basin, sink, washbasin, tap, water]
+  longDescription: |
+    A shallow basin set into a narrow shelf, with a single tap above it and a clouded mirror screwed to the wall behind.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 40

@@ -1,0 +1,7 @@
+# Barometer — handheld pressure instrument that grants the
+# `measure pressure` verb to its carrier.
+class: /platform/thing/instrument/Barometer
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an aneroid barometer
+  long: A dial-faced barometer calibrated in pascals. Tap to read the local atmospheric pressure.

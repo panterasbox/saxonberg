@@ -38,9 +38,9 @@ import {
   type PropAccessCheck,
   type PropValue,
 } from '../lib/stuff/Propertied';
-import type EventRegistry from '../obj/EventRegistry';
-import type EventSubscriptions from '../obj/EventSubscriptions';
-import type { SubscriptionRecord } from '../obj/EventSubscriptions';
+import type EventRegistry from '../platform/idea/EventRegistry';
+import type EventSubscriptions from '../platform/idea/EventSubscriptions';
+import type { SubscriptionRecord } from '../platform/idea/EventSubscriptions';
 
 /**
  * A class reference used in emit/subscribe allowlists. Entries are
@@ -172,7 +172,7 @@ export class EventApi {
   static #registry(): EventRegistry | null {
     if (this.#registryRef) return this.#registryRef;
     const reg = StuffApi.findByTemplatePath<EventRegistry>(
-      '/obj/EventRegistry'
+      '/platform/idea/EventRegistry'
     );
     if (!reg) return null;
     this.#registryRef = reg;
@@ -189,7 +189,7 @@ export class EventApi {
   static #subs(): EventSubscriptions | null {
     if (this.#subsRef) return this.#subsRef;
     const existing = StuffApi.findByTemplatePath<EventSubscriptions>(
-      '/obj/EventSubscriptions'
+      '/platform/idea/EventSubscriptions'
     );
     if (existing) {
       this.#subsRef = existing;
@@ -199,7 +199,7 @@ export class EventApi {
     const sub = StuffApi.createSync<EventSubscriptions>(
       () => new EventApi.#subsClass!(),
     );
-    sub.setTemplatePath('/obj/EventSubscriptions');
+    sub.setTemplatePath('/platform/idea/EventSubscriptions');
     this.#subsRef = sub;
     return sub;
   }
@@ -683,6 +683,6 @@ export class EventApi {
 // Re-export the types module for convenience.
 export { Events } from '../lib/events';
 export type { EventName, EventPayloads } from '../lib/events';
-export type { HistoryRecord } from '../obj/EventSubscriptions';
+export type { HistoryRecord } from '../platform/idea/EventSubscriptions';
 
 SecurityApi.decorateApiClass(EventApi);

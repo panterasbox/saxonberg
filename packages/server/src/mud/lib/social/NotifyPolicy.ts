@@ -120,7 +120,7 @@ export function NotifyPolicyMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `CommandGiver` discovery via the `self` slot (the Contacts pattern).
      */
     static commandContributions: CommandContributions = {
-      self: ["social/notify.yaml"],
+      self: ["platform/cmd/social/notify.yaml"],
       peers: [],
       environment: [],
     };

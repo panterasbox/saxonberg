@@ -21,10 +21,10 @@ import {
 import { installV1QuantityMarshallers } from "../../src/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../src/mud/lib/stuff/Idea";
 import { Character } from "../../src/mud/lib/character/Character";
-import Species from "../../src/mud/obj/species/Species";
-import BodyPlan from "../../src/mud/obj/species/BodyPlan";
-import Weapon from "../../src/mud/obj/equipment/Weapon";
-import Armor from "../../src/mud/obj/equipment/Armor";
+import Species from "../../src/mud/platform/idea/species/Species";
+import BodyPlan from "../../src/mud/platform/idea/species/BodyPlan";
+import Weapon from "../../src/mud/platform/thing/equipment/Weapon";
+import Armor from "../../src/mud/platform/thing/equipment/Armor";
 import Material from "../../src/mud/lib/material/Material";
 import { Construction } from "../../src/mud/lib/material/Construction";
 import { ContainerMixin } from "../../src/mud/lib/spatial/Container";
@@ -40,7 +40,7 @@ import {
 import type { CombatSession } from "../../src/mud/lib/combat/CombatSession";
 import type { Stuff } from "../../src/mud/lib/stuff/Stuff";
 import type { Engaged } from "../../src/mud/lib/activity/Engaged";
-import EventRegistry from "../../src/mud/obj/EventRegistry";
+import EventRegistry from "../../src/mud/platform/idea/EventRegistry";
 import { EventApi } from "../../src/mud/api/event";
 import { runMatchup, Policies, type GymSide } from "../combat-gym";
 
@@ -54,7 +54,7 @@ function mat(hardness: number, toughness: number, name: string): Material {
   m.setHardness(Quantity.of(hardness, "MPa"));
   m.setToughness(Quantity.of(toughness, "MJ/m³"));
   m.setName(name);
-  stampTemplatePathForTest(m, `/obj/material/test/spar-m-${seq++}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/spar-m-${seq++}`);
   return m;
 }
 const steel = () => mat(600, 200, "steel");
@@ -63,7 +63,7 @@ const oak = () => mat(40, 30, "oak");
 /** Quilted linen — the gambeson's stuff; blunt rides the structural floor. */
 const linen = () => mat(20, 40, "quilted linen");
 
-/** The oak waster: the seeded `/obj/arms/oak-waster` shape, verbatim. */
+/** The oak waster: the seeded `/stuff/thing/arms/oak-waster` shape, verbatim. */
 interface SparLoadout {
   form: string;
   material: () => Material;
@@ -106,26 +106,26 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
-        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/spar-${id}`);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/spar-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/obj/species/test/spar-${id}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/spar-${id}`);
 
   const f = makeStuff(() => new SparFighter());
   stampTemplatePathForTest(f, `/test/spar-fighter-${id}`);
@@ -185,7 +185,7 @@ function open(a: SparFighter, b: SparFighter): CombatSession {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    stampTemplatePathForTest(r, "/obj/EventRegistry");
+    stampTemplatePathForTest(r, "/platform/idea/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);
@@ -197,7 +197,7 @@ function resetState(): void {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   const reg = makeStuff(() => new EventRegistry());
-  stampTemplatePathForTest(reg, "/obj/EventRegistry");
+  stampTemplatePathForTest(reg, "/platform/idea/EventRegistry");
   StuffApi.unregister(reg);
   StuffApi.register(reg);
   EventApi._setRegistryForTesting(reg);

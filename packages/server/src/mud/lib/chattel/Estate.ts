@@ -78,8 +78,8 @@ import {
  * admits exactly one caller, and only for its own estate.
  */
 const ByEstateWriters = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromTemplate("/obj/api/chattel"),
-  SecurityPolicies.FromTemplate("/obj/api/persistable"),
+  SecurityPolicies.FromTemplate("/platform/idea/api/chattel"),
+  SecurityPolicies.FromTemplate("/platform/idea/api/persistable"),
   SecurityPolicies.SelfOnly,
 );
 

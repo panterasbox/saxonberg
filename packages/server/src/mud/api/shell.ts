@@ -39,8 +39,8 @@
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link ShellLogic} singleton at
- * `/obj/api/shell`, reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/shell` reloads it.
+ * `/platform/idea/api/shell`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /platform/idea/api/shell` reloads it.
  */
 
 import type { FormFactor } from '@saxonberg/types';
@@ -50,13 +50,13 @@ import type { AliasExpansionInfo } from "./command";
 import type { ParsedCommand } from "./command-line";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { ShellLogic } from "../obj/api/ShellLogic";
+import { ShellLogic } from "../platform/idea/api/ShellLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = "/obj/api/shell";
+const LOGIC_PATH = "/platform/idea/api/shell";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/ShellLogic", import.meta.url)
+  new URL("../platform/idea/api/ShellLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able ShellLogic singleton (sync). */

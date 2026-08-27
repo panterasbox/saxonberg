@@ -1,0 +1,9 @@
+# Butcher's cuts — cooking stock (the `meat` category slot).
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wrapped cut of stew meat
+  primaryKeyword: meat
+  keywords: [meat, stew-meat, stew, cut, cuts]
+  _materialPath: /stuff/idea/material/food/stew-meat
+  mass: 0.4

@@ -12,8 +12,8 @@
 # This is not a capability boundary — snippets cannot reach live game
 # state at all; only a component a developer wrote can, which is the
 # real line. It is a blast-radius boundary.
-class: /obj/WikiNamespaceZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/WikiNamespaceZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: snippet
   protection: editors

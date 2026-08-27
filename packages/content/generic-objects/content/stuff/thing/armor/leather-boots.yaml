@@ -1,0 +1,14 @@
+class: /platform/thing/equipment/Armor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pair of stout leather boots
+  primaryKeyword: boots
+  longDescription: >
+    Heavy hobnailed boots of thick tooled leather. The stout soles turn the
+    broken glass of an alley that would open a bare foot.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [feet]
+  _materialPath: /stuff/idea/material/organic/leather
+  constructionForm: hide
+  gradeBand: fair
+  mass: 1.4

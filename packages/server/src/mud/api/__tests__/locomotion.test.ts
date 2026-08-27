@@ -1,7 +1,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
-import { LocomotionMode } from '../../obj/LocomotionMode';
+import { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import {
   ClimbableMixin,
   CLIMBING_CAPABILITY_PROP,
@@ -63,10 +63,10 @@ class TestCart extends MobileCart {}
 // An Organism + Mobile + Containable actor (NPC-shaped) for the
 // body-plan default chain.
 import { OrganismMixin } from '../../lib/species/Organism';
-import Species from '../../obj/species/Species';
-import BodyPlan from '../../obj/species/BodyPlan';
+import Species from '../../platform/idea/species/Species';
+import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { StuffApi } from '../stuff';
-import { LocomotionLogic } from '../../obj/api/LocomotionLogic';
+import { LocomotionLogic } from '../../platform/idea/api/LocomotionLogic';
 import { SecurityError } from '../../lib/security/errors';
 const OrganismMover = OrganismMixin(MobileMixin(ContainableMixin(Idea)));
 class TestOrganismMover extends OrganismMover {}
@@ -91,7 +91,7 @@ describe('LocomotionApi', () => {
     });
 
     it('accepts a full templatePath', () => {
-      const m = LocomotionApi.modeOf('/obj/LocomotionMode/walk');
+      const m = LocomotionApi.modeOf('/platform/idea/LocomotionMode/walk');
       expect(m?.getName()).toBe('walk');
     });
 
@@ -101,7 +101,7 @@ describe('LocomotionApi', () => {
 
     it('modeOfOrThrow throws with the resolved path in the message', () => {
       expect(() => LocomotionApi.modeOfOrThrow('rocketpack')).toThrow(
-        /\/obj\/LocomotionMode\/rocketpack/,
+        /\/platform\/idea\/LocomotionMode\/rocketpack/,
       );
     });
   });
@@ -484,7 +484,7 @@ describe('LocomotionApi', () => {
       // Set up a bird-shaped bodyplan with default='fly'.
       const bodyplan = makeAtPath(
         () => new BodyPlan(),
-        '/obj/species/bodyplan/test-avian',
+        '/stuff/idea/species/bodyplan/test-avian',
       );
       bodyplan.setName('test-avian');
       bodyplan.setLocomotionModes(['walk', 'fly']);
@@ -492,7 +492,7 @@ describe('LocomotionApi', () => {
 
       const species = makeAtPath(
         () => new Species(),
-        '/obj/species/test-bird',
+        '/stuff/idea/species/test-bird',
       );
       species.setBodyPlan(bodyplan);
 
@@ -504,14 +504,14 @@ describe('LocomotionApi', () => {
     it('falls back to "walk" for an Organism whose bodyplan has no default', () => {
       const bodyplan = makeAtPath(
         () => new BodyPlan(),
-        '/obj/species/bodyplan/test-bareplan',
+        '/stuff/idea/species/bodyplan/test-bareplan',
       );
       bodyplan.setName('test-bareplan');
       // defaultLocomotionMode stays at default null.
 
       const species = makeAtPath(
         () => new Species(),
-        '/obj/species/test-noplan',
+        '/stuff/idea/species/test-noplan',
       );
       species.setBodyPlan(bodyplan);
 
@@ -527,17 +527,17 @@ describe('LocomotionApi', () => {
   });
 
   describe('LocomotionLogic singleton encapsulation', () => {
-    it('lives at /obj/api/locomotion once the facade has materialized it', () => {
+    it('lives at /platform/idea/api/locomotion once the facade has materialized it', () => {
       // A sync facade call lazily creates the logic singleton.
       LocomotionApi.modeOf('walk');
-      const logic = StuffApi.findByTemplatePath('/obj/api/locomotion');
+      const logic = StuffApi.findByTemplatePath('/platform/idea/api/locomotion');
       expect(logic).toBeDefined();
     });
 
     it('denies a direct logic-method call from a non-LocomotionApi caller', () => {
       LocomotionApi.modeOf('walk');
       const logic = StuffApi.findByTemplatePath<LocomotionLogic>(
-        '/obj/api/locomotion',
+        '/platform/idea/api/locomotion',
       );
       expect(logic).toBeDefined();
       // The test module is neither mud/api/locomotion#LocomotionApi nor

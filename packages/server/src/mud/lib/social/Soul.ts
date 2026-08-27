@@ -163,7 +163,7 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       // NOT Vocal — you can introduce yourself by sign, gesture, or any
       // modality the audience perceives, not only speech. `react` rides
       // Soul too: a reaction dispatches an emote, so it requires Soul.
-      self: ['social/emote.yaml', 'social/introduce.yaml', 'social/react.yaml'],
+      self: ['platform/cmd/social/emote.yaml', 'platform/cmd/social/introduce.yaml', 'platform/cmd/social/react.yaml'],
       peers: [],
       environment: [],
     };

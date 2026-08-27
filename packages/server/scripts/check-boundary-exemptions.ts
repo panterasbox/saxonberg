@@ -15,7 +15,7 @@
  * Two invariants:
  *
  *   1. **Every exempt template path resolves to a real seed row.**
- *      `/obj/HelpCatalogue` ⇒ `src/mud/seeds/obj/HelpCatalogue.yaml`.
+ *      `/platform/idea/HelpCatalogue` ⇒ `src/mud/seeds/platform/idea/HelpCatalogue.yaml`.
  *      An exemption naming a path nothing seeds is either a typo or a
  *      leftover, and both are security-relevant.
  *

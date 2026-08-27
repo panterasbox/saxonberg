@@ -16,9 +16,9 @@
  * place — no government is a normal state of the world.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link GovernmentLogic} singleton at `/obj/api/government`, reached
+ * {@link GovernmentLogic} singleton at `/platform/idea/api/government`, reached
  * synchronously via `StuffApi.singletonSync`; it reads the warmed
- * `GovernmentCatalogue`. `dest /obj/api/government` reloads it.
+ * `GovernmentCatalogue`. `dest /platform/idea/api/government` reloads it.
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
@@ -26,10 +26,10 @@ import type { Container } from "../lib/spatial/Container";
 import type {
   GovernmentDescriptor,
   GovernmentSeat,
-} from "../obj/Government";
+} from "../platform/idea/Government";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { GovernmentLogic } from "../obj/api/GovernmentLogic";
+import { GovernmentLogic } from "../platform/idea/api/GovernmentLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
 
@@ -42,9 +42,9 @@ export interface SeatView {
   holder: string | null;
 }
 
-const LOGIC_PATH = "/obj/api/government";
+const LOGIC_PATH = "/platform/idea/api/government";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/GovernmentLogic", import.meta.url)
+  new URL("../platform/idea/api/GovernmentLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able GovernmentLogic singleton (sync). */

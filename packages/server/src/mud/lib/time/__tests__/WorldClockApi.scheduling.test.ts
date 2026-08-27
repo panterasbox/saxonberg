@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { Stuff } from '../../stuff/Stuff';
@@ -25,7 +25,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 async function makeRegistry(): Promise<EventRegistry> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

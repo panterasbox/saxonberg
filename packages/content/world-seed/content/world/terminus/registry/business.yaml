@@ -7,8 +7,8 @@
 # (`schedule: []` — never on shift, so no wage flows yet; real shifts
 # arrive with real city content). Stands up lazily like every Business;
 # `holdsSeat` proves against the authored roster even before standup.
-class: /obj/Business
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # ⭐ A city DEPARTMENT — nobody owns it, so the authority is the
   # COMMITTEE holding title over its ground (`/world/terminus/registry`

@@ -14,7 +14,7 @@ import { Quantity } from '../../../../lib/quantity';
 import { MixinApi } from '../../../../api/mixin';
 import { Mixins } from '../../../../lib/mixin';
 import { WorldClockApi } from '../../../../api/worldclock';
-import '../../../../obj/WorldClockRegistry';
+import '../../../../platform/idea/WorldClockRegistry';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 

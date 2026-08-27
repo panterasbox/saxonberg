@@ -1,0 +1,39 @@
+verbs: [eval]
+controller: /platform/idea/cmd/author/EvalController
+description: "Run a code snippet against the avatar (or --on target)"
+help: |
+  Execute a code snippet, with `this` bound to your avatar by
+  default. This is a developer escape hatch for poking at live
+  objects directly — it requires developer access.
+
+  Eval always runs against a PARCEL you hold — there is no unscoped
+  form. `--parcel <path>` names the jurisdiction (default: your own
+  circle, `/home/<you>`). A wire parcel QUARANTINES the run (circle
+  scope; nothing escapes; side-effects discard); a field parcel you
+  administer GOVERNS it (writes are real, reach is bounded to the
+  parcel's extent, and the act is receipted). The snippet's template
+  mints in the jurisdiction's namespace, so eval'd code always has
+  addressable provenance.
+
+  Use `--on <target>` to bind `this` to something else you can
+  reach. When the query matches more than one object, add `--all`
+  to run the snippet once against each match in turn.
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: expr
+    type: string
+    required: false
+    greedy: true
+options:
+  on:
+    type: objects
+    scope: [reachable]
+    description: "MQL expression for the target(s) to bind `this` to"
+    requires: any
+  all:
+    type: boolean
+    description: "When --on matches multiple, iterate across each"
+  parcel:
+    type: string
+    description: "Jurisdiction parcel path (default: your circle, /home/<you>)"

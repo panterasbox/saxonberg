@@ -9,8 +9,8 @@
 # (stipend 20 / wages 4-6 per game-hour / coinage 1/5/25): a relative ladder a
 # fresh arrival on the 20-credit stipend can shop against. The goods are all
 # discrete Things (never Globbable) so each carries a chattel stamp on buy.
-class: /obj/Stock
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the general-store counter
   primaryKeyword: counter
@@ -37,10 +37,10 @@ data:
     # duplicating them here would mean two pots (and two seeds growing the
     # same plant) drifting apart. The existing goods live under `goods/`
     # because they are store-specific, not because the path is required.
-    - { itemTemplatePath: /obj/pot/small, par: 3 }
-    - { itemTemplatePath: /obj/pot/large, par: 2 }
-    - { itemTemplatePath: /obj/vessel/soil-sack, par: 4 }
-    - { itemTemplatePath: /obj/seed/snake-plant, par: 3 }
+    - { itemTemplatePath: /stuff/thing/pot/small, par: 3 }
+    - { itemTemplatePath: /stuff/thing/pot/large, par: 2 }
+    - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
+    - { itemTemplatePath: /stuff/thing/seed/snake-plant, par: 3 }
   prices:
     /world/terminus/general-store/goods/torch: 2
     /world/terminus/general-store/goods/rations: 3
@@ -55,7 +55,7 @@ data:
     # 4, clasp-knife 6, lantern 10). The large pot is deliberately a real
     # but reachable purchase — it is the first thing a new player has a
     # REASON to buy, and the reason is legible before the purchase.
-    /obj/pot/small: 3
-    /obj/pot/large: 8
-    /obj/vessel/soil-sack: 2
-    /obj/seed/snake-plant: 5
+    /stuff/thing/pot/small: 3
+    /stuff/thing/pot/large: 8
+    /stuff/thing/vessel/soil-sack: 2
+    /stuff/thing/seed/snake-plant: 5

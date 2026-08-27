@@ -13,7 +13,7 @@
 # whole model with no magic. No exits wired this cycle (reachable by teleport
 # / a future travel node — the treeline reachability precedent).
 class: /world/substation/FloodedCell
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a flooded switch-cell
   primaryKeyword: cell

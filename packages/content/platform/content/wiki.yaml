@@ -15,8 +15,8 @@
 #
 # Class paths under here stay `/obj/...`, so `#validateClassPath` is
 # satisfied; only the TEMPLATE paths are new.
-class: /obj/WikiNamespaceZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/WikiNamespaceZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wiki
   protection: anyone

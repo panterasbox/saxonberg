@@ -19,7 +19,7 @@ import {
 } from 'vitest';
 import { BroadcastFeed } from '../BroadcastFeed';
 import { Backend } from '../Backend';
-import EventRegistry from '../../mud/obj/EventRegistry';
+import EventRegistry from '../../mud/platform/idea/EventRegistry';
 import { EventApi } from '../../mud/api/event';
 import { Events } from '../../mud/lib/events';
 import { StreamApi } from '../../mud/api/stream';
@@ -31,7 +31,7 @@ import type { Envelope, RelaySpeaker } from '@saxonberg/types';
 async function makeRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

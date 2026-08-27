@@ -23,7 +23,7 @@ import {
   installStore,
   type Doc,
 } from "../../lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 const SEED_ROOT = fileURLToPath(
@@ -86,19 +86,19 @@ const STUBS: Doc[] = [
     hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/lounge-room", class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
+  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
   {
     path: "/world/newbie-wilds/crossroads/terminal",
     class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/crossroads-room", class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
-  { path: "/world/terminus/terminal/clerk", class: "/obj/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the crossroads" } },
+  { path: "/world/terminus/terminal/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the clerk" } },
   // The registry office (cascaded via the arrival gate's east exit)
   // populates the registrar — same heavy-NPC stub treatment.
-  { path: "/world/terminus/registry/clerk", class: "/obj/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
-  { path: "/world/eternal/university-avenue/crossing", class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/registry/clerk", class: "/platform/thing/Prop", hydratorClass: PH, data: { shortDescription: "the registrar" } },
+  { path: "/world/eternal/university-avenue/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },
 ];
 
 /**

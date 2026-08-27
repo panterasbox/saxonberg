@@ -1,5 +1,5 @@
 verbs: [unprovision, unlease]
-controller: /world/eternal/duncan-hall/command/UnprovisionController
+controller: /world/eternal/duncan-hall/idea/cmd/UnprovisionController
 description: "End a Duncan Hall dorm lease and reclaim the unit"
 help: |
   End a tenant's dorm lease and reclaim their room. Name the tenant (symmetric

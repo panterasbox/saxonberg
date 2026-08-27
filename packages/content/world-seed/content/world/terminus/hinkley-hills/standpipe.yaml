@@ -5,8 +5,8 @@
 # watering is a round trip into town, which turns the care loop from a
 # habit into a chore. The dorm gave a houseplant a tap down the corridor
 # for the same reason.
-class: /obj/UnboundedReceptacle
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/thing/UnboundedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a standpipe
   primaryKeyword: standpipe
@@ -14,4 +14,4 @@ data:
   longDescription: |
     A galvanised pipe standing out of the grass with a brass tap on top of it, dripping slightly and greening the ground beneath. It was here before the fence was.
   interiorBulk: true
-  interiorMaterial: /obj/material/bulk/water
+  interiorMaterial: /stuff/idea/material/bulk/water

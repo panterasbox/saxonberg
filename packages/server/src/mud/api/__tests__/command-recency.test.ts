@@ -11,10 +11,10 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import Location from '../../lib/stuff/Location';
-import CartesianZone from '../../obj/location/CartesianZone';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import Exit from '../../lib/boundary/Exit';
-import Door from '../../obj/Door';
+import Door from '../../platform/thing/Door';
 import {
   CommandGiverMixin,
   type CommandGiver,
@@ -39,7 +39,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ['system/ping.yaml'],
+    self: ['platform/cmd/system/ping.yaml'],
     environment: [],
   };
   public envelopes: Array<import('@saxonberg/types').EnvelopeTemplate> = [];
@@ -58,7 +58,7 @@ class InvProvider extends InvProviderBase {
   static commandContributions = {
       peers: [],
     self: [],
-    environment: ['system/ping.yaml'],
+    environment: ['platform/cmd/system/ping.yaml'],
   };
 }
 
@@ -77,7 +77,7 @@ class Bag extends BagBase {
 const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
-      peers: ['system/ping.yaml'],
+      peers: ['platform/cmd/system/ping.yaml'],
     self: [],
     environment: [],
   };
@@ -101,12 +101,12 @@ describe('CommandGiverMixin recency stack', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
-          query.path === '/obj/command/system/PingController'
+          query.path === '/platform/idea/cmd/system/PingController'
         ) {
           return [
             {
-              path: '/obj/command/system/PingController',
-              class: '/obj/command/system/PingController',
+              path: '/platform/idea/cmd/system/PingController',
+              class: '/platform/idea/cmd/system/PingController',
               data: {},
             },
           ];

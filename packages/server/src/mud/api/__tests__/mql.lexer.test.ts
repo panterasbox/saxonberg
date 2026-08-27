@@ -168,14 +168,14 @@ describe('MQL lexer', () => {
 
   describe('paths', () => {
     it('lexes a simple path', () => {
-      const t = tokens('/obj/Avatar/abc');
+      const t = tokens('/platform/agent/Avatar/abc');
       expect(t).toHaveLength(1);
-      expect(t[0]).toMatchObject({ kind: 'path', value: '/obj/Avatar/abc' });
+      expect(t[0]).toMatchObject({ kind: 'path', value: '/platform/agent/Avatar/abc' });
     });
 
     it('absorbs * and ? globs', () => {
-      const t = tokens('/obj/Avatar/*');
-      expect(t[0]?.value).toBe('/obj/Avatar/*');
+      const t = tokens('/platform/agent/Avatar/*');
+      expect(t[0]?.value).toBe('/platform/agent/Avatar/*');
     });
 
     it('absorbs ** for recursive glob', () => {
@@ -197,7 +197,7 @@ describe('MQL lexer', () => {
     });
 
     it('stops at colon', () => {
-      expect(kinds('/obj/Avatar/*:i')).toEqual([
+      expect(kinds('/platform/agent/Avatar/*:i')).toEqual([
         'path',
         'colon',
         'transformLetter',

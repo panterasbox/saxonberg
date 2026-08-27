@@ -1,0 +1,10 @@
+# Outdoor tier baseline — sky-exposed by default. Carries the broad
+# outdoor ambient sound texture and the 50% humidity outdoor
+# baseline. Sub-tier baselines (temperate / etc.) extend this.
+class: /platform/idea/SkyExposedBiome
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: outdoor-baseline
+  _extendsBiomePath: /stuff/idea/biome/universe
+  _defaultHumidity: { value: 50, unit: "%" }
+  _ambientSoundMml: "<markup>a soft breeze, distant birdsong</markup>"

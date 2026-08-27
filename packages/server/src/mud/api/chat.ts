@@ -6,8 +6,8 @@
  * promotion flow.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link ChatLogic} singleton at `/obj/api/chat`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/chat`
+ * hot-reloadable {@link ChatLogic} singleton at `/platform/idea/api/chat`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/chat`
  * reloads it.
  */
 
@@ -17,16 +17,16 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Channel } from '../lib/social/Channel';
 import type Subject from '../lib/forum/Subject';
 import type { AdHocChannel } from '../lib/social/AdHocChannel';
-import type ChannelCatalogue from '../obj/ChannelCatalogue';
-import type { ChannelSubscription } from '../obj/ChannelCatalogue';
+import type ChannelCatalogue from '../platform/idea/ChannelCatalogue';
+import type { ChannelSubscription } from '../platform/idea/ChannelCatalogue';
 import type { MessageFrame } from '@saxonberg/types';
-import { ChatLogic } from '../obj/api/ChatLogic';
+import { ChatLogic } from '../platform/idea/api/ChatLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/chat';
+const LOGIC_PATH = '/platform/idea/api/chat';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ChatLogic', import.meta.url)
+  new URL('../platform/idea/api/ChatLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ChatLogic singleton (sync). */

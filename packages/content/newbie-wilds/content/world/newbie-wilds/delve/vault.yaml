@@ -4,8 +4,8 @@
 # traps wound and redirect along the way but never gate. It holds the OBVIOUS
 # reward (unconcealed, taken with no search) — the concealed cache back in
 # corridor 1 is a bonus, not the prize.
-class: /obj/location/Room
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: the delve vault
   primaryKeyword: vault

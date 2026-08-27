@@ -9,11 +9,11 @@
 # free, because a stranded traveller is a problem and Tootie does not care for
 # problems. Human (canon).
 class: /world/terminus/TicketClerk
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Tootie
   pronouns: she
-  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: tootie
   alternateNames:

@@ -1,0 +1,84 @@
+verbs: [settings]
+controller: /platform/idea/cmd/shell/SettingsController
+description: "Manage your declared settings"
+help: |
+  Settings are the named knobs that tune how the game behaves for
+  you — things like which tree your shell verbs default to or how
+  many lines `cat` prints. Each one has a declared schema with a
+  default, and you override the ones you care about.
+
+  Bare `settings` (or `settings list`) shows every declared key
+  grouped by the system that owns it. From there get, set, unset,
+  and describe work on one key at a time.
+
+  A few settings take an optional **per-screen** override: set the
+  key on its own for everywhere, or suffix it with `.desktop` /
+  `.mobile` for just that screen. `settings set shell.result
+  terminal` puts structured results in the transcript on every
+  device; `settings set shell.result.mobile terminal` does it only
+  on your phone, where a card costs a row the feed loses.
+validators:
+  - /lib/command/validators/requiresEnvironment
+subcommands:
+  list:
+    description: "List declared settings, grouped by source mixin"
+    help: |
+      Show every setting you can adjust, grouped by the system
+      that declares it. This is what bare `settings` shows too —
+      your starting point for finding a key's exact name.
+  get:
+    description: "Show a setting's current value"
+    help: |
+      Print the value a setting currently holds for you, whether
+      that's your own override or the schema default.
+    args:
+      - name: key
+        type: string
+        required: true
+
+  set:
+    description: "Set a setting's value"
+    help: |
+      Override a setting. Name the key and the value you want; the
+      value is checked against the setting's declared type before
+      it takes effect.
+    examples:
+      - cmd: settings set workspace.tree source
+        note: Override a dotted key with a value
+      - cmd: settings set shell.result terminal
+        note: Put structured results in the transcript instead of on cards
+      - cmd: settings set shell.result.mobile both
+        note: Override one setting for the phone only
+    args:
+      - name: key
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+        greedy: true
+
+  unset:
+    description: "Clear an override; the schema default applies"
+    help: |
+      Drop your override for a setting so its schema default takes
+      over again. Use it to undo a `set` without having to recall
+      the original value.
+    examples:
+      - cmd: settings unset workspace.pageSize
+        note: Restore a setting to its default
+    args:
+      - name: key
+        type: string
+        required: true
+
+  describe:
+    description: "Show a setting's schema entry"
+    help: |
+      Show a setting's full schema entry — its type, default, and
+      what it controls — so you know what a key does and what
+      values it accepts before you change it.
+    args:
+      - name: key
+        type: string
+        required: true

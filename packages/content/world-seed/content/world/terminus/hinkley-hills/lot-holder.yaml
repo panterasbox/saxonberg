@@ -1,14 +1,14 @@
 # Hinkley Hills' lot holder — the PROVISIONING half: how a sold lot
 # becomes somewhere you can stand. An instance of the general
-# `/obj/LotHolder`, named by the plat book beside it.
+# `/platform/idea/LotHolder`, named by the plat book beside it.
 #
 # One field, and it is the one that changes when the provisioning model
 # does: today a shared room template cloned per lot and keyed on the
 # lot's parcel extent, tomorrow (probably) a template minted per
 # residence. That swap is a subclass and this line — the catalogue does
 # not move.
-class: /obj/LotHolder
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/LotHolder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # MUST be a persistable room (/lib/location/FurnishableRoom or a
   # subclass) and NOT a CartesianLocation: a per-lot room cannot be a

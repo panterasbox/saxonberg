@@ -14,7 +14,7 @@
 # terminal's own `shortDescription` stays generic (it reads correctly in the
 # lounge room). The keyword `lounge` is the typeable `teleport lounge` handle.
 class: /world/lounge/LoungeTerminal
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/warren
   shortDescription: a Teleport Authority terminal

@@ -32,13 +32,13 @@ import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
-import SpellCatalogue from '../../../obj/SpellCatalogue';
-import Spell from '../../../obj/magic/Spell';
-import Scroll from '../../../obj/magic/Scroll';
-import IdentifiableThing from '../../../obj/IdentifiableThing';
-import Room from '../../../obj/location/Room';
-import Species from '../../../obj/species/Species';
+import '../../../platform/idea/WorldClockRegistry';
+import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
+import Spell from '../../../platform/idea/magic/Spell';
+import Scroll from '../../../platform/thing/magic/Scroll';
+import IdentifiableThing from '../../../platform/thing/IdentifiableThing';
+import Room from '../../../platform/location/Room';
+import Species from '../../../platform/idea/species/Species';
 import { Character } from '../../character/Character';
 import { Template } from '../../stuff/Template';
 import { IDENTIFICATION } from '../../belief/BeliefStore';
@@ -50,7 +50,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 
 const SPELL_SEEDS_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../../../../content/arcane-library/content/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
 class TestCharacter extends Character {}
@@ -80,7 +80,7 @@ async function installCatalogue(): Promise<void> {
     });
   if (!catalogueSingleton) {
     catalogueSingleton = makeStuff(() => new SpellCatalogue());
-    stampTemplatePathForTest(catalogueSingleton, '/obj/SpellCatalogue');
+    stampTemplatePathForTest(catalogueSingleton, '/platform/idea/SpellCatalogue');
   }
   catalogueSingleton.invalidateCache();
   await catalogueSingleton.postRegister();
@@ -93,7 +93,7 @@ function makeActor(): TestCharacter {
   species.setFacultyProfile({ depth: 'mid', serenity: 'mid', composure: 'mid' });
   species.setInnateMixins(['CasterMixin']);
   species.setSentient(true);
-  stampTemplatePathForTest(species, `/obj/species/test/mi-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/mi-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/mi-actor-${n}`);
@@ -113,7 +113,7 @@ function makeScroll(spellId: string): Scroll {
   const s = makeStuff(() => new Scroll());
   stampTemplatePathForTest(s, `/obj/test/mi-scroll-${seq++}`);
   s.setMarkText('a spiral of pressed characters');
-  s.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
+  s.setCarriedSpellPath(`/stuff/idea/magic/Spell/${spellId}`);
   return s;
 }
 

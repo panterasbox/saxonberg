@@ -24,21 +24,21 @@
  *
  * Thin, security-gated forwarding shell: the logic (and the
  * structural-check caches) live in the hot-reloadable {@link ZoneLogic}
- * singleton at `/obj/api/zone`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/zone` reloads it.
+ * singleton at `/platform/idea/api/zone`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/zone` reloads it.
  */
 
 import { StuffApi } from './stuff';
 import type { Zone } from '../lib/zone/Zone';
 import type { SpatialZone } from '../lib/zone/SpatialZone';
 import { HotReloadApi } from './hot-reload';
-import { ZoneLogic } from '../obj/api/ZoneLogic';
+import { ZoneLogic } from '../platform/idea/api/ZoneLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/zone';
+const LOGIC_PATH = '/platform/idea/api/zone';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ZoneLogic', import.meta.url)
+  new URL('../platform/idea/api/ZoneLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ZoneLogic singleton (sync). */

@@ -10,12 +10,12 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Condition from "../../../obj/Condition";
+import Condition from "../../../platform/idea/Condition";
 import Material from "../../material/Material";
 import type { ToxinBehavior } from "../Metabolic";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { StuffApi } from "../../../api/stuff";
 import {
   makeStuff,
@@ -51,7 +51,7 @@ const ALCOHOL: ToxinBehavior = {
   ],
 };
 
-const ALCOHOL_PATH = "/obj/Condition/metabolism/alcohol";
+const ALCOHOL_PATH = "/platform/idea/Condition/metabolism/alcohol";
 
 /**
  * ⚠ **This fabricates what production's `ConditionApi.boot` stands up.**

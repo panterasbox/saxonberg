@@ -13,7 +13,7 @@
  * @internal — do not import from production code.
  */
 
-import { EncryptedStringMarshaller } from '../../../obj/persistence/EncryptedStringMarshaller';
+import { EncryptedStringMarshaller } from '../../../platform/idea/persistence/EncryptedStringMarshaller';
 import { registerMarshallerForTest } from '../../security/__tests__/test-setup';
 
 /**
