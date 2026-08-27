@@ -1,8 +1,9 @@
 # belief — per-viewer identity memory (recognition & identification)
 
-A **per-viewer memory of identity**: what a given viewer knows about the
-things around it, and how the world's display names bend around that
-knowledge. The same Bob renders as "Bob" to a friend, "a hooded figure"
+A **per-viewer memory of identity** — **recognition** (who is this
+individual?), **identification** (what kind of thing is this?), **regard**
+(how do I feel about them?) and **disguise** — and how the world's display
+names bend around that knowledge. The same Bob renders as "Bob" to a friend, "a hooded figure"
 to someone he's hiding from, "a tall stranger" to someone who's never met
 him; the same vial reads "a blue potion" until identified, then "a potion
 of healing."
