@@ -72,11 +72,11 @@ Load-bearing docs: [content-packs.md](../subsystems/content-packs.md),
   capability pack is first-party and MR-reviewed.
 - **Hot-swapping pack code in prod.** Prod runs compiled JS; a code
   change is a restart, for packs exactly as for the kernel.
-- **A `Potion` class.** Requirements D4 of the magic-items build
-  decided a potion is a `PotionMaterial` riding `Bulkable` inside a
-  flask — that is what buys dose, dilution, splitting and spilling. A
-  potion in the catalog is a material row plus a flask row. The
-  material *class* moves to arcana; the model does not change.
+- **A *Consumable* `Potion`.** Requirements D4 of the magic-items
+  build decided a potion is a `PotionMaterial` riding `Bulkable` inside
+  a vessel — that is what buys dose, dilution, splitting and spilling —
+  and this build keeps it. The `Potion` class that ships (D5) is a
+  preset **Receptacle**, never a one-shot like `Scroll`.
 - **A Shadow class for magic.** No `ArcaneShadow`. The fact/realization
   split (magic-items-slate: *fact → Condition; realize by pull;
   shadow only for owner-less behavior*) already answers what a ring
@@ -133,8 +133,11 @@ controllers at `/arcana/idea/cmd/magic/CastController`; views at
 `generic-objects` and `base-library` do: `/stuff/idea/magic/Spell/<id>`
 (unchanged) and `/stuff/thing/magic/<item>` (the eight items leave
 `/stuff/thing/items/`). The two potion materials stay at
-`/stuff/idea/material/potion/<id>`; their flasks move beside the other
-items.
+`/stuff/idea/material/potion/<id>`; the carried potions move beside the
+other items and are **named for what they are** — `potion-of-blistering`,
+`potion-of-veiling`, never `flask-of-…`. The catalog reads by path:
+`wand-of-firebolt`, `scroll-of-identify`, `ring-of-veil`,
+`potion-of-mana`.
 
 Every `class: /platform/thing/magic/…` and
 `/platform/idea/material/PotionMaterial` reference repoints. **No
@@ -257,6 +260,17 @@ a future always-on orb or circlet gets it by composition.
 A flat ring is not dead: `recharge`, `Conduit` and the charging bench
 already refill it. Pattern fade (D9) remains the only true end.
 
+**`Potion` — a preset Receptacle.** The carried potion already exists
+as a `Receptacle` row whose `interiorMaterial` names a draught; what it
+costs today is ~14 lines of glassware boilerplate per row (`material:
+glass`, `interiorBulk`, `interiorCapacity: 0.25`, the keywords, the
+`potion` descriptor class). `Potion extends Receptacle` in arcana
+carries those as defaults, so a catalog potion is three lines:
+description, `interiorMaterial`, `interiorAmount`. The liquid stays a
+`PotionMaterial` (pourable, splittable, dilutable — D4 intact); the
+*class* is what makes `/stuff/thing/magic/potion-of-mana` a thing a
+player clones and recognizes. Every field a row may still override.
+
 ### D6 — The discipline ownership rule; the Practicum
 
 > A discipline row ships with the pack whose **code derives or
@@ -299,7 +313,7 @@ from. A class or row that exists for one spell is the library's.
 
 | kind | rows |
 |---|---|
-| `src/` classes | `thing/Wand`, `thing/Scroll`, `thing/Spellbook`, `thing/Conduit`, **`thing/Ring`**, **`thing/Amulet`**, `idea/material/PotionMaterial`, `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` |
+| `src/` classes | `thing/Wand`, `thing/Scroll`, `thing/Spellbook`, `thing/Conduit`, **`thing/Ring`**, **`thing/Amulet`**, **`thing/Potion`** (a preset `Receptacle`, D5), `idea/material/PotionMaterial`, `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` |
 | domain rows | 18 `idea/Discipline/magic-*`, 5 controller templates |
 | command-view | 5 |
 | settings | `magic.yaml` |
@@ -312,7 +326,7 @@ from. A class or row that exists for one spell is the library's.
 |---|---|
 | `src/` classes | `thing/GlowlightMote`, `thing/SparkLocus` (today's `GlowlightOrb` / `SparkSource`, D3) |
 | spells | the 12 at `/stuff/idea/magic/Spell/` |
-| items | `glowlight-mote` and `spark-locus` (the two effect loci, `class:` the pack's own, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `flask-of-blistering`, `flask-of-veiling` — at `/stuff/thing/magic/` |
+| items | `glowlight-mote` and `spark-locus` (the two effect loci, `class:` the pack's own, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `potion-of-blistering`, `potion-of-veiling` (today's two flasks, on `Potion`) — at `/stuff/thing/magic/` |
 | materials | `blistering-draught`, `veiling-draught` (unchanged path) |
 | **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today), so the catalog ships with the new classes exercised |
 
