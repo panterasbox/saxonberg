@@ -1,7 +1,7 @@
 # Cocktail glass — the output form a cocktail recipe clones. Starts empty;
 # CraftingLogic fills the bulk slot with the cocktail Material and stamps the
 # maker's mark on clone. A CraftedDrink (Bulkable + Crafted).
-class: /world/lounge/CraftedDrink
+class: /platform/thing/CraftedDrink
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cocktail glass

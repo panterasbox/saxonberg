@@ -2,7 +2,7 @@
 # Attached to the bar via the bar's `adornments:` field. The "a product
 # of Veshko" mark renders for free (BrandedMixin); the warm amber glow
 # feeds the room's ambient light fixture-side (LightSourceMixin).
-class: /world/lounge/NeonSign
+class: /platform/thing/NeonSign
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a Volk neon sign

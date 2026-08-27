@@ -6,8 +6,8 @@
  * `toolCapabilities`, exactly as the old `ToolItem` seed did) plus the
  * manual-build buffer that `pour` / `add` bank graded contributions into
  * and `strain` mints from. Backs both the shaker (shaken drinks) and the
- * mixing glass (stirred); capabilities + condition stay authored in each
- * seed's `data:`.
+ * mixing glass (stirred) — the hospitality trade's station templates;
+ * capabilities + condition stay authored in each row's `data:`.
  *
  * The buffer is runtime-only (see {@link ManualBuildMixin}), so this adds
  * no persistent fields over `ToolItem`.

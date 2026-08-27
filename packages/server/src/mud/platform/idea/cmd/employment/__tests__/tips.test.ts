@@ -10,7 +10,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TipController from '../TipController';
 import CollectController from '../CollectController';
-import TipJar from '../../../../../world/lounge/TipJar';
+import TipJar from '../../../../thing/TipJar';
 import Coin from '../../../../thing/Coin';
 import { EmploymentApi } from '../../../../../api/employment';
 import { BankingApi, Money } from '../../../../../api/banking';

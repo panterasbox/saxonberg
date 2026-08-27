@@ -1,6 +1,6 @@
 # Dave's Bar menu — the offer. References recipe ids; decoupled from the
 # maker and the room. Its presence lights up the crafting verb surface.
-class: /world/lounge/Menu
+class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a chalkboard menu

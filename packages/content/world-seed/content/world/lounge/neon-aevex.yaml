@@ -1,7 +1,7 @@
 # An aevex zero (Aevex) neon sign — Veshko's rival, sharing the wall and
 # nothing else. Cool blue glow against the amber; the corpo fault line
 # made literal in light. Attached via the bar's `adornments:` field.
-class: /world/lounge/NeonSign
+class: /platform/thing/NeonSign
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: an aevex zero sign

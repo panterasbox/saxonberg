@@ -3,7 +3,7 @@
 # Off the books by construction (physical coin, no account). Starts empty and
 # fills as patrons tip — inspectable, so you can watch it fill. Populated onto
 # the bar's rail by the Bar seed's `populates` list.
-class: /world/lounge/TipJar
+class: /platform/thing/TipJar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a tip jar

@@ -6,7 +6,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Menu from '../Menu';
+import Menu from '../../../platform/thing/Menu';
 import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { StuffApi } from '../../../api/stuff';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';

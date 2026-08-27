@@ -1,5 +1,5 @@
 # A cocktail shaker — a tool offering the `shaker` capability (shaken drinks).
-class: /world/lounge/CocktailShaker
+class: /platform/thing/CocktailShaker
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cocktail shaker

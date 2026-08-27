@@ -1,5 +1,5 @@
 # A bottle of lime juice — a non-alcoholic graded bulk input on the bar.
-class: /world/lounge/GradedReceptacle
+class: /platform/thing/GradedReceptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a bottle of lime juice

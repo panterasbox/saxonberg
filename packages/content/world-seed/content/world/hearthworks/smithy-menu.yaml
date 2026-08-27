@@ -3,7 +3,7 @@
 # by-hand and maintenance verbs as they land). Prices are the smith's
 # willingness, calibrated to the store's ladder (a knife the store sells
 # at 6 is 15 bespoke — provenance carries worth).
-class: /world/hearthworks/SmithyMenu
+class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a chalked slate of smith-work

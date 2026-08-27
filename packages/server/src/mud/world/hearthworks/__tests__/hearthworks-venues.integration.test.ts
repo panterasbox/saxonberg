@@ -37,9 +37,7 @@ import Dish from '../../../platform/thing/Dish';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import ToolItem from '../../../platform/thing/ToolItem';
 import CommerceMenu from '../../../lib/commerce/Menu';
-import LoungeMenu from '../../lounge/Menu';
-import SmithyMenu from '../SmithyMenu';
-import KitchenMenu from '../KitchenMenu';
+import Menu from '../../../platform/thing/Menu';
 import RecipeCatalogue from '../../../platform/idea/RecipeCatalogue';
 import { Reserve } from '../../../lib/reserve';
 import { Creature } from '../../../lib/creature/Creature';
@@ -264,10 +262,8 @@ describe('the venue menus', () => {
   it('every menu affords commerce only; instruments carry the working verbs', () => {
     // Menus = menu/order, any venue (inherited off the commerce base).
     const commerce = ['platform/cmd/crafting/menu.yaml', 'platform/cmd/crafting/order.yaml'];
-    for (const cls of [SmithyMenu, KitchenMenu, LoungeMenu]) {
-      expect(cls.commandContributions.peers).toEqual(commerce);
-      expect(cls.commandContributions.environment).toEqual(commerce);
-    }
+    expect(Menu.commandContributions.peers).toEqual(commerce);
+    expect(Menu.commandContributions.environment).toEqual(commerce);
 
     // The working verbs ride the instruments — derived from instance
     // `capabilities` through the capability table (no per-tool classes).
@@ -291,14 +287,13 @@ describe('the venue menus', () => {
     );
     expect(potEnv).toContain('platform/cmd/crafting/heat.yaml');
 
-    // All three ARE commerce menus (resolveIn's instanceof filter).
-    expect(makeStuff(() => new SmithyMenu())).toBeInstanceOf(CommerceMenu);
-    expect(makeStuff(() => new KitchenMenu())).toBeInstanceOf(CommerceMenu);
-    expect(makeStuff(() => new LoungeMenu())).toBeInstanceOf(CommerceMenu);
+    // The one Menu IS a commerce menu (resolveIn's instanceof filter);
+    // the venues differ only in the rows' data.
+    expect(makeStuff(() => new Menu())).toBeInstanceOf(CommerceMenu);
   });
 
   it('the smithy slate offers the authored ladder', async () => {
-    const menu = makeStuff(() => new SmithyMenu());
+    const menu = makeStuff(() => new Menu());
     menu.setOfferedRecipes([
       'fire-poker',
       'cook-pot',

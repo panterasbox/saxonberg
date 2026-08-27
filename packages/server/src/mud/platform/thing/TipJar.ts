@@ -9,8 +9,9 @@
  * A `Vessel` (the canonical container-object — holds coin), `Detailed` so it
  * reads as a fixture and shows its contents when inspected — you can watch it
  * fill. It lights up the `tip` + `collect` verbs from the room
- * (`commandContributions`), the `Menu` precedent. Lounge content, so it lives
- * beside `Menu` / `Bar` in `world/lounge/`.
+ * (`commandContributions`), the `Menu` precedent. A commons class (a jar is a
+ * jar): the hospitality trade ships the template, any venue's bar populates
+ * an instance.
  */
 
 import { Vessel } from '../../lib/stuff/Vessel';

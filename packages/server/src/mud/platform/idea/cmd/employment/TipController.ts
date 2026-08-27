@@ -18,7 +18,7 @@ import type { Charge } from '../../../../api/banking';
 import { EmploymentApi } from '../../../../api/employment';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import TipJar from '../../../../world/lounge/TipJar';
+import TipJar from '../../../thing/TipJar';
 import { Currency } from "../../../../lib/banking/Currency";
 
 const TOPIC = 'act.deed';

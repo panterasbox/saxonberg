@@ -9,8 +9,8 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
-import CocktailShaker from "../../../world/lounge/CocktailShaker";
-import GradedReceptacle from "../../../world/lounge/GradedReceptacle";
+import CocktailShaker from "../../../platform/thing/CocktailShaker";
+import GradedReceptacle from "../../../platform/thing/GradedReceptacle";
 import { MixinApi } from "../../../api/mixin";
 import { makeStuff } from "../../security/__tests__/test-setup";
 

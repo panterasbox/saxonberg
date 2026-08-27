@@ -1,5 +1,5 @@
 # A working bottle of dry vermouth — a graded bulk input on the bar.
-class: /world/lounge/GradedReceptacle
+class: /platform/thing/GradedReceptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a bottle of dry vermouth
