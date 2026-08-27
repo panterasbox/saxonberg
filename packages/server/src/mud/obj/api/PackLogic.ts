@@ -3670,6 +3670,17 @@ export class PackLogic extends ApiLogic {
     return lines;
   }
 
+  /** See {@link PackApi.orphans}. */
+  @CallSecurity(PackApiCallers)
+  public async orphans(): Promise<string[]> {
+    const rows = (await PersistApi.find(Collections.Content, {})) as StampedRow[];
+    return rows
+      .filter((r) => !r.sourcePack)
+      .map((r) => String(r.path ?? ''))
+      .filter((p) => p.length > 0)
+      .sort();
+  }
+
   /** See {@link PackApi.maintainersOf}. */
   @CallSecurity(PackApiCallers)
   public async maintainersOf(packId: string): Promise<PackMaintainersInfo | null> {

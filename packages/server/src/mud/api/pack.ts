@@ -486,6 +486,16 @@ export class PackApi {
     return logic().reprovision();
   }
 
+  /**
+   * Template rows under no pack: `content` rows with no `sourcePack` stamp
+   * (D9 — the seed inventory nobody claims; listed, never deleted).
+   * Templates only: an author-minted document is an ordinary row, not
+   * seed inventory.
+   */
+  public static async orphans(): Promise<string[]> {
+    return logic().orphans();
+  }
+
   /** Who maintains `packId`, whether anyone does, and the ops fallback. */
   public static async maintainersOf(packId: string): Promise<PackMaintainersInfo | null> {
     return logic().maintainersOf(packId);

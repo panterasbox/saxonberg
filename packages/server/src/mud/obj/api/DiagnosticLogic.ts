@@ -19,6 +19,7 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { AccessApi } from '../../api/access';
 import { PackApi } from '../../api/pack';
 import { GroupApi } from '../../api/group';
+import { CompactApi } from '../../api/compact';
 import { ProvenanceApi } from '../../api/provenance';
 import { EventApi, Events } from '../../api/event';
 import { StuffApi } from '../../api/stuff';
@@ -101,11 +102,12 @@ function onlineAuthor(authorPath: string): Stuff | undefined {
   }
 }
 
-/** Best-effort author push — store-is-truth, push-is-courtesy. */
-function pushToAuthor(ev: DiagnosticEvent): void {
-  if (!ev.author) return;
-  const av = onlineAuthor(ev.author);
-  if (!av || !MixinApi.isSensor(av)) return;
+/** The ops fallback for an unstaffed pack's diagnostics: the executive. */
+const EXECUTIVE = '/compact/executive';
+
+/** One frame to one online recipient — best-effort, never throws. */
+function pushTo(av: Stuff, ev: DiagnosticEvent): void {
+  if (!MixinApi.isSensor(av)) return;
   try {
     MudlogApi.error(
       `diagnostic.${ev.channel}`,
@@ -115,6 +117,35 @@ function pushToAuthor(ev: DiagnosticEvent): void {
   } catch {
     // delivery is best-effort; a failed push never loses the stored row.
   }
+}
+
+/**
+ * Who a pack channel's diagnostic goes to (content-packs wave 3, D7): the
+ * pack's maintainers — its group's online members, or an organization's
+ * staff and head — else the executive (`/compact/executive`'s committee).
+ */
+async function packRecipients(packId: string): Promise<Stuff[]> {
+  const info = await PackApi.maintainersOf(packId);
+  const m = info?.staffed ? info.maintainers : null;
+  if (m && 'group' in m) {
+    const group = await (await GroupApi.registry()).managed().findByName(m.group);
+    return group?._id ? GroupApi.membersOf(`managed:${group._id}`) : [];
+  }
+  return CompactApi.committeeMembersOf(m && 'organization' in m ? m.organization : EXECUTIVE);
+}
+
+/** Best-effort push — store-is-truth, push-is-courtesy. A pack channel routes to its maintainers; anything else to the author. */
+function pushToAuthor(ev: DiagnosticEvent): void {
+  if (ev.channel.startsWith('pack.')) {
+    void packRecipients(ev.channel.slice('pack.'.length))
+      .then((who) => { for (const av of who) pushTo(av, ev); })
+      .catch(() => undefined);
+    return;
+  }
+  if (!ev.author) return;
+  const av = onlineAuthor(ev.author);
+  if (!av) return;
+  pushTo(av, ev);
 }
 
 /** Map a raw Mongo doc to the wire shape (stringify `_id`). */

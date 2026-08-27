@@ -11,6 +11,9 @@ import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PackController from '../PackController';
 import { PackApi } from '../../../../api/pack';
+import { PromptApi } from '../../../../api/prompt';
+import Avatar from '../../../Avatar';
+import type Interactive from '../../../Interactive';
 import { MessageApi } from '../../../../api/message';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
@@ -60,6 +63,16 @@ function ctxFor(actor: Idea): CommandContext {
   return { commandGiver: actor as never, note } as unknown as CommandContext;
 }
 
+/** A giver with an Interactive attached (the prompt needs one). */
+async function runAs(model: PackArgs): Promise<void> {
+  const actor = makeStuffAtPath(() => new Avatar(), '/obj/Avatar/dev');
+  actor.setPlayerId('dev');
+  const interactive = { id: 'i' } as unknown as Interactive;
+  actor.addInteractive(interactive);
+  const ctrl = makeStuff(() => new PackController());
+  await ctrl.execute(model, ctxFor(actor as unknown as Idea));
+}
+
 async function run(model: PackArgs): Promise<void> {
   const actor = makeStuffAtPath(() => new Idea(), '/obj/Avatar/dev');
   const ctrl = makeStuff(() => new PackController());
@@ -69,6 +82,7 @@ async function run(model: PackArgs): Promise<void> {
 beforeEach(() => {
   vi.restoreAllMocks();
   told = [];
+  vi.spyOn(PackApi, 'orphans').mockResolvedValue([]);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
@@ -87,6 +101,36 @@ const rejected = (reason: string) =>
   expect(note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'controller-rejected', reason }));
 
 describe('PackController routing', () => {
+  it('status lists the template rows under no pack (listed, never deleted)', async () => {
+    vi.spyOn(PackApi, 'status').mockResolvedValue([
+      { packId: 'p', discovered: true, manifestVersion: '0.1.0', record: null, maintainers: null, titleConflicts: [] },
+    ]);
+    vi.spyOn(PackApi, 'orphans').mockResolvedValue(['/obj/OldThing', '/obj/Older']);
+    await run({ subcommand: 'status' });
+    expect(told.join('\n')).toContain('2 template row(s) under no pack: /obj/OldThing, /obj/Older');
+  });
+
+  it('sync of an UNSTAFFED pack prompts the installer to staff it (enter = you); a staffed pack does not prompt', async () => {
+    vi.spyOn(PackApi, 'orphans').mockResolvedValue([]);
+    const sync = vi.spyOn(PackApi, 'sync').mockResolvedValue({ ...OK, staffed: false });
+    const text = vi.spyOn(PromptApi, 'text').mockResolvedValue('');
+    const staff = vi.spyOn(PackApi, 'staff').mockResolvedValue(true);
+    await runAs({ subcommand: 'sync', packId: 'world-seed' });
+    expect(sync).toHaveBeenCalledWith('world-seed');
+    expect(text).toHaveBeenCalledWith(expect.anything(), expect.stringMatching(/no maintainers/));
+    expect(staff).toHaveBeenCalledWith('world-seed', '/obj/Avatar/dev');
+    expect(told.join('\n')).toContain("/obj/Avatar/dev now maintains pack 'world-seed'");
+
+    text.mockResolvedValue('/obj/Avatar/deputy');
+    await runAs({ subcommand: 'sync', packId: 'world-seed' });
+    expect(staff).toHaveBeenLastCalledWith('world-seed', '/obj/Avatar/deputy');
+
+    sync.mockResolvedValue({ ...OK, staffed: true });
+    text.mockClear();
+    await runAs({ subcommand: 'sync', packId: 'world-seed' });
+    expect(text).not.toHaveBeenCalled();
+  });
+
   it('provision <packId> → PackApi.provision; prints maintainers, groups and titles', async () => {
     const provision = vi.spyOn(PackApi, 'provision').mockResolvedValue({
       packId: 'world-seed',

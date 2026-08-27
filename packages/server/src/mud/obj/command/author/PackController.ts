@@ -25,6 +25,8 @@ import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { PackApi } from '../../../api/pack';
+import { PromptApi } from '../../../api/prompt';
+import { MixinApi } from '../../../api/mixin';
 import type {
   PackDiffReport,
   PackDryRunReport,
@@ -84,6 +86,11 @@ export default class PackController extends CommandController<PackModel> {
         return this.tell(context, model.packId ? `no pack '${model.packId}'` : 'no packs');
       }
       const lines = reports.map((r) => this.formatStatus(r));
+      // Seed inventory nobody claims (D9): listed, never deleted.
+      const orphans = await PackApi.orphans();
+      if (orphans.length > 0) {
+        lines.push(`${orphans.length} template row(s) under no pack: ${orphans.join(', ')}`);
+      }
       this.tell(context, lines.join('\n\n'));
     } catch (err) {
       return this.fail(context, (err as Error).message, 'status-failed');
@@ -111,11 +118,38 @@ export default class PackController extends CommandController<PackModel> {
 
   private async executeSync(model: PackModel, context: CommandContext): Promise<void> {
     const packId = model.packId?.trim() || DEFAULT_PACK;
+    let result: PackReconcileResult;
     try {
-      const result = await PackApi.sync(packId);
+      result = await PackApi.sync(packId);
       this.tell(context, this.formatResult('synced', result));
     } catch (err) {
       return this.fail(context, (err as Error).message, 'sync-failed');
+    }
+    // A person's install of an unstaffed pack is the moment to staff it
+    // (D7): the installer, or who they name.
+    if (!result.staffed) await this.offerToStaff(packId, context);
+  }
+
+  private async offerToStaff(packId: string, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
+    if (!interactive) return;
+    let answer: string;
+    try {
+      answer = (await PromptApi.text(
+        interactive,
+        'This pack has no maintainers. You, or who? (a name, or enter for you)',
+      )).trim();
+    } catch {
+      return; // declined / timed out: it stays unstaffed, and status says so
+    }
+    const memberPath = answer.length > 0 ? answer : (giver.getIdentityPath() ?? giver.getTemplatePath() ?? '');
+    if (!memberPath) return;
+    try {
+      const added = await PackApi.staff(packId, memberPath);
+      this.tell(context, added ? `${memberPath} now maintains pack '${packId}'.` : `${memberPath} already maintains pack '${packId}'.`);
+    } catch (err) {
+      this.tell(context, (err as Error).message);
     }
   }
 
