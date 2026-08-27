@@ -59,7 +59,6 @@ describe('ErrorsController', () => {
     vi.spyOn(DiagnosticApi, 'rawTail').mockReturnValue([]);
     vi.spyOn(DiagnosticApi, 'clear').mockResolvedValue(0);
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
 
     ctrl = makeStuff(() => new ErrorsController());
 
@@ -95,19 +94,11 @@ describe('ErrorsController', () => {
 
   const run = (m: ErrorsModel) => ctrl.execute(m as never, ctx);
 
-  it('rejects a non-author non-wizard with a note', async () => {
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+  it('has no door: a nobody gets an empty list, never a refusal (what you see is what you hold)', async () => {
     await run({});
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'not-authorised' })
+    expect(note).not.toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'controller-rejected' })
     );
-    expect(DiagnosticApi.list).not.toHaveBeenCalled();
-  });
-
-  it('admits a wizard who is not an author', async () => {
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
-    await run({});
     expect(DiagnosticApi.list).toHaveBeenCalled();
   });
 

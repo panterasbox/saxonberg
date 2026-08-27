@@ -10,6 +10,8 @@ import {
   ParcelRecord,
   type ParcelOwner,
   type ParcelSpace,
+  type TitleClaim,
+  type TitleGrantOutcome,
 } from "../../lib/parcel/ParcelRecord";
 import type { LandUse } from "../../lib/parcel/LandUse";
 import type { GroupRef } from "../../lib/social/GroupProvider";
@@ -19,15 +21,12 @@ const REGISTRY_PATH = TemplatePaths.parcelRegistry;
 
 const ParcelApiCallers = SecurityPolicies.FromModule("/api/parcel#ParcelApi");
 
-/** The state's default-owner group (public-held default). */
-const STATE_OWNER: ParcelOwner = { kind: "group", name: "core" };
-
 /**
  * Resolve the Registry without forcing a clone. In production it's cloned
  * by `AppBootstrap`, so this returns it cheaply. In test harnesses without
  * a live Registry it returns `null` — the reads then degrade to the pure
- * rungs (`ownerOf` → self-home ?? state), so `AccessApi.can` stays
- * byte-identical (no parcels → the state's `core` walk).
+ * rungs (`ownerOf` → self-home ?? null), so `AccessApi.can` fails
+ * closed on anything but a self-home path.
  */
 let registryRef: ParcelRegistry | null = null;
 function lookupRegistry(): ParcelRegistry | null {
@@ -54,11 +53,11 @@ function lookupRegistry(): ParcelRegistry | null {
 export class ParcelLogic extends ApiLogic {
   /** See {@link ParcelApi.ownerOf}. */
   @CallSecurity(ParcelApiCallers)
-  public async ownerOf(path: string): Promise<ParcelOwner> {
+  public async ownerOf(path: string): Promise<ParcelOwner | null> {
     const reg = lookupRegistry();
     if (reg) return reg.ownerOf(path);
-    // Pure degrade: no registry → no parcels → self-home ?? the state.
-    return ParcelRecord.selfHomeOwnerOf(path) ?? STATE_OWNER;
+    // Pure degrade: no registry → no parcels → self-home ?? untitled.
+    return ParcelRecord.selfHomeOwnerOf(path);
   }
 
   /** See {@link ParcelApi.coveringParcelOf}. */
@@ -112,6 +111,27 @@ export class ParcelLogic extends ApiLogic {
     return reg
       ? reg.spaceOf(extent)
       : { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
+  }
+
+  /** See {@link ParcelApi.allRecords}. No registry → the rows themselves. */
+  @CallSecurity(ParcelApiCallers)
+  public async allRecords(): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    return reg ? reg.allRecords() : ParcelRecord.findAll();
+  }
+
+  /** See {@link ParcelApi.grant}. The grant path MINTS the registry when
+   *  absent (the registry-at-boot rule: the installer's requires phase
+   *  runs before `BootstrapManager` clones the manifest singletons, and
+   *  `BootstrapManager` reuses a resident one). */
+  @CallSecurity(ParcelApiCallers)
+  public async grant(
+    claim: TitleClaim,
+  ): Promise<{ outcome: TitleGrantOutcome; holder: ParcelOwner }> {
+    const reg =
+      lookupRegistry() ??
+      (registryRef = await StuffApi.singleton<ParcelRegistry>(REGISTRY_PATH));
+    return reg.grant(claim);
   }
 
   /** See {@link ParcelApi.transfer}. */

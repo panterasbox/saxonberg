@@ -18,7 +18,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
 import { StuffApi } from "../../../api/stuff";
@@ -34,13 +34,20 @@ import {
 import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
-const SEEDS = fileURLToPath(new URL("../../../seeds", import.meta.url));
+// The rows this stand-up reads live across the packs (content-packs
+// wave 3): the locality rows in world-seed, the species in
+// species-and-names, the rest in the platform / generic-objects packs.
+const PACKS = fileURLToPath(new URL("../../../../../../content/", import.meta.url));
+const SEEDS = `${PACKS}world-seed/content`;
+const ROOTS = ["world-seed", "species-and-names", "generic-objects", "platform"].map(
+  (p) => `${PACKS}${p}/content`,
+);
 
-/** Read one real seed YAML → a template Doc at the given templatePath. */
+/** Read one real content YAML (from whichever pack ships it) → a template Doc at the given templatePath. */
 function seed(relFromSeeds: string, path: string): Doc {
-  const parsed = YAML.parse(
-    readFileSync(`${SEEDS}/${relFromSeeds}`, "utf-8"),
-  ) as Record<string, unknown>;
+  const file = ROOTS.map((r) => `${r}/${relFromSeeds}`).find((f) => existsSync(f));
+  if (!file) throw new Error(`no pack ships ${relFromSeeds}`);
+  const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
   return {
     path,
     class: parsed.class as string,

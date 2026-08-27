@@ -148,20 +148,6 @@ export interface CommandContext {
   barId?: string;
 
   /**
-   * Precomputed permission snapshot used by MQL pre-resolution
-   * gates. Populated by the dispatcher per command via
-   * `AccessApi.isAuthor` + (when admin) a `'core'` membership read;
-   * the resolver stamps it onto every `MqlContext` it builds. Absent
-   * for server-internal callers building MqlContexts directly.
-   *
-   * @internal
-   */
-  _mqlPermission?: {
-    isAuthor: boolean;
-    coreMemberIds?: ReadonlySet<string>;
-  };
-
-  /**
    * Accumulate a structured note. Auto-escalates status per the
    * {@link autoEscalationFor} table unless `setStatus` was already
    * called explicitly (in which case the explicit value sticks).
@@ -1394,15 +1380,6 @@ export class CommandApi {
    */
   static reload(docPath: string): Promise<boolean> {
     return logic().reload(docPath);
-  }
-
-  /**
-   * The view keys served from DISK rather than the store — the
-   * migration residue (`pack status` prints it). Empty once every view
-   * is content.
-   */
-  static diskFallbacks(): string[] {
-    return logic().diskFallbacks();
   }
 
   /**

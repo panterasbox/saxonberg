@@ -6,7 +6,7 @@
  * to fix — 45 emitted topics with no authored descriptor — was invisible
  * precisely because everything that *examined* topics examined
  * hand-built examples that were correct by construction. These tests
- * read `seeds/obj/Topic/` and the shipped `TOPIC_ROOTS`, so they fail
+ * read the platform pack's `content/obj/Topic/` and the shipped `TOPIC_ROOTS`, so they fail
  * when the corpus drifts, not when a fixture does.
  */
 
@@ -18,7 +18,7 @@ import YAML from 'yaml';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SEEDS = join(HERE, '..', '..', 'seeds', 'obj', 'Topic');
+const SEEDS = join(HERE, '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'obj', 'Topic');
 
 interface SeedData {
   topic?: string;

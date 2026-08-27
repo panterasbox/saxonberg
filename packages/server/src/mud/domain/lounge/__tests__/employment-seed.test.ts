@@ -22,7 +22,7 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
 const SEED = fileURLToPath(
-  new URL('../../../seeds/domain/lounge/business.yaml', import.meta.url),
+  new URL('../../../../../../content/world-seed/content/domain/lounge/business.yaml', import.meta.url),
 );
 const BUSINESS = '/domain/lounge/business';
 const DAVE = '/domain/lounge/npc/dave';

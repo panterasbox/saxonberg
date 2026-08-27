@@ -173,8 +173,8 @@ async findByName(name: string): Promise<Group | null>;
 
 `name` is unique-indexed at the collection level, so the result is a
 single Group or `null`. Used by `AccessRegistry`'s bootstrap seeding
-and developer-cache warm path to find well-known groups (`'core'`,
-`'lounge'`, `'wizards'`) without threading their `_id`s — see
+and developer-cache warm path to find well-known groups (`'lounge'`,
+`'wizards'`) without threading their `_id`s — see
 [access.md](./access.md).
 
 The provider holds a `Map<id, Set<listener>>` for change notifications.
@@ -274,8 +274,9 @@ export type GroupOwner =
 ```
 
 Constructed through `Group.systemOwner()` / `playerOwner(path)` /
-`officeOwner(key)`; authored in `config/groups.yaml` as `system`,
-`{ office: <key> }`, or `{ player: <templatePath> }`. Rows written
+`officeOwner(key)`; authored in a content pack's `requires.groups`
+(`GroupApi.ensureGroup`, adopt-by-name — [content-packs.md](./content-packs.md))
+as `system`, `{ office: <key> }`, or `{ player: <templatePath> }`. Rows written
 before 2026-08 held a bare string (`system`, a templatePath, briefly an
 `office:<key>` sentinel); `PersistenceManager.#migrateGroupOwners` rewrites
 them once at boot through `Group.ownerFromStored`, which the readers also
@@ -301,8 +302,9 @@ rewritten. `GroupController`'s four ownership gates (`delete`, `rename`,
 `the office of prime-minister (held by <holder>)`.
 `ManagedGroupProvider.roleOf` is deliberately untouched — roster roles
 stay roster-based; ownership is a resolution, not a row. First user: the
-`pack-installers` committee
-([content-packs.md](./content-packs.md#who-may-run-it--the-pack-installers-committee)).
+platform's `soul` committee, PM-owned
+([content-packs.md](./content-packs.md); the wave-2 `pack-installers`
+committee it debuted on was folded into the executive in wave 3).
 
 ## The `group` verb suite
 

@@ -98,7 +98,6 @@ describe('MQL — bulk scope resolution', () => {
     ctx = {
       commandGiver: world.giver,
       scope: 'reachable',
-      permission: { isAuthor: false },
     };
   });
 

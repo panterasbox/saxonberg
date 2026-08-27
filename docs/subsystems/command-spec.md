@@ -12,7 +12,7 @@ A command lives in five places:
 |---|---|---|
 | **YAML view** | `content/cmd/<category>/<verb>.yaml` in the **`platform` content pack** (`packages/content/platform/`) | verbs, args, options, scope, validators |
 | **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | execution body |
-| **Controller seed** | `mud/seeds/obj/command/<category>/<Name>.yaml` | template doc for `StuffApi.clone` |
+| **Controller template** | `content/obj/command/<category>/<Name>Controller.yaml` in the platform pack | template doc for `StuffApi.clone` |
 | **Discovery** | `static commandContributions` on a class or mixin | which givers see this verb on their recency stack |
 | **Validators (optional)** | `mud/lib/command/validators/<name>.ts` | per-field validators referenced by path |
 
@@ -44,17 +44,20 @@ at the view key's document path (`perception/look.yaml` →
 `/cmd/perception/look`; a locality's `domain/<…>/cmd/<verb>.yaml` →
 `/domain/<…>/cmd/<verb>`). `CommandApi.preloadAll` serves the **store
 first**, then the on-disk command trees for whatever the store did not
-serve — **counting each disk read**, and `pack status` prints the
-residue (*N command view(s) still served from disk*; the seven
-domain-local views under `mud/domain/eternal/**/cmd/` today, until wave
-4 moves the localities). The cache key stays the view key — the
+and **nothing else**: once a store has been served, a view the store
+lacks is a miss, not a file (content-packs wave 3 deleted the disk
+fallback and `CommandApi.diskFallbacks`; the seven domain-local views
+under the eternal localities now ship in the `world-seed` pack). The
+cache key stays the view key — the
 `commandContributions` string — so nothing that references a verb
 changed. A CMS edit of a view's help goes live through
 `CommandApi.reload(path)` without a restart; an edit that changes its
 `controller:` or its validator set is **wizard code trust**
-([document-store.md](./document-store.md)). Offline (a unit test, no
-store) every view comes from disk, so a bare `CommandApi.getCommand`
-still works.
+([document-store.md](./document-store.md)). **Offline** — no store was
+ever preloaded (a unit test, a stripped boot) — a view is read from the
+packs' own files (`PackApi.contentRoots()`, cached until `clearCache`),
+so a bare `CommandApi.getCommand` still works; a checkout with no
+resolvable packs reads nothing.
 
 ## Domain-local commands — verbs that live with their content
 
@@ -72,9 +75,9 @@ tree): the spec goes in a `cmd/` segment, the controller in a sibling
 
 | Artifact | Global engine verb | Domain-local verb |
 |---|---|---|
-| **YAML view** | the platform pack's `content/cmd/<category>/<verb>.yaml` | `mud/domain/<sphere>/<locality>/cmd/<verb>.yaml` (a pack's `content/domain/<…>/cmd/<verb>.yaml` once the locality is a pack) |
+| **YAML view** | the platform pack's `content/cmd/<category>/<verb>.yaml` | the locality's pack: `content/domain/<sphere>/<locality>/cmd/<verb>.yaml` (`world-seed` for the eternal localities today) |
 | **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/command/<Name>Controller.ts` |
-| **Controller seed** | `mud/seeds/obj/command/<category>/<Name>Controller.yaml` | `mud/seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml` |
+| **Controller template** | the platform pack's `content/obj/command/<category>/<Name>Controller.yaml` | the locality's pack: `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml` |
 | **`controller:` field** | absolute `/obj/command/<category>/<Name>Controller` | relative `../command/<Name>Controller` (sibling of the spec) |
 | **`commandContributions`** | `<category>/<verb>.yaml` | `domain/<sphere>/<locality>/cmd/<verb>.yaml` |
 
@@ -84,15 +87,17 @@ with `/` **is** the `/`-rooted template path; otherwise it resolves
 **relative to the spec file's own directory**. So a domain-local spec in
 `.../cmd/` names its controller `../command/<Name>Controller`, resolving
 to `/domain/<sphere>/<locality>/command/<Name>Controller` — which both
-names the seed (`mud/seeds/<that path>.yaml`) and is the `class:` that
-seed declares (guarded by `controller-seeds.integrity` test).
+names the pack's template row (`content/<that path>.yaml`) and is the
+`class:` that row declares (guarded by the `controller-seeds.integrity`
+test, which resolves specs against the pack content).
 
-Discovery: `CommandApi`'s preloader walks `mud/domain` recursively and
-picks up any `.yaml` under a `cmd/` segment, exactly as the
-`commandContributions` string on the owning class references it (e.g.
-`'domain/eternal/university-avenue/cmd/blow.yaml'`). Nothing else changes
-— the same YAML schema, controller skeleton, validators, and seed
-contract apply.
+Discovery: a locality's `cmd/*.yaml` are installed as `command-view`
+documents at `/domain/<…>/cmd/<verb>` like any other view, and
+`commandContributions` on the owning class references the view by its
+`domain/`-prefixed key (e.g.
+`'domain/eternal/university-avenue/cmd/blow.yaml'`). Nothing else
+changes — the same YAML schema, controller skeleton, validators, and
+template contract apply.
 
 **The deciding test is reusability, not size or novelty.** If any other
 object anywhere could plausibly afford the verb, it's a general
@@ -1099,9 +1104,10 @@ needs richer-than-string structure.
 
 A controller is a templated `Idea` (Stuff). One file per controller
 under `mud/obj/command/<category>/<Name>Controller.ts`, with a matching
-seed at `mud/seeds/obj/command/<category>/<Name>.yaml` that produces a
-Template doc at `/obj/command/<category>/<Name>` in the `domain`
-collection. The YAML view's `controller:` field is that **template
+template row in the platform pack
+(`content/obj/command/<category>/<Name>Controller.yaml`) that produces a
+Template doc at `/obj/command/<category>/<Name>Controller` in the
+`content` collection. The YAML view's `controller:` field is that **template
 name**, including the category prefix — the dispatcher does
 `StuffApi.clone('/obj/command/' + command.controller)` for each
 execution. By convention the template name matches the TS class name
@@ -1320,22 +1326,22 @@ when the giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
 without `FocusedMixin` simply doesn't see `focus` on its recency
 stack.
 
-## Controller seed file
+## Controller template row
 
-For every controller class, drop a one-liner seed at
-`mud/seeds/obj/command/<category>/<Name>.yaml` with the correct class
-path. `SeederManager` writes the Template doc into `domain` at boot;
-`StuffApi.clone` picks it up on dispatch.
+For every controller class, drop a one-liner template in the platform
+pack at `content/obj/command/<category>/<Name>Controller.yaml` with the
+correct class path. `PackApi.install` writes the Template doc into
+`content` at boot; `StuffApi.clone` picks it up on dispatch.
 
 ```yaml
-# mud/seeds/obj/command/perception/FocusController.yaml
+# packages/content/platform/content/obj/command/perception/FocusController.yaml
 class: /obj/command/perception/FocusController
 data: {}
 ```
 
-Without the seed, `_executeOne`'s clone fails at runtime — surfaces
+Without the row, `_executeOne`'s clone fails at runtime — surfaces
 as a command-level failure but a confusing one, since the YAML view
-loaded fine. The seed is the boring-but-essential third leg.
+loaded fine. The template row is the boring-but-essential third leg.
 
 ## Variable interpolation in YAML strings
 

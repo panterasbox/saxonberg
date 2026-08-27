@@ -119,16 +119,17 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // The content-pack installer's operator surface — `pack status /
         // install --dry-run / sync / diff / resolve / pin`. Afforded on the
         // operator command surface like the rest of this suite, but
-        // *authorized* on the orthogonal committee axis: `pack.yaml`
-        // carries `requiresPackInstaller` (membership of the
-        // `pack-installers` committee, never wizardness), so an author
-        // who is not appointed sees the verb but can't run it.
+        // *authorized* on title: `pack.yaml` carries
+        // `requiresPackInstaller` (holding /compact/executive — the PM and
+        // her staff, never wizardness), so an author who is not on the
+        // executive sees the verb but can't run it.
         'author/pack.yaml',
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
-        // `errors.yaml` carries `requiresAuthor`, so a non-author sees
-        // nothing. The finer gates (raw → wizard, clear → author-of-path)
-        // are enforced in the controller / DiagnosticApi.
+        // what you see is what you hold (`DiagnosticApi.list` filters to
+        // your extents and the packs you maintain). The finer gates (raw
+        // → wizard, clear → author-of-path) are enforced in the
+        // controller / DiagnosticApi.
         'system/errors.yaml',
         // In-runtime VCS — `git status/diff/log/publish/revert` over the
         // engine source tree. Afforded on the operator command surface

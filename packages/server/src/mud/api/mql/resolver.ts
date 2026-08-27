@@ -91,23 +91,6 @@ export { MqlPermissionError } from './types';
 export type { MqlParseError };
 
 /**
- * Inline replacement for the retired `checkTier` helper. Throws
- * `MqlPermissionError` when the caller's MqlContext carries a
- * populated permission snapshot whose `isAuthor` is false. Absent
- * snapshot → permits (server-internal callers building MqlContexts
- * directly continue to work unchanged).
- */
-function gateAuthor(operator: string, tier: 'authoring' | 'admin', ctx: MqlContext): void {
-  if (ctx.permission && !ctx.permission.isAuthor) {
-    throw new MqlPermissionError(
-      `You don't have permission to use '${operator}' here.`,
-      operator,
-      tier,
-    );
-  }
-}
-
-/**
  * Resolve a query string against a context, returning the full list
  * of matches (sorted, deduped). Higher-score matches first; insertion
  * order is the secondary tiebreak.
@@ -222,7 +205,6 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     case 'literal':
       return resolveLiteralSeed(node.value, ctx);
     case 'path': {
-      gateAuthor(node.pattern, 'authoring', ctx);
       // First: live clones whose `templatePath` matches under glob
       // semantics. Existing pre-Phase behavior.
       const clones = StuffApi.findByPathGlob(node.pattern);
@@ -237,7 +219,6 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(StuffApi.findTemplatesByPath(node.pattern));
     }
     case 'stuffId': {
-      gateAuthor(`#${node.id}`, 'authoring', ctx);
       const found = StuffApi.findById(node.id);
       return found ? matchesFromStuff([found]) : [];
     }
@@ -339,7 +320,6 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(allOnlineCommandGivers());
     }
     if (w === 'world') {
-      gateAuthor('world', 'admin', ctx);
       return matchesFromStuff(StuffApi.getAllObjects());
     }
     if (w === 'peers') {
@@ -650,11 +630,6 @@ function candidatesForScopePart(
     return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'world') {
-    try {
-      gateAuthor('world', 'admin', ctx);
-    } catch {
-      return [];
-    }
     return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'me') {
@@ -667,19 +642,9 @@ function candidatesForScopePart(
     ];
   }
   if (part.startsWith('/')) {
-    try {
-      gateAuthor(part, 'authoring', ctx);
-    } catch {
-      return [];
-    }
     return candidatesForFlat(StuffApi.findByPathGlob(part), ctx.commandGiver, ctx.attention);
   }
   if (part.startsWith('#') && part.length > 1) {
-    try {
-      gateAuthor(part, 'authoring', ctx);
-    } catch {
-      return [];
-    }
     const found = StuffApi.findById(part.slice(1));
     return found ? candidatesForFlat([found], ctx.commandGiver, ctx.attention) : [];
   }
@@ -811,7 +776,7 @@ function applyColon(
 /**
  * Intersect the prior match list with the candidate set produced by
  * re-resolving `el` as a seed. Permission gates fire from the seed
- * resolution path (`flower:online` from a non-admin throws).
+ * resolution path (`flower:online` resolves for anyone).
  */
 function intersectWithSeed(
   input: MqlMatch[],
@@ -1100,16 +1065,13 @@ function filterByKeywordsOrPredicate(
   // A single-word filter that matches a registered predicate gets
   // dispatched to the predicate registry. Everything else (multi-
   // word filters, single-word non-predicate names) falls through to
-  // keyword filtering. Predicates declare their permission tier
-  // separately from operators.
+  // keyword filtering. No pre-resolution gate (content-packs wave 3 —
+  // resolving is never permission; the verb's own gate is).
   if (words.length === 1 && isPredicateName(words[0]!)) {
     const name = words[0]!;
     const predicate = MQL_PREDICATES[name]!;
-    if (predicate.tier !== 'public') {
-      gateAuthor(name, predicate.tier, ctx);
-    }
     // Bareword predicates are viewer-shaped (`visible`, `mine`,
-    // `admin` all read the giver) — a system query filters by the
+    // `here` all read the giver) — a system query filters by the
     // viewer-free namespaces (`mixin.` / `class.` / `template.`)
     // instead.
     const giver = requireGiver(ctx, `the '${name}' predicate`);
@@ -1282,10 +1244,9 @@ function evaluateExpr(
  * "no such fact" — the comparison rule treats undefined as false-on-
  * comparison.
  *
- * Each authoring-tier namespace gates its own access via the
- * permission framework; the resolver runs the gate here so a query
- * like `[mixin.X]` from a non-author trips the right error before
- * filtering touches a single Stuff.
+ * No namespace is gated (content-packs wave 3): resolving an MQL query
+ * is never a permission — what an actor may DO with the result is the
+ * verb's gate (reachability, title), never the query's.
  */
 function readAtom(
   atom: AtomNode,
@@ -1302,13 +1263,10 @@ function readAtom(
   const op = `${atom.namespace}.${atom.key}`;
   switch (atom.namespace) {
     case 'prop':
-      gateAuthor(op, 'authoring', ctx);
       return readProp(stuff, atom.key);
     case 'mixin':
-      gateAuthor(op, 'authoring', ctx);
       return hasMixinByLowercaseName(stuff, atom.key);
     case 'class':
-      gateAuthor(op, 'authoring', ctx);
       return matchesClass(stuff, atom.key);
     case 'keyword':
       // Keywords are user-facing identifiers — equivalent to bare
@@ -1316,7 +1274,6 @@ function readAtom(
       // incoherent miscategorization that has been dropped.
       return keywordsOf(stuff).includes(atom.key.toLowerCase());
     case 'template':
-      gateAuthor(op, 'authoring', ctx);
       return matchesTemplate(stuff, atom.key);
     default:
       throw new MqlResolveError(

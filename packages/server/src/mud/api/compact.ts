@@ -41,15 +41,31 @@ import { SecurityApi } from "./security";
 
 export type { OfficeHolderResult, OfficeRosterRow, OfficeAssignResult };
 
-/** A committee resolved from title: the administering group. */
-export interface CommitteeView {
-  /** The managed group's name (or its ref id when unnamed). */
-  name: string;
-  /** The committee group's ref — the chat/audience join. */
-  groupRef: GroupRef;
-  /** The covering parcel's extent (`''` for the state default). */
-  subdivisionPath: string;
-}
+/**
+ * A committee resolved from title: the administering body. A **group**
+ * holder is the committee (all group committees are groups,
+ * structurally); an **organization** holder (wave 3, D2) resolves to the
+ * organization itself — its staff and appointing authority are the
+ * members, and its channel is its own concern (none through this face).
+ */
+export type CommitteeView =
+  | {
+      kind: "group";
+      /** The managed group's name (or its ref id when unnamed). */
+      name: string;
+      /** The committee group's ref — the chat/audience join. */
+      groupRef: GroupRef;
+      /** The covering parcel's extent (`''` for the state default). */
+      subdivisionPath: string;
+    }
+  | {
+      kind: "organization";
+      /** The organization's label (its presentation, else its path). */
+      name: string;
+      /** The organization's templatePath. */
+      templatePath: string;
+      subdivisionPath: string;
+    };
 
 /** A committee's chat channel, by well-known name. */
 export interface CommitteeChannelView {

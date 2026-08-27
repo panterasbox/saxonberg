@@ -20,7 +20,7 @@ import { DISCIPLINE_CHANNELS } from "../../../obj/Discipline";
 const __filename = fileURLToPath(import.meta.url);
 const SEEDS_DIR = join(
   dirname(__filename),
-  "../../../seeds/obj/Discipline"
+  "../../../../../../content/platform/content/obj/Discipline"
 );
 // The engine verbs are the platform pack's content (content-packs wave 2).
 const CMD_DIR = join(dirname(__filename), "../../../../../../content/platform/content/cmd");

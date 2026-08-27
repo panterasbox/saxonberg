@@ -21,7 +21,7 @@ import YAML from 'yaml';
 
 const SEED_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../seeds/obj/Topic'
+  '../../../../../content/platform/content/obj/Topic'
 );
 
 const ADDRESSES = ['direct', 'personal', 'ambient', 'broadcast'];

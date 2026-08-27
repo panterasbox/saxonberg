@@ -44,7 +44,7 @@ import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 afterEach(() => vi.restoreAllMocks());
 
 const SEEDS_ROOT = join(
-  fileURLToPath(new URL('../../../seeds/obj/Condition', import.meta.url)),
+  fileURLToPath(new URL('../../../../../../content/platform/content/obj/Condition', import.meta.url)),
 );
 
 /** Every authored condition seed, as `(templatePath, class)`. */

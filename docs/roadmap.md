@@ -815,10 +815,12 @@ landing first.
   reconcile installer, an install record, and the `pack` operator verb;
   wave 2 (2026-08) added the document / settings / subject / wiki /
   command-view kinds, collapsed the per-kind collections into
-  `documents`, retired seven seeders, and ships fourteen packs (the
-  platform pack carries every engine verb's view). Left: the core
-  decomposition (pack zero, `SeederManager` / `GroupSeeder` /
-  `ParcelSeeder`) and the wave-4 path surgery (see
+  `documents`, retired seven seeders; wave 3 (2026-08) made the platform
+  pack **pack zero** — manifests carry `requires` (groups + title
+  claims) / `boot` / `maintainers`, the last three seeders and
+  `mud/bootstrap.ts` are gone, title is held by the executive
+  organization and the `core` group is deleted — sixteen packs ship.
+  Left: the wave-4 path surgery (see
   [content-packs.md](./subsystems/content-packs.md) /
   [content-packs-slate.md](./slates/builds/content-packs-slate.md));
   Capability / Full (new-code mods, needing `isolated-vm`) remain.*

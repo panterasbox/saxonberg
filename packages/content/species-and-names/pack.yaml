@@ -1,4 +1,4 @@
 id: species-and-names
-version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
-description: Species (the Species/Clade taxonomy) and the char-gen name banks.
-dependsOn: []
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+description: Species (the Species/Clade taxonomy, the body plans) and the char-gen name banks.
+dependsOn: [platform]   # the rows under /obj/species are covered by the platform's /obj claim

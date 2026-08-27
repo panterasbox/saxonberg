@@ -72,7 +72,7 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
   });
 
   it('pre-seeded unstamped store (the dev-DB case) → 21 adopted in place, one normalization line', async () => {
-    // Rows as SeederManager would have inserted them: unstamped, with
+    // Rows as the retired SeederManager inserted them: unstamped, with
     // their own _ids, built from the real files.
     let n = 0;
     const walk = (dir: string): void => {

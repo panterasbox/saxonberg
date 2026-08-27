@@ -153,18 +153,22 @@ never a passed value):
 
 | Op | Gate |
 |---|---|
-| `list` (structured) | `isAuthor` **or** `isWizard`; non-wizards never see `compile` rows |
+| `list` (structured) | **per row** — the within-your-extent pattern: a row is yours to read when its `path` is under an extent you hold (`AccessApi.heldExtents`), or its channel is `pack.<id>` and you maintain that pack (`PackApi.maintainersOf` — a member of the maintainers group, or staff/head of the maintaining organization); `compile` rows (no path) read on the wizard axis alone, and non-wizards never see them. `mine` bypasses the filter (the author is the context actor) |
 | `rawTail` (console ring) | `isWizard` (enforced in `ErrorsController`) |
-| `clear(path)` | `isWizard`, or `isAuthor` of the path — else `-1` |
+| `clear(path)` | `isWizard`, or the provenance author of the path — else `-1` |
 | producer writes | the `DiagnosticApi` facade → `DiagnosticLogic` `FromModule` gate |
 
-`list` admits **author or wizard** (a wizard edits engine source/TS, so is
-exactly who needs compile diagnostics — the two axes are orthogonal, so the
-reader unions them rather than requiring parcel-authorship). The `errors`
-verb enforces the same author-or-wizard tier in `ErrorsController` (the
-verb is afforded to every avatar via `AuthorMixin`; there is no
-`requiresAuthor` validator). A `null` (unattributable) context fails every
-read closed (`list` → `[]`).
+There is **no author tier** (content-packs wave 3; [access.md](./access.md)):
+`ErrorsController` has no door of its own — the verb is afforded to every
+avatar, and a nobody's `errors` is simply an empty list, not an error.
+A `null` (unattributable) context fails every read closed (`list` → `[]`).
+
+**Pack channels route to maintainers.** A diagnostic on channel
+`pack.<id>` (an install failure, a manifest error) is pushed to the
+pack's maintainers — the maintainers group's online members, or an
+organization's staff and head — and, when the pack is **unstaffed**, to
+the executive (`/compact/executive`'s committee). Anything else routes
+to the row's provenance author, as before.
 
 **Where a runtime throw lands.** A throw with a *local* handler is caught
 there first: an NPC brain throw is caught by `BehavedMixin` (which
@@ -217,11 +221,13 @@ Three shifts from the plan/requirements were load-bearing:
   `controller-error` notes *inside* `CommandGiver` first. So command capture
   became the **two-seam** design (record at the note sites; the `command.ts`
   guard only catches residual escapes + retires the generic frame).
-- **The reader gate widened from author-tier to author-or-wizard.** Driving
-  the feature live showed a wizard (who edits engine source/TS — exactly who
-  needs compile diagnostics) was locked out by `requiresAuthor`. The verb
-  dropped the validator and gates author-or-wizard in the controller;
-  `DiagnosticLogic.list` unions the two axes.
+- **The reader gate widened from author-tier to author-or-wizard** —
+  and then the author tier itself went (content-packs wave 3). Driving
+  the feature live showed a wizard (who edits engine source/TS — exactly
+  who needs compile diagnostics) was locked out by `requiresAuthor`; the
+  verb dropped the validator. Wave 3 replaced "author or wizard" with the
+  per-row extent filter above: `compile` rows stay on the wizard axis,
+  everything else is read by whoever holds the row's path.
 - **The `errors` verb renders plain escaped text, not an MML list.** The
   nested `Mml.unorderedList`/`compose` round-trip through `fromMarkup`
   dropped the list body (only the count rendered); switched to a plain

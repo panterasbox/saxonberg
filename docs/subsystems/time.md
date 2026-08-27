@@ -361,7 +361,7 @@ recomputes the next match and re-arms, so irregular calendar cadences
 stay correct. The returned handle survives the reschedules. System-
 scope recurring schedules (festival / market reset) register from the
 `AppBootstrap` boot step (`registerSystemSchedules`, empty in v1)
-rather than a `bootstrap.ts` manifest entry.
+rather than a pack `boot:` entry.
 
 ---
 

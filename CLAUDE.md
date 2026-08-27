@@ -157,7 +157,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the fourteen shipped packs
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the sixteen shipped packs (the platform is pack zero; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -473,6 +473,18 @@ discoverability.
   and fails too. A kernel test proves the kernel over synthetic fixtures;
   a test of real content lives beside the content (`src/mud/domain/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
+- `pnpm lint:core-gone` (`scripts/check-core-gone.ts`) — **the `core`
+  group is dead**: no literal `'core'` group name, `isAuthor`,
+  `requiresAuthor`, `requiresCoreAccess`, `pack-installers` or MQL
+  `:admin` anywhere in server source outside a line carrying the
+  `// migration-note:` marker (the two `grant` migration branches, deleted
+  in wave 4). CI-gating.
+- `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
+  shipped template path under the eight title roots** (`/obj /domain /cmd
+  /compact /studio /wiki /home /corpo`) lies under some pack's
+  `requires.title` claim. `ownerOf` returns `null` for untitled content
+  and every write fails closed, so an unclaimed shipped path is a path
+  nobody can ever edit. No exemption list. CI-gating.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
   error) — only `api/<x>.ts` may import from `api/<x>/**` (`mql`, `mml`
   today).
@@ -656,8 +668,9 @@ reason.
   [command-spec.md](./docs/subsystems/command-spec.md)). The platform
   pack's `content/cmd/` and `mud/obj/command/` are the **core** trees —
   nothing content-specific belongs there; a verb that hardcodes one piece of content lives in that
-  content's own `domain/` namespace, seeded at
-  `seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml`. A spec's
+  content's own `domain/` namespace, its controller template shipped as
+  pack content (`world-seed`'s
+  `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml`). A spec's
   `controller:` value is a **path**, resolved by one rule (no domain
   special-case): absolute (`/obj/command/<cat>/<Name>Controller`) or
   relative-to-the-spec (`../command/<Name>Controller`); a
@@ -917,8 +930,8 @@ orchestration cases:
 | `setInterval(fn, ms)` / `setTimeout(fn, ms)` from domain or Api code | `ScheduleApi.recurring(ms, fn, opts?)` / `ScheduleApi.schedule(ms, fn, opts?)` — wraps the callback in `ExecutionContextApi.runRoot` so composed frames have a well-defined Root + propagated `causingCommandId` attribution; returns a `ScheduleHandle` cancellable via `ScheduleApi.cancel(handle)`. Bare Node timers skip the execution-context layer and leak raw handles. |
 | Raw hydration or a bespoke snapshot to persist a live host's runtime state | `PersistableApi.capture(host)` / `PersistableApi.materialize(host)` — the universal self-persistence spine. A host composes `PersistableMixin` (singleton, keyed by `templatePath`); capture/restore is per-mixin-composed and routed through call-security as the owning principal, into `holder_snapshots`. `Avatar.save()` → `capture`, `Avatar.restore()` → `materialize`. `restoreFromTemplate` is NOT this — it re-hydrates a live clone from an edited *template* (CMS/Pack content go-live); `snapshotToTemplate` was retired. See [persistence.md](./docs/subsystems/persistence.md). |
 | Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/author/CloneController.ts`. |
-| `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind, `'core'` = the state default. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
-| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.isAuthor(giver)` for MQL pre-gates, `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
+| `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind (group / player / organization); untitled → `null` → **denied**. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
+| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/obj/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
 | `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `obj/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
 

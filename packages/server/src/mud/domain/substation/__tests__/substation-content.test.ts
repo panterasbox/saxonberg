@@ -12,7 +12,7 @@ import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 
-const SEEDS = fileURLToPath(new URL('../../../seeds/', import.meta.url));
+const SEEDS = fileURLToPath(new URL('../../../../../../content/world-seed/content/', import.meta.url));
 const PACK = fileURLToPath(
   new URL(
     '../../../../../../content/base-library/content/',

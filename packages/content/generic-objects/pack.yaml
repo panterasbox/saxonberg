@@ -1,5 +1,33 @@
 id: generic-objects
-version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /generic-objects
-description: Generic objects — this wave the crafting recipe roster (the recipe document kind, one file per recipe).
-dependsOn: [platform]   # the id exists by wave 2 step 4; unknown deps are ignored in v1
+description: >-
+  Generic objects — the object clusters (items, arms, armor, clothes, gear,
+  vessels, fixtures, instruments, traps, pots, plants, seeds, crops, beds,
+  surfaces, exits, the four room archetypes), the loose objects
+  (Campfire … Casting), the one independent brand, and the crafting recipe
+  roster. The junk drawer: expected to slim as trade packs take their
+  objects.
+dependsOn: [platform]   # the loose /obj/<Name> rows ride the platform's /obj claim
+requires:
+  # One claim per cluster the pack ships — the branches are the pack's;
+  # the loose rows (and obj/corpo's brand + demo bottles) are covered by
+  # the host's /obj. Held by the default maintainers group.
+  title:
+    - { extent: /obj/items }
+    - { extent: /obj/arms }
+    - { extent: /obj/armor }
+    - { extent: /obj/clothes }
+    - { extent: /obj/gear }
+    - { extent: /obj/vessel }
+    - { extent: /obj/fixture }
+    - { extent: /obj/instrument }
+    - { extent: /obj/traps }
+    - { extent: /obj/pot }
+    - { extent: /obj/plant }
+    - { extent: /obj/seed }
+    - { extent: /obj/crop }
+    - { extent: /obj/bed }
+    - { extent: /obj/surface }
+    - { extent: /obj/exits }
+    - { extent: /obj/room }

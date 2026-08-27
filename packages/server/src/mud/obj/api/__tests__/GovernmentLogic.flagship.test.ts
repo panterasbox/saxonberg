@@ -12,7 +12,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { parse } from "yaml";
 import { GovernmentApi } from "../../../api/government";
@@ -31,10 +31,17 @@ import {
 
 type Loose = Record<string, unknown>;
 
-const seedsRoot = fileURLToPath(new URL("../../../seeds", import.meta.url));
+// The realm + city rows are the platform pack's, the per-locality rows
+// world-seed's (content-packs wave 3).
+const seedsRoot = fileURLToPath(new URL("../../../../../../content/world-seed/content", import.meta.url));
+const platformRoot = fileURLToPath(
+  new URL("../../../../../../content/platform/content", import.meta.url),
+);
 
 function seedData(relative: string): Loose {
-  const doc = parse(readFileSync(`${seedsRoot}/${relative}`, "utf8")) as {
+  const inPlatform = `${platformRoot}/${relative}`;
+  const file = existsSync(inPlatform) ? inPlatform : `${seedsRoot}/${relative}`;
+  const doc = parse(readFileSync(file, "utf8")) as {
     data?: Loose;
   };
   return doc.data ?? {};

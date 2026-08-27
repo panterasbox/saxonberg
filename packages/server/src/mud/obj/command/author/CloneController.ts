@@ -148,7 +148,7 @@ export default class CloneController extends CommandController<CloneModel> {
     // instantiates an existing class; the slice for the source path
     // decides authority. We look up the live Stuff (if any) at the
     // source path; the AccessApi walk handles a null resource by
-    // falling through to the `'core'` fallback. (See open question
+    // fails closed on untitled ground. (See open question
     // #6 in the plan: class-allowlist for non-core authors is a
     // follow-up build.)
     // `findAllByTemplatePath`, not the singleton lookup: a live

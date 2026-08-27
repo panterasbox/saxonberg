@@ -109,7 +109,7 @@ describe('recall placement capture in the persistence spine', () => {
     // deterministic owner so capture doesn't touch the parcel registry.
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
       kind: 'group',
-      name: 'core',
+      name: 'lounge',
     });
   });
   afterEach(() => {

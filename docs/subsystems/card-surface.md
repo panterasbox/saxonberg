@@ -410,7 +410,7 @@ the change.
 
 ⚠ **One thing is NOT covered by that argument and needed a hand step:**
 the seeded `CockpitPaneController` template row in `domain`, because
-`SeederManager` is insert-only and `domain` is a `keep` collection. It
+`SeederManager` (since retired) was insert-only and `domain` was a `keep` collection. It
 is `db.domain.deleteOne({path:
 '/obj/command/shell/CockpitPaneController'})`, run by hand; the seeder
 now prints the general case's `deleteMany` at boot but does **not** run

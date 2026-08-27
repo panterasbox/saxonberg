@@ -122,9 +122,10 @@ describe('CmsApi — content backend', () => {
 
   beforeEach(() => {
     StuffApi.clearAll();
-    // Context yields an author; content reads are author-gated.
+    // Context yields an actor who holds the fixture branch; content reads
+    // are per path (content-packs wave 3).
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     tmpStore = installInMemoryStore([
       { path: '/cmstest', class: ZONE_CLASS, data: {} },
       { path: '/cmstest/alpha', class: LEAF_CLASS, data: { hp: 1 } },
@@ -375,27 +376,34 @@ describe('CmsApi — content backend', () => {
   it('gates on the CONTEXT-derived actor, never a passed value', async () => {
     // The gate subject must be exactly what getActingAuthor yields — there
     // is no actor parameter for a caller to substitute.
-    const isAuthor = vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
-    await CmsApi.listTree('content', '/cmstest');
-    expect(isAuthor).toHaveBeenCalledWith(ACTOR);
+    const can = vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+    await CmsApi.read('content', '/cmstest/alpha');
+    expect(can).toHaveBeenCalledWith(ACTOR, 'read', '/cmstest/alpha');
   });
 
-  it('read is denied for a non-author context', async () => {
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+  it('read is denied for a path the actor does not hold (and that is not public)', async () => {
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
     await expect(
       CmsApi.read('content', '/cmstest/alpha')
     ).rejects.toMatchObject({ code: 'denied' });
   });
 
+  it('listTree prunes the children the actor cannot read — a nobody sees the public tree only', async () => {
+    vi.spyOn(AccessApi, 'canAtPath').mockImplementation(
+      async (_s, _a, path) => path === '/cmstest/alpha',
+    );
+    const listing = await CmsApi.listTree('content', '/cmstest');
+    expect(listing.entries.map((e) => e.path)).toEqual(['/cmstest/alpha']);
+  });
+
   it('fails closed when the context has no acting principal', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    // Real fail-closed shape: a null subject is never an author.
-    vi.spyOn(AccessApi, 'isAuthor').mockImplementation(
-      async (s) => s != null
-    );
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     await expect(
-      CmsApi.listTree('content', '/cmstest')
+      CmsApi.read('content', '/cmstest/alpha')
     ).rejects.toMatchObject({ code: 'denied' });
+    // A null actor reads nothing: the listing is empty, not a throw.
+    expect((await CmsApi.listTree('content', '/cmstest')).entries).toEqual([]);
   });
 });
 

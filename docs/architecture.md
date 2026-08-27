@@ -530,11 +530,12 @@ held to a tiered standard:
    *data* belongs in mudlib and imports the type back. Mudlib →
    backend for the type, never backend → mudlib for the type.
 
-   `BootstrapManager` + `mud/bootstrap.ts` is the worked example:
-   `BootstrapEntry` is exported from `BootstrapManager`;
-   `mud/bootstrap.ts` imports it and declares the manifest array
-   against it. Backend doesn't reach into mudlib for the shape;
-   mudlib doesn't have a competing definition.
+   `BootstrapManager` + `PackApi.bootManifest()` is the worked example:
+   `BootstrapEntry` is exported from `BootstrapManager`; the pack tier
+   imports it and derives the manifest from each installed pack's
+   `boot:` list (`mud/bootstrap.ts`, the former hand-written array,
+   retired in content-packs wave 3). Backend doesn't reach into mudlib
+   for the shape; mudlib doesn't have a competing definition.
 
 4. **`mud/obj/*` classes — tech debt.** `instanceof Avatar`,
    `Avatar.getTemplatePath()` from `Application` couples backend to

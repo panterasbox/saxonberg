@@ -207,7 +207,7 @@ poisoned dart, and a pressure-blade are all one `Trap` with different
   `traverseConsequence: trip`.
 
 The **demonstrator is the "Sunken Delve"** — a **sub-area of the
-newbie-wilds locality** (`seeds/domain/newbie-wilds/delve/`), its own
+newbie-wilds locality** (`newbie-wilds/content/domain/newbie-wilds/delve/`), its own
 `CartesianZone`, hung off the newbie-wilds treeline by a **single ordinary
 ground exit** (vestibule → trapped corridor → vault; the traps clone in via
 `populates`, plus a concealed shortcut `Exit` and a `hidden-cache` concealed

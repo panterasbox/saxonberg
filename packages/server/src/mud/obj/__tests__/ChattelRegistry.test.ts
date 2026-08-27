@@ -298,10 +298,9 @@ describe("chattel possession core", () => {
   // `coveringParcelOf` returns null with no covering parcel).
   //
   // `coveringParcelOf` is the seam here, NOT `ParcelApi.ownerOf` — the
-  // latter is *total* (it falls back to the state, `{kind:'group',
-  // name:'core'}`), so building the rung on it would make the author rung
-  // unreachable and silently retitle every authored good in the world.
-  // That is exactly what this pair of tests pins.
+  // latter also answers the self-home rung, so building the rung on it
+  // would retitle every authored good in somebody's home. That is exactly
+  // what this pair of tests pins.
 
   it("rung 2: an unstamped good under a parcel extent is the parcel owner's", async () => {
     const torch = makeTorch();
@@ -328,7 +327,7 @@ describe("chattel possession core", () => {
   it("rung 2 resolves a GROUP-held parcel — the read-side widening", async () => {
     const torch = makeTorch();
     vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue({
-      getOwner: () => ({ kind: "group", name: "core" }),
+      getOwner: () => ({ kind: "group", name: "commons" }),
     } as unknown as Awaited<ReturnType<typeof ParcelApi.coveringParcelOf>>);
 
     // `ChattelOwner`'s group arm exists only so a group-held parcel is
@@ -336,7 +335,7 @@ describe("chattel possession core", () => {
     // collection stays empty here, so the persisted schema is untouched.
     expect(await ChattelApi.ownerOf(torch)).toEqual({
       kind: "group",
-      name: "core",
+      name: "commons",
     });
     expect(col("chattel").length).toBe(0);
   });

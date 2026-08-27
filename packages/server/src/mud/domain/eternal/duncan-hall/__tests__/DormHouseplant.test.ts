@@ -91,7 +91,12 @@ interface Doc extends Record<string, unknown> {
 const PH = PersistentHydrator.templatePath;
 const DORMS = DormWarren.DORMS_EXTENT;
 
-const SEEDS = fileURLToPath(new URL('../../../../seeds/', import.meta.url));
+// The rows this stand-up reads live in four packs (content-packs wave 3).
+const PACKS = fileURLToPath(new URL("../../../../../../../content/", import.meta.url));
+const SEEDS = `${PACKS}world-seed/content/`;
+const OBJECTS = `${PACKS}generic-objects/content/`;
+const SPECIES = `${PACKS}species-and-names/content/`;
+const PLATFORM = `${PACKS}platform/content/`;
 const CONTENT = fileURLToPath(
   new URL('../../../../../../../content/', import.meta.url),
 );
@@ -162,15 +167,15 @@ function seedDomain(): void {
     );
   }
   // The gardening objects.
-  addSeed('/obj/pot/starter', `${SEEDS}obj/pot/starter.yaml`);
-  addSeed('/obj/pot/small', `${SEEDS}obj/pot/small.yaml`);
-  addSeed('/obj/pot/large', `${SEEDS}obj/pot/large.yaml`);
-  addSeed('/obj/plant/peace-lily', `${SEEDS}obj/plant/peace-lily.yaml`);
-  addSeed('/obj/plant/snake-plant', `${SEEDS}obj/plant/snake-plant.yaml`);
-  addSeed('/obj/seed/peace-lily', `${SEEDS}obj/seed/peace-lily.yaml`);
-  addSeed('/obj/seed/snake-plant', `${SEEDS}obj/seed/snake-plant.yaml`);
-  addSeed('/obj/vessel/watering-can', `${SEEDS}obj/vessel/watering-can.yaml`);
-  addSeed('/obj/vessel/soil-sack', `${SEEDS}obj/vessel/soil-sack.yaml`);
+  addSeed('/obj/pot/starter', `${OBJECTS}obj/pot/starter.yaml`);
+  addSeed('/obj/pot/small', `${OBJECTS}obj/pot/small.yaml`);
+  addSeed('/obj/pot/large', `${OBJECTS}obj/pot/large.yaml`);
+  addSeed('/obj/plant/peace-lily', `${OBJECTS}obj/plant/peace-lily.yaml`);
+  addSeed('/obj/plant/snake-plant', `${OBJECTS}obj/plant/snake-plant.yaml`);
+  addSeed('/obj/seed/peace-lily', `${OBJECTS}obj/seed/peace-lily.yaml`);
+  addSeed('/obj/seed/snake-plant', `${OBJECTS}obj/seed/snake-plant.yaml`);
+  addSeed('/obj/vessel/watering-can', `${OBJECTS}obj/vessel/watering-can.yaml`);
+  addSeed('/obj/vessel/soil-sack', `${OBJECTS}obj/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
   addSeed(
     '/obj/material/bulk/water',
@@ -192,7 +197,7 @@ function seedDomain(): void {
     '/obj/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/obj/material/tissue/plant-tissue.yaml`,
   );
-  addSeed('/obj/species/BodyPlan/sessile', `${SEEDS}obj/species/BodyPlan/sessile.yaml`);
+  addSeed('/obj/species/BodyPlan/sessile', `${SPECIES}obj/species/BodyPlan/sessile.yaml`);
   addSeed(
     '/obj/species/plantae',
     `${CONTENT}species-and-names/content/obj/species/plantae.yaml`,
@@ -286,11 +291,11 @@ function installStore(): void {
   // template the test store doesn't hold. The shared
   // `installV1QuantityMarshallers` helper's hand-kept unit list has fallen
   // behind the `Unit` union, so the seed directory is the honest source.
-  for (const file of readdirSync(`${SEEDS}obj/persistence/QuantityMarshaller/`)) {
+  for (const file of readdirSync(`${PLATFORM}obj/persistence/QuantityMarshaller/`)) {
     if (!file.endsWith('.yaml')) continue;
     const unit = (
       YAML.parse(
-        readFileSync(`${SEEDS}obj/persistence/QuantityMarshaller/${file}`, 'utf-8'),
+        readFileSync(`${PLATFORM}obj/persistence/QuantityMarshaller/${file}`, 'utf-8'),
       ) as { data?: { unit?: string } }
     ).data?.unit as Unit | undefined;
     if (!unit) continue;

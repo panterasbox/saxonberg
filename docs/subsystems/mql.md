@@ -73,12 +73,9 @@ class MqlApi {
 }
 
 interface MqlContext {
-  commandGiver: Stuff & CommandGiver;
+  commandGiver: (Stuff & CommandGiver) | null;  // null = system mode
   scope: string;                       // an MQL fragment, post-expansion
-  permission?: {                       // AccessApi-derived snapshot,
-    isAuthor: boolean;                 // stamped by the dispatcher
-    coreMemberIds?: ReadonlySet<string>;
-  };
+  attention?: number;                  // code-only perception term
 }
 
 interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; }
@@ -317,11 +314,12 @@ hints (from desugar). In practice both never co-occur — `looksFormal`
 rejects the desugar pass entirely when the input contains `{`, so
 the formal path always sees the hint slot empty.
 
-Each operator/seed carries a permission tier (predicates declare
-theirs inline in `predicates.ts`); the resolver's
-`gateAuthor(operator, tier, ctx)` throws `MqlPermissionError` when
-`ctx.permission` is present with `isAuthor` false. The dispatcher's
-outer try/catch converts the throw into a command-level failure.
+No operator or seed is permission-gated (content-packs wave 3):
+**resolving an MQL query is never a permission.** What an actor may
+*do* with a resolved target is the verb's own gate — reachability
+(`attack online:<name>` is refused because the target is not reachable,
+not because `online` was typed) and title. See [Resolving is not
+permission](#resolving-is-not-permission).
 
 #### Seeds
 
@@ -665,24 +663,27 @@ The `#`-private slots in `PronounMemory` are fine because the class
 isn't a Stuff and never crosses the call-security proxy. (See
 CLAUDE.md § Member Privacy.)
 
-## Permission tiers
+## Resolving is not permission
 
-Three tiers: `public`, `authoring`, `admin`. Operators tag their
-tier; the resolver gates them with `gateAuthor(operator, tier, ctx)`,
-which throws `MqlPermissionError` when `ctx.permission` is present and
-its `isAuthor` is false. (The standalone `mql/permissions.ts` module —
-along with `checkTier(tier, operator, giver)` and the
-`_MqlAdminFlag.granter` stub — was retired by the access build; the
-`MqlPermissionError` type now lives in `mql/types.ts`.)
+There are **no permission tiers** (content-packs wave 3 deleted them
+along with the `core` group and the "author tier" — see
+[access.md](./access.md)). Every seed, scope, namespace filter and
+predicate resolves for every giver: a guest may type `flower:online`,
+`world:[mixin.Door]` or `/obj/Location/*:fountain` and get the honest
+answer, fogged by perception exactly as `look` is. What that guest may
+then *do* with a match is decided where it always was — by the verb:
+`attack online:<name>` fails on reachability, `teleport` on title over
+the destination's extent, a mutation on the covering parcel's holder.
+Enumeration is not capability; capability is title over a resource.
 
-`ctx.permission` is an `AccessApi`-derived snapshot stamped on the
-`MqlContext` by the command dispatcher before sync resolve runs.
-`isAuthor` gates the pre-resolution operators (path seeds, `:online`,
-`mixin.X` / `class.X` / `template.X` / `prop.X` filters);
-`coreMemberIds` feeds the per-target `:admin(target)` predicate. When
-the snapshot is **absent** the gate permits — server-internal callers
-that build an `MqlContext` directly (without the dispatcher) continue
-to work unchanged.
+What was retired: the `ctx.permission` snapshot (`isAuthor` /
+`coreMemberIds`) the dispatcher stamped, `gateAuthor`, the
+`PermissionTier` field on `MqlPredicate`, and the `:admin` predicate
+(it tested membership of a group that no longer exists). The
+`MqlPermissionError` class remains in `mql/types.ts` **as a name only**
+— the subscription substrate and the client classify errors on it
+(`'permission'` vs `'parse'` / `'resolve'`), but no resolver path throws
+it any more.
 
 `ctx.attention` (added by the stealth & deployables build) is the
 perception attention the scope-walk resolves concealed candidates at —
@@ -699,23 +700,6 @@ its active `alertness` so `peers:living` enumerates the movers it perceives
 to prior behavior). No grammar change — it rides the context struct, not the
 query string.
 
-Tier defaults:
-
-- **public** — bareword keyword search, `me`, `here`, pronouns,
-  `$$`, ordinals, ranges, set ops, `inventory` / `here` / `peers` /
-  `reachable` scopes, `:i` / `:e`, `living` / `mine` / `here` /
-  `visible` predicates.
-- **authoring** — `mixin.X`, `class.X`, `template.X`, `prop.X`,
-  `keyword.X`, bare `id` / `name` atoms, `/path/...` seeds,
-  `#stuffid` seeds.
-- **admin** — `world` / `online` scopes, `online` / `admin`
-  predicates.
-
-Permission failure is loud — fail at parse-time or resolve-time with
-a message naming the tier ("You don't have permission to use
-'mixin' filters here."). We don't silently strip operators; that
-creates surprising behavior.
-
 ## System mode (`commandGiver: null`)
 
 `MqlContext.commandGiver` may be `null` — the **code-only system
@@ -730,12 +714,11 @@ sweeps and fixture indexes (`AttendantLogic.allPoints`,
   `online`) with **no perception gate** and baseline
   (`getPresentation`) names — omniscient, not fogged;
 - the giver-anchored seeds (`me`/`here`/`peers`/`reachable`/`person`/
-  `inventory`) and the bareword predicates (`visible`/`mine`/`admin`
+  `inventory`) and the bareword predicates (`visible`/`mine`/`here`
   all read the giver) **throw** a clear resolver error — nothing
   guesses a viewer;
-- namespace filters (`[mixin.X]`/`[class.X]`) work: the permission
-  snapshot is absent for server-internal contexts, which permits
-  (the pre-existing internal-caller rule).
+- namespace filters (`[mixin.X]`/`[class.X]`) work — nothing gates
+  them for anyone.
 
 The one deliberate NON-consumer is `ResidencyLogic`'s pair of sweeps
 — they operate on raw unwrapped proxies so enumeration never counts
@@ -745,12 +728,11 @@ express (the exemption is commented at both loops).
 ## Predicate registry (`mql/predicates.ts`)
 
 Bareword filters that can appear in chain position
-(`:living`, `:online`, `:mine`, `:here`, `:visible`, `:admin`). Each
-declares its tier and a check function:
+(`:living`, `:online`, `:mine`, `:here`, `:visible`). Each is a check
+function — no tier (there are none):
 
 ```ts
 interface MqlPredicate {
-  tier: PermissionTier;
   check(target: Stuff, giver: Stuff & CommandGiver): boolean;
 }
 ```
@@ -819,7 +801,7 @@ Operations:
 Common extension points and where they live:
 
 - **Add a predicate.** Append to `MQL_PREDICATES` in
-  `mql/predicates.ts`. Pick a tier, write the check function.
+  `mql/predicates.ts`. Write the check function.
 - **Add a named scope.** Add a `candidatesForX(giver)` builder in
   `mql/scope-walk.ts`, dispatch on the new name in the resolver's
   scope handler (`candidatesForScope`, fast path).
@@ -831,12 +813,9 @@ Common extension points and where they live:
 - **Add a synthetic var (`$X`).** Declare `static syntheticVars:
   SyntheticVarEntry[]` on the mixin that owns the underlying state.
   See [shell-environment.md § Variable interpolation](./shell-environment.md#variable-interpolation).
-- **Add a permission tier check.** Tag the operator's tier and route
-  it through `gateAuthor(operator, tier, ctx)` in the resolver; the
-  gate reads the `AccessApi`-derived `ctx.permission.isAuthor` snapshot
-  the dispatcher stamps. (The real zone-aware authoring check already
-  landed — it's the `AccessApi` source of that snapshot, not a
-  `granter` stub.)
+- **Gate an operator.** Don't — resolving is not permission. Put the
+  check on the verb that acts on the result (reachability, or
+  `AccessApi.canAtPath` / `can` over the target's extent).
 
 ## Limitations / Non-goals
 

@@ -130,6 +130,8 @@ importers:
 
   packages/content/wiki-starter: {}
 
+  packages/content/world-seed: {}
+
   packages/server:
     dependencies:
       '@saxonberg/content-arcane-descriptors':
@@ -177,6 +179,9 @@ importers:
       '@saxonberg/content-wiki-starter':
         specifier: workspace:*
         version: link:../content/wiki-starter
+      '@saxonberg/content-world-seed':
+        specifier: workspace:*
+        version: link:../content/world-seed
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../types

@@ -676,8 +676,8 @@ them are fixed on this branch.
 - **Zone `data` never reached the instance.** `Zone.persistentFields`
   was `[]` and `seeds/home.yaml` named no `hydratorClass`, so a seeded
   `wire: true` sat in the row and never applied. Both fixed; `/home` now
-  mirrors `/studio`. **Deploy step**: `SeederManager` is insert-only, so
-  an existing environment keeps its stale `/home` row — delete
+  mirrors `/studio`. **Deploy step** (historical — the seeder is gone): `SeederManager` was insert-only, so
+  an existing environment kept its stale `/home` row — delete
   `domain { path: '/home' }` once and restart to re-seed. Same for
   `/domain/lounge/wire-alcove` and `/obj/sandbox/CircleFloor` if they
   were seeded before the light fixtures landed.

@@ -8,7 +8,6 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
-import { AccessApi } from '../../api/access';
 import { CompactApi } from '../../api/compact';
 import { GovernmentApi } from '../../api/government';
 import { PlayerApi } from '../../api/player';
@@ -84,13 +83,13 @@ async function holdsAuthorityImpl(
 
 /**
  * Proprietor authority — the organization's appointing authority, with
- * `AccessApi.isAuthor` as the orthogonal **operator override** (AccessApi
- * cannot represent an NPC owner, so ownership is the authority, not a
- * group).
+ * the Prime Minister's seat as the **operator override** (content-packs
+ * wave 3, D2d: "the PM may do all of it anywhere" — the accountable
+ * person, checked as an OFFICE, never the founder).
  *
- * ⚠ The operator axis rides *on top of* an authority and is never one in
- * its own right — which is why there is no `author` `PrincipalRef` kind.
- * For an `entity` authority this is byte-identical to the shipped
+ * ⚠ The override rides *on top of* an authority and is never one in its
+ * own right — which is why there is no `author` `PrincipalRef` kind. For
+ * an `entity` authority this is byte-identical to the shipped
  * `proprietorPath` check.
  */
 async function isProprietorOfImpl(
@@ -100,7 +99,7 @@ async function isProprietorOfImpl(
   if (await holdsAuthorityImpl(subject, organization.getAppointingAuthority())) {
     return true;
   }
-  return AccessApi.isAuthor(subject);
+  return CompactApi.holdsOffice(subject, 'prime-minister');
 }
 
 /**
@@ -191,6 +190,25 @@ function mayPublishAsImpl(
   const allowed = publisher.getPublishingPositions();
   for (const [positionKey, holders] of holdersByPositionImpl(publisher)) {
     if (allowed.length > 0 && !allowed.includes(positionKey)) continue;
+    if (holders.has(who)) return true;
+  }
+  return false;
+}
+
+/**
+ * Does `principal` hold any non-exited position at `organization`? The
+ * positionless twin of `mayPublishAsImpl`, over the same single
+ * holder-resolution scan. Fails closed on a principal with no durable
+ * identity.
+ */
+function holdsPositionImpl(
+  principal: Stuff | null,
+  organization: OrganizationStuff,
+): boolean {
+  if (principal === null) return false;
+  const who = principal.getIdentityPath() ?? principal.getTemplatePath();
+  if (!who) return false;
+  for (const holders of holdersByPositionImpl(organization).values()) {
     if (holders.has(who)) return true;
   }
   return false;
@@ -673,6 +691,15 @@ export class EmploymentLogic extends ApiLogic {
     publisher: OrganizationStuff,
   ): boolean {
     return mayPublishAsImpl(principal, publisher);
+  }
+
+  /** See {@link EmploymentApi.holdsPosition}. */
+  @CallSecurity(EmploymentApiCallers)
+  public holdsPosition(
+    principal: Stuff | null,
+    organization: OrganizationStuff,
+  ): boolean {
+    return holdsPositionImpl(principal, organization);
   }
 
   /** See {@link EmploymentApi.holdersOf}. */

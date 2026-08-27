@@ -27,13 +27,12 @@
  * and `committee` carry the Art. XI default, so **an authority the founder
  * cannot satisfy is one nobody can satisfy on a cold box** until a human
  * edits a group by hand. That is why the Compact's own press office names
- * a committee rather than the operator axis: `AccessApi.isAuthor` resolves
- * to membership of a `core` group that seeds **empty**.
+ * a committee rather than a group that could seed empty.
  *
- * ⚠ **There is deliberately no `author` kind.** The operator axis is an
- * *override on top of* an authority (`isProprietorOf`'s existing
- * `AccessApi.isAuthor` arm), never an appointing authority in its own
- * right. Four kinds, each with a consumer.
+ * ⚠ **There is deliberately no `author` kind.** The operator override is
+ * the Prime Minister's SEAT (`isProprietorOf`'s `holdsOffice` arm — the
+ * accountable person, never an "author tier"), never an appointing
+ * authority in its own right. Four kinds, each with a consumer.
  *
  * Types and constants only — the resolver lives in `EmploymentLogic`,
  * where the Api surfaces it can reach live.

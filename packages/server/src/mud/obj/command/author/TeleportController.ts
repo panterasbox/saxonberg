@@ -3,13 +3,13 @@
  * chosen by the actor's privilege, with the TPA route structurally separate
  * from self-powered teleportation:
  *
- *  - **Self-powered** (privileged — author/developer): teleport yourself
- *    anywhere, destination resolved via MQL; `--target <obj>` moves something
- *    else instead (access-gated). This subsumes the old object-relocation
+ *  - **Self-powered** (within an extent you HOLD): teleport yourself
+ *    between two points inside one extent you hold, destination resolved
+ *    via MQL; `--target <obj>` moves something else instead (access-gated). This subsumes the old object-relocation
  *    `teleport` and `goto`. Reuses the polished `Mobile.teleport` path with a
  *    raw-move / forceMove fallback, and the container-vs-environment focus
  *    resolution.
- *  - **TPA ride** (unprivileged): rides the fast-travel network from the node
+ *  - **TPA ride** (across a boundary, or holding nothing): rides the fast-travel network from the node
  *    you're standing at. The raw destination token is a route keyword; a bare
  *    `teleport` reads the departures board. The credential / at-a-node checks
  *    live here, inside the fork — never as verb-level validators (they would
@@ -47,16 +47,31 @@ interface TeleportModel extends CommandModel {
 export default class TeleportController extends CommandController<TeleportModel> {
   async execute(model: TeleportModel, context: CommandContext): Promise<void> {
     const giver: Stuff = context.commandGiver;
-    if (model.target || (await this.canSelfTeleport(giver))) {
+    const from = context.location?.getTemplatePath() ?? null;
+    const to = model.destination?.stuff?.getTemplatePath() ?? from;
+    if (model.target || (await this.canSelfTeleport(giver, from, to))) {
       return this.selfPoweredTeleport(model, context);
     }
     return this.tpaTeleport(model, context);
   }
 
-  private async canSelfTeleport(giver: Stuff): Promise<boolean> {
-    return (
-      (await AccessApi.isAuthor(giver)) || (await AccessApi.isWizard(giver))
-    );
+  /**
+   * The within-your-extent pattern (content-packs wave 3, D2d): you may
+   * teleport yourself between two points inside ONE extent you hold —
+   * the lounge team around the lounge, the PM (holding /domain) anywhere
+   * under it. Cross a boundary and it is the TPA like everyone else; the
+   * wizard axis (code trust) buys no movement.
+   */
+  private async canSelfTeleport(
+    giver: Stuff,
+    from: string | null,
+    to: string | null,
+  ): Promise<boolean> {
+    if (from === null || to === null) return false;
+    const under = (path: string, extent: string): boolean =>
+      path === extent || path.startsWith(extent + '/');
+    const held = await AccessApi.heldExtents(giver);
+    return held.some((e) => under(from, e) && under(to, e));
   }
 
   /* ── self-powered (privileged) ──────────────────────────────────── */

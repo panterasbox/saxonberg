@@ -67,6 +67,7 @@ async function run(
 }
 
 const COMMITTEE = {
+  kind: "group" as const,
   name: "terminus",
   groupRef: "managed:g1",
   subdivisionPath: "/domain/terminus/registry",

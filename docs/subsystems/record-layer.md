@@ -275,13 +275,17 @@ just as happily with both there).
 
 Two traps, both recorded before they were hit:
 
-1. **The wipe takes `groups`**, which carries the SYSTEM groups (`core`,
-   `wizards`, `archwizards`, `streamers`). They are minted in code by
-   `AccessRegistry.postRegister`, not by a seed file, and that seeding is
-   boot-only — so without a re-seed the world comes back with no `core`
-   group, every resource-targeted `can` read failing closed, and no fix
-   short of a restart. The job re-seeds them, dropping the cached refs
-   first (they point at rows the wipe just deleted).
+1. **The wipe takes `groups` and `parcels`.** `groups` carries the three
+   axis groups (`wizards`, `archwizards`, `streamers`), minted in code by
+   `AccessRegistry.postRegister` — boot-only — and every holder group a
+   pack declared; `parcels` carries every title. With no state default
+   (content-packs wave 3) a world with no titles refuses every `can`
+   until restart, the founder included. The job re-seeds the axis groups
+   (`AccessApi.reseedSystemGroups`, dropping the cached refs first — they
+   point at rows the wipe just deleted) and then runs
+   **`PackApi.reprovision()`** — every applied pack's `requires` again:
+   groups re-minted empty, titles re-granted, from the install record's
+   own `requires` snapshot ([content-packs.md](./content-packs.md)).
 
 2. **`WIZARD_PLAYER_IDS` names CHARACTERS**, and the wipe takes the
    characters — so a grant keyed on `playerId` is void by the next

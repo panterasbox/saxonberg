@@ -209,10 +209,11 @@ a member of the `duncan-hall` group. A player never types the raw verb. See
 
 **Authority is owner-conferred, never self-claimed** (the security-critical
 point — a self-issued credential is no credential). Katie's membership in the
-`duncan-hall` group is **authored data**: `config/groups.yaml` lists her
-`templatePath`, seeded idempotently by `GroupSeeder` at boot (the
-`ParcelSeeder` precedent — a `Group` is a Document, so it's
-config-not-`seeds/`). She does **not** enroll herself in her own class code —
+`duncan-hall` group is **authored data**: the `world-seed` pack's
+`requires.groups` lists her `templatePath` as a member, minted
+idempotently by the installer's requires phase at boot (a `Group` is a
+Document, so it rides the manifest, not a template row —
+[content-packs.md](./content-packs.md)). She does **not** enroll herself in her own class code —
 that would be circular (an agent "authorized" only because it wrote its own
 name into the ledger). The same rule governs her master ring (legitimate master
 access to every pin-tumbler dorm lock): it is a physical `Key` `populates`d

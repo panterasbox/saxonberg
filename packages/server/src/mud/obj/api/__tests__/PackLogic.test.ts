@@ -20,6 +20,7 @@ import YAML from 'yaml';
 import { PackApi } from '../../../api/pack';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
+import { stubRegistries } from './pack-harness';
 
 const MATERIAL = '/obj/material/Material';
 const HYDRATOR = '/obj/persistence/PersistentHydrator';
@@ -54,6 +55,7 @@ function getPath(row: Record<string, unknown>, key: string): unknown {
 function stubPersist(): void {
   rows = [];
   nextId = 1;
+  stubRegistries();
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (col: string, query: Record<string, unknown>) =>
@@ -229,7 +231,7 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
   });
 
   it('adoption: an unstamped legacy row is stamped + matched, no duplicate', async () => {
-    // Simulate a legacy SeederManager row (unstamped) at a pack path.
+    // Simulate a legacy seeder row (unstamped) at a pack path.
     rows.push({
       _id: 'legacy-1',
       path: '/obj/material/spirit/gin',
@@ -416,6 +418,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     expect(arcane!.inserted).toContain('/obj/magic/GlowlightOrb');
     const hollis = results.find((r) => r.packId === 'corpo-hollis');
     expect(hollis!.inserted.sort()).toEqual([
+      '/corpo/hollis', // the org chart (content-packs wave 3)
       '/obj/corpo/Brand/hollis-cane',
       '/obj/corpo/Brand/old-hollis',
       '/obj/corpo/Corpo/hollis',
@@ -425,5 +428,5 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // unstamped leakage.
     const shipped = new Set(results.map((r) => r.packId));
     expect(contentRows().every((r) => shipped.has(String(r.sourcePack)))).toBe(true);
-  });
+  }, 120_000); // the platform pack carries ~460 rows since wave 3
 });

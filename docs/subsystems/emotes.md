@@ -245,13 +245,23 @@ verb only**; a second index (`bySearchTerm`: term → verbs, over each
 emote's verb, tags and `searchTerms`) serves `search` and nothing else.
 
 The catalogue carries the live mutation surface (`resolve` / `search` /
-`mint` / `edit` / `delete` / `all`). `mint` writes `/emotes/<verb>`
-through `DocumentApi.save` (the platform's own `/emotes/` branch —
-untitled, so the state's group decides, which is exactly the verb's
-`requiresCoreAccess`; a pack that later ships the verb adopts the row
-by natural key) *and* indexes it into the cache; `edit` mutates in
-place, re-runs `save()`, and re-indexes; `delete` drops cache
-entries and `Document.delete()`s the record. `canDestruct` refuses —
+`resolveAny` / `mint` / `edit` / `delete` / `setDisabled` / `all`).
+`mint` writes `EMOTE_MINT_BRANCH/<verb>` — `/expression/emotes/<verb>`,
+the extent the **soul committee** holds title over (content-packs wave
+3; the `expression` pack's `requires.title` claims `/expression` for
+the `soul` group, which the platform pack declares and the Prime
+Minister's seat owns) — through `DocumentApi.save`, whose document gate
+is the same title the verb checks, *and* indexes it into the cache;
+`edit` mutates in place, re-runs `save()`, and re-indexes; `delete`
+drops cache entries and `Document.delete()`s the record.
+
+**`disabled`** (`Emote.disabled`, persisted only when true) switches a
+verb off without losing it: `resolve` answers `null` for a disabled
+emote (`;wave` does nothing), `all` and `snapshot` omit it, and
+`resolveAny` — the author face's read (`soul show` says "disabled") —
+still returns the row. `setDisabled(verb, flag)` writes the row back
+with the flag set: an *edit* under three-way reconcile, so a pack
+update over a disabled row is a conflict, not a silent re-enable. `canDestruct` refuses —
 `Application` resolves the catalogue lazily and expects it to stay
 live for the process lifetime.
 
@@ -308,8 +318,9 @@ paths run inline in the router.
 ## The `soul` authoring suite
 
 `SoulController` (`obj/command/social/SoulController.ts`) implements the
-wizard-tier author surface: `soul make / edit / delete / show /
-list`. The verb is gated by composition — `AuthorMixin` contributes
+author surface: `soul make / edit / delete / disable / enable / show /
+list / search` — the mutations gated by title over the soul
+committee's extent (see *The client read face*). The verb is gated by composition — `AuthorMixin` contributes
 `social/soul.yaml` to its `commandContributions.self`, paralleling the
 existing `clone` / `reload` / `eval` / `teleport` AuthorMixin
 verbs. When the access slate lands the gate moves mechanically to
@@ -399,18 +410,23 @@ their `_id`s and the first install adopted them in place by `verb`.
 
 ## The client read face — `SoulApi.snapshot()` (Wave 6)
 
-The catalogue had one reader surface, `soul list`, gated
-`requiresCoreAccess` — the **authoring** face. Players need to see the
-palette they can already type, so Wave 6 added a player-readable
-projection.
+The catalogue had one reader surface, `soul list` — then gated as the
+**authoring** face. Players need to see the palette they can already
+type, so Wave 6 added a player-readable projection.
 
 `SoulCatalogue.snapshot()` → `EmoteCatalogueEntry[]`: canonical verbs
 only, each with its emoji, tags, `searchTerms` (the picker's typeahead
 corpus — never cells of their own) and declared slots
 in **declaration order**, which is the order `EmoteGrammarRunner.bind`
 consumes tokens in. `required` is derived from the author's `optional`
-flag rather than restated. `soul list` keeps its gate: seeing the palette
-is not authoring it.
+flag rather than restated. `soul list` / `show` / `search` are open to
+anyone since content-packs wave 3; the mutations (`make` / `edit` /
+`delete` / `disable` / `enable`) are **title**: `SoulController` checks
+`AccessApi.canAtPath(giver, 'write-document', <the existing row's path,
+else the mint branch>)` — the soul committee's extent, so a non-member's
+`soul disable nod` is refused as "the soul committee holds the emote
+catalogue". There is no `requiresCoreAccess` validator any more (the
+`core` group is gone — [access.md](./access.md)).
 
 ### ⭐⭐ It is fetched, not pushed — `GET /api/emotes`
 

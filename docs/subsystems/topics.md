@@ -130,9 +130,9 @@ but it must not be silent either.
 |---|---|
 | `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/obj/Topic/'`. |
 | `obj/TopicCatalogue.ts` | The singleton Idea (`/obj/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
-| `seeds/obj/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
-| `seeds/obj/TopicCatalogue.yaml` | Singleton seed (`{ class: /obj/TopicCatalogue, data: {} }`). |
-| `bootstrap.ts` | Manifest entry for the `/obj/TopicCatalogue` singleton. **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
+| `platform/content/obj/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
+| `platform/content/obj/TopicCatalogue.yaml` | Singleton row (`{ class: /obj/TopicCatalogue, data: {} }`). |
+| platform `pack.yaml` `boot:` | The `/obj/TopicCatalogue` entry (`sync-read`). **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
 | `@saxonberg/types` `TopicDescriptor` | Wire-safe shape: `{ topic, family, label, description }` + the six facets. `TopicRoot` / `TOPIC_ROOTS` live here too. Shared between the server snapshot and the client cache. |
 
 ## No code-side constants mirror
@@ -193,10 +193,9 @@ are the access surface.
 data (`topic` / `family` / `label` / `description`) with no runtime
 behavior, so the catalogue reads `data.*` directly off each
 `Template` doc — no `Topic` Stuff instances are ever cloned at
-boot. The bootstrap manifest carries `/obj/TopicCatalogue`
-but **not** a `templatePathPrefix: '/obj/Topic/'` entry.
-Same pattern as species clades / materials / biomes (see the
-preamble in `mud/bootstrap.ts` for the precedent).
+boot. The platform pack's `boot:` list carries `/obj/TopicCatalogue`
+but **no** per-Topic entry. Same pattern as species clades /
+materials / biomes ([bootstrap.md](./bootstrap.md)).
 
 ## Auto-fallback for unknown topics
 
@@ -370,9 +369,9 @@ standing loop for reference data.
 
 ## Boot sequence
 
-1. `SeederManager` inserts every YAML into the `domain` collection
-   (including the per-topic seeds — those just sit in mongo as
-   template docs, no runtime presence).
+1. `PackApi.install` reconciles the platform pack's rows into the
+   `content` collection (including the per-topic rows — those just
+   sit in mongo as template docs, no runtime presence).
 2. `BootstrapManager` clones `/obj/TopicCatalogue` (and nothing
    else in the messaging substrate).
 3. `TopicCatalogue.postRegister` reads every Topic template via

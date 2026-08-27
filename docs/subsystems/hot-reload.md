@@ -119,7 +119,7 @@ blueprint at path." This means **every Stuff that flows through
 
 - Hooks (cloned by `PersistenceManager.loadHooks` from `hooks.yaml`).
 - Command controllers (cloned by `CommandGiver.executeController`
-  from the `/obj/command/*` Templates seeded under `mud/seeds/`).
+  from the `/obj/command/*` Templates the platform pack installs).
 - Hydrators (cloned by `clone()` itself from the `hydratorClass`
   field of the backing's Template — see Hydrators below).
 - Anything else templated, including avatars, locations, ideas.

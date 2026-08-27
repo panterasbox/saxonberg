@@ -280,7 +280,7 @@ Adding a new mode (e.g., `slither`):
 3. Add a verb YAML view (`content/cmd/movement/slither.yaml`) and a controller
    that extends `LocomotionControllerBase` with `modeName()` returning
    `'slither'`. Author a controller seed at
-   `seeds/obj/command/movement/SlitherController.yaml`.
+   `platform/content/obj/command/movement/SlitherController.yaml`.
 4. Update body-plan seeds that should permit the mode (add to
    `locomotionModes`) and optionally bump `defaultLocomotionMode`
    for species whose default movement is the new mode.

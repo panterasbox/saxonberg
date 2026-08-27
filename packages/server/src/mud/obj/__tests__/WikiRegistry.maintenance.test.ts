@@ -27,6 +27,7 @@ import { Collections } from '../../lib/persistence/Collections';
 import { installWikiTestDb, type WikiTestDb } from '../../lib/wiki/__tests__/wiki-test-db';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { fileURLToPath } from 'url';
+import { stubRegistries } from '../api/__tests__/pack-harness';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 class Principal extends Idea {}
@@ -286,6 +287,9 @@ describe('the wiki-starter pack (29)', () => {
   /** Install the real pack through the installer (the wiki kind: CAS submit as the pack). */
   async function install(): Promise<{ inserted: string[]; updated: string[]; conflicts: string[] }> {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // The requires phase (wave 3) ensures the pack's maintainers group
+    // through the group registry; the harness's in-memory stand-in.
+    stubRegistries();
     const [r] = await PackApi.install([WIKI_STARTER]);
     expect(r!.failure).toBeNull();
     return r!;

@@ -1,9 +1,8 @@
 /**
  * `AccessApi.canAtPath` (content-packs wave 2, D11): the path-targeted
  * title check the document store gates on. The covering owner comes
- * from `ParcelApi.ownerOf` (rung 1 a parcel, rung 2 the self-home, rung
- * 3 the state) and the owner's `can()` dispatch decides — no zone step,
- * no `core` literal. Null subjects and NPCs fail closed.
+ * from `ParcelApi.ownerOf` (rung 1 a parcel, rung 2 the self-home, else
+ * untitled → nobody) and the owner's `can()` dispatch decides — no zone step. Null subjects and NPCs fail closed.
  */
 
 import "../../../test-bootstrap";
@@ -95,20 +94,12 @@ describe("AccessApi.canAtPath", () => {
     expect(await AccessApi.canAtPath(alice, "write-document", "/home/bob/scripts/a")).toBe(false);
   });
 
-  it("an untitled path → the state group's membership decides", async () => {
+  it("an untitled path admits nobody — there is no state default (content-packs wave 3)", async () => {
     await bootRegistry();
     const alice = makeAvatar("alice");
-    const groups = await GroupApi.registry();
-    const core = await groups.managed().findByName("core");
-    core!.addMember("/obj/Avatar/alice");
-    await core!.save();
-    if (core!._id) groups.managed().fireChange(core!._id);
-    // Rung 3 of the title chain (no ParcelRegistry stood up here): the
-    // state owner, resolved to the real core group's ref.
-    vi.spyOn(ParcelApi, "ownerOf").mockResolvedValue({ kind: "group", name: "core" } as never);
-    vi.spyOn(ParcelApi, "resolveOwnerRef").mockResolvedValue(`managed:${core!._id}` as never);
+    vi.spyOn(ParcelApi, "ownerOf").mockResolvedValue(null);
     const bob = makeAvatar("bob");
-    expect(await AccessApi.canAtPath(alice, "write-document", "/emotes/grin")).toBe(true);
+    expect(await AccessApi.canAtPath(alice, "write-document", "/emotes/grin")).toBe(false);
     expect(await AccessApi.canAtPath(bob, "write-document", "/emotes/grin")).toBe(false);
   });
 

@@ -32,7 +32,7 @@ function seededRegistry(): BusinessEntity {
     readFileSync(
       fileURLToPath(
         new URL(
-          '../../../seeds/domain/terminus/registry/business.yaml',
+          '../../../../../../content/world-seed/content/domain/terminus/registry/business.yaml',
           import.meta.url,
         ),
       ),
@@ -44,13 +44,13 @@ function seededRegistry(): BusinessEntity {
   return biz;
 }
 
-/** Title fixture mirroring config/parcels.yaml for the registry branch. */
+/** Title fixture mirroring world-seed's pack.yaml claims for the registry branch. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
-    async (path: string): Promise<ParcelOwner> =>
+    async (path: string): Promise<ParcelOwner | null> =>
       path.startsWith('/domain/terminus/registry')
         ? { kind: 'group', name: 'terminus', ref: TERMINUS_REF }
-        : { kind: 'group', name: 'core' },
+        : null,
   );
   vi.spyOn(ParcelApi, 'resolveOwnerRef').mockImplementation(
     async (o: ParcelOwner) =>

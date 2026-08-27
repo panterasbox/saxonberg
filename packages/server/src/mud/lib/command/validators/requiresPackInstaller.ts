@@ -1,28 +1,28 @@
 /**
  * requiresPackInstaller — verb-level precondition for the content-pack
- * installer's operator surface (`pack`). Rejects when the giver is not a
- * member of the `pack-installers` managed group: the executive's
- * content-operations committee, owned by the Prime Minister's OFFICE
- * (`office:prime-minister` in `config/groups.yaml`) and appointed by
- * whoever holds that seat through the ordinary `group add`.
+ * installer's operator surface (`pack`). The executive installs
+ * (content-packs wave 3, D3): the giver must hold `/compact/executive`,
+ * which the platform pack titles to the Office of the Prime Minister —
+ * so the PM (the seat's holder, founder default included) and everyone
+ * holding a non-exited position there pass, and nobody else does. The
+ * former content-operations committee folded into the executive.
  *
- * The axis is **committee membership per se** — never wizardness (the
+ * The axis is **holding the executive** — never wizardness (the
  * code-trust axis is the wrong axis: installing content is a content
- * operation, not a code-authoring one), and deliberately not
- * `AccessApi.can` (that path resolves *parcel title*, and this committee
- * holds no parcel). A validator is the sanctioned home for an axis check
- * (the `requiresWizard` / `requiresGovernor` precedents).
+ * operation, not a code-authoring one). A validator is the sanctioned
+ * home for an axis check (the `requiresWizard` / `requiresGovernor`
+ * precedents); the resolution itself is the ordinary title dispatch
+ * (`AccessApi.canAtPath`, action `install`).
  *
- * The async preload resolves membership (keys are Avatar templatePaths —
- * the `GroupController.executeAdd` convention); a missing group or an
- * unpathed giver fails closed. The sync body maps `false` to a diegetic
- * decline.
+ * The async preload resolves the title; an unpathed giver fails closed.
+ * The sync body maps `false` to a diegetic decline.
  */
 
 import type { CommandValidator } from '../../../api/command';
-import { GroupApi } from '../../../api/group';
+import { AccessApi } from '../../../api/access';
 
-const COMMITTEE = 'pack-installers';
+/** The organization that installs: the Office of the Prime Minister. */
+const EXECUTIVE = '/compact/executive';
 
 // Split declaration: the annotated body const gives the arrow its
 // contextual typing; `Object.assign` in the initializer keeps the whole
@@ -31,18 +31,16 @@ const body: CommandValidator<boolean> = (_context, allowed) => {
   if (allowed) return undefined;
   return (
     'the pack office does not recognize your commission — installation ' +
-    "is the pack-installers committee's work (appointed by whoever holds " +
-    "the Prime Minister's seat)"
+    "is the executive's work (the Prime Minister and her staff; appoint " +
+    'through the Office of the Prime Minister)'
   );
 };
 const preload: NonNullable<CommandValidator<boolean>['preload']> = async (
   context,
 ) => {
-  const giverPath = context.commandGiver?.getTemplatePath?.() ?? null;
-  if (!giverPath) return false;
-  const g = await (await GroupApi.registry()).managed().findByName(COMMITTEE);
-  if (!g) return false;
-  return g.roleOf(giverPath) != null;
+  const giver = context.commandGiver;
+  if (!giver || !(giver.getIdentityPath?.() ?? giver.getTemplatePath?.())) return false;
+  return AccessApi.canAtPath(giver, 'install', EXECUTIVE);
 };
 const validator: CommandValidator<boolean> = Object.assign(body, {
   preload,

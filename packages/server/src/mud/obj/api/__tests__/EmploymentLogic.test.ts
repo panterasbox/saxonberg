@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
 import { AccessApi } from '../../../api/access';
+import { CompactApi } from '../../../api/compact';
 import BusinessEntity from '../../Business';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -91,16 +92,17 @@ describe('EmploymentApi / EmploymentLogic', () => {
     await expect(EmploymentApi.isProprietorOf(dave, biz)).resolves.toBe(true);
   });
 
-  it('grants the operator override via AccessApi.isAuthor', async () => {
+  it('grants the operator override to the Prime Minister\'s SEAT (an office, never the founder)', async () => {
     const biz = seedBusiness();
     const stranger = seedWorker('/domain/lounge/npc/remy');
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     await expect(EmploymentApi.isProprietorOf(stranger, biz)).resolves.toBe(
       false,
     );
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
+    holds.mockResolvedValue(true);
     await expect(EmploymentApi.isProprietorOf(stranger, biz)).resolves.toBe(
       true,
     );
+    expect(holds).toHaveBeenCalledWith(stranger, 'prime-minister');
   });
 });

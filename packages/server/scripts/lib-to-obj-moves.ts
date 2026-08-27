@@ -297,8 +297,6 @@ export function rewrite(value: string, axes?: readonly MoveAxis[]): string | nul
  * the packs' content trees. Tests reference these by disk path.
  */
 export const REPO_PATH_MOVES: ReadonlyArray<readonly [string, string]> = [
-  ['src/mud/seeds/lib/', 'src/mud/seeds/obj/'],
-  ['seeds/lib/', 'seeds/obj/'],
   ['content/lib/', 'content/obj/'],
 ];
 

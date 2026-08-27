@@ -1,0 +1,44 @@
+# Vionne — the company as an ORGANIZATION.
+#
+# ⭐ The answer to *"who runs Vionne?"*, which the corpo substrate could
+# not express: a `Corpo` is a MARK — a key, a sector, an ethos, a set of
+# rivals — and a mark cannot hold a position or hire anyone. This is the
+# chart the mark hangs off.
+#
+# ⭐ Vionne HOLDS ITS OWN BRANCH: the organization is the title holder of
+# `/corpo/vionne` (the corpo-vionne pack's claim), so `committeeOf` resolves the
+# committee over it to the organization itself — its staff and its head.
+# That is how Vionne appoints the Goodkin-branch shape of subsidiary: the
+# subsidiary names `{kind: committee, parcel: /corpo/vionne}`, which now
+# means "Vionne's staff or head", never the municipality that owns the
+# ground its branches stand on.
+#
+# The chart's OWN appointing authority — who fills the chief-executive
+# seat — is the Prime Minister's office until a corpo has a seat of its
+# own (content-packs wave 3: an organization's authority cannot be the
+# committee over its own extent, because that committee IS the
+# organization). The wave-2 `vionne` board group is retired.
+#
+# It ships UNFILLED. Nobody works here yet, and
+# that is a fact about the company rather than a gap in the model — the
+# same honest empty state the Compact's press office ships in. The founder
+# passes by the Art. XI pool-of-one backstop, so a cold box can staff it.
+#
+# ⚠ It is NOT a Business. Vionne as a whole trades through its
+# subsidiaries — the Goodkin branch, a future Veshko yard — each of which
+# is a Business with its own account, naming this as `parentOrganization`.
+# The holding company itself banks nothing.
+class: /obj/Organization
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  label: Vionne
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    # One position, and it is the one the docs kept promising an answer to.
+    - key: chief-executive
+      label: running Vionne
+      wageRate: 0
+      confers: []
+  rosterSlots: []

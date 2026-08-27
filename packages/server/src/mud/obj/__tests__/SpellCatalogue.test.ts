@@ -25,7 +25,7 @@ const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../../../content/arcane-library/content/obj/magic/Spell");
 const DISCIPLINE_SEEDS_DIR = join(
   dirname(__filename),
-  "../../seeds/obj/Discipline",
+  "../../../../../content/platform/content/obj/Discipline",
 );
 
 type Loose = Record<string, unknown>;

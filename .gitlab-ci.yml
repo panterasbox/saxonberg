@@ -162,6 +162,15 @@ lint:
     # list only shrinks). A kernel test proves the kernel over synthetic
     # fixtures; a test of real content lives beside the content.
     - pnpm -C packages/server lint:test-content
+    # The `core` group is dead (content-packs wave 3): no source, script,
+    # content or e2e line names it (one marked migration branch excepted),
+    # ParcelOwner is exactly its three kinds, no pack-installers, no
+    # author tier, no requiresCoreAccess / requiresAuthor.
+    - pnpm -C packages/server lint:core-gone
+    # Every path a pack ships under a title root is claimed by some pack —
+    # with no state default an unclaimed path is one nobody can edit,
+    # broadcast over or teleport within, silently.
+    - pnpm -C packages/server lint:untitled
 
 test:
   extends: [.node, .mr-only]
@@ -286,6 +295,10 @@ e2e:
     SESSION_SECRET: 'ci-e2e-not-a-secret'
     CLIENT_URL: 'http://localhost:5173'
   script:
+    # Platform-only boot FIRST (fresh DB — its landing-room assertion needs
+    # no earlier full-pack boot), then the main suite; same database,
+    # sequential (docs/deployment.md § The Mongo environment policy).
+    - pnpm --filter @saxonberg/e2e test:platform
     - pnpm --filter @saxonberg/e2e test
   artifacts:
     when: on_failure

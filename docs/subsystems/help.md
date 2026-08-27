@@ -240,7 +240,7 @@ built here.
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
 | Verb | `content/cmd/system/help.yaml` + `mud/obj/command/system/HelpController.ts` |
-| Boot wiring | `mud/bootstrap.ts`, `mud/lib/paths.ts`, `mud/seeds/obj/HelpCatalogue.yaml` |
+| Boot wiring | the platform pack's `boot:` entry (`producer`), `mud/lib/paths.ts`, `platform/content/obj/HelpCatalogue.yaml` |
 
 ## ⭐ The help card exists now
 

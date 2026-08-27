@@ -9,7 +9,8 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "report": "playwright show-report",
-    "install:browsers": "playwright install chromium"
+    "install:browsers": "playwright install chromium",
+    "test:platform": "playwright test -c playwright.platform.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

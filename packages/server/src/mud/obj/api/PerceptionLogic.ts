@@ -425,7 +425,7 @@ export class PerceptionLogic extends ApiLogic {
 /**
  * Modality name list — single source of truth for the
  * `preloadModalities` walk. Stays in step with the seed YAMLs
- * under `seeds/obj/modalities/`.
+ * under the platform pack's `content/obj/modalities/`.
  */
 const MODALITY_NAMES: readonly string[] = [
   'vision',

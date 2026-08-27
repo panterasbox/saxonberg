@@ -4,8 +4,8 @@
  *   - a successful deploy clones the kit's trap, sets its concealment to the
  *     placer's stealth-derived level, stamps `placedBy`, places it, and
  *     spends the kit;
- *   - the property gate refuses on another owner's ground and allows on
- *     public (`core`) ground;
+ *   - the property gate refuses on another owner's ground and on ungoverned
+ *     ground, and allows on government ground nobody privately holds;
  *   - pick-up-your-own: the placer can `get` their un-sprung placed trap; a
  *     non-placer is refused.
  *
@@ -22,6 +22,8 @@ import Trap from '../../../Trap';
 import TrapKit from '../../../TrapKit';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
+import { AddressableMixin } from '../../../../lib/address/Addressable';
+import { GovernmentApi } from '../../../../api/government';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { StuffApi } from '../../../../api/stuff';
 import { MessageApi } from '../../../../api/message';
@@ -37,7 +39,7 @@ import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
 
-class Room extends ContainerMixin(Idea) {}
+class Room extends AddressableMixin(ContainerMixin(Idea)) {}
 class Placer extends ContainerMixin(ContainableMixin(Idea)) {}
 
 function stubScene(): void {
@@ -65,6 +67,7 @@ function ctx(
 let counter = 0;
 function scene(): { room: Room; placer: Placer; kit: TrapKit } {
   const room = makeStuffAtPath(() => new Room(), `/domain/test/room-${counter++}`);
+  room.setAddress(`testville/room-${counter}`);
   const placer = makeStuffAtPath(
     () => new Placer(),
     `/obj/Avatar/trapper-${counter}`,
@@ -86,13 +89,11 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('ArmController — deploy', () => {
-  it('clones a concealed, placer-stamped trap on public ground and spends the kit', async () => {
+  it('clones a concealed, placer-stamped trap on government ground nobody privately holds and spends the kit', async () => {
     const { room, placer, kit } = scene();
     vi.spyOn(AccessApi, 'can').mockResolvedValue(false); // not owned by placer
-    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
-      kind: 'group',
-      name: 'core',
-    } as never); // public → allowed
+    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue(null); // no private title
+    vi.spyOn(GovernmentApi, 'governmentAt').mockReturnValue({ key: 'city' } as never); // under a government → allowed
     const deployed = makeStuff(() => new Trap());
     vi.spyOn(StuffApi, 'clone').mockResolvedValue(deployed as never);
 
@@ -104,6 +105,18 @@ describe('ArmController — deploy', () => {
     expect(deployed.getContainer()).toBe(room);
     expect(StuffApi.destruct).toHaveBeenCalledWith(kit);
     expect(context.note).not.toHaveBeenCalled(); // no rejection
+  });
+
+  it('refuses to arm on ground nobody governs (untitled, ungoverned — nowhere-ground)', async () => {
+    const { placer, kit } = scene();
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue(null);
+    vi.spyOn(GovernmentApi, 'governmentAt').mockReturnValue(null);
+    const clone = vi.spyOn(StuffApi, 'clone');
+    const context = ctx(placer);
+    await makeStuff(() => new ArmController()).execute({ target: { stuff: kit } } as never, context);
+    expect(clone).not.toHaveBeenCalled();
+    expect(context.note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'controller-rejected' }));
   });
 
   it('refuses to arm on another owner\'s property', async () => {

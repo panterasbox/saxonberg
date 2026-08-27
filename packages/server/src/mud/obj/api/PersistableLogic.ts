@@ -61,12 +61,14 @@ function isSlottedSlice(slice: MixinSlice): slice is SlottedSlice {
  * Map a parcel-title owner to the record's `owner` string. A player owner
  * keys on its durable `templatePath` (so the account-deletion cascade is a
  * keyed delete matching a player's path); a group owner keys on a
- * `group:<name|ref>` sentinel; the state default keys on `'core'`. Kept
+ * `group:<name|ref>` sentinel; an organization owner on an
+ * `organization:<templatePath>` sentinel. Kept
  * distinct from any real player `templatePath` so the two never collide.
  */
 function ownerString(owner: ParcelOwner): string {
   if (owner.kind === "player") return owner.templatePath;
-  return `group:${owner.ref ?? owner.name ?? "core"}`;
+  if (owner.kind === "organization") return `organization:${owner.templatePath}`;
+  return `group:${owner.ref ?? owner.name ?? ""}`;
 }
 
 /**
@@ -80,7 +82,9 @@ function ownerString(owner: ParcelOwner): string {
 async function ownerOfScope(scope: string, host: Stuff): Promise<string> {
   if (MixinApi.isHasInteractive(host)) return scope;
   try {
-    return ownerString(await ParcelApi.ownerOf(scope));
+    const owner = await ParcelApi.ownerOf(scope);
+    // Untitled ground (content-packs wave 3): the scope keys on itself.
+    return owner === null ? scope : ownerString(owner);
   } catch {
     return scope;
   }
@@ -244,7 +248,7 @@ function nearestPersistableHost(stuff: Stuff): Stuff | null {
  * restores as that player when it is online (a live `Stuff` at the path),
  * else as the host itself (self / system) — an offline player's avatar is
  * never force-materialized to restore content (resolved decision #3). Group
- * / `'core'` / self-owned scopes always restore under the host principal.
+ * / untitled / self-owned scopes always restore under the host principal.
  */
 function principalFor(owner: string, host: Stuff): Stuff {
   if (owner.startsWith("group:")) return host;

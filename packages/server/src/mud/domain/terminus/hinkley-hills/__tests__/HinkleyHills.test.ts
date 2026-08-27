@@ -150,7 +150,7 @@ function seedParcel(extent: string, landUse: string | null): void {
     _id: `seed-${++idCounter}`,
     extent,
     zonePath: extent,
-    owner: { kind: 'group', name: 'core' },
+    owner: { kind: 'group', name: 'hinkley-hills' },
     parentParcel: null,
     grants: [],
     allowance: null,
@@ -381,7 +381,7 @@ describe('Hinkley Hills — the land-use gate', () => {
     WorldClockApi._setNowProviderForTesting(() => 50_000_000);
     WorldClockApi.setScale(1000);
     // The suburb is residential; the Registry annex is civic. Both are
-    // exactly what config/parcels.yaml ships.
+    // exactly what world-seed's pack.yaml claims.
     seedParcel(SUBURB, 'residential');
     seedParcel(REGISTRY, 'civic');
     await bootParcels();

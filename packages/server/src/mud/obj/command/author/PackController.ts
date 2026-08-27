@@ -16,22 +16,24 @@
  *    not exist — keeping means claiming.
  *
  * Authorization is declarative: `pack.yaml` carries
- * `requiresPackInstaller` (membership of the `pack-installers`
- * committee — never the wizard axis). The dispatcher rejects before here.
+ * `requiresPackInstaller` (holding `/compact/executive` — the PM and her
+ * staff; never the wizard axis). The dispatcher rejects before here.
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { CommandApi } from '../../../api/command';
 import { PackApi } from '../../../api/pack';
+import { PromptApi } from '../../../api/prompt';
+import { MixinApi } from '../../../api/mixin';
 import type {
   PackDiffReport,
   PackDryRunReport,
   PackReconcileResult,
   PackResolveMode,
   PackStatusReport,
+  PackProvisionReport,
 } from '../../../api/pack';
 
 interface PackModel extends CommandModel {
@@ -49,7 +51,7 @@ const DEFAULT_PACK = 'base-library';
 
 const USAGE =
   'usage: pack status [<packId>] | pack install <packId> --dry-run | ' +
-  'pack sync [<packId>] | pack diff <packId> [<path>] | ' +
+  'pack sync [<packId>] | pack provision <packId> | pack diff <packId> [<path>] | ' +
   'pack resolve <packId> <path> --take-pack|--keep --pin|--export | ' +
   'pack pin <packId> <path> | pack unpin <packId> <path>';
 
@@ -62,6 +64,8 @@ export default class PackController extends CommandController<PackModel> {
         return this.executeInstall(model, context);
       case 'sync':
         return this.executeSync(model, context);
+      case 'provision':
+        return this.executeProvision(model, context);
       case 'diff':
         return this.executeDiff(model, context);
       case 'resolve':
@@ -82,13 +86,10 @@ export default class PackController extends CommandController<PackModel> {
         return this.tell(context, model.packId ? `no pack '${model.packId}'` : 'no packs');
       }
       const lines = reports.map((r) => this.formatStatus(r));
-      // The command-view migration residue: views the dispatcher still
-      // serves from DISK because no pack shipped them yet.
-      const fromDisk = CommandApi.diskFallbacks();
-      if (fromDisk.length > 0) {
-        lines.push(
-          `${fromDisk.length} command view(s) still served from disk: ${fromDisk.join(', ')}`,
-        );
+      // Seed inventory nobody claims (D9): listed, never deleted.
+      const orphans = await PackApi.orphans();
+      if (orphans.length > 0) {
+        lines.push(`${orphans.length} template row(s) under no pack: ${orphans.join(', ')}`);
       }
       this.tell(context, lines.join('\n\n'));
     } catch (err) {
@@ -117,11 +118,49 @@ export default class PackController extends CommandController<PackModel> {
 
   private async executeSync(model: PackModel, context: CommandContext): Promise<void> {
     const packId = model.packId?.trim() || DEFAULT_PACK;
+    let result: PackReconcileResult;
     try {
-      const result = await PackApi.sync(packId);
+      result = await PackApi.sync(packId);
       this.tell(context, this.formatResult('synced', result));
     } catch (err) {
       return this.fail(context, (err as Error).message, 'sync-failed');
+    }
+    // A person's install of an unstaffed pack is the moment to staff it
+    // (D7): the installer, or who they name.
+    if (!result.staffed) await this.offerToStaff(packId, context);
+  }
+
+  private async offerToStaff(packId: string, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
+    if (!interactive) return;
+    let answer: string;
+    try {
+      answer = (await PromptApi.text(
+        interactive,
+        'This pack has no maintainers. You, or who? (a name, or enter for you)',
+      )).trim();
+    } catch {
+      return; // declined / timed out: it stays unstaffed, and status says so
+    }
+    const memberPath = answer.length > 0 ? answer : (giver.getIdentityPath() ?? giver.getTemplatePath() ?? '');
+    if (!memberPath) return;
+    try {
+      const added = await PackApi.staff(packId, memberPath);
+      this.tell(context, added ? `${memberPath} now maintains pack '${packId}'.` : `${memberPath} already maintains pack '${packId}'.`);
+    } catch (err) {
+      this.tell(context, (err as Error).message);
+    }
+  }
+
+  private async executeProvision(model: PackModel, context: CommandContext): Promise<void> {
+    const packId = model.packId?.trim();
+    if (!packId) return this.fail(context, USAGE, 'pack-required');
+    try {
+      const report = await PackApi.provision(packId);
+      this.tell(context, this.formatProvision(report));
+    } catch (err) {
+      return this.fail(context, (err as Error).message, 'provision-failed');
     }
   }
 
@@ -216,6 +255,15 @@ export default class PackController extends CommandController<PackModel> {
     if (rec.failure) {
       lines.push(`  FAILED at ${rec.failure.step}: ${rec.failure.error}`);
     }
+    if (r.maintainers) {
+      lines.push(
+        `  maintainers: ${r.maintainers.group} — ` +
+          (r.maintainers.staffed ? 'staffed' : 'UNSTAFFED — routes to the executive'),
+      );
+    }
+    for (const extent of r.titleConflicts) {
+      lines.push(`  title conflict: ${extent} is held by somebody else`);
+    }
     // Pins are loud, every time.
     lines.push(`  ${rec.pins.length} row(s) pinned, skipped on last reconcile`);
     for (const p of rec.pins) lines.push(`    pinned ${p}`);
@@ -234,6 +282,21 @@ export default class PackController extends CommandController<PackModel> {
     return lines.join('\n');
   }
 
+  private formatProvision(p: PackProvisionReport): string {
+    const lines = [`pack '${p.packId}' — as the registries hold it now`];
+    lines.push(
+      `  maintainers: ${p.maintainers.group} — ` +
+        (p.maintainers.staffed
+          ? `staffed (${p.maintainers.members.length}): ${p.maintainers.members.join(', ')}`
+          : 'UNSTAFFED — routes to the executive'),
+    );
+    lines.push(p.groups.length === 0 ? '  groups: none' : '  groups:');
+    for (const g of p.groups) lines.push(`    ${g.name} (${g.members} member(s))`);
+    lines.push(p.titles.length === 0 ? '  titles: none' : '  titles:');
+    for (const t of p.titles) lines.push(`    ${t.extent} — ${t.holder} [${t.outcome}]`);
+    return lines.join('\n');
+  }
+
   private formatDryRun(p: PackDryRunReport): string {
     const lines = [`dry run for pack '${p.packId}' — nothing written`];
     const byOp = new Map<string, string[]>();
@@ -244,7 +307,7 @@ export default class PackController extends CommandController<PackModel> {
       byOp.set(a.op, list);
     }
     if (byOp.size === 0) lines.push('  no changes');
-    for (const op of ['insert', 'update', 'adopt', 'delete', 'keep', 'converge', 'conflict', 'pinned-skip']) {
+    for (const op of ['insert', 'update', 'adopt', 'delete', 'keep', 'converge', 'conflict', 'pinned-skip', 'skip-sold']) {
       const keys = byOp.get(op);
       if (!keys) continue;
       lines.push(`  ${op} (${keys.length}):`);

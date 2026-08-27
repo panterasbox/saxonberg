@@ -40,7 +40,7 @@ import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__
 
 const SEED = fileURLToPath(
   new URL(
-    "../../../seeds/domain/terminus/general-store/goods/sewing-machine.yaml",
+    "../../../../../../content/world-seed/content/domain/terminus/general-store/goods/sewing-machine.yaml",
     import.meta.url,
   ),
 );

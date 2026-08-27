@@ -229,6 +229,29 @@ wizard who is not the Governor can no longer mint. This is the office
 substrate's first real consumer, the proof it works. Only `reserve`
 moves; `house` (venue-owner) authority is a separate concern, untouched.
 
+## Seat-held title (content-packs wave 3)
+
+A seat can hold real property — not as a group it sits in, but through
+the **organization** the office heads. `ParcelOwner` has an
+`organization` kind (`{ kind: 'organization', templatePath }`,
+[parcel.md](./parcel.md)); the platform pack's manifest claims its
+roots (`/obj`, `/cmd`, `/domain`, `/compact`, `/studio`, `/home`,
+`/platform`, `/blueprints`) for `/compact/executive`, the Office of the
+Prime Minister. The title admits the organization's **staff** (every
+non-exited position holder, `EmploymentApi.holdsPosition`) and its
+**appointing authority** — the PM's seat, `CompactApi.holdsOffice`, the
+founder by default (`EmploymentApi.holdsAuthority`). So the founder
+holds the platform from day one with no group membership and no stored
+grant: `office handoff prime-minister <player>` moves the platform with
+the seat, and the previous holder loses it in the same act. The
+executive must be **resident** for any of this to resolve — it is a
+`boot:` entry of the platform pack; an organization-held title whose
+organization is not up admits nobody (one diagnostic, fail closed).
+
+The soul committee's group (`soul`, holding `/expression`) is
+**PM-owned** (`owner: { office: prime-minister }` in the manifest): the
+seat appoints its members; nobody self-enrols.
+
 ## Deferred
 
 - The **filling workflow** (investiture-by-bill, constructive

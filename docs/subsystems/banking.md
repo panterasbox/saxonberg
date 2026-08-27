@@ -198,7 +198,7 @@ re-links the held account onto the fresh credential instead of refusing. One `Ba
 extends `BankingControllerBase` (`resolveBank` — the affording counter, else
 the room scan; the crafting "agent performs, venue owns state" resolution).
 The branch is authored as **city content**:
-`seeds/domain/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
+`world-seed/content/domain/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
 one cell north of the arrival plaza (reachable from the born-with University
 Avenue fast-travel node), affiliated to **Goodkin** (the retail bank).
 
@@ -497,7 +497,7 @@ The plan flagged 6 open implementation choices; settled as reached:
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
    regroup — the Api/Logic substrate is untouched. (Phase 2 surface,
    restructured post-MR review.)
-6. **Branch/teller homing** — city content under `seeds/domain/eternal/`
+6. **Branch/teller homing** — city content under `world-seed/content/domain/eternal/`
    (resolved by the plan). Sub-choice settled: **`BankMixin` on a
    teller-counter `Thing` fixture**, NOT on the branch Location — a
    Location's own `commandContributions` don't reach its occupants, so the

@@ -265,8 +265,9 @@ fork reads `getStatus()` at authorization and refuses a non-operational
 departure (**D8**; the seam stays authored-static — no dynamic breakdown).
 
 The four terminals are **not** boot-manifest entries — they load by
-**`populates:` cascade** from the single lounge root (`bootstrap.ts` holds
-one hub anchor, not one entry per terminal). The three departure terminals
+**`populates:` cascade** from the single lounge root (`world-seed`'s
+`boot:` list holds one hub anchor, `/domain/lounge/terminal`, not one
+entry per terminal). The three departure terminals
 are never route targets, so a plain route-target cascade would never reach
 them; instead each departure gate room declares `populates:` its own
 terminal fixture, so standing up the hub materializes every gate + its
@@ -286,7 +287,8 @@ New **committed non-guest** players receive a small **onboarding coin**
 (`issueCash` at the char-gen commit; hard coin, no account, anti-farm ~20,
 guests excluded) — spendable at the bar and the fare (both accept cash).
 
-> **Reseed note (R1).** `SeederManager` is insert-only, so on an *existing*
+> **Reseed note (R1) — historical.** `SeederManager` *was* insert-only (the
+> pack installer's reconcile has since replaced it), so on an *existing*
 > world the repointed lounge route, the deleted UA terminal, the plaza edit,
 > and the new `fasttravel.*` / `banking.onboardingStipend` AppSettings do not
 > apply live: delete-and-restart the three affected `domain` rows and reboot
@@ -338,9 +340,9 @@ Two things found by driving the Hinkley Hills commute route
   they cannot yet take (a *timetable* is public; a *ticket* is not) is a
   design question this doc does not answer.
 - **⚠ A stale terminal row silently deletes a route, and the refusal
-  lies.** `SeederManager` is insert-only, so adding a route to a terminal
-  that already has a row in `domain` leaves the live network on the old
-  list. `teleport <kw>` then answers **"no route here goes to '<kw>'"** —
+  lies.** A terminal row that the pack reconcile leaves alone (a locally
+  edited row is a *conflict*, never an overwrite — `pack status` names it)
+  keeps the live network on the old list. `teleport <kw>` then answers **"no route here goes to '<kw>'"** —
   which is *also* what an unauthored route says. The two are
   indistinguishable in a transcript, and the good outcome (the
   registration gate) is the one that proves the route is really wired.

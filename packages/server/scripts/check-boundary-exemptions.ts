@@ -32,7 +32,7 @@
  * the list says is what the runtime does.
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -42,6 +42,15 @@ const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, '..', 'src');
 const SECURITY_TS = join(SERVER_SRC, 'mud', 'api', 'security.ts');
 const SEEDS = join(SERVER_SRC, 'mud', 'seeds');
+const CONTENT = join(SERVER_SRC, '..', '..', 'content');
+
+/** Every template root a row may live in: each pack's `content/`, then the shrinking `seeds/`. */
+function templateRoots(): string[] {
+  const packs = existsSync(CONTENT)
+    ? readdirSync(CONTENT).map((p) => join(CONTENT, p, 'content')).filter((d) => existsSync(d))
+    : [];
+  return [...packs, SEEDS];
+}
 
 /**
  * Pull the string entries out of one `new Set([...])` initializer.
@@ -88,11 +97,11 @@ if (paths.length === 0) {
 }
 
 for (const path of paths) {
-  const seed = join(SEEDS, `${path}.yaml`);
-  if (!existsSync(seed)) {
+  const rows = templateRoots().map((root) => join(root, `${path}.yaml`));
+  if (!rows.some((row) => existsSync(row))) {
     findings.push(
-      `boundary-exempt path '${path}' has no seed row ` +
-        `(expected ${seed.replace(SERVER_SRC, 'src')}). Renamed singleton, ` +
+      `boundary-exempt path '${path}' has no template row in any pack's ` +
+        `content/ or in seeds/ (expected ${path}.yaml). Renamed singleton, ` +
         `or a stale exemption pointing at nothing.`
     );
   }

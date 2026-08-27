@@ -10,6 +10,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { stubRegistries } from '../../obj/api/__tests__/pack-harness';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, dirname } from 'path';
@@ -96,6 +97,7 @@ function writePack(id: string, file: string, data: Record<string, unknown>): str
 beforeEach(() => {
   vi.restoreAllMocks();
   stubPersist();
+  stubRegistries();
 });
 
 afterEach(() => {
@@ -150,6 +152,6 @@ describe('PackApi.discoverPacks', () => {
     const base = manifests.find((m) => m.id === 'base-library');
     expect(base).toBeDefined();
     expect(base!.version).toBe('0.3.0');
-    expect(base!.dependsOn).toEqual([]);
+    expect(base!.dependsOn).toEqual(['platform']); // coverage rides the platform's /obj claim (wave 3)
   });
 });

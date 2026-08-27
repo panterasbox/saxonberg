@@ -19,7 +19,9 @@ import type {
   GroupChangeHandle,
   GroupChangeListener,
 } from '../lib/social/GroupProvider';
-import type { GroupRole, Group } from '../lib/social/Group';
+import type { GroupRole, Group, GroupOwner } from '../lib/social/Group';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 import type GroupRegistry from '../obj/GroupRegistry';
 import { GroupLogic } from '../obj/api/GroupLogic';
 import { fileURLToPath } from 'url';
@@ -104,6 +106,35 @@ export class GroupApi {
    */
   static async ownsGroup(actor: Stuff, group: Group): Promise<boolean> {
     return logic().ownsGroup(actor, group);
+  }
+
+  /**
+   * Find-or-mint a managed group by name (content-packs wave 3 — the
+   * installer's `requires.groups` seam). An existing name is FOUND and
+   * never re-owned (adopt-by-name); a missing one is minted with `owner`.
+   * Never touches members. Returns the ref and whether it was created.
+   */
+  static async ensureGroup(
+    name: string,
+    owner: GroupOwner,
+  ): Promise<{ ref: GroupRef; created: boolean }> {
+    return logic().ensureGroup(name, owner);
+  }
+
+  /**
+   * Ensure `memberKey` (an identity path) holds `role` in the group at
+   * `ref` — the `group add` write shape (add + save + fireChange), reached
+   * only from the content installer (a pack's authored NPC memberships
+   * under its own claims, and `pack staff`). Idempotent: false when the
+   * member was already present. Gated to `PackLogic`'s caller chain.
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/obj/api/PackLogic#PackLogic'))
+  static async ensureMember(
+    ref: GroupRef,
+    memberKey: string,
+    role: GroupRole,
+  ): Promise<boolean> {
+    return logic().ensureMember(ref, memberKey, role);
   }
 }
 

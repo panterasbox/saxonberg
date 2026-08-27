@@ -49,8 +49,14 @@ function logic(): ParcelLogic {
 export type {
   ParcelOwner,
   ParcelSpace,
+  TitleClaim,
+  TitleGrantOutcome,
 } from "../lib/parcel/ParcelRecord";
-import type { ParcelSpace } from "../lib/parcel/ParcelRecord";
+import type {
+  ParcelSpace,
+  TitleClaim,
+  TitleGrantOutcome,
+} from "../lib/parcel/ParcelRecord";
 export {
   LandUses,
   LAND_USES,
@@ -61,12 +67,12 @@ export type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
 export class ParcelApi {
   /**
    * The total three-rung title chain — explicit parcel title → self-home
-   * identity → the state (public default, `{kind:'group', name:'core'}`).
+   * identity → `null` (untitled: every `can` there fails closed — content-packs wave 3).
    * Total (resolves for any path). Byte-identical to today's core walk for
    * untitled content (no author rung — authoring confers credit, not
    * title).
    */
-  public static async ownerOf(path: string): Promise<ParcelOwner> {
+  public static async ownerOf(path: string): Promise<ParcelOwner | null> {
     return logic().ownerOf(path);
   }
 
@@ -93,7 +99,7 @@ export class ParcelApi {
 
   /**
    * Every managed-group ref named by a `group`-kind parcel owner — the
-   * repointed input to `AccessRegistry.ensureAuthorGroups`.
+   * former input to the retired author scope; kept as the group-owner walk.
    */
   public static async groupOwnerRefs(): Promise<GroupRef[]> {
     return logic().groupOwnerRefs();
@@ -175,6 +181,25 @@ export class ParcelApi {
    */
   public static async workableAreaOf(extent: string): Promise<number> {
     return (await logic().spaceOf(extent)).unallocated;
+  }
+
+  /** Every parcel row (the title registry's full read; the held-extents walk). */
+  public static async allRecords(): Promise<ParcelRecord[]> {
+    return logic().allRecords();
+  }
+
+  /**
+   * ⭐ Apply a declared title claim — the content installer's seam
+   * (content-packs wave 3; `PackLogic.applyRequires` is the one caller).
+   * Absent → `granted` (row + `grant` event); same holder → `kept`;
+   * different holder → `conflict` (untouched — the caller records it);
+   * held by the retired state default → `migrated` (one `transfer`
+   * event). As exposed as `transfer`: authority is the caller's business.
+   */
+  public static async grant(
+    claim: TitleClaim,
+  ): Promise<{ outcome: TitleGrantOutcome; holder: ParcelOwner }> {
+    return logic().grant(claim);
   }
 
   /**

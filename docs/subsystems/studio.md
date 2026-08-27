@@ -69,13 +69,13 @@ gate closed.
 
 | Op | Gate | Purpose |
 |---|---|---|
-| `describeClass(classPath, contextPath?)` | `isAuthor` | effective mixin set + authorable field list joined to type shape + effective value/source |
-| `describeMixin(name)` | `isAuthor` | one mixin for the composer's inspector card — its FULL multi-paragraph concept comment + the authorable fields it contributes (name + type shape) + its runtime-state field names (all from the source scan) + optional HelpApi enrichment (typed relations + conferred method names, degrading to empty when the help artifact is absent) |
-| `createTemplate(input)` | `isAuthor` (+ the code-field gate on the `class` set) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
-| `listBlueprints()` / `getBlueprint(id)` | `isAuthor` | browse the catalogue (ungated reads over the singleton) |
-| `publishBlueprint(input)` | `isAuthor` | **act #2** — name/publish a composition of approved classes |
-| `listMixins()` | `isAuthor` | the palette vocabulary — `{ mixins, bases }`: the flat pickable list (each mixin carrying a one-line `summary` — the first sentence of its concept doc comment, from the source scan; always available, degrades to absent when undocumented) + each base class with its implied (`_mixinName`) mixin set for composition pre-seeding |
-| `scaffoldClass(input)` | `isAuthor` | **inert source string** composing mixins over a base (open to all authors) |
+| `describeClass(classPath, contextPath?)` | none (a read; reads are ungated since wave 3) | effective mixin set + authorable field list joined to type shape + effective value/source |
+| `describeMixin(name)` | none | one mixin for the composer's inspector card — its FULL multi-paragraph concept comment + the authorable fields it contributes (name + type shape) + its runtime-state field names (all from the source scan) + optional HelpApi enrichment (typed relations + conferred method names, degrading to empty when the help artifact is absent) |
+| `createTemplate(input)` | the write gate at the target path (`CmsApi.write`'s rules; + the code-field gate on the `class` set) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
+| `listBlueprints()` / `getBlueprint(id)` | none | browse the catalogue (ungated reads over the singleton) |
+| `publishBlueprint(input)` | the document gate on the `/blueprints` mint branch (platform-held — a `SecurityError` from `DocumentApi.save` is the denial) | **act #2** — name/publish a composition of approved classes |
+| `listMixins()` | none | the palette vocabulary — `{ mixins, bases }`: the flat pickable list (each mixin carrying a one-line `summary` — the first sentence of its concept doc comment, from the source scan; always available, degrades to absent when undocumented) + each base class with its implied (`_mixinName`) mixin set for composition pre-seeding |
+| `scaffoldClass(input)` | none | **inert source string** composing mixins over a base (open to all authors) |
 | `commitClass(input)` | `isWizard` + `can('write', zone)` | **act #3** — write the new class source + reload |
 
 `createTemplate` is the server side of act #1 (the CMS content-write path only
@@ -281,7 +281,7 @@ warns a non-wizard before a commit the server will decline.
   dispatch (property vs instruction fields).
 - [mixins.md](./mixins.md) — the `Mixins` registry, `_mixinName`, `MixinApi`.
 - [access.md](./access.md) — the wizard-lockdown (`class`/`hydratorClass`/
-  `behaviors[].brain` code-naming gate), `isWizard`/`isAuthor`.
+  `behaviors[].brain` code-naming gate), `isWizard`, `canAtPath`.
 - [provenance.md](./provenance.md) — the authoring ledger, `getActingAuthor`,
   the `recordAuthoring` gate (broadened to accept the studio transport).
 

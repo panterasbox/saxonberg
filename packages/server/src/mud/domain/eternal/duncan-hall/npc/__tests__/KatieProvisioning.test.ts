@@ -28,7 +28,24 @@ import { StuffApi } from '../../../../../api/stuff';
 import { DialogueTreeSchema } from '../../../../../lib/npc/tree';
 import { type ParcelOwner } from '../../../../../lib/parcel/ParcelRecord';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
-import { GroupSeeder } from '../../../../../../backend/GroupSeeder';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { GroupLogic } from '../../../../../obj/api/GroupLogic';
+import { ProxyApi } from '../../../../../api/proxy';
+
+/**
+ * What the world-seed pack's `requires.groups` block does at install
+ * (content-packs wave 3): the landlord's group is ensured and Katie's
+ * row is enrolled BY THE OWNER'S AUTHORED DATA — the conferral the
+ * retired GroupSeeder used to make. The member write is the installer's
+ * seam (gated to PackLogic), reached here on the raw logic.
+ */
+async function conferDormsStaff(): Promise<void> {
+  const { ref } = await GroupApi.ensureGroup('duncan-hall', { kind: 'system' });
+  const logic = ProxyApi.unwrap(
+    StuffApi.singletonSync('/obj/api/group', () => new GroupLogic()) as unknown as Stuff,
+  ) as unknown as GroupLogic;
+  await logic.ensureMember(ref, '/domain/eternal/duncan-hall/npc/katie', 'member');
+}
 import { Document } from '../../../../../lib/persistence/Document';
 import { makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 
@@ -137,12 +154,12 @@ describe('Katie — the dorms-agent authorization boundary', () => {
   });
   afterEach(reset);
 
-  it('is conferred dorms-agent membership from authored group data (GroupSeeder), not self-enrolled', async () => {
+  it('is conferred dorms-agent membership from authored group data (the pack\'s requires), not self-enrolled', async () => {
     await bootWithAccess();
     // The landlord's `duncan-hall` group and Katie's membership are authored
-    // in config/groups.yaml and seeded by GroupSeeder — the owner confers it.
-    // Katie's class runs no enrollment code.
-    await GroupSeeder.run();
+    // in world-seed's pack.yaml (requires.groups) and applied by the
+    // installer — the owner confers it. Katie's class runs no enrollment code.
+    await conferDormsStaff();
 
     const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
     expect(ref).not.toBeNull();
@@ -171,6 +188,9 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     const env = Katie.commandContributions.peers ?? [];
     expect(env).toContain('domain/eternal/duncan-hall/cmd/provision.yaml');
     expect(env).toContain('domain/eternal/duncan-hall/cmd/unprovision.yaml');
+    // Nothing preloaded views from a store here, so the keys resolve to
+    // world-seed's own view files (offline = the pack files).
+    CommandApi.clearCache();
     for (const key of env) {
       expect(CommandApi.getCommand(key), key).not.toBeNull();
     }
@@ -184,9 +204,9 @@ describe('Katie — the dorms-agent authorization boundary', () => {
       () => new Katie(),
       '/domain/eternal/duncan-hall/npc/katie',
     );
-    // Membership is conferred by the owner's authored group data (seeded),
-    // not by Katie enrolling herself.
-    await GroupSeeder.run();
+    // Membership is conferred by the owner's authored group data (the
+    // pack's requires), not by Katie enrolling herself.
+    await conferDormsStaff();
     // Katie is an agent of the dorms owner → authorized (not via a wizard
     // bit — an NPC has no playerId, so isWizard is false; the group is why).
     expect(await AccessApi.isWizard(katie)).toBe(false);

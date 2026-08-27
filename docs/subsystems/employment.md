@@ -156,12 +156,14 @@ closed with no registry, and the `committee` arm narrows with
 ⚠ **The *founder passes* column is load-bearing, not trivia.** Only
 `office` and `committee` carry the Art. XI default, so **an authority the
 founder cannot satisfy is one nobody can satisfy on a cold box** until a
-human edits a group by hand — `AccessApi.isAuthor` resolves to membership
-of a `core` group that `seedCoreGroup()` creates **empty**.
+human edits a group by hand. (The former `AccessApi.isAuthor` fallback —
+an always-empty `core` group — is gone since content packs wave 3; the
+operator override is the PM seat, below.)
 
 ⚠ **There is deliberately no `author` kind.** The operator axis is an
-override layered *on top of* an authority (`isProprietorOf`'s existing
-`AccessApi.isAuthor` arm), never an appointing authority in its own right.
+override layered *on top of* an authority (`isProprietorOf`'s
+`CompactApi.holdsOffice(subject, 'prime-minister')` arm — the Prime
+Minister as operator), never an appointing authority in its own right.
 
 ⚠ **No seed edits were needed.** `Authority.fromData` reads a bare string
 as `{kind: 'entity', path}` — the legacy shape, same value under the new
@@ -239,8 +241,9 @@ extends Idea` at `/obj/api/employment`, HMR-able; every method gated
 `shiftStateOf` / `settleShiftWage` / `tickRoster` / `boot`.
 
 - **Proprietor authority** = the organization's **appointing authority**,
-  checked by `isProprietorOf`, with `AccessApi.isAuthor` as the orthogonal
-  operator override. Not a Zone `ownerGroup` — `AccessApi` cannot
+  checked by `isProprietorOf`, with the Prime Minister's seat
+  (`CompactApi.holdsOffice(subject, 'prime-minister')`) as the orthogonal
+  operator override (content packs wave 3 — the former `isAuthor` arm). Not a Zone `ownerGroup` — `AccessApi` cannot
   represent an NPC owner. For an `entity` authority this is
   byte-identical to the shipped `proprietorPath` check.
 - **`mayPublishAs`** lives here rather than on the press face because it

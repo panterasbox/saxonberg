@@ -76,8 +76,8 @@ plumbing detail:
 The repo root (where `.git` lives) is `path.dirname(SourceTreeApi.getSandboxRoot())`
 (the sandbox root is the `packages/` dir itself), memoised process-wide. A
 path **outside `packages/`** (`docs/`, `deploy/`, root config) has *no*
-source-logical form → the write gate resolves it to the `'core'` owner
-default → **denied for a normal wizard**. That is intentional (git is never
+source-logical form → the write gate resolves no title for it
+(`ownerOf` → `null`, which fails closed) → **denied for a normal wizard**. That is intentional (git is never
 a bypass), and it means a wizard editing `docs/` through the source tree
 **cannot `publish` it** — a real, documented constraint.
 

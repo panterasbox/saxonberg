@@ -11,7 +11,9 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
-const SEEDS = fileURLToPath(new URL("../../../../seeds/", import.meta.url));
+const SEEDS = fileURLToPath(new URL("../../../../../../../content/world-seed/content/", import.meta.url));
+// The owned bed archetype is the generic-objects pack's row (content-packs wave 3).
+const OBJECTS = fileURLToPath(new URL("../../../../../../../content/generic-objects/content/", import.meta.url));
 
 interface Seed {
   class?: string;
@@ -37,7 +39,7 @@ describe("the dorm bed against the bedroom archetype", () => {
     // The ladder should be visible from where you start: a university-issue
     // single with a thin mattress, against a bed you chose and paid for.
     const dorm = read("domain/eternal/duncan-hall/dorm-fixtures/bed.yaml");
-    const owned = read("obj/fixture/bed.yaml");
+    const owned = parse(readFileSync(join(OBJECTS, "obj/fixture/bed.yaml"), "utf8")) as Seed;
     expect(dorm.data?.restQuality as number).toBeLessThan(
       owned.data?.restQuality as number,
     );

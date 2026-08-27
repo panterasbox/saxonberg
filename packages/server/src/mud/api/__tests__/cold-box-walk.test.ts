@@ -21,7 +21,7 @@
  * test that stubs an author or a group membership.
  *
  * This suite therefore stubs `GroupApi.isMember` to **false for everyone**
- * and `AccessApi.isAuthor` to **false**, so the only thing that can carry
+ * so the only thing that can carry
  * the founder through is the founder default itself.
  *
  * Both breaks this build fixed were invisible to tests that passed in
@@ -77,7 +77,7 @@ import type { ParcelOwner } from '../../lib/parcel/ParcelRecord';
 const PRESS = '/compact/press';
 const PRESS_FEED = '/compact/press/feed';
 const DIRECTOR = 'communications-director';
-const CORE_GROUP = 'managed:g-core';
+const CORE_GROUP = 'managed:g-compact-holders';
 const FOUNDER_EMAIL = 'founder@example.com';
 
 interface Doc extends Record<string, unknown> {
@@ -155,15 +155,14 @@ function installStore(): void {
 }
 
 /**
- * ⚠ The `core` group holds title over `/compact` and has **no members**.
- * `isMember` is false for everybody, always — exactly what a fresh
- * `seedCoreGroup()` leaves behind.
+ * ⚠ An EMPTY group holds title over `/compact`. `isMember` is false for
+ * everybody, always — a cold box's honest shape.
  */
 function installEmptyCoreTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (): Promise<ParcelOwner> => ({
       kind: 'group',
-      name: 'core',
+      name: 'compact-holders',
       ref: CORE_GROUP,
     }),
   );
@@ -173,8 +172,6 @@ function installEmptyCoreTitle(): void {
   );
   vi.spyOn(ParcelApi, 'coveringParcelOf').mockResolvedValue(null);
   vi.spyOn(GroupApi, 'isMember').mockResolvedValue(false);
-  // ...and therefore nobody is an author, the founder included.
-  vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
 }
 
 /** The Compact press office, exactly as its seed ships it: UNFILLED. */
@@ -298,7 +295,6 @@ describe('⭐⭐ the cold-box walk', () => {
 
     // ── The box really is cold ────────────────────────────────────
     await expect(CompactApi.isFounder(founder)).resolves.toBe(true);
-    await expect(AccessApi.isAuthor(founder)).resolves.toBe(false);
     await expect(GroupApi.isMember('founder', CORE_GROUP)).resolves.toBe(
       false,
     );

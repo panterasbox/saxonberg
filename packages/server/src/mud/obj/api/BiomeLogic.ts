@@ -497,7 +497,7 @@ function rootBiome(): Biome {
       throw new Error(
         `BiomeApi.getRootBiome: root universe biome at ` +
           `'${ROOT_BIOME_PATH}' is not loaded — check ` +
-          `seeds/obj/biome/universe.yaml`
+          `packages/content/base-library/content/obj/biome/universe.yaml`
       );
     }
     rootBiomeCache = b;
@@ -798,7 +798,7 @@ async function runChainWalk<V>(
     throw new Error(
       `BiomeApi.resolve${capitalize(fieldBare)}For: root universe biome ` +
         `at '${ROOT_BIOME_PATH}' is missing the '${fieldBare}' default. ` +
-        `This is a boot-time invariant violation; check seeds/obj/biome/universe.yaml.`,
+        `This is a boot-time invariant violation; check the base-library pack's content/obj/biome/universe.yaml.`,
     );
   }
   return {

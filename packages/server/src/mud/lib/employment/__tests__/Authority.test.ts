@@ -149,12 +149,12 @@ async function bootOfficeRegistry(): Promise<OfficeRegistry> {
   return reg;
 }
 
-/** Title fixture: everything resolves to the `core` group (the state default). */
+/** Title fixture: everything resolves to one empty group. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (): Promise<ParcelOwner> => ({
       kind: 'group',
-      name: 'core',
+      name: 'commons',
       ref: GROUP_REF,
     }),
   );

@@ -337,7 +337,7 @@ class namespace, mirroring its template namespace (the class-path
 validator admits `/domain/` alongside `/obj/` and `/lib/`). The generic
 Warren substrate stays in `/lib/`.
 
-Content seeds: `seeds/domain/lounge/{warren,lounge,bar}.yaml` (templates
+Content seeds: `world-seed/content/domain/lounge/{warren,lounge,bar}.yaml` (templates
 at `/domain/lounge/{warren,lounge,bar}`, leaves under the
 `/domain/lounge` FolderZone), plus the bar's crafting fixtures
 (`back-bar`, the four bottles, `shaker`/`mixing-glass`,
@@ -409,7 +409,7 @@ owns the *domain* semantics:
 `validateSingletonContainerTarget` keeps its hard deny. The startLocation
 path is the only place the Warren semantics live.
 
-The avatar seed (`seeds/obj/Avatar/seed.yaml`) declares
+The avatar seed (`platform/content/obj/Avatar/seed.yaml`) declares
 `startLocation: /domain/lounge/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
 is unchanged** — it is the container-typed *evacuation* fallback in
 `Container.cleanupOnDestruct` (a Warren is not a Container); spawn and

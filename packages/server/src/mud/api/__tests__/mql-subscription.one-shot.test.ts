@@ -36,7 +36,7 @@ import Thing from '../../lib/stuff/Thing';
 import Location from '../../lib/stuff/Location';
 // The legacy `_MqlAdminFlag` test seam was retired with
 // `api/mql/permissions.ts`. Tests that exercised the gate now
-// stamp `ctx.permission = { isAuthor: ... }` directly; the
+// carried a permission snapshot (retired — resolving is never a permission); the
 // one-shot subscription path doesn't build its own MqlContext
 // so the default (absent) permission permits — matching the
 // default-deny intent of these tests for the gated paths.

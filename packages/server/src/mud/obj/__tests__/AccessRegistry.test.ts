@@ -338,50 +338,6 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
   });
 });
 
-describe("AccessRegistry — author scope from parcel group owners", () => {
-  beforeEach(() => {
-    AccessApi._resetRegistryRefForReload();
-    ParcelApi._resetRegistryRefForReload();
-    StuffApi.clearAll();
-  });
-  afterEach(() => {
-    vi.restoreAllMocks();
-    AccessApi._resetRegistryRefForReload();
-    ParcelApi._resetRegistryRefForReload();
-    StuffApi.clearAll();
-  });
-
-  it("folds a parcel's group owner into the author scope (repointed off parcels, not zone data)", async () => {
-    // Ownership now lives in the `parcels` collection (property 0a), not on
-    // the zone template. A parcel owned by the managed `testarea` group:
-    // `ensureAuthorGroups` → `ParcelApi.groupOwnerRefs` mints-or-finds it.
-    installInMemoryStore([
-      {
-        extent: "/lib/testarea",
-        zonePath: "/lib/testarea",
-        owner: { kind: "group", name: "testarea" },
-        parentParcel: null,
-      },
-    ]);
-    await bootRegistry();
-    await bootParcelRegistry();
-
-    const player = makeAvatar("dana");
-    // First read mints the `testarea` group (empty) and folds it into the
-    // author scope; dana isn't a member yet.
-    expect(await AccessApi.isAuthor(player)).toBe(false);
-
-    const reg = await GroupApi.registry();
-    const group = await reg.managed().findByName("testarea");
-    expect(group).not.toBeNull(); // minted by the owner-ref resolution
-    group!.addMember("/obj/Avatar/dana");
-    await group!.save();
-
-    // Now a member of the resolved owner group is an author of that area.
-    expect(await AccessApi.isAuthor(player)).toBe(true);
-  });
-});
-
 /**
  * ⭐⭐ **The Prime Minister is always a wizard and an archwizard, and it
  * is DERIVED.**

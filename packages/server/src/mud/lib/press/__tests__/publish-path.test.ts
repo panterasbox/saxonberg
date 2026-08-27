@@ -299,12 +299,12 @@ describe('repost', () => {
 describe('requiresPublisher (AC 17)', () => {
   it('⭐ admits a position-holder who is NOT an author', async () => {
     publisher(PRESS, PRESS_FEED, 'ooc', 'public', STAFFER);
-    // The break this swap exists to fix: `core` seeds EMPTY, so on a fresh
-    // box nobody is an author — the founder included — and the shipped
-    // `requiresAuthor` gate refused the verb outright.
-    const isAuthor = vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+    // The break this swap existed to fix: the (now retired) author tier
+    // was membership of a group that seeded EMPTY, so on a fresh box nobody
+    // was an author — the founder included — and the shipped
+    // `requiresAuthor` gate refused the verb outright. Publishing is a
+    // position, never a tier.
     await expect(gate(STAFFER)).resolves.toBeUndefined();
-    expect(isAuthor).not.toHaveBeenCalled();
   });
 
   it('refuses an actor holding no publishing position anywhere', async () => {

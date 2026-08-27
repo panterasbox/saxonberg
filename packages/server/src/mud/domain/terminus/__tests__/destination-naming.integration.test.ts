@@ -55,7 +55,9 @@ function loadDir(dir: string, pathPrefixFrom: string): Doc[] {
   return out;
 }
 
-const SEEDS = fileURLToPath(new URL("../../../seeds", import.meta.url));
+const SEEDS = fileURLToPath(new URL("../../../../../../content/world-seed/content", import.meta.url));
+// The realm + city Locality rows are the platform pack's (content-packs wave 3).
+const PLATFORM = fileURLToPath(new URL("../../../../../../content/platform/content", import.meta.url));
 
 // The newbie-wilds content ships as a pack now; resolve its root as the
 // installer does (module resolution of the workspace package).
@@ -94,6 +96,7 @@ describe("destination naming + crossroads (real seeds)", () => {
       ...loadDir(join(SEEDS, "domain/terminus"), "domain/terminus"),
       ...loadDir(join(WILDS, "domain/newbie-wilds"), "domain/newbie-wilds"),
       ...loadDir(join(SEEDS, "obj/Locality"), "obj/Locality"),
+      ...loadDir(join(PLATFORM, "obj/Locality"), "obj/Locality"),
       ...STUBS,
     ];
     installStore(docs);

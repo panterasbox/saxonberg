@@ -45,7 +45,7 @@ describe('respiration seeds — new content shapes hydrate', () => {
 
   it('air-tank seed hydrates into a worn air-bulk tank', async () => {
     const data = seedData(
-      '../../../seeds/obj/gear/air-tank.yaml',
+      '../../../../../../content/generic-objects/content/obj/gear/air-tank.yaml',
     );
     const tank = makeStuff(() => new AirTank());
     await hydrator().hydrate(tank, data);
@@ -61,7 +61,7 @@ describe('respiration seeds — new content shapes hydrate', () => {
 
   it('asphyxiation condition seed hydrates', async () => {
     const data = seedData(
-      '../../../seeds/obj/Condition/respiration/asphyxiation.yaml',
+      '../../../../../../content/platform/content/obj/Condition/respiration/asphyxiation.yaml',
     );
     const cond = makeStuff(() => new Condition());
     await hydrator().hydrate(cond, data);

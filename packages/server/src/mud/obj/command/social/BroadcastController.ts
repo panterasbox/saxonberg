@@ -1,19 +1,22 @@
 /**
- * BroadcastController — one-to-many ESP-channel broadcast.
+ * BroadcastController — forced messaging over an extent you HOLD
+ * (content-packs wave 3, D2c).
  *
- * Default audience: every online Avatar. `--to <mql>` narrows to an
- * MQL-resolved subset. Modality stamp `'verbal-esp'`; topic
- * `session.notice`. Body MML wraps the sender+payload in a
- * `<chan id="broadcast" label="Broadcast">` region so the cockpit
- * renders distinctly.
+ * `broadcast --at <extent> <message>`: the speaker must hold `extent`
+ * (`AccessApi.canAtPath(giver, 'broadcast', extent)` — the same title
+ * dispatch every path-targeted act uses: group membership, organization
+ * staff-or-head, a player's own home). Omitted, the extent is the parcel
+ * covering where the speaker stands, iff they hold it; otherwise the
+ * refusal lists what they DO hold (`AccessApi.heldExtents`). "Holding a
+ * parent reaches its children" is implemented on the AUDIENCE: every
+ * online Sensor whose container chain sits at or under the extent —
+ * no `ParcelApi` read per avatar, so delivery does not depend on a
+ * healthy world.
  *
- * Gated by `requiresCoreAccess` (verb-level validator at YAML) —
- * the resource is global (`null`), so the check routes through the
- * `'core'` fallback. Only `'core'` members can broadcast in this
- * build.
- *
- * No history ring (broadcasts ride scrollback like any other frame),
- * no rate-limiting (own substrate, deferred).
+ * Modality stamp `'verbal-esp'`; topic `session.notice`. Body MML wraps
+ * the sender+payload in a `<chan id="broadcast" label="Broadcast">`
+ * region so the cockpit renders distinctly. No history ring, no
+ * rate-limiting (own substrate, deferred).
  */
 
 import { CommandController } from '../../../lib/command/CommandController';
@@ -24,12 +27,25 @@ import type {
 import { MessageApi } from '../../../api/message';
 import { MqlApi } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
+import { AccessApi } from '../../../api/access';
+import { ParcelApi } from '../../../api/parcel';
 import { Mml } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
 interface BroadcastModel extends CommandModel {
   message: string;
-  query?: string;
+  extent?: string;
+}
+
+/** Is any container in `stuff`'s chain at or under `extent`? */
+function standsUnder(stuff: Stuff, extent: string): boolean {
+  let cur: Stuff | null = MixinApi.isContainable(stuff) ? stuff.getContainer() : null;
+  while (cur !== null) {
+    const path = cur.getTemplatePath();
+    if (path !== null && (path === extent || path.startsWith(extent + '/'))) return true;
+    cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+  }
+  return false;
 }
 
 export default class BroadcastController extends CommandController<BroadcastModel> {
@@ -40,80 +56,65 @@ export default class BroadcastController extends CommandController<BroadcastMode
       context.note({ kind: 'controller-rejected', reason: 'message-required', detail: 'broadcast body required' });
       return;
     }
-    // Access gate is now declarative — see broadcast.yaml's
-    // `validators: requiresCoreAccess`. The dispatcher rejects the
-    // command before this controller runs when the giver isn't
-    // permitted.
 
-    // Default audience: every online avatar. `online` is a recognized
-    // MQL seed (see resolver.ts). `--to` overrides with author-supplied
-    // MQL like `online with species:khazadicus` or any other shape the
-    // grammar accepts.
-    const queryString = (model.query ?? '').trim() || 'online';
-    let audience: Stuff[];
-    try {
-      const result = MqlApi.resolveMany(queryString, {
-        commandGiver: speaker,
-        scope: 'online',
-      });
-      audience = result.stuff;
-    } catch (err) {
+    // The extent: named, or the one covering where the speaker stands.
+    let extent = (model.extent ?? '').trim();
+    if (!extent) {
+      const here = context.location?.getTemplatePath() ?? '';
+      const covering = here ? await ParcelApi.coveringParcelOf(here) : null;
+      extent = covering?.getExtent() ?? '';
+    }
+    const admitted = extent.length > 0 && (await AccessApi.canAtPath(speaker, 'broadcast', extent));
+    if (!admitted) {
+      const held = await AccessApi.heldExtents(speaker);
+      const detail = held.length > 0
+        ? `you hold: ${held.join(', ')}`
+        : 'you hold nothing';
       MessageApi.scene(speaker)
         .topic('session.notice')
-        .toSelf(Mml.fromMarkup(`\nBroadcast query failed: ${(err as Error).message}\n`))
+        .toSelf(Mml.fromMarkup(
+          (extent
+            ? `\nYou do not hold ${extent} — `
+            : `\nNobody holds the ground you stand on, so there is no extent to address — `) +
+            `${detail}.\n`,
+        ))
         .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'mql-query-failed',
-        detail: (err as Error).message,
-      });
+      context.note({ kind: 'controller-rejected', reason: 'extent-not-held', detail });
       return;
     }
 
-    if (audience.length === 0) {
-      MessageApi.scene(speaker)
-        .topic('session.notice')
-        .toSelf(Mml.fromMarkup(`\nNo one matched '${queryString}'.\n`))
-        .send();
-      return;
-    }
+    // The audience: every online Sensor standing under the extent.
+    const online = MqlApi.resolveMany('online', { commandGiver: speaker, scope: 'online' }).stuff;
+    const audience = online.filter((a) => MixinApi.isSensor(a) && standsUnder(a, extent));
 
-    // Fall back to "every online Avatar" if the query somehow doesn't
-    // return Avatars — the broadcast verb's natural audience is
-    // players, not props.
-    const filtered = audience.filter((a) => MixinApi.isSensor(a));
     const parsed = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));
     const speakerName = Mml.actor(speaker);
-    const selfBody = Mml.fromMarkup(
-      `<chan id="broadcast" label="Broadcast">${speakerName.toString()}: ${parsed.toString()}</chan>`,
-    );
+    const line = `<chan id="broadcast" label="Broadcast">${speakerName.toString()}: ${parsed.toString()}</chan>`;
 
     MessageApi.scene(speaker)
       .topic('session.notice')
       .modality('verbal-esp')
-      .toSelf(selfBody)
+      .toSelf(Mml.fromMarkup(line))
       .payload({
         speaker: MessageApi.refOf(speaker),
         text: body,
-        audienceSize: filtered.length,
+        extent,
+        audienceSize: audience.length,
       })
       .send();
 
-    for (const a of filtered) {
+    for (const a of audience) {
       if ((a as unknown) === (speaker as unknown)) continue;
-      const peerBody = Mml.fromMarkup(
-        `<chan id="broadcast" label="Broadcast">${speakerName.toString()}: ${parsed.toString()}</chan>`,
-      );
       MessageApi.scene(speaker)
         .topic('session.notice')
         .modality('verbal-esp')
-        .toTarget(a, peerBody)
+        .toTarget(a, Mml.fromMarkup(line))
         .payload({
           speaker: MessageApi.refOf(speaker),
           text: body,
+          extent,
         })
         .send();
     }
   }
 }
-

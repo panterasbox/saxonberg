@@ -42,6 +42,20 @@ export class SoulApi {
     return logic().resolve(verb);
   }
 
+  /** The record behind a verb, DISABLED included — `soul show`'s read; never dispatch. */
+  static resolveAny(verb: string): Promise<Emote | null> {
+    return logic().resolveAny(verb);
+  }
+
+  /**
+   * Switch an emote off / on (the soul committee's `soul disable` /
+   * `enable`). Writes the row (an edit — a later pack change over it is a
+   * conflict, never an overwrite). False when no emote has the verb.
+   */
+  static setDisabled(verb: string, flag: boolean): Promise<boolean> {
+    return logic().setDisabled(verb, flag);
+  }
+
   static mint(spec: EmoteSpec): Promise<Emote> {
     return logic().mint(spec);
   }
@@ -71,9 +85,9 @@ export class SoulApi {
    * verbs, their emoji and search terms, and each emote's declared grammar
    * slots in declaration order.
    *
-   * ⭐ **The read face, and deliberately ungated.** `soul list` is the
-   * AUTHOR face and keeps `requiresCoreAccess`; seeing the palette you
-   * can already type is not authoring it. Rides
+   * ⭐ **The read face, and deliberately ungated.** The catalogue's
+   * mutations are the soul committee's (title over `/expression`);
+   * seeing the palette you can already type is not authoring it. Rides
    * `ConnectionEstablishedPayload.emoteCatalogue`, cached by the client
    * for the session exactly as `topicCatalogue` is.
    */

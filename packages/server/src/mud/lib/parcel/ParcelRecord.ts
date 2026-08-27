@@ -43,14 +43,45 @@ import type { FieldMeta } from "../mixin";
  *
  *   - `group` — a managed group. `ref` (an explicit `managed:<id>`) wins
  *     when present; otherwise `name` is resolved mint-or-find by the
- *     registry (how a seeded `'lounge'`/`'terminus'`/`'core'` owner maps
+ *     registry (how a claimed `'lounge'`/`'terminus'` holder maps
  *     to a runtime ref without the seed knowing the group id).
  *   - `player` — an individual, keyed on the durable `templatePath`
  *     (a self-home owner, or a title transferred to a player).
+ *   - `organization` — an `OrganizationMixin` host, keyed on its
+ *     `templatePath` (`/compact/executive`, `/corpo/<key>`). Held by
+ *     everyone holding a **non-exited position** in the organization AND
+ *     by its **appointing authority** (an office, founder default
+ *     included) — the staff plus the head. The organization must be
+ *     resident for the title to admit anyone; a non-resident target fails
+ *     closed. The wave-3 kind that lets the executive hold the platform.
  */
 export type ParcelOwner =
   | { kind: "group"; name?: string; ref?: GroupRef }
-  | { kind: "player"; templatePath: string };
+  | { kind: "player"; templatePath: string }
+  | { kind: "organization"; templatePath: string };
+
+/**
+ * A declared **title claim** — what a content pack's `requires.title`
+ * entry becomes once its holder is resolved (content-packs wave 3). The
+ * installer hands it to `ParcelApi.grant`; the registry decides the
+ * {@link TitleGrantOutcome}.
+ */
+export interface TitleClaim {
+  extent: string;
+  holder: ParcelOwner;
+  parentParcel?: string;
+  landUse?: LandUse;
+  areaM2?: number;
+}
+
+/**
+ * What `ParcelApi.grant` did with a claim: `granted` (no row existed —
+ * written), `kept` (the row exists with the same holder — untouched),
+ * `conflict` (the row exists under a different holder — untouched, the
+ * caller records it), `migrated` (the row was held by the retired state
+ * default and was transferred to the claim's holder — one transfer event).
+ */
+export type TitleGrantOutcome = "granted" | "kept" | "conflict" | "migrated";
 
 /**
  * A **use-grant** on a parcel — the minimal property-0b lease relationship

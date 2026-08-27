@@ -17,6 +17,8 @@ import { PersistApi } from '../../../api/persist';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { AccessApi } from '../../../api/access';
+import { PackApi } from '../../../api/pack';
+import { GroupApi } from '../../../api/group';
 import { ProvenanceApi } from '../../../api/provenance';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 
@@ -90,7 +92,8 @@ beforeEach(() => {
     makeFakeCollection(store) as never
   );
   vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(actor);
-  vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(true);
+  // The actor holds /mud (the fixture rows' extent); what you see is what you hold.
+  vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/mud']);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
   vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue('/obj/Avatar/alice');
 });
@@ -166,16 +169,40 @@ describe('DiagnosticApi.list', () => {
     );
   });
 
-  it('returns [] for a non-author non-wizard actor', async () => {
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
+  it('a nobody (holding nothing) gets [] — no error, nothing to see', async () => {
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
     expect(await DiagnosticApi.list({})).toEqual([]);
   });
 
-  it('admits a wizard who is not an author (sees compile rows)', async () => {
-    vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  it('a holder sees only rows under the extents they hold', async () => {
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/mud/lib/lounge']);
     const rows = await DiagnosticApi.list({});
-    expect(rows).toHaveLength(2); // runtime + compile
+    expect(rows.map((r) => r.path)).toEqual(['/mud/lib/lounge/Bar.ts']);
+  });
+
+  it('a wizard holding nothing sees the compile rows (the code-trust axis), a wizard holder sees both', async () => {
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    expect((await DiagnosticApi.list({})).map((r) => r.source)).toEqual(['compile']);
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/mud']);
+    expect(await DiagnosticApi.list({})).toHaveLength(2); // runtime + compile
+  });
+
+  it('a pack channel\'s rows go to the pack\'s maintainers', async () => {
+    await DiagnosticApi.record({ path: null, channel: 'pack.lounge', message: 'conflict' });
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
+    vi.spyOn(PackApi, 'maintainersOf').mockResolvedValue({
+      maintainers: { group: 'lounge' },
+      staffed: true,
+      fallback: { organization: '/compact/executive' },
+    });
+    const registry = { managed: () => ({ findByName: async () => ({ _id: 'g-lounge' }) }) };
+    vi.spyOn(GroupApi, 'registry').mockResolvedValue(registry as never);
+    const member = vi.spyOn(GroupApi, 'isMember').mockResolvedValue(true);
+    expect((await DiagnosticApi.list({})).map((r) => r.channel)).toEqual(['pack.lounge']);
+    expect(member).toHaveBeenCalledWith('/obj/Avatar/alice', 'managed:g-lounge');
+    member.mockResolvedValue(false);
+    expect(await DiagnosticApi.list({})).toEqual([]);
   });
 
   it('redacts compile rows from non-wizards', async () => {

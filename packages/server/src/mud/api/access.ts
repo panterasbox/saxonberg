@@ -82,7 +82,19 @@ function asAuthorityQuery<T>(fn: () => Promise<T>): Promise<T> {
  * other two name the template and source trees for the gate that
  * follows them.
  */
-export type TreeAction = 'write-document' | 'write-template' | 'write-source';
+/**
+ * The closed set of path-targeted actions `canAtPath` is asked about. This
+ * wave every action resolves alike (holding the covering title); the
+ * action is a label for the audit and for a later per-action policy.
+ */
+export type TreeAction =
+  | 'write-document'
+  | 'write-template'
+  | 'write-source'
+  | 'install'
+  | 'read'
+  | 'broadcast'
+  | 'teleport';
 
 export class AccessApi {
   /**
@@ -104,7 +116,7 @@ export class AccessApi {
    * Resource-targeted slice walk. Returns true iff `subject` is a
    * member of any group owning the resource's zone-tree slice. NPCs
    * and null subjects fail closed. When the walk finds no owners,
-   * falls back to the universal `'core'` group.
+   * is untitled — nobody's (content-packs wave 3).
    */
   public static async can(
     subject: Stuff | null,
@@ -127,13 +139,14 @@ export class AccessApi {
   }
 
   /**
-   * Broad "is the actor a member of any group with content scope?".
-   * Used by MQL pre-gates that can't be resource-targeted. Fail-
-   * closed in the no-Registry test path (the absent permission
-   * snapshot already permits the resolver from the dispatcher side).
+   * ⭐ Every extent `subject` holds — the within-your-extent pattern's one
+   * seam (content-packs wave 3): each parcel whose holder admits the
+   * subject (group membership, organization staff-or-head, a player
+   * title), plus the subject's own `/home/<key>`. What `broadcast --at`,
+   * `teleport`, `errors` and `find` reach. Sorted, deduplicated.
    */
-  public static async isAuthor(subject: Stuff | null): Promise<boolean> {
-    return logic().isAuthor(subject);
+  public static async heldExtents(subject: Stuff | null): Promise<string[]> {
+    return asAuthorityQuery(() => logic().heldExtents(subject));
   }
 
   /**
@@ -197,12 +210,13 @@ export class AccessApi {
   /**
    * ⭐⭐ **Re-establish the system groups after they have been deleted.**
    *
-   * The nightly reset wipes `groups`, and the system groups (`core`,
-   * `wizards`, `archwizards`, `streamers`) live there beside the player
-   * ones. They are minted in CODE rather than by a seed file — and the
-   * seeder is insert-only and boot-only — so without this the world
-   * comes back with no `core` group at all, every resource-targeted
-   * `can` read failing closed, and no fix short of a restart.
+   * The nightly reset wipes `groups`, and the three tag-like system
+   * groups (`wizards`, `archwizards`, `streamers`) live there beside the
+   * player ones. They are minted in CODE by `AccessRegistry.postRegister`
+   * at boot only, so without this the world comes back with no wizard
+   * axis at all and no fix short of a restart. Title-holding groups are
+   * NOT re-minted here — `PackApi.reprovision()` re-runs every pack's
+   * `requires` phase for those (content-packs wave 3).
    */
   public static async reseedSystemGroups(): Promise<void> {
     await asAuthorityQuery(() => logic().reseedSystemGroups());

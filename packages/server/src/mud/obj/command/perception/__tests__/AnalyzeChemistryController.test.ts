@@ -84,7 +84,7 @@ describe('AnalyzeChemistryController', () => {
     zone.addLocation(room, 0, 0, 0);
 
     // Build a synthetic iron Material via clone-by-template would
-    // require seeding through SeederManager; instead construct one
+    // require installing through the packs; instead construct one
     // directly and stamp its templatePath via the Stuff API surface.
     const iron = makeStuff(() => new Material());
     iron.setName('iron');

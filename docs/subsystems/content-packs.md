@@ -4,31 +4,39 @@ The **content-pack** substrate: foundational game content lives in
 standalone, git-versioned packages of **pure data** (zero TypeScript),
 and a single **installer** reconciles them into MongoDB at boot and on
 demand. The pack files are the **source of truth**; the database is a
-*derived install* of them. This is the long-term replacement for
-`SeederManager` — it gives content real version control (git, on the
-files) and a clean deliverable boundary, decoupled from the kernel's
-release cycle.
+*derived install* of them. It replaced `SeederManager` outright (wave
+3) — it gives content real version control (git, on the files) and a
+clean deliverable boundary, decoupled from the kernel's release cycle.
 
-**Fourteen packs ship today** (wave 2 of the content-pack program,
-2026-08): **base-library** (materials, biomes, quantity-units),
-**species-and-names** (the `Species`/`Clade` taxonomy tree + the
-char-gen name banks), **arcane-descriptors** (the unidentified-appearance
-pools), **newbie-wilds** (the first *locality* shipped as a pack — the
-crossroads, the delve, the cast), **platform** (the seed of pack zero:
-the application settings, the standing subjects Help/Global/Chat, the
-curated blueprints, and every engine verb's command view),
-**expression** (the emote roster), **generic-objects** (the crafting
-recipes), **saxonberg-lounge** (this wave only its three `msh` world
-scripts), **arcane-library** (the twelve spells + the two first magic
-items), **wiki-starter** (the starter articles), and the five
-**corpo-{aevex,goodkin,hollis,veshko,vionne}** (each corpo's mark + its
-brands) — plus the full iteration loop (boot install + the `pack`
-operator verb). **Seven per-collection seeders retired** into them
-(`EmoteSeeder`, `RecipeSeeder`, `BlueprintSeeder`, `ScriptSeeder`,
-`ChannelSeeder`, `AppSettingsSeeder`, `WikiSeeder`); `SeederManager`
-still walks the shrunken `seeds/` tree for every not-yet-migrated
-template, and `GroupSeeder` / `ParcelSeeder` stay (D12 — platform-seeded
-until the core decomposition).
+**Sixteen packs ship today** (wave 3 of the content-pack program,
+2026-08 — *pack zero, and the end of `core`*), and **every template row
+in the world comes from one of them**: there is no seeder, no code
+manifest, no `seeds/` tree. The table is in *§ The shipped packs*. The
+short version: **platform** is pack zero — the controller templates, the
+registries and catalogues, the marshallers, the closed vocabularies, the
+Compact's institutions (`/compact/executive`, `/compact/press`), the
+namespace roots and the landing shell (`/domain/void`), plus the
+settings, the standing subjects, the curated blueprints and every engine
+verb's command view — and **it alone is a bootable world** (the
+platform-only e2e proves it every pipeline). Everything else `dependsOn`
+it: the substrate packs (**base-library**, **species-and-names**,
+**arcane-descriptors**, **arcane-library**, **generic-objects**), the
+social packs (**expression**, **wiki-starter**), the five
+**corpo-{aevex,goodkin,hollis,veshko,vionne}** (each now an
+*organization* with its own chart), two localities
+(**newbie-wilds**, **saxonberg-lounge**), and **world-seed** — the
+TRANSITIONAL pack holding every locality row the retired `SeederManager`
+used to insert, deleted piecewise as waves 4–5 home each locality.
+
+A pack no longer only ships rows. Its manifest **declares what the rows
+need** (*§ The requires phase*): the groups it needs to exist, the
+**title** it claims over the extents it ships into (a pack's paths must
+lie under a claim — its own or a host's — or the install refuses), who
+**maintains** it (a group, or an organization — the executive holds the
+platform; a corpo holds its own branch), and which of its rows are
+**eager at boot** and why (*§ The boot union*). The seeders'
+`config/groups.yaml` and `config/parcels.yaml` are gone: a group or a
+title is declared by the pack whose content needs it.
 
 **The DB is a cache of the packs.** Since the pack-installer build
 (2026-08) the templates collection is named **`content`** (it was
@@ -38,9 +46,11 @@ creation — never renaming over a live `content`, never auto-dropping),
 and every install is **three-way** against a per-deployment install
 record (`pack_installs`): a row the pack changed is updated, a row the
 database changed is kept, a row both changed is a **conflict** —
-reported, never merged. The `pack` verb is gated on membership of the
-**`pack-installers`** committee, an office-owned group, never on the
-wizard axis.
+reported, never merged. The `pack` verb is
+gated on **title over `/compact/executive`** — the executive's own
+staff (the Prime Minister and whoever the office appoints), never the
+wizard axis; the wave-2 `pack-installers` committee folded into the
+executive.
 
 > **Scope.** This is the *content-only* corner of the downloadable-content
 > taxonomy (roadmap Framework 13: Content / Capability / Full). A content
@@ -68,12 +78,13 @@ The `content/` root mirrors the template-path namespace: a file's path
 relative to `content/`, minus `.yaml`, prefixed with `/`, **is** its
 template path (`content/obj/material/spirit/gin.yaml` →
 `/obj/material/spirit/gin`; `content/domain/newbie-wilds/crossroads/hub.yaml`
-→ `/domain/newbie-wilds/crossroads/hub`) — the same rule `SeederManager`
-uses. So the path is a pure namespace identifier, decoupled from where
-the file physically sits, and migrating a tree out of `seeds/` is a
-`git mv` (newbie-wilds was exactly that: 21 files, bytes and paths
-unchanged, the seed-tree entry deleted by the move so the seeder can
-never re-insert what the installer owns).
+→ `/domain/newbie-wilds/crossroads/hub`; `content/corpo/aevex.yaml` →
+`/corpo/aevex`; `content/home.yaml` → `/home`) — the rule the retired
+`SeederManager` used. So the path is a pure namespace identifier,
+decoupled from where the file physically sits, and moving a tree between
+packs is a `git mv` (newbie-wilds out of `seeds/` was exactly that: 21
+files, bytes and paths unchanged; wave 3's 439-file move of the engine's
+own rows into the platform pack was the same act at scale).
 
 The same rule names every row in the install record — the **record
 key**: the content-root-relative path with a leading slash and no
@@ -88,12 +99,30 @@ address for every kind (`pack diff <id> <path>`).
 ### The manifest — `pack.yaml`
 
 ```yaml
-id: base-library          # the sourcePack stamp value; stable
-version: 0.1.0            # reserved release label — nothing reads/enforces it in v1
+id: saxonberg-lounge      # the sourcePack stamp value; stable
+version: 0.2.0            # reserved release label — nothing reads/enforces it
 description: …
-dependsOn: []             # ids of packs that must install first
-root: /base-library       # the DOCUMENT root (optional; defaults to /<id>; must start with /)
+dependsOn: [platform, corpo-goodkin, corpo-vionne]   # ids that must install first; the HOSTS
+root: /domain/lounge      # the DOCUMENT root (optional; defaults to /<id>; must start with /)
+maintainers: lounge       # a group name, { group: <name> } or { organization: </path> };
+                          # default `<id>-maintainers`
+requires:                 # what the rows need — see § The requires phase
+  groups:
+    - { name: lounge, purpose: the lounge team }
+  title:
+    - { extent: /obj/lounge,    holder: { group: lounge } }
+    - { extent: /domain/lounge, holder: { group: lounge } }
+boot:                     # which rows are eager, and why — see § The boot union
+  - { template: /domain/lounge/terminal, role: producer, reason: "…" }
 ```
+
+**The key set is closed** (`MANIFEST_KEYS` in `PackLogic`): `id`,
+`version`, `description`, `dependsOn`, `root`, `requires`, `boot`,
+`maintainers`. Any other key — a typo, a field from a future wave — is an
+**error at read**, and so is an unknown key inside `requires`
+(`groups` / `title` only) or inside a boot entry (`template` / `role` /
+`reason` / `dependsOn`). A manifest that parses is a manifest the
+installer understands in full.
 
 `root:` is where the pack's **document-kind** rows land — every
 `documents` row a pack ships has `path = root + recordKey` and `owner =
@@ -103,10 +132,13 @@ pack's branch in the document tree; the template kind ignores it
 `root: /domain/lounge` so its scripts land where the retired
 `ScriptSeeder` put them and every dev DB adopts them in place.
 
-Deliberately minimal: the pack's two real requirements are **derived**,
-not declared. *Requires-kernel* is the install-time class-resolve check
-(below). *Owned paths* are recorded by the `sourcePack` stamp at install
-time. The manifest never enumerates paths.
+Still deliberately minimal about *rows*: the pack's kernel requirement
+is **derived**, not declared (*requires-kernel* is the install-time
+class-resolve check, below), and *owned paths* are recorded by the
+`sourcePack` stamp at install time — the manifest never enumerates
+paths. What it does enumerate is **extents** (`requires.title`), which
+is a different thing: a claim is a title, and title is declared, never
+inferred from a file tree.
 
 `server`'s `package.json` `@saxonberg/content-*` dependencies are the
 **single source of truth** for which packs a build ships — adding a pack
@@ -122,7 +154,16 @@ resolving *paths* via module resolution is layout-robust across dev
 (`tsx`) and dist. Packs are then ordered by `dependsOn` (a stable
 topological sort; throws on a cycle). With one pack this is a passthrough,
 but the read-and-honor of `dependsOn` is present so multi-pack ordering
-is already wired (full missing-dependency validation is deferred).
+is already wired (full missing-dependency validation is deferred;
+`dependsOn` on an unknown id is ignored).
+
+**`SAXONBERG_PACKS`** (D10) filters the discovered set: a comma-separated
+list of ids (`SAXONBERG_PACKS=platform`), applied *after* ordering. A
+pack it names that no shipped pack provides **throws at boot**; a pack
+it omits is **ignored** — not installed, and (because `bootManifest`
+reads the same filter) not booted, even when an earlier unfiltered boot
+left its record behind. Unset or empty means every discovered pack.
+`platform` always sorts first: every other pack `dependsOn` it.
 
 ## The installer — reconcile by `sourcePack` stamp + content-kind
 
@@ -162,7 +203,7 @@ which a path-prefix notion of ownership could not:
 
 | Subdir | Kind | Backend |
 |---|---|---|
-| `content/obj/**.yaml`, `content/domain/**.yaml` | **domain** (the template kind) | reconciled into the `content` collection (stamped). Two **enumerated** roots — never a catch-all glob, because the sibling subdirs are their own kinds. A `cmd/` segment under `content/domain/` is skipped (it is the command-view kind) |
+| every `content/**/*.yaml` **outside the kind dirs below** | **domain** (the template kind) | reconciled into the `content` collection (stamped). Wave 3 widened the walk from the two enumerated roots (`obj/`, `domain/`) to *everything that is not another kind's directory*: a pack ships a row at the path its file mirrors, wherever in the tree that path lives — `content/corpo/aevex.yaml` → `/corpo/aevex`, `content/home.yaml` → `/home`, `content/wiki/main.yaml` → `/wiki/main` (the namespace ZONE rows; the wiki *pages* beside them are `.md`, a different extension, read by the wiki kind). The non-template dirs are **enumerated by kind** (`nonTemplateDirs()`: `settings`, `subjects`, `descriptor-banks`, `quantity`, and every yaml `DOCUMENT_KINDS` `contentDir`), never guessed. `cmd/` is skipped at **any** depth — a command view has no `class:` and is the command-view document kind |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
 | `content/descriptor-banks/<key>.yaml` | **descriptor-banks** | reconciled into `descriptor_banks` (stamped), keyed on the basename = the item class; the appearance caches drop on change |
 | `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `msh/*.msh`, `cmd/**/*.yaml` (+ `domain/**/cmd/*.yaml`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; a flat-key kind gets its natural key from the basename (a disagreeing file fails at `read`); per-kind read validation (what the retired seeders validated) |
@@ -250,13 +291,20 @@ key's document path — `content/cmd/perception/look.yaml` →
 `/cmd/perception/look`, a locality's `content/domain/<…>/cmd/<verb>.yaml`
 → `/domain/<…>/cmd/<verb>` (no `root` join: the dispatcher's key is the
 same string, so `CommandApi.reload(path)` finds it). Every view is
-validated against the command schema at `read`. `CommandApi.preloadAll`
-serves the **store first**, then the on-disk command trees for whatever
-the store did not serve, **counting each disk read** — the migration
-residue `pack status` prints (*N command view(s) still served from disk*;
-the seven domain-local views of eternal today). A CMS save of a view
-that changes its `controller:` or its validator set is **wizard code
-trust** (`DocumentLogic`); a cosmetic edit goes live through
+validated against the command schema at `read`. **There is no disk
+fallback** (wave 3): once `CommandApi.preloadAll` has served the views
+from a document store, the store is the *only* source and a miss is a
+miss (`getCommand` returns null and says so). The wave-2 counted residue
+(*N command view(s) still served from disk*) is gone with the last seven
+domain-local views, which moved into `world-seed`. **Offline** — a unit
+test, a stripped boot, anything with no store ever preloaded — the views
+are read straight from the packs' own files (`PackApi.contentRoots()`,
+cached; `cmd/<key>` for an engine key, `<key>` for a `domain/`-prefixed
+locality key: the same files the installer reads), so the kernel tests
+keep working with zero seeding. The module-level `servedFromStore` flag
+is what tells the two apart; `clearCache` resets it. A CMS save of a
+view that changes its `controller:` or its validator set is **wizard
+code trust** (`DocumentLogic`); a cosmetic edit goes live through
 `CommandApi.reload` without a restart.
 
 ### The `sourcePack` stamp
@@ -298,7 +346,16 @@ collection so no contribution kind can ever reach it (the
   the DB, not a git ref the DB is not pinned to). Size is bounded by the
   `content` collection itself.
 - **`conflicts`** — the open conflicts, **recomputed every reconcile**
-  (never accumulated, so it cannot rot into a stored to-do).
+  (never accumulated, so it cannot rot into a stored to-do). A `title`
+  conflict (the claim's extent is held by somebody else) sits beside the
+  row conflicts, its `dbHash`/`packHash` the two holders' descriptions.
+- **`requires`**, **`boot`**, **`maintainers`** (wave 3) — the manifest's
+  three declarations **as applied**: what the nightly `reprovision`
+  re-grants, what `bootManifest` reads (`[]` on a failed pack — a pack
+  that did not install boots nothing), and who a `pack.<id>` diagnostic
+  routes to. The record is the deployment's memory of the manifest, so a
+  pack that is no longer in the build (its record still here) still
+  boots its rows and still has maintainers.
 
 **Canonical hashing.** The preimage is the rendered content only —
 `{class, hydratorClass, data}` for the template kind, the bank body for a
@@ -389,8 +446,10 @@ Before any write, the installer resolves every distinct `class:` (and
 `StuffApi.loadClassByPath`. A missing class fails the pack (before any
 of its writes) with a message naming the pack, the class, and the
 offending file. This is the enforced content-pack ↔ mod boundary. The
-topic gate (leaves under a core root only) runs in the same pre-write
-position.
+static half of the requires phase (`gateRequires`, *§ The requires
+phase*) runs under the same step name, and the topic gate (leaves under
+a core root only; the platform pack is exempt because it *authors* the
+root descriptors) runs next, in the same pre-write position.
 
 ### The flat-key uniqueness check
 
@@ -415,27 +474,38 @@ standalone `QuantityApi.loadTagTables` call). It **writes rows only** —
 `BootstrapManager` clones singletons *afterwards*, so nothing is live yet
 and there is no re-hydrate at boot.
 
-Ordering and coexistence: the install pass runs after `SeederManager`
-(which still walks the shrunken `seeds/` tree) and before `loadHooks`
-(the migrated content — domain templates + the quantity table — is all
-pre-hooks content the marshaller/`tag()` consumers and the DomainHook
-clone depend on). The installer and `SeederManager` touch **disjoint
-sets**: the installer only ever touches `sourcePack`-stamped (or
-adopts-then-stamps) rows for paths its packs ship; `SeederManager` is
-insert-only on the paths still in `seeds/`. Conflict-free by construction.
+Ordering: `PersistenceManager.connect` (the migrations, the indexes) →
+`PackApi.install()` → `loadHooks` → `CommandApi.preloadAll` →
+`BootstrapManager.run()` (the boot union, below) → the Api boots. The
+install runs before `loadHooks` because everything — the DomainHook
+template, the marshallers, the quantity table, the registries the
+catalogues warm from — *is* the packs' content now; there is nothing
+else that writes a row at boot. The boot line per pack reads
+`PackApi: '<id>' installed — N inserted, … , requires: G group(s) (C
+created), T title(s) (granted, kept, migrated, conflict)[, S row(s)
+skipped (extent sold)], boot: A sync-read + B producer, staffed|UNSTAFFED`
+— the second boot of a settled deployment is all zeros on every pack
+with no `migrated` and no adoption line.
 
 ### Runtime — the `pack` verb
 
-`obj/command/author/PackController.ts` + `cmd/author/pack.yaml`
-(declarative `subcommands:` + `options:`; afforded on `AuthorMixin`'s
-operator surface, **authorized by `requiresPackInstaller`** — membership
-of the `pack-installers` committee, never the wizard axis; see below):
+`obj/command/author/PackController.ts` + the platform pack's
+`content/cmd/author/pack.yaml` (declarative `subcommands:` + `options:`;
+afforded on `AuthorMixin`'s operator surface, **authorized by
+`requiresPackInstaller`** — `AccessApi.canAtPath(giver, 'install',
+'/compact/executive')`, title over the executive, never the wizard axis;
+see below):
 
 - `pack status [<packId>]` — joins the discovered manifests with the
-  records: status, version, applied-at/by, failure, every open conflict
-  with its next command, and the pin line — always, even at zero; plus
-  the command-view migration residue (*N command view(s) still served
-  from disk: …*) when there is one.
+  records: status, version, applied-at/by, failure, **the maintainers
+  line** (`maintainers: <group|organization> — staffed` /
+  `UNSTAFFED — routes to the executive`), any **title conflict** (an
+  extent the pack claims that somebody else holds), every open conflict
+  with its next command, and the pin line — always, even at zero. A pack
+  with a record but not in this build is headed `(NOT in this build)`.
+  After the packs, one line for the **orphans** (D9): `N template row(s)
+  under no pack: …` — every `content` row with no `sourcePack` stamp,
+  listed, never deleted (`PackApi.orphans`).
 - `pack install <packId> --dry-run` — the exact change set a sync would
   apply, zero writes. `install` **without** `--dry-run` is rejected:
   boot installs; a live apply is `sync`'s job (staging is a non-goal).
@@ -458,6 +528,12 @@ of the `pack-installers` committee, never the wizard axis; see below):
   *theirs (pack file)*, each with its hash. No machine merge. With no
   path, every open conflict. For a settings file *yours* renders the
   singleton's values for the file's keys; for a wiki page the live page.
+- `pack provision <packId>` — the pack's requirements **as the
+  registries hold them now**: the maintainers and their members, each
+  declared group's member count, and each claimed extent with its
+  current holder and an outcome — `held` (the claim's holder), `unheld`
+  (no parcel at exactly that extent, or nobody holds it), `conflict`
+  (somebody else). The read-side twin of the requires phase.
 - `pack resolve <packId> <path>` with **exactly one** mode:
   `--take-pack` (write the file's row, rebaseline, clear, re-hydrate);
   `--keep --pin` (keep the DB row AND claim it — pinned rows never
@@ -465,7 +541,12 @@ of the `pack-installers` committee, never the wizard axis; see below):
   means claiming); `--export` (serialize the DB row back to the pack's
   **workspace** source file; the conflict stays open until the next
   `sync` observes file == DB, the converged cell, and clears it — the
-  git round-trip). `--export` writes are workspace-only by construction;
+  git round-trip). A `sync` of an **unstaffed** pack ends with the
+  staffing prompt (D7): *This pack has no maintainers. You, or who?* —
+  `PromptApi.text`, enter for yourself, a name for somebody else, decline
+  and it stays unstaffed (and `status` says so). `PackApi.staff` adds the
+  member to the maintainers **group**; an organization-maintained pack
+  refuses (*appoint through the organization, not the pack*). `--export` writes are workspace-only by construction;
   in a dist deployment the write fails loudly. A text kind exports its
   text verbatim — an `.msh` its source, a `.md` its frontmatter + body —
   not YAML.
@@ -484,25 +565,271 @@ content — newbie-wilds' rooms and NPCs — re-hydrates through the same
 room is lightly-trodden ground: **restart remains the universal go-live**
 (A10.9).
 
-### Who may run it — the `pack-installers` committee
+### Who may run it — the executive
 
-`config/groups.yaml` seeds **`pack-installers`** with
-`owner: { office: prime-minister }` and zero members: the executive's
-content-operations committee (offices are heads, committees are hands —
-slate A25). Ownership resolves on read through `GroupApi.ownsGroup` →
-`CompactApi.holdsOffice` (founder default included), so handing the PM
-seat hands the committee with **no data migration**; the seat-holder
-appoints with the ordinary `group add pack-installers <player>`. The
-typed `GroupOwner` is documented in
-[grouping.md](./grouping.md#the-owner--a-typed-principal).
+Installing content is the executive's work. The platform pack is
+maintained by the **organization** `/compact/executive` (its own row,
+booted as a `producer`), and `requiresPackInstaller`
+(`lib/command/validators/`) gates the verb on
+`AccessApi.canAtPath(giver, 'install', '/compact/executive')` — the
+ordinary title walk: an organization-held extent admits whoever holds a
+position in the organization (`EmploymentApi.holdsPosition`) or heads it
+(`holdsAuthority` — the Prime Minister, founder default included; see
+[access.md](./access.md)). So the founder installs as head of the
+executive with **no group membership at all**, and the PM staffs the
+office with the ordinary `appoint`; handing the seat hands the platform
+with no data migration. No `isWizard` anywhere in the pack path (the
+code-trust axis is the wrong axis — a **wizard who holds no position in
+the executive is refused**); a non-holder gets a diegetic decline; a
+non-resident organization fails closed with one diagnostic.
 
-`requiresPackInstaller` (`lib/command/validators/`) gates the verb on
-membership per se: no `isWizard` anywhere in the pack path (the
-code-trust axis is the wrong axis — installing content is a content
-operation), and not `AccessApi.can` (that path resolves *parcel title*,
-and this committee holds no parcel). A non-member gets a diegetic
-decline; a **wizard who is not a member is refused**; a missing group
-fails closed.
+**A live `sync` also checks the claims.** Bootstrap is exempt from the
+*precondition* (who may claim), never from the checks; a person syncing
+a pack must hold `write-template` title over every extent the pack
+claims (`canAtPath`), or the sync fails at `requires-kernel` naming the
+extent.
+
+## The requires phase
+
+A pack's rows need three things the rows themselves cannot say: the
+**groups** its content names, **title** over the extents it ships into
+(so somebody can edit, broadcast over, teleport within, and clone under
+them — with `core` gone an untitled path is a path *nobody* can act on:
+`ParcelApi.ownerOf` answers `null` and every `can` there fails closed),
+and a **maintainer** to route its diagnostics to. The manifest declares
+them; the installer provisions them, adopt-by-name throughout.
+
+### The declarations
+
+- **`requires.groups[]`** — `{ name, purpose, owner?: { office },
+  members?: [{ id, role? }] }`. `purpose` is mandatory prose (the group's
+  reason to exist, shown nowhere yet, refused when blank). `owner`
+  names the office whose holder owns the group (the platform's `soul`
+  committee is `{ office: prime-minister }`); absent, the group is
+  system-owned. `members` may **only enrol NPC rows the pack itself
+  ships**, under an extent the pack itself claims, in a group the pack
+  itself declares — the NPC-only membership fence (a pack can never
+  enrol a player, nor reach into another pack's staff). `world-seed`
+  enrols Katie in `duncan-hall`.
+- **`requires.title[]`** — `{ extent, holder?, landUse?, areaM2?,
+  parentParcel? }` — a `TitleClaim`. `holder` is `{ group: <name> }` or
+  `{ organization: </path> }`; **absent, the maintainers hold it** (the
+  corpo packs claim `/corpo/<key>` for the corpo organization by
+  default). `landUse` must be one of the closed land uses; `areaM2`
+  positive; `parentParcel` an absolute path (the Hinkley Hills lot under
+  its estate). **There is no implicit root claim**: every claim is an
+  explicit entry — the platform's own extents are nine explicit lines
+  (`/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`, `/studio`,
+  `/home`, `/domain`, and `/wiki` for `wiki-editors`), and two packs may
+  name the same extent for the same holder (`world-seed` and
+  `saxonberg-lounge` both claim `/domain/lounge` for `lounge`: the
+  second is `kept`).
+- **`maintainers`** — a group name, `{ group }` or `{ organization }`;
+  default **`<id>-maintainers`**, a group the installer mints
+  **PM-owned** (`{ office: prime-minister }`) with zero members —
+  UNSTAFFED until somebody staffs it.
+
+### The gate (static, before any write)
+
+`gateRequires` runs at `gatePack` under the `requires-kernel` step, over
+the whole install set:
+
+1. a `{ group }` holder is declared under `requires.groups` by this pack
+   **or a host** (a transitive `dependsOn` pack); `expression` claims
+   `/expression` for `soul`, which the platform declares;
+2. an `{ organization }` holder or maintainer is a **row this pack or a
+   host ships** (`/compact/executive` is the platform's row;
+   `/corpo/aevex` is corpo-aevex's own);
+3. the NPC-only membership fence (above);
+4. **coverage** — every path the pack ships under one of the **eight
+   title roots** (`TITLE_ROOTS`: `/obj`, `/domain`, `/cmd`, `/compact`,
+   `/studio`, `/wiki`, `/home`, `/corpo` — template paths, document
+   paths and wiki pages alike) lies under a claim of the pack **or a
+   host**. `base-library`'s rows under `/obj` ride the platform's `/obj`
+   claim; `generic-objects` claims its seventeen `/obj/<cluster>`
+   branches itself; `wiki-starter`'s pages ride `/wiki`. A pack's own
+   document root *outside* the title roots (`/expression`,
+   `/generic-objects`) is the pack's to claim or not. A pack whose whole
+   host chain claims **nothing** is pre-wave-3 shaped and passes
+   **vacuously** — `pnpm lint:untitled` is the static gate that keeps
+   the shipped set at zero untitled paths.
+
+### The grants (before planning)
+
+`applyRequires` runs **first** in `reconcilePack` — before the planner —
+so a title this claim grants or migrates is in place before the bounded
+reconcile asks who holds each row's extent:
+
+1. **Groups** — the maintainers group first (PM-owned), then each
+   declared group, through `GroupApi.ensureGroup(name, owner)`:
+   **adopt-by-name** — an existing group is found and **never
+   re-owned**; a missing one is created (`groupsFound` / `groupsCreated`).
+2. **Memberships** — `GroupApi.ensureMember(ref, id, role)` (gated to
+   `PackLogic`; idempotent; `membersAdded`).
+3. **Titles** — `ParcelApi.grant(claim)` (`ParcelRegistry.grant`, the
+   installer's title seam), one of four outcomes: **`granted`** (absent
+   → the row + a `grant` event), **`kept`** (present under the same
+   holder — no write, no event), **`conflict`** (present under a
+   different holder — no write; a `title` conflict on the record and a
+   `title conflict:` line in `status`), or **`migrated`** — the ONE data
+   touch wave 3 makes to existing title, marked `migration-note:` in the
+   source and deleted in wave 4: a parcel held by the retired state
+   default (`core` — the dev DBs' `/studio` and `/compact`) or by one of
+   the five retired wave-2 corpo **board** groups (`/corpo/<key>` passes
+   to the corpo organization that now claims it) is transferred to the
+   claim's holder with a `transfer` event and one log line.
+
+Then the rows are planned and written, and `finishRequires` runs after
+them: the organizations the manifest names are **stood up resident**
+(`StuffApi.singleton` mints-if-absent — the requires phase runs after
+the rows are written and before `BootstrapManager` clones the boot
+union, so `/compact/executive` is a row but not yet a Stuff, and an
+organization-held title needs a resident organization to answer
+`holdsPosition`); the record takes `requires` / `boot` / `maintainers`;
+the boot line takes the role counts and the **staffed** bit.
+
+**Staffed** means somebody actually holds the maintainer: a group with
+at least one member, or an organization with at least one filled
+*position* — **the head alone does not count**; an office with no staff
+is unstaffed (the platform boots `UNSTAFFED` on a fresh world until the
+PM appoints someone).
+
+### The bounded reconcile — `skip-sold`
+
+Title can move after a pack installs — the executive sells a branch, a
+locality changes hands. The three-way reconcile is **bounded by title**
+(CPS:308): `soldPredicateFor(pack)` computes the pack's **holder set**
+(its maintainers, its own claims' holders, and its hosts' — the whole
+`dependsOn` chain), and a domain row whose covering parcel is held by
+nobody in that set was *sold out from under the pack*: the planner
+emits **`skip-sold`** for it — skipped and counted (`skippedSold`, the
+boot line's `N row(s) skipped (extent sold)`), **never written**, never
+deleted. No resident registry → unbounded (a unit test). A `core`-held
+covering parcel is the retired state default, not a sale
+(`migration-note`, gone in wave 4).
+
+### Staffing and routing
+
+- **`pack.<id>` diagnostics** (a conflict, a sale, a failure) route to
+  the pack's maintainers: a staffed group's members (`GroupApi.membersOf`),
+  or a staffed organization's committee — else, unstaffed, to **the
+  executive's committee** (`CompactApi.committeeMembersOf('/compact/executive')`).
+  `DiagnosticLogic.packRecipients` reads `PackApi.maintainersOf`, which
+  answers from the record (or the manifest, pre-install) with the
+  `staffed` bit and the executive as the declared `fallback`. The
+  `errors` list shows a pack's channel to whoever maintains that pack —
+  no author tier.
+- **`pack status`** prints the staffing line per pack; **`pack sync`**
+  prompts to staff (above); `PackApi.staff` is the one write.
+
+### Orphans
+
+`PackApi.orphans()` — every `content` row **with no `sourcePack`
+stamp**, sorted: seed inventory nobody claims, a CMS-authored template,
+a row from a pack no longer in the build whose record was lost. Listed
+by `pack status` (D9), **never deleted** — a row is somebody's until
+somebody says otherwise.
+
+### The nightly reprovision
+
+`RecordApi.wipe` (the nightly reset, [record-layer.md](./record-layer.md))
+takes `groups` and `parcels` with the rest; what re-seeds them is
+**`PackApi.reprovision()`** — for every `applied` record, the same
+`applyRequiresFor` over the record's stored `requires` + `maintainers`
+as `bootstrap` (groups re-minted, titles re-granted or kept, one line
+each). The seeders' boot-only mint is gone; the record is the memory.
+
+## The boot union
+
+What is eager at boot is declared by **the pack that ships the row**.
+Each manifest's **`boot[]`** entry is `{ template, role, reason,
+dependsOn? }`: `template` an absolute template path the pack ships;
+`role` **`sync-read`** (a registry or catalogue some Api reads
+synchronously — it must be resident before the first read) or
+**`producer`** (a row whose `postRegister` *produces* something — warms
+a cache, installs a stair, rebuilds a floor — or that nothing else would
+ever instantiate: `/domain/void`, the TPA network's eager root);
+`reason` mandatory prose (refused when blank — the manifest is where the
+*why* lives, next to the row, readable in `git blame`); `dependsOn`
+other boot templates that must clone first (`/obj/ChannelCatalogue`
+after `/obj/SubjectCatalogue`, `/obj/PressBoard` after both
+organizations).
+
+`BootstrapManager.run()` with no argument reads **`PackApi.bootManifest()`**:
+the union of every **applied** record's `boot[]`, in install order
+(shipped packs in topo order; under `SAXONBERG_PACKS` only the filtered
+packs — a filtered-out pack's record is ignored, not carried forward;
+unfiltered, a recorded-but-no-longer-shipped pack boots last, sorted).
+A template two packs both list is an **error naming both** — one row,
+one declarer. The code manifest (`mud/bootstrap.ts`) is **gone**; the
+manager owns only the `BootstrapEntry` shape (`templatePathPrefix` /
+`awaitInit` stay code-only and no YAML exposes them). A singleton
+already resident when the union runs (a lazy `StuffApi.singleton` mint
+earlier in the boot — the installer standing an organization up) is
+**reused**, never cloned twice.
+
+The platform declares the registries and catalogues (`/obj/EventRegistry`
+first — every emit resolves it; `/obj/AccessRegistry`,
+`/obj/ParcelRegistry` after `/obj/GroupRegistry`; the scheduler chain
+under `/obj/WorldClockRegistry`), the two organizations
+(`/compact/executive`, `/compact/press`), `/obj/PressBoard` and
+`/domain/void`; each corpo pack its own organization; `world-seed` the
+four locality producers (`/domain/lounge/terminal`, the Duncan Hall
+dorm-warren, the Hinkley Hills plat-book and lot-holder). `pnpm
+lint:instanceable` checks each entry names a real row.
+
+## Pack zero — the platform-only boot
+
+**`SAXONBERG_PACKS=platform` is a bootable world**, and it is checked
+every pipeline: `e2e/playwright.platform.config.ts` boots the server
+with that filter on its own ports (2011 / 5174, stdout captured to a
+log), and `tests-platform/platform-only.spec.ts` proves the founder — as
+head of the executive, a member of no group — logs in and lands in the
+shell room (`/domain/void`, the code fallback when no pack contributed
+`defaultStartLocation`: that setting moved out of the platform into
+`saxonberg-lounge`), that `pack status` knows exactly one pack **in this
+build**, and that the boot logged no `error` / `failed` line. The config
+mints its own founder handle (`e2e-platform-founder`, purged by
+teardown) because a character minted under the full-pack world carries
+a species the platform does not ship. CI runs it **first** against the
+fresh `saxonberg_e2e`, then the main suite — same database, sequential
+(the four-database rule, [deployment.md](../deployment.md)). Root
+`pnpm test:e2e:platform`; `e2e` `pnpm test:platform`.
+
+Two more CI gates keep the wave's invariants: **`pnpm lint:core-gone`**
+(no source, script, content or e2e line names `core` outside a
+`migration-note:` line; `ParcelOwner` is exactly `group | player |
+organization`; no `pack-installers`, no `requiresCoreAccess`, no
+`requiresAuthor`, no `AccessApi.isAuthor`) and **`pnpm lint:untitled`**
+(every path the packs ship under a title root has a claim as a prefix —
+the installer's walk mirrored in a script; zero is green).
+
+## The shipped packs
+
+| Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
+|---|---|---|---|---|---|
+| **platform** | — | organization `/compact/executive` | `/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`, `/studio`, `/home`, `/domain`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 31 entries: the registries + catalogues (sync-read), the two organizations, `/obj/PressBoard`, `/domain/void`, `/obj/BlueprintCatalogue`, `/obj/HelpCatalogue`, `/obj/AddressRegistry` (producer) |
+| **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
+| **species-and-names** | platform | default | — (rides `/obj`) | — | — |
+| **arcane-descriptors** | platform | default | — | — | — |
+| **arcane-library** | platform | default | — (rides `/obj`) | — | — |
+| **generic-objects** | platform | default | seventeen `/obj/<cluster>` branches: `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` | — | — |
+| **expression** | platform | group `soul` | `/expression` → group `soul` | — | — |
+| **wiki-starter** | platform | default | — (rides `/wiki`) | — | — |
+| **corpo-{aevex,goodkin,hollis,veshko,vionne}** | platform | organization `/corpo/<key>` | `/corpo/<key>` (holder = maintainers) | — | `/corpo/<key>` (producer) |
+| **newbie-wilds** | platform | default | `/domain/newbie-wilds` → group `newbie-wilds` | `newbie-wilds` | — |
+| **saxonberg-lounge** | platform, corpo-goodkin, corpo-vionne | group `lounge` | `/obj/lounge`, `/domain/lounge` → group `lounge` | `lounge` | `/domain/lounge/terminal` is world-seed's for now |
+| **world-seed** (TRANSITIONAL) | platform, saxonberg-lounge, corpo-goodkin, corpo-vionne | default | `/domain/lounge` → `lounge` (kept); the four Terminus parcels → `terminus` (`terminal`, `counting-houses`, `general-store`, `registry`, with land uses); `/domain/terminus/hinkley-hills` + `lots/lot-1` → `hinkley-hills`; `/domain/eternal/duncan-hall` + `dorms` → `duncan-hall` | `duncan-hall` (enrols Katie), `hinkley-hills`, `terminus`, `lounge` | `/domain/lounge/terminal`, the dorm-warren, the plat-book, the lot-holder (producer) |
+
+Sixteen. The corpo packs became **organizations** in wave 3: each ships
+`content/corpo/<key>.yaml` (its chart — authority the PM office, because
+a chart whose authority is *the committee over `/corpo/<key>`* recurses
+once the organization holds that very title) beside its mark and
+brands, and the wave-2 board *groups* are the retired holders `grant`
+migrates from. `world-seed` exists so the seeders could be deleted
+without the localities sitting in the platform under a false owner; it
+is deleted piecewise as waves 4–5 home eternal, terminus, the rest of
+the lounge, hearthworks, moor, practicum, substation and common.
 
 ## Reconcile policy
 
@@ -529,43 +856,45 @@ values: editing gin's density breaks nothing (it re-hydrates); renaming
 ## Deferred
 
 The slate (`docs/slates/builds/content-packs-slate.md`) holds the full
-design surface and remaining build waves: retiring `SeederManager`,
-`GroupSeeder` and `ParcelSeeder` (the core decomposition — the
-strangler-fig end-state); the `/domain/` path surgery that makes the
-template kind fractal under any root and moves the localities (eternal,
-terminus, the rest of the lounge) into packs (wave 4 — with it the
-seven domain-local command views leave the disk fallback); `requires.kinds:`
-(a pack declaring the document kinds it needs — wave 3); manifest
-version machinery + cross-pack dependency validation (`dependsOn` on an
-unknown id is ignored today, deliberately); the `staged` record status +
-runtime install / uninstall / marketplace; third-party namespacing; and
-the repo split. The one independent brand (`crowsfoot-gin`, carried by
-no corpo) and the two demo bottles stay in `seeds/` until a later pass
-decides their home.
+design surface and remaining build waves: homing the localities out of
+`world-seed` (waves 4–5 — eternal, terminus, the rest of the lounge,
+hearthworks, moor, practicum, substation, common), and with them the
+deletion of the two `migration-note` branches (`grant`'s `core` / retired
+board hand-over, `soldPredicateFor`'s `core` exemption) and the
+`AppSettingFallbacks` code default for `defaultStartLocation`;
+`requires.kinds:` (a pack declaring the document kinds it needs);
+manifest version machinery + cross-pack dependency validation
+(`dependsOn` on an unknown id is ignored today, deliberately); the
+`staged` record status + runtime install / uninstall / marketplace;
+third-party namespacing; and the repo split. `generic-objects` is the
+junk drawer — expected to slim as trade packs take their objects.
 
 ## Key files
 
-- `packages/content/base-library/` — the substrate pack (materials,
-  biomes, quantity-units).
+- `packages/content/platform/` — pack zero: `content/obj/` (the
+  controllers, registries, catalogues, marshallers, vocabularies, the
+  Avatar seed), `content/compact/` (the executive, the press),
+  `content/domain/void.yaml`, the namespace roots (`home.yaml`,
+  `studio.yaml`, `wiki.yaml`, `content/wiki/*.yaml`), `content/settings/`,
+  `content/subjects/`, `content/blueprints/`, `content/cmd/` (every
+  engine verb's view).
+- `packages/content/base-library/` — materials, biomes, quantity-units.
 - `packages/content/species-and-names/` — the species/clade tree
   (`content/obj/species/**`) + the name banks (`content/name-banks/**`).
 - `packages/content/arcane-descriptors/` — the descriptor banks.
-- `packages/content/newbie-wilds/` — the frontier onboarding locality
-  (`content/domain/newbie-wilds/**`).
-- `packages/content/platform/` — pack zero's seed: `content/settings/`
-  (43 sections by key prefix), `content/subjects/` (Help/Global/Chat),
-  `content/blueprints/` (the curated overlay), `content/cmd/` (every
-  engine verb's view, 24 categories).
+- `packages/content/arcane-library/` — `content/obj/magic/**`.
+- `packages/content/generic-objects/` — the object clusters under
+  `content/obj/<cluster>/`, the loose objects, the recipes.
 - `packages/content/expression/` — the emote roster (`content/emotes/`).
-- `packages/content/generic-objects/` — the recipe roster
-  (`content/recipes/`).
-- `packages/content/saxonberg-lounge/` — `content/msh/` (`root:
-  /domain/lounge`).
-- `packages/content/arcane-library/` — `content/obj/magic/**` (the
-  spells + GlowlightOrb + SparkSource).
 - `packages/content/wiki-starter/` — `content/wiki/<ns>/<slug>.md`.
-- `packages/content/corpo-<key>/` × 5 — `content/obj/corpo/Corpo/<key>`
-  + the corpo's `Brand/` rows.
+- `packages/content/corpo-<key>/` × 5 — `content/corpo/<key>.yaml` (the
+  organization) + `content/obj/corpo/**` (mark + brands).
+- `packages/content/newbie-wilds/` — `content/domain/newbie-wilds/**`.
+- `packages/content/saxonberg-lounge/` — `content/obj/lounge/**`,
+  `content/msh/`, `content/settings/lounge.yaml` (`root: /domain/lounge`).
+- `packages/content/world-seed/` — every remaining locality row under
+  `content/domain/**`, including the seven domain-local command views
+  (`content/domain/<…>/cmd/`) and their controllers.
 - `mud/lib/document/DocumentKinds.ts` — the closed document-kind
   vocabulary (kind, natural key, dir, extension, vanish policy).
 - `mud/api/pack.ts` — `PackApi` + the manifest / result / record /
@@ -574,9 +903,22 @@ decides their home.
   table, the pure planner + the applier, the record, the three-way
   machine, the flat-key check, `requires-kernel`, the ops surface, the
   re-hydrate tail.
-- `mud/obj/command/author/PackController.ts` + `cmd/author/pack.yaml` —
-  the `pack` verb suite; `lib/command/validators/requiresPackInstaller.ts`
-  — its gate; `config/groups.yaml` — the committee row.
+- `mud/obj/command/author/PackController.ts` + the platform pack's
+  `content/cmd/author/pack.yaml` — the `pack` verb suite;
+  `lib/command/validators/requiresPackInstaller.ts` — its gate (title
+  over `/compact/executive`).
+- `mud/obj/ParcelRegistry.ts` — `grant` (the four outcomes, the
+  `migration-note` branches); `mud/api/group.ts` — `ensureGroup` /
+  `ensureMember`.
+- `backend/BootstrapManager.ts` — `run()` over `PackApi.bootManifest()`.
+- `mud/obj/api/CommandLogic.ts` — the store-only rule (`servedFromStore`)
+  + the offline read over `PackApi.contentRoots()`.
+- `mud/obj/api/DiagnosticLogic.ts` — `packRecipients`, the maintainer
+  routing.
+- `packages/server/scripts/check-core-gone.ts`,
+  `check-untitled-paths.ts` — `lint:core-gone`, `lint:untitled`.
+- `e2e/playwright.platform.config.ts` +
+  `e2e/tests-platform/platform-only.spec.ts` — the platform-only boot.
 - `backend/PersistenceManager.ts` — the `domain` → `content` migration
   (`planDomainRename` + `#migrateDomainToContent`), the collapse
   migration (`COLLAPSES` + `planCollapses` + `#collapseLegacyCollections`),
@@ -587,7 +929,8 @@ decides their home.
 - `packages/server/scripts/check-test-content.ts` +
   `test-content-allowlist.txt` — `lint:test-content`, the shrinking
   allowlist of kernel tests that still name shipped content.
-- `backend/AppBootstrap.ts` — the boot install pass.
+- `backend/AppBootstrap.ts` — the boot install pass + the per-pack boot
+  line.
 - `mud/obj/api/QuantityLogic.ts` — the quantity-kind loader; its no-arg
   default lazily resolves the pack copy (test-only fallback; production
   always passes the path).
@@ -629,3 +972,22 @@ and the wizard code-naming gate) kinds; `BlueprintCatalogue.rebuild()`
 with the curated overlay as documents; `AccessApi.canAtPath` as the
 document store's gate; `lint:test-content`; `mud/cmd` moved into the
 platform pack; ten new packs and seven seeders retired.
+
+`design/content-pack-wave-3` (2026-08-26) — **wave 3: pack zero, and the
+end of `core`** (the requirements and plan retire at the sweep): the
+manifest's `requires:` / `boot:` / `maintainers:`; the requires phase
+(`GroupApi.ensureGroup` / `ensureMember`, `ParcelApi.grant` with its
+four outcomes, the covered-extent rule, the bounded `skip-sold`
+reconcile, staffing + maintainer routing, orphans, the nightly
+`reprovision`); the boot union over every applied pack's `boot[]` (the
+code manifest deleted); the `organization` parcel-owner kind (an
+organization-held title admits its staff and its head); `core` deleted
+— `ownerOf` nullable, every `can` fails closed on untitled, the author
+tier / `:admin` / `requiresCoreAccess` / `pack-installers` gone, title
+over `/compact/executive` gating `pack`; the template walk widened to
+every non-kind `content/**/*.yaml`; `SeederManager` / `GroupSeeder` /
+`ParcelSeeder` / `config/groups.yaml` / `config/parcels.yaml` / `seeds/`
+deleted, 439 engine rows moved into the platform pack and the locality
+rows into `world-seed`; no disk fallback for command views;
+`SAXONBERG_PACKS`; the platform-only e2e; `lint:core-gone` +
+`lint:untitled`.

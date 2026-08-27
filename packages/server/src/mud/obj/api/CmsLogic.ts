@@ -215,27 +215,43 @@ function actingActor(): Stuff | null {
 }
 
 /**
- * Read/list gate on the context-derived actor. The CMS is authoring-tier:
- * source (engine TS) is wizard-only; content (templates) is author-tier.
- * Throws `CmsError('denied')` on failure (null actor fails closed).
+ * Read/list gate on the context-derived actor. Source (engine TS) is
+ * wizard-only; content (templates) and document (the owned-JSON store)
+ * are PER PATH (content-packs wave 3 — everyone is an author): `read`
+ * refuses a path the actor cannot read, `listTree` prunes the children
+ * they cannot. Throws `CmsError('denied')` (null actor fails closed).
  */
-async function gateRead(backend: CmsBackend): Promise<void> {
+async function gateRead(backend: CmsBackend, path?: string): Promise<void> {
   const actor = actingActor();
-  // source (engine TS) is wizard-only; content (templates) and document
-  // (the owned-JSON store — scripts + future kinds) are author-tier.
-  const ok =
-    backend === 'source'
-      ? await AccessApi.isWizard(actor)
-      : await AccessApi.isAuthor(actor);
-  if (!ok) {
-    throw new CmsError(
-      'denied',
-      backend === 'source'
-        ? 'you must be a wizard to browse source'
-        : backend === 'document'
-          ? 'you must be an author to browse documents'
-          : 'you must be an author to browse content'
-    );
+  if (backend === 'source') {
+    if (!(await AccessApi.isWizard(actor))) {
+      throw new CmsError('denied', 'you must be a wizard to browse source');
+    }
+    return;
+  }
+  if (path !== undefined && !(await canRead(actor, path))) {
+    throw new CmsError('denied', `you do not hold ${path}, and it is not public`);
+  }
+}
+
+/**
+ * What is readable at `path` for `actor` (content-packs wave 3): their
+ * own home, anything they hold (`canAtPath(actor, 'read', path)`), or a
+ * path whose covering zone's `protection` field is `anyone` — the wiki
+ * floor, read exactly as `WikiNamespaceZone` reads it. A null actor
+ * reads nothing.
+ */
+async function canRead(actor: Stuff | null, path: string): Promise<boolean> {
+  if (actor === null) return false;
+  const key = (actor.getIdentityPath?.() ?? actor.getTemplatePath?.() ?? '')
+    .split('/').filter(Boolean).pop();
+  if (key && (path === `/home/${key}` || path.startsWith(`/home/${key}/`))) return true;
+  if (await AccessApi.canAtPath(actor, 'read', path)) return true;
+  try {
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(path);
+    return (await zone?.lookupField<string>('protection')) === 'anyone';
+  } catch {
+    return false;
   }
 }
 
@@ -268,6 +284,21 @@ export class CmsLogic extends ApiLogic {
     path: string
   ): Promise<CmsTreeListing> {
     await gateRead(backend);
+    const listing = await this.listTreeImpl(backend, path);
+    if (backend === 'source') return listing;
+    // Per-path pruning: a child the actor cannot read is not shown.
+    const actor = actingActor();
+    const kept: CmsTreeEntry[] = [];
+    for (const entry of listing.entries) {
+      if (await canRead(actor, entry.path)) kept.push(entry);
+    }
+    return { ...listing, entries: kept };
+  }
+
+  private async listTreeImpl(
+    backend: CmsBackend,
+    path: string
+  ): Promise<CmsTreeListing> {
     if (backend === 'content') {
       // Immediate children of `path`. A child is either a real template doc
       // at depth+1, or a SYNTHETIC namespace folder for an intermediate
@@ -372,7 +403,7 @@ export class CmsLogic extends ApiLogic {
     backend: CmsBackend,
     path: string
   ): Promise<CmsReadResult> {
-    await gateRead(backend);
+    await gateRead(backend, path);
     if (backend === 'content') {
       const tpl = await Template.findByPath(path);
       if (!tpl) {
@@ -433,7 +464,7 @@ export class CmsLogic extends ApiLogic {
     backend: CmsBackend,
     path: string
   ): Promise<CmsStatResult> {
-    await gateRead(backend);
+    await gateRead(backend, path);
     if (backend === 'content') {
       const tpl = await Template.findByPath(path);
       if (!tpl) return { backend, path, exists: false };

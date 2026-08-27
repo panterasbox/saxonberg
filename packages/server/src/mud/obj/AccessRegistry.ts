@@ -13,11 +13,11 @@
  * (this Stuff), one calling surface (`AccessApi`), and one
  * structurally-enforced path between them.
  *
- * `postRegister` runs idempotent bootstrap seeding: mint the
- * groups (`'core'`, `'lounge'`, `'wizards'`, `'streamers'`,
- * `'archwizards'`) if absent and stamp the lounge FolderZones at
- * `/obj/lounge` and `/domain/lounge`. Caches
- * (cached GroupRefs, wizard playerId Set, author-groups list) warm
+ * `postRegister` runs idempotent bootstrap seeding: mint the three
+ * axis groups (`'wizards'`, `'streamers'`, `'archwizards'`) if absent.
+ * There is no `core` group (content-packs wave 3): title is the packs'
+ * `requires`, and an untitled path is nobody's. Caches
+ * (cached GroupRefs, the axis playerId Sets) warm
  * lazily on first read and live as instance fields — reload of
  * `api/access.ts` doesn't affect them; reload of this file re-clones
  * the Registry per HotReloadApi's pattern (state resets and
@@ -34,6 +34,9 @@ import { StuffApi } from '../api/stuff';
 import { ParcelApi } from '../api/parcel';
 import type { TreeAction } from '../api/access';
 import { CompactApi } from '../api/compact';
+import { EmploymentApi } from '../api/employment';
+import { MixinApi } from '../api/mixin';
+import { DiagnosticApi } from '../api/diagnostics';
 import { Collections } from '../lib/persistence/Collections';
 import { Template } from '../lib/stuff/Template';
 import { Group } from '../lib/social/Group';
@@ -43,6 +46,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
 import FolderZone from './FolderZone';
 import Avatar from './Avatar';
+import { PlayerApi } from '../api/player';
 
 /**
  * The one office that carries code trust. Named here rather than
@@ -66,9 +70,6 @@ const AccessApiCallers = SecurityPolicies.AnyOf(
 
 
 export default class AccessRegistry extends AccessRegistryBase {
-  /** Cached GroupRef for `'core'`. Resolved lazily; survives the
-   *  api/access.ts reload because it lives on the Stuff. */
-  private cachedCoreRef: GroupRef | null = null;
   private cachedWizardsRef: GroupRef | null = null;
   /** Set of member keys (templatePaths) in `'wizards'` — warmed lazily, invalidated
    *  via the managed provider's onChange callback. */
@@ -90,13 +91,10 @@ export default class AccessRegistry extends AccessRegistryBase {
   private cachedArchwizardPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the archwizard onChange subscription. */
   private archwizardCacheCancel: (() => void) | null = null;
-  /** Set of GroupRefs that count as "author scope" — every group named by
-   *  a `group`-kind parcel owner (via `ParcelApi.groupOwnerRefs`), plus
-   *  `'core'`. Warmed lazily on first `isAuthor` read. */
-  private cachedAuthorGroups: readonly GroupRef[] | null = null;
+  /** Organization paths already diagnosed as unresolved — once-per-path. */
+  private readonly reportedUnresolvedOrganizations = new Set<string>();
 
   public override async postRegister(_context?: unknown): Promise<void> {
-    await this.seedCoreGroup();
     // Zone-ownership (lounge / Terminus) is NOT resolved here anymore.
     // Ownership moved out of the editable `domain` zone template into the
     // gated `parcels` collection (the governing security invariant); the
@@ -115,13 +113,10 @@ export default class AccessRegistry extends AccessRegistryBase {
    *
    * Title now lives in the `parcels` registry, not the zone tree: resolve
    * the resource's zone templatePath, then `ParcelApi.ownerOf(path)` (the
-   * total title → self-home → state chain, longest-prefix over parcel
-   * extents). Dispatch on the owner kind — a **group** owner resolves to a
-   * ref (mint-or-find by name) and checks `GroupApi.isMember`; a
-   * **player** owner is an identity match. Byte-identical to the former
-   * zone-tree walk for the migrated areas: no seed used `accessGroups`, so
-   * the old flat-union collapses to the single nearest owner (or `core`
-   * for untitled content), which is exactly what `ownerOf` returns.
+   * title → self-home chain, longest-prefix over parcel extents; untitled
+   * → null → nobody). Dispatch on the owner kind — a **group** owner
+   * resolves to a ref and checks `GroupApi.isMember`; an **organization**
+   * owner is staff-or-head; a **player** owner is an identity match.
    *
    * Action is a free string — this build does not filter ownership by
    * action. Role differentiation lives in `canMutateZone()`.
@@ -137,15 +132,16 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (memberKey === null) return false;
     const path = this.zoneOf(resource)?.getTemplatePath() ?? '';
     const owner = await ParcelApi.ownerOf(path);
+    // Untitled → nobody (content-packs wave 3: no state default).
+    if (owner === null) return false;
     return this.subjectIsOwnerMember(subject, memberKey, owner);
   }
 
   /**
    * Path-targeted title check (the document store's gate, D11): the
    * covering owner via `ParcelApi.ownerOf(path)` — rung 1 a parcel, rung
-   * 2 the self-home, rung 3 the state — then the `can()` dispatch of
-   * that owner, verbatim. No zone step, no `core` literal: `ownerOf`'s
-   * rung 3 IS the state default.
+   * 2 the self-home, else untitled (nobody) — then the `can()` dispatch
+   * of that owner, verbatim. No zone step.
    */
   @CallSecurity(AccessApiCallers)
   public async canAtPath(
@@ -157,6 +153,7 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const owner = await ParcelApi.ownerOf(path);
+    if (owner === null) return false;
     return this.subjectIsOwnerMember(subject, memberKey, owner);
   }
 
@@ -167,8 +164,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * are not authorized for zone-mutation ops); for a **player** owner an
    * identity match. Resolves title via `ParcelApi.ownerOf(zone-path)` —
    * the covering parcel's owner is the nearest-ancestor owner the former
-   * upward walk found; untitled → the state's `core`, still requiring the
-   * `'owner'` role there (byte-identical).
+   * upward walk found; untitled → nobody.
    */
   @CallSecurity(AccessApiCallers)
   public async canMutateZone(
@@ -180,26 +176,31 @@ export default class AccessRegistry extends AccessRegistryBase {
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
     const owner = await ParcelApi.ownerOf(zone.getTemplatePath() ?? '');
+    if (owner === null) return false;
     return this.subjectHasOwnerRole(subject, memberKey, owner);
   }
 
   /**
-   * Broad "is the actor a member of any group with content scope?"
-   * used by MQL pre-gates that can't be resource-targeted. True for
-   * any Avatar whose playerId is in `'core'` or any group named by a
-   * `group`-kind parcel owner (the repointed author scope — see
-   * `ensureAuthorGroups`).
+   * Every extent `subject` holds (see {@link AccessApi.heldExtents}):
+   * each `parcels` row whose holder admits the subject through the same
+   * dispatch `can` uses, plus the subject's own self-home root.
    */
   @CallSecurity(AccessApiCallers)
-  public async isAuthor(subject: Stuff | null): Promise<boolean> {
-    if (subject === null) return false;
+  public async heldExtents(subject: Stuff | null): Promise<string[]> {
+    if (subject === null) return [];
     const memberKey = this.memberKeyOf(subject);
-    if (memberKey === null) return false;
-    const groups = await this.ensureAuthorGroups();
-    for (const ref of groups) {
-      if (await GroupApi.isMember(memberKey, ref)) return true;
+    if (memberKey === null) return [];
+    const out = new Set<string>();
+    for (const record of await ParcelApi.allRecords()) {
+      const owner = record.getOwner();
+      if (!owner) continue;
+      if (await this.subjectIsOwnerMember(subject, memberKey, owner)) {
+        out.add(record.getExtent());
+      }
     }
-    return false;
+    const key = memberKey.split('/').filter(Boolean).pop();
+    if (key && PlayerApi.isAvatarStuff(subject)) out.add(`/home/${key}`);
+    return [...out].sort();
   }
 
   /**
@@ -333,7 +334,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * `lib/lounge/foo.ts` → tries `/lib/lounge/foo` (no match) → walks
    * up to `/obj/lounge` (match, extant FolderZone) → returns it.
    * `lib/security/SecurityPolicies.ts` → walks up → no FolderZone
-   * match → returns `null` (caller falls through to `'core'`).
+   * match → returns `null` (the caller's title check then fails closed).
    */
   @CallSecurity(AccessApiCallers)
   public async resolveSourceFolderZone(
@@ -388,15 +389,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     return resource.getZone();
   }
 
-  private async resolveCoreRef(): Promise<GroupRef | null> {
-    if (this.cachedCoreRef) return this.cachedCoreRef;
-    const reg = await GroupApi.registry();
-    const core = await reg.managed().findByName('core');
-    if (!core || !core._id) return null;
-    this.cachedCoreRef = `managed:${core._id}`;
-    return this.cachedCoreRef;
-  }
-
   /**
    * Does `subject` hold (or belong to the group holding) `owner`? A
    * `player` owner is an identity match; a `group` owner resolves to a
@@ -409,6 +401,9 @@ export default class AccessRegistry extends AccessRegistryBase {
     owner: ParcelOwner,
   ): Promise<boolean> {
     if (owner.kind === 'player') return this.subjectOwnsAsPlayer(subject, owner);
+    if (owner.kind === 'organization') {
+      return this.subjectHoldsOrganization(subject, owner);
+    }
     const ref = await ParcelApi.resolveOwnerRef(owner);
     if (!ref) return false;
     return GroupApi.isMember(playerId, ref);
@@ -425,9 +420,68 @@ export default class AccessRegistry extends AccessRegistryBase {
     owner: ParcelOwner,
   ): Promise<boolean> {
     if (owner.kind === 'player') return this.subjectOwnsAsPlayer(subject, owner);
+    // An organization's staff and head all count as `'owner'` — the
+    // chart, not a group role, is the authority structure.
+    if (owner.kind === 'organization') {
+      return this.subjectHoldsOrganization(subject, owner);
+    }
     const ref = await ParcelApi.resolveOwnerRef(owner);
     if (!ref) return false;
     return (await GroupApi.roleOf(playerId, ref)) === 'owner';
+  }
+
+  /**
+   * The `organization`-kind dispatch (wave 3, D2): the title is held by
+   * everyone holding a non-exited position in the organization
+   * (`EmploymentApi.holdsPosition`) and by its appointing authority
+   * (`EmploymentApi.holdsAuthority` — for an office that is
+   * `CompactApi.holdsOffice`, founder default included). The organization
+   * **must be resident** (`/compact/executive` and the corpos are `boot:`
+   * entries for exactly this reason); a non-resident or non-organization
+   * target fails CLOSED with one diagnostic per path.
+   */
+  private async subjectHoldsOrganization(
+    subject: Stuff,
+    owner: ParcelOwner & { kind: 'organization' },
+  ): Promise<boolean> {
+    const org = StuffApi.findByTemplatePath(owner.templatePath);
+    if (!org || !MixinApi.isOrganization(org)) {
+      this.reportUnresolvedOrganization(owner.templatePath);
+      return false;
+    }
+    if (EmploymentApi.holdsPosition(subject, org)) return true;
+    const authority = org.getAppointingAuthority();
+    // ⚠ An organization whose appointing authority is the committee over
+    // an extent IT holds would recurse (committee → organization → head →
+    // committee); the head question has no answer there, so only the
+    // staff count.
+    if (authority?.kind === 'committee') {
+      const held = await ParcelApi.ownerOf(authority.parcel);
+      if (held?.kind === 'organization' && held.templatePath === owner.templatePath) return false;
+    }
+    try {
+      return await EmploymentApi.holdsAuthority(subject, authority);
+    } catch {
+      // Fail closed: a governance substrate that is not up must not turn
+      // a plain "no" into a throw at a security gate.
+      return false;
+    }
+  }
+
+  /** Once per path: an organization-held title whose organization is not
+   *  resident admits nobody, and that is worth one line, not a flood. */
+  private reportUnresolvedOrganization(templatePath: string): void {
+    if (this.reportedUnresolvedOrganizations.has(templatePath)) return;
+    this.reportedUnresolvedOrganizations.add(templatePath);
+    void DiagnosticApi.record({
+      path: templatePath,
+      channel: 'access.organization-owner',
+      severity: 'warning',
+      message:
+        `A title is held by organization '${templatePath}', which is not ` +
+        `resident (or is not an OrganizationMixin host) — the title admits ` +
+        `nobody until it is. List it under the owning pack's boot: entries.`,
+    });
   }
 
   /**
@@ -447,19 +501,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (owner.templatePath === subjectPath) return true;
     const key = subjectPath.split('/').filter(Boolean).pop();
     return key !== undefined && owner.templatePath === `/home/${key}`;
-  }
-
-  private async ensureAuthorGroups(): Promise<readonly GroupRef[]> {
-    if (this.cachedAuthorGroups) return this.cachedAuthorGroups;
-    // The author scope is now the parcel layer's group owners + `core`
-    // (the template-`data` scan for `ownerGroup`/`ownerGroupName` is
-    // retired — ownership no longer lives in `domain`).
-    const refs = new Set<GroupRef>(await ParcelApi.groupOwnerRefs());
-    const coreRef = await this.resolveCoreRef();
-    if (coreRef) refs.add(coreRef);
-    const list = [...refs];
-    this.cachedAuthorGroups = list;
-    return list;
   }
 
   private async ensureWizardCache(): Promise<ReadonlySet<string>> {
@@ -525,13 +566,12 @@ export default class AccessRegistry extends AccessRegistryBase {
   /**
    * ⭐⭐ **Re-establish the system groups after they have been deleted.**
    *
-   * The nightly reset wipes `groups`, and the system groups (`core`,
-   * `wizards`, `archwizards`, `streamers`) live there beside the player
-   * ones. They are minted in CODE rather than by a seed file — and the
+   * The nightly reset wipes `groups`, and the axis groups (`wizards`,
+   * `archwizards`, `streamers`) live there beside the player ones. They are minted in CODE rather than by a seed file — and the
    * seeder is insert-only and runs at boot — so without this the world
-   * would come back every morning with no `core` group at all, every
-   * `can` read failing closed, and the founder locked out of a running
-   * process until somebody restarted it.
+   * would come back every morning with no axis groups at all. (The
+   * titles and pack groups the reset also wipes are re-granted by
+   * `PackApi.reprovision`, which `RecordApi.wipe` runs right after this.)
    *
    * ⚠ The cached refs are dropped FIRST. They hold `managed:<_id>`
    * strings pointing at rows the wipe just deleted; re-seeding without
@@ -545,34 +585,16 @@ export default class AccessRegistry extends AccessRegistryBase {
    */
   @CallSecurity(AccessApiCallers)
   public async reseedSystemGroups(): Promise<void> {
-    this.cachedCoreRef = null;
     this.cachedWizardsRef = null;
     this.cachedStreamersRef = null;
     this.cachedArchwizardsRef = null;
     this.cachedWizardPlayerIds = null;
     this.cachedStreamerPlayerIds = null;
     this.cachedArchwizardPlayerIds = null;
-    this.cachedAuthorGroups = null;
     await this.postRegister();
   }
 
   // ── Seeding (idempotent; called from postRegister) ──
-
-  private async seedCoreGroup(): Promise<void> {
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    const existing = await provider.findByName('core');
-    if (existing && existing._id) {
-      this.cachedCoreRef = `managed:${existing._id}`;
-      return;
-    }
-    const g = new Group();
-    g.name = 'core';
-    g.owner = Group.systemOwner();
-    await g.save();
-    if (g._id) this.cachedCoreRef = `managed:${g._id}`;
-  }
-
 
   private async seedWizardsGroup(): Promise<void> {
     const reg = await GroupApi.registry();
@@ -580,8 +602,8 @@ export default class AccessRegistry extends AccessRegistryBase {
     let wizards = await provider.findByName('wizards');
     if (!wizards) {
       // One-time migration (wizard-authority): the code-trust axis was
-      // renamed `developers` → `wizards`. The SeederManager is
-      // insert-only and this group is seeded here (not a seed YAML), so
+      // renamed `developers` → `wizards`. This group is seeded here (not
+      // a content row), so
       // a fresh mint would strand the legacy `developers` doc and its
       // members. Rename the existing doc forward so its `_id`,
       // `memberIds`, and `memberRoles` carry over verbatim. Re-running

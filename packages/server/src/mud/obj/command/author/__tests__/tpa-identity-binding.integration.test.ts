@@ -178,7 +178,8 @@ describe("TPA identity binding (integration)", () => {
     // AccessLogic fail-opens isWizard→true (bootstrap safety), which would
     // otherwise divert these plain travellers to the self-powered fork.
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false);
-    vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(false);
+    // Plain travellers hold nothing: no self-powered hop, the TPA it is.
+    vi.spyOn(AccessApi, "heldExtents").mockResolvedValue([]);
   });
   afterEach(() => {
     AppSettings._resetForTesting();
