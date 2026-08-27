@@ -1,7 +1,7 @@
 /**
  * check-untitled-paths' pure decision core: a shipped path under a title
  * root with no claim as a prefix is untitled; a covered one is not; a
- * path outside the eight roots (a pack's own document root) is nobody's
+ * path outside the nine roots (a pack's own document root) is nobody's
  * business.
  */
 
@@ -20,7 +20,13 @@ describe('check-untitled-paths.classify', () => {
     expect(classify(shipped, ['/obj', '/studio'])).toEqual([]);
   });
 
-  it('the eight title roots are the installer\'s', () => {
-    expect(TITLE_ROOTS).toEqual(['/obj', '/domain', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo']);
+  it('the nine title roots are the installer\'s (one list, lib/paths.ts)', () => {
+    expect(TITLE_ROOTS).toEqual(['/obj', '/domain', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo', '/trade']);
+  });
+
+  it('/trade/ is a title root: an unclaimed industry row is reported, a claimed one passes', () => {
+    const shipped = [{ pack: 'trade-x', path: '/trade/x/obj/anvil' }];
+    expect(classify(shipped, ['/obj'])).toEqual([{ path: '/trade/x/obj/anvil', pack: 'trade-x' }]);
+    expect(classify(shipped, ['/trade/x'])).toEqual([]);
   });
 });

@@ -10,7 +10,7 @@
  * installer's template walk mirrored: every `content/**\/*.yaml` outside
  * the kind dirs, `cmd/` skipped at any depth; plus every document path —
  * `root + '/' + contentDir + '/' + key`, command views at `/cmd/**` and
- * `/domain/**\/cmd/**`), and reports any path under one of the eight
+ * `/domain/**\/cmd/**`), and reports any path under one of the nine
  * title roots with no claim as a prefix. Zero is green. It does not
  * import the mudlib (a script), so the walk rule is duplicated minimally.
  *
@@ -22,14 +22,15 @@ import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname, relative, basename } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
+import { TITLE_ROOTS, NON_TEMPLATE_DIRS as LIB_NON_TEMPLATE_DIRS } from "../src/mud/lib/paths";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
-/** The title-bearing namespace roots (the installer's `TITLE_ROOTS`). */
-export const TITLE_ROOTS = ["/obj", "/domain", "/cmd", "/compact", "/studio", "/wiki", "/home", "/corpo"];
-/** The `content/` dirs that are NOT the template kind (settings, subjects, banks, quantity, the yaml document kinds). */
-const NON_TEMPLATE_DIRS = new Set(["settings", "subjects", "descriptor-banks", "quantity", "emotes", "recipes", "blueprints", "name-banks", "releases", "cmd", "msh", "wiki"]);
+/** The title-bearing namespace roots — the installer's, ONE list (`lib/paths.ts`). */
+export { TITLE_ROOTS };
+/** The `content/` dirs that are NOT the template kind (`lib/paths.ts`), plus the two non-yaml trees this walk special-cases. */
+const NON_TEMPLATE_DIRS = new Set([...LIB_NON_TEMPLATE_DIRS, "msh", "wiki"]);
 /** The yaml document kinds and their content dirs (`DOCUMENT_KINDS`, mirrored). */
 const DOCUMENT_DIRS = ["emotes", "recipes", "blueprints", "name-banks", "releases"];
 

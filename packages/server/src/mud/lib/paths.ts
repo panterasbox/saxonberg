@@ -17,6 +17,8 @@
  * `mixin.ts` / `errors.ts` / `quantity.ts`.
  */
 
+import { DOCUMENT_KINDS } from "./document/DocumentKinds";
+
 /** Exact platform template paths — direct singleton / class lookups. */
 export const TemplatePaths = {
   // Singleton registries.
@@ -142,3 +144,49 @@ export const TemplatePathPrefixes = {
  * (wrong-class) logic singleton, so the namespace must stay DB-free.
  */
 export const ReservedTemplatePrefixes = ["/obj/api/"] as const;
+
+/**
+ * The title-bearing namespace roots — every shipped template path under
+ * one of these must lie under some pack's `requires.title` claim (the
+ * installer's covered-extent rule; `lint:untitled`). A pack's OWN document
+ * root outside them (`/expression`, `/generic-objects`) is the pack's to
+ * claim or not. The four-namespaces doctrine, one line each:
+ *
+ *   `/obj`     the commons — engine objects, gear, items, species
+ *   `/trade`   the industries — what a trade INTRODUCES (its stations,
+ *              its stock, its recipes), `/trade/<industry>/…`
+ *   `/domain`  the places — localities and their venues
+ *   `/compact` the state
+ *   `/corpo`   the marks
+ *
+ * with `/cmd`, `/studio`, `/wiki`, `/home` the platform's own trees.
+ */
+export const TITLE_ROOTS: readonly string[] = [
+  "/obj",
+  "/domain",
+  "/cmd",
+  "/compact",
+  "/studio",
+  "/wiki",
+  "/home",
+  "/corpo",
+  "/trade",
+];
+
+/**
+ * The `content/` subdirs that are NOT the template kind: every other
+ * declared kind's directory (settings, subjects, descriptor-banks,
+ * quantity, and each `DOCUMENT_KINDS` yaml `contentDir`). ENUMERATED by
+ * kind, never guessed: a new kind adds itself here through its spec. Every
+ * OTHER top-level `content/` dir is a template tree — and may carry a
+ * locality's / industry's own `cmd/` views at any depth.
+ */
+export const NON_TEMPLATE_DIRS: ReadonlySet<string> = new Set([
+  "settings",
+  "subjects",
+  "descriptor-banks",
+  "quantity",
+  ...Object.values(DOCUMENT_KINDS)
+    .filter((spec) => spec.ext === "yaml")
+    .map((spec) => spec.contentDir),
+]);

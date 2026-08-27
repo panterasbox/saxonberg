@@ -175,8 +175,9 @@ export class StuffApi {
     // Must be in allowed directories. `/lib/` = engine substrate,
     // `/obj/` = engine objects, `/domain/` = content classes for a
     // managed area (mirrors the area's template namespace, e.g.
-    // `/domain/lounge/Lounge`).
-    const allowedPrefixes = ['/obj/', '/lib/', '/domain/'];
+    // `/domain/lounge/Lounge`), `/trade/` = an industry pack's own
+    // classes (`/trade/<industry>/command/…`).
+    const allowedPrefixes = ['/obj/', '/lib/', '/domain/', '/trade/'];
     const hasAllowedPrefix = allowedPrefixes.some((prefix) =>
       classPath.startsWith(prefix)
     );

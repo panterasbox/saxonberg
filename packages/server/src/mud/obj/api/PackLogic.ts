@@ -37,7 +37,7 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { DiagnosticApi } from '../../api/diagnostics';
 import { SoulApi } from '../../api/soul';
 import { CommandApi } from '../../api/command';
-import { TemplatePaths } from '../../lib/paths';
+import { NON_TEMPLATE_DIRS, TemplatePaths, TITLE_ROOTS } from '../../lib/paths';
 import { Emote } from '../../lib/social/Emote';
 import { Recipe } from '../../lib/craft/Recipe';
 import { AppSettings } from '../../lib/config/AppSettings';
@@ -711,18 +711,9 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
 }
 
 /** Classify a pack's `content/` tree by subdir convention. */
-/**
- * The `content/` subdirs that are NOT the template kind: every other
- * declared kind's directory (settings, subjects, descriptor-banks,
- * quantity, and each `DOCUMENT_KINDS` yaml `contentDir`). ENUMERATED by
- * kind, never guessed: a new kind adds itself here through its spec.
- */
+/** The non-template kind dirs (`lib/paths.ts` `NON_TEMPLATE_DIRS`, enumerated by kind). */
 function nonTemplateDirs(): ReadonlySet<string> {
-  const out = new Set(['settings', 'subjects', 'descriptor-banks', 'quantity']);
-  for (const spec of Object.values(DOCUMENT_KINDS)) {
-    if (spec.ext === 'yaml') out.add(spec.contentDir);
-  }
-  return out;
+  return NON_TEMPLATE_DIRS;
 }
 
 function readContent(pack: ResolvedPack): PackContent {
@@ -2662,16 +2653,6 @@ function claimedExtentsOf(manifest: PackManifest, all: ReadonlyMap<string, PackM
   for (const m of hostChainOf(manifest, all)) for (const t of m.requires.title) out.push(t.extent);
   return out;
 }
-
-/**
- * The title-bearing namespace roots — the eight trees a parcel may claim
- * an extent in, and the ones the covered-extent rule (and `lint:untitled`)
- * read. A pack's OWN document root outside them (`/expression`,
- * `/generic-objects`) is the pack's to claim or not.
- */
-const TITLE_ROOTS: readonly string[] = [
-  '/obj', '/domain', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo',
-];
 
 function underTitleRoot(path: string): boolean {
   return TITLE_ROOTS.some((r) => underExtent(path, r));
