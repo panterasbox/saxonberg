@@ -101,9 +101,9 @@ describe("AccessApi.heldExtents", () => {
     const staffer = makeAvatar("staffer");
     const pm = makeAvatar("pm");
     const nobody = makeAvatar("nobody");
-    expect(await AccessApi.heldExtents(alice)).toEqual(["/studio/lounge", "/home/alice", "/plot/17"]);
-    expect(await AccessApi.heldExtents(staffer)).toEqual(["/studio", "/home/staffer", "/obj"]);
-    expect(await AccessApi.heldExtents(pm)).toEqual(["/studio", "/home/pm", "/obj"]);
+    expect(await AccessApi.heldExtents(alice)).toEqual(["/home/alice", "/plot/17", "/studio/lounge"]);
+    expect(await AccessApi.heldExtents(staffer)).toEqual(["/home/staffer", "/obj", "/studio"]);
+    expect(await AccessApi.heldExtents(pm)).toEqual(["/home/pm", "/obj", "/studio"]);
     expect(await AccessApi.heldExtents(nobody)).toEqual(["/home/nobody"]);
     expect(await AccessApi.heldExtents(null)).toEqual([]);
   });
