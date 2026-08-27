@@ -35,7 +35,12 @@ Load-bearing docs: [content-packs.md](../subsystems/content-packs.md),
   `class:` / `hydratorClass:` path that lies in a pack's namespace
   resolves to that pack's module; the kernel tree is consulted only for
   kernel namespaces. Adding the pack's one `package.json` dependency
-  line brings code and content together as a single versioned artifact.
+  line — in the **deployment's** manifest, never the server's — brings
+  code and content together as a single versioned artifact. A pack is
+  **repo-portable**: it imports the kernel by package specifier
+  (`@saxonberg/server/mud/…`) through an `exports` map, never by a
+  relative path into this monorepo, so moving a pack to its own repo
+  changes nothing inside it.
 - **Dev hot-reload covers pack code.** A pack's `src/` modules
   hot-swap through the same `HotReloadApi` machinery kernel classes do
   (`reload`, `pack sync`). In prod, code rides deploy + restart like
@@ -223,11 +228,14 @@ The requirements, not the design:
 - **Lint over pack trees.** `lint:instanceable` walks pack `src/` with
   the kernel rules (nothing instances `/lib/`; every `class:` resolves;
   a pack has no `lib/` — substrate it needs is either the kernel's or
-  a class it ships under a branch). `lint:imports` grows a **pack
-  profile**: a pack module may import its own tree, its declared pack
-  dependencies, `@saxonberg/types`, and the kernel's *author surface*
-  (the projected consumer + extension tiers — `Thing`, the mixin
-  factories, the Apis) — never `backend/`, never Node built-ins.
+  a class it ships under a branch). The kernel's *author surface* —
+  what a pack may import (`Thing`, the mixin factories, the Apis, the
+  instanceable `platform/<branch>/` classes; never `backend/`, never
+  the logic singletons, never Node built-ins) — is the server package's
+  **`exports` map**, enforced by the package itself; `lint:imports`
+  grows a **pack profile** for what the map cannot see (relative
+  escapes out of the pack, undeclared pack-to-pack imports, foreign
+  packages).
   `lint:gates` resolves `FromModule` strings into packs.
   `lint:module-scope` applies unchanged.
 - **Tests travel with the code.** A pack's `src/**/__tests__/` runs
