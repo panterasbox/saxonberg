@@ -5,14 +5,14 @@ help: |
   Reach everyone present under an extent you HOLD with a single line —
   a locality's government reaches its locality, a lounge team its
   lounge, a player the guests in their own home; the Prime Minister,
-  holding the platform, reaches every locality under /domain. Forced
+  holding the platform, reaches every locality under /world. Forced
   messaging is title: you may only address the ground you hold.
 
   `broadcast --at <path> <message>` names the extent. Omit `--at` and
   the extent is the one covering where you stand — if you hold it.
   Naming an extent you do not hold, or standing on one, refuses you
   and lists the extents you do hold. Holding a parent reaches its
-  children: `--at /domain` reaches every locality.
+  children: `--at /world` reaches every locality.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP

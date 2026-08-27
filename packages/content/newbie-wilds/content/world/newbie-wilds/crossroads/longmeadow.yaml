@@ -1,0 +1,32 @@
+# The long meadow — the RANGED demonstrator arena.
+#
+# Its whole reason for existing is one authored number: `extent: 12`.
+# Every other room in this zone inherits the zone's 3 m cell, which
+# affords only the melee bands — bar fights stay knife fights, by
+# physics. Twelve metres of open ground affords `near`, so this is the
+# first place in the world where a fight can OPEN at a distance and
+# closing it is a beat somebody has to spend.
+#
+# That is also why the ranged build needed a per-location extent at all:
+# cartesian cells are sized by their ZONE, so before this a cramped shop
+# and an open meadow in the same zone could not differ. The override is
+# ONE number and it moves light and air with it — a bigger room really is
+# dimmer and airier, not just longer-ranged.
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: the long meadow
+  primaryKeyword: meadow
+  _address: last-counted-mile/long-meadow
+  extent: 12
+  longDescription: |
+    The pines break and the ground opens out — a long shallow meadow running east, grass gone to seed and standing waist-high, the wind moving through it in slow visible lines. There is nothing to hide behind and a great deal of room to see across, which is a comfort or a problem depending on what else is here.
+
+    A low stone wall, tumbled and half-swallowed by the grass, runs along the northern edge. Southwest, the pines close again toward the treeline.
+  coords:
+    x: 1
+    y: 1
+    z: 0
+  exits:
+    southwest:
+      destination: /world/newbie-wilds/crossroads/treeline

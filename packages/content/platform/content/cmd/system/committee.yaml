@@ -24,7 +24,7 @@ subcommands:
       The committee of record — the title-holding group — over where
       you stand, or over an explicit content path when one is given.
     examples:
-      - cmd: committee show /domain/lounge
+      - cmd: committee show /world/lounge
         note: Who administers the lounge?
     args:
       - name: path

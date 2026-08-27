@@ -7,7 +7,7 @@ settings:
   # cannot freeze other players; the ceilings stop a runaway run (steps =
   # tight loops, dispatch = each-fan-out, depth = recursion). Tiered by
   # authorship: player-home/inline scripts get the tight budget, released
-  # /obj/ + /domain/ content the large one. See
+  # /obj/ + /world/ content the large one. See
   # docs/subsystems/scripting.md § Resource governance.
   - key: script.sliceSteps
     value: "1000"

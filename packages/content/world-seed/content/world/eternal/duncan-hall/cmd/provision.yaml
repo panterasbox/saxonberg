@@ -1,0 +1,30 @@
+verbs: [provision, lease]
+controller: /world/eternal/duncan-hall/command/ProvisionController
+description: "Provision (lease) a Duncan Hall dorm room to a player"
+help: |
+  Mint and lease a dorm room in Duncan Hall's dorms wing to a player. A unit
+  is assigned the lowest free slot (reusing gaps left by ended leases before
+  a new floor is opened), titled under the dorms parcel, and leased to the
+  named player. The room, its floor, and its door reconstitute lazily the
+  first time someone walks up to them — nothing is built in advance.
+
+  Authorized for the dorms' owner and its agents (Katie, the live-in super,
+  fronts this in the world) or an operator. The tenant reaches their room by
+  walking: up the stairwell to their floor's corridor, then through their own
+  door — it opens for its tenant and no one else.
+examples:
+  - cmd: provision alice
+    note: Lease Alice the next free dorm room
+validators:
+  - /lib/command/validators/requiresWizard
+options:
+  theme:
+    short: t
+    type: string
+    description: "Set the room's initial style at move-in by vocation (e.g. miner/nautical/medic/scholar)."
+args:
+  - name: player
+    type: object
+    required: true
+    scope: "online"
+    requires: class:Agent

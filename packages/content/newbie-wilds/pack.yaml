@@ -4,7 +4,7 @@ description: The newbie wilds — frontier onboarding zone (crossroads, delve, c
 # requires-kernel checks CLASSES, all kernel-resident (/obj/Business,
 # /obj/NPC, the rooms); the `banksAt: goodkin` / species references are
 # data pointers, not install-order dependencies.
-dependsOn: [platform]   # its rows under /domain are covered by the platform's /domain claim
+dependsOn: [platform]   # its rows under /world are covered by the platform's /world claim
 requires:
   # Every locality holds its own extent (content-packs wave 3): the
   # frontier's own body, empty of members on a fresh world.
@@ -12,4 +12,4 @@ requires:
     - name: newbie-wilds
       purpose: the frontier's own body
   title:
-    - { extent: /domain/newbie-wilds, holder: { group: newbie-wilds } }
+    - { extent: /world/newbie-wilds, holder: { group: newbie-wilds } }

@@ -1,0 +1,14 @@
+# Cocktail glass — the output form a cocktail recipe clones. Starts empty;
+# CraftingLogic fills the bulk slot with the cocktail Material and stamps the
+# maker's mark on clone. A CraftedDrink (Bulkable + Crafted).
+class: /world/lounge/CraftedDrink
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a cocktail glass
+  longDescription: A stemmed cocktail glass.
+  # `coupe` is the unique handle: `glass` also matches the mixing glass and
+  # `cocktail` matches the cocktail *shaker* (by its description), so a
+  # build strains unambiguously with `strain … into coupe`.
+  keywords: [coupe, glass, cocktail]
+  interiorBulk: true
+  interiorCapacity: 0.2

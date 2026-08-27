@@ -19,11 +19,11 @@ data:
     rooms; its Registry keeps the records and its Magistrate keeps the
     peace.
   charter: /civic/terminus-city-charter
-  treasury: /domain/terminus/budget
+  treasury: /world/terminus/budget
   departments:
-    - /domain/terminus/registry/business
+    - /world/terminus/registry/business
   seats:
     - key: magistrate
       label: Magistrate of Terminus
-      department: /domain/terminus/registry/business
+      department: /world/terminus/registry/business
       positionKey: magistrate

@@ -1,0 +1,14 @@
+# Terminus — the ARRIVAL terminal (a floor node). The landing point inbound
+# travellers materialise at; the lounge terminal and the crossroads return leg
+# route TO this node. directionality: arrival (register-able, never a
+# departure). Its keyword `terminus` is the typeable handle for `teleport
+# terminus`; the board DISPLAYS the covering Locality name ("Terminus").
+# No advanceMode → the FastTravelMixin default `manual` applies.
+class: /world/common/tpa/TpaTerminal
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  seatIn: /world/terminus/terminal/arrival-gate
+  shortDescription: a Teleport Authority terminal
+  keywords: [terminus, arrival]
+  directionality: arrival
+  status: operational

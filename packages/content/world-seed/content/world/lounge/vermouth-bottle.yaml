@@ -1,0 +1,16 @@
+# A working bottle of dry vermouth — a graded bulk input on the bar.
+class: /world/lounge/GradedReceptacle
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of dry vermouth
+  longDescription: A slim bottle of dry vermouth.
+  keywords: [vermouth, bottle]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /obj/material/spirit/vermouth
+  interiorAmount: 0.7
+  gradeBand: fair
+  # The vermouth is Vionne — a prestige house charging premium for a fair
+  # pour, sat right next to its rival Hollis on the rail (the fault line
+  # made literal). "A product of Vionne" renders for free (BrandedMixin).
+  _brandKey: vionne-rouge

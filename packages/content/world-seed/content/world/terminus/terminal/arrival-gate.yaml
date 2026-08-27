@@ -1,0 +1,58 @@
+# Terminus Terminal — the arrival gate. The alcove inbound travellers
+# materialise in (the arrival terminal seats here). Generic room. Carries an
+# `_address` under the Terminus locality prefix so `resolveLocalityFor` lands
+# on the "Terminus" Locality and the board names this destination "Terminus".
+#
+# Reoriented 2026-07-12: the terminal now sits SOUTH of the E–W University
+# Avenue, so this gate is the terminal's NORTH frontage onto the crossing.
+# The concourse (hall) lies one cell SOUTH (behind); the avenue doorway faces
+# NORTH onto the crossing, and across the avenue stands the locked university
+# gate. Exits are declared explicitly on both sides. `south`→hall is this
+# gate's own doorway to the concourse (the hall lists `north`→here); it also
+# anchors the load cascade — the departure terminals seat their OWN gate
+# rooms, so the station HALL (and via it the office) stands up because this
+# seated room's `south` exit resolves it. The `north` exit is the cross-branch
+# adjacency to the EU crossing — Terminus fronts University Avenue, the
+# university gate across the street — declared on both sides (the crossing
+# lists its own `south`→here). Cross-zone exits are authored explicitly
+# (never grid-derived); a cardinal name is allowed cross-zone, so this is a
+# plain `north`/`south` pair.
+#
+# The accurate civic clock is a prose fixture on this frontage — no
+# physical Stuff. The crossing across the avenue reads the world clock
+# directly in its `tower` detail (the drift-reveal).
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: the Terminus arrival gate
+  primaryKeyword: arrival-gate
+  # Under the CITY tier of the three-tier address chain (realm terminus /
+  # city terminus/city / campus terminus/city/campus — the civics build).
+  _address: terminus/city/arrival-gate
+  longDescription: |
+    A shallow alcove off the north end of the hall, floored in a slightly newer stone than the rest, where inbound travellers resolve out of the between. A frosted-glass arch frames the concourse to the south; a wide doorway to the north opens straight onto University Avenue, and across the street the pale gates of Eternal University stand shut behind their wall.
+
+    A worn strip of rubber matting runs from the arrival plate to the concourse, the way generations of arrivals have already walked it.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/terminus/terminal/hall
+    north:
+      destination: /world/eternal/university-avenue/crossing
+    # The city Registry — the young administration's rented annex off the
+    # station frontage (cross-zone, declared on both sides; the registry
+    # office lists its own `west` back here).
+    east:
+      destination: /world/terminus/registry/office
+  details:
+    plate:
+      keywords: [plate, arrival, matting, mat]
+      description: |
+        A brass arrival plate set flush in the floor, its edge lit by a thin ring of blue light. Step off it and onto the matting; the light dims behind you, waiting for the next arrival.
+    avenue:
+      keywords: [avenue, street, gate, university, campus, tower, clock]
+      description: |
+        Through the north doorway: University Avenue, and across it the shut university gate — a low wall, tall railings, the campus rising in pale terraces beyond. High on this frontage a civic clock tower keeps the station's true time. The last mile onto campus is on foot, when the gate is open at all.

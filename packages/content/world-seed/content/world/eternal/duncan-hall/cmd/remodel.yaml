@@ -1,0 +1,17 @@
+verbs: [remodel]
+controller: /world/eternal/duncan-hall/command/RemodelController
+description: "Redo your dorm room's look — pick a style"
+help: |
+  Standing in your own dorm room, `remodel` offers the authored room styles;
+  pick one and the room takes on that look — a prose overlay across the room
+  and its fixtures, sealed until you remodel again. Only you (the leaseholder)
+  can redo your room; a visitor just sees the decor.
+
+  Function is fixed — a style only ever changes descriptions, never what a
+  fixture is. (At move-in, Katie sets your first style; this is how you redo
+  it later.)
+examples:
+  - cmd: remodel
+    note: Open the style menu for the room you're standing in
+validators:
+  - /lib/command/validators/requiresAnimate

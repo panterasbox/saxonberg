@@ -1,0 +1,61 @@
+# The treeline — the quiet wood just past the crossroads, where the hub's
+# "something huffs" comes due. The combat demonstrator arena: a single
+# wolfshead waits here, and a dagger lies where the last traveller dropped
+# it. Reached by the char-gen spawn override (the demo spawns you here) and
+# by walking south back to the crossroads; deliberately no inbound exit
+# wired from the hub (keeps content-area standup clean). Carries the
+# Last-Counted-Mile locality address like the hub.
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: the treeline past the crossroads
+  primaryKeyword: treeline
+  _address: last-counted-mile/treeline
+  longDescription: |
+    The road gives out entirely here and the wood closes over it — pines gone black-green in the shadow, needles deep and silent underfoot, the light coming down in coins. This is the quiet the crossroads warned about: not peace, but the held quiet of a place with something in it that has already noticed you.
+
+    A dagger lies half-buried in the needles where someone dropped it and did not come back for it. Behind you, south, the treeline thins toward the crossroads and the humming Line. West, the ground falls away into a hollow where the fog has pooled and something patient is standing in it. North, worked stone shows through the needles — a doorway, and a stair going down into the hill.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  exits:
+    south:
+      destination: /world/newbie-wilds/crossroads/hub
+    # West drops into the fog hollow where the gentleman keeps his ground
+    # (the Build-2 consented-duel demonstrator — a person, not a beast).
+    west:
+      destination: /world/newbie-wilds/crossroads/hollow
+    # North goes down into the Sunken Delve — the concealment/traps
+    # demonstrator (docs/subsystems/concealment.md). The SINGLE ordinary
+    # ground exit into that self-contained sphere; hung here off the treeline
+    # exactly as the hollow is (the treeline is reached by spawn-override and
+    # stood up by NO test, so this exit pulls the delve into no standup/
+    # fast-travel cascade — the GlassAlley failure, avoided by construction).
+    north:
+      destination: /world/newbie-wilds/delve/vestibule
+    # East into the watchpost — the stealth/concealment demonstrator
+    # (docs/subsystems/stealth.md: hide, sneak-past/ambush a wary sentry,
+    # arm a trap kit). One plain ground exit; the watchpost pulls into no
+    # standup/fast-travel cascade (the treeline is spawn-override-reached
+    # and stood up by no test — an added exit pulls in nothing).
+    east:
+      destination: /world/newbie-wilds/crossroads/watchpost
+    # Northeast opens into the long meadow — the RANGED demonstrator, and
+    # the only room hereabouts with an authored extent, so the only one
+    # where a fight can open at a distance. (`east` was already the
+    # watchpost; a duplicate key here is a YAML parse error that takes
+    # the whole seed tree down with it.)
+    northeast:
+      destination: /world/newbie-wilds/crossroads/longmeadow
+  # The cull: one wolfshead and a dropped dagger, both cloned fresh at
+  # standup. Pick up the dagger, wield it, and `attack the wolf`.
+  populates:
+    - /world/newbie-wilds/npc/wolf
+    - /obj/arms/steel-dagger
+    # The cycle-2 multi-party demonstrator: a recruitable sellsword and a
+    # second blade for her to take up. Form a party, `party enlist the
+    # sellsword`, then walk west and `attack the gentleman --lethal` — she
+    # backs you up (join) for a consented 2v1 duel in the hollow.
+    - /world/newbie-wilds/npc/sellsword
+    - /obj/arms/steel-dagger

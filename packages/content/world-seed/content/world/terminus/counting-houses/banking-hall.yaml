@@ -1,0 +1,52 @@
+# The Counting-Houses — the Goodkin banking hall. The transaction floor: honey
+# wood and brass where the rivals are cold marble, the teller counter (the
+# BankCounter fixture, with Wenna behind it) and, glimpsed through the grille,
+# the vault. The relationship happens next door in the Circle parlor; the
+# mechanical act (deposit/withdraw at the till) happens here.
+#
+# Indoor room (no biome). Cross-cell exits: EAST back to the avenue block,
+# NORTH into the Circle parlor. The counter + Wenna are `populates` (fresh
+# clones each boot); the Business stands up lazily off its operatingLocations.
+# The vault is glimpsed PROSE (a Detail), not a room — it becomes enterable the
+# day heists/safe-deposit exist, never a speculative empty room now.
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: the Goodkin banking hall
+  primaryKeyword: hall
+  alternateNames: [bank, goodkin, floor]
+  _address: counting-houses/goodkin-hall
+  longDescription: |
+    Inside, Goodkin is as warm as its front promised. The banking hall is panelled in honey-coloured wood and lit soft and gold, a long teller counter running down one side under a brass rail, a row of deep chairs and a coffee urn set out for anyone waiting. A rate board by the door is lettered like a friendly note rather than a warning. Pamphlets fan across a side table — GOODKIN HOMES, THE GOODKIN CLINIC, JOIN THE CIRCLE — each with the same smiling family on the cover. Through a brass grille behind the counter the vault door shows, a great sunrise engraved on its face. A carpeted doorway to the north leads back to a quieter room where, a small sign says, they'll get you set up.
+  coords:
+    x: -1
+    y: 0
+    z: 0
+  exits:
+    east:
+      destination: /world/terminus/counting-houses/avenue-block
+    north:
+      destination: /world/terminus/counting-houses/circle-parlor
+      # Exit-kind demonstrator: the parlor sits behind a broad archway
+      # (kind defaults: ground media + archway traverse messages).
+      kind: /obj/exits/archway
+  details:
+    vault:
+      keywords: [vault, grille, door, sunrise, till]
+      description: |
+        Behind the counter, past a discreet brass grille, the vault door stands closed — a slab of pale steel with a sunrise engraved across its whole face, rays reaching to the edges. You can see it but not reach it; the counter and the grille are between you and the money. What the branch can hand you in cash comes across the counter, from Wenna, and no other way.
+    board:
+      keywords: [board, rate, rates, sign, notice]
+      description: |
+        A rate board by the door, chalked in a round friendly hand: OPEN AN ACCOUNT — FREE. DEPOSIT, WITHDRAW YOUR OWN MONEY — ALWAYS FREE. A WEE FEE ON WIRES TO THE OTHER HOUSES (rivalry costs, it can't be helped). WELCOME TO THE FAMILY. It reads less like terms than like a note from someone who likes you.
+    pamphlets:
+      keywords: [pamphlets, pamphlet, leaflets, homes, clinic, circle]
+      description: |
+        A fan of glossy leaflets: GOODKIN HOMES (a sunlit Enclave terrace), THE GOODKIN CLINIC (a nurse mid-smile), JOIN THE CIRCLE (the same family again, arms around each other). Every one shows the same faces, warm and a little too many teeth, and every one folds back to the same address: Goodkin, always Goodkin.
+    urn:
+      keywords: [urn, coffee, chairs, chair]
+      description: |
+        A coffee urn kept hot on a side table, a stack of paper cups, deep chairs nobody made you buy anything to sit in. The hospitality is free and constant and just slightly more than you asked for.
+  populates:
+    - /world/terminus/counting-houses/bank-counter
+    - /world/terminus/counting-houses/npc/teller

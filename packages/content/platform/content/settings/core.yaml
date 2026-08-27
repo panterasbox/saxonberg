@@ -11,4 +11,4 @@ settings:
   # with no outer (Container.cleanupOnDestruct). The void is the designed,
   # destruct-refusing fallback.
   - key: evacuationFallback
-    value: /domain/void
+    value: /world/void

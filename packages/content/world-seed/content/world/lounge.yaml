@@ -1,0 +1,11 @@
+# /world/lounge — the lounge content area (a FolderZone holding the bar,
+# terminal, cast, and fixtures beneath it). Ownership (`/world/lounge` → the
+# managed `lounge` group) lives in the gated `parcels` collection (see
+# mud/config/parcels.yaml), never on this editable zone template — the
+# governing security invariant. The leaf content lives under
+# seeds/world/lounge/ — folder-seed-alongside-dir, the /lib/address.yaml
+# precedent.
+class: /obj/FolderZone
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: lounge

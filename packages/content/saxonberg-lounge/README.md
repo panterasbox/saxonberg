@@ -6,18 +6,18 @@ under `content/msh/`:
 
 | file | row | what |
 |---|---|---|
-| `msh/martini.msh` | `/domain/lounge/msh/martini` | the bartender's martini recipe-script |
-| `msh/daiquiri.msh` | `/domain/lounge/msh/daiquiri` | the daiquiri recipe-script |
-| `msh/last-call.msh` | `/domain/lounge/msh/last-call` | the closing-time coroutine beat |
+| `msh/martini.msh` | `/world/lounge/msh/martini` | the bartender's martini recipe-script |
+| `msh/daiquiri.msh` | `/world/lounge/msh/daiquiri` | the daiquiri recipe-script |
+| `msh/last-call.msh` | `/world/lounge/msh/last-call` | the closing-time coroutine beat |
 
 Each file's source lands verbatim in `data.source` (re-parsed on
 resolution, never compiled); the row is owned by the pack `root`
-(`/domain/lounge`) and stamped `sourcePack: saxonberg-lounge`. Run one
-with `run /domain/lounge/msh/last-call`.
+(`/world/lounge`) and stamped `sourcePack: saxonberg-lounge`. Run one
+with `run /world/lounge/msh/last-call`.
 
 ## Deferred (wave 4)
 
-The lounge's rooms, NPCs, fixtures, brands and the `/domain/lounge/**`
-template tree stay under `packages/server/src/mud/seeds/domain/lounge/`
-and `mud/domain/lounge/` until the path surgery of wave 4 moves the
+The lounge's rooms, NPCs, fixtures, brands and the `/world/lounge/**`
+template tree stay under `packages/server/src/mud/seeds/world/lounge/`
+and `mud/world/lounge/` until the path surgery of wave 4 moves the
 locality here whole.

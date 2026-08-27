@@ -1,0 +1,17 @@
+# The conductive gallery — spark's proving ground (the substation
+# flooded-cell precedent): a brine-pooled floor that grounds and bridges
+# whoever stands in it. Cast spark at the pool while wading and the walk
+# finds YOU too — the caster-obeys-own-physics lesson, no special case.
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: the conductive gallery
+  primaryKeyword: gallery
+  longDescription: |
+    A long stone gallery, its floor deliberately flooded ankle-deep with brine. A dry timber walkway hugs one wall; a plaque reads: MIND WHERE YOU STAND.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  adornments:
+    - /world/practicum/brine-floor

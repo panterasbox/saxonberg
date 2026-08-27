@@ -28,7 +28,7 @@ data:
   # Login.mintRandomGuestAvatar) stamps it at clone time from the
   # `defaultStartLocation` app setting (default the lounge Warren), so an
   # operator can move the new-player spawn in-game without a deploy. The
-  # separate `evacuationFallback` app setting (default `/domain/void`) is
+  # separate `evacuationFallback` app setting (default `/world/void`) is
   # the container-typed evac target in `Container.cleanupOnDestruct`.
   # Race-build defaults: every freshly-created Avatar template forks
   # these values. Existing per-user templates predate this addition;

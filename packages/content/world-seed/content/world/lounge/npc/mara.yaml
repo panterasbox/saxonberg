@@ -1,0 +1,125 @@
+# Mara — the Anchor (day shift, weekdays). Diligent, patient, reserved.
+# The spine of the place; she does inventory (the clipboard — later wave).
+# Built entirely from data: class NPC + behaviors, no bespoke code.
+class: /obj/Crafter
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  name: Mara
+  pronouns: she
+  _speciesPath: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
+  lifecycleState: alive
+  primaryKeyword: mara
+  shortDescription: a steady, watchful dwarf tending bar
+  longDescription: |
+    Stocky and unhurried, with dark eyes that listen better than they
+    speak and broad, capable hands never far from a cloth. She moves with
+    the economy of someone who has counted these bottles ten thousand
+    times — and the thick iron-grey braid over one shoulder says she's
+    earned the right to be unimpressed by most things. She glances up
+    when you linger at the rail — ready to talk, if you are.
+  # Established character (seeded as claim evidence at spawn): steady,
+  # watchful, reserved — the Anchor. Slate-pinned reserved & temperate.
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+    - { disposition: patience, valence: 70 }
+    - { disposition: composure, valence: 70 }
+    - { disposition: temperance, valence: 70 }
+    - { disposition: sociability, valence: -70 }
+  behaviors:
+    # Intrinsic auto-introduce: name themselves to newcomers so patrons
+    # learn who they are (the NPC half of the auto-introduce feature).
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /world/lounge/bar
+        railStool: /world/lounge/bar
+        offstage: /world/lounge/offstage
+    - brain: /lib/behavior/idles
+      trigger: cadence:11s
+      config:
+        pool:
+          - { kind: free, value: "runs a cloth slowly down the rail." }
+          - { kind: free, value: "holds a glass to the light, then sets it down." }
+          - { kind: free, value: "straightens a row of bottles without looking." }
+          - { kind: say, value: "Mm." }
+    - brain: /lib/behavior/random-chatter
+      trigger: cadence:41s
+      config:
+        lines:
+          - "What'll it be."
+          - "Long day?"
+          - "This one's on the house."
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Evening."
+          - "Welcome in."
+          - "Sit anywhere you like."
+    # Trait-aware chatter: Mara's reserved sociability keeps this sparse —
+    # mostly silence, the occasional clipped word.
+    - brain: /lib/behavior/converses
+      trigger: cadence:19s
+      config:
+        chatty:
+          - "Good to have you in."
+        terse:
+          - "Mm."
+          - "Hm."
+    # The branching-tree responder — `talk to mara`. The NPC leads; the
+    # `engage` trigger wires nothing (the verb invokes the brain's open
+    # seam). Exercises: a regard-selected warm vs neutral entry, a choice
+    # gated on her diligence (shows) and one on her sociability (hidden —
+    # she's reserved), a regard-delta effect, and a terminal leave node.
+    - brain: /lib/behavior/tree-dialogue
+      trigger: engage
+      config:
+        entry:
+          - node: warm
+            guard:
+              - { fact: regard, op: gte, value: 20 }
+          - node: neutral
+        nodes:
+          warm:
+            beat: "Back again — good. The usual, or something new tonight?"
+            choices:
+              - { line: "The usual, thanks.", to: order }
+              - { line: "Surprise me.", to: order }
+              - line: "You're good people, Mara."
+                to: warm
+                effects:
+                  - { verb: regard, delta: 3 }
+              - { line: "That's all for now.", to: done }
+          neutral:
+            beat: "What'll it be."
+            choices:
+              - { line: "What's on tonight?", to: order }
+              - line: "How long have you worked here?"
+                guard:
+                  - { fact: "trait:diligence", op: gte, value: 50 }
+                to: shop
+              - line: "You seem like the chatty type."
+                guard:
+                  - { fact: "trait:sociability", op: gte, value: 0 }
+                to: order
+              - { line: "Just looking. Thanks.", to: done }
+          order:
+            beat: "Coming right up. Anything else?"
+            choices:
+              - { line: "Actually, that's all.", to: done }
+              - { line: "Tell me about the place.", to: shop }
+          shop:
+            beat: >-
+              Ten thousand bottles, counted twice. It runs because someone
+              counts. Anything else?
+            choices:
+              - line: "Appreciate it."
+                to: done
+                effects:
+                  - { verb: regard, delta: 2 }
+              - { line: "That's all.", to: done }
+          done:
+            beat: "Take care."
+            terminal: true

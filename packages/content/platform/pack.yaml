@@ -37,7 +37,7 @@ requires:
     - { extent: /compact }         # the publications namespace
     - { extent: /studio }          # the sandbox's group-cell namespace
     - { extent: /home }            # the personal workspaces' root (each /home/<key> is its player's, rung 2)
-    - { extent: /domain }          # the world's root; every locality claims its own extent under it
+    - { extent: /world }          # the world's root; every locality claims its own extent under it
     - { extent: /wiki, holder: { group: wiki-editors } }   # kept — the same holder as before
 
 # Eager at boot — the union of every applied pack's list is what
@@ -45,7 +45,7 @@ requires:
 # `producer`: its postRegister produces state nothing else would.
 boot:
   - { template: /obj/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
-  - { template: /domain/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
+  - { template: /world/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
   - { template: /obj/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
   - { template: /obj/SoulCatalogue, role: sync-read, reason: the runtime verb→Emote cache SoulApi.resolve reads }
   - { template: /obj/RecipeCatalogue, role: sync-read, reason: the runtime recipe index CraftingApi reads }

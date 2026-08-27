@@ -1,0 +1,34 @@
+# The flooded switch-cell — the electricity demonstrator (the duncan-hall
+# cistern precedent: a flooded hazard room a body ENTERS by walking). A
+# `FloodedCell` (bespoke class — its ONLY bespoke behavior is the `onEntered`
+# → conduct hazard trigger, unlike the cistern's declarative `_atmosphere:
+# water`) at the substation's origin cell. Its hazard fixtures are authored
+# templates placed **declaratively**: the salt-water-pooled `Floor` (ground +
+# conductive medium) via `adornments:`, the downed `LiveWire` via `populates:`
+# — no imperative construction.
+#
+# Wade in barefoot and the current bridges you to ground through the water —
+# a shock. On the dry catwalk, or in rubber boots, the ground path breaks:
+# untouched. Two allies wading in both take it (faction-blind). Teaches the
+# whole model with no magic. No exits wired this cycle (reachable by teleport
+# / a future travel node — the treeline reachability precedent).
+class: /world/substation/FloodedCell
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a flooded switch-cell
+  primaryKeyword: cell
+  longDescription: |
+    A low concrete switch-cell, ankle-deep in brackish standing water that never drained. Ranks of dead breakers line one wall, their handles furred with corrosion; a raised steel catwalk runs dry along the other.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  # The pooled floor (ground + conductive brine) — a fixture.
+  adornments:
+    - /world/substation/flooded-floor
+  # The downed live cable, lying in the pool — a room content, cloned fresh
+  # each standup. The stun baton lies here too (safed): pick it up, arm it,
+  # and it becomes the combat toe-hold.
+  populates:
+    - /world/substation/live-wire
+    - /world/substation/stun-baton

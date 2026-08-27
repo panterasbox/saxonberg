@@ -16,7 +16,7 @@ help: |
   A group can't say yes, so there is no consent leg: your authority over
   the parcel is the whole gate, and the chain-of-title records the act.
 examples:
-  - cmd: transfer /domain/lounge to alice
+  - cmd: transfer /world/lounge to alice
     note: Offer the lounge title to Alice (she must accept)
 validators:
   - /lib/command/validators/requiresAnimate

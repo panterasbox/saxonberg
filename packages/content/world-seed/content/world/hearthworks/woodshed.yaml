@@ -1,0 +1,19 @@
+# The woodshed — the SPREAD + wet-resist demonstrator. A stack of dry oak logs
+# and one rain-soaked log. Light one (`ignite log`); the presence-gated fire
+# tick spreads it to the dry neighbours over a few beats, but the wet log
+# resists until it dries. Placed declaratively via `populates:`.
+class: /obj/location/Room
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  shortDescription: a timber woodshed
+  primaryKeyword: woodshed
+  longDescription: |
+    An open-fronted woodshed, its racks stacked with split oak seasoning for the winter. One log near the eaves is dark and swollen with rain.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  populates:
+    - /world/hearthworks/dry-log
+    - /world/hearthworks/dry-log
+    - /world/hearthworks/wet-log

@@ -1,0 +1,45 @@
+# Terminus — the municipal city-budget Business (the operating budget of
+# Terminus the municipality). NOT a mixin on the terminal: a standalone
+# Business (proprietor-absent = public/municipal — the substrate's designed
+# municipal case, no corpoKey), so it can span operating locations and outlive
+# any officer. The house account keys on THIS path, so fare income (the Gate A
+# fare, attributed by operatingLocations) and the clerk's wages settle on one
+# P&L — the conserved city-budget loop.
+#
+# Stands up **lazily and derived**: no manifest entry, no clerk hook. The
+# employment engine reads this Business's own `operatingLocations` and stands
+# it up on first `businessAt(that fixture)` — the Gate A fare is the trigger.
+class: /obj/Business
+hydratorClass: /obj/persistence/PersistentHydrator
+data:
+  # City-run: the COMMITTEE over the ground it operates on
+  # (`/world/terminus/terminal` is the `terminus` group's). Whoever holds
+  # the terminal staffs its ticket office.
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus/terminal
+  # The one city position: the terminal clerk. `wageRate` is minor units per
+  # game-hour on shift (demo). `confers` is empty — the clerk staffs the
+  # window, it doesn't craft (no MakerMixin).
+  positions:
+    - key: clerk
+      label: staffing the ticket office
+      wageRate: 4
+      confers: []
+  # A BOUNDED daily shift (not [0,24]): the wage settles at the on->off
+  # boundary, so the shift must close for the payout to fire. Weekdays 0-based;
+  # hours a half-open [start, end) window.
+  rosterSlots:
+    - positionKey: clerk
+      assignee: /world/terminus/terminal/clerk
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
+  # The operational departure TERMINAL (the fixture, not the room) — so
+  # `businessAt(the terminal)` resolves this operator precisely and un-spoofably
+  # (two venues sharing one room each key on their own fixture, no ambiguity).
+  # Where the municipality banks: city governance is CONTENT, not the
+  # state (only the treasury banks at the CB) — Terminus keeps its budget
+  # at a commercial bank like any private account. An authored civic fact.
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/terminal/departure-terminal-a

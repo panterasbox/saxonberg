@@ -16,7 +16,7 @@ data:
   concealmentHint: the wide floor gives a faint hollow drum-note underfoot
   trigger: traversal
   traverseConsequence: drop
-  dropDestination: /domain/newbie-wilds/delve/pit-below
+  dropDestination: /world/newbie-wilds/delve/pit-below
   groundTriggered: true
   delivery:
     channel: point
