@@ -128,6 +128,10 @@ importers:
 
   packages/content/species-and-names: {}
 
+  packages/content/trade-hearth-cooking: {}
+
+  packages/content/trade-smithing: {}
+
   packages/content/wiki-starter: {}
 
   packages/content/world-seed: {}
@@ -176,6 +180,12 @@ importers:
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:../content/species-and-names
+      '@saxonberg/content-trade-hearth-cooking':
+        specifier: workspace:*
+        version: link:../content/trade-hearth-cooking
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../content/trade-smithing
       '@saxonberg/content-wiki-starter':
         specifier: workspace:*
         version: link:../content/wiki-starter

@@ -56,8 +56,14 @@ import {
 } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
-const RECIPES_DIR = fileURLToPath(
-  new URL('../../../../../../content/generic-objects/content/recipes/', import.meta.url),
+/**
+ * The three packs that ship the hearthworks roster's recipes (content
+ * packs wave 4a): the trades own what they introduce, generic-objects
+ * keeps the rest. The catalogue is path-agnostic — it serves every
+ * `recipe` document whoever installed it.
+ */
+const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'generic-objects'].map((pack) =>
+  fileURLToPath(new URL(`../../../../../../content/${pack}/content/recipes/`, import.meta.url)),
 );
 const PACK_MATERIALS = fileURLToPath(
   new URL(
@@ -204,10 +210,12 @@ beforeEach(async () => {
   );
 
   // The REAL authored roster — a drifted pack file fails here.
-  const recipes = readdirSync(RECIPES_DIR)
-    .filter((f) => f.endsWith('.yaml'))
-    .sort()
-    .map((f) => YAML.parse(readFileSync(RECIPES_DIR + f, 'utf-8')) as Record<string, unknown>);
+  const recipes = RECIPE_DIRS.flatMap((dir) =>
+    readdirSync(dir)
+      .filter((f) => f.endsWith('.yaml'))
+      .sort()
+      .map((f) => YAML.parse(readFileSync(dir + f, 'utf-8')) as Record<string, unknown>),
+  );
   store = { recipes };
 
   // The REAL pack materials the roster consumes.

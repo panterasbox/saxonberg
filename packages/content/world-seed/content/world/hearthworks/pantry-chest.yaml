@@ -14,5 +14,5 @@ data:
   # the pantry.
   mass: 90
   populates:
-    - /world/hearthworks/prime-cut
-    - /world/hearthworks/ration-stock
+    - /obj/items/prime-cut
+    - /obj/items/ration-stock

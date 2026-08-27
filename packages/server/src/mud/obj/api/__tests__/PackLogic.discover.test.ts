@@ -55,3 +55,14 @@ describe('discovery', () => {
     await expect(PackApi.install([platform])).rejects.toThrow(/SAXONBERG_PACKS names 'nope', which no shipped pack provides/);
   });
 });
+
+describe('the shipped packs (real discovery, no install)', () => {
+  it('eighteen ship; the two trade packs order after generic-objects (wave 4a)', () => {
+    const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
+    expect(ids).toHaveLength(18);
+    expect(ids[0]).toBe('platform');
+    for (const trade of ['trade-smithing', 'trade-hearth-cooking']) {
+      expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
+    }
+  });
+});

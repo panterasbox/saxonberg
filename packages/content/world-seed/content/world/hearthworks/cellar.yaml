@@ -21,4 +21,4 @@ data:
       theme: atmosphere
       floorEffect: null
   populates:
-    - /world/hearthworks/dry-log
+    - /obj/items/dry-log

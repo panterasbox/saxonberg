@@ -20,12 +20,12 @@ data:
     - /world/hearthworks/forge-floor
   populates:
     - /obj/Forge
-    - /world/hearthworks/iron-ingot
-    - /world/hearthworks/spare-ingot
-    - /world/hearthworks/anvil
-    - /world/hearthworks/workbench
+    - /trade/smithing/obj/iron-ingot
+    - /trade/smithing/obj/spare-ingot
+    - /trade/smithing/obj/anvil
+    - /trade/smithing/obj/workbench
     - /obj/gear/smiths-hammer
-    - /world/hearthworks/hide-stock
-    - /world/hearthworks/whetstone
+    - /obj/items/hide-stock
+    - /trade/smithing/obj/whetstone
     - /world/hearthworks/smithy-menu
     - /world/hearthworks/npc/smith

@@ -14,6 +14,6 @@ data:
     y: 0
     z: 0
   populates:
-    - /world/hearthworks/dry-log
-    - /world/hearthworks/dry-log
-    - /world/hearthworks/wet-log
+    - /obj/items/dry-log
+    - /obj/items/dry-log
+    - /obj/items/wet-log

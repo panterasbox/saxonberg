@@ -22,9 +22,9 @@ data:
     # Working stock out on the table (the DIY floor's hand-reach; the
     # chest holds the dear cuts the gather walk reaches for a craft —
     # hand-retrieval from containers isn't a shipped verb yet).
-    - /world/hearthworks/root-vegetables
-    - /world/hearthworks/root-vegetables
-    - /world/hearthworks/stew-meat
+    - /obj/items/root-vegetables
+    - /obj/items/root-vegetables
+    - /obj/items/stew-meat
     # Empty dishes for the DIY floor — `plate` needs a real dish in
     # reach (the served path clones its own; the by-hand path doesn't).
     - /obj/items/plated-dish
