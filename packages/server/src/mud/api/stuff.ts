@@ -175,7 +175,7 @@ export class StuffApi {
     // Must be in allowed directories. `/lib/` = engine substrate,
     // `/platform/<branch>/` = the engine's own classes, `/world/` = a
     // locality's classes (mirrors its template namespace, e.g.
-    // `/world/lounge/Lounge`), `/trade/` = an industry pack's own
+    // `/world/lounge/location/Lounge`), `/trade/` = an industry pack's own
     // classes (`/trade/<industry>/idea/cmd/…`).
     const allowedPrefixes = ['/platform/', '/lib/', '/world/', '/trade/'];
     const hasAllowedPrefix = allowedPrefixes.some((prefix) =>

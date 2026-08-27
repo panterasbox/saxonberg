@@ -18,17 +18,17 @@
  * See docs/subsystems/harm.md.
  */
 
-import Location from '../../lib/stuff/Location';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { DetailedMixin } from '../../lib/description/Detailed';
-import { ExitableMixin } from '../../lib/boundary/Exitable';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
-import { PopulatesMixin } from '../../lib/stuff/Populates';
-import { SingletonMixin } from '../../lib/stuff/Singleton';
-import { MixinApi } from '../../api/mixin';
-import { ConditionApi } from '../../api/condition';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import type { FieldMeta } from '../../lib/mixin';
+import Location from '../../../lib/stuff/Location';
+import { VisibleMixin } from '../../../lib/description/Visible';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { ExitableMixin } from '../../../lib/boundary/Exitable';
+import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
+import { PopulatesMixin } from '../../../lib/stuff/Populates';
+import { SingletonMixin } from '../../../lib/stuff/Singleton';
+import { MixinApi } from '../../../api/mixin';
+import { ConditionApi } from '../../../api/condition';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const GlassAlleyBase = SingletonMixin(
   PostRegistrationMixin(

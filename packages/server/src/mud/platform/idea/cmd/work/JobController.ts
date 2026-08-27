@@ -285,7 +285,7 @@ export default class JobController extends CommandController<JobModel> {
   }
 }
 
-/** The last path segment, for prose ("/world/lounge/bar" → "bar"). */
+/** The last path segment, for prose ("/world/lounge/location/bar" → "bar"). */
 function leafOf(path: string): string {
   const leaf = path.split("/").filter(Boolean).pop();
   return leaf ?? "somewhere";

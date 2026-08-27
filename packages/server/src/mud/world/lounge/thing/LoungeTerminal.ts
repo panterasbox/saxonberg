@@ -20,11 +20,11 @@
  * the lounge as a plain terminal).
  */
 
-import TpaTerminal from "../common/tpa/TpaTerminal";
-import LoungeWarren from "./LoungeWarren";
-import { StuffApi } from "../../api/stuff";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
+import TpaTerminal from "../../common/tpa/TpaTerminal";
+import LoungeWarren from "../idea/LoungeWarren";
+import { StuffApi } from "../../../api/stuff";
+import type { Stuff } from "../../../lib/stuff/Stuff";
+import type { Container } from "../../../lib/spatial/Container";
 
 export default class LoungeTerminal extends TpaTerminal {
 

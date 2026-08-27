@@ -66,17 +66,17 @@ describe("AppApi", () => {
 
   it("settings returns the whole bag (seeded + ad-hoc)", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
+      [AppSettingKeys.defaultStartLocation]: "/world/lounge/idea/warren",
       motd: "hello",
     });
     const all = AppApi.settings();
-    expect(all[AppSettingKeys.defaultStartLocation]).toBe("/world/lounge/warren");
+    expect(all[AppSettingKeys.defaultStartLocation]).toBe("/world/lounge/idea/warren");
     expect(all.motd).toBe("hello");
   });
 
   it("setSetting writes the bag, persists, and refreshes the cache", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
+      [AppSettingKeys.defaultStartLocation]: "/world/lounge/idea/warren",
     });
     const savesBefore = pm.saves.length;
 

@@ -50,7 +50,7 @@ class EmployedHost extends EmployedMixin(Idea) {
   static _mixinName = 'EmployedHost';
 }
 
-const SHOP = '/world/lounge/business';
+const SHOP = '/world/lounge/idea/business';
 const MINISTRY = '/compact/press';
 const HOLDER = '/platform/agent/Avatar/holder';
 

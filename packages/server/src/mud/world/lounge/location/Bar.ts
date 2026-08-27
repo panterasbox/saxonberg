@@ -12,14 +12,14 @@
  * via `StuffApi.singleton`).
  */
 
-import Location from '../../lib/stuff/Location';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { DetailedMixin } from '../../lib/description/Detailed';
-import { ExitableMixin } from '../../lib/boundary/Exitable';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
-import { PopulatesMixin } from '../../lib/stuff/Populates';
-import { SingletonMixin } from '../../lib/stuff/Singleton';
-import type { FieldMeta } from '../../lib/mixin';
+import Location from '../../../lib/stuff/Location';
+import { VisibleMixin } from '../../../lib/description/Visible';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { ExitableMixin } from '../../../lib/boundary/Exitable';
+import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
+import { PopulatesMixin } from '../../../lib/stuff/Populates';
+import { SingletonMixin } from '../../../lib/stuff/Singleton';
+import type { FieldMeta } from '../../../lib/mixin';
 
 // `PopulatesMixin` lets the bar stock itself declaratively from the seed's
 // `populates:` list on hydration — the crafting fixtures (back-bar, bottles

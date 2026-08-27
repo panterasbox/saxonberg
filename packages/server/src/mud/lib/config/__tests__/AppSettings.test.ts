@@ -36,14 +36,14 @@ describe("AppSettings", () => {
       {
         _id: "r",
         values: {
-          [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
+          [AppSettingKeys.defaultStartLocation]: "/world/lounge/idea/warren",
           [AppSettingKeys.evacuationFallback]: "/platform/location/void",
         },
       },
     ]);
     const settings = await AppSettings.warm();
     expect(settings.getValue(AppSettingKeys.defaultStartLocation)).toBe(
-      "/world/lounge/warren",
+      "/world/lounge/idea/warren",
     );
     expect(AppSettings.getCached()).toBe(settings);
   });

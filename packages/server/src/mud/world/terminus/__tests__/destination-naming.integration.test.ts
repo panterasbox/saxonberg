@@ -72,7 +72,7 @@ const CROSSROADS = "/world/newbie-wilds/crossroads/terminal";
 // A lounge-terminal stub (Gate A's free route target) + its room.
 const STUBS: Doc[] = [
   {
-    path: "/world/lounge/terminal",
+    path: "/world/lounge/thing/terminal",
     class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
@@ -128,13 +128,13 @@ describe("destination naming + crossroads (real seeds)", () => {
     // Gate A's outbound paid route to the crossroads carries the demo fare.
     const gateA = await StuffApi.singleton<Stuff & FastTravel>(GATE_A);
     expect(gateA.getRoutes().get(CROSSROADS)?.fee).toBe(15);
-    expect(gateA.getRoutes().get("/world/lounge/terminal")?.fee).toBe(0);
+    expect(gateA.getRoutes().get("/world/lounge/thing/terminal")?.fee).toBe(0);
   });
 
   it("falls back to the terminal presentation when no Locality covers a stop", async () => {
     // The lounge stub room carries no address → getDestinationLabel falls
     // back to the terminal's own presentation ("The Lounge" shortDescription).
-    const lounge = await StuffApi.singleton<Stuff & FastTravel>("/world/lounge/terminal");
+    const lounge = await StuffApi.singleton<Stuff & FastTravel>("/world/lounge/thing/terminal");
     expect(await lounge.getDestinationLabel()).toBe("The Lounge");
   });
 });

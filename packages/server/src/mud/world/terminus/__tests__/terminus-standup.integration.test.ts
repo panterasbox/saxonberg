@@ -81,7 +81,7 @@ const ROOMS = [
 /** Forward-ref stubs (lounge terminal, crossroads, clerk, plaza). */
 const STUBS: Doc[] = [
   {
-    path: "/world/lounge/terminal",
+    path: "/world/lounge/thing/terminal",
     class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: { seatIn: "/world/test/lounge-room", keywords: ["lounge"], directionality: "both", routes: [] },

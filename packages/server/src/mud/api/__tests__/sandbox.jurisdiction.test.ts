@@ -76,7 +76,7 @@ describe('governed eval — the jurisdiction bound', () => {
   });
 
   it('admits content OF the parcel (lineage and location coincide)', async () => {
-    const fixture = probeAt('/world/lounge/bar-counter', null);
+    const fixture = probeAt('/world/lounge/thing/bar-counter', null);
     await SandboxApi.runGoverned(BOUND, async () => {
       fixture.setName('polished');
     });
@@ -96,7 +96,7 @@ describe('governed eval — the jurisdiction bound', () => {
   it('admits a clone standing in the parcel (a corpse, say)', async () => {
     const corpse = probeAt(
       '/stuff/agent/Corpse',
-      roomAt('/world/lounge/bar'),
+      roomAt('/world/lounge/location/bar'),
     );
     await SandboxApi.runGoverned(BOUND, async () => {
       corpse.setName('examined');

@@ -17,10 +17,10 @@ import { StuffApi } from '../../../api/stuff';
 import { DialogueTreeSchema } from '../../../lib/npc/tree';
 
 const NPC_DIR = fileURLToPath(
-  new URL('../../../../../../content/world-seed/content/world/lounge/npc/', import.meta.url)
+  new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/agent/', import.meta.url)
 );
 const BAR_YAML = fileURLToPath(
-  new URL('../../../../../../content/world-seed/content/world/lounge/bar.yaml', import.meta.url)
+  new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/location/bar.yaml', import.meta.url)
 );
 
 interface Spec {
@@ -100,11 +100,11 @@ describe("Dave's Bar cast seeds", () => {
       typeof e === 'string' ? e : e.template
     );
     for (const npc of [
-      '/world/lounge/npc/augie',
-      '/world/lounge/npc/dave',
-      '/world/lounge/npc/mara',
-      '/world/lounge/npc/remy',
-      '/world/lounge/npc/sloane',
+      '/world/lounge/agent/augie',
+      '/world/lounge/agent/dave',
+      '/world/lounge/agent/mara',
+      '/world/lounge/agent/remy',
+      '/world/lounge/agent/sloane',
     ]) {
       expect(paths, npc).toContain(npc);
     }

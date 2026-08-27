@@ -27,7 +27,7 @@ import {
 import { Collections } from "../../../../backend/PersistenceManager";
 
 const LIVE_BANK_PATH = "/world/test/goodkin-bank";
-const VENUE = "/world/lounge/business";
+const VENUE = "/world/lounge/idea/business";
 
 function makeBank(path: string, corpoKey = "goodkin"): void {
   makeStuffAtPath(() => {

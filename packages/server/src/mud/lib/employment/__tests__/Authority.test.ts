@@ -200,9 +200,9 @@ async function warmGovernment(): Promise<void> {
 
 describe('Authority.fromData', () => {
   it('normalizes a legacy bare proprietorPath string to an entity ref', () => {
-    expect(Authority.fromData('/world/lounge/npc/dave')).toEqual({
+    expect(Authority.fromData('/world/lounge/agent/dave')).toEqual({
       kind: 'entity',
-      path: '/world/lounge/npc/dave',
+      path: '/world/lounge/agent/dave',
     });
   });
 
@@ -436,18 +436,18 @@ describe('the appointing authority on an organization', () => {
 
   it('reads a legacy `proprietorPath` seed with no seed edit', () => {
     const org = makeStuffAtPath(() => new OrganizationEntity(), ORG);
-    org.proprietorPath = '/world/lounge/npc/dave';
+    org.proprietorPath = '/world/lounge/agent/dave';
     expect(org.getAppointingAuthority()).toEqual({
       kind: 'entity',
-      path: '/world/lounge/npc/dave',
+      path: '/world/lounge/agent/dave',
     });
     // ...and the economic half still gets its proprietor.
-    expect(org.getProprietor()).toBe('/world/lounge/npc/dave');
+    expect(org.getProprietor()).toBe('/world/lounge/agent/dave');
   });
 
   it('lets an authored `appointingAuthority` win over the legacy field', () => {
     const org = makeStuffAtPath(() => new OrganizationEntity(), ORG);
-    org.proprietorPath = '/world/lounge/npc/dave';
+    org.proprietorPath = '/world/lounge/agent/dave';
     org.appointingAuthority = { kind: 'office', office: 'prime-minister' };
     expect(org.getAppointingAuthority()).toEqual({
       kind: 'office',

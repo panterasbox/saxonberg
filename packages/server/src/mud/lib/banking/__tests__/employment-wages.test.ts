@@ -27,10 +27,10 @@ import {
 } from './banking-test-harness';
 import { Currency } from "../Currency";
 
-const BUSINESS = '/world/lounge/business';
+const BUSINESS = '/world/lounge/idea/business';
 const BANK = '/world/terminus/counting-houses/bank-counter';
-const DAVE = '/world/lounge/npc/dave';
-const MARA = '/world/lounge/npc/mara';
+const DAVE = '/world/lounge/agent/dave';
+const MARA = '/world/lounge/agent/mara';
 const HOUR = 3_600;
 
 class Person extends Idea {

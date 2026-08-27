@@ -19,28 +19,28 @@
  * code constants headed for app settings (`AppApi`)).
  */
 
-import { Warren, type Attachment } from '../../lib/location/Warren';
-import { SingletonMixin } from '../../lib/stuff/Singleton';
-import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Container } from '../../lib/spatial/Container';
-import type { Containable } from '../../lib/spatial/Containable';
-import type { Exitable } from '../../lib/boundary/Exitable';
-import { StuffApi } from '../../api/stuff';
-import { ContainmentApi } from '../../api/containment';
-import { MessageApi } from '../../api/message';
-import { Mml } from '../../api/mml';
-import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { Warren, type Attachment } from '../../../lib/location/Warren';
+import { SingletonMixin } from '../../../lib/stuff/Singleton';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { Container } from '../../../lib/spatial/Container';
+import type { Containable } from '../../../lib/spatial/Containable';
+import type { Exitable } from '../../../lib/boundary/Exitable';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
+import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
 
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
 export default class LoungeWarren extends SingletonMixin(Warren) {
   /** Seeded Warren-definition path; the `startLocation` spawn reference. */
-  static readonly WARREN_PATH = '/world/lounge/warren';
+  static readonly WARREN_PATH = '/world/lounge/idea/warren';
   /** The one lounge-room template every instance clones from. */
-  static readonly LOUNGE_TEMPLATE = '/world/lounge/lounge';
+  static readonly LOUNGE_TEMPLATE = '/world/lounge/location/lounge';
   /** Dave's Bar — the singleton external-neighbor shell. */
-  static readonly BAR_PATH = '/world/lounge/bar';
+  static readonly BAR_PATH = '/world/lounge/location/bar';
 
   /** Direction host→Dave's (cardinal; auto-inverse 'south'). */
   static readonly BAR_DIRECTION = 'north';

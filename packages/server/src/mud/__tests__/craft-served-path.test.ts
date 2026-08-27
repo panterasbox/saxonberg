@@ -73,7 +73,7 @@ function ensureAlcoholCondition(): void {
 const GIN = '/stuff/idea/material/spirit/gin';
 const VERMOUTH = '/stuff/idea/material/spirit/vermouth';
 const MARTINI_MAT = '/stuff/idea/material/cocktail/martini';
-const GLASS = '/world/lounge/cocktail-glass';
+const GLASS = '/world/lounge/thing/cocktail-glass';
 const DAVE = '/world/lounge/dave-test';
 
 class TestRoom extends ContainerMixin(Idea) {

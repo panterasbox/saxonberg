@@ -4,7 +4,7 @@ import { Roster, type RosterAssignment } from '../Roster';
 // Mara's day-shift window, lifted from the seed: weekdays 0–4, hours [6,14).
 const MARA: RosterAssignment = {
   positionKey: 'bartender',
-  assignee: '/world/lounge/npc/mara',
+  assignee: '/world/lounge/agent/mara',
   schedule: [{ days: [0, 1, 2, 3, 4], hours: [6, 14] }],
 };
 
@@ -12,7 +12,7 @@ describe('Roster', () => {
   it('exposes its assignments in order', () => {
     const r = Roster.of([MARA]);
     expect(r.getAssignments()).toHaveLength(1);
-    expect(r.getAssignments()[0]?.assignee).toBe('/world/lounge/npc/mara');
+    expect(r.getAssignments()[0]?.assignee).toBe('/world/lounge/agent/mara');
   });
 
   it('is on-shift inside the window (day + hour)', () => {

@@ -14,14 +14,14 @@
  * whole point), no coordinate mixin, no zone stamp.
  */
 
-import Location from '../../lib/stuff/Location';
-import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
-import { LoungeMixin } from './LoungeMixin';
-import { VisibleMixin } from '../../lib/description/Visible';
-import { DetailedMixin } from '../../lib/description/Detailed';
-import { ExitableMixin } from '../../lib/boundary/Exitable';
-import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
-import type { FieldMeta } from '../../lib/mixin';
+import Location from '../../../lib/stuff/Location';
+import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
+import { LoungeMixin } from '../LoungeMixin';
+import { VisibleMixin } from '../../../lib/description/Visible';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { ExitableMixin } from '../../../lib/boundary/Exitable';
+import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
+import type { FieldMeta } from '../../../lib/mixin';
 
 const LoungeBase = PostRegistrationMixin(
   ExitableMixin(

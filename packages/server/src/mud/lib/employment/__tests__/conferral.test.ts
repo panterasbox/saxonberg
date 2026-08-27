@@ -20,7 +20,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 
-const BUSINESS = '/world/lounge/business';
+const BUSINESS = '/world/lounge/idea/business';
 
 // A maker that is also employable — the real `Crafter` shape (MakerMixin +
 // EmployedMixin), minus the heavy Character body chain.

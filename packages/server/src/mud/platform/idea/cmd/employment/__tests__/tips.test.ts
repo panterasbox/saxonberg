@@ -42,7 +42,7 @@ import {
 import { Currency } from "../../../../../lib/banking/Currency";
 
 const PATRON = '/platform/agent/Avatar/patron';
-const MARA = '/world/lounge/npc/mara';
+const MARA = '/world/lounge/agent/mara';
 
 // A patron: a command giver that holds coin.
 class Patron extends SensorMixin(
