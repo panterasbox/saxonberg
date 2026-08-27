@@ -1,7 +1,7 @@
 /**
  * PackLogic / PackApi reconcile core — drives PackApi.install against fixture
  * packs with a stubbed PersistApi store, asserting the reconcile contract:
- * insert / update (+ no-op second run) / delete / adoption-of-unstamped /
+ * insert / update (+ no-op second run) / delete / refusal-of-unstamped /
  * coexistence (non-pack rows untouched) / requires-kernel abort (no writes) /
  * content-kind dispatch (domain + quantity, via the real base-library pack).
  *
@@ -230,10 +230,10 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     expect(contentRows().map((row) => row.path)).toEqual(['/obj/material/spirit/gin']);
   });
 
-  it('adoption: an unstamped legacy row is stamped + matched, no duplicate', async () => {
-    // Simulate a legacy seeder row (unstamped) at a pack path.
+  it('an unstamped row at a pack path refuses the pack — untouched, nothing adopted', async () => {
     rows.push({
-      _id: 'legacy-1',
+      _id: 'stray-1',
+      __col: 'content',
       path: '/obj/material/spirit/gin',
       class: MATERIAL,
       hydratorClass: HYDRATOR,
@@ -244,17 +244,11 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     ]);
 
     const [r] = await PackApi.install([root]);
-    expect(r!.adopted).toEqual(['/obj/material/spirit/gin']);
-    expect(r!.inserted).toEqual([]);
-    expect(contentRows()).toHaveLength(1); // adopted in place — no duplicate
-    expect(contentRows()[0]!._id).toBe('legacy-1');
-    expect(contentRows()[0]!.sourcePack).toBe('p');
-    expect(contentRows()[0]!.data).toEqual({ name: 'gin' }); // matched to file
-
-    // Second run: now stamped → no-op.
-    const [r2] = await PackApi.install([root]);
-    expect(r2!.adopted).toEqual([]);
-    expect(r2!.updated).toEqual([]);
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/'\/obj\/material\/spirit\/gin' but it exists with no sourcePack stamp/);
+    expect(contentRows()).toHaveLength(1);
+    expect(contentRows()[0]).toMatchObject({ _id: 'stray-1', data: { name: 'old gin' } });
+    expect(contentRows()[0]!.sourcePack).toBeUndefined();
   });
 
   it('coexistence: a non-pack row is left completely untouched', async () => {
@@ -266,7 +260,7 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
     });
     const root = writePack('p', [{ rel: 'obj/material/spirit/gin.yaml' }]);
     const [r] = await PackApi.install([root]);
-    expect([...r!.inserted, ...r!.updated, ...r!.adopted, ...r!.deleted]).not.toContain(
+    expect([...r!.inserted, ...r!.updated, ...r!.deleted]).not.toContain(
       '/world/some/player/sword',
     );
     const other = rows.find((row) => row._id === 'other-1')!;
@@ -338,10 +332,9 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
     expect(r3!.documents['name-bank']).toBe(0); // no edit → no write
   });
 
-  it('adoption: an unstamped legacy name bank is stamped + matched, no duplicate', async () => {
-    // Simulate a collapsed legacy row (unstamped) at its provisional path.
+  it('an unstamped name bank with the same key (at any path) refuses the pack — never adopted', async () => {
     rows.push({
-      _id: 'legacy-nb',
+      _id: 'stray-nb',
       path: '/name-banks/common',
       owner: '',
       kind: 'name-bank',
@@ -352,13 +345,12 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
       { key: 'common', given: ['Alden'], surname: ['Ashby'] },
     ]);
     const [r] = await PackApi.install([root]);
-    expect(r!.documents['name-bank']).toBe(1);
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
     const banks = nameBankRows();
-    expect(banks).toHaveLength(1); // adopted in place (by natural key) — no duplicate
-    expect(banks[0]!._id).toBe('legacy-nb');
-    expect(banks[0]!.sourcePack).toBe('p');
-    expect(banks[0]!.path).toBe('/p/name-banks/common');
-    expect((banks[0]!.data as { given: string[] }).given).toEqual(['Alden']); // matched to the file
+    expect(banks).toHaveLength(1);
+    expect(banks[0]).toMatchObject({ _id: 'stray-nb', path: '/name-banks/common' });
+    expect(banks[0]!.sourcePack).toBeUndefined();
   });
 
   it('delete: a stamped bank whose file vanished is removed', async () => {

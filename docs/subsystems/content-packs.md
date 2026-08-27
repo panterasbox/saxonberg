@@ -39,10 +39,7 @@ platform; a corpo holds its own branch), and which of its rows are
 title is declared by the pack whose content needs it.
 
 **The DB is a cache of the packs.** Since the pack-installer build
-(2026-08) the templates collection is named **`content`** (it was
-`domain`; a pre-rename deployment is migrated once at boot by
-`PersistenceManager.#migrateDomainToContent`, strictly before index
-creation — never renaming over a live `content`, never auto-dropping),
+(2026-08) the templates collection is named **`content`**,
 and every install is **three-way** against a per-deployment install
 record (`pack_installs`): a row the pack changed is updated, a row the
 database changed is kept, a row both changed is a **conflict** —
@@ -129,8 +126,7 @@ installer understands in full.
 root` (`/expression/emotes/grin`, owned by `/expression`). It is the
 pack's branch in the document tree; the template kind ignores it
 (template paths are their own namespace). `saxonberg-lounge` declares
-`root: /world/lounge` so its scripts land where the retired
-`ScriptSeeder` put them and every dev DB adopts them in place.
+`root: /world/lounge` so its scripts land under the lounge's branch.
 
 Still deliberately minimal about *rows*: the pack's kernel requirement
 is **derived**, not declared (*requires-kernel* is the install-time
@@ -228,17 +224,16 @@ document: it has a revision log and a CAS edit path); `settings` and
 `subject` are contribution kinds with their own targets.
 
 The **document strategy** is one factory (`documentStrategy(spec, root)`)
-per kind: `dbKeyQuery` `{kind, path}`, an **`adoptQuery`** `{kind,
-'data.<naturalKey>'}` for flat-key kinds (so a migrated legacy row at a
-provisional path is adopted in place by natural key), and a
+per kind: `dbKeyQuery` — `{kind, path}`, or `{kind, 'data.<naturalKey>'}`
+for a flat-key kind (its identity IS its natural key: a row with that key
+at *any* path is this row, and one this pack did not stamp is refused) —
+and a
 **`stampedQuery`** `{kind}` — ⚠ load-bearing: `{sourcePack}` alone over
 `documents` returns every kind the pack ships, and each kind would reap
 the others' rows as its own vanished files. Baselines and conflicts
 carry the label `document:<kind>` so `pack diff` output names it. The
 preimage is `{ data }` only — `path`/`owner`/`kind`/`sourcePack` are
-bookkeeping, and a migrated row still at its provisional path is
-re-pathed as bookkeeping on the converged / normalized / kept cell (no
-content write).
+bookkeeping.
 
 > **The domain subdir was `content/lib/` until the lib/obj taxonomy
 > refactor.** It is `content/obj/` now, because a pack ships content and
@@ -279,9 +274,7 @@ channel and/or `open-forum` board, with optional name overrides and an
 audience group resolved **by name** at the pre-write gate (a missing
 group fails the pack). Both sides render to one preimage
 (`{name, description, audience, board, channel, channelName,
-boardName}`) so the three-way compares like-for-like; the retired
-`ChannelSeeder`'s rows adopt **by title** with their `_id` and channel
-preserved. ⚠ No `SubjectCatalogue.installSubject`: at boot the installer
+boardName}`) so the three-way compares like-for-like. ⚠ No `SubjectCatalogue.installSubject`: at boot the installer
 runs *before* `BootstrapManager` clones the catalogues, so the rows are
 written as Documents through `PersistApi` and the resident catalogues
 are invalidated only on a live sync.
@@ -323,8 +316,8 @@ It is **not** inside `data`, and the clone pipeline passes only
 `template.data` to the Hydrator — so the stamp is structurally
 unreachable by the instance (a `Material`/`Biome` never sees it). It is a
 pure DB-row provenance marker, written directly by the installer through
-the `PersistApi` chokepoint (`save` = `$set`-by-`_id` for update/adopt,
-or insert), never via `TemplateApi.saveTemplate` (which has no slot for
+the `PersistApi` chokepoint (`save` = `$set`-by-`_id` for update, or
+insert), never via `TemplateApi.saveTemplate` (which has no slot for
 it).
 
 ### The install record — `pack_installs`
@@ -392,41 +385,15 @@ conflicts (`deleted-vs-edited`) on an edited one — an operator-edited row
 is never silently deleted. **Pinned** keys (`record.pins`) are skipped
 before any comparison and counted; every reconcile result, boot line,
 and `pack status` reports `N rows pinned, skipped` — pins are loud,
-every time. A stamped row with **no baseline** (a partial older record)
-is normalized from what is written, counted, and logged. A **file at a
-key with a pre-existing unstamped row** is **adopted** (stamped and
-matched, `$set`-by-`_id`, never an insert); a row stamped by a
-*different* pack is refused — packs never clobber each other. A file at
-a key with no row is inserted.
-
-**Adoption by natural key.** A flat-key document kind adopts an
-unstamped row by `{kind, 'data.<naturalKey>'}` rather than by path —
-which is how the **collapse migration** hands over: a legacy
-`emotes` / `recipes` / `name_banks` row becomes a `documents` row at a
-provisional path (`/emotes/grin`) on the first boot, and the pack's
-first install re-paths, re-owns and stamps it in place (`adopted`, same
-`_id`). A row another pack stamped is refused.
-
-**The collapse migration.** `PersistenceManager.COLLAPSES` (a table,
-not code) turns each legacy per-kind collection into `documents` rows of
-one kind — `_id` **preserved**, `sourcePack` carried, null fields and
-the retired `aliases` dropped, the collection **dropped** — inside
-`connect()` before `createIndexes()` (a duplicate natural key is a
-logged re-insert under a fresh id, never a boot failure); idempotent by
-construction (the second boot finds no collection and prints nothing).
-The `script` document kind was renamed **`msh`** (the language's name)
-in the same place, with the lounge exemplars moved from
-`/world/lounge/scripts/` to `/world/lounge/msh/`.
-
-**The adoption bridge.** With **no record** (a pre-record DB — the dev
-DB the day this shipped, or a fresh one), the reconcile runs two-way
-(what it just wrote wins), then mints the record with every row's
-baseline taken from what was written, and emits **one unmissable
-`console.warn`** — *ONE-TIME adoption baseline normalized over N rows;
-pre-existing divergence was overwritten; future reconciles are
-three-way*. The second boot is a no-op: zero changes, record hashes
-unchanged, no line. Two-boot idempotence is tested at three layers
-(migration, record, newbie-wilds).
+every time. A stamped row with **no baseline** (the requires phase's
+own pre-written registries — see *The grants*) is normalized from what is
+written, counted, and logged. A **file at a key with a row this pack did
+not stamp** — another pack's, or nobody's — **fails the pack at
+`reconcile`**: the packs are the only writer of these rows, so there is
+nothing to adopt and nothing to clobber. A file at a key with no row is
+inserted. With **no record** (a fresh database) every row is inserted and
+its baseline is what was written; the second boot is a no-op — zero
+changes, record hashes unchanged, no line.
 
 **Conflict surfacing.** Each *newly detected* conflict (deduped against
 the prior record's set — a persisting one is not re-fired) lands one
@@ -476,12 +443,11 @@ this check's suspenders.
 ### Boot — `PackApi.install()`
 
 `AppBootstrap.run` calls `PackApi.install()` in the pre-`loadHooks`
-region (it replaces the migrated trees' seeding and folds in the former
-standalone `QuantityApi.loadTagTables` call). It **writes rows only** —
+region. It **writes rows only** —
 `BootstrapManager` clones singletons *afterwards*, so nothing is live yet
 and there is no re-hydrate at boot.
 
-Ordering: `PersistenceManager.connect` (the migrations, the indexes) →
+Ordering: `PersistenceManager.connect` (the indexes) →
 `PackApi.install()` → `loadHooks` → `CommandApi.preloadAll` →
 `BootstrapManager.run()` (the boot union, below) → the Api boots. The
 install runs before `loadHooks` because everything — the DomainHook
@@ -491,8 +457,7 @@ else that writes a row at boot. The boot line per pack reads
 `PackApi: '<id>' installed — N inserted, … , requires: G group(s) (C
 created), T title(s) (granted, kept, conflict)[, S row(s)
 skipped (extent sold)], boot: A sync-read + B producer, staffed|UNSTAFFED`
-— the second boot of a settled deployment is all zeros on every pack
-with no adoption line.
+— the second boot of a settled deployment is all zeros on every pack.
 
 ### Runtime — the `pack` verb
 
@@ -688,14 +653,10 @@ reconcile asks who holds each row's extent:
    → the row + a `grant` event), **`kept`** (present under the same
    holder — no write, no event), or **`conflict`** (present under a
    different holder — *whoever* that is — no write; a `title` conflict
-   on the record and a `title conflict:` line in `status`). Wave 3's
-   `migrated` outcome (the `core`-held and retired-board hand-overs) was
-   deleted in wave 4a with the migration branches themselves; a database
-   that predates a rename is **dropped, never migrated**
-   ([deployment.md § The Mongo environment policy](../deployment.md)) —
-   the boot guard `PackApi.assertNoLegacyPaths` refuses a store holding
-   `content` rows under the retired `/domain/` root before the installer
-   runs.
+   on the record and a `title conflict:` line in `status`). There is no
+   migration outcome and no migration code anywhere in the boot: a
+   database that predates a rename is **dropped**
+   ([deployment.md § The Mongo environment policy](../deployment.md)).
 
 Then the rows are planned and written, and `finishRequires` runs after
 them: the organizations the manifest names are **stood up resident**
@@ -722,9 +683,7 @@ locality changes hands. The three-way reconcile is **bounded by title**
 nobody in that set was *sold out from under the pack*: the planner
 emits **`skip-sold`** for it — skipped and counted (`skippedSold`, the
 boot line's `N row(s) skipped (extent sold)`), **never written**, never
-deleted. No resident registry → unbounded (a unit test). A `core`-held
-covering parcel is the retired state default, not a sale
-(`migration-note`, gone in wave 4).
+deleted. No resident registry → unbounded (a unit test).
 
 ### Staffing and routing
 
@@ -814,11 +773,7 @@ fresh `saxonberg_e2e`, then the main suite — same database, sequential
 (the four-database rule, [deployment.md](../deployment.md)). Root
 `pnpm test:e2e:platform`; `e2e` `pnpm test:platform`.
 
-Two more CI gates keep the wave's invariants: **`pnpm lint:core-gone`**
-(no source, script, content or e2e line names `core` outside a
-`migration-note:` line; `ParcelOwner` is exactly `group | player |
-organization`; no `pack-installers`, no `requiresCoreAccess`, no
-`requiresAuthor`, no `AccessApi.isAuthor`) and **`pnpm lint:untitled`**
+One more CI gate keeps the wave's invariant: **`pnpm lint:untitled`**
 (every path the packs ship under a title root has a claim as a prefix —
 the installer's walk mirrored in a script; zero is green).
 
@@ -940,22 +895,18 @@ junk drawer — expected to slim as trade packs take their objects.
   `content/cmd/author/pack.yaml` — the `pack` verb suite;
   `lib/command/validators/requiresPackInstaller.ts` — its gate (title
   over `/compact/executive`).
-- `mud/obj/ParcelRegistry.ts` — `grant` (the four outcomes, the
-  `migration-note` branches); `mud/api/group.ts` — `ensureGroup` /
+- `mud/obj/ParcelRegistry.ts` — `grant` (the three outcomes);
+  `mud/api/group.ts` — `ensureGroup` /
   `ensureMember`.
 - `backend/BootstrapManager.ts` — `run()` over `PackApi.bootManifest()`.
 - `mud/obj/api/CommandLogic.ts` — the store-only rule (`servedFromStore`)
   + the offline read over `PackApi.contentRoots()`.
 - `mud/obj/api/DiagnosticLogic.ts` — `packRecipients`, the maintainer
   routing.
-- `packages/server/scripts/check-core-gone.ts`,
-  `check-untitled-paths.ts` — `lint:core-gone`, `lint:untitled`.
+- `packages/server/scripts/check-untitled-paths.ts` — `lint:untitled`.
 - `e2e/playwright.platform.config.ts` +
   `e2e/tests-platform/platform-only.spec.ts` — the platform-only boot.
-- `backend/PersistenceManager.ts` — the `domain` → `content` migration
-  (`planDomainRename` + `#migrateDomainToContent`), the collapse
-  migration (`COLLAPSES` + `planCollapses` + `#collapseLegacyCollections`),
-  the `script` → `msh` kind rename, the kind-scoped `documents` indexes,
+- `backend/PersistenceManager.ts` — the kind-scoped `documents` indexes,
   the `pack_installs` policy + index; `lib/persistence/Collections.ts` —
   the names; `lib/persistence/ResetPolicy.ts` — the declared kinds
   survive the night.
@@ -976,19 +927,17 @@ as a versioned deliverable.
 
 `feature/species-and-names-pack` (2026-06-29) added the second pack,
 **species-and-names** — the `Species`/`Clade` tree + the char-gen name
-banks migrated out of the kernel seed tree / `NameBankSeeder` — and with
+banks moved out of the kernel seed tree / `NameBankSeeder` — and with
 it the third content kind, **name-banks** (the first side-collection
-kind). The migration rode the adopt-don't-wipe path: a live DB's existing
-unstamped species + `name_banks` rows are adopted in place on first
-install, no wipe, no data migration (no class moved).
+kind).
 
 `design/pack-installer` (2026-08-25) — the **pack-installer substrate**
 (waves 0+1 of the content-pack program — slate addenda A10/A17/A24/A25
 in `docs/slates/builds/content-packs-slate.md`; the requirements and
 plan retired at the sweep): the
-`domain` → `content` rename with its idempotent boot migration; the
+`domain` → `content` rename; the
 `pack_installs` record with body-beside-hash baselines; the three-way
-reconcile with conflicts, pins, and the adoption bridge; per-pack failure
+reconcile with conflicts and pins; per-pack failure
 isolation; the flat-key check; the plan/apply split behind dry-run; the
 `pack` verb suite; office-owned groups + the `pack-installers` committee
 (`requiresWizard` left `pack`); and **newbie-wilds** as the fourth pack —
@@ -996,9 +945,8 @@ the first locality shipped as content.
 
 `design/content-pack-wave-2` (2026-08-25) — **wave 2** (the requirements
 and plan retired at the sweep): the `document` contribution kind over the
-closed `DocumentKinds` vocabulary; the three legacy collections
-(`emotes`, `recipes`, `name_banks`) collapsed into `documents` by a
-one-time boot migration and adopted by natural key; the `settings`
+closed `DocumentKinds` vocabulary; the three per-kind collections
+(`emotes`, `recipes`, `name_banks`) folded into `documents`; the `settings`
 (merge-missing), `subject` (archive-never-reap), `wiki` (CAS submit as
 the pack) and `command-view` (store-first with a counted disk fallback
 and the wizard code-naming gate) kinds; `BlueprintCatalogue.rebuild()`
@@ -1027,8 +975,7 @@ rows into `world-seed`; no disk fallback for command views;
 
 **Wave 4a (2026-08-27) — the path surgery.** `/domain/` → `/world/`
 everywhere (content, `src/mud/world/`, tests, e2e, docs) with **no
-migration** — the database is dropped and the boot guard
-`PackApi.assertNoLegacyPaths` refuses a pre-rename store; the `/trade/`
+migration** — the database is dropped; the `/trade/`
 title root (nine; ONE `TITLE_ROOTS` in `lib/paths.ts`) and the
 industry-pack shape (`/trade/<industry>/{obj,command,recipes,cmd}`,
 `lint:instanceable` invariant 7); the hearthworks re-cut into
@@ -1036,4 +983,9 @@ industry-pack shape (`/trade/<industry>/{obj,command,recipes,cmd}`,
 introduce, the commons into `/obj/items`, the venue stays in
 `world-seed`) — eighteen packs; the view-key rule generalised to every
 template tree; wave 3's `migrated` grant outcome and both migration
-branches deleted; the msh path migration deleted.
+branches deleted. **And the junk sweep:** every one-time boot migration
+(`domain`→`content`, group owners, `script`→`msh`, the collection
+collapse), the `developers`→`wizards` rename, the `adopt` reconcile cell +
+`adoptQuery` + the adoption bridge, the migration scripts, `lint:core-gone`
+— deleted. This game has never held data a boot of the same checkout did
+not write; nothing is migrated, ever.

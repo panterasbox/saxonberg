@@ -75,22 +75,15 @@ export class Group extends Document {
   }
 
   /**
-   * The one-time upgrade of a pre-2026-08 stored owner (a bare string:
-   * `system`, an Avatar templatePath, or the short-lived `office:<key>`
-   * sentinel) to the typed shape. Idempotent: a typed owner passes
-   * through. The boot migration rewrites stored rows once; the readers
-   * (`ownsGroup`, `group show`) also pass through it, so a row minted by
-   * older code between the two is still read correctly.
+   * The stored owner, typed. A row's `owner` is always the typed
+   * `GroupOwner` (there is no other writer); anything else is corrupt
+   * and says so rather than being read as something it is not.
    */
   static ownerFromStored(raw: unknown): GroupOwner {
     if (raw && typeof raw === 'object' && typeof (raw as GroupOwner).kind === 'string') {
       return raw as GroupOwner;
     }
-    if (typeof raw !== 'string' || raw === '' || raw === 'system') {
-      return { kind: 'system' };
-    }
-    if (raw.startsWith('office:')) return { kind: 'office', office: raw.slice('office:'.length) };
-    return { kind: 'player', templatePath: raw };
+    throw new Error(`Group.owner is not a GroupOwner: ${JSON.stringify(raw)}`);
   }
 
   /**

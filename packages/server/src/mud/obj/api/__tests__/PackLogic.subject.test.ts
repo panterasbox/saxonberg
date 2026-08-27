@@ -3,7 +3,7 @@
  * (channel / board / both / neither), derived vs overridden names, the
  * audience group resolved by name (a missing group fails the pack
  * pre-write), **archive-never-reap** on a vanished file, effective-name
- * collisions across packs at `flat-key`, and adoption of the retired
+ * collisions across packs at `flat-key`, and the re-link of a surface
  * ChannelSeeder's rows by title (`_id` preserved).
  */
 
@@ -89,7 +89,7 @@ describe('the subject kind — à la carte', () => {
     expect((subjectByTitle('Dark')!.manifestations as unknown[]).length).toBe(0);
     // Second boot: all-zero.
     const [again] = await PackApi.install([root]);
-    expect([...again!.inserted, ...again!.updated, ...again!.adopted, ...again!.archived, ...again!.conflicts]).toEqual([]);
+    expect([...again!.inserted, ...again!.updated, ...again!.archived, ...again!.conflicts]).toEqual([]);
   });
 
   it('a missing audience group fails the pack pre-write', async () => {
@@ -164,8 +164,8 @@ describe('flat-key over subjects', () => {
   });
 });
 
-describe('surface adoption before minting (found by the drive)', () => {
-  it('a Subject that lost its manifestation link re-adopts the channel that still points at it — no duplicate mint', async () => {
+describe('surface re-link before minting', () => {
+  it('a Subject whose manifestations cache lost its ref re-links the channel that still points at it — no duplicate mint', async () => {
     store.rows.push({ _id: 'ch-chat', __col: 'channels', name: 'Chat', kind: 'open-join-standalone', subject: 'subj-chat', procedure: 'open' });
     store.rows.push({
       _id: 'subj-chat', __col: 'forum_subjects', title: 'Chat', owner: 'pack:platform', groupRef: '',
@@ -179,21 +179,10 @@ describe('surface adoption before minting (found by the drive)', () => {
     expect(refOf(subjectByTitle('Chat')!, 'open-chat')).toBe('ch-chat');
   });
 
-  it('a legacy channel by NAME with no Subject at all is adopted, not duplicated', async () => {
-    store.rows.push({ _id: 'ch-help', __col: 'channels', name: 'Help', kind: 'open-join-standalone', subject: '', procedure: 'open' });
-    const root = writePack('platform', [], { root: '/platform' });
-    writeSubjectFile(root, 'help', { name: 'Help', channel: true });
-    const [r] = await PackApi.install([root]);
-    expect(r!.failure).toBeNull();
-    expect(channels()).toHaveLength(1);
-    const s = subjectByTitle('Help')!;
-    expect(channels()[0]).toMatchObject({ _id: 'ch-help', subject: s._id });
-    expect(refOf(s, 'open-chat')).toBe('ch-help');
-  });
 });
 
-describe('adoption of the retired ChannelSeeder rows', () => {
-  it('matches by title and stamps in place — the _id is preserved, the channel is reused', async () => {
+describe('a subject row nobody stamped is refused, never adopted', () => {
+  it('a same-title row with no sourcePack fails the pack at reconcile and is left alone', async () => {
     store.rows.push({ _id: 'ch-help', __col: 'channels', name: 'Help', kind: 'open-join-standalone', subject: 'subj-help', procedure: 'open' });
     store.rows.push({
       _id: 'subj-help',
@@ -209,12 +198,10 @@ describe('adoption of the retired ChannelSeeder rows', () => {
     const root = writePack('platform', [], { root: '/platform' });
     writeSubjectFile(root, 'help', { name: 'Help', channel: true });
     const [r] = await PackApi.install([root]);
-    expect(r!.adopted).toEqual(['/subjects/help']);
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
     expect(subjects()).toHaveLength(1);
-    expect(subjectByTitle('Help')).toMatchObject({ _id: 'subj-help', owner: 'pack:platform', sourcePack: 'platform' });
+    expect(subjectByTitle('Help')).toMatchObject({ _id: 'subj-help', owner: '' });
     expect(channels()).toHaveLength(1);
-    expect(channels()[0]!._id).toBe('ch-help');
-    const [again] = await PackApi.install([root]);
-    expect([...again!.adopted, ...again!.updated]).toEqual([]);
   });
 });

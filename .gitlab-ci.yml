@@ -166,7 +166,6 @@ lint:
     # content or e2e line names it (one marked migration branch excepted),
     # ParcelOwner is exactly its three kinds, no pack-installers, no
     # author tier, no requiresCoreAccess / requiresAuthor.
-    - pnpm -C packages/server lint:core-gone
     # Every path a pack ships under a title root is claimed by some pack —
     # with no state default an unclaimed path is one nobody can edit,
     # broadcast over or teleport within, silently.

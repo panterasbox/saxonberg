@@ -101,23 +101,14 @@ describe('GroupApi.ownsGroup', () => {
     expect(await GroupApi.ownsGroup(actor(FOUNDER), group(Group.officeOwner('')))).toBe(false);
   });
 
-  it('a legacy string owner (a row older code wrote) still resolves through the upgrade', async () => {
-    stubOffices({});
-    const g = group(Group.systemOwner());
-    (g as unknown as { owner: unknown }).owner = FOUNDER; // pre-typed row
-    expect(await GroupApi.ownsGroup(actor(FOUNDER), g)).toBe(true);
-    expect(await GroupApi.ownsGroup(actor(ALICE), g)).toBe(false);
-  });
 });
 
 describe('Group.ownerFromStored', () => {
-  it('maps every legacy string shape and passes typed owners through', () => {
-    expect(Group.ownerFromStored('system')).toEqual({ kind: 'system' });
-    expect(Group.ownerFromStored('')).toEqual({ kind: 'system' });
-    expect(Group.ownerFromStored(undefined)).toEqual({ kind: 'system' });
-    expect(Group.ownerFromStored('/obj/Avatar/x')).toEqual({ kind: 'player', templatePath: '/obj/Avatar/x' });
-    expect(Group.ownerFromStored('office:prime-minister')).toEqual({ kind: 'office', office: 'prime-minister' });
-    const typed = Group.officeOwner('mayor');
+  it('passes a typed owner through and refuses anything else', () => {
+    const typed = { kind: 'office', office: 'prime-minister' } as const;
     expect(Group.ownerFromStored(typed)).toBe(typed);
+    for (const raw of ['system', '', undefined, '/obj/Avatar/x', 'office:prime-minister']) {
+      expect(() => Group.ownerFromStored(raw)).toThrow(/not a GroupOwner/);
+    }
   });
 });

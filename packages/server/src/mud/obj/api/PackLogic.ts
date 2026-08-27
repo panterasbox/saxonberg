@@ -142,8 +142,7 @@ interface DocumentFile {
 /**
  * Document kinds whose reader is not yet un-gated: the vocabulary
  * declares them (indexes + reset policy), but their files are still read
- * by another strategy (`name-bank` → the legacy `nameBankStrategy` until
- * step 3 of wave 2) or not at all (`command-view` until step 9). One set
+ * by another strategy or not at all. One set
  * drives the reader, the flat-key check and `strategyForKey` alike, so
  * no kind is ever claimed by two strategies.
  */
@@ -1082,7 +1081,7 @@ type KindPolicy = 'three-way' | 'merge-missing' | 'cas';
 /**
  * The per-kind reconcile strategy — the content-pack-units Part C
  * interface, kept module-private. Every shipped kind is the same
- * ownership-scoped insert/update/adopt/delete loop; what differs is the
+ * ownership-scoped insert/update/delete loop; what differs is the
  * TARGET collection, the KEY a row is found by, the rendered ROW, the
  * hash preimage, and the go-live side effect. One `reconcileKind`
  * drives all of them, so the reconcile policy is written once.
@@ -1101,13 +1100,6 @@ interface KindStrategy<F> {
   policy?: KindPolicy;
   /** What a vanished file does to its row. Default 'delete'. */
   onVanish?: DocumentVanishPolicy;
-  /**
-   * Adoption query for an UNSTAMPED existing row — defaults to
-   * `dbKeyQuery`. Flat-key document kinds override it with
-   * `{kind, 'data.<naturalKey>': …}` so a migrated legacy row at a
-   * provisional path is adopted in place by natural key (D3).
-   */
-  adoptQuery?(f: F): Record<string, unknown>;
   /**
    * Extra terms on the "rows stamped by this pack" query. ⚠ Load-bearing
    * for the `documents` collection: `{ sourcePack }` alone returns EVERY
@@ -1130,11 +1122,11 @@ interface KindStrategy<F> {
    */
   loadStamped?(packId: string): Promise<StampedRow[]>;
   /**
-   * Custom writer for insert / adopt / update when a row is not one
+   * Custom writer for insert / update when a row is not one
    * `PersistApi.save` (a subject mints its surfaces too). Receives the
-   * file and, for adopt/update, the existing row's `_id`.
+   * file and, for update, the existing row's `_id`.
    */
-  write?(op: 'insert' | 'adopt' | 'update', f: F, packId: string, id?: string): Promise<void>;
+  write?(op: 'insert' | 'update', f: F, packId: string, id?: string): Promise<void>;
   /** A pre-write gate over the kind's files (run at `gatePack`). */
   gate?(packId: string, files: F[]): Promise<void>;
   /**
@@ -1279,8 +1271,8 @@ function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknow
 
 /**
  * The document-kind strategy, one per declared kind per pack: rows in
- * `documents` at `root + key`, owned by `root`, stamped, keyed by path
- * (and adopted by natural key when the kind has one). The preimage is
+ * `documents` at `root + key`, owned by `root`, stamped, keyed by path.
+ * The preimage is
  * `{ data }` only — `owner`/`path`/`kind`/`sourcePack` are bookkeeping.
  */
 function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<DocumentFile> {
@@ -1295,8 +1287,9 @@ function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<Do
     ext: spec.ext,
     recordKeyOf: (f) => f.key,
     recordKeyOfRow: (r) => rowKeyOf(spec, root, r),
-    dbKeyQuery: (f) => ({ kind: spec.kind, path: f.path }),
-    adoptQuery: nk ? (f) => ({ kind: spec.kind, [`data.${nk}`]: f.data[nk] }) : undefined,
+    // A flat-key kind's identity IS its natural key (the unique partial
+    // index says so): a row with this key at ANY path is this row.
+    dbKeyQuery: (f) => (nk ? { kind: spec.kind, [`data.${nk}`]: f.data[nk] } : { kind: spec.kind, path: f.path }),
     stampedQuery: () => ({ kind: spec.kind }),
     rowOf: (f, packId) => ({
       path: f.path,
@@ -1657,14 +1650,10 @@ async function writeSubject(
       ? (((await PersistApi.findById(col, ref)) as SurfaceRow | null) ?? undefined)
       : undefined;
     if (on && !row) {
-      // Adopt before minting: a surface row that already points at this
-      // subject (a lost manifestation link), or a legacy row by NAME
-      // (the pre-Subject seeder's channels), is this surface.
+      // Re-link before minting: a surface row that already points at this
+      // subject (the `manifestations` cache lost its ref) IS this surface.
       const bySubject = (await PersistApi.find(col, { subject: subjectId })) as SurfaceRow[];
-      const byName = bySubject.length
-        ? []
-        : ((await PersistApi.find(col, { name })) as SurfaceRow[]);
-      const found = bySubject[0] ?? byName[0];
+      const found = bySubject[0];
       if (found?._id) {
         row = found;
         if (idx >= 0) manifestations[idx] = { surface, ref: found._id };
@@ -1725,8 +1714,8 @@ async function archiveSubject(id: string): Promise<void> {
 
 /**
  * Subjects — `forum_subjects` rows (+ their channel / board surfaces),
- * adopted by TITLE (the retired ChannelSeeder's rows), rendered to one
- * preimage shape on both sides so the three-way compares like-for-like.
+ * keyed by TITLE, rendered to one preimage shape on both sides so the
+ * three-way compares like-for-like.
  * `onVanish: 'archive'`: never reaped.
  */
 function subjectStrategy(files: SubjectFile[]): KindStrategy<SubjectFile> {
@@ -1743,7 +1732,6 @@ function subjectStrategy(files: SubjectFile[]): KindStrategy<SubjectFile> {
       return keyByTitle.get(title.toLowerCase()) ?? `/subjects/${slugOf(title)}`;
     },
     dbKeyQuery: (f) => ({ title: f.name }),
-    adoptQuery: (f) => ({ title: f.name }),
     rowOf: (f) => subjectFileBody(f),
     canonicalBody: (r) =>
       canonical(
@@ -1801,7 +1789,7 @@ function kindLabel(strategy: KindStrategy<unknown>): string {
 
 type KindChanges = Pick<
   PackReconcileResult,
-  'inserted' | 'updated' | 'adopted' | 'deleted'
+  'inserted' | 'updated' | 'deleted'
 >;
 
 /** The hash of a canonical body: `sha256:<hex>`. No timestamp, no randomness. */
@@ -1896,11 +1884,11 @@ type PlanOp = PackPlannedAction['op'];
 interface PlannedAction {
   op: PlanOp;
   key: string;
-  /** The stamped row's `_id` (update/adopt/delete/keep/conflict). */
+  /** The stamped row's `_id` (update/delete/keep/conflict). */
   _id?: string;
-  /** The row to write (insert/update/adopt). */
+  /** The row to write (insert/update). */
   row?: Record<string, unknown>;
-  /** The hash + body the baseline becomes (insert/update/adopt/converge/normalize). */
+  /** The hash + body the baseline becomes (insert/update/converge/normalize). */
   hash?: string;
   body?: string;
   conflict?: PackConflict;
@@ -1936,9 +1924,8 @@ type StampedRow = Record<string, unknown> & { _id?: string; sourcePack?: string 
 /**
  * The pure planner: decide, for every file and every stamped row of one
  * kind, what the reconcile WOULD do — reads only. `record === null` is
- * the adoption bridge (no record yet): two-way, what-we-write wins, and
- * every row's baseline is normalized from what was written. With a
- * record, the A10.4 three-way machine runs per row:
+ * the first install: every row is inserted and its baseline is what was
+ * written. With a record, the A10.4 three-way machine runs per row:
  *
  * | file vs baseline | DB vs baseline | action |
  * |---|---|---|
@@ -1950,8 +1937,8 @@ type StampedRow = Record<string, unknown> & { _id?: string; sourcePack?: string 
  *
  * A vanished file deletes a clean row and conflicts (`deleted-vs-edited`)
  * on an edited one. A pinned key is skipped before any comparison. A
- * stamped row with no baseline (a partial older record) is normalized
- * like adoption.
+ * stamped row with no baseline (the requires phase's own pre-written
+ * registries, a partial record) is normalized from what was written.
  */
 async function computeKindPlan<F>(
   packId: string,
@@ -2050,25 +2037,19 @@ async function computeKindPlan<F>(
       continue;
     }
 
-    const existing = (await PersistApi.find(
-      strategy.collection,
-      strategy.adoptQuery?.(f) ?? strategy.dbKeyQuery(f),
-    )) as StampedRow[];
+    const existing = (await PersistApi.find(strategy.collection, strategy.dbKeyQuery(f))) as StampedRow[];
     const prior = existing[0];
     if (prior) {
-      // A row exists at this key. Adopt it iff unstamped; refuse to
-      // clobber another pack's content.
-      if (prior.sourcePack && prior.sourcePack !== packId) {
-        throw new PackStepError(
-          'reconcile',
-          `PackApi: pack '${packId}' wants ${strategy.noun} '${key}' but it ` +
-            `is owned by pack '${prior.sourcePack}'`,
-        );
-      }
-      actions.push({ op: 'adopt', key, _id: prior._id, row, file: f, hash: fileHash, body: fileBody });
-    } else {
-      actions.push({ op: 'insert', key, row, file: f, hash: fileHash, body: fileBody });
+      // A row exists at this key that this pack did not stamp: another
+      // pack's, or nobody's. The packs are the ONLY writer of these rows,
+      // so an unstamped one is not "adopted" — it is refused, loudly.
+      throw new PackStepError(
+        'reconcile',
+        `PackApi: pack '${packId}' wants ${strategy.noun} '${key}' but it ` +
+          (prior.sourcePack ? `is owned by pack '${prior.sourcePack}'` : 'exists with no sourcePack stamp — nothing but a pack writes here'),
+      );
     }
+    actions.push({ op: 'insert', key, row, file: f, hash: fileHash, body: fileBody });
   }
 
   // Stamped rows whose file vanished.
@@ -2192,7 +2173,7 @@ async function applyKindPlan<F>(
   const { strategy } = plan;
   const packId = record.packId;
   const out: AppliedKind = {
-    changes: { inserted: [], updated: [], adopted: [], deleted: [] },
+    changes: { inserted: [], updated: [], deleted: [] },
     kept: [],
     merged: [],
     archived: [],
@@ -2221,12 +2202,6 @@ async function applyKindPlan<F>(
         else await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
         baseline(a);
         out.changes.updated.push(a.key);
-        break;
-      case 'adopt':
-        if (strategy.write) await strategy.write('adopt', a.file as never, packId, a._id);
-        else await PersistApi.save(strategy.collection, { ...a.row!, _id: a._id });
-        baseline(a);
-        out.changes.adopted.push(a.key);
         break;
       case 'merge': {
         // Re-read at apply: an earlier file of this run may have merged.
@@ -2558,7 +2533,6 @@ function emptyResult(packId: string): PackReconcileResult {
     packId,
     inserted: [],
     updated: [],
-    adopted: [],
     deleted: [],
     kept: [],
     merged: [],
@@ -2785,8 +2759,6 @@ function actingPrincipal(): { getIdentityPath(): string | null } | null {
  * to its file with no baseline and NORMALIZES it (writes the baseline,
  * no second write; the first boot's platform line counts it under
  * `normalized`, never `inserted`).
- * Found live on 2026-08-27: every pack failed at `reconcile` with
- * "Template not found: /obj/GroupRegistry" on a fresh `saxonberg_build1`.
  */
 async function ensureRequiresRegistriesResident(rp: ReadPack): Promise<void> {
   for (const path of [TemplatePaths.groupRegistry, TemplatePaths.parcelRegistry]) {
@@ -3065,7 +3037,6 @@ async function reconcilePack(
     perKind.set(kindLabel(plan.strategy), applied);
     result.inserted.push(...applied.changes.inserted);
     result.updated.push(...applied.changes.updated);
-    result.adopted.push(...applied.changes.adopted);
     result.deleted.push(...applied.changes.deleted);
     result.kept.push(...applied.kept);
     result.merged.push(...applied.merged);
@@ -3082,16 +3053,7 @@ async function reconcilePack(
   await finishRequires(rp, record, result);
   result.conflicts = record.conflicts.map((c) => c.path);
 
-  // Adoption is loud: the one time a record is minted over a pre-record
-  // DB, whatever divergence the DB held was overwritten by the file.
-  if (!prior) {
-    const n = Object.keys(record.rows).length;
-    console.warn(
-      `PackApi: pack '${packId}' — ONE-TIME adoption baseline normalized over ` +
-        `${n} rows (pre-record DB); pre-existing divergence was overwritten; ` +
-        `future reconciles are three-way`,
-    );
-  } else if (result.normalized > 0) {
+  if (result.normalized > 0) {
     console.warn(
       `PackApi: pack '${packId}' — ${result.normalized} row(s) had no baseline; ` +
         `normalized from what was written`,
@@ -3125,7 +3087,7 @@ async function reconcilePack(
     if (!label.startsWith('document:')) continue;
     const kind = label.slice('document:'.length);
     const c = applied.changes;
-    const written = c.inserted.length + c.updated.length + c.adopted.length;
+    const written = c.inserted.length + c.updated.length;
     const touched = written + c.deleted.length + applied.archived.length;
     if (touched > 0 || content.documents.has(kind)) result.documents[kind] = written;
     if (touched > 0 && opts.rehydrate) {
@@ -3137,7 +3099,7 @@ async function reconcilePack(
         (kind === 'command-view' ? key : content.root + key);
       await invalidateDocumentKind(
         kind,
-        [...c.inserted, ...c.updated, ...c.adopted].map(pathOf),
+        [...c.inserted, ...c.updated].map(pathOf),
         c.deleted.map(pathOf),
       );
     }
@@ -3151,7 +3113,7 @@ async function reconcilePack(
   const sub = perKind.get('subject');
   if (sub) {
     const c = sub.changes;
-    if (c.inserted.length + c.updated.length + c.adopted.length + sub.archived.length > 0) {
+    if (c.inserted.length + c.updated.length + sub.archived.length > 0) {
       StuffApi.findByTemplatePath<SubjectCatalogue>(TemplatePaths.subjectCatalogue)?.invalidateCache();
       StuffApi.findByTemplatePath<ChannelCatalogue>(TemplatePaths.channelCatalogue)?.invalidateCache();
     }
@@ -3159,7 +3121,7 @@ async function reconcilePack(
 
   const db = perKind.get('descriptor-banks')!;
   const descriptorBanks =
-    db.changes.inserted.length + db.changes.updated.length + db.changes.adopted.length;
+    db.changes.inserted.length + db.changes.updated.length;
   if (descriptorBanks + db.changes.deleted.length > 0) {
     // Two caches: the bank rows themselves, and the memoized rendered
     // descriptor per (class, generation). Both would otherwise serve the
@@ -3202,7 +3164,7 @@ async function reconcilePack(
   if (opts.rehydrate) {
     const domain = perKind.get('domain')!.changes;
     result.rehydrated = await rehydrate(
-      [...domain.inserted, ...domain.updated, ...domain.adopted],
+      [...domain.inserted, ...domain.updated],
       domain.deleted,
     );
   }
@@ -3313,24 +3275,6 @@ function siblingsOf(pack: ResolvedPack, packRoots?: string[]): ReadPack[] {
  */
 @Unshadowable
 export class PackLogic extends ApiLogic {
-  /** See {@link PackApi.assertNoLegacyPaths}. */
-  @CallSecurity(PackApiCallers)
-  public async assertNoLegacyPaths(dbName: string): Promise<void> {
-    // ⚠ The ONE place the retired root is still spelled in source (wave
-    // 4a, D4): everything else says /world/. Anchored — a path merely
-    // containing the word (`/home/x/domain-notes`) is not a hit.
-    const LEGACY_ROOT = '/domain/';
-    const rows = (await PersistApi.find(Collections.Content, {})) as Array<{ path?: unknown }>;
-    const legacy = rows.filter((r) => typeof r.path === 'string' && r.path.startsWith(LEGACY_ROOT)).length;
-    if (legacy === 0) return;
-    const message =
-      `PackApi: this database holds ${legacy} content row(s) under the retired ${LEGACY_ROOT} root ` +
-      `(content-packs wave 4a renamed it /world/ with NO migration). Drop database '${dbName}' and ` +
-      `boot again; see docs/deployment.md § The Mongo environment policy.`;
-    console.error(message);
-    throw new Error(message);
-  }
-
   /** See {@link PackApi.install}. */
   @CallSecurity(PackApiCallers)
   public async install(

@@ -129,12 +129,6 @@ export class AppBootstrap {
     await PersistenceManager.get().connect(config.mongoUri, config.dbName);
     console.info('MongoDB connection successful');
 
-    // A database that predates content-packs wave 4a (rows under the
-    // retired `/domain/` root) cannot boot: the rename shipped with NO
-    // migration (drop-not-migrate — docs/deployment.md § The Mongo
-    // environment policy). Refuses loudly, before the installer writes.
-    await PackApi.assertNoLegacyPaths(config.dbName);
-
     // Content packs — reconcile every shipped `@saxonberg/content-*` pack
     // into the DB: the platform (pack zero — controllers, registries,
     // vocabularies, the Compact), base-library, species-and-names, the
@@ -157,7 +151,7 @@ export class AppBootstrap {
       console.info(
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
-          `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
+          `${r.deleted.length} deleted, ` +
           `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
           `${r.conflicts.length} conflict(s), ` +
           `${r.pinnedSkipped} pinned (skipped), ` +

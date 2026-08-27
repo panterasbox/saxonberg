@@ -276,11 +276,10 @@ export type GroupOwner =
 Constructed through `Group.systemOwner()` / `playerOwner(path)` /
 `officeOwner(key)`; authored in a content pack's `requires.groups`
 (`GroupApi.ensureGroup`, adopt-by-name — [content-packs.md](./content-packs.md))
-as `system`, `{ office: <key> }`, or `{ player: <templatePath> }`. Rows written
-before 2026-08 held a bare string (`system`, a templatePath, briefly an
-`office:<key>` sentinel); `PersistenceManager.#migrateGroupOwners` rewrites
-them once at boot through `Group.ownerFromStored`, which the readers also
-pass through.
+as `system`, `{ office: <key> }`, or `{ player: <templatePath> }`. A stored
+`owner` is always the typed shape; `Group.ownerFromStored` (the readers'
+one entry) refuses anything else rather than reading it as something it
+is not.
 
 Ownership resolves **on read**, through the one ownership resolution —
 **`GroupApi.ownsGroup(actor, group)`** (Api → `GroupLogic` →

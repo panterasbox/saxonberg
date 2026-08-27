@@ -199,10 +199,8 @@ to `DocumentApi`:
 - resolve-by-path → `DocumentApi.read(path)`, take `data.source` when
   `kind === 'msh'`, parse + cache.
 
-The kind is **`msh`** — the language's name — since content-packs wave
-2 (it was `'script'`; a one-time boot migration renamed the rows and
-moved the lounge exemplars to `/world/lounge/msh/`). The
-`saxonberg-lounge` pack ships them as `content/msh/*.msh`.
+The kind is **`msh`** — the language's name. The `saxonberg-lounge`
+pack ships them as `content/msh/*.msh`.
 
 The generic store deliberately does **not** keep an AST cache (an AST is
 script-specific) and runs **no** kind-specific go-live — that all lives

@@ -336,8 +336,7 @@ read a ledger missing the row it was just told about.
 warmed at boot from the **`renown` collection**, which holds the
 *materialized* standings. It does **not** read `renown_events`.
 
-So writing rows into `renown_events` (as
-`packages/server/scripts/seed-standing.ts` does) changes nothing until a
+So writing rows into `renown_events` by hand changes nothing until a
 **recompute** folds the log into the standings collection. A bare
 restart re-warms the map from a collection the seeding never wrote, and
 is therefore a no-op.

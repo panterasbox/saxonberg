@@ -168,7 +168,6 @@ describe("the saxonberg-lounge pack installs the authored scripts", () => {
     expect([
       ...again!.inserted,
       ...again!.updated,
-      ...again!.adopted,
       ...again!.deleted,
       ...again!.kept,
       ...again!.conflicts,

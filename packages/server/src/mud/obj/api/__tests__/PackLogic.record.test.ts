@@ -1,6 +1,6 @@
 /**
  * The `pack_installs` record (pack-installer W1.3): one record per pack
- * with per-row baselines (hash + canonical body), the one-time adoption
+ * with per-row baselines (hash + canonical body), the first-install
  * normalization, two-boot idempotence at the installer level, per-pack
  * failure isolation, and hash canonicalization.
  */
@@ -82,27 +82,8 @@ describe('the install record', () => {
     const bank = rec.rows['/name-banks/common']!;
     expect(bank.kind).toBe('document:name-bank');
     expect(JSON.parse(bank.body)).toEqual({ data: { key: 'common', given: ['A'], surname: ['B'] } });
-    // The one-time line fired exactly once.
-    expect(warn.mock.calls.filter((c) => /ONE-TIME adoption/.test(String(c[0])))).toHaveLength(1);
-  });
-
-  it('adoption: pre-seeded unstamped rows adopted in place, baselines = the file as written', async () => {
-    store.rows.push({
-      _id: 'legacy-1',
-      path: '/obj/material/spirit/gin',
-      class: MATERIAL,
-      hydratorClass: HYDRATOR,
-      data: { name: 'old gin', operatorTweak: true },
-    });
-    const root = writePack('p', [{ rel: GIN, data: { name: 'gin' } }]);
-    const [r] = await PackApi.install([root]);
-    expect(r!.adopted).toEqual(['/obj/material/spirit/gin']);
-    expect(contentRows()).toHaveLength(1);
-    expect(contentRows()[0]!._id).toBe('legacy-1'); // no wipe
-    expect(contentRows()[0]!.data).toEqual({ name: 'gin' }); // divergence overwritten
-    const rec = recordOf('p')!;
-    expect(JSON.parse(rec.rows['/obj/material/spirit/gin']!.body).data).toEqual({ name: 'gin' });
-    expect(warn.mock.calls.filter((c) => /ONE-TIME adoption/.test(String(c[0])))).toHaveLength(1);
+    // A first install is quiet: nothing to normalize, nothing adopted.
+    expect(warn.mock.calls.filter((c) => /adopt|normalized/.test(String(c[0])))).toHaveLength(0);
   });
 
   it('second run: record rows deep-equal, no second normalization line, store identical', async () => {
@@ -115,7 +96,7 @@ describe('the install record', () => {
     warn.mockClear();
 
     const [r2] = await PackApi.install([root]);
-    expect([...r2!.inserted, ...r2!.updated, ...r2!.adopted, ...r2!.deleted]).toEqual([]);
+    expect([...r2!.inserted, ...r2!.updated, ...r2!.deleted]).toEqual([]);
     expect(r2!.normalized).toBe(0);
     expect(recordOf('p')!.rows).toEqual(rows1);
     expect(store.rows.filter((r) => r.__col !== 'pack_installs')).toEqual(store1);

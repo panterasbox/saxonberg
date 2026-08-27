@@ -473,12 +473,6 @@ discoverability.
   and fails too. A kernel test proves the kernel over synthetic fixtures;
   a test of real content lives beside the content (`src/mud/domain/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
-- `pnpm lint:core-gone` (`scripts/check-core-gone.ts`) — **the `core`
-  group is dead**: no literal `'core'` group name, `isAuthor`,
-  `requiresAuthor`, `requiresCoreAccess`, `pack-installers` or MQL
-  `:admin` anywhere in server source outside a line carrying the
-  `// migration-note:` marker (the two `grant` migration branches, deleted
-  in wave 4). CI-gating.
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
   shipped template path under the eight title roots** (`/obj /domain /cmd
   /compact /studio /wiki /home /corpo`) lies under some pack's
@@ -990,7 +984,7 @@ name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
 side — `backend/PersistenceManager` re-exports it).
 
 - `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
-- `content` — the templates collection (was `domain`; migrated once at boot); pack-installed rows carry `sourcePack` (content-packs.md)
+- `content` — the templates collection; pack-installed rows carry `sourcePack` (content-packs.md)
 - `pack_installs` — the pack installer's per-deployment ledger: baselines, pins, conflicts; three-way reconcile reads it (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
@@ -1004,7 +998,7 @@ side — `backend/PersistenceManager` re-exports it).
 - `authoring_events` — append-only authorship ledger (provenance.md)
 - `positions` — held conviction stakes (influence.md)
 - `blueprints` — the Studio composition catalogue (studio.md)
-- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md; the former `emotes` / `recipes` / `name_banks` collections were collapsed into it once at boot — content-packs.md)
+- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md)
 - `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
 - `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
 - `parcels` / `parcel_events` — property-title registry + chain-of-title; stored SEPARATELY from the `domain` content it gates — the governing security invariant (parcel.md)

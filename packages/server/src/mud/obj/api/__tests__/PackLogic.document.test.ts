@@ -97,13 +97,13 @@ describe('the msh document kind — install shape', () => {
   it('second install is all-zero', async () => {
     const packRoot = await installMsh();
     const [r] = await PackApi.install([packRoot]);
-    expect([...r!.inserted, ...r!.updated, ...r!.adopted, ...r!.deleted, ...r!.kept, ...r!.conflicts]).toEqual([]);
+    expect([...r!.inserted, ...r!.updated, ...r!.deleted, ...r!.kept, ...r!.conflicts]).toEqual([]);
     expect(r!.documents).toEqual({ msh: 0 });
   });
 
-  it('a stamped row at the path from a pre-record DB is adopted in place', async () => {
+  it('an UNSTAMPED row at the path is refused — the packs are the only writer, nothing is adopted', async () => {
     store.rows.push({
-      _id: 'legacy',
+      _id: 'stray',
       __col: 'documents',
       path: '/x/msh/a',
       owner: '/x',
@@ -113,9 +113,9 @@ describe('the msh document kind — install shape', () => {
     const packRoot = writePack('p', [], { root: '/x' });
     writeScriptFile(packRoot, 'a', src(0));
     const [r] = await PackApi.install([packRoot]);
-    expect(r!.adopted).toEqual([KEY]);
-    expect(rowsOfKind('msh')).toHaveLength(1);
-    expect(mshRow()).toMatchObject({ _id: 'legacy', sourcePack: 'p', data: { source: src(0) } });
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
+    expect(mshRow()).toMatchObject({ _id: 'stray', data: { source: 'old' } });
   });
 });
 
@@ -124,7 +124,7 @@ describe('the msh document kind — three-way matrix', () => {
     const packRoot = await installMsh();
     const before = structuredClone(store.rows);
     const r = await PackApi.sync('p', packRoot);
-    expect([...r.inserted, ...r.updated, ...r.adopted, ...r.deleted, ...r.kept, ...r.conflicts]).toEqual([]);
+    expect([...r.inserted, ...r.updated, ...r.deleted, ...r.kept, ...r.conflicts]).toEqual([]);
     const strip = (rows: typeof store.rows) => rows.map((x) => ({ ...x, appliedAt: undefined }));
     expect(strip(store.rows)).toEqual(strip(before));
   });
@@ -348,10 +348,10 @@ describe('the emote document kind (flat-key) — matrix', () => {
   });
 });
 
-describe('adoption by natural key (the collapse bridge)', () => {
-  it('adopts an unstamped migrated row at a provisional path in place — same _id, re-pathed, owned, stamped', async () => {
+describe('a flat-key kind is keyed by its natural key', () => {
+  it('an unstamped row with the same natural key at ANY path is refused, never adopted', async () => {
     store.rows.push({
-      _id: 'legacy-grin',
+      _id: 'stray-grin',
       __col: 'documents',
       path: '/emotes/grin',
       owner: '',
@@ -361,21 +361,13 @@ describe('adoption by natural key (the collapse bridge)', () => {
     const packRoot = writePack('p', [], { root: '/expression' });
     writeDocumentFile(packRoot, 'emotes', 'grin', { ...GRIN, valence: 0 });
     const [r] = await PackApi.install([packRoot]);
-    expect(r!.adopted).toEqual(['/emotes/grin']);
-    expect(r!.inserted).toEqual([]);
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
     expect(rowsOfKind('emote')).toHaveLength(1);
-    expect(grinRow()).toMatchObject({
-      _id: 'legacy-grin',
-      path: '/expression/emotes/grin',
-      owner: '/expression',
-      sourcePack: 'p',
-    });
-    // Second boot: nothing.
-    const [again] = await PackApi.install([packRoot]);
-    expect([...again!.adopted, ...again!.updated, ...again!.inserted]).toEqual([]);
+    expect(grinRow()).toMatchObject({ _id: 'stray-grin', path: '/emotes/grin' });
   });
 
-  it('refuses to adopt a row another pack stamped', async () => {
+  it('refuses a row another pack stamped', async () => {
     store.rows.push({
       _id: 'theirs',
       __col: 'documents',
@@ -394,58 +386,6 @@ describe('adoption by natural key (the collapse bridge)', () => {
 });
 
 /* ───────────── the name-bank re-point (step 3) ───────────── */
-
-describe('name banks ride the document kind', () => {
-  it('a migrated, STAMPED row with an old-shape baseline converges: no content write, no conflict, baseline body is now {data}', async () => {
-    // What the collapse left: the species-and-names row at its provisional
-    // path, still stamped; and the record's old `name-banks` baseline whose
-    // preimage was `{given, surname, style}`.
-    store.rows.push({
-      _id: 'nb-common',
-      __col: 'documents',
-      path: '/name-banks/common',
-      owner: '',
-      kind: 'name-bank',
-      data: { key: 'common', given: ['A'], surname: ['B'] },
-      sourcePack: 'sn',
-    });
-    const oldBody = JSON.stringify({ given: ['A'], surname: ['B'] });
-    store.rows.push({
-      _id: 'rec-sn',
-      __col: 'pack_installs',
-      packId: 'sn',
-      version: '0.1.0',
-      appliedAt: 'x',
-      principal: 'bootstrap',
-      status: 'applied',
-      failure: null,
-      parameters: {},
-      rows: { '/name-banks/common': { kind: 'name-banks', hash: 'sha256:old', body: oldBody } },
-      pins: [],
-      conflicts: [],
-      sideEffects: { kinds: [] },
-    });
-    const packRoot = writePack('sn', [], { root: '/sn' });
-    writeBankFile(packRoot, { key: 'common', given: ['A'], surname: ['B'] });
-    const [r] = await PackApi.install([packRoot]);
-    expect(r!.failure).toBeNull();
-    expect([...r!.inserted, ...r!.updated, ...r!.adopted, ...r!.deleted, ...r!.conflicts]).toEqual([]);
-    expect(r!.normalized).toBe(0);
-    const row = rowsOfKind('name-bank')[0]!;
-    expect(row._id).toBe('nb-common');
-    expect(row.data).toEqual({ key: 'common', given: ['A'], surname: ['B'] }); // untouched
-    // Bookkeeping only: the row now lives where the pack says.
-    expect(row.path).toBe('/sn/name-banks/common');
-    expect(row.owner).toBe('/sn');
-    const baseline = recordOf('sn')!.rows['/name-banks/common']!;
-    expect(baseline.kind).toBe('document:name-bank');
-    expect(JSON.parse(baseline.body)).toEqual({ data: { key: 'common', given: ['A'], surname: ['B'] } });
-    // Second boot: all-zero.
-    const [again] = await PackApi.install([packRoot]);
-    expect([...again!.updated, ...again!.kept, ...again!.conflicts]).toEqual([]);
-    expect(again!.normalized).toBe(0);
-  });
-});
 
 /* ───────────── the recipe kind: one cell + the read gate ───────────── */
 
@@ -484,7 +424,20 @@ describe('the recipe document kind', () => {
 /* ───────────── the blueprint kind: one cell ───────────── */
 
 describe('the blueprint document kind', () => {
-  it('installs a curated blueprint at /platform/blueprints/<id> and adopts by blueprintId', async () => {
+  it('installs a curated blueprint at /platform/blueprints/<id>; a player-minted blueprint with the same id is refused, not clobbered', async () => {
+    const packRoot = writePack('platform', [], { root: '/platform' });
+    writeDocumentFile(packRoot, 'blueprints', 'coin', { name: 'Coin', kind: 'concrete', baseClass: 'Thing', classPath: '/obj/Coin' });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.inserted).toEqual(['/blueprints/coin']);
+    expect(rowsOfKind('blueprint')[0]).toMatchObject({
+      path: '/platform/blueprints/coin',
+      owner: '/platform',
+      sourcePack: 'platform',
+      data: { blueprintId: 'coin', classPath: '/obj/Coin' },
+    });
+    // The same blueprintId minted by a player elsewhere: the unique index
+    // says one row per id, and the pack does not take it over.
+    store.rows = store.rows.filter((x) => x.kind !== 'blueprint');
     store.rows.push({
       _id: 'minted',
       __col: 'documents',
@@ -493,16 +446,9 @@ describe('the blueprint document kind', () => {
       kind: 'blueprint',
       data: { blueprintId: 'coin', name: 'Coin', baseClass: 'Thing' },
     });
-    const packRoot = writePack('platform', [], { root: '/platform' });
-    writeDocumentFile(packRoot, 'blueprints', 'coin', { name: 'Coin', kind: 'concrete', baseClass: 'Thing', classPath: '/obj/Coin' });
-    const [r] = await PackApi.install([packRoot]);
-    expect(r!.adopted).toEqual(['/blueprints/coin']);
-    expect(rowsOfKind('blueprint')[0]).toMatchObject({
-      _id: 'minted',
-      path: '/platform/blueprints/coin',
-      owner: '/platform',
-      data: { blueprintId: 'coin', classPath: '/obj/Coin' },
-    });
+    const [r2] = await PackApi.install([packRoot]);
+    expect(r2!.failure?.step).toBe('reconcile');
+    expect(rowsOfKind('blueprint')[0]).toMatchObject({ _id: 'minted', owner: '/obj/Avatar/x' });
   });
 });
 

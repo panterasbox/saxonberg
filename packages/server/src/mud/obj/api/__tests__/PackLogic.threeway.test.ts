@@ -114,7 +114,7 @@ for (const k of [domainKind, bankKind]) {
       const root = await k.install();
       const before = structuredClone(store.rows);
       const r = await PackApi.sync('p', root);
-      expect([...r.inserted, ...r.updated, ...r.adopted, ...r.deleted, ...r.kept, ...r.conflicts]).toEqual([]);
+      expect([...r.inserted, ...r.updated, ...r.deleted, ...r.kept, ...r.conflicts]).toEqual([]);
       const after = store.rows.map((x) => ({ ...x, appliedAt: undefined }));
       expect(after).toEqual(before.map((x) => ({ ...x, appliedAt: undefined })));
     });

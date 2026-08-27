@@ -403,10 +403,9 @@ describe('the requires phase on an EMPTY store (the first boot ever; every boot 
     for (const rows of seen) expect(rows).toEqual(expect.arrayContaining(['/obj/GroupRegistry', '/obj/ParcelRegistry']));
     // Pre-written, stamped, identical to the file: normalized (a baseline), not inserted twice.
     expect(r!.inserted).toEqual(['/obj/x']);
-    expect(r!.adopted).toEqual([]);
     expect(r!.normalized).toBe(2);
     expect(recordOf('platform')!.rows['/obj/GroupRegistry']).toBeDefined();
-    // Stamped by the pack, once — not duplicated by the adopt.
+    // Stamped by the pack, once.
     expect(contentRows().filter((c) => c.path === '/obj/GroupRegistry')).toHaveLength(1);
     expect(contentRows().find((c) => c.path === '/obj/GroupRegistry')!.sourcePack).toBe('platform');
   });

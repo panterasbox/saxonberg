@@ -294,24 +294,6 @@ duck-typed synthetic gear; the Whistle smoke, the dorm-bed archetype
 cases and the domain-local `provision` case moved beside their content
 under `src/mud/domain/eternal/**/__tests__/`).
 
-### `lint:core-gone` — the `core` group stays dead
-
-Content-packs wave 3 deleted the `core` group and the five jobs it did
-(rung 3 of `ownerOf`, the fail-open behind every `can`, `broadcast`'s
-and the soul catalogue's gate, the "author tier", `:admin`).
-`pnpm lint:core-gone` (`scripts/check-core-gone.ts`, CI-gating) keeps
-it dead: no source, script, content or e2e line names the literal
-(`'core'`, `"core"`, `name: core`, `coreMemberIds`) except a line
-carrying the `migration-note:` marker (the one `grant` branch that
-hands a `core`-held title over, deleted in wave 4); `ParcelOwner` is
-exactly `group` / `player` / `organization`; `pack-installers` appears
-nowhere (folded into the executive); `requiresCoreAccess.ts` and
-`requiresAuthor.ts` do not exist; and nothing on `AccessApi` /
-`AccessLogic` / `AccessRegistry` is called `isAuthor` (the
-`MixinApi.isAuthor` composition predicate stays). The
-`check-test-content.ts` shape: a walk, an exported pure `classify`, a
-`--lint` mode, a test beside it.
-
 ### `lint:untitled` — every shipped path is under a claim
 
 With `core` gone an untitled path is *untitled*: `ownerOf` answers

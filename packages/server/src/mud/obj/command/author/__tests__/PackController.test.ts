@@ -35,7 +35,6 @@ const OK: PackReconcileResult = {
   packId: 'base-library',
   inserted: [],
   updated: ['/obj/material/spirit/gin'],
-  adopted: [],
   deleted: [],
   kept: [],
   merged: [],

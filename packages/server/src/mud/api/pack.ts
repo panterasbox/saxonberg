@@ -18,10 +18,8 @@
  * Reconcile is **ownership-scoped, non-destructive, and three-way**: every
  * installed row (a `content` template, a `descriptor_banks` bank, a
  * `documents` row of a declared kind) carries a `sourcePack` stamp; a run
- * only ever touches rows
- * stamped by *that* pack (adopting pre-existing unstamped rows on first
- * install — migration without a wipe). Anything unstamped/other-stamped is
- * invisible. A pack's referenced backing classes must resolve (the
+ * only ever touches rows stamped by *that* pack; a row at one of its
+ * keys that it did not stamp is refused — the packs are the only writer. A pack's referenced backing classes must resolve (the
  * `requires-kernel` check) or the install aborts before any write — this is
  * the enforced content-pack ↔ mod boundary (a pack assumes classes; a mod
  * brings them).
@@ -128,8 +126,6 @@ export interface PackReconcileResult {
   inserted: string[];
   /** Record keys whose stored body was overwritten from the file. */
   updated: string[];
-  /** Pre-existing unstamped rows stamped + matched to file (migration). */
-  adopted: string[];
   /** Stamped rows whose file vanished, removed. */
   deleted: string[];
   /** Rows the DB changed and the file did not — the DB was kept. */
@@ -142,13 +138,13 @@ export interface PackReconcileResult {
   conflicts: string[];
   /** Pinned rows skipped before any comparison. Reported every time. */
   pinnedSkipped: number;
-  /** Rows whose baseline was (re)normalized from what was written — the
-   * one-time adoption count (or a per-row missing-baseline repair). */
+  /** Rows whose baseline was (re)normalized from what was written (a
+   * stamped row with no baseline — the pre-written registries). */
   normalized: number;
   /** (unit, scale) tag pairs (re)loaded; 0 when the pack has no quantity kind. */
   quantityTables: number;
   /**
-   * Document rows written (insert/update/adopt) per document kind
+   * Document rows written (insert/update) per document kind
    * (`{ emote: 34, msh: 3 }`); absent kinds are absent keys.
    */
   documents: Record<string, number>;
@@ -280,7 +276,6 @@ export interface PackPlannedAction {
   op:
     | 'insert'
     | 'update'
-    | 'adopt'
     | 'delete'
     | 'keep'
     | 'converge'
@@ -364,18 +359,6 @@ export class PackApi {
     packRoots?: string[],
   ): Promise<PackReconcileResult[]> {
     return logic().install(packRoots);
-  }
-
-  /**
-   * The boot guard (content-packs wave 4a): a database holding `content`
-   * rows under the retired `/domain/` root predates the `/world/` rename,
-   * which shipped with NO migration (drop-not-migrate). Resolves on a
-   * clean store; otherwise logs one line naming the count and the
-   * database and throws — the boot must not continue into the installer.
-   * `dbName` is only for the message.
-   */
-  public static async assertNoLegacyPaths(dbName: string): Promise<void> {
-    return logic().assertNoLegacyPaths(dbName);
   }
 
   /**

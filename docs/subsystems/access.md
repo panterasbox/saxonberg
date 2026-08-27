@@ -156,11 +156,7 @@ executive.
 1. Mint `'wizards'` Group if absent (no FolderZone stamp — it's a
    tag-like group whose only role is gating the `isWizard`
    code-trust axis), then add any playerIds from the
-   `WIZARD_PLAYER_IDS` env var (additive + idempotent). **Migration:**
-   if `'wizards'` is absent but a legacy `'developers'` group exists
-   (the pre-rename axis), the doc is renamed forward so its `_id` +
-   members carry over verbatim — existing developers keep wizard
-   access (insert-only seeder; one-time, idempotent).
+   `WIZARD_PLAYER_IDS` env var (additive + idempotent).
 2. Mint `'streamers'` Group if absent (no FolderZone stamp —
    tag-like, gates the `isStreamer` axis), then add any playerIds
    from the `STREAMER_PLAYER_IDS` env var (comma-separated,
@@ -608,10 +604,9 @@ tier (`isAuthor`, `requiresAuthor`, the MQL permission snapshot) were
 deleted; `ParcelOwner` grew the `organization` kind so the executive
 (`/compact/executive`) can hold the platform's roots by manifest claim;
 `heldExtents` and the widened `TreeAction` vocabulary landed; every
-`can*` fails closed on an untitled path. Two CI-gating lints keep both
-facts true: `lint:core-gone` (no `'core'` principal anywhere in source)
-and `lint:untitled` (every shipped path under a claim), both in
-`packages/server`.
+`can*` fails closed on an untitled path. One CI-gating lint keeps the
+second fact true: `lint:untitled` (every shipped path under a claim);
+`core` itself is simply gone from the source.
 
 The core-decomposition slate (2026-08-04) retired into this doc at that
 sweep; its five open questions closed as: (1) no state/commons
@@ -620,5 +615,5 @@ invents a fallback; (2) `isAuthor` is not needed once title is universal
 — deleted, `heldExtents` is the within-your-extent listing; (3) the
 `soul` group is PM-owned until a community holds it; (4)
 `requiresCoreAccess` did not survive — deleted with both consumers
-reassigned; (5) the acceptance test for "core is gone" is exactly
-`lint:core-gone` + `lint:untitled`.
+reassigned; (5) the acceptance test for "core is gone" is `lint:untitled` plus
+the absence of the word from the source.

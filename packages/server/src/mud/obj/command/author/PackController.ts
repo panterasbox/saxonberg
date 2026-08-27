@@ -307,7 +307,7 @@ export default class PackController extends CommandController<PackModel> {
       byOp.set(a.op, list);
     }
     if (byOp.size === 0) lines.push('  no changes');
-    for (const op of ['insert', 'update', 'adopt', 'delete', 'keep', 'converge', 'conflict', 'pinned-skip', 'skip-sold']) {
+    for (const op of ['insert', 'update', 'delete', 'keep', 'converge', 'conflict', 'pinned-skip', 'skip-sold']) {
       const keys = byOp.get(op);
       if (!keys) continue;
       lines.push(`  ${op} (${keys.length}):`);
@@ -322,7 +322,7 @@ export default class PackController extends CommandController<PackModel> {
     return (
       `${verb} pack '${r.packId}': ` +
       `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
-      `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
+      `${r.deleted.length} deleted, ` +
       `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
       `${r.conflicts.length} conflict(s), ` +
       `${r.pinnedSkipped} row(s) pinned (skipped), ` +

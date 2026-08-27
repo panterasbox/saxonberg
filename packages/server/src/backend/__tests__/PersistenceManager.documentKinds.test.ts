@@ -50,39 +50,3 @@ describe('the reset policy over documents', () => {
     for (const k of DECLARED_DOCUMENT_KINDS) expect(keep).toContain(DOCUMENT_KINDS[k].kind);
   });
 });
-
-describe('the script → msh kind rename', () => {
-  function fakeDb(rows: Array<Record<string, unknown>>) {
-    const updateOne = vi.fn(async (q: Record<string, unknown>, u: Record<string, unknown>) => {
-      const row = rows.find((r) => r._id === q._id)!;
-      Object.assign(row, (u.$set as Record<string, unknown>) ?? {});
-    });
-    return {
-      rows,
-      updateOne,
-      collection: (_name: string) => ({
-        find: (q: Record<string, unknown>) => ({
-          toArray: async () => rows.filter((r) => Object.entries(q).every(([k, v]) => r[k] === v)),
-        }),
-        updateOne,
-      }),
-    };
-  }
-
-  it('renames the kind (paths untouched — drop-not-migrate) and is a no-op on the second boot', async () => {
-    vi.spyOn(console, 'info').mockImplementation(() => {});
-    const db = fakeDb([
-      { _id: 1, path: '/x/lounge/scripts/martini', kind: 'script', data: { source: 'x' } },
-      { _id: 2, path: '/home/iris/scripts/wave', kind: 'script', data: { source: 'y' } },
-      { _id: 3, path: '/emotes/grin', kind: 'emote', data: {} },
-    ]);
-    const pm = PersistenceManager.get();
-    expect(await pm.runScriptKindMigrationForTest(db)).toBe(2);
-    expect(db.rows[0]).toMatchObject({ path: '/x/lounge/scripts/martini', kind: 'msh' });
-    expect(db.rows[1]).toMatchObject({ path: '/home/iris/scripts/wave', kind: 'msh' });
-    expect(db.rows[2]).toMatchObject({ kind: 'emote' });
-    // second boot
-    expect(await pm.runScriptKindMigrationForTest(db)).toBe(0);
-    expect(db.updateOne).toHaveBeenCalledTimes(2);
-  });
-});

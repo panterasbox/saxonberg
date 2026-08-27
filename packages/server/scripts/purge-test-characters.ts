@@ -7,7 +7,7 @@
  * seam — and put it in the harness, not in three layers of production
  * code.* A `POST /auth/test-purge` would have been gated and honest and
  * still wrong, because one seam invites the next. This is repo tooling
- * beside `check-gate-strings` and `seed-standing`; nothing in
+ * beside `check-gate-strings`; nothing in
  * `Application` / `Backend` / the routes learns that tests exist.
  *
  * ⚠ **The problem it solves is accumulation, not one bad run.** The e2e

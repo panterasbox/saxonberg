@@ -601,29 +601,11 @@ export default class AccessRegistry extends AccessRegistryBase {
     const provider = reg.managed();
     let wizards = await provider.findByName('wizards');
     if (!wizards) {
-      // One-time migration (wizard-authority): the code-trust axis was
-      // renamed `developers` → `wizards`. This group is seeded here (not
-      // a content row), so
-      // a fresh mint would strand the legacy `developers` doc and its
-      // members. Rename the existing doc forward so its `_id`,
-      // `memberIds`, and `memberRoles` carry over verbatim. Re-running
-      // against an already-migrated DB is a no-op (`wizards` already
-      // exists; `developers` is gone).
-      const legacy = await provider.findByName('developers');
-      if (legacy) {
-        legacy.name = 'wizards';
-        await legacy.save();
-        console.info(
-          '[AccessRegistry] migrated legacy `developers` group → `wizards`',
-        );
-        wizards = legacy;
-      } else {
-        const g = new Group();
-        g.name = 'wizards';
-        g.owner = Group.systemOwner();
-        await g.save();
-        wizards = g;
-      }
+      const g = new Group();
+      g.name = 'wizards';
+      g.owner = Group.systemOwner();
+      await g.save();
+      wizards = g;
     }
     if (!wizards._id) return;
     this.cachedWizardsRef = `managed:${wizards._id}`;

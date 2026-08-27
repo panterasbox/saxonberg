@@ -71,9 +71,8 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
     expect(Object.values(rec.rows).every((b) => b.kind === 'domain')).toBe(true);
   });
 
-  it('pre-seeded unstamped store (the dev-DB case) → 21 adopted in place, one normalization line', async () => {
-    // Rows as the retired SeederManager inserted them: unstamped, with
-    // their own _ids, built from the real files.
+  it('a store holding UNSTAMPED rows at the pack\'s paths refuses the pack — nothing is adopted', async () => {
+    // Rows nobody stamped, at the pack's own paths, built from the real files.
     let n = 0;
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {
@@ -97,20 +96,11 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
     expect(n).toBe(21);
 
     const [r] = await PackApi.install([ROOT]);
-    expect(r!.adopted).toHaveLength(21);
-    expect(r!.inserted).toEqual([]);
+    expect(r!.failure?.step).toBe('reconcile');
+    expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
+    // Untouched: the same 21 rows, none stamped, nothing inserted beside them.
     expect(contentRows()).toHaveLength(21);
-    expect(contentRows().every((row) => String(row._id).startsWith('seed-'))).toBe(true);
-    expect(warn.mock.calls.filter((c) => /ONE-TIME adoption/.test(String(c[0])))).toHaveLength(1);
-
-    // Second boot: all-zero, hashes unchanged, no second line.
-    const hashes = structuredClone(recordOf('newbie-wilds')!.rows);
-    warn.mockClear();
-    const [r2] = await PackApi.install([ROOT]);
-    expect([...r2!.inserted, ...r2!.updated, ...r2!.adopted, ...r2!.deleted, ...r2!.conflicts]).toEqual([]);
-    expect(r2!.normalized).toBe(0);
-    expect(recordOf('newbie-wilds')!.rows).toEqual(hashes);
-    expect(warn.mock.calls.filter((c) => /adoption/.test(String(c[0])))).toHaveLength(0);
+    expect(contentRows().every((row) => String(row._id).startsWith('seed-') && !row.sourcePack)).toBe(true);
   });
 
   it('is discovered among the shipped packs', async () => {

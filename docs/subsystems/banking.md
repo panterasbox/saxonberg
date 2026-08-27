@@ -437,23 +437,6 @@ nobody knows — which is what makes the deploy order (**stop → migrate →
 deploy → start**) enforced by the code instead of remembered from a runbook.
 The `/obj/CentralBank` singleton is in the bootstrap manifest.
 
-## Live-data migration (the currency build)
-
-`packages/server/scripts/migrate-currency.ts` — four backfill targets,
-because money lives in four places and only one is a collection banking owns:
-the three `bank_*` collections; the well-known fixed account ids (`treasury`,
-`central-bank`, suffixed **unconditionally** — a conditional would be exactly
-the zorkmid branch the acceptance test forbids); the **`/obj/Coin` row in
-`domain`** (⚠ the seeder is INSERT-ONLY, so unmigrated it keeps stamping every
-*future* coin stale); and the nested coin blobs in `holder_snapshots` (the
-durable coin population — vault float does not survive a restart, since
-`BankCounter` composes no `PersistableMixin`).
-
-The rehearsal is report-only → apply → report-only against a **restored copy**,
-and the script **exits non-zero** unless every per-account balance, every
-ledger row and every coin has identical value before and after. ⭐ The coin
-term is the one that catches a silent revalue.
-
 ## Open-choice decisions log
 
 The plan flagged 6 open implementation choices; settled as reached:
