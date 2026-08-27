@@ -178,14 +178,16 @@ author).
 ## Gating
 
 Server-authoritative, on the **context-derived** actor (never a passed
-value — see *§ `CmsApi` / `CmsLogic`*). The whole surface is
-authoring-tier: source (engine TS) is wizard-only; content (templates)
-is author-tier. Writes mirror `WriteController` verbatim:
+value — see *§ `CmsApi` / `CmsLogic`*). Source (engine TS) is
+wizard-only; content is **per-path** — there is no author tier
+(content-packs wave 3; [access.md](./access.md)). Writes mirror
+`WriteController` verbatim:
 
 | Op | Gate (subject = `getActingAuthor()`) |
 |---|---|
-| Source read / list / stat | `isAuthor`? no — **`isWizard`** |
-| Content read / list / stat | **`isAuthor`** |
+| Source read / list / stat | **`isWizard`** |
+| Content read / stat | **`canRead(actor, path)`** — the actor's own `/home/<key>` subtree, **or** `AccessApi.canAtPath(actor, 'read', path)` (title over the covering extent — a held parcel, or the seat-held platform for the executive's head and staff), **or** a path whose covering zone's `protection` field is `anyone` (the wiki floor) |
+| Content list | the listing is **pruned** to the entries `canRead` admits — a child the actor cannot read is not shown, so a non-holder's tree is `/wiki` and their home, the founder's is `/obj`, `/cmd`, … |
 | Source write | `isWizard` **and** `can('write', resolveSourceFolderZone(path))` |
 | Content write | live Zone → `canMutateZone(zone)`; else `can('write', liveAtPath)` |
 

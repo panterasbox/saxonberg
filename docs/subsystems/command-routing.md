@@ -122,8 +122,11 @@ The MVC mapping inside that pipeline:
 | **Controller** | `CommandController<T>` subclass extending `Idea`; `execute()` returns `void` and emits outcome via `ctx.note(...)` | `mud/obj/command/*Controller.ts` |
 
 Controllers are templated `Idea` Stuff. Each controller file has a
-matching seed YAML at `mud/seeds/obj/command/<category>/<Name>.yaml` so
-`SeederManager` writes a Template doc into `domain` at boot. Dispatch
+matching template row shipped by the **platform pack** at
+`packages/content/platform/content/obj/command/<category>/<Name>Controller.yaml`
+(installed at `/obj/command/<category>/<Name>Controller` by
+`PackApi.install` — there is no `mud/seeds/` tree and no
+`SeederManager` since content-packs wave 3). Dispatch
 clones a fresh instance per execution via `StuffApi.clone` (which
 consults `HotReloadApi` automatically — see
 [hot-reload.md](./hot-reload.md)) and destructs after `execute`
@@ -1280,9 +1283,10 @@ option or arg name.
    `CommandController<TModel>`. The YAML's `controller` field carries
    the category prefix (`<category>/<Name>Controller`). Define a model
    interface that declares the typed fields the matcher will hand you.
-3. **Add the seed** at `mud/seeds/obj/command/<category>/<Name>.yaml`
-   with the correct class path. `SeederManager` writes the Template doc
-   into `domain` at boot; `StuffApi.clone` picks it up on dispatch.
+3. **Add the template row** at the platform pack's
+   `content/obj/command/<category>/<Name>Controller.yaml` with the
+   correct `class:` path. `PackApi.install` writes it into `content` at
+   boot; `StuffApi.clone` picks it up on dispatch.
 4. **Wire discovery.** Decide which class or mixin should expose the
    verb in its `commandContributions`. A spatial command goes on a
    spatial mixin; a description command on `VisibleMixin`; a

@@ -141,7 +141,10 @@ built — the Registry (a municipal-shape Business at
 `/domain/terminus/registry/business`; Odile double-hats registrar +
 Magistrate on a shift-less roster, making `holdsSeat` live-provable)
 and its rented annex off the arrival gate's east frontage. The
-registry parcel is `terminus`-group-held (`config/parcels.yaml`).
+registry parcel is `terminus`-group-held — a `requires.title` claim of
+the transitional `world-seed` pack (`/domain/terminus/registry`,
+`landUse: civic`), since content-packs wave 3 retired `config/parcels.yaml`
+and the seeders ([content-packs.md](./content-packs.md)).
 Sibling address roots (`counting-houses`, `university-avenue`,
 `lounge`, `last-counted-mile`) remain **under no government** —
 deliberate closed scope (re-rooting them is city content), not a bug.
@@ -202,3 +205,14 @@ district (staging).
   (the deliberate contrast)
 - [access.md](./access.md) — the committee (meta) + the property bridge
 - [banking.md](./banking.md) — the treasury chokepoints
+
+## Government ground — the `arm` property gate
+
+The one verb that asks "is this public ground?" is `arm`
+(`ArmController`, the trap-placement gate). With no state default in
+the parcel layer (content-packs wave 3), *public* is no longer "held by
+the state group" — it is **government ground with no private title**:
+the giver may rig where they hold (`AccessApi.can` write), or on ground
+under a government's jurisdiction (`GovernmentApi.governmentAt(address)`
+non-null) that nobody privately holds (`ParcelApi.ownerOf` null).
+Refused on another owner's property and on ungoverned ground.

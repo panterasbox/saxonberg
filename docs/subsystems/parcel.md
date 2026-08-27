@@ -53,15 +53,24 @@ dispatches on its kind:
 ```ts
 type ParcelOwner =
   | { kind: 'group'; name?: string; ref?: GroupRef }  // a managed group
-  | { kind: 'player'; templatePath: string };         // an individual
+  | { kind: 'player'; templatePath: string }          // an individual
+  | { kind: 'organization'; templatePath: string };   // an Organization host
 ```
 
 - **`group`** — `ref` (an explicit `managed:<id>`) wins when present;
-  otherwise `name` is resolved mint-or-find by the registry (so a seeded
-  `'lounge'`/`'terminus'`/`'core'` owner maps to a runtime ref without the
-  seed knowing the group id).
+  otherwise `name` is resolved mint-or-find by the registry (so a
+  manifest's `'lounge'`/`'terminus'` holder maps to a runtime ref without
+  the pack knowing the group id).
 - **`player`** — keyed on the durable `templatePath` (a self-home owner
   `/home/<key>`, or a title transferred directly to an Avatar).
+- **`organization`** (content-packs wave 3) — keyed on the organization's
+  `templatePath`. The title admits everyone holding a non-exited position
+  in it (`EmploymentApi.holdsPosition`) and its appointing authority
+  (`EmploymentApi.holdsAuthority` — an office's holder, founder default
+  included). The organization **must be resident** for the title to admit
+  anyone; a non-resident target fails closed with one `access.organization-
+  owner` diagnostic per path. This is the kind that lets the executive
+  (`/compact/executive`) hold the platform.
 
 ## `grants[]` — the use-grant (lease), and it is LIVE
 
@@ -149,12 +158,13 @@ act: *"this ground is residential, at this size."*
 
 ### The `/compact` title
 
-`config/parcels.yaml` carves one row for the Compact's **publications**
-namespace:
+The platform pack's manifest claims the Compact's **publications**
+namespace for the executive (`packages/content/platform/pack.yaml`):
 
 ```yaml
-  - extent: /compact
-    owner: { kind: group, name: core }
+requires:
+  title:
+    - { extent: /compact }   # held by the maintainers — the executive
 ```
 
 ⚠ **No `landUse`, no `areaM2`** — a path-branch title, not ground. The
@@ -164,7 +174,7 @@ taxonomy in [document-store.md](./document-store.md).
 
 It earns its keep three ways: it gives the press feed paths an **owner**,
 gives `CompactApi.committeeOf('/compact')` a claimed title to resolve
-rather than falling through to the state default — which is what makes
+(there is no state default to fall through to) — which is what makes
 `{kind: 'committee', parcel: '/compact'}` a usable appointing authority
 ([press.md](./press.md)) — and gives the branch a chain of title that can
 be subdivided or transferred later.
@@ -215,24 +225,57 @@ Registry gets a reference but `SecurityError` on any method call
 
 ## `ownerOf(path)` — the total resolution chain
 
-`ParcelApi.ownerOf(path)` is **total** (resolves for any path) via a
-three-rung chain — the **governance decision** that default title is
-publicly held and there is *no author rung*:
+`ParcelApi.ownerOf(path)` returns `ParcelOwner | null` via a two-rung
+chain — there is *no author rung* and, since content-packs wave 3, **no
+state rung**:
 
 1. **Explicit parcel title** — `coveringParcelOf(path)` longest-prefix; if a
    parcel covers the path, return its `owner`.
 2. **Self-home identity** — a path strictly under `/home/<key>/` → that
    player, keyed on the durable `/home/<key>` branch, with **no `parcels`
    row** (`ParcelRecord.selfHomeOwnerOf`, the shared rule — see below).
-3. **The state (public default)** — everything else is `{kind:'group',
-   name:'core'}`. `'core'` is the state placeholder in 0a; a dedicated
-   state/treasury principal is a governance-build refinement.
+3. Otherwise **`null`** — untitled. Every access predicate (`can`,
+   `canMutateZone`, `canAtPath`) **fails closed** on `null`: nobody holds
+   what nobody claimed. The former third rung — "everything else is the
+   `core` group" — was the state placeholder of property 0a; wave 3
+   deleted it along with the group, because the platform's own roots are
+   now explicit claims held by the executive (see *Who claims what*).
 
 **There is no author rung.** Authoring confers **credit** (the immutable
 `authoring_events` provenance ledger — see [provenance.md](./provenance.md)),
-**never title.** You own only what you hold title to; untitled content is the
-state's. This makes `ownerOf` **byte-identical** to today's core walk for
-untitled content (untitled → `core`).
+**never title.** You own only what you hold title to; untitled content is
+nobody's, and a verb over it is refused until somebody claims it
+(`pnpm lint:untitled` proves every shipped path sits under a claim).
+
+## `grant` — how title comes into being
+
+Title is **declared by content packs** (`requires.title` in a manifest —
+[content-packs.md](./content-packs.md)) and written by
+`ParcelApi.grant(claim: TitleClaim)` → `{ outcome, holder }`. A
+`TitleClaim` is `{ extent, holder: ParcelOwner, parentParcel?, landUse?,
+areaM2? }` (the shape checks `ParcelSeeder` used to run now live in
+`ParcelRegistry.validateClaim`). The outcome (`TitleGrantOutcome`):
+
+| Outcome | When | Effect |
+|---|---|---|
+| `granted` | no row at `extent` | row written + a `grant` event (`ParcelEvent.event` is `subdivide \| transfer \| grant`) |
+| `kept` | the row exists under the **same** holder | untouched — two packs may claim one extent for one holder (`world-seed` and `saxonberg-lounge` both name `/domain/lounge` for `lounge`) |
+| `conflict` | the row exists under a **different** holder | untouched; the installer records it and the pack reconciles bounded (its rows under that extent are `skip-sold`) |
+| `migrated` | the row is held by the retired state default | a `transfer` event, the holder replaced |
+
+`migrated` is the **one** data touch wave 3 makes to existing title, and
+it is marked `migration-note` for deletion in wave 4: a row held by the
+`core` group (the dev DB's `/studio` and `/compact` were seeded that way),
+**or by one of the five retired wave-2 corpo board groups** (`aevex`,
+`goodkin`, `hollis`, `veshko`, `vionne` — each corpo *organization* now
+holds its own `/corpo/<key>`), hands over to the claim's holder. "No new
+title over an existing one" is read as *over one held by someone real*.
+
+Grants run **before** the pack's rows are planned (a first-boot claim of
+`/corpo/<key>` must exist before the chart row under it is judged
+sold-or-not), and the nightly reset's `PackApi.reprovision()` re-runs
+every applied pack's grants after the wipe takes `parcels`
+([record-layer.md](./record-layer.md)).
 
 ## The sparse hierarchy
 
@@ -284,14 +327,16 @@ parcels. See [access.md](./access.md) for the consumer side. In brief:
   then dispatches: a **group** owner resolves to a ref
   (`ParcelApi.resolveOwnerRef`) → `GroupApi.isMember`; a **player** owner is
   an identity match (the Avatar's own `templatePath`, or its `/home/<key>`
-  self-home form). Byte-identical for the migrated areas — no seed used
-  `accessGroups`, so the old flat-union collapses to the single nearest owner
-  (or `core`), which is what `ownerOf` returns.
+  self-home form); an **organization** owner is staff-or-authority (above).
+  A `null` owner denies.
 - **`canMutateZone`** — same substitution; a group owner keeps the `'owner'`-
-  role requirement, a player owner is an identity match.
-- **`ensureAuthorGroups`** (the `isAuthor` scope) — repointed to
-  `ParcelApi.groupOwnerRefs()` + `'core'`; the former template-`data` scan is
-  retired.
+  role requirement, a player owner is an identity match, an organization
+  owner the same staff-or-authority test.
+- **`heldExtents(subject)`** — the inverse read: every `parcels` row whose
+  holder admits the subject through the same dispatch, plus the self-home
+  root — what `broadcast`, `teleport`, `find` and the CMS tree scope to.
+- The former **`ensureAuthorGroups` / `isAuthor`** scope is gone with the
+  author tier (wave 3): capability is title over a resource, never a tier.
 - **Retired** from `AccessRegistry`: `effectiveOwnerRef`,
   `resolveOwnerGroupName`, `cachedOwnerNameRefs` (the mint-or-find moved to
   `ParcelRegistry`).
@@ -322,23 +367,33 @@ else null), exposed as `ParcelApi.selfHomeOwnerOf`. Both `ownerOf` rung 2 and
 `path.startsWith('/home/${key}/')` check. See
 [document-store.md](./document-store.md).
 
-## Migration (seeds)
+## Who claims what (the manifests)
 
-Ownership is declared as gated platform `parcels` seed rows — never on the
-zone seed. `mud/config/parcels.yaml` (installed by the backend `ParcelSeeder`,
-insert-iff-absent on `extent` — platform-seeded until the core
-decomposition) carries the two
-migrated areas: **lounge** (`/obj/lounge` + `/domain/lounge` → the managed
-`lounge` group) and the **Terminus terminal** (`/domain/terminus/terminal` →
-the managed `terminus` group — the first *spatial-zone* ownership stamp,
-validating "parcel = FolderZone *or* spatial zone"). `ownerGroupName` was
-stripped from those zone seeds; `crossroads` (newbie-wilds) stays intentionally
-unowned. Idempotent — no world-wide data sweep.
+Ownership is declared in **pack manifests** — never on the zone template,
+and no longer in a seed file (`config/parcels.yaml` and the backend
+`ParcelSeeder` were deleted in content-packs wave 3; every claim is an
+explicit `requires.title` entry, there is no implicit root claim). Today:
 
-> **Operator follow-up (Risk R1).** The byte-identical claim rests on no
-> deployed zone carrying a stray `data.accessGroups` or a nested differing
-> `ownerGroup`. No *seed* uses either; a one-time audit of the deployed
-> `domain` collection gates the claim on a live box before merge-to-prod.
+- **`platform`** — `/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`,
+  `/studio`, `/home`, `/domain`, all held by its maintainers, the
+  executive organization `/compact/executive`; and `/wiki` for the
+  `wiki-editors` group.
+- **`saxonberg-lounge`** — `/obj/lounge` + `/domain/lounge` → the `lounge`
+  group.
+- **`world-seed`** (transitional) — `/domain/lounge` again for `lounge`
+  (`kept`), the Terminus municipality's ground (`/domain/terminus/terminal`,
+  `counting-houses`, `general-store`, `registry` → `terminus`), Hinkley
+  Hills and its `lot-1` → `hinkley-hills`, Duncan Hall and its `dorms` →
+  `duncan-hall`.
+- **`expression`** — `/expression` → the `soul` group;
+  **`newbie-wilds`** — `/domain/newbie-wilds` → `newbie-wilds`; the
+  object packs (`generic-objects`, `species-and-names`, …) claim their
+  `/obj/<cluster>` branches; each **corpo pack** claims `/corpo/<key>` for
+  its organization.
+
+A claim's group is `ensureGroup`d by name (found if present, minted
+empty otherwise) before the grant. Idempotent — a second boot is all
+`kept`.
 
 ## The verbs (`system` category)
 
@@ -362,11 +417,14 @@ both funnel through `ParcelApi`, the only legitimate caller of the Registry.
 
 ## Boot
 
-`bootstrap.ts` manifest entry `{ templatePath: '/obj/ParcelRegistry',
-dependsOn: ['/obj/GroupRegistry'] }`, after `/obj/AccessRegistry` (which
-consults it). `TemplatePaths.parcelRegistry` names the path. `ParcelSeeder`
-runs in the per-collection seeder block (after `PersistenceManager.connect`,
-before `BootstrapManager.run`). The `parcels` / `parcel_events` collections +
+The platform pack's `boot:` list carries `{ template: /obj/ParcelRegistry,
+role: sync-read, dependsOn: [/obj/GroupRegistry] }` — "the title coverage
+trie every `ownerOf` read walks"; `BootstrapManager.run()` stands it up
+from the packs' boot union (the code manifest `bootstrap.ts` is gone).
+`TemplatePaths.parcelRegistry` names the path. Grants happen inside
+`PackApi.install()`, before `BootstrapManager.run`, so the registry
+resolves its rows from the store the moment it is resident. The `parcels`
+/ `parcel_events` collections +
 their indexes are declared in `PersistenceManager` (declaring
 `collectionName` is sufficient; the indexes are `extent`/`parentParcel`).
 
@@ -396,15 +454,18 @@ blast-radius analysis predated the Terminus merge (`ec5e5353`) and had to be
 re-derived: the removal covered **three** Zone fields (not two) across **two**
 owner groups (lounge + Terminus), and retired the data-driven
 `effectiveOwnerRef`/`resolveOwnerGroupName` machinery the Terminus merge had
-introduced. Second, the R2a governance decision — **default title is the
-state, the author rung removed** — is what makes the `ownerOf` chain
-byte-identical to today's core walk (untitled → `core`); an earlier draft had
-"owner defaults to author," which would have changed authored-content access.
+introduced. Second, the R2a governance decision — **the author rung
+removed** — kept authored-content access unchanged; an earlier draft had
+"owner defaults to author." The state rung that decision *kept* (untitled
+→ `core`) lasted until content-packs wave 3, when explicit platform claims
+made it unnecessary and it was deleted (`ownerOf` → `null`).
 
 ## Cross-references
 
 - [access.md](./access.md) — the consumer side (`can` / `canMutateZone` /
-  `isAuthor` repointed onto `ParcelApi`; the Zone field removal).
+  `canAtPath` / `heldExtents` over `ParcelApi`; the Zone field removal).
+- [content-packs.md](./content-packs.md) — `requires.title`, the requires
+  phase, the covered-extent rule, `reprovision`.
 - [zone.md](./zone.md) — `FolderZone`, the `lookupField` inheritance walk
   (the ownership fields it used to document now live here).
 - [address.md](./address.md) — the `AddressRegistry` + `PathTrie.longestPrefix`
@@ -448,7 +509,8 @@ Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
 wave 2, D11): `DocumentApi.save` / `delete` ask
 `AccessApi.canAtPath(actor, 'write-document', path)` — the covering title
 through this chain, then that owner's `can()` dispatch — after the
-self-home short-circuit. A pack's document branch (`/expression`,
-`/generic-objects`, `/platform`) is untitled and resolves to the state;
-a player's `/home/<self>/` is rung 2. See
+self-home short-circuit. A pack's document branch is **claimed** by its
+manifest (`/expression` by the `soul` group, `/platform` by the
+executive); a player's `/home/<self>/` is rung 2; an unclaimed path is
+`null` and the write is refused. See
 [document-store.md](./document-store.md) and [access.md](./access.md).

@@ -19,11 +19,10 @@ above:
    wouldn't recognize from English — comma, quote, parenthesis,
    period in a sentence. Brackets, sigils, and operators are not
    part of the player-typed surface.
-2. **Authors** (zone-scoped content creators). The full surface,
-   permission-gated to their zone — introspective filters,
-   templates, mixins, glob paths.
-3. **Developers / admins.** Full surface, world reach. Power tools
-   for debugging.
+2. **Authors** (everyone, within their own extent). The full surface
+   — introspective filters, templates, mixins, glob paths, world
+   reach. Nothing in the grammar is permission-gated: what you may
+   *do* with a match is the verb's gate, never the query's.
 
 ## Quick examples
 
@@ -84,7 +83,7 @@ These identifiers have reserved meanings and aren't free for use as
 keywords:
 
 - **Pronouns:** `me`, `here`, `it`, `them`, `him`, `her`
-- **Predicates:** `living`, `online`, `mine`, `visible`, `admin`
+- **Predicates:** `living`, `online`, `mine`, `here`, `visible`
 - **Boolean ops** (inside `[…]`): `and`, `or`, `not`
 - **Existence** (inside `[…]`): `has`
 - **Transforms:** `i`, `e` (one-letter chain pivots — inventory,
@@ -132,8 +131,8 @@ seed yields a list of Stuff (possibly empty).
 | `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
 | `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) |
 | `inventory` | the giver's contents (the giver itself is `me`) |
-| `online` | every connected command-giver (admin) |
-| `world` | every Stuff (admin) |
+| `online` | every connected command-giver |
+| `world` | every Stuff |
 | `it` / `him` / `her` | last single match of matching gender |
 | `them` | last multi-match list |
 | `$$` | result of the previous query |
@@ -185,12 +184,13 @@ Paths support `*` (any non-`/` chars), `?` (single char), `**`
 ```
 
 Glob expansion happens at resolve time against the live template
-registry. Path seeds are author/admin tier — players don't see them.
+registry. Path seeds are open to everyone — they are an author's
+tool, not an author's privilege.
 
 ### Stuff IDs
 
-`#abc123` looks up a Stuff by its exact stuffId. Useful for admin /
-debugging. Also author tier.
+`#abc123` looks up a Stuff by its exact stuffId. Useful for
+debugging.
 
 ## Chain operator `:`
 
@@ -278,14 +278,14 @@ A reserved predicate name keeps members where the predicate holds:
 | Predicate | Keeps members where |
 |---|---|
 | `living` | object is a Mobile (or has the appropriate "alive" mixin) |
-| `online` | object is connected (admin) |
+| `online` | object is connected |
 | `mine` | object is owned by the giver (owner-tracking is stub today) |
+| `here` | object is in (or is) the giver's location |
 | `visible` | object is perceivable to the giver |
-| `admin` | object is an admin user (admin) |
 
 ```
 peers:living              only Mobile peers
-peers:online              only connected peers (admin)
+peers:online              only connected peers
 me:i:visible              visible items in inventory
 ```
 
@@ -627,22 +627,15 @@ A YAML field's `type:` decides the cardinality:
 Empty results are a normal outcome — the controller decides what
 no-match means for its verb.
 
-## Permission tiers
+## No permission tiers
 
-Operators tag their tier; players can't use higher-tier operators.
-
-- **public** — bareword keyword search, `me`, `here`, pronouns,
-  `$$`, ordinals, ranges, set ops, `inventory` / `here` / `peers` /
-  `reachable` scopes, `:i` / `:e`, `living` / `mine` / `here` /
-  `visible` predicates.
-- **authoring** — `mixin.X`, `class.X`, `template.X`, `prop.X`,
-  `keyword.X`, bare `id` / `name` atoms, `/path/...` seeds,
-  `#stuffid` seeds.
-- **admin** — `world` / `online` scopes, `online` / `admin`
-  predicates.
-
-Permission errors are loud — `"You don't have permission to use
-'mixin' filters here."`
+Every operator is open to every giver. **Resolving a query is never a
+permission**: `flower:online` resolves for a guest, and `attack
+online:<name>` is then refused because the target is not *reachable*
+— the verb's gate, not the grammar's. Mutating verbs check title over
+the target's extent the same way. (The former public / authoring /
+admin tiers, and the `admin` predicate, were removed in content-packs
+wave 3.)
 
 ## Cookbook
 
@@ -659,16 +652,16 @@ me:i:rust
 reachable:sword:[3]
 
 # Players online in the same room
-peers:online                            (admin; online is fixed-pool, intersect)
+peers:online                            (online is fixed-pool, intersect)
 
 # The room-mates of bob and joe (excluding bob and joe)
 (bob, joe):peers                        (peers is element-derivable, flat-map)
 
 # Burnable items I'm carrying
-me:i:[mixin.Burnable]                   (authoring)
+me:i:[mixin.Burnable]
 
 # Doors anywhere in the world
-world:[mixin.Door]                      (admin)
+world:[mixin.Door]
 
 # Take 5 of a coin pile
 get 5 coins                             (lenient — clamps if short)
@@ -683,18 +676,18 @@ get coins:{5}                           (composer-grade)
 drop coins:{*}                          (composer-grade)
 
 # Items with hp > 0 in inventory
-me:i:[prop.hp > 0]                      (authoring; comparison
+me:i:[prop.hp > 0]                      (comparison
                                          against undefined is false,
                                          so missing prop.hp is excluded)
 
 # Rooms whose name or top-level detail names match "fountain"
-/obj/Location/*:fountain                (authoring; chain narrow uses
+/obj/Location/*:fountain                (chain narrow uses
                                          the detail-keyword extension,
                                          landing via.detailPath when
                                          a detail name matched)
 
 # Things I had drilled on, but specifically the burnable ones
-$$:[mixin.Burnable]                     (authoring)
+$$:[mixin.Burnable]
 
 # Comma-union of heterogeneous seeds
 flower, sword                           (matches both, query-level via undefined)
