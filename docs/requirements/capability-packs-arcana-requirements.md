@@ -154,7 +154,15 @@ slate named: casting, mana, the effect grid, suppression, the item-class
 Consequence: the two magic **Conditions stay in the platform pack**,
 because kernel code inflicts them (`Caster.ts` names
 `overchannel-strain`; `Effect.ts` names `dread`). The rule, stated once:
-**a kernel module never names a pack's row.** `settings/magic.yaml`
+**a kernel module never names a pack's row.** One ratified exception
+(planning, 2026-08-27): a kernel mixin that *declares a capability* may
+name that capability's **command view** wherever the view lives —
+`Caster` contributes `arcana/cmd/magic/{cast,spells}.yaml`, `Charged`
+contributes `zap`/`recharge`. A `commandContributions` key is the
+view's document path, `Caster` rides kernel agents, and the affordance
+belongs where the capability is declared (D23); a root-agnostic verb
+key was considered and declined as a new resolution rule.
+`settings/magic.yaml`
 moves — the kernel reads settings by key through `AppApi`, never by
 pack, and merge-missing semantics mean a deployment without arcana
 still boots on the code defaults.
@@ -204,9 +212,12 @@ The requirements, not the design:
   dependency line, and the installer's order follows. The manifest key
   is retired, not kept as an override.
 - **The rung check.** `requires-kernel` resolves each `class:` and
-  records *where* it resolved. A pack with no `src/` whose classes
-  resolve into its own namespace fails install ("claims data, ships
-  code"); a pack whose `src/` exports classes no row and no other pack
+  records *where* it resolved. The check keys on **resolution origin**,
+  not path prefix (ratified at planning): a class path in a namespace
+  only a pack's own `src/` could serve, from a pack that has none,
+  fails install ("claims data, ships code") — while a pack whose rows
+  name parked *kernel* classes under its own `/world/<x>` claim
+  (`saxonberg-lounge`, `hearthworks` today) is a data pack and passes; a pack whose `src/` exports classes no row and no other pack
   names is reported (dead code in a pack is a review finding, not a
   failure).
 - **Lint over pack trees.** `lint:instanceable` walks pack `src/` with
@@ -344,7 +355,7 @@ from. A class or row that exists for one spell is the library's.
 | spells | the 12 at `/stuff/idea/magic/Spell/` |
 | items | `glowlight-mote` and `spark-locus` (the two effect loci, `class:` the pack's own, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `potion-of-blistering`, `potion-of-veiling` (today's two flasks, on `Potion`) — at `/stuff/thing/magic/` |
 | materials | `blistering-draught`, `veiling-draught` (unchanged path) |
-| **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today); and **`potion-of-mana`** on `Potion` with its `mana-draught` material — so every new class ships exercised |
+| **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today); and **`potion-of-mana`** on `Potion` with its `mana-draught` material — so every new class ships exercised. `veil` and `glowlight` gain band authoring (ratified at planning — `lint:blessed-bands` binds the exemplars' class, and a cursed veil / a cursed light are those workings' own low ends) |
 
 `generic-objects` and `base-library` lose those rows. `platform` loses
 the disciplines, the banks' consumer note, the settings file, the

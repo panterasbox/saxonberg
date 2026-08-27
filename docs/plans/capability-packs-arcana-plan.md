@@ -669,6 +669,10 @@ Kernel tests reading pack YAML by relative path (eleven): `lib/identification/__
 
 ## Blockers / deviations
 
+**Rulings 2026-08-27:** 1 and 3 nodded; 2 takes the minimal path as
+planned (the declaring mixin names its verb's view). The requirements
+doc records all three. 4 stands as documented.
+
 1. **The rung check is keyed on resolution origin, not path prefix.** D4 as
    literally worded ("a pack with no `src/` whose classes resolve into its
    own namespace fails") would fail `saxonberg-lounge` and `hearthworks`,
