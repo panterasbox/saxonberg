@@ -271,6 +271,22 @@ description, `interiorMaterial`, `interiorAmount`. The liquid stays a
 *class* is what makes `/stuff/thing/magic/potion-of-mana` a thing a
 player clones and recognizes. Every field a row may still override.
 
+**The mana potion's model is metabolic, and it carries no spell.**
+`arcane-science.md` forbids a mana generator (*no amount of fuel
+becomes mana*), and the magic build already closed the matching first-law
+hole — a caster's reserve refills through metabolism's coupled
+recovery, spending satiation and hydration, *body before gift*.
+magic-items.md states the consequence: *"a mana potion is a
+concentrated carbohydrate and needs no new mechanism at all."* So
+`mana-draught` is a `PotionMaterial` with a meal chemistry that feeds
+coupled recovery — a caster who drinks it recovers mana **fast over the
+following minutes**, never instantly, and a half dose feeds half as
+much. No `adjust-reserve: mana` — and while the door is in view, a
+positive `adjust-reserve` on `mana` must route through the same
+coupling guard `charge` already has (`transferCharge` closed that door
+for charge; mana gets the same treatment), so that no effect anywhere
+can add mana without paying for it.
+
 ### D6 — The discipline ownership rule; the Practicum
 
 > A discipline row ships with the pack whose **code derives or
@@ -328,7 +344,7 @@ from. A class or row that exists for one spell is the library's.
 | spells | the 12 at `/stuff/idea/magic/Spell/` |
 | items | `glowlight-mote` and `spark-locus` (the two effect loci, `class:` the pack's own, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `potion-of-blistering`, `potion-of-veiling` (today's two flasks, on `Potion`) — at `/stuff/thing/magic/` |
 | materials | `blistering-draught`, `veiling-draught` (unchanged path) |
-| **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today), so the catalog ships with the new classes exercised |
+| **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today); and **`potion-of-mana`** on `Potion` with its `mana-draught` material — so every new class ships exercised |
 
 `generic-objects` and `base-library` lose those rows. `platform` loses
 the disciplines, the banks' consumer note, the settings file, the
@@ -393,6 +409,11 @@ verbs. `arcane-descriptors` is gone. **Nineteen packs.**
   effect; a ring run flat by the standby draw releases it; a cursed
   ring refuses removal and keeps drawing. Each is a test, and the
   wear/remove pair is driven live.
+- Drinking `potion-of-mana` raises a depleted caster's mana across the
+  recovery window and not on the tick it is drunk; a half dose recovers
+  half; a non-caster who drinks it is merely fed. A spell authoring a
+  positive `adjust-reserve` on `mana` is refused the way one on `charge`
+  is. Each is a test.
 - `MagicLogic` imports nothing from and hardcodes no path into any
   pack; `cast glowlight` conjures the emitter its row names and `cast
   spark` conducts through the locus its row names; a spell row whose
