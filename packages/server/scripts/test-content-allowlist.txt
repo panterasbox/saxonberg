@@ -31,7 +31,6 @@ packages/server/src/mud/lib/chattel/__tests__/Estate.test.ts
 packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts
 packages/server/src/mud/lib/chronicle/__tests__/ChronicleEntry.test.ts
 packages/server/src/mud/lib/config/__tests__/AppSettings.test.ts
-packages/server/src/mud/lib/craft/__tests__/Recipe.schema.test.ts
 packages/server/src/mud/lib/credential/__tests__/Credential.test.ts
 packages/server/src/mud/lib/credential/__tests__/CredentialWallet.test.ts
 packages/server/src/mud/lib/diagnostics/__tests__/DiagnosticChannel.test.ts
@@ -86,7 +85,6 @@ packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollControlle
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollController.commit.test.ts
 packages/server/src/mud/platform/idea/cmd/civics/__tests__/GovernmentController.test.ts
 packages/server/src/mud/platform/idea/cmd/civics/__tests__/TitleVerb.test.ts
-packages/server/src/mud/platform/idea/cmd/crafting/__tests__/manual-build.test.ts
 packages/server/src/mud/platform/idea/cmd/device/__tests__/ArmController.test.ts
 packages/server/src/mud/platform/idea/cmd/employment/__tests__/tips.test.ts
 packages/server/src/mud/platform/idea/cmd/retail/__tests__/BuyController.test.ts

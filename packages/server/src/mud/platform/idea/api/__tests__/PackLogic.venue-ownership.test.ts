@@ -37,21 +37,21 @@ afterEach(() => {
   cleanupPacks();
 });
 
-const BAR_REL = 'world/x/location/bar.yaml';
-const BAR = '/world/x/location/bar';
-const KEEPER_REL = 'world/x/agent/keeper.yaml';
-const KEEPER = '/world/x/agent/keeper';
+const BAR_REL = 'studio/x/location/bar.yaml';
+const BAR = '/studio/x/location/bar';
+const KEEPER_REL = 'studio/x/agent/keeper.yaml';
+const KEEPER = '/studio/x/agent/keeper';
 
 const barFile = (name: string) => ({ rel: BAR_REL, data: { name, populates: ['/trade/y/thing/stool'] } });
 
 /** A synthetic venue pack: two rows under branch subdirs, its own claim. */
 async function installVenue(): Promise<string> {
   const root = writePack('venue', [barFile("Dave's Bar"), { rel: KEEPER_REL, data: { name: 'Dave' } }], {
-    root: '/world/x',
+    root: '/studio/x',
     manifest: {
       requires: {
         groups: [{ name: 'x', purpose: 'the venue' }],
-        title: [{ extent: '/world/x', holder: { group: 'x' } }],
+        title: [{ extent: '/studio/x', holder: { group: 'x' } }],
       },
     },
   });
