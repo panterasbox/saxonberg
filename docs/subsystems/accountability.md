@@ -69,7 +69,7 @@ consumers derive what to do about it. See
 ## Surface — `AccountabilityApi` / `AccountabilityLogic`
 
 The gated pair (`api/accountability.ts` forwarding shell +
-`obj/api/AccountabilityLogic.ts` at `/obj/api/accountability`, gated
+`platform/idea/api/AccountabilityLogic.ts` at `/platform/idea/api/accountability`, gated
 `FromModule('/api/accountability#AccountabilityApi')`):
 
 - `record(fields)` — **fire-and-forget** append (a write failure never

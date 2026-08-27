@@ -66,7 +66,7 @@ stamp, that survives the persistence round-trip. `ChattelMixin`
   is independently durable in Mongo. A stamped good, logged out and back,
   resolves to the same owner.
 - **`getChattelId()`** + a **gated `_setChattelId(id)`** (chattel-logic-only —
-  `FromTemplate('/obj/api/chattel')`, the minting authority named directly,
+  `FromTemplate('/platform/idea/api/chattel')`, the minting authority named directly,
   `@Final @Unshadowable`) — so the identity is server-minted, never
   forged by an author or player. (The persistence hydrator bracket-assigns
   `_chattelId` on restore — it looks for `set_chattelId`, not
@@ -102,16 +102,16 @@ banking ledger, not the ownership registry.
   `ownerOf(item)`, `stamp(item, owner)`, `transfer(item, newOwner)`,
   `release(chattelId)`. Resolves the logic singleton via
   `StuffApi.singletonSync` + `HotReloadApi`. Actor context-derived.
-- **`ChattelLogic`** (`obj/api/ChattelLogic.ts`, `/obj/api/chattel`,
+- **`ChattelLogic`** (`platform/idea/api/ChattelLogic.ts`, `/platform/idea/api/chattel`,
   `extends ApiLogic`) — the `ownerOf = stamp ?? parcel ?? authorOf` chain, the
   glob-refusal invariant, and the **pure degrade** when no registry is
   live (the author fallback still resolves; mutators no-op). Gated
   `FromModule('/api/chattel#ChattelApi')`.
-- **`ChattelRegistry`** (`obj/ChattelRegistry.ts`, `/obj/ChattelRegistry`)
+- **`ChattelRegistry`** (`obj/ChattelRegistry.ts`, `/platform/idea/ChattelRegistry`)
   — the singleton index (`chattelId → ChattelOwner` Map over the `chattel`
   collection) + the mint-a-fresh-id seam; the **sole writer** of `chattel`
   / `chattel_events`. Every method gated
-  `AnyOf(FromModule('/api/chattel#ChattelApi'), FromTemplate('/obj/api/chattel'))`.
+  `AnyOf(FromModule('/api/chattel#ChattelApi'), FromTemplate('/platform/idea/api/chattel'))`.
   Warmed at boot via a `bootstrapManifest` entry (`postRegister` rebuilds
   the index from the collection).
 

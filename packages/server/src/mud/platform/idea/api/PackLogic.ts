@@ -603,7 +603,7 @@ function discover(packRoots?: string[]): ResolvedPack[] {
 
 // --- content walk ----------------------------------------------------------
 
-/** Map a content file to its template path: `content/obj/x.yaml` → `/obj/x`. */
+/** Map a content file to its template path: `content/stuff/thing/x.yaml` → `/stuff/thing/x`. */
 function fileToTemplatePath(contentRoot: string, file: string): string {
   const rel = relative(contentRoot, file).replace(/\.yaml$/, '');
   return '/' + rel.split(/[\\/]/).join('/');

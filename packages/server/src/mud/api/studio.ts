@@ -213,7 +213,7 @@ export class StudioApi {
    * Scaffold a new backing class from a base + ordered mixin set (creation
    * act #1 — **author-tier, open to all**: the generated module is inert
    * text). Returns the generated TS `source`, the wizard-commit `targetPath`
-   * (`/obj/<Name>.ts`), and — for a non-wizard — the reserved
+   * (`/platform/<branch>/<Name>.ts`), and — for a non-wizard — the reserved
    * `/home/<self>/drafts/<Name>.ts` `draftPath` (v1 does NOT persist it). The
    * actor is derived from context — **no `actor` argument** (anti-spoof).
    * Emits a **source string only**; nothing composes a class at runtime.

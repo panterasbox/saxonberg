@@ -415,7 +415,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * the right home for it; `Plant` was simply the only composer.
      */
 
-    /** The `/obj/…` template a harvest mints; null yields nothing. */
+    /** The `/stuff/…` template a harvest mints; null yields nothing. */
     public harvestTemplatePath: string | null = null;
 
     public getHarvestTemplatePath(): string | null {

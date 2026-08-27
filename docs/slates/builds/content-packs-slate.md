@@ -165,7 +165,7 @@ that actually closes.
 > ⭐⭐⭐⭐ **The trade owns the kit. The locality owns the premises. The
 > venue is a DECLARATION that references the trade, never a copy of it.**
 
-`/trade/baking/**` belongs to the trade. `/domain/terminus/third-street/
+`/trade/baking/**` belongs to the trade. `/world/terminus/third-street/
 marchettis` belongs to Terminus, and *names* the trade. No collision by
 construction — and the review question answers itself: *"all bakeries get
 a proofing cabinet"* is a trade diff; *"Marchetti's closed"* is a
@@ -257,14 +257,14 @@ somebody loses a shop.
 
 ## ⭐⭐ You never wire the convention. You decline to carve.
 
-`ownerOf('/domain/terminus/law/ordinance-3')` walks the coverage trie,
-finds `/domain/terminus` by longest prefix, and returns the locality's
+`ownerOf('/world/terminus/law/ordinance-3')` walks the coverage trie,
+finds `/world/terminus` by longest prefix, and returns the locality's
 committee. **Nobody declared "law belongs to the locality."** It falls
 out of there being no carve-out beneath it.
 
 Which makes the constitutional move a *parcel operation*:
 
-> ⭐⭐⭐ **An independent judiciary is `subdivide /domain/terminus/law` +
+> ⭐⭐⭐ **An independent judiciary is `subdivide /world/terminus/law` +
 > `transfer` to the court.** The arrangement is not modelled, declared or
 > special-cased — it is two calls that already exist, and every downstream
 > gate follows automatically because they all read the same trie.
@@ -276,11 +276,11 @@ That is the federalism-is-the-longest-prefix-walk finding
 
 ```
 1. MANIFEST declares what it claims — never who owns it
-     claims:  [/domain/terminus/gray]
+     claims:  [/world/terminus/gray]
      requires: { groups: [gray-committee], policy: <extent>/law/.policy }
 
 2. PRECONDITION — the installing actor must hold title to the covering
-   parcel of every claim.  ownerOf('/domain/terminus/gray') must be them.
+   parcel of every claim.  ownerOf('/world/terminus/gray') must be them.
      ⇒ you can only install into ground you already own
 
 3. TITLE — the installer calls the gated ParcelApi.subdivide, the same
@@ -316,7 +316,7 @@ than player-modification, and the two want the same implementation.
 | Tree | How ownership resolves |
 |---|---|
 | **template** | ✅ parcels cover extents directly — the real model |
-| **documents** | ⭐ **already the same namespace** (`/domain/terminus/law/…` nests under the locality). ⚠ But `DocumentLogic.gateMutation` still uses the pre-0a `resolveZoneForPath` → `canMutateZone`, falling to `can(…, null)` → `core`. **It never got repointed onto `ParcelApi` when `AccessRegistry` did.** |
+| **documents** | ⭐ **already the same namespace** (`/world/terminus/law/…` nests under the locality). ⚠ But `DocumentLogic.gateMutation` still uses the pre-0a `resolveZoneForPath` → `canMutateZone`, falling to `can(…, null)` → `core`. **It never got repointed onto `ParcelApi` when `AccessRegistry` did.** |
 | **source** | mapped by the *backing-class path mirrors template path* convention via `resolveSourceFolderZone` — genuinely a different namespace, so the mapping earns its keep |
 
 ⭐ **The blocker on the document repoint is small:** `AccessApi.can` takes
@@ -335,7 +335,7 @@ An earlier draft called this the one root that would not fit and punted it
 to build-1. **Wrong — the shape already exists.** parcel.md:
 
 > *"⚠ `wild` admits nothing, and that default is load-bearing. Most rows
-> in this collection are **not ground at all** — `/studio`, `/obj/lounge`
+> in this collection are **not ground at all** — `/studio`, `/stuff/idea/lounge`
 > and the `/obj/…` roots are **path-branch titles over the template
 > tree**, and they all answer `wild`."*
 
@@ -382,7 +382,7 @@ seed, and the supply-chain-spoof reasoning in parcel.md is exactly why.
 Only **39** seed templates are genuine test scaffolding. The real number
 is the other one:
 
-> ⚠⚠ **106 test files make 663 references to `/domain/**` paths.**
+> ⚠⚠ **106 test files make 663 references to `/world/**` paths.**
 > `persistence-spine.test.ts` alone names world content **138 times.**
 
 **The seeds are mostly real content; it is the tests that reach into the
@@ -425,7 +425,7 @@ The codebase already enforces boundaries with scripts (`lint:gates`,
 `lint:imports`, `lint:module-scope`); this is the same shape:
 
 > **`lint:test-content` — no test outside a pack or `e2e/` may name a
-> `/domain/**` path.**
+> `/world/**` path.**
 
 663 violations today, so it lands **warn-only with an allowlist that only
 shrinks** — which converts *"we should really fix this"* into a number
@@ -579,7 +579,7 @@ grows.
 > an upgrade on the axis you feel daily, not a lateral move.
 
 ⚠ **Only `ScriptSeeder` touches the `documents` collection at all**, and
-narrowly — lounge `.script` files at `/domain/lounge/scripts/<name>`.
+narrowly — lounge `.script` files at `/world/lounge/scripts/<name>`.
 **There is no general document seeding**, which build-1's publications
 work will need.
 
@@ -1345,7 +1345,7 @@ Three findings:
 
 Of the 43 manifest entries, ~37 are platform registries/catalogues. Six
 are **content**: the five `/corpo/*` singletons, `/compact/press` +
-`/compact/executive`, `/domain/lounge/terminal`, `dorm-warren`, and the
+`/compact/executive`, `/world/lounge/terminal`, `dorm-warren`, and the
 two Hinkley Hills singletons. Content in the engine manifest is the same
 category error as content in `mud/cmd/`.
 
@@ -1518,22 +1518,22 @@ owns — breaks one-stamp-per-row) and **scheduled uninstall**
 
 | What | Where today | Count |
 |---|---|---|
-| domain seeds | `seeds/domain/hearthworks/` | 23 (4 rooms + floor, stock props, 2 NPCs, Business, 2 menus) |
-| **TS classes** | `src/mud/domain/hearthworks/` | **3** — `SmithyMenu`, `KitchenMenu`, `SealedCellar` |
+| domain seeds | `seeds/world/hearthworks/` | 23 (4 rooms + floor, stock props, 2 NPCs, Business, 2 menus) |
+| **TS classes** | `src/mud/world/hearthworks/` | **3** — `SmithyMenu`, `KitchenMenu`, `SealedCellar` |
 | recipes | `config/recipes.yaml` | ~7 (fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin, toasted-ration, root-mash) |
 | tests | `seeds/__tests__/business-authority.test.ts` | 1 → becomes a pack test |
 
 **Zero inbound coupling** — no engine code references
-`/domain/hearthworks`; the only inbound mentions are comments. The
+`/world/hearthworks`; the only inbound mentions are comments. The
 cleanest pack candidate in the tree.
 
 **The dependency graph it declares:**
 
 - `dependsOn: base-library` — iron, firewood, hide are materials.
 - `dependsOn: generic-objects` — ⭐⭐ **every recipe's `outputTemplate`
-  is another pack's row** (`/obj/arms/fire-poker`, `/obj/CookPot`,
-  `/obj/gear/smiths-hammer`, `/obj/armor/hide-jerkin`,
-  `/obj/items/plated-dish`). Cross-pack template references are
+  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/stuff/thing/CookPot`,
+  `/stuff/thing/gear/smiths-hammer`, `/stuff/thing/armor/hide-jerkin`,
+  `/stuff/thing/items/plated-dish`). Cross-pack template references are
   LOAD-BEARING from pack one — the installer needs a reference check
   (does the named path exist in the install set?) alongside
   requires-kernel, and a dangling-pointer policy.
@@ -1555,7 +1555,7 @@ kind is the answer *if* the current standup path is found and folded in.
 
 **Requires (structure):** ⚠ **hearthworks is UNPARCELLED today** — no
 title row, so its extent falls to the `'core'` owner. The pack's
-`requires.title: /domain/hearthworks` is not paperwork; it is the first
+`requires.title: /world/hearthworks` is not paperwork; it is the first
 real exercise of claim → gated subdivide → stamped install.
 
 **Tier: systemic, and mechanically detectable.** `wageRate: 5`/`4` on a
@@ -1587,12 +1587,12 @@ The hard case on purpose — everything hearthworks dodges, this hits.
 
 | What | Where today | Count |
 |---|---|---|
-| domain seeds | `seeds/domain/eternal/` | 35 (duncan-hall 17 + university-avenue 18, incl. 7 controller seed rows) |
-| **TS files** | `src/mud/domain/eternal/` | **21** — 7 domain-local controllers (provision/unprovision/remodel + blow/tally/wind/adjust), `Katie.ts`, the DormWarren machinery (9), the crossing kit (4) |
-| misfiled class | `obj/Gus.ts` | 1 — kernel `obj/` class hardcoding `/domain/eternal/university-avenue` paths; ⭐ refile to `domain/eternal/university-avenue/` |
-| civics rows | `seeds/obj/Locality/eternal-campus.yaml`, `seeds/obj/Government/eternal-university.yaml` | 2 — the three-deep jurisdiction proof |
+| domain seeds | `seeds/world/eternal/` | 35 (duncan-hall 17 + university-avenue 18, incl. 7 controller seed rows) |
+| **TS files** | `src/mud/world/eternal/` | **21** — 7 domain-local controllers (provision/unprovision/remodel + blow/tally/wind/adjust), `Katie.ts`, the DormWarren machinery (9), the crossing kit (4) |
+| misfiled class | `obj/Gus.ts` | 1 — kernel `obj/` class hardcoding `/world/eternal/university-avenue` paths; ⭐ refile to `domain/eternal/university-avenue/` |
+| civics rows | `seeds/stuff/idea/Locality/eternal-campus.yaml`, `seeds/stuff/idea/Government/eternal-university.yaml` | 2 — the three-deep jurisdiction proof |
 | group | `config/groups.yaml` `duncan-hall` | member: **the NPC katie** (agent authority) |
-| parcel | `config/parcels.yaml` `/domain/eternal/duncan-hall/dorms` | owner: group `duncan-hall` |
+| parcel | `config/parcels.yaml` `/world/eternal/duncan-hall/dorms` | owner: group `duncan-hall` |
 | boot-instance | `bootstrap.ts` | `dorm-warren` |
 | tests reaching in | 13 files | ⚠⚠ **four live in KERNEL trees** — `lib/behavior/crossing-ritual`, `obj/crossing-objects.smoke`, `api/command-migration`, `seeds/room-archetypes` — the inverted arrow (Part 5), live |
 
@@ -1607,7 +1607,7 @@ exits rather than leave it convention.
 **Kinds and requires it exercises beyond hearthworks:**
 
 - `requires.groups: duncan-hall` + `requires.title:
-  /domain/eternal/duncan-hall/dorms` — the structure half, straight
+  /world/eternal/duncan-hall/dorms` — the structure half, straight
   from the slate.
 - ⭐⭐ **Agent membership as a PROVISION item.** Katie's membership in
   `duncan-hall` is authority, so the pack cannot ship it — but the pack
@@ -1722,7 +1722,7 @@ packaging boundary itself.
   own, which moves the money-faucet tier consequence (A12.1) to the
   venue side
 - **venue archetypes** — "a smithy needs: forge, anvil, fuel store."
-  Precedent exists: room archetypes (`seeds/obj/room/kitchen.yaml`) +
+  Precedent exists: room archetypes (`seeds/stuff/location/room/kitchen.yaml`) +
   furnishing's FurnishableRoom archetypes. The industry ships the
   archetype; a venue fills it with a place.
 
@@ -1896,7 +1896,7 @@ root; the four-namespaces doctrine gains its slot:
 > stations, archetype documents, migrated recipes — and its title claim
 > is exactly its root (`requires.title: /trade/mining`), so
 > `sourcePack` ↔ extent align one-to-one. Venues stay place-side under
-> `/domain/…` (or a locality's extent). The same shape as
+> `/world/…` (or a locality's extent). The same shape as
 > publications-have-no-place.
 
 **Internal layout follows the usual conventions, fractally** (user:
@@ -1995,25 +1995,25 @@ plus three decisions it forced.
 |---|---|
 | **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/thing/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
 | **`/trade/hearth-cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
-| **`/domain/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
+| **`/world/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
 
 **What the cut revealed:**
 
 1. ⭐⭐ **The fire stations were never smithing's.** Forge/Oven/Kiln/
    CookPot are fire-substrate COMMONS (`/obj/`) — smelting is the phase
    engine, not a recipe. The capability floor makes it natural: the
-   archetype *requires heat*, `default: /obj/Forge`. Corollary:
-   smithing's cook-pot recipe outputs `/obj/CookPot` — a commons
+   archetype *requires heat*, `default: /stuff/thing/Forge`. Corollary:
+   smithing's cook-pot recipe outputs `/stuff/thing/CookPot` — a commons
    template — so smithing-makes-cooking's-tools creates **no pack
    edge**. ⭐ Recipes that output commons goods are chain-neutral.
 2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are
    already thin CommerceMenu subclasses; the residue (verb-surface
    lighting?) is the actual work, and it is small.
-3. ⚠ **The migration is a PATH RENAME** (`/domain/hearthworks/anvil` →
+3. ⚠ **The migration is a PATH RENAME** (`/world/hearthworks/anvil` →
    `/trade/smithing/thing/anvil`), and now is the cheapest it will ever
    be — hearthworks is goto-only, blast radius ≈ one populates list +
    recipe station refs. ⚠⚠ The re-cut must **DELETE the orphaned
-   unstamped `/domain/hearthworks/*` rows** the new packs don't adopt
+   unstamped `/world/hearthworks/*` rows** the new packs don't adopt
    (the seeder-is-insert-only trap's farewell appearance).
 4. Open: does the venue keep the proper name "Hearthworks" while the
    industries take generic names? (Lean yes — proper noun for the
@@ -2219,8 +2219,8 @@ Collapses mechanism 4 into 1. What it buys:
    `pack diff`-able like every other kind (`command-view` document
    kind).
 2. ⭐⭐ **The title system covers verbs FOR FREE** — views live at the
-   fractal paths (`/cmd/perception/look` pack zero ·
-   `/domain/…/cmd/blow` locality · `/trade/smithing/cmd/forge`
+   fractal paths (`/platform/cmd/perception/look` pack zero ·
+   `/world/…/cmd/blow` locality · `/trade/smithing/cmd/forge`
    industry), so the parcel trie already governs who may edit them.
    Nobody designs verb-edit permissions; longest-prefix supplies them.
 3. **In-game verb authoring** — the CMS edits views with the existing
@@ -2548,7 +2548,7 @@ is — the governing observation:
 > ⭐⭐ **The ownership meaning of "domain" already moved out of the path
 > root and into the PARCEL system**, which covers every root uniformly
 > (`/trade/smithing` is exactly as much somebody's domain as
-> `/domain/eternal`). Since `/trade/` landed, the root's actual
+> `/world/eternal`). Since `/trade/` landed, the root's actual
 > referent is just geography — a stale name.
 
 1. **The collection: `domain` → `content`.** It holds every template
@@ -2559,7 +2559,7 @@ is — the governing observation:
    the landed content→domain rename: an enum sweep +
    `renameCollection` migration, **its own tiny MR** so the diff is
    pure mechanical rename.
-2. **The path root: `/domain/` → `/world/`.** Places get a place-name
+2. **The path root: `/world/` → `/world/`.** Places get a place-name
    (`/world/terminus/hinkley-hills`, `/world/narnia`), and the root
    family becomes self-describing — `/obj/` the commons · `/trade/`
    the industries · `/world/` the places · `/compact/` the state ·
@@ -2745,7 +2745,7 @@ personality — the correct residue of the razor.
   `ConditionApi.boot` = a legitimate `role: sync-read` boot-manifest
   entry in pack zero (inflict is a hot path).
 - **body-plans: KILLED, folded into species-and-names** — BodyPlans
-  live at `seeds/obj/species/BodyPlan/` and species reference them;
+  live at `seeds/stuff/idea/species/BodyPlan/` and species reference them;
   they were always the species pack's missing half (the 4 straggler
   species rows are the same migration debt; one `git mv`).
 - **expression + arcane-library: CONFIRMED, boring in the good way**
@@ -2935,7 +2935,7 @@ something true on its own; this supersedes the A12-era three-wave cut.
   what we missed.
 - **Wave 4 — the renames + the first trades, ONE blast radius.**
   Batched path surgery while everything is goto-only cheap:
-  `/domain/`→`/world/`, the `/trade/` sixth branch, the hearthworks
+  `/world/`→`/world/`, the `/trade/` sixth branch, the hearthworks
   re-cut, orphan-row cleanup. Then on the fresh namespace: smithing ·
   hearth-cooking · hospitality · the saxonberg-lounge + hearthworks
   venue packs with the A23 verdicts applied (Offstage → employment,
@@ -3081,7 +3081,7 @@ packages/content/eternal-university/
 together as a single versioned artifact — they cannot skew.** No
 separate "is the code in package.json" step exists. Class resolution:
 a **namespace → package table** built at discovery
-(`/domain/eternal/… → @saxonberg/content-eternal-university/src`,
+(`/world/eternal/… → @saxonberg/content-eternal-university/src`,
 via Node resolution); `loadClassByPath` consults it before the kernel
 tree.
 

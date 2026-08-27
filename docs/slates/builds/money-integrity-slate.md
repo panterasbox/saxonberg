@@ -154,11 +154,11 @@ that finding 3 failed.
 
 | Surface | The question |
 |---|---|
-| `StuffApi.clone('/obj/Coin')` | Wizard/code-trust gated — but is cloning a *money* template a distinct act from cloning a chair? Should the money template be uncloneable except through `issueCash`? |
+| `StuffApi.clone('/stuff/thing/Coin')` | Wizard/code-trust gated — but is cloning a *money* template a distinct act from cloning a chair? Should the money template be uncloneable except through `issueCash`? |
 | The `clone` verb's `--into` / quantity opts | Can an author clone a coin stack with an arbitrary quantity? |
-| **Crafting yields** | Can a `Recipe`'s `outputTemplate` be `/obj/Coin`? Recipes are data in the `recipes` collection. If yes, **a recipe is a mint.** |
+| **Crafting yields** | Can a `Recipe`'s `outputTemplate` be `/stuff/thing/Coin`? Recipes are data in the `recipes` collection. If yes, **a recipe is a mint.** |
 | **Content packs** | `PackApi` reconcile installs authored templates. Can a pack ship a coin-yielding recipe or a pre-stocked container? |
-| **The CMS** | It edits `domain` template rows. Can it set `/obj/Coin`'s `data.quantity`? (⚠ the currency build already has to migrate that row — see its §8.) |
+| **The CMS** | It edits `domain` template rows. Can it set `/stuff/thing/Coin`'s `data.quantity`? (⚠ the currency build already has to migrate that row — see its §8.) |
 | Salvage / disassembly | Does any teardown path yield fungible stacks that could be pointed at coin? |
 
 ## B. Mutating quantity
@@ -254,13 +254,13 @@ imagine.
 
 # Open questions
 
-1. **Should `/obj/Coin` be uncloneable except through `issueCash`?** It
+1. **Should `/stuff/thing/Coin` be uncloneable except through `issueCash`?** It
    would close most of § A at one stroke. ⚠ Cost: content authors lose a
    legitimate "put some coins in this chest" move — which probably *should*
    route through a seeded float anyway.
 2. **Is there a "value-bearing" marker worth having?** A mixin or template
    flag that says *this object represents conserved value*, which the gates
-   and the property test key on — rather than hardcoding `/obj/Coin`.
+   and the property test key on — rather than hardcoding `/stuff/thing/Coin`.
    ⭐ It generalizes to scrip, to bearer credentials, and to anything else
    that later carries value. ⚠ Risks being a new taxonomy; check it
    against the fixed Module Categories before adopting.

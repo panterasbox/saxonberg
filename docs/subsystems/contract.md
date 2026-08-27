@@ -14,7 +14,7 @@ paid. Gig and employment are two shapes of one work system, so the
 substrate lives in the one common `lib/employment/` namespace (the
 `lib/standing/` precedent: one consolidated lib home read by several Api
 pairs), with its own gated face — `ContractApi` (`api/contract.ts`) →
-`ContractLogic` (`/obj/api/contract`) beside the shipped
+`ContractLogic` (`/platform/idea/api/contract`) beside the shipped
 `EmploymentApi`/`EmploymentLogic`.
 
 ## The clause primitive
@@ -176,7 +176,7 @@ Content affords content: the board's own `commandContributions` afford
 the **`job`/`jobs`** verb (`environment`), first placed in the
 **Terminus terminal hall** (a public noticeboard on the station
 concourse — where newcomers arrive needing a living;
-`world-seed/content/domain/terminus/terminal/job-board.yaml` + the hall's
+`world-seed/content/world/terminus/terminal/job-board.yaml` + the hall's
 `populates`; keyworded `noticeboard` — the hall's `board` detail is the
 split-flap departures board).
 

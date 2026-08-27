@@ -87,7 +87,7 @@ domain-specific hydrators per template family).
 
 - Must start with `/`
 - Must NOT contain `..` (no directory traversal)
-- Must start with one of the allowed prefixes: `/obj/` or `/lib/`
+- Must start with one of the allowed prefixes: `/platform/… + /stuff/` or `/lib/`
 
 Class names are the last path segment (e.g., `/platform/agent/Avatar` →
 `Avatar`); the import succeeds only if a named export with that name

@@ -20,7 +20,7 @@
 ## 0. The correction that started it
 
 The premise was wrong on contact: the bank is **not** in Dave's Bar. On disk it's
-already a standalone room — `/domain/eternal/university-avenue/bank` ("Goodkin
+already a standalone room — `/world/eternal/university-avenue/bank` ("Goodkin
 Bank"), one cell west of the crossing (Gus's room), its comments literally
 tagged "temp… placeholder pending downtown." So the real work isn't *relocating a
 stranded prop* — it's (1) giving civic banking a **deliberate permanent home** in

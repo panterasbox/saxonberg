@@ -45,7 +45,7 @@ class HotReloadApi {
 ```
 
 The path argument is always an absolute filesystem path — the same
-shape `StuffApi.clone` resolves a `/obj/Avatar`-style class path to.
+shape `StuffApi.clone` resolves a `/platform/agent/Avatar`-style class path to.
 
 ## State machine
 
@@ -119,7 +119,7 @@ blueprint at path." This means **every Stuff that flows through
 
 - Hooks (cloned by `PersistenceManager.loadHooks` from `hooks.yaml`).
 - Command controllers (cloned by `CommandGiver.executeController`
-  from the `/obj/command/*` Templates the platform pack installs).
+  from the `/platform/idea/cmd/*` Templates the platform pack installs).
 - Hydrators (cloned by `clone()` itself from the `hydratorClass`
   field of the backing's Template — see Hydrators below).
 - Anything else templated, including avatars, locations, ideas.
@@ -129,14 +129,14 @@ the registry is Empty for a path — i.e., the path was statically
 imported by something else first. After the first lazy `reload()` it
 flows through the HMR registry.
 
-### Api logic singletons (`/obj/api/<feature>`)
+### Api logic singletons (`/platform/idea/api/<feature>`)
 
 `Api` classes are static and direct-imported, so they are **not**
 reloadable (see "What's intentionally out of scope"). The
 surface-architecture refactor keeps the `Api` as the stable, typed,
 secured boundary but relocates its **logic** into a stateless `Stuff`
-singleton at `/obj/api/<feature>` (e.g. `MaterialLogic` at
-`/obj/api/material`, `LocomotionLogic` at `/obj/api/locomotion`) — and
+singleton at `/platform/idea/api/<feature>` (e.g. `MaterialLogic` at
+`/platform/idea/api/material`, `LocomotionLogic` at `/platform/idea/api/locomotion`) — and
 *that* is hot-reloadable. The Api's public statics forward to it.
 
 The seam is `StuffApi.singletonSync(path, factory)` (a sync,
@@ -146,9 +146,9 @@ its unit tests in `api/__tests__/singleton-sync.test.ts`). Each Api
 file resolves its singleton through a `logic()` helper:
 
 ```ts
-const LOGIC_PATH = '/obj/api/material';
+const LOGIC_PATH = '/platform/idea/api/material';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MaterialLogic', import.meta.url)
+  new URL('../platform/idea/api/MaterialLogic', import.meta.url)
 );
 function logic(): MaterialLogic {
   return StuffApi.singletonSync(
@@ -177,7 +177,7 @@ Two facts make this HMR-correct:
   `getCurrentExport(...) ?? StaticClass` line is load-bearing: after a
   reload it picks up the fresh class; a bare `new MaterialLogic()`
   would rebuild the stale one. The class-module path (for
-  `getCurrentExport`) and the `/obj/api/<feature>` stamp path (for
+  `getCurrentExport`) and the `/platform/idea/api/<feature>` stamp path (for
   addressing) are **distinct** — both appear in every conversion.
 - **Reload is `dest`.** The singletons are stateless by construction
   (no `PostRegistrationMixin`), so destruction is free.
@@ -189,10 +189,10 @@ Two facts make this HMR-correct:
   **path is the stable handle**, MQL-addressable with no `Template`
   doc.
 - **Lazy materialization — un-materialized singletons aren't
-  enumerable.** A `/obj/api/<feature>` singleton doesn't exist until its
+  enumerable.** A `/platform/idea/api/<feature>` singleton doesn't exist until its
   first `logic()` call; before that there's no live instance and no
   `Template` doc to fall back on, so it won't appear in a
-  `findByPathGlob('/obj/api/*')` sweep. Enumerating the *un*-materialized
+  `findByPathGlob('/platform/idea/api/*')` sweep. Enumerating the *un*-materialized
   set would need a static path list (a mild registry) — **deferred until
   it bites**: glob-over-live covers every real case (you only care about
   singletons that have actually been used), and the no-premature-registry
@@ -208,12 +208,12 @@ in-game on `locomotion` through the movement verbs:
 
 1. `pnpm dev:server` and connect a client; confirm `walk west` (or any
    movement verb) behaves normally — the first `go` lazily materializes
-   `LocomotionLogic` at `/obj/api/locomotion`.
+   `LocomotionLogic` at `/platform/idea/api/locomotion`.
 2. Edit a `LocomotionLogic` method body — e.g. make
    `defaultModeFor(actor)` return `'fly'`, or have `canTraverseExit`
    reject with a custom `reason`.
-3. In-game (as a developer): `reload /obj/api/locomotion` to load the
-   new source, then `dest /obj/api/locomotion` to drop the live
+3. In-game (as a developer): `reload /platform/idea/api/locomotion` to load the
+   new source, then `dest /platform/idea/api/locomotion` to drop the live
    singleton. (Reloading the *source* alone does not swap the live
    instance — the cache holds the old one until `dest`.)
 4. Issue a movement verb again. The next `LocomotionApi` call
@@ -252,7 +252,7 @@ instance — the next clone that needs it will lazy-re-create through
 
 ```ts
 await HotReloadApi.reload('/abs/.../PersistentHydrator.ts');
-const stale = StuffApi.findByTemplatePath('/obj/persistence/PersistentHydrator');
+const stale = StuffApi.findByTemplatePath('/platform/idea/persistence/PersistentHydrator');
 if (stale) StuffApi.destruct(stale);
 ```
 
@@ -273,7 +273,7 @@ loaders) gets the same treatment.
 execution, runs it, and destructs in `finally`:
 
 ```ts
-const controller = await StuffApi.clone(`/obj/command/${command.controller}`);
+const controller = await StuffApi.clone(`/platform/idea/cmd/${command.controller}`);
 try {
   return await controller.execute(fields, context);
 } finally {
@@ -486,7 +486,7 @@ fresh constructor identities.
   update those bindings. Treat changes to an Api's *surface* (its
   static signatures, the forwarding shell) as a server-restart concern.
   Changes to its *logic*, however, are reloadable: the surface-
-  architecture refactor relocates Api logic into the `/obj/api/<feature>`
+  architecture refactor relocates Api logic into the `/platform/idea/api/<feature>`
   singletons described under [Integration](#api-logic-singletons-objapifeature),
   which `dest`-reload like any Stuff.
 - **State preservation across reload.** Existing instances keep

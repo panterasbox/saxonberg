@@ -59,7 +59,7 @@ inherently griefable; each pattern has its standard guard (the
 `anti-grief-resource-guards` memory). The substrate ships **with** them.
 
 - **Exclusive resource → a LEASE** (`AttendantLogic`, `api/attendant.ts` +
-  `obj/api/AttendantLogic.ts`). You hold the server's attention only while
+  `platform/idea/api/AttendantLogic.ts`). You hold the server's attention only while
   *actively using it*. **Recency** is a real-time stamp on the lease, bumped by
   every service act (`bumpLease`); a **lazy real-time sweep** (`ScheduleApi.recurring`,
   mirroring `ResidencyLogic.installEvictionSweep` — griefing is a real-time act,
@@ -90,7 +90,7 @@ through (an early design assumed one, but the queue/lease state is transient
 in-memory order, not persisted or economic — the real guards are the sweep and
 the till/quota). `Mixins.Attendant` / `MixinApi.isAttendant`.
 
-The **one genuinely Api-shaped piece** is `AttendantLogic` (`/obj/api/attendant`,
+The **one genuinely Api-shaped piece** is `AttendantLogic` (`/platform/idea/api/attendant`,
 behind the thin `AttendantApi`): a process-level **background service** — the
 real-time idle-eviction sweep (a retained `ScheduleApi.recurring` handle) + the
 `PlayerDisconnected` subscription + the `boot` seam. It's the ResidencyLogic

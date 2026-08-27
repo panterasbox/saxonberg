@@ -4,12 +4,12 @@
 > **Belongs to:** Gus, the crossing guard (the EU campus-gate stop).
 > **Target seed paths:**
 > - `Watch` class (the reusable *kind*) → a thin Stuff class under
->   `mud/obj/` *(the instruments are thin classes in `mud/obj/instrument/`;
+>   `mud/platform/` *(the instruments are thin classes in `mud/stuff/thing/instrument/`;
 >   exact home TBD — a watch isn't a `measure` instrument).*
 > - Gus's specific watch (the *instance*) → a seed under
 >   `mud/seeds/obj/.../pocket-watch.yaml`.
 > - `wind` / `set` commands → `mud/cmd/{wind,set}.yaml` +
->   `mud/obj/command/{Wind,Set}Controller.ts`.
+>   `mud/platform/idea/cmd/{Wind,Set}Controller.ts`.
 > - **`WorldClockApi` + the world-clock subsystem** → its own
 >   slate/subsystem; this watch is a consumer, not its owner.
 > **Retire when:** the `Watch` class, Gus's seed, the `wind`/`set`
@@ -282,5 +282,5 @@ instruments already establish.
 2. **Drift `rate`** — exact default; tunable, so cosmetic. *Lean a few
    minutes slow.*
 3. **Engraving wording** — committed above; dial if a better line appears.
-4. **`Watch` class home** — `mud/obj/` vs alongside instruments; it isn't a
-   `measure` instrument, so probably plain `mud/obj/`.
+4. **`Watch` class home** — `mud/platform/` vs alongside instruments; it isn't a
+   `measure` instrument, so probably plain `mud/platform/`.

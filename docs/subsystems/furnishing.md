@@ -265,7 +265,7 @@ ladder should be visible from where you start.
 
 > The retrofit changed **no `class:` path**. The capability landed on the
 > class and the slot spec + `restQuality` landed as seed DATA — exactly the
-> way `/obj/Chair` works — which is why it was a seed edit rather than a
+> way `/platform/thing/Chair` works — which is why it was a seed edit rather than a
 > migration of every live per-unit record.
 
 > **The dorm room is itself an archetype** — a *bedsit*: bed, desk,
@@ -299,7 +299,7 @@ shipped classes every fixture uses.
 > seedBornWith`). A bare `clone` never calls it — and cannot, having no unit
 > key to decide with.
 >
-> Verified in a live world: cloning `/obj/room/bathroom` and walking in
+> Verified in a live world: cloning `/stuff/location/room/bathroom` and walking in
 > gives the room's **prose** and **no fixtures at all**. That is correct
 > spine behaviour, not a defect — but the consequence is sharper than
 > "Wave 6 is deferred": **the four archetypes are content that nothing in
@@ -399,7 +399,7 @@ adding one. On a world seeded before this build it keeps the old,
 un-lieable row until it is dropped:
 
 ```js
-db.domain.deleteOne({ path: '/domain/eternal/duncan-hall/dorm-fixtures/bed' })
+db.domain.deleteOne({ path: '/world/eternal/duncan-hall/dorm-fixtures/bed' })
 // then restart; SeederManager re-inserts it with the lie:1 slot + restQuality
 ```
 
@@ -407,7 +407,7 @@ Verify by querying rather than trusting the file — the boot log's
 `0 new templates inserted` is not evidence either way:
 
 ```js
-db.domain.findOne({ path: '/domain/eternal/duncan-hall/dorm-fixtures/bed' })
+db.domain.findOne({ path: '/world/eternal/duncan-hall/dorm-fixtures/bed' })
   .data.staticSlots   // non-null = the retrofit is live
 ```
 
@@ -435,7 +435,7 @@ db.domain.findOne({ path: '/domain/eternal/duncan-hall/dorm-fixtures/bed' })
 - **Further dorm "dedupe" — checked, and there is none.** The bed **is**
   done (below). The rest turned out not to be duplication at all, and this
   is recorded so the next reader does not go looking:
-  - the **tap** already uses `/obj/UnboundedReceptacle`, the same class the
+  - the **tap** already uses `/platform/thing/UnboundedReceptacle`, the same class the
     bathroom basin uses. Two rows over one class with different prose **is**
     the archetype pattern; collapsing them would delete content;
   - the **desk** is a `Surface` *plus* two things a `Surface` cannot be: the

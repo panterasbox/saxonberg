@@ -217,7 +217,7 @@ export const AppSettingKeys = {
    * construction (every engaged/`wait` step suspends and yields); these
    * bound the one pathological shape — a no-suspension tight loop — plus
    * runaway fan-out. The *values* are operator knobs; the **tier**
-   * selection (player-home/inline = tight, released `/obj/` + `/world/`
+   * selection (player-home/inline = tight, released `/platform/` + `/stuff/` + `/world/`
    * = large) is mechanical (authorship), not a key. See
    * docs/subsystems/scripting.md § Resource governance.
    */

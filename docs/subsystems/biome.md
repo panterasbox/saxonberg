@@ -20,7 +20,7 @@ the `Biome` template:
 
 | Tree | Role | Where it lives | Mechanism |
 |---|---|---|---|
-| **Admin tree** | Ownership / write-access scoping ("biome team") | `FolderZone` templates at `/obj/biome/`, `/obj/biome/outdoor/`, `/obj/biome/indoor/`, etc. | templatePath organization |
+| **Admin tree** | Ownership / write-access scoping ("biome team") | `FolderZone` templates at `/stuff/idea/biome/`, `/stuff/idea/biome/outdoor/`, `/stuff/idea/biome/indoor/`, etc. | templatePath organization |
 | **Inheritance tree** | Atmospheric defaults inherited from parent biomes | `Biome` leaf templates with `_extendsBiomePath` refs | explicit Pattern-A ref (independent of path) |
 
 Biomes are **leaves** in the admin tree — they're not folders; they
@@ -37,7 +37,7 @@ teams flesh out their own tree from here.
 ```
 admin tree (FolderZones — ownership/write-access):
 
-/obj/biome/                        FolderZone     ← biome team root
+/stuff/idea/biome/                        FolderZone     ← biome team root
   universe.yaml                    Biome leaf     ← inheritance root
   outdoor/                         FolderZone     ← outdoor sub-team
     baseline.yaml                  SkyExposedBiome
@@ -73,7 +73,7 @@ who can write to it." The inheritance tree answers "what defaults
 does this biome inherit." Those are different concerns — coupling
 them via path was the original design's mistake. A future "alien
 planet" biome can sit at any admin path and explicitly extend
-`/obj/biome/universe` (or any other biome); the path doesn't
+`/stuff/idea/biome/universe` (or any other biome); the path doesn't
 constrain its inheritance.
 
 ## Organizing the inheritance tree — the spine
@@ -228,7 +228,7 @@ For any `(scope, detailKey?)` pair where `scope` is the innermost
    `Zone.lookupField`'s generic field-inheritance walk.
 
 3. **Universe terminal** — `BiomeApi.getRootBiome()` returns the
-   cached `/obj/biome/universe` template. Each `_defaultX` field
+   cached `/stuff/idea/biome/universe` template. Each `_defaultX` field
    on it is mandatory; the resolver throws a boot-invariant error
    if a field is unset at the root.
 
@@ -241,10 +241,10 @@ ancestors (Box, Backpack, …) are skipped entirely.
 # Empty room with no biome — universe default.
 resolveTemperatureFor(room) → 295 K   (source: 'universe')
 
-# Room with biome /obj/biome/outdoor/temperate/quad (which extends
+# Room with biome /stuff/idea/biome/outdoor/temperate/quad (which extends
 # temperate-baseline at 285 K).
 resolveTemperatureFor(room) → 285 K   (source: 'biome-ancestor',
-                                       sourcePath: '/obj/biome/outdoor/temperate/baseline')
+                                       sourcePath: '/stuff/idea/biome/outdoor/temperate/baseline')
 
 # Room with biome AND room.setTemperature(Q(310, 'K')).
 resolveTemperatureFor(room) → 310 K   (source: 'room')
@@ -346,7 +346,7 @@ narrows the biome via `MixinApi.isSkyExposed(biome)`. Returns
 `false` when no biome resolves anywhere in the chain.
 
 The atrium-in-cafeteria scenario authors a sibling biome
-`/obj/biome/indoor/social/cafeteria-atrium` that extends
+`/stuff/idea/biome/indoor/social/cafeteria-atrium` that extends
 `SkyExposedBiome` and `_extendsBiomePath`-refs the cafeteria —
 inheriting all of the cafeteria's profile while adding the
 sky-exposed trait. The biome chain inherits shared defaults; the
@@ -460,7 +460,7 @@ module) overrides the same way.
 ## Instruments + verbs
 
 Six handheld instruments ship as `Thing` templates under
-`/obj/instrument/`:
+`/stuff/thing/instrument/`:
 
 | instrument     | verb                       | reads                     |
 |----------------|----------------------------|---------------------------|
@@ -530,7 +530,7 @@ cross-cutting setting alongside sound's.
   `_biomePath` and `_extendsBiomePath` refs.
 - [docs/subsystems/shell-environment.md](./shell-environment.md) —
   the universe defaults are NOT settings; the chain's terminal
-  step reads from the root biome at `/obj/biome/universe`.
+  step reads from the root biome at `/stuff/idea/biome/universe`.
 
 ## History
 
@@ -543,7 +543,7 @@ Three substantive design shifts during the biome substrate build
    this stretched Zone's meaning beyond its original "admin /
    ownership scope" intent. The refactor moved Biome to a leaf
    Idea with explicit `_extendsBiomePath` parent refs, and
-   introduced `FolderZone` templates under `/obj/biome/` for the
+   introduced `FolderZone` templates under `/stuff/idea/biome/` for the
    biome team's admin tree. Inheritance is now decoupled from
    templatePath organization. (Commits `2cc46c2` → `44ada01`.)
 2. **`getVolume` / `getCeilingHeight` live on `AtmosphericMixin`,
@@ -566,5 +566,5 @@ Three substantive design shifts during the biome substrate build
 
 The `_extendsBiomePath` ref-walk + `FolderZone` separation is the
 shape that survives. Future biome content authoring extends from
-`/obj/biome/universe` (or any other biome) via the explicit ref;
+`/stuff/idea/biome/universe` (or any other biome) via the explicit ref;
 the path tree organizes ownership, not inheritance.

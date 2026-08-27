@@ -4,7 +4,7 @@
 > **Belongs to:** Gus, the crossing guard (the EU campus-gate stop).
 > **Target seed paths:**
 > - `Paddle` (or `StopPaddle`) class (the reusable *kind*) → a thin `Thing`
->   subclass under `mud/obj/` *(like the watch, whistle, and biome
+>   subclass under `mud/platform/` *(like the watch, whistle, and biome
 >   instruments — a thin content class; exact home TBD).*
 > - Gus's specific paddle (the *instance*) → a seed under
 >   `mud/seeds/obj/.../stop-paddle.yaml`.

@@ -51,7 +51,7 @@ export interface ContactEntryAvatar {
 export interface ContactEntryNpc {
   kind: 'npc';
   /**
-   * Template path of the target NPC (e.g. `/obj/npc/Gus`). NPCs are
+   * Template path of the target NPC (e.g. `/platform/agent/Gus`). NPCs are
    * runtime clones; the template is the durable identifier.
    */
   templatePath: string;

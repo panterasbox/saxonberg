@@ -4,11 +4,11 @@
 > **Belongs to:** Gus, the crossing guard (the EU campus-gate stop).
 > **Target seed paths:**
 > - `Whistle` class (the reusable *kind*) → a thin `Thing` subclass under
->   `mud/obj/` *(like the watch and the biome instruments — a thin content
+>   `mud/platform/` *(like the watch and the biome instruments — a thin content
 >   class; exact home TBD).*
 > - Gus's specific whistle (the *instance*) → a seed under
 >   `mud/seeds/obj/.../whistle.yaml`.
-> - The **blow** verb → `mud/cmd/blow.yaml` + `mud/obj/command/BlowController.ts`
+> - The **blow** verb → `mud/cmd/blow.yaml` + `mud/platform/idea/cmd/BlowController.ts`
 >   *(carried by the whistle, like the watch carries `wind`/`set`).*
 > **Retire when:** the `Whistle` class, Gus's seed, and the `blow` verb are
 > cemented in code/YAML. Then delete.

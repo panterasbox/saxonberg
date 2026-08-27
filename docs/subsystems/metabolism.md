@@ -323,6 +323,6 @@ See [quantities.md](./quantities.md).
 - `lib/slot/Postured.ts` — `restQuality` on the posture-bearing host.
 - `lib/command/validators/requiresConscious.ts`,
   `lib/command/validators/mustBeEdible.ts`.
-- `obj/command/bulk/{Eat,Vomit}Controller.ts` + `cmd/bulk/{eat,vomit}.yaml`.
+- `platform/idea/cmd/bulk/{Eat,Vomit}Controller.ts` + `cmd/bulk/{eat,vomit}.yaml`.
 - `seeds/lib/metabolism/conditions/*.yaml` (cascade + toxin conditions),
   `seeds/lib/material/{food,drink}/*.yaml` (toxic + alcoholic materials).

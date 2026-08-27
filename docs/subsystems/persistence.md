@@ -195,10 +195,10 @@ slots via a YAML manifest:
 hooks:
   - collection: domain
     operation: save
-    template: /obj/hooks/DomainHook
+    template: /platform/idea/hooks/DomainHook
   - collection: domain
     operation: delete
-    template: /obj/hooks/DomainHook
+    template: /platform/idea/hooks/DomainHook
 ```
 
 `PersistenceManager.loadHooks(yamlPath?)` reads the manifest, clones
@@ -550,7 +550,7 @@ obj/api cycle). Container/Slotted **restore** is centralized in
 
 ### The security path
 
-`PersistableApi` → `PersistableLogic` (`/obj/api/persistable`, gated
+`PersistableApi` → `PersistableLogic` (`/platform/idea/api/persistable`, gated
 `FromModule('/api/persistable#PersistableApi')`) owns the walk. Restore
 composes three defenses:
 

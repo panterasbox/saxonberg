@@ -176,7 +176,7 @@ a **`Document`** managed by a catalogue singleton — the
     the craft-resolve evidence records (see the knowledge ladder below);
     absent ⇒ no advancement row (every bar row).
 - **`RecipeCatalogue`** (`obj/RecipeCatalogue.ts`, singleton
-  `PostRegistrationMixin(Idea)` at `/obj/RecipeCatalogue`) — caches
+  `PostRegistrationMixin(Idea)` at `/platform/idea/RecipeCatalogue`) — caches
   `DocumentApi.listOfKind('recipe')`, resolves by id + keyword (`order
   martini` → one recipe), `warm()` on `postRegister`,
   `invalidateCache()` + `warm()` as the installer's go-live after a live
@@ -196,8 +196,8 @@ a **`Document`** managed by a catalogue singleton — the
 
 The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
 `api/crafting.ts` is the thin gated shell (`SecurityApi.decorateApiClass`),
-`obj/api/CraftingLogic.ts` is the `@internal` logic singleton at
-`/obj/api/crafting`, methods gated
+`platform/idea/api/CraftingLogic.ts` is the `@internal` logic singleton at
+`/platform/idea/api/crafting`, methods gated
 `@CallSecurity(FromModule('/api/crafting#CraftingApi'))`. Sub-logic is
 **module-private** functions (no intra-singleton `this.x()`).
 
@@ -363,7 +363,7 @@ venue-generic: a smithy with a menu and an on-shift maker just works.
 
 ## Verbs (the `crafting` command category)
 
-`content/cmd/crafting/*.yaml` views + `mud/obj/command/crafting/*Controller.ts`.
+`content/platform/cmd/crafting/*.yaml` views + `mud/platform/idea/cmd/crafting/*Controller.ts`.
 A `CraftController` base centralizes decline rendering
 (`declineToScene`) **and the can-make deed gate** (`requireDeed` — the
 one gate `forge`/`cook`/`make` share; a non-catalogue ref passes
@@ -445,7 +445,7 @@ against it at the mint; reset by `clearBuild`).
   mint — `mintFromBuild` with `workpiece`: a matched tangible recipe
   clones its output and the workpiece's Material + mass flow onto it,
   the workpiece consumed; an off-spec build mints a **generic worked
-  lump** — a re-meltable `/obj/Casting`, `recipeId ''`, no mark).
+  lump** — a re-meltable `/stuff/thing/Casting`, `recipeId ''`, no mark).
 - **Cooking** — the pot is the vessel (`CookPot` — `ManualBuild` +
   `Tool(pot)` + `Crafted`, itself a smithing recipe output): the
   existing `pour`/`add` verb grew a **discrete-ingredient branch** (a
@@ -606,7 +606,7 @@ ratchets).
 melt-down, the entropy sink): flatten the item's Material composition;
 each constituent above the dust floor yields `mass × fraction ×
 crafting.salvageRate` in its natural raw form — `metal` → a
-re-meltable `/obj/Casting`, anything else → an `/obj/Scrap` stack (a
+re-meltable `/stuff/thing/Casting`, anything else → an `/stuff/thing/Scrap` stack (a
 `GlobbableMixin(Thing)`, material-stamped, **quantity by mass** at
 0.1 kg units). Conservation asserted (Σ output ≤ input × rate, throw
 on breach); provenance, grade, and the chattel id die with the form
@@ -619,7 +619,7 @@ losing the value-add makes it self-limiting.
 The Hearthworks smithy grew into a working venue (anvil + smith's
 hammer + workbench + ingot/hide stock + `SmithyMenu` + Berta), and a
 **cookhouse** joined the zone (a 500 K clay hearth + `CookPot` + the
-open pantry chest — `/obj/Chest`, `Sealable + Container + Populates`,
+open pantry chest — `/platform/thing/Chest`, `Sealable + Container + Populates`,
 the honest chest-pull — + `KitchenMenu` + Odo). Both paths at each:
 order it (served) or make it yourself with their tools (the DIY floor,
 unpriced — the teaching venue). The general store sells the personal
@@ -631,7 +631,7 @@ this build): `order` resolves its maker through the augment-gated
 active maker** — `world-seed/content/world/hearthworks/business.yaml` rosters the
 smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
 verbatim; see [employment.md](./employment.md)). New graded-stock
-form: `/obj/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the
+form: `/platform/thing/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the
 discrete sibling of the graded bottle; a *fine* prime cut is what the
 fine-roast's `minGrade: fine` slot demands (the grade spread on solid
 stock).

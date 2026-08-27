@@ -31,7 +31,7 @@
  * rule someone remembers.
  *
  * A concrete standalone content object that composes only shipped mixins, so
- * it lives at top-level `/obj/` beside `Flask` / `AirTank` / `Campfire`
+ * it lives at `/platform/thing/` beside `Flask` / `AirTank` / `Campfire`
  * (memory: *obj vs lib Stuff placement*) — not in `lib/banking/`.
  */
 

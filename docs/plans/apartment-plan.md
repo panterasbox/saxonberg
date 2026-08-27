@@ -42,7 +42,7 @@ never double-own a field. **Conflict check: clean.**
 
 ## Grounding (facts established by investigation)
 
-- **The spine** (`lib/persistence/`, `obj/api/PersistableLogic.ts`,
+- **The spine** (`lib/persistence/`, `platform/idea/api/PersistableLogic.ts`,
   `api/persistable.ts`): the record is `{scope, owner, state, place}`, keyed
   `(scope, owner)` (`PersistedRecord.ts:36`). `state` is per-mixin slices
   (`FieldsSlice`/`ContainerSlice`/`SlottedSlice`). The **Container slice**
@@ -113,7 +113,7 @@ single quotes; no `.js` extensions; `noUncheckedIndexedAccess` on.
   apartment content).** Chattel-title is the possession substrate's second
   registry (sibling of `ParcelApi`'s real-property title), **not** an
   apartment module. `api/possession.ts` (`PossessionApi`) forwards to
-  `obj/api/PossessionLogic.ts` (gated `FromModule('/api/possession#PossessionApi')`):
+  `platform/idea/api/PossessionLogic.ts` (gated `FromModule('/api/possession#PossessionApi')`):
   `ownerOfItem(item)` (`stamp ?? templatePath-under-parcel ?? unowned`, the
   `ownerOfScope` rule one cardinality down), `transferTitle(item, toPrincipal)`
   (the chokepoint, actor/consent from context), `claim(item)`,
@@ -225,14 +225,14 @@ mixin (DECISION A/guardrail).
 `ownedBy(principal)`, `placeOfItem(item)`/`setPlaceOf(item, place)` (D3 lands
 the last two in Phase 2). Ends with `SecurityApi.decorateApiClass`.
 
-**`mud/obj/api/PossessionLogic.ts`** — the gated logic singleton
+**`mud/platform/idea/api/PossessionLogic.ts`** — the gated logic singleton
 (`extends ApiLogic`, `@internal`, methods `@CallSecurity(FromModule('/api/possession#PossessionApi'))`):
 - `ownerOfItemImpl(item)` = `getOwnerStamp(item) ?? parcelExtentOwner(item.getTemplatePath()) ?? unowned` — the `ownerOfScope` rule (PersistableLogic:53) one cardinality down, reusing `ParcelApi.ownerOf` for the extent rung.
 - `transferTitleImpl(item, to)` — **the single write chokepoint**: resolve actor from `ExecutionContextApi`, enforce consent/authority (owner or gifting principal), stamp `setOwnerStamp(item, to)`, update the owner-index. Every verb funnels here.
 - `claimImpl(item)` — title-only stamp of an *unowned* item to the acting principal (mint `itemId` if absent).
 - `ownedByImpl(principal)` — the **rebuildable owner-index** query: derive over live holders + the owner's persisted records (no dedicated store — the banking `ledger→cache` shape). First cut: an in-memory index warmed at boot + maintained at the transfer chokepoint.
 
-**Verbs** (`mud/cmd/inventory/` + `obj/command/inventory/`,
+**Verbs** (`mud/cmd/inventory/` + `platform/idea/cmd/inventory/`,
 `mud/cmd/banking/sell.yaml` + controller):
 - `claim` → `PossessionApi.claim`.
 - `give` (make the existing `GiveController` title-aware) → `ContainmentApi.move` + `transferTitle` (bilateral consent).
@@ -266,7 +266,7 @@ no-op for the dorm/Avatar**.
 (sibling of `ContainerSlice`): `{ items: { templatePath, state, place }[] }`
 — the owner's owned goods captured *wherever they sit*, each carrying `place`.
 
-**`mud/obj/api/PersistableLogic.ts`** — the two additive changes:
+**`mud/platform/idea/api/PersistableLogic.ts`** — the two additive changes:
 - **`captureContainer` skips owner-stamped items** — filter items where
   `PossessionApi.ownerOfItem(item)` is a set stamp; they persist owner-side,
   not in the host's Container slice. (Guarded so a dorm/Avatar with no
@@ -305,7 +305,7 @@ to the logic); the owner-index consultation is via `PossessionApi`.
 The apartment's spatial content, reusing the dorm's elastic keyed-Warren
 pattern with a **cluster** member.
 
-### Content classes (`mud/domain/eternal/duncan-hall/apartments/…` or a Terminus building)
+### Content classes (`mud/world/eternal/duncan-hall/apartments/…` or a Terminus building)
 
 - **`ApartmentBuilding`** — `SingletonMixin(Warren)`, the `DormWarren`
   precedent: `_unitsByKey: Map<unitExtent, MemberStuff>` (the **living room**
@@ -466,15 +466,15 @@ requirements and settle slate retention.
 - `packages/server/src/mud/lib/spatial/Thing.ts` — the `owner` stamp + `place`
   + `itemId` fields + gated write surface (chattel-title's carrier).
 - `packages/server/src/mud/api/possession.ts` +
-  `obj/api/PossessionLogic.ts` — the possession registry (title resolution,
+  `platform/idea/api/PossessionLogic.ts` — the possession registry (title resolution,
   the transfer chokepoint, the owner-index) — the one new engine Api.
-- `packages/server/src/mud/obj/api/PersistableLogic.ts` +
+- `packages/server/src/mud/platform/idea/api/PersistableLogic.ts` +
   `lib/persistence/PersistenceSlice.ts` — the owner-keyed capture (the
   `OwnedChattelSlice` + host-capture skip + place routing) — Phase 2's core.
-- `packages/server/src/mud/domain/.../apartments/{ApartmentBuilding,
+- `packages/server/src/mud/world/.../apartments/{ApartmentBuilding,
   ApartmentRoom,ApartmentDoor}.ts` — the multi-room leased content (the
   `DormWarren`/`DormRoom`/`DormDoor` precedents, cluster member).
-- `packages/server/src/mud/obj/command/inventory/{ClaimController,
+- `packages/server/src/mud/platform/idea/cmd/inventory/{ClaimController,
   GiveController}.ts` + `banking/SellController.ts` + `system/{Provision,
   Unprovision}Controller.ts` — the title-aware furnish + admin verbs.
 - `packages/server/src/mud/lib/location/Warren.ts` +

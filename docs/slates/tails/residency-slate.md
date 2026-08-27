@@ -115,7 +115,7 @@ object, no persistence-field concern. The recency chokepoints call
 `ResidencyApi.touch(stuff)`.
 
 **One sweep — a lazy O(n) scan.** An `@internal` `ResidencyLogic`
-singleton at `/obj/api/residency` behind a thin `ResidencyApi` facade,
+singleton at `/platform/idea/api/residency` behind a thin `ResidencyApi` facade,
 driven by `ScheduleApi.recurring`:
 
 ```

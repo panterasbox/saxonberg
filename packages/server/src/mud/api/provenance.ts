@@ -81,7 +81,7 @@ export class ProvenanceApi {
    *
    * `StudioLogic` (`/platform/idea/api/studio`) is a third authoring transport: its
    * `publishBlueprint` (the composition-naming act #2) records authoring
-   * against the synthetic `/obj/BlueprintCatalogue/<blueprintId>` path — the
+   * against the synthetic `/platform/idea/BlueprintCatalogue/<blueprintId>` path — the
    * curated commons has no per-owner namespace, so the naming act is
    * attributed even though the blueprint record itself is commons-owned.
    * Nothing else may append a row.

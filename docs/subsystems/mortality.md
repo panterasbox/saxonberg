@@ -167,7 +167,7 @@ design — see [antipatterns.md](../antipatterns.md).
 
 ## The corpse
 
-The corpse is cloned from the authored template `/obj/Corpse`, backed by
+The corpse is cloned from the authored template `/stuff/agent/Corpse`, backed by
 **`obj/Corpse.ts`** — a thin concrete subclass of `lib/creature/Creature`.
 The template used to name `Creature` itself, but `Creature` is mid-spine
 substrate (`Agent → Creature → Character`) and the lib/obj taxonomy rule
@@ -282,7 +282,7 @@ immediately. **Activations differ; composition does not.**
 |---|---|---|
 | persistence | captures | `shouldPersist() → false` |
 | `PlayerApi` slot | held | **held** |
-| identity | `/obj/Avatar/<id>` | same |
+| identity | `/platform/agent/Avatar/<id>` | same |
 | material verbs | allowed | refused (`requiresEmbodied`) |
 | lifecycle | `alive` | `undead` |
 | attunement | implant | intrinsic |
@@ -525,7 +525,7 @@ lib/mortality/Postmortem.ts    the corpse clock + canEvict terminus
 lib/mortality/Incorporeal.ts   the capability lever (prison reuses it)
 lib/mortality/Shade.ts         the between-bodies vessel
 lib/command/validators/requiresEmbodied.ts
-cmd/charactergen/passage.yaml + obj/command/charactergen/PassageController.ts
+cmd/charactergen/passage.yaml + platform/idea/cmd/charactergen/PassageController.ts
 ```
 
 `ConditionApi` grew `die` / `embodyForSession` / `reembody`; `VitalsMixin`

@@ -219,7 +219,7 @@ These are all enabled; they just don't appear in current templates.
 ## Where the engine lives
 
 The Liquid engine and the default filter set live in `ProseLogic`
-(`obj/api/ProseLogic.ts`), not in `lib/prose/Prose.ts`. `liquidjs` is a
+(`platform/idea/api/ProseLogic.ts`), not in `lib/prose/Prose.ts`. `liquidjs` is a
 dependency outside `src/mud/`, and under [the import
 boundary](../architecture.md) only the Api tier may import it.
 
@@ -232,7 +232,7 @@ surface, and the Mml-aware output escaping and filter semantics moved
 verbatim.
 
 One consequence worth knowing: the memoised engine is now module state
-in a **hot-reloadable** module, so `dest /obj/api/prose` rebuilds it and
+in a **hot-reloadable** module, so `dest /platform/idea/api/prose` rebuilds it and
 drops any filter installed at runtime through `ProseApi.registerFilter`
 (the default set is rebuilt either way). Nothing in-tree registers one
 today; an author who does should re-register after a reload. Making them

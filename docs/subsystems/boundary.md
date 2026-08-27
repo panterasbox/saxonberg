@@ -323,7 +323,7 @@ destination isn't loaded the getter throws — async-aware
 callers (`Mobile.traverse`) `await
 exit.resolveDestination()` first.
 
-## Exit-kind templates (`/obj/exits/<kind>`)
+## Exit-kind templates (`/stuff/idea/exits/<kind>`)
 
 An **exit kind** is an authored template a room's `exits:` entry
 references via `kind:` — the authorable *nature of the passage*
@@ -333,8 +333,8 @@ defaults), distinct from a `Door` (the operable barrier object):
 ```yaml
 exits:
   north:
-    destination: /domain/terminus/counting-houses/circle-parlor
-    kind: /obj/exits/archway        # authored defaults for this edge
+    destination: /world/terminus/counting-houses/circle-parlor
+    kind: /stuff/idea/exits/archway        # authored defaults for this edge
     messageOut: "{{ mover }} ducks under the arch."   # per-site override
 ```
 
@@ -357,7 +357,7 @@ Mechanics (the identity doctrine's first consumer — see
   orphan is ordinary cullable clutter (no live-room residency veto),
   and its `getDiscoveryKey()` is `undefined`.
 - **Identity payoff:** a kind-cloned exit's `templatePath` IS the kind
-  (`/obj/exits/archway`) — the population is addressable
+  (`/stuff/idea/exits/archway`) — the population is addressable
   (`findAllByTemplatePath`, the MQL path seed), and a CMS edit to the
   kind re-hydrates its clones via the standard content go-live. The
   *instance* half of an exit's identity stays the relational discovery
@@ -365,7 +365,7 @@ Mechanics (the identity doctrine's first consumer — see
 - Entries without `kind:` construct a raw `Exit` exactly as before — a
   bare passage has nothing authored, so it earns no row.
 
-Seeded kinds: `/obj/exits/archway`, `/obj/exits/stair`
+Seeded kinds: `/stuff/idea/exits/archway`, `/stuff/idea/exits/stair`
 (`wheelPassable: false` — the haulage residue). Demonstrator: the
 counting-houses banking-hall → circle-parlor archway.
 
@@ -449,7 +449,7 @@ with only `shortDescription: 'heavy oak door'` is targetable as
 The enforcement lives in `Exit.canTraverse` (see *Exits* above): the
 lock gate fires **before** the closed-door gate, reads only `this.door`
 (never resolving the destination), and reports `'locked'`. The `lock` /
-`unlock` verbs (`obj/command/boundary/LockController.ts` /
+`unlock` verbs (`platform/idea/cmd/boundary/LockController.ts` /
 `UnlockController.ts`, mirroring `Close` / `Open`) resolve any reachable
 `Lockable` — a direct hit (`lock oak door`) or a direction match (`lock
 north`, door fetched from `via.exit.getDoor()`) via
@@ -572,8 +572,8 @@ light-emitting fixtures on Dave's Bar back-bar wall) as pure data.
 
 ```yaml
 adornments:
-  - { template: /domain/lounge/neon-veshko, slot: sign:veshko }
-  - /domain/lounge/neon-aevex            # bare path → auto slot
+  - { template: /world/lounge/neon-veshko, slot: sign:veshko }
+  - /world/lounge/neon-aevex            # bare path → auto slot
 ```
 
 **Floors are Adornments.** The default-floor template
@@ -711,7 +711,7 @@ A templated Window declares the two host paths in its YAML:
 
 ```yaml
 class: /lib/boundary/Window
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   baseTransmissivity: 0.9
   attachedHosts:
@@ -731,7 +731,7 @@ gates the attach so a Window can't be wired to a non-Location host.
 Per `ref-shapes.md` § the identity ref — the runtime keeps the original
 string array; persist-back writes it back unchanged. No marshaller.
 
-### Exit-kind templates (`/obj/exits/<kind>`)
+### Exit-kind templates (`/stuff/idea/exits/<kind>`)
 
 An **exit kind** is an authored template a room's `exits:` entry
 references via `kind:` — the authorable *nature of the passage*
@@ -741,8 +741,8 @@ defaults), distinct from a `Door` (the operable barrier object):
 ```yaml
 exits:
   north:
-    destination: /domain/terminus/counting-houses/circle-parlor
-    kind: /obj/exits/archway        # authored defaults for this edge
+    destination: /world/terminus/counting-houses/circle-parlor
+    kind: /stuff/idea/exits/archway        # authored defaults for this edge
     messageOut: "{{ mover }} ducks under the arch."   # per-site override
 ```
 
@@ -765,7 +765,7 @@ Mechanics (the identity doctrine's first consumer — see
   orphan is ordinary cullable clutter (no live-room residency veto),
   and its `getDiscoveryKey()` is `undefined`.
 - **Identity payoff:** a kind-cloned exit's `templatePath` IS the kind
-  (`/obj/exits/archway`) — the population is addressable
+  (`/stuff/idea/exits/archway`) — the population is addressable
   (`findAllByTemplatePath`, the MQL path seed), and a CMS edit to the
   kind re-hydrates its clones via the standard content go-live. The
   *instance* half of an exit's identity stays the relational discovery
@@ -773,7 +773,7 @@ Mechanics (the identity doctrine's first consumer — see
 - Entries without `kind:` construct a raw `Exit` exactly as before — a
   bare passage has nothing authored, so it earns no row.
 
-Seeded kinds: `/obj/exits/archway`, `/obj/exits/stair`
+Seeded kinds: `/stuff/idea/exits/archway`, `/stuff/idea/exits/stair`
 (`wheelPassable: false` — the haulage residue). Demonstrator: the
 counting-houses banking-hall → circle-parlor archway.
 
@@ -798,7 +798,7 @@ unless their identity is tied to an Exit.
 
 Template authoring: Window is template-loadable like Door
 (`class: '/lib/boundary/Window'`,
-`hydratorClass: '/obj/persistence/PersistentHydrator'`). Seed
+`hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed
 code calls `BoundaryApi.attachExistingBoundary` to install on
 two rooms.
 
@@ -818,7 +818,7 @@ Reads naturally at every site: `beacon.setOn(true)`, `beacon.isOn()`,
 `data: { on: true }`.
 
 The global `switch` / `toggle` verb (`cmd/device/switch.yaml` +
-`obj/command/device/SwitchController.ts` — the **`device` category**, not
+`platform/idea/cmd/device/SwitchController.ts` — the **`device` category**, not
 `boundary`) targets any `Switchable` in reach rather than a specific
 class: `switch beacon on`, `switch lamp off`, or `toggle lamp` to flip to
 the opposite of its current state.

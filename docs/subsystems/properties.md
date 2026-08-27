@@ -36,7 +36,7 @@ shape:
 | Site | Key |
 |---|---|
 | `api/event.ts` — the EventRegistry | `Property.of(eventName)` — one slot per authored event |
-| `obj/api/BankingLogic.ts` — corpo circle membership | `circleProp(corpoKey)` — one flag per corpo |
+| `platform/idea/api/BankingLogic.ts` — corpo circle membership | `circleProp(corpoKey)` — one flag per corpo |
 
 Neither key exists at authoring time, and that is the whole point:
 

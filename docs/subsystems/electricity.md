@@ -50,7 +50,7 @@ the response-fn home), [harm](./harm.md) / [vitals](./vitals.md) (the
   `EnergyInflictSpec` (magnitude = `energy`) vs `ShockInflictSpec`
   (magnitude = `current: Quantity<'A'>`).
 - **The conduction walk** is the gated `ElectricityApi` / `ElectricityLogic`
-  pair (`/obj/api/electricity`). `conduct(source)` builds the conductive
+  pair (`/platform/idea/api/electricity`). `conduct(source)` builds the conductive
   contact graph of the source's location, resolves per-body potentials
   (live contact + ground path), divides current toward the ground sink by
   Ohm's law, and inflicts each bridged body — the `Audible.emit` /
@@ -171,7 +171,7 @@ metal armor does NOT protect against a shock).
   demonstrator (the duncan-hall cistern precedent: a flooded hazard room a
   body ENTERS by walking). A proper **`CartesianLocation`** with coordinates,
   living in its own self-contained **`CartesianZone`** — *The Drowned
-  Substation* (`/domain/substation`), electricity's own home (and where the
+  Substation* (`/world/substation`), electricity's own home (and where the
   deferred power-grid content grows), so it never pollutes another themed
   area. Provisions a salt-water-pooled `Floor` + a `LiveWire` at standup;
   `onEntered` → `ElectricityApi.conduct`. Teaches the whole model with no
@@ -181,7 +181,7 @@ metal armor does NOT protect against a shock).
   (the treeline precedent — keeps content-area standup clean; reachable by
   teleport / a future travel node).
 - **`StunBaton`** (`lib/electricity/StunBaton.ts`, authored as a template at
-  `/domain/substation/stun-baton` and `populates:`-placed in the cell) — a
+  `/world/substation/stun-baton` and `populates:`-placed in the cell) — a
   `Weapon` + `Energized` + `Switchable` (the combat toe-hold). A landed hit
   routes through **`ElectricityApi.shockContact`** — a **direct two-terminal
   contact** (a taser/baton completes its own circuit through its electrodes,

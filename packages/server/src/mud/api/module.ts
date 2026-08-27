@@ -63,7 +63,7 @@ type ModuleId = string;
  * matters when one root is a prefix of another — the `mud/`-rooted
  * hints come first so a mudlib file normalises to a `mud`-relative,
  * leading-slashed id (`/platform/idea/cmd/…`, `/api/…`, `/lib/…`) rather than a
- * `src`-relative one (`mud/obj/…`). This makes a module id **identical in
+ * `src`-relative one (`mud/platform/…`). This makes a module id **identical in
  * shape** to the clone-namespace template path it parallels
  * (`/platform/idea/cmd/X`); the two are told apart by which policy reads which
  * identity, not by the slash. Only `/mud/` files are ever stamped (the

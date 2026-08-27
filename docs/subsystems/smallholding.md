@@ -150,8 +150,8 @@ parcel, then its `parentParcel` chain, then `wild`.
 
 ### ⚠ `wild` admits nothing, and that is load-bearing
 
-**Most parcel rows are not ground at all.** `/studio`, `/obj/lounge` and
-the `/obj/…` roots are path-branch titles over the template tree, and they
+**Most parcel rows are not ground at all.** `/studio`, `/stuff/idea/lounge` and
+the `/platform/… + /stuff/…` roots are path-branch titles over the template tree, and they
 all answer `wild`. Had `wild` admitted a bed, cultivation would be legal
 on every branch nobody thought to zone. Stewardship's own gloss agrees —
 *"~nothing built; passage and gathering"* is gathering, not farming.
@@ -180,7 +180,7 @@ parcel permits.
 "Nobody has zoned this" is not the same statement as "this is zoned
 against you", and conflating them turns every unclaimed acre in the world
 into red tape. The abstract branches stay protected anyway, because they
-DO carry rows: `/studio` and `/obj/lounge` are covered, declare no use,
+DO carry rows: `/studio` and `/stuff/idea/lounge` are covered, declare no use,
 and so still answer `wild` → refused.
 
 Same principle as the acreage check degrading on unmeasured land:
@@ -265,8 +265,8 @@ and should not be (`DormWarren` likewise is not).
 ### Two objects: the catalogue and the provisioner
 
 Selling subdivided ground crosses localities, so both classes are
-general (`/obj/`) and each subdivision seeds **instances** — the way
-`/obj/Plant` is the class and `/obj/plant/carrot` is a carrot.
+general (`/platform/… + /stuff/`) and each subdivision seeds **instances** — the way
+`/platform/thing/Plant` is the class and `/stuff/thing/plant/carrot` is a carrot.
 `SingletonMixin` is one-instance-per-templatePath, so one of each per
 subdivision is exactly what composing it means.
 

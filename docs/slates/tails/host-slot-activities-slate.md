@@ -12,7 +12,7 @@
 >    drain), plus combat sessions and hazard resolution. The pattern has
 >    been exercised in anger and there are working examples to copy. What
 >    it hasn't reached is the **host-slot** verbs specifically — verified
->    that nothing under `obj/command/posture/` or the mount/drive
+>    that nothing under `platform/idea/cmd/posture/` or the mount/drive
 >    controllers registers one.
 > 2. **`Readable` + `read` are struck from scope — both shipped**, as
 >    `MarkedMixin` (`lib/description/Marked.ts`) and

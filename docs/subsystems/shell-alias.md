@@ -18,9 +18,9 @@ The shape lives in:
   Api class; expansion sits next to `expandVariables` and
   `lookupSyntheticVar` because the shell suite shares one substrate
   Api.
-- `packages/content/platform/content/cmd/shell/alias.yaml` — the `alias` player
+- `packages/content/platform/content/platform/cmd/shell/alias.yaml` — the `alias` player
   verb (subcommanded: `list / get / set / unset / describe`).
-- `packages/server/src/mud/obj/command/shell/AliasController.ts` — the
+- `packages/server/src/mud/platform/idea/cmd/shell/AliasController.ts` — the
   controller that operates on the host's `Alias` surface.
 
 ## Core Principle

@@ -95,7 +95,7 @@ pure data; all validation and mutation lives in the controller.
 
 ## The `enroll` verb: a draft state machine
 
-`EnrollController` (`obj/command/charactergen/EnrollController.ts`) is a
+`EnrollController` (`platform/idea/cmd/charactergen/EnrollController.ts`) is a
 **field-keyed draft state machine**. The core is a `FIELDS` table
 (`EnrollController.ts:136`) — one `FieldHandler` per settable field:
 

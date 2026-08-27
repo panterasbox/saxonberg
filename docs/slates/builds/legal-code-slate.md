@@ -35,7 +35,7 @@ kind `law`, and a code is a subtree**:
 
 ⚠⚠ **CORRECTED 2026-08-04.** This slate originally rooted every code in
 a top-level `/law/<institution>/` tree. **Wrong** — user: *"it's
-`/domain/terminus/law/`."* The rule is:
+`/world/terminus/law/`."* The rule is:
 
 > ⭐⭐ **A code lives UNDER the extent of the institution it governs, at
 > `<extent>/law/`** — not in a parallel `/law/` hierarchy.
@@ -43,8 +43,8 @@ a top-level `/law/<institution>/` tree. **Wrong** — user: *"it's
 ```
 /compact/law/…                      the Compact's statutes  (⚠ /compact is a
                                     publications NAMESPACE, not a place)
-/domain/terminus/law/…              Terminus's code
-/domain/terminus/gray/law/…         a district's, if it has one
+/world/terminus/law/…              Terminus's code
+/world/terminus/gray/law/…         a district's, if it has one
 <guild extent>/law/…                a guild's internal code
 <business extent>/law/…             house rules
 <gang's held ground>/law/…          a gang's code — identical machinery
@@ -110,12 +110,12 @@ It also hands a young legislature a genuinely meaningful first act:
 
 ```yaml
 kind: law
-path: /domain/terminus/law/arms/university-ordinance
+path: /world/terminus/law/arms/university-ordinance
 title: "The University Arms Ordinance"
 text: "No person shall bear arms within University grounds…"
 enactment:
   process: committee-decision      # | compact-vote | founding | charter-grant
-  body: /domain/terminus/law         # whose charter authorized this
+  body: /world/terminus/law         # whose charter authorized this
   when: <game-time>
   deliberation: [ <forum thread>, <argument map>, <tally> ]
 status: in-force                   # | repealed | superseded | suspended
@@ -210,7 +210,7 @@ current state on read.** Law is the same shape.
 ### The Roll — chronological, append-only, authoritative
 
 ```
-/domain/terminus/law/roll/0047
+/world/terminus/law/roll/0047
   instrument:  prohibition
   text:        "No person shall bear arms within University grounds…"
   clauses:     [ … ]
@@ -227,7 +227,7 @@ any other entry.
 Organized by subject, assembled from every in-force provision
 touching it, **every clause carrying its citation trail**:
 
-> `/domain/terminus/law/code/arms` — *current text* · enacted by Roll
+> `/world/terminus/law/code/arms` — *current text* · enacted by Roll
 > 12 (founding), amended by Roll 47 (year 3), §4 repealed by Roll 88
 > (year 5)
 
@@ -854,8 +854,8 @@ generalizes it to ordinary law.
 /compact/law/catalog/theft@v3                    canonical: prose, clauses, DECLARED PARAMETERS
 /compact/law/catalog/preset/municipal-standard   a distro: a named set of statutes
 
-<law_events>  0012: adopt catalog/theft@v3 at /domain/terminus/law, fine = 50
-/domain/terminus/law/code/theft            DERIVED in-force view
+<law_events>  0012: adopt catalog/theft@v3 at /world/terminus/law, fine = 50
+/world/terminus/law/code/theft            DERIVED in-force view
 ```
 
 - **A parcel's law is mostly references, parameters, and history** —
@@ -958,8 +958,8 @@ Proposals are jurisdictional, so they are tree-shaped and the
 [branch policy](./branch-policy-slate.md) already protects them:
 
 ```
-/domain/terminus/law/proposals/0031             the pending instrument + SNAPSHOTTED process
-/domain/terminus/law/proposals/0031/votes/<voter>
+/world/terminus/law/proposals/0031             the pending instrument + SNAPSHOTTED process
+/world/terminus/law/proposals/0031/votes/<voter>
 ```
 
 Votes are written by `LawApi.vote` (which checks eligibility); the

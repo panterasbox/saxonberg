@@ -37,8 +37,8 @@ builds on [contacts.md](./contacts.md),
 | Value objects (`NotifyRule`, surfaces, `PaletteToken`, `RESERVED`) | `lib/social/NotifyRule.ts` |
 | Store mixin (`NotifyPolicyMixin`, `social.verbosity` schema) | `lib/social/NotifyPolicy.ts` |
 | Gated dev-facing face | `api/social.ts` (`SocialApi`) |
-| Hot-reloadable logic singleton | `obj/api/SocialLogic.ts` (`/obj/api/social`) |
-| The `notify` verb | `cmd/social/notify.yaml` + `obj/command/social/NotifyController.ts` |
+| Hot-reloadable logic singleton | `platform/idea/api/SocialLogic.ts` (`/platform/idea/api/social`) |
+| The `notify` verb | `cmd/social/notify.yaml` + `platform/idea/cmd/social/NotifyController.ts` |
 | Presence events | `Avatar.enter` / `Avatar.onLinkdead` (+ `setLeaveIntent`), `lib/events.ts` (`PlayerLoggedIn`/`PlayerLoggedOut`/`PlayerReconnected`/`PlayerDisconnected`) |
 | Country of origin | `api/connection.ts` (`ConnectionApi.originOf`/`recordOrigin`, `geoip-lite`), captured at the WS handshake |
 | Client settings panel | `components/settings/SocialNotificationsPanel.tsx` (presence frames render inline — no bespoke client component) |

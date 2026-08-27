@@ -42,7 +42,7 @@ request/response DTOs (`HelpIndexResult` / `HelpKindListResult` /
 
 ## The boot-warmed index — harvest, don't register
 
-`/obj/HelpCatalogue` is a singleton `Idea`+`PostRegistrationMixin`
+`/platform/idea/HelpCatalogue` is a singleton `Idea`+`PostRegistrationMixin`
 (bootstrap-manifest entry, no `dependsOn`), warming in `postRegister` —
 the `TopicCatalogue` / `RecipeCatalogue` precedent. The index is
 **harvested**: `warm()` *pulls* two projectors. No content-side hook ever
@@ -235,12 +235,12 @@ built here.
 |---|---|
 | DTOs | `packages/types/src/index.ts` (Help block) |
 | Enriched projection + signature renderer | `packages/server/scripts/project-author-surface.ts` |
-| Command roster accessor | `mud/api/command.ts` + `mud/obj/api/CommandLogic.ts` (`allDefinitions`) |
-| Index singleton + two projectors | `mud/obj/HelpCatalogue.ts` |
+| Command roster accessor | `mud/api/command.ts` + `mud/platform/idea/api/CommandLogic.ts` (`allDefinitions`) |
+| Index singleton + two projectors | `mud/platform/idea/HelpCatalogue.ts` |
 | Read chokepoint + capability filter | `mud/api/help.ts` |
 | REST surface | `backend/HelpRoutes.ts` (mounted in `services/Server.ts`) |
-| Verb | `content/cmd/system/help.yaml` + `mud/obj/command/system/HelpController.ts` |
-| Boot wiring | the platform pack's `boot:` entry (`producer`), `mud/lib/paths.ts`, `platform/content/obj/HelpCatalogue.yaml` |
+| Verb | `content/platform/cmd/system/help.yaml` + `mud/platform/idea/cmd/system/HelpController.ts` |
+| Boot wiring | the platform pack's `boot:` entry (`producer`), `mud/lib/paths.ts`, `platform/content/platform/idea/HelpCatalogue.yaml` |
 
 ## ⭐ The help card exists now
 

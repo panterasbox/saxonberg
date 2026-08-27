@@ -34,14 +34,21 @@ packages/server/src/
 │                    PersistenceManager (singleton)
 └── mud/             Mudlib
     ├── api/         ~22 static Api classes (the public surface)
-    ├── cmd/         YAML command views (declarative)
     ├── config/      constants
     ├── lib/         Substrate ONLY — abstract roots, mixins, value
     │                objects, framework attachments. Never instanced.
-    └── obj/         Everything instanceable — anything a template's
-                     `class:` names (Avatar, Topic, Weapon, Room, …)
-        ├── command/   CommandController implementations
-        └── hooks/     persistence around-hooks
+    ├── platform/    Everything instanceable — anything a template's
+    │   │            `class:` names — keyed by its Stuff BRANCH:
+    │   ├── thing/     Prop, Coin, Forge, … (+ clusters: material/…)
+    │   ├── idea/      registries, catalogues, Conditions, Topics, …
+    │   │   ├── api/     the *Logic singletons
+    │   │   ├── cmd/     CommandController implementations, by category
+    │   │   └── hooks/   persistence around-hooks
+    │   ├── agent/     Avatar, NPC, Corpse, …
+    │   └── location/  Room, VoidLocation, …
+    └── world/       a locality's own classes (mirrors its content)
+                     (the YAML command VIEWS are content —
+                     packages/content/platform/content/platform/cmd/)
 ```
 
 ## api/ vs lib/ — which layer owns this code?
@@ -109,11 +116,14 @@ question above resolves cleanly only when you know which kind you're
 adding.
 
 > **The placement invariant: nothing instances `/lib/`.** A class that
-> a template's `class:` resolves to lives in `obj/`, on both axes —
-> the `.ts` file and the template path. `lib/` holds only what is
-> inherited. Enforced by `pnpm lint:instanceable`; the full rule and
-> the eight split classes are in
-> [CLAUDE.md § Instanceable Lives in `obj/`](../CLAUDE.md).
+> a template's `class:` resolves to lives in `platform/<branch>/`, on
+> both axes — the `.ts` file and the template path — where `<branch>` is
+> the Stuff branch it descends from (`thing` · `idea` · `agent` ·
+> `location`). Template rows follow the same shape under the root their
+> PACK decides (`/platform`, `/stuff`, `/trade/<industry>`). `lib/`
+> holds only what is inherited. Enforced by `pnpm lint:instanceable`;
+> the full rule and the eight split classes are in
+> [CLAUDE.md § Instanceable Lives in `platform/<branch>/`](../CLAUDE.md).
 
 `lib/` holds:
 - **Mixins** — capability shapes (`Containable`, `Sensor`, `Posed`).
@@ -122,11 +132,11 @@ adding.
   nothing clones (`Stuff`, `Thing`, `Location`, `Zone`, `Character`,
   `Creature`, `Modality`). Overridable. When one of these is *also*
   being cloned generically, it splits: the base stays here and a thin
-  concrete subclass in `obj/` takes the clones (`Thing` → `obj/Prop`,
-  `CartesianLocation` → `obj/location/Room`).
+  concrete subclass in `platform/<branch>/` takes the clones (`Thing` →
+  `platform/thing/Prop`, `CartesianLocation` → `platform/location/Room`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is
-  the exemplar and a **permanent** exception to "obj/ holds Stuff
+  the exemplar and a **permanent** exception to "platform/ holds Stuff
   classes": it has its own identity but is never cloned from a
   template, so the placement rule genuinely does not reach it.
   Also here: the *instanced but never stamped* fixtures —
@@ -136,7 +146,7 @@ adding.
   reaped inside this one call, never authored, never persisted."* The
   test is **does an instance carry a template-path stamp**, not *is it
   ever `new`'d*. `ExitableVessel` sits here too, deferred: it has no
-  `fieldMeta` and no documented authoring path, so it moves to `obj/`
+  `fieldMeta` and no documented authoring path, so it moves to `platform/`
   when a consumer demands a concrete class, not before.
 - **Value objects** — pure data + small per-instance math (`Light`,
   `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
@@ -537,7 +547,7 @@ held to a tiered standard:
    retired in content-packs wave 3). Backend doesn't reach into mudlib
    for the shape; mudlib doesn't have a competing definition.
 
-4. **`mud/obj/*` classes — tech debt.** `instanceof Avatar`,
+4. **`mud/platform/*` classes — tech debt.** `instanceof Avatar`,
    `Avatar.getTemplatePath()` from `Application` couples backend to
    gameplay. Pragmatic for now (the network → gameplay bridge has
    to land somewhere) but flag and migrate to mixin predicates
@@ -576,7 +586,7 @@ resolver plugin. `--report` prints crossings grouped by module and file.
 
 | Tier | Files | May import |
 |---|---|---|
-| **mudlib** (the default) | `lib/`, `obj/` outside `platform/idea/api/`, `cmd/`, `domain/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
+| **mudlib** (the default) | `lib/`, `platform/` outside `platform/idea/api/`, `world/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
 | **Api** | `mud/api/**` **and** `mud/platform/idea/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
 | **test** | `**/__tests__/**` | unrestricted |
 
@@ -670,9 +680,9 @@ and timers. Some of those are load-bearing and fine (`Buffer` is inert
 data handling; `ScheduleApi` already owns timers by a separate rule).
 
 `process.env` is the one worth naming, because mudlib code reads it
-today: `obj/AccessRegistry.ts` (the wizard / archwizard / streamer
-allowlists), `obj/OfficeRegistry.ts` (the founder identity), and
-`obj/ReactionRegistry.ts` (`NODE_ENV` / `VITEST`). Those are deliberate
+today: `platform/idea/AccessRegistry.ts` (the wizard / archwizard / streamer
+allowlists), `platform/idea/OfficeRegistry.ts` (the founder identity), and
+`platform/idea/ReactionRegistry.ts` (`NODE_ENV` / `VITEST`). Those are deliberate
 and unaffected by this rule — but note the shape: a module that can read
 `process.env` can also write it, and `globalThis` reaches further still.
 Closing that needs a different mechanism (a lint on identifiers, or a
@@ -745,7 +755,7 @@ reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
 on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
-(player-driven, in `obj/`) and the thin `NPC` (`lib/npc/NPC.ts` =
+(player-driven, in `platform/agent/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
@@ -903,7 +913,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/location/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
 | `lib/location/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
 | `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the MultiLocation elastic-graph coordinator); Pattern-B live ref, Warren-owned. See [location.md](./subsystems/location.md). |
-| `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/domain/lounge/`, not the generic substrate. |
+| `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/world/lounge/`, not the generic substrate. |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/` | `BistateMixin` | shared guarded-boolean base (typeof-boolean guard, round-trip persistence) under `Sealable` / `Switchable` / `Foldable`. **Unregistered / unmarked** — an implementation base, not a registry mixin. See [boundary.md](./subsystems/boundary.md). |
 | `lib/boundary/` | `SwitchableMixin` | generic two-state on/off toggle over `BistateMixin`; the `device`-category `switch`/`toggle` verb. Consumed by `Beacon` (walk/stop). See [boundary.md](./subsystems/boundary.md). |
@@ -1039,7 +1049,7 @@ for the full rule.
   `mixin.ts`, `containment.ts`, `message.ts`, …
 
 - **Command YAML views**: `perception/look.yaml`, `social/say.yaml`,
-  in the platform content pack's `content/cmd/<category>/` (grouped into
+  in the platform content pack's `content/platform/cmd/<category>/` (grouped into
   category subdirs; the `command-view` document kind). Served store-first
   by `CommandApi`, disk as the counted fallback.
 
@@ -1290,7 +1300,7 @@ refuse it).
 If you're reading the older planning docs and wondering where Phases
 5 and 6 went: they got **absorbed**, not skipped. Phase 5
 (Communications) shipped as part of Phase 3 messaging plus the
-say/tell controllers in `content/cmd/` and `mud/platform/idea/cmd/`. Phase 6
+say/tell controllers in `content/platform/cmd/` and `mud/platform/idea/cmd/`. Phase 6
 (Extended Object Model) shipped as `Thing.ts`, `Detailed.ts`,
 `Propertied.ts`, `CartesianLocation.ts` in `lib/stuff/` and
 `lib/spatial/`. Implementation status now lives in

@@ -196,7 +196,7 @@ population — audited 2026-07):
   `Interactive` holding a live connection). A static template cannot
   hold a live ref.
 - **Dynamically-minted uniques** — identity paths minted at runtime
-  (`Party` at `/obj/party/<uuid>`, the per-player `_eval` scratch).
+  (`Party` at `/platform/idea/party/<uuid>`, the per-player `_eval` scratch).
 - **Transient single-use vessels** — minted, used, and reaped inside
   one call (`LightningStrike`); a template would be a seed row
   nothing ever edits.
@@ -1077,7 +1077,7 @@ should NOT follow the person across a projection.
 
 ## Hardcoded Platform Template Paths — Use the `TemplatePaths` Index
 
-A platform template path (`/lib/…`, `/obj/…`) is **data** — a string key
+A platform template path (`/lib/…`, `/platform/… + /stuff/…`) is **data** — a string key
 into the one shared `domain` collection. So the TypeScript-side index of
 those keys lives in one place: `lib/paths.ts` (`TemplatePaths` for exact
 paths, `TemplatePathPrefixes` for trailing-slash families), a sibling of
@@ -1098,7 +1098,7 @@ const REGISTRY_PATH = TemplatePaths.accessRegistry;
 static readonly templatePath = TemplatePaths.persistentHydrator;
 ```
 
-Platform paths only. Authored `/domain/` content references its own paths
+Platform paths only. Authored `/world/` content references its own paths
 in seeds (and, for spawn/evacuation, app config) — that's content, not
 platform, and stays out of the index.
 
@@ -2591,8 +2591,8 @@ public async handleTestFunding(userId: string, fundsMinor: number) { … }
 # config/parcels.yaml — one lot ships already sold.
 # The gate is ungated and the cultivation gate reads ZONING, not title,
 # so a walk-in-and-plant test needs a lot that IS sold, not one it bought.
-- extent: /domain/terminus/hinkley-hills/lots/lot-1
-  parentParcel: /domain/terminus/hinkley-hills
+- extent: /world/terminus/hinkley-hills/lots/lot-1
+  parentParcel: /world/terminus/hinkley-hills
   owner: { kind: group, name: hinkley-hills }
 ```
 
@@ -2619,7 +2619,7 @@ An `exits:` entry names a template path, and the engine resolves it with
 nothing is there. That is correct for a singleton room and quietly wrong
 for a template that exists to be cloned per instance.
 
-Hinkley Lane authored `north -> /domain/…/hinkley-hills/yard`, the shared
+Hinkley Lane authored `north -> /world/…/hinkley-hills/yard`, the shared
 template every sold lot's yard is minted from. Walking north stood the
 *template* up as an unowned yard on nobody's lot, that any player could
 enter and cultivate — and it then collided with the minted per-lot
@@ -2635,7 +2635,7 @@ no one static exit can mean "yours".
 # lane.yaml — names the template every lot clones from
 exits:
   north:
-    destination: /domain/terminus/hinkley-hills/yard
+    destination: /world/terminus/hinkley-hills/yard
 ```
 
 ### GOOD (the provisioner installs one deferred edge per instance)
@@ -2745,7 +2745,7 @@ own.** Write to it as though somebody else already has.
 **Don't:**
 
 ```ts
-const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '/obj/Locality/'
+const ADDRESS_PREFIX = TemplatePathPrefixes.address; // '<root>/idea/Locality/'
 const LOCALITY_CLASS = `${ADDRESS_PREFIX}Locality`;  // ✗
 // …and its cousin, filtering rows on the class's DIRECTORY:
 if (!tpl.class.startsWith('/stuff/idea/material/')) continue; // ✗
@@ -2765,7 +2765,7 @@ nothing.
 
 **It fails silently, which is what makes it worth a rule.** Both live
 instances behaved this way: `AddressRegistry` computed
-`/obj/Locality/Locality`, no template carried that class, the coverage
+`…/Locality/Locality`, no template carried that class, the coverage
 trie stayed empty, and every address quietly resolved to its fallback
 ("a Teleport Authority terminal" instead of "Terminus").
 `MaterialLogic.boot` filtered on the class's directory, so flattening

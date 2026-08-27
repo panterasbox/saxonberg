@@ -40,7 +40,7 @@ best-effort side-effect — a missed push never loses the row.
 
 `DiagnosticApi` (`mud/api/diagnostics.ts`) is the gated forwarding shell
 over the hot-reloadable `DiagnosticLogic` singleton at
-`/obj/api/diagnostics`. The store is the `diagnostics` Mongo collection,
+`/platform/idea/api/diagnostics`. The store is the `diagnostics` Mongo collection,
 accessed through the raw `getCollection` surface (plain-scalar rows carry
 no marshalled value-objects, so there is no `Document` subclass — the
 `HotReloadApi` convention). Each row is a `DiagnosticDoc`
@@ -68,7 +68,7 @@ Two write paths:
 `lib/diagnostics/DiagnosticChannel` is the pure value-object that maps an
 absolute path to a channel (first match wins): a `/zones/<zone>/` segment
 or the lounge tree → `zone.<zone>`; `/lib/<subsystem>/` → `lib.<subsystem>`;
-`/obj/command/` or `/cmd/` → `command`; `/api/` → `api`; else → `global`.
+`/platform/idea/cmd/` or `/platform/cmd/` → `command`; `/api/` → `api`; else → `global`.
 It also owns `expandSubscription` (resolving the synthetic `$cwd`) and
 `matches` (the `*` / `lib.*` prefix / exact grammar). Pure and
 unit-tested; `DiagnosticApi` re-exports the three on its face.
@@ -96,7 +96,7 @@ The three adopters:
   `controller-error` notes (the giver's real-error surface) before they
   reach `runRoot`. So the substantive capture is `DiagnosticApi.record`
   at the three controller-error emission sites (path
-  `/obj/command/<controller>`), via a swallowing fire-and-forget helper;
+  `/platform/idea/cmd/<controller>`), via a swallowing fire-and-forget helper;
   the `runRootGuarded('absorb')` at `backend/inbound/command.ts` catches
   only **residual framework escapes** and retires the generic *"Command
   execution failed"* socket frame. The note stays the giver's surface —
@@ -179,7 +179,7 @@ reach a guarded `runRoot` uncaught — command-controller throws (via the
 
 ## Reader A — the `errors` verb
 
-`content/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
+`content/platform/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
 AuthorMixin-afforded, author-or-wizard gated in the controller).
 Subcommands: `list` (default) —
 `--channel` / `--severity` / `--source` / `--mine` / `--limit` filters and

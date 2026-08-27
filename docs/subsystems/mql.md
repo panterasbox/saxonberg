@@ -669,7 +669,7 @@ There are **no permission tiers** (content-packs wave 3 deleted them
 along with the `core` group and the "author tier" — see
 [access.md](./access.md)). Every seed, scope, namespace filter and
 predicate resolves for every giver: a guest may type `flower:online`,
-`world:[mixin.Door]` or `/obj/Location/*:fountain` and get the honest
+`world:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
 answer, fogged by perception exactly as `look` is. What that guest may
 then *do* with a match is decided where it always was — by the verb:
 `attack online:<name>` fails on reachability, `teleport` on title over
@@ -780,7 +780,7 @@ scope (candidate pool = book's child details).
 
 ## Path-glob index (`PathTrie<T>`)
 
-Path-glob seeds (`/obj/Sword/*`, `/obj/**/long*`) need to enumerate
+Path-glob seeds (`/platform/thing/Sword/*`, `/platform/… + /stuff/**/long*`) need to enumerate
 template paths matching a pattern. `StuffApi`'s template-path index
 is a `PathTrie<Stuff>`, exported from `api/path-pattern.ts`
 alongside `PathPatternApi`. One node per path segment; pruning on
@@ -788,7 +788,7 @@ remove keeps the trie tight.
 
 `PathPatternApi.compile` supports `*` (any non-`/`), `?` (single
 char), `**` (recursive across `/`). The trie's `glob(pattern)` walker
-short-circuits — `/obj/Sword/*` only walks the `obj → Sword` subtree.
+short-circuits — `/platform/thing/Sword/*` only walks the `obj → Sword` subtree.
 
 Operations:
 

@@ -91,7 +91,7 @@ real. The derived treatment:
   later genetics) **× derived condition factors** = effective current.
   Concretely, the strength baseline *is* **per-part muscle mass** — the
   tissue composition the Vitals substrate build ships on `BodyPart`
-  (`/obj/material/tissue/muscle`). Strength reads as real force
+  (`/stuff/idea/material/tissue/muscle`). Strength reads as real force
   (`N` / `kg`), instrument-measurable (a **dynamometer** reads grip the
   way a thermometer reads fever), and a *task* selects which parts'
   muscle it draws on — so grip ≠ deadlift, and a fractured limb loses

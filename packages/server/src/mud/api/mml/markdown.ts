@@ -324,7 +324,7 @@ function processInline(
     // through verbatim rather than being escaped.
     //
     // This is what lets one body be markdown prose AND a component
-    // tree at once — `## Uses` beside `<composition of="/obj/oak"/>`.
+    // tree at once — `## Uses` beside `<composition of="/stuff/idea/material/wood/oak"/>`.
     // Without it, escaping `<` would make every component and every
     // `<spoiler>` unwritable, and the requirements use exactly that
     // syntax as the author-facing form.

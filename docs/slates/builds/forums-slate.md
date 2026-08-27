@@ -209,7 +209,7 @@ new construction — the genuinely-new surface is small.
   engine re-resolves current-state docs). CRUD docs remain the source of truth;
   the log is a faithful mirror, not a rebuild source (see Client architecture
   § Reads).
-- **`SubjectCatalogue`** (singleton `Idea` at `/obj/SubjectCatalogue`,
+- **`SubjectCatalogue`** (singleton `Idea` at `/platform/idea/SubjectCatalogue`,
   `PostRegistrationMixin`) — named after its **root entity** the way
   `ChannelCatalogue` / `SoulCatalogue` / `TopicCatalogue` are (chat's `Channel`
   splits here into Board + Subject; the catalogue indexes the identity root).
@@ -276,7 +276,7 @@ Subject "Gossip"  (standing; ref: open/all)
 ### Surfaces
 
 - **`ForumsApi`** (`mud/api/forums.ts`, thin gated facade) + **`ForumsLogic`**
-  (`obj/api/ForumsLogic.ts`, HMR-able singleton at `/obj/api/forums`) — the
+  (`platform/idea/api/ForumsLogic.ts`, HMR-able singleton at `/platform/idea/api/forums`) — the
   chat split exactly. Logic resolves the Catalogue, mediates board/entry CRUD,
   vote application, tree reads.
 - **The aether capability** — a `ForumsMixin` hosted-update riding

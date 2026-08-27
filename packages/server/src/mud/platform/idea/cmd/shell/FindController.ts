@@ -21,7 +21,7 @@
  * Admin-gated row suffix:
  *   - Viewers whose `commandGiver` composes `AuthorMixin`
  *     (`MixinApi.isAuthor`) see each row's template path in parens
- *     after the display name (e.g. `apple (/obj/apple)`). Non-admin
+ *     after the display name (e.g. `apple (/stuff/thing/apple)`). Non-admin
  *     viewers see name only. The check is per-giver, not per-match —
  *     admins see template paths universally; non-admins never.
  *

@@ -16,16 +16,16 @@ only *engine* change was the spine's **multi-instance-host** generalization
 (D1). This doc is the source of truth for that model, the elastic building,
 provisioning, and the theme overlay.
 
-Homed at `packages/server/src/mud/domain/eternal/duncan-hall/`.
+Homed at `packages/server/src/mud/world/eternal/duncan-hall/`.
 
 ## D1 — the multi-instance persistence model
 
 The spine keys a `PersistedRecord` on `(scope, owner)` where `scope` is the
 host's `templatePath`. That works for a singleton host (Avatar's
-`/obj/Avatar/<playerId>` is coincidentally unique-per-host). It **breaks for
+`/platform/agent/Avatar/<playerId>` is coincidentally unique-per-host). It **breaks for
 a shared template** — many leased dorm rooms clone from one `DormRoom`
 template yet must keep distinct persisted state. D1 fixes this generally, in
-the spine (`lib/persistence/Persistable.ts`, `obj/api/PersistableLogic.ts`,
+the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic.ts`,
 `api/persistable.ts`):
 
 - **One identity, no modes: `(scope, key)`.** Every host is identified by
@@ -77,7 +77,7 @@ the spine (`lib/persistence/Persistable.ts`, `obj/api/PersistableLogic.ts`,
 
 **Avatar migrated onto this** (the regression boundary): its key is its own
 `templatePath`, equal to the pre-D1 self-derived owner, so the `owner` column
-and the account-deletion cascade (`deleteAllFor('/obj/Avatar/<pid>')`) are
+and the account-deletion cascade (`deleteAllFor('/platform/agent/Avatar/<pid>')`) are
 unchanged.
 
 ## The elastic building — `DormWarren`
@@ -396,7 +396,7 @@ than a migration of every live per-unit record: the capability landed on
 the class, the slot spec landed as data.
 
 > The dorm fixtures are **not** duplication of the new generic ones, and a
-> test pins why. The tap already uses `/obj/UnboundedReceptacle`; the desk
+> test pins why. The tap already uses `/platform/thing/UnboundedReceptacle`; the desk
 > is a `Surface` *plus* the affordance carrier for `remodel` *plus* a theme
 > discriminant (`DormThemes.roleOf` switches on `instanceof`); the same
 > holds for the footlocker and the bed, and `DormRoom` carries

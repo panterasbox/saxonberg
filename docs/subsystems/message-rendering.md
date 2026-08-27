@@ -770,7 +770,7 @@ shape is **bounded** — the engine recognizes a fixed set of keys; no
 
 ### `cockpit style`
 
-`StyleController` (`mud/obj/command/shell/StyleController.ts`) is the
+`StyleController` (`mud/platform/idea/cmd/shell/StyleController.ts`) is the
 player's surface for editing the overlay. Settings:
 
 | Usage | Effect |

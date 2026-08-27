@@ -178,7 +178,7 @@ owns the document, a person wrote it.
 ## The surface — `PressApi` / `PressLogic`
 
 The gated Api↔logic-singleton pair (`api/press.ts`,
-`obj/api/PressLogic.ts` at `/obj/api/press`). The Api is a thin forwarding
+`platform/idea/api/PressLogic.ts` at `/platform/idea/api/press`). The Api is a thin forwarding
 shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
 @Unshadowable extends ApiLogic` with every method gated
 `FromModule('/api/press#PressApi')`, all real work in module-private
@@ -206,7 +206,7 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
   there is no event tap to install.
 
 **`PressBoard`** (`obj/PressBoard.ts`, manifest-registered at
-`/obj/PressBoard`) is a warm cache **over the tree** owning the window
+`/platform/idea/PressBoard`) is a warm cache **over the tree** owning the window
 semantics — `recentWindow()` = pins-first then `publishedAt`-desc,
 excluding retracted and expired, the pin block capped at `press.maxPins`
 and the whole window at `press.tickerWindow`. Soft-retracted releases stay
@@ -214,7 +214,7 @@ cached (reachable by id) and drop out of the window.
 
 ## Publishing — the `press` verb
 
-`cmd/system/press.yaml` + `obj/command/system/PressController.ts`.
+`cmd/system/press.yaml` + `platform/idea/cmd/system/PressController.ts`.
 Subcommands `post` / `edit <id>` / `retract <id>`, with bare
 `press <headline>` falling through to `post`.
 
@@ -412,9 +412,9 @@ publishes without being a news outlet at all.
 |---|---|
 | `lib/bulletin/` | `lib/press/` |
 | `lib/bulletin/Bulletin.ts` | **deleted** — a release is a `StoredDocument` |
-| `obj/BulletinBoard.ts` @ `/obj/BulletinBoard` | `obj/PressBoard.ts` @ `/obj/PressBoard` |
+| `obj/BulletinBoard.ts` @ `/platform/thing/BulletinBoard` | `obj/PressBoard.ts` @ `/platform/idea/PressBoard` |
 | `api/bulletin.ts` / `BulletinApi` | `api/press.ts` / `PressApi` |
-| `obj/api/BulletinLogic.ts` @ `/obj/api/bulletin` | `obj/api/PressLogic.ts` @ `/obj/api/press` |
+| `platform/idea/api/BulletinLogic.ts` @ `/platform/idea/api/bulletin` | `platform/idea/api/PressLogic.ts` @ `/platform/idea/api/press` |
 | `backend/BulletinRoutes.ts` | `backend/PressRoutes.ts` |
 | `cmd/system/bulletin.yaml` + `BulletinController` | `cmd/system/press.yaml` + `PressController` |
 | `BulletinRow` / `BulletinFeedFrame` | `ReleaseRow` / `ReleaseFeedFrame` |

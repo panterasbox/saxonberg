@@ -20,7 +20,7 @@ Three small pieces, modeled on the `WorldClockState` (Document) ↔
 | the platform pack's settings | `packages/content/platform/content/settings/<section>.yaml` | The single source of the settings' **values** — split by key prefix (`combat.yaml`, `banking.yaml`, …; un-dotted keys in `core.yaml`). |
 | the `settings` content kind | `PackLogic` (`settingsStrategy`) | Merges the pack's defaults into `app_settings` at boot — **merge-missing** ([content-packs.md](./content-packs.md)). |
 | `AppApi` | `api/app.ts` | The runtime read/write surface (and the future home for app-level ops). |
-| `config` verb | `cmd/system/config.yaml` + `obj/command/system/ConfigController.ts` | Developer-gated in-app editing. |
+| `config` verb | `cmd/system/config.yaml` + `platform/idea/cmd/system/ConfigController.ts` | Developer-gated in-app editing. |
 
 ### Storage is an open key/value bag, not a field per setting
 
@@ -53,9 +53,9 @@ export const AppSettingKeys = {
 # packages/content/platform/content/settings/core.yaml — the single source of the values
 settings:
   - key: defaultStartLocation
-    value: /domain/lounge/warren
+    value: /world/lounge/warren
   - key: evacuationFallback
-    value: /domain/void
+    value: /world/void
 ```
 
 ## The `AppApi` surface — runtime operations only
@@ -123,7 +123,7 @@ precedent — operator/TS-escape tier):
 ```
 config                                       list every setting + current value
 config defaultStartLocation                  show one
-config defaultStartLocation /domain/lounge   set one (persist + refresh cache)
+config defaultStartLocation /world/lounge   set one (persist + refresh cache)
 ```
 
 Two optional positional args (`key`, `value`); not subcommands. `value` is
@@ -139,8 +139,8 @@ succeeded; it is **not** a `controller-rejected` envelope note).
 
 | Key | Seeded value | Read by |
 |---|---|---|
-| `defaultStartLocation` | `/domain/lounge/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
-| `evacuationFallback` | `/domain/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
+| `defaultStartLocation` | `/world/lounge/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
+| `evacuationFallback` | `/world/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
 
 `defaultStartLocation` supplies only the *initial* value of each avatar's
 per-character `Avatar.startLocation` field (the durable spawn/recall home,

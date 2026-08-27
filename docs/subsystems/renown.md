@@ -61,7 +61,7 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
   (`reaction` | `reception` | …), `signal` (raw kind-specific payload),
   `locality` + `groups` (the two scope axes), and **both clocks** — `at`
   (game-time seconds, drives decay) and `realAt` (epoch ms, analytics).
-  `subject`/`source` are the durable `templatePath` (`/obj/Avatar/<playerId>`
+  `subject`/`source` are the durable `templatePath` (`/platform/agent/Avatar/<playerId>`
   for an avatar), **not** the ephemeral `stuffId` — the influence build's
   Phase 0 durability re-key: the `stuffId` is re-minted on re-clone, so it
   stays a live-resolution handle (scope resolution) while the *stored* key is
@@ -80,7 +80,7 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
 ## `RenownApi` / `RenownLogic` — the gated seam
 
 `RenownApi` (`api/renown.ts`) is the thin gated facade; the logic lives in
-the HMR-able `RenownLogic` singleton (`obj/api/RenownLogic.ts`, gated
+the HMR-able `RenownLogic` singleton (`platform/idea/api/RenownLogic.ts`, gated
 `FromModule('/api/renown#RenownApi')`, internal sub-logic in
 module-private free functions to dodge the gate on `this.x()` self-calls).
 Surface:

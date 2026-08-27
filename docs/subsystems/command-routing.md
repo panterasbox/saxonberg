@@ -40,12 +40,12 @@ The shape lives in:
   abstract base controllers extend.
 - `packages/server/src/mud/lib/command/validators/<name>.ts` —
   per-validator modules (no registry; YAML references them by path).
-- `packages/content/platform/content/cmd/**/*.yaml` — command views
+- `packages/content/platform/content/platform/cmd/**/*.yaml` — command views
   (declarative; the `command-view` document kind, served store-first —
   see [command-spec.md](./command-spec.md)).
 - `packages/server/src/mud/lib/command/command.schema.json` — Ajv schema the
   YAML loader validates against.
-- `packages/server/src/mud/obj/command/*Controller.ts` — controllers.
+- `packages/server/src/mud/platform/idea/cmd/*Controller.ts` — controllers.
 
 ## End-to-end flow
 
@@ -90,7 +90,7 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │             resolved, subcommandHint)
    │       CommandApi.runValidators(resolved, ctx)         → sync validators
    │       _executeOne:
-   │         StuffApi.clone('/obj/command/' + cmd.controller)
+   │         StuffApi.clone('/platform/idea/cmd/' + cmd.controller)
    │         await controller.execute(model, ctx)          ← returns void
    │         StuffApi.destruct(controller)
    │         (controller-error caught by outer try/catch → controller-error note)
@@ -117,14 +117,14 @@ The MVC mapping inside that pipeline:
 
 | MVC role | Concrete artifact | Lives in |
 |---|---|---|
-| **View** | YAML file declaring verbs, args, options, subcommands | the platform pack's `content/cmd/**/*.yaml` (a `command-view` document at runtime) |
+| **View** | YAML file declaring verbs, args, options, subcommands | the platform pack's `content/platform/cmd/**/*.yaml` (a `command-view` document at runtime) |
 | **Model** | `CommandModel` — `Record<string, FieldValue \| undefined> & { subcommand? }` | runtime only |
-| **Controller** | `CommandController<T>` subclass extending `Idea`; `execute()` returns `void` and emits outcome via `ctx.note(...)` | `mud/obj/command/*Controller.ts` |
+| **Controller** | `CommandController<T>` subclass extending `Idea`; `execute()` returns `void` and emits outcome via `ctx.note(...)` | `mud/platform/idea/cmd/*Controller.ts` |
 
 Controllers are templated `Idea` Stuff. Each controller file has a
 matching template row shipped by the **platform pack** at
-`packages/content/platform/content/obj/command/<category>/<Name>Controller.yaml`
-(installed at `/obj/command/<category>/<Name>Controller` by
+`packages/content/platform/content/platform/idea/cmd/<category>/<Name>Controller.yaml`
+(installed at `/platform/idea/cmd/<category>/<Name>Controller` by
 `PackApi.install` — there is no `mud/seeds/` tree and no
 `SeederManager` since content-packs wave 3). Dispatch
 clones a fresh instance per execution via `StuffApi.clone` (which
@@ -536,7 +536,7 @@ through the existing `pushCommandSource` seam and answers whatever the
 reader asks of its own object.
 
 The live consumer is the server-only `affordances` system verb
-(`obj/command/system/AffordancesController`): it lists the actor's
+(`platform/idea/cmd/system/AffordancesController`): it lists the actor's
 available commands annotated by affording source (innate vs the
 granting item, distinguished by identity-comparing `source` to the
 giver — not a tag) and reads its own `ctx.commandSource` to show what
@@ -1073,7 +1073,7 @@ reads only the resolved form.
 
 ```ts
 const controller = await StuffApi.clone<CommandController>(
-  `/obj/command/${command.controller}`
+  `/platform/idea/cmd/${command.controller}`
 );
 try { return await controller.execute(model, ctx); }
 finally { StuffApi.destruct(controller); }
@@ -1212,7 +1212,7 @@ dispatched stay in lockstep.
 
 ## YAML view shape
 
-Each file under the platform pack's `content/cmd/` declares one
+Each file under the platform pack's `content/platform/cmd/` declares one
 `CommandView`. The schema lives at `mud/lib/command/command.schema.json`
 and is enforced by Ajv on load — schema failures throw with the full
 error trail at boot, not at first verb invocation — and again at the
@@ -1274,17 +1274,17 @@ option or arg name.
 ## Adding a new command
 
 1. **Define the YAML** in the platform pack's
-   `content/cmd/<category>/<verb>.yaml` (one of the
+   `content/platform/cmd/<category>/<verb>.yaml` (one of the
    command categories — see [command-spec.md](./command-spec.md)).
    Pick `args:` *or* `subcommands:` (never both). Lowercase filename.
    The schema check surfaces typos / missing fields at boot.
 2. **Implement the controller** in
-   `mud/obj/command/<category>/<Name>Controller.ts` extending
+   `mud/platform/idea/cmd/<category>/<Name>Controller.ts` extending
    `CommandController<TModel>`. The YAML's `controller` field carries
    the category prefix (`<category>/<Name>Controller`). Define a model
    interface that declares the typed fields the matcher will hand you.
 3. **Add the template row** at the platform pack's
-   `content/obj/command/<category>/<Name>Controller.yaml` with the
+   `content/platform/idea/cmd/<category>/<Name>Controller.yaml` with the
    correct `class:` path. `PackApi.install` writes it into `content` at
    boot; `StuffApi.clone` picks it up on dispatch.
 4. **Wire discovery.** Decide which class or mixin should expose the
@@ -1692,7 +1692,7 @@ opening for a command.
   setting and how `EnvironmentMixin` + `resolveSetting` route per-
   actor settings.
 - [architecture.md](../architecture.md) — Manager vs Api layering,
-  mixin organization, file structure for `cmd/` and `obj/command/`.
+  mixin organization, file structure for `cmd/` and `platform/idea/cmd/`.
 - [antipatterns.md](../antipatterns.md) — `ContainmentApi.move` /
   `mover.traverse(exit)` patterns command controllers prefer over
   raw containment juggling.

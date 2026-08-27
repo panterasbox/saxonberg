@@ -819,7 +819,13 @@ landing first.
   pack **pack zero** — manifests carry `requires` (groups + title
   claims) / `boot` / `maintainers`, the last three seeders and
   `mud/bootstrap.ts` are gone, title is held by the executive
-  organization and the `core` group is deleted — sixteen packs ship.
+  organization and the `core` group is deleted; wave 4a (2026-08-28,
+  MR !203) renamed `/domain/` → `/world/` with no migration, added the
+  `/trade/` root + the first two trade packs (eighteen ship), deleted
+  every migration / adoption / compat path in the tree, and moved every
+  template and engine source path onto the `<root>/<branch>/` pattern
+  (`/platform`, `/stuff`, `/trade/<x>`; `thing`·`idea`·`agent`·`location`;
+  `command` → `cmd`). Waves 4b (the venue packs) and 5 remain.
   Left: the wave-4 path surgery (see
   [content-packs.md](./subsystems/content-packs.md) /
   [content-packs-slate.md](./slates/builds/content-packs-slate.md));

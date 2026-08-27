@@ -136,7 +136,7 @@ seed yields a list of Stuff (possibly empty).
 | `it` / `him` / `her` | last single match of matching gender |
 | `them` | last multi-match list |
 | `$$` | result of the previous query |
-| `/obj/Sword/*` | template path lookup (instances of matching templates) |
+| `/platform/thing/Sword/*` | template path lookup (instances of matching templates) |
 | `#abc123` | direct stuff id lookup |
 
 `reachable` is the closest analogue to "everything I can act on right
@@ -177,9 +177,9 @@ Paths support `*` (any non-`/` chars), `?` (single char), `**`
 (recursive across `/`):
 
 ```
-/obj/Sword/Long      exact template path
-/obj/Sword/*         all sword templates
-/obj/**/long*        any template anywhere under /obj/ whose leaf
+/platform/thing/Sword/Long      exact template path
+/platform/thing/Sword/*         all sword templates
+/platform/… + /stuff/**/long*        any template anywhere under /platform/… + /stuff/ whose leaf
                      starts with "long"
 ```
 
@@ -681,7 +681,7 @@ me:i:[prop.hp > 0]                      (comparison
                                          so missing prop.hp is excluded)
 
 # Rooms whose name or top-level detail names match "fountain"
-/obj/Location/*:fountain                (chain narrow uses
+/platform/location/*:fountain                (chain narrow uses
                                          the detail-keyword extension,
                                          landing via.detailPath when
                                          a detail name matched)

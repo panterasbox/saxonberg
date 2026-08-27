@@ -93,7 +93,7 @@ child, `transfer` re-titles it.
 > ⭐⭐⭐ **A street is a subparcel carved out of the neighborhood and
 > dedicated to the municipality.**
 
-So `/domain/terminus/foundry-row/main-street` can sit **inside** the
+So `/world/terminus/foundry-row/main-street` can sit **inside** the
 neighborhood path while being **titled to the city**.
 
 > **Path is location. Title is ownership. They were never the same

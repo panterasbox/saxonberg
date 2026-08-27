@@ -85,8 +85,8 @@ function sanitize(message: string): string {
 }
 
 /**
- * repo-relative → source-logical: `packages/server/src/mud/obj/Foo.ts` →
- * `/server/src/mud/obj/Foo.ts` (the packages-stripped, leading-`/` form
+ * repo-relative → source-logical: `packages/server/src/mud/platform/thing/Foo.ts` →
+ * `/server/src/mud/platform/thing/Foo.ts` (the packages-stripped, leading-`/` form
  * `AccessApi.resolveSourceFolderZone` walks against the template tree). A
  * path outside `packages/` (`docs/`, `deploy/`, root config) has **no**
  * source-logical form → `null` → the gate fails closed (untitled is nobody's

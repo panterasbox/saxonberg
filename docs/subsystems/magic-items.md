@@ -1009,7 +1009,7 @@ independent:
 Braille is what proves they are two: touch-only *and* its own system,
 where raised common letters are the same physical make in the ordinary
 system. Under one field those are indistinguishable. `obj/Signpost` +
-`generic-objects/content/obj/items/dotted-slate.yaml` are the worked A/B against the
+`generic-objects/content/stuff/thing/items/dotted-slate.yaml` are the worked A/B against the
 equally-embossed `scroll-of-remove-curse`.
 
 The symmetry worth keeping: **braille and cipher are the same field
@@ -1064,19 +1064,19 @@ The demand itself is the shared targeting floor
 ## Files
 
 **Effect spine** — `lib/magic/EffectContext.ts` · `CastingProfile.ts` ·
-`Arcane.ts` · `Grid.ts` · `obj/api/MagicLogic.ts` (`discharge`)
+`Arcane.ts` · `Grid.ts` · `platform/idea/api/MagicLogic.ts` (`discharge`)
 
 **Item classes** — `lib/magic/Charged.ts` · `Focus.ts` · `Consumable.ts` ·
 `Potable.ts` · `Charge.ts` · `Dose.ts` · `Conduit.ts` · `obj/magic/Wand.ts` ·
 `Scroll.ts` · `Spellbook.ts` · `obj/material/PotionMaterial.ts`
 
 **BUC** — `lib/magic/Blessing.ts` (`draw`/`hasOdds`) · `Blessable.ts`
-(`applyMintOdds`) · `obj/api/ResidencyLogic.ts` (the mint-site roll) ·
+(`applyMintOdds`) · `platform/idea/api/ResidencyLogic.ts` (the mint-site roll) ·
 `lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts`
-(the only composers) · `obj/api/MagicLogic.ts` (`BUC_POTENCY`,
-`execAdjustBlessing`) · `arcane-library/content/obj/magic/Spell/remove-curse.yaml` ·
-`generic-objects/content/obj/items/scroll-of-remove-curse.yaml` ·
-`generic-objects/content/obj/items/wand-of-firebolt-cursed.yaml`
+(the only composers) · `platform/idea/api/MagicLogic.ts` (`BUC_POTENCY`,
+`execAdjustBlessing`) · `arcane-library/content/stuff/idea/magic/Spell/remove-curse.yaml` ·
+`generic-objects/content/stuff/thing/items/scroll-of-remove-curse.yaml` ·
+`generic-objects/content/stuff/thing/items/wand-of-firebolt-cursed.yaml`
 
 **Identification** — `lib/identification/Appearance.ts` ·
 `DescriptorBank.ts` · `Identifiable.ts` · `lib/description/Labelled.ts` ·
@@ -1088,7 +1088,7 @@ glass, shared by `look` and the identify effect)
 `StudyActivity.ts`
 
 **Distribution** — `lib/residency/Circulating.ts` · `Census.ts` ·
-`SpawnTable.ts` · `lib/magic/PriceList.ts` · `obj/api/ResidencyLogic.ts`
+`SpawnTable.ts` · `lib/magic/PriceList.ts` · `platform/idea/api/ResidencyLogic.ts`
 (`installSpawnSweep`)
 
 **Verbs** — `magic/zap` · `magic/recharge` · `magic/study` ·

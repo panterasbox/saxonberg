@@ -3,7 +3,7 @@
 **What the server remembers for you, and how you get it back.**
 
 Three faces of one subsystem, all behind `RecordApi` (`api/record.ts`)
-with its logic singleton at `/obj/api/record`:
+with its logic singleton at `/platform/idea/api/record`:
 
 - **The frame store** — a per-player rolling window of the frames you
   were actually delivered.

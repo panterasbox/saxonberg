@@ -412,7 +412,7 @@ the change.
 the seeded `CockpitPaneController` template row in `domain`, because
 `SeederManager` (since retired) was insert-only and `domain` was a `keep` collection. It
 is `db.domain.deleteOne({path:
-'/obj/command/shell/CockpitPaneController'})`, run by hand; the seeder
+'/platform/idea/cmd/shell/CockpitPaneController'})`, run by hand; the seeder
 now prints the general case's `deleteMany` at boot but does **not** run
 it, because CMS-authored templates share that collection with no
 discriminator.
@@ -442,12 +442,12 @@ zero orphans after closing, sweeping, rearranging and disconnecting.
 |---|---|
 | `mud/lib/connection/Cards.ts` | The catalogue: `CardSource`, `CardDefinition`, `CARDS`, `CARDS_BY_NAME`, `SHELF_SUBSCRIPTION` |
 | `mud/api/card.ts` | `CardApi` — the gated face; owns the sweep handle and the `runRoot` principal |
-| `mud/obj/api/CardLogic.ts` | The hot-reloadable logic singleton at `/obj/api/card`; `normalizeKey` lives here |
-| `mud/obj/CardRegistry.ts` | The state: per-Interactive open cards, the sweep, `resolveSubject` behind the perception gate |
+| `mud/platform/idea/api/CardLogic.ts` | The hot-reloadable logic singleton at `/platform/idea/api/card`; `normalizeKey` lives here |
+| `mud/platform/idea/CardRegistry.ts` | The state: per-Interactive open cards, the sweep, `resolveSubject` behind the perception gate |
 | `packages/client/src/store/cardFeedSlice.ts` | The client's card set + the husk model |
 | `packages/client/src/components/cards/` | `CardFeed`, `Card`, `CardBodies`, `CardViewStrip`, `useCardFeed` |
 
-⭐ `dest /obj/api/card` reloads the logic **without closing anybody's
+⭐ `dest /platform/idea/api/card` reloads the logic **without closing anybody's
 cards**: the state is on the registry, the resolution is on the logic.
 
 ## The wire
@@ -847,7 +847,7 @@ after `find`. No subscription is registered; no live updates.
 
 **Admin gating.** For admin / Author viewers (checked via
 `MixinApi.isAuthor(commandGiver)`), each row appends the
-template path in parens — `brass thermometer (/obj/Thermometer)`.
+template path in parens — `brass thermometer (/platform/thing/Thermometer)`.
 Non-admins see display name only.
 
 **Discovery.** Contributed to `PerceiverMixin.commandContributions.self`

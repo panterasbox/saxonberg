@@ -5,7 +5,7 @@
  * Lives at `/platform/idea/GovernmentCatalogue`, per the singleton-in-`obj/`
  * convention (the `CorpoCatalogue` / `DisciplineCatalogue` recipe). The
  * cache is transient instance state; the source of truth is the
- * per-`Government` leaf templates under `/obj/Government/` in the
+ * per-`Government` leaf templates under the Government rosters (`TemplatePathRosters.government`) in the
  * `content` collection. The leaves are pure data, so the catalogue loads
  * descriptors directly from the template docs — never cloning them as
  * live Stuff.

@@ -60,8 +60,8 @@ query-param delivery. Rotate via the env secret.
 
 ## `StreamState`
 
-A `PostRegistrationMixin(Idea)` singleton at `/obj/StreamState`
-(a platform-pack `boot:` entry; row `{ class: /obj/StreamState, data: {} }`).
+A `PostRegistrationMixin(Idea)` singleton at `/platform/idea/StreamState`
+(a platform-pack `boot:` entry; row `{ class: /platform/idea/StreamState, data: {} }`).
 Two transient fields:
 
 ```ts

@@ -87,8 +87,8 @@ See also:
   — `WikiPage` is a plain `Document` (no Stuff overhead).
 - [docs/subsystems/grouping.md](../../subsystems/grouping.md) +
   [zone.md](../../subsystems/zone.md) — Groups + `FolderZone` stamps the
-  bootstrap mints (mirrors the shipped lounge group + `/obj/lounge` /
-  `/domain/lounge` stamps).
+  bootstrap mints (mirrors the shipped lounge group + `/stuff/idea/lounge` /
+  `/world/lounge` stamps).
 
 ---
 

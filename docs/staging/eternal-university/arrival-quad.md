@@ -4,7 +4,7 @@
 > 2026-06-06 "bus stop / one-room-one-exit-to-campus" frame below and the
 > stale "TPA terminal lives in this room" assumption (the Terminus terminal
 > is now its **own built branch across the street** — see
-> `/domain/terminus/terminal/`). This doc is the **build-integration layer**
+> `/world/terminus/terminal/`). This doc is the **build-integration layer**
 > over the already-written per-object sheets (`objects/*.md`) and the Gus
 > character sheet (`npcs/crossing-guard.md`); it does not restate them.
 >
@@ -59,11 +59,11 @@ public-street / civic / device systems). Two rules:
 > (per `terminus-city.md` §2). The earlier "east=terminal / west=campus"
 > wording in this section was the stale frame and is replaced by the below.
 
-- **Room:** `/domain/eternal/university-avenue/crossing` — a
+- **Room:** `/world/eternal/university-avenue/crossing` — a
   `CartesianLocation` in the `university-avenue` `CartesianZone` (renamed
   from `plaza`; `primaryKeyword: crossing`, `shortDescription` stays
   `University Avenue`).
-- **`south`** → `/domain/terminus/terminal/arrival-gate` — **BUILT**. The
+- **`south`** → `/world/terminus/terminal/arrival-gate` — **BUILT**. The
   terminal fronts the crossing to the south; players spill out of the
   arrival gate and cross **north**. Cardinal, cross-zone, reciprocal (the
   terminal side was re-cardinaled to `north`→here; the arrival alcove was

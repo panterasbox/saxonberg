@@ -332,7 +332,7 @@ diagnostics.
   imperial.
 - **Every number in the narration is verified against the shipped seed
   rows** (re-checked 2026-08-07,
-  `packages/content/base-library/content/obj/material/`): bronze
+  `packages/content/base-library/content/stuff/idea/material/`): bronze
   `density: 8800`, `composition: copper 0.88`; copper `symbol: Cu`,
   `atomicNumber: 29`, `molarMass: 63.546`, `thermalConductivity: 401`;
   water `meltingPoint: 273`, `latentHeatOfFusion: 334000`. **If a seed
@@ -346,7 +346,7 @@ diagnostics.
     shoot outruns the build, the finale stages with an authored frost
     *spell* (spells are shipped data riding the same effect union — same
     thermodynamics, same claim) — but the plan is to build the wand.
-  - Spells are shipped, declarative data (`seeds/obj/magic/`); the effect
+  - Spells are shipped, declarative data (`seeds/stuff/idea/magic/`); the effect
     union is structurally closed (`MagicEffects.validate` — "gain 5 levels"
     is unrepresentable, per magic.md).
   - A **heat-withdrawal effect kind** may need adding to the union
@@ -1341,7 +1341,7 @@ title/end cards. Nothing else.
   as a real field state). Design-level / content todo — **the three-doors
   demo build** (three venues with joinable seats, mixed rosters,
   stand-down-on-claim — **the counting house already exists** and is
-  *not* net-new: `seeds/domain/terminus/counting-houses/` ships the
+  *not* net-new: `seeds/world/terminus/counting-houses/` ships the
   banking hall, the counter, the business and both NPCs (teller,
   officer); what's missing is an **open, joinable clerk seat**. The
   vineyard is the genuinely net-new venue;
@@ -1694,12 +1694,12 @@ rather than by video. Inventoried against the tree 2026-08-07.
 
 The **Hearthworks foundry + smithy** (`domain/hearthworks/` — SmithyMenu,
 KitchenMenu, SealedCellar) · **the counting house** in full
-(`seeds/domain/terminus/counting-houses/` — banking hall, bank counter,
+(`seeds/world/terminus/counting-houses/` — banking hall, bank counter,
 the business, teller and officer NPCs, avenue block, circle parlor) ·
 **Duncan Hall** (the dorm) and **University Avenue** (the crossing) ·
 **Dave's Bar** and the lounge cast · the **38-row material shelf**,
 species, spells, and the CMS · the **Terminus registry office + clerk**
-(`seeds/domain/terminus/registry/` — office, business, clerk), which is
+(`seeds/world/terminus/registry/` — office, business, clerk), which is
 the pattern to copy for the University registrar.
 
 ### The manifest
@@ -1713,7 +1713,7 @@ the pattern to copy for the University registrar.
 | 5 | **Two demo characters with authored histories** | Conferral (all), A Life Act II | — | The science teacher: chemistry band two rungs short, a foundry shift, a wage. The degree-finisher: a year of drift, hospitality thinning as chemistry and plant biology thicken |
 | 6 | **The foundry job** | Conferral b1/b6, A Life b2 | counting-houses' business + positions | The venue ships; the *work* doesn't — a position, a roster, a commissioned casting, the melt task |
 | 7 | **Joinable seats + the stand-down** | A Life b2–b5 | employment's positions/rosters | An **open chair** at all three doors, mixed player/NPC rosters, and the stand-down-on-claim behavior brain |
-| 8 | **The registrar and the ceremony** | Conferral b5 (reusable by A Life) | `seeds/domain/terminus/registry/` | A room, an NPC, and the words — once, skippable, diegetic |
+| 8 | **The registrar and the ceremony** | Conferral b5 (reusable by A Life) | `seeds/world/terminus/registry/` | A room, an NPC, and the words — once, skippable, diegetic |
 | 9 | **The in-world course surface** | Conferral b3 | — (rides the issuer adapter) | The catalog visibly appears somewhere a character stands |
 | 10 | **Props and materials** | Honest World b1, b8, b9, b10 | the existing material shelf | The fountain (granite basin + bronze spout + water); `silver.yaml`; a silver ingot; a silver dagger; the wand. Genuinely an afternoon |
 | 11 | **Bronze's phase block** | Conferral b6 | `element/copper.yaml` | `meltingPoint` + `latentHeatOfFusion` on `alloy/bronze.yaml`, against a real handbook source. Smallest item here and currently a **blocker** |

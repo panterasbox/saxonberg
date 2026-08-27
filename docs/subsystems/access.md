@@ -8,7 +8,7 @@ the existing `grouping` (membership) and `zone` (inheritance walk)
 substrates.
 
 State and behavior live on the singleton **`AccessRegistry`**
-Stuff at `/obj/AccessRegistry`; `AccessApi` is a thin facade that
+Stuff at `/platform/idea/AccessRegistry`; `AccessApi` is a thin facade that
 delegates through the security gate. Every public Registry method
 carries `@CallSecurity(FromModule('/api/access#AccessApi'))`, so
 the only legitimate calling path is through the Api — external code
@@ -17,7 +17,7 @@ gets a reference but `SecurityError` thrown on any method call.
 
 ## ⚠⚠ Every predicate fails CLOSED when the Registry is absent
 
-`lookupRegistry()` returns null before `/obj/AccessRegistry` is
+`lookupRegistry()` returns null before `/platform/idea/AccessRegistry` is
 registered — during early boot, and in any test that does not stand one
 up. Five predicates (`can`, `canMutateZone`, `isWizard`, `isStreamer`,
 `isArchwizard`) used to answer **`true`** in that window, undocumented.
@@ -120,7 +120,7 @@ Plus one helper for slice-aware workspace verbs:
 ## `AccessRegistry` Stuff
 
 The Registry is an `Idea + PostRegistrationMixin` singleton at
-`/obj/AccessRegistry`. Instance state:
+`/platform/idea/AccessRegistry`. Instance state:
 
 - `cachedWizardsRef` / `cachedStreamersRef` / `cachedArchwizardsRef` —
   resolved `GroupRef`s for the three bootstrap-seeded axis groups.
@@ -131,7 +131,7 @@ The Registry is an `Idea + PostRegistrationMixin` singleton at
   the managed provider's `onChange` callback.
 
 **Group membership keys on the member's `templatePath`, uniformly** — a player
-as `/obj/Avatar/<playerId>`, an NPC (a staff agent) as its own path. There is
+as `/platform/agent/Avatar/<playerId>`, an NPC (a staff agent) as its own path. There is
 NO player-vs-NPC branch anywhere: the member key of any subject is just
 `subject.getTemplatePath()` (`memberKeyOf`), and an authority roster (which
 holds only players) simply never contains an NPC's path. The bare `playerId`
@@ -220,7 +220,7 @@ entry path AND that path enforces who is authorized.
 Adoption sites:
 
 - `AccessApi.setWizardMembership(playerId, makeWizard)` → gated by
-  `FromModule('/obj/command/author/WizardController')`
+  `FromModule('/platform/idea/cmd/author/WizardController')`
   (string-keyed `FromController(WizardController)`). `WizardController`
   (the `wizard grant/revoke` verb) is the sole legitimate caller; its
   `requiresArchwizard` validator enforces *who* may invoke (the giver
@@ -228,7 +228,7 @@ Adoption sites:
   add/removeMember, save, and `fireChange` to invalidate the wizard
   cache. The wizard-conferral act has its own auditable entry path.
 - `StuffApi.forceDestruct` → gated by
-  `FromModule('/obj/command/author/DestructController#DestructController')`
+  `FromModule('/platform/idea/cmd/author/DestructController#DestructController')`
   (the string form of `FromController(DestructController)` —
   string-keyed to avoid a value-level static-import cycle).
   `DestructController` runs `AccessApi.can(giver,
@@ -412,15 +412,15 @@ and fails closed.
 `resolveSourceFolderZone(sourcePath)` walks the source path
 against the template tree most-specific-first:
 
-- `domain/lounge/Bar.ts` → tries `/domain/lounge/Bar` (no match) →
-  walks up to `/domain/lounge` (match, extant FolderZone) → returns
+- `domain/lounge/Bar.ts` → tries `/world/lounge/Bar` (no match) →
+  walks up to `/world/lounge` (match, extant FolderZone) → returns
   it.
 - `lib/security/SecurityPolicies.ts` → walks up → no FolderZone
   match → returns `null` (the caller's title check then fails closed).
 
-The lounge holds **two** titles — `/obj/lounge` (the template
+The lounge holds **two** titles — `/stuff/idea/lounge` (the template
 namespace; `/lib/lounge` before the taxonomy refactor) and
-`/domain/lounge` (the content). Only the `domain/` one has a matching
+`/world/lounge` (the content). Only the `domain/` one has a matching
 *source* directory, so only that one is reachable by this walk. The
 namespace title is live and load-bearing as a `parcels` row; its
 source-tree half has always been vestigial, and no
@@ -539,9 +539,9 @@ or because they're their own conversation:
 
 ## Nearest title decides — there is no override
 
-A player in `'lounge'` can write content under `/domain/lounge/`
+A player in `'lounge'` can write content under `/world/lounge/`
 (the covering parcel is the lounge's; member passes). The executive
-holds `/domain`, but `/domain/lounge` is the *nearer* title, so the PM
+holds `/domain`, but `/world/lounge` is the *nearer* title, so the PM
 writing under it walks to the lounge group — and is refused unless a
 member. Scoped titles **replace** the enclosing one for their slice;
 they don't add to it. The former open question ("should the state

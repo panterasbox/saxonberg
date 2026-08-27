@@ -29,13 +29,13 @@ this is the operational summary.
 | `GoogleProfile` | OAuth cache (identity only) | yes (`google_profiles`) | account |
 | `TwitchProfile` | OAuth cache + **credentials** | yes (`twitch_profiles`) | per provider link |
 | `KickProfile` | OAuth cache + **credentials** (+ the owner's channel slug/broadcaster id) | yes (`kick_profiles`) | per provider link |
-| `Avatar` | game-world character | minted identity path (`/obj/Avatar/<playerId>`), snapshot-backed — no per-player template row | from first connection until explicit destruct |
+| `Avatar` | game-world character | minted identity path (`/platform/agent/Avatar/<playerId>`), snapshot-backed — no per-player template row | from first connection until explicit destruct |
 | `Interactive` | live connection | **no** | one WebSocket session |
 | `Login` | entry-procedure scratch object | **no** | one entry — destructed when `enter()` finishes |
 
 **`User`** owns a `playerIds: string[]` — the authoritative "which
 characters does this user own?" list (`User.ts`). Each id is a
-character slot; the matching identity path is `/obj/Avatar/<playerId>`
+character slot; the matching identity path is `/platform/agent/Avatar/<playerId>`
 (minted, snapshot-backed — no per-player template row).
 
 **Providers are co-equal** — every provider gets the full login + link
@@ -103,8 +103,8 @@ Provider OAuth ──▶ /auth/{provider}/callback
                   ├─ findOrCreateProfile(provider)  (google_profiles | twitch_profiles | kick_profiles)
                   └─ findOrCreateUser(provider, …)  (users)
                        └─ first time? → createDefaultAvatarTemplate
-                                         (forks /obj/Avatar/seed →
-                                          /obj/Avatar/<new playerId>)
+                                         (forks /platform/agent/Avatar/seed →
+                                          /platform/agent/Avatar/<new playerId>)
                           │
                           ▼
                   Passport serializes { id, authProvider } into session
@@ -247,7 +247,7 @@ that *spends* the tokens is a downstream build; this build only stores
 them and proves the write-back.)
 
 `createDefaultAvatarTemplate` forks from the seed avatar at
-`Avatar.SEED_TEMPLATE_PATH` (`/obj/Avatar/seed`), generates a fresh
+`Avatar.SEED_TEMPLATE_PATH` (`/platform/agent/Avatar/seed`), generates a fresh
 `playerId` via `nanoid()`, overlays the user's `name`/`surname`, and
 persists the new template via `TemplateApi.saveTemplate`. **If the
 seed is missing it throws** — the platform pack must have installed at boot.
@@ -872,7 +872,7 @@ blocks input for the duration.
 periodic timer on existing instances (their prototype chains keep
 the old class). The captured callback closure still works
 (field-name dispatch); but admins reloading Avatar.ts in production
-should `destruct /obj/Avatar/<playerId>` to clear stale handles and
+should `destruct /platform/agent/Avatar/<playerId>` to clear stale handles and
 let the next reconnect pick up the new class.
 
 ## Logout (HTTP)

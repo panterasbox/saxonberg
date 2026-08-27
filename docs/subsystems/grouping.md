@@ -109,7 +109,7 @@ the contract reserves the slot but v1 routes writes through the
 
 ## `GroupRegistry` and `GroupApi`
 
-The registry is a singleton Idea at `/obj/GroupRegistry`, composed
+The registry is a singleton Idea at `/platform/idea/GroupRegistry`, composed
 with `PostRegistrationMixin`. Its `postRegister` instantiates the
 three v1 providers and indexes them by source. It follows the
 **catalogue / registry naming convention**: registries hold *code*
@@ -308,7 +308,7 @@ committee it debuted on was folded into the executive in wave 3).
 ## The `group` verb suite
 
 `GroupController` is the player-facing surface for the managed
-provider. The YAML lives at `content/cmd/social/group.yaml`; the controller
+provider. The YAML lives at `content/platform/cmd/social/group.yaml`; the controller
 dispatches on the subcommand:
 
 ```

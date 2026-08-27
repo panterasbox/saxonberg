@@ -301,7 +301,7 @@ entries, so "which path the spec names" *is* the isolation boundary and
 "which path you reload" *is* the broadcast scope.
 
 - **Isolate**: a work-in-progress brain at a distinct path (e.g.
-  `/domain/lounge/behavior/patrols-wip` — `/domain/` is an allowed
+  `/world/lounge/behavior/patrols-wip` — `/world/` is an allowed
   prefix) wired onto a throwaway test NPC; editing + reloading it leaves
   live NPCs on the canonical path untouched.
 - **Broadcast**: promote the WIP module to the canonical
@@ -354,7 +354,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |
-| `validateBehaviorPaths` | `obj/api/CmsLogic.ts` | Save-gate brain-path validation |
+| `validateBehaviorPaths` | `platform/idea/api/CmsLogic.ts` | Save-gate brain-path validation |
 | `Mixins.Behaved` | `lib/mixin.ts` | Mixin registry marker |
 
 ## Cross-references

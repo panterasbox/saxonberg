@@ -113,7 +113,7 @@ function settingNum(key: string, fallback: number): number {
  * content (`/platform/`, `/stuff/`, `/world/`, `/trade/`) the large one. v1 only has inline
  * prompt scripts (the path-addressed store is P7), so `authorPath` is
  * absent and the tight tier applies; the platform tier lights up when a
- * stored recipe-script invokes with its `/obj/` path.
+ * stored recipe-script invokes with its `/stuff/…` path.
  */
 function resolveLimits(authorPath?: string): ResourceLimits {
   const platform =

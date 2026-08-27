@@ -33,7 +33,7 @@
 >   why it got one. Whether authoring/access is exclusive enough is
 >   precisely the question above.
 > - ✅ **The class-allowlist for content writes already shipped** —
->   `obj/api/CmsLogic.ts` gates `class` / `hydratorClass` /
+>   `platform/idea/api/CmsLogic.ts` gates `class` / `hydratorClass` /
 >   `behaviors[].brain` on `isWizard`. See
 >   [scoped-authoring-slate](../builds/scoped-authoring-slate.md)'s audit.
 >

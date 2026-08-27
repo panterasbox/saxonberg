@@ -454,7 +454,7 @@ export class Modality extends SingletonMixin(PropertiedMixin(Idea)) {
 Seven concrete subclasses under `lib/perception/modalities/`:
 `VisionModality`, `SmellModality`, `SoundModality`, `TouchModality`,
 `TasteModality`, `VerbalESPModality`, `EmotiveESPModality`. Each
-has a row at `platform/content/obj/modalities/<name>.yaml`;
+has a row at `platform/content/platform/idea/modalities/<name>.yaml`;
 `PerceptionLogic.preloadModalities` walks the seven by name
 (`MODALITY_NAMES`) — no boot-manifest entry.
 

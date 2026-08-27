@@ -4,7 +4,7 @@
  * A government *inside the fiction* — the City of Terminus, the Realm of
  * Terminus, the Eternal University — is plural authored content: a
  * **reference-identity** (the `Corpo` / `Material` / `Species` shape), a
- * pure-data leaf template authored under `/obj/Government/<key>`,
+ * pure-data leaf template authored under `/platform/idea/Government/<key>` (or `/stuff/idea/Government/<key>` from another pack),
  * read by the catalogue directly from `template.data` (never cloned as
  * live Stuff). It is emphatically NOT the Compact (the real
  * meta-institution) or any projection of it — see
@@ -64,7 +64,7 @@ export interface GovernmentDescriptor {
 }
 
 export default class Government extends Idea {
-  /** Per-instance template path prefix: `/obj/Government/<key>`. */
+  /** Per-instance template path prefix: `<root>/idea/Government/<key>`. */
   static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.government;
 
   /** Durable join key (e.g. `'terminus-city'`). Non-empty. */

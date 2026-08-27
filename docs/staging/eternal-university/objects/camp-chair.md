@@ -5,7 +5,7 @@
 > relief's. (The EU campus-gate stop.)
 > **Target seed paths:**
 > - `Chair` class (the reusable sittable *kind*) → a thin `Thing` subclass
->   under `mud/obj/`.
+>   under `mud/platform/`.
 > - `FoldingChair` class (`extends Chair`, adds `Foldable`) → the
 >   collapsible variant; Gus's camp chair is one seeded *instance*.
 > - Gus's specific chair (the *instance*) → a seed under

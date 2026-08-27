@@ -410,8 +410,8 @@ class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
 Then in the template:
 
 ```yaml
-# /obj/item/Coin/seed.yaml
-path:  /obj/item/Coin
+# /stuff/thing/Coin/seed.yaml
+path:  /stuff/thing/Coin
 class: /lib/glob/Coin   # illustrative — Coin is a test fixture; the
                         # shipped substrate is the GlobbableMixin in
                         # lib/stuff/Globbable.ts (no lib/glob/ dir)

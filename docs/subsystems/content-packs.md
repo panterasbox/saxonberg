@@ -974,7 +974,7 @@ rows into `world-seed`; no disk fallback for command views;
 `SAXONBERG_PACKS`; the platform-only e2e; `lint:core-gone` +
 `lint:untitled`.
 
-**Wave 4a (2026-08-27) — the path surgery.** `/domain/` → `/world/`
+**Wave 4a (2026-08-27) — the path surgery.** `/world/` → `/world/`
 everywhere (content, `src/mud/world/`, tests, e2e, docs) with **no
 migration** — the database is dropped; the `/trade/`
 title root (nine; ONE `TITLE_ROOTS` in `lib/paths.ts`) and the
@@ -991,13 +991,13 @@ collapse), the `developers`→`wizards` rename, the `adopt` reconcile cell +
 — deleted. This game has never held data a boot of the same checkout did
 not write; nothing is migrated, ever.
 
-**The path pattern (2026-08-28, on the wave-4a branch).** `/obj/` is
+**The path pattern (2026-08-28, on the wave-4a branch).** `/platform/… + /stuff/` is
 gone. Every template path and every engine source file follows
 `<root>/<branch>/…`: the root is the pack's (`/platform` for the
 platform pack, `/stuff` — the commons — for every other pack,
 `/trade/<industry>` for an industry), the branch is the Stuff branch the
 class descends from (`thing` · `idea` · `agent` · `location`). Source
-mirrors it: `src/mud/obj/` → `src/mud/platform/<branch>/`. `command` is
+mirrors it: `src/mud/platform/` → `src/mud/platform/<branch>/`. `command` is
 `cmd` everywhere: a controller is `<root>/idea/cmd/<category>/<Name>Controller`,
 its view the document `<root>/cmd/<category>/<verb>` (`/cmd` is no longer a
 root; the engine's 195 views live at `/platform/cmd/…` and their keys are

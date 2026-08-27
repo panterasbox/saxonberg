@@ -56,7 +56,7 @@ Death is one-way, and the transition is written **seven** times.
 | `lib/metabolism/Metabolic.ts:804` (`applyDeath`) | starvation / dehydration / toxin |
 | `lib/vitals/Vitals.ts:757` | exsanguination |
 | `lib/vitals/Vitals.ts:775` | electrocution |
-| `obj/api/CombatLogic.ts:2864` (`killImpl`) | slain / the coup |
+| `platform/idea/api/CombatLogic.ts:2864` (`killImpl`) | slain / the coup |
 | `lib/husbandry/Growing.ts:630` | plants *(farming's — out of scope)* |
 
 The first three are **byte-identical four-line helpers**, independently
@@ -147,7 +147,7 @@ design; it belongs in the antipatterns sweep, not in a mixin.
    an Avatar subclass, `shouldPersist() → false`, holding the `PlayerApi`
    slot (it is the player's only body while dead — an unregistered shade
    would drop out of `who`/`tell`/presence, breaking function-over-form),
-   `getIdentityPath()` → `/obj/Avatar/<playerId>` so every
+   `getIdentityPath()` → `/platform/agent/Avatar/<playerId>` so every
    identity-keyed producer keeps attributing to the **player**, not the
    vessel. Takes the same five shell slices the sandbox already forks, so
    you are recognizably *you* — your layout, your aliases, your name — with

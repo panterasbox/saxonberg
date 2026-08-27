@@ -73,9 +73,9 @@ runtime difference:
 The mint/read surface follows the platform's Api ↔ logic-singleton
 split. `api/chronicle.ts` (`ChronicleApi`) is a **thin forwarding
 shell**; the logic lives in the hot-reloadable `ChronicleLogic`
-singleton at `/obj/api/chronicle` (`obj/api/ChronicleLogic.ts`), reached
+singleton at `/platform/idea/api/chronicle` (`platform/idea/api/ChronicleLogic.ts`), reached
 synchronously via `StuffApi.singletonSync` — exactly as
-`BeliefStoreApi` forwards to `BeliefStoreLogic`. `dest /obj/api/chronicle`
+`BeliefStoreApi` forwards to `BeliefStoreLogic`. `dest /platform/idea/api/chronicle`
 reloads it.
 
 Like belief, the logic's internal helpers (`active()`, `ownerKey()`, the
@@ -165,7 +165,7 @@ aspiration?.claimSeeds ?? [])` mints the `claim` entries.
 ## The `chronicle` verb — the self-view
 
 A single-token, zero-arg, **self-only, read-only** verb (the MVC triple:
-`cmd/charactergen/chronicle.yaml` + `obj/command/charactergen/
+`cmd/charactergen/chronicle.yaml` + `platform/idea/cmd/charactergen/
 ChronicleController.ts` + the controller seed). It subsumes the *view*
 role the char-gen subsystem sketched as the deferred `records` verb;
 `records`-style bio **editing** stays deferred.

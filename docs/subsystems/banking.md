@@ -198,7 +198,7 @@ re-links the held account onto the fresh credential instead of refusing. One `Ba
 extends `BankingControllerBase` (`resolveBank` — the affording counter, else
 the room scan; the crafting "agent performs, venue owns state" resolution).
 The branch is authored as **city content**:
-`world-seed/content/domain/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
+`world-seed/content/world/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
 one cell north of the arrival plaza (reachable from the born-with University
 Avenue fast-travel node), affiliated to **Goodkin** (the retail bank).
 
@@ -419,8 +419,8 @@ placement*).
 `BankingApi`, developer-gated at the verb layer).
 
 `api/banking.ts` — `BankingApi`, the thin gated forwarding shell.
-`obj/api/BankingLogic.ts` — the `@Unshadowable` logic singleton at
-`/obj/api/banking`, gated `FromModule('/api/banking#BankingApi')`; the
+`platform/idea/api/BankingLogic.ts` — the `@Unshadowable` logic singleton at
+`/platform/idea/api/banking`, gated `FromModule('/api/banking#BankingApi')`; the
 sealed `postTransaction` chokepoint lives here as a module-private fn.
 
 Collections (`backend/PersistenceManager.ts`): `bank_ledger` (indexed
@@ -435,7 +435,7 @@ currency-less row**. Booting on an unmigrated database is therefore a fast,
 harmless failure rather than a world running on money whose denomination
 nobody knows — which is what makes the deploy order (**stop → migrate →
 deploy → start**) enforced by the code instead of remembered from a runbook.
-The `/obj/CentralBank` singleton is in the bootstrap manifest.
+The `/platform/idea/CentralBank` singleton is in the bootstrap manifest.
 
 ## Open-choice decisions log
 
@@ -480,7 +480,7 @@ The plan flagged 6 open implementation choices; settled as reached:
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
    regroup — the Api/Logic substrate is untouched. (Phase 2 surface,
    restructured post-MR review.)
-6. **Branch/teller homing** — city content under `world-seed/content/domain/eternal/`
+6. **Branch/teller homing** — city content under `world-seed/content/world/eternal/`
    (resolved by the plan). Sub-choice settled: **`BankMixin` on a
    teller-counter `Thing` fixture**, NOT on the branch Location — a
    Location's own `commandContributions` don't reach its occupants, so the
@@ -587,7 +587,7 @@ Goodkin bank runs.
   seed can't guarantee), idempotent — a module-internal op, not a public verb.
   Lets early ledger-credit withdrawals work before deposits accumulate.
   `banking.openingFloat` AppSetting.
-- **Goodkin re-homed.** From the placeholder `/domain/eternal/university-avenue/bank`
+- **Goodkin re-homed.** From the placeholder `/world/eternal/university-avenue/bank`
   into the Terminus **Counting-Houses** (`domain/terminus/counting-houses/`): a
   Locality + zone + a public avenue block (the four rival frontages as prose) +
   the banking hall (counter + Wenna) + the Circle parlor (Halloran). A complete

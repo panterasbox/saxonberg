@@ -118,7 +118,7 @@ and the governance trigger remain deferred to the Compact-governance build.
 ### SubjectCatalogue — the runtime view
 
 `obj/SubjectCatalogue.ts` is a singleton `Idea` + `PostRegistrationMixin`
-at `/obj/SubjectCatalogue`, named after its root entity like
+at `/platform/idea/SubjectCatalogue`, named after its root entity like
 `ChannelCatalogue` / `SoulCatalogue`. The `forum_subjects` Documents are
 the source of truth; the catalogue warms them at `postRegister` via
 `Subject.find({})` and serves resolution off in-memory indexes:
@@ -568,7 +568,7 @@ Identity + audience own a `subject` verb; surfaces light up separately.
 - `subject make <name>` — mint a subject. Default mints a managed group
   (curated); `--group <ref>` binds an existing ref; `--open` leaves the
   audience open. `subject list` — visible subjects + their lit surfaces.
-  (`obj/command/social/SubjectController.ts` + the platform pack's `content/cmd/social/subject.yaml`.)
+  (`platform/idea/cmd/social/SubjectController.ts` + the platform pack's `content/platform/cmd/social/subject.yaml`.)
   The three standing subjects (Help / Global / Chat) are the platform
   pack's **`subject` content kind** (`content/subjects/<name>.yaml`:
   `name`, `description`, optional `audience: {group}`, `channel` /
@@ -620,12 +620,12 @@ as curated/open subjects.
 | `SubjectSubscriberMixin` | `lib/forum/SubjectSubscriber.ts` | Per-Avatar typed subscription store |
 | `SubjectCatalogue` | `obj/SubjectCatalogue.ts` | Subject runtime view + subscription store + group bookkeeping |
 | `ForumSubscriptionRegistry` | `obj/ForumSubscriptionRegistry.ts` | The document-change observer |
-| `ForumsApi` / `ForumsLogic` | `api/forums.ts` / `obj/api/ForumsLogic.ts` | Board/Entry CRUD + voting + promotion + the folded-in subscription surface |
-| `SubjectApi` / `SubjectLogic` | `api/subject.ts` / `obj/api/SubjectLogic.ts` | Subject identity/audience facade |
-| `ForumController` / `SubjectController` | `obj/command/social/` | The `forum` / `subject` verbs |
+| `ForumsApi` / `ForumsLogic` | `api/forums.ts` / `platform/idea/api/ForumsLogic.ts` | Board/Entry CRUD + voting + promotion + the folded-in subscription surface |
+| `SubjectApi` / `SubjectLogic` | `api/subject.ts` / `platform/idea/api/SubjectLogic.ts` | Subject identity/audience facade |
+| `ForumController` / `SubjectController` | `platform/idea/cmd/social/` | The `forum` / `subject` verbs |
 
 `ForumsApi` is the thin gated forwarding facade over `ForumsLogic` (the
-HMR-able logic singleton at `/obj/api/forums`); both follow the
+HMR-able logic singleton at `/platform/idea/api/forums`); both follow the
 `ChatApi`/`ChatLogic` split. The **live subscription surface**
 (`handleSubscribe` / `handleUnsubscribe` / `cancelAllForInteractive`) is
 **folded into `ForumsApi`** (one forum-facing Api), forwarding to the

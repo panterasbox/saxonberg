@@ -286,9 +286,9 @@ here on `WieldableMixin` (arming yourself is a combat prerequisite;
 
 ## The demonstrator — the treeline cull
 
-`attack` a brain-driven **wolf** (`/obj/species/wolf` quadruped +
-`/domain/newbie-wilds/npc/wolf`, a `wolfshead` bounty) in **the treeline**
-(`/domain/newbie-wilds/crossroads/treeline`, off the crossroads hub, reached
+`attack` a brain-driven **wolf** (`/stuff/idea/species/wolf` quadruped +
+`/world/newbie-wilds/npc/wolf`, a `wolfshead` bounty) in **the treeline**
+(`/world/newbie-wilds/crossroads/treeline`, off the crossroads hub, reached
 via the char-gen `startLocation` override, no inbound exit wired — content-
 area standup stays clean). Pick up + wield the dropped steel dagger, `attack
 wolf --lethal`, and the poise/gambit fight runs to a lethal resolution
@@ -297,8 +297,8 @@ demonstrator context" acceptance, live in shipped content.
 
 ## `CombatApi` / `CombatLogic`
 
-The gated pair (`api/combat.ts` + `obj/api/CombatLogic.ts` at
-`/obj/api/combat`, `FromModule('/api/combat#CombatApi')`) is the **sole
+The gated pair (`api/combat.ts` + `platform/idea/api/CombatLogic.ts` at
+`/platform/idea/api/combat`, `FromModule('/api/combat#CombatApi')`) is the **sole
 entry** to lifecycle / gambit-resolution / poise-mutation / advance /
 narration, mirroring `ConditionApi ↔ ConditionLogic`. `CombatLogic`'s class
 methods are thin gated entry points; the rules engine lives in
@@ -439,9 +439,9 @@ state (poise / flags / armed / condition). Bands, never numbers.
 ### The demonstrator — the consented duel
 
 `attack` **the gentleman out of the fog who works with a knife** (the
-crossroads bounty the board already names): `/domain/newbie-wilds/npc/
+crossroads bounty the board already names): `/world/newbie-wilds/npc/
 duelist` — a sentient human whose standing terms are lethal, waiting in the
-**fog hollow** (`/domain/newbie-wilds/crossroads/hollow`, one step west of
+**fog hollow** (`/world/newbie-wilds/crossroads/hollow`, one step west of
 the treeline). He takes up a knife from the duelling-stone via the new
 `arms` brain (`lib/behavior/arms.ts` — wield the nearest reachable weapon;
 no NPC-arming engine change). `attack the gentleman --lethal` → the terms
@@ -679,7 +679,7 @@ world — a session is deterministic, but a matrix must not accumulate the prior
 fight's objects). All tunables are `combat.weapon.*` / `combat.reach.*` /
 `combat.switch.*`/`combat.draw.*`/`combat.offhand.*`/`combat.dualWield.*`
 AppSettings. Content: the `steel-spear`/`steel-warhammer`/`steel-flail`/
-`steel-sword`/`steel-shield`/`leather-whip` arms (in `/obj/arms/`) + the
+`steel-sword`/`steel-shield`/`leather-whip` arms (in `/stuff/thing/arms/`) + the
 `sidearm` biped slot.
 
 ## Deferred
@@ -738,7 +738,7 @@ Named at their sites; nothing inherited:
   narration + flavor lookup, the `combatant` brain, `CombatApi`/`CombatLogic`,
   the `attack` + `fight` command surface, and the treeline cull demonstrator.
   Incidental fixes forced by the live demo: the `wield`/`unwield` affordance
-  (`WieldableMixin`), the missing `/obj/ParcelRegistry` seed (a latent
+  (`WieldableMixin`), the missing `/platform/idea/ParcelRegistry` seed (a latent
   fresh-DB bootstrap failure), the silent-fight-end bug, and the flat
   narration. `CombatantMixin` was composed onto `Character`; `Weapon` gained
   `balanceFactor`; `act.combat` joined `REACTABLE_TOPICS`.
@@ -820,7 +820,7 @@ Named at their sites; nothing inherited:
   natural) stays a mild energy nudge and the wolf/cull fights are unperturbed.
   A follow-on added the `whip` delivery form (guardless, long-reach extreme)
   + its `entangle` gambit. The generic arms/armor/gear/clothes/items seeds
-  were relocated out of `domain/eternal/` into `/obj/` in the same branch.
+  were relocated out of `domain/eternal/` into `/platform/… + /stuff/` in the same branch.
 - **Combat hooks** (`feature/combat-hooks`) — the extension grammar (see
   [§ Extension hooks](#extension-hooks--the-combat-hooks-grammar) and
   [combat-hooks.md](./combat-hooks.md)): `CombatReactiveMixin` +

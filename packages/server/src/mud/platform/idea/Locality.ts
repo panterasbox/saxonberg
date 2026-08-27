@@ -3,7 +3,7 @@
  * address subtree.
  *
  * A Locality is reference data, like `Biome` / `Material` / `Species`:
- * a leaf `Idea` that hangs off the template tree under `/obj/Locality/`.
+ * a leaf `Idea` that hangs off the template tree under `<root>/idea/Locality/`.
  * Its `_address` is a path in the addressing namespace
  * (`narnia`, `narnia/castle`) and that string **is** its coverage
  * prefix — a Locality claims everything at or under its node. The

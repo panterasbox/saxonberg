@@ -22,7 +22,7 @@
  * **Eager roster clone.** Leaf Ideas are cloned lazily, so a Locality's
  * self-registration hook only fires once something clones it.
  * `postRegister` therefore eagerly clones every Locality template under
- * `/obj/Locality/` to populate the index even for never-accessed
+ * the Locality rosters (`TemplatePathRosters.locality`) to populate the index even for never-accessed
  * Localities — a v1 simplification (trivial for the demonstrative
  * roster; a future delivery build with hundreds of Localities may want
  * an incremental scheme). `PathTrie.insert` is idempotent, so the
@@ -55,8 +55,8 @@ const ADDRESS_ROSTER = TemplatePathRosters.locality;
  * (`/lib/address/Locality` was both), so `${prefix}Locality` read as
  * clever rather than as a bug. After the lib/obj taxonomy move the
  * class is flat at `/platform/idea/Locality` while the family root is
- * `/obj/Locality/`, and the derivation silently produced
- * `/obj/Locality/Locality` — a class nothing has, so the roster walk
+ * the roster prefix, and the derivation silently produced
+ * `…/Locality/Locality` — a class nothing has, so the roster walk
  * matched nothing and every address resolved to its fallback.
  */
 const LOCALITY_CLASS = '/platform/idea/Locality';
@@ -138,7 +138,7 @@ export default class AddressRegistry extends AddressRegistryBase {
   }
 
   /**
-   * Eagerly clone every Locality template under `/obj/Locality/` and
+   * Eagerly clone every Locality template under the two roster prefixes and
    * index its claimed prefix. Ungated private — `postRegister` and the
    * gated `rebuildCoverageIndex` both route here.
    */

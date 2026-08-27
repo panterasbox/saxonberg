@@ -135,7 +135,7 @@ capability-magic-slate) — so it is modeled in full.
   head / torso / limbs (+hands/feet) + heart / lungs.
 - **Tissue composition** — each part carries named tissues with masses
   (`{ tissuePath, mass }`), not a single material. Tissues are authored
-  Materials under `/obj/material/tissue/` (`flesh`, `muscle`, `bone`).
+  Materials under `/stuff/idea/material/tissue/` (`flesh`, `muscle`, `bone`).
   The mass-per-tissue is the substrate a future strength reading
   aggregates.
 - **Instance-delta resolution** — the instance carries only deltas

@@ -84,7 +84,7 @@ NotificationEvent {
 ```
 
 **`subject` is path-shaped on purpose.** `/lib/material/oak`,
-`wiki/page/oak`, `contract/7fQ…`, `parcel/domain/terminus/…`. Paths give
+`wiki/page/oak`, `contract/7fQ…`, `parcel/world/terminus/…`. Paths give
 the routing index below for free, and they already are how this codebase
 names things.
 

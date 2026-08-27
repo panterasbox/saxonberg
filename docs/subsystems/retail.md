@@ -49,7 +49,7 @@ on the seeds).
 
 ## The buy loop (`buy <thing>`, stamps ownership)
 
-`BuyController` (`obj/command/retail/`, the new `retail` command category)
+`BuyController` (`platform/idea/cmd/retail/`, the new `retail` command category)
 resolves the good off the present `Stock` **or** a consignment listing on
 the `ConsignmentShelf`, settles a presented `Charge` (card → cash), hands
 the good over, and transfers ownership:
@@ -101,7 +101,7 @@ shelf would drop it).
 ## Content: the store on the new-player path
 
 Authored off the counting-houses avenue block
-(`world-seed/content/domain/terminus/general-store/`), NORTH from the street, on the
+(`world-seed/content/world/terminus/general-store/`), NORTH from the street, on the
 arrival→campus path. Its own zone + parcel (terminus-titled), addressed
 under the counting-houses Locality. A shop floor `populates` the counter,
 the consignment shelf, and the cast (Pemby the clerk on the roster, Odell

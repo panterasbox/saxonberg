@@ -157,7 +157,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the sixteen shipped packs (the platform is pack zero; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the eighteen shipped packs (the platform is pack zero; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -467,11 +467,11 @@ discoverability.
   CI-gating. Pattern + folds: [architecture.md § The import
   boundary](./docs/architecture.md).
 - `pnpm lint:test-content` (`scripts/check-test-content.ts`) — **kernel
-  tests that name shipped content** (`/domain/<locality>`): a shrinking
+  tests that name shipped content** (`/world/<locality>`): a shrinking
   allowlist (`scripts/test-content-allowlist.txt`) — a listed offender
   warns, a NEW one fails, a listed path that no longer offends is stale
   and fails too. A kernel test proves the kernel over synthetic fixtures;
-  a test of real content lives beside the content (`src/mud/domain/**`,
+  a test of real content lives beside the content (`src/mud/world/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
   shipped template path under the nine title roots** (`/platform /stuff /world
@@ -655,7 +655,7 @@ reason.
   `command-view` documents and served store-first by `CommandApi`
   (`mud/cmd/` is gone since content-packs wave 2); **domain-local
   verbs** (a verb that only exists where a locality's content is) in
-  `domain/<sphere>/<locality>/cmd/` with their controllers in the sibling
+  `world/<sphere>/<locality>/cmd/` with their controllers in the sibling
   `world/<sphere>/<locality>/idea/cmd/` (the University Avenue `blow`/
   `tally`/`wind`/`adjust` bundle and the Duncan Hall `provision`/
   `unprovision`/`remodel` bundle are the exemplars — see
@@ -669,7 +669,7 @@ reason.
   special-case): absolute (`/platform/idea/cmd/<cat>/<Name>Controller`) or
   relative-to-the-spec (`../command/<Name>Controller`); a
   `commandContributions` entry references a domain view by its `domain/`-
-  prefixed key (`domain/<sphere>/<locality>/cmd/<verb>.yaml`, no leading
+  prefixed key (`world/<sphere>/<locality>/cmd/<verb>.yaml`, no leading
   slash). Content commands are **afforded by content** (the owning
   NPC/fixture's `commandContributions`), never by a core mixin. Categories:
   perception, social, movement, posture, inventory, boundary, bulk, shell,

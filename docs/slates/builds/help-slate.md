@@ -223,7 +223,7 @@ HTML.
 
 **Wave 1 — unify what exists. BUILT — see
 [docs/subsystems/help.md](../../subsystems/help.md).** The `HelpTopic`
-schema (in `@saxonberg/types`) + the `/obj/HelpCatalogue` index harvester;
+schema (in `@saxonberg/types`) + the `/platform/idea/HelpCatalogue` index harvester;
 projectors for **commands** (YAML + controllers, `getHelpText()` verbatim)
 and the **api-model** (the enriched `author-surface.json` + the complete
 `Mixins` roster, first-class graded `api`/`mixin`/`type` topics with typed

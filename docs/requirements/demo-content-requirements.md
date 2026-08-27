@@ -288,7 +288,7 @@ begins at the wall: crossing the main gate trades Terminus's
 ordinary sky for the campus's sourceless, wrongly-bright one.
 
 **Namespace:** campus content lives at
-`seeds/domain/eternal/campus/` — its own zone; cross-zone exits
+`seeds/world/eternal/campus/` — its own zone; cross-zone exits
 authored explicitly on both sides at every seam (crossing↔Eternal
 Way S, Limbo Lane↔Duncan Hall; the crossing↔arrival-gate
 precedent). Address locality: `campus/…`. Road materials are real
@@ -513,7 +513,7 @@ source on it).
 ### Unit 6 — the fountain ✓
 
 **Template:** `campus/fountain.yaml`, content class
-`/domain/eternal/campus/Fountain` (path mirrors template),
+`/world/eternal/campus/Fountain` (path mirrors template),
 composing: immovable fixture + `SoundSource`
 (`emittedAmplitude: 55` dB — the reference-honest
 garden-fountain figure; `character: "falling water"` — `listen`
@@ -600,7 +600,7 @@ measurable contrast: `measure light` never changes,
 ### Unit 8 — the crossing's lamppost ✓
 
 **Template:** `university-avenue/lamppost.yaml`, content class
-`/domain/eternal/university-avenue/Lamppost` — immovable fixture
+`/world/eternal/university-avenue/Lamppost` — immovable fixture
 composing `Energized` (voltage: **120**, the substation's
 convention) + `Switchable` + `LightSource`. The crossing's
 prose-only `lamp` detail retires; the object replaces it in
@@ -1088,7 +1088,7 @@ withdrawal, memorial automation, and expulsion are all deferred.
   prose carries the bulk; few real interactive objects; NPCs listed
   explicitly. Room-by-room design lands one beat at a time.
 - **Content placement rules** (CLAUDE.md): seeds under
-  `seeds/domain/…` in the owning locality's namespace; any
+  `seeds/world/…` in the owning locality's namespace; any
   domain-local verbs follow the `domain/<sphere>/<locality>/cmd`
   pattern; nothing content-specific in the core trees.
 - **Honesty discipline**: the fountain's emission is real signal in

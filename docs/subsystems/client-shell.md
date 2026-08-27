@@ -1163,7 +1163,7 @@ ephemeral**. Two orthogonal axes, deliberately not conflated:
 Guest lifecycle:
 
 - **Minted on Enter** (not page-load). The build forks a **unique
-  per-guest transient template** (`/obj/Avatar/guest-<nanoid>`) from the
+  per-guest transient template** (`/platform/agent/Avatar/guest-<nanoid>`) from the
   seed, overlaying the random picks, clones it, then **deletes the
   template** immediately — guests persist nothing, and the live avatar is
   independent of it. The unique path also means no two guests ever clone

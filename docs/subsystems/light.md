@@ -495,7 +495,7 @@ pattern Light value objects use, applied to the per-side overrides.
 
 Template authoring: Window is template-loadable like Door
 (`class: '/lib/boundary/Window'`,
-`hydratorClass: '/obj/persistence/PersistentHydrator'`). Seed code
+`hydratorClass: '/platform/idea/persistence/PersistentHydrator'`). Seed code
 calls `BoundaryApi.attachExistingBoundary({ boundary: clonedWindow,
 hostA: roomA, hostB: roomB })` to install on two rooms — mirrors
 how `addBidirectionalExit({ door })` wires a templated Door.

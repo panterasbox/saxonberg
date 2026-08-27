@@ -325,7 +325,7 @@ plants a fresh root for context hygiene where a callback fires, but the
 privileged `EngagedMixin._setEngagement` / `_clearEngagement` mutators
 no longer need a synthetic `SchedulerApi` frame to pass their gate:
 they carry the **participant contract**
-`FromTemplate('/obj/SchedulerRegistry')` — the registry (the machinery
+`FromTemplate('/platform/idea/SchedulerRegistry')` — the registry (the machinery
 whose timer set must stay in sync with the map) calls them as itself
 from `register`/`deregister`, with its own frame on the stack.
 
@@ -357,7 +357,7 @@ engagements (no timers to recover, no subscriptions to re-stitch).
 Mirrors `Mobile._engagedModePath`'s runtime-only treatment.
 
 `_setEngagement` / `_clearEngagement` are `@Final @Unshadowable` +
-participant-gated `FromTemplate('/obj/SchedulerRegistry')` — only the
+participant-gated `FromTemplate('/platform/idea/SchedulerRegistry')` — only the
 scheduler registry may mutate the map. The leading `_` flags the
 surface as privileged, not for general callers.
 
@@ -592,8 +592,8 @@ why this shape was chosen.
 | `Engagement` / `DurativeActivity` / `SustainedEngagement` / `ScheduledEmission` / `StartResult` | `api/scheduler.ts` | Engagement interface family                     |
 | `EngagedMixin` + `Engaged` + `EngagementSlot` + `ENGAGEMENT_SLOTS` | `lib/activity/Engaged.ts`    | Actor-side slot map + privileged mutators       |
 | `AbortReasonRegistry` augmentation   | `lib/activity/Engaged.ts`        | Framework-intrinsic abort reasons               |
-| `CancelController`                   | `obj/command/system/CancelController.ts`| `cancel` / `cancel <type>` verb logic           |
-| `cancel.yaml`                        | `content/cmd/system/cancel.yaml`            | Verb view                                       |
+| `CancelController`                   | `platform/idea/cmd/system/CancelController.ts`| `cancel` / `cancel <type>` verb logic           |
+| `cancel.yaml`                        | `content/platform/cmd/system/cancel.yaml`            | Verb view                                       |
 
 ## Cross-references
 

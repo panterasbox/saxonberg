@@ -315,9 +315,9 @@ single-target alternative.
 
 ### EventRegistry — the underlying storage
 
-`EventRegistry` is an Idea in `mud/obj/EventRegistry.ts`, composing
+`EventRegistry` is an Idea in `mud/platform/idea/EventRegistry.ts`, composing
 `PostRegistrationMixin(PropertiedMixin(Idea))`. Singleton. Lives at
-template path `/obj/EventRegistry`. Bootstrapped by `BootstrapManager`
+template path `/platform/idea/EventRegistry`. Bootstrapped by `BootstrapManager`
 (see [bootstrap.md](./bootstrap.md)).
 
 **Not a persisted record.** Every event prop is `transient: true`, the
@@ -335,7 +335,7 @@ should touch it. The registry itself does not export an "emit" or
 
 **Singleton lookup pattern**: EventRegistry doesn't own its own
 static accessor. EventApi uses
-`StuffApi.findByTemplatePath('/obj/EventRegistry')` to resolve the
+`StuffApi.findByTemplatePath('/platform/idea/EventRegistry')` to resolve the
 instance, caching the reference on the API class. The same pattern
 generalizes to every future Registry singleton — no per-class
 boilerplate.
@@ -345,7 +345,7 @@ boilerplate.
 There are **two event singletons, two responsibilities.**
 `EventRegistry` (above) holds the event-property *declarations* — the
 well-known events and their `checkAccess` gates. `EventSubscriptions`
-(an Idea at `/obj/EventSubscriptions`, `mud/obj/EventSubscriptions.ts`)
+(an Idea at `/platform/idea/EventSubscriptions`, `mud/platform/idea/EventSubscriptions.ts`)
 holds the runtime *subscriptions* — who's listening — plus the bounded
 recent-payload history ring buffer.
 
@@ -390,7 +390,7 @@ EventApi.on<T>(name: string, listener: Listener<T>, opts?: SubOpts): Subscriptio
 ```
 
 Subscribers live on the `EventSubscriptions` singleton Idea
-(`/obj/EventSubscriptions`) — `Map<eventName, Set<SubscriptionRecord>>`
+(`/platform/idea/EventSubscriptions`) — `Map<eventName, Set<SubscriptionRecord>>`
 keyed by event name. NOT in the EventRegistry's props (subscribers
 aren't declarations; they're runtime registrations) — see the two-
 singletons note above.

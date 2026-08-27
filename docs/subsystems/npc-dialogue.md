@@ -47,7 +47,7 @@ implementing the same `open` shape, no contract change.
   `resolveExportSync` hits), and (c) the host reads as conversational for
   discoverability. The requirements forbid speech-triggered trees this
   build; the brain is reached **only** through `open`.
-- **The verb** (`cmd/social/talk.yaml` + `obj/command/social/Talk
+- **The verb** (`cmd/social/talk.yaml` + `platform/idea/cmd/social/Talk
   Controller.ts` + seed): `verbs:[talk, converse]`, one positional
   `target` (`type: object`, `scope:['$focus','reachable']`,
   `prepositions:[to]` so both `talk to mara` and `talk mara` parse),

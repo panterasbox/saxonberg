@@ -488,7 +488,7 @@ export default class Avatar extends AvatarBase {
   /**
    * Template path prefix for avatars in the domain collection.
    * Avatar templates live at `/platform/agent/Avatar/<playerId>` — instances
-   * of a class share the same `/obj/<ClassName>` namespace as
+   * of a class share the same `/platform/<branch>/<ClassName>` namespace as
    * singleton templates of that class (`/platform/idea/EventRegistry`),
    * with a per-instance suffix.
    */

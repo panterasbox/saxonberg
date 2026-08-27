@@ -128,11 +128,11 @@ but it must not be silent either.
 
 | File | Role |
 |---|---|
-| `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/obj/Topic/'`. |
-| `obj/TopicCatalogue.ts` | The singleton Idea (`/obj/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
-| `platform/content/obj/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
-| `platform/content/obj/TopicCatalogue.yaml` | Singleton row (`{ class: /obj/TopicCatalogue, data: {} }`). |
-| platform `pack.yaml` `boot:` | The `/obj/TopicCatalogue` entry (`sync-read`). **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
+| `lib/messaging/Topic.ts` | The `Topic extends Idea` leaf class with persistent fields `topic` / `family` / `label` / `description` and `TEMPLATE_PATH_PREFIX = '/platform/idea/Topic/'`. |
+| `obj/TopicCatalogue.ts` | The singleton Idea (`/platform/idea/TopicCatalogue`) owning the runtime descriptor cache + accessor surface. Sibling to `obj/EventRegistry.ts` per the singleton-in-`obj/` convention. |
+| `platform/content/platform/idea/Topic/<dotted-path>.yaml` | One file per topic leaf or family. Flat path strings, no nested directories. |
+| `platform/content/platform/idea/TopicCatalogue.yaml` | Singleton row (`{ class: /platform/idea/TopicCatalogue, data: {} }`). |
+| platform `pack.yaml` `boot:` | The `/platform/idea/TopicCatalogue` entry (`sync-read`). **No per-Topic pre-clone** — the catalogue loads its own descriptors. |
 | `@saxonberg/types` `TopicDescriptor` | Wire-safe shape: `{ topic, family, label, description }` + the six facets. `TopicRoot` / `TOPIC_ROOTS` live here too. Shared between the server snapshot and the client cache. |
 
 ## No code-side constants mirror
@@ -157,7 +157,7 @@ in the DB; `TOPICS` is a code-side autocomplete convenience.
 `Topic` extends `Idea` with four public string fields and per-field
 invariants on the setters (empty strings rejected for `topic`,
 `label`, `description`; `family` accepts `''` for root topics). The
-`TEMPLATE_PATH_PREFIX` constant is `/obj/Topic/`. Authors
+`TEMPLATE_PATH_PREFIX` constant is `/platform/idea/Topic/`. Authors
 edit topic descriptors through the existing workspace shell —
 there's no `describe-topic` verb.
 
@@ -182,9 +182,9 @@ methods compose its surface:
 
 Cache state lives as a `Map<string, TopicDescriptor> | null` private
 instance field, warmed by `postRegister`'s call to
-`Template.findDescendants('/obj/Topic/')`. Resolution
+`Template.findDescendants('/platform/idea/Topic/')`. Resolution
 dispatches through the standard call-security gate via
-`StuffApi.findByTemplatePath('/obj/TopicCatalogue')` — there's no
+`StuffApi.findByTemplatePath('/platform/idea/TopicCatalogue')` — there's no
 `TopicCatalogueApi` indirection. Per
 [[feedback-no-new-apis-default]], the singleton's instance methods
 are the access surface.
@@ -193,7 +193,7 @@ are the access surface.
 data (`topic` / `family` / `label` / `description`) with no runtime
 behavior, so the catalogue reads `data.*` directly off each
 `Template` doc — no `Topic` Stuff instances are ever cloned at
-boot. The platform pack's `boot:` list carries `/obj/TopicCatalogue`
+boot. The platform pack's `boot:` list carries `/platform/idea/TopicCatalogue`
 but **no** per-Topic entry. Same pattern as species clades /
 materials / biomes ([bootstrap.md](./bootstrap.md)).
 
@@ -228,7 +228,7 @@ cached snapshot — descriptor lookups don't round-trip.
 ## Wire push on session-establish
 
 At session-establish, `Avatar.enter` reads
-`(await findByTemplatePath('/obj/TopicCatalogue')).getSnapshot()`
+`(await findByTemplatePath('/platform/idea/TopicCatalogue')).getSnapshot()`
 into the welcome scene payload's `topicCatalogue` field. The client
 caches the array in a `Map<topic, TopicDescriptor>` on the Zustand
 store; `getTopicDescriptor` consults that map.
@@ -258,7 +258,7 @@ Both are singleton Ideas in `obj/` that own a per-X data shape:
 | Aspect | EventRegistry | TopicCatalogue |
 |---|---|---|
 | Content shape | Transient per-event policy closures | Persistent per-topic prose (label, description, family) |
-| Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/obj/Topic/` |
+| Source of truth | Code-side `Events` enum + `defaultPolicyFor` table | `Topic` Ideas under `/platform/idea/Topic/` |
 | Code-side vocabulary | `Events` enum is the vocabulary | no code-side const — topics are string literals at call sites; descriptors are content |
 | Auto-resolve behavior | `EventApi.on/emit` auto-registers unknown events with the default `emittableBy()` policy | `getDescriptor` auto-falls-back via family inheritance or derived default |
 | Persistence | Empty seed; runtime state is closures | Empty seed; runtime cache reads `Topic` template docs from mongo at boot |
@@ -273,7 +273,7 @@ encoded in the `topic` / `family` fields.
 
 ```yaml
 class: /lib/messaging/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   topic: world.speech.say
   family: world.speech
@@ -363,7 +363,7 @@ its place.
 ### ⚠ Facets need a reseed, not a migration
 
 The seeder is **insert-only**. Editing a seeded topic's `data:` does
-nothing on a database that has already booted — drop the `/obj/Topic/`
+nothing on a database that has already booted — drop the `/platform/idea/Topic/`
 rows and restart. On the wiping demo instance this is simply the
 standing loop for reference data.
 
@@ -372,10 +372,10 @@ standing loop for reference data.
 1. `PackApi.install` reconciles the platform pack's rows into the
    `content` collection (including the per-topic rows — those just
    sit in mongo as template docs, no runtime presence).
-2. `BootstrapManager` clones `/obj/TopicCatalogue` (and nothing
+2. `BootstrapManager` clones `/platform/idea/TopicCatalogue` (and nothing
    else in the messaging substrate).
 3. `TopicCatalogue.postRegister` reads every Topic template via
-   `Template.findDescendants('/obj/Topic/')` and warms
+   `Template.findDescendants('/platform/idea/Topic/')` and warms
    the descriptor cache.
 4. Welcome-scene payload composition reads `getSnapshot()` and
    ships it to the client.

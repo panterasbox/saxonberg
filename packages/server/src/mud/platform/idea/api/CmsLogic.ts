@@ -303,7 +303,7 @@ export class CmsLogic extends ApiLogic {
       // Immediate children of `path`. A child is either a real template doc
       // at depth+1, or a SYNTHETIC namespace folder for an intermediate
       // segment that has no template of its own (e.g. `/obj` is browsable
-      // even though only `/obj/X` templates exist) — without this, most
+      // even though only `/platform/<branch>/X` templates exist) — without this, most
       // engine content is unreachable from the root.
       const descendants = await Template.findDescendants(path);
       const prefix = path === '/' ? '/' : path + '/';

@@ -127,7 +127,7 @@ here.
 **Ships:** a garden bed in a yard, and a harvest.
 
 **The step from 1:** the same engine plus two things — a **second point on the
-density dial** (the slotted bed; `seeds/obj/Campfire.yaml`'s `staticSlots` is
+density dial** (the slotted bed; `seeds/stuff/thing/Campfire.yaml`'s `staticSlots` is
 the template) and a **harvest** that mints matter.
 
 **Lands the enabler: land use.** A closed six-entry vocabulary on

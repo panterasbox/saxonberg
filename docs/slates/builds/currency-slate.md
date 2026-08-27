@@ -78,7 +78,7 @@ turned out to be stronger than "no":
 > ⭐⭐ **The two denomination names that exist today — `sovereign` and
 > `crown` — have never been seen by a player.**
 
-There is exactly one coin template (`seeds/obj/Coin.yaml`):
+There is exactly one coin template (`seeds/stuff/thing/Coin.yaml`):
 
 ```yaml
 shortDescription: a credit coin

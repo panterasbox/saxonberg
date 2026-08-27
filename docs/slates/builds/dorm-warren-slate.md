@@ -172,24 +172,24 @@ else lives in); **privacy unlocks deeper finishes; ownership unlocks authoring.*
 The generic object — its composed mixins define what's customizable:
 
 ```yaml
-# /domain/eu/dorm/bed
+# /world/eu/dorm/bed
 class: /lib/dorm/Bed       # = Detailed(SmellSource(SoundSource(Tangible(Visible(Thing)))))
 data:
   short:    "a bed"                     # Visible      (NOT Named — generic)
   long:     "A standard dorm bed."      # Visible
-  material: /obj/material/wood/pine     # Tangible
+  material: /stuff/idea/material/wood/pine     # Tangible
   # details (Detailed) · smell (SmellSource) · sound (SoundSource) · light (AmbientLit): unset
 ```
 
 A theme — a cross-mixin field-bundle, keyed by slot:
 
 ```yaml
-# /domain/eu/theme/fantasy
+# /world/eu/theme/fantasy
 bed:
   short:    "a great four-poster"                              # Visible
   long:     "A four-poster, drapes the deep red of old wine."  # Visible
   details:  { drapes: "heavy velvet, dust sifting from the folds" }   # Detailed
-  material: /obj/material/wood/blackoak                         # Tangible
+  material: /stuff/idea/material/wood/blackoak                         # Tangible
   smell:    "beeswax and cold stone"                           # SmellSource
   sound:    "charms on the canopy tick in any draft"           # SoundSource
   light:    { glow: candle, level: dim }                       # AmbientLit
@@ -201,12 +201,12 @@ Your half — a sparse *field diff* (any mixin's fields):
 // document tree · /home/p-8f2a/dorm-room
 {
   "meta": { "schema": "dorm-room@1", "owner": "p-8f2a",
-            "base": "/domain/eu/DormRoom", "room": "duncan-hall:r-204", "half": "left" },
+            "base": "/world/eu/DormRoom", "room": "duncan-hall:r-204", "half": "left" },
   "theme": "fantasy",
   "slots": {
     "bed": {
       "long":     "Just a cot. But the quilt's the one Gran sewed.",   // Visible
-      "material": "/obj/material/textile/quilt-cotton",                 // Tangible
+      "material": "/stuff/idea/material/textile/quilt-cotton",                 // Tangible
       "details":  { "quilt": "edges gone soft, a coffee stain shaped like Ohio" }, // Detailed
       "smell":    "faintly of her house — cedar and old coffee"         // SmellSource
       // short, sound, light: untouched → the fantasy bundle's
@@ -218,7 +218,7 @@ Your half — a sparse *field diff* (any mixin's fields):
 The tier filter — the only thing that makes it "bounded":
 
 ```yaml
-# /domain/eu/DormRoom — which mixin-fields a DORM lets a player set (and to what)
+# /world/eu/DormRoom — which mixin-fields a DORM lets a player set (and to what)
 editable:
   "*":                               # any slot object on your half
     Visible:     [short, long]
@@ -226,7 +226,7 @@ editable:
     SmellSource: [smell]
     SoundSource: [sound]
     AmbientLit:  [light]
-    Tangible:    { material: [ /obj/material/wood/**, /obj/material/textile/** ] }  # value-bounded
+    Tangible:    { material: [ /stuff/idea/material/wood/**, /stuff/idea/material/textile/** ] }  # value-bounded
   # NOT here: Atmospheric (room biome → apartment tier); composing new mixins (sandbox)
 ```
 

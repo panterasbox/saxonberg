@@ -57,7 +57,7 @@ CMS git panel ──────┘  (facade)   (singleton)              ──�
 ```
 
 `GitApi` (`mud/api/git.ts`) is the gated forwarding shell over the
-hot-reloadable `GitLogic` singleton at `/obj/api/git` (reached via
+hot-reloadable `GitLogic` singleton at `/platform/idea/api/git` (reached via
 `StuffApi.singletonSync`); it homes the one error class, `GitError`. Five
 ops: `status` / `diff` / `log` (reads) and `publish` / `revert` (writes).
 Neither surface reimplements the mechanism or the gate.
@@ -69,8 +69,8 @@ plumbing detail:
 
 | Space | Shape | Who speaks it |
 |---|---|---|
-| repo-relative | `packages/server/src/mud/obj/Foo.ts` | `git status`/`diff` porcelain |
-| source-logical | `/server/src/mud/obj/Foo.ts` (packages-stripped, leading `/`) | `AccessApi.resolveSourceFolderZone` (walks the template tree) |
+| repo-relative | `packages/server/src/mud/platform/Foo.ts` | `git status`/`diff` porcelain |
+| source-logical | `/server/src/mud/platform/Foo.ts` (packages-stripped, leading `/`) | `AccessApi.resolveSourceFolderZone` (walks the template tree) |
 | absolute fs | `<repoRoot>/packages/…` | `simple-git` cwd |
 
 The repo root (where `.git` lives) is `path.dirname(SourceTreeApi.getSandboxRoot())`
@@ -136,7 +136,7 @@ credential is shared:
 Both are thin over the one gated `GitApi`; both derive the actor from
 context and hold no authz beyond their entry gate.
 
-- **The `git` verb** — `content/cmd/system/git.yaml` + `GitController`
+- **The `git` verb** — `content/platform/cmd/system/git.yaml` + `GitController`
   (category `system`, AuthorMixin-afforded, gated by the YAML
   `requiresWizard` validator). Subcommands `status` (default) / `diff` /
   `log` / `publish -m <msg>` / `revert <sha>`; reads render through
