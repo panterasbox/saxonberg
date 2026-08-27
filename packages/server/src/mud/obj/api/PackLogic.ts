@@ -2636,7 +2636,8 @@ function holderKey(owner: ParcelOwner): string {
   return `${owner.kind}:${owner.templatePath}`;
 }
 
-function describeHolder(owner: ParcelOwner): string {
+function describeHolder(owner: ParcelOwner | null): string {
+  if (owner === null) return 'nobody';
   if (owner.kind === 'group') return `group '${owner.name ?? owner.ref ?? '?'}'`;
   return `${owner.kind} '${owner.templatePath}'`;
 }
@@ -2822,7 +2823,15 @@ async function applyRequires(
   record: StoredRecord,
   result: PackReconcileResult,
 ): Promise<void> {
-  const manifest = rp.pack.manifest;
+  return applyRequiresFor(rp.pack.manifest, record, result);
+}
+
+/** The grants over a manifest — the install's and the nightly reprovision's one path. */
+async function applyRequiresFor(
+  manifest: PackManifest,
+  record: StoredRecord,
+  result: PackReconcileResult,
+): Promise<void> {
   const packId = manifest.id;
   const out = result.requires;
 
@@ -2930,7 +2939,7 @@ function soldPredicateFor(
     const covering = await ParcelApi.coveringParcelOf(path);
     const owner = covering?.getOwner() ?? null;
     if (!owner) return false;
-    if (owner.kind === 'group' && owner.name === 'core') return false;
+    if (owner.kind === 'group' && owner.name === 'core') return false; // migration-note: the retired state default, not a sale
     if (holders.has(holderKey(owner))) return false;
     // A ref-only group owner: compare by its resolved name too.
     if (owner.kind === 'group' && !owner.name && owner.ref) {
@@ -3595,7 +3604,7 @@ export class PackLogic extends ApiLogic {
       const covering = await ParcelApi.coveringParcelOf(t.extent);
       const wanted = holderOfTitle(t, m);
       const held = covering?.getExtent() === t.extent;
-      const outcome = !held ? 'unheld' : holderKey(owner) === holderKey(wanted) ? 'held' : 'conflict';
+      const outcome = !held || owner === null ? 'unheld' : holderKey(owner) === holderKey(wanted) ? 'held' : 'conflict';
       titles.push({ extent: t.extent, holder: describeHolder(owner), outcome });
     }
     const members = 'group' in m ? await membersOfGroup(m.group) : [];
@@ -3625,6 +3634,40 @@ export class PackLogic extends ApiLogic {
     }
     const { ref } = await GroupApi.ensureGroup(m.group, { kind: 'office', office: PRIME_MINISTER });
     return GroupApi.ensureMember(ref, memberPath, 'member');
+  }
+
+  /** See {@link PackApi.reprovision}. */
+  @CallSecurity(PackApiCallers)
+  public async reprovision(): Promise<string[]> {
+    const records = (await PersistApi.find(Collections.PackInstalls, {})) as unknown as StoredRecord[];
+    const lines: string[] = [];
+    for (const record of records) {
+      if (record.status !== 'applied') continue;
+      const manifest: PackManifest = {
+        id: record.packId,
+        version: record.version,
+        dependsOn: [],
+        root: `/${record.packId}`,
+        requires: record.requires ?? { groups: [], title: [] },
+        boot: record.boot ?? [],
+        maintainers: record.maintainers ?? defaultMaintainers(record.packId),
+      };
+      const result = emptyResult(record.packId);
+      const principal = record.principal;
+      record.principal = 'bootstrap';
+      try {
+        await applyRequiresFor(manifest, record, result);
+      } finally {
+        record.principal = principal;
+      }
+      const r = result.requires;
+      const line =
+        `PackApi: reprovisioned '${record.packId}' — ${r.groupsCreated.length} group(s) re-minted, ` +
+        `${r.titlesGranted.length} title(s) re-granted, ${r.titlesKept.length} kept, ${r.titleConflicts.length} conflict`;
+      console.info(line);
+      lines.push(line);
+    }
+    return lines;
   }
 
   /** See {@link PackApi.maintainersOf}. */

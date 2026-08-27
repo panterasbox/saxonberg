@@ -17,6 +17,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RecordApi } from '../record';
+import { PackApi } from '../pack';
 import { AccessApi } from '../access';
 import { Collections } from '../../lib/persistence/Collections';
 import { RESET_DISPOSITIONS } from '../../lib/persistence/ResetPolicy';
@@ -54,6 +55,8 @@ beforeEach(() => {
   // The re-seed is a separate concern with its own suite; stub it so a
   // failure there cannot be mistaken for a failure of the wipe.
   vi.spyOn(AccessApi, 'reseedSystemGroups').mockResolvedValue(undefined);
+  // ...and the packs' groups + titles are re-granted from the install records.
+  vi.spyOn(PackApi, 'reprovision').mockResolvedValue([]);
   vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 });
 
@@ -161,11 +164,13 @@ describe('an enforced run', () => {
     // re-seed is part of the job, not an operator's memory.
     expect(rowsIn(Collections.Groups)).toHaveLength(0);
     expect(AccessApi.reseedSystemGroups).toHaveBeenCalledTimes(1);
+    expect(PackApi.reprovision).toHaveBeenCalledTimes(1);
   });
 
   it('does NOT re-seed on a dry run', async () => {
     await RecordApi.wipe({ dryRun: true });
     expect(AccessApi.reseedSystemGroups).not.toHaveBeenCalled();
+    expect(PackApi.reprovision).not.toHaveBeenCalled();
   });
 
   it('takes the frame store with everything else', async () => {

@@ -48,6 +48,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ExecutionContextApi } from './execution-context';
 import { SecurityApi } from './security';
+import { PackApi } from './pack';
 import { AccessApi } from './access';
 import { AppApi } from './app';
 import { ScheduleApi } from './schedule';
@@ -215,8 +216,9 @@ export class RecordApi {
    * goes. See `lib/persistence/ResetPolicy.ts` for the reason on each
    * row.
    *
-   * ⚠ The re-seed afterwards is not tidiness — `groups` carries the
-   * system groups, so without it every resource-targeted access read
+   * ⚠ The re-seed and the re-provision afterwards are not tidiness —
+   * `groups` carries the axis groups and the packs' groups, `parcels`
+   * every title, so without them every resource-targeted access read
    * fails closed until somebody restarts the process.
    */
   public static async wipe(
@@ -227,6 +229,12 @@ export class RecordApi {
     if (!dryRun) {
       try {
         await AccessApi.reseedSystemGroups();
+        // The wipe took `parcels` and `groups`: re-grant every applied
+        // pack's `requires` (content-packs wave 3 — with no state default,
+        // a world with no titles refuses every `can` until restart, the
+        // founder included). Idempotent: groups re-minted empty, titles
+        // re-granted.
+        await PackApi.reprovision();
       } catch (err) {
         // Loud, and not swallowed into the report: a wipe that left the
         // world without its system groups is a broken world, and the

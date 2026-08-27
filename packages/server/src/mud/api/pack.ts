@@ -476,6 +476,16 @@ export class PackApi {
     return logic().staff(packId, memberPath);
   }
 
+  /**
+   * Re-grant every applied pack's `requires` from its install record as
+   * principal `bootstrap` (the nightly reset wipes `parcels` and `groups`;
+   * with no state default a world with no titles refuses every `can`).
+   * Idempotent. Returns one line per pack.
+   */
+  public static async reprovision(): Promise<string[]> {
+    return logic().reprovision();
+  }
+
   /** Who maintains `packId`, whether anyone does, and the ops fallback. */
   public static async maintainersOf(packId: string): Promise<PackMaintainersInfo | null> {
     return logic().maintainersOf(packId);
