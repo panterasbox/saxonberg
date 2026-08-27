@@ -49,7 +49,7 @@ const OK: PackReconcileResult = {
   failure: null,
   requires: {
     groupsCreated: [], groupsFound: [], titlesGranted: [], titlesKept: [],
-    titlesMigrated: [], titleConflicts: [], membersAdded: [], skippedSold: [],
+    titleConflicts: [], membersAdded: [], skippedSold: [],
   },
   boot: { 'sync-read': 0, producer: 0 },
   staffed: false,

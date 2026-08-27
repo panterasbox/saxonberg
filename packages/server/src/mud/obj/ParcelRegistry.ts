@@ -58,15 +58,6 @@ const ParcelApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate("/obj/api/parcel"),
 );
 
-/**
- * migration-note: the wave-2 corpo board groups, retired by content-packs
- * wave 3 (each corpo organization holds its own branch). `grant` treats a
- * title one of them holds exactly like a `core`-held one. Delete in wave 4.
- */
-const RETIRED_BOARDS: ReadonlySet<string> = new Set([
-  "aevex", "goodkin", "hollis", "veshko", "vionne",
-]);
-
 export default class ParcelRegistry extends ParcelRegistryBase {
   /**
    * Coverage index: parcel `extent` → its `ParcelRecord`. A PathTrie
@@ -314,14 +305,9 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    * declared claim. Absent → write the row + a `grant` event → `granted`.
    * Present under the **same holder** → `kept` (no write, no event).
    * Present under a **different holder** → `conflict` (no write; the
-   * caller records it). Present under the retired state default (the
-   * `core` group) → transferred to the claim's holder with a `transfer`
-   * event and one log line → `migrated`.
-   *
-   * migration-note: the `core`-held branch is the ONE data touch wave 3
-   * makes to existing title — the dev DB's `/studio` and `/compact` rows
-   * were seeded `core`-held, and "no new title over an existing one" is
-   * read as *over one held by someone real*. Delete the branch in wave 4.
+   * caller records it) — whoever that holder is: there is no migration
+   * branch (wave 3's `core`-held and retired-board hand-overs were
+   * deleted in wave 4a; a pre-wave database is dropped, never migrated).
    */
   @CallSecurity(ParcelApiCallers)
   public async grant(
@@ -335,24 +321,6 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       const current = existing.getOwner();
       if (current && (await this.sameHolder(current, claim.holder))) {
         return { outcome: "kept", holder: current };
-      }
-      // migration-note: the retired state default hands the row over —
-      // and so do the five retired wave-2 corpo BOARD groups, whose
-      // /corpo/<key> title passes to the corpo organization that now
-      // claims it. Both branches are deleted in wave 4.
-      if (
-        current?.kind === "group" &&
-        (current.name === "core" || // migration-note: the retired state default
-          (current.name !== undefined && RETIRED_BOARDS.has(current.name)))
-      ) {
-        await this.appendEvent("transfer", claim.extent, current, claim.holder);
-        existing.owner = claim.holder;
-        await existing.save();
-        console.info(
-          `ParcelRegistry: migrated '${claim.extent}' from the retired ` +
-            `state default to ${ParcelRegistry.describeHolder(claim.holder)}`,
-        );
-        return { outcome: "migrated", holder: claim.holder };
       }
       return { outcome: "conflict", holder: current ?? claim.holder };
     }

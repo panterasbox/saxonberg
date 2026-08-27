@@ -2,7 +2,7 @@
  * The requires phase (content-packs wave 3, D4/D7): what the registries
  * grant a pack at install. Groups ensure-exist (adopt-by-name, never
  * re-owned); the maintainers group is PM-owned and empty after a
- * bootstrap install (UNSTAFFED); titles are granted / kept / migrated /
+ * bootstrap install (UNSTAFFED); titles are granted / kept /
  * conflicted through `ParcelApi.grant`; the NPC-only membership fence,
  * the declared-group and shipped-organization rules and coverage all fail
  * at `requires-kernel` before any write; the bounded reconcile skips a
@@ -239,17 +239,20 @@ describe('the requires phase — titles', () => {
     expect(contentRows()).toHaveLength(0);
   });
 
-  it('migrated over a `core`-held row', async () => {
-    parcels.push({ extent: '/obj/studio', owner: { kind: 'group', name: 'core' } }); // migration-note: the retired state default
+  it('a row held by a group outside the pack\'s holder set is a title conflict, and its rows are skipped as sold (no core exemption, wave 4a)', async () => {
+    parcels.push({ extent: '/obj/studio', owner: { kind: 'group', name: 'somebody-else' } });
     const root = writePack('platform', [ROW('obj/studio/x.yaml')], {
       manifest: { requires: { title: [{ extent: '/obj/studio' }] } },
     });
     const [r] = await PackApi.install([root]);
     expect(r!.failure).toBeNull();
-    expect(r!.requires.titlesMigrated).toEqual(['/obj/studio']);
-    expect(parcels[0]!.owner).toEqual({ kind: 'group', name: 'platform-maintainers' });
-    // The core-held row was NOT treated as sold: the template was written.
-    expect(contentRows().map((c) => c.path)).toEqual(['/obj/studio/x']);
+    expect(r!.requires.titleConflicts).toEqual(['/obj/studio']);
+    expect(r!.requires).not.toHaveProperty('titlesMigrated');
+    // The holder is untouched — no transfer, whoever they are.
+    expect(parcels[0]!.owner).toEqual({ kind: 'group', name: 'somebody-else' });
+    // The row under the foreign extent is sold out from under the pack: skipped, never written.
+    expect(r!.requires.skippedSold).toEqual(['/obj/studio/x']);
+    expect(contentRows()).toHaveLength(0);
   });
 
   it('an organization maintainer must be a shipped row; its titles are granted to it; the head alone is unstaffed', async () => {

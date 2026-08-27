@@ -3,7 +3,8 @@
  * wave 3): a fresh extent is written with a `grant` event and indexed; the
  * same holder is `kept` with no event; a foreign holder is a `conflict`
  * with the row untouched; a `core`-held row (the retired state default) is
- * `migrated` with a `transfer` event; a malformed landUse throws.
+ * a row held by anyone else — the retired state default included — is a
+ * `conflict` (no migration branch, wave 4a); a malformed landUse throws.
  */
 
 import "../../../test-bootstrap";
@@ -153,35 +154,25 @@ describe("ParcelApi.grant", () => {
     expect(await ParcelEvent.findByExtent("/studio/lounge")).toHaveLength(0);
   });
 
-  it("a `core`-held row → migrated: holder replaced, one `transfer` event", async () => {
-    seedParcel("/studio", { kind: "group", name: "core" }); // migration-note: the retired state default
+  it("a row held by a different group — a retired board, the old state default — is a conflict: no write, no event (no migration branch)", async () => {
+    seedParcel("/corpo/goodkin", { kind: "group", name: "goodkin" });
+    seedParcel("/studio", { kind: "group", name: "somebody" });
     await boot();
     const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
-    const r = await ParcelApi.grant({ extent: "/studio", holder: EXECUTIVE });
-    expect(r).toEqual({ outcome: "migrated", holder: EXECUTIVE });
-    expect(await ParcelApi.ownerOf("/studio/x")).toEqual(EXECUTIVE);
-    const events = await ParcelEvent.findByExtent("/studio");
-    expect(events).toHaveLength(1);
-    expect(events[0]!.event).toBe("transfer");
-    expect(events[0]!.from).toEqual({ kind: "group", name: "core" }); // migration-note: the retired state default
-    expect(events[0]!.to).toEqual(EXECUTIVE);
-    expect(info).toHaveBeenCalledWith(expect.stringMatching(/migrated '\/studio'/));
-    // A second grant is now `kept`.
-    expect((await ParcelApi.grant({ extent: "/studio", holder: EXECUTIVE })).outcome).toBe("kept");
-  });
-
-  it("a retired corpo-board-held row → migrated to the organization (the wave-2 boards)", async () => {
-    seedParcel("/corpo/goodkin", { kind: "group", name: "goodkin" });
-    await boot();
-    vi.spyOn(console, "info").mockImplementation(() => undefined);
     const GOODKIN: ParcelOwner = { kind: "organization", templatePath: "/corpo/goodkin" };
-    const r = await ParcelApi.grant({ extent: "/corpo/goodkin", holder: GOODKIN });
-    expect(r).toEqual({ outcome: "migrated", holder: GOODKIN });
-    expect((await ParcelEvent.findByExtent("/corpo/goodkin"))[0]!.from).toEqual({ kind: "group", name: "goodkin" });
-    // Any other group holder is still a conflict.
-    seedParcel("/studio/other", { kind: "group", name: "somebody" });
-    await ParcelApi.rebuildCoverageIndex();
-    expect((await ParcelApi.grant({ extent: "/studio/other", holder: GOODKIN })).outcome).toBe("conflict");
+    expect(await ParcelApi.grant({ extent: "/corpo/goodkin", holder: GOODKIN })).toEqual({
+      outcome: "conflict",
+      holder: { kind: "group", name: "goodkin" },
+    });
+    expect(await ParcelApi.grant({ extent: "/studio", holder: EXECUTIVE })).toEqual({
+      outcome: "conflict",
+      holder: { kind: "group", name: "somebody" },
+    });
+    expect(await ParcelApi.ownerOf("/corpo/goodkin/x")).toEqual({ kind: "group", name: "goodkin" });
+    expect(await ParcelApi.ownerOf("/studio/x")).toEqual({ kind: "group", name: "somebody" });
+    expect(await ParcelEvent.findByExtent("/corpo/goodkin")).toHaveLength(0);
+    expect(await ParcelEvent.findByExtent("/studio")).toHaveLength(0);
+    expect(info).not.toHaveBeenCalledWith(expect.stringMatching(/migrated/));
   });
 
   it("malformed claims throw: unknown landUse, non-positive area, no holder key", async () => {

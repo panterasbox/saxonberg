@@ -115,7 +115,6 @@ export interface PackRequiresResult {
   groupsFound: string[];
   titlesGranted: string[];
   titlesKept: string[];
-  titlesMigrated: string[];
   titleConflicts: string[];
   membersAdded: string[];
   /** Domain rows skipped because their covering extent is held by nobody in the pack's holder set. */
@@ -365,6 +364,18 @@ export class PackApi {
     packRoots?: string[],
   ): Promise<PackReconcileResult[]> {
     return logic().install(packRoots);
+  }
+
+  /**
+   * The boot guard (content-packs wave 4a): a database holding `content`
+   * rows under the retired `/domain/` root predates the `/world/` rename,
+   * which shipped with NO migration (drop-not-migrate). Resolves on a
+   * clean store; otherwise logs one line naming the count and the
+   * database and throws — the boot must not continue into the installer.
+   * `dbName` is only for the message.
+   */
+  public static async assertNoLegacyPaths(dbName: string): Promise<void> {
+    return logic().assertNoLegacyPaths(dbName);
   }
 
   /**

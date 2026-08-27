@@ -192,9 +192,8 @@ export class ParcelApi {
    * ⭐ Apply a declared title claim — the content installer's seam
    * (content-packs wave 3; `PackLogic.applyRequires` is the one caller).
    * Absent → `granted` (row + `grant` event); same holder → `kept`;
-   * different holder → `conflict` (untouched — the caller records it);
-   * held by the retired state default → `migrated` (one `transfer`
-   * event). As exposed as `transfer`: authority is the caller's business.
+   * different holder → `conflict` (untouched — the caller records it).
+   * As exposed as `transfer`: authority is the caller's business.
    */
   public static async grant(
     claim: TitleClaim,

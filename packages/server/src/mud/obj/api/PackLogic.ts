@@ -2582,7 +2582,6 @@ function emptyRequiresResult(): PackRequiresResult {
     groupsFound: [],
     titlesGranted: [],
     titlesKept: [],
-    titlesMigrated: [],
     titleConflicts: [],
     membersAdded: [],
     skippedSold: [],
@@ -2879,7 +2878,6 @@ async function applyRequiresFor(
     switch (r.outcome) {
       case 'granted': out.titlesGranted.push(t.extent); break;
       case 'kept': out.titlesKept.push(t.extent); break;
-      case 'migrated': out.titlesMigrated.push(t.extent); break;
       case 'conflict':
         out.titleConflicts.push(t.extent);
         record.conflicts.push({
@@ -2920,8 +2918,7 @@ async function finishRequires(
  * The bounded-reconcile predicate (CPS:308) for one pack: a domain row
  * whose covering parcel is held by nobody in the pack's holder set was
  * SOLD out from under the pack — skipped and counted, never written. No
- * resident registry → unbounded. migration-note: a `core`-held covering
- * parcel is the retired state default, not a sale.
+ * resident registry → unbounded.
  */
 function soldPredicateFor(
   manifest: PackManifest,
@@ -2932,7 +2929,6 @@ function soldPredicateFor(
     const covering = await ParcelApi.coveringParcelOf(path);
     const owner = covering?.getOwner() ?? null;
     if (!owner) return false;
-    if (owner.kind === 'group' && owner.name === 'core') return false; // migration-note: the retired state default, not a sale
     if (holders.has(holderKey(owner))) return false;
     // A ref-only group owner: compare by its resolved name too.
     if (owner.kind === 'group' && !owner.name && owner.ref) {
@@ -3286,6 +3282,24 @@ function siblingsOf(pack: ResolvedPack, packRoots?: string[]): ReadPack[] {
  */
 @Unshadowable
 export class PackLogic extends ApiLogic {
+  /** See {@link PackApi.assertNoLegacyPaths}. */
+  @CallSecurity(PackApiCallers)
+  public async assertNoLegacyPaths(dbName: string): Promise<void> {
+    // ⚠ The ONE place the retired root is still spelled in source (wave
+    // 4a, D4): everything else says /world/. Anchored — a path merely
+    // containing the word (`/home/x/domain-notes`) is not a hit.
+    const LEGACY_ROOT = '/domain/';
+    const rows = (await PersistApi.find(Collections.Content, {})) as Array<{ path?: unknown }>;
+    const legacy = rows.filter((r) => typeof r.path === 'string' && r.path.startsWith(LEGACY_ROOT)).length;
+    if (legacy === 0) return;
+    const message =
+      `PackApi: this database holds ${legacy} content row(s) under the retired ${LEGACY_ROOT} root ` +
+      `(content-packs wave 4a renamed it /world/ with NO migration). Drop database '${dbName}' and ` +
+      `boot again; see docs/deployment.md § The Mongo environment policy.`;
+    console.error(message);
+    throw new Error(message);
+  }
+
   /** See {@link PackApi.install}. */
   @CallSecurity(PackApiCallers)
   public async install(

@@ -102,10 +102,6 @@ export function stubRegistries(): void {
         : (row.owner as { templatePath: string }).templatePath ===
           (claim.holder as { templatePath: string }).templatePath);
     if (same) return { outcome: 'kept', holder: row.owner };
-    if (row.owner.kind === 'group' && row.owner.name === 'core') { // migration-note: the retired state default
-      row.owner = claim.holder;
-      return { outcome: 'migrated', holder: claim.holder };
-    }
     return { outcome: 'conflict', holder: row.owner };
   });
   const covering = (path: string): { extent: string; owner: ParcelOwner } | null => {

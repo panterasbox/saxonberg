@@ -78,10 +78,10 @@ export interface TitleClaim {
  * What `ParcelApi.grant` did with a claim: `granted` (no row existed —
  * written), `kept` (the row exists with the same holder — untouched),
  * `conflict` (the row exists under a different holder — untouched, the
- * caller records it), `migrated` (the row was held by the retired state
- * default and was transferred to the claim's holder — one transfer event).
+ * caller records it). No migration outcome: a row held by anyone else is
+ * a conflict, whoever they are.
  */
-export type TitleGrantOutcome = "granted" | "kept" | "conflict" | "migrated";
+export type TitleGrantOutcome = "granted" | "kept" | "conflict";
 
 /**
  * A **use-grant** on a parcel — the minimal property-0b lease relationship
