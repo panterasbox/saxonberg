@@ -825,8 +825,13 @@ landing first.
   every migration / adoption / compat path in the tree, and moved every
   template and engine source path onto the `<root>/<branch>/` pattern
   (`/platform`, `/stuff`, `/trade/<x>`; `thing`·`idea`·`agent`·`location`;
-  `command` → `cmd`). Waves 4b (the venue packs) and 5 remain.
-  Left: the wave-4 path surgery (see
+  `command` → `cmd`); wave 4b (2026-08-27, MR !204) made the lounge
+  ONE pack, minted the `hearthworks` venue pack and `trade-hospitality`
+  (twenty ship; generic-objects ships no recipes), graduated
+  `Offstage` / `MechanicalMovement` to `lib/` and the composition-only
+  classes to `platform/thing/`. Wave 5 (homing the rest of
+  `world-seed` and deleting it) remains.
+  Left: wave 5 (see
   [content-packs.md](./subsystems/content-packs.md) /
   [content-packs-slate.md](./slates/builds/content-packs-slate.md));
   Capability / Full (new-code mods, needing `isolated-vm`) remain.*
