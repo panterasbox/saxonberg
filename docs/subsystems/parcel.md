@@ -280,7 +280,7 @@ A zone with no parcel row inherits its governing parcel from the nearest
 parcel-bearing ancestor: `coveringParcelOf(path)` is
 `trie.longestPrefix(path)`. `parentParcel` is stored on the row for O(1)
 transfer/subdivide bookkeeping (derivable from the trie, but cheap to keep).
-So `/world/lounge/bar/stool` resolves to the `/world/lounge` parcel, and a
+So `/world/lounge/location/bar/stool` resolves to the `/world/lounge` parcel, and a
 carve-out at `/world/lounge/east-wing` shadows it for paths beneath.
 
 ## Chain of title (`parcel_events`)

@@ -313,9 +313,10 @@ inherited `prices`/`priceFor` (Law 1: worth on the offer — the same
 `getLong()`.
 
 A menu affords **commerce only** — the base's `commandContributions` is
-`menu`/`order`, any venue, and the venue subclasses
-(`world/lounge/Menu`, `SmithyMenu`, `KitchenMenu`) are empty
-template-path anchors (seed `class:` refs + bar parity untouched). The
+`menu`/`order`, any venue, and the ONE concrete `platform/thing/Menu`
+(content packs wave 4b collapsed the three empty venue subclasses —
+the lounge's `Menu`, `SmithyMenu`, `KitchenMenu` — into it; what
+differed was the rows' data: `offeredRecipes`, prices). The
 *working* verbs are **instrument-conferred through the capability
 table** (`lib/craft/ToolCapability.ts`): each kind's definition names
 the verb family it confers and its placement, and `ToolMixin` derives
@@ -494,24 +495,30 @@ homed by what they *are*:
   (`lib/character/`, `MakerMixin(NPC)`), `NPC` (`lib/character/`, the
   minimal concrete `Character` — shares its path with the npc-behavior
   lane's richer `NPC`, which the add/add merge resolves to).
-- **Bar content** → `world/lounge/`: `CraftedDrink`
+- **Commons** → `platform/thing/` (content packs wave 4b — composition-only
+  classes are commons, not content): `CraftedDrink`
   (`CraftedMixin(BulkableMixin(DetailedMixin(Thing)))`, `getLong()`
   appends the verdict), `Menu`, `GradedReceptacle`
-  (`GradedMixin(BulkableMixin(Thing))`, the stock bottle).
+  (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`, the stock bottle),
+  `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`.
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
-  packs wave 4a): `trade-smithing` ships the smithing five at
-  `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` ships
-  toasted-ration + root-mash, `generic-objects` keeps the rest. The
+  packs wave 4a/4b): `trade-smithing` ships the smithing five at
+  `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` its four
+  (toasted-ration, root-mash, fine-roast, hearty-stew),
+  `trade-hospitality` the two cocktails (daiquiri, martini);
+  `generic-objects` ships none. The
   catalogue is **path-agnostic** — it rebuilds from every `recipe`
   document whoever installed it — so a venue's `craft` never knows
   which pack its recipe came from.
 
-**Seeds:** instance rows in `world-seed/content/world/lounge/` (back-bar, the four
-bottles, shaker + mixing-glass, cocktail-glass, bar-menu, dave); the
-`Bar` self-stocks via `populates:` (bottles/tools `onto` the back-bar,
-then dave + menu). Cocktail/spirit `Material`s in `seeds/lib/material/`;
-recipe knowledge in the `generic-objects` pack. Crafted drinks are transient
+**Seeds:** the station templates are the hospitality trade's
+(`trade-hospitality/content/trade/hospitality/thing/` — back-bar,
+shaker, mixing-glass, cocktail-glass, tip-jar); the venue's own rows sit
+in `saxonberg-lounge/content/world/lounge/thing/` (the four bottles,
+bar-menu) and `agent/` (dave); the `Bar` self-stocks via `populates:`
+(bottles `onto` the trade's back-bar, then dave + menu). Cocktail/spirit
+`Material`s are base-library's; recipe knowledge is the trade's. Crafted drinks are transient
 runtime matter (persisted nowhere; reset on restart).
 
 ## Persistence story
@@ -617,10 +624,10 @@ losing the value-add makes it self-limiting.
 ## The venues (content over existing patterns, wholesale)
 
 The Hearthworks smithy grew into a working venue (anvil + smith's
-hammer + workbench + ingot/hide stock + `SmithyMenu` + Berta), and a
+hammer + workbench + ingot/hide stock + a `Menu` + Berta), and a
 **cookhouse** joined the zone (a 500 K clay hearth + `CookPot` + the
 open pantry chest — `/platform/thing/Chest`, `Sealable + Container + Populates`,
-the honest chest-pull — + `KitchenMenu` + Odo). Both paths at each:
+the honest chest-pull — + a `Menu` + Odo). Both paths at each:
 order it (served) or make it yourself with their tools (the DIY floor,
 unpriced — the teaching venue). The general store sells the personal
 kit: whetstone, iron ingots, sewing kit.
@@ -628,7 +635,7 @@ kit: whetstone, iron ingots, sewing kit.
 **The Business wiring is load-bearing, not decoration** (learned in
 this build): `order` resolves its maker through the augment-gated
 `MakerMixin`, so a venue with no rostered on-shift position has **no
-active maker** — `world-seed/content/world/hearthworks/business.yaml` rosters the
+active maker** — `hearthworks/content/world/hearthworks/idea/business.yaml` rosters the
 smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
 verbatim; see [employment.md](./employment.md)). New graded-stock
 form: `/platform/thing/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the

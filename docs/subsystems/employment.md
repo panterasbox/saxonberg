@@ -351,7 +351,23 @@ stays hot-swappable:
   Business roster now). Not presence-gated (off-stage cast must move out
   before a player arrives). config: `{ behindBar, offstage, railStool? }` —
   `railStool` is a reserved key for the deferred off-shift-at-the-rail
-  presence (v1 presence is binary).
+  presence (v1 presence is binary). `config.offstage` names the venue's
+  own **`Offstage`** row (below); both shipped venues park through it.
+- **`Offstage`** — the off-shift parking role (content packs wave 4b,
+  graduated out of the lounge): `OffstageMixin` in `lib/employment/`
+  (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,
+  `MixinApi.isOffstage`) and the clonable `platform/location/Offstage`
+  (singleton per template path, Visible/Detailed for the operator who
+  teleports in) that every venue's `offstage` row names —
+  `/world/lounge/location/offstage`, `/world/hearthworks/location/offstage`.
+  The world conserves identity: an off-duty NPC is relocated, never
+  destroyed and respawned, so each venue with a scheduled cast needs
+  somewhere for that cast to *be*. Materialized on demand by `shifts`
+  (`StuffApi.singletonOrClone`). The hearthworks roster is 24/7, so its
+  parking never fires in shipped hours; the room exists so a shortened
+  schedule parks Berta and Odo somewhere rather than nowhere. Tests:
+  `lib/employment/__tests__/Offstage.test.ts` (two venues, no bleed)
+  and one per venue beside its content (`world/<venue>/__tests__/offstage.test.ts`).
 - **`covers`** — the proprietor covers gaps. On a presence-gated cadence, if
   **no other active on-shift maker is present** in the proprietor's location,
   `EmploymentApi.beginCover(self, business)` upserts a **transient, on-shift**
@@ -367,10 +383,12 @@ stays hot-swappable:
 
 Tips are **physical cash**, two routes, never the bar's P&L:
 
-- **`TipJar`** — a `Container` `Thing` fixture (`domain/lounge/`) that holds
-  `Coin`, `Detailed` so it fills visibly. Affords `tip` + `collect` from the
-  environment bucket (the `Menu` affordance pattern). Populated onto the
-  bar's back-bar.
+- **`TipJar`** — a `Container` `Thing` fixture (`platform/thing/TipJar` —
+  a commons class, a jar is a jar) that holds `Coin`, `Detailed` so it
+  fills visibly. Affords `tip` + `collect` from the environment bucket
+  (the `Menu` affordance pattern). The *template* is the hospitality
+  trade's (`/trade/hospitality/thing/tip-jar`); the lounge's bar
+  `populates:` an instance onto its back-bar.
 - **`tip <amount> [--eft]`** — **cash** (default): `BankingApi.settle` cash
   moves coin patron→jar, off every ledger (anonymous, the under-the-counter
   take). **EFT** (`--eft`, or the automatic fallback when the patron lacks
@@ -419,9 +437,11 @@ Augie) → roster **assignees** (schedules lifted verbatim from the old NPC
 seeds, incl. Sloane's midnight-wrap two-window shift); each keeps
 `class: /lib/character/Crafter` (composes the gated `MakerMixin`), drops its
 `shifts` schedule, carries no employment block (materialized by the tick).
-The Business seed (`/world/lounge/business`) authors the `bartender`
+The Business seed (`/world/lounge/idea/business`) authors the `bartender`
 Position (`confers: [MakerMixin]`, `wageRate` a tuning placeholder), the
-roster, and `operatingLocations: [/world/lounge/bar]`.
+roster, and `operatingLocations: [/world/lounge/location/bar]`. Positions
+are rows on a Business — there is no industry-level position artifact,
+so the hospitality trade ships none and the venue keeps them.
 
 ## Compensation bases (the arrangement generalization)
 

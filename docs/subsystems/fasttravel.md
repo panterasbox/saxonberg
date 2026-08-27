@@ -170,7 +170,7 @@ another way and `register` first".
 **Born-with floor:** every credential is born registered for the
 **three-node set** `BORN_WITH_TRAVEL_NODES` (`lib/credential/Credential.ts`)
 — the **Terminus arrival node** (`/world/terminus/terminal/arrival-terminal`),
-**the lounge** (`/world/lounge/terminal`), and **the paid destination**
+**the lounge** (`/world/lounge/thing/terminal`), and **the paid destination**
 (`/world/newbie-wilds/crossroads/terminal`) — the documented exception to
 "reach-before-travel". The hub has no foot path to the rest of the world, so
 the interchange and the social hub are universally reachable by design:
@@ -265,8 +265,8 @@ fork reads `getStatus()` at authorization and refuses a non-operational
 departure (**D8**; the seam stays authored-static — no dynamic breakdown).
 
 The four terminals are **not** boot-manifest entries — they load by
-**`populates:` cascade** from the single lounge root (`world-seed`'s
-`boot:` list holds one hub anchor, `/world/lounge/terminal`, not one
+**`populates:` cascade** from the single lounge root (`saxonberg-lounge`'s
+`boot:` list holds one hub anchor, `/world/lounge/thing/terminal`, not one
 entry per terminal). The three departure terminals
 are never route targets, so a plain route-target cascade would never reach
 them; instead each departure gate room declares `populates:` its own

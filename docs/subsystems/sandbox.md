@@ -679,7 +679,7 @@ them are fixed on this branch.
   mirrors `/studio`. **Deploy step** (historical — the seeder is gone): `SeederManager` was insert-only, so
   an existing environment kept its stale `/home` row — delete
   `domain { path: '/home' }` once and restart to re-seed. Same for
-  `/world/lounge/wire-alcove` and `/platform/location/sandbox/CircleFloor` if they
+  `/world/lounge/location/wire-alcove` and `/platform/location/sandbox/CircleFloor` if they
   were seeded before the light fixtures landed.
 
 - **A crossing exit is not a spatial exit.** The wardrobe passage

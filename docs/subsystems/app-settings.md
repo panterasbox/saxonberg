@@ -53,7 +53,7 @@ export const AppSettingKeys = {
 # packages/content/platform/content/settings/core.yaml — the single source of the values
 settings:
   - key: defaultStartLocation
-    value: /world/lounge/warren
+    value: /world/lounge/idea/warren
   - key: evacuationFallback
     value: /world/void
 ```
@@ -139,7 +139,7 @@ succeeded; it is **not** a `controller-rejected` envelope note).
 
 | Key | Seeded value | Read by |
 |---|---|---|
-| `defaultStartLocation` | `/world/lounge/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
+| `defaultStartLocation` | `/world/lounge/idea/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
 | `evacuationFallback` | `/world/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
 
 `defaultStartLocation` supplies only the *initial* value of each avatar's

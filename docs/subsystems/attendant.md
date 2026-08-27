@@ -100,7 +100,7 @@ shape: the engine drives cadence and **informs** each point (`point.evictIdleLea
 
 ## Instances
 
-- **The bar** (`domain/lounge/bar-counter`) — scrum / zero-wait: you don't queue
+- **The bar** (`/world/lounge/thing/bar-counter`) — scrum / zero-wait: you don't queue
   at a bar, the bartender gets to you. `OrderController` consults the point
   before serving; instant, so behaviorally unchanged — it runs the substrate and
   earns the lease.
