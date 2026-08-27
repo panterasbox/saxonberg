@@ -314,7 +314,7 @@ inherited `prices`/`priceFor` (Law 1: worth on the offer — the same
 
 A menu affords **commerce only** — the base's `commandContributions` is
 `menu`/`order`, any venue, and the venue subclasses
-(`domain/lounge/Menu`, `SmithyMenu`, `KitchenMenu`) are empty
+(`world/lounge/Menu`, `SmithyMenu`, `KitchenMenu`) are empty
 template-path anchors (seed `class:` refs + bar parity untouched). The
 *working* verbs are **instrument-conferred through the capability
 table** (`lib/craft/ToolCapability.ts`): each kind's definition names
@@ -494,13 +494,20 @@ homed by what they *are*:
   (`lib/character/`, `MakerMixin(NPC)`), `NPC` (`lib/character/`, the
   minimal concrete `Character` — shares its path with the npc-behavior
   lane's richer `NPC`, which the add/add merge resolves to).
-- **Bar content** → `domain/lounge/`: `CraftedDrink`
+- **Bar content** → `world/lounge/`: `CraftedDrink`
   (`CraftedMixin(BulkableMixin(DetailedMixin(Thing)))`, `getLong()`
   appends the verdict), `Menu`, `GradedReceptacle`
   (`GradedMixin(BulkableMixin(Thing))`, the stock bottle).
 - **Singleton** → `obj/`: `RecipeCatalogue`.
+- **Recipes** live where the trade that introduces them lives (content
+  packs wave 4a): `trade-smithing` ships the smithing five at
+  `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` ships
+  toasted-ration + root-mash, `generic-objects` keeps the rest. The
+  catalogue is **path-agnostic** — it rebuilds from every `recipe`
+  document whoever installed it — so a venue's `craft` never knows
+  which pack its recipe came from.
 
-**Seeds:** instance rows in `world-seed/content/domain/lounge/` (back-bar, the four
+**Seeds:** instance rows in `world-seed/content/world/lounge/` (back-bar, the four
 bottles, shaker + mixing-glass, cocktail-glass, bar-menu, dave); the
 `Bar` self-stocks via `populates:` (bottles/tools `onto` the back-bar,
 then dave + menu). Cocktail/spirit `Material`s in `seeds/lib/material/`;
@@ -621,7 +628,7 @@ kit: whetstone, iron ingots, sewing kit.
 **The Business wiring is load-bearing, not decoration** (learned in
 this build): `order` resolves its maker through the augment-gated
 `MakerMixin`, so a venue with no rostered on-shift position has **no
-active maker** — `world-seed/content/domain/hearthworks/business.yaml` rosters the
+active maker** — `world-seed/content/world/hearthworks/business.yaml` rosters the
 smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
 verbatim; see [employment.md](./employment.md)). New graded-stock
 form: `/obj/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the

@@ -41,8 +41,11 @@ Since content-packs wave 2 the engine verbs' views are **content**: the
 former `mud/cmd/` tree is the platform pack's `content/cmd/` (195 views,
 24 categories), installed as `documents` rows of `kind: 'command-view'`
 at the view key's document path (`perception/look.yaml` →
-`/cmd/perception/look`; a locality's `domain/<…>/cmd/<verb>.yaml` →
-`/domain/<…>/cmd/<verb>`). `CommandApi.preloadAll` serves the **store
+`/cmd/perception/look`; a content tree's own views by ONE rule — a
+locality's `world/<…>/cmd/<verb>.yaml` → `/world/<…>/cmd/<verb>`, an
+industry's `trade/<industry>/cmd/<verb>.yaml` → `/trade/<industry>/cmd/<verb>`
+(reserved; none ship yet): a key whose first segment is not `cmd` and
+that carries a `cmd` segment is a content-tree key at `/<key>`). `CommandApi.preloadAll` serves the **store
 first**, then the on-disk command trees for whatever the store did not
 and **nothing else**: once a store has been served, a view the store
 lacks is a miss, not a file (content-packs wave 3 deleted the disk
@@ -75,27 +78,27 @@ tree): the spec goes in a `cmd/` segment, the controller in a sibling
 
 | Artifact | Global engine verb | Domain-local verb |
 |---|---|---|
-| **YAML view** | the platform pack's `content/cmd/<category>/<verb>.yaml` | the locality's pack: `content/domain/<sphere>/<locality>/cmd/<verb>.yaml` (`world-seed` for the eternal localities today) |
-| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/command/<Name>Controller.ts` |
-| **Controller template** | the platform pack's `content/obj/command/<category>/<Name>Controller.yaml` | the locality's pack: `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml` |
+| **YAML view** | the platform pack's `content/cmd/<category>/<verb>.yaml` | the locality's pack: `content/world/<sphere>/<locality>/cmd/<verb>.yaml` (`world-seed` for the eternal localities today) |
+| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/world/<sphere>/<locality>/command/<Name>Controller.ts` |
+| **Controller template** | the platform pack's `content/obj/command/<category>/<Name>Controller.yaml` | the locality's pack: `content/world/<sphere>/<locality>/command/<Name>Controller.yaml` |
 | **`controller:` field** | absolute `/obj/command/<category>/<Name>Controller` | relative `../command/<Name>Controller` (sibling of the spec) |
-| **`commandContributions`** | `<category>/<verb>.yaml` | `domain/<sphere>/<locality>/cmd/<verb>.yaml` |
+| **`commandContributions`** | `<category>/<verb>.yaml` | `world/<sphere>/<locality>/cmd/<verb>.yaml` |
 
 A `controller:` value is a **path resolved by one rule** — no domain
 special-case (`CommandDefinition.resolveController`): a value starting
 with `/` **is** the `/`-rooted template path; otherwise it resolves
 **relative to the spec file's own directory**. So a domain-local spec in
 `.../cmd/` names its controller `../command/<Name>Controller`, resolving
-to `/domain/<sphere>/<locality>/command/<Name>Controller` — which both
+to `/world/<sphere>/<locality>/command/<Name>Controller` — which both
 names the pack's template row (`content/<that path>.yaml`) and is the
 `class:` that row declares (guarded by the `controller-seeds.integrity`
 test, which resolves specs against the pack content).
 
 Discovery: a locality's `cmd/*.yaml` are installed as `command-view`
-documents at `/domain/<…>/cmd/<verb>` like any other view, and
+documents at `/world/<…>/cmd/<verb>` like any other view, and
 `commandContributions` on the owning class references the view by its
-`domain/`-prefixed key (e.g.
-`'domain/eternal/university-avenue/cmd/blow.yaml'`). Nothing else
+`world/`-prefixed key (e.g.
+`'world/eternal/university-avenue/cmd/blow.yaml'`). Nothing else
 changes — the same YAML schema, controller skeleton, validators, and
 template contract apply.
 
@@ -108,7 +111,7 @@ domain-local. The exemplars are **`blow`** (the Whistle), **`tally`**
 (the CrossingLog), and **`wind`**/**`adjust`** (the mechanical Watch) in
 the University Avenue crossing bundle — each inseparable from its one
 object, so spec, controller, and seed all live under
-`mud/domain/eternal/university-avenue/` (`cmd/` + `command/`) beside
+`mud/world/eternal/university-avenue/` (`cmd/` + `command/`) beside
 `Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
 **Who affords a verb is a separate question from where its spec

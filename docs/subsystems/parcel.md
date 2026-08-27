@@ -1,7 +1,7 @@
 # Parcel (real-property title)
 
 The parcel subsystem is the **real-property title** layer: it turns the
-informal `/domain/<team>/` FolderZone-ownership convention into a
+informal `/world/<team>/` FolderZone-ownership convention into a
 first-class, path-resolved **title stored separately from the content it
 gates**. A *parcel* is an ownable, titled extent (a Zone + a title record);
 parcels form a sparse hierarchy over the template tree; ownership is
@@ -259,17 +259,14 @@ areaM2? }` (the shape checks `ParcelSeeder` used to run now live in
 | Outcome | When | Effect |
 |---|---|---|
 | `granted` | no row at `extent` | row written + a `grant` event (`ParcelEvent.event` is `subdivide \| transfer \| grant`) |
-| `kept` | the row exists under the **same** holder | untouched — two packs may claim one extent for one holder (`world-seed` and `saxonberg-lounge` both name `/domain/lounge` for `lounge`) |
-| `conflict` | the row exists under a **different** holder | untouched; the installer records it and the pack reconciles bounded (its rows under that extent are `skip-sold`) |
-| `migrated` | the row is held by the retired state default | a `transfer` event, the holder replaced |
+| `kept` | the row exists under the **same** holder | untouched — two packs may claim one extent for one holder (`world-seed` and `saxonberg-lounge` both name `/world/lounge` for `lounge`) |
+| `conflict` | the row exists under a **different** holder — whoever that is | untouched; the installer records it and the pack reconciles bounded (its rows under that extent are `skip-sold`) |
 
-`migrated` is the **one** data touch wave 3 makes to existing title, and
-it is marked `migration-note` for deletion in wave 4: a row held by the
-`core` group (the dev DB's `/studio` and `/compact` were seeded that way),
-**or by one of the five retired wave-2 corpo board groups** (`aevex`,
-`goodkin`, `hollis`, `veshko`, `vionne` — each corpo *organization* now
-holds its own `/corpo/<key>`), hands over to the claim's holder. "No new
-title over an existing one" is read as *over one held by someone real*.
+There is **no migration outcome** (wave 4a deleted wave 3's `migrated`
+branch — the `core`-held and retired-corpo-board hand-overs — and the
+sold predicate's `core` exemption with it): "no new title over an
+existing one" is read literally. A database whose title predates a
+rename is dropped, never migrated ([deployment.md](../deployment.md)).
 
 Grants run **before** the pack's rows are planned (a first-boot claim of
 `/corpo/<key>` must exist before the chart row under it is judged
@@ -283,8 +280,8 @@ A zone with no parcel row inherits its governing parcel from the nearest
 parcel-bearing ancestor: `coveringParcelOf(path)` is
 `trie.longestPrefix(path)`. `parentParcel` is stored on the row for O(1)
 transfer/subdivide bookkeeping (derivable from the trie, but cheap to keep).
-So `/domain/lounge/bar/stool` resolves to the `/domain/lounge` parcel, and a
-carve-out at `/domain/lounge/east-wing` shadows it for paths beneath.
+So `/world/lounge/bar/stool` resolves to the `/world/lounge` parcel, and a
+carve-out at `/world/lounge/east-wing` shadows it for paths beneath.
 
 ## Chain of title (`parcel_events`)
 
@@ -375,18 +372,18 @@ and no longer in a seed file (`config/parcels.yaml` and the backend
 explicit `requires.title` entry, there is no implicit root claim). Today:
 
 - **`platform`** — `/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`,
-  `/studio`, `/home`, `/domain`, all held by its maintainers, the
+  `/studio`, `/home`, `/world`, all held by its maintainers, the
   executive organization `/compact/executive`; and `/wiki` for the
   `wiki-editors` group.
-- **`saxonberg-lounge`** — `/obj/lounge` + `/domain/lounge` → the `lounge`
+- **`saxonberg-lounge`** — `/obj/lounge` + `/world/lounge` → the `lounge`
   group.
-- **`world-seed`** (transitional) — `/domain/lounge` again for `lounge`
-  (`kept`), the Terminus municipality's ground (`/domain/terminus/terminal`,
+- **`world-seed`** (transitional) — `/world/lounge` again for `lounge`
+  (`kept`), the Terminus municipality's ground (`/world/terminus/terminal`,
   `counting-houses`, `general-store`, `registry` → `terminus`), Hinkley
   Hills and its `lot-1` → `hinkley-hills`, Duncan Hall and its `dorms` →
   `duncan-hall`.
 - **`expression`** — `/expression` → the `soul` group;
-  **`newbie-wilds`** — `/domain/newbie-wilds` → `newbie-wilds`; the
+  **`newbie-wilds`** — `/world/newbie-wilds` → `newbie-wilds`; the
   object packs (`generic-objects`, `species-and-names`, …) claim their
   `/obj/<cluster>` branches; each **corpo pack** claims `/corpo/<key>` for
   its organization.

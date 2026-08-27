@@ -59,7 +59,8 @@ Compact to publish, and the taxonomy did not have it:
 |---|---|
 | `/home/<self>` | **workspace** — personal |
 | `/studio/<group>` | **workspace** — the multiseat `/home` |
-| `/domain/<locality>` | **content** — a *place*, with rooms and NPCs, locally administered |
+| `/world/<locality>` | **content** — a *place*, with rooms and NPCs, locally administered |
+| `/trade/<industry>` | **content** — an *industry*: what a trade introduces (its stations, stock, recipes), held by the trade's own group |
 | `/compact` | **an institution's own branch** — the Compact's; it keeps publications there |
 | `/corpo/<key>` | **an institution's own branch** — a company's |
 
@@ -200,7 +201,7 @@ to `DocumentApi`:
 
 The kind is **`msh`** — the language's name — since content-packs wave
 2 (it was `'script'`; a one-time boot migration renamed the rows and
-moved the lounge exemplars to `/domain/lounge/msh/`). The
+moved the lounge exemplars to `/world/lounge/msh/`). The
 `saxonberg-lounge` pack ships them as `content/msh/*.msh`.
 
 The generic store deliberately does **not** keep an AST cache (an AST is
