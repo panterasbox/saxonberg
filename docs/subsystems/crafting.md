@@ -500,7 +500,7 @@ homed by what they *are*:
   (`GradedMixin(BulkableMixin(Thing))`, the stock bottle).
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 
-**Seeds:** instance seeds in `seeds/domain/lounge/` (back-bar, the four
+**Seeds:** instance rows in `world-seed/content/domain/lounge/` (back-bar, the four
 bottles, shaker + mixing-glass, cocktail-glass, bar-menu, dave); the
 `Bar` self-stocks via `populates:` (bottles/tools `onto` the back-bar,
 then dave + menu). Cocktail/spirit `Material`s in `seeds/lib/material/`;
@@ -621,7 +621,7 @@ kit: whetstone, iron ingots, sewing kit.
 **The Business wiring is load-bearing, not decoration** (learned in
 this build): `order` resolves its maker through the augment-gated
 `MakerMixin`, so a venue with no rostered on-shift position has **no
-active maker** — `seeds/domain/hearthworks/business.yaml` rosters the
+active maker** — `world-seed/content/domain/hearthworks/business.yaml` rosters the
 smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
 verbatim; see [employment.md](./employment.md)). New graded-stock
 form: `/obj/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the

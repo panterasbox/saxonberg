@@ -316,8 +316,8 @@ throw-everything case without anyone having to write a rule.
 | Thing | Where | Why it exists |
 |---|---|---|
 | blistering draught | `content/obj/material/potion/` | `route: contact` — the potion that earns its throw |
-| flask of blistering | `seeds/obj/items/` | a glass vessel, so it breaks |
-| the long meadow | `seeds/domain/newbie-wilds/crossroads/` | `extent: 12` — the first room affording `near` |
+| flask of blistering | `generic-objects/content/obj/items/` | a glass vessel, so it breaks |
+| the long meadow | `newbie-wilds/content/domain/newbie-wilds/crossroads/` | `extent: 12` — the first room affording `near` |
 
 **Glass gained `hardness: 550` / `toughness: 0.5`.** It authored neither
 before, so a flask derived `recover` and would never have broken —

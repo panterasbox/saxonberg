@@ -165,7 +165,7 @@ cold"), and the by-hand `heat` step latches it onto the build buffer. See
 
 ## Content
 
-The **Hearthworks** (`domain/hearthworks/`, `seeds/domain/hearthworks*`) — a
+The **Hearthworks** (`domain/hearthworks/`, `world-seed/content/domain/hearthworks*`) — a
 self-contained fire zone (teleport-reachable, the substation precedent) with a
 **woodshed** (spread + wet-resist), a **sealed cellar** (`SealedCellar` — the
 CO/ventilation lesson), and a **smithy** (a bellows-fed `Forge` melting an

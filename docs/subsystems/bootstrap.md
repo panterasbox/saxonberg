@@ -1,8 +1,8 @@
 # Bootstrap & Seeding
 
-This document covers the game-startup mechanics: seeding the
-`domain` MongoDB collection with template documents from disk, and
-cloning runtime instances from those templates when the server
+This document covers the game-startup mechanics: how the template
+rows the engine needs reach the `content` MongoDB collection, and how
+runtime instances are cloned from those templates when the server
 starts.
 
 ## Scope
@@ -15,112 +15,55 @@ concerns and are left alone here).
 
 | Concern | When it runs | Lifecycle |
 |---|---|---|
-| **Seeding** | Once per fresh DB (idempotent on re-run) | Inserts template documents into MongoDB `domain` collection from disk |
+| **Install** | Every server start (a three-way reconcile; a no-op when nothing changed) | Reconciles the shipped content packs' rows into the `content` collection — see [content-packs.md](./content-packs.md) |
 | **Bootstrap** | Every server start | Clones runtime instances from those templates, ordered by deps |
 
-Sequenced (seeding before bootstrap) but distinct. Seeding answers "what
-templates ship with the engine?" Bootstrap answers "which runtime
-instances must exist for the game to function?"
+Sequenced (install before bootstrap) but distinct. Install answers
+"what templates ship?" Bootstrap answers "which runtime instances must
+exist for the game to function?"
 
 ## Server boot order
 
 1. Connect to MongoDB
 2. Framework Api decoration (existing)
-3. **`SeederManager.run()`** — idempotent template insertion from disk
+3. **`PackApi.install()`** — the content-pack installer reconciles
+   every shipped pack (the `platform` pack first) into `content`, and
+   its requires phase mints the groups and title each pack declares
 4. **`PersistenceManager.loadHooks()`** — clone hook templates and
-   register them with the persistence pipeline. Runs AFTER seeding so
-   the hook templates exist in `domain` when this clones them.
-5. **`BootstrapManager.run()`** — clone runtime instances from
-   manifest. Last because manifest entries may reference templates
-   that were seeded in step 3.
-6. HTTP / WebSocket listeners come up
+   register them with the persistence pipeline. Runs AFTER install so
+   the hook templates exist in `content` when this clones them.
+5. **`CommandApi.preloadAll()`** — the command views, served from the
+   store the installer just wrote.
+6. **`BootstrapManager.run()`** — clone runtime instances from the
+   manifest: the union of every applied pack's `boot:` list. Last
+   because manifest entries reference templates installed in step 3.
+7. HTTP / WebSocket listeners come up
 
 ---
 
-## Seeding
+## Seeding — now the content packs
 
-### Layout
+There is no seeder. `SeederManager` (insert-only YAML → `domain`
+rows from `src/mud/seeds/`) was retired by content packs wave 3: every
+row the engine ships is **pack content** under
+`packages/content/<pack>/content/**`, installed by `PackApi.install`
+with a real three-way reconcile (an edited pack file DOES reach the
+live row; a locally-edited row is a conflict, never an overwrite). The
+engine's own rows — `/obj/EventRegistry`, `/obj/Avatar/seed`,
+`/domain/void`, every `/obj/command/<category>/<Name>Controller`,
+the registries and catalogues — ship in the **`platform`** pack
+(`packages/content/platform/content/`); generic objects, species,
+localities and the corpo charts ship in their own packs. The file path
+under a pack's `content/` still determines the template path
+(`content/obj/EventRegistry.yaml` → `/obj/EventRegistry`).
 
-YAML files on disk are the **source of truth** for what templates ship
-with the engine. Seeds live under `src/mud/seeds/` so they sit
-alongside the rest of the mudlib — they're game data authored by
-lower-level developers, not infrastructure.
-
-```
-packages/server/src/mud/seeds/
-  obj/
-    EventRegistry.yaml
-    Avatar/
-      seed.yaml
-    hooks/
-      DomainHook.yaml
-  domain/
-    void.yaml
-```
-
-The file path determines the template path: relative path from
-`seeds/`, with extension dropped, becomes the template path.
-
-| File | Template path |
-|---|---|
-| `seeds/obj/EventRegistry.yaml` | `/obj/EventRegistry` |
-| `seeds/obj/Avatar/seed.yaml` | `/obj/Avatar/seed` |
-| `seeds/domain/void.yaml` | `/domain/void` (backing class `/lib/stuff/VoidLocation` — `SingletonMixin(Location)` with a `canDestruct` veto, so the bootstrap-pinned instance can't be removed mid-session) |
-
-### Why YAML on disk
-
-- Templates are visible in the repo, diffable, reviewable in PRs.
-- Single source-of-truth for what ships with the engine — answer to
-  "what objects exist out of the box?" is "look in
-  `src/mud/seeds/`."
-- Easy to navigate / inspect without spinning up a Mongo client.
-- Mods can ship YAML seed fragments via the same mechanism (when mods
-  land).
-
-### SeederManager
-
-Internal-only Manager. Called from `main()` once per server start,
-before `BootstrapManager`.
-
-```ts
-class SeederManager {
-  static async run(): Promise<void> {
-    for (const yamlFile of walkSeeds('src/mud/seeds')) {
-      const path = yamlFile.toTemplatePath();    // '/obj/EventRegistry'
-      const existing = await db.collection('domain').findOne({ path });
-      if (existing) continue;                    // idempotent: skip if present
-      const doc = parseYaml(yamlFile.read());
-      await db.collection('domain').insertOne({ path, ...doc });
-    }
-  }
-}
-```
-
-### Semantics
-
-- **Insert-only by default.** Existing docs are left alone.
-- **Idempotent.** Safe to re-run on every server start; no duplicate
-  inserts.
-- **No update / migration logic.** If a template needs schema changes,
-  that's a separate migration story — out of scope for the seeder.
-- **No deletion.** If a YAML is removed from disk, the corresponding
-  doc stays in Mongo (orphaned templates are a developer cleanup
-  task, not the seeder's problem).
-- **YAML is initial-population only.** After first boot, the live
-  Mongo doc is the source of truth. Edit the doc in Mongo (or via
-  developer tooling) to change a template going forward; editing
-  the YAML against an already-seeded database does nothing. The
-  reset pattern for development is to delete the doc and restart,
-  but that's a one-time wipe, not the regular maintenance flow.
-
-A future migration story (versioned seeds, automatic schema upgrades)
-is acknowledged as a real future need but explicitly NOT part of the
-initial seeder design.
+Layout, kinds, the reconcile, `sourcePack` stamps, the `pack` verb:
+[content-packs.md](./content-packs.md).
 
 ### Path conventions
 
 Singletons live at `/obj/<ClassName>` — `/obj/EventRegistry`,
-future `/obj/ModuleRegistry`, etc. Multi-instance classes extend
+`/obj/TopicCatalogue`, etc. Multi-instance classes extend
 the same namespace with a per-instance suffix:
 `/obj/Avatar/<playerId>`. The `/obj/Avatar` segment is implicit
 (no template at it); the validator's folder/leaf rules treat path
@@ -129,29 +72,27 @@ distinct from `/`.
 
 ### Orphan templates (forked at runtime)
 
-Most seeds are end-state singletons — `seeds/obj/EventRegistry.yaml`
-ships at `/obj/EventRegistry`, and that's it. Some seeds are
-**orphans** — templates that live in the same namespace as their
-class's instances but with a reserved id no real instance can
-collide with. The seed avatar is the worked example:
+Most shipped rows are end-state singletons — `/obj/EventRegistry`
+ships and that's it. Some are **orphans** — templates that live in
+the same namespace as their class's instances but with a reserved id
+no real instance can collide with. The seed avatar is the worked
+example:
 
-- `seeds/obj/Avatar/seed.yaml` lands at `/obj/Avatar/seed`. It's
-  mechanically just an avatar template; the `seed` playerId is
+- `platform/content/obj/Avatar/seed.yaml` lands at `/obj/Avatar/seed`.
+  It's mechanically just an avatar template; the `seed` playerId is
   reserved (`Avatar.SEED_PLAYER_ID`) — 4 chars, nanoids are 21,
   no collision with a real player.
-- `Application.createDefaultAvatarTemplate(name, surname)` (called
-  on first login of a new user) reads `Avatar.SEED_TEMPLATE_PATH`,
-  copies its `class` / `hydratorClass` / `data`, overlays the
-  user's `name` / `surname`, and saves at
-  `/obj/Avatar/<playerId>`. The user gets a per-user template
-  forked from whatever the seed currently holds.
+- Every avatar-mint site (`EnrollController.commit`, the test-auth
+  `Application.createDefaultCharacter`, `Login.mintRandomGuestAvatar`)
+  reads `Avatar.SEED_TEMPLATE_PATH`, copies its `class` /
+  `hydratorClass` / `data`, overlays the character's own fields, and
+  clones. A minted avatar is snapshot-backed (`holder_snapshots`), not
+  a per-player template row — see [persistence.md](./persistence.md).
 
-To change the defaults going forward, edit the `/obj/Avatar/seed`
-doc directly in Mongo, or use developer tooling to clone an avatar
-from it, mutate, and persist back. The pattern isn't a new seeder
-feature — it's just "seed lands at a known path with a reserved
-id, consumer code forks." Existing players are unaffected by either
-path; their per-user templates were forked at signup.
+To change the defaults going forward, edit the seed row in the pack
+and let the reconcile carry it. The pattern isn't an installer
+feature — it's just "a row lands at a known path with a reserved id,
+consumer code forks."
 
 ---
 
@@ -159,13 +100,16 @@ path; their per-user templates were forked at signup.
 
 ### BootstrapManager
 
-Internal-only Manager. Called from `main()` after `SeederManager` and
-after framework Apis are decorated. Reads a typed manifest array,
-topologically sorts, instantiates each entry.
+Internal-only Manager. Called from `AppBootstrap.run` after
+`PackApi.install` and after framework Apis are decorated. Reads a
+typed manifest array — by default `PackApi.bootManifest()`, the union
+of every applied pack's `boot:` list — topologically sorts,
+instantiates each entry.
 
 ```ts
 class BootstrapManager {
-  static async run(manifest = bootstrapManifest): Promise<void> {
+  static async run(manifest?: BootstrapEntry[]): Promise<void> {
+    manifest ??= await PackApi.bootManifest();
     const sorted = topologicalSort(manifest);
     for (const entry of sorted) {
       const clone = await StuffApi.clone(entry.templatePath);
@@ -230,62 +174,36 @@ sorts depth-ascending (shorter paths first) so ancestor clades land
 before their descendants; collisions with explicit `templatePath`
 entries let the explicit one win.
 
-### Engine manifest
+### The manifest — every pack's `boot:` list
 
-The manifest data lives in `mud/bootstrap.ts` so lower-level
-developers can edit and review it as things come and go from
-service. The `BootstrapEntry` type itself is owned by
-`BootstrapManager` (the consumer); the mudlib file imports the type
-back from the backend rather than declaring it locally — backend
-stays the privileged layer and doesn't reach into mudlib for shape
-information. TypeScript (not YAML) for:
-- Type checking on `templatePath` references via the
-  `BootstrapEntry` type.
-- Refactor-safety — rename a template path, find-references works.
-- Inline `awaitInit` functions (no need for a registry of named
-  init callbacks).
+There is no code manifest. `mud/bootstrap.ts` was retired by content
+packs wave 3; the manifest is the **union of every applied pack's
+`boot:` list** (`pack.yaml`), read through `PackApi.bootManifest()` in
+install order. Each entry names a template the pack ships, a `role`
+(`sync-read` — something resolves it synchronously and would read
+null; `producer` — it must be live to do its job), a `reason`, and an
+optional `dependsOn`. A template two packs both list is a boot error
+naming both. Under `SAXONBERG_PACKS` only the filtered packs' entries
+boot.
 
-```ts
-// mud/bootstrap.ts (current state — keep deliberately small)
-import type { BootstrapEntry } from '../backend/BootstrapManager';
-
-export const bootstrapManifest: BootstrapEntry[] = [
-  { templatePath: '/obj/EventRegistry' },
-  // Void doubles as bootstrap-starting location AND the last-resort
-  // home for HasInteractive bodies whose container destructs without
-  // an outer to evacuate to (see `Container.cleanupOnDestruct`).
-  // Must be live before any container can destruct — bootstrap
-  // guarantees that.
-  { templatePath: '/domain/void' },
-  // Singleton catalogues/registries. Each lazy-loads its own
-  // descriptors from a Document collection at postRegister, so only
-  // the singleton itself is pre-cloned at boot — not its leaves.
-  { templatePath: '/obj/TopicCatalogue' },
-  { templatePath: '/obj/SoulCatalogue' },
-  { templatePath: '/obj/GroupRegistry' },
-  { templatePath: '/obj/ChannelCatalogue' },
-  { templatePath: '/obj/AccessRegistry', dependsOn: ['/obj/GroupRegistry'] },
-  {
-    templatePath: '/obj/EventSubscriptions',
-    dependsOn: ['/obj/EventRegistry'],
-  },
-  {
-    templatePath: '/obj/WorldClockRegistry',
-    dependsOn: ['/obj/EventSubscriptions'],
-  },
-  {
-    templatePath: '/obj/SchedulerRegistry',
-    dependsOn: ['/obj/WorldClockRegistry', '/obj/EventSubscriptions'],
-  },
-  {
-    templatePath: '/obj/MqlSubscriptionRegistry',
-    dependsOn: ['/obj/EventSubscriptions'],
-  },
-];
+```yaml
+# packages/content/platform/pack.yaml (excerpt)
+boot:
+  - { template: /obj/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
+  - { template: /domain/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
+  - { template: /obj/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
 ```
 
-The shape above is what the engine ships today. Note what's
-explicitly NOT here:
+The `BootstrapEntry` type stays owned by `BootstrapManager` (the
+consumer); `PackApi.bootManifest` maps each pack entry onto it
+(`templatePath`, `dependsOn`, plus the `packId` / `role` for the boot
+line). The platform pack carries the engine's registries and
+catalogues; the corpo packs boot their charts; `world-seed` boots the
+locality singletons it ships. Per-pack counts print on the boot line
+(`boot: N sync-read + M producer`), and `BootstrapManager` reports the
+total (`bootstrapped N entries`).
+
+Note what's explicitly NOT in any `boot:` list:
 
 - **Species clades** are not bootstrapped. `SpeciesApi.isAnimate` /
   `getKingdom` are sync and resolve clades via
@@ -299,13 +217,6 @@ explicitly NOT here:
   designs sketched these; reality folded them into other surfaces
   (controllers are templates registered through the normal hook
   template flow; module info isn't externally consulted yet).
-- **No `templatePathPrefix` entry** in the engine manifest yet.
-  Wave-in candidates (when they earn their keep): a
-  `/obj/material/` bulk entry once Material validators need
-  singleton-resolved tag tables; a `/obj/biome/` bulk entry once
-  per-biome resolvers move into validator preloads. Today the
-  preload-on-validator pattern handles every singleton-dependency
-  case cheaply enough that the manifest stays at two entries.
 
 ### Why no phases
 
@@ -324,8 +235,8 @@ Earlier design considered a mixin that templates compose to declare
 - The bootstrap manifest is the single source of truth for "what gets
   spawned" — easier to read one list than to crawl all templates
   looking for the marker.
-- Mods append to the same manifest array; no special mod-specific
-  mechanism needed.
+- A pack appends to the same union through its `boot:` list; no
+  special mod-specific mechanism needed.
 
 ### PostRegistration cooperates
 
@@ -357,18 +268,10 @@ path. Avatar is the existing exception
 
 ### Mod extensibility (future)
 
-When mods land:
-- A mod's manifest exports its own `BootstrapEntry[]`.
-- Mod loader appends those entries to `bootstrapManifest` before
-  `BootstrapManager.run()` is called (or supports re-run for
-  late-loaded mods, if applicable).
-- Same data shape, no special mod-specific bootstrap mechanism.
-- Mod-supplied seed YAMLs are loaded by the SeederManager from the
-  mod's seed directory the same way engine seeds are loaded from
-  `src/mud/seeds/`.
-
-This is acknowledged as future work; not part of the initial
-implementation.
+A mod IS a content pack: its rows install through the same
+reconcile, its `boot:` entries join the same union, its `requires:`
+declares the groups and title it needs. There is no mod-specific
+bootstrap mechanism to build — see [content-packs.md](./content-packs.md).
 
 ---
 
@@ -392,7 +295,7 @@ A **Registry** is:
 | Word | Means |
 |---|---|
 | **Registry** | Singleton Idea; named collection of declarations; gated lookup |
-| **Manager** | Subsystem-internal coordinator over a class of things (`PersistenceManager`, `SeederManager`, `BootstrapManager`) |
+| **Manager** | Subsystem-internal coordinator over a class of things (`PersistenceManager`, `BootstrapManager`) |
 | **Api** | Security-gated public surface for callers (`EventApi`, `StuffApi`) |
 | **Container** | Holds Stuff instances; participates in containment / movement |
 | **Mixin** | Composition unit that adds methods / fields to classes |
@@ -435,28 +338,29 @@ to fit a label is over-engineering for a pure constants object.
 - **`BootstrappableMixin`.** Templates are templates; bootstrap is a
   list. No need to specialize.
 - **Phases.** Dep-ordering covers all required ordering.
-- **Engine vs world manifest split.** Single mechanism. Mods append to
-  the same array.
+- **Engine vs world manifest split.** Single mechanism. Every pack
+  contributes to the same union.
 - **`BootstrapApi` as a security-gated public surface.** It's a
   Manager, internal-only. Called from `main()` and (eventually) from
   hot-reload's mod-load path. No external callers.
-- **Auto-update of seeded templates** when YAML changes. Out of scope;
-  delete-and-reseed for dev, future migration story for production.
+- ~~**Auto-update of seeded templates** when YAML changes.~~ Reversed
+  by the content-pack installer's three-way reconcile (waves 0–3).
 - **Hot-reload re-running bootstrap.** Hot-reload is a separate
   subsystem with its own re-init story when it lands. Conflating the
   two added complexity for no clear benefit.
-- **YAML for the engine bootstrap manifest.** TS gives types,
-  refactor-safety, and inline `awaitInit` functions; YAML would force
-  a named-callback registry indirection. Mods can use either
-  (data-only YAML for sandboxed mods; TS for trusted in-process mods).
+- ~~**YAML for the engine bootstrap manifest.**~~ Reversed by content
+  packs wave 3: the manifest is the packs' `boot:` lists (YAML), so a
+  pack can name what it needs live without a code change. `awaitInit`
+  remains available to a code-supplied manifest override (tests).
 
 ---
 
-## Implementation order suggestion
+## Implementation order (as it happened)
 
 1. **`SeederManager` + initial seed YAMLs** for the engine's existing
    templates (Avatar, anything else currently inserted via
-   ad-hoc startup code).
+   ad-hoc startup code) — since replaced by the content-pack installer
+   (waves 0–3, 2026-08).
 2. **`BootstrapManager` + initial manifest** with no entries yet —
    wire it into `main()` boot sequence.
 3. **First bootstrap entry: `EventRegistry`** — the events subsystem
@@ -482,3 +386,12 @@ to fit a label is over-engineering for a pure constants object.
   are seeded Ideas rebuilt at boot, so a registry that needs to persist
   declarations would use a `Document` collection rather than its own
   runtime state.
+
+## History
+
+- **Content packs wave 3 (2026-08-27)** retired `SeederManager` and
+  `mud/bootstrap.ts`. Rows ship as pack content and the boot manifest
+  is the union of the packs' `boot:` lists (`PackApi.bootManifest`).
+  The sections above that describe the seeder's insert-only semantics
+  were removed; [content-packs.md](./content-packs.md) is the
+  reference.

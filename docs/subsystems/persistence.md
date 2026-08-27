@@ -389,8 +389,8 @@ synchronous capture snapshot, so the sync `findByTemplatePath` lookup during
 marshalling always hits a populated cache. This avoids requiring a bootstrap
 manifest entry per marshaller while keeping `toStored` calls themselves sync.
 
-In production, the marshaller's CMS template is seeded into the
-`domain` collection by `SeederManager` at boot; the first save /
+In production, the marshaller's template row is installed into the
+`content` collection from the platform pack at boot; the first save /
 hydrate that needs it triggers `singleton(path)` to clone the
 template. In tests there's no Mongo to clone from, so tests
 register marshallers in-memory before use — see
@@ -505,7 +505,8 @@ collection — a `{ scope, owner, state }` envelope:
 - `scope` — the host's singleton `templatePath` (identity + re-clone base;
   materialize loads every record scoped to it).
 - `owner` — whose content (a principal's durable `templatePath`, a
-  `group:<name>` sentinel, or `'core'`) → the **account-deletion cascade
+  `group:<name>` sentinel, an `organization:<path>` sentinel, or — for
+  untitled ground — the scope itself) → the **account-deletion cascade
   key**. Derived from `ParcelApi.ownerOf(scope)` — never a parameter.
 - `state` — the **per-mixin-composed** capture: a map keyed by mixin/layer
   name to that layer's `MixinSlice` (`lib/persistence/PersistenceSlice.ts`).

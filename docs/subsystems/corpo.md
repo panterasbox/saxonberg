@@ -78,8 +78,8 @@ The advancement-precedent three singletons:
   derived **portfolio index** (corpo key → owned brand keys) — the "portfolio
   is the forward edge" projection as a cheap precomputed inverted index. A
   *Catalogue* (holds authored data), not a Registry (holds code) — per the
-  [grouping.md](./grouping.md) convention. Warmed by an entry in
-  `bootstrap.ts`'s `bootstrapManifest`. Singleton-destruct refusal.
+  [grouping.md](./grouping.md) convention. Warmed by the platform
+  pack's `boot:` entry (`/obj/CorpoCatalogue`, `sync-read`). Singleton-destruct refusal.
 - **`CorpoLogic`** (`obj/api/CorpoLogic.ts`, `/obj/api/corpo`) — the gated
   logic singleton. Reads only the in-memory catalogue (no per-owner Mongo →
   **no connection guard**, unlike `AdvancementLogic`). Internals are

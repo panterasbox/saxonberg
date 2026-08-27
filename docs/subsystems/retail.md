@@ -101,7 +101,7 @@ shelf would drop it).
 ## Content: the store on the new-player path
 
 Authored off the counting-houses avenue block
-(`seeds/domain/terminus/general-store/`), NORTH from the street, on the
+(`world-seed/content/domain/terminus/general-store/`), NORTH from the street, on the
 arrival→campus path. Its own zone + parcel (terminus-titled), addressed
 under the counting-houses Locality. A shop floor `populates` the counter,
 the consignment shelf, and the cast (Pemby the clerk on the roster, Odell

@@ -261,7 +261,7 @@ spilled, over-poured, or drained-through liquid pools as the floor's
 discrete containment is untouched — an apple dropped in the room is
 still `container = room`, a sibling of the desk, not `restingOn` the
 floor. A puddle is the floor's attribute, not a Stuff. The default-floor
-seed (`seeds/obj/surface/default-floor.yaml`) carries an uncapped
+seed (`generic-objects/content/obj/surface/default-floor.yaml`) carries an uncapped
 surface slot, so any room with a floor can pool.
 
 ## Verbs (`content/cmd/bulk/`, `obj/command/bulk/`)
@@ -301,7 +301,7 @@ from an air source — no new bulk machinery.
 - Holders: one `Receptacle` class (`obj/Receptacle.ts` =
   `BulkableMixin(Thing)`, fluid-only — not a discrete `Container`, and
   named to stay clear of the existing enterable-`Vessel`) backing four
-  seeds (`seeds/obj/vessel/`): the unbounded coffee `urn`, the portable
+  rows (`generic-objects/content/obj/vessel/`): the unbounded coffee `urn`, the portable
   `thermos`, the destination `mug`, and the `open`-closure `colander`.
 
 ## Deferred tails
@@ -338,7 +338,7 @@ Each lands in a named home later; none is in this slice.
 | `obj/Floor.ts` | surface-bulk on the floor |
 | `content/cmd/bulk/`, `obj/command/bulk/` | the verb roster |
 | `lib/creature/Creature.ts` | the `ingest` seam |
-| `seeds/lib/material/bulk/`, `seeds/obj/vessel/` | demo content |
+| `base-library/content/obj/material/bulk/`, `generic-objects/content/obj/vessel/` | demo content |
 
 ## Cross-references
 

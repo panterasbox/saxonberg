@@ -1009,7 +1009,7 @@ independent:
 Braille is what proves they are two: touch-only *and* its own system,
 where raised common letters are the same physical make in the ordinary
 system. Under one field those are indistinguishable. `obj/Signpost` +
-`seeds/obj/items/dotted-slate.yaml` are the worked A/B against the
+`generic-objects/content/obj/items/dotted-slate.yaml` are the worked A/B against the
 equally-embossed `scroll-of-remove-curse`.
 
 The symmetry worth keeping: **braille and cipher are the same field
@@ -1074,9 +1074,9 @@ The demand itself is the shared targeting floor
 (`applyMintOdds`) · `obj/api/ResidencyLogic.ts` (the mint-site roll) ·
 `lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts`
 (the only composers) · `obj/api/MagicLogic.ts` (`BUC_POTENCY`,
-`execAdjustBlessing`) · `seeds/obj/magic/Spell/remove-curse.yaml` ·
-`seeds/obj/items/scroll-of-remove-curse.yaml` ·
-`seeds/obj/items/wand-of-firebolt-cursed.yaml`
+`execAdjustBlessing`) · `arcane-library/content/obj/magic/Spell/remove-curse.yaml` ·
+`generic-objects/content/obj/items/scroll-of-remove-curse.yaml` ·
+`generic-objects/content/obj/items/wand-of-firebolt-cursed.yaml`
 
 **Identification** — `lib/identification/Appearance.ts` ·
 `DescriptorBank.ts` · `Identifiable.ts` · `lib/description/Labelled.ts` ·

@@ -210,12 +210,13 @@ export class AccessApi {
   /**
    * ⭐⭐ **Re-establish the system groups after they have been deleted.**
    *
-   * The nightly reset wipes `groups`, and the system groups (`core`,
-   * `wizards`, `archwizards`, `streamers`) live there beside the player
-   * ones. They are minted in CODE rather than by a seed file — and the
-   * seeder is insert-only and boot-only — so without this the world
-   * comes back with no `core` group at all, every resource-targeted
-   * `can` read failing closed, and no fix short of a restart.
+   * The nightly reset wipes `groups`, and the three tag-like system
+   * groups (`wizards`, `archwizards`, `streamers`) live there beside the
+   * player ones. They are minted in CODE by `AccessRegistry.postRegister`
+   * at boot only, so without this the world comes back with no wizard
+   * axis at all and no fix short of a restart. Title-holding groups are
+   * NOT re-minted here — `PackApi.reprovision()` re-runs every pack's
+   * `requires` phase for those (content-packs wave 3).
    */
   public static async reseedSystemGroups(): Promise<void> {
     await asAuthorityQuery(() => logic().reseedSystemGroups());

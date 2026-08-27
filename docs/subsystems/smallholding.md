@@ -159,11 +159,10 @@ on every branch nobody thought to zone. Stewardship's own gloss agrees —
 ### ⚠ It lives on the parcel row, never on the zone
 
 Land use **gates behaviour**, which makes it access-check data, and
-`config/parcels.yaml`'s header is explicit:
-
-> *"ownership is declared HERE (a gated platform seed channel), **never on
-> the editable `domain` zone template**… **access-check data lives only in
-> this collection.**"*
+[parcel.md](./parcel.md)'s governing invariant is explicit: title is
+declared in a pack manifest's `requires.title` and granted into the
+gated `parcels` collection — **never on the editable zone template**;
+access-check data lives only in that collection.
 
 On an editable zone template a content author could rezone their own land
 — the precise forgery the retired `data.ownerGroupName` stamps were
@@ -531,8 +530,8 @@ the spec wants one, and it is that way only because
 `BankingApi` to reach around a gate in a test adds it for every wizard in
 production.
 
-**One lot also ships already sold** (`config/parcels.yaml`, held by the
-developer group), which is what lets the walk-in-and-plant specs work
+**One lot also ships already sold** (`world-seed`'s `requires.title`:
+`lot-1`, held by the `hinkley-hills` group), which is what lets the walk-in-and-plant specs work
 ground without buying it. It is better content besides — the lane says
 *"Where a lot has been taken there is a gate in the fence and, behind it,
 somebody's roof"*, a sentence that described nothing on a fresh world.

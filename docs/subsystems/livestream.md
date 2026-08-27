@@ -61,7 +61,7 @@ query-param delivery. Rotate via the env secret.
 ## `StreamState`
 
 A `PostRegistrationMixin(Idea)` singleton at `/obj/StreamState`
-(registered in `bootstrap.ts`; seed `{ class: /obj/StreamState, data: {} }`).
+(a platform-pack `boot:` entry; row `{ class: /obj/StreamState, data: {} }`).
 Two transient fields:
 
 ```ts

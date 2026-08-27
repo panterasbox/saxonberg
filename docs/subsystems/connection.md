@@ -250,7 +250,7 @@ them and proves the write-back.)
 `Avatar.SEED_TEMPLATE_PATH` (`/obj/Avatar/seed`), generates a fresh
 `playerId` via `nanoid()`, overlays the user's `name`/`surname`, and
 persists the new template via `TemplateApi.saveTemplate`. **If the
-seed is missing it throws** — `SeederManager` must have run at boot.
+seed is missing it throws** — the platform pack must have installed at boot.
 
 Passport serializes `{ id: userId }` into the session
 (`PassportConfig.ts § serializeUser`). At this point the persistent state is

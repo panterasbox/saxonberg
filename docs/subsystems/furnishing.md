@@ -382,7 +382,8 @@ because their furniture moved.
 
 ## Deploying this build
 
-**One row needs deleting on any already-seeded world.** `SeederManager` is
+**One row needed deleting on any already-seeded world** (historical — the
+pack installer's reconcile has since replaced the seeder). `SeederManager` was
 **insert-only** — it inserts a template only where no document exists, and
 says so: *"Schema migrations on already-seeded templates are out of scope;
 the dev workflow for 'I changed the seed YAML' is `db.domain.deleteOne(

@@ -55,7 +55,7 @@ gated** at execution.
 | Cast activity | `lib/magic/CastActivity.ts` | `hands`+`voice`, interruptible, **everything at completion** |
 | Verbs | `cmd/magic/{cast,spells}.yaml` | the `magic` command category |
 | Bound emitters | `obj/magic/GlowlightOrb.ts` / `obj/magic/SparkSource.ts` | glowlight's held orb / spark's transient energized locus |
-| Demonstrator | `seeds/domain/practicum*` | casting yard / conductive gallery / warded cell |
+| Demonstrator | `world-seed/content/domain/practicum*` | casting yard / conductive gallery / warded cell |
 
 ## The cast pipeline
 
@@ -222,7 +222,7 @@ back).
 
 ## The demonstrator — the Practicum
 
-`seeds/domain/practicum*`: a teleport-reachable `CartesianZone` (the
+`world-seed/content/domain/practicum*`: a teleport-reachable `CartesianZone` (the
 hearthworks precedent, no inbound exit) — the **casting yard** (a
 combustible straw dummy + a stone basin), the **conductive gallery**
 (a brine-pooled floor: MIND WHERE YOU STAND), and the **warded cell**

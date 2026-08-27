@@ -175,8 +175,9 @@ K:
 
 `QuantityApi.loadTagTables()` reads + validates the YAML and calls
 `Quantity.registerTagTable(unit, scaleName, entries)` for every
-declared `(unit, scale)` pair at boot — `AppBootstrap` runs it
-after `SeederManager.run()` so the tables are available before
+declared `(unit, scale)` pair at boot — the pack installer runs it
+for each pack's quantity contribution during `PackApi.install`, so
+the tables are available before
 any code that hits `tag()` / `parse(tagString)` runs (the
 marshallers, the propagation walks, controllers).
 

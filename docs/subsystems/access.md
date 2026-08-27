@@ -612,3 +612,13 @@ deleted; `ParcelOwner` grew the `organization` kind so the executive
 facts true: `lint:core-gone` (no `'core'` principal anywhere in source)
 and `lint:untitled` (every shipped path under a claim), both in
 `packages/server`.
+
+The core-decomposition slate (2026-08-04) retired into this doc at that
+sweep; its five open questions closed as: (1) no state/commons
+principal — `ownerOf` returns `null` and every caller denies, none
+invents a fallback; (2) `isAuthor` is not needed once title is universal
+— deleted, `heldExtents` is the within-your-extent listing; (3) the
+`soul` group is PM-owned until a community holds it; (4)
+`requiresCoreAccess` did not survive — deleted with both consumers
+reassigned; (5) the acceptance test for "core is gone" is exactly
+`lint:core-gone` + `lint:untitled`.

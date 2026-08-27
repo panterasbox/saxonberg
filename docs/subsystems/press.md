@@ -233,8 +233,9 @@ Subcommands `post` / `edit <id>` / `retract <id>`, with bare
 The verb is gated by **`requiresPublisher`**, not `requiresAuthor`, and
 the swap is a fix rather than a tidy-up.
 
-`AccessApi.isAuthor` is membership of the `core` group — **which
-`seedCoreGroup()` creates EMPTY**. `WIZARD_PLAYER_IDS` seeds `wizards`,
+`AccessApi.isAuthor` *was* membership of the `core` group — **which
+`seedCoreGroup()` created EMPTY** (both are gone since content packs
+wave 3; the reasoning below is why the verb never leaned on them). `WIZARD_PLAYER_IDS` seeds `wizards`,
 not `core`, and the only code path that adds anyone is a dev/test
 provisioning helper. So on every fresh box *nobody* is an author, **the
 founder included**, and the shipped gate refused the verb outright.
@@ -436,8 +437,8 @@ its hat over; `mayPublishAs`),
 write transport + the four-namespace taxonomy),
 [parcel.md](./parcel.md) (the `/compact` title),
 [governance.md](./governance.md) (offices, the founder default),
-[access.md](./access.md) (`AccessApi.isAuthor` — and why it is not the
-gate here), [social-graph.md](./social-graph.md) (the roster-frame fan
+[access.md](./access.md) (title over an extent, `heldExtents` — and why
+the author tier that once lived there was never the gate here), [social-graph.md](./social-graph.md) (the roster-frame fan
 precedent), [topics.md](./topics.md) (the session-establish snapshot
 seam), [forums.md](./forums.md) (the `{text, fields}` body side-channel),
 [help.md](./help.md) (the read-only REST data-API precedent),
