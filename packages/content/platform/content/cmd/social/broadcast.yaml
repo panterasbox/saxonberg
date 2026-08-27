@@ -1,24 +1,27 @@
 verbs: [broadcast]
 controller: /obj/command/social/BroadcastController
-description: "Send a message to every online player (or an MQL-refined subset)"
+description: "Send a message to everyone under an extent you hold"
 help: |
-  Reach every online player at once with a single line. This is a
-  staff-grade announcement channel, not ordinary chatter — it goes
-  out cooperative-wide, so use it sparingly and with intent.
+  Reach everyone present under an extent you HOLD with a single line —
+  a locality's government reaches its locality, a lounge team its
+  lounge, a player the guests in their own home; the Prime Minister,
+  holding the platform, reaches every locality under /domain. Forced
+  messaging is title: you may only address the ground you hold.
 
-  By default the message hits `* with online` (everyone connected).
-  Pass `--to <query>` to narrow the audience with an MQL query when
-  you only want a slice to hear it.
+  `broadcast --at <path> <message>` names the extent. Omit `--at` and
+  the extent is the one covering where you stand — if you hold it.
+  Naming an extent you do not hold, or standing on one, refuses you
+  and lists the extents you do hold. Holding a parent reaches its
+  children: `--at /domain` reaches every locality.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
-  - /lib/command/validators/requiresCoreAccess
 options:
-  to:
-    short: t
+  at:
+    short: a
     type: string
-    field: query
-    description: "MQL query refining the audience; default `* with online`"
+    field: extent
+    description: "The extent to address (a path you hold); default: the one covering where you stand"
 args:
   - name: message
     type: string
