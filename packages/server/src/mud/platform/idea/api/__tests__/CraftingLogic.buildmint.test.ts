@@ -113,7 +113,7 @@ beforeEach(async () => {
       { slot: "mod", category: "vermouth", minGrade: "fair", measureL: 0.01 },
     ],
     toolCapabilities: ["mixing-glass"],
-    outputTemplate: "/world/lounge/thing/cocktail-glass",
+    outputTemplate: "/trade/hospitality/thing/cocktail-glass",
     outputMaterial: MARTINI_MAT,
     baseGradeBand: "",
   });

@@ -84,22 +84,22 @@ data:
   # stays, the rest step out back. The staff are `Crafter`s (MakerMixin
   # NPCs) so the present bartender fulfills an `order`.
   populates:
-    - /world/lounge/thing/back-bar
-    - { template: /world/lounge/thing/gin-bottle, onto: /world/lounge/thing/back-bar }
-    - { template: /world/lounge/thing/vermouth-bottle, onto: /world/lounge/thing/back-bar }
-    - { template: /world/lounge/thing/rum-bottle, onto: /world/lounge/thing/back-bar }
-    - { template: /world/lounge/thing/lime-bottle, onto: /world/lounge/thing/back-bar }
-    - { template: /world/lounge/thing/shaker, onto: /world/lounge/thing/back-bar }
-    - { template: /world/lounge/thing/mixing-glass, onto: /world/lounge/thing/back-bar }
+    - /trade/hospitality/thing/back-bar
+    - { template: /world/lounge/thing/gin-bottle, onto: /trade/hospitality/thing/back-bar }
+    - { template: /world/lounge/thing/vermouth-bottle, onto: /trade/hospitality/thing/back-bar }
+    - { template: /world/lounge/thing/rum-bottle, onto: /trade/hospitality/thing/back-bar }
+    - { template: /world/lounge/thing/lime-bottle, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/mixing-glass, onto: /trade/hospitality/thing/back-bar }
     # Empty serving glasses on the rail — the receptacle a hand build
     # strains into (the served `order` path clones its own; a by-hand
     # build needs a real glass present). Keyword `cocktail` (vs the
     # mixing glass's `mixing`) keeps `strain … into cocktail` unambiguous.
-    - { template: /world/lounge/thing/cocktail-glass, onto: /world/lounge/thing/back-bar }
-    - { template: /world/lounge/thing/cocktail-glass, onto: /world/lounge/thing/back-bar }
+    - { template: /trade/hospitality/thing/cocktail-glass, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/cocktail-glass, onto: /trade/hospitality/thing/back-bar }
     # The tip jar on the rail — patrons `tip`, the on-shift bartender
     # `collect`s it (physical coin, off the books).
-    - { template: /world/lounge/thing/tip-jar, onto: /world/lounge/thing/back-bar }
+    - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }
     # The Attendant service point — the bar as an instance of the storefront-
     # attention substrate (scrum / zero-wait: the feel is unchanged, the lease
     # is earned). `order` consults it before serving.

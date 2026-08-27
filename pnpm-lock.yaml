@@ -132,6 +132,8 @@ importers:
 
   packages/content/trade-hearth-cooking: {}
 
+  packages/content/trade-hospitality: {}
+
   packages/content/trade-smithing: {}
 
   packages/content/wiki-starter: {}
@@ -188,6 +190,9 @@ importers:
       '@saxonberg/content-trade-hearth-cooking':
         specifier: workspace:*
         version: link:../content/trade-hearth-cooking
+      '@saxonberg/content-trade-hospitality':
+        specifier: workspace:*
+        version: link:../content/trade-hospitality
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../content/trade-smithing

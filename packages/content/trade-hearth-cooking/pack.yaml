@@ -3,11 +3,10 @@ version: 0.1.0
 root: /trade/hearth-cooking
 description: >-
   The hearth-cooking trade — what cooking at a hearth introduces: its
-  recipes (toasted-ration, root-mash). Its stock (cuts, roots, rations)
-  is commons under /obj/items (A16.3), and the Hearthworks cookhouse
-  (/world/hearthworks/location/cookhouse) is the venue that hosts it. The second
-  pass (fine-roast, hearty-stew, hospitality) is wave 4b. Content packs
-  wave 4a.
+  recipes (toasted-ration, root-mash, fine-roast, hearty-stew). Its stock
+  (cuts, roots, rations) is commons under /stuff/thing/items (A16.3), and
+  the Hearthworks cookhouse (/world/hearthworks/location/cookhouse) is the
+  venue that hosts it. Content packs wave 4a; the second pass 4b.
 dependsOn: [platform, generic-objects]
 requires:
   groups:

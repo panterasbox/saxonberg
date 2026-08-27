@@ -1,7 +1,7 @@
 /**
  * The Hearthworks venues — smithy + cookhouse standup over the REAL
- * authored rows: the recipe roster is loaded from the `generic-objects`
- * pack's `content/recipes/*.yaml`
+ * authored rows: the recipe roster is loaded from the three trade packs'
+ * `content/recipes/*.yaml`
  * and the food/metal materials from the base-library pack files, so a
  * drifted seed fails here. Asserts the venue surfaces (menus afford the
  * right verb sets, `CommerceMenu.resolveIn` finds any venue subclass),
@@ -55,12 +55,12 @@ import {
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 /**
- * The three packs that ship the hearthworks roster's recipes (content
- * packs wave 4a): the trades own what they introduce, generic-objects
- * keeps the rest. The catalogue is path-agnostic — it serves every
- * `recipe` document whoever installed it.
+ * The three trade packs that ship every recipe (content packs wave 4a/4b):
+ * a trade owns what it introduces; generic-objects ships none. The
+ * catalogue is path-agnostic — it serves every `recipe` document whoever
+ * installed it.
  */
-const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'generic-objects'].map((pack) =>
+const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality'].map((pack) =>
   fileURLToPath(new URL(`../../../../../../content/${pack}/content/recipes/`, import.meta.url)),
 );
 const PACK_MATERIALS = fileURLToPath(

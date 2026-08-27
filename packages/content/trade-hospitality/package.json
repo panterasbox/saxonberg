@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-trade-hospitality",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The hospitality trade — what tending bar introduces: its stations, its cocktail recipes, the tip jar."
+}

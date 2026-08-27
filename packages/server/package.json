@@ -54,6 +54,7 @@
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/content-trade-hearth-cooking": "workspace:*",
+    "@saxonberg/content-trade-hospitality": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",
     "@saxonberg/content-world-seed": "workspace:*",
