@@ -2,14 +2,14 @@
 # NOT a Location) that owns the elastic graph of lounge-room instances.
 #
 # This template makes the LoungeWarren *class* resolvable and gives
-# `StuffApi.singleton('/world/lounge/warren')` a path to lazily clone
+# `StuffApi.singleton('/world/lounge/idea/warren')` a path to lazily clone
 # the one Warren instance on first landing. Avatars spawn here via
-# `data.startLocation: /world/lounge/warren` — `applyStartLocation`
+# `data.startLocation: /world/lounge/idea/warren` — `applyStartLocation`
 # resolves the Warren and lands them in its host room.
 #
 # Nothing about the Warren persists beyond this definition: the instance
 # and every room it coordinates are runtime-only and reconstitute on the
 # next first-landing after a restart. No hydratorClass — the Warren has
 # no persistent or instruction fields to apply.
-class: /world/lounge/LoungeWarren
+class: /world/lounge/idea/LoungeWarren
 data: {}

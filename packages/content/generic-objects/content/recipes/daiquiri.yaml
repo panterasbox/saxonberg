@@ -13,5 +13,5 @@ inputSlots:
   measureL: 0.02
 toolCapabilities:
 - shaker
-outputTemplate: /world/lounge/cocktail-glass
+outputTemplate: /world/lounge/thing/cocktail-glass
 outputAppearance: a pale, frothy daiquiri

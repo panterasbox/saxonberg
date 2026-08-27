@@ -13,7 +13,7 @@ help: |
 examples:
   - cmd: config defaultStartLocation
     note: Show one setting's current value
-  - cmd: config defaultStartLocation /world/lounge/lounge
+  - cmd: config defaultStartLocation /world/lounge/location/lounge
     note: Set a setting to a new value
 validators:
   - /lib/command/validators/requiresWizard

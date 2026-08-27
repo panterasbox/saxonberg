@@ -1,7 +1,7 @@
 # The wire alcove — a quiet singleton side-room holding a public
 # wardrobe (the sandbox's door; docs/subsystems/sandbox.md). Content
 # for the crossing's smoke path and the E2E suite: tests pin their
-# spawn here (`startLocation: /world/lounge/wire-alcove`) so an
+# spawn here (`startLocation: /world/lounge/location/wire-alcove`) so an
 # ordinary avatar stands next to a door with zero provisioning — which
 # is also the honest player story: character creation IS the circle
 # grant, and any wardrobe anywhere opens onto your own circle until a

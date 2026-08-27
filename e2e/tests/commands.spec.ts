@@ -13,7 +13,7 @@ import { openWorldAs, sendUntil } from './helpers';
  * WebSocket session is still settling.
  *
  * A fresh avatar spawns in the lounge (Avatar seed pins
- * `startLocation: /world/lounge/warren`), which exits north to Dave's
+ * `startLocation: /world/lounge/idea/warren`), which exits north to Dave's
  * Bar.
  */
 
@@ -70,7 +70,7 @@ test('movement traverses an exit into the adjoining room', async ({
   // (command → traverse → arrival auto-look) without depending on the
   // pollutable Warren topology.
   const { page, close } = await openWorldAs(browser, 'cmd-move', {
-    startLocation: '/world/lounge/bar',
+    startLocation: '/world/lounge/location/bar',
   });
   try {
     // Confirm we start in Dave's Bar (its long description is unique —

@@ -13,10 +13,10 @@
 # Lounge" directly (the guaranteed board label, D13/[DECIDE-ADDR]), while the
 # terminal's own `shortDescription` stays generic (it reads correctly in the
 # lounge room). The keyword `lounge` is the typeable `teleport lounge` handle.
-class: /world/lounge/LoungeTerminal
+class: /world/lounge/thing/LoungeTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  seatIn: /world/lounge/warren
+  seatIn: /world/lounge/idea/warren
   shortDescription: a Teleport Authority terminal
   keywords: [lounge]
   directionality: both

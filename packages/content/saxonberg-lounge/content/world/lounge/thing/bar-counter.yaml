@@ -15,6 +15,6 @@ data:
   attendDurationMs: 0
   staffingPolicy: self-service
   serverPositionKeys: [bartender]
-  businessPath: /world/lounge/business
+  businessPath: /world/lounge/idea/business
   skin:
     poke: "The bartender catches your eye — you're up."

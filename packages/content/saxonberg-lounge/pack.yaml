@@ -1,13 +1,14 @@
 id: saxonberg-lounge
 version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
-# The document root: the retired ScriptSeeder's owner path, so every
-# existing dev DB ADOPTS its three rows in place (same path, same owner).
 root: /world/lounge
 description: >-
-  The lounge — its library root (/stuff/idea/lounge), its three world scripts
-  (msh) and the landing setting; rooms/NPCs are world-seed's until a later
-  wave homes them here.
-dependsOn: [platform, corpo-goodkin, corpo-vionne]
+  The lounge — Dave's Bar and its warren, whole: the venue rows under
+  /world/lounge/{location,thing,idea,agent} (the rooms, the back-bar and
+  its stock, the cast, the business, the TPA terminal), its library root
+  (/stuff/idea/lounge), its three world scripts (msh) and the landing
+  setting. The bar stations and cocktail recipes are the hospitality
+  trade's; the bar populates them by reference. Content packs wave 4b.
+dependsOn: [platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko]
 # The lounge team maintains the lounge.
 maintainers: lounge
 requires:
@@ -17,3 +18,5 @@ requires:
   title:
     - { extent: /stuff/idea/lounge, holder: { group: lounge } }
     - { extent: /world/lounge, holder: { group: lounge } }
+boot:
+  - { template: /world/lounge/thing/terminal, role: producer, reason: "the TPA network's eager root; nothing else instantiates the cascade" }

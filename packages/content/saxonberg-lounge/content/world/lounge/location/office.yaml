@@ -47,5 +47,5 @@ data:
   # office, office -> plain south -> bar.
   exits:
     south:
-      destination: /world/lounge/bar
+      destination: /world/lounge/location/bar
       bidirectional: false

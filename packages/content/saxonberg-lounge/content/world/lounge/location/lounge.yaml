@@ -12,10 +12,10 @@
 #
 # A plain, zone-less Location (a social pocket, not a grid cell) — no
 # coordinates, no SingletonMixin (repeated clones are the whole point).
-class: /world/lounge/Lounge
+class: /world/lounge/location/Lounge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  warren: /world/lounge/warren
+  warren: /world/lounge/idea/warren
   shortDescription: the lounge
   primaryKeyword: lounge
   illustration: location/lounge.png

@@ -11,7 +11,7 @@ data:
   directionality: departure
   status: operational
   routes:
-    - to: /world/lounge/terminal
+    - to: /world/lounge/thing/terminal
       fee: 0
     - to: /world/newbie-wilds/crossroads/terminal
       fee: 15

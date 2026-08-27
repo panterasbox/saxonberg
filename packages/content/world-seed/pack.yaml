@@ -5,8 +5,10 @@ description: >-
   TRANSITIONAL. The locality rows SeederManager used to insert, verbatim, so
   the seeders could be deleted in wave 3 without the localities sitting in the
   platform under a false owner. Deleted piecewise as waves 4–5 home each
-  locality (eternal, terminus, lounge, hearthworks, moor, practicum,
-  substation, common).
+  locality: the lounge and the hearthworks left in wave 4b; eternal, terminus,
+  moor, practicum, substation and common remain.
+# saxonberg-lounge stays a dependency for ONE reason: the Terminus departure
+# terminal's route names /world/lounge/thing/terminal.
 dependsOn: [platform, saxonberg-lounge, corpo-goodkin, corpo-vionne]
 requires:
   groups:
@@ -23,13 +25,7 @@ requires:
       purpose: the Improvement District
     - name: terminus
       purpose: the Terminus municipality
-    # Declared by saxonberg-lounge too (found by name; never re-owned).
-    - name: lounge
-      purpose: the lounge team
   title:
-    # The same extent saxonberg-lounge claims, for the same holder: kept
-    # both ways, never a conflict.
-    - { extent: /world/lounge, holder: { group: lounge } }
     # The Terminus municipality's ground.
     - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
     - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
@@ -44,7 +40,6 @@ requires:
     - { extent: /world/eternal/duncan-hall,       holder: { group: duncan-hall } }
     - { extent: /world/eternal/duncan-hall/dorms, parentParcel: /world/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
 boot:
-  - { template: /world/lounge/terminal, role: producer, reason: "the TPA network's eager root; nothing else instantiates the cascade" }
   - { template: /world/eternal/duncan-hall/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
   - { template: /world/terminus/hinkley-hills/plat-book, role: producer, reason: title enumerates live books }
   - { template: /world/terminus/hinkley-hills/lot-holder, role: producer, reason: the book names it by path and a sale resolves it }

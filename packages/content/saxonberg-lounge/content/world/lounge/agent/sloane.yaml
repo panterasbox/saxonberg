@@ -28,9 +28,9 @@ data:
     - brain: /lib/behavior/shifts
       trigger: cadence:30s
       config:
-        behindBar: /world/lounge/bar
-        railStool: /world/lounge/bar
-        offstage: /world/lounge/offstage
+        behindBar: /world/lounge/location/bar
+        railStool: /world/lounge/location/bar
+        offstage: /world/lounge/location/offstage
     - brain: /lib/behavior/idles
       trigger: cadence:14s
       config:
