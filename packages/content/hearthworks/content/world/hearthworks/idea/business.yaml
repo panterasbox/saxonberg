@@ -10,7 +10,7 @@ data:
   # The smith owns the forge: an ENTITY authority.
   appointingAuthority:
     kind: entity
-    path: /world/hearthworks/npc/smith
+    path: /world/hearthworks/agent/smith
   positions:
     - key: smith
       label: working the forge
@@ -22,14 +22,14 @@ data:
       confers: [MakerMixin]
   rosterSlots:
     - positionKey: smith
-      assignee: /world/hearthworks/npc/smith
+      assignee: /world/hearthworks/agent/smith
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
     - positionKey: cook
-      assignee: /world/hearthworks/npc/cook
+      assignee: /world/hearthworks/agent/cook
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
   banksAt: goodkin
   operatingLocations:
-    - /world/hearthworks/smithy
-    - /world/hearthworks/cookhouse
+    - /world/hearthworks/location/smithy
+    - /world/hearthworks/location/cookhouse

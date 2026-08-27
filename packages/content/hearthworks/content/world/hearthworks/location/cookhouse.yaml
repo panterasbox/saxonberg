@@ -17,8 +17,8 @@ data:
   populates:
     - /stuff/thing/Oven
     - /stuff/thing/CookPot
-    - /world/hearthworks/kitchen-menu
-    - /world/hearthworks/pantry-chest
+    - /world/hearthworks/thing/kitchen-menu
+    - /world/hearthworks/thing/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the
     # chest holds the dear cuts the gather walk reaches for a craft —
     # hand-retrieval from containers isn't a shipped verb yet).
@@ -29,4 +29,4 @@ data:
     # reach (the served path clones its own; the by-hand path doesn't).
     - /stuff/thing/items/plated-dish
     - /stuff/thing/items/plated-dish
-    - /world/hearthworks/npc/cook
+    - /world/hearthworks/agent/cook

@@ -17,7 +17,7 @@ data:
     y: 0
     z: 0
   adornments:
-    - /world/hearthworks/forge-floor
+    - /world/hearthworks/thing/forge-floor
   populates:
     - /stuff/thing/Forge
     - /trade/smithing/thing/iron-ingot
@@ -27,5 +27,5 @@ data:
     - /stuff/thing/gear/smiths-hammer
     - /stuff/thing/items/hide-stock
     - /trade/smithing/thing/whetstone
-    - /world/hearthworks/smithy-menu
-    - /world/hearthworks/npc/smith
+    - /world/hearthworks/thing/smithy-menu
+    - /world/hearthworks/agent/smith

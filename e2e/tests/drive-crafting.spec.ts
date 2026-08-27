@@ -44,7 +44,7 @@ test('the smithy: forge → analyze → sharpen → repair → salvage', async (
   test.setTimeout(600_000);
   mkdirSync(SNAP, { recursive: true });
   const { page, close } = await openWorldAs(browser, 'craft-smith', {
-    startLocation: '/world/hearthworks/smithy',
+    startLocation: '/world/hearthworks/location/smithy',
   });
   const { snap, see } = makeDrivers(page);
   try {
@@ -112,7 +112,7 @@ test('the cookhouse: by-hand stew → nutrition → the spent pantry → the roa
   test.setTimeout(600_000);
   mkdirSync(SNAP, { recursive: true });
   const { page, close } = await openWorldAs(browser, 'craft-cook', {
-    startLocation: '/world/hearthworks/cookhouse',
+    startLocation: '/world/hearthworks/location/cookhouse',
   });
   const { snap, see } = makeDrivers(page);
   try {

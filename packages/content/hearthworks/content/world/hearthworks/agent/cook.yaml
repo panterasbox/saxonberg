@@ -21,6 +21,13 @@ data:
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival
+    # Presence follows the roster: on shift at the post, off shift in the
+    # venue's offstage room (the lounge's precedent — one Offstage, two venues).
+    - brain: /lib/behavior/shifts
+      trigger: cadence:30s
+      config:
+        behindBar: /world/hearthworks/location/cookhouse
+        offstage: /world/hearthworks/location/offstage
     - brain: /lib/behavior/idles
       trigger: cadence:20s
       config:

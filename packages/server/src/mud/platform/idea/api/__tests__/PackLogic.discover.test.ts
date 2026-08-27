@@ -57,12 +57,14 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('eighteen ship; the two trade packs order after generic-objects (wave 4a)', () => {
+  it('nineteen ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
-    expect(ids).toHaveLength(18);
+    expect(ids).toHaveLength(19);
     expect(ids[0]).toBe('platform');
     for (const trade of ['trade-smithing', 'trade-hearth-cooking']) {
       expect(ids.indexOf(trade)).toBeGreaterThan(ids.indexOf('generic-objects'));
+      expect(ids.indexOf('hearthworks')).toBeGreaterThan(ids.indexOf(trade));
     }
+    expect(ids.indexOf('hearthworks')).toBeGreaterThan(ids.indexOf('corpo-goodkin'));
   });
 });

@@ -10,13 +10,21 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 
 const CONTENT = fileURLToPath(new URL('../../../../../../content/', import.meta.url));
-const VENUE = join(CONTENT, 'world-seed/content/world/hearthworks');
+const VENUE = join(CONTENT, 'hearthworks/content/world/hearthworks');
+
+/** Every `.yaml` under the venue, recursively (branch subdirs). */
+function walk(dir: string): string[] {
+  return readdirSync(dir).flatMap((f) => {
+    const full = join(dir, f);
+    return statSync(full).isDirectory() ? walk(full) : f.endsWith('.yaml') ? [full] : [];
+  });
+}
 
 function shippedFile(path: string): string | null {
   for (const pack of readdirSync(CONTENT)) {
@@ -26,18 +34,25 @@ function shippedFile(path: string): string | null {
   return null;
 }
 
-describe('the hearthworks venue (world-seed) populates rows the packs ship at those paths', () => {
-  const venues = readdirSync(VENUE).filter((f) => f.endsWith('.yaml'));
-  it('every populates: path is a shipped template file (trade-smithing, generic-objects, world-seed)', () => {
+describe('the hearthworks venue pack populates rows the packs ship at those paths', () => {
+  const venues = walk(VENUE);
+  it('ships thirteen rows under branch subdirs', () => {
+    expect(venues.map((f) => f.slice(VENUE.length + 1)).sort()).toEqual([
+      'agent/cook.yaml', 'agent/smith.yaml', 'idea/business.yaml',
+      'location/cellar.yaml', 'location/cookhouse.yaml', 'location/offstage.yaml', 'location/smithy.yaml', 'location/woodshed.yaml',
+      'thing/forge-floor.yaml', 'thing/kitchen-menu.yaml', 'thing/pantry-chest.yaml', 'thing/smithy-menu.yaml',
+    ]);
+  });
+  it('every populates: path is a shipped template file (trade-smithing, generic-objects, the venue itself)', () => {
     const missing: string[] = [];
     const seen = new Set<string>();
     for (const file of venues) {
-      const doc = YAML.parse(readFileSync(join(VENUE, file), 'utf-8')) as { data?: { populates?: unknown[] } };
+      const doc = YAML.parse(readFileSync(file, 'utf-8')) as { data?: { populates?: unknown[] } };
       for (const spec of doc.data?.populates ?? []) {
         const path = typeof spec === 'string' ? spec : (spec as { template?: string }).template;
         if (!path) continue;
         seen.add(path);
-        if (!shippedFile(path)) missing.push(`${file}: ${path}`);
+        if (!shippedFile(path)) missing.push(`${file.slice(VENUE.length + 1)}: ${path}`);
       }
     }
     expect(missing).toEqual([]);
@@ -49,6 +64,10 @@ describe('the hearthworks venue (world-seed) populates rows the packs ship at th
     expect([...seen].filter((p) => p.startsWith('/stuff/thing/items/')).sort()).toEqual([
       '/stuff/thing/items/dry-log', '/stuff/thing/items/hide-stock', '/stuff/thing/items/plated-dish', '/stuff/thing/items/prime-cut',
       '/stuff/thing/items/ration-stock', '/stuff/thing/items/root-vegetables', '/stuff/thing/items/stew-meat', '/stuff/thing/items/wet-log',
+    ]);
+    expect([...seen].filter((p) => p.startsWith('/world/hearthworks/')).sort()).toEqual([
+      '/world/hearthworks/agent/cook', '/world/hearthworks/agent/smith',
+      '/world/hearthworks/thing/kitchen-menu', '/world/hearthworks/thing/pantry-chest', '/world/hearthworks/thing/smithy-menu',
     ]);
   });
 });

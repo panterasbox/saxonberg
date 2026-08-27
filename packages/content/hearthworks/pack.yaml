@@ -1,0 +1,19 @@
+id: hearthworks
+version: 0.1.0
+root: /world/hearthworks
+description: >-
+  The Hearthworks — a VENUE pack: the smithy, the cookhouse, the cellar,
+  the woodshed and the forge floor, the business that staffs them, Berta
+  and Odo, the two menus, the pantry, and the offstage room the cast parks
+  in off-shift. It composes the smithing and hearth-cooking trades — every
+  station and recipe it uses is a `populates:` reference to the trade's or
+  the commons' row, never a copy — and banks at Goodkin. Content packs
+  wave 4b.
+dependsOn: [platform, trade-smithing, trade-hearth-cooking, corpo-goodkin]
+requires:
+  groups:
+    - name: hearthworks
+      purpose: the Hearthworks' staff
+      owner: { office: prime-minister }
+  title:
+    - { extent: /world/hearthworks, holder: { group: hearthworks } }

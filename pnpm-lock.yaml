@@ -120,6 +120,8 @@ importers:
 
   packages/content/generic-objects: {}
 
+  packages/content/hearthworks: {}
+
   packages/content/newbie-wilds: {}
 
   packages/content/platform: {}
@@ -168,6 +170,9 @@ importers:
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../content/generic-objects
+      '@saxonberg/content-hearthworks':
+        specifier: workspace:*
+        version: link:../content/hearthworks
       '@saxonberg/content-newbie-wilds':
         specifier: workspace:*
         version: link:../content/newbie-wilds

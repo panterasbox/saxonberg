@@ -6,7 +6,7 @@ description: >-
   whetstone, workbench), its stock (iron ingots) and its recipes
   (fire-poker, smiths-hammer, belt-knife, cook-pot, leather-jerkin). Fire
   stations (Forge, Oven, Kiln, CookPot) are fire-substrate commons under
-  /obj; the Hearthworks smithy (/world/hearthworks/smithy) is the venue
+  /obj; the Hearthworks smithy (/world/hearthworks/location/smithy) is the venue
   that hosts this trade. Content packs wave 4a.
 dependsOn: [platform, generic-objects]
 requires:

@@ -48,6 +48,7 @@
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-expression": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-hearthworks": "workspace:*",
     "@saxonberg/content-newbie-wilds": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
