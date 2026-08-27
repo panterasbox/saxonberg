@@ -312,6 +312,8 @@ export const Mixins = {
   SubjectSubscriber: 'SubjectSubscriberMixin',
   WarrenMember: 'WarrenMemberMixin',
   Lounge: 'LoungeMixin',
+  // The off-shift parking room a venue's cast is relocated to.
+  Offstage: 'OffstageMixin',
   FastTravel: 'FastTravelMixin',
   Fixture: 'FixtureMixin',
   LoadBearing: 'LoadBearingMixin',

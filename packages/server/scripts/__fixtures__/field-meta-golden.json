@@ -490,7 +490,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/world/eternal/university-avenue/MechanicalMovement.ts",
+    "file": "packages/server/src/mud/lib/time/MechanicalMovement.ts",
     "index": 0,
     "className": "MechanicalMovementMixin",
     "persistentFields": [
@@ -543,7 +543,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/world/lounge/Offstage.ts",
+    "file": "packages/server/src/mud/platform/location/Offstage.ts",
     "index": 0,
     "className": "Offstage",
     "persistentFields": [],
