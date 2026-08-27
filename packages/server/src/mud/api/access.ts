@@ -139,12 +139,6 @@ export class AccessApi {
   }
 
   /**
-   * Broad "is the actor a member of any group with content scope?".
-   * Used by MQL pre-gates that can't be resource-targeted. Fail-
-   * closed in the no-Registry test path (the absent permission
-   * snapshot already permits the resolver from the dispatcher side).
-   */
-  /**
    * ⭐ Every extent `subject` holds — the within-your-extent pattern's one
    * seam (content-packs wave 3): each parcel whose holder admits the
    * subject (group membership, organization staff-or-head, a player
@@ -153,10 +147,6 @@ export class AccessApi {
    */
   public static async heldExtents(subject: Stuff | null): Promise<string[]> {
     return asAuthorityQuery(() => logic().heldExtents(subject));
-  }
-
-  public static async isAuthor(subject: Stuff | null): Promise<boolean> {
-    return logic().isAuthor(subject);
   }
 
   /**

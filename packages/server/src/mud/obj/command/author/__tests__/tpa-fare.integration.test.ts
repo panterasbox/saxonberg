@@ -225,7 +225,8 @@ describe("TPA fare settlement (integration)", () => {
       return "";
     });
     vi.spyOn(AccessApi, "isWizard").mockResolvedValue(false);
-    vi.spyOn(AccessApi, "isAuthor").mockResolvedValue(false);
+    // Plain travellers hold nothing: no self-powered hop, the TPA it is.
+    vi.spyOn(AccessApi, "heldExtents").mockResolvedValue([]);
     cityAccount = await BankingApi.ensureVenueAccount(
       BIZ,
       BankingApi.defaultCustodianBank(),

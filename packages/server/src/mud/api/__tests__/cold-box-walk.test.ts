@@ -21,7 +21,7 @@
  * test that stubs an author or a group membership.
  *
  * This suite therefore stubs `GroupApi.isMember` to **false for everyone**
- * and `AccessApi.isAuthor` to **false**, so the only thing that can carry
+ * so the only thing that can carry
  * the founder through is the founder default itself.
  *
  * Both breaks this build fixed were invisible to tests that passed in
@@ -173,8 +173,6 @@ function installEmptyCoreTitle(): void {
   );
   vi.spyOn(ParcelApi, 'coveringParcelOf').mockResolvedValue(null);
   vi.spyOn(GroupApi, 'isMember').mockResolvedValue(false);
-  // ...and therefore nobody is an author, the founder included.
-  vi.spyOn(AccessApi, 'isAuthor').mockResolvedValue(false);
 }
 
 /** The Compact press office, exactly as its seed ships it: UNFILLED. */
@@ -298,7 +296,6 @@ describe('⭐⭐ the cold-box walk', () => {
 
     // ── The box really is cold ────────────────────────────────────
     await expect(CompactApi.isFounder(founder)).resolves.toBe(true);
-    await expect(AccessApi.isAuthor(founder)).resolves.toBe(false);
     await expect(GroupApi.isMember('founder', CORE_GROUP)).resolves.toBe(
       false,
     );

@@ -2,7 +2,7 @@
  * Tests for `AccessApi` — the thin facade over `AccessRegistry`.
  *
  * The tests exercise:
- *   - facade delegation (`can` / `canMutateZone` / `isAuthor` /
+ *   - facade delegation (`can` / `canMutateZone` /
  *     `isWizard` route to the Registry singleton).
  *   - the SecurityApi-decorated surface (calls through the static
  *     wrapper push a frame and resolve a policy).
@@ -103,11 +103,6 @@ describe('AccessApi facade', () => {
   it('isWizard(null) returns false', async () => {
     installInMemoryStore([]);
     expect(await AccessApi.isWizard(null)).toBe(false);
-  });
-
-  it('isAuthor(null) returns false', async () => {
-    installInMemoryStore([]);
-    expect(await AccessApi.isAuthor(null)).toBe(false);
   });
 
   it('encapsulation contract: direct Registry method call from non-AccessApi code throws SecurityError', async () => {

@@ -44,20 +44,10 @@ interface ErrorsModel extends CommandModel {
 
 export default class ErrorsController extends CommandController<ErrorsModel> {
   async execute(model: ErrorsModel, context: CommandContext): Promise<void> {
-    // Author-or-wizard gate (the verb is afforded to every avatar via
-    // AuthorMixin; the tier check lives here so a wizard — who edits source
-    // and needs compile diagnostics — is admitted alongside content authors).
-    const actor = context.commandGiver;
-    const allowed =
-      (await AccessApi.isAuthor(actor)) || (await AccessApi.isWizard(actor));
-    if (!allowed) {
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'not-authorised',
-        detail: 'errors is for authors and wizards',
-      });
-      return;
-    }
+    // No door: everyone is an author (content-packs wave 3). What you
+    // SEE is what you hold — `DiagnosticApi.list` filters rows to the
+    // extents you hold and the packs you maintain; a nobody gets an
+    // empty list, never a refusal.
     const sub = model.subcommand ?? 'list';
     if (sub === 'clear') return this.clear(model, context);
     if (sub === 'raw') return this.raw(model, context);

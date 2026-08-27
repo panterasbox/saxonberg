@@ -17,7 +17,7 @@
  * groups (`'core'`, `'lounge'`, `'wizards'`, `'streamers'`,
  * `'archwizards'`) if absent and stamp the lounge FolderZones at
  * `/obj/lounge` and `/domain/lounge`. Caches
- * (cached GroupRefs, wizard playerId Set, author-groups list) warm
+ * (cached GroupRefs, the axis playerId Sets) warm
  * lazily on first read and live as instance fields — reload of
  * `api/access.ts` doesn't affect them; reload of this file re-clones
  * the Registry per HotReloadApi's pattern (state resets and
@@ -94,10 +94,6 @@ export default class AccessRegistry extends AccessRegistryBase {
   private cachedArchwizardPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the archwizard onChange subscription. */
   private archwizardCacheCancel: (() => void) | null = null;
-  /** Set of GroupRefs that count as "author scope" — every group named by
-   *  a `group`-kind parcel owner (via `ParcelApi.groupOwnerRefs`), plus
-   *  `'core'`. Warmed lazily on first `isAuthor` read. */
-  private cachedAuthorGroups: readonly GroupRef[] | null = null;
   /** Organization paths already diagnosed as unresolved — once-per-path. */
   private readonly reportedUnresolvedOrganizations = new Set<string>();
 
@@ -210,25 +206,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     const key = memberKey.split('/').filter(Boolean).pop();
     if (key && PlayerApi.isAvatarStuff(subject)) out.add(`/home/${key}`);
     return [...out].sort();
-  }
-
-  /**
-   * Broad "is the actor a member of any group with content scope?"
-   * used by MQL pre-gates that can't be resource-targeted. True for
-   * any Avatar whose playerId is in `'core'` or any group named by a
-   * `group`-kind parcel owner (the repointed author scope — see
-   * `ensureAuthorGroups`).
-   */
-  @CallSecurity(AccessApiCallers)
-  public async isAuthor(subject: Stuff | null): Promise<boolean> {
-    if (subject === null) return false;
-    const memberKey = this.memberKeyOf(subject);
-    if (memberKey === null) return false;
-    const groups = await this.ensureAuthorGroups();
-    for (const ref of groups) {
-      if (await GroupApi.isMember(memberKey, ref)) return true;
-    }
-    return false;
   }
 
   /**
@@ -543,19 +520,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     return key !== undefined && owner.templatePath === `/home/${key}`;
   }
 
-  private async ensureAuthorGroups(): Promise<readonly GroupRef[]> {
-    if (this.cachedAuthorGroups) return this.cachedAuthorGroups;
-    // The author scope is now the parcel layer's group owners + `core`
-    // (the template-`data` scan for `ownerGroup`/`ownerGroupName` is
-    // retired — ownership no longer lives in `domain`).
-    const refs = new Set<GroupRef>(await ParcelApi.groupOwnerRefs());
-    const coreRef = await this.resolveCoreRef();
-    if (coreRef) refs.add(coreRef);
-    const list = [...refs];
-    this.cachedAuthorGroups = list;
-    return list;
-  }
-
   private async ensureWizardCache(): Promise<ReadonlySet<string>> {
     if (this.cachedWizardPlayerIds) return this.cachedWizardPlayerIds;
     const reg = await GroupApi.registry();
@@ -646,7 +610,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     this.cachedWizardPlayerIds = null;
     this.cachedStreamerPlayerIds = null;
     this.cachedArchwizardPlayerIds = null;
-    this.cachedAuthorGroups = null;
     await this.postRegister();
   }
 

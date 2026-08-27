@@ -99,7 +99,7 @@ export class ParcelApi {
 
   /**
    * Every managed-group ref named by a `group`-kind parcel owner — the
-   * repointed input to `AccessRegistry.ensureAuthorGroups`.
+   * former input to the retired author scope; kept as the group-owner walk.
    */
   public static async groupOwnerRefs(): Promise<GroupRef[]> {
     return logic().groupOwnerRefs();

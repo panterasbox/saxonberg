@@ -17,6 +17,8 @@ import { Collections } from '../../lib/persistence/Collections';
 import { PersistApi } from '../../api/persist';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { AccessApi } from '../../api/access';
+import { PackApi } from '../../api/pack';
+import { GroupApi } from '../../api/group';
 import { ProvenanceApi } from '../../api/provenance';
 import { EventApi, Events } from '../../api/event';
 import { StuffApi } from '../../api/stuff';
@@ -39,6 +41,20 @@ function connected(): boolean {
 }
 
 /** The context-derived actor for the read gates (never a passed value). */
+/** Is `subject` on the maintainers group of pack `id`? (An organization-maintained pack: its staff-or-head.) */
+async function maintainsPack(subject: Stuff, id: string): Promise<boolean> {
+  const info = await PackApi.maintainersOf(id);
+  if (!info) return false;
+  const m = info.maintainers;
+  if ('organization' in m) {
+    return AccessApi.canAtPath(subject, 'read', m.organization);
+  }
+  const key = subject.getIdentityPath?.() ?? subject.getTemplatePath();
+  if (!key) return false;
+  const group = await (await GroupApi.registry()).managed().findByName(m.group);
+  return !!group?._id && (await GroupApi.isMember(key, `managed:${group._id}`));
+}
+
 function actor(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
@@ -199,13 +215,25 @@ export class DiagnosticLogic extends ApiLogic {
   public async list(filter: DiagnosticListFilter): Promise<DiagnosticDoc[]> {
     if (!connected()) return [];
     const subject = actor();
+    if (subject === null) return [];
     const isWiz = await AccessApi.isWizard(subject);
-    // Author-tier OR wizard: a wizard edits engine source/TS, so is exactly
-    // who needs compile diagnostics — reads admit either axis (a null /
-    // unattributable context still fails closed).
-    if (!isWiz && !(await AccessApi.isAuthor(subject))) return [];
     // Non-wizards can't see TS-source compile diagnostics (wizard-tier content).
     if (!isWiz && filter.source === 'compile') return [];
+    // The within-your-extent pattern (content-packs wave 3): a row is
+    // yours to read when its path is under an extent you hold, or it is
+    // a pack's channel and you maintain that pack. No author tier.
+    const held = await AccessApi.heldExtents(subject);
+    const maintains = new Map<string, boolean>();
+    const readable = async (row: DiagnosticDoc): Promise<boolean> => {
+      if (row.path && held.some((e) => row.path === e || row.path!.startsWith(e + '/'))) return true;
+      if (row.channel.startsWith('pack.')) {
+        const id = row.channel.slice('pack.'.length);
+        if (!maintains.has(id)) maintains.set(id, await maintainsPack(subject, id));
+        return maintains.get(id)!;
+      }
+      // Compile rows have no path: the wizard axis alone reads them.
+      return row.source === 'compile' && isWiz;
+    };
 
     const q: Record<string, unknown> = {};
     if (filter.channels && filter.channels.length) {
@@ -228,7 +256,11 @@ export class DiagnosticLogic extends ApiLogic {
       sort: { ts: -1 },
       limit: filter.limit ?? DEFAULT_LIMIT,
     });
-    return rows.map(toDoc);
+    const out: DiagnosticDoc[] = [];
+    for (const row of rows.map(toDoc)) {
+      if (filter.mine || (await readable(row))) out.push(row);
+    }
+    return out;
   }
 
   /**

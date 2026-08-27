@@ -49,6 +49,7 @@ import type {
 import type { MqlManyResult } from '../../../api/mql';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
+import { AccessApi } from '../../../api/access';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 
@@ -57,7 +58,7 @@ interface FindModel extends CommandModel {
 }
 
 export default class FindController extends CommandController<FindModel> {
-  execute(model: FindModel, context: CommandContext): void {
+  async execute(model: FindModel, context: CommandContext): Promise<void> {
     const wrapper = model.query;
     const raw = wrapper?.raw?.trim() ?? '';
     const matches: Stuff[] = wrapper?.stuff ?? [];
@@ -79,9 +80,12 @@ export default class FindController extends CommandController<FindModel> {
       return;
     }
 
-    // Admin gate: per-giver, not per-row. Avatars composing
-    // `AuthorMixin` see template paths everywhere; non-admins never.
-    const showTemplatePath = MixinApi.isAuthor(context.commandGiver);
+    // Template paths are shown PER ROW: an object's path is yours to see
+    // when it is under an extent you hold (content-packs wave 3 — the
+    // within-your-extent pattern; computed once per call).
+    const held = await AccessApi.heldExtents(context.commandGiver);
+    const showTemplatePath = (path: string): boolean =>
+      held.some((e) => path === e || path.startsWith(e + '/'));
 
     // One row per match. `Mml.item` emits the identity-tagged
     // affordance the client makes clickable; the admin suffix is
@@ -91,9 +95,8 @@ export default class FindController extends CommandController<FindModel> {
     // bare display name even for admins.
     const rows: Mml[] = matches.map((stuff) => {
       const item = Mml.thing(stuff);
-      if (!showTemplatePath) return item;
       const path = stuff.getTemplatePath();
-      if (!path) return item;
+      if (!path || !showTemplatePath(path)) return item;
       return Mml.compose`${item} (${path})`;
     });
 

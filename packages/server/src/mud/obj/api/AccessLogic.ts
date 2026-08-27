@@ -114,8 +114,6 @@ export class AccessLogic extends ApiLogic {
     return reg.canMutateZone(subject, zone);
   }
 
-  /** See {@link AccessApi.isAuthor}. */
-  @CallSecurity(AccessApiCallers)
   /** See {@link AccessApi.heldExtents}. */
   @CallSecurity(AccessApiCallers)
   public async heldExtents(subject: Stuff | null): Promise<string[]> {
@@ -123,14 +121,6 @@ export class AccessLogic extends ApiLogic {
     const reg = lookupRegistry();
     if (!reg) return [];
     return reg.heldExtents(subject);
-  }
-
-  public async isAuthor(subject: Stuff | null): Promise<boolean> {
-    if (subject === null) return false;
-    const reg = lookupRegistry();
-    if (!reg) return false;
-    if (!PlayerApi.isAvatarStuff(subject)) return false;
-    return reg.isAuthor(subject);
   }
 
   /** See {@link AccessApi.isWizard}. */

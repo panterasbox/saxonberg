@@ -121,7 +121,7 @@ export class EmploymentApi {
 
   /**
    * Whether `subject` may act as the proprietor of `organization` — its
-   * appointing authority, or the `AccessApi.isAuthor` operator override.
+   * appointing authority, or the Prime Minister's seat (the operator override).
    * The override rides on top of an authority and is never one itself.
    */
   public static isProprietorOf(

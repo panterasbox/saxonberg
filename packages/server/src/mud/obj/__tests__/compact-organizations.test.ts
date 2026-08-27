@@ -9,9 +9,8 @@
  *
  * ⚠ The load-bearing one is the Compact press office's **committee**
  * authority. Only `office` and `committee` carry the Art. XI founder
- * default, and the operator axis (`AccessApi.isAuthor`) resolves to
- * membership of a `core` group that seeds EMPTY — so an operator-axis
- * authority here would be one nobody could satisfy on a fresh box. Every
+ * default — so an authority the founder cannot satisfy is one nobody
+ * could satisfy on a fresh box. Every
  * downstream wave's cold-box story runs through this single seed field.
  */
 

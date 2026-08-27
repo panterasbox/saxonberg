@@ -4,13 +4,12 @@
  *
  * ## Why this exists at all
  *
- * ⚠ It replaces `requiresAuthor`, and the swap is the fix for a real
- * break rather than a tidy-up. `AccessApi.isAuthor` is membership of the
- * `core` group — **which `seedCoreGroup()` creates EMPTY**. `WIZARD_PLAYER_IDS`
- * seeds `wizards`, not `core`, and the only code path that adds anyone is a
- * dev/test provisioning helper. So on a fresh box *nobody* is an author,
+ * ⚠ It replaced the retired `requiresAuthor`, and the swap was the fix
+ * for a real break rather than a tidy-up: the author tier was membership
+ * of a group that seeded EMPTY, so on a fresh box *nobody* was an author,
  * the founder included, and the shipped gate refused the founder the verb
- * outright.
+ * outright. There is no author tier any more (content-packs wave 3):
+ * capability is title over a resource, and publishing is a position.
  *
  * The affordance was never the barrier — `AuthorMixin` rides
  * `ShelledCharacter`, so every Avatar already carries the verb
@@ -26,7 +25,7 @@
  * `mayPublishAs` check inside `PressApi.publish` stays authoritative, and
  * this gate can only ever be coarser than it.
  *
- * `requiresAuthor` itself is untouched and keeps its other consumers.
+ * (`requiresAuthor` is gone; `press` holds no other gate.)
  */
 
 import type { CommandValidator } from '../../../api/command';

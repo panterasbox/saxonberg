@@ -170,7 +170,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
 
   /**
    * Every managed-group ref named by a `group`-kind parcel owner — the
-   * repointed input to `AccessRegistry.ensureAuthorGroups` (which folds in
+   * former input to the retired author scope (which folded in
    * `core` itself). Player-owned parcels contribute nothing.
    */
   @CallSecurity(ParcelApiCallers)

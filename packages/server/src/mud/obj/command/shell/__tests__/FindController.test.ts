@@ -18,7 +18,8 @@
  */
 
 import "../../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { AccessApi } from '../../../../api/access';
 import FindController from '../FindController';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
@@ -29,7 +30,6 @@ import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../../lib/description/Visible';
-import { AuthorMixin } from '../../../../lib/shell/Author';
 import CartesianLocation from '../../../../lib/location/CartesianLocation';
 import { ContainmentApi } from '../../../../api/containment';
 import { MqlSubscriptionApi } from '../../../../api/mql-subscription';
@@ -59,12 +59,10 @@ class TestGiver extends TestGiverBase {
   }
 }
 
-// Admin giver — adds `AuthorMixin` so `MixinApi.isAuthor` is true.
-// All other compositional state matches `TestGiver`.
-const TestAdminGiverBase = AuthorMixin(
-  FocusedMixin(
-    CommandGiverMixin(ContainerMixin(ContainableMixin(SensorMixin(Idea))))
-  )
+// A viewer who HOLDS /obj (content-packs wave 3: template paths show per
+// row, for the objects under an extent you hold). Same composition.
+const TestAdminGiverBase = FocusedMixin(
+  CommandGiverMixin(ContainerMixin(ContainableMixin(SensorMixin(Idea))))
 );
 class TestAdminGiver extends TestAdminGiverBase {
   public received: Array<{ topic?: string; body?: string }> = [];
@@ -130,11 +128,14 @@ describe('FindController', () => {
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
     controller = makeStuff(() => new FindController());
+    // The plain viewer holds nothing; the /obj holder is stubbed below.
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
   });
+  afterEach(() => vi.restoreAllMocks());
 
-  it('renders one row carrying the display name for a single match', () => {
+  it('renders one row carrying the display name for a single match', async () => {
     const apple = namedThing('apple');
-    controller.execute(
+    await controller.execute(
       makeModel({ query: queryField([apple], 'apple') } as ModelData),
       makeContext(giver, location, 'apple')
     );
@@ -146,11 +147,11 @@ describe('FindController', () => {
     expect(body).toContain('<thing');
   });
 
-  it('renders one row per match for a multi-match result', () => {
+  it('renders one row per match for a multi-match result', async () => {
     const a = namedThing('apple');
     const b = namedThing('apricot');
     const c = namedThing('avocado');
-    controller.execute(
+    await controller.execute(
       makeModel({ query: queryField([a, b, c], 'a*') } as ModelData),
       makeContext(giver, location, 'a*')
     );
@@ -163,8 +164,8 @@ describe('FindController', () => {
     expect(itemCount).toBe(3);
   });
 
-  it('renders a friendly "no matches" line on empty result', () => {
-    controller.execute(
+  it('renders a friendly "no matches" line on empty result', async () => {
+    await controller.execute(
       makeModel({ query: queryField([], 'unicorn') } as ModelData),
       makeContext(giver, location, 'unicorn')
     );
@@ -173,20 +174,20 @@ describe('FindController', () => {
     expect(body).toContain('unicorn');
   });
 
-  it('does not change focus (load-bearing "find does not touch focus")', () => {
+  it('does not change focus (load-bearing "find does not touch focus")', async () => {
     giver.setFocus('bookcase');
     const apple = namedThing('apple');
-    controller.execute(
+    await controller.execute(
       makeModel({ query: queryField([apple], 'apple') } as ModelData),
       makeContext(giver, location, 'apple')
     );
     expect(giver.getFocus()).toBe('bookcase');
   });
 
-  it('does not install subscription state (snapshot semantics)', () => {
+  it('does not install subscription state (snapshot semantics)', async () => {
     const before = MqlSubscriptionApi._getRegistrySizeForTesting();
     const apple = namedThing('apple');
-    controller.execute(
+    await controller.execute(
       makeModel({ query: queryField([apple], 'apple') } as ModelData),
       makeContext(giver, location, 'apple')
     );
@@ -194,10 +195,10 @@ describe('FindController', () => {
     expect(after).toBe(before);
   });
 
-  it('does NOT render template paths for non-admin viewers', () => {
+  it('does NOT render template paths for a viewer holding nothing', async () => {
     const apple = namedThing('apple');
     Stuff._stampTemplatePath(apple, '/obj/apple');
-    controller.execute(
+    await controller.execute(
       makeModel({ query: queryField([apple], 'apple') } as ModelData),
       makeContext(giver, location, 'apple')
     );
@@ -211,13 +212,16 @@ describe('FindController', () => {
     beforeEach(() => {
       admin = makeStuff(() => new TestAdminGiver());
       ContainmentApi.move(admin, location);
+      vi.spyOn(AccessApi, 'heldExtents').mockImplementation(
+        async (s) => ((s as unknown) === (admin as unknown) ? ['/obj'] : []),
+      );
     });
 
-    it('appends template path per row for admin viewers', () => {
+    it('appends the template path per row for objects under an extent the viewer holds', async () => {
       const apple = namedThing('apple');
       Stuff._stampTemplatePath(apple, '/obj/apple');
       const adminController = makeStuff(() => new FindController());
-      adminController.execute(
+      await adminController.execute(
         makeModel({ query: queryField([apple], 'apple') } as ModelData),
         makeContext(admin, location, 'apple')
       );
@@ -226,11 +230,11 @@ describe('FindController', () => {
       expect(body).toContain('/obj/apple');
     });
 
-    it('admin: template-path-less Stuff renders bare display name (no suffix)', () => {
+    it('admin: template-path-less Stuff renders bare display name (no suffix)', async () => {
       // Transient / bootstrap Stuff with no clone-pipeline stamp.
       const orphan = namedThing('orphan');
       const adminController = makeStuff(() => new FindController());
-      adminController.execute(
+      await adminController.execute(
         makeModel({ query: queryField([orphan], 'orphan') } as ModelData),
         makeContext(admin, location, 'orphan')
       );
@@ -241,13 +245,13 @@ describe('FindController', () => {
       expect(body).not.toContain('null');
     });
 
-    it('admin: multi-match output includes all template paths', () => {
+    it('admin: multi-match output includes all template paths', async () => {
       const a = namedThing('apple');
       const b = namedThing('apricot');
       Stuff._stampTemplatePath(a, '/obj/apple');
       Stuff._stampTemplatePath(b, '/obj/apricot');
       const adminController = makeStuff(() => new FindController());
-      adminController.execute(
+      await adminController.execute(
         makeModel({ query: queryField([a, b], 'a*') } as ModelData),
         makeContext(admin, location, 'a*')
       );
