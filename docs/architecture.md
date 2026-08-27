@@ -835,7 +835,7 @@ implant carrying `ForumsMixin`; see [forums.md](./subsystems/forums.md).
 The CMS-composition (**Studio**) build adds `Blueprint` (`lib/studio/`) — a
 reference-data `Document` (`blueprints` collection, the `Recipe` precedent,
 never cloned: a named structural composition `<baseClass>|<sorted mixins>`) —
-plus the boot-warmed `BlueprintCatalogue` singleton (`obj/`, the
+plus the boot-warmed `BlueprintCatalogue` singleton (`platform/idea/`, the
 `RecipeCatalogue` shape: id + signature indices) it's loaded into — which
 since content-packs wave 2 also `rebuild()`s the derived skeleton at boot
 and overlays the curated `documents {kind: blueprint}` the platform pack
@@ -1083,7 +1083,7 @@ Convention is **layer-based**:
   `prepareDestroy()`-style hooks), `private` for class-internal
   helpers and caches.
 
-**Special cases** where `#` is appropriate inside `lib/` or `obj/`:
+**Special cases** where `#` is appropriate inside `lib/` or `platform/`:
 
 1. A reentry guard or invariant-critical flag where a malicious
    subclass overriding a method could corrupt state.
