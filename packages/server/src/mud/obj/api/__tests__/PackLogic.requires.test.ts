@@ -17,6 +17,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PackApi } from '../../../api/pack';
+import { GroupApi } from '../../../api/group';
 import { AccessApi } from '../../../api/access';
 import { StuffApi } from '../../../api/stuff';
 import { DiagnosticApi } from '../../../api/diagnostics';
@@ -375,5 +376,47 @@ describe('the manifest', () => {
     await expect(PackApi.install([badHolder])).rejects.toThrow(/holder must be/);
     const badUse = writePack('c', [ROW('obj/x.yaml')], { manifest: { requires: { title: [{ extent: '/obj', landUse: 'spaceport' }] } } });
     await expect(PackApi.install([badUse])).rejects.toThrow(/unknown landUse 'spaceport'/);
+  });
+});
+
+describe('the requires phase on an EMPTY store (the first boot ever; every boot after a drop)', () => {
+  it('the pack that ships /obj/GroupRegistry + /obj/ParcelRegistry writes them BEFORE its first ensureGroup, and the planner normalizes them', async () => {
+    const seen: string[][] = [];
+    const original = GroupApi.ensureGroup.bind(GroupApi);
+    vi.spyOn(GroupApi, 'ensureGroup').mockImplementation(async (name, owner) => {
+      seen.push(contentRows().map((r) => String(r.path)).sort());
+      return original(name, owner);
+    });
+    const root = writePack(
+      'platform',
+      [
+        { rel: 'obj/GroupRegistry.yaml', class: '/obj/GroupRegistry', data: {} },
+        { rel: 'obj/ParcelRegistry.yaml', class: '/obj/ParcelRegistry', data: {} },
+        ROW('obj/x.yaml'),
+      ],
+      { manifest: { requires: { groups: [{ name: 'g', purpose: 'p', owner: { office: 'prime-minister' } }], title: [{ extent: '/obj' }] } } },
+    );
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    // Every ensureGroup call (the maintainers group, then `g`) saw both registry rows already in the store.
+    expect(seen.length).toBeGreaterThan(0);
+    for (const rows of seen) expect(rows).toEqual(expect.arrayContaining(['/obj/GroupRegistry', '/obj/ParcelRegistry']));
+    // Pre-written, stamped, identical to the file: normalized (a baseline), not inserted twice.
+    expect(r!.inserted).toEqual(['/obj/x']);
+    expect(r!.adopted).toEqual([]);
+    expect(r!.normalized).toBe(2);
+    expect(recordOf('platform')!.rows['/obj/GroupRegistry']).toBeDefined();
+    // Stamped by the pack, once — not duplicated by the adopt.
+    expect(contentRows().filter((c) => c.path === '/obj/GroupRegistry')).toHaveLength(1);
+    expect(contentRows().find((c) => c.path === '/obj/GroupRegistry')!.sourcePack).toBe('platform');
+  });
+
+  it('a pack that does NOT ship the registries writes nothing for them', async () => {
+    const root = writePack('other', [ROW('obj/y.yaml')], {
+      manifest: { requires: { groups: [{ name: 'g', purpose: 'p', owner: { office: 'prime-minister' } }] } },
+    });
+    const [r] = await PackApi.install([root]);
+    expect(r!.failure).toBeNull();
+    expect(contentRows().map((c) => c.path)).toEqual(['/obj/y']);
   });
 });

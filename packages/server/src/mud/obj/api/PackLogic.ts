@@ -2771,6 +2771,35 @@ function actingPrincipal(): { getIdentityPath(): string | null } | null {
 }
 
 /**
+ * The registry-at-boot rule applied to the requires phase's OWN
+ * registries. `applyRequires` runs before the planner writes a single
+ * row, and its first act — `GroupApi.ensureGroup` — clones
+ * `/obj/GroupRegistry` (then `ParcelApi.grant` clones
+ * `/obj/ParcelRegistry`). On an EMPTY store (the first boot ever; every
+ * boot after a drop-not-migrate rename — content-packs wave 4a) those
+ * template rows do not exist yet: the pack that ships them is the one
+ * whose requires phase needs them. So, for each registry the phase
+ * clones: live already → nothing; a row in the store → nothing; else,
+ * if THIS pack ships the row, write it now, stamped, through the domain
+ * strategy — the planner then finds a same-pack stamped row identical
+ * to its file with no baseline and NORMALIZES it (writes the baseline,
+ * no second write; the first boot's platform line counts it under
+ * `normalized`, never `inserted`).
+ * Found live on 2026-08-27: every pack failed at `reconcile` with
+ * "Template not found: /obj/GroupRegistry" on a fresh `saxonberg_build1`.
+ */
+async function ensureRequiresRegistriesResident(rp: ReadPack): Promise<void> {
+  for (const path of [TemplatePaths.groupRegistry, TemplatePaths.parcelRegistry]) {
+    if (StuffApi.findByTemplatePath(path)) continue;
+    const rows = await PersistApi.find(Collections.Content, { path });
+    if (rows.length > 0) continue;
+    const file = rp.content.domain.find((d) => d.path === path);
+    if (!file) continue;
+    await PersistApi.save(Collections.Content, domainStrategy.rowOf(file, rp.pack.manifest.id));
+  }
+}
+
+/**
  * Stand the organizations a manifest names up BEFORE holders resolve —
  * the registry-at-boot rule applied to organizations: the requires phase
  * runs after the pack's rows are written and before `BootstrapManager`
@@ -3024,8 +3053,10 @@ async function reconcilePack(
 
   const result = emptyResult(packId);
   // The requires phase's grants come FIRST — groups, memberships, titles
-  // — so a title this claim migrates or grants is in place before the
-  // bounded reconcile asks who holds each row's extent.
+  // — so a title this claim grants is in place before the bounded
+  // reconcile asks who holds each row's extent. Its own registries must
+  // exist first (an empty store: the pack that ships them writes them).
+  await ensureRequiresRegistriesResident(rp);
   await applyRequires(rp, record, result);
   const plans = await planPack(rp, prior, now, soldPredicateFor(pack.manifest, set.manifests));
   const perKind = new Map<string, AppliedKind>();
