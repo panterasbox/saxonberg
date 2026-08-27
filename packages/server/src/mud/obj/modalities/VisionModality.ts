@@ -355,7 +355,11 @@ function walkFluxAt(
       // on a non-Container and takes `look` down for the whole room.
       if (!exit.hasSpatialDestination()) continue;
       const destPath = exit.getDestinationTemplatePath();
-      if (destPath && !StuffApi.findByTemplatePath(destPath)) continue;
+      // Existence, not identity: a Warren hub exit names a template with
+      // MANY live clones (`/world/lounge/lounge` once a satellite exists),
+      // and the singleton lookup throws on it — which took `look` down for
+      // the whole room and the presence fan with it (found live 2026-08-27).
+      if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) continue;
       let dest: Stuff & Container;
       try {
         dest = exit.getDestination();
