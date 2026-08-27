@@ -11,7 +11,7 @@
  *     re-clone the shell from. Materialize loads every record with this
  *     `scope`.
  *   - `owner` — whose content this record holds (a principal's durable
- *     `templatePath`, a `group:<name>` sentinel, or `'core'`). The
+ *     `templatePath`, a `group:<name>` / `organization:<path>` sentinel, or the scope itself). The
  *     **account-deletion cascade key** — removing a principal is a keyed
  *     delete over `owner`.
  *   - `state` — the per-mixin-composed capture: a map keyed by mixin/layer

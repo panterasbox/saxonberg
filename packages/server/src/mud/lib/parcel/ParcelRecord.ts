@@ -43,7 +43,7 @@ import type { FieldMeta } from "../mixin";
  *
  *   - `group` — a managed group. `ref` (an explicit `managed:<id>`) wins
  *     when present; otherwise `name` is resolved mint-or-find by the
- *     registry (how a seeded `'lounge'`/`'terminus'`/`'core'` owner maps
+ *     registry (how a claimed `'lounge'`/`'terminus'` holder maps
  *     to a runtime ref without the seed knowing the group id).
  *   - `player` — an individual, keyed on the durable `templatePath`
  *     (a self-home owner, or a title transferred to a player).

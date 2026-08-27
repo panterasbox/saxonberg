@@ -116,7 +116,7 @@ export class AccessApi {
    * Resource-targeted slice walk. Returns true iff `subject` is a
    * member of any group owning the resource's zone-tree slice. NPCs
    * and null subjects fail closed. When the walk finds no owners,
-   * falls back to the universal `'core'` group.
+   * is untitled — nobody's (content-packs wave 3).
    */
   public static async can(
     subject: Stuff | null,

@@ -24,11 +24,7 @@ import { getOnlineHolders } from './online-provider';
 import type { MqlContext } from './types';
 
 export interface MqlPredicate {
-  /** Permission tier required to invoke this predicate. */
-  /** Decide whether `target` passes the predicate, given `giver`. The
-   *  `ctx` argument carries the precomputed permission snapshot used
-   *  by per-target gates (e.g., `:admin` consults
-   *  `ctx.permission?.coreMemberIds`). */
+  /** Decide whether `target` passes the predicate, given `giver`. */
   check(target: Stuff, giver: Stuff & CommandGiver, ctx: MqlContext): boolean;
 }
 

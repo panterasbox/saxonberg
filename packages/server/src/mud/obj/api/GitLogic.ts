@@ -89,7 +89,7 @@ function sanitize(message: string): string {
  * `/server/src/mud/obj/Foo.ts` (the packages-stripped, leading-`/` form
  * `AccessApi.resolveSourceFolderZone` walks against the template tree). A
  * path outside `packages/` (`docs/`, `deploy/`, root config) has **no**
- * source-logical form → `null` → the gate falls through to the `'core'`
+ * source-logical form → `null` → the gate fails closed (untitled is nobody's
  * owner default → only a core/state writer passes. That safe default is
  * intentional: git is never a permission bypass.
  */

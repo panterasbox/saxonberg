@@ -810,15 +810,14 @@ export class Application {
     // exactly the suite meant to catch them. Here, if the rules break,
     // the tests break.
     //
-    // The axes are genuinely different capabilities: `wizards` is code
-    // trust (eval / reload / TS-escape), `core` is content-author scope
-    // (the ownership walk `AccessApi.can` runs for `clone`/`write`), and
-    // the per-area groups (`lounge`, …) hold the parcel titles that
-    // jurisdiction-scoped `eval --parcel` resolves against. Joining only
-    // the first two is what made `eval --parcel /domain/lounge` refuse
-    // with "you hold no authority" — the lounge is owned by the `lounge`
-    // group, and the harness would otherwise have to maintain its own map
-    // of which area belongs to whom.
+    // Authority comes from the SEAT: the test character is the founder,
+    // so it heads the executive (which holds the platform — /obj, /cmd,
+    // /domain, /compact …) with no grant at all (content-packs wave 3).
+    // What it still joins: `wizards` (code trust — eval / reload /
+    // TS-escape, an orthogonal axis), the two other axis groups, and
+    // `lounge` — because /domain/lounge is a SUB-title held by the lounge
+    // group and nearest-parcel wins for `can`, so the founder is tested
+    // under it as a member rather than as the state.
     //
     // Same member-key rule the `wizard` verb uses; idempotent.
     // Unreachable outside AUTH_MODE=test.
@@ -833,7 +832,6 @@ export class Application {
       // deliberate decision about test authority, not an accident.
       for (const groupName of [
         'wizards',
-        'core',
         'lounge',
         'streamers',
         'archwizards',

@@ -219,7 +219,7 @@ export default class WriteController extends CommandController<WriteModel> {
    * extant Zone Template (live FolderZone or live SpatialZone),
    * route to `canMutateZone`. Otherwise consult the slice walk on
    * the target's Stuff (or null when no live instance — the walk
-   * then falls through to the `'core'` fallback).
+   * then fails closed — untitled is nobody's).
    *
    * Returns null on allow, a human-readable error string on deny.
    */

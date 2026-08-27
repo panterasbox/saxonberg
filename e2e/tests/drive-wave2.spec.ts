@@ -45,8 +45,7 @@ test(';wave fires, ;hi does not dispatch, greet carries hi as a search term', as
     await expect(page.getByText(/greets/i)).toHaveCount(0);
     // The lookup words ride the read face every client fetches: `greet`
     // carries `hi` / `hello` as searchTerms (never as verbs). `soul search`
-    // itself is the core-gated author face (its unit test covers it; the
-    // founder is not a `core` member and `core` is system-owned).
+    // itself is the soul committee's face (its unit test covers it).
     const catalogue = await context.request.get(`${SERVER_URL}/api/emotes`);
     expect(catalogue.ok()).toBe(true);
     const json = (await catalogue.json()) as Record<string, unknown> | unknown[];
@@ -84,12 +83,10 @@ test('help look renders (the view is a store-served command-view document); a no
   try {
     await see(page, 'help look', /look/i);
     await page.screenshot({ path: '/tmp/wave2-help-look.png', fullPage: true });
-    // The CMS is author-tier (a `core` / parcel-owner group member). The
-    // test-auth founder holds the offices but no content group — `core`
-    // and every parcel-owner group are system-owned, so there is no
-    // in-fiction act that enrols them (and `eval`'s jurisdiction is a
-    // parcel one holds). The live help-edit → `help look` changes without
-    // a restart is therefore a drive item for an author-tier account;
+    // The CMS reads per path. The test-auth founder holds the PM seat,
+    // so heads the executive, which holds /obj and /cmd — the wave-3
+    // drive edits `look.yaml`'s help through it; this wave-2 spec only
+    // reads.
     // `DocumentLogic.commandView.test.ts` + `CommandLogic.store.test.ts`
     // cover the chokepoint and the reload. What a non-author session can
     // prove here: the write is refused.

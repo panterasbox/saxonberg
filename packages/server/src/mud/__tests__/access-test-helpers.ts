@@ -1,18 +1,18 @@
 /**
  * Test helpers for the access substrate.
  *
- * `seedCoreMembership` ensures the `AccessRegistry` is cloned, finds
- * the bootstrap-seeded `'core'` Group, adds `playerId` to its member
- * list, and saves. `clearCoreMembership` wipes the member list.
- *
- * These replace the retired `_MqlAdminFlag.granter` seam — tests that
- * used to flip the granter now seed group membership directly.
+ * `grantTestTitle` titles a fixture extent to a fixture group and puts
+ * `playerId` on it — the way a test gives a subject authority over a
+ * path now that there is no state default (content-packs wave 3: an
+ * untitled path is nobody's). `seedWizardMembership` is the orthogonal
+ * code-trust axis.
  *
  * @internal
  */
 
 import { StuffApi } from '../api/stuff';
 import { GroupApi } from '../api/group';
+import { ParcelApi } from '../api/parcel';
 
 const ACCESS_REGISTRY_PATH = '/obj/AccessRegistry';
 
@@ -23,34 +23,25 @@ async function ensureAccessRegistry(): Promise<void> {
 }
 
 /**
- * Seed `playerId` as a `'core'` member with optional role (default
- * `'member'`). Triggers AccessRegistry bootstrap when needed.
+ * Title `extent` (a fixture path, e.g. `/test/<name>`) to the managed
+ * group `groupName` (minted if absent) and make `playerId` a member of
+ * it with `role`. Idempotent.
  */
-export async function seedCoreMembership(
+export async function grantTestTitle(
+  extent: string,
+  groupName: string,
   playerId: string,
   role: 'owner' | 'admin' | 'member' = 'member',
 ): Promise<void> {
   await ensureAccessRegistry();
+  await ParcelApi.grant({ extent, holder: { kind: 'group', name: groupName } });
   const reg = await GroupApi.registry();
   const provider = reg.managed();
-  const core = await provider.findByName('core');
-  if (!core) throw new Error('core group not seeded');
-  core.addMember(playerId, role);
-  await core.save();
-}
-
-/**
- * Wipe the `'core'` member list. Idempotent — no-op if the group
- * isn't seeded yet.
- */
-export async function clearCoreMembership(): Promise<void> {
-  const reg = await GroupApi.registry();
-  const provider = reg.managed();
-  const core = await provider.findByName('core');
-  if (!core) return;
-  core.memberIds = [];
-  core.memberRoles = [];
-  await core.save();
+  const group = await provider.findByName(groupName);
+  if (!group) throw new Error(`grantTestTitle: group '${groupName}' was not minted`);
+  group.addMember(playerId, role);
+  await group.save();
+  if (group._id) provider.fireChange(group._id);
 }
 
 /**

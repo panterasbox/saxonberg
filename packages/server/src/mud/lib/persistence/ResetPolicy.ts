@@ -152,12 +152,13 @@ export const RESET_DISPOSITIONS: Readonly<
   [Collections.ContractEvents]: { verb: 'wipe' },
 
   // ── Social structures ──
-  // ⚠ `groups` carries the SYSTEM groups (`core`, `wizards`,
-  // `archwizards`, `streamers`) alongside player ones. They are minted
-  // in CODE by `AccessRegistry.postRegister`, not by a seed file, and
-  // that seeding is idempotent — so the job re-runs it immediately
-  // after the wipe. Founder access is part of the phase, not an
-  // operator's memory.
+  // ⚠ `groups` carries the AXIS groups (`wizards`, `archwizards`,
+  // `streamers`) — minted in CODE by `AccessRegistry.postRegister`,
+  // idempotently, so the job re-runs it right after the wipe — and the
+  // packs' groups (maintainers, the localities' bodies), which
+  // `PackApi.reprovision` re-mints from the install records along with
+  // every title in `parcels`. Founder access is part of the phase, not
+  // an operator's memory.
   [Collections.Groups]: { verb: 'wipe' },
   [Collections.Channels]: { verb: 'wipe' },
   [Collections.Parties]: { verb: 'wipe' },

@@ -5,7 +5,7 @@
  * which the platform pack titles to the Office of the Prime Minister —
  * so the PM (the seat's holder, founder default included) and everyone
  * holding a non-exited position there pass, and nobody else does. The
- * former `pack-installers` committee folded into the executive.
+ * former content-operations committee folded into the executive.
  *
  * The axis is **holding the executive** — never wizardness (the
  * code-trust axis is the wrong axis: installing content is a content
