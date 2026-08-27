@@ -36,7 +36,7 @@ const HostBase = CommandGiverMixin(
 
 class TestHost extends HostBase {
   static override commandContributions: CommandContributions = {
-    self: ['system/ping.yaml'],
+    self: ['platform/cmd/system/ping.yaml'],
   };
   protected override handleMessage(_frame: unknown): void {
     // discard
@@ -50,7 +50,7 @@ class TestHost extends HostBase {
 
 class SelfBucketShadow extends Shadow {
   static commandContributions = {
-    self: ['inventory/inventory.yaml'],
+    self: ['platform/cmd/inventory/inventory.yaml'],
   };
   @Shadowing
   zap(): string {
@@ -60,7 +60,7 @@ class SelfBucketShadow extends Shadow {
 
 class EnvBucketShadow extends Shadow {
   static commandContributions = {
-      peers: ['perception/look.yaml'],
+      peers: ['platform/cmd/perception/look.yaml'],
   };
   @Shadowing
   zap(): string {

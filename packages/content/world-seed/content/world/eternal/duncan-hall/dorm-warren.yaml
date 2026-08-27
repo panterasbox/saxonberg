@@ -1,0 +1,11 @@
+# The Duncan Hall dorms Warren — the singleton coordinator (an incorporeal
+# Idea, NOT a Location) that manages the elastic two-tier dorm graph: keyed
+# rooms (Warren members, persisted via D1) + runtime floor corridors.
+#
+# Boot-warmed (bootstrapManifest) so its `postRegister` installs the lobby's
+# `up` LazyFloorExit and rebuilds the sync reachability cache from the
+# durable slot set. Nothing about the graph persists beyond this definition +
+# the unit parcels: rooms/corridors/doors reconstitute lazily on entry after
+# a restart. No hydratorClass — no persistent or instruction fields.
+class: /world/eternal/duncan-hall/DormWarren
+data: {}

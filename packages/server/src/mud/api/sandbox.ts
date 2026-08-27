@@ -14,7 +14,7 @@
  * it does not absorb the seams.
  *
  * A dumb shell — logic lives in the hot-reloadable {@link SandboxLogic}
- * singleton at `/obj/api/sandbox`, reached synchronously via
+ * singleton at `/platform/idea/api/sandbox`, reached synchronously via
  * `StuffApi.singletonSync`. Scope is NEVER a parameter derived from a
  * caller's argument on player paths — it comes from context (the
  * ExecutionContext taint) or from the circle registry.
@@ -22,21 +22,21 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SandboxLogic } from '../obj/api/SandboxLogic';
-import type { SandboxSession } from '../obj/api/SandboxLogic';
+import { SandboxLogic } from '../platform/idea/api/SandboxLogic';
+import type { SandboxSession } from '../platform/idea/api/SandboxLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type Avatar from '../obj/Avatar';
+import type Avatar from '../platform/agent/Avatar';
 import { TemplatePathPrefixes } from '../lib/paths';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import { ExecutionContextApi } from './execution-context';
 
-export type { SandboxSession } from '../obj/api/SandboxLogic';
+export type { SandboxSession } from '../platform/idea/api/SandboxLogic';
 
-const LOGIC_PATH = '/obj/api/sandbox';
+const LOGIC_PATH = '/platform/idea/api/sandbox';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SandboxLogic', import.meta.url)
+  new URL('../platform/idea/api/SandboxLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able SandboxLogic singleton (sync). */
@@ -115,11 +115,11 @@ export class SandboxApi {
   ): Promise<SandboxSession> {
     const session = await logic().enter(actor, targetScope);
     // Stamp the vessel's identity path (Decision C:
-    // `/obj/Avatar/<playerId>/wire`, a minted-singleton identity under
+    // `/platform/agent/Avatar/<playerId>/wire`, a minted-singleton identity under
     // the avatar's own branch, backed by NOTHING — no domain row).
     //
     // It matters because half the engine asks "is this an avatar?" by
-    // the `/obj/Avatar/` templatePath PREFIX (`PlayerApi.isAvatarStuff`,
+    // the `/platform/agent/Avatar/` templatePath PREFIX (`PlayerApi.isAvatarStuff`,
     // and through it `AccessApi.isWizard`). An unstamped vessel isn't
     // avatar-shaped, so a player loses their own powers the moment they
     // step into their own circle — no `eval`, no `clone` (found live).

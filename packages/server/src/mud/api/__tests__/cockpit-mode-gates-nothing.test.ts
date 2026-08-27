@@ -71,9 +71,9 @@ const MUD_ROOT = fileURLToPath(new URL('../..', import.meta.url));
  */
 const MODE_READERS_ALLOWED = [
   'lib/connection/HasInteractive.ts',
-  'obj/command/shell/CockpitController.ts',
-  'obj/command/shell/CockpitModeController.ts',
-  'obj/command/shell/LayoutController.ts',
+  'platform/idea/cmd/shell/CockpitController.ts',
+  'platform/idea/cmd/shell/CockpitModeController.ts',
+  'platform/idea/cmd/shell/LayoutController.ts',
   /*
    * ⭐ `Avatar.enter` reads the mode to apply its ARRANGEMENT on login
    * — the seam that made a saved workspace something you can simply
@@ -86,7 +86,7 @@ const MODE_READERS_ALLOWED = [
    * permitted, and the behavioural half below still proves a verb
    * resolves identically in every mode.
    */
-  'obj/Avatar.ts',
+  'platform/agent/Avatar.ts',
 ];
 
 class TestLocation extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
@@ -185,7 +185,7 @@ describe('a cockpit mode gates nothing', () => {
     beforeAll(async () => {
       CommandApi.clearCache();
       await CommandApi.preloadAll();
-      look = CommandApi.getCommand('perception/look.yaml');
+      look = CommandApi.getCommand('platform/cmd/perception/look.yaml');
       expect(look).toBeDefined();
     });
 

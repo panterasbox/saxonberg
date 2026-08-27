@@ -41,7 +41,7 @@ time and cannot go stale.
 | Components | `lib/wiki/components/<name>.ts`, sole export `component` |
 | Page state + mutations | `obj/WikiRegistry.ts` (`extends Idea`) |
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
-| Verb | `cmd/system/wiki.yaml` + `obj/command/system/WikiController.ts` |
+| Verb | `cmd/system/wiki.yaml` + `platform/idea/cmd/system/WikiController.ts` |
 | Starter articles | the `wiki-starter` content pack (`packages/content/wiki-starter/content/wiki/<ns>/<slug>.md`) — the installer's `wiki` kind |
 | Client card | `client/components/WikiCard.tsx`, fed by `publication.wiki` |
 
@@ -83,7 +83,7 @@ game class opts into.
 ### The typed subject
 
 ```yaml
-subject: { kind: template, ref: /obj/material/oak }
+subject: { kind: template, ref: /stuff/idea/material/oak }
 subject: { kind: mixin,    ref: CombustibleMixin }
 subject: { kind: command,  ref: inventory/plant.yaml }
 subject: null
@@ -376,7 +376,7 @@ the page renders.
 
 > ⭐ **No component can trigger a page render**, and it is a GATE, not a
 > depth counter: `render`/`redactSource` are
-> `AnyOf(FromModule(WikiController), FromTemplate('/obj/WikiRegistry'))`,
+> `AnyOf(FromModule(WikiController), FromTemplate('/platform/idea/WikiRegistry'))`,
 > and `/lib/wiki/components/*` is in neither. There is no depth at which
 > recursion becomes allowed.
 
@@ -565,7 +565,7 @@ unattributable edit attributable.
 Open editing works here because **undoing is cheaper than reviewing**:
 no queue, `wiki rollback` in about four seconds, and an edit that
 belongs to somebody who is still there afterwards. A guest is an
-anonymous throwaway (`/obj/Avatar/guest-<uuid>`, persists nothing)
+anonymous throwaway (`/platform/agent/Avatar/guest-<uuid>`, persists nothing)
 whose identity evaporates at disconnect — nobody to talk to, nobody to
 refuse next time, and a revision log of names that mean nothing.
 Admitting guests would not loosen the wiki; it would remove the thing

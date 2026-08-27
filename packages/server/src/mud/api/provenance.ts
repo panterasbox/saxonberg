@@ -25,7 +25,7 @@
  * transparency + exit later — it meets the existing bar, doesn't lower it.
  *
  * This Api is a thin forwarding shell: the logic lives in the hot-reloadable
- * {@link ProvenanceLogic} singleton at `/obj/api/provenance`, reached
+ * {@link ProvenanceLogic} singleton at `/platform/idea/api/provenance`, reached
  * synchronously via `StuffApi.singletonSync`.
  */
 
@@ -35,15 +35,15 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
-import { ProvenanceLogic } from '../obj/api/ProvenanceLogic';
+import { ProvenanceLogic } from '../platform/idea/api/ProvenanceLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { AuthoringEventFields };
 
-const LOGIC_PATH = '/obj/api/provenance';
+const LOGIC_PATH = '/platform/idea/api/provenance';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ProvenanceLogic', import.meta.url)
+  new URL('../platform/idea/api/ProvenanceLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ProvenanceLogic singleton (sync). */
@@ -71,30 +71,30 @@ export class ProvenanceApi {
    * connection or an attributable context.
    *
    * Gated to the authoring-transport singletons: `TemplateLogic`
-   * (`/obj/api/template`) — the template chokepoint every template
+   * (`/platform/idea/api/template`) — the template chokepoint every template
    * authoring path (in-world verbs + the REST CMS) funnels through — and
-   * `DocumentLogic` (`/obj/api/document`) — the path-addressed document
+   * `DocumentLogic` (`/platform/idea/api/document`) — the path-addressed document
    * store (scripts and any other owned-JSON kind), a legitimately separate
    * authoring transport (stored documents aren't templates). Each records
-   * authoring for *its own* paths (template paths vs `/home/…`/`/domain/…`
+   * authoring for *its own* paths (template paths vs `/home/…`/`/world/…`
    * document paths); the chokepoint guarantee per kind is preserved.
    *
-   * `StudioLogic` (`/obj/api/studio`) is a third authoring transport: its
+   * `StudioLogic` (`/platform/idea/api/studio`) is a third authoring transport: its
    * `publishBlueprint` (the composition-naming act #2) records authoring
-   * against the synthetic `/obj/BlueprintCatalogue/<blueprintId>` path — the
+   * against the synthetic `/platform/idea/BlueprintCatalogue/<blueprintId>` path — the
    * curated commons has no per-owner namespace, so the naming act is
    * attributed even though the blueprint record itself is commons-owned.
    * Nothing else may append a row.
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromTemplate('/obj/api/template'),
-      SecurityPolicies.FromTemplate('/obj/api/document'),
-      SecurityPolicies.FromTemplate('/obj/api/studio'),
+      SecurityPolicies.FromTemplate('/platform/idea/api/template'),
+      SecurityPolicies.FromTemplate('/platform/idea/api/document'),
+      SecurityPolicies.FromTemplate('/platform/idea/api/studio'),
       // Governed eval (sandbox build): a field-parcel eval is a real,
       // receipted authoring act against the minted `_eval` template —
       // the governed channel made concrete for code.
-      SecurityPolicies.FromTemplate('/obj/command/author/EvalController')
+      SecurityPolicies.FromTemplate('/platform/idea/cmd/author/EvalController')
     )
   )
   public static async recordAuthoring(

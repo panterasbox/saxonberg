@@ -156,8 +156,7 @@ interface Finding {
 function collectMaterialWords(): Map<string, string> {
   const reserved = new Map<string, string>();
   const roots = [
-    ...packContentRoots().map((p) => join(p, 'obj', 'material')),
-    join(SEEDS, 'obj', 'material'),
+    ...packContentRoots().map((p) => join(p, 'stuff', 'idea', 'material')),
   ];
   for (const root of roots) {
     for (const file of walkYaml(root)) {

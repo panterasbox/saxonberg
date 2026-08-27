@@ -35,8 +35,8 @@ import { CorpoApi } from "../../api/corpo";
 import type { Stuff } from "../stuff/Stuff";
 import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import type { MarkupAugmenter } from "../../api/mml";
-import type { BrandDescriptor } from "../../obj/corpo/Brand";
-import type { CorpoDescriptor } from "../../obj/corpo/Corpo";
+import type { BrandDescriptor } from "../../platform/idea/corpo/Brand";
+import type { CorpoDescriptor } from "../../platform/idea/corpo/Corpo";
 
 export interface Branded {
   /** The durable brand `key` this product is marked with (`''` if unbranded). */

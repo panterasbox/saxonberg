@@ -1,0 +1,39 @@
+# The BATHROOM — PRESENCE (D13). A third kind of answer: not function
+# (bedroom), not bundle (kitchen). A residence without one reads broken and
+# every player will look for it, so it exists; what it is FOR is not
+# modelled, and that is deliberate.
+#
+# Its three fixtures sit at three different rungs of the LOD ladder — a
+# fixture is modelled to the depth at which the world actually reads it, and
+# no deeper:
+#
+#   toilet -> prose only        (its function is not worth modelling)
+#   basin  -> real water        (filling and pouring are shipped acts)
+#   tub    -> a real affordance (restQuality + warmth, both already read)
+#
+# Washing is the deferred jewel and its seams are already cut:
+# `DressingMixin.dressingQuality` ("0 filthy .. 1 sterile") is consumed by
+# `treat` and has NO producer in the world, and `Condition.contagion` is
+# present and explicitly "reserved, no consumer v1". Handwashing IS the
+# chain of infection. An act at a basin that sets dressing quality is nearly
+# the whole feature — but it needs the condition model and it adds a verb.
+#
+# The interior lock: a bathroom is the one room in a home that locks from
+# the inside. `Lockable` ships, and the door can carry it as authored
+# detail; with one leaseholder per unit it has no mechanical consequence
+# yet. Recorded because it is the seam co-lease, guests and the prison's
+# panopticon would consume, not because it was overlooked.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bathroom
+  primaryKeyword: bathroom
+  keywords: [bathroom, bath, washroom, room]
+  longDescription: |
+    A small tiled room with a tub along one wall, a basin under a clouded mirror, and a window of frosted glass that lets in light and nothing else.
+  ambientIntensity: 20
+  ambientColorTemperature: 4000
+  populates:
+    - /stuff/thing/fixture/toilet
+    - /stuff/thing/fixture/basin
+    - /stuff/thing/fixture/tub

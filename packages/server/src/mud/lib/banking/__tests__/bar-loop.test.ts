@@ -10,9 +10,9 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import Coin from "../../../obj/Coin";
-import BankCounter from "../../../obj/BankCounter";
-import PaymentCard from "../../../obj/PaymentCard";
+import Coin from "../../../platform/thing/Coin";
+import BankCounter from "../../../platform/thing/BankCounter";
+import PaymentCard from "../../../platform/thing/PaymentCard";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -36,9 +36,9 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK = "/domain/terminus/counting-houses/bank-counter";
-const BAR = "/domain/lounge/bar";
-const PATRON = "/obj/Avatar/patron";
+const BANK = "/world/terminus/counting-houses/bank-counter";
+const BAR = "/world/lounge/bar";
+const PATRON = "/platform/agent/Avatar/patron";
 
 function avatar(path: string): TestAvatar {
   return makeStuffAtPath(() => new TestAvatar(), path);
@@ -82,9 +82,9 @@ describe("The bar money loop (end to end)", () => {
       return b;
     }, BANK);
     const patron = avatar(PATRON);
-    const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+    const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
     ContainmentApi.move(card, patron as never);
-    const worker = avatar("/obj/Avatar/wenna");
+    const worker = avatar("/platform/agent/Avatar/wenna");
 
     // the bar's P&L account (lazily ensured)
     const barAcct = await BankingApi.ensureVenueAccount(
@@ -116,7 +116,7 @@ describe("The bar money loop (end to end)", () => {
 
     // 3. the bar pays a wage that exceeds its takings → it runs RED
     await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
-    await BankingApi.payWage(barAcct, "/obj/Avatar/wenna", Money.of(150, Currency.compact()));
+    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(150, Currency.compact()));
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
 
     // 4. the P&L shows the deficit

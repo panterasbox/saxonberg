@@ -26,9 +26,9 @@
  * `ctx.note(...)` without re-shaping at the controller.
  *
  * Thin, security-gated forwarding shell: the mechanics live in the
- * hot-reloadable {@link GlobbableLogic} singleton at `/obj/api/glob`,
+ * hot-reloadable {@link GlobbableLogic} singleton at `/platform/idea/api/glob`,
  * reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/glob` reloads it. The `split` / `merge` forwarders keep
+ * `dest /platform/idea/api/glob` reloads it. The `split` / `merge` forwarders keep
  * their `ApiOnly` guard so the powerful public surface stays Api-tier.
  *
  * Operational reference: `docs/subsystems/glob.md`. The bulk-form
@@ -48,7 +48,7 @@ import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ContainmentApi } from './containment';
-import { GlobbableLogic } from '../obj/api/GlobbableLogic';
+import { GlobbableLogic } from '../platform/idea/api/GlobbableLogic';
 import { fileURLToPath } from 'url';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -117,9 +117,9 @@ export interface ApplyQuantityResult<R> {
 
 type GlobbableStuff = Stuff & Globbable;
 
-const LOGIC_PATH = '/obj/api/glob';
+const LOGIC_PATH = '/platform/idea/api/glob';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/GlobbableLogic', import.meta.url)
+  new URL('../platform/idea/api/GlobbableLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able GlobbableLogic singleton (sync). */

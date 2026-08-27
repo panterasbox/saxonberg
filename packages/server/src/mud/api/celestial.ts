@@ -27,8 +27,8 @@
  *
  * Thin, security-gated forwarding shell: the logic + the pure geometry
  * live in the hot-reloadable {@link CelestialLogic} singleton at
- * `/obj/api/celestial`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/celestial` reloads it.
+ * `/platform/idea/api/celestial`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/celestial` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -45,13 +45,13 @@ import {
   CelestialLogic,
   CAMPUS_LATITUDE,
   CAMPUS_LONGITUDE,
-} from '../obj/api/CelestialLogic';
+} from '../platform/idea/api/CelestialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/celestial';
+const LOGIC_PATH = '/platform/idea/api/celestial';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/CelestialLogic', import.meta.url)
+  new URL('../platform/idea/api/CelestialLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able CelestialLogic singleton (sync). */

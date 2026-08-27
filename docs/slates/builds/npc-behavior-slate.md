@@ -163,7 +163,7 @@ Example Guard template:
 
 ```yaml
 class: Character          # or a thin "Guard" archetype class (a combo)
-species: /obj/species/human
+species: /stuff/idea/species/human
 behaviors:
   - { brain: /lib/behavior/patrols,      trigger: cadence:10s, config: { route: [...] } }
   - { brain: /lib/behavior/tree-dialogue, trigger: addressed,  config: { tree: /content/dialogue/guard-challenge } }

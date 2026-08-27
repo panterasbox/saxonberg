@@ -82,14 +82,14 @@ rung is a derived fallback never stamped into a `chattel` row, so no
 stored row gains a group owner and the persisted schema is untouched.
 Blast radius stays at type-level narrowing in consumers.
 
-**4. Every archetype fixture is `/obj/Chair`.** *"Postured over Slotted
+**4. Every archetype fixture is `/platform/thing/Chair`.** *"Postured over Slotted
 over Detailed over a Thing. The actual `sit:1` slot spec is authored
 per-seed; the class just supplies the capability. The reusable seat kind
 the whole campus wants."* Bed (`lie`), tub (`lie`, `warmth`), sofa
 (`sit`, capacity 2) are **seed rows over one shipped class**. `Bench
 extends Chair` is the precedent for a thin subclass bought purely for a
 seed path + prose, if you want `/obj/Bed` to read as `/obj/Bed`. Name
-collision to avoid: `/domain/eternal/duncan-hall/Bed` is the existing
+collision to avoid: `/world/eternal/duncan-hall/Bed` is the existing
 `Surfaced` dorm prop and stays one (D10 says so).
 
 **5. `DormWarren.admit` is the provisioning shape, one tier up.**
@@ -333,13 +333,13 @@ anyone (the test that pins D14's whole point).
 Seed rows, by constraint (finding 4). One generic room class,
 venue-generic per D15.
 
-- **bedroom** — `/obj/Chair`-class bed with a `lie` slot and authored
+- **bedroom** — `/platform/thing/Chair`-class bed with a `lie` slot and authored
   `restQuality > 1`, in the room's `populates:`.
-- **kitchen** — `/obj/Oven` skin, `UnboundedReceptacle` tap, a `Surfaced`
-  counter, an `/obj/Chest` larder. **Plus the `air` reserve block** copied
+- **kitchen** — `/stuff/thing/Oven` skin, `UnboundedReceptacle` tap, a `Surfaced`
+  counter, an `/platform/thing/Chest` larder. **Plus the `air` reserve block** copied
   from `cellar.yaml` — the one authored decision with teeth.
 - **bathroom** — toilet (`Detailed` prose, no capability mixin), basin
-  (`UnboundedReceptacle`), tub (`/obj/Chair` class, `lie` + `restQuality`
+  (`UnboundedReceptacle`), tub (`/platform/thing/Chair` class, `lie` + `restQuality`
   + `warmth`).
 
 ⚠ While writing the kitchen and bathroom rows, keep them **tier-agnostic**

@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: self.body
+  family: "self"
+  label: "Your body"
+  description: "Injury, exhaustion, hunger, and everything else your body is telling you."
+  address: direct
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true
+  affordance: live

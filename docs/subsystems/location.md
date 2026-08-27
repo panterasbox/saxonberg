@@ -4,7 +4,7 @@ Source of truth for `packages/server/src/mud/lib/location/` — the
 world's **geometry** (rooms, coordinates, concrete spatial zones) plus
 the **Warren** elastic-graph substrate (the "multilocation" pattern) —
 and the lounge content that rides it
-(`packages/server/src/mud/domain/lounge/`). Read this before editing in
+(`packages/server/src/mud/world/lounge/`). Read this before editing in
 the area.
 
 `lib/location/` carves the room/coordinate/zone geometry out of what was
@@ -322,7 +322,7 @@ geometry classes documented above):**
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
 
 **Content — `domain/lounge/` (the lounge area; class paths
-`/domain/lounge/*`):**
+`/world/lounge/*`):**
 
 | File | Role |
 |---|---|
@@ -332,14 +332,14 @@ geometry classes documented above):**
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality. |
 | `Menu.ts` / `CraftedDrink.ts` / `GradedReceptacle.ts` | Bar crafting content (the offer object, the crafted-drink output glass, the stock bottle) — composed over the general `lib/craft/` substrate. See [crafting.md](./crafting.md). |
 
-Content classes live under `/domain/lounge/` — a managed area's own
+Content classes live under `/world/lounge/` — a managed area's own
 class namespace, mirroring its template namespace (the class-path
-validator admits `/domain/` alongside `/obj/` and `/lib/`). The generic
+validator admits `/world/` alongside `/platform/… + /stuff/` and `/lib/`). The generic
 Warren substrate stays in `/lib/`.
 
-Content seeds: `world-seed/content/domain/lounge/{warren,lounge,bar}.yaml` (templates
-at `/domain/lounge/{warren,lounge,bar}`, leaves under the
-`/domain/lounge` FolderZone), plus the bar's crafting fixtures
+Content seeds: `world-seed/content/world/lounge/{warren,lounge,bar}.yaml` (templates
+at `/world/lounge/{warren,lounge,bar}`, leaves under the
+`/world/lounge` FolderZone), plus the bar's crafting fixtures
 (`back-bar`, the four bottles, `shaker`/`mixing-glass`,
 `cocktail-glass`, `bar-menu`, `dave`) the `Bar` self-stocks via
 `populates:`. See [crafting.md](./crafting.md).
@@ -357,7 +357,7 @@ at `/domain/lounge/{warren,lounge,bar}`, leaves under the
   (`getHost()` / `isCurrentHost`), migrating the role on forced host
   destruction. No `Commons` class, no host flag.
 - **Lazy + runtime-only.** `LoungeWarren` composes `SingletonMixin`;
-  `StuffApi.singleton('/domain/lounge/warren')` creates the one instance
+  `StuffApi.singleton('/world/lounge/warren')` creates the one instance
   on first landing. Every room instance is a runtime clone, gone on
   restart, recreated on the next first-landing. Only the templates +
   the Warren *definition* persist.
@@ -409,8 +409,8 @@ owns the *domain* semantics:
 `validateSingletonContainerTarget` keeps its hard deny. The startLocation
 path is the only place the Warren semantics live.
 
-The avatar seed (`platform/content/obj/Avatar/seed.yaml`) declares
-`startLocation: /domain/lounge/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
+The avatar seed (`platform/content/platform/agent/Avatar/seed.yaml`) declares
+`startLocation: /world/lounge/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
 is unchanged** — it is the container-typed *evacuation* fallback in
 `Container.cleanupOnDestruct` (a Warren is not a Container); spawn and
 evac are separate concerns.

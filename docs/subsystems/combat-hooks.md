@@ -365,7 +365,7 @@ The authorable `Species` face of the same grammar (see
 
 `scripts/check-combat-dynamics.ts` (the `check-inert-weapon`/
 `check-does-nothing` script shape; `pnpm -C packages/server
-lint:combat-dynamics`, CI-wired): scans `obj/api/CombatLogic.ts` +
+lint:combat-dynamics`, CI-wired): scans `platform/idea/api/CombatLogic.ts` +
 `lib/combat/*.ts` (tests excluded) and flags any `MixinApi.is*`
 narrowing outside the **21-predicate physics allowlist** — the substrate
 predicates (slots, containment, vitals, construction, party, senses…)

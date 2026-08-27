@@ -212,7 +212,7 @@ A worked scene. Nothing here is new machinery except where marked ✨.
 |---|---|---|---|
 | `Tradition` | Stuff class (leaf `Idea`) | `obj/Tradition.ts` | **Exact `Discipline` mirror**: pure-data leaf, authored at `/obj/Tradition/<key>`, read from `template.data`, **never cloned as live Stuff**. `key` is the durable join, not templatePath. Fields: `key`, `label`, `patron` (nullable — the naturalist account has none), `description`, `tenets: string[]`, `attends: string[]`, `dismisses: string[]` |
 | `TraditionCatalogue` | singleton `Idea` | `obj/TraditionCatalogue.ts` | `extends PostRegistrationMixin(Idea)`, `/obj/TraditionCatalogue`, warms a `Map<key, TraditionDescriptor>` in `postRegister` by scanning templates. `TopicCatalogue`/`DisciplineCatalogue` shape exactly |
-| seeds | Command/data YAML | `seeds/obj/Tradition/<key>.yaml` | `class: /obj/Tradition` + `hydratorClass: /obj/persistence/PersistentHydrator` + `data:` |
+| seeds | Command/data YAML | `seeds/obj/Tradition/<key>.yaml` | `class: /obj/Tradition` + `hydratorClass: /platform/idea/persistence/PersistentHydrator` + `data:` |
 | notebook | **not a class** | `documents` collection | `StoredDocument`, `kind: 'notebook'` |
 | `notebook` verb | Command YAML + controller | `cmd/perception/notebook.yaml` ⚠ category open | subcommands: bare (list), `<law>` (readings), `predict <law>` |
 | `analyze --log` | flag on an existing view | `cmd/perception/analyze.yaml` | writes the reading; no new verb |
@@ -386,7 +386,7 @@ field**: the evaluator is the only oracle.
 ```yaml
 # seeds/obj/Law/growth-vs-moon.yaml   ← NULL, and shipped-checkable today
 class: /obj/Law
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: growth-vs-moon
   label: Lunar planting
@@ -441,7 +441,7 @@ data:
 ```yaml
 # seeds/obj/Tradition/pan.yaml
 class: /obj/Tradition
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   key: pan
   kind: faith
@@ -523,19 +523,19 @@ data:
 ```json
 {
   "path": "/home/kestrel/notebook/growth-vs-moon",
-  "owner": "/obj/Avatar/kestrel",
+  "owner": "/platform/agent/Avatar/kestrel",
   "kind": "notebook",
   "data": {
     "law": "growth-vs-moon",
     "readings": [
       { "independent": 0.00, "dependent": 1.02,
-        "when": 774400, "where": "/domain/hinkley-hills/bed-3" },
+        "when": 774400, "where": "/world/hinkley-hills/bed-3" },
       { "independent": 0.25, "dependent": 0.98,
-        "when": 861600, "where": "/domain/hinkley-hills/bed-3" },
+        "when": 861600, "where": "/world/hinkley-hills/bed-3" },
       { "independent": 0.50, "dependent": 1.01,
-        "when": 948800, "where": "/domain/hinkley-hills/bed-3" },
+        "when": 948800, "where": "/world/hinkley-hills/bed-3" },
       { "independent": 0.75, "dependent": 0.99,
-        "when": 1036000, "where": "/domain/hinkley-hills/bed-3" }
+        "when": 1036000, "where": "/world/hinkley-hills/bed-3" }
     ],
     "predictions": [
       { "independent": 1.00, "submitted": 1.40,
@@ -551,7 +551,7 @@ row is the entire lesson**, and it is a publishable result.
 ## What lands in the Transcript
 
 ```
-{ owner: "/obj/Avatar/kestrel", kind: "deed", when: 1036000,
+{ owner: "/platform/agent/Avatar/kestrel", kind: "deed", when: 1036000,
   discipline: "natural-philosophy", difficulty: "moderate",
   outcome: "success", tags: ["inquiry", "refutation", "growth-vs-moon"] }
 ```

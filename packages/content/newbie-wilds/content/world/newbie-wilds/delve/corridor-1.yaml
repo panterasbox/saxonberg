@@ -1,0 +1,44 @@
+# Corridor 1 — the first trapped span. A concealed STEP-DART sits in the
+# floor here (a `hidden` Trap: point channel + a venom toxin, no movement
+# consequence — it just bites the foot that treads the plate). The obvious
+# way on is `north`, deeper into the corridor. This room ALSO hides the two
+# pure-upside secrets a searcher can turn up — a concealed shortcut exit
+# (`east` straight to the vault, skipping the pit and the blade) and a
+# concealed cache — BOTH with obvious alternatives (the corridor reaches the
+# vault plainly by going north; the vault holds an obvious reward). Nothing
+# here gates the way on: the dart wounds, it does not block.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a low slab-floored corridor
+  primaryKeyword: corridor
+  longDescription: |
+    The passage runs on into the hill, flag-stoned and close, the air cool and still and smelling of wet stone. The slabs underfoot are not all the same — a few sit a hair proud of their neighbours, or a hair sunk, the way a floor does when something was set beneath it.
+
+    North the corridor goes on. The east wall, where a slab has slumped, shows a thread of darker air behind it. South is the way you came in.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  details:
+    slabs:
+      keywords: [slab, slabs, floor, plate, plates]
+      description: |
+        Flat flags laid edge to edge. One or two do not sit true — proud, or sunk, or ringed by a hairline seam a mason would not have left. A patient eye picks the odd ones out; a hurrying foot does not.
+  exits:
+    # The obvious way on — plainly listed, always visible, no perception wall.
+    north:
+      destination: /world/newbie-wilds/delve/corridor-2
+    # A concealed SHORTCUT to the vault (pure upside — the corridor reaches
+    # the vault plainly by going north; this only skips the pit + the blade).
+    east:
+      destination: /world/newbie-wilds/delve/vault
+      concealment: hidden
+      hint: a thread of cool air leaks from a hairline seam in the east wall
+    south:
+      destination: /world/newbie-wilds/delve/vestibule
+  # The step-dart (cloned fresh at standup) + the concealed cache (a bonus,
+  # with the obvious reward waiting in the vault).
+  populates:
+    - /stuff/thing/traps/step-dart
+    - /world/newbie-wilds/delve/hidden-cache

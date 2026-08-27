@@ -15,7 +15,7 @@ import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
 import { Account } from "../Account";
 import AccountBalance from "../AccountBalance";
-import BankCounter from "../../../obj/BankCounter";
+import BankCounter from "../../../platform/thing/BankCounter";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
@@ -26,8 +26,8 @@ import {
 } from "./banking-test-harness";
 import { Collections } from "../../../../backend/PersistenceManager";
 
-const LIVE_BANK_PATH = "/domain/test/goodkin-bank";
-const VENUE = "/domain/lounge/business";
+const LIVE_BANK_PATH = "/world/test/goodkin-bank";
+const VENUE = "/world/lounge/business";
 
 function makeBank(path: string, corpoKey = "goodkin"): void {
   makeStuffAtPath(() => {
@@ -101,13 +101,13 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
     ).resolves.toBeTruthy();
     // An institution beyond the default is real iff one of its branches
     // is live (veshko's counter stands → veshko custody accepted).
-    makeBank("/domain/test/veshko-bank", "veshko");
+    makeBank("/world/test/veshko-bank", "veshko");
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other", "veshko", "veshko", Currency.compact()),
+      BankingApi.ensureVenueAccount("/world/test/other", "veshko", "veshko", Currency.compact()),
     ).resolves.toBeTruthy();
     // …and an institution with no live branch is refused.
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other2", "hollis", "", Currency.compact()),
+      BankingApi.ensureVenueAccount("/world/test/other2", "hollis", "", Currency.compact()),
     ).rejects.toThrow(/not a real custodian/);
   });
 
@@ -142,8 +142,8 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     // (maps to its institution), a corpo treasury likewise.
     await seedRow({ accountId: "treasury", owner: "", bankPath: "", balance: 80 });
     await seedRow({ accountId: "acct-venue", owner: VENUE, bankPath: VENUE, balance: 500 });
-    await seedRow({ accountId: "acct-worker", owner: "/obj/Avatar/wenna", bankPath: "", balance: 25 });
-    await seedRow({ accountId: "acct-cust", owner: "/obj/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
+    await seedRow({ accountId: "acct-worker", owner: "/platform/agent/Avatar/wenna", bankPath: "", balance: 25 });
+    await seedRow({ accountId: "acct-cust", owner: "/platform/agent/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });
     await seedRow({ accountId: "acct-corpo", owner: "corpo:goodkin", bankPath: LIVE_BANK_PATH, balance: 40, corpoKey: "goodkin" });
     await BankingApi.mint("acct-sink", Money.of(735, Currency.compact()));
     await BankingApi.drain("acct-sink", Money.of(735, Currency.compact()));
@@ -172,7 +172,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
   });
 
   it("re-owns the legacy raw `tpa` accumulator to the TPA Business", async () => {
-    const TPA_BIZ = "/domain/terminus/terminal/tpa";
+    const TPA_BIZ = "/world/terminus/terminal/tpa";
     vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
       if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
       if (k === AppSettingKeys.bankingDefaultCustodianBank) return "goodkin";

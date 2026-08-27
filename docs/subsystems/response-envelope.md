@@ -298,7 +298,7 @@ Stable across releases. The detail string is human-prose; the reason
 is machine-pattern-matchable.
 
 The v1 reason vocabulary is whatever's grep-able in
-`packages/server/src/mud/obj/command/` and the `LocomotionControllerBase`
+`packages/server/src/mud/platform/idea/cmd/` and the `LocomotionControllerBase`
 gate names — `git grep "reason: '"` gives the inventory. New
 controllers should reuse existing reasons where the semantics
 match.

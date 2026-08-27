@@ -1,0 +1,15 @@
+# Hyperthermia — the heat-stress death edge (both strategies). Spawned
+# when driven `coreTemperature` crosses above `survivableMax`; lethal on
+# dwell. The hot-side mirror of hypothermia — out-drinkable in dry heat,
+# but past the wet-bulb ceiling sweat can't shed metabolic heat and the
+# core climbs regardless of hydration.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: hyperthermia
+  signature: []
+  progression: null
+  resolution:
+    by: cooling
+  observableSigns: [flushed, sweating, disoriented]
+  contagion: null

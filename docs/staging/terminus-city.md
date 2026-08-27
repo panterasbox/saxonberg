@@ -338,7 +338,7 @@ later design, its own pass.
   structure while the Government template grows entries as departments
   get built.
 - **Treasury**: the municipal budget (the shipped
-  `/domain/terminus/budget` Business account).
+  `/world/terminus/budget` Business account).
 - **Corpos**: informal power only — lobbying, quarter identity, the
   fault-line map as *politics*, never as seats.
 

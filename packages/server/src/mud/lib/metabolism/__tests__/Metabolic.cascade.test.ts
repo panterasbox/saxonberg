@@ -14,7 +14,7 @@ import { Creature } from "../../creature/Creature";
 import { METABOLIC_DEFAULTS } from "../Metabolic";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import { TemplatePaths } from "../../paths";
@@ -48,7 +48,7 @@ function consciousGate(c: Creature): string | undefined {
     | undefined;
 }
 
-const STARVATION = "/obj/Condition/metabolism/starvation";
+const STARVATION = "/platform/idea/Condition/metabolism/starvation";
 
 describe("MetabolicMixin cascade — reserves → conditions", () => {
   beforeEach(() => {

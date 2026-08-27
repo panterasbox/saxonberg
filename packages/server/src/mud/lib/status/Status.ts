@@ -79,7 +79,7 @@ export function StatusMixin<TBase extends MixinConstructor>(Base: TBase) {
     // The `status` verb rides the capability mixin — every Character
     // (PC and NPC) that composes StatusMixin gains it.
     static commandContributions: CommandContributions = {
-      self: ['social/status.yaml'],
+      self: ['platform/cmd/social/status.yaml'],
       peers: [],
       environment: [],
     };

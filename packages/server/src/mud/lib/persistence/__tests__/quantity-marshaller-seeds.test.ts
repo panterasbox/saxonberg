@@ -2,7 +2,7 @@
  * QuantityMarshaller seed coverage — every unit any field marshaller
  * references (`QuantityMarshaller.pathFor('<unit>')` anywhere in src)
  * must have a seed row at
- * the platform pack's `content/obj/persistence/QuantityMarshaller/<slug>.yaml`, or cloning any
+ * the platform pack's `content/platform/idea/persistence/QuantityMarshaller/<slug>.yaml`, or cloning any
  * template whose class marshals that unit fails at hydrate time with
  * `Template not found` — IN LIVE PLAY ONLY, because unit tests install
  * marshallers by hand (`installV1QuantityMarshallers`) and so cannot see
@@ -21,7 +21,7 @@ import { execSync } from "child_process";
 const __filename = fileURLToPath(import.meta.url);
 const SRC_ROOT = join(dirname(__filename), "../../../..");
 // The marshaller rows are the platform pack's content (content-packs wave 3).
-const SEEDS_DIR = join(SRC_ROOT, "../../content/platform/content/obj/persistence/QuantityMarshaller");
+const SEEDS_DIR = join(SRC_ROOT, "../../content/platform/content/platform/idea/persistence/QuantityMarshaller");
 
 /** Mirror of QuantityMarshaller's `encodeUnit` (kept in lockstep by this test). */
 function encodeUnit(unit: string): string {

@@ -123,11 +123,11 @@ describe('getJurisdictionBound', () => {
       'test',
       () => {
         expect(ExecutionContextApi.getJurisdictionBound()).toBe(
-          '/domain/terminus'
+          '/world/terminus'
         );
         expect(ExecutionContextApi.getCircleScope()).toBeNull();
       },
-      { jurisdictionBound: '/domain/terminus' }
+      { jurisdictionBound: '/world/terminus' }
     );
   });
 });

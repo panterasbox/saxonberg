@@ -132,7 +132,7 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // (the Behaved per-fire re-resolve precedent). Author-named path, but a
   // brain is a `lib/behavior/` module behind the wizard source-write gate.
   {
-    site: "obj/api/CombatLogic.ts::resolveExportSync",
+    site: "platform/idea/api/CombatLogic.ts::resolveExportSync",
     classification: "gated-direct",
   },
   // Resolves another template's already gate-passed class.
@@ -163,7 +163,7 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // asserted in `mml.longform.test.ts` ("a name that could escape its
   // directory is NOT a candidate").
   {
-    site: "obj/WikiRenderer.ts::resolveExport",
+    site: "platform/idea/WikiRenderer.ts::resolveExport",
     classification: "source-gated",
   },
   // The wiki's `<composition>` panel resolves a template's `class` to
@@ -178,14 +178,14 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   },
   // Brain-path existence pre-check (validateBehaviorPaths) — does not run.
   {
-    site: "obj/api/CmsLogic.ts::resolveExport",
+    site: "platform/idea/api/CmsLogic.ts::resolveExport",
     classification: "validation-only",
   },
   // Controller / validator / parser module path from command YAML — a
   // source-tree file behind the wizard source-write gate.
-  { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
-  { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
-  { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
+  { site: "platform/idea/api/CommandLogic.ts::import", classification: "source-gated" },
+  { site: "platform/idea/api/CommandLogic.ts::import", classification: "source-gated" },
+  { site: "platform/idea/api/CommandLogic.ts::import", classification: "source-gated" },
   // The `requires: class:Agent` escape. ⚠ NOT author-reachable in the
   // way the three above are: the module path is not read from YAML at
   // all — the spec supplies a bare NAME, which is looked up in the
@@ -194,10 +194,10 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // import cycle (`Agent` composes command mixins), so the classifier's
   // usual question — can an author steer this string — is answered no
   // by construction.
-  { site: "obj/api/CommandLogic.ts::import", classification: "source-gated" },
+  { site: "platform/idea/api/CommandLogic.ts::import", classification: "source-gated" },
   // Content-pack class-resolve check (requires-kernel boundary).
   {
-    site: "obj/api/PackLogic.ts::loadClassByPath",
+    site: "platform/idea/api/PackLogic.ts::loadClassByPath",
     classification: "gated-direct",
   },
   // The blueprint catalogue's two layers (moved in from the retired
@@ -208,22 +208,22 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // resolves a derived row's `classPath` to see whether it still exists.
   // Introspection only — nothing author-named is executed or minted.
   {
-    site: "obj/BlueprintCatalogue.ts::loadClassByPath",
+    site: "platform/idea/BlueprintCatalogue.ts::loadClassByPath",
     classification: "validation-only",
   },
   {
-    site: "obj/BlueprintCatalogue.ts::loadClassByPath",
+    site: "platform/idea/BlueprintCatalogue.ts::loadClassByPath",
     classification: "validation-only",
   },
   {
-    site: "obj/BlueprintCatalogue.ts::loadClassByPath",
+    site: "platform/idea/BlueprintCatalogue.ts::loadClassByPath",
     classification: "validation-only",
   },
   {
     // Sandbox circle materialization: authored templates under the
     // circle path re-clone only when their class is Location-shaped —
     // the class resolve is the room filter (docs/subsystems/sandbox.md).
-    site: "obj/api/SandboxLogic.ts::loadClassByPath",
+    site: "platform/idea/api/SandboxLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
   // Studio describeClass introspection: resolves an already-committed
@@ -231,7 +231,7 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // effective values; author-supplied path, but only already-trusted code
   // ever resolves (no author-named new code).
   {
-    site: "obj/api/StudioLogic.ts::loadClassByPath",
+    site: "platform/idea/api/StudioLogic.ts::loadClassByPath",
     classification: "transitive-safe",
   },
   // Studio describeMixin introspection: resolves an already-registered
@@ -239,7 +239,7 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // contributes (the inspector card). Only committed mixin code resolves;
   // no author-named new code.
   {
-    site: "obj/api/StudioLogic.ts::resolveExport",
+    site: "platform/idea/api/StudioLogic.ts::resolveExport",
     classification: "transitive-safe",
   },
   // The same resolve, on `describeMixinFields`'s DEGRADED path: when a
@@ -250,35 +250,35 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // instantiates nothing. Replaced the source-scan candidate-name
   // fallback that the `fieldMeta` fold retired.
   {
-    site: "obj/api/StudioLogic.ts::resolveExport",
+    site: "platform/idea/api/StudioLogic.ts::resolveExport",
     classification: "transitive-safe",
   },
   // container-target mixin validators (does not instantiate).
   {
-    site: "obj/api/TemplateLogic.ts::loadClassByPath",
+    site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
   {
-    site: "obj/api/TemplateLogic.ts::loadClassByPath",
+    site: "platform/idea/api/TemplateLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
   // isFolderClass class probe.
   {
-    site: "obj/api/ZoneLogic.ts::loadClassByPath",
+    site: "platform/idea/api/ZoneLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
   {
-    site: "obj/api/ZoneLogic.ts::loadClassByPath",
+    site: "platform/idea/api/ZoneLogic.ts::loadClassByPath",
     classification: "validation-only",
   },
   // Class-attached dataSchema check.
   {
-    site: "obj/command/shell/WriteController.ts::loadClassByPath",
+    site: "platform/idea/cmd/shell/WriteController.ts::loadClassByPath",
     classification: "validation-only",
   },
   // Dialogue responder brain re-resolve.
   {
-    site: "obj/command/social/TalkController.ts::resolveExportSync",
+    site: "platform/idea/cmd/social/TalkController.ts::resolveExportSync",
     classification: "gated-direct",
   },
 ];

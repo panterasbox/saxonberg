@@ -12,7 +12,7 @@
  * owns the combustion of an *object*.
  *
  * The logic lives in the gated, hot-reloadable {@link FireLogic} singleton at
- * `/obj/api/fire`; this Api is the thin forwarding shell. `dest /obj/api/fire`
+ * `/platform/idea/api/fire`; this Api is the thin forwarding shell. `dest /platform/idea/api/fire`
  * reloads it. See `docs/subsystems/fire.md`.
  */
 
@@ -21,7 +21,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { AppApi } from './app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
-import { FireLogic } from '../obj/api/FireLogic';
+import { FireLogic } from '../platform/idea/api/FireLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -37,9 +37,9 @@ export interface IgniteOutcome {
   reason?: 'not-flammable' | 'already-burning' | 'too-wet';
 }
 
-const LOGIC_PATH = '/obj/api/fire';
+const LOGIC_PATH = '/platform/idea/api/fire';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/FireLogic', import.meta.url),
+  new URL('../platform/idea/api/FireLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able FireLogic singleton (sync). */

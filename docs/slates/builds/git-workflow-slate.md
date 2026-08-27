@@ -218,10 +218,10 @@ Standard Api + logic-singleton pair (no new module category):
 - **`api/git.ts` — `GitApi`** — thin gated forwarding shell; statics
   `status` / `diff` / `log` / `publish` / `revert` (+ privileged `reset`),
   ends with `SecurityApi.decorateApiClass`.
-- **`obj/api/GitLogic.ts` — `GitLogic extends ApiLogic`** — the mechanism;
+- **`platform/idea/api/GitLogic.ts` — `GitLogic extends ApiLogic`** — the mechanism;
   every method `@CallSecurity(FromModule('/api/git#GitApi'))`; owns the
   affected-path-set computation + the `can('write')` loop + the
-  credential read. HMR-able at `/obj/api/git`.
+  credential read. HMR-able at `/platform/idea/api/git`.
 - **New dependency:** `simple-git` (thin wrapper over the `git` binary) —
   a **shell-exec surface**; flag it for review. (Alternative:
   `child_process` directly — fewer deps, more plumbing.)

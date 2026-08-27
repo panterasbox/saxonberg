@@ -174,7 +174,7 @@ fixed even though the scope is "all of it."
 
 | Layer | Concern | Lives in |
 |---|---|---|
-| **0/1. Trunk** | `SoulMixin` capability + the emote catalog + ProseApi grammar + dynamic-verb resolution + free-form `emote`. *The whole feature, in text.* | `lib/social/` (proposed) + catalog (home TBD) + `obj/command/EmoteController.ts` |
+| **0/1. Trunk** | `SoulMixin` capability + the emote catalog + ProseApi grammar + dynamic-verb resolution + free-form `emote`. *The whole feature, in text.* | `lib/social/` (proposed) + catalog (home TBD) + `platform/idea/cmd/EmoteController.ts` |
 | **2. Emoji** | Optional glyph per emote; per-channel + per-source render setting (text / emoji / both). | catalog field + payload + an `EnvironmentMixin` setting + client render |
 | **3. Honorary** | Entitlement-gated emotes; the glyph as a badge obtainable only with the real emote. | a `requires` predicate on the catalog + an entitlement check at dispatch |
 | **4. Reactions** | `react <msgid> ;agree`; aggregation, collapse/expand, tag-grouping. **Recommend its own slate** (it's a generic message affordance, not emote-specific). | message-id surfacing + a `react` verb + client aggregation UI + per-user settings |
@@ -312,7 +312,7 @@ fields are `persistentFields`.
 
 **Access pattern.** Reads dominate (every emote command resolves a
 verb); writes are rare (an author minting an `Emote`). So a
-**`SoulCatalogue` singleton Stuff** (`/obj/SoulCatalogue`, sibling to
+**`SoulCatalogue` singleton Stuff** (`/platform/idea/SoulCatalogue`, sibling to
 `TopicCatalogue`) owns the **verb→`Emote` index loaded at bootstrap
 (`Emote.find({})`) and refreshed write-through** on mint/edit — Mongo is
 the system of record, the catalogue's in-memory cache is the hot path.

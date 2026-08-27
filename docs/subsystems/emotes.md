@@ -235,8 +235,8 @@ setting (default off) that opts a player into introducing on arrival. See
 ## `SoulCatalogue` + `SoulApi`
 
 The verb→Emote runtime cache lives on a Stuff singleton,
-`/obj/SoulCatalogue`, sibling to `/obj/TopicCatalogue` and
-`/obj/EventRegistry` per the singleton-in-`obj/` convention. The
+`/platform/idea/SoulCatalogue`, sibling to `/platform/idea/TopicCatalogue` and
+`/platform/idea/EventRegistry` per the singleton-in-`obj/` convention. The
 catalogue extends `Idea` composed with `PostRegistrationMixin` —
 the `postRegister` hook warms `cache: Map<string, Emote>` from
 `DocumentApi.listOfKind('emote')` after `PackApi.install` has
@@ -317,7 +317,7 @@ paths run inline in the router.
 
 ## The `soul` authoring suite
 
-`SoulController` (`obj/command/social/SoulController.ts`) implements the
+`SoulController` (`platform/idea/cmd/social/SoulController.ts`) implements the
 author surface: `soul make / edit / delete / disable / enable / show /
 list / search` — the mutations gated by title over the soul
 committee's extent (see *The client read face*). The verb is gated by composition — `AuthorMixin` contributes
@@ -351,7 +351,7 @@ free-form). The leaf is authored as a `Topic` template at
 
 ```yaml
 class: /lib/messaging/Topic
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   topic: act.emote
   family: act.emote

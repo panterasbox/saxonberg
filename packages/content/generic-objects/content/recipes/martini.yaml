@@ -14,5 +14,5 @@ inputSlots:
   measureL: 0.01
 toolCapabilities:
 - mixing-glass
-outputTemplate: /domain/lounge/cocktail-glass
+outputTemplate: /world/lounge/cocktail-glass
 outputAppearance: a crystal-clear martini, beaded with cold

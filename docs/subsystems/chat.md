@@ -195,7 +195,7 @@ ad-hoc subscriptions die with the channel.
 ## `ChannelCatalogue` — the chat runtime chokepoint
 
 Every persistent and runtime piece of chat state lives on a single
-singleton Stuff at `/obj/ChannelCatalogue`. It holds three maps:
+singleton Stuff at `/platform/idea/ChannelCatalogue`. It holds three maps:
 
 - `byName: Map<string, Channel>` — persistent-channel cache, keyed
   on lowercased name. Warmed at `postRegister` via `Channel.find({})`
@@ -313,7 +313,7 @@ view by opting into the new **subcommand fallthrough** flag — a
 small command-framework extension shipped alongside chat:
 
 ```yaml
-# content/cmd/social/chat.yaml
+# content/platform/cmd/social/chat.yaml
 verbs: [chat]
 controller: ChatController
 validators:

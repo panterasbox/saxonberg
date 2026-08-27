@@ -1,0 +1,31 @@
+# Oak — dense hardwood. Flammable, opaque, organic. Standard wood
+# for tool handles, doors, and furniture.
+#
+# Composition is biological: cellulose (~45%), lignin (~25%), water
+# (~10%), with hemicelluloses, extractives, and ash making up the
+# rest. v1 leaves `composition` empty pending compound templates
+# (`/stuff/idea/material/compound/cellulose`, `.../lignin`); the `wood` and
+# `mixture` tags carry the gist meanwhile. `biologicalSource` is null
+# until an oak-tree species template is authored.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: oak
+  density: 750
+  specificHeat: 2000
+  thermalConductivity: 0.17
+  # Electrical conductivity (S/m) — dry wood is a poor conductor (~1×10⁻⁴).
+  electricalConductivity: 1.0e-4
+  # Water absorption capacity (% of dry mass, ASTM D570): wood at its fibre-saturation point.
+  waterAbsorptionCapacity: 28
+  # Fire (combustion driver): wood ignites at ~570 K and releases ~16 MJ/kg.
+  # Wood chars rather than melts — no melting/boiling point.
+  autoignitionTemperature: 570
+  heatOfCombustion: 16
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

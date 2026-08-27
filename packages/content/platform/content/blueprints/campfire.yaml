@@ -2,7 +2,7 @@ blueprintId: campfire
 name: Campfire
 kind: concrete
 baseClass: Thing
-classPath: /obj/Campfire
+classPath: /stuff/thing/Campfire
 parent: fixtures
 blessed: true
 description: 'A fuelled fire: a combustion Reserve burns down over game-time, pinning the fire hot (scalding + light) until it cools to embers. A driver-bearing kind, not a recomposable composition.

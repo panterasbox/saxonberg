@@ -167,25 +167,25 @@ const _frameMutatorAllowlist: ReadonlyArray<RegExp> = [
   /\/mud\/lib\/command\/CommandGiver\.(ts|js)$/, // CommandGiverMixin tags the command frame
   // Singleton Stuff registries that hold Api state and need to plant
   // synthetic root frames for ApiOnly-gated downstream calls (timer
-  // callbacks, event-listener dispatch). Each lives at `/obj/<X>` and
+  // callbacks, event-listener dispatch). Each lives at `/platform/idea/<X>` and
   // is the storage backend for a thin Api facade. The Api gates who
   // can call the Registry via `@CallSecurity`; this allowlist entry is
   // the orthogonal trust that the Registry's body is engine code, not
   // content. Keep narrow — add the bare name, not a wildcard.
-  /\/mud\/obj\/(EventSubscriptions|MqlSubscriptionRegistry|SchedulerRegistry|WorldClockRegistry)\.(ts|js)$/,
+  /\/mud\/platform\/idea\/(EventSubscriptions|MqlSubscriptionRegistry|SchedulerRegistry|WorldClockRegistry)\.(ts|js)$/,
   // The persistence-spine logic singleton plants a principal frame around
   // restore (`run` + `tagActingAuthor`) so capture/restore executes AS the
   // owning principal — the single reviewed frame-mutator touchpoint of the
-  // persistence build. Lives at `/obj/api/persistable`; `PersistableApi`
+  // persistence build. Lives at `/platform/idea/api/persistable`; `PersistableApi`
   // gates who may call it. Same narrow trust as the registries above: this
   // entry asserts the singleton's BODY is engine code, not content.
-  /\/mud\/obj\/api\/PersistableLogic\.(ts|js)$/,
+  /\/mud\/platform\/idea\/api\/PersistableLogic\.(ts|js)$/,
   // The sandbox logic singleton plants circle-scoped roots for the
   // crossing choreography (mint/park/reap under the circle's scope) and
   // the eval scope root — the sanctioned root-level scope assignment.
   // Same narrow trust as PersistableLogic: this entry asserts the
   // singleton's BODY is engine code, not content.
-  /\/mud\/obj\/api\/SandboxLogic\.(ts|js)$/,
+  /\/mud\/platform\/idea\/api\/SandboxLogic\.(ts|js)$/,
   /\.test\.(ts|js)$/,                            // tests need the seam — they can't fake production identity
 ];
 

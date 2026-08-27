@@ -1,0 +1,7 @@
+# TouchModality — the tactile (contact) singleton.
+class: /platform/idea/modalities/TouchModality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: touch
+  family: contact
+  modality: touch

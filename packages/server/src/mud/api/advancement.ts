@@ -18,8 +18,8 @@
  * dispositions"), read-but-ignored here.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link AdvancementLogic} singleton at `/obj/api/advancement`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/advancement`
+ * {@link AdvancementLogic} singleton at `/platform/idea/api/advancement`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/advancement`
  * reloads it.
  */
 
@@ -32,7 +32,7 @@ import type {
 } from "../lib/advancement/ActSignature";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { AdvancementLogic } from "../obj/api/AdvancementLogic";
+import { AdvancementLogic } from "../platform/idea/api/AdvancementLogic";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
@@ -53,9 +53,9 @@ export interface DisciplineBand {
 
 export type { TranscriptEntryFields };
 
-const LOGIC_PATH = "/obj/api/advancement";
+const LOGIC_PATH = "/platform/idea/api/advancement";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/AdvancementLogic", import.meta.url)
+  new URL("../platform/idea/api/AdvancementLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able AdvancementLogic singleton (sync). */

@@ -9,8 +9,8 @@
  * {@link ForumSubscriptionRegistry} runtime singleton.
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link ForumsLogic} singleton at `/obj/api/forums`,
- * reached synchronously via `StuffApi.singletonSync`. `dest /obj/api/forums`
+ * hot-reloadable {@link ForumsLogic} singleton at `/platform/idea/api/forums`,
+ * reached synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/forums`
  * reloads it.
  */
 
@@ -22,8 +22,8 @@ import type Entry from '../lib/forum/Entry';
 import type Subject from '../lib/forum/Subject';
 import type { BoardOrganizer } from '../lib/forum/Board';
 import type { VoteValue } from '../lib/forum/Vote';
-import type { MakeSubjectOptions } from '../obj/SubjectCatalogue';
-import { ForumsLogic } from '../obj/api/ForumsLogic';
+import type { MakeSubjectOptions } from '../platform/idea/SubjectCatalogue';
+import { ForumsLogic } from '../platform/idea/api/ForumsLogic';
 
 /** Sort orders for the popularity organizer. */
 export type EntrySort = 'new' | 'top' | 'hot' | 'controversial';
@@ -65,15 +65,15 @@ export interface MakeForumOptions extends MakeSubjectOptions {
 export type ArgumentRelation = 'supports' | 'objects-to' | 'responds-to';
 import ForumSubscriptionRegistry, {
   type ForumSubscribeRequest,
-} from '../obj/ForumSubscriptionRegistry';
+} from '../platform/idea/ForumSubscriptionRegistry';
 import { TemplatePaths } from '../lib/paths';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/forums';
+const LOGIC_PATH = '/platform/idea/api/forums';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ForumsLogic', import.meta.url),
+  new URL('../platform/idea/api/ForumsLogic', import.meta.url),
 );
 
 function logic(): ForumsLogic {
@@ -89,7 +89,7 @@ function logic(): ForumsLogic {
 
 const REGISTRY_PATH = TemplatePaths.forumSubscriptionRegistry;
 const REGISTRY_CLASS_FILE = fileURLToPath(
-  new URL('../obj/ForumSubscriptionRegistry', import.meta.url),
+  new URL('../platform/idea/ForumSubscriptionRegistry', import.meta.url),
 );
 
 function subscriptions(): ForumSubscriptionRegistry {

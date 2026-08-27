@@ -22,7 +22,7 @@ import { SensorMixin } from '../../lib/message/Sensor';
 import { ContainmentApi } from '../containment';
 import { CommandApi } from '../command';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import type Interactive from '../../obj/Interactive';
+import type Interactive from '../../platform/idea/Interactive';
 import type { MessageFrame } from '@saxonberg/types';
 
 const TestGiverBase = CommandGiverMixin(
@@ -32,7 +32,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ['system/ping.yaml'],
+    self: ['platform/cmd/system/ping.yaml'],
     environment: [],
   };
   public received: MessageFrame[] = [];
@@ -46,14 +46,14 @@ class InvProvider extends InvProviderBase {
   static commandContributions = {
       peers: [],
     self: [],
-    environment: ['system/ping.yaml'],
+    environment: ['platform/cmd/system/ping.yaml'],
   };
 }
 
 const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
-      peers: ['system/ping.yaml'],
+      peers: ['platform/cmd/system/ping.yaml'],
     self: [],
     environment: [],
   };
@@ -176,7 +176,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     }>;
     const ping = payload.find((p) => p.verbs.includes('ping'));
     expect(ping).toBeDefined();
-    expect(ping?.controller).toBe('/obj/command/system/PingController');
+    expect(ping?.controller).toBe('/platform/idea/cmd/system/PingController');
   });
 
   it('the giver host with no Sensor mixin would skip emits silently', () => {

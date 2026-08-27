@@ -1,0 +1,24 @@
+# Ale — the alcohol exemplar. A multi-tag beverage: one `drink` fans to
+# the satiation + hydration pools (carb + water) AND the alcohol pool.
+# The alcohol dose is ethanol grams per serving (~one drink); it absorbs
+# into the ethanol burden over time (the vomit window), and `getBAC()`
+# derives the BAC the `intoxicated` condition reads. Rate params live on
+# the alcohol Condition seed, not here.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ale
+  appearance: a foamy amber ale
+  keywords: [ale, beer, brew]
+  density: 1010
+  thermalConductivity: 0.6
+  specificHeat: 4000
+  edibility: true
+  nutrients: [carb, water]
+  nutrientAmounts:
+    carb: 13000
+  toxicity:
+    - { type: alcohol, amount: 14 }
+  tags: [liquid, beverage, drinkable, alcoholic]
+  composition: []
+  biologicalSource: null

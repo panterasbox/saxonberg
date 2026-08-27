@@ -453,7 +453,7 @@ no consequence.** Instances found so far — rain that never reaches soil,
 compost that nothing makes, `Condition` Ideas nothing stands up, and a season
 the world computes and only two `analyze` verbs read.
 
-> ⭐ **The guard is `obj/api/__tests__/ConditionLogic.boot.test.ts`'s shape:
+> ⭐ **The guard is `platform/idea/api/__tests__/ConditionLogic.boot.test.ts`'s shape:
 > coverage driven off the seed files ON DISK, not a mock.** Generalising it —
 > table-driven across the reference rosters, then a lint — is worth doing
 > **before** these builds rather than after, because every one of them adds a

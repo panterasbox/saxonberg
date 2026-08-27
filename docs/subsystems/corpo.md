@@ -35,14 +35,14 @@ Both are pure-data leaf `Idea`s authored as templates and read by the
 catalogue from `template.data` — **never cloned as live Stuff** (the
 `Discipline` / `Topic` discipline).
 
-- **`Corpo`** (`lib/corpo/Corpo.ts`, templates under `/obj/corpo/Corpo/`) —
+- **`Corpo`** (`lib/corpo/Corpo.ts`, templates under `/stuff/idea/corpo/Corpo/`) —
   one megacorp. Fields: `key` (durable join), `label`, `sector`, `ethos`
   (the load-bearing culture slot), `aesthetic`, `temperament` (the player
   temperament it magnetizes), `description`, and **`rivals`** (a list of
   corpo `key`s — the fault-line edge). A corpo is distinguished by
   *sector + ethos + aesthetic*, **not** Good/Evil — the fault line is
   tribal, not moralistic.
-- **`Brand`** (`lib/corpo/Brand.ts`, templates under `/obj/corpo/Brand/`) —
+- **`Brand`** (`lib/corpo/Brand.ts`, templates under `/stuff/idea/corpo/Brand/`) —
   one product line. Fields: `key`, `name`, **`owner`** (the owning corpo
   `key`, or `''` = independent), `category` (the honest product category —
   `gin`, `vodka`, `whiskey`), `positioning` (an authored label, **data
@@ -71,7 +71,7 @@ precedent.
 
 The advancement-precedent three singletons:
 
-- **`CorpoCatalogue`** (`obj/CorpoCatalogue.ts`, `/obj/CorpoCatalogue`) — the
+- **`CorpoCatalogue`** (`obj/CorpoCatalogue.ts`, `/platform/idea/CorpoCatalogue`) — the
   read-only **data-cache** singleton (`PostRegistrationMixin(Idea)`). At boot
   `postRegister` scans the `Corpo` and `Brand` leaf templates from the
   `domain` collection into two descriptor maps keyed by `key`, then builds a
@@ -79,8 +79,8 @@ The advancement-precedent three singletons:
   is the forward edge" projection as a cheap precomputed inverted index. A
   *Catalogue* (holds authored data), not a Registry (holds code) — per the
   [grouping.md](./grouping.md) convention. Warmed by the platform
-  pack's `boot:` entry (`/obj/CorpoCatalogue`, `sync-read`). Singleton-destruct refusal.
-- **`CorpoLogic`** (`obj/api/CorpoLogic.ts`, `/obj/api/corpo`) — the gated
+  pack's `boot:` entry (`/platform/idea/CorpoCatalogue`, `sync-read`). Singleton-destruct refusal.
+- **`CorpoLogic`** (`platform/idea/api/CorpoLogic.ts`, `/platform/idea/api/corpo`) — the gated
   logic singleton. Reads only the in-memory catalogue (no per-owner Mongo →
   **no connection guard**, unlike `AdvancementLogic`). Internals are
   module-private free functions so there are no intra-singleton `this.x()`
@@ -142,7 +142,7 @@ bar build's job.
 - Six booze brands: Volk (Veshko), Goodkin Reserve (Goodkin), Vionne Noir
   (Vionne), Old Hollis (Hollis), aevex zero (Aevex), and **Crowsfoot Gin**
   (independent — empty `owner`).
-- Two proof-demo bottle templates under `/obj/corpo/demo/` — a Volk bottle
+- Two proof-demo bottle templates under `/stuff/thing/corpo/demo/` — a Volk bottle
   (resolves to Veshko) and a Crowsfoot bottle (resolves to a null corpo) —
   proving end-to-end mark resolution + the derived perception line.
 
@@ -172,8 +172,8 @@ Each corpo now has an **organization** beside its mark
 
 | | |
 |---|---|
-| the mark | `/obj/corpo/Corpo/<key>` — sector, ethos, aesthetic, rivals |
-| the chart | `/corpo/<key>` — an `/obj/Organization` with a `chief-executive` position |
+| the mark | `/stuff/idea/corpo/Corpo/<key>` — sector, ethos, aesthetic, rivals |
+| the chart | `/corpo/<key>` — an `/platform/idea/Organization` with a `chief-executive` position |
 | the board | the `<key>` managed group, holding title over `/corpo/<key>` |
 
 ⭐ **The board is the committee.** `CompactApi.committeeOf` derives a
@@ -189,7 +189,7 @@ growing.
 
 ### What it fixes
 
-The Goodkin branch (`/domain/terminus/counting-houses/business`) shipped
+The Goodkin branch (`/world/terminus/counting-houses/business`) shipped
 **unauthored** because neither `committee` nor `entity` could name its
 appointer: the city holds title over the district the counter stands in,
 and `entity` matches the principal's own templatePath, which a mark can

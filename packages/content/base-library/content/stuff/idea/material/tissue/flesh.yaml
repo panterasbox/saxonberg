@@ -1,0 +1,29 @@
+# Flesh — generic animal tissue. Soft, flammable when dry, edible
+# (with carnivore/detrivore caveats; v1 has no DietApi consumer).
+# Composition is mostly water, protein (myofibrils, connective
+# tissue), and fat. v1 leaves the `composition` cross-refs empty
+# pending compound templates; species-specific flesh
+# (`Homo sapiens`-flesh, frog-flesh, …) is a content extension that
+# populates `biologicalSource`.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: flesh
+  density: 1060
+  specificHeat: 3500
+  thermalConductivity: 0.4
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  hardness: 1
+  toughness: 1
+  # Electrical conductivity (S/m) — moist tissue conducts (~0.2); the
+  # body-resistance model reads this, wet skin drops the path resistance.
+  electricalConductivity: 0.2
+  # Water absorption capacity (% of dry mass, ASTM D570): skin and flesh hold water.
+  waterAbsorptionCapacity: 25
+  edibility: true
+  nutrients: ["protein", "fat", "water"]
+  toxicity: []
+  tags: ["tissue", "animal", "mixture", "organic", "living", "edible"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -22,15 +22,15 @@
  * caching layer to invalidate).
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link QuantityLogic} singleton at `/obj/api/quantity`,
+ * hot-reloadable {@link QuantityLogic} singleton at `/platform/idea/api/quantity`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/quantity` reloads it.
+ * /platform/idea/api/quantity` reloads it.
  */
 
 import type { Unit, ScaleName } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { QuantityLogic } from '../obj/api/QuantityLogic';
+import { QuantityLogic } from '../platform/idea/api/QuantityLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -50,9 +50,9 @@ export interface TagTableLoadResult {
   path: string;
 }
 
-const LOGIC_PATH = '/obj/api/quantity';
+const LOGIC_PATH = '/platform/idea/api/quantity';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/QuantityLogic', import.meta.url)
+  new URL('../platform/idea/api/QuantityLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able QuantityLogic singleton (sync). */

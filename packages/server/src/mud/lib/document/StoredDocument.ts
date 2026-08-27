@@ -11,7 +11,7 @@
  *
  *   /home/<player>/scripts/<name>     a player's recorded recipe-script (msh)
  *   /home/<player>/dorm/<room>        (future) dorm customization data
- *   /domain/<world>/msh/<name>        managed world content (a pack's msh/)
+ *   /world/<world>/msh/<name>        managed world content (a pack's msh/)
  *
  * The record carries a **`kind`** discriminator — what kind of object
  * lives here (`'msh'`, `'emote'`, `'recipe'`, … — the pack-installable

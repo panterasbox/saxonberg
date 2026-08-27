@@ -50,7 +50,7 @@ a small vertical-agnostic surface; nothing study.com-specific enters it.
                         VERTICAL-AGNOSTIC (mudlib, licensable)
   packages/server/src/mud/
     api/advancement.ts          + recordClaim(...)         §3.2
-    obj/api/AdvancementLogic.ts  ↳ claim append + refresh
+    platform/idea/api/AdvancementLogic.ts  ↳ claim append + refresh
     obj/DisciplineCatalogue.ts  + byIscedf() reverse index §3.1
     lib/advancement/…            provenance tag weighting   §3.4
 

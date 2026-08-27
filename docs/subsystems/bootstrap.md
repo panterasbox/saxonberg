@@ -49,36 +49,36 @@ row the engine ships is **pack content** under
 `packages/content/<pack>/content/**`, installed by `PackApi.install`
 with a real three-way reconcile (an edited pack file DOES reach the
 live row; a locally-edited row is a conflict, never an overwrite). The
-engine's own rows — `/obj/EventRegistry`, `/obj/Avatar/seed`,
-`/domain/void`, every `/obj/command/<category>/<Name>Controller`,
+engine's own rows — `/platform/idea/EventRegistry`, `/platform/agent/Avatar/seed`,
+`/world/void`, every `/platform/idea/cmd/<category>/<Name>Controller`,
 the registries and catalogues — ship in the **`platform`** pack
 (`packages/content/platform/content/`); generic objects, species,
 localities and the corpo charts ship in their own packs. The file path
 under a pack's `content/` still determines the template path
-(`content/obj/EventRegistry.yaml` → `/obj/EventRegistry`).
+(`content/platform/idea/EventRegistry.yaml` → `/platform/idea/EventRegistry`).
 
 Layout, kinds, the reconcile, `sourcePack` stamps, the `pack` verb:
 [content-packs.md](./content-packs.md).
 
 ### Path conventions
 
-Singletons live at `/obj/<ClassName>` — `/obj/EventRegistry`,
-`/obj/TopicCatalogue`, etc. Multi-instance classes extend
+Singletons live at `/platform/<branch>/<ClassName>` — `/platform/idea/EventRegistry`,
+`/platform/idea/TopicCatalogue`, etc. Multi-instance classes extend
 the same namespace with a per-instance suffix:
-`/obj/Avatar/<playerId>`. The `/obj/Avatar` segment is implicit
+`/platform/agent/Avatar/<playerId>`. The `/platform/agent/Avatar` segment is implicit
 (no template at it); the validator's folder/leaf rules treat path
 segments as opaque tokens, so this works without a separator
 distinct from `/`.
 
 ### Orphan templates (forked at runtime)
 
-Most shipped rows are end-state singletons — `/obj/EventRegistry`
+Most shipped rows are end-state singletons — `/platform/idea/EventRegistry`
 ships and that's it. Some are **orphans** — templates that live in
 the same namespace as their class's instances but with a reserved id
 no real instance can collide with. The seed avatar is the worked
 example:
 
-- `platform/content/obj/Avatar/seed.yaml` lands at `/obj/Avatar/seed`.
+- `platform/content/platform/agent/Avatar/seed.yaml` lands at `/platform/agent/Avatar/seed`.
   It's mechanically just an avatar template; the `seed` playerId is
   reserved (`Avatar.SEED_PLAYER_ID`) — 4 chars, nanoids are 21,
   no collision with a real player.
@@ -189,9 +189,9 @@ boot.
 ```yaml
 # packages/content/platform/pack.yaml (excerpt)
 boot:
-  - { template: /obj/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
-  - { template: /domain/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
-  - { template: /obj/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
+  - { template: /platform/idea/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
+  - { template: /world/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
+  - { template: /platform/idea/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
 ```
 
 The `BootstrapEntry` type stays owned by `BootstrapManager` (the
@@ -258,9 +258,9 @@ matches the module path:
 
 | Backing class | Template path |
 |---|---|
-| `mud/obj/EventRegistry.ts` | `/obj/EventRegistry` |
-| `mud/obj/ModuleRegistry.ts` | `/obj/ModuleRegistry` |
-| `mud/obj/CommandRegistry.ts` | `/obj/CommandRegistry` |
+| `mud/platform/idea/EventRegistry.ts` | `/platform/idea/EventRegistry` |
+| `mud/platform/ModuleRegistry.ts` | `/platform/idea/ModuleRegistry` |
+| `mud/platform/CommandRegistry.ts` | `/platform/idea/CommandRegistry` |
 
 This aligns the on-disk seed location with the runtime template
 path. Avatar is the existing exception
@@ -314,9 +314,9 @@ Corollaries:
 
 | Registry | Holds | Lives in |
 |---|---|---|
-| `EventRegistry` | Well-known events + emit/subscribe permissions | `/obj/EventRegistry` |
-| `ModuleRegistry` | Module info for hot-reload (future) | `/obj/ModuleRegistry` |
-| `CommandRegistry` | Command name → controller mapping (existing in some form; consider formalizing) | `/obj/CommandRegistry` |
+| `EventRegistry` | Well-known events + emit/subscribe permissions | `/platform/idea/EventRegistry` |
+| `ModuleRegistry` | Module info for hot-reload (future) | `/platform/idea/ModuleRegistry` |
+| `CommandRegistry` | Command name → controller mapping (existing in some form; consider formalizing) | `/platform/idea/CommandRegistry` |
 
 Future candidates: `AchievementRegistry`, `DamageTypeRegistry`,
 `FactionRegistry`, `RecipeRegistry`, `PromptTypeRegistry`,

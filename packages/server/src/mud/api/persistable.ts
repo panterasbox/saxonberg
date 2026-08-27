@@ -7,7 +7,7 @@
  *
  * Thin, security-gated forwarding shell: the real capture/restore logic
  * lives in the hot-reloadable {@link PersistableLogic} singleton at
- * `/obj/api/persistable`, reached synchronously via `StuffApi.singletonSync`.
+ * `/platform/idea/api/persistable`, reached synchronously via `StuffApi.singletonSync`.
  *
  * The governing constraint is security: hydration bypasses the `setFoo()`
  * call-security gates, so persistence routes capture/restore **through** the
@@ -26,7 +26,7 @@
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { PersistableLogic } from "../obj/api/PersistableLogic";
+import { PersistableLogic } from "../platform/idea/api/PersistableLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 import type {
@@ -39,9 +39,9 @@ export type {
   EstateSlice,
 } from "../lib/persistence/PersistenceSlice";
 
-const LOGIC_PATH = "/obj/api/persistable";
+const LOGIC_PATH = "/platform/idea/api/persistable";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/PersistableLogic", import.meta.url),
+  new URL("../platform/idea/api/PersistableLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able PersistableLogic singleton (sync). */

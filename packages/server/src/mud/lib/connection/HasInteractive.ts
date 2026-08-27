@@ -28,7 +28,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
-import type Interactive from '../../obj/Interactive';
+import type Interactive from '../../platform/idea/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
 import { GoogleProfile } from '../identity/GoogleProfile';
@@ -674,7 +674,7 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
      * verbs was scatter, not separation.
      */
     static commandContributions: CommandContributions = {
-      self: ['shell/cockpit.yaml'],
+      self: ['platform/cmd/shell/cockpit.yaml'],
       peers: [],
       environment: [],
     };

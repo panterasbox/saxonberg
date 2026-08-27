@@ -1,0 +1,11 @@
+# University Avenue — the campus-edge street Locality. Names the crossing on
+# departures boards and claims the `university-avenue` address prefix so the
+# crossing room (`_address: university-avenue/crossing`) resolves here and is
+# weather-eligible under it. Homed under seeds/lib/address/ (the narnia /
+# terminus precedent) so AddressRegistry.postRegister eagerly clones + warms
+# its prefix at boot. templatePath ≠ claimed address.
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: University Avenue
+  _address: university-avenue

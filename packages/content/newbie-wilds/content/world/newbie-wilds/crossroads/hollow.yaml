@@ -1,0 +1,58 @@
+# The fog hollow — one step deeper in the wood than the treeline, where
+# the board's "gentleman out of the fog who works with a knife" keeps his
+# ground. The Build-2 consented-duel demonstrator (the treeline's cull is
+# the beast; this is the person). A sentient duelist waits here who fights
+# to the death BY AGREEMENT — so killing him is a lawful duel, not the
+# crime that the same stroke would be against an unwilling townsperson.
+# Reached by walking west from the treeline (the spawn-override still
+# lands you at the treeline); a duelling-stone holds a knife he takes up.
+# Carries the Last-Counted-Mile locality address like its siblings.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a hollow full of fog
+  primaryKeyword: hollow
+  _address: last-counted-mile/hollow
+  coords:
+    x: -1
+    y: 1
+    z: 0
+  longDescription: |
+    The wood drops into a hollow here and the fog pools in it like water that forgot to run downhill — waist-deep, grey, moving without wind. Sound comes muffled and wrong. The pines stand back from the low ground as if they know better than to root in it.
+
+    In the middle of the hollow a flat stone sits proud of the fog, worn pale on top by long use, and a pair of matched knives lie across it — one for each hand that means to settle a thing here. The whole place has the arranged quiet of a ground that has been fought on before, and swept after, and made ready again.
+
+    Against a leaning pine at the hollow's edge someone has set a rack of longer arms — a steel-tipped spear, a plain arming sword, a broad steel-faced shield, and a coiled leather whip — for a challenger who would rather not settle it at knife-length.
+
+    East, the fog thins and the land climbs back toward the treeline.
+  details:
+    stone:
+      keywords: [stone, duelling-stone, slab, rock]
+      description: |
+        A flat slab worn smooth and pale on top — a duelling-stone, the kind two people stand across when they have agreed on how the standing ends. A pair of matched knives rest on it, kept — one for each hand.
+    rack:
+      keywords: [rack, arms, weapons, pine, whip]
+      description: |
+        A few longer weapons leaned against a pine: a spear that would keep the knife-man at the end of its reach until he could close, a plain sword, a shield to raise between you and his blade, and a coiled leather whip — longest of all, no guard to it, but a lash that can wrap a wrist and bind. Take up what suits the fight you mean to have.
+    fog:
+      keywords: [fog, mist, hollow]
+      description: |
+        The fog sits in the low ground and does not lift, grey and slow and about waist-deep. Shapes move in it that resolve, when you look straight on, into nothing — and, once, into a gentleman who was watching you the whole time.
+  exits:
+    east:
+      destination: /world/newbie-wilds/crossroads/treeline
+  # The duelist and two knives on the stone: he takes one up (his `arms`
+  # brain lifts the nearest and wields it), the other waits for a
+  # challenger to arm themselves before they call him out. All cloned
+  # fresh at standup.
+  populates:
+    - /world/newbie-wilds/npc/duelist
+    - /stuff/thing/arms/steel-dagger
+    - /stuff/thing/arms/steel-dagger
+    # A rack of longer arms for the reach / shield demo — the spear
+    # out-reaches the duelist's knife until he closes; the sword + shield
+    # show the wielded-armor covering path. All cloned fresh at standup.
+    - /stuff/thing/arms/steel-spear
+    - /stuff/thing/arms/steel-sword
+    - /stuff/thing/arms/steel-shield
+    - /stuff/thing/arms/leather-whip

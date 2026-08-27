@@ -1,0 +1,19 @@
+# The belt knife — the smithing branch's bladed output form. Authored with
+# NO default material: `CraftingLogic.applyTangibleOutput` flows the chosen
+# ingot's Material (and the consumed mass) onto the clone at forge time, so
+# an iron ingot makes an iron knife. A real Weapon — wieldable, bladed,
+# read by `analyze weapon` and combat.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a belt knife
+  primaryKeyword: knife
+  keywords: [knife, belt-knife, blade]
+  longDescription: |
+    A plain single-edged working knife, full-tang, its grip wrapped in cord. The sort of blade a smith makes early and a traveller carries forever.
+  constructionForm: bladed
+  gradeBand: fair
+  mass: 0.2
+  length: 0.2
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]

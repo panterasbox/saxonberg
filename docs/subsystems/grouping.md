@@ -109,7 +109,7 @@ the contract reserves the slot but v1 routes writes through the
 
 ## `GroupRegistry` and `GroupApi`
 
-The registry is a singleton Idea at `/obj/GroupRegistry`, composed
+The registry is a singleton Idea at `/platform/idea/GroupRegistry`, composed
 with `PostRegistrationMixin`. Its `postRegister` instantiates the
 three v1 providers and indexes them by source. It follows the
 **catalogue / registry naming convention**: registries hold *code*
@@ -276,11 +276,10 @@ export type GroupOwner =
 Constructed through `Group.systemOwner()` / `playerOwner(path)` /
 `officeOwner(key)`; authored in a content pack's `requires.groups`
 (`GroupApi.ensureGroup`, adopt-by-name — [content-packs.md](./content-packs.md))
-as `system`, `{ office: <key> }`, or `{ player: <templatePath> }`. Rows written
-before 2026-08 held a bare string (`system`, a templatePath, briefly an
-`office:<key>` sentinel); `PersistenceManager.#migrateGroupOwners` rewrites
-them once at boot through `Group.ownerFromStored`, which the readers also
-pass through.
+as `system`, `{ office: <key> }`, or `{ player: <templatePath> }`. A stored
+`owner` is always the typed shape; `Group.ownerFromStored` (the readers'
+one entry) refuses anything else rather than reading it as something it
+is not.
 
 Ownership resolves **on read**, through the one ownership resolution —
 **`GroupApi.ownsGroup(actor, group)`** (Api → `GroupLogic` →
@@ -309,7 +308,7 @@ committee it debuted on was folded into the executive in wave 3).
 ## The `group` verb suite
 
 `GroupController` is the player-facing surface for the managed
-provider. The YAML lives at `content/cmd/social/group.yaml`; the controller
+provider. The YAML lives at `content/platform/cmd/social/group.yaml`; the controller
 dispatches on the subcommand:
 
 ```

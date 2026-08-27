@@ -1,0 +1,27 @@
+# The Last Counted Mile — the frontier settlement's municipal operating budget.
+# A proprietor-absent (municipal) Business, the Terminus city-budget precedent:
+# it collects the crossroads terminal's **arrival surcharge** (the toll the
+# settlement charges for stepping off the Line onto the frontier) and nothing
+# else this cycle — no positions, no wages (its spend is deferred, like the TPA
+# budget; both recirculate, the sink is a deferred CB drain).
+#
+# `operatingLocations` names the crossroads TERMINAL (the fixture), so
+# `businessAt(the terminal)` resolves this operator for the surcharge's
+# destination attribution — precise + un-spoofable, the mirror of the route
+# fee's departure attribution. Stands up **lazily and derived** (no manifest
+# entry, no bespoke terminal hook): the employment engine reads this Business's
+# `operatingLocations` and stands it up on first `businessAt` at that terminal
+# — the arrival surcharge is the trigger.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⚠ No authority, deliberately: this business has NO positions, so there
+  # is nothing to appoint anyone to. Authoring one would be structure
+  # without a consumer. Identical to today (`proprietorPath: ''` resolved
+  # to none).
+  positions: []
+  # Where this budget banks (authored custody; city governance is
+  # content, not the state).
+  banksAt: goodkin
+  operatingLocations:
+    - /world/newbie-wilds/crossroads/terminal

@@ -1,0 +1,170 @@
+verbs: [party]
+controller: /platform/idea/cmd/social/PartyController
+description: "Form and run a party — the operational unit that fights as one side"
+help: |
+  A party is your operational unit: the people (and hired
+  mercenaries) who fight on your side. Membership lives on the party
+  itself, and its chat channel + combat friend/foe are read from that
+  one roster.
+
+  Start one with `party form <name>` and you captain it. Bring people
+  in with `party invite` (they `party accept`); check the roster with
+  `party show`. A `--durable` party is a named crew that survives a
+  restart — stand it down with `party standdown` and bring it back
+  with `party muster <name>`.
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  form:
+    description: "Found a new party (you become captain)"
+    help: |
+      Start a new party with you as captain. Add `--durable` to make
+      it a named crew that persists across restarts.
+    examples:
+      - cmd: party form Wardens --durable
+        note: A named crew that survives a restart
+    options:
+      durable:
+        short: d
+        type: boolean
+        description: "Make this a persistent, named crew (survives restart)."
+    args:
+      - name: name
+        type: string
+        required: true
+  invite:
+    description: "Invite a player to your party (captain-only)"
+    help: |
+      Offer someone a place in your party. They accept with
+      `party accept`.
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        requires: class:Agent
+        onExcess: prompt
+  enlist:
+    description: "Take a mercenary (or willing NPC) into your party (captain-only)"
+    help: |
+      Bring a hireable NPC directly into your party — no invite
+      handshake (they've already agreed to serve). Captain-only.
+    examples:
+      - cmd: party enlist the sellsword
+        note: Recruit a mercenary to fight at your side
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: class:Agent
+        onExcess: prompt
+  accept:
+    description: "Accept a party invite"
+    help: |
+      Join the party you were most recently invited to. You can only
+      be in one active party at a time.
+  leave:
+    description: "Leave your active party"
+    help: |
+      Step out of your active party. If you were captain, leadership
+      passes to another member.
+  kick:
+    description: "Remove a member from your party (captain-only)"
+    help: |
+      Take someone out of your party. Captain-only.
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        requires: class:Agent
+        onExcess: prompt
+  disband:
+    description: "Dissolve your party (captain-only)"
+    help: |
+      Break up the party entirely and drop its chat channel.
+      Captain-only.
+  transfer:
+    description: "Hand leadership to another member (captain-only)"
+    help: |
+      Make another member the captain. You stay in the party as an
+      ordinary member.
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        requires: class:Agent
+        onExcess: prompt
+  side:
+    description: "Set your party's combat side (captain-only)"
+    help: |
+      Set the alignment key your party fights under — combatants on
+      the same side are allies. Point two parties at the same side to
+      fight together. Captain-only.
+    args:
+      - name: name
+        type: string
+        required: true
+  adopt:
+    description: "Adopt a combat formation for your party (captain-only)"
+    help: |
+      Set the standing policy your party fights under — who holds which
+      engagement, who steps in for whom, who finishes the fallen. One
+      choice, watched unfolding. Presets: default, focus-fire, vanguard,
+      master-apprentice. Assign roles with `party assign`. A switch made
+      mid-fight takes hold on the very next beat, in view of everyone.
+    examples:
+      - cmd: party adopt vanguard
+        note: The front line eats the edges; the back line stays free
+      - cmd: party adopt master-apprentice
+        note: The apprentice holds the fight; the master steps in at need
+    args:
+      - name: name
+        type: string
+        required: true
+  assign:
+    description: "Assign a member a role from your formation (captain-only)"
+    help: |
+      Hand a member one of the adopted formation's roles (vanguard:
+      front/back; master-apprentice: master/apprentice). Roles are sets,
+      not seats — any number of members may hold the same role, and a
+      vacant role simply goes quiet.
+    examples:
+      - cmd: party assign front the sellsword
+        note: Put the mercenary on the line
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: class:Agent
+        onExcess: prompt
+  muster:
+    description: "Re-activate a dormant durable crew by name"
+    help: |
+      Bring a named crew back into being your active party. Stands
+      down your current active party first (one active party at a
+      time).
+    args:
+      - name: name
+        type: string
+        required: true
+  standdown:
+    description: "Stand your party down (durable crews go dormant)"
+    help: |
+      Stand down your active party. A durable crew keeps its roster
+      and goes dormant (muster it later); an ad-hoc party is simply
+      left.
+  list:
+    description: "List your durable crews"
+    help: |
+      Show every durable crew whose roster lists you.
+  show:
+    description: "Show your active party"
+    help: |
+      Show your active party's name, size, and whether you lead it.

@@ -24,7 +24,7 @@ import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ShadowApi } from '../shadow';
 import { Events, type ReloadEvent } from '../../lib/events';
-import EventRegistry from '../../obj/EventRegistry';
+import EventRegistry from '../../platform/idea/EventRegistry';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   PersistenceManager,
@@ -36,7 +36,7 @@ let workDir: string;
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -337,7 +337,7 @@ describe('HotReloadApi', () => {
 
   describe('StuffApi.clone consults HotReloadApi', () => {
     /**
-     * Compute the absolute fs path StuffApi will resolve a `/obj/Name`
+     * Compute the absolute fs path StuffApi will resolve a `/platform/idea/Name`
      * class path to. Mirrors `StuffApi.#resolveAbsoluteClassPath`'s
      * logic (test fixture is not on disk, so the helper falls through
      * to the `.ts` candidate).
@@ -383,7 +383,7 @@ describe('HotReloadApi', () => {
           return 'v1-via-hmr';
         }
       }
-      const classPath = '/obj/__hmrFooFixture';
+      const classPath = '/platform/idea/__hmrFooFixture';
       const absPath = classPathToAbs(classPath);
       installInMemoryDomain([
         {
@@ -414,7 +414,7 @@ describe('HotReloadApi', () => {
           return 'v2';
         }
       }
-      const classPath = '/obj/__hmrSwapFixture';
+      const classPath = '/platform/idea/__hmrSwapFixture';
       const absPath = classPathToAbs(classPath);
       installInMemoryDomain([
         {
@@ -439,7 +439,7 @@ describe('HotReloadApi', () => {
 
     it('frozen path: clone throws "no blueprint at path"', async () => {
       class HmrFrozenFoo extends Idea {}
-      const classPath = '/obj/__hmrFrozenFixture';
+      const classPath = '/platform/idea/__hmrFrozenFixture';
       const absPath = classPathToAbs(classPath);
       installInMemoryDomain([
         {

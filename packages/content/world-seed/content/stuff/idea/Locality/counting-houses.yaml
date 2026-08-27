@@ -1,0 +1,12 @@
+# The Counting-Houses — the downtown financial quarter Locality, off
+# University Avenue (the way money districts sit on their own street, Lombard
+# off Cheapside). Names the district on departures boards / address readouts
+# and carries the weather node for its outdoor street. Homed under
+# `seeds/obj/address/` (the terminus/narnia precedent) so
+# AddressRegistry.postRegister eagerly clones + warms its prefix at boot — a
+# domain-dir seed would never register. templatePath ≠ claimed address.
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Counting-Houses
+  _address: counting-houses

@@ -183,7 +183,7 @@ test('a new player creates a character and spawns into the world', async ({
 
     // Prove the avatar actually spawned: a `look` round-trips and renders
     // the seeded spawn room — the lounge (the Avatar seed pins
-    // `startLocation: /domain/lounge/warren`). We assert on the room's
+    // `startLocation: /world/lounge/warren`). We assert on the room's
     // stable identity label, not its flavor prose.
     //
     // Resilient send: right after the cockpit flips in, the WebSocket

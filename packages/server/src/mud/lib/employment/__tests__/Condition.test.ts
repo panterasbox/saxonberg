@@ -41,7 +41,7 @@ class TestParcel extends ChattelMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestParcel";
 }
 
-const ROOM = "/domain/test/bar";
+const ROOM = "/world/test/bar";
 const CRATE = "/obj/test/crate";
 
 function delivery(overrides: Partial<ConditionData> = {}): ConditionData {
@@ -118,7 +118,7 @@ describe("Condition.matchesItem / holdsFor", () => {
     const room = makeStuffAtPath(() => new TestRoom(), ROOM);
     const courier = makeStuffAtPath(
       () => new Creature(),
-      "/obj/Avatar/courier",
+      "/platform/agent/Avatar/courier",
     );
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     ContainmentApi.move(courier, room);
@@ -131,12 +131,12 @@ describe("Condition.matchesItem / holdsFor", () => {
     const room = makeStuffAtPath(() => new TestRoom(), ROOM);
     const counter = makeStuffAtPath(
       () => new TestCounter(),
-      "/domain/test/counter",
+      "/world/test/counter",
     );
     ContainmentApi.move(counter, room);
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     ContainmentApi.placeOn(crate, counter);
-    const toCounter = delivery({ destinationPath: "/domain/test/counter" });
+    const toCounter = delivery({ destinationPath: "/world/test/counter" });
     expect(Condition.holdsFor(toCounter, crate)).toBe(true);
     // …and to the room: the crate is in the room's contents via placeOn.
     expect(Condition.holdsFor(delivery(), crate)).toBe(true);

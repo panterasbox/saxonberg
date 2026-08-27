@@ -16,13 +16,13 @@ import {
 } from '../../../security/__tests__/test-setup';
 import type { ModalityFamily } from '../../Modality';
 import { Modality } from '../../Modality';
-import { VisionModality } from '../../../../obj/modalities/VisionModality';
-import { SmellModality } from '../../../../obj/modalities/SmellModality';
-import { SoundModality } from '../../../../obj/modalities/SoundModality';
-import { TouchModality } from '../../../../obj/modalities/TouchModality';
-import { TasteModality } from '../../../../obj/modalities/TasteModality';
-import { VerbalESPModality } from '../../../../obj/modalities/VerbalESPModality';
-import { EmotiveESPModality } from '../../../../obj/modalities/EmotiveESPModality';
+import { VisionModality } from '../../../../platform/idea/modalities/VisionModality';
+import { SmellModality } from '../../../../platform/idea/modalities/SmellModality';
+import { SoundModality } from '../../../../platform/idea/modalities/SoundModality';
+import { TouchModality } from '../../../../platform/idea/modalities/TouchModality';
+import { TasteModality } from '../../../../platform/idea/modalities/TasteModality';
+import { VerbalESPModality } from '../../../../platform/idea/modalities/VerbalESPModality';
+import { EmotiveESPModality } from '../../../../platform/idea/modalities/EmotiveESPModality';
 import { PerceptionApi } from '../../../../api/perception';
 
 function registerAtPath<T extends Stuff>(factory: () => T, path: string): T {
@@ -52,7 +52,7 @@ const MODALITY_SPECS: readonly ModalitySpec[] = [
 ];
 
 /**
- * Build one v1 modality singleton at `/obj/modalities/<name>`.
+ * Build one v1 modality singleton at `/platform/idea/modalities/<name>`.
  * Hydrates from the matching v1 seed data.
  */
 export function buildModality(name: string): Modality {
@@ -60,7 +60,7 @@ export function buildModality(name: string): Modality {
   if (!spec) {
     throw new Error(`buildModality: unknown modality '${name}'`);
   }
-  const path = `/obj/modalities/${spec.name}`;
+  const path = `/platform/idea/modalities/${spec.name}`;
   const modality = registerAtPath(spec.factory, path);
   modality.setName(spec.name);
   modality.setFamily(spec.family);

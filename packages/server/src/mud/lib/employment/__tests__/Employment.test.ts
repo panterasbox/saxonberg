@@ -6,7 +6,7 @@ import {
 } from '../Employment';
 
 const BASE: EmploymentData = {
-  organizationPath: '/domain/lounge/business',
+  organizationPath: '/world/lounge/business',
   positionKey: 'bartender',
   status: 'employed',
   hiredAt: 100,

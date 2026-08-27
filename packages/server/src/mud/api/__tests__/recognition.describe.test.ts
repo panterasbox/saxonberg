@@ -73,7 +73,7 @@ function makeBeing(name: string, appearance: string): Being {
 afterEach(() => {
   // Drop any vision singleton a gate test registered so other tests see
   // the no-modality (gate-permits) baseline.
-  for (const m of StuffApi.findAllByTemplatePath('/obj/modalities/vision')) {
+  for (const m of StuffApi.findAllByTemplatePath('/platform/idea/modalities/vision')) {
     StuffApi.unregister(m);
   }
 });

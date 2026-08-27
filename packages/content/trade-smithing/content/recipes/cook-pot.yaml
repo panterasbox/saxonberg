@@ -1,0 +1,20 @@
+recipeId: cook-pot
+name: Cook Pot
+keywords:
+- cook-pot
+- pot
+inputSlots:
+- slot: stock
+  category: ferrous
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities:
+- striking
+- anvil
+outputTemplate: /stuff/thing/CookPot
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 800
+difficulty: easy
+discipline: smithing

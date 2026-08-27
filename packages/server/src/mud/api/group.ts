@@ -6,9 +6,9 @@
  * (permission checks, targeting, effects).
  *
  * Thin forwarding shell: the registry-resolution + forwarding live in
- * the hot-reloadable {@link GroupLogic} singleton at `/obj/api/group`,
+ * the hot-reloadable {@link GroupLogic} singleton at `/platform/idea/api/group`,
  * reached synchronously via `StuffApi.singletonSync`; the state lives on
- * the pinned `/obj/GroupRegistry`. `dest /obj/api/group` reloads it.
+ * the pinned `/platform/idea/GroupRegistry`. `dest /platform/idea/api/group` reloads it.
  */
 
 import { StuffApi } from './stuff';
@@ -22,14 +22,14 @@ import type {
 import type { GroupRole, Group, GroupOwner } from '../lib/social/Group';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
-import type GroupRegistry from '../obj/GroupRegistry';
-import { GroupLogic } from '../obj/api/GroupLogic';
+import type GroupRegistry from '../platform/idea/GroupRegistry';
+import { GroupLogic } from '../platform/idea/api/GroupLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/group';
+const LOGIC_PATH = '/platform/idea/api/group';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/GroupLogic', import.meta.url)
+  new URL('../platform/idea/api/GroupLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able GroupLogic singleton (sync). */
@@ -128,7 +128,7 @@ export class GroupApi {
    * under its own claims, and `pack staff`). Idempotent: false when the
    * member was already present. Gated to `PackLogic`'s caller chain.
    */
-  @CallSecurity(SecurityPolicies.FromModule('/obj/api/PackLogic#PackLogic'))
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/PackLogic#PackLogic'))
   static async ensureMember(
     ref: GroupRef,
     memberKey: string,

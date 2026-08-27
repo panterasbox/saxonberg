@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import { Boundary } from '../Boundary';
 import CartesianLocation from '../../location/CartesianLocation';
-import CartesianZone from '../../../obj/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { BoundaryApi } from '../../../api/boundary';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';

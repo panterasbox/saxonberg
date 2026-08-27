@@ -1,0 +1,30 @@
+verbs: [introduce]
+controller: /platform/idea/cmd/social/IntroduceController
+description: "Introduce yourself — or someone you know — to those nearby"
+help: |
+  Tell the people around you who you are. Until you introduce
+  yourself, strangers see you only by description ("a tall stranger");
+  once introduced, they learn and remember your name. Name a subject
+  to introduce someone else you already know instead of yourself.
+
+  The whole room hears an introduction and everyone present learns
+  the name. Add `--to <person>` to address it to one individual —
+  it's still public, but framed as spoken to them.
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  to:
+    short: t
+    type: object
+    scope: "online"
+    field: audience
+    description: "Address the introduction to a particular person (the whole room still hears, and everyone learns the name)."
+    requires: class:Agent
+    onExcess: prompt
+args:
+  - name: subject
+    type: object
+    required: false
+    scope: "reachable"
+    requires: class:Agent
+    onExcess: prompt

@@ -21,7 +21,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { Idea } from '../../lib/stuff/Idea';
-import CartesianZone from '../../obj/location/CartesianZone';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../lib/location/CartesianLocation';
 import Thing from '../../lib/stuff/Thing';
 import { StuffApi } from '../stuff';

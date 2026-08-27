@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: self
+  family: ""
+  label: "Yourself"
+  description: "Your own person — how your body is doing, where you stand, and what is yours."
+  address: direct
+  actor: self
+  weight: consequence
+  audience: player
+  durable: true
+  affordance: live

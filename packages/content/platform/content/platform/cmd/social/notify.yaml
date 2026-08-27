@@ -1,0 +1,82 @@
+verbs: [notify]
+controller: /platform/idea/cmd/social/NotifyController
+description: "Manage your attention rules — how a group's connect / disconnect / message surfaces, and how they render in a room (keyed on any group ref, ordered by precedence)"
+help: |
+  Decide whose comings, goings, and messages reach you, and how the
+  people in a group render when you look at a room. A rule is keyed on
+  any group — a contacts label (`friends`), a managed group
+  (`managed:fighter-guild`), or an MQL query — and your rules are an
+  ordered list: when someone matches several, the FIRST rule down the
+  list wins. Order is precedence, so placing a rule higher makes it
+  authoritative.
+
+  Bare `notify` lists your rules. `notify <ref>` shows one. `notify
+  <ref> --login show …` sets fields. `notify <ref> --above <other>`
+  reorders. `notify <ref> --remove` (or `notify remove <ref>`) drops a
+  rule (the group falls back to the sensible default tail). Reserved
+  labels — `friends`, `foes`, `everyone-else`, `strangers` — ship
+  sensible defaults you can edit.
+
+  Field options: `--login` / `--disconnect` (show|silent — a presence
+  frame in your buffer, or nothing), `--message` (full|summary|silent),
+  `--render` (name|feature-string|count-only|hidden), `--boost` /
+  `--no-boost`, `--color` (a theme palette token, e.g. amber).
+
+  `--login` covers arrivals (a character entering the game or reconnecting
+  after a drop); `--disconnect` covers departures (logging out or going
+  linkdead). The frame names the specific event; this just decides whether
+  it reaches you.
+validators:
+  - /lib/command/validators/requiresAnimate
+fallthrough: true
+options:
+  login:
+    type: string
+    description: "Arrivals (login / reconnect): show | silent"
+  disconnect:
+    type: string
+    description: "Departures (logout / disconnect): show | silent"
+  message:
+    type: string
+    description: "How a matched message restyles: full | summary | silent"
+  render:
+    type: string
+    description: "How members render in a room: name | feature-string | count-only | hidden"
+  color:
+    type: string
+    description: "Highlight color — a theme palette token (e.g. amber)"
+  boost:
+    type: boolean
+    description: "Boost this group's members in dense room listings"
+  no-boost:
+    type: boolean
+    field: noBoost
+    description: "Stop boosting this group's members in dense room listings"
+  remove:
+    type: boolean
+    description: "Drop this rule (the group falls back to the default tail)"
+  above:
+    type: string
+    description: "Reorder: place this rule above another (order = precedence)"
+  below:
+    type: string
+    description: "Reorder: place this rule below another"
+subcommands:
+  remove:
+    description: "Drop a rule (the group falls back to the default tail)"
+    help: |
+      Remove a rule you set. The group it covered falls back to the
+      reserved baseline default (so removing your `friends` rule just
+      restores the shipped friends behavior, it doesn't forget anyone).
+    args:
+      - name: ref
+        type: string
+        required: true
+args:
+  # Fallthrough: when the first token isn't the `remove` subcommand, bind
+  # it as `notify <ref>` (set via --options / show), or bare `notify`
+  # (list). The set-fields are typed OPTIONS (above), not positionals —
+  # an optional `ref` can't be followed by a greedy positional.
+  - name: ref
+    type: string
+    required: false

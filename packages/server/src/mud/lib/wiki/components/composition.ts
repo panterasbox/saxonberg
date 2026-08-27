@@ -3,9 +3,9 @@
  * the wiki is not just a help system with prose.
  *
  * ```
- * <composition kind="template" of="/obj/material/oak"/>
+ * <composition kind="template" of="/stuff/idea/material/oak"/>
  * <composition kind="mixin"    of="CombustibleMixin"/>
- * <composition kind="command"  of="inventory/plant.yaml"/>
+ * <composition kind="command"  of="platform/cmd/inventory/plant.yaml"/>
  * ```
  *
  * In this engine a thing's behaviour **is** its mixin composition, so
@@ -120,7 +120,7 @@ export const component = class WikiComposition {
 
 /**
  * Decide the kind. Explicit `kind=` wins; absent, it is inferred from
- * the reference's shape, because `of="/obj/material/oak"` is
+ * the reference's shape, because `of="/stuff/idea/material/oak"` is
  * unambiguous and making authors type `kind="template"` for the common
  * case is friction for nothing.
  */

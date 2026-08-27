@@ -45,7 +45,7 @@ state lives on the object (no external store holding it); the party is
 side, or captain like any other `Stuff`; and it is discovered through the
 **Stuff graph** (`StuffApi.findByTemplatePath`) rather than a hand-rolled
 index. A runtime-minted party gets an instance `templatePath`
-(`/obj/party/<uuid>`), which is also its id in every `party:<path>` ref.
+(`/platform/idea/party/<uuid>`), which is also its id in every `party:<path>` ref.
 
 Its *durable* state is mirrored into a dumb **`PartyRecord`** document
 (`lib/party/PartyRecord.ts`, the `parties` collection, keyed on the Idea's
@@ -53,7 +53,7 @@ Its *durable* state is mirrored into a dumb **`PartyRecord`** document
 through `addMember`/`removeMember`; the captain is the single source of
 leadership authority (`captainId`). The combat-formations build added the
 **formation state**: `formationPath` (the adopted
-`/obj/CombatFormation/<name>` — a path string, ref-shapes Pattern
+`/platform/idea/CombatFormation/<name>` — a path string, ref-shapes Pattern
 A; the party side never imports `lib/combat`) and `roleAssignments`
 (member → role; **roles are sets, not seats** — many members may share
 one, a departing member's role is released with them), both mirrored to
@@ -93,7 +93,7 @@ see [call-security.md § Participant contracts](./call-security.md)):
 the legitimate writer is *the `Party` acting on this member* — the
 active pointer may only be cleared or set to the **calling party's own
 path with the member already on its roster**, the invite pointer to the
-calling party's own path — plus a narrow `FromTemplate('/obj/api/party')`
+calling party's own path — plus a narrow `FromTemplate('/platform/idea/api/party')`
 janitorial arm for stale-pointer cleanup when no live Party Idea exists.
 The membership **transitions live on `Party` itself** (`admit` /
 `extendInvite` / `release` / `recall` / `dismiss`), each owning BOTH
@@ -102,7 +102,7 @@ disagree; `PartyLogic` keeps only orchestration (consent checks,
 persistence, channel, the empty-party terminus via
 `settleAfterDeparture`, boot). `Party`'s mutation surface (transitions
 + roster/leadership/identity setters) is gated
-`AnyOf(SelfOnly, FromTemplate('/obj/api/party'))`; reads stay Public.
+`AnyOf(SelfOnly, FromTemplate('/platform/idea/api/party'))`; reads stay Public.
 `partyMemberId()` (an Avatar's playerId, else the templatePath) is the
 member's own identity answer.
 
@@ -158,7 +158,7 @@ cycle.
 
 ## The `party` verb + `PartyApi`
 
-`PartyApi`/`PartyLogic` (`/obj/api/party`) own the seam + the lifecycle:
+`PartyApi`/`PartyLogic` (`/platform/idea/api/party`) own the seam + the lifecycle:
 `form` · `invite` · `accept` · `enlist` (the merc-hire path, no accept
 handshake) · `leave` · `kick` · `disband` · `transfer` · `setSide` ·
 `muster` · `standDown` · `partiesOf` · `activePartyOf`. The `party` verb

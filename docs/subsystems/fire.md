@@ -115,7 +115,7 @@ Dials: `response.heat.*`.
   overshoot into the accumulator) then **melts**, destructing and flowing its
   mass to a molten `Bulkable` pool in the scope's `Floor`; a liquid-holding
   vessel **boils** to gas above the boiling point and **solidifies** to a cast
-  below the melting point (a **clone of the `/obj/Casting` template** — a
+  below the melting point (a **clone of the `/stuff/thing/Casting` template** — a
   re-meltable content object, material/mass/prose stamped per freeze; not a raw
   construction). Bidirectional — **ice → water → steam falls out of one water
   material**.
@@ -165,7 +165,7 @@ cold"), and the by-hand `heat` step latches it onto the build buffer. See
 
 ## Content
 
-The **Hearthworks** (`domain/hearthworks/`, `world-seed/content/domain/hearthworks*`) — a
+The **Hearthworks** (`domain/hearthworks/`, `world-seed/content/world/hearthworks*`) — a
 self-contained fire zone (teleport-reachable, the substation precedent) with a
 **woodshed** (spread + wet-resist), a **sealed cellar** (`SealedCellar` — the
 CO/ventilation lesson), and a **smithy** (a bellows-fed `Forge` melting an

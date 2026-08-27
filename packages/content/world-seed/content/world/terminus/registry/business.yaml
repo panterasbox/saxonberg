@@ -1,0 +1,44 @@
+# The Terminus Registry — the city's one built department Business (the
+# municipal shape: proprietor-absent, no corpoKey — the budget.yaml
+# precedent). Two positions: the registrar's counter and the Magistrate's
+# seat (the civics Government template's `magistrate` seat references
+# THIS business + position — a seat is an employment position, never a
+# second office apparatus). Odile double-hats both on a SHIFT-LESS roster
+# (`schedule: []` — never on shift, so no wage flows yet; real shifts
+# arrive with real city content). Stands up lazily like every Business;
+# `holdsSeat` proves against the authored roster even before standup.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # ⭐ A city DEPARTMENT — nobody owns it, so the authority is the
+  # COMMITTEE holding title over its ground (`/world/terminus/registry`
+  # is the `terminus` group's, per config/parcels.yaml). Whoever staffs
+  # the city staffs its registry, and the Magistrate seat below is a
+  # position on this chart rather than a second apparatus.
+  #
+  # ⚠ It stays a BUSINESS, and that is not an oversight: `TitleController`
+  # sells land titles across this counter and settles into its operating
+  # account (`ensureOperatorAt` → `operatingAccountOf`). A registry that
+  # takes money trades.
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus/registry
+  positions:
+    - key: registrar
+      label: keeping the city registry
+      wageRate: 4
+      confers: []
+    - key: magistrate
+      label: sitting as Magistrate of Terminus
+      wageRate: 6
+      confers: []
+  rosterSlots:
+    - positionKey: registrar
+      assignee: /world/terminus/registry/clerk
+      schedule: []
+    - positionKey: magistrate
+      assignee: /world/terminus/registry/clerk
+      schedule: []
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/registry/office

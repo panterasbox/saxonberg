@@ -363,7 +363,7 @@ class SpatialZone extends Zone {
 
 class VoidLocation extends SingletonMixin(Location) {
   // Bootstrap-pinned singleton — `ContainerMixin.cleanupOnDestruct`
-  // evacuates HasInteractive bodies to `/domain/void` via sync
+  // evacuates HasInteractive bodies to `/world/void` via sync
   // `findByTemplatePath`, so the void must stay live for the
   // process lifetime. Same shape as EventRegistry / Clade.
   public canDestruct(): VetoResult {
@@ -389,13 +389,13 @@ cleanup walk. Its policy for each direct content item:
 | Outer container of the destructing Container | Per-item policy |
 |---|---|
 | Non-null (the destructing Container is itself contained) | Re-parent every item to the outer via `ContainmentApi.move`. |
-| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the void singleton (`/domain/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
+| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the void singleton (`/world/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
 | Null AND item is not `HasInteractive` | Cascade-destruct via `StuffApi.destruct(item)`. |
 
-The HI escape leans on `/domain/void` being live before any
+The HI escape leans on `/world/void` being live before any
 container can destruct — bootstrap guarantees that (the
-`{ templatePath: '/domain/void' }` entry runs after
-`/obj/EventRegistry`).
+`{ templatePath: '/world/void' }` entry runs after
+`/platform/idea/EventRegistry`).
 
 The policy targets only the DIRECT contents of the destructing
 host. A HasInteractive nested inside a non-HasInteractive Container

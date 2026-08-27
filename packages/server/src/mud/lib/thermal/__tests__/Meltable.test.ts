@@ -12,9 +12,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import Material from '../../material/Material';
-import Floor from '../../../obj/Floor';
-import Flask from '../../../obj/Flask';
-import Casting from '../../../obj/Casting';
+import Floor from '../../../platform/thing/Floor';
+import Flask from '../../../platform/thing/Flask';
+import Casting from '../../../platform/thing/Casting';
 import { ThermalMixin } from '../Thermal';
 import { MeltableMixin } from '../Meltable';
 import { ThermalApi } from '../../../api/thermal';
@@ -44,7 +44,7 @@ function ironMaterial(): Material {
     m.setMeltingPoint(Quantity.of(1811, 'K'));
     m.setLatentHeatOfFusion(Quantity.of(247000, 'J/kg'));
     return m;
-  }, `/obj/material/_test/melt-iron-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/melt-iron-${seq}`) as unknown as Material;
 }
 function waterMaterial(): Material {
   seq += 1;
@@ -58,7 +58,7 @@ function waterMaterial(): Material {
     m.setBoilingPoint(Quantity.of(373, 'K'));
     m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
     return m;
-  }, `/obj/material/_test/melt-water-${seq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/melt-water-${seq}`) as unknown as Material;
 }
 
 function floorIn(room: TestRoom): Floor {
@@ -142,7 +142,7 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
   });
 
   it('solidifies a liquid to a cast below its melting point', async () => {
-    // The freeze clones the `/obj/Casting` template; the faked-Mongo test has
+    // The freeze clones the `/stuff/thing/Casting` template; the faked-Mongo test has
     // no clone pipeline, so stub `StuffApi.clone` to mint a fresh Casting (the
     // banking-suite precedent).
     const cloneSpy = vi
@@ -155,7 +155,7 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
       expect(flask.getBulkAmount('interior').rawValue()).toBe(0);
       await flush();
       await flush();
-      expect(cloneSpy).toHaveBeenCalledWith('/obj/Casting');
+      expect(cloneSpy).toHaveBeenCalledWith('/stuff/thing/Casting');
       // A cast solid of the frozen water dropped into the scope.
       const cast = room
         .getContents()

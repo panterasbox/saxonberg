@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { OrganismMixin } from '../Organism';
-import Species from '../../../obj/species/Species';
+import Species from '../../../platform/idea/species/Species';
 import { Idea } from '../../stuff/Idea';
 import Thing from '../../stuff/Thing';
 import { MixinApi } from '../../../api/mixin';
@@ -37,13 +37,13 @@ describe('OrganismMixin', () => {
     sapiens.setBinomial('Homo sapiens');
     stampTemplatePathForTest(
       sapiens,
-      '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+      '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
     );
 
     const organism = makeStuff(() => new OrganismThing());
     organism.setSpecies(sapiens);
     expect(organism._speciesPath).toBe(
-      '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+      '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
     );
     expect(organism.getSpecies()).toBe(sapiens);
   });

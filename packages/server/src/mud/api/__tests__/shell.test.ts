@@ -19,7 +19,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
-import { ShellLogic } from '../../obj/api/ShellLogic';
+import { ShellLogic } from '../../platform/idea/api/ShellLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
@@ -372,18 +372,18 @@ describe('ShellLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/shell once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/shell once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     const giver = makeStuff(() => new TestGiver());
     ShellApi.expandVariables('hello', giver);
-    const logic = StuffApi.findByTemplatePath('/obj/api/shell');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/shell');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-ShellApi caller', () => {
-    const logic = makeStuffAtPath(() => new ShellLogic(), '/obj/api/shell');
-    expect(StuffApi.findByTemplatePath('/obj/api/shell')).toBe(logic);
+    const logic = makeStuffAtPath(() => new ShellLogic(), '/platform/idea/api/shell');
+    expect(StuffApi.findByTemplatePath('/platform/idea/api/shell')).toBe(logic);
     // The test module is not `mud/api/shell#ShellApi` nor the singleton
     // itself; the FromModule gate on the logic's own methods denies the
     // call.

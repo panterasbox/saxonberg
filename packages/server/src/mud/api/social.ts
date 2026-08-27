@@ -12,8 +12,8 @@
  * Phase-3 presence tap installs into.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link SocialLogic} singleton at `/obj/api/social`, reached synchronously
- * via `StuffApi.singletonSync`. `dest /obj/api/social` reloads it.
+ * {@link SocialLogic} singleton at `/platform/idea/api/social`, reached synchronously
+ * via `StuffApi.singletonSync`. `dest /platform/idea/api/social` reloads it.
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
@@ -27,11 +27,11 @@ import type {
 } from "../lib/social/NotifyRule";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import type Avatar from "../obj/Avatar";
+import type Avatar from "../platform/agent/Avatar";
 import type { PresenceStatus, RosterRow } from "@saxonberg/types";
-import { SocialLogic } from "../obj/api/SocialLogic";
-import { PresenceLogic } from "../obj/api/PresenceLogic";
-import { ProfileLogic } from "../obj/api/ProfileLogic";
+import { SocialLogic } from "../platform/idea/api/SocialLogic";
+import { PresenceLogic } from "../platform/idea/api/PresenceLogic";
+import { ProfileLogic } from "../platform/idea/api/ProfileLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
@@ -95,17 +95,17 @@ export interface ProfileCard {
   yourRegard?: string;
 }
 
-const LOGIC_PATH = "/obj/api/social";
+const LOGIC_PATH = "/platform/idea/api/social";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/SocialLogic", import.meta.url),
+  new URL("../platform/idea/api/SocialLogic", import.meta.url),
 );
-const PRESENCE_LOGIC_PATH = "/obj/api/presence";
+const PRESENCE_LOGIC_PATH = "/platform/idea/api/presence";
 const PRESENCE_LOGIC_FILE = fileURLToPath(
-  new URL("../obj/api/PresenceLogic", import.meta.url),
+  new URL("../platform/idea/api/PresenceLogic", import.meta.url),
 );
-const PROFILE_LOGIC_PATH = "/obj/api/profile";
+const PROFILE_LOGIC_PATH = "/platform/idea/api/profile";
 const PROFILE_LOGIC_FILE = fileURLToPath(
-  new URL("../obj/api/ProfileLogic", import.meta.url),
+  new URL("../platform/idea/api/ProfileLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able SocialLogic singleton (sync). */

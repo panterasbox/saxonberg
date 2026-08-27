@@ -1,5 +1,5 @@
 # /wiki — the encyclopedia's namespace root, and a new top-level
-# template branch beside /lib, /obj, /domain, /home and /studio.
+# template branch beside /lib, /obj, /world, /home and /studio.
 #
 # A real Zone seed so the folder/leaf invariant accepts the namespace
 # zones beneath it, and so `Zone.lookupField` sees it as an inheritance
@@ -15,8 +15,8 @@
 #
 # Class paths under here stay `/obj/...`, so `#validateClassPath` is
 # satisfied; only the TEMPLATE paths are new.
-class: /obj/WikiNamespaceZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/WikiNamespaceZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wiki
   protection: anyone

@@ -834,9 +834,9 @@ blur together, now named separately:
   the thing `FromModule`, the top-level-branch check, and hot-reload
   identity already trust. Lineage never lives in data.
 - **`templatePath` is identity.** For authored content it identifies
-  the *kind* (`/obj/exits/oak-door` — one identity, N anonymous
+  the *kind* (`/stuff/idea/exits/oak-door` — one identity, N anonymous
   clones). For minted singletons it identifies the *instance*
-  (`/obj/party/<uuid>`, `/obj/Avatar/<playerId>`). When an instance of
+  (`/platform/idea/party/<uuid>`, `/platform/agent/Avatar/<playerId>`). When an instance of
   a multi-instance kind needs its own address, the instance key is
   **scheme-derived**, never random-per-need: the dorm extent slot
   (`…/dorms/f<n>-r<p>`), the persistence spine's uniform
@@ -855,7 +855,7 @@ blur together, now named separately:
 
   A per-instance row in `domain` is the **anti-pattern** — it parks
   runtime data in the CMS tree where hand-edits bypass call security.
-  The per-player `/obj/Avatar/<playerId>` row is the legacy instance
+  The per-player `/platform/agent/Avatar/<playerId>` row is the legacy instance
   (pre-spine); its retirement is tracked work, and no new code should
   copy it.
 

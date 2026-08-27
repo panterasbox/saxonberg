@@ -2,7 +2,7 @@ blueprintId: branded-bottle
 name: Branded Bottle
 kind: composition
 baseClass: Thing
-classPath: /obj/corpo/BrandedBottle
+classPath: /platform/thing/corpo/BrandedBottle
 parent: things
 blessed: true
 description: 'A branded object: a Thing carrying a corpo mark ("a product of Veshko"), resolved on read. The bare Branded composition.

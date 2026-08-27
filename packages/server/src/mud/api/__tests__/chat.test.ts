@@ -10,7 +10,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ChatApi } from '../chat';
-import { ChatLogic } from '../../obj/api/ChatLogic';
+import { ChatLogic } from '../../platform/idea/api/ChatLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 
@@ -28,7 +28,7 @@ describe('ChatLogic singleton encapsulation', () => {
     // the singleton is registered before the first await). Swallow the
     // dangling promise; we only need the singleton to exist.
     void ChatApi.getBackingGroupIds().catch(() => undefined);
-    const logic = StuffApi.findByTemplatePath<ChatLogic>('/obj/api/chat');
+    const logic = StuffApi.findByTemplatePath<ChatLogic>('/platform/idea/api/chat');
     expect(logic).toBeDefined();
     // The test module is not `mud/api/chat#ChatApi`, so the FromModule
     // gate on the logic's own methods denies the call. The gate fires

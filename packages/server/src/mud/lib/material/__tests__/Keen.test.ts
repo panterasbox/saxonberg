@@ -6,7 +6,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import Weapon from '../../../obj/equipment/Weapon';
+import Weapon from '../../../platform/thing/equipment/Weapon';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';

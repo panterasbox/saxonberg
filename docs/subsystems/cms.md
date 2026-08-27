@@ -52,7 +52,7 @@ Three backends, one navigation model:
 
 A **node ref** is `{ backend: 'content' | 'source' | 'document'; path }`.
 `path` is the canonical identifier *within that backend* (a template path
-`/obj/Avatar/foo` for content; a mud-relative path `/api/cms.ts` for
+`/platform/agent/Avatar/foo` for content; a mud-relative path `/api/cms.ts` for
 source; a store path `/home/<player>/scripts/<name>` for document).
 **There is no merged namespace** — the unified-ness is that one `CmsApi`
 and one explorer drive all three, discriminated by `backend`. The explorer
@@ -68,9 +68,9 @@ source.
 
 For **content**, `listTree` also **synthesizes namespace folders** for
 intermediate path segments that have no template doc of their own —
-`/obj` and `/lib` are browsable even though only `/obj/X` / `/lib/Y`
+`/obj` and `/lib` are browsable even though only `/platform/<branch>/X` / `/lib/Y`
 templates exist. Without this most engine content is unreachable from the
-root (the `domain` collection has templates at `/obj/Avatar/<id>`,
+root (the `domain` collection has templates at `/platform/agent/Avatar/<id>`,
 `/lib/lounge/...` etc., but no literal `/obj` or `/lib` doc). A child is a
 real template at depth+1, or a synthetic folder implied by deeper
 descendants; entries sort folders-first, then alphabetically.
@@ -79,7 +79,7 @@ descendants; entries sort folders-first, then alphabetically.
 
 `CmsApi` (`mud/api/cms.ts`) is a thin, security-gated forwarding shell —
 the structural twin of `source-tree.ts`. Four statics, each forwarding 1:1
-to the hot-reloadable `CmsLogic` singleton at `/obj/api/cms` (reached
+to the hot-reloadable `CmsLogic` singleton at `/platform/idea/api/cms` (reached
 synchronously via `StuffApi.singletonSync`):
 
 ```
@@ -309,7 +309,7 @@ a door. See [sandbox.md](./sandbox.md).
 
 ## ⭐ The CMS is a CARD now
 
-`cms` is a verb (`content/cmd/author/cms.yaml`, `requiresWizard`) and it
+`cms` is a verb (`content/platform/cmd/author/cms.yaml`, `requiresWizard`) and it
 opens a `client`-source card. The **server** owns the card's existence,
 identity, lifetime and pinned-ness; only the BODY is the client's,
 because the explorer, the tree and Monaco all speak the `/api/cms/*`

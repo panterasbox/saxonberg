@@ -19,9 +19,9 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Trap from '../../../obj/Trap';
+import Trap from '../../../platform/thing/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';
-import DisarmController from '../../../obj/command/device/DisarmController';
+import DisarmController from '../../../platform/idea/cmd/device/DisarmController';
 import { MobileMixin } from '../../spatial/Mobile';
 import { EngagedMixin } from '../../activity/Engaged';
 import { PosedMixin } from '../../character/Posed';
@@ -34,8 +34,8 @@ import { Construction } from '../../material/Construction';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
 import { Creature } from '../../creature/Creature';
-import Species from '../../../obj/species/Species';
-import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Thing from '../../stuff/Thing';
 import Location from '../../stuff/Location';
 import Exit from '../../boundary/Exit';
@@ -49,16 +49,16 @@ import { LocomotionApi } from '../../../api/locomotion';
 import { BiomeApi } from '../../../api/biome';
 import { WorldClockApi } from '../../../api/worldclock';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../obj/Condition';
+import type { Trauma } from '../../../platform/idea/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 import type { MqlOneResult } from '../../../api/mql';
 import type { CommandContext } from '../../../api/command';
@@ -91,7 +91,7 @@ function demoSteel(): Material {
   m.setName('steel');
   m.setHardness(Quantity.of(600, 'MPa'));
   m.setToughness(Quantity.of(200, 'MJ/m³'));
-  stampTemplatePathForTest(m, `/obj/material/alloy/steel-hz-${n}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/alloy/steel-hz-${n}`);
   return m;
 }
 
@@ -205,15 +205,15 @@ beforeEach(() => {
   // must be bootstrapped for a `pin` activity to start.
   const reg = makeStuff(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   EventApi._setRegistryForTesting(reg);
   n++;
-  bodyplanPath = `/obj/species/BodyPlan/hazard-biped-${n}`;
+  bodyplanPath = `/stuff/idea/species/BodyPlan/hazard-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/obj/species/hazard/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/stuff/idea/species/hazard/biped-${n}`);
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -223,7 +223,7 @@ afterEach(() => {
 
 describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
   it('springs on a bare mover who neither found nor perceives it', async () => {
-    const m = plainMover('/obj/Avatar/hz-bare');
+    const m = plainMover('/platform/agent/Avatar/hz-bare');
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     await walkInto(m, trap);
     const w = wound(m);
@@ -249,7 +249,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
       b.send = () => {};
       return b as never;
     });
-    const m = plainMover('/obj/Avatar/hz-narrate');
+    const m = plainMover('/platform/agent/Avatar/hz-narrate');
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     await walkInto(m, trap);
     expect(trap.getHazardState()).toBe('sprung');
@@ -257,7 +257,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
   });
 
   it('armor mitigates — a steel-plate boot takes the edge below the wound threshold', async () => {
-    const m = plainMover('/obj/Avatar/hz-shod');
+    const m = plainMover('/platform/agent/Avatar/hz-shod');
     const boot = makeStuff(() => new DemoBoot());
     boot.setSlotClaim(bodyplanPath, ['feet']);
     boot.setMaterial(demoSteel());
@@ -271,7 +271,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
   });
 
   it('avoids a trap the mover has already discovered (never springs)', async () => {
-    const m = plainMover('/obj/Avatar/hz-found');
+    const m = plainMover('/platform/agent/Avatar/hz-found');
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Thing);
     await walkInto(m, trap);
@@ -280,7 +280,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
   });
 
   it('a ground hazard is cleared by an air-medium crossing (fly)', () => {
-    const m = plainMover('/obj/Avatar/hz-flier');
+    const m = plainMover('/platform/agent/Avatar/hz-flier');
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     // modeOf('fly') → an air-medium mode; the ground trap clears.
@@ -295,7 +295,7 @@ describe('HazardMixin.resolveTraversal — spring vs avoid', () => {
 
 describe('HazardMixin — veto / redirect consequences', () => {
   it('pin holds the mover’s body slot', async () => {
-    const m = richMover('/obj/Avatar/hz-pinned');
+    const m = richMover('/platform/agent/Avatar/hz-pinned');
     const trap = makeTrap(
       { channel: 'point', energy: 1, siteSelector: FEET },
       { traverseConsequence: 'pin' },
@@ -305,7 +305,7 @@ describe('HazardMixin — veto / redirect consequences', () => {
   });
 
   it('trip knocks the mover prone', async () => {
-    const m = richMover('/obj/Avatar/hz-tripped');
+    const m = richMover('/platform/agent/Avatar/hz-tripped');
     expect(m.getPosture()).toBe(Postures.Stand);
     const trap = makeTrap(
       { channel: 'edge', energy: 1, siteSelector: FEET },
@@ -316,7 +316,7 @@ describe('HazardMixin — veto / redirect consequences', () => {
   });
 
   it('drop relocates the mover to the authored below-location', async () => {
-    const m = plainMover('/obj/Avatar/hz-dropped');
+    const m = plainMover('/platform/agent/Avatar/hz-dropped');
     const below = makeStuff(() => new Location());
     const belowPath = `/obj/test/pit-below-${n}`;
     stampTemplatePathForTest(below, belowPath);
@@ -333,7 +333,7 @@ describe('HazardMixin — veto / redirect consequences', () => {
 
 describe('HazardMixin — interact trigger + toxin dart', () => {
   it('an interact hazard springs on resolveInteract (and not on traversal)', async () => {
-    const m = plainMover('/obj/Avatar/hz-chest');
+    const m = plainMover('/platform/agent/Avatar/hz-chest');
     const trap = makeTrap(
       { channel: 'point', energy: 2, siteSelector: FEET },
       { trigger: 'interact' },
@@ -349,7 +349,7 @@ describe('HazardMixin — interact trigger + toxin dart', () => {
   });
 
   it('a toxin dart injects its dose into the metabolism burden', async () => {
-    const m = plainMover('/obj/Avatar/hz-darted');
+    const m = plainMover('/platform/agent/Avatar/hz-darted');
     const trap = makeTrap({
       channel: 'point',
       energy: 1,
@@ -368,7 +368,7 @@ describe('disarm — found-gated', () => {
   }
 
   it('cannot disarm a trap the actor has not discovered', async () => {
-    const m = plainMover('/obj/Avatar/hz-blind');
+    const m = plainMover('/platform/agent/Avatar/hz-blind');
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     const context = ctx(m, m.getContainer());
@@ -377,7 +377,7 @@ describe('disarm — found-gated', () => {
   });
 
   it('disarms a trap the actor has discovered', async () => {
-    const m = plainMover('/obj/Avatar/hz-sharp');
+    const m = plainMover('/platform/agent/Avatar/hz-sharp');
     ContainmentApi.move(m, makeStuff(() => new Location()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Thing);
@@ -424,22 +424,22 @@ describe('HazardMixin — player-placed accountability (the trap producer)', () 
     installLedgerStore();
     vi.spyOn(SpeciesApi, 'isSentient').mockReturnValue(true);
     const trap = makeTrap(benign, { trigger: 'traversal' });
-    trap.setPlacedBy('/obj/Avatar/trapper');
-    const victim = plainMover('/obj/Avatar/victim');
+    trap.setPlacedBy('/platform/agent/Avatar/trapper');
+    const victim = plainMover('/platform/agent/Avatar/victim');
 
     await walkInto(victim, trap);
     await flush();
 
-    expect(await AccountabilityApi.crimeFor('/obj/Avatar/victim')).toBe(true);
-    const verdict = await AccountabilityApi.blameFor('/obj/Avatar/victim');
-    expect(verdict!.killer).toBe('/obj/Avatar/trapper');
+    expect(await AccountabilityApi.crimeFor('/platform/agent/Avatar/victim')).toBe(true);
+    const verdict = await AccountabilityApi.blameFor('/platform/agent/Avatar/victim');
+    expect(verdict!.killer).toBe('/platform/agent/Avatar/trapper');
   });
 
   it('a placed trap that springs on a beast is not a crime', async () => {
     installLedgerStore();
     vi.spyOn(SpeciesApi, 'isSentient').mockReturnValue(false);
     const trap = makeTrap(benign, { trigger: 'traversal' });
-    trap.setPlacedBy('/obj/Avatar/trapper');
+    trap.setPlacedBy('/platform/agent/Avatar/trapper');
     const victim = plainMover('/obj/beast/boar');
 
     await walkInto(victim, trap);
@@ -451,7 +451,7 @@ describe('HazardMixin — player-placed accountability (the trap producer)', () 
   it('an authored (unplaced) trap appends NO accountability row', async () => {
     const record = vi.spyOn(AccountabilityApi, 'record');
     const trap = makeTrap(benign, { trigger: 'traversal' }); // placedBy === ''
-    const victim = plainMover('/obj/Avatar/passerby');
+    const victim = plainMover('/platform/agent/Avatar/passerby');
 
     await walkInto(victim, trap);
 

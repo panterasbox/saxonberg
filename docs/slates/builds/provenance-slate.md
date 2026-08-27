@@ -70,9 +70,9 @@ What exists today, from a code scout:
   singletons at boot in `dependsOn` order. Sibling seeders
   (`AppSettingsSeeder`, `EmoteSeeder`, …) for other collections.
 - **Template ↔ class.** `Template.class` is a source-relative path (e.g.
-  `/obj/Avatar`), resolved by **dynamic import at clone time** — there is
+  `/platform/agent/Avatar`), resolved by **dynamic import at clone time** — there is
   **no central path→constructor registry**. `ModuleApi.stamp` maps each
-  class → a module ID (`/obj/Avatar#Avatar`) for **call-security
+  class → a module ID (`/platform/agent/Avatar#Avatar`) for **call-security
   gates**, not template resolution.
 - **Ownership.** `Zone.ownerGroup` / `accessGroups` (`GroupRef`,
   inheritable via the nearest-ancestor `Zone.lookupField` walk) + the
@@ -184,7 +184,7 @@ overlay.
 ## Worked scenarios
 
 - **Solo sword.** Author A writes a `katana` template in their homedir
-  (sandbox — earns nothing). On **release** (merge to `/domain/...`), the
+  (sandbox — earns nothing). On **release** (merge to `/world/...`), the
   template's owner = A, authorship = A. Players wielding katanas in a
   released zone draw engagement → producer credit to A (proximate), a
   decayed slice to the `Weapon`-class author, less to the engine author.

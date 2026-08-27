@@ -17,7 +17,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { component as composition } from '../components/composition';
-import WikiRenderer from '../../../obj/WikiRenderer';
+import WikiRenderer from '../../../platform/idea/WikiRenderer';
 import { Idea } from '../../stuff/Idea';
 import { Template } from '../../stuff/Template';
 import { AccessApi } from '../../../api/access';
@@ -56,7 +56,7 @@ class Mimic extends Idea {
 /** The same shape with nothing declared spoilery. */
 class Oak extends Idea {
   static fieldMeta: FieldMeta = {
-    density: { persistent: true, marshaller: '/obj/persistence/QuantityMarshaller/kg-per-m3' },
+    density: { persistent: true, marshaller: '/platform/idea/persistence/QuantityMarshaller/kg-per-m3' },
     hardness: { persistent: true },
     edible: { persistent: true },
     meltingPoint: { persistent: true },
@@ -121,13 +121,13 @@ afterEach(() => {
 describe('⭐ the template panel — what is this thing made of (12)', () => {
   beforeEach(() => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/material/oak', '/obj/Oak', OAK_DATA),
+      template('/stuff/idea/material/oak', '/obj/Oak', OAK_DATA),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Oak as never);
   });
 
   it('names the class and the composed mixins', async () => {
-    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    const out = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
     expect(out).toContain('/obj/Oak');
     expect(out).toContain('composes');
   });
@@ -137,7 +137,7 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
     // a material meant a column reading `persistent` twenty-six times.
     // The schema view is what `help` and the generated API docs are
     // for; a reader of an oak article wants oak's density.
-    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    const out = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
     expect(out).toContain('density');
     expect(out).toContain('750');
     expect(out).toContain('1360');
@@ -145,7 +145,7 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
   });
 
   it('renders a boolean as an answer, not a literal', async () => {
-    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    const out = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
     expect(out).toContain('edible');
     expect(out).toContain('no');
   });
@@ -154,14 +154,14 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
     // Oak has no melting point — wood chars rather than melts. A blank
     // row states that no better than its absence does, and twenty of
     // them bury the fields that do have values.
-    const out = await panel({ kind: 'template', of: '/obj/material/oak' });
+    const out = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
     expect(out).not.toContain('meltingPoint');
   });
 
   it('⭐ CHANGES when the subject changes, with no edit to the page', async () => {
     // Criterion 12. The panel is derived at read time, so it cannot go
     // stale — which is the whole reason the wiki carries one at all.
-    const before = await panel({ kind: 'template', of: '/obj/material/oak' });
+    const before = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
     expect(before).not.toContain('flammable');
 
     class OakV2 extends Idea {
@@ -173,15 +173,15 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
     }
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(OakV2 as never);
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/material/oak', '/obj/Oak', { ...OAK_DATA, flammable: true }),
+      template('/stuff/idea/material/oak', '/obj/Oak', { ...OAK_DATA, flammable: true }),
     );
 
-    const after = await panel({ kind: 'template', of: '/obj/material/oak' });
+    const after = await panel({ kind: 'template', of: '/stuff/idea/material/oak' });
     expect(after).toContain('flammable');
   });
 
   it('infers the kind from a `/`-rooted reference', async () => {
-    const out = await panel({ of: '/obj/material/oak' });
+    const out = await panel({ of: '/stuff/idea/material/oak' });
     expect(out).toContain('density');
   });
 });
@@ -189,7 +189,7 @@ describe('⭐ the template panel — what is this thing made of (12)', () => {
 describe('a dangling subject still renders (65)', () => {
   it('a missing template is a NOTE, not a failure', async () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
-    const out = await panel({ kind: 'template', of: '/obj/material/gone' });
+    const out = await panel({ kind: 'template', of: '/stuff/idea/material/gone' });
     expect(out).toContain('no template');
     expect(out).toContain('renamed or removed');
   });
@@ -294,7 +294,7 @@ describe('the command panel — what can I type, and what gates it', () => {
       subcommands: { here: {} },
       validators: ['/lib/command/validators/requiresAnimate'],
     } as never);
-    const out = await panel({ kind: 'command', of: 'inventory/plant.yaml' });
+    const out = await panel({ kind: 'command', of: 'platform/cmd/inventory/plant.yaml' });
     expect(out).toContain('plant');
     expect(out).toContain('Put a seed in the ground');
     expect(out).toContain('here');
@@ -306,7 +306,7 @@ describe('the command panel — what can I type, and what gates it', () => {
       verbs: ['look'],
       description: '',
     } as never);
-    expect(await panel({ kind: 'command', of: 'perception/look.yaml' })).toContain(
+    expect(await panel({ kind: 'command', of: 'platform/cmd/perception/look.yaml' })).toContain(
       '(nothing)',
     );
   });
@@ -491,7 +491,7 @@ describe('the node shape', () => {
 describe('per-cell reveal levels', () => {
   beforeEach(() => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/material/timber', '/obj/Timber', TIMBER_DATA),
+      template('/stuff/idea/material/timber', '/obj/Timber', TIMBER_DATA),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Timber as never);
   });
@@ -499,7 +499,7 @@ describe('per-cell reveal levels', () => {
   /** The row whose first text anywhere inside it is `label`. */
   async function rowFor(label: string): Promise<MmlNode> {
     const nodes = await composition.render(
-      { kind: 'template', of: '/obj/material/timber' },
+      { kind: 'template', of: '/stuff/idea/material/timber' },
       [],
       ctx,
     );
@@ -542,7 +542,7 @@ describe('per-cell reveal levels', () => {
     const tr = await rowFor('weakness');
     expect(childTags(tr)).toEqual(['td', 'td']);
     const nodes = await composition.render(
-      { kind: 'template', of: '/obj/material/timber' },
+      { kind: 'template', of: '/stuff/idea/material/timber' },
       [],
       ctx,
     );
@@ -583,10 +583,10 @@ describe('nested values are spelled out, to a floor', () => {
 
   async function frogPanel(data: Record<string, unknown>): Promise<string> {
     vi.spyOn(Template, 'findByPath').mockResolvedValue(
-      template('/obj/species/frog', '/obj/Frog', data),
+      template('/stuff/idea/species/frog', '/obj/Frog', data),
     );
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(Frog as never);
-    return panel({ kind: 'template', of: '/obj/species/frog' });
+    return panel({ kind: 'template', of: '/stuff/idea/species/frog' });
   }
 
   it('renders one level of nesting rather than [object Object]', async () => {

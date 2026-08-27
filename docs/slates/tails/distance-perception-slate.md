@@ -18,7 +18,7 @@ Seeding facts (verified in source, 2026-07-28):
   Adjacent-room sources appear in `listen` with attribution today.
 - `sense` auto-fires **on entry** — one room too late for danger.
 - The crossing's clock tower is the one live vista: a bespoke
-  `/obj/Crossing.getDetail` override appending the world clock's
+  `/platform/location/Crossing.getDetail` override appending the world clock's
   reading to an authored `tower` detail (the drift-reveal). Works;
   not a pattern.
 - `ScryableMixin` + the perceiver split are shipped — the

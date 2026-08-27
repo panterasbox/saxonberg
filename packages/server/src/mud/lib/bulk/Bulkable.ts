@@ -46,7 +46,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { RecognitionApi } from '../../api/recognition';
@@ -312,18 +312,18 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     static commandContributions: CommandContributions = {
       self: [],
       peers: [
-        'bulk/fill.yaml',
-        'bulk/pour.yaml',
-        'bulk/spill.yaml',
-        'bulk/drink.yaml',
-        'bulk/sip.yaml',
+        'platform/cmd/bulk/fill.yaml',
+        'platform/cmd/bulk/pour.yaml',
+        'platform/cmd/bulk/spill.yaml',
+        'platform/cmd/bulk/drink.yaml',
+        'platform/cmd/bulk/sip.yaml',
       ],
       environment: [
-        'bulk/fill.yaml',
-        'bulk/pour.yaml',
-        'bulk/spill.yaml',
-        'bulk/drink.yaml',
-        'bulk/sip.yaml',
+        'platform/cmd/bulk/fill.yaml',
+        'platform/cmd/bulk/pour.yaml',
+        'platform/cmd/bulk/spill.yaml',
+        'platform/cmd/bulk/drink.yaml',
+        'platform/cmd/bulk/sip.yaml',
       ],
     };
 

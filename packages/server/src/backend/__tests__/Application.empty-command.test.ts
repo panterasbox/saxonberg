@@ -9,9 +9,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
-import Avatar from '../../mud/obj/Avatar';
+import Avatar from '../../mud/platform/agent/Avatar';
 import type { IBackend } from '../IBackend';
-import type Interactive from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/platform/idea/Interactive';
 import type { Envelope, EnvelopeTemplate } from '@saxonberg/types';
 
 interface FakeBackend extends IBackend {
@@ -38,7 +38,7 @@ function makeFakeBackend(): FakeBackend {
 function makeFakeAvatar(): Avatar {
   // Construct a fake Avatar that satisfies the inbound handler's
   // capability + template-path checks (`isCommandGiver` via the
-  // prototype chain, `isAvatarStuff` via the `/obj/Avatar/` prefix)
+  // prototype chain, `isAvatarStuff` via the `/platform/agent/Avatar/` prefix)
   // and implements the methods Application reads.
   const a = Object.create(Avatar.prototype) as Avatar;
   // executeCommand should NOT be called on empty input — the

@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: session.identity
+  family: "session"
+  label: "Signing in"
+  description: "Authentication, character selection, and making a new character."
+  address: direct
+  actor: system
+  weight: consequence
+  audience: all
+  durable: false
+  affordance: decays

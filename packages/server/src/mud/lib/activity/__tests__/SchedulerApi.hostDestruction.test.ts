@@ -23,7 +23,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { Idea } from '../../stuff/Idea';
 import { Stuff } from '../../stuff/Stuff';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -119,7 +119,7 @@ class TestHostlessActivity {
 async function makeRegistry(): Promise<EventRegistry> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

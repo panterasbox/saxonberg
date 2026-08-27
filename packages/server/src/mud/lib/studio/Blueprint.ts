@@ -89,7 +89,7 @@ export class Blueprint extends Document {
   /** `composition` (recomposable) | `concrete` (logic-bearing kind). */
   kind: BlueprintKind = 'composition';
 
-  /** Concrete kinds only: the backing class path (`/obj/Campfire`). */
+  /** Concrete kinds only: the backing class path (`/stuff/thing/Campfire`). */
   classPath: string = '';
 
   /** Hierarchy grouping — a parent blueprintId or category key. */

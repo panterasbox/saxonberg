@@ -272,7 +272,7 @@ effect would refuse across the gap it had just crossed.
 
 ## `throw`
 
-`cmd/inventory/throw.yaml` + `obj/command/inventory/ThrowController.ts`,
+`cmd/inventory/throw.yaml` + `platform/idea/cmd/inventory/ThrowController.ts`,
 afforded by **`TangibleMixin`** — the thing with **mass** confers the
 verb, outward on whoever holds it (`environment`) and sideways on
 whoever stands where it lies (`peers`).
@@ -315,9 +315,9 @@ throw-everything case without anyone having to write a rule.
 
 | Thing | Where | Why it exists |
 |---|---|---|
-| blistering draught | `content/obj/material/potion/` | `route: contact` — the potion that earns its throw |
-| flask of blistering | `generic-objects/content/obj/items/` | a glass vessel, so it breaks |
-| the long meadow | `newbie-wilds/content/domain/newbie-wilds/crossroads/` | `extent: 12` — the first room affording `near` |
+| blistering draught | `content/stuff/idea/material/potion/` | `route: contact` — the potion that earns its throw |
+| flask of blistering | `generic-objects/content/stuff/thing/items/` | a glass vessel, so it breaks |
+| the long meadow | `newbie-wilds/content/world/newbie-wilds/crossroads/` | `extent: 12` — the first room affording `near` |
 
 **Glass gained `hardness: 550` / `toughness: 0.5`.** It authored neither
 before, so a flask derived `recover` and would never have broken —
@@ -373,10 +373,10 @@ works end to end: clone a flask, drop it, `throw flask` refuses with
 
 **The band-ladder legs did not run.** The plan (§7.4) assumed the
 shipped `goto` would carry a driver to the long meadow, and it does
-not: `goto`'s argument scope is `["online", "/obj/**", "reachable"]`,
-with no `/domain/**` — and every room in the world lives under
-`/domain/`. So the one author verb for "take me to that path" cannot
-address content, and `goto /domain/newbie-wilds/crossroads/longmeadow`
+not: `goto`'s argument scope is `["online", "/platform/… + /stuff/**", "reachable"]`,
+with no `/world/**` — and every room in the world lives under
+`/world/`. So the one author verb for "take me to that path" cannot
+address content, and `goto /world/newbie-wilds/crossroads/longmeadow`
 answers *"no match"*. The fix looks like one scope entry, but it is a
 behaviour change to a shipped author verb and is deliberately **not**
 made here. Until it lands, reach the meadow by walking or by TPA.

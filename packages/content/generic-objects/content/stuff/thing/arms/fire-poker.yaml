@@ -1,0 +1,18 @@
+# The fire poker — the smithing ladder's trivial rung: a hafted iron rod.
+# Material + mass flow from the consumed stock at forge time. Weapon-class
+# (hafted → blunt delivery) so even the first thing a learner forges is
+# real — it stirs a fire and cracks a knee.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a fire poker
+  primaryKeyword: poker
+  keywords: [poker, fire-poker, rod]
+  longDescription: |
+    A straight iron rod with a knurled grip and a bent working tip. The first thing an apprentice forges, and the last tool a hearth gives up.
+  constructionForm: hafted
+  gradeBand: fair
+  mass: 1.0
+  length: 0.7
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]

@@ -169,7 +169,7 @@ The Wave 1 implant template:
 export class AetherImplant
   extends AugmentMixin(SlottableMixin(TangibleMixin(Thing)))
 {
-  static readonly TEMPLATE_PATH = '/obj/AetherImplant';
+  static readonly TEMPLATE_PATH = '/stuff/thing/AetherImplant';
 
   override confers(): readonly string[] {
     return ['AetherMixin'];

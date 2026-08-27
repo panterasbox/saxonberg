@@ -9,12 +9,12 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CompactApi } from '../compact';
 import { StuffApi } from '../stuff';
-import Avatar from '../../obj/Avatar';
+import Avatar from '../../platform/agent/Avatar';
 import { SecurityError } from '../../lib/security/errors';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 function makeAvatar(playerId: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
   return av;
 }

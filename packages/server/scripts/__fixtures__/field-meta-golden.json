@@ -433,7 +433,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Bed.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Bed.ts",
     "index": 0,
     "className": "Bed",
     "persistentFields": [],
@@ -442,7 +442,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Corridor.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Corridor.ts",
     "index": 0,
     "className": "Corridor",
     "persistentFields": [],
@@ -451,7 +451,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Desk.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Desk.ts",
     "index": 0,
     "className": "Desk",
     "persistentFields": [],
@@ -460,7 +460,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/DormRoom.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/DormRoom.ts",
     "index": 0,
     "className": "DormRoom",
     "persistentFields": [],
@@ -469,7 +469,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Footlocker.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Footlocker.ts",
     "index": 0,
     "className": "Footlocker",
     "persistentFields": [],
@@ -478,7 +478,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/university-avenue/CrossingLog.ts",
+    "file": "packages/server/src/mud/world/eternal/university-avenue/CrossingLog.ts",
     "index": 0,
     "className": "CrossingLog",
     "persistentFields": [
@@ -490,7 +490,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/university-avenue/MechanicalMovement.ts",
+    "file": "packages/server/src/mud/world/eternal/university-avenue/MechanicalMovement.ts",
     "index": 0,
     "className": "MechanicalMovementMixin",
     "persistentFields": [
@@ -505,7 +505,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/Bar.ts",
+    "file": "packages/server/src/mud/world/lounge/Bar.ts",
     "index": 0,
     "className": "Bar",
     "persistentFields": [],
@@ -514,7 +514,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/GlassAlley.ts",
+    "file": "packages/server/src/mud/world/lounge/GlassAlley.ts",
     "index": 0,
     "className": "GlassAlley",
     "persistentFields": [],
@@ -523,7 +523,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/Lounge.ts",
+    "file": "packages/server/src/mud/world/lounge/Lounge.ts",
     "index": 0,
     "className": "Lounge",
     "persistentFields": [],
@@ -532,7 +532,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/LoungeMixin.ts",
+    "file": "packages/server/src/mud/world/lounge/LoungeMixin.ts",
     "index": 0,
     "className": "LoungeMixin",
     "persistentFields": [],
@@ -543,7 +543,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/Offstage.ts",
+    "file": "packages/server/src/mud/world/lounge/Offstage.ts",
     "index": 0,
     "className": "Offstage",
     "persistentFields": [],
@@ -3700,7 +3700,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/Avatar.ts",
+    "file": "packages/server/src/mud/platform/agent/Avatar.ts",
     "index": 0,
     "className": "Avatar",
     "persistentFields": [
@@ -3713,7 +3713,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/Coin.ts",
+    "file": "packages/server/src/mud/platform/thing/Coin.ts",
     "index": 0,
     "className": "Coin",
     "persistentFields": [
@@ -3726,7 +3726,7 @@
     ]
   },
   {
-    "file": "packages/server/src/mud/obj/Crop.ts",
+    "file": "packages/server/src/mud/platform/thing/Crop.ts",
     "index": 0,
     "className": "Crop",
     "persistentFields": [],
@@ -3735,7 +3735,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/GardenBed.ts",
+    "file": "packages/server/src/mud/platform/thing/GardenBed.ts",
     "index": 0,
     "className": "GardenBed",
     "persistentFields": [],
@@ -3744,7 +3744,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/LotHolder.ts",
+    "file": "packages/server/src/mud/platform/idea/LotHolder.ts",
     "index": 0,
     "className": "LotHolder",
     "persistentFields": [
@@ -3757,7 +3757,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/Plant.ts",
+    "file": "packages/server/src/mud/platform/thing/Plant.ts",
     "index": 0,
     "className": "Plant",
     "persistentFields": [
@@ -3770,7 +3770,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/PlantPot.ts",
+    "file": "packages/server/src/mud/platform/thing/PlantPot.ts",
     "index": 0,
     "className": "PlantPot",
     "persistentFields": [],
@@ -3779,7 +3779,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/PlatBook.ts",
+    "file": "packages/server/src/mud/platform/idea/PlatBook.ts",
     "index": 0,
     "className": "PlatBook",
     "persistentFields": [
@@ -3797,7 +3797,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/Seed.ts",
+    "file": "packages/server/src/mud/platform/thing/Seed.ts",
     "index": 0,
     "className": "Seed",
     "persistentFields": [
@@ -3809,7 +3809,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/__tests__/ChattelRegistry.test.ts",
+    "file": "packages/server/src/mud/platform/__tests__/ChattelRegistry.test.ts",
     "index": 1,
     "className": "Vault",
     "persistentFields": [],
@@ -3818,7 +3818,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/__tests__/ChattelRegistry.test.ts",
+    "file": "packages/server/src/mud/platform/__tests__/ChattelRegistry.test.ts",
     "index": 2,
     "className": "EstateHolder",
     "persistentFields": [],
@@ -3827,7 +3827,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/api/__tests__/PersistableKeyedNesting.test.ts",
+    "file": "packages/server/src/mud/platform/idea/api/__tests__/PersistableKeyedNesting.test.ts",
     "index": 0,
     "className": "Room",
     "persistentFields": [
@@ -3838,7 +3838,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/api/__tests__/PersistableKeyedNesting.test.ts",
+    "file": "packages/server/src/mud/platform/idea/api/__tests__/PersistableKeyedNesting.test.ts",
     "index": 1,
     "className": "KeyedChest",
     "persistentFields": [
@@ -3849,7 +3849,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/api/__tests__/PersistableKeyedNesting.test.ts",
+    "file": "packages/server/src/mud/platform/idea/api/__tests__/PersistableKeyedNesting.test.ts",
     "index": 2,
     "className": "Trinket",
     "persistentFields": [
@@ -3860,7 +3860,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/inventory/__tests__/DropController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/inventory/__tests__/DropController.test.ts",
     "index": 1,
     "className": "Coin",
     "persistentFields": [
@@ -3875,7 +3875,7 @@
     ]
   },
   {
-    "file": "packages/server/src/mud/obj/command/inventory/__tests__/GetController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/inventory/__tests__/GetController.test.ts",
     "index": 1,
     "className": "Coin",
     "persistentFields": [
@@ -3890,7 +3890,7 @@
     ]
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/FeelController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/FeelController.test.ts",
     "index": 1,
     "className": "ReceivingGiver",
     "persistentFields": [],
@@ -3899,7 +3899,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/FeelController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/FeelController.test.ts",
     "index": 2,
     "className": "TestLocation",
     "persistentFields": [],
@@ -3908,7 +3908,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/ListenController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/ListenController.test.ts",
     "index": 0,
     "className": "ReceivingGiver",
     "persistentFields": [],
@@ -3917,7 +3917,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/ListenController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/ListenController.test.ts",
     "index": 1,
     "className": "TestLocation",
     "persistentFields": [],
@@ -3926,7 +3926,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/SenseController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SenseController.test.ts",
     "index": 0,
     "className": "ReceivingGiver",
     "persistentFields": [],
@@ -3935,7 +3935,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/SenseController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SenseController.test.ts",
     "index": 1,
     "className": "TestLocation",
     "persistentFields": [],
@@ -3944,7 +3944,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/SmellController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SmellController.test.ts",
     "index": 0,
     "className": "ReceivingGiver",
     "persistentFields": [],
@@ -3953,7 +3953,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/SmellController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SmellController.test.ts",
     "index": 1,
     "className": "TestLocation",
     "persistentFields": [],
@@ -3962,7 +3962,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/TasteController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/TasteController.test.ts",
     "index": 0,
     "className": "ReceivingGiver",
     "persistentFields": [],
@@ -3971,7 +3971,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/perception/__tests__/TasteController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/TasteController.test.ts",
     "index": 1,
     "className": "TestLocation",
     "persistentFields": [],
@@ -3980,7 +3980,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/obj/command/social/__tests__/DmController.test.ts",
+    "file": "packages/server/src/mud/platform/idea/cmd/social/__tests__/DmController.test.ts",
     "index": 0,
     "className": "Actor",
     "persistentFields": [],

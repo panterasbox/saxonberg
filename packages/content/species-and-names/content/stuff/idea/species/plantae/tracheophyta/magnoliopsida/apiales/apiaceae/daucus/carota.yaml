@@ -1,0 +1,27 @@
+# Daucus carota — the carrot. The first FOOD plant, and the first crop
+# grown outdoors in a bed rather than on a windowsill.
+#
+# Same sessile body plan and the same shallow `_parentCladePath` as the
+# two houseplants (the directory carries the taxonomy; the clade link is
+# deliberately shallow). What makes it a crop rather than an ornamental is
+# entirely on its `/stuff/thing/plant/carrot` template: a `harvestTemplatePath`
+# and a `nutrientDraw`.
+#
+# It is a biennial grown as an annual — you take the root in its first
+# year and never see it flower — which is why its `daysToStage` is short
+# next to a peace lily's and why the harvest simply ends it.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Daucus carota
+  commonNames: ["carrot", "carrots"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 2
+  circadianBand: aperiodic
+  diet: photosynthesis

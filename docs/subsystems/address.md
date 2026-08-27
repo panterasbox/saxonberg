@@ -13,7 +13,7 @@ room finds its weather by walking up the address tree to the nearest
 weather-bearing Locality.
 
 Source: `lib/address/` (`Locality.ts`, `Addressable.ts`),
-`obj/AddressRegistry.ts`, `obj/api/AddressLogic.ts`, `api/address.ts`.
+`obj/AddressRegistry.ts`, `platform/idea/api/AddressLogic.ts`, `api/address.ts`.
 The resolve chain mirrors `BiomeApi.resolve*For` beat-for-beat — read
 [biome.md](./biome.md) alongside this.
 
@@ -29,14 +29,14 @@ mailing address is not a filesystem path).
 | **templatePath** | engine identity (where the template lives) | the CMS template tree |
 | **zone tree** | spatial integrity + admin taxonomy | `Zone` / `SpatialZone` |
 
-A Locality at templatePath `/obj/Locality/cair-paravel` claiming address
+A Locality at templatePath `/stuff/idea/Locality/cair-paravel` claiming address
 `narnia/castle` is normal and expected; the demonstrative roster pins
 this divergence.
 
 ## The Locality node
 
 `Locality extends PostRegistrationMixin(Idea)` — reference data, a leaf
-like `Biome` / `Material` / `Species`, hanging under `/obj/Locality/`.
+like `Biome` / `Material` / `Species`, hanging under `<root>/idea/Locality/`.
 
 - **`_address` is the claimed coverage prefix.** A Locality claims
   everything at or under its node; there is no separate coverage field
@@ -110,7 +110,7 @@ room, no address, no zone                → null           (source: none)
 
 Because address ≠ templatePath, Localities cannot be found by walking
 template paths; the longest-prefix match needs an index keyed by
-claimed prefix. `AddressRegistry` (`/obj/AddressRegistry`, a
+claimed prefix. `AddressRegistry` (`/platform/idea/AddressRegistry`, a
 `PostRegistrationMixin` singleton parallel to `AccessRegistry`) holds a
 `PathTrie<Locality>` of claimed-prefix → Locality. The index lives on
 the Registry (not the stateless logic singleton) so it survives a
@@ -123,7 +123,7 @@ reload of `api/address.ts`; a reload of the Registry re-clones and
 - **Eager roster clone.** Leaf Ideas clone lazily, so a Locality's
   self-registration only fires once something clones it. The Registry's
   `postRegister` therefore eagerly clones every Locality template under
-  `/obj/Locality/` so the index is complete even for never-accessed
+  `<root>/idea/Locality/` so the index is complete even for never-accessed
   Localities. `PathTrie.insert` is idempotent, so the eager insert and a
   Locality's self-registration converge.
 - **v1 simplification (flagged for the delivery build):** the eager
@@ -148,9 +148,9 @@ registerLocality / deregisterLocality / rebuildCoverageIndex
 The full walk is **async** (the zone-fallthrough step awaits
 `Zone.lookupField`, matching `BiomeApi.resolve*For`). The three-tier
 narrow-entry pattern is the access precedent: `AddressApi` (thin) →
-`AddressLogic` (`/obj/api/address`, stateless resolve orchestration,
+`AddressLogic` (`/platform/idea/api/address`, stateless resolve orchestration,
 gated `FromModule('/api/address#AddressApi')`) → `AddressRegistry`
-(the durable index, gated `FromTemplate('/obj/api/address')`).
+(the durable index, gated `FromTemplate('/platform/idea/api/address')`).
 
 ## The seam weather consumes
 
@@ -184,11 +184,11 @@ claimed address:
 
 | templatePath | claims | proves |
 |---|---|---|
-| `/obj/Locality` (FolderZone) | — | admin/ownership root |
-| `/obj/Locality/narnia` | `narnia` | root Region (coverage fallback) |
-| `/obj/Locality/cair-paravel` | `narnia/castle` | nested longest-prefix winner |
-| `/obj/Locality/lantern-waste` | `narnia/wild` | sibling discrimination + null-outside-tree |
-| `/obj/Locality/hinkley-hills` | `terminus/hinkley-hills` | a **sibling of the city, not a child** — a suburb beside Terminus rather than inside it, with a `_governmentKey` of its own |
+| `/platform/idea/Locality` (FolderZone) | — | admin/ownership root |
+| `/stuff/idea/Locality/narnia` | `narnia` | root Region (coverage fallback) |
+| `/stuff/idea/Locality/cair-paravel` | `narnia/castle` | nested longest-prefix winner |
+| `/stuff/idea/Locality/lantern-waste` | `narnia/wild` | sibling discrimination + null-outside-tree |
+| `/stuff/idea/Locality/hinkley-hills` | `terminus/hinkley-hills` | a **sibling of the city, not a child** — a suburb beside Terminus rather than inside it, with a `_governmentKey` of its own |
 
 ### The suburb tier (living-world phase 2)
 

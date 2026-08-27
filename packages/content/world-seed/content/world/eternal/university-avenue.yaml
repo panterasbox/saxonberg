@@ -1,0 +1,8 @@
+# University Avenue — the Eternal University campus-entry zone. A small
+# CartesianZone holding the arrival plaza; the EU build expands the campus
+# from here. Generic classes only (no bespoke room class).
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: University Avenue
+  cellSize: 3.0

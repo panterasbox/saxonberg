@@ -22,7 +22,7 @@ credit), and [accountability](./accountability.md) (the death-row facts).
 ## The `CombatFormation` Idea
 
 `lib/combat/CombatFormation.ts` — a singleton Idea per preset at
-`/obj/CombatFormation/<name>` (the `LocomotionMode` shape: authored
+`/platform/idea/CombatFormation/<name>` (the `LocomotionMode` shape: authored
 data, no registry), seeded from `seeds/lib/combat/CombatFormation/`. The
 Idea carries only **declared shape** — role vocabulary, allocation kind,
 interception rule, coup governance; what a token *means* is combat's
@@ -44,7 +44,7 @@ The four presets:
 
 Formation resolution is **total**: `PartyApi.formationPathOf(combatant)`
 returns the active party's chosen formation path, else
-`DEFAULT_FORMATION_PATH` (`/obj/CombatFormation/default`) — never
+`DEFAULT_FORMATION_PATH` (`/platform/idea/CombatFormation/default`) — never
 null, never `''` (the `sideOf` solo-rung / locomotion universe-`walk`
 mirror). A partyless wanderer, a party that never chose, and a party of
 one all resolve through the same read; there is **no `if (formation)`

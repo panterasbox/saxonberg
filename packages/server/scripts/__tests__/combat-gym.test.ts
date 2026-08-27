@@ -23,10 +23,10 @@ import {
 import { installV1QuantityMarshallers } from "../../src/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../src/mud/lib/stuff/Idea";
 import { Character } from "../../src/mud/lib/character/Character";
-import Species from "../../src/mud/obj/species/Species";
-import BodyPlan from "../../src/mud/obj/species/BodyPlan";
-import Weapon from "../../src/mud/obj/equipment/Weapon";
-import Shield from "../../src/mud/obj/equipment/Shield";
+import Species from "../../src/mud/platform/idea/species/Species";
+import BodyPlan from "../../src/mud/platform/idea/species/BodyPlan";
+import Weapon from "../../src/mud/platform/thing/equipment/Weapon";
+import Shield from "../../src/mud/platform/thing/equipment/Shield";
 import Material from "../../src/mud/lib/material/Material";
 import { Construction } from "../../src/mud/lib/material/Construction";
 import { ContainerMixin } from "../../src/mud/lib/spatial/Container";
@@ -37,7 +37,7 @@ import { Quantity } from "../../src/mud/lib/quantity";
 import type { Stuff } from "../../src/mud/lib/stuff/Stuff";
 import type { Engaged } from "../../src/mud/lib/activity/Engaged";
 import type { CompetenceBandName } from "../../src/mud/lib/advancement/CompetenceBand";
-import EventRegistry from "../../src/mud/obj/EventRegistry";
+import EventRegistry from "../../src/mud/platform/idea/EventRegistry";
 import { EventApi } from "../../src/mud/api/event";
 import {
   runMatchup,
@@ -50,10 +50,10 @@ import {
 } from "../combat-gym";
 import { CombatApi } from "../../src/mud/api/combat";
 import { PartyMemberMixin } from "../../src/mud/lib/party/PartyMember";
-import { Party } from "../../src/mud/obj/Party";
-import { CombatFormation } from "../../src/mud/obj/CombatFormation";
+import { Party } from "../../src/mud/platform/idea/Party";
+import { CombatFormation } from "../../src/mud/platform/idea/CombatFormation";
 import { ProxyApi } from "../../src/mud/api/proxy";
-import StunBaton from "../../src/mud/obj/equipment/StunBaton";
+import StunBaton from "../../src/mud/platform/thing/equipment/StunBaton";
 import { CombatReactiveMixin } from "../../src/mud/lib/combat/CombatReactive";
 import type { CombatHookContext } from "../../src/mud/lib/combat/CombatHookContext";
 import type { InflictSpec } from "../../src/mud/api/condition";
@@ -111,7 +111,7 @@ function steel(): Material {
   m.setHardness(Quantity.of(600, "MPa"));
   m.setToughness(Quantity.of(200, "MJ/m³"));
   m.setName("steel");
-  stampTemplatePathForTest(m, `/obj/material/test/gym-m-${seq++}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/gym-m-${seq++}`);
   return m;
 }
 
@@ -147,7 +147,7 @@ export const Loadouts: Record<string, GymLoadout> = {
   warhammer: { form: "hafted", mass: 3.2, length: 1.1 },
   swordShield: { form: "bladed", mass: 1.0, length: 0.9, shield: true },
   // An armed StunBaton at the authored ~5 kV contact-stun potential
-  // (seeds/domain/substation/stun-baton.yaml), on mace-class geometry so
+  // (seeds/world/substation/stun-baton.yaml), on mace-class geometry so
   // the pinned cell lands blows (the authored 0.6 kg club can't crack a
   // sword guard — the fight draws and the contact burn heals away
   // before the roster is read).
@@ -179,26 +179,26 @@ function makeFighter(
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
-        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/gym-${id}`);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/gym-${id}`);
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/obj/species/test/gym-${id}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/gym-${id}`);
 
   const f = makeStuff(() => new ctor());
   stampTemplatePathForTest(f, `/test/gym-fighter-${id}`);
@@ -266,7 +266,7 @@ function resetState(): void {
   StuffApi.clearAll();
   SchedulerApi._clearAllForTesting();
   const reg = makeStuff(() => new EventRegistry());
-  stampTemplatePathForTest(reg, "/obj/EventRegistry");
+  stampTemplatePathForTest(reg, "/platform/idea/EventRegistry");
   StuffApi.unregister(reg);
   StuffApi.register(reg);
   EventApi._setRegistryForTesting(reg);
@@ -275,7 +275,7 @@ function resetState(): void {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    stampTemplatePathForTest(r, "/obj/EventRegistry");
+    stampTemplatePathForTest(r, "/platform/idea/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);
@@ -764,7 +764,7 @@ function wireFormation(
   roles: Record<number, string> = {},
 ): void {
   const shape = FORMATION_SHAPES[formation]!;
-  const path = `/obj/CombatFormation/${formation}`;
+  const path = `/platform/idea/CombatFormation/${formation}`;
   // Reuse a preset already resident this cell (two wired parties may
   // share one — a second stamp would break the singleton index).
   let resident: unknown;

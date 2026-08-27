@@ -93,7 +93,7 @@ Four value objects + two mixins + the concrete entity:
   (`getPositions`/`getRoster`/`getReportingChain`/…) and the **seven holder
   transitions** `hire` / `endEmployment` / `ensureRostered` / `beginShift`
   / `endShift` / `beginCover` / `endCover`, gated
-  `AnyOf(SelfOnly, FromTemplate('/obj/api/employment'))`. Every record
+  `AnyOf(SelfOnly, FromTemplate('/platform/idea/api/employment'))`. Every record
   write is keyed on the organization's own path — which *is* the
   participant contract below. `obj/Organization.ts` is the concrete
   instanceable non-trading organization.
@@ -118,7 +118,7 @@ Four value objects + two mixins + the concrete entity:
   contract** — the caller must be the **organization party to the record**
   (`FromMixin(Mixins.Organization)` + a relational `where` requiring the
   written record key to be the calling organization's own path), with a
-  narrow `FromTemplate('/obj/api/employment')` janitorial arm (lazy
+  narrow `FromTemplate('/platform/idea/api/employment')` janitorial arm (lazy
   standup means a `quit` can outlive its organization's live Idea). The
   transitions themselves live on `OrganizationMixin` — so the
   organization acts on its own employee records and the engine keeps
@@ -232,8 +232,8 @@ unmodellable one. **Do not couple them.**
 ## The gated Api/Logic pair
 
 `EmploymentApi` (`api/employment.ts`, thin forwarding shell) →
-`EmploymentLogic` (`obj/api/EmploymentLogic.ts`, `@internal @Unshadowable
-extends Idea` at `/obj/api/employment`, HMR-able; every method gated
+`EmploymentLogic` (`platform/idea/api/EmploymentLogic.ts`, `@internal @Unshadowable
+extends Idea` at `/platform/idea/api/employment`, HMR-able; every method gated
 `FromModule('/api/employment#EmploymentApi')`). Surface:
 `holdsAuthority` / `mayPublishAs` / `holdersOf` / `organizationChainOf` /
 `isProprietorOf` / `hire` / `fire` / `quit` / `businessAt` /
@@ -330,7 +330,7 @@ account if absent (`ensureVenueAccount(employeeKey, employeeKey, '')`) before
 Additive + general; closes the same gap in the bar loop.
 
 **Second employment consumer — the Terminus city budget.** Terminus's
-**municipal city-budget `Business`** (proprietor-absent, `/domain/terminus/
+**municipal city-budget `Business`** (proprietor-absent, `/world/terminus/
 budget`) is the second consumer after Dave's Bar: it lists the operational
 departure gate in `operatingLocations` (so the transit fare's city share
 attributes to it, un-spoofably), pays the **terminal clerk** (a bounded roster
@@ -419,9 +419,9 @@ Augie) → roster **assignees** (schedules lifted verbatim from the old NPC
 seeds, incl. Sloane's midnight-wrap two-window shift); each keeps
 `class: /lib/character/Crafter` (composes the gated `MakerMixin`), drops its
 `shifts` schedule, carries no employment block (materialized by the tick).
-The Business seed (`/domain/lounge/business`) authors the `bartender`
+The Business seed (`/world/lounge/business`) authors the `bartender`
 Position (`confers: [MakerMixin]`, `wageRate` a tuning placeholder), the
-roster, and `operatingLocations: [/domain/lounge/bar]`.
+roster, and `operatingLocations: [/world/lounge/bar]`.
 
 ## Compensation bases (the arrangement generalization)
 

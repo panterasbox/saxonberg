@@ -9,8 +9,8 @@ discontinuous hops across an authored network, not stepping through a
 door. The lounge→campus hop and char-gen/onboarding home-routing ride
 it.
 
-Code lives in `lib/fasttravel/` (the two mixins), `obj/command/author/
-TeleportController.ts` + `obj/command/movement/RegisterController.ts`
+Code lives in `lib/fasttravel/` (the two mixins), `platform/idea/cmd/author/
+TeleportController.ts` + `platform/idea/cmd/movement/RegisterController.ts`
 (the verbs), and `cmd/{author/teleport,movement/register}.yaml` (the
 views).
 
@@ -39,7 +39,7 @@ register/authorize surface. The holder is base-agnostic, so it composes
 around two bases — the Thing/Idea symmetry of the three-base capability
 model (see [augmentation.md](./augmentation.md)):
 
-- a carryable **`TravelCard`** `Thing` (`/domain/common/tpa/TravelCard` =
+- a carryable **`TravelCard`** `Thing` (`/world/common/tpa/TravelCard` =
   `CredentialWalletMixin(Thing)`) — a bearer **instrument**, never a
   clearance store (see **Identity-bound clearance** below);
 - the born-with **`CredentialWalletUpdate`**
@@ -169,9 +169,9 @@ another way and `register` first".
 
 **Born-with floor:** every credential is born registered for the
 **three-node set** `BORN_WITH_TRAVEL_NODES` (`lib/credential/Credential.ts`)
-— the **Terminus arrival node** (`/domain/terminus/terminal/arrival-terminal`),
-**the lounge** (`/domain/lounge/terminal`), and **the paid destination**
-(`/domain/newbie-wilds/crossroads/terminal`) — the documented exception to
+— the **Terminus arrival node** (`/world/terminus/terminal/arrival-terminal`),
+**the lounge** (`/world/lounge/terminal`), and **the paid destination**
+(`/world/newbie-wilds/crossroads/terminal`) — the documented exception to
 "reach-before-travel". The hub has no foot path to the rest of the world, so
 the interchange and the social hub are universally reachable by design:
 onboarding's lounge→campus hop lands at Terminus (walk across the avenue to
@@ -201,7 +201,7 @@ the CB mints:
   authoring error → refuse.
 - **The TPA's operating budget** — a **network fee** to the **Teleport
   Authority Business** (`fasttravel.tpaBusinessPath`, a minimal
-  Business seed at `/domain/terminus/terminal/tpa`: proprietor-absent
+  Business seed at `/world/terminus/terminal/tpa`: proprietor-absent
   public-infrastructure operator, empty `operatingLocations` so it never
   collides with the per-terminal fare operators, resolved by path). The
   fee lands on its operating account at its authored `banksAt` (the TPA
@@ -249,13 +249,13 @@ supply-neutral) so the split holds either way. P&L categories `fare` /
 
 ## Terminus — the transit hub (network content)
 
-**Terminus** (`/domain/terminus/`, its own branch = the **Terminus
+**Terminus** (`/world/terminus/`, its own branch = the **Terminus
 municipality** owner sphere, distinct from the EU campus) is the network's
 central interchange, **on University Avenue across the street from the
 university gate** (a cross-branch `across` exit to the EU plaza; the
 standalone University Avenue terminal is **retired**, Terminus absorbs the
 campus-arrival role). Its first zone is the terminal building
-(`/domain/terminus/terminal`): a station **hall**, an **arrival gate**
+(`/world/terminus/terminal`): a station **hall**, an **arrival gate**
 (directionality `arrival` — the floor node the lounge routes to), **three
 departure gates** (**A operational** with the free lounge return + the paid
 crossroads line; **B and C out of service**), and a **ticket office**. It is
@@ -266,7 +266,7 @@ departure (**D8**; the seam stays authored-static — no dynamic breakdown).
 
 The four terminals are **not** boot-manifest entries — they load by
 **`populates:` cascade** from the single lounge root (`world-seed`'s
-`boot:` list holds one hub anchor, `/domain/lounge/terminal`, not one
+`boot:` list holds one hub anchor, `/world/lounge/terminal`, not one
 entry per terminal). The three departure terminals
 are never route targets, so a plain route-target cascade would never reach
 them; instead each departure gate room declares `populates:` its own
@@ -279,7 +279,7 @@ city budget at her shift boundary (the roster tick; a bounded shift so the
 wage settles). `settleShiftWageImpl` gained a **worker-account guard** that
 auto-provisions an NPC worker's account so the wage lands. The **paid
 destination** is the newbie-wilds **crossroads** ("The Last Counted Mile",
-`/domain/newbie-wilds/crossroads`) — a minimal v0 (one designed landing room
+`/world/newbie-wilds/crossroads`) — a minimal v0 (one designed landing room
 + one `both` terminal, free return), the integration anchor the deferred
 newbie-wilds build extends.
 

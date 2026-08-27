@@ -1,0 +1,31 @@
+# The kitchen range — a residential skin of the Hearthworks cookhouse hearth
+# (`/stuff/thing/Oven`, a `FurnaceMixin` appliance at gentle cooking heat, lit with
+# `ignite`, burning its fuel reserve down at 0.2%/min).
+#
+# The kitchen's standing heat. `cook` asks for reachable heat where the
+# recipe wants it, the pot, and the ingredients — so a range in your own
+# home is not a new mechanic, it is the ERRAND COLLAPSE that makes the
+# archetype worth having (D12).
+class: /platform/thing/Oven
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a kitchen range
+  primaryKeyword: range
+  keywords: [range, stove, oven, hearth, fire]
+  longDescription: >
+    A cast-iron range squatting against the wall, its firebox door hinged at
+    the front and a flat plate on top worn silver where pots have stood.
+  burnTemperatureK: 500
+  bellowsMultiplier: 1
+  fuelBurnRatePerMin: 0.2
+  lit: false
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null
+  emittedIntensity: 30
+  emittedColorTemperature: 1800
+  mass: 150

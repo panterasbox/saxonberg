@@ -289,7 +289,7 @@ describe('ExecutionContextApi', () => {
       expect(() =>
         ExecutionContextApi._checkAllowlistForTest(
           'run',
-          'file:///proj/packages/server/src/mud/domain/evil.ts'
+          'file:///proj/packages/server/src/mud/world/evil.ts'
         )
       ).toThrow(SecurityError);
     });
@@ -310,14 +310,14 @@ describe('ExecutionContextApi', () => {
       try {
         ExecutionContextApi._checkAllowlistForTest(
           'tagCurrentFrame',
-          'file:///proj/packages/server/src/mud/domain/evil.ts'
+          'file:///proj/packages/server/src/mud/world/evil.ts'
         );
         expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(SecurityError);
         const err = e as SecurityError;
         expect(err.message).toContain('tagCurrentFrame');
-        expect(err.message).toContain('domain/evil.ts');
+        expect(err.message).toContain('world/evil.ts');
       }
     });
   });
@@ -480,7 +480,7 @@ describe('ExecutionContextApi', () => {
       expect(() =>
         ExecutionContextApi._checkAllowlistForTest(
           'updateCurrentFrameMetadata',
-          'file:///proj/packages/server/src/mud/domain/evil.ts'
+          'file:///proj/packages/server/src/mud/world/evil.ts'
         )
       ).toThrow(SecurityError);
     });
@@ -507,7 +507,7 @@ describe('ExecutionContextApi', () => {
     });
 
     it('returns the tagged acting author when there is no command frame (CMS/runRoot)', () => {
-      const avatar = { getTemplatePath: () => '/obj/Avatar/cms' };
+      const avatar = { getTemplatePath: () => '/platform/agent/Avatar/cms' };
       ExecutionContextApi.runRoot(null, 'cms.write', () => {
         // The REST boundary names its author in metadata, NOT as the frame
         // target (which stays the boundary's own principal).
@@ -518,7 +518,7 @@ describe('ExecutionContextApi', () => {
 
     it('a command frame takes precedence over a stray acting-author tag', () => {
       const player = { name: 'player' };
-      const other = { getTemplatePath: () => '/obj/Avatar/other' };
+      const other = { getTemplatePath: () => '/platform/agent/Avatar/other' };
       ExecutionContextApi.runRoot(null, 'root', () => {
         ExecutionContextApi.tagActingAuthor(other);
         ExecutionContextApi.run(null, player, 'executeCommand', cmd(player), () => {

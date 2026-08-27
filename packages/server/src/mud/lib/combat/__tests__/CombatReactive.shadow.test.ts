@@ -27,9 +27,9 @@ import {
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import { Idea } from "../../stuff/Idea";
 import { Character } from "../../character/Character";
-import Species from "../../../obj/species/Species";
-import BodyPlan from "../../../obj/species/BodyPlan";
-import Weapon from "../../../obj/equipment/Weapon";
+import Species from "../../../platform/idea/species/Species";
+import BodyPlan from "../../../platform/idea/species/BodyPlan";
+import Weapon from "../../../platform/thing/equipment/Weapon";
 import type { Stuff } from "../../stuff/Stuff";
 import Material from "../../material/Material";
 import { Construction } from "../../material/Construction";
@@ -51,7 +51,7 @@ import { CombatReactiveMixin } from "../CombatReactive";
 import type { CombatHookContext } from "../CombatHookContext";
 import { EnergizedMixin } from "../../electricity/Energized";
 import { MixinApi } from "../../../api/mixin";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../../platform/idea/EventRegistry";
 import { EventApi } from "../../../api/event";
 
 class TestRoom extends ContainerMixin(Idea) {}
@@ -108,7 +108,7 @@ function steel(): Material {
   m.setHardness(Quantity.of(600, "MPa"));
   m.setToughness(Quantity.of(200, "MJ/m³"));
   m.setName("steel");
-  stampTemplatePathForTest(m, `/obj/material/test/m-${seq++}`);
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/m-${seq++}`);
   return m;
 }
 
@@ -129,20 +129,20 @@ function makeFighter(room: Stuff, weapon?: Weapon | null): Character {
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/obj/material/tissue/bone", mass: 8 },
-        { tissuePath: "/obj/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
       ],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/obj/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
     },
   ]);
-  stampTemplatePathForTest(plan, `/obj/species/BodyPlan/test-fighter-${id}`);
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-fighter-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
-  stampTemplatePathForTest(species, `/obj/species/test/fighter-${id}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/fighter-${id}`);
   const f = makeStuff(() => new TestFighter());
   stampTemplatePathForTest(f, `/test/fighter-${id}`);
   f.setSpecies(species);
@@ -160,7 +160,7 @@ function makeFighter(room: Stuff, weapon?: Weapon | null): Character {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    stampTemplatePathForTest(r, "/obj/EventRegistry");
+    stampTemplatePathForTest(r, "/platform/idea/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);

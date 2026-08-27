@@ -1,0 +1,21 @@
+verbs: [script]
+controller: /platform/idea/cmd/shell/ScriptController
+description: "Run a multi-statement script"
+help: |
+  Run a script body directly — `script look; say hi` or a block
+  with `{ ... }`. The statements run over the real command bus,
+  exactly as if you typed them.
+
+  Runs synchronously by default: your prompt waits until the script
+  finishes (but only YOUR prompt — other players are never blocked).
+  Pass --async to detach it, freeing your prompt so you can keep
+  playing while a long script runs in the background; --sync forces
+  the blocking default back if a verb ever defaults to async.
+
+  This is the flaggable form of the bare typed-script line (a
+  multi-statement line typed with no `script` prefix stays sync).
+args:
+  - name: body
+    type: string
+    greedy: true
+    required: true

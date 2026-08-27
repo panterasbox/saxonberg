@@ -3,23 +3,23 @@ import { DiagnosticChannel, GLOBAL_CHANNEL } from '../DiagnosticChannel';
 
 describe('pathToChannel', () => {
   it('maps explicit zone content to zone.<zone>', () => {
-    expect(DiagnosticChannel.pathToChannel('/home/x/domain/zones/cliffside/Goat.ts')).toBe(
+    expect(DiagnosticChannel.pathToChannel('/home/x/world/zones/cliffside/Goat.ts')).toBe(
       'zone.cliffside'
     );
-    expect(DiagnosticChannel.pathToChannel('/seeds/domain/zones/terminus/Room.ts')).toBe(
+    expect(DiagnosticChannel.pathToChannel('/seeds/world/zones/terminus/Room.ts')).toBe(
       'zone.terminus'
     );
   });
 
   it('maps the authored lounge tree to zone.lounge', () => {
-    expect(DiagnosticChannel.pathToChannel('/mud/domain/lounge/Bar.ts')).toBe('zone.lounge');
+    expect(DiagnosticChannel.pathToChannel('/mud/world/lounge/Bar.ts')).toBe('zone.lounge');
     expect(DiagnosticChannel.pathToChannel('/mud/lib/lounge/LoungeWarren.ts')).toBe(
       'zone.lounge'
     );
   });
 
   it('maps command controllers/views to command (before the lib arm)', () => {
-    expect(DiagnosticChannel.pathToChannel('/mud/obj/command/social/SayController.ts')).toBe(
+    expect(DiagnosticChannel.pathToChannel('/mud/platform/idea/cmd/social/SayController.ts')).toBe(
       'command'
     );
     expect(DiagnosticChannel.pathToChannel('/mud/cmd/social/say.yaml')).toBe('command');

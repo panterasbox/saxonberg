@@ -22,7 +22,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import ChattelRegistry from "../../../obj/ChattelRegistry";
+import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
 import Thing from "../../stuff/Thing";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
@@ -33,7 +33,7 @@ import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -44,8 +44,8 @@ import type { Container } from "../../spatial/Container";
 import type { FieldMeta } from "../../mixin";
 
 const TORCH_PATH = "/obj/test/Torch";
-const ALICE_PATH = "/obj/Avatar/alice";
-const ROOM_ID = "/domain/test/LivingRoom";
+const ALICE_PATH = "/platform/agent/Avatar/alice";
+const ROOM_ID = "/world/test/LivingRoom";
 
 class Torch extends Thing {}
 
@@ -120,7 +120,7 @@ async function boot(): Promise<void> {
   // Thing composes WetMixin's marshalled Quantity gauge; `clearAll()` drops
   // the marshaller singletons, so a re-boot must stand them back up.
   installV1QuantityMarshallers();
-  const reg = makeStuffAtPath(() => new ChattelRegistry(), "/obj/ChattelRegistry");
+  const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
   await reg.postRegister();
   makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
@@ -279,7 +279,7 @@ describe("owner-based persistence — the estate slice", () => {
 });
 
 describe("eviction to storage — the lease-end sweep (D9)", () => {
-  const UNIT = "/domain/test/unit-4b";
+  const UNIT = "/world/test/unit-4b";
 
   it("returns every good under the unit to storage, intact and titled", async () => {
     const alice = makeOwner();
@@ -315,10 +315,10 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
     await ChattelApi.stamp(inside, alice);
     await ChattelApi.stamp(elsewhere, alice);
     await ChattelApi.setPlace(inside, `${UNIT}/bedroom`);
-    await ChattelApi.setPlace(elsewhere, "/domain/test/other-room");
+    await ChattelApi.setPlace(elsewhere, "/world/test/other-room");
 
     expect(await ChattelApi.evictToStorage(UNIT)).toBe(1);
-    expect(elsewhere.getPlace()).toBe("/domain/test/other-room");
+    expect(elsewhere.getPlace()).toBe("/world/test/other-room");
   });
 
   it("re-placing from storage furnishes the next address", async () => {
@@ -328,9 +328,9 @@ describe("eviction to storage — the lease-end sweep (D9)", () => {
     await ChattelApi.setPlace(t, `${UNIT}/bedroom`);
     await ChattelApi.evictToStorage(UNIT);
 
-    await ChattelApi.setPlace(t, "/domain/test/unit-9c/bedroom");
-    expect(t.getPlace()).toBe("/domain/test/unit-9c/bedroom");
-    const placed = await ChattelApi.placedIn("/domain/test/unit-9c/bedroom");
+    await ChattelApi.setPlace(t, "/world/test/unit-9c/bedroom");
+    expect(t.getPlace()).toBe("/world/test/unit-9c/bedroom");
+    const placed = await ChattelApi.placedIn("/world/test/unit-9c/bedroom");
     expect(placed.map((p) => p.chattelId)).toEqual([t.getChattelId()]);
   });
 });

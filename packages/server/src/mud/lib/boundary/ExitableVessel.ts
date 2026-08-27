@@ -45,7 +45,7 @@ import { DoorBearingMixin } from './DoorBearing';
 import Exit from './Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type Door from '../../obj/Door';
+import type Door from '../../platform/thing/Door';
 import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { PerceptionApi } from '../../api/perception';

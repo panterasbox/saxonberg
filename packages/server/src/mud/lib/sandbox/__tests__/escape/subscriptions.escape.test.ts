@@ -16,9 +16,9 @@ import { Stuff } from '../../../stuff/Stuff';
 import {
   ExecutionContextApi,
 } from '../../../../api/execution-context';
-import EventRegistry from '../../../../obj/EventRegistry';
-import Interactive from '../../../../obj/Interactive';
-import Avatar from '../../../../obj/Avatar';
+import EventRegistry from '../../../../platform/idea/EventRegistry';
+import Interactive from '../../../../platform/idea/Interactive';
+import Avatar from '../../../../platform/agent/Avatar';
 import { ConnectionApi } from '../../../../api/connection';
 
 /*
@@ -50,7 +50,7 @@ const SCOPE = '/home/escape-tester';
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

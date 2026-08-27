@@ -36,7 +36,7 @@ import YAML from 'yaml';
 
 const here = dirname(fileURLToPath(import.meta.url));
 // The engine verbs are the platform pack's content (content-packs wave 2).
-const CMD_ROOT = join(here, '..', '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'cmd');
+const CMD_ROOT = join(here, '..', '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'platform', 'cmd');
 
 /**
  * The verb an example leads with, or `null`.

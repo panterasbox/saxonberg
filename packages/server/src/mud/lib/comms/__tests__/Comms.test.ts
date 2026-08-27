@@ -8,16 +8,16 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
-import Species from '../../../obj/species/Species';
-import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../species/Organism';
 import { AetherMixin, type AetherHost } from '../../message/Aether';
 import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { SlottedMixin } from '../../slot/Slotted';
 import Thing from '../../stuff/Thing';
-import AetherImplant from '../../../obj/AetherImplant';
-import CommsUpdate from '../../../obj/CommsUpdate';
+import AetherImplant from '../../../platform/thing/AetherImplant';
+import CommsUpdate from '../../../platform/idea/CommsUpdate';
 import { InactiveCapabilityError } from '../../security/RequiresActive';
 import {
   makeStuff,
@@ -52,7 +52,7 @@ let bodyPlanSeq = 0;
 function makeAttuned(name: string): AttunedActor & AetherHost {
   const biped = withPath(
     makeStuff(() => new BodyPlan()),
-    `/obj/species/BodyPlan/biped-comms-test-${bodyPlanSeq}`,
+    `/stuff/idea/species/BodyPlan/biped-comms-test-${bodyPlanSeq}`,
   );
   biped.setSensoryPorts([
     { modality: 'vision', count: 2, position: 'frontal' },
@@ -61,7 +61,7 @@ function makeAttuned(name: string): AttunedActor & AetherHost {
   biped.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const species = withPath(
     makeStuff(() => new Species()),
-    `/obj/species/animalia/comms-test-${bodyPlanSeq}`,
+    `/stuff/idea/species/animalia/comms-test-${bodyPlanSeq}`,
   );
   bodyPlanSeq += 1;
   species.setBodyPlan(biped);

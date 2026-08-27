@@ -5,7 +5,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MessageApi } from '../message';
-import { MessageLogic } from '../../obj/api/MessageLogic';
+import { MessageLogic } from '../../platform/idea/api/MessageLogic';
 import { SecurityError } from '../../lib/security/errors';
 import Location from '../../lib/stuff/Location';
 import { MobileMixin } from '../../lib/spatial/Mobile';
@@ -298,9 +298,9 @@ describe('MessageLogic singleton encapsulation', () => {
   it('denies a direct logic-method call from a non-MessageApi caller', () => {
     const logic = makeStuffAtPath(
       () => new MessageLogic(),
-      '/obj/api/message'
+      '/platform/idea/api/message'
     );
-    expect(StuffApi.findByTemplatePath('/obj/api/message')).toBe(logic);
+    expect(StuffApi.findByTemplatePath('/platform/idea/api/message')).toBe(logic);
     // The test module is not mud/api/message#MessageApi nor the
     // singleton itself; the FromModule gate on the logic's own methods
     // denies the call.

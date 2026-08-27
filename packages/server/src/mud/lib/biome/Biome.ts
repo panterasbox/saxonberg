@@ -4,14 +4,14 @@
  *
  * Biomes are NOT Zones. They're reference data — like `Material` or
  * `Species` — that hangs off the template tree as leaves. The
- * template tree's folder structure (`/obj/biome/`, `/obj/biome/outdoor/`,
+ * template tree's folder structure (`/stuff/idea/biome/`, `/stuff/idea/biome/outdoor/`,
  * etc.) is `FolderZone`s for admin / ownership scoping; individual
  * biomes are `Biome` (or `SkyExposedBiome`) leaf templates under them.
  *
  * **Inheritance is explicit.** A biome that wants to inherit defaults
  * from another biome points at it via `_extendsBiomePath` (an identity ref).
  * The chain in `BiomeApi.resolve*For` follows `_extendsBiomePath`
- * refs from leaf upward to the root universe biome (`/obj/biome/universe`,
+ * refs from leaf upward to the root universe biome (`/stuff/idea/biome/universe`,
  * whose `_extendsBiomePath` is `null`). Path-based templatePath-walk
  * inheritance is gone — the inheritance graph is now independent of
  * the templatePath organization, which keeps Zone's original
@@ -31,7 +31,7 @@
 
 import { Idea } from '../stuff/Idea';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import type { FieldMeta } from '../mixin';
 

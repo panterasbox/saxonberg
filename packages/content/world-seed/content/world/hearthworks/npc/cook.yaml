@@ -1,0 +1,30 @@
+# Odo — the Hearthworks cook: a Crafter (MakerMixin gated by his rostered
+# position; on shift he fulfills `order` at the cookhouse). Human.
+class: /platform/agent/Crafter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Odo
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: odo
+  alternateNames:
+    - cook
+  shortDescription: Odo the cook
+  longDescription: |
+    A round, unhurried man with a wooden spoon tucked behind one ear like
+    a pencil. He tastes everything twice and trusts nothing he hasn't
+    stirred himself.
+  dispositions:
+    - { disposition: humility, valence: 50 }
+    - { disposition: boldness, valence: -20 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/idles
+      trigger: cadence:20s
+      config:
+        pool:
+          - { kind: free, value: "lifts the pot lid, sniffs, and nods to himself." }
+          - { kind: free, value: "feeds a split log into the hearth." }
+          - { kind: free, value: "tastes from the spoon and frowns thoughtfully." }

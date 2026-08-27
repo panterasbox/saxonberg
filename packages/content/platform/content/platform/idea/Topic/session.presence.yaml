@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: session.presence
+  family: "session"
+  label: "Who is about"
+  description: "People you know arriving and leaving."
+  address: personal
+  actor: system
+  weight: chatter
+  audience: player
+  durable: false
+  affordance: decays

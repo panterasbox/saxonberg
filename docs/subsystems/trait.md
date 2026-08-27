@@ -9,7 +9,7 @@ stat. Traits are the personality **input the NPC brains read** and the
 *character* instead of *skill*; the two share one authored `ActSignature`.
 
 Home: `lib/trait/` (value-objects + the ledger Document), `api/trait.ts`
-(`TraitApi`) → `obj/api/TraitLogic.ts` (the gated logic singleton).
+(`TraitApi`) → `platform/idea/api/TraitLogic.ts` (the gated logic singleton).
 
 Scope of this build: the substrate + two read-only consumers (behavior +
 regard baseline). **Stress / composure (job 3)** — the equanimity Reserve,
@@ -84,7 +84,7 @@ the unwarmed (unit-test / pre-boot) path.
 ## The gated surface — `TraitApi` / `TraitLogic`
 
 `TraitApi` (`api/trait.ts`) is the thin forwarding shell; the logic lives
-in the hot-reloadable `TraitLogic` singleton at `/obj/api/trait`, gated
+in the hot-reloadable `TraitLogic` singleton at `/platform/idea/api/trait`, gated
 `FromModule("/api/trait#TraitApi")`. Internals are module-private free
 functions (no intra-singleton `this.x()` to trip the gate). Surface:
 
@@ -149,7 +149,7 @@ behavior → trait edge the demonstrator brain also establishes.)
 
 ## The self-view — `traits`
 
-`cmd/charactergen/traits.yaml` + `obj/command/charactergen/TraitsController.ts`
+`cmd/charactergen/traits.yaml` + `platform/idea/cmd/charactergen/TraitsController.ts`
 — a zero-arg, self-only, read-only verb (the `chronicle` / `competence`
 shape), Persona-afforded via `Persona.commandContributions.self`. It renders
 each pronounced axis as **pole label + band** ("Gregarious — entrenched"),

@@ -1,0 +1,7 @@
+# TasteModality — the gustatory (contact) singleton.
+class: /platform/idea/modalities/TasteModality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: taste
+  family: contact
+  modality: taste

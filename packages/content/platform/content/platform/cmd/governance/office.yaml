@@ -1,0 +1,60 @@
+verbs: [office, offices]
+controller: /platform/idea/cmd/governance/OfficeController
+description: "Inspect government offices; the founder hands seats off"
+help: |
+  The seats of government — a fixed apparatus of named offices, each held
+  by a single officeholder. There are five: the Prime Minister, the three
+  House Speakers (Producer / Patron / Consumer), and the Governor of the
+  Central Bank. Every office is held by the founder by default until it is
+  explicitly handed off; vacating a seat reverts it to the founder.
+
+  `offices` (or `office list`) shows the public roster — every office, its
+  branch and origin, and who currently holds it. The roster is public:
+  governance is transparent by constitutional design.
+
+  `office assign <player> <office>` hands a seat to a player and `office
+  vacate <office>` reverts it to the founder. Those two are restricted to
+  the founder — if you aren't the founder, the game won't let you run them.
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  assign:
+    description: "Hand an office to a player (founder-only)"
+    help: |
+      Set a player as the explicit holder of an office, replacing whoever
+      held it. Name the player, then the office (by key or name, e.g.
+      `prime-minister`). Founder-only.
+    validators:
+      - /lib/command/validators/requiresFoundingAuthority
+    examples:
+      - cmd: office assign alice prime-minister
+        note: Hand the Prime Minister seat to Alice
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: "online"
+        requires: class:Agent
+        onExcess: prompt
+      - name: office
+        type: string
+        required: true
+  vacate:
+    description: "Revert an office to the founder (founder-only)"
+    help: |
+      Clear an office's explicit holder; the seat reverts to the founder
+      default. Name the office only — there is no empty state. Founder-only.
+    validators:
+      - /lib/command/validators/requiresFoundingAuthority
+    examples:
+      - cmd: office vacate prime-minister
+        note: Revert the Prime Minister seat to the founder
+    args:
+      - name: office
+        type: string
+        required: true
+  list:
+    description: "Show the public roster of offices and holders"
+    help: |
+      List every office with its branch, origin, and current holder. Public
+      — runnable by anyone.

@@ -1,0 +1,16 @@
+# The Drowned Substation — the electricity zone. A derelict electrical
+# substation, part-flooded, where the shock model lives as reachable content
+# (the flooded switch-cell demonstrator) and where the deferred **power grid**
+# content grows (the grid is this same Ohm's-law physics scaled up). A
+# self-contained CartesianZone, deliberately NOT branched off /world/lounge
+# or another themed area — electricity keeps its own home. No inbound exit is
+# wired from another content area this cycle (the treeline precedent — keeps
+# content-area standup clean); the cell is reachable by teleport / a future
+# travel node.
+#
+# No ownerGroup this cycle: it collects nothing.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Drowned Substation
+  cellSize: 3.0

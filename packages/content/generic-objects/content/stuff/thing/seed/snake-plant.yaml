@@ -1,0 +1,13 @@
+# A snake-plant seed — the store's, and so the way a player comes by the
+# second species. Same shape as the peace-lily seed; only the plant it names
+# differs.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a snake plant seed
+  primaryKeyword: seed
+  keywords: [seed, "snake plant seed", "snake seed"]
+  longDescription: |
+    A flat pale seed in a paper sleeve, with a pencilled note that reads: hard to kill.
+  growsIntoPath: /stuff/thing/plant/snake-plant
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata

@@ -1,0 +1,17 @@
+# Collapse — the floor effect of the `endurance` reserve. Acute and
+# REVERSIBLE incapacitation (not lethal): spawned by metabolism's
+# reconcile cascade when endurance bottoms out, cleared once endurance
+# recovers above the hysteresis band. While present it gates volitional /
+# exertion verbs via the `requiresConscious` validator, so a collapsed
+# body can't run the intake verbs — the grounded death-spiral with
+# starvation falls out of the gate, no special-case code.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: collapse
+  signature: []
+  progression: null
+  resolution:
+    by: rest
+  observableSigns: [collapsed, unable-to-rise]
+  contagion: null

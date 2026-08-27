@@ -11,9 +11,9 @@
  * holds the scalar but does no arithmetic. All attitude logic — the
  * read-modify-write delta, the normative `-100..+100` clamp, and the
  * eventual read-time decay — lives in the hot-reloadable
- * {@link RegardLogic} singleton at `/obj/api/regard`, reached
+ * {@link RegardLogic} singleton at `/platform/idea/api/regard`, reached
  * synchronously via `StuffApi.singletonSync`. This Api is a thin
- * forwarding shell. `dest /obj/api/regard` reloads it.
+ * forwarding shell. `dest /platform/idea/api/regard` reloads it.
  *
  * Regard is **kind-agnostic**: it stores no player/NPC marker and the
  * same path handles player↔player, player↔NPC, NPC↔player, NPC↔NPC. The
@@ -24,13 +24,13 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { RegardLogic } from '../obj/api/RegardLogic';
+import { RegardLogic } from '../platform/idea/api/RegardLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/regard';
+const LOGIC_PATH = '/platform/idea/api/regard';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/RegardLogic', import.meta.url)
+  new URL('../platform/idea/api/RegardLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able RegardLogic singleton (sync). */

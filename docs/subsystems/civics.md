@@ -25,15 +25,15 @@ substrates, and diegetic justice moves real-substrate value only
 through the real chokepoints.
 
 Source: `obj/Government.ts`, `obj/GovernmentCatalogue.ts`,
-`obj/api/GovernmentLogic.ts`, `api/government.ts`,
-`cmd/civics/government.yaml` + `obj/command/civics/GovernmentController.ts`.
+`platform/idea/api/GovernmentLogic.ts`, `api/government.ts`,
+`cmd/civics/government.yaml` + `platform/idea/cmd/civics/GovernmentController.ts`.
 The meta-side committee concept lives on **`CompactApi`**
 (`api/compact.ts`) — see [access.md](./access.md) § The committee.
 
 ## The Government Idea + catalogue
 
 `Government` (`obj/Government.ts`, templates under
-`/obj/Government/<key>`) is a pure-data leaf `Idea` read from
+`<root>/idea/Government/<key>`) is a pure-data leaf `Idea` read from
 `template.data`, never cloned live. Fields — every non-identity field a
 **durable-string reference into an existing substrate**, never a live
 ref:
@@ -43,14 +43,14 @@ ref:
 - `charter` — a document-store path (pointer only in v1: nothing reads
   it yet, no StoredDocument is seeded — deferred);
 - `treasury` — a bank-account key (the city points at the shipped
-  municipal budget `/domain/terminus/budget`);
+  municipal budget `/world/terminus/budget`);
 - `departments` — **organization** templatePaths (an organization's path
   IS its durable key in the employment substrate). ⚠ They were Business
   paths, and that was the conflation the organizations build fixed: a
   registry keeps records and does not trade, and was a Business purely
   because that is where positions lived. Terminus's Registry is still a
   Business and resolves unchanged; new departments name
-  `/obj/Organization`.
+  `/platform/idea/Organization`.
 - `seats` — `{ key, label, department, positionKey }` references: **a
   seat is a position on an organization's chart**, never a second Office
   apparatus (the real polity's code-authored Office substrate is
@@ -59,12 +59,12 @@ ref:
   at* the position: a seat is pointed at, personal staff is not — see
   [employment.md](./employment.md).
 
-`GovernmentCatalogue` (`/obj/GovernmentCatalogue`, manifest-warmed) is
+`GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`, manifest-warmed) is
 the corpo-recipe data-cache: one boot query, sync reads, defensive
 copies, cold-state-empty, singleton destruct/evict refusals. Like the
 corpo catalogue it has **no auto-invalidate** on template churn beyond
 HMR re-clone — a CMS edit to a Government template needs
-`dest /obj/GovernmentCatalogue`.
+`dest /platform/idea/GovernmentCatalogue`.
 
 ## Jurisdiction on the Locality (consent-by-construction)
 
@@ -138,11 +138,11 @@ resolves **[city, realm]** — sparse inheritance on real content. The
 form (Administrator, Treasurer, Watch, Works, Almonry) is charter
 *prose* in terminus-city.md §8; the template carries only what is
 built — the Registry (a municipal-shape Business at
-`/domain/terminus/registry/business`; Odile double-hats registrar +
+`/world/terminus/registry/business`; Odile double-hats registrar +
 Magistrate on a shift-less roster, making `holdsSeat` live-provable)
 and its rented annex off the arrival gate's east frontage. The
 registry parcel is `terminus`-group-held — a `requires.title` claim of
-the transitional `world-seed` pack (`/domain/terminus/registry`,
+the transitional `world-seed` pack (`/world/terminus/registry`,
 `landUse: civic`), since content-packs wave 3 retired `config/parcels.yaml`
 and the seeders ([content-packs.md](./content-packs.md)).
 Sibling address roots (`counting-houses`, `university-avenue`,

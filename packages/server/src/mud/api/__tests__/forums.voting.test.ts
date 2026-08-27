@@ -11,7 +11,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
-import SubjectCatalogue from '../../obj/SubjectCatalogue';
+import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
 import { Idea } from '../../lib/stuff/Idea';
 import {
   makeStuff,
@@ -84,7 +84,7 @@ beforeEach(() => {
     if (key === 'forums.antiSnowball.minMinutes') return '30';
     return '';
   });
-  makeStuffAtPath(() => new SubjectCatalogue(), '/obj/SubjectCatalogue');
+  makeStuffAtPath(() => new SubjectCatalogue(), '/platform/idea/SubjectCatalogue');
 });
 
 afterEach(() => {

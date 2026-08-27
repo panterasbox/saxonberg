@@ -21,8 +21,8 @@
  *
  * `conduct` is a **powerful primitive** (it wounds bodies). The logic lives
  * in the gated, hot-reloadable {@link ElectricityLogic} singleton at
- * `/obj/api/electricity`; this Api is the thin forwarding shell. `dest
- * /obj/api/electricity` reloads it.
+ * `/platform/idea/api/electricity`; this Api is the thin forwarding shell. `dest
+ * /platform/idea/api/electricity` reloads it.
  *
  * See `docs/subsystems/electricity.md`.
  */
@@ -32,7 +32,7 @@ import type { Energized } from '../lib/electricity/Energized';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ElectricityLogic } from '../obj/api/ElectricityLogic';
+import { ElectricityLogic } from '../platform/idea/api/ElectricityLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -44,9 +44,9 @@ export interface ConductionOutcome {
   currentThrough: Quantity<'A'>;
 }
 
-const LOGIC_PATH = '/obj/api/electricity';
+const LOGIC_PATH = '/platform/idea/api/electricity';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ElectricityLogic', import.meta.url),
+  new URL('../platform/idea/api/ElectricityLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able ElectricityLogic singleton (sync). */

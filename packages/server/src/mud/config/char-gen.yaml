@@ -5,7 +5,7 @@
 #
 # `species[].path` must point at a real Species template — these live in
 # the `@saxonberg/content-species-and-names` content pack
-# (`content/obj/species/**`). `aspirations[].outfit` lists garment template
+# (`content/stuff/idea/species/**`). `aspirations[].outfit` lists garment template
 # paths cloned + worn at commit (missing ones are skipped). `bioSeed`
 # is the starter bio prose seeded onto PersonaMixin.
 #
@@ -17,43 +17,43 @@
 
 species:
   - key: human
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
     label: Human
     description: Adaptable and ambitious; the striving majority of the campus.
   - key: elf
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/eldarinus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/eldarinus
     label: Elf
     description: Keen-eyed and long-lived, with a measured, watchful grace.
   - key: dwarf
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
     label: Dwarf
     description: Stone-sturdy and stout, at home in the dark and the deep.
   - key: halfling
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/periannath
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/periannath
     label: Halfling
     description: Small, quick, and comfortable; fond of a good meal and a warm hole.
   - key: half-orc
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
     label: Half-orc
     description: Broad and powerful, with a keen nose and a quiet steadiness.
   - key: tiefling
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
     label: Tiefling
     description: Horned and ember-eyed, carrying an old, infernal heat.
   - key: dragonborn
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/draconicus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/draconicus
     label: Dragonborn
     description: Scaled and proud, with the bearing of an elder wyrm.
   - key: gnome
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/gnomus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/gnomus
     label: Gnome
     description: Small, wiry, and tirelessly curious; a tinker-folk of the deep places.
   - key: half-elf
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/semieldarinus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/semieldarinus
     label: Half-elf
     description: Between two worlds; elven poise and human drive, at home in neither fully.
   - key: orc
-    path: /obj/species/animalia/chordata/mammalia/primates/hominidae/homo/orcus
+    path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/orcus
     label: Orc
     description: Broad and fierce, keen-nosed and short-lived; intense from first breath to last.
 
@@ -77,9 +77,9 @@ aspirations:
       degree, a door, a different life. You don't have it all figured out
       yet. That's rather the point.
     outfit:
-      - /obj/clothes/student-shirt
-      - /obj/clothes/student-trousers
-      - /obj/clothes/canvas-shoes
+      - /stuff/thing/clothes/student-shirt
+      - /stuff/thing/clothes/student-trousers
+      - /stuff/thing/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Left home with little but resolve and a one-way ticket."
@@ -92,9 +92,9 @@ aspirations:
       You came to learn how to mend — bodies, minds, the small broken
       things people carry. You've always been the one others come to.
     outfit:
-      - /obj/clothes/white-coat
-      - /obj/clothes/student-trousers
-      - /obj/clothes/canvas-shoes
+      - /stuff/thing/clothes/white-coat
+      - /stuff/thing/clothes/student-trousers
+      - /stuff/thing/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Was always the one others came to when something broke."
@@ -107,9 +107,9 @@ aspirations:
       You want to teach — to be the one who finally makes it click for
       someone. You remember the teacher who did that for you.
     outfit:
-      - /obj/clothes/tweed-jacket
-      - /obj/clothes/student-trousers
-      - /obj/clothes/canvas-shoes
+      - /stuff/thing/clothes/tweed-jacket
+      - /stuff/thing/clothes/student-trousers
+      - /stuff/thing/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Remembers the teacher who finally made it click."
@@ -122,9 +122,9 @@ aspirations:
       You came to stand the watch — to be steady when it matters, to put
       yourself between people and the worst of it.
     outfit:
-      - /obj/clothes/field-jacket
-      - /obj/clothes/student-trousers
-      - /obj/clothes/canvas-shoes
+      - /stuff/thing/clothes/field-jacket
+      - /stuff/thing/clothes/student-trousers
+      - /stuff/thing/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Learned early to stand between people and the worst of it."
@@ -137,9 +137,9 @@ aspirations:
       You're here to build something of your own — a company, a stake, a
       name on a door. You think in deals and in years.
     outfit:
-      - /obj/clothes/blazer
-      - /obj/clothes/student-trousers
-      - /obj/clothes/canvas-shoes
+      - /stuff/thing/clothes/blazer
+      - /stuff/thing/clothes/student-trousers
+      - /stuff/thing/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Thinks in deals and in years."
@@ -152,9 +152,9 @@ aspirations:
       You came for the questions — how it works, why it works, what's
       underneath. You'd take the truth over the comfort any day.
     outfit:
-      - /obj/clothes/lab-hoodie
-      - /obj/clothes/student-trousers
-      - /obj/clothes/canvas-shoes
+      - /stuff/thing/clothes/lab-hoodie
+      - /stuff/thing/clothes/student-trousers
+      - /stuff/thing/clothes/canvas-shoes
     claimSeeds:
       - order: 1
         text: "Took the truth over the comfort, always."

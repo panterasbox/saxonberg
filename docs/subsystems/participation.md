@@ -120,7 +120,7 @@ fit). Raw logs stay per-faucet.
 ## Api topology
 
 - **`ConsumerApi`** (`api/consumer.ts`) → **`ConsumerLogic`**
-  (`obj/api/ConsumerLogic.ts`, `/obj/api/consumer`) — owns the
+  (`platform/idea/api/ConsumerLogic.ts`, `/platform/idea/api/consumer`) — owns the
   participation faucet (`append` / `eventsFor` / `recompute` /
   `participationOf` / `boot`) and the consumer projection (`standingOf`).
   Reads `RenownApi`; never owns it.
@@ -141,7 +141,7 @@ name — see [influence.md](./influence.md)). The capture event is in
 "engagement") to avoid colliding with `lib/activity/`'s in-session
 `EngagedMixin` — a different concept (sustained in-session actions).
 
-Standing banks on the durable `templatePath` (`/obj/Avatar/<playerId>`),
+Standing banks on the durable `templatePath` (`/platform/agent/Avatar/<playerId>`),
 **not** the ephemeral `stuffId` (re-minted on re-clone) — the durability
 re-key the influence build's Phase 0 landed across the whole engagement
 cluster. The `stuffId` stays a live-resolution handle; only the stored key
@@ -203,8 +203,7 @@ read a ledger missing the row it was just told about.
 warmed at boot from the **`renown` collection**, which holds the
 *materialized* standings. It does **not** read `renown_events`.
 
-So writing rows into `renown_events` (as
-`packages/server/scripts/seed-standing.ts` does) changes nothing until a
+So writing rows into `renown_events` by hand changes nothing until a
 **recompute** folds the log into the standings collection. A bare
 restart re-warms the map from a collection the seeding never wrote, and
 is therefore a no-op.

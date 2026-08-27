@@ -1,0 +1,15 @@
+# Ride — passthrough mode. The rider doesn't traverse on their own;
+# the conveyance host (a MountableMixin Stuff) does. Numeric emission
+# fields stay at class defaults — emission consumers walk the
+# passthrough chain to the host's own engaged mode via emissionAt.
+class: /platform/idea/LocomotionMode
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ride
+  requiresBodyPlanMode: []
+  requiresPosture: []
+  costMultiplier: 1.0
+  passthrough: true
+  conveyanceMixin: MountableMixin
+  enablementMixin: null
+  medium: null

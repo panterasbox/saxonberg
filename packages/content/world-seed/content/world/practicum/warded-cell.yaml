@@ -1,0 +1,20 @@
+# The warded cell — the anti-magic proof room: `suppressesMagic: all`.
+# Casting inside is refused; a carried glowlight winks out on the next
+# read (dormant, not released — it re-lights outside); the brazier's
+# MUNDANE fire keeps burning — suppression drops what magic still holds
+# up, and can never un-happen an impulse. That contrast IS the lesson.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the warded cell
+  primaryKeyword: cell
+  longDescription: |
+    A round cell of close-fitted grey stone, faintly humming with the ward cut into every block. A bronze brazier burns steadily in the centre — fire, the plaque notes, is not magic.
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  suppressesMagic:
+    all: true
+  populates:
+    - /world/practicum/brazier

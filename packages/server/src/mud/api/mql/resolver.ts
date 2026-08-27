@@ -211,7 +211,7 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       if (clones.length > 0) return matchesFromStuff(clones);
       // Fallback for non-glob paths: the addressable Template record
       // itself, so verbs can act on a template that has no live
-      // clones (e.g., `destruct /obj/Avatar/foo`). Glob patterns
+      // clones (e.g., `destruct /platform/agent/Avatar/foo`). Glob patterns
       // (`*`, `**`, `?`) skip this — they're search-shaped queries
       // and the empty-result is meaningful.
       const isGlob = /[*?]/.test(node.pattern);

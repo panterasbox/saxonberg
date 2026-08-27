@@ -14,15 +14,15 @@
 import { StuffApi } from "./stuff";
 import { MixinApi } from "./mixin";
 import { HotReloadApi } from "./hot-reload";
-import { ChattelLogic } from "../obj/api/ChattelLogic";
+import { ChattelLogic } from "../platform/idea/api/ChattelLogic";
 import type { ChattelOwner } from "../lib/chattel/ChattelRecord";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = "/obj/api/chattel";
+const LOGIC_PATH = "/platform/idea/api/chattel";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/ChattelLogic", import.meta.url),
+  new URL("../platform/idea/api/ChattelLogic", import.meta.url),
 );
 
 /** The outcome of a stamp/transfer — the minted id, or a refusal reason. */

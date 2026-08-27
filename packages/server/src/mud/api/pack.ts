@@ -18,21 +18,19 @@
  * Reconcile is **ownership-scoped, non-destructive, and three-way**: every
  * installed row (a `content` template, a `descriptor_banks` bank, a
  * `documents` row of a declared kind) carries a `sourcePack` stamp; a run
- * only ever touches rows
- * stamped by *that* pack (adopting pre-existing unstamped rows on first
- * install — migration without a wipe). Anything unstamped/other-stamped is
- * invisible. A pack's referenced backing classes must resolve (the
+ * only ever touches rows stamped by *that* pack; a row at one of its
+ * keys that it did not stamp is refused — the packs are the only writer. A pack's referenced backing classes must resolve (the
  * `requires-kernel` check) or the install aborts before any write — this is
  * the enforced content-pack ↔ mod boundary (a pack assumes classes; a mod
  * brings them).
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link PackLogic} singleton at `/obj/api/pack`.
+ * {@link PackLogic} singleton at `/platform/idea/api/pack`.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { PackLogic } from '../obj/api/PackLogic';
+import { PackLogic } from '../platform/idea/api/PackLogic';
 import type { GroupRole } from '../lib/social/Group';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
@@ -115,7 +113,6 @@ export interface PackRequiresResult {
   groupsFound: string[];
   titlesGranted: string[];
   titlesKept: string[];
-  titlesMigrated: string[];
   titleConflicts: string[];
   membersAdded: string[];
   /** Domain rows skipped because their covering extent is held by nobody in the pack's holder set. */
@@ -129,8 +126,6 @@ export interface PackReconcileResult {
   inserted: string[];
   /** Record keys whose stored body was overwritten from the file. */
   updated: string[];
-  /** Pre-existing unstamped rows stamped + matched to file (migration). */
-  adopted: string[];
   /** Stamped rows whose file vanished, removed. */
   deleted: string[];
   /** Rows the DB changed and the file did not — the DB was kept. */
@@ -143,13 +138,13 @@ export interface PackReconcileResult {
   conflicts: string[];
   /** Pinned rows skipped before any comparison. Reported every time. */
   pinnedSkipped: number;
-  /** Rows whose baseline was (re)normalized from what was written — the
-   * one-time adoption count (or a per-row missing-baseline repair). */
+  /** Rows whose baseline was (re)normalized from what was written (a
+   * stamped row with no baseline — the pre-written registries). */
   normalized: number;
   /** (unit, scale) tag pairs (re)loaded; 0 when the pack has no quantity kind. */
   quantityTables: number;
   /**
-   * Document rows written (insert/update/adopt) per document kind
+   * Document rows written (insert/update) per document kind
    * (`{ emote: 34, msh: 3 }`); absent kinds are absent keys.
    */
   documents: Record<string, number>;
@@ -219,7 +214,7 @@ export interface PackInstallRecord {
   failure: PackFailure | null;
   /** Reserved; written `{}` this cycle. */
   parameters: Record<string, unknown>;
-  /** Baselines keyed by record key (`/domain/…`, `/name-banks/<key>`, `/emotes/<verb>`). */
+  /** Baselines keyed by record key (`/world/…`, `/name-banks/<key>`, `/emotes/<verb>`). */
   rows: Record<string, PackRowBaseline>;
   /** Record keys the operator has claimed; skipped before any comparison. */
   pins: string[];
@@ -281,7 +276,6 @@ export interface PackPlannedAction {
   op:
     | 'insert'
     | 'update'
-    | 'adopt'
     | 'delete'
     | 'keep'
     | 'converge'
@@ -334,9 +328,9 @@ export interface PackDiffReport {
 /** How `pack resolve` settles a conflict. There is no bare keep. */
 export type PackResolveMode = 'take-pack' | 'keep-pin' | 'export';
 
-const LOGIC_PATH = '/obj/api/pack';
+const LOGIC_PATH = '/platform/idea/api/pack';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/PackLogic', import.meta.url),
+  new URL('../platform/idea/api/PackLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able PackLogic singleton (sync). */

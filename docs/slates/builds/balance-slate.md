@@ -421,7 +421,7 @@ layer.**
 
 ```yaml
 matter:     advancement.competence     # from the closed enumeration
-scope:      /domain/hinkley/**
+scope:      /world/hinkley/**
 class:      novice                     # the declared audience (Part 3)
 bound:      <= 1.0 band-fractions per player-hour
 measure:    transcripts, 7-day trailing

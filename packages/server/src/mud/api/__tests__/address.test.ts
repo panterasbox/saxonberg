@@ -3,9 +3,9 @@
  *
  * Roster (templatePath deliberately diverges from the claimed address,
  * pinning namespace independence):
- *   /obj/Locality/narnia        claims 'narnia'        (root Region)
- *   /obj/Locality/cair-paravel  claims 'narnia/castle' (nested Locality)
- *   /obj/Locality/lantern-waste claims 'narnia/wild'   (sibling)
+ *   /stuff/idea/Locality/narnia        claims 'narnia'        (root Region)
+ *   /stuff/idea/Locality/cair-paravel  claims 'narnia/castle' (nested Locality)
+ *   /stuff/idea/Locality/lantern-waste claims 'narnia/wild'   (sibling)
  *
  * The test harness skips `postRegister`, so Localities are registered
  * explicitly through `AddressApi`. The module-level registry cache in
@@ -15,14 +15,14 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Location from '../../lib/stuff/Location';
-import Locality from '../../obj/Locality';
+import Locality from '../../platform/idea/Locality';
 import { Vessel } from '../../lib/stuff/Vessel';
-import CartesianZone from '../../obj/location/CartesianZone';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 import { AddressApi } from '../address';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
-import AddressRegistry from '../../obj/AddressRegistry';
+import AddressRegistry from '../../platform/idea/AddressRegistry';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -32,7 +32,7 @@ import {
 class TestLocation extends Location {}
 
 function installRegistry(): AddressRegistry {
-  return makeStuffAtPath(() => new AddressRegistry(), '/obj/AddressRegistry');
+  return makeStuffAtPath(() => new AddressRegistry(), '/platform/idea/AddressRegistry');
 }
 
 function installLocality(
@@ -51,9 +51,9 @@ function installLocality(
 }
 
 function installRoster(): void {
-  installLocality('/obj/Locality/narnia', 'Narnia', 'narnia');
-  installLocality('/obj/Locality/cair-paravel', 'Cair Paravel', 'narnia/castle');
-  installLocality('/obj/Locality/lantern-waste', 'Lantern Waste', 'narnia/wild');
+  installLocality('/stuff/idea/Locality/narnia', 'Narnia', 'narnia');
+  installLocality('/stuff/idea/Locality/cair-paravel', 'Cair Paravel', 'narnia/castle');
+  installLocality('/stuff/idea/Locality/lantern-waste', 'Lantern Waste', 'narnia/wild');
 }
 
 describe('AddressApi — coverage index + resolve chain', () => {
@@ -103,7 +103,7 @@ describe('AddressApi — coverage index + resolve chain', () => {
   it('resolves through the address tree, ignoring templatePath and zone', async () => {
     const room = makeStuff(() => new TestLocation());
     // A templatePath and zone that have nothing to do with the address.
-    stampTemplatePathForTest(room, '/domain/keep/great-hall');
+    stampTemplatePathForTest(room, '/world/keep/great-hall');
     const zone = makeStuff(() => new CartesianZone());
     Stuff._stampZone(room, zone);
     room.setAddress('narnia/castle');

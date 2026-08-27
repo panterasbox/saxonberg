@@ -6,12 +6,12 @@
  * engageAround / isTransientEngagement framework-internal helpers.
  *
  * All inputs that reference a mode by name accept either the short
- * name (`'walk'`) or the full templatePath (`/obj/LocomotionMode/walk`).
+ * name (`'walk'`) or the full templatePath (`/platform/idea/LocomotionMode/walk`).
  *
  * Thin, security-gated forwarding shell: the logic lives in the
  * hot-reloadable {@link LocomotionLogic} singleton at
- * `/obj/api/locomotion`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/locomotion` reloads it
+ * `/platform/idea/api/locomotion`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/locomotion` reloads it
  * (HMR demo in hot-reload.md).
  */
 
@@ -25,11 +25,11 @@ import type {
   BodyProfile,
   GroundContact,
   NoiseLevel,
-} from '../obj/LocomotionMode';
+} from '../platform/idea/LocomotionMode';
 import type { Enablement } from '../lib/locomotion/Enablement';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { LocomotionLogic } from '../obj/api/LocomotionLogic';
+import { LocomotionLogic } from '../platform/idea/api/LocomotionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -56,9 +56,9 @@ export interface EmissionData {
   resolvedHostChain: Stuff[];
 }
 
-const LOGIC_PATH = '/obj/api/locomotion';
+const LOGIC_PATH = '/platform/idea/api/locomotion';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/LocomotionLogic', import.meta.url)
+  new URL('../platform/idea/api/LocomotionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able LocomotionLogic singleton (sync). */

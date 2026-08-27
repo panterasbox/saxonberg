@@ -10,7 +10,7 @@ import { Application } from '../Application';
 import { ConnectionManager } from '../ConnectionManager';
 import { PromptApi } from '../../mud/api/prompt';
 import type { IBackend } from '../IBackend';
-import type Interactive from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/platform/idea/Interactive';
 
 interface FakeBackend extends IBackend {
   sent: Array<{ socketId: string; message: unknown }>;

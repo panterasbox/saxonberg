@@ -11,7 +11,7 @@ import { MobileMixin } from '../Mobile';
 import { ContainableMixin } from '../Containable';
 import { HaulerMixin } from '../../slot/Hauler';
 import { Idea } from '../../stuff/Idea';
-import CartesianZone from '../../../obj/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
 import Exit from '../../boundary/Exit';
 import { StuffApi } from '../../../api/stuff';

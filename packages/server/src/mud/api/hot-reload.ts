@@ -335,7 +335,7 @@ export class HotReloadApi {
 
   /**
    * Last path segment without extension, e.g.:
-   *   /abs/path/to/obj/Avatar.ts → Avatar
+   *   /abs/path/to/platform/agent/Avatar.ts → Avatar
    *   /abs/.../foo/bar.tsx       → bar
    */
   static #defaultExportName(path: string): string {

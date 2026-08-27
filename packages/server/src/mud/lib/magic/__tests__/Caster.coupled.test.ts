@@ -29,14 +29,14 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
-import SpellCatalogue from '../../../obj/SpellCatalogue';
-import Spell from '../../../obj/magic/Spell';
-import Wand from '../../../obj/magic/Wand';
+import '../../../platform/idea/WorldClockRegistry';
+import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
+import Spell from '../../../platform/idea/magic/Spell';
+import Wand from '../../../platform/thing/magic/Wand';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
-import Species from '../../../obj/species/Species';
-import Room from '../../../obj/location/Room';
+import Species from '../../../platform/idea/species/Species';
+import Room from '../../../platform/location/Room';
 import { Quantity } from '../../quantity';
 import { Postures } from '../../slot/Postured';
 import { MANA_RESERVE_KEY } from '../Caster';
@@ -56,7 +56,7 @@ let catalogueSingleton: SpellCatalogue | null = null;
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../../../../content/arcane-library/content/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
 async function installCatalogue(): Promise<void> {
@@ -81,7 +81,7 @@ async function installCatalogue(): Promise<void> {
     });
   if (!catalogueSingleton) {
     catalogueSingleton = makeStuff(() => new SpellCatalogue());
-    stampTemplatePathForTest(catalogueSingleton, '/obj/SpellCatalogue');
+    stampTemplatePathForTest(catalogueSingleton, '/platform/idea/SpellCatalogue');
   }
   catalogueSingleton.invalidateCache();
   await catalogueSingleton.postRegister();
@@ -94,7 +94,7 @@ function makeCaster(): TestCharacter {
   species.setFacultyProfile({ depth: 'mid', serenity: 'mid', composure: 'mid' });
   species.setInnateMixins(['CasterMixin']);
   species.setSentient(true);
-  stampTemplatePathForTest(species, `/obj/species/test/coupled-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/coupled-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/coupled-${n}`);
@@ -196,7 +196,7 @@ describe('AC10 — mana recovery spends satiation and hydration', () => {
     const n = seq++;
     const species = makeStuff(() => new Species());
     species.setSentient(true); // no faculty profile, no innate mixin
-    stampTemplatePathForTest(species, `/obj/species/test/mundane-${n}`);
+    stampTemplatePathForTest(species, `/stuff/idea/species/test/mundane-${n}`);
     const mundane = makeStuff(() => new TestCharacter());
     mundane.setSpecies(species);
     stampTemplatePathForTest(mundane, `/obj/test/mundane-${n}`);
@@ -260,7 +260,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
 
     const wand = makeStuff(() => new Wand());
     stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
-    wand.setCarriedSpellPath('/obj/magic/Spell/shove');
+    wand.setCarriedSpellPath('/stuff/idea/magic/Spell/shove');
     wand.setCapacityKJ(1000);
     ContainmentApi.move(wand, user);
     actingAs(user);
@@ -280,7 +280,7 @@ describe('AC7 — the endpoint takes the reaction', () => {
     ContainmentApi.move(user, room);
     const wand = makeStuff(() => new Wand());
     stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
-    wand.setCarriedSpellPath('/obj/magic/Spell/glowlight'); // costs 10
+    wand.setCarriedSpellPath('/stuff/idea/magic/Spell/glowlight'); // costs 10
     wand.setCapacityKJ(25);
     ContainmentApi.move(wand, user);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () =>

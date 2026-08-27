@@ -1,0 +1,25 @@
+verbs: [wallet]
+controller: /platform/idea/cmd/banking/WalletController
+description: "Your payment wallet — show / use / freeze"
+help: |
+  Bare `wallet` shows which account your implant pays from. `wallet use
+  <corpo>` switches the active account (a default `pay` then routes through
+  that bank). `wallet freeze <card>` reports a card lost — it's frozen and a
+  fresh one is reissued; your balance is untouched.
+validators:
+  - /lib/command/validators/requiresAnimate
+subcommands:
+  use:
+    description: "Switch the implant's active account to your <corpo> account"
+    args:
+      - name: corpo
+        type: string
+        required: true
+  freeze:
+    description: "Report a card lost (freeze + reissue)"
+    args:
+      - name: card
+        type: object
+        required: true
+        scope: "inventory"
+        requires: CredentialWalletMixin

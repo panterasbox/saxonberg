@@ -33,27 +33,27 @@
  * today — flagged for the persistence layer.)
  *
  * **Durable viewer key = `templatePath`.** Avatars and singleton NPCs
- * have one (`/obj/Avatar/<playerId>`); generic NPC clones share / lack
+ * have one (`/platform/agent/Avatar/<playerId>`); generic NPC clones share / lack
  * one and are session-ephemeral by construction — they simply don't
  * persist, which falls out of the keying.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link BeliefStoreLogic} singleton at `/obj/api/belief`,
+ * hot-reloadable {@link BeliefStoreLogic} singleton at `/platform/idea/api/belief`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/belief` reloads it.
+ * /platform/idea/api/belief` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { BeliefRecord } from '../lib/belief/BeliefStore';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { BeliefStoreLogic } from '../obj/api/BeliefStoreLogic';
+import { BeliefStoreLogic } from '../platform/idea/api/BeliefStoreLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/belief';
+const LOGIC_PATH = '/platform/idea/api/belief';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/BeliefStoreLogic', import.meta.url)
+  new URL('../platform/idea/api/BeliefStoreLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able BeliefStoreLogic singleton (sync). */

@@ -4,9 +4,9 @@
  * Stable caller-facing surface for verbs and controllers: `resolve` on
  * the dispatch hot path, `mint` / `edit` / `delete` / `all` for the
  * `soul <subcommand>` authoring suite. The state lives on the
- * `/obj/SoulCatalogue` Stuff; the orchestration (catalogue resolution +
+ * `/platform/idea/SoulCatalogue` Stuff; the orchestration (catalogue resolution +
  * forwarding) lives in the hot-reloadable {@link SoulLogic} singleton at
- * `/obj/api/soul`, reached synchronously via `StuffApi.singletonSync`.
+ * `/platform/idea/api/soul`, reached synchronously via `StuffApi.singletonSync`.
  * The Api carries no state of its own.
  */
 
@@ -14,16 +14,16 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Emote } from '../lib/social/Emote';
 import type { EmoteCatalogueEntry } from '@saxonberg/types';
-import type { EmoteSpec } from '../obj/SoulCatalogue';
-import { SoulLogic } from '../obj/api/SoulLogic';
+import type { EmoteSpec } from '../platform/idea/SoulCatalogue';
+import { SoulLogic } from '../platform/idea/api/SoulLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-export type { EmoteSpec } from '../obj/SoulCatalogue';
+export type { EmoteSpec } from '../platform/idea/SoulCatalogue';
 
-const LOGIC_PATH = '/obj/api/soul';
+const LOGIC_PATH = '/platform/idea/api/soul';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SoulLogic', import.meta.url)
+  new URL('../platform/idea/api/SoulLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able SoulLogic singleton (sync). */

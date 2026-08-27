@@ -195,7 +195,8 @@ function walkOutward(
     for (const exit of loc.getObviousExits()) {
       if (exit.getDoor()) continue;
       const destPath = exit.getDestinationTemplatePath();
-      if (destPath && !StuffApi.findByTemplatePath(destPath)) continue;
+      // Existence, not identity — a Warren hub exit names a template with many live clones (see VisionModality).
+      if (destPath && StuffApi.findAllByTemplatePath(destPath).length === 0) continue;
       let dest: Stuff & Container;
       try {
         dest = exit.getDestination();

@@ -302,7 +302,7 @@ export abstract class Stuff {
    * transcript/disposition/renown subject) attribute to. Defaults to
    * `getTemplatePath()` (byte-identical for every ordinary object); a
    * projection vessel (the sandbox `WireBody`) overrides it to return
-   * the real identity's path (`/obj/Avatar/<playerId>`), so in-circle
+   * the real identity's path (`/platform/agent/Avatar/<playerId>`), so in-circle
    * derive-on-read composes the player's real history ∪ scoped appends
    * and PASS rows attribute to the real identity, never the vessel.
    */
@@ -315,7 +315,7 @@ export abstract class Stuff {
    * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
    * return its `playerId`. This is the auth/account identity (OAuth id,
    * `User.playerIds`) — NOT a membership key. Group / authority membership
-   * keys uniformly on `getTemplatePath()` (a player as `/obj/Avatar/<id>`, an
+   * keys uniformly on `getTemplatePath()` (a player as `/platform/agent/Avatar/<id>`, an
    * NPC as its own path), so a membership check never branches on player-vs-NPC
    * and never mixes id shapes. Kept as a typed method (rather than the old
    * `(x as { getPlayerId?() }).getPlayerId?.()` duck-typing) so the auth-layer

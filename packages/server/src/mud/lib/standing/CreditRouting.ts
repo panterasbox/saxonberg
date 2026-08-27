@@ -11,7 +11,7 @@
  *
  * **Released-content gate.** Only content in the released namespace earns:
  * a player's personal homedir (`/home/…`) earns nothing (an unreleased
- * sandbox). Everything else — `/domain/…` content AND `/obj/…` (which is
+ * sandbox). Everything else — `/world/…` content AND `/platform/…` / `/stuff/…` (which is
  * released, core content) — is released. This is the zero-new-infra v1 gate
  * (a path prefix); the richer team-sandbox + explicit `release` action is
  * deferred with the team split.
@@ -37,8 +37,8 @@ const UNRELEASED_PREFIXES = ['/home/'] as const;
 export class CreditRouting {
   /**
    * Whether a content path is in the released namespace (earns credit). Only
-   * a player's personal homedir (`/home/…`) is unreleased; `/domain/…` and
-   * `/obj/…` (released core content) both earn.
+   * a player's personal homedir (`/home/…`) is unreleased; `/world/…` and
+   * `/platform/…` / `/stuff/…` (released core content) both earn.
    */
   static isReleased(path: string): boolean {
     return !UNRELEASED_PREFIXES.some((p) => path.startsWith(p));

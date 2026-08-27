@@ -14,10 +14,10 @@ import { EventApi } from '../event';
 import { CommandApi } from '../command';
 import { ConnectionApi } from '../connection';
 import { stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
-import Room from '../../obj/location/Room';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
+import Room from '../../platform/location/Room';
 import { ContainmentApi } from '../containment';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import type { CommandContext } from '../command';
@@ -49,7 +49,7 @@ export interface Harness {
 
 async function bootEventRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => new EventRegistry());
-  stampTemplatePathForTest(reg, '/obj/EventRegistry');
+  stampTemplatePathForTest(reg, '/platform/idea/EventRegistry');
   EventApi._setRegistryForTesting(reg);
 }
 
@@ -92,11 +92,11 @@ export function makeContext(
 ): CommandContext {
   const yaml =
     `verbs: [${opts.verbs.join(', ')}]\n` +
-    `controller: /obj/command/perception/LookController\n` +
+    `controller: /platform/idea/cmd/perception/LookController\n` +
     `description: "harness verb"\n` +
     (opts.opensCard ? `opens_card: ${opts.opensCard}\n` : '') +
     `args:\n  - name: target\n    type: string\n    required: false\n`;
-  const def = CommandDefinition.fromYaml(yaml, '/cmd/harness/x.yaml');
+  const def = CommandDefinition.fromYaml(yaml, '/platform/cmd/harness/x.yaml');
   return CommandApi.createCommandContext({
     commandGiver: h.avatar,
     location: null,

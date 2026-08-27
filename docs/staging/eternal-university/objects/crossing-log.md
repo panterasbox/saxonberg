@@ -3,12 +3,12 @@
 > **Status:** staging draft (full object spec).
 > **Belongs to:** Gus, the crossing guard (the EU campus-gate stop).
 > **Target seed paths:**
-> - `CrossingLog` class (thin `Thing` subclass) → `mud/obj/`.
+> - `CrossingLog` class (thin `Thing` subclass) → `mud/platform/`.
 > - Gus's specific log (the *instance*) → a seed under
 >   `mud/seeds/obj/.../crossing-log.yaml`.
 > - The **`tally`** verb → carried by the log (object-carried command, like
 >   the watch carries `wind`/`set`) → `mud/cmd/tally.yaml` +
->   `mud/obj/command/TallyController.ts`.
+>   `mud/platform/idea/cmd/TallyController.ts`.
 > **Depends on:** the **`Timekeeping`** capability + `Watch`
 > (`objects/pocket-watch.md`), the **`WorldClockApi`** (upstream, via the
 > watch), Gus's **npc-behavior** (he perceives crossings), and the

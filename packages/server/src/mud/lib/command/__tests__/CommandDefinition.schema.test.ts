@@ -236,12 +236,12 @@ verbs: [analyze]
 description: ok
 subcommands:
   light:
-    controller: /obj/command/analyze/AnalyzeLightController
+    controller: /platform/idea/cmd/analyze/AnalyzeLightController
     description: light
 `);
     // Absolute controller values resolve to themselves.
     expect(cmd.controllerForSubcommand('light')).toBe(
-      '/obj/command/analyze/AnalyzeLightController'
+      '/platform/idea/cmd/analyze/AnalyzeLightController'
     );
     expect(cmd.controller).toBeUndefined();
   });
@@ -249,7 +249,7 @@ subcommands:
   it('controllerForSubcommand falls back to verb-level controller', () => {
     const cmd = load(`
 verbs: [settings]
-controller: /obj/command/shell/SettingsController
+controller: /platform/idea/cmd/shell/SettingsController
 description: ok
 subcommands:
   list:
@@ -258,30 +258,30 @@ subcommands:
     description: set
 `);
     expect(cmd.controllerForSubcommand('list')).toBe(
-      '/obj/command/shell/SettingsController'
+      '/platform/idea/cmd/shell/SettingsController'
     );
     expect(cmd.controllerForSubcommand('set')).toBe(
-      '/obj/command/shell/SettingsController'
+      '/platform/idea/cmd/shell/SettingsController'
     );
   });
 
   it('per-subcommand controller wins when both are declared', () => {
     const cmd = load(`
 verbs: [test]
-controller: /obj/command/test/VerbLevel
+controller: /platform/idea/cmd/test/VerbLevel
 description: ok
 subcommands:
   fast:
-    controller: /obj/command/test/SubFast
+    controller: /platform/idea/cmd/test/SubFast
     description: fast
   slow:
     description: slow
 `);
     expect(cmd.controllerForSubcommand('fast')).toBe(
-      '/obj/command/test/SubFast'
+      '/platform/idea/cmd/test/SubFast'
     );
     expect(cmd.controllerForSubcommand('slow')).toBe(
-      '/obj/command/test/VerbLevel'
+      '/platform/idea/cmd/test/VerbLevel'
     );
   });
 

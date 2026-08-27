@@ -7,7 +7,7 @@
  *    idempotently (so the bar's authored recipe-/coroutine-scripts are
  *    real source the CMS can show + edit, not opaque content);
  *  - **the `saxonberg-lounge` pack installs them** into the path-addressed
- *    store at `/domain/lounge/msh/<name>` (the `msh` document kind),
+ *    store at `/world/lounge/msh/<name>` (the `msh` document kind),
  *    idempotently — a second install is all-zero (the live-content wire);
  *  - **the engine runs those shapes paced over the real bus** — a
  *    multi-statement script dispatches each statement through the bus, and
@@ -44,7 +44,7 @@ import {
   writePack,
   writeScriptFile,
   cleanupPacks,
-} from "../../../obj/api/__tests__/pack-harness";
+} from "../../../platform/idea/api/__tests__/pack-harness";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import {
   PersistenceManager,
@@ -71,7 +71,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ["system/ping.yaml"],
+    self: ["platform/cmd/system/ping.yaml"],
     environment: [],
   };
   public envelopes: EnvelopeTemplate[] = [];
@@ -146,8 +146,8 @@ describe("the saxonberg-lounge pack installs the authored scripts", () => {
     cleanupPacks();
   });
 
-  it("installs each .msh at /domain/lounge/msh/<name>, idempotently", async () => {
-    const root = writePack("saxonberg-lounge", [], { root: "/domain/lounge" });
+  it("installs each .msh at /world/lounge/msh/<name>, idempotently", async () => {
+    const root = writePack("saxonberg-lounge", [], { root: "/world/lounge" });
     for (const name of DEMO_SCRIPTS) writeScriptFile(root, name, readDemo(name));
 
     const [first] = await PackApi.install([root]);
@@ -158,8 +158,8 @@ describe("the saxonberg-lounge pack installs the authored scripts", () => {
 
     const rows = rowsOfKind("msh");
     expect(rows).toHaveLength(DEMO_SCRIPTS.length);
-    const martini = rows.find((r) => r.path === "/domain/lounge/msh/martini")!;
-    expect(martini.owner).toBe("/domain/lounge");
+    const martini = rows.find((r) => r.path === "/world/lounge/msh/martini")!;
+    expect(martini.owner).toBe("/world/lounge");
     expect(martini.sourcePack).toBe("saxonberg-lounge");
     expect((martini.data as { source: string }).source).toBe(readDemo("martini"));
 
@@ -168,7 +168,6 @@ describe("the saxonberg-lounge pack installs the authored scripts", () => {
     expect([
       ...again!.inserted,
       ...again!.updated,
-      ...again!.adopted,
       ...again!.deleted,
       ...again!.kept,
       ...again!.conflicts,
@@ -191,12 +190,12 @@ describe("the engine runs authored shapes paced over the bus", () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
-          query.path === "/obj/command/system/PingController"
+          query.path === "/platform/idea/cmd/system/PingController"
         ) {
           return [
             {
-              path: "/obj/command/system/PingController",
-              class: "/obj/command/system/PingController",
+              path: "/platform/idea/cmd/system/PingController",
+              class: "/platform/idea/cmd/system/PingController",
               data: {},
             },
           ];

@@ -31,7 +31,7 @@ test('an authenticated visitor lands in the cockpit', async ({ browser }) => {
 /**
  * Full command round-trip: client → command bus → WebSocket → server →
  * rendered frame. A fresh test avatar spawns in the lounge (the Avatar
- * seed pins `startLocation: /domain/lounge/warren`, which resolves to the
+ * seed pins `startLocation: /world/lounge/warren`, which resolves to the
  * lounge Warren's host room), so `look` presents that room. We assert on
  * the room's stable identity label (its shortDescription) rather than its
  * flavor prose, which churns.

@@ -22,7 +22,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import Avatar from '../../../obj/Avatar';
+import Avatar from '../../../platform/agent/Avatar';
 import { Quantity } from '../../quantity';
 import { MATERIAL_FORK_SLICES } from '../../vitals/Vitals';
 import { PersistableApi } from '../../../api/persistable';

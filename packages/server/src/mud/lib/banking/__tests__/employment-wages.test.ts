@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BankingApi, Money } from '../../../api/banking';
 import { EmploymentApi } from '../../../api/employment';
 import { Employment } from '../../employment/Employment';
-import BusinessEntity from '../../../obj/Business';
+import BusinessEntity from '../../../platform/idea/Business';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -27,10 +27,10 @@ import {
 } from './banking-test-harness';
 import { Currency } from "../Currency";
 
-const BUSINESS = '/domain/lounge/business';
-const BANK = '/domain/terminus/counting-houses/bank-counter';
-const DAVE = '/domain/lounge/npc/dave';
-const MARA = '/domain/lounge/npc/mara';
+const BUSINESS = '/world/lounge/business';
+const BANK = '/world/terminus/counting-houses/bank-counter';
+const DAVE = '/world/lounge/npc/dave';
+const MARA = '/world/lounge/npc/mara';
 const HOUR = 3_600;
 
 class Person extends Idea {

@@ -1,0 +1,42 @@
+# Duncan Hall Front Steps — the outdoor approach to the lobby.
+#
+# Like the lobby, this is a generic-label room — shortDescription
+# only, no NamedMixin (the building's identity belongs on the
+# zone). "Duncan Hall Front Steps" was a proper name on the prior
+# seed and that was wrong: there's nothing nameable about the
+# steps themselves; they're just the front steps of the building.
+#
+# Sits at grid [0, 0, 0], one cell south of the lobby. The "north"
+# back-exit to the lobby is auto-installed by Exitable.applyExits
+# when the lobby's south exit hydrates (bidirectional default for
+# cardinals).
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _address: terminus/city/campus/duncan-hall
+  shortDescription: Duncan Hall steps
+  primaryKeyword: steps
+  longDescription: |
+    Six broad limestone steps lead up to the open doors of Duncan Hall behind you to the north. A black-iron handrail traces the right edge; the left edge is broken by a stone planter, the geraniums in it stubbornly outliving the season.
+
+    Beyond the steps the quad opens up, sun-bleached and mostly empty at this hour.
+  # Outdoor daylight. STATIC for now: deriving a room's light from the sun's
+  # actual position (CelestialApi) is phase 4's, so this is a placeholder
+  # that will become a computed value rather than an authored one. The
+  # geraniums in the planter are scenery, not a `Plant` — decorative
+  # greenery needs none of the growth machinery.
+  ambientIntensity: 400
+  ambientColorTemperature: 5800
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    down:
+      destination: /world/eternal/duncan-hall/cistern
+  # Scuba proof gear: an air tank (wear it before descending into the
+  # flooded cistern below) and a compressor to refill it. The cistern is
+  # the gear-gated water spot — survivable only while the tank has air.
+  populates:
+    - /stuff/thing/gear/air-tank
+    - /stuff/thing/gear/air-compressor

@@ -1,0 +1,7 @@
+# Thermometer — handheld atmospheric-temperature instrument that
+# grants the `measure temperature` verb to its carrier.
+class: /platform/thing/instrument/Thermometer
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a brass thermometer
+  long: A pocket thermometer with a glass column and a brass case. Read it to learn the ambient temperature in Kelvin.

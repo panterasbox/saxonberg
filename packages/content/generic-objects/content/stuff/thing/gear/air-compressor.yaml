@@ -1,0 +1,16 @@
+# Air compressor — the dive-shop refill source for the scuba proof. A
+# large interior bulk of `air`: refill a depleted tank from it via
+# `BulkableApi.transfer` (the `fill`/pour verb path). Its budget is large
+# enough to read as a fixed refill station rather than a carried supply.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an air compressor
+  primaryKeyword: compressor
+  longDescription: >
+    A squat electric air compressor bolted to the wall, a coiled fill hose
+    hanging from its manifold. A sticker reads FILL CYLINDERS HERE.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/air
+  interiorCapacity: 1000
+  interiorAmount: 1000

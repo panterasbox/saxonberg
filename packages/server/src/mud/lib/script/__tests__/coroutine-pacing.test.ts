@@ -20,7 +20,7 @@ import { SchedulerApi } from "../../../api/scheduler";
 import { WorldClockApi } from "../../../api/worldclock";
 import { StuffApi } from "../../../api/stuff";
 import { EventApi } from "../../../api/event";
-import EventRegistry from "../../../obj/EventRegistry";
+import EventRegistry from "../../../platform/idea/EventRegistry";
 import { CommandDefinition } from "../../command/CommandDefinition";
 import { Idea } from "../../stuff/Idea";
 import { Stuff } from "../../stuff/Stuff";
@@ -54,7 +54,7 @@ beforeEach(async () => {
   StuffApi.clearAll();
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, "/obj/EventRegistry");
+    Stuff._stampTemplatePath(r, "/platform/idea/EventRegistry");
     return r;
   });
   StuffApi.unregister(reg);

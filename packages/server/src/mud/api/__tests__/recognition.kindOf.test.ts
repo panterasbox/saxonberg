@@ -52,7 +52,7 @@ class PlayerBody extends DisguisableMixin(
 class Rock extends VisibleMixin(NamedMixin(ContainableMixin(Idea))) {}
 
 afterEach(() => {
-  for (const m of StuffApi.findAllByTemplatePath('/obj/modalities/vision')) {
+  for (const m of StuffApi.findAllByTemplatePath('/platform/idea/modalities/vision')) {
     StuffApi.unregister(m);
   }
 });

@@ -382,122 +382,12 @@ export class PersistenceManager {
 
       console.info(`PersistenceManager: Connected to MongoDB database '${dbName}'`);
 
-      // One-time collection migration. MUST run before createIndexes():
-      // createIndex on `content` would auto-create an empty `content`
-      // collection and make the rename fail forever after.
-      await this.#migrateDomainToContent(this.db);
-      await this.#migrateGroupOwners(this.db);
-      await this.#migrateScriptKind(this.db);
-      await this.#collapseLegacyCollections(this.db);
-
       // Create indexes
       await this.createIndexes();
     } catch (error) {
       console.error('PersistenceManager: Failed to connect to MongoDB:', error);
       throw error;
     }
-  }
-
-  /**
-   * Decide the `domain` → `content` collection migration from the set of
-   * collection names present. Pure so it is testable without Mongo.
-   *
-   * - `content` present → `'noop'`, or `'warn-both'` when a `domain`
-   *   collection ALSO survives (an operator condition: never auto-drop,
-   *   never rename over a live `content`).
-   * - `content` absent, `domain` present → `'rename'`.
-   * - neither (fresh DB) → `'noop'`.
-   */
-  static planDomainRename(names: readonly string[]): 'rename' | 'noop' | 'warn-both' {
-    const hasContent = names.includes(Collections.Content);
-    const hasDomain = names.includes('domain');
-    if (hasContent) return hasDomain ? 'warn-both' : 'noop';
-    return hasDomain ? 'rename' : 'noop';
-  }
-
-  /**
-   * The idempotent boot-time migration of the templates collection from
-   * its pre-2026-08 name. Runs inside `connect()` strictly before
-   * `createIndexes()` (see the call site). Mongo's rename carries the
-   * `path` unique index across, so no index rebuild is needed. Exposed
-   * to tests through the `db` parameter (a minimal driver shim).
-   */
-  async #migrateDomainToContent(db: {
-    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
-    collection(name: string): { rename(newName: string): Promise<unknown> };
-  }): Promise<'rename' | 'noop' | 'warn-both'> {
-    const names = (await db.listCollections().toArray()).map((c) => c.name);
-    const plan = PersistenceManager.planDomainRename(names);
-    if (plan === 'rename') {
-      await db.collection('domain').rename(Collections.Content);
-      console.info(
-        "PersistenceManager: renamed collection 'domain' → 'content' (one-time migration)"
-      );
-    } else if (plan === 'warn-both') {
-      console.warn(
-        "PersistenceManager: both 'domain' and 'content' collections exist — " +
-          "'content' is live; the stale 'domain' collection was NOT touched. " +
-          'Inspect and drop it by hand.'
-      );
-    }
-    return plan;
-  }
-
-  /**
-   * The one-time upgrade of `groups.owner` from a bare string (`system`,
-   * an Avatar templatePath, the short-lived `office:<key>` sentinel) to
-   * the typed `GroupOwner`. Idempotent: rows already carrying an object
-   * are not matched. Returns the number of rows rewritten.
-   */
-  async #migrateGroupOwners(db: {
-    collection(name: string): {
-      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
-      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
-    };
-  }): Promise<number> {
-    const col = db.collection(Collections.Groups);
-    const legacy = await col.find({ owner: { $type: 'string' } }).toArray();
-    if (legacy.length === 0) return 0;
-    // Lazy: the model imports Document → PersistApi → this module; a
-    // static import here is a cycle at load time. By the time connect()
-    // runs, everything is loaded.
-    const { Group } = await import('../mud/lib/social/Group');
-    for (const row of legacy) {
-      await col.updateOne(
-        { _id: row._id },
-        { $set: { owner: Group.ownerFromStored(row.owner) } },
-      );
-    }
-    if (legacy.length > 0) {
-      console.info(
-        `PersistenceManager: upgraded ${legacy.length} groups.owner row(s) to the typed GroupOwner (one-time migration)`
-      );
-    }
-    return legacy.length;
-  }
-
-  /** Test seam for `#migrateGroupOwners`. Not used at runtime. */
-  async runGroupOwnerMigrationForTest(db: Parameters<PersistenceManager['runGroupOwnerMigrationForTestImpl']>[0]): Promise<number> {
-    return this.runGroupOwnerMigrationForTestImpl(db);
-  }
-  private runGroupOwnerMigrationForTestImpl(db: {
-    collection(name: string): {
-      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
-      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
-    };
-  }): Promise<number> {
-    return this.#migrateGroupOwners(db);
-  }
-
-  /**
-   * Test seam for the migration: runs `#migrateDomainToContent` against a
-   * caller-supplied driver shim. Not used at runtime.
-   */
-  async runDomainMigrationForTest(db: {
-    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
-    collection(name: string): { rename(newName: string): Promise<unknown> };
-  }): Promise<'rename' | 'noop' | 'warn-both'> {
-    return this.#migrateDomainToContent(db);
   }
 
   /**
@@ -770,7 +660,7 @@ export class PersistenceManager {
    * cloned object doesn't compose the required hook capability.
    *
    * @param yamlPath - Optional override; defaults to
-   *   `<src>/mud/obj/hooks/hooks.yaml`.
+   *   `<src>/mud/platform/idea/hooks/hooks.yaml`.
    */
   public async loadHooks(yamlPath?: string): Promise<void> {
     const path = yamlPath ?? this.defaultHookManifestPath();
@@ -826,12 +716,12 @@ export class PersistenceManager {
 
   /**
    * Resolve the default hooks.yaml location relative to this module.
-   * `src/backend/PersistenceManager.ts` → `src/mud/obj/hooks/hooks.yaml`.
+   * `src/backend/PersistenceManager.ts` → `src/mud/platform/idea/hooks/hooks.yaml`.
    * Works in both ts-source (tsx) and built-dist layouts.
    */
   private defaultHookManifestPath(): string {
     const here = dirname(fileURLToPath(import.meta.url));
-    const candidate = join(here, '../mud/obj/hooks/hooks.yaml');
+    const candidate = join(here, '../mud/platform/idea/hooks/hooks.yaml');
     return isAbsolute(candidate) ? candidate : join(process.cwd(), candidate);
   }
 
@@ -1136,8 +1026,7 @@ export class PersistenceManager {
    * per flat-key kind, partial on the kind so path-keyed kinds and
    * free-form kinds never collide. Lazy import: the vocabulary is
    * import-free today, but PM must never statically import mudlib models
-   * (the `#migrateGroupOwners` rule) — the cycle risk is structural, not
-   * current.
+   * — the cycle risk is structural, not current.
    */
   async #createDocumentKindIndexes(coll: {
     createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
@@ -1167,150 +1056,6 @@ export class PersistenceManager {
     createIndex(spec: Record<string, unknown>, opts?: Record<string, unknown>): Promise<unknown>;
   }): Promise<void> {
     return this.#createDocumentKindIndexes(coll);
-  }
-
-  /**
-   * The one-time `documents` kind rename `script` → `msh` (the script
-   * document kind is the language's name — content-packs wave 2), plus
-   * the lounge exemplars' path move `/domain/lounge/scripts/<name>` →
-   * `/domain/lounge/msh/<name>` (the `saxonberg-lounge` pack's `msh/`
-   * dir). Idempotent: a `kind: 'script'` row never exists after the
-   * first run. Returns the number of rows renamed.
-   */
-  async #migrateScriptKind(db: {
-    collection(name: string): {
-      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
-      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
-    };
-  }): Promise<number> {
-    const col = db.collection(Collections.Documents);
-    const legacy = await col.find({ kind: 'script' }).toArray();
-    for (const row of legacy) {
-      const path = String(row.path ?? '');
-      const set: Record<string, unknown> = { kind: 'msh' };
-      if (path.startsWith('/domain/lounge/scripts/')) {
-        set.path = '/domain/lounge/msh/' + path.slice('/domain/lounge/scripts/'.length);
-      }
-      await col.updateOne({ _id: row._id }, { $set: set });
-    }
-    if (legacy.length > 0) {
-      console.info(
-        `PersistenceManager: renamed ${legacy.length} documents row(s) kind 'script' → 'msh' (one-time migration)`
-      );
-    }
-    return legacy.length;
-  }
-
-  /**
-   * The one-off collection → `documents` collapses (content-packs wave
-   * 2): each legacy per-kind collection becomes rows of one document
-   * kind at a provisional path (`/<legacy>/<naturalKey>`), `_id`
-   * PRESERVED, `sourcePack` carried, and the collection dropped. A table,
-   * not code, so the next collapse is a row.
-   */
-  static readonly COLLAPSES: ReadonlyArray<{
-    legacy: string;
-    kind: string;
-    naturalKey: string;
-    /** The provisional path prefix = the kind's pack `contentDir`, so a
-     * migrated stamped row's record key matches its pack file's key. */
-    pathPrefix: string;
-    /** Legacy fields that do not travel into `data`. */
-    strip: string[];
-  }> = [
-    { legacy: 'emotes', kind: 'emote', naturalKey: 'verb', pathPrefix: '/emotes', strip: ['aliases'] },
-    { legacy: 'recipes', kind: 'recipe', naturalKey: 'recipeId', pathPrefix: '/recipes', strip: [] },
-    { legacy: 'name_banks', kind: 'name-bank', naturalKey: 'key', pathPrefix: '/name-banks', strip: [] },
-  ];
-
-  /** Pure: which legacy collections (present in `names`) still need collapsing. */
-  static planCollapses(names: readonly string[]): string[] {
-    return PersistenceManager.COLLAPSES.map((c) => c.legacy).filter((l) => names.includes(l));
-  }
-
-  /**
-   * Idempotent by construction: the legacy collection is gone after the
-   * first run; a missing collection is a no-op with no log line. Runs
-   * inside `connect()` strictly before `createIndexes()` — a legacy row
-   * with a duplicate natural key would otherwise fail the unique partial
-   * index at boot, so the insert is per row and a duplicate is logged,
-   * not fatal. Returns the rows moved.
-   */
-  async #collapseLegacyCollections(db: {
-    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
-    collection(name: string): {
-      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
-      insertOne(doc: Record<string, unknown>): Promise<unknown>;
-      drop(): Promise<unknown>;
-    };
-  }): Promise<number> {
-    const names = (await db.listCollections().toArray()).map((c) => c.name);
-    const todo = PersistenceManager.planCollapses(names);
-    let moved = 0;
-    for (const c of PersistenceManager.COLLAPSES) {
-      if (!todo.includes(c.legacy)) continue;
-      const rows = await db.collection(c.legacy).find({}).toArray();
-      const target = db.collection(Collections.Documents);
-      for (const row of rows) {
-        const { _id, sourcePack, ...rest } = row;
-        for (const f of c.strip) delete rest[f];
-        // A null/undefined field is an absent one: the pack file never
-        // writes it, and the three-way compares `data` like-for-like.
-        for (const [k, v] of Object.entries(rest)) {
-          if (v === null || v === undefined) delete rest[k];
-        }
-        const doc: Record<string, unknown> = {
-          _id,
-          path: `${c.pathPrefix}/${String(row[c.naturalKey])}`,
-          owner: '',
-          kind: c.kind,
-          data: rest,
-          ...(sourcePack ? { sourcePack } : {}),
-        };
-        try {
-          await target.insertOne(doc);
-        } catch (err) {
-          if ((err as { code?: number }).code !== 11000) throw err;
-          // An `_id` already in `documents` (distinct collections share the
-          // ObjectId space only by chance): re-insert under a fresh id.
-          const { _id: _dropped, ...fresh } = doc;
-          await target.insertOne(fresh);
-          console.warn(
-            `PersistenceManager: collapse '${c.legacy}' → documents: ${c.naturalKey}=` +
-              `${String(row[c.naturalKey])} re-inserted under a fresh _id (collision)`
-          );
-        }
-        moved++;
-      }
-      await db.collection(c.legacy).drop();
-      console.info(
-        `PersistenceManager: collapsed '${c.legacy}' → documents {kind: '${c.kind}'} ` +
-          `(${rows.length} row(s)); collection dropped (one-time migration)`
-      );
-    }
-    return moved;
-  }
-
-  /** Test seam for `#collapseLegacyCollections`. Not used at runtime. */
-  async runCollapseMigrationForTest(db: {
-    listCollections(): { toArray(): Promise<Array<{ name: string }>> };
-    collection(name: string): {
-      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
-      insertOne(doc: Record<string, unknown>): Promise<unknown>;
-      drop(): Promise<unknown>;
-    };
-  }): Promise<number> {
-    return this.#collapseLegacyCollections(db);
-  }
-
-  /** Test seam for `#migrateScriptKind`. Not used at runtime. */
-  async runScriptKindMigrationForTest(db: {
-    collection(name: string): {
-      find(q: Record<string, unknown>): { toArray(): Promise<Array<Record<string, unknown>>> };
-      updateOne(q: Record<string, unknown>, u: Record<string, unknown>): Promise<unknown>;
-    };
-  }): Promise<number> {
-    return this.#migrateScriptKind(db);
   }
 
   /**

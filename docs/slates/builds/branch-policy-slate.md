@@ -44,9 +44,9 @@ jurisdiction). Self-describing, in the tree, browsable by the CMS
 like anything else.
 
 ```yaml
-# /domain/terminus/law/.policy
+# /world/terminus/law/.policy
 kind: policy
-writers: ["/obj/api/LawLogic"]
+writers: ["/platform/idea/api/LawLogic"]
 ```
 
 **A policy at a high prefix protects everything beneath it.**
@@ -56,7 +56,7 @@ not a rename.** This section originally read *"the Compact sets `/law/**`
 **once** and every institution's code is chokepointed with no
 per-institution setup."* That assumed a top-level `/law/` tree. Law
 actually nests **under each institution's own extent**
-(`/domain/terminus/law/`, `<guild extent>/law/` — see
+(`/world/terminus/law/`, `<guild extent>/law/` — see
 [legal-code-slate](./legal-code-slate.md), corrected the same day), so:
 
 > ⚠ **There is no single prefix covering all law. The set-it-once

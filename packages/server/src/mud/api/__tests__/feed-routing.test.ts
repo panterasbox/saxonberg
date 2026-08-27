@@ -20,7 +20,7 @@ import type { RoutingRule, TopicDescriptor } from '@saxonberg/types';
 import { DEFAULT_ROUTING } from '@saxonberg/types';
 import { MessageApi } from '../message';
 import { StuffApi } from '../stuff';
-import TopicCatalogue from '../../obj/TopicCatalogue';
+import TopicCatalogue from '../../platform/idea/TopicCatalogue';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 /** A catalogue that answers with whatever facets the case needs. */
@@ -32,7 +32,7 @@ function installCatalogue(
   StuffApi.clearAll();
   const cat = makeStuffAtPath(
     () => new TopicCatalogue(),
-    '/obj/TopicCatalogue',
+    '/platform/idea/TopicCatalogue',
   );
   vi.spyOn(cat, 'getDescriptor').mockImplementation(
     (topic: string) =>

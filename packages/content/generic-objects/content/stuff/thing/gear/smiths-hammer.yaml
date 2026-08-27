@@ -1,0 +1,15 @@
+# The smith's hammer — a striking ToolItem: the tools-make-tools loop
+# (smithing makes the hammer smithing needs). Material + mass flow from
+# the consumed stock when forged; this seed is also cloned directly as
+# venue kit.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a smith's hammer
+  primaryKeyword: hammer
+  keywords: [hammer, smiths-hammer, cross-peen]
+  longDescription: |
+    A cross-peen smith's hammer, its face polished bright by work and its haft dark with hand-oil.
+  capabilities: [striking]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 1.4

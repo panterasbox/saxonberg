@@ -2,7 +2,7 @@
  * ManagedGroupProvider — writable, persistent `Group` Documents.
  *
  * Membership keys on the member's **templatePath** — a player as
- * `/obj/Avatar/<playerId>`, an NPC (a staff agent like Katie) as its own
+ * `/platform/agent/Avatar/<playerId>`, an NPC (a staff agent like Katie) as its own
  * path — so a group holds players and NPCs in one uniform keyspace (no
  * player-vs-NPC branch at any call site). Reads materialize each key to a
  * live `Stuff` via `findByTemplatePath` (online filter: only currently-spawned

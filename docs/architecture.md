@@ -34,14 +34,21 @@ packages/server/src/
 │                    PersistenceManager (singleton)
 └── mud/             Mudlib
     ├── api/         ~22 static Api classes (the public surface)
-    ├── cmd/         YAML command views (declarative)
     ├── config/      constants
     ├── lib/         Substrate ONLY — abstract roots, mixins, value
     │                objects, framework attachments. Never instanced.
-    └── obj/         Everything instanceable — anything a template's
-                     `class:` names (Avatar, Topic, Weapon, Room, …)
-        ├── command/   CommandController implementations
-        └── hooks/     persistence around-hooks
+    ├── platform/    Everything instanceable — anything a template's
+    │   │            `class:` names — keyed by its Stuff BRANCH:
+    │   ├── thing/     Prop, Coin, Forge, … (+ clusters: material/…)
+    │   ├── idea/      registries, catalogues, Conditions, Topics, …
+    │   │   ├── api/     the *Logic singletons
+    │   │   ├── cmd/     CommandController implementations, by category
+    │   │   └── hooks/   persistence around-hooks
+    │   ├── agent/     Avatar, NPC, Corpse, …
+    │   └── location/  Room, VoidLocation, …
+    └── world/       a locality's own classes (mirrors its content)
+                     (the YAML command VIEWS are content —
+                     packages/content/platform/content/platform/cmd/)
 ```
 
 ## api/ vs lib/ — which layer owns this code?
@@ -109,11 +116,14 @@ question above resolves cleanly only when you know which kind you're
 adding.
 
 > **The placement invariant: nothing instances `/lib/`.** A class that
-> a template's `class:` resolves to lives in `obj/`, on both axes —
-> the `.ts` file and the template path. `lib/` holds only what is
-> inherited. Enforced by `pnpm lint:instanceable`; the full rule and
-> the eight split classes are in
-> [CLAUDE.md § Instanceable Lives in `obj/`](../CLAUDE.md).
+> a template's `class:` resolves to lives in `platform/<branch>/`, on
+> both axes — the `.ts` file and the template path — where `<branch>` is
+> the Stuff branch it descends from (`thing` · `idea` · `agent` ·
+> `location`). Template rows follow the same shape under the root their
+> PACK decides (`/platform`, `/stuff`, `/trade/<industry>`). `lib/`
+> holds only what is inherited. Enforced by `pnpm lint:instanceable`;
+> the full rule and the eight split classes are in
+> [CLAUDE.md § Instanceable Lives in `platform/<branch>/`](../CLAUDE.md).
 
 `lib/` holds:
 - **Mixins** — capability shapes (`Containable`, `Sensor`, `Posed`).
@@ -122,11 +132,11 @@ adding.
   nothing clones (`Stuff`, `Thing`, `Location`, `Zone`, `Character`,
   `Creature`, `Modality`). Overridable. When one of these is *also*
   being cloned generically, it splits: the base stays here and a thin
-  concrete subclass in `obj/` takes the clones (`Thing` → `obj/Prop`,
-  `CartesianLocation` → `obj/location/Room`).
+  concrete subclass in `platform/<branch>/` takes the clones (`Thing` →
+  `platform/thing/Prop`, `CartesianLocation` → `platform/location/Room`).
 - **Framework attachments** — objects that ride a Stuff, model nothing
   on their own, and are never template-backed. `lib/stuff/Shadow` is
-  the exemplar and a **permanent** exception to "obj/ holds Stuff
+  the exemplar and a **permanent** exception to "platform/ holds Stuff
   classes": it has its own identity but is never cloned from a
   template, so the placement rule genuinely does not reach it.
   Also here: the *instanced but never stamped* fixtures —
@@ -136,7 +146,7 @@ adding.
   reaped inside this one call, never authored, never persisted."* The
   test is **does an instance carry a template-path stamp**, not *is it
   ever `new`'d*. `ExitableVessel` sits here too, deferred: it has no
-  `fieldMeta` and no documented authoring path, so it moves to `obj/`
+  `fieldMeta` and no documented authoring path, so it moves to `platform/`
   when a consumer demands a concrete class, not before.
 - **Value objects** — pure data + small per-instance math (`Light`,
   `Quantity`). Not Stuff. Lives in `lib/` because it's a domain
@@ -190,12 +200,12 @@ stateless `Stuff` **logic singleton** that holds the implementation:
 
 ```
 FooApi (api/foo.ts)              static forwarders + decorateApiClass + types
-   ↓  StuffApi.singletonSync('/obj/api/foo', factory)
-FooLogic (obj/api/FooLogic.ts)   the logic — a stateless Stuff, @internal,
+   ↓  StuffApi.singletonSync('/platform/idea/api/foo', factory)
+FooLogic (platform/idea/api/FooLogic.ts)   the logic — a stateless Stuff, @internal,
                                  instance methods gated to FooApi, HMR-able
 ```
 
-The logic singleton is a `Stuff` (a runtime class, so `obj/api/`),
+The logic singleton is a `Stuff` (a runtime class, so `platform/idea/api/`),
 extends **`ApiLogic`** (a thin `Idea` subclass shared by every logic
 singleton; its job is to make them residency-exempt — see
 [residency.md](./subsystems/residency.md)), composes **no**
@@ -311,7 +321,7 @@ set. Two kinds are recognized:
 - **Logic-singleton sibling cross-imports** (`no-restricted-imports`) — two
   logic singletons in one subsystem that must reference each other's class
   *identity* for a framework allowlist, which the facade can't broker.
-  Today: `obj/api/ConsumerLogic.ts` ↔ `obj/api/ProducerLogic.ts` (the
+  Today: `platform/idea/api/ConsumerLogic.ts` ↔ `platform/idea/api/ProducerLogic.ts` (the
   class identities feed `EventApi.restrictSubscribe`'s subscriber
   allowlist for the shared `CommandDispatchedEvent` consumer/producer
   tap; cycle-safe). Each opts out with
@@ -320,7 +330,7 @@ set. Two kinds are recognized:
 **Enforcement.** ESLint rules (`.eslintrc.js`): `api/*.ts` bans exported
 functions / function-consts; `lib/**/*.ts` bans the same, exempting
 `*Mixin` factories by name and the two decorator files by path; a
-`no-restricted-imports` rule forbids importing `obj/api/*Logic`
+`no-restricted-imports` rule forbids importing `platform/idea/api/*Logic`
 singletons anywhere except each logic's own `api/*.ts` facade (and
 `__tests__`, which white-box logic internals). All opt out only via an
 `eslint-disable` + justification. (The gate-string resolver and the
@@ -537,7 +547,7 @@ held to a tiered standard:
    retired in content-packs wave 3). Backend doesn't reach into mudlib
    for the shape; mudlib doesn't have a competing definition.
 
-4. **`mud/obj/*` classes — tech debt.** `instanceof Avatar`,
+4. **`mud/platform/*` classes — tech debt.** `instanceof Avatar`,
    `Avatar.getTemplatePath()` from `Application` couples backend to
    gameplay. Pragmatic for now (the network → gameplay bridge has
    to land somewhere) but flag and migrate to mixin predicates
@@ -576,8 +586,8 @@ resolver plugin. `--report` prints crossings grouped by module and file.
 
 | Tier | Files | May import |
 |---|---|---|
-| **mudlib** (the default) | `lib/`, `obj/` outside `obj/api/`, `cmd/`, `domain/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
-| **Api** | `mud/api/**` **and** `mud/obj/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
+| **mudlib** (the default) | `lib/`, `platform/` outside `platform/idea/api/`, `world/`, … | relative imports resolving inside `src/mud/`, `@saxonberg/types`, and any `import type` |
+| **Api** | `mud/api/**` **and** `mud/platform/idea/api/**` | the above, plus an enumerated set of Node built-ins and npm packages, plus `backend/` |
 | **test** | `**/__tests__/**` | unrestricted |
 
 The Api tier is **both halves of the `XApi` ↔ `XLogic` split**, not just
@@ -670,9 +680,9 @@ and timers. Some of those are load-bearing and fine (`Buffer` is inert
 data handling; `ScheduleApi` already owns timers by a separate rule).
 
 `process.env` is the one worth naming, because mudlib code reads it
-today: `obj/AccessRegistry.ts` (the wizard / archwizard / streamer
-allowlists), `obj/OfficeRegistry.ts` (the founder identity), and
-`obj/ReactionRegistry.ts` (`NODE_ENV` / `VITEST`). Those are deliberate
+today: `platform/idea/AccessRegistry.ts` (the wizard / archwizard / streamer
+allowlists), `platform/idea/OfficeRegistry.ts` (the founder identity), and
+`platform/idea/ReactionRegistry.ts` (`NODE_ENV` / `VITEST`). Those are deliberate
 and unaffected by this rule — but note the shape: a module that can read
 `process.env` can also write it, and `globalThis` reaches further still.
 Closing that needs a different mechanism (a lint on identifiers, or a
@@ -745,7 +755,7 @@ reduced agency) — see [vitals.md](./subsystems/vitals.md). The identity
 line is sex (body, `SexedMixin` on Creature) vs. gender/persona (social,
 on Character). `Creature` is concrete, so a bare non-agent body (a frog,
 a corpse) is valid. `Character` has two leaf subclasses: `Avatar`
-(player-driven, in `obj/`) and the thin `NPC` (`lib/npc/NPC.ts` =
+(player-driven, in `platform/agent/`) and the thin `NPC` (`lib/npc/NPC.ts` =
 `Character` + `BehavedMixin`) for authored, automation-driven characters —
 which keeps `Behaved` off players. See [behavior.md](./subsystems/behavior.md).
 
@@ -825,7 +835,7 @@ implant carrying `ForumsMixin`; see [forums.md](./subsystems/forums.md).
 The CMS-composition (**Studio**) build adds `Blueprint` (`lib/studio/`) — a
 reference-data `Document` (`blueprints` collection, the `Recipe` precedent,
 never cloned: a named structural composition `<baseClass>|<sorted mixins>`) —
-plus the boot-warmed `BlueprintCatalogue` singleton (`obj/`, the
+plus the boot-warmed `BlueprintCatalogue` singleton (`platform/idea/`, the
 `RecipeCatalogue` shape: id + signature indices) it's loaded into — which
 since content-packs wave 2 also `rebuild()`s the derived skeleton at boot
 and overlays the curated `documents {kind: blueprint}` the platform pack
@@ -903,7 +913,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/location/` | `CartesianCoordinatesMixin` | `[x,y,z]` position carrier |
 | `lib/location/` | `SphericalCoordinatesMixin` | `{rho,theta,phi,radius}` position carrier |
 | `lib/location/` | `WarrenMemberMixin` | optional member-side back-ref to a `Warren` (the MultiLocation elastic-graph coordinator); Pattern-B live ref, Warren-owned. See [location.md](./subsystems/location.md). |
-| `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/domain/lounge/`, not the generic substrate. |
+| `domain/lounge/` | `LoungeMixin` | lounge-room behavior (self-register, population witnesses, over-capacity re-seat); requires `WarrenMemberMixin`. A content mixin under `/world/lounge/`, not the generic substrate. |
 | `lib/spatial/` | `SealableMixin` | open/closed state (doors) |
 | `lib/` | `BistateMixin` | shared guarded-boolean base (typeof-boolean guard, round-trip persistence) under `Sealable` / `Switchable` / `Foldable`. **Unregistered / unmarked** — an implementation base, not a registry mixin. See [boundary.md](./subsystems/boundary.md). |
 | `lib/boundary/` | `SwitchableMixin` | generic two-state on/off toggle over `BistateMixin`; the `device`-category `switch`/`toggle` verb. Consumed by `Beacon` (walk/stop). See [boundary.md](./subsystems/boundary.md). |
@@ -948,13 +958,13 @@ registry) lives in `lib/mixin.ts`.
 | `lib/thermal/` | `ThermalRegulationMixin` | the Option-C body driver: overrides `getVitalSign` (sync, cached effective ambient) to **drive** `coreTemperature` — pin at setpoint within the thermoneutral band, else spend satiation (cold) / hydration (hot, wet-bulb-capped) to defend it, fail into passive `Thermal` drift; endo/ecto split (`BodyPlan.thermalStrategy`) + Q10; the hypothermia/hyperthermia/torpor cascade → death seam. Composed over `ThermalMixin`/`Metabolic`, inner of `LoadBearing`, by `Creature`. No Api. See [thermal.md](./subsystems/thermal.md). |
 | `lib/wetness/` | `WetMixin` | the cross-cutting wetness gauge (weather Wave 2): a per-object stored, decaying `0..1` saturation (decomposed-scalar persistence, reconcile-on-read drainage presence-frozen, pushed accrual, banded `dry/damp/wet/soaked`). Drives electricity (wet skin) + thermal (wet heat-loss); dry rate from real `Material.waterAbsorptionCapacity` via evaporation physics. Rides the **matter seam** — composed on `Thing` + `Agent` (so all matter, incl. `Vessel` via `Thing`, is wettable; `Location` is space, not matter). No Api. See [weather.md](./subsystems/weather.md). |
 | `lib/husbandry/` | `GrowingMixin` | the living-world growth model (husbandry phase 1): a cultivated thing's condition as a pure function of `(profile, clock stamp, water, light, root room, interventions)`, reconciled on read over game-time with **no far-past guard and no linkdead freeze** (an owned thing lives the full absence — bounded by a step cap, never a time cap). Three satisfactions combined by the **minimum** (Liebig); a floored root curve makes a pot-bound plant stall AND hold a band; banded `thriving/healthy/stressed/failing/dead` with a separate plain-language cause line. Since phase 2 water lives in the SOIL, so the mixin declares SEVEN host seams (`rootRoom` / `soilMoisture` / `meanSoilMoisture` / `nutrientLevel` / `waterTheSoil` / `onFloweringLatched` / `sampleLux`), takes a **fourth** min() argument (`satNutrient`, `null` → 1, so a pot is unaffected), and records `_worstLimiting` — a monotone minimum that harvest quality reads, which is what makes farming reward your worst moment. Also owns the **harvest + rooting surface** — `harvestTemplatePath`, `nutrientDraw`, `isHarvestable()`, `getBed()`, `transplantDifficulty()` — moved off the `Plant` class, because `harvest` and `repot` declared `requires: GrowingMixin` while their controllers refused `instanceof Plant`: two predicates for one gate. Every one of those is expressed purely in terms of what this mixin already owns, so the class was never the right home; `Plant` was simply the only composer. Composed by `Plant`. No Api. See [husbandry.md](./subsystems/husbandry.md) and [smallholding.md](./subsystems/smallholding.md). |
-| `lib/husbandry/` | `PlantableMixin` | **the capability `plant` needs** — `growsIntoPath`, the `/obj/plant/…` template this thing mints when put in the ground. Extracted from the `Seed` CLASS: `PlantController` refused with `seed instanceof Seed`, which pinned planting to one content class and read against the project's own grain (`instanceof` is for top-level types, not ordinary content). A cutting, a tuber, a bulb and a runner all have a thing-they-grow-into and none should inherit a class whose doc commits to "bought at a store, discrete, never a stack". Composed by `Seed`. No Api. See [husbandry.md](./subsystems/husbandry.md). |
+| `lib/husbandry/` | `PlantableMixin` | **the capability `plant` needs** — `growsIntoPath`, the `/stuff/thing/plant/…` template this thing mints when put in the ground. Extracted from the `Seed` CLASS: `PlantController` refused with `seed instanceof Seed`, which pinned planting to one content class and read against the project's own grain (`instanceof` is for top-level types, not ordinary content). A cutting, a tuber, a bulb and a runner all have a thing-they-grow-into and none should inherit a class whose doc commits to "bought at a store, discrete, never a stack". Composed by `Seed`. No Api. See [husbandry.md](./subsystems/husbandry.md). |
 | `lib/husbandry/` | `CultivableMixin` | **ground that holds plants** (living-world phase 2): a bulk interior of soil plus a plant slot whose authored `capacity` is N — *a pot is a bed with one slot*. Owns the shared-soil division (`rootRoomPerPlant` = soil ÷ occupied, prospective for `fitsSlot`), the soil's OWN checkpoint (`moisture` + `nitrogen` reserves, `soilClockStamp`, `reconcileSoil` behind its own reentry guard, draining by summed occupant demand), the populate-then-adopt applier, and `fixedGround` — the authored flag that decides whether land use applies (a bed is ground; a pot is furniture). Requires `Container` + `Bulkable` + `Slotted` + `Populates` + `Reserved` in its BASE, composed at the call site. Composed by `PlantPot` and `GardenBed`. No Api. See [smallholding.md](./subsystems/smallholding.md). |
 | `lib/thermal/` | `MeltableMixin` | the phase-change capability (fire build): a solid + a latent-heat accumulator; `ThermalApi.reconcilePhase` holds a latent-heat plateau then melts it to a molten `Bulkable` pool in the scope `Floor` (the reverse boils / solidifies a liquid). Reads its material's `meltingPoint`/`latentHeatOfFusion`; gated `ThermalLogic` is the single writer. Composed by `Ingot`/`Casting`/`Candle`. See [fire.md](./subsystems/fire.md). |
 | `lib/fire/` | `CombustibleMixin` | the combustion capability: a `'fuel'` `Reserve` + a `Burning` value-object active state; reads its material's `autoignitionTemperature`/`heatOfCombustion`, pins the flame temperature while aflame (generalized Campfire pin), reconcile-on-read fuel drain → char / structural burn-through. Gated `FireLogic` is the single Burning writer. Composed by `Firewood`/`Candle`. See [fire.md](./subsystems/fire.md). |
 | `lib/fire/` | `FurnaceMixin` | the sustained-heat-source capability: a `Combustible`-fuelled appliance pinned hot (`burnTemperatureK × bellows`) while lit + fuelled, heating the Meltables in its scope (`heatContents`). Generalizes the Campfire pin (`Campfire` refactored onto it byte-identically); composed by `Forge`/`Kiln`/`Oven`/`Candle`. See [fire.md](./subsystems/fire.md). |
 | `lib/magic/` | `CasterMixin` | the anatomical casting faculty (the magic build): the mana pool (an absolute avail/max `pt` `Reserve`, capacity from the species `facultyProfile`'s depth band), serenity-rate reconcile-on-read recovery (metabolism stamp guards), overchannel strain + hysteresis clear, the LIVE composure read (mental-resist substrate), the numbers-free `getFacultyView`, and the `cast`/`spells` affordance via `refreshCastingAffordance()` — the dynamic self-push at `Avatar.enter` (the `refreshConferrals` mirror; the self bucket collects class statics only, so a gated mixin cannot afford selectively any other way). Composed on `Character`, **gated** — active only when `Species.innateMixins` (or an augment) confers it (the `MakerMixin` activation shape). Read the pool via `getMana()`/`getManaFraction()` (the contract surface; raw keyed reads skip the reconcile). See [magic.md](./subsystems/magic.md). |
-| `lib/magic/` | `ConduitMixin` | **the coupling an arcane reserve crosses to reach a shell** — the apparatus half of `recharge` (the magic-items build). Energy does not cross into a charged item by intent: it crosses through a coupling, and couplings have impedance, so a conduit's `couplingEfficiency` is one factor of `delivered = committed × coupling × competence`. ⚠ **Both factors are below 1 by construction** — the setter clamps and a nonsense value degrades to *crude*, because 1 τ ≡ 1 kJ against a conservation law and a lossless pump is a perpetual-motion machine. Deliberately NOT `potencyFactor`, whose competence term is a bonus `≥ 1`. A **tool**, not a magic item: it stores nothing, holds no working, has nothing to top up, and wears through the shipped `Durable.getCondition()`. Concrete class `obj/magic/Conduit`. See [magic-items.md](./subsystems/magic-items.md). |
+| `lib/magic/` | `ConduitMixin` | **the coupling an arcane reserve crosses to reach a shell** — the apparatus half of `recharge` (the magic-items build). Energy does not cross into a charged item by intent: it crosses through a coupling, and couplings have impedance, so a conduit's `couplingEfficiency` is one factor of `delivered = committed × coupling × competence`. ⚠ **Both factors are below 1 by construction** — the setter clamps and a nonsense value degrades to *crude*, because 1 τ ≡ 1 kJ against a conservation law and a lossless pump is a perpetual-motion machine. Deliberately NOT `potencyFactor`, whose competence term is a bonus `≥ 1`. A **tool**, not a magic item: it stores nothing, holds no working, has nothing to top up, and wears through the shipped `Durable.getCondition()`. Concrete class `platform/thing/magic/Conduit`. See [magic-items.md](./subsystems/magic-items.md). |
 | `lib/forums/` | `ForumsMixin` | the forums transmission capability (post / reply / vote / subscribe verb family), composed on a hosted update (`ForumsUpdate`). Born-with: the `ForumsUpdate` is an `AetherHosted` implant conferring this mixin, granted at intake. Acts on behalf of its host via `getHost()`. See [forums.md](./subsystems/forums.md). |
 | `lib/forums/` | `SubjectSubscriberMixin` | per-Avatar forum-subscription storage: the keyed set of subscribed `Subject`s feeding the `ForumSubscriptionRegistry` fan-out. Composed by `Avatar`. See [forums.md](./subsystems/forums.md). |
 | `lib/behavior/` | `BehavedMixin` | the NPC automation layer (first behavior consumer of the activity substrate): runs a declarative `behaviors:` data-spec list, path-resolving + re-resolving "brain" code modules per fire (HMR), wiring cadence (jittered, presence-gated) + `handleMessage`-witness triggers, with slot contention over `EngagedMixin`. Branch-agnostic; composed by the thin `NPC` class. See [behavior.md](./subsystems/behavior.md). |
@@ -1039,11 +1049,11 @@ for the full rule.
   `mixin.ts`, `containment.ts`, `message.ts`, …
 
 - **Command YAML views**: `perception/look.yaml`, `social/say.yaml`,
-  in the platform content pack's `content/cmd/<category>/` (grouped into
+  in the platform content pack's `content/platform/cmd/<category>/` (grouped into
   category subdirs; the `command-view` document kind). Served store-first
   by `CommandApi`, disk as the counted fallback.
 
-- **Command controllers**: in `mud/obj/command/<category>/`, e.g.
+- **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts`.
 
 ## Member Privacy: `#` vs TypeScript Modifiers
@@ -1066,14 +1076,14 @@ Convention is **layer-based**:
   mediate access for everything else, and `#` ensures internal slots
   are invisible to the wrapping Proxy.
 - **Domain code** — `packages/server/src/mud/lib/`,
-  `packages/server/src/mud/obj/` —
+  `packages/server/src/mud/platform/` —
   defaults to TypeScript modifiers. Domain code carries persistent
   fields that the `Hydrator` reflects into; those fields MUST be
   public. Use `protected` for subclass extension points (e.g.
   `prepareDestroy()`-style hooks), `private` for class-internal
   helpers and caches.
 
-**Special cases** where `#` is appropriate inside `lib/` or `obj/`:
+**Special cases** where `#` is appropriate inside `lib/` or `platform/`:
 
 1. A reentry guard or invariant-critical flag where a malicious
    subclass overriding a method could corrupt state.
@@ -1290,7 +1300,7 @@ refuse it).
 If you're reading the older planning docs and wondering where Phases
 5 and 6 went: they got **absorbed**, not skipped. Phase 5
 (Communications) shipped as part of Phase 3 messaging plus the
-say/tell controllers in `content/cmd/` and `mud/obj/command/`. Phase 6
+say/tell controllers in `content/platform/cmd/` and `mud/platform/idea/cmd/`. Phase 6
 (Extended Object Model) shipped as `Thing.ts`, `Detailed.ts`,
 `Propertied.ts`, `CartesianLocation.ts` in `lib/stuff/` and
 `lib/spatial/`. Implementation status now lives in

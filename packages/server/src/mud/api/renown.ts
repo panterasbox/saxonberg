@@ -19,8 +19,8 @@
  * read `renownOf` later.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link RenownLogic} singleton at `/obj/api/renown`,
- * reached synchronously via `StuffApi.singletonSync`. `dest /obj/api/renown`
+ * hot-reloadable {@link RenownLogic} singleton at `/platform/idea/api/renown`,
+ * reached synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/renown`
  * reloads it.
  */
 
@@ -31,15 +31,15 @@ import type {
 } from '../lib/standing/RenownEvent';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { RenownLogic } from '../obj/api/RenownLogic';
+import { RenownLogic } from '../platform/idea/api/RenownLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { RenownEventFields, RenownScope };
 
-const LOGIC_PATH = '/obj/api/renown';
+const LOGIC_PATH = '/platform/idea/api/renown';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/RenownLogic', import.meta.url)
+  new URL('../platform/idea/api/RenownLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able RenownLogic singleton (sync). */

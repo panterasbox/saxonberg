@@ -65,7 +65,7 @@ test(';wave fires, ;hi does not dispatch, greet carries hi as a search term', as
 test("Dave's Bar: the menu resolves the generic-objects recipes", async ({ browser }) => {
   test.setTimeout(180_000);
   const { page, close } = await openWorldAs(browser, 'wave2-bar', {
-    startLocation: '/domain/lounge/bar',
+    startLocation: '/world/lounge/bar',
   });
   try {
     await sendUntil(page, 'look', page.getByText(/./).first());
@@ -97,8 +97,8 @@ test('help look renders (the view is a store-served command-view document); a no
       headers: { 'X-CMS-CSRF': token },
       data: {
         backend: 'document',
-        path: '/cmd/perception/look',
-        body: JSON.stringify({ verbs: ['look'], controller: '/obj/command/system/PingController', description: 'x' }),
+        path: '/platform/cmd/perception/look',
+        body: JSON.stringify({ verbs: ['look'], controller: '/platform/idea/cmd/system/PingController', description: 'x' }),
       },
     });
     expect(denied.ok()).toBe(false);

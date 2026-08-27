@@ -19,22 +19,22 @@
  *
  * Thin, security-gated forwarding shell: the upsert + validation +
  * snapshot/restore logic lives in the hot-reloadable {@link TemplateLogic}
- * singleton at `/obj/api/template`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/template` reloads it.
+ * singleton at `/platform/idea/api/template`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/template` reloads it.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { TemplateLogic } from '../obj/api/TemplateLogic';
+import { TemplateLogic } from '../platform/idea/api/TemplateLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export { TemplateError } from '../lib/stuff/TemplateError';
 
-const LOGIC_PATH = '/obj/api/template';
+const LOGIC_PATH = '/platform/idea/api/template';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/TemplateLogic', import.meta.url)
+  new URL('../platform/idea/api/TemplateLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able TemplateLogic singleton (sync). */
@@ -102,7 +102,7 @@ export class TemplateApi {
   /**
    * Reject saving a `domain`-collection Template under an engine-
    * reserved template-path prefix (see `ReservedTemplatePrefixes` in
-   * `lib/paths.ts`). `/obj/api/` is owned by the surface-architecture
+   * `lib/paths.ts`). `/platform/idea/api/` is owned by the surface-architecture
    * logic singletons (`StuffApi.singletonSync`); a Template authored
    * there would be mis-returned by the singleton lookup as the
    * wrong-class logic instance, so the namespace must stay DB-free.

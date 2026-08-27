@@ -9,10 +9,10 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ConnectionApi } from '../connection';
-import { ConnectionLogic } from '../../obj/api/ConnectionLogic';
+import { ConnectionLogic } from '../../platform/idea/api/ConnectionLogic';
 import { SecurityError } from '../../lib/security/errors';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
 import { User } from '../../lib/identity/User';
 import { StuffApi } from '../stuff';
 import { PlayerApi } from '../player';
@@ -109,7 +109,7 @@ describe('ConnectionLogic singleton encapsulation', () => {
     // A facade call lazily creates the logic singleton.
     ConnectionApi.getConnectionCount();
     const logic = StuffApi.findByTemplatePath<ConnectionLogic>(
-      '/obj/api/connection'
+      '/platform/idea/api/connection'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/connection#ConnectionApi`, so the

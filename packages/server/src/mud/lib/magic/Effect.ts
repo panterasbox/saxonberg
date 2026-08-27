@@ -66,7 +66,7 @@ export interface InjectChannelEffect {
 /** Install an authored condition — backing: `Vitals.afflict`. */
 export interface AfflictEffect {
   readonly kind: 'afflict';
-  /** The Condition seed's templatePath (`/obj/Condition/magic/dread`). */
+  /** The Condition seed's templatePath (`/platform/idea/Condition/magic/dread`). */
   readonly conditionPath: string;
   readonly resist?: ResistSpec;
   /** Land it on the ACTOR — see {@link InjectChannelEffect.self}. */

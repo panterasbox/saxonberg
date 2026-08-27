@@ -1,11 +1,11 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SpeciesApi } from '../species';
-import { SpeciesLogic } from '../../obj/api/SpeciesLogic';
+import { SpeciesLogic } from '../../platform/idea/api/SpeciesLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Species from '../../obj/species/Species';
-import Clade from '../../obj/species/Clade';
+import Species from '../../platform/idea/species/Species';
+import Clade from '../../platform/idea/species/Clade';
 import { OrganismMixin } from '../../lib/species/Organism';
 import Thing from '../../lib/stuff/Thing';
 import { Idea } from '../../lib/stuff/Idea';
@@ -29,14 +29,14 @@ function setupAnimaliaOrganism(): {
 } {
   const animalia = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/obj/species/animalia'
+    '/stuff/idea/species/animalia'
   );
   animalia.setName('Animalia');
   animalia.setRank('kingdom');
 
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
+    '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens'
   );
 
   const organism = makeStuff(() => new OrganismThing());
@@ -47,14 +47,14 @@ function setupAnimaliaOrganism(): {
 function setupConstructaOrganism(): InstanceType<typeof OrganismThing> {
   const constructa = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/obj/species/constructa'
+    '/stuff/idea/species/constructa'
   );
   constructa.setName('Constructa');
   constructa.setRank('kingdom');
 
   const robot = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/constructa/metallica/tutor-bot/mk-iv'
+    '/stuff/idea/species/constructa/metallica/tutor-bot/mk-iv'
   );
 
   const organism = makeStuff(() => new OrganismThing());
@@ -132,13 +132,13 @@ describe('SpeciesApi', () => {
     it('Plantae: never animate (no Agent surface in v1)', () => {
       const plantae = withTemplatePath(
         makeStuff(() => new Clade()),
-        '/obj/species/plantae'
+        '/stuff/idea/species/plantae'
       );
       plantae.setName('Plantae');
       plantae.setRank('kingdom');
       const peace = withTemplatePath(
         makeStuff(() => new Species()),
-        '/obj/species/plantae/.../wallisii'
+        '/stuff/idea/species/plantae/.../wallisii'
       );
       const plant = makeStuff(() => new OrganismThing());
       plant.setSpecies(peace);
@@ -170,20 +170,20 @@ describe('SpeciesLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/species once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/species once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton. A non-Organism
     // Stuff returns false without touching the taxonomy walk.
     SpeciesApi.isAnimate(makeStuff(() => new Idea()));
-    const logic = StuffApi.findByTemplatePath('/obj/api/species');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/species');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-SpeciesApi caller', () => {
     const idea = makeStuff(() => new Idea());
     SpeciesApi.isAnimate(idea);
     const logic = StuffApi.findByTemplatePath<SpeciesLogic>(
-      '/obj/api/species'
+      '/platform/idea/api/species'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/species#SpeciesApi`, so the

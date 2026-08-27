@@ -1,0 +1,13 @@
+# The downed live cable — the electrical source in the flooded cell. A
+# `LiveWire` (Thing + Energized + Switchable) held at a mains-ish potential,
+# lying in the pool (placed as a room content via the cell's `populates:`).
+# The conduction walk reads its `voltage`; switch it off (`switch off the
+# cable`) and the cell goes dead. Per-instance (cloned fresh each standup).
+class: /platform/thing/LiveWire
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a downed live cable
+  longDescription: A heavy cable, come down from the ceiling and half-submerged in the water, its frayed end still humming faintly.
+  keywords: [cable, wire, cord, line]
+  voltage: 120
+  on: true

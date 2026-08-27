@@ -59,7 +59,7 @@ both without a hand-authored parallel schema:
 
 ## `StudioApi` / `StudioLogic`
 
-The gated Api + logic-singleton pair at `/obj/api/studio` (the
+The gated Api + logic-singleton pair at `/platform/idea/api/studio` (the
 `CmsApi`/`CmsLogic` twin): a thin `StudioApi` forwarding shell
 (`SecurityApi.decorateApiClass`), every `StudioLogic` public method
 `@CallSecurity(FromModule('/api/studio#StudioApi'))`. The acting principal
@@ -112,7 +112,7 @@ the structural dedup key). `name` is a mutable display label, **never a
 key**. `kind` is `composition` (a bare recomposable mixin stack) or
 `concrete` (a logic-bearing class pointing at its `classPath`).
 
-- **`BlueprintCatalogue`** (`/obj/BlueprintCatalogue`) is the boot-warmed
+- **`BlueprintCatalogue`** (`/platform/idea/BlueprintCatalogue`) is the boot-warmed
   singleton (the `RecipeCatalogue` shape): `cache` by id + `bySignature`
   index, `canEvict`/`canDestruct` refusals. Since content-packs wave 2 it
   owns both layers itself (the former `BlueprintSeeder` is gone):
@@ -142,7 +142,7 @@ key**. `kind` is `composition` (a bare recomposable mixin stack) or
 
 `publishBlueprint` dedups on signature (reusing the existing `blueprintId`
 on collision) and records an `AuthoringEvent` against a synthetic
-`/obj/BlueprintCatalogue/<id>` path — the naming act is attributed to its
+`/platform/idea/BlueprintCatalogue/<id>` path — the naming act is attributed to its
 author while the record stays commons-owned (the catalogue is a global
 commons with no per-owner namespace).
 
@@ -325,7 +325,7 @@ Three design→implementation shifts are worth recording:
 
 ## ⭐ The Studio is a CARD
 
-`studio` is a verb (the platform pack's `content/cmd/author/studio.yaml`, `requiresWizard`)
+`studio` is a verb (the platform pack's `content/platform/cmd/author/studio.yaml`, `requiresWizard`)
 opening a `client`-source card. The catalogue, the template form and the
 class composer speak the Studio REST routes; the server owns the card's
 existence, identity, lifetime and pinned-ness.

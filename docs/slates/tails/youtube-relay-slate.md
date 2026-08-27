@@ -49,10 +49,10 @@ Each file mirrors its Twitch sibling almost verbatim. Inventory:
 |---|---|---|
 | `backend/TwitchClient.ts` | `backend/YoutubeClient.ts` | Backend infra |
 | `backend/TwitchRelayReader.ts` | `backend/YoutubeRelayReader.ts` | Backend infra |
-| `mud/obj/TwitchRelay.ts` | `mud/obj/YoutubeRelay.ts` | Stuff (Idea) singleton |
-| `mud/obj/api/TwitchLogic.ts` | `mud/obj/api/YoutubeLogic.ts` | Logic singleton |
+| `mud/platform/TwitchRelay.ts` | `mud/platform/YoutubeRelay.ts` | Stuff (Idea) singleton |
+| `mud/platform/idea/api/TwitchLogic.ts` | `mud/platform/idea/api/YoutubeLogic.ts` | Logic singleton |
 | `mud/api/twitch.ts` | `mud/api/youtube.ts` | Api facade |
-| `mud/obj/command/social/TwitchController.ts` | `…/YoutubeController.ts` | Controller |
+| `mud/platform/idea/cmd/social/TwitchController.ts` | `…/YoutubeController.ts` | Controller |
 | `mud/cmd/social/twitch.yaml` | `mud/cmd/social/youtube.yaml` | Verb YAML |
 | `seeds/.../Topic/world.twitch.message.yaml` | `…/world.youtube.message.yaml` | Topic seed |
 | `client/.../twitchTemplate.tsx` | `…/youtubeTemplate.tsx` | Client template |

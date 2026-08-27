@@ -1,0 +1,13 @@
+# Offstage — the no-exit holding room where the `shifts` brain parks
+# off-duty cast. Materialized on demand by shifts (singletonOrClone).
+# Players cannot reach it (no Exitable).
+class: /world/lounge/Offstage
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Dave's Bar — Back office
+  primaryKeyword: backoffice
+  longDescription: |
+    A cramped back office that doubles as the staff's bolt-hole: a desk
+    buried under receipts, coats on pegs, a punch-clock, and the steady
+    hum of the walk-in cooler through the wall. Where the cast are when
+    they're not on the floor — and where Dave mostly is, full stop.

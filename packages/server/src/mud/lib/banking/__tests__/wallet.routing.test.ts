@@ -12,7 +12,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import PaymentCard from "../../../obj/PaymentCard";
+import PaymentCard from "../../../platform/thing/PaymentCard";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -32,8 +32,8 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK_A = "/domain/test/goodkin";
-const BANK_B = "/domain/test/vionne";
+const BANK_A = "/world/test/goodkin";
+const BANK_B = "/world/test/vionne";
 const MERCHANT = "merchant-acct";
 
 function avatar(path: string): TestAvatar {
@@ -62,8 +62,8 @@ describe("Wallet routing", () => {
   afterEach(() => teardownBankingHarness());
 
   it("links all accounts, pays from active, switches, and honors --from", async () => {
-    const alice = avatar("/obj/Avatar/alice");
-    const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+    const alice = avatar("/platform/agent/Avatar/alice");
+    const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
     ContainmentApi.move(card, alice as never);
 
     const acctA = await asOwner(alice, () =>

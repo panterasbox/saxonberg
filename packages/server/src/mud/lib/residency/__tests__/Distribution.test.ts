@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { PriceList } from '../../magic/PriceList';
 import { Census } from '../Census';
 import type { WorldCensus } from '../Census';
@@ -36,7 +36,7 @@ const __filename = fileURLToPath(import.meta.url);
 const MUD_ROOT = join(dirname(__filename), '../../..');
 const POTION_DIR = join(
   MUD_ROOT,
-  '../../../content/base-library/content/obj/material/potion',
+  '../../../content/base-library/content/stuff/idea/material/potion',
 );
 
 /** Build a census by hand — the shape both channels consult. */

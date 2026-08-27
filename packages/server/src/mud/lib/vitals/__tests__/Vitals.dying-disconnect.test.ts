@@ -18,9 +18,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
-import { HARM_DEFAULTS } from '../../../obj/Condition';
+import { HARM_DEFAULTS } from '../../../platform/idea/Condition';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -148,7 +148,7 @@ describe('the dying clock runs while disconnected', () => {
   it('a later call may still attach attribution to an existing record', () => {
     const c = body();
     c.beginDying('exsanguination', 300);
-    c.beginDying('exsanguination', 300, { killer: '/obj/Avatar/rat' });
+    c.beginDying('exsanguination', 300, { killer: '/platform/agent/Avatar/rat' });
     advance(c, 1);
     advance(c, 400);
 

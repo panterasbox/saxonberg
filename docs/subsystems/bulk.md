@@ -261,10 +261,10 @@ spilled, over-poured, or drained-through liquid pools as the floor's
 discrete containment is untouched — an apple dropped in the room is
 still `container = room`, a sibling of the desk, not `restingOn` the
 floor. A puddle is the floor's attribute, not a Stuff. The default-floor
-seed (`generic-objects/content/obj/surface/default-floor.yaml`) carries an uncapped
+seed (`generic-objects/content/stuff/thing/surface/default-floor.yaml`) carries an uncapped
 surface slot, so any room with a floor can pool.
 
-## Verbs (`content/cmd/bulk/`, `obj/command/bulk/`)
+## Verbs (`content/platform/cmd/bulk/`, `platform/idea/cmd/bulk/`)
 
 A `bulk/` command category — `fill` / `pour` / `spill` / `drink` /
 `sip` — each a thin direction over `transfer` (`void` + envelope, no
@@ -301,7 +301,7 @@ from an air source — no new bulk machinery.
 - Holders: one `Receptacle` class (`obj/Receptacle.ts` =
   `BulkableMixin(Thing)`, fluid-only — not a discrete `Container`, and
   named to stay clear of the existing enterable-`Vessel`) backing four
-  rows (`generic-objects/content/obj/vessel/`): the unbounded coffee `urn`, the portable
+  rows (`generic-objects/content/stuff/thing/vessel/`): the unbounded coffee `urn`, the portable
   `thermos`, the destination `mug`, and the `open`-closure `colander`.
 
 ## Deferred tails
@@ -330,15 +330,15 @@ Each lands in a named home later; none is in this slice.
 | `lib/bulk/UnboundedSource.ts` | `UnboundedSourceMixin` — inexhaustible-source override (urn) |
 | `obj/UnboundedReceptacle.ts` | the urn's class (`UnboundedSourceMixin(Receptacle)`) |
 | `api/bulk.ts` | `BulkableApi.transfer` + `slotFor` / `amountFromQuantity` / `floorSurfaceNear` / `floorPuddleSummary` / `ingest` |
-| `obj/command/perception/LookController.ts` | room-view puddle line (the only non-bulk file the build touches) |
+| `platform/idea/cmd/perception/LookController.ts` | room-view puddle line (the only non-bulk file the build touches) |
 | `lib/material/Material.ts` | `PerceptibleMixin` + `appearance` |
 | `lib/quantity.ts` | `mL` / `cup` units + converters |
 | `api/quantity.ts` | `resolveUnitToken` / `isUnitToken` |
 | `api/mql/{lexer,parser,resolver,desugar,scope-walk,types}.ts` | `:b`, material-keyword, `:{N unit}`, measure variant |
 | `obj/Floor.ts` | surface-bulk on the floor |
-| `content/cmd/bulk/`, `obj/command/bulk/` | the verb roster |
+| `content/platform/cmd/bulk/`, `platform/idea/cmd/bulk/` | the verb roster |
 | `lib/creature/Creature.ts` | the `ingest` seam |
-| `base-library/content/obj/material/bulk/`, `generic-objects/content/obj/vessel/` | demo content |
+| `base-library/content/stuff/idea/material/bulk/`, `generic-objects/content/stuff/thing/vessel/` | demo content |
 
 ## Cross-references
 

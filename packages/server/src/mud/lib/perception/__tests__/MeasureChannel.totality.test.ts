@@ -31,7 +31,7 @@ import {
 
 const PERCEPTION_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../obj/command/perception'
+  '../../../platform/idea/cmd/perception'
 );
 
 function controllerSources(): { name: string; src: string }[] {

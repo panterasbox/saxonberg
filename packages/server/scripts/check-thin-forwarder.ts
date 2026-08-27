@@ -36,7 +36,7 @@ import ts from "typescript";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, "..", "src");
-const API_ROOTS = [join(SERVER_SRC, "mud", "api"), join(SERVER_SRC, "mud", "obj", "api")];
+const API_ROOTS = [join(SERVER_SRC, "mud", "api"), join(SERVER_SRC, "mud", "platform", "idea", "api")];
 
 /**
  * Sanctioned thin-forward exceptions — a method that genuinely must

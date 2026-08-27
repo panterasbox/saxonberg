@@ -1,0 +1,11 @@
+# Narnia — the root Region of the demonstrative addressing tree.
+#
+# Claims the shortest prefix (`narnia`), so it's the fallback covering
+# Locality for anything under it that no more-specific Locality claims.
+# Note the divergence: templatePath `/stuff/idea/Locality/narnia` vs claimed
+# address `narnia` — the namespace is not the template tree.
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Narnia
+  _address: narnia

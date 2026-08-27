@@ -43,7 +43,7 @@ function affordsTalk(player: Player): boolean {
 
 beforeAll(() => {
   // Ensure the talk command YAML is resolvable for the contribution.
-  CommandApi.getCommand("social/talk.yaml");
+  CommandApi.getCommand("platform/cmd/social/talk.yaml");
 });
 
 beforeEach(() => {

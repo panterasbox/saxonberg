@@ -1,0 +1,23 @@
+verbs: [sip]
+controller: /platform/idea/cmd/bulk/SipController
+description: "Take a small sip from a holder"
+help: |
+  Takes a single small mouthful from a holder and leaves the rest
+  behind. Reach for `sip` when you want to taste something, pace
+  yourself, or savor a drink without draining it.
+
+  Name the container or the liquid — `sip wine` reads the same as
+  `sip the glass`. When you mean to finish the whole thing in one
+  go, use `drink` instead.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot

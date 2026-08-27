@@ -27,12 +27,12 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Trap from '../../../obj/Trap';
+import Trap from '../../../platform/thing/Trap';
 import { HazardDelivery, type HazardDeliveryOptions } from '../HazardDelivery';
 import { MobileMixin } from '../../spatial/Mobile';
 import { Creature } from '../../creature/Creature';
-import Species from '../../../obj/species/Species';
-import BodyPlan from '../../../obj/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Location from '../../stuff/Location';
 import { MessageApi } from '../../../api/message';
 import { ContainmentApi } from '../../../api/containment';
@@ -45,7 +45,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Trauma } from '../../../obj/Condition';
+import type { Trauma } from '../../../platform/idea/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 
 let n = 0;
@@ -126,10 +126,10 @@ beforeEach(() => {
   });
   n++;
   trapCounter = 0;
-  bodyplanPath = `/obj/species/BodyPlan/carespeed-biped-${n}`;
+  bodyplanPath = `/stuff/idea/species/BodyPlan/carespeed-biped-${n}`;
   sharedSpecies = makeStuff(() => new Species());
   sharedSpecies.setBodyPlan(footedBodyPlan());
-  stampTemplatePathForTest(sharedSpecies, `/obj/species/carespeed/biped-${n}`);
+  stampTemplatePathForTest(sharedSpecies, `/stuff/idea/species/carespeed/biped-${n}`);
 });
 
 afterEach(() => {
@@ -139,7 +139,7 @@ afterEach(() => {
 describe('care↔speed — the mode changes the trap outcome', () => {
   it('(a) sneak avoids a hidden trap a walk springs', async () => {
     // A `hidden` trap (requirement 4) vs a novice mover (capacity 3).
-    const walker = await warmedMover('/obj/Avatar/cs-walk-a', 'novice');
+    const walker = await warmedMover('/platform/agent/Avatar/cs-walk-a', 'novice');
     const walkTrap = makeTrap(
       { channel: 'edge', energy: 3, siteSelector: FEET },
       'hidden',
@@ -148,7 +148,7 @@ describe('care↔speed — the mode changes the trap outcome', () => {
     expect(walkTrap.getHazardState()).toBe('sprung'); // walk sets it off
     expect(wound(walker)).toBeDefined();
 
-    const sneaker = await warmedMover('/obj/Avatar/cs-sneak-a', 'novice');
+    const sneaker = await warmedMover('/platform/agent/Avatar/cs-sneak-a', 'novice');
     const sneakTrap = makeTrap(
       { channel: 'edge', energy: 3, siteSelector: FEET },
       'hidden',
@@ -160,7 +160,7 @@ describe('care↔speed — the mode changes the trap outcome', () => {
 
   it('(b) run springs a subtle trap a walk avoids', async () => {
     // A `subtle` trap (requirement 2) vs a novice mover (capacity 3).
-    const walker = await warmedMover('/obj/Avatar/cs-walk-b', 'novice');
+    const walker = await warmedMover('/platform/agent/Avatar/cs-walk-b', 'novice');
     const walkTrap = makeTrap(
       { channel: 'edge', energy: 3, siteSelector: FEET },
       'subtle',
@@ -169,7 +169,7 @@ describe('care↔speed — the mode changes the trap outcome', () => {
     expect(walkTrap.isArmed()).toBe(true); // walk notices + steps around it
     expect(wound(walker)).toBeUndefined();
 
-    const runner = await warmedMover('/obj/Avatar/cs-run-b', 'novice');
+    const runner = await warmedMover('/platform/agent/Avatar/cs-run-b', 'novice');
     const runTrap = makeTrap(
       { channel: 'edge', energy: 3, siteSelector: FEET },
       'subtle',
@@ -184,7 +184,7 @@ describe('care↔speed — the mode changes the trap outcome', () => {
     // identically-configured, movers/traps: the outcome is bit-identical
     // (no RNG). Repeat the walk-springs half too, for both directions.
     for (let i = 0; i < 3; i++) {
-      const s = await warmedMover(`/obj/Avatar/cs-det-sneak-${i}`, 'novice');
+      const s = await warmedMover(`/platform/agent/Avatar/cs-det-sneak-${i}`, 'novice');
       const st = makeTrap(
         { channel: 'edge', energy: 3, siteSelector: FEET },
         'hidden',
@@ -192,7 +192,7 @@ describe('care↔speed — the mode changes the trap outcome', () => {
       st.resolveTraversal(s, 'sneak');
       expect(st.isArmed()).toBe(true);
 
-      const w = await warmedMover(`/obj/Avatar/cs-det-walk-${i}`, 'novice');
+      const w = await warmedMover(`/platform/agent/Avatar/cs-det-walk-${i}`, 'novice');
       const wt = makeTrap(
         { channel: 'edge', energy: 3, siteSelector: FEET },
         'hidden',

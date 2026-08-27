@@ -498,7 +498,7 @@ physics.
 | `MechanicalMovementMixin` (+ `MechanicalMovement`) | Mixin (locality content) | `domain/eternal/university-avenue/MechanicalMovement.ts` |
 | `Watch` | Stuff (locality content) | `domain/eternal/university-avenue/Watch.ts` |
 | `Wind{,}Controller` / `AdjustController` | Controller (locality content) | `domain/eternal/university-avenue/command/` |
-| `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `obj/command/` |
+| `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `platform/idea/cmd/` |
 | `analyze` / `measure` subcommands | Command YAML | `cmd/perception/analyze.yaml`, `cmd/perception/measure.yaml` |
 | `scale` default / `CAMPUS_LATITUDE` / `CAMPUS_LONGITUDE` / `SNAPSHOT_INTERVAL_MS` | module constants | on the two Apis (NOT settings) |
 

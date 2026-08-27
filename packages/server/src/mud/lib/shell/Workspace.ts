@@ -7,7 +7,7 @@
  *
  *   - **content** — the authored game world. Path-shaped templates
  *     persisted in the `domain` Mongo collection, cloned at runtime
- *     into Stuff. Identifiers like `/obj/Avatar/foo`.
+ *     into Stuff. Identifiers like `/platform/agent/Avatar/foo`.
  *   - **source** — the engine source code. The filesystem under
  *     the project's `packages/`. Identifiers like
  *     `/server/src/mud/api/stuff.ts` (rooted at the sandbox root).
@@ -272,16 +272,16 @@ export function WorkspaceMixin<
      */
     static commandContributions: CommandContributions = {
       self: [
-        'shell/pwd.yaml',
-        'shell/cd.yaml',
-        'shell/ls.yaml',
-        'shell/cat.yaml',
-        'shell/grep.yaml',
-        'shell/write.yaml',
-        'shell/mkdir.yaml',
-        'shell/rm.yaml',
-        'shell/cp.yaml',
-        'shell/mv.yaml',
+        'platform/cmd/shell/pwd.yaml',
+        'platform/cmd/shell/cd.yaml',
+        'platform/cmd/shell/ls.yaml',
+        'platform/cmd/shell/cat.yaml',
+        'platform/cmd/shell/grep.yaml',
+        'platform/cmd/shell/write.yaml',
+        'platform/cmd/shell/mkdir.yaml',
+        'platform/cmd/shell/rm.yaml',
+        'platform/cmd/shell/cp.yaml',
+        'platform/cmd/shell/mv.yaml',
       ],
       peers: [],
       environment: [],

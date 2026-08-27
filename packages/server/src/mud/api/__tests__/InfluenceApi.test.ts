@@ -15,7 +15,7 @@ import { Band } from '../../lib/standing/Band';
 
 afterEach(() => vi.restoreAllMocks());
 
-const S = '/obj/Avatar/subject';
+const S = '/platform/agent/Avatar/subject';
 
 describe('InfluenceApi', () => {
   it('delegates the consumer stock to ConsumerApi', () => {

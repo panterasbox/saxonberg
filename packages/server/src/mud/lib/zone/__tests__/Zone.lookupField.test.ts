@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ZoneApi } from '../../../api/zone';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
-import FolderZone from '../../../obj/FolderZone';
+import FolderZone from '../../../platform/idea/FolderZone';
 import { Zone } from '../Zone';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
@@ -76,7 +76,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -89,12 +89,12 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/obj/FolderZone',
+        class: '/platform/idea/FolderZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -110,7 +110,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -122,12 +122,12 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/eternal',
-        class: '/obj/FolderZone',
+        class: '/platform/idea/FolderZone',
         data: {},
       },
       {
         path: '/eternal/university',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -148,17 +148,17 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/outer',
-        class: '/obj/FolderZone',
+        class: '/platform/idea/FolderZone',
         data: {},
       },
       {
         path: '/outer/middle',
-        class: '/obj/FolderZone',
+        class: '/platform/idea/FolderZone',
         data: {},
       },
       {
         path: '/outer/middle/inner',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -208,12 +208,12 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/FolderZone',
+        class: '/platform/idea/FolderZone',
         data: {},
       },
       {
         path: '/zone/sub',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);

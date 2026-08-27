@@ -1,0 +1,26 @@
+# Carbon-monoxide poisoning — the enclosed-fire killer. The fire driver's
+# incomplete combustion fills a sealed scope with `smoke`, whose biome
+# `contaminant` tag is `carbonMonoxide`; RespirationMixin folds it into this
+# toxin burden each breath (the inhaled entry point, not digestion). CO binds
+# haemoglobin, so it poisons on top of the asphyxiation the smoke medium
+# already causes — an enclosed fire kills by CO, not flame. v1 ships a slow
+# clearance (CO lingers) + a single acute band; the burden socket handles the
+# accumulation of repeated small breaths on one scalar.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: carbon-monoxide-poisoning
+  signature: []
+  progression: null
+  resolution:
+    by: fresh-air
+  observableSigns: [flushed, dizzy, confused]
+  contagion: null
+  toxinBehavior:
+    toxinType: carbonMonoxide
+    absorptionRate: 1
+    clearanceRate: 0.05
+    potency: 1
+    bands:
+      - { threshold: 10, severity: 1 }
+      - { threshold: 40, severity: 2 }

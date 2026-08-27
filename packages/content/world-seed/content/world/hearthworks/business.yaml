@@ -1,0 +1,35 @@
+# The Hearthworks — the Business entity (the Dave's-Bar precedent, F5):
+# `order` resolves its maker through the augment-gated MakerMixin, so a
+# venue with no rostered on-shift position has NO active maker — the
+# Business wiring is load-bearing, not decoration. Both positions confer
+# MakerMixin on a 24/7 roster (a teaching venue never closes). Berta
+# doubles as proprietor.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  # The smith owns the forge: an ENTITY authority.
+  appointingAuthority:
+    kind: entity
+    path: /world/hearthworks/npc/smith
+  positions:
+    - key: smith
+      label: working the forge
+      wageRate: 5
+      confers: [MakerMixin]
+    - key: cook
+      label: minding the hearth
+      wageRate: 4
+      confers: [MakerMixin]
+  rosterSlots:
+    - positionKey: smith
+      assignee: /world/hearthworks/npc/smith
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    - positionKey: cook
+      assignee: /world/hearthworks/npc/cook
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/hearthworks/smithy
+    - /world/hearthworks/cookhouse

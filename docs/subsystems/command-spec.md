@@ -10,9 +10,9 @@ A command lives in five places:
 
 | Artifact | Where | Sets |
 |---|---|---|
-| **YAML view** | `content/cmd/<category>/<verb>.yaml` in the **`platform` content pack** (`packages/content/platform/`) | verbs, args, options, scope, validators |
-| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | execution body |
-| **Controller template** | `content/obj/command/<category>/<Name>Controller.yaml` in the platform pack | template doc for `StuffApi.clone` |
+| **YAML view** | `content/platform/cmd/<category>/<verb>.yaml` in the **`platform` content pack** (`packages/content/platform/`) | verbs, args, options, scope, validators |
+| **Controller** | `mud/platform/idea/cmd/<category>/<Name>Controller.ts` | execution body |
+| **Controller template** | `content/platform/idea/cmd/<category>/<Name>Controller.yaml` in the platform pack | template doc for `StuffApi.clone` |
 | **Discovery** | `static commandContributions` on a class or mixin | which givers see this verb on their recency stack |
 | **Validators (optional)** | `mud/lib/command/validators/<name>.ts` | per-field validators referenced by path |
 
@@ -25,7 +25,7 @@ core's verb surface, and the work-contracts build added `work` for the
 labor market — the board-afforded `job` + the travelling `fulfill`, see
 [contract.md](./contract.md).) The category prefix is **load-bearing and uniform** — it
 appears in the YAML `controller:` field (`perception/LookController`),
-the seed `class:` path (`/obj/command/perception/LookController`), and
+the seed `class:` path (`/platform/idea/cmd/perception/LookController`), and
 every `commandContributions` entry (`'perception/look.yaml'`). The
 preloader walks the command tree recursively, so a verb collides only within its
 own namespace (a future `play piano` and char-gen's `play` coexist). If
@@ -38,11 +38,14 @@ The schema for the YAML lives at `mud/lib/command/command.schema.json`
 ### Views are content — the `command-view` document kind
 
 Since content-packs wave 2 the engine verbs' views are **content**: the
-former `mud/cmd/` tree is the platform pack's `content/cmd/` (195 views,
+former `mud/cmd/` tree is the platform pack's `content/platform/cmd/` (195 views,
 24 categories), installed as `documents` rows of `kind: 'command-view'`
 at the view key's document path (`perception/look.yaml` →
-`/cmd/perception/look`; a locality's `domain/<…>/cmd/<verb>.yaml` →
-`/domain/<…>/cmd/<verb>`). `CommandApi.preloadAll` serves the **store
+`/platform/cmd/perception/look`; a content tree's own views by ONE rule — a
+locality's `world/<…>/cmd/<verb>.yaml` → `/world/<…>/cmd/<verb>`, an
+industry's `trade/<industry>/cmd/<verb>.yaml` → `/trade/<industry>/cmd/<verb>`
+(reserved; none ship yet): a key whose first segment is not `cmd` and
+that carries a `cmd` segment is a content-tree key at `/<key>`). `CommandApi.preloadAll` serves the **store
 first**, then the on-disk command trees for whatever the store did not
 and **nothing else**: once a store has been served, a view the store
 lacks is a miss, not a file (content-packs wave 3 deleted the disk
@@ -62,7 +65,7 @@ resolvable packs reads nothing.
 ## Domain-local commands — verbs that live with their content
 
 Most verbs are **general engine/capability verbs** and live in the
-platform pack's `content/cmd/<category>/` tree above. But a verb can be **bespoke to one
+platform pack's `content/platform/cmd/<category>/` tree above. But a verb can be **bespoke to one
 locality's object** — a real command with no reuse anywhere else, whose
 only home is a single piece of authored content. Filing such a verb in a
 global engine category is dishonest: it isn't a capability the engine
@@ -75,27 +78,27 @@ tree): the spec goes in a `cmd/` segment, the controller in a sibling
 
 | Artifact | Global engine verb | Domain-local verb |
 |---|---|---|
-| **YAML view** | the platform pack's `content/cmd/<category>/<verb>.yaml` | the locality's pack: `content/domain/<sphere>/<locality>/cmd/<verb>.yaml` (`world-seed` for the eternal localities today) |
-| **Controller** | `mud/obj/command/<category>/<Name>Controller.ts` | `mud/domain/<sphere>/<locality>/command/<Name>Controller.ts` |
-| **Controller template** | the platform pack's `content/obj/command/<category>/<Name>Controller.yaml` | the locality's pack: `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml` |
-| **`controller:` field** | absolute `/obj/command/<category>/<Name>Controller` | relative `../command/<Name>Controller` (sibling of the spec) |
-| **`commandContributions`** | `<category>/<verb>.yaml` | `domain/<sphere>/<locality>/cmd/<verb>.yaml` |
+| **YAML view** | the platform pack's `content/platform/cmd/<category>/<verb>.yaml` | the locality's pack: `content/world/<sphere>/<locality>/cmd/<verb>.yaml` (`world-seed` for the eternal localities today) |
+| **Controller** | `mud/platform/idea/cmd/<category>/<Name>Controller.ts` | `mud/world/<sphere>/<locality>/idea/cmd/<Name>Controller.ts` |
+| **Controller template** | the platform pack's `content/platform/idea/cmd/<category>/<Name>Controller.yaml` | the locality's pack: `content/world/<sphere>/<locality>/idea/cmd/<Name>Controller.yaml` |
+| **`controller:` field** | absolute `/platform/idea/cmd/<category>/<Name>Controller` | relative `../command/<Name>Controller` (sibling of the spec) |
+| **`commandContributions`** | `<category>/<verb>.yaml` | `world/<sphere>/<locality>/cmd/<verb>.yaml` |
 
 A `controller:` value is a **path resolved by one rule** — no domain
 special-case (`CommandDefinition.resolveController`): a value starting
 with `/` **is** the `/`-rooted template path; otherwise it resolves
 **relative to the spec file's own directory**. So a domain-local spec in
 `.../cmd/` names its controller `../command/<Name>Controller`, resolving
-to `/domain/<sphere>/<locality>/command/<Name>Controller` — which both
+to `/world/<sphere>/<locality>/idea/cmd/<Name>Controller` — which both
 names the pack's template row (`content/<that path>.yaml`) and is the
 `class:` that row declares (guarded by the `controller-seeds.integrity`
 test, which resolves specs against the pack content).
 
 Discovery: a locality's `cmd/*.yaml` are installed as `command-view`
-documents at `/domain/<…>/cmd/<verb>` like any other view, and
+documents at `/world/<…>/cmd/<verb>` like any other view, and
 `commandContributions` on the owning class references the view by its
-`domain/`-prefixed key (e.g.
-`'domain/eternal/university-avenue/cmd/blow.yaml'`). Nothing else
+`world/`-prefixed key (e.g.
+`'world/eternal/university-avenue/cmd/blow.yaml'`). Nothing else
 changes — the same YAML schema, controller skeleton, validators, and
 template contract apply.
 
@@ -108,7 +111,7 @@ domain-local. The exemplars are **`blow`** (the Whistle), **`tally`**
 (the CrossingLog), and **`wind`**/**`adjust`** (the mechanical Watch) in
 the University Avenue crossing bundle — each inseparable from its one
 object, so spec, controller, and seed all live under
-`mud/domain/eternal/university-avenue/` (`cmd/` + `command/`) beside
+`mud/world/eternal/university-avenue/` (`cmd/` + `command/`) beside
 `Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
 **Who affords a verb is a separate question from where its spec
@@ -156,7 +159,7 @@ load-time error. `options` is optional at every level.
 
 ```yaml
 verbs: [look, l]              # primary verb first; rest are aliases
-controller: perception/LookController  # category/Name; resolves to /obj/command/perception/LookController
+controller: perception/LookController  # category/Name; resolves to /platform/idea/cmd/perception/LookController
 description: "Examine your surroundings or an object"
 help: |                       # optional; multi-line player-facing prose
   With no target, `look` surveys your whole location. Give it a
@@ -338,7 +341,7 @@ Three rules:
   pass.
 
 Stuff references on a struct payload still ride as MQL strings
-(`'#abc123'`, `'/obj/Avatar/foo'`) — raw `Stuff` object references
+(`'#abc123'`, `'/platform/agent/Avatar/foo'`) — raw `Stuff` object references
 through any channel would bypass MQL's permission/visibility
 filters and the inter-stuff "address via MQL" contract. If a
 struct field's schema declares a property as `type: string`, that
@@ -1103,16 +1106,16 @@ needs richer-than-string structure.
 ## Controllers
 
 A controller is a templated `Idea` (Stuff). One file per controller
-under `mud/obj/command/<category>/<Name>Controller.ts`, with a matching
+under `mud/platform/idea/cmd/<category>/<Name>Controller.ts`, with a matching
 template row in the platform pack
-(`content/obj/command/<category>/<Name>Controller.yaml`) that produces a
-Template doc at `/obj/command/<category>/<Name>Controller` in the
+(`content/platform/idea/cmd/<category>/<Name>Controller.yaml`) that produces a
+Template doc at `/platform/idea/cmd/<category>/<Name>Controller` in the
 `content` collection. The YAML view's `controller:` field is that **template
 name**, including the category prefix — the dispatcher does
-`StuffApi.clone('/obj/command/' + command.controller)` for each
+`StuffApi.clone('/platform/idea/cmd/' + command.controller)` for each
 execution. By convention the template name matches the TS class name
 (`perception/LookController`'s seed creates
-`/obj/command/perception/LookController`), but the binding is
+`/platform/idea/cmd/perception/LookController`), but the binding is
 template-driven, not class-driven. Hot-reload works because
 `StuffApi.clone` consults `HotReloadApi`.
 
@@ -1160,7 +1163,7 @@ signal for bots / scripting / replay. See
 
 - **Template name matches the YAML's `controller` field.** The
   dispatcher resolves through
-  `StuffApi.clone('/obj/command/' + command.controller)`. The
+  `StuffApi.clone('/platform/idea/cmd/' + command.controller)`. The
   template seed and the TS class conventionally share the name, but
   it's the template path that's load-bearing.
 - **One TModel interface per controller.** Extend `CommandModel` and
@@ -1329,13 +1332,13 @@ stack.
 ## Controller template row
 
 For every controller class, drop a one-liner template in the platform
-pack at `content/obj/command/<category>/<Name>Controller.yaml` with the
+pack at `content/platform/idea/cmd/<category>/<Name>Controller.yaml` with the
 correct class path. `PackApi.install` writes the Template doc into
 `content` at boot; `StuffApi.clone` picks it up on dispatch.
 
 ```yaml
-# packages/content/platform/content/obj/command/perception/FocusController.yaml
-class: /obj/command/perception/FocusController
+# packages/content/platform/content/platform/idea/cmd/perception/FocusController.yaml
+class: /platform/idea/cmd/perception/FocusController
 data: {}
 ```
 

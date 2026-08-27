@@ -13,7 +13,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import LookController from '../../obj/command/perception/LookController';
+import LookController from '../../platform/idea/cmd/perception/LookController';
 import { MqlApi } from '../../api/mql';
 import { PerceptionApi } from '../../api/perception';
 import {

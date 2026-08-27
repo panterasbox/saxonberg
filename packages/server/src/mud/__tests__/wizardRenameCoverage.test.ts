@@ -27,10 +27,10 @@ const EXEMPT_SUFFIXES = [
   // This guard file.
   join("mud", "__tests__", "wizardRenameCoverage.test.ts"),
   // The migration home — references the legacy group name on purpose.
-  join("mud", "obj", "AccessRegistry.ts"),
+  join("mud", "platform", "idea", "AccessRegistry.ts"),
   // The migration test — seeds + asserts against the legacy group name
   // to prove the developers→wizards rename-forward carries members over.
-  join("mud", "obj", "__tests__", "AccessRegistry.test.ts"),
+  join("mud", "platform", "__tests__", "AccessRegistry.test.ts"),
 ];
 
 const RETIRED = /\bisDeveloper\b|\brequiresDeveloper\b|['"]developers['"]/;

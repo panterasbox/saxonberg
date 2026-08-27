@@ -1,0 +1,12 @@
+class: /platform/idea/corpo/Corpo
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: goodkin
+  label: Goodkin
+  sector: consumer staples / food / household
+  ethos: The Paternalist — "we take care of our own," company-town loyalty, benefits that bind.
+  aesthetic: warm sunrise colors, a friendly mascot, folksy-but-corporate
+  temperament: belonging-seekers (and it unsettles others — the velvet cage)
+  description: |
+    Goodkin wants to be your family, your landlord, and your grocer, and it is very good at all three. The warmth is real and the leash is real; which one you notice depends on how long you've stayed.
+  rivals: []

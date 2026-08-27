@@ -3,7 +3,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { Marshaller } from '../Marshaller';
 import { Idea } from '../../stuff/Idea';
 import { Document } from '../Document';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';

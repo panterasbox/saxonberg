@@ -31,12 +31,12 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
-import SpellCatalogue from '../../../obj/SpellCatalogue';
-import Spell from '../../../obj/magic/Spell';
-import Scroll from '../../../obj/magic/Scroll';
-import Wand from '../../../obj/magic/Wand';
-import Signpost from '../../../obj/Signpost';
+import '../../../platform/idea/WorldClockRegistry';
+import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
+import Spell from '../../../platform/idea/magic/Spell';
+import Scroll from '../../../platform/thing/magic/Scroll';
+import Wand from '../../../platform/thing/magic/Wand';
+import Signpost from '../../../platform/thing/Signpost';
 import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import { BlessableMixin } from '../Blessable';
@@ -48,8 +48,8 @@ import { Blessing } from '../Blessing';
 import { MagicEffects, EFFECT_KINDS } from '../Effect';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
-import Species from '../../../obj/species/Species';
-import Room from '../../../obj/location/Room';
+import Species from '../../../platform/idea/species/Species';
+import Room from '../../../platform/location/Room';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -73,7 +73,7 @@ class Held extends BlessableMixin(
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../../../../content/arcane-library/content/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
 let seq = 0;
@@ -101,7 +101,7 @@ async function installCatalogue(): Promise<void> {
     });
   if (!catalogueSingleton) {
     catalogueSingleton = makeStuff(() => new SpellCatalogue());
-    stampTemplatePathForTest(catalogueSingleton, '/obj/SpellCatalogue');
+    stampTemplatePathForTest(catalogueSingleton, '/platform/idea/SpellCatalogue');
   }
   catalogueSingleton.invalidateCache();
   await catalogueSingleton.postRegister();
@@ -114,7 +114,7 @@ function makeActor(): TestCharacter {
   species.setFacultyProfile({ depth: 'mid', serenity: 'mid', composure: 'mid' });
   species.setInnateMixins(['CasterMixin']);
   species.setSentient(true);
-  stampTemplatePathForTest(species, `/obj/species/test/rc-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/rc-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/rc-actor-${n}`);
@@ -131,7 +131,7 @@ function makeRoom(): Room {
 function makeWand(band: string): Wand {
   const w = makeStuff(() => new Wand());
   stampTemplatePathForTest(w, `/obj/test/rc-wand-${seq++}`);
-  w.setCarriedSpellPath('/obj/magic/Spell/firebolt');
+  w.setCarriedSpellPath('/stuff/idea/magic/Spell/firebolt');
   w.setBlessingBand(band);
   return w;
 }
@@ -140,7 +140,7 @@ function makeScroll(spellId: string): Scroll {
   const s = makeStuff(() => new Scroll());
   stampTemplatePathForTest(s, `/obj/test/rc-scroll-${seq++}`);
   s.setMarkText('a spiral of pressed characters');
-  s.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
+  s.setCarriedSpellPath(`/stuff/idea/magic/Spell/${spellId}`);
   return s;
 }
 
@@ -199,14 +199,14 @@ describe('remove-curse — control·arcana over an item', () => {
   });
 
   it('is CONTROL, not DESTROY — dispel occupies the other cell', async () => {
-    const spell = await MagicApi.spellAt('/obj/magic/Spell/remove-curse');
+    const spell = await MagicApi.spellAt('/stuff/idea/magic/Spell/remove-curse');
     expect(spell).not.toBeNull();
     // The grid cell is the design claim in machine-readable form. A
     // curse is the item's own potency displaced, so lifting it changes
     // a parameter of a thing that remains itself.
     expect(spell!.verb).toBe('control');
     expect(spell!.noun).toBe('arcana');
-    const dispel = await MagicApi.spellAt('/obj/magic/Spell/dispel');
+    const dispel = await MagicApi.spellAt('/stuff/idea/magic/Spell/dispel');
     expect(dispel!.verb).toBe('destroy');
     // …and `control` is the dearer verb, which is why the cure costs
     // more than the unbinding it is often mistaken for.

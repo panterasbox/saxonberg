@@ -16,4 +16,4 @@ settings:
   # Fast-travel — the Teleport Authority Business (the network fee accrues
   # to its operating account, custodied at its authored banksAt).
   - key: fasttravel.tpaBusinessPath
-    value: /domain/terminus/terminal/tpa
+    value: /world/terminus/terminal/tpa

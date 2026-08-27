@@ -1,9 +1,0 @@
-class: /obj/corpo/Brand
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  key: vionne-rouge
-  name: Vionne Rouge
-  owner: vionne
-  category: vermouth
-  positioning: the aperitif hour
-  descriptor: A dry vermouth in a frosted bottle that costs more than the gin — Vionne would like you to know you've arrived.

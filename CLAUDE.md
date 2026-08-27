@@ -157,7 +157,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the sixteen shipped packs (the platform is pack zero; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the eighteen shipped packs (the platform is pack zero; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -448,7 +448,7 @@ discoverability.
   [topics.md](./docs/subsystems/topics.md).
 - `pnpm lint:imports` (`scripts/check-mud-imports.ts`) — **the import
   boundary**: nothing under `src/mud/` imports outside the tree (Node
-  built-ins included) except the Api tier (`api/**` + `obj/api/**`),
+  built-ins included) except the Api tier (`api/**` + `platform/idea/api/**`),
   which imports and wraps. Mudlib code cannot *import* a capability — it
   asks the gated surface. Scope: imports only; ambient globals
   (`process.env`, `globalThis`, `Buffer`) stay reachable, so this is an
@@ -467,21 +467,15 @@ discoverability.
   CI-gating. Pattern + folds: [architecture.md § The import
   boundary](./docs/architecture.md).
 - `pnpm lint:test-content` (`scripts/check-test-content.ts`) — **kernel
-  tests that name shipped content** (`/domain/<locality>`): a shrinking
+  tests that name shipped content** (`/world/<locality>`): a shrinking
   allowlist (`scripts/test-content-allowlist.txt`) — a listed offender
   warns, a NEW one fails, a listed path that no longer offends is stale
   and fails too. A kernel test proves the kernel over synthetic fixtures;
-  a test of real content lives beside the content (`src/mud/domain/**`,
+  a test of real content lives beside the content (`src/mud/world/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
-- `pnpm lint:core-gone` (`scripts/check-core-gone.ts`) — **the `core`
-  group is dead**: no literal `'core'` group name, `isAuthor`,
-  `requiresAuthor`, `requiresCoreAccess`, `pack-installers` or MQL
-  `:admin` anywhere in server source outside a line carrying the
-  `// migration-note:` marker (the two `grant` migration branches, deleted
-  in wave 4). CI-gating.
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
-  shipped template path under the eight title roots** (`/obj /domain /cmd
-  /compact /studio /wiki /home /corpo`) lies under some pack's
+  shipped template path under the nine title roots** (`/platform /stuff /world
+  /compact /studio /wiki /home /corpo /trade`) lies under some pack's
   `requires.title` claim. `ownerOf` returns `null` for untitled content
   and every write fails closed, so an unclaimed shipped path is a path
   nobody can ever edit. No exemption list. CI-gating.
@@ -575,20 +569,20 @@ in `packages/server/src/mud/` falls into one of these. **If a new
 file you're considering doesn't fit, STOP and discuss with the user
 before creating it.** The `Api` is the dev-facing surface — a thin,
 typed, gated forwarding shell; protection-needing internal logic is
-`Stuff`-shaped (the `obj/api/<X>Logic.ts` logic singleton). Do not
+`Stuff`-shaped (the `platform/idea/api/<X>Logic.ts` logic singleton). Do not
 create free-floating helper modules.
 
 | Category | Where | Filename | Purpose |
 |---|---|---|---|
-| Stuff class | `obj/` if **instanceable**, `lib/<subsystem>/` if **only inherited** | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. See "Instanceable lives in obj/" below. |
+| Stuff class | `platform/<branch>/` if **instanceable**, `lib/<subsystem>/` if **only inherited** | `PascalCase.ts` | Runtime classes extending Stuff/Idea/Thing/etc. See "Instanceable lives in obj/" below. |
 | Mixin | `lib/<subsystem>/` | `PascalCase.ts` (no `Mixin` suffix) | Class-factory mixin; export `FooMixin`, marker `_mixinName = 'FooMixin'`. |
 | Brain | `lib/behavior/` | lowercase `verb.ts` | Path-resolved stateless strategy module for NPC behavior. Sole export `export const brain = class {…}` (a **named class-expression** so the HMR registry retains it), statics `label`/`claims`/`requiresFree`/`act`. No class name, no registry; re-resolved per invocation for HMR. See [behavior.md](./docs/subsystems/behavior.md). |
 | Named value-object / vocabulary / registry | `lib/<subsystem>/` (or top-level `lib/`) | `PascalCase.ts` / lowercase | A substrate primitive that isn't an instanceable Stuff but IS the module's one concept: value class (`Light`, `Quantity`), enum-like vocabulary + its validation array, or a platform registry (`lib/mixin.ts`, `lib/paths.ts`). The home that kills the `types.ts` reflex. |
 | Api | `api/` | lowercase `feature.ts` | Static `FeatureApi` — a thin, typed, gated **forwarding shell**; ends with `SecurityApi.decorateApiClass(FeatureApi)`. Exports only the class + its call-shape types (nothing instanceable). |
-| Api logic singleton | `obj/api/` | `PascalCaseLogic.ts` | Stateless `Stuff` (`extends ApiLogic`, which extends `Idea`; no `PostRegistrationMixin`) holding a convertible Api's logic + protected internals; `@internal` on the class, methods gated `FromModule('/api/<feature>#<Feature>Api')`; HMR-able at `/obj/api/<feature>`. The `FooApi` statics forward here. (`ApiLogic` is the shared base that makes every logic singleton residency-exempt — see [residency.md](./docs/subsystems/residency.md).) |
-| Controller | `obj/command/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in the platform pack's `content/cmd/<category>/`). |
-| Command YAML | `packages/content/platform/content/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command — **content** (the `command-view` document kind), not kernel source. |
-| Hook | `obj/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
+| Api logic singleton | `platform/idea/api/` | `PascalCaseLogic.ts` | Stateless `Stuff` (`extends ApiLogic`, which extends `Idea`; no `PostRegistrationMixin`) holding a convertible Api's logic + protected internals; `@internal` on the class, methods gated `FromModule('/api/<feature>#<Feature>Api')`; HMR-able at `/platform/idea/api/<feature>`. The `FooApi` statics forward here. (`ApiLogic` is the shared base that makes every logic singleton residency-exempt — see [residency.md](./docs/subsystems/residency.md).) |
+| Controller | `platform/idea/cmd/<category>/` | `PascalCaseController.ts` | Command controller (MVC pair with a YAML view in the platform pack's `content/platform/cmd/<category>/`). |
+| Command YAML | `packages/content/platform/content/platform/cmd/<category>/` | lowercase `verb.yaml` | The view side of a command — **content** (the `command-view` document kind), not kernel source. |
+| Hook | `platform/idea/hooks/` | `PascalCaseHook.ts` | PM `aroundSave` / `aroundDelete` hooks. |
 | Decorator | `lib/security/` | `decorators.ts` / `PascalCase.ts` | Decorator factories (`CallSecurity`, `Unshadowable`, `Final`, `Shadowing`, `ShadowSecurity`, `RequiresActive`). A decorator is a function by nature — these files are the only home where `export function` is the *concept*, not a stray helper. |
 
 "Pure helper functions that don't need security" is NOT a reason to
@@ -656,26 +650,26 @@ reason.
 - **Api files**: lowercase with `.ts` (`stuff.ts`, `player.ts`,
   `mixin.ts`, `containment.ts`, `message.ts`).
 - **Command YAML views**: engine verbs in the **platform content pack**,
-  `packages/content/platform/content/cmd/<category>/`, lowercase
+  `packages/content/platform/content/platform/cmd/<category>/`, lowercase
   (`perception/look.yaml`, `social/say.yaml`) — installed as
   `command-view` documents and served store-first by `CommandApi`
   (`mud/cmd/` is gone since content-packs wave 2); **domain-local
   verbs** (a verb that only exists where a locality's content is) in
-  `domain/<sphere>/<locality>/cmd/` with their controllers in the sibling
-  `domain/<sphere>/<locality>/command/` (the University Avenue `blow`/
+  `world/<sphere>/<locality>/cmd/` with their controllers in the sibling
+  `world/<sphere>/<locality>/idea/cmd/` (the University Avenue `blow`/
   `tally`/`wind`/`adjust` bundle and the Duncan Hall `provision`/
   `unprovision`/`remodel` bundle are the exemplars — see
   [command-spec.md](./docs/subsystems/command-spec.md)). The platform
-  pack's `content/cmd/` and `mud/obj/command/` are the **core** trees —
+  pack's `content/platform/cmd/` and `mud/platform/idea/cmd/` are the **core** trees —
   nothing content-specific belongs there; a verb that hardcodes one piece of content lives in that
   content's own `domain/` namespace, its controller template shipped as
   pack content (`world-seed`'s
-  `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml`). A spec's
+  `content/world/<sphere>/<locality>/idea/cmd/<Name>Controller.yaml`). A spec's
   `controller:` value is a **path**, resolved by one rule (no domain
-  special-case): absolute (`/obj/command/<cat>/<Name>Controller`) or
+  special-case): absolute (`/platform/idea/cmd/<cat>/<Name>Controller`) or
   relative-to-the-spec (`../command/<Name>Controller`); a
   `commandContributions` entry references a domain view by its `domain/`-
-  prefixed key (`domain/<sphere>/<locality>/cmd/<verb>.yaml`, no leading
+  prefixed key (`world/<sphere>/<locality>/cmd/<verb>.yaml`, no leading
   slash). Content commands are **afforded by content** (the owning
   NPC/fixture's `commandContributions`), never by a core mixin. Categories:
   perception, social, movement, posture, inventory, boundary, bulk, shell,
@@ -689,64 +683,73 @@ reason.
   stay under `boundary`). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
   `look` alias, not its own verb.
-- **Command controllers**: in `mud/obj/command/<category>/`, e.g.
+- **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts` (content
-  controllers live under `domain/<sphere>/<locality>/command/`, above).
+  controllers live under `world/<sphere>/<locality>/idea/cmd/`, above).
 - **Backing-class path mirrors template path** (convention, not
   enforced). A Stuff's source file should sit at the path that mirrors
   its clone-namespace template path, so you can find one from the other
   by path alone. The two call-security identities are now the **same
   `/`-absolute, mud-rooted shape** — a **module-id** (code provenance,
-  `resolveModuleId`: `/obj/command/governance/OfficeController`) and a
+  `resolveModuleId`: `/platform/idea/cmd/governance/OfficeController`) and a
   **template path** (clone lineage, `getTemplatePath`:
-  `/obj/command/governance/OfficeController`). They're told apart by
+  `/platform/idea/cmd/governance/OfficeController`). They're told apart by
   *which policy reads which* (`FromModule` → module-id, `FromTemplate` →
   template path), NOT by string shape — so for a controller/singleton
   whose source mirrors its template, both are literally the same string,
-  and `FromModule('/obj/…')` alone gates a cloned instance (it matches by
+  and `FromModule('/platform/…')` alone gates a cloned instance (it matches by
   class provenance). Holds today for content classes, singletons
-  (`obj/OfficeRegistry.ts` → `/obj/OfficeRegistry`), and controllers.
+  (`platform/idea/OfficeRegistry.ts` → `/platform/idea/OfficeRegistry`), and controllers.
   **The one deliberate exception is the `*Logic` singletons**: the
   template is named for the feature while the class is named for the
-  logic — `obj/api/PartyLogic.ts` registers at `/obj/api/party` (same
-  directory, different leaf; module-id `/obj/api/PartyLogic` ≠ template
-  `/obj/api/party`). New code should follow the mirror unless it's an
+  logic — `platform/idea/api/PartyLogic.ts` registers at `/platform/idea/api/party` (same
+  directory, different leaf; module-id `/platform/idea/api/PartyLogic` ≠ template
+  `/platform/idea/api/party`). New code should follow the mirror unless it's an
   Api/logic singleton.
 
-## Instanceable Lives in `obj/`; `lib/` Is Substrate Only
+## Instanceable Lives in `platform/<branch>/`; `lib/` Is Substrate Only
 
 The governing rule for where a Stuff class goes, on **both** axes —
 where the `.ts` file sits, and where its templates live:
 
-> **`/obj/` holds anything instanceable** — anything a template's
-> `class:` resolves to, *including* classes that are further
-> specialized. **`/lib/` holds substrate that is only ever inherited**:
-> abstract roots, mixins, value objects, and framework attachments.
+> **`/platform/<branch>/` holds anything instanceable** — anything a
+> template's `class:` resolves to, *including* classes that are further
+> specialized — where `<branch>` is the Stuff branch the class descends
+> from: `thing` · `idea` · `agent` · `location` (`shadow` has no
+> instanceable class). **`/lib/` holds substrate that is only ever
+> inherited**: abstract roots, mixins, value objects, and framework
+> attachments. Template rows follow the same pattern under a ROOT the
+> pack decides: the platform pack's rows at `/platform/<branch>/…`,
+> every other pack's at `/stuff/<branch>/…` (the commons), an industry's
+> at `/trade/<industry>/<branch>/…`. A controller is an `Idea` at
+> `<root>/idea/cmd/<category>/<Name>Controller`; its view is the document
+> at `<root>/cmd/<category>/<verb>` (a `cmd` dir is views unless its
+> parent is `idea`).
 
 The invariant, and it is literal: **nothing instances `/lib/`.** No
 template's `class:` may name a `/lib/` module, and no template path may
 start `/lib/`. Enforced by `pnpm lint:instanceable`, not by convention.
 
-Inheritance alone does NOT pull a class into `lib/` — `obj/Chair →
-obj/FoldingChair` is ordinary OO and correct. Only classes that are
+Inheritance alone does NOT pull a class into `lib/` — `platform/thing/Chair →
+platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 *never* instanced belong in `lib/`.
 
 **When a substrate class is also cloned generically, split it.** The
-abstract base stays in `lib/`; a thin concrete subclass in `obj/`
+abstract base stays in `lib/`; a thin concrete subclass in `platform/`
 absorbs the clones, and templates name that. Eight exist:
-`obj/Prop` (← `lib/stuff/Thing`), `obj/location/Room` (←
-`CartesianLocation`), `obj/Corpse` (← `Creature`), and `obj/NPC`,
-`obj/Vessel`, `obj/Exit`, `obj/Material`, `obj/Biome`, which
+`platform/thing/Prop` (← `lib/stuff/Thing`), `platform/location/Room` (←
+`CartesianLocation`), `platform/agent/Corpse` (← `Creature`), and `platform/agent/NPC`,
+`platform/thing/Vessel`, `platform/idea/Exit`, `platform/idea/material/Material`, `platform/idea/Biome`, which
 deliberately share their base's name (the import aliases it; the module
 registry keys on class identity, not name).
 
-**Placement within `obj/`:** flat at `obj/<Name>.ts` by default. A
-`obj/<cluster>/` directory only where 3+ cohesive classes land together
+**Placement within `platform/<branch>/`:** flat at `platform/<branch>/<Name>.ts` by default. A
+`platform/<branch>/<cluster>/` directory only where 3+ cohesive classes land together
 — today `equipment/`, `modalities/`, `location/`, `species/`, `magic/`,
 `corpo/`, `persistence/`, `sandbox/`, `material/`, plus the pre-existing
 `instrument/`. `material/` is the one cluster that is load-bearing rather
 than cosmetic: `MaterialLogic.boot` keeps a row only when
-`tpl.class.startsWith('/obj/material/')`, so the directory IS the filter. Lowercase content-tree roots under `/obj/` (`gear/`,
+`tpl.class.startsWith('/platform/idea/material/')`, so the directory IS the filter. Lowercase content-tree roots under `/stuff/<branch>/` (`gear/`,
 `exits/`, `material/`, `biome/`) are template namespaces whose backing
 classes live elsewhere — that is fine and pre-existing.
 
@@ -782,13 +785,13 @@ Convention is **layer-based**:
   mediate access for everything else and benefit from the stronger
   runtime guarantee. `#` ensures internal slots are invisible to a
   wrapping Proxy.
-- **Domain code** — `packages/server/src/mud/lib/`, `mud/obj/` —
+- **Domain code** — `packages/server/src/mud/lib/`, `mud/platform/` —
   defaults to TypeScript modifiers. Persistent fields
   must be public for the `Hydrator` to reflect into. Use `protected`
   for subclass extension points (`prepareDestroy()`-style hooks),
   `private` for class-internal helpers and caches.
 
-**Special cases** where `#` is appropriate inside `lib/` or `obj/`:
+**Special cases** where `#` is appropriate inside `lib/` or `platform/`:
 
 1. A reentry guard or invariant-critical flag where a malicious
    subclass overriding a method could corrupt state.
@@ -902,7 +905,7 @@ gate an object mutator `ApiOnly` when a **participant contract** says who
 the legitimate caller actually is (`FromClass`/`FromMixin` + relational
 `where` — see call-security.md § Participant contracts). But the
 `XApi`↔`XLogic` split is **mandatory** and separate from all of this: the
-Api is the non-HMR interface, the logic singleton at `/obj/api/<x>` is
+Api is the non-HMR interface, the logic singleton at `/platform/idea/api/<x>` is
 the hot-reload boundary — never collapse it (deleting empty *surface
 predicates* is a method-level cut, never a tier-level one). Common
 orchestration cases: 
@@ -929,11 +932,11 @@ orchestration cases:
 | `ZoneApi.resolveZoneField(zone, 'foo')` | `zone.lookupField<T>('foo')` — the inheritance walk is an instance method on Zone so subclasses can override `lookupAncestorField` for barrier behavior |
 | `setInterval(fn, ms)` / `setTimeout(fn, ms)` from domain or Api code | `ScheduleApi.recurring(ms, fn, opts?)` / `ScheduleApi.schedule(ms, fn, opts?)` — wraps the callback in `ExecutionContextApi.runRoot` so composed frames have a well-defined Root + propagated `causingCommandId` attribution; returns a `ScheduleHandle` cancellable via `ScheduleApi.cancel(handle)`. Bare Node timers skip the execution-context layer and leak raw handles. |
 | Raw hydration or a bespoke snapshot to persist a live host's runtime state | `PersistableApi.capture(host)` / `PersistableApi.materialize(host)` — the universal self-persistence spine. A host composes `PersistableMixin` (singleton, keyed by `templatePath`); capture/restore is per-mixin-composed and routed through call-security as the owning principal, into `holder_snapshots`. `Avatar.save()` → `capture`, `Avatar.restore()` → `materialize`. `restoreFromTemplate` is NOT this — it re-hydrates a live clone from an edited *template* (CMS/Pack content go-live); `snapshotToTemplate` was retired. See [persistence.md](./docs/subsystems/persistence.md). |
-| Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `obj/command/author/CloneController.ts`. |
+| Reading `template.data.container` from a verb to decide where a clone lands | Let `applyContainer` do it — the Hydrator's Phase 2 self-places the instance during the clone cascade. Verbs `clone` post-clone and treat hydration-self-placement as Layer 3 in the precedence chain (`--into` → `--here` → self-placement → giver fallback). See `platform/idea/cmd/author/CloneController.ts`. |
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind (group / player / organization); untitled → `null` → **denied**. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
 | Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`hydratorClass`/`behaviors[].brain` content-template fields**), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
-| Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/obj/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
-| `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `obj/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
+| Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/platform/idea/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
+| `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `platform/idea/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |
 
 Full list with examples: [docs/antipatterns.md](./docs/antipatterns.md).
 
@@ -966,7 +969,7 @@ Some specific reminders worth keeping in front of mind:
 Google OAuth2 via Passport. Sequence: `/auth/google` → Google →
 `/auth/google/callback` → `Backend.handleAuthenticationSuccess` →
 `Application.findOrCreateUserFromGoogle` (creates/updates
-`GoogleProfile`, `User`; characters are minted at enroll — identity path `/obj/Avatar/<playerId>` with NO per-player template row, snapshot-backed via the persistence spine)
+`GoogleProfile`, `User`; characters are minted at enroll — identity path `/platform/agent/Avatar/<playerId>` with NO per-player template row, snapshot-backed via the persistence spine)
 → session cookie → client redirected with `auth=success`. WebSocket
 upgrade reuses the express-session middleware.
 
@@ -990,7 +993,7 @@ name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
 side — `backend/PersistenceManager` re-exports it).
 
 - `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
-- `content` — the templates collection (was `domain`; migrated once at boot); pack-installed rows carry `sourcePack` (content-packs.md)
+- `content` — the templates collection; pack-installed rows carry `sourcePack` (content-packs.md)
 - `pack_installs` — the pack installer's per-deployment ledger: baselines, pins, conflicts; three-way reconcile reads it (content-packs.md)
 - `app_settings` / `world_state` — the config and world-clock singletons
 - `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
@@ -1004,7 +1007,7 @@ side — `backend/PersistenceManager` re-exports it).
 - `authoring_events` — append-only authorship ledger (provenance.md)
 - `positions` — held conviction stakes (influence.md)
 - `blueprints` — the Studio composition catalogue (studio.md)
-- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md; the former `emotes` / `recipes` / `name_banks` collections were collapsed into it once at boot — content-packs.md)
+- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md)
 - `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
 - `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
 - `parcels` / `parcel_events` — property-title registry + chain-of-title; stored SEPARATELY from the `domain` content it gates — the governing security invariant (parcel.md)

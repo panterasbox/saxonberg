@@ -1,0 +1,20 @@
+recipeId: fire-poker
+name: Fire Poker
+keywords:
+- poker
+- fire-poker
+inputSlots:
+- slot: stock
+  category: ferrous
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities:
+- striking
+- anvil
+outputTemplate: /stuff/thing/arms/fire-poker
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 700
+difficulty: trivial
+discipline: smithing

@@ -238,7 +238,7 @@ emits* rather than *what a person attends to*, because client support
 was built to test server behaviour.
 
 Verified against the tree: **90 topic seed rows**
-(`src/mud/seeds/obj/Topic/`), **34 entries in `KNOWN_TAGS`**
+(`src/mud/seeds/platform/idea/Topic/`), **34 entries in `KNOWN_TAGS`**
 (`api/mml/tags.ts`).
 
 | # | Change | Wire |

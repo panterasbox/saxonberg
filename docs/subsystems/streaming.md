@@ -27,7 +27,7 @@ owner's OWN active-stream chat (both platforms) is forwarded onto the
 
 ## The two verbs — `watch` (single) vs `tune` (multi)
 
-Two top-level verbs in the `content/cmd/stream/` category (beside the
+Two top-level verbs in the `content/platform/cmd/stream/` category (beside the
 overlay-owner `stream` verb), because the cardinalities are a genuine
 semantic difference:
 
@@ -41,7 +41,7 @@ semantic difference:
   account). `tune off <target>` stops; bare `tune` lists; `tune
   list`/`who`/`history` behave platform-agnostically.
 
-Both are `WatchController` / `TuneController` (`obj/command/stream/`) over
+Both are `WatchController` / `TuneController` (`platform/idea/cmd/stream/`) over
 one `StreamApi`.
 
 ## The target grammar — opt, not prefix
@@ -83,14 +83,14 @@ broadcasterId / YouTube liveChatId).
 | Piece | Where | Role |
 |---|---|---|
 | `StreamerTarget` | `lib/streaming/StreamerTarget.ts` | Named value-object + the pure parser/classifier. Backend-free. |
-| `StreamRelay` | `obj/StreamRelay.ts` (`/obj/StreamRelay`) | In-memory `Idea` singleton — the channel table + caches. Pure mudlib (EventApi.emit only, no backend import). |
-| `StreamLogic` | `obj/api/StreamLogic.ts` (`/obj/api/stream`) | Gated logic singleton (`FromModule('/api/stream#StreamApi')`). The async resolver + the Api→backend bridge. |
+| `StreamRelay` | `obj/StreamRelay.ts` (`/platform/idea/StreamRelay`) | In-memory `Idea` singleton — the channel table + caches. Pure mudlib (EventApi.emit only, no backend import). |
+| `StreamLogic` | `platform/idea/api/StreamLogic.ts` (`/platform/idea/api/stream`) | Gated logic singleton (`FromModule('/api/stream#StreamApi')`). The async resolver + the Api→backend bridge. |
 | `StreamApi` | `api/stream.ts` | Thin forwarding facade + the call-shape types. `decorateApiClass`. |
 | `TwitchClient` / `TwitchRelayReader` | `backend/` | Twitch transport (EventSub multiplex + Helix). |
 | `YoutubeClient` / `YoutubeRelayReader` | `backend/` | YouTube transport (per-`liveChatId` read). |
 | `KickClient` / `KickRelayReader` | `backend/` | Kick transport (app-token subscriptions; inbound via the webhook). |
 | `KickWebhookVerifier` / `KickWebhookRoutes` | `backend/` | The signed-inbound receiver (see below). |
-| `tune` / `watch` | `content/cmd/stream/*.yaml` + `obj/command/stream/*Controller.ts` | The verbs. |
+| `tune` / `watch` | `content/platform/cmd/stream/*.yaml` + `platform/idea/cmd/stream/*Controller.ts` | The verbs. |
 
 There is **no** `mud/api/youtube.ts` / `YoutubeLogic` (nor a kick
 sibling) — the surface is unified on `StreamApi`; only the *transport* is

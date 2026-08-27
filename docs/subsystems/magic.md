@@ -50,12 +50,12 @@ gated** at execution.
 | Resist shapes | `lib/magic/Resist.ts` | axis vocabulary + the pure fold (`mitigators subtract`, immunity = a mitigator at 1) + `stageFor` (the substrate gate) |
 | Faculty | `lib/magic/Faculty.ts` + `lib/magic/Caster.ts` | the anatomical casting faculty (below) |
 | Suppression | `lib/magic/Suppression.ts` | the anti-magic field value + match + the **sync** outward containment walk (`fieldAt`) |
-| Spell | `obj/magic/Spell.ts` (data-Idea) + `obj/SpellCatalogue.ts` | authored roster leaves under `/obj/magic/Spell/<spellId>`, boot-warmed (the Discipline/Corpo recipe), **no Mongo collection** |
-| The pair | `api/magic.ts` + `obj/api/MagicLogic.ts` | the gated cast pipeline + all effect executors |
+| Spell | `obj/magic/Spell.ts` (data-Idea) + `obj/SpellCatalogue.ts` | authored roster leaves under `/stuff/idea/magic/Spell/<spellId>`, boot-warmed (the Discipline/Corpo recipe), **no Mongo collection** |
+| The pair | `api/magic.ts` + `platform/idea/api/MagicLogic.ts` | the gated cast pipeline + all effect executors |
 | Cast activity | `lib/magic/CastActivity.ts` | `hands`+`voice`, interruptible, **everything at completion** |
 | Verbs | `cmd/magic/{cast,spells}.yaml` | the `magic` command category |
 | Bound emitters | `obj/magic/GlowlightOrb.ts` / `obj/magic/SparkSource.ts` | glowlight's held orb / spark's transient energized locus |
-| Demonstrator | `world-seed/content/domain/practicum*` | casting yard / conductive gallery / warded cell |
+| Demonstrator | `world-seed/content/world/practicum*` | casting yard / conductive gallery / warded cell |
 
 ## The cast pipeline
 
@@ -222,7 +222,7 @@ back).
 
 ## The demonstrator — the Practicum
 
-`world-seed/content/domain/practicum*`: a teleport-reachable `CartesianZone` (the
+`world-seed/content/world/practicum*`: a teleport-reachable `CartesianZone` (the
 hearthworks precedent, no inbound exit) — the **casting yard** (a
 combustible straw dummy + a stone basin), the **conductive gallery**
 (a brine-pooled floor: MIND WHERE YOU STAND), and the **warded cell**

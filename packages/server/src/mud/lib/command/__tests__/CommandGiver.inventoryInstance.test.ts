@@ -34,8 +34,8 @@ function affords(player: Player, verb: string): boolean {
 
 beforeAll(() => {
   // The contributions reference these views — ensure they resolve.
-  CommandApi.getCommand("crafting/repair.yaml");
-  CommandApi.getCommand("crafting/sharpen.yaml");
+  CommandApi.getCommand("platform/cmd/crafting/repair.yaml");
+  CommandApi.getCommand("platform/cmd/crafting/sharpen.yaml");
 });
 
 beforeEach(() => {

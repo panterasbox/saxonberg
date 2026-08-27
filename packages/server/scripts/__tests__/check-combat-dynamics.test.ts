@@ -13,7 +13,7 @@ import {
   scanCombatDynamics,
 } from "../check-combat-dynamics";
 
-const ENGINE_FILE = "src/mud/obj/api/CombatLogic.ts";
+const ENGINE_FILE = "src/mud/platform/idea/api/CombatLogic.ts";
 const SUBSTRATE_FILE = "src/mud/lib/combat/CombatNarration.ts";
 
 describe("scanCombatDynamics", () => {

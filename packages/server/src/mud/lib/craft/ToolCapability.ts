@@ -78,12 +78,12 @@ export interface CapabilitySpec {
  * they are requirements, not verb sources.
  */
 const BAR_VESSEL_VERBS = [
-  'crafting/pour.yaml',
-  'crafting/stir.yaml',
-  'crafting/strain.yaml',
-  'crafting/garnish.yaml',
-  'crafting/serve.yaml',
-  'crafting/mix.yaml',
+  'platform/cmd/crafting/pour.yaml',
+  'platform/cmd/crafting/stir.yaml',
+  'platform/cmd/crafting/strain.yaml',
+  'platform/cmd/crafting/garnish.yaml',
+  'platform/cmd/crafting/serve.yaml',
+  'platform/cmd/crafting/mix.yaml',
 ] as const;
 
 const CAPABILITY_TABLE: Record<ToolCapability, CapabilityKindDef> = {
@@ -91,34 +91,34 @@ const CAPABILITY_TABLE: Record<ToolCapability, CapabilityKindDef> = {
   'mixing-glass': { verbs: BAR_VESSEL_VERBS, placement: 'reachable' },
   pot: {
     verbs: [
-      'crafting/pour.yaml',
-      'crafting/stir.yaml',
-      'crafting/heat.yaml',
-      'crafting/plate.yaml',
-      'crafting/cook.yaml',
+      'platform/cmd/crafting/pour.yaml',
+      'platform/cmd/crafting/stir.yaml',
+      'platform/cmd/crafting/heat.yaml',
+      'platform/cmd/crafting/plate.yaml',
+      'platform/cmd/crafting/cook.yaml',
     ],
     placement: 'reachable',
   },
   anvil: {
     verbs: [
-      'crafting/hammer.yaml',
-      'crafting/quench.yaml',
-      'crafting/forge.yaml',
-      'crafting/repair.yaml',
-      'crafting/salvage.yaml',
+      'platform/cmd/crafting/hammer.yaml',
+      'platform/cmd/crafting/quench.yaml',
+      'platform/cmd/crafting/forge.yaml',
+      'platform/cmd/crafting/repair.yaml',
+      'platform/cmd/crafting/salvage.yaml',
     ],
     placement: 'reachable',
   },
   mending: {
-    verbs: ['crafting/repair.yaml', 'crafting/salvage.yaml'],
+    verbs: ['platform/cmd/crafting/repair.yaml', 'platform/cmd/crafting/salvage.yaml'],
     placement: 'reachable',
   },
-  whetstone: { verbs: ['crafting/sharpen.yaml'], placement: 'carried' },
+  whetstone: { verbs: ['platform/cmd/crafting/sharpen.yaml'], placement: 'carried' },
   // The first non-crafting consumer of the instrument-confers-verbs rule:
   // a watering can in your pack affords `water`. `carried` is the
   // whetstone's personal-capital rule as data — a can on the floor confers
   // nothing.
-  watering: { verbs: ['bulk/water.yaml'], placement: 'carried' },
+  watering: { verbs: ['platform/cmd/bulk/water.yaml'], placement: 'carried' },
   striking: { verbs: [], placement: 'reachable' },
   strainer: { verbs: [], placement: 'reachable' },
   muddler: { verbs: [], placement: 'reachable' },

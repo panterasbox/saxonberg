@@ -1,0 +1,10 @@
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a plain student shirt
+  primaryKeyword: shirt
+  longDescription: >
+    An unassuming everyday shirt, soft from washing. It says nothing in
+    particular about you — which is rather the point of starting over.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]

@@ -1,0 +1,48 @@
+verbs: [clone]
+controller: /platform/idea/cmd/author/CloneController
+description: "Clone a fresh instance from a template"
+help: |
+  Spin up a brand-new runtime object from an existing template.
+  Name the template by its path, or use `--mql` to pick one out
+  with a query when you don't know the exact path.
+
+  The clone has to land somewhere. By default it self-places per
+  the template's own instructions; `--into <container>` overrides
+  that to drop it in a specific holder, and `--here` is shorthand
+  for landing it right where you're standing.
+
+  Inside your circle (the sandbox), clone also accepts a LIVE thing
+  you own as its source — it seeds a circle-born copy carrying the
+  original's instance state (wear, grade, personalization). The
+  original is untouched; the copy dies with the circle. When a name
+  resolves both ways, `--instance` forces the live seed and `--fresh`
+  forces a template-fresh mint. `--count <n>` mints several in one
+  act (stand up a test rig).
+args:
+  - name: template
+    type: string
+    required: false
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <template>"
+    requires: any
+  into:
+    type: object
+    scope: [reachable]
+    description: "Container to land the clone in (overrides default)"
+    requires: any
+  here:
+    type: boolean
+    description: "Land the clone in your current environment (sugar for --into here)"
+  count:
+    type: number
+    description: "Mint N copies in one act (capped; sandbox rig-building)"
+  instance:
+    type: boolean
+    description: "Treat the source as a live thing (seed a circle-born copy)"
+  fresh:
+    type: boolean
+    field: templateSource
+    description: "Mint template-fresh even when a live thing matches the source"

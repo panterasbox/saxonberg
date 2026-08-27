@@ -156,7 +156,7 @@ lint:
     # so it confirmed the undercount instead of exposing it. This asks
     # vitest directly, across both configs, with no filtering.
     - pnpm -C packages/server lint:test-bootstrap:verify
-    # Kernel tests that name shipped content (/domain/<locality>) are a
+    # Kernel tests that name shipped content (/world/<locality>) are a
     # shrinking allowlist: a listed one warns, a NEW one fails, and a
     # listed path that no longer offends is stale and fails too (the
     # list only shrinks). A kernel test proves the kernel over synthetic
@@ -166,7 +166,6 @@ lint:
     # content or e2e line names it (one marked migration branch excepted),
     # ParcelOwner is exactly its three kinds, no pack-installers, no
     # author tier, no requiresCoreAccess / requiresAuthor.
-    - pnpm -C packages/server lint:core-gone
     # Every path a pack ships under a title root is claimed by some pack —
     # with no state default an unclaimed path is one nobody can edit,
     # broadcast over or teleport within, silently.

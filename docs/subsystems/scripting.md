@@ -193,7 +193,7 @@ Isolation is **hard**, and every limit is an `AppSettings` key
 
 `ScriptLogic.resolveLimits(authorPath?)` picks the tier: **player-home /
 inline** scripts get the tight budget; **released platform content**
-(`/obj/`, `/domain/`) the large one. Authorship, not the caller, sets the
+(`/platform/… + /stuff/`, `/world/`) the large one. Authorship, not the caller, sets the
 ceiling.
 
 ## The two player surfaces (P6)
@@ -220,7 +220,7 @@ keyed on the path (scope encoded):
 
 ```
 /home/<player>/scripts/<name>     personal (recorded or written)
-/domain/<world>/scripts/<name>    managed world content
+/world/<world>/scripts/<name>    managed world content
 ```
 
 The stored `data.source` is the canonical text (what the CMS shows),
@@ -305,7 +305,7 @@ substrate, **no bar-specific engine class**:
   exemplar): `say` → `wait 5m` → `say` → a perpetual `every` reminder.
 
 The installer's **`msh` document kind** (`kind: 'msh'`, `data: { source }`
-verbatim) lands each at `/domain/lounge/msh/<name>` (the pack's `root:`)
+verbatim) lands each at `/world/lounge/msh/<name>` (the pack's `root:`)
 and reconciles it three-way at boot — the live wire (the former
 `ScriptSeeder` and the `.script` extension are gone; a one-time boot
 migration renamed `kind: 'script'` → `'msh'` and moved the rows). These world scripts are the **`invokeByPath`**
@@ -342,12 +342,12 @@ ladder's output).
 | Coroutine pump + cancellation | `lib/script/Coroutine.ts` |
 | Abort reasons | `lib/script/AbortReason.ts` |
 | The wrapping parser | `lib/command/parsers/script.ts` |
-| Document store (scripts ride it) | `lib/document/StoredDocument.ts` + `api/document.ts` + `obj/api/DocumentLogic.ts` ([document-store.md](./document-store.md)) |
+| Document store (scripts ride it) | `lib/document/StoredDocument.ts` + `api/document.ts` + `platform/idea/api/DocumentLogic.ts` ([document-store.md](./document-store.md)) |
 | Demonstration capture | `lib/script/Transcriber.ts` |
 | Recipe knowledge ladder | `lib/script/RecipeKnowledge.ts` |
 | Api façade | `api/script.ts` |
-| Logic singleton (`/obj/api/script`) | `obj/api/ScriptLogic.ts` |
-| `make` verb | `obj/command/crafting/MakeController.ts` + `cmd/crafting/make.yaml` |
+| Logic singleton (`/platform/idea/api/script`) | `platform/idea/api/ScriptLogic.ts` |
+| `make` verb | `platform/idea/cmd/crafting/MakeController.ts` + `cmd/crafting/make.yaml` |
 | Authored demo scripts | `packages/content/saxonberg-lounge/content/msh/*.msh` (the `msh` document kind, [content-packs.md](./content-packs.md)) |
 
 ## `ScriptApi.mintEvalScratch`

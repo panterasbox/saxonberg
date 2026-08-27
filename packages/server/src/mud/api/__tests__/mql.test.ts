@@ -140,7 +140,7 @@ describe('MQL resolver — direct seeds', () => {
 
   describe('path seed', () => {
     it('resolves for anyone; returns empty when nothing matches', () => {
-      expect(() => resolve('/obj/Avatar/*', ctx)).not.toThrow();
+      expect(() => resolve('/platform/agent/Avatar/*', ctx)).not.toThrow();
       expect(resolve('/obj/Nope/*', ctx)).toEqual([]);
     });
   });

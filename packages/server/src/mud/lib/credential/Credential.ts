@@ -46,9 +46,9 @@ export const UNCAPPED = -1;
  * retired single University Avenue node.
  */
 export const BORN_WITH_TRAVEL_NODES = [
-  "/domain/terminus/terminal/arrival-terminal",
-  "/domain/lounge/terminal",
-  "/domain/newbie-wilds/crossroads/terminal",
+  "/world/terminus/terminal/arrival-terminal",
+  "/world/lounge/terminal",
+  "/world/newbie-wilds/crossroads/terminal",
 ] as const;
 
 /**

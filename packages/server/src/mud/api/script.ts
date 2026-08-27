@@ -3,9 +3,9 @@
  * language (v1 engine).
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link ScriptLogic} singleton at `/obj/api/script`,
+ * hot-reloadable {@link ScriptLogic} singleton at `/platform/idea/api/script`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/script` reloads it.
+ * /platform/idea/api/script` reloads it.
  *
  * The acting actor is **always derived from `ExecutionContextApi`**
  * (the in-world command frame's giver), never passed as a parameter — a
@@ -16,13 +16,13 @@
  */
 
 import type { Script } from "../lib/script/ast";
-import type EvalScript from "../obj/EvalScript";
+import type EvalScript from "../platform/idea/EvalScript";
 import type { ScriptAbortReason } from "../lib/script/AbortReason";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { ExecutionContextApi } from "./execution-context";
-import { ScriptLogic } from "../obj/api/ScriptLogic";
+import { ScriptLogic } from "../platform/idea/api/ScriptLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 import { CallSecurity } from '../lib/security/decorators';
@@ -38,9 +38,9 @@ export type CompiledSandbox = {
   readonly __compiledSandbox: unique symbol;
 };
 
-const LOGIC_PATH = "/obj/api/script";
+const LOGIC_PATH = "/platform/idea/api/script";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/ScriptLogic", import.meta.url),
+  new URL("../platform/idea/api/ScriptLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able ScriptLogic singleton (sync). */
@@ -187,7 +187,7 @@ export class ScriptApi {
    * legitimate caller, and it is itself reachable only behind
    * `AccessApi.isWizard`.
    */
-  @CallSecurity(SecurityPolicies.FromModule("/obj/EvalScript"))
+  @CallSecurity(SecurityPolicies.FromModule("/platform/idea/EvalScript"))
   static compileSandboxed(code: string): CompiledSandbox {
     return logic().compileSandboxed(code);
   }
@@ -200,7 +200,7 @@ export class ScriptApi {
    * Gated to `EvalScript` for the same reason as
    * {@link ScriptApi.compileSandboxed}.
    */
-  @CallSecurity(SecurityPolicies.FromModule("/obj/EvalScript"))
+  @CallSecurity(SecurityPolicies.FromModule("/platform/idea/EvalScript"))
   static runSandboxed(
     compiled: CompiledSandbox,
     sandbox: Record<string, unknown>,

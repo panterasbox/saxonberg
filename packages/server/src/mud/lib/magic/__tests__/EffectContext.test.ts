@@ -27,15 +27,15 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
-import SpellCatalogue from '../../../obj/SpellCatalogue';
-import Spell from '../../../obj/magic/Spell';
-import GlowlightOrb from '../../../obj/magic/GlowlightOrb';
+import '../../../platform/idea/WorldClockRegistry';
+import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
+import Spell from '../../../platform/idea/magic/Spell';
+import GlowlightOrb from '../../../platform/thing/magic/GlowlightOrb';
 import { Template } from '../../stuff/Template';
 import Thing from '../../stuff/Thing';
 import { Character } from '../../character/Character';
-import Species from '../../../obj/species/Species';
-import Room from '../../../obj/location/Room';
+import Species from '../../../platform/idea/species/Species';
+import Room from '../../../platform/location/Room';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
 import { IdentifiableMixin } from '../../identification/Identifiable';
@@ -60,7 +60,7 @@ class TestCharacter extends Character {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../../../../content/arcane-library/content/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
 let seq = 0;
@@ -89,7 +89,7 @@ async function installCatalogue(): Promise<void> {
     });
   if (!catalogueSingleton) {
     catalogueSingleton = makeStuff(() => new SpellCatalogue());
-    stampTemplatePathForTest(catalogueSingleton, '/obj/SpellCatalogue');
+    stampTemplatePathForTest(catalogueSingleton, '/platform/idea/SpellCatalogue');
   }
   catalogueSingleton.invalidateCache();
   await catalogueSingleton.postRegister();
@@ -102,7 +102,7 @@ function makeActor(sentient = true): TestCharacter {
   species.setFacultyProfile({ depth: 'mid', serenity: 'mid', composure: 'mid' });
   species.setInnateMixins(['CasterMixin']);
   species.setSentient(sentient);
-  stampTemplatePathForTest(species, `/obj/species/test/ctx-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/ctx-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/ctx-actor-${n}`);
@@ -113,7 +113,7 @@ function makeActor(sentient = true): TestCharacter {
 function makeWand(spellId: string, maker: string): TestWand {
   const wand = makeStuff(() => new TestWand());
   stampTemplatePathForTest(wand, `/obj/test/wand-${seq++}`);
-  wand.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
+  wand.setCarriedSpellPath(`/stuff/idea/magic/Spell/${spellId}`);
   wand.setMakerId(maker);
   return wand;
 }
@@ -298,14 +298,14 @@ describe('EffectContext — the four separated jobs', () => {
       verb: 'create',
       noun: 'light',
       spellId: 'glowlight',
-      caster: '/obj/Avatar/old',
+      caster: '/platform/agent/Avatar/old',
     });
     expect(normalized).toEqual({
       verb: 'create',
       noun: 'light',
       spellId: 'glowlight',
-      specifiedBy: '/obj/Avatar/old',
-      firedBy: '/obj/Avatar/old',
+      specifiedBy: '/platform/agent/Avatar/old',
+      firedBy: '/platform/agent/Avatar/old',
     });
     // A corrupt blob drops the mark rather than poisoning a dispel scan.
     expect(MagicGrid.normalizeProvenance({ verb: 'nope' })).toBeUndefined();
@@ -317,22 +317,22 @@ describe('EffectContext — the four separated jobs', () => {
     body.setConditions([
       {
         kind: 'affliction',
-        templatePath: '/obj/Condition/magic/dread',
+        templatePath: '/platform/idea/Condition/magic/dread',
         stage: 1,
         elapsed: 0,
         magicOrigin: {
           verb: 'destroy',
           noun: 'mind',
           spellId: 'dread',
-          caster: '/obj/Avatar/old',
+          caster: '/platform/agent/Avatar/old',
         },
       } as never,
     ]);
     const rec = body.conditions[0] as unknown as {
       magicOrigin: Record<string, string>;
     };
-    expect(rec.magicOrigin.specifiedBy).toBe('/obj/Avatar/old');
-    expect(rec.magicOrigin.firedBy).toBe('/obj/Avatar/old');
+    expect(rec.magicOrigin.specifiedBy).toBe('/platform/agent/Avatar/old');
+    expect(rec.magicOrigin.firedBy).toBe('/platform/agent/Avatar/old');
     expect(rec.magicOrigin.caster).toBeUndefined();
   });
 
@@ -356,7 +356,7 @@ describe('EffectContext — the four separated jobs', () => {
     // Same authored effect, same prose — the item duplicates nothing.
     expect(fired.reports).toEqual(cast.reports);
     // The wand stores an id, never a copy of the effects.
-    expect(wand.getCarriedSpellPath()).toBe('/obj/magic/Spell/glowlight');
+    expect(wand.getCarriedSpellPath()).toBe('/stuff/idea/magic/Spell/glowlight');
     expect(wand.getDeclaredAddresses()).toEqual([]);
   });
 
@@ -543,7 +543,7 @@ describe('EffectContext — the four separated jobs', () => {
     expect(wand.getArcaneFootprint()).toEqual([
       { verb: 'create', noun: 'fire' },
     ]);
-    wand.setCarriedSpellPath('/obj/magic/Spell/glowlight');
+    wand.setCarriedSpellPath('/stuff/idea/magic/Spell/glowlight');
     expect(wand.getArcaneFootprint()).toEqual([
       { verb: 'create', noun: 'light' },
     ]);
@@ -602,7 +602,7 @@ describe('EffectContext — the four separated jobs', () => {
     ]);
     // …and a carried spell that does not resolve does NOT fall back to
     // the stale declaration.
-    wand.setCarriedSpellPath('/obj/magic/Spell/no-such-spell');
+    wand.setCarriedSpellPath('/stuff/idea/magic/Spell/no-such-spell');
     expect(wand.getArcaneFootprint()).toEqual([]);
   });
 });

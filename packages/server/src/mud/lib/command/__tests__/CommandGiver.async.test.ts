@@ -23,7 +23,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandApi } from '../../../api/command';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import PingController from '../../../obj/command/system/PingController';
+import PingController from '../../../platform/idea/cmd/system/PingController';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import { ScriptApi } from '../../../api/script';
 import type {
@@ -44,7 +44,7 @@ const TestGiverBase = CommandGiverMixin(
 class TestGiver extends TestGiverBase {
   static override commandContributions = {
       peers: [],
-    self: ['system/ping.yaml'],
+    self: ['platform/cmd/system/ping.yaml'],
     environment: [],
   };
   public received: MessageFrame[] = [];
@@ -96,12 +96,12 @@ function mockPmForPing(): void {
     async (collection: string, query: Record<string, unknown>) => {
       if (
         collection === Collections.Content &&
-        query.path === '/obj/command/system/PingController'
+        query.path === '/platform/idea/cmd/system/PingController'
       ) {
         return [
           {
-            path: '/obj/command/system/PingController',
-            class: '/obj/command/system/PingController',
+            path: '/platform/idea/cmd/system/PingController',
+            class: '/platform/idea/cmd/system/PingController',
             data: {},
           },
         ];
@@ -229,7 +229,7 @@ describe('async command dispatch', () => {
     // spec async: true — flip the cached ping def (isolated: beforeEach
     // clearCache reloads it). The dispatcher reads `command.async` off
     // this same cached instance via the recency stack.
-    const def = CommandApi.getCommand('system/ping.yaml')!;
+    const def = CommandApi.getCommand('platform/cmd/system/ping.yaml')!;
     (def as { async: boolean }).async = true;
     expect(await detaches('ping')).toBe(true); // spec → async
     expect(await detaches('ping --sync')).toBe(false); // flag overrides → sync
@@ -268,7 +268,7 @@ describe('async command dispatch', () => {
 
     expect(record).toHaveBeenCalledTimes(1);
     const arg = record.mock.calls[0]?.[0];
-    expect(arg?.path).toBe('/obj/command/system/PingController');
+    expect(arg?.path).toBe('/platform/idea/cmd/system/PingController');
     expect(arg?.message).toContain('kaboom');
   });
 
@@ -377,7 +377,7 @@ describe('sync is per-giver, not global', () => {
 class ScriptGiver extends TestGiver {
   static override commandContributions = {
       peers: [],
-    self: ['shell/script.yaml'],
+    self: ['platform/cmd/shell/script.yaml'],
     environment: [],
   };
 }
@@ -392,12 +392,12 @@ describe('the script verb inherits the async override', () => {
       async (collection: string, query: Record<string, unknown>) => {
         if (
           collection === Collections.Content &&
-          query.path === '/obj/command/shell/ScriptController'
+          query.path === '/platform/idea/cmd/shell/ScriptController'
         ) {
           return [
             {
-              path: '/obj/command/shell/ScriptController',
-              class: '/obj/command/shell/ScriptController',
+              path: '/platform/idea/cmd/shell/ScriptController',
+              class: '/platform/idea/cmd/shell/ScriptController',
               data: {},
             },
           ];

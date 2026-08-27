@@ -32,7 +32,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 
-const COCKPIT_YAML = 'shell/cockpit.yaml';
+const COCKPIT_YAML = 'platform/cmd/shell/cockpit.yaml';
 
 /** The three verbs the cockpit absorbed. None may resolve any more. */
 const ABSORBED_VERBS = ['layout', 'style', 'mode'];
@@ -84,28 +84,28 @@ describe('the cockpit verb', () => {
       'style',
     ]);
     expect(cockpit!.controllerForSubcommand('card')).toBe(
-      '/obj/command/shell/CockpitCardController'
+      '/platform/idea/cmd/shell/CockpitCardController'
     );
     expect(cockpit!.controllerForSubcommand('shelf')).toBe(
-      '/obj/command/shell/CockpitShelfController'
+      '/platform/idea/cmd/shell/CockpitShelfController'
     );
     expect(cockpit!.controllerForSubcommand('mode')).toBe(
-      '/obj/command/shell/CockpitModeController'
+      '/platform/idea/cmd/shell/CockpitModeController'
     );
     expect(cockpit!.controllerForSubcommand('layout')).toBe(
-      '/obj/command/shell/LayoutController'
+      '/platform/idea/cmd/shell/LayoutController'
     );
     expect(cockpit!.controllerForSubcommand('cli')).toBe(
-      '/obj/command/shell/CliController'
+      '/platform/idea/cmd/shell/CliController'
     );
     expect(cockpit!.controllerForSubcommand('style')).toBe(
-      '/obj/command/shell/StyleController'
+      '/platform/idea/cmd/shell/StyleController'
     );
   });
 
   it('routes the bare form to the reporting controller', () => {
     expect(cockpit!.resolvedController).toBe(
-      '/obj/command/shell/CockpitController'
+      '/platform/idea/cmd/shell/CockpitController'
     );
   });
 

@@ -16,7 +16,7 @@ import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { ContainmentApi } from "../../../api/containment";
 import {
   makeStuff,
@@ -44,7 +44,7 @@ function thing(stampedK: number): ThermalThing {
     m.setSpecificHeat(Quantity.of(4186, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(0.6, "W/(m·K)"));
     return m;
-  }, `/obj/material/_restamp/m-${matCounter}`) as unknown as Material;
+  }, `/stuff/idea/material/_restamp/m-${matCounter}`) as unknown as Material;
   return makeStuff(() => {
     const t = new ThermalThing();
     t.setMass(Quantity.of(0.3, "kg"));

@@ -15,7 +15,7 @@
  *
  * A dumb store — the orchestration (append, replay-derive) lives in the
  * hot-reloadable {@link AccountabilityLogic} singleton at
- * `/obj/api/accountability`, reached synchronously via
+ * `/platform/idea/api/accountability`, reached synchronously via
  * `StuffApi.singletonSync`; this Api is a thin forwarding shell. Actor /
  * consent / sentience ride in the row fields (durable `templatePath`s), set
  * by the producer that knows them — never inferred here.
@@ -23,7 +23,7 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { AccountabilityLogic } from '../obj/api/AccountabilityLogic';
+import { AccountabilityLogic } from '../platform/idea/api/AccountabilityLogic';
 import type {
   AccountabilityFields,
   BlameVerdict,
@@ -38,9 +38,9 @@ export type {
   AccountabilityKind,
 } from '../lib/accountability/AccountabilityEvent';
 
-const LOGIC_PATH = '/obj/api/accountability';
+const LOGIC_PATH = '/platform/idea/api/accountability';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/AccountabilityLogic', import.meta.url),
+  new URL('../platform/idea/api/AccountabilityLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able AccountabilityLogic singleton (sync). */

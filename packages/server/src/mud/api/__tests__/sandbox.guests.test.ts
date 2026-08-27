@@ -18,9 +18,9 @@ import { EventApi } from '../event';
 import { ConnectionApi } from '../connection';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
 
 /*
  * ⚠⚠ **A 20 s timeout, and the number is a MEASUREMENT rather than a
@@ -54,7 +54,7 @@ const STUDIO_SCOPE = '/studio/test-collective';
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -150,7 +150,7 @@ describe('the palette assertion (zero new verbs)', () => {
   it('the command tree gains no sandbox-named command file', () => {
     const here = dirname(fileURLToPath(import.meta.url));
     // The engine verbs are the platform pack's content (content-packs wave 2).
-    const cmdDir = join(here, '../../../../../content/platform/content/cmd');
+    const cmdDir = join(here, '../../../../../content/platform/content/platform/cmd');
     const files: Array<{ name: string; rel: string }> = [];
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {
@@ -167,7 +167,7 @@ describe('the palette assertion (zero new verbs)', () => {
     walk(cmdDir);
     const forbidden = /^(sandbox|conjure|holodeck|studio|wardrobe|circle)\.yaml$/;
     /*
-     * ⚠ `author/studio.yaml` is the CMS **composer**, not the
+     * ⚠ `platform/cmd/author/studio.yaml` is the CMS **composer**, not the
      * sandbox's shared `/studio/<collective>` scope — two concepts
      * that happen to share a word, and the composer is the one the
      * shipped subsystem doc is named after.

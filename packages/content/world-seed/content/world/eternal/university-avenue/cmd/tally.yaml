@@ -1,0 +1,24 @@
+verbs: [tally]
+controller: ../idea/cmd/TallyController
+description: "Add a mark to a tally log"
+help: |
+  Add one mark to a tally log — `tally log`. If you can read a timepiece
+  you're carrying (a watch with its lid open), the mark is stamped with
+  that time; otherwise it's a bare untimed tick. It only ever records
+  *when*, never *who*.
+
+  Marking is an observation, not an operation: it reads whatever time
+  your watch shows right now. A watch with its lid shut reads as nothing,
+  so you'd `open` it first, as a separate, deliberate act — the tally
+  never reaches over and works your gear for you.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    updates_focus: extend
+    validators:
+      - /lib/command/validators/canReach
+    requires: any

@@ -1,0 +1,21 @@
+# The pressure-plate blade — one authored point in the Trap axis-space (NO
+# subclass): trigger=traversal, delivery=edge channel, traverseConsequence=
+# trip (a low sweep that takes the legs and knocks the mover prone). `subtle`
+# (requirement 2) is the shallow end of the concealment ladder: a walking
+# novice notices it and steps around, a running one barrels in (the care-speed
+# demonstrator's run/walk case). It trips; it does not block.
+class: /platform/thing/Trap
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pressure-plate sweep blade
+  primaryKeyword: blade
+  longDescription: |
+    A proud flag wired to a blade housed in the wall: tread the flag and the blade sweeps out low on a short arc, edge-on at ankle height — meant to take the legs and put you down, not to kill.
+  concealment: subtle
+  concealmentHint: a single flag sits proud before a coin-thin slot in the wall
+  trigger: traversal
+  traverseConsequence: trip
+  delivery:
+    channel: edge
+    energy: 2
+    siteSelector: [body.leg.left.foot, body.leg.right.foot]

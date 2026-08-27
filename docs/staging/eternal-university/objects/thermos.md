@@ -3,7 +3,7 @@
 > **Status:** staging draft (full object spec).
 > **Belongs to:** Gus, the crossing guard (the EU campus-gate stop).
 > **Target seed paths:**
-> - `Thermos` (thin `Thing` subclass) → `mud/obj/`.
+> - `Thermos` (thin `Thing` subclass) → `mud/platform/`.
 > - Gus's instance → a seed under `mud/seeds/obj/.../thermos.yaml`.
 > **Status (updated 2026-07-12): fully buildable now.** `Flask` =
 > `Thermal + Sealable + Bulkable` *ships* (the exemplar), and Thermal,

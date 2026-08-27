@@ -24,7 +24,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { RecognitionApi } from '../../../api/recognition';
 import { Appearance, GENERATION_DEFAULTS } from '../Appearance';
 import { DescriptorBank } from '../DescriptorBank';

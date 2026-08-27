@@ -1,0 +1,20 @@
+recipeId: root-mash
+name: Root Mash
+keywords:
+- mash
+- root-mash
+inputSlots:
+- slot: roots
+  category: vegetable
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/plated-dish
+outputAppearance: a pale steaming mash
+outputApplication: edible
+outputPortionL: 0.35
+requiresHeatK: 373
+difficulty: easy
+discipline: cooking

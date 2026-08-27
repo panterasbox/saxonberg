@@ -1,0 +1,14 @@
+# A ration pack — real, edible food. A discrete Thing whose Material is the
+# wholesome `trail-ration` (edibility: true), so `eat rations` genuinely
+# routes its carbohydrates to satiation and consumes the pack. Deliberately a
+# discrete "pack", NOT a Globbable stack — a chattel stamp needs a discrete
+# instance, so it can be bought and consigned.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wrapped ration pack
+  primaryKeyword: rations
+  keywords: [rations, ration, pack, food, trail]
+  _materialPath: /stuff/idea/material/food/trail-ration
+  longDescription: |
+    A day's trail food wrapped tight in waxed cloth: hard biscuit, a knuckle of smoked sausage, a twist of dried fruit. It is not a feast and does not pretend to be — it is the difference between a long day underground and a bad one.

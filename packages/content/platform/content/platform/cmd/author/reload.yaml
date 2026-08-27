@@ -1,0 +1,23 @@
+verbs: [reload]
+controller: /platform/idea/cmd/author/ReloadController
+description: "Hot-reload a template or runtime instance"
+help: |
+  Pull fresh code into a live template or runtime instance without
+  restarting the world. Name the target by its path, or use `--mql`
+  to pick it out with a query. This is a developer tool and
+  requires developer access.
+
+  Reload re-runs the object through the hot-reload state machine, so
+  existing instances pick up your latest changes in place.
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: target
+    type: string
+    required: false
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <target>"
+    requires: any

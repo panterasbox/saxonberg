@@ -5,7 +5,7 @@
  *
  *   - **Lookup + density** (Wave 2) — `findByPath` singleton lookup,
  *     `densityOf(tag)` per-atmosphere density read, `getRootBiome`
- *     cached accessor for the universe biome at `/obj/biome/`.
+ *     cached accessor for the universe biome at `/stuff/idea/biome/`.
  *   - **Resolution chain** (Wave 3) — `resolveTemperatureFor` and
  *     the four siblings (pressure / humidity / gravity / atmosphere)
  *     plus their `trace*` variants that return provenance for the
@@ -30,8 +30,8 @@
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link BiomeLogic} singleton at
- * `/obj/api/biome`, reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/biome` reloads it.
+ * `/platform/idea/api/biome`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /platform/idea/api/biome` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -40,7 +40,7 @@ import type Biome from '../lib/biome/Biome';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { BiomeLogic } from '../obj/api/BiomeLogic';
+import { BiomeLogic } from '../platform/idea/api/BiomeLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -65,16 +65,16 @@ export interface AtmosphericTrace<V> {
   /**
    * Path of the source — ancestor template path for detail / room,
    * biome template path for biome / biome-ancestor, zone path for
-   * zone, `'/obj/biome/universe'` for universe.
+   * zone, `'/stuff/idea/biome/universe'` for universe.
    */
   sourcePath: string | null;
   /** Containment ancestor template paths traversed during the walk. */
   ancestorChain: string[];
 }
 
-const LOGIC_PATH = '/obj/api/biome';
+const LOGIC_PATH = '/platform/idea/api/biome';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/BiomeLogic', import.meta.url)
+  new URL('../platform/idea/api/BiomeLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able BiomeLogic singleton (sync). */
@@ -141,11 +141,11 @@ export class BiomeApi {
   }
 
   /**
-   * Cached accessor for the root universe biome at `/obj/biome/`.
+   * Cached accessor for the root universe biome at `/stuff/idea/biome/`.
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —
    * a boot-time invariant; the seeded universe biome at
-   * the base-library pack's `content/obj/biome/universe.yaml` is mandatory.
+   * the base-library pack's `content/stuff/idea/biome/universe.yaml` is mandatory.
    */
   public static getRootBiome(): Biome {
     return logic().getRootBiome();

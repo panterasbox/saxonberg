@@ -26,12 +26,12 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { Quantity } from '../../quantity';
-import { HARM_DEFAULTS } from '../../../obj/Condition';
+import { HARM_DEFAULTS } from '../../../platform/idea/Condition';
 import { THERMAL_DEFAULTS } from '../../thermal/Thermal';
 import { RESPIRATION_DEFAULTS } from '../../respiration/Respiration';
 import { METABOLIC_DEFAULTS } from '../../metabolism/Metabolic';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 

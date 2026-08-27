@@ -11,7 +11,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
-import Coin from "../../../obj/Coin";
+import Coin from "../../../platform/thing/Coin";
 import { WorldClockApi } from "../../../api/worldclock";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Idea } from "../../stuff/Idea";
@@ -51,7 +51,7 @@ describe("Law 1 — count, don't price (no worth on goods)", () => {
     coin.currency = "zorkmid";
     coin.denomination = 1;
     return coin;
-  }, "/obj/Coin");
+  }, "/stuff/thing/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
     // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
     // mechanics and the cash faucet may resize a money stack), so a test
@@ -85,9 +85,9 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
   afterEach(() => teardownBankingHarness());
 
   it("an idle balance and coin stack are unchanged over a game-clock advance", async () => {
-    const alice = makeStuffAtPath(() => new TestAvatar(), "/obj/Avatar/alice");
+    const alice = makeStuffAtPath(() => new TestAvatar(), "/platform/agent/Avatar/alice");
     const acct = await asOwner(alice, () =>
-      BankingApi.openAccount("/domain/test/bank", "goodkin", Currency.compact())
+      BankingApi.openAccount("/world/test/bank", "goodkin", Currency.compact())
     );
     await BankingApi.mint(acct, Money.of(1000, Currency.compact()));
     const coin = makeStuffAtPath(() => {
@@ -95,7 +95,7 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
     coin.currency = "zorkmid";
     coin.denomination = 1;
     return coin;
-  }, "/obj/Coin");
+  }, "/stuff/thing/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
     // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
     // mechanics and the cash faucet may resize a money stack), so a test

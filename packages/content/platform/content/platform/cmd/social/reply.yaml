@@ -1,0 +1,23 @@
+verbs: [reply]
+controller: /platform/idea/cmd/social/ReplyController
+description: "Reply to the cohort of your last-inbound DM. Defaults to reply-all; --one narrows to the original sender."
+help: |
+  Answer the last direct message you received without retyping any
+  names. By default `reply` goes back to the whole cohort of that
+  DM — if it was a group thread, everyone on it hears your answer.
+
+  Pass `--one` to send only to the person who messaged you, even
+  when the original was a group DM.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresVerbalESP
+options:
+  one:
+    short: o
+    type: boolean
+    description: "Reply only to the original sender, not the full cohort"
+args:
+  - name: message
+    type: string
+    required: true
+    greedy: true

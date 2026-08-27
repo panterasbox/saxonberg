@@ -214,7 +214,7 @@ when it lands.
 
 ## Demo content
 
-Three real templates under `generic-objects/content/obj/gear/`, each exercising
+Three real templates under `generic-objects/content/stuff/thing/gear/`, each exercising
 one axis:
 
 - **`backpack`** (`/lib/equipment/Pack`, a wearable `Vessel`) — placement

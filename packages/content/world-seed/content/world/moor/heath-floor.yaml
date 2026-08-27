@@ -1,0 +1,25 @@
+# The heath floor — a peaty ground that pools rainwater. A `Floor` (Adornment)
+# with an authored **surface bulk** slot but NO standing water yet: the storm's
+# rain fills it over time (fresh water, weakly conductive), and it evaporates
+# when the sky clears. The same pool the conduction walk reads — wet ground +
+# an ambient strike = a shock, with no new glue. Mirrors the substation's
+# flooded-floor, authored empty.
+class: /platform/thing/Floor
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: sodden peat ground
+  longDescription: Black peat, waterlogged and treacherous, pooling the rain into shallow meres.
+  # Surface-bulk: an (initially dry) pool the rain fills. No surfaceMaterial /
+  # surfaceAmount — it starts dry; the weather fills it with fresh water.
+  surfaceBulk: true
+  surfaceCapacity: 80
+  staticSlots:
+    - name: 'ground:1'
+      accepts: SlottableMixin
+      capacity: 9007199254740991
+      postures: [sit, lie, kneel, stand]
+      userFacingDetail: ground
+  details:
+    ground:
+      keywords: [ground, peat, floor, water, pool, mere]
+      description: Waterlogged black peat, pooling the rain.

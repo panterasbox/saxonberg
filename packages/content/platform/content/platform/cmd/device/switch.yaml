@@ -1,0 +1,27 @@
+verbs: [switch, toggle]
+controller: /platform/idea/cmd/device/SwitchController
+description: "Switch a device on or off"
+help: |
+  Switch a device — a lamppost, a beacon, a machine — on or off. Name
+  the thing and, optionally, the state you want (`switch lamp on`,
+  `switch beacon off`). Leave the state off and it flips to the
+  opposite of whatever it is now (`toggle lamp`).
+
+  The target has to be within reach. If it's already in the state you
+  asked for, or it isn't something that switches at all, the game tells
+  you so and nothing happens.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    updates_focus: extend
+    requires: SwitchableMixin
+    validators:
+      - /lib/command/validators/canReach
+  - name: state
+    type: string
+    required: false

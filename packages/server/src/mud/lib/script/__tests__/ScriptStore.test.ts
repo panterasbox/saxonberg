@@ -38,7 +38,7 @@ class TestGiver extends CommandGiverMixin(
 ) {
   static override commandContributions = {
       peers: [],
-    self: ["system/ping.yaml"],
+    self: ["platform/cmd/system/ping.yaml"],
     environment: [],
   };
   protected override handleMessage(): void {}
@@ -74,12 +74,12 @@ beforeEach(() => {
     if (col === "authoring_events") return match(authoring);
     if (
       col === "content" &&
-      query.path === "/obj/command/system/PingController"
+      query.path === "/platform/idea/cmd/system/PingController"
     ) {
       return [
         {
           path: query.path,
-          class: "/obj/command/system/PingController",
+          class: "/platform/idea/cmd/system/PingController",
           data: {},
         },
       ];

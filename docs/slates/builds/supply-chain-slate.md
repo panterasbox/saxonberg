@@ -30,14 +30,14 @@ backwards from sinks*), [freight-slate](./freight-slate.md),
 
 # Part 0 — ⭐⭐⭐⭐ The magic is four lines, and the fix is a deletion
 
-`seeds/domain/lounge/bar.yaml`:
+`seeds/world/lounge/bar.yaml`:
 
 ```yaml
 populates:
-  - { template: /domain/lounge/gin-bottle,      onto: /domain/lounge/back-bar }
-  - { template: /domain/lounge/vermouth-bottle, onto: /domain/lounge/back-bar }
-  - { template: /domain/lounge/rum-bottle,      onto: /domain/lounge/back-bar }
-  - { template: /domain/lounge/lime-bottle,     onto: /domain/lounge/back-bar }
+  - { template: /world/lounge/gin-bottle,      onto: /world/lounge/back-bar }
+  - { template: /world/lounge/vermouth-bottle, onto: /world/lounge/back-bar }
+  - { template: /world/lounge/rum-bottle,      onto: /world/lounge/back-bar }
+  - { template: /world/lounge/lime-bottle,     onto: /world/lounge/back-bar }
 ```
 
 **The bottles re-clone fresh every boot.** Bulk drains as drinks are poured;
@@ -418,7 +418,7 @@ structure nobody has to invent**:
 |---|---|---|---|
 | 1 | grow **grain** | `CultivableMixin` bed → `GrowingMixin` → harvest, grade from the worst stretch | ✅ substrate · ⚠ new crop |
 | 2 | sell / buy | consign at the store → distiller buys | ⚠ needs **Part 2** if grain is fungible |
-| 3 | **mash** grain + water | heat-gated transform; `/obj/material/bulk/water` ships, and the Hinkley standpipe is an `UnboundedReceptacle` source | ✅ **recipe shape ships** |
+| 3 | **mash** grain + water | heat-gated transform; `/stuff/idea/material/bulk/water` ships, and the Hinkley standpipe is an `UnboundedReceptacle` source | ✅ **recipe shape ships** |
 | 4 | ⭐ **ferment** → wash | **the durative transform** (Part 1). Temperature-driven, overshoots to **vinegar** | ❌ **the one new mechanic** |
 | 5 | **distil** → neutral spirit | `requiresHeatK` + a `still` tool capability — *the smithing shape exactly* | ✅ **ships**, needs the tool + recipe |
 | 6 | **compound** spirit + juniper → **gin** | redistil (heat) or macerate (durative) | ✅/❌ per choice |

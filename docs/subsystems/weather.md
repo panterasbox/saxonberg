@@ -25,7 +25,7 @@ The only timer is the D4 cache-invalidation restamp, and it advances
 nothing.
 
 Source: `lib/weather/WeatherType.ts` (the one value-object),
-`obj/api/WeatherLogic.ts` (the stateless logic singleton holding the
+`platform/idea/api/WeatherLogic.ts` (the stateless logic singleton holding the
 grammar as module-private functions), `api/weather.ts` (`WeatherApi`).
 The grammar's segment model mirrors `BiomeLogic`'s chain walk beat-for-
 beat; read [biome.md](./biome.md) and [address.md](./address.md)
@@ -46,7 +46,7 @@ Wave-2 tail): fog→visibility, snow depth, vector wind, moving fronts.
 | File | Category | Holds |
 |---|---|---|
 | `lib/weather/WeatherType.ts` | value-object / vocabulary | the `WeatherType` union + `WEATHER_TYPES`, `WEATHER_PROFILES`, `TRANSITIONS`, `SEASON_BIAS`, `ANCHOR_CANDIDATES`, `WEATHER_DEFAULTS` dials, and the `WeatherSample`/`WeatherForecast` I/O shapes — **consts + types only** |
-| `obj/api/WeatherLogic.ts` | Api logic singleton (`/obj/api/weather`) | **stateless** (`extends Idea`, no `PostRegistrationMixin`); the gated compute methods + the grammar as **module-private** functions + a bounded pure-function season memo |
+| `platform/idea/api/WeatherLogic.ts` | Api logic singleton (`/platform/idea/api/weather`) | **stateless** (`extends Idea`, no `PostRegistrationMixin`); the gated compute methods + the grammar as **module-private** functions + a bounded pure-function season memo |
 | `api/weather.ts` | Api | `WeatherApi` — thin gated forwarding shell |
 
 The grammar **functions** (`segmentIndexAt`, `typeForSegment`,
@@ -240,7 +240,7 @@ strikeIntervalSeconds(): number           // boot arms the strike schedule with 
 ```
 
 The three-tier shape mirrors biome/address: `WeatherApi` (thin) →
-`WeatherLogic` (`/obj/api/weather`, stateless, gated
+`WeatherLogic` (`/platform/idea/api/weather`, stateless, gated
 `AnyOf(FromModule('/api/weather#WeatherApi'), SelfOnly)`). There is no
 registry tier — weather is stateless, so the singleton itself is the
 whole backend.
@@ -371,7 +371,7 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
 - **Puddles.** The presence-gated boundary fan-out accrues an occupied
   scope's `Floor` surface-bulk pool under resolved rain
   (source-indifferent) and evaporates it otherwise (a clearer sky dries
-  faster). A fresh rain pool (`/obj/material/bulk/water`, ~0.01 S/m) is
+  faster). A fresh rain pool (`/stuff/idea/material/bulk/water`, ~0.01 S/m) is
   weakly conductive, so a live wire / a strike in it shocks a bridged
   body through `conduct` with **no new glue** — the
   weather→bulk→electricity loop (see [bulk.md](./bulk.md)).

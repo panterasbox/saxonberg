@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: self.holding
+  family: "self"
+  label: "What you hold"
+  description: "Your inventory, your money, and the things you hold title to."
+  address: direct
+  actor: self
+  weight: activity
+  audience: player
+  durable: true
+  affordance: live

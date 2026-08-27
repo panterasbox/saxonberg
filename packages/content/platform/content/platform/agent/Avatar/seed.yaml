@@ -1,0 +1,38 @@
+# The seed avatar — an orphaned avatar record that lives at
+# `/platform/agent/Avatar/seed`. `Avatar.SEED_PLAYER_ID` is reserved against
+# playerId nanoid collisions (`seed` is 4 chars; nanoids are 21).
+# Mechanically just a regular avatar template; no class or
+# lifecycle distinction. Login can't reach it because the id won't
+# match any user's playerIds.
+#
+# Forked at signup time by Application.createDefaultAvatarTemplate,
+# which copies this template's class/hydratorClass/data, overlays
+# the new user's name and surname, and saves at
+# `/platform/agent/Avatar/<playerId>`.
+#
+# This YAML is initial-population only. After first boot, the live
+# `/platform/agent/Avatar/seed` doc in Mongo is the source of truth —
+# SeederManager is idempotent and won't overwrite. To change the
+# defaults going forward, edit the doc in Mongo directly, or use
+# developer tooling to clone the seed, mutate, and persist back.
+# Editing this YAML against an already-seeded database does nothing;
+# existing players are unaffected by either path because their
+# per-user templates were forked at signup with the defaults in
+# effect at that moment.
+class: /platform/agent/Avatar
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  pronouns: they
+  # NOTE: `startLocation` is no longer a seed literal. Every avatar-mint
+  # site (EnrollController.commit, Application.createDefaultAvatarTemplate,
+  # Login.mintRandomGuestAvatar) stamps it at clone time from the
+  # `defaultStartLocation` app setting (default the lounge Warren), so an
+  # operator can move the new-player spawn in-game without a deploy. The
+  # separate `evacuationFallback` app setting (default `/platform/location/void`) is
+  # the container-typed evac target in `Container.cleanupOnDestruct`.
+  # Race-build defaults: every freshly-created Avatar template forks
+  # these values. Existing per-user templates predate this addition;
+  # OrganismMixin's getSpecies() returns null and getLifecycleState()
+  # returns '' for those, both safe no-ops.
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive

@@ -1,0 +1,22 @@
+verbs: [fly]
+controller: /platform/idea/cmd/movement/FlyController
+description: "Fly through a named exit (must be Flyable-enabled)."
+help: |
+  Take to the air and travel through an exit that has to be flown —
+  a gap over a chasm, an opening high in a wall, open sky. Name the
+  exit you want (`fly up`, `fly window`).
+
+  Only exits marked as flyable accept this, and only if you're built
+  to fly. When an exit can be both walked and flown, `fly` is how
+  you say which one you mean.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    scope: ["$focus", "reachable"]
+    required: true
+    validators:
+      - /lib/command/validators/canReach
+    requires: any

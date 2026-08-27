@@ -17,14 +17,14 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { Character } from '../../character/Character';
 import Location from '../../stuff/Location';
-import BodyPlan from '../../../obj/species/BodyPlan';
-import Species from '../../../obj/species/Species';
+import BodyPlan from '../../../platform/idea/species/BodyPlan';
+import Species from '../../../platform/idea/species/Species';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { SchedulerApi } from '../../../api/scheduler';
 import { ContainmentApi } from '../../../api/containment';
 import { EventApi } from '../../../api/event';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { RESPIRATION_DEFAULTS } from '../Respiration';
 import { StuffApi } from '../../../api/stuff';
@@ -90,7 +90,7 @@ describe('RespirationMixin — the crisis core', () => {
     EventApi._clearAllForTesting();
     const reg = await StuffApi.create(() => {
       const r = new EventRegistry();
-      Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+      Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
       return r;
     });
     StuffApi.unregister(reg);

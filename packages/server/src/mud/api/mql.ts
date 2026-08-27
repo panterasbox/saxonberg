@@ -23,7 +23,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { MqlLogic } from '../obj/api/MqlLogic';
+import { MqlLogic } from '../platform/idea/api/MqlLogic';
 import { fileURLToPath } from 'url';
 
 import { SecurityApi } from './security';
@@ -59,13 +59,13 @@ export { MqlPermissionError } from './mql/types';
 
 /**
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link MqlLogic} singleton at `/obj/api/mql`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/mql`
+ * hot-reloadable {@link MqlLogic} singleton at `/platform/idea/api/mql`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/mql`
  * reloads it.
  */
-const LOGIC_PATH = '/obj/api/mql';
+const LOGIC_PATH = '/platform/idea/api/mql';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MqlLogic', import.meta.url)
+  new URL('../platform/idea/api/MqlLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able MqlLogic singleton (sync). */

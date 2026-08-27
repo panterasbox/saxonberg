@@ -109,13 +109,13 @@ pointers to other records. Its responsibilities dissolve into:
 
 The id is **still called `playerId`**. It represents "one of a user's
 owned character slots" — that meaning survives the class's death.
-Paths use `/obj/Avatar/<playerId>`.
+Paths use `/platform/agent/Avatar/<playerId>`.
 
 ### No CharacterSheet class
 
 `CharacterSheet` existed to hold persistent character state across
 clones. Under the unified model, the Avatar's persistence-spine
-snapshot (keyed on the minted identity path `/obj/Avatar/<playerId>`)
+snapshot (keyed on the minted identity path `/platform/agent/Avatar/<playerId>`)
 holds that state directly. The sheet would be indirection for a problem
 the unified model already solves.
 
@@ -127,9 +127,9 @@ Avatar's template doc carries every mixin-declared persistent field as
 
 ```js
 {
-  path: "/obj/Avatar/<playerId>",
-  class: "/obj/Avatar",
-  hydratorClass: "/obj/persistence/PersistentHydrator",
+  path: "/platform/agent/Avatar/<playerId>",
+  class: "/platform/agent/Avatar",
+  hydratorClass: "/platform/idea/persistence/PersistentHydrator",
   data: {
     name, surname, honorific, nameSuffix, alternateNames, fullName,
     pronouns,
@@ -215,11 +215,11 @@ their concrete type locally rather than threading a generic through
 
 Single `domain` collection, path-namespaced:
 
-- `/obj/[<sub>/]<ClassName>` — singleton class templates
-  (`/obj/EventRegistry`, `/obj/hooks/DomainHook`).
-- `/obj/[<sub>/]<ClassName>/<id>` — multi-instance class templates
-  (e.g. `/obj/Avatar/<playerId>`).
-- `/domain/...` — content (rooms, doors, props, NPCs).
+- `/platform/… + /stuff/[<sub>/]<ClassName>` — singleton class templates
+  (`/platform/idea/EventRegistry`, `/platform/idea/hooks/DomainHook`).
+- `/platform/… + /stuff/[<sub>/]<ClassName>/<id>` — multi-instance class templates
+  (e.g. `/platform/agent/Avatar/<playerId>`).
+- `/world/...` — content (rooms, doors, props, NPCs).
 
 Folder/leaf invariant on `domain`: Zone templates may have descendants;
 non-Zone templates may not. Enforced by `DomainHook` against the PM
@@ -304,7 +304,7 @@ contents the same way. Still out of scope for v1:
   multi-shard topology materializes.
 - **Reset** — re-hydrate an existing backing back to template
   defaults. Not built; the unified model leaves room.
-- **`/state/`** as a separate path namespace from `/domain/` —
+- **`/state/`** as a separate path namespace from `/world/` —
   implement if/when the distinction becomes load-bearing.
 
 ## Cross-References

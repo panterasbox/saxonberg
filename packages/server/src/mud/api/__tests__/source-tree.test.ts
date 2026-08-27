@@ -27,7 +27,7 @@ import {
   SourceTreeApi,
   SourceTreeSandboxError,
 } from '../source-tree';
-import { SourceTreeLogic } from '../../obj/api/SourceTreeLogic';
+import { SourceTreeLogic } from '../../platform/idea/api/SourceTreeLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 
@@ -371,18 +371,18 @@ describe('SourceTreeLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/source-tree once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/source-tree once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     SourceTreeApi.getSandboxRoot();
-    const logic = StuffApi.findByTemplatePath('/obj/api/source-tree');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/source-tree');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-SourceTreeApi caller', () => {
     SourceTreeApi.getSandboxRoot();
     const logic = StuffApi.findByTemplatePath<SourceTreeLogic>(
-      '/obj/api/source-tree'
+      '/platform/idea/api/source-tree'
     );
     expect(logic).toBeDefined();
     // The test module is not `mud/api/source-tree#SourceTreeApi`, so the

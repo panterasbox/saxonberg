@@ -1,0 +1,30 @@
+# The delve mouth — the vestibule where the wood's floor gives way to worked
+# stone and a stair goes down. The single ordinary ground exit into the
+# demonstrator: `north` leads into the trapped corridor; `south` climbs back
+# out to the treeline (the one cross-zone edge from inside this sphere — its
+# partner, the inbound `north`, is authored on the treeline seed).
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the mouth of the delve
+  primaryKeyword: vestibule
+  longDescription: |
+    Worked stone shows through the pine-needles here — a doorway, and behind it a low corridor going back into the hill, its floor laid in flat slabs gone green at the joints. Someone has scratched a warning by the lintel and then, later, someone else has scratched it out.
+
+    The corridor runs north into the dark. Behind you, south, the ground climbs back to the treeline and the daylight.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  details:
+    warning:
+      keywords: [warning, scratch, lintel, doorway]
+      description: |
+        Chiselled by the lintel, half struck out: STEP WHERE I STEPPED. Under it, cruder: he didn't. Whoever laid this passage meant the floor to be read, not trusted — move carefully, or move blind.
+  exits:
+    north:
+      destination: /world/newbie-wilds/delve/corridor-1
+    # The back-out to the treeline — the one cross-zone edge from inside the
+    # sphere. Its inbound partner is authored on the treeline seed.
+    south:
+      destination: /world/newbie-wilds/crossroads/treeline

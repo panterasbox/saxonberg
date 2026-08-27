@@ -24,10 +24,10 @@ conventions](../slates/builds/ranching-slate.md); phase 1 of nine in
 
 | Object | Class | What it is |
 |---|---|---|
-| **Pot** | `/obj/PlantPot` | a `Slotted` fixture with one `plant` slot **and** a bulk interior holding soil. **Its soil volume is the root ceiling.** Two sizes ship. |
-| **Soil** | `/obj/material/bulk/potting-soil` | a bulk `Material`. A sack of it is an ordinary bulk holder; you `pour` it into the pot. |
-| **Seed** | `/obj/Seed` | a discrete `Thing` composing `PlantableMixin`, which names the plant template it grows into. Bought, or set by a flowering plant. Consumed on planting. **The capability is the mixin** — a cutting or a tuber is plantable without inheriting `Seed`. |
-| **Plant** | `/obj/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** ⚠ The class is a *composition*, not a gate: `harvest` and `repot` narrow on `MixinApi.isGrowing`, never `instanceof Plant`, and the harvest + rooting surface (`harvestTemplatePath`, `nutrientDraw`, `isHarvestable`, `getBed`, `transplantDifficulty`) lives on the mixin for that reason. |
+| **Pot** | `/platform/thing/PlantPot` | a `Slotted` fixture with one `plant` slot **and** a bulk interior holding soil. **Its soil volume is the root ceiling.** Two sizes ship. |
+| **Soil** | `/stuff/idea/material/bulk/potting-soil` | a bulk `Material`. A sack of it is an ordinary bulk holder; you `pour` it into the pot. |
+| **Seed** | `/platform/thing/Seed` | a discrete `Thing` composing `PlantableMixin`, which names the plant template it grows into. Bought, or set by a flowering plant. Consumed on planting. **The capability is the mixin** — a cutting or a tuber is plantable without inheriting `Seed`. |
+| **Plant** | `/platform/thing/Plant` | a `Slottable` `Organism` carrying `GrowingMixin` — **all the state, and the persistence host.** ⚠ The class is a *composition*, not a gate: `harvest` and `repot` narrow on `MixinApi.isGrowing`, never `instanceof Plant`, and the harvest + rooting surface (`harvestTemplatePath`, `nutrientDraw`, `isHarvestable`, `getBed`, `transplantDifficulty`) lives on the mixin for that reason. |
 
 **A pot is the density dial at N = 1, not a special case.** The farming
 slate specifies the boutique density as *"a garden bed is a `Slotted`
@@ -452,7 +452,7 @@ pot` as readily as `water the lily`.
 - **Commerce.** The Terminus general store stocks a small pot, a large pot,
   a sack of potting soil and a snake-plant seed — **content only**, since
   `itemTemplatePath` takes any path and the pots and seed are stocked
-  straight from their `/obj/` templates rather than duplicated under
+  straight from their `/platform/… + /stuff/` templates rather than duplicated under
   `goods/`. Only the sack is new. **The large pot is the first thing a
   player has a reason to buy**, and the reason is legible before the
   purchase.

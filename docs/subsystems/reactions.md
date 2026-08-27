@@ -92,7 +92,7 @@ sums.
 
 ## The registry
 
-`obj/ReactionRegistry.ts` — singleton `Idea` at `/obj/ReactionRegistry`,
+`obj/ReactionRegistry.ts` — singleton `Idea` at `/platform/idea/ReactionRegistry`,
 in-memory authority, **nothing persisted** (the Sybil-gameable trap the
 reputation build avoids). State uses `private`, not `#private` (the
 call-security-proxy rule). Every public method is gated
@@ -155,7 +155,7 @@ correct GC for them. No per-ring eviction listener in v1.
 
 ## The `react` verb
 
-`cmd/social/react.yaml` + `obj/command/social/ReactController.ts`,
+`cmd/social/react.yaml` + `platform/idea/cmd/social/ReactController.ts`,
 contributed via `SoulMixin.commandContributions.self` (reacting
 dispatches an emote, so it requires Soul).
 

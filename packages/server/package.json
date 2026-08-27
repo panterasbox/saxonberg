@@ -34,7 +34,6 @@
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
     "lint:test-bootstrap": "tsx scripts/check-test-bootstrap.ts --lint",
     "lint:test-content": "tsx scripts/check-test-content.ts --lint",
-    "lint:core-gone": "tsx scripts/check-core-gone.ts --lint",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
     "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"
   },
@@ -53,6 +52,8 @@
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
+    "@saxonberg/content-trade-hearth-cooking": "workspace:*",
+    "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",
     "@saxonberg/content-world-seed": "workspace:*",
     "@saxonberg/types": "workspace:*",

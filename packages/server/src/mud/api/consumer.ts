@@ -17,7 +17,7 @@
  * replay the log, get identical standings.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link ConsumerLogic} singleton at `/obj/api/consumer`,
+ * hot-reloadable {@link ConsumerLogic} singleton at `/platform/idea/api/consumer`,
  * reached synchronously via `StuffApi.singletonSync`.
  */
 
@@ -26,15 +26,15 @@ import type { ParticipationEventFields } from '../lib/standing/ParticipationEven
 import type { InfluenceStanding } from '../lib/standing/InfluenceStanding';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ConsumerLogic } from '../obj/api/ConsumerLogic';
+import { ConsumerLogic } from '../platform/idea/api/ConsumerLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 export type { ParticipationEventFields };
 
-const LOGIC_PATH = '/obj/api/consumer';
+const LOGIC_PATH = '/platform/idea/api/consumer';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ConsumerLogic', import.meta.url)
+  new URL('../platform/idea/api/ConsumerLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ConsumerLogic singleton (sync). */

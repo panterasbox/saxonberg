@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-trade-smithing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The smithing trade — what smithing introduces: its stations, its stock, its recipes."
+}

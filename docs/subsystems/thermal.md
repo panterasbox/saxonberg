@@ -177,7 +177,7 @@ room-ambient bump is a follow-on.
 ## Phase change (the fire build)
 
 `ThermalApi.depositHeat` + `ThermalApi.reconcilePhase` (the gated
-`api/thermal.ts` + `obj/api/ThermalLogic.ts` pair — the heat-delivery /
+`api/thermal.ts` + `platform/idea/api/ThermalLogic.ts` pair — the heat-delivery /
 phase-change surface `ThermalMixin` deliberately keeps off its own class).
 **`depositHeat(joules)`** is the heat-DELIVERY primitive the sync model lacked
 (the reconcile only *cools toward ambient*): `ΔT = Q / C`, thermal inertia

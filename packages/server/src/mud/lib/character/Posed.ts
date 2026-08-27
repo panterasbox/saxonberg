@@ -59,10 +59,10 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [
-        'posture/lie.yaml',
-        'posture/sit.yaml',
-        'posture/stand.yaml',
-        'posture/kneel.yaml',
+        'platform/cmd/posture/lie.yaml',
+        'platform/cmd/posture/sit.yaml',
+        'platform/cmd/posture/stand.yaml',
+        'platform/cmd/posture/kneel.yaml',
       ],
       peers: [],
       environment: [],

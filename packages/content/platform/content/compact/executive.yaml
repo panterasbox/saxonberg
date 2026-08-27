@@ -15,8 +15,8 @@
 # Visibility `members`: the executive's default reach is the membership,
 # not the open internet. Anything it wants read by an anonymous visitor is
 # a deliberate act, and the front-page setting is a separate switch again.
-class: /obj/Organization
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   appointingAuthority:
     kind: office

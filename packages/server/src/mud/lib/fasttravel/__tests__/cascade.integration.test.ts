@@ -9,9 +9,9 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import LoungeWarren from "../../../domain/lounge/LoungeWarren";
-import { LoungePaths } from "../../../domain/lounge/paths";
-import Avatar from "../../../obj/Avatar";
+import LoungeWarren from "../../../world/lounge/LoungeWarren";
+import { LoungePaths } from "../../../world/lounge/paths";
+import Avatar from "../../../platform/agent/Avatar";
 import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { AppSettings } from "../../config/AppSettings";
@@ -24,19 +24,19 @@ import {
   loungeDocs,
   flush,
   type Doc,
-} from "../../../domain/lounge/__tests__/lounge-fixtures";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+} from "../../../world/lounge/__tests__/lounge-fixtures";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 // Repointed: the lounge routes to the Terminus arrival gate (the standalone
 // University Avenue terminal is retired — Phase 6).
-const TERMINUS_TERMINAL = "/domain/terminus/terminal/arrival-terminal";
-const TERMINUS_ROOM = "/domain/terminus/terminal/arrival-gate";
+const TERMINUS_TERMINAL = "/world/terminus/terminal/arrival-terminal";
+const TERMINUS_ROOM = "/world/terminus/terminal/arrival-gate";
 
 const fastTravelDocs: Doc[] = [
   {
     path: LoungePaths.terminal,
-    class: "/domain/lounge/LoungeTerminal",
+    class: "/world/lounge/LoungeTerminal",
     hydratorClass: PH,
     data: {
       seatIn: LoungeWarren.WARREN_PATH,
@@ -48,7 +48,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: TERMINUS_TERMINAL,
-    class: "/domain/common/tpa/TpaTerminal",
+    class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: {
       seatIn: TERMINUS_ROOM,
@@ -60,7 +60,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: TERMINUS_ROOM,
-    class: "/obj/VoidLocation",
+    class: "/platform/location/VoidLocation",
     hydratorClass: PH,
     data: { shortDescription: "the Terminus arrival gate" },
   },

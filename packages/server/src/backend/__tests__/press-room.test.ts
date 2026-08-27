@@ -29,8 +29,8 @@ import { PressApi } from "../../mud/api/press";
 import { AppApi } from "../../mud/api/app";
 import { StuffApi } from "../../mud/api/stuff";
 import { ExecutionContextApi } from "../../mud/api/execution-context";
-import OrganizationEntity from "../../mud/obj/Organization";
-import PressBoard from "../../mud/obj/PressBoard";
+import OrganizationEntity from "../../mud/platform/idea/Organization";
+import PressBoard from "../../mud/platform/idea/PressBoard";
 import { Idea } from "../../mud/lib/stuff/Idea";
 import { AppSettingKeys } from "../../mud/lib/config/AppSettings";
 import { PersistenceManager } from "../PersistenceManager";
@@ -45,7 +45,7 @@ const PRESS_FEED = "/compact/press/feed";
 const EXEC = "/compact/executive";
 const EXEC_FEED = "/compact/executive/feed";
 const DIRECTOR = "communications-director";
-const STAFFER = "/obj/Avatar/staffer";
+const STAFFER = "/platform/agent/Avatar/staffer";
 
 /** The exact key set an anonymous visitor may ever see. */
 const FROZEN_KEYS = [
@@ -142,7 +142,7 @@ beforeEach(() => {
     if (key === AppSettingKeys.pressFrontPage) return frontPage;
     return "";
   });
-  void makeStuffAtPath(() => new PressBoard(), "/obj/PressBoard");
+  void makeStuffAtPath(() => new PressBoard(), "/platform/idea/PressBoard");
 });
 
 afterEach(() => {

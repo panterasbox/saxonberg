@@ -1,7 +1,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BulkableApi } from '../bulk';
-import { BulkableLogic } from '../../obj/api/BulkableLogic';
+import { BulkableLogic } from '../../platform/idea/api/BulkableLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Idea } from '../../lib/stuff/Idea';
@@ -15,19 +15,19 @@ describe('BulkableLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/bulk once the facade has materialized it', () => {
+  it('lives at /platform/idea/api/bulk once the facade has materialized it', () => {
     // A facade call lazily creates the logic singleton.
     const idea = makeStuff(() => new Idea());
     BulkableApi.slotFor(idea, undefined);
-    const logic = StuffApi.findByTemplatePath('/obj/api/bulk');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/bulk');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-BulkableApi caller', () => {
     const idea = makeStuff(() => new Idea());
     BulkableApi.slotFor(idea, undefined);
-    const logic = StuffApi.findByTemplatePath<BulkableLogic>('/obj/api/bulk');
+    const logic = StuffApi.findByTemplatePath<BulkableLogic>('/platform/idea/api/bulk');
     expect(logic).toBeDefined();
     // The test module is not `mud/api/bulk#BulkableApi`, so the
     // FromModule gate on the logic's own methods denies the call.

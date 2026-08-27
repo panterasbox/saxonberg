@@ -20,7 +20,7 @@
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { ContractLogic } from "../obj/api/ContractLogic";
+import { ContractLogic } from "../platform/idea/api/ContractLogic";
 import type { ConditionData } from "../lib/employment/Condition";
 import type {
   ContractRecord,
@@ -30,9 +30,9 @@ import type { ContractEvent } from "../lib/employment/ContractEvent";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
 
-const LOGIC_PATH = "/obj/api/contract";
+const LOGIC_PATH = "/platform/idea/api/contract";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/ContractLogic", import.meta.url),
+  new URL("../platform/idea/api/ContractLogic", import.meta.url),
 );
 
 /** What a poster asks for — the verb layer builds this from the model. */

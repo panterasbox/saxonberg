@@ -9,7 +9,7 @@ import { Idea } from '../Idea';
 import { EventApi } from '../../../api/event';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import EventRegistry from '../../../obj/EventRegistry';
+import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../Stuff';
 import { FieldChangedEvent } from '../../events/FieldChangedEvent';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -21,7 +21,7 @@ class Coin extends GlobbableMixin(Idea) {
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

@@ -24,7 +24,7 @@ import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 // The engine verbs are the platform pack's content (content-packs wave 2).
-const CMD_ROOT = join(__dirname, '..', '..', '..', '..', '..', '..', 'content', 'platform', 'content', 'cmd');
+const CMD_ROOT = join(__dirname, '..', '..', '..', '..', '..', '..', 'content', 'platform', 'content');
 const TAG = '/lib/command/validators/requiresEmbodied';
 
 /** Categories whose verbs act on matter. */
@@ -68,13 +68,13 @@ const PLATFORM_CATEGORIES = [
  * ruling, which is the point of naming them.
  */
 const READ_ONLY_IN_MATERIAL = new Set([
-  'banking/bank.yaml',
-  'banking/wallet.yaml',
-  'banking/house.yaml',
-  'banking/reserve.yaml',
-  'crafting/menu.yaml',
-  'inventory/inventory.yaml',
-  'magic/spells.yaml',
+  'platform/cmd/banking/bank.yaml',
+  'platform/cmd/banking/wallet.yaml',
+  'platform/cmd/banking/house.yaml',
+  'platform/cmd/banking/reserve.yaml',
+  'platform/cmd/crafting/menu.yaml',
+  'platform/cmd/inventory/inventory.yaml',
+  'platform/cmd/magic/spells.yaml',
 ]);
 
 function viewsIn(category: string): string[] {

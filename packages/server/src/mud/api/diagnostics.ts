@@ -24,8 +24,8 @@
  *
  * This Api is a thin forwarding shell: the store logic lives in the
  * hot-reloadable {@link DiagnosticLogic} singleton at
- * `/obj/api/diagnostics`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/diagnostics` reloads it. The
+ * `/platform/idea/api/diagnostics`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/diagnostics` reloads it. The
  * facade statics are open (the security-meaningful read gates live in the
  * logic, on the context-derived actor — the `MudlogApi` precedent).
  */
@@ -40,7 +40,7 @@ import type {
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { DiagnosticLogic } from '../obj/api/DiagnosticLogic';
+import { DiagnosticLogic } from '../platform/idea/api/DiagnosticLogic';
 import { ConsoleTap } from '../../backend/ConsoleTap';
 import {
   DiagnosticChannel,
@@ -49,9 +49,9 @@ import {
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/diagnostics';
+const LOGIC_PATH = '/platform/idea/api/diagnostics';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/DiagnosticLogic', import.meta.url)
+  new URL('../platform/idea/api/DiagnosticLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able DiagnosticLogic singleton (sync). */

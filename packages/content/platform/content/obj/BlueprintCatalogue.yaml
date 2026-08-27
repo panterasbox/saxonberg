@@ -1,6 +1,0 @@
-# BlueprintCatalogue singleton — the runtime blueprint index. Warmed at
-# postRegister from the `blueprints` collection (populated by
-# `BlueprintSeeder.run` earlier in boot). No data of its own — the cache is
-# rebuilt on demand from the collection (the RecipeCatalogue precedent).
-class: /obj/BlueprintCatalogue
-data: {}

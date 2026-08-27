@@ -1,0 +1,16 @@
+# The Eternal University gate — the boundary on the crossing's NORTH exit.
+# A real, closed + LOCKED Door (LockableMixin over Door): `Exit.canTraverse`
+# reports the lock veto ("gate: 'locked'") BEFORE the closed-door gate and
+# entirely off this Door — the destination is never resolved on the veto.
+# Keys are a future model; for now the gate is permanently locked and Gus
+# soft-walls it in dialogue ("the gate's for the gown, not yet").
+class: /platform/thing/Door
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the university gate
+  primaryKeyword: gate
+  longDescription: >
+    Tall iron gates in a low stone wall, the university's pale terraces
+    behind them. Shut, chained, and locked — the gown's, not the town's.
+  open: false
+  locked: true

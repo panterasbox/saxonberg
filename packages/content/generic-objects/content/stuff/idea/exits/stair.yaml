@@ -1,0 +1,10 @@
+# Exit-kind: a flight of stairs — admits walking, refuses wheels (the
+# haulage residue `media` can't express). See archway.yaml for the
+# exit-kind mechanism notes.
+class: /platform/idea/Exit
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  media: [ground]
+  wheelPassable: false
+  messageOut: "{{ mover }} takes the stairs."
+  messageIn: "{{ mover }} arrives up the stairs."

@@ -1,0 +1,12 @@
+# Terminus — Departure Gate C's terminal (OUT OF SERVICE, D8). Authored-static
+# non-operational: grey status light, no routes, and the TPA ride fork refuses
+# a departure from it (status read at authorization). The hub's visible
+# expansion capacity.
+class: /world/common/tpa/TpaTerminal
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  seatIn: /world/terminus/terminal/departure-gate-c
+  shortDescription: a Teleport Authority terminal
+  keywords: [gate-c]
+  directionality: departure
+  status: out-of-service

@@ -1,7 +1,0 @@
-# GasAnalyzer — handheld atmosphere-identifying instrument that
-# grants the `measure atmosphere` verb to its carrier.
-class: /obj/instrument/GasAnalyzer
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  shortDescription: a gas analyzer
-  long: A bulky brass-and-glass device with a chemistry tube. It identifies the bulk medium filling the surrounding space (air, water, vacuum, …).

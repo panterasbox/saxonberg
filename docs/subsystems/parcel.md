@@ -1,7 +1,7 @@
 # Parcel (real-property title)
 
 The parcel subsystem is the **real-property title** layer: it turns the
-informal `/domain/<team>/` FolderZone-ownership convention into a
+informal `/world/<team>/` FolderZone-ownership convention into a
 first-class, path-resolved **title stored separately from the content it
 gates**. A *parcel* is an ownable, titled extent (a Zone + a title record);
 parcels form a sparse hierarchy over the template tree; ownership is
@@ -151,7 +151,7 @@ act: *"this ground is residential, at this size."*
 
 > **⚠ `wild` admits nothing, and that default is load-bearing.** Most rows
 > in this collection are not ground at all — `/studio`, `/compact`,
-> `/obj/lounge` and the `/obj/…` roots are path-branch titles over the
+> `/stuff/idea/lounge` and the `/platform/… + /stuff/…` roots are path-branch titles over the
 > template tree, and they all answer `wild`. Were `wild` to admit cultivation, it would be
 > legal on every branch nobody thought to zone. Leave those rows unzoned;
 > the fail-closed answer is the correct one.
@@ -207,7 +207,7 @@ forgeable. See [smallholding.md](./smallholding.md) for the consumer.
 ## `ParcelRegistry` + the coverage index
 
 `ParcelRegistry` (`obj/ParcelRegistry.ts`, an `Idea + PostRegistrationMixin`
-singleton at `/obj/ParcelRegistry`, sibling to `AccessRegistry` /
+singleton at `/platform/idea/ParcelRegistry`, sibling to `AccessRegistry` /
 `AddressRegistry` / `OfficeRegistry`) holds the durable state: a
 `PathTrie<ParcelRecord>` **coverage index** keyed on `extent` (the
 `AddressRegistry` precedent — extents are path-shaped and longest-prefix is
@@ -218,7 +218,7 @@ the mint-or-find group-ref resolution that **moved here out of
 
 Every public method carries
 `@CallSecurity(AnyOf(FromModule('/api/parcel#ParcelApi'),
-FromTemplate('/obj/api/parcel')))` — `ParcelApi` (and its `ParcelLogic`
+FromTemplate('/platform/idea/api/parcel')))` — `ParcelApi` (and its `ParcelLogic`
 singleton) are the only legitimate callers; external code that grabs the
 Registry gets a reference but `SecurityError` on any method call
 (narrow-entry).
@@ -259,17 +259,14 @@ areaM2? }` (the shape checks `ParcelSeeder` used to run now live in
 | Outcome | When | Effect |
 |---|---|---|
 | `granted` | no row at `extent` | row written + a `grant` event (`ParcelEvent.event` is `subdivide \| transfer \| grant`) |
-| `kept` | the row exists under the **same** holder | untouched — two packs may claim one extent for one holder (`world-seed` and `saxonberg-lounge` both name `/domain/lounge` for `lounge`) |
-| `conflict` | the row exists under a **different** holder | untouched; the installer records it and the pack reconciles bounded (its rows under that extent are `skip-sold`) |
-| `migrated` | the row is held by the retired state default | a `transfer` event, the holder replaced |
+| `kept` | the row exists under the **same** holder | untouched — two packs may claim one extent for one holder (`world-seed` and `saxonberg-lounge` both name `/world/lounge` for `lounge`) |
+| `conflict` | the row exists under a **different** holder — whoever that is | untouched; the installer records it and the pack reconciles bounded (its rows under that extent are `skip-sold`) |
 
-`migrated` is the **one** data touch wave 3 makes to existing title, and
-it is marked `migration-note` for deletion in wave 4: a row held by the
-`core` group (the dev DB's `/studio` and `/compact` were seeded that way),
-**or by one of the five retired wave-2 corpo board groups** (`aevex`,
-`goodkin`, `hollis`, `veshko`, `vionne` — each corpo *organization* now
-holds its own `/corpo/<key>`), hands over to the claim's holder. "No new
-title over an existing one" is read as *over one held by someone real*.
+There is **no migration outcome** (wave 4a deleted wave 3's `migrated`
+branch — the `core`-held and retired-corpo-board hand-overs — and the
+sold predicate's `core` exemption with it): "no new title over an
+existing one" is read literally. A database whose title predates a
+rename is dropped, never migrated ([deployment.md](../deployment.md)).
 
 Grants run **before** the pack's rows are planned (a first-boot claim of
 `/corpo/<key>` must exist before the chart row under it is judged
@@ -283,8 +280,8 @@ A zone with no parcel row inherits its governing parcel from the nearest
 parcel-bearing ancestor: `coveringParcelOf(path)` is
 `trie.longestPrefix(path)`. `parentParcel` is stored on the row for O(1)
 transfer/subdivide bookkeeping (derivable from the trie, but cheap to keep).
-So `/domain/lounge/bar/stool` resolves to the `/domain/lounge` parcel, and a
-carve-out at `/domain/lounge/east-wing` shadows it for paths beneath.
+So `/world/lounge/bar/stool` resolves to the `/world/lounge` parcel, and a
+carve-out at `/world/lounge/east-wing` shadows it for paths beneath.
 
 ## Chain of title (`parcel_events`)
 
@@ -302,13 +299,13 @@ chain-of-title *readout* are deferred consumers.
 ## The Api three-tier
 
 Mirrors the `AccessRegistry` / `AccessApi` / `AccessLogic` shape —
-facade (non-HMR) → logic singleton (`/obj/api/parcel`, hot-reloadable) →
+facade (non-HMR) → logic singleton (`/platform/idea/api/parcel`, hot-reloadable) →
 state registry:
 
 | File | Role |
 |---|---|
 | `api/parcel.ts` — `ParcelApi` | Thin forwarding facade; `SecurityApi.decorateApiClass`. |
-| `obj/api/ParcelLogic.ts` — `ParcelLogic` | `@internal` logic singleton at `/obj/api/parcel`; gated `FromModule('/api/parcel#ParcelApi')`; resolves the Registry and **degrades gracefully** (no registry → the pure `self-home ?? state` rungs, so `AccessApi.can` stays byte-identical). |
+| `platform/idea/api/ParcelLogic.ts` — `ParcelLogic` | `@internal` logic singleton at `/platform/idea/api/parcel`; gated `FromModule('/api/parcel#ParcelApi')`; resolves the Registry and **degrades gracefully** (no registry → the pure `self-home ?? state` rungs, so `AccessApi.can` stays byte-identical). |
 | `obj/ParcelRegistry.ts` — `ParcelRegistry` | The state home + real logic. |
 
 Surface: `ownerOf` / `coveringParcelOf` / `resolveOwnerRef` (group owner →
@@ -375,20 +372,20 @@ and no longer in a seed file (`config/parcels.yaml` and the backend
 explicit `requires.title` entry, there is no implicit root claim). Today:
 
 - **`platform`** — `/platform`, `/obj`, `/cmd`, `/blueprints`, `/compact`,
-  `/studio`, `/home`, `/domain`, all held by its maintainers, the
+  `/studio`, `/home`, `/world`, all held by its maintainers, the
   executive organization `/compact/executive`; and `/wiki` for the
   `wiki-editors` group.
-- **`saxonberg-lounge`** — `/obj/lounge` + `/domain/lounge` → the `lounge`
+- **`saxonberg-lounge`** — `/stuff/idea/lounge` + `/world/lounge` → the `lounge`
   group.
-- **`world-seed`** (transitional) — `/domain/lounge` again for `lounge`
-  (`kept`), the Terminus municipality's ground (`/domain/terminus/terminal`,
+- **`world-seed`** (transitional) — `/world/lounge` again for `lounge`
+  (`kept`), the Terminus municipality's ground (`/world/terminus/terminal`,
   `counting-houses`, `general-store`, `registry` → `terminus`), Hinkley
   Hills and its `lot-1` → `hinkley-hills`, Duncan Hall and its `dorms` →
   `duncan-hall`.
 - **`expression`** — `/expression` → the `soul` group;
-  **`newbie-wilds`** — `/domain/newbie-wilds` → `newbie-wilds`; the
+  **`newbie-wilds`** — `/world/newbie-wilds` → `newbie-wilds`; the
   object packs (`generic-objects`, `species-and-names`, …) claim their
-  `/obj/<cluster>` branches; each **corpo pack** claims `/corpo/<key>` for
+  `/stuff/<branch>/<cluster>` branches; each **corpo pack** claims `/corpo/<key>` for
   its organization.
 
 A claim's group is `ensureGroup`d by name (found if present, minted
@@ -400,7 +397,7 @@ empty otherwise) before the grant. Idempotent — a second boot is all
 - **`subdivide <name>`** — carves a titled child out of the parcel governing
   the giver's current location: resolve the governing parcel → gate to its
   owner via `AccessApi.canMutateZone` → mint the child zone via
-  `TemplateApi.saveTemplate(childPath, '/obj/FolderZone', …)` (the
+  `TemplateApi.saveTemplate(childPath, '/platform/idea/FolderZone', …)` (the
   `MkdirController` precedent) → `ParcelApi.subdivide` writes the child row
   (owner inherited, `parentParcel` set) + a genesis event. **FolderZone-
   first** — spatial (grid sub-region) carve-outs are a deferred non-goal.
@@ -417,8 +414,8 @@ both funnel through `ParcelApi`, the only legitimate caller of the Registry.
 
 ## Boot
 
-The platform pack's `boot:` list carries `{ template: /obj/ParcelRegistry,
-role: sync-read, dependsOn: [/obj/GroupRegistry] }` — "the title coverage
+The platform pack's `boot:` list carries `{ template: /platform/idea/ParcelRegistry,
+role: sync-read, dependsOn: [/platform/idea/GroupRegistry] }` — "the title coverage
 trie every `ownerOf` read walks"; `BootstrapManager.run()` stands it up
 from the packs' boot union (the code manifest `bootstrap.ts` is gone).
 `TemplatePaths.parcelRegistry` names the path. Grants happen inside

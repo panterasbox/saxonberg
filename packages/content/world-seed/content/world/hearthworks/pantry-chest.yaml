@@ -1,0 +1,18 @@
+# The pantry chest — ingredient stock behind an honest lid: OPEN, its
+# contents feed a craft (the gather walk descends one level into open
+# room containers); closed, they never do. Seeded open.
+class: /platform/thing/Chest
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pantry chest
+  primaryKeyword: chest
+  keywords: [chest, pantry, larder]
+  longDescription: |
+    A broad pantry chest, lid thrown back, packed with roots and wrapped cuts.
+  open: true
+  # A fixture by encumbrance (the anvil rule): nobody walks off with
+  # the pantry.
+  mass: 90
+  populates:
+    - /stuff/thing/items/prime-cut
+    - /stuff/thing/items/ration-stock

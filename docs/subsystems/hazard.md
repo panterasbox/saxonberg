@@ -189,12 +189,12 @@ and the banded `Condition` then reads live off the burden
 (reconcile-on-read), exactly as an eaten toxin's does. It is *how the dose
 arrives*, not a new toxin model. See [metabolism.md](./metabolism.md).
 
-## The `/obj/traps/` generics + the Sunken Delve demonstrator
+## The `/stuff/thing/traps/` generics + the Sunken Delve demonstrator
 
 The **trap taxonomy is authored data, not subclasses** — a spike pit, a
 poisoned dart, and a pressure-blade are all one `Trap` with different
 `delivery` / `trigger` / `traverseConsequence` field combinations. Three
-**generic trap objects** live in `/obj/traps/` (`spike-pit`, `step-dart`,
+**generic trap objects** live in `/stuff/thing/traps/` (`spike-pit`, `step-dart`,
 `pressure-blade`) and are cloned into rooms via `populates`:
 
 - **`spike-pit`** — `trigger: traversal`, `delivery: { channel: point }`,
@@ -207,7 +207,7 @@ poisoned dart, and a pressure-blade are all one `Trap` with different
   `traverseConsequence: trip`.
 
 The **demonstrator is the "Sunken Delve"** — a **sub-area of the
-newbie-wilds locality** (`newbie-wilds/content/domain/newbie-wilds/delve/`), its own
+newbie-wilds locality** (`newbie-wilds/content/world/newbie-wilds/delve/`), its own
 `CartesianZone`, hung off the newbie-wilds treeline by a **single ordinary
 ground exit** (vestibule → trapped corridor → vault; the traps clone in via
 `populates`, plus a concealed shortcut `Exit` and a `hidden-cache` concealed
@@ -216,7 +216,7 @@ by a plainly-visible path; traps wound/redirect but never hard-gate.
 
 > **Not a `domain/traps` sphere.** The plan proposed a fresh `domain/traps`
 > sphere; in review that was rejected — *"traps isn't a domain."* The
-> generic trap *objects* are content-agnostic `/obj/traps/` generics; the
+> generic trap *objects* are content-agnostic `/stuff/thing/traps/` generics; the
 > *demonstrator* is content, homed under the newbie-wilds locality it
 > belongs to.
 

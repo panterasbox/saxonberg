@@ -9,23 +9,23 @@
  *
  * Thin, security-gated forwarding shell: the logic lives in the
  * hot-reloadable {@link ConnectionLogic} singleton at
- * `/obj/api/connection`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/connection` reloads it.
+ * `/platform/idea/api/connection`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/connection` reloads it.
  */
 
 import type { EnvelopeTemplate, MessageFrame } from '@saxonberg/types';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { HasInteractive } from '../lib/connection/HasInteractive';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ConnectionLogic } from '../obj/api/ConnectionLogic';
+import { ConnectionLogic } from '../platform/idea/api/ConnectionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/connection';
+const LOGIC_PATH = '/platform/idea/api/connection';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ConnectionLogic', import.meta.url)
+  new URL('../platform/idea/api/ConnectionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ConnectionLogic singleton (sync). */

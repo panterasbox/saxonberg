@@ -18,7 +18,7 @@ lamppost is locally Energized; its plate carries a **maker's mark +
 
 ## Where the fiction already leans utility-ward
 
-1. **The substation exists as content** (`seeds/domain/substation/`
+1. **The substation exists as content** (`seeds/world/substation/`
    — Foundry Row's flooded switch-cell).
 2. **The electrician's daily loop** (wishbook): "walk the row's
    fixtures, `analyze` for wear and wet, swap what's failing,

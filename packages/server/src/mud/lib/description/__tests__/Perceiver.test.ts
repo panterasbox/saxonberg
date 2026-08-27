@@ -39,10 +39,10 @@ describe('PerceiverMixin', () => {
     const selfContributions = (Looker as unknown as {
       commandContributions: { self: string[] };
     }).commandContributions.self;
-    expect(selfContributions).toContain('perception/look.yaml');
-    expect(selfContributions).toContain('perception/scry.yaml');
-    expect(selfContributions).toContain('perception/locate.yaml');
-    expect(selfContributions).toContain('shell/find.yaml');
+    expect(selfContributions).toContain('platform/cmd/perception/look.yaml');
+    expect(selfContributions).toContain('platform/cmd/perception/scry.yaml');
+    expect(selfContributions).toContain('platform/cmd/perception/locate.yaml');
+    expect(selfContributions).toContain('platform/cmd/shell/find.yaml');
   });
 
   it('affords the concealment verbs (search + disarm) so a player can invoke them', () => {
@@ -56,12 +56,12 @@ describe('PerceiverMixin', () => {
     const selfContributions = (Looker as unknown as {
       commandContributions: { self: string[] };
     }).commandContributions.self;
-    expect(selfContributions).toContain('perception/search.yaml');
-    expect(selfContributions).toContain('device/disarm.yaml');
+    expect(selfContributions).toContain('platform/cmd/perception/search.yaml');
+    expect(selfContributions).toContain('platform/cmd/device/disarm.yaml');
     // The stealth build's actor-side verbs — same wiring, same guard.
-    expect(selfContributions).toContain('perception/hide.yaml');
-    expect(selfContributions).toContain('perception/unhide.yaml');
-    expect(selfContributions).toContain('device/arm.yaml');
+    expect(selfContributions).toContain('platform/cmd/perception/hide.yaml');
+    expect(selfContributions).toContain('platform/cmd/perception/unhide.yaml');
+    expect(selfContributions).toContain('platform/cmd/device/arm.yaml');
   });
 
   describe('composition validation', () => {

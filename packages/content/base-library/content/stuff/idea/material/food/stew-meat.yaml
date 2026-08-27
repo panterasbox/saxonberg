@@ -1,0 +1,19 @@
+# Stew meat — butcher's cuts for the pot. Edible (you could choke it
+# down raw) but meant to be cooked; the cooking branch's protein input,
+# matched by the `meat` tag.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: stew meat
+  appearance: dark trimmed cuts of stew meat
+  keywords: [meat, cut, cuts]
+  density: 1050
+  thermalConductivity: 0.45
+  specificHeat: 3200
+  edibility: true
+  nutrients: [protein]
+  nutrientAmounts:
+    protein: 26000
+  tags: [food, meat, raw]
+  composition: []
+  biologicalSource: null

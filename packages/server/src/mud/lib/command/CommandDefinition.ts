@@ -43,7 +43,7 @@ import { CommandApi, SUBCOMMAND_FIELD } from '../../api/command';
  *   - otherwise → resolve relative to the spec file's own directory,
  *     then map to the posix `/`-rooted mud template path.
  * This is the one resolution axis for the `controller:` field — no
- * implicit `/obj/command/` prefix, no `domain/` special case.
+ * implicit `/platform/idea/cmd/` prefix, no `world/` special case.
  */
 function resolveController(rawController: string, specFilePath: string): string {
   if (rawController.startsWith('/')) return rawController;
@@ -129,16 +129,21 @@ export class CommandDefinition {
    * is the entire point of a radial, and a menu that rearranges itself
    * has none.
    *
-   * ⚠ A **domain-local** verb (`domain/<sphere>/<locality>/cmd/…`)
-   * reports `'domain'`. Its category is its content, not one of the
+   * ⚠ A **domain-local** verb (`world/<sphere>/<locality>/cmd/…`, or an
+   * industry's `trade/<industry>/cmd/…`) reports `'domain'`. Its category is its content, not one of the
    * core ones, and forcing it into `perception` or `device` would put
    * a locality's private verb in a slot the player's muscle memory has
    * assigned to something else.
    */
   public get category(): string {
     const parts = this.filePath.replace(/\\/g, '/').split('/');
-    if (parts.includes('domain')) return 'domain';
-    // …/cmd/<category>/<verb>.yaml → the segment before the file.
+    // Every view lives under a `cmd` dir of its tree: the engine's
+    // `platform/cmd/<category>/<verb>.yaml` names its category as the
+    // segment after `cmd`; a locality's / industry's `<…>/cmd/<verb>.yaml`
+    // has none — it reports `local`.
+    const dirs = parts.slice(0, -1);
+    const at = dirs.lastIndexOf('cmd');
+    if (at >= 0 && at === dirs.length - 1) return 'local';
     const dir = parts[parts.length - 2];
     return dir && dir !== 'cmd' ? dir : 'system';
   }

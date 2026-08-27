@@ -47,7 +47,7 @@ import type { Employed } from './Employed';
  */
 const OrganizationSurface = SecurityPolicies.AnyOf(
   SecurityPolicies.SelfOnly,
-  SecurityPolicies.FromTemplate('/obj/api/employment'),
+  SecurityPolicies.FromTemplate('/platform/idea/api/employment'),
 );
 
 /**
@@ -171,7 +171,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     /**
      * ⚠⚠ **Legacy hydration slot. Do NOT delete it because the seeds are
      * clean.** No shipped seed authors `proprietorPath` any more — that is
-     * asserted by `domain/__tests__/business-authority.test.ts` — so a grep
+     * asserted by `world/__tests__/business-authority.test.ts` — so a grep
      * makes this look dead. It is not.
      *
      * The retired seeder was insert-only, so every box seeded before the

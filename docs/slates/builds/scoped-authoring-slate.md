@@ -17,7 +17,7 @@
 > DSL" — that is `AccessApi.can` with parcel-title ownership
 > ([access.md](../../subsystems/access.md),
 > [parcel.md](../../subsystems/parcel.md)). The per-field gate exists too,
-> for the code-trust axis: `obj/api/CmsLogic.ts` gates `class` /
+> for the code-trust axis: `platform/idea/api/CmsLogic.ts` gates `class` /
 > `hydratorClass` / `behaviors[].brain` on `isWizard`, with a round-trip
 > check so an existing template's values pass through unchanged. The
 > `write`/`cat` primitive shipped as

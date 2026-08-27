@@ -1,0 +1,23 @@
+verbs: [intervene, stay]
+controller: /platform/idea/cmd/combat/InterveneController
+description: "Stay a killing stroke — stop a coup in progress"
+help: |
+  `intervene <target>` steps in to stop a coup de grâce — the slow,
+  deliberate killing stroke a victor delivers to a downed opponent under
+  a fight to the death. Name either the fallen (to shield them) or the one
+  standing over them (to stay their hand). A present party has only a
+  moment before the stroke lands; the winner may also stay their own hand.
+examples:
+  - cmd: intervene the duelist
+    note: Stop the fighter about to finish a downed foe
+  - cmd: stay the stroke
+    note: A downed friend is about to be executed — step in
+validators:
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    updates_focus: extend
+    requires: VisibleMixin

@@ -9,8 +9,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
-import BankCounter from "../../../obj/BankCounter";
-import Coin from "../../../obj/Coin";
+import BankCounter from "../../../platform/thing/BankCounter";
+import Coin from "../../../platform/thing/Coin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -32,8 +32,8 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK_PATH = "/domain/test/bank";
-const ALICE = "/obj/Avatar/alice";
+const BANK_PATH = "/world/test/bank";
+const ALICE = "/platform/agent/Avatar/alice";
 
 function makeBank(): InstanceType<typeof BankCounter> {
   return makeStuffAtPath(() => {
@@ -90,7 +90,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     coin.currency = "zorkmid";
     coin.denomination = 1;
     return coin;
-  }, "/obj/Coin");
+  }, "/stuff/thing/Coin");
     float.setMass(Quantity.of(0.01, "kg"));
     // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
     // mechanics and the cash faucet may resize a money stack), so a test

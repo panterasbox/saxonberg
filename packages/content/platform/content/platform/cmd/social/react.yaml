@@ -1,0 +1,55 @@
+verbs: [react, re]
+controller: /platform/idea/cmd/social/ReactController
+description: >
+  React to something someone just said or did. A reaction is an emote
+  aimed at a specific prior act — it is PUBLIC and ATTRIBUTED, counted
+  against that act, and (eventually) folded into the actor's standing.
+
+  Grammar:  react [--to <person>] [--msg <#>] <emote-expression>
+
+  With no selector you react to the most recent act in view; --to picks
+  a person's most-recent act; --msg picks a specific message by its
+  gutter number. The <emote-expression> is any ordinary emote, exactly
+  as you'd type it bare (`;wave`, `nod`, `cheer happily`), and may carry
+  its own target: `react --msg 113 ;wave bob` waves at bob in response
+  to message 113. The selector-less form (`re ;smile`) is the primary,
+  frictionless path.
+help: |
+  React to something someone just said or did. A reaction is an
+  ordinary emote aimed at a specific earlier act — it's public,
+  attributed to you, and counted against that act. With no selector
+  you react to the most recent thing in view, which is the quick,
+  everyday path: `re ;smile`.
+
+  Use `--to <person>` to react to that person's latest act, or
+  `--msg <#>` to point at a specific line by its gutter number. The
+  emote part is any normal emote and can carry its own target, so
+  `react --msg 113 ;wave bob` waves at bob in response to message
+  113. `re` is the short alias.
+validators:
+  - /lib/command/validators/requiresAnimate
+options:
+  to:
+    short: t
+    type: object
+    scope: online
+    field: toPerson
+    description: "React to this person's most-recent reactable act."
+    requires: any
+  msg:
+    short: m
+    type: string
+    field: msgNum
+    description: "React to a specific message by its gutter number."
+  remove:
+    type: boolean
+    description: >
+      Remove (un-react) your <emote-expression> reaction from the act
+      instead of adding it. Reacting is otherwise add-only — re-reacting
+      the same emote is idempotent. Mostly GUI-driven (click an active
+      chip); rarely typed.
+args:
+  - name: expression
+    type: string
+    required: true
+    greedy: true

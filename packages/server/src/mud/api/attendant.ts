@@ -7,15 +7,15 @@
 
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { AttendantLogic } from "../obj/api/AttendantLogic";
+import { AttendantLogic } from "../platform/idea/api/AttendantLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
 export type { AttendResult } from "../lib/attendant/Attendant";
 
-const LOGIC_PATH = "/obj/api/attendant";
+const LOGIC_PATH = "/platform/idea/api/attendant";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/AttendantLogic", import.meta.url),
+  new URL("../platform/idea/api/AttendantLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able AttendantLogic singleton (sync). */

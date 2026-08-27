@@ -195,10 +195,10 @@ slots via a YAML manifest:
 hooks:
   - collection: domain
     operation: save
-    template: /obj/hooks/DomainHook
+    template: /platform/idea/hooks/DomainHook
   - collection: domain
     operation: delete
-    template: /obj/hooks/DomainHook
+    template: /platform/idea/hooks/DomainHook
 ```
 
 `PersistenceManager.loadHooks(yamlPath?)` reads the manifest, clones
@@ -550,7 +550,7 @@ obj/api cycle). Container/Slotted **restore** is centralized in
 
 ### The security path
 
-`PersistableApi` → `PersistableLogic` (`/obj/api/persistable`, gated
+`PersistableApi` → `PersistableLogic` (`/platform/idea/api/persistable`, gated
 `FromModule('/api/persistable#PersistableApi')`) owns the walk. Restore
 composes three defenses:
 
@@ -871,8 +871,7 @@ enum Collections {
 `Domain` is the templates collection. The social-cluster collections
 (`groups`, `channels`) hold `Document` subclasses (`Group`, `Channel`);
 emotes, recipes and name banks are `documents` rows of a declared
-kind since content-packs wave 2 (their former collections were collapsed
-by a one-time boot migration) — see the corresponding subsystem docs. `beliefs`
+kind — see the corresponding subsystem docs. `beliefs`
 holds `BeliefDocument` rows (one per `{viewerId, realm, referent}`) — the
 per-viewer identity-memory working set, a lazily-hydrated keyed set rather
 than a singleton or a one-doc-per-owner blob; see

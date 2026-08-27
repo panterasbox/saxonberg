@@ -11,8 +11,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi, Money } from "../../../api/banking";
 import type { Charge } from "../../../api/banking";
-import PaymentCard from "../../../obj/PaymentCard";
-import Coin from "../../../obj/Coin";
+import PaymentCard from "../../../platform/thing/PaymentCard";
+import Coin from "../../../platform/thing/Coin";
 import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import type { Container } from "../../spatial/Container";
@@ -36,9 +36,9 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK_A = "/domain/test/bank-a";
-const BANK_B = "/domain/test/bank-b";
-const TREASURY = "/domain/test/treasury";
+const BANK_A = "/world/test/bank-a";
+const BANK_B = "/world/test/bank-b";
+const TREASURY = "/world/test/treasury";
 
 function avatar(path: string): TestAvatar {
   return makeStuffAtPath(() => new TestAvatar(), path);
@@ -50,7 +50,7 @@ async function fundedPayer(
   funds: number
 ): Promise<{ who: TestAvatar; accountId: string }> {
   const who = avatar(path);
-  const card = makeStuffAtPath(() => new PaymentCard(), "/obj/PaymentCard");
+  const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
   ContainmentApi.move(card, who as never);
   const accountId = await asOwner(who, () =>
     BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
@@ -65,7 +65,7 @@ function coinsIn(holder: Stuff, qty: number): Coin {
     coin.currency = "zorkmid";
     coin.denomination = 1;
     return coin;
-  }, "/obj/Coin");
+  }, "/stuff/thing/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
   // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
   // mechanics and the cash faucet may resize a money stack), so a test
@@ -108,8 +108,8 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
 
   it("cash clears by coin handover; no account is touched", async () => {
     stubCoinClone();
-    const alice = avatar("/obj/Avatar/alice");
-    const bob = avatar("/obj/Avatar/bob");
+    const alice = avatar("/platform/agent/Avatar/alice");
+    const bob = avatar("/platform/agent/Avatar/bob");
     coinsIn(alice, 100);
     const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
 
@@ -135,10 +135,10 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
 
   it("credential clears on-ledger via the routed account", async () => {
     const { who: alice, accountId: aliceAcct } = await fundedPayer(
-      "/obj/Avatar/alice",
+      "/platform/agent/Avatar/alice",
       1000
     );
-    const bob = avatar("/obj/Avatar/bob");
+    const bob = avatar("/platform/agent/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
       BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
@@ -162,11 +162,11 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
   it("one primitive settles a stated transfer by both methods", async () => {
     stubCoinClone();
     const { who: alice, accountId: aliceAcct } = await fundedPayer(
-      "/obj/Avatar/alice",
+      "/platform/agent/Avatar/alice",
       500
     );
     coinsIn(alice, 100);
-    const bob = avatar("/obj/Avatar/bob");
+    const bob = avatar("/platform/agent/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
       BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );
@@ -208,10 +208,10 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
 
   it("routes a remittance split to a third account, conserving", async () => {
     const { who: alice, accountId: aliceAcct } = await fundedPayer(
-      "/obj/Avatar/alice",
+      "/platform/agent/Avatar/alice",
       1000
     );
-    const bob = avatar("/obj/Avatar/bob");
+    const bob = avatar("/platform/agent/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
       BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
     );

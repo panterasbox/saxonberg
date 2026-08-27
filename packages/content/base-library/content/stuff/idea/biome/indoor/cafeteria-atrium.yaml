@@ -1,0 +1,15 @@
+# Scenario-C showcase — the cafeteria's atrium room. SkyExposed
+# (the atrium has an open aperture overhead) while still inheriting
+# all of the cafeteria's atmospheric + ambient profile via the
+# explicit `_extendsBiomePath` ref.
+#
+# Demonstrates how the model decouples inheritance from path: the
+# atrium sits as a sibling of `cafeteria` in the path tree — same
+# admin scope — but its inheritance chain is `cafeteria-atrium →
+# cafeteria → indoor/baseline → universe`, not "child path of
+# cafeteria."
+class: /platform/idea/SkyExposedBiome
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: cafeteria-atrium
+  _extendsBiomePath: /stuff/idea/biome/indoor/cafeteria

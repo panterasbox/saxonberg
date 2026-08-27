@@ -1,0 +1,25 @@
+# Gus's crossing-log — `/world/eternal/university-avenue/CrossingLog` (Detailed). A clipboard where he
+# tallies, by hand, every soul he walks across. Carried; equipped at standup
+# by Gus.equipLoadout. A REAL living ledger but a PASSIVE one: it subscribes
+# to nothing — Gus is the agent who perceives each crossing and marks it with
+# the `tally` verb (wired in Phase 5). It records WHEN, never WHO: each mark
+# is a watch-reading (or an untimed tick), dated in his slow watch-time and
+# anonymous by necessity, because he cannot record a name he never keeps.
+# `startingCount` folds in the souls seen across before this page began.
+# Generic object: Visible.shortDescription, never Named.
+class: /world/eternal/university-avenue/CrossingLog
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crossing-log clipboard
+  primaryKeyword: log
+  keywords: [log, clipboard, tally, ledger, crossing-log]
+  longDescription: |
+    A hardboard clipboard, its metal clip biting a thick sheaf of tally paper. Column on column of neat hand-made ticks march down the pages, each a soul walked safely across, each timed to the minute in a watch-hand that runs a little slow — and not one of them a name. It is the record of everyone, kept by the man who remembers no one.
+  startingCount: 1244
+  details:
+    clip:
+      keywords: [clip, metal, spring]
+      description: A dull steel spring-clip, the paint worn off the thumb-tab, biting down on more paper than one road should ever have needed.
+    page:
+      keywords: [page, marks, ticks, tally, paper]
+      description: Rows of careful pencil ticks, gathered in fives, each with a small number beside it — the time he read off his watch as he made it. The times wander, because the watch does. None of them is a who.

@@ -82,8 +82,8 @@ describe('a card is born on the server, or not at all', () => {
     for (const file of files) {
       const rel = relative(SERVER_SRC, file).replace(/\\/g, '/');
       // The substrate itself is where minting is IMPLEMENTED.
-      if (rel === 'mud/obj/CardRegistry.ts') continue;
-      if (rel === 'mud/obj/api/CardLogic.ts') continue;
+      if (rel === 'mud/platform/idea/CardRegistry.ts') continue;
+      if (rel === 'mud/platform/idea/api/CardLogic.ts') continue;
       if (rel === 'mud/api/card.ts') continue;
       const text = readFileSync(file, 'utf8');
       for (const m of text.matchAll(/CardApi\.(open|push|applyArrangement)\(/g)) {
@@ -117,26 +117,26 @@ describe('a card is born on the server, or not at all', () => {
      */
     expect(sites.sort()).toEqual(
       [
-        'mud/obj/Avatar.ts:applyArrangement',
-        'mud/obj/api/PromptLogic.ts:push',
-        'mud/obj/command/author/CmsController.ts:open',
-        'mud/obj/command/author/StudioController.ts:open',
-        'mud/obj/command/perception/LookController.ts:open',
-        'mud/obj/command/perception/LookController.ts:open',
-        'mud/obj/command/perception/SenseController.ts:open',
-        'mud/obj/command/shell/CockpitModeController.ts:applyArrangement',
-        'mud/obj/command/shell/LayoutController.ts:applyArrangement',
-        'mud/obj/command/social/WhoController.ts:open',
-        'mud/obj/command/system/GitController.ts:open',
-        'mud/obj/command/system/HelpController.ts:open',
-        'mud/obj/command/system/PressController.ts:open',
-        'mud/obj/command/system/WikiController.ts:open',
+        'mud/platform/agent/Avatar.ts:applyArrangement',
+        'mud/platform/idea/api/PromptLogic.ts:push',
+        'mud/platform/idea/cmd/author/CmsController.ts:open',
+        'mud/platform/idea/cmd/author/StudioController.ts:open',
+        'mud/platform/idea/cmd/perception/LookController.ts:open',
+        'mud/platform/idea/cmd/perception/LookController.ts:open',
+        'mud/platform/idea/cmd/perception/SenseController.ts:open',
+        'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyArrangement',
+        'mud/platform/idea/cmd/shell/LayoutController.ts:applyArrangement',
+        'mud/platform/idea/cmd/social/WhoController.ts:open',
+        'mud/platform/idea/cmd/system/GitController.ts:open',
+        'mud/platform/idea/cmd/system/HelpController.ts:open',
+        'mud/platform/idea/cmd/system/PressController.ts:open',
+        'mud/platform/idea/cmd/system/WikiController.ts:open',
       ].sort(),
     );
   });
 
   it('⚠ every `opens_card:` names a real card, and every mint is declared', () => {
-    const cmdRoot = join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'cmd');
+    const cmdRoot = join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'platform', 'cmd');
     const yamls: string[] = [];
     const walk = (dir: string): void => {
       for (const entry of readdirSync(dir)) {
@@ -196,7 +196,7 @@ describe('a card is born on the server, or not at all', () => {
    */
   it('⚠⚠ no card-opening verb is gated by a verb-level validator its READ does not need', () => {
     const press = readFileSync(
-      join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'cmd', 'system', 'press.yaml'),
+      join(SERVER_SRC, '..', '..', 'content', 'platform', 'content', 'platform', 'cmd', 'system', 'press.yaml'),
       'utf8',
     );
     // The verb itself gates nothing — bare `press` is the read.
@@ -267,8 +267,8 @@ describe('a declared card is a reachable card', () => {
     // Minted directly by server code.
     for (const file of files) {
       const rel = relative(SERVER_SRC, file).replace(/\\/g, '/');
-      if (rel === 'mud/obj/CardRegistry.ts') continue;
-      if (rel === 'mud/obj/api/CardLogic.ts') continue;
+      if (rel === 'mud/platform/idea/CardRegistry.ts') continue;
+      if (rel === 'mud/platform/idea/api/CardLogic.ts') continue;
       if (rel === 'mud/api/card.ts') continue;
       const text = readFileSync(file, 'utf8');
       for (const m of text.matchAll(

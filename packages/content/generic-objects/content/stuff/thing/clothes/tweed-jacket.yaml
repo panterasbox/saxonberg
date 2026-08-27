@@ -1,0 +1,10 @@
+class: /platform/thing/equipment/Garment
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a worn tweed jacket
+  primaryKeyword: jacket
+  longDescription: >
+    A patched tweed jacket with elbow reinforcements, smelling faintly
+    of chalk and old books. It wants to stand at the front of a room.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]

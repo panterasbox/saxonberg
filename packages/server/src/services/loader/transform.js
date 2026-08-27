@@ -196,8 +196,8 @@ export function findExportedClassNames(source, fileName) {
 
 /**
  * Rewrite RELATIVE `FromModule('./x' | '../x')` gate strings to their
- * absolute, mud-rooted form (`/obj/.../x`), resolved against the
- * **declaring file's own module directory**. Absolute globs (`/obj/…`)
+ * absolute, mud-rooted form (`/platform/.../x`), resolved against the
+ * **declaring file's own module directory**. Absolute globs (`/platform/…`)
  * and non-`FromModule` strings are untouched.
  *
  * This is what lets a narrow-entry gate be written relative to the file

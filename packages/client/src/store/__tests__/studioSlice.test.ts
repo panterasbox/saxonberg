@@ -81,7 +81,7 @@ const COIN = bp({
   kind: "concrete",
   baseClass: "Idea",
   mixinNames: ["GlobbableMixin"],
-  classPath: "/obj/Coin",
+  classPath: "/stuff/thing/Coin",
   blessed: true,
 });
 const MONEYBAG = bp({
@@ -278,7 +278,7 @@ describe("studioSlice view router", () => {
     expect(st().view).toBe("template");
     expect(st().template).toEqual({
       path: "",
-      classPath: "/obj/Coin",
+      classPath: "/stuff/thing/Coin",
       blueprintName: "Coin",
       yamlMode: false,
     });
@@ -297,12 +297,12 @@ describe("studioSlice view router", () => {
 
   it("beginTemplate describes the backing class", () => {
     describeMock.mockResolvedValue({
-      classPath: "/obj/Coin",
+      classPath: "/stuff/thing/Coin",
       mixins: [],
       fields: [],
     });
     useStore.getState().studioBeginTemplate(COIN);
-    expect(describeMock).toHaveBeenLastCalledWith("/obj/Coin", undefined);
+    expect(describeMock).toHaveBeenLastCalledWith("/stuff/thing/Coin", undefined);
   });
 
   it("the round-trip: catalogue → composer → match → blueprint", () => {
@@ -398,7 +398,7 @@ describe("studioSlice createTemplate disposition", () => {
     resetStudio();
     createTemplateMock.mockReset();
     describeMock.mockResolvedValue({
-      classPath: "/obj/Coin",
+      classPath: "/stuff/thing/Coin",
       mixins: [],
       fields: [],
     });
@@ -414,7 +414,7 @@ describe("studioSlice createTemplate disposition", () => {
     useStore.getState().studioSetField("name", "My Coin");
     await useStore.getState().studioCreateTemplate("csrf");
     expect(createTemplateMock).toHaveBeenCalledWith(
-      { path: "/obj/MyCoin", classPath: "/obj/Coin", data: { name: "My Coin" } },
+      { path: "/obj/MyCoin", classPath: "/stuff/thing/Coin", data: { name: "My Coin" } },
       "csrf",
     );
     expect(st().templateResult).toEqual({
@@ -447,7 +447,7 @@ describe("studioSlice scaffold + commit (composer act #3)", () => {
   it("scaffold stores the generated source + paths and resets commit state", async () => {
     scaffoldMock.mockResolvedValue({
       source: "export class Coin extends GlobbableMixin(Idea) {}\n",
-      targetPath: "/obj/Coin.ts",
+      targetPath: "/stuff/thing/Coin.ts",
       draftPath: "/home/alice/drafts/Coin.ts",
     });
     await useStore
@@ -457,7 +457,7 @@ describe("studioSlice scaffold + commit (composer act #3)", () => {
         "csrf",
       );
     expect(st().scaffoldSource).toContain("export class Coin");
-    expect(st().scaffoldTarget).toBe("/obj/Coin.ts");
+    expect(st().scaffoldTarget).toBe("/stuff/thing/Coin.ts");
     expect(st().commitDisposition).toBeNull();
     expect(st().commitReloaded).toBe(false);
   });
@@ -503,11 +503,11 @@ describe("studioSlice scaffold + commit (composer act #3)", () => {
   it("committed + reloaded UNLOCKS the follow-on ordering gate", async () => {
     scaffoldMock.mockResolvedValue({
       source: "x",
-      targetPath: "/obj/Coin.ts",
+      targetPath: "/stuff/thing/Coin.ts",
     });
     commitMock.mockResolvedValue({
       disposition: "committed",
-      classPath: "/obj/Coin.ts",
+      classPath: "/stuff/thing/Coin.ts",
       reloaded: true,
     });
     const s = useStore.getState();
@@ -521,7 +521,7 @@ describe("studioSlice scaffold + commit (composer act #3)", () => {
   });
 
   it("a DENIED commit does not enable the follow-on", async () => {
-    scaffoldMock.mockResolvedValue({ source: "x", targetPath: "/obj/Coin.ts" });
+    scaffoldMock.mockResolvedValue({ source: "x", targetPath: "/stuff/thing/Coin.ts" });
     commitMock.mockResolvedValue({
       disposition: "denied",
       message: "you must be a wizard to publish a class",

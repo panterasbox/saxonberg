@@ -50,9 +50,9 @@ The only durable Twitch state in the system is the per-user `TwitchProfile`
 |---|---|---|
 | `TwitchClient` | `backend/` | The Twitch *transport*: the EventSub websocket session, Helix REST (subscription create/delete, Send Chat Message, `/users` lookup), and token refresh. Network + external I/O — infrastructure, modeled on `BroadcastFeed`. Event-type-parameterized, so the deferred payment-intake build reuses the same session/token plumbing. |
 | `TwitchRelayReader` | `backend/` | The worker that owns the active EventSub subscription set (`broadcasterId→subId`) + per-channel debounce, wires inbound notifications to the mudlib, and exposes `subscribe`/`unsubscribe`/`resolveLogin`/`send`/`isConfigured`. Observes `PlayerLoggedOut` to unsubscribe emptied channels. |
-| `TwitchRelay` | `mud/obj/` | The in-memory state singleton (`Idea`): the channel table, history ring, echo-tag store, send throttle, and the `deliver` fanout. **Pure mudlib** — no backend import, no events. Its tune/untune/`dropPlayer` mutators *return* the presence edges (`0→1` / `emptied`). |
-| `TwitchLogic` / `TwitchApi` | `mud/obj/api/`, `mud/api/` | The gated logic + facade. `TwitchLogic` is the **Api→backend bridge**: it imports `TwitchRelayReader` and calls it directly for resolve / send / subscribe / unsubscribe. |
-| `TwitchController` | `mud/obj/command/social/` | The `twitch` verb (`list` / `tune` / `untune` / `history` / `who` + bare post), with the outbound reject-and-point. |
+| `TwitchRelay` | `mud/platform/` | The in-memory state singleton (`Idea`): the channel table, history ring, echo-tag store, send throttle, and the `deliver` fanout. **Pure mudlib** — no backend import, no events. Its tune/untune/`dropPlayer` mutators *return* the presence edges (`0→1` / `emptied`). |
+| `TwitchLogic` / `TwitchApi` | `mud/platform/idea/api/`, `mud/api/` | The gated logic + facade. `TwitchLogic` is the **Api→backend bridge**: it imports `TwitchRelayReader` and calls it directly for resolve / send / subscribe / unsubscribe. |
+| `TwitchController` | `mud/platform/idea/cmd/social/` | The `twitch` verb (`list` / `tune` / `untune` / `history` / `who` + bare post), with the outbound reject-and-point. |
 
 **The dependency directions:**
 

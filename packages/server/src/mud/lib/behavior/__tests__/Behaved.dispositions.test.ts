@@ -58,7 +58,7 @@ afterEach(() => {
 function makeHost(): Host {
   return makeStuffAtPath(
     () => new TestNPC(),
-    `/domain/lounge/npc/test${counter++}`
+    `/world/lounge/npc/test${counter++}`
   ) as unknown as Host;
 }
 

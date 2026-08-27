@@ -3,7 +3,7 @@
 > **⚠ AUDIT 2026-08-08 — partial delivery.** Checked against the tree when
 > GitLab #10 was closed here.
 >
-> - ✅ **The sneak mode shipped** — `seeds/obj/LocomotionMode/sneak.yaml`,
+> - ✅ **The sneak mode shipped** — `seeds/platform/idea/LocomotionMode/sneak.yaml`,
 >   alongside walk, run, climb, swim, fly, ride, drive, aerial, wheeled and
 >   sailed. It arrived via the **concealment build**
 >   ([stealth.md](../../subsystems/stealth.md),
@@ -330,7 +330,7 @@ modes (`ride`) construct the `TraverseActivity` for the
 conveyance host, not the actor.
 
 **New modes: `sneak` and `crawl`.** Templates at
-`/obj/LocomotionMode/sneak` and `/obj/LocomotionMode/crawl` with the
+`/platform/idea/LocomotionMode/sneak` and `/platform/idea/LocomotionMode/crawl` with the
 field values in the duration table above. Sneak uses the
 walk-body (`requiresBodyPlanMode: ['walk']`), crawl too;
 `noiseLevel: 'silent'` for sneak / `'quiet'` for crawl;

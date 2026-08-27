@@ -15,7 +15,7 @@ body becomes woundable by ordinary hazards, and a non-combat **medic** loop
 ## `ConditionApi` — the condition-surface facade
 
 The gated facade over the vitals **condition** surface (`api/condition.ts` →
-the gated `ConditionLogic` singleton at `/obj/api/condition`). Reserves
+the gated `ConditionLogic` singleton at `/platform/idea/api/condition`). Reserves
 (endurance) and transient combat flags are NOT conditions and stay out.
 
 > **Corrected 2026-07-31 (verified against the code).** This section used to
@@ -343,7 +343,7 @@ plan/requirements docs describe the pre-review shape:
   harm-only surface to the gated facade over the whole vitals *condition*
   surface — `inflict` (trauma) plus `afflict` / `relieve` / `conditionsOf`
   (afflictions). Reserves (endurance) and transient combat flags are
-  distinct axes and stay out. Logic singleton at `/obj/api/condition`.
+  distinct axes and stay out. Logic singleton at `/platform/idea/api/condition`.
 - **Push tick → reconcile-on-read.** Wound progression was originally
   planned as a `ScheduleApi.recurring` push with an in-memory tick-handle
   map re-armed on hydrate from `Avatar.enter` + `NPC.postRegister`. It was

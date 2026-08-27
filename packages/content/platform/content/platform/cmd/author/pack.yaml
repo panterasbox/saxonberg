@@ -1,0 +1,129 @@
+verbs: [pack]
+controller: /platform/idea/cmd/author/PackController
+description: "Inspect, preview, sync, and reconcile the installed content packs"
+help: |
+  The content-pack installer's operator surface. A pack's files are the
+  source of truth; the database is a cache of them, reconciled THREE-WAY
+  against the install record every boot: a row the pack changed is
+  updated, a row the database changed is kept, a row both changed is a
+  CONFLICT — reported here and in `errors`, never merged.
+
+  `pack status [<packId>]` — every pack: version, when and by whom it was
+  applied, open conflicts (with the next command to run), pinned rows.
+
+  `pack install <packId> --dry-run` — the exact change set a sync would
+  apply, writing nothing. (Installs happen at boot; use `pack sync` to
+  apply live.)
+
+  `pack sync [<packId>]` — reconcile one pack now and re-hydrate the
+  affected live instances; defaults to `base-library`.
+
+  `pack provision <packId>` — what the registries granted the pack:
+  its maintainers group and who is in it, its declared groups, and its
+  title claims with who holds each now.
+
+  `pack diff <packId> [<path>]` — the three bodies of a conflicted row:
+  baseline (as installed), yours (database), theirs (pack file). With no
+  path, every open conflict.
+
+  `pack resolve <packId> <path> --take-pack | --keep --pin | --export` —
+  settle a conflict. `--take-pack` writes the pack's row; `--keep --pin`
+  keeps the database row AND claims it (pinned rows are never compared
+  again — keeping means claiming; there is no bare `--keep`); `--export`
+  writes the database row back to the pack's workspace file so the next
+  sync sees both sides agree.
+
+  `pack pin <packId> <path>` / `pack unpin <packId> <path>` — claim or
+  release a row directly.
+
+  Restricted to the executive — the Office of the Prime Minister: the
+  PM (whoever holds the seat) and everyone holding a position there
+  (`appoint` through the Office). The executive holds the platform.
+validators:
+  - /lib/command/validators/requiresPackInstaller
+options:
+  dry-run:
+    type: boolean
+    field: dryRun
+    description: "Preview the change set; write nothing"
+  take-pack:
+    type: boolean
+    field: takePack
+    description: "resolve: write the pack file's row over the database"
+  keep:
+    type: boolean
+    field: keep
+    description: "resolve: keep the database row (requires --pin)"
+  pin:
+    type: boolean
+    field: pin
+    description: "resolve: claim the kept row so it is never compared again"
+  export:
+    type: boolean
+    field: export
+    description: "resolve: write the database row back to the pack file"
+subcommands:
+  status:
+    description: "Every pack's install state, conflicts, and pins"
+    args:
+      - name: packId
+        type: string
+        required: false
+  install:
+    description: "Preview a pack's change set (--dry-run only; boot installs)"
+    args:
+      - name: packId
+        type: string
+        required: true
+  sync:
+    description: "Reconcile one pack now and re-hydrate live instances"
+    args:
+      - name: packId
+        type: string
+        required: false
+  provision:
+    description: "The pack's maintainers, groups and titles as held now"
+    args:
+      - name: packId
+        type: string
+        required: true
+  diff:
+    description: "The three bodies of a conflicted row (or every conflict)"
+    args:
+      - name: packId
+        type: string
+        required: true
+      - name: path
+        type: string
+        required: false
+        greedy: true
+  resolve:
+    description: "Settle a conflict: --take-pack | --keep --pin | --export"
+    args:
+      - name: packId
+        type: string
+        required: true
+      - name: path
+        type: string
+        required: true
+        greedy: true
+  pin:
+    description: "Claim a row: skipped by every reconcile until unpinned"
+    args:
+      - name: packId
+        type: string
+        required: true
+      - name: path
+        type: string
+        required: true
+        greedy: true
+  unpin:
+    description: "Release a pin; the next reconcile compares the row again"
+    args:
+      - name: packId
+        type: string
+        required: true
+      - name: path
+        type: string
+        required: true
+        greedy: true

@@ -10,13 +10,13 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { stubRegistries } from '../../obj/api/__tests__/pack-harness';
+import { stubRegistries } from '../../platform/idea/api/__tests__/pack-harness';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, dirname } from 'path';
 import YAML from 'yaml';
 import { PackApi } from '../pack';
-import { PackLogic } from '../../obj/api/PackLogic';
+import { PackLogic } from '../../platform/idea/api/PackLogic';
 import { PersistApi } from '../persist';
 import { StuffApi } from '../stuff';
 import { TemplateApi } from '../template';
@@ -24,8 +24,8 @@ import { SecurityError } from '../../lib/security/errors';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-const MATERIAL = '/obj/material/Material';
-const HYDRATOR = '/obj/persistence/PersistentHydrator';
+const MATERIAL = '/platform/idea/material/Material';
+const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
 
 interface Row extends Record<string, unknown> {
   _id?: string;
@@ -107,7 +107,7 @@ afterEach(() => {
 
 describe('PackApi.sync', () => {
   it('reconciles and re-hydrates the affected live singletons (no restart)', async () => {
-    const root = writePack('p', 'obj/material/spirit/gin.yaml', {
+    const root = writePack('p', 'stuff/idea/material/spirit/gin.yaml', {
       name: 'gin',
       appearance: 'clear',
     });
@@ -115,7 +115,7 @@ describe('PackApi.sync', () => {
 
     // Edit the file.
     writeFileSync(
-      join(root, 'content/obj/material/spirit/gin.yaml'),
+      join(root, 'content/stuff/idea/material/spirit/gin.yaml'),
       YAML.stringify({
         class: MATERIAL,
         hydratorClass: HYDRATOR,
@@ -131,7 +131,7 @@ describe('PackApi.sync', () => {
       .mockResolvedValue(undefined);
 
     const result = await PackApi.sync('p', root);
-    expect(result.updated).toEqual(['/obj/material/spirit/gin']);
+    expect(result.updated).toEqual(['/stuff/idea/material/spirit/gin']);
     expect(restore).toHaveBeenCalledWith(liveGin);
     expect(result.rehydrated).toBe(1);
   });

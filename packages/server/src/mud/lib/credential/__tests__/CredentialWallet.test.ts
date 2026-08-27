@@ -24,9 +24,9 @@ import {
   CredentialWalletMixin,
   type CredentialWallet,
 } from "../CredentialWallet";
-import CredentialWalletUpdate from "../../../obj/CredentialWalletUpdate";
-import PaymentCard from "../../../obj/PaymentCard";
-import TravelCard from "../../../domain/common/tpa/TravelCard";
+import CredentialWalletUpdate from "../../../platform/idea/CredentialWalletUpdate";
+import PaymentCard from "../../../platform/thing/PaymentCard";
+import TravelCard from "../../../world/common/tpa/TravelCard";
 import { BORN_WITH_TRAVEL_NODES } from "../Credential";
 import { makeStuff } from "../../security/__tests__/test-setup";
 import type { Stuff } from "../../stuff/Stuff";
@@ -59,7 +59,7 @@ describe("CredentialWalletMixin holder", () => {
     const pay = w.ensureCredential("payment");
     pay.linkAccount("acct-a");
     const travel = w.ensureCredential("travel");
-    travel.register("/domain/x/node");
+    travel.register("/world/x/node");
 
     expect(w.hasCredential("payment")).toBe(true);
     expect(w.hasCredential("travel")).toBe(true);
@@ -72,7 +72,7 @@ describe("CredentialWalletMixin holder", () => {
   it("round-trips its records through the `credentials` accessor", () => {
     const w = makeStuff(() => new TestWallet());
     w.ensureCredential("payment").linkAccount("acct-z");
-    w.ensureCredential("travel").register("/domain/a/node");
+    w.ensureCredential("travel").register("/world/a/node");
 
     // Simulate hydration: read the storable rows, write them into a fresh wallet.
     const rows = (w as unknown as { credentials: unknown[] }).credentials;
@@ -81,7 +81,7 @@ describe("CredentialWalletMixin holder", () => {
 
     expect(w2.getCredential("payment")!.hasAccount("acct-z")).toBe(true);
     const t = w2.getCredential("travel")!;
-    expect(t.isRegistered("/domain/a/node")).toBe(true);
+    expect(t.isRegistered("/world/a/node")).toBe(true);
     for (const node of BORN_WITH_TRAVEL_NODES) {
       expect(t.isRegistered(node)).toBe(true); // floor preserved
     }
@@ -105,8 +105,8 @@ describe("either-base resolution (one scan finds the holder)", () => {
       expect(resolved?.getCredential("travel")!.isRegistered(node)).toBe(true);
     }
     // `register` writes to the hosted update's travel record.
-    resolved?.getCredential("travel")!.register("/domain/x/node");
-    expect(wallet.getCredential("travel")!.isRegistered("/domain/x/node")).toBe(
+    resolved?.getCredential("travel")!.register("/world/x/node");
+    expect(wallet.getCredential("travel")!.isRegistered("/world/x/node")).toBe(
       true,
     );
   });

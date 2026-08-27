@@ -141,11 +141,11 @@ principal, (b) propagated-from-registration, (c) NPC/host residence,
 | `backend/Backend.ts` OAuth verify / test-auth / link/unlink | pre-principal (the audit's sixth kind: anonymous account operation) | unscoped — account ops are field work by construction |
 | `backend/{Twitch,Kick,Youtube}RelayReader.ts` (4 sites) | (d) | plant `OMNI_SCOPE` |
 | `mud/api/schedule.ts` `planRun` (2 shapes) | (b) | birth scope captured at schedule time, re-planted on the fresh root (the `causingCommandId` precedent); per-scope handle index serves reap |
-| `mud/obj/WorldClockRegistry.ts` heartbeat + hostDestroyed | (d), **multi-tenant** | heartbeat root is omni; each *scoped* schedule's callback is re-rooted per-fire under its birth scope (`Schedule.birthScope`), so the shared maintenance root never launders a circle continuation |
-| `mud/obj/SchedulerRegistry.ts` emission/completion | (a)/(c) | root planted with the engagement **actor's** stamped scope |
-| `mud/obj/SchedulerRegistry.ts` hostDestroyed | (d) | omni (termination is system work) |
+| `mud/platform/idea/WorldClockRegistry.ts` heartbeat + hostDestroyed | (d), **multi-tenant** | heartbeat root is omni; each *scoped* schedule's callback is re-rooted per-fire under its birth scope (`Schedule.birthScope`), so the shared maintenance root never launders a circle continuation |
+| `mud/platform/idea/SchedulerRegistry.ts` emission/completion | (a)/(c) | root planted with the engagement **actor's** stamped scope |
+| `mud/platform/idea/SchedulerRegistry.ts` hostDestroyed | (d) | omni (termination is system work) |
 | `mud/lib/command/CommandGiver.ts` `executeAsyncBody` | (a) | inherits the command root's established scope (same tree) |
-| `mud/obj/api/ProvenanceLogic.ts`, `mud/api/diagnostics.ts`, `mud/api/script.ts`, `mud/lib/npc/DialogueConversation.ts`, `mud/lib/craft/ManualBuildStep.ts`, `mud/lib/behavior/crossing-ritual.ts` | (b)/(c) | nested under scoped roots or re-planted via ScheduleApi — inherit correctly |
+| `mud/platform/idea/api/ProvenanceLogic.ts`, `mud/api/diagnostics.ts`, `mud/api/script.ts`, `mud/lib/npc/DialogueConversation.ts`, `mud/lib/craft/ManualBuildStep.ts`, `mud/lib/behavior/crossing-ritual.ts` | (b)/(c) | nested under scoped roots or re-planted via ScheduleApi — inherit correctly |
 
 Boot/seeding runs with **no root at all** (no ALS store) — reads as
 null scope, which PM treats as field/system default; nothing to plant.
@@ -193,7 +193,7 @@ classes register via `_registerBoundaryExemptBase` at boot wiring:
 `ApiLogic` (Decision J) and **`Interactive`** — the connection
 transport is out-of-world plumbing; sockets attach to holders on
 either side of the boundary and no domain state rides an Interactive's
-surface. `/obj/EventRegistry` joined the enumerated path allowlist
+surface. `/platform/idea/EventRegistry` joined the enumerated path allowlist
 (the event bus is framework infrastructure). A fixed
 **framework-method set** is boundary-exempt on any receiver — the
 identity primitives (`isDestroyed`/`toString`/`getTemplatePath`/
@@ -350,7 +350,7 @@ would quietly restore the hole.
   the shipped parcel grant surface — `revokeUse` carries a direct
   sandbox witness that exits a revoked guest mid-visit.
 
-  **A wardrobe is a skin, not the class.** `/obj/sandbox/wardrobe` is a
+  **A wardrobe is a skin, not the class.** `/platform/thing/sandbox/wardrobe` is a
   template row over that mechanism; a turbolift, a mirror, a drafting
   table are sibling ROWS — prose, keywords, and `passageDirection` —
   never new classes. That is why the exit label is a field: the class
@@ -437,8 +437,8 @@ would quietly restore the hole.
   **The extent test asks LOCATION, not lineage.** The first cut resolved
   "is this receiver inside the bound?" by requiring the receiver's own
   `templatePath` to sit under the parcel. But a template path is *clone
-  lineage*: an avatar's is `/obj/Avatar/<id>` and a cloned corpse's is
-  `/obj/Corpse`, wherever either happens to be standing. So a
+  lineage*: an avatar's is `/platform/agent/Avatar/<id>` and a cloned corpse's is
+  `/stuff/agent/Corpse`, wherever either happens to be standing. So a
   governed eval was denied the one receiver it most obviously covers —
   the wizard's own body, in the parcel they hold title to — and every
   runtime instance besides. Worse, the eval scratch is minted and *then*
@@ -447,8 +447,8 @@ would quietly restore the hole.
   jurisdiction. A field receiver is now in-jurisdiction three ways:
 
     1. **content of the place** — its own path is at or under the bound
-       (segment-wise, so `/domain/lounge` does not swallow
-       `/domain/loungewear`);
+       (segment-wise, so `/world/lounge` does not swallow
+       `/world/loungewear`);
     2. **standing in the place** — an enclosure up its containment chain
        is. O(depth), and only ever walked on the governed branch, which
        no ordinary dispatch reaches;
@@ -679,7 +679,7 @@ them are fixed on this branch.
   mirrors `/studio`. **Deploy step** (historical — the seeder is gone): `SeederManager` was insert-only, so
   an existing environment kept its stale `/home` row — delete
   `domain { path: '/home' }` once and restart to re-seed. Same for
-  `/domain/lounge/wire-alcove` and `/obj/sandbox/CircleFloor` if they
+  `/world/lounge/wire-alcove` and `/platform/location/sandbox/CircleFloor` if they
   were seeded before the light fixtures landed.
 
 - **A crossing exit is not a spatial exit.** The wardrobe passage

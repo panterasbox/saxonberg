@@ -19,8 +19,8 @@
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link MaterialLogic} singleton at
- * `/obj/api/material`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/material` reloads it.
+ * `/platform/idea/api/material`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/material` reloads it.
  */
 
 import type Material from '../lib/material/Material';
@@ -28,11 +28,11 @@ import type { CompositionEntry } from '../lib/material/Material';
 import type { Channel } from '../lib/material/Channel';
 import type { Construction } from '../lib/material/Construction';
 import type { Grade } from '../lib/craft/Grade';
-import type { TraumaType } from '../obj/Condition';
+import type { TraumaType } from '../platform/idea/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { MaterialLogic } from '../obj/api/MaterialLogic';
+import { MaterialLogic } from '../platform/idea/api/MaterialLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -40,9 +40,9 @@ import { SecurityApi } from './security';
 // and load at boot via `QuantityApi.loadTagTables`. Material doesn't
 // register them locally anymore.
 
-const LOGIC_PATH = '/obj/api/material';
+const LOGIC_PATH = '/platform/idea/api/material';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MaterialLogic', import.meta.url)
+  new URL('../platform/idea/api/MaterialLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able MaterialLogic singleton (sync). */
@@ -325,7 +325,7 @@ export class MaterialApi {
   }
 
   /**
-   * Boot-time roster warm: stand up every authored `/obj/material/**`
+   * Boot-time roster warm: stand up every authored `/stuff/idea/material/**`
    * Material as a live singleton so the sync resolve-on-read seams
    * (`Tangible.getMaterial`, bulk slot materials, autoignition,
    * composition expansion) hit from the first frame of live play —

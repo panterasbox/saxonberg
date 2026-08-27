@@ -4190,7 +4190,7 @@ export interface BlueprintSummary {
   baseClass: string;
   /** The effective mixin set's `_mixinName`s, sorted. */
   mixinNames: string[];
-  /** Concrete kinds only: the backing class path (`/obj/Campfire`). */
+  /** Concrete kinds only: the backing class path (`/stuff/thing/Campfire`). */
   classPath?: string;
   /** Hierarchy grouping — a parent blueprintId or category key. */
   parent?: string;
@@ -4254,9 +4254,9 @@ export interface BlueprintWriteResult {
  * `TemplateApi.saveTemplate` still applies to the `classPath` being set.
  */
 export interface CreateTemplateInput {
-  /** The new template path (`/domain/<zone>/<leaf>`). Must not already exist. */
+  /** The new template path (`/world/<zone>/<leaf>`). Must not already exist. */
   path: string;
-  /** The backing class the template points at (`/obj/Coin`). */
+  /** The backing class the template points at (`/stuff/thing/Coin`). */
   classPath: string;
   /** The template's initial `data` block. */
   data: Record<string, unknown>;

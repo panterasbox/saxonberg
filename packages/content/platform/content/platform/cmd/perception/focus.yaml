@@ -1,0 +1,29 @@
+verbs: [focus]
+controller: /platform/idea/cmd/perception/FocusController
+description: "Display or set your focus (the anchor your queries are pointed at)"
+help: |
+  Your focus is the thing your other commands point at when you
+  don't name a target. Plain `focus` tells you what you're
+  currently focused on. Give it a target to aim your attention
+  there instead.
+
+  Focus also chain-drills: if you're focused on a bookcase,
+  `focus apple` finds an apple inside it before looking
+  elsewhere in the room. Most look-style verbs nudge your focus
+  for you, so reach for `focus` directly when you want to set the
+  anchor deliberately.
+args:
+  - name: fragment
+    type: objects
+    required: false
+    greedy: true
+    # Match `look`'s scope chain: try the current focus first (so
+    # chain-drilling works — `focus apple` while focused on the
+    # bookcase finds an apple inside the bookcase), then fall back
+    # to `reachable` for fresh selection of items in the room but
+    # not under the current focus. Without the `reachable` fallback
+    # the very first `focus <thing>` from a Fresh `here`-default
+    # focus would resolve 0 candidates (the location's own surface
+    # doesn't expose its contents — that's `reachable`'s job).
+    scope: ["$focus", "reachable"]
+    requires: any

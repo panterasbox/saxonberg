@@ -1,0 +1,18 @@
+recipeId: leather-jerkin
+name: Leather Jerkin
+keywords:
+- jerkin
+- leather-jerkin
+inputSlots:
+- slot: hide
+  category: hide
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- mending
+outputTemplate: /stuff/thing/armor/hide-jerkin
+outputMaterial: ''
+outputApplication: tangible
+difficulty: hard
+discipline: smithing

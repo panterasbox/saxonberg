@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-trade-hearth-cooking",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The hearth-cooking trade — what cooking at a hearth introduces: its recipes (its stock is commons)."
+}

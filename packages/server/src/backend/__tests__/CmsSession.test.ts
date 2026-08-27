@@ -17,7 +17,7 @@ import {
   ExecutionContextApi,
   FrameKind,
 } from '../../mud/api/execution-context';
-import type Avatar from '../../mud/obj/Avatar';
+import type Avatar from '../../mud/platform/agent/Avatar';
 
 /** Build a minimal Request carrying a passport session principal. */
 function reqWithUser(userId: string | null): Request {

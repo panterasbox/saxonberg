@@ -26,7 +26,7 @@ See:
 | File | Role |
 |---|---|
 | `packages/server/src/mud/api/mql-subscription.ts` | `MqlSubscriptionApi` — a thin facade over `MqlSubscriptionRegistry`; descriptor types, projection helpers, `handleQuery`, the stateless `fireFieldChange` / `projectFields` |
-| `packages/server/src/mud/obj/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`) — owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Every method gates to `FromModule(MqlSubscriptionApi)`. |
+| `packages/server/src/mud/platform/idea/MqlSubscriptionRegistry.ts` | `MqlSubscriptionRegistry` (singleton `Idea`) — owns the per-Interactive subscription map, the meta-bus dependency index, the listener refcounts, and the dirty-set scheduler. State lives here so it survives an HMR reload of the Api file. Every method gates to `FromModule(MqlSubscriptionApi)`. |
 | `packages/server/src/mud/lib/events/FieldChangedEvent.ts` | Fact-mixin field-change event (DTO) |
 | `packages/server/src/mud/lib/events/PropertyChangedEvent.ts` | Property-bag change event |
 | `packages/server/src/mud/lib/events/ShadowChangedEvent.ts` | Shadow lifecycle event (declared; firing wires up in a later subsystem) |
@@ -522,7 +522,7 @@ After the first fold, each ledger's own append event
 `stuff.stuffId`) and `by: 'field'` (indexes the field name); **anything
 else is indexed under the value `null`**, while `routeFire` looks up
 `payload[by]`. So a source like `{ on: SomeEvent, by: 'subject' }`
-registers under `null`, is looked up under `'/obj/Avatar/dev'`, and
+registers under `null`, is looked up under `'/platform/agent/Avatar/dev'`, and
 **never matches**. It is not over-eager — it never fires at all. This
 build shipped that mistake in its first cut and the tests, which
 asserted only that a change source was *declared*, could not see it.

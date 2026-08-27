@@ -19,7 +19,7 @@
  * (`'fulfilling-bartender'`, for `order`). A value off the wire is ignored.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link CraftingLogic} singleton at `/obj/api/crafting`.
+ * {@link CraftingLogic} singleton at `/platform/idea/api/crafting`.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -27,7 +27,7 @@ import type { Grade } from '../lib/craft/Grade';
 import type { BuildContribution, BuildMethod } from '../lib/craft/ManualBuild';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { CraftingLogic } from '../obj/api/CraftingLogic';
+import { CraftingLogic } from '../platform/idea/api/CraftingLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -203,9 +203,9 @@ export interface SalvageFailure {
 /** The outcome of a salvage — declines are data, breaches throw. */
 export type SalvageOutcome = SalvageSuccess | SalvageFailure;
 
-const LOGIC_PATH = '/obj/api/crafting';
+const LOGIC_PATH = '/platform/idea/api/crafting';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/CraftingLogic', import.meta.url),
+  new URL('../platform/idea/api/CraftingLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able CraftingLogic singleton (sync). */

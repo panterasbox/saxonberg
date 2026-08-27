@@ -149,7 +149,7 @@ scope. See [bulk.md](./bulk.md).
 
 Most classification is metadata — flat strings or refs. Some
 classifications carry behavior. **`RadioactiveMixin`**
-(`/obj/material/Radioactive.ts`) is the v1 demonstration of the
+(`/stuff/idea/material/Radioactive.ts`) is the v1 demonstration of the
 capability-mixin pattern:
 
 ```ts
@@ -160,8 +160,8 @@ The mixin adds `getHalfLife()`, `getDecayMode()` (alpha / beta-minus
 / beta-plus / gamma / spontaneous-fission / electron-capture), and
 `getDecayProduct()` — a lazy cross-reference to the daughter
 Material. Templates that need it use `class:
-/obj/material/RadioactiveMaterial`; everything else stays on
-`class: /obj/material/Material`. `MixinApi.isRadioactive(m)` narrows
+/platform/idea/material/RadioactiveMaterial`; everything else stays on
+`class: /platform/idea/material/Material`. `MixinApi.isRadioactive(m)` narrows
 the typed surface.
 
 Why a mixin and not a tag: radioactivity carries non-trivial
@@ -185,7 +185,7 @@ eggs and steak are different kinds; ribeye and sirloin are one `meat`
 (that spread is `Grade` + prose on the instance). Growing the library
 is a **vocabulary decision, not a content decision**.
 
-**`ConsumableMaterial`** (`/obj/material/ConsumableMaterial`, the
+**`ConsumableMaterial`** (`/platform/idea/material/ConsumableMaterial`, the
 capability-subclass pattern with no extra fields — taxonomy) marks the
 ingestible half of the vocabulary: the curated food/drink *kinds*
 (meat, root-vegetable, trail-ration, gin…) whose worth is what a body
@@ -248,20 +248,20 @@ verb (Balance instrument) reads it directly.
 
 ### v1 roster
 
-Materials are organized under `/obj/material/<category>/...`.
+Materials are organized under `/stuff/idea/material/<category>/...`.
 Categories track everyday "what kind of stuff is this" rather than
 a single science's classification — chemistry, biology, geology
 all overlay via tags. Path depth varies by branch: shallow where one
 level reads naturally; deeper when content earns it.
 
-- `/obj/material/element/iron, copper, carbon` — pure elements
-- `/obj/material/element/uranium` — `RadioactiveMaterial` (the
+- `/stuff/idea/material/element/iron, copper, carbon` — pure elements
+- `/stuff/idea/material/element/uranium` — `RadioactiveMaterial` (the
   capability-mixin demo)
-- `/obj/material/alloy/steel` — Fe + C composition
-- `/obj/material/rock/granite` — igneous; mineral composition unmodeled
+- `/stuff/idea/material/alloy/steel` — Fe + C composition
+- `/stuff/idea/material/rock/granite` — igneous; mineral composition unmodeled
   in v1
-- `/obj/material/wood/oak` — once-living plant tissue
-- `/obj/material/tissue/flesh, plant-tissue, fruit-flesh` — biological
+- `/stuff/idea/material/wood/oak` — once-living plant tissue
+- `/stuff/idea/material/tissue/flesh, plant-tissue, fruit-flesh` — biological
 
 These are leaf templates; Material isn't a folder class.
 
@@ -333,7 +333,7 @@ not as the fake 0–1 scalars that were removed.
 ## Clade — taxonomic scope
 
 `Clade extends Zone` (the *bare* `Zone`, not `SpatialZone`).
-`ZoneApi.isFolderClass(/obj/species/Clade)` returns true (it extends
+`ZoneApi.isFolderClass(/platform/idea/species/Clade)` returns true (it extends
 Zone), so taxonomic templates can hold descendants under the
 folder/leaf invariant. `ZoneApi.isSpatialZoneClass` returns false
 (Clade does NOT extend SpatialZone), so a species member's
@@ -345,11 +345,11 @@ runtime-only `Set<Species>` of members. Members are populated as
 Species singletons load.
 
 **Sub-clade hierarchy is encoded in the template path itself**
-(`/obj/species/animalia/chordata/mammalia/.../sapiens`). Each path
+(`/stuff/idea/species/animalia/chordata/mammalia/.../sapiens`). Each path
 segment between the kingdom and the species leaf is a candidate
 sub-clade; v1 ships only the four kingdom-rank Clades because that's
 all `SpeciesApi.getKingdom` actually consults today, but any of the
-intermediate path segments can hold a `/obj/species/Clade` template
+intermediate path segments can hold a `/platform/idea/species/Clade` template
 the moment a content reason arrives — Phylum, Class, Order, Family,
 Genus all plug in without a schema change. `SpeciesApi`'s walk
 already iterates every ancestor segment looking for Clade
@@ -357,10 +357,10 @@ singletons; populating intermediate Clades is purely additive.
 
 The four v1 kingdoms:
 
-- `/obj/species/animalia` — Animalia
-- `/obj/species/plantae` — Plantae
-- `/obj/species/fungi` — Fungi (no v1 species)
-- `/obj/species/constructa` — Constructa
+- `/stuff/idea/species/animalia` — Animalia
+- `/stuff/idea/species/plantae` — Plantae
+- `/stuff/idea/species/fungi` — Fungi (no v1 species)
+- `/stuff/idea/species/constructa` — Constructa
 
 Per-Clade defaults (e.g. "all Hominidae default to body plan X") are
 deferred until a sub-clade lands and earns the inheritance machinery.
@@ -483,7 +483,7 @@ sessile plan is the stand-in for organisms with no agency anatomy
   composes `EnergizedMixin` **directly** — `innateMixins` conferral is
   activation-gated and not a reliable carrier for the narrowing.)
 
-The roster (`/obj/species/...`). The char-gen Wave 1 build expanded the
+The roster (`/stuff/idea/species/...`). The char-gen Wave 1 build expanded the
 `homo` genus to seven playable humanoid species; the species-expansion
 pass added **three more playable** (gnome, half-elf, orc) and **five
 NPC-first** casts (troll, ghoul, ogre, kobold, satyr). The species are
@@ -627,7 +627,7 @@ raw `_speciesPath` field (not `getSpecies()`, since that uses
 singleton we're about to ensure) and calls `StuffApi.singleton(...)`
 for the species template AND every ancestor in the kingdom walk.
 Ancestor segments without a seeded template (e.g.
-`/obj/species/animalia/chordata/mammalia` is a folder rather than
+`/stuff/idea/species/animalia/chordata/mammalia` is a folder rather than
 a Clade leaf) are tolerated — the singleton-not-found error is
 swallowed, and `SpeciesApi.getKingdom`'s null-tolerant ancestor
 walk takes it from there.

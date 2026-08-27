@@ -5,7 +5,7 @@ import { openWorldAs, runCommand, sendUntil, enterWorld } from './helpers';
  * Sandbox (the holodeck) — the player-visible crossing, end to end
  * through the real client.
  *
- * Every test spawns in `/domain/lounge/wire-alcove`: a singleton
+ * Every test spawns in `/world/lounge/wire-alcove`: a singleton
  * side-room whose `populates:` puts a public, UNOWNED wardrobe in it
  * each boot. An ordinary avatar standing next to that door is the whole
  * setup — character creation IS the circle grant (`selfHomeOwnerOf`),
@@ -29,7 +29,7 @@ import { openWorldAs, runCommand, sendUntil, enterWorld } from './helpers';
  * See docs/subsystems/sandbox.md.
  */
 
-const ALCOVE = '/domain/lounge/wire-alcove';
+const ALCOVE = '/world/lounge/wire-alcove';
 
 /** The location pane's heading — where the player IS, right now. */
 function whereHeading(page: import('@playwright/test').Page, name: RegExp) {
@@ -102,7 +102,7 @@ test.describe('sandbox: the wardrobe crossing', () => {
       // under circle scope, so it dies with the session.
       await sendUntil(
         page,
-        'clone /obj/sandbox/wardrobe --here',
+        'clone /platform/thing/sandbox/wardrobe --here',
         page.getByText(/cloned/i).first()
       );
 
@@ -511,7 +511,7 @@ test.describe('sandbox: the wardrobe crossing', () => {
 
       await sendUntil(
         page,
-        'clone /obj/sandbox/wardrobe --here',
+        'clone /platform/thing/sandbox/wardrobe --here',
         page.getByText(/cloned/i).first()
       );
       await runCommand(page, 'go wardrobe');

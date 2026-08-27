@@ -320,10 +320,10 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [
-        "combat/attack.yaml",
-        "combat/fight.yaml",
-        "combat/intervene.yaml",
-        "combat/defend.yaml",
+        "platform/cmd/combat/attack.yaml",
+        "platform/cmd/combat/fight.yaml",
+        "platform/cmd/combat/intervene.yaml",
+        "platform/cmd/combat/defend.yaml",
       ],
       peers: [],
       environment: [],

@@ -45,8 +45,8 @@ afterEach(() => {
 describe('RenownEvent', () => {
   it('round-trips its fields, nested signal, and scope axes', async () => {
     const ev = new RenownEvent();
-    ev.subject = '/obj/Avatar/p1';
-    ev.source = '/obj/Avatar/p2';
+    ev.subject = '/platform/agent/Avatar/p1';
+    ev.source = '/platform/agent/Avatar/p2';
     ev.kind = 'reaction';
     ev.signal = { emote: 'applaud', tags: ['cheer'], commandId: 'cmd-1' };
     ev.locality = '/university-avenue';
@@ -55,10 +55,10 @@ describe('RenownEvent', () => {
     ev.realAt = 1_700_000_000_000; // wall-time epoch ms
     await ev.save();
 
-    const found = await RenownEvent.find({ subject: '/obj/Avatar/p1' });
+    const found = await RenownEvent.find({ subject: '/platform/agent/Avatar/p1' });
     expect(found).toHaveLength(1);
     const f = found[0]!;
-    expect(f.source).toBe('/obj/Avatar/p2');
+    expect(f.source).toBe('/platform/agent/Avatar/p2');
     expect(f.kind).toBe('reaction');
     expect(f.signal).toEqual({
       emote: 'applaud',
@@ -75,27 +75,27 @@ describe('RenownEvent', () => {
 
   it('subject is the query key — other subjects are excluded', async () => {
     const a = new RenownEvent();
-    a.subject = '/obj/Avatar/a';
-    a.source = '/obj/Avatar/x';
+    a.subject = '/platform/agent/Avatar/a';
+    a.source = '/platform/agent/Avatar/x';
     await a.save();
     const b = new RenownEvent();
-    b.subject = '/obj/Avatar/b';
-    b.source = '/obj/Avatar/x';
+    b.subject = '/platform/agent/Avatar/b';
+    b.source = '/platform/agent/Avatar/x';
     await b.save();
 
-    const found = await RenownEvent.find({ subject: '/obj/Avatar/a' });
+    const found = await RenownEvent.find({ subject: '/platform/agent/Avatar/a' });
     expect(found).toHaveLength(1);
-    expect(found[0]!.subject).toBe('/obj/Avatar/a');
+    expect(found[0]!.subject).toBe('/platform/agent/Avatar/a');
   });
 
   it('a global-scope event stores null locality and empty groups', async () => {
     const ev = new RenownEvent();
-    ev.subject = '/obj/Avatar/p3';
-    ev.source = '/obj/Avatar/p4';
+    ev.subject = '/platform/agent/Avatar/p3';
+    ev.source = '/platform/agent/Avatar/p4';
     ev.at = 7;
     await ev.save();
 
-    const [f] = await RenownEvent.find({ subject: '/obj/Avatar/p3' });
+    const [f] = await RenownEvent.find({ subject: '/platform/agent/Avatar/p3' });
     expect(f!.locality).toBeNull();
     expect(f!.groups).toEqual([]);
   });

@@ -420,7 +420,7 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Picked up by `CommandGiver` discovery via the `self` slot.
      */
     static commandContributions: CommandContributions = {
-      self: ['shell/settings.yaml', 'shell/var.yaml'],
+      self: ['platform/cmd/shell/settings.yaml', 'platform/cmd/shell/var.yaml'],
       peers: [],
       environment: [],
     };

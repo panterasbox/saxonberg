@@ -1,0 +1,20 @@
+recipeId: belt-knife
+name: Belt Knife
+keywords:
+- knife
+- belt-knife
+inputSlots:
+- slot: stock
+  category: ferrous
+  minGrade: fair
+  kind: item
+  count: 1
+toolCapabilities:
+- striking
+- anvil
+outputTemplate: /stuff/thing/arms/belt-knife
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1400
+difficulty: standard
+discipline: smithing

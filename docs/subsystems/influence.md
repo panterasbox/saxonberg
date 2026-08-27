@@ -25,11 +25,11 @@ system** — how contribution and conduct become standing. Named `standing`
 (not `influence`) because the value objects already *are* `*Standing`, and
 **renown is not subordinate to influence**: it has its own non-influence
 readers (NPC reactions, disguise, social), so a neutral name is correct.
-The `*Api` faces stay in `api/`; the `*Logic` singletons in `obj/api/`.
+The `*Api` faces stay in `api/`; the `*Logic` singletons in `platform/idea/api/`.
 
 > **Durable identity (Phase 0, already merged).** The whole engagement
 > cluster — renown, participation, producer — banks standing on the durable
-> `templatePath` (`/obj/Avatar/<playerId>`), never the ephemeral `stuffId`
+> `templatePath` (`/platform/agent/Avatar/<playerId>`), never the ephemeral `stuffId`
 > (which is re-minted on re-clone). The id stays a live-resolution *handle*
 > for scope; only the stored aggregation *key* is the templatePath. Renown
 > and participation re-key together — the consumer projection multiplies
@@ -194,7 +194,7 @@ CommandDispatchedEvent ─► CreditRouting.resolve ─► producer_events ─�
   weight-scaled attributed-bucket count. Drop it, replay the log, get
   identical standings.
 - **`ProducerApi`** (`api/producer.ts`) → **`ProducerLogic`**
-  (`obj/api/ProducerLogic.ts`, `/obj/api/producer`): `boot` / `append` /
+  (`platform/idea/api/ProducerLogic.ts`, `/platform/idea/api/producer`): `boot` / `append` /
   `recompute` / `producerOf(authorId)` / `standingOf(authorId)` /
   `eventsFor`. Gated `FromModule('/api/producer#ProducerApi')`.
 - **Formula is engagement-only** — the decayed, weighted attributed-bucket
@@ -244,7 +244,7 @@ population-deferred); this is the substrate + its tested clock seam.
   weight is authoritative.
 - **`ConvictionTally`** — the immutable per-house bill number.
 - **`ConvictionApi`** (`api/conviction.ts`) → **`ConvictionLogic`**
-  (`obj/api/ConvictionLogic.ts`, `/obj/api/conviction`): `hold` / `flip` /
+  (`platform/idea/api/ConvictionLogic.ts`, `/platform/idea/api/conviction`): `hold` / `flip` /
   `drop` / `abstain` / `positionOf` / `tally` / `quorumWeight`. Every method
   takes an optional `now` (real-time MS) defaulting to the wall clock — the
   deterministic clock seam the tests drive. Gated
@@ -280,7 +280,7 @@ sets the quorum-against-full-count rule this encodes.
 
 ## The `standing` self-view
 
-`obj/command/social/StandingController.ts` — a zero-arg, self-only,
+`platform/idea/cmd/social/StandingController.ts` — a zero-arg, self-only,
 read-only self-view (afforded by `PersonaMixin`, sibling to `chronicle`).
 Renders all three stocks as **bands** — **Play** (`consumer`, with its
 participation + regard inputs described qualitatively), **Make** (`producer`),
@@ -336,8 +336,7 @@ read a ledger missing the row it was just told about.
 warmed at boot from the **`renown` collection**, which holds the
 *materialized* standings. It does **not** read `renown_events`.
 
-So writing rows into `renown_events` (as
-`packages/server/scripts/seed-standing.ts` does) changes nothing until a
+So writing rows into `renown_events` by hand changes nothing until a
 **recompute** folds the log into the standings collection. A bare
 restart re-warms the map from a collection the seeding never wrote, and
 is therefore a no-op.

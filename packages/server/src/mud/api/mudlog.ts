@@ -16,10 +16,10 @@
  * ExecutionContext, same as Scene.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link MudlogLogic} singleton at `/obj/api/mudlog`,
+ * hot-reloadable {@link MudlogLogic} singleton at `/platform/idea/api/mudlog`,
  * reached synchronously via `StuffApi.singletonSync`. The author-facing
  * overload pairs live here; the logic methods take the resolved
- * implementation signature. `dest /obj/api/mudlog` reloads it.
+ * implementation signature. `dest /platform/idea/api/mudlog` reloads it.
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -27,7 +27,7 @@ import type { Sensor } from '../lib/message/Sensor';
 import type { LogLevel } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { MudlogLogic } from '../obj/api/MudlogLogic';
+import { MudlogLogic } from '../platform/idea/api/MudlogLogic';
 import { Mml } from './mml';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
@@ -48,9 +48,9 @@ const LEVELS: ReadonlyArray<LogLevel> = [
   'fatal',
 ];
 
-const LOGIC_PATH = '/obj/api/mudlog';
+const LOGIC_PATH = '/platform/idea/api/mudlog';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/MudlogLogic', import.meta.url)
+  new URL('../platform/idea/api/MudlogLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able MudlogLogic singleton (sync). */

@@ -161,7 +161,7 @@ export interface Growing {
    */
   getWorstLimiting(): number;
   /**
-   * The `/obj/crop/…` template a harvest mints, mirroring the host's
+   * The `/stuff/thing/crop/…` template a harvest mints, mirroring the host's
    * seed path exactly (the same instantiate-don't-resolve identity-ref
    * variant). Null for an ornamental that yields nothing — a houseplant
    * is not harvestable, and saying so costs one null.
@@ -415,7 +415,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * the right home for it; `Plant` was simply the only composer.
      */
 
-    /** The `/obj/…` template a harvest mints; null yields nothing. */
+    /** The `/stuff/…` template a harvest mints; null yields nothing. */
     public harvestTemplatePath: string | null = null;
 
     public getHarvestTemplatePath(): string | null {

@@ -21,7 +21,7 @@ import { RecognitionApi } from '../../../api/recognition';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 import { BulkableMixin, type Bulkable } from '../Bulkable';
 import { NamedMixin } from '../../description/Named';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -68,7 +68,7 @@ function installBank(): void {
   DescriptorBank.primeCache([bank]);
 }
 
-function makeDraught(path = `/obj/material/potion/test-${seq++}`): Material {
+function makeDraught(path = `/stuff/idea/material/potion/test-${seq++}`): Material {
   return makeStuffAtPath(() => {
     const m = new TestDraught();
     m.setName('veiling draught');
@@ -89,7 +89,7 @@ function makePlainMaterial(name: string): Material {
     m.setTags(['liquid']);
     m.setAppearance(`some ${name}`);
     return m;
-  }, `/obj/material/bulk/${name}-${seq++}`) as unknown as Material;
+  }, `/stuff/idea/material/bulk/${name}-${seq++}`) as unknown as Material;
 }
 
 function makeVessel(material?: Material, amountL = 0.25): Stuff & Bulkable {
@@ -163,7 +163,7 @@ describe('getContentsDescriptionFor — the identifiable path', () => {
   });
 
   it('the record keys on the MATERIAL, so it covers every flask', () => {
-    const draught = makeDraught('/obj/material/potion/shared');
+    const draught = makeDraught('/stuff/idea/material/potion/shared');
     const first = makeVessel(draught);
     const second = makeVessel(draught);
     const knower = makeStuff(() => new Viewer());

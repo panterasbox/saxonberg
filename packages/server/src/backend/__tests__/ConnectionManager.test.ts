@@ -11,7 +11,7 @@ import "../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConnectionManager } from '../ConnectionManager';
 import { StuffApi } from '../../mud/api/stuff';
-import type Interactive from '../../mud/obj/Interactive';
+import type Interactive from '../../mud/platform/idea/Interactive';
 import type { User } from '../../mud/lib/identity/User';
 
 function fakeUser(id: string): User {

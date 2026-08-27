@@ -19,7 +19,7 @@ import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
 import { Quantity } from "../../quantity";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry"; // register the registry class
+import "../../../platform/idea/WorldClockRegistry"; // register the registry class
 import {
   makeStuff,
   makeStuffAtPath,
@@ -55,7 +55,7 @@ function material(specificHeat: number, conductivity = 0.6): Material {
     m.setSpecificHeat(Quantity.of(specificHeat, "J/(kg·K)"));
     m.setThermalConductivity(Quantity.of(conductivity, "W/(m·K)"));
     return m;
-  }, `/obj/material/_test/mat-${matCounter}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/mat-${matCounter}`) as unknown as Material;
 }
 
 function thing(opts: {

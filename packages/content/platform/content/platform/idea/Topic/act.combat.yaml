@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: act.combat
+  family: "act"
+  label: "Fighting"
+  description: "Blows, gambits, and the turns of a fight. Kept, because how a fight went tends to matter afterwards."
+  address: personal
+  actor: person
+  weight: consequence
+  audience: player
+  durable: true
+  affordance: decays

@@ -1,0 +1,18 @@
+# Spathiphyllum wallisii — peace lily. Sessile body plan, monoecious,
+# aperiodic (plants don't have a circadian behavior to speak of in v1's
+# sense). The houseplant entry.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Spathiphyllum wallisii
+  commonNames: ["peace lily", "houseplant"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 30
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -29,21 +29,21 @@ describe('Biome', () => {
   it('round-trips _extendsBiomePath via getExtendsBiome / setExtendsBiome', () => {
     const parent = makeStuffAtPath(
       () => new Biome(),
-      '/obj/biome/_fixtures/parent',
+      '/stuff/idea/biome/_fixtures/parent',
     );
     const child = makeStuffAtPath(
       () => new Biome(),
-      '/obj/biome/_fixtures/child',
+      '/stuff/idea/biome/_fixtures/child',
     );
     child.setExtendsBiome(parent);
     expect(child.getExtendsBiome()).toBe(parent);
-    expect(child.getExtendsBiomePath()).toBe('/obj/biome/_fixtures/parent');
+    expect(child.getExtendsBiomePath()).toBe('/stuff/idea/biome/_fixtures/parent');
   });
 
   it('setExtendsBiome(null) clears the ref', () => {
     const parent = makeStuffAtPath(
       () => new Biome(),
-      '/obj/biome/_fixtures/parent2',
+      '/stuff/idea/biome/_fixtures/parent2',
     );
     const child = makeStuff(() => new Biome());
     child.setExtendsBiome(parent);
@@ -100,8 +100,8 @@ describe('Biome', () => {
   it('participates in findByTemplatePath via path stamping', () => {
     const b = makeStuffAtPath(
       () => new Biome(),
-      '/obj/biome/_fixtures/test1',
+      '/stuff/idea/biome/_fixtures/test1',
     );
-    expect(StuffApi.findByTemplatePath('/obj/biome/_fixtures/test1')).toBe(b);
+    expect(StuffApi.findByTemplatePath('/stuff/idea/biome/_fixtures/test1')).toBe(b);
   });
 });

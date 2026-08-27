@@ -16,14 +16,14 @@
  *
  * `inflict` is a **powerful primitive** — it must not be callable by
  * arbitrary content. The logic lives in the gated, hot-reloadable
- * {@link ConditionLogic} singleton at `/obj/api/condition` (its methods
+ * {@link ConditionLogic} singleton at `/platform/idea/api/condition` (its methods
  * carry `@CallSecurity(FromModule('/api/condition#ConditionApi'))`, so only
  * this Api forwards in); this Api is the thin forwarding shell trusted
  * producers reach. The **inflicter is un-spoofable** — derived from
  * execution context inside `ConditionLogic`
  * (`ExecutionContextApi.getActingAuthor`), never a caller-supplied
  * parameter (the gated-Api actor-from-context rule). `dest
- * /obj/api/condition` reloads it.
+ * /platform/idea/api/condition` reloads it.
  *
  * See `docs/subsystems/harm.md`.
  */
@@ -33,15 +33,15 @@ import type { AccountabilityFields } from '../lib/accountability/AccountabilityE
 import type {
   InsultKind,
   Trauma,
-} from '../obj/Condition';
+} from '../platform/idea/Condition';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ConditionLogic } from '../obj/api/ConditionLogic';
+import { ConditionLogic } from '../platform/idea/api/ConditionLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-export type { InsultKind, Channel } from '../obj/Condition';
+export type { InsultKind, Channel } from '../platform/idea/Condition';
 
 /**
  * Caller-supplied facts for a death. Everything here is optional because
@@ -58,7 +58,7 @@ export interface DeathSpec {
    */
   accountability?: AccountabilityFields;
 }
-export { CHANNELS, Channels } from '../obj/Condition';
+export { CHANNELS, Channels } from '../platform/idea/Condition';
 
 /**
  * An **energy** insult — a materials-response `Channel` (edge / point /
@@ -119,9 +119,9 @@ export interface InflictOutcome {
   afflicted: boolean;
 }
 
-const LOGIC_PATH = '/obj/api/condition';
+const LOGIC_PATH = '/platform/idea/api/condition';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ConditionLogic', import.meta.url)
+  new URL('../platform/idea/api/ConditionLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ConditionLogic singleton (sync). */

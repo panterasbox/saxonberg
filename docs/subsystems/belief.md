@@ -272,7 +272,7 @@ polity Sybil keystone.
   never in the dumb store.
 - **`RegardApi` / `RegardLogic` — the gated arithmetic seam.** `api/regard.ts`
   is a thin forwarding shell to the hot-reloadable `RegardLogic` singleton
-  at `/obj/api/regard` (`StuffApi.singletonSync`; methods gated
+  at `/platform/idea/api/regard` (`StuffApi.singletonSync`; methods gated
   `FromModule('/api/regard#RegardApi')`), mirroring
   `RecognitionApi`→`RecognitionLogic`. Surface: `getRegard` (absent → 0),
   `adjustRegard` (the clamped accumulator), `setRegard`, `clearRegard`

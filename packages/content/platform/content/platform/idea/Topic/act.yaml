@@ -1,0 +1,13 @@
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: act
+  family: ""
+  label: "Action"
+  description: "Something was done — by a person, a creature, or the world itself. Who acted is a facet, not a separate subject."
+  address: ambient
+  actor: world
+  weight: activity
+  audience: player
+  durable: false
+  affordance: decays

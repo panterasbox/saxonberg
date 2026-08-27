@@ -8,7 +8,7 @@
  * gate is the **capability filter**, and it lives once, here.
  *
  * Thin forwarding shell: the warmed index lives in the {@link
- * HelpCatalogue} singleton at `/obj/HelpCatalogue`, resolved synchronously
+ * HelpCatalogue} singleton at `/platform/idea/HelpCatalogue`, resolved synchronously
  * via `StuffApi.findByTemplatePath`. Before the catalogue warms (or in a
  * harness without boot) every read returns an empty result.
  *
@@ -28,7 +28,7 @@ import type {
 } from "@saxonberg/types";
 import { StuffApi } from "./stuff";
 import { TemplatePaths } from "../lib/paths";
-import type HelpCatalogue from "../obj/HelpCatalogue";
+import type HelpCatalogue from "../platform/idea/HelpCatalogue";
 import { SecurityApi } from './security';
 
 /**

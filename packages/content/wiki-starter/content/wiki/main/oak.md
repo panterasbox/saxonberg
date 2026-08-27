@@ -2,7 +2,7 @@
 title: Oak
 subject:
   kind: template
-  ref: /obj/material/wood/oak
+  ref: /stuff/idea/material/wood/oak
 tags:
 - material
 - wood
@@ -17,7 +17,7 @@ The panel below is not written down anywhere — it is read out of
 the running world every time somebody opens this page, so it
 cannot drift from the truth.
 
-<composition kind="template" of="/obj/material/wood/oak"/>
+<composition kind="template" of="/stuff/idea/material/wood/oak"/>
 
 ## Uses {#uses}
 

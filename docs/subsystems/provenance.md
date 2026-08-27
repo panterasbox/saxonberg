@@ -22,7 +22,7 @@ authoring act, `authorOf` *derives* the original author.
   authorship of a path) and `author` (a creator's body of work). Nothing is
   ever overwritten.
 - **`ProvenanceApi`** (`api/provenance.ts`) → **`ProvenanceLogic`**
-  (`obj/api/ProvenanceLogic.ts`, `/obj/api/provenance`):
+  (`platform/idea/api/ProvenanceLogic.ts`, `/platform/idea/api/provenance`):
   - `recordAuthoring({ path, … })` — append one row (the author is NOT a
     parameter; see below).
   - `authorOf(path): string | null` — the **earliest** row's author (the
@@ -58,7 +58,7 @@ the author-controlled `data` blob.
 ## The centralized, gated writer
 
 `ProvenanceApi.recordAuthoring` is the **single** writer of provenance, gated
-**`FromTemplate('/obj/api/template')`** — its sole legitimate caller is the
+**`FromTemplate('/platform/idea/api/template')`** — its sole legitimate caller is the
 `TemplateLogic` save singleton (a registered Stuff, so its caller frame
 resolves to its template path, not a module id). Every authoring transport —
 the in-world authoring verbs (`write`, …) and the REST CMS — funnels through
@@ -98,8 +98,8 @@ engagement at a location, Layer-1 (authorship) → Layer-2 (faucet):
   `ProvenanceApi.authorOf` → `[{author, weight: 1}]`, or `[]` when there is
   no covering zone, no recorded author, or the content is unreleased.
 - **The released-content gate** (`CreditRouting.isReleased`) — only a
-  player's personal homedir (`/home/…`) is unreleased; **`/obj/…` (released
-  core content) and `/domain/…` both earn**. Zero new infra (a path prefix);
+  player's personal homedir (`/home/…`) is unreleased; **`/platform/… + /stuff/…` (released
+  core content) and `/world/…` both earn**. Zero new infra (a path prefix);
   the richer team-sandbox + explicit `release` action is deferred with the
   team split.
 

@@ -1,6 +1,6 @@
 id: world-seed
 version: 0.1.0
-root: /domain
+root: /world
 description: >-
   TRANSITIONAL. The locality rows SeederManager used to insert, verbatim, so
   the seeders could be deleted in wave 3 without the localities sitting in the
@@ -12,11 +12,11 @@ requires:
   groups:
     # The landlord's staff — Katie's membership is CONFERRED here by the
     # owner (never self-enrolled); her row sits under the pack's own
-    # /domain/eternal/duncan-hall claim, which the NPC-only fence requires.
+    # /world/eternal/duncan-hall claim, which the NPC-only fence requires.
     - name: duncan-hall
       purpose: the landlord's staff
       members:
-        - { id: /domain/eternal/duncan-hall/npc/katie, role: member }
+        - { id: /world/eternal/duncan-hall/npc/katie, role: member }
     # The Improvement District — empty of members: a government that exists
     # only on paper.
     - name: hinkley-hills
@@ -29,22 +29,22 @@ requires:
   title:
     # The same extent saxonberg-lounge claims, for the same holder: kept
     # both ways, never a conflict.
-    - { extent: /domain/lounge, holder: { group: lounge } }
+    - { extent: /world/lounge, holder: { group: lounge } }
     # The Terminus municipality's ground.
-    - { extent: /domain/terminus/terminal,        holder: { group: terminus }, landUse: civic }
-    - { extent: /domain/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
-    - { extent: /domain/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
-    - { extent: /domain/terminus/registry,        holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
     # Hinkley Hills — ~24 hectares held by the District until lots sell out
     # of it; lot-1 is the one lot that was taken before you got here.
-    - { extent: /domain/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 240000 }
-    - { extent: /domain/terminus/hinkley-hills/lots/lot-1, parentParcel: /domain/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 1000 }
+    - { extent: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 240000 }
+    - { extent: /world/terminus/hinkley-hills/lots/lot-1, parentParcel: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 1000 }
     # Duncan Hall: the landlord holds the building (so Katie's row is under
     # the pack's own claim) and the dorms wing the leased units subdivide under.
-    - { extent: /domain/eternal/duncan-hall,       holder: { group: duncan-hall } }
-    - { extent: /domain/eternal/duncan-hall/dorms, parentParcel: /domain/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
+    - { extent: /world/eternal/duncan-hall,       holder: { group: duncan-hall } }
+    - { extent: /world/eternal/duncan-hall/dorms, parentParcel: /world/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
 boot:
-  - { template: /domain/lounge/terminal, role: producer, reason: "the TPA network's eager root; nothing else instantiates the cascade" }
-  - { template: /domain/eternal/duncan-hall/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
-  - { template: /domain/terminus/hinkley-hills/plat-book, role: producer, reason: title enumerates live books }
-  - { template: /domain/terminus/hinkley-hills/lot-holder, role: producer, reason: the book names it by path and a sale resolves it }
+  - { template: /world/lounge/terminal, role: producer, reason: "the TPA network's eager root; nothing else instantiates the cascade" }
+  - { template: /world/eternal/duncan-hall/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
+  - { template: /world/terminus/hinkley-hills/plat-book, role: producer, reason: title enumerates live books }
+  - { template: /world/terminus/hinkley-hills/lot-holder, role: producer, reason: the book names it by path and a sale resolves it }

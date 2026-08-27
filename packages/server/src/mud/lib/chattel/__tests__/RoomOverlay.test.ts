@@ -23,7 +23,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import ChattelRegistry from "../../../obj/ChattelRegistry";
+import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
 import Thing from "../../stuff/Thing";
 import { ChattelApi } from "../../../api/chattel";
 import { StuffApi } from "../../../api/stuff";
@@ -35,7 +35,7 @@ import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
-import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
+import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
@@ -46,16 +46,16 @@ import { ContainableMixin } from "../../spatial/Containable";
 import { PosedMixin } from "../../character/Posed";
 import { SlottableMixin } from "../../slot/Slottable";
 import { SlotApi } from "../../../api/slot";
-import PosturedChair from "../../../obj/Chair";
+import PosturedChair from "../../../platform/thing/Chair";
 import type { Containable } from "../../spatial/Containable";
 import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
 import type { FieldMeta } from "../../mixin";
 
 const CHAIR_PATH = "/obj/test/Chair";
-const ROOM_PATH = "/domain/test/Room";
-const ALICE_PATH = "/obj/Avatar/alice";
-const BOB_PATH = "/obj/Avatar/bob";
+const ROOM_PATH = "/world/test/Room";
+const ALICE_PATH = "/platform/agent/Avatar/alice";
+const BOB_PATH = "/platform/agent/Avatar/bob";
 
 class Chair extends Thing {}
 class Room extends PersistableMixin(ContainerMixin(PostRegistrationMixin(Idea))) {
@@ -74,7 +74,7 @@ class Sleeper extends PersistableMixin(
   static fieldMeta: FieldMeta = {};
 }
 
-const BED_PATH = "/obj/fixture/bed";
+const BED_PATH = "/stuff/thing/fixture/bed";
 function makeBed(): PosturedChair {
   const bed = makeStuffAtPath(() => new PosturedChair(), BED_PATH);
   bed.setStaticSlots([
@@ -139,7 +139,7 @@ function installStore(): void {
 
 async function boot(): Promise<void> {
   installV1QuantityMarshallers();
-  const reg = makeStuffAtPath(() => new ChattelRegistry(), "/obj/ChattelRegistry");
+  const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
   await reg.postRegister();
   makeStuffAtPath(() => new PersistentHydrator(), PersistentHydrator.templatePath);
   vi.spyOn(StuffApi, "clone").mockImplementation(
@@ -287,7 +287,7 @@ describe("the room overlay", () => {
 });
 
 describe("sleep-as-logout — you wake where you slept (D10)", () => {
-  const SLEEPER = "/obj/Avatar/sleeper";
+  const SLEEPER = "/platform/agent/Avatar/sleeper";
 
   /** Lie the sleeper on a bed in `r`, capture both, wipe, restore. */
   async function sleepAndWake(

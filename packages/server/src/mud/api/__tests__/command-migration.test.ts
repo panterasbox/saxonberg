@@ -15,7 +15,7 @@ import { CommandApi } from '../command';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 // The engine verbs are the platform pack's content (content-packs wave 2).
-const CMD_DIR = join(__dirname, '../../../../../content/platform/content/cmd');
+const CMD_DIR = join(__dirname, '../../../../../content/platform/content/platform/cmd');
 
 describe('Command-YAML migration parity', () => {
   beforeEach(() => CommandApi.clearCache());
@@ -27,7 +27,7 @@ describe('Command-YAML migration parity', () => {
     expect(files.length).toBeGreaterThanOrEqual(14);
 
     for (const file of files) {
-      const cmd = CommandApi.getCommand(file);
+      const cmd = CommandApi.getCommand(`platform/cmd/${file}`);
       expect(cmd, `failed to load ${file}`).not.toBeNull();
       // Every command has at least one verb and either a verb-level
       // controller OR per-subcommand controllers (Option E).
@@ -49,26 +49,26 @@ describe('Command-YAML migration parity', () => {
   });
 
   it('say.yaml has the literal-quote alias verb', () => {
-    const cmd = CommandApi.getCommand('social/say.yaml');
+    const cmd = CommandApi.getCommand('platform/cmd/social/say.yaml');
     expect(cmd?.verbs).toContain("'");
   });
 
   it('var/settings set use a greedy value field', () => {
-    const v = CommandApi.getCommand('shell/var.yaml');
+    const v = CommandApi.getCommand('platform/cmd/shell/var.yaml');
     const vSet = v?.getSubcommand('set')?.args ?? [];
     expect(vSet.find((a) => a.name === 'value')?.greedy).toBe(true);
 
-    const s = CommandApi.getCommand('shell/settings.yaml');
+    const s = CommandApi.getCommand('platform/cmd/shell/settings.yaml');
     const sSet = s?.getSubcommand('set')?.args ?? [];
     expect(sSet.find((a) => a.name === 'value')?.greedy).toBe(true);
   });
 
   it("renders man-page-style usage strings", () => {
-    const say = CommandApi.getCommand('social/say.yaml');
+    const say = CommandApi.getCommand('platform/cmd/social/say.yaml');
     expect(say?.getUsage()).toContain('say');
     expect(say?.getUsage()).toContain('<message...>');
 
-    const player = CommandApi.getCommand('author/player.yaml');
+    const player = CommandApi.getCommand('platform/cmd/author/player.yaml');
     expect(player?.getUsage()).toMatch(/player/);
     expect(player?.getUsage()).toContain('<');
   });
@@ -93,7 +93,7 @@ describe('Command-YAML migration parity', () => {
       'shell/var',
     ];
     for (const v of verbs) {
-      expect(CommandApi.getCommand(`${v}.yaml`), v).not.toBeNull();
+      expect(CommandApi.getCommand(`platform/cmd/${v}.yaml`), v).not.toBeNull();
     }
   });
 });

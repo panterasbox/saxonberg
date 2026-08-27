@@ -75,20 +75,20 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static commandContributions: CommandContributions = {
       self: [
-        'author/clone.yaml',
-        'author/reload.yaml',
-        'author/destruct.yaml',
-        'author/eval.yaml',
-        'author/teleport.yaml',
+        'platform/cmd/author/clone.yaml',
+        'platform/cmd/author/reload.yaml',
+        'platform/cmd/author/destruct.yaml',
+        'platform/cmd/author/eval.yaml',
+        'platform/cmd/author/teleport.yaml',
         // Advancement developer harness — fabricate Transcript deeds so
         // the derive-on-read Competence loop + band conferrals are
         // exercisable without lane-2's real craft verbs. Wizard-gated
         // (requiresWizard) on top of this AuthorMixin visibility.
-        'author/practice.yaml',
+        'platform/cmd/author/practice.yaml',
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:
         // non-authors don't see the verb in their recency stack.
-        'social/soul.yaml',
+        'platform/cmd/social/soul.yaml',
         // Livestream control plane (PLAN §3). Afforded to the operator
         // command surface like the rest of this suite, but *authorized*
         // on the orthogonal streamer axis — `stream.yaml` carries
@@ -96,14 +96,14 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // group sees the verb but can't run it. The split lets a future
         // dedicated streamer-mode affordance narrow visibility without
         // touching the authorization gate.
-        'stream/stream.yaml',
+        'platform/cmd/stream/stream.yaml',
         // Wizard conferral — `wizard grant/revoke <player>`. Afforded on
         // the operator command surface like the rest of this suite, but
         // *authorized* on the orthogonal archwizard axis: `wizard.yaml`
         // carries `requiresArchwizard`, so an author who isn't an
         // archwizard sees the verb but can't run it.
-        'author/wizard.yaml',
-        // ⚠ `system/press.yaml` LEFT this list. Bare `press` is the
+        'platform/cmd/author/wizard.yaml',
+        // ⚠ `platform/cmd/system/press.yaml` LEFT this list. Bare `press` is the
         // READ — the news, and the command that opens the news card —
         // so contributing it only here made the news a surface an
         // ordinary player could not ask for. It is contributed by
@@ -114,8 +114,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // surface like the rest of this suite; each carries
         // `requiresWizard`, so a non-author sees nothing (no employment
         // relationship yet — operator == wizard in v1).
-        'banking/reserve.yaml',
-        'banking/house.yaml',
+        'platform/cmd/banking/reserve.yaml',
+        'platform/cmd/banking/house.yaml',
         // The content-pack installer's operator surface — `pack status /
         // install --dry-run / sync / diff / resolve / pin`. Afforded on the
         // operator command surface like the rest of this suite, but
@@ -123,27 +123,27 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // `requiresPackInstaller` (holding /compact/executive — the PM and
         // her staff, never wizardness), so an author who is not on the
         // executive sees the verb but can't run it.
-        'author/pack.yaml',
+        'platform/cmd/author/pack.yaml',
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // what you see is what you hold (`DiagnosticApi.list` filters to
         // your extents and the packs you maintain). The finer gates (raw
         // → wizard, clear → author-of-path) are enforced in the
         // controller / DiagnosticApi.
-        'system/errors.yaml',
+        'platform/cmd/system/errors.yaml',
         // In-runtime VCS — `git status/diff/log/publish/revert` over the
         // engine source tree. Afforded on the operator command surface
         // like the rest of this suite; `git.yaml` carries `requiresWizard`
         // (it version-controls engine TS), so a non-wizard sees it but
         // can't run it. The per-affected-path `can('write')` refinement
         // stays in `GitLogic`.
-        'system/git.yaml',
+        'platform/cmd/system/git.yaml',
         // The authoring CARDS. Afforded on the operator command surface
         // like the rest of this suite; each carries `requiresWizard`
         // (they edit engine content), so a non-wizard sees the verb but
         // cannot run it — the parser floor, not a hidden verb.
-        'author/cms.yaml',
-        'author/studio.yaml',
+        'platform/cmd/author/cms.yaml',
+        'platform/cmd/author/studio.yaml',
       ],
       peers: [],
       environment: [],

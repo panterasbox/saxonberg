@@ -559,7 +559,7 @@ any threat edge onto a `back` intercepts to a `front`.
 ### It works TODAY — but through the wrong door
 
 The shipped wolf is **two YAML files and zero TypeScript**
-(`seeds/lib/species/wolf.yaml` + `seeds/domain/newbie-wilds/npc/wolf.yaml`).
+(`seeds/lib/species/wolf.yaml` + `seeds/world/newbie-wilds/npc/wolf.yaml`).
 Swap `class: /lib/npc/NPC` → `/lib/party/Mercenary`, add `backs-up`, and you
 have a fighting companion **right now**, no engine change.
 

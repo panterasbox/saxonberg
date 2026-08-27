@@ -1,0 +1,12 @@
+# A bottle of lime juice — a non-alcoholic graded bulk input on the bar.
+class: /world/lounge/GradedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of lime juice
+  longDescription: A squeeze-bottle of fresh lime juice.
+  keywords: [lime, juice, bottle]
+  interiorBulk: true
+  interiorCapacity: 0.5
+  interiorMaterial: /stuff/idea/material/spirit/lime
+  interiorAmount: 0.45
+  gradeBand: fair

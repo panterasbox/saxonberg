@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { enterWorld, mintSession, runCommand } from '../tests/helpers';
+import { enterWorld, mintSession, runCommand, sendUntil } from '../tests/helpers';
 import {
   PLATFORM_FOUNDER_HANDLE,
   PLATFORM_SERVER_LOG,
@@ -17,15 +17,22 @@ import {
  * shell room — the void, the code fallback when no pack contributed
  * `defaultStartLocation` — and `pack status` knows exactly one pack.
  *
- * ⚠ The landing-room assertion is about the FALLBACK, so it is only
- * meaningful on a database no full-pack boot has touched (the lounge's
- * settings contribution survives in `app_settings`). CI runs this
- * config first for that reason; see playwright.platform.config.ts.
+ * The landing room is asserted by what it RENDERS: `/platform/location/void` is a
+ * bare Location (no Named, no Visible, no Exitable), and `look` there
+ * prints exactly one line — "Your surroundings are indistinct." — the
+ * fallback no authored room ever produces.
+ *
+ * ⚠ Meaningful only on a database no full-pack boot has touched: the
+ * lounge's `defaultStartLocation` SETTING survives in `app_settings`, the
+ * founder then spawns toward a lounge this world never installed, and
+ * the roster alone takes ~10 s to come back (measured 2026-08-27) —
+ * past the 5 s expect. CI's database is always fresh; locally, drop the
+ * worktree's database first. See playwright.platform.config.ts.
  */
 
 const LOG = resolve(new URL('..', import.meta.url).pathname, PLATFORM_SERVER_LOG);
 
-test('the founder lands in the void and pack status lists one pack', async ({
+test('the founder lands in the void (asserted by its rendering) and pack status lists one pack', async ({
   browser,
 }) => {
   // The founder by way of `FOUNDER_GOOGLE_EMAIL` — this config's own
@@ -40,6 +47,13 @@ test('the founder lands in the void and pack status lists one pack', async ({
     // In the cockpit, not on the front door — the void rendered.
     await expect(page.getByPlaceholder('Enter command...')).toBeVisible();
     await expect(page.getByTestId('start-screen')).toHaveCount(0);
+
+    // `look` — the void, by the one line only the void renders.
+    await sendUntil(
+      page,
+      'look',
+      page.getByText('Your surroundings are indistinct.').first()
+    );
 
     // `pack status` — exactly one pack known to this build.
     await expect(async () => {

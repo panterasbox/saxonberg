@@ -16,8 +16,8 @@
  *
  * Thin, security-gated forwarding shell — structural copy of
  * `source-tree.ts` / `diagnostics.ts`. The mechanism lives in the
- * hot-reloadable {@link GitLogic} singleton at `/obj/api/git`, reached
- * synchronously via `StuffApi.singletonSync`. `dest /obj/api/git` reloads
+ * hot-reloadable {@link GitLogic} singleton at `/platform/idea/api/git`, reached
+ * synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/git` reloads
  * it. The error its surface throws (`GitError`) is homed here (a class
  * export, allowed by export discipline), so `GitRoutes` can
  * `instanceof`-narrow without importing the logic.
@@ -25,7 +25,7 @@
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { GitLogic } from '../obj/api/GitLogic';
+import { GitLogic } from '../platform/idea/api/GitLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type {
@@ -71,9 +71,9 @@ export class GitError extends Error {
   }
 }
 
-const LOGIC_PATH = '/obj/api/git';
+const LOGIC_PATH = '/platform/idea/api/git';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/GitLogic', import.meta.url)
+  new URL('../platform/idea/api/GitLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able GitLogic singleton (sync). */

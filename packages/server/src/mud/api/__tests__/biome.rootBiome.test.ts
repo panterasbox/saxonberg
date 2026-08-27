@@ -18,7 +18,7 @@ function installRootBiome(): Biome {
     b.setDefaultWind(Quantity.of(0, 'm/s'));
     b.setDefaultAtmosphere('air');
     return b;
-  }, '/obj/biome/universe');
+  }, '/stuff/idea/biome/universe');
 }
 
 describe('BiomeApi.getRootBiome', () => {
@@ -32,7 +32,7 @@ describe('BiomeApi.getRootBiome', () => {
     BiomeApi.invalidateRootBiomeCache();
   });
 
-  it('resolves the universe biome at /obj/biome', () => {
+  it('resolves the universe biome at /stuff/idea/biome', () => {
     const root = installRootBiome();
     expect(BiomeApi.getRootBiome()).toBe(root);
   });
@@ -67,8 +67,8 @@ describe('BiomeApi.getRootBiome', () => {
     expect(() => BiomeApi.getRootBiome()).toThrow(/not loaded/);
   });
 
-  it('findByPath of /obj/biome surfaces the same singleton', () => {
+  it('findByPath of /stuff/idea/biome surfaces the same singleton', () => {
     const root = installRootBiome();
-    expect(BiomeApi.findByPath('/obj/biome/universe')).toBe(root);
+    expect(BiomeApi.findByPath('/stuff/idea/biome/universe')).toBe(root);
   });
 });

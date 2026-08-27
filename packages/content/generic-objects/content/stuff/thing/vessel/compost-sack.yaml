@@ -1,0 +1,21 @@
+# A sack of compost — the soil sack's sibling, and the second consumable a
+# smallholder buys. Ships FULL; you `feed` a bed from it, which is the one
+# verb that looks for the `compost` tag.
+#
+# 20 L is roughly two full refills of a bed's nitrogen, so a sack lasts a
+# few harvests. The scarcity that matters is remembering to do it, not
+# counting sacks.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sack of compost
+  primaryKeyword: sack
+  keywords: [sack, compost, "compost sack", bag, muck, manure]
+  longDescription: |
+    A heavy hessian sack slumped against its own weight, the top rolled shut and the whole thing smelling of warm earth and last year's leaves.
+  interiorBulk: true
+  interiorCapacity: 20
+  interiorMaterial: /stuff/idea/material/bulk/compost
+  interiorAmount: 20
+  # `liquidTight` (the default), NOT `open`: an `open` interior does not
+  # RETAIN bulk — a transfer into it drains straight through to the floor.

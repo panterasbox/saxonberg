@@ -13,13 +13,13 @@
  *
  * Thin, security-gated forwarding shell: the direction table and lookups
  * live in the hot-reloadable {@link NavigationLogic} singleton at
- * `/obj/api/navigation`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/navigation` reloads it.
+ * `/platform/idea/api/navigation`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/navigation` reloads it.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { NavigationLogic } from '../obj/api/NavigationLogic';
+import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -36,9 +36,9 @@ export type CardinalDirection =
   | 'up'
   | 'down';
 
-const LOGIC_PATH = '/obj/api/navigation';
+const LOGIC_PATH = '/platform/idea/api/navigation';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/NavigationLogic', import.meta.url)
+  new URL('../platform/idea/api/NavigationLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able NavigationLogic singleton (sync). */

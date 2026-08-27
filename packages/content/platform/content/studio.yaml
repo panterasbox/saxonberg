@@ -11,8 +11,8 @@
 # child title to the group. Personal space is a right (/home, the
 # self-home rule); group space is a grant. See
 # docs/subsystems/sandbox.md.
-class: /obj/FolderZone
-hydratorClass: /obj/persistence/PersistentHydrator
+class: /platform/idea/FolderZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: studio
   wire: true

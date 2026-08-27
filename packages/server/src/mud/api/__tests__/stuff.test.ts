@@ -20,10 +20,10 @@ describe('StuffApi', () => {
     // Deliberate test seam — see StuffApi._validateClassPath().
     const validateClassPath = (path: string) => StuffApi._validateClassPath(path);
 
-    it('should accept valid /obj/ paths', () => {
-      expect(() => validateClassPath('/obj/Avatar')).not.toThrow();
-      expect(() => validateClassPath('/obj/Room')).not.toThrow();
-      expect(() => validateClassPath('/obj/subdir/Item')).not.toThrow();
+    it('should accept valid /platform/ paths', () => {
+      expect(() => validateClassPath('/platform/agent/Avatar')).not.toThrow();
+      expect(() => validateClassPath('/platform/location/Room')).not.toThrow();
+      expect(() => validateClassPath('/platform/thing/subdir/Item')).not.toThrow();
     });
 
     it('should accept valid /lib/ paths', () => {
@@ -38,31 +38,31 @@ describe('StuffApi', () => {
     });
 
     it('should reject paths with directory traversal', () => {
-      expect(() => validateClassPath('/obj/../../../etc/passwd')).toThrow(
+      expect(() => validateClassPath('/platform/../../../etc/passwd')).toThrow(
         'cannot contain ..'
       );
-      expect(() => validateClassPath('/lib/../obj/Avatar')).toThrow(
+      expect(() => validateClassPath('/lib/../platform/agent/Avatar')).toThrow(
         'cannot contain ..'
       );
-      expect(() => validateClassPath('/obj/../../dangerous')).toThrow(
+      expect(() => validateClassPath('/platform/../../dangerous')).toThrow(
         'cannot contain ..'
       );
     });
 
-    it('should reject paths outside /obj/ and /lib/', () => {
+    it('should reject paths outside /platform/ and /lib/', () => {
       expect(() => validateClassPath('/etc/passwd')).toThrow(
-        'must start with /obj/ or /lib/'
+        'must start with /platform/ or /lib/'
       );
       expect(() => validateClassPath('/home/user/malicious')).toThrow(
-        'must start with /obj/ or /lib/'
+        'must start with /platform/ or /lib/'
       );
       expect(() => validateClassPath('/tmp/exploit')).toThrow(
-        'must start with /obj/ or /lib/'
+        'must start with /platform/ or /lib/'
       );
     });
 
     it('should return the normalized path for valid paths', () => {
-      expect(validateClassPath('/obj/Avatar')).toBe('/obj/Avatar');
+      expect(validateClassPath('/platform/agent/Avatar')).toBe('/platform/agent/Avatar');
       expect(validateClassPath('/lib/stuff/Stuff')).toBe('/lib/stuff/Stuff');
     });
   });
@@ -365,11 +365,11 @@ describe('StuffApi', () => {
       const { vi } = await import('vitest');
       vi.spyOn(Template, 'findByPath').mockImplementation(
         async (path: string) => {
-          if (path === '/obj/persistence/PersistentHydrator') {
+          if (path === '/platform/idea/persistence/PersistentHydrator') {
             const t = new LeafTemplate();
             t.path = path;
-            t.class = '/obj/persistence/PersistentHydrator';
-            t.hydratorClass = '/obj/persistence/PersistentHydrator';
+            t.class = '/platform/idea/persistence/PersistentHydrator';
+            t.hydratorClass = '/platform/idea/persistence/PersistentHydrator';
             t.data = {};
             return t;
           }
@@ -378,7 +378,7 @@ describe('StuffApi', () => {
       );
 
       await expect(
-        StuffApi.clone('/obj/persistence/PersistentHydrator')
+        StuffApi.clone('/platform/idea/persistence/PersistentHydrator')
       ).rejects.toThrow(/circular template dependency/);
 
       vi.restoreAllMocks();

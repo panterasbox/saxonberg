@@ -1,0 +1,21 @@
+verbs: [drive]
+controller: /platform/idea/cmd/movement/DriveController
+description: "Drive your vehicle through a named exit (passthrough to the Drivable host)."
+help: |
+  Take the vehicle you're aboard through an exit. Name your
+  destination (`drive north`, `drive west gate`) and the vehicle
+  carries you and everyone riding it through.
+
+  You have to be aboard a drivable vehicle first — use `mount` to
+  board and `dismount` to step off. For a living mount rather than a
+  vehicle, use `ride` instead.
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    scope: ["$focus", "reachable"]
+    required: true
+    requires: DrivableMixin
+    validators:
+      - /lib/command/validators/canReach

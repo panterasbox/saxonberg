@@ -101,7 +101,7 @@ deep-contents of his room — each player's inventory). This is a touch
 
 ### One sweep — a lazy O(n) scan
 
-`ResidencyLogic` (at `/obj/api/residency`, behind the thin gated
+`ResidencyLogic` (at `/platform/idea/api/residency`, behind the thin gated
 `ResidencyApi`) drives a real-time `ScheduleApi.recurring` sweep:
 
 ```
@@ -212,7 +212,7 @@ occupant is present, so presence + dispatch touch already keep them warm.
 
 - `api/residency.ts` — `ResidencyApi` gated forwarding shell (`boot`
   installs the residency sweeps; `evictNow` for test/manual).
-- `obj/api/ResidencyLogic.ts` — the `@internal` logic singleton, home to
+- `platform/idea/api/ResidencyLogic.ts` — the `@internal` logic singleton, home to
   the scheduled sweeps: `installEvictionSweep()` + `runEvictionSweep` +
   the presence walk today, one retained handle per sweep (the reset
   sweep's `installResetSweep()` + `runResetSweep` land alongside).

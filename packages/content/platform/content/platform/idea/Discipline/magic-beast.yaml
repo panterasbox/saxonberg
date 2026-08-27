@@ -1,0 +1,14 @@
+# Beast — a magic grid noun Discipline (the verb x noun grammar; see
+# docs/subsystems/magic.md). Seeded pure data, harvested by the
+# DisciplineCatalogue at boot. No `conferrals`: the cast/spells verbs ride
+# CasterMixin; per-spell access is a band gate at cast time on BOTH of a
+# cell's axes (competence IS access).
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: magic-beast
+  channel: skill
+  label: Beast
+  iscedf: "0288"  # ISCED-F 2013 — Inter-disciplinary (an invented science)
+  description: >-
+    The domain of animals, their bodies and their products.

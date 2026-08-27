@@ -72,7 +72,7 @@ describe('CartesianLocation.addExit cardinal rule', () => {
     installInMemoryStore([
       {
         path: '/zone/a',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -94,12 +94,12 @@ describe('CartesianLocation.addExit cardinal rule', () => {
     installInMemoryStore([
       {
         path: '/zoneA',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
       {
         path: '/zoneB',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -121,7 +121,7 @@ describe('CartesianLocation.addExit cardinal rule', () => {
     installInMemoryStore([
       {
         path: '/zone/a',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -143,12 +143,12 @@ describe('CartesianLocation.addExit cardinal rule', () => {
     installInMemoryStore([
       {
         path: '/zoneA',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
       {
         path: '/zoneB',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);

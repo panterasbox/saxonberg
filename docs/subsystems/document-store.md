@@ -59,7 +59,8 @@ Compact to publish, and the taxonomy did not have it:
 |---|---|
 | `/home/<self>` | **workspace** — personal |
 | `/studio/<group>` | **workspace** — the multiseat `/home` |
-| `/domain/<locality>` | **content** — a *place*, with rooms and NPCs, locally administered |
+| `/world/<locality>` | **content** — a *place*, with rooms and NPCs, locally administered |
+| `/trade/<industry>` | **content** — an *industry*: what a trade introduces (its stations, stock, recipes), held by the trade's own group |
 | `/compact` | **an institution's own branch** — the Compact's; it keeps publications there |
 | `/corpo/<key>` | **an institution's own branch** — a company's |
 
@@ -90,10 +91,10 @@ them too:
 
 See [parcel.md](./parcel.md) for the `/compact` title.
 
-## The Api (`api/document.ts` → `obj/api/DocumentLogic.ts`)
+## The Api (`api/document.ts` → `platform/idea/api/DocumentLogic.ts`)
 
 A thin gated forwarding shell over a hot-reloadable logic singleton at
-`/obj/api/document`, the `ScriptLogic`/`CraftingLogic` precedent:
+`/platform/idea/api/document`, the `ScriptLogic`/`CraftingLogic` precedent:
 
 - `DocumentApi.read(path)` → the `StoredDocument` at `path`, or null.
 - `DocumentApi.list(prefix)` → every doc at/under `prefix` (the CMS tree's
@@ -153,7 +154,7 @@ bootstrap-exempt like templates).
 ### Provenance
 
 Every save appends an `AuthoringEvent` keyed on the path —
-`DocumentLogic` (`/obj/api/document`) is a named authoring transport in
+`DocumentLogic` (`/platform/idea/api/document`) is a named authoring transport in
 the `ProvenanceApi.recordAuthoring` gate (alongside the template
 chokepoint). Authorship is *derived*, not a mutable stamp.
 
@@ -198,10 +199,8 @@ to `DocumentApi`:
 - resolve-by-path → `DocumentApi.read(path)`, take `data.source` when
   `kind === 'msh'`, parse + cache.
 
-The kind is **`msh`** — the language's name — since content-packs wave
-2 (it was `'script'`; a one-time boot migration renamed the rows and
-moved the lounge exemplars to `/domain/lounge/msh/`). The
-`saxonberg-lounge` pack ships them as `content/msh/*.msh`.
+The kind is **`msh`** — the language's name. The `saxonberg-lounge`
+pack ships them as `content/msh/*.msh`.
 
 The generic store deliberately does **not** keep an AST cache (an AST is
 script-specific) and runs **no** kind-specific go-live — that all lives

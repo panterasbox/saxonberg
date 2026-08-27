@@ -9,8 +9,8 @@ import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { Idea } from '../../lib/stuff/Idea';
-import Species from '../../obj/species/Species';
-import BodyPlan from '../../obj/species/BodyPlan';
+import Species from '../../platform/idea/species/Species';
+import BodyPlan from '../../platform/idea/species/BodyPlan';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -39,7 +39,7 @@ function withTemplatePath<T extends Stuff>(obj: T, path: string): T {
 function makeActor(channels: string[]): Stuff {
   const bp = withTemplatePath(
     makeStuff(() => new BodyPlan()),
-    `/obj/species/BodyPlan/scene-modality-${channels.join('-') || 'sessile'}`,
+    `/stuff/idea/species/BodyPlan/scene-modality-${channels.join('-') || 'sessile'}`,
   );
   bp.setSensoryPorts(
     channels.map((ch) => ({
@@ -50,7 +50,7 @@ function makeActor(channels: string[]): Stuff {
   );
   const sp = withTemplatePath(
     makeStuff(() => new Species()),
-    `/obj/species/test/scene-modality-${channels.join('-') || 'sessile'}`,
+    `/stuff/idea/species/test/scene-modality-${channels.join('-') || 'sessile'}`,
   );
   sp.setBodyPlan(bp);
   const actor = makeStuff(() => new ReceivingActor()) as ReceivingActor & {

@@ -1,0 +1,16 @@
+# Terminus Terminal — the transit-hub building zone (the first zone of the
+# /world/terminus/ area). A CartesianZone holding the station hall, its four
+# gate rooms, and the ticket office. "Terminus Terminal" as the hub label
+# rides this zone `name` + the room prose (generic rooms, no NamedMixin).
+#
+# Owned by the Terminus **municipality** group — but ownership is NOT declared
+# here. It lives in the gated `parcels` collection (`/world/terminus/terminal`
+# → the managed `terminus` group; see mud/config/parcels.yaml), never on this
+# editable zone template (the governing security invariant). This is the first
+# spatial-zone (CartesianZone) ownership stamp. The retired `ownerGroupName`
+# moved to the parcel row.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Terminus Terminal
+  cellSize: 3.0

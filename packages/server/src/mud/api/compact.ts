@@ -6,7 +6,7 @@
  * minting per-feature Apis.
  *
  * Two faces today: the **office face** (the Compact's seats — absorbed
- * from the retired `OfficeApi`; durable state on `/obj/OfficeRegistry`,
+ * from the retired `OfficeApi`; durable state on `/platform/idea/OfficeRegistry`,
  * the founder default, the narrow-entry assign/vacate) and the
  * **committee** reads. A committee is *the group
  * holding parcel title over a subdivision* — a relationship derived on
@@ -20,8 +20,8 @@
  * `GroupApi.membersOf` like any channel.
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link CompactLogic} singleton at `/obj/api/compact`.
- * `dest /obj/api/compact` reloads it.
+ * {@link CompactLogic} singleton at `/platform/idea/api/compact`.
+ * `dest /platform/idea/api/compact` reloads it.
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
@@ -35,7 +35,7 @@ import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { CallSecurity } from "../lib/security/decorators";
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
-import { CompactLogic } from "../obj/api/CompactLogic";
+import { CompactLogic } from "../platform/idea/api/CompactLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
 
@@ -72,9 +72,9 @@ export interface CommitteeChannelView {
   name: string;
 }
 
-const LOGIC_PATH = "/obj/api/compact";
+const LOGIC_PATH = "/platform/idea/api/compact";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/CompactLogic", import.meta.url)
+  new URL("../platform/idea/api/CompactLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able CompactLogic singleton (sync). */
@@ -161,7 +161,7 @@ export class CompactApi {
    * validator's job. Structurally the single entry to the handoff write.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule("/obj/command/governance/OfficeController")
+    SecurityPolicies.FromModule("/platform/idea/cmd/governance/OfficeController")
   )
   public static async assignOffice(
     playerId: string,
@@ -176,7 +176,7 @@ export class CompactApi {
    * no empty state. Same `OfficeController` gate as `assignOffice`.
    */
   @CallSecurity(
-    SecurityPolicies.FromModule("/obj/command/governance/OfficeController")
+    SecurityPolicies.FromModule("/platform/idea/cmd/governance/OfficeController")
   )
   public static async vacateOffice(officeKey: string): Promise<boolean> {
     return logic().vacateOffice(officeKey);

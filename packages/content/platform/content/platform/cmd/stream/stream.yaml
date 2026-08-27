@@ -1,0 +1,37 @@
+verbs: [stream]
+controller: /platform/idea/cmd/stream/StreamController
+description: "Drive the livestream overlay (standby countdown / go live)"
+help: |
+  Control what the livestream overlay shows to viewers watching the
+  broadcast. Use `stream away` to drop into a standby screen with a
+  countdown when you step away, and `stream back` to clear it and go
+  live again.
+
+  This verb is restricted to streamers — if you aren't one, the game
+  won't offer it. It changes only the overlay, not anything in the
+  world around you.
+validators:
+  - /lib/command/validators/requiresStreamer
+subcommands:
+  away:
+    description: "Enter standby with a countdown (e.g. `stream away 15m`)"
+    help: |
+      Put the overlay into standby and start a countdown to when you
+      expect to be back. Viewers see a "back soon" screen ticking down
+      instead of a frozen feed.
+
+      The duration is shell-style: `15m`, `1h`, `1h30m`, or `90s`. A
+      bare number is read as minutes, so `away 10` means ten minutes.
+    examples:
+      - cmd: stream away 1h30m
+        note: Set a longer standby of an hour and a half
+    args:
+      - name: duration
+        type: string
+        required: true
+  back:
+    description: "Clear standby and go live"
+    help: |
+      Clear the standby screen and return the overlay to live. Reach
+      for this the moment you're back at the keyboard so viewers stop
+      seeing the countdown.

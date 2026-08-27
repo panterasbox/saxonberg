@@ -1,0 +1,10 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: recipe-knowledge
+  channel: knowledge
+  label: Recipe Knowledge
+  iscedf: "1013"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - hospitality-catering
+  description: Which cocktails are which — banked one drink at a time by making it. The know-what that mixology builds technique on top of.

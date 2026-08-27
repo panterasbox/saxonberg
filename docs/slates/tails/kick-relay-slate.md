@@ -47,7 +47,7 @@ Nothing here is new design — inventory of the seams that widen:
 |---|---|
 | `lib/streaming/StreamerTarget.ts` — `Platform` union | + `'kick'`; `parse` gains a `kick.com/<slug>` URL branch + a `--kick` opt. Slugs only — no `classifyKickRef` (Kick has none of YouTube's three ref kinds). Pure, unit-tested. |
 | `obj/StreamRelay.ts` — `Service` union | + `'kick'`; the table is already composite-keyed (`channelKey(service, key)`) — zero structural change. |
-| `obj/api/StreamLogic.ts` — `resolveTarget` | + a kick branch (slug → broadcaster id via `KickClient`); `dropPlayer` unsubscribes the third reader. |
+| `platform/idea/api/StreamLogic.ts` — `resolveTarget` | + a kick branch (slug → broadcaster id via `KickClient`); `dropPlayer` unsubscribes the third reader. |
 | `@saxonberg/types` — `WatchTarget` | + `{ platform: "kick"; channel: string }`; widen `RelaySpeaker.service`. |
 | `client/components/embed/StreamEmbed.tsx` | + one iframe case: `https://player.kick.com/<channel>` (public player, Twitch-shape). |
 | `backend/BroadcastFeed.ts` — overlay forwarding | + `OVERLAY_KICK_CHANNEL` sentinel (sibling of the two existing `OVERLAY_*` envs). |

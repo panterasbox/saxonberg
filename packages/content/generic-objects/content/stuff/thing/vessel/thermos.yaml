@@ -1,0 +1,14 @@
+# Thermos — the demo's portable holder, now a sealable thermal Flask:
+# closed (the SealableMixin default) it switches to a vacuum barrier and
+# holds coffee hot for hours; opened it cools in minutes. Starts empty;
+# `liquidTight` closure (the default) retains liquid. Capacity 0.5 L. NOT
+# Gus's won't-open thermos (that's a deliberate prop, banked by intent) —
+# a plain substrate fixture.
+class: /platform/thing/Flask
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a steel thermos
+  longDescription: A dented steel thermos with a screw-top cap.
+  keywords: [thermos, flask]
+  interiorBulk: true
+  interiorCapacity: 0.5

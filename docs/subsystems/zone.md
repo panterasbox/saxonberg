@@ -10,7 +10,7 @@ live in `lib/spatial/`; non-spatial taxonomy zones (`Clade`,
 
 `Biome` deliberately does NOT extend `Zone` ([biome.md](./biome.md))
 — biomes are leaf Ideas with explicit `_extendsBiomePath` parent
-refs. The folder structure under `/obj/biome/` uses `FolderZone`
+refs. The folder structure under `/stuff/idea/biome/` uses `FolderZone`
 templates for the biome team's admin/ownership scoping; the actual
 biome inheritance lives independently in the leaf data.
 
@@ -52,8 +52,8 @@ CartesianZone  SphericalZone
   directly. Exits are authored explicitly on rooms; the zone is the
   coordinate grid + its invariants, never an exit source.
 - **`FolderZone`** — generic organizational scope, no spatial
-  topology. Use for templatePath folders like `/domain/narnia/`
-  or `/obj/biome/outdoor/` that organize a content team's tree
+  topology. Use for templatePath folders like `/world/narnia/`
+  or `/stuff/idea/biome/outdoor/` that organize a content team's tree
   without anchoring a coordinate grid. Sub-folders that DO need
   a coordinate frame extend `CartesianZone` / `SphericalZone`
   instead.
@@ -201,15 +201,15 @@ organization carries no zone implications as long as folders stay
 non-spatial. What's left to author judgment is **how to organize
 within and across zones**.
 
-### Default pattern for `/domain/<team>/`
+### Default pattern for `/world/<team>/`
 
-A team owns its subtree under `/domain/<team>/` and organizes freely
+A team owns its subtree under `/world/<team>/` and organizes freely
 inside it. The recommended shape is geographic at the top, with
 `FolderZone` for organization and `CartesianZone` (or `SphericalZone`)
 where a coordinate grid is needed:
 
 ```
-/domain/narnia/                  FolderZone (organizational)
+/world/narnia/                  FolderZone (organizational)
   forest/                        CartesianZone — the woods, one grid
     western-clearing               Location (leaf, at coords)
     wolf-pack                       NPC (leaf, in the woods zone)
@@ -232,7 +232,7 @@ on the front door).
 1. **Top-level under a team's domain is geographic.** Reflects how
    authors think ("I'm working on the forest") and inherits
    geographic-flavor defaults cleanly (a forest biome set at
-   `/domain/narnia/forest/`).
+   `/world/narnia/forest/`).
 2. **Within a region, categorical or flat is the author's call.**
    Either `.../forest/western-clearing` flat, or
    `.../forest/clearings/western-clearing` sub-categorized. Depth is a
@@ -253,7 +253,7 @@ on the front door).
 
 ### Anti-patterns to avoid
 
-- **Everything categorical at the top** (`/domain/narnia/rooms/`,
+- **Everything categorical at the top** (`/world/narnia/rooms/`,
   `.../items/`, `.../npcs/`). Breaks inheritance — geographic defaults
   can't reach rooms scattered across a categorical tree.
 - **One zone for an entire team's domain.** Too coarse; the cardinal
@@ -271,9 +271,9 @@ on the front door).
   promote to a spatial zone only when you actually want a coordinate
   frame.
 
-### `/idea/...` vs `/domain/...` are organized differently
+### `/idea/...` vs `/world/...` are organized differently
 
-These guidelines target `/domain/<team>/` content trees. Core
+These guidelines target `/world/<team>/` content trees. Core
 taxonomies under `/idea/` (`/idea/material/`, `/idea/species/`,
 `/idea/biome/`) are organized **taxonomically** — root → kingdom →
 species, or biome-category hierarchy — not geographically. Their

@@ -84,7 +84,7 @@ plate 3) so a covering stack orders itself with no authored number.
 ## The response function (the Api home)
 
 The function lands on the **existing `MaterialApi`** (`api/material.ts`) +
-`MaterialLogic` (`obj/api/MaterialLogic.ts`, gated
+`MaterialLogic` (`platform/idea/api/MaterialLogic.ts`, gated
 `FromModule('/api/material#MaterialApi')`), filling the surface
 `MaterialLogic` had reserved for `damageResistance`. No new Api. The same
 function is read from both sides of a blow (Settled-6 "one function, two
@@ -140,7 +140,7 @@ is a **sync** `findByTemplatePath` against the live index — and nothing
 else ever stood Materials up in a running server (tests hand-construct
 theirs), so every live read was null and nothing could ignite or melt.
 `MaterialApi.boot()` (called from `AppBootstrap` after the seeders)
-stands the whole `/obj/material/**` roster up as live singletons — the
+stands the whole `/stuff/idea/material/**` roster up as live singletons — the
 `SpeciesApi.preloadAnatomy` tolerant-ensure made total over a small,
 hot, reference-data roster. Folder rows (`FolderZone`s) are the zone
 substrate's and are skipped. `Material.canEvict` vetoes the residency

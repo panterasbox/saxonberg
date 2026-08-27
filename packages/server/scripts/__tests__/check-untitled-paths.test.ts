@@ -1,7 +1,7 @@
 /**
  * check-untitled-paths' pure decision core: a shipped path under a title
  * root with no claim as a prefix is untitled; a covered one is not; a
- * path outside the eight roots (a pack's own document root) is nobody's
+ * path outside the nine roots (a pack's own document root) is nobody's
  * business.
  */
 
@@ -11,16 +11,22 @@ import { classify, TITLE_ROOTS } from '../check-untitled-paths';
 describe('check-untitled-paths.classify', () => {
   it('a covered path passes, an uncovered one under a title root is reported, one outside the roots is ignored', () => {
     const shipped = [
-      { pack: 'platform', path: '/obj/EventRegistry' },
-      { pack: 'stray', path: '/obj/gear/hat' },
+      { pack: 'platform', path: '/platform/idea/EventRegistry' },
+      { pack: 'stray', path: '/stuff/thing/gear/hat' },
       { pack: 'expression', path: '/expression/emotes/wave' },
       { pack: 'world', path: '/studio/x' },
     ];
-    expect(classify(shipped, ['/obj/EventRegistry', '/studio'])).toEqual([{ path: '/obj/gear/hat', pack: 'stray' }]);
-    expect(classify(shipped, ['/obj', '/studio'])).toEqual([]);
+    expect(classify(shipped, ['/platform/idea/EventRegistry', '/studio'])).toEqual([{ path: '/stuff/thing/gear/hat', pack: 'stray' }]);
+    expect(classify(shipped, ['/platform', '/stuff', '/studio'])).toEqual([]);
   });
 
-  it('the eight title roots are the installer\'s', () => {
-    expect(TITLE_ROOTS).toEqual(['/obj', '/domain', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo']);
+  it('the nine title roots are the installer\'s (one list, lib/paths.ts)', () => {
+    expect(TITLE_ROOTS).toEqual(['/platform', '/stuff', '/world', '/compact', '/studio', '/wiki', '/home', '/corpo', '/trade']);
+  });
+
+  it('/trade/ is a title root: an unclaimed industry row is reported, a claimed one passes', () => {
+    const shipped = [{ pack: 'trade-x', path: '/trade/x/thing/anvil' }];
+    expect(classify(shipped, ['/obj'])).toEqual([{ path: '/trade/x/thing/anvil', pack: 'trade-x' }]);
+    expect(classify(shipped, ['/trade/x'])).toEqual([]);
   });
 });

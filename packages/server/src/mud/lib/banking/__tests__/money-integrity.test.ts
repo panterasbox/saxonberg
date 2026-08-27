@@ -13,14 +13,14 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Coin from "../../../obj/Coin";
+import Coin from "../../../platform/thing/Coin";
 import { Currency } from "../Currency";
 import { StuffApi } from "../../../api/stuff";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 
-const COIN_PATH = "/obj/Coin";
+const COIN_PATH = "/stuff/thing/Coin";
 
 function makeCoins(qty: number, denomination = 1, currency = "zorkmid"): Coin {
   const c = makeStuffAtPath(() => {

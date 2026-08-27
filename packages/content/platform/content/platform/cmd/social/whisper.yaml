@@ -1,0 +1,29 @@
+verbs: [whisper]
+controller: /platform/idea/cmd/social/WhisperController
+description: "Whisper to someone — short-reach acoustic; overhearers see a redacted form"
+help: |
+  Speak quietly to one person in your room. Only your target hears
+  the words; anyone else present sees that you whispered to someone
+  but gets a redacted line, not the content. Use it for a private
+  aside while staying in the same space.
+
+  Whisper is acoustic and short-reach — both of you must be in the
+  same room. For private messages at any distance, use `tell`.
+examples:
+  - cmd: whisper bob meet me outside
+    note: Say something only Bob can hear
+  - cmd: whisper alice I don't trust him
+    note: Pass a private aside; others see only that you whispered
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "online"
+    requires: class:Agent
+    onExcess: prompt
+  - name: message
+    type: string
+    required: true
+    greedy: true

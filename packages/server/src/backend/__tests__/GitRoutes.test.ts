@@ -26,7 +26,7 @@ import { GitRoutes } from '../GitRoutes';
 import { GitApi, GitError } from '../../mud/api/git';
 import { User } from '../../mud/lib/identity/User';
 import { PlayerApi } from '../../mud/api/player';
-import type Avatar from '../../mud/obj/Avatar';
+import type Avatar from '../../mud/platform/agent/Avatar';
 
 /** Minimal app mirroring Server's auth middleware + GitRoutes. */
 function makeApp(): Express {

@@ -1,0 +1,23 @@
+verbs: [walk]
+controller: /platform/idea/cmd/movement/WalkController
+description: "Walk through a named exit (compass, door, or vessel)."
+help: |
+  Move on foot through an exit you name. `walk north`, `walk gate`,
+  or `walk through the oak door` — same destinations `go` reaches,
+  but committed to walking as the mode of travel.
+
+  Walking is the default way most creatures get around, so plain
+  `go` usually walks for you. Reach for `walk` when you specifically
+  want to walk an exit that could also be climbed, swum, or flown,
+  or to be explicit about how you leave.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    scope: ["$focus", "reachable"]
+    required: true
+    validators:
+      - /lib/command/validators/canReach
+    requires: any

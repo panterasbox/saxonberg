@@ -97,7 +97,7 @@ deferred player-placed-concealment case).
 perception, and the presence face is `PerceptionApi` — a fourth module
 would gate an operation the perception face already owns. The surface is
 added to the existing **`PerceptionApi`** → **`PerceptionLogic`** pair
-(`api/perception.ts` / `obj/api/PerceptionLogic.ts`), siblings of
+(`api/perception.ts` / `platform/idea/api/PerceptionLogic.ts`), siblings of
 `canPerceive` / `perceiveAt`:
 
 | Method | Meaning |
@@ -164,7 +164,7 @@ client (`nothing-is-pure-client`, no metagaming). One predicate —
 that builds a viewer's world:
 
 1. **Room contents** — `LookController.visibleContents`
-   (`obj/command/perception/LookController.ts`) filters on `perceives`.
+   (`platform/idea/cmd/perception/LookController.ts`) filters on `perceives`.
 2. **Arrival sense** — `SenseController.visibleContents` filters on
    `perceives` (so a new room's fog is honest on entry too).
 3. **Exits** — `Exitable.obviousExitsFor(viewer)` is the viewer-aware exit

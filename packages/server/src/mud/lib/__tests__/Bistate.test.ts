@@ -5,7 +5,7 @@ import { BistateMixin } from '../Bistate';
 import { SealableMixin } from '../spatial/Sealable';
 import { SwitchableMixin } from '../boundary/Switchable';
 import { FoldableMixin } from '../slot/Foldable';
-import PersistentHydrator from '../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
 import { StuffApi } from '../../api/stuff';
 import { makeStuff } from '../security/__tests__/test-setup';
 

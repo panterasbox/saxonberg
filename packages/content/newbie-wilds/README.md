@@ -4,8 +4,8 @@ The **newbie-wilds** content pack — the frontier onboarding zone, the
 first *locality* shipped as a pack (base-library, species-and-names and
 arcane-descriptors ship substrate; this ships a place).
 
-Contents (`content/domain/newbie-wilds/**`, template paths
-`/domain/newbie-wilds/...` — unchanged from their former home under
+Contents (`content/world/newbie-wilds/**`, template paths
+`/world/newbie-wilds/...` — unchanged from their former home under
 `server/src/mud/seeds/`):
 
 - `crossroads.yaml` + `crossroads/**` — the crossroads: hub, watchpost,

@@ -10,10 +10,10 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Creature } from "../../creature/Creature";
-import Condition from "../../../obj/Condition";
+import Condition from "../../../platform/idea/Condition";
 import type { ToxinBehavior } from "../Metabolic";
 import { WorldClockApi } from "../../../api/worldclock";
-import "../../../obj/WorldClockRegistry";
+import "../../../platform/idea/WorldClockRegistry";
 import { StuffApi } from "../../../api/stuff";
 import {
   makeStuff,
@@ -80,7 +80,7 @@ const PURGE: ToxinBehavior = {
  * breaks there rather than silently un-testing this file.
  */
 function ensureCondition(behavior: ToxinBehavior): void {
-  const path = "/obj/Condition/metabolism/" + behavior.toxinType;
+  const path = "/platform/idea/Condition/metabolism/" + behavior.toxinType;
   if (StuffApi.findByTemplatePath(path)) return;
   makeStuffAtPath(() => {
     const c = new Condition();
@@ -92,13 +92,13 @@ function ensureCondition(behavior: ToxinBehavior): void {
 
 const burden = (c: Creature, t: string) => c.toxinBurdens[t] ?? 0;
 function hasCond(c: Creature, t: string): boolean {
-  const path = "/obj/Condition/metabolism/" + t;
+  const path = "/platform/idea/Condition/metabolism/" + t;
   return c
     .getConditions()
     .some((x) => x.kind === "affliction" && x.templatePath === path);
 }
 function severity(c: Creature, t: string): number {
-  const path = "/obj/Condition/metabolism/" + t;
+  const path = "/platform/idea/Condition/metabolism/" + t;
   const rec = c
     .getConditions()
     .find((x) => x.kind === "affliction" && x.templatePath === path);

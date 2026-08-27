@@ -92,7 +92,7 @@ describe('Material', () => {
   it('binds a QuantityMarshaller path for electricalConductivity', () => {
     expect(MixinApi.getAllFieldMarshallers(Material).electricalConductivity).toBeDefined();
     expect(MixinApi.getAllFieldMarshallers(Material).electricalConductivity).toBe(
-      '/obj/persistence/QuantityMarshaller/S-per-m',
+      '/platform/idea/persistence/QuantityMarshaller/S-per-m',
     );
   });
 

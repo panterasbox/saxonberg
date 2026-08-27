@@ -20,17 +20,17 @@ import { Authority, type PrincipalRef } from '../Authority';
 import { OrganizationMixin } from '../Organization';
 import { EmployedMixin } from '../Employed';
 import { Idea } from '../../stuff/Idea';
-import Avatar from '../../../obj/Avatar';
-import GovernmentCatalogue from '../../../obj/GovernmentCatalogue';
-import Government from '../../../obj/Government';
-import OfficeRegistry from '../../../obj/OfficeRegistry';
+import Avatar from '../../../platform/agent/Avatar';
+import GovernmentCatalogue from '../../../platform/idea/GovernmentCatalogue';
+import Government from '../../../platform/idea/Government';
+import OfficeRegistry from '../../../platform/idea/OfficeRegistry';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { ParcelApi } from '../../../api/parcel';
 import { GroupApi } from '../../../api/group';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import { Template } from '../../../lib/stuff/Template';
+import { Template } from '../../stuff/Template';
 import { Document } from '../../persistence/Document';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import type { ParcelOwner } from '../../parcel/ParcelRecord';
@@ -123,12 +123,12 @@ class EmployedHost extends EmployedMixin(Idea) {
 }
 
 const ORG = '/compact/press';
-const REGISTRY_BUSINESS = '/domain/terminus/registry/business';
+const REGISTRY_BUSINESS = '/world/terminus/registry/business';
 const GROUP_REF = 'managed:g-core';
 const FOUNDER_EMAIL = 'founder@example.com';
 
 function makeAvatar(playerId: string): Avatar {
-  const av = makeStuffAtPath(() => new Avatar(), `/obj/Avatar/${playerId}`);
+  const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
   av.setPlayerId(playerId);
   return av;
 }
@@ -142,7 +142,7 @@ function seedGoogleUser(playerId: string, email: string): void {
 async function bootOfficeRegistry(): Promise<OfficeRegistry> {
   const reg = makeStuffAtPath(
     () => new OfficeRegistry(),
-    '/obj/OfficeRegistry',
+    '/platform/idea/OfficeRegistry',
   );
   await reg.postRegister();
   CompactApi._resetOfficeRegistryRefForReload();
@@ -191,7 +191,7 @@ async function warmGovernment(): Promise<void> {
   );
   const cat = makeStuffAtPath(
     () => new GovernmentCatalogue(),
-    '/obj/GovernmentCatalogue',
+    '/platform/idea/GovernmentCatalogue',
   );
   await cat.postRegister();
 }
@@ -200,9 +200,9 @@ async function warmGovernment(): Promise<void> {
 
 describe('Authority.fromData', () => {
   it('normalizes a legacy bare proprietorPath string to an entity ref', () => {
-    expect(Authority.fromData('/domain/lounge/npc/dave')).toEqual({
+    expect(Authority.fromData('/world/lounge/npc/dave')).toEqual({
       kind: 'entity',
-      path: '/domain/lounge/npc/dave',
+      path: '/world/lounge/npc/dave',
     });
   });
 
@@ -436,18 +436,18 @@ describe('the appointing authority on an organization', () => {
 
   it('reads a legacy `proprietorPath` seed with no seed edit', () => {
     const org = makeStuffAtPath(() => new OrganizationEntity(), ORG);
-    org.proprietorPath = '/domain/lounge/npc/dave';
+    org.proprietorPath = '/world/lounge/npc/dave';
     expect(org.getAppointingAuthority()).toEqual({
       kind: 'entity',
-      path: '/domain/lounge/npc/dave',
+      path: '/world/lounge/npc/dave',
     });
     // ...and the economic half still gets its proprietor.
-    expect(org.getProprietor()).toBe('/domain/lounge/npc/dave');
+    expect(org.getProprietor()).toBe('/world/lounge/npc/dave');
   });
 
   it('lets an authored `appointingAuthority` win over the legacy field', () => {
     const org = makeStuffAtPath(() => new OrganizationEntity(), ORG);
-    org.proprietorPath = '/domain/lounge/npc/dave';
+    org.proprietorPath = '/world/lounge/npc/dave';
     org.appointingAuthority = { kind: 'office', office: 'prime-minister' };
     expect(org.getAppointingAuthority()).toEqual({
       kind: 'office',

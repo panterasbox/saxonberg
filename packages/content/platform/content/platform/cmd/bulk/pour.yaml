@@ -1,0 +1,45 @@
+verbs: [pour]
+controller: /platform/idea/cmd/bulk/PourController
+description: "Pour liquid from one holder into another"
+help: |
+  Moves liquid from one holder into another. Name the source
+  first, then the destination with `into`:
+  `pour the jug into the cup`. With no measure given, you pour as
+  much as the destination can take and the rest stays put.
+
+  Give `--amount` to pour a precise quantity —
+  `pour jug into pot --amount 2cups`. Liquids that don't mix won't
+  combine, and pouring into an open vessel that's already full can
+  spill through. To fill something completely instead, use `fill`;
+  to dump everything on the ground, use `spill`.
+examples:
+  - cmd: pour the jug into the cup
+    note: Move liquid between two holders
+  - cmd: pour jug into pot --amount 2cups
+    note: Pour a measured amount
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+options:
+  amount:
+    type: string
+    description: "How much to pour — `2cups`, `250ml`, `0.5L`"
+  exact:
+    type: boolean
+    description: "Pour the full measure or none of it"
+args:
+  - name: source
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    prepositions: [into, in]
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustHaveBulkSlot

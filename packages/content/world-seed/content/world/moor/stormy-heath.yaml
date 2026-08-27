@@ -1,0 +1,28 @@
+# The stormy heath — the outdoor demonstrator room. A SkyExposed
+# CartesianLocation whose covering Locality (`The Weeping Moor`, address
+# `moor`) pins it to an always-alive storm. Stand here and the resolved storm
+# drives everything: rain fills the heath's Floor pool, a wet body reads a
+# deadlier shock, an ambient strike can crack through `conduct`, overcast dims
+# the light, and `analyze weather` / `look up` read a towering cumulonimbus.
+#
+# Its Floor pool is authored **empty** (`adornments:`); the rain fills it. No
+# exits wired (reachable by teleport — the substation precedent).
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a storm-lashed heath
+  primaryKeyword: heath
+  longDescription: |
+    Open moorland under a bruised, boiling sky. Heather flattens in the wind and the rain comes sideways in grey sheets; far off, a stand of dead birches stands black against the lightning. There is nowhere here that is dry.
+  # SkyExposed outdoor biome (from the base-library content pack) — the storm
+  # reaches this scope.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # Address puts this room under the Weeping Moor Locality's `moor` prefix.
+  address: moor/heath
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  # The (initially dry) Floor pool the rain fills — a fixture.
+  adornments:
+    - /world/moor/heath-floor

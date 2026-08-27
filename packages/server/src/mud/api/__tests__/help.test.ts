@@ -20,7 +20,7 @@ import type {
 } from "@saxonberg/types";
 import { HelpApi, type HelpViewer } from "../help";
 import { StuffApi } from "../stuff";
-import type HelpCatalogue from "../../obj/HelpCatalogue";
+import type HelpCatalogue from "../../platform/idea/HelpCatalogue";
 
 function topic(id: string, kind: HelpKind, spoiler: boolean): HelpTopic {
   return {

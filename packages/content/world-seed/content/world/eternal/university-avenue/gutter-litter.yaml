@@ -1,0 +1,10 @@
+# A takeable scrap of gutter litter — a real Thing, loose on the stone by the
+# bin. Generic object (Visible.shortDescription, never Named); pick it up,
+# read it, drop it in the bin. Its readable face is a Detailed sub-feature.
+class: /platform/thing/Prop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crumpled ticket stub
+  primaryKeyword: stub
+  longDescription: |
+    A crumpled Teleport Authority ticket stub, dropped just short of the bin. The fare and the destination are half-torn away; someone arrived, and didn't look back at what it cost them.

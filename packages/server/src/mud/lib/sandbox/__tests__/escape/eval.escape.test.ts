@@ -29,7 +29,7 @@ vi.setConfig({ testTimeout: 20_000 });
 
 
 const SCOPE = '/home/eval-tester';
-const EXTENT = '/domain/terminus';
+const EXTENT = '/world/terminus';
 
 class Pokeable extends Idea {
   private poked = false;
@@ -91,7 +91,7 @@ describe('sandbox-escape: eval', () => {
     Stuff._stampTemplatePath(inside, `${EXTENT}/plaza/fountain`);
     // Out-of-jurisdiction receiver: a field object elsewhere.
     const outside = await StuffApi.create(() => new Pokeable());
-    Stuff._stampTemplatePath(outside, '/domain/narnia/lamppost');
+    Stuff._stampTemplatePath(outside, '/world/narnia/lamppost');
 
     await SandboxApi.runGoverned(EXTENT, () => {
       expect(ExecutionContextApi.getJurisdictionBound()).toBe(EXTENT);

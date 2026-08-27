@@ -1,0 +1,28 @@
+# Perceive — a magic grid verb Discipline (the verb x noun grammar; see
+# docs/subsystems/magic.md). Seeded pure data, harvested by the
+# DisciplineCatalogue at boot. No `conferrals`: the cast/spells verbs ride
+# CasterMixin; per-spell access is a band gate at cast time on BOTH of a
+# cell's axes (competence IS access).
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: magic-perceive
+  channel: skill
+  label: Perceive
+  iscedf: "0288"  # ISCED-F 2013 — Inter-disciplinary (an invented science)
+  synergizes:
+    - magic-fire
+    - magic-water
+    - magic-air
+    - magic-earth
+    - magic-light
+    - magic-plant
+    - magic-beast
+    - magic-body
+    - magic-mind
+    - magic-sense
+    - magic-arcana
+    - magic-lightning
+    - magic-storm
+  description: >-
+    The read-only operation — sensing, scrying, detecting what is hidden. To perceive is to touch without disturbing.

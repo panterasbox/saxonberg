@@ -1,0 +1,16 @@
+# A sewing kit — the `mending` capability in a roll: soft-goods work and
+# soft-goods repair (leather, textile — the whetstone's structural
+# cousin, the smith's forge for things that were never metal). The
+# `mending` capability entry alone confers repair/salvage (the
+# capability table). Its up-market variant is the sewing machine.
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a sewing kit
+  primaryKeyword: sewing-kit
+  keywords: [sewing-kit, kit, sewing, needle, awl, thread]
+  longDescription: |
+    A canvas roll of needles, waxed thread, an awl, and patience. Everything soft that tears, this mends.
+  capabilities: [mending]
+  _materialPath: /stuff/idea/material/textile/wool
+  mass: 0.4

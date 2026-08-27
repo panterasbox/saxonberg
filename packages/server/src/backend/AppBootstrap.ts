@@ -95,7 +95,7 @@ export class AppBootstrap {
    *      installed before this runs.
    *
    *      Controllers are not pre-loaded; dispatch clones a fresh
-   *      one per command via `StuffApi.clone('/obj/command/<Name>')`.
+   *      one per command via `StuffApi.clone('/platform/idea/cmd/<Name>')`.
    *
    *   4. Preload command YAMLs and resolve each `validators: [...]`
    *      spec into a live function. Validators are inert until this
@@ -151,7 +151,7 @@ export class AppBootstrap {
       console.info(
         `PackApi: '${r.packId}' installed — ` +
           `${r.inserted.length} inserted, ${r.updated.length} updated, ` +
-          `${r.adopted.length} adopted, ${r.deleted.length} deleted, ` +
+          `${r.deleted.length} deleted, ` +
           `${r.kept.length} kept, ${r.merged.length} merged, ${r.archived.length} archived, ` +
           `${r.conflicts.length} conflict(s), ` +
           `${r.pinnedSkipped} pinned (skipped), ` +
@@ -164,9 +164,9 @@ export class AppBootstrap {
             : '') +
           `, requires: ${r.requires.groupsCreated.length + r.requires.groupsFound.length} group(s) ` +
           `(${r.requires.groupsCreated.length} created), ` +
-          `${r.requires.titlesGranted.length + r.requires.titlesKept.length + r.requires.titlesMigrated.length + r.requires.titleConflicts.length} title(s) ` +
+          `${r.requires.titlesGranted.length + r.requires.titlesKept.length + r.requires.titleConflicts.length} title(s) ` +
           `(${r.requires.titlesGranted.length} granted, ${r.requires.titlesKept.length} kept, ` +
-          `${r.requires.titlesMigrated.length} migrated, ${r.requires.titleConflicts.length} conflict)` +
+          `${r.requires.titleConflicts.length} conflict)` +
           (r.requires.skippedSold.length > 0 ? `, ${r.requires.skippedSold.length} row(s) skipped (extent sold)` : '') +
           `, boot: ${r.boot['sync-read']} sync-read + ${r.boot.producer} producer, ` +
           (r.staffed ? 'staffed' : 'UNSTAFFED')

@@ -112,7 +112,7 @@ Players drive it through the global **`device`-category** verbs
 `fold <thing>` / `unfold <thing>` (`cmd/device/fold.yaml`,
 `cmd/device/unfold.yaml`), which target a reachable object and are
 narrowed to a Foldable by the controller (`MixinApi.isFoldable`,
-`obj/command/device/`). `FoldController` additionally refuses to fold a
+`platform/idea/cmd/device/`). `FoldController` additionally refuses to fold a
 host whose slots are occupied — you can't fold a chair someone is
 sitting on. The concrete host is `FoldingChair` (`obj/FoldingChair.ts`
 = `Chair` + `Foldable`, its own file so seeds resolve it by path); it

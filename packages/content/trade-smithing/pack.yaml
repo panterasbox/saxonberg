@@ -1,0 +1,18 @@
+id: trade-smithing
+version: 0.1.0
+root: /trade/smithing
+description: >-
+  The smithing trade — what smithing introduces: its stations (anvil,
+  whetstone, workbench), its stock (iron ingots) and its recipes
+  (fire-poker, smiths-hammer, belt-knife, cook-pot, leather-jerkin). Fire
+  stations (Forge, Oven, Kiln, CookPot) are fire-substrate commons under
+  /obj; the Hearthworks smithy (/world/hearthworks/smithy) is the venue
+  that hosts this trade. Content packs wave 4a.
+dependsOn: [platform, generic-objects]
+requires:
+  groups:
+    - name: smithing
+      purpose: the smithing trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/smithing, holder: { group: smithing } }

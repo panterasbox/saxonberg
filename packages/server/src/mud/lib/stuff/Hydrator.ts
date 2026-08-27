@@ -7,7 +7,7 @@
  * that knows how to apply `data` to a backing. When `hydratorClass` is
  * ABSENT, the clone pipeline runs no hydrator at all and `data` is ignored —
  * templates that want generic mixin-field copy must opt in by naming
- * `'/obj/persistence/PersistentHydrator'` (the standard implementation).
+ * `'/platform/idea/persistence/PersistentHydrator'` (the standard implementation).
  *
  * Hydrators are STATELESS by contract — one instance per hydrator
  * class, reused across every backing it hydrates. The clone pipeline
@@ -23,7 +23,7 @@
  * Concrete implementations extend `Idea` (and therefore `Stuff`) so
  * `StuffApi.clone` can produce them — see `PersistentHydrator` for
  * the standard implementation. Each hydrator class needs a Template
- * doc in `content` (the platform pack's `content/obj/persistence/`). A
+ * doc in `content` (the platform pack's `content/platform/idea/persistence/`). A
  * hydrator's own Template names no `hydratorClass` of its own — that
  * terminates `clone()`'s hydrator-resolution recursion. Cycles
  * (a hydrator naming itself or another hydrator) are caught by the

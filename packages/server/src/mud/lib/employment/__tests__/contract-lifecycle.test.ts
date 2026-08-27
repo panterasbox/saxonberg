@@ -47,13 +47,13 @@ class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
 }
 
-const BOARD = "/domain/test/board";
-const BAR = "/domain/test/bar";
-const WAREHOUSE = "/domain/test/warehouse";
+const BOARD = "/world/test/board";
+const BAR = "/world/test/bar";
+const WAREHOUSE = "/world/test/warehouse";
 const CRATE = "/obj/test/crate";
-const ISSUER = "/obj/Avatar/issuer";
-const COURIER = "/obj/Avatar/courier";
-const RIVAL = "/obj/Avatar/rival";
+const ISSUER = "/platform/agent/Avatar/issuer";
+const COURIER = "/platform/agent/Avatar/courier";
+const RIVAL = "/platform/agent/Avatar/rival";
 
 const HOUR = 3_600;
 const REWARD = 25;
@@ -116,7 +116,7 @@ describe("contract lifecycle", () => {
         "", Currency.compact()),
     );
     await BankingApi.mint(issuerAcct, Money.of(100, Currency.compact()));
-    // The couriers live under /obj/Avatar/ — the PLAYER namespace — so per
+    // The couriers live under /platform/agent/Avatar/ — the PLAYER namespace — so per
     // the players-hold-their-own-accounts rule they arrive banked (the
     // no-account refusal has its own test below).
     for (const key of [COURIER, RIVAL]) {
@@ -423,9 +423,9 @@ describe("contract lifecycle", () => {
   });
 
   it("business-issued: post --business escrows from the Business account, settles identically", async () => {
-    const BUSINESS = "/domain/test/business";
-    const DAVE = "/domain/test/npc/dave";
-    const { default: BusinessEntity } = await import("../../../obj/Business");
+    const BUSINESS = "/world/test/business";
+    const DAVE = "/world/test/npc/dave";
+    const { default: BusinessEntity } = await import("../../../platform/idea/Business");
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.proprietorPath = DAVE;
     biz.banksAt = BankingApi.defaultCustodianBank();
@@ -461,12 +461,12 @@ describe("contract lifecycle", () => {
   });
 
   it("an unbanked player completer is refused before the terminal flip", async () => {
-    // A walk-in under /obj/Avatar/ (the player namespace) with NO account:
+    // A walk-in under /platform/agent/Avatar/ (the player namespace) with NO account:
     // players are never silently signed up for a bank — the refusal is the
     // nudge to open one (coin settlement is a named deferred seam). The
     // record must NOT settle (payee resolves before the CAS flip) and the
     // stake stays held; opening an account unblocks the payout.
-    const walkin = makeStuffAtPath(() => new Creature(), "/obj/Avatar/walkin");
+    const walkin = makeStuffAtPath(() => new Creature(), "/platform/agent/Avatar/walkin");
     const posted = await as(issuer, () =>
       ContractApi.post(spec({ claimMode: "open-bounty" })),
     );
@@ -479,7 +479,7 @@ describe("contract lifecycle", () => {
     expect((await ContractApi.contractById(id))?.state).toBe("open");
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(REWARD);
     await BankingApi.ensureVenueAccount(
-      "/obj/Avatar/walkin",
+      "/platform/agent/Avatar/walkin",
       BankingApi.defaultCustodianBank(),
       "", Currency.compact());
     expect(await as(walkin, () => ContractApi.complete(id))).toEqual({

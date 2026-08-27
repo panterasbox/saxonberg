@@ -1,0 +1,21 @@
+verbs: [stand]
+controller: /platform/idea/cmd/posture/StandController
+description: "Stand up. With no argument, vacate any current posture-bearing slot."
+help: |
+  Get to your feet. Bare `stand` rises out of whatever you were
+  sitting, lying, or kneeling on, leaving its seat free for
+  someone else.
+
+  Name a target to stand *on* it instead — climb up onto a chair
+  or a table, if it can bear someone standing there. This is the
+  way back from any other posture.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresPosed
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: false
+    scope: ["$focus", "reachable"]
+    requires: [VisibleMixin, PosturedMixin]

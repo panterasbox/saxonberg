@@ -9,7 +9,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
-import Floor from '../../../obj/Floor';
+import Floor from '../../../platform/thing/Floor';
 import Thing from '../../stuff/Thing';
 import { VisibleMixin } from '../../description/Visible';
 import { SlottableMixin } from '../Slottable';

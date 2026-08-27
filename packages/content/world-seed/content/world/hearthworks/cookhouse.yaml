@@ -1,0 +1,32 @@
+# The cookhouse — the Hearthworks' cooking venue: a hearth (an Oven-class
+# furnace at gentle cooking heat), a cook pot, a pantry chest (the
+# open-container gather path — flip the lid, cook), the kitchen board,
+# and the cook. Order a meal, or make it yourself with their tools — the
+# DIY floor.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cookhouse
+  primaryKeyword: cookhouse
+  longDescription: |
+    A low cookhouse warm with woodsmoke, a clay hearth glowing along one wall and a scrubbed table down the middle. A pantry chest stands against the wall, and the smell of stew never quite leaves the rafters.
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  populates:
+    - /stuff/thing/Oven
+    - /stuff/thing/CookPot
+    - /world/hearthworks/kitchen-menu
+    - /world/hearthworks/pantry-chest
+    # Working stock out on the table (the DIY floor's hand-reach; the
+    # chest holds the dear cuts the gather walk reaches for a craft —
+    # hand-retrieval from containers isn't a shipped verb yet).
+    - /stuff/thing/items/root-vegetables
+    - /stuff/thing/items/root-vegetables
+    - /stuff/thing/items/stew-meat
+    # Empty dishes for the DIY floor — `plate` needs a real dish in
+    # reach (the served path clones its own; the by-hand path doesn't).
+    - /stuff/thing/items/plated-dish
+    - /stuff/thing/items/plated-dish
+    - /world/hearthworks/npc/cook

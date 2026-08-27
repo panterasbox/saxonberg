@@ -85,7 +85,7 @@ describe('CommandApi.preloadAll', () => {
     // synthesised into a validator and PREPENDED, then its one authored
     // `validators:` entry follows. A count that only matched the
     // authored list would pass while the declaration did nothing.
-    const get = CommandApi.getCommand('inventory/get.yaml');
+    const get = CommandApi.getCommand('platform/cmd/inventory/get.yaml');
     const arg = get?.args[0];
     expect(arg?.requires).toEqual(['VisibleMixin', 'ContainableMixin']);
     expect(arg?.validators).toEqual([
@@ -102,7 +102,7 @@ describe('subcommand-level validators', () => {
     CommandApi.clearCache();
     const result = await CommandApi.preloadAll();
     expect(result.failed).toEqual([]);
-    const office = CommandApi.getCommand('governance/office.yaml');
+    const office = CommandApi.getCommand('platform/cmd/governance/office.yaml');
     expect(office?.getSubcommand('assign')?._resolvedValidators?.length).toBe(
       1,
     );

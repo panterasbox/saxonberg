@@ -46,8 +46,8 @@ function col(name: string): Record<string, unknown>[] {
 }
 
 const LEAF = '/lib/location/CartesianLocation';
-const PATH = '/domain/gallery/mural';
-const ALICE = '/obj/Avatar/alice';
+const PATH = '/world/gallery/mural';
+const ALICE = '/platform/agent/Avatar/alice';
 
 beforeEach(() => {
   stores = new Map();
@@ -98,7 +98,7 @@ describe('TemplateApi.saveTemplate authorship (context-derived)', () => {
     await withRootContext(null, 'cms.write', () => {
       ExecutionContextApi.tagActingAuthor(avatar);
       return TemplateApi.saveTemplate(PATH, LEAF, {
-        author: '/obj/Avatar/impostor',
+        author: '/platform/agent/Avatar/impostor',
         createdByPlayerId: 'evil',
       });
     });

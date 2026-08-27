@@ -28,16 +28,16 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
 import { RecognitionApi } from '../../../api/recognition';
-import '../../../obj/WorldClockRegistry';
-import SpellCatalogue from '../../../obj/SpellCatalogue';
-import Spell from '../../../obj/magic/Spell';
-import Scroll from '../../../obj/magic/Scroll';
-import GlowlightOrb from '../../../obj/magic/GlowlightOrb';
+import '../../../platform/idea/WorldClockRegistry';
+import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
+import Spell from '../../../platform/idea/magic/Spell';
+import Scroll from '../../../platform/thing/magic/Scroll';
+import GlowlightOrb from '../../../platform/thing/magic/GlowlightOrb';
 import { Template } from '../../stuff/Template';
 import { Idea } from '../../stuff/Idea';
 import { Character } from '../../character/Character';
-import Species from '../../../obj/species/Species';
-import Room from '../../../obj/location/Room';
+import Species from '../../../platform/idea/species/Species';
+import Room from '../../../platform/location/Room';
 import { Dose } from '../Dose';
 import { MarkedMixin, MARK_FORMS } from '../../description/Marked';
 import { ConsumableMixin } from '../Consumable';
@@ -74,7 +74,7 @@ class TestFlask extends BulkableMixin(ContainableMixin(NamedMixin(Idea))) {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../../../../content/arcane-library/content/obj/magic/Spell',
+  '../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 
 let seq = 0;
@@ -102,7 +102,7 @@ async function installCatalogue(): Promise<void> {
     });
   if (!catalogueSingleton) {
     catalogueSingleton = makeStuff(() => new SpellCatalogue());
-    stampTemplatePathForTest(catalogueSingleton, '/obj/SpellCatalogue');
+    stampTemplatePathForTest(catalogueSingleton, '/platform/idea/SpellCatalogue');
   }
   catalogueSingleton.invalidateCache();
   await catalogueSingleton.postRegister();
@@ -115,7 +115,7 @@ function makeActor(): TestCharacter {
   species.setFacultyProfile({ depth: 'mid', serenity: 'mid', composure: 'mid' });
   species.setInnateMixins(['CasterMixin']);
   species.setSentient(true);
-  stampTemplatePathForTest(species, `/obj/species/test/cons-${n}`);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/cons-${n}`);
   const actor = makeStuff(() => new TestCharacter());
   actor.setSpecies(species);
   stampTemplatePathForTest(actor, `/obj/test/cons-actor-${n}`);
@@ -133,7 +133,7 @@ function makeScroll(spellId: string): Scroll {
   const s = makeStuff(() => new Scroll());
   stampTemplatePathForTest(s, `/obj/test/scroll-${seq++}`);
   s.setMarkText('a dense column of glyphs');
-  s.setCarriedSpellPath(`/obj/magic/Spell/${spellId}`);
+  s.setCarriedSpellPath(`/stuff/idea/magic/Spell/${spellId}`);
   return s;
 }
 
@@ -480,7 +480,7 @@ describe('Wave 2 — consumables', () => {
         m.setIdentifiedName('a veiling draught');
         return m;
       },
-      `/obj/material/potion/cons-${seq++}`,
+      `/stuff/idea/material/potion/cons-${seq++}`,
     );
     const flask = makeStuff(() => {
       const v = new TestFlask();

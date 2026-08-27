@@ -8,7 +8,7 @@
  * SkyExposed scopes' temperature / humidity / wind / pressure over time,
  * coherently, per locality. There is no simulation, no tick, and no
  * stored weather state — `WeatherApi.weatherAt(time, locality)` is a pure
- * function of its inputs (see {@link ../../obj/api/WeatherLogic}).
+ * function of its inputs (see {@link ../../platform/idea/api/WeatherLogic}).
  *
  * This module is the home for the **data** (the {@link WeatherType}
  * vocabulary, {@link WEATHER_PROFILES}, {@link TRANSITIONS},

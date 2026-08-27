@@ -5,8 +5,8 @@
 > the street from Gus's room — *not* Gus, and not the plaza. It earns its
 > keep by being **seen from** Gus's room.
 > **Target seed paths:**
-> - `ClockTower` (or a `Timekeeping` clock-face fixture) → `mud/obj/`,
->   seeded onto the terminal exterior under `/domain/terminus/terminal/`.
+> - `ClockTower` (or a `Timekeeping` clock-face fixture) → `mud/platform/`,
+>   seeded onto the terminal exterior under `/world/terminus/terminal/`.
 > - The plaza's live **`tower` detail** → the `plaza.yaml` `details:` block
 >   (a dynamic description that reads the tower's `currentReading()`).
 > **Depends on:** the **`Timekeeping`** capability + `Watch`

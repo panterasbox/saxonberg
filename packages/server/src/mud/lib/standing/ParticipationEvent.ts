@@ -19,7 +19,7 @@
  * path is find-or-skip on `{subject, bucket}` (anti-AFK: idle buckets
  * never appear; anti-spam: a macro spamming a bucket earns the one row the
  * bucket already has). `subject` is the giver's durable `templatePath`
- * (`/obj/Avatar/<playerId>`), not the re-minted `stuffId` — the
+ * (`/platform/agent/Avatar/<playerId>`), not the re-minted `stuffId` — the
  * `ConsumerLogic` dispatch tap converts at the storage boundary so standing
  * survives re-clone; the collection is indexed on `{subject}` and
  * `{subject, bucket}` (the dedup

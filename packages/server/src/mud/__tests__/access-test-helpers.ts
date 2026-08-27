@@ -14,7 +14,7 @@ import { StuffApi } from '../api/stuff';
 import { GroupApi } from '../api/group';
 import { ParcelApi } from '../api/parcel';
 
-const ACCESS_REGISTRY_PATH = '/obj/AccessRegistry';
+const ACCESS_REGISTRY_PATH = '/platform/idea/AccessRegistry';
 
 /** Ensure the AccessRegistry is cloned (idempotent). */
 async function ensureAccessRegistry(): Promise<void> {

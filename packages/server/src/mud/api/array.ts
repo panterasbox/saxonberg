@@ -16,19 +16,19 @@
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link ArrayLogic} singleton at
- * `/obj/api/array`, reached synchronously via `StuffApi.singletonSync`.
- * `dest /obj/api/array` reloads it.
+ * `/platform/idea/api/array`, reached synchronously via `StuffApi.singletonSync`.
+ * `dest /platform/idea/api/array` reloads it.
  */
 
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { ArrayLogic } from '../obj/api/ArrayLogic';
+import { ArrayLogic } from '../platform/idea/api/ArrayLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
-const LOGIC_PATH = '/obj/api/array';
+const LOGIC_PATH = '/platform/idea/api/array';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ArrayLogic', import.meta.url)
+  new URL('../platform/idea/api/ArrayLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ArrayLogic singleton (sync). */

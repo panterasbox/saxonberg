@@ -25,21 +25,21 @@ import { EventApi } from '../event';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Stuff } from '../../lib/stuff/Stuff';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
 import { ConnectionApi } from '../connection';
 import {
   makeStuff,
   makeStuffAtPath,
 } from '../../lib/security/__tests__/test-setup';
 
-const SUBJECT = '/obj/Avatar/tester';
+const SUBJECT = '/platform/agent/Avatar/tester';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);
@@ -100,7 +100,7 @@ describe('durable-subject witness', () => {
     await subscribedInteractive(SUBJECT);
     const spy = vi.spyOn(MqlApi, 'resolveOne');
 
-    MqlSubscriptionApi.notifyDurableSubject('/obj/Avatar/somebody-else');
+    MqlSubscriptionApi.notifyDurableSubject('/platform/agent/Avatar/somebody-else');
     await MqlSubscriptionApi._drainScheduledForTesting();
 
     // The index matches the exact key, so one player's renown append
@@ -124,7 +124,7 @@ describe('durable-subject witness', () => {
   });
 
   it('indexes nothing for a host with no durable identity', async () => {
-    // A guest has no `/obj/Avatar/<playerId>` stamp, so `durableKey`
+    // A guest has no `/platform/agent/Avatar/<playerId>` stamp, so `durableKey`
     // returns undefined and no tuple is installed. Nothing should be
     // pokeable, and nothing should throw.
     await subscribedInteractive(null);

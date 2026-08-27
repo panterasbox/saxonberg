@@ -24,16 +24,16 @@ describe("FastTravelMixin", () => {
   it("applyRoutes parses to / warren refs and HH:MM departures", () => {
     const n = makeStuff(() => new Node());
     n.applyRoutes([
-      { to: "/domain/a/node", departures: ["11:00", "14:30"] },
-      { warren: "/domain/lounge/warren" },
+      { to: "/world/a/node", departures: ["11:00", "14:30"] },
+      { warren: "/world/lounge/warren" },
     ]);
-    expect(n.hasRoute("/domain/a/node")).toBe(true);
-    expect(n.hasRoute("/domain/lounge/warren")).toBe(true);
-    expect(n.getRoutes().get("/domain/a/node")?.departures).toEqual([
+    expect(n.hasRoute("/world/a/node")).toBe(true);
+    expect(n.hasRoute("/world/lounge/warren")).toBe(true);
+    expect(n.getRoutes().get("/world/a/node")?.departures).toEqual([
       { hour: 11, minute: 0 },
       { hour: 14, minute: 30 },
     ]);
-    expect(n.getRoutes().get("/domain/lounge/warren")?.departures).toEqual([]);
+    expect(n.getRoutes().get("/world/lounge/warren")?.departures).toEqual([]);
   });
 
   it("selection defaults to the first route; advanceSelection cycles + wraps", () => {

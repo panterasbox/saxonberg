@@ -1,0 +1,28 @@
+# The BEDROOM — the archetype with an internal FUNCTION (D10).
+#
+# Sleep is this game's logout state, and the shipped rest model does not
+# stop at disconnect: metabolism recovers by `posture × restQuality`,
+# reconciled on read from a persisted clock stamp. Log out lying on a good
+# bed and tomorrow's reconcile integrates the elapsed hours at THAT BED'S
+# multiplier; log out standing in the street and it integrates at 1.0. The
+# delta between those two is the entire mechanic, and it is why a residence
+# is worth having before condition or decoration exist.
+#
+# Parity, not a bonus: offline time is treated the same as online time,
+# never better, and never worse than the floor.
+#
+# This is the one archetype expected to earn a class eventually — the
+# mirror's instrumented bedroom is behaviour its contents cannot carry.
+# Until then it is a row, and promoting it is a one-line `class:` edit.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bedroom
+  primaryKeyword: bedroom
+  keywords: [bedroom, bed, room]
+  longDescription: |
+    A quiet room with a bed against the far wall and a window that catches the last of the afternoon. There is space for more than this, if you have it.
+  ambientIntensity: 25
+  ambientColorTemperature: 5000
+  populates:
+    - /stuff/thing/fixture/bed

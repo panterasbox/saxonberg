@@ -1,0 +1,16 @@
+# Dehydration — the floor effect of the `hydration` reserve. Spawned by
+# metabolism's reconcile cascade when hydration bottoms out; progresses
+# to the death seam (cause-of-death "dehydration") FASTER than
+# starvation (the lethal timing is a METABOLIC_DEFAULTS dial). Cleared
+# when hydration recovers above the hysteresis band.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: dehydration
+  signature: []
+  progression:
+    intervalMs: 1800000
+  resolution:
+    by: water
+  observableSigns: [parched, cracked-lips, dizzy]
+  contagion: null

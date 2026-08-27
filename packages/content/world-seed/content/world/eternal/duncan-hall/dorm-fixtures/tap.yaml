@@ -1,0 +1,18 @@
+# The dorm tap — an inexhaustible water source, so filling a watering can
+# needs no errand. An `UnboundedReceptacle` (composes `UnboundedSourceMixin`)
+# whose interior `available()` is ∞, copying the lounge's coffee urn. The
+# finite-but-regenerating source is named as deferred in
+# `lib/bulk/UnboundedSource.ts`'s own docstring; ∞ is the honest v1.
+#
+# A university-owned fixture: invariant, respawned from template, seeded
+# into each DormRoom via its `populates:` data.
+class: /platform/thing/UnboundedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a corner tap
+  primaryKeyword: tap
+  keywords: [tap, faucet, sink, water]
+  longDescription: |
+    A single cold tap over a shallow enamel basin, bolted to the wall in the corner. It runs with a knock and a shudder, and it runs all day.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water

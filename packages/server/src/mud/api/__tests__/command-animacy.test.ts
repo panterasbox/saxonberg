@@ -3,8 +3,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import requiresAnimate from '../../lib/command/validators/requiresAnimate';
 import { CommandApi, type CommandContext } from '../command';
 import { StuffApi } from '../stuff';
-import Species from '../../obj/species/Species';
-import Clade from '../../obj/species/Clade';
+import Species from '../../platform/idea/species/Species';
+import Clade from '../../platform/idea/species/Clade';
 import { Character } from '../../lib/character/Character';
 import { Idea } from '../../lib/stuff/Idea';
 import Location from '../../lib/stuff/Location';
@@ -42,14 +42,14 @@ function makeContext(
 function setupAnimaliaCharacter(): TestCharacter {
   const animalia = withTemplatePath(
     makeStuff(() => new Clade()),
-    '/obj/species/animalia'
+    '/stuff/idea/species/animalia'
   );
   animalia.setName('Animalia');
   animalia.setRank('kingdom');
 
   const sapiens = withTemplatePath(
     makeStuff(() => new Species()),
-    '/obj/species/animalia/.../sapiens'
+    '/stuff/idea/species/animalia/.../sapiens'
   );
   const character = makeStuff(() => new TestCharacter());
   character.setSpecies(sapiens);

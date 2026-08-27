@@ -17,10 +17,10 @@ import { ConnectionApi } from '../connection';
 import { PlayerApi } from '../player';
 import { Stuff } from '../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../execution-context';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
-import WireBody from '../../obj/sandbox/WireBody';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
+import WireBody from '../../platform/agent/sandbox/WireBody';
 import { Events } from '../../lib/events';
 import { OMNI_SCOPE } from '../execution-context';
 import { ScheduleApi } from '../schedule';
@@ -62,7 +62,7 @@ const SCOPE = `/home/${PLAYER}`;
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

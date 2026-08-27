@@ -79,7 +79,7 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
      * (below) are pushed dynamically.
      */
     static commandContributions: CommandContributions = {
-      self: ["charactergen/competence.yaml"],
+      self: ["platform/cmd/charactergen/competence.yaml"],
       peers: [],
       environment: [],
     };

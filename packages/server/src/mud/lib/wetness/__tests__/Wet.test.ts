@@ -22,7 +22,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 
 class WetThing extends Thing {}
 class WarmWetThing extends ThermalMixin(Thing) {
@@ -49,7 +49,7 @@ function material(): Material {
     m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
     m.setWaterAbsorptionCapacity(Quantity.of(5, '%')); // neutral, so the warmth test isolates warmth
     return m;
-  }, `/obj/material/_test/wet-mat-${matCounter}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/wet-mat-${matCounter}`) as unknown as Material;
 }
 
 let absSeq = 0;
@@ -61,7 +61,7 @@ function capacityThing(capacityPct: number): WetThing {
     m.setName(`cap-mat-${absSeq}`);
     m.setWaterAbsorptionCapacity(Quantity.of(capacityPct, '%'));
     return m;
-  }, `/obj/material/_test/cap-${absSeq}`) as unknown as Material;
+  }, `/stuff/idea/material/_test/cap-${absSeq}`) as unknown as Material;
   const t = makeStuff(() => new WetThing());
   (t as unknown as { setMaterial(m: Material): void }).setMaterial(mat);
   return t;

@@ -77,7 +77,7 @@ const SelfOnlyPolicy: SecurityPolicy = {
  *     (`resolveModuleId`) — trust by code provenance.
  *
  * Both identities are absolute and slash-shaped now (a module id is
- * `/obj/command/X`, a template path is `/obj/command/X`), so a caller
+ * `/platform/idea/cmd/X`, a template path is `/platform/idea/cmd/X`), so a caller
  * that is a *cloned* Stuff carries BOTH — its clone lineage AND the
  * provenance of its class. Keeping the resolvers separate is what lets
  * the two policies mean different things (a class cloned into a foreign
@@ -136,7 +136,7 @@ function resolveModuleId(caller: unknown | null): string | null {
 /**
  * `FromTemplate(glob)` — caller's CMS template path matches `glob`.
  *
- * Useful for "anything cloned from /domain/narnia/**" rules.
+ * Useful for "anything cloned from /world/narnia/**" rules.
  */
 function FromTemplate(glob: string): SecurityPolicy {
   return {
@@ -168,7 +168,7 @@ function FromTemplate(glob: string): SecurityPolicy {
  * Glob examples:
  *   - `'/api/**'` matches every Api export under `api/` (src/mud/api/).
  *   - `'/lib/spatial/Door#Door'` matches exactly Door.
- *   - `'/domain/narnia/**'` matches every export under that subtree —
+ *   - `'/world/narnia/**'` matches every export under that subtree —
  *     the "developers don't trust each other" story where a subsystem
  *     owner gates onward calls into their module's privileged surface.
  *
@@ -365,14 +365,14 @@ function FromMixin(
  * *adds* admitted callers, so every prior allow/deny decision for
  * non-logic callers is unchanged.
  *
- * The logic singletons are registered `Stuff` at `/obj/api/<feature>`,
+ * The logic singletons are registered `Stuff` at `/platform/idea/api/<feature>`,
  * so a caller frame resolves to that *template path* (not the module
- * id) — hence the `/obj/api/**` arm uses `FromTemplate`, not
+ * id) — hence the `/platform/idea/api/**` arm uses `FromTemplate`, not
  * `FromModule`.
  */
 const ApiOnlyPolicy: SecurityPolicy = (() => {
   const fm = FromModule('/api/**', { includeSubclasses: true });
-  const fmLogic = FromTemplate('/obj/api/**');
+  const fmLogic = FromTemplate('/platform/idea/api/**');
   return {
     name: 'ApiOnly',
     allows: (caller, target, method) =>

@@ -145,10 +145,10 @@ Real-world policies do not want to be written against `instanceof
 Avatar`. The user wants to write rules like:
 
 > "Reject calls that originated from anything cloned from a template
-> under `/domain/narnia/**`."
+> under `/world/narnia/**`."
 
 > "Reject calls from any subclass of the class loaded from
-> `/mud/domain/narnia/NarniaLocation.ts`."
+> `/mud/world/narnia/NarniaLocation.ts`."
 
 > "Allow calls from `Application`, `Backend`, or `Interactive`."
 
@@ -158,8 +158,8 @@ exposes — a small bundle of identity facets:
 | Facet              | Source                                              | Example                                  |
 | ------------------ | --------------------------------------------------- | ---------------------------------------- |
 | **stuffId**        | runtime nanoid, on every `Stuff`                    | `aB7…`                                   |
-| **module URL**     | the file the class was actually imported from, captured by the loader transform | `/api/stuff#StuffApi`, `/domain/narnia/NarniaLocation#NarniaLocation` |
-| **template path**  | the CMS template path (only if cloned)              | `/obj/Avatar/abc123`, `/domain/narnia/cair-paravel` |
+| **module URL**     | the file the class was actually imported from, captured by the loader transform | `/api/stuff#StuffApi`, `/world/narnia/NarniaLocation#NarniaLocation` |
+| **template path**  | the CMS template path (only if cloned)              | `/platform/agent/Avatar/abc123`, `/world/narnia/cair-paravel` |
 
 **Module URL is captured by the import machinery, not declared by the
 class.** A class that says `static __isApi = true` or sets a
@@ -230,7 +230,7 @@ covering both named and default exports:
 | `class Foo` exported as `Foo`                         | `/lib/Foo#Foo`                             |
 | `class Foo` exported as `default`                     | `/lib/Foo` (bare path is the default-export convention) |
 | `class StuffApi` in `mud/api/stuff.ts`                | `/api/stuff#StuffApi`                      |
-| `class NarniaLocation` in `mud/domain/narnia/...`     | `/domain/narnia/NarniaLocation#NarniaLocation` |
+| `class NarniaLocation` in `mud/world/narnia/...`     | `/world/narnia/NarniaLocation#NarniaLocation` |
 
 `ModuleApi.lookup(cls)` returns the canonical id (or `null` if
 unstamped). Module IDs are `/`-absolute, mud-rooted — the **same shape**
@@ -240,7 +240,7 @@ resolves the caller's two identities **independently**:
 `resolveTemplatePath` (the caller's instance template path — clone
 lineage). `FromModule` matches the former, `FromTemplate` the latter —
 they discriminate on **which identity a policy reads**, not on string
-shape. A cloned Stuff carries both, so `FromModule('/obj/…')` admits it
+shape. A cloned Stuff carries both, so `FromModule('/platform/… + /stuff/…')` admits it
 by its class even though it also has a template path.
 
 ## The Interception Pipeline
@@ -528,7 +528,7 @@ descriptor wrapping).
 
 The surface-architecture refactor relocated each convertible Api's
 *logic* into a stateless `Stuff` **logic singleton** at
-`/obj/api/<feature>` (e.g. `MaterialLogic` at `/obj/api/material`); the
+`/platform/idea/api/<feature>` (e.g. `MaterialLogic` at `/platform/idea/api/material`); the
 `FooApi` statics became thin forwarders. The HMR side lives in
 [hot-reload.md](./hot-reload.md); the **gating** side is here, because it
 exercises a specific caller/callee shape.
@@ -585,7 +585,7 @@ code path-lookup.)
 
 A former static that called another static can't become a bare-gated
 `this.x()`: inside the singleton, the caller of `this.x()` *is* the
-singleton (its `/obj/api/<feature>` template path), **not** the Api — so
+singleton (its `/platform/idea/api/<feature>` template path), **not** the Api — so
 `FromModule(own Api)` denies it. Two fixes, in preference order:
 
 1. **Extract a module-private free function** both methods call. Free
@@ -604,17 +604,17 @@ target, not the proxy) — hence the free-function route.
 
 ### The `ApiOnly` widening
 
-A logic singleton's caller identity resolves to its `/obj/api/<feature>`
+A logic singleton's caller identity resolves to its `/platform/idea/api/<feature>`
 **template path**, not a `mud/api/` module id. So `ApiOnly`-gated
 downstream calls (e.g. `ContainmentApi.move`, `placeDirect`) made *from*
 a logic singleton would fail the old `FromModule('/api/**')` matcher.
 `ApiOnly` was therefore widened (`lib/security/SecurityPolicies.ts`) to:
 
 ```
-FromModule('/api/**', { includeSubclasses: true })  OR  FromTemplate('/obj/api/**')
+FromModule('/api/**', { includeSubclasses: true })  OR  FromTemplate('/platform/idea/api/**')
 ```
 
-`/obj/api/` holds *nothing but* logic singletons, so the new arm admits
+`/platform/idea/api/` holds *nothing but* logic singletons, so the new arm admits
 exactly the Api tier and never content — it only **adds** admitted
 callers; every prior allow/deny decision for non-logic callers is
 unchanged.
@@ -625,7 +625,7 @@ Where an Api has state, a stateless logic singleton sits **between** the
 Api statics and the pinned state singleton (the state survives reload;
 the logic `dest`-reloads). Inserting the layer **re-points the state
 singleton's caller** — its `FromModule('/api/<feature>#<Api>')` gate
-becomes `AnyOf(FromModule(...), FromTemplate('/obj/api/<feature>'))`.
+becomes `AnyOf(FromModule(...), FromTemplate('/platform/idea/api/<feature>'))`.
 Adoption:
 
 - **`scheduler`** (`SchedulerRegistry`), **`worldclock`**,
@@ -635,7 +635,7 @@ Adoption:
 - **`access`** (`AccessRegistry`), **`group`** (`GroupRegistry`),
   **`belief`**, **`prompt`** (per-Interactive registry) were converted in
   the bootstrap-cycle-unblock pass (below); their backing-state gates
-  were re-pointed to `AnyOf(FromModule(...), FromTemplate('/obj/api/<feature>'))`
+  were re-pointed to `AnyOf(FromModule(...), FromTemplate('/platform/idea/api/<feature>'))`
   where the state object carried a `FromModule` gate (`AccessRegistry`),
   or left alone where it didn't (`GroupRegistry` is ungated).
 
@@ -648,7 +648,7 @@ The two hops are **not** an optional optimization — they *are* the
 hot-reload boundary, and the split is mandatory for every substrate Api.
 The `XApi` facade is imported directly across the codebase, so it is
 **not** HMR-able: anything living on it is frozen until a full restart.
-The `XLogic` singleton lives at `/obj/api/<feature>` and is resolved
+The `XLogic` singleton lives at `/platform/idea/api/<feature>` and is resolved
 fresh per call (`StuffApi.singletonSync` + `HotReloadApi.getCurrentExport`),
 so editing it hot-reloads into every caller.
 
@@ -659,7 +659,7 @@ fail-closed policy — and even a genuine pure-forward tier must stay, so
 that logic *added later* lands in the HMR-able unit rather than on the
 frozen facade. State registries (`AccessRegistry`, `OfficeRegistry`) hold
 durable *state* and are gated to admit their logic singleton
-(`FromTemplate('/obj/api/<feature>')`) — they are not a substitute for
+(`FromTemplate('/platform/idea/api/<feature>')`) — they are not a substitute for
 the logic tier. The 2026-07 sweep briefly collapsed `access`/`office`
 this way; it was **reverted**. The method-level cut that sweep *should*
 have made — deleting empty public predicates off the Api *surface* in
@@ -891,7 +891,7 @@ subsystem: `PartyMemberMixin._setActivePartyPath` is gated on
 `FromClass(() => Party)` with a `where` requiring that the path being
 written is the *calling party's own* path and that the member is
 already on that party's roster — the `Party.admit()` transition is the
-code that satisfies it. A narrow `FromTemplate('/obj/api/<feature>')`
+code that satisfies it. A narrow `FromTemplate('/platform/idea/api/<feature>')`
 arm may ride along for the owning logic's janitorial cases (stale
 state with no live participant to act).
 
@@ -1507,7 +1507,7 @@ A shadow class that composes mixins with persistent fields (e.g.
 ```yaml
 path: /system/buffs/regeneration
 class: /lib/some/Regeneration   # extends Shadow
-hydratorClass: /obj/persistence/PersistentHydrator
+hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   duration: 30
   magnitude: 5
@@ -1630,7 +1630,7 @@ The **narrow-entry pattern** is the access build's framing for who
 authorizes `forceX`:
 
 1. The Api method is decorated with `FromController(...controllers)`
-   (string-form `FromModule('/obj/command/X#X')` in the shipped
+   (string-form `FromModule('/platform/idea/cmd/X#X')` in the shipped
    wiring to avoid a value-level static-import cycle). Only the
    listed verb controllers can reach the entry point at all;
    everything else throws `SecurityError`.
@@ -1645,7 +1645,7 @@ that path enforces who is authorized.
 Adoption sites today:
 
 - `StuffApi.forceDestruct` →
-  `FromModule('/obj/command/author/DestructController#DestructController')`.
+  `FromModule('/platform/idea/cmd/author/DestructController#DestructController')`.
   `DestructController` does the access check.
 - `ContainmentApi.forceMove` →
   `AnyOf(FromModule(TeleportController), FromModule(GotoController))`.
@@ -1676,10 +1676,10 @@ when `-f` is set and access allows."
 Earlier framework drafts treated the Hydrator as a privileged "system
 context" that bypassed policies. The shipped position is the opposite:
 Hydrators are themselves `Stuff`. They have stuffIds, they have a class
-path (`/obj/persistence/PersistentHydrator`), they get pushed onto the
+path (`/platform/idea/persistence/PersistentHydrator`), they get pushed onto the
 call stack like anything else when invoked. Policies that care about
 the hydrator can match on
-`FromModule('/obj/persistence/PersistentHydrator')` or with
+`FromModule('/platform/idea/persistence/PersistentHydrator')` or with
 `{ includeSubclasses: true }`.
 
 Bracket-assignment of persistent fields invokes the field's setter.

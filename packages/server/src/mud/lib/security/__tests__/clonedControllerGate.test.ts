@@ -1,12 +1,12 @@
 /**
  * Narrow-entry gates on clone-per-execution controllers.
  *
- * Controllers are cloned from `/obj/command/<name>` per dispatch
+ * Controllers are cloned from `/platform/idea/cmd/<name>` per dispatch
  * (`CommandGiver._executeOne`), so the running caller is a Stuff that has
  * BOTH a clone template path (set at clone time) AND a stamped class
  * module id. With per-identity resolution, `FromModule` matches such a
  * caller by its **class module id** (code provenance) — so a single
- * `FromModule('/obj/command/<name>')` admits the cloned controller
+ * `FromModule('/platform/idea/cmd/<name>')` admits the cloned controller
  * directly, no `FromTemplate` arm needed. `FromModule` and `FromTemplate`
  * read *different* identities, which stays meaningful when a class is
  * cloned into a foreign template.
@@ -20,7 +20,7 @@ import { describe, it, expect } from 'vitest';
 import { SecurityPolicies } from '../SecurityPolicies';
 import { ModuleApi } from '../../../api/module';
 
-const CTRL = '/obj/command/governance/OfficeController';
+const CTRL = '/platform/idea/cmd/governance/OfficeController';
 
 /** A clone-per-execution controller: instance of a stamped class that
  *  also carries a clone template path. */
@@ -40,8 +40,8 @@ describe('narrow-entry gate on a cloned controller', () => {
 
   it('FromModule denies an unrelated controller', () => {
     const other = makeClonedController(
-      '/obj/command/social/GroupController',
-      '/obj/command/social/GroupController',
+      '/platform/idea/cmd/social/GroupController',
+      '/platform/idea/cmd/social/GroupController',
     );
     expect(
       SecurityPolicies.FromModule(CTRL).allows(other as never, null as never, 'assign' as never),
@@ -50,20 +50,20 @@ describe('narrow-entry gate on a cloned controller', () => {
 
   it('multi-controller AnyOf (forceMove shape) admits each cloned controller, denies others', () => {
     const teleport = makeClonedController(
-      '/obj/command/author/TeleportController',
-      '/obj/command/author/TeleportController',
+      '/platform/idea/cmd/author/TeleportController',
+      '/platform/idea/cmd/author/TeleportController',
     );
     const goto = makeClonedController(
-      '/obj/command/author/GotoController',
-      '/obj/command/author/GotoController',
+      '/platform/idea/cmd/author/GotoController',
+      '/platform/idea/cmd/author/GotoController',
     );
     const stranger = makeClonedController(
-      '/obj/command/author/DestructController',
-      '/obj/command/author/DestructController',
+      '/platform/idea/cmd/author/DestructController',
+      '/platform/idea/cmd/author/DestructController',
     );
     const gate = SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/obj/command/author/TeleportController'),
-      SecurityPolicies.FromModule('/obj/command/author/GotoController'),
+      SecurityPolicies.FromModule('/platform/idea/cmd/author/TeleportController'),
+      SecurityPolicies.FromModule('/platform/idea/cmd/author/GotoController'),
     );
     expect(gate.allows(teleport as never, null as never, 'forceMove' as never)).toBe(true);
     expect(gate.allows(goto as never, null as never, 'forceMove' as never)).toBe(true);

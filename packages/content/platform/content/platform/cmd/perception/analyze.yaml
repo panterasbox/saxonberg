@@ -1,0 +1,173 @@
+verbs: [analyze]
+description: "Analyze a physical channel in detail"
+help: |
+  Go deeper than a glance. Where `measure` reads a single number
+  off an instrument, `analyze` breaks a channel down and shows
+  you the working — which sources contribute what, where a value
+  comes from, the full provenance behind the reading.
+
+  Pick a channel as a subcommand: `light`, `chemistry`,
+  `atmosphere`, `time`, `sky`, `address`, `weather`, `response`,
+  or `electrical`. Most default to where you stand, so the bare
+  subcommand usually does what you want.
+subcommands:
+  response:
+    description: "Preview what a made thing does — per-channel outcome bands (a weapon's delivery, an armor's protection)"
+    help: |
+      Point at a made thing — a weapon or a piece of armor — and
+      read what it would do. For a weapon, the band each channel
+      delivers (edge / point / blunt); for armor, how well it turns
+      each. "What would this do?" before anyone gets hurt. The band
+      shown is exactly the one an actual blow would land — the same
+      response function, no surprises.
+    examples:
+      - cmd: analyze response the steel dagger
+        note: See a weapon's delivered channels
+      - cmd: analyze response the breastplate
+        note: See a piece of armor's per-channel protection
+    controller: /platform/idea/cmd/perception/AnalyzeResponseController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: DurableMixin
+  weapon:
+    description: "Preview a weapon's derived playstyle — reach, guard, balance, handedness, delivery (bands/pips)"
+    help: |
+      Point at a weapon and read its playstyle before you draw it. The
+      whole bundle is *derived* from the weapon's shape — its form,
+      material, mass, and length — never hand-tuned: `reach medium ●●○○ ·
+      guard good ●●●○ · balance heavy · one-handed`. A long weapon controls
+      the approach; a heavy one breaks guards but is slow; a crossguard
+      parries where a flail can't. The bands shown are the same ones the
+      fight applies.
+    examples:
+      - cmd: analyze weapon the spear
+        note: See a weapon's reach / guard / balance / handedness
+      - cmd: analyze weapon my sword
+        note: Read the playstyle of a weapon you're carrying
+    controller: /platform/idea/cmd/combat/AnalyzeWeaponController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: DurableMixin
+  electrical:
+    description: "Read a thing's electrical character — conductivity / resistance / path-to-ground bands, and the raw V/A/Ω on measurement (the multimeter)"
+    help: |
+      Point at a material, a made thing, a live source, or a body
+      and read its electrical character: how well it conducts, the
+      resistance it offers, whether a body has a path to ground, and
+      a source's potential. Bands for a glance; the raw numbers
+      (volts / amps / ohms / S·m) on measurement — a real multimeter.
+    examples:
+      - cmd: analyze electrical the copper wire
+        note: Read a material's conductivity + resistance
+      - cmd: analyze electrical the guard
+        note: Is a body grounded (shockable) or insulated?
+    controller: /platform/idea/cmd/perception/AnalyzeElectricalController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: TangibleMixin
+  light:
+    description: "Analyze light at a location with source breakdown"
+    help: |
+      Break the light at a place into its parts: every source
+      contributing, how much each adds, and the total you'd read.
+      Defaults to where you stand if you name no location.
+    examples:
+      - cmd: analyze light the cellar
+        note: Analyze light at another place
+    controller: /platform/idea/cmd/perception/AnalyzeLightController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        requires: ContainerMixin
+  chemistry:
+    description: "Analyze the chemistry of a target"
+    help: |
+      Inspect what a thing is made of — its chemistry, the
+      substances and proportions that compose it. The target must
+      be tangible and within reach.
+    controller: /platform/idea/cmd/perception/AnalyzeChemistryController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: TangibleMixin
+  atmosphere:
+    description: "Dump the resolved atmospheric state at your immediate scope with full provenance"
+    help: |
+      Dump the full atmospheric state around you — every resolved
+      field with the provenance of where each value came from.
+      Reach for it when a plain `measure` reading surprises you and
+      you want to see why.
+    controller: /platform/idea/cmd/perception/AnalyzeAtmosphereController
+    args:
+      - name: detail
+        type: string
+        required: false
+  time:
+    description: "Report game-time, scale, and the current date in your calendar"
+    help: |
+      Report the game clock: the current world time, how fast it
+      runs against real time, and today's date in your calendar.
+    controller: /platform/idea/cmd/perception/AnalyzeTimeController
+    args:
+      - name: detail
+        type: string
+        required: false
+  sky:
+    description: "Full celestial state for a location (sun, season, moon, day/night)"
+    help: |
+      Read the heavens over a place: the sun's position, the
+      season, the moon's phase, and whether it's day or night.
+      Defaults to where you stand if you name no location.
+    examples:
+      - cmd: analyze sky the rooftop
+        note: Check the sky over another place
+    controller: /platform/idea/cmd/perception/AnalyzeSkyController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        requires: ContainerMixin
+  address:
+    description: "Resolve the addressing namespace at a place: declared/inherited address, provenance, and the covering Locality (longest-prefix chain)"
+    help: |
+      Resolve where a place sits in the address namespace: its
+      declared or inherited address, where that came from, and the
+      Locality that covers it. Defaults to where you stand.
+    controller: /platform/idea/cmd/perception/AnalyzeAddressController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        requires: ContainerMixin
+  weather:
+    description: "Report the current weather type, per-field deviations, the covering Locality, and a short forecast"
+    help: |
+      Report the weather at a place: the current weather type, how
+      it nudges each atmospheric field, the Locality it belongs to,
+      and a short forecast. Defaults to where you stand.
+    controller: /platform/idea/cmd/perception/AnalyzeWeatherController
+    args:
+      - name: location
+        type: object
+        required: false
+        default: "here"
+        scope: ["reachable"]
+        requires: ContainerMixin

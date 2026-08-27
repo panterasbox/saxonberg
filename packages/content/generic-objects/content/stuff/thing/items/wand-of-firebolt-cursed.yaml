@@ -1,0 +1,52 @@
+# A cursed wand of firebolt — the BUC exemplar, and the first thing in
+# the world that is not `uncursed`.
+#
+# Deliberately the SAME wand as `wand-of-firebolt`, one band down, and
+# nothing else differs. That is the entire claim BUC makes: a cursed
+# wand of firebolt is a *weaker wand of firebolt*, not a wand with
+# something else wrong with it. Everything a player experiences falls
+# out of that one field:
+#
+#   - it delivers 0.6× (`BUC_POTENCY`), so firebolt lands soft;
+#   - it will not leave the hand that took it (`refusesRelease`);
+#   - being charged, D11 sharpens it — it bleeds its charge into the
+#     holder rather than merely sitting there.
+#
+# ⚠ And note what "cursed" does NOT mean: it is not *malicious*, it is
+# *inefficient*. The blessed twin of this wand would be a BETTER
+# firebolt wand — and the blessed twin of a wand of dread would be a
+# better wand of dread, which is why knowing an item's band tells you
+# nothing about whether it is safe to use. See `Blessing`.
+#
+# It shares `wand-of-firebolt`'s census key on purpose: it is the same
+# kind of thing for stock purposes, and a separate bucket would let a
+# player read BUC off the census.
+class: /platform/thing/magic/Wand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a slender ashwood wand
+  primaryKeyword: wand
+  longDescription: >
+    A finger-length rod of pale ash, banded at the grip with tarnished
+    brass. Held still, it is faintly warm.
+  carriedSpellPath: /stuff/idea/magic/Spell/firebolt
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.4
+  capacityKJ: 900
+  alwaysOn: false
+  censusKey: wand
+  materialTags: [wood, brass]
+  descriptorClass: wand
+  # ⚠ NOT stocked by the spawn table. Until generation odds land (the
+  # follow-on), a cursed item enters the world only when somebody clones
+  # it deliberately — which is what makes it testable without making it
+  # a hazard nobody opted into.
+  regionTarget: 0
+  identifiedName: a wand of firebolt
+  # ── the one field that differs from the ordinary wand ──
+  blessingBand: cursed
+  # You HOLD a wand. Without a slot claim there is nothing for a
+  # curse to stick to — `remove`/`unwield` only gate what is
+  # actually occupying a body slot.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]

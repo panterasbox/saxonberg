@@ -1,0 +1,20 @@
+verbs: [make]
+controller: /platform/idea/cmd/crafting/MakeController
+description: "Run a recipe you've defined or learned (a named recipe-script)"
+help: |
+  Run a named recipe-script — `make martini`, or steer it with a param:
+  `make martini with gin`. It dispatches the recipe's steps for you, each
+  pacing itself; a `def`'d recipe is yours for the session. You can only
+  make what you've defined or learned.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: recipe
+    type: string
+    required: true
+  - name: brand
+    type: string
+    required: false
+    prepositions: [with]

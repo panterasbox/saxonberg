@@ -18,7 +18,7 @@ import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity, type Unit } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import '../../../obj/WorldClockRegistry';
+import '../../../platform/idea/WorldClockRegistry';
 
 /**
  * The mixin under test, in isolation. Since phase 2 the WATER lives in the

@@ -10,8 +10,8 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Currency, BankingApi } from "../../../api/banking";
 import { Money } from "../Money";
-import BankCounter from "../../../obj/BankCounter";
-import Coin from "../../../obj/Coin";
+import BankCounter from "../../../platform/thing/BankCounter";
+import Coin from "../../../platform/thing/Coin";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { ExecutionContextApi } from "../../../api/execution-context";
@@ -35,8 +35,8 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK_PATH = "/domain/test/goodkin-bank";
-const ALICE = "/obj/Avatar/alice";
+const BANK_PATH = "/world/test/goodkin-bank";
+const ALICE = "/platform/agent/Avatar/alice";
 
 function makeBank(): InstanceType<typeof BankCounter> {
   return makeStuffAtPath(() => {
@@ -56,7 +56,7 @@ function makeCoinsIn(holder: Stuff, qty: number): Coin {
     coin.currency = "zorkmid";
     coin.denomination = 1;
     return coin;
-  }, "/obj/Coin");
+  }, "/stuff/thing/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
   // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
   // mechanics and the cash faucet may resize a money stack), so a test

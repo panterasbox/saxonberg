@@ -63,7 +63,7 @@ invariant because everything else leans on it:
 
 | Subsystem | Keys on |
 |---|---|
-| belief — recognition / identification / regard / discovery | `templatePath` (`/obj/Avatar/<playerId>`) |
+| belief — recognition / identification / regard / discovery | `templatePath` (`/platform/agent/Avatar/<playerId>`) |
 | chronicle | `owner` templatePath |
 | contacts | `playerId` — *the doc already says "stable across name changes"* |
 | renown · participation · producer · authoring | identity |

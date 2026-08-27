@@ -1,10 +1,10 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CartesianLocation from '../../location/CartesianLocation';
-import Door from '../../../obj/Door';
+import Door from '../../../platform/thing/Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
-import PersistentHydrator from '../../../obj/persistence/PersistentHydrator';
+import PersistentHydrator from '../../../platform/idea/persistence/PersistentHydrator';
 import {
   makeStuffAtPath,
   makeStuff,
@@ -68,7 +68,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -89,7 +89,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -108,7 +108,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -135,7 +135,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -154,7 +154,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);
@@ -171,7 +171,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
     ]);

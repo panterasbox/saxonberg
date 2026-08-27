@@ -1,0 +1,18 @@
+verbs: [locate]
+controller: /platform/idea/cmd/perception/LocateController
+description: "Report the location chain of an object"
+help: |
+  Find out where something is. `locate` walks the containment
+  chain for its target and reports the full path — the room it's
+  in, what's holding it, and so on up to the world. Use it when
+  you know what you're looking for but not where it sits.
+
+  The target can be anything currently online or anywhere in the
+  object tree, so `locate` reaches well beyond your immediate
+  surroundings — unlike `look`, which stays where you stand.
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["online", "/stuff/**", "/platform/**"]
+    requires: any

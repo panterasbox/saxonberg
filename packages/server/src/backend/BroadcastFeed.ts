@@ -7,7 +7,7 @@
  * never routed DMs or private channels. The feed is the single place
  * the broadcast principal receives data.
  *
- * Phase 1 taps exactly one source: the `/obj/StreamState` singleton.
+ * Phase 1 taps exactly one source: the `/platform/idea/StreamState` singleton.
  * On connect it sends a snapshot; on every `Events.StreamStateChanged`
  * it re-pushes the full snapshot to all broadcast connections (the
  * state is tiny — no diffing). Later phases extend this to forward
@@ -33,7 +33,7 @@ import { Events } from '../mud/lib/events';
 import type { RelayMessageEvent } from '../mud/lib/events';
 import { StuffApi } from '../mud/api/stuff';
 import { StreamApi } from '../mud/api/stream';
-import StreamState from '../mud/obj/StreamState';
+import StreamState from '../mud/platform/idea/StreamState';
 import {
   ReactionScopeDeltaEvent,
   type ReactionScopeDeltaPayload,

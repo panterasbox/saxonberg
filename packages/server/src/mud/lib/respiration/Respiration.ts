@@ -39,7 +39,7 @@ import type { Vitals } from '../vitals/Vitals';
 import type { Organism } from '../species/Organism';
 import type { Engaged } from '../activity/Engaged';
 import type Exit from '../boundary/Exit';
-import type { AfflictionRecord } from '../../obj/Condition';
+import type { AfflictionRecord } from '../../platform/idea/Condition';
 import type { BulkSlot } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
 import { SchedulerApi } from '../../api/scheduler';
@@ -164,7 +164,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
      * precedent) so the water's edge offers them.
      */
     static commandContributions: CommandContributions = {
-      self: ['posture/inhale.yaml', 'posture/exhale.yaml'],
+      self: ['platform/cmd/posture/inhale.yaml', 'platform/cmd/posture/exhale.yaml'],
       peers: [],
       environment: [],
     };

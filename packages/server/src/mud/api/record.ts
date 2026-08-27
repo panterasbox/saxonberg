@@ -30,9 +30,9 @@
  * tractable place for it.
  *
  * This Api is a thin forwarding shell: the logic lives in the
- * hot-reloadable {@link RecordLogic} singleton at `/obj/api/record`,
+ * hot-reloadable {@link RecordLogic} singleton at `/platform/idea/api/record`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/record` reloads it.
+ * /platform/idea/api/record` reloads it.
  *
  * See docs/subsystems/record-layer.md.
  */
@@ -53,10 +53,10 @@ import { AccessApi } from './access';
 import { AppApi } from './app';
 import { ScheduleApi } from './schedule';
 import { AppSettingKeys } from '../lib/config/AppSettings';
-import { RecordLogic, type WipeReport } from '../obj/api/RecordLogic';
+import { RecordLogic, type WipeReport } from '../platform/idea/api/RecordLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
 
-export type { WipeReport, WipeLine } from '../obj/api/RecordLogic';
+export type { WipeReport, WipeLine } from '../platform/idea/api/RecordLogic';
 
 /** A day. The reset is nightly by name and by default. */
 const DEFAULT_RESET_MS = 24 * 60 * 60 * 1000;
@@ -70,9 +70,9 @@ function readSetting(key: string): string {
   }
 }
 
-const LOGIC_PATH = '/obj/api/record';
+const LOGIC_PATH = '/platform/idea/api/record';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/RecordLogic', import.meta.url),
+  new URL('../platform/idea/api/RecordLogic', import.meta.url),
 );
 
 /** Resolve the HMR-able RecordLogic singleton (sync). */

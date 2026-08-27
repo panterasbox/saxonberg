@@ -31,7 +31,7 @@ shape of the work depends on it. **All of this ships today:**
 
 | Layer | What ships |
 |---|---|
-| **Matter** | `/obj/material/bulk/water` as [bulk](../../subsystems/bulk.md) — a `{material, amount}` holder attribute, `fill`/`pour`/`drink` |
+| **Matter** | `/stuff/idea/material/bulk/water` as [bulk](../../subsystems/bulk.md) — a `{material, amount}` holder attribute, `fill`/`pour`/`drink` |
 | **Body** | the `hydration` reserve; **"hydration is the tighter leash"** (costs more per point of endurance than satiation); `hydrationThrottle` on recovery; **dehydration is a death path** (mortality, 600 s) |
 | **Plants** | soil `moisture` in **litres**, drained by summed `waterDemandPerGameDay()`, evapotranspiration × warmth, and `satWater` inside `min(satWater, satLight, satRoot, satNutrient)` — **Liebig's law, shipped** |
 | **Fire** | water/`douse` as one of the three extinguishers; the wet-fuel `ΔT_wet = saturation × capacity% × L_vap / specificHeat`; **ice → water → steam** out of one phase-change model |

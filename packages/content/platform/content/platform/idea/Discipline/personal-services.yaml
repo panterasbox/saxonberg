@@ -1,0 +1,10 @@
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: personal-services
+  channel: knowledge
+  label: Personal services
+  iscedf: "101"  # ISCED-F 2013 field-of-education code
+  specializes:
+    - services
+  description: ISCED-F narrow field under Services.

@@ -5,9 +5,9 @@
  * triad).
  *
  * Thin, security-gated forwarding shell: the logic lives in the
- * hot-reloadable {@link DocumentLogic} singleton at `/obj/api/document`,
+ * hot-reloadable {@link DocumentLogic} singleton at `/platform/idea/api/document`,
  * reached synchronously via `StuffApi.singletonSync`. `dest
- * /obj/api/document` reloads it.
+ * /platform/idea/api/document` reloads it.
  *
  * The store is **kind-agnostic** — it persists `{ path, owner, kind, data }`
  * and never inspects `data`; each `kind`'s consumer (e.g. the scripting
@@ -27,7 +27,7 @@ import type { Publisher } from "../lib/press/Publisher";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { DocumentLogic } from "../obj/api/DocumentLogic";
+import { DocumentLogic } from "../platform/idea/api/DocumentLogic";
 import { fileURLToPath } from "url";
 import { CallSecurity } from "../lib/security/decorators";
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
@@ -46,12 +46,12 @@ import { SecurityApi } from './security';
  * → `OfficeController` precedent.)
  */
 const RELEASE_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
-  "/obj/api/PressLogic#PressLogic",
+  "/platform/idea/api/PressLogic#PressLogic",
 );
 
-const LOGIC_PATH = "/obj/api/document";
+const LOGIC_PATH = "/platform/idea/api/document";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/DocumentLogic", import.meta.url),
+  new URL("../platform/idea/api/DocumentLogic", import.meta.url),
 );
 
 /** Resolve the HMR-able DocumentLogic singleton (sync). */

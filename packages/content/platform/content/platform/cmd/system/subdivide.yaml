@@ -1,0 +1,22 @@
+verbs: [subdivide]
+controller: /platform/idea/cmd/system/SubdivideController
+description: "Carve a titled sub-parcel out of the parcel you own here"
+help: |
+  Subdivide the parcel you're standing in, minting a titled child area you
+  own. Name the new area; it becomes a folder zone beneath the parent, with
+  a fresh title record in the parcels registry inheriting the parent's
+  owner. Only the parent parcel's owner may subdivide it.
+
+  Real-property title lives in the gated parcels registry, kept separate
+  from the content it gates — so subdividing changes ownership scope, never
+  the content itself. (Spatial carve-outs — owning a sub-region of a grid —
+  are a later addition; 0a mints folder-zone parcels.)
+examples:
+  - cmd: subdivide east-wing
+    note: Carve "east-wing" out of the parcel you own here
+validators:
+  - /lib/command/validators/requiresAnimate
+args:
+  - name: name
+    type: string
+    required: true

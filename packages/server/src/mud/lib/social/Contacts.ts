@@ -51,7 +51,7 @@ export interface ContactEntryAvatar {
 export interface ContactEntryNpc {
   kind: 'npc';
   /**
-   * Template path of the target NPC (e.g. `/obj/npc/Gus`). NPCs are
+   * Template path of the target NPC (e.g. `/platform/agent/Gus`). NPCs are
    * runtime clones; the template is the durable identifier.
    */
   templatePath: string;
@@ -110,7 +110,7 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Avatar, so this exposes `group` everywhere `contacts` is
       // exposed. NPCs that compose ContactsMixin in their own content
       // gain both verbs uniformly.
-      self: ['social/contacts.yaml', 'social/group.yaml'],
+      self: ['platform/cmd/social/contacts.yaml', 'platform/cmd/social/group.yaml'],
       peers: [],
       environment: [],
     };

@@ -386,11 +386,11 @@ The body claims "boundaries and holdings are unrelated trees; no boundary edge
 coincides with an ownable extent." **Reading the code, that's wrong.** There is
 no zone-less content: every path belongs to the Zone hierarchy (`FolderZone`
 for organizational areas, `CartesianZone`/`SphericalZone` for coordinate rooms).
-The lounge is a **`FolderZone` at `/domain/lounge`** (+ `/obj/lounge`) with
+The lounge is a **`FolderZone` at `/world/lounge`** (+ `/stuff/idea/lounge`) with
 `ownerGroup = managed:<lounge>`, stamped by `AccessRegistry.seedLoungeSlice`;
 `'core'` owns the root. ("Zone-less" in the lounge comments means only "no
 `Stuff.zone` *spatial* stamp" — the non-coordinate social pockets still belong
-to the `/domain/lounge` FolderZone for ownership/access/inheritance.)
+to the `/world/lounge` FolderZone for ownership/access/inheritance.)
 
 So the FolderZone edge **already coincides with an ownable extent** (`ownerGroup`,
 walked closest-first by `AccessApi.can`, filesystem-ACL semantics), and
@@ -420,7 +420,7 @@ and seize the subtree. **These must live apart from the content they govern.**
   longest-prefix resolution.
 - **`parcelId` + `extents[]`** (not a bare domain-path key) is justified by
   "own the whole operation end to end": a parcel spans its content root **and**
-  its code root — the lounge already owns `/domain/lounge` **and** `/obj/lounge`.
+  its code root — the lounge already owns `/world/lounge` **and** `/stuff/idea/lounge`.
 - **Full migration:** the Zone becomes pure content/geometry (extent, coordinate
   frame, inheritance defaults) with **zero** access info. `AccessApi.can`
   repoints its read from `zone.data` → the `parcels` registry;
@@ -441,7 +441,7 @@ instance to exist**:
 - `costOwnerOf(instance)`: **(1)** if its `templatePath` resolves (longest-prefix)
   to a parcel extent → that parcel (the common case — authoring your own
   template — free, no stamp). **(2)** else a generic/commons template
-  (`/obj/Flask`, `/lib/Flask` cloned directly) → a **sparse birth-stamp** = the
+  (`/platform/thing/Flask`, `/lib/Flask` cloned directly) → a **sparse birth-stamp** = the
   spawning parcel, derived from the spawn's `ExecutionContext` root.
 - The coin/flask distinction falls out with **no special-casing**: the mint
   spawns the coin (no parcel → commons overhead); ME's tavern populates the
@@ -561,7 +561,7 @@ everything below the zone to a second ownership axis.**
   a dorm (`HomeZone`), a farm (beds are **slots**, not sub-parcels). Parcel =
   zone. ✓
 - **Coarser than a zone** is covered by `extents[]` (one parcel spans several
-  zones — the lounge's `/domain/lounge` + `/obj/lounge`). **Finer than a zone is
+  zones — the lounge's `/world/lounge` + `/stuff/idea/lounge`). **Finer than a zone is
   NOT a parcel:**
   - **Chattel** — movable/placeable objects (sword, pet, market stall, a
     supplier's counter dropped in your shop). Owned per-instance (an owner-stamp),
@@ -860,7 +860,7 @@ owners:**
 | Layer | Is | Owned by |
 |---|---|---|
 | **Premises** | the rooms/zone | a **parcel** title-holder (landlord, proprietor, or *leased*) |
-| **Business** (brand / account / roster) | a **`Business` Idea** (`/domain/lounge/business`) | its **proprietor** (a principal, via the replaceable `proprietorPath`; outlives the proprietor) |
+| **Business** (brand / account / roster) | a **`Business` Idea** (`/world/lounge/business`) | its **proprietor** (a principal, via the replaceable `proprietorPath`; outlives the proprietor) |
 | **Stock** | wares | the **business** (by extent-derivation), until sold |
 
 Dave's Bar collapses these today (one team owns premises + business), but the

@@ -20,8 +20,8 @@
  * belief one-way (belief gains no trait import).
  *
  * Thin forwarding shell: the logic lives in the hot-reloadable
- * {@link TraitLogic} singleton at `/obj/api/trait`, reached synchronously
- * via `StuffApi.singletonSync`. `dest /obj/api/trait` reloads it.
+ * {@link TraitLogic} singleton at `/platform/idea/api/trait`, reached synchronously
+ * via `StuffApi.singletonSync`. `dest /platform/idea/api/trait` reloads it.
  */
 
 import type { Stuff } from "../lib/stuff/Stuff";
@@ -35,7 +35,7 @@ import type { AxisEstimate } from "../lib/trait/TraitPosition";
 import type { TraitBandName } from "../lib/trait/TraitBand";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
-import { TraitLogic } from "../obj/api/TraitLogic";
+import { TraitLogic } from "../platform/idea/api/TraitLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
@@ -55,9 +55,9 @@ export interface ClaimSeed {
 
 export type { DispositionEntryFields, AxisEstimate, TraitBandName };
 
-const LOGIC_PATH = "/obj/api/trait";
+const LOGIC_PATH = "/platform/idea/api/trait";
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL("../obj/api/TraitLogic", import.meta.url)
+  new URL("../platform/idea/api/TraitLogic", import.meta.url)
 );
 
 /** Resolve the HMR-able TraitLogic singleton (sync). */

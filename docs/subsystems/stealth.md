@@ -98,7 +98,7 @@ valid `perceives` viewer); the only new surface is behavior. See
 
 **`TrapKit`** (`lib/hazard/TrapKit.ts`) is a thin carried `Thing` (obtained
 ready-made — **no recipe/component economy in v1**) holding a `trapTemplate`
-(a `/obj/traps/` generic). **`arm <kit>`** (`device` category, the `disarm`
+(a `/stuff/thing/traps/` generic). **`arm <kit>`** (`device` category, the `disarm`
 sibling) clones that generic, sets the deployed trap's concealment from the
 placer's own `stealth` via `hideLevelFor` (the shared spine with
 self-hiding), stamps the placer on it (`HazardMixin.placedBy`), places it,

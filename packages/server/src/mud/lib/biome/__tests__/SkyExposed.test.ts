@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
 import Biome from '../Biome';
-import { SkyExposedBiome } from '../../../obj/SkyExposedBiome';
+import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { StuffApi } from '../../../api/stuff';

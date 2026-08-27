@@ -22,8 +22,8 @@
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link ContainmentLogic} singleton at
- * `/obj/api/containment`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/containment` reloads it. The
+ * `/platform/idea/api/containment`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/containment` reloads it. The
  * narrow-entry guards on `forceMove` (FromController) and `placeDirect`
  * (ApiOnly) stay on these face statics — the face is the security
  * boundary.
@@ -39,7 +39,7 @@ import { MixinApi } from './mixin';
 import { HotReloadApi } from './hot-reload';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
-import { ContainmentLogic } from '../obj/api/ContainmentLogic';
+import { ContainmentLogic } from '../platform/idea/api/ContainmentLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 // `TeleportController` / `GotoController` are reached lazily via
@@ -49,9 +49,9 @@ import { SecurityApi } from './security';
 type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
 
-const LOGIC_PATH = '/obj/api/containment';
+const LOGIC_PATH = '/platform/idea/api/containment';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/ContainmentLogic', import.meta.url)
+  new URL('../platform/idea/api/ContainmentLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able ContainmentLogic singleton (sync). */
@@ -162,8 +162,8 @@ export class ContainmentApi {
    */
   @CallSecurity(
     SecurityPolicies.AnyOf(
-      SecurityPolicies.FromModule('/obj/command/author/TeleportController'),
-      SecurityPolicies.FromModule('/obj/command/author/GotoController'),
+      SecurityPolicies.FromModule('/platform/idea/cmd/author/TeleportController'),
+      SecurityPolicies.FromModule('/platform/idea/cmd/author/GotoController'),
     ),
   )
   public static forceMove(

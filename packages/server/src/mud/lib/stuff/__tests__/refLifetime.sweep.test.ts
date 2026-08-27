@@ -16,7 +16,7 @@ import type { Stuff } from '../Stuff';
 import Thing from '../Thing';
 import Location from '../Location';
 import Exit from '../../boundary/Exit';
-import Door from '../../../obj/Door';
+import Door from '../../../platform/thing/Door';
 import { ContainerMixin } from '../../spatial/Container';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { DoorBearingMixin } from '../../boundary/DoorBearing';

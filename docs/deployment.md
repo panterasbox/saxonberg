@@ -145,7 +145,13 @@ collection. So the rule, from that day:
 **No fifth database.** A "verify" boot, a drive, a one-off experiment
 runs against the worktree's own database — drop and reboot it if a
 clean world is needed (a boot re-seeds; the packs reconcile). Never
-mint `saxonberg_<feature>`. 4 × ~46 leaves ~300 collections of headroom
+mint `saxonberg_<feature>`.
+
+**Nothing is ever migrated.** This game has never held data a boot of
+the same checkout did not write, so a rename (a path, a collection, a
+kind) ships with no migration code of any shape: the database is dropped
+and the packs reconcile it back. No guard, no one-time step, no
+"adopt in place". 4 × ~46 leaves ~300 collections of headroom
 for new collections; a build that adds one adds it four times, so the
 count to watch is `4 × collections`, and it stays under 500 as long as
 this table stays four rows.
@@ -323,84 +329,6 @@ Dockerfile (prod) deltas from the old project: `yarn` → `pnpm` workspaces,
 drop the private-registry/`NPM_TOKEN` dance (`@saxonberg/types` is a
 workspace package, no private deps), port `2050` → `2010`, and run the
 server via `tsx` rather than a built artifact.
-
-## Live-data migration: the currency dimension ⚠ DEPLOY GATE
-
-The currency build threads a `currency` through the three `bank_*`
-collections, renames the money `credit → zorkmid`, and re-keys coin
-denominations from names (`sovereign`/`crown`/`credit`) to face values.
-**This one is not optional and not lazy** — unlike the avatar-row case
-below, there is no next-login fallback, and the code refuses to run
-against unmigrated data on purpose.
-
-⚠⚠ **The deploy order is `stop → migrate → deploy → start`**, not the usual
-deploy-then-fix. `AccountBalance.warm()` / `SupplyAggregate.warm()` throw on
-a currency-less row, so starting before migrating fails fast and harmlessly
-rather than running the world on money whose denomination nobody knows.
-
-### Rehearse first — against a restored copy, never production
-
-```bash
-# 0. Census (read-only) — what is actually out there
-pnpm --filter @saxonberg/server exec tsx scripts/currency-census.ts \
-  --uri "$SCRATCH_URI" --db saxonberg_scratch
-
-# 1. mongodump live → mongorestore into a scratch db, then:
-pnpm --filter @saxonberg/server exec tsx scripts/migrate-currency.ts \
-  --uri "$SCRATCH_URI" --db saxonberg_scratch --report-only   # BEFORE
-pnpm --filter @saxonberg/server exec tsx scripts/migrate-currency.ts \
-  --uri "$SCRATCH_URI" --db saxonberg_scratch --apply          # + AFTER + gate
-```
-
-The `--apply` run **exits non-zero** unless every per-account balance, every
-ledger row and every coin has identical value before and after, and no
-legacy denomination string or currency-less row remains. ⭐ The coin term is
-the one that catches a *silent revalue* — the failure mode where the money
-still adds up on the ledger and every high-denomination coin in the world
-quietly became worth 1.
-
-Then boot the new code against the scratch db and run `reserve supply`:
-it must report **balanced**, and the supply must match the census.
-
-### The production run
-
-1. Atlas snapshot.
-2. **Stop the service.**
-3. `migrate-currency.ts --uri "$PROD_URI" --db <prod> --apply`.
-4. Deploy the new code; start.
-5. `reserve supply` → balanced.
-
-Rollback = restore the snapshot + redeploy the previous commit. ⚠ The four
-backfill targets are the three `bank_*` collections, the well-known fixed
-account ids, the **`/obj/Coin` row in `domain`** (the seeder is INSERT-ONLY,
-so unmigrated it keeps stamping every *future* coin stale), and the nested
-coin blobs in `holder_snapshots`.
-
-## Pending live-data migration: legacy per-avatar template rows
-
-The avatar-row retirement (the identity doctrine, Jul 2026) stopped
-creating and reading per-player `/obj/Avatar/<playerId>` rows in the
-`domain` collection — characters are snapshot-backed
-(`holder_snapshots`) with a minted identity path. **Legacy rows on the
-live box are handled automatically**: a character whose snapshot
-doesn't exist yet falls back to its row ONCE at next login
-(`PlayerLogic.materializeAvatar` case 2), which captures the first
-snapshot; from then on the row is dead weight.
-
-Operator cleanup (optional, any time after the deploy has been live
-long enough for active players to have logged in): delete `domain`
-rows matching `path: /^\/obj\/Avatar\//` EXCEPT the seed
-(`/obj/Avatar/seed`). A row deleted before its player ever logs back
-in loses that character's pre-spine base data (name/species picks), so
-prefer waiting or checking `holder_snapshots` coverage first:
-
-```js
-// mongo shell — rows whose character has no snapshot yet (do NOT delete these)
-db.domain.find({ path: /^\/obj\/Avatar\// }).forEach(t => {
-  if (t.path !== '/obj/Avatar/seed' &&
-      !db.holder_snapshots.findOne({ scope: t.path })) print(t.path);
-});
-```
 
 ## Standup runbook — dev box (one-time, interactive)
 

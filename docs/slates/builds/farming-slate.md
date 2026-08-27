@@ -434,7 +434,7 @@ Both densities run the identical `PlantMixin` growth model — the aggregate
 instances it once per field, the bed once per slot.
 
 **Substrate note:** an N-slot planting bed is pure YAML today —
-`seeds/obj/Campfire.yaml`'s `staticSlots` pattern verbatim (`log:1`, `accepts:
+`seeds/stuff/thing/Campfire.yaml`'s `staticSlots` pattern verbatim (`log:1`, `accepts:
 SlottableMixin`, `capacity: 4`, plus a matching `details` entry) is the
 template. One caveat: the slotted capture slice records occupancy **by index
 into the container slice**, and non-content occupants resolve to −1 and are

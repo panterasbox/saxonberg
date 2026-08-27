@@ -19,7 +19,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ShellApi } from '../shell';
 import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
-import Avatar from '../../obj/Avatar';
+import Avatar from '../../platform/agent/Avatar';
 
 async function makeAvatar(): Promise<Avatar> {
   const a = await StuffApi.create(() => new Avatar());

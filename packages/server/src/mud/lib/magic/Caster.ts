@@ -39,8 +39,8 @@ import { Reserve, type Reserved } from '../reserve';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { CoupledConsumer } from '../metabolism/Metabolic';
 import type { Stuff } from '../stuff/Stuff';
-import type Species from '../../obj/species/Species';
-import type { ActiveCondition } from '../../obj/Condition';
+import type Species from '../../platform/idea/species/Species';
+import type { ActiveCondition } from '../../platform/idea/Condition';
 import { Faculty, type FacultyBand, type FacultyProfile } from './Faculty';
 
 /**
@@ -57,10 +57,10 @@ export const OVERCHANNEL_STRAIN_PATH =
   TemplatePathPrefixes.magicCondition + 'overchannel-strain';
 
 /** The affording source for the dynamic `cast`/`spells` self-push. */
-const SPELL_CATALOGUE_PATH = '/obj/SpellCatalogue';
+const SPELL_CATALOGUE_PATH = '/platform/idea/SpellCatalogue';
 
 /** The casting verb views the affordance push resolves. */
-const CASTING_VERB_YAMLS = ['magic/cast.yaml', 'magic/spells.yaml'] as const;
+const CASTING_VERB_YAMLS = ['platform/cmd/magic/cast.yaml', 'platform/cmd/magic/spells.yaml'] as const;
 
 /** The banded, numbers-free self-view (`spells` speaks this). */
 export interface FacultyView {

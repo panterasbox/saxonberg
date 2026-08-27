@@ -8,26 +8,26 @@ description: >-
   (Campfire … Casting), the one independent brand, and the crafting recipe
   roster. The junk drawer: expected to slim as trade packs take their
   objects.
-dependsOn: [platform]   # the loose /obj/<Name> rows ride the platform's /obj claim
+dependsOn: [platform]   # the loose /stuff/<branch>/<Name> rows ride the platform's /stuff claim
 requires:
   # One claim per cluster the pack ships — the branches are the pack's;
   # the loose rows (and obj/corpo's brand + demo bottles) are covered by
-  # the host's /obj. Held by the default maintainers group.
+  # the host's /stuff. Held by the default maintainers group.
   title:
-    - { extent: /obj/items }
-    - { extent: /obj/arms }
-    - { extent: /obj/armor }
-    - { extent: /obj/clothes }
-    - { extent: /obj/gear }
-    - { extent: /obj/vessel }
-    - { extent: /obj/fixture }
-    - { extent: /obj/instrument }
-    - { extent: /obj/traps }
-    - { extent: /obj/pot }
-    - { extent: /obj/plant }
-    - { extent: /obj/seed }
-    - { extent: /obj/crop }
-    - { extent: /obj/bed }
-    - { extent: /obj/surface }
-    - { extent: /obj/exits }
-    - { extent: /obj/room }
+    - { extent: /stuff/thing/items }
+    - { extent: /stuff/thing/arms }
+    - { extent: /stuff/thing/armor }
+    - { extent: /stuff/thing/clothes }
+    - { extent: /stuff/thing/gear }
+    - { extent: /stuff/thing/vessel }
+    - { extent: /stuff/thing/fixture }
+    - { extent: /stuff/thing/instrument }
+    - { extent: /stuff/thing/traps }
+    - { extent: /stuff/thing/pot }
+    - { extent: /stuff/thing/plant }
+    - { extent: /stuff/thing/seed }
+    - { extent: /stuff/thing/crop }
+    - { extent: /stuff/thing/bed }
+    - { extent: /stuff/thing/surface }
+    - { extent: /stuff/idea/exits }
+    - { extent: /stuff/location/room }

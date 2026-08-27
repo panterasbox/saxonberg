@@ -11,10 +11,10 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PlayerApi } from '../player';
-import { PlayerLogic } from '../../obj/api/PlayerLogic';
+import { PlayerLogic } from '../../platform/idea/api/PlayerLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
-import Avatar from '../../obj/Avatar';
+import Avatar from '../../platform/agent/Avatar';
 import { User } from '../../lib/identity/User';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
@@ -380,7 +380,7 @@ describe('PlayerApi', () => {
     }
 
     it("returns true for a Stuff whose templatePath starts with Avatar's prefix", () => {
-      const stuff = fakeStuffWithPath('/obj/Avatar/abc123') as Avatar;
+      const stuff = fakeStuffWithPath('/platform/agent/Avatar/abc123') as Avatar;
       expect(PlayerApi.isAvatarStuff(stuff)).toBe(true);
     });
 
@@ -414,7 +414,7 @@ describe('PlayerLogic singleton encapsulation', () => {
   it('denies a direct logic-method call from a non-PlayerApi caller', () => {
     // A facade call lazily creates the logic singleton.
     PlayerApi.getAvatarCount();
-    const logic = StuffApi.findByTemplatePath<PlayerLogic>('/obj/api/player');
+    const logic = StuffApi.findByTemplatePath<PlayerLogic>('/platform/idea/api/player');
     expect(logic).toBeDefined();
     // The test module is not `mud/api/player#PlayerApi`, so the
     // FromModule gate on the logic's own methods denies the call.

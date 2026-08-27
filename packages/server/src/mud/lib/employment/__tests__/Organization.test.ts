@@ -21,7 +21,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { OrganizationMixin } from '../Organization';
 import { EmployedMixin, type Employed } from '../Employed';
-import BusinessEntity from '../../../obj/Business';
+import BusinessEntity from '../../../platform/idea/Business';
 import { StuffApi } from '../../../api/stuff';
 import { EmploymentApi } from '../../../api/employment';
 import { MixinApi } from '../../../api/mixin';
@@ -50,9 +50,9 @@ class EmployedHost extends EmployedMixin(Idea) {
   static _mixinName = 'EmployedHost';
 }
 
-const SHOP = '/domain/lounge/business';
+const SHOP = '/world/lounge/business';
 const MINISTRY = '/compact/press';
-const HOLDER = '/obj/Avatar/holder';
+const HOLDER = '/platform/agent/Avatar/holder';
 
 const POSITION = {
   key: 'communications-director',

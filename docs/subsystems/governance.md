@@ -135,7 +135,7 @@ absence of a row = the founder default holds the seat.**
 
 ## The Api / Logic surface
 
-`OfficeRegistry` (`/obj/OfficeRegistry`, `Idea` + `PostRegistrationMixin`,
+`OfficeRegistry` (`/platform/idea/OfficeRegistry`, `Idea` + `PostRegistrationMixin`,
 manifest-warmed) holds the durable state, mirroring `AccessRegistry` minus
 all seeding. The caller surface is **the office face of `CompactApi`**
 (`api/compact.ts` — the single meta-institution facade; the standalone
@@ -143,10 +143,10 @@ all seeding. The caller surface is **the office face of `CompactApi`**
 with office-flavored method names: `holdsOffice` / `officesOf` /
 `isFounder` / `officeHolderOf` / `officeRoster` / `founderLabel` /
 `assignOffice` / `vacateOffice`). The facade forwards to the
-hot-reloadable `CompactLogic` singleton (`/obj/api/compact`), which owns
+hot-reloadable `CompactLogic` singleton (`/platform/idea/api/compact`), which owns
 registry resolution + the playerId short-circuit + the fail-closed
 policy. The Registry's methods carry `@CallSecurity` admitting the logic
-singleton (`FromTemplate('/obj/api/compact')`) and the Api module (the
+singleton (`FromTemplate('/platform/idea/api/compact')`) and the Api module (the
 narrow-entry pattern — one state home, one calling surface, one
 structurally-enforced path). (The Jul-2026 sweep briefly collapsed the
 Api↔Logic tier and it was reverted — the split is the hot-reload
@@ -158,7 +158,7 @@ collapse the tier.)
   origin, current holder) is **publicly readable** — governance is
   transparent by constitutional design (Art. VII).
 - **Gated mutations** — `assign` / `vacate` carry the string-keyed
-  `FromModule('/obj/command/governance/OfficeController')` narrow-entry
+  `FromModule('/platform/idea/cmd/governance/OfficeController')` narrow-entry
   (string-keyed to avoid a static-import cycle — the
   `AccessApi.setWizardMembership`/`WizardController` precedent). The
   **authority** is the `requiresFoundingAuthority` subcommand-level
@@ -181,7 +181,7 @@ return `[]`, `holderOf` returns `unknown`, and the mutations no-op.
 ## The verb
 
 The `office` / `offices` verb (the new `governance` command category —
-controller in `obj/command/governance/`, YAML in `cmd/governance/`),
+controller in `platform/idea/cmd/governance/`, YAML in `cmd/governance/`),
 afforded **universally** on `lib/character/Persona.ts` (every Avatar; the
 `group`-verb precedent — NOT the operator-only `AuthorMixin`, which would
 hide the public roster from non-authors):

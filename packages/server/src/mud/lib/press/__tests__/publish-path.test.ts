@@ -19,9 +19,9 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import OrganizationEntity from '../../../obj/Organization';
-import PressBoard from '../../../obj/PressBoard';
-import { Idea } from '../../../lib/stuff/Idea';
+import OrganizationEntity from '../../../platform/idea/Organization';
+import PressBoard from '../../../platform/idea/PressBoard';
+import { Idea } from '../../stuff/Idea';
 import { PressApi } from '../../../api/press';
 import { DocumentApi } from '../../../api/document';
 import { AccessApi } from '../../../api/access';
@@ -45,8 +45,8 @@ const PRESS_FEED = '/compact/press/feed';
 const EXEC = '/compact/executive';
 const EXEC_FEED = '/compact/executive/feed';
 const DIRECTOR = 'communications-director';
-const STAFFER = '/obj/Avatar/staffer';
-const OUTSIDER = '/obj/Avatar/outsider';
+const STAFFER = '/platform/agent/Avatar/staffer';
+const OUTSIDER = '/platform/agent/Avatar/outsider';
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -134,7 +134,7 @@ async function gate(giverPath: string): Promise<string | undefined> {
 beforeEach(() => {
   StuffApi.clearAll();
   installStore();
-  void makeStuffAtPath(() => new PressBoard(), '/obj/PressBoard');
+  void makeStuffAtPath(() => new PressBoard(), '/platform/idea/PressBoard');
 });
 
 afterEach(() => {
@@ -278,7 +278,7 @@ describe('repost', () => {
     expect(release.getKind()).toBe('repost');
     expect(release.getSource()).toBe(EXEC);
 
-    const board = StuffApi.findByTemplatePath<PressBoard>('/obj/PressBoard')!;
+    const board = StuffApi.findByTemplatePath<PressBoard>('/platform/idea/PressBoard')!;
     await board.warm();
     const reloaded = board.getRelease(release.getReleaseId())!;
     expect(reloaded.getKind()).toBe('repost');

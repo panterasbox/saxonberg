@@ -9,8 +9,8 @@
  * (`requires.title[].extent`) and every path the packs ship (the
  * installer's template walk mirrored: every `content/**\/*.yaml` outside
  * the kind dirs, `cmd/` skipped at any depth; plus every document path —
- * `root + '/' + contentDir + '/' + key`, command views at `/cmd/**` and
- * `/domain/**\/cmd/**`), and reports any path under one of the eight
+ * `root + '/' + contentDir + '/' + key`, command views at `/platform/cmd/**` and
+ * `/world/**\/cmd/**`), and reports any path under one of the nine
  * title roots with no claim as a prefix. Zero is green. It does not
  * import the mudlib (a script), so the walk rule is duplicated minimally.
  *
@@ -22,14 +22,15 @@ import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname, relative, basename } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
+import { TITLE_ROOTS, NON_TEMPLATE_DIRS as LIB_NON_TEMPLATE_DIRS } from "../src/mud/lib/paths";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
-/** The title-bearing namespace roots (the installer's `TITLE_ROOTS`). */
-export const TITLE_ROOTS = ["/obj", "/domain", "/cmd", "/compact", "/studio", "/wiki", "/home", "/corpo"];
-/** The `content/` dirs that are NOT the template kind (settings, subjects, banks, quantity, the yaml document kinds). */
-const NON_TEMPLATE_DIRS = new Set(["settings", "subjects", "descriptor-banks", "quantity", "emotes", "recipes", "blueprints", "name-banks", "releases", "cmd", "msh", "wiki"]);
+/** The title-bearing namespace roots — the installer's, ONE list (`lib/paths.ts`). */
+export { TITLE_ROOTS };
+/** The `content/` dirs that are NOT the template kind (`lib/paths.ts`), plus the two non-yaml trees this walk special-cases. */
+const NON_TEMPLATE_DIRS = new Set([...LIB_NON_TEMPLATE_DIRS, "msh", "wiki"]);
 /** The yaml document kinds and their content dirs (`DOCUMENT_KINDS`, mirrored). */
 const DOCUMENT_DIRS = ["emotes", "recipes", "blueprints", "name-banks", "releases"];
 
@@ -60,7 +61,8 @@ function* walk(dir: string, skipCmd: boolean): Generator<string> {
     if (entry.startsWith(".")) continue;
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
-      if (skipCmd && entry === "cmd") continue;
+      // A `cmd` dir holds views — unless it sits under `idea` (the controller-template mirror).
+      if (skipCmd && entry === "cmd" && basename(dir) !== "idea") continue;
       yield* walk(full, skipCmd);
     } else yield full;
   }
@@ -75,13 +77,7 @@ export function shippedPathsOf(packRoot: string, root: string): string[] {
     const full = join(content, entry);
     const isDir = statSync(full).isDirectory();
     if (isDir && NON_TEMPLATE_DIRS.has(entry)) {
-      if (entry === "cmd") {
-        for (const f of walk(full, false)) {
-          if (f.endsWith(".yaml") && !f.includes("__tests__")) {
-            out.push("/cmd/" + relative(full, f).replace(/\.yaml$/, "").split("\\").join("/"));
-          }
-        }
-      } else if (DOCUMENT_DIRS.includes(entry)) {
+      if (DOCUMENT_DIRS.includes(entry)) {
         for (const f of walk(full, false)) {
           if (f.endsWith(".yaml")) out.push(`${root}/${entry}/` + relative(full, f).replace(/\.yaml$/, "").split("\\").join("/"));
         }
@@ -103,10 +99,12 @@ export function shippedPathsOf(packRoot: string, root: string): string[] {
       for (const f of walk(full, true)) {
         if (f.endsWith(".yaml")) out.push("/" + relative(content, f).replace(/\.yaml$/, "").split("\\").join("/"));
       }
-      // A locality's views: `domain/**/cmd/*.yaml` → `/domain/**/cmd/<verb>`.
+      // A locality's views: `world/**/cmd/*.yaml` → `/world/**/cmd/<verb>`.
       for (const f of walk(full, false)) {
         const rel = relative(content, f).split("\\").join("/");
-        if (f.endsWith(".yaml") && rel.split("/").slice(0, -1).includes("cmd")) out.push("/" + rel.replace(/\.yaml$/, ""));
+        const dirs = rel.split("/").slice(0, -1);
+        const at = dirs.lastIndexOf("cmd");
+        if (f.endsWith(".yaml") && at >= 0 && dirs[at - 1] !== "idea" && !rel.includes("__tests__")) out.push("/" + rel.replace(/\.yaml$/, ""));
       }
     } else if (entry.endsWith(".yaml")) {
       out.push("/" + basename(entry, ".yaml"));

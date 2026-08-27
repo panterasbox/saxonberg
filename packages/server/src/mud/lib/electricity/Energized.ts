@@ -36,7 +36,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
-import { QuantityMarshaller } from '../../obj/persistence/QuantityMarshaller';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { CombatReactiveMixin } from '../combat/CombatReactive';
 import type { CombatHookContext } from '../combat/CombatHookContext';
 import type { InflictSpec } from '../../api/condition';

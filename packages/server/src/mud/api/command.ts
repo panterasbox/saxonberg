@@ -15,7 +15,7 @@
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { CommandGiver } from '../lib/command/CommandGiver';
-import type Interactive from '../obj/Interactive';
+import type Interactive from '../platform/idea/Interactive';
 import { CommandDefinition } from '../lib/command/CommandDefinition';
 import { fileURLToPath } from 'url';
 import type {
@@ -30,7 +30,7 @@ import { ShadowApi } from './shadow';
 import type { MqlManyResult, MqlOneResult } from './mql';
 import type { ParsedCommand } from './command-line';
 import type { Script } from '../lib/script/ast';
-import { CommandLogic } from '../obj/api/CommandLogic';
+import { CommandLogic } from '../platform/idea/api/CommandLogic';
 import { SecurityApi } from './security';
 
 /**
@@ -1291,9 +1291,9 @@ export type AssembleResult =
   | { error: 'bind'; summary: string }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
-const LOGIC_PATH = '/obj/api/command';
+const LOGIC_PATH = '/platform/idea/api/command';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/CommandLogic', import.meta.url)
+  new URL('../platform/idea/api/CommandLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able CommandLogic singleton (sync). */
@@ -1319,8 +1319,8 @@ function logic(): CommandLogic {
  *
  * This Api is a thin, security-gated forwarding shell: the logic lives
  * in the hot-reloadable {@link CommandLogic} singleton at
- * `/obj/api/command`, reached synchronously via
- * `StuffApi.singletonSync`. `dest /obj/api/command` reloads it.
+ * `/platform/idea/api/command`, reached synchronously via
+ * `StuffApi.singletonSync`. `dest /platform/idea/api/command` reloads it.
  */
 export class CommandApi {
   /**
@@ -1372,7 +1372,7 @@ export class CommandApi {
 
   /**
    * Re-read one `command-view` document (by its document path,
-   * `/cmd/perception/look`) into the cache: drops the old definition,
+   * `/platform/cmd/perception/look`) into the cache: drops the old definition,
    * parses + validates the stored view, resolves its validators. The
    * go-live hook for a CMS edit or a pack sync — no restart. Returns
    * false (and leaves the key to the disk fallback) when the store has
@@ -1753,7 +1753,7 @@ export class CommandApi {
    * `requiresAnimateTarget` preload reads the bound Stuff's
    * `_speciesPath`).
    *
-   * MQL path-literal preloading (e.g. ensuring `/obj/species/...`
+   * MQL path-literal preloading (e.g. ensuring `/stuff/idea/species/...`
    * referenced in a `:race(...)` filter is live) is NOT covered
    * here; it lands when a verb actually needs it. Today the only
    * preload consumer is `requiresAnimate`.

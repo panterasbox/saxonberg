@@ -3,14 +3,14 @@
  *
  * Stable caller-facing surface. The orchestration + registry resolution
  * live in the hot-reloadable {@link SchedulerLogic} singleton at
- * `/obj/api/scheduler`, reached synchronously via
+ * `/platform/idea/api/scheduler`, reached synchronously via
  * `StuffApi.singletonSync`; the Logic resolves the `SchedulerRegistry`
- * singleton (at `/obj/SchedulerRegistry`) where all engagement state
- * actually lives. `dest /obj/api/scheduler` reloads the Logic; the
+ * singleton (at `/platform/idea/SchedulerRegistry`) where all engagement state
+ * actually lives. `dest /platform/idea/api/scheduler` reloads the Logic; the
  * Registry's state is unaffected.
  *
  * The Registry's public methods carry a gate that admits this module
- * AND the logic singleton (`FromTemplate('/obj/api/scheduler')`), so
+ * AND the logic singleton (`FromTemplate('/platform/idea/api/scheduler')`), so
  * external code that grabs the Registry Stuff via
  * `StuffApi.findByTemplatePath` still cannot call its methods. The
  * narrow-entry pattern holds: state has one home, and one
@@ -32,7 +32,7 @@ import type { Engaged, EngagementSlot } from '../lib/activity/Engaged';
 import { SecurityApi } from './security';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
-import { SchedulerLogic } from '../obj/api/SchedulerLogic';
+import { SchedulerLogic } from '../platform/idea/api/SchedulerLogic';
 import { fileURLToPath } from 'url';
 
 // DI seam: re-exported so `SchedulerRegistry` registers its class through
@@ -114,13 +114,13 @@ export type {
   EngagementCancelledNote,
 };
 
-export { registerSchedulerRegistryClass } from '../obj/api/SchedulerLogic';
+export { registerSchedulerRegistryClass } from '../platform/idea/api/SchedulerLogic';
 
 /* ─────────────────────────── logic resolution ─────────────────────────── */
 
-const LOGIC_PATH = '/obj/api/scheduler';
+const LOGIC_PATH = '/platform/idea/api/scheduler';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../obj/api/SchedulerLogic', import.meta.url)
+  new URL('../platform/idea/api/SchedulerLogic', import.meta.url)
 );
 
 /** Resolve the HMR-able SchedulerLogic singleton (sync). */

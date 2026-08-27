@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import type { Stuff, EvictionContext } from '../Stuff';
 import { Idea } from '../Idea';
 import { ApiLogic } from '../ApiLogic';
-import { PartyLogic } from '../../../obj/api/PartyLogic';
+import { PartyLogic } from '../../../platform/idea/api/PartyLogic';
 import { StuffApi } from '../../../api/stuff';
 import { ProxyApi } from '../../../api/proxy';
 import { makeStuff } from '../../security/__tests__/test-setup';

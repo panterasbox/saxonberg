@@ -1,8 +1,0 @@
-# Plantae — kingdom of multicellular eukaryotic photosynthesizers.
-# Plants default to the sessile body plan; v1 plants are Organism
-# Things, not Agents.
-class: /obj/species/Clade
-hydratorClass: /obj/persistence/PersistentHydrator
-data:
-  name: Plantae
-  rank: kingdom

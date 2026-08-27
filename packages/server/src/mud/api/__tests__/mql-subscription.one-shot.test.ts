@@ -28,9 +28,9 @@ import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { ContainmentApi } from '../containment';
 import { Stuff } from '../../lib/stuff/Stuff';
-import EventRegistry from '../../obj/EventRegistry';
-import Interactive from '../../obj/Interactive';
-import Avatar from '../../obj/Avatar';
+import EventRegistry from '../../platform/idea/EventRegistry';
+import Interactive from '../../platform/idea/Interactive';
+import Avatar from '../../platform/agent/Avatar';
 import { ConnectionApi } from '../connection';
 import Thing from '../../lib/stuff/Thing';
 import Location from '../../lib/stuff/Location';
@@ -44,7 +44,7 @@ import Location from '../../lib/stuff/Location';
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
     const r = new EventRegistry();
-    Stuff._stampTemplatePath(r, '/obj/EventRegistry');
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
     return r;
   });
   StuffApi.unregister(reg);

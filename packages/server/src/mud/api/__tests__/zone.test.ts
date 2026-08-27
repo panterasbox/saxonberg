@@ -1,7 +1,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ZoneApi } from '../zone';
-import { ZoneLogic } from '../../obj/api/ZoneLogic';
+import { ZoneLogic } from '../../platform/idea/api/ZoneLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { ContainmentApi } from '../containment';
@@ -64,12 +64,12 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: { name: 'Castle' },
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/obj/location/Room',
+        class: '/platform/location/Room',
         data: {},
       },
     ]);
@@ -86,12 +86,12 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/obj/location/SphericalZone',
+        class: '/platform/idea/location/SphericalZone',
         data: {},
       },
     ]);
@@ -105,7 +105,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/orphan/leaf',
-        class: '/obj/location/Room',
+        class: '/platform/location/Room',
         data: {},
       },
     ]);
@@ -116,7 +116,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: { name: 'Narnia' },
       },
     ]);
@@ -127,7 +127,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -140,7 +140,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -153,7 +153,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -167,16 +167,16 @@ describe('ZoneApi.resolveZoneForPath', () => {
     // does NOT extend SpatialZone (so isSpatialZoneClass returns
     // false). A species member at this path has no spatial zone
     // ancestor, so the walk returns null even though
-    // /obj/species/animalia is a legal folder ancestor.
+    // /stuff/idea/species/animalia is a legal folder ancestor.
     installInMemoryStore([
       {
-        path: '/obj/species/animalia',
-        class: '/obj/species/Clade',
+        path: '/stuff/idea/species/animalia',
+        class: '/platform/idea/species/Clade',
         data: { name: 'Animalia', rank: 'kingdom' },
       },
     ]);
     expect(
-      await ZoneApi.resolveZoneForPath('/obj/species/animalia/foo')
+      await ZoneApi.resolveZoneForPath('/stuff/idea/species/animalia/foo')
     ).toBeNull();
   });
 
@@ -184,7 +184,7 @@ describe('ZoneApi.resolveZoneForPath', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/obj/location/CartesianZone',
+        class: '/platform/idea/location/CartesianZone',
         data: { name: 'Castle' },
       },
     ]);
@@ -222,17 +222,17 @@ describe('ZoneLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /obj/api/zone once the facade has materialized it', async () => {
+  it('lives at /platform/idea/api/zone once the facade has materialized it', async () => {
     // A facade call lazily creates the logic singleton.
     await ZoneApi.isFolderClass('/no/such/class');
-    const logic = StuffApi.findByTemplatePath('/obj/api/zone');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/zone');
     expect(logic).toBeDefined();
-    expect(StuffApi.findByPathGlob('/obj/api/*')).toContain(logic);
+    expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
   it('denies a direct logic-method call from a non-ZoneApi caller', async () => {
     await ZoneApi.isFolderClass('/no/such/class');
-    const logic = StuffApi.findByTemplatePath<ZoneLogic>('/obj/api/zone');
+    const logic = StuffApi.findByTemplatePath<ZoneLogic>('/platform/idea/api/zone');
     expect(logic).toBeDefined();
     // The test module is not `mud/api/zone#ZoneApi`, so the FromModule
     // gate on the logic's own methods denies the call. The gate denies

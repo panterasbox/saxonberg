@@ -1,9 +1,0 @@
-verbs: [flourish]
-controller: /obj/command/social/FlourishController
-description: "Show off a bit of bartending flair"
-help: |
-  A flashy flourish at the rail — the kind of move that only comes
-  with real competence. This verb is *conferred*: it appears in your
-  command set once your Mixology competence crosses the 'competent'
-  band, and not before. Advancement as the visible shadow of measured
-  competence — the door opens, you didn't buy a rank.

@@ -20,7 +20,7 @@ import { Shadowing } from '../../security/decorators';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';
-import TopicCatalogue from '../../../obj/TopicCatalogue';
+import TopicCatalogue from '../../../platform/idea/TopicCatalogue';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
 const IDLE: EvictionContext = { idleMs: 9_000_000_000, reason: 'idle' };

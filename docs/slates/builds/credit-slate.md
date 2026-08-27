@@ -595,7 +595,7 @@ value.**
 
 ⚠⚠ **Honest risk: relocation may not work today.** Templates are
 path-addressed, domain-local verbs live at
-`domain/<sphere>/<locality>/cmd/`, controllers reference sibling paths, and
+`world/<sphere>/<locality>/cmd/`, controllers reference sibling paths, and
 `commandContributions` key on `domain/`-prefixed strings. **A shop with
 custom features has its locality baked into a dozen places.** ⭐ Not unique
 to foreclosure — it is the same capability behind *"I'm moving my shop to a
@@ -683,7 +683,7 @@ the fail-closed is deliberate (*"failing open would silently grant office
 authority"*).
 
 > ⭐ **Fix: widen from `playerId` to a principal PATH.** An Avatar's identity
-> path is already `/obj/Avatar/<playerId>`, so playerId is a special case.
+> path is already `/platform/agent/Avatar/<playerId>`, so playerId is a special case.
 > Unlocks every automated seat — an NPC clerk, incapacity-slate's
 > receiver/custodian, an NPC bank manager.
 

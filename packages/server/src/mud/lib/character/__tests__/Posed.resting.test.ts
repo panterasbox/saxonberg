@@ -21,7 +21,7 @@ import { StuffApi } from "../../../api/stuff";
 import { SlotApi } from "../../../api/slot";
 import { MixinApi } from "../../../api/mixin";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
-import Chair from "../../../obj/Chair";
+import Chair from "../../../platform/thing/Chair";
 import { PosedMixin } from "../Posed";
 import { SlottableMixin } from "../../slot/Slottable";
 import { Postures } from "../../slot/Postured";
@@ -30,7 +30,7 @@ import type { Stuff } from "../../stuff/Stuff";
 import type { Slotted } from "../../slot/Slotted";
 import type { Slottable } from "../../slot/Slottable";
 
-const BED_PATH = "/obj/fixture/bed";
+const BED_PATH = "/stuff/thing/fixture/bed";
 
 /** A body: Posed + Slottable, the Character shape reduced to what matters. */
 class Body extends PosedMixin(SlottableMixin(Thing)) {}

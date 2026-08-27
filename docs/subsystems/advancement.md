@@ -31,7 +31,7 @@ deferred — see [Deferred](#deferred-seams-left-open).
 
 A `Discipline` (`lib/advancement/Discipline.ts`) is a **pure-data leaf
 `Idea`**, mirroring `Topic`: authored as a template under
-`/obj/Discipline/<key>`, read by the catalogue directly from
+`/platform/idea/Discipline/<key>`, read by the catalogue directly from
 `template.data`, **never cloned as live Stuff**. Fields: `key`, `channel`
 (`skill | knowledge | conditioning` — the procedural / conceptual / bodily
 split), the three typed edge lists, and `conferrals`.
@@ -63,7 +63,7 @@ no separate edge documents. They are **authored and stored**; their runtime
 *consumption* (prerequisite gating, evidence propagation) is deferred. The
 graph is real and queryable; the estimator just doesn't walk it yet.
 
-`DisciplineCatalogue` (`obj/DisciplineCatalogue.ts`, `/obj/DisciplineCatalogue`,
+`DisciplineCatalogue` (`obj/DisciplineCatalogue.ts`, `/platform/idea/DisciplineCatalogue`,
 bootstrapped) is the `TopicCatalogue` recipe: `PostRegistrationMixin(Idea)`
 warming a `Map<key, DisciplineDescriptor>` in `postRegister` from
 `Template.findDescendants`. Read-only canon — no runtime mutation surface

@@ -68,7 +68,7 @@ Consequences that fall straight out:
 Everything else in this system resolves by path, so the natural fit is an
 extent:
 
-> **Bob grants Alice agency over `/domain/terminus/bakery`.** Inside it,
+> **Bob grants Alice agency over `/world/terminus/bakery`.** Inside it,
 > Alice acts with Bob's authority. Outside it, she is Alice.
 
 ⭐ That reuses the coverage trie again, and the **`UseGrant` shape**

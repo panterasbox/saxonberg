@@ -1,0 +1,15 @@
+verbs: [chronicle]
+controller: /platform/idea/cmd/charactergen/ChronicleController
+description: "Read your own chronicle — your prologue and your deeds."
+help: |
+  Your character's life on the record. `chronicle` reads back your
+  own story in a fixed order, never interleaved: first your bio (the
+  self-narrative you carry), then your prologue, then your deeds.
+
+  The prologue is the founding history you were given when you
+  enrolled — the claims that came with your aspiration. The timeline
+  below it is the running list of witnessed moments the world has
+  recorded as you've played, oldest first.
+
+  It's a read-only, self-only view: you can look at your own
+  chronicle, not anyone else's, and the verb takes no arguments.

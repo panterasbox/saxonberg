@@ -23,7 +23,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Slottable } from './Slottable';
 import type { Slotted } from './Slotted';
-import type { LocomotionMode } from '../../obj/LocomotionMode';
+import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { Property } from '../stuff/Propertied';

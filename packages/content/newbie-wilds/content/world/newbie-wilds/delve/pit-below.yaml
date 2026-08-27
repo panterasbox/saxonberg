@@ -1,0 +1,21 @@
+# The pit floor — where the corridor-2 spike pit's `drop` lands you. Kept
+# RECOVERABLE by design: a single `up` climbs back to corridor 2 (and the pit
+# above is now sprung/one-shot, so re-crossing it does not re-drop you). A
+# fall wounds and delays; it does not strand — the content-discipline rule
+# ("traps redirect but never hard-block") realized as geometry.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the floor of the pit
+  primaryKeyword: pit
+  longDescription: |
+    You have come down harder than you meant to. The pit is a stone box a little taller than a man, its floor gritty with old spoil and the odd blackened spike that missed. Above, the ragged hole shows the corridor you dropped from, and a rough scramble of set stones climbs back to it.
+
+    Up is the only way out — the corridor you fell from.
+  coords:
+    x: 0
+    y: 2
+    z: -1
+  exits:
+    up:
+      destination: /world/newbie-wilds/delve/corridor-2

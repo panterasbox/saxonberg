@@ -10,10 +10,10 @@ import { classify, OFFENDER_RE } from '../check-test-content';
 
 const f = (path: string, text: string) => ({ path, text });
 /** Built, not written: the gate's own test must not trip the gate. */
-const D = ['', 'domain'].join('/');
+const D = ['', 'world'].join('/');
 
 describe('check-test-content.classify', () => {
-  it('matches /domain/<locality> paths and nothing else', () => {
+  it('matches /world/<locality> paths and nothing else', () => {
     expect(OFFENDER_RE.test(`import x from '../..${D}/eternal/Whistle'`)).toBe(true);
     expect(OFFENDER_RE.test(`const p = '${D}/lounge/msh/martini'`)).toBe(true);
     expect(OFFENDER_RE.test("const p = '/test/ritual/threshold'")).toBe(false);

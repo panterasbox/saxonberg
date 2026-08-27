@@ -17,8 +17,8 @@ function makeRecord(overrides: Partial<ContractRecord> = {}): ContractRecord {
   const r = new ContractRecord();
   r.contractId = "gig-1";
   r.state = "open";
-  r.boardPath = "/domain/test/board";
-  r.issuer = { kind: "player", templatePath: "/obj/Avatar/issuer" };
+  r.boardPath = "/world/test/board";
+  r.issuer = { kind: "player", templatePath: "/platform/agent/Avatar/issuer" };
   r.issuerAccountId = "acct-issuer";
   r.claimMode = "exclusive";
   r.clause = {
@@ -26,7 +26,7 @@ function makeRecord(overrides: Partial<ContractRecord> = {}): ContractRecord {
     condition: {
       template: "delivery",
       item: { kind: "template", path: "/obj/test/crate" },
-      destinationPath: "/domain/test/bar",
+      destinationPath: "/world/test/bar",
     },
   };
   r.rewardMinor = 25;
@@ -44,9 +44,9 @@ describe("ContractRecord round-trip + finders", () => {
     const found = await ContractRecord.findByContractId("gig-1");
     expect(found?.issuer).toEqual({
       kind: "player",
-      templatePath: "/obj/Avatar/issuer",
+      templatePath: "/platform/agent/Avatar/issuer",
     });
-    expect(found?.clause?.condition.destinationPath).toBe("/domain/test/bar");
+    expect(found?.clause?.condition.destinationPath).toBe("/world/test/bar");
     expect(found?.rewardMinor).toBe(25);
     expect(await ContractRecord.findByContractId("gig-nope")).toBeNull();
   });
@@ -57,14 +57,14 @@ describe("ContractRecord round-trip + finders", () => {
       contractId: "b",
       postedAt: 100,
       state: "claimed",
-      claimant: "/obj/Avatar/courier",
+      claimant: "/platform/agent/Avatar/courier",
     }).save();
     await makeRecord({ contractId: "c", state: "settled" }).save();
     await makeRecord({
       contractId: "d",
-      boardPath: "/domain/other/board",
+      boardPath: "/world/other/board",
     }).save();
-    const live = await ContractRecord.findLiveByBoard("/domain/test/board");
+    const live = await ContractRecord.findLiveByBoard("/world/test/board");
     expect(live.map((r) => r.contractId)).toEqual(["b", "a"]);
   });
 
@@ -72,11 +72,11 @@ describe("ContractRecord round-trip + finders", () => {
     await makeRecord({
       contractId: "held",
       state: "claimed",
-      claimant: "/obj/Avatar/courier",
+      claimant: "/platform/agent/Avatar/courier",
     }).save();
     await makeRecord({ contractId: "other" }).save();
     const active = await ContractRecord.findActiveByClaimant(
-      "/obj/Avatar/courier",
+      "/platform/agent/Avatar/courier",
     );
     expect(active.map((r) => r.contractId)).toEqual(["held"]);
   });

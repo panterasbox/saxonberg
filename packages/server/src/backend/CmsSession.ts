@@ -13,7 +13,7 @@
  *
  *   1. Resolve THE acting Avatar for the session (the session carries a
  *      *userId*; a `User` owns `playerIds[]`; the in-world Avatar is the
- *      already-loaded clone at `/obj/Avatar/<playerId>`). This Avatar is
+ *      already-loaded clone at `/platform/agent/Avatar/<playerId>`). This Avatar is
  *      threaded as the `subject` into `AccessApi`, so the same gating
  *      that guards the in-world `write` verb guards REST writes — no
  *      parallel authz. When no in-world Avatar is loaded for the session
@@ -33,7 +33,7 @@ import type { Request } from 'express';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { PlayerApi } from '../mud/api/player';
 import { User } from '../mud/lib/identity/User';
-import type Avatar from '../mud/obj/Avatar';
+import type Avatar from '../mud/platform/agent/Avatar';
 import { Backend } from './Backend';
 
 export class CmsSession {

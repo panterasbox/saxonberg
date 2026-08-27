@@ -46,7 +46,7 @@ import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
-import type Door from '../../obj/Door';
+import type Door from '../../platform/thing/Door';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -176,7 +176,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    * The exit-KIND hydration allowlist (the Hydrator applies only
    * declared fields). Exits are never saved — no persistence host
    * captures them — so this list exists purely so a kind template's
-   * authored defaults (`/obj/exits/<kind>` data) hydrate onto a fresh
+   * authored defaults (`/stuff/idea/exits/<kind>` data) hydrate onto a fresh
    * clone before `bind()` completes identity. Identity fields
    * (direction / source / destination) are deliberately absent:
    * they're bind-owned, never authored data.
