@@ -1,7 +1,7 @@
 /**
  * Tests for `ManagedGroupProvider.findByName` — the by-name lookup
  * helper used by the AccessRegistry's bootstrap seeding to find
- * well-known groups (`'core'`, `'lounge'`, `'wizards'`) without
+ * well-known groups (`'lounge'`, `'lounge'`, `'wizards'`) without
  * threading their `_id`s.
  */
 
@@ -62,16 +62,16 @@ describe('ManagedGroupProvider.findByName', () => {
   it('returns the group when one matches', async () => {
     installInMemoryStore([
       {
-        name: 'core',
+        name: 'lounge',
         owner: { kind: 'system' },
         memberIds: [],
         memberRoles: [],
       },
     ]);
     const provider = new ManagedGroupProvider();
-    const found = await provider.findByName('core');
+    const found = await provider.findByName('lounge');
     expect(found).not.toBeNull();
     expect(found).toBeInstanceOf(Group);
-    expect(found!.name).toBe('core');
+    expect(found!.name).toBe('lounge');
   });
 });

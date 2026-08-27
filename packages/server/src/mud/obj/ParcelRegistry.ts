@@ -58,9 +58,6 @@ const ParcelApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate("/obj/api/parcel"),
 );
 
-/** The state's default-owner group name (the public-held default). */
-const STATE_GROUP_NAME = "core";
-
 /**
  * migration-note: the wave-2 corpo board groups, retired by content-packs
  * wave 3 (each corpo organization holds its own branch). `grant` treats a
@@ -140,21 +137,19 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   }
 
   /**
-   * The total three-rung title chain (governance decision — default title
-   * is publicly held; there is no author rung):
+   * The two-rung title chain (content-packs wave 3: there is no state
+   * default any more — an untitled path is UNTITLED, and every `can`
+   * there fails closed):
    *   1. explicit parcel title (longest-prefix over extents),
    *   2. self-home identity (`/home/<key>/…`, no row),
-   *   3. the state (public default) — `{kind:'group', name:'core'}`.
-   * Byte-identical to today's core walk for untitled content.
+   *   — else `null`.
    */
   @CallSecurity(ParcelApiCallers)
-  public async ownerOf(path: string): Promise<ParcelOwner> {
+  public async ownerOf(path: string): Promise<ParcelOwner | null> {
     const covering = this.coveringImpl(path);
     const owner = covering?.getOwner() ?? null;
     if (owner) return owner;
-    const selfHome = ParcelRecord.selfHomeOwnerOf(path);
-    if (selfHome) return selfHome;
-    return { kind: "group", name: STATE_GROUP_NAME };
+    return ParcelRecord.selfHomeOwnerOf(path);
   }
 
   /**
@@ -347,7 +342,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       // claims it. Both branches are deleted in wave 4.
       if (
         current?.kind === "group" &&
-        (current.name === "core" ||
+        (current.name === "core" || // migration-note: the retired state default
           (current.name !== undefined && RETIRED_BOARDS.has(current.name)))
       ) {
         await this.appendEvent("transfer", claim.extent, current, claim.holder);

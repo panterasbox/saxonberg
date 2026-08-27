@@ -87,12 +87,11 @@ export class ChattelLogic extends ApiLogic {
     // Inserted ABOVE the author fallback, so every good outside any extent
     // resolves exactly as it did before this rung existed.
     //
-    // `coveringParcelOf`, NOT `ParcelApi.ownerOf`: the latter is *total*
-    // (it falls back to the state, `{kind:'group', name:'core'}`), so using
-    // it here would make the author rung unreachable and silently retitle
-    // every authored good in the world to core. The covering lookup returns
-    // null when no parcel covers the path, which is exactly the "outside
-    // any extent" case D5 requires to fall through unchanged.
+    // `coveringParcelOf`, NOT `ParcelApi.ownerOf`: the latter also
+    // answers the self-home rung, which a good in somebody's home must not
+    // be retitled by. The covering lookup returns null when no parcel
+    // covers the path, which is exactly the "outside any extent" case D5
+    // requires to fall through unchanged.
     const covering = await ParcelApi.coveringParcelOf(path);
     const parcelOwner = covering?.getOwner() ?? null;
     if (parcelOwner) return parcelOwner;

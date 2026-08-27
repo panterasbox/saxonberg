@@ -154,7 +154,7 @@ describe("ParcelApi.grant", () => {
   });
 
   it("a `core`-held row → migrated: holder replaced, one `transfer` event", async () => {
-    seedParcel("/studio", { kind: "group", name: "core" });
+    seedParcel("/studio", { kind: "group", name: "core" }); // migration-note: the retired state default
     await boot();
     const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
     const r = await ParcelApi.grant({ extent: "/studio", holder: EXECUTIVE });
@@ -163,7 +163,7 @@ describe("ParcelApi.grant", () => {
     const events = await ParcelEvent.findByExtent("/studio");
     expect(events).toHaveLength(1);
     expect(events[0]!.event).toBe("transfer");
-    expect(events[0]!.from).toEqual({ kind: "group", name: "core" });
+    expect(events[0]!.from).toEqual({ kind: "group", name: "core" }); // migration-note: the retired state default
     expect(events[0]!.to).toEqual(EXECUTIVE);
     expect(info).toHaveBeenCalledWith(expect.stringMatching(/migrated '\/studio'/));
     // A second grant is now `kept`.

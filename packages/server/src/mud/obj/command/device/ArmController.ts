@@ -10,8 +10,9 @@
  * accountability ledger), and consumes the kit (one trap per kit, v1).
  *
  * **Anti-grief ships inline** (not a follow-up):
- *   - the **property gate** — free on ground you hold or public/`core`
- *     ground; refused on another owner's property (the parcel substrate);
+ *   - the **property gate** — free on ground you hold or on government
+ *     ground nobody privately holds; refused on another owner's property
+ *     and on ungoverned ground (the parcel + civics substrates);
  *   - **crime-marking is inherent** — the deployed trap's `placedBy` makes a
  *     spring on a non-consenting sentient derive `crime` at the harm site
  *     (`HazardMixin.deliverHarm`), no flag needed.
@@ -30,6 +31,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
 import { AdvancementApi } from '../../../api/advancement';
 import { AccessApi } from '../../../api/access';
+import { GovernmentApi } from '../../../api/government';
 import { ParcelApi } from '../../../api/parcel';
 import { StuffApi } from '../../../api/stuff';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
@@ -123,14 +125,19 @@ export default class ArmController extends CommandController<ArmModel> {
 
   /**
    * The parcel property gate: you may place on ground you control (own /
-   * self-home / a group you're in — the shipped `AccessApi.can` write test)
-   * OR on public `core` ground (allowed, but a spring is crime-marked).
-   * Refused only on another principal's owned property.
+   * self-home / a group you're in / an organization you staff — the
+   * shipped `AccessApi.can` write test) OR on GOVERNMENT ground with no
+   * private title — ground under a government's jurisdiction that nobody
+   * holds (allowed, but a spring is crime-marked; content-packs wave 3:
+   * the former public-`core` rung). Refused on another principal's
+   * property, and on ground nobody governs.
    */
   private async mayPlaceIn(giver: Stuff, room: Stuff): Promise<boolean> {
     if (await AccessApi.can(giver, 'write', room)) return true;
     const owner = await ParcelApi.ownerOf(room.getTemplatePath() ?? '');
-    return owner.kind === 'group' && owner.name === 'core';
+    if (owner !== null) return false;
+    const address = MixinApi.isAddressable(room) ? room.getAddress() : null;
+    return address !== null && GovernmentApi.governmentAt(address) !== null;
   }
 
   private reject(

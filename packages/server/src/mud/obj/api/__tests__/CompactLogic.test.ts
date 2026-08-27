@@ -1,6 +1,6 @@
 /**
  * CompactApi / CompactLogic tests — the committee derivation from parcel
- * title (group-owned, player-held → null, the state `core` default),
+ * title (group-owned, player-held → null, untitled → null),
  * membership (group member / founder pool-of-one backstop / outsider),
  * and the committee channel (resolve, idempotent ensure via the bound-
  * channel seam, actor-from-context on the mint).
@@ -34,17 +34,17 @@ function makeAvatar(playerId: string): Avatar {
 }
 
 /** Title fixture: /domain/terminus/** → the `terminus` group;
- *  /home/alice/** → a player; everything else → the `core` default. */
+ *  /home/alice/** → a player; everything else → untitled. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, "ownerOf").mockImplementation(
-    async (path: string): Promise<ParcelOwner> => {
+    async (path: string): Promise<ParcelOwner | null> => {
       if (path.startsWith("/domain/terminus")) {
         return { kind: "group", name: "terminus", ref: GROUP_REF };
       }
       if (path.startsWith("/home/alice")) {
         return { kind: "player", templatePath: "/home/alice" };
       }
-      return { kind: "group", name: "core" };
+      return null;
     }
   );
   vi.spyOn(ParcelApi, "resolveOwnerRef").mockImplementation(
@@ -108,10 +108,8 @@ describe("CompactApi — the committee reads", () => {
     await expect(CompactApi.committeeOf("")).resolves.toBeNull();
   });
 
-  it("an unparceled path resolves the state default committee (core)", async () => {
-    const committee = await CompactApi.committeeOf("/lib/somewhere/else");
-    expect(committee?.name).toBe("core");
-    expect(committee?.subdivisionPath).toBe("");
+  it("an untitled path has NO committee (content-packs wave 3)", async () => {
+    await expect(CompactApi.committeeOf("/lib/somewhere/else")).resolves.toBeNull();
   });
 
   it("isCommitteeMember: group member true, outsider false", async () => {

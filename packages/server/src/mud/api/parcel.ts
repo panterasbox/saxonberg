@@ -67,12 +67,12 @@ export type { LandUse, CultivationScale } from "../lib/parcel/LandUse";
 export class ParcelApi {
   /**
    * The total three-rung title chain — explicit parcel title → self-home
-   * identity → the state (public default, `{kind:'group', name:'core'}`).
+   * identity → `null` (untitled: every `can` there fails closed — content-packs wave 3).
    * Total (resolves for any path). Byte-identical to today's core walk for
    * untitled content (no author rung — authoring confers credit, not
    * title).
    */
-  public static async ownerOf(path: string): Promise<ParcelOwner> {
+  public static async ownerOf(path: string): Promise<ParcelOwner | null> {
     return logic().ownerOf(path);
   }
 

@@ -150,7 +150,7 @@ function seedParcel(extent: string, landUse: string | null): void {
     _id: `seed-${++idCounter}`,
     extent,
     zonePath: extent,
-    owner: { kind: 'group', name: 'core' },
+    owner: { kind: 'group', name: 'hinkley-hills' },
     parentParcel: null,
     grants: [],
     allowance: null,

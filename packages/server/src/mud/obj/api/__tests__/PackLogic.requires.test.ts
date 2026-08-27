@@ -240,7 +240,7 @@ describe('the requires phase — titles', () => {
   });
 
   it('migrated over a `core`-held row', async () => {
-    parcels.push({ extent: '/obj/studio', owner: { kind: 'group', name: 'core' } });
+    parcels.push({ extent: '/obj/studio', owner: { kind: 'group', name: 'core' } }); // migration-note: the retired state default
     const root = writePack('platform', [ROW('obj/studio/x.yaml')], {
       manifest: { requires: { title: [{ extent: '/obj/studio' }] } },
     });

@@ -119,7 +119,7 @@ describe('lounge landing integration', () => {
     const store = installStore(loungeDocs());
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
       kind: 'group',
-      name: 'core',
+      name: 'lounge',
     });
     const warren = await StuffApi.singleton<LoungeWarren>(
       LoungeWarren.WARREN_PATH,

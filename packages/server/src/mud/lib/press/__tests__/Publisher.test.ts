@@ -57,12 +57,12 @@ function makePressOffice(): OrganizationEntity {
   return org;
 }
 
-/** Title fixture: `/compact` is held by the `core` group. */
+/** Title fixture: `/compact` is held by an (empty) group. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (): Promise<ParcelOwner> => ({
       kind: 'group',
-      name: 'core',
+      name: 'compact-holders',
       ref: GROUP_REF,
     }),
   );

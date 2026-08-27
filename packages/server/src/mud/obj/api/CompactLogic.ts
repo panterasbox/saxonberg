@@ -85,6 +85,8 @@ async function isFounderImpl(subject: Stuff | null): Promise<boolean> {
 async function committeeOfImpl(path: string): Promise<CommitteeView | null> {
   if (path.length === 0) return null;
   const owner = await ParcelApi.ownerOf(path);
+  // Untitled ground has no committee (content-packs wave 3).
+  if (owner === null) return null;
   if (owner.kind === "organization") {
     const parcel = await ParcelApi.coveringParcelOf(path);
     const org = StuffApi.findByTemplatePath(owner.templatePath);

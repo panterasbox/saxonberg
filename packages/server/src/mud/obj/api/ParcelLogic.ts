@@ -21,15 +21,12 @@ const REGISTRY_PATH = TemplatePaths.parcelRegistry;
 
 const ParcelApiCallers = SecurityPolicies.FromModule("/api/parcel#ParcelApi");
 
-/** The state's default-owner group (public-held default). */
-const STATE_OWNER: ParcelOwner = { kind: "group", name: "core" };
-
 /**
  * Resolve the Registry without forcing a clone. In production it's cloned
  * by `AppBootstrap`, so this returns it cheaply. In test harnesses without
  * a live Registry it returns `null` — the reads then degrade to the pure
- * rungs (`ownerOf` → self-home ?? state), so `AccessApi.can` stays
- * byte-identical (no parcels → the state's `core` walk).
+ * rungs (`ownerOf` → self-home ?? null), so `AccessApi.can` fails
+ * closed on anything but a self-home path.
  */
 let registryRef: ParcelRegistry | null = null;
 function lookupRegistry(): ParcelRegistry | null {
@@ -56,11 +53,11 @@ function lookupRegistry(): ParcelRegistry | null {
 export class ParcelLogic extends ApiLogic {
   /** See {@link ParcelApi.ownerOf}. */
   @CallSecurity(ParcelApiCallers)
-  public async ownerOf(path: string): Promise<ParcelOwner> {
+  public async ownerOf(path: string): Promise<ParcelOwner | null> {
     const reg = lookupRegistry();
     if (reg) return reg.ownerOf(path);
-    // Pure degrade: no registry → no parcels → self-home ?? the state.
-    return ParcelRecord.selfHomeOwnerOf(path) ?? STATE_OWNER;
+    // Pure degrade: no registry → no parcels → self-home ?? untitled.
+    return ParcelRecord.selfHomeOwnerOf(path);
   }
 
   /** See {@link ParcelApi.coveringParcelOf}. */

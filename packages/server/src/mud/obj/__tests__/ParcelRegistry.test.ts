@@ -225,10 +225,9 @@ describe("ParcelApi.ownerOf — the resolution chain", () => {
     expect(col("parcels").length).toBe(0);
   });
 
-  it("rung 3 — the state (public default) for untitled content", async () => {
+  it("untitled content is UNTITLED — null, no state default (content-packs wave 3)", async () => {
     await boot();
-    const owner = await ParcelApi.ownerOf("/domain/nowhere/thing");
-    expect(owner).toEqual({ kind: "group", name: "core" });
+    expect(await ParcelApi.ownerOf("/domain/nowhere/thing")).toBeNull();
   });
 
   it("an explicit title overrides self-home (title wins)", async () => {
@@ -238,9 +237,9 @@ describe("ParcelApi.ownerOf — the resolution chain", () => {
     expect(owner).toEqual({ kind: "group", name: "commons" });
   });
 
-  it("is total — resolves the empty path to the state", async () => {
+  it("the empty path is untitled too", async () => {
     await boot();
-    expect(await ParcelApi.ownerOf("")).toEqual({ kind: "group", name: "core" });
+    expect(await ParcelApi.ownerOf("")).toBeNull();
   });
 });
 
@@ -353,7 +352,7 @@ describe("ParcelApi.transfer — chain of title", () => {
   it("returns null when no parcel claims the extent", async () => {
     await boot();
     expect(
-      await ParcelApi.transfer("/nope", { kind: "group", name: "core" }),
+      await ParcelApi.transfer("/nope", { kind: "group", name: "commons" }),
     ).toBeNull();
   });
 });
@@ -577,16 +576,14 @@ describe("AccessApi — can / canMutateZone over a parcel-owned slice (regressio
     expect(await AccessApi.can(makeAvatar("bob"), "write", zone)).toBe(false);
   });
 
-  it("untitled content resolves to the state (core), preserving today's core gate", async () => {
+  it("untitled content admits NOBODY — every can fails closed (content-packs wave 3)", async () => {
     await bootWithAccess();
-    await addGroupMember("core", "coreowner", "owner");
+    await addGroupMember("commons", "anyone", "owner");
 
     const zone = zoneAt("/domain/unowned");
-    // core member with 'owner' role can mutate; a stranger cannot.
-    expect(await AccessApi.canMutateZone(makeAvatar("coreowner"), zone)).toBe(true);
+    expect(await AccessApi.canMutateZone(makeAvatar("anyone"), zone)).toBe(false);
     expect(await AccessApi.canMutateZone(makeAvatar("stranger"), zone)).toBe(false);
-    // and content-access falls to core membership.
-    expect(await AccessApi.can(makeAvatar("coreowner"), "write", zone)).toBe(true);
+    expect(await AccessApi.can(makeAvatar("anyone"), "write", zone)).toBe(false);
   });
 });
 
@@ -625,7 +622,7 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
   it("⭐ walks parentParcel upward when the nearest row declares nothing", async () => {
     seedParcel({
       extent: "/domain/hills",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     seedParcel({
@@ -642,12 +639,12 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
   it("an explicit child use OVERRIDES its parent's", async () => {
     seedParcel({
       extent: "/domain/hills",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     seedParcel({
       extent: "/domain/hills/back-forty",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       parentParcel: "/domain/hills",
       landUse: "agricultural",
     });
@@ -666,7 +663,7 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
     // /studio and /obj/lounge are titles over the TEMPLATE TREE, not
     // ground. They must not read as cultivable merely because nobody
     // thought to zone them. This is the fail-closed default in situ.
-    seedParcel({ extent: "/studio", owner: { kind: "group", name: "core" } });
+    seedParcel({ extent: "/studio", owner: { kind: "group", name: "commons" } });
     seedParcel({
       extent: "/obj/lounge",
       owner: { kind: "group", name: "lounge" },
@@ -683,12 +680,12 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
   it("reports the cultivation scale for zoned ground", async () => {
     seedParcel({
       extent: "/domain/hills",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     seedParcel({
       extent: "/domain/farmland",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "agricultural",
     });
     await boot();
@@ -747,7 +744,7 @@ describe("ParcelRecord — land use and area on the row", () => {
   it("⭐ area round-trips, and bands for display", async () => {
     seedParcel({
       extent: "/domain/hills/lot-1",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
       areaM2: 1_200,
     });
@@ -779,7 +776,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
       return ParcelApi.subdivide(
         childPath,
         parentExtent,
-        { kind: "group", name: "core" },
+        { kind: "group", name: "commons" },
         opts?.areaM2 ?? 0,
         1,
         opts?.landUse ?? null,
@@ -790,7 +787,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
   it("stamps the declared use and area on the child row", async () => {
     seedParcel({
       extent: "/domain/hills",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     await boot();
@@ -808,7 +805,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
   it("⭐ refuses a lot outside its use's area band, naming both", async () => {
     seedParcel({
       extent: "/domain/hills",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     await boot();
@@ -830,7 +827,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
   it("checks the band against the INHERITED use when none is declared", async () => {
     seedParcel({
       extent: "/domain/farmland",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "agricultural",
     });
     await boot();
@@ -865,7 +862,7 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
     // removing or resizing rooms inside a parcel must not move it.
     seedParcel({
       extent: "/domain/hills",
-      owner: { kind: "group", name: "core" },
+      owner: { kind: "group", name: "commons" },
       landUse: "residential",
       areaM2: 1_200,
     });

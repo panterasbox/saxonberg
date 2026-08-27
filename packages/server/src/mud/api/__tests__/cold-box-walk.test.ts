@@ -77,7 +77,7 @@ import type { ParcelOwner } from '../../lib/parcel/ParcelRecord';
 const PRESS = '/compact/press';
 const PRESS_FEED = '/compact/press/feed';
 const DIRECTOR = 'communications-director';
-const CORE_GROUP = 'managed:g-core';
+const CORE_GROUP = 'managed:g-compact-holders';
 const FOUNDER_EMAIL = 'founder@example.com';
 
 interface Doc extends Record<string, unknown> {
@@ -155,15 +155,14 @@ function installStore(): void {
 }
 
 /**
- * ⚠ The `core` group holds title over `/compact` and has **no members**.
- * `isMember` is false for everybody, always — exactly what a fresh
- * `seedCoreGroup()` leaves behind.
+ * ⚠ An EMPTY group holds title over `/compact`. `isMember` is false for
+ * everybody, always — a cold box's honest shape.
  */
 function installEmptyCoreTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (): Promise<ParcelOwner> => ({
       kind: 'group',
-      name: 'core',
+      name: 'compact-holders',
       ref: CORE_GROUP,
     }),
   );

@@ -47,10 +47,10 @@ function seededRegistry(): BusinessEntity {
 /** Title fixture mirroring world-seed's pack.yaml claims for the registry branch. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
-    async (path: string): Promise<ParcelOwner> =>
+    async (path: string): Promise<ParcelOwner | null> =>
       path.startsWith('/domain/terminus/registry')
         ? { kind: 'group', name: 'terminus', ref: TERMINUS_REF }
-        : { kind: 'group', name: 'core' },
+        : null,
   );
   vi.spyOn(ParcelApi, 'resolveOwnerRef').mockImplementation(
     async (o: ParcelOwner) =>

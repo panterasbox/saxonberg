@@ -102,7 +102,7 @@ export function stubRegistries(): void {
         : (row.owner as { templatePath: string }).templatePath ===
           (claim.holder as { templatePath: string }).templatePath);
     if (same) return { outcome: 'kept', holder: row.owner };
-    if (row.owner.kind === 'group' && row.owner.name === 'core') {
+    if (row.owner.kind === 'group' && row.owner.name === 'core') { // migration-note: the retired state default
       row.owner = claim.holder;
       return { outcome: 'migrated', holder: claim.holder };
     }
@@ -125,7 +125,7 @@ export function stubRegistries(): void {
     return c ? ({ getExtent: () => c.extent, getOwner: () => c.owner } as never) : null;
   });
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
-    async (path: string) => covering(path)?.owner ?? ({ kind: 'group', name: 'core' } as ParcelOwner),
+    async (path: string) => covering(path)?.owner ?? null,
   );
 }
 

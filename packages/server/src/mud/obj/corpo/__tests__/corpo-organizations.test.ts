@@ -170,14 +170,14 @@ const TERMINUS_REF = 'managed:g-terminus';
 /** Title fixture mirroring the pack manifests for the two branches. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
-    async (path: string): Promise<ParcelOwner> => {
+    async (path: string): Promise<ParcelOwner | null> => {
       if (path.startsWith('/corpo/goodkin')) {
         return { kind: 'organization', templatePath: '/corpo/goodkin' };
       }
       if (path.startsWith('/domain/terminus')) {
         return { kind: 'group', name: 'terminus', ref: TERMINUS_REF };
       }
-      return { kind: 'group', name: 'core' };
+      return null;
     },
   );
   vi.spyOn(ParcelApi, 'resolveOwnerRef').mockImplementation(

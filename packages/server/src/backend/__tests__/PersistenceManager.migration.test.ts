@@ -103,9 +103,9 @@ describe('PersistenceManager groups.owner migration (I/O)', () => {
     const pm = PersistenceManager.get();
     vi.spyOn(console, 'info').mockImplementation(() => {});
     const db = fakeGroups([
-      { _id: '1', name: 'core', owner: 'system' },
+      { _id: '1', name: 'wizards', owner: 'system' },
       { _id: '2', name: 'mine', owner: '/obj/Avatar/alice' },
-      { _id: '3', name: 'pack-installers', owner: 'office:prime-minister' },
+      { _id: '3', name: 'ops-committee', owner: 'office:prime-minister' },
       { _id: '4', name: 'typed', owner: { kind: 'office', office: 'mayor' } },
     ]);
     expect(await pm.runGroupOwnerMigrationForTest(db)).toBe(3);

@@ -10,7 +10,7 @@
  *     from non-AccessApi code throws `SecurityError`.
  *
  * Deeper behavior tests for the predicate semantics
- * (`'core'` fallback, the flat-union zone walk, NPC fail-closed,
+ * (the fail-closed untitled path, the flat-union zone walk, NPC fail-closed,
  * role-gated mutate-zone) live in `obj/__tests__/AccessRegistry.test.ts`.
  */
 

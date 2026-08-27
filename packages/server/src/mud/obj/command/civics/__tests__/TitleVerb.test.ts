@@ -338,8 +338,8 @@ describe('title', () => {
     expect(reasons(ctx)).not.toContain('insufficient-funds');
 
     const owner = await ParcelApi.ownerOf(LOT2);
-    expect(owner.kind).toBe('player');
-    expect((owner as { templatePath: string }).templatePath).toBe(
+    expect(owner?.kind).toBe('player');
+    expect((owner! as { templatePath: string }).templatePath).toBe(
       buyer.getTemplatePath(),
     );
     // …and the money actually moved.
@@ -384,7 +384,7 @@ describe('title', () => {
     expect(await ParcelEvent.findByExtent(LOT2)).toHaveLength(0);
     // …and the ground is still the District's.
     const owner = await ParcelApi.ownerOf(LOT2);
-    expect(owner.kind).toBe('group');
+    expect(owner?.kind).toBe('group');
   });
 
   it('the same lot cannot be sold twice', async () => {
@@ -399,7 +399,7 @@ describe('title', () => {
     // …and the second buyer was not charged for the privilege.
     expect(settled).toHaveLength(1);
     const owner = await ParcelApi.ownerOf(LOT2);
-    expect((owner as { templatePath: string }).templatePath).toBe(
+    expect((owner! as { templatePath: string }).templatePath).toBe(
       first.getTemplatePath(),
     );
   });
@@ -499,7 +499,7 @@ describe('title', () => {
     // …and everything the catalogue owns is unchanged: the title moved,
     // the money moved, the zoning was stamped.
     const owner = await ParcelApi.ownerOf(`${LOTS}/lot-3`);
-    expect(owner.kind).toBe('player');
+    expect(owner?.kind).toBe('player');
     expect(settled).toEqual([4000]);
     const record = await ParcelApi.coveringParcelOf(`${LOTS}/lot-3`);
     expect(record?.getLandUse()).toBe('residential');
@@ -518,7 +518,7 @@ describe('title', () => {
 
     expect(reasons(ctx)).not.toContain('insufficient-funds');
     const owner = await ParcelApi.ownerOf(`${LOTS}/lot-4`);
-    expect(owner.kind).toBe('player');
+    expect(owner?.kind).toBe('player');
   });
 
   it('⭐ hangs a GATE on the street for the lot, and only for the lot', async () => {
