@@ -10,8 +10,11 @@ parked in the kernel tree (`mud/world/hearthworks/SealedCellar.ts`,
 build makes the rung real and proves it on **magic**: an `arcana`
 capability pack that ships the magic item classes, the casting
 disciplines, the descriptor banks, the settings and the casting verbs;
-and an `arcane-library` data pack that ships the spells and every
-clonable item. Two new item classes (`Ring`, `Amulet`) land with it,
+and an `arcane-library` pack that ships the spells, every clonable
+item, and the two classes only its spells name. **Most packs will be
+capability packs** — a pack ships whatever classes its content needs,
+and "data pack" is just the name for one that happens to need none.
+The rung is a fact about a `src/` directory, not a pack's identity. Two new item classes (`Ring`, `Amulet`) land with it,
 because a catalog of magic items of every kind is the thing the split
 exists to make authorable — and a ring that cannot be authored today
 is the clearest demonstration that a pack needs to bring its own
@@ -45,8 +48,8 @@ Load-bearing docs: [content-packs.md](../subsystems/content-packs.md),
 - **`arcana` is the first capability pack** — magic's substrate pack:
   the item classes, the casting disciplines, the descriptor banks, the
   casting settings, the casting verbs and their controllers.
-- **`arcane-library` is magic's catalog** — a data pack that names
-  `arcana`'s classes: the twelve spells and every clonable magic item
+- **`arcane-library` is magic's catalog** — a pack that names
+  `arcana`'s classes and ships its own where a spell needs one: the twelve spells and every clonable magic item
   currently scattered across `arcane-library`, `generic-objects` and
   `base-library`.
 - **Rings and amulets are authorable and work.** `Ring` and `Amulet`
@@ -158,14 +161,16 @@ moves: `MagicLogic` imports `SparkSource` directly and hardcodes
 `/stuff/thing/magic/GlowlightOrb` as the `emit-field` executor's
 emitter. Both classes are one-line generic shapes with spell names
 (`LightSourceMixin(Thing)`, `EnergizedMixin(Thing)`) — a **locus** an
-effect conjures, not a spell. They become arcana's generic building
-blocks, renamed for what they are (`LightLocus`, `ChargeLocus`), and
-**the effect row names the locus it conjures**: `emit-field` and the
-shock `inject-channel` gain a required `locus:` template path, and the
-executor clones what it is told. No default, no fallback. The
-flavoured rows — the glowlight mote with its own prose, spark's locus —
-ship in arcane-library beside their spells. A pack can then ship a new
-emitter kind without a kernel edit.
+effect conjures, not a spell. **The effect row names the locus it
+conjures**: `emit-field` and the shock `inject-channel` gain a required
+`locus:` template path, and the executor clones what it is told. No
+default, no fallback. Nothing but the glowlight and spark rows names
+these two classes, so they are **arcane-library's**, not arcana's —
+`arcane-library/src/thing/GlowlightMote.ts` and `SparkLocus.ts` (the
+names are honest again beside the spells), with their rows beside them.
+The membership test this applies: **arcana holds what other packs'
+content names; a class only one pack's own rows name is that pack's.**
+A pack can then ship a new emitter kind without a kernel edit.
 
 The `Discipline`, `DisciplineCatalogue` and `SpellCatalogue` *classes*
 stay kernel; only the magic discipline *rows* move. Both catalogues must
@@ -192,7 +197,7 @@ The requirements, not the design:
   registry mechanism. The brain-module resolution (`resolveExport`)
   rides the same table.
 - **`dependsOn` derives from `package.json` dependencies.** One graph;
-  a data pack that names another pack's classes declares it by the
+  a pack that names another pack's classes declares it by the
   dependency line, and the installer's order follows. The manifest key
   is retired, not kept as an override.
 - **The rung check.** `requires-kernel` resolves each `class:` and
@@ -294,18 +299,20 @@ from. A class or row that exists for one spell is the library's.
 
 | kind | rows |
 |---|---|
-| `src/` classes | `thing/Wand`, `thing/Scroll`, `thing/Spellbook`, `thing/Conduit`, **`thing/LightLocus`**, **`thing/ChargeLocus`** (the renamed `GlowlightOrb` / `SparkSource`, D3), **`thing/Ring`**, **`thing/Amulet`**, `idea/material/PotionMaterial`, `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` |
+| `src/` classes | `thing/Wand`, `thing/Scroll`, `thing/Spellbook`, `thing/Conduit`, **`thing/Ring`**, **`thing/Amulet`**, `idea/material/PotionMaterial`, `idea/cmd/magic/{Cast,Spells,Study,Zap,Recharge}Controller` |
 | domain rows | 18 `idea/Discipline/magic-*`, 5 controller templates |
 | command-view | 5 |
 | settings | `magic.yaml` |
 | descriptor-banks | 6 |
 
-**arcane-library** (data; commons namespace; depends on `arcana`):
+**arcane-library** (capability; commons namespace; depends on
+`arcana`):
 
 | kind | rows |
 |---|---|
+| `src/` classes | `thing/GlowlightMote`, `thing/SparkLocus` (today's `GlowlightOrb` / `SparkSource`, D3) |
 | spells | the 12 at `/stuff/idea/magic/Spell/` |
-| items | `glowlight-mote` and `spark-locus` (the two effect loci, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `flask-of-blistering`, `flask-of-veiling` — at `/stuff/thing/magic/` |
+| items | `glowlight-mote` and `spark-locus` (the two effect loci, `class:` the pack's own, named by their spells' rows — D3), `primer-of-glowlight`, `manual-of-transfer`, `scroll-of-identify`, `scroll-of-remove-curse`, `wand-of-firebolt`, `wand-of-firebolt-cursed`, `brass-conduit`, `charging-bench`, `flask-of-blistering`, `flask-of-veiling` — at `/stuff/thing/magic/` |
 | materials | `blistering-draught`, `veiling-draught` (unchanged path) |
 | **new exemplars** | one ring and one amulet row, each carrying a shipped sustained working (veil and glowlight are the two the engine realizes today), so the catalog ships with the new classes exercised |
 
@@ -358,9 +365,10 @@ verbs. `arcane-descriptors` is gone. **Nineteen packs.**
   links `@saxonberg/content-arcana` and the server's `package.json`
   depends on it.
 - A fresh database boots with all nineteen packs; `pack status` lists
-  `arcana` as a capability pack and `arcane-library` as data depending
-  on it; the boot's `requires-kernel` step resolves every arcana class
-  into `packages/content/arcana/src/`.
+  both as capability packs with `arcane-library` depending on `arcana`;
+  the boot's `requires-kernel` step resolves every arcana class into
+  `packages/content/arcana/src/` and the two loci into
+  `packages/content/arcane-library/src/`.
 - `clone /stuff/thing/magic/wand-of-firebolt` in a live server yields
   a working wand; `zap`, `cast`, `study`, `spells`, `recharge` all
   dispatch through the pack-shipped controllers (driven live, not
