@@ -24,7 +24,6 @@ import { CommandController } from '../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
-import { CommandApi } from '../../../api/command';
 import { PackApi } from '../../../api/pack';
 import type {
   PackDiffReport,
@@ -85,14 +84,6 @@ export default class PackController extends CommandController<PackModel> {
         return this.tell(context, model.packId ? `no pack '${model.packId}'` : 'no packs');
       }
       const lines = reports.map((r) => this.formatStatus(r));
-      // The command-view migration residue: views the dispatcher still
-      // serves from DISK because no pack shipped them yet.
-      const fromDisk = CommandApi.diskFallbacks();
-      if (fromDisk.length > 0) {
-        lines.push(
-          `${fromDisk.length} command view(s) still served from disk: ${fromDisk.join(', ')}`,
-        );
-      }
       this.tell(context, lines.join('\n\n'));
     } catch (err) {
       return this.fail(context, (err as Error).message, 'status-failed');

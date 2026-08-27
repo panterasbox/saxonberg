@@ -10,7 +10,6 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PackController from '../PackController';
-import { CommandApi } from '../../../../api/command';
 import { PackApi } from '../../../../api/pack';
 import { MessageApi } from '../../../../api/message';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -164,20 +163,6 @@ describe('PackController routing', () => {
     expect(out).toContain('0 row(s) pinned');
     expect(out).toContain('pack diff p /obj/x');
     expect(out).toContain('pack resolve p /obj/x');
-  });
-
-  it('status prints the command-view disk-fallback residue when there is one', async () => {
-    vi.spyOn(PackApi, 'status').mockResolvedValue([
-      { packId: 'platform', discovered: true, manifestVersion: '0.1.0', record: null, maintainers: null, titleConflicts: [] },
-    ]);
-    vi.spyOn(CommandApi, 'diskFallbacks').mockReturnValue([
-      'studio/eternal/duncan-hall/cmd/provision.yaml',
-      'studio/eternal/university-avenue/cmd/blow.yaml',
-    ]);
-    await run({ subcommand: 'status' });
-    const out = told.join('\n');
-    expect(out).toContain('2 command view(s) still served from disk');
-    expect(out).toContain('studio/eternal/duncan-hall/cmd/provision.yaml');
   });
 
   it('install --dry-run → PackApi.dryRun; install without it is rejected', async () => {

@@ -18,7 +18,7 @@ async function see(page: Page, cmd: string, pattern: RegExp, timeout = 15_000) {
   await expect(page.getByText(pattern).first()).toBeVisible({ timeout });
 }
 
-test('pack status as the founder (head of the executive) lists the packs + the disk residue', async ({ browser }) => {
+test('pack status as the founder (head of the executive) lists the packs', async ({ browser }) => {
   test.setTimeout(180_000);
   const { page, close } = await openWorldAsFounder(browser);
   try {
@@ -28,7 +28,6 @@ test('pack status as the founder (head of the executive) lists the packs + the d
     await see(page, 'pack status', /platform/i, 30_000);
     await expect(page.getByText(/wiki-starter/i).first()).toBeVisible();
     await expect(page.getByText(/corpo-vionne/i).first()).toBeVisible();
-    await expect(page.getByText(/7 command view\(s\) still served from disk/i).first()).toBeVisible();
     await page.screenshot({ path: '/tmp/wave2-pack-status.png', fullPage: true });
   } finally {
     await close();

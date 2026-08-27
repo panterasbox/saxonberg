@@ -1397,15 +1397,6 @@ export class CommandApi {
   }
 
   /**
-   * The view keys served from DISK rather than the store — the
-   * migration residue (`pack status` prints it). Empty once every view
-   * is content.
-   */
-  static diskFallbacks(): string[] {
-    return logic().diskFallbacks();
-  }
-
-  /**
    * Eager boot-time load: the `command-view` document store FIRST, then
    * the on-disk command trees for whatever the store did not serve
    * (counted as disk fallbacks); parse each view and resolve every

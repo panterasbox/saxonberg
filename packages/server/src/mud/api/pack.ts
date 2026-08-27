@@ -387,6 +387,17 @@ export class PackApi {
   }
 
   /**
+   * The shipped packs' `content/` roots, in install order (sync — a
+   * disk read of the manifests, honoring `SAXONBERG_PACKS`). What the
+   * command preload reads OFFLINE (no document store): the files are
+   * the source of truth, and with no store to serve them they are read
+   * directly. A booted server never reads them — a store miss is a miss.
+   */
+  public static contentRoots(): string[] {
+    return logic().contentRoots();
+  }
+
+  /**
    * Join the discovered manifests with the `pack_installs` records:
    * status, version, principal, open conflicts, pins, failure. Reports
    * undiscovered-but-recorded and discovered-but-unrecorded packs too.

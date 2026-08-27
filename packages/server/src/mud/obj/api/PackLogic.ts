@@ -270,8 +270,7 @@ interface PackContent {
 
 /**
  * `server`'s own `package.json` — the single source of truth for which
- * packs this build ships. Relative climb from this module mirrors
- * `SeederManager`'s `join(here, '../mud/seeds')` precedent:
+ * packs this build ships. Relative climb from this module:
  * `src/mud/obj/api/PackLogic.ts` → `packages/server/package.json`.
  */
 function serverPackageJsonPath(): string {
@@ -3342,6 +3341,12 @@ export class PackLogic extends ApiLogic {
   @CallSecurity(PackApiCallers)
   public async discoverPacks(): Promise<PackManifest[]> {
     return discover().map((p) => p.manifest);
+  }
+
+  /** See {@link PackApi.contentRoots}. */
+  @CallSecurity(PackApiCallers)
+  public contentRoots(): string[] {
+    return discover().map((p) => p.contentRoot);
   }
 
   /** See {@link PackApi.status}. */

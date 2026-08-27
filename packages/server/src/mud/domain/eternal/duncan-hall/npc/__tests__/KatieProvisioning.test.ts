@@ -188,6 +188,9 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     const env = Katie.commandContributions.peers ?? [];
     expect(env).toContain('domain/eternal/duncan-hall/cmd/provision.yaml');
     expect(env).toContain('domain/eternal/duncan-hall/cmd/unprovision.yaml');
+    // Nothing preloaded views from a store here, so the keys resolve to
+    // world-seed's own view files (offline = the pack files).
+    CommandApi.clearCache();
     for (const key of env) {
       expect(CommandApi.getCommand(key), key).not.toBeNull();
     }

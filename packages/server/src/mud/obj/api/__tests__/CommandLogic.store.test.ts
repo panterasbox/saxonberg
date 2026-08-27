@@ -1,10 +1,13 @@
 /**
- * Store-first command views (content-packs wave 2, D8): `preloadAll`
- * serves every stored `command-view` document and counts NO disk
- * fallback for them; a key the store lacks is read from disk and
- * counted; `reload(docPath)` replaces the cached definition from the
- * store (help text changes); `invalidate` then `getCommand` falls to
- * disk and counts; `diskFallbacks()` lists the residue.
+ * Command views (content-packs wave 2 D8, wave 3 D6): with a document
+ * store, `preloadAll` serves every stored `command-view` document and a
+ * key the store lacks is a MISS once the preload served the store —
+ * nothing reads disk (`getCommand` → null, `invalidate` then `getCommand`
+ * → null); `reload(docPath)` replaces the
+ * cached definition from the store (help text changes); a stored
+ * domain-local view resolves its relative controller against the
+ * mud-rooted anchor. OFFLINE (no store), the packs' own files are read —
+ * the source of truth — for engine and locality views alike.
  */
 
 import '../../../../test-bootstrap';
@@ -33,14 +36,17 @@ let stored: StoredDocument[];
 /** Built, not written: a kernel test does not name shipped content. */
 const LOCAL = ['', 'domain', 'eternal', 'duncan-hall', 'cmd', 'provision'].join('/');
 
-beforeEach(() => {
-  CommandApi.clearCache();
-  stored = [view('/cmd/system/ping', PING)];
+function withStore(): void {
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async () => stored);
   vi.spyOn(DocumentApi, 'read').mockImplementation(
     async (path: string) => stored.find((d) => d.path === path) ?? null,
   );
+}
+
+beforeEach(() => {
+  CommandApi.clearCache();
+  stored = [view('/cmd/system/ping', PING)];
   vi.spyOn(console, 'info').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -49,18 +55,20 @@ afterEach(() => {
   CommandApi.clearCache();
 });
 
-describe('CommandApi — store-first', () => {
-  it('preload serves a stored view and counts no disk fallback for it', async () => {
+describe('CommandApi — with a store', () => {
+  it('preload serves the stored views and nothing else — a key the store lacks is a miss', async () => {
+    withStore();
     const r = await CommandApi.preloadAll();
     expect(r.failed).toEqual([]);
+    expect(r.loaded).toBe(1);
     expect(CommandApi.getCommand('system/ping.yaml')?.help).toBe('from the store');
-    expect(CommandApi.diskFallbacks()).not.toContain('system/ping.yaml');
-    // Every other engine verb came from disk (the pack's tree) and is counted.
-    expect(CommandApi.diskFallbacks()).toContain('perception/look.yaml');
-    expect(r.loaded).toBeGreaterThan(100);
+    // The platform pack ships this file, and it is NOT read: no disk fallback.
+    expect(CommandApi.getCommand('perception/look.yaml')).toBeNull();
+    expect(CommandApi.allDefinitions()).toHaveLength(1);
   });
 
   it('a stored view that does not conform is a failed entry, never a throw', async () => {
+    withStore();
     stored.push(view('/cmd/system/broken', { description: 'no verbs' }));
     const r = await CommandApi.preloadAll();
     expect(r.failed).toContain('system/broken.yaml');
@@ -68,31 +76,29 @@ describe('CommandApi — store-first', () => {
   });
 
   it('reload(docPath) replaces the cached definition from the store', async () => {
+    withStore();
     await CommandApi.preloadAll();
     stored[0] = view('/cmd/system/ping', { ...PING, help: 'edited live' });
     expect(await CommandApi.reload('/cmd/system/ping')).toBe(true);
     expect(CommandApi.getCommand('system/ping.yaml')?.help).toBe('edited live');
-    expect(CommandApi.diskFallbacks()).not.toContain('system/ping.yaml');
   });
 
-  it('reload of a path the store lacks returns false and leaves the key to disk', async () => {
+  it('reload of a path the store lacks returns false; the key stays a miss', async () => {
+    withStore();
     await CommandApi.preloadAll();
     expect(await CommandApi.reload('/cmd/perception/look')).toBe(false);
-    expect(CommandApi.getCommand('perception/look.yaml')).not.toBeNull();
-    expect(CommandApi.diskFallbacks()).toContain('perception/look.yaml');
+    expect(CommandApi.getCommand('perception/look.yaml')).toBeNull();
   });
 
-  it('invalidate then getCommand falls to disk and counts', async () => {
+  it('invalidate then getCommand is a miss — nothing falls to disk', async () => {
+    withStore();
     await CommandApi.preloadAll();
     expect(CommandApi.invalidate('system/ping.yaml')).toBe(true);
-    // The disk copy (the platform pack's own file) is served and counted.
-    const cmd = CommandApi.getCommand('system/ping.yaml');
-    expect(cmd).not.toBeNull();
-    expect(cmd?.help).not.toBe('from the store');
-    expect(CommandApi.diskFallbacks()).toContain('system/ping.yaml');
+    expect(CommandApi.getCommand('system/ping.yaml')).toBeNull();
   });
 
-  it('a domain-local view is keyed by its domain-prefixed path both ways', async () => {
+  it('a stored domain-local view is keyed by its domain-prefixed path and resolves its relative controller', async () => {
+    withStore();
     stored.push(
       view(LOCAL, {
         verbs: ['provision'],
@@ -105,6 +111,26 @@ describe('CommandApi — store-first', () => {
     const cmd = CommandApi.getCommand(key);
     expect(cmd?.description).toBe('stored provision');
     expect(cmd?.category).toBe('domain');
-    expect(CommandApi.diskFallbacks()).not.toContain(key);
+    // `../command/ProvisionController` against the mud-rooted anchor — the
+    // same path the disk read resolved to.
+    expect(cmd?.resolvedController).toBe(`${LOCAL.split('/').slice(0, -2).join('/')}/command/ProvisionController`);
+  });
+});
+
+describe('CommandApi — offline (no store): the packs\' files are the source', () => {
+  it('preload reads every engine view from the platform pack and every locality view from its pack', async () => {
+    vi.spyOn(PersistApi, 'isConnected').mockReturnValue(false);
+    const r = await CommandApi.preloadAll();
+    expect(r.failed).toEqual([]);
+    expect(r.loaded).toBeGreaterThan(100);
+    expect(CommandApi.getCommand('perception/look.yaml')).not.toBeNull();
+    // A locality view (its pack's `content/domain/**/cmd/`), keyed domain-prefixed.
+    const local = CommandApi.allDefinitions().find((d) => d.category === 'domain');
+    expect(local).toBeDefined();
+  }, 30_000);
+
+  it('a key no pack ships is null', () => {
+    vi.spyOn(PersistApi, 'isConnected').mockReturnValue(false);
+    expect(CommandApi.getCommand('nowhere/nothing.yaml')).toBeNull();
   });
 });
