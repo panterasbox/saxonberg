@@ -171,12 +171,12 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     /**
      * ⚠⚠ **Legacy hydration slot. Do NOT delete it because the seeds are
      * clean.** No shipped seed authors `proprietorPath` any more — that is
-     * asserted by `seeds/__tests__/business-authority.test.ts` — so a grep
+     * asserted by `domain/__tests__/business-authority.test.ts` — so a grep
      * makes this look dead. It is not.
      *
-     * `SeederManager` is **insert-only** (`if (existing) continue`), so every
-     * box seeded before the port still has `proprietorPath` in its `domain`
-     * rows and will keep it until those rows are deleted and reseeded. This
+     * The retired seeder was insert-only, so every box seeded before the
+     * port still has `proprietorPath` in its `content` rows (the installer
+     * adopts a row's body only where the file changed). This
      * slot is what makes those rows keep working: it reads as
      * `{kind: 'entity', path}`, which is byte-identical to what they resolved
      * to before.

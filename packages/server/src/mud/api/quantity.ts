@@ -10,8 +10,8 @@
  * tag vocabulary without TS edits, and lets the engine reload the
  * registry at runtime.
  *
- * Boot wiring: `AppBootstrap` calls `QuantityApi.loadTagTables()` after
- * `SeederManager.run()`. Tests bypass this and use the
+ * Boot wiring: the platform pack's install (`PackApi.install`, the
+ * quantity content kind) calls `QuantityApi.loadTagTables()`. Tests bypass this and use the
  * `installV1QuantityTagTables` helper from `lib/persistence/__tests__/`
  * (or call `loadTagTables` directly).
  *
@@ -92,7 +92,7 @@ export class QuantityApi {
    * table with `Quantity`. Idempotent — calling twice with the same file
    * re-registers the same tables.
    *
-   * Boot path: `AppBootstrap` calls this after `SeederManager.run` so the
+   * Boot path: the platform pack's install calls this so the
    * tables are available before any code that hits `tag()` /
    * `parse(tagString)` runs (the marshallers, the propagation walks,
    * controllers).

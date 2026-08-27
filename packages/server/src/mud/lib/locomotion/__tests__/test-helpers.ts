@@ -1,7 +1,7 @@
 /**
  * Locomotion test helpers. Lets tests build the nine v1 mode
  * singletons in-memory (matching the seed YAML values) without
- * spinning up the SeederManager / Mongo. Each helper registers the
+ * spinning up the content installer / Mongo. Each helper registers the
  * mode at its canonical templatePath so `LocomotionApi.modeOf` /
  * `findByTemplatePath` resolves it.
  *

@@ -123,7 +123,7 @@ describe('GoController', () => {
   beforeEach(async () => {
     // GoController now extends LocomotionControllerBase, which resolves
     // the walk LocomotionMode singleton via LocomotionApi.modeOfOrThrow.
-    // Seed the singleton up-front (in production the SeederManager does this).
+    // Seed the singleton up-front (in production the platform pack's install does this).
     buildMode('walk');
 
     zone = makeStuff(() => new CartesianZone());

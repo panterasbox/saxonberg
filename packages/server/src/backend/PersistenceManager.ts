@@ -1372,7 +1372,7 @@ export class PersistenceManager {
       // Domain: unique index on `path` — every Template doc carries a
       // `path` field, and the seeder + boot-time clone pipeline both
       // assume it is one document per path. Without this index,
-      // concurrent `SeederManager.run` invocations (e.g. two
+      // concurrent `PackApi.install` invocations (e.g. two
       // tsx-watch processes racing during dev) double-insert and
       // `BootstrapManager.run` crashes with a duplicate-templatePath
       // error on the next boot. `createIndex` is idempotent — same

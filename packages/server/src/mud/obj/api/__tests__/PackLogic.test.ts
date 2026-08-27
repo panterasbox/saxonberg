@@ -231,7 +231,7 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
   });
 
   it('adoption: an unstamped legacy row is stamped + matched, no duplicate', async () => {
-    // Simulate a legacy SeederManager row (unstamped) at a pack path.
+    // Simulate a legacy seeder row (unstamped) at a pack path.
     rows.push({
       _id: 'legacy-1',
       path: '/obj/material/spirit/gin',

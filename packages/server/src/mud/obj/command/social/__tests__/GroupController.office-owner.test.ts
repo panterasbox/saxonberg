@@ -1,10 +1,10 @@
 /**
  * The appointment ceremony (pack-installer W1.9, slate A25), end to end
- * at the unit level: the office-owned `pack-installers` committee is
- * seeded as GroupSeeder would seed it; the founder — the default Prime
- * Minister, no handoff row — drives `group add pack-installers <member>`
- * through GroupController and succeeds; the member now passes
- * `requiresPackInstaller`; a stranger fails; a simulated
+ * at the unit level: an office-owned `ops-committee` committee is
+ * minted as a pack's `requires.groups` would mint it; the founder — the
+ * default Prime Minister, no handoff row — drives `group add
+ * ops-committee <member>` through GroupController and succeeds; the
+ * member is now on the committee; a stranger is not; a simulated
  * `office assign prime-minister <other>` flips who can add, and the
  * Group document is never rewritten by the handoff.
  *
@@ -17,7 +17,6 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupController from '../GroupController';
-import requiresPackInstaller from '../../../../lib/command/validators/requiresPackInstaller';
 import { GroupApi } from '../../../../api/group';
 import { CompactApi } from '../../../../api/compact';
 import { MessageApi } from '../../../../api/message';
@@ -97,18 +96,20 @@ async function groupAdd(giver: Avatar, target: Avatar): Promise<boolean> {
   notes = [];
   const ctrl = makeStuff(() => new GroupController());
   await ctrl.execute(
-    { subcommand: 'add', name: 'pack-installers', target: { stuff: target } } as unknown as CommandModel,
+    { subcommand: 'add', name: 'ops-committee', target: { stuff: target } } as unknown as CommandModel,
     ctxFor(giver),
   );
   return !notes.some((n) => n.kind === 'controller-rejected');
 }
 
+/** Membership of the office-owned committee — what appointment confers. */
 async function passesGate(av: Avatar): Promise<boolean> {
-  return requiresPackInstaller.preload!({ commandGiver: av } as unknown as CommandContext);
+  const row = await committeeRow();
+  return (row.memberIds as string[] | undefined)?.includes(av.getTemplatePath() ?? '') ?? false;
 }
 
 async function committeeRow(): Promise<Doc> {
-  return store.find((d) => d.name === 'pack-installers')!;
+  return store.find((d) => d.name === 'ops-committee')!;
 }
 
 beforeEach(async () => {
@@ -126,9 +127,9 @@ beforeEach(async () => {
   });
   const reg = makeStuffAtPath(() => new GroupRegistry(), '/obj/GroupRegistry');
   await reg.postRegister();
-  // As GroupSeeder seeds it from config/groups.yaml: office-owned, empty.
+  // As a pack's requires.groups would mint it: office-owned, empty.
   const g = new Group();
-  g.name = 'pack-installers';
+  g.name = 'ops-committee';
   g.owner = Group.officeOwner('prime-minister');
   await g.save();
 });
@@ -197,7 +198,7 @@ describe('the appointment ceremony', () => {
     const anyone = makeAvatar('anyone');
     const ctrl = makeStuff(() => new GroupController());
     await ctrl.execute(
-      { subcommand: 'show', name: 'pack-installers' } as unknown as CommandModel,
+      { subcommand: 'show', name: 'ops-committee' } as unknown as CommandModel,
       ctxFor(anyone),
     );
     expect(shown).toContain('the office of prime-minister (held by the founder)');

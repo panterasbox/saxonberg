@@ -119,11 +119,8 @@ describe('lib-to-obj move map', () => {
   });
 
   describe('repo file paths', () => {
-    it('moves the seed tree and both pack content trees', () => {
-      expect(rewriteRepoPath('packages/server/src/mud/seeds/lib/magic/Spell')).toBe(
-        'packages/server/src/mud/seeds/obj/magic/Spell'
-      );
-      expect(rewriteRepoPath('../../seeds/lib/address')).toBe('../../seeds/obj/address');
+    it('moves the pack content trees (the seed tree is gone — content-packs wave 3)', () => {
+      expect(rewriteRepoPath('packages/server/src/mud/seeds/lib/magic/Spell')).toBeNull();
       expect(rewriteRepoPath('packages/content/base-library/content/lib/material')).toBe(
         'packages/content/base-library/content/obj/material'
       );

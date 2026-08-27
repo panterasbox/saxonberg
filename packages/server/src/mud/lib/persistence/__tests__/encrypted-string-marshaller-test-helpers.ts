@@ -1,7 +1,7 @@
 /**
  * Test seam: install the singleton `EncryptedStringMarshaller` under its
  * canonical templatePath so `StuffApi.findByTemplatePath` resolves it.
- * Production seeds the same singleton via `SeederManager` at boot; tests
+ * Production installs the same singleton via the platform pack at boot; tests
  * bypass Mongo and register it in-memory directly.
  *
  * Call once in `beforeEach` (paired with `StuffApi.clearAll()` in

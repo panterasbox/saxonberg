@@ -3,21 +3,22 @@
  * `index.ts` stays a thin entry point.
  *
  * Owns the dependency chain across the backend's prep systems:
- * Mongo connect → seeders → PM hooks → command YAML preload →
- * runtime-instance manifest. Each underlying manager keeps its
- * narrow scope (`SeederManager` seeds, `BootstrapManager` runs the
- * manifest, etc.); this class is just the sequencer.
+ * Mongo connect → the content installer → PM hooks → command-view
+ * preload → the boot manifest (the union of every applied pack's
+ * `boot:` list) → warm/activate. There is no seeder: every row the
+ * world starts with is a content pack's, and the packs' `requires:`
+ * blocks are what the registries grant (content-packs wave 3, D6).
+ * Each underlying manager keeps its narrow scope (`PackApi` installs,
+ * `BootstrapManager` runs the manifest, etc.); this class is just the
+ * sequencer.
  *
  * Throws on any step's failure; the entry point catches and exits.
  * Exit-code policy lives at the entry point, not here.
  */
 
 import { PersistenceManager } from './PersistenceManager';
-import { SeederManager } from './SeederManager';
 import { ConditionApi } from '../mud/api/condition';
 import { MaterialApi } from '../mud/api/material';
-import { GroupSeeder } from './GroupSeeder';
-import { ParcelSeeder } from './ParcelSeeder';
 import { TwitchRelayReader } from './TwitchRelayReader';
 import { YoutubeRelayReader } from './YoutubeRelayReader';
 import { KickRelayReader } from './KickRelayReader';
@@ -81,16 +82,17 @@ export class AppBootstrap {
    *
    *   1. Mongo connect — every later step touches PM.
    *
-   *   2. Seed templates from disk into `domain` (idempotent —
-   *      existing docs are left alone). Runs FIRST after connect
-   *      because PM.loadHooks below clones the DomainHook template
-   *      out of `domain`, and the bootstrap manifest may reference
-   *      other seeded templates too.
+   *   2. Install the content packs (`PackApi.install`): every shipped
+   *      pack reconciled three-way into `content` / `documents` / the
+   *      settings singleton, and its `requires:` granted — groups
+   *      ensured, titles claimed. Runs FIRST after connect because
+   *      PM.loadHooks below clones the DomainHook template out of
+   *      `content`, and the boot manifest names installed rows.
    *
    *   3. Load PM hooks (folder/leaf invariant on Collections.Content,
-   *      etc.) — clones the seeded hook templates and registers
-   *      them with the persistence pipeline. Seeds must exist
-   *      before this runs.
+   *      etc.) — clones the installed hook templates and registers
+   *      them with the persistence pipeline. The packs must be
+   *      installed before this runs.
    *
    *      Controllers are not pre-loaded; dispatch clones a fresh
    *      one per command via `StuffApi.clone('/obj/command/<Name>')`.
@@ -101,9 +103,9 @@ export class AppBootstrap {
    *      `_resolvedValidators`), so this MUST happen before the
    *      server accepts traffic.
    *
-   *   5. Bootstrap runtime instances from the engine manifest.
-   *      All prior steps must be complete; failures here prevent
-   *      boot.
+   *   5. Bootstrap runtime instances from the boot manifest — the
+   *      union of every applied pack's `boot:` list. All prior steps
+   *      must be complete; failures here prevent boot.
    */
   public static async run(config: AppBootstrapConfig): Promise<void> {
     // Framework cross-module wiring (registry-class handoffs, the
@@ -127,29 +129,18 @@ export class AppBootstrap {
     await PersistenceManager.get().connect(config.mongoUri, config.dbName);
     console.info('MongoDB connection successful');
 
-    await SeederManager.run();
-
     // Content packs — reconcile every shipped `@saxonberg/content-*` pack
-    // into the DB (base-library: materials, biomes, quantity units;
-    // species-and-names: the species/clade tree + char-gen name banks;
-    // arcane-descriptors: the unidentified-appearance pools; newbie-wilds:
-    // the frontier onboarding zone; saxonberg-lounge: the lounge's msh
-    // world scripts — the `documents` kinds ride the same installer, so
-    // the per-collection seeders below retire one by one as their
-    // content becomes a pack). Three-way against each pack's
-    // `pack_installs` record; conflicts are reported, never merged.
-    // The installer is the
-    // source-of-truth-is-the-file replacement for seeding the migrated
-    // trees, AND folds in the former standalone `QuantityApi.loadTagTables`
-    // call (the quantity content-kind). Writes rows only — nothing is live
-    // yet (BootstrapManager clones later), so no re-hydrate at boot.
-    //
-    // Coexists with SeederManager (above): the installer only touches
-    // `sourcePack`-stamped (or adopts-then-stamps) rows for paths its packs
-    // ship; SeederManager is insert-only on the shrunken `seeds/` tree —
-    // disjoint sets. Runs before `loadHooks` because the migrated content
-    // (domain templates + quantity tables) is all pre-hooks content the
-    // marshaller/`tag()` consumers and the DomainHook clone depend on.
+    // into the DB: the platform (pack zero — controllers, registries,
+    // vocabularies, the Compact), base-library, species-and-names, the
+    // object / arcane / corpo / lounge / wiki packs, and the transitional
+    // world-seed (the locality rows). Three-way against each pack's
+    // `pack_installs` record; conflicts are reported, never merged. Each
+    // pack's `requires:` is granted here too — its groups ensured, its
+    // titles claimed (kept where already held) — and its `boot:` list
+    // recorded for the manifest below. Writes rows only — nothing is live
+    // yet (BootstrapManager clones later), so no re-hydrate at boot. Runs
+    // before `loadHooks` because everything (the DomainHook template, the
+    // marshallers, the quantity tables) is the packs' content.
     const packResults = await PackApi.install();
     for (const r of packResults) {
       if (r.failure) {
@@ -183,24 +174,10 @@ export class AppBootstrap {
     }
 
     await PersistenceManager.get().loadHooks();
-
-    // Per-collection seeders. Insert-only / idempotent — match the
-    // SeederManager pattern but target their own collections from a
-    // single YAML each. Run after PM hooks (they touch the collection
-    // chokepoint indirectly via Document.save) and before the
-    // BootstrapManager runs the catalogue singletons that warm their
-    // caches from these collections.
-    // Groups before parcels: a parcel's owner group (`duncan-hall`) is
-    // authored here with its staff members, so the owner-ref resolution the
-    // parcel/provisioning path does later converges on the seeded group.
-    await GroupSeeder.run();
-    await ParcelSeeder.run();
-    // The starter wiki pages are the `wiki-starter` pack's `wiki` kind,
+    // (The starter wiki pages are the `wiki-starter` pack's `wiki` kind,
     // submitted by `PackApi.install` above THROUGH the registry's own
-    // create/edit path AS the pack (`asInstaller` — no namespace
-    // protection walk, so the former after-parcels ordering no longer
-    // matters). A page somebody has edited is a compare-and-swap
-    // conflict, never a silent revert.
+    // create/edit path AS the pack — a page somebody has edited is a
+    // compare-and-swap conflict, never a silent revert.)
 
     const cmd = await CommandApi.preloadAll();
     if (cmd.failed.length > 0) {

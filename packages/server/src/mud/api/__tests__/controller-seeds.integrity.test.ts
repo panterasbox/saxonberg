@@ -5,7 +5,7 @@
  * Command dispatch clones a fresh controller per execution via
  * `StuffApi.clone(<resolved controller template path>)` (see
  * `CommandGiver._executeOne`). That clone reads a Template out of the
- * `content` collection, which `SeederManager` populates from
+ * `content` collection, which the content installer populates from
  * the packs' `content/**` — one YAML file per template path. A `controller:`
  * field in a command spec with no matching seed YAML therefore throws
  * "Template not found" the first time the verb is dispatched on a
@@ -80,10 +80,15 @@ function collectSpecFiles(): string[] {
   const specs: string[] = [];
   walkYaml(CMD_ROOT, specs);
   const domainAll: string[] = [];
-  try {
-    walkYaml(DOMAIN_ROOT, domainAll);
-  } catch {
-    // No domain tree in this checkout — nothing to add.
+  // A locality's views are its pack's `content/domain/**/cmd/*.yaml`
+  // (world-seed's, until each locality is homed); the code tree under
+  // `mud/domain` holds none since content-packs wave 3.
+  for (const root of [DOMAIN_ROOT, join(SEEDS_ROOT, "domain")]) {
+    try {
+      walkYaml(root, domainAll);
+    } catch {
+      // No such tree in this checkout — nothing to add.
+    }
   }
   for (const p of domainAll) {
     if (p.split(/[\\/]/).includes("cmd")) specs.push(p);
@@ -99,7 +104,10 @@ function collectSpecFiles(): string[] {
 function resolveController(rawController: string, specFilePath: string): string {
   if (rawController.startsWith("/")) return rawController;
   const abs = resolvePath(dirname(specFilePath), rawController);
-  return "/" + relative(MUD_ROOT, abs).split(sep).join("/");
+  // A view under a pack's content root maps to the mud-rooted path the
+  // same way the dispatcher anchors it (`join(MUD_ROOT, viewKey)`).
+  const root = specFilePath.startsWith(SEEDS_ROOT) ? SEEDS_ROOT : MUD_ROOT;
+  return "/" + relative(root, abs).split(sep).join("/");
 }
 
 /**

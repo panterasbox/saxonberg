@@ -1,7 +1,7 @@
 /**
  * Test seam: install all v1 quantity-marshaller singletons under
  * their canonical templatePaths so `StuffApi.findByTemplatePath`
- * resolves them. Production seeds the same set via `SeederManager`
+ * resolves them. Production installs the same set via the platform pack
  * at boot; tests bypass Mongo and register the marshallers in-
  * memory directly.
  *

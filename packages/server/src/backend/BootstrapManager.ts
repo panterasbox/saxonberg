@@ -1,14 +1,13 @@
 /**
  * BootstrapManager — clone runtime instances from manifest entries
- * after `SeederManager` has populated the `content` collection.
+ * after the content installer has populated the `content` collection.
  *
- * The manager owns the `BootstrapEntry` shape; the manifest data
- * (the actual list of templates to bootstrap) lives at
- * `mud/bootstrap.ts` so lower-level developers can edit and review
- * it as things come and go from service. Imports flow mudlib →
- * backend for the type, not the other way around — backend stays
- * the privileged layer and doesn't reach into mudlib for shape
- * information.
+ * The manager owns the `BootstrapEntry` shape; the manifest data (the
+ * actual list of templates to bootstrap) is every applied pack's
+ * `boot:` list (`pack.yaml`), read through `PackApi.bootManifest` —
+ * the pack that ships a row declares whether it is eager, and why.
+ * `templatePathPrefix` / `awaitInit` stay code-only shape; no YAML
+ * exposes them.
  *
  * The manager topo-sorts entries by `dependsOn` and clones each
  * entry in order. `awaitInit` runs after the clone for entries
@@ -22,7 +21,6 @@
 import { StuffApi } from '../mud/api/stuff';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { Template } from '../mud/lib/stuff/Template';
-import { bootstrapManifest } from '../mud/bootstrap';
 import { PackApi } from '../mud/api/pack';
 import { EventApi } from '../mud/api/event';
 import { SecurityApi } from '../mud/api/security';
@@ -188,17 +186,17 @@ export class BootstrapManager {
    * `StuffApi.clone(...)` in dep-sorted order; `awaitInit` (if
    * provided) runs immediately after that entry's clone resolves.
    *
-   * The default manifest is the UNION of the code manifest
-   * (`mud/bootstrap.ts` — shrinking as packs take its entries, gone at
-   * content-packs wave 3 step 7) and every applied pack's `boot:` list
-   * (`PackApi.bootManifest`). A path present in both is the duplicate
-   * error below — each move is one atomic edit.
+   * The default manifest is the UNION of every applied pack's `boot:`
+   * list (`PackApi.bootManifest`, install order; a template two packs
+   * list is an error naming both). There is no code manifest any more
+   * (content-packs wave 3): what is eager at boot is declared by the
+   * pack that ships the row.
    *
    * Visible for testing — accepts an optional manifest override.
    */
   public static async run(manifest?: BootstrapEntry[]): Promise<void> {
     BootstrapManager.installFrameworkWiring();
-    manifest ??= [...bootstrapManifest, ...(await PackApi.bootManifest())];
+    manifest ??= await PackApi.bootManifest();
     const expanded = await this.#expandPrefixEntries(manifest);
     const sorted = this.#topologicalSort(expanded);
 

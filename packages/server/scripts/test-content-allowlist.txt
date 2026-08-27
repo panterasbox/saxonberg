@@ -6,7 +6,6 @@ packages/server/scripts/__tests__/combat-gym.test.ts
 packages/server/scripts/__tests__/lib-to-obj-moves.test.ts
 packages/server/scripts/__tests__/migrate-lib-to-obj.test.ts
 packages/server/src/backend/__tests__/Application.test.ts
-packages/server/src/backend/__tests__/GroupSeeder.test.ts
 packages/server/src/backend/__tests__/PersistenceManager.documentKinds.test.ts
 packages/server/src/mud/__tests__/craft-served-path.test.ts
 packages/server/src/mud/api/__tests__/address.test.ts

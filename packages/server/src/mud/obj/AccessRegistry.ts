@@ -650,8 +650,8 @@ export default class AccessRegistry extends AccessRegistryBase {
     let wizards = await provider.findByName('wizards');
     if (!wizards) {
       // One-time migration (wizard-authority): the code-trust axis was
-      // renamed `developers` → `wizards`. The SeederManager is
-      // insert-only and this group is seeded here (not a seed YAML), so
+      // renamed `developers` → `wizards`. This group is seeded here (not
+      // a content row), so
       // a fresh mint would strand the legacy `developers` doc and its
       // members. Rename the existing doc forward so its `_id`,
       // `memberIds`, and `memberRoles` carry over verbatim. Re-running

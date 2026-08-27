@@ -44,7 +44,7 @@ function seededRegistry(): BusinessEntity {
   return biz;
 }
 
-/** Title fixture mirroring config/parcels.yaml for the registry branch. */
+/** Title fixture mirroring world-seed's pack.yaml claims for the registry branch. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (path: string): Promise<ParcelOwner> =>

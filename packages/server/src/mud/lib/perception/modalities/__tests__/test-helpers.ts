@@ -1,7 +1,7 @@
 /**
  * Modality test helpers. Lets tests build the seven v1 modality
  * singletons in-memory (matching the seed YAML values) without
- * spinning up the SeederManager / Mongo. Each helper registers the
+ * spinning up the content installer / Mongo. Each helper registers the
  * modality at its canonical templatePath so
  * `PerceptionApi.modalityByName` / `findByTemplatePath` resolves it.
  *

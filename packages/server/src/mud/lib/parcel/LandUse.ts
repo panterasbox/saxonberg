@@ -19,7 +19,7 @@
  * refuses ground whose use forbids cultivation), which makes it access-check
  * data, and access-check data on editable content is forgeable: a content
  * author could rezone their own land. This is the same rule that retired the
- * `data.ownerGroupName` zone stamps; see `config/parcels.yaml`'s header.
+ * `data.ownerGroupName` zone stamps; a title is a pack's `requires.title` claim.
  *
  * ## `wild` is the fail-closed default — for COVERED ground
  *

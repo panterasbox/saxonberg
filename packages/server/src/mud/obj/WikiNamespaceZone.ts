@@ -30,7 +30,7 @@
  * curated namespace is a seed field, not code.
  *
  * ⚠ It is a **floor, not a title.** Who owns the namespace is still a
- * `parcels` row (`config/parcels.yaml`), and the `editors` /
+ * `parcels` row (the platform pack's `/wiki` claim), and the `editors` /
  * `moderators` rungs resolve through `AccessApi` against that row. This
  * field only says *which rung applies here* — which is a policy choice
  * about a body of content, not an ownership claim, so it is safe on an
