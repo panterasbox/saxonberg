@@ -295,6 +295,10 @@ e2e:
     SESSION_SECRET: 'ci-e2e-not-a-secret'
     CLIENT_URL: 'http://localhost:5173'
   script:
+    # Platform-only boot FIRST (fresh DB — its landing-room assertion needs
+    # no earlier full-pack boot), then the main suite; same database,
+    # sequential (docs/deployment.md § The Mongo environment policy).
+    - pnpm --filter @saxonberg/e2e test:platform
     - pnpm --filter @saxonberg/e2e test
   artifacts:
     when: on_failure

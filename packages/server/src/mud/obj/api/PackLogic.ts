@@ -3221,10 +3221,16 @@ async function bootManifestImpl(packRoots?: string[]): Promise<PackBootManifestE
   const byId = new Map(records.map((r) => [r.packId, r]));
   // Install order where the pack is still shipped; recorded-only packs last.
   const order = discover(packRoots).map((p) => p.manifest.id);
-  const ids = [
-    ...order.filter((id) => byId.has(id)),
-    ...[...byId.keys()].filter((id) => !order.includes(id)).sort(),
-  ];
+  // Under `SAXONBERG_PACKS` the filtered-out packs are IGNORED — not
+  // installed, not booted — even when an earlier unfiltered boot left
+  // their records behind. Only an unfiltered boot carries recorded-only
+  // (no longer shipped) packs forward.
+  const ids = packFilter()
+    ? order.filter((id) => byId.has(id))
+    : [
+        ...order.filter((id) => byId.has(id)),
+        ...[...byId.keys()].filter((id) => !order.includes(id)).sort(),
+      ];
   const out: PackBootManifestEntry[] = [];
   const seen = new Map<string, string>();
   for (const id of ids) {

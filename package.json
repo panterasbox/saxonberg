@@ -21,7 +21,8 @@
     "docs": "pnpm run docs:server && pnpm run docs:project",
     "docs:server": "pnpm --filter @saxonberg/server run docs",
     "docs:project": "pnpm --filter @saxonberg/server run docs:project",
-    "docs:clean": "pnpm --filter @saxonberg/server run docs:clean"
+    "docs:clean": "pnpm --filter @saxonberg/server run docs:clean",
+    "test:e2e:platform": "pnpm --filter @saxonberg/e2e test:platform"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
