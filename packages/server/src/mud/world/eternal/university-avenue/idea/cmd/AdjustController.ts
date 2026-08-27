@@ -4,10 +4,10 @@
  * Sets a reachable mechanical timepiece's hands to an explicit time
  * (24-hour `HH:MM`). There is no clock to sync to — the player reads the
  * tower and dials it in by hand, which is exactly why the movement
- * drifts. Gated by the MechanicalMovement content mixin the same way
+ * drifts. Gated by the `MechanicalMovementMixin` (lib/time) the same way
  * `wind` is: the controller narrows the target with a local mixin-presence
  * guard (`MixinApi.hasMixin(s, Mixins.MechanicalMovement)`) and rejects
- * anything else. `MechanicalMovement` is locality content, so this gate
+ * anything else. `MechanicalMovement` is `lib/time` substrate, so this gate
  * lives in the bundle, not as a global `MixinApi.is*` predicate. Rejects a
  * missing target and an unparseable time.
  */
@@ -21,7 +21,7 @@ import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import { Time } from '../../../../../lib/time/Time';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import type { MechanicalMovement } from '../../MechanicalMovement';
+import type { MechanicalMovement } from '../../../../../lib/time/MechanicalMovement';
 
 interface AdjustModel extends CommandModel {
   target?: MqlOneResult;

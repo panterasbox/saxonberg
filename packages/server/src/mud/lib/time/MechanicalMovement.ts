@@ -13,9 +13,10 @@
  * and therefore affords neither `wind` nor `adjust`. That fall-out is the
  * whole point: the mechanical verbs gate on the presence of this mixin
  * (a local `MixinApi.hasMixin(s, Mixins.MechanicalMovement)` guard in the
- * bundle's controllers), not on any concrete class. This is locality
- * content, not engine substrate — future timepieces are electronic; only
- * `Timekeeping` (the general read seam) stays in `lib/time`.
+ * bundle's controllers), not on any concrete class. Substrate beside
+ * `Timekeeping` in `lib/time` (content packs wave 4b graduated it out of
+ * University Avenue): any pack's clockwork composes it; the concrete
+ * timepieces (`Watch`) stay content.
  *
  * Composition: the mixin folds in `TimekeepingMixin` (the read contract it
  * re-defines with its drift physics) over `ReservedMixin` (the mainspring,
@@ -35,14 +36,14 @@
  * hydrate is honoured wholesale), so no mixin constructor is needed.
  */
 
-import type { MixinConstructor, FieldMeta } from '../../../lib/mixin';
-import { TimekeepingMixin } from '../../../lib/time/Timekeeping';
-import { ReservedMixin, Reserve, type Reserved } from '../../../lib/reserve';
-import { Time } from '../../../lib/time/Time';
-import { Quantity } from '../../../lib/quantity';
-import { StuffApi } from '../../../api/stuff';
-import { WorldClockApi } from '../../../api/worldclock';
-import { TemplatePaths } from '../../../lib/paths';
+import type { MixinConstructor, FieldMeta } from '../mixin';
+import { TimekeepingMixin } from './Timekeeping';
+import { ReservedMixin, Reserve, type Reserved } from '../reserve';
+import { Time } from './Time';
+import { Quantity } from '../quantity';
+import { StuffApi } from '../../api/stuff';
+import { WorldClockApi } from '../../api/worldclock';
+import { TemplatePaths } from '../paths';
 
 /** Mechanical-movement dials. Playtest-tuned, not plan decisions. */
 const MOVEMENT = {
