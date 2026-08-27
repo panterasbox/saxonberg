@@ -1,12 +1,11 @@
 # check-test-content allowlist — kernel tests that still name shipped
-# content (/domain/<locality>). THIS LIST ONLY SHRINKS: a new offender is an
+# content (/world/<locality>). THIS LIST ONLY SHRINKS: a new offender is an
 # error; a listed path that no longer offends is stale and must be removed.
 # One repo-relative path per line, sorted. Generated 2026-08-25 (content-packs wave 2).
 packages/server/scripts/__tests__/combat-gym.test.ts
 packages/server/scripts/__tests__/lib-to-obj-moves.test.ts
 packages/server/scripts/__tests__/migrate-lib-to-obj.test.ts
 packages/server/src/backend/__tests__/Application.test.ts
-packages/server/src/backend/__tests__/PersistenceManager.documentKinds.test.ts
 packages/server/src/mud/__tests__/craft-served-path.test.ts
 packages/server/src/mud/api/__tests__/address.test.ts
 packages/server/src/mud/api/__tests__/app.test.ts

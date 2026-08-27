@@ -147,7 +147,7 @@ export const Loadouts: Record<string, GymLoadout> = {
   warhammer: { form: "hafted", mass: 3.2, length: 1.1 },
   swordShield: { form: "bladed", mass: 1.0, length: 0.9, shield: true },
   // An armed StunBaton at the authored ~5 kV contact-stun potential
-  // (seeds/domain/substation/stun-baton.yaml), on mace-class geometry so
+  // (seeds/world/substation/stun-baton.yaml), on mace-class geometry so
   // the pinned cell lands blows (the authored 0.6 kg club can't crack a
   // sword guard — the fight draws and the contact burn heals away
   // before the roster is read).

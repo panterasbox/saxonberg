@@ -103,7 +103,7 @@ describe('AddressApi — coverage index + resolve chain', () => {
   it('resolves through the address tree, ignoring templatePath and zone', async () => {
     const room = makeStuff(() => new TestLocation());
     // A templatePath and zone that have nothing to do with the address.
-    stampTemplatePathForTest(room, '/domain/keep/great-hall');
+    stampTemplatePathForTest(room, '/world/keep/great-hall');
     const zone = makeStuff(() => new CartesianZone());
     Stuff._stampZone(room, zone);
     room.setAddress('narnia/castle');

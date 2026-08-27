@@ -39,7 +39,7 @@ class TestCustomer extends SensorMixin(Idea) {
   static _mixinName = "TestCustomer";
 }
 
-const POINT = "/domain/test/counter";
+const POINT = "/world/test/counter";
 const ALICE = "/obj/Avatar/alice";
 const BOB = "/obj/Avatar/bob";
 

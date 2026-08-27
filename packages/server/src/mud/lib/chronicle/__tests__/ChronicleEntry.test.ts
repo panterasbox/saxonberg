@@ -46,7 +46,7 @@ describe('ChronicleEntry', () => {
     entry.owner = '/obj/Avatar/p1';
     entry.kind = 'deed';
     entry.when = 1234;
-    entry.where = '/domain/lounge';
+    entry.where = '/world/lounge';
     entry.who = ['/obj/npc/mara'];
     entry.text = 'A witnessed moment.';
     entry.tags = ['arrival', 'social'];
@@ -58,7 +58,7 @@ describe('ChronicleEntry', () => {
     const f = found[0]!;
     expect(f.kind).toBe('deed');
     expect(f.when).toBe(1234);
-    expect(f.where).toBe('/domain/lounge');
+    expect(f.where).toBe('/world/lounge');
     expect(f.who).toEqual(['/obj/npc/mara']);
     expect(f.text).toBe('A witnessed moment.');
     expect(f.tags).toEqual(['arrival', 'social']);

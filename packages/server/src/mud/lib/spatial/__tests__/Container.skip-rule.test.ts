@@ -37,7 +37,7 @@ import type { Containable } from "../Containable";
 import type { FieldMeta } from "../../mixin";
 
 const TORCH_PATH = "/obj/test/Torch";
-const ROOM_PATH = "/domain/test/Room";
+const ROOM_PATH = "/world/test/Room";
 const ALICE_PATH = "/obj/Avatar/alice";
 
 class Torch extends Thing {}

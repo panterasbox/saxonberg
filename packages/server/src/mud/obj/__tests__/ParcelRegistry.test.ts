@@ -210,9 +210,9 @@ describe("ParcelApi.ownerOf — the resolution chain", () => {
   afterEach(reset);
 
   it("rung 1 — an explicit parcel title (covering, longest-prefix)", async () => {
-    seedParcel({ extent: "/domain/lounge", owner: { kind: "group", name: "lounge" } });
+    seedParcel({ extent: "/world/lounge", owner: { kind: "group", name: "lounge" } });
     await boot();
-    const owner = await ParcelApi.ownerOf("/domain/lounge/bar/stool");
+    const owner = await ParcelApi.ownerOf("/world/lounge/bar/stool");
     expect(owner).toEqual({ kind: "group", name: "lounge" });
   });
 
@@ -227,7 +227,7 @@ describe("ParcelApi.ownerOf — the resolution chain", () => {
 
   it("untitled content is UNTITLED — null, no state default (content-packs wave 3)", async () => {
     await boot();
-    expect(await ParcelApi.ownerOf("/domain/nowhere/thing")).toBeNull();
+    expect(await ParcelApi.ownerOf("/world/nowhere/thing")).toBeNull();
   });
 
   it("an explicit title overrides self-home (title wins)", async () => {
@@ -282,24 +282,24 @@ describe("ParcelApi.subdivide", () => {
   afterEach(reset);
 
   it("mints a child row (inherited owner + parentParcel) and a genesis event", async () => {
-    seedParcel({ extent: "/domain/lounge", owner: { kind: "group", name: "lounge" } });
+    seedParcel({ extent: "/world/lounge", owner: { kind: "group", name: "lounge" } });
     await boot();
 
     const actor = makeAvatar("dave");
     await withRootContext(null, "test", () => {
       ExecutionContextApi.tagActingAuthor(actor);
-      return ParcelApi.subdivide("/domain/lounge/east-wing", "/domain/lounge", {
+      return ParcelApi.subdivide("/world/lounge/east-wing", "/world/lounge", {
         kind: "group",
         name: "lounge",
       });
     });
 
-    const child = await ParcelApi.coveringParcelOf("/domain/lounge/east-wing/x");
-    expect(child?.getExtent()).toBe("/domain/lounge/east-wing");
-    expect(child?.getParentParcel()).toBe("/domain/lounge");
+    const child = await ParcelApi.coveringParcelOf("/world/lounge/east-wing/x");
+    expect(child?.getExtent()).toBe("/world/lounge/east-wing");
+    expect(child?.getParentParcel()).toBe("/world/lounge");
     expect(child?.getOwner()).toEqual({ kind: "group", name: "lounge" });
 
-    const events = await ParcelEvent.findByExtent("/domain/lounge/east-wing");
+    const events = await ParcelEvent.findByExtent("/world/lounge/east-wing");
     expect(events).toHaveLength(1);
     expect(events[0]!.event).toBe("subdivide");
     expect(events[0]!.actor).toBe("/obj/Avatar/dave");
@@ -541,23 +541,23 @@ describe("AccessApi — can / canMutateZone over a parcel-owned slice (regressio
   }
 
   it("can(): a group-owner member is permitted; a non-member is denied", async () => {
-    seedParcel({ extent: "/domain/lounge", owner: { kind: "group", name: "lounge" } });
+    seedParcel({ extent: "/world/lounge", owner: { kind: "group", name: "lounge" } });
     await bootWithAccess();
     await addGroupMember("lounge", "member1", "member");
 
-    const resource = zoneAt("/domain/lounge");
+    const resource = zoneAt("/world/lounge");
     expect(await AccessApi.can(makeAvatar("member1"), "write", resource)).toBe(true);
     expect(await AccessApi.can(makeAvatar("stranger"), "write", resource)).toBe(false);
     expect(await AccessApi.can(null, "write", resource)).toBe(false);
   });
 
   it("canMutateZone(): only the 'owner' role passes (byte-identical role gate)", async () => {
-    seedParcel({ extent: "/domain/lounge", owner: { kind: "group", name: "lounge" } });
+    seedParcel({ extent: "/world/lounge", owner: { kind: "group", name: "lounge" } });
     await bootWithAccess();
     await addGroupMember("lounge", "boss", "owner");
     await addGroupMember("lounge", "hand", "member");
 
-    const zone = zoneAt("/domain/lounge");
+    const zone = zoneAt("/world/lounge");
     expect(await AccessApi.canMutateZone(makeAvatar("boss"), zone)).toBe(true);
     expect(await AccessApi.canMutateZone(makeAvatar("hand"), zone)).toBe(false);
     expect(await AccessApi.canMutateZone(makeAvatar("stranger"), zone)).toBe(false);
@@ -580,7 +580,7 @@ describe("AccessApi — can / canMutateZone over a parcel-owned slice (regressio
     await bootWithAccess();
     await addGroupMember("commons", "anyone", "owner");
 
-    const zone = zoneAt("/domain/unowned");
+    const zone = zoneAt("/world/unowned");
     expect(await AccessApi.canMutateZone(makeAvatar("anyone"), zone)).toBe(false);
     expect(await AccessApi.canMutateZone(makeAvatar("stranger"), zone)).toBe(false);
     expect(await AccessApi.can(makeAvatar("anyone"), "write", zone)).toBe(false);
@@ -596,67 +596,67 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
 
   it("answers a parcel's own declared use", async () => {
     seedParcel({
-      extent: "/domain/terminus/registry",
+      extent: "/world/terminus/registry",
       owner: { kind: "group", name: "terminus" },
       landUse: "civic",
     });
     await boot();
 
-    expect(ParcelApi.landUseOf("/domain/terminus/registry")).toBe("civic");
+    expect(ParcelApi.landUseOf("/world/terminus/registry")).toBe("civic");
   });
 
   it("inherits a covering parcel's use for ground inside it", async () => {
     seedParcel({
-      extent: "/domain/terminus/registry",
+      extent: "/world/terminus/registry",
       owner: { kind: "group", name: "terminus" },
       landUse: "civic",
     });
     await boot();
 
     // No row of its own — the coverage trie's longest prefix answers.
-    expect(ParcelApi.landUseOf("/domain/terminus/registry/office")).toBe(
+    expect(ParcelApi.landUseOf("/world/terminus/registry/office")).toBe(
       "civic",
     );
   });
 
   it("⭐ walks parentParcel upward when the nearest row declares nothing", async () => {
     seedParcel({
-      extent: "/domain/hills",
+      extent: "/world/hills",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     seedParcel({
-      extent: "/domain/hills/lot-1",
+      extent: "/world/hills/lot-1",
       owner: { kind: "player", templatePath: "/obj/Avatar/alice" },
-      parentParcel: "/domain/hills",
+      parentParcel: "/world/hills",
       landUse: null, // explicit "inherit"
     });
     await boot();
 
-    expect(ParcelApi.landUseOf("/domain/hills/lot-1")).toBe("residential");
+    expect(ParcelApi.landUseOf("/world/hills/lot-1")).toBe("residential");
   });
 
   it("an explicit child use OVERRIDES its parent's", async () => {
     seedParcel({
-      extent: "/domain/hills",
+      extent: "/world/hills",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     seedParcel({
-      extent: "/domain/hills/back-forty",
+      extent: "/world/hills/back-forty",
       owner: { kind: "group", name: "commons" },
-      parentParcel: "/domain/hills",
+      parentParcel: "/world/hills",
       landUse: "agricultural",
     });
     await boot();
 
-    expect(ParcelApi.landUseOf("/domain/hills/back-forty")).toBe("agricultural");
-    expect(ParcelApi.landUseOf("/domain/hills")).toBe("residential");
+    expect(ParcelApi.landUseOf("/world/hills/back-forty")).toBe("agricultural");
+    expect(ParcelApi.landUseOf("/world/hills")).toBe("residential");
   });
 
   it("unclaimed ground answers wild", async () => {
     await boot();
-    expect(ParcelApi.landUseOf("/domain/nowhere")).toBe("wild");
+    expect(ParcelApi.landUseOf("/world/nowhere")).toBe("wild");
   });
 
   it("⭐ a path-branch row with no use answers wild — so cultivation is refused", async () => {
@@ -679,42 +679,42 @@ describe("ParcelApi.landUseOf — longest-prefix zoning", () => {
 
   it("reports the cultivation scale for zoned ground", async () => {
     seedParcel({
-      extent: "/domain/hills",
+      extent: "/world/hills",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     seedParcel({
-      extent: "/domain/farmland",
+      extent: "/world/farmland",
       owner: { kind: "group", name: "commons" },
       landUse: "agricultural",
     });
     await boot();
 
-    expect(ParcelApi.cultivationScaleAt("/domain/hills/yard")).toBe("bed");
-    expect(ParcelApi.cultivationScaleAt("/domain/farmland")).toBe("field");
+    expect(ParcelApi.cultivationScaleAt("/world/hills/yard")).toBe("bed");
+    expect(ParcelApi.cultivationScaleAt("/world/farmland")).toBe("field");
   });
 
   it("⭐ a record written before land use existed loads and inherits", async () => {
     // There IS live parcel data. A row with no `landUse` key at all must
     // load cleanly and answer by inheritance, not throw or read as junk.
     seedParcel({
-      extent: "/domain/terminus",
+      extent: "/world/terminus",
       owner: { kind: "group", name: "terminus" },
       landUse: "commercial",
     });
     seedLegacyParcel({
-      extent: "/domain/terminus/general-store",
+      extent: "/world/terminus/general-store",
       owner: { kind: "group", name: "terminus" },
-      parentParcel: "/domain/terminus",
+      parentParcel: "/world/terminus",
     });
     await boot();
 
     const record = await ParcelApi.coveringParcelOf(
-      "/domain/terminus/general-store",
+      "/world/terminus/general-store",
     );
     expect(record?.getLandUse()).toBeNull();
     expect(record?.getArea()).toBe(0);
-    expect(ParcelApi.landUseOf("/domain/terminus/general-store")).toBe(
+    expect(ParcelApi.landUseOf("/world/terminus/general-store")).toBe(
       "commercial",
     );
   });
@@ -743,14 +743,14 @@ describe("ParcelRecord — land use and area on the row", () => {
 
   it("⭐ area round-trips, and bands for display", async () => {
     seedParcel({
-      extent: "/domain/hills/lot-1",
+      extent: "/world/hills/lot-1",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
       areaM2: 1_200,
     });
     await boot();
 
-    const record = await ParcelApi.coveringParcelOf("/domain/hills/lot-1");
+    const record = await ParcelApi.coveringParcelOf("/world/hills/lot-1");
     const area = record?.getArea();
     expect(area).toBe(1_200);
     // …and it bands for display rather than showing the raw figure.
@@ -786,25 +786,25 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
 
   it("stamps the declared use and area on the child row", async () => {
     seedParcel({
-      extent: "/domain/hills",
+      extent: "/world/hills",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
     await boot();
 
-    await subdivide("/domain/hills/lot-1", "/domain/hills", {
+    await subdivide("/world/hills/lot-1", "/world/hills", {
       landUse: "residential",
       areaM2: 1_200,
     });
 
-    const child = await ParcelApi.coveringParcelOf("/domain/hills/lot-1");
+    const child = await ParcelApi.coveringParcelOf("/world/hills/lot-1");
     expect(child?.getLandUse()).toBe("residential");
     expect(child?.getArea()).toBe(1_200);
   });
 
   it("⭐ refuses a lot outside its use's area band, naming both", async () => {
     seedParcel({
-      extent: "/domain/hills",
+      extent: "/world/hills",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
     });
@@ -812,21 +812,21 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
 
     const band = LandUses.areaBandOf("residential");
     await expect(
-      subdivide("/domain/hills/absurd", "/domain/hills", {
+      subdivide("/world/hills/absurd", "/world/hills", {
         landUse: "residential",
         areaM2: band.max + 1,
       }),
     ).rejects.toThrow(/residential/);
 
     // …and NOTHING was written — a refusal leaves no row behind.
-    expect(await ParcelApi.coveringParcelOf("/domain/hills/absurd")).toBe(
-      (await ParcelApi.coveringParcelOf("/domain/hills")),
+    expect(await ParcelApi.coveringParcelOf("/world/hills/absurd")).toBe(
+      (await ParcelApi.coveringParcelOf("/world/hills")),
     );
   });
 
   it("checks the band against the INHERITED use when none is declared", async () => {
     seedParcel({
-      extent: "/domain/farmland",
+      extent: "/world/farmland",
       owner: { kind: "group", name: "commons" },
       landUse: "agricultural",
     });
@@ -835,24 +835,24 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
     // 3 m² is fine for a civic bench and absurd for a farm; the child
     // declares no use, so agricultural's band is the one that applies.
     await expect(
-      subdivide("/domain/farmland/sliver", "/domain/farmland", { areaM2: 3 }),
+      subdivide("/world/farmland/sliver", "/world/farmland", { areaM2: 3 }),
     ).rejects.toThrow(/agricultural/);
   });
 
   it("leaves use and area untouched when opts is omitted (existing callers)", async () => {
     seedParcel({
-      extent: "/domain/lounge",
+      extent: "/world/lounge",
       owner: { kind: "group", name: "lounge" },
     });
     await boot();
 
-    await subdivide("/domain/lounge/east-wing", "/domain/lounge");
+    await subdivide("/world/lounge/east-wing", "/world/lounge");
 
-    const child = await ParcelApi.coveringParcelOf("/domain/lounge/east-wing");
+    const child = await ParcelApi.coveringParcelOf("/world/lounge/east-wing");
     expect(child?.getLandUse()).toBeNull();
     expect(child?.getArea()).toBe(0);
     // …and it still inherits, so the walk is unaffected.
-    expect(ParcelApi.landUseOf("/domain/lounge/east-wing")).toBe("wild");
+    expect(ParcelApi.landUseOf("/world/lounge/east-wing")).toBe("wild");
   });
 
   it("⭐ nothing reconciles area against rooms", async () => {
@@ -861,22 +861,22 @@ describe("ParcelApi.subdivide — zoning constrains the lot", () => {
     // Location.getSizeScale() is a photometric denominator. Adding,
     // removing or resizing rooms inside a parcel must not move it.
     seedParcel({
-      extent: "/domain/hills",
+      extent: "/world/hills",
       owner: { kind: "group", name: "commons" },
       landUse: "residential",
       areaM2: 1_200,
     });
     await boot();
 
-    const before = (await ParcelApi.coveringParcelOf("/domain/hills"))!;
+    const before = (await ParcelApi.coveringParcelOf("/world/hills"))!;
     expect(before.getArea()).toBe(1_200);
 
     // Stand up zones inside the parcel — the closest thing to "adding
     // rooms" the title layer can even observe.
-    makeStuffAtPath(() => new FolderZone(), "/domain/hills/yard");
-    makeStuffAtPath(() => new FolderZone(), "/domain/hills/shed");
+    makeStuffAtPath(() => new FolderZone(), "/world/hills/yard");
+    makeStuffAtPath(() => new FolderZone(), "/world/hills/shed");
 
-    const after = (await ParcelApi.coveringParcelOf("/domain/hills"))!;
+    const after = (await ParcelApi.coveringParcelOf("/world/hills"))!;
     expect(after.getArea()).toBe(1_200);
   });
 });

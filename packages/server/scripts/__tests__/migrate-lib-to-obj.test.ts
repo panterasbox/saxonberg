@@ -24,7 +24,7 @@ describe('migrate-lib-to-obj', () => {
       },
       {
         _id: 'room-1',
-        path: '/domain/hearthworks/smithy',
+        path: '/world/hearthworks/smithy',
         class: '/lib/location/CartesianLocation',
         hydratorClass: '/lib/persistence/PersistentHydrator',
         // slotClaims is keyed BY a template path — the object-key case
@@ -45,7 +45,7 @@ describe('migrate-lib-to-obj', () => {
       const { changes } = planCollection('domain', domain);
       const room = changes.find((c) => c.id === 'room-1')!.after;
       expect(room.class).toBe('/obj/location/Room');
-      expect(room.path).toBe('/domain/hearthworks/smithy'); // domain paths do not move
+      expect(room.path).toBe('/world/hearthworks/smithy'); // domain paths do not move
     });
 
     it('rewrites object KEYS, not just values', () => {
@@ -186,7 +186,7 @@ describe('migrate-lib-to-obj', () => {
   describe('reporting', () => {
     it('flags a /lib/ value no rule covers rather than silently passing it', () => {
       const plan = planCollection('domain', [
-        { _id: 'x', path: '/domain/a', class: '/lib/totally/Made/Up', data: {} },
+        { _id: 'x', path: '/world/a', class: '/lib/totally/Made/Up', data: {} },
       ]);
       expect(plan.unmapped).toContain('/lib/totally/Made/Up');
     });
@@ -252,7 +252,7 @@ describe('converging an interrupted run', () => {
   // created fresh rows at the new paths beside the old ones. Reporting
   // the collision is not enough: the stale source still carries the old
   // /lib/ class, and BootstrapManager dies on it. The e2e suite caught
-  // this ("failed to clone '/domain/void'"); no unit test could, because
+  // this ("failed to clone '/world/void'"); no unit test could, because
   // none of them boot a world.
   const row = { class: '/obj/Discipline', data: { label: 'Mixology' } };
 

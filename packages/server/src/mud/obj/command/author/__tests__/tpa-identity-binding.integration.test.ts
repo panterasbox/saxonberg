@@ -14,7 +14,7 @@ import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import RegisterController from "../../movement/RegisterController";
 import TeleportController from "../TeleportController";
-import TravelCard from "../../../../domain/common/tpa/TravelCard";
+import TravelCard from "../../../../world/common/tpa/TravelCard";
 import CredentialWalletUpdate from "../../../CredentialWalletUpdate";
 import { AetherMixin } from "../../../../lib/message/Aether";
 import { MobileMixin } from "../../../../lib/spatial/Mobile";
@@ -41,16 +41,16 @@ import type { AetherHosted } from "../../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../../lib/credential/CredentialWallet";
 import type { FastTravel } from "../../../../lib/fasttravel/FastTravel";
 import { makeStuff } from "../../../../lib/security/__tests__/test-setup";
-import { installStore, type Doc } from "../../../../domain/lounge/__tests__/lounge-fixtures";
+import { installStore, type Doc } from "../../../../world/lounge/__tests__/lounge-fixtures";
 import PersistentHydrator from "../../../persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
-const D_ROOM = "/domain/test/d-room";
-const R_ROOM = "/domain/test/r-room";
-const OFF_ROOM = "/domain/test/off-room";
-const DEPART = "/domain/test/depart"; // operational departure gate
-const OFF_GATE = "/domain/test/depart-off"; // out-of-service departure gate
-const ARRIVE = "/domain/test/arrive"; // restricted destination (arrival-capable)
+const D_ROOM = "/world/test/d-room";
+const R_ROOM = "/world/test/r-room";
+const OFF_ROOM = "/world/test/off-room";
+const DEPART = "/world/test/depart"; // operational departure gate
+const OFF_GATE = "/world/test/depart-off"; // out-of-service departure gate
+const ARRIVE = "/world/test/arrive"; // restricted destination (arrival-capable)
 
 // An attuned traveller: hosts updates (identity wallet), carries inventory,
 // moves, gives + receives commands.
@@ -71,7 +71,7 @@ const docs: Doc[] = [
   { path: OFF_ROOM, class: "/obj/VoidLocation", hydratorClass: PH, data: { shortDescription: "the shuttered hall" } },
   {
     path: DEPART,
-    class: "/domain/common/tpa/TpaTerminal",
+    class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: {
       seatIn: D_ROOM,
@@ -84,7 +84,7 @@ const docs: Doc[] = [
   },
   {
     path: OFF_GATE,
-    class: "/domain/common/tpa/TpaTerminal",
+    class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: {
       seatIn: OFF_ROOM,
@@ -97,7 +97,7 @@ const docs: Doc[] = [
   },
   {
     path: ARRIVE,
-    class: "/domain/common/tpa/TpaTerminal",
+    class: "/world/common/tpa/TpaTerminal",
     hydratorClass: PH,
     data: {
       seatIn: R_ROOM,

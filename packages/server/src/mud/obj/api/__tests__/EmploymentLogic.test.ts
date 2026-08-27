@@ -16,10 +16,10 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
-const BUSINESS = '/domain/lounge/business';
-const BAR = '/domain/lounge/bar';
-const DAVE = '/domain/lounge/npc/dave';
-const MARA = '/domain/lounge/npc/mara';
+const BUSINESS = '/world/lounge/business';
+const BAR = '/world/lounge/bar';
+const DAVE = '/world/lounge/npc/dave';
+const MARA = '/world/lounge/npc/mara';
 
 class Worker extends EmployedMixin(Idea) {
   static _mixinName = 'Worker';
@@ -75,14 +75,14 @@ describe('EmploymentApi / EmploymentLogic', () => {
   it('finds the business operating at a location', () => {
     const biz = seedBusiness();
     expect(EmploymentApi.businessAt(BAR)).toBe(biz);
-    expect(EmploymentApi.businessAt('/domain/void')).toBeNull();
+    expect(EmploymentApi.businessAt('/world/void')).toBeNull();
   });
 
   it('finds the business a subject proprietors', () => {
     const biz = seedBusiness();
     const dave = seedWorker(DAVE);
     expect(EmploymentApi.businessOfProprietor(dave)).toBe(biz);
-    const stranger = seedWorker('/domain/lounge/npc/remy');
+    const stranger = seedWorker('/world/lounge/npc/remy');
     expect(EmploymentApi.businessOfProprietor(stranger)).toBeNull();
   });
 
@@ -94,7 +94,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
 
   it('grants the operator override to the Prime Minister\'s SEAT (an office, never the founder)', async () => {
     const biz = seedBusiness();
-    const stranger = seedWorker('/domain/lounge/npc/remy');
+    const stranger = seedWorker('/world/lounge/npc/remy');
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     await expect(EmploymentApi.isProprietorOf(stranger, biz)).resolves.toBe(
       false,

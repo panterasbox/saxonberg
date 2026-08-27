@@ -65,7 +65,7 @@ test(';wave fires, ;hi does not dispatch, greet carries hi as a search term', as
 test("Dave's Bar: the menu resolves the generic-objects recipes", async ({ browser }) => {
   test.setTimeout(180_000);
   const { page, close } = await openWorldAs(browser, 'wave2-bar', {
-    startLocation: '/domain/lounge/bar',
+    startLocation: '/world/lounge/bar',
   });
   try {
     await sendUntil(page, 'look', page.getByText(/./).first());

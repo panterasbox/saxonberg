@@ -68,7 +68,7 @@ function zoneAt(path: string): SpatialZone {
 
 const AUTHOR = '/obj/Avatar/maker';
 const PLAYER = '/obj/Avatar/visitor';
-const LOC = '/domain/gallery/room';
+const LOC = '/world/gallery/room';
 
 function fireDispatch(over: Record<string, unknown> = {}): void {
   EventApi.fire(
@@ -116,7 +116,7 @@ beforeEach(async () => {
   await makeRegistry();
   // Default credit routing: released zone, authored by AUTHOR.
   vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(
-    zoneAt('/domain/gallery')
+    zoneAt('/world/gallery')
   );
   vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue(AUTHOR);
 });

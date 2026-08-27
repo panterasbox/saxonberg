@@ -1,7 +1,7 @@
 /**
  * VoidLocation — the bootstrap-pinned fallback location.
  *
- * Concrete `Location` subclass used by the `/domain/void` seed
+ * Concrete `Location` subclass used by the `/world/void` seed
  * exclusively. Its role is the **`HasInteractive` evacuation fallback**:
  * when a `ContainerMixin` host destructs with no outer, any
  * `HasInteractive` containables escape to this singleton so live sessions
@@ -20,7 +20,7 @@
  * Composes `SingletonMixin` to declare the one-instance-per-path
  * intent at the class level. Without it, persist-back of a Stuff
  * located in the void fails `TemplateApi.validateSingletonContainerTarget`
- * — `data.container: /domain/void` requires the target's class to
+ * — `data.container: /world/void` requires the target's class to
  * be singleton-shaped.
  */
 

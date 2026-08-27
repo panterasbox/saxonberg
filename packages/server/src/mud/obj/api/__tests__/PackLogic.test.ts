@@ -260,14 +260,14 @@ describe('PackLogic — reconcile (fixture packs, stubbed class resolution)', ()
   it('coexistence: a non-pack row is left completely untouched', async () => {
     rows.push({
       _id: 'other-1',
-      path: '/domain/some/player/sword',
+      path: '/world/some/player/sword',
       class: '/obj/Prop',
       data: { name: 'sword' },
     });
     const root = writePack('p', [{ rel: 'obj/material/spirit/gin.yaml' }]);
     const [r] = await PackApi.install([root]);
     expect([...r!.inserted, ...r!.updated, ...r!.adopted, ...r!.deleted]).not.toContain(
-      '/domain/some/player/sword',
+      '/world/some/player/sword',
     );
     const other = rows.find((row) => row._id === 'other-1')!;
     expect(other.sourcePack).toBeUndefined();

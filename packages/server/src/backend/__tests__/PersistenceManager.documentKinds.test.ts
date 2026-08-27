@@ -69,16 +69,16 @@ describe('the script → msh kind rename', () => {
     };
   }
 
-  it('renames the kind, moves the lounge path prefix, and is a no-op on the second boot', async () => {
+  it('renames the kind (paths untouched — drop-not-migrate) and is a no-op on the second boot', async () => {
     vi.spyOn(console, 'info').mockImplementation(() => {});
     const db = fakeDb([
-      { _id: 1, path: '/domain/lounge/scripts/martini', kind: 'script', data: { source: 'x' } },
+      { _id: 1, path: '/x/lounge/scripts/martini', kind: 'script', data: { source: 'x' } },
       { _id: 2, path: '/home/iris/scripts/wave', kind: 'script', data: { source: 'y' } },
       { _id: 3, path: '/emotes/grin', kind: 'emote', data: {} },
     ]);
     const pm = PersistenceManager.get();
     expect(await pm.runScriptKindMigrationForTest(db)).toBe(2);
-    expect(db.rows[0]).toMatchObject({ path: '/domain/lounge/msh/martini', kind: 'msh' });
+    expect(db.rows[0]).toMatchObject({ path: '/x/lounge/scripts/martini', kind: 'msh' });
     expect(db.rows[1]).toMatchObject({ path: '/home/iris/scripts/wave', kind: 'msh' });
     expect(db.rows[2]).toMatchObject({ kind: 'emote' });
     // second boot

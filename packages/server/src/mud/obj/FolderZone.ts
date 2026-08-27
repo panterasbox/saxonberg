@@ -1,7 +1,7 @@
 /**
  * FolderZone — generic organizational Zone subclass with no spatial topology.
  *
- * Use this for templatePath folders like `/domain/narnia/` or
+ * Use this for templatePath folders like `/world/narnia/` or
  * `/narnia/woods/clearings/` that organize a content team's tree
  * without anchoring a coordinate grid. Sub-folders that DO need a
  * coordinate frame extend `CartesianZone` or `SphericalZone` instead.

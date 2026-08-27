@@ -63,22 +63,22 @@ describe('FromTemplate (real, set at clone time)', () => {
     // must expose the path via `getTemplatePath()`, the inter-Stuff
     // contract shape resolveCallerPath uses.
     const fake = {
-      getTemplatePath: () => '/domain/narnia/cair-paravel',
+      getTemplatePath: () => '/world/narnia/cair-paravel',
     };
-    const policy = SecurityPolicies.FromTemplate('/domain/narnia/**');
+    const policy = SecurityPolicies.FromTemplate('/world/narnia/**');
     expect(policy.allows(fake, null, 'm')).toBe(true);
   });
 
   it('denies when templatePath is missing', () => {
-    const policy = SecurityPolicies.FromTemplate('/domain/narnia/**');
+    const policy = SecurityPolicies.FromTemplate('/world/narnia/**');
     expect(policy.allows({}, null, 'm')).toBe(false);
   });
 
   it('denies when templatePath does not match', () => {
     const fake = {
-      getTemplatePath: () => '/domain/other/place',
+      getTemplatePath: () => '/world/other/place',
     };
-    const policy = SecurityPolicies.FromTemplate('/domain/narnia/**');
+    const policy = SecurityPolicies.FromTemplate('/world/narnia/**');
     expect(policy.allows(fake, null, 'm')).toBe(false);
   });
 });

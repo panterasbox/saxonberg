@@ -34,7 +34,7 @@ const PING = {
 
 let stored: StoredDocument[];
 /** Built, not written: a kernel test does not name shipped content. */
-const LOCAL = ['', 'domain', 'eternal', 'duncan-hall', 'cmd', 'provision'].join('/');
+const LOCAL = ['', 'world', 'eternal', 'duncan-hall', 'cmd', 'provision'].join('/');
 
 function withStore(): void {
   vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
@@ -124,7 +124,7 @@ describe('CommandApi — offline (no store): the packs\' files are the source', 
     expect(r.failed).toEqual([]);
     expect(r.loaded).toBeGreaterThan(100);
     expect(CommandApi.getCommand('perception/look.yaml')).not.toBeNull();
-    // A locality view (its pack's `content/domain/**/cmd/`), keyed domain-prefixed.
+    // A locality view (its pack's `content/world/**/cmd/`), keyed domain-prefixed.
     const local = CommandApi.allDefinitions().find((d) => d.category === 'domain');
     expect(local).toBeDefined();
   }, 30_000);

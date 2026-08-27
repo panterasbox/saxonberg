@@ -33,12 +33,12 @@ function makeAvatar(playerId: string): Avatar {
   return av;
 }
 
-/** Title fixture: /domain/terminus/** → the `terminus` group;
+/** Title fixture: /world/terminus/** → the `terminus` group;
  *  /home/alice/** → a player; everything else → untitled. */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, "ownerOf").mockImplementation(
     async (path: string): Promise<ParcelOwner | null> => {
-      if (path.startsWith("/domain/terminus")) {
+      if (path.startsWith("/world/terminus")) {
         return { kind: "group", name: "terminus", ref: GROUP_REF };
       }
       if (path.startsWith("/home/alice")) {
@@ -55,9 +55,9 @@ function stubTitle(): void {
   );
   vi.spyOn(ParcelApi, "coveringParcelOf").mockImplementation(
     async (path: string) => {
-      if (!path.startsWith("/domain/terminus")) return null;
+      if (!path.startsWith("/world/terminus")) return null;
       return {
-        getExtent: () => "/domain/terminus/registry",
+        getExtent: () => "/world/terminus/registry",
       } as unknown as Awaited<ReturnType<typeof ParcelApi.coveringParcelOf>>;
     }
   );
@@ -91,13 +91,13 @@ describe("CompactApi — the committee reads", () => {
 
   it("derives the committee from the title-holding group", async () => {
     const committee = await CompactApi.committeeOf(
-      "/domain/terminus/registry/office"
+      "/world/terminus/registry/office"
     );
     expect(committee).toEqual({
       kind: "group",
       name: "terminus",
       groupRef: GROUP_REF,
-      subdivisionPath: "/domain/terminus/registry",
+      subdivisionPath: "/world/terminus/registry",
     });
   });
 
@@ -120,10 +120,10 @@ describe("CompactApi — the committee reads", () => {
     const bob = makeAvatar("bob");
     const eve = makeAvatar("eve");
     await expect(
-      CompactApi.isCommitteeMember(bob, "/domain/terminus/registry")
+      CompactApi.isCommitteeMember(bob, "/world/terminus/registry")
     ).resolves.toBe(true);
     await expect(
-      CompactApi.isCommitteeMember(eve, "/domain/terminus/registry")
+      CompactApi.isCommitteeMember(eve, "/world/terminus/registry")
     ).resolves.toBe(false);
     // No committee at all → false regardless.
     await expect(
@@ -184,7 +184,7 @@ describe("CompactApi — the committee reads", () => {
     CompactApi._resetOfficeRegistryRefForReload();
     const founder = makeAvatar("founder");
     await expect(
-      CompactApi.isCommitteeMember(founder, "/domain/terminus/registry")
+      CompactApi.isCommitteeMember(founder, "/world/terminus/registry")
     ).resolves.toBe(true);
     CompactApi._resetOfficeRegistryRefForReload();
   });
@@ -200,7 +200,7 @@ describe("CompactApi — the committee reads", () => {
           : null
       );
     await expect(
-      CompactApi.committeeChannelOf("/domain/terminus/registry")
+      CompactApi.committeeChannelOf("/world/terminus/registry")
     ).resolves.toEqual({ name: "terminus-committee" });
     expect(resolve).toHaveBeenCalledWith("terminus-committee");
     // No committee → no channel.
@@ -216,7 +216,7 @@ describe("CompactApi — the committee reads", () => {
     // Existing channel → no mint, same view.
     vi.spyOn(ChatApi, "resolveByName").mockResolvedValue({} as never);
     await expect(
-      CompactApi.ensureCommitteeChannel("/domain/terminus/registry")
+      CompactApi.ensureCommitteeChannel("/world/terminus/registry")
     ).resolves.toEqual({ name: "terminus-committee" });
     expect(create).not.toHaveBeenCalled();
 
@@ -227,7 +227,7 @@ describe("CompactApi — the committee reads", () => {
       "getCurrentCommandContext"
     ).mockReturnValue(null as never);
     await expect(
-      CompactApi.ensureCommitteeChannel("/domain/terminus/registry")
+      CompactApi.ensureCommitteeChannel("/world/terminus/registry")
     ).resolves.toBeNull();
     expect(create).not.toHaveBeenCalled();
 
@@ -238,7 +238,7 @@ describe("CompactApi — the committee reads", () => {
       "getCurrentCommandContext"
     ).mockReturnValue({ commandGiver: giver } as never);
     await expect(
-      CompactApi.ensureCommitteeChannel("/domain/terminus/registry")
+      CompactApi.ensureCommitteeChannel("/world/terminus/registry")
     ).resolves.toEqual({ name: "terminus-committee" });
     expect(create).toHaveBeenCalledWith(
       giver,

@@ -257,18 +257,18 @@ describe('stampedQuery is load-bearing: two document kinds in one pack', () => {
     expect(again!.deleted).toEqual([]);
     expect(again!.conflicts).toEqual([]);
     expect(documentRows()).toHaveLength(2);
-    // The domain walk under content/domain/ skips a `cmd` segment.
+    // The domain walk under content/world/ skips a `cmd` segment.
   });
 });
 
-describe('the domain walk skips cmd/ under content/domain/', () => {
+describe('the domain walk skips cmd/ under content/world/', () => {
   it('a command view in a locality is not read as a template', async () => {
     const packRoot = writePack('p', [], { root: '/x' });
-    writeDocumentFile(packRoot, 'domain/x/y/cmd', 'z', { verbs: ['z'], controller: '../command/ZController', description: 'no class here' });
+    writeDocumentFile(packRoot, 'world/x/y/cmd', 'z', { verbs: ['z'], controller: '../command/ZController', description: 'no class here' });
     const [r] = await PackApi.install([packRoot]);
     expect(r!.failure).toBeNull();
     // Read as a command view (step 9), never as a template.
-    expect(r!.inserted).toEqual(['/domain/x/y/cmd/z']);
+    expect(r!.inserted).toEqual(['/world/x/y/cmd/z']);
   });
 });
 
@@ -454,7 +454,7 @@ describe('the recipe document kind', () => {
     name: 'Gin Martini',
     keywords: ['martini'],
     inputSlots: [{ slot: 'base', category: 'gin', minGrade: 'fair', measureL: 0.06 }],
-    outputTemplate: '/domain/lounge/cocktail-glass',
+    outputTemplate: '/world/lounge/cocktail-glass',
   };
 
   it('installs at /generic-objects/recipes/<recipeId> and updates on a file change', async () => {
@@ -542,11 +542,11 @@ describe('the command-view document kind', () => {
 
   it('a locality view (domain/x/y/cmd/z.yaml) is a command-view keyed by its domain path, never a template', async () => {
     const packRoot = writePack('p', [], { root: '/p' });
-    writeDocumentFile(packRoot, 'domain/x/y/cmd', 'z', { verbs: ['z'], controller: '../command/ZController', description: 'z' });
+    writeDocumentFile(packRoot, 'world/x/y/cmd', 'z', { verbs: ['z'], controller: '../command/ZController', description: 'z' });
     const [r] = await PackApi.install([packRoot]);
     expect(r!.failure).toBeNull();
-    expect(r!.inserted).toEqual(['/domain/x/y/cmd/z']);
-    expect(rowsOfKind('command-view')[0]!.path).toBe('/domain/x/y/cmd/z');
+    expect(r!.inserted).toEqual(['/world/x/y/cmd/z']);
+    expect(rowsOfKind('command-view')[0]!.path).toBe('/world/x/y/cmd/z');
     expect(contentRowsCount()).toBe(0);
   });
 });

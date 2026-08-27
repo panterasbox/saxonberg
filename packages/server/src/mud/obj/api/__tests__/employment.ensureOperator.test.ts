@@ -14,14 +14,14 @@ import { AppSettings } from "../../../lib/config/AppSettings";
 import {
   installStore,
   type Doc,
-} from "../../../domain/lounge/__tests__/lounge-fixtures";
+} from "../../../world/lounge/__tests__/lounge-fixtures";
 import PersistentHydrator from "../../persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
-const FIXTURE_A = "/domain/test/emp/fixture-a";
-const FIXTURE_B = "/domain/test/emp/fixture-b";
-const BIZ_A = "/domain/test/emp/business-a";
-const BIZ_B = "/domain/test/emp/business-b";
+const FIXTURE_A = "/world/test/emp/fixture-a";
+const FIXTURE_B = "/world/test/emp/fixture-b";
+const BIZ_A = "/world/test/emp/business-a";
+const BIZ_B = "/world/test/emp/business-b";
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
@@ -72,6 +72,6 @@ describe("EmploymentApi.ensureOperatorAt (derived standup)", () => {
   });
 
   it("returns null when no authored Business operates the path", async () => {
-    expect(await EmploymentApi.ensureOperatorAt("/domain/test/emp/nowhere")).toBeNull();
+    expect(await EmploymentApi.ensureOperatorAt("/world/test/emp/nowhere")).toBeNull();
   });
 });

@@ -25,9 +25,9 @@ import {
   teardownBankingHarness,
 } from "../../../../lib/banking/__tests__/banking-test-harness";
 
-const BUSINESS = "/domain/test/business";
-const DAVE = "/domain/test/npc/dave";
-const MARA = "/domain/test/npc/mara";
+const BUSINESS = "/world/test/business";
+const DAVE = "/world/test/npc/dave";
+const MARA = "/world/test/npc/mara";
 
 class Person extends Idea {
   static _mixinName = "Person";

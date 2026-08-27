@@ -219,7 +219,7 @@ export interface PackInstallRecord {
   failure: PackFailure | null;
   /** Reserved; written `{}` this cycle. */
   parameters: Record<string, unknown>;
-  /** Baselines keyed by record key (`/domain/…`, `/name-banks/<key>`, `/emotes/<verb>`). */
+  /** Baselines keyed by record key (`/world/…`, `/name-banks/<key>`, `/emotes/<verb>`). */
   rows: Record<string, PackRowBaseline>;
   /** Record keys the operator has claimed; skipped before any comparison. */
   pins: string[];

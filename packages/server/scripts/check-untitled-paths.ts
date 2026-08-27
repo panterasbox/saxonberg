@@ -10,7 +10,7 @@
  * installer's template walk mirrored: every `content/**\/*.yaml` outside
  * the kind dirs, `cmd/` skipped at any depth; plus every document path —
  * `root + '/' + contentDir + '/' + key`, command views at `/cmd/**` and
- * `/domain/**\/cmd/**`), and reports any path under one of the nine
+ * `/world/**\/cmd/**`), and reports any path under one of the nine
  * title roots with no claim as a prefix. Zero is green. It does not
  * import the mudlib (a script), so the walk rule is duplicated minimally.
  *
@@ -104,7 +104,7 @@ export function shippedPathsOf(packRoot: string, root: string): string[] {
       for (const f of walk(full, true)) {
         if (f.endsWith(".yaml")) out.push("/" + relative(content, f).replace(/\.yaml$/, "").split("\\").join("/"));
       }
-      // A locality's views: `domain/**/cmd/*.yaml` → `/domain/**/cmd/<verb>`.
+      // A locality's views: `world/**/cmd/*.yaml` → `/world/**/cmd/<verb>`.
       for (const f of walk(full, false)) {
         const rel = relative(content, f).split("\\").join("/");
         if (f.endsWith(".yaml") && rel.split("/").slice(0, -1).includes("cmd")) out.push("/" + rel.replace(/\.yaml$/, ""));

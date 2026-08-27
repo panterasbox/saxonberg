@@ -35,7 +35,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK = "/domain/test/goodkin-bank";
+const BANK = "/world/test/goodkin-bank";
 
 function avatar(path: string): TestAvatar {
   return makeStuffAtPath(() => new TestAvatar(), path);

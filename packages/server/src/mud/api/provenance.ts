@@ -76,7 +76,7 @@ export class ProvenanceApi {
    * `DocumentLogic` (`/obj/api/document`) — the path-addressed document
    * store (scripts and any other owned-JSON kind), a legitimately separate
    * authoring transport (stored documents aren't templates). Each records
-   * authoring for *its own* paths (template paths vs `/home/…`/`/domain/…`
+   * authoring for *its own* paths (template paths vs `/home/…`/`/world/…`
    * document paths); the chokepoint guarantee per kind is preserved.
    *
    * `StudioLogic` (`/obj/api/studio`) is a third authoring transport: its

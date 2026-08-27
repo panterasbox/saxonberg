@@ -305,7 +305,7 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
     }
     if (path === DISH_T) {
       const { default: CraftedDrink } = await import(
-        '../../../../domain/lounge/CraftedDrink'
+        '../../../../world/lounge/CraftedDrink'
       );
       const d = makeStuff(() => new CraftedDrink());
       (d as unknown as { interiorBulk: boolean }).interiorBulk = true;

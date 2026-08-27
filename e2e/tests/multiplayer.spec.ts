@@ -20,7 +20,7 @@ import { mintSession, enterWorld, commandInput, sendUntil } from './helpers';
  * ("Greetings everyone"), not the speaker's rendered label, which depends
  * on the listener's recognition state.
  */
-const BAR_PATH = '/domain/lounge/bar';
+const BAR_PATH = '/world/lounge/bar';
 
 test('a spoken line reaches another avatar in the same room', async ({
   browser,

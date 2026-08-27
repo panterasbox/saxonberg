@@ -28,7 +28,7 @@ type Loose = Record<string, unknown>;
 
 class TestLocation extends Location {}
 
-const BUSINESS = "/domain/terminus/registry/business";
+const BUSINESS = "/world/terminus/registry/business";
 
 const GOVERNMENTS: Loose[] = [
   { key: "narnia-gov", displayName: "the Realm of Narnia" },
@@ -205,7 +205,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
               rosterSlots: [
                 {
                   positionKey: "magistrate",
-                  assignee: "/domain/terminus/registry/clerk",
+                  assignee: "/world/terminus/registry/clerk",
                   schedule: [],
                 },
               ],
@@ -215,7 +215,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
       );
       const clerk = makeStuffAtPath(
         () => new NPC(),
-        "/domain/terminus/registry/clerk"
+        "/world/terminus/registry/clerk"
       );
       await expect(
         GovernmentApi.holdsSeat(clerk, "terminus-city", "magistrate")
@@ -245,7 +245,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
               rosterSlots: [
                 {
                   positionKey: "magistrate",
-                  assignee: "/domain/terminus/registry/clerk",
+                  assignee: "/world/terminus/registry/clerk",
                   schedule: [],
                 },
               ],
@@ -255,7 +255,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
       );
       const clerk = makeStuffAtPath(
         () => new NPC(),
-        "/domain/terminus/registry/clerk"
+        "/world/terminus/registry/clerk"
       );
       clerk.employments = [
         {
@@ -282,7 +282,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
             rosterSlots: [
               {
                 positionKey: "magistrate",
-                assignee: "/domain/terminus/registry/clerk",
+                assignee: "/world/terminus/registry/clerk",
                 schedule: [],
               },
             ],
@@ -293,7 +293,7 @@ describe("GovernmentApi / GovernmentLogic", () => {
     const views = await GovernmentApi.seatsOf("terminus-city");
     expect(views).toHaveLength(1);
     expect(views[0]!.seat.key).toBe("magistrate");
-    expect(views[0]!.holder).toBe("/domain/terminus/registry/clerk");
+    expect(views[0]!.holder).toBe("/world/terminus/registry/clerk");
     await expect(GovernmentApi.seatsOf("no-such-gov")).resolves.toEqual([]);
   });
 

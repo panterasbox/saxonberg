@@ -22,7 +22,7 @@ describe('check-instanceable-placement.tradePlacementOk', () => {
   it('a row with no class (a folder, a document-shaped leaf) and anything outside /trade/ are ignored', () => {
     expect(tradePlacementOk('/trade/smithing', false)).toBe(true);
     expect(tradePlacementOk('/trade/smithing/stock', false)).toBe(true);
-    expect(tradePlacementOk('/domain/hearthworks/anvil', true)).toBe(true);
+    expect(tradePlacementOk('/test/x/anvil', true)).toBe(true);
     expect(tradePlacementOk('/obj/gear/hat', true)).toBe(true);
   });
 });

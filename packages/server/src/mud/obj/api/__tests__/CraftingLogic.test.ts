@@ -23,9 +23,9 @@ import { BulkableApi } from '../../../api/bulk';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
-import GradedReceptacle from '../../../domain/lounge/GradedReceptacle';
+import GradedReceptacle from '../../../world/lounge/GradedReceptacle';
 import ToolItem from '../../ToolItem';
-import CraftedDrink from '../../../domain/lounge/CraftedDrink';
+import CraftedDrink from '../../../world/lounge/CraftedDrink';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../lib/spatial/Container';
@@ -58,8 +58,8 @@ const GIN = '/obj/material/spirit/gin';
 const VERMOUTH = '/obj/material/spirit/vermouth';
 const RUM = '/obj/material/spirit/rum';
 const MARTINI_MAT = '/obj/material/cocktail/martini';
-const GLASS = '/domain/lounge/cocktail-glass';
-const DAVE = '/domain/lounge/dave-test';
+const GLASS = '/world/lounge/cocktail-glass';
+const DAVE = '/world/lounge/dave-test';
 
 let store: Record<string, Record<string, unknown>[]>;
 

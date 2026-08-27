@@ -2,7 +2,7 @@
  * `broadcast --at` (content-packs wave 3, D2c): forced messaging over an
  * extent the speaker HOLDS. A parcel holder reaches only the avatars
  * standing under the parcel; a locality government's member reaches its
- * locality; the PM (holding /domain) reaches everyone under it; a
+ * locality; the PM (holding /world) reaches everyone under it; a
  * non-holder is refused with their extents listed; `--at` omitted at a
  * held location defaults to its covering extent, at an unheld one
  * refuses; a player reaches a guest in their own home.
@@ -110,7 +110,7 @@ describe('broadcast --at', () => {
     expect(notes).toEqual([]);
   });
 
-  it("a locality government's member reaches its locality; the PM (holding /domain) reaches everyone", async () => {
+  it("a locality government's member reaches its locality; the PM (holding /world) reaches everyone", async () => {
     const clerk = makeAvatar('clerk', terminus);
     const pm = makeAvatar('pm', lounge);
     const a = makeAvatar('a', lounge);

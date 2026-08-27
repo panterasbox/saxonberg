@@ -40,7 +40,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(PropertiedMixin(Idea)))
   static _mixinName = "TestAvatar";
 }
 
-const BANK_PATH = "/domain/test/goodkin-bank";
+const BANK_PATH = "/world/test/goodkin-bank";
 const ALICE = "/obj/Avatar/alice";
 
 function makeBank(terms?: Record<string, number>): InstanceType<typeof BankCounter> {

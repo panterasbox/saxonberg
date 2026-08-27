@@ -53,7 +53,7 @@ import type { Slottable } from "../../slot/Slottable";
 import type { FieldMeta } from "../../mixin";
 
 const CHAIR_PATH = "/obj/test/Chair";
-const ROOM_PATH = "/domain/test/Room";
+const ROOM_PATH = "/world/test/Room";
 const ALICE_PATH = "/obj/Avatar/alice";
 const BOB_PATH = "/obj/Avatar/bob";
 

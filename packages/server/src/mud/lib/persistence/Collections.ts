@@ -25,7 +25,8 @@ export enum Collections {
   KickProfiles = 'kick_profiles',
   /**
    * The templates collection (`Template.collectionName`). Named `domain`
-   * before 2026-08 — the `/domain/` *template-path namespace* and the
+   * before 2026-08 — the former `/domain/` *template-path namespace*
+   * (`/world/` since content-packs wave 4a) and the
    * `domain` *command category* are unrelated and unchanged (path
    * renames are wave 4 of the content-pack program). A pre-rename
    * deployment is migrated once at boot by

@@ -70,7 +70,7 @@ describe("AccessApi.canAtPath", () => {
     await bootRegistry();
     const alice = makeAvatar("alice");
     vi.spyOn(ParcelApi, "ownerOf").mockImplementation(async (path: string) =>
-      path.startsWith("/domain/mine/")
+      path.startsWith("/world/mine/")
         ? ({ kind: "group", name: "mine" } as never)
         : ({ kind: "group", name: "theirs" } as never),
     );
@@ -80,9 +80,9 @@ describe("AccessApi.canAtPath", () => {
     vi.spyOn(GroupApi, "isMember").mockImplementation(
       async (_key: string, ref: string) => ref === "managed:mine",
     );
-    expect(await AccessApi.canAtPath(alice, "write-document", "/domain/mine/x")).toBe(true);
-    expect(await AccessApi.canAtPath(alice, "write-document", "/domain/theirs/x")).toBe(false);
-    expect(ParcelApi.ownerOf).toHaveBeenCalledWith("/domain/mine/x");
+    expect(await AccessApi.canAtPath(alice, "write-document", "/world/mine/x")).toBe(true);
+    expect(await AccessApi.canAtPath(alice, "write-document", "/world/theirs/x")).toBe(false);
+    expect(ParcelApi.ownerOf).toHaveBeenCalledWith("/world/mine/x");
   });
 
   it("/home/<self>/x → true via rung 2 (the player owner identity match)", async () => {

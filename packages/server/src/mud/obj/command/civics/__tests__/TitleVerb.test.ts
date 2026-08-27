@@ -81,8 +81,8 @@ class TestGiver extends SensorMixin(
   }
 }
 
-const REGISTRY_ROOM = '/domain/terminus/registry/office';
-const SUBURB = '/domain/terminus/hinkley-hills';
+const REGISTRY_ROOM = '/world/terminus/registry/office';
+const SUBURB = '/world/terminus/hinkley-hills';
 // Lots hang off their own zone branch — see PlatBook.lotBranch, and
 // `lots.yaml`: the `lot-N` gate off the lane is non-cardinal, which a
 // cartesian grid admits only across a zone boundary.
@@ -288,7 +288,7 @@ describe('title', () => {
     ) =>
       makeStuffAtPath(
         () => new TitleTestRoom(),
-        opts?.asTemplatePath ?? fresh('/domain/_title/room'),
+        opts?.asTemplatePath ?? fresh('/world/_title/room'),
       )) as unknown as typeof StuffApi.clone);
 
     settled = [];
@@ -318,7 +318,7 @@ describe('title', () => {
     return makeStuffAtPath(() => new Location(), REGISTRY_ROOM);
   }
   function elsewhere(): Location {
-    return makeStuffAtPath(() => new Location(), fresh('/domain/somewhere'));
+    return makeStuffAtPath(() => new Location(), fresh('/world/somewhere'));
   }
   function buyerIn(room: Location): TestGiver {
     const g = makeStuffAtPath(() => {
@@ -510,7 +510,7 @@ describe('title', () => {
     // pretend a room appeared, but it also must not take the money and
     // then throw — the title is real either way.
     const book = StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH)!;
-    book.setHolderPath('/domain/nowhere/absent-holder');
+    book.setHolderPath('/world/nowhere/absent-holder');
 
     const room = registryRoom();
     const buyer = buyerIn(room);

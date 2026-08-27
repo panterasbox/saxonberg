@@ -4,22 +4,22 @@ import BusinessEntity from '../Business';
 import { StuffApi } from '../../api/stuff';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
-const PATH = '/domain/lounge/business';
+const PATH = '/world/lounge/business';
 
 function seedBusiness(): BusinessEntity {
   const b = makeStuffAtPath(() => new BusinessEntity(), PATH);
-  b.proprietorPath = '/domain/lounge/npc/dave';
+  b.proprietorPath = '/world/lounge/npc/dave';
   b.positions = [
     { key: 'bartender', label: 'tending bar', wageRate: 12, confers: ['MakerMixin'] },
   ];
   b.rosterSlots = [
     {
       positionKey: 'bartender',
-      assignee: '/domain/lounge/npc/mara',
+      assignee: '/world/lounge/npc/mara',
       schedule: [{ days: [0, 1, 2, 3, 4], hours: [6, 14] }],
     },
   ];
-  b.operatingLocations = ['/domain/lounge/bar'];
+  b.operatingLocations = ['/world/lounge/bar'];
   return b;
 }
 
@@ -29,7 +29,7 @@ describe('BusinessEntity', () => {
   });
 
   it('resolves the proprietor edge', () => {
-    expect(seedBusiness().getProprietor()).toBe('/domain/lounge/npc/dave');
+    expect(seedBusiness().getProprietor()).toBe('/world/lounge/npc/dave');
   });
 
   it('reports a vacant proprietor seat as undefined', () => {
@@ -56,7 +56,7 @@ describe('BusinessEntity', () => {
 
   it('reports its operating locations', () => {
     expect(seedBusiness().getOperatingLocations()).toEqual([
-      '/domain/lounge/bar',
+      '/world/lounge/bar',
     ]);
   });
 

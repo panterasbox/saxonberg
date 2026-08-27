@@ -12,7 +12,7 @@
  * module that is no longer there, and `BootstrapManager` dies on the
  * first one it tries to clone:
  *
- *   FATAL: failed to clone '/domain/void':
+ *   FATAL: failed to clone '/world/void':
  *          Cannot find module .../lib/stuff/VoidLocation.js
  *
  * That aborts boot for EVERY branch, not just a feature branch.

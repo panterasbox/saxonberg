@@ -44,8 +44,8 @@ describe("ConfigController", () => {
       {
         _id: "r",
         values: {
-          [AppSettingKeys.defaultStartLocation]: "/domain/lounge/warren",
-          [AppSettingKeys.evacuationFallback]: "/domain/void",
+          [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
+          [AppSettingKeys.evacuationFallback]: "/world/void",
         },
       },
     ]);
@@ -89,27 +89,27 @@ describe("ConfigController", () => {
   it("lists every known key with its current value", async () => {
     await run({});
     const text = output.join("\n");
-    expect(text).toContain(`${AppSettingKeys.defaultStartLocation} = /domain/lounge/warren`);
-    expect(text).toContain(`${AppSettingKeys.evacuationFallback} = /domain/void`);
+    expect(text).toContain(`${AppSettingKeys.defaultStartLocation} = /world/lounge/warren`);
+    expect(text).toContain(`${AppSettingKeys.evacuationFallback} = /world/void`);
   });
 
   it("shows a single setting", async () => {
     await run({ key: AppSettingKeys.evacuationFallback });
     expect(output.join("\n")).toContain(
-      `${AppSettingKeys.evacuationFallback} = /domain/void`,
+      `${AppSettingKeys.evacuationFallback} = /world/void`,
     );
   });
 
   it("sets a known key, persists, and reflects the new value without restart", async () => {
     await run({
       key: AppSettingKeys.defaultStartLocation,
-      value: "/domain/somewhere",
+      value: "/world/somewhere",
     });
     expect(AppApi.setting(AppSettingKeys.defaultStartLocation)).toBe(
-      "/domain/somewhere",
+      "/world/somewhere",
     );
     const text = output.join("\n");
-    expect(text).toContain("set to /domain/somewhere");
+    expect(text).toContain("set to /world/somewhere");
     expect(text).not.toContain("not a known setting");
     // A set succeeded — no rejection note.
     expect(note).not.toHaveBeenCalled();

@@ -32,9 +32,9 @@ import {
 import { AppApi } from '../../../api/app';
 
 // The evac target is the `evacuationFallback` app setting (default
-// `/domain/void`). `AppApi.setting` reads a boot-warmed cache that this
+// `/world/void`). `AppApi.setting` reads a boot-warmed cache that this
 // PM-less unit test doesn't have, so we mock it to the configured path.
-const EVAC_PATH = '/domain/void';
+const EVAC_PATH = '/world/void';
 
 // Container that's also Containable — backpack-in-room shape.
 // Convention: Container is the most-derived (outer) mixin so its

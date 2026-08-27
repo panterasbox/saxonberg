@@ -47,9 +47,9 @@ class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
 }
 
-const BOARD = "/domain/test/board";
-const BAR = "/domain/test/bar";
-const WAREHOUSE = "/domain/test/warehouse";
+const BOARD = "/world/test/board";
+const BAR = "/world/test/bar";
+const WAREHOUSE = "/world/test/warehouse";
 const CRATE = "/obj/test/crate";
 const ISSUER = "/obj/Avatar/issuer";
 const COURIER = "/obj/Avatar/courier";
@@ -423,8 +423,8 @@ describe("contract lifecycle", () => {
   });
 
   it("business-issued: post --business escrows from the Business account, settles identically", async () => {
-    const BUSINESS = "/domain/test/business";
-    const DAVE = "/domain/test/npc/dave";
+    const BUSINESS = "/world/test/business";
+    const DAVE = "/world/test/npc/dave";
     const { default: BusinessEntity } = await import("../../../obj/Business");
     const biz = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
     biz.proprietorPath = DAVE;

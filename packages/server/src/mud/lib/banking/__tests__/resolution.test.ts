@@ -29,8 +29,8 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestAvatar";
 }
 
-const BANK_A = "/domain/test/bank-a";
-const BANK_B = "/domain/test/bank-b";
+const BANK_A = "/world/test/bank-a";
+const BANK_B = "/world/test/bank-b";
 const ALICE = "/obj/Avatar/alice";
 const BOB = "/obj/Avatar/bob";
 

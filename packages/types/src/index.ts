@@ -4254,7 +4254,7 @@ export interface BlueprintWriteResult {
  * `TemplateApi.saveTemplate` still applies to the `classPath` being set.
  */
 export interface CreateTemplateInput {
-  /** The new template path (`/domain/<zone>/<leaf>`). Must not already exist. */
+  /** The new template path (`/world/<zone>/<leaf>`). Must not already exist. */
   path: string;
   /** The backing class the template points at (`/obj/Coin`). */
   classPath: string;

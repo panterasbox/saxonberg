@@ -51,9 +51,9 @@ class TestCrate extends ContainableMixin(Idea) {
   static _mixinName = "TestCrate";
 }
 
-const BOARD = "/domain/terminus/terminal/job-board";
-const HERE = "/domain/test/bar-room";
-const DEST = "/domain/test/bar";
+const BOARD = "/world/terminus/terminal/job-board";
+const HERE = "/world/test/bar-room";
+const DEST = "/world/test/bar";
 const CRATE = "/obj/test/crate";
 const POSTER = "/obj/Avatar/poster";
 const COURIER = "/obj/Avatar/courier";
@@ -171,7 +171,7 @@ describe("work verbs", () => {
     expect(sent.join("\n")).toContain("deliver crate to bar");
     expect(sent.join("\n")).toContain("25 credits");
     // A second board elsewhere shows nothing.
-    expect(await ContractApi.openGigsOn("/domain/other/board")).toHaveLength(
+    expect(await ContractApi.openGigsOn("/world/other/board")).toHaveLength(
       0,
     );
   });
@@ -262,7 +262,7 @@ describe("work verbs", () => {
   });
 
   it("job away from any board refuses; unknown subcommand refuses", async () => {
-    const nowhere = makeStuffAtPath(() => new TestRoom(), "/domain/test/void");
+    const nowhere = makeStuffAtPath(() => new TestRoom(), "/world/test/void");
     ContainmentApi.move(courier, nowhere);
     const lost = ctx(courier);
     await asGiver(courier, () =>

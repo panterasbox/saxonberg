@@ -55,13 +55,13 @@ import Coin from "../../../Coin";
 import { Quantity } from "../../../../lib/quantity";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 
-const D_ROOM = "/domain/test/fare/d-room";
-const R_ROOM = "/domain/test/fare/r-room";
-const DEPART = "/domain/test/fare/depart";
-const ARRIVE = "/domain/test/fare/arrive";
-const BIZ = "/domain/test/fare/budget";
-const DEST_BIZ = "/domain/test/fare/dest-budget";
-const TPA_BIZ = "/domain/test/fare/tpa";
+const D_ROOM = "/world/test/fare/d-room";
+const R_ROOM = "/world/test/fare/r-room";
+const DEPART = "/world/test/fare/depart";
+const ARRIVE = "/world/test/fare/arrive";
+const BIZ = "/world/test/fare/budget";
+const DEST_BIZ = "/world/test/fare/dest-budget";
+const TPA_BIZ = "/world/test/fare/tpa";
 
 class Node extends FastTravelMixin(Thing) {
   static _mixinName = "Node";

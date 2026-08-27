@@ -18,8 +18,8 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
-const BUSINESS = '/domain/lounge/business';
-const MARA = '/domain/lounge/npc/mara';
+const BUSINESS = '/world/lounge/business';
+const MARA = '/world/lounge/npc/mara';
 
 class Worker extends EmployedMixin(Idea) {
   static _mixinName = 'Worker';
@@ -50,7 +50,7 @@ function seedBusiness(): BusinessEntity {
       schedule: [{ days: [0, 1, 2, 3, 4], hours: [6, 14] }],
     },
   ];
-  b.operatingLocations = ['/domain/lounge/bar'];
+  b.operatingLocations = ['/world/lounge/bar'];
   return b;
 }
 

@@ -103,14 +103,14 @@ describe("SubdivideController", () => {
     getZoneSpy = vi
       .spyOn(Stuff.prototype, "getZone")
       .mockReturnValue({
-        getTemplatePath: () => "/domain/lounge/bar",
+        getTemplatePath: () => "/world/lounge/bar",
       } as never);
     vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue(
-      fakeParcel("/domain/lounge", LOUNGE_OWNER),
+      fakeParcel("/world/lounge", LOUNGE_OWNER),
     );
     // resolveZone → a real FolderZone (so the `instanceof Zone` check holds).
     vi.spyOn(StuffApi, "singleton").mockResolvedValue(
-      makeStuffAtPath(() => new FolderZone(), "/domain/lounge") as never,
+      makeStuffAtPath(() => new FolderZone(), "/world/lounge") as never,
     );
     vi.spyOn(TemplateApi, "saveTemplate").mockResolvedValue(undefined as never);
   });
@@ -137,13 +137,13 @@ describe("SubdivideController", () => {
     );
 
     expect(TemplateApi.saveTemplate).toHaveBeenCalledWith(
-      "/domain/lounge/east-wing",
+      "/world/lounge/east-wing",
       "/obj/FolderZone",
       { name: "East Wing" },
     );
     expect(subdivide).toHaveBeenCalledWith(
-      "/domain/lounge/east-wing",
-      "/domain/lounge",
+      "/world/lounge/east-wing",
+      "/world/lounge",
       LOUNGE_OWNER,
     );
     expect(rejectionReason(ctx)).toBeNull();

@@ -57,7 +57,7 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-const PATH = '/domain/lounge/painting';
+const PATH = '/world/lounge/painting';
 const ALICE = '/obj/Avatar/alice';
 const BOB = '/obj/Avatar/bob';
 

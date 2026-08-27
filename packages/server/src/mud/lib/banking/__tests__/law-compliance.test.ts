@@ -87,7 +87,7 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
   it("an idle balance and coin stack are unchanged over a game-clock advance", async () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), "/obj/Avatar/alice");
     const acct = await asOwner(alice, () =>
-      BankingApi.openAccount("/domain/test/bank", "goodkin", Currency.compact())
+      BankingApi.openAccount("/world/test/bank", "goodkin", Currency.compact())
     );
     await BankingApi.mint(acct, Money.of(1000, Currency.compact()));
     const coin = makeStuffAtPath(() => {

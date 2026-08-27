@@ -17,7 +17,7 @@ function makeRecord(overrides: Partial<ContractRecord> = {}): ContractRecord {
   const r = new ContractRecord();
   r.contractId = "gig-1";
   r.state = "open";
-  r.boardPath = "/domain/test/board";
+  r.boardPath = "/world/test/board";
   r.issuer = { kind: "player", templatePath: "/obj/Avatar/issuer" };
   r.issuerAccountId = "acct-issuer";
   r.claimMode = "exclusive";
@@ -26,7 +26,7 @@ function makeRecord(overrides: Partial<ContractRecord> = {}): ContractRecord {
     condition: {
       template: "delivery",
       item: { kind: "template", path: "/obj/test/crate" },
-      destinationPath: "/domain/test/bar",
+      destinationPath: "/world/test/bar",
     },
   };
   r.rewardMinor = 25;
@@ -46,7 +46,7 @@ describe("ContractRecord round-trip + finders", () => {
       kind: "player",
       templatePath: "/obj/Avatar/issuer",
     });
-    expect(found?.clause?.condition.destinationPath).toBe("/domain/test/bar");
+    expect(found?.clause?.condition.destinationPath).toBe("/world/test/bar");
     expect(found?.rewardMinor).toBe(25);
     expect(await ContractRecord.findByContractId("gig-nope")).toBeNull();
   });
@@ -62,9 +62,9 @@ describe("ContractRecord round-trip + finders", () => {
     await makeRecord({ contractId: "c", state: "settled" }).save();
     await makeRecord({
       contractId: "d",
-      boardPath: "/domain/other/board",
+      boardPath: "/world/other/board",
     }).save();
-    const live = await ContractRecord.findLiveByBoard("/domain/test/board");
+    const live = await ContractRecord.findLiveByBoard("/world/test/board");
     expect(live.map((r) => r.contractId)).toEqual(["b", "a"]);
   });
 

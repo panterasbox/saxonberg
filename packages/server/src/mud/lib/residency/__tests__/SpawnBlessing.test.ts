@@ -82,7 +82,7 @@ describe('the spawn sweep stamps a BUC band on what it mints', () => {
   /** A live room so the census has a region to count in. */
   function worldWithAWand(): void {
     const room = makeStuff(() => new Room());
-    stampTemplatePathForTest(room, `/domain/test/spawn-room-${seq++}`);
+    stampTemplatePathForTest(room, `/world/test/spawn-room-${seq++}`);
     const wand = seedCirculatingWand();
     ContainmentApi.move(wand as never, room as never);
   }

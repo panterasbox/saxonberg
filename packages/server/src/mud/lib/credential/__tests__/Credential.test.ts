@@ -28,36 +28,36 @@ describe("TravelCredential record", () => {
 
   it("register / isRegistered / unregister / authorize", () => {
     const c = new TravelCredential();
-    expect(c.isRegistered("/domain/x/node")).toBe(false);
-    c.register("/domain/x/node");
-    expect(c.isRegistered("/domain/x/node")).toBe(true);
-    expect(c.authorize("/domain/x/node")).toBe(true);
-    expect(c.unregister("/domain/x/node")).toBe(true);
-    expect(c.isRegistered("/domain/x/node")).toBe(false);
+    expect(c.isRegistered("/world/x/node")).toBe(false);
+    c.register("/world/x/node");
+    expect(c.isRegistered("/world/x/node")).toBe(true);
+    expect(c.authorize("/world/x/node")).toBe(true);
+    expect(c.unregister("/world/x/node")).toBe(true);
+    expect(c.isRegistered("/world/x/node")).toBe(false);
   });
 
   it("the born-with floor survives a serialize round-trip", () => {
     const c = new TravelCredential();
-    c.register("/domain/a/node");
+    c.register("/world/a/node");
     const back = Credential.fromData(c.toData());
     expect(back).toBeInstanceOf(TravelCredential);
     const t = back as TravelCredential;
     for (const node of BORN_WITH_TRAVEL_NODES) {
       expect(t.isRegistered(node)).toBe(true);
     }
-    expect(t.isRegistered("/domain/a/node")).toBe(true);
+    expect(t.isRegistered("/world/a/node")).toBe(true);
   });
 
   it("re-floors even when the serialized row dropped the floor", () => {
     // A row that somehow lacks the floor still re-floors on rebuild.
     const back = Credential.fromData({
       kind: "travel",
-      registered: ["/domain/b/node"],
+      registered: ["/world/b/node"],
     }) as TravelCredential;
     for (const node of BORN_WITH_TRAVEL_NODES) {
       expect(back.isRegistered(node)).toBe(true);
     }
-    expect(back.isRegistered("/domain/b/node")).toBe(true);
+    expect(back.isRegistered("/world/b/node")).toBe(true);
   });
 });
 

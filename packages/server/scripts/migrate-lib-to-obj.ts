@@ -215,7 +215,7 @@ export function planCollection(
           // migration ran. Converging means DELETING the stale source,
           // not leaving it: a leftover row still carries the old
           // `/lib/` class, and boot dies on it
-          // ("failed to clone '/domain/void'"). Reporting alone was the
+          // ("failed to clone '/world/void'"). Reporting alone was the
           // bug; the e2e suite found it because the unit tests never
           // boot a world.
           if (identical) deletions.push(doc._id);

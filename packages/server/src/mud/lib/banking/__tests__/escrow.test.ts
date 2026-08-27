@@ -101,7 +101,7 @@ describe("BankingApi escrow — hold / release / revert / close", () => {
       const b = new BankCounter();
       b.setCorpoKey("veshko");
       return b;
-    }, "/domain/test/veshko-bank");
+    }, "/world/test/veshko-bank");
     const funded = new AccountBalance();
     funded.accountId = ISSUER;
     funded.owner = "/obj/Avatar/issuer";

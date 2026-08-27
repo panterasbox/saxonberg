@@ -58,7 +58,7 @@ export default class TeleportController extends CommandController<TeleportModel>
   /**
    * The within-your-extent pattern (content-packs wave 3, D2d): you may
    * teleport yourself between two points inside ONE extent you hold —
-   * the lounge team around the lounge, the PM (holding /domain) anywhere
+   * the lounge team around the lounge, the PM (holding /world) anywhere
    * under it. Cross a boundary and it is the TPA like everyone else; the
    * wizard axis (code trust) buys no movement.
    */

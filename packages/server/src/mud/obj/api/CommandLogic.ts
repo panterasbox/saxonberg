@@ -3,6 +3,7 @@
 // on the reflection TypeDoc emits, not on the module.)
 
 import { ApiLogic } from '../../lib/stuff/ApiLogic';
+import { NON_TEMPLATE_DIRS } from '../../lib/paths';
 import { CallSecurity, Unshadowable } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -117,13 +118,13 @@ const __dirname = dirname(__filename);
 // `mud/`, so the relative offsets are one extra `..` from here.
 /**
  * Project's `src/mud/` — root for absolute (`/X`) validator specs AND
- * for `domain/`-prefixed content-local command bundles (a locality's
+ * for `world/`-prefixed content-local command bundles (a locality's
  * bespoke verb specs living with its content under
- * `domain/<sphere>/<locality>/commands/`).
+ * `world/<sphere>/<locality>/commands/`).
  */
 const MUD_ROOT = resolvePath(__dirname, '../..');
 
-/** `/cmd/perception/look` → `perception/look.yaml`; `/domain/x/cmd/y` → `domain/x/cmd/y.yaml` (the pack reader's `commandViewPathOf`, inverted). */
+/** `/cmd/perception/look` → `perception/look.yaml`; `/world/x/cmd/y` → `world/x/cmd/y.yaml`, `/trade/x/cmd/y` → `trade/x/cmd/y.yaml` (the pack reader's `commandViewPathOf`, inverted). */
 function viewKeyOf(docPath: string): string {
   if (docPath.startsWith('/cmd/')) return `${docPath.slice('/cmd/'.length)}.yaml`;
   return `${docPath.replace(/^\//, '')}.yaml`;
@@ -163,36 +164,50 @@ function offlineContentRoots(): string[] {
 }
 
 /**
+ * Is `key` a content-tree view key (`<tree>/…/cmd/<verb>.yaml` — a
+ * locality's `world/<sphere>/<locality>/cmd/`, an industry's
+ * `trade/<industry>/cmd/`) rather than an engine key (`perception/
+ * look.yaml`)? The installer's rule (`PackLogic.commandViewPathOf`): the
+ * first segment is not `cmd` and a `cmd` segment sits inside the path.
+ */
+function isContentTreeViewKey(key: string): boolean {
+  const parts = key.split('/');
+  return parts.length > 1 && parts[0] !== 'cmd' && parts.slice(0, -1).includes('cmd');
+}
+
+/**
  * The pack file for a view key, offline: an engine key (`perception/
- * look.yaml`) under a pack's `content/cmd/`, a locality key
- * (`domain/<…>/cmd/<verb>.yaml`) under its `content/` — the same files the
+ * look.yaml`) under a pack's `content/cmd/`, a content-tree key
+ * (`world/<…>/cmd/<verb>.yaml`) under its `content/` — the same files the
  * installer reads. Null when no pack ships it.
  */
 function offlineFileFor(key: string): string | null {
   for (const root of offlineContentRoots()) {
-    const file = key.startsWith('domain/') ? join(root, key) : join(root, 'cmd', key);
+    const file = isContentTreeViewKey(key) ? join(root, key) : join(root, 'cmd', key);
     if (existsSync(file)) return file;
   }
   return null;
 }
 
-/** Every view key the packs ship, offline: the `cmd` tree and each locality `cmd` dir. */
+/** Every view key the packs ship, offline: the `cmd` tree and every template tree's own `cmd` dirs. */
 function offlineViewKeys(): string[] {
   const keys: string[] = [];
   for (const root of offlineContentRoots()) {
-    const cmd = join(root, 'cmd');
-    if (existsSync(cmd)) {
-      for (const f of readdirSync(cmd, { recursive: true }) as string[]) {
-        const norm = f.split(sep).join('/');
-        if (norm.endsWith('.yaml') && !norm.split('/').includes('__tests__')) keys.push(norm);
+    if (!existsSync(root)) continue;
+    for (const e of readdirSync(root, { withFileTypes: true })) {
+      if (!e.isDirectory() || e.name.startsWith('.')) continue;
+      if (e.name === 'cmd') {
+        for (const f of readdirSync(join(root, 'cmd'), { recursive: true }) as string[]) {
+          const norm = f.split(sep).join('/');
+          if (norm.endsWith('.yaml') && !norm.split('/').includes('__tests__')) keys.push(norm);
+        }
+        continue;
       }
-    }
-    const domain = join(root, 'domain');
-    if (existsSync(domain)) {
-      for (const f of readdirSync(domain, { recursive: true }) as string[]) {
+      if (NON_TEMPLATE_DIRS.has(e.name)) continue;
+      for (const f of readdirSync(join(root, e.name), { recursive: true }) as string[]) {
         const norm = f.split(sep).join('/');
         if (!norm.endsWith('.yaml') || !norm.split('/').slice(0, -1).includes('cmd')) continue;
-        keys.push('domain/' + norm);
+        keys.push(`${e.name}/${norm}`);
       }
     }
   }
@@ -356,7 +371,7 @@ export class CommandLogic extends ApiLogic {
     // (content-packs wave 3 — there is no disk fallback). OFFLINE the
     // packs' files are the source and are read directly. The key == the
     // `commandContributions` string == the cache key == the pack file
-    // (`cmd/<key>`, or `<key>` for a `domain/`-prefixed locality view),
+    // (`cmd/<key>`, or `<key>` for a `world/`-prefixed locality view),
     // so this mapping is the single source of resolution.
     if (servedFromStore) return null;
     const filePath = offlineFileFor(filename);
@@ -458,8 +473,8 @@ export class CommandLogic extends ApiLogic {
     // files ARE the source, read directly — `content/cmd/**` (the engine
     // verbs, grouped into subdirs; the subdir-qualified string is the
     // cache key + the `commandContributions` reference) and
-    // `content/domain/**/cmd/**` (a locality's own verbs, keyed
-    // `domain/`-prefixed).
+    // `content/world/**/cmd/**` (a locality's own verbs, keyed
+    // `world/`-prefixed).
     for (const file of offlineViewKeys()) {
       if (commands.has(file)) continue;
       const cmd = this.getCommand(file);

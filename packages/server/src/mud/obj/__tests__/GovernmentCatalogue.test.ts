@@ -43,13 +43,13 @@ const GOVERNMENTS: Loose[] = [
   {
     key: "terminus-city",
     displayName: "the City of Terminus",
-    treasury: "/domain/terminus/budget",
-    departments: ["/domain/terminus/registry/business"],
+    treasury: "/world/terminus/budget",
+    departments: ["/world/terminus/registry/business"],
     seats: [
       {
         key: "magistrate",
         label: "Magistrate of Terminus",
-        department: "/domain/terminus/registry/business",
+        department: "/world/terminus/registry/business",
         positionKey: "magistrate",
       },
     ],
@@ -129,7 +129,7 @@ describe("GovernmentCatalogue", () => {
     g.departments.push("/mutated");
     g.seats[0]!.label = "mutated";
     const again = cat.getGovernment("terminus-city")!;
-    expect(again.departments).toEqual(["/domain/terminus/registry/business"]);
+    expect(again.departments).toEqual(["/world/terminus/registry/business"]);
     expect(again.seats[0]!.label).toBe("Magistrate of Terminus");
   });
 

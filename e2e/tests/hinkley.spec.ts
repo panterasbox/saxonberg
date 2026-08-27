@@ -38,8 +38,8 @@ import {
  *     `WALK IN and WORK IT` — see smallholding.md.
  */
 
-const REGISTRY = '/domain/terminus/registry/office';
-const LANE = '/domain/terminus/hinkley-hills/lane';
+const REGISTRY = '/world/terminus/registry/office';
+const LANE = '/world/terminus/hinkley-hills/lane';
 
 /**
  * The lot that ships already sold — seeded in `config/parcels.yaml`, held
@@ -95,7 +95,7 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'hh-reach', {
-    startLocation: '/domain/terminus/hinkley-hills/arrival',
+    startLocation: '/world/terminus/hinkley-hills/arrival',
     wizard: true,
   });
   try {
@@ -127,7 +127,7 @@ test('the TPA carries a route to the suburb, priced as a commute', async ({
   // NOT a wizard: `teleport` is dual-mode and the privileged fork
   // self-powers past the TPA entirely.
   const { page, close } = await openWorldAs(browser, 'hh-board', {
-    startLocation: '/domain/terminus/terminal/departure-gate-a',
+    startLocation: '/world/terminus/terminal/departure-gate-a',
   });
   try {
     await sendUntil(
@@ -186,7 +186,7 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // is a bad witness — the first session that pockets it removes it
     // from the room forever, and this lot is never re-provisioned. That
     // the seed ships one is a content claim, checked against the seed in
-    // `domain/terminus/hinkley-hills/__tests__`.
+    // `world/terminus/hinkley-hills/__tests__`.
     await expect(page.getByText(/raised garden bed/i).first()).toBeVisible();
     await expect(page.getByText(/standpipe/i).first()).toBeVisible();
 
@@ -209,7 +209,7 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // But outcome is not what a browser is for. That a seed becomes a
     // plant, that water raises soil moisture, that feeding restores
     // nitrogen — all of it is unit-tested in
-    // `domain/terminus/hinkley-hills/__tests__` and
+    // `world/terminus/hinkley-hills/__tests__` and
     // `lib/husbandry/__tests__`. What ONLY a live client can tell you is
     // whether a player can *reach* the verb: contributed by something
     // present, in scope, parseable, routed to a controller. A controller

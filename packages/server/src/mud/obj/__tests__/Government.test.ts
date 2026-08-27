@@ -35,12 +35,12 @@ describe("Government", () => {
     g.setDisplayName("the City of Terminus");
     g.setDescription("the young retrofit administration");
     g.setCharter("/charters/terminus-city");
-    g.setTreasury("/domain/terminus/budget");
+    g.setTreasury("/world/terminus/budget");
     expect(g.getKey()).toBe("terminus-city");
     expect(g.getDisplayName()).toBe("the City of Terminus");
     expect(g.getDescription()).toBe("the young retrofit administration");
     expect(g.getCharter()).toBe("/charters/terminus-city");
-    expect(g.getTreasury()).toBe("/domain/terminus/budget");
+    expect(g.getTreasury()).toBe("/world/terminus/budget");
   });
 
   it("setKey rejects an empty key", () => {
@@ -57,10 +57,10 @@ describe("Government", () => {
 
   it("getDepartments returns a defensive copy", () => {
     const g = newGovernment();
-    g.departments = ["/domain/terminus/registry/business"];
+    g.departments = ["/world/terminus/registry/business"];
     const first = g.getDepartments();
-    first.push("/domain/terminus/watch");
-    expect(g.getDepartments()).toEqual(["/domain/terminus/registry/business"]);
+    first.push("/world/terminus/watch");
+    expect(g.getDepartments()).toEqual(["/world/terminus/registry/business"]);
   });
 
   it("getSeats returns defensive copies", () => {
@@ -69,7 +69,7 @@ describe("Government", () => {
       {
         key: "magistrate",
         label: "Magistrate",
-        department: "/domain/terminus/registry/business",
+        department: "/world/terminus/registry/business",
         positionKey: "magistrate",
       },
     ];

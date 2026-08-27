@@ -78,7 +78,7 @@ describe("the bedroom — FUNCTION (D10)", () => {
     expect(bed.data?.restQuality).toBeGreaterThan(1);
   });
   // The DORM bed's three cases live beside Duncan Hall
-  // (domain/eternal/duncan-hall/__tests__/dorm-bed.archetype.test.ts) —
+  // (world/eternal/duncan-hall/__tests__/dorm-bed.archetype.test.ts) —
   // a kernel test does not name shipped content.
 });
 

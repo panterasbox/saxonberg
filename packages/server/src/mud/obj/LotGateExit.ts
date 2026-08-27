@@ -11,7 +11,7 @@
  * ## Why the street cannot just author the exit
  *
  * It was authoring one, and that was a defect the unit suite could not
- * see. A lane with `north → /domain/…/hinkley-hills/yard` names the
+ * see. A lane with `north → /world/…/hinkley-hills/yard` names the
  * **shared source template** — so walking north instantiated the template
  * itself as a place: an unowned yard, on nobody's lot, that every player
  * arrived in and could dig. Worse, it collided with the minted identities

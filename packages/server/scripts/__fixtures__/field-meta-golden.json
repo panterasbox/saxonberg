@@ -433,7 +433,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Bed.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Bed.ts",
     "index": 0,
     "className": "Bed",
     "persistentFields": [],
@@ -442,7 +442,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Corridor.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Corridor.ts",
     "index": 0,
     "className": "Corridor",
     "persistentFields": [],
@@ -451,7 +451,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Desk.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Desk.ts",
     "index": 0,
     "className": "Desk",
     "persistentFields": [],
@@ -460,7 +460,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/DormRoom.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/DormRoom.ts",
     "index": 0,
     "className": "DormRoom",
     "persistentFields": [],
@@ -469,7 +469,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/duncan-hall/Footlocker.ts",
+    "file": "packages/server/src/mud/world/eternal/duncan-hall/Footlocker.ts",
     "index": 0,
     "className": "Footlocker",
     "persistentFields": [],
@@ -478,7 +478,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/university-avenue/CrossingLog.ts",
+    "file": "packages/server/src/mud/world/eternal/university-avenue/CrossingLog.ts",
     "index": 0,
     "className": "CrossingLog",
     "persistentFields": [
@@ -490,7 +490,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/eternal/university-avenue/MechanicalMovement.ts",
+    "file": "packages/server/src/mud/world/eternal/university-avenue/MechanicalMovement.ts",
     "index": 0,
     "className": "MechanicalMovementMixin",
     "persistentFields": [
@@ -505,7 +505,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/Bar.ts",
+    "file": "packages/server/src/mud/world/lounge/Bar.ts",
     "index": 0,
     "className": "Bar",
     "persistentFields": [],
@@ -514,7 +514,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/GlassAlley.ts",
+    "file": "packages/server/src/mud/world/lounge/GlassAlley.ts",
     "index": 0,
     "className": "GlassAlley",
     "persistentFields": [],
@@ -523,7 +523,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/Lounge.ts",
+    "file": "packages/server/src/mud/world/lounge/Lounge.ts",
     "index": 0,
     "className": "Lounge",
     "persistentFields": [],
@@ -532,7 +532,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/LoungeMixin.ts",
+    "file": "packages/server/src/mud/world/lounge/LoungeMixin.ts",
     "index": 0,
     "className": "LoungeMixin",
     "persistentFields": [],
@@ -543,7 +543,7 @@
     "globIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/domain/lounge/Offstage.ts",
+    "file": "packages/server/src/mud/world/lounge/Offstage.ts",
     "index": 0,
     "className": "Offstage",
     "persistentFields": [],

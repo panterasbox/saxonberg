@@ -5,7 +5,7 @@
  * ## Why
  *
  * Content is moving out of the kernel into packs (the content-pack
- * program). A kernel test that names a `/domain/<locality>` path is a
+ * program). A kernel test that names a `/world/<locality>` path is a
  * test that will break — or, worse, silently pass over nothing — the
  * day that locality becomes a pack the kernel does not ship. The
  * discipline (content-packs slate A26): a kernel test proves the kernel
@@ -26,8 +26,8 @@
  *
  * Test files (vitest's own notion — `TEST_FILE_RE`) under the server
  * source, the server scripts' tests, and the client source, whose text
- * matches `/\/domain\/[a-z]/`. `packages/content/**` and `e2e/**` are
- * skipped, and so is `src/mud/domain/**` — a test that lives WITH its
+ * matches `/\/world\/[a-z]/`. `packages/content/**` and `e2e/**` are
+ * skipped, and so is `src/mud/world/**` — a test that lives WITH its
  * content is exactly where a content test belongs.
  *
  * ## Usage
@@ -50,7 +50,7 @@ const SCAN_ROOTS = [
 ];
 /** Tests that live WITH their content are not kernel tests. */
 const EXEMPT_PREFIXES = [
-  "packages/server/src/mud/domain/",
+  "packages/server/src/mud/world/",
   "packages/content/",
   "e2e/",
 ];
@@ -58,8 +58,8 @@ export const ALLOWLIST_FILE = join(HERE, "test-content-allowlist.txt");
 
 /** What vitest considers a test file (the `check-test-bootstrap` rule). */
 const TEST_FILE_RE = /\.(test|spec)\.(c|m)?[jt]sx?$/;
-/** A shipped-content path: `/domain/<locality>…`. */
-export const OFFENDER_RE = /\/domain\/[a-z]/;
+/** A shipped-content path: `/world/<locality>…`. */
+export const OFFENDER_RE = /\/world\/[a-z]/;
 
 export interface Classified {
   /** Listed offenders — counted, warned. */
@@ -137,9 +137,9 @@ function main(): void {
     failed = true;
     console.error(
       `\ncheck-test-content: ${result.newOffenders.length} NEW kernel test(s) name shipped ` +
-        `content (/domain/<locality>). A kernel test proves the kernel over synthetic ` +
+        `content (/world/<locality>). A kernel test proves the kernel over synthetic ` +
         `fixtures under /test/**; a test of real content lives beside the content ` +
-        `(src/mud/domain/**). The allowlist only shrinks — do not add to it.`,
+        `(src/mud/world/**). The allowlist only shrinks — do not add to it.`,
     );
     for (const p of result.newOffenders) console.error(`  ✗ ${p}`);
   }

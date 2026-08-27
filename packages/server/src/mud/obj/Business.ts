@@ -23,7 +23,7 @@
  * name: an account is a fact about the trading face, and naming it
  * separately is what keeps a non-trading organization from implying one.
  *
- * Seeded as domain data (`/domain/lounge/business`) and warmed / made
+ * Seeded as domain data (`/world/lounge/business`) and warmed / made
  * enumerable via the bootstrap manifest; `EmploymentLogic` finds businesses
  * by the `BusinessMixin` marker (never a field on the room).
  *
@@ -124,7 +124,7 @@ export function BusinessMixin<
 }
 
 /**
- * BusinessEntity — the concrete seeded entity at `/domain/lounge/business`.
+ * BusinessEntity — the concrete seeded entity at `/world/lounge/business`.
  * A singleton-style domain `Idea` (warmed + made enumerable by the
  * bootstrap manifest); refuses ordinary destruct. Exported as the module
  * **default** so `class: /obj/Business` resolves it (the `Bank`→`BankCounter`

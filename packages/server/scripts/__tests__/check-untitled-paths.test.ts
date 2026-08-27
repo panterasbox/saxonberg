@@ -21,7 +21,7 @@ describe('check-untitled-paths.classify', () => {
   });
 
   it('the nine title roots are the installer\'s (one list, lib/paths.ts)', () => {
-    expect(TITLE_ROOTS).toEqual(['/obj', '/domain', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo', '/trade']);
+    expect(TITLE_ROOTS).toEqual(['/obj', '/world', '/cmd', '/compact', '/studio', '/wiki', '/home', '/corpo', '/trade']);
   });
 
   it('/trade/ is a title root: an unclaimed industry row is reported, a claimed one passes', () => {

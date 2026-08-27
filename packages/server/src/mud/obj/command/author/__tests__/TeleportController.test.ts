@@ -2,7 +2,7 @@
  * The self-powered fork of `teleport` (content-packs wave 3, D2d — the
  * within-your-extent pattern): a hop between two points inside ONE extent
  * the giver holds is self-powered; crossing a boundary is the TPA like
- * everyone else; the PM (holding /domain) goes anywhere under it; a
+ * everyone else; the PM (holding /world) goes anywhere under it; a
  * wizard holding nothing rides the TPA too (code trust buys no movement).
  */
 

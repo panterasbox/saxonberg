@@ -32,8 +32,8 @@ import { PersistenceManager } from "../../../../backend/PersistenceManager";
 
 const IDEA = "/lib/stuff/Idea";
 const DANGEROUS = "/obj/location/Room"; // any leaf w/ a class
-const HOST_PATH = "/domain/gallery/room";
-const TARGET_PATH = "/domain/gallery/trap";
+const HOST_PATH = "/world/gallery/room";
+const TARGET_PATH = "/world/gallery/trap";
 const ALICE = "/obj/Avatar/alice";
 
 let stores: Map<string, Record<string, unknown>[]>;

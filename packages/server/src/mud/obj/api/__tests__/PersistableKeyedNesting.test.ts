@@ -174,7 +174,7 @@ function snapshotFor(scope: string, owner: string): Record<string, unknown> {
 describe("keyed nested hosts — the collapse this wave prevents", () => {
   it("⭐ two keyed instances of one template restore as two distinct instances", async () => {
     cloneFactories = { "/obj/keyedchest": () => new KeyedChest() };
-    const room = makeStuffAtPath(() => new Room(), "/domain/room");
+    const room = makeStuffAtPath(() => new Room(), "/world/room");
     const chestA = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
     const chestB = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
     chestA.setLabel("alpha");
@@ -187,7 +187,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
     await PersistableApi.capture(room);
 
     // The room's slice refs both by (ref, key).
-    const rec = snapshotFor("/domain/room", "group:lounge");
+    const rec = snapshotFor("/world/room", "group:lounge");
     const contents = (
       (rec.state as Record<string, unknown>).ContainerMixin as {
         contents: Array<{ ref?: string; key?: string }>;
@@ -196,7 +196,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
     expect(contents.map((e) => e.key).sort()).toEqual(["key-a", "key-b"]);
 
     evict(room);
-    const reborn = makeStuffAtPath(() => new Room(), "/domain/room");
+    const reborn = makeStuffAtPath(() => new Room(), "/world/room");
     await PersistableApi.materialize(reborn);
 
     const restored = reborn
@@ -215,7 +215,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
 
   it("a keyless ref still resolves to the single live instance (no regression)", async () => {
     cloneFactories = { "/obj/keyedchest": () => new KeyedChest() };
-    const room = makeStuffAtPath(() => new Room(), "/domain/room");
+    const room = makeStuffAtPath(() => new Room(), "/world/room");
     const chest = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
     ContainmentApi.move(chest, room);
 
@@ -225,7 +225,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
     // The chest survives elsewhere (the singleton stays live) — re-register
     // it so the keyless walk's dedup has a live instance to find.
     const liveChest = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
-    const reborn = makeStuffAtPath(() => new Room(), "/domain/room");
+    const reborn = makeStuffAtPath(() => new Room(), "/world/room");
     await PersistableApi.materialize(reborn);
 
     const restored = reborn.getContents();
@@ -238,7 +238,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
       "/obj/keyedchest": () => new KeyedChest(),
       "/obj/trinket": () => new Trinket(),
     };
-    const room = makeStuffAtPath(() => new Room(), "/domain/room");
+    const room = makeStuffAtPath(() => new Room(), "/world/room");
     const chest = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
     const trinket = makeStuffAtPath(() => new Trinket(), "/obj/trinket");
     trinket.setTag("ruby");
@@ -250,7 +250,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
 
     // The stored ref entry is byte-identical to the pre-key shape: no
     // `key` property at all (not even undefined/null).
-    const rec = snapshotFor("/domain/room", "group:lounge");
+    const rec = snapshotFor("/world/room", "group:lounge");
     const entry = (
       (rec.state as Record<string, unknown>).ContainerMixin as {
         contents: Array<Record<string, unknown>>;
@@ -260,7 +260,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
     expect("key" in entry).toBe(false);
 
     evict(room);
-    const reborn = makeStuffAtPath(() => new Room(), "/domain/room");
+    const reborn = makeStuffAtPath(() => new Room(), "/world/room");
     await PersistableApi.materialize(reborn);
 
     const restoredChest = reborn.getContents()[0] as KeyedChest;
@@ -270,7 +270,7 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
   });
 
   it("a nested host's place is null; a top-level host captures its container", async () => {
-    const room = makeStuffAtPath(() => new Room(), "/domain/room");
+    const room = makeStuffAtPath(() => new Room(), "/world/room");
     const nested = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
     ContainmentApi.move(nested, room);
     await PersistableApi.capture(nested, "unit-1");

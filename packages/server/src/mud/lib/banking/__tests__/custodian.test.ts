@@ -26,8 +26,8 @@ import {
 } from "./banking-test-harness";
 import { Collections } from "../../../../backend/PersistenceManager";
 
-const LIVE_BANK_PATH = "/domain/test/goodkin-bank";
-const VENUE = "/domain/lounge/business";
+const LIVE_BANK_PATH = "/world/test/goodkin-bank";
+const VENUE = "/world/lounge/business";
 
 function makeBank(path: string, corpoKey = "goodkin"): void {
   makeStuffAtPath(() => {
@@ -101,13 +101,13 @@ describe("ensureVenueAccount — the custodian gate (institution keys)", () => {
     ).resolves.toBeTruthy();
     // An institution beyond the default is real iff one of its branches
     // is live (veshko's counter stands → veshko custody accepted).
-    makeBank("/domain/test/veshko-bank", "veshko");
+    makeBank("/world/test/veshko-bank", "veshko");
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other", "veshko", "veshko", Currency.compact()),
+      BankingApi.ensureVenueAccount("/world/test/other", "veshko", "veshko", Currency.compact()),
     ).resolves.toBeTruthy();
     // …and an institution with no live branch is refused.
     await expect(
-      BankingApi.ensureVenueAccount("/domain/test/other2", "hollis", "", Currency.compact()),
+      BankingApi.ensureVenueAccount("/world/test/other2", "hollis", "", Currency.compact()),
     ).rejects.toThrow(/not a real custodian/);
   });
 
@@ -172,7 +172,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
   });
 
   it("re-owns the legacy raw `tpa` accumulator to the TPA Business", async () => {
-    const TPA_BIZ = "/domain/terminus/terminal/tpa";
+    const TPA_BIZ = "/world/terminus/terminal/tpa";
     vi.spyOn(AppApi, "setting").mockImplementation((k: string) => {
       if (k === AppSettingKeys.fasttravelTpaBusinessPath) return TPA_BIZ;
       if (k === AppSettingKeys.bankingDefaultCustodianBank) return "goodkin";

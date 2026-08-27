@@ -83,13 +83,13 @@ describe('ProducerApi.append ({author, actor, bucket} dedup)', () => {
     await ProducerApi.append({
       author: A,
       actor: P1,
-      zonePath: '/domain/lounge',
+      zonePath: '/world/lounge',
       realAt: 600_000,
     });
     const [row] = await ProducerApi.eventsFor(A);
     expect(row).toBeDefined();
     expect(row!.weight).toBe(1);
-    expect(row!.zonePath).toBe('/domain/lounge');
+    expect(row!.zonePath).toBe('/world/lounge');
     expect(row!.kind).toBe('engagement');
   });
 

@@ -184,7 +184,7 @@ function buildRows(subject: string, now: number): Record<string, Row[]> {
     producer.push({
       author: subject,
       actor,
-      zonePath: '/domain/eternal',
+      zonePath: '/world/eternal',
       weight: 1,
       bucket: Math.floor(realAt / BUCKET_MS),
       kind: 'engagement',

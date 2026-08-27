@@ -67,7 +67,7 @@ describe('EnrollController.commit → chronicle seeding', () => {
     );
     WorldClockApi._setNowProviderForTesting(() => 1000);
 
-    vi.spyOn(AppApi, 'setting').mockReturnValue('/domain/lounge/warren');
+    vi.spyOn(AppApi, 'setting').mockReturnValue('/world/lounge/warren');
 
     user = { _id: 'u1', playerIds: [], save: vi.fn().mockResolvedValue(undefined) };
     const interactive = makeStuff(
@@ -99,7 +99,7 @@ describe('EnrollController.commit → chronicle seeding', () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue({
       path: Avatar.SEED_TEMPLATE_PATH,
       class: '/obj/Avatar',
-      data: { startLocation: '/domain/lounge/warren' },
+      data: { startLocation: '/world/lounge/warren' },
       hydratorClass: '/obj/persistence/PersistentHydrator',
     } as never);
     vi.spyOn(TemplateApi, 'saveTemplate').mockImplementation(

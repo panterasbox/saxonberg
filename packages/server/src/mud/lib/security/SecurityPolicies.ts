@@ -136,7 +136,7 @@ function resolveModuleId(caller: unknown | null): string | null {
 /**
  * `FromTemplate(glob)` — caller's CMS template path matches `glob`.
  *
- * Useful for "anything cloned from /domain/narnia/**" rules.
+ * Useful for "anything cloned from /world/narnia/**" rules.
  */
 function FromTemplate(glob: string): SecurityPolicy {
   return {
@@ -168,7 +168,7 @@ function FromTemplate(glob: string): SecurityPolicy {
  * Glob examples:
  *   - `'/api/**'` matches every Api export under `api/` (src/mud/api/).
  *   - `'/lib/spatial/Door#Door'` matches exactly Door.
- *   - `'/domain/narnia/**'` matches every export under that subtree —
+ *   - `'/world/narnia/**'` matches every export under that subtree —
  *     the "developers don't trust each other" story where a subsystem
  *     owner gates onward calls into their module's privileged surface.
  *

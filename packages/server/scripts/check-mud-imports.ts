@@ -20,7 +20,7 @@
  *
  * Four tiers:
  *   - **mudlib** (the default — `lib/`, `obj/` outside `obj/api/`, `cmd/`,
- *     `domain/`, …): relative imports resolving inside `src/mud/`, plus
+ *     `world/`, …): relative imports resolving inside `src/mud/`, plus
  *     `@saxonberg/types`, plus any `import type`. Nothing else.
  *   - **api** (`mud/api/**`) and **objapi** (`mud/obj/api/**`): the
  *     wrapping tier — additionally may import an enumerated set of Node

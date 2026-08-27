@@ -9,7 +9,7 @@
  * belongs in one place too — not scattered as a per-file `const` in every
  * Api and class.
  *
- * **Platform only.** Authored content under `/domain/` references its own
+ * **Platform only.** Authored content under `/world/` references its own
  * paths in its seeds (and, for spawn/evacuation, in app config). That's
  * content, not platform, and does not belong here.
  *
@@ -155,7 +155,7 @@ export const ReservedTemplatePrefixes = ["/obj/api/"] as const;
  *   `/obj`     the commons — engine objects, gear, items, species
  *   `/trade`   the industries — what a trade INTRODUCES (its stations,
  *              its stock, its recipes), `/trade/<industry>/…`
- *   `/domain`  the places — localities and their venues
+ *   `/world`  the places — localities and their venues
  *   `/compact` the state
  *   `/corpo`   the marks
  *
@@ -163,7 +163,7 @@ export const ReservedTemplatePrefixes = ["/obj/api/"] as const;
  */
 export const TITLE_ROOTS: readonly string[] = [
   "/obj",
-  "/domain",
+  "/world",
   "/cmd",
   "/compact",
   "/studio",

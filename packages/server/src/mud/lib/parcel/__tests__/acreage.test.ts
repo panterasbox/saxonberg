@@ -32,8 +32,8 @@ import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import type { ParcelOwner } from "../ParcelRecord";
 
 const LANDLORD: ParcelOwner = { kind: "player", templatePath: "/obj/Avatar/lord" };
-const LOT = "/domain/test/lot";
-const BUILDING = "/domain/test/lot/building";
+const LOT = "/world/test/lot";
+const BUILDING = "/world/test/lot/building";
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -231,7 +231,7 @@ describe("the space account — the numbers anybody actually cares about", () =>
   });
 
   it("an unknown extent is all zeroes, never a throw", async () => {
-    const none = await ParcelApi.spaceOf("/domain/test/nowhere");
+    const none = await ParcelApi.spaceOf("/world/test/nowhere");
     expect(none).toEqual({
       capacity: 0,
       allocated: 0,

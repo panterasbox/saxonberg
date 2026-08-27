@@ -70,7 +70,7 @@ const COMMITTEE = {
   kind: "group" as const,
   name: "terminus",
   groupRef: "managed:g1",
-  subdivisionPath: "/domain/terminus/registry",
+  subdivisionPath: "/world/terminus/registry",
 };
 
 describe("CommitteeController", () => {
@@ -82,7 +82,7 @@ describe("CommitteeController", () => {
     ShadowApi._clearAllForTesting();
     room = makeStuffAtPath(
       () => new TestLocation(),
-      "/domain/terminus/registry/office"
+      "/world/terminus/registry/office"
     );
     giver = makeStuff(() => new NPC());
     captureScenes();
@@ -99,10 +99,10 @@ describe("CommitteeController", () => {
       .spyOn(CompactApi, "committeeOf")
       .mockResolvedValue(COMMITTEE);
     await run(giver, {} as CommandModel, ctx(giver, room));
-    expect(spy).toHaveBeenCalledWith("/domain/terminus/registry/office");
+    expect(spy).toHaveBeenCalledWith("/world/terminus/registry/office");
     const out = captured.join("\n");
     expect(out).toContain("Committee of record: terminus");
-    expect(out).toContain("/domain/terminus/registry");
+    expect(out).toContain("/world/terminus/registry");
     expect(out).toContain("none online");
     expect(out).toContain("mudcmd:committee channel");
   });
@@ -113,10 +113,10 @@ describe("CommitteeController", () => {
       .mockResolvedValue(COMMITTEE);
     await run(
       giver,
-      { path: "/domain/lounge" } as CommandModel,
+      { path: "/world/lounge" } as CommandModel,
       ctx(giver, room)
     );
-    expect(spy).toHaveBeenCalledWith("/domain/lounge");
+    expect(spy).toHaveBeenCalledWith("/world/lounge");
   });
 
   it("rejects honestly when the subdivision is personally held", async () => {

@@ -289,7 +289,7 @@ describe('ExecutionContextApi', () => {
       expect(() =>
         ExecutionContextApi._checkAllowlistForTest(
           'run',
-          'file:///proj/packages/server/src/mud/domain/evil.ts'
+          'file:///proj/packages/server/src/mud/world/evil.ts'
         )
       ).toThrow(SecurityError);
     });
@@ -310,14 +310,14 @@ describe('ExecutionContextApi', () => {
       try {
         ExecutionContextApi._checkAllowlistForTest(
           'tagCurrentFrame',
-          'file:///proj/packages/server/src/mud/domain/evil.ts'
+          'file:///proj/packages/server/src/mud/world/evil.ts'
         );
         expect.fail('should have thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(SecurityError);
         const err = e as SecurityError;
         expect(err.message).toContain('tagCurrentFrame');
-        expect(err.message).toContain('domain/evil.ts');
+        expect(err.message).toContain('world/evil.ts');
       }
     });
   });
@@ -480,7 +480,7 @@ describe('ExecutionContextApi', () => {
       expect(() =>
         ExecutionContextApi._checkAllowlistForTest(
           'updateCurrentFrameMetadata',
-          'file:///proj/packages/server/src/mud/domain/evil.ts'
+          'file:///proj/packages/server/src/mud/world/evil.ts'
         )
       ).toThrow(SecurityError);
     });

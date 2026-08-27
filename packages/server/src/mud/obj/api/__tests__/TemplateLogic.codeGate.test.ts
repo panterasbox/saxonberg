@@ -36,7 +36,7 @@ const OTHER_LEAF = "/obj/Prop";
 const FOLDER = "/obj/FolderZone";
 const HYDRATOR = "/obj/persistence/PersistentHydrator";
 const OTHER_HYDRATOR = "/lib/persistence/SomeOtherHydrator";
-const PATH = "/domain/gallery/widget";
+const PATH = "/world/gallery/widget";
 const ALICE = "/obj/Avatar/alice";
 
 let stores: Map<string, Record<string, unknown>[]>;
@@ -230,14 +230,14 @@ describe("TemplateLogic code-field gate", () => {
     // mkdir shape: FolderZone, empty data, no hydrator → allowed.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/domain/gallery/sub", FOLDER, {})
+        TemplateApi.saveTemplate("/world/gallery/sub", FOLDER, {})
       )
     ).resolves.toBeTruthy();
 
     // A non-folder (leaf) class on a fresh path is NOT a scaffold.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/domain/gallery/leaf", LEAF, {})
+        TemplateApi.saveTemplate("/world/gallery/leaf", LEAF, {})
       )
     ).rejects.toThrow(/class/);
   });
@@ -250,7 +250,7 @@ describe("TemplateLogic code-field gate", () => {
     // hydratorClass clause keeps the carve-out tight.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/domain/gallery/sub", FOLDER, {}, OTHER_HYDRATOR)
+        TemplateApi.saveTemplate("/world/gallery/sub", FOLDER, {}, OTHER_HYDRATOR)
       )
     ).rejects.toThrow(/hydratorClass|class/);
 
@@ -258,7 +258,7 @@ describe("TemplateLogic code-field gate", () => {
     // no-behaviors clause keeps the carve-out tight.
     await expect(
       asAuthor(alice, () =>
-        TemplateApi.saveTemplate("/domain/gallery/sub2", FOLDER, {
+        TemplateApi.saveTemplate("/world/gallery/sub2", FOLDER, {
           behaviors: [{ brain: "/lib/behavior/idles" }],
         })
       )

@@ -68,8 +68,9 @@ describe('the template walk', () => {
     ]);
     expect(r!.merged).toEqual(['/settings/s']);
     // The top-level cmd/ view is the command-view kind; the nested cmd/ is
-    // skipped by the template walk (and, outside content/domain, read by nobody).
-    expect(r!.documents['command-view']).toBe(1);
+    // skipped by the template walk and read as a content-tree view (ONE
+    // rule for every template tree — wave 4a), keyed `studio/eternal/cmd/provision`.
+    expect(r!.documents['command-view']).toBe(2);
   });
 
   it('a yaml document-kind dir (name-banks here; emotes, recipes, blueprints, releases alike) is never walked as templates', async () => {

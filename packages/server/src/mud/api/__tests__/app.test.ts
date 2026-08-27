@@ -51,10 +51,10 @@ describe("AppApi", () => {
 
   it("setting returns the seeded/stored value", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.evacuationFallback]: "/domain/void",
+      [AppSettingKeys.evacuationFallback]: "/world/void",
     });
     expect(AppApi.setting(AppSettingKeys.evacuationFallback)).toBe(
-      "/domain/void",
+      "/world/void",
     );
   });
 
@@ -66,30 +66,30 @@ describe("AppApi", () => {
 
   it("settings returns the whole bag (seeded + ad-hoc)", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.defaultStartLocation]: "/domain/lounge/warren",
+      [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
       motd: "hello",
     });
     const all = AppApi.settings();
-    expect(all[AppSettingKeys.defaultStartLocation]).toBe("/domain/lounge/warren");
+    expect(all[AppSettingKeys.defaultStartLocation]).toBe("/world/lounge/warren");
     expect(all.motd).toBe("hello");
   });
 
   it("setSetting writes the bag, persists, and refreshes the cache", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.defaultStartLocation]: "/domain/lounge/warren",
+      [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
     });
     const savesBefore = pm.saves.length;
 
-    await AppApi.setSetting(AppSettingKeys.defaultStartLocation, "/domain/new");
+    await AppApi.setSetting(AppSettingKeys.defaultStartLocation, "/world/new");
 
     expect(AppApi.setting(AppSettingKeys.defaultStartLocation)).toBe(
-      "/domain/new",
+      "/world/new",
     );
     expect(pm.saves.length).toBe(savesBefore + 1);
     expect(
       (pm.saves.at(-1)!.doc as { values: Record<string, string> }).values
         .defaultStartLocation,
-    ).toBe("/domain/new");
+    ).toBe("/world/new");
   });
 });
 

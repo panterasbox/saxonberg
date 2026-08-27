@@ -27,7 +27,7 @@ describe('lib-to-obj move map', () => {
 
   it('returns null for a string no rule matches', () => {
     expect(rewrite('/obj/Avatar')).toBeNull();
-    expect(rewrite('/domain/terminus/bar')).toBeNull();
+    expect(rewrite('/world/terminus/bar')).toBeNull();
     expect(rewrite('not a path at all')).toBeNull();
   });
 

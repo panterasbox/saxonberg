@@ -715,8 +715,8 @@ export class SecurityApi {
   static readonly #JURISDICTION_WALK_CAP = 32;
 
   /**
-   * Is `path` at or beneath `bound`? Segment-wise, so `/domain/lounge`
-   * does not swallow `/domain/loungewear`.
+   * Is `path` at or beneath `bound`? Segment-wise, so `/world/lounge`
+   * does not swallow `/world/loungewear`.
    */
   static #underExtent(path: string, bound: string): boolean {
     return path === bound || path.startsWith(`${bound}/`);
@@ -769,7 +769,7 @@ export class SecurityApi {
    *      governed eval the one receiver it most obviously covers — the
    *      wizard's own body, standing in the parcel they hold title to.
    *      Same for every clone: a corpse in the lounge is lineage
-   *      `/obj/Corpse` and location `/domain/lounge`.
+   *      `/obj/Corpse` and location `/world/lounge`.
    *   3. **You are nowhere yet** — unstamped AND unplaced, i.e. minted by
    *      this very run. `ScriptApi.mintEvalScratch` creates the scratch
    *      and *then* stamps its path, so at the instant of the stamp rules

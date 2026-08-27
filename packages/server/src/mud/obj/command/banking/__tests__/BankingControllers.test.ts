@@ -41,7 +41,7 @@ class TestGiver extends SensorMixin(
   static _mixinName = "TestGiver";
 }
 
-const BANK_PATH = "/domain/test/goodkin-bank";
+const BANK_PATH = "/world/test/goodkin-bank";
 const ALICE = "/obj/Avatar/alice";
 
 function stubCommand(verb: string): CommandDefinition {

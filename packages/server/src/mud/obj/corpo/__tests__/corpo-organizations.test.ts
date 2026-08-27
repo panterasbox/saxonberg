@@ -50,7 +50,7 @@ const SEEDS = fileURLToPath(new URL('../../../../../../content/world-seed/conten
 const CONTENT = fileURLToPath(new URL('../../../../../../content/', import.meta.url));
 
 const KEYS = ['aevex', 'goodkin', 'hollis', 'veshko', 'vionne'] as const;
-const BRANCH = '/domain/terminus/counting-houses/business';
+const BRANCH = '/world/terminus/counting-houses/business';
 
 interface Seed {
   class?: string;
@@ -144,7 +144,7 @@ describe('the five corpo organizations, as authored', () => {
 
 describe('the Goodkin branch, now that its parent exists', () => {
   it('⭐ is appointed by GOODKIN’s committee, not the city’s', () => {
-    const branch = readSeed('domain/terminus/counting-houses/business.yaml');
+    const branch = readSeed('world/terminus/counting-houses/business.yaml');
     expect(branch.data?.appointingAuthority).toEqual({
       kind: 'committee',
       parcel: '/corpo/goodkin',
@@ -152,12 +152,12 @@ describe('the Goodkin branch, now that its parent exists', () => {
   });
 
   it('⭐ names the corpo as its parent — the first content use of nesting', () => {
-    const branch = readSeed('domain/terminus/counting-houses/business.yaml');
+    const branch = readSeed('world/terminus/counting-houses/business.yaml');
     expect(branch.data?.parentOrganization).toBe('/corpo/goodkin');
   });
 
   it('stays a Business — the branch is what actually trades', () => {
-    const branch = readSeed('domain/terminus/counting-houses/business.yaml');
+    const branch = readSeed('world/terminus/counting-houses/business.yaml');
     expect(branch.class).toBe('/obj/Business');
     expect(branch.data?.banksAt).toBe('goodkin');
   });
@@ -174,7 +174,7 @@ function stubTitle(): void {
       if (path.startsWith('/corpo/goodkin')) {
         return { kind: 'organization', templatePath: '/corpo/goodkin' };
       }
-      if (path.startsWith('/domain/terminus')) {
+      if (path.startsWith('/world/terminus')) {
         return { kind: 'group', name: 'terminus', ref: TERMINUS_REF };
       }
       return null;
@@ -217,7 +217,7 @@ describe('⭐ the authority actually separates the company from the city', () =>
     const branch = stand(
       () => new BusinessEntity(),
       BRANCH,
-      readSeed('domain/terminus/counting-houses/business.yaml'),
+      readSeed('world/terminus/counting-houses/business.yaml'),
     );
     vi.spyOn(GroupApi, 'isMember').mockImplementation(
       async (playerId: string, ref: string) => ref === TERMINUS_REF && playerId === 'odile',
@@ -254,7 +254,7 @@ describe('⭐ the authority actually separates the company from the city', () =>
     const branch = stand(
       () => new BusinessEntity(),
       BRANCH,
-      readSeed('domain/terminus/counting-houses/business.yaml'),
+      readSeed('world/terminus/counting-houses/business.yaml'),
     );
     expect(
       EmploymentApi.organizationChainOf(branch).map((o) => o.getTemplatePath()),

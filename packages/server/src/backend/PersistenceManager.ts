@@ -1171,11 +1171,10 @@ export class PersistenceManager {
 
   /**
    * The one-time `documents` kind rename `script` → `msh` (the script
-   * document kind is the language's name — content-packs wave 2), plus
-   * the lounge exemplars' path move `/domain/lounge/scripts/<name>` →
-   * `/domain/lounge/msh/<name>` (the `saxonberg-lounge` pack's `msh/`
-   * dir). Idempotent: a `kind: 'script'` row never exists after the
-   * first run. Returns the number of rows renamed.
+   * document kind is the language's name — content-packs wave 2).
+   * Idempotent: a `kind: 'script'` row never exists after the first run.
+   * Returns the number of rows renamed. (The lounge exemplars' PATH move
+   * that rode this was deleted in wave 4a — drop-not-migrate.)
    */
   async #migrateScriptKind(db: {
     collection(name: string): {
@@ -1186,12 +1185,7 @@ export class PersistenceManager {
     const col = db.collection(Collections.Documents);
     const legacy = await col.find({ kind: 'script' }).toArray();
     for (const row of legacy) {
-      const path = String(row.path ?? '');
-      const set: Record<string, unknown> = { kind: 'msh' };
-      if (path.startsWith('/domain/lounge/scripts/')) {
-        set.path = '/domain/lounge/msh/' + path.slice('/domain/lounge/scripts/'.length);
-      }
-      await col.updateOne({ _id: row._id }, { $set: set });
+      await col.updateOne({ _id: row._id }, { $set: { kind: 'msh' } });
     }
     if (legacy.length > 0) {
       console.info(

@@ -19,7 +19,7 @@ import { BulkableApi } from "../../../api/bulk";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { Quantity } from "../../../lib/quantity";
 import Material from "../../../lib/material/Material";
-import CraftedDrink from "../../../domain/lounge/CraftedDrink";
+import CraftedDrink from "../../../world/lounge/CraftedDrink";
 import RecipeCatalogue from "../../RecipeCatalogue";
 import { Idea } from "../../../lib/stuff/Idea";
 import { NamedMixin } from "../../../lib/description/Named";
@@ -38,7 +38,7 @@ const GIN = "/obj/material/spirit/gin";
 const VERMOUTH = "/obj/material/spirit/vermouth";
 const MARTINI_MAT = "/obj/material/cocktail/martini";
 const MIXED_MAT = "/obj/material/cocktail/mixed";
-const DAVE = "/domain/lounge/dave-buildmint";
+const DAVE = "/world/lounge/dave-buildmint";
 
 class TestMaker extends NamedMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestMaker";
@@ -113,7 +113,7 @@ beforeEach(async () => {
       { slot: "mod", category: "vermouth", minGrade: "fair", measureL: 0.01 },
     ],
     toolCapabilities: ["mixing-glass"],
-    outputTemplate: "/domain/lounge/cocktail-glass",
+    outputTemplate: "/world/lounge/cocktail-glass",
     outputMaterial: MARTINI_MAT,
     baseGradeBand: "",
   });

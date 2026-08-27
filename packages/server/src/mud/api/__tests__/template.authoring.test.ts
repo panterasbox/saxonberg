@@ -46,7 +46,7 @@ function col(name: string): Record<string, unknown>[] {
 }
 
 const LEAF = '/lib/location/CartesianLocation';
-const PATH = '/domain/gallery/mural';
+const PATH = '/world/gallery/mural';
 const ALICE = '/obj/Avatar/alice';
 
 beforeEach(() => {

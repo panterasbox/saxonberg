@@ -812,10 +812,10 @@ export class Application {
     //
     // Authority comes from the SEAT: the test character is the founder,
     // so it heads the executive (which holds the platform — /obj, /cmd,
-    // /domain, /compact …) with no grant at all (content-packs wave 3).
+    // /world, /compact …) with no grant at all (content-packs wave 3).
     // What it still joins: `wizards` (code trust — eval / reload /
     // TS-escape, an orthogonal axis), the two other axis groups, and
-    // `lounge` — because /domain/lounge is a SUB-title held by the lounge
+    // `lounge` — because /world/lounge is a SUB-title held by the lounge
     // group and nearest-parcel wins for `can`, so the founder is tested
     // under it as a member rather than as the state.
     //

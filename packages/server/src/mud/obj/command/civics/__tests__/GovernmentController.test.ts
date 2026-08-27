@@ -34,7 +34,7 @@ type Loose = Record<string, unknown>;
 
 class TestLocation extends Location {}
 
-const BUSINESS = "/domain/terminus/registry/business";
+const BUSINESS = "/world/terminus/registry/business";
 
 const GOVERNMENTS: Loose[] = [
   {

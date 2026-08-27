@@ -72,7 +72,7 @@ import { Currency } from "../../../lib/banking/Currency";
 const TOPIC = 'act.deed';
 
 /** Where land business is transacted — the city's records counter. */
-const REGISTRY_ROOM = '/domain/terminus/registry/office';
+const REGISTRY_ROOM = '/world/terminus/registry/office';
 
 interface TitleModel extends CommandModel {
   subcommand?: string;

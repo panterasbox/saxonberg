@@ -16,7 +16,7 @@ import { Mml } from "../../../api/mml";
 import { MixinApi } from "../../../api/mixin";
 import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
-import { TpaPaths } from "../../../domain/common/tpa/paths";
+import { TpaPaths } from "../../../world/common/tpa/paths";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Containable } from "../../../lib/spatial/Containable";
 

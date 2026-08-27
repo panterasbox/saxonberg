@@ -27,11 +27,11 @@
  *     absolute as `/obj/command/<category>/<Name>Controller`, seeded at
  *     the platform pack's `content/obj/command/<category>/<Name>Controller.yaml`.
  *   - **Domain-local verbs** — spec under
- *     `domain/<sphere>/<locality>/cmd/`, controller written relative as
+ *     `world/<sphere>/<locality>/cmd/`, controller written relative as
  *     `../command/<Name>Controller` (the sibling `.../command/` dir),
- *     resolving to `/domain/<sphere>/<locality>/command/<Name>Controller`,
+ *     resolving to `/world/<sphere>/<locality>/command/<Name>Controller`,
  *     seeded at
- *     world-seed's `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml`.
+ *     world-seed's `content/world/<sphere>/<locality>/command/<Name>Controller.yaml`.
  *
  * Controllers are referenced at two levels — verb-level
  * (`controller:` at the spec root) and per-subcommand
@@ -53,7 +53,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const MUD_ROOT = join(here, "..", "..");
 // The engine verbs are the platform pack's content (content-packs wave 2).
 const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "cmd");
-const DOMAIN_ROOT = join(MUD_ROOT, "domain");
+const DOMAIN_ROOT = join(MUD_ROOT, "world");
 // The domain-local controllers are world-seed's rows (content-packs wave 3).
 const SEEDS_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "world-seed", "content");
 const PLATFORM_CONTENT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content");
@@ -73,17 +73,17 @@ function walkYaml(dir: string, out: string[]): void {
 
 /**
  * Every command spec on disk: all of `cmd/`, plus the domain-local
- * command specs (`domain/<sphere>/<locality>/cmd/*.yaml`) — the same
+ * command specs (`world/<sphere>/<locality>/cmd/*.yaml`) — the same
  * two roots CommandLogic discovers.
  */
 function collectSpecFiles(): string[] {
   const specs: string[] = [];
   walkYaml(CMD_ROOT, specs);
   const domainAll: string[] = [];
-  // A locality's views are its pack's `content/domain/**/cmd/*.yaml`
+  // A locality's views are its pack's `content/world/**/cmd/*.yaml`
   // (world-seed's, until each locality is homed); the code tree under
-  // `mud/domain` holds none since content-packs wave 3.
-  for (const root of [DOMAIN_ROOT, join(SEEDS_ROOT, "domain")]) {
+  // `mud/world` holds none since content-packs wave 3.
+  for (const root of [DOMAIN_ROOT, join(SEEDS_ROOT, "world")]) {
     try {
       walkYaml(root, domainAll);
     } catch {
@@ -172,7 +172,7 @@ describe("controller-seed integrity", () => {
     // content-local controllers (else this test silently stops covering
     // the pattern it was extended for).
     const domainRefs = [...templatePaths].filter((p) =>
-      p.startsWith("/domain/")
+      p.startsWith("/world/")
     );
     expect(domainRefs.length).toBeGreaterThan(0);
   });

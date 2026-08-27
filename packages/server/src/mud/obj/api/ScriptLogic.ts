@@ -110,7 +110,7 @@ function settingNum(key: string, fallback: number): number {
 /**
  * Resolve the resource ceiling for a run. Tiered by **authorship** —
  * player-home / inline scripts get the tight budget, released platform
- * content (`/obj/` + `/domain/`) the large one. v1 only has inline
+ * content (`/obj/` + `/world/`) the large one. v1 only has inline
  * prompt scripts (the path-addressed store is P7), so `authorPath` is
  * absent and the tight tier applies; the platform tier lights up when a
  * stored recipe-script invokes with its `/obj/` path.
@@ -118,7 +118,7 @@ function settingNum(key: string, fallback: number): number {
 function resolveLimits(authorPath?: string): ResourceLimits {
   const platform =
     authorPath !== undefined &&
-    (authorPath.startsWith("/obj/") || authorPath.startsWith("/domain/"));
+    (authorPath.startsWith("/obj/") || authorPath.startsWith("/world/"));
   return {
     sliceSteps: settingNum(AppSettingKeys.scriptSliceSteps, 1000),
     maxSteps: platform

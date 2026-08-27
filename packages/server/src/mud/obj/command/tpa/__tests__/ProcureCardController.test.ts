@@ -7,8 +7,8 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ProcureCardController from "../ProcureCardController";
-import TravelCard from "../../../../domain/common/tpa/TravelCard";
-import { TpaPaths } from "../../../../domain/common/tpa/paths";
+import TravelCard from "../../../../world/common/tpa/TravelCard";
+import { TpaPaths } from "../../../../world/common/tpa/paths";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
 import { CommandGiverMixin } from "../../../../lib/command/CommandGiver";

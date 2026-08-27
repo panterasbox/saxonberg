@@ -34,7 +34,7 @@ import { SpeciesApi } from '../api/species';
 import { MixinApi } from '../api/mixin';
 
 /** The zone root Gus's gear templates live under. */
-const ROOT = '/domain/eternal/university-avenue';
+const ROOT = '/world/eternal/university-avenue';
 
 /**
  * Worn/wielded gear — each item resolves its OWN body-plan slot claim

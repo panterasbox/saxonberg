@@ -258,12 +258,12 @@ describe('TemplateApi.validateReservedPath', () => {
     ).rejects.toThrow(/reserved/);
   });
 
-  it('allows ordinary /obj and /domain paths', async () => {
+  it('allows ordinary /obj and /world paths', async () => {
     await expect(
       TemplateApi.validateReservedPath({ path: '/obj/SoulCatalogue' })
     ).resolves.toBeUndefined();
     await expect(
-      TemplateApi.validateReservedPath({ path: '/domain/lounge/bar' })
+      TemplateApi.validateReservedPath({ path: '/world/lounge/bar' })
     ).resolves.toBeUndefined();
   });
 });

@@ -3,16 +3,16 @@ import { DiagnosticChannel, GLOBAL_CHANNEL } from '../DiagnosticChannel';
 
 describe('pathToChannel', () => {
   it('maps explicit zone content to zone.<zone>', () => {
-    expect(DiagnosticChannel.pathToChannel('/home/x/domain/zones/cliffside/Goat.ts')).toBe(
+    expect(DiagnosticChannel.pathToChannel('/home/x/world/zones/cliffside/Goat.ts')).toBe(
       'zone.cliffside'
     );
-    expect(DiagnosticChannel.pathToChannel('/seeds/domain/zones/terminus/Room.ts')).toBe(
+    expect(DiagnosticChannel.pathToChannel('/seeds/world/zones/terminus/Room.ts')).toBe(
       'zone.terminus'
     );
   });
 
   it('maps the authored lounge tree to zone.lounge', () => {
-    expect(DiagnosticChannel.pathToChannel('/mud/domain/lounge/Bar.ts')).toBe('zone.lounge');
+    expect(DiagnosticChannel.pathToChannel('/mud/world/lounge/Bar.ts')).toBe('zone.lounge');
     expect(DiagnosticChannel.pathToChannel('/mud/lib/lounge/LoungeWarren.ts')).toBe(
       'zone.lounge'
     );

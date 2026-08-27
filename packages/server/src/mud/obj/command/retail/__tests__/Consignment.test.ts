@@ -52,14 +52,14 @@ import {
   teardownBankingHarness,
 } from "../../../../lib/banking/__tests__/banking-test-harness";
 
-const BANK = "/domain/terminus/counting-houses/bank-counter";
-const SHELF = "/domain/terminus/general-store/consignment-shelf";
+const BANK = "/world/terminus/counting-houses/bank-counter";
+const SHELF = "/world/terminus/general-store/consignment-shelf";
 
 /** The store's Business (operates the shelf; authored custody). */
 async function makeStoreBusiness(): Promise<string> {
   const biz = makeStuffAtPath(
     () => new BusinessEntity(),
-    "/domain/terminus/general-store/business",
+    "/world/terminus/general-store/business",
   );
   biz.proprietorPath = "";
   biz.positions = [];

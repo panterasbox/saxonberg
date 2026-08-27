@@ -296,17 +296,17 @@ afterEach(() => {
 describe("round-trip (AC: capture → store → restore)", () => {
   it("restores a host's declared field state onto a fresh shell", async () => {
     cloneFactories = {};
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
     room.setLabel("Dave's Bar");
 
     await PersistableApi.capture(room);
     expect(snapshots).toHaveLength(1);
-    expect(snapshots[0]!.scope).toBe("/domain/room");
+    expect(snapshots[0]!.scope).toBe("/world/room");
 
     // A fresh shell (as if re-cloned after eviction) restores the label.
     const reborn = await evictAndMaterialize(
       room,
-      "/domain/room",
+      "/world/room",
       () => new RoomHost(),
     );
     expect(reborn.getLabel()).toBe("Dave's Bar");
@@ -316,15 +316,15 @@ describe("round-trip (AC: capture → store → restore)", () => {
 describe("per-mixin composition (AC: Container + Graded + Propertied)", () => {
   it("captures and restores each mixin slice independently", async () => {
     cloneFactories = {
-      "/domain/gadget": () => new GadgetChest(),
-      "/domain/trinket": () => new Trinket(),
+      "/world/gadget": () => new GadgetChest(),
+      "/world/trinket": () => new Trinket(),
     };
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const gadget = makeStuffAtPath(() => new GadgetChest(), "/domain/gadget");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const gadget = makeStuffAtPath(() => new GadgetChest(), "/world/gadget");
     gadget.setGradeBand("fine");
     gadget.initProp(Property.of<number>("charge"), { transient: false });
     gadget.setProp(Property.of<number>("charge"), 42);
-    const trinket = makeStuffAtPath(() => new Trinket(), "/domain/trinket");
+    const trinket = makeStuffAtPath(() => new Trinket(), "/world/trinket");
     trinket.setTag("ruby");
     ContainmentApi.move(trinket, gadget); // nested inside the gadget
     ContainmentApi.move(gadget, room);
@@ -344,7 +344,7 @@ describe("per-mixin composition (AC: Container + Graded + Propertied)", () => {
     // Restore reassembles each slice.
     const reborn = await evictAndMaterialize(
       room,
-      "/domain/room",
+      "/world/room",
       () => new RoomHost(),
     );
     const rGadget = reborn.getContents()[0] as GadgetChest;
@@ -358,13 +358,13 @@ describe("per-mixin composition (AC: Container + Graded + Propertied)", () => {
 describe("room + nested content chest (AC #4)", () => {
   it("contents incl. nested survive and reassemble; shell re-clones", async () => {
     cloneFactories = {
-      "/domain/chest": () => new ContentChest(),
-      "/domain/trinket": () => new Trinket(),
+      "/world/chest": () => new ContentChest(),
+      "/world/trinket": () => new Trinket(),
     };
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const chest = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const chest = makeStuffAtPath(() => new ContentChest(), "/world/chest");
     chest.setLabel("oak chest");
-    const trinket = makeStuffAtPath(() => new Trinket(), "/domain/trinket");
+    const trinket = makeStuffAtPath(() => new Trinket(), "/world/trinket");
     trinket.setTag("locket");
     ContainmentApi.move(trinket, chest);
     ContainmentApi.move(chest, room);
@@ -373,7 +373,7 @@ describe("room + nested content chest (AC #4)", () => {
 
     const reborn = await evictAndMaterialize(
       room,
-      "/domain/room",
+      "/world/room",
       () => new RoomHost(),
     );
     const rChest = reborn.getContents()[0] as ContentChest;
@@ -384,10 +384,10 @@ describe("room + nested content chest (AC #4)", () => {
 
 describe("identical content chests differentiate by position (AC #5)", () => {
   it("two chests from one template restore distinct state onto distinct clones", async () => {
-    cloneFactories = { "/domain/chest": () => new ContentChest() };
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const a = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
-    const b = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
+    cloneFactories = { "/world/chest": () => new ContentChest() };
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const a = makeStuffAtPath(() => new ContentChest(), "/world/chest");
+    const b = makeStuffAtPath(() => new ContentChest(), "/world/chest");
     a.setLabel("first");
     b.setLabel("second");
     ContainmentApi.move(a, room);
@@ -397,7 +397,7 @@ describe("identical content chests differentiate by position (AC #5)", () => {
 
     const reborn = await evictAndMaterialize(
       room,
-      "/domain/room",
+      "/world/room",
       () => new RoomHost(),
     );
     const labels = reborn.getContents().map((c) => (c as ContentChest).getLabel());
@@ -412,20 +412,20 @@ describe("identical content chests differentiate by position (AC #5)", () => {
 describe("two persistable hosts compose (AC #6)", () => {
   it("room records a {ref}; the chest holds its own contents; move re-keys the referrer", async () => {
     cloneFactories = {
-      "/domain/hostchest": () => new HostChest(),
-      "/domain/trinket": () => new Trinket(),
+      "/world/hostchest": () => new HostChest(),
+      "/world/trinket": () => new Trinket(),
     };
     // The chest host is a player-owned title.
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) =>
-        p === "/domain/hostchest"
+        p === "/world/hostchest"
           ? { kind: "player", templatePath: "/obj/Avatar/alice" }
           : { kind: "group", name: "lounge" },
     );
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const chest = makeStuffAtPath(() => new HostChest(), "/domain/hostchest");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const chest = makeStuffAtPath(() => new HostChest(), "/world/hostchest");
     chest.setLabel("strongbox");
-    const trinket = makeStuffAtPath(() => new Trinket(), "/domain/trinket");
+    const trinket = makeStuffAtPath(() => new Trinket(), "/world/trinket");
     trinket.setTag("deed");
     ContainmentApi.move(trinket, chest);
     ContainmentApi.move(chest, room);
@@ -433,49 +433,49 @@ describe("two persistable hosts compose (AC #6)", () => {
     await PersistableApi.capture(chest); // chest persists itself
     await PersistableApi.capture(room); // room references it
 
-    const roomRec = snapshots.find((s) => s.scope === "/domain/room")!;
+    const roomRec = snapshots.find((s) => s.scope === "/world/room")!;
     expect(containerContents(roomRec)[0]).toEqual({
-      ref: "/domain/hostchest",
+      ref: "/world/hostchest",
       placement: {},
     });
     // The chest's OWN record holds its contents, keyed to the chest, owner=alice.
-    const chestRec = snapshots.find((s) => s.scope === "/domain/hostchest")!;
+    const chestRec = snapshots.find((s) => s.scope === "/world/hostchest")!;
     expect(chestRec.owner).toBe("/obj/Avatar/alice");
     expect(
       (containerContents(chestRec)[0] as { templatePath: string }).templatePath,
-    ).toBe("/domain/trinket");
+    ).toBe("/world/trinket");
 
     // Move the chest to a new host and re-capture: the chest's record stays
     // keyed to the chest; only the new referrer changes.
-    const room2 = makeStuffAtPath(() => new RoomHost(), "/domain/room-b");
+    const room2 = makeStuffAtPath(() => new RoomHost(), "/world/room-b");
     ContainmentApi.move(chest, room2);
     await PersistableApi.capture(room2);
-    const room2Rec = snapshots.find((s) => s.scope === "/domain/room-b")!;
+    const room2Rec = snapshots.find((s) => s.scope === "/world/room-b")!;
     expect(containerContents(room2Rec)[0]).toEqual({
-      ref: "/domain/hostchest",
+      ref: "/world/hostchest",
       placement: {},
     });
     // Chest's own record untouched (still keyed to the chest).
-    expect(snapshots.find((s) => s.scope === "/domain/hostchest")!.owner).toBe(
+    expect(snapshots.find((s) => s.scope === "/world/hostchest")!.owner).toBe(
       "/obj/Avatar/alice",
     );
   });
 
   it("materialize reconstructs the tree by following the reference", async () => {
     cloneFactories = {
-      "/domain/hostchest": () => new HostChest(),
-      "/domain/trinket": () => new Trinket(),
+      "/world/hostchest": () => new HostChest(),
+      "/world/trinket": () => new Trinket(),
     };
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) =>
-        p === "/domain/hostchest"
+        p === "/world/hostchest"
           ? { kind: "player", templatePath: "/obj/Avatar/alice" }
           : { kind: "group", name: "lounge" },
     );
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const chest = makeStuffAtPath(() => new HostChest(), "/domain/hostchest");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const chest = makeStuffAtPath(() => new HostChest(), "/world/hostchest");
     chest.setLabel("strongbox");
-    const trinket = makeStuffAtPath(() => new Trinket(), "/domain/trinket");
+    const trinket = makeStuffAtPath(() => new Trinket(), "/world/trinket");
     trinket.setTag("deed");
     ContainmentApi.move(trinket, chest);
     ContainmentApi.move(chest, room);
@@ -486,7 +486,7 @@ describe("two persistable hosts compose (AC #6)", () => {
     // walk clones the chest host (which self-materializes its own trinket).
     evict(room);
     StuffApi.unregister(chest);
-    const reborn = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    const reborn = makeStuffAtPath(() => new RoomHost(), "/world/room");
     await PersistableApi.materialize(reborn);
 
     const rChest = reborn.getContents()[0] as HostChest;
@@ -497,18 +497,18 @@ describe("two persistable hosts compose (AC #6)", () => {
 
 describe("room decomposes by owner (AC #7)", () => {
   it("each principal's nested host-chest restores as its own owner", async () => {
-    cloneFactories = { "/domain/chestA": () => new HostChest() };
+    cloneFactories = { "/world/chestA": () => new HostChest() };
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) => {
-        if (p === "/domain/chestA")
+        if (p === "/world/chestA")
           return { kind: "player", templatePath: "/obj/Avatar/alice" };
-        if (p === "/domain/chestB")
+        if (p === "/world/chestB")
           return { kind: "player", templatePath: "/obj/Avatar/bob" };
         return { kind: "group", name: "lounge" };
       },
     );
-    const chestA = makeStuffAtPath(() => new HostChest(), "/domain/chestA");
-    const chestB = makeStuffAtPath(() => new HostChest(), "/domain/chestB");
+    const chestA = makeStuffAtPath(() => new HostChest(), "/world/chestA");
+    const chestB = makeStuffAtPath(() => new HostChest(), "/world/chestB");
     await PersistableApi.capture(chestA);
     await PersistableApi.capture(chestB);
 
@@ -519,15 +519,15 @@ describe("room decomposes by owner (AC #7)", () => {
 
 describe("security (AC #8)", () => {
   it("a forged record cannot inject class/hydratorClass/brain or undeclared keys", async () => {
-    cloneFactories = { "/domain/chest": () => new ContentChest() };
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    cloneFactories = { "/world/chest": () => new ContentChest() };
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
     await PersistableApi.capture(room);
     // Forge: a content entry whose fields try to set executable-code fields.
-    const forged = snapshots.find((s) => s.scope === "/domain/room")!;
+    const forged = snapshots.find((s) => s.scope === "/world/room")!;
     (forged.state as Record<string, { contents: unknown[] }>).ContainerMixin = {
       contents: [
         {
-          templatePath: "/domain/chest",
+          templatePath: "/world/chest",
           state: {
             ContentChest: {
               fields: {
@@ -545,7 +545,7 @@ describe("security (AC #8)", () => {
     };
     const reborn = await evictAndMaterialize(
       room,
-      "/domain/room",
+      "/world/room",
       () => new RoomHost(),
     );
     const chest = reborn.getContents()[0] as ContentChest;
@@ -561,14 +561,14 @@ describe("security (AC #8)", () => {
   });
 
   it("a forged value that violates a setter invariant aborts the record's restore", async () => {
-    cloneFactories = { "/domain/gadget": () => new GadgetChest() };
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    cloneFactories = { "/world/gadget": () => new GadgetChest() };
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
     await PersistableApi.capture(room);
-    const forged = snapshots.find((s) => s.scope === "/domain/room")!;
+    const forged = snapshots.find((s) => s.scope === "/world/room")!;
     (forged.state as Record<string, { contents: unknown[] }>).ContainerMixin = {
       contents: [
         {
-          templatePath: "/domain/gadget",
+          templatePath: "/world/gadget",
           state: { GradedMixin: { fields: { gradeBand: "not-a-real-band" } } },
           placement: {},
         },
@@ -576,7 +576,7 @@ describe("security (AC #8)", () => {
     };
     // The invariant setter throws → the record's restore aborts (atomic).
     evict(room);
-    const reborn = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    const reborn = makeStuffAtPath(() => new RoomHost(), "/world/room");
     await expect(PersistableApi.materialize(reborn)).rejects.toThrow();
   });
 
@@ -621,15 +621,15 @@ describe("security (AC #8)", () => {
 
 describe("eviction seam (AC #9)", () => {
   it("a persistable host with contents does NOT veto; a non-persistable one does", () => {
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const chest = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const chest = makeStuffAtPath(() => new ContentChest(), "/world/chest");
     ContainmentApi.move(chest, room);
     // Persistable host with contents → falls through (evicts after capture).
     expect(room.canEvict({ idleMs: 10, reason: "idle" }).ok).toBe(true);
 
     // Plain (non-persistable) container with contents → still vetoes.
-    const plain = makeStuffAtPath(() => new ContentChest(), "/domain/plain");
-    const inner = makeStuffAtPath(() => new Trinket(), "/domain/trinket");
+    const plain = makeStuffAtPath(() => new ContentChest(), "/world/plain");
+    const inner = makeStuffAtPath(() => new Trinket(), "/world/trinket");
     ContainmentApi.move(inner, plain);
     expect(plain.canEvict({ idleMs: 10, reason: "idle" }).ok).toBe(false);
   });
@@ -637,13 +637,13 @@ describe("eviction seam (AC #9)", () => {
 
 describe("seed-then-persist (AC #10)", () => {
   it("applyPopulates RETAINS the declared specs but does not seed at hydration", async () => {
-    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    cloneFactories = { "/world/chest": () => new ContentChest() };
     // A persistable host is a bare shell at hydration (its key isn't set yet,
     // so a hasRecord gate can't tell seed from restore). The `populates` hook
     // therefore only retains the specs — it seeds NOTHING here, even with a
     // clone factory available. The keyed holder lays them down later.
-    const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
-    await fresh.applyPopulates(["/domain/chest"]); // retains; does NOT seed now
+    const fresh = makeStuffAtPath(() => new RoomHost(), "/world/fresh");
+    await fresh.applyPopulates(["/world/chest"]); // retains; does NOT seed now
     expect(fresh.getContents()).toHaveLength(0);
   });
 
@@ -658,25 +658,25 @@ describe("seed-then-persist (AC #10)", () => {
     cloneFactories = {};
     // A persistable host with no `populates:` (an Avatar, whose loadout is
     // seeded imperatively) seeds nothing — no PopulatesMixin need be composed.
-    const fresh = makeStuffAtPath(() => new RoomHost(), "/domain/fresh");
+    const fresh = makeStuffAtPath(() => new RoomHost(), "/world/fresh");
     await fresh.seedBornWith(); // empty specs → no-op, no throw
     expect(fresh.getContents()).toHaveLength(0);
   });
 
   it("never double-seeds on restore — the holder restores instead of calling seedBornWith", async () => {
-    cloneFactories = { "/domain/chest": () => new ContentChest() };
+    cloneFactories = { "/world/chest": () => new ContentChest() };
     // Seed a room, capture, evict, re-clone: on the has-record branch the
     // holder restores (never calls seedBornWith), and the reborn shell's
     // retained specs sit unused — no duplication.
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const chest = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const chest = makeStuffAtPath(() => new ContentChest(), "/world/chest");
     ContainmentApi.move(chest, room);
     await PersistableApi.capture(room);
-    expect(await PersistableApi.hasRecord("/domain/room")).toBe(true);
+    expect(await PersistableApi.hasRecord("/world/room")).toBe(true);
 
     evict(room);
-    const reborn = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    await reborn.applyPopulates(["/domain/chest"]); // retained, but NOT seeded
+    const reborn = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    await reborn.applyPopulates(["/world/chest"]); // retained, but NOT seeded
     expect(reborn.getContents()).toHaveLength(0); // restore branch: no re-seed
   });
 });
@@ -684,9 +684,9 @@ describe("seed-then-persist (AC #10)", () => {
 describe("marshalled value round-trip (pre-build note #5 landmine)", () => {
   it("a rich marshalled property (a Quantity) survives capture → restore", async () => {
     installV1QuantityMarshallers();
-    cloneFactories = { "/domain/gadget": () => new GadgetChest() };
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
-    const gadget = makeStuffAtPath(() => new GadgetChest(), "/domain/gadget");
+    cloneFactories = { "/world/gadget": () => new GadgetChest() };
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
+    const gadget = makeStuffAtPath(() => new GadgetChest(), "/world/gadget");
     const mass = Property.of<Quantity<"kg">>("mass");
     gadget.initProp(mass, {
       transient: false,
@@ -698,7 +698,7 @@ describe("marshalled value round-trip (pre-build note #5 landmine)", () => {
     await PersistableApi.capture(room);
     const reborn = await evictAndMaterialize(
       room,
-      "/domain/room",
+      "/world/room",
       () => new RoomHost(),
     );
     const rGadget = reborn.getContents()[0] as GadgetChest;
@@ -713,20 +713,20 @@ describe("marshalled value round-trip (pre-build note #5 landmine)", () => {
 describe("host self-placement (Avatar-migration substrate)", () => {
   it("captures a Containable host's own location and re-places it on restore", async () => {
     cloneFactories = {};
-    const room = makeStuffAtPath(() => new ContentChest(), "/domain/room-c");
-    const mover = makeStuffAtPath(() => new MovableHost(), "/domain/mover");
+    const room = makeStuffAtPath(() => new ContentChest(), "/world/room-c");
+    const mover = makeStuffAtPath(() => new MovableHost(), "/world/mover");
     mover.setLabel("wanderer");
     ContainmentApi.move(mover, room);
 
     await PersistableApi.capture(mover);
     // The record carries the host's own placement.
-    const rec = snapshots.find((s) => s.scope === "/domain/mover")!;
-    expect(rec.place).toEqual({ container: "/domain/room-c" });
+    const rec = snapshots.find((s) => s.scope === "/world/mover")!;
+    expect(rec.place).toEqual({ container: "/world/room-c" });
 
     // Evict just the mover (room stays registered); re-clone + materialize
     // → it re-homes into the room via the captured placement.
     StuffApi.unregister(mover);
-    const reborn = makeStuffAtPath(() => new MovableHost(), "/domain/mover");
+    const reborn = makeStuffAtPath(() => new MovableHost(), "/world/mover");
     await PersistableApi.materialize(reborn);
     expect(reborn.getLabel()).toBe("wanderer");
     expect(reborn.getContainer()).toBe(room);
@@ -736,16 +736,16 @@ describe("host self-placement (Avatar-migration substrate)", () => {
 describe("avatar-shaped host (Avatar migration end-to-end)", () => {
   it("round-trips fields + inventory + worn gear + own location, owner = self", async () => {
     cloneFactories = {
-      "/domain/pack": () => new ContentChest(),
-      "/domain/coat": () => new Garment(),
+      "/world/pack": () => new ContentChest(),
+      "/world/coat": () => new Garment(),
     };
-    const room = makeStuffAtPath(() => new ContentChest(), "/domain/lounge");
+    const room = makeStuffAtPath(() => new ContentChest(), "/world/lounge");
     const av = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p1");
     av.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
     av.setCallsign("Mallow");
-    const pack = makeStuffAtPath(() => new ContentChest(), "/domain/pack");
+    const pack = makeStuffAtPath(() => new ContentChest(), "/world/pack");
     pack.setLabel("backpack");
-    const coat = makeStuffAtPath(() => new Garment(), "/domain/coat");
+    const coat = makeStuffAtPath(() => new Garment(), "/world/coat");
     coat.setTag("greatcoat");
     ContainmentApi.move(pack, av); // carried
     ContainmentApi.move(coat, av); // carried...
@@ -755,7 +755,7 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
     await PersistableApi.capture(av);
     const rec = snapshots.find((s) => s.scope === "/obj/Avatar/p1")!;
     expect(rec.owner).toBe("/obj/Avatar/p1"); // self-owned
-    expect(rec.place).toEqual({ container: "/domain/lounge" });
+    expect(rec.place).toEqual({ container: "/world/lounge" });
 
     // A fresh clone (relogin) restores everything.
     StuffApi.unregister(av);
@@ -777,20 +777,20 @@ describe("avatar-shaped host (Avatar migration end-to-end)", () => {
 
   it("is skipped from another host's captured contents (never content)", async () => {
     cloneFactories = {};
-    const room = makeStuffAtPath(() => new RoomHost(), "/domain/room");
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room");
     const av = makeStuffAtPath(() => new AvatarLike(), "/obj/Avatar/p2");
     ContainmentApi.move(av, room);
     await PersistableApi.capture(room);
     // The room records no content entry for the live avatar occupant.
-    expect(containerContents(snapshots.find((s) => s.scope === "/domain/room")!)).toEqual([]);
+    expect(containerContents(snapshots.find((s) => s.scope === "/world/room")!)).toEqual([]);
   });
 });
 
 describe("the (scope, key) uniqueness invariant (no two clones stepping on each other)", () => {
   it("throws when a second live instance would write the SAME (scope, key)", async () => {
     cloneFactories = {};
-    const a = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
-    const b = makeStuffAtPath(() => new MovableHost(), "/domain/dup");
+    const a = makeStuffAtPath(() => new MovableHost(), "/world/dup");
+    const b = makeStuffAtPath(() => new MovableHost(), "/world/dup");
     // Both derive the SAME scope-owner (a MovableHost is a singleton shape) —
     // the footgun. The guard is precise: `a` captures fine (no sibling has
     // claimed the key yet); `b`'s capture, which would clobber `a`'s record,
@@ -805,12 +805,12 @@ describe("the (scope, key) uniqueness invariant (no two clones stepping on each 
 describe("multi-instance hosts (D1: explicit-key persistence)", () => {
   it("two instances of one scope with DISTINCT keys → distinct records; no collision", async () => {
     cloneFactories = {};
-    const k1 = "/domain/dorms/f1-r1";
-    const k2 = "/domain/dorms/f1-r2";
+    const k1 = "/world/dorms/f1-r1";
+    const k2 = "/world/dorms/f1-r2";
     // Two LIVE instances at the same templatePath — a collision only if they
     // share a key; distinct keys never collide (no marker, no relaxation).
-    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
-    const b = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const a = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
+    const b = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     a.setLabel("alice's room");
     b.setLabel("bob's room");
 
@@ -822,16 +822,16 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
     expect(snapshots).toHaveLength(2);
     const owners = snapshots.map((s) => s.owner).sort();
     expect(owners).toEqual([k1, k2]);
-    expect(snapshots.every((s) => s.scope === "/domain/dormroom")).toBe(true);
+    expect(snapshots.every((s) => s.scope === "/world/dormroom")).toBe(true);
   });
 
   it("materialize(host, key) restores that key's record only", async () => {
     cloneFactories = {};
-    const k1 = "/domain/dorms/f1-r1";
-    const k2 = "/domain/dorms/f1-r2";
+    const k1 = "/world/dorms/f1-r1";
+    const k2 = "/world/dorms/f1-r2";
     // Two records under ONE scope, distinct keys + distinct content, written
     // by re-capturing a single instance under each key.
-    const src = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const src = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     src.setLabel("alice's room");
     await PersistableApi.capture(src, k1);
     src.setLabel("bob's room");
@@ -840,43 +840,43 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
     StuffApi.unregister(src);
 
     // A fresh shell keyed on k1 restores alice; keyed on k2 restores bob.
-    const r1 = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const r1 = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     await PersistableApi.materialize(r1, k1);
     expect(r1.getLabel()).toBe("alice's room");
     StuffApi.unregister(r1);
-    const r2 = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const r2 = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     await PersistableApi.materialize(r2, k2);
     expect(r2.getLabel()).toBe("bob's room");
   });
 
   it("keyed materialize with no matching record is a clean no-op", async () => {
     cloneFactories = {};
-    const reborn = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
-    await PersistableApi.materialize(reborn, "/domain/dorms/f9-r9"); // no throw
+    const reborn = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
+    await PersistableApi.materialize(reborn, "/world/dorms/f9-r9"); // no throw
     expect(reborn.getLabel()).toBe("");
   });
 
   it("hasRecord(scope, key) tests the single keyed record", async () => {
     cloneFactories = {};
-    const k1 = "/domain/dorms/f1-r1";
-    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const k1 = "/world/dorms/f1-r1";
+    const a = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     await PersistableApi.capture(a, k1);
-    expect(await PersistableApi.hasRecord("/domain/dormroom", k1)).toBe(true);
+    expect(await PersistableApi.hasRecord("/world/dormroom", k1)).toBe(true);
     expect(
-      await PersistableApi.hasRecord("/domain/dormroom", "/domain/dorms/f1-r2"),
+      await PersistableApi.hasRecord("/world/dormroom", "/world/dorms/f1-r2"),
     ).toBe(false);
   });
 
   it("stashed-key reuse: keyed materialize then keyless capture writes the same record", async () => {
     cloneFactories = {};
-    const k1 = "/domain/dorms/f1-r1";
-    const seed = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const k1 = "/world/dorms/f1-r1";
+    const seed = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     seed.setLabel("original");
     await PersistableApi.capture(seed, k1);
     StuffApi.unregister(seed);
 
     // Materialize with the key (stashes it), mutate, then capture with NO key.
-    const live = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const live = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     await PersistableApi.materialize(live, k1);
     expect(live.getLabel()).toBe("original");
     live.setLabel("edited");
@@ -892,10 +892,10 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
   });
 
   it("applyPopulates is a no-op (the context drives seed vs restore with the key)", async () => {
-    cloneFactories = { "/domain/chest": () => new ContentChest() };
-    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    cloneFactories = { "/world/chest": () => new ContentChest() };
+    const room = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     // Even with NO record, a keyed host seeds nothing here (context-driven).
-    await room.applyPopulates(["/domain/chest"]);
+    await room.applyPopulates(["/world/chest"]);
     expect(room.getContents()).toHaveLength(0);
   });
 });
@@ -903,27 +903,27 @@ describe("multi-instance hosts (D1: explicit-key persistence)", () => {
 describe("restoreOrSeed — the keyed-holder ground pattern", () => {
   it("SEEDS on the no-record branch, then captures, and reports false", async () => {
     cloneFactories = {};
-    const key = "/domain/dorms/f1-r1";
-    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const key = "/world/dorms/f1-r1";
+    const room = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
 
     const restored = await PersistableApi.restoreOrSeed(room, key);
 
     expect(restored).toBe(false); // first provision
     // …and the capture happened, keyed, so the next standup restores.
     expect(snapshots).toHaveLength(1);
-    expect(snapshots[0]!.scope).toBe("/domain/dormroom");
+    expect(snapshots[0]!.scope).toBe("/world/dormroom");
     expect(snapshots[0]!.owner).toBe(key);
   });
 
   it("MATERIALIZES on the has-record branch, and reports true", async () => {
     cloneFactories = {};
-    const key = "/domain/dorms/f1-r1";
-    const seed = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const key = "/world/dorms/f1-r1";
+    const seed = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     seed.setLabel("alice's room");
     await PersistableApi.capture(seed, key);
     StuffApi.unregister(seed);
 
-    const reborn = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const reborn = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     const restored = await PersistableApi.restoreOrSeed(reborn, key);
 
     expect(restored).toBe(true); // re-entry, not a first provision
@@ -935,10 +935,10 @@ describe("restoreOrSeed — the keyed-holder ground pattern", () => {
     // The branch this extraction exists to get right. Stand a host up
     // twice through restoreOrSeed: the first seeds, the second restores.
     // Seeding twice would duplicate every fixture in the room.
-    cloneFactories = { "/domain/chest": () => new ContentChest() };
-    const key = "/domain/dorms/f2-r7";
+    cloneFactories = { "/world/chest": () => new ContentChest() };
+    const key = "/world/dorms/f2-r7";
 
-    const first = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const first = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     let seedCalls = 0;
     const realSeed = first.seedBornWith.bind(first);
     (first as unknown as { seedBornWith: () => Promise<void> }).seedBornWith =
@@ -950,7 +950,7 @@ describe("restoreOrSeed — the keyed-holder ground pattern", () => {
     expect(seedCalls).toBe(1);
     StuffApi.unregister(first);
 
-    const second = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const second = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     let secondSeedCalls = 0;
     const realSeed2 = second.seedBornWith.bind(second);
     (second as unknown as { seedBornWith: () => Promise<void> }).seedBornWith =
@@ -964,8 +964,8 @@ describe("restoreOrSeed — the keyed-holder ground pattern", () => {
 
   it("stashes the key, so a later KEYLESS capture writes the same record", async () => {
     cloneFactories = {};
-    const key = "/domain/dorms/f1-r1";
-    const room = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const key = "/world/dorms/f1-r1";
+    const room = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     await PersistableApi.restoreOrSeed(room, key);
 
     room.setLabel("edited after provisioning");
@@ -981,8 +981,8 @@ describe("restoreOrSeed — the keyed-holder ground pattern", () => {
 
   it("keeps two keys under one scope independent", async () => {
     cloneFactories = {};
-    const a = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
-    const b = makeStuffAtPath(() => new MultiRoom(), "/domain/dormroom");
+    const a = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
+    const b = makeStuffAtPath(() => new MultiRoom(), "/world/dormroom");
     expect(await PersistableApi.restoreOrSeed(a, "/lot/1")).toBe(false);
     expect(await PersistableApi.restoreOrSeed(b, "/lot/2")).toBe(false);
     a.setLabel("first lot");
@@ -998,7 +998,7 @@ describe("restoreOrSeed — the keyed-holder ground pattern", () => {
     cloneFactories = {};
     // A programming error at the call site, not a user-reachable path —
     // so it is loud rather than a silent no-op.
-    const notAHost = makeStuffAtPath(() => new ContentChest(), "/domain/chest");
+    const notAHost = makeStuffAtPath(() => new ContentChest(), "/world/chest");
     await expect(
       PersistableApi.restoreOrSeed(notAHost as unknown as Stuff, "/lot/1"),
     ).rejects.toThrow(/PersistableMixin/);
@@ -1008,10 +1008,10 @@ describe("restoreOrSeed — the keyed-holder ground pattern", () => {
 describe("persistence opt-out (guest skip)", () => {
   it("a host whose shouldPersist() is false writes and restores nothing", async () => {
     cloneFactories = {};
-    const guest = makeStuffAtPath(() => new GuestLikeHost(), "/domain/guest");
+    const guest = makeStuffAtPath(() => new GuestLikeHost(), "/world/guest");
     await PersistableApi.capture(guest);
     expect(snapshots).toHaveLength(0);
-    expect(await PersistableApi.hasRecord("/domain/guest")).toBe(false);
+    expect(await PersistableApi.hasRecord("/world/guest")).toBe(false);
     // materialize is a no-op (and never throws).
     await PersistableApi.materialize(guest);
   });
@@ -1022,16 +1022,16 @@ describe("account deletion cascade (AC #11)", () => {
     cloneFactories = {};
     (ParcelApi.ownerOf as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       async (p: string) => {
-        if (p === "/domain/a")
+        if (p === "/world/a")
           return { kind: "player", templatePath: "/obj/Avatar/alice" };
-        if (p === "/domain/b")
+        if (p === "/world/b")
           return { kind: "player", templatePath: "/obj/Avatar/alice" };
         return { kind: "player", templatePath: "/obj/Avatar/bob" };
       },
     );
-    const a = makeStuffAtPath(() => new HostChest(), "/domain/a");
-    const b = makeStuffAtPath(() => new HostChest(), "/domain/b");
-    const c = makeStuffAtPath(() => new HostChest(), "/domain/c");
+    const a = makeStuffAtPath(() => new HostChest(), "/world/a");
+    const b = makeStuffAtPath(() => new HostChest(), "/world/b");
+    const c = makeStuffAtPath(() => new HostChest(), "/world/c");
     await PersistableApi.capture(a);
     await PersistableApi.capture(b);
     await PersistableApi.capture(c);
@@ -1046,10 +1046,10 @@ describe("account deletion cascade (AC #11)", () => {
 
 describe("worn gear — Slotted custom slice (AC #2 / #3 substrate)", () => {
   it("captures worn occupancy by position and re-wears on restore", async () => {
-    cloneFactories = { "/domain/garment": () => new Garment() };
-    const wearer = makeStuffAtPath(() => new Wearer(), "/domain/wearer");
+    cloneFactories = { "/world/garment": () => new Garment() };
+    const wearer = makeStuffAtPath(() => new Wearer(), "/world/wearer");
     wearer.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
-    const garment = makeStuffAtPath(() => new Garment(), "/domain/garment");
+    const garment = makeStuffAtPath(() => new Garment(), "/world/garment");
     garment.setTag("cloak");
     ContainmentApi.move(garment, wearer); // in inventory
     SlotApi.occupyAll(wearer, garment, ["torso"]); // worn
@@ -1061,7 +1061,7 @@ describe("worn gear — Slotted custom slice (AC #2 / #3 substrate)", () => {
     ]);
 
     evict(wearer);
-    const reborn = makeStuffAtPath(() => new Wearer(), "/domain/wearer");
+    const reborn = makeStuffAtPath(() => new Wearer(), "/world/wearer");
     reborn.setStaticSlots([{ name: "torso", accepts: "SlottableMixin" }]);
     await PersistableApi.materialize(reborn);
     const rGarment = reborn.getContents()[0] as Garment;

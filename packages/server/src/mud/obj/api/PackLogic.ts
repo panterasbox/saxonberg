@@ -165,13 +165,22 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => voi
 
 /**
  * A command view's document path is the VIEW KEY's path (no `root`
- * join): `cmd/perception/look.yaml` → `/cmd/perception/look`, and a
- * locality's `domain/<sphere>/<locality>/cmd/<verb>.yaml` →
- * `/domain/<sphere>/<locality>/cmd/<verb>` — the dispatcher's key, so
- * `CommandApi.reload` finds it by the same string.
+ * join). ONE rule: an engine key (`perception/look.yaml`, read from
+ * `content/cmd/`) lives at `/cmd/<key>`; a content-tree key — a
+ * locality's `world/<sphere>/<locality>/cmd/<verb>.yaml`, an industry's
+ * `trade/<industry>/cmd/<verb>.yaml` — lives at `/<key>`. The two are told
+ * apart by the key's FIRST segment: `cmd` is the engine tree, anything
+ * else is a template tree carrying its own `cmd/` views. The dispatcher's
+ * key, so `CommandApi.reload` finds it by the same string.
  */
 function commandViewPathOf(relKey: string): string {
-  return relKey.startsWith('domain/') ? `/${relKey}` : `/cmd/${relKey}`;
+  return isContentTreeViewKey(relKey) ? `/${relKey}` : `/cmd/${relKey}`;
+}
+
+/** Is `relKey` a content-tree view key (`<tree>/…/cmd/<verb>`), not an engine key? */
+function isContentTreeViewKey(relKey: string): boolean {
+  const parts = relKey.split('/');
+  return parts.length > 1 && parts[0] !== 'cmd' && parts.slice(0, -1).includes('cmd');
 }
 
 /** The declared kinds the document reader/strategies serve today. */
@@ -660,22 +669,25 @@ function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentF
     files.push({ file, relKey: rel.split(/[\\/]/).join('/') });
   }
   if (spec.kind === 'command-view') {
-    // A locality's command views: `content/domain/**/cmd/<verb>.yaml`,
-    // keyed `domain/<…>/cmd/<verb>` (the domain walk skips `cmd`).
-    const domainDir = join(pack.contentRoot, 'domain');
-    for (const file of walkFiles(domainDir, 'yaml')) {
-      const rel = relative(pack.contentRoot, file).split(/[\\/]/).join('/');
-      const parts = rel.split('/');
-      if (!parts.slice(0, -1).includes('cmd')) continue;
-      files.push({ file, relKey: rel.replace(/\.yaml$/, '') });
+    // A content tree's own command views: `content/<tree>/**/cmd/<verb>.yaml`
+    // (a locality's `world/<sphere>/<locality>/cmd/`, an industry's
+    // `trade/<industry>/cmd/`), keyed `<tree>/<…>/cmd/<verb>` — the same
+    // rule for every template tree (the template walk skips `cmd`).
+    for (const e of readdirSync(pack.contentRoot, { withFileTypes: true })) {
+      if (!e.isDirectory() || e.name.startsWith('.')) continue;
+      if (e.name === 'cmd' || nonTemplateDirs().has(e.name)) continue;
+      for (const file of walkFiles(join(pack.contentRoot, e.name), 'yaml')) {
+        const rel = relative(pack.contentRoot, file).split(/[\\/]/).join('/');
+        const parts = rel.split('/');
+        if (!parts.slice(0, -1).includes('cmd')) continue;
+        files.push({ file, relKey: rel.replace(/\.yaml$/, '') });
+      }
     }
   }
   for (const { file, relKey } of files) {
     const name = basename(relKey);
     const key =
-      spec.kind === 'command-view' && relKey.startsWith('domain/')
-        ? `/${relKey}`
-        : `/${spec.contentDir}/${relKey}`;
+      spec.kind === 'command-view' ? commandViewPathOf(relKey) : `/${spec.contentDir}/${relKey}`;
     let data: Record<string, unknown>;
     if (spec.ext === 'yaml') {
       data = readYamlObject(pack, file, `${spec.kind} document`);
@@ -2931,7 +2943,7 @@ function soldPredicateFor(
   };
 }
 
-/** `/cmd/perception/look` → `perception/look.yaml`; `/domain/x/cmd/y` → `domain/x/cmd/y.yaml`. */
+/** `/cmd/perception/look` → `perception/look.yaml`; `/world/x/cmd/y` → `world/x/cmd/y.yaml`. */
 function viewKeyOfDocPath(docPath: string): string {
   if (docPath.startsWith('/cmd/')) return `${docPath.slice('/cmd/'.length)}.yaml`;
   return `${docPath.replace(/^\//, '')}.yaml`;

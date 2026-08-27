@@ -23,11 +23,11 @@ function zoneAt(path: string | null): SpatialZone | null {
 }
 
 const AUTHOR = '/obj/Avatar/maker';
-const LOC = '/domain/gallery/room';
+const LOC = '/world/gallery/room';
 
 describe('CreditRouting.isReleased', () => {
   it('treats only the personal homedir as unreleased; domain + obj are released', () => {
-    expect(CreditRouting.isReleased('/domain/gallery')).toBe(true);
+    expect(CreditRouting.isReleased('/world/gallery')).toBe(true);
     expect(CreditRouting.isReleased('/obj/SoulCatalogue')).toBe(true); // obj is released core content
     expect(CreditRouting.isReleased('/home/alice/studio')).toBe(false);
   });
@@ -36,7 +36,7 @@ describe('CreditRouting.isReleased', () => {
 describe('CreditRouting.resolve', () => {
   it('credits the covering zone author at full weight for released content', async () => {
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(
-      zoneAt('/domain/gallery')
+      zoneAt('/world/gallery')
     );
     vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue(AUTHOR);
 
@@ -71,7 +71,7 @@ describe('CreditRouting.resolve', () => {
 
   it('earns nothing when the released zone has no recorded author', async () => {
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue(
-      zoneAt('/domain/gallery')
+      zoneAt('/world/gallery')
     );
     vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue(null);
     expect(await CreditRouting.resolve(LOC)).toEqual([]);

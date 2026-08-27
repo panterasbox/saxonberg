@@ -67,12 +67,12 @@ const MUD_ROOT = join(here, "..", "src", "mud");
 const CONTENT = join(here, "..", "..", "content");
 /**
  * Every command tree: the kernel's content-local bundles under
- * `mud/domain/**\/cmd/`, and each content pack's `content/cmd` (the
+ * `mud/world/**\/cmd/`, and each content pack's `content/cmd` (the
  * platform pack ships the engine verbs since content-packs wave 2) —
  * discovered the way `check-instanceable-placement` discovers packs.
  */
 const ROOTS = [
-  join(MUD_ROOT, "domain"),
+  join(MUD_ROOT, "world"),
   ...(existsSync(CONTENT)
     ? readdirSync(CONTENT)
         .map((pack) => join(CONTENT, pack, "content", "cmd"))

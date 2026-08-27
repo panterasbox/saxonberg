@@ -37,9 +37,9 @@ import { EngagedMixin } from "../../../../lib/activity/Engaged";
 import { SensorMixin } from "../../../../lib/message/Sensor";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
-import GradedReceptacle from "../../../../domain/lounge/GradedReceptacle";
-import CraftedDrink from "../../../../domain/lounge/CraftedDrink";
-import CocktailShaker from "../../../../domain/lounge/CocktailShaker";
+import GradedReceptacle from "../../../../world/lounge/GradedReceptacle";
+import CraftedDrink from "../../../../world/lounge/CraftedDrink";
+import CocktailShaker from "../../../../world/lounge/CocktailShaker";
 import RecipeCatalogue from "../../../RecipeCatalogue";
 import { Stuff } from "../../../../lib/stuff/Stuff";
 import {
@@ -164,7 +164,7 @@ beforeEach(async () => {
       { slot: "mod", category: "vermouth", minGrade: "fair", measureL: 0.01 },
     ],
     toolCapabilities: ["mixing-glass"],
-    outputTemplate: "/domain/lounge/cocktail-glass",
+    outputTemplate: "/world/lounge/cocktail-glass",
     outputMaterial: MARTINI_MAT,
     baseGradeBand: "",
   });

@@ -24,11 +24,11 @@ import {
   teardownBankingHarness,
 } from "../../../lib/banking/__tests__/banking-test-harness";
 
-const BUSINESS = "/domain/test/business";
-const DAVE = "/domain/test/npc/dave";
-const HEWER = "/domain/test/npc/hewer";
-const BARKER = "/domain/test/npc/barker";
-const WENNA = "/domain/test/npc/wenna";
+const BUSINESS = "/world/test/business";
+const DAVE = "/world/test/npc/dave";
+const HEWER = "/world/test/npc/hewer";
+const BARKER = "/world/test/npc/barker";
+const WENNA = "/world/test/npc/wenna";
 const HOUR = 3_600;
 
 class Worker extends EmployedMixin(Idea) {
@@ -89,7 +89,7 @@ describe("compensation bases", () => {
   it("a business with no authored banksAt cannot open an operating account", async () => {
     const bare = makeStuffAtPath(
       () => new BusinessEntity(),
-      "/domain/test/bankless",
+      "/world/test/bankless",
     );
     bare.positions = [];
     await expect(EmploymentApi.operatingAccountOf(bare)).rejects.toThrow(
@@ -120,7 +120,7 @@ describe("compensation bases", () => {
     const wenna = makeStuffAtPath(() => new Worker(), WENNA);
     EmploymentApi.hire(biz, wenna, "bartender");
     await expect(
-      EmploymentApi.settlePiecework(biz, "/domain/test/npc/stranger", 1),
+      EmploymentApi.settlePiecework(biz, "/world/test/npc/stranger", 1),
     ).rejects.toThrow(/no such employee/);
     await expect(
       EmploymentApi.settlePiecework(biz, WENNA, 1),
@@ -157,7 +157,7 @@ describe("compensation bases", () => {
     // And no splits exist for a business with no share-of-flow holder.
     const bare = makeStuffAtPath(
       () => new BusinessEntity(),
-      "/domain/test/bare-biz",
+      "/world/test/bare-biz",
     );
     bare.positions = [];
     expect(await EmploymentApi.flowSplitsFor(bare, 50)).toHaveLength(0);

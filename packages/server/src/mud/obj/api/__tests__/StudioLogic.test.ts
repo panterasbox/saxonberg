@@ -145,7 +145,7 @@ describe('StudioLogic.describeClass — resolution chain', () => {
     } as unknown as Stuff;
     vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(fakeInstance);
 
-    const desc = await StudioApi.describeClass(CLASS_PATH, '/domain/parlor/thing');
+    const desc = await StudioApi.describeClass(CLASS_PATH, '/world/parlor/thing');
     const byName = new Map(desc.fields.map((f) => [f.name, f]));
 
     const longDesc = byName.get('longDescription')!;
@@ -595,16 +595,16 @@ describe('StudioLogic.createTemplate', () => {
       .mockResolvedValue('mongo-id');
 
     const out = await StudioApi.createTemplate({
-      path: '/domain/parlor/my-coin',
+      path: '/world/parlor/my-coin',
       classPath: '/obj/Coin',
       data: { name: 'My Coin', denomination: 5 },
     });
 
     expect(out.disposition).toBe('committed');
-    expect(out.path).toBe('/domain/parlor/my-coin');
+    expect(out.path).toBe('/world/parlor/my-coin');
     expect(out.message).toBeUndefined();
     // The class + data were passed straight to the saveTemplate chokepoint.
-    expect(save).toHaveBeenCalledWith('/domain/parlor/my-coin', '/obj/Coin', {
+    expect(save).toHaveBeenCalledWith('/world/parlor/my-coin', '/obj/Coin', {
       name: 'My Coin',
       denomination: 5,
     });
@@ -618,7 +618,7 @@ describe('StudioLogic.createTemplate', () => {
     const save = vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue('x');
 
     const out = await StudioApi.createTemplate({
-      path: '/domain/parlor/existing',
+      path: '/world/parlor/existing',
       classPath: '/obj/Coin',
       data: {},
     });
@@ -641,7 +641,7 @@ describe('StudioLogic.createTemplate', () => {
     );
 
     const out = await StudioApi.createTemplate({
-      path: '/domain/parlor/gated',
+      path: '/world/parlor/gated',
       classPath: '/obj/Coin',
       data: {},
     });
@@ -658,7 +658,7 @@ describe('StudioLogic.createTemplate', () => {
     );
     await expect(
       StudioApi.createTemplate({
-        path: '/domain/parlor/boom',
+        path: '/world/parlor/boom',
         classPath: '/obj/Coin',
         data: {},
       })
@@ -670,7 +670,7 @@ describe('StudioLogic.createTemplate', () => {
     const save = vi.spyOn(TemplateApi, 'saveTemplate').mockResolvedValue('x');
     await expect(
       StudioApi.createTemplate({
-        path: '/domain/parlor/nope',
+        path: '/world/parlor/nope',
         classPath: '/obj/Coin',
         data: {},
       })

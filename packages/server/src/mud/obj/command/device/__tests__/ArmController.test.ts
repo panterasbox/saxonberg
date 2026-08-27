@@ -66,7 +66,7 @@ function ctx(
 
 let counter = 0;
 function scene(): { room: Room; placer: Placer; kit: TrapKit } {
-  const room = makeStuffAtPath(() => new Room(), `/domain/test/room-${counter++}`);
+  const room = makeStuffAtPath(() => new Room(), `/world/test/room-${counter++}`);
   room.setAddress(`testville/room-${counter}`);
   const placer = makeStuffAtPath(
     () => new Placer(),

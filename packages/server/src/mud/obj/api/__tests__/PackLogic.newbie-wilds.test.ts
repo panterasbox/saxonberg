@@ -1,7 +1,7 @@
 /**
  * The newbie-wilds pack (pack-installer W1.10) — the installer proven on
- * REAL content: the fourth shipped pack, 21 `/domain/newbie-wilds/…`
- * rows under the widened `content/domain/` template root.
+ * REAL content: the fourth shipped pack, 21 `/world/newbie-wilds/…`
+ * rows under the widened `content/world/` template root.
  *
  * ⚠ Scaffolding, not precedent (slate A32.2): by ring discipline the
  * installer's own tests run against ugly fixture packs and a pack's
@@ -45,14 +45,14 @@ afterEach(() => {
 });
 
 describe('the widened domain-kind walk', () => {
-  it('a fixture file under content/domain/ reconciles to /domain/…', async () => {
+  it('a fixture file under content/world/ reconciles to /world/…', async () => {
     const root = writePack('p', []);
-    writeDomainFile(root, { rel: 'domain/x/y.yaml', class: '/obj/Prop', data: { name: 'y' } });
+    writeDomainFile(root, { rel: 'world/x/y.yaml', class: '/obj/Prop', data: { name: 'y' } });
     vi.spyOn(await import('../../../api/stuff').then((m) => m.StuffApi), 'loadClassByPath')
       .mockResolvedValue(class {} as never);
     const [r] = await PackApi.install([root]);
-    expect(r!.inserted).toEqual(['/domain/x/y']);
-    expect(contentRows()[0]!.path).toBe('/domain/x/y');
+    expect(r!.inserted).toEqual(['/world/x/y']);
+    expect(contentRows()[0]!.path).toBe('/world/x/y');
   });
 });
 
@@ -62,9 +62,9 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
     expect(r!.failure).toBeNull();
     expect(r!.packId).toBe('newbie-wilds');
     expect(r!.inserted).toHaveLength(21);
-    expect(r!.inserted).toContain('/domain/newbie-wilds/crossroads/hub');
-    expect(r!.inserted).toContain('/domain/newbie-wilds/npc/wolf');
-    expect(r!.inserted.every((p) => p.startsWith('/domain/newbie-wilds'))).toBe(true);
+    expect(r!.inserted).toContain('/world/newbie-wilds/crossroads/hub');
+    expect(r!.inserted).toContain('/world/newbie-wilds/npc/wolf');
+    expect(r!.inserted.every((p) => p.startsWith('/world/newbie-wilds'))).toBe(true);
     expect(contentRows().every((row) => row.sourcePack === 'newbie-wilds')).toBe(true);
     const rec = recordOf('newbie-wilds')!;
     expect(Object.keys(rec.rows)).toHaveLength(21);
@@ -93,7 +93,7 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
         });
       }
     };
-    walk(join(CONTENT, 'domain'));
+    walk(join(CONTENT, 'world'));
     expect(n).toBe(21);
 
     const [r] = await PackApi.install([ROOT]);

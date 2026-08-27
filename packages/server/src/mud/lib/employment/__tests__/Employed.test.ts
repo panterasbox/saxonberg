@@ -15,7 +15,7 @@ class EmployedHost extends EmployedMixin(Idea) {
   static _mixinName = 'EmployedHost';
 }
 
-const BUSINESS = '/domain/lounge/business';
+const BUSINESS = '/world/lounge/business';
 
 function rec(over: Partial<EmploymentData> = {}): EmploymentData {
   return {
