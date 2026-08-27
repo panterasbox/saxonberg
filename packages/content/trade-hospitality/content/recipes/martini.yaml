@@ -1,0 +1,18 @@
+recipeId: martini
+name: Gin Martini
+keywords:
+- martini
+- gin-martini
+inputSlots:
+- slot: base
+  category: gin
+  minGrade: fair
+  measureL: 0.06
+- slot: modifier
+  category: vermouth
+  minGrade: fair
+  measureL: 0.01
+toolCapabilities:
+- mixing-glass
+outputTemplate: /trade/hospitality/thing/cocktail-glass
+outputAppearance: a crystal-clear martini, beaded with cold

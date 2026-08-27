@@ -1,0 +1,13 @@
+# An aevex zero (Aevex) neon sign — Veshko's rival, sharing the wall and
+# nothing else. Cool blue glow against the amber; the corpo fault line
+# made literal in light. Attached via the bar's `adornments:` field.
+class: /platform/thing/NeonSign
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an aevex zero sign
+  keywords: [sign, neon, aevex, zero]
+  longDescription: |
+    A sleek strip of cold blue light spelling out aevex zero in soft lowercase, all rounded edges and false serenity. It washes the bottles beneath it in a clinical glow that Veshko's amber a few feet over flatly refuses to blend with — the two signs share a wall and, by every account, a genuine dislike.
+  _brandKey: aevex-zero
+  emittedIntensity: 90
+  emittedColorTemperature: 6500

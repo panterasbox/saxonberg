@@ -6,5 +6,5 @@
  */
 export const LoungePaths = {
   /** The lounge's TPA node, seated into the elastic host by LoungeWarren. */
-  terminal: '/world/lounge/terminal',
+  terminal: '/world/lounge/thing/terminal',
 } as const;

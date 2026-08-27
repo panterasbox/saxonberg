@@ -321,28 +321,35 @@ geometry classes documented above):**
 | `Warren.ts` | Abstract base — the generic mechanism. |
 | `WarrenMember.ts` | `WarrenMemberMixin` — optional member-side back-ref. |
 
-**Content — `domain/lounge/` (the lounge area; class paths
-`/world/lounge/*`):**
+**Content — `world/lounge/` (the lounge area; class paths
+`/world/lounge/<branch>/*`, branch subdirs since content packs wave 4b —
+the locality rule: >6 rows → `{location,thing,idea,agent}/`, source
+mirrors it):**
 
 | File | Role |
 |---|---|
-| `Lounge.ts` | The one room template every lounge instance clones from. |
-| `Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the back-bar fixture + bottles/tools `onto` it, plus Dave + the menu). |
-| `LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. (The **second** Warren subclass, `DormWarren`, is an elastic *two-tier* consumer — keyed persistent members + runtime floor scaffold; see [residence.md](./residence.md).) |
-| `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality. |
-| `Menu.ts` / `CraftedDrink.ts` / `GradedReceptacle.ts` | Bar crafting content (the offer object, the crafted-drink output glass, the stock bottle) — composed over the general `lib/craft/` substrate. See [crafting.md](./crafting.md). |
+| `location/Lounge.ts` | The one room template every lounge instance clones from. |
+| `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `populates:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus Dave + the menu). |
+| `location/GlassAlley.ts` | The alley. |
+| `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
+| `idea/LoungeWarren.ts` | Concrete singleton Warren — the lounge *policy*. (The **second** Warren subclass, `DormWarren`, is an elastic *two-tier* consumer — keyed persistent members + runtime floor scaffold; see [residence.md](./residence.md).) |
+| `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
-Content classes live under `/world/lounge/` — a managed area's own
-class namespace, mirroring its template namespace (the class-path
-validator admits `/world/` alongside `/platform/… + /stuff/` and `/lib/`). The generic
-Warren substrate stays in `/lib/`.
+The composition-only classes the lounge used to carry (`Menu`,
+`CraftedDrink`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
+`TipJar`) are `platform/thing/` commons since wave 4b — see
+[crafting.md](./crafting.md). Content classes live under
+`/world/lounge/<branch>/` — a managed area's own class namespace,
+mirroring its template namespace. The generic Warren substrate stays in
+`/lib/`.
 
-Content seeds: `world-seed/content/world/lounge/{warren,lounge,bar}.yaml` (templates
-at `/world/lounge/{warren,lounge,bar}`, leaves under the
-`/world/lounge` FolderZone), plus the bar's crafting fixtures
-(`back-bar`, the four bottles, `shaker`/`mixing-glass`,
-`cocktail-glass`, `bar-menu`, `dave`) the `Bar` self-stocks via
-`populates:`. See [crafting.md](./crafting.md).
+Content rows: `saxonberg-lounge/content/world/lounge/{idea/warren,location/lounge,location/bar}.yaml`
+(templates at `/world/lounge/{idea/warren,location/lounge,location/bar}`,
+leaves under the `/world/lounge` FolderZone the same pack ships), plus
+the venue's stock the `Bar` self-stocks via `populates:` (the four
+bottles, `bar-menu`, `dave` — venue rows; `back-bar`, `shaker`,
+`mixing-glass`, `cocktail-glass`, `tip-jar` — the hospitality trade's
+templates, populated by reference). See [crafting.md](./crafting.md).
 
 ## Core model
 
@@ -357,7 +364,7 @@ at `/world/lounge/{warren,lounge,bar}`, leaves under the
   (`getHost()` / `isCurrentHost`), migrating the role on forced host
   destruction. No `Commons` class, no host flag.
 - **Lazy + runtime-only.** `LoungeWarren` composes `SingletonMixin`;
-  `StuffApi.singleton('/world/lounge/warren')` creates the one instance
+  `StuffApi.singleton('/world/lounge/idea/warren')` creates the one instance
   on first landing. Every room instance is a runtime clone, gone on
   restart, recreated on the next first-landing. Only the templates +
   the Warren *definition* persist.
@@ -410,7 +417,7 @@ owns the *domain* semantics:
 path is the only place the Warren semantics live.
 
 The avatar seed (`platform/content/platform/agent/Avatar/seed.yaml`) declares
-`startLocation: /world/lounge/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
+`startLocation: /world/lounge/idea/warren`. **`DEFAULT_STARTING_LOCATION_PATH`
 is unchanged** — it is the container-typed *evacuation* fallback in
 `Container.cleanupOnDestruct` (a Warren is not a Container); spawn and
 evac are separate concerns.

@@ -12,7 +12,7 @@ describe('pathToChannel', () => {
   });
 
   it('maps the authored lounge tree to zone.lounge', () => {
-    expect(DiagnosticChannel.pathToChannel('/mud/world/lounge/Bar.ts')).toBe('zone.lounge');
+    expect(DiagnosticChannel.pathToChannel('/mud/world/lounge/location/Bar.ts')).toBe('zone.lounge');
     expect(DiagnosticChannel.pathToChannel('/mud/lib/lounge/LoungeWarren.ts')).toBe(
       'zone.lounge'
     );

@@ -1,0 +1,20 @@
+# The bar's Attendant service point — Dave's Bar as an instance of the
+# universal storefront-attention substrate. The bar's config is informal /
+# **scrum, zero-wait** (attendDurationMs 0): you don't queue at a bar — the
+# bartender gets to you — so being-attended holds no slot and the feel is
+# exactly as before. The retrofit changes ~nothing a player sees; it earns the
+# lease (you can't hog the bartender idle) and makes the bar run the same
+# subsystem the bank and the ticket office do. `order`/`serve`/`mix` stay the
+# payload (afforded by the Menu); this fixture is the wrapping.
+class: /platform/thing/AttendancePoint
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the bar
+  keywords: [bar, counter, rail, taps]
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [bartender]
+  businessPath: /world/lounge/idea/business
+  skin:
+    poke: "The bartender catches your eye — you're up."

@@ -18,7 +18,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import GlassAlley from '../GlassAlley';
+import GlassAlley from '../location/GlassAlley';
 import Bandage from '../../../platform/thing/Bandage';
 import TreatController from '../../../platform/idea/cmd/medical/TreatController';
 import UndressController from '../../../platform/idea/cmd/medical/UndressController';

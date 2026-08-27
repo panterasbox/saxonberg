@@ -7,8 +7,8 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import LoungeWarren from '../LoungeWarren';
-import Lounge from '../Lounge';
+import LoungeWarren from '../idea/LoungeWarren';
+import Lounge from '../location/Lounge';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -37,16 +37,16 @@ const PH = PersistentHydrator.templatePath;
 function installLoungeStore(): Doc[] {
   const store: Doc[] = [
     { path: PH, class: PH, data: {} },
-    { path: LoungeWarren.WARREN_PATH, class: '/world/lounge/LoungeWarren', data: {} },
+    { path: LoungeWarren.WARREN_PATH, class: '/world/lounge/idea/LoungeWarren', data: {} },
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
-      class: '/world/lounge/Lounge',
+      class: '/world/lounge/location/Lounge',
       hydratorClass: PH,
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
-      class: '/world/lounge/Bar',
+      class: '/world/lounge/location/Bar',
       hydratorClass: PH,
       data: { shortDescription: "Dave's Bar" },
     },

@@ -16,10 +16,10 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
-const BUSINESS = '/world/lounge/business';
-const BAR = '/world/lounge/bar';
-const DAVE = '/world/lounge/npc/dave';
-const MARA = '/world/lounge/npc/mara';
+const BUSINESS = '/world/lounge/idea/business';
+const BAR = '/world/lounge/location/bar';
+const DAVE = '/world/lounge/agent/dave';
+const MARA = '/world/lounge/agent/mara';
 
 class Worker extends EmployedMixin(Idea) {
   static _mixinName = 'Worker';
@@ -82,7 +82,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
     const biz = seedBusiness();
     const dave = seedWorker(DAVE);
     expect(EmploymentApi.businessOfProprietor(dave)).toBe(biz);
-    const stranger = seedWorker('/world/lounge/npc/remy');
+    const stranger = seedWorker('/world/lounge/agent/remy');
     expect(EmploymentApi.businessOfProprietor(stranger)).toBeNull();
   });
 
@@ -94,7 +94,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
 
   it('grants the operator override to the Prime Minister\'s SEAT (an office, never the founder)', async () => {
     const biz = seedBusiness();
-    const stranger = seedWorker('/world/lounge/npc/remy');
+    const stranger = seedWorker('/world/lounge/agent/remy');
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     await expect(EmploymentApi.isProprietorOf(stranger, biz)).resolves.toBe(
       false,

@@ -128,7 +128,7 @@ describe('Application', () => {
     vi.spyOn(StuffApi, 'destruct').mockImplementation(() => {});
     // The avatar-mint path reads the spawn default from app config; mock
     // the cached read (no AppSettings boot warm in this unit test).
-    vi.spyOn(AppApi, 'setting').mockReturnValue('/world/lounge/warren');
+    vi.spyOn(AppApi, 'setting').mockReturnValue('/world/lounge/idea/warren');
   });
 
   afterEach(() => {
@@ -555,7 +555,7 @@ describe('Application', () => {
       ];
       expect(path).toMatch(/^\/platform\/agent\/Avatar\//);
       // Spawn home injected from app config (defaultStartLocation).
-      expect(data.startLocation).toBe('/world/lounge/warren');
+      expect(data.startLocation).toBe('/world/lounge/idea/warren');
     });
 
     it('honors a startLocation override (spawn-room pin for co-location E2E)', async () => {
@@ -576,11 +576,11 @@ describe('Application', () => {
         .spyOn(TemplateApi, 'saveTemplate')
         .mockResolvedValue(undefined as never);
 
-      await app.provisionTestCharacter('u1', 'Tester', '/world/lounge/bar');
+      await app.provisionTestCharacter('u1', 'Tester', '/world/lounge/location/bar');
       // The override wins over the app-config default — the avatar is
       // pinned to the named singleton room rather than the lounge Warren.
       const data = tmplSave.mock.calls[0]![2] as Record<string, unknown>;
-      expect(data.startLocation).toBe('/world/lounge/bar');
+      expect(data.startLocation).toBe('/world/lounge/location/bar');
     });
 
     it('is idempotent — no-op when the user already has a character', async () => {

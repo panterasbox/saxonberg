@@ -1,0 +1,31 @@
+# The smithy — the working venue the forge demonstrator grew into: the
+# bellows-fed forge (melt stays physics — smelting is the phase engine,
+# never a recipe), an anvil + hammer + workbench (the `striking`/`anvil`/
+# `mending` capability kit), ingot + hide stock, the smith, and her slate
+# of offers. Order it made, or make it yourself with their tools — the
+# DIY floor. Recipes own FORMING (ingot → blade), gated on reachable
+# heat: `forge knife` at a cold forge is a diegetic decline.
+class: /platform/location/Room
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a smithy
+  primaryKeyword: smithy
+  longDescription: |
+    A soot-blackened smithy, an anvil squat on its stump and a great stone forge banked along the wall. A leather bellows hangs ready at its side, a workbench under racked stock along the other wall, and a slate of chalked prices by the door.
+  coords:
+    x: 1
+    y: 0
+    z: 0
+  adornments:
+    - /world/hearthworks/thing/forge-floor
+  populates:
+    - /stuff/thing/Forge
+    - /trade/smithing/thing/iron-ingot
+    - /trade/smithing/thing/spare-ingot
+    - /trade/smithing/thing/anvil
+    - /trade/smithing/thing/workbench
+    - /stuff/thing/gear/smiths-hammer
+    - /stuff/thing/items/hide-stock
+    - /trade/smithing/thing/whetstone
+    - /world/hearthworks/thing/smithy-menu
+    - /world/hearthworks/agent/smith

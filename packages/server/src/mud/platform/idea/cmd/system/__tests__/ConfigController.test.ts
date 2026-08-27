@@ -44,7 +44,7 @@ describe("ConfigController", () => {
       {
         _id: "r",
         values: {
-          [AppSettingKeys.defaultStartLocation]: "/world/lounge/warren",
+          [AppSettingKeys.defaultStartLocation]: "/world/lounge/idea/warren",
           [AppSettingKeys.evacuationFallback]: "/platform/location/void",
         },
       },
@@ -89,7 +89,7 @@ describe("ConfigController", () => {
   it("lists every known key with its current value", async () => {
     await run({});
     const text = output.join("\n");
-    expect(text).toContain(`${AppSettingKeys.defaultStartLocation} = /world/lounge/warren`);
+    expect(text).toContain(`${AppSettingKeys.defaultStartLocation} = /world/lounge/idea/warren`);
     expect(text).toContain(`${AppSettingKeys.evacuationFallback} = /platform/location/void`);
   });
 

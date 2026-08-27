@@ -263,7 +263,7 @@ describe('TemplateApi.validateReservedPath', () => {
       TemplateApi.validateReservedPath({ path: '/platform/idea/SoulCatalogue' })
     ).resolves.toBeUndefined();
     await expect(
-      TemplateApi.validateReservedPath({ path: '/world/lounge/bar' })
+      TemplateApi.validateReservedPath({ path: '/world/lounge/location/bar' })
     ).resolves.toBeUndefined();
   });
 });

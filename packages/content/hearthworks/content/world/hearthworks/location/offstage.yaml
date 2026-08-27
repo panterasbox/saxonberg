@@ -1,0 +1,16 @@
+# Offstage — the no-exit holding room where the `shifts` brain parks the
+# Hearthworks cast off-shift (the lounge's precedent; one mechanism, two
+# venues). Materialized on demand by shifts (singletonOrClone). Players
+# cannot reach it (no Exitable). The shipped roster is 24/7, so in
+# practice Berta and Odo never leave the floor — the room exists so that
+# a shortened schedule parks them somewhere rather than nowhere.
+class: /platform/location/Offstage
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: The Hearthworks — Back room
+  primaryKeyword: backroom
+  longDescription: |
+    A low back room behind the cookhouse: a cot, a row of pegs heavy with
+    aprons, a bench with a whetstone and a bowl of cold stew on it. Where
+    the Hearthworks' people are when they are not at the forge or the
+    hearth.

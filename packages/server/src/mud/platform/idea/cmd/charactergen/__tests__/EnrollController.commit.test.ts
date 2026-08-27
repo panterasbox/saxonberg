@@ -62,7 +62,7 @@ describe('EnrollController.commit', () => {
     // Key-aware: the onboarding stipend needs a number, everything else the
     // spawn home.
     vi.spyOn(AppApi, 'setting').mockImplementation((k: string) =>
-      k === 'banking.onboardingStipend' ? '20' : '/world/lounge/warren',
+      k === 'banking.onboardingStipend' ? '20' : '/world/lounge/idea/warren',
     );
     // Onboarding coin is minted through the CB faucet — spy it (no banking
     // harness in this unit); the dedicated tests assert the call shape.
@@ -100,7 +100,7 @@ describe('EnrollController.commit', () => {
     vi.spyOn(Template, 'findByPath').mockResolvedValue({
       path: Avatar.SEED_TEMPLATE_PATH,
       class: '/platform/agent/Avatar',
-      data: { startLocation: '/world/lounge/warren' },
+      data: { startLocation: '/world/lounge/idea/warren' },
       hydratorClass: '/platform/idea/persistence/PersistentHydrator',
     } as never);
     // No per-player template row is written anymore (the identity
@@ -182,7 +182,7 @@ describe('EnrollController.commit', () => {
     expect(d.aspiration).toBe('healer');
     // Spawn home injected from app config (defaultStartLocation), not the
     // seed literal.
-    expect(d.startLocation).toBe('/world/lounge/warren');
+    expect(d.startLocation).toBe('/world/lounge/idea/warren');
     expect(String(d.bio)).toMatch(/mend/i); // healer bioSeed from char-gen.yaml
     // Species' generic appearance lands on the avatar's longDescription
     // (its look) now that Species speaks the Visible interface.
@@ -224,7 +224,7 @@ describe('EnrollController.commit', () => {
 
   it('grants nothing when the stipend is 0', async () => {
     (AppApi.setting as unknown as { mockImplementation: (f: (k: string) => string) => void }).mockImplementation(
-      (k: string) => (k === 'banking.onboardingStipend' ? '0' : '/world/lounge/warren'),
+      (k: string) => (k === 'banking.onboardingStipend' ? '0' : '/world/lounge/idea/warren'),
     );
     await confirm();
     expect(BankingApi.issueCash).not.toHaveBeenCalled();

@@ -13,7 +13,7 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 
 const LOUNGE_DIR = fileURLToPath(
-  new URL("../../../../../../content/world-seed/content/world/lounge/", import.meta.url)
+  new URL("../../../../../../content/saxonberg-lounge/content/world/lounge/", import.meta.url)
 );
 // Brands live in the five corpo packs (each corpo's own marks) plus the
 // generic-objects pack for the one independent brand (crowsfoot-gin, `owner: ""`).
@@ -50,9 +50,9 @@ function brandKeys(): Set<string> {
 describe("Dave's Bar — corpo shelf", () => {
   // The three spirit bottles carry a mark; lime juice stays unbranded.
   const BRANDED_BOTTLES = [
-    "gin-bottle.yaml",
-    "rum-bottle.yaml",
-    "vermouth-bottle.yaml",
+    "thing/gin-bottle.yaml",
+    "thing/rum-bottle.yaml",
+    "thing/vermouth-bottle.yaml",
   ];
 
   it("every branded bottle's _brandKey resolves to a real Brand seed", () => {
@@ -65,16 +65,16 @@ describe("Dave's Bar — corpo shelf", () => {
   });
 
   it("the lime bottle is intentionally unbranded (juice, not a labelled spirit)", () => {
-    expect(loadLounge("lime-bottle.yaml").data?._brandKey).toBeUndefined();
+    expect(loadLounge("thing/lime-bottle.yaml").data?._brandKey).toBeUndefined();
   });
 });
 
 describe("Dave's Bar — the office", () => {
   it("the bar declares a concealed, one-way north exit into the office", () => {
-    const exits = loadLounge("bar.yaml").data?.exits as
+    const exits = loadLounge("location/bar.yaml").data?.exits as
       | Record<string, Record<string, unknown>>
       | undefined;
-    expect(exits?.north?.destination).toBe("/world/lounge/office");
+    expect(exits?.north?.destination).toBe("/world/lounge/location/office");
     // Phase 3: `hidden: true` was raised to an authored concealment band
     // (the vocabulary that subsumed the flag) + a hint, so the office is
     // discoverable via `search`.
@@ -86,11 +86,11 @@ describe("Dave's Bar — the office", () => {
   });
 
   it("the office exists and wires a plain south exit back to the bar", () => {
-    expect(existsSync(`${LOUNGE_DIR}office.yaml`)).toBe(true);
-    const exits = loadLounge("office.yaml").data?.exits as
+    expect(existsSync(`${LOUNGE_DIR}location/office.yaml`)).toBe(true);
+    const exits = loadLounge("location/office.yaml").data?.exits as
       | Record<string, Record<string, unknown>>
       | undefined;
-    expect(exits?.south?.destination).toBe("/world/lounge/bar");
+    expect(exits?.south?.destination).toBe("/world/lounge/location/bar");
     // Visible (not hidden) — you can always find the way out.
     expect(exits?.south?.hidden).toBeUndefined();
   });
@@ -98,15 +98,15 @@ describe("Dave's Bar — the office", () => {
 
 describe("Dave's Bar — neon adornments", () => {
   // The branded, light-emitting wall fixtures the bar declares.
-  const SIGNS = ["neon-veshko.yaml", "neon-aevex.yaml"];
+  const SIGNS = ["thing/neon-veshko.yaml", "thing/neon-aevex.yaml"];
 
   it("the bar declares both neon signs as adornments", () => {
-    const adornments = loadLounge("bar.yaml").data?.adornments as
+    const adornments = loadLounge("location/bar.yaml").data?.adornments as
       | { template: string }[]
       | undefined;
     const templates = (adornments ?? []).map((a) => a.template);
-    expect(templates).toContain("/world/lounge/neon-veshko");
-    expect(templates).toContain("/world/lounge/neon-aevex");
+    expect(templates).toContain("/world/lounge/thing/neon-veshko");
+    expect(templates).toContain("/world/lounge/thing/neon-aevex");
   });
 
   it("every neon sign carries a real brand mark and emits light", () => {

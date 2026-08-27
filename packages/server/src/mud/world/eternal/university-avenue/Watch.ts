@@ -22,7 +22,7 @@
 
 import Thing from '../../../lib/stuff/Thing';
 import { SealableMixin } from '../../../lib/spatial/Sealable';
-import { MechanicalMovementMixin } from './MechanicalMovement';
+import { MechanicalMovementMixin } from '../../../lib/time/MechanicalMovement';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { Time } from '../../../lib/time/Time';
 

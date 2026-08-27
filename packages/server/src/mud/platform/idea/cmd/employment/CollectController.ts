@@ -17,7 +17,7 @@ import { Money } from '../../../../api/banking';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import TipJar from '../../../../world/lounge/TipJar';
+import TipJar from '../../../thing/TipJar';
 import Coin from '../../../thing/Coin';
 import { Currency } from "../../../../lib/banking/Currency";
 

@@ -1,0 +1,19 @@
+id: trade-hospitality
+version: 0.1.0
+root: /trade/hospitality
+description: >-
+  The hospitality trade — what tending bar introduces: its stations (the
+  shaker, the mixing glass, the cocktail glass, the back-bar), its recipes
+  (daiquiri, martini) and the tip jar. The bottles are a venue's own stock
+  of base-library materials, and positions are rows on a venue's Business
+  (employment.md) — neither is the trade's. Dave's Bar
+  (/world/lounge/location/bar) is the venue that hosts this trade; it
+  populates the stations by reference. Content packs wave 4b.
+dependsOn: [platform, generic-objects, base-library]
+requires:
+  groups:
+    - name: hospitality
+      purpose: the hospitality trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/hospitality, holder: { group: hospitality } }

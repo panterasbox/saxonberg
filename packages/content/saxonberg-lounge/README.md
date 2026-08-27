@@ -1,23 +1,22 @@
 # saxonberg-lounge
 
-The lounge (Dave's Bar and its warren) as a content pack. **This wave
-ships only its three authored world scripts** — the `msh` document kind
-under `content/msh/`:
+The lounge — Dave's Bar and its warren — as ONE content pack (content
+packs wave 4b). Root `/world/lounge`; the `lounge` group holds title over
+`/world/lounge` and `/stuff/idea/lounge`.
 
-| file | row | what |
-|---|---|---|
-| `msh/martini.msh` | `/world/lounge/msh/martini` | the bartender's martini recipe-script |
-| `msh/daiquiri.msh` | `/world/lounge/msh/daiquiri` | the daiquiri recipe-script |
-| `msh/last-call.msh` | `/world/lounge/msh/last-call` | the closing-time coroutine beat |
+| where | what |
+|---|---|
+| `content/world/lounge.yaml` | the `/world/lounge` FolderZone |
+| `content/world/lounge/location/` | `lounge` (the Room every warren instance clones), `bar`, `office`, `offstage`, `wire-alcove` |
+| `content/world/lounge/thing/` | `terminal` (the TPA node — the pack's boot entry), `bar-menu`, `back-bar`, `bar-counter`, the four bottles, `cocktail-glass`, `mixing-glass`, `shaker`, `tip-jar`, the two neons, `bandage` |
+| `content/world/lounge/idea/` | `warren`, `business` |
+| `content/world/lounge/agent/` | the cast: `augie`, `dave`, `mara`, `remy`, `sloane` |
+| `content/stuff/idea/lounge.yaml` | the library root |
+| `content/msh/` | `martini`, `daiquiri`, `last-call` — the `msh` document kind, run with `run /world/lounge/msh/<name>` |
+| `content/settings/lounge.yaml` | `defaultStartLocation: /world/lounge/idea/warren` |
 
-Each file's source lands verbatim in `data.source` (re-parsed on
-resolution, never compiled); the row is owned by the pack `root`
-(`/world/lounge`) and stamped `sourcePack: saxonberg-lounge`. Run one
-with `run /world/lounge/msh/last-call`.
-
-## Deferred (wave 4)
-
-The lounge's rooms, NPCs, fixtures, brands and the `/world/lounge/**`
-template tree stay under `packages/server/src/mud/seeds/world/lounge/`
-and `mud/world/lounge/` until the path surgery of wave 4 moves the
-locality here whole.
+Rows are sorted by their class's Stuff branch (`location`/`thing`/`idea`/
+`agent`); the source mirrors it under `packages/server/src/mud/world/lounge/`.
+The bar's stations, the cocktail recipes and the tip-jar template are the
+hospitality trade's (`/trade/hospitality`); the bar `populates:` them by
+reference. The bottles are the venue's own stock.

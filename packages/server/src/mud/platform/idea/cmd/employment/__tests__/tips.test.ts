@@ -10,7 +10,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TipController from '../TipController';
 import CollectController from '../CollectController';
-import TipJar from '../../../../../world/lounge/TipJar';
+import TipJar from '../../../../thing/TipJar';
 import Coin from '../../../../thing/Coin';
 import { EmploymentApi } from '../../../../../api/employment';
 import { BankingApi, Money } from '../../../../../api/banking';
@@ -42,7 +42,7 @@ import {
 import { Currency } from "../../../../../lib/banking/Currency";
 
 const PATRON = '/platform/agent/Avatar/patron';
-const MARA = '/world/lounge/npc/mara';
+const MARA = '/world/lounge/agent/mara';
 
 // A patron: a command giver that holds coin.
 class Patron extends SensorMixin(

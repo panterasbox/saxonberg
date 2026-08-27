@@ -572,8 +572,8 @@ light-emitting fixtures on Dave's Bar back-bar wall) as pure data.
 
 ```yaml
 adornments:
-  - { template: /world/lounge/neon-veshko, slot: sign:veshko }
-  - /world/lounge/neon-aevex            # bare path → auto slot
+  - { template: /world/lounge/thing/neon-veshko, slot: sign:veshko }
+  - /world/lounge/thing/neon-aevex            # bare path → auto slot
 ```
 
 **Floors are Adornments.** The default-floor template

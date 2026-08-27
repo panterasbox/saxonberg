@@ -19,7 +19,7 @@ import { BulkableApi } from "../../../../api/bulk";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 import { Quantity } from "../../../../lib/quantity";
 import Material from "../../../../lib/material/Material";
-import CraftedDrink from "../../../../world/lounge/CraftedDrink";
+import CraftedDrink from "../../../thing/CraftedDrink";
 import RecipeCatalogue from "../../RecipeCatalogue";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { NamedMixin } from "../../../../lib/description/Named";
@@ -113,7 +113,7 @@ beforeEach(async () => {
       { slot: "mod", category: "vermouth", minGrade: "fair", measureL: 0.01 },
     ],
     toolCapabilities: ["mixing-glass"],
-    outputTemplate: "/world/lounge/cocktail-glass",
+    outputTemplate: "/trade/hospitality/thing/cocktail-glass",
     outputMaterial: MARTINI_MAT,
     baseGradeBand: "",
   });

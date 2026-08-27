@@ -2,10 +2,10 @@
  * WindController — `wind <timepiece>`.
  *
  * Winds a reachable mechanical timepiece's mainspring back to full so it
- * resumes ticking. Gated by the MechanicalMovement content mixin the same
+ * resumes ticking. Gated by the `MechanicalMovementMixin` (lib/time) the same
  * way `adjust` is: the controller narrows the target with a local
  * mixin-presence guard (`MixinApi.hasMixin(s, Mixins.MechanicalMovement)`)
- * and rejects anything else. `MechanicalMovement` is locality content, so
+ * and rejects anything else. `MechanicalMovement` is `lib/time` substrate, so
  * this gate lives in the bundle, not as a global `MixinApi.is*` predicate.
  */
 
@@ -17,7 +17,7 @@ import { Mixins } from '../../../../../lib/mixin';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import type { MechanicalMovement } from '../../MechanicalMovement';
+import type { MechanicalMovement } from '../../../../../lib/time/MechanicalMovement';
 
 interface WindModel extends CommandModel {
   target?: MqlOneResult;

@@ -24,16 +24,19 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { createRequire } from 'node:module';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { Authority } from '../../lib/employment/Authority';
 
-// The locality rows and their title claims are world-seed's (content-packs wave 3).
-const SEEDS = fileURLToPath(new URL('../../../../../content/world-seed/content/', import.meta.url));
-const MANIFEST = fileURLToPath(new URL('../../../../../content/world-seed/pack.yaml', import.meta.url));
+// Every shipped pack: the venues are their own packs now (the lounge since
+// content-packs wave 4b, the hearthworks with it), so the sweep walks every
+// content root and merges every manifest's title claims.
+const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
+const PACK_DIRS = readdirSync(PACKS)
+  .map((d) => join(PACKS, d))
+  .filter((d) => statSync(d).isDirectory() && existsSync(join(d, 'pack.yaml')));
 
 interface Seed {
   class?: string;
@@ -51,27 +54,23 @@ function walk(dir: string): string[] {
   return out;
 }
 
-/** The newbie-wilds content ships as a pack now — same rows, other root. */
-const WILDS = join(
-  dirname(createRequire(import.meta.url).resolve('@saxonberg/content-newbie-wilds/package.json')),
-  'content',
-);
-
-/** Every seed (or pack row) whose `class:` is the concrete Business. */
-const businesses = [
-  ...walk(SEEDS).map((path) => ({ path, rel: path.slice(SEEDS.length) })),
-  ...walk(WILDS).map((path) => ({ path, rel: path.slice(WILDS.length) })),
-]
+/** Every pack row whose `class:` is the concrete Business. */
+const businesses = PACK_DIRS.flatMap((pack) => {
+  const root = join(pack, 'content');
+  if (!existsSync(root)) return [];
+  return walk(root).map((path) => ({ path, rel: path.slice(root.length) }));
+})
   .map((e) => ({ ...e, seed: parse(readFileSync(e.path, 'utf8')) as Seed }))
   .filter((e) => e.seed?.class === '/platform/idea/Business')
   .map((e) => ({ rel: e.rel, data: e.seed.data ?? {} }));
 
-/** The claims as `{extent, owner: {name}}` rows — the shape the seeder's file had. */
-const parcels = (
-  parse(readFileSync(MANIFEST, 'utf8')) as {
-    requires: { title: Array<{ extent: string; holder?: { group?: string } }> };
-  }
-).requires.title.map((t) => ({ extent: t.extent, owner: { name: t.holder?.group } }));
+/** Every pack's claims as `{extent, owner: {name}}` rows — the shape the seeder's file had. */
+const parcels = PACK_DIRS.flatMap((pack) => {
+  const manifest = parse(readFileSync(join(pack, 'pack.yaml'), 'utf8')) as {
+    requires?: { title?: Array<{ extent: string; holder?: { group?: string } }> };
+  };
+  return (manifest.requires?.title ?? []).map((t) => ({ extent: t.extent, owner: { name: t.holder?.group } }));
+});
 
 /** The claimed title covering `path` by longest prefix, or undefined. */
 function coveringTitle(path: string): { extent: string; owner?: { name?: string } } | undefined {
@@ -116,9 +115,9 @@ describe('the shipped Business seeds', () => {
 
 describe('`entity` — somebody owns it', () => {
   it.each([
-    ['lounge', '/world/lounge/npc/dave'],
+    ['lounge', '/world/lounge/agent/dave'],
     ['general-store', '/world/terminus/general-store/npc/keeper'],
-    ['hearthworks', '/world/hearthworks/npc/smith'],
+    ['hearthworks', '/world/hearthworks/agent/smith'],
   ])('%s names its proprietor', (fragment, path) => {
     expect(byPath(fragment).data.appointingAuthority).toEqual({
       kind: 'entity',
@@ -137,7 +136,7 @@ describe('`entity` — somebody owns it', () => {
     expect(daves.kind).toBe('entity');
     expect(Authority.fromData(daves)).toEqual({
       kind: 'entity',
-      path: '/world/lounge/npc/dave',
+      path: '/world/lounge/agent/dave',
     });
   });
 });

@@ -17,7 +17,7 @@ import { test, expect } from '@playwright/test';
 import { openWorldAs, runCommand, sendUntil, commandInput } from './helpers';
 
 /** A room with a stable path, so the jurisdiction is deterministic. */
-const START = '/world/lounge/bar';
+const START = '/world/lounge/location/bar';
 const PARCEL = '/world/lounge';
 
 /** Anything that means "the eval never ran". */

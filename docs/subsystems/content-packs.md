@@ -23,10 +23,12 @@ it: the substrate packs (**base-library**, **species-and-names**,
 **arcane-descriptors**, **arcane-library**, **generic-objects**), the
 social packs (**expression**, **wiki-starter**), the five
 **corpo-{aevex,goodkin,hollis,veshko,vionne}** (each now an
-*organization* with its own chart), two localities
-(**newbie-wilds**, **saxonberg-lounge**), and **world-seed** — the
-TRANSITIONAL pack holding every locality row the retired `SeederManager`
-used to insert, deleted piecewise as waves 4–5 home each locality.
+*organization* with its own chart), the three industries
+(**trade-smithing**, **trade-hearth-cooking**, **trade-hospitality**),
+three localities (**newbie-wilds**, **saxonberg-lounge**,
+**hearthworks**), and **world-seed** — the TRANSITIONAL pack holding
+the locality rows the retired `SeederManager` used to insert, deleted
+piecewise as wave 5 homes each remaining locality.
 
 A pack no longer only ships rows. Its manifest **declares what the rows
 need** (*§ The requires phase*): the groups it needs to exist, the
@@ -110,7 +112,7 @@ requires:                 # what the rows need — see § The requires phase
     - { extent: /stuff/idea/lounge,    holder: { group: lounge } }
     - { extent: /world/lounge, holder: { group: lounge } }
 boot:                     # which rows are eager, and why — see § The boot union
-  - { template: /world/lounge/terminal, role: producer, reason: "…" }
+  - { template: /world/lounge/thing/terminal, role: producer, reason: "…" }
 ```
 
 **The key set is closed** (`MANIFEST_KEYS` in `PackLogic`): `id`,
@@ -594,8 +596,8 @@ them; the installer provisions them, adopt-by-name throughout.
   explicit entry — the platform's own extents are nine explicit lines
   (`/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`,
   `/home`, `/world`, and `/wiki` for `wiki-editors`), and two packs may
-  name the same extent for the same holder (`world-seed` and
-  `saxonberg-lounge` both claim `/world/lounge` for `lounge`: the
+  name the same extent for the same holder (until wave 4b `world-seed`
+  and `saxonberg-lounge` both claimed `/world/lounge` for `lounge`: the
   second is `kept`).
 - **`maintainers`** — a group name, `{ group }` or `{ organization }`;
   default **`<id>-maintainers`**, a group the installer mints
@@ -751,8 +753,9 @@ first — every emit resolves it; `/platform/idea/AccessRegistry`,
 `/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the scheduler chain
 under `/platform/idea/WorldClockRegistry`), the two organizations
 (`/compact/executive`, `/compact/press`), `/platform/idea/PressBoard` and
-`/platform/location/void`; each corpo pack its own organization; `world-seed` the
-four locality producers (`/world/lounge/terminal`, the Duncan Hall
+`/platform/location/void`; each corpo pack its own organization;
+`saxonberg-lounge` the TPA root (`/world/lounge/thing/terminal`);
+`world-seed` the three remaining locality producers (the Duncan Hall
 dorm-warren, the Hinkley Hills plat-book and lot-holder). `pnpm
 lint:instanceable` checks each entry names a real row.
 
@@ -787,25 +790,42 @@ the installer's walk mirrored in a script; zero is green).
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcane-descriptors** | platform | default | — | — | — |
 | **arcane-library** | platform | default | — (rides `/obj`) | — | — |
-| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches: `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; the recipes no trade claims stay) | — | — |
+| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches: `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
 | **trade-smithing** | platform, generic-objects | default | `/trade/smithing` → group `smithing` (PM-owned) | `smithing` | — |
-| **trade-hearth-cooking** | platform, generic-objects | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned) | `hearth-cooking` | — |
+| **trade-hearth-cooking** | platform, generic-objects | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned); four recipes since wave 4b (toasted-ration, root-mash, fine-roast, hearty-stew) | `hearth-cooking` | — |
+| **trade-hospitality** | platform, generic-objects, base-library | default | `/trade/hospitality` → group `hospitality` (PM-owned): the four bar stations (shaker, mixing-glass, cocktail-glass, back-bar), the tip-jar template, the two cocktail recipes — what the lounge introduced; bottles and positions stay the venue's (wave 4b) | `hospitality` | — |
 | **expression** | platform | group `soul` | `/expression` → group `soul` | — | — |
 | **wiki-starter** | platform | default | — (rides `/wiki`) | — | — |
 | **corpo-{aevex,goodkin,hollis,veshko,vionne}** | platform | organization `/corpo/<key>` | `/corpo/<key>` (holder = maintainers) | — | `/corpo/<key>` (producer) |
 | **newbie-wilds** | platform | default | `/world/newbie-wilds` → group `newbie-wilds` | `newbie-wilds` | — |
-| **saxonberg-lounge** | platform, corpo-goodkin, corpo-vionne | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge` | `lounge` | `/world/lounge/terminal` is world-seed's for now |
-| **world-seed** (TRANSITIONAL — the hearthworks VENUE only since wave 4a; its trade rows are the two trade packs') | platform, saxonberg-lounge, corpo-goodkin, corpo-vionne | default | `/world/lounge` → `lounge` (kept); the four Terminus parcels → `terminus` (`terminal`, `counting-houses`, `general-store`, `registry`, with land uses); `/world/terminus/hinkley-hills` + `lots/lot-1` → `hinkley-hills`; `/world/eternal/duncan-hall` + `dorms` → `duncan-hall` | `duncan-hall` (enrols Katie), `hinkley-hills`, `terminus`, `lounge` | `/world/lounge/terminal`, the dorm-warren, the plat-book, the lot-holder (producer) |
+| **saxonberg-lounge** (the lounge, whole, since wave 4b) | platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge`: the 22 venue rows under `/world/lounge/{location,thing,idea,agent}` + the FolderZone, the library root, the three `msh`, the landing setting | `lounge` | `/world/lounge/thing/terminal` (producer — the TPA network's eager root) |
+| **hearthworks** (a VENUE pack, wave 4b) | platform, trade-smithing, trade-hearth-cooking, corpo-goodkin | default | `/world/hearthworks` → group `hearthworks` (PM-owned): the `/world/hearthworks` CartesianZone + 12 rows under branch subdirs — the four rooms + the forge floor + `offstage`, the business, Berta and Odo, the two menus, the pantry; every station and recipe a `populates:` reference to a trade's or the commons' row | `hearthworks` | — |
+| **world-seed** (TRANSITIONAL — eternal, terminus, moor, practicum, substation, common) | platform, saxonberg-lounge (the Terminus departure route names the lounge terminal), corpo-goodkin, corpo-vionne | default | the four Terminus parcels → `terminus` (`terminal`, `counting-houses`, `general-store`, `registry`, with land uses); `/world/terminus/hinkley-hills` + `lots/lot-1` → `hinkley-hills`; `/world/eternal/duncan-hall` + `dorms` → `duncan-hall` | `duncan-hall` (enrols Katie), `hinkley-hills`, `terminus` | the dorm-warren, the plat-book, the lot-holder (producer) |
 
-Eighteen. The corpo packs became **organizations** in wave 3: each ships
+Twenty. The corpo packs became **organizations** in wave 3: each ships
 `content/corpo/<key>.yaml` (its chart — authority the PM office, because
 a chart whose authority is *the committee over `/corpo/<key>`* recurses
 once the organization holds that very title) beside its mark and
 brands, and the wave-2 board *groups* are the retired holders `grant`
 migrates from. `world-seed` exists so the seeders could be deleted
-without the localities sitting in the platform under a false owner; it
-is deleted piecewise as waves 4–5 home eternal, terminus, the rest of
-the lounge, hearthworks, moor, practicum, substation and common.
+without the localities sitting in the platform under a false owner; the
+lounge and the hearthworks left it in wave 4b; wave 5 homes eternal,
+terminus, moor, practicum, substation and common and deletes it.
+
+**Rows are sorted by Stuff branch, resolved by lineage.** A locality
+with more than about six template rows keeps them under
+`<root>/{location,thing,idea,agent}/`; six or fewer stays flat; source
+mirrors it (`src/mud/world/lounge/{location,thing,idea}/`, the
+hearthworks flat at one file). The branch is the class's — `TpaTerminal`
+and `CommerceMenu` are Things, so the lounge terminal and every menu row
+sit under `thing/`, whatever a first guess says.
+
+**Packs seed, they do not own.** A venue row is an initial condition:
+once installed it is the title-holder's, and the three-way reconcile's
+file-same / DB-changed cell *keeps* the owner's edit (a renamed bar, a
+refit room) with the baseline untouched, while a file change against an
+unedited row still lands. `PackLogic.venue-ownership.test.ts` asserts
+that cell in the venue framing; no mechanism was added for it.
 
 ## Reconcile policy
 
@@ -832,11 +852,16 @@ values: editing gin's density breaks nothing (it re-hydrates); renaming
 ## Deferred
 
 The slate (`docs/slates/builds/content-packs-slate.md`) holds the full
-design surface and remaining build waves: wave 4b — the room archetypes,
-hospitality, and the **venue packs** (homing the localities out of
-`world-seed`: eternal, terminus, the rest of the lounge, the hearthworks
-venue, moor, practicum, substation, common), hearth-cooking's second pass
-(`fine-roast`, `hearty-stew`), and the
+design surface and remaining build waves: **wave 5** — homing the rest
+of `world-seed` (eternal as the capability exemplar with `DormThemes` /
+`Footlocker` / `Gus`, terminus, moor, practicum, substation, common)
+and deleting it; the **authorable-composition bridge** (a template
+declaring its mixin stack in YAML — A23's biggest lever; 4b
+genericized the composition-only classes into concrete `platform/`
+classes instead); the **venue archetype** (A13.5 / A14 — the
+`archetype` document kind, derive-on-read, the derived test venue:
+declined until a third industry brings its own kernel gap);
+hearthworks' inbound exit (still `goto`-only); the
 `AppSettingFallbacks` code default for `defaultStartLocation`;
 `requires.kinds:` (a pack declaring the document kinds it needs);
 manifest version machinery + cross-pack dependency validation
@@ -860,26 +885,45 @@ junk drawer — expected to slim as trade packs take their objects.
 - `packages/content/arcane-descriptors/` — the descriptor banks.
 - `packages/content/arcane-library/` — `content/stuff/idea/magic/**`.
 - `packages/content/generic-objects/` — the object clusters under
-  `content/stuff/<branch>/<cluster>/`, the loose objects, the recipes no trade
-  claims (`daiquiri`, `martini`, `fine-roast`, `hearty-stew`).
+  `content/stuff/<branch>/<cluster>/` and the loose objects; no recipes
+  (every recipe is a trade's since wave 4b).
 - `packages/content/trade-smithing/` — `root: /trade/smithing`:
   `content/trade/smithing/thing/` (anvil, whetstone, workbench, the ingots — a template row sits at the path its FILE mirrors; only documents derive from `root`) +
   `content/recipes/` (fire-poker, smiths-hammer, belt-knife, cook-pot,
   leather-jerkin).
 - `packages/content/trade-hearth-cooking/` — `root: /trade/hearth-cooking`:
-  `content/recipes/` (toasted-ration, root-mash).
+  `content/recipes/` (toasted-ration, root-mash, fine-roast, hearty-stew).
+- `packages/content/trade-hospitality/` — `root: /trade/hospitality`:
+  `content/trade/hospitality/thing/` (shaker, mixing-glass,
+  cocktail-glass, back-bar, tip-jar — the templates a bar populates by
+  reference) + `content/recipes/` (daiquiri, martini).
 - `packages/content/expression/` — the emote roster (`content/emotes/`).
 - `packages/content/wiki-starter/` — `content/wiki/<ns>/<slug>.md`.
 - `packages/content/corpo-<key>/` × 5 — `content/corpo/<key>.yaml` (the
   organization) + `content/stuff/idea/corpo/**` (mark + brands).
 - `packages/content/newbie-wilds/` — `content/world/newbie-wilds/**`.
-- `packages/content/saxonberg-lounge/` — `content/stuff/{thing,idea}/lounge/**`,
-  `content/msh/`, `content/settings/lounge.yaml` (`root: /world/lounge`).
-- `packages/content/world-seed/` — every remaining locality row under
-  `content/world/**` (the hearthworks VENUE — rooms, business, NPCs,
-  menus, the pantry — whose `populates:` name the trade packs' and
-  commons rows), including the seven domain-local command views
+- `packages/content/saxonberg-lounge/` — the lounge whole:
+  `content/world/lounge.yaml` (the FolderZone) +
+  `content/world/lounge/{location,thing,idea,agent}/` (the 22 venue
+  rows, sorted by branch), `content/stuff/idea/lounge.yaml`,
+  `content/msh/`, `content/settings/lounge.yaml` (`root: /world/lounge`);
+  source under `src/mud/world/lounge/{location,thing,idea}/` + the
+  locality-root `LoungeMixin.ts` / `paths.ts`.
+- `packages/content/hearthworks/` — the venue pack:
+  `content/world/hearthworks.yaml` (the CartesianZone — a Room's coords
+  resolve against it, so the venue's zone row ships WITH the venue) +
+  `content/world/hearthworks/{location,thing,idea,agent}/` (12 rows
+  whose `populates:` name the trade packs' and commons rows); source
+  `src/mud/world/hearthworks/SealedCellar.ts` (flat).
+- `packages/content/world-seed/` — the remaining locality rows under
+  `content/world/**` (eternal, terminus, moor, practicum, substation,
+  common), including the domain-local command views
   (`content/world/<…>/cmd/`) and their controllers.
+- `mud/lib/employment/Offstage.ts` (`OffstageMixin`, the off-shift
+  parking role) + `mud/platform/location/Offstage.ts` (the clonable every
+  venue's `offstage` row names); `mud/lib/time/MechanicalMovement.ts`;
+  the commons classes `mud/platform/thing/{CraftedDrink,GradedReceptacle,
+  NeonSign,CocktailShaker,TipJar,Menu}.ts` — the wave-4b graduations.
 - `mud/lib/paths.ts` — `TITLE_ROOTS` (the nine) + `NON_TEMPLATE_DIRS`
   (enumerated from `DOCUMENT_KINDS`), the one list the installer,
   `CommandLogic`'s offline reader, `lint:untitled` and
@@ -990,6 +1034,24 @@ collapse), the `developers`→`wizards` rename, the `adopt` reconcile cell +
 `adoptQuery` + the adoption bridge, the migration scripts, `lint:core-gone`
 — deleted. This game has never held data a boot of the same checkout did
 not write; nothing is migrated, ever.
+
+**Wave 4b (2026-08-27) — the venue packs.** The lounge is ONE pack
+(`saxonberg-lounge` takes the 27 venue rows + the FolderZone out of
+`world-seed`, with the TPA boot entry); **hearthworks** is a venue pack
+of its own (12 rows, its group + claim, depending on the two trades and
+its bank); the third industry **trade-hospitality** ships what the
+lounge introduced (the four stations, the tip-jar template, the
+cocktail recipes) and hearth-cooking's second pass rides along —
+`generic-objects` ships no recipes. The A23 graduations: `Offstage` →
+`lib/employment` (`OffstageMixin` + the concrete
+`platform/location/Offstage`; both venues' casts park through it, the
+hearthworks gaining the `shifts` brain and an `offstage` row),
+`MechanicalMovement` → `lib/time`, and the composition-only classes
+(`CraftedDrink`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
+`TipJar`, the three menus collapsed to ONE `Menu`) → `platform/thing/`.
+The locality rule applied: rows and source under branch subdirs by
+lineage (>6) or flat (≤6). "Packs seed, they do not own" proven by
+`PackLogic.venue-ownership.test.ts`, no mechanism added. Twenty packs.
 
 **The path pattern (2026-08-28, on the wave-4a branch).** `/platform/… + /stuff/` is
 gone. Every template path and every engine source file follows

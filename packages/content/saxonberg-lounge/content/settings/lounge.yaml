@@ -7,4 +7,4 @@ settings:
   # deliberately does not: first-merged wins, and the platform installs
   # first).
   - key: defaultStartLocation
-    value: /world/lounge/warren
+    value: /world/lounge/idea/warren

@@ -47,7 +47,7 @@ export const UNCAPPED = -1;
  */
 export const BORN_WITH_TRAVEL_NODES = [
   "/world/terminus/terminal/arrival-terminal",
-  "/world/lounge/terminal",
+  "/world/lounge/thing/terminal",
   "/world/newbie-wilds/crossroads/terminal",
 ] as const;
 

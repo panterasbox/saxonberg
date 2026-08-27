@@ -9,7 +9,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import LoungeWarren from "../../../world/lounge/LoungeWarren";
+import LoungeWarren from "../../../world/lounge/idea/LoungeWarren";
 import { LoungePaths } from "../../../world/lounge/paths";
 import Avatar from "../../../platform/agent/Avatar";
 import { StuffApi } from "../../../api/stuff";
@@ -36,7 +36,7 @@ const TERMINUS_ROOM = "/world/terminus/terminal/arrival-gate";
 const fastTravelDocs: Doc[] = [
   {
     path: LoungePaths.terminal,
-    class: "/world/lounge/LoungeTerminal",
+    class: "/world/lounge/thing/LoungeTerminal",
     hydratorClass: PH,
     data: {
       seatIn: LoungeWarren.WARREN_PATH,

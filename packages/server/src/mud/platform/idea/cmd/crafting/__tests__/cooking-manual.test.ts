@@ -21,7 +21,7 @@ import { BulkableApi } from '../../../../../api/bulk';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { Quantity } from '../../../../../lib/quantity';
 import CookPot from '../../../../thing/CookPot';
-import CraftedDrink from '../../../../../world/lounge/CraftedDrink';
+import CraftedDrink from '../../../../thing/CraftedDrink';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import {
   TestActor,

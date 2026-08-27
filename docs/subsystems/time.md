@@ -426,14 +426,16 @@ needs no mechanism and no instanceable class — the detail seam is
 enough. The tower is the honest reference: it always shows true civic
 time.
 
-### `MechanicalMovement` — locality content, the drift source
+### `MechanicalMovement` — the drift source
 
 A *mechanical* timepiece drifts because nobody ever sets it right and its
 mainspring runs down. That physics lives in
-**`MechanicalMovementMixin`** — and it lives in
-`domain/eternal/university-avenue/`, **not** `lib/`. It is locality
-content, not engine substrate: the only realistic mechanical timepiece is
-this antique, and every future timepiece is electronic. The mixin folds
+**`MechanicalMovementMixin`** in `lib/time/`, beside `Timekeeping`
+(content packs wave 4b graduated it out of
+`world/eternal/university-avenue/` — the A23 verdict: a mixin is
+substrate wherever it happens to live, and any pack's clockwork may
+compose it). The concrete timepieces (`Watch`) stay locality content;
+the only realistic mechanical timepiece is still that antique. The mixin folds
 `TimekeepingMixin` over `ReservedMixin` (a composing class is
 `isTimekeeping` and `isReserved` for free), re-defining the read with its
 drift model:
@@ -464,9 +466,9 @@ Two content verbs, both in the locality bundle
 
 Both verbs gate on the **presence of `MechanicalMovementMixin`**, not on
 `instanceof Watch` — a local `MixinApi.hasMixin(s,
-Mixins.MechanicalMovement)` guard in the bundle's controllers (locality
-content earns a bundle-local guard, not a global `MixinApi.is*`
-predicate). An accurate/aether timepiece composing plain `Timekeeping`
+Mixins.MechanicalMovement)` guard in the bundle's controllers (the
+verbs are the locality's, so the gate stays bundle-local rather than a
+global `MixinApi.is*` predicate). An accurate/aether timepiece composing plain `Timekeeping`
 affords neither verb, which is the whole point.
 
 `Watch` (`.../university-avenue/Watch.ts`) is the concrete demonstrator —
@@ -495,9 +497,9 @@ physics.
 | `Sundial` / `Sextant` | Stuff | `obj/instrument/` |
 | `TimekeepingMixin` (+ `Timekeeping`) | Mixin | `lib/time/Timekeeping.ts` |
 | `Time` | Named value-object | `lib/time/Time.ts` |
-| `MechanicalMovementMixin` (+ `MechanicalMovement`) | Mixin (locality content) | `domain/eternal/university-avenue/MechanicalMovement.ts` |
-| `Watch` | Stuff (locality content) | `domain/eternal/university-avenue/Watch.ts` |
-| `Wind{,}Controller` / `AdjustController` | Controller (locality content) | `domain/eternal/university-avenue/command/` |
+| `MechanicalMovementMixin` (+ `MechanicalMovement`) | Mixin | `lib/time/MechanicalMovement.ts` (in `lib/time` since content packs wave 4b) |
+| `Watch` | Stuff (locality content) | `world/eternal/university-avenue/Watch.ts` |
+| `WindController` / `AdjustController` | Controller (locality content) | `world/eternal/university-avenue/idea/cmd/` |
 | `Analyze{Time,Sky}Controller`, `Measure{Shadow,Altitude}Controller` | Controller | `platform/idea/cmd/` |
 | `analyze` / `measure` subcommands | Command YAML | `cmd/perception/analyze.yaml`, `cmd/perception/measure.yaml` |
 | `scale` default / `CAMPUS_LATITUDE` / `CAMPUS_LONGITUDE` / `SNAPSHOT_INTERVAL_MS` | module constants | on the two Apis (NOT settings) |
@@ -576,7 +578,8 @@ not the world-clock waves above. It arrived first (Phase 1A,
 `e31ad023`) as a single `Watch` class carrying all the clockwork, then
 was refactored into the shape documented here: `206745f1` /
 `e99404ce` split it into the general `Timekeeping` read seam (kept in
-`lib/time/`) + the locality-content `MechanicalMovement` movement, and
+`lib/time/`) + the `MechanicalMovement` movement (locality content
+until wave 4b moved it beside `Timekeeping`), and
 demoted the clock tower from a would-be Stuff to a dynamic room-detail
 prose reader — the rejected-`Timepiece`/rejected-`ClockTower` lesson
 that keeps the engine seam general while the antique clockwork stays

@@ -37,7 +37,7 @@ class TestAvatar extends ContainerMixin(ContainableMixin(Idea)) {
 }
 
 const BANK = "/world/terminus/counting-houses/bank-counter";
-const BAR = "/world/lounge/bar";
+const BAR = "/world/lounge/location/bar";
 const PATRON = "/platform/agent/Avatar/patron";
 
 function avatar(path: string): TestAvatar {

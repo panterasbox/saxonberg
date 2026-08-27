@@ -4,7 +4,7 @@
  */
 
 import { vi } from 'vitest';
-import LoungeWarren from '../LoungeWarren';
+import LoungeWarren from '../idea/LoungeWarren';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -31,18 +31,18 @@ export function loungeDocs(extra: Doc[] = []): Doc[] {
     { path: PH, class: PH, data: {} },
     {
       path: LoungeWarren.WARREN_PATH,
-      class: '/world/lounge/LoungeWarren',
+      class: '/world/lounge/idea/LoungeWarren',
       data: {},
     },
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
-      class: '/world/lounge/Lounge',
+      class: '/world/lounge/location/Lounge',
       hydratorClass: PH,
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
-      class: '/world/lounge/Bar',
+      class: '/world/lounge/location/Bar',
       hydratorClass: PH,
       data: { shortDescription: "Dave's Bar" },
     },

@@ -2874,6 +2874,15 @@ local color kept: `Bar` `Lounge` `LoungeWarren` `LoungeMixin`
 pack's boot-manifest entry — the first content boot customer) ·
 `paths` trivial.
 
+> **Applied 2026-08-27 (content packs wave 4b):** the lounge table
+> landed as written — `Menu`/`SmithyMenu`/`KitchenMenu` → one
+> `platform/thing/Menu`; `CraftedDrink` `GradedReceptacle` `NeonSign`
+> `CocktailShaker` → `platform/thing/`; `Offstage` → `lib/employment`
+> (+ `platform/location/Offstage`, the hearthworks as second consumer);
+> `TipJar` → `platform/thing` with its template in `/trade/hospitality`;
+> the local color kept under `world/lounge/{location,thing,idea}/`;
+> `LoungeTerminal` is the lounge pack's boot entry.
+
 **Eternal (14 non-controller):** residue: `Footlocker` (repoint to
 `obj/Chest`) · pure composition → generic-objects: `Bed` `Desk`
 `Whistle` `Watch` · real extraction: `MechanicalMovement` — **a mixin
@@ -2884,6 +2893,10 @@ color kept: `DormRoom` `DormWarren` `Corridor` `DormDoor`
 `FloorStairExit` `Katie` `CrossingLog` · misfiled+deletable: `Gus`
 (moves to the eternal tree regardless; **deletes entirely if
 spawn-equipment becomes authorable data**).
+
+> **Applied in part 2026-08-27 (wave 4b):** `MechanicalMovement` →
+> `lib/time`. The rest of the eternal table (`Footlocker`, `Bed`, `Desk`,
+> `Whistle`, `Watch`, `DormThemes`, `Gus`) is wave 5's.
 
 ## The two conclusions that outrank the tables
 

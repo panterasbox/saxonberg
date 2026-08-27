@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import LoungeWarren from '../LoungeWarren';
+import LoungeWarren from '../idea/LoungeWarren';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
 function readYaml(rel: string): Record<string, unknown> {

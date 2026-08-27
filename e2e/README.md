@@ -106,7 +106,7 @@ double-connect entirely — a follow-up.
 
 E2E runs against a deterministic world by construction: a fresh Mongo
 (ephemeral in CI) + the fixed seed set. A freshly-created test avatar
-spawns in the lounge Warren (`startLocation: /world/lounge/warren`), so
+spawns in the lounge Warren (`startLocation: /world/lounge/idea/warren`), so
 single-avatar specs assert on that room's stable identity label ("the
 lounge"), not its flavor prose.
 
@@ -124,7 +124,7 @@ mitigations:
   `TestAuthRoutes` → `Application.provisionTestCharacter`. Tests that need
   a *known* or *shared* room use it to bypass the Warren entirely:
   `multiplayer.spec.ts` pins both avatars to Dave's Bar (a stable
-  singleton, `/world/lounge/bar`) so they spawn already co-located, and
+  singleton, `/world/lounge/location/bar`) so they spawn already co-located, and
   `commands.spec.ts`'s movement test pins to the bar then walks `south`
   to the lounge. These specs are therefore immune to lounge churn.
 - **Resetting locally.** Most specs are single-avatar or client-only and

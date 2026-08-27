@@ -22,10 +22,10 @@ import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
 const SEED = fileURLToPath(
-  new URL('../../../../../../content/world-seed/content/world/lounge/business.yaml', import.meta.url),
+  new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/idea/business.yaml', import.meta.url),
 );
-const BUSINESS = '/world/lounge/business';
-const DAVE = '/world/lounge/npc/dave';
+const BUSINESS = '/world/lounge/idea/business';
+const DAVE = '/world/lounge/agent/dave';
 
 interface BizDoc {
   class: string;
@@ -72,16 +72,16 @@ describe("Dave's Bar — Business seed integrity", () => {
     const doc = loadSeed();
     const assignees = doc.data.rosterSlots.map((s) => s.assignee).sort();
     expect(assignees).toEqual([
-      '/world/lounge/npc/augie',
-      '/world/lounge/npc/mara',
-      '/world/lounge/npc/remy',
-      '/world/lounge/npc/sloane',
+      '/world/lounge/agent/augie',
+      '/world/lounge/agent/mara',
+      '/world/lounge/agent/remy',
+      '/world/lounge/agent/sloane',
     ]);
     const sloane = doc.data.rosterSlots.find((s) =>
       s.assignee.endsWith('sloane'),
     );
     expect(sloane!.schedule).toHaveLength(2); // 22–24 + 0–6
-    expect(doc.data.operatingLocations).toContain('/world/lounge/bar');
+    expect(doc.data.operatingLocations).toContain('/world/lounge/location/bar');
   });
 });
 
@@ -109,8 +109,8 @@ describe("Dave's Bar — Business seed drives the engine", () => {
   }
 
   it('materializes an Employment per assignee and selects the on-shift maker', () => {
-    const mara = makeStuffAtPath(() => new Staff(), '/world/lounge/npc/mara');
-    const remy = makeStuffAtPath(() => new Staff(), '/world/lounge/npc/remy');
+    const mara = makeStuffAtPath(() => new Staff(), '/world/lounge/agent/mara');
+    const remy = makeStuffAtPath(() => new Staff(), '/world/lounge/agent/remy');
 
     atClock(2, 10); // Wednesday 10:00 — Mara's window, not Remy's
     EmploymentApi.tickRoster();
