@@ -110,6 +110,14 @@ write a `package.json` (`{ name: '@saxonberg/content-<id>', dependencies:
 { '@saxonberg/content-<dep>': 'workspace:*' } }`) instead of a `dependsOn`
 key — one harness change, every PackLogic test keeps its `dependsOn` option.
 
+**10. (Amendment, 2026-08-27.) The packs are headed for their own repos.**
+The first draft had packs import the kernel by relative path
+(`../../../../server/src/mud/…`), which encodes this monorepo's layout into
+every pack file and dies at the split. § (a) and § (d) now use a package
+specifier over an `exports` map, and the pack list moves from the server's
+`package.json` to the deployment's — the two edits that make a pack
+repo-portable with no other change.
+
 ## The hard problems, decided
 
 ### (a) How a pack's TS is resolved and compiled
@@ -122,31 +130,52 @@ key — one harness change, every PackLogic test keeps its `dependsOn` option.
   `"../content/*/src/**/*"`, `rootDir` is removed (tsc's emit is a typecheck
   artefact nobody runs; `dist/` stays gitignored). That is what makes
   `experimentalDecorators` reach pack files under tsx (finding 2).
-- **Pack → kernel imports are relative paths**
-  (`../../../../server/src/mud/lib/stuff/Thing`). Zero config in tsx, vitest
-  and tsc; module identity is the resolved file URL, so a pack's `Thing` is
-  the kernel's `Thing`. Rejected alternatives: a tsconfig `paths` alias
-  (three declarations — server tsconfig, pack tsconfig, vitest
-  `resolve.alias` — and tsx applies `paths` only to included files);
-  a `@saxonberg/server` workspace dependency from the pack (a pnpm dependency
-  cycle, warned on every install). The relative form is ugly and honest;
-  `lint:imports`' pack profile canonicalises it to a mud-rooted key.
+- **Pack → kernel imports are package specifiers, through an export map**
+  (amended 2026-08-27 — the packs are headed for their own repos, and a
+  relative path encodes this monorepo's layout into every pack file).
+  A pack imports `@saxonberg/server/mud/lib/stuff/Thing`; the pack's
+  `package.json` depends on `"@saxonberg/server": "workspace:*"`; the
+  server's `package.json` gains an **`exports` map** enumerating the
+  subpaths a pack may reach (`"./mud/lib/*": "./src/mud/lib/*.ts"`,
+  `"./mud/api/*": "./src/mud/api/*.ts"` (single level — never `api/mql/**`
+  or `api/mml/**`), `"./mud/platform/thing/*"`, `"./mud/platform/idea/*"`
+  with `platform/idea/api/**` and `platform/idea/hooks/**` **not** listed,
+  `"./mud/platform/agent/*"`, `"./mud/platform/location/*"`,
+  `"./test-bootstrap"`, `"./services/loader/vite-plugin"`). Nothing else
+  is exported — not `backend/`, not `world/**`, not `platform/idea/api/**`.
+  tsx, vitest and tsc (`moduleResolution: bundler`) all honour `exports`;
+  the resolved file is the same physical `.ts`, so a pack's `Thing` is the
+  kernel's `Thing` and the loader hook stamps it as a kernel module. The
+  former cycle (server → packs → server) is broken on the *server's* side:
+  the server never depends on a pack (below). Rejected: relative paths
+  (die at the repo split); a tsconfig `paths` alias (three declarations;
+  tsx applies `paths` only to included files).
 - **Typecheck:** each capability pack gets `tsconfig.json` (extends
   `../../../tsconfig.base.json`, `include: ["src/**/*"]`, `noEmit: true`)
   and `"build": "tsc"` in `package.json`, so `pnpm -r build` typechecks it.
   Vitest also finds this tsconfig as the nearest one for pack test files.
 - **Tests:** each capability pack gets `vitest.config.ts` re-exporting the
   server's plugin + `sharedTest` (`import { callSecPlugin } from
-  '../../server/src/services/loader/vite-plugin'`) and `"test": "vitest run"`.
+  '@saxonberg/server/services/loader/vite-plugin'`) and `"test": "vitest run"`.
   The root `pnpm test` is already `pnpm -r test`, so pack suites join it with
   no root edit. `test-near.ts` grows: a changed file under
   `packages/content/<pack>/src/` selects that pack's sibling `__tests__`
   and runs `pnpm --filter @saxonberg/content-<pack> exec vitest run <sel>`.
   `check-test-bootstrap.ts`'s `TEST_ROOTS` and `IMPORT_RE` widen to pack
-  `src/**` (the import is `'../../../../server/src/test-bootstrap'`).
-- **The one dependency line:** `packages/server/package.json` gains
-  `"@saxonberg/content-arcana": "workspace:*"`, loses `arcane-descriptors`.
-  Nothing else declares arcana anywhere.
+  `src/**` (the import is `'@saxonberg/server/test-bootstrap'`).
+- **The one dependency line lives in the DEPLOYMENT, not the server.**
+  The workspace root `package.json` is the deployment manifest: it gains
+  `"dependencies": { "@saxonberg/content-platform": "workspace:*", … all
+  nineteen }` and `packages/server/package.json` **loses every
+  `@saxonberg/content-*` line**. A33's `pnpm add @saxonberg/content-<id>`
+  is then literally the act of installing a pack, and when the packs are
+  their own repos the root manifest is the only file that changes.
+  Discovery (`packNamesFromServerDeps` → `packNamesFromDeployment`) reads
+  the root manifest — the server is told the deployment root
+  (`SAXONBERG_DEPLOYMENT_ROOT`, default: the nearest ancestor
+  `package.json` above the server with `@saxonberg/content-*`
+  dependencies) and `createRequire`s from there. The `SAXONBERG_PACKS`
+  filter is unchanged.
 
 ### (b) `HotReloadApi` keyed on absolute paths
 
@@ -183,35 +212,38 @@ leaves relative gates in pack files untouched — **pack code writes absolute
 `FromModule` strings** (a documented rule; `lint:gates` enforces
 resolvability). `resolveModuleId` and `FromModule` are unchanged.
 
-### (d) The `lint:imports` pack profile — the author surface as a path set
+### (d) The pack import profile — the server's `exports` map IS the boundary
 
-A pack module (tier `pack`, files under `packages/content/*/src/`, tests
-still unrestricted) may import:
+The author surface a pack may import is the **`exports` map in
+`packages/server/package.json`** (§ a): `mud/lib/**` (mixin factories,
+value objects, abstract roots — `CommandController`, `SpellKnowledge`,
+`Fade`, `MagicGrid` live here and the moved controllers import them),
+`mud/api/*` (the facades, single level), and
+`mud/platform/{thing,idea,agent,location}/**` **minus**
+`platform/idea/api/**` (logic singletons) and `platform/idea/hooks/**`.
+`Potion extends Receptacle` and `PotionMaterial extends ConsumableMaterial`
+are why `platform/<branch>/` is exported; the omissions are what keep it
+"author surface" rather than "everything". Not exported, therefore
+physically unreachable: `backend/`, `services/` (bar the vite plugin),
+`config/`, `world/**` (parked venue code — a pack that needs a venue's
+class waits for that venue's pack), `platform/idea/api/**`.
 
-- its own pack's `src/**` (relative, staying inside);
-- the `src/**` of a pack named in its `package.json` `dependencies`;
-- `@saxonberg/types`;
-- kernel paths, normalised to mud-rooted keys, that match:
-  `lib/**` (mixin factories, value objects, abstract roots — `CommandController`,
-  `SpellKnowledge`, `Fade`, `MagicGrid` are all here and the moved controllers
-  import them), `api/*.ts` (the facades, single level — never `api/mql/**`,
-  `api/mml/**`), and `platform/{thing,idea,agent,location}/**` **excluding**
-  `platform/idea/api/**` (logic singletons; the kernel's own eslint rule
-  forbids importing them) and `platform/idea/hooks/**`. `Potion extends
-  Receptacle` and `PotionMaterial extends ConsumableMaterial` are the two
-  reasons `platform/<branch>/` must be admitted; the exclusions are what
-  keep it "author surface" rather than "everything";
-- never `backend/`, `services/`, `config/`, `world/**` (parked venue code —
-  a pack that needs a venue's class waits for that venue's pack), Node
-  built-ins, or any other npm package.
+Node, tsx, vitest and tsc all refuse a subpath the map does not list, so
+the boundary is enforced by the package, not by a script's opinion — and
+a pack that needs something un-exported has found a kernel MR (the *mod*
+rung). Widening the map is a deliberate, reviewable edit to one file.
 
-Justification: the projected consumer/extension tiers are *computed* from
-TypeDoc at doc time; a lint that read `author-surface.json` would gate on a
-generated file. The path set above is the static shape of the same three
-tiers (`lib` + `api` facades = consumer/extension; `platform/idea/api` = the
-`@internal` tier) and is checkable with the script's existing `keyFor`.
-Written as an enumerated allowlist in `check-mud-imports.ts`, widened by a
-deliberate edit like the built-in list.
+`lint:imports` still grows a `pack` tier (files under
+`packages/content/*/src/`, tests unrestricted), because the map cannot
+see three things: a **relative escape** (`../../../server/src/…` — the
+form this amendment retires; any relative import leaving the pack's own
+`src/` fails), a **pack-to-pack** import (`@saxonberg/content-<x>/src/…`
+allowed only when `<x>` is in the importer's `package.json`
+`dependencies`), and **any other package** (only `@saxonberg/server/*`,
+`@saxonberg/types`, declared pack deps; no Node built-ins). The script
+reads the export map to verify a `@saxonberg/server/*` specifier is
+exported, so the two never drift. `lint:imports`' kernel tier is
+unchanged.
 
 ### (e) Catalogues warm by class
 
@@ -268,7 +300,9 @@ is not.
 ### (i) `dependsOn` from `package.json`
 
 `resolvePack(root)` reads `<root>/package.json`; `dependsOn = Object.keys(dependencies)
-.filter(startsWith('@saxonberg/content-')).map(strip prefix)`. `MANIFEST_KEYS`
+.filter(startsWith('@saxonberg/content-')).map(strip prefix)` (the
+`@saxonberg/server` and `@saxonberg/types` lines are not packs and are
+ignored). `MANIFEST_KEYS`
 loses `dependsOn` (a manifest that still has it fails at read — the closed
 key set already does this). All 20 `pack.yaml` files lose the key; 19
 `package.json` files gain `"dependencies": { "@saxonberg/content-platform":
@@ -311,7 +345,7 @@ saying pack tests are content tests beside content.
 
 ```
 packages/content/arcana/
-├── package.json     @saxonberg/content-arcana; deps: content-platform, types; scripts build/test
+├── package.json     @saxonberg/content-arcana; deps: server, types, content-platform; scripts build/test
 ├── pack.yaml        id: arcana, root: /arcana, requires.title [/arcana → group arcana (PM-owned)],
 │                    requires.groups [arcana]; NO dependsOn key
 ├── tsconfig.json    extends base; include src/**; noEmit
@@ -329,7 +363,7 @@ packages/content/arcana/
     └── descriptor-banks/{amulet,potion,ring,scroll,spellbook,wand}.yaml
 
 packages/content/arcane-library/
-├── package.json     deps: content-platform, content-arcana, types
+├── package.json     deps: server, types, content-platform, content-arcana
 ├── pack.yaml        root: /arcane-library (unchanged), no dependsOn
 ├── tsconfig.json, vitest.config.ts
 ├── src/thing/{GlowlightMote,SparkLocus}.ts          class paths /arcane-library/thing/…
@@ -393,8 +427,14 @@ data pack and the suite stays green with zero packs shipping `src/`.
    `packages/content/x/src/thing/Y.ts` URL is transformed, its registry
    import resolves to `…/packages/server/src/mud/api/module`, a relative
    `FromModule` in it is left alone.
-5. **`dependsOn` derivation + the rung check** per § (i); `MANIFEST_KEYS`
-   shrinks; `pack-harness.writePack` writes `package.json`; all twenty
+5. **The export map + the deployment manifest** per § (a) and § (d):
+   `packages/server/package.json` gains `exports` and loses every
+   `@saxonberg/content-*` dependency; the root `package.json` gains all
+   twenty as `dependencies`; `packNamesFromServerDeps` becomes
+   `packNamesFromDeployment` (root manifest, `SAXONBERG_DEPLOYMENT_ROOT`);
+   `pack-harness.writePack`'s fixture root is passed explicitly as today.
+   **`dependsOn` derivation + the rung check** per § (i); `MANIFEST_KEYS`
+   shrinks; `writePack` writes `package.json`; all twenty
    manifests lose the key; nineteen `package.json`s gain dependencies;
    `pnpm install`. `PackInstallRecord` gains `rung` and `codeVersions`.
    `PackStatusReport` gains `rung`, `code: 'current' | 'stale' | null`;
@@ -435,7 +475,8 @@ Green gate: `pnpm build`, `pnpm test:near`, every lint. No content moved.
 ## Phase 2 — the arcana pack (~1½ days)
 
 1. `mkdir` the pack skeleton (package.json, pack.yaml, tsconfig, vitest
-   config, README). Server `package.json`: add arcana, remove
+   config, README; `dependencies`: `@saxonberg/server`, `@saxonberg/types`,
+   `@saxonberg/content-platform`). Root `package.json`: add arcana, remove
    arcane-descriptors. `pnpm install`.
 2. `git mv` the six-minus-two classes and the five controllers:
    `packages/server/src/mud/platform/thing/magic/{Wand,Scroll,Spellbook,Conduit}.ts`
