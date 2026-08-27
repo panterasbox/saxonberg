@@ -264,10 +264,6 @@ class CommandContextImpl implements CommandContext {
   public aliasExpansion?: AliasExpansionInfo;
   public bodyFields?: Record<string, unknown>;
   public barId?: string;
-  public _mqlPermission?: {
-    isAuthor: boolean;
-    coreMemberIds?: ReadonlySet<string>;
-  };
 
   private _notes: Note[] = [];
   private _status: Status = 'ok';
@@ -1078,40 +1074,9 @@ export class CommandLogic extends ApiLogic {
     const giver = context.commandGiver;
     const focused = MixinApi.isFocused(giver) ? giver : null;
 
-    // Precompute the MQL permission snapshot once per command. The
-    // resolver consults it synchronously to gate pre-resolution
-    // operators (`:online`, path seeds, `prop:` filters etc.); the
-    // `:admin` predicate's per-target check reads `coreMemberIds`.
-    // Best-effort: if the AccessRegistry isn't reachable (no DB,
-    // test harness without bootstrap) the snapshot stays absent
-    // and the resolver permits — matching the legacy server-internal
-    // -caller default for paths that build their own MqlContext.
-    if (context._mqlPermission === undefined) {
-      try {
-        const isAuthor = await AccessApi.isAuthor(giver);
-        let coreMemberIds: Set<string> | undefined;
-        if (isAuthor) {
-          const reg = await GroupApi.registry();
-          const core = await reg.managed().findByName('core');
-          if (core?._id) {
-            const coreRef = `managed:${core._id}`;
-            const members = await GroupApi.membersOf(coreRef);
-            coreMemberIds = new Set<string>();
-            for (const m of members) {
-              // Uniform member key = templatePath (matches the `isAdmin`
-              // predicate's `target.getTemplatePath()` lookup).
-              const key = m.getTemplatePath();
-              if (key) coreMemberIds.add(key);
-            }
-          }
-        }
-        context._mqlPermission = { isAuthor, coreMemberIds };
-      } catch {
-        // AccessRegistry unreachable — leave snapshot absent so the
-        // resolver permits (server-internal-caller compatibility).
-      }
-    }
-    const permission = context._mqlPermission;
+    // No MQL permission snapshot (content-packs wave 3): resolving a
+    // query is never a permission — the verb's own gate decides what the
+    // giver may DO with what resolved.
 
     // Option-definition map for the active verb / subcommand,
     // collected once and reused. The positional resolve loop
@@ -1157,7 +1122,7 @@ export class CommandLogic extends ApiLogic {
         try {
           r = { stuff: [] };
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
             if (r.stuff.length > 0) break;
           }
         } catch (err) {
@@ -1194,7 +1159,7 @@ export class CommandLogic extends ApiLogic {
         try {
           for (const scope of tries) {
             if (useTop) {
-              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope, permission });
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1202,7 +1167,7 @@ export class CommandLogic extends ApiLogic {
                 break;
               }
             } else {
-              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
               if (r.stuff.length > 0) {
                 stuff = r.stuff;
                 via = r.via;
@@ -1274,7 +1239,7 @@ export class CommandLogic extends ApiLogic {
         try {
           r = { stuff: [] };
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
+            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
             if (r.stuff.length > 0) break;
           }
         } catch (err) {
@@ -1303,7 +1268,7 @@ export class CommandLogic extends ApiLogic {
         try {
           for (const scope of tries) {
             if (useTop) {
-              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope, permission });
+              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1311,7 +1276,7 @@ export class CommandLogic extends ApiLogic {
                 break;
               }
             } else {
-              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope, permission });
+              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
               if (r.stuff.length > 0) {
                 stuff = r.stuff;
                 via = r.via;

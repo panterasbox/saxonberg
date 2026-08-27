@@ -1,7 +1,7 @@
 /**
  * MQL predicate registry — bareword filters that can appear in chain
  * position (`:living`, `:online`, `:mine`, `:here`, `:visible`,
- * `:admin`).
+ * `:here`).
  *
  * Each predicate declares its required permission tier and a check
  * function that decides whether a given Stuff passes. Unknown
@@ -21,11 +21,10 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
 import { getOnlineHolders } from './online-provider';
-import type { MqlContext, PermissionTier } from './types';
+import type { MqlContext } from './types';
 
 export interface MqlPredicate {
   /** Permission tier required to invoke this predicate. */
-  tier: PermissionTier;
   /** Decide whether `target` passes the predicate, given `giver`. The
    *  `ctx` argument carries the precomputed permission snapshot used
    *  by per-target gates (e.g., `:admin` consults
@@ -85,34 +84,16 @@ function isVisible(target: Stuff, giver: Stuff & CommandGiver): boolean {
   return PerceptionApi.perceives(giver, target);
 }
 
-function isAdmin(
-  target: Stuff,
-  _giver: Stuff & CommandGiver,
-  ctx: MqlContext,
-): boolean {
-  // Per-target check: is THE TARGET (not the giver) an admin? The
-  // dispatcher precomputes the set of playerIds in `'core'` and
-  // stamps it on `ctx.permission.coreMemberIds`; this method
-  // consults the snapshot synchronously. Absent snapshot → false
-  // (the prior `_MqlAdminFlag.granter` default).
-  const ids = ctx.permission?.coreMemberIds;
-  if (!ids) return false;
-  const key = target.getTemplatePath();
-  if (!key) return false;
-  return ids.has(key);
-}
-
 /**
  * The full predicate registry. Lookups are case-sensitive (lower-
  * case keys); the resolver lowercases inputs to match.
  */
 export const MQL_PREDICATES: Readonly<Record<string, MqlPredicate>> = {
-  living: { tier: 'public', check: isLiving },
-  online: { tier: 'public', check: isOnline },
-  mine: { tier: 'public', check: isMine },
-  here: { tier: 'public', check: isHere },
-  visible: { tier: 'public', check: isVisible },
-  admin: { tier: 'admin', check: isAdmin },
+  living: { check: isLiving },
+  online: { check: isOnline },
+  mine: { check: isMine },
+  here: { check: isHere },
+  visible: { check: isVisible },
 };
 
 /**
