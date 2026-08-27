@@ -129,6 +129,12 @@ export class AppBootstrap {
     await PersistenceManager.get().connect(config.mongoUri, config.dbName);
     console.info('MongoDB connection successful');
 
+    // A database that predates content-packs wave 4a (rows under the
+    // retired `/domain/` root) cannot boot: the rename shipped with NO
+    // migration (drop-not-migrate — docs/deployment.md § The Mongo
+    // environment policy). Refuses loudly, before the installer writes.
+    await PackApi.assertNoLegacyPaths(config.dbName);
+
     // Content packs — reconcile every shipped `@saxonberg/content-*` pack
     // into the DB: the platform (pack zero — controllers, registries,
     // vocabularies, the Compact), base-library, species-and-names, the
@@ -164,9 +170,9 @@ export class AppBootstrap {
             : '') +
           `, requires: ${r.requires.groupsCreated.length + r.requires.groupsFound.length} group(s) ` +
           `(${r.requires.groupsCreated.length} created), ` +
-          `${r.requires.titlesGranted.length + r.requires.titlesKept.length + r.requires.titlesMigrated.length + r.requires.titleConflicts.length} title(s) ` +
+          `${r.requires.titlesGranted.length + r.requires.titlesKept.length + r.requires.titleConflicts.length} title(s) ` +
           `(${r.requires.titlesGranted.length} granted, ${r.requires.titlesKept.length} kept, ` +
-          `${r.requires.titlesMigrated.length} migrated, ${r.requires.titleConflicts.length} conflict)` +
+          `${r.requires.titleConflicts.length} conflict)` +
           (r.requires.skippedSold.length > 0 ? `, ${r.requires.skippedSold.length} row(s) skipped (extent sold)` : '') +
           `, boot: ${r.boot['sync-read']} sync-read + ${r.boot.producer} producer, ` +
           (r.staffed ? 'staffed' : 'UNSTAFFED')

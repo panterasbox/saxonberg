@@ -145,7 +145,15 @@ collection. So the rule, from that day:
 **No fifth database.** A "verify" boot, a drive, a one-off experiment
 runs against the worktree's own database — drop and reboot it if a
 clean world is needed (a boot re-seeds; the packs reconcile). Never
-mint `saxonberg_<feature>`. 4 × ~46 leaves ~300 collections of headroom
+mint `saxonberg_<feature>`.
+
+**Drop-not-migrate.** A path rename ships with no data migration: the
+database is dropped and the packs reconcile it back. After content-packs
+wave 4a (`/domain/` → `/world/`, 2026-08-27) every build DB and the demo
+DB must be dropped **once**; the boot refuses otherwise —
+`PackApi.assertNoLegacyPaths` counts `content` rows under `/domain/`
+before the installer runs and exits with one line naming the database.
+(The demo box's nightly wipe does this for `saxonberg_demo` on its own.) 4 × ~46 leaves ~300 collections of headroom
 for new collections; a build that adds one adds it four times, so the
 count to watch is `4 × collections`, and it stays under 500 as long as
 this table stays four rows.
