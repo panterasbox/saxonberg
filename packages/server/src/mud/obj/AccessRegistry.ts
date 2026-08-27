@@ -46,6 +46,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { Zone } from '../lib/zone/Zone';
 import FolderZone from './FolderZone';
 import Avatar from './Avatar';
+import { PlayerApi } from '../api/player';
 
 /**
  * The one office that carries code trust. Named here rather than
@@ -186,6 +187,29 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (memberKey === null) return false;
     const owner = await ParcelApi.ownerOf(zone.getTemplatePath() ?? '');
     return this.subjectHasOwnerRole(subject, memberKey, owner);
+  }
+
+  /**
+   * Every extent `subject` holds (see {@link AccessApi.heldExtents}):
+   * each `parcels` row whose holder admits the subject through the same
+   * dispatch `can` uses, plus the subject's own self-home root.
+   */
+  @CallSecurity(AccessApiCallers)
+  public async heldExtents(subject: Stuff | null): Promise<string[]> {
+    if (subject === null) return [];
+    const memberKey = this.memberKeyOf(subject);
+    if (memberKey === null) return [];
+    const out = new Set<string>();
+    for (const record of await ParcelApi.allRecords()) {
+      const owner = record.getOwner();
+      if (!owner) continue;
+      if (await this.subjectIsOwnerMember(subject, memberKey, owner)) {
+        out.add(record.getExtent());
+      }
+    }
+    const key = memberKey.split('/').filter(Boolean).pop();
+    if (key && PlayerApi.isAvatarStuff(subject)) out.add(`/home/${key}`);
+    return [...out].sort();
   }
 
   /**

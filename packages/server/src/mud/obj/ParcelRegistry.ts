@@ -185,6 +185,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     return [...refs];
   }
 
+  /** Every parcel row, as stored (the held-extents walk's input). */
+  @CallSecurity(ParcelApiCallers)
+  public async allRecords(): Promise<ParcelRecord[]> {
+    return ParcelRecord.findAll();
+  }
+
   // ── Title mutations (gated) ──
 
   /**

@@ -116,6 +116,13 @@ export class ParcelLogic extends ApiLogic {
       : { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
   }
 
+  /** See {@link ParcelApi.allRecords}. No registry → the rows themselves. */
+  @CallSecurity(ParcelApiCallers)
+  public async allRecords(): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    return reg ? reg.allRecords() : ParcelRecord.findAll();
+  }
+
   /** See {@link ParcelApi.grant}. The grant path MINTS the registry when
    *  absent (the registry-at-boot rule: the installer's requires phase
    *  runs before `BootstrapManager` clones the manifest singletons, and

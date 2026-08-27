@@ -82,7 +82,19 @@ function asAuthorityQuery<T>(fn: () => Promise<T>): Promise<T> {
  * other two name the template and source trees for the gate that
  * follows them.
  */
-export type TreeAction = 'write-document' | 'write-template' | 'write-source' | 'install';
+/**
+ * The closed set of path-targeted actions `canAtPath` is asked about. This
+ * wave every action resolves alike (holding the covering title); the
+ * action is a label for the audit and for a later per-action policy.
+ */
+export type TreeAction =
+  | 'write-document'
+  | 'write-template'
+  | 'write-source'
+  | 'install'
+  | 'read'
+  | 'broadcast'
+  | 'teleport';
 
 export class AccessApi {
   /**
@@ -132,6 +144,17 @@ export class AccessApi {
    * closed in the no-Registry test path (the absent permission
    * snapshot already permits the resolver from the dispatcher side).
    */
+  /**
+   * ⭐ Every extent `subject` holds — the within-your-extent pattern's one
+   * seam (content-packs wave 3): each parcel whose holder admits the
+   * subject (group membership, organization staff-or-head, a player
+   * title), plus the subject's own `/home/<key>`. What `broadcast --at`,
+   * `teleport`, `errors` and `find` reach. Sorted, deduplicated.
+   */
+  public static async heldExtents(subject: Stuff | null): Promise<string[]> {
+    return asAuthorityQuery(() => logic().heldExtents(subject));
+  }
+
   public static async isAuthor(subject: Stuff | null): Promise<boolean> {
     return logic().isAuthor(subject);
   }

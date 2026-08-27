@@ -116,6 +116,15 @@ export class AccessLogic extends ApiLogic {
 
   /** See {@link AccessApi.isAuthor}. */
   @CallSecurity(AccessApiCallers)
+  /** See {@link AccessApi.heldExtents}. */
+  @CallSecurity(AccessApiCallers)
+  public async heldExtents(subject: Stuff | null): Promise<string[]> {
+    if (subject === null) return [];
+    const reg = lookupRegistry();
+    if (!reg) return [];
+    return reg.heldExtents(subject);
+  }
+
   public async isAuthor(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();

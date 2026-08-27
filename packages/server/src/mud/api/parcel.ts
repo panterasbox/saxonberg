@@ -183,6 +183,11 @@ export class ParcelApi {
     return (await logic().spaceOf(extent)).unallocated;
   }
 
+  /** Every parcel row (the title registry's full read; the held-extents walk). */
+  public static async allRecords(): Promise<ParcelRecord[]> {
+    return logic().allRecords();
+  }
+
   /**
    * ⭐ Apply a declared title claim — the content installer's seam
    * (content-packs wave 3; `PackLogic.applyRequires` is the one caller).
