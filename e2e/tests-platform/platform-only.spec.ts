@@ -20,9 +20,15 @@ import {
  * The landing room is asserted by what it RENDERS: `/world/void` is a
  * bare Location (no Named, no Visible, no Exitable), and `look` there
  * prints exactly one line — "Your surroundings are indistinct." — the
- * fallback no authored room ever produces. CI's database is always
- * fresh, and locally the wave-4a boot guard has already forced a drop
- * (a stale `defaultStartLocation` cannot survive it).
+ * fallback no authored room ever produces.
+ *
+ * ⚠ Meaningful only on a database no full-pack boot has touched: the
+ * lounge's `defaultStartLocation` SETTING survives in `app_settings`
+ * (the wave-4a boot guard refuses `/domain/` rows, not settings), the
+ * founder then spawns toward a lounge this world never installed, and
+ * the roster alone takes ~10 s to come back (measured 2026-08-27) —
+ * past the 5 s expect. CI's database is always fresh; locally, drop the
+ * worktree's database first. See playwright.platform.config.ts.
  */
 
 const LOG = resolve(new URL('..', import.meta.url).pathname, PLATFORM_SERVER_LOG);
