@@ -907,7 +907,7 @@ junk drawer — expected to slim as trade packs take their objects.
   `content/obj/<cluster>/`, the loose objects, the recipes no trade
   claims (`daiquiri`, `martini`, `fine-roast`, `hearty-stew`).
 - `packages/content/trade-smithing/` — `root: /trade/smithing`:
-  `content/obj/` (anvil, whetstone, workbench, the ingots) +
+  `content/trade/smithing/obj/` (anvil, whetstone, workbench, the ingots — a template row sits at the path its FILE mirrors; only documents derive from `root`) +
   `content/recipes/` (fire-poker, smiths-hammer, belt-knife, cook-pot,
   leather-jerkin).
 - `packages/content/trade-hearth-cooking/` — `root: /trade/hearth-cooking`:
