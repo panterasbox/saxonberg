@@ -53,6 +53,15 @@ export class Emote {
   tags: string[] = [];
 
   /**
+   * Switched off by the soul committee (`soul disable`): the emote stays
+   * on the record — the pack file that ships it is the source, and a
+   * later pack change over this edited row is a CONFLICT, never an
+   * overwrite — but `resolve` refuses it, and it is absent from `all` /
+   * `snapshot`. `soul show` still sees it (`resolveAny`).
+   */
+  disabled: boolean = false;
+
+  /**
    * Signed renown valence: how this expressive act reads as a *reaction*
    * to another's act — positive = esteem, negative = notoriety, 0 =
    * neutral (the default; most emotes don't move standing). This is the
@@ -92,6 +101,7 @@ export class Emote {
     if (typeof data.emoji === 'string' && data.emoji.length > 0) e.emoji = data.emoji;
     e.tags = stringList(data.tags);
     e.valence = typeof data.valence === 'number' ? data.valence : 0;
+    e.disabled = data.disabled === true;
     return e;
   }
 
@@ -106,6 +116,7 @@ export class Emote {
     };
     if (this.searchTerms.length > 0) data.searchTerms = [...this.searchTerms];
     if (this.emoji !== undefined) data.emoji = this.emoji;
+    if (this.disabled) data.disabled = true;
     return data;
   }
 }

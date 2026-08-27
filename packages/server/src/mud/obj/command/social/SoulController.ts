@@ -1,8 +1,11 @@
 /**
- * SoulController — author surface for the emote catalog (mint / edit /
- * delete / show / list). Gated by composition: AuthorMixin contributes
- * `soul.yaml` so non-authors don't see the verb. No runtime "is author?"
- * gate per call.
+ * SoulController — the emote catalogue's verb. The reads (`list` /
+ * `show` / `search`) are anyone's; the mutations (`make` / `edit` /
+ * `delete` / `disable` / `enable`) are the SOUL COMMITTEE's — the group
+ * holding title over `/expression` (content-packs wave 3, D2b). The
+ * real gate is the document store's (`DocumentLogic.gateMutation` →
+ * `AccessApi.canAtPath`); this controller pre-checks the same title so
+ * the refusal is diegetic rather than a thrown SecurityError.
  *
  * `soul make <verb> <yaml-or-json-spec>` — the spec is a greedy
  * remainder. YAML and JSON are both accepted; the parse path tries
@@ -23,11 +26,15 @@ import type {
   CommandModel,
 } from '../../../api/command';
 import { MessageApi } from '../../../api/message';
-import { MixinApi } from '../../../api/mixin';
+import { AccessApi } from '../../../api/access';
 import { Mml } from '../../../api/mml';
 import { SoulApi } from '../../../api/soul';
-import type { EmoteSpec } from '../../SoulCatalogue';
+import { EMOTE_MINT_BRANCH, type EmoteSpec } from '../../SoulCatalogue';
 import { SourceTreeApi } from '../../../api/source-tree';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+
+/** The subcommands that write the catalogue — the soul committee's. */
+const MUTATIONS: ReadonlySet<string> = new Set(['make', 'edit', 'delete', 'disable', 'enable']);
 
 interface SoulModel extends CommandModel {
   verb?: string;
@@ -39,14 +46,14 @@ interface SoulModel extends CommandModel {
 export default class SoulController extends CommandController<SoulModel> {
   async execute(model: SoulModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    if (!MixinApi.isAuthor(giver)) {
-      return this.fail(context, 'Not author-tier.', 'not-author');
-    }
-    // Access gate is now declarative — see soul.yaml's
-    // `validators: requiresCoreAccess`. The dispatcher rejects the
-    // command before this controller runs when the giver isn't in
-    // the `'core'` group.
     const sub = model.subcommand ?? 'list';
+    if (MUTATIONS.has(sub) && !(await this.holdsCatalogue(giver, model))) {
+      return this.fail(
+        context,
+        'The soul committee holds the emote catalogue; this is its work.',
+        'not-soul-committee',
+      );
+    }
     switch (sub) {
       case 'make':
         return this.executeMake(model, context);
@@ -54,6 +61,10 @@ export default class SoulController extends CommandController<SoulModel> {
         return this.executeEdit(model, context);
       case 'delete':
         return this.executeDelete(model, context);
+      case 'disable':
+        return this.executeSetDisabled(model, context, true);
+      case 'enable':
+        return this.executeSetDisabled(model, context, false);
       case 'show':
         return this.executeShow(model, context);
       case 'list':
@@ -63,6 +74,30 @@ export default class SoulController extends CommandController<SoulModel> {
       default:
         return this.fail(context, `Unknown soul subcommand: ${sub}`, 'unknown-subcommand');
     }
+  }
+
+  /**
+   * Does `giver` hold the emote the mutation targets — the existing
+   * row's path, else the mint branch? The same title `DocumentLogic`
+   * gates the write on.
+   */
+  private async holdsCatalogue(giver: Stuff, model: SoulModel): Promise<boolean> {
+    const verb = (model.verb ?? '').toLowerCase().trim();
+    const existing = verb ? await SoulApi.resolveAny(verb) : null;
+    const target = existing?.path || `${EMOTE_MINT_BRANCH}/${verb || 'new'}`;
+    return AccessApi.canAtPath(giver, 'write-document', target);
+  }
+
+  private async executeSetDisabled(
+    model: SoulModel,
+    context: CommandContext,
+    flag: boolean,
+  ): Promise<void> {
+    const verb = (model.verb ?? '').toLowerCase().trim();
+    if (!verb) return this.fail(context, 'verb required', 'verb-required');
+    const ok = await SoulApi.setDisabled(verb, flag);
+    if (!ok) return this.fail(context, `No emote '${verb}'.`, 'no-such-emote');
+    this.send(context, Mml.compose`\n${flag ? 'Disabled' : 'Enabled'} emote '${verb}'.\n`);
   }
 
   private async executeMake(
@@ -210,11 +245,11 @@ export default class SoulController extends CommandController<SoulModel> {
   ): Promise<void> {
     const verb = (model.verb ?? '').toLowerCase().trim();
     if (!verb) return this.fail(context, 'verb required', 'verb-required');
-    const e = await SoulApi.resolve(verb);
+    const e = await SoulApi.resolveAny(verb);
     if (!e) return this.fail(context, `No emote '${verb}'.`, 'no-such-emote');
     const lines = [
       '',
-      `  verb:     ${e.verb}`,
+      `  verb:     ${e.verb}${e.disabled ? '  (disabled)' : ''}`,
       `  search terms: ${e.searchTerms.join(', ') || '(none)'}`,
       `  emoji:    ${e.emoji ?? '(none)'}`,
       `  echo:     ${e.echo}`,

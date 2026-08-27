@@ -51,13 +51,13 @@ const SoulApiCallers = SecurityPolicies.AnyOf(
 );
 
 /**
- * Where an author-minted emote lands: the platform's own `/emotes/`
- * branch (the same root the collection collapse used). Untitled ⇒
- * `ownerOf` yields the state, so `soul make` stays a core-member act
- * exactly as its `requiresCoreAccess` validator says; a pack that later
- * ships that verb adopts the row by natural key.
+ * Where `soul make` lands a minted emote: under the soul committee's own
+ * extent (`/expression`, the `expression` pack's claim — content-packs
+ * wave 3, D2b), so the document gate IS the title gate, and a pack file
+ * that later ships the verb adopts the row by natural key exactly as
+ * wave 2 designed.
  */
-export const EMOTE_MINT_BRANCH = '/emotes';
+export const EMOTE_MINT_BRANCH = '/expression/emotes';
 
 /** The document kind an emote is stored under. */
 const EMOTE_KIND = 'emote';
@@ -140,7 +140,40 @@ export default class SoulCatalogue extends SoulCatalogueBase {
   @CallSecurity(SoulApiCallers)
   public async resolve(verb: string): Promise<Emote | null> {
     const map = await this.ensureCache();
+    const e = map.get(verb.toLowerCase()) ?? null;
+    // A disabled emote does not dispatch (`;wave` does nothing).
+    return e && !e.disabled ? e : null;
+  }
+
+  /**
+   * The record behind a verb, disabled included — the author face's
+   * read (`soul show` says "disabled"); nothing dispatches from here.
+   */
+  @CallSecurity(SoulApiCallers)
+  public async resolveAny(verb: string): Promise<Emote | null> {
+    const map = await this.ensureCache();
     return map.get(verb.toLowerCase()) ?? null;
+  }
+
+  /**
+   * Switch an emote off or on (the soul committee's `soul disable` /
+   * `enable`): the row is written back with `disabled` set — an EDIT of
+   * the row, so a later pack change over it is a conflict — and the
+   * cache updated. False when no emote has the verb.
+   */
+  @CallSecurity(SoulApiCallers)
+  public async setDisabled(verb: string, flag: boolean): Promise<boolean> {
+    // Sandbox needs-a-guard (docs/subsystems/sandbox.md): field-visible
+    // shared state; denied under circle scope with a receipt.
+    SecurityApi.assertFieldMutation(this, 'setDisabled');
+    const map = await this.ensureCache();
+    const existing = map.get(verb.toLowerCase());
+    if (!existing) return false;
+    existing.disabled = flag;
+    await DocumentApi.save(existing.path, EMOTE_KIND, existing.toData());
+    map.set(existing.verb, existing);
+    this.bySearchTerm = buildSearchIndex(map);
+    return true;
   }
 
   /**
@@ -153,14 +186,15 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     const map = await this.ensureCache();
     const verbs = this.bySearchTerm.get(term.toLowerCase());
     if (!verbs) return [];
-    return [...verbs].sort().map((v) => map.get(v)!).filter(Boolean);
+    return [...verbs].sort().map((v) => map.get(v)!).filter((e) => e && !e.disabled);
   }
 
+  /** Every ENABLED emote — what dispatches, what the palette shows. */
   @CallSecurity(SoulApiCallers)
   public async all(): Promise<Emote[]> {
     const map = await this.ensureCache();
     const seen = new Set<Emote>();
-    for (const e of map.values()) seen.add(e);
+    for (const e of map.values()) if (!e.disabled) seen.add(e);
     return [...seen];
   }
 
@@ -176,9 +210,8 @@ export default class SoulCatalogue extends SoulCatalogueBase {
    * controls in that same order, so what the player fills in binds the
    * way they expect.
    *
-   * Player-readable by design: this is the READ face of the catalogue.
-   * `soul list` remains the author face and keeps its `requiresCoreAccess`
-   * gate — a player seeing the palette is not a player authoring it.
+   * Player-readable by design: this is the READ face of the catalogue;
+   * the mutations are the soul committee's (title over `/expression`).
    */
   @CallSecurity(SoulApiCallers)
   public async snapshot(): Promise<EmoteCatalogueEntry[]> {

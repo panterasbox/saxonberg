@@ -51,6 +51,32 @@ describe('SoulCatalogue (documents-backed)', () => {
     StuffApi.clearAll();
   });
 
+  it('a disabled emote resolves null, is absent from all/snapshot/search, present via resolveAny', async () => {
+    docs.push(doc('/expression/emotes/wave', { verb: 'wave', tags: ['greeting'], searchTerms: ['hey'], grammar: GRAMMAR, disabled: true }));
+    expect(await SoulApi.resolve('wave')).toBeNull();
+    expect((await SoulApi.all()).map((e) => e.verb)).not.toContain('wave');
+    expect((await SoulApi.snapshot()).map((e) => e.verb)).not.toContain('wave');
+    expect((await SoulApi.search('hey')).map((e) => e.verb)).toEqual([]);
+    const any = await SoulApi.resolveAny('wave');
+    expect(any?.verb).toBe('wave');
+    expect(any?.disabled).toBe(true);
+  });
+
+  it('setDisabled writes the row through DocumentApi.save with the flag and updates the cache both ways', async () => {
+    expect(await SoulApi.setDisabled('greet', true)).toBe(true);
+    expect(save).toHaveBeenCalledWith('/expression/emotes/greet', 'emote', expect.objectContaining({ verb: 'greet', disabled: true }));
+    expect(await SoulApi.resolve('greet')).toBeNull();
+    expect(await SoulApi.setDisabled('greet', false)).toBe(true);
+    expect((save.mock.calls.at(-1) as unknown[])[2]).not.toHaveProperty('disabled');
+    expect((await SoulApi.resolve('greet'))?.verb).toBe('greet');
+    expect(await SoulApi.setDisabled('nope', true)).toBe(false);
+  });
+
+  it('mint lands under the soul committee\'s extent (/expression/emotes)', async () => {
+    await SoulApi.mint({ verb: 'bow', grammar: GRAMMAR });
+    expect(save).toHaveBeenCalledWith('/expression/emotes/bow', 'emote', expect.objectContaining({ verb: 'bow' }));
+  });
+
   it('resolve is canonical-only: a search term does not dispatch', async () => {
     expect((await SoulApi.resolve('greet'))?.verb).toBe('greet');
     expect(await SoulApi.resolve('hi')).toBeNull();
@@ -76,9 +102,9 @@ describe('SoulCatalogue (documents-backed)', () => {
 
   it('mint writes /emotes/<verb> as an emote document and indexes it (verb + search terms)', async () => {
     const minted = await SoulApi.mint({ verb: 'Shrug', searchTerms: ['Meh'], grammar: GRAMMAR });
-    expect(minted.path).toBe('/emotes/shrug');
+    expect(minted.path).toBe('/expression/emotes/shrug');
     expect(save).toHaveBeenCalledTimes(1);
-    expect(save.mock.calls[0]![0]).toBe('/emotes/shrug');
+    expect(save.mock.calls[0]![0]).toBe('/expression/emotes/shrug');
     expect(save.mock.calls[0]![1]).toBe('emote');
     expect(save.mock.calls[0]![2]).toMatchObject({ verb: 'shrug', searchTerms: ['meh'], grammar: GRAMMAR });
     expect((await SoulApi.resolve('shrug'))?.verb).toBe('shrug');

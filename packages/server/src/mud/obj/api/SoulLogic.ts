@@ -55,6 +55,18 @@ export class SoulLogic extends ApiLogic {
     return (await requireCatalogue()).resolve(verb);
   }
 
+  /** See {@link SoulApi.resolveAny}. */
+  @CallSecurity(SoulApiCallers)
+  public async resolveAny(verb: string): Promise<Emote | null> {
+    return (await requireCatalogue()).resolveAny(verb);
+  }
+
+  /** See {@link SoulApi.setDisabled}. */
+  @CallSecurity(SoulApiCallers)
+  public async setDisabled(verb: string, flag: boolean): Promise<boolean> {
+    return (await requireCatalogue()).setDisabled(verb, flag);
+  }
+
   /** See {@link SoulApi.mint}. */
   @CallSecurity(SoulApiCallers)
   public async mint(spec: EmoteSpec): Promise<Emote> {

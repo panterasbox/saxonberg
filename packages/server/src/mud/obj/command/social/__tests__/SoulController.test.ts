@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SoulController from '../SoulController';
 import { SoulApi } from '../../../../api/soul';
 import { MessageApi } from '../../../../api/message';
-import { MixinApi } from '../../../../api/mixin';
+import { AccessApi } from '../../../../api/access';
 import { Mml } from '../../../../api/mml';
 import { Emote } from '../../../../lib/social/Emote';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
@@ -35,7 +35,7 @@ function captureBody(): void {
 }
 
 function ctx(): CommandContext {
-  return { commandGiver: {} as Stuff, note: vi.fn() } as unknown as CommandContext;
+  return { commandGiver: { name: 'member' } as unknown as Stuff, note: vi.fn() } as unknown as CommandContext;
 }
 
 function emote(verb: string, searchTerms: string[] = []): Emote {
@@ -46,9 +46,21 @@ function emote(verb: string, searchTerms: string[] = []): Emote {
   return e;
 }
 
+/** The soul committee holds /expression: `member` does, `nobody` does not. */
+function stubCommittee(): void {
+  vi.spyOn(AccessApi, 'canAtPath').mockImplementation(
+    async (subject) => (subject as { name?: string }).name === 'member',
+  );
+  vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(null);
+}
+
+function ctxAs(name: string): CommandContext {
+  return { commandGiver: { name } as unknown as Stuff, note: vi.fn() } as unknown as CommandContext;
+}
+
 beforeEach(() => {
   captureBody();
-  vi.spyOn(MixinApi, 'isAuthor').mockReturnValue(true as never);
+  stubCommittee();
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -86,8 +98,40 @@ describe('SoulController', () => {
     expect(c.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'unknown-field' }));
   });
 
+  it('a committee member disables and enables; a non-member is refused the mutations; anyone lists', async () => {
+    const set = vi.spyOn(SoulApi, 'setDisabled').mockResolvedValue(true);
+    await makeStuff(() => new SoulController()).execute({ subcommand: 'disable', verb: 'wave' } as never, ctx());
+    expect(set).toHaveBeenCalledWith('wave', true);
+    expect(captured).toContain("Disabled emote 'wave'");
+    await makeStuff(() => new SoulController()).execute({ subcommand: 'enable', verb: 'wave' } as never, ctx());
+    expect(set).toHaveBeenLastCalledWith('wave', false);
+
+    const c = ctxAs('nobody');
+    await makeStuff(() => new SoulController()).execute({ subcommand: 'disable', verb: 'nod' } as never, c);
+    expect(c.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'not-soul-committee' }));
+    expect(captured).toContain('soul committee holds the emote catalogue');
+    expect(set).toHaveBeenCalledTimes(2);
+    const c2 = ctxAs('nobody');
+    await makeStuff(() => new SoulController()).execute({ subcommand: 'edit', verb: 'nod', field: 'emoji', value: '👋' } as never, c2);
+    expect(c2.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'not-soul-committee' }));
+
+    vi.spyOn(SoulApi, 'all').mockResolvedValue([emote('greet')]);
+    const c3 = ctxAs('nobody');
+    await makeStuff(() => new SoulController()).execute({ subcommand: 'list' } as never, c3);
+    expect(c3.note).not.toHaveBeenCalled();
+    expect(captured).toContain('Catalog (1)');
+  });
+
+  it('soul show prints the search terms, and marks a disabled emote', async () => {
+    const e = emote('greet', ['hi', 'hello']);
+    e.disabled = true;
+    vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(e);
+    await makeStuff(() => new SoulController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
+    expect(captured).toContain('(disabled)');
+  });
+
   it('soul show prints the search terms', async () => {
-    vi.spyOn(SoulApi, 'resolve').mockResolvedValue(emote('greet', ['hi', 'hello']));
+    vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(emote('greet', ['hi', 'hello']));
     await makeStuff(() => new SoulController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
     expect(captured).toContain('search terms: hi, hello');
     expect(captured).not.toContain('aliases');

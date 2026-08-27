@@ -1,5 +1,13 @@
 id: expression
-version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /expression
 description: The starter emote roster (the emote document kind, one file per verb).
-dependsOn: [platform]   # the id exists by wave 2 step 4; unknown deps are ignored in v1
+dependsOn: [platform]   # the `soul` group is the platform's requires.groups
+# The soul committee holds the emote extent (content-packs wave 3, D2b):
+# `soul make/edit/delete/disable/enable` are title over /expression, and
+# a minted emote lands under it (EMOTE_MINT_BRANCH). The committee is
+# PM-owned — the seat appoints.
+maintainers: soul
+requires:
+  title:
+    - { extent: /expression, holder: { group: soul } }
