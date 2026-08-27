@@ -6,7 +6,7 @@
  * `StuffApi.clone(<resolved controller template path>)` (see
  * `CommandGiver._executeOne`). That clone reads a Template out of the
  * `content` collection, which `SeederManager` populates from
- * `mud/seeds/**` — one YAML file per template path. A `controller:`
+ * the packs' `content/**` — one YAML file per template path. A `controller:`
  * field in a command spec with no matching seed YAML therefore throws
  * "Template not found" the first time the verb is dispatched on a
  * fresh DB. It only "works" on a long-lived DB that happens to have
@@ -20,18 +20,18 @@
  *   - otherwise → resolve relative to the spec file's own directory,
  *     then map to the `/`-rooted mud template path.
  * The resolved template path both names the seed
- * (`mud/seeds/<path>.yaml`) and is the `class:` that seed must declare.
+ * (`content/<path>.yaml`) and is the `class:` that seed must declare.
  *
  * Concretely, the two homes shake out as:
  *   - **Engine verbs** — spec under `cmd/<category>/`, controller written
  *     absolute as `/obj/command/<category>/<Name>Controller`, seeded at
- *     `mud/seeds/obj/command/<category>/<Name>Controller.yaml`.
+ *     the platform pack's `content/obj/command/<category>/<Name>Controller.yaml`.
  *   - **Domain-local verbs** — spec under
  *     `domain/<sphere>/<locality>/cmd/`, controller written relative as
  *     `../command/<Name>Controller` (the sibling `.../command/` dir),
  *     resolving to `/domain/<sphere>/<locality>/command/<Name>Controller`,
  *     seeded at
- *     `mud/seeds/domain/<sphere>/<locality>/command/<Name>Controller.yaml`.
+ *     world-seed's `content/domain/<sphere>/<locality>/command/<Name>Controller.yaml`.
  *
  * Controllers are referenced at two levels — verb-level
  * (`controller:` at the spec root) and per-subcommand
@@ -54,7 +54,8 @@ const MUD_ROOT = join(here, "..", "..");
 // The engine verbs are the platform pack's content (content-packs wave 2).
 const CMD_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content", "cmd");
 const DOMAIN_ROOT = join(MUD_ROOT, "domain");
-const SEEDS_ROOT = join(MUD_ROOT, "seeds");
+// The domain-local controllers are world-seed's rows (content-packs wave 3).
+const SEEDS_ROOT = join(MUD_ROOT, "..", "..", "..", "content", "world-seed", "content");
 const PLATFORM_CONTENT = join(MUD_ROOT, "..", "..", "..", "content", "platform", "content");
 
 function walkYaml(dir: string, out: string[]): void {
@@ -104,7 +105,7 @@ function resolveController(rawController: string, specFilePath: string): string 
 /**
  * Where the template row for a resolved template path lives on disk: the
  * platform pack's content (the engine controllers, content-packs wave 3),
- * else the shrinking `mud/seeds/` (the domain-local controllers, until
+ * else the world-seed pack's content (the domain-local controllers, until
  * `world-seed` takes them at wave 3 step 7).
  */
 function seedPathFor(templatePath: string): string {

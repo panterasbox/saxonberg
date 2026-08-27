@@ -39,7 +39,7 @@ import {
   teardownBankingHarness,
 } from "../../../lib/banking/__tests__/banking-test-harness";
 
-const SEEDS = fileURLToPath(new URL("../../../seeds", import.meta.url));
+const SEEDS = fileURLToPath(new URL("../../../../../../content/world-seed/content", import.meta.url));
 function seedData(rel: string): Record<string, unknown> {
   const parsed = YAML.parse(readFileSync(`${SEEDS}/${rel}`, "utf-8")) as {
     data?: Record<string, unknown>;

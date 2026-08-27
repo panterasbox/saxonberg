@@ -13,7 +13,7 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 
 const LOUNGE_DIR = fileURLToPath(
-  new URL("../../../seeds/domain/lounge/", import.meta.url)
+  new URL("../../../../../../content/world-seed/content/domain/lounge/", import.meta.url)
 );
 // Brands live in the five corpo packs (each corpo's own marks) plus the
 // generic-objects pack for the one independent brand (crowsfoot-gin, `owner: ""`).

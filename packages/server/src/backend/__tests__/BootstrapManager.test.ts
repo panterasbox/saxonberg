@@ -51,7 +51,6 @@ describe('BootstrapManager.run', () => {
       { templatePath: '/studio/fixture/root', packId: 'fixture', role: 'producer', dependsOn: ['/obj/GroupRegistry'] },
     ]);
     await BootstrapManager.run();
-    expect(calls).toContain('/corpo/aevex');
     expect(calls).toContain('/studio/fixture/root');
     expect(calls.indexOf('/obj/GroupRegistry')).toBeLessThan(calls.indexOf('/studio/fixture/root'));
   });

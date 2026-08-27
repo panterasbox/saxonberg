@@ -152,6 +152,6 @@ describe('PackApi.discoverPacks', () => {
     const base = manifests.find((m) => m.id === 'base-library');
     expect(base).toBeDefined();
     expect(base!.version).toBe('0.3.0');
-    expect(base!.dependsOn).toEqual([]);
+    expect(base!.dependsOn).toEqual(['platform']); // coverage rides the platform's /obj claim (wave 3)
   });
 });

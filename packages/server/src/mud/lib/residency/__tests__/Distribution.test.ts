@@ -139,7 +139,6 @@ describe('AC32 — rarity DERIVES from the grid cell', () => {
         }
       }
     };
-    walk(join(MUD_ROOT, 'seeds'));
     walk(join(MUD_ROOT, '..', '..', '..', 'content'));
     expect(hits).toEqual([]);
   });

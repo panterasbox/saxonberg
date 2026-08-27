@@ -31,9 +31,9 @@ import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__
 
 const PH = PersistentHydrator.templatePath;
 const STORE_DIR = fileURLToPath(
-  new URL("../../../seeds/domain/terminus/general-store/", import.meta.url),
+  new URL("../../../../../../content/world-seed/content/domain/terminus/general-store/", import.meta.url),
 );
-const OBJ_DIR = fileURLToPath(new URL("../../../seeds/obj/", import.meta.url));
+const OBJ_DIR = fileURLToPath(new URL("../../../../../../content/generic-objects/content/obj/", import.meta.url));
 const COUNTER = "/domain/terminus/general-store/counter";
 const TORCH = "/domain/terminus/general-store/goods/torch";
 
@@ -62,7 +62,7 @@ function seedDoc(rel: string): Doc {
   };
 }
 
-/** Load a seed under `seeds/obj/` at its `/obj/<rel>` path. */
+/** Load a generic-objects row under `content/obj/` at its `/obj/<rel>` path. */
 function objDoc(rel: string): Doc {
   const parsed = YAML.parse(
     readFileSync(`${OBJ_DIR}${rel}.yaml`, "utf-8"),

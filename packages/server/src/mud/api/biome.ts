@@ -145,7 +145,7 @@ export class BiomeApi {
    * Used by chain step 6 (universe terminal) and by `Altimeter`'s
    * sea-level reference. Throws when the root biome isn't loaded —
    * a boot-time invariant; the seeded universe biome at
-   * `seeds/obj/biome/universe.yaml` is mandatory.
+   * the base-library pack's `content/obj/biome/universe.yaml` is mandatory.
    */
   public static getRootBiome(): Biome {
     return logic().getRootBiome();

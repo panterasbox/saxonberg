@@ -30,7 +30,11 @@ import { dirname, join, relative } from 'path';
 import YAML from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
-const SEEDS_DIR = join(dirname(__filename), '../../../seeds/obj/Locality');
+// The Locality rows: the realm + city are the platform pack's, the rest
+// world-seed's (content-packs wave 3). Both roots are searched.
+const PLATFORM_DIR = join(dirname(__filename), '../../../../../../content/platform/content/obj/Locality');
+const SEEDS_DIR = join(dirname(__filename), '../../../../../../content/world-seed/content/obj/Locality');
+const ROOTS = [SEEDS_DIR, PLATFORM_DIR];
 
 interface AddressSeed {
   class: string;
@@ -38,9 +42,9 @@ interface AddressSeed {
 }
 
 function loadSeed(relativePath: string): AddressSeed {
-  const path = join(SEEDS_DIR, relativePath);
-  expect(existsSync(path), `seed missing: ${relativePath}`).toBe(true);
-  return YAML.parse(readFileSync(path, 'utf-8')) as AddressSeed;
+  const path = ROOTS.map((r) => join(r, relativePath)).find((p) => existsSync(p));
+  expect(path, `seed missing: ${relativePath}`).toBeDefined();
+  return YAML.parse(readFileSync(path!, 'utf-8')) as AddressSeed;
 }
 
 function listYamlsRelative(dir: string): string[] {
@@ -50,7 +54,7 @@ function listYamlsRelative(dir: string): string[] {
     if (statSync(full).isDirectory()) {
       out.push(...listYamlsRelative(full));
     } else if (entry.endsWith('.yaml')) {
-      out.push(relative(SEEDS_DIR, full));
+      out.push(relative(dir.includes('platform') ? PLATFORM_DIR : SEEDS_DIR, full));
     }
   }
   return out;
@@ -59,7 +63,7 @@ function listYamlsRelative(dir: string): string[] {
 describe('Address roster — slim demonstrative inventory', () => {
   it('the /obj/Locality folder template is a FolderZone', () => {
     const seed = YAML.parse(
-      readFileSync(join(SEEDS_DIR, '../Locality.yaml'), 'utf-8'),
+      readFileSync(join(PLATFORM_DIR, '../Locality.yaml'), 'utf-8'),
     ) as AddressSeed;
     expect(seed.class).toBe('/obj/FolderZone');
   });
@@ -129,7 +133,7 @@ describe('Address roster — slim demonstrative inventory', () => {
       // own. Two jurisdictions a short walk apart is the point.
       'hinkley-hills.yaml',
     ]);
-    const actual = new Set(listYamlsRelative(SEEDS_DIR));
+    const actual = new Set(ROOTS.flatMap((r) => listYamlsRelative(r)));
     expect(actual).toEqual(expected);
   });
 });

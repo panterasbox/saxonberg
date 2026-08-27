@@ -31,9 +31,9 @@ import {
 
 type Loose = Record<string, unknown>;
 
-const seedsRoot = fileURLToPath(new URL("../../../seeds", import.meta.url));
-// The realm + city rows are the platform pack's (content-packs wave 3); the
-// per-locality rows stay in seeds/ until world-seed takes them.
+// The realm + city rows are the platform pack's, the per-locality rows
+// world-seed's (content-packs wave 3).
+const seedsRoot = fileURLToPath(new URL("../../../../../../content/world-seed/content", import.meta.url));
 const platformRoot = fileURLToPath(
   new URL("../../../../../../content/platform/content", import.meta.url),
 );

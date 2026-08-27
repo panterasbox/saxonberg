@@ -27,7 +27,7 @@ import PersistentHydrator from "../../../obj/persistence/PersistentHydrator";
 
 const PH = PersistentHydrator.templatePath;
 const SEED_ROOT = fileURLToPath(
-  new URL("../../../seeds/domain/terminus", import.meta.url),
+  new URL("../../../../../../content/world-seed/content/domain/terminus", import.meta.url),
 );
 
 /** Recursively load the terminus seed YAMLs → template docs. */

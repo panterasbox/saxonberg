@@ -31,15 +31,16 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { Authority } from '../../lib/employment/Authority';
 
-const SEEDS = fileURLToPath(new URL('..', import.meta.url));
-const CONFIG = fileURLToPath(new URL('../../config/', import.meta.url));
+// The locality rows and their title claims are world-seed's (content-packs wave 3).
+const SEEDS = fileURLToPath(new URL('../../../../../content/world-seed/content/', import.meta.url));
+const MANIFEST = fileURLToPath(new URL('../../../../../content/world-seed/pack.yaml', import.meta.url));
 
 interface Seed {
   class?: string;
   data?: Record<string, unknown>;
 }
 
-/** Every `.yaml` under `seeds/`, recursively. */
+/** Every `.yaml` under a content root, recursively. */
 function walk(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -65,11 +66,12 @@ const businesses = [
   .filter((e) => e.seed?.class === '/obj/Business')
   .map((e) => ({ rel: e.rel, data: e.seed.data ?? {} }));
 
+/** The claims as `{extent, owner: {name}}` rows — the shape the seeder's file had. */
 const parcels = (
-  parse(readFileSync(join(CONFIG, 'parcels.yaml'), 'utf8')) as {
-    parcels: Array<{ extent: string; owner?: { name?: string } }>;
+  parse(readFileSync(MANIFEST, 'utf8')) as {
+    requires: { title: Array<{ extent: string; holder?: { group?: string } }> };
   }
-).parcels;
+).requires.title.map((t) => ({ extent: t.extent, owner: { name: t.holder?.group } }));
 
 /** The claimed title covering `path` by longest prefix, or undefined. */
 function coveringTitle(path: string): { extent: string; owner?: { name?: string } } | undefined {

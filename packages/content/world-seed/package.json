@@ -1,0 +1,7 @@
+{
+  "name": "@saxonberg/content-world-seed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TRANSITIONAL — the locality rows SeederManager used to insert, verbatim, until each locality is homed in its own pack."
+}

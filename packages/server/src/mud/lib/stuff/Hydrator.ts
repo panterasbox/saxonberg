@@ -23,7 +23,7 @@
  * Concrete implementations extend `Idea` (and therefore `Stuff`) so
  * `StuffApi.clone` can produce them — see `PersistentHydrator` for
  * the standard implementation. Each hydrator class needs a Template
- * doc in `domain` (seeded under `mud/seeds/obj/persistence/`). A
+ * doc in `content` (the platform pack's `content/obj/persistence/`). A
  * hydrator's own Template names no `hydratorClass` of its own — that
  * terminates `clone()`'s hydrator-resolution recursion. Cycles
  * (a hydrator naming itself or another hydrator) are caught by the

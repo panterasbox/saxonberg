@@ -17,10 +17,10 @@ import { StuffApi } from '../../../api/stuff';
 import { DialogueTreeSchema } from '../../../lib/npc/tree';
 
 const NPC_DIR = fileURLToPath(
-  new URL('../../../seeds/domain/lounge/npc/', import.meta.url)
+  new URL('../../../../../../content/world-seed/content/domain/lounge/npc/', import.meta.url)
 );
 const BAR_YAML = fileURLToPath(
-  new URL('../../../seeds/domain/lounge/bar.yaml', import.meta.url)
+  new URL('../../../../../../content/world-seed/content/domain/lounge/bar.yaml', import.meta.url)
 );
 
 interface Spec {

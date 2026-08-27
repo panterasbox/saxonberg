@@ -24,7 +24,7 @@
  * **refuses the municipality**.
  *
  * A32.2 scaffolding: a kernel-adjacent test reading shipped content by
- * path (the corpo packs and, until world-seed takes it, one seed row).
+ * path (the corpo packs and one world-seed row).
  */
 
 import "../../../../test-bootstrap";
@@ -46,7 +46,7 @@ import type { ParcelOwner } from '../../../lib/parcel/ParcelRecord';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 
-const SEEDS = fileURLToPath(new URL('../../../seeds/', import.meta.url));
+const SEEDS = fileURLToPath(new URL('../../../../../../content/world-seed/content/', import.meta.url));
 const CONTENT = fileURLToPath(new URL('../../../../../../content/', import.meta.url));
 
 const KEYS = ['aevex', 'goodkin', 'hollis', 'veshko', 'vionne'] as const;

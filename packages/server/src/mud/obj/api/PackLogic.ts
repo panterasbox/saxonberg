@@ -2826,7 +2826,6 @@ async function applyRequires(
   const manifest = rp.pack.manifest;
   const packId = manifest.id;
   const out = result.requires;
-  await ensureOrganizationsResident(manifest);
 
   // 1. Groups — the maintainers group first (PM-owned), then the declared ones.
   const refs = new Map<string, string>();
@@ -2895,7 +2894,20 @@ async function applyRequires(
     }
   }
 
-  // 4. What the record remembers, and what the boot line reports.
+}
+
+/**
+ * The requires phase's tail — after the pack's rows are written: stand
+ * the organizations it names up (their rows now exist), then what the
+ * record remembers and what the boot line reports.
+ */
+async function finishRequires(
+  rp: ReadPack,
+  record: StoredRecord,
+  result: PackReconcileResult,
+): Promise<void> {
+  const manifest = rp.pack.manifest;
+  await ensureOrganizationsResident(manifest);
   record.requires = manifest.requires;
   record.boot = manifest.boot;
   record.maintainers = manifest.maintainers;
@@ -3003,7 +3015,6 @@ async function reconcilePack(
 
   const prior = await loadRecord(packId);
   const now = new Date().toISOString();
-  const plans = await planPack(rp, prior, now, soldPredicateFor(pack.manifest, set.manifests));
 
   const record: StoredRecord = prior ?? freshRecord(pack);
   record.version = pack.manifest.version;
@@ -3015,6 +3026,11 @@ async function reconcilePack(
   record.conflicts = [];
 
   const result = emptyResult(packId);
+  // The requires phase's grants come FIRST — groups, memberships, titles
+  // — so a title this claim migrates or grants is in place before the
+  // bounded reconcile asks who holds each row's extent.
+  await applyRequires(rp, record, result);
+  const plans = await planPack(rp, prior, now, soldPredicateFor(pack.manifest, set.manifests));
   const perKind = new Map<string, AppliedKind>();
   for (const plan of plans) {
     const applied = await applyKindPlan(plan, record);
@@ -3034,8 +3050,8 @@ async function reconcilePack(
     }
   }
 
-  // The requires phase: after the rows, before the record.
-  await applyRequires(rp, record, result);
+  // The requires phase's tail: after the rows, before the record.
+  await finishRequires(rp, record, result);
   result.conflicts = record.conflicts.map((c) => c.path);
 
   // Adoption is loud: the one time a record is minted over a pre-record

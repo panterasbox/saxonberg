@@ -76,7 +76,7 @@ describe("CombatFormation — the fallback-honesty pin", () => {
     // The two must agree or the degenerate paths diverge from production.
     const seedFile = fileURLToPath(
       new URL(
-        "../../seeds/obj/CombatFormation/default.yaml",
+        "../../../../../content/platform/content/obj/CombatFormation/default.yaml",
         import.meta.url,
       ),
     );
@@ -118,7 +118,7 @@ describe("CombatFormation — the seeds hydrate (the live clone path)", () => {
       "../persistence/PersistentHydrator"
     );
     const seedsDir = fileURLToPath(
-      new URL("../../seeds/obj/CombatFormation/", import.meta.url),
+      new URL("../../../../../content/platform/content/obj/CombatFormation/", import.meta.url),
     );
     const { readdirSync } = await import("fs");
     const files = readdirSync(seedsDir).filter((f) => f.endsWith(".yaml"));

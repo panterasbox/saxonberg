@@ -32,7 +32,7 @@ function seededRegistry(): BusinessEntity {
     readFileSync(
       fileURLToPath(
         new URL(
-          '../../../seeds/domain/terminus/registry/business.yaml',
+          '../../../../../../content/world-seed/content/domain/terminus/registry/business.yaml',
           import.meta.url,
         ),
       ),

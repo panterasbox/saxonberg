@@ -15,17 +15,18 @@ import { fileURLToPath } from "url";
 import YAML from "yaml";
 
 const STORE_DIR = fileURLToPath(
-  new URL("../../../seeds/domain/terminus/general-store/", import.meta.url),
+  new URL("../../../../../../content/world-seed/content/domain/terminus/general-store/", import.meta.url),
 );
 // The object clusters are the generic-objects pack's rows (content-packs wave 3).
 const OBJ_DIR = fileURLToPath(
   new URL("../../../../../../content/generic-objects/content/obj/", import.meta.url),
 );
 const CH_DIR = fileURLToPath(
-  new URL("../../../seeds/domain/terminus/counting-houses/", import.meta.url),
+  new URL("../../../../../../content/world-seed/content/domain/terminus/counting-houses/", import.meta.url),
 );
-const PARCELS = fileURLToPath(
-  new URL("../../../config/parcels.yaml", import.meta.url),
+// The title claims are world-seed's (content-packs wave 3).
+const MANIFEST = fileURLToPath(
+  new URL("../../../../../../content/world-seed/pack.yaml", import.meta.url),
 );
 
 interface Seed {
@@ -40,7 +41,7 @@ function load(dir: string, file: string): Seed {
 describe("general-store content integrity", () => {
   it("the zone, room, fixtures, business, and cast are wired", () => {
     const zone = load(
-      fileURLToPath(new URL("../../../seeds/domain/terminus/", import.meta.url)),
+      fileURLToPath(new URL("../../../../../../content/world-seed/content/domain/terminus/", import.meta.url)),
       "general-store.yaml",
     );
     expect(zone.class).toBe("/obj/location/CartesianZone");
@@ -176,13 +177,13 @@ describe("general-store content integrity", () => {
   });
 
   it("the store parcel is titled to the terminus municipality", () => {
-    const parcels = YAML.parse(readFileSync(PARCELS, "utf8")) as {
-      parcels: { extent: string; owner: { kind: string; name?: string } }[];
+    const manifest = YAML.parse(readFileSync(MANIFEST, "utf8")) as {
+      requires: { title: { extent: string; holder?: { group?: string } }[] };
     };
-    const row = parcels.parcels.find(
+    const row = manifest.requires.title.find(
       (p) => p.extent === "/domain/terminus/general-store",
     );
-    expect(row?.owner).toEqual({ kind: "group", name: "terminus" });
+    expect(row?.holder).toEqual({ group: "terminus" });
   });
 
   it("no shelf good uses an off-allowlist (Globbable-risking) class", () => {

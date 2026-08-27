@@ -115,7 +115,7 @@ describe("the dorm fixtures earn their classes", () => {
       readFileSync(
         fileURLToPath(
           new URL(
-            "../../../../seeds/domain/eternal/duncan-hall/dorm-fixtures/tap.yaml",
+            "../../../../../../../content/world-seed/content/domain/eternal/duncan-hall/dorm-fixtures/tap.yaml",
             import.meta.url,
           ),
         ),

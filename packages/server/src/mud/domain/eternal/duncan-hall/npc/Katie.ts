@@ -12,8 +12,8 @@
  *
  *   - She is an *agent of the dorms owner* (so `provision`/`unprovision`
  *     authorize her) because the landlord's `duncan-hall` group lists her
- *     `templatePath` as a member — authored in `config/groups.yaml`, seeded by
- *     `GroupSeeder`. She does NOT enroll herself; a member writing its own name
+ *     `templatePath` as a member — authored in the world-seed pack's
+ *     `requires.groups`, applied by the content installer. She does NOT enroll herself; a member writing its own name
  *     into the ledger is circular and no real authority.
  *   - Her master ring (legitimate master access to every pin-tumbler dorm
  *     lock) is a physical `Key` `populates`d into her inventory from

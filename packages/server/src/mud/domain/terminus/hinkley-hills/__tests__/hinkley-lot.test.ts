@@ -19,8 +19,9 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
-const SEEDS = fileURLToPath(new URL("..", import.meta.url));
-const CONFIG = fileURLToPath(new URL("../../config/", import.meta.url));
+// The Hinkley rows and their title claims are world-seed's (content-packs wave 3).
+const SEEDS = fileURLToPath(new URL("../../../../../../../content/world-seed/content/", import.meta.url));
+const MANIFEST = fileURLToPath(new URL("../../../../../../../content/world-seed/pack.yaml", import.meta.url));
 
 const read = (rel: string): { class?: string; data?: Record<string, unknown> } =>
   parse(readFileSync(join(SEEDS, rel), "utf8")) as {
@@ -81,10 +82,10 @@ describe("the lane authors no exit into a lot", () => {
 });
 
 describe("one lot ships already sold", () => {
-  const parcels = parse(
-    readFileSync(join(CONFIG, "parcels.yaml"), "utf8"),
-  ) as { parcels: Array<Record<string, unknown>> };
-  const lot1 = parcels.parcels.find(
+  const manifest = parse(readFileSync(MANIFEST, "utf8")) as {
+    requires: { title: Array<Record<string, unknown>> };
+  };
+  const lot1 = manifest.requires.title.find(
     (p) => p.extent === `/${HINKLEY}/lots/lot-1`,
   );
 

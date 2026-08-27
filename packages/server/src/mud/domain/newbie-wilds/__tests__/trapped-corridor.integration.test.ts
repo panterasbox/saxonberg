@@ -78,7 +78,8 @@ import type { Trauma } from '../../../obj/Condition';
 import type Interactive from '../../../obj/Interactive';
 
 const PH = PersistentHydrator.templatePath;
-const SEEDS = fileURLToPath(new URL('../../../seeds', import.meta.url));
+// The trap rows are the generic-objects pack's (content-packs wave 3).
+const SEEDS = fileURLToPath(new URL('../../../../../../content/generic-objects/content', import.meta.url));
 /** The newbie-wilds content now ships as a pack; resolve its root the way
  *  the installer does (module resolution of the workspace package). */
 const WILDS = join(

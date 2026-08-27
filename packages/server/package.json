@@ -52,6 +52,7 @@
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",
+    "@saxonberg/content-world-seed": "workspace:*",
     "@saxonberg/types": "workspace:*",
     "@twurple/auth": "^8.1.4",
     "ajv": "^8.20.0",
