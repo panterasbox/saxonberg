@@ -21,6 +21,9 @@ import {
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
 import { Recipe, type RecipeInputSlot } from '../../../lib/craft/Recipe';
+import { Techniques, type Technique } from '../../../lib/craft/Technique';
+import { ContainmentApi } from '../../../api/containment';
+import { GlobbableApi } from '../../../api/glob';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
@@ -159,11 +162,53 @@ function resolveMaker(mode: MakerMode): Stuff | null {
   return null;
 }
 
-/** The gather walk's yield: bulk bottles, tools, and discrete/glob items. */
+/**
+ * The gather walk's yield: bulk holders, tools, discrete/glob items, and
+ * the glass pool (every Crafted bulk vessel in reach — a claimed glass is
+ * the output form; a glass is never an input).
+ */
 interface GatheredMatter {
   bottles: BottleCandidate[];
   tools: (Stuff & Tooled)[];
   items: ItemCandidate[];
+  glasses: Stuff[];
+}
+
+/**
+ * The glass-pool surface `CraftedDrink` carries (duck-typed — the kernel
+ * never names the platform class). A vessel without it is claimable
+ * whenever its bulk is empty.
+ */
+interface PoolGlass {
+  isClaimable(): boolean;
+  setSoiled(value: boolean): void;
+  setTechnique(value: string): void;
+  setIce(kg: number, form: string, meltK?: number, latentJPerKg?: number): void;
+  clearIce(): void;
+}
+
+function asPoolGlass(stuff: Stuff): Partial<PoolGlass> {
+  return stuff as unknown as Partial<PoolGlass>;
+}
+
+/**
+ * Claim the output glass from the pool: the first reachable clean, empty
+ * instance of the recipe's `outputTemplate`. Null when the pool has none
+ * — the diegetic `no-glass` decline ("no clean coupe"), the bound that
+ * makes bussing and washing real work.
+ */
+function claimGlass(gathered: GatheredMatter, recipe: Recipe): Stuff | null {
+  const want = recipe.getOutputTemplate();
+  for (const g of gathered.glasses) {
+    if (g.getTemplatePath() !== want) continue;
+    const pool = asPoolGlass(g);
+    const claimable =
+      typeof pool.isClaimable === 'function'
+        ? pool.isClaimable()
+        : MixinApi.isBulkable(g) && g.isBulkEmpty('interior');
+    if (claimable) return g;
+  }
+  return null;
 }
 
 /**
@@ -190,12 +235,26 @@ function isItemCandidate(c: Stuff): boolean {
 /** Sort/partition one reachable Stuff into the gathered pools. */
 async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
   if (MixinApi.isTool(c)) into.tools.push(c);
-  if (MixinApi.isBulkable(c) && MixinApi.isGraded(c)) {
+  // A Crafted bulk vessel is a glass — the output pool, never an input
+  // (a served martini is not a base for the next one).
+  if (MixinApi.isCrafted(c) && MixinApi.isBulkable(c)) {
+    into.glasses.push(c);
+    return;
+  }
+  // Any bulk holder is a source: a graded bottle at its band, an ungraded
+  // holder (the water tap, the ice bin, a mug) at `fair` — the same
+  // fallback an ungraded item input gets.
+  if (MixinApi.isBulkable(c)) {
     const slot = BulkableApi.slotFor(c, undefined);
     if (slot) {
       const mpath = slot.getMaterialPath();
       const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
-      into.bottles.push({ stuff: c, slot, material, grade: c.getGrade() });
+      into.bottles.push({
+        stuff: c,
+        slot,
+        material,
+        grade: MixinApi.isGraded(c) ? c.getGrade() : Grade.of('fair'),
+      });
       return;
     }
   }
@@ -232,17 +291,25 @@ async function gatherMatter(
   location: Stuff,
   maker: Stuff,
 ): Promise<GatheredMatter> {
-  const gathered: GatheredMatter = { bottles: [], tools: [], items: [] };
+  const gathered: GatheredMatter = {
+    bottles: [],
+    tools: [],
+    items: [],
+    glasses: [],
+  };
   if (!MixinApi.isContainer(location)) return gathered;
   for (const c of location.getContents()) {
     if (c === maker) continue;
     await collectCandidate(c, gathered);
     // Open-container descent (one level). Skip agents (a maker NPC's or
     // bystander's inventory is theirs) — only inanimate room containers.
+    // A glass is a container too (its garnish) — never descended: the
+    // olive in a served martini is not the next martini's garnish.
     if (
       MixinApi.isContainer(c) &&
       !MixinApi.isOrganism(c) &&
       !MixinApi.isMaker(c) &&
+      !MixinApi.isCrafted(c) &&
       (!MixinApi.isSealable(c) || c.isOpen())
     ) {
       for (const inner of c.getContents()) {
@@ -370,9 +437,11 @@ function deriveBlendPayload(
   const nutrients = new Set<string>();
   const nutrientAmounts: Record<string, number> = {};
   const toxins = new Map<string, number>();
+  const tags = new Set<string>();
   let edible = false;
   for (const part of parts) {
     if (part.material.getEdibility() === true) edible = true;
+    for (const tag of part.material.getTags()) tags.add(tag);
     for (const tag of part.material.getNutrients()) nutrients.add(tag);
     const amounts = part.material.getNutrientAmounts();
     for (const [tag, mg] of Object.entries(amounts)) {
@@ -395,7 +464,104 @@ function deriveBlendPayload(
   };
   if (appearance) payload.appearance = appearance;
   if (keywords.length > 0) payload.keywords = [...keywords];
+  if (tags.size > 0) payload.tags = [...tags];
   return payload;
+}
+
+/** The ice bin: a reachable bulk holder whose matter carries `ice`. */
+function findIce(bottles: BottleCandidate[], needKg: number): BottleCandidate | null {
+  for (const b of bottles) {
+    if (!b.material || !b.material.hasTag('ice')) continue;
+    if (b.slot.available() >= iceLitres(b.material, needKg) - EPS) return b;
+  }
+  return null;
+}
+
+/** Litres of an ice material that weigh `kg` (density from the row; ~water when unauthored). */
+function iceLitres(material: Material, kg: number): number {
+  const density = material.getDensity().rawValue();
+  return kg / ((density > 0 ? density : 1000) / 1000);
+}
+
+/** The kilograms an iced drink takes (the `crafting.iceKg` dial). */
+function iceKgPerDrink(): number {
+  return dial(AppSettingKeys.craftingIceKg, 0.15);
+}
+
+/**
+ * The finishing pass every filled glass gets, resolve path or hand path:
+ * the working's chill + dilution, the ice from the bin (the plateau —
+ * see `CraftedDrink`), the garnish moved INTO the glass, the technique
+ * stamp, and the soil mark. `inputs` are the drawn holders (their
+ * temperatures blend into the fill); `ice` / `garnish` were matched
+ * before anything was consumed.
+ */
+async function finishGlass(
+  output: Stuff,
+  outSlot: BulkSlot,
+  technique: Technique,
+  inputs: { holder: Stuff; litres: number }[],
+  ice: { candidate: BottleCandidate; kg: number; form: string } | null,
+  garnish: MatchedItemInput[],
+): Promise<void> {
+  const effect = Techniques.effect(technique);
+  // Dilution: the working folds water in (a real volume on the slot).
+  if (effect.dilutionL > 0) {
+    const room = outSlot.remaining();
+    const add = Math.min(effect.dilutionL, Number.isFinite(room) ? room : effect.dilutionL);
+    if (add > 0) {
+      outSlot.setAmount(Quantity.of(outSlot.getAmount().rawValue() + add, 'L'));
+    }
+  }
+  // The fill temperature: the volume-weighted blend of what was drawn,
+  // then the working's chill.
+  if (MixinApi.isThermal(output)) {
+    let sumT = 0;
+    let sumL = 0;
+    for (const i of inputs) {
+      if (!MixinApi.isThermal(i.holder) || i.litres <= 0) continue;
+      sumT += i.holder.getTemperature().rawValue() * i.litres;
+      sumL += i.litres;
+    }
+    const fillK = sumL > 0 ? sumT / sumL : output.getTemperature().rawValue();
+    output.setContentsTemperature(Math.max(0, fillK - effect.chillK));
+  }
+  const pool = asPoolGlass(output);
+  // Ice: scooped from the bin onto the glass; the plateau does the rest.
+  if (ice) {
+    const litres = iceLitres(ice.candidate.material!, ice.kg);
+    const result = BulkableApi.transfer(ice.candidate.slot, null, {
+      kind: 'measure',
+      litres,
+      mode: 'strict',
+    });
+    if (Math.abs(result.applied - litres) > EPS) {
+      throw new Error(
+        `CraftingLogic: conservation breach — scooped ${result.applied} of ${litres} L of ice`,
+      );
+    }
+    if (typeof pool.setIce === 'function') {
+      const m = ice.candidate.material!;
+      pool.setIce(
+        ice.kg,
+        ice.form,
+        m.getMeltingPoint().rawValue(),
+        m.getLatentHeatOfFusion().rawValue(),
+      );
+    }
+  }
+  // Garnish: a thing in the glass (a glob splits off the units).
+  if (MixinApi.isContainer(output)) {
+    for (const g of garnish) {
+      let piece: Stuff = g.stuff;
+      if (g.glob && MixinApi.isGlobbable(g.stuff) && g.stuff.getQuantity() > g.count) {
+        piece = await GlobbableApi.split(g.stuff, g.count);
+      }
+      if (MixinApi.isContainable(piece)) ContainmentApi.move(piece, output);
+    }
+  }
+  if (typeof pool.setTechnique === 'function') pool.setTechnique(technique);
+  if (typeof pool.setSoiled === 'function') pool.setSoiled(true);
 }
 
 /**
@@ -410,6 +576,7 @@ async function applyBulkOutput(
   output: Stuff,
   recipe: Recipe,
   matched: MatchedInput[],
+  matchedItems: MatchedItemInput[] = [],
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -417,7 +584,11 @@ async function applyBulkOutput(
       `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Bulkable`,
     );
   }
-  const totalL = matched.reduce((sum, m) => sum + m.measureL, 0);
+  // Σ bulk draws; an item-fed bulk output (a pressed lime → juice) yields
+  // its authored portion on top (the item's own volume is not the juice).
+  const totalL =
+    matched.reduce((sum, m) => sum + m.measureL, 0) +
+    (matchedItems.length > 0 ? recipe.getOutputPortionL() : 0);
   const authored = recipe.getOutputMaterial();
   if (authored) {
     // The authored-substance override (a recipe may still name its
@@ -437,9 +608,12 @@ async function applyBulkOutput(
       recipe.getName(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
-      matched.flatMap((m) =>
-        m.material ? [{ material: m.material, servings: 1 }] : [],
-      ),
+      [
+        ...matched.flatMap((m) =>
+          m.material ? [{ material: m.material, servings: 1 }] : [],
+        ),
+        ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+      ],
     ),
   );
 }
@@ -933,6 +1107,11 @@ async function mintVessel(
     );
   }
 
+  // The working (recorded by stir / shake / muddle) finishes the glass:
+  // chill + dilution, the technique stamp, the soil mark. Ice and garnish
+  // are the hand's own steps (`garnish <glass> with <x>`), not the strain's.
+  await finishGlass(vessel, outSlot, req.method ?? 'built', [], null, []);
+
   vessel.stamp({
     maker: makerPath,
     grade,
@@ -942,6 +1121,32 @@ async function mintVessel(
 
   if (recipe) await recordCraftEvidence(makerStuff, recipe);
   return { ok: true, output: vessel, grade, recipeId };
+}
+
+/** The wash. See {@link CraftingApi.washGlass}. */
+function washImpl(glass: Stuff): boolean {
+  if (!MixinApi.isBulkable(glass) || !MixinApi.isCrafted(glass)) return false;
+  const slot = BulkableApi.slotFor(glass, undefined);
+  if (slot) {
+    if (!slot.isEmpty()) {
+      BulkableApi.transfer(slot, null, {
+        kind: 'measure',
+        litres: slot.getAmount().rawValue(),
+        mode: 'lenient',
+      });
+    }
+    slot.setAmount(Quantity.of(0, 'L'));
+    slot.setMaterial(null);
+    slot.setPayload(null);
+  }
+  if (MixinApi.isContainer(glass)) {
+    for (const c of [...glass.getContents()]) StuffApi.destruct(c);
+  }
+  const pool = asPoolGlass(glass);
+  if (typeof pool.clearIce === 'function') pool.clearIce();
+  if (typeof pool.setTechnique === 'function') pool.setTechnique('');
+  if (typeof pool.setSoiled === 'function') pool.setSoiled(false);
+  return true;
 }
 
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */
@@ -959,7 +1164,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     return { ok: false, reason: 'insufficient-input', detail: 'no-location' };
   }
 
-  const { bottles, tools, items } = await gatherMatter(location, maker);
+  const { bottles, tools, items, glasses } = await gatherMatter(location, maker);
 
   // Match input slots (per-source no-double-claim), dispatching each slot
   // on its kind: bulk → bottle draw, item → discrete/glob units.
@@ -1016,16 +1221,64 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   if (base) grade = grade.max(base);
   grade = applyControlFloor(grade, usedTools, recipe.getToolCapabilities());
 
-  // Clone the output form, apply its properties (dispatched on the
-  // recipe's output-application kind), stamp, consume, wear.
-  const output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
+  // The bar's finishing inputs — matched before anything is consumed:
+  // ice from a reachable bin, the garnish by category.
   const application = recipe.getOutputApplication();
+  let ice: { candidate: BottleCandidate; kg: number; form: string } | null = null;
+  const garnish: MatchedItemInput[] = [];
+  if (application === 'bulk') {
+    if (recipe.wantsIce()) {
+      const kg = iceKgPerDrink();
+      const bin = findIce(bottles, kg);
+      if (!bin) return { ok: false, reason: 'insufficient-input', detail: 'ice' };
+      ice = { candidate: bin, kg, form: recipe.getIce() };
+    }
+    const g = recipe.getGarnish();
+    if (g) {
+      const picks = pickItemInputs(
+        { slot: 'garnish', category: g.category, minGrade: 'fair', kind: 'item', count: g.count ?? 1 },
+        items,
+        claimedUnits,
+        req.brand,
+      );
+      if (!picks) {
+        return { ok: false, reason: 'insufficient-input', detail: g.category };
+      }
+      garnish.push(...picks);
+    }
+  }
+
+  // The output form: a bulk output is CLAIMED from the glass pool (the
+  // first clean, empty instance of the recipe's template in reach — the
+  // bound that makes bussing and washing real work); a tangible / edible
+  // output is still cloned (smithing's transform and cooking's plate are
+  // the next pools). Then apply its properties (dispatched on the
+  // recipe's output-application kind), stamp, consume, wear.
+  let output: Stuff;
+  if (application === 'bulk') {
+    const glass = claimGlass({ bottles, tools, items, glasses }, recipe);
+    if (!glass) {
+      return { ok: false, reason: 'no-glass', detail: recipe.getOutputTemplate() };
+    }
+    output = glass;
+  } else {
+    output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
+  }
   if (application === 'tangible') {
     applyTangibleOutput(output, recipe, matchedItems);
   } else if (application === 'edible') {
     await applyEdibleOutput(output, recipe, matchedItems);
   } else {
-    await applyBulkOutput(output, recipe, matched);
+    await applyBulkOutput(output, recipe, matched, matchedItems);
+    const outSlot = BulkableApi.slotFor(output, undefined)!;
+    await finishGlass(
+      output,
+      outSlot,
+      Techniques.forCapabilities(recipe.getToolCapabilities()),
+      matched.map((m) => ({ holder: m.slot.getHolder(), litres: m.measureL })),
+      ice,
+      garnish,
+    );
   }
 
   if (!MixinApi.isCrafted(output)) {
@@ -1340,6 +1593,12 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async salvage(request: SalvageRequest): Promise<SalvageOutcome> {
     return salvageImpl(request);
+  }
+
+  /** See {@link CraftingApi.washGlass}. */
+  @CallSecurity(CraftingApiCallers)
+  public washGlass(glass: Stuff): boolean {
+    return washImpl(glass);
   }
 
   /** See {@link CraftingApi.lookupRecipe}. */

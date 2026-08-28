@@ -37,3 +37,7 @@ settings:
 
   - key: crafting.repair.metalHeatK
     value: "900"
+
+  # ── the bar: ice per iced drink (kg), scooped from the reachable ice bin.
+  - key: crafting.iceKg
+    value: "0.15"

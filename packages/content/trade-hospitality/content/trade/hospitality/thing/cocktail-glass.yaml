@@ -10,5 +10,7 @@ data:
   # `cocktail` matches the cocktail *shaker* (by its description), so a
   # build strains unambiguously with `strain … into coupe`.
   keywords: [coupe, glass, cocktail]
+  # The glassware par key (the stock sheet counts coupes by it).
+  category: coupe
   interiorBulk: true
   interiorCapacity: 0.2

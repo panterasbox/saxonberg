@@ -68,6 +68,20 @@ export interface RecipeInputSlot {
  */
 export type OutputApplication = 'bulk' | 'tangible' | 'edible';
 
+/**
+ * The garnish a drink is finished with: a reachable item whose Material
+ * carries `category` (an olive, a lime wedge), `count` of them (default
+ * 1), moved INTO the glass at the fill — a thing in the drink, not a
+ * flourish. Absent ⇒ no garnish.
+ */
+export interface RecipeGarnish {
+  category: string;
+  count?: number;
+}
+
+/** How a drink takes ice: `cubes` / `crushed` in the glass, or `none`. */
+export type RecipeIce = 'cubes' | 'crushed' | 'none';
+
 export class Recipe {
   /**
    * ⭐ **How to FIND a recipe is open; what it takes is level 1.**
@@ -108,6 +122,8 @@ export class Recipe {
     outputPortionL: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputAppearance: { persistent: true, spoiler: 1, spoilerName: 0 },
     difficulty: { persistent: true, spoiler: 1, spoilerName: 0 },
+    garnish: { persistent: true, spoiler: 1, spoilerName: 0 },
+    ice: { persistent: true, spoiler: 1, spoilerName: 0 },
   };
 
   /** The document's path (`/generic-objects/recipes/martini`). */
@@ -165,6 +181,12 @@ export class Recipe {
   /** The Discipline id the deed records against; empty ⇒ no advancement. */
   discipline: string = '';
 
+  /** The garnish (an item by category, moved into the glass); null ⇒ none. */
+  garnish: RecipeGarnish | null = null;
+
+  /** Ice in the glass at the fill (`none` — the stored default — ⇒ no ice). */
+  ice: RecipeIce = 'none';
+
   /**
    * Hydrate from a `kind: 'recipe'` document. Validates what the retired
    * `RecipeSeeder` validated — a non-empty `inputSlots` and a string
@@ -206,7 +228,36 @@ export class Recipe {
     r.outputAppearance = str(data.outputAppearance);
     r.difficulty = str(data.difficulty);
     r.discipline = str(data.discipline);
+    r.garnish = Recipe.garnishFrom(data.garnish, r.recipeId);
+    r.ice = Recipe.iceFrom(data.ice, r.recipeId);
     return r;
+  }
+
+  /** Validate an authored `garnish` block (`{ category, count? }`). */
+  private static garnishFrom(v: unknown, id: string): RecipeGarnish | null {
+    if (v == null) return null;
+    if (typeof v !== 'object' || Array.isArray(v)) {
+      throw new Error(`Recipe '${id}': 'garnish' must be { category, count? }`);
+    }
+    const g = v as Record<string, unknown>;
+    if (typeof g.category !== 'string' || g.category.length === 0) {
+      throw new Error(`Recipe '${id}': 'garnish' needs a string 'category'`);
+    }
+    const out: RecipeGarnish = { category: g.category };
+    if (g.count !== undefined) {
+      if (typeof g.count !== 'number' || !(g.count >= 1)) {
+        throw new Error(`Recipe '${id}': 'garnish.count' must be ≥ 1`);
+      }
+      out.count = g.count;
+    }
+    return out;
+  }
+
+  /** Validate an authored `ice` word. */
+  private static iceFrom(v: unknown, id: string): RecipeIce {
+    if (v === undefined || v === null || v === '') return 'none';
+    if (v === 'cubes' || v === 'crushed' || v === 'none') return v;
+    throw new Error(`Recipe '${id}': 'ice' must be cubes | crushed | none`);
   }
 
   /** The inverse — the `data` a recipe document carries. */
@@ -226,6 +277,8 @@ export class Recipe {
       outputAppearance: this.outputAppearance,
       difficulty: this.difficulty,
       discipline: this.discipline,
+      garnish: this.garnish ? { ...this.garnish } : null,
+      ice: this.ice,
     };
   }
 
@@ -271,6 +324,18 @@ export class Recipe {
   }
   getDiscipline(): string {
     return this.discipline;
+  }
+  /** The garnish spec, or null for none. */
+  getGarnish(): RecipeGarnish | null {
+    return this.garnish;
+  }
+  /** The ice word (`none` when the drink takes none). */
+  getIce(): RecipeIce {
+    return this.ice;
+  }
+  /** Whether the drink is served over ice. */
+  wantsIce(): boolean {
+    return this.ice !== 'none';
   }
 
   /** Whether `slot` is a discrete/glob item slot (vs the bulk default). */

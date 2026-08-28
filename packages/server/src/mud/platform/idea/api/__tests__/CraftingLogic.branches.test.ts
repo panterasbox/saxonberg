@@ -418,6 +418,11 @@ describe('the gather walk rungs', () => {
     const mixer = makeStuff(() => new ToolItem());
     mixer.setCapabilities(['mixing-glass']);
     ContainmentApi.move(mixer, room);
+    // A bulk output is claimed from the pool, never cloned: one clean glass.
+    const glass = makeStuffAtPath(() => new CraftedDrink(), GLASS_T);
+    (glass as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    glass.setInteriorCapacity(Quantity.of(0.3, 'L'));
+    ContainmentApi.move(glass, room);
 
     const outcome = await craftAs(smith, {
       recipeRef: 'martini',

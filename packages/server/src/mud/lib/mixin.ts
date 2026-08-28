@@ -545,6 +545,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Making & wear.
   ManualBuildMixin: "{} isn't a vessel you can work in",
+  CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",

@@ -1,9 +1,9 @@
 verbs: [garnish]
 controller: /platform/idea/cmd/crafting/GarnishController
-description: "Garnish a finished drink (the finishing flourish)"
+description: "Garnish a finished drink (a thing in the glass)"
 help: |
-  Finish a drink off — `garnish glass with olive`. A flourish that takes
-  a moment.
+  Finish a drink off — `garnish coupe with olive`. The garnish goes into
+  the glass and leaves with it. Takes a moment.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -13,7 +13,7 @@ args:
     type: object
     required: true
     scope: "reachable"
-    requires: ManualBuildMixin
+    requires: CraftedMixin
   - name: garnish
     type: object
     required: true

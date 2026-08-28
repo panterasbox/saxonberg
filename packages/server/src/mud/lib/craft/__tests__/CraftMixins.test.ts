@@ -86,10 +86,17 @@ describe('ToolMixin', () => {
 
     it('recipe-side kinds and empty capabilities confer nothing', () => {
       const t = makeStuff(() => new ToolHost());
-      t.setCapabilities(['striking', 'strainer', 'muddler']);
+      t.setCapabilities(['striking', 'strainer', 'juicer']);
       expect(t.getInstanceContributions()).toEqual({});
       t.setCapabilities([]);
       expect(t.getInstanceContributions()).toEqual({});
+    });
+
+    it('a muddler in reach confers `muddle`', () => {
+      const t = makeStuff(() => new ToolHost());
+      t.setCapabilities(['muddler']);
+      const c = t.getInstanceContributions();
+      expect(c.environment).toEqual(['platform/cmd/crafting/muddle.yaml']);
     });
 
     it('a broken tool still contributes (the verb declines, not vanishes)', () => {

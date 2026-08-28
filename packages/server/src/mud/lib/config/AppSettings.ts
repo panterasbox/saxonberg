@@ -1299,6 +1299,9 @@ export const AppSettingKeys = {
   craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
   /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
   craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
+  /** Crafting — kilograms of ice an iced drink takes from the reachable
+   * ice bin at the fill (the bar's scoop). */
+  craftingIceKg: "crafting.iceKg",
 
   /*
    * Wiki — the render budget (docs/subsystems/wiki.md).

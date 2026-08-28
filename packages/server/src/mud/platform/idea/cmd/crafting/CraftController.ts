@@ -121,6 +121,8 @@ function declineMessage(failure: CraftingFailure): string {
       return 'Nothing here runs hot enough for that — the forge is cold, or there is no fire at all.';
     case 'no-recipe':
       return "That can't be made here.";
+    case 'no-glass':
+      return 'There is no clean glass to pour that into.';
     case 'no-output':
     default:
       return 'Something goes wrong, and the drink never comes together.';

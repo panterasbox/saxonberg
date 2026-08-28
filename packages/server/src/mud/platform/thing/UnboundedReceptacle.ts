@@ -10,7 +10,15 @@
 
 import Receptacle from './Receptacle';
 import { UnboundedSourceMixin } from '../../lib/bulk/UnboundedSource';
+import type { CommandContributions } from '../../api/command';
 
 export default class UnboundedReceptacle extends UnboundedSourceMixin(
   Receptacle,
-) {}
+) {
+  /** A source in reach affords `wash` (the basin, the tap). */
+  static commandContributions: CommandContributions = {
+    self: [],
+    peers: [],
+    environment: ['platform/cmd/crafting/wash.yaml'],
+  };
+}

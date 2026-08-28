@@ -185,6 +185,11 @@ beforeEach(async () => {
   ContainmentApi.move(makeStuffAtPath(() => new TestBartender(), DAVE), room);
   ContainmentApi.move(makeBottle(GIN, 'fine'), room);
   ContainmentApi.move(makeBottle(VERMOUTH, 'fair'), room);
+  // The glass pool: one clean coupe of the recipe's output form in reach.
+  const coupe = makeStuffAtPath(() => new CraftedDrink(), GLASS);
+  (coupe as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  coupe.setInteriorCapacity(Quantity.of(0.3, 'L'));
+  ContainmentApi.move(coupe, room);
   const tool = makeStuff(() => new ToolItem());
   tool.setCapabilities(['mixing-glass']);
   ContainmentApi.move(tool, room);

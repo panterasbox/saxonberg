@@ -28,6 +28,10 @@ export const TOOL_CAPABILITIES = [
   'mending',
   'pot',
   'watering',
+  // The bar's stations: the citrus press (`press` recipes) and the keg tap
+  // (`pint`). A muddler confers `muddle`; the rest are recipe-side kinds.
+  'juicer',
+  'tap',
 ] as const;
 
 /** A tool capability — one of {@link TOOL_CAPABILITIES}. */
@@ -121,7 +125,9 @@ const CAPABILITY_TABLE: Record<ToolCapability, CapabilityKindDef> = {
   watering: { verbs: ['platform/cmd/bulk/water.yaml'], placement: 'carried' },
   striking: { verbs: [], placement: 'reachable' },
   strainer: { verbs: [], placement: 'reachable' },
-  muddler: { verbs: [], placement: 'reachable' },
+  muddler: { verbs: ['platform/cmd/crafting/muddle.yaml'], placement: 'reachable' },
+  juicer: { verbs: [], placement: 'reachable' },
+  tap: { verbs: [], placement: 'reachable' },
 };
 
 /**

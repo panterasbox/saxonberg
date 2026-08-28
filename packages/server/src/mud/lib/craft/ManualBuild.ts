@@ -30,9 +30,10 @@ import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
 import { Grade } from "./Grade";
+import type { Technique } from "./Technique";
 
-/** How the build was worked — recorded by `stir` / `shake`. */
-export type BuildMethod = "stirred" | "shaken";
+/** How the build was worked — recorded by `stir` / `shake` / `muddle`. */
+export type BuildMethod = Technique;
 
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {

@@ -1,0 +1,17 @@
+verbs: [wash]
+controller: /platform/idea/cmd/crafting/WashController
+description: "Wash a used glass so it can be served in again"
+help: |
+  Wash a glass — `wash coupe`. You need water in reach (the basin, the
+  tap). The dregs go down the sink, whatever was in it goes out, and
+  the glass is clean for the next drink. Takes a moment.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: glass
+    type: object
+    required: true
+    scope: "reachable"
+    requires: CraftedMixin

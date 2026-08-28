@@ -122,6 +122,13 @@ export interface BulkPayload {
   toxicity: { type: string; amount: number }[];
   /** Whether the blend is edible (the label + eat gates read this). */
   edible: boolean;
+  /**
+   * The union of the consumed inputs' Material tags — what the blend
+   * *is made of* rides with it (a soda-water input makes the drink
+   * `carbonated`; the presentation reads it). Absent on a payload that
+   * derived nothing.
+   */
+  tags?: string[];
 }
 
 
