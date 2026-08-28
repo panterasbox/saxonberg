@@ -118,6 +118,10 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // `MaterialLogic.boot` keeps a row by `instanceof Material` — resolving
   // the class wherever it lives (a capability pack's src/ included).
   { site: "platform/idea/api/MaterialLogic.ts::loadClassByPath", classification: "gated-direct" },
+  // The spawn sweep's `isCirculatingClass` (the MaterialLogic precedent):
+  // a template row's `class:` (already gate-validated content) is loaded
+  // only to ask whether it composes `CirculatingMixin`.
+  { site: "platform/idea/api/ResidencyLogic.ts::loadClassByPath", classification: "gated-direct" },
   // The dynamic-import engines implementing loadClassByPath /
   // resolveExport(Sync). The gated set is enforced at their callers.
   { site: "api/stuff.ts::import", classification: "resolver-core" },
