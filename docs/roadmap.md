@@ -810,8 +810,8 @@ landing first.
   bridged whitelisted Apis, resource limits (CPU / memory /
   timeout), monitoring hooks. The runtime-model
   [Tier 2 isolation discussion](./runtime-model.md#isolation-options)
-  is the framing. *The **Content** corner has shipped two builds as
-  **content packs** — pure-data, no-code deliverables with a three-way
+  is the framing. *The **Content** and **Capability** corners have shipped as
+  **content packs** — data or capability (code-shipping) deliverables with a three-way
   reconcile installer, an install record, and the `pack` operator verb;
   wave 2 (2026-08) added the document / settings / subject / wiki /
   command-view kinds, collapsed the per-kind collections into

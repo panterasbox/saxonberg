@@ -1,16 +1,18 @@
 # Content packs
 
-The **content-pack** substrate: foundational game content lives in
-standalone, git-versioned packages of **pure data** (zero TypeScript),
-and a single **installer** reconciles them into MongoDB at boot and on
-demand. The pack files are the **source of truth**; the database is a
+The **content-pack** substrate: game content lives in standalone,
+git-versioned packages — `content/` (YAML, the installer's jurisdiction)
+and, at the **capability rung**, `src/` (the TypeScript classes that
+content names) — and a single **installer** reconciles the content into
+MongoDB at boot and on demand while the kernel's class-path resolver
+serves the code. The pack files are the **source of truth**; the database is a
 *derived install* of them. It replaced `SeederManager` outright (wave
 3) — it gives content real version control (git, on the files) and a
 clean deliverable boundary, decoupled from the kernel's release cycle.
 
-**Sixteen packs ship today** (wave 3 of the content-pack program,
-2026-08 — *pack zero, and the end of `core`*), and **every template row
-in the world comes from one of them**: there is no seeder, no code
+**Nineteen packs ship today** (capability packs, arcana first, 2026-08 —
+the rung after wave 4b's *pack zero, and the end of `core`*), and
+**every template row in the world comes from one of them**: there is no seeder, no code
 manifest, no `seeds/` tree. The table is in *§ The shipped packs*. The
 short version: **platform** is pack zero — the controller templates, the
 registries and catalogues, the marshallers, the closed vocabularies, the
@@ -20,7 +22,8 @@ settings, the standing subjects, the curated blueprints and every engine
 verb's command view — and **it alone is a bootable world** (the
 platform-only e2e proves it every pipeline). Everything else `dependsOn`
 it: the substrate packs (**base-library**, **species-and-names**,
-**arcane-descriptors**, **arcane-library**, **generic-objects**), the
+**arcana** — magic's substrate and the first *capability* pack —
+**arcane-library**, **generic-objects**), the
 social packs (**expression**, **wiki-starter**), the five
 **corpo-{aevex,goodkin,hollis,veshko,vionne}** (each now an
 *organization* with its own chart), the three industries
@@ -51,12 +54,17 @@ staff (the Prime Minister and whoever the office appoints), never the
 wizard axis; the wave-2 `pack-installers` committee folded into the
 executive.
 
-> **Scope.** This is the *content-only* corner of the downloadable-content
-> taxonomy (roadmap Framework 13: Content / Capability / Full). A content
-> pack ships **no code**; it assumes the kernel already provides the
-> classes its data names. That assumption — enforced by the
-> `requires-kernel` check — *is* the content-pack ↔ mod boundary: a pack
-> assumes classes, a mod brings them.
+> **Scope.** Two rungs of the downloadable-content ladder (roadmap
+> Framework 13: Content / Capability / Full; the content-packs slate's
+> *data pack · capability pack · mod*). A **data pack** ships content and
+> assumes the kernel already provides the classes its rows name. A
+> **capability pack** ships those classes too, under `src/`, imported by
+> the kernel's class-path resolver exactly as the kernel's own — and
+> **most packs will be capability packs**: the rung is a fact about a
+> `src/` directory, not a pack's identity. What neither may do is add an
+> Api or reach past the kernel's author surface; that is the *mod* rung,
+> a kernel MR. The `requires-kernel` check enforces the line — a pack's
+> classes must resolve, and it records *where* (§ The capability rung).
 
 ## The shape of a pack
 
@@ -65,8 +73,9 @@ once the monorepo is broken up) named `@saxonberg/content-<id>`:
 
 ```
 packages/content/base-library/
-├── package.json          # workspace member: name, version, private — no code
+├── package.json          # workspace member; `dependencies` name the packs it depends on
 ├── pack.yaml             # the manifest the installer reads
+├── src/                  # CAPABILITY packs only: the classes its rows name, <root>/<branch>/…
 └── content/              # content root; MIRRORS the template-path namespace
     └── lib/
         ├── material/spirit/gin.yaml   →  template path /stuff/idea/material/spirit/gin
@@ -101,7 +110,6 @@ address for every kind (`pack diff <id> <path>`).
 id: saxonberg-lounge      # the sourcePack stamp value; stable
 version: 0.2.0            # reserved release label — nothing reads/enforces it
 description: …
-dependsOn: [platform, corpo-goodkin, corpo-vionne]   # ids that must install first; the HOSTS
 root: /world/lounge      # the DOCUMENT root (optional; defaults to /<id>; must start with /)
 maintainers: lounge       # a group name, { group: <name> } or { organization: </path> };
                           # default `<id>-maintainers`
@@ -116,8 +124,12 @@ boot:                     # which rows are eager, and why — see § The boot un
 ```
 
 **The key set is closed** (`MANIFEST_KEYS` in `PackLogic`): `id`,
-`version`, `description`, `dependsOn`, `root`, `requires`, `boot`,
-`maintainers`. Any other key — a typo, a field from a future wave — is an
+`version`, `description`, `root`, `requires`, `boot`, `maintainers`.
+**`dependsOn` is not a key** — it is *derived* from the pack's
+`package.json`: every `@saxonberg/content-<id>` dependency is a pack id
+(the `@saxonberg/server` and `@saxonberg/types` lines are the kernel).
+One graph: the line that lets a pack's code import another pack's
+classes is the line that orders its install and names its hosts. Any other key — a typo, a field from a future wave — is an
 **error at read**, and so is an unknown key inside `requires`
 (`groups` / `title` only) or inside a boot entry (`template` / `role` /
 `reason` / `dependsOn`). A manifest that parses is a manifest the
@@ -145,15 +157,23 @@ to a build is adding a dependency line.
 ## Discovery
 
 `PackLogic` discovers packs by reading the `@saxonberg/content-*` keys
-from `server`'s `package.json` (the names), then resolving each to its
-on-disk root via Node module resolution (`require.resolve('<pkg>/package.json')`).
-Reading the *names* from `package.json` keeps one source of truth;
-resolving *paths* via module resolution is layout-robust across dev
-(`tsx`) and dist. Packs are then ordered by `dependsOn` (a stable
-topological sort; throws on a cycle). With one pack this is a passthrough,
-but the read-and-honor of `dependsOn` is present so multi-pack ordering
-is already wired (full missing-dependency validation is deferred;
-`dependsOn` on an unknown id is ignored).
+from the **deployment manifest** — the root `package.json` of the
+workspace, or wherever `SAXONBERG_DEPLOYMENT_ROOT` points (default: the
+nearest ancestor of the server package whose `package.json` carries a
+`@saxonberg/content-*` dependency). **The server never depends on a
+pack**; installing one is `pnpm add @saxonberg/content-<id>` in the
+deployment, and when the packs are their own repos that manifest is the
+only file that changes. Each name resolves to its on-disk root via Node
+module resolution from that manifest (`createRequire(<root>/package.json)
+.resolve('<pkg>/package.json')`), layout-robust across dev (`tsx`) and
+prod (also `tsx`). A pack with a `src/` dir is a **capability pack**:
+discovery registers its `src/` against every namespace root it holds
+(the manifest `root` + each `requires.title` extent) in the class-source
+table (`ModuleApi.registerPackSource`) before anything imports —
+`PackApi.registerSources()` is that half alone, which `test-bootstrap`
+runs so a test resolves `/arcana/…` without an install. Packs are then
+ordered by the derived `dependsOn` (a stable topological sort; throws on
+a cycle; an unknown id is ignored).
 
 **`SAXONBERG_PACKS`** (D10) filters the discovered set: a comma-separated
 list of ids (`SAXONBERG_PACKS=platform`), applied *after* ordering. A
@@ -440,6 +460,110 @@ the kind, the key, and **both** `(packId, relFile)` pairs; earlier packs
 in the topo order still install. Never first-wins, never silent (A17.2).
 The different-pack-stamp refusal in the reconcile stays as the belt to
 this check's suspenders.
+
+## The capability rung — a pack ships classes
+
+A pack's `src/` has the kernel's taxonomy and nothing else: instanceable
+classes under the four branches (`thing/`, `idea/`, `agent/`,
+`location/`), controllers at `idea/cmd/<category>/`, tests under
+`__tests__/`; **no `lib/`** (substrate a pack needs is the kernel's, or
+a class it ships under a branch), no free-floating helpers, no Api (a
+pack that needs an Api needs a kernel MR — the *mod* rung).
+`packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
+namespace root the pack holds — source mirrors path, inside a pack as in
+the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
+`/arcana/thing/Wand`, and a pack controller's `FromModule` gate reads the
+same string as its template path.
+
+**The loader.** `StuffApi.resolveClassFile(classPath)` is the one place
+a class path becomes a file: a path whose namespace root a capability
+pack registered resolves into that pack's `src/` (longest root first,
+`<srcRoot>/<rel>.ts`; a missing file is an error naming the pack —
+**never a fallback to the kernel**); every other path resolves from the
+kernel tree as before. The clone pipeline, `loadClassByPath` and the
+brain resolver (`resolveExport`) import the file by absolute `file://`
+URL — the shape `HotReloadApi` already used — so Node's cache and the
+`?hmr=` override both hold, and `reload /arcana/thing/Wand` reloads the
+pack file. Prod and dev are both `tsx` from source; the server's
+`tsconfig.json` `include`s `../content/*/src/**/*` so tsx applies
+`experimentalDecorators` to pack files (tsx honours a tsconfig only for
+files it includes), and `pnpm build` typechecks them. The call-security
+loader transform stamps `packages/content/<pkg>/src/**` like `mud/**`,
+importing the registry by **package specifier**
+(`@saxonberg/server/mud/api/module`); `ModuleApi` normalises a pack file's
+URL through the class-source table to `/<root>/<rel>` before the kernel
+root hints. **Pack code writes absolute gate strings** — the transform
+cannot know a pack's root, so a relative `FromModule('./x')` in a pack
+file is left alone and `lint:gates` reports it.
+
+**The pack import profile is the server's `exports` map.** A pack
+imports the kernel **only by package specifier** —
+`@saxonberg/server/mud/lib/stuff/Thing`, never a relative path into the
+monorepo — and `packages/server/package.json`'s `exports` map is the
+author surface: `mud/lib/*` (mixin factories, value objects, abstract
+roots), `mud/api/*` (the facades, single level — `api/mql/**` and
+`api/mml/**` blocked), `mud/platform/{thing,idea,agent,location}/*` with
+`platform/idea/api/**` (the logic singletons) and `platform/idea/hooks/**`
+blocked, `test-bootstrap`, and the vite plugin. Nothing else is
+exported — not `backend/`, not `world/**`, not `config/` — and Node,
+tsx, vitest and tsc all refuse a subpath the map does not list, so the
+boundary is enforced by the package, not by a script's opinion; widening
+it is a deliberate, reviewable edit to one file. `lint:imports`' **pack
+tier** checks what the map cannot see: a relative escape out of the
+pack's `src/`, a pack-to-pack import without the dependency line, any
+other package or Node built-in.
+
+**The rung check** (`requires-kernel`, before any write). The installer
+resolves every class a pack's rows name and records where it resolved
+(`PackReconcileResult.classOrigins`; the boot line prints a capability
+pack's). Keyed on **resolution origin, not path prefix**:
+
+1. a class in the pack's own namespace that resolves nowhere, from a
+   pack with no `src/`, fails — *"claims data but ships code"* — while a
+   data pack whose rows name parked **kernel** classes under its own
+   `/world/<x>` claim (`saxonberg-lounge`, `hearthworks`) passes;
+2. a class that resolves into another pack's `src/` requires that pack
+   in the importer's derived `dependsOn`, else fails naming both;
+3. a pack with `src/` records `rung: 'capability'` (else `'data'`), and
+   after the install every `src/` class no row of any installed pack
+   names is **reported** (console + a diagnostic) — dead code in a pack
+   is a review finding, never a failure.
+
+**Code and the record.** The record stores `codeVersions` (`src/`-relative
+file → sha256 at install). `pack status` prints `capability | data`,
+the derived `dependsOn`, and `code: current | stale — restart owed` by
+comparing disk to the record; `pack sync <id>` first hot-swaps every
+changed `src/` file (`HotReloadApi.reload`, the same machinery as
+`reload`) and then re-hydrates the rows, so a re-hydrated clone gets
+the new class. In prod a code change rides deploy + restart like the
+kernel's; `status` says when one is owed.
+
+**Two rules the rung applies to magic.** *A discipline row ships with
+the pack whose code derives or teaches its key* — the 18 `magic-*` rows
+are arcana's (its `Grid` derives them); the trades' stay in the
+platform until their pack reaches the rung. And *arcana holds what other
+packs' content names; a class only one pack's own rows name is that
+pack's* — the glowlight mote and the spark locus are the arcane
+library's, named by its spell rows' `locus:`. The catalogues warm **by
+class** (`Template.findByClass`), never by root prefix, so a second pack
+shipping a discipline or a spell needs no kernel edit. One ratified
+exception to *a kernel module never names a pack's row*: a kernel mixin
+that declares a capability names that capability's command view
+(`Caster` → `arcana/cmd/magic/cast.yaml`, `Charged` → `zap`/`recharge`)
+— the view's key is its document path, and the affordance belongs where
+the capability is declared.
+
+**Tests travel with the code.** A pack's `src/**/__tests__/` runs under
+its own `vitest.config.ts` (`pnpm -r test` picks it up; `pnpm test:near`
+routes a changed pack file to the pack's suite), imports
+`@saxonberg/server/test-bootstrap`, and is held by `lint:test-bootstrap`;
+`lint:test-content` treats it as a content test beside its content. The
+lint family walks pack `src/` throughout (`scripts/pack-roots.ts` is the
+scripts' shared table): `instanceable` (invariant 3 through the table,
+invariant 8 — no `lib/`, every module under a branch), `gates`,
+`imports`, `module-scope`, `field-meta`, `blessed-bands`, `arg-kinds`
+(every `cmd/` under a pack's content), `untitled` (`/arcana` is the
+tenth title root).
 
 ## The two entry points
 
@@ -788,9 +912,9 @@ the installer's walk mirrored in a script; zero is green).
 | **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 31 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue`, `/platform/idea/AddressRegistry` (producer) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
-| **arcane-descriptors** | platform | default | — | — | — |
-| **arcane-library** | platform | default | — (rides `/obj`) | — | — |
-| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches: `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
+| **arcana** (CAPABILITY — magic's substrate) | platform | default | `/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |
+| **arcane-library** (CAPABILITY — magic's catalog) | platform, arcana | default | — (rides `/stuff`): the 12 spells, the 13 items at `/stuff/thing/magic/` (wands, scrolls, books, a conduit, the bench, three potions, a ring, an amulet), the two loci `glowlight-mote`/`spark-locus` whose classes `src/` ships, the three draughts | — | — |
+| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
 | **trade-smithing** | platform, generic-objects | default | `/trade/smithing` → group `smithing` (PM-owned) | `smithing` | — |
 | **trade-hearth-cooking** | platform, generic-objects | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned); four recipes since wave 4b (toasted-ration, root-mash, fine-roast, hearty-stew) | `hearth-cooking` | — |
 | **trade-hospitality** | platform, generic-objects, base-library | default | `/trade/hospitality` → group `hospitality` (PM-owned): the four bar stations (shaker, mixing-glass, cocktail-glass, back-bar), the tip-jar template, the two cocktail recipes — what the lounge introduced; bottles and positions stay the venue's (wave 4b) | `hospitality` | — |
@@ -802,7 +926,8 @@ the installer's walk mirrored in a script; zero is green).
 | **hearthworks** (a VENUE pack, wave 4b) | platform, trade-smithing, trade-hearth-cooking, corpo-goodkin | default | `/world/hearthworks` → group `hearthworks` (PM-owned): the `/world/hearthworks` CartesianZone + 12 rows under branch subdirs — the four rooms + the forge floor + `offstage`, the business, Berta and Odo, the two menus, the pantry; every station and recipe a `populates:` reference to a trade's or the commons' row | `hearthworks` | — |
 | **world-seed** (TRANSITIONAL — eternal, terminus, moor, practicum, substation, common) | platform, saxonberg-lounge (the Terminus departure route names the lounge terminal), corpo-goodkin, corpo-vionne | default | the four Terminus parcels → `terminus` (`terminal`, `counting-houses`, `general-store`, `registry`, with land uses); `/world/terminus/hinkley-hills` + `lots/lot-1` → `hinkley-hills`; `/world/eternal/duncan-hall` + `dorms` → `duncan-hall` | `duncan-hall` (enrols Katie), `hinkley-hills`, `terminus` | the dorm-warren, the plat-book, the lot-holder (producer) |
 
-Twenty. The corpo packs became **organizations** in wave 3: each ships
+Nineteen (`arcane-descriptors` folded into `arcana` — the pack that ships
+the class ships the bank). The corpo packs became **organizations** in wave 3: each ships
 `content/corpo/<key>.yaml` (its chart — authority the PM office, because
 a chart whose authority is *the committee over `/corpo/<key>`* recurses
 once the organization holds that very title) beside its mark and
@@ -882,8 +1007,17 @@ junk drawer — expected to slim as trade packs take their objects.
 - `packages/content/base-library/` — materials, biomes, quantity-units.
 - `packages/content/species-and-names/` — the species/clade tree
   (`content/stuff/idea/species/**`) + the name banks (`content/name-banks/**`).
-- `packages/content/arcane-descriptors/` — the descriptor banks.
-- `packages/content/arcane-library/` — `content/stuff/idea/magic/**`.
+- `packages/content/arcana/` — the first capability pack: `src/thing/`
+  (Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion),
+  `src/idea/material/PotionMaterial.ts`, `src/idea/cmd/magic/` (the five
+  casting controllers), `content/arcana/idea/Discipline/` (the 18
+  `magic-*` rows), `content/arcana/cmd/magic/` (the views),
+  `content/settings/magic.yaml`, `content/descriptor-banks/`.
+- `packages/content/arcane-library/` — `src/thing/{GlowlightMote,SparkLocus}.ts`,
+  `content/stuff/idea/magic/Spell/**`, `content/stuff/thing/magic/**`
+  (every clonable magic item), `content/stuff/idea/material/potion/`.
+- `packages/server/scripts/pack-roots.ts` — the lint family's shared
+  reader of which packs ship `src/` and which roots each backs.
 - `packages/content/generic-objects/` — the object clusters under
   `content/stuff/<branch>/<cluster>/` and the loose objects; no recipes
   (every recipe is a trade's since wave 4b).
@@ -1052,6 +1186,20 @@ hearthworks gaining the `shifts` brain and an `offstage` row),
 The locality rule applied: rows and source under branch subdirs by
 lineage (>6) or flat (≤6). "Packs seed, they do not own" proven by
 `PackLogic.venue-ownership.test.ts`, no mechanism added. Twenty packs.
+
+**Capability packs, arcana first (2026-08-28).** A pack may ship `src/`
+(§ The capability rung): the class-source table (`ModuleApi.
+registerPackSource`), `StuffApi.resolveClassFile`, file-URL imports, the
+loader transform over pack `src/`, the server's `exports` map as the
+pack import profile, the pack list in the DEPLOYMENT manifest (the root
+`package.json`; the server depends on no pack), `dependsOn` derived from
+`package.json`, the rung check and `codeVersions`, `pack sync`'s code
+tail, `reload` on a class path, the lint family over pack trees. Magic
+proves it: **arcana** (the item classes, Ring/Amulet/Potion new, the
+disciplines, the verbs, the banks — `arcane-descriptors` folded in) and
+**arcane-library** (the spells, every clonable magic item, the two loci
+named by `locus:`). The catalogues warm by class; `MaterialLogic.boot`
+keeps a row by `instanceof Material`. Nineteen packs.
 
 **The path pattern (2026-08-28, on the wave-4a branch).** `/platform/… + /stuff/` is
 gone. Every template path and every engine source file follows

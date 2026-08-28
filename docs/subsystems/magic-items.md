@@ -94,9 +94,80 @@ never copies it; a bespoke item *declares*.
 
 | Class | Supplies | Endpoint | Bounded by |
 |---|---|---|---|
-| **Charged** — wand, orb, ring | energy **+** specification | the item | energy density |
+| **Charged** — wand (`Wieldable`), **ring / amulet** (`Wearable`, `alwaysOn`) | energy **+** specification | the item | energy density |
 | ~~**Focus**~~ — *cut; see below* | — | — | — |
 | **Consumable** — potion, scroll | one packaged act | varies | one use |
+
+The concrete classes ship in the **arcana** pack (capability packs,
+2026-08): `Wand`, `Scroll`, `Spellbook`, `Conduit`, **`Ring`**,
+**`Amulet`**, **`Potion`** and `PotionMaterial` at `/arcana/<branch>/…`.
+`Ring` and `Amulet` are `Wand`'s composition with `Wieldable` replaced by
+`Wearable` (a finger, the neck) — two classes because the descriptor
+banks, the census keys and the slot claims are per kind and a player
+learns *ring* and *amulet* as distinct classes of thing. `Potion` is a
+**preset `Receptacle`** (glass, 0.25 L of interior bulk, the
+flask/vial/potion/draught keywords), so a catalog potion is three lines
+— a description, `interiorMaterial`, `interiorAmount` — while the potion
+stays the LIQUID (below); every preset a row may override.
+
+### Wearing sustains; releasing releases
+
+The dormant `alwaysOn` / `drawActive` machinery on `Charged` is live,
+from the one `Slotted.occupy` / `vacate` chokepoint (every path — `wear`,
+`SlotApi.occupyAll`, persistence restore, the release gate):
+
+- **`onSlotOccupied`** on an `alwaysOn` host discharges its bound working
+  as a **`sustained` Condition on the wearer** (`sustainedBy` the host,
+  because the host is the effect's source) and sets `drawActive`. It
+  skips when already drawing (a second slot of a multi-slot claim; a
+  restore — the Condition persisted with the wearer), when the host has
+  no vitals (a stand), and when there is **no command giver** — the
+  wearer IS the giver inside `wear`, and a restore has none, so nothing
+  re-fires. The witness is synchronous; the discharge is not, and a
+  flat ring narrates its dry click and stays off.
+- **`onSlotReleased`** — once no slot of that host still holds the item
+  — releases every sustained effect the host holds up on the wearer
+  (`Vitals.releaseSustained`) and clears `drawActive`.
+- **Run flat**: `reconcileCharge`, after the standby draw lands, releases
+  the hold the moment the pool reaches zero — immediate on the next
+  read, not at the term's renewal (`renewSustained` refuses a depleted
+  host there too).
+- **Cursed**: nothing new — the release gate refuses upstream
+  (`Blessable.tryRelease`), the witness never fires, the draw continues.
+
+`alwaysOn: false` on a ring is legal (a wand you wear, fired with
+`zap`). Nothing here is ring-specific: a future always-on orb or circlet
+gets it by composition. ⚠ `sustainedBy` is a **template path** (the
+shipped durable id), so two rings of one template on one wearer are
+indistinguishable and release together — documented, not fixed.
+
+### `locus:` — the row names what an effect conjures
+
+`emit-field` and the shock `inject-channel` carry a **required `locus:`**
+template path; the executor clones what it is told (no default, no
+fallback) and refuses a locus of the wrong shape (not a light source /
+not energized) as an authoring error. A row without one fails
+`MagicEffects.validate` and the catalogue drops it. The glowlight mote
+and the spark locus are the **arcane library's** classes
+(`/arcane-library/thing/GlowlightMote`, `SparkLocus`; rows at
+`/stuff/thing/magic/glowlight-mote`, `spark-locus`) — only its spell
+rows name them — so a pack ships a new emitter kind with no kernel edit,
+and `MagicLogic` imports nothing from and hardcodes no path into any
+pack.
+
+### The mana potion is metabolic
+
+`potion-of-mana` is a `Potion` whose `mana-draught` carries **no spell**:
+a meal chemistry (`water`, `sugar`, `carb`) that feeds the coupled
+recovery a caster's reserve already refills through — body before gift.
+A depleted caster who drinks it recovers nothing on the tick and more
+than a control across the window; half a dose feeds about half; a
+non-caster is merely fed. And the door stays shut: a positive
+`adjust-reserve` on `mana` is refused at **authoring**
+(`MagicEffects.validate`, so the catalogue drops the row) and again at
+execution. Charge is different — a positive `adjust-reserve` on `charge`
+is the shipped `transfer` working's honest leg, guarded at execution by
+`transferCharge` (the actor pays, plus the coupling loss).
 
 The endpoint column is `ctx.source`. A charged item's recoil lands on
 *the item*, which is what makes a spark wand safer than the equivalent
@@ -1066,21 +1137,24 @@ The demand itself is the shared targeting floor
 **Effect spine** — `lib/magic/EffectContext.ts` · `CastingProfile.ts` ·
 `Arcane.ts` · `Grid.ts` · `platform/idea/api/MagicLogic.ts` (`discharge`)
 
-**Item classes** — `lib/magic/Charged.ts` · `Focus.ts` · `Consumable.ts` ·
-`Potable.ts` · `Charge.ts` · `Dose.ts` · `Conduit.ts` · `obj/magic/Wand.ts` ·
-`Scroll.ts` · `Spellbook.ts` · `obj/material/PotionMaterial.ts`
+**Item classes** — kernel: `lib/magic/Charged.ts` (+ the wear wiring) ·
+`Consumable.ts` · `Potable.ts` · `Charge.ts` · `Dose.ts` · `Conduit.ts`;
+the **arcana** pack: `packages/content/arcana/src/thing/{Wand,Scroll,
+Spellbook,Conduit,Ring,Amulet,Potion}.ts` · `src/idea/material/PotionMaterial.ts`;
+the **arcane library**: `packages/content/arcane-library/src/thing/{GlowlightMote,SparkLocus}.ts`
 
 **BUC** — `lib/magic/Blessing.ts` (`draw`/`hasOdds`) · `Blessable.ts`
 (`applyMintOdds`) · `platform/idea/api/ResidencyLogic.ts` (the mint-site roll) ·
-`lib/vitals/Vitals.ts` (`canAfflict`) · `obj/magic/Wand.ts`
+`lib/vitals/Vitals.ts` (`canAfflict`) · arcana's `Wand.ts` / `Scroll.ts` / `Ring.ts` / `Amulet.ts`
 (the only composers) · `platform/idea/api/MagicLogic.ts` (`BUC_POTENCY`,
 `execAdjustBlessing`) · `arcane-library/content/stuff/idea/magic/Spell/remove-curse.yaml` ·
-`generic-objects/content/stuff/thing/items/scroll-of-remove-curse.yaml` ·
-`generic-objects/content/stuff/thing/items/wand-of-firebolt-cursed.yaml`
+`arcane-library/content/stuff/thing/magic/scroll-of-remove-curse.yaml` ·
+`arcane-library/content/stuff/thing/magic/wand-of-firebolt-cursed.yaml` ·
+`ring-of-veil.yaml` · `amulet-of-glowlight.yaml` (the worn exemplars)
 
 **Identification** — `lib/identification/Appearance.ts` ·
 `DescriptorBank.ts` · `Identifiable.ts` · `lib/description/Labelled.ts` ·
-`Marked.ts` · `packages/content/arcane-descriptors/` ·
+`Marked.ts` · `packages/content/arcana/content/descriptor-banks/` ·
 `lib/bulk/Bulkable.ts` (`getContentsDescriptionFor` — the reach past the
 glass, shared by `look` and the identify effect)
 
@@ -1091,7 +1165,8 @@ glass, shared by `look` and the identify effect)
 `SpawnTable.ts` · `lib/magic/PriceList.ts` · `platform/idea/api/ResidencyLogic.ts`
 (`installSpawnSweep`)
 
-**Verbs** — `magic/zap` · `magic/recharge` · `magic/study` ·
+**Verbs** (the arcana pack's views + controllers, `arcana/cmd/magic/`) —
+`magic/zap` · `magic/recharge` · `magic/study` · `magic/cast` · `magic/spells` ·
 `perception/read` (+ `at <mark>`) · `inventory/label` · `bulk/drink`
 (+`quaff`)
 
