@@ -28,6 +28,7 @@ data:
           pantry:sugar: 8
           pantry:salt: 5
           pantry:coffee: 22
+          pantry:syrup: 6
     - brain: /lib/behavior/idles
       trigger: cadence:41s
       config:

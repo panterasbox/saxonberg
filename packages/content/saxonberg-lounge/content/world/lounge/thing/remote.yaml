@@ -1,0 +1,11 @@
+# The booth's remote — whoever holds it drives the TV (`watch <handle> on
+# tv`, `watch off on tv`). The pairing is the screen's field, not the
+# remote's: this is a plain thing anyone can pick up and walk off with.
+class: /platform/thing/Remote
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a television remote
+  longDescription: A greasy remote with the channel buttons worn blank, held together with tape.
+  primaryKeyword: remote
+  keywords: [remote, clicker]
+  mass: 0.1

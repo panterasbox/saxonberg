@@ -1,0 +1,14 @@
+# The sports-booth TV — a wall-mounted Screen paired to the booth's
+# remote. Whoever holds the remote drives it; everyone in the booth sees
+# what it shows (the server writes their focal embed), and leaving the
+# booth clears it.
+class: /platform/thing/Screen
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wall-mounted television
+  longDescription: A big flat screen bolted high in the corner, angled down at the booth, a smear of fingerprints across the bottom edge.
+  primaryKeyword: tv
+  keywords: [tv, television, screen, set]
+  pairing: remote
+  sourcePolicy: any
+  remote: /world/lounge/thing/remote

@@ -76,7 +76,10 @@ interface DialogueGuard { fact: GuardFact; op: GuardOp; value: string|number|boo
   (`RegardApi.getRegard(npc, player)`), `trait:<axis>`
   (`TraitApi.positionFor(npc, axis).position`, axis ∈ the disposition
   roster), `time:hour` (world hour-of-day), `state:<key>` (ephemeral
-  conversation scratch). Operators: `eq/ne/gt/gte/lt/lte`.
+  conversation scratch), `position:<organization path>` (whether the
+  interlocutor holds a non-exited position there — an employer's
+  *"looking for work?"* branch guards on it being `false`; the lounge's
+  Dave is the first consumer). Operators: `eq/ne/gt/gte/lt/lte`.
 - **Intrinsic effect verbs** (conversation primitives, hardcoded — they touch
   the conversation's own machinery): `set-state`, `regard` (delta NPC→player,
   persists), `say`, `emote`, `goto`, `end`, **`dispatch`** (the "NPCs do their

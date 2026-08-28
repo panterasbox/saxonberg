@@ -6,11 +6,65 @@ data:
   shortDescription: a chalkboard menu
   longDescription: A chalkboard propped behind the bar, cocktails listed in a tidy hand.
   keywords: [menu, chalkboard, board]
-  offeredRecipes: [martini, daiquiri]
+  # The 24 lines of the libations menu (slate Part 9): the hospitality
+  # trade's 21 cocktails + coffee, and the pint / glass-of-wine / mixer
+  # lines each serving trade ships with its stub. Every one consumes real
+  # matter off the rail the keeper bought.
+  offeredRecipes:
+    - martini
+    - gin-tonic
+    - negroni
+    - tom-collins
+    - gimlet
+    - vodka-soda
+    - moscow-mule
+    - cosmopolitan
+    - screwdriver
+    - old-fashioned
+    - whiskey-sour
+    - manhattan
+    - whiskey-ginger
+    - daiquiri
+    - mojito
+    - dark-and-stormy
+    - cuba-libre
+    - margarita
+    - paloma
+    - aperol-spritz
+    - coffee
+    - pint
+    - glass-of-red
+    - glass-of-white
+    - glass-of-sparkling
+    - mixer
   # Authored flat prices (minor units / credits) — the bartender's
   # willingness. Ordering a priced drink settles a presented Charge from the
   # patron's credential to the bar's account (banking); unpriced drinks are
-  # served free. The bar's deficit P&L wants these.
+  # served free. The bar's P&L wants these against cost of goods.
   prices:
     martini: 12
+    gin-tonic: 9
+    negroni: 12
+    tom-collins: 10
+    gimlet: 10
+    vodka-soda: 8
+    moscow-mule: 10
+    cosmopolitan: 11
+    screwdriver: 8
+    old-fashioned: 12
+    whiskey-sour: 11
+    manhattan: 12
+    whiskey-ginger: 9
     daiquiri: 10
+    mojito: 11
+    dark-and-stormy: 10
+    cuba-libre: 8
+    margarita: 11
+    paloma: 10
+    aperol-spritz: 10
+    coffee: 3
+    pint: 5
+    glass-of-red: 7
+    glass-of-white: 7
+    glass-of-sparkling: 9
+    mixer: 3

@@ -5,13 +5,14 @@
 # declared here.
 #
 # SingletonMixin pins it to one instance (the host-fixture wiring resolves
-# it via StuffApi.singleton). `populates:` stocks it each boot: the
-# crafting fixtures — the back-bar (a Surfaced shelf), the working bottles
-# + tools placed ON it (`onto`, so they read "on the back-bar," reachable
-# but not loose among the occupants — the back-bar must be listed before
-# its `onto` items), and the chalkboard menu — plus the cast. Crafting
+# it via StuffApi.singleton). `populates:` furnishes it each boot: the
+# hospitality bar bundle's fixtures (the back-bar and well, the tools ON
+# the well, the stations, the glass rack, the seats), the chalkboard menu
+# and the house tablet — plus the cast. NO bottles: the rail is stocked by
+# the keeper BUYING against the par sheet (idea/business.yaml), and what
+# she bought persists as chattel of the business across a reboot. Crafting
 # needs no venue flag: the bar "works" because the maker + matter are
-# present/reachable here. All cloned fresh (transient runtime).
+# present/reachable here.
 class: /world/lounge/location/Bar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -21,7 +22,7 @@ data:
   longDescription: |
     A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey. Neon signs and brass tap handles wash the far wall in an amber haze — a wall crowded with framed photographs, a chipped mug on a high shelf, and a few curling, signed dollar bills.
 
-    The lounge is back through the doorway to the south.
+    The lounge is back through the doorway to the south; a snug with a television glows off the east end.
   # Examine-on-demand (the barfly look-closely layer). The room `look`
   # names these; the stories are latent until pulled (`look at the
   # photos`, `look at the signs`). The corpo legibility surface ties the
@@ -70,6 +71,11 @@ data:
       concealment: hidden
       hint: A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall.
       bidirectional: false
+    # The sports booth off the east end — a FurnishableRoom instanced on
+    # first entry; it declares its own west exit back (the office pattern).
+    east:
+      destination: /world/lounge/location/booth
+      bidirectional: false
   # The corpo battlefield, lit. Branded neon signs attached as non-
   # portable wall fixtures (AdornableMixin.applyAdornments): each carries
   # a corpo mark and emits light, so rival Veshko (amber) and Aevex
@@ -84,22 +90,39 @@ data:
   # stays, the rest step out back. The staff are `Crafter`s (MakerMixin
   # NPCs) so the present bartender fulfills an `order`.
   populates:
+    # The bar bundle by reference (`/trade/hospitality/location/bar` —
+    # template inheritance does not exist, so the same list is spelled
+    # here): the shelves, the tools on the well, the stations, the seats.
+    # NO bottles: the rail is stocked by BUYING — Mara's `restocks` beat at
+    # the cash-and-carry against the business's par sheet — never by
+    # populates magic; a reboot leaves the rail exactly as the record says.
     - /trade/hospitality/thing/back-bar
-    - { template: /world/lounge/thing/gin-bottle, onto: /trade/hospitality/thing/back-bar }
-    - { template: /world/lounge/thing/vermouth-bottle, onto: /trade/hospitality/thing/back-bar }
-    - { template: /world/lounge/thing/rum-bottle, onto: /trade/hospitality/thing/back-bar }
-    - { template: /world/lounge/thing/lime-bottle, onto: /trade/hospitality/thing/back-bar }
-    - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/back-bar }
-    - { template: /trade/hospitality/thing/mixing-glass, onto: /trade/hospitality/thing/back-bar }
-    # Empty serving glasses on the rail — the receptacle a hand build
-    # strains into (the served `order` path clones its own; a by-hand
-    # build needs a real glass present). Keyword `cocktail` (vs the
-    # mixing glass's `mixing`) keeps `strain … into cocktail` unambiguous.
-    - { template: /trade/hospitality/thing/coupe, onto: /trade/hospitality/thing/back-bar }
-    - { template: /trade/hospitality/thing/coupe, onto: /trade/hospitality/thing/back-bar }
+    - /trade/hospitality/thing/well
+    - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/mixing-glass, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/muddler, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/bar-spoon, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/strainer, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/juicer, onto: /trade/hospitality/thing/well }
+    # The house tablet — the lounge's own row, signed in as Dave's Bar.
+    - { template: /world/lounge/thing/house-tablet, onto: /trade/hospitality/thing/back-bar }
     # The tip jar on the rail — patrons `tip`, the on-shift bartender
     # `collect`s it (physical coin, off the books).
     - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }
+    # The stations: the tap (a keg beside it once bought), the ice bin, the
+    # water tap and basin (`wash`), and the glass rack — the POOL every
+    # order is served from (twelve coupes, the rest by the row).
+    - /trade/hospitality/thing/tap
+    - /trade/hospitality/thing/ice-bin
+    - /trade/hospitality/thing/water-tap
+    - /trade/hospitality/thing/basin
+    - /trade/hospitality/thing/glass-rack
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
     # The Attendant service point — the bar as an instance of the storefront-
     # attention substrate (scrum / zero-wait: the feel is unchanged, the lease
     # is earned). `order` consults it before serving.

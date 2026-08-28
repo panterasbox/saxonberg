@@ -80,6 +80,10 @@ data:
             choices:
               - { line: "What is the real you, Dave?", to: real }
               - { line: "How'd you end up running this place?", to: story }
+              - line: "Looking for work?"
+                guard:
+                  - { fact: "position:/world/lounge/idea/business", op: eq, value: false }
+                to: work
               - line: "Yippee-ki-yay, Dave."
                 to: warm
                 effects:
@@ -90,7 +94,38 @@ data:
             choices:
               - { line: "Do the Bruce Willis.", to: bit }
               - { line: "You own the place?", to: story }
+              # The player path to the seat. Shown only to somebody who
+              # holds no position here already.
+              - line: "Looking for work?"
+                guard:
+                  - { fact: "position:/world/lounge/idea/business", op: eq, value: false }
+                to: work
               - { line: "Just passing through.", to: done }
+          # Dave hires — the `dispatch` effect runs `appoint` AS DAVE: he
+          # holds the bar's appointing authority (the entity edge in
+          # idea/business.yaml), so the validator passes for him and for
+          # nobody else. The keeper seat is what `wallet use house` and
+          # `house stock` read; `quit` is the way out. No wizard anywhere.
+          work:
+            beat: >-
+              *sets the glass down* I could use a keeper. Somebody to read
+              the sheet, walk to the cash-and-carry, buy what we're short
+              and put it on the rail. It pays nothing and it's the most
+              important job in the building. Want it?
+            choices:
+              - line: "I'll take it."
+                to: hired
+                effects:
+                  - { verb: dispatch, command: "appoint $player to keeper at /world/lounge/idea/business" }
+                  - { verb: regard, delta: 3 }
+              - { line: "Not for me, thanks.", to: done }
+          hired:
+            beat: >-
+              Good. Say `wallet use house` and the house account's yours
+              to spend — on the bar, mind. `house stock` on the tablet
+              shows what we're short. Don't make me regret it.
+            choices:
+              - { line: "I won't.", to: done }
           bit:
             beat: >-
               *drops into a gravelly drawl* "Yippee-ki-yay." ...Nah. I'm

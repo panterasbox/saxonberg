@@ -68,15 +68,25 @@ describe("Dave's Bar — Business seed integrity", () => {
     expect(bartender!.confers).toContain('MakerMixin');
   });
 
-  it('rosters the four staff (Sloane keeps the midnight-wrap window)', () => {
+  it('rosters the four staff (Sloane keeps the midnight-wrap window; Mara also keeps the bar)', () => {
     const doc = loadSeed();
-    const assignees = doc.data.rosterSlots.map((s) => s.assignee).sort();
+    const assignees = [...new Set(doc.data.rosterSlots.map((s) => s.assignee))].sort();
     expect(assignees).toEqual([
       '/world/lounge/agent/augie',
       '/world/lounge/agent/mara',
       '/world/lounge/agent/remy',
       '/world/lounge/agent/sloane',
     ]);
+    // The keeper seat — the one that BUYS for the house (`purchases`) —
+    // is Mara's on her tending window, unpaid.
+    const keeper = doc.data.positions.find((p) => p.key === 'keeper') as
+      | { purchases?: boolean; wageRate: number }
+      | undefined;
+    expect(keeper?.purchases).toBe(true);
+    expect(keeper?.wageRate).toBe(0);
+    expect(
+      doc.data.rosterSlots.filter((s) => s.positionKey === 'keeper').map((s) => s.assignee),
+    ).toEqual(['/world/lounge/agent/mara']);
     const sloane = doc.data.rosterSlots.find((s) =>
       s.assignee.endsWith('sloane'),
     );

@@ -75,7 +75,8 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     for (const pack of ANNEXES) {
       expect(floorRows.filter((r) => r.pack === pack).length, pack).toBeGreaterThan(0);
     }
-    expect(floorRows.length).toBe(2 + 5 + 8 + 8 + 3 + 4 + 2);
+    // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
+    expect(floorRows.length).toBe(2 + 5 + 8 + 8 + 4 + 4 + 2);
   });
 
   it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {

@@ -1363,8 +1363,16 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
   const rows = await entriesForImpl(accountId);
   const lines: Partial<Record<PnlCategory, number>> = {};
   for (const r of rows) {
-    const signed = r.toAccount === accountId ? r.amount : -r.amount;
-    lines[r.category] = (lines[r.category] ?? 0) + signed;
+    const income = r.toAccount === accountId;
+    const signed = income ? r.amount : -r.amount;
+    // One row, two readings: a `sales` leg is the payee's revenue and the
+    // payer's cost of goods. The category is stamped once (the seller's
+    // side); the buyer's P&L derives its own line on read.
+    const category: PnlCategory =
+      !income && (r.category === 'sales' || r.category === 'consignment')
+        ? 'cogs'
+        : r.category;
+    lines[category] = (lines[category] ?? 0) + signed;
   }
   return {
     account: accountId,

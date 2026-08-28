@@ -434,6 +434,20 @@ function matchesCategory(item: Stuff, category: string): boolean {
 }
 
 /**
+ * The perceived goods that count against a par `category` — the same
+ * matcher the sheet sums, handed back as items so a buyer at a counter
+ * can name what to `buy` (a bottle whose interior carries the tag, a
+ * crate of the fruit, a glass that names the category).
+ */
+function goodsForImpl(viewer: Stuff, category: string): Stuff[] {
+  return perceivedGoods(viewer).filter((item) => {
+    if (matchesCategory(item, category)) return true;
+    if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) return false;
+    return item.getBulkMaterial('interior')?.hasTag(category) ?? false;
+  });
+}
+
+/**
  * The live stock sheet for `viewer` at `business` — each par line against
  * the on-hand total over the goods the **viewer perceives** (litres over
  * bulk holders whose interior material carries the category tag, kg over
@@ -941,6 +955,12 @@ export class EmploymentLogic extends ApiLogic {
     business: BusinessStuff,
   ): StockSheetLine[] {
     return stockSheetForImpl(viewer, business);
+  }
+
+  /** See {@link EmploymentApi.goodsFor}. */
+  @CallSecurity(EmploymentApiCallers)
+  public goodsFor(viewer: Stuff, category: string): Stuff[] {
+    return goodsForImpl(viewer, category);
   }
 
   /** See {@link EmploymentApi.beginCover}. */

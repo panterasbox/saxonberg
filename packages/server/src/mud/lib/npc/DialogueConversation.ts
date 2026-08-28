@@ -45,6 +45,8 @@ import { WorldClockApi } from "../../api/worldclock";
 import { SoulApi } from "../../api/soul";
 import { RecognitionApi } from "../../api/recognition";
 import { MixinApi } from "../../api/mixin";
+import { StuffApi } from "../../api/stuff";
+import { EmploymentApi } from "../../api/employment";
 import { CommandApi } from "../../api/command";
 import { DefaultCalendar } from "../time/DefaultCalendar";
 import type { Containable } from "../spatial/Containable";
@@ -351,6 +353,11 @@ export class DialogueConversation implements SustainedEngagement {
         return key === "hour" ? this.worldHour() : undefined;
       case "state":
         return this.scratch[key];
+      case "position": {
+        const organization = StuffApi.findByTemplatePath(key);
+        if (!organization || !MixinApi.isOrganization(organization)) return false;
+        return EmploymentApi.holdsPosition(this.player, organization);
+      }
       default:
         return undefined;
     }

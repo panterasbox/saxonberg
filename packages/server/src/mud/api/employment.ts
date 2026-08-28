@@ -245,6 +245,15 @@ export class EmploymentApi {
   }
 
   /**
+   * The goods `viewer` perceives that count against a par `category` —
+   * the sheet's own matcher returned as items, so a buyer at a counter
+   * can name what to `buy`.
+   */
+  public static goodsFor(viewer: Stuff, category: string): Stuff[] {
+    return logic().goodsFor(viewer, category);
+  }
+
+  /**
    * Begin a proprietor covering their own bar — a transient on-shift
    * Employment against the first position, conferring its capability
    * (`MakerMixin`). Unpaid by construction. Returns the cover record.

@@ -1,0 +1,20 @@
+# The sports booth — a snug off the east end of the bar with a TV on the
+# wall and the remote on the table. A FurnishableRoom (the bar bundle's
+# shape) rather than a Warren member: instanced when first walked into.
+# The bar declares the east exit into it one-way; this room declares its
+# own west exit back (the office pattern).
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the sports booth
+  primaryKeyword: booth
+  keywords: [booth, snug]
+  longDescription: |
+    A high-backed booth tucked off the end of the bar, the leather split and mended with tape. A big screen hangs in the corner over the table, and whoever holds the remote holds the room. The bar is back through the gap to the west.
+  exits:
+    west:
+      destination: /world/lounge/location/bar
+      bidirectional: false
+  populates:
+    - /world/lounge/thing/tv
+    - /world/lounge/thing/remote
