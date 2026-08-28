@@ -107,6 +107,26 @@ controller `clone-per-execution` HMR pattern (see
 because resolution is a map lookup, where a `Stuff` singleton would need
 an explicit `dest` to swap the cached instance.
 
+## Brains in packs — `src/behavior/` is the Brain category's home
+
+A capability pack may ship a brain (libations 1g): `packages/content/
+<pkg>/src/behavior/<name>.ts` backs `/<root>/behavior/<name>` for every
+namespace root the pack holds — the pack-side mirror of the kernel's
+`lib/behavior/`. Nothing in the resolver changed: `resolveExport` rides
+the same pack source table `resolveClassFile` reads, so a pack brain
+resolves into the pack's `src/` and never the kernel tree, and the CMS
+save-gate's brain-path check accepts any root that table resolves.
+`lint:instanceable` invariant 8 admits `behavior/*.ts` (flat — one file
+per brain) and checks the brain shape on those files (sole export
+`brain`, a named class-expression). A pack brain imports the base
+types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
+
+**The class rule:** *a brain lives in the pack whose content is the only
+thing that names it.* A generic economy brain (`restocks`, `consigns`,
+`shifts`, `covers`) is kernel; the first real pack brain arrives with
+the first pack that needs a bespoke one. Proof:
+`lib/behavior/__tests__/pack-brain.test.ts`.
+
 ## Triggers: cadence + witness — no new events
 
 A trigger is a thin selector over **two sources**. State conditions ("at

@@ -465,10 +465,13 @@ this check's suspenders.
 
 A pack's `src/` has the kernel's taxonomy and nothing else: instanceable
 classes under the four branches (`thing/`, `idea/`, `agent/`,
-`location/`), controllers at `idea/cmd/<category>/`, tests under
-`__tests__/`; **no `lib/`** (substrate a pack needs is the kernel's, or
-a class it ships under a branch), no free-floating helpers, no Api (a
-pack that needs an Api needs a kernel MR — the *mod* rung).
+`location/`), controllers at `idea/cmd/<category>/`, brains under
+`behavior/` (the Brain category's home inside a pack, mirroring the
+kernel's `lib/behavior/` — see [behavior.md](./behavior.md) § Brains in
+packs), tests under `__tests__/`; **no `lib/`** (substrate a pack needs
+is the kernel's, or a class it ships under a branch), no free-floating
+helpers, no Api (a pack that needs an Api needs a kernel MR — the *mod*
+rung).
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
