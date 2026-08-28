@@ -835,6 +835,11 @@ export class Application {
         'lounge',
         'streamers',
         'archwizards',
+        // The arcana pack's own body: /arcana is a sub-title the group
+        // holds (the trade-pack precedent), so `pack sync arcana` and
+        // edits under it are tested as a member — the same reason as
+        // `lounge` above.
+        'arcana',
       ]) {
         const group = await provider.findByName(groupName);
         if (!group || !group._id) {
