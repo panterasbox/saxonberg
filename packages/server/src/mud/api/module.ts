@@ -107,6 +107,57 @@ export class ModuleApi {
   static #classModuleIds: WeakMap<object, ModuleId> = new WeakMap();
 
   /**
+   * The capability-pack source table: an absolute `src/` directory
+   * (forward-slashed, trailing slash) → the namespace root it backs
+   * (`/arcana`). Consulted BEFORE `SOURCE_ROOT_HINTS` by the URL
+   * normaliser, longest directory first, so a pack file
+   * `…/packages/content/arcana/src/thing/Wand.ts` normalises to
+   * `/arcana/thing/Wand` — the same string as its template path, which
+   * is what keeps `FromModule` gates on pack controllers readable.
+   * Populated by pack discovery (`PackApi.registerSources`); a pack
+   * with several claims registers its one `src/` once per root.
+   */
+  static #packRoots: Array<{ dir: string; root: string }> = [];
+
+  /**
+   * Register a pack's `src/` directory as the backing of `namespaceRoot`.
+   * Idempotent; the table is kept longest-dir-first so a nested
+   * directory (should one ever exist) wins over its parent.
+   */
+  public static registerPackSource(absSrcDir: string, namespaceRoot: string): void {
+    let dir = absSrcDir.replace(/\\/g, '/');
+    if (!dir.endsWith('/')) dir += '/';
+    const root = namespaceRoot.replace(/\/+$/, '');
+    // A namespace root is backed by exactly one src/: re-registering
+    // the same root points it at the new directory (a fixture pack
+    // re-minted under a fresh tmp dir; a pack re-discovered after a
+    // move). Same dir, same root → a no-op.
+    const existing = ModuleApi.#packRoots.find((e) => e.root === root);
+    if (existing) {
+      existing.dir = dir;
+      return;
+    }
+    ModuleApi.#packRoots.push({ dir, root });
+    ModuleApi.#packRoots.sort((a, b) => b.dir.length - a.dir.length);
+  }
+
+  /** The registered pack source table (a copy), for the resolvers that share it. */
+  public static packSources(): ReadonlyArray<{ dir: string; root: string }> {
+    return ModuleApi.#packRoots.map((e) => ({ ...e }));
+  }
+
+  /**
+   * The module-id a file URL (or absolute path) stamps as — the same
+   * normalisation `stamp` applies: a registered pack `src/` first
+   * (`/arcana/thing/Wand`), then the kernel roots (`/lib/…`, `/api/…`).
+   * A file under neither returns its extension-stripped path, which
+   * matches no policy glob.
+   */
+  public static moduleIdOfUrl(url: string): string {
+    return ModuleApi.#normaliseUrl(url);
+  }
+
+  /**
    * Stamp every entry in `exports` with `declaredUrl` (normalised).
    * Called once per module by the source transform's appended snippet.
    *
@@ -376,6 +427,17 @@ export class ModuleApi {
     // and final id are platform-independent.
     let s = rawUrl.replace(/\\/g, '/');
     if (s.startsWith('file://')) s = s.slice('file://'.length);
+    // A capability pack's src/ first: the table is longest-dir-first,
+    // and a pack file never lies under a kernel root hint, so the two
+    // never compete — but a pack dir is the more specific claim.
+    for (const { dir, root } of ModuleApi.#packRoots) {
+      if (s.startsWith(dir)) {
+        return (root + '/' + s.slice(dir.length)).replace(
+          /\.(ts|tsx|js|mjs|cjs)$/,
+          ''
+        );
+      }
+    }
     for (const root of SOURCE_ROOT_HINTS) {
       const idx = s.indexOf(root);
       if (idx >= 0) {

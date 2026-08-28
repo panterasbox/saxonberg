@@ -5,7 +5,6 @@ description: >-
   Pack zero — the platform: controller templates, registries and
   catalogues, marshallers, the closed vocabularies, the Compact's
   institutions, the namespace roots and the landing shell.
-dependsOn: []
 
 # The executive holds the platform (content-packs wave 3, D3): the Office
 # of the Prime Minister — the PM (its appointing authority, founder default

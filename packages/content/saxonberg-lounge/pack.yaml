@@ -8,7 +8,6 @@ description: >-
   (/stuff/idea/lounge), its three world scripts (msh) and the landing
   setting. The bar stations and cocktail recipes are the hospitality
   trade's; the bar populates them by reference. Content packs wave 4b.
-dependsOn: [platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko]
 # The lounge team maintains the lounge.
 maintainers: lounge
 requires:

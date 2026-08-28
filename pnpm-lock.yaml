@@ -7,6 +7,67 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@saxonberg/content-arcane-descriptors':
+        specifier: workspace:*
+        version: link:packages/content/arcane-descriptors
+      '@saxonberg/content-arcane-library':
+        specifier: workspace:*
+        version: link:packages/content/arcane-library
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:packages/content/base-library
+      '@saxonberg/content-corpo-aevex':
+        specifier: workspace:*
+        version: link:packages/content/corpo-aevex
+      '@saxonberg/content-corpo-goodkin':
+        specifier: workspace:*
+        version: link:packages/content/corpo-goodkin
+      '@saxonberg/content-corpo-hollis':
+        specifier: workspace:*
+        version: link:packages/content/corpo-hollis
+      '@saxonberg/content-corpo-veshko':
+        specifier: workspace:*
+        version: link:packages/content/corpo-veshko
+      '@saxonberg/content-corpo-vionne':
+        specifier: workspace:*
+        version: link:packages/content/corpo-vionne
+      '@saxonberg/content-expression':
+        specifier: workspace:*
+        version: link:packages/content/expression
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:packages/content/generic-objects
+      '@saxonberg/content-hearthworks':
+        specifier: workspace:*
+        version: link:packages/content/hearthworks
+      '@saxonberg/content-newbie-wilds':
+        specifier: workspace:*
+        version: link:packages/content/newbie-wilds
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:packages/content/platform
+      '@saxonberg/content-saxonberg-lounge':
+        specifier: workspace:*
+        version: link:packages/content/saxonberg-lounge
+      '@saxonberg/content-species-and-names':
+        specifier: workspace:*
+        version: link:packages/content/species-and-names
+      '@saxonberg/content-trade-hearth-cooking':
+        specifier: workspace:*
+        version: link:packages/content/trade-hearth-cooking
+      '@saxonberg/content-trade-hospitality':
+        specifier: workspace:*
+        version: link:packages/content/trade-hospitality
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:packages/content/trade-smithing
+      '@saxonberg/content-wiki-starter':
+        specifier: workspace:*
+        version: link:packages/content/wiki-starter
+      '@saxonberg/content-world-seed':
+        specifier: workspace:*
+        version: link:packages/content/world-seed
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.0.0
@@ -100,108 +161,287 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
 
-  packages/content/arcane-descriptors: {}
+  packages/content/arcane-descriptors:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/arcane-library: {}
+  packages/content/arcane-library:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/base-library: {}
+  packages/content/base-library:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/corpo-aevex: {}
+  packages/content/corpo-aevex:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/corpo-goodkin: {}
+  packages/content/corpo-goodkin:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/corpo-hollis: {}
+  packages/content/corpo-hollis:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/corpo-veshko: {}
+  packages/content/corpo-veshko:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/corpo-vionne: {}
+  packages/content/corpo-vionne:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/expression: {}
+  packages/content/expression:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/generic-objects: {}
+  packages/content/generic-objects:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/hearthworks: {}
+  packages/content/hearthworks:
+    dependencies:
+      '@saxonberg/content-corpo-goodkin':
+        specifier: workspace:*
+        version: link:../corpo-goodkin
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-hearth-cooking':
+        specifier: workspace:*
+        version: link:../trade-hearth-cooking
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/newbie-wilds: {}
+  packages/content/newbie-wilds:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/platform: {}
+  packages/content/platform:
+    dependencies:
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/saxonberg-lounge: {}
+  packages/content/saxonberg-lounge:
+    dependencies:
+      '@saxonberg/content-corpo-aevex':
+        specifier: workspace:*
+        version: link:../corpo-aevex
+      '@saxonberg/content-corpo-goodkin':
+        specifier: workspace:*
+        version: link:../corpo-goodkin
+      '@saxonberg/content-corpo-veshko':
+        specifier: workspace:*
+        version: link:../corpo-veshko
+      '@saxonberg/content-corpo-vionne':
+        specifier: workspace:*
+        version: link:../corpo-vionne
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/species-and-names: {}
+  packages/content/species-and-names:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/trade-hearth-cooking: {}
+  packages/content/trade-hearth-cooking:
+    dependencies:
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/trade-hospitality: {}
+  packages/content/trade-hospitality:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/trade-smithing: {}
+  packages/content/trade-smithing:
+    dependencies:
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/wiki-starter: {}
+  packages/content/wiki-starter:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
-  packages/content/world-seed: {}
+  packages/content/world-seed:
+    dependencies:
+      '@saxonberg/content-corpo-goodkin':
+        specifier: workspace:*
+        version: link:../corpo-goodkin
+      '@saxonberg/content-corpo-vionne':
+        specifier: workspace:*
+        version: link:../corpo-vionne
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-saxonberg-lounge':
+        specifier: workspace:*
+        version: link:../saxonberg-lounge
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
 
   packages/server:
     dependencies:
-      '@saxonberg/content-arcane-descriptors':
-        specifier: workspace:*
-        version: link:../content/arcane-descriptors
-      '@saxonberg/content-arcane-library':
-        specifier: workspace:*
-        version: link:../content/arcane-library
-      '@saxonberg/content-base-library':
-        specifier: workspace:*
-        version: link:../content/base-library
-      '@saxonberg/content-corpo-aevex':
-        specifier: workspace:*
-        version: link:../content/corpo-aevex
-      '@saxonberg/content-corpo-goodkin':
-        specifier: workspace:*
-        version: link:../content/corpo-goodkin
-      '@saxonberg/content-corpo-hollis':
-        specifier: workspace:*
-        version: link:../content/corpo-hollis
-      '@saxonberg/content-corpo-veshko':
-        specifier: workspace:*
-        version: link:../content/corpo-veshko
-      '@saxonberg/content-corpo-vionne':
-        specifier: workspace:*
-        version: link:../content/corpo-vionne
-      '@saxonberg/content-expression':
-        specifier: workspace:*
-        version: link:../content/expression
-      '@saxonberg/content-generic-objects':
-        specifier: workspace:*
-        version: link:../content/generic-objects
-      '@saxonberg/content-hearthworks':
-        specifier: workspace:*
-        version: link:../content/hearthworks
-      '@saxonberg/content-newbie-wilds':
-        specifier: workspace:*
-        version: link:../content/newbie-wilds
-      '@saxonberg/content-platform':
-        specifier: workspace:*
-        version: link:../content/platform
-      '@saxonberg/content-saxonberg-lounge':
-        specifier: workspace:*
-        version: link:../content/saxonberg-lounge
-      '@saxonberg/content-species-and-names':
-        specifier: workspace:*
-        version: link:../content/species-and-names
-      '@saxonberg/content-trade-hearth-cooking':
-        specifier: workspace:*
-        version: link:../content/trade-hearth-cooking
-      '@saxonberg/content-trade-hospitality':
-        specifier: workspace:*
-        version: link:../content/trade-hospitality
-      '@saxonberg/content-trade-smithing':
-        specifier: workspace:*
-        version: link:../content/trade-smithing
-      '@saxonberg/content-wiki-starter':
-        specifier: workspace:*
-        version: link:../content/wiki-starter
-      '@saxonberg/content-world-seed':
-        specifier: workspace:*
-        version: link:../content/world-seed
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../types

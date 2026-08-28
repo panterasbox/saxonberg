@@ -2,6 +2,11 @@
   "name": "@saxonberg/content-expression",
   "version": "0.1.0",
   "private": true,
-  "description": "The starter emote roster — the emote document kind, one file per verb.",
-  "type": "module"
+  "description": "The starter emote roster \u2014 the emote document kind, one file per verb.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

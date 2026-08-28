@@ -83,7 +83,7 @@ function writePack(id: string, file: string, data: Record<string, unknown>): str
   tmpRoots.push(root);
   writeFileSync(
     join(root, 'pack.yaml'),
-    YAML.stringify({ id, version: '0.1.0', dependsOn: [] }),
+    YAML.stringify({ id, version: '0.1.0' }),
   );
   const f = join(root, 'content', file);
   mkdirSync(dirname(f), { recursive: true });

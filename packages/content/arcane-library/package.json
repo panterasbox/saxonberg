@@ -2,6 +2,21 @@
   "name": "@saxonberg/content-arcane-library",
   "version": "0.1.0",
   "private": true,
-  "description": "The arcane library — the twelve spells plus the two magic items every caster meets first (GlowlightOrb, SparkSource).",
-  "type": "module"
+  "description": "The arcane library \u2014 magic's catalog: the twelve spells, every clonable magic item (wands, scrolls, books, conduits, potions, a ring, an amulet) and the two effect loci only its spells name (GlowlightMote, SparkLocus).",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@saxonberg/content-arcana": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
 }

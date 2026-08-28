@@ -48,7 +48,13 @@ const SCAN_ROOTS = [
   join(SERVER_DIR, "scripts", "__tests__"),
   join(REPO_ROOT, "packages", "client", "src"),
 ];
-/** Tests that live WITH their content are not kernel tests. */
+/**
+ * Tests that live WITH their content are not kernel tests — a kernel
+ * venue's `mud/world/**` tests, and every content pack's tree, a
+ * capability pack's `src/**\/__tests__/` included: a pack test that
+ * names `/world/…` is a content test beside its content, exactly where
+ * such a test belongs.
+ */
 const EXEMPT_PREFIXES = [
   "packages/server/src/mud/world/",
   "packages/content/",
@@ -60,6 +66,11 @@ export const ALLOWLIST_FILE = join(HERE, "test-content-allowlist.txt");
 const TEST_FILE_RE = /\.(test|spec)\.(c|m)?[jt]sx?$/;
 /** A shipped-content path: `/world/<locality>…`. */
 export const OFFENDER_RE = /\/world\/[a-z]/;
+
+/** Is a repo-relative test path outside the kernel's jurisdiction (a content test beside its content)? */
+export function isExemptPath(rel: string): boolean {
+  return EXEMPT_PREFIXES.some((p) => rel.startsWith(p));
+}
 
 export interface Classified {
   /** Listed offenders — counted, warned. */
@@ -113,7 +124,7 @@ function scan(): Array<{ path: string; text: string }> {
   for (const root of SCAN_ROOTS) {
     for (const full of walk(root)) {
       const rel = relative(REPO_ROOT, full).split("\\").join("/");
-      if (EXEMPT_PREFIXES.some((p) => rel.startsWith(p))) continue;
+      if (isExemptPath(rel)) continue;
       out.push({ path: rel, text: readFileSync(full, "utf8") });
     }
   }

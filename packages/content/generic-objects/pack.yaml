@@ -8,7 +8,6 @@ description: >-
   (Campfire … Casting), the one independent brand, and the crafting recipe
   roster. The junk drawer: expected to slim as trade packs take their
   objects.
-dependsOn: [platform]   # the loose /stuff/<branch>/<Name> rows ride the platform's /stuff claim
 requires:
   # One claim per cluster the pack ships — the branches are the pack's;
   # the loose rows (and obj/corpo's brand + demo bottles) are covered by

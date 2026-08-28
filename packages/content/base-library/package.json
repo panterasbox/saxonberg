@@ -2,6 +2,11 @@
   "name": "@saxonberg/content-base-library",
   "version": "0.1.0",
   "private": true,
-  "description": "Foundational substrate content — materials, biomes, units.",
-  "type": "module"
+  "description": "Foundational substrate content \u2014 materials, biomes, units.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

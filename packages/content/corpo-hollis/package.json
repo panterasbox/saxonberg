@@ -2,6 +2,11 @@
   "name": "@saxonberg/content-corpo-hollis",
   "version": "0.1.0",
   "private": true,
-  "description": "The hollis corpo — its mark and its brands.",
-  "type": "module"
+  "description": "The hollis corpo \u2014 its mark and its brands.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

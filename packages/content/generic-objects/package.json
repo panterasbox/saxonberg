@@ -2,6 +2,11 @@
   "name": "@saxonberg/content-generic-objects",
   "version": "0.1.0",
   "private": true,
-  "description": "Generic objects — this wave the crafting recipe roster (the recipe document kind).",
-  "type": "module"
+  "description": "Generic objects \u2014 this wave the crafting recipe roster (the recipe document kind).",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

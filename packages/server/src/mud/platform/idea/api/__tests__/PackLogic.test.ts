@@ -123,9 +123,14 @@ function writePack(
 ): string {
   const root = mkdtempSync(join(tmpdir(), `pack-${id}-`));
   tmpRoots.push(root);
+  writeFileSync(join(root, 'pack.yaml'), YAML.stringify({ id, version: '0.1.0' }));
+  // `dependsOn` derives from package.json (never a manifest key).
   writeFileSync(
-    join(root, 'pack.yaml'),
-    YAML.stringify({ id, version: '0.1.0', dependsOn }),
+    join(root, 'package.json'),
+    JSON.stringify({
+      name: `@saxonberg/content-${id}`,
+      dependencies: Object.fromEntries(dependsOn.map((d) => [`@saxonberg/content-${d}`, 'workspace:*'])),
+    }),
   );
   for (const f of files) {
     const file = join(root, 'content', f.rel);

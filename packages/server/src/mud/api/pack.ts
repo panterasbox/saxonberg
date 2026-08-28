@@ -1,11 +1,12 @@
 /**
  * PackApi — the content-pack installer surface.
  *
- * A **content pack** is a standalone, git-versioned bundle of pure data
- * (zero TypeScript) — the slow-moving substrate content (materials, biomes,
- * quantity units) lifted out of the server into its own package
- * (`@saxonberg/content-*`). The pack files are the **source of truth**; the
- * database is a *derived install* of them.
+ * A **content pack** is a standalone, git-versioned package
+ * (`@saxonberg/content-*`) of `content/` (YAML — the installer's
+ * jurisdiction) and, at the **capability rung**, `src/` (the TypeScript
+ * classes that content names). The pack files are the **source of
+ * truth**; the database is a *derived install* of them, and a pack's
+ * code loads through the same class-path resolver as the kernel's.
  *
  * This Api reconciles packs into the running game:
  * - {@link PackApi.install} — the boot pass: discover every shipped pack,
@@ -158,6 +159,12 @@ export interface PackReconcileResult {
   boot: Record<'sync-read' | 'producer', number>;
   /** A maintainers group with ≥1 member, or an organization with ≥1 position holder. */
   staffed: boolean;
+  /** `capability` when the pack ships a `src/`, else `data` (D4). */
+  rung: 'capability' | 'data';
+  /** Every class the pack's rows name → `kernel`, or the pack `src/` file that backs it. */
+  classOrigins: Record<string, string>;
+  /** `pack sync` only: the `src/`-relative files hot-swapped because their hash changed. */
+  codeReloaded: string[];
 }
 
 /** Why a pack's install failed; recorded on its `pack_installs` row. */
@@ -226,6 +233,14 @@ export interface PackInstallRecord {
   /** The manifest's `boot:` as applied (`[]` on a failed pack) — what `bootManifest` reads. */
   boot: PackBootEntry[];
   maintainers: PackMaintainers;
+  /** Derived at install: `capability` when the pack ships a `src/`, else `data`. */
+  rung: 'capability' | 'data';
+  /**
+   * `src/`-relative file → sha256 of the source the install (or the
+   * last `pack sync`) ran against. `pack status` compares it to disk:
+   * a differing file is code the running server has not loaded.
+   */
+  codeVersions: Record<string, string>;
 }
 
 /** One discovered-or-recorded pack, as `pack status` reports it. */
@@ -235,6 +250,16 @@ export interface PackStatusReport {
   discovered: boolean;
   /** The manifest version (when discovered). */
   manifestVersion: string | null;
+  /** `capability` (ships `src/`) or `data`; `null` when neither discovered nor recorded. */
+  rung: 'capability' | 'data' | null;
+  /**
+   * Capability packs only: `current` when every `src/` file on disk
+   * matches what the record installed against, `stale` when an edit
+   * has not been loaded (`pack sync` in dev; a restart in prod).
+   */
+  code: 'current' | 'stale' | null;
+  /** The pack ids it depends on (derived from its `package.json`). */
+  dependsOn: string[];
   /** The install record (when one exists for this deployment). */
   record: Pick<
     PackInstallRecord,
@@ -381,6 +406,19 @@ export class PackApi {
   }
 
   /**
+   * Discovery's registration half, with no install: publish every
+   * capability pack's `src/` to the class-namespace table
+   * (`ModuleApi.registerPackSource`) so `StuffApi.resolveClassFile` can
+   * serve `/<root>/…` class paths. `install` does this itself first
+   * thing; this is for `test-bootstrap` and any caller that needs pack
+   * classes resolvable without a database. Idempotent, sync (a disk
+   * read of the manifests). `packRoots` overrides discovery (tests).
+   */
+  public static registerSources(packRoots?: string[]): void {
+    logic().registerSources(packRoots);
+  }
+
+  /**
    * The shipped packs' `content/` roots, in install order (sync — a
    * disk read of the manifests, honoring `SAXONBERG_PACKS`). What the
    * command preload reads OFFLINE (no document store): the files are
@@ -395,9 +433,10 @@ export class PackApi {
    * Join the discovered manifests with the `pack_installs` records:
    * status, version, principal, open conflicts, pins, failure. Reports
    * undiscovered-but-recorded and discovered-but-unrecorded packs too.
+   * `packRoots` overrides discovery with explicit pack-root dirs (tests).
    */
-  public static async status(packId?: string): Promise<PackStatusReport[]> {
-    return logic().status(packId);
+  public static async status(packId?: string, packRoots?: string[]): Promise<PackStatusReport[]> {
+    return logic().status(packId, packRoots);
   }
 
   /**

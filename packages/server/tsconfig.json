@@ -1,10 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "outDir": "./dist"
   },
-  "include": ["src/**/*"],
+  // `include` covers every capability pack's `src/` as well as the
+  // kernel's: tsx applies a tsconfig only to files it includes, so this
+  // is what makes `experimentalDecorators` reach a pack's controllers at
+  // runtime (and what makes `pnpm build` typecheck pack code). `rootDir`
+  // is gone for the same reason — tsc refuses files outside it, and the
+  // emit is a typecheck artefact nobody runs (`dist/` stays gitignored).
+  "include": ["src/**/*", "../content/*/src/**/*"],
   "references": [
     { "path": "../types" }
   ]

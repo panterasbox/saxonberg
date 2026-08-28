@@ -1,0 +1,20 @@
+id: arcana
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /arcana
+description: >-
+  Arcana — magic's substrate pack, and the first CAPABILITY pack: it ships
+  classes. The item classes every catalogue of magic items is made from
+  (Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial),
+  the eighteen casting disciplines its code derives, the six descriptor
+  banks its item classes cannot function without, the casting settings, and
+  the five casting verbs (cast, spells, study, zap, recharge) with their
+  controllers. Nothing here is specific to one effect — a class or row that
+  exists for one spell is the arcane library's. Capability packs, arcana
+  first.
+requires:
+  groups:
+    - name: arcana
+      purpose: the arcana pack's own body — magic's substrate
+      owner: { office: prime-minister }
+  title:
+    - { extent: /arcana, holder: { group: arcana } }

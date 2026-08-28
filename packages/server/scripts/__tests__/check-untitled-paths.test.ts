@@ -20,8 +20,8 @@ describe('check-untitled-paths.classify', () => {
     expect(classify(shipped, ['/platform', '/stuff', '/studio'])).toEqual([]);
   });
 
-  it('the nine title roots are the installer\'s (one list, lib/paths.ts)', () => {
-    expect(TITLE_ROOTS).toEqual(['/platform', '/stuff', '/world', '/compact', '/studio', '/wiki', '/home', '/corpo', '/trade']);
+  it('the ten title roots are the installer\'s (one list, lib/paths.ts)', () => {
+    expect(TITLE_ROOTS).toEqual(['/platform', '/stuff', '/world', '/compact', '/studio', '/wiki', '/home', '/corpo', '/trade', '/arcana']);
   });
 
   it('/trade/ is a title root: an unclaimed industry row is reported, a claimed one passes', () => {

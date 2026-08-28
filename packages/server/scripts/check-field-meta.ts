@@ -73,6 +73,7 @@
 
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "fs";
 import { fileURLToPath } from "url";
+import { packSources } from "./pack-roots";
 import { dirname, join, relative, sep } from "path";
 import ts from "typescript";
 
@@ -326,6 +327,7 @@ function extractClass(
 function collect(): ClassRecord[] {
   const files: string[] = [];
   walk(MUD_ROOT, files);
+  for (const pack of packSources()) walk(pack.srcDir, files);
   files.sort();
   census.files = files.length;
 
@@ -454,6 +456,7 @@ function scanTags(): Record<string, TagRecord> {
   >();
   const files: string[] = [];
   walk(MUD_ROOT, files);
+  for (const pack of packSources()) walk(pack.srcDir, files);
   for (const file of files.sort()) {
     // scanClassification skips __tests__ and .test.ts.
     if (file.includes(`${sep}__tests__${sep}`) || file.endsWith(".test.ts")) {
@@ -565,6 +568,7 @@ const SPOILER_VALUES = new Set(["0", "1", "2", "3"]);
 function lint(): void {
   const files: string[] = [];
   walk(MUD_ROOT, files);
+  for (const pack of packSources()) walk(pack.srcDir, files);
   files.sort();
   const problems: string[] = [];
 
@@ -830,6 +834,7 @@ if (mode === "--snapshot") {
   >;
   const files: string[] = [];
   walk(MUD_ROOT, files);
+  for (const pack of packSources()) walk(pack.srcDir, files);
   const mismatches: string[] = [];
   const dropped: string[] = [];
   const seenMixins = new Set<string>();

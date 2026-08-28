@@ -26,15 +26,50 @@
  *     `mud/api/{execution-context,module,security,proxy}.ts` — which
  *     would form load-time cycles.
  *   - Any file with zero class exports.
+ *
+ * Two trees are stamped: the kernel's `mud/**`, and every capability
+ * pack's `packages/content/<pkg>/src/**` (tests excluded). A pack file's
+ * stamp imports the registry by package specifier — see
+ * `computeRegistryImportPath`.
  */
 
 import * as ts from 'typescript';
 import * as path from 'node:path';
 
 /**
- * Compute the source-relative path used in the appended `import` to
- * reach `<src>/mud/api/module`. We can't bake an absolute path or
- * a bare specifier — both break either tsx or Vitest.
+ * A capability pack's source file: `…/packages/content/<pkg>/src/…`.
+ * The one path shape outside `/mud/` the loader stamps (content-packs,
+ * the capability rung). The match is on the directory shape rather than
+ * a registered table because the transform runs in a loader worker
+ * thread (and in Vite's plugin) with no access to the runtime's pack
+ * table; `ModuleApi.#normaliseUrl` turns the stamped URL into the
+ * `/<root>/<rel>` id from the table at stamp time.
+ */
+const PACK_SRC_RE = /\/packages\/content\/[^/]+\/src\//;
+
+/**
+ * Is `filePath` (forward-slashed) a capability pack's source file?
+ *
+ * @param {string} filePath
+ * @returns {boolean}
+ */
+export function isPackSourcePath(filePath) {
+  return PACK_SRC_RE.test(filePath);
+}
+
+/**
+ * The specifier the appended `import` uses to reach `mud/api/module`.
+ *
+ * A kernel file gets a source-relative path (we can't bake an absolute
+ * path or a bare specifier there — both break either tsx or Vitest,
+ * and the server package has no dependency on itself). A capability
+ * pack's file gets the **package specifier**
+ * `@saxonberg/server/mud/api/module`: a pack depends on
+ * `@saxonberg/server` and imports the kernel only through its `exports`
+ * map, so this is the same shape as every other kernel import in the
+ * file — and it survives the pack moving to its own repo, which a
+ * relative climb to `packages/server/` would not. Both resolve to the
+ * same physical file, so both stamp against the one registry.
  *
  * @param {string} fileUrl
  * @returns {string}
@@ -43,6 +78,9 @@ export function computeRegistryImportPath(fileUrl) {
   const rawPath = fileUrl.startsWith('file://')
     ? new URL(fileUrl).pathname
     : fileUrl;
+  if (isPackSourcePath(rawPath.replace(/\\/g, '/'))) {
+    return '@saxonberg/server/mud/api/module';
+  }
   // The result is embedded as a string literal in generated source —
   // `from '../../api/module'`. Backslashes there would be parsed as
   // JS escape sequences (`\m` → `m`, collapsing the path). Force
@@ -83,6 +121,10 @@ export function shouldTransform(fileUrl) {
   // load-time cycle since the auto-injected `ModuleApi.stamp(...)`
   // imports back into module.ts.
   if (/\/mud\/api\/(execution-context|module|security|proxy)\.ts$/.test(filePath)) return false;
+  // A capability pack's src/ is stamped like the kernel tree; its tests
+  // are not (they are not runtime modules, exactly as a kernel test
+  // under __tests__ is skipped by having no class exports worth a gate).
+  if (isPackSourcePath(filePath)) return !filePath.includes('/__tests__/');
   if (!filePath.includes('/mud/')) return false;
   return true;
 }
@@ -219,6 +261,11 @@ export function resolveRelativeModuleGates(source, fileUrl) {
     ? new URL(fileUrl).pathname
     : fileUrl;
   const filePath = rawPath.replace(/\\/g, '/');
+  // Pack code writes ABSOLUTE gate strings (`/arcana/idea/cmd/…`): the
+  // transform cannot know a pack's namespace root without the runtime
+  // table, so a relative gate in a pack file is left exactly as written
+  // (and `lint:gates` reports it as unresolvable).
+  if (isPackSourcePath(filePath)) return source;
   const mudIdx = filePath.indexOf('/mud/');
   if (mudIdx < 0) return source;
   // The declaring module's own mud-rooted id (leading slash, no ext),

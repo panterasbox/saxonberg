@@ -226,6 +226,11 @@ export function writePack(
   id: string,
   files: FixtureFile[],
   opts: {
+    /**
+     * Pack ids this pack depends on — written as `@saxonberg/content-<id>`
+     * dependencies in the fixture's `package.json`, which is where the
+     * installer derives `dependsOn` from (never a manifest key).
+     */
     dependsOn?: string[];
     nameBanks?: NameBankFixture[];
     version?: string;
@@ -233,6 +238,13 @@ export function writePack(
     root?: string;
     /** Extra manifest keys (`requires`, `boot`, `maintainers`, or a typo under test). */
     manifest?: Record<string, unknown>;
+    /**
+     * Source files to ship under `src/` (`src/`-relative path → source),
+     * making the fixture a CAPABILITY pack. A fixture class needs no
+     * imports: the installer resolves the file and imports it, and the
+     * harness's `stubClassResolution` stands in for the import.
+     */
+    src?: Record<string, string>;
   } = {},
 ): string {
   const root = mkdtempSync(join(tmpdir(), `pack-${id}-`));
@@ -240,13 +252,23 @@ export function writePack(
   const manifest: Record<string, unknown> = {
     id,
     version: opts.version ?? '0.1.0',
-    dependsOn: opts.dependsOn ?? [],
   };
   if (opts.root !== undefined) manifest.root = opts.root;
   Object.assign(manifest, opts.manifest ?? {});
   writeFileSync(join(root, 'pack.yaml'), YAML.stringify(manifest));
+  const dependencies: Record<string, string> = { '@saxonberg/server': 'workspace:*' };
+  for (const dep of opts.dependsOn ?? []) dependencies[`@saxonberg/content-${dep}`] = 'workspace:*';
+  writeFileSync(
+    join(root, 'package.json'),
+    JSON.stringify({ name: `@saxonberg/content-${id}`, private: true, type: 'module', dependencies }, null, 2),
+  );
   for (const f of files) writeDomainFile(root, f);
   for (const nb of opts.nameBanks ?? []) writeBankFile(root, nb);
+  for (const [rel, source] of Object.entries(opts.src ?? {})) {
+    const file = join(root, 'src', rel);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, source);
+  }
   return root;
 }
 

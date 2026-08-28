@@ -88,7 +88,7 @@ function writeTopicPack(id: string, topicKey: string): string {
   tmpRoots.push(root);
   writeFileSync(
     join(root, 'pack.yaml'),
-    YAML.stringify({ id, version: '0.1.0', dependsOn: [] })
+    YAML.stringify({ id, version: '0.1.0' })
   );
   const file = join(root, 'content', 'platform', 'idea', 'Topic', `${topicKey}.yaml`);
   mkdirSync(dirname(file), { recursive: true });

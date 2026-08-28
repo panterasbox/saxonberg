@@ -13,7 +13,8 @@
  */
 
 import { existsSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { ModuleApi } from './module';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Stuff, type DestroyedObjectMetadata } from '../lib/stuff/Stuff';
 import type { Hydrator } from '../lib/stuff/Hydrator';
@@ -51,6 +52,24 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
  * construction — that's a class-local convenience, not a clone contract.
  */
 export type StuffConstructor<T extends Stuff = Stuff> = new () => T;
+
+/**
+ * The kernel's own class-namespace roots — every class path not under
+ * one of these must be under a registered capability-pack root.
+ */
+const KERNEL_CLASS_ROOTS = ['/platform/', '/lib/', '/world/', '/trade/'] as const;
+
+/**
+ * Where a class path resolved (`StuffApi.resolveClassFile`): the backing
+ * file, and whether the kernel tree or a capability pack's `src/`
+ * served it. The installer's rung check keys on `origin`.
+ */
+export interface ClassResolution {
+  /** Absolute path of the backing module file. */
+  file: string;
+  /** `'kernel'`, or the pack namespace root + `src/` that served it. */
+  origin: 'kernel' | { root: string; srcRoot: string };
+}
 
 /**
  * Static API for object management and registry.
@@ -176,8 +195,12 @@ export class StuffApi {
     // `/platform/<branch>/` = the engine's own classes, `/world/` = a
     // locality's classes (mirrors its template namespace, e.g.
     // `/world/lounge/location/Lounge`), `/trade/` = an industry pack's own
-    // classes (`/trade/<industry>/idea/cmd/…`).
-    const allowedPrefixes = ['/platform/', '/lib/', '/world/', '/trade/'];
+    // classes (`/trade/<industry>/idea/cmd/…`) — plus every namespace
+    // root a capability pack has registered a `src/` for (`/arcana/`).
+    const allowedPrefixes = [
+      ...KERNEL_CLASS_ROOTS,
+      ...ModuleApi.packSources().map((e) => e.root + '/'),
+    ];
     const hasAllowedPrefix = allowedPrefixes.some((prefix) =>
       classPath.startsWith(prefix)
     );
@@ -191,21 +214,49 @@ export class StuffApi {
   }
 
   /**
-   * Resolve a validated class path (e.g. `/platform/agent/Avatar`) to the absolute
-   * fs path of the module. Prefer `.ts` (dev/test) when present, fall
-   * back to `.js` (built artifacts), and finally return the `.ts` path
-   * unconditionally so HMR-registered paths without a disk-resident
-   * source still match.
+   * Resolve a class path to the file that backs it, and say where it
+   * came from — the ONE place a class-namespace path becomes a file.
+   *
+   * A path whose namespace root a capability pack has registered
+   * (`/arcana/thing/Wand`) resolves into that pack's `src/`
+   * (`<srcRoot>/thing/Wand.ts`), longest root first; it is an error,
+   * naming the pack, when the file is missing — a pack namespace never
+   * falls back to the kernel tree. Every other path resolves from the
+   * kernel tree exactly as before: `.ts` (dev/test) when present, `.js`
+   * (built artifacts) next, and finally the `.ts` path unconditionally
+   * so HMR-registered paths without a disk-resident source still match.
+   *
+   * Public because three things share it: the clone pipeline and the
+   * brain resolver here, `HotReloadApi`-facing verbs (`reload
+   * /arcana/thing/Wand`), and the installer's rung check (which records
+   * the origin of every class a pack names).
    */
-  static #resolveAbsoluteClassPath(classPath: string): string {
+  public static resolveClassFile(classPath: string): ClassResolution {
+    const validated = this.#validateClassPath(classPath);
+    for (const { dir, root } of ModuleApi.packSources()) {
+      if (validated === root || validated.startsWith(root + '/')) {
+        const file = dir + validated.slice(root.length + 1) + '.ts';
+        if (!existsSync(file)) {
+          throw new Error(
+            `StuffApi.resolveClassFile('${classPath}'): the namespace ` +
+              `'${root}' is a capability pack's, and its src/ has no ` +
+              `'${validated.slice(root.length + 1)}.ts' (looked in ${dir})`
+          );
+        }
+        return { file, origin: { root, srcRoot: dir } };
+      }
+    }
     const moduleDir = new URL('..', import.meta.url); // <srcRoot>/mud/
     for (const ext of ['ts', 'js']) {
       const candidate = fileURLToPath(
-        new URL(`.${classPath}.${ext}`, moduleDir)
+        new URL(`.${validated}.${ext}`, moduleDir)
       );
-      if (existsSync(candidate)) return candidate;
+      if (existsSync(candidate)) return { file: candidate, origin: 'kernel' };
     }
-    return fileURLToPath(new URL(`.${classPath}.ts`, moduleDir));
+    return {
+      file: fileURLToPath(new URL(`.${validated}.ts`, moduleDir)),
+      origin: 'kernel',
+    };
   }
 
   /**
@@ -317,7 +368,7 @@ export class StuffApi {
     //    identity any static import of the same module would see).
     //    `unload(absPath)` poisons the path: subsequent clones throw.
     const className = classPath.split('/').pop()!; // "Avatar" from "/platform/agent/Avatar"
-    const absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(classPath);
+    const absoluteClassPath = StuffApi.resolveClassFile(classPath).file;
     if (HotReloadApi.isFrozen(absoluteClassPath)) {
       throw new Error(
         `StuffApi.clone('${templatePath}'): no blueprint at '${absoluteClassPath}' — was unloaded via HotReloadApi.unload`
@@ -331,9 +382,12 @@ export class StuffApi {
     }
 
     if (!ClassConstructor) {
-      // Cold path: bare dynamic import. Convert "/platform/agent/Avatar" to
-      // "../platform/agent/Avatar.js" relative to this module.
-      const modulePath = `..${classPath}.js`;
+      // Cold path: bare dynamic import of the resolved file by absolute
+      // file URL — the shape `HotReloadApi.#doReload` already uses, and
+      // the one that reaches a pack's src/ as readily as the kernel's.
+      // Node's cache keys on the URL, so this is the same module
+      // instance any static import of the file sees.
+      const modulePath = pathToFileURL(absoluteClassPath).href;
       let module: Record<string, unknown>;
       try {
         module = (await import(modulePath)) as Record<string, unknown>;
@@ -1291,7 +1345,7 @@ export class StuffApi {
   public static async loadClassByPath(classPath: string): Promise<unknown> {
     const validated = this.#validateClassPath(classPath);
     const className = validated.split('/').pop()!;
-    const absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(validated);
+    const absoluteClassPath = StuffApi.resolveClassFile(validated).file;
 
     if (HotReloadApi.isFrozen(absoluteClassPath)) {
       throw new Error(
@@ -1302,7 +1356,7 @@ export class StuffApi {
     const reloaded = HotReloadApi.getCurrentExport(absoluteClassPath, className);
     if (reloaded) return reloaded;
 
-    const modulePath = `..${validated}.js`;
+    const modulePath = pathToFileURL(absoluteClassPath).href;
     let module: Record<string, unknown>;
     try {
       module = (await import(modulePath)) as Record<string, unknown>;
@@ -1347,9 +1401,7 @@ export class StuffApi {
   ): Promise<unknown | null> {
     let absoluteClassPath: string;
     try {
-      absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(
-        this.#validateClassPath(classPath)
-      );
+      absoluteClassPath = StuffApi.resolveClassFile(classPath).file;
     } catch {
       return null;
     }
@@ -1382,9 +1434,7 @@ export class StuffApi {
   ): unknown | null {
     let absoluteClassPath: string;
     try {
-      absoluteClassPath = StuffApi.#resolveAbsoluteClassPath(
-        this.#validateClassPath(classPath)
-      );
+      absoluteClassPath = StuffApi.resolveClassFile(classPath).file;
     } catch {
       return null;
     }

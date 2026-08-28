@@ -9,7 +9,6 @@ description: >-
   moor, practicum, substation and common remain.
 # saxonberg-lounge stays a dependency for ONE reason: the Terminus departure
 # terminal's route names /world/lounge/thing/terminal.
-dependsOn: [platform, saxonberg-lounge, corpo-goodkin, corpo-vionne]
 requires:
   groups:
     # The landlord's staff — Katie's membership is CONFERRED here by the

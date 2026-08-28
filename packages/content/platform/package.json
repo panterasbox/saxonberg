@@ -2,6 +2,10 @@
   "name": "@saxonberg/content-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "The platform pack — the seed of pack zero: application settings, the standing subjects (Help / Global / Chat), the curated blueprints, the command views.",
-  "type": "module"
+  "description": "The platform pack \u2014 the seed of pack zero: application settings, the standing subjects (Help / Global / Chat), the curated blueprints, the command views.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

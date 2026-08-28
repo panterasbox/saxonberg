@@ -1,4 +1,3 @@
 id: species-and-names
 version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 description: Species (the Species/Clade taxonomy, the body plans) and the char-gen name banks.
-dependsOn: [platform]   # the rows under /stuff/idea/species are covered by the platform's /stuff claim

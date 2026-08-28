@@ -1,6 +1,28 @@
 {
   "name": "saxonberg",
   "private": true,
+  "dependencies": {
+    "@saxonberg/content-arcane-descriptors": "workspace:*",
+    "@saxonberg/content-arcane-library": "workspace:*",
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-corpo-aevex": "workspace:*",
+    "@saxonberg/content-corpo-goodkin": "workspace:*",
+    "@saxonberg/content-corpo-hollis": "workspace:*",
+    "@saxonberg/content-corpo-veshko": "workspace:*",
+    "@saxonberg/content-corpo-vionne": "workspace:*",
+    "@saxonberg/content-expression": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-hearthworks": "workspace:*",
+    "@saxonberg/content-newbie-wilds": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-saxonberg-lounge": "workspace:*",
+    "@saxonberg/content-species-and-names": "workspace:*",
+    "@saxonberg/content-trade-hearth-cooking": "workspace:*",
+    "@saxonberg/content-trade-hospitality": "workspace:*",
+    "@saxonberg/content-trade-smithing": "workspace:*",
+    "@saxonberg/content-wiki-starter": "workspace:*",
+    "@saxonberg/content-world-seed": "workspace:*"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "lint": "eslint . --ext .ts,.tsx --cache",

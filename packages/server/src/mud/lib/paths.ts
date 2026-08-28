@@ -171,6 +171,8 @@ export const ReservedTemplatePrefixes = ["/platform/idea/api/"] as const;
  *   `/world`   the places — localities and their venues
  *   `/compact` the state
  *   `/corpo`   the marks
+ *   `/arcana`  magic's substrate — the first capability pack's own root
+ *              (its classes, disciplines, verbs and banks)
  *
  * with `/studio`, `/wiki`, `/home` the platform's own trees. Under
  * `/platform`, `/stuff` and `/trade/<industry>` the SECOND segment is
@@ -189,6 +191,7 @@ export const TITLE_ROOTS: readonly string[] = [
   "/home",
   "/corpo",
   "/trade",
+  "/arcana",
 ];
 
 /**
