@@ -16,7 +16,7 @@ data:
   ambientIntensity: 30
   ambientColorTemperature: 4200
   exits:
-    south:
+    north:
       destination: /world/terminus/counting-houses/avenue-block
   populates:
     - /trade/distilling/thing/racking

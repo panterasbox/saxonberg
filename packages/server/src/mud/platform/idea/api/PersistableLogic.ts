@@ -688,13 +688,13 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
     }
     return nested;
   }
-  const existing = StuffApi.findByTemplatePath(scope);
-  if (existing) return existing;
-  const nested = await StuffApi.clone<Stuff>(scope);
-  if (nested && MixinApi.isPersistable(nested)) {
-    await materializeImpl(nested);
-  }
-  return nested;
+  // Keyless = one instance per path, which is exactly `StuffApi.singleton`:
+  // it returns the live instance when one is registered, and on a mint it
+  // IS the persistable singleton's establishing context (restore-or-seed
+  // under the scope-derived key). Routing through it keeps the two ways a
+  // singleton host can come to life — walked to / booted, or restored as
+  // a room's nested `{ ref }` — on one path, so neither can mint a second.
+  return StuffApi.singleton<Stuff>(scope);
 }
 
 /* ─────────────────────────── impl entry points ──────────────────────── */

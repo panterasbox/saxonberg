@@ -1114,14 +1114,33 @@ export class CommandLogic extends ApiLogic {
         def.updates_focus ?? 'none';
       const fieldPrep = prep[fname];
 
+      // A scope's answer counts only if something in it can satisfy
+      // the field's `requires:`; otherwise the scan moves on to the
+      // next scope (the `$focus` → `reachable` chain is a chain, not a
+      // first-name-match-wins). No `requires:` → every match counts.
+      const terms =
+        (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
+      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
+
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
           r = { stuff: [] };
+          // The first raw match is kept as the fallback: when NOTHING in
+          // any scope is admissible, bind it anyway so the field's
+          // validator can say why ("that has no mass") rather than the
+          // scan pretending it saw nothing.
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-            if (r.stuff.length > 0) break;
+            const got = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+            const kept = got.stuff.filter(admissible);
+            if (kept.length > 0) {
+              r = { ...got, stuff: kept };
+              break;
+            }
           }
+          if (r.stuff.length === 0 && firstRaw) r = firstRaw;
         } catch (err) {
           context.note({
             kind: 'mql-error',
@@ -1154,8 +1173,9 @@ export class CommandLogic extends ApiLogic {
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
         try {
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            if (useTop) {
+            if (useTop && terms.length === 0) {
               const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
@@ -1164,14 +1184,26 @@ export class CommandLogic extends ApiLogic {
                 break;
               }
             } else {
+              // With `requires:` the cheap top-one path can't be used —
+              // the top match may be the inadmissible one — so the
+              // scope is resolved in full and the first admissible
+              // match is the top. The first raw match is the fallback
+              // when nothing anywhere is admissible (see above).
               const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-              if (r.stuff.length > 0) {
-                stuff = r.stuff;
+              if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
+              const kept = r.stuff.filter(admissible);
+              if (kept.length > 0) {
+                stuff = useTop ? [kept[0] as Stuff] : kept;
                 via = r.via;
                 quantity = r.quantity;
                 break;
               }
             }
+          }
+          if (stuff.length === 0 && firstRaw) {
+            stuff = useTop ? [firstRaw.stuff[0] as Stuff] : firstRaw.stuff;
+            via = firstRaw.via;
+            quantity = firstRaw.quantity;
           }
         } catch (err) {
           context.note({
@@ -1230,15 +1262,30 @@ export class CommandLogic extends ApiLogic {
       const tries: string[] = yamlScopes.map((s) =>
         ShellApi.expandVariables(s, giver)
       );
+      // Same `requires:`-aware scan as the positional loop.
+      const terms =
+        (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
+      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
 
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
           r = { stuff: [] };
+          // The first raw match is kept as the fallback: when NOTHING in
+          // any scope is admissible, bind it anyway so the field's
+          // validator can say why ("that has no mass") rather than the
+          // scan pretending it saw nothing.
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-            if (r.stuff.length > 0) break;
+            const got = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+            const kept = got.stuff.filter(admissible);
+            if (kept.length > 0) {
+              r = { ...got, stuff: kept };
+              break;
+            }
           }
+          if (r.stuff.length === 0 && firstRaw) r = firstRaw;
         } catch (err) {
           context.note({
             kind: 'mql-error',
@@ -1263,8 +1310,9 @@ export class CommandLogic extends ApiLogic {
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
         try {
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            if (useTop) {
+            if (useTop && terms.length === 0) {
               const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
@@ -1273,14 +1321,26 @@ export class CommandLogic extends ApiLogic {
                 break;
               }
             } else {
+              // With `requires:` the cheap top-one path can't be used —
+              // the top match may be the inadmissible one — so the
+              // scope is resolved in full and the first admissible
+              // match is the top. The first raw match is the fallback
+              // when nothing anywhere is admissible (see above).
               const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-              if (r.stuff.length > 0) {
-                stuff = r.stuff;
+              if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
+              const kept = r.stuff.filter(admissible);
+              if (kept.length > 0) {
+                stuff = useTop ? [kept[0] as Stuff] : kept;
                 via = r.via;
                 quantity = r.quantity;
                 break;
               }
             }
+          }
+          if (stuff.length === 0 && firstRaw) {
+            stuff = useTop ? [firstRaw.stuff[0] as Stuff] : firstRaw.stuff;
+            via = firstRaw.via;
+            quantity = firstRaw.quantity;
           }
         } catch (err) {
           context.note({
@@ -2675,11 +2735,19 @@ async function resolveCommandValidators(
       validators?: string[];
       requires?: MixinRequirement;
       _resolvedValidators?: FieldValidator[];
+      _requirementTerms?: RequirementTerm[];
     },
     where: string,
   ): Promise<void> => {
     const fns: FieldValidator[] = [];
     if (target.requires !== undefined) {
+      // The parsed terms ride the def as well: the scope scan filters
+      // candidates by them BEFORE binding (below), so a `$focus` match
+      // that can never satisfy `requires:` — the room "Dave's Bar" for
+      // `talk dave` — falls through to the next scope instead of
+      // shadowing the barkeep. The validator stays as the post-bind
+      // check for a field bound by structured input.
+      target._requirementTerms = await parseRequirement(target.requires, where);
       const synthesized = await requirementValidator(target.requires, where);
       if (synthesized) fns.push(synthesized);
     }

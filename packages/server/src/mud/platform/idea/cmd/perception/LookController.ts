@@ -367,6 +367,22 @@ export default class LookController extends CommandController<LookModel> {
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
+    // The same drill-in for an OPEN container: the glass rack's coupes,
+    // a crate's limes. A sealed one (a closed chest, a capped bottle)
+    // shows nothing — what is inside is not in view. Concealed contents
+    // stay with the glance below, which decides what a look turns up.
+    if (
+      MixinApi.isContainer(target) &&
+      !(MixinApi.isSealable(target) && !target.isOpen())
+    ) {
+      const inside = [...target.getContents()].filter(
+        (c) => !MixinApi.isConcealable(c) || !c.isConcealed(),
+      );
+      if (inside.length > 0) {
+        const list = Mml.list(inside.map((c) => Mml.actor(c)));
+        body = Mml.compose`${body}── In it: ${list}.`;
+      }
+    }
 
     // Close look: attending to a container peers in for anything
     // half-concealed — the directed-attention glance that `examine`

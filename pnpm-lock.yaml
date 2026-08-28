@@ -620,6 +620,9 @@ importers:
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:../saxonberg-lounge
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/content-trade-produce':
         specifier: workspace:*
         version: link:../trade-produce

@@ -545,9 +545,32 @@ export class StuffApi {
     // guard in clone().
     const pending = this.#pendingSingletons.get(path);
     if (pending) return pending as Promise<T>;
-    const p = this.clone<T>(path, context).finally(() => {
-      this.#pendingSingletons.delete(path);
-    });
+    const p = this.clone<T>(path, context)
+      .then(async (inst) => {
+        // A persistable SINGLETON's establishing context is this call:
+        // one instance per template path, so its record is keyed by
+        // the scope alone (the same keyless key a nested `{ ref }`
+        // restore derives). Restore when a record exists, else lay down
+        // its born-with `populates:` and capture the first record — a
+        // venue room reached by an exit or booted by a pack, a Stock
+        // counter placed by a room's populates. Multi-instance hosts
+        // (a dorm unit, a lot's yard, an Avatar) never come through
+        // here: their provisioner clones and keys them itself.
+        if (MixinApi.isPersistable(inst) && inst.getPersistenceKey() === null) {
+          const { PersistableApi } = await import('./persistable');
+          const scope = inst.getTemplatePath() ?? path;
+          if (await PersistableApi.hasRecord(scope)) {
+            await PersistableApi.materialize(inst);
+          } else {
+            await inst.seedBornWith();
+            await PersistableApi.capture(inst);
+          }
+        }
+        return inst;
+      })
+      .finally(() => {
+        this.#pendingSingletons.delete(path);
+      });
     this.#pendingSingletons.set(path, p as Promise<Stuff>);
     return p;
   }
