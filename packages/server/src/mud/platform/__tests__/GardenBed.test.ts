@@ -106,7 +106,7 @@ function makePlant(short = 'a peace lily'): Plant {
       ),
     );
     return p;
-  }, `/stuff/thing/plant/_bedtest-${plantSeq}`);
+  }, `/trade/produce/thing/plant/_bedtest-${plantSeq}`);
 }
 
 let bedSeq = 0;
@@ -149,7 +149,7 @@ function makeBed(soil: number, slots: number, water = 4): GardenBed {
       ),
     );
     return bed;
-  }, `/stuff/thing/bed/_test-${bedSeq}`);
+  }, `/trade/produce/thing/bed/_test-${bedSeq}`);
 }
 
 let potSeq = 0;
@@ -177,7 +177,7 @@ function makePot(soil: number): PlantPot {
       ),
     );
     return p;
-  }, `/stuff/thing/pot/_bedtest-${potSeq}`);
+  }, `/trade/produce/thing/pot/_bedtest-${potSeq}`);
 }
 
 /**

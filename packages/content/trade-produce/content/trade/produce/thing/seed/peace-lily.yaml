@@ -14,5 +14,5 @@ data:
   keywords: [seed, "lily seed", "peace lily seed"]
   longDescription: |
     A single dark seed, barely bigger than a peppercorn, in a twist of waxed paper.
-  growsIntoPath: /stuff/thing/plant/peace-lily
+  growsIntoPath: /trade/produce/thing/plant/peace-lily
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii

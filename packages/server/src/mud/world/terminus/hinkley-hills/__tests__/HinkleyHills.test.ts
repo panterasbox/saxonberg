@@ -216,7 +216,7 @@ function makeBed(): GardenBed {
       ),
     );
     return bed;
-  }, fresh('/stuff/thing/bed/_hh'));
+  }, fresh('/trade/produce/thing/bed/_hh'));
 }
 
 function makePot(): PlantPot {
@@ -230,16 +230,16 @@ function makePot(): PlantPot {
       { name: PLANT_SLOT, accepts: 'SlottableMixin', capacity: 1 },
     ]);
     return pot;
-  }, fresh('/stuff/thing/pot/_hh'));
+  }, fresh('/trade/produce/thing/pot/_hh'));
 }
 
 function makeSeed(): Seed {
   return makeStuffAtPath(() => {
     const s = new Seed();
     s.setShortDescription('a packet of carrot seed');
-    s.setGrowsIntoPath('/stuff/thing/plant/carrot');
+    s.setGrowsIntoPath('/trade/produce/thing/plant/carrot');
     return s;
-  }, fresh('/stuff/thing/seed/_hh'));
+  }, fresh('/trade/produce/thing/seed/_hh'));
 }
 
 function stubCommand(): CommandDefinition {
@@ -395,7 +395,7 @@ describe('Hinkley Hills — the land-use gate', () => {
         p.setShortDescription('a row of carrots');
         p.setLifecycleState('alive');
         return p;
-      }, `/stuff/thing/plant/_hh-minted-${plantSeq}`);
+      }, `/trade/produce/thing/plant/_hh-minted-${plantSeq}`);
     }) as unknown as typeof StuffApi.clone);
   });
 
@@ -611,12 +611,12 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
     );
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       plantSeq += 1;
-      if (path.startsWith('/stuff/thing/crop/')) {
+      if (path.startsWith('/trade/produce/thing/crop/')) {
         return makeStuffAtPath(() => {
           const c = new Crop();
           c.setShortDescription('a bunch of carrots');
           return c;
-        }, `/stuff/thing/crop/_walk-${plantSeq}`);
+        }, `/trade/produce/thing/crop/_walk-${plantSeq}`);
       }
       return makeStuffAtPath(() => {
         const p = new Plant();
@@ -626,10 +626,10 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
         p.setLastAmbientK(295);
         p.setLifecycleState('alive');
         p.setProfile(carrotProfile());
-        p.setHarvestTemplatePath('/stuff/thing/crop/carrot');
+        p.setHarvestTemplatePath('/trade/produce/thing/crop/carrot');
         p.setNutrientDraw(15);
         return p;
-      }, `/stuff/thing/plant/_walk-${plantSeq}`);
+      }, `/trade/produce/thing/plant/_walk-${plantSeq}`);
     }) as unknown as typeof StuffApi.clone);
   });
 

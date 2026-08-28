@@ -17,7 +17,7 @@ data:
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata
   material: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
-  seedTemplatePath: /stuff/thing/seed/snake-plant
+  seedTemplatePath: /trade/produce/thing/seed/snake-plant
   # No moisture reserve — the water lives in the ground (see peace-lily).
   profile:
     # Drought-tolerant: content on a nearly empty root zone, and it spends

@@ -22,8 +22,8 @@ data:
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
   material: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
-  seedTemplatePath: /stuff/thing/seed/carrot
-  harvestTemplatePath: /stuff/thing/crop/carrot
+  seedTemplatePath: /trade/produce/thing/seed/carrot
+  harvestTemplatePath: /trade/produce/thing/crop/carrot
   # Percentage points of the bed's nitrogen one crop takes with it. Four
   # carrots off a full bed leave it at 40% — one more round without
   # feeding and the fourth limiting factor starts to bite.

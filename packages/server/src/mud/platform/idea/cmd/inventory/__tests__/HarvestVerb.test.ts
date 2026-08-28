@@ -84,7 +84,7 @@ function freshPath(prefix: string): string {
   return `${prefix}-${seq}`;
 }
 
-const CROP_PATH = '/stuff/thing/crop/_test-carrot';
+const CROP_PATH = '/trade/produce/thing/crop/_test-carrot';
 
 function carrotProfile(): GrowthProfileData {
   return {
@@ -120,7 +120,7 @@ function makePlant(opts: { harvestable?: boolean } = {}): Plant {
     if (opts.harvestable !== false) p.setHarvestTemplatePath(CROP_PATH);
     p.setNutrientDraw(15);
     return p;
-  }, freshPath('/stuff/thing/plant/_harv'));
+  }, freshPath('/trade/produce/thing/plant/_harv'));
 }
 
 function makeBed(nitrogen = 100, water = 6): GardenBed {
@@ -153,7 +153,7 @@ function makeBed(nitrogen = 100, water = 6): GardenBed {
       ),
     );
     return bed;
-  }, freshPath('/stuff/thing/bed/_harv'));
+  }, freshPath('/trade/produce/thing/bed/_harv'));
 }
 
 function forceStage(plant: Plant, stage: string): void {
@@ -244,7 +244,7 @@ describe('harvest <plant>', () => {
         const c = new Crop();
         c.setShortDescription('a bunch of carrots');
         return c;
-      }, `/stuff/thing/crop/_minted-${cropSeq}`);
+      }, `/trade/produce/thing/crop/_minted-${cropSeq}`);
     }) as unknown as typeof StuffApi.clone);
   });
 

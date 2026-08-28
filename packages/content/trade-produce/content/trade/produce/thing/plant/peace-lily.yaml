@@ -19,7 +19,7 @@ data:
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii
   material: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
-  seedTemplatePath: /stuff/thing/seed/peace-lily
+  seedTemplatePath: /trade/produce/thing/seed/peace-lily
   # NO moisture reserve. Phase 2 moved the water out of the plant and into
   # the GROUND it is rooted in (the pot's or the bed's `moisture` reserve),
   # so a plant reads its soil rather than carrying a private supply. That

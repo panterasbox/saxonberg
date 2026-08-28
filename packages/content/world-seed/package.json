@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TRANSITIONAL \u2014 the locality rows SeederManager used to insert, verbatim, until each locality is homed in its own pack.",
+  "description": "TRANSITIONAL — the locality rows SeederManager used to insert, verbatim, until each locality is homed in its own pack.",
   "dependencies": {
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
+    "@saxonberg/content-trade-produce": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

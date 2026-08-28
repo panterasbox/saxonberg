@@ -65,7 +65,7 @@ async function makeStoreBusiness(): Promise<string> {
   return EmploymentApi.operatingAccountOf(biz);
 }
 const TORCH = "/obj/test/Torch";
-const POT = "/stuff/thing/pot/large";
+const POT = "/trade/produce/thing/pot/large";
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -133,7 +133,7 @@ function makeStore(opts: {
   return { stock, torch };
 }
 
-/** A real `/stuff/thing/pot/large`-shaped good: Slotted + a bulk soil interior. */
+/** A real `/trade/produce/thing/pot/large`-shaped good: Slotted + a bulk soil interior. */
 function makePot(path: string): PlantPot {
   const pot = makeStuffAtPath(() => new PlantPot(), path);
   pot.setKeywords(["pot", "large pot"]);
@@ -291,7 +291,7 @@ describe("BuyController — buy that stamps", () => {
     await asOwner(giver, () => BankingApi.deposit(bank, cash as never));
     const storeAcct = await makeStoreBusiness();
 
-    // The shipped price of `/stuff/thing/pot/large` — a real but reachable purchase
+    // The shipped price of `/trade/produce/thing/pot/large` — a real but reachable purchase
     // against the 20-credit arrival stipend.
     const { stock, pot } = makePotStore(8);
 

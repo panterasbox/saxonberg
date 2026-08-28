@@ -760,7 +760,7 @@ the whole install set:
    segment. What a trade merely *uses* (fire stations, a cut of meat) is
    commons under `/obj`; where it is *practised* (the smithy) is a venue
    under `/world/`. `base-library`'s rows under `/obj` ride the platform's `/obj`
-   claim; `generic-objects` claims its seventeen `/stuff/<branch>/<cluster>`
+   claim; `generic-objects` claims its twelve `/stuff/<branch>/<cluster>`
    branches itself; `wiki-starter`'s pages ride `/wiki`. A pack's own
    document root *outside* the title roots (`/expression`,
    `/generic-objects`) is the pack's to claim or not. A pack whose whole
@@ -919,7 +919,7 @@ the installer's walk mirrored in a script; zero is green).
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcana** (CAPABILITY — magic's substrate) | platform | default | `/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |
 | **arcane-library** (CAPABILITY — magic's catalog) | platform, arcana | default | — (rides `/stuff`): the 12 spells, the 13 items at `/stuff/thing/magic/` (wands, scrolls, books, a conduit, the bench, three potions, a ring, an amulet), the two loci `glowlight-mote`/`spark-locus` whose classes `src/` ships, the three draughts | — | — |
-| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
+| **generic-objects** | platform | default | twelve `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
 | **trade-smithing** | platform, generic-objects | default | `/trade/smithing` → group `smithing` (PM-owned) | `smithing` | — |
 | **trade-hearth-cooking** | platform, generic-objects | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned); four recipes since wave 4b (toasted-ration, root-mash, fine-roast, hearty-stew) | `hearth-cooking` | — |
 | **trade-hospitality** | platform, generic-objects, base-library | default | `/trade/hospitality` → group `hospitality` (PM-owned): the four bar stations (shaker, mixing-glass, cocktail-glass, back-bar), the tip-jar template, the two cocktail recipes — what the lounge introduced; bottles and positions stay the venue's (wave 4b) | `hospitality` | — |

@@ -31,5 +31,5 @@ data:
     - /world/eternal/duncan-hall/dorm-fixtures/footlocker
     - /world/eternal/duncan-hall/dorm-fixtures/tap
     - /stuff/thing/vessel/watering-can
-    - template: /stuff/thing/pot/starter
+    - template: /trade/produce/thing/pot/starter
       onto: /world/eternal/duncan-hall/dorm-fixtures/desk

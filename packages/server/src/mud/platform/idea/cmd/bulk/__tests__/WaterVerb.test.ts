@@ -118,7 +118,7 @@ function makePlant(): Plant {
     p.setLifecycleState('alive');
     p.setProfile(lilyProfile());
     return p;
-  }, freshPath('/stuff/thing/plant/_water'));
+  }, freshPath('/trade/produce/thing/plant/_water'));
 }
 
 function makePot(soil = 3): PlantPot {
@@ -142,7 +142,7 @@ function makePot(soil = 3): PlantPot {
       ),
     );
     return pot;
-  }, freshPath('/stuff/thing/pot/_water'));
+  }, freshPath('/trade/produce/thing/pot/_water'));
 }
 
 function makeCan(litres: number): WateringCan {

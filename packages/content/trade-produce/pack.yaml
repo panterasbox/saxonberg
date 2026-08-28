@@ -6,9 +6,9 @@ description: >-
   lemon, orange, grapefruit, mint, cherry, olive, cranberry) as food
   materials tagged by category, each as a graded Provision item, the crate
   and basket presets over the platform Crate, a crate of each at target in
-  the produce stock, and the outfit that consigns them onto the cash-and-
-  carry. The growing is the smallholding's; the crop/seed/plant/pot/bed
-  rows move here in the generic drain (phase 5).
+  the produce stock, the outfit that consigns them onto the cash-and-carry,
+  and the growing cluster — the crop, seed, plant, pot and bed rows the
+  smallholding grows (drained here from generic-objects).
 requires:
   groups:
     - name: produce

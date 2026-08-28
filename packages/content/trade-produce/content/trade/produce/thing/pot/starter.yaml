@@ -50,4 +50,4 @@ data:
   # The pot's own born-with content. `applyPopulates` claims the plant slot
   # after placing, so the lily is slotted and not merely sitting in the pot.
   populates:
-    - /stuff/thing/plant/peace-lily
+    - /trade/produce/thing/plant/peace-lily

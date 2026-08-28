@@ -9,5 +9,5 @@ data:
   keywords: [seed, seeds, packet, "carrot seed"]
   longDescription: |
     A paper packet with the corner torn off, holding more of the tiny ridged seeds than anyone could count.
-  growsIntoPath: /stuff/thing/plant/carrot
+  growsIntoPath: /trade/produce/thing/plant/carrot
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
