@@ -49,7 +49,7 @@ const CATALOGUE_PATH = '/platform/idea/RecipeCatalogue';
 const EPS = 1e-9;
 
 /** The generic substance an off-spec (recipe-unmatched) build mints. */
-const GENERIC_MIXED_MATERIAL = '/stuff/idea/material/cocktail/mixed';
+const GENERIC_MIXED_MATERIAL = '/platform/idea/material/blend';
 
 /** The generic substance every derived cooked blend points at. */
 const GENERIC_COOKED_MATERIAL = '/stuff/idea/material/food/cooked';

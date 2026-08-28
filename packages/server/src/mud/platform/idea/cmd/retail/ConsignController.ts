@@ -122,7 +122,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
         giver,
         context,
         Mml.compose`Open a bank account first — the Goodkin counting-house will set you up.`,
-        { kind: "controller-rejected", reason: "no-account", detail: consignorKey },
+        { kind: "controller-rejected", reason: "no-account", detail: consignorKey ?? undefined },
       );
       return;
     }

@@ -1,5 +1,8 @@
-# Mixed drink — the ONE generic substance every derived drink blend
-# points at (the off-spec shaker mint and every reverse-matched
+# The blend — the ONE generic substance every derived drink blend
+# points at. Lives in the PLATFORM pack (`/platform/idea/material/blend`)
+# because the kernel names it (`CraftingLogic.GENERIC_MIXED_MATERIAL`),
+# and a kernel module may never name a trade pack's row (libations 1f).
+# It points (the off-spec shaker mint and every reverse-matched
 # cocktail): generic liquid physics + the drinkable routing home. The
 # blend's actual identity + toxins ride the holder's per-instance
 # BulkPayload (macros in = macros out) — per-cocktail material rows are
@@ -7,9 +10,9 @@
 class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  name: mixed drink
+  name: blend
   appearance: a cloudy, improvised mixed drink
-  keywords: [drink, mixed, cocktail]
+  keywords: [blend, drink, mixed, cocktail]
   density: 950
   thermalConductivity: 0.2
   specificHeat: 2800

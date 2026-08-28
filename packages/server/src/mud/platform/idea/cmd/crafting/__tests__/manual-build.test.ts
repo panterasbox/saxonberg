@@ -50,7 +50,7 @@ import {
 const GIN = "/stuff/idea/material/spirit/gin";
 const VERMOUTH = "/stuff/idea/material/spirit/vermouth";
 const MARTINI_MAT = "/stuff/idea/material/cocktail/martini";
-const MIXED_MAT = "/stuff/idea/material/cocktail/mixed";
+const MIXED_MAT = "/platform/idea/material/blend";
 
 class TestActor extends CommandGiverMixin(
   SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),

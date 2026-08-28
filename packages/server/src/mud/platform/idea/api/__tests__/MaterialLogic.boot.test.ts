@@ -19,7 +19,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("MaterialApi.boot — the roster warm", () => {
   it("stands up Material rows and skips the FolderZone folders", async () => {
-    vi.spyOn(Template, "findDescendants").mockResolvedValue([
+    vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
       { path: "/stuff/idea/material/wood", class: "/platform/idea/FolderZone" },
       { path: "/stuff/idea/material/wood/oak", class: "/platform/idea/material/Material" },
       { path: "/stuff/idea/material/element/uranium", class: "/platform/idea/material/RadioactiveMaterial" },
@@ -39,7 +39,7 @@ describe("MaterialApi.boot — the roster warm", () => {
   });
 
   it("tolerates a single failed standup and continues (the preloadAnatomy shape)", async () => {
-    vi.spyOn(Template, "findDescendants").mockResolvedValue([
+    vi.spyOn(Template, "findByPathInfix").mockResolvedValue([
       { path: "/stuff/idea/material/bad", class: "/platform/idea/material/Material" },
       { path: "/stuff/idea/material/good", class: "/platform/idea/material/Material" },
     ] as unknown as Template[]);

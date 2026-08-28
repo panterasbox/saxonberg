@@ -499,6 +499,11 @@ export const AppSettingKeys = {
    * `regionTarget`, overridden by the zone's `stocks`).
    * *Calibrate at launch.* */
   residencySpawnAffinityBoost: "residency.spawn.affinityBoost",
+  /** Residency — how many placements one sweep may make in ONE region
+   * before it stops drawing there (the draw-until-decline loop's cap, so a
+   * mis-authored target can never turn a sweep into a flood). Default 64.
+   * *Calibrate at launch.* */
+  residencySpawnPerRegionCap: "residency.spawn.perRegionCap",
 
   /**
    * Retail — the general store. `listingCap` is the per-consignor active-

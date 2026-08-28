@@ -16,3 +16,11 @@ settings:
 
   - key: residency.reset.intervalS
     value: "3600"
+
+  # The spawn sweep is the sanctioned FAUCET a producer's floor stock
+  # stands at target through (libations 1f): enforce from the first boot.
+  - key: residency.spawn.mode
+    value: enforce
+
+  - key: residency.spawn.perRegionCap
+    value: "64"

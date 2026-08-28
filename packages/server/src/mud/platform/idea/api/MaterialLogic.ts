@@ -504,7 +504,11 @@ function containsElementOf(material: Material, elementSymbol: string): boolean {
 }
 
 function everyMaterial(): Material[] {
-  return StuffApi.findByPathGlob<Material>('/stuff/idea/material/**').filter((m) =>
+  // Every root's `idea/material/` subtree — the platform's
+  // (`/platform/idea/material/blend`), the commons' (`/stuff/…`) and a
+  // trade pack's (`/trade/distilling/…`) — found by the branch, never by
+  // a list of roots (a pack must never need a kernel list edit).
+  return StuffApi.findByPathGlob<Material>('/**/idea/material/**').filter((m) =>
     isMaterial(m)
   );
 }
@@ -674,7 +678,9 @@ function expandInto(
  * substrate, not ours to stand up.
  */
 async function bootImpl(): Promise<number> {
-  const templates = await Template.findDescendants('/stuff/idea/material/');
+  // The roster is every root's `idea/material/` subtree — found by the
+  // branch segment, never by a list of roots.
+  const templates = await Template.findByPathInfix('/idea/material/');
   let stood = 0;
   const isMaterial = new Map<string, boolean>();
   for (const tpl of templates) {

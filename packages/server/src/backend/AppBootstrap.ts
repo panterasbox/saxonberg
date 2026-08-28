@@ -262,6 +262,16 @@ export class AppBootstrap {
     // above). Ships in observe mode, so booting culls nothing until an
     // operator flips `residency.mode` to `enforce`.
     ResidencyApi.boot();
+    // The boot-time SPAWN sweep — the world stands at target on a fresh
+    // boot, not a game-day later: every producer's floor row (a template
+    // with an authored `censusKey` + home `container:`) is drawn until
+    // its region declines. Enforce is the platform default; an operator
+    // who flips `residency.spawn.mode` to observe gets a report only.
+    const spawned = await ResidencyApi.spawnNow();
+    console.info(
+      `ResidencyApi: boot spawn sweep — ${spawned.placed} placed, ` +
+        `${spawned.declined} region(s) at target of ${spawned.regions}`,
+    );
 
     // The card surface — install the relevance-window sweep. ONE
     // recurring callback for the whole card set, never a timer per card:
