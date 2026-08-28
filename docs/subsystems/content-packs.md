@@ -997,6 +997,20 @@ manifest version machinery + cross-pack dependency validation
 third-party namespacing; and the repo split. `generic-objects` is the
 junk drawer — expected to slim as trade packs take their objects.
 
+Left by the capability-packs build (arcana first): the **parked
+venue code** (`mud/world/{hearthworks,lounge,eternal}/**` — the
+capability rung exists; moving each venue's TS into its pack is a
+per-pack sweep as the reorg reaches it); the **third-party trust
+story** (signing — every capability pack is first-party and
+MR-reviewed); **first-instance minting** (`clone` fails closed when
+no live representative exists, and the spawn sweep sees only live
+candidates, so a never-instanced catalogue row is unreachable live
+until something mints one — a `canAtPath` fallback in
+`CloneController` is the shape); and `lint:instanceable`'s invariant-7
+root set, the one literal left (`/platform`, `/stuff`, `/trade/<x>`
+follow `<root>/<branch>/`, localities and `/wiki` do not — nothing in
+a manifest declares which, so the script still says).
+
 ## Key files
 
 - `packages/content/platform/` — pack zero: `content/platform/<branch>/` (the
@@ -1203,7 +1217,14 @@ proves it: **arcana** (the item classes, Ring/Amulet/Potion new, the
 disciplines, the verbs, the banks — `arcane-descriptors` folded in) and
 **arcane-library** (the spells, every clonable magic item, the two loci
 named by `locus:`). The catalogues warm by class; `MaterialLogic.boot`
-keeps a row by `instanceof Material`. Nineteen packs.
+keeps a row by `instanceof Material`. Nineteen packs. The MR round
+(MR !205) removed three hand-kept lists the build had grown: the
+title roots now DERIVE from the claims (a template row is always
+title-checked; a document only under a claimed root), `StuffApi` has
+no class-namespace allowlist (resolution decides; the rung check is
+keyed on what is on disk), and the test character joins every managed
+group — with every test-only backend seam moved into
+`backend/TestHooks.ts`.
 
 **The path pattern (2026-08-28, on the wave-4a branch).** `/platform/… + /stuff/` is
 gone. Every template path and every engine source file follows
