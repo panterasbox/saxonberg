@@ -1,0 +1,351 @@
+# Libations slate — the bar's supply chain, and putting things where they go
+
+> **Status: design conversation, captured 2026-08-28. Not requirements.**
+> The second pack of the alphabetical reorg (*b*: the bar), and the first
+> one that is not a refactor for its own sake — the point is a **fully
+> realized, shippable system**: Dave's Bar operating on a real supply
+> chain with no magic in it.
+
+> **User: "the point of splitting all this content pack out wasn't just a
+> refactor for its own sake, I wanna start actually trying to build fully
+> realized shippable systems. the bar is like half realized if that."**
+
+> **User: "I wanna start putting things where they really go instead of
+> 'generic' object buckets. and the few buckets we have of generics I
+> wanna pull shit outta of there."**
+
+Seeds and neighbours: [daves-bar-slate](./daves-bar-slate.md) (the
+experience — this slate builds its supply half),
+[supply-chain-slate](./supply-chain-slate.md) (⭐ *the magic is four
+lines and the fix is a deletion*; the store is the hinge; a business
+cannot buy; the martini end to end), [corpos-slate](./corpos-slate.md)
+(the mark + the approval vector; the roster this slate re-cuts),
+[retail-slate](./retail-slate.md), [content-packs-slate](./content-packs-slate.md)
+(*pack = a trade*; *every trade ships a showroom*; *seed backwards from
+sinks*), [pack-seams-slate](./pack-seams-slate.md) (annex knows host,
+never the reverse), [vocations.md](../../vocations.md) (a link exists
+iff someone could make a living at it). Substrate:
+[retail.md](../../subsystems/retail.md), [banking.md](../../subsystems/banking.md),
+[employment.md](../../subsystems/employment.md), [crafting.md](../../subsystems/crafting.md),
+[bulk.md](../../subsystems/bulk.md), [corpo.md](../../subsystems/corpo.md),
+[behavior.md](../../subsystems/behavior.md), [activity.md](../../subsystems/activity.md),
+[content-packs.md](../../subsystems/content-packs.md) (the capability rung).
+
+---
+
+## Part 0 — What the bar is today
+
+The **sink is finished.** A room, four bartenders on a real roster with
+shifts and wages, a menu with prices, `order martini` → the on-shift
+`Maker` → the recipe consumes 0.06 L of gin + 0.01 L of vermouth from
+real bottles → a drink in a glass → a Charge settles from the patron's
+credential to the bar's account at Goodkin → the deficit P&L reads
+income against wages. Attendant queue, tip jar, the glass pool. Two
+recipes (martini, daiquiri). The customer-facing loop is real.
+
+Five things are fake or missing, and they are the whole build:
+
+| # | | where |
+|---|---|---|
+| 1 | **The bottles are magic.** `bar.yaml` `populates:` re-clones four house bottles every boot. Bulk drains as drinks pour; the reboot refills. | `saxonberg-lounge/…/location/bar.yaml` |
+| 2 | **A business cannot buy.** `BuyController`'s payer is the giver's own credential; the bar has an account nothing can spend on inputs. | kernel — the one real mechanism gap |
+| 3 | **Nobody restocks.** The back loop (par, inventory, replenish) is designed in daves-bar-slate and unbuilt. Delete the magic without it and the bar runs dry. | the lounge pack |
+| 4 | **The brands are one row each with nothing behind them.** Five corpo `Brand` rows; **no corpo bottle anywhere in the world** — the only branded bottles are two non-Bulkable demo props in `generic-objects/corpo/demo/`; the rail is stamped `crowsfoot-gin`, a demo brand parked in generic-objects; the spirits are "house" categories in base-library. | the corpo packs, generic-objects, base-library |
+| 5 | **Nobody sells to the bar.** No supplier, no store carrying spirits. | a new trade |
+
+---
+
+## Part 1 — ⭐⭐⭐ Why it felt complicated: three axes, one word
+
+> **User: "why is this so complicated?"**
+
+Because everyday language collapses **three different things** into one
+word, and the model inherited the collapse. Kirkland vodka: the **brand**
+is Costco's, the **maker** is a distillery in Ohio that also makes other
+people's vodka, the **capital** is Costco's. Diageo: a dozen heritage
+distilleries make it, the brands feel independent, the capital is one
+megacorp. We had been treating *corpo = brand = producer* as one fact,
+which is why "does Goodkin make whiskey?" seemed to need a mixin on a
+bottle.
+
+| axis | what it is | in the model |
+|---|---|---|
+| **a trade** | a **process** — grow, ferment, distil, extract, cook, bottle | a pack (*pack = a trade*); the vocations test |
+| **a brand** | a **mark** — a label with an `owner` | a `Brand` row; cheap, content-only; anyone's (a corpo, an independent, a player) |
+| **a corpo** | **capital** — it owns businesses | an `Organization`; a corpo distillery is a `Business` with `parentOrganization` (the business = economy / organization = chart split) |
+
+Once separated, the store-brand instinct is exactly right, and it is
+**real economics rather than a stylistic choice**: **corpos private-label
+generics.** Volk is not Veshko's craft; it is the well rail — made in
+volume, consistent, everywhere. Premium is independent *by count*. And
+the wrinkle (capital interest in "independent" wineries) is not an
+exception but a **future mechanic**: a corpo *buying* an independent
+brand — the label stays, the capital changes, and the regulars notice or
+don't. It falls out of the split for free.
+
+### ⭐ The corpo mixin question, answered
+
+> **User: "I would think that GoodkinBrandedMixin always does at least one
+> thing which is it hardwires the brand to goodkin just by composing the
+> mixin. I dunno if that's enough to justify its existence the way
+> templating works."**
+
+It is not. A mixin that only sets a key is what a template row does
+(`_brandKey:`). Mixins are for **behavior**, and with corpo = capital the
+ethos behaviors belong on the corpo's **business** (pricing, the approval
+vector) or on the **material** (aevex's chemistry), never on the bottle.
+**No per-corpo mixins; the corpo packs stay data packs.** (A proposal to
+the contrary was made and withdrawn in the same conversation.)
+
+---
+
+## Part 2 — ⭐⭐ How corporate is the world? Two dials, not one
+
+> **User: "is most stuff corpo affiliated or most not? or half and half?
+> like what's the experience we're actually trying to create."**
+
+- **By volume, mostly corpo.** Walk into any store: the shelf is ~80%
+  generics. That is the NPC floor — the sanctioned faucet, cheap, always
+  there.
+- **By count of interesting things, mostly not.** The good stuff is rare
+  and made by somebody — and "somebody" is the player-apex. This is the
+  corpos slate's own thesis (*large = corpo = floor; micro = independent
+  = apex*) made concrete.
+
+The **feel** dial — 80/20 vs 50/50 — is genuinely stylistic and stays
+**out of the kernel**: it is how many generics vs independents a shelf
+stocks, which is content (a venue's par list) and a distribution setting.
+The pedagogy is strongest exactly here — *why is the store brand cheaper,
+and who really made it* is a real question with a real answer.
+
+---
+
+## Part 3 — The corpos in booze: two, and what each actually does
+
+> **User: "I dunno if every corpo makes alcohol. Maybe just two."**
+
+With corpo = capital the question becomes "which corpos own a distillery
+or a bottling line", and two is right:
+
+| corpo | in booze? | what it does |
+|---|---|---|
+| **Veshko** (industrial, vertical integration) | **yes — makes** | owns the volume distillery. **Volk** vodka (the well) and the generic whiskey. |
+| **Hollis** (mass retail) | **yes — private-labels** | distils nothing; **Old Hollis** / **Hollis Cane** are Veshko's liquid under a cheaper label — the Kirkland structure, literally, and a lovely thing for a curious player to discover. |
+| **Vionne** (luxury house) | later | makes nothing; **owns** a premium brand it *bought* — the capital-interest mechanic. Until acquisition exists, Vionne has no bottle. |
+| **Goodkin** (staples, food) | no | not in spirits. Its whiskey line is retired; a staples corpo belongs in beer, coffee, or bread. |
+| **Aevex** (synthetics) | no — a different trade | *aevex zero* is not a spirit; it is a synthetic **material** (zero congeners) from **compounding** (pharma). The brand row stays; not this build. |
+| **the independents** | **yes — make** | the premium tier by count; the player-apex. **Crowsfoot Gin** is the exemplar. |
+
+### The shelf (the roster, re-cut)
+
+| brand | owner | category | the drink it exists for |
+|---|---|---|---|
+| Volk | Veshko | vodka | vodka soda — the well |
+| Old Hollis | Hollis (Veshko's liquid) | whiskey | whiskey sour |
+| Hollis Cane | Hollis (Veshko's liquid) | rum | the daiquiri |
+| Crowsfoot Gin | independent | gin | the house martini |
+| *(house vermouth)* | generic | vermouth | the martini — until winemaking |
+| *(ale)* | generic → brewing | beer | a pint |
+| *(red / white)* | generic → winemaking | wine | a glass |
+
+Every brand has a drink; every drink has a bottle; **the shelf takes a
+side** (the corpos slate's legibility payoff) — Volk in the well, Old
+Hollis for the regulars, one Crowsfoot from the little place across town.
+Vionne Noir, Vionne Rouge, Goodkin Reserve and aevex zero **come off the
+rail** — their rows survive as brands with no product until their
+mechanics (acquisition, compounding) exist. *Nothing is half-grown.*
+
+---
+
+## Part 4 — ⭐⭐ The industry lines are PROCESSES, never substances
+
+> **User: "does spirits include beer and wine? what about cannabis? where
+> are the lines between these industries? where does libations stop and
+> pharma begin? what about mixers?"**
+
+Alcohol *is* a drug; what differs between libations and pharma is the
+**process**, and a trade is a process:
+
+| process | trade | products |
+|---|---|---|
+| **grow** | farming — husbandry / smallholding (ships) | grain, grapes, cane, limes, botanicals, **cannabis flower**, tobacco |
+| **ferment** | **brewing** (beer) · **winemaking** (wine; vermouth is fortified wine) | the durative transform — supply-chain Part 1 |
+| **distil** | **distilling** | gin, vodka, whiskey, rum |
+| **extract / react / purify** | **pharma** (the farming slate's synthesis branch) | tinctures, cannabis extracts, aevex zero |
+| **cook** | hearth-cooking (ships) | syrups, edibles |
+| **press / bottle** | a bottling line — *or* hospitality's own labor | juice, soda, tonic |
+
+- **Cannabis is three things in three trades**: flower is a farm product
+  (like tobacco), extract is pharma, an edible is cooking. No "cannabis
+  trade".
+- **Mixers**, for the bar, are hospitality's own labor (pressed lime,
+  house syrup) plus generics bought like anything else. A bottling trade
+  earns its pack when someone can make a living at it — not before.
+- **Vermouth needs winemaking**, which itself needs distilling's spirit
+  (the convergence supply-chain Part 6 found). So until winemaking
+  *produces*, vermouth is a generic the bar buys.
+
+### ⭐ The three libation trades, and what a stub is
+
+> **User: "I kinda wanna stub the winemaking and maybe even brewery trades
+> if we're planning on stocking beer and wine in the bar."**
+
+Three trade packs, one per process. **Distilling** ships whole at the
+supply tier; **brewing** and **winemaking** ship as *stubs* — and a stub
+here has a precise meaning that keeps *never half-grown* honest:
+
+> **A stub trade ships everything DOWNSTREAM of production and nothing
+> of production itself.** Its materials, its vessels (bottle / keg /
+> cask presets), its brand rows, its generic floor product on the
+> distributor's shelf, and the hospitality recipe that serves it. What
+> it does not ship is the transform that makes the liquid — the ferment
+> and the still are the **distillery build** (supply-chain Parts 1 + 6),
+> where the independent producer and the player-apex arrive together.
+
+So beer and wine are on Dave's shelf, bought and poured and paid for
+like everything else, from a floor that is honestly a floor. A stub is
+complete at its tier, exactly as the retail slate's general store was.
+
+---
+
+## Part 5 — The packs
+
+| pack | rung | ships | depends on |
+|---|---|---|---|
+| **`trade-distilling`** | capability | the spirit **materials** (gin, vodka, whiskey, rum — out of base-library), the `Bottle` preset (a `GradedReceptacle` with the glassware boilerplate — the `Potion` pattern), the **still** (a furnace-family station, so the distillery build has its tool waiting), the independent brand + bottle (**Crowsfoot Gin** — out of generic-objects), the generic floor bottles, the trade's **showroom** (below), the `distilling` discipline (the discipline rule: with the pack whose code derives it) | platform, base-library (glass, water), generic-objects for nothing |
+| **`trade-brewing`** (stub) | data | ale / lager materials (`drink/ale` out of base-library), keg + cask presets, a generic floor beer, "a pint" | platform, trade-distilling? no — independent |
+| **`trade-winemaking`** (stub) | data | wine materials (red, white) + **vermouth** (out of base-library — fortified wine is winemaking's), the wine `Bottle`, generic floor wines + the house vermouth, "a glass of …" | trade-distilling (fortification names its spirit) |
+| **`corpo-veshko`** | data | the Volk bottle rows + the **Veshko distillery** — a `Business` (`parentOrganization: veshko`) that is the floor's producer of record | trade-distilling |
+| **`corpo-hollis`** | data | the Old Hollis / Hollis Cane bottle rows (the private label: `interiorMaterial` = Veshko's generic, `_brandKey` = Hollis's) | trade-distilling, corpo-veshko |
+| **`trade-hospitality`** | data | four new recipes (vodka soda, whiskey sour, a pint, a glass of wine); the mixers as house labor | + the three libation trades |
+| **`saxonberg-lounge`** | capability (LoungeMixin) | the four magic `populates` lines **deleted**; the bar's **par manifest**; Mara's **restock** brain; the Bar's shelf re-cut per Part 3 | + the libation trades, corpo-veshko, corpo-hollis |
+
+### ⭐⭐ The showroom is the distributor, and the corpos consign into it
+
+Every trade ships a showroom (content-packs-slate A13). Distilling's is
+a **cash-and-carry** — the store hinge from supply-chain Part 3: a
+`Business` with a `Stock` counter that the bar *buys* from. Two rules
+keep the dependency graph honest:
+
+- **The distributor stocks by consignment, never by `populates`.** A
+  corpo pack *consigns* its bottles onto the distributor's stock
+  (consignment is the shipped mechanism, and it is exactly diegetic:
+  Hollis consigns to the wholesaler). The annex knows the host, never
+  the reverse — `trade-distilling` never names a corpo.
+- **The floor is minted at the producer of record**, not at the shelf.
+  Veshko's distillery is the sanctioned faucet (the corpos slate's
+  *large = corpo = floor*): the distribution sweep keeps its stock at
+  target and the distillery consigns onward. When the distillery build
+  lands, the *independent* producer replaces the faucet for its own
+  brand and nothing else changes.
+
+**Who owns the distributor** — an independent cash-and-carry, or
+Hollis (mass retail is literally that)? *Decision deferred to
+requirements.* The Hollis answer is dramatic (the outsider Crowsfoot
+must sell through the megacorp) and real; the independent answer is
+simpler and keeps the corpo count at two. ⚠ Either way it is a Business
+with positions, an account and a bank — *everything is a business*.
+
+---
+
+## Part 6 — The kernel bill (small)
+
+| # | what | why it is kernel |
+|---|---|---|
+| 1 | **A purchase paid from a business account.** `buy <thing> --for <business>` (or the proprietor's / a purchasing position's standing authority) settles from the business's account, stamps the chattel to the business. | the one gap supply-chain Part 3 named; used by the restock brain and a player proprietor alike |
+| 2 | **The par manifest.** `{ input category, min grade, par level (L or count), supplier }` on the venue — an owner-set policy. | the daves-bar slate's "one genuinely new piece, and small" |
+| 3 | **`restock` — the back loop as a brain + an activity.** Count the rail against par (a perception act — you *see* what is low), buy the shortfall from the supplier on the business's account, carry it in, place it on the back-bar. NPC-first (Mara's brain), player-available (the same verbs). | closes the loop with NPCs alone — DAU-independent |
+| 4 | The `Bottle` / `Keg` / `Cask` presets. | the `Potion` pattern; a catalog row is three lines |
+| 5 | The **grade seam** (supply-chain Part 6): filling a receptacle carries the batch's band onto it. | small, load-bearing for the distillery build; verify first |
+
+Not kernel, deliberately: the shelf-mix dial (content); brand ethos
+behaviors (the corpo's business + the approval vector, Phase 2 of the
+corpos slate); the ferment transform + the still's recipes (the
+distillery build); the bottling line; acquisition (the capital-interest
+mechanic — its own slate when a corpo first buys a brand).
+
+---
+
+## Part 7 — ⭐ Putting things where they go: the generic drain
+
+> **User: "I wanna start putting things where they really go instead of
+> 'generic' object buckets."**
+
+`generic-objects` is the junk drawer by its own description, and
+`base-library` has grown product categories that belong to trades. The
+rule this build applies, and every later pack applies again:
+
+> **A row lives in the pack whose PROCESS makes it or whose CONTENT
+> names it. The commons keeps only what no trade makes and every trade
+> uses.**
+
+What this build moves (the libation rows), and where the rest goes when
+its trade arrives:
+
+| today | rows | goes to |
+|---|---|---|
+| `base-library/material/spirit/` | gin, rum, vermouth, lime | **trade-distilling** (gin, rum + vodka, whiskey new); vermouth → **trade-winemaking**; lime → farming produce (a `food/` material beside the crops it comes from) |
+| `base-library/material/drink/ale` | ale | **trade-brewing** |
+| `base-library/material/cocktail/mixed` | mixed | **trade-hospitality** (the drink is the bar's) |
+| `generic-objects/idea/corpo/Brand/crowsfoot-gin` + `thing/corpo/demo/*` | the independent brand; two demo bottles | brand + bottle → **trade-distilling**; the demo props **deleted** (the real bottles replace them) |
+| `saxonberg-lounge/thing/{gin,rum,vermouth,lime}-bottle` | the four magic bottles | **deleted**; the rail is bought stock |
+| `generic-objects/thing/vessel/{mug,urn,thermos}` | drinkware, an urn, a thermos | mug → **trade-hospitality**; urn/thermos stay commons (every trade uses them) |
+
+Not this build, but named so the drain has a direction — the rest of
+`generic-objects` by the same rule: `arms/` + `armor/` → the smithing
+trade (what it makes) with a future armoury; `gear/{anvil,smiths-hammer}`
+→ trade-smithing (already its stations' twins); `items/{cuts, logs,
+rations}` → hearth-cooking / a butchery trade / forestry as each arrives;
+`instrument/` → a scientific-instruments trade (the instrumentation
+slate); `crop/`, `seed/`, `plant/`, `pot/`, `bed/` → farming; `clothes/`
+→ textiles (the cosmetics slate's chain); `traps/` → the trapping /
+security trade; `room/`, `exits/`, `surface/`, `fixture/` → the platform
+or a builder's trade. What remains commons is short: `Coin`, `Key`,
+`PaymentCard`, `AetherImplant`, `Corpse`, water, air, salt-water.
+
+---
+
+## Part 8 — What "fully operational" means (the acceptance shape)
+
+The bar is operational when this runs **with no player logged in**:
+
+1. Boot on a fresh DB. No `populates` mints a bottle. The Veshko
+   distillery stands at its stock target; Hollis's and Veshko's bottles
+   are consigned at the distributor; Crowsfoot's one bottle is consigned
+   too (the independent, at the floor **only until the distillery build**
+   — flagged, not hidden).
+2. The bar opens with an **empty rail** and a par manifest. Mara's brain
+   runs `restock` on her shift: counts, buys on the bar's account, carries
+   in, places. The distributor's stock falls; the bar's account falls;
+   the consignor's account rises on resale.
+3. A patron orders a martini (Crowsfoot + house vermouth), a daiquiri
+   (Hollis Cane + pressed lime), a vodka soda (Volk), a whiskey sour (Old
+   Hollis), a pint, a glass of red. Each consumes real bulk from a bought
+   bottle; each settles a Charge.
+4. The rail drains over a game-week; restock replenishes it; the bar's
+   P&L now carries **cost of goods** against income and wages, so the
+   deficit the central bank subsidises is a real number and the
+   credit slate's `match_rate` has something true to measure.
+5. Nothing is ever refilled by a reboot.
+
+---
+
+## Open (for requirements)
+
+- Who owns the distributor (Part 5).
+- Whether `restock` is one verb (count + buy + place) or the three it
+  is made of; whether a player bartender may run it without the
+  proprietor's purchasing authority (a position that `confers` it).
+- The par manifest's home: a field on the Business (policy is the
+  owner's) or on the venue (the shelf is the room's). Leaning Business.
+- The pour: does "a pint" consume from a keg via the existing bulk
+  transfer, or does brewing's stub need a **tap** station? (A keg is a
+  `Receptacle`; a tap is a `Surfaced` fixture that dispenses — probably
+  the latter, and it is small.)
+- Lime: a farm product the bar *presses*. Does hospitality ship a
+  `press` recipe (lime → juice, bulk output) now, or is juice a generic
+  until farming ships citrus? Leaning: the recipe now, the crop later.
+- The Crowsfoot faucet: consigned at the floor until the distillery
+  build (accepted above), or off the rail until then? The conversation
+  leaned *off the rail*; Part 8 keeps it *on, flagged* so the martini
+  still exists. **Requirements decides.**
