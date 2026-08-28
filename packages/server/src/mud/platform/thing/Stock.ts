@@ -11,6 +11,8 @@
  * `populates`-cloned into the container, and `prices` is keyed by the item
  * template path (the offer key). A buy moves one shelf item to the buyer;
  * the reset sweep (see `ResettableMixin`) tops each line back to `par`.
+ * A counter with NO `stockLines` is a pure brokerage — everything on it
+ * was consigned (the cash-and-carry distributor).
  */
 
 import { Vessel } from "../../lib/stuff/Vessel";
@@ -19,6 +21,8 @@ import { PricedOfferMixin } from "../../lib/commerce/PricedOffer";
 import { AttendantMixin } from "../../lib/attendant/Attendant";
 import { ResettableMixin } from "../../lib/residency/Resettable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
+import { PersistableMixin } from "../../lib/persistence/Persistable";
+import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
 import { MqlApi } from "../../api/mql";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
@@ -39,8 +43,19 @@ export interface StockLine {
   brandKey?: string;
 }
 
-const StockBase = ResettableMixin(
-  AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
+// One counter is BOTH the house's shelf and a brokerage shelf (libations
+// D4): `ConsignmentShelfMixin` holds the listings a consignor (a player,
+// or a producer's floor hand consigning AS its business) puts up, so a
+// distributor whose counter carries no `stockLines` at all — the
+// cash-and-carry — is still a `Stock` (`buy` resolves either). `Persistable`
+// is outermost and load-bearing exactly as on `ConsignmentShelf`: a good
+// in the shop's custody survives a bounce.
+const StockBase = PersistableMixin(
+  ConsignmentShelfMixin(
+    ResettableMixin(
+      AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
+    ),
+  ),
 );
 
 export default class Stock extends StockBase {

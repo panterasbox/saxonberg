@@ -28,7 +28,7 @@
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import Stock from "../../../thing/Stock";
-import ConsignmentShelf from "../../../thing/ConsignmentShelf";
+import ConsignmentShelf, { type ShelfStuff } from "../../../thing/ConsignmentShelf";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
@@ -77,10 +77,20 @@ export default class BuyController extends CommandController<BuyModel> {
       }
     }
 
-    const stockItem = stock?.resolveBuy(model.thing) ?? null;
-    const listItem = stockItem
-      ? null
-      : shelf?.resolveConsigned(model.thing) ?? null;
+    // One counter can be both the house's shelf and a brokerage (`Stock`
+    // composes the shelf): a good that carries a live listing is a
+    // consignment wherever it sits, never a priced stock line.
+    const candidate = stock?.resolveBuy(model.thing) ?? null;
+    const listed =
+      candidate && shelf && MixinApi.isChattel(candidate)
+        ? shelf.listingFor(candidate.getChattelId()) !== null
+        : false;
+    const stockItem = candidate && !listed ? candidate : null;
+    const listItem = listed
+      ? candidate
+      : stockItem
+        ? null
+        : shelf?.resolveConsigned(model.thing) ?? null;
     if (!stockItem && !listItem) {
       this.reject(
         giver,
@@ -147,7 +157,7 @@ export default class BuyController extends CommandController<BuyModel> {
   /** Buy a consignment listing — settle the ask, split to the consignor,
    *  transfer the owner-stamp to the buyer. */
   private async buyListing(
-    shelf: ConsignmentShelf,
+    shelf: ShelfStuff,
     item: Stuff & Containable,
     stock: Stock | null,
     giver: Stuff,

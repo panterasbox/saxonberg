@@ -1,0 +1,32 @@
+# The cash-and-carry — the distributor as a Business. Independent (no
+# `parentOrganization`): the trade's showroom, not a corpo's. Two positions:
+# `clerk` (the rostered pair of hands on the counter) and `keeper`
+# (`purchases: true`, unfilled — a player path: whoever holds it buys for
+# the house with `wallet use house`). The Prime Minister's office appoints
+# until the trade has a seat of its own. Operates the counter (where `buy`
+# settles) and the showroom (where `wallet use house` resolves the house).
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: clerk
+      label: working the cash-and-carry counter
+      wageRate: 5
+      confers: []
+    - key: keeper
+      label: keeping the cash-and-carry
+      wageRate: 0
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: clerk
+      assignee: /trade/distilling/agent/clerk
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
+  banksAt: goodkin
+  operatingLocations:
+    - /trade/distilling/thing/counter
+    - /trade/distilling/location/cash-and-carry

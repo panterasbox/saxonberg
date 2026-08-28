@@ -1,0 +1,22 @@
+# The generic floor bottle of orange liqueur — the distributor's own house
+# product (the "small outfit" consignor's, until the distillery build
+# makes it). A `SpiritBottle` row: `censusKey` + `regionTarget` make it a
+# floor product the spawn sweep stands at target, and its home
+# `container:` is the floor outfit's Stock — the ONLY faucet. The hand
+# carries it to the cash-and-carry counter and consigns it as the outfit.
+class: /trade/distilling/thing/SpiritBottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of orange liqueur
+  longDescription: A slim bottle of orange liqueur, sticky at the neck.
+  primaryKeyword: liqueur
+  keywords: [liqueur, bottle, orange, spirit]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /trade/distilling/idea/material/orange-liqueur
+  interiorAmount: 0.75
+  gradeBand: fair
+  censusKey: spirit:orange-liqueur
+  regionTarget: 12
+  materialTags: [spirit, liqueur, orange-liqueur]
+  container: /trade/distilling/thing/floor-stock

@@ -29,6 +29,7 @@ import {
   type EmploymentStatus,
 } from '../../../lib/employment/Employment';
 import { Currency } from "../../../lib/banking/Currency";
+import { UNCAPPED } from '../../../lib/credential/Credential';
 
 /** One game-hour in game-seconds — the roster tick cadence. */
 const ONE_GAME_HOUR_S = 3_600;
@@ -267,18 +268,56 @@ function allBusinessesImpl(): BusinessStuff[] {
 }
 
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
-function hireImpl(
+async function hireImpl(
   organization: OrganizationStuff,
   actor: Stuff,
   positionKey: string,
-): Employment | null {
+): Promise<Employment | null> {
   if (!MixinApi.isEmployed(actor)) return null;
-  return organization.hire(
+  const record = organization.hire(
     actor as EmployedActor,
     positionKey,
     WorldClockApi.getNow().rawValue(),
   );
+  if (record) await issueHouseCardImpl(organization, actor, positionKey);
+  return record;
 }
+
+/**
+ * The house card — the NPC shape of the purchasing conferral (libations
+ * 3d). A **player** in a `purchases` position links the operating account
+ * into the implant they already carry (`wallet use house`); an NPC runs no
+ * default loadout and has no implant, so a `purchases` holder that is not
+ * an Avatar is dealt a `PaymentCard` linked to the business's operating
+ * account at hire — the same credential kind, the same `buy`/`consign`
+ * path, a different holder class. Idempotent: a card already linked to
+ * that account is left alone. A business with no `banksAt` has no
+ * account to link — nothing is issued.
+ */
+async function issueHouseCardImpl(
+  organization: OrganizationStuff,
+  actor: Stuff,
+  positionKey: string,
+): Promise<void> {
+  if (!MixinApi.isBusiness(organization)) return;
+  const position = organization.getPosition(positionKey);
+  if (!position?.purchases) return;
+  if (PlayerApi.isAvatarStuff(actor) || !MixinApi.isContainer(actor)) return;
+  let account: string;
+  try {
+    account = await operatingAccountOfImpl(organization as BusinessStuff);
+  } catch {
+    return;
+  }
+  for (const held of actor.getContents()) {
+    if (!MixinApi.isCredentialWallet(held)) continue;
+    if (held.getCredential('payment')?.hasAccount(account)) return;
+  }
+  await BankingApi.issueCard(account, UNCAPPED_HOUSE_CARD, actor);
+}
+
+/** The house card's spend cap: the position's authority is the seat's, not a number. */
+const UNCAPPED_HOUSE_CARD = UNCAPPED;
 
 /** Fire / quit — flip the record's status (history is preserved). The
  * mutation is the business's own transition when its Idea is standing;
@@ -754,11 +793,24 @@ export class EmploymentLogic extends ApiLogic {
         if (!actor || !MixinApi.isEmployed(actor)) continue;
         const employed = actor as EmployedActor;
 
+        const fresh = !employed.getEmployment(businessPath);
         const emp = business.ensureRostered(
           employed,
           assignment.positionKey,
           nowRaw,
         );
+        if (fresh) {
+          // A roster-materialized purchasing NPC is dealt its house card
+          // (3d) — fire-and-forget like the wage settle below: the tick
+          // is synchronous by design, and the card is idempotent.
+          void issueHouseCardImpl(
+            business,
+            actor,
+            assignment.positionKey,
+          ).catch((err) =>
+            console.error('EmploymentLogic: house card issue failed', err),
+          );
+        }
         if (TERMINAL.includes(emp.status)) continue;
 
         const desired = roster.evaluate(assignment, date);
@@ -852,11 +904,11 @@ export class EmploymentLogic extends ApiLogic {
 
   /** See {@link EmploymentApi.hire}. */
   @CallSecurity(EmploymentApiCallers)
-  public hire(
+  public async hire(
     organization: OrganizationStuff,
     actor: Stuff,
     positionKey: string,
-  ): Employment | null {
+  ): Promise<Employment | null> {
     return hireImpl(organization, actor, positionKey);
   }
 

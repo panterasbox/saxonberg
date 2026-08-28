@@ -1,0 +1,22 @@
+# The generic floor bottle of bitters — the distributor's own house
+# product (the "small outfit" consignor's, until the distillery build
+# makes it). A `SpiritBottle` row: `censusKey` + `regionTarget` make it a
+# floor product the spawn sweep stands at target, and its home
+# `container:` is the floor outfit's Stock — the ONLY faucet. The hand
+# carries it to the cash-and-carry counter and consigns it as the outfit.
+class: /trade/distilling/thing/SpiritBottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of aromatic bitters
+  longDescription: A small dasher bottle of aromatic bitters, the cap crusted.
+  primaryKeyword: bitters
+  keywords: [bitters, bottle, dasher, spirit]
+  interiorBulk: true
+  interiorCapacity: 0.2
+  interiorMaterial: /trade/distilling/idea/material/bitters
+  interiorAmount: 0.2
+  gradeBand: fair
+  censusKey: spirit:bitters
+  regionTarget: 12
+  materialTags: [spirit, bitters]
+  container: /trade/distilling/thing/floor-stock

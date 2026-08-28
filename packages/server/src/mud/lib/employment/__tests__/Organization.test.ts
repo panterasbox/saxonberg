@@ -128,13 +128,13 @@ describe('OrganizationMixin', () => {
     expect(EmploymentApi.holdersOf(ministry, POSITION.key)).toEqual([]);
   });
 
-  it('supports a wage-0 position — a volunteer is a wage-0 employee (AC 5)', () => {
+  it('supports a wage-0 position — a volunteer is a wage-0 employee (AC 5)', async () => {
     const ministry = makeStuffAtPath(() => new OrganizationEntity(), MINISTRY);
     ministry.positions = [POSITION];
     expect(ministry.getPosition(POSITION.key)?.wageRate).toBe(0);
 
     const holder = makeStuffAtPath(() => new EmployedHost(), HOLDER);
-    const record = EmploymentApi.hire(
+    const record = await EmploymentApi.hire(
       ministry,
       holder as unknown as Stuff,
       POSITION.key,

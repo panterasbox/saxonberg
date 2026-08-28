@@ -1,0 +1,24 @@
+# The cash-and-carry — the distributor's showroom, where every venue buys its
+# rail. A `warehouse` instance (the racking) plus the counter and the clerk.
+# Trade-facing: a keeper walks in, `wallet use house`, `buy gin` — the good
+# is stamped to the house and the consignor's account rises.
+#
+# Off the counting-houses avenue (SOUTH back to the street — the annex
+# names the host; the avenue's return exit is world-seed's to declare).
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the cash-and-carry
+  primaryKeyword: cash-and-carry
+  keywords: [cash-and-carry, distributor, warehouse, showroom]
+  longDescription: |
+    A high, cold hall that smells of sawdust and spilled spirit. Steel racking climbs the walls, cased and chalk-numbered; a long counter runs under a board of consignors' asks, and beyond a roller door somebody's dray is always half-unloaded. Nothing here is for the thirsty — it is where the thirsty's bartender comes.
+  ambientIntensity: 30
+  ambientColorTemperature: 4200
+  exits:
+    south:
+      destination: /world/terminus/counting-houses/avenue-block
+  populates:
+    - /trade/distilling/thing/racking
+    - /trade/distilling/thing/counter
+    - /trade/distilling/agent/clerk

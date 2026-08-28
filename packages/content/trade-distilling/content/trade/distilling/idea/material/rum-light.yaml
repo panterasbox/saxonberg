@@ -1,0 +1,19 @@
+# Light rum — a spirit input. The category tag(s) are what a recipe
+# input slot matches (rum, light-rum); the brand is the ROW's
+# (`_brandKey`), never the material's. Distilling's, by the generic drain
+# rule: the trade whose PROCESS makes it ships it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: light rum
+  appearance: a clear, grassy light rum
+  keywords: [rum]
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 19 }
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, rum, light-rum]
+  composition: []
+  biologicalSource: null

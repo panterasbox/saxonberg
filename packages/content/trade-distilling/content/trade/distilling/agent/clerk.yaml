@@ -1,0 +1,35 @@
+# Tam Ferrier — the cash-and-carry clerk. The rostered pair of hands on the
+# counter (position `clerk`); with the counter self-service + instant, she
+# is a voice and a ledger rather than a gate. Does NOT consign — the hands
+# do; she tallies what comes in and reads the asks off the board.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Tam Ferrier
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: clerk
+  alternateNames: [tam, ferrier]
+  shortDescription: a brisk clerk with a stub of chalk
+  longDescription: |
+    A wiry woman in a leather apron with a stub of chalk behind one ear and a tally-book chained to her belt. She counts a delivery once, fast, and is never wrong; the chalkboard of asks above the counter is in her hand, and so is the price of everything on it.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+    - { disposition: composure, valence: 50 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "\"Trade only, mind — but if you're buying for a house, the board's the board.\" Tam taps the chalk on the counter."
+          - "\"Everything on the shelf came in on consignment. You want to know whose, look at the label.\""
+    - brain: /lib/behavior/idles
+      trigger: cadence:23s
+      config:
+        pool:
+          - { kind: free, value: "chalks a fresh ask on the board and rubs out an old one with her thumb." }
+          - { kind: free, value: "counts a case of bottles by running a finger down the necks." }
+          - { kind: say, value: "Mind the dray." }

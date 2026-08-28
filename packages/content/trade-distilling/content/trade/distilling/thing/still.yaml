@@ -1,0 +1,10 @@
+# The pot still — the distiller's station. Nothing runs it yet (no recipe
+# names `still`); the distillery build's. Ships so the trade's tool exists
+# as a row and the class has a name.
+class: /trade/distilling/thing/Still
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a copper pot still
+  longDescription: A squat copper pot still, its swan neck green at the joints, the firebox cold.
+  keywords: [still, pot-still, copper]
+  capabilities: [still]

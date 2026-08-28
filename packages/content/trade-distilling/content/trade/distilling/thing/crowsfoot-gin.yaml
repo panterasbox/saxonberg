@@ -1,0 +1,21 @@
+# Crowsfoot Gin — the small-batch independent Dave's rail pours. ⚠ FLAGGED:
+# consigned by the "small outfit" consignor (the Crowsfoot floor, below)
+# until the distillery build gives it a still of its own; the brand row is
+# generic-objects' until the generic drain (phase 5) moves it here.
+class: /trade/distilling/thing/SpiritBottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of Crowsfoot gin
+  longDescription: A bottle of Crowsfoot gin — a hand-numbered label, a crow's foot pressed into the wax.
+  primaryKeyword: crowsfoot
+  keywords: [crowsfoot, gin, bottle, spirit]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /trade/distilling/idea/material/gin
+  interiorAmount: 0.75
+  gradeBand: fine
+  _brandKey: crowsfoot-gin
+  censusKey: spirit:crowsfoot-gin
+  regionTarget: 3
+  materialTags: [spirit, gin, small-batch]
+  container: /trade/distilling/thing/crowsfoot-stock

@@ -49,10 +49,10 @@ describe('EmploymentApi / EmploymentLogic', () => {
     vi.restoreAllMocks();
   });
 
-  it('hires an actor into a position (record materializes)', () => {
+  it('hires an actor into a position (record materializes)', async () => {
     const biz = seedBusiness();
     const mara = seedWorker(MARA);
-    const emp = EmploymentApi.hire(biz, mara, 'bartender');
+    const emp = await EmploymentApi.hire(biz, mara, 'bartender');
     expect(emp?.positionKey).toBe('bartender');
     expect(emp?.status).toBe('employed');
     const stored = mara.getEmployment(BUSINESS);

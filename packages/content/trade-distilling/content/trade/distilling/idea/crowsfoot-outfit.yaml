@@ -1,0 +1,27 @@
+# The crowsfoot outfit — The small place across town that makes Crowsfoot Gin — independent, carried by no corpo.
+# An OUTFIT: a Business + a Stock its floor product spawns into + a hand
+# with the `consigns` brain. The hand's `hand` position `purchases`, so at
+# hire it is dealt the house card (EmploymentLogic, libations 3d) and its
+# `wallet use house` / `consign` trade AS this business — each resale at
+# the cash-and-carry splits to this operating account.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: hand
+      label: running the Crowsfoot outfit's floor
+      wageRate: 3
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: hand
+      assignee: /trade/distilling/agent/crowsfoot-hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /trade/distilling/location/crowsfoot-floor
+    - /trade/distilling/thing/crowsfoot-stock

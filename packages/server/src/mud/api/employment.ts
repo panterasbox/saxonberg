@@ -184,12 +184,17 @@ export class EmploymentApi {
     return logic().organizationChainOf(organization);
   }
 
-  /** Hire `actor` into `organization`'s `positionKey`. Returns the record. */
+  /**
+   * Hire `actor` into `organization`'s `positionKey`. Returns the record.
+   * A non-Avatar hired into a `purchases` position is dealt the house
+   * card (a `PaymentCard` on the operating account) — the NPC shape of
+   * the wallet conferral.
+   */
   public static hire(
     organization: OrganizationStuff,
     actor: Stuff,
     positionKey: string,
-  ): Employment | null {
+  ): Promise<Employment | null> {
     return logic().hire(organization, actor, positionKey);
   }
 

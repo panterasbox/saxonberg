@@ -1,0 +1,37 @@
+id: trade-distilling
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/distilling
+description: >-
+  The distilling trade — the second CAPABILITY pack (libations). What
+  turning a wash into a spirit introduces, cut at the trade's PROCESS and
+  never at a substance: the spirit materials (gin, vodka, whiskey, the two
+  rums, tequila, the liqueurs, aperitivo, bitters), the stock vessel every
+  floor product is a row over (`SpiritBottle`), the still (the distillery
+  build's tool, waiting), the `distilling` discipline its recipes will
+  derive, and the CASH-AND-CARRY — the distributor every venue buys its
+  rail from. Nothing here is `populates`-magic: the floor product stands
+  at target through the spawn sweep (the sanctioned faucet), and a
+  producer's own outfit consigns it onto the distributor's counter with
+  the `consigns` brain. The trade names nobody; the annexes (the corpo
+  packs, the stub trades) name the counter.
+requires:
+  groups:
+    - name: distilling
+      purpose: the distilling trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/distilling, holder: { group: distilling } }
+boot:
+  # The three floors: nothing else ever instantiates a producer's yard, and
+  # the hands that run the consigns brain must be resident for the beat to
+  # fire (a room populates its cast).
+  - { template: /trade/distilling/location/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the annexes' hands to consign onto it and for the boot spawn sweep to have a census" }
+  - { template: /trade/distilling/location/floor, role: producer, reason: "the floor outfit's yard — its Stock is the home container the floor rows spawn into, and its hand runs the consigns brain" }
+  - { template: /trade/distilling/location/crowsfoot-floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
+  # The three businesses: the roster tick materializes the hands'
+  # purchasing positions (and deals each its house card) only over a LIVE
+  # business — a lazily stood-up one would leave the first beat trading as
+  # nobody.
+  - { template: /trade/distilling/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
+  - { template: /trade/distilling/idea/floor-outfit, role: producer, reason: "the floor hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }
+  - { template: /trade/distilling/idea/crowsfoot-outfit, role: producer, reason: "the Crowsfoot hand's `purchases` position likewise" }

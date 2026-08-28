@@ -1,0 +1,22 @@
+# The cash-and-carry counter — the distributor's Stock fixture with NO
+# `stockLines`: nothing here is cloned to par, and `reset()` is a no-op. It
+# composes the consignment shelf (one counter is both), so everything on it
+# was CONSIGNED — by a producer's floor hand trading as its outfit (the
+# `consigns` brain), by a corpo's, by a player. A venue's keeper buys here
+# (`wallet use house`, `buy gin`), and each sale splits to the consignor's
+# operating account. Self-service and instant, like the general store's.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the cash-and-carry counter
+  primaryKeyword: counter
+  keywords: [counter, shelf, shelves, goods, stock, till]
+  longDescription: |
+    A long scarred counter with a till at one end and a chalkboard of consignors' asks above it — every case on the shelves behind came in on somebody's dray and goes out on somebody else's. Bottles stand ranked by house: the plain paper labels of the floor generics, a few hand-numbered small-batch bottles, and whatever the corpos' hands brought in this morning.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [clerk]
+  businessPath: /trade/distilling/idea/business
+  stockLines: []
+  prices: {}

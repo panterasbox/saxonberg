@@ -301,12 +301,17 @@ export class BankingApi {
   // .setActiveAccount(id)` / `.setFrozen(true)` directly (the caller holds the
   // record). They were thin forwards through here with no gate to route.
 
-  /** Issue/reissue a payment card linked 1:1 to `accountId`, into inventory. */
+  /**
+   * Issue/reissue a payment card linked 1:1 to `accountId`, into inventory —
+   * the acting principal's, or `holder`'s when named (the house card a
+   * purchasing NPC is dealt at hire; nobody is acting as the NPC then).
+   */
   public static async issueCard(
     accountId: string,
     capMinor: number,
+    holder?: Stuff,
   ): Promise<Stuff & CredentialWallet> {
-    return logic().issueCard(accountId, capMinor);
+    return logic().issueCard(accountId, capMinor, holder);
   }
 
   /* ──────────────── wages + reporting ──────────────── */

@@ -1380,8 +1380,9 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
 async function issueCardImpl(
   accountId: string,
   capMinor: number,
+  holder?: Stuff,
 ): Promise<Stuff & CredentialWallet> {
-  const principal = actingPrincipal();
+  const principal = holder ?? actingPrincipal();
   const card = await StuffApi.clone<PaymentCard>(TemplatePaths.paymentCard);
   const pay = card.ensureCredential("payment");
   pay.linkAccount(accountId);
@@ -2005,8 +2006,9 @@ export class BankingLogic extends ApiLogic {
   public async issueCard(
     accountId: string,
     capMinor: number,
+    holder?: Stuff,
   ): Promise<Stuff & CredentialWallet> {
-    return issueCardImpl(accountId, capMinor);
+    return issueCardImpl(accountId, capMinor, holder);
   }
 
   /* ──────────────── wages + reporting ──────────────── */

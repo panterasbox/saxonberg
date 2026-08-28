@@ -1,0 +1,19 @@
+# Bitter liqueur — a spirit input. The category tag(s) are what a recipe
+# input slot matches (bitter-liqueur, amaro); the brand is the ROW's
+# (`_brandKey`), never the material's. Distilling's, by the generic drain
+# rule: the trade whose PROCESS makes it ships it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: bitter liqueur
+  appearance: a dark, herbal bitter liqueur
+  keywords: [bitter-liqueur]
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 12 }
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, liqueur, bitter-liqueur, amaro]
+  composition: []
+  biologicalSource: null
