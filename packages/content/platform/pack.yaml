@@ -47,6 +47,7 @@ boot:
   - { template: /platform/idea/TopicCatalogue, role: sync-read, reason: topic descriptors resolve synchronously from its lazy cache }
   - { template: /platform/idea/SoulCatalogue, role: sync-read, reason: the runtime verb→Emote cache SoulApi.resolve reads }
   - { template: /platform/idea/RecipeCatalogue, role: sync-read, reason: the runtime recipe index CraftingApi reads }
+  - { template: /platform/idea/ArchetypeCatalogue, role: sync-read, reason: the venue-archetype index ArchetypeApi reads }
   - { template: /platform/idea/BlueprintCatalogue, role: producer, reason: rebuilds the derived skeleton and warms from the curated blueprints at postRegister }
   - { template: /compact/press, role: producer, reason: appoint and the publish path resolve the organization by templatePath }
   - { template: /compact/executive, role: producer, reason: "appoint, the publish path and every organization-held title resolve it by templatePath" }
