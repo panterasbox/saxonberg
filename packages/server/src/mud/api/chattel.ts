@@ -89,6 +89,25 @@ export class ChattelApi {
   }
 
   /**
+   * Whether this good is persisted by its **owner** rather than by the host
+   * holding it — the persistence spine's skip rule (D2). True only for a
+   * good stamped to a **player**: a player is an `EstateMixin` host whose
+   * record carries the good and whose room overlay lays it back down. An
+   * organization has no estate — the goods a business consigns onto its
+   * own counter or buys for its own rail live in that counter's, that
+   * rail's, record — so an organization-stamped good captures with its
+   * host like any fixture. (A stamped-to-nobody good cannot exist: a stamp
+   * IS a titled owner.)
+   *
+   * **Synchronous, like `isStamped`, and for the same reason** — the
+   * capture walk cannot await. It reads the registry's in-memory title
+   * index (rung 1 only); no registry → false, and the good rides its host.
+   */
+  public static isOwnerPersisted(item: Stuff): boolean {
+    return logic().stampedOwnerOf(item)?.kind === "player";
+  }
+
+  /**
    * Record **where the owner keeps** a titled good — a room identity,
    * `'inventory'`, or `'storage'`. The single write path: it sets the
    * good's own field, the `chattel` row's by-room index, and (when the

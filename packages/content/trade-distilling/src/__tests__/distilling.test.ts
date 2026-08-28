@@ -397,12 +397,12 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     expect(cards().length).toBe(1);
   });
 
-  it('a restored hand — record kept, inventory not — is dealt its card again on the next roster tick', async () => {
+  it('a hand that has lost its card (it persists with the hand; this is the one-off) is dealt one on the next roster tick', async () => {
     const hand = makeHand();
     await EmploymentApi.hire(outfit, hand, 'hand');
     const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
     expect(cards().length).toBe(1);
-    // The restart: the record survives on the actor, the card does not.
+    // The card left the hand somehow (a theft, a drop) — the roster deals another.
     ContainmentApi.move(cards()[0] as never, floorRoom as never);
     expect(cards().length).toBe(0);
     outfit.rosterSlots = [
@@ -411,6 +411,36 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     EmploymentApi.tickRoster();
     await new Promise((r) => setTimeout(r, 50));
     expect(cards().length).toBe(1);
+  });
+
+  it('a lift that declines (too heavy) stops the beat — the rest of the floor waits for the next one', async () => {
+    const hand = makeHand();
+    await EmploymentApi.hire(outfit, hand, 'hand');
+    const gin = bottle('spirit:gin', 'gin');
+    const vodka = bottle('spirit:vodka', 'vodka');
+    ContainmentApi.move(gin as never, floorStock as never);
+    ContainmentApi.move(vodka as never, floorStock as never);
+    const lines: string[] = [];
+    // `get gin` declines (too-heavy-to-lift): the bottle stays on the floor.
+    vi.spyOn(CommandApi, 'forceCommand').mockImplementation(async (_giver, text) => {
+      if (text === 'sense') return;
+      lines.push(text);
+      if (text === 'get vodka') ContainmentApi.move(vodka as never, hand as never);
+    });
+    const brainCtx = {
+      host: hand,
+      config: { stock: FLOOR_STOCK, shelf: COUNTER, defaultAsk: 10, batch: 6 },
+      state: {},
+      trigger: { source: 'cadence', raw: 'cadence:90s' },
+      say: () => undefined,
+      emote: async () => undefined,
+      emoteFree: () => undefined,
+    } as unknown as BrainContext;
+    await consigns.act(brainCtx);
+    const gets = lines.filter((l) => l.startsWith('get '));
+    expect(gets.length).toBe(1); // stopped at the first decline, whichever bottle came first
+    expect(gin.getContainer()).toBe(floorStock);
+    if (gets[0] === 'get vodka') expect(lines).toContain('consign vodka --ask 10');
   });
 
   it('the hand consigns only up to its outfit\'s headroom under the listing cap — never at an over-cap decline', async () => {

@@ -49,7 +49,8 @@ no stored row gains a group owner.
 A stamped good also carries a **`place`** (a room identity, `'inventory'`,
 or `'storage'`) and persists **owner-side** rather than with whatever room
 it is standing in. That is the [furnishing](./furnishing.md) subsystem —
-`setPlace` / `followCustody` / `placedIn` / `evictToStorage` / `isStamped`
+`setPlace` / `followCustody` / `placedIn` / `evictToStorage` / `isStamped` /
+`isOwnerPersisted` (stamped to a player — the persistence skip rule's predicate)
 on this same facade, the `place` column on the `chattel` row as a by-room
 index, and the estate slice that carries the goods themselves.
 

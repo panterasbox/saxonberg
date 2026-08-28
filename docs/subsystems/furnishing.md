@@ -65,17 +65,24 @@ now *is* — the one call a custody verb makes after moving something.
 `ContainerMixin.captureSlice` drops two kinds of content:
 
 - a live player avatar (`HasInteractive`) — shipped;
-- a good someone has been **stamped** as owning — this build.
+- a good stamped to a **player** — a good its *owner* persists.
 
 Both in **one filter**, because the Container and Slotted slices read a
 single content ordering and `PersistableLogic` builds the same index; two
 passes would let the worn indices drift.
 
-**It keys on the stamp, not on `ownerOf`.** That is semantically right — a
-fixture under a parcel extent is *owned* (the parcel rung, below) but not
-*stamped*, so it keeps riding its room's record where it belongs — and it
-is also the only version that fits a capture walk that **cannot await**.
-`ChattelApi.isStamped` is the synchronous predicate.
+**It keys on the stamped owner's kind, not on `ownerOf`.** A fixture under
+a parcel extent is *owned* (the parcel rung, below) but not *stamped*, so
+it keeps riding its room's record where it belongs. And only a **player**
+is an `EstateMixin` host with a record of its own to carry the good and a
+room overlay to lay it back down. An **organization** has no estate: the
+goods a business consigns onto its own counter, or buys for its own rail,
+are stamped `{ kind: 'organization' }` and live in that counter's, that
+rail's, record like any fixture — skipping them captured them by *nobody*
+(the libations live drive watched a dev restart empty the cash-and-carry
+counter and the bar). `ChattelApi.isOwnerPersisted` is the synchronous
+predicate (the registry's in-memory title index; `isStamped` is the
+weaker "has a title at all"), because a capture walk **cannot await**.
 
 ## Capture is synchronous, and that shapes everything
 

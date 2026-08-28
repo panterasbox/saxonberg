@@ -114,6 +114,10 @@ export const brain = class {
       const kw = keywordOf(good);
       if (!kw) continue;
       await CommandApi.forceCommand(hand, `get ${kw}`);
+      // A lift that declined (too heavy, not there) leaves the good where
+      // it was — stop rather than grind through the rest; the next beat
+      // starts from what the hand can carry.
+      if (!MixinApi.isContainable(good) || good.getContainer() !== hand) break;
     }
     // Everything chattel the hand now carries goes up — not only what
     // this beat took. A beat whose `consign` failed leaves last beat's

@@ -423,7 +423,7 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
         .getContents()
         .filter(
           (item) =>
-            !MixinApi.isHasInteractive(item) && !ChattelApi.isStamped(item),
+            !MixinApi.isHasInteractive(item) && !ChattelApi.isOwnerPersisted(item),
         )
     : [];
   const indexMap = new Map<Stuff, number>();

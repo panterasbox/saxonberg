@@ -53,6 +53,20 @@ function lookupRegistry(): ChattelRegistry | null {
 @Unshadowable
 export class ChattelLogic extends ApiLogic {
   /** See {@link ChattelApi.ownerOf}. */
+  /**
+   * See {@link ChattelApi.isOwnerPersisted}. The stamped owner alone —
+   * rung 1 of the chain, read synchronously off the registry's in-memory
+   * index (never the parcel or author rungs, which go to the store). Null
+   * for an unstamped good, or when no registry is live.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public stampedOwnerOf(item: Stuff): ChattelOwner | null {
+    if (!MixinApi.isChattel(item)) return null;
+    const id = item.getChattelId();
+    if (!id) return null;
+    return lookupRegistry()?.ownerOf(id) ?? null;
+  }
+
   @CallSecurity(ChattelApiCallers)
   public async ownerOf(item: Stuff): Promise<ChattelOwner | null> {
     return this.resolveOwner(item);

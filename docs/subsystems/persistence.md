@@ -982,8 +982,12 @@ The **second persistence scope** landed: owned chattel persists with its
   now dispatched as step (4) of `restoreState`, after the slotted pass, so
   any layer can carry an async restore hook as originally intended.
 - **`ContainerMixin.captureSlice` skips a second kind of content** — a good
-  someone has been *stamped* as owning. Both skips share ONE filter,
-  because the Container and Slotted slices read one content ordering.
+  stamped to a *player*, whose own estate record carries it
+  (`ChattelApi.isOwnerPersisted`). A good stamped to an *organization* has
+  no estate to ride and stays in its host's record (the libations build:
+  a business's consigned counter, its bought rail). Both skips share ONE
+  filter, because the Container and Slotted slices read one content
+  ordering.
 - **Capture reports what it skipped.** `CaptureContext.noteOwnedGood`, and
   `captureImpl` flushes each skipped good into its owner's estate after the
   synchronous state build. Without it, a good in a room going dormant while

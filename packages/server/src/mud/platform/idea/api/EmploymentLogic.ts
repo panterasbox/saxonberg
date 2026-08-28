@@ -843,10 +843,10 @@ export class EmploymentLogic extends ApiLogic {
         );
         {
           // A roster-materialized purchasing NPC is dealt its house card
-          // (3d) — on EVERY tick, not only a fresh record: a restored NPC
-          // carries its record but not its inventory (the card is not
-          // captured with it), and the issue is idempotent on the
-          // inventory. Fire-and-forget like the wage settle below.
+          // (3d). Idempotent on the inventory — a restored hand carries the
+          // card it was dealt (an unstamped good rides its holder's record)
+          // — so this is a no-op on every tick but the first. Fire-and-
+          // forget like the wage settle below.
           void issueHouseCardImpl(
             business,
             actor,
