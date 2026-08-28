@@ -35,7 +35,7 @@ describe("MagicEffects.validate — the closed union", () => {
   it("parses every catalogued kind", () => {
     const samples: unknown[] = [
       { kind: "inject-channel", channel: "heat", energy: 900 },
-      { kind: "inject-channel", channel: "shock", voltage: 240 },
+      { kind: "inject-channel", channel: "shock", voltage: 240, locus: "/stuff/thing/magic/spark-locus" },
       { kind: "afflict", conditionPath: "/platform/idea/Condition/magic/dread" },
       { kind: "relieve" },
       { kind: "adjust-reserve", reserveKey: "mana", delta: -10 },
@@ -43,10 +43,10 @@ describe("MagicEffects.validate — the closed union", () => {
       { kind: "adjust-blessing", steps: -1 },
       { kind: "move", move: "shove" },
       { kind: "conjure", bulkMaterial: "water", litres: 1 },
-      { kind: "conjure", templatePath: "/stuff/thing/magic/GlowlightOrb" },
+      { kind: "conjure", templatePath: "/stuff/thing/magic/glowlight-mote" },
       { kind: "sense", sense: "detect-magic" },
       { kind: "cloak", disguise: "a veiled figure" },
-      { kind: "emit-field", field: "light" },
+      { kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" },
       { kind: "script", source: "say hello" },
     ];
     for (const s of samples) expect(() => MagicEffects.validate(s)).not.toThrow();
@@ -85,7 +85,7 @@ describe("MagicEffects.validate — the closed union", () => {
   it("derives the impulse/modifier family from the kind", () => {
     expect(
       MagicEffects.familyOf(
-        MagicEffects.validate({ kind: "emit-field", field: "light" }),
+        MagicEffects.validate({ kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" }),
       ),
     ).toBe("modifier");
     expect(

@@ -1,7 +1,7 @@
 # Glowlight — create·light, the modifier proof: conjures a bound orb
 # (LightSourceMixin Thing) held up by a SustainedEffect on the caster.
 # Realized by pull; dormant inside a suppression field (winks out);
-# released on dispel or expiry (orb destructs). Light, not heat — the
+# released on dispel or expiry (the mote destructs). Light, not heat — the
 # sim decouples them, so this warms nothing.
 class: /platform/idea/magic/Spell
 hydratorClass: /platform/idea/persistence/PersistentHydrator
@@ -17,8 +17,19 @@ data:
   targeting: none
   durationSeconds: 3600
   effects:
+    # The row names the locus the effect conjures (D3): the executor
+    # clones what it is told — no default, no fallback. The mote is this
+    # pack's own class, because only this row names it.
     - kind: emit-field
       field: light
+      locus: /stuff/thing/magic/glowlight-mote
+    # The cursed branch (BUC — `lint:blessed-bands` binds the amulet
+    # that carries this): a cursed light gnaws at its wearer. The
+    # working's own low end, not a global rule; `cast` is uncursed.
+    - kind: afflict
+      conditionPath: /platform/idea/Condition/magic/dread
+      self: true
+      bands: [cursed]
   description: >-
     A palm-sized mote of cold light that follows its maker. It casts no
     heat and burns nothing; it simply refuses the dark — while the

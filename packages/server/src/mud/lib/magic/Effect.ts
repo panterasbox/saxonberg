@@ -36,13 +36,12 @@ import { Resists } from './Resist';
 export type EffectFamily = 'impulse' | 'modifier';
 
 /**
- * The two reserves an `adjust-reserve` may never top up. Literal here
- * (not imported from `Caster` / `Charge`) so the effect vocabulary stays
- * import-free of the casting substrate; `Caster.MANA_RESERVE_KEY` and
- * `Charge.RESERVE_KEY` are the same strings, pinned by test.
+ * The reserve an `adjust-reserve` may never top up. Literal here (not
+ * imported from `Caster`) so the effect vocabulary stays import-free of
+ * the casting substrate; `Caster.MANA_RESERVE_KEY` is the same string,
+ * pinned by test.
  */
 export const MANA_RESERVE_KEY = 'mana';
-export const CHARGE_RESERVE_KEY = 'charge';
 
 /** Inject a real mechanism channel — backing: `ConditionApi.inflict` (heat at a body), `ThermalApi.depositHeat`+`FireApi.tryAutoignite` (heat at an object), `ElectricityApi.conduct` (shock, via a transient energized locus). */
 export interface InjectChannelEffect {
@@ -53,6 +52,12 @@ export interface InjectChannelEffect {
   readonly energy?: number;
   /** The shock potential (V) a spark imposes on its transient locus. */
   readonly voltage?: number;
+  /**
+   * The template path of the transient energized LOCUS a shock is
+   * imposed on — REQUIRED when `channel === 'shock'` (the row names
+   * what the executor clones; no default, no fallback — D3).
+   */
+  readonly locus?: string;
   /** Real thermal joules an OBJECT-target heat injection deposits
    * (`ThermalApi.depositHeat` + `FireApi.tryAutoignite`) — authored
    * separately from `energy` because the two branches speak different
@@ -207,10 +212,12 @@ export interface CloakEffect {
   readonly disguise: string;
 }
 
-/** A sustained field — backing: a conjured bound emitter (`GlowlightOrb`) realized by the `SustainedEffect` reconcile arm. */
+/** A sustained field — backing: a conjured bound emitter (the row's `locus`, e.g. the arcane library's `glowlight-mote`) realized by the `SustainedEffect` reconcile arm. */
 export interface EmitFieldEffect {
   readonly kind: 'emit-field';
   readonly field: 'light';
+  /** The template path of the emitter to conjure — REQUIRED (the row names the locus; a pack ships a new emitter kind with no kernel edit). */
+  readonly locus: string;
 }
 
 /** The exotic 5% — backing: the scripting interpreter, **code-trust (`isWizard`) gated** at execution. */
@@ -391,12 +398,19 @@ export class MagicEffects {
             `inject-channel: unknown channel '${String(channel)}'`,
           );
         }
+        const locus = MagicEffects.optString(e.locus, 'locus');
+        if (channel === 'shock' && (!locus || !locus.startsWith('/'))) {
+          throw new TypeError(
+            'inject-channel(shock): needs a locus — the template path of the transient energized locus the potential is imposed on',
+          );
+        }
         return {
           self: e.self === true ? true : undefined,
           kind: 'inject-channel',
           channel: channel as Channel,
           energy: MagicEffects.optNumber(e.energy, 'energy'),
           voltage: MagicEffects.optNumber(e.voltage, 'voltage'),
+          locus,
           joules: MagicEffects.optNumber(e.joules, 'joules'),
           site: MagicEffects.optString(e.site, 'site'),
           resist,
@@ -431,22 +445,18 @@ export class MagicEffects {
         if (!Number.isFinite(delta)) {
           throw new TypeError(`adjust-reserve: bad delta '${String(e.delta)}'`);
         }
-        // The two coupled reserves are not fillable by fiat, and the
-        // refusal lands at AUTHORING so the catalogue drops the row:
-        // mana is recovered through metabolism, never given
-        // (arcane-science — no amount of fuel becomes mana; a potion
-        // feeds satiation instead); charge crosses from a payer through
-        // the coupling loss (`transferCharge`), never appears.
+        // Mana is not fillable by fiat, and the refusal lands at
+        // AUTHORING so the catalogue drops the row: mana is recovered
+        // through metabolism, never given (arcane-science — no amount of
+        // fuel becomes mana; a potion feeds satiation instead). Charge's
+        // guard is at EXECUTION instead (`MagicLogic`'s `adjust-reserve`
+        // routes a positive charge delta through `transferCharge`, which
+        // debits the actor and charges the coupling loss) — a positive
+        // charge delta IS the shipped `transfer` working's honest leg.
         if (delta > 0 && reserveKey === MANA_RESERVE_KEY) {
           throw new TypeError(
             `adjust-reserve: a positive delta on '${MANA_RESERVE_KEY}' is a mana ` +
               `generator — arcane-science forbids it; feed satiation instead`,
-          );
-        }
-        if (delta > 0 && reserveKey === CHARGE_RESERVE_KEY) {
-          throw new TypeError(
-            `adjust-reserve: a positive delta on '${CHARGE_RESERVE_KEY}' mints ` +
-              `joules — charge is transferred from a payer (transfer), never generated`,
           );
         }
         return { kind: 'adjust-reserve', reserveKey, delta };
@@ -534,7 +544,13 @@ export class MagicEffects {
         if (e.field !== 'light') {
           throw new TypeError(`emit-field: unknown field '${String(e.field)}'`);
         }
-        return { kind: 'emit-field', field: 'light' };
+        const locus = e.locus;
+        if (typeof locus !== 'string' || !locus.startsWith('/')) {
+          throw new TypeError(
+            'emit-field: needs a locus template path — the emitter the field conjures',
+          );
+        }
+        return { kind: 'emit-field', field: 'light', locus };
       }
       case 'script': {
         const source = e.source;

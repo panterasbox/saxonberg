@@ -1,7 +1,7 @@
 # The glowlight spell's bound emitter — cloned per cast, flux driven by
 # the caster's SustainedEffect (0 while suppressed), destructed on
 # dispel/expiry. Light without heat, by design.
-class: /platform/thing/magic/GlowlightOrb
+class: /arcane-library/thing/GlowlightMote
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a mote of cold light

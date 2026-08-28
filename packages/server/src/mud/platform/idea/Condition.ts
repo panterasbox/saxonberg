@@ -253,7 +253,7 @@ export interface SustainedEffect {
    * by this much each time it lapses; a term-bought one gets it once.
    */
   sustainedFor?: number;
-  /** The bound emitter's live-instance stuffId (a conjured GlowlightOrb), if any. */
+  /** The bound emitter's live-instance stuffId (a conjured emitter such as the arcane library's GlowlightMote), if any. */
   boundStuffId?: string;
   /** The imposed disguise text (the cloak realization), if any. */
   disguise?: string;

@@ -18,6 +18,9 @@ data:
     - kind: inject-channel
       channel: shock
       voltage: 240
+      # The transient locus the potential is imposed on (D3): the row
+      # names it, the executor clones it. This pack's own class.
+      locus: /stuff/thing/magic/spark-locus
   description: >-
     A snap of raw current leaps to the mark. It follows the honest paths —
     metal, water, flesh — and it does not know friend from foe.

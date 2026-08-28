@@ -85,7 +85,7 @@ describe("SpellCatalogue — warm + lookup", () => {
         verb: "create",
         noun: "light",
         targeting: "none",
-        effects: [{ kind: "emit-field", field: "light" }],
+        effects: [{ kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" }],
       },
     ]);
     const bolt = cat.getSpellAt("/stuff/idea/magic/Spell/test-bolt")!;
@@ -111,7 +111,7 @@ describe("SpellCatalogue — warm + lookup", () => {
         spellId: "bad-address",
         verb: "summon",
         noun: "fire",
-        effects: [{ kind: "emit-field", field: "light" }],
+        effects: [{ kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" }],
       },
       {
         spellId: "no-effects",
@@ -234,5 +234,50 @@ describe("the authored roster seeds", () => {
     expect(cat.getSpellAt("/pack/ember/Spell/firebolt")!.path).toBe(
       "/pack/ember/Spell/firebolt",
     );
+  });
+});
+
+describe('the locus rule (capability packs D3) — the row names what the effect conjures', () => {
+  it('an emit-field row without locus: fails validation and is dropped by the catalogue', async () => {
+    const cat = await warmCatalogue([
+      {
+        spellId: 'no-locus',
+        name: 'No Locus',
+        verb: 'create',
+        noun: 'light',
+        cost: 10,
+        castingProfile: { requiredBand: 'novice', castSeconds: 2 },
+        targeting: 'none',
+        effects: [{ kind: 'emit-field', field: 'light' }],
+      },
+      {
+        spellId: 'with-locus',
+        name: 'With Locus',
+        verb: 'create',
+        noun: 'light',
+        cost: 10,
+        castingProfile: { requiredBand: 'novice', castSeconds: 2 },
+        targeting: 'none',
+        effects: [{ kind: 'emit-field', field: 'light', locus: '/stuff/thing/magic/glowlight-mote' }],
+      },
+    ]);
+    expect(cat.getSpellNamed('no-locus')).toBeNull();
+    expect(cat.getSpellNamed('with-locus')).not.toBeNull();
+  });
+
+  it('a shock inject-channel row without locus is dropped the same way', async () => {
+    const cat = await warmCatalogue([
+      {
+        spellId: 'bare-spark',
+        name: 'Bare Spark',
+        verb: 'create',
+        noun: 'lightning',
+        cost: 25,
+        castingProfile: { requiredBand: 'competent', castSeconds: 3 },
+        targeting: 'any',
+        effects: [{ kind: 'inject-channel', channel: 'shock', voltage: 240 }],
+      },
+    ]);
+    expect(cat.getSpellNamed('bare-spark')).toBeNull();
   });
 });

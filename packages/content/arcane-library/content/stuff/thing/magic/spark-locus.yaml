@@ -1,7 +1,7 @@
 # The spark spell's transient energized locus — cloned for one conduction
 # resolution (voltage set from the spell, the real graph does the rest),
 # then destructed. Players never see one at rest.
-class: /platform/thing/magic/SparkSource
+class: /arcane-library/thing/SparkLocus
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a crackle of gathered charge

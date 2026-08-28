@@ -16,8 +16,15 @@ data:
   targeting: self
   durationSeconds: 1800
   effects:
+    # Band-authored (cursed · uncursed · blessed — `MagicEffects.forBand`
+    # band-resolves any 2–3 list): a cursed veil draws every eye, a
+    # blessed one leaves no memory at all. The ring that carries this
+    # obliges it (`lint:blessed-bands`).
     - kind: cloak
-      disguise: a veiled, indistinct figure
+      disguise:
+        - a figure every eye is drawn to
+        - a veiled, indistinct figure
+        - a face no memory keeps
   description: >-
     The features blur; the name slides off. Watchers see someone — just
     never quite you — for as long as the working holds.

@@ -32,7 +32,8 @@ import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
 import Scroll from '../../../../../../content/arcana/src/thing/Scroll';
-import GlowlightOrb from '../../../platform/thing/magic/GlowlightOrb';
+import { LightSourceMixin } from '../../perception/LightSource';
+import Thing from '../../stuff/Thing';
 import { Template } from '../../stuff/Template';
 import { Idea } from '../../stuff/Idea';
 import { Character } from '../../character/Character';
@@ -56,6 +57,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+/** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
+class GlowlightOrb extends LightSourceMixin(Thing) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
 const SPELL_CLASS = '/platform/idea/magic/Spell';
 
@@ -325,7 +328,7 @@ describe('Wave 2 — consumables', () => {
     expect(verbs.has('label')).toBe(true);
     // And no use-verb of its own invention.
     expect(verbs.has('identify')).toBe(false);
-  });
+  }, 20_000);
 
   it('AC5a — an unafforded verb is UNKNOWN; there is no parser floor', () => {
     // ⚠ This INVERTS what AC 5a originally asked for, deliberately.

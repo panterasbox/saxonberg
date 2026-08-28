@@ -1,0 +1,39 @@
+# An amulet of glowlight — the worn-host exemplar at the neck.
+#
+# `class: /arcana/thing/Amulet`: the Ring composition, a different kind
+# of thing (its own descriptor bank, census key and slot claim). Worn,
+# it holds a glowlight up around its wearer — the mote is the arcane
+# library's own `glowlight-mote`, named by the spell row — and pays for
+# it out of its shell; off or flat, the light goes out.
+#
+# Cursed, it is a light that gnaws: the glowlight's cursed branch
+# afflicts the wearer with dread, and the amulet will not come off.
+class: /arcana/thing/Amulet
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a dull brass amulet on a cord
+  primaryKeyword: amulet
+  longDescription: >
+    A disc of brass the size of a coin, hung on a leather cord. A
+    hairline seam runs around its edge, and it is never quite cold.
+  carriedSpellPath: /stuff/idea/magic/Spell/glowlight
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.0
+  capacityKJ: 600
+  alwaysOn: true
+  censusKey: amulet
+  materialTags: [brass, leather]
+  regionTarget: 1
+  descriptorClass: amulet
+  identifiedName: an amulet of glowlight
+  # A light you wear announces itself.
+  selfIdentifying: true
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["neck"]
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }
+  details:
+    seam:
+      keywords: [seam, edge]
+      description: >
+        The seam is a light-glyph, cut once around the whole rim — the
+        maker's, and what keeps the mote lit.

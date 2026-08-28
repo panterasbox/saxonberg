@@ -2,20 +2,20 @@
  * The coupling guard on `adjust-reserve` (capability packs D5): a
  * positive delta on `mana` is a mana generator and is refused at
  * AUTHORING — `MagicEffects.validate` throws, so the catalogue drops
- * the row — and `charge` gets the symmetric refusal (its execution-side
- * transfer leg stays). The keys are pinned to the substrate's own.
+ * the row. `charge` is different: a positive delta on it is the shipped
+ * `transfer` working's honest leg, guarded at EXECUTION (`transferCharge`
+ * debits the actor + the coupling loss), so it stays authorable.
  */
 
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import { MagicEffects, MANA_RESERVE_KEY, CHARGE_RESERVE_KEY } from '../Effect';
+import { MagicEffects, MANA_RESERVE_KEY } from '../Effect';
 import { MANA_RESERVE_KEY as CASTER_MANA } from '../Caster';
 import { Charge } from '../Charge';
 
 describe('adjust-reserve — the coupled reserves are not fillable by fiat', () => {
   it('the keys are the substrate\'s', () => {
     expect(MANA_RESERVE_KEY).toBe(CASTER_MANA);
-    expect(CHARGE_RESERVE_KEY).toBe(Charge.RESERVE_KEY);
   });
 
   it('a positive delta on mana is refused at authoring', () => {
@@ -24,10 +24,8 @@ describe('adjust-reserve — the coupled reserves are not fillable by fiat', () 
     );
   });
 
-  it('a positive delta on charge is refused the same way', () => {
-    expect(() => MagicEffects.validate({ kind: 'adjust-reserve', reserveKey: 'charge', delta: 10 })).toThrow(
-      /mints joules/,
-    );
+  it("a positive delta on charge stays AUTHORABLE — it is the shipped `transfer` working's leg, guarded at execution by transferCharge", () => {
+    expect(MagicEffects.validate({ kind: 'adjust-reserve', reserveKey: Charge.RESERVE_KEY, delta: 20 }).kind).toBe('adjust-reserve');
   });
 
   it('a draw (negative delta) and any other reserve are untouched', () => {
