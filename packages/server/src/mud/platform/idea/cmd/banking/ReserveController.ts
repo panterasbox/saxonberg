@@ -10,6 +10,7 @@
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
+import { EmploymentApi } from "../../../../api/employment";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
@@ -46,7 +47,13 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
       return;
     }
-    const venuePath = context.location?.getTemplatePath() ?? "";
+    // The house account keys on the BUSINESS operating here (its
+    // `getAccountPath`), not on the room — the room path found nothing
+    // once venue accounts moved to the Business (the libations live
+    // drive: "There's no account here to float" at Dave's Bar).
+    const roomPath = context.location?.getTemplatePath() ?? "";
+    const business = roomPath ? EmploymentApi.businessAt(roomPath) : null;
+    const venuePath = business?.getAccountPath() ?? roomPath;
     const account = await BankingApi.primaryAccountIdOf(venuePath);
     if (!account) {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`There's no account here to float.`).send();

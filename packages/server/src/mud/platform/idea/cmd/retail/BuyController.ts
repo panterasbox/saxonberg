@@ -304,7 +304,7 @@ export default class BuyController extends CommandController<BuyModel> {
     item: Stuff,
     model: BuyModel,
   ): void {
-    this.reject(giver, context, Mml.compose`You can't cover ${Mml.thing(item)} just now.`, {
+    this.reject(giver, context, Mml.compose`You can't cover ${item.getPresentation()} just now.`, {
       kind: "controller-rejected",
       reason: "insufficient-funds",
       detail: model.thing,

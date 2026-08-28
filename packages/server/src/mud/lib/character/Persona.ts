@@ -86,6 +86,10 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // cannot, because the authority belongs to the organization the
         // argument names and `CommandContext` carries no bound model.
         'platform/cmd/employment/appoint.yaml',
+        // The `quit` verb (employment) — leave a position you hold. Universal
+        // for the same reason: it is your own seat, and the controller
+        // refuses when you hold none.
+        'platform/cmd/employment/quit.yaml',
         // The `title` verb (civics) — what ground you hold and what is
         // for sale. Universal for the same reason `government` is: your
         // own holdings are a self-read, and a plat book is public. The

@@ -32,6 +32,8 @@ import RenownStanding from '../mud/lib/standing/RenownStanding';
 import { ConsumerApi } from '../mud/api/consumer';
 import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
+import { MixinApi } from '../mud/api/mixin';
+import { PersistableApi } from '../mud/api/persistable';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 // Loaded for its side effect: registers banking's `bank-circle` dialogue
@@ -408,5 +410,28 @@ export class AppBootstrap {
     } catch (err) {
       console.error('AppBootstrap: record-layer flush failed:', err);
     }
+    // The world's persistable singletons — venue rooms, stock counters —
+    // capture at establish and at the residency sweep; a stop between two
+    // sweeps would lose everything consigned or placed since (the
+    // libations live drive watched a dev restart empty the cash-and-carry
+    // counter). Capture each one, best-effort, before the process ends.
+    // Avatars have their own logout capture and are skipped.
+    let captured = 0;
+    for (const stuff of StuffApi.getAllObjects()) {
+      if (!MixinApi.isPersistable(stuff) || MixinApi.isHasInteractive(stuff)) {
+        continue;
+      }
+      if (stuff.getPersistenceKey() === null) continue; // never established
+      try {
+        await PersistableApi.capture(stuff);
+        captured += 1;
+      } catch (err) {
+        console.error(
+          `AppBootstrap: shutdown capture failed for ${stuff.getTemplatePath() ?? stuff.stuffId}:`,
+          err,
+        );
+      }
+    }
+    console.info(`AppBootstrap: shutdown captured ${captured} persistable host(s)`);
   }
 }
