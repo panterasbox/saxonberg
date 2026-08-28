@@ -292,6 +292,18 @@ Four archetypes ship, and they are four *different kinds of answer*:
 They add **zero new classes, mixins or verbs** — a test enumerates the six
 shipped classes every fixture uses.
 
+**Three trade bundles** joined them in libations, each a `FurnishableRoom`
+row with a `populates:` of the trade's own fixtures: hospitality's
+**`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
+tap, ice bin, water tap, basin, the glass rack with its pool, seating,
+the house tablet) and **`cellar`** (racking, a keg, a cold store);
+distilling's **`warehouse`** (`/trade/distilling/location/warehouse` —
+a Stock counter, racking, a dock exit stub), which the cash-and-carry
+and every producer's yard spell out (template inheritance does not exist,
+so a room lists its fixtures itself; the bundle row is the exemplar).
+The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
+Warren wires) and lists the bundle's fixtures by reference.
+
 > ⚠ **The archetypes need a provisioner, and this build does not ship one.**
 > On a persistable host `applyPopulates` only **retains** the specs;
 > `seedBornWith()` lays them down, driven by a provisioning flow

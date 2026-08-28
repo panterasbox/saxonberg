@@ -391,6 +391,89 @@ emitting via `ctx.note` + `MessageApi.scene`.
 `serve`/`mix`/`forge`/`cook` are general agent verbs; `order` routes to
 the present on-shift maker.
 
+- **`wash <glass>`** (libations) — an engaged step (~3 s) that needs a
+  reachable water source (a `Bulkable` holder whose material is `water`
+  — the basin/tap `UnboundedReceptacle` affords the view); drains the
+  residue to the discard sink, destructs any garnish left inside, clears
+  `soiled`. The effect lives in `CraftingApi.washGlass` →
+  `CraftingLogic.washImpl` (an engaged `onComplete` runs under the
+  scheduler frame, so a `FromModule(WashController)` gate could never
+  pass). Bussing is `get <glass>` / `put <glass> in rack` — shipped verbs.
+- **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
+  `muddler` capability; records `BuildMethod` `'muddled'`.
+  `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`
+  is the resolve verb — nothing was renamed.
+
+## ⭐ The glass pool, the technique, ice, garnish (libations D9/D10)
+
+**A drink is made IN a real glass.** For `outputApplication: bulk` (the
+bar's default) `craftImpl` no longer clones the output: `claimGlass`
+takes the first reachable **clean, empty** instance whose `templatePath`
+is the recipe's `outputTemplate` (the gather walk already descends open
+room containers, so a `/platform/thing/GlassRack` — an open
+`Detailed(Container(Thing))` — is in the pool scan); none → the diegetic
+decline **`no-glass`** ("no clean coupe"). The claimed glass is marked
+`soiled` at fill; `serve`/`order` hand over the claimed glass. `tangible`
+/ `edible` outputs keep cloning (smithing's transform and cooking's
+plate are the next pools). Breakage needs no mechanism: `throw` /
+`StuffApi.destruct` remove a glass and the par sheet reports the
+shortfall.
+
+`CraftedDrink` is now `Crafted(Thermal(Bulkable(Container(Detailed(
+Thing)))))` — a `Container` so a garnish is a thing *in* the glass and
+leaves with it (`Surfaced` was rejected: a resting item's container is
+the room, so a handed-over glass would leave its olive behind); `Thermal`
+so the temperature is real. Fields: `soiled` (`isSoiled()`; `setSoiled`
+gated to `CraftingLogic`), `category` (the glassware par key — `coupe`,
+`rocks`, …; `getCategory()`), `iceKg`, `iceForm`, `technique`. Glass
+rows: `class: /platform/thing/CraftedDrink`, `category`, `interiorBulk:
+true`, `interiorCapacity`.
+
+**Recipe** (`lib/craft/Recipe.ts`) gains `garnish?: { category, count?
+}` and `ice?: 'cubes' | 'crushed' | 'none'`. The count measure is the
+shipped `count` on `kind: item` slots (no new field); a dash is
+`measureL: 0.001`. **Technique** (`lib/craft/Technique.ts`, a vocabulary
+value-object) — `shaken` (−8 K, 0.02 L water, aerated) · `stirred` (−6 K,
+0.01 L) · `built` · `muddled` (0) — derives from the tool capabilities on
+the resolve path (`shaker` → shaken, `mixing-glass` → stirred, `muddler`
+→ muddled, else built) and from the step on the hand path.
+
+At the fill (`applyBulkOutput`): the technique's chill + dilution;
+**ice** — `crafting.iceKg` (0.15) of `ice` bulk moved from any reachable
+`Bulkable` whose material carries the `ice` tag (the hospitality
+`IceBin`; `insufficient-input: ice` if wanted and absent); **garnish** —
+a reachable item matched by category, moved INTO the glass (the
+`GarnishController` flourish now does the same at completion);
+**carbonation** — a `BulkPayload.tags` union of the inputs' tags, so a
+soda input reads "fizzing". Any Bulkable holder in reach is now an
+input candidate (ungraded ⇒ `fair`) — that is how the ice bin and the
+water tap feed a craft; a Crafted vessel is never descended into.
+
+**Ice melts on read.** `CraftedDrink.reconcileThermal` clamps the
+temperature at water's `meltingPoint` while `iceKg > 0`; heat that would
+raise it instead melts `ΔJ / latentHeatOfFusion` kg into the slot as
+water (dilution — a real bulk credit), and Newton cooling resumes when
+the ice is gone. Applied at the fill too: a room-temperature pour over
+150 g of ice melts ~55 g at once (the honest arithmetic; tests assert
+conservation). Nothing is scheduled. Presentation reads the stamps and
+contents: "shaken, cloudy with air", "on the rocks", "fizzing", "with an
+olive".
+
+**House-made inputs.** Two rules the menu forced: a Crafted bulk vessel
+holding a real (non-blend) material — a recipe with authored
+`outputMaterial`, like pressed juice or syrup — is a bulk **source**, not
+a pool glass; and such a recipe **tops up** a reachable bottle of the
+same template already holding that material (one juice bottle a day,
+not one per lime). `press-{lime,lemon,orange,grapefruit}` (tool `juicer`,
+`kind: item` produce, `outputPortionL`) and hearth-cooking's
+`simple-syrup` (sugar + water, `requiresHeatK: 340`, tool `pot`) are
+ordinary `bulk` recipes over this.
+
+The kernel's two generic materials moved to the **platform pack** —
+`/platform/idea/material/blend` (`GENERIC_MIXED_MATERIAL`) and
+`/platform/idea/material/cooked` (`GENERIC_COOKED_MATERIAL`) — because a
+kernel module may not name a trade pack's row.
+
 ## The manual build (the by-hand path)
 
 Alongside the one-shot served path, a drink can be **built by hand**, one
@@ -497,29 +580,41 @@ homed by what they *are*:
   lane's richer `NPC`, which the add/add merge resolves to).
 - **Commons** → `platform/thing/` (content packs wave 4b — composition-only
   classes are commons, not content): `CraftedDrink`
-  (`CraftedMixin(BulkableMixin(DetailedMixin(Thing)))`, `getLong()`
-  appends the verdict), `Menu`, `GradedReceptacle`
-  (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`, the stock bottle),
-  `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`.
+  (`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))` since
+  libations, `getLong()` appends the verdict), `Menu`, `GradedReceptacle`
+  (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`) and over it
+  `Bottle` (the stock vessel — [retail.md](./retail.md)), `GlassRack`,
+  `Crate`, `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`.
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
   packs wave 4a/4b): `trade-smithing` ships the smithing five at
   `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` its four
   (toasted-ration, root-mash, fine-roast, hearty-stew),
-  `trade-hospitality` the two cocktails (daiquiri, martini);
-  `generic-objects` ships none. The
+  `trade-hospitality` the bar's 21 cocktails + coffee and the four
+  presses, each stub trade its serving recipe (`pint`, `glass-of-{red,
+  white,sparkling}`, `mixer`, `simple-syrup`) — the 24-line menu of the
+  libations slate; `generic-objects` ships none. The
   catalogue is **path-agnostic** — it rebuilds from every `recipe`
   document whoever installed it — so a venue's `craft` never knows
   which pack its recipe came from.
 
 **Seeds:** the station templates are the hospitality trade's
-(`trade-hospitality/content/trade/hospitality/thing/` — back-bar,
-shaker, mixing-glass, cocktail-glass, tip-jar); the venue's own rows sit
-in `saxonberg-lounge/content/world/lounge/thing/` (the four bottles,
-bar-menu) and `agent/` (dave); the `Bar` self-stocks via `populates:`
-(bottles `onto` the trade's back-bar, then dave + menu). Cocktail/spirit
-`Material`s are base-library's; recipe knowledge is the trade's. Crafted drinks are transient
-runtime matter (persisted nowhere; reset on restart).
+(`trade-hospitality/content/trade/hospitality/thing/` — back-bar, well,
+shaker, mixing-glass, muddler, bar-spoon, strainer, juicer, tap, ice-bin,
+water-tap, basin, glass-rack, house-tablet, tip-jar, the nine pool
+glasses + the juice bottle; `src/thing/{IceBin,Tap}.ts` — hospitality is
+a capability pack since libations); the venue's own rows sit in
+`saxonberg-lounge/content/world/lounge/thing/` (bar-menu, house-tablet,
+tv, remote) and `agent/` (dave, mara). **The `Bar` populates NO bottle**
+— the rail is stocked by Mara's `restocks` brain buying at the
+distributor ([retail.md](./retail.md), [employment.md](./employment.md)).
+Every libation `Material` lives with the trade whose PROCESS makes it
+(`/trade/{distilling,brewing,winemaking,bottling,produce,hearth-cooking}/idea/material/`);
+base-library keeps water, air, salt-water. `trade-hospitality/content/
+archetypes/hospitality.yaml` is the venue archetype its own `menu.test.ts`
+materializes a bar from (`ArchetypeApi.materialize`) to order all 24
+lines. Crafted drinks are transient runtime matter (persisted nowhere;
+reset on restart).
 
 ## Persistence story
 

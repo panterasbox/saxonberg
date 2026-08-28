@@ -1,5 +1,25 @@
 # Libations slate — the bar's supply chain, and putting things where they go
 
+> **Built 2026-08-28 on `design/libations`** — requirements
+> `docs/requirements/libations-requirements.md` (D1–D14), plan
+> `docs/plans/libations-plan.md` (six phases, twenty findings; its
+> *Blockers / deviations* records what the code forced: the lounge stays
+> a data pack, `measureCount` is the shipped `count`, `shake` existed, the
+> display composes no aether mixin, the blend base went to the platform
+> pack, the sweep needed the batch draw + a boot run). Build-time
+> deviations worth knowing: `held` is an unconditional drive rung; the
+> Crowsfoot Brand row ships with trade-distilling at the catalogue's
+> `/stuff/idea/corpo/Brand/` prefix; cadence is real-time only (Mara
+> restocks every 10 min); no glassware supplier exists yet; cost of goods
+> derives on read. **The corpos roster re-cut** (Part 4) is now shipped
+> content: Veshko makes, Hollis private-labels, Vionne/Goodkin/Aevex ship
+> no bottle. Subsystem homes: [retail.md](../../subsystems/retail.md),
+> [employment.md](../../subsystems/employment.md),
+> [crafting.md](../../subsystems/crafting.md),
+> [display.md](../../subsystems/display.md),
+> [residency.md](../../subsystems/residency.md),
+> [content-packs.md](../../subsystems/content-packs.md).
+
 > **Status: design conversation, captured 2026-08-28. Not requirements.**
 > The second pack of the alphabetical reorg (*b*: the bar), and the first
 > one that is not a refactor for its own sake — the point is a **fully
