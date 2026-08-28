@@ -104,9 +104,15 @@ export default class ConsignController extends CommandController<ConsignModel> {
     const ownedBy = (key: string | null): boolean =>
       (owner?.kind === "player" || owner?.kind === "organization") &&
       owner.templatePath === key;
+    // Title to sell: the principal's stamp, the giver's own, or NO stamp
+    // at all — a good nobody has ever owned (a floor bottle the spawn
+    // sweep stood in the outfit's stock) is the possessor's to put up,
+    // and consigning stamps it to the principal. A chattel id alone is
+    // identity, not ownership.
     const ownedByPrincipal =
       ownedBy(consignorKey) ||
-      (!item.getChattelId() && (owner === null || ownedBy(giver.getTemplatePath())));
+      owner === null ||
+      ownedBy(giver.getTemplatePath());
     if (!ownedByPrincipal) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
         kind: "controller-rejected",
