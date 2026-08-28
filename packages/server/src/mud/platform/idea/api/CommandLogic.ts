@@ -2329,7 +2329,14 @@ function bindPositionals(
  * `shell.interpolate-vars` set to false — callers stay branch-free.
  */
 function makeExpander(giver: Stuff): (text: string) => string {
-  if (!MixinApi.isEnvironment(giver)) return (s) => s;
+  // A giver with no shell environment — an NPC driven by a brain or a
+  // dialogue dispatch — still has the SYNTHETIC vars (`$focus`, `$here`):
+  // a view's `default: "$focus"` reached MQL raw as a bare `$` for every
+  // forced `sense` before this. Only the player's interpolate setting is
+  // an environment fact.
+  if (!MixinApi.isEnvironment(giver)) {
+    return (text) => ShellApi.expandVariables(text, giver);
+  }
   const enabled = giver.getSetting<boolean>('shell.interpolate-vars');
   if (enabled === false) return (s) => s;
   return (text) => ShellApi.expandVariables(text, giver);

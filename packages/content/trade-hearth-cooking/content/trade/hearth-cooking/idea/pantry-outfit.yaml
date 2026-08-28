@@ -8,6 +8,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "the pantry outfit"
   appointingAuthority:
     kind: office
     office: prime-minister

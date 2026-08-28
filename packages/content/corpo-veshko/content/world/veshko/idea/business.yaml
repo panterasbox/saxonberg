@@ -5,6 +5,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "Veshko's yard"
   parentOrganization: /corpo/veshko
   appointingAuthority:
     kind: committee

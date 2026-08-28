@@ -95,8 +95,13 @@ export const brain = class {
       if (!kw) continue;
       await CommandApi.forceCommand(hand, `get ${kw}`);
     }
-    const carried = (hand.getContents() as Stuff[]).filter(
-      (c) => !before.has(c.stuffId) && MixinApi.isChattel(c),
+    // Everything chattel the hand now carries goes up — not only what
+    // this beat took. A beat whose `consign` failed leaves last beat's
+    // goods in hand; they are still the outfit's, and the next beat
+    // carries them to the board rather than stranding them.
+    void before;
+    const carried = (hand.getContents() as Stuff[]).filter((c) =>
+      MixinApi.isChattel(c),
     );
     if (carried.length === 0) return;
 

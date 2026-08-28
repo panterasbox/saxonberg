@@ -8,6 +8,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "the cash-and-carry"
   appointingAuthority:
     kind: office
     office: prime-minister

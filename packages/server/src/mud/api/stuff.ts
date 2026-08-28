@@ -559,11 +559,34 @@ export class StuffApi {
         if (MixinApi.isPersistable(inst) && inst.getPersistenceKey() === null) {
           const { PersistableApi } = await import('./persistable');
           const scope = inst.getTemplatePath() ?? path;
-          if (await PersistableApi.hasRecord(scope)) {
-            await PersistableApi.materialize(inst);
+          // The record store may be absent (a test with no persistence
+          // wired, a boot before the connection). The world still has
+          // to stand: no readable record → seed, and a failed write is a
+          // warning, never a bare room.
+          const warn = (what: string, err: unknown): void =>
+            console.warn(
+              `StuffApi.singleton('${path}'): ${what} failed — ` +
+                (err instanceof Error ? err.message : String(err)),
+            );
+          let hasRecord = false;
+          try {
+            hasRecord = await PersistableApi.hasRecord(scope);
+          } catch (err) {
+            warn('record lookup', err);
+          }
+          if (hasRecord) {
+            try {
+              await PersistableApi.materialize(inst);
+            } catch (err) {
+              warn('restore', err);
+            }
           } else {
             await inst.seedBornWith();
-            await PersistableApi.capture(inst);
+            try {
+              await PersistableApi.capture(inst);
+            } catch (err) {
+              warn('first capture', err);
+            }
           }
         }
         return inst;

@@ -17,6 +17,7 @@ import type {
   } from '../../../../api/command';
 import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { MqlApi } from '../../../../api/mql';
 import { ContainmentApi } from '../../../../api/containment';
 import { GlobbableApi, type ApplyQuantityResult } from '../../../../api/glob';
 import { MessageApi } from '../../../../api/message';
@@ -54,7 +55,14 @@ export default class GetController extends CommandController<GetModel> {
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
-    const here = context.location.getContents();
+    // What is "here": the room's contents, plus one level into an open
+    // container standing in it — the rack's coupe, the stock's keg — the
+    // same reach the `peers` scope and `mustBeInLocation` grant.
+    const here: Stuff[] = [];
+    for (const item of context.location.getContents()) {
+      here.push(item);
+      if (MqlApi.isOpenPeerContainer(item)) here.push(...item.getContents());
+    }
 
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, here, raw, context);

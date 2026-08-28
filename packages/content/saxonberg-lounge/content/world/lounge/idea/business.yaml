@@ -15,6 +15,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "Dave's Bar"
   # Who may fill this business's positions. Dave owns the bar, so the
   # authority is the ENTITY edge — a replaceable pointer, not a group.
   # Checked by EmploymentApi.isProprietorOf; the covers brain reads it too

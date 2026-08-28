@@ -53,6 +53,11 @@ class Sword extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'Sword';
 }
 
+/** An open container standing in the room — never sealed, nobody's. */
+class Rack extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
+  static _mixinName = 'Rack';
+}
+
 const COIN_PATH = '/obj/item/Coin';
 
 function stubCoinClone() {
@@ -107,6 +112,27 @@ describe('GetController — bareword path (no quantity)', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
+  });
+
+  it('reaches one level into an open container standing in the room (the rack\'s coupe)', async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const rack = makeStuff(() => new Rack());
+    ContainmentApi.move(rack, loc);
+    const sword = makeStuff(() => {
+      const s = new Sword();
+      s.setName('sword');
+      return s;
+    });
+    ContainmentApi.move(sword, rack);
+
+    const controller = makeStuff(() => new GetController());
+    await controller.execute(
+      makeModel(makeResult([sword], 'sword')),
+      makeContext(giver, loc)
+    );
+    expect(sword.getContainer()).toBe(giver);
   });
 
   it('moves a single item from the location into inventory', async () => {

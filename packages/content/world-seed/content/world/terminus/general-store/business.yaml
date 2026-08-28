@@ -9,6 +9,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "the general store"
   # The keeper owns the shop: an ENTITY authority.
   appointingAuthority:
     kind: entity

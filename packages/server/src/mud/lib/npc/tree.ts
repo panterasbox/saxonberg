@@ -115,7 +115,9 @@ export interface DialogueGuard {
  *   - `dispatch`  runs a command AS THE NPC (the "NPCs do their jobs" seam):
  *                 the NPC performs a real world-action through the command
  *                 bus, bounded by its own authority. `$player` in the command
- *                 renders to the interlocutor. See
+ *                 renders to the interlocutor BY IDENTITY (`#<stuffId>`,
+ *                 the viewer-free MQL seed — the NPC may not know their
+ *                 name). See
  *                 `docs/subsystems/npc-dialogue.md § dispatch` for the
  *                 security model (the target controller's `execute()`
  *                 authorization is the boundary — `forced` bypasses the

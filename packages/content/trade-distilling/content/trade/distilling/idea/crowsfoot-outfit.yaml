@@ -7,6 +7,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "Crowsfoot"
   appointingAuthority:
     kind: office
     office: prime-minister

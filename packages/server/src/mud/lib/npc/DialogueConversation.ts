@@ -424,9 +424,12 @@ export class DialogueConversation implements SustainedEngagement {
   private async dispatch(command: string): Promise<void> {
     const npc = this.npc;
     if (!MixinApi.isCommandGiver(npc)) return;
-    const name =
-      (this.player as unknown as { getName?: () => string }).getName?.() ?? "";
-    const text = command.replaceAll("$player", name);
+    // `$player` is the player BY IDENTITY (`#<stuffId>`, the viewer-free
+    // MQL seed), never by name: the NPC names people by what it
+    // recognizes, and a stranger it has not been introduced to is
+    // "a human" to it — `appoint alice …` from Dave found "no such
+    // person" the first time the live drive took his job.
+    const text = command.replaceAll("$player", `#${this.player.stuffId}`);
     await CommandApi.forceCommand(npc, text);
   }
 

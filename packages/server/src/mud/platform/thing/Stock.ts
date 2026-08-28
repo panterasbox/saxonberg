@@ -87,10 +87,22 @@ export default class Stock extends StockBase {
     return peers.stuff.find((s): s is Stock => s instanceof Stock) ?? null;
   }
 
+  // A Stock counter is a consignment shelf too (libations 3a: one counter
+  // is both), so it affords the shelf's verbs — a floor hand at the
+  // cash-and-carry `consign`s onto it; the mixin's own static table is
+  // not inherited through composition.
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ["platform/cmd/retail/buy.yaml"],
-    environment: ["platform/cmd/retail/buy.yaml"],
+    peers: [
+      "platform/cmd/retail/buy.yaml",
+      "platform/cmd/retail/consign.yaml",
+      "platform/cmd/retail/reclaim.yaml",
+    ],
+    environment: [
+      "platform/cmd/retail/buy.yaml",
+      "platform/cmd/retail/consign.yaml",
+      "platform/cmd/retail/reclaim.yaml",
+    ],
   };
 
   /** The buyable goods currently on the shelf. */

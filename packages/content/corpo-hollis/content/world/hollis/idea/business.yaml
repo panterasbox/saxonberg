@@ -6,6 +6,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "the Hollis bottling floor"
   parentOrganization: /corpo/hollis
   appointingAuthority:
     kind: committee
