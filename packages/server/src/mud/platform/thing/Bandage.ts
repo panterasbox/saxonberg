@@ -1,7 +1,7 @@
 /**
  * Bandage — the canonical concrete **dressing**: `DressingMixin(Thing)`,
  * a simple single-use consumable that `treat` spends to dress a bleed
- * (the `Coin = GlobbableMixin(Thing)` / `BrandedBottle = BrandedMixin(Thing)`
+ * (the `Coin = GlobbableMixin(Thing)`
  * precedent — a Thing plus one capability mixin). Any dressing-capable
  * item (gauze, a clean rag) qualifies for `treat` too; `treat` gates on
  * `MixinApi.isDressing`, not `instanceof Bandage`.

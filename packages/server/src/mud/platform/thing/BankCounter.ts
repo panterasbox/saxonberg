@@ -9,7 +9,7 @@
  * what `Vessel` is.
  *
  * The `BankMixin` demonstrator class, homed beside the mixin (the
- * `TravelCredential` / `BrandedBottle` precedent).
+ * `TravelCredential` precedent).
  */
 
 import { Vessel } from "../../lib/stuff/Vessel";

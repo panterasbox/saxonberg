@@ -22,7 +22,7 @@ const BRAND_DIRS = [
   ...["aevex", "goodkin", "hollis", "veshko", "vionne"].map(
     (k) => `${CONTENT}corpo-${k}/content/stuff/idea/corpo/Brand/`,
   ),
-  `${CONTENT}generic-objects/content/stuff/idea/corpo/Brand/`,
+  `${CONTENT}trade-distilling/content/stuff/idea/corpo/Brand/`,
 ];
 
 interface Seed {
