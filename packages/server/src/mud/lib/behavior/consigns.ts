@@ -35,6 +35,9 @@
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { CommandApi } from '../../api/command';
+import { AppApi } from '../../api/app';
+import { EmploymentApi } from '../../api/employment';
+import { AppSettingKeys } from '../config/AppSettings';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mobile } from '../spatial/Mobile';
@@ -72,17 +75,30 @@ export const brain = class {
     // carry until it has).
     const stock = StuffApi.findByTemplatePath(stockPath);
     if (!stock || !MixinApi.isContainer(stock)) return;
-    const batch = positiveInt(ctx.config.batch, DEFAULT_BATCH);
-    const goods = (stock.getContents() as Stuff[])
-      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g))
-      .slice(0, batch);
-    if (goods.length === 0) return;
-
     // The host's counter, and the room it stands in.
     const shelf =
       StuffApi.findByTemplatePath(shelfPath) ??
       (await StuffApi.singletonOrClone(shelfPath));
     if (!shelf || !MixinApi.isConsignmentShelf(shelf) || !MixinApi.isContainable(shelf)) return;
+
+    // The hand consigns AS its outfit, so the shelf's per-consignor cap
+    // (`retail.consignment.listingCap`) is the outfit's headroom — an NPC
+    // executes the rule, it never runs at a decline. Nothing is lifted
+    // off the floor that could not go up this beat.
+    const outfits = await EmploymentApi.buysFor(hand);
+    const outfit = outfits[0];
+    if (!outfit) return;
+    const cap = listingCap();
+    const headroom =
+      cap > 0
+        ? Math.max(0, cap - shelf.activeListingCount(outfit.getTemplatePath() ?? ''))
+        : Number.POSITIVE_INFINITY;
+    if (headroom <= 0) return;
+    const batch = Math.min(positiveInt(ctx.config.batch, DEFAULT_BATCH), headroom);
+    const goods = (stock.getContents() as Stuff[])
+      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g))
+      .slice(0, batch);
+    if (goods.length === 0) return;
     const counterRoom = shelf.getContainer();
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
     const home = hand.getContainer();
@@ -100,9 +116,9 @@ export const brain = class {
     // goods in hand; they are still the outfit's, and the next beat
     // carries them to the board rather than stranding them.
     void before;
-    const carried = (hand.getContents() as Stuff[]).filter(
-      (c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c),
-    ); // the house card is chattel too — not for sale
+    const carried = (hand.getContents() as Stuff[])
+      .filter((c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c)) // the house card is chattel too — not for sale
+      .slice(0, Number.isFinite(headroom) ? headroom : undefined);
     if (carried.length === 0) return;
 
     // To the counter; trade as the house once; put each good up.
@@ -140,6 +156,17 @@ function askFor(config: Record<string, unknown>, good: Stuff): number {
     if (typeof v === 'number' && Number.isFinite(v) && v > 0) return Math.floor(v);
   }
   return positiveInt(config.defaultAsk, DEFAULT_ASK);
+}
+
+/** `retail.consignment.listingCap` — the shelf's per-consignor guard (0 = none). */
+function listingCap(): number {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.retailConsignmentListingCap);
+    const n = raw ? Number(raw) : NaN;
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 5;
+  } catch {
+    return 5;
+  }
 }
 
 function positiveInt(v: unknown, fallback: number): number {

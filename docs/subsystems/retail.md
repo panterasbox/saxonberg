@@ -85,7 +85,10 @@ consignment needs no bespoke ownership pointer:
   glob is refused); you must hold a bank account (the payout target —
   nudge to Goodkin otherwise); and you must be under the **per-consignor
   listing cap** (`retail.consignment.listingCap` — the shared-shelf
-  anti-grief guard, the withdrawal-quota sibling). An unstamped
+  anti-grief guard, the withdrawal-quota sibling; the platform ships
+  **24**, a case per consigning outfit on a distributor's counter — and
+  the `consigns` brain reads its outfit's headroom under it, so an NPC
+  hand never runs at an `over-cap` decline). An unstamped
   author-owned good is stamped to you on consign (establish-on-consign).
 - **A sale** splits the ask (commission → store, remainder → the
   consignor's **primary bank account** via `Charge.splits`), transfers

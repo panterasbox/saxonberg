@@ -6,8 +6,11 @@ settings:
   # shared consignment shelf (anti-grief, the withdrawal-quota sibling); the
   # commission rate is the store's cut of a consignment sale (the remainder
   # settles to the consignor). See docs/subsystems/retail.md.
+  # 24: a distributor's counter (the cash-and-carry) carries a case per
+  # consigning outfit; the outfit hands consign only up to their headroom
+  # (the `consigns` brain), so the cap is a ceiling, never a decline loop.
   - key: retail.consignment.listingCap
-    value: "5"
+    value: "24"
 
   - key: retail.consignment.commissionRate
     value: "0.15"

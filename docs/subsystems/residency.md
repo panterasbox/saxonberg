@@ -347,7 +347,10 @@ it one:
 - **Draw until decline, per region.** One census, many placements: the
   loop keeps a local copy of the census honest as it places, stops when
   the table declines, and is capped by `residency.spawn.perRegionCap`
-  (default 64; `AppSettingKeys.residencySpawnPerRegionCap`).
+  (`AppSettingKeys.residencySpawnPerRegionCap`; the platform ships **512** —
+  the authored floor, ~360 items across the trades' stocks, most in the
+  zone-less region `''`, must fit under it or a fresh boot stands short;
+  the code default is 64).
 - **A boot run, in `enforce`.** `AppBootstrap` calls
   `ResidencyApi.spawnNow()` once after `ResidencyApi.boot()` (after
   `PackApi.install()`), and the platform's `settings/residency.yaml`

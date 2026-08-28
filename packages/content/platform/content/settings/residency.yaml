@@ -22,5 +22,8 @@ settings:
   - key: residency.spawn.mode
     value: enforce
 
+  # One sweep places at most this many per region. The authored floor
+  # (libations: ~360 items across the trades' stocks, most of them in the
+  # zone-less region '') must fit under it or a fresh boot stands short.
   - key: residency.spawn.perRegionCap
-    value: "64"
+    value: "512"

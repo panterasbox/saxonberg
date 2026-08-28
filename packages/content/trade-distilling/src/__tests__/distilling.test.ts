@@ -397,6 +397,37 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     expect(cards().length).toBe(1);
   });
 
+  it('the hand consigns only up to its outfit\'s headroom under the listing cap — never at an over-cap decline', async () => {
+    const settings: Record<string, string> = { 'retail.consignment.listingCap': '1' };
+    vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');
+    const hand = makeHand();
+    await EmploymentApi.hire(outfit, hand, 'hand');
+    const gin = bottle('spirit:gin', 'gin');
+    const vodka = bottle('spirit:vodka', 'vodka');
+    ContainmentApi.move(gin as never, floorStock as never);
+    ContainmentApi.move(vodka as never, floorStock as never);
+    const lines = installDispatcher(hand);
+    const brainCtx = {
+      host: hand,
+      config: { stock: FLOOR_STOCK, shelf: COUNTER, defaultAsk: 10, batch: 6 },
+      state: {},
+      trigger: { source: 'cadence', raw: 'cadence:90s' },
+      say: () => undefined,
+      emote: async () => undefined,
+      emoteFree: () => undefined,
+    } as unknown as BrainContext;
+    await consigns.act(brainCtx);
+    // One lifted, one listed; the second bottle never left the floor.
+    expect(lines).toEqual(['get gin', 'wallet use house', 'consign gin --ask 10']);
+    expect(vodka.getContainer()).toBe(floorStock);
+    expect(counter.activeListingCount(OUTFIT)).toBe(1);
+    // The cap is full: the next beat lifts nothing and issues no verb.
+    lines.length = 0;
+    await consigns.act(brainCtx);
+    expect(lines).toEqual([]);
+    expect(vodka.getContainer()).toBe(floorStock);
+  });
+
   it('one beat: the floor stock is carried to the counter and listed AS the outfit; a buy splits to its account', async () => {
     const hand = makeHand();
     await EmploymentApi.hire(outfit, hand, 'hand');
