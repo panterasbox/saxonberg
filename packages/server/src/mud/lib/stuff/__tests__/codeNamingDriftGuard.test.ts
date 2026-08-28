@@ -115,6 +115,9 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
   // The clone pipeline resolves a template's `class` — gate-passed at
   // saveTemplate.
   { site: "api/stuff.ts::loadClassByPath", classification: "gated-direct" },
+  // `MaterialLogic.boot` keeps a row by `instanceof Material` — resolving
+  // the class wherever it lives (a capability pack's src/ included).
+  { site: "platform/idea/api/MaterialLogic.ts::loadClassByPath", classification: "gated-direct" },
   // The dynamic-import engines implementing loadClassByPath /
   // resolveExport(Sync). The gated set is enforced at their callers.
   { site: "api/stuff.ts::import", classification: "resolver-core" },
