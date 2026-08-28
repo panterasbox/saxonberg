@@ -100,9 +100,9 @@ export const brain = class {
     // goods in hand; they are still the outfit's, and the next beat
     // carries them to the board rather than stranding them.
     void before;
-    const carried = (hand.getContents() as Stuff[]).filter((c) =>
-      MixinApi.isChattel(c),
-    );
+    const carried = (hand.getContents() as Stuff[]).filter(
+      (c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c),
+    ); // the house card is chattel too — not for sale
     if (carried.length === 0) return;
 
     // To the counter; trade as the house once; put each good up.

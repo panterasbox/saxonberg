@@ -37,6 +37,7 @@ import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Container } from "../../../../lib/spatial/Container";
 import type { Containable } from "../../../../lib/spatial/Containable";
 import { EmploymentApi } from "../../../../api/employment";
+import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
 
 const TOPIC = "act.deed";
@@ -113,10 +114,20 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // parcel over its template — a `group`, the trade's title. Only a
     // player or an organization is ever stamped, so a group owner is
     // never a stamp: the good is nobody's in particular.)
+    // A corpo's yard sells the corpo's liquid: a good titled to an
+    // organization ABOVE the acting house (Veshko's bottles, the parcel
+    // held by /corpo/veshko; the yard's parentOrganization) is the
+    // house's to put up.
+    const chain = house
+      ? EmploymentApi.organizationChainOf(house as Stuff & Organization).map(
+          (o) => o.getTemplatePath(),
+        )
+      : [];
     const ownedByPrincipal =
       ownedBy(consignorKey) ||
       owner === null ||
       owner.kind === "group" ||
+      (owner.kind === "organization" && chain.includes(owner.templatePath)) ||
       ownedBy(giver.getTemplatePath());
     if (!ownedByPrincipal) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
