@@ -1,0 +1,17 @@
+# Ginger beer — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ginger beer
+  appearance: "cloudy, spicy ginger beer"
+  keywords: ["ginger-beer", "ginger"]
+  density: 1040
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["water", "sugar"]
+  toxicity:
+    []
+  tags: ["liquid", "beverage", "drinkable", "ginger-beer", "mixer", "carbonated"]
+  composition: []
+  biologicalSource: null

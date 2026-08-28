@@ -1,0 +1,11 @@
+# Mixer bottle — the bottling preset the floor rows repeat: 1 L, screw-capped.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a mixer bottle"
+  longDescription: "A one-litre bottle with a screw cap."
+  primaryKeyword: bottle
+  keywords: ["bottle", "mixer"]
+  interiorBulk: true
+  interiorCapacity: 1
+  closure: liquidTight

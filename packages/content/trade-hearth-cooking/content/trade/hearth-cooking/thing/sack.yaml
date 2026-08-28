@@ -1,0 +1,11 @@
+# Sack — the pantry preset over `/platform/thing/Bottle` (a bulk holder for a solid: 20 L of dry goods).
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a sack"
+  longDescription: "A hessian sack, tied at the neck."
+  primaryKeyword: sack
+  keywords: ["sack", "bag"]
+  interiorBulk: true
+  interiorCapacity: 20
+  closure: liquidTight

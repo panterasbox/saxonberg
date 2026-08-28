@@ -1,0 +1,18 @@
+# the pantry outfit's stock — the Stock the floor product spawns INTO (every floor
+# row's `container:`). No `stockLines` (the spawn sweep is the faucet, never
+# a reset), no prices (nothing is sold here — the hand carries it to the
+# cash-and-carry and consigns it).
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the pantry stock"
+  primaryKeyword: stock
+  keywords: [stock, pallet, cases]
+  longDescription: "Sacks on a pallet under a tarp: sugar, salt, coffee."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /trade/hearth-cooking/idea/pantry-outfit
+  stockLines: []
+  prices: {}

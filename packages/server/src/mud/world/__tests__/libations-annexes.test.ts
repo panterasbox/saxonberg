@@ -1,0 +1,223 @@
+/**
+ * The libations annexes (phase 3b + 3c): the five stub trades and the two
+ * corpo localities are DATA packs, so their proof is a row-shape test over
+ * the shipped YAML — every floor product is drawable (a census key, a
+ * target, a home `container:` that is a Stock the same pack ships), over a
+ * material some pack ships whose tags carry the recipe category; every
+ * hand names the distilling counter as its host shelf and asks a price for
+ * every key homed in its stock; every serving recipe parses through the
+ * kernel's own reader; and the Veshko zone's `stocks:` hydrates into the
+ * field `ResidencyLogic` reads. The mechanism (sweep → consign → buy) is
+ * proven once, in the distilling pack's own suite; this is the annexes'
+ * half — that their rows fit it.
+ *
+ * Lives under `mud/world/` because it names `/world/veshko` and
+ * `/world/hollis` (lint:test-content).
+ */
+
+import '../../../test-bootstrap';
+import { describe, it, expect } from 'vitest';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
+import { Recipe } from '../../lib/craft/Recipe';
+import { MixinApi } from '../../api/mixin';
+import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
+import Crate from '../../platform/thing/Crate';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
+
+const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
+const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-produce', 'trade-hearth-cooking', 'corpo-veshko', 'corpo-hollis'];
+const COUNTER = '/trade/distilling/thing/counter';
+
+interface Row {
+  pack: string;
+  path: string;
+  class: string;
+  data: Record<string, unknown>;
+}
+
+function walk(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) out.push(...walk(full));
+    else if (entry.endsWith('.yaml')) out.push(full);
+  }
+  return out;
+}
+
+/** Every template row every shipped pack carries (recipes excluded). */
+function allRows(): Row[] {
+  const rows: Row[] = [];
+  for (const pack of readdirSync(PACKS)) {
+    const root = join(PACKS, pack, 'content');
+    if (!existsSync(join(PACKS, pack, 'pack.yaml')) || !existsSync(root)) continue;
+    for (const file of walk(root)) {
+      const rel = relative(root, file);
+      if (rel.startsWith('recipes/') || rel.startsWith('settings/') || rel.startsWith('archetypes/')) continue;
+      const raw = parse(readFileSync(file, 'utf8')) as { class?: string; data?: Record<string, unknown> } | null;
+      if (!raw || typeof raw.class !== 'string') continue;
+      rows.push({ pack, path: '/' + rel.replace(/\.yaml$/, ''), class: raw.class, data: raw.data ?? {} });
+    }
+  }
+  return rows;
+}
+
+const rows = allRows();
+const byPath = new Map(rows.map((r) => [r.path, r]));
+const annexRows = rows.filter((r) => ANNEXES.includes(r.pack));
+const floorRows = annexRows.filter((r) => typeof r.data.censusKey === 'string');
+
+describe('libations annexes — the floor rows fit the faucet', () => {
+  it('the five stubs and the two corpo localities each ship floor product', () => {
+    for (const pack of ANNEXES) {
+      expect(floorRows.filter((r) => r.pack === pack).length, pack).toBeGreaterThan(0);
+    }
+    expect(floorRows.length).toBe(2 + 5 + 8 + 8 + 3 + 4 + 2);
+  });
+
+  it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {
+    for (const r of floorRows) {
+      expect(typeof r.data.regionTarget, r.path).toBe('number');
+      const home = byPath.get(r.data.container as string);
+      expect(home, `${r.path} container ${String(r.data.container)}`).toBeDefined();
+      expect(home!.class, r.path).toBe('/platform/thing/Stock');
+      expect(home!.pack, r.path).toBe(r.pack);
+      expect(home!.data.stockLines, `${home!.path} must not reset`).toEqual([]);
+    }
+  });
+
+  it('every bottle row holds a shipped material whose tags carry a recipe category; every crate populates a shipped item', () => {
+    for (const r of floorRows) {
+      if (r.class === '/platform/thing/Crate') {
+        const items = r.data.populates as string[];
+        expect(items.length, r.path).toBeGreaterThan(0);
+        const item = byPath.get(items[0]!);
+        expect(item, `${r.path} populates ${items[0]}`).toBeDefined();
+        const mat = byPath.get(item!.data._materialPath as string);
+        expect(mat, `${item!.path} material`).toBeDefined();
+        expect(mat!.data.tags, mat!.path).toContain(item!.data.primaryKeyword);
+        continue;
+      }
+      const mat = byPath.get(r.data.interiorMaterial as string);
+      expect(mat, `${r.path} interiorMaterial`).toBeDefined();
+      expect(String(mat!.class).startsWith('/platform/idea/material/'), mat!.path).toBe(true);
+      expect((mat!.data.tags as string[]).length, mat!.path).toBeGreaterThan(1);
+      expect(Number(r.data.interiorAmount), r.path).toBeLessThanOrEqual(Number(r.data.interiorCapacity));
+    }
+  });
+
+  it('the private-label fact: Hollis bottles hold the material Veshko\'s unbranded bottles hold', () => {
+    const old = byPath.get('/world/hollis/thing/old-hollis')!;
+    const cane = byPath.get('/world/hollis/thing/hollis-cane')!;
+    expect(old.data.interiorMaterial).toBe(byPath.get('/world/veshko/thing/whiskey')!.data.interiorMaterial);
+    expect(cane.data.interiorMaterial).toBe(byPath.get('/world/veshko/thing/rum')!.data.interiorMaterial);
+    expect(old.data._brandKey).toBe('old-hollis');
+    expect(byPath.get('/world/veshko/thing/volk')!.data._brandKey).toBe('volk');
+    // Every brand key an annex names is a Brand row some pack ships.
+    const brands = new Set(rows.filter((r) => r.class === '/platform/idea/corpo/Brand').map((r) => r.data.key));
+    for (const r of floorRows.filter((r) => typeof r.data._brandKey === 'string')) {
+      expect(brands.has(r.data._brandKey), r.path).toBe(true);
+    }
+  });
+
+  it('the mixers and the sparkling wine are carbonated; ice is frozen water; produce tags = the category', () => {
+    for (const key of ['soda-water', 'tonic', 'ginger-beer', 'cola', 'grapefruit-soda']) {
+      expect(byPath.get(`/trade/bottling/idea/material/${key}`)!.data.tags).toContain('carbonated');
+    }
+    expect(byPath.get('/trade/winemaking/idea/material/sparkling')!.data.tags).toContain('carbonated');
+    const ice = byPath.get('/trade/bottling/idea/material/ice')!.data;
+    expect(ice.meltingPoint).toBe(273);
+    expect(ice.latentHeatOfFusion).toBe(334000);
+    expect(ice.tags).toContain('ice');
+    for (const key of ['lime', 'lemon', 'orange', 'grapefruit', 'mint', 'cherry', 'olive', 'cranberry']) {
+      expect(byPath.get(`/trade/produce/idea/material/${key}`)!.data.tags, key).toContain(key);
+    }
+  });
+});
+
+describe('libations annexes — the hands name the host', () => {
+  const hands = annexRows.filter((r) =>
+    Array.isArray(r.data.behaviors) &&
+    (r.data.behaviors as Array<{ brain: string }>).some((b) => b.brain === '/lib/behavior/consigns'),
+  );
+
+  it('one consigning hand per annex; each names the distilling counter and asks for every key homed in its stock', () => {
+    expect(hands.length).toBe(ANNEXES.length);
+    for (const hand of hands) {
+      const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
+        (b) => b.brain === '/lib/behavior/consigns',
+      )!;
+      expect(spec.config.shelf, hand.path).toBe(COUNTER);
+      const stock = byPath.get(spec.config.stock as string);
+      expect(stock?.pack, `${hand.path} stock`).toBe(hand.pack);
+      const asks = spec.config.ask as Record<string, number>;
+      for (const r of floorRows.filter((r) => r.data.container === spec.config.stock)) {
+        expect(asks[r.data.censusKey as string], `${hand.path} asks ${r.path}`).toBeGreaterThan(0);
+      }
+      // The hand holds a purchasing position on the stock's business.
+      const biz = byPath.get(stock!.data.businessPath as string)!;
+      const positions = biz.data.positions as Array<{ key: string; purchases?: boolean }>;
+      const slots = biz.data.rosterSlots as Array<{ positionKey: string; assignee: string }>;
+      const slot = slots.find((s) => s.assignee === hand.path)!;
+      expect(slot, `${biz.path} rosters ${hand.path}`).toBeDefined();
+      expect(positions.find((p) => p.key === slot.positionKey)!.purchases).toBe(true);
+    }
+  });
+
+  it('the corpo yards hang off their charts; the stubs are independent', () => {
+    expect(byPath.get('/world/veshko/idea/business')!.data.parentOrganization).toBe('/corpo/veshko');
+    expect(byPath.get('/world/hollis/idea/business')!.data.parentOrganization).toBe('/corpo/hollis');
+    for (const r of annexRows.filter((r) => r.class === '/platform/idea/Business' && r.pack.startsWith('trade-'))) {
+      expect(r.data.parentOrganization, r.path).toBeUndefined();
+    }
+  });
+});
+
+describe('libations annexes — the serving recipes and the zone', () => {
+  it('every annex recipe parses through the kernel reader and outputs a bulk pour into a glass row', () => {
+    const files = ANNEXES.flatMap((p) => {
+      const dir = join(PACKS, p, 'content', 'recipes');
+      return existsSync(dir) ? walk(dir) : [];
+    }).filter((f) => !/(toasted-ration|root-mash|fine-roast|hearty-stew)\.yaml$/.test(f));
+    expect(files.length).toBe(1 + 3 + 1 + 1);
+    for (const f of files) {
+      const r = Recipe.fromData(parse(readFileSync(f, 'utf8')) as Record<string, unknown>);
+      expect(r.outputApplication, f).toBe('bulk');
+      expect(r.outputTemplate.startsWith('/trade/hospitality/thing/') || r.outputTemplate === '/trade/hearth-cooking/thing/syrup-bottle', f).toBe(true);
+    }
+    const syrup = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-hearth-cooking/content/recipes/simple-syrup.yaml'), 'utf8')) as Record<string, unknown>);
+    expect(syrup.requiresHeatK).toBe(340);
+    expect(syrup.outputPortionL).toBe(0.5);
+    expect(syrup.inputSlots[0]).toMatchObject({ kind: 'item', category: 'sugar', count: 1 });
+    const mixer = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-bottling/content/recipes/mixer.yaml'), 'utf8')) as Record<string, unknown>);
+    expect(mixer.ice).toBe('cubes');
+  });
+
+  it('a Crate is an open circulating container that populates', () => {
+    const c = makeStuff(() => new Crate());
+    stampTemplatePathForTest(c, '/obj/test/crate');
+    expect(MixinApi.isCirculating(c)).toBe(true);
+    expect(MixinApi.isContainer(c)).toBe(true);
+    expect(MixinApi.isSealable(c)).toBe(false);
+    expect(MixinApi.isChattel(c)).toBe(true);
+  });
+
+  it("the Veshko zone's stocks: reaches the field ResidencyLogic reads (lookupField), and favours with it", async () => {
+    const zoneRow = byPath.get('/world/veshko')!;
+    expect(zoneRow.class).toBe('/platform/idea/location/CartesianZone');
+    const z = makeStuff(() => new CartesianZone());
+    stampTemplatePathForTest(z, '/world/veshko');
+    z.setStocks(zoneRow.data.stocks as Record<string, number>);
+    z.setFavours(zoneRow.data.favours as string[]);
+    expect(await z.lookupField<Record<string, number>>('stocks')).toMatchObject({ 'spirit:volk': 24 });
+    expect(await z.lookupField<string[]>('favours')).toEqual(['spirit']);
+    // Every key the zone stocks is a floor row homed in the yard.
+    for (const key of Object.keys(zoneRow.data.stocks as Record<string, number>)) {
+      const row = floorRows.find((r) => r.data.censusKey === key);
+      expect(row?.data.container, key).toBe('/world/veshko/thing/stock');
+    }
+  });
+});

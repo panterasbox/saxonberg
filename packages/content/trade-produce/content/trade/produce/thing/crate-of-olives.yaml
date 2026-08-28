@@ -1,0 +1,28 @@
+# A crate of olives — the floor unit: a `Crate` (Circulating + Populates +
+# an OPEN Container) the sweep stands at target in the produce stock, holding
+# 12 olives minted on hydration. The bar's par line counts the olives
+# inside; the crate is what the hand consigns and the keeper buys.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of olives
+  primaryKeyword: olives
+  keywords: [crate, olives, olive, produce]
+  longDescription: A slatted wooden crate of olives, the grower's stencil on the side.
+  censusKey: produce:olive
+  regionTarget: 4
+  materialTags: [produce, olive]
+  container: /trade/produce/thing/produce-stock
+  populates:
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive
+    - /trade/produce/thing/olive

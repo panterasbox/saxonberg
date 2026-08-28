@@ -421,6 +421,13 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
       '/stuff/idea/corpo/Brand/hollis-cane',
       '/stuff/idea/corpo/Brand/old-hollis',
       '/stuff/idea/corpo/Corpo/hollis',
+      // The bottling floor (libations 3c): Hollis private-labels Veshko's liquid.
+      '/world/hollis/agent/hand',
+      '/world/hollis/idea/business',
+      '/world/hollis/location/bottling-floor',
+      '/world/hollis/thing/hollis-cane',
+      '/world/hollis/thing/old-hollis',
+      '/world/hollis/thing/stock',
     ]);
 
     // Every written row is stamped by one of the shipped packs — no

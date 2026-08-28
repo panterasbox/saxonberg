@@ -1,0 +1,21 @@
+id: trade-produce
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/produce
+description: >-
+  The produce trade — a STUB (libations): the bar's fruit and herbs (lime,
+  lemon, orange, grapefruit, mint, cherry, olive, cranberry) as food
+  materials tagged by category, each as a graded Provision item, the crate
+  and basket presets over the platform Crate, a crate of each at target in
+  the produce stock, and the outfit that consigns them onto the cash-and-
+  carry. The growing is the smallholding's; the crop/seed/plant/pot/bed
+  rows move here in the generic drain (phase 5).
+requires:
+  groups:
+    - name: produce
+      purpose: the produce trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/produce, holder: { group: produce } }
+boot:
+  - { template: /trade/produce/location/produce-floor, role: producer, reason: "the outfit's shed — its Stock is the home container the crates spawn into, and its hand runs the consigns brain" }
+  - { template: /trade/produce/idea/produce-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }

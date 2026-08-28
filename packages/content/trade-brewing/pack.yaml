@@ -1,0 +1,20 @@
+id: trade-brewing
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/brewing
+description: >-
+  The brewing trade — a STUB (libations): everything downstream of
+  production and nothing of production. The beer materials (ale, lager),
+  the keg and cask presets as rows over the platform Bottle, the floor
+  kegs the spawn sweep stands at target in the brewery outfit's stock, the
+  outfit that consigns them onto the distilling trade's cash-and-carry
+  counter, and the pint. The ferment itself is the distillery build's.
+requires:
+  groups:
+    - name: brewing
+      purpose: the brewing trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/brewing, holder: { group: brewing } }
+boot:
+  - { template: /trade/brewing/location/brewing-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor kegs spawn into, and its hand runs the consigns brain" }
+  - { template: /trade/brewing/idea/brewing-outfit, role: producer, reason: "the hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }

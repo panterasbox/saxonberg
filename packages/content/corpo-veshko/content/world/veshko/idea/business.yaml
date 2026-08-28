@@ -1,0 +1,26 @@
+# Veshko Distilling — the corpo's OPERATING Business (Veshko the organization
+# is capital; this is the yard that trades). `parentOrganization` is the
+# chart it hangs off; its `hand` position purchases, so the hand consigns AS
+# Veshko Distilling onto the cash-and-carry and each sale lands here.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  parentOrganization: /corpo/veshko
+  appointingAuthority:
+    kind: committee
+    parcel: /corpo/veshko
+  positions:
+    - key: hand
+      label: running Veshko's yard
+      wageRate: 4
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: hand
+      assignee: /world/veshko/agent/hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/veshko/location/distillery
+    - /world/veshko/thing/stock

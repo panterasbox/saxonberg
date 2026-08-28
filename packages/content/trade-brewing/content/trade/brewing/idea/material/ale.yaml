@@ -1,0 +1,19 @@
+# Ale — brewing's, by the generic drain rule (the ferment makes it). The base-library row retires in phase 5. Category tags `beer`, `ale`.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ale
+  appearance: "a foamy amber ale"
+  keywords: ["ale", "beer", "brew"]
+  density: 1010
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["carb", "water"]
+  toxicity:
+    - { type: alcohol, amount: 14 }
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "ale"]
+  nutrientAmounts:
+    carb: 13000
+  composition: []
+  biologicalSource: null

@@ -1,0 +1,16 @@
+# Veshko's distillery yard — the locality zone over /world/veshko, and the
+# EXEMPLAR of a zone that declares what it STOCKS: the census-key → count
+# table `ResidencyLogic` reads through `lookupField('stocks')`, overriding
+# each floor row's own `regionTarget` for this region. "How many Volk stand
+# in Veshko's yard" is a fact about the yard.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Veshko Yard
+  cellSize: 3.0
+  stocks:
+    spirit:volk: 24
+    spirit:veshko-whiskey: 12
+    spirit:veshko-rum: 12
+    spirit:veshko-gin: 12
+  favours: [spirit]

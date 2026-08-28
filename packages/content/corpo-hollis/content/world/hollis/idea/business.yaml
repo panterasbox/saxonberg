@@ -1,0 +1,27 @@
+# Hollis Bottling — the corpo's operating Business: a bottling floor that
+# DISTILS NOTHING. Hollis private-labels Veshko's liquid (the Kirkland
+# fact): Old Hollis is Veshko's whiskey, Hollis Cane is Veshko's rum, and
+# the private-label fact is each row's `interiorMaterial` pointer, legible
+# on `look`.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  parentOrganization: /corpo/hollis
+  appointingAuthority:
+    kind: committee
+    parcel: /corpo/hollis
+  positions:
+    - key: hand
+      label: running Hollis's bottling floor
+      wageRate: 3
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: hand
+      assignee: /world/hollis/agent/hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/hollis/location/bottling-floor
+    - /world/hollis/thing/stock

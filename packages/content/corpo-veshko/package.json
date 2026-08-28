@@ -6,6 +6,7 @@
   "type": "module",
   "dependencies": {
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

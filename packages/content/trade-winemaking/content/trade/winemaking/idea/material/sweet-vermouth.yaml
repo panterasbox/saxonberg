@@ -1,0 +1,16 @@
+# Sweet vermouth. Category tags `vermouth`, `sweet-vermouth`.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: sweet vermouth
+  appearance: "ruby-red, bittersweet vermouth"
+  keywords: ["vermouth", "sweet"]
+  density: 1010
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 7 }
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "vermouth", "sweet-vermouth"]
+  composition: []
+  biologicalSource: null

@@ -1,0 +1,9 @@
+# Basket — the second preset: an open wicker basket over `/platform/thing/Crate`
+# (the same class; the difference is the row's words).
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wicker basket
+  primaryKeyword: basket
+  keywords: [basket, wicker]
+  longDescription: A wide wicker basket with a bent-cane handle.

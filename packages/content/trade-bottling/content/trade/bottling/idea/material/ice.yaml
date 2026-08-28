@@ -1,0 +1,23 @@
+# Ice — frozen water, bottling's row (bagged ice is a bottling-floor product). Tag `ice` is what the ice bin is recognised by and what a recipe's `ice:` draws from.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ice
+  appearance: "clear ice, sweating"
+  keywords: ["ice"]
+  density: 917
+  thermalConductivity: 2.2
+  specificHeat: 2100
+  edibility: true
+  nutrients: ["water"]
+  toxicity:
+    []
+  tags: ["solid", "ice", "frozen"]
+  # Frozen water: the plateau the drink's own reconcile melts against
+  # (CraftedDrink.reconcileThermal — latent heat of fusion, at 273 K).
+  meltingPoint: 273
+  latentHeatOfFusion: 334000
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
+  composition: []
+  biologicalSource: null

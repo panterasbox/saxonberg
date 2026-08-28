@@ -1,0 +1,13 @@
+# A cranberry — the discrete produce item (a graded Provision over its own
+# material, the prime-cut shape). A recipe's `kind: item` slot matches the
+# material tag `cranberry`; the crate below mints these.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cranberry
+  primaryKeyword: cranberry
+  keywords: [cranberry, cranberries, produce]
+  longDescription: "A hard red cranberry."
+  _materialPath: /trade/produce/idea/material/cranberry
+  gradeBand: fair
+  mass: 0.002

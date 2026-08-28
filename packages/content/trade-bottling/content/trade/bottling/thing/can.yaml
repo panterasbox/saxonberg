@@ -1,0 +1,11 @@
+# Can — the bottling preset: 330 mL, sealed.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a can"
+  longDescription: "A 330 mL aluminium can, ring-pull intact."
+  primaryKeyword: can
+  keywords: ["can", "tin"]
+  interiorBulk: true
+  interiorCapacity: 0.33
+  closure: sealed

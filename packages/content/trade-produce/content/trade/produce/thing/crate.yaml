@@ -1,0 +1,8 @@
+# Crate — the produce preset: an empty open crate over `/platform/thing/Crate`.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an empty crate
+  primaryKeyword: crate
+  keywords: [crate, box]
+  longDescription: A slatted wooden crate, empty but for a few leaves.

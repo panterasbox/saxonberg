@@ -1,16 +1,24 @@
 id: corpo-veshko
-version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.3.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /corpo/veshko
-description: The veshko corpo — its mark, its brands, and its org chart.
+description: >-
+  The veshko corpo — its mark, its brands, and its org chart; and (libations)
+  its DISTILLERY: the /world/veshko yard whose zone declares what it stocks,
+  Veshko Distilling (the operating Business under the chart), the floor
+  bottles the sweep stands at target — Volk, and the unbranded whiskey, rum
+  and gin Hollis private-labels — and the hand that consigns them onto the
+  distilling trade's cash-and-carry. Veshko MAKES.
 # The corpo's own chart maintains its pack (content-packs wave 3, D8): the
 # organization row this pack ships, resident from boot.
 maintainers: { organization: /corpo/veshko }
 requires:
   # The organization holds its own branch — which is what makes it the
-  # committee over /corpo/veshko (the subsidiaries' appointing authority).
-  # On a world where the retired `veshko` board group held it, the title
-  # migrates to the organization.
+  # committee over /corpo/veshko (the subsidiaries' appointing authority)
+  # — and the yard it operates.
   title:
     - { extent: /corpo/veshko }
+    - { extent: /world/veshko, landUse: industrial }
 boot:
   - { template: /corpo/veshko, role: producer, reason: appoint and the chart reads resolve the organization by templatePath }
+  - { template: /world/veshko/location/distillery, role: producer, reason: "the yard — its Stock is the home container the floor bottles spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
+  - { template: /world/veshko/idea/business, role: producer, reason: "the hand's purchases position is materialized by the roster tick over a live business; the consigns beat trades as Veshko Distilling" }

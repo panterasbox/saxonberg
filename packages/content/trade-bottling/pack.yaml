@@ -1,0 +1,20 @@
+id: trade-bottling
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/bottling
+description: >-
+  The bottling trade — a STUB (libations): the mixers (soda water, tonic,
+  ginger beer, cola, grapefruit soda — carbonated), the juices, and ICE as
+  a material, the can and mixer-bottle presets over the platform Bottle,
+  the floor bottles and the 5 kg ice bag at target in the bottling stock,
+  the outfit that consigns them onto the cash-and-carry, and the mixer
+  pour. The filling line is a later build.
+requires:
+  groups:
+    - name: bottling
+      purpose: the bottling trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/bottling, holder: { group: bottling } }
+boot:
+  - { template: /trade/bottling/location/bottling-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the mixers and ice spawn into, and its hand runs the consigns brain" }
+  - { template: /trade/bottling/idea/bottling-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }

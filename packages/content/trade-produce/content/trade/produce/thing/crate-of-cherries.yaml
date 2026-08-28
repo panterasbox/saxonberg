@@ -1,0 +1,28 @@
+# A crate of cherries — the floor unit: a `Crate` (Circulating + Populates +
+# an OPEN Container) the sweep stands at target in the produce stock, holding
+# 12 cherries minted on hydration. The bar's par line counts the cherries
+# inside; the crate is what the hand consigns and the keeper buys.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of cherries
+  primaryKeyword: cherries
+  keywords: [crate, cherries, cherry, produce]
+  longDescription: A slatted wooden crate of cherries, the grower's stencil on the side.
+  censusKey: produce:cherry
+  regionTarget: 4
+  materialTags: [produce, cherry]
+  container: /trade/produce/thing/produce-stock
+  populates:
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry
+    - /trade/produce/thing/cherry

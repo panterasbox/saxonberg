@@ -1,0 +1,41 @@
+# Wen Hartley — the produce outfit's hand. Holds the outfit's `hand` position
+# (`purchases: true`): dealt the house card at hire, then the `consigns`
+# brain drives the literal verbs — `get`, `wallet use house`, `consign …
+# --ask` — carrying the stock to the cash-and-carry counter and consigning
+# it AS the outfit. The counter path is this config's, never the trade's.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Wen Hartley
+  pronouns: they
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: hand
+  alternateNames: ["wen", "hartley"]
+  shortDescription: "a sun-browned market hand with a knife on a string"
+  longDescription: |
+    A sun-browned hand with a paring knife on a string round their neck, who tastes one of everything before it goes out.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:90s
+      config:
+        stock: /trade/produce/thing/produce-stock
+        shelf: /trade/distilling/thing/counter
+        batch: 6
+        ask:
+          produce:lime: 6
+          produce:lemon: 6
+          produce:orange: 5
+          produce:grapefruit: 5
+          produce:mint: 5
+          produce:cherry: 5
+          produce:olive: 5
+          produce:cranberry: 5
+    - brain: /lib/behavior/idles
+      trigger: cadence:41s
+      config:
+        pool:
+          - { kind: free, value: "halves a lime and sniffs it." }
+          - { kind: free, value: "wets the sacking down again." }

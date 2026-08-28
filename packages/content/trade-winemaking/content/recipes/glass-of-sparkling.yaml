@@ -1,0 +1,15 @@
+# A glass of sparkling — winemaking's serving recipe: 150 mL poured (built, no tool) into hospitality's flute row.
+recipeId: glass-of-sparkling
+name: Glass of sparkling
+keywords: ["sparkling", "wine"]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- slot: wine
+  category: "sparkling"
+  minGrade: "fair"
+  measureL: 0.15
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/flute
+outputAppearance: a flute of sparkling wine

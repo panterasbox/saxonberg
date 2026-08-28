@@ -1,0 +1,28 @@
+# A crate of sprigs of mint — the floor unit: a `Crate` (Circulating + Populates +
+# an OPEN Container) the sweep stands at target in the produce stock, holding
+# 12 sprigs of mint minted on hydration. The bar's par line counts the sprigs of mint
+# inside; the crate is what the hand consigns and the keeper buys.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of sprigs of mint
+  primaryKeyword: mint
+  keywords: [crate, mint, mint, produce]
+  longDescription: A slatted wooden crate of sprigs of mint, the grower's stencil on the side.
+  censusKey: produce:mint
+  regionTarget: 4
+  materialTags: [produce, mint]
+  container: /trade/produce/thing/produce-stock
+  populates:
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint
+    - /trade/produce/thing/mint

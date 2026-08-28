@@ -1,0 +1,17 @@
+# Orange — produce's food material; tag `orange` is the recipe category (a garnish slot, a press's item slot, the par sheet).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: orange
+  appearance: "a thick-skinned orange"
+  keywords: ["orange"]
+  density: 940
+  thermalConductivity: 0.5
+  specificHeat: 3600
+  edibility: true
+  nutrients: ["water", "sugar"]
+  toxicity:
+    []
+  tags: ["solid", "food", "produce", "orange", "fruit", "citrus"]
+  composition: []
+  biologicalSource: null

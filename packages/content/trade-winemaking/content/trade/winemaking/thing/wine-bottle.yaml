@@ -1,0 +1,11 @@
+# Wine bottle — the winemaking preset as a row over `/platform/thing/Bottle`.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a wine bottle"
+  longDescription: "A dark-green 750 mL wine bottle, corked."
+  primaryKeyword: bottle
+  keywords: ["bottle", "wine"]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  closure: sealed

@@ -57,6 +57,8 @@ export abstract class Zone extends Idea {
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     wire: { persistent: true },
+    stocks: { persistent: true, authorable: true },
+    favours: { persistent: true, authorable: true },
   };
 
   // Ownership/access fields (`ownerGroup` / `accessGroups` /
@@ -90,6 +92,29 @@ export abstract class Zone extends Idea {
 
   public getWire(): boolean | null { return this.wire; }
   public setWire(value: boolean): void { this.wire = value; }
+
+  /**
+   * What this region STOCKS (libations): census key → target count, the
+   * zone-side override of a floor row's own `regionTarget` (`ResidencyLogic`
+   * reads it through `lookupField('stocks')`, so it inherits down the zone
+   * walk like every other zone field). `null` = not declared here. A
+   * distillery's yard authors `{ 'spirit:vodka': 24 }` and the spawn
+   * sweep stands the floor at that count; a `0` means "none of that here".
+   */
+  protected stocks: Record<string, number> | null = null;
+
+  public getStocks(): Record<string, number> | null { return this.stocks; }
+  public setStocks(value: Record<string, number> | null): void { this.stocks = value; }
+
+  /**
+   * Material tags this region FAVOURS (place affinity — a mine stocks
+   * metal, a grove wood): the spawn table's second multiplier, read by
+   * the same `lookupField('favours')` walk. `null` = not declared here.
+   */
+  protected favours: string[] | null = null;
+
+  public getFavours(): string[] | null { return this.favours; }
+  public setFavours(value: string[] | null): void { this.favours = value; }
 
   /**
    * Effective value of `fieldName` for this zone. Reads own value

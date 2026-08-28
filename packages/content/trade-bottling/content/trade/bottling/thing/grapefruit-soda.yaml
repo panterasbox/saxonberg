@@ -1,0 +1,18 @@
+# The floor bottle of grapefruit soda — 1 L, at target in the bottling stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of grapefruit soda"
+  longDescription: "A one-litre screw-capped bottle of grapefruit soda, the bottling floor's plain label."
+  primaryKeyword: grapefruit-soda
+  keywords: ["grapefruit-soda", "soda", "bottle", "mixer"]
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/bottling/idea/material/grapefruit-soda
+  interiorAmount: 1
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: mixer:grapefruit-soda
+  regionTarget: 8
+  materialTags: ["mixer", "grapefruit-soda"]
+  container: /trade/bottling/thing/bottling-stock

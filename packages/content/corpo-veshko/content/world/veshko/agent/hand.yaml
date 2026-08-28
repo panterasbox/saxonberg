@@ -1,0 +1,35 @@
+# Petra Volkova — Veshko Distilling's hand. Dealt the house card at hire; the
+# `consigns` brain carries the yard's product to the cash-and-carry counter
+# and lists it AS Veshko Distilling. The annex names the host.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Petra Volkova
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: hand
+  alternateNames: [petra, volkova]
+  shortDescription: a brisk yard hand in a Veshko-grey coat
+  longDescription: |
+    A brisk, square woman in a grey company coat with the Veshko mark on the breast, who moves pallets like she is being timed. She probably is.
+  dispositions:
+    - { disposition: diligence, valence: 80 }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:90s
+      config:
+        stock: /world/veshko/thing/stock
+        shelf: /trade/distilling/thing/counter
+        batch: 6
+        ask:
+          spirit:volk: 9
+          spirit:veshko-whiskey: 12
+          spirit:veshko-rum: 11
+          spirit:veshko-gin: 11
+    - brain: /lib/behavior/idles
+      trigger: cadence:43s
+      config:
+        pool:
+          - { kind: free, value: "checks a pallet count against a clipboard." }
+          - { kind: free, value: "straightens a case so the mark faces out." }

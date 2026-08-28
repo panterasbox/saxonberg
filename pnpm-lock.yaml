@@ -53,6 +53,12 @@ importers:
       '@saxonberg/content-species-and-names':
         specifier: workspace:*
         version: link:packages/content/species-and-names
+      '@saxonberg/content-trade-bottling':
+        specifier: workspace:*
+        version: link:packages/content/trade-bottling
+      '@saxonberg/content-trade-brewing':
+        specifier: workspace:*
+        version: link:packages/content/trade-brewing
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:packages/content/trade-distilling
@@ -62,9 +68,15 @@ importers:
       '@saxonberg/content-trade-hospitality':
         specifier: workspace:*
         version: link:packages/content/trade-hospitality
+      '@saxonberg/content-trade-produce':
+        specifier: workspace:*
+        version: link:packages/content/trade-produce
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:packages/content/trade-smithing
+      '@saxonberg/content-trade-winemaking':
+        specifier: workspace:*
+        version: link:packages/content/trade-winemaking
       '@saxonberg/content-wiki-starter':
         specifier: workspace:*
         version: link:packages/content/wiki-starter
@@ -249,9 +261,15 @@ importers:
 
   packages/content/corpo-hollis:
     dependencies:
+      '@saxonberg/content-corpo-veshko':
+        specifier: workspace:*
+        version: link:../corpo-veshko
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -264,6 +282,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -385,6 +406,42 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/trade-bottling:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+
+  packages/content/trade-brewing:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/content/trade-distilling:
     dependencies:
       '@saxonberg/content-base-library':
@@ -415,12 +472,18 @@ importers:
 
   packages/content/trade-hearth-cooking:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -446,6 +509,24 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/trade-produce:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+
   packages/content/trade-smithing:
     dependencies:
       '@saxonberg/content-generic-objects':
@@ -454,6 +535,24 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+
+  packages/content/trade-winemaking:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

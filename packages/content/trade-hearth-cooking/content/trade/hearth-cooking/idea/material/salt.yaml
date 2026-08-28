@@ -1,0 +1,16 @@
+# Salt — the pantry's (base-library has only salt-WATER). Tag `salt`: the rim of a margarita.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: salt
+  appearance: "coarse white salt"
+  keywords: ["salt"]
+  density: 2160
+  thermalConductivity: 0.6
+  specificHeat: 880
+  edibility: true
+  toxicity:
+    []
+  tags: ["solid", "food", "salt", "seasoning"]
+  composition: []
+  biologicalSource: null

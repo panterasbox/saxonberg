@@ -1,0 +1,17 @@
+# Cranberry juice — bottling's (the press is produce's fruit; the bottled juice is the bottling floor's). Category tag `cranberry-juice`.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: cranberry juice
+  appearance: "tart red cranberry juice"
+  keywords: ["cranberry", "cranberry-juice", "juice"]
+  density: 1030
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["water", "sugar"]
+  toxicity:
+    []
+  tags: ["liquid", "beverage", "drinkable", "cranberry", "cranberry-juice", "juice", "mixer"]
+  composition: []
+  biologicalSource: null

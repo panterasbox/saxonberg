@@ -1,0 +1,18 @@
+# The floor bottle of soda water — 1 L, at target in the bottling stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of soda water"
+  longDescription: "A one-litre screw-capped bottle of soda water, the bottling floor's plain label."
+  primaryKeyword: soda
+  keywords: ["soda", "soda-water", "fizz", "bottle", "mixer"]
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/bottling/idea/material/soda-water
+  interiorAmount: 1
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: mixer:soda-water
+  regionTarget: 8
+  materialTags: ["mixer", "soda"]
+  container: /trade/bottling/thing/bottling-stock

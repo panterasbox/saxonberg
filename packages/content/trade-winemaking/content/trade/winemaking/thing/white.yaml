@@ -1,0 +1,18 @@
+# The floor bottle of white wine.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of white wine"
+  longDescription: "A corked bottle of white wine, the vintner outfit's plain label."
+  primaryKeyword: white
+  keywords: ["white", "wine", "bottle"]
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /trade/winemaking/idea/material/white
+  interiorAmount: 0.75
+  closure: sealed
+  gradeBand: fair
+  censusKey: wine:white
+  regionTarget: 6
+  materialTags: ["wine", "white"]
+  container: /trade/winemaking/thing/vintner-stock
