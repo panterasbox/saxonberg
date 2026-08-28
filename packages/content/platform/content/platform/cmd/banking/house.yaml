@@ -14,6 +14,12 @@ help: |
   against par, counted over what you can see from where you stand.
   Restocking is not a verb — read the sheet, `wallet use house`, `buy`,
   and `put` it on the rail.
+
+  The app runs on a SCREEN: the house tablet in your hand, a screen in
+  sight you may drive, or — with an active attunement — one anywhere
+  (you drive it; you see nothing). Everyone who can see the screen sees
+  the sheet. A screen is not the seat: holding the tablet shows the
+  sheet, it never spends the house's money.
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:

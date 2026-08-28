@@ -3036,11 +3036,21 @@ export const MAX_SAVED_ARRANGEMENTS_PER_MODE = 32;
  * `null` = nothing watched. Replaces the retired operator-curated
  * broadcast-source list.
  */
-export type WatchTarget =
+export type WatchTarget = (
   | { platform: "twitch"; channel: string }
   | { platform: "youtube"; videoId: string }
   | { platform: "youtube"; channelId: string }
-  | { platform: "kick"; channel: string };
+  | { platform: "kick"; channel: string }
+) & {
+  /**
+   * ⭐ Set when the embed is a SHARED display's — the booth TV, not the
+   * viewer's own `watch`. The server writes it for every viewer who can
+   * see the screen; the client renders "on <label>" around the same
+   * iframe and drops the personal `watch off` hint (whoever holds the
+   * remote clears it). Absent for a personal `watch`.
+   */
+  display?: { stuffId: string; label: string };
+};
 
 /**
  * One channel the viewer is tuned to, as the rail needs it.

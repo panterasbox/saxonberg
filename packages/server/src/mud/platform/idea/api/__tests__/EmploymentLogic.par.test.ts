@@ -31,6 +31,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Location from '../../../../lib/stuff/Location';
+import Tablet from '../../../thing/Tablet';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import {
@@ -138,6 +139,10 @@ describe('the par manifest (D7)', () => {
     const loc = makeStuff(() => new Location());
     const dave = makeStuffAtPath(() => new Keeper(), DAVE);
     ContainmentApi.move(dave as never, loc as never);
+    // The house app runs on a screen (display.md): the tablet in hand.
+    const tablet = makeStuff(() => new Tablet());
+    tablet.setPairing('held');
+    ContainmentApi.move(tablet, dave as never);
     const run = (level: string, extra: Record<string, string> = {}) =>
       asActor(dave, () =>
         makeStuff(() => new HouseController()).execute(

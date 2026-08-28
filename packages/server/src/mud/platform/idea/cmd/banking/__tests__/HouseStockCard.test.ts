@@ -2,9 +2,10 @@
  * `house stock` opens a LIVE `stock` card whose rows change when a
  * bottle drains — the perception-scoped sheet as a card (D7).
  *
- * Driven end to end: a real Avatar behind an Interactive, a real
- * `CommandContext` declaring `opens_card: stock`, and the world change
- * (a debit off the bottle) performed rather than the card refreshed.
+ * Driven end to end: a real Avatar behind an Interactive holding the
+ * house tablet (the app runs on a screen; the card is projected through
+ * it), a real `CommandContext`, and the world change (a debit off the
+ * bottle) performed rather than the card refreshed.
  */
 
 import '../../../../../../test-bootstrap';
@@ -23,6 +24,7 @@ import HouseController from '../HouseController';
 import BusinessEntity from '../../../Business';
 import Material from '../../../../../lib/material/Material';
 import Receptacle from '../../../../thing/Receptacle';
+import Tablet from '../../../../thing/Tablet';
 import { Quantity } from '../../../../../lib/quantity';
 import {
   makeStuff,
@@ -72,6 +74,12 @@ describe('the stock card', () => {
     bottle.setBulkMaterial('interior', gin);
     bottle.setBulkAmount('interior', Quantity.of(0.75, 'L'));
     ContainmentApi.move(bottle, h.room);
+    // The house app runs on a screen: the house tablet in hand (display.md).
+    const tablet = await StuffApi.create(() => new Tablet());
+    tablet.setPairing('staff');
+    tablet.setSourcePolicy('cards');
+    tablet.setPrincipal('/stuff/test/bar/business');
+    ContainmentApi.move(tablet, h.avatar);
 
     const ctx = makeContext(h, {
       commandText: 'house stock',

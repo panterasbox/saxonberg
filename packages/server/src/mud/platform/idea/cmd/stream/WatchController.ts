@@ -13,6 +13,11 @@
  *
  * Watching also *implies* following the chat — a best-effort delegation to
  * `StreamApi.tune` (Twitch two-way; YouTube read-only).
+ *
+ * `watch <target> on <screen>` drives a SHARED display instead (the
+ * booth TV): `DisplayApi.mayDrive` decides (the remote, the seat, reach),
+ * `DisplayApi.show` writes every viewer's embed who sees the screen.
+ * `watch off on <screen>` darkens it. See docs/subsystems/display.md.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -22,6 +27,9 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { PlayerApi } from '../../../../api/player';
 import { StreamApi } from '../../../../api/stream';
+import { DisplayApi } from '../../../../api/display';
+import type { Display } from '../../../../api/display';
+import type { MqlOneResult } from '../../../../api/mql';
 import { StreamerTarget } from '../../../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../../../lib/streaming/StreamerTarget';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -37,6 +45,8 @@ interface WatchModel extends CommandModel {
   twitch?: boolean;
   youtube?: boolean;
   kick?: boolean;
+  /** `watch <target> on <display>` — a shared screen, not the personal embed. */
+  on?: MqlOneResult;
 }
 
 export default class WatchController extends CommandController<WatchModel> {
@@ -51,6 +61,26 @@ export default class WatchController extends CommandController<WatchModel> {
     }
     const host: WatchHost = giver;
 
+    const screen = model.on?.stuff ?? null;
+    if (screen) {
+      if (!MixinApi.isDisplay(screen)) {
+        return this.fail(context, "that isn't a screen.", 'not-display');
+      }
+      if (!(await DisplayApi.mayDrive(giver, screen))) {
+        return this.fail(
+          context,
+          `you can't drive ${screen.getPresentation()} — whoever holds the remote can.`,
+          'not-driver',
+        );
+      }
+      if (model.subcommand === 'off') {
+        DisplayApi.clear(screen);
+        return this.send(
+          context,
+          Mml.fromMarkup(`\nYou switch ${screen.getPresentation()} off.\n`),
+        );
+      }
+    }
     if (model.subcommand === 'off') return this.clear(host, context);
     const target = (model.target ?? '').trim();
     if (!target) {
@@ -62,7 +92,7 @@ export default class WatchController extends CommandController<WatchModel> {
         ),
       );
     }
-    return this.watch(model, context, host);
+    return this.watch(model, context, host, screen);
   }
 
   private clear(host: WatchHost, context: CommandContext): void {
@@ -75,6 +105,7 @@ export default class WatchController extends CommandController<WatchModel> {
     model: WatchModel,
     context: CommandContext,
     host: WatchHost,
+    screen: (Stuff & Display) | null,
   ): Promise<void> {
     const parsed = StreamerTarget.parse((model.target ?? '').trim(), {
       twitch: model.twitch,
@@ -101,10 +132,15 @@ export default class WatchController extends CommandController<WatchModel> {
       }
       // A character resolves to twitch or kick (never youtube) — both
       // embed by channel handle/slug.
-      this.setWatch(host, context, {
-        platform: resolved.target.platform === 'kick' ? 'kick' : 'twitch',
-        channel: resolved.target.handle,
-      });
+      this.setWatch(
+        host,
+        context,
+        {
+          platform: resolved.target.platform === 'kick' ? 'kick' : 'twitch',
+          channel: resolved.target.handle,
+        },
+        screen,
+      );
       const actor = context.commandGiver;
       if (PlayerApi.isAvatarStuff(actor)) {
         await StreamApi.tune(actor, resolved.target);
@@ -129,7 +165,7 @@ export default class WatchController extends CommandController<WatchModel> {
       }
       embed = { platform: 'youtube', channelId: r.channelId };
     }
-    this.setWatch(host, context, embed);
+    this.setWatch(host, context, embed, screen);
 
     // Watching implies following the chat — best-effort delegation to
     // `StreamApi.tune` (Twitch two-way; YouTube read-only, and a no-op when
@@ -171,9 +207,8 @@ export default class WatchController extends CommandController<WatchModel> {
     host: WatchHost,
     context: CommandContext,
     target: WatchTarget,
+    screen: (Stuff & Display) | null,
   ): void {
-    host.setClientState(WATCH_KEY, target);
-    host.pushClientStateUpdate(WATCH_KEY, target);
     const label =
       target.platform === 'twitch'
         ? `Twitch #${target.channel}`
@@ -182,6 +217,25 @@ export default class WatchController extends CommandController<WatchModel> {
           : 'videoId' in target
             ? `YouTube ${target.videoId}`
             : `YouTube ${target.channelId}`;
+    if (screen) {
+      // A shared screen: the server writes every viewer's embed who sees
+      // it (the driver included when they do) — never the driver's alone.
+      if (!screen.acceptsSource({ kind: 'stream', target, label })) {
+        return this.fail(
+          context,
+          `${screen.getPresentation()} doesn't show streams.`,
+          'source-refused',
+        );
+      }
+      DisplayApi.show(screen, { kind: 'stream', target, label });
+      this.send(
+        context,
+        Mml.fromMarkup(`\n${screen.getPresentation()} shows ${label}.\n`),
+      );
+      return;
+    }
+    host.setClientState(WATCH_KEY, target);
+    host.pushClientStateUpdate(WATCH_KEY, target);
     this.send(context, Mml.fromMarkup(`\nWatching ${label}.\n`));
   }
 

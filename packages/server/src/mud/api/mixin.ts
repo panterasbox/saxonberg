@@ -44,6 +44,7 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Display } from '../lib/display/Display';
 import type { Switchable } from '../lib/boundary/Switchable';
 import type { Energized } from '../lib/electricity/Energized';
 import type { Lockable } from '../lib/boundary/Locked';
@@ -787,6 +788,11 @@ export class MixinApi {
     obj: Stuff,
   ): obj is Stuff & CredentialWallet {
     return this.hasMixin(obj, Mixins.CredentialWallet);
+  }
+
+  /** A screen that shows one source to everyone who can see it (`DisplayMixin`). */
+  public static isDisplay(obj: Stuff): obj is Stuff & Display {
+    return this.hasMixin(obj, Mixins.Display);
   }
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {

@@ -3,7 +3,8 @@
  * the venue's profit-and-loss; `house payroll <worker> <amount>` pays a wage
  * from the house account; `house par <category> <level>` sets a par line
  * on the Business; `house stock` shows the live stock sheet — the rail
- * against par, perception-scoped, as a card.
+ * against par, perception-scoped, as a card ON A SCREEN (`DisplayApi.
+ * resolveFor`: the tablet you hold, one in sight, or one by mind).
  *
  * ⚠ **Gated on the SEAT, never the wizard axis.** `requiresWizard` is the
  * TypeScript code-trust axis and nothing else; venue authority comes from a
@@ -22,7 +23,11 @@ import type { Business, ParUnit, StockSheetLine } from "../../../../api/employme
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { CardApi } from "../../../../api/card";
+import { DisplayApi } from "../../../../api/display";
+import type { ResolvedDisplay } from "../../../../api/display";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import { StuffApi } from "../../../../api/stuff";
+import { MixinApi } from "../../../../api/mixin";
 
 const TOPIC = "act.deed";
 
@@ -139,6 +144,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     const giver = context.commandGiver;
     const house = await this.house(context);
     if (!house) return;
+    if (!(await this.screen(context))) return;
     const category = (model.category ?? "").trim();
     const parsed = HouseController.parseLevel(model.level ?? "");
     if (!category || !parsed) {
@@ -197,13 +203,53 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
    */
   private async stock(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const house = await this.house(context);
+    const screen = await DisplayApi.resolveFor(giver);
+    // A screen signed in as a principal shows THAT house's sheet to whoever
+    // drives it — the thief with the tablet reads it; otherwise the seat's.
+    const principal = screen?.display.getPrincipal() ?? "";
+    const signedIn = principal ? StuffApi.findByTemplatePath(principal) : null;
+    const house =
+      signedIn && MixinApi.isBusiness(signedIn) ? signedIn : await this.house(context);
     if (!house) return;
+    if (!screen) return void (await this.screen(context));
     const sheet = EmploymentApi.stockSheetFor(giver, house);
     const body = HouseController.renderSheet(house.getPresentation(), sheet);
     const prose = Mml.compose`${body}`;
-    MessageApi.scene(giver).topic(TOPIC).toSelf(prose).send();
-    CardApi.open(context, "stock", { prose });
+    if (screen.mode === "mind") {
+      // Driving by mind from elsewhere: the screen shows the sheet to
+      // whoever stands before it; the driver sees nothing of it.
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You put the stock sheet up on ${screen.display.getPresentation()} — you drive it; you see nothing.`)
+        .send();
+    } else {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(prose).send();
+    }
+    // The display is the card's birth path when a display is involved:
+    // `show` pushes to every viewer who sees the screen, the holder among
+    // them — never a second push through `CardApi.open`.
+    DisplayApi.show(screen.display, {
+      kind: "card",
+      cardId: "stock",
+      key: CardApi.keyFor(context, "stock"),
+      prose,
+    });
+  }
+
+  /**
+   * The house app runs on a SCREEN: the tablet you hold, one in sight you
+   * may drive, or one anywhere by mind. None → `no-display`.
+   */
+  private async screen(context: CommandContext): Promise<ResolvedDisplay | null> {
+    const screen = await DisplayApi.resolveFor(context.commandGiver);
+    if (!screen) {
+      MessageApi.scene(context.commandGiver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You'd need a screen for that — the house tablet, or one you can drive.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "no-display", detail: "house" });
+    }
+    return screen;
   }
 
   static renderSheet(house: string, sheet: readonly StockSheetLine[]): string {

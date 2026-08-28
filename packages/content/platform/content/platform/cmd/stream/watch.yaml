@@ -12,7 +12,13 @@ help: |
     - a character: `watch alice` (their linked Twitch or Kick channel)
 
   There is one focal video — a second `watch` swaps it; `watch off`
-  clears it. Watching also follows the stream's chat (Twitch this
+  clears it.
+
+  A SHARED screen — the booth TV — takes `watch <target> on <screen>`:
+  whoever may drive it (the remote in hand, the house's seat, or anyone
+  in reach, by the screen's pairing) puts the stream up for everyone
+  who can see the screen; `watch off on <screen>` darkens it. Walk out
+  of the room and the shared embed leaves with you. Watching also follows the stream's chat (Twitch this
   cycle) so the chat card fills in alongside the video.
 
   Most forms need no setup — a Twitch handle, a Kick slug, a YouTube
@@ -38,8 +44,21 @@ options:
     description: "The target is a Kick channel slug"
 subcommands:
   off:
-    description: "Clear the focal embed"
+    description: "Clear the focal embed (or a shared screen: `watch off on <screen>`)"
+    args:
+      - name: on
+        type: object
+        required: false
+        scope: "peers"
+        prepositions: [on]
+        requires: DisplayMixin
 args:
   - name: target
     type: string
     required: true
+  - name: on
+    type: object
+    required: false
+    scope: "peers"
+    prepositions: [on]
+    requires: DisplayMixin

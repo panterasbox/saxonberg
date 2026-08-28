@@ -28,10 +28,16 @@ import { FastTravelMixin } from "../../../lib/fasttravel/FastTravel";
 import { FixtureMixin } from "../../../lib/stuff/Fixture";
 import { PostRegistrationMixin } from "../../../lib/stuff/PostRegistration";
 import { SingletonMixin } from "../../../lib/stuff/Singleton";
+import { DisplayMixin } from "../../../lib/display/Display";
 
-const TpaTerminalBase = SingletonMixin(
-  PostRegistrationMixin(
-    FixtureMixin(DetailedMixin(FastTravelMixin(Thing))),
+// The departures board is a DISPLAY: `pairing: open` (anyone in reach
+// drives it — a bare `teleport`), `sourcePolicy: cards` (the board is a
+// card pushed to everyone in reach). See docs/subsystems/display.md.
+const TpaTerminalBase = DisplayMixin(
+  SingletonMixin(
+    PostRegistrationMixin(
+      FixtureMixin(DetailedMixin(FastTravelMixin(Thing))),
+    ),
   ),
 );
 
@@ -51,6 +57,12 @@ const REGISTER_HINT =
   "return here from anywhere on the network.";
 
 export default class TpaTerminal extends TpaTerminalBase {
+  constructor() {
+    super();
+    this.pairing = "open";
+    this.sourcePolicy = "cards";
+  }
+
   public override async postRegister(_context?: unknown): Promise<void> {
     // Seat self into the declared target (a Warren host or a static
     // location) via `seatIn`, then cascade the rest of the network live off
