@@ -69,6 +69,13 @@ const PACK_MATERIALS = fileURLToPath(
     import.meta.url,
   ),
 );
+// The generic cooked base is the PLATFORM pack's (the kernel names it).
+const PLATFORM_MATERIALS = fileURLToPath(
+  new URL(
+    '../../../../../../content/platform/content/platform/idea/material/',
+    import.meta.url,
+  ),
+);
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomVenues';
@@ -88,9 +95,9 @@ class TestPatron extends ContainerMixin(NamedMixin(ContainableMixin(Idea))) {
 }
 
 /** Register a Material at its pack path from the REAL pack row. */
-function loadPackMaterial(rel: string): Material {
+function loadPackMaterial(rel: string, platform = false): Material {
   const parsed = YAML.parse(
-    readFileSync(`${PACK_MATERIALS}${rel}.yaml`, 'utf-8'),
+    readFileSync(`${platform ? PLATFORM_MATERIALS : PACK_MATERIALS}${rel}.yaml`, 'utf-8'),
   ) as { data: Record<string, unknown> };
   const d = parsed.data;
   return makeStuffAtPath(() => {
@@ -103,7 +110,7 @@ function loadPackMaterial(rel: string): Material {
       m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
     }
     return m;
-  }, `/stuff/idea/material/${rel}`) as unknown as Material;
+  }, `${platform ? '/platform' : '/stuff'}/idea/material/${rel}`) as unknown as Material;
 }
 
 function makeForge(lit: boolean, bellows = false): Forge {
@@ -222,7 +229,7 @@ beforeEach(async () => {
   loadPackMaterial('food/trail-ration');
   loadPackMaterial('food/root-vegetable');
   loadPackMaterial('food/stew-meat');
-  loadPackMaterial('food/cooked');
+  loadPackMaterial('cooked', true);
 
   // Output templates cloned by the roster (the real classes, minted here
   // — the faked-Mongo test has no clone pipeline; the substation

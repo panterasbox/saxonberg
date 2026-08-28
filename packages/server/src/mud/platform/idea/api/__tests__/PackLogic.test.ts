@@ -383,7 +383,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     const base = results.find((r) => r.packId === 'base-library');
     expect(base).toBeDefined();
     // Materials + biomes inserted as stamped domain rows.
-    expect(base!.inserted).toContain('/stuff/idea/material/spirit/gin');
+    expect(base!.inserted).toContain('/stuff/idea/material/bulk/water');
     expect(base!.inserted).toContain('/stuff/idea/biome');
     // Content-kind dispatch: the quantity tag tables were loaded too.
     expect(base!.quantityTables).toBeGreaterThan(0);
