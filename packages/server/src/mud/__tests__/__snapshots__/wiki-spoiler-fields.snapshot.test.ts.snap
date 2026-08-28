@@ -531,6 +531,7 @@ OrganismMixin._speciesPath = 0
 OrganismMixin.age = 0
 OrganismMixin.lifecycleState = 0
 OrganizationMixin.appointingAuthority = 0
+OrganizationMixin.name = 0
 OrganizationMixin.parentOrganization = 0
 OrganizationMixin.positions = 0
 OrganizationMixin.proprietorPath = 0
