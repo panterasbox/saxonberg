@@ -232,10 +232,19 @@ except the platform's own rows. Green on: typecheck, `test:near`,
   unstamped good is stamped to the acting business when the wallet's
   active account is a business's (finding 6); `consignorKey` = the
   business path; the payout-account check uses that key.
-- `HouseController`: drop `requiresWizard` from `house.yaml`; a private
+- `HouseController`: drop `requiresWizard` from `house.yaml` — **it was
+  wrong there**: `requiresWizard` is the TypeScript code-trust axis and
+  nothing else; venue authority comes from the SEAT (a position held or
+  the proprietorship), never from the wizard axis. A private
   `resolveHouse(context)` = `businessAt(here)` if the giver
   `holdsPosition` there or `isProprietorOf`, else `buysFor(giver)[0]`,
-  else reject `not-staff`.
+  else reject `not-staff`. ⚠ **Nothing new in this build carries
+  `requiresWizard`.** Every new verb and every `house`/`wallet` page is
+  gated on the seat or on reach.
+- **`quit`** — `platform/idea/cmd/employment/QuitController.ts` +
+  `quit.yaml` (`quit [<business>]`): the verb over the shipped
+  `EmploymentApi.quit` (which had no verb). Leaving a position is a
+  player act; it is what unlinks the house account.
 
 **Tests** (kernel, synthetic fixtures — `lint:test-content`):
 `buysFor` over a purchasing position and a proprietor; `wallet use
@@ -427,6 +436,33 @@ returns a room that runs a fixture recipe end-to-end; a venue missing a
 capability is *reported*, never refused.
 
 **Risk: low.**
+
+### 1g — brains in packs (ruled in at planning)
+
+A pack must be able to ship a brain — *"platform brains can't
+anticipate everything"* — and the loader already allows it:
+`resolveExport` rides the pack namespace table. What stops it is a
+rule, not a mechanism. **`behavior/` becomes a sanctioned pack
+directory** — the Brain category's home inside a pack, mirroring
+`lib/behavior/` in the kernel:
+
+- `lint:instanceable` invariant 8 admits `src/behavior/*.ts` alongside
+  the four branches, and checks the brain shape on those files (sole
+  export `brain`, a named class-expression).
+- `validateBehaviorPaths` and the CMS brain-path save-gate accept any
+  root the table resolves (`/world/<x>/behavior/<name>`), not only
+  `/lib/behavior/`.
+- `@saxonberg/server/mud/lib/behavior/*` is already exported (the base
+  types a pack brain imports).
+- A fixture-pack test (the `pack-harness`): a pack with
+  `src/behavior/paces.ts` and an agent row naming it installs, the
+  brain resolves into the pack's `src/`, fires on its cadence.
+
+The rule it enables is the class rule: **a brain lives in the pack
+whose content is the only thing that names it.** This build's two
+brains (`restocks`, `consigns`) are generic economy brains and stay
+kernel; the first real pack brain arrives with the first pack that
+needs a bespoke one. Documented in behavior.md + content-packs.md.
 
 ### 1f — the kernel stops naming trade rows; the stock bottle class; the sweep batch
 
@@ -777,6 +813,14 @@ lounge), `lint:untitled`.
 - `mara.yaml`: add `- brain: /lib/behavior/restocks, trigger:
   cadence:2h` (game-time via the ambient-exempt path), `config: {
   shelf: /trade/hospitality/thing/back-bar, rack: /trade/hospitality/thing/glass-rack }`.
+- **The player path to the seat** — `dave.yaml`: Dave's tree-dialogue
+  gains a branch (*"Looking for work?"* → *"I could use a keeper."*) whose
+  choice carries the shipped **`dispatch` effect** (*NPCs do their jobs*):
+  `appoint <player> keeper /world/lounge/idea/business`, run **as Dave**
+  — the appointing authority is the entity edge Dave holds, so the
+  validator passes for him and for nobody else. Guarded on the player
+  not already holding a position. `quit` (1a) is the way out. No wizard
+  anywhere in the loop.
 - `terminal.yaml`: nothing (the class composes the mixin).
 - Lounge tests: `bar-content.test.ts` re-asserts *no* bottle in
   `populates`, the rack + tablet present; `lounge-fixtures.ts` stocks a
@@ -940,21 +984,20 @@ hospitality pack's own test builds its venue from it.
 1. Boot log: `residency.spawn` places N; `/world/veshko/thing/stock`
    holds 24 Volk + the generics; the cash-and-carry counter lists
    consigned goods from Veshko, Hollis, the five stubs, Crowsfoot; the
-   bar's back-bar is empty; `house stock` (as a wizard standing in) shows
-   every par line short.
+   bar's back-bar is empty; Mara's first `restocks` beat logs every par
+   line short (the sheet is hers to read; nobody stands in).
 2. Advance the clock a game-week (`clock` / the world-clock verb):
    watch Mara's beats in the log — the sheet shortfall, the counter's
    count falling, the bar's account falling, each outfit's account
    rising (`bank` as their hands, or `house pnl` at each outfit),
    the rail filling; `house pnl` at the bar shows income, wages, cost
    of goods. Restart the server: the rail is what it was.
-3. Log in. `appoint <me> keeper /world/lounge/idea/business` (as
-   Dave / a wizard); `wallet use house`; teleport to the
-   cash-and-carry; `buy gin` → "for Dave's Bar", `look` at the bottle
-   → owned by the bar (the `chattel` card / `who owns`); `quit`
-   the position (`job`/`appoint` inverse — `EmploymentApi.quit` via the
-   wizard `eval` if no verb exists; note it); `wallet` → personal;
-   `buy gin` → stamps me.
+3. Log in as an ordinary character. `talk dave` → *"Looking for
+   work?"* → Dave appoints you keeper (his dialogue's `dispatch`
+   effect); `wallet use house`; walk to the cash-and-carry; `buy gin`
+   → "for Dave's Bar", `look` at the bottle → owned by the bar; `quit`;
+   `wallet` → personal; `buy gin` → stamps you. **No wizard, no
+   `eval`, at any step** — the whole loop is the seat's.
 4. Hand the house tablet to a second character who holds no position:
    `house stock` on it → the sheet shows; `wallet use house` → refused;
    `buy` → personal account.
@@ -1022,6 +1065,14 @@ exist; do it last so the lints prove the whole tree at once.
 | 6 lints, suite, drive, docs | docs ~900 lines | 1–2 |
 
 ## Blockers / deviations
+
+**Rulings 2026-08-28:** 1 stands (the lounge stays data) **and** packs
+gain the ability to ship brains (1g); 2 and 3 are facts; 4, 5, 6
+nodded. ⚠ One correction from review: `requiresWizard` is the
+TypeScript code-trust axis and nothing else — the plan's live drive
+had used a wizard as a stand-in for venue authority; every such step
+is now driven through the seat (Dave's dialogue appoints, `quit`
+resigns).
 
 None blocks. Six deviations from the requirements' wording, each
 forced by the shipped code and each preserving the decision's intent:
