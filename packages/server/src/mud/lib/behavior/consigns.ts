@@ -101,8 +101,12 @@ export const brain = class {
     if (goods.length === 0) return;
     const counterRoom = shelf.getContainer();
     if (!counterRoom || !MixinApi.isContainer(counterRoom)) return;
-    const home = hand.getContainer();
+    // Home is the floor the stock stands on — never "wherever the hand is
+    // now": a hand captured mid-beat at the counter (a persistable room)
+    // restores THERE, and must still walk back to its own floor.
+    const home = MixinApi.isContainable(stock) ? stock.getContainer() : null;
     if (!home || !MixinApi.isContainer(home)) return;
+    if (hand.getContainer() !== home) hand.teleport(home as Stuff & Container);
 
     // Take the goods off the floor — `get` reaches into the open stock.
     const before = new Set(hand.getContents().map((c) => c.stuffId));
@@ -124,10 +128,10 @@ export const brain = class {
     // To the counter; trade as the house once; put each good up.
     hand.teleport(counterRoom as Stuff & Container);
     try {
-      if (!ctx.state.house) {
-        await CommandApi.forceCommand(hand, 'wallet use house');
-        ctx.state.house = true;
-      }
+      // Every beat, not once: a forced command reports no outcome here,
+      // and a hand dealt its card AFTER a failed first attempt must still
+      // trade as the house.
+      await CommandApi.forceCommand(hand, 'wallet use house');
       for (const good of carried) {
         const kw = keywordOf(good);
         if (!kw) continue;
