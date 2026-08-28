@@ -201,6 +201,30 @@ function emitDispatchResponse(ctx: CommandContext): void {
   if (MixinApi.isSensor(giverAsStuff)) {
     MessageApi.sendEnvelope(giverAsStuff as Stuff & Sensor, envelopeTemplate);
   }
+  // A giver with nobody on the wire — an NPC driven by a brain or a
+  // dialogue `dispatch` effect — gets the same envelope and no reader.
+  // Its refusals are the developer's to see: "NPCs do their jobs" has to
+  // fail out loud, or a hand that never consigns and a barkeep who never
+  // hires look like patience. One line per declined forced command.
+  const unread =
+    !MixinApi.isHasInteractive(giverAsStuff) ||
+    giverAsStuff.getInteractives().size === 0;
+  const status = ctx.getStatus();
+  if (unread && status !== 'ok') {
+    const why = ctx
+      .getNotes()
+      .filter((n) => n.kind !== 'prompt-refresh')
+      .map((n) => {
+        const r = n as { reason?: string; detail?: unknown; validator?: string; field?: string };
+        return `${n.kind}${r.field ? `[${r.field}]` : ''}${r.reason ? `:${r.reason}` : ''}${
+          r.detail !== undefined ? `(${typeof r.detail === 'string' ? r.detail : JSON.stringify(r.detail)})` : ''
+        }`;
+      })
+      .join(' ');
+    console.warn(
+      `[dispatch] ${giverAsStuff.getPresentation()} "${ctx.commandText}" → ${status}: ${why}`,
+    );
+  }
 }
 
 /**

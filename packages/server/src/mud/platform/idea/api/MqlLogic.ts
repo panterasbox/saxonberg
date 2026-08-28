@@ -6,6 +6,8 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
+import { isOpenPeerContainer } from '../../../api/mql/scope-walk';
+import type { Container } from '../../../lib/spatial/Container';
 import type {
   MqlContext,
   MqlMatchVia,
@@ -84,6 +86,12 @@ export class MqlLogic extends ApiLogic {
     if (via) out.via = via;
     if (quantity) out.quantity = quantity;
     return out;
+  }
+
+  /** See {@link MqlApi.isOpenPeerContainer}. */
+  @CallSecurity(MqlApiCallers)
+  public isOpenPeerContainer(stuff: Stuff): stuff is Stuff & Container {
+    return isOpenPeerContainer(stuff);
   }
 
   /** See {@link MqlApi.extractStuffs}. */

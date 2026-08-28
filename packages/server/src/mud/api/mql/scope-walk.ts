@@ -16,6 +16,7 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
 import { RecognitionApi } from '../recognition';
 import { PerceptionApi } from '../perception';
@@ -131,8 +132,30 @@ export function candidatesForPeers(
     if (item.stuffId === giver.stuffId) continue;
     pushDirect(out, item, giver, attention);
     pushDetails(out, item, giver);
+    // One level into an OPEN container standing in the room — the
+    // glass rack's coupes, the floor stock's kegs, a crate's limes:
+    // what `get` reaches in for (its help has promised so all along).
+    // Open-ness is the switch (a non-Sealable container is always open;
+    // a shut chest shows nothing), and a container that is somebody —
+    // another agent's inventory — is never peers.
+    if (isOpenPeerContainer(item)) {
+      for (const inner of item.getContents()) {
+        pushDirect(out, inner, giver, attention);
+      }
+    }
   }
   return out;
+}
+
+/** An open, non-agent container the peers scope descends one level into. */
+export function isOpenPeerContainer(
+  stuff: Stuff,
+): stuff is Stuff & Container {
+  if (!MixinApi.isContainer(stuff)) return false;
+  if (MixinApi.isCommandGiver(stuff) || MixinApi.isHasInteractive(stuff)) {
+    return false;
+  }
+  return !(MixinApi.isSealable(stuff) && !stuff.isOpen());
 }
 
 

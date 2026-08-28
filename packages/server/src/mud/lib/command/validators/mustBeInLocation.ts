@@ -23,6 +23,8 @@
 import type { Stuff } from '../../stuff/Stuff';
 import type { FieldValidator } from '../../../api/command';
 import { MqlApi } from '../../../api/mql';
+import { MixinApi } from '../../../api/mixin';
+import type { Containable } from '../../spatial/Containable';
 
 const validator: FieldValidator = (value, field, context) => {
   const stuffs = MqlApi.extractStuffs(value);
@@ -39,9 +41,20 @@ const validator: FieldValidator = (value, field, context) => {
   );
 
   for (const stuff of stuffs) {
-    if (!locationIds.has((stuff as Stuff).stuffId)) {
-      return `you don't see ${stuff.getPresentation()} here`;
+    if (locationIds.has((stuff as Stuff).stuffId)) continue;
+    // Inside an open container that stands here (the rack's coupe, the
+    // stock's keg) — the same one-level reach the `peers` scope grants.
+    const holder = MixinApi.isContainable(stuff as Stuff)
+      ? (stuff as Stuff & Containable).getContainer()
+      : null;
+    if (
+      holder &&
+      locationIds.has(holder.stuffId) &&
+      MqlApi.isOpenPeerContainer(holder as Stuff)
+    ) {
+      continue;
     }
+    return `you don't see ${stuff.getPresentation()} here`;
   }
   return undefined;
 };

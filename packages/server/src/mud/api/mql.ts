@@ -21,6 +21,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Container } from '../lib/spatial/Container';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MqlLogic } from '../platform/idea/api/MqlLogic';
@@ -121,6 +122,18 @@ export class MqlApi {
    */
   static extractStuffs(value: unknown): Stuff[] | null {
     return logic().extractStuffs(value);
+  }
+
+  /**
+   * The container the `peers` scope descends one level into: an OPEN
+   * (non-Sealable, or Sealable and open) container standing in the
+   * room that is not somebody — the glass rack, a floor stock, a crate.
+   * A verb whose target must be "here" (`get`'s `mustBeInLocation`)
+   * grants the same one-level reach through this predicate, so the
+   * scope and the validator can never disagree about what is in reach.
+   */
+  static isOpenPeerContainer(stuff: Stuff): stuff is Stuff & Container {
+    return logic().isOpenPeerContainer(stuff);
   }
 
   /**
