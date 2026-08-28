@@ -383,5 +383,70 @@ describe('StuffApi', () => {
 
       vi.restoreAllMocks();
     });
+
+    it('a callback scheduled INSIDE a clone tree is a fresh root — two later concurrent clones of one path do not false-trip the guard', async () => {
+      // The live-drive race: an NPC's postRegister arms its cadence inside
+      // the room's clone tree; the guard's ALS store rode into the timer,
+      // so two beats' forced `consign` clones shared one in-flight set and
+      // the second threw `circular template dependency`.
+      const { Template } = await import('../../lib/stuff/Template');
+      const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
+      const { ScheduleApi } = await import('../schedule');
+      const { vi } = await import('vitest');
+      const HYDRATOR = '/platform/idea/persistence/PersistentHydrator';
+      const PROP = '/stuff/test/clone-tree/prop';
+      const later: Promise<unknown>[] = [];
+      let armed = false;
+      vi.spyOn(Template, 'findByPath').mockImplementation(
+        async (path: string) => {
+          if (path === PROP) {
+            // A real lookup does I/O; yield a macrotask so the two
+            // scheduled clones genuinely overlap in flight.
+            await new Promise((r) => setTimeout(r, 5));
+            const t = new LeafTemplate();
+            t.path = path;
+            t.class = '/platform/thing/Prop';
+            t.hydratorClass = HYDRATOR;
+            t.data = {};
+            return t;
+          }
+          if (path === HYDRATOR) {
+            if (!armed) {
+              armed = true;
+              // Armed from INSIDE the first clone's tree (this lookup runs
+              // under the guard's store): two concurrent clones later.
+              later.push(
+                new Promise((res, rej) =>
+                  ScheduleApi.schedule(1, () => {
+                    StuffApi.clone(PROP).then(res, rej);
+                  })
+                ),
+                new Promise((res, rej) =>
+                  ScheduleApi.schedule(1, () => {
+                    StuffApi.clone(PROP).then(res, rej);
+                  })
+                )
+              );
+            }
+            const t = new LeafTemplate();
+            t.path = path;
+            t.class = HYDRATOR;
+            t.data = {};
+            return t;
+          }
+          return null;
+        }
+      );
+      // Real timers: a fake timer fires from the test's own async context
+      // and would hide the inherited store this test is about.
+      try {
+        await StuffApi.clone(PROP);
+        expect(later).toHaveLength(2);
+        const results = await Promise.all(later);
+        expect(results).toHaveLength(2);
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
   });
 });

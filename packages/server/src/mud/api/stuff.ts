@@ -288,6 +288,19 @@ export class StuffApi {
    *   zone resolution see the identity path from birth. The SOURCE
    *   template stays the hydration lineage only.
    */
+  /**
+   * Run `fn` outside any in-flight clone tree. The cycle guard's store
+   * propagates through every async continuation spawned inside a clone
+   * — including a timer an NPC's `postRegister` arms — so work that is
+   * a fresh ROOT by definition (a scheduled callback) must shed it, or
+   * two later, unrelated forced commands share one "in flight" set and
+   * the second trips as a false cycle. `ScheduleApi`'s root wrapper is
+   * the caller.
+   */
+  public static outsideCloneTree<T>(fn: () => T): T {
+    return this.#cloneStackALS.exit(fn);
+  }
+
   public static async clone<T extends Stuff>(
     templatePath: string,
     context?: unknown,
