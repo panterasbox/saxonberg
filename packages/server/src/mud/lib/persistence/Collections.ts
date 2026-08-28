@@ -40,7 +40,7 @@ export enum Collections {
   /**
    * Descriptor banks — the pools an unidentified magic item draws its
    * appearance from, one per item class. Immutable reference data
-   * installed by the `arcane-descriptors` content pack; the
+   * installed by the `arcana` content pack (the pack that ships the item classes ships their banks); the
    * `lint:descriptors` build check proves them disjoint from the
    * materials vocabulary. See magic-items D32.
    */

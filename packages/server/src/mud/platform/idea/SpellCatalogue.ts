@@ -142,9 +142,9 @@ export default class SpellCatalogue extends SpellCatalogueBase {
   }
 
   private async loadCacheFromTemplates(): Promise<void> {
-    const templates = await Template.findDescendants(
-      Spell.TEMPLATE_PATH_PREFIX,
-    );
+    // By class, not by root: a pack ships its spells under whatever
+    // root it holds, and the catalogue must not need a kernel edit.
+    const templates = await Template.findByClass(Spell.CLASS_PATH);
     const map = new Map<string, SpellDescriptor>();
     const names = new Map<string, string[]>();
     for (const tpl of templates) {

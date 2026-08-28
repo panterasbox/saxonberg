@@ -6,43 +6,46 @@
  * search-test harness (fake clock + scheduler + silenced messaging).
  */
 
-import "../../../../../../test-bootstrap";
+import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync, readdirSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import YAML from "yaml";
 import CastController from "../CastController";
-import requiresCastingFaculty from "../../../../../lib/command/validators/requiresCastingFaculty";
-import { AdvancementApi } from "../../../../../api/advancement";
-import { MessageApi } from "../../../../../api/message";
-import { SchedulerApi } from "../../../../../api/scheduler";
-import { WorldClockApi } from "../../../../../api/worldclock";
-import { StuffApi } from "../../../../../api/stuff";
-import { ContainmentApi } from "../../../../../api/containment";
-import { EventApi } from "../../../../../api/event";
-import EventRegistry from "../../../EventRegistry";
+import requiresCastingFaculty from "@saxonberg/server/mud/lib/command/validators/requiresCastingFaculty";
+import { AdvancementApi } from "@saxonberg/server/mud/api/advancement";
+import { MessageApi } from "@saxonberg/server/mud/api/message";
+import { SchedulerApi } from "@saxonberg/server/mud/api/scheduler";
+import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
+import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
+import { EventApi } from "@saxonberg/server/mud/api/event";
+import EventRegistry from "@saxonberg/server/mud/platform/idea/EventRegistry";
 import {
   CommandApi,
   type CommandContext,
   type CommandModel,
-} from "../../../../../api/command";
-import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
-import { Stuff } from "../../../../../lib/stuff/Stuff";
-import { Character } from "../../../../../lib/character/Character";
-import Species from "../../../species/Species";
-import { Idea } from "../../../../../lib/stuff/Idea";
-import { ContainerMixin } from "../../../../../lib/spatial/Container";
-import { ContainableMixin } from "../../../../../lib/spatial/Containable";
-import SpellCatalogue from "../../../SpellCatalogue";
-import Spell from "../../../magic/Spell";
-import GlowlightOrb from "../../../../thing/magic/GlowlightOrb";
-import { Template } from "../../../../../lib/stuff/Template";
+} from "@saxonberg/server/mud/api/command";
+import { CommandDefinition } from "@saxonberg/server/mud/lib/command/CommandDefinition";
+import { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { Character } from "@saxonberg/server/mud/lib/character/Character";
+import Species from "@saxonberg/server/mud/platform/idea/species/Species";
+import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
+import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
+import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
+import SpellCatalogue from "@saxonberg/server/mud/platform/idea/SpellCatalogue";
+import Spell from "@saxonberg/server/mud/platform/idea/magic/Spell";
+import GlowlightOrb from "@saxonberg/server/mud/platform/thing/magic/GlowlightOrb";
+import { Template } from "@saxonberg/server/mud/lib/stuff/Template";
 import {
   makeStuff,
   stampTemplatePathForTest,
-} from "../../../../../lib/security/__tests__/test-setup";
-import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+} from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
+import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
+/** Where the commons' spell rows live, and the class every one names (the catalogue warms BY CLASS). */
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class TestCaster extends Character {}
 class Room extends ContainerMixin(ContainableMixin(Idea)) {}
@@ -50,7 +53,7 @@ class Room extends ContainerMixin(ContainableMixin(Idea)) {}
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  "../../../../../../../../content/arcane-library/content/stuff/idea/magic/Spell",
+  "../../../../../../../content/arcane-library/content/stuff/idea/magic/Spell",
 );
 
 let seq = 0;
@@ -68,11 +71,11 @@ async function installCatalogue(): Promise<void> {
         ).data,
     );
   const spy = vi
-    .spyOn(Template, "findDescendants")
+    .spyOn(Template, "findByClass")
     .mockImplementation(async (prefix: string): Promise<Template[]> => {
-      if (!prefix.startsWith(Spell.TEMPLATE_PATH_PREFIX)) return [];
+      if (prefix !== SPELL_CLASS) return [];
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     });

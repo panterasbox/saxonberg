@@ -5,7 +5,7 @@
 # that loses about a seventh of what you commit as heat in the metal.
 # The bench beats it and always will, which is what makes recharging a
 # thing you go somewhere to have done properly.
-class: /platform/thing/magic/Conduit
+class: /arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a brass conduit

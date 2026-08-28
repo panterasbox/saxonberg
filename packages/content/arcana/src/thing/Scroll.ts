@@ -22,15 +22,15 @@
  * dark), `Arcane` says which cell it sits in, `Consumable` spends it.
  */
 
-import Thing from '../../../lib/stuff/Thing';
-import { MarkedMixin } from '../../../lib/description/Marked';
-import { ArcaneMixin } from '../../../lib/magic/Arcane';
-import { ConsumableMixin } from '../../../lib/magic/Consumable';
-import { IdentifiableMixin } from '../../../lib/identification/Identifiable';
-import { DetailedMixin } from '../../../lib/description/Detailed';
-import { LabelledMixin } from '../../../lib/description/Labelled';
-import { CirculatingMixin } from '../../../lib/residency/Circulating';
-import { BlessableMixin } from '../../../lib/magic/Blessable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
+import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
+import { ConsumableMixin } from '@saxonberg/server/mud/lib/magic/Consumable';
+import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
+import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
+import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';
+import { BlessableMixin } from '@saxonberg/server/mud/lib/magic/Blessable';
 
 // `Blessable` because a scroll HAS an effect axis, which is the only
 // thing BUC is defined against. It was left off while BUC's only

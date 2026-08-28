@@ -50,7 +50,7 @@ class Wand extends IdentifiableMixin(VisibleMixin(ContainableMixin(Idea))) {}
 
 const BANKS_DIR = join(
   dirname(fileURLToPath(import.meta.url)),
-  '../../../../../../content/arcane-descriptors/content/descriptor-banks',
+  '../../../../../../content/arcana/content/descriptor-banks',
 );
 
 const AUTHORED_LONG =

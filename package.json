@@ -2,7 +2,7 @@
   "name": "saxonberg",
   "private": true,
   "dependencies": {
-    "@saxonberg/content-arcane-descriptors": "workspace:*",
+    "@saxonberg/content-arcana": "workspace:*",
     "@saxonberg/content-arcane-library": "workspace:*",
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-corpo-aevex": "workspace:*",

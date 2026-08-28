@@ -9,7 +9,7 @@
 # So: verbs key on the visible KIND (a scroll), effects key on the
 # hidden CLASS (which scroll). Structurally identical to every other
 # consumable rather than a special case.
-class: /platform/thing/magic/Scroll
+class: /arcana/thing/Scroll
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a scroll of identify

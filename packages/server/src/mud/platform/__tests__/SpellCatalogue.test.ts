@@ -20,21 +20,23 @@ import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
 import { CastingProfiles } from "../../lib/magic/CastingProfile";
 import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../../../content/arcane-library/content/stuff/idea/magic/Spell");
 const DISCIPLINE_SEEDS_DIR = join(
   dirname(__filename),
-  "../../../../../content/platform/content/platform/idea/Discipline",
+  "../../../../../content/arcana/content/arcana/idea/Discipline",
 );
 
 type Loose = Record<string, unknown>;
 
 function stubSpellTemplates(seeds: Loose[]): void {
-  vi.spyOn(Template, "findDescendants").mockImplementation(
+  vi.spyOn(Template, "findByClass").mockImplementation(
     async (): Promise<Template[]> => {
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     },
@@ -45,7 +47,7 @@ function stubSpellTemplates(seeds: Loose[]): void {
 async function warmCatalogueAt(
   rows: [string, Loose][],
 ): Promise<SpellCatalogue> {
-  vi.spyOn(Template, "findDescendants").mockImplementation(
+  vi.spyOn(Template, "findByClass").mockImplementation(
     async (): Promise<Template[]> =>
       rows.map(([path, data]) => ({ path, data })) as unknown as Template[],
   );

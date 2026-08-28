@@ -60,7 +60,13 @@ export const OVERCHANNEL_STRAIN_PATH =
 const SPELL_CATALOGUE_PATH = '/platform/idea/SpellCatalogue';
 
 /** The casting verb views the affordance push resolves. */
-const CASTING_VERB_YAMLS = ['platform/cmd/magic/cast.yaml', 'platform/cmd/magic/spells.yaml'] as const;
+// The casting verbs' VIEWS live in the arcana pack (D8), and this kernel
+// mixin names them — the one ratified exception to "a kernel module never
+// names a pack's row" (D3): a `commandContributions` key IS the view's
+// document path, `Caster` rides kernel agents, and the affordance belongs
+// where the capability is declared (D23). Without arcana installed the
+// store lacks the view and `CommandLogic` tolerates the miss.
+const CASTING_VERB_YAMLS = ['arcana/cmd/magic/cast.yaml', 'arcana/cmd/magic/spells.yaml'] as const;
 
 /** The banded, numbers-free self-view (`spells` speaks this). */
 export interface FacultyView {

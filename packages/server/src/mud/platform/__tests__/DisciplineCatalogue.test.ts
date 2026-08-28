@@ -12,15 +12,17 @@ import { StuffApi } from "../../api/stuff";
 import { ShadowApi } from "../../api/shadow";
 import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
+const DISCIPLINE_PATH_PREFIX = '/arcana/idea/Discipline/';
+const DISCIPLINE_CLASS = '/platform/idea/Discipline';
 
 type Loose = Record<string, unknown>;
 
 function stubDisciplineTemplates(seeds: Loose[]): void {
-  vi.spyOn(Template, "findDescendants").mockImplementation(
+  vi.spyOn(Template, "findByClass").mockImplementation(
     async (basePath: string) => {
-      if (basePath !== Discipline.TEMPLATE_PATH_PREFIX) return [];
+      if (basePath !== DISCIPLINE_CLASS) return [];
       return seeds.map((seed) => ({
-        path: `${Discipline.TEMPLATE_PATH_PREFIX}${String(seed.key)}`,
+        path: `${DISCIPLINE_PATH_PREFIX}${String(seed.key)}`,
         data: seed,
       })) as unknown as Template[];
     }

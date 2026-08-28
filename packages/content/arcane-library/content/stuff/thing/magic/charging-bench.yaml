@@ -7,7 +7,7 @@
 # This is the object that makes "the mage who fills wands" a PLACE as
 # well as a person — the service has premises, which is what turns it
 # into a vocation rather than a favour.
-class: /platform/thing/magic/Conduit
+class: /arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a charging bench

@@ -1,6 +1,6 @@
 /**
  * PotionMaterial — the `Material` subclass a **potion liquid** authors
- * as (`class: /platform/idea/material/PotionMaterial`).
+ * as (`class: /arcana/idea/material/PotionMaterial`).
  *
  * The `RadioactiveMaterial` capability-subclass pattern, composing the
  * two mixins a potion needs: `PotableMixin` (route + dose + the
@@ -23,10 +23,10 @@
  * row per *flask*.
  */
 
-import { ConsumableMaterial } from './ConsumableMaterial';
-import { PotableMixin } from '../../../lib/magic/Potable';
-import { ArcaneMixin } from '../../../lib/magic/Arcane';
-import { IdentifiableMixin } from '../../../lib/identification/Identifiable';
+import { ConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/ConsumableMaterial';
+import { PotableMixin } from '@saxonberg/server/mud/lib/magic/Potable';
+import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
+import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
 
 /**
  * `Identifiable` rides the MATERIAL, which is where a potion's identity

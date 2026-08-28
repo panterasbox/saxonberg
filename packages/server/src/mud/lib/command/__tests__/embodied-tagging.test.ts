@@ -74,7 +74,7 @@ const READ_ONLY_IN_MATERIAL = new Set([
   'platform/cmd/banking/reserve.yaml',
   'platform/cmd/crafting/menu.yaml',
   'platform/cmd/inventory/inventory.yaml',
-  'platform/cmd/magic/spells.yaml',
+  'arcana/cmd/magic/spells.yaml',
 ]);
 
 function viewsIn(category: string): string[] {
@@ -118,7 +118,12 @@ describe('requiresEmbodied tagging', () => {
 
   it('the read-only exceptions really are untagged', () => {
     for (const rel of READ_ONLY_IN_MATERIAL) {
-      const yaml = readFileSync(join(CMD_ROOT, rel), 'utf8');
+      // A view's key is its document path; the first segment names the
+      // pack root that ships it (`platform/…` the platform pack,
+      // `arcana/…` the arcana pack — the casting verbs moved with it).
+      const pack = rel.split('/')[0]!;
+      const root = pack === 'platform' ? CMD_ROOT : join(CMD_ROOT, '..', '..', pack, 'content');
+      const yaml = readFileSync(join(root, rel), 'utf8');
       expect(yaml.includes(TAG), `${rel} should be untagged`).toBe(false);
     }
   });

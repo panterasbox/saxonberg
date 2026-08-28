@@ -12,17 +12,17 @@
  * SearchController shape).
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { AbortReason } from '@saxonberg/types';
-import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
-import { SchedulerApi } from '../../../../api/scheduler';
-import { MagicApi } from '../../../../api/magic';
-import { Mml } from '../../../../api/mml';
-import { CastActivity } from '../../../../lib/magic/CastActivity';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { MagicApi } from '@saxonberg/server/mud/api/magic';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+import { CastActivity } from '@saxonberg/server/mud/lib/magic/CastActivity';
 
 const TOPIC = 'act.deed';
 

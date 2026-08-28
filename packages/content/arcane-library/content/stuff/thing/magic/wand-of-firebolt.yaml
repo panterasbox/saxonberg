@@ -15,7 +15,7 @@
 # `deliveryEfficiency: 1.4` is the maker's, fixed at manufacture (D7). A
 # novice firing this genuinely outperforms that novice casting, which is
 # the point of the whole class.
-class: /platform/thing/magic/Wand
+class: /arcana/thing/Wand
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a slender ashwood wand

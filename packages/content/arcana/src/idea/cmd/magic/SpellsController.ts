@@ -9,11 +9,11 @@
  * all — this is a self-view).
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import { MessageApi } from '../../../../api/message';
-import { MagicApi } from '../../../../api/magic';
-import { Mml } from '../../../../api/mml';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { MagicApi } from '@saxonberg/server/mud/api/magic';
+import { Mml } from '@saxonberg/server/mud/api/mml';
 
 const TOPIC = 'shell.result';
 

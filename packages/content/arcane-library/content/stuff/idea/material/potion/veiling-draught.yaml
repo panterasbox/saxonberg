@@ -27,7 +27,7 @@
 # 1800 seconds. Duration is the sustained family's delivered quantity and
 # now scales with potency like any other magnitude. See MagicLogic's
 # potency doctrine: scale it if it has a size, gate it if it does not.
-class: /platform/idea/material/PotionMaterial
+class: /arcana/idea/material/PotionMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: veiling draught

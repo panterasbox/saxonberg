@@ -1,8 +1,8 @@
 {
-  "name": "@saxonberg/content-arcane-library",
+  "name": "@saxonberg/content-arcana",
   "version": "0.1.0",
   "private": true,
-  "description": "The arcane library \u2014 magic's catalog: the twelve spells, every clonable magic item (wands, scrolls, books, conduits, potions, a ring, an amulet) and the two effect loci only its spells name (GlowlightMote, SparkLocus).",
+  "description": "Arcana \u2014 magic's substrate pack, the first capability pack: the item classes (Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial), the casting disciplines, the descriptor banks, the casting settings, and the five casting verbs with their controllers.",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -10,7 +10,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@saxonberg/content-arcana": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

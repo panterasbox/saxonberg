@@ -18,7 +18,7 @@
 # burn, and nothing had to invent a splash-magnitude rule to say so. A
 # `threshold` potion in the same throw would simply not fire on them,
 # which is also true and also free.
-class: /platform/idea/material/PotionMaterial
+class: /arcana/idea/material/PotionMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: blistering draught

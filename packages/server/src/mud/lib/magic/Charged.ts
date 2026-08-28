@@ -167,10 +167,13 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * list identifies them), and a **depleted** item keeps affording it
      * (or the list becomes a free charge meter).
      */
+    // The views are the arcana pack's (D8) — the ratified D3 exception:
+    // the mixin that declares the capability names its verb's view,
+    // wherever the view lives (see `Caster.CASTING_VERB_YAMLS`).
     static commandContributions: CommandContributions = {
       self: [],
-      peers: ['platform/cmd/magic/zap.yaml', 'platform/cmd/magic/recharge.yaml'],
-      environment: ['platform/cmd/magic/zap.yaml', 'platform/cmd/magic/recharge.yaml'],
+      peers: ['arcana/cmd/magic/zap.yaml', 'arcana/cmd/magic/recharge.yaml'],
+      environment: ['arcana/cmd/magic/zap.yaml', 'arcana/cmd/magic/recharge.yaml'],
     };
 
     static fieldMeta: FieldMeta = {

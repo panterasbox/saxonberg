@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@saxonberg/content-arcane-descriptors':
+      '@saxonberg/content-arcana':
         specifier: workspace:*
-        version: link:packages/content/arcane-descriptors
+        version: link:packages/content/arcana
       '@saxonberg/content-arcane-library':
         specifier: workspace:*
         version: link:packages/content/arcane-library
@@ -161,7 +161,7 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
 
-  packages/content/arcane-descriptors:
+  packages/content/arcana:
     dependencies:
       '@saxonberg/content-platform':
         specifier: workspace:*
@@ -172,9 +172,22 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/arcane-library:
     dependencies:
+      '@saxonberg/content-arcana':
+        specifier: workspace:*
+        version: link:../arcana
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -184,6 +197,16 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/base-library:
     dependencies:

@@ -1,5 +1,5 @@
 verbs: [zap]
-controller: /platform/idea/cmd/magic/ZapController
+controller: /arcana/idea/cmd/magic/ZapController
 description: "Fire the working bound into a charged item"
 help: |
   Point a charged item and let it go. What fires is whatever was

@@ -373,7 +373,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
 });
 
 describe('PackLogic — pack integration (real packs + real class resolution)', () => {
-  it('install() discovers the shipped packs: base-library + species-and-names + arcane-descriptors + newbie-wilds', async () => {
+  it('install() discovers the shipped packs: base-library + species-and-names + arcana + newbie-wilds', async () => {
     // No stub on loadClassByPath — exercises the real resolver against the
     // shipped Material/Biome/Species/Clade classes. No packRoots → real
     // discovery from server deps + module resolution to the
@@ -404,13 +404,14 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // The descriptor-bank content kind: the pools an unidentified magic
     // item draws its appearance from (magic-items D32). Same shape as
     // name banks, one kind over.
-    const desc = results.find((r) => r.packId === 'arcane-descriptors');
+    const desc = results.find((r) => r.packId === 'arcana');
     expect(desc).toBeDefined();
 
-    // The template packs of wave 2: the arcane library (14 rows) and the
+    // The template packs of wave 2: the arcane library — magic's catalog
+    // (the 12 spells, the 2 loci, the 10 items, the 2 draughts) — and the
     // five corpo packs (a mark + its brands each).
     const arcane = results.find((r) => r.packId === 'arcane-library');
-    expect(arcane!.inserted).toHaveLength(14);
+    expect(arcane!.inserted).toHaveLength(26);
     expect(arcane!.inserted).toContain('/stuff/idea/magic/Spell/glowlight');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/GlowlightOrb');
     const hollis = results.find((r) => r.packId === 'corpo-hollis');

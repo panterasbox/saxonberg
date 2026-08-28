@@ -7,9 +7,9 @@
  * *possible*, and how well it does that is its whole spec.
  */
 
-import Thing from '../../../lib/stuff/Thing';
-import { ConduitMixin } from '../../../lib/magic/Conduit';
-import { DurableMixin } from '../../../lib/material/Durable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { ConduitMixin } from '@saxonberg/server/mud/lib/magic/Conduit';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 
 // `Durable`: a conduit is a tool and tools wear — the shipped condition
 // axis, not a second clock of its own (the resource the implements

@@ -55,15 +55,15 @@
  * which would announce what the book teaches (D34).
  */
 
-import Thing from '../../../lib/stuff/Thing';
-import { MarkedMixin } from '../../../lib/description/Marked';
-import { LabelledMixin } from '../../../lib/description/Labelled';
-import { IdentifiableMixin } from '../../../lib/identification/Identifiable';
-import { DetailedMixin } from '../../../lib/description/Detailed';
-import { GradedMixin } from '../../../lib/craft/Graded';
-import { CirculatingMixin } from '../../../lib/residency/Circulating';
-import type { FieldMeta } from '../../../lib/mixin';
-import type { CommandContributions } from '../../../api/command';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
+import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
+import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
+import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { GradedMixin } from '@saxonberg/server/mud/lib/craft/Graded';
+import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 // `Detailed`: an item you cannot name is exactly the one you want to look
 // at closely, so these three classes are examinable in parts. Safe only
@@ -90,8 +90,8 @@ export default class Spellbook extends SpellbookBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['platform/cmd/magic/study.yaml'],
-    environment: ['platform/cmd/magic/study.yaml'],
+    peers: ['arcana/cmd/magic/study.yaml'],
+    environment: ['arcana/cmd/magic/study.yaml'],
   };
 
   /** Which working this volume sets out. */

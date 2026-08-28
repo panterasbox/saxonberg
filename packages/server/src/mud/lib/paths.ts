@@ -115,7 +115,6 @@ export const TemplatePathPrefixes = {
   avatar: "/platform/agent/Avatar/",
   species: "/stuff/idea/species/",
   topic: "/platform/idea/Topic/",
-  discipline: "/platform/idea/Discipline/",
   // Corpos — the two reference-identity leaf rosters the CorpoCatalogue
   // scans at boot (the megacorps and their product brands).
   corpo: "/stuff/idea/corpo/Corpo/",
@@ -135,10 +134,10 @@ export const TemplatePathPrefixes = {
   // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
   metabolismCondition: "/platform/idea/Condition/metabolism/",
-  // Magic — authored condition seeds (dread, overchannel-strain) and the
-  // spell roster the SpellCatalogue scans at boot.
+  // Magic — authored condition seeds (dread, overchannel-strain). (The
+  // spell and discipline rosters are warmed BY CLASS, not by prefix —
+  // a pack ships them under its own root.)
   magicCondition: "/platform/idea/Condition/magic/",
-  spell: "/stuff/idea/magic/Spell/",
 } as const;
 
 /**

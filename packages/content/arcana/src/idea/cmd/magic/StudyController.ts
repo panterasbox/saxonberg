@@ -20,21 +20,21 @@
  *   and NOTHING else; it has no say in how fast the copy then fades.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
-import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
-import { MagicApi } from '../../../../api/magic';
-import { AdvancementApi } from '../../../../api/advancement';
-import { SchedulerApi } from '../../../../api/scheduler';
-import { Mml } from '../../../../api/mml';
-import { StudyActivity } from '../../../../lib/magic/StudyActivity';
-import { SpellKnowledge } from '../../../../lib/magic/SpellKnowledge';
-import { Fade } from '../../../../lib/magic/Fade';
-import { MagicGrid } from '../../../../lib/magic/Grid';
-import { CompetenceBand } from '../../../../lib/advancement/CompetenceBand';
-import type Spellbook from '../../../thing/magic/Spellbook';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { MagicApi } from '@saxonberg/server/mud/api/magic';
+import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+import { StudyActivity } from '@saxonberg/server/mud/lib/magic/StudyActivity';
+import { SpellKnowledge } from '@saxonberg/server/mud/lib/magic/SpellKnowledge';
+import { Fade } from '@saxonberg/server/mud/lib/magic/Fade';
+import { MagicGrid } from '@saxonberg/server/mud/lib/magic/Grid';
+import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import type Spellbook from '../../../thing/Spellbook';
 
 const TOPIC = 'act.deed';
 

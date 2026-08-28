@@ -22,7 +22,6 @@
  */
 
 import { Idea } from '../../../lib/stuff/Idea';
-import { TemplatePathPrefixes } from '../../../lib/paths';
 import type { CastingProfile } from '../../../lib/magic/CastingProfile';
 import type { Effect, EffectFamily } from '../../../lib/magic/Effect';
 import type { MagicNoun, MagicVerb } from '../../../lib/magic/Grid';
@@ -98,7 +97,8 @@ export interface SpellDescriptor {
 
 export default class Spell extends Idea {
   /** Per-instance template path prefix: `/stuff/idea/magic/Spell/<spellId>`. */
-  static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.spell;
+  /** The class every Spell row names — what the catalogue warms by. */
+  static readonly CLASS_PATH = '/platform/idea/magic/Spell';
 
   /** Durable join key (e.g. `'firebolt'`). Non-empty. */
   public spellId: string = '';

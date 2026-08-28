@@ -15,13 +15,13 @@
  * through which charge state could leak into something observable.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
-import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
-import { MagicApi } from '../../../../api/magic';
-import { Mml } from '../../../../api/mml';
+import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { MagicApi } from '@saxonberg/server/mud/api/magic';
+import { Mml } from '@saxonberg/server/mud/api/mml';
 
 const TOPIC = 'act.deed';
 

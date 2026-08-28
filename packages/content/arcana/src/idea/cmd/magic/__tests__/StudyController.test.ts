@@ -13,47 +13,50 @@
  *         sharpness rises.
  */
 
-import "../../../../../../test-bootstrap";
+import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import StudyController from '../StudyController';
-import { AdvancementApi } from '../../../../../api/advancement';
-import { ChronicleApi } from '../../../../../api/chronicle';
-import { RecognitionApi } from '../../../../../api/recognition';
-import { SchedulerApi } from '../../../../../api/scheduler';
-import { WorldClockApi } from '../../../../../api/worldclock';
-import { CommandApi } from '../../../../../api/command';
-import type { CommandContext } from '../../../../../api/command';
-import '../../../WorldClockRegistry';
-import SpellCatalogue from '../../../SpellCatalogue';
-import Spell from '../../../magic/Spell';
-import Spellbook from '../../../../thing/magic/Spellbook';
-import { Template } from '../../../../../lib/stuff/Template';
-import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
-import { Character } from '../../../../../lib/character/Character';
-import Species from '../../../species/Species';
-import { DescriptorBank } from '../../../../../lib/identification/DescriptorBank';
-import { Appearance } from '../../../../../lib/identification/Appearance';
-import type { MqlOneResult } from '../../../../../api/mql';
+import { AdvancementApi } from '@saxonberg/server/mud/api/advancement';
+import { ChronicleApi } from '@saxonberg/server/mud/api/chronicle';
+import { RecognitionApi } from '@saxonberg/server/mud/api/recognition';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
+import type { CommandContext } from '@saxonberg/server/mud/api/command';
+import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import SpellCatalogue from '@saxonberg/server/mud/platform/idea/SpellCatalogue';
+import Spell from '@saxonberg/server/mud/platform/idea/magic/Spell';
+import Spellbook from '../../../../thing/Spellbook';
+import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import { Character } from '@saxonberg/server/mud/lib/character/Character';
+import Species from '@saxonberg/server/mud/platform/idea/species/Species';
+import { DescriptorBank } from '@saxonberg/server/mud/lib/identification/DescriptorBank';
+import { Appearance } from '@saxonberg/server/mud/lib/identification/Appearance';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import {
   makeStuff,
   stampTemplatePathForTest,
-} from '../../../../../lib/security/__tests__/test-setup';
-import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+/** Where the commons' spell rows live, and the class every one names (the catalogue warms BY CLASS). */
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class TestCharacter extends Character {}
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(
   dirname(__filename),
-  '../../../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
+  '../../../../../../../content/arcane-library/content/stuff/idea/magic/Spell',
 );
 const BANKS_DIR = join(
   dirname(__filename),
-  '../../../../../../../../content/arcane-descriptors/content/descriptor-banks',
+  '../../../../../content/descriptor-banks',
 );
 
 let seq = 0;
@@ -71,11 +74,11 @@ async function installCatalogue(): Promise<void> {
         ).data,
     );
   const spy = vi
-    .spyOn(Template, 'findDescendants')
+    .spyOn(Template, 'findByClass')
     .mockImplementation(async (prefix: string): Promise<Template[]> => {
-      if (!prefix.startsWith(Spell.TEMPLATE_PATH_PREFIX)) return [];
+      if (prefix !== SPELL_CLASS) return [];
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     });

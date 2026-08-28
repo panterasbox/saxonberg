@@ -31,7 +31,7 @@ import { RecognitionApi } from '../../../api/recognition';
 import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
-import Scroll from '../../../platform/thing/magic/Scroll';
+import Scroll from '../../../../../../content/arcana/src/thing/Scroll';
 import GlowlightOrb from '../../../platform/thing/magic/GlowlightOrb';
 import { Template } from '../../stuff/Template';
 import { Idea } from '../../stuff/Idea';
@@ -56,6 +56,8 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class TestCharacter extends Character {}
 /** An identifiable item with no proper name — the unknown-flask shape. */
@@ -92,11 +94,11 @@ async function installCatalogue(): Promise<void> {
         ).data,
     );
   const spy = vi
-    .spyOn(Template, 'findDescendants')
+    .spyOn(Template, 'findByClass')
     .mockImplementation(async (prefix: string): Promise<Template[]> => {
-      if (!prefix.startsWith(Spell.TEMPLATE_PATH_PREFIX)) return [];
+      if (prefix !== SPELL_CLASS) return [];
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     });

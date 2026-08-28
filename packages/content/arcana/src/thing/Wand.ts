@@ -26,17 +26,17 @@
  *   dead wand fails audibly instead.
  */
 
-import Thing from '../../../lib/stuff/Thing';
-import { ReservedMixin } from '../../../lib/reserve';
-import { ArcaneMixin } from '../../../lib/magic/Arcane';
-import { ChargedMixin } from '../../../lib/magic/Charged';
-import { CirculatingMixin } from '../../../lib/residency/Circulating';
-import { IdentifiableMixin } from '../../../lib/identification/Identifiable';
-import { DetailedMixin } from '../../../lib/description/Detailed';
-import { LabelledMixin } from '../../../lib/description/Labelled';
-import { BlessableMixin } from '../../../lib/magic/Blessable';
-import { WieldableMixin } from '../../../lib/slot/Wieldable';
-import { SlottableMixin } from '../../../lib/slot/Slottable';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
+import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
+import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';
+import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
+import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
+import { BlessableMixin } from '@saxonberg/server/mud/lib/magic/Blessable';
+import { WieldableMixin } from '@saxonberg/server/mud/lib/slot/Wieldable';
+import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 
 // `ChargedMixin` stores its energy in a `Reserve` rather than a bare
 // number — the same substrate mana, endurance and fuel use — so

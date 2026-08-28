@@ -135,15 +135,14 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
   }
 
   /**
-   * Read every Discipline template under
-   * `Discipline.TEMPLATE_PATH_PREFIX` directly from the `domain`
-   * collection and populate the cache, keyed by the authored `key`.
-   * Skips the runtime Stuff layer entirely.
+   * Read every Discipline template — BY CLASS, wherever a pack shipped
+   * it (the platform's trade disciplines under `/platform/idea/Discipline/`,
+   * arcana's under `/arcana/idea/Discipline/`) — directly from the
+   * `content` collection and populate the cache, keyed by the authored
+   * `key`. Skips the runtime Stuff layer entirely.
    */
   private async loadCacheFromTemplates(): Promise<void> {
-    const templates = await Template.findDescendants(
-      Discipline.TEMPLATE_PATH_PREFIX
-    );
+    const templates = await Template.findByClass(Discipline.CLASS_PATH);
     const map = new Map<string, DisciplineDescriptor>();
     for (const tpl of templates) {
       const descriptor = buildDescriptor(tpl.data);
