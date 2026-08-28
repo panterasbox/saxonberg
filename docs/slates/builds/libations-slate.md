@@ -399,7 +399,7 @@ dairy and poultry have a trade).
 | **soft / mixer** | soda water, tonic, ginger beer, cola, grapefruit soda, cranberry juice, orange juice (bottled) | **bottle** | **trade-bottling** (stub) — earns its pack here: seven products and someone could make a living at it |
 | **fresh produce** | lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry | grow | **trade-produce** (stub) — everything downstream of growing: the materials, crate/basket presets, the floor at a greengrocer; the beginning of the farming pack the reorg reaches at *f* |
 | **pantry** | sugar, simple syrup, salt, coffee | cook / mill | **trade-hearth-cooking** (syrup is a recipe; sugar + salt are its pantry materials — `salt` and `coffee` move out of base-library's `bulk/`) |
-| **ice** | ice (cubes, crushed) | freeze | **trade-hospitality** — an ice machine is a bar fixture (electricity's first bar consumer); water already carries the phase-change numbers |
+| **ice** | ice (cubes, crushed) | freeze — *bought bagged in v1* (Part 10) | the **distributor's floor**, kept in hospitality's **ice bin**; the ice machine waits for power |
 | **house-made** | pressed lime / lemon / orange / grapefruit juice, simple syrup, a twist / a wedge / a peel | press / cook / cut | **trade-hospitality** (recipes: `press`, the syrup, the garnish cuts) |
 
 **Five stubs, then, not two** — brewing, winemaking, bottling, produce,
@@ -418,7 +418,7 @@ trade the reorg will reach.
 | `strainer` | a Hawthorne strainer (rides the shaker + mixing glass — or is their own capability) | strain |
 | `juicer` | a citrus press | press |
 | `tap` | a beer tap on a keg | pour (draught) |
-| `ice-machine` | a fixture (powered) | freeze |
+| ~~`ice-machine`~~ → **ice bin** | an insulated vessel; the ice is *bought* (Part 10) | hold |
 | `urn` (ships as a vessel) | the coffee urn | pour |
 
 Glassware as **output templates** (the recipe's `outputTemplate` is the
@@ -442,11 +442,11 @@ five things it has no word for, and each is a requirements line:
 | 4 | **Dash measures + count measures** | bitters by the dash (~1 mL); sugar by the cube; a wedge by the count | `measureL` handles 0.001; a `measureCount` for tangibles (the schema's `kind: tangible` needs a count) |
 | 5 | **Carbonation** | soda, tonic, ginger beer, sparkling wine go flat | a material **tag** now (`carbonated`) that the presentation reads; fizz decay is a spoilage-slate concern, not this build |
 
-And two the bar exposes at the **station** level: the **ice machine** is
-the first bar fixture that needs **power** (a supply-ref, per the supply
-design pack — the bar's first utility bill); the **tap** is a keg-fed
-dispenser (a `Surfaced` fixture with a bulk source behind it — the
-supply-chain hinge in miniature).
+And one the bar exposes at the **station** level: the **tap** is a
+dispenser over a supply — keg-fed for beer, source-fed for water (Part
+10) — a `Surfaced` fixture with a bulk source behind it, the
+supply-chain hinge in miniature. (The ice machine, and with it the bar's
+first power draw, is deferred to the supply design pack; v1 buys ice.)
 
 ### What this does to the par manifest
 
@@ -460,6 +460,39 @@ or one cash-and-carry that stocks all three by consignment). *Requirements
 decides the supplier topology;* the slate's preference is **one
 distributor, many consignors**, because it is one trip and one
 mechanism, and it is how a small bar actually buys.
+
+---
+
+## Part 10 — Water and power: utilities, not supply chains
+
+> **User: "the bar's going to need a water source too but I'm not sure
+> how much of that we're prepared to deal with this build."**
+
+The line that keeps this small: **a bottle comes from a trade; water
+comes down a pipe.** Utilities have their own model already — the
+[supply design pack](./supply-design-pack.md) (planner-ready, unbuilt):
+*coverage is legal, connection is physical*; a source answers *"is
+anything coming out right now, and if not, why not"*; the recurring
+charge rides the stewardship doctrine. The bar must not get a bespoke
+meter ahead of the pack that meters every tap in the world at once.
+
+The bar's water: ice, dilution and soda, **washing the glass pool**,
+coffee. What ships for that is one row — an `UnboundedSourceMixin` tap,
+exactly what the dorm tap and the Hinkley standpipe are. Infinite,
+unmetered, honest about being a utility.
+
+| | this build | when |
+|---|---|---|
+| **water** | a **tap** behind the bar at the shipped tier: unbounded, unmetered, the dorm's shape | metered by the supply design pack, with every other tap |
+| **ice** | **bought.** Bagged ice from the distributor, kept in an insulated **ice bin** (the thermos shape); a line on the par manifest like any other bought thing | the ice machine returns when the socket does |
+| **power** | **none.** Buying ice removes the ice machine — the only powered fixture the menu introduced — so the bar draws no power in v1 | the socket, the supply design pack |
+| **the bill** | **named, not built:** water and power are recurring utility charges the P&L is *known* to be missing | they land on the P&L when the supply pack ships |
+
+Part 9's tool table is amended accordingly: the `ice-machine` row is
+struck for v1, an **ice bin** (a vessel, insulated) takes its place, and
+the `tap` row covers both the beer tap (keg-fed) and the water tap
+(source-fed) — the same dispensing shape over two supplies. This keeps
+the build clear of the sync/async source seam the water pack stalled on.
 
 ## Open (for requirements)
 
@@ -479,7 +512,8 @@ mechanism, and it is how a small bar actually buys.
 - The supplier topology (Part 9): one distributor with many consignors,
   or a distributor + a greengrocer + the bottler's shelf.
 - Menu v2's line: dairy / egg / tropical fruit wait on ranching and a
-  produce trade with a climate; the blender is a powered station.
+  produce trade with a climate; the blender, like the ice machine, is a
+  powered station and waits on the socket.
 - The Crowsfoot faucet: consigned at the floor until the distillery
   build (accepted above), or off the rail until then? The conversation
   leaned *off the rail*; Part 8 keeps it *on, flagged* so the martini
