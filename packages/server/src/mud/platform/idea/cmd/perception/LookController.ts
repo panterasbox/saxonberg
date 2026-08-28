@@ -32,6 +32,8 @@ import type {
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
+import { StuffApi } from '../../../../api/stuff';
+import { ChattelApi } from '../../../../api/chattel';
 import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
@@ -365,6 +367,19 @@ export default class LookController extends CommandController<LookModel> {
         // A person sitting on a stool rests on a surface too.
         const list = Mml.list(resting.map((r) => Mml.actor(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
+    // A stamped good says whose it is — the bottle bought for the bar
+    // reads "Dave's Bar's", the one bought for yourself reads yours. A
+    // title-derived owner (a group's, nobody's in particular) says nothing.
+    if (MixinApi.isChattel(target) && target.getChattelId()) {
+      const owner = await ChattelApi.ownerOf(target);
+      const holder =
+        owner?.kind === 'organization' || owner?.kind === 'player'
+          ? StuffApi.findByTemplatePath(owner.templatePath)
+          : null;
+      if (holder) {
+        body = Mml.compose`${body}── Owned by ${holder.getPresentation()}.`;
       }
     }
     // A display reads what it shows — the booth's television, the house
