@@ -1,0 +1,40 @@
+# Mana draught — the mana potion's liquid, and it carries NO spell.
+#
+# arcane-science.md forbids a mana generator (no amount of fuel becomes
+# mana), and the magic build closed the matching first-law hole: a
+# caster's reserve refills through metabolism's COUPLED recovery,
+# spending satiation and hydration, body before gift. So a mana potion
+# is a concentrated carbohydrate — a meal chemistry that feeds that
+# recovery — and needs no new mechanism at all. A caster who drinks it
+# recovers mana FAST over the following minutes, never instantly; half a
+# dose feeds half as much; a non-caster who drinks it is merely fed.
+#
+# No `carriedSpellPath` and no `adjust-reserve: mana` — a positive
+# adjust-reserve on mana is refused at authoring (the catalogue drops
+# the row), so no effect anywhere can add mana without paying for it.
+class: /arcana/idea/material/PotionMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: mana draught
+  keywords: [draught, potion, philtre]
+  density: 1080
+  thermalConductivity: 0.6
+  specificHeat: 3900
+  edibility: true
+  # The chemistry: water for the hydration leg, sugar for the fast
+  # absorb, carb for the slow — both land on satiation, which is what
+  # the mana consumer draws down.
+  nutrients: [water, sugar, carb]
+  tags: [liquid, drinkable]
+  composition: []
+  biologicalSource: null
+  deliveryEfficiency: 1
+  route: oral
+  dose:
+    response: graded
+    referenceLitres: 0.25
+  descriptorClass: potion
+  identifiedName: a mana draught
+  # Nothing announces it — you feel better after a while, which is what
+  # a sweet drink does. The identify scroll is the tell.
+  selfIdentifying: false

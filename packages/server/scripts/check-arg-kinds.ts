@@ -74,11 +74,29 @@ const CONTENT = join(here, "..", "..", "content");
 const ROOTS = [
   join(MUD_ROOT, "world"),
   ...(existsSync(CONTENT)
-    ? readdirSync(CONTENT)
-        .map((pack) => join(CONTENT, pack, "content", "platform", "cmd"))
-        .filter((dir) => existsSync(dir))
+    ? readdirSync(CONTENT).flatMap((pack) => cmdDirsUnder(join(CONTENT, pack, "content")))
     : []),
 ];
+
+/**
+ * Every `cmd/` view directory under a pack's `content/` — at any depth
+ * (`platform/cmd`, `arcana/cmd`, `world/<sphere>/<locality>/cmd`),
+ * skipping a `cmd` whose parent is `idea` (the controller-template
+ * mirror, not views).
+ */
+function cmdDirsUnder(dir: string, out: string[] = []): string[] {
+  if (!existsSync(dir)) return out;
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (!statSync(full).isDirectory()) continue;
+    if (entry === "cmd") {
+      if (dir.split(/[\\/]/).pop() !== "idea") out.push(full);
+      continue;
+    }
+    cmdDirsUnder(full, out);
+  }
+  return out;
+}
 
 /** Live mixin vocabulary — the thing a declaration is checked against. */
 const KNOWN_MIXINS = new Set<string>(Object.values(Mixins));

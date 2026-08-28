@@ -1,8 +1,8 @@
 /**
  * TestAuthRoutes — verifies the test-auth seam establishes a real
  * session (so `/auth/status` flips to authenticated) without touching
- * Google OAuth or the database. `Backend.handleTestAuthentication` is
- * stubbed, so this stays a fast, DB-free unit test.
+ * Google OAuth or the database. `TestHooks.authenticate` is stubbed, so
+ * this stays a fast, DB-free unit test.
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -11,14 +11,13 @@ import session from 'express-session';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
-import type { Backend } from '../../../backend/Backend';
+import type { Application } from '../../../backend/Application';
 import { AuthRoutes } from '../AuthRoutes';
 import { TestAuthRoutes } from '../TestAuthRoutes';
 
-/** Minimal app mirroring Server's auth middleware, with a stub Backend. */
+/** Minimal app mirroring Server's auth middleware; the Application is never touched. */
 function makeApp(
-  backend: Backend,
-  Routes: { setup(app: Express, backend: Backend): void } = TestAuthRoutes
+  Routes: { setup(app: Express, application: Application): void } = TestAuthRoutes
 ): Express {
   const app = express();
   app.use(express.json());
@@ -39,21 +38,28 @@ function makeApp(
   passport.deserializeUser((obj, done) => done(null, obj as Express.User));
 
   AuthRoutes.setup(app);
-  Routes.setup(app, backend);
+  Routes.setup(app, {} as Application);
   return app;
 }
 
-/** Stub that mints a deterministic user id without DB or runRoot. */
-const stubBackend = {
-  handleTestAuthentication: async (
-    handle: string,
-    done: (err: unknown, user?: { id: string }) => void
-  ) => done(null, { id: `uid-${handle}` }),
-} as unknown as Backend;
+/**
+ * Stub that mints a deterministic user id without DB or runRoot. A
+ * module mock (not a spy) so the re-import under `vi.resetModules`
+ * below sees the same stub.
+ */
+vi.mock('../../../backend/TestHooks', () => ({
+  TestHooks: {
+    authenticate: async (
+      _app: unknown,
+      handle: string,
+      done: (err: unknown, user?: { id: string }) => void
+    ) => done(null, { id: `uid-${handle}` }),
+  },
+}));
 
 describe('TestAuthRoutes', () => {
   it('establishes a session so /auth/status reports authenticated', async () => {
-    const agent = request.agent(makeApp(stubBackend));
+    const agent = request.agent(makeApp());
 
     // Before login: not authenticated.
     const before = await agent.get('/auth/status');
@@ -79,7 +85,7 @@ describe('TestAuthRoutes', () => {
     vi.stubEnv('TEST_AUTH_TOKEN', 'sekret');
     // Re-import so the module captures the stubbed token.
     const { TestAuthRoutes: Gated } = await import('../TestAuthRoutes');
-    const app = makeApp(stubBackend, Gated);
+    const app = makeApp(Gated);
 
     const denied = await request(app)
       .post('/auth/test-login')

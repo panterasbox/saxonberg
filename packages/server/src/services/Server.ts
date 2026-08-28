@@ -147,7 +147,7 @@ export class Server {
       console.warn(
         'Server: ⚠  AUTH_MODE=test — test-login auth bypass is ENABLED.'
       );
-      TestAuthRoutes.setup(this.app, this.backend);
+      TestAuthRoutes.setup(this.app, this.application);
     }
 
     console.info('Server: Middleware configured');

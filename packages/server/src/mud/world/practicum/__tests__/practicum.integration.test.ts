@@ -27,7 +27,9 @@ import BodyPlan from "../../../platform/idea/species/BodyPlan";
 import Species from "../../../platform/idea/species/Species";
 import { Character } from "../../../lib/character/Character";
 import { HasInteractiveMixin } from "../../../lib/connection/HasInteractive";
-import GlowlightOrb from "../../../platform/thing/magic/GlowlightOrb";
+import { LightSourceMixin } from "../../../lib/perception/LightSource";
+import { EnergizedMixin } from "../../../lib/electricity/Energized";
+import Thing from "../../../lib/stuff/Thing";
 import SpellCatalogue from "../../../platform/idea/SpellCatalogue";
 import Spell from "../../../platform/idea/magic/Spell";
 import { Template } from "../../../lib/stuff/Template";
@@ -47,6 +49,12 @@ import {
   stampTemplatePathForTest,
 } from "../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+/** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
+class GlowlightOrb extends LightSourceMixin(Thing) {}
+/** An energized locus standing in for the arcane library's SparkLocus, the same way. */
+class SparkLocus extends EnergizedMixin(Thing) {}
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class MagicTester extends HasInteractiveMixin(Character) {
   static _mixinName = "MagicTesterPracticum";
@@ -71,11 +79,11 @@ async function installCatalogue(): Promise<void> {
         ).data,
     );
   const spy = vi
-    .spyOn(Template, "findDescendants")
+    .spyOn(Template, "findByClass")
     .mockImplementation(async (prefix: string): Promise<Template[]> => {
-      if (!prefix.startsWith(Spell.TEMPLATE_PATH_PREFIX)) return [];
+      if (prefix !== SPELL_CLASS) return [];
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     });
@@ -205,6 +213,9 @@ describe("The Practicum — the magic demonstrators", () => {
     brineFloor(gallery, 30);
     const caster = casterIn(gallery); // wading — MIND WHERE YOU STAND
 
+    vi.spyOn(StuffApi, "clone").mockImplementation(async () =>
+      makeStuff(() => new SparkLocus()),
+    );
     const out = await MagicApi.resolveCast(caster, "spark", gallery as never);
     expect(out.ok).toBe(true);
     expect(out.reports.join(" ")).toMatch(/current snaps/i);

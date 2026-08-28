@@ -171,6 +171,16 @@ export class AppBootstrap {
           `, boot: ${r.boot['sync-read']} sync-read + ${r.boot.producer} producer, ` +
           (r.staffed ? 'staffed' : 'UNSTAFFED')
       );
+      // A capability pack says where each of its classes resolved — the
+      // rung check's evidence, on the boot line (content-packs, D4).
+      if (r.rung === 'capability') {
+        const own = Object.entries(r.classOrigins).filter(([, o]) => o !== 'kernel');
+        console.info(
+          `PackApi: '${r.packId}' is a capability pack — ` +
+            `${own.length} class(es) resolved into its src/` +
+            (own.length > 0 ? `:\n` + own.map(([c, f]) => `    ${c} → ${f}`).join('\n') : '')
+        );
+      }
     }
 
     await PersistenceManager.get().loadHooks();

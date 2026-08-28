@@ -26,6 +26,8 @@ import { ShadowApi } from "../../../api/shadow";
 import { Template } from "../../stuff/Template";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
+const DISCIPLINE_PATH_PREFIX = '/arcana/idea/Discipline/';
+const DISCIPLINE_CLASS = '/platform/idea/Discipline';
 
 const TestGiverBase = AdvancementMixin(
   CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea))))
@@ -60,11 +62,11 @@ function makeGiver(): TestGiver {
 }
 
 async function warmCatalogue(): Promise<void> {
-  vi.spyOn(Template, "findDescendants").mockImplementation(
+  vi.spyOn(Template, "findByClass").mockImplementation(
     async (basePath: string) => {
-      if (basePath !== Discipline.TEMPLATE_PATH_PREFIX) return [];
+      if (basePath !== DISCIPLINE_CLASS) return [];
       return CATALOG_SEED.map((seed) => ({
-        path: `${Discipline.TEMPLATE_PATH_PREFIX}${String(seed.key)}`,
+        path: `${DISCIPLINE_PATH_PREFIX}${String(seed.key)}`,
         data: seed,
       })) as unknown as Template[];
     }

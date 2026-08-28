@@ -810,8 +810,8 @@ landing first.
   bridged whitelisted Apis, resource limits (CPU / memory /
   timeout), monitoring hooks. The runtime-model
   [Tier 2 isolation discussion](./runtime-model.md#isolation-options)
-  is the framing. *The **Content** corner has shipped two builds as
-  **content packs** — pure-data, no-code deliverables with a three-way
+  is the framing. *The **Content** and **Capability** corners have shipped as
+  **content packs** — data or capability (code-shipping) deliverables with a three-way
   reconcile installer, an install record, and the `pack` operator verb;
   wave 2 (2026-08) added the document / settings / subject / wiki /
   command-view kinds, collapsed the per-kind collections into
@@ -829,8 +829,14 @@ landing first.
   ONE pack, minted the `hearthworks` venue pack and `trade-hospitality`
   (twenty ship; generic-objects ships no recipes), graduated
   `Offstage` / `MechanicalMovement` to `lib/` and the composition-only
-  classes to `platform/thing/`. Wave 5 (homing the rest of
-  `world-seed` and deleting it) remains.
+  classes to `platform/thing/`; **capability packs** (2026-08-28,
+  MR !205) made a pack able to ship `src/` — the class-source table,
+  file-URL imports, the server's `exports` map as the pack import
+  profile, the pack list in the deployment manifest, the rung check —
+  proven on `arcana` (magic's substrate: the item classes with
+  Ring/Amulet/Potion new, disciplines, verbs, banks) and
+  `arcane-library` (spells, every clonable, the loci); nineteen ship.
+  Wave 5 (homing the rest of `world-seed` and deleting it) remains.
   Left: wave 5 (see
   [content-packs.md](./subsystems/content-packs.md) /
   [content-packs-slate.md](./slates/builds/content-packs-slate.md));

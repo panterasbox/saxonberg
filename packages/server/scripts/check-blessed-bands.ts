@@ -40,6 +40,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
+import { packSources, packSrcFiles } from './pack-roots';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, '..', 'src');
@@ -98,6 +99,16 @@ function blessableClasses(): Set<string> {
     if (!src.includes('BlessableMixin')) continue;
     const rel = file.slice(MUD.length).replace(/\.ts$/, '').replace(/\\/g, '/');
     found.add(rel);
+  }
+  // A capability pack's classes: `<srcDir>/<rel>.ts` backs `<root>/<rel>`
+  // for every namespace root the pack holds.
+  for (const pack of packSources()) {
+    for (const file of packSrcFiles(pack.srcDir)) {
+      const src = readFileSync(file, 'utf-8');
+      if (!src.includes('BlessableMixin')) continue;
+      const rel = file.slice(pack.srcDir.length).replace(/\.ts$/, '').replace(/\\/g, '/');
+      for (const root of pack.roots) found.add(root + rel);
+    }
   }
   return found;
 }

@@ -364,7 +364,7 @@ describe('the manifest', () => {
   it('an unknown key fails at read', async () => {
     const root = writePack('typo', [ROW('stuff/thing/x.yaml')], { manifest: { requries: {} } });
     await expect(PackApi.install([root])).rejects.toThrow(
-      /unknown key 'requries' \(known: id, version, description, dependsOn, root, requires, boot, maintainers\)/,
+      /unknown key 'requries' \(known: id, version, description, root, requires, boot, maintainers\)/,
     );
     expect(store.rows.filter((x) => x.__col === 'content')).toHaveLength(0);
   });

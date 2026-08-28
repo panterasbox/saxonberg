@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { classify, OFFENDER_RE } from '../check-test-content';
+import { isExemptPath, classify, OFFENDER_RE } from '../check-test-content';
 
 const f = (path: string, text: string) => ({ path, text });
 /** Built, not written: the gate's own test must not trip the gate. */
@@ -42,5 +42,13 @@ describe('check-test-content.classify', () => {
     expect(classify(files, ['kept.test.ts']).stale).toEqual([]);
     expect(classify(files, ['kept.test.ts', 'fixed.test.ts']).stale).toEqual(['fixed.test.ts']);
     expect(classify([...files, f('new.test.ts', `'${D}/b'`)], ['kept.test.ts']).newOffenders).toEqual(['new.test.ts']);
+  });
+});
+
+describe('check-test-content.isExemptPath', () => {
+  it('a capability pack test is a content test beside its content — exempt even when it names /world/', () => {
+    expect(isExemptPath('packages/content/arcana/src/__tests__/x.test.ts')).toBe(true);
+    expect(isExemptPath('packages/server/src/mud/world/Venue/__tests__/x.test.ts')).toBe(true);
+    expect(isExemptPath('packages/server/src/mud/lib/magic/__tests__/x.test.ts')).toBe(false);
   });
 });

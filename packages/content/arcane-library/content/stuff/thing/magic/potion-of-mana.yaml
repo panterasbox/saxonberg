@@ -1,0 +1,16 @@
+# A potion of mana — the catalog potion exemplar on `Potion`, and the
+# proof that a mana potion needs no new mechanism (capability packs D5).
+#
+# Three lines: what it looks like, what is in it, how much. The vessel
+# is the arcana pack's preset Receptacle; the potion is the LIQUID —
+# `mana-draught`, a PotionMaterial with NO spell, whose meal chemistry
+# feeds the coupled recovery a caster's reserve already refills through.
+class: /arcana/thing/Potion
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a stoppered glass flask
+  longDescription: >
+    A squat glass flask with a waxed stopper. Whatever is in it is thick,
+    and clings to the glass when tilted.
+  interiorMaterial: /stuff/idea/material/potion/mana-draught
+  interiorAmount: 0.25

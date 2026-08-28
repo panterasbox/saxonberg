@@ -3,5 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The hearth-cooking trade — what cooking at a hearth introduces: its recipes (its stock is commons)."
+  "description": "The hearth-cooking trade \u2014 what cooking at a hearth introduces: its recipes (its stock is commons).",
+  "dependencies": {
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

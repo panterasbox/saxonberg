@@ -28,7 +28,8 @@ import { WorldClockApi } from "../../../../api/worldclock";
 import "../../WorldClockRegistry";
 import SpellCatalogue from "../../SpellCatalogue";
 import Spell from "../../magic/Spell";
-import GlowlightOrb from "../../../thing/magic/GlowlightOrb";
+import { LightSourceMixin } from "../../../../lib/perception/LightSource";
+import Thing from "../../../../lib/stuff/Thing";
 import Condition from "../../Condition";
 import { Template } from "../../../../lib/stuff/Template";
 import { Character } from "../../../../lib/character/Character";
@@ -43,6 +44,10 @@ import {
   stampTemplatePathForTest,
 } from "../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+/** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
+class GlowlightOrb extends LightSourceMixin(Thing) {}
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 class TestCharacter extends Character {}
 
@@ -72,11 +77,11 @@ async function installCatalogue(): Promise<void> {
         ).data,
     );
   const spy = vi
-    .spyOn(Template, "findDescendants")
+    .spyOn(Template, "findByClass")
     .mockImplementation(async (prefix: string): Promise<Template[]> => {
-      if (!prefix.startsWith(Spell.TEMPLATE_PATH_PREFIX)) return [];
+      if (prefix !== SPELL_CLASS) return [];
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     });
@@ -217,7 +222,7 @@ describe("MagicLogic — the cast pipeline", () => {
     const caster = makeCaster();
     const out = await MagicApi.resolveCast(caster, "glowlight");
     expect(out.ok).toBe(true);
-    expect(clone).toHaveBeenCalledWith("/stuff/thing/magic/GlowlightOrb");
+    expect(clone).toHaveBeenCalledWith("/stuff/thing/magic/glowlight-mote");
     const sustained = caster
       .getConditions()
       .find((c) => c.kind === "sustained");

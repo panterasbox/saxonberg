@@ -1,0 +1,43 @@
+# A ring of veil — the worn-host exemplar (capability packs D5).
+#
+# `class: /arcana/thing/Ring`: Wand's composition with Wearable, so it
+# claims a finger rather than a hand. `alwaysOn: true` is what makes it
+# a ring rather than a wand you wear: worn, it discharges `veil` as a
+# sustained Condition on the wearer (a disguise every OTHER eye sees) and
+# keeps paying for it out of its own shell — the standby draw, ~25 days
+# of a 900 kJ charge at 5 W. Taken off, or run flat, the veil drops.
+# `recharge`, a conduit or the charging bench refill it.
+#
+# Cursed (blessingOdds) it will not come off, and keeps drawing; the
+# veil's cursed branch is a figure every eye is DRAWN to. `remove curse`
+# is the recourse.
+class: /arcana/thing/Ring
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a thin silver ring
+  primaryKeyword: ring
+  longDescription: >
+    A plain band of tarnished silver, worn smooth on the inside. Held up
+    to the light it seems a little less there than it should be.
+  carriedSpellPath: /stuff/idea/magic/Spell/veil
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.2
+  capacityKJ: 900
+  alwaysOn: true
+  censusKey: ring
+  materialTags: [silver]
+  regionTarget: 1
+  descriptorClass: ring
+  identifiedName: a ring of veil
+  # The wearer feels nothing; watchers see someone else. Not
+  # self-identifying — the mirror is the only tell.
+  selfIdentifying: false
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["finger:left"]
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }
+  details:
+    band:
+      keywords: [band, inside]
+      description: >
+        The inside of the band is cut with a sense-glyph so fine it reads
+        as a scratch — the maker's, and the whole of the working.

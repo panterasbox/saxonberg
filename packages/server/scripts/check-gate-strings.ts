@@ -4,7 +4,9 @@
  * Every concrete `FromModule('path#Export')` / `FromController(...)`
  * call-security policy string, and every `*_MODULE_ID`-style const that
  * holds one, must resolve to a real module + export under
- * `packages/server/src/`. This catches stale gates after a rename (the
+ * `packages/server/src/` — or, for a path under a capability pack's
+ * namespace root, under that pack's `src/` (content-packs, the
+ * capability rung; `scripts/pack-roots.ts` is the table). This catches stale gates after a rename (the
  * refactor couples a logic singleton's gate to its Api's module-id *as
  * a string*, with no compiler help on rename — slate Thread 8
  * mitigation #3).
@@ -32,6 +34,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, relative, resolve as resolvePath } from "path";
+import { packSources, classFileOf, packOfClassPath, type PackSource } from "./pack-roots";
 
 const EXIT_ON_FINDINGS = true; // CI-gating (flipped at end of P3)
 
@@ -75,27 +78,62 @@ function exportsName(source: string, name: string | null): boolean {
   ].some((re) => re.test(source));
 }
 
-function checkString(raw: string, file: string, findings: Finding[]): void {
+/**
+ * The pure resolution: where a gate's module path lives, or why it
+ * cannot. A relative gate string (`./x` / `../x`) resolves against the
+ * DECLARING file's directory (the transform bakes it to absolute at
+ * load time — see resolveRelativeModuleGates in the loader transform)
+ * — except in a capability pack's file, where the transform leaves it
+ * alone, so a relative gate there is unresolvable by rule: pack code
+ * writes absolute gates. An absolute module id under a registered pack
+ * root (`/arcana/idea/cmd/…`) resolves into that pack's `src/`; any
+ * other is `mud`-rooted, leading-slash (`/platform/…`) — drop the slash
+ * and resolve under src/mud/. Exported for the test beside this script.
+ */
+export function gateFileOf(
+  modulePath: string,
+  file: string,
+  sources: readonly PackSource[],
+  mudRoot: string = MUD_ROOT,
+): { base: string } | { error: string } {
+  const inPack = sources.some((p) => file.startsWith(p.srcDir + "/") || file.startsWith(p.srcDir + "\\"));
+  if (modulePath.startsWith(".")) {
+    if (inPack) {
+      return {
+        error: `relative gate '${modulePath}' in a capability pack file — pack code writes absolute gates (/<root>/…)`,
+      };
+    }
+    return { base: resolvePath(dirname(file), modulePath) };
+  }
+  const owner = packOfClassPath(modulePath, sources);
+  if (owner) {
+    return { base: classFileOf(modulePath, sources, mudRoot).replace(/\.ts$/, "") };
+  }
+  return { base: join(mudRoot, modulePath.replace(/^\//, "")) };
+}
+
+function checkString(raw: string, file: string, findings: Finding[], sources: readonly PackSource[]): void {
   if (raw.includes("*") || !raw.includes("/")) return;
   const hashAt = raw.indexOf("#");
   const modulePath = hashAt === -1 ? raw : raw.slice(0, hashAt);
   const exportName = hashAt === -1 ? null : raw.slice(hashAt + 1);
 
-  // A relative gate string (`./x` / `../x`) resolves against the
-  // DECLARING file's directory (the transform bakes it to absolute at
-  // load time — see resolveRelativeModuleGates in the loader transform).
-  // An absolute module id is `mud`-rooted, leading-slash (`/obj/…`) — drop
-  // the slash and resolve under src/mud/.
-  const base = modulePath.startsWith(".")
-    ? resolvePath(dirname(file), modulePath)
-    : join(MUD_ROOT, modulePath.replace(/^\//, ""));
+  const resolved = gateFileOf(modulePath, file, sources);
+  if ("error" in resolved) {
+    findings.push({ file, raw, reason: resolved.error });
+    return;
+  }
+  const base = resolved.base;
   const candidates = [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
   const found = candidates.find((p) => existsSync(p));
   if (!found) {
+    const owner = packOfClassPath(modulePath, sources);
     findings.push({
       file,
       raw,
-      reason: `module '${modulePath}' does not exist under packages/server/src/mud`,
+      reason: owner
+        ? `module '${modulePath}' does not exist under pack '${owner.pack.id}' src/ (${owner.pack.srcDir})`
+        : `module '${modulePath}' does not exist under packages/server/src/mud`,
     });
     return;
   }
@@ -111,6 +149,9 @@ function checkString(raw: string, file: string, findings: Finding[]): void {
 function main(): void {
   const files: string[] = [];
   walk(MUD_ROOT, files);
+  const sources = packSources();
+  // A capability pack's src/ carries gates too (`/arcana/idea/cmd/…`).
+  for (const pack of sources) walk(pack.srcDir, files);
 
   const findings: Finding[] = [];
   for (const file of files) {
@@ -119,7 +160,7 @@ function main(): void {
       re.lastIndex = 0;
       let m: RegExpExecArray | null;
       while ((m = re.exec(source)) !== null) {
-        checkString(m[1]!, file, findings);
+        checkString(m[1]!, file, findings, sources);
       }
     }
   }
@@ -141,4 +182,4 @@ function main(): void {
   if (EXIT_ON_FINDINGS) process.exit(1);
 }
 
-main();
+if (process.argv[1] && /check-gate-strings\.ts$/.test(process.argv[1])) main();

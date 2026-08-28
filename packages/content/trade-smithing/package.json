@@ -3,5 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The smithing trade — what smithing introduces: its stations, its stock, its recipes."
+  "description": "The smithing trade \u2014 what smithing introduces: its stations, its stock, its recipes.",
+  "dependencies": {
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

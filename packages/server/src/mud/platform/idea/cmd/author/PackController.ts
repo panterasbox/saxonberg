@@ -255,6 +255,14 @@ export default class PackController extends CommandController<PackModel> {
     if (rec.failure) {
       lines.push(`  FAILED at ${rec.failure.step}: ${rec.failure.error}`);
     }
+    // The rung is a fact about the pack's src/; `code` says whether the
+    // running server has loaded what is on disk (a stale capability
+    // pack is a `pack sync` in dev and a restart owed in prod).
+    lines.push(
+      `  ${r.rung ?? 'unknown'} pack` +
+        (r.dependsOn.length > 0 ? `, depends on ${r.dependsOn.join(', ')}` : '') +
+        (r.code ? `; code: ${r.code === 'current' ? 'current' : 'stale — restart owed'}` : ''),
+    );
     if (r.maintainers) {
       lines.push(
         `  maintainers: ${r.maintainers.group} — ` +

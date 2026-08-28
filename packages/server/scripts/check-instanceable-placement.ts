@@ -10,7 +10,7 @@
  *   /lib/  holds substrate that is ONLY EVER INHERITED: abstract roots,
  *   mixins, value objects, and framework attachments.
  *
- * Seven invariants:
+ * Eight invariants:
  *
  *   1. No template's `class:` resolves under `/lib/`.       (the headline)
  *   2. No template PATH lives under `/lib/`.
@@ -24,6 +24,12 @@
  *      segment — `thing`, `idea`, `agent` or `location` — the path
  *      pattern `<root>/<branch>/…` (content packs wave 4a). Document
  *      kinds (`recipes/`, a tree's `cmd/` views) are never walked here.
+ *      A capability pack's own root (`/arcana/`) is a rooted tree too.
+ *   8. A capability pack's `src/` has the kernel's taxonomy and nothing
+ *      else: no `lib/`, and every module under a branch directory. A
+ *      `class:` under a pack namespace resolves into that pack's `src/`
+ *      (invariant 3, through the same table `StuffApi.resolveClassFile`
+ *      reads — `scripts/pack-roots.ts`).
  *
  * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
  * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
@@ -50,6 +56,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { packSources, classFileOf, packSrcFiles, type PackSource } from './pack-roots';
 
 /** CI-failing. The invariant is enforced by the build, not by review. */
 const EXIT_ON_FINDINGS = true;
@@ -102,9 +109,13 @@ function templateFiles(): Array<{ file: string; path: string }> {
   return out;
 }
 
-/** Does `classPath` name a real module with a matching or default export? */
-function classResolves(classPath: string): boolean {
-  const file = join(MUD, classPath.slice(1) + '.ts');
+/**
+ * Does `classPath` name a real module with a matching or default export?
+ * A path under a capability pack's namespace resolves into that pack's
+ * `src/` (never the kernel); everything else is the kernel tree's.
+ */
+function classResolves(classPath: string, sources: readonly PackSource[]): boolean {
+  const file = classFileOf(classPath, sources, MUD);
   if (!existsSync(file)) return false;
   const name = classPath.split('/').pop()!;
   const src = readFileSync(file, 'utf8');
@@ -121,18 +132,46 @@ function classResolves(classPath: string): boolean {
  * `command/` segment. Exported for the test beside this script.
  */
 export const BRANCHES = ['thing', 'idea', 'agent', 'location'] as const;
-export function tradePlacementOk(path: string, hasClass: boolean): boolean {
+export function tradePlacementOk(
+  path: string,
+  hasClass: boolean,
+  packRoots: readonly string[] = [],
+): boolean {
   if (!hasClass) return true;
-  const rooted = /^\/(?:platform|stuff|trade\/[^/]+)\//.test(path);
+  // The rooted trees: the platform, the commons, each industry — and
+  // every capability pack's own root (`/arcana`), which follows the
+  // same `<root>/<branch>/` pattern.
+  const roots = ['/platform', '/stuff', ...packRoots.filter((r) => !/^\/(?:platform|stuff|trade|world)(?:\/|$)/.test(r))];
+  const escaped = roots.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp(`^(?:${escaped.join('|')}|/trade/[^/]+)/([^/]+)/`);
+  const rooted = new RegExp(`^(?:${escaped.join('|')}|/trade/[^/]+)/`).test(path);
   if (!rooted) return true;
-  const m = /^\/(?:platform|stuff|trade\/[^/]+)\/([^/]+)\//.exec(path);
+  const m = re.exec(path);
   return !!m && (BRANCHES as readonly string[]).includes(m[1]!);
+}
+
+/**
+ * Invariant 8, the pure decision: a capability pack's `src/` has the
+ * kernel's taxonomy and nothing else — no `lib/` (substrate it needs is
+ * the kernel's, or a class it ships under a branch), and no module
+ * outside a branch directory (`thing/`, `idea/`, `agent/`, `location/`).
+ * `rel` is `src/`-relative with forward slashes; tests are not modules.
+ */
+export function packSrcPlacementOk(rel: string): boolean {
+  const parts = rel.split('/');
+  if (parts.includes('__tests__')) return true;
+  const top = parts[0];
+  if (top === 'lib') return false;
+  if (parts.length < 2) return false;
+  return (BRANCHES as readonly string[]).includes(top!);
 }
 
 function main(): void {
   const findings: Finding[] = [];
   const templates = templateFiles();
   const knownPaths = new Set(templates.map((t) => t.path));
+  const sources = packSources();
+  const packRoots = sources.flatMap((p) => p.roots);
 
   for (const { file, path } of templates) {
     let doc: unknown;
@@ -158,7 +197,7 @@ function main(): void {
       findings.push({ invariant: 2, file, detail: `template path ${path} is under /lib/` });
     }
     // 3 — class resolves
-    if (cls && !cls.startsWith('/lib/') && !classResolves(cls)) {
+    if (cls && !cls.startsWith('/lib/') && !classResolves(cls, sources)) {
       findings.push({ invariant: 3, file, detail: `class: ${cls} resolves to no module + export` });
     }
     // 4 — hydratorClass is a TEMPLATE path, so check it against template rows
@@ -178,7 +217,7 @@ function main(): void {
       });
     }
     // 7 — the obj/ segment rule inside an industry's subtree
-    if (!tradePlacementOk(path, cls !== null)) {
+    if (!tradePlacementOk(path, cls !== null, packRoots)) {
       findings.push({ invariant: 7, file, detail: `${path} names a class but its second segment is not a branch (thing|idea|agent|location)` });
     }
   }
@@ -192,6 +231,20 @@ function main(): void {
       const libDir = join(CONTENT, pack, 'content/lib');
       if (existsSync(libDir)) {
         findings.push({ invariant: 2, file: libDir, detail: `pack ${pack} still has content/lib/` });
+      }
+    }
+  }
+
+  // 8 — a capability pack's src/ has the kernel's taxonomy: no lib/, and
+  // every module under a branch directory.
+  for (const pack of sources) {
+    if (existsSync(join(pack.srcDir, 'lib'))) {
+      findings.push({ invariant: 8, file: join(pack.srcDir, 'lib'), detail: `pack ${pack.id} ships src/lib/ — substrate a pack needs is the kernel's, or a class under a branch` });
+    }
+    for (const f of packSrcFiles(pack.srcDir)) {
+      const rel = relative(pack.srcDir, f).split('\\').join('/');
+      if (!packSrcPlacementOk(rel)) {
+        findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location)` });
       }
     }
   }
@@ -232,6 +285,7 @@ function main(): void {
     5: 'redundant hydratorClass (no data to apply)',
     6: 'orphaned data (no hydratorClass — silently discarded)',
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
+    8: 'a capability pack src/ outside the taxonomy (lib/, or a module not under a branch)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

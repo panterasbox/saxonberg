@@ -8,7 +8,7 @@
  *
  * SAFETY — this is an auth bypass, so it is defended in depth:
  *   1. It is mounted ONLY when `AUTH_MODE === 'test'` (see `Server`).
- *   2. `Backend.handleTestAuthentication` independently refuses unless
+ *   2. `TestHooks.authenticate` independently refuses unless
  *      `AUTH_MODE === 'test'`.
  *   3. `Server` throws on boot if `AUTH_MODE === 'test'` while
  *      `NODE_ENV === 'production'`.
@@ -23,7 +23,8 @@
  */
 
 import type { Express, Request, Response } from 'express';
-import type { Backend } from '../../backend/Backend';
+import type { Application } from '../../backend/Application';
+import { TestHooks } from '../../backend/TestHooks';
 
 const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
 
@@ -33,9 +34,9 @@ export class TestAuthRoutes {
    * branch in `Server`.
    *
    * @param app - Express application
-   * @param backend - Backend, owns the gated `handleTestAuthentication`
+   * @param application - the Application the gated `TestHooks.authenticate` mints into
    */
-  public static setup(app: Express, backend: Backend): void {
+  public static setup(app: Express, application: Application): void {
     app.post('/auth/test-login', (req: Request, res: Response) => {
       if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
         res.status(403).json({ error: 'forbidden' });
@@ -64,7 +65,8 @@ export class TestAuthRoutes {
       // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
       const wizard = body?.wizard === true;
 
-      void backend.handleTestAuthentication(
+      void TestHooks.authenticate(
+        application,
         handle,
         (err, user) => {
           if (err || !user) {

@@ -250,6 +250,6 @@ describe('ChargedMixin — the battery', () => {
       TestWand as unknown as { commandContributions?: { environment?: string[] } }
     ).commandContributions;
     // A held wand grants OUTWARD to its wielder — `environment`.
-    expect(contributions?.environment).toContain('platform/cmd/magic/zap.yaml');
+    expect(contributions?.environment).toContain('arcana/cmd/magic/zap.yaml');
   });
 });

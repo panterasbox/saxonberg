@@ -31,6 +31,9 @@
  *     wrap to forward backwards into logic that could not do the work.
  *   - **test** (`**\/__tests__/**`): unrestricted. Tests are not shipped
  *     mudlib and already reach for white-box seams by design.
+ *   - **pack** (`packages/content/<pkg>/src/**`, tests unrestricted): a
+ *     capability pack's classes — `packImportRefusal` below, the pack
+ *     import profile the server's `exports` map cannot see.
  *
  * Type-only imports are exempt everywhere: `import type` is erased at
  * compile time and confers no runtime capability. The rule is about
@@ -57,13 +60,15 @@
  * this subtree" without a resolver plugin.
  */
 
-import { readFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, relative, resolve } from "path";
+import { packSources, type PackSource } from "./pack-roots";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = resolve(join(here, "..", "src"));
 const MUD = join(SERVER_SRC, "mud");
+const SERVER_PACKAGE_JSON = join(here, "..", "package.json");
 
 const REPORT = process.argv.includes("--report");
 
@@ -133,7 +138,83 @@ const EXCEPTIONS: Record<string, { modules: string[]; reason: string }> = {};
 /* Scanning                                                            */
 /* ------------------------------------------------------------------ */
 
-type Tier = "mudlib" | "api" | "objapi" | "test";
+type Tier = "mudlib" | "api" | "objapi" | "test" | "pack";
+
+/* ------------------------------------------------------------------ */
+/* The pack tier                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * What a capability pack's `src/` may import (content-packs, D4 — the
+ * pack import profile). The server package's **`exports` map is the
+ * boundary**: Node, tsx, vitest and tsc all refuse a subpath it does not
+ * list, so this tier checks only what the map cannot see —
+ *
+ *   - a **relative escape**: any relative import leaving the pack's own
+ *     `src/` (`../../../server/src/…` encodes this monorepo's layout into
+ *     the pack and dies at the repo split);
+ *   - a **pack-to-pack** import (`@saxonberg/content-<x>/…`) — allowed
+ *     only when `<x>` is in the importer's `package.json` dependencies
+ *     (the one graph the installer orders by);
+ *   - **any other package** — only `@saxonberg/server/<subpath>` (and
+ *     the subpath must be exported), `@saxonberg/types`, and declared
+ *     pack dependencies; no Node built-ins.
+ *
+ * A pack's tests (`src/**\/__tests__/`) are unrestricted, as the
+ * kernel's are.
+ */
+export interface PackImportContext {
+  /** The importer's pack. */
+  pack: Pick<PackSource, "id" | "srcDir">;
+  /** Pack ids from the importer's `package.json` `@saxonberg/content-*` dependencies. */
+  dependsOn: readonly string[];
+  /** The server package's `exports` keys (`./mud/lib/*`, …) and their targets (`null` = blocked). */
+  serverExports: Readonly<Record<string, string | null>>;
+}
+
+/** Does an `exports` map serve `subpath` (`./mud/lib/stuff/Thing`)? Longest matching key wins; a `null` target blocks. */
+export function exportServes(exportsMap: Readonly<Record<string, string | null>>, subpath: string): boolean {
+  let best: { key: string; target: string | null } | null = null;
+  for (const [key, target] of Object.entries(exportsMap)) {
+    const star = key.indexOf("*");
+    const hit =
+      star === -1
+        ? key === subpath
+        : subpath.startsWith(key.slice(0, star)) && subpath.endsWith(key.slice(star + 1)) && subpath.length >= key.length - 1;
+    if (!hit) continue;
+    if (!best || key.length > best.key.length) best = { key, target };
+  }
+  return best !== null && best.target !== null;
+}
+
+/**
+ * The pure decision for one import in a pack file: `null` when allowed,
+ * else the reason. `abs` is the importer's absolute path.
+ */
+export function packImportRefusal(abs: string, spec: string, ctx: PackImportContext): string | null {
+  if (spec.startsWith(".")) {
+    const target = resolve(dirname(abs), spec);
+    const src = resolve(ctx.pack.srcDir);
+    if (target === src || target.startsWith(src + "/") || target.startsWith(src + "\\")) return null;
+    return `relative import escapes the pack's src/ — import the kernel as @saxonberg/server/mud/…`;
+  }
+  const bare = spec.startsWith("node:") ? spec.slice(5) : spec;
+  if (bare === "@saxonberg/types") return null;
+  if (bare === "@saxonberg/server" || bare.startsWith("@saxonberg/server/")) {
+    const subpath = "." + bare.slice("@saxonberg/server".length);
+    if (subpath === ".") return `'@saxonberg/server' has no root export — import a subpath the exports map lists`;
+    return exportServes(ctx.serverExports, subpath)
+      ? null
+      : `'${bare}' is not in @saxonberg/server's exports map — the pack import profile`;
+  }
+  const packDep = /^@saxonberg\/content-([^/]+)(?:\/|$)/.exec(bare);
+  if (packDep) {
+    return ctx.dependsOn.includes(packDep[1]!)
+      ? null
+      : `pack '${packDep[1]}' is not in ${ctx.pack.id}'s package.json dependencies`;
+  }
+  return `'${bare}' — a pack imports only @saxonberg/server/<exported>, @saxonberg/types and its declared pack dependencies (no Node built-ins, no other packages)`;
+}
 
 function tierOf(rel: string): Tier {
   if (rel.includes("/__tests__/") || rel.startsWith("__tests__/"))
@@ -285,15 +366,40 @@ function allowed(rel: string, tier: Tier, key: string): boolean {
   return false;
 }
 
+function main(): void {
 const files: string[] = [];
 walk(MUD, files);
+const sources = packSources();
+/** importer file → its pack (a file under a capability pack's src/). */
+const packOfFile = new Map<string, PackSource>();
+for (const pack of sources) {
+  const packFiles: string[] = [];
+  walk(pack.srcDir, packFiles);
+  for (const f of packFiles) {
+    files.push(f);
+    packOfFile.set(f, pack);
+  }
+}
+const serverExports = (JSON.parse(readFileSync(SERVER_PACKAGE_JSON, "utf8")) as { exports?: Record<string, string | null> }).exports ?? {};
+const dependsOnOf = (pack: PackSource): string[] => {
+  const pj = join(pack.packDir, "package.json");
+  if (!existsSync(pj)) return [];
+  const deps = (JSON.parse(readFileSync(pj, "utf8")) as { dependencies?: Record<string, string> }).dependencies ?? {};
+  return Object.keys(deps).filter((n) => n.startsWith("@saxonberg/content-")).map((n) => n.slice("@saxonberg/content-".length));
+};
 
 const findings: Finding[] = [];
 
 for (const abs of files) {
-  const rel = relative(MUD, abs).split("\\").join("/");
-  const tier = tierOf(rel);
+  const pack = packOfFile.get(abs);
+  const rel = pack
+    ? `packages/content/${pack.id}/src/${relative(pack.srcDir, abs).split("\\").join("/")}`
+    : relative(MUD, abs).split("\\").join("/");
+  const tier: Tier = pack ? (rel.includes("/__tests__/") ? "test" : "pack") : tierOf(rel);
   const src = stripComments(readFileSync(abs, "utf8"));
+  const ctx: PackImportContext | null = pack
+    ? { pack, dependsOn: dependsOnOf(pack), serverExports }
+    : null;
 
   const consider = (
     spec: string,
@@ -303,6 +409,12 @@ for (const abs of files) {
   ): void => {
     // `import type` is erased at compile time: no runtime capability.
     if (typeOnly) return;
+    if (tier === "pack") {
+      const refusal = packImportRefusal(abs, spec, ctx!);
+      if (refusal === null) return;
+      findings.push({ file: rel, tier, line: lineOf(src, index), spec, key: refusal, kind });
+      return;
+    }
     const key = keyFor(abs, spec);
     if (key === null) return;
     if (allowed(rel, tier, key)) return;
@@ -333,9 +445,9 @@ for (const abs of files) {
     consider(m[1]!, m.index!, "require()", false);
 
   // These resolve specifiers the checker cannot see, so they are refused
-  // in the tier that may not import outward at all. (`import(someVar)` in
+  // in the tiers that may not import outward at all. (`import(someVar)` in
   // the Api tier is fine — that tier may import anything on its lists.)
-  if (tier === "mudlib") {
+  if (tier === "mudlib" || tier === "pack") {
     for (const m of src.matchAll(CREATE_REQUIRE)) {
       findings.push({
         file: rel,
@@ -409,3 +521,6 @@ console.info(
   `check-mud-imports: no imports cross the mudlib boundary ` +
     `(${files.length} files scanned).`
 );
+}
+
+if (process.argv[1] && /check-mud-imports\.ts$/.test(process.argv[1])) main();

@@ -2,6 +2,11 @@
   "name": "@saxonberg/content-wiki-starter",
   "version": "0.1.0",
   "private": true,
-  "description": "The starter wiki articles — the wiki kind, submitted as the pack through the wiki's own edit path.",
-  "type": "module"
+  "description": "The starter wiki articles \u2014 the wiki kind, submitted as the pack through the wiki's own edit path.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

@@ -6,7 +6,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type Material from '../../../lib/material/Material';
+import Material from '../../../lib/material/Material';
 import type {
   MaterialComposition,
   AttenuationResult,
@@ -669,15 +669,21 @@ function expandInto(
  * it whole at boot rather than chasing every async seam that would
  * need a per-site ensure.
  *
- * Filters to rows whose backing `class` lives under `/stuff/idea/material/`
- * (Material + subclasses) — the tree's folder rows are `FolderZone`s
- * owned by the zone substrate, not ours to stand up.
+ * Filters to rows whose backing `class` extends `Material` (wherever it
+ * lives) — the tree's folder rows are `FolderZone`s owned by the zone
+ * substrate, not ours to stand up.
  */
 async function bootImpl(): Promise<number> {
   const templates = await Template.findDescendants('/stuff/idea/material/');
   let stood = 0;
+  const isMaterial = new Map<string, boolean>();
   for (const tpl of templates) {
-    if (!tpl.class.startsWith('/platform/idea/material/')) continue;
+    // A Material is whatever `extends Material`, wherever it lives — the
+    // kernel's `/platform/idea/material/*` or a pack's
+    // (`/arcana/idea/material/PotionMaterial`) — never an allowlist of
+    // roots. Memoised per class path for the boot loop.
+    if (!isMaterial.has(tpl.class)) isMaterial.set(tpl.class, await isMaterialClass(tpl.class));
+    if (!isMaterial.get(tpl.class)) continue;
     try {
       await StuffApi.singleton(tpl.path);
       stood++;
@@ -687,4 +693,14 @@ async function bootImpl(): Promise<number> {
   }
   console.info(`MaterialApi.boot: ${stood} material singleton(s) live`);
   return stood;
+}
+
+/** Does `classPath` resolve to a class whose prototype chain includes `Material`? (The `ZoneApi.isFolderClass` precedent.) */
+async function isMaterialClass(classPath: string): Promise<boolean> {
+  try {
+    const cls = (await StuffApi.loadClassByPath(classPath)) as { prototype?: unknown };
+    return typeof cls === 'function' && cls.prototype instanceof Material;
+  } catch {
+    return false;
+  }
 }

@@ -157,7 +157,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the twenty shipped packs (the platform is pack zero; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the nineteen shipped packs (the platform is pack zero; arcana the first capability pack; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -401,6 +401,9 @@ discoverability.
 
 ### The lint family
 
+- The lint family walks every capability pack's `src/` as well as the
+  kernel tree (`scripts/pack-roots.ts` is the shared reader): a pack
+  namespace root resolves into that pack's `src/`, never the kernel.
 - `pnpm lint:gates` (`scripts/check-gate-strings.ts`) — every concrete
   `FromModule`/`FromController` string and `*_MODULE_ID` constant
   resolves to a real module + export. CI-gating. Implemented as a
@@ -474,9 +477,12 @@ discoverability.
   a test of real content lives beside the content (`src/mud/world/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
-  shipped template path under the nine title roots** (`/platform /stuff /world
-  /compact /studio /wiki /home /corpo /trade`) lies under some pack's
-  `requires.title` claim. `ownerOf` returns `null` for untitled content
+  shipped template path under a claimed root** lies under some pack's
+  `requires.title` claim. The title roots are **derived** — the first
+  segment of every claim any pack makes (`/platform /stuff /world
+  /compact /studio /wiki /home /corpo /trade /arcana /blueprints
+  /expression` today); there is no list to edit when a pack claims a
+  new root. `ownerOf` returns `null` for untitled content
   and every write fails closed, so an unclaimed shipped path is a path
   nobody can ever edit. No exemption list. CI-gating.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,
@@ -565,7 +571,13 @@ import { Location } from './Location.js';
 ## Module Categories — DO NOT INVENT NEW ONES
 
 Saxonberg has a fixed taxonomy of module types. Every TypeScript file
-in `packages/server/src/mud/` falls into one of these. **If a new
+in `packages/server/src/mud/` falls into one of these — **and so does
+every file in a capability pack's `src/`** (`packages/content/<pkg>/src/`):
+the branches (`thing/`, `idea/`, `agent/`, `location/`), controllers at
+`idea/cmd/<category>/`, tests; no `lib/`, no Api, no helpers (a pack that
+needs an Api needs a kernel MR). A pack imports the kernel **only by
+package specifier** (`@saxonberg/server/mud/lib/…`, the server's
+`exports` map) and writes absolute `FromModule` gates. **If a new
 file you're considering doesn't fit, STOP and discuss with the user
 before creating it.** The `Api` is the dev-facing surface — a thin,
 typed, gated forwarding shell; protection-needing internal logic is

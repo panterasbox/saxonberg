@@ -27,6 +27,7 @@ import { readdirSync, readFileSync, statSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join, relative } from "path";
 import ts from "typescript";
+import { packSources } from "./pack-roots";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER_SRC = join(here, "..", "src");
@@ -70,6 +71,8 @@ function walk(dir: string, out: string[]): void {
 
 const files: string[] = [];
 walk(MUD_ROOT, files);
+// A capability pack's src/ is held to the same rule as the kernel tree.
+for (const pack of packSources()) walk(pack.srcDir, files);
 
 interface Finding {
   file: string;

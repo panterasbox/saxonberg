@@ -9,7 +9,6 @@ description: >-
   (employment.md) — neither is the trade's. Dave's Bar
   (/world/lounge/location/bar) is the venue that hosts this trade; it
   populates the stations by reference. Content packs wave 4b.
-dependsOn: [platform, generic-objects, base-library]
 requires:
   groups:
     - name: hospitality

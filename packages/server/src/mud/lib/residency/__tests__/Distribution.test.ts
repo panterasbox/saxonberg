@@ -36,7 +36,7 @@ const __filename = fileURLToPath(import.meta.url);
 const MUD_ROOT = join(dirname(__filename), '../../..');
 const POTION_DIR = join(
   MUD_ROOT,
-  '../../../content/base-library/content/stuff/idea/material/potion',
+  '../../../content/arcane-library/content/stuff/idea/material/potion',
 );
 
 /** Build a census by hand — the shape both channels consult. */

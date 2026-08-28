@@ -18,10 +18,13 @@ import YAML from "yaml";
 import { DISCIPLINE_CHANNELS } from "../../../platform/idea/Discipline";
 
 const __filename = fileURLToPath(import.meta.url);
-const SEEDS_DIR = join(
-  dirname(__filename),
-  "../../../../../../content/platform/content/platform/idea/Discipline"
-);
+// A discipline row ships with the pack whose code derives or teaches its
+// key (D6): the trades' rows are the platform's, the 18 `magic-*` rows
+// are arcana's. The roster under test is the union.
+const SEEDS_DIRS = [
+  join(dirname(__filename), "../../../../../../content/platform/content/platform/idea/Discipline"),
+  join(dirname(__filename), "../../../../../../content/arcana/content/arcana/idea/Discipline"),
+];
 // The engine verbs are the platform pack's content (content-packs wave 2).
 const CMD_DIR = join(dirname(__filename), "../../../../../../content/platform/content/platform/cmd");
 
@@ -32,10 +35,10 @@ interface DisciplineSeed {
 
 function loadAll(): Map<string, DisciplineSeed["data"]> {
   const byKey = new Map<string, DisciplineSeed["data"]>();
-  for (const file of readdirSync(SEEDS_DIR)) {
+  for (const dir of SEEDS_DIRS) for (const file of readdirSync(dir)) {
     if (!file.endsWith(".yaml")) continue;
     const seed = YAML.parse(
-      readFileSync(join(SEEDS_DIR, file), "utf-8")
+      readFileSync(join(dir, file), "utf-8")
     ) as DisciplineSeed;
     expect(seed.class, `${file} wrong class`).toBe("/platform/idea/Discipline");
     const key = seed.data?.key as string | undefined;

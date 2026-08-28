@@ -203,7 +203,7 @@ describe('band-varying effects — the item owns the function, not the engine', 
   it('a working with no band-varying field is band-INDIFFERENT', () => {
     // Honest, and the common case: most workings do not care about
     // potency, and saying nothing means exactly that.
-    const raw = { kind: 'emit-field', field: 'light' };
+    const raw = { kind: 'emit-field', field: 'light', locus: '/stuff/thing/magic/glowlight-mote' };
     expect(MagicEffects.validateForBand(raw, 'cursed')).toEqual(
       MagicEffects.validateForBand(raw, 'blessed'),
     );

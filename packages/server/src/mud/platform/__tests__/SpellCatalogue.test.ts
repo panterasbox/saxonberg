@@ -20,21 +20,23 @@ import { CompetenceBand } from "../../lib/advancement/CompetenceBand";
 import { CastingProfiles } from "../../lib/magic/CastingProfile";
 import { Template } from "../../lib/stuff/Template";
 import { makeStuff } from "../../lib/security/__tests__/test-setup";
+const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
+const SPELL_CLASS = '/platform/idea/magic/Spell';
 
 const __filename = fileURLToPath(import.meta.url);
 const SPELL_SEEDS_DIR = join(dirname(__filename), "../../../../../content/arcane-library/content/stuff/idea/magic/Spell");
 const DISCIPLINE_SEEDS_DIR = join(
   dirname(__filename),
-  "../../../../../content/platform/content/platform/idea/Discipline",
+  "../../../../../content/arcana/content/arcana/idea/Discipline",
 );
 
 type Loose = Record<string, unknown>;
 
 function stubSpellTemplates(seeds: Loose[]): void {
-  vi.spyOn(Template, "findDescendants").mockImplementation(
+  vi.spyOn(Template, "findByClass").mockImplementation(
     async (): Promise<Template[]> => {
       return seeds.map((seed) => ({
-        path: `${Spell.TEMPLATE_PATH_PREFIX}${String(seed.spellId)}`,
+        path: `${SPELL_PATH_PREFIX}${String(seed.spellId)}`,
         data: seed,
       })) as unknown as Template[];
     },
@@ -45,7 +47,7 @@ function stubSpellTemplates(seeds: Loose[]): void {
 async function warmCatalogueAt(
   rows: [string, Loose][],
 ): Promise<SpellCatalogue> {
-  vi.spyOn(Template, "findDescendants").mockImplementation(
+  vi.spyOn(Template, "findByClass").mockImplementation(
     async (): Promise<Template[]> =>
       rows.map(([path, data]) => ({ path, data })) as unknown as Template[],
   );
@@ -83,7 +85,7 @@ describe("SpellCatalogue — warm + lookup", () => {
         verb: "create",
         noun: "light",
         targeting: "none",
-        effects: [{ kind: "emit-field", field: "light" }],
+        effects: [{ kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" }],
       },
     ]);
     const bolt = cat.getSpellAt("/stuff/idea/magic/Spell/test-bolt")!;
@@ -109,7 +111,7 @@ describe("SpellCatalogue — warm + lookup", () => {
         spellId: "bad-address",
         verb: "summon",
         noun: "fire",
-        effects: [{ kind: "emit-field", field: "light" }],
+        effects: [{ kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" }],
       },
       {
         spellId: "no-effects",
@@ -232,5 +234,50 @@ describe("the authored roster seeds", () => {
     expect(cat.getSpellAt("/pack/ember/Spell/firebolt")!.path).toBe(
       "/pack/ember/Spell/firebolt",
     );
+  });
+});
+
+describe('the locus rule (capability packs D3) — the row names what the effect conjures', () => {
+  it('an emit-field row without locus: fails validation and is dropped by the catalogue', async () => {
+    const cat = await warmCatalogue([
+      {
+        spellId: 'no-locus',
+        name: 'No Locus',
+        verb: 'create',
+        noun: 'light',
+        cost: 10,
+        castingProfile: { requiredBand: 'novice', castSeconds: 2 },
+        targeting: 'none',
+        effects: [{ kind: 'emit-field', field: 'light' }],
+      },
+      {
+        spellId: 'with-locus',
+        name: 'With Locus',
+        verb: 'create',
+        noun: 'light',
+        cost: 10,
+        castingProfile: { requiredBand: 'novice', castSeconds: 2 },
+        targeting: 'none',
+        effects: [{ kind: 'emit-field', field: 'light', locus: '/stuff/thing/magic/glowlight-mote' }],
+      },
+    ]);
+    expect(cat.getSpellNamed('no-locus')).toBeNull();
+    expect(cat.getSpellNamed('with-locus')).not.toBeNull();
+  });
+
+  it('a shock inject-channel row without locus is dropped the same way', async () => {
+    const cat = await warmCatalogue([
+      {
+        spellId: 'bare-spark',
+        name: 'Bare Spark',
+        verb: 'create',
+        noun: 'lightning',
+        cost: 25,
+        castingProfile: { requiredBand: 'competent', castSeconds: 3 },
+        targeting: 'any',
+        effects: [{ kind: 'inject-channel', channel: 'shock', voltage: 240 }],
+      },
+    ]);
+    expect(cat.getSpellNamed('bare-spark')).toBeNull();
   });
 });

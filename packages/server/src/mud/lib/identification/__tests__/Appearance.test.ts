@@ -57,7 +57,7 @@ class Wand extends ChargedMixin(ReservedMixin(IdentifiableMixin(Thing))) {}
 const __filename = fileURLToPath(import.meta.url);
 const BANKS_DIR = join(
   dirname(__filename),
-  '../../../../../../content/arcane-descriptors/content/descriptor-banks',
+  '../../../../../../content/arcana/content/descriptor-banks',
 );
 
 let seq = 0;

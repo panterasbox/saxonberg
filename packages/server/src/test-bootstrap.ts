@@ -43,6 +43,7 @@
  */
 
 import { BootstrapManager } from "./backend/BootstrapManager";
+import { PackApi } from "./mud/api/pack";
 
 let installed = false;
 
@@ -60,6 +61,11 @@ export function ensureFrameworkWiring(): boolean {
   if (installed) return false;
   installed = true;
   BootstrapManager.installFrameworkWiring();
+  // The capability packs' src/ → namespace table (content-packs, the
+  // capability rung), so a test that clones a pack-backed row or imports
+  // a pack class gets `/arcana/…` resolved without an install. A disk
+  // read of the shipped manifests; no database.
+  PackApi.registerSources();
   return true;
 }
 

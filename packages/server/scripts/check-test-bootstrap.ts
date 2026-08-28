@@ -49,6 +49,7 @@ import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
 import { join, dirname, relative, resolve } from "path";
 import { fileURLToPath } from "url";
+import { packSources } from "./pack-roots";
 
 const SERVER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_DIR = join(SERVER_DIR, "src");
@@ -60,7 +61,13 @@ const SRC_DIR = join(SERVER_DIR, "src");
  * 966 — 956 `.ts` + 2 `.test.js` under `src/`, plus 8 in
  * `scripts/__tests__`, two of which are the gym benches.)
  */
-const TEST_ROOTS = [SRC_DIR, join(SERVER_DIR, "scripts", "__tests__")];
+const TEST_ROOTS = [
+  SRC_DIR,
+  join(SERVER_DIR, "scripts", "__tests__"),
+  // Every capability pack's src/ — its tests travel with its code and
+  // import the bootstrap by package specifier (below).
+  ...packSources().map((p) => p.srcDir),
+];
 
 /**
  * Symbols whose use implies a wired world. Each maps to something
@@ -85,11 +92,15 @@ const NEEDS_RE = new RegExp(`\\b(${NEEDS_WIRING.join("|")})\\b`);
 
 /**
  * How the import reads once inserted. Matched, not just inserted — and
- * deliberately loose about the path, because the two test roots sit at
+ * deliberately loose about the path, because the test roots sit at
  * different depths (`../../../test-bootstrap` from under `src/`,
- * `../../src/test-bootstrap` from `scripts/__tests__`).
+ * `../../src/test-bootstrap` from `scripts/__tests__`) — and a
+ * capability pack's test reaches it by package specifier
+ * (`@saxonberg/server/test-bootstrap`), the only way a pack imports the
+ * kernel.
  */
-const IMPORT_RE = /^import\s+["']\.[^"']*\/test-bootstrap["'];?\s*$/m;
+const IMPORT_RE =
+  /^import\s+["'](?:\.[^"']*\/test-bootstrap|@saxonberg\/server\/test-bootstrap)["'];?\s*$/m;
 
 /**
  * What vitest considers a test file — its default `include` is

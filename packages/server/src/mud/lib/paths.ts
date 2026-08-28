@@ -115,7 +115,6 @@ export const TemplatePathPrefixes = {
   avatar: "/platform/agent/Avatar/",
   species: "/stuff/idea/species/",
   topic: "/platform/idea/Topic/",
-  discipline: "/platform/idea/Discipline/",
   // Corpos — the two reference-identity leaf rosters the CorpoCatalogue
   // scans at boot (the megacorps and their product brands).
   corpo: "/stuff/idea/corpo/Corpo/",
@@ -135,10 +134,10 @@ export const TemplatePathPrefixes = {
   // Metabolism toxin conditions resolve by `<prefix><toxin-type>` (v1
   // keys the condition by the toxin tag, e.g. `…/conditions/alcohol`).
   metabolismCondition: "/platform/idea/Condition/metabolism/",
-  // Magic — authored condition seeds (dread, overchannel-strain) and the
-  // spell roster the SpellCatalogue scans at boot.
+  // Magic — authored condition seeds (dread, overchannel-strain). (The
+  // spell and discipline rosters are warmed BY CLASS, not by prefix —
+  // a pack ships them under its own root.)
   magicCondition: "/platform/idea/Condition/magic/",
-  spell: "/stuff/idea/magic/Spell/",
 } as const;
 
 /**
@@ -154,42 +153,6 @@ export const TemplatePathPrefixes = {
  * (wrong-class) logic singleton, so the namespace must stay DB-free.
  */
 export const ReservedTemplatePrefixes = ["/platform/idea/api/"] as const;
-
-/**
- * The title-bearing namespace roots — every shipped template path under
- * one of these must lie under some pack's `requires.title` claim (the
- * installer's covered-extent rule; `lint:untitled`). A pack's OWN document
- * root outside them (`/expression`, `/generic-objects`) is the pack's to
- * claim or not. The four-namespaces doctrine, one line each:
- *
- *   `/platform` the engine's own — every row the platform pack ships
- *              (controllers, registries, catalogues, the Avatar, the void)
- *   `/stuff`   the commons — every other pack's rows (gear, items,
- *              materials, species, brands)
- *   `/trade`   the industries — what a trade INTRODUCES (its stations,
- *              its stock, its recipes), `/trade/<industry>/…`
- *   `/world`   the places — localities and their venues
- *   `/compact` the state
- *   `/corpo`   the marks
- *
- * with `/studio`, `/wiki`, `/home` the platform's own trees. Under
- * `/platform`, `/stuff` and `/trade/<industry>` the SECOND segment is
- * the Stuff branch the row's class descends from — `thing`, `idea`,
- * `agent`, `location` (`shadow` has no instanceable class) — and a
- * controller sits at `<root>/idea/cmd/<Name>Controller` beside its view
- * document at `<root>/cmd/<verb>`.
- */
-export const TITLE_ROOTS: readonly string[] = [
-  "/platform",
-  "/stuff",
-  "/world",
-  "/compact",
-  "/studio",
-  "/wiki",
-  "/home",
-  "/corpo",
-  "/trade",
-];
 
 /**
  * The `content/` subdirs that are NOT the template kind: every other

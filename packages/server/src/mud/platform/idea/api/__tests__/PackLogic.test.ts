@@ -123,9 +123,14 @@ function writePack(
 ): string {
   const root = mkdtempSync(join(tmpdir(), `pack-${id}-`));
   tmpRoots.push(root);
+  writeFileSync(join(root, 'pack.yaml'), YAML.stringify({ id, version: '0.1.0' }));
+  // `dependsOn` derives from package.json (never a manifest key).
   writeFileSync(
-    join(root, 'pack.yaml'),
-    YAML.stringify({ id, version: '0.1.0', dependsOn }),
+    join(root, 'package.json'),
+    JSON.stringify({
+      name: `@saxonberg/content-${id}`,
+      dependencies: Object.fromEntries(dependsOn.map((d) => [`@saxonberg/content-${d}`, 'workspace:*'])),
+    }),
   );
   for (const f of files) {
     const file = join(root, 'content', f.rel);
@@ -368,7 +373,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
 });
 
 describe('PackLogic — pack integration (real packs + real class resolution)', () => {
-  it('install() discovers the shipped packs: base-library + species-and-names + arcane-descriptors + newbie-wilds', async () => {
+  it('install() discovers the shipped packs: base-library + species-and-names + arcana + newbie-wilds', async () => {
     // No stub on loadClassByPath — exercises the real resolver against the
     // shipped Material/Biome/Species/Clade classes. No packRoots → real
     // discovery from server deps + module resolution to the
@@ -399,15 +404,17 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // The descriptor-bank content kind: the pools an unidentified magic
     // item draws its appearance from (magic-items D32). Same shape as
     // name banks, one kind over.
-    const desc = results.find((r) => r.packId === 'arcane-descriptors');
+    const desc = results.find((r) => r.packId === 'arcana');
     expect(desc).toBeDefined();
 
-    // The template packs of wave 2: the arcane library (14 rows) and the
+    // The template packs of wave 2: the arcane library — magic's catalog
+    // (the 12 spells, the 2 loci, the 13 items, the 3 draughts) — and the
     // five corpo packs (a mark + its brands each).
     const arcane = results.find((r) => r.packId === 'arcane-library');
-    expect(arcane!.inserted).toHaveLength(14);
+    expect(arcane!.inserted).toHaveLength(30);
     expect(arcane!.inserted).toContain('/stuff/idea/magic/Spell/glowlight');
-    expect(arcane!.inserted).toContain('/stuff/thing/magic/GlowlightOrb');
+    expect(arcane!.inserted).toContain('/stuff/thing/magic/glowlight-mote');
+    expect(arcane!.inserted).toContain('/stuff/thing/magic/ring-of-veil');
     const hollis = results.find((r) => r.packId === 'corpo-hollis');
     expect(hollis!.inserted.sort()).toEqual([
       '/corpo/hollis', // the org chart (content-packs wave 3)

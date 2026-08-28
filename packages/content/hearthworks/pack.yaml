@@ -9,7 +9,6 @@ description: >-
   station and recipe it uses is a `populates:` reference to the trade's or
   the commons' row, never a copy — and banks at Goodkin. Content packs
   wave 4b.
-dependsOn: [platform, trade-smithing, trade-hearth-cooking, corpo-goodkin]
 requires:
   groups:
     - name: hearthworks

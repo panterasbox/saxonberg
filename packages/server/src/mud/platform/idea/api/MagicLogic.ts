@@ -85,7 +85,7 @@ import type { Vitals } from '../../../lib/vitals/Vitals';
 import type { Caster } from '../../../lib/magic/Caster';
 import { Faculty } from '../../../lib/magic/Faculty';
 import { MagicEffects } from '../../../lib/magic/Effect';
-import type { Effect, InjectChannelEffect } from '../../../lib/magic/Effect';
+import type { Effect, EmitFieldEffect, InjectChannelEffect } from '../../../lib/magic/Effect';
 import { Charge } from '../../../lib/magic/Charge';
 import { MagicGrid } from '../../../lib/magic/Grid';
 import { Blessing } from '../../../lib/magic/Blessing';
@@ -102,7 +102,6 @@ import type { SpellDescriptor } from '../magic/Spell';
 import type SpellCatalogue from '../SpellCatalogue';
 import type Material from '../../../lib/material/Material';
 import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
-import SparkSource from '../../thing/magic/SparkSource';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
 import type { Reserved } from '../../../lib/reserve';
@@ -190,9 +189,6 @@ export interface SpellsView {
   faculty: FacultyView;
   spells: SpellCellRow[];
 }
-
-/** The bound-emitter and spark-locus template paths. */
-const GLOWLIGHT_ORB_PATH = '/stuff/thing/magic/GlowlightOrb';
 
 /**
  * **What potency means, once, for every effect kind.**
@@ -897,6 +893,14 @@ async function executeOne(
         );
         return moved.report;
       }
+      // Mana is the other coupled reserve, and it has NO transfer leg at
+      // all: it is recovered through metabolism (body before gift),
+      // never given. `MagicEffects.validate` refuses the authoring; this
+      // is the belt to that brace, for an effect that reaches execution
+      // any other way (a script, a band branch built at runtime).
+      if (effect.delta > 0 && effect.reserveKey === MANA_RESERVE_KEY) {
+        return 'Nothing can pour mana in — it is recovered, never given.';
+      }
       const unit = t.getReserve(effect.reserveKey)!.current.unit;
       t.adjustReserve(
         effect.reserveKey,
@@ -926,7 +930,7 @@ async function executeOne(
     case 'cloak':
       return execCloak(ctx, spell, effect.disguise);
     case 'emit-field':
-      return execEmitField(ctx, spell);
+      return execEmitField(ctx, spell, effect);
     case 'script':
       return execScript(ctx.actor, effect.source);
   }
@@ -945,7 +949,7 @@ async function executeOne(
 async function deliverAt(
   ctx: EffectContext,
   target: Stuff,
-  deliver: () => { report: string; harmed: boolean },
+  deliver: () => { report: string; harmed: boolean } | Promise<{ report: string; harmed: boolean }>,
   envelope?: RangeState,
 ): Promise<string> {
   // Reachability is measured from the ORIGIN, not the actor — that is
@@ -973,7 +977,7 @@ async function deliverAt(
       return 'They are too far off for that.';
     }
   }
-  const { report, harmed } = deliver();
+  const { report, harmed } = await deliver();
   if (harmed && MixinApi.isOrganism(target)) {
     appendHarmRow(ctx.actor, target);
   }
@@ -1035,8 +1039,18 @@ function execInjectChannel(
   const { tag, potency } = ctx;
   if (!target) return 'The working needs a mark.';
   if (e.channel === 'shock') {
-    return deliverAt(ctx, target, () => {
-      const locus = StuffApi.createSync(() => new SparkSource());
+    return deliverAt(ctx, target, async () => {
+      // The row names the transient locus (D3): the executor clones what
+      // it is told and imposes the potential on it. A locus that is not
+      // energized is an authoring error, reported as a refusal.
+      const locus = await StuffApi.clone(e.locus!);
+      if (!MixinApi.isEnergized(locus)) {
+        StuffApi.destruct(locus);
+        return {
+          report: `The working's locus '${e.locus}' carries no charge — nothing to impose it on.`,
+          harmed: false,
+        };
+      }
       const scene = deliveryScene(target) ?? deliveryScene(ctx.origin);
       if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(locus)) {
         ContainmentApi.move(locus, scene);
@@ -1589,8 +1603,16 @@ function execCloak(
 async function execEmitField(
   ctx: EffectContext,
   spell: SpellDescriptor,
+  effect: EmitFieldEffect,
 ): Promise<string> {
-  const orb = await StuffApi.clone(GLOWLIGHT_ORB_PATH);
+  // The row names the emitter it conjures (D3) — the executor clones
+  // what it is told, and a pack ships a new emitter kind with no kernel
+  // edit. Not a light source = an authoring error, reported as a refusal.
+  const orb = await StuffApi.clone(effect.locus);
+  if (!MixinApi.isLightSource(orb)) {
+    StuffApi.destruct(orb);
+    return `The working's locus '${effect.locus}' gives no light — nothing kindles.`;
+  }
   const scene = deliveryScene(ctx.origin) ?? deliveryScene(ctx.actor);
   if (scene && MixinApi.isContainer(scene) && MixinApi.isContainable(orb)) {
     ContainmentApi.move(orb, scene);

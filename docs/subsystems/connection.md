@@ -175,7 +175,8 @@ env, a **login** strategy and a **link** strategy:
 
 Each strategy is **gated on its provider's `*_CLIENT_ID/SECRET`
 presence**, independent of `AUTH_MODE` — CI / e2e run without those vars,
-so the strategy is skipped there and the test-auth seam handles login.
+so the strategy is skipped there and the test-auth seam
+(`backend/TestHooks.ts` behind `TestAuthRoutes`) handles login.
 All four strategies set **`state: true`** — a session-stored nonce on the
 OAuth round-trip that protects both login and (critically) account
 **linking** against CSRF.

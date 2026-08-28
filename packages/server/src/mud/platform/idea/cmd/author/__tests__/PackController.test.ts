@@ -52,6 +52,9 @@ const OK: PackReconcileResult = {
   },
   boot: { 'sync-read': 0, producer: 0 },
   staffed: false,
+      rung: 'data',
+      classOrigins: {},
+      codeReloaded: [],
 };
 
 let note: ReturnType<typeof vi.fn>;
@@ -102,7 +105,7 @@ const rejected = (reason: string) =>
 describe('PackController routing', () => {
   it('status lists the template rows under no pack (listed, never deleted)', async () => {
     vi.spyOn(PackApi, 'status').mockResolvedValue([
-      { packId: 'p', discovered: true, manifestVersion: '0.1.0', record: null, maintainers: null, titleConflicts: [] },
+      { packId: 'p', discovered: true, manifestVersion: '0.1.0', rung: 'data', code: null, dependsOn: [], record: null, maintainers: null, titleConflicts: [] },
     ]);
     vi.spyOn(PackApi, 'orphans').mockResolvedValue(['/obj/OldThing', '/obj/Older']);
     await run({ subcommand: 'status' });
@@ -150,7 +153,7 @@ describe('PackController routing', () => {
   it('status prints the staffing line and any title conflicts', async () => {
     vi.spyOn(PackApi, 'status').mockResolvedValue([
       {
-        packId: 'p', discovered: true, manifestVersion: '0.1.0',
+        packId: 'p', discovered: true, manifestVersion: '0.1.0', rung: 'data', code: null, dependsOn: [],
         maintainers: { group: 'p-maintainers', staffed: true },
         titleConflicts: ['/studio/x'],
         record: { version: '0.1.0', appliedAt: 'T', principal: 'bootstrap', status: 'applied', failure: null, pins: [], conflicts: [] },
@@ -177,6 +180,9 @@ describe('PackController routing', () => {
         packId: 'p',
         discovered: true,
         manifestVersion: '0.1.0',
+        rung: 'data',
+        code: null,
+        dependsOn: [],
       maintainers: { group: 'base-library-maintainers', staffed: false },
       titleConflicts: [],
         record: {

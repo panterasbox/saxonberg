@@ -1,7 +1,0 @@
-{
-  "name": "@saxonberg/content-arcane-descriptors",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Descriptor banks for unidentified magic items — two decorative axes per class, provably disjoint from the materials vocabulary.",
-  "type": "module"
-}

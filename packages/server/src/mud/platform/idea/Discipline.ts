@@ -28,7 +28,6 @@
  */
 
 import { Idea } from "../../lib/stuff/Idea";
-import { TemplatePathPrefixes } from "../../lib/paths";
 import type { CompetenceBandName } from "../../lib/advancement/CompetenceBand";
 import type { FieldMeta } from "../../lib/mixin";
 
@@ -76,7 +75,8 @@ export interface DisciplineDescriptor {
 
 export default class Discipline extends Idea {
   /** Per-instance template path prefix: `/platform/idea/Discipline/<key>`. */
-  static readonly TEMPLATE_PATH_PREFIX = TemplatePathPrefixes.discipline;
+  /** The class every Discipline row names — what the catalogue warms by. */
+  static readonly CLASS_PATH = "/platform/idea/Discipline";
 
   /** Durable join key (e.g. `'mixology'`). Non-empty. */
   public key: string = "";

@@ -50,11 +50,11 @@ gated** at execution.
 | Resist shapes | `lib/magic/Resist.ts` | axis vocabulary + the pure fold (`mitigators subtract`, immunity = a mitigator at 1) + `stageFor` (the substrate gate) |
 | Faculty | `lib/magic/Faculty.ts` + `lib/magic/Caster.ts` | the anatomical casting faculty (below) |
 | Suppression | `lib/magic/Suppression.ts` | the anti-magic field value + match + the **sync** outward containment walk (`fieldAt`) |
-| Spell | `obj/magic/Spell.ts` (data-Idea) + `obj/SpellCatalogue.ts` | authored roster leaves under `/stuff/idea/magic/Spell/<spellId>`, boot-warmed (the Discipline/Corpo recipe), **no Mongo collection** |
+| Spell | `platform/idea/magic/Spell.ts` (data-Idea) + `platform/idea/SpellCatalogue.ts` | authored roster leaves (the arcane library's, under `/stuff/idea/magic/Spell/<spellId>`), boot-warmed **by class** (`Template.findByClass(Spell.CLASS_PATH)` — a pack ships spells under its own root with no kernel edit), **no Mongo collection** |
 | The pair | `api/magic.ts` + `platform/idea/api/MagicLogic.ts` | the gated cast pipeline + all effect executors |
 | Cast activity | `lib/magic/CastActivity.ts` | `hands`+`voice`, interruptible, **everything at completion** |
 | Verbs | `cmd/magic/{cast,spells}.yaml` | the `magic` command category |
-| Bound emitters | `obj/magic/GlowlightOrb.ts` / `obj/magic/SparkSource.ts` | glowlight's held orb / spark's transient energized locus |
+| Loci | the arcane library's `src/thing/GlowlightMote.ts` / `SparkLocus.ts` | glowlight's held mote / spark's transient energized locus — named by the spell row's required `locus:`; the executor clones what it is told (capability packs, D3) |
 | Demonstrator | `world-seed/content/world/practicum*` | casting yard / conductive gallery / warded cell |
 
 ## The cast pipeline
@@ -74,7 +74,10 @@ augment, the `isMaker` shape) → spell known → targeting shape →
 casting-hand impairment (`isSlotImpairedByTrauma('hands')`) → the
 **band gate on BOTH grid axes** (`requiredBand` vs
 `AdvancementApi.bandFor` on `magic-<verb>` + `magic-<noun>` —
-competence IS access; the magic Disciplines carry **no `conferrals`**,
+competence IS access; the magic Disciplines — the 18 `magic-*` rows,
+which ship in the **arcana** pack because its `Grid` derives their keys
+(the discipline-ownership rule; the `DisciplineCatalogue` warms by class,
+not by root) — carry **no `conferrals`**,
 the `cast`/`spells` verbs ride the `refreshCastingAffordance` dynamic
 self-push at `Avatar.enter` — the `refreshConferrals` mirror; the
 `self` affordance bucket collects **class statics only**, so a gated
@@ -154,7 +157,7 @@ Every effect is one of two **families**, derived from its kind:
   **`SustainedEffect`** — the fourth `ActiveCondition` kind (the
   `SustainedShock` precedent) — realized **by pull** in
   `VitalsMixin.reconcileConditions`: glowlight = a bound conjured
-  `GlowlightOrb` whose flux the arm drives; veil = an imposed
+  `GlowlightMote` (the row's `locus:`) whose flux the arm drives; veil = an imposed
   `Disguisable` disguise. Expiry / dispel → `releaseSustained`
   (un-realize, destruct the bound emitter, drop the record).
 
@@ -208,7 +211,7 @@ owns the encounter's rows (no double-booking).
 
 firebolt (create·fire, impulse heat — body burn / object
 joules+autoignite) · spark (create·lightning — a transient
-`SparkSource` locus + the real conduction walk, faction-blind,
+`SparkLocus` (the row's `locus:`) + the real conduction walk, faction-blind,
 caster-in-the-graph) · shove (control·body — the posture surface) ·
 dread (destroy·mind — the mental axis vs live Composure) · glowlight
 (create·light — the modifier proof) · conjure-water (create·water —

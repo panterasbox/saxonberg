@@ -154,6 +154,20 @@ export abstract class Template extends Document {
   }
 
   /**
+   * Every Template whose backing `class` is `classPath` — how a
+   * catalogue warms BY CLASS rather than by a path prefix, so a second
+   * pack shipping (say) a Discipline row under its own root needs no
+   * kernel edit (content-packs, the capability rung).
+   */
+  static async findByClass(classPath: string): Promise<Template[]> {
+    const docs = (await PersistApi.find(
+      Template.collectionName,
+      { class: classPath }
+    )) as DomainDoc[];
+    return Promise.all(docs.map((d) => Template._materialize(d)));
+  }
+
+  /**
    * All Templates whose path begins with `basePath + '/'` — i.e. strict
    * descendants (excludes `basePath` itself).
    */

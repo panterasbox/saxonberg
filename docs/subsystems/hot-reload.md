@@ -100,13 +100,15 @@ in tests it's Vitest's loader. Both transpile `.ts` on import,
 including dynamic imports, so paths like `/abs/.../Foo.ts?hmr=N`
 work without a separate `tsc` step or built artifact.
 
-The implication for prod: a `node dist/index.js` deploy has no TS
-loader in the chain, and the only files on disk under that layout
-are the compiled `.js`. If a future admin / in-game reload trigger
-ships into prod, callers must resolve template paths to the running
-module set (`.js` under `dist/`), not blindly to `.ts` sources. v1
-has no prod trigger, so this is a known-shape future concern, not a
-v1 bug.
+Prod is `tsx` too (`deployment.md § Runtime shape`: the server runs from
+TypeScript source; `pnpm build` is a typecheck gate, not the runtime),
+so there is no built-JS path to plan for: the same `.ts` resolution
+holds in dev, test and prod. `reload <target>` accepts a **class path**
+(`/platform/thing/Prop`, `/arcana/thing/Wand`) and resolves it through
+`StuffApi.resolveClassFile` — the kernel tree, or a capability pack's
+`src/` (content-packs.md § The capability rung) — before falling back to
+the workspace-logical join; `pack sync <id>` reloads a pack's changed
+`src/` files the same way before re-hydrating its rows.
 
 ## Integration
 

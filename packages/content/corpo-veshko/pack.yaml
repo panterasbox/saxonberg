@@ -2,7 +2,6 @@ id: corpo-veshko
 version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /corpo/veshko
 description: The veshko corpo — its mark, its brands, and its org chart.
-dependsOn: [platform]   # /corpo is the platform's; this pack claims its own branch under it
 # The corpo's own chart maintains its pack (content-packs wave 3, D8): the
 # organization row this pack ships, resident from boot.
 maintainers: { organization: /corpo/veshko }

@@ -3,5 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The hospitality trade — what tending bar introduces: its stations, its cocktail recipes, the tip jar."
+  "description": "The hospitality trade \u2014 what tending bar introduces: its stations, its cocktail recipes, the tip jar.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
 }

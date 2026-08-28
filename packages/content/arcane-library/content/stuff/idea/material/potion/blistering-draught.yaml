@@ -1,0 +1,46 @@
+# Blistering draught — the CONTACT potion, and the thrown carrier's proof.
+#
+# The veiling draught is `route: oral` and is the reason this file has to
+# exist: a potion meant to be drunk is a wasted flask when thrown, which
+# is exactly the rule that kills the throw-everything case without anyone
+# writing a rule. This one acts on CONTACT, so it is the potion that
+# earns its throw.
+#
+# Like every other potion, the mixin rides the MATERIAL rather than the
+# flask, so decanting carries the caustic with it and one identification
+# covers every flask of it. It carries the shipped `firebolt` working
+# rather than a bespoke one: an item is a new TRIGGER, never a new
+# mechanism, and a thrown flask is a third door onto the same effect
+# union that a cast spell and a wand already use.
+#
+# Dose response is `graded`, which is what makes the splash honest — a
+# bystander catching a fraction of the flask takes a fraction of the
+# burn, and nothing had to invent a splash-magnitude rule to say so. A
+# `threshold` potion in the same throw would simply not fire on them,
+# which is also true and also free.
+class: /arcana/idea/material/PotionMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: blistering draught
+  keywords: [draught, potion, caustic]
+  density: 1120
+  thermalConductivity: 0.6
+  specificHeat: 3900
+  # Emphatically NOT edible. Drinking this is its own kind of mistake,
+  # and the metabolism substrate already knows what to do about it.
+  edibility: false
+  nutrients: []
+  tags: [liquid, arcane, caustic]
+  composition: []
+  biologicalSource: null
+  carriedSpellPath: /stuff/idea/magic/Spell/firebolt
+  deliveryEfficiency: 1
+  # ── the half this build exists for ──
+  route: contact
+  dose:
+    response: graded
+    referenceLitres: 0.25
+  descriptorClass: potion
+  identifiedName: a blistering draught
+  # It announces itself: skin does not need to be told twice.
+  selfIdentifying: true

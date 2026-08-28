@@ -1,0 +1,39 @@
+verbs: [recharge]
+controller: /arcana/idea/cmd/magic/RechargeController
+description: "Move energy from your own reserve into an item"
+help: |
+  Move your own reserve into a charged item. Three things have to be
+  true at once, and the verb tells you which one is missing:
+
+    - you have the **gift** — the energy is yours, drawn out of food
+      and water hours ago, and there is nowhere else it could come from
+    - you know the **working** (`transfer`) — energy does not cross
+      into a shell because you want it to
+    - you have a **conduit** — it crosses through a coupling, and
+      couplings have impedance
+
+  What arrives is less than what you spend. `delivered = committed x
+  coupling x competence`, and both factors are below one; the
+  difference is heat in the metal. A better conduit and a steadier
+  hand both narrow the gap and neither closes it.
+
+  This is why recharging is a **trade**. A shell without charge is a
+  paperweight with a socket, and what is genuinely scarce is
+  caster-hours — so a mage with a bench and the working has a business,
+  and stays worth hiring however common the wands themselves become.
+
+  `recharge wand` commits what you can spare. `recharge wand 40`
+  commits exactly that much, or refuses if you haven't got it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: [VisibleMixin, ChargedMixin]
+  - name: amount
+    type: number
+    required: false

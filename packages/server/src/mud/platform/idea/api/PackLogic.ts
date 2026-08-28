@@ -12,7 +12,7 @@ import {
 import { createHash } from 'crypto';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import { basename, dirname, join, relative } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
 import YAML from 'yaml';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { NameBank } from '../../../lib/species/NameBank';
@@ -30,14 +30,16 @@ import {
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import Topic from '../Topic';
 import { PersistApi } from '../../../api/persist';
-import { StuffApi } from '../../../api/stuff';
+import { StuffApi, type ClassResolution } from '../../../api/stuff';
+import { ModuleApi } from '../../../api/module';
+import { HotReloadApi } from '../../../api/hot-reload';
 import { QuantityApi } from '../../../api/quantity';
 import { TemplateApi } from '../../../api/template';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import { SoulApi } from '../../../api/soul';
 import { CommandApi } from '../../../api/command';
-import { NON_TEMPLATE_DIRS, TemplatePaths, TITLE_ROOTS } from '../../../lib/paths';
+import { NON_TEMPLATE_DIRS, TemplatePaths } from '../../../lib/paths';
 import { Emote } from '../../../lib/social/Emote';
 import { Recipe } from '../../../lib/craft/Recipe';
 import { AppSettings } from '../../../lib/config/AppSettings';
@@ -88,6 +90,12 @@ interface ResolvedPack {
   root: string;
   /** Absolute `content/` root (the namespace-mirror). */
   contentRoot: string;
+  /**
+   * Absolute `src/` root when the pack ships classes (the capability
+   * rung — `null` for a data pack). Its files back `<root>/<rel>` and
+   * `<claim>/<rel>` for every namespace the pack holds.
+   */
+  srcRoot: string | null;
 }
 
 /** A parsed `domain`-kind content file. */
@@ -281,38 +289,73 @@ interface PackContent {
 
 // --- discovery -------------------------------------------------------------
 
-/**
- * `server`'s own `package.json` — the single source of truth for which
- * packs this build ships. Relative climb from this module:
- * `src/mud/platform/idea/api/PackLogic.ts` → `packages/server/package.json`.
- */
-function serverPackageJsonPath(): string {
-  return join(
-    dirname(fileURLToPath(import.meta.url)),
-    '../../../../../package.json',
-  );
-}
+/** The `@saxonberg/content-*` package-name prefix every pack carries. */
+const PACK_PKG_PREFIX = '@saxonberg/content-';
 
-/** Pack package names = `server`'s `@saxonberg/content-*` dependencies. */
-function packNamesFromServerDeps(): string[] {
-  const raw = readFileSync(serverPackageJsonPath(), 'utf-8');
+/** The `@saxonberg/content-*` names among a `package.json`'s `dependencies`. */
+function contentDepsOf(packageJson: string): string[] {
+  const raw = readFileSync(packageJson, 'utf-8');
   const pkg = JSON.parse(raw) as { dependencies?: Record<string, string> };
-  const deps = pkg.dependencies ?? {};
-  return Object.keys(deps)
-    .filter((n) => n.startsWith('@saxonberg/content-'))
+  return Object.keys(pkg.dependencies ?? {})
+    .filter((n) => n.startsWith(PACK_PKG_PREFIX))
     .sort();
 }
 
-/** Resolve a pack package name to its on-disk root via module resolution. */
-function resolvePackRootByName(pkgName: string): string {
-  const req = createRequire(import.meta.url);
+/**
+ * The DEPLOYMENT's root — the directory whose `package.json` lists the
+ * packs this deployment ships (the workspace root here; the deployment
+ * manifest wherever the packs are their own repos). The server never
+ * depends on a pack: `SAXONBERG_DEPLOYMENT_ROOT` names it, else it is
+ * the nearest ancestor of the server package whose `package.json`
+ * carries a `@saxonberg/content-*` dependency.
+ */
+function deploymentRootDir(): string {
+  const env = process.env.SAXONBERG_DEPLOYMENT_ROOT;
+  if (env && env.trim().length > 0) return resolve(env.trim());
+  // `src/mud/platform/idea/api/PackLogic.ts` → `packages/server`.
+  let dir = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
+  for (;;) {
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+    const pj = join(dir, 'package.json');
+    if (existsSync(pj) && contentDepsOf(pj).length > 0) return dir;
+  }
+  throw new Error(
+    'PackApi: no deployment manifest — no ancestor package.json above the ' +
+      'server declares a @saxonberg/content-* dependency (set ' +
+      'SAXONBERG_DEPLOYMENT_ROOT to the directory whose package.json lists the packs)',
+  );
+}
+
+/** Pack package names = the deployment manifest's `@saxonberg/content-*` dependencies. */
+function packNamesFromDeployment(deploymentRoot: string): string[] {
+  return contentDepsOf(join(deploymentRoot, 'package.json'));
+}
+
+/** Resolve a pack package name to its on-disk root, from the deployment's `node_modules`. */
+function resolvePackRootByName(pkgName: string, deploymentRoot: string): string {
+  const req = createRequire(join(deploymentRoot, 'package.json'));
   return dirname(req.resolve(`${pkgName}/package.json`));
+}
+
+/**
+ * A pack's `dependsOn`, DERIVED from its `package.json` dependencies:
+ * every `@saxonberg/content-<id>` line is a pack id (the `@saxonberg/server`
+ * and `@saxonberg/types` lines are the kernel, not packs). One graph —
+ * the same line that lets a pack's code import another pack's classes
+ * orders its install. A pack with no `package.json` depends on nothing.
+ */
+function dependsOnOf(root: string): string[] {
+  const pj = join(root, 'package.json');
+  if (!existsSync(pj)) return [];
+  return contentDepsOf(pj).map((n) => n.slice(PACK_PKG_PREFIX.length));
 }
 
 /** Parse + validate a pack root's `pack.yaml`. */
 /** The closed manifest key set — anything else is a typo, and a typo is an error. */
 const MANIFEST_KEYS: ReadonlySet<string> = new Set([
-  'id', 'version', 'description', 'dependsOn', 'root', 'requires', 'boot', 'maintainers',
+  'id', 'version', 'description', 'root', 'requires', 'boot', 'maintainers',
 ]);
 const BOOT_ROLES: ReadonlySet<string> = new Set(['sync-read', 'producer']);
 const GROUP_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'member']);
@@ -498,15 +541,6 @@ function readManifest(root: string): PackManifest {
   if (typeof m.version !== 'string') {
     throw new Error(`PackApi: manifest at ${file} is missing a string 'version'`);
   }
-  const dependsOn = m.dependsOn ?? [];
-  if (
-    !Array.isArray(dependsOn) ||
-    dependsOn.some((d) => typeof d !== 'string')
-  ) {
-    throw new Error(
-      `PackApi: manifest at ${file} has a malformed 'dependsOn' (want string[])`,
-    );
-  }
   const docRoot = m.root ?? `/${m.id}`;
   if (
     typeof docRoot !== 'string' ||
@@ -522,7 +556,8 @@ function readManifest(root: string): PackManifest {
     id: m.id,
     version: m.version,
     description: typeof m.description === 'string' ? m.description : undefined,
-    dependsOn: dependsOn as string[],
+    // Derived from `package.json` by `resolvePack` — never a manifest key.
+    dependsOn: [],
     root: docRoot,
     requires: readRequires(m, file),
     boot: readBoot(m, file),
@@ -533,7 +568,32 @@ function readManifest(root: string): PackManifest {
 /** Resolve a pack root dir to a {@link ResolvedPack}. */
 function resolvePack(root: string): ResolvedPack {
   const manifest = readManifest(root);
-  return { manifest, root, contentRoot: join(root, 'content') };
+  manifest.dependsOn = dependsOnOf(root);
+  const src = join(root, 'src');
+  const srcRoot = existsSync(src) && statSync(src).isDirectory() ? src : null;
+  return { manifest, root, contentRoot: join(root, 'content'), srcRoot };
+}
+
+/** The namespace roots a pack's `src/` backs: its manifest root + every title claim. */
+function namespaceRootsOf(manifest: PackManifest): string[] {
+  const out = new Set<string>([manifest.root]);
+  for (const t of manifest.requires.title) out.add(t.extent);
+  return [...out];
+}
+
+/**
+ * Publish every capability pack's `src/` to the class-namespace table
+ * (`ModuleApi.registerPackSource`), which `StuffApi.resolveClassFile`
+ * and the URL normaliser read. Idempotent; runs on every discovery,
+ * BEFORE `requires-kernel` imports anything.
+ */
+function registerSources(packs: ResolvedPack[]): void {
+  for (const p of packs) {
+    if (!p.srcRoot) continue;
+    for (const ns of namespaceRootsOf(p.manifest)) {
+      ModuleApi.registerPackSource(p.srcRoot, ns);
+    }
+  }
 }
 
 /**
@@ -587,9 +647,15 @@ function packFilter(): ReadonlySet<string> | null {
 
 /** Discover + order the shipped packs (or use explicit roots for tests). */
 function discover(packRoots?: string[]): ResolvedPack[] {
-  const roots =
-    packRoots ?? packNamesFromServerDeps().map(resolvePackRootByName);
+  let roots = packRoots;
+  if (!roots) {
+    const deployment = deploymentRootDir();
+    roots = packNamesFromDeployment(deployment).map((n) =>
+      resolvePackRootByName(n, deployment),
+    );
+  }
   const ordered = orderByDependsOn(roots.map(resolvePack));
+  registerSources(ordered);
   const filter = packFilter();
   if (!filter) return ordered;
   const known = new Set(ordered.map((p) => p.manifest.id));
@@ -969,33 +1035,171 @@ function stringMap(value: unknown): Record<string, string> {
 
 // --- requires-kernel -------------------------------------------------------
 
+/** Does `classPath` lie under one of the pack's own namespace roots? */
+function inOwnNamespace(classPath: string, pack: ResolvedPack): boolean {
+  return namespaceRootsOf(pack.manifest).some((ns) => underExtent(classPath, ns));
+}
+
 /**
- * Resolve every distinct backing class the pack's content names, before any
- * write. Aborts the install if one is missing — the enforced content-pack ↔
- * mod boundary (a pack assumes its classes exist).
+ * Resolve every distinct backing class the pack's content names, before
+ * any write, and record WHERE each resolved — the rung check. Aborts the
+ * install when:
+ *
+ *   - a class does not resolve at all (the content-pack ↔ mod boundary:
+ *     a pack assumes its classes exist);
+ *   - a class in the pack's OWN namespace resolves nowhere and the pack
+ *     ships no `src/` — it *claims data but ships code* (the mis-rung
+ *     pack). Keyed on resolution origin, not path prefix: a pack whose
+ *     rows name parked KERNEL classes under its own `/world/<x>` claim
+ *     is a data pack and passes;
+ *   - a class resolves into another pack's `src/` that this pack does
+ *     not depend on (the one graph: the `package.json` line that lets
+ *     the code import it is the line that orders the install).
+ *
+ * Returns the origin of every class, for the record and the boot line.
  */
 async function assertClassesResolve(
-  packId: string,
-  files: DomainFile[],
-): Promise<void> {
+  rp: ReadPack,
+  set: InstallSet,
+): Promise<Map<string, ClassResolution>> {
+  const { pack } = rp;
+  const packId = pack.manifest.id;
   const classes = new Map<string, string>(); // classPath -> first relFile
-  for (const f of files) {
+  for (const f of rp.content.domain) {
     if (!classes.has(f.class)) classes.set(f.class, f.relFile);
     if (f.hydratorClass && !classes.has(f.hydratorClass)) {
       classes.set(f.hydratorClass, f.relFile);
     }
   }
+  const origins = new Map<string, ClassResolution>();
   for (const [classPath, relFile] of classes) {
+    let res: ClassResolution;
+    try {
+      res = StuffApi.resolveClassFile(classPath);
+    } catch (cause) {
+      throw unresolvedClass(packId, classPath, relFile, cause);
+    }
+    // The mis-rung pack: a class in the pack's OWN namespace that the
+    // kernel tree does not hold, from a pack shipping no src/. Keyed on
+    // what is on disk, never on a namespace list — a pack whose rows name
+    // parked kernel classes under its own claim resolves and passes.
+    if (
+      res.origin === 'kernel' &&
+      !existsSync(res.file) &&
+      !pack.srcRoot &&
+      inOwnNamespace(classPath, pack)
+    ) {
+      throw new Error(
+        `PackApi: pack '${packId}' claims data but ships code: ` +
+          `'${classPath}' lies in its own namespace ` +
+          `'${namespaceRootsOf(pack.manifest).find((ns) => underExtent(classPath, ns))}' ` +
+          `and the pack has no src/ (content file: ${relFile}). A pack ` +
+          `whose classes are its own is a capability pack — ship them ` +
+          `under src/ (see content-packs.md § The capability rung).`,
+      );
+    }
+    if (res.origin !== 'kernel') {
+      const owner = set.packOfSrcRoot.get(res.origin.srcRoot);
+      if (owner !== undefined && owner !== packId && !pack.manifest.dependsOn.includes(owner)) {
+        throw new Error(
+          `PackApi: pack '${packId}' names class '${classPath}', which pack ` +
+            `'${owner}' ships (content file: ${relFile}), but does not depend ` +
+            `on it — add "@saxonberg/content-${owner}" to ${packId}'s ` +
+            `package.json dependencies.`,
+        );
+      }
+    }
     try {
       await StuffApi.loadClassByPath(classPath);
     } catch (cause) {
-      throw new Error(
-        `PackApi: pack '${packId}' requires class '${classPath}' which does ` +
-          `not resolve (content file: ${relFile}). Install aborted — a ` +
-          `content pack assumes its classes exist (see content-packs.md). ` +
-          `[${cause instanceof Error ? cause.message : String(cause)}]`,
-      );
+      throw unresolvedClass(packId, classPath, relFile, cause);
     }
+    origins.set(classPath, res);
+  }
+  return origins;
+}
+
+function unresolvedClass(packId: string, classPath: string, relFile: string, cause: unknown): Error {
+  return new Error(
+    `PackApi: pack '${packId}' requires class '${classPath}' which does ` +
+      `not resolve (content file: ${relFile}). Install aborted — a ` +
+      `content pack assumes its classes exist (see content-packs.md). ` +
+      `[${cause instanceof Error ? cause.message : String(cause)}]`,
+  );
+}
+
+/** The rung a pack sits at — a fact about its `src/`, never a claim. */
+function rungOf(pack: ResolvedPack): 'capability' | 'data' {
+  return pack.srcRoot ? 'capability' : 'data';
+}
+
+/** Every module file under a pack's `src/` (tests excluded), `src/`-relative with forward slashes. */
+function* srcFilesOf(srcRoot: string): Generator<string> {
+  for (const file of walkFiles(srcRoot, 'ts')) {
+    const rel = relative(srcRoot, file).split(/[\\/]/).join('/');
+    if (rel.split('/').includes('__tests__')) continue;
+    if (rel.endsWith('.d.ts')) continue;
+    yield rel;
+  }
+}
+
+/** `src/`-relative file → sha256 of its source: what the record remembers as the code it installed against. */
+function codeVersionsOf(pack: ResolvedPack): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!pack.srcRoot) return out;
+  for (const rel of [...srcFilesOf(pack.srcRoot)].sort()) {
+    out[rel] = hashOf(readFileSync(join(pack.srcRoot, rel), 'utf-8'));
+  }
+  return out;
+}
+
+/** The `src/`-relative files whose on-disk hash differs from `recorded` (new files included). */
+function staleCodeOf(pack: ResolvedPack, recorded: Record<string, string> | undefined): string[] {
+  const now = codeVersionsOf(pack);
+  const was = recorded ?? {};
+  return Object.keys(now).filter((rel) => was[rel] !== now[rel]).sort();
+}
+
+/** The class path a pack `src/` file backs: `<root>/<rel-without-ext>`. */
+function classPathOfSrcFile(root: string, rel: string): string {
+  return `${root}/${rel.replace(/\.ts$/, '')}`;
+}
+
+/**
+ * The capability rung's third rule, after install: every class a pack's
+ * `src/` exports that no row of any pack in the install set names is
+ * REPORTED — console + a diagnostic — never a failure. Dead code in a
+ * pack is a review finding.
+ */
+async function reportUnreferencedClasses(read: ReadPack[]): Promise<void> {
+  const named = new Set<string>();
+  for (const rp of read) {
+    for (const f of rp.content.domain) {
+      named.add(f.class);
+      if (f.hydratorClass) named.add(f.hydratorClass);
+    }
+  }
+  for (const rp of read) {
+    const { pack } = rp;
+    if (!pack.srcRoot) continue;
+    const unreferenced: string[] = [];
+    for (const rel of srcFilesOf(pack.srcRoot)) {
+      const candidates = namespaceRootsOf(pack.manifest).map((ns) => classPathOfSrcFile(ns, rel));
+      if (!candidates.some((c) => named.has(c))) {
+        unreferenced.push(classPathOfSrcFile(pack.manifest.root, rel));
+      }
+    }
+    if (unreferenced.length === 0) continue;
+    const message =
+      `pack '${pack.manifest.id}' ships ${unreferenced.length} class(es) no row of any ` +
+      `installed pack names: ${unreferenced.join(', ')} — dead code in a pack is a review finding`;
+    console.warn(`PackApi: ${message}`);
+    await DiagnosticApi.record({
+      path: null,
+      severity: 'warning',
+      channel: `pack.${pack.manifest.id}`,
+      message,
+    });
   }
 }
 
@@ -1858,6 +2062,8 @@ function freshRecord(pack: ResolvedPack): StoredRecord {
     requires: { groups: [], title: [] },
     boot: [],
     maintainers: defaultMaintainers(pack.manifest.id),
+    rung: rungOf(pack),
+    codeVersions: {},
   };
 }
 
@@ -2486,20 +2692,36 @@ function readPack(pack: ResolvedPack): ReadPack {
 interface InstallSet {
   manifests: ReadonlyMap<string, PackManifest>;
   shipped: ReadonlyMap<string, ReadonlySet<string>>;
+  /** Each capability pack's `src/` root → its pack id (the cross-pack class rule). */
+  packOfSrcRoot: ReadonlyMap<string, string>;
 }
 
 function installSetOf(read: ReadPack[]): InstallSet {
+  const packOfSrcRoot = new Map<string, string>();
+  for (const r of read) {
+    if (r.pack.srcRoot) {
+      packOfSrcRoot.set(r.pack.srcRoot.replace(/\\/g, '/').replace(/\/?$/, '/'), r.pack.manifest.id);
+    }
+  }
   return {
     manifests: new Map(read.map((r) => [r.pack.manifest.id, r.pack.manifest])),
     shipped: new Map(read.map((r) => [r.pack.manifest.id, new Set(r.content.domain.map((d) => d.path))])),
+    packOfSrcRoot,
   };
 }
 
-/** Every pre-write gate for one pack: requires-kernel (classes + requires), then topics. */
-async function gatePack(rp: ReadPack, set: InstallSet = installSetOf([rp])): Promise<void> {
+/**
+ * Every pre-write gate for one pack: requires-kernel (classes + the rung
+ * check + requires), then topics. Returns where each class resolved.
+ */
+async function gatePack(
+  rp: ReadPack,
+  set: InstallSet = installSetOf([rp]),
+): Promise<Map<string, ClassResolution>> {
   const packId = rp.pack.manifest.id;
+  let origins: Map<string, ClassResolution>;
   try {
-    await assertClassesResolve(packId, rp.content.domain);
+    origins = await assertClassesResolve(rp, set);
     gateRequires(rp, set.manifests, set.shipped);
   } catch (err) {
     throw new PackStepError('requires-kernel', (err as Error).message);
@@ -2517,6 +2739,7 @@ async function gatePack(rp: ReadPack, set: InstallSet = installSetOf([rp])): Pro
       throw new PackStepError('reconcile', (err as Error).message);
     }
   }
+  return origins;
 }
 
 /** Plan every kind of a pack against its record. Reads only. */
@@ -2554,6 +2777,9 @@ function emptyResult(packId: string): PackReconcileResult {
     requires: emptyRequiresResult(),
     boot: { 'sync-read': 0, producer: 0 },
     staffed: false,
+    rung: 'data',
+    classOrigins: {},
+    codeReloaded: [],
   };
 }
 
@@ -2646,22 +2872,41 @@ function claimedExtentsOf(manifest: PackManifest, all: ReadonlyMap<string, PackM
   return out;
 }
 
-function underTitleRoot(path: string): boolean {
-  return TITLE_ROOTS.some((r) => underExtent(path, r));
+/**
+ * The title-bearing namespace roots, DERIVED: the first segment of every
+ * extent any pack in the install set claims. A TEMPLATE row is a place
+ * by definition and is always checked for coverage; a document or a
+ * wiki page is checked only under a root somebody claims — a root
+ * nobody claims (`/expression`'s emotes, a pack's own document root) is
+ * a place no title reaches. No list.
+ */
+function titleRootsOf(all: ReadonlyMap<string, PackManifest>): string[] {
+  const roots = new Set<string>();
+  for (const m of all.values()) {
+    for (const t of m.requires.title) roots.add('/' + t.extent.split('/')[1]);
+  }
+  return [...roots];
 }
 
 /**
  * Every path-addressed row a pack ships under a title root: domain
  * template paths + document paths + wiki pages.
  */
-function shippedPathsOf(content: PackContent): string[] {
+function shippedPathsOf(content: PackContent, titleRoots: readonly string[]): string[] {
+  const rooted = (p: string): boolean => titleRoots.some((r) => underExtent(p, r));
   const out: string[] = [];
   for (const d of content.domain) out.push(d.path);
   for (const files of content.documents.values()) {
-    for (const f of files) out.push(f.path.startsWith('/') ? f.path : `/${f.path}`);
+    for (const f of files) {
+      const p = f.path.startsWith('/') ? f.path : `/${f.path}`;
+      if (rooted(p)) out.push(p);
+    }
   }
-  for (const w of content.wiki) out.push(`/wiki/${w.namespace}/${w.slug}`);
-  return out.filter(underTitleRoot);
+  for (const w of content.wiki) {
+    const p = `/wiki/${w.namespace}/${w.slug}`;
+    if (rooted(p)) out.push(p);
+  }
+  return out;
 }
 
 /**
@@ -2736,7 +2981,7 @@ function gateRequires(
   // Coverage.
   const claims = claimedExtentsOf(manifest, installSet);
   if (claims.length === 0) return;
-  for (const path of shippedPathsOf(rp.content)) {
+  for (const path of shippedPathsOf(rp.content, titleRootsOf(installSet))) {
     if (!claims.some((e) => underExtent(path, e))) {
       throw new Error(
         `PackApi: pack '${manifest.id}': row ${path} is outside every extent ` +
@@ -3015,7 +3260,7 @@ async function reconcilePack(
   const { pack, content } = rp;
   const packId = pack.manifest.id;
   const set = opts.installSet ?? installSetOf([rp]);
-  await gatePack(rp, set);
+  const origins = await gatePack(rp, set);
 
   const prior = await loadRecord(packId);
   const now = new Date().toISOString();
@@ -3030,6 +3275,23 @@ async function reconcilePack(
   record.conflicts = [];
 
   const result = emptyResult(packId);
+  result.rung = rungOf(pack);
+  record.rung = result.rung;
+  for (const [cls, res] of origins) {
+    result.classOrigins[cls] = res.origin === 'kernel' ? 'kernel' : res.file;
+  }
+  // The code tail (capability packs). A live sync hot-swaps every src/
+  // file whose hash differs from what the record installed against —
+  // the same `HotReloadApi.reload` a `reload <path>` runs — BEFORE the
+  // rows re-hydrate, so a re-hydrated clone gets the new class. At boot
+  // nothing is loaded yet: the record simply remembers what is on disk.
+  if (pack.srcRoot && opts.rehydrate) {
+    for (const rel of staleCodeOf(pack, prior?.codeVersions)) {
+      await HotReloadApi.reload(join(pack.srcRoot, rel));
+      result.codeReloaded.push(rel);
+    }
+  }
+  record.codeVersions = codeVersionsOf(pack);
   // The requires phase's grants come FIRST — groups, memberships, titles
   // — so a title this claim grants is in place before the bounded
   // reconcile asks who holds each row's extent. Its own registries must
@@ -3317,7 +3579,16 @@ export class PackLogic extends ApiLogic {
         results.set(id, await recordFailure(rp.pack, err));
       }
     }
+    await reportUnreferencedClasses(
+      read.filter((rp) => results.get(rp.pack.manifest.id)?.failure === null),
+    );
     return packs.map((p) => results.get(p.manifest.id)!);
+  }
+
+  /** See {@link PackApi.registerSources}. */
+  @CallSecurity(PackApiCallers)
+  public registerSources(packRoots?: string[]): void {
+    discover(packRoots);
   }
 
   /** See {@link PackApi.sync}. */
@@ -3354,8 +3625,10 @@ export class PackLogic extends ApiLogic {
 
   /** See {@link PackApi.status}. */
   @CallSecurity(PackApiCallers)
-  public async status(packId?: string): Promise<PackStatusReport[]> {
-    const manifests = new Map(discover().map((p) => [p.manifest.id, p.manifest]));
+  public async status(packId?: string, packRoots?: string[]): Promise<PackStatusReport[]> {
+    const discovered = discover(packRoots);
+    const manifests = new Map(discovered.map((p) => [p.manifest.id, p.manifest]));
+    const resolved = new Map(discovered.map((p) => [p.manifest.id, p]));
     const records = (await PersistApi.find(
       Collections.PackInstalls,
       {},
@@ -3367,11 +3640,25 @@ export class PackLogic extends ApiLogic {
       if (packId && id !== packId) continue;
       const m = manifests.get(id);
       const r = byId.get(id);
+      const p = resolved.get(id);
       const maintainers = r?.maintainers ?? m?.maintainers ?? null;
+      // The rung is a fact about the shipped src/ (the record's copy is
+      // what it was at install); `code` compares disk to the record —
+      // an edit nobody has synced is a restart owed in prod.
+      const rung = p ? rungOf(p) : (r?.rung ?? null);
+      const code =
+        p && r && p.srcRoot
+          ? staleCodeOf(p, r.codeVersions).length === 0
+            ? 'current'
+            : 'stale'
+          : null;
       out.push({
         packId: id,
         discovered: m !== undefined,
         manifestVersion: m?.version ?? null,
+        rung,
+        code,
+        dependsOn: m?.dependsOn ?? [],
         record: r
           ? {
               version: r.version,

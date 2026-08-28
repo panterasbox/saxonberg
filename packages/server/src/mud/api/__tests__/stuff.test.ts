@@ -49,16 +49,16 @@ describe('StuffApi', () => {
       );
     });
 
-    it('should reject paths outside /platform/ and /lib/', () => {
-      expect(() => validateClassPath('/etc/passwd')).toThrow(
-        'must start with /platform/ or /lib/'
-      );
-      expect(() => validateClassPath('/home/user/malicious')).toThrow(
-        'must start with /platform/ or /lib/'
-      );
-      expect(() => validateClassPath('/tmp/exploit')).toThrow(
-        'must start with /platform/ or /lib/'
-      );
+    it('a path outside every namespace cannot escape the mud tree — it resolves INSIDE it and loads nothing', async () => {
+      // No prefix allowlist: the leading `/` + no `..` rules pin every
+      // class path under `<src>/mud/`, and resolution decides the rest.
+      for (const p of ['/etc/passwd', '/home/user/malicious', '/tmp/exploit']) {
+        expect(() => validateClassPath(p)).not.toThrow();
+        const { file, origin } = StuffApi.resolveClassFile(p);
+        expect(origin).toBe('kernel');
+        expect(file.replace(/\\/g, '/')).toMatch(/\/src\/mud\//);
+        await expect(StuffApi.loadClassByPath(p)).rejects.toThrow(/failed to import/);
+      }
     });
 
     it('should return the normalized path for valid paths', () => {
