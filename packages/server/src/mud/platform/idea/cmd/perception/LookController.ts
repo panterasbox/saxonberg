@@ -367,6 +367,16 @@ export default class LookController extends CommandController<LookModel> {
         body = Mml.compose`${body}── On it: ${list}.`;
       }
     }
+    // A display reads what it shows — the booth's television, the house
+    // tablet with the stock sheet up.
+    if (MixinApi.isDisplay(target)) {
+      const showing = target.getShowing();
+      if (showing) {
+        const what =
+          showing.kind === 'stream' ? showing.label : `the ${showing.cardId} card`;
+        body = Mml.compose`${body}── Showing: ${what}.`;
+      }
+    }
     // The same drill-in for an OPEN container: the glass rack's coupes,
     // a crate's limes. A sealed one (a closed chest, a capped bottle)
     // shows nothing — what is inside is not in view. Concealed contents

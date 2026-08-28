@@ -33,6 +33,7 @@ import type {
 import { Quantity } from '../../../lib/quantity';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
+import { MqlApi } from '../../../api/mql';
 import { PerceptionApi } from '../../../api/perception';
 import type { LightConduit } from '../../../lib/boundary/Conduit';
 import type { Conduit } from '../../../lib/boundary/Conduit';
@@ -151,9 +152,25 @@ export class VisionModality extends Modality {
     if (!MixinApi.isContainable(target)) {
       return viewer.canSeeOverride(target, detail, true);
     }
-    const env = target.getContainer();
+    let env = target.getContainer();
     if (!env) {
       return viewer.canSeeOverride(target, detail, false);
+    }
+    // What you HOLD you can see — the light that matters is where you
+    // stand, not the dark of your own pocket ("You pick up something").
+    // The same one level for an open container standing in a room: a
+    // coupe in the rack, a keg in the floor stock, reads in the room's
+    // light, the way the `peers` scope already reaches for it.
+    if (env.stuffId === viewer.stuffId) {
+      env = MixinApi.isContainable(viewer)
+        ? (viewer.getContainer() ?? env)
+        : env;
+    } else if (
+      !(env instanceof Location) &&
+      MqlApi.isOpenPeerContainer(env as Stuff) &&
+      MixinApi.isContainable(env)
+    ) {
+      env = env.getContainer() ?? env;
     }
     const band = VisionModality.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];

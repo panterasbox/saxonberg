@@ -648,6 +648,7 @@ export class CommandLogic extends ApiLogic {
     }
 
     const expand = makeExpander(ctx.commandGiver);
+    const expandDefault = makeDefaultExpander(ctx.commandGiver);
     const fields: ModelData = {};
     let i = 1;
     let stopped = false;
@@ -749,7 +750,7 @@ export class CommandLogic extends ApiLogic {
     let prep: Record<string, string> = {};
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
-      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand);
+      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand, expandDefault);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -758,7 +759,7 @@ export class CommandLogic extends ApiLogic {
       // candidate + remaining tokens against the top-level args. On
       // bind failure, surface the ORIGINAL unknown-subcommand error
       // pointing at the candidate — the slate's required behavior.
-      const r = bindPositionals(positionals, command.args, parsed, expand);
+      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
       if ('error' in r) {
         return {
           error: 'unknown-subcommand',
@@ -780,7 +781,7 @@ export class CommandLogic extends ApiLogic {
       }
     } else {
       // Flat verb — single bind against the top-level args.
-      const r = bindPositionals(positionals, command.args, parsed, expand);
+      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -2148,6 +2149,7 @@ function bindPositionals(
   args: PositionalDefinition[],
   parsed: ParsedCommand,
   expand: (text: string) => string,
+  expandDefault: (text: string) => string = expand,
 ):
   | { bound: ModelData; prep: Record<string, string> }
   | { error: 'shape'; summary: string } {
@@ -2177,7 +2179,7 @@ function bindPositionals(
     if (def.greedy) {
       if (pi >= positionals.length) {
         if (def.default !== undefined) {
-          bound[name] = expand(def.default);
+          bound[name] = expandDefault(def.default);
           return { bound, prep };
         }
         if (def.required !== false) {
@@ -2219,7 +2221,7 @@ function bindPositionals(
         // — the greedy field has no content. Default fills if
         // declared; else required→shape error / optional→absent.
         if (def.default !== undefined) {
-          bound[name] = expand(def.default);
+          bound[name] = expandDefault(def.default);
         } else if (def.required !== false) {
           return {
             error: 'shape',
@@ -2277,7 +2279,7 @@ function bindPositionals(
     if (def.required) {
       if (pi >= positionals.length || nextBelongsToLater) {
         if (def.default !== undefined) {
-          bound[name] = expand(def.default);
+          bound[name] = expandDefault(def.default);
           continue;
         }
         return {
@@ -2310,7 +2312,7 @@ function bindPositionals(
       bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {
-      bound[name] = expand(def.default);
+      bound[name] = expandDefault(def.default);
     }
   }
 
@@ -2329,16 +2331,21 @@ function bindPositionals(
  * `shell.interpolate-vars` set to false — callers stay branch-free.
  */
 function makeExpander(giver: Stuff): (text: string) => string {
-  // A giver with no shell environment — an NPC driven by a brain or a
-  // dialogue dispatch — still has the SYNTHETIC vars (`$focus`, `$here`):
-  // a view's `default: "$focus"` reached MQL raw as a bare `$` for every
-  // forced `sense` before this. Only the player's interpolate setting is
-  // an environment fact.
-  if (!MixinApi.isEnvironment(giver)) {
-    return (text) => ShellApi.expandVariables(text, giver);
-  }
+  if (!MixinApi.isEnvironment(giver)) return (s) => s;
   const enabled = giver.getSetting<boolean>('shell.interpolate-vars');
   if (enabled === false) return (s) => s;
+  return (text) => ShellApi.expandVariables(text, giver);
+}
+
+/**
+ * The expander for a view's AUTHORED `default:` — always the shell's,
+ * whoever the giver is. A giver with no shell environment (an NPC driven
+ * by a brain or a dialogue dispatch) keeps its typed text literal (see
+ * `makeExpander` — pinned by shell.test), but a default like `"$focus"`
+ * is the view author's word, not the giver's: it reached MQL raw as a
+ * bare `$` on every forced `sense` before this.
+ */
+function makeDefaultExpander(giver: Stuff): (text: string) => string {
   return (text) => ShellApi.expandVariables(text, giver);
 }
 
