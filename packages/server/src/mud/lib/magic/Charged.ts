@@ -60,11 +60,24 @@ import type { CommandContributions } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { MagicApi } from '../../api/magic';
+import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { SlotApi } from '../../api/slot';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
 import { Reserve, type Reserved } from '../reserve';
 import { TemplatePaths } from '../paths';
+import type { Stuff } from '../stuff/Stuff';
+import type { Slotted } from '../slot/Slotted';
+import type { Slottable } from '../slot/Slottable';
+import { EffectContexts } from './EffectContext';
 import { Charge } from './Charge';
+
+/** The topic a worn host narrates its own wake/dry-click on (self-only, like a potion). */
+const WORN_TOPIC = 'act.deed';
 
 /**
  * Charge dials with seeded-literal fallbacks (pre-warm / test safe).
@@ -144,6 +157,24 @@ export interface Charged {
   /** Is the always-on draw currently running? */
   isDrawActive(): boolean;
   setDrawActive(value: boolean): void;
+  /**
+   * **Wearing sustains** (D5). An `alwaysOn` host that lands in a body
+   * slot discharges its bound working as a `sustained` Condition on the
+   * wearer (`sustainedBy` this host) and starts the standby draw.
+   * Idempotent across multi-slot claims and persistence restore (the
+   * Condition persisted with the wearer; `drawActive` with the host).
+   * Fires from the one `Slotted.occupy` chokepoint — every path.
+   */
+  onSlotOccupied(host: Stuff & Slotted, slotName: string): void;
+  /**
+   * **Releasing releases.** When the last slot of the host lets go, every
+   * sustained effect this host holds up on it is released and the draw
+   * stops. A cursed host never reaches here — the release gate refuses
+   * upstream (`Blessable.tryRelease`) and the draw continues.
+   */
+  onSlotReleased(host: Stuff & Slotted, slotName: string): void;
+  /** Release every sustained effect this host holds up on `host`, and stop drawing. */
+  releaseHeld(host: Stuff): void;
 
   // ---------- storage (public for the Hydrator) ----------
   capacityKJ: number;
@@ -268,11 +299,78 @@ export function ChargedMixin<TBase extends MixinConstructor>(Base: TBase) {
               Quantity.of(-Math.min(loss, stored), Charge.UNIT),
             );
           }
+          // Run flat: the standby draw has a consequence. The moment the
+          // pool reaches zero, whatever this host was holding up on its
+          // wearer is released — not at the next term's renewal
+          // (`Vitals.renewSustained` refuses a depleted host there too;
+          // this makes it immediate on the next read).
+          const after = reserved.getReserve(Charge.RESERVE_KEY);
+          if (this.drawActive && (after?.current.rawValue() ?? 0) <= 0) {
+            const wearer = (this as unknown as Slottable).getOccupiedHost?.() ?? null;
+            if (wearer) this.releaseHeld(wearer as unknown as Stuff);
+            else this.drawActive = false;
+          }
         }
         this.chargeClockStamp = nowS;
       } finally {
         this._reconcilingCharge = false;
       }
+    }
+
+    public onSlotOccupied(host: Stuff & Slotted, _slotName: string): void {
+      // Not always-on: a triggered host you wear is a wand you wear.
+      // Already drawing: a second slot of a multi-slot claim, or a
+      // persistence restore — the Condition persisted with the wearer.
+      if (!this.alwaysOn || this.drawActive) return;
+      // A host with nothing to sustain on (a stand, a hook) is storage.
+      if (!MixinApi.isVitals(host)) return;
+      // No command giver = no actor to discharge AS (a restore, a
+      // programmatic re-slot): the wearer's persisted Condition is the
+      // truth and nothing re-fires.
+      if (!ExecutionContextApi.getCurrentCommandGiver()) return;
+      // The witness is synchronous; the discharge is not. `discharge`
+      // reads the actor from the execution context (the wearer IS the
+      // command giver inside `wear`) and stamps `sustainedBy` with this
+      // host because it is the effect's source.
+      void MagicApi.discharge(this as unknown as Stuff, host as unknown as Stuff).then(
+        (out) => {
+          if (out.ok) {
+            this.setDrawActive(true);
+            return;
+          }
+          // A flat ring: the dry click, and it stays off.
+          if (out.refusal) {
+            MessageApi.scene(host as unknown as Stuff)
+              .topic(WORN_TOPIC)
+              .toSelf(Mml.text(out.refusal))
+              .send();
+          }
+        },
+        () => {
+          /* a throwing discharge never breaks the slot claim */
+        },
+      );
+    }
+
+    public onSlotReleased(host: Stuff & Slotted, _slotName: string): void {
+      if (!this.alwaysOn) return;
+      // Only when no other slot of the same host still holds this item
+      // (a two-slot claim releases both before the effect lets go).
+      const stillOn = SlotApi.findOccupiedSlots(this as unknown as Stuff & Slottable).get(host);
+      if (stillOn && stillOn.length > 0) return;
+      this.releaseHeld(host as unknown as Stuff);
+    }
+
+    public releaseHeld(host: Stuff): void {
+      const me = EffectContexts.durableIdOf(this as unknown as Stuff);
+      if (MixinApi.isVitals(host)) {
+        for (const c of [...host.getConditions()]) {
+          if (c.kind === 'sustained' && c.sustainedBy === me) {
+            host.releaseSustained(c);
+          }
+        }
+      }
+      if (this.drawActive) this.setDrawActive(false);
     }
 
     public getCharge(): Reserve | null {

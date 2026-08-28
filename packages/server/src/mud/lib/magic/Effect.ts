@@ -35,6 +35,15 @@ import { Resists } from './Resist';
 /** Impulse = fired-and-released; modifier = sustained, magically-bound. */
 export type EffectFamily = 'impulse' | 'modifier';
 
+/**
+ * The two reserves an `adjust-reserve` may never top up. Literal here
+ * (not imported from `Caster` / `Charge`) so the effect vocabulary stays
+ * import-free of the casting substrate; `Caster.MANA_RESERVE_KEY` and
+ * `Charge.RESERVE_KEY` are the same strings, pinned by test.
+ */
+export const MANA_RESERVE_KEY = 'mana';
+export const CHARGE_RESERVE_KEY = 'charge';
+
 /** Inject a real mechanism channel — backing: `ConditionApi.inflict` (heat at a body), `ThermalApi.depositHeat`+`FireApi.tryAutoignite` (heat at an object), `ElectricityApi.conduct` (shock, via a transient energized locus). */
 export interface InjectChannelEffect {
   readonly kind: 'inject-channel';
@@ -421,6 +430,24 @@ export class MagicEffects {
         }
         if (!Number.isFinite(delta)) {
           throw new TypeError(`adjust-reserve: bad delta '${String(e.delta)}'`);
+        }
+        // The two coupled reserves are not fillable by fiat, and the
+        // refusal lands at AUTHORING so the catalogue drops the row:
+        // mana is recovered through metabolism, never given
+        // (arcane-science — no amount of fuel becomes mana; a potion
+        // feeds satiation instead); charge crosses from a payer through
+        // the coupling loss (`transferCharge`), never appears.
+        if (delta > 0 && reserveKey === MANA_RESERVE_KEY) {
+          throw new TypeError(
+            `adjust-reserve: a positive delta on '${MANA_RESERVE_KEY}' is a mana ` +
+              `generator — arcane-science forbids it; feed satiation instead`,
+          );
+        }
+        if (delta > 0 && reserveKey === CHARGE_RESERVE_KEY) {
+          throw new TypeError(
+            `adjust-reserve: a positive delta on '${CHARGE_RESERVE_KEY}' mints ` +
+              `joules — charge is transferred from a payer (transfer), never generated`,
+          );
         }
         return { kind: 'adjust-reserve', reserveKey, delta };
       }

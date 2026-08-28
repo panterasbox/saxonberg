@@ -897,6 +897,14 @@ async function executeOne(
         );
         return moved.report;
       }
+      // Mana is the other coupled reserve, and it has NO transfer leg at
+      // all: it is recovered through metabolism (body before gift),
+      // never given. `MagicEffects.validate` refuses the authoring; this
+      // is the belt to that brace, for an effect that reaches execution
+      // any other way (a script, a band branch built at runtime).
+      if (effect.delta > 0 && effect.reserveKey === MANA_RESERVE_KEY) {
+        return 'Nothing can pour mana in — it is recovered, never given.';
+      }
       const unit = t.getReserve(effect.reserveKey)!.current.unit;
       t.adjustReserve(
         effect.reserveKey,
