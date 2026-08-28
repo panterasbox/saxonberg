@@ -43,6 +43,14 @@ export interface PositionData {
    * flat organization).
    */
   reportsTo?: string;
+  /**
+   * ⭐ A **purchasing** position: its holder may put the organization's
+   * operating account into their own wallet (`wallet use house`) and buy
+   * *as the business* — the purchase settles from that account and the
+   * chattel is stamped to the organization. A data field, never a marker
+   * mixin: authority is the position's. Absent = false.
+   */
+  purchases?: boolean;
 }
 
 export class Position {
@@ -59,6 +67,8 @@ export class Position {
     public readonly compensation?: CompensationData,
     /** The position this one reports to, or undefined. */
     public readonly reportsTo?: string,
+    /** Whether the holder buys for the organization (default false). */
+    public readonly purchases: boolean = false,
   ) {}
 
   /** Build a Position from an already-typed descriptor. */
@@ -70,6 +80,7 @@ export class Position {
       [...data.confers],
       data.compensation,
       data.reportsTo,
+      data.purchases === true,
     );
   }
 
@@ -100,6 +111,7 @@ export class Position {
       typeof data.reportsTo === 'string' && data.reportsTo.length > 0
         ? data.reportsTo
         : undefined,
+      data.purchases === true,
     );
   }
 
@@ -117,6 +129,7 @@ export class Position {
       confers: [...this.confers],
       ...(this.compensation ? { compensation: { ...this.compensation } } : {}),
       ...(this.reportsTo ? { reportsTo: this.reportsTo } : {}),
+      ...(this.purchases ? { purchases: true } : {}),
     };
   }
 }

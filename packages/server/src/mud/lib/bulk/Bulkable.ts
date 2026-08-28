@@ -50,6 +50,8 @@ import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMars
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { RecognitionApi } from '../../api/recognition';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
 
@@ -378,6 +380,27 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public closure: ClosureLevel = 'liquidTight';
 
+    /**
+     * Live-query subscribable fields. `bulkAmount` is the interior
+     * litres — what a stock sheet reads — and `setBulkAmount('interior')`
+     * fires the field change, so every debit/credit/drain re-projects a
+     * card that shows it. Absent (`undefined`) on a holder with no
+     * interior slot, so `projectFields` omits it.
+     */
+    static subscribableFields: SubscribableFieldDescriptor[] = [
+      {
+        name: 'bulkAmount',
+        read: (stuff) => {
+          const host = stuff as unknown as Bulkable;
+          if (!host.hasInteriorBulk()) return undefined;
+          return {
+            value: host.getBulkAmount('interior').rawValue(),
+            unit: 'L' as const,
+          };
+        },
+      },
+    ];
+
     static fieldMeta: FieldMeta = {
       interiorBulk: { persistent: true, authorable: true },
       surfaceBulk: { persistent: true, authorable: true },
@@ -595,7 +618,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       amount: Quantity<'L'>,
     ): void {
       if (affordance === 'interior') {
+        const before = this._interiorAmount.rawValue();
         this.interiorAmount = amount;
+        MqlSubscriptionApi.fireFieldChange(
+          this,
+          'bulkAmount',
+          before,
+          amount.rawValue(),
+        );
       } else {
         this.surfaceAmount = amount;
       }

@@ -54,10 +54,14 @@ export type {
   ShiftEntry,
 } from '../lib/employment/Roster';
 export type { Business } from '../platform/idea/Business';
+export type { ParLine, ParLineData, ParUnit } from '../lib/employment/ParLine';
+export { PAR_UNITS } from '../lib/employment/ParLine';
+export type { StockSheetLine } from '../platform/idea/api/EmploymentLogic';
 export type { Organization } from '../lib/employment/Organization';
 export type { Employed } from '../lib/employment/Employed';
 
 import type { Employment } from '../lib/employment/Employment';
+import type { StockSheetLine } from '../platform/idea/api/EmploymentLogic';
 import type { PrincipalRef } from '../lib/employment/Authority';
 import type { RemittanceSplit } from './banking';
 import { SecurityApi } from './security';
@@ -189,14 +193,50 @@ export class EmploymentApi {
     return logic().hire(organization, actor, positionKey);
   }
 
-  /** Fire `actor` from `organization` (status → fired; history preserved). */
-  public static fire(organization: OrganizationStuff, actor: Stuff): void {
+  /**
+   * Fire `actor` from `organization` (status → fired; history preserved).
+   * Leaving a position takes the business's operating account out of the
+   * actor's wallet if `wallet use house` had put it there.
+   */
+  public static fire(
+    organization: OrganizationStuff,
+    actor: Stuff,
+  ): Promise<void> {
     return logic().fire(organization, actor);
   }
 
-  /** `actor` quits `organizationPath` (status → quit; history preserved). */
-  public static quit(actor: Stuff, organizationPath: string): void {
+  /**
+   * `actor` quits `organizationPath` (status → quit; history preserved).
+   * The `quit` verb's one call; unlinks the house account like `fire`.
+   */
+  public static quit(actor: Stuff, organizationPath: string): Promise<void> {
     return logic().quit(actor, organizationPath);
+  }
+
+  /**
+   * ⭐ Every Business `actor` **buys for** — where the actor holds a
+   * non-exited position authored `purchases: true`, plus the one they
+   * proprietor. The read behind `wallet use house`, the house-stamping
+   * `buy`, consigning as the business, and the `house` app's gate.
+   * Authority is the position's, never a carried screen's.
+   */
+  public static buysFor(actor: Stuff): Promise<BusinessStuff[]> {
+    return logic().buysFor(actor);
+  }
+
+  /**
+   * The live stock sheet: each of `business`'s par lines against what
+   * `viewer` **perceives** from where they stand (open containers
+   * descended, sealed ones not). Perception-scoped by construction —
+   * the aether is a modem, not a sense organ. Shared by `house stock`
+   * and the keeper's `restocks` brain, so an NPC reads exactly the sheet
+   * a player would.
+   */
+  public static stockSheetFor(
+    viewer: Stuff,
+    business: BusinessStuff,
+  ): StockSheetLine[] {
+    return logic().stockSheetFor(viewer, business);
   }
 
   /**

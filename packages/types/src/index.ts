@@ -935,7 +935,8 @@ export type CardId =
   | "prompt"
   | "cms"
   | "git"
-  | "studio";
+  | "studio"
+  | "stock";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -948,6 +949,7 @@ export const CARD_IDS: readonly CardId[] = [
   "cms",
   "git",
   "studio",
+  "stock",
 ];
 
 /**

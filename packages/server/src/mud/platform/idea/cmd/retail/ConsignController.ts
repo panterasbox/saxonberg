@@ -12,6 +12,14 @@
  * payout target — nudge to Goodkin otherwise); and you must be under the
  * per-consignor listing cap (the shared-shelf guard, the withdrawal-quota
  * sibling).
+ *
+ * ⭐ **Consigning as the house.** With a business's operating account
+ * active in the wallet (`wallet use house`), you consign **as that
+ * business**: a good it owns is yours to sell, an unstamped good is
+ * stamped to it, the listing's `consignorKey` is the business path and the
+ * payout is its operating account — so each consignor's account rises on
+ * resale through the shipped split leg. The distributor's floor hands
+ * consign this way.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
@@ -28,6 +36,8 @@ import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Container } from "../../../../lib/spatial/Container";
 import type { Containable } from "../../../../lib/spatial/Containable";
+import { EmploymentApi } from "../../../../api/employment";
+import { StuffApi } from "../../../../api/stuff";
 
 const TOPIC = "act.deed";
 
@@ -79,13 +89,25 @@ export default class ConsignController extends CommandController<ConsignModel> {
       return;
     }
 
-    // You consign what you own (authoritative via ownerOf, not custody).
-    const consignorKey = giver.getTemplatePath();
+    // The principal you consign as: the business whose account is active in
+    // your wallet (and that you buy for), else yourself.
+    const house = await this.activeHouse(giver);
+    const principal: Stuff = house ?? giver;
+    const consignorKey = principal.getTemplatePath();
+
+    // You consign what you own (authoritative via ownerOf, not custody) —
+    // the house's goods when acting as the house, your own otherwise.
+    // An unstamped good in your hands that resolves to you (or to nobody)
+    // is stamped to the principal below — a hand consigning the house's
+    // floor stock titles it to the house, never to themselves.
     const owner = await ChattelApi.ownerOf(item);
-    if (
-      owner?.kind !== "player" ||
-      owner.templatePath !== consignorKey
-    ) {
+    const ownedBy = (key: string | null): boolean =>
+      (owner?.kind === "player" || owner?.kind === "organization") &&
+      owner.templatePath === key;
+    const ownedByPrincipal =
+      ownedBy(consignorKey) ||
+      (!item.getChattelId() && (owner === null || ownedBy(giver.getTemplatePath())));
+    if (!ownedByPrincipal) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
         kind: "controller-rejected",
         reason: "not-owner",
@@ -95,7 +117,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     }
 
     // Payout target — a bank account is required (nudge otherwise).
-    if ((await BankingApi.primaryAccountIdOf(consignorKey)) == null) {
+    if (!consignorKey || (await BankingApi.primaryAccountIdOf(consignorKey)) == null) {
       this.reject(
         giver,
         context,
@@ -119,7 +141,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
 
     // Establish the title if the good is unstamped (author-owned) — a
     // consignment needs a durable chattel id to key the listing on.
-    if (!item.getChattelId()) await ChattelApi.stamp(item, giver);
+    if (!item.getChattelId()) await ChattelApi.stamp(item, principal);
 
     // Custody → the shop's shelf; the owner-stamp stays put.
     ContainmentApi.move(item, shelf as unknown as Stuff & Container);
@@ -132,6 +154,21 @@ export default class ConsignController extends CommandController<ConsignModel> {
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(item)} on the consignment shelf.`)
       .send();
+  }
+
+  /**
+   * The Business whose operating account is the wallet's active one, if the
+   * giver buys for it — the house they trade as right now. Null = personal.
+   */
+  private async activeHouse(giver: Stuff): Promise<Stuff | null> {
+    const active = BankingApi.activeCredential()?.getActiveAccount() ?? null;
+    if (!active) return null;
+    const ownerKey = await BankingApi.ownerKeyOf(active);
+    if (!ownerKey || ownerKey === giver.getTemplatePath()) return null;
+    const live = StuffApi.findByTemplatePath(ownerKey);
+    if (!live || !MixinApi.isBusiness(live)) return null;
+    const mine = await EmploymentApi.buysFor(giver);
+    return mine.includes(live) ? live : null;
   }
 
   /** Resolve a good the giver is carrying, by keyword. */

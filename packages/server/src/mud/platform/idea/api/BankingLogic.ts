@@ -1783,6 +1783,28 @@ export class BankingLogic extends ApiLogic {
     return account?.corpoKey ?? null;
   }
 
+  /** See {@link BankingApi.ownerKeyOf}. The account's recorded owner key. */
+  @CallSecurity(BankingApiCallers)
+  public async ownerKeyOf(accountId: string): Promise<string | null> {
+    const account = await accountByIdImpl(accountId);
+    return account?.owner ?? null;
+  }
+
+  /** See {@link BankingApi.linkAccount}. */
+  @CallSecurity(BankingApiCallers)
+  public linkAccount(actor: Stuff, accountId: string): boolean {
+    const cred = reachableCredential(actor);
+    if (!cred) return false;
+    cred.linkAccount(accountId);
+    return true;
+  }
+
+  /** See {@link BankingApi.unlinkAccount}. */
+  @CallSecurity(BankingApiCallers)
+  public unlinkAccount(actor: Stuff, accountId: string): void {
+    reachableCredential(actor)?.unlinkAccount(accountId);
+  }
+
   /** See {@link BankingApi.deposit}. Coin → vault, balance credited (1:1). */
   @CallSecurity(BankingApiCallers)
   public async deposit(

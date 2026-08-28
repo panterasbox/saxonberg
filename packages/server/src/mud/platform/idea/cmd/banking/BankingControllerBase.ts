@@ -11,6 +11,9 @@ import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MqlApi } from "../../../../api/mql";
 import { MixinApi } from "../../../../api/mixin";
+import { StuffApi } from "../../../../api/stuff";
+import { EmploymentApi } from "../../../../api/employment";
+import type { Business } from "../../../../api/employment";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Bank } from "../../../../lib/banking/Bank";
 
@@ -40,6 +43,39 @@ export abstract class BankingControllerBase<
         MixinApi.isBank(s),
       ) ?? null
     );
+  }
+
+  /**
+   * The presentation of the Business whose account key is `ownerKey`, or
+   * null when the key names no live business (a player's own key).
+   */
+  static businessNamed(ownerKey: string): string | null {
+    const live = StuffApi.findByTemplatePath(ownerKey);
+    return live && MixinApi.isBusiness(live) ? live.getPresentation() : null;
+  }
+
+  /**
+   * ⭐ The house the giver acts for: the Business operating **here** when
+   * the giver holds a position there or proprietors it, else the single
+   * one they buy for, else null. Authority is the seat's — a position
+   * held or the proprietorship — never the wizard axis and never a carried
+   * screen.
+   */
+  protected async resolveHouse(
+    context: CommandContext,
+  ): Promise<(Stuff & Business) | null> {
+    const giver = context.commandGiver;
+    const herePath = context.location?.getTemplatePath() ?? "";
+    const here = herePath ? EmploymentApi.businessAt(herePath) : null;
+    if (
+      here &&
+      (EmploymentApi.holdsPosition(giver, here) ||
+        (await EmploymentApi.isProprietorOf(giver, here)))
+    ) {
+      return here;
+    }
+    const mine = await EmploymentApi.buysFor(giver);
+    return mine[0] ?? null;
   }
 
   /** A present bartender (an active MakerMixin agent) — the house's rep. */

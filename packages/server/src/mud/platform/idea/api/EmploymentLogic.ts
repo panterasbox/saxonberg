@@ -11,6 +11,7 @@ import { MqlApi } from '../../../api/mql';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
 import { PlayerApi } from '../../../api/player';
+import { PerceptionApi } from '../../../api/perception';
 import { BankingApi, Money } from '../../../api/banking';
 import type { RemittanceSplit } from '../../../api/banking';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -22,6 +23,7 @@ import type { Business } from '../Business';
 import type { Organization } from '../../../lib/employment/Organization';
 import type { PrincipalRef } from '../../../lib/employment/Authority';
 import type { Employed } from '../../../lib/employment/Employed';
+import type { ParLine } from '../../../lib/employment/ParLine';
 import {
   Employment,
   type EmploymentStatus,
@@ -248,6 +250,22 @@ function organizationChainOfImpl(
   }
 }
 
+/**
+ * Every live Business — an MQL system enumeration (null giver: the roster
+ * tick and the purchasing read must see every business regardless of any
+ * viewer's fog). The singleton caches this; the free functions read it
+ * fresh.
+ */
+function allBusinessesImpl(): BusinessStuff[] {
+  const matches = MqlApi.resolveMany('world:[mixin.BusinessMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  });
+  return matches.stuff.filter((s): s is BusinessStuff =>
+    MixinApi.hasMixin(s, Mixins.Business),
+  );
+}
+
 /** Hire `actor` into `business`'s `positionKey`. Returns the record, or null. */
 function hireImpl(
   organization: OrganizationStuff,
@@ -266,11 +284,11 @@ function hireImpl(
  * mutation is the business's own transition when its Idea is standing;
  * lazy standup means a record can outlive the live instance, so the
  * engine's janitorial arm covers the direct write. */
-function endEmploymentImpl(
+async function endEmploymentImpl(
   actor: Stuff,
   organizationPath: string,
   status: 'fired' | 'quit',
-): void {
+): Promise<void> {
   if (!MixinApi.isEmployed(actor)) return;
   const organization = StuffApi.findByTemplatePath(organizationPath);
   if (organization && MixinApi.hasMixin(organization, Mixins.Organization)) {
@@ -278,9 +296,138 @@ function endEmploymentImpl(
       actor as EmployedActor,
       status,
     );
-    return;
+  } else {
+    (actor as EmployedActor)._setEmploymentStatus(organizationPath, status);
   }
-  (actor as EmployedActor)._setEmploymentStatus(organizationPath, status);
+  // Leaving the position takes the house account out of the wallet: the
+  // link was the position's, never the holder's. Best-effort — a business
+  // with no operating account (or an actor with no credential) has nothing
+  // to unlink. The proprietor keeps standing authority (a cover never
+  // links, so a cover's end never unlinks).
+  if (organization && MixinApi.isBusiness(organization)) {
+    const account = await BankingApi.primaryAccountIdOf(
+      organization.getAccountPath(),
+    );
+    if (account) BankingApi.unlinkAccount(actor, account);
+  }
+}
+
+/**
+ * ⭐ Every Business `actor` **buys for**: each one where the actor holds a
+ * non-exited position authored `purchases: true`, plus the one whose
+ * proprietor the actor is (the proprietor buys for their own house by
+ * default). The one read behind `wallet use house`, the house-stamping
+ * `buy`, `consign`-as-the-business and the `house` app's gate.
+ *
+ * ⚠ Authority is the **position's**: a holder of the house tablet who
+ * holds no position here is not in this list, whatever they carry.
+ */
+async function buysForImpl(actor: Stuff): Promise<BusinessStuff[]> {
+  const who = actor.getIdentityPath() ?? actor.getTemplatePath();
+  if (!who) return [];
+  const out: BusinessStuff[] = [];
+  for (const business of allBusinessesImpl()) {
+    let buys = false;
+    for (const [positionKey, holders] of holdersByPositionImpl(business)) {
+      if (!holders.has(who)) continue;
+      if (business.getPosition(positionKey)?.purchases) {
+        buys = true;
+        break;
+      }
+    }
+    if (!buys && (await isProprietorOfImpl(actor, business))) buys = true;
+    if (buys) out.push(business);
+  }
+  return out;
+}
+
+/** One line of the live stock sheet — a par line against what is on hand. */
+export interface StockSheetLine {
+  line: ParLine;
+  /** On hand, in the line's unit, over what the viewer perceives. */
+  onHand: number;
+  /** `max(0, level − onHand)`. */
+  shortfall: number;
+}
+
+/** A glass row (or any good) that names its par category directly. */
+interface Categorized {
+  getCategory?(): string;
+}
+
+/**
+ * Every good the viewer can perceive from where they stand, descending
+ * into open containers (a bottle in a rack, a lime in a crate) but never
+ * into a sealed one (a bottle in a closed cupboard is not on the sheet).
+ * The viewer's own inventory counts — what you carry is on hand.
+ */
+function perceivedGoods(viewer: Stuff): Stuff[] {
+  const out: Stuff[] = [];
+  const seen = new Set<string>();
+  const walk = (container: Stuff): void => {
+    if (!MixinApi.isContainer(container)) return;
+    for (const item of container.getContents()) {
+      if (seen.has(item.stuffId)) continue;
+      seen.add(item.stuffId);
+      if (item !== viewer && !PerceptionApi.perceives(viewer, item)) continue;
+      out.push(item);
+      const closed = MixinApi.isSealable(item) && !item.isOpen();
+      if (!closed) walk(item);
+    }
+  };
+  walk(viewer);
+  if (MixinApi.isContainable(viewer)) {
+    const here = viewer.getContainer();
+    if (here) walk(here);
+  }
+  return out;
+}
+
+/** Whether `item` counts against a par category (see {@link ParLine}). */
+function matchesCategory(item: Stuff, category: string): boolean {
+  const named = (item as unknown as Categorized).getCategory?.();
+  if (named === category) return true;
+  if (MixinApi.isTangible(item)) {
+    const material = item.getMaterial();
+    if (material?.hasTag(category)) return true;
+  }
+  return false;
+}
+
+/**
+ * The live stock sheet for `viewer` at `business` — each par line against
+ * the on-hand total over the goods the **viewer perceives** (litres over
+ * bulk holders whose interior material carries the category tag, kg over
+ * the same by density, count over discrete goods whose material carries
+ * it or that name it). One function, two consumers: `house stock` and the
+ * keeper's `restocks` brain — so the NPC reads exactly the sheet a player
+ * would.
+ */
+function stockSheetForImpl(
+  viewer: Stuff,
+  business: BusinessStuff,
+): StockSheetLine[] {
+  const goods = perceivedGoods(viewer);
+  return business.getParLines().map((line) => {
+    let onHand = 0;
+    for (const item of goods) {
+      if (line.unit === 'count') {
+        if (!matchesCategory(item, line.category)) continue;
+        onHand += MixinApi.isGlobbable(item) ? item.getQuantity() : 1;
+        continue;
+      }
+      if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) continue;
+      const material = item.getBulkMaterial('interior');
+      if (!material?.hasTag(line.category)) continue;
+      const litres = item.getBulkAmount('interior').rawValue();
+      onHand +=
+        line.unit === 'L'
+          ? litres
+          : (litres / 1000) * material.getDensity().rawValue();
+    }
+    onHand = Math.round(onHand * 1000) / 1000;
+    return { line, onHand, shortfall: Math.max(0, line.level - onHand) };
+  });
 }
 
 /**
@@ -560,15 +707,7 @@ export class EmploymentLogic extends ApiLogic {
 
   private allBusinesses(): BusinessStuff[] {
     if (this.businessCache) return this.businessCache;
-    // MQL system enumeration (null giver — the roster tick must govern
-    // every business regardless of any viewer's fog).
-    const matches = MqlApi.resolveMany('world:[mixin.BusinessMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    });
-    const out = matches.stuff.filter((s): s is BusinessStuff =>
-      MixinApi.hasMixin(s, Mixins.Business),
-    );
+    const out = allBusinessesImpl();
     this.businessCache = out;
     return out;
   }
@@ -723,14 +862,33 @@ export class EmploymentLogic extends ApiLogic {
 
   /** See {@link EmploymentApi.fire}. */
   @CallSecurity(EmploymentApiCallers)
-  public fire(organization: OrganizationStuff, actor: Stuff): void {
-    endEmploymentImpl(actor, organization.getTemplatePath() ?? '', 'fired');
+  public fire(organization: OrganizationStuff, actor: Stuff): Promise<void> {
+    return endEmploymentImpl(
+      actor,
+      organization.getTemplatePath() ?? '',
+      'fired',
+    );
   }
 
   /** See {@link EmploymentApi.quit}. */
   @CallSecurity(EmploymentApiCallers)
-  public quit(actor: Stuff, organizationPath: string): void {
-    endEmploymentImpl(actor, organizationPath, 'quit');
+  public quit(actor: Stuff, organizationPath: string): Promise<void> {
+    return endEmploymentImpl(actor, organizationPath, 'quit');
+  }
+
+  /** See {@link EmploymentApi.buysFor}. */
+  @CallSecurity(EmploymentApiCallers)
+  public buysFor(actor: Stuff): Promise<BusinessStuff[]> {
+    return buysForImpl(actor);
+  }
+
+  /** See {@link EmploymentApi.stockSheetFor}. */
+  @CallSecurity(EmploymentApiCallers)
+  public stockSheetFor(
+    viewer: Stuff,
+    business: BusinessStuff,
+  ): StockSheetLine[] {
+    return stockSheetForImpl(viewer, business);
   }
 
   /** See {@link EmploymentApi.beginCover}. */

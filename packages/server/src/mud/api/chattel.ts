@@ -44,9 +44,16 @@ function logic(): ChattelLogic {
   );
 }
 
-/** Build the typed owner principal for an Avatar/player Stuff. */
+/**
+ * Build the typed owner principal for a Stuff: an organization (a
+ * Business buying through a purchasing holder's wallet) takes the
+ * `organization` arm; anything else is a player.
+ */
 function ownerKeyOf(owner: Stuff): ChattelOwner {
-  return { kind: "player", templatePath: owner.getTemplatePath() ?? "" };
+  const templatePath = owner.getTemplatePath() ?? "";
+  return MixinApi.isOrganization(owner)
+    ? { kind: "organization", templatePath }
+    : { kind: "player", templatePath };
 }
 
 export class ChattelApi {

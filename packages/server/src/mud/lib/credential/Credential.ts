@@ -158,6 +158,20 @@ export class PaymentCredential extends Credential {
     if (!this._activeAccount) this._activeAccount = accountId;
   }
 
+  /**
+   * Unlink an account. If it was the active one, the active pointer moves
+   * to the first remaining linked account (or clears). The inverse of
+   * {@link linkAccount} — what leaving a purchasing position does to the
+   * house account it had put in the wallet.
+   */
+  unlinkAccount(accountId: string): void {
+    this._linkedAccounts.delete(accountId);
+    if (this._activeAccount === accountId) {
+      const [next] = this._linkedAccounts;
+      this._activeAccount = next ?? "";
+    }
+  }
+
   /** Whether `accountId` is linked to this credential. */
   hasAccount(accountId: string): boolean {
     return this._linkedAccounts.has(accountId);

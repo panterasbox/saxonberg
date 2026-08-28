@@ -41,6 +41,7 @@ import {
   type Organization,
   type OrganizationFields,
 } from '../../lib/employment/Organization';
+import { ParLine, type ParLineData } from '../../lib/employment/ParLine';
 
 /**
  * The trading half of the surface — what a Business adds to the chart
@@ -55,6 +56,12 @@ export interface BusinessTrade {
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
+  /** The par manifest — what the house keeps on hand, and from whom. */
+  getParLines(): readonly ParLine[];
+  /** Set (or replace, by category) one par line. */
+  setParLine(line: ParLineData): void;
+  /** Remove the par line for `category`; returns whether one was there. */
+  removeParLine(category: string): boolean;
 }
 
 /**
@@ -90,6 +97,7 @@ export function BusinessMixin<
         authorPicker: 'Template',
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
+      parLines: { persistent: true, authorable: true },
     };
 
     /**
@@ -107,6 +115,33 @@ export function BusinessMixin<
      * `EmploymentApi.operatingAccountOf`).
      */
     public banksAt: string = '';
+
+    /**
+     * The **par manifest**: the levels of each category of goods the
+     * house keeps, and the supplier each is bought from. Policy is the
+     * owner's, so it lives here and not on the shelf; what is on hand
+     * against it is derived on read (`EmploymentApi.stockSheetFor`),
+     * never stored. Edited by `house par`; read by `house stock` and the
+     * keeper's `restocks` brain alike.
+     */
+    public parLines: ParLineData[] = [];
+
+    public getParLines(): readonly ParLine[] {
+      return this.parLines.map((l) => ParLine.fromData(l));
+    }
+
+    public setParLine(line: ParLineData): void {
+      const next = ParLine.fromData(line).serialize();
+      const at = this.parLines.findIndex((l) => l.category === next.category);
+      if (at >= 0) this.parLines[at] = next;
+      else this.parLines.push(next);
+    }
+
+    public removeParLine(category: string): boolean {
+      const before = this.parLines.length;
+      this.parLines = this.parLines.filter((l) => l.category !== category);
+      return this.parLines.length !== before;
+    }
 
     public getBanksAt(): string {
       return this.banksAt;

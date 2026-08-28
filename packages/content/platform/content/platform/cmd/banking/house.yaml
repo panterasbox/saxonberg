@@ -1,17 +1,24 @@
 verbs: [house]
 controller: /platform/idea/cmd/banking/HouseController
-description: "Venue owner — pnl / payroll (operator)"
+description: "The house app — pnl / payroll / par / stock"
+opens_card: stock
 help: |
-  The venue-owner surface. `house pnl` reads the present venue's
-  profit-and-loss (categorized flows + a running balance, red by design).
-  `house payroll <worker> <amount>` pays a wage from the venue's account.
-  Operator-gated.
+  The house app, for whoever keeps the house: a position held there or
+  the proprietorship. `house pnl` reads the venue's profit-and-loss
+  (categorized flows + a running balance). `house payroll <worker>
+  <amount>` pays a wage from the house account. `house par <category>
+  <level>` sets what the house keeps on hand — `house par gin 6L`,
+  `house par lime 24`, `house par ice 10kg`; `--from <business>` names
+  the supplier, `--grade <band>` the lowest grade accepted, a level of
+  `0` strikes the line. `house stock` shows the live sheet: the rail
+  against par, counted over what you can see from where you stand.
+  Restocking is not a verb — read the sheet, `wallet use house`, `buy`,
+  and `put` it on the rail.
 validators:
   - /lib/command/validators/requiresAnimate
-  - /lib/command/validators/requiresWizard
 subcommands:
   pnl:
-    description: "Read the venue's profit-and-loss"
+    description: "Read the house's profit-and-loss"
   payroll:
     description: "Pay a worker a wage from the house account"
     args:
@@ -23,3 +30,23 @@ subcommands:
       - name: amount
         type: string
         required: true
+  par:
+    description: "Set (or strike, at 0) a par line on the house"
+    args:
+      - name: category
+        type: string
+        required: true
+      - name: level
+        type: string
+        required: true
+    options:
+      grade:
+        short: g
+        type: string
+        description: "The lowest grade band the house accepts."
+      from:
+        short: f
+        type: string
+        description: "The supplier (a business path) this line is bought from."
+  stock:
+    description: "The live stock sheet — the rail against par"
