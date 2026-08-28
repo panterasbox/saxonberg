@@ -191,6 +191,19 @@ Adding a new Zone subclass to satisfy a folder need is the right move
 when no existing class fits. `FolderZone` is the generic answer when
 the folder doesn't carry domain-specific behavior.
 
+## Declared spawn fields — `stocks`, `favours`
+
+`Zone` declares `stocks: Record<censusKey, number> | null` and
+`favours: string[] | null` (persistent + authorable; `getStocks` /
+`setStocks`, `getFavours` / `setFavours`). The residency spawn sweep reads
+both through `lookupField`, so they inherit down the zone tree and a child
+narrows. ⚠ They were read before libations but never **declared** — the
+Hydrator reflects only `fieldMeta` fields, so an authored `stocks:` was
+silently dropped (the reference-ideas-inert-at-boot pattern). Veshko's
+yard (`corpo-veshko/content/world/veshko.yaml`) is the first zone to
+author one (`spirit:vodka: 24`, whiskey/rum/gin 12). `blessingOdds` is
+still undeclared. See [residency.md](./residency.md).
+
 ## Authoring guidelines
 
 The cardinal-only-intra-zone invariant and the zone-derivation rule

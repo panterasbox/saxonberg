@@ -69,7 +69,17 @@ Four value objects + two mixins + the concrete entity:
   (v1: `['MakerMixin']` for the bartender). ⚠ **`wageRate` stays on
   `Position`**: compensation attaches to the *position*, which is what
   makes the roster's `{positionKey, assignee}` shape right rather than
-  incidental.
+  incidental. **`purchases?: boolean`** (libations) — the position buys
+  for the house: its holder may `wallet use house`, and a non-Avatar
+  holder is dealt the **house card** at hire (below). A data field, never
+  a marker mixin — nothing else on `Position` is authority-shaped.
+- **`ParLine`** (`lib/employment/ParLine.ts`) — one line of a Business's
+  **par manifest**: `{ category, minGrade?, level, unit: 'L'|'count'|'kg',
+  supplier? }`. `category` matches a **material tag** (a bottle of gin,
+  a bag of ice, a crate of limes — the bulk interior material for `L`/`kg`,
+  `Tangible.getMaterial()` for `count`) or a pool glass's own
+  `getCategory()`; `supplier` is a Business template path. The par is the
+  owner's policy; what is *on hand* is a derived read (below).
 - **`Authority`** — the `PrincipalRef` tagged union: *who may fill this
   organization's positions?* See below.
 - **`Employment`** — one actor's relationship to one **organization**:
@@ -378,6 +388,86 @@ stays hot-swappable:
   `endCover` drops it when a real bartender is back. v1 = clause-unheld only
   (demand has no measure yet); `beginCover` does **not** verify
   proprietorship — the brain gates on `businessOfProprietor`.
+- **`restocks`** (libations) — the keeper reads the par sheet and buys
+  the shortfall; **`consigns`** — a producer's floor hand carries stock
+  to a distributor's counter and consigns it as the business. Both are
+  kernel, generic, and drive the **literal verbs** through
+  `CommandApi.forceCommand` (`wallet use house`, `buy`, `put … on`,
+  `pour … into`, `get`, `wash`; `get`, `consign … --ask`) — nothing an NPC
+  does is unavailable to a player. See [behavior.md](./behavior.md) and
+  [retail.md](./retail.md).
+
+## ⭐ The house account in the wallet, and the par manifest (libations)
+
+> **The wallet's active account is the principal you trade as.**
+
+The one kernel gap the bar's supply chain needed was *a purchase paid
+from a business account*. No custodial shape was needed: a
+`PaymentCredential` is a set of linked account ids and an active pointer,
+and settlement never checks that the payer *owns* the routing account
+(it checks `authorize` and balance only). So the conferral is a **link**:
+
+- **`EmploymentApi.buysFor(actor): Promise<BusinessStuff[]>`** — every
+  Business where the actor holds a non-exited `purchases` position, plus
+  the one whose proprietor they are.
+- **`wallet use house`** (`WalletController`) — resolves the house via
+  `buysFor`: the business operating **here** (`businessAt`), else the
+  single one, else `ambiguous-house` (names them); links its operating
+  account into the holder's credential and makes it active
+  (`not-staff` / `no-venue-account` otherwise). Bare `wallet` names a
+  house account as such ("the house account of Dave's Bar").
+- While active: **`buy` stamps the chattel to the business**
+  (`BuyController` reads `receipt.accountId` → `BankingApi.ownerKeyOf`
+  → a live `Business` → `ChattelApi.stamp(item, business)`, the
+  `organization` owner arm; "for Dave's Bar" in the scene); **`consign`
+  consigns as the business** (the listing's `consignorKey` is the
+  business path, its operating account is the payout; an unstamped good
+  the hand holds is stamped to the business first). `house stock` /
+  `house par` act on that business.
+- **`quit`** (`platform/idea/cmd/employment/QuitController.ts`, `quit
+  [<business>]`) is the player's way out; `EmploymentApi.quit` / `fire`
+  unlink the operating account (`BankingApi.unlinkAccount`), and a relog
+  re-clones the wallet app, so the link never outlives the position.
+  Both are async now.
+- **The house card** — NPCs run no `installDefaultLoadout` (no implant,
+  no wallet app), so the NPC shape of the same conferral is a
+  **`PaymentCard`** linked to the operating account, dealt into the
+  holder's inventory at `hire` / roster materialization when the
+  position has `purchases: true` and the holder is not an Avatar
+  (`issueHouseCardImpl`, idempotent, `UNCAPPED` — seat authority, not a
+  number). Same credential kind, same `wallet use house`, same `buy`.
+  Players get nothing minted.
+
+**`house`** (`HouseController`) no longer carries `requiresWizard` — that
+is the TypeScript code-trust axis and nothing else; venue authority is
+the SEAT (`resolveHouse`: the business here if the giver `holdsPosition`
+or `isProprietorOf`, else `buysFor(giver)[0]`, else `not-staff`).
+`house par <category> <level> [--grade <band>] [--from <business>]` edits
+the manifest (unit from the suffix — `6L`, `5kg`, bare = count; `0`
+strikes the line). `house stock` emits the sheet as prose and shows the
+live `stock` card on a screen ([display.md](./display.md); `no-display`
+without one).
+
+**`EmploymentApi.stockSheetFor(viewer, business): StockSheetLine[]`**
+(`{ line, onHand, shortfall }`) — for each par line, the on-hand total
+over the goods the **viewer perceives** from where they stand
+(inventory + location, descending open containers — a bottle in a rack,
+a lime in a crate — never sealed ones, filtered by
+`PerceptionApi.perceives`). One function, two consumers: the controller
+and the `restocks` brain. `goodsFor(viewer, category)` returns the
+matching items so a buyer can name what to `buy`.
+
+`Business.parLines` (persistent + authorable; `getParLines` /
+`setParLine` / `removeParLine`). The lounge's `business.yaml` authors 45
+lines, every bought line `supplier: /trade/distilling/idea/business`;
+glassware lines carry no supplier (nobody consigns glasses yet, so
+breakage shows as shortfall the brain cannot buy back).
+
+**The player path to the seat** is diegetic: Dave's tree-dialogue
+(*"Looking for work?"*) carries a `dispatch` effect that runs `appoint
+$player to keeper at /world/lounge/idea/business` as Dave, guarded on
+`position:/world/lounge/idea/business eq false`
+([npc-dialogue.md](./npc-dialogue.md)). No wizard anywhere in the loop.
 
 ## Tips — the tip jar (`tip` / `collect`)
 

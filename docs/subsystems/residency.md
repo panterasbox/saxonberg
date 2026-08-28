@@ -319,10 +319,45 @@ zone's declaration covers its descendants and a child can narrow it.
 | `favours` — material tags | multiplies draw weight for matching items |
 | `blessingOdds` — BUC weights | **overrides an item's own generation odds, zone-wide** (see [magic-items.md](./magic-items.md) § Generation odds) |
 
-⚠ **None of the three is declared by any shipped zone yet.** A region
-that declares nothing leaves every item on its own baseline and a
-neutral affinity, so distribution works in un-authored regions rather
-than silently placing nothing.
+`stocks` and `favours` are declared `Zone` fields since libations
+(they were read but never hydrated before — [zone.md](./zone.md));
+Veshko's yard is the first shipped zone to author `stocks`.
+`blessingOdds` is still undeclared. A region that declares nothing leaves
+every item on its own baseline and a neutral affinity, so distribution
+works in un-authored regions rather than silently placing nothing.
+
+## ⭐ The sweep is a faucet — template candidates, the home region, the batch draw (libations)
+
+The spawn sweep is the **sanctioned faucet** a producer's floor stock
+stands at target through (D4: never a second faucet). Three changes made
+it one:
+
+- **Candidates are template-derived.** As shipped the candidate set was
+  *live circulating things only* — on a fresh DB there was nothing to
+  copy, so a floor could never stand up. `ResidencyLogic` now unions the
+  live set with every template row that authors `censusKey`
+  (`Template.findWhereDataHas('censusKey')`) whose class composes
+  `Circulating`. A row candidate carries a **home region** — the zone of
+  its `container:` — and is drawn only there; the shipped `applyContainer`
+  places the clone (so a floor bottle row naming its outfit's `Stock`
+  lands in it with no new code). Live candidates without a home are
+  drawn anywhere (the v1 behaviour, kept). A zone-less producer counts in
+  the unplaced region `''`, where the row's own `regionTarget` governs —
+  a zone `stocks:` is the optional override.
+- **Draw until decline, per region.** One census, many placements: the
+  loop keeps a local copy of the census honest as it places, stops when
+  the table declines, and is capped by `residency.spawn.perRegionCap`
+  (default 64; `AppSettingKeys.residencySpawnPerRegionCap`).
+- **A boot run, in `enforce`.** `AppBootstrap` calls
+  `ResidencyApi.spawnNow()` once after `ResidencyApi.boot()` (after
+  `PackApi.install()`), and the platform's `settings/residency.yaml`
+  ships `residency.spawn.mode: enforce` — the "stands at target on a
+  fresh boot" criterion. `rollBlessing` is untouched.
+
+⚠ **Cost**: `ContainmentApi.move` is O(room contents), so the boot sweep
+placing ~180 bottles and ~32 crates × 12 items takes tens of seconds on a
+fresh DB (the pack tests scale targets down for this reason). A cheaper
+placement is a kernel follow-up, not a content dial.
 
 The BUC roll fires on the freshly cloned object at the mint site inside
 the sweep — deliberately **not** in `StuffApi.clone`, so an author's

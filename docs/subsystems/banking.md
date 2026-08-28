@@ -304,7 +304,25 @@ reissue).
   a handed-off holder), no longer `requiresWizard`: minting money is a
   monetary-authority act, not a code-trust one. This realizes the "governance
   of the central bank" `CentralBank.ts` left deferred — see
-  [governance.md](./governance.md). (`house` stays operator-gated.)
+  [governance.md](./governance.md). (`house` is seat-gated since libations
+  — the position held or the proprietorship, never `requiresWizard`; see
+  [employment.md](./employment.md).)
+- **Cost of goods derives on read** (libations): a ledger row carries ONE
+  category for both accounts, so a `buy` posts `sales` (or `consignment`)
+  for the payee and the *payer's* side of that same leg reads as **`cogs`**
+  in `profitAndLossImpl` — one row, two readings, nothing new stamped.
+  `house pnl` at the bar shows income, wages, tax and cost of goods.
+- **The credential reads the wallet needs** (libations): `BankingApi.
+  ownerKeyOf(accountId)` (the account's recorded owner key — a player
+  path or a Business path); `linkAccount(actor, id)` / `unlinkAccount(actor,
+  id)` over the reachable payment credential (`PaymentCredential.
+  unlinkAccount` — if it was active, active falls to the first remaining
+  linked account or `''`); `issueCard(accountId, capMinor, holder?)` now
+  takes the holder the card is dealt into (the house card at hire).
+  Settlement is untouched: it never checked that the payer owns the
+  routing account, which is exactly why a linked business account is
+  spendable through the ordinary `buy` — the seat check lives at the
+  link (`wallet use house`), not in the payer path.
 
 ## Reporting consumers + the bar loop (Phase 5)
 

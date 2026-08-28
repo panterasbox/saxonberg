@@ -292,6 +292,8 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
 | `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
 | `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
+| `consigns` | cadence (not ambient, not presence-gated) | — | — | a producer's hand carries floor stock to the host shelf and consigns it **as the business** — literal verbs via `forceCommand` (`get`, `wallet use house`, `consign … --ask`), `teleport` between floor and counter | `{ stock, shelf, ask: {censusKey: minor}, defaultAsk?, batch? }` |
+| `restocks` | cadence (not ambient, not presence-gated) | — | — | the keeper reads `EmploymentApi.stockSheetFor` (perception-scoped), groups shortfall by each par line's supplier, `wallet use house` / `buy` a unit at a time / `put … on` / `pour … into`, then busses (`get`, `wash`, `put … in rack`); stops at the first `insufficient-funds` | `{ shelf, rack?, bin?, batch? }` — fixtures only; the supplier comes from the par line |
 
 (The trait-aware `converses` brain — cadence, claims `voice` — is documented
 in [trait.md](./trait.md).) The speech/idle cadence brains declare
@@ -312,6 +314,15 @@ active on-shift maker is present it `beginCover`s a transient unpaid
 `MakerMixin`-conferring shift so an `order` still finds a fulfiller. This is
 presence/migration only — the in-room shift-*change* ritual (count-out,
 reconcile, hand-off) is a later scripting wave.
+
+⭐ **`consigns` and `restocks` are the first brains that dispatch
+commands.** Neither calls an Api that moves money: every act is a literal
+verb through `CommandApi.forceCommand(host, text)`, so "no verb only an
+NPC can use" is checkable, and a `buy` the house cannot afford declines
+for the hand exactly as for a player. ⚠ **Cadence is real time only**
+(`Behaved._parseTrigger` accepts `ms|s|m`); Mara restocks on
+`cadence:10m`, the hands consign on `cadence:90s` — a game-time cadence
+is a `Behaved` change nobody has needed yet.
 
 ## Dev workflow & isolation (path-based)
 
