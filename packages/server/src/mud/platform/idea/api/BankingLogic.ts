@@ -121,14 +121,33 @@ const COIN_PATH = "/stuff/thing/Coin";
  * ledger row always names *someone*.
  */
 function actingActorKey(): string {
-  const principal = ExecutionContextApi.getActingAuthor() as {
+  const principal = actingPrincipal() as {
     getTemplatePath?(): string | null;
   } | null;
   return principal?.getTemplatePath?.() ?? "system";
 }
 
-/** The acting principal as a Stuff (for moving coin to/from it), or null. */
+/**
+ * The acting principal as a Stuff (for moving coin to/from it), or null.
+ *
+ * The PAYER is the command frame's giver whenever the command chain has
+ * one consistent giver — forced or not. A forced command still runs AS
+ * its giver (a brain's hand at the counter, Dave hiring through a
+ * dialogue dispatch), and the money authority it spends is the wallet
+ * that giver carries, which is the whole wallet rule. Authorship
+ * attribution (`getActingAuthor`) keeps failing closed on a forced
+ * chain — provenance is a different question from who is paying. A
+ * cross-actor cascade (A's command triggering B's) has no single giver
+ * and pays as nobody, exactly as before. Outside any command frame the
+ * tagged author (a REST boundary's Avatar) is the principal.
+ */
 function actingPrincipal(): Stuff | null {
+  const commands = ExecutionContextApi.getCommandStack();
+  if (commands.length > 0) {
+    const givers = new Set(commands.map((c) => c.context.commandGiver));
+    if (givers.size !== 1) return null;
+    return (commands[0]!.context.commandGiver as unknown as Stuff) ?? null;
+  }
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
 
