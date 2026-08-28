@@ -43,7 +43,7 @@ import {
 export const IRON = '/stuff/idea/material/_test/mb-iron';
 export const VEG = '/stuff/idea/material/food/root-vegetable';
 export const MEAT = '/stuff/idea/material/food/stew-meat';
-export const COOKED = '/stuff/idea/material/food/cooked';
+export const COOKED = '/platform/idea/material/cooked';
 export const KNIFE_T = '/stuff/thing/arms/belt-knife';
 export const DISH_T = '/stuff/thing/items/plated-dish';
 

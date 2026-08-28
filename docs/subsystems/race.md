@@ -194,7 +194,7 @@ response/repair/salvage machinery organizes around.
 
 **Per-dish / per-drink substances are never material rows.** A mixture
 (a plated stew, a mixed cocktail) is a *derived blend*: its bulk slot
-points at ONE generic ConsumableMaterial (`food/cooked`,
+points at ONE generic ConsumableMaterial (`/platform/idea/material/cooked`,
 `cocktail/mixed` — physics + routing homes) and the blend's identity +
 macros ride the holder's per-instance **`BulkPayload`** (see
 [bulk.md](./bulk.md)), computed from the consumed inputs — macros in =

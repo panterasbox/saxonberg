@@ -55,7 +55,7 @@ const EPS = 1e-9;
 const GENERIC_MIXED_MATERIAL = '/platform/idea/material/blend';
 
 /** The generic substance every derived cooked blend points at. */
-const GENERIC_COOKED_MATERIAL = '/stuff/idea/material/food/cooked';
+const GENERIC_COOKED_MATERIAL = '/platform/idea/material/cooked';
 
 /** The portion an off-spec cooked fill lands in the dish (L). */
 const GENERIC_COOKED_PORTION_L = 0.3;

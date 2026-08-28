@@ -1,3 +1,6 @@
+# Lives in the PLATFORM pack (`/platform/idea/material/cooked`) because the
+# kernel names it (`CraftingLogic.GENERIC_COOKED_MATERIAL`), and a kernel
+# module may never name a trade pack's row (libations phase 5).
 # Cooked fare — the ONE generic substance every derived cooked blend
 # points at (a plated stew, a pot-luck): generic dense-food physics +
 # the edible routing home. The blend's actual identity + macros ride the

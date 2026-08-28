@@ -172,7 +172,7 @@ Material). So each slot optionally carries a **`BulkPayload`** — a
 plain persisted record with a Material row's identity + metabolism
 face (`name`/`appearance`/`keywords`, `nutrients` routing tags, label
 `nutrientAmounts`, per-serving `toxicity`, `edible`) — while the slot's
-material stays ONE generic substance (`food/cooked`,
+material stays ONE generic substance (`/platform/idea/material/cooked`,
 `cocktail/mixed`). Every reader treats `payload ?? material`
 uniformly: the MQL bulk candidate (`look stew`), the contents
 augmenter, the NutritionLabel, the drink/sip prose, and metabolism's

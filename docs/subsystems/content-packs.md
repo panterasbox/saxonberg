@@ -78,14 +78,14 @@ packages/content/base-library/
 ├── src/                  # CAPABILITY packs only: the classes its rows name, <root>/<branch>/…
 └── content/              # content root; MIRRORS the template-path namespace
     └── lib/
-        ├── material/spirit/gin.yaml   →  template path /stuff/idea/material/spirit/gin
+        ├── material/spirit/gin.yaml   →  template path /trade/distilling/idea/material/gin
         └── biome/…
 ```
 
 The `content/` root mirrors the template-path namespace: a file's path
 relative to `content/`, minus `.yaml`, prefixed with `/`, **is** its
-template path (`content/stuff/idea/material/spirit/gin.yaml` →
-`/stuff/idea/material/spirit/gin`; `content/world/newbie-wilds/crossroads/hub.yaml`
+template path (`content/trade/distilling/idea/material/gin.yaml` →
+`/trade/distilling/idea/material/gin`; `content/world/newbie-wilds/crossroads/hub.yaml`
 → `/world/newbie-wilds/crossroads/hub`; `content/corpo/aevex.yaml` →
 `/corpo/aevex`; `content/home.yaml` → `/home`) — the rule the retired
 `SeederManager` used. So the path is a pure namespace identifier,
@@ -977,7 +977,7 @@ timelines (separate repos / third-party packs / a marketplace) — the
 same boundary as the repo split — at which point it tracks the pack's
 **public surface** (the paths and tags other content references), not its
 values: editing gin's density breaks nothing (it re-hydrates); renaming
-`/stuff/idea/material/spirit/gin` breaks every pointer.
+`/trade/distilling/idea/material/gin` breaks every pointer.
 
 ## Deferred
 

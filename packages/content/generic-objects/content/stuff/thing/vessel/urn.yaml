@@ -11,4 +11,4 @@ data:
   longDescription: A tall steel coffee urn with a little spigot near its base.
   keywords: [urn, coffee]
   interiorBulk: true
-  interiorMaterial: /stuff/idea/material/bulk/coffee
+  interiorMaterial: /trade/hearth-cooking/idea/material/coffee

@@ -254,7 +254,7 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    - `'bulk'` / `'edible'` — fill the output's bulk slot at
      `Σ measureL` / `outputPortionL`. The substance is **derived by
      default**: the slot points at the ONE generic blend base
-     (`cocktail/mixed` / `food/cooked`) and a per-instance
+     (`/platform/idea/material/blend` / `/platform/idea/material/cooked`) and a per-instance
      **`BulkPayload`** carries the blend's identity (recipe
      name/appearance/keywords) + macros **summed from the consumed
      inputs** — macros in = macros out (a martini's 26 mg of alcohol

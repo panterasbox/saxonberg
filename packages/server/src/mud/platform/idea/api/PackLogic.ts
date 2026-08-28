@@ -102,7 +102,7 @@ interface ResolvedPack {
 
 /** A parsed `domain`-kind content file. */
 interface DomainFile {
-  /** Derived template path (`/stuff/idea/material/spirit/gin`). */
+  /** Derived template path (`/trade/distilling/idea/material/gin`). */
   path: string;
   /** Backing class path. */
   class: string;

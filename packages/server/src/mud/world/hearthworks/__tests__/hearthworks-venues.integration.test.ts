@@ -394,7 +394,7 @@ describe('the cookhouse, served', () => {
     // points at the ONE generic cooked base and the payload carries the
     // stew's identity + macros, summed from the ACTUAL pantry inputs
     // (macros in = macros out; the fixed-vocabulary rule live).
-    expect(slot.getMaterialPath()).toBe('/stuff/idea/material/food/cooked');
+    expect(slot.getMaterialPath()).toBe('/platform/idea/material/cooked');
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Hearty Stew');
     expect(payload.nutrientAmounts).toMatchObject({

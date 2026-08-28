@@ -11,7 +11,7 @@ Contents:
 - `content/quantity/quantity-tags.yaml` — the quantity unit tag tables.
 
 Files under `content/` mirror the template-path namespace
-(`content/lib/material/spirit/gin.yaml` → `/lib/material/spirit/gin`).
+(`content/stuff/idea/material/bulk/water.yaml` → `/stuff/idea/material/bulk/water`).
 
 The pack is installed into the running game by the kernel's `PackApi`
 installer (boot-time reconcile + the `pack sync` dev verb). The pack files
