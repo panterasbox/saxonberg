@@ -4,7 +4,9 @@
 > The second pack of the alphabetical reorg (*b*: the bar), and the first
 > one that is not a refactor for its own sake — the point is a **fully
 > realized, shippable system**: Dave's Bar operating on a real supply
-> chain with no magic in it.
+> chain with no magic in it — and a **real menu** (Part 9) driving a
+> real ingredient catalog, because the menu is the demand everything
+> upstream exists to meet.
 
 > **User: "the point of splitting all this content pack out wasn't just a
 > refactor for its own sake, I wanna start actually trying to build fully
@@ -212,12 +214,14 @@ complete at its tier, exactly as the retail slate's general store was.
 
 | pack | rung | ships | depends on |
 |---|---|---|---|
-| **`trade-distilling`** | capability | the spirit **materials** (gin, vodka, whiskey, rum — out of base-library), the `Bottle` preset (a `GradedReceptacle` with the glassware boilerplate — the `Potion` pattern), the **still** (a furnace-family station, so the distillery build has its tool waiting), the independent brand + bottle (**Crowsfoot Gin** — out of generic-objects), the generic floor bottles, the trade's **showroom** (below), the `distilling` discipline (the discipline rule: with the pack whose code derives it) | platform, base-library (glass, water), generic-objects for nothing |
+| **`trade-distilling`** | capability | the spirit **materials** (gin, vodka, whiskey, rum light + dark, **tequila** — out of base-library) and the **liqueurs** (orange, bitter, aperitivo, bitters — distilling's compounding step), the `Bottle` preset (a `GradedReceptacle` with the glassware boilerplate — the `Potion` pattern), the **still** (a furnace-family station, so the distillery build has its tool waiting), the independent brand + bottle (**Crowsfoot Gin** — out of generic-objects), the generic floor bottles, the trade's **showroom** (below), the `distilling` discipline (the discipline rule: with the pack whose code derives it) | platform, base-library (glass, water), generic-objects for nothing |
 | **`trade-brewing`** (stub) | data | ale / lager materials (`drink/ale` out of base-library), keg + cask presets, a generic floor beer, "a pint" | platform, trade-distilling? no — independent |
-| **`trade-winemaking`** (stub) | data | wine materials (red, white) + **vermouth** (out of base-library — fortified wine is winemaking's), the wine `Bottle`, generic floor wines + the house vermouth, "a glass of …" | trade-distilling (fortification names its spirit) |
+| **`trade-winemaking`** (stub) | data | wine materials (red, white, sparkling) + **vermouth** (dry + sweet — out of base-library; fortified wine is winemaking's), the wine `Bottle`, generic floor wines + the house vermouths, "a glass of …" | trade-distilling (fortification names its spirit) |
+| **`trade-bottling`** (stub) | data | the soft mixers (soda water, tonic, ginger beer, cola, grapefruit soda, bottled juices), a bottle/can preset, the generic floor | platform |
+| **`trade-produce`** (stub) | data | fresh produce materials (lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry — and the crops out of generic-objects), crate/basket presets, the greengrocer floor; the beginning of the farming pack | platform, base-library |
 | **`corpo-veshko`** | data | the Volk bottle rows + the **Veshko distillery** — a `Business` (`parentOrganization: veshko`) that is the floor's producer of record | trade-distilling |
 | **`corpo-hollis`** | data | the Old Hollis / Hollis Cane bottle rows (the private label: `interiorMaterial` = Veshko's generic, `_brandKey` = Hollis's) | trade-distilling, corpo-veshko |
-| **`trade-hospitality`** | data | four new recipes (vodka soda, whiskey sour, a pint, a glass of wine); the mixers as house labor | + the three libation trades |
+| **`trade-hospitality`** | data → capability if the ice machine / tap need a class | the **v1 menu** (Part 9: ~24 recipes), the house recipes (`press`, simple syrup, the garnish cuts), the tools (muddler, bar spoon, strainer, juicer, tap, ice machine), nine glassware presets | + the five libation trades |
 | **`saxonberg-lounge`** | capability (LoungeMixin) | the four magic `populates` lines **deleted**; the bar's **par manifest**; Mara's **restock** brain; the Bar's shelf re-cut per Part 3 | + the libation trades, corpo-veshko, corpo-hollis |
 
 ### ⭐⭐ The showroom is the distributor, and the corpos consign into it
@@ -318,10 +322,13 @@ The bar is operational when this runs **with no player logged in**:
    runs `restock` on her shift: counts, buys on the bar's account, carries
    in, places. The distributor's stock falls; the bar's account falls;
    the consignor's account rises on resale.
-3. A patron orders a martini (Crowsfoot + house vermouth), a daiquiri
-   (Hollis Cane + pressed lime), a vodka soda (Volk), a whiskey sour (Old
-   Hollis), a pint, a glass of red. Each consumes real bulk from a bought
-   bottle; each settles a Charge.
+3. A patron orders **every line of the v1 menu** (Part 9) over a game-
+   week — a martini (Crowsfoot + house vermouth, an olive), a daiquiri
+   (Hollis Cane + pressed lime), a vodka soda (Volk, a wedge, ice), an
+   old fashioned (Old Hollis, a dash of bitters, a peel), a mojito
+   (muddled mint), a pint from the tap, a glass of red, a coffee. Each
+   consumes real bulk from a bought bottle or a pressed lime or a bucket
+   of ice; each settles a Charge; each garnish is a thing on a glass.
 4. The rail drains over a game-week; restock replenishes it; the bar's
    P&L now carries **cost of goods** against income and wages, so the
    deficit the central bank subsidises is a real number and the
@@ -329,6 +336,130 @@ The bar is operational when this runs **with no player logged in**:
 5. Nothing is ever refilled by a reboot.
 
 ---
+
+---
+
+## Part 9 — ⭐⭐ The menu, and everything it exposes
+
+> **User: "I wanna fill out a lot more recipes and then of course if we
+> make more recipes we need more ingredients … enough for any healthy bar
+> to offer. and then whatever else the recipes expose we need, we need to
+> include that in the requirements too."**
+
+The menu is the **forcing function**: a real bar list is the demand,
+and every ingredient it names is a row that must live somewhere, every
+tool it needs is a station, every technique is a capability, and every
+thing a recipe cannot yet say is a gap in the substrate. So author the
+menu first and derive everything else from it — *seed the economy
+backwards from the sink*, one level deeper.
+
+### The list (v1 — what a healthy neighbourhood bar offers)
+
+| # | drink | base | the rest | tool → technique | glass |
+|---|---|---|---|---|---|
+| 1 | Martini | gin | dry vermouth · olive **or** lemon twist | mixing-glass → stir | coupe |
+| 2 | Gin & tonic | gin | tonic · lime wedge · ice | — → build | highball |
+| 3 | Negroni | gin | sweet vermouth · bitter liqueur · orange peel · ice | mixing-glass → stir | rocks |
+| 4 | Tom Collins | gin | lemon juice · simple syrup · soda · ice | shaker → shake | collins |
+| 5 | Gimlet | gin | lime juice · simple syrup | shaker → shake | coupe |
+| 6 | Vodka soda | vodka | soda · lime wedge · ice | — → build | highball |
+| 7 | Moscow mule | vodka | ginger beer · lime juice · ice | — → build | mug (copper) |
+| 8 | Cosmopolitan | vodka | orange liqueur · cranberry juice · lime juice | shaker → shake | coupe |
+| 9 | Screwdriver | vodka | orange juice · ice | — → build | highball |
+| 10 | Old fashioned | whiskey | sugar · bitters · orange peel · ice | bar-spoon → build/stir | rocks |
+| 11 | Whiskey sour | whiskey | lemon juice · simple syrup · (egg white — v2) | shaker → shake | rocks |
+| 12 | Manhattan | whiskey | sweet vermouth · bitters · cherry | mixing-glass → stir | coupe |
+| 13 | Whiskey ginger | whiskey | ginger beer · ice | — → build | highball |
+| 14 | Daiquiri | rum | lime juice · simple syrup | shaker → shake | coupe |
+| 15 | Mojito | rum | mint · lime · sugar · soda · ice | muddler → muddle, build | highball |
+| 16 | Dark & stormy | rum (dark) | ginger beer · lime wedge · ice | — → build | highball |
+| 17 | Cuba libre | rum | cola · lime wedge · ice | — → build | highball |
+| 18 | Margarita | tequila | orange liqueur · lime juice · (salt rim) | shaker → shake | coupe/rocks |
+| 19 | Paloma | tequila | grapefruit soda · lime · ice | — → build | highball |
+| 20 | Aperol spritz | (wine) | aperitivo · sparkling wine · soda · orange slice · ice | — → build | wine |
+| 21 | A pint | beer (ale / lager) | — | tap → pour | pint |
+| 22 | A glass of wine | wine (red / white / sparkling) | — | — → pour | wine / flute |
+| 23 | Coffee | coffee | — | urn → pour | mug |
+| 24 | Soda / tonic / juice | mixer | ice | — → pour | highball |
+
+Twenty-four lines, a well of **five spirits** (gin, vodka, whiskey, rum,
+tequila), and — deliberately — no blender drinks, no cream, no egg in
+v1 (Piña colada, White Russian, a sour with a foam: **menu v2**, when
+dairy and poultry have a trade).
+
+### The ingredient matrix, and where each row goes
+
+| category | ingredients | process | pack |
+|---|---|---|---|
+| **spirit** | gin, vodka, whiskey, rum (light + dark), **tequila** (agave — a fifth category) | distil | **trade-distilling** |
+| **liqueur** | orange liqueur (triple sec), bitter liqueur (a campari), aperitivo, **bitters** (dashes) | distil + **compound** (macerate — distilling's own compounding step, not pharma: it starts from spirit) | **trade-distilling** |
+| **fortified wine** | dry vermouth, sweet vermouth | ferment + fortify | **trade-winemaking** (stub) |
+| **wine** | red, white, sparkling | ferment | **trade-winemaking** (stub) |
+| **beer** | ale, lager | ferment | **trade-brewing** (stub) |
+| **soft / mixer** | soda water, tonic, ginger beer, cola, grapefruit soda, cranberry juice, orange juice (bottled) | **bottle** | **trade-bottling** (stub) — earns its pack here: seven products and someone could make a living at it |
+| **fresh produce** | lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry | grow | **trade-produce** (stub) — everything downstream of growing: the materials, crate/basket presets, the floor at a greengrocer; the beginning of the farming pack the reorg reaches at *f* |
+| **pantry** | sugar, simple syrup, salt, coffee | cook / mill | **trade-hearth-cooking** (syrup is a recipe; sugar + salt are its pantry materials — `salt` and `coffee` move out of base-library's `bulk/`) |
+| **ice** | ice (cubes, crushed) | freeze | **trade-hospitality** — an ice machine is a bar fixture (electricity's first bar consumer); water already carries the phase-change numbers |
+| **house-made** | pressed lime / lemon / orange / grapefruit juice, simple syrup, a twist / a wedge / a peel | press / cook / cut | **trade-hospitality** (recipes: `press`, the syrup, the garnish cuts) |
+
+**Five stubs, then, not two** — brewing, winemaking, bottling, produce,
+and (already shipped, extended) hearth-cooking's pantry. Each is complete
+at its tier by the Part 4 definition; each is the downstream half of a
+trade the reorg will reach.
+
+### The tools and the glassware (hospitality's)
+
+| tool capability | station | technique |
+|---|---|---|
+| `shaker` (ships) | the cocktail shaker | shake |
+| `mixing-glass` (ships) | the mixing glass | stir |
+| `muddler` | a muddler | muddle |
+| `bar-spoon` | a bar spoon | build / stir in glass |
+| `strainer` | a Hawthorne strainer (rides the shaker + mixing glass — or is their own capability) | strain |
+| `juicer` | a citrus press | press |
+| `tap` | a beer tap on a keg | pour (draught) |
+| `ice-machine` | a fixture (powered) | freeze |
+| `urn` (ships as a vessel) | the coffee urn | pour |
+
+Glassware as **output templates** (the recipe's `outputTemplate` is the
+glass): coupe, rocks, highball, collins, pint, wine, flute, mug, the
+copper mug. Nine presets on the existing `cocktail-glass` shape, each in
+the **cycling pool** (daves-bar-slate § glassware — claim, serve, bus,
+wash; never minted per drink).
+
+### ⭐⭐ What the recipes cannot yet say — the substrate this exposes
+
+The recipe schema today: `inputSlots[]` by **category + minGrade +
+measureL** (bulk) or a tangible carrying the tag, `toolCapabilities`,
+`outputTemplate`, `requiresHeatK`, `outputApplication`. The menu needs
+five things it has no word for, and each is a requirements line:
+
+| # | gap | what the menu needs | the shape (for requirements, not the planner) |
+|---|---|---|---|
+| 1 | **Garnish** — a solid ON a drink | an olive in the martini, a wedge on the rim, a twist, a mint sprig, a cherry | a recipe `garnish:` slot: a tangible (or a cut of one) **placed on the served glass** (`Surfaced` / adornment), consumed with the drink or bussed with the glass; visible in the drink's presentation |
+| 2 | **Ice — chill and dilution** | every built drink; the shaken ones dilute | ice is a bulk material (frozen water); a slot `ice: cubes \| crushed \| none`; the drink's temperature is real (Receptacle already composes Thermal) and **melt = dilution** (a bulk transfer into the drink over time — the thermal substrate + bulk, no new physics) |
+| 3 | **Technique** | shake vs stir vs build vs muddle changes the result (texture, dilution, temperature) | technique **is** the tool capability — the recipe's `toolCapabilities` already names it; what is missing is the *consequence*: shake = colder + more dilute + aerated; stir = cold, clear; build = as poured. A small table the drink's presentation and thermal reconcile read. No new verb: `mix` dispatches on the tool present |
+| 4 | **Dash measures + count measures** | bitters by the dash (~1 mL); sugar by the cube; a wedge by the count | `measureL` handles 0.001; a `measureCount` for tangibles (the schema's `kind: tangible` needs a count) |
+| 5 | **Carbonation** | soda, tonic, ginger beer, sparkling wine go flat | a material **tag** now (`carbonated`) that the presentation reads; fizz decay is a spoilage-slate concern, not this build |
+
+And two the bar exposes at the **station** level: the **ice machine** is
+the first bar fixture that needs **power** (a supply-ref, per the supply
+design pack — the bar's first utility bill); the **tap** is a keg-fed
+dispenser (a `Surfaced` fixture with a bulk source behind it — the
+supply-chain hinge in miniature).
+
+### What this does to the par manifest
+
+A healthy bar's par is no longer four bottles: it is **~35 lines** across
+seven categories, in three units (litres for bulk, count for produce and
+glassware, kilograms for ice). That is the argument for the par manifest
+being **structured by category with a supplier per line**, and for
+`restock` visiting **more than one supplier** (the distributor for
+bottles, the greengrocer for produce, the bottler's shelf for mixers —
+or one cash-and-carry that stocks all three by consignment). *Requirements
+decides the supplier topology;* the slate's preference is **one
+distributor, many consignors**, because it is one trip and one
+mechanism, and it is how a small bar actually buys.
 
 ## Open (for requirements)
 
@@ -345,6 +476,10 @@ The bar is operational when this runs **with no player logged in**:
 - Lime: a farm product the bar *presses*. Does hospitality ship a
   `press` recipe (lime → juice, bulk output) now, or is juice a generic
   until farming ships citrus? Leaning: the recipe now, the crop later.
+- The supplier topology (Part 9): one distributor with many consignors,
+  or a distributor + a greengrocer + the bottler's shelf.
+- Menu v2's line: dairy / egg / tropical fruit wait on ranching and a
+  produce trade with a climate; the blender is a powered station.
 - The Crowsfoot faucet: consigned at the floor until the distillery
   build (accepted above), or off the rail until then? The conversation
   leaned *off the rail*; Part 8 keeps it *on, flagged* so the martini
