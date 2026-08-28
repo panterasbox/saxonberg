@@ -1,0 +1,12 @@
+# a highball glass — a pool glass over CraftedDrink (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftedDrink
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a highball glass
+  longDescription: A tall straight-sided glass.
+  primaryKeyword: highball
+  keywords: [highball, glass, tall]
+  category: highball
+  interiorBulk: true
+  interiorCapacity: 0.35

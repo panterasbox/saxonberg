@@ -1,0 +1,12 @@
+# a hawthorne strainer — a bar tool offering the `strainer` capability (a ToolItem; the
+# capability table decides which verbs it affords).
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a hawthorne strainer
+  longDescription: A flat strainer with a coiled spring around its rim.
+  primaryKeyword: strainer
+  keywords: [strainer, hawthorne]
+  capabilities: [strainer]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.1

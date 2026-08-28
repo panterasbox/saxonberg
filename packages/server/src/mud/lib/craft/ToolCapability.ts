@@ -32,6 +32,9 @@ export const TOOL_CAPABILITIES = [
   // (`pint`). A muddler confers `muddle`; the rest are recipe-side kinds.
   'juicer',
   'tap',
+  // The bar spoon: a built-in-the-glass drink (the old fashioned) names it
+  // the way a stirred one names `mixing-glass`; technique stays `built`.
+  'bar-spoon',
   // The distiller's station (trade-distilling's `Still`) — no recipe
   // names it yet; the distillery build's.
   'still',
@@ -131,6 +134,7 @@ const CAPABILITY_TABLE: Record<ToolCapability, CapabilityKindDef> = {
   muddler: { verbs: ['platform/cmd/crafting/muddle.yaml'], placement: 'reachable' },
   juicer: { verbs: [], placement: 'reachable' },
   tap: { verbs: [], placement: 'reachable' },
+  'bar-spoon': { verbs: [], placement: 'reachable' },
   still: { verbs: [], placement: 'reachable' },
 };
 

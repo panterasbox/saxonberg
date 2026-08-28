@@ -1,0 +1,12 @@
+# a mug — a pool glass over CraftedDrink (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftedDrink
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a mug
+  longDescription: A heavy ceramic mug, glazed a chipped blue.
+  primaryKeyword: mug
+  keywords: [mug, cup]
+  category: mug
+  interiorBulk: true
+  interiorCapacity: 0.35

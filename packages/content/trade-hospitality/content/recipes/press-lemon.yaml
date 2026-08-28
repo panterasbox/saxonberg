@@ -1,0 +1,14 @@
+# Pressed lemon juice — one lemon through the press into a juice bottle from the pool
+recipeId: press-lemon
+name: Pressed lemon juice
+keywords: [press-lemon, lemon-juice]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: fruit, category: lemon, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [juicer]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/juice-bottle
+outputAppearance: fresh lemon juice, cloudy
+outputMaterial: /trade/hospitality/idea/material/lemon-juice
+outputPortionL: 0.04

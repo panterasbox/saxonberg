@@ -95,8 +95,8 @@ data:
     # strains into (the served `order` path clones its own; a by-hand
     # build needs a real glass present). Keyword `cocktail` (vs the
     # mixing glass's `mixing`) keeps `strain … into cocktail` unambiguous.
-    - { template: /trade/hospitality/thing/cocktail-glass, onto: /trade/hospitality/thing/back-bar }
-    - { template: /trade/hospitality/thing/cocktail-glass, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/coupe, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/coupe, onto: /trade/hospitality/thing/back-bar }
     # The tip jar on the rail — patrons `tip`, the on-shift bartender
     # `collect`s it (physical coin, off the books).
     - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }

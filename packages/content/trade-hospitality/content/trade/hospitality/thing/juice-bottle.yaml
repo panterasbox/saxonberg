@@ -1,0 +1,12 @@
+# a juice bottle — a pool glass over CraftedDrink (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftedDrink
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a juice bottle
+  longDescription: A half-litre glass bottle with a pouring spout, for the day's pressed juice.
+  primaryKeyword: juice-bottle
+  keywords: [juice-bottle, bottle, juice]
+  category: juice-bottle
+  interiorBulk: true
+  interiorCapacity: 0.5

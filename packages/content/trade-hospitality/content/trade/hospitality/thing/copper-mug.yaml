@@ -1,0 +1,12 @@
+# a copper mug — a pool glass over CraftedDrink (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftedDrink
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a copper mug
+  longDescription: A hammered copper mug, frosting where the ice sits.
+  primaryKeyword: copper-mug
+  keywords: [copper-mug, copper, mug, mule-mug]
+  category: copper-mug
+  interiorBulk: true
+  interiorCapacity: 0.4

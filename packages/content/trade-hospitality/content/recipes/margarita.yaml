@@ -1,0 +1,14 @@
+# Margarita — tequila, orange liqueur and lime, shaken
+recipeId: margarita
+name: Margarita
+keywords: [margarita]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: tequila, minGrade: fair, measureL: 0.05 }
+- { slot: modifier, category: orange-liqueur, minGrade: fair, measureL: 0.02 }
+- { slot: sour, category: lime-juice, minGrade: fair, measureL: 0.02 }
+toolCapabilities: [shaker]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/coupe
+outputAppearance: a margarita, cloudy and sharp (the salt rim is menu v2)

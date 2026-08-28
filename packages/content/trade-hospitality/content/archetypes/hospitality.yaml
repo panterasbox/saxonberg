@@ -1,0 +1,24 @@
+# The hospitality venue archetype (D11, A13/A14): what a bar NEEDS, as
+# capability slots the kernel can check over a venue's contents, each with
+# the default row `ArchetypeApi.materialize` binds. The residue only: the
+# tool and heat rows (shaker, mixing-glass, muddler, bar-spoon, juicer,
+# tap; the syrup's 340 K) are DERIVED from the trade's recipes by
+# `ArchetypeApi.describe` and never repeated here. Reported, never
+# enforced — a venue missing a slot is short on the checklist, not refused.
+archetypeId: hospitality
+label: a bar
+industry: bartending
+capabilities:
+  - { key: water, needs: { bulkSource: water }, default: /trade/hospitality/thing/water-tap }
+  - { key: wash, needs: { bulkSource: water }, default: /trade/hospitality/thing/basin }
+  - { key: dispensing, needs: { tool: tap }, default: /trade/hospitality/thing/tap }
+  - { key: cold, needs: { coldStorage: true }, default: /trade/hospitality/thing/ice-bin }
+  - { key: surface, needs: { surface: true }, default: /trade/hospitality/thing/back-bar }
+  - { key: well, needs: { surface: true }, default: /trade/hospitality/thing/well }
+  - { key: seating, needs: { seating: 1 }, default: /trade/hospitality/thing/stool }
+  - { key: shaking, needs: { tool: shaker }, default: /trade/hospitality/thing/shaker }
+  - { key: stirring, needs: { tool: mixing-glass }, default: /trade/hospitality/thing/mixing-glass }
+  - { key: muddling, needs: { tool: muddler }, default: /trade/hospitality/thing/muddler }
+  - { key: building, needs: { tool: bar-spoon }, default: /trade/hospitality/thing/bar-spoon }
+  - { key: pressing, needs: { tool: juicer }, default: /trade/hospitality/thing/juicer }
+  - { key: heat, needs: { heatK: 340 }, default: /stuff/thing/fixture/range }

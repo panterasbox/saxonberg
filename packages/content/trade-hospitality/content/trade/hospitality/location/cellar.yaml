@@ -1,0 +1,13 @@
+# The `cellar` bundle — the back room where cased and kegged stock keeps:
+# racking, and the cold store. Empty of stock by construction — kegs and
+# cases arrive by buying.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: a cellar
+  description: |
+    A low, cool room behind the bar, steel racking along one wall and the cold store's latched door at the end. The floor is damp where the kegs stand.
+  keywords: [cellar, back-room, store]
+  populates:
+    - /trade/hospitality/thing/racking
+    - /trade/hospitality/thing/cold-store

@@ -1,0 +1,15 @@
+# Dark & stormy — dark rum floated on ginger beer over ice, a lime wedge
+recipeId: dark-and-stormy
+name: Dark & stormy
+keywords: [dark-and-stormy, dark-n-stormy]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: base, category: dark-rum, minGrade: fair, measureL: 0.05 }
+- { slot: mixer, category: ginger-beer, minGrade: fair, measureL: 0.15 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a dark and stormy, the rum sitting black on the ginger beer
+garnish: { category: lime, count: 1 }
+ice: cubes

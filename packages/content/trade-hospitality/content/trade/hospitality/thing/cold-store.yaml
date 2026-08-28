@@ -1,0 +1,15 @@
+# The cold store — an insulated, sealable holder in the cellar (Thermal +
+# Sealable: what the archetype's `coldStorage` need checks). A Thermos at
+# room scale; the ice machine that would run it cold waits for power.
+class: /platform/thing/Thermos
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the cold store
+  longDescription: A walk-in box of insulated panels with a heavy latched door, cold from the last delivery of ice.
+  primaryKeyword: cold-store
+  keywords: [cold-store, store, box, cooler]
+  interiorBulk: true
+  interiorCapacity: 200
+  interiorMaterial: /trade/bottling/idea/material/ice
+  barrier: vacuum
+  mass: 400

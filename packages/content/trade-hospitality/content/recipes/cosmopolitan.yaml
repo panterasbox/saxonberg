@@ -1,0 +1,15 @@
+# Cosmopolitan — shaken, pink
+recipeId: cosmopolitan
+name: Cosmopolitan
+keywords: [cosmopolitan, cosmo]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: vodka, minGrade: fair, measureL: 0.045 }
+- { slot: modifier, category: orange-liqueur, minGrade: fair, measureL: 0.015 }
+- { slot: juice, category: cranberry-juice, minGrade: fair, measureL: 0.03 }
+- { slot: sour, category: lime-juice, minGrade: fair, measureL: 0.015 }
+toolCapabilities: [shaker]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/coupe
+outputAppearance: a pink cosmopolitan

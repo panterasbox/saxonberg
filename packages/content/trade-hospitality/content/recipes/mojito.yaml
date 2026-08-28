@@ -1,0 +1,17 @@
+# Mojito — mint and lime muddled with sugar, rum, soda, over ice
+recipeId: mojito
+name: Mojito
+keywords: [mojito]
+discipline: bartending
+difficulty: hard
+inputSlots:
+- { slot: herb, category: mint, minGrade: fair, kind: item, count: 1 }
+- { slot: fruit, category: lime, minGrade: fair, kind: item, count: 1 }
+- { slot: sweet, category: sugar, minGrade: fair, measureL: 0.005 }
+- { slot: base, category: rum, minGrade: fair, measureL: 0.05 }
+- { slot: mixer, category: soda-water, minGrade: fair, measureL: 0.1 }
+toolCapabilities: [muddler]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a mojito, mint bruised through crushed ice
+ice: crushed

@@ -1,0 +1,13 @@
+# The bar's water tap — the utility at the shipped tier (slate Part 10): an
+# UnboundedReceptacle whose interior is water, ∞ the honest v1. Fills a
+# glass, feeds the syrup and a wash.
+class: /platform/thing/UnboundedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a water tap
+  longDescription: A gooseneck tap over the well, running cold all day.
+  primaryKeyword: water-tap
+  keywords: [water-tap, faucet, water]
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 4

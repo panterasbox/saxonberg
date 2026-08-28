@@ -1,0 +1,16 @@
+# Tom Collins — shaken sour lengthened with soda
+recipeId: tom-collins
+name: Tom Collins
+keywords: [tom-collins, collins]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: gin, minGrade: fair, measureL: 0.05 }
+- { slot: sour, category: lemon-juice, minGrade: fair, measureL: 0.03 }
+- { slot: sweet, category: syrup, minGrade: fair, measureL: 0.02 }
+- { slot: mixer, category: soda-water, minGrade: fair, measureL: 0.1 }
+toolCapabilities: [shaker]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/collins
+outputAppearance: a tall, cloudy Tom Collins
+ice: cubes

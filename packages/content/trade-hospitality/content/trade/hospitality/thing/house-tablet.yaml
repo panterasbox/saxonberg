@@ -1,0 +1,17 @@
+# The house tablet — a portable Display (`/platform/thing/Tablet`) paired
+# `staff`: whoever holds a position at `principal` (or its proprietor)
+# drives it, and it shows cards only (`house stock`). The principal is
+# authored PER VENUE — this trade row leaves it blank; a venue's own row
+# (the lounge's `/world/lounge/thing/house-tablet`) sets it. Holding the
+# tablet confers NO money authority: that is the wallet's, always.
+class: /platform/thing/Tablet
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a house tablet
+  longDescription: A scuffed tablet in a rubber case, the stock sheet never far from its screen.
+  primaryKeyword: tablet
+  keywords: [tablet, house-tablet, screen]
+  pairing: staff
+  sourcePolicy: cards
+  principal: ''
+  mass: 0.5

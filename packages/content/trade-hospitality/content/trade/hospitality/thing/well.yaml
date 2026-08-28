@@ -1,0 +1,11 @@
+# The well — the speed rail under the bar's lip, a Surfaced shelf the
+# working bottles rest ON (the bar bundle's `onto` target beside the
+# back-bar).
+class: /platform/thing/Surface
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the well
+  longDescription: The speed rail below the bar's lip, the working bottles necked in a row within a hand's reach.
+  primaryKeyword: well
+  keywords: [well, rail, speed-rail, shelf]
+  mass: 20

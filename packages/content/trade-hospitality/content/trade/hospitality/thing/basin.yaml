@@ -1,0 +1,13 @@
+# The glass-wash basin — real water (an UnboundedReceptacle), and the fixture
+# that affords `wash` (the class's environment contributions). Bussed
+# glasses are washed here and racked.
+class: /platform/thing/UnboundedReceptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wash basin
+  longDescription: A deep steel basin with a glass-washing brush on a spring, the water never quite still.
+  primaryKeyword: basin
+  keywords: [basin, sink, wash-basin, water]
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 30

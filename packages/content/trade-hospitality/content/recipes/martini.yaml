@@ -1,18 +1,14 @@
+# Martini — gin stirred with dry vermouth, an olive
 recipeId: martini
-name: Gin Martini
-keywords:
-- martini
-- gin-martini
+name: Martini
+keywords: [martini, gin-martini]
+discipline: bartending
+difficulty: moderate
 inputSlots:
-- slot: base
-  category: gin
-  minGrade: fair
-  measureL: 0.06
-- slot: modifier
-  category: vermouth
-  minGrade: fair
-  measureL: 0.01
-toolCapabilities:
-- mixing-glass
-outputTemplate: /trade/hospitality/thing/cocktail-glass
+- { slot: base, category: gin, minGrade: fair, measureL: 0.06 }
+- { slot: modifier, category: dry-vermouth, minGrade: fair, measureL: 0.01 }
+toolCapabilities: [mixing-glass]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/coupe
 outputAppearance: a crystal-clear martini, beaded with cold
+garnish: { category: olive, count: 1 }

@@ -1,0 +1,12 @@
+# a muddler — a bar tool offering the `muddler` capability (a ToolItem; the
+# capability table decides which verbs it affords).
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a muddler
+  longDescription: A thick hardwood muddler, its end stained green with mint.
+  primaryKeyword: muddler
+  keywords: [muddler]
+  capabilities: [muddler]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.2

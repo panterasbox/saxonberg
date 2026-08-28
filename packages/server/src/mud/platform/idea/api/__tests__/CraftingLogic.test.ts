@@ -58,7 +58,7 @@ const GIN = '/stuff/idea/material/spirit/gin';
 const VERMOUTH = '/stuff/idea/material/spirit/vermouth';
 const RUM = '/stuff/idea/material/spirit/rum';
 const MARTINI_MAT = '/stuff/idea/material/cocktail/martini';
-const GLASS = '/trade/hospitality/thing/cocktail-glass';
+const GLASS = '/trade/hospitality/thing/coupe';
 const DAVE = '/world/lounge/dave-test';
 
 let store: Record<string, Record<string, unknown>[]>;

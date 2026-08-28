@@ -1,0 +1,12 @@
+# a collins glass — a pool glass over CraftedDrink (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftedDrink
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a collins glass
+  longDescription: A tall, narrow glass, taller than a highball.
+  primaryKeyword: collins
+  keywords: [collins, glass]
+  category: collins
+  interiorBulk: true
+  interiorCapacity: 0.4

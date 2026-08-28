@@ -199,6 +199,20 @@ function asPoolGlass(stuff: Stuff): Partial<PoolGlass> {
  */
 function claimGlass(gathered: GatheredMatter, recipe: Recipe): Stuff | null {
   const want = recipe.getOutputTemplate();
+  // A house-made intermediate (an authored `outputMaterial`: pressed
+  // juice, the syrup) TOPS UP a reachable bottle of the same template
+  // already holding that material — the day's lime juice is one bottle,
+  // not a bottle per lime. Such a bottle is a bulk SOURCE by then (see
+  // `collectCandidate`), so it is found among the bottles, not the glasses.
+  const authored = recipe.getOutputMaterial();
+  if (authored) {
+    for (const b of gathered.bottles) {
+      if (b.stuff.getTemplatePath() !== want) continue;
+      if (b.slot.getMaterialPath() !== authored) continue;
+      if (b.slot.available() <= EPS) continue;
+      return b.stuff;
+    }
+  }
   for (const g of gathered.glasses) {
     if (g.getTemplatePath() !== want) continue;
     const pool = asPoolGlass(g);
@@ -236,10 +250,24 @@ function isItemCandidate(c: Stuff): boolean {
 async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
   if (MixinApi.isTool(c)) into.tools.push(c);
   // A Crafted bulk vessel is a glass — the output pool, never an input
-  // (a served martini is not a base for the next one).
+  // (a served martini is not a base for the next one) — UNLESS it holds a
+  // house-made intermediate: a recipe with an authored `outputMaterial`
+  // (pressed juice, the syrup) fills a pool bottle with a REAL material,
+  // and that bottle is stock for the next recipe. A served drink's slot
+  // holds the derived blend; the distinction is the material, not a flag.
   if (MixinApi.isCrafted(c) && MixinApi.isBulkable(c)) {
-    into.glasses.push(c);
-    return;
+    const slot = BulkableApi.slotFor(c, undefined);
+    const mpath = slot?.getMaterialPath() ?? '';
+    const intermediate =
+      slot !== null &&
+      slot !== undefined &&
+      !c.isBulkEmpty('interior') &&
+      mpath !== '' &&
+      mpath !== GENERIC_MIXED_MATERIAL;
+    if (!intermediate) {
+      into.glasses.push(c);
+      return;
+    }
   }
   // Any bulk holder is a source: a graded bottle at its band, an ungraded
   // holder (the water tap, the ice bin, a mug) at `fair` — the same
@@ -594,8 +622,11 @@ async function applyBulkOutput(
     // The authored-substance override (a recipe may still name its
     // blend; the shipped roster derives).
     const material = await StuffApi.singleton<Material>(authored);
+    // Topping up a bottle that already holds this material adds to it.
+    const held =
+      outSlot.getMaterialPath() === authored ? outSlot.getAmount().rawValue() : 0;
     outSlot.setMaterial(material);
-    outSlot.setAmount(Quantity.of(totalL, 'L'));
+    outSlot.setAmount(Quantity.of(held + totalL, 'L'));
     return;
   }
   // The derived default: the generic blend base + a payload computed

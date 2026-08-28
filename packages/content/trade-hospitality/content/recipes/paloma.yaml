@@ -1,0 +1,16 @@
+# Paloma — built over ice
+recipeId: paloma
+name: Paloma
+keywords: [paloma]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: base, category: tequila, minGrade: fair, measureL: 0.05 }
+- { slot: mixer, category: grapefruit-soda, minGrade: fair, measureL: 0.15 }
+- { slot: sour, category: lime-juice, minGrade: fair, measureL: 0.01 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a paloma, pink and fizzing
+garnish: { category: lime, count: 1 }
+ice: cubes

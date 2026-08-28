@@ -1,0 +1,14 @@
+# The ice bin — hospitality's `IceBin` (a sealed, insulated Thermos whose
+# interior is bottling's ice). A recipe's `ice:` draws from it; the keeper
+# refills it from bagged ice. Starts empty: ice is bought.
+class: /trade/hospitality/thing/IceBin
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an ice bin
+  longDescription: A deep insulated bin under the rail with a scoop hooked on its lip.
+  primaryKeyword: bin
+  keywords: [bin, ice-bin, ice]
+  interiorBulk: true
+  interiorCapacity: 30
+  interiorMaterial: /trade/bottling/idea/material/ice
+  mass: 8

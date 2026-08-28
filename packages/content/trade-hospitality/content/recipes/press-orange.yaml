@@ -1,0 +1,14 @@
+# Pressed orange juice — one orange through the press into a juice bottle from the pool
+recipeId: press-orange
+name: Pressed orange juice
+keywords: [press-orange, orange-juice]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: fruit, category: orange, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [juicer]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/juice-bottle
+outputAppearance: fresh orange juice, cloudy
+outputMaterial: /trade/hospitality/idea/material/orange-juice
+outputPortionL: 0.08

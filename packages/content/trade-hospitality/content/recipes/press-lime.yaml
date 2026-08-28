@@ -1,0 +1,14 @@
+# Pressed lime juice — one lime through the press into a juice bottle from the pool
+recipeId: press-lime
+name: Pressed lime juice
+keywords: [press-lime, lime-juice]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: fruit, category: lime, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [juicer]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/juice-bottle
+outputAppearance: fresh lime juice, cloudy
+outputMaterial: /trade/hospitality/idea/material/lime-juice
+outputPortionL: 0.03

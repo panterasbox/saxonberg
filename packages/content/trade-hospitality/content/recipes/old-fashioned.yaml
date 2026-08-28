@@ -1,0 +1,16 @@
+# Old fashioned — sugar and bitters muddled in the glass, whiskey, stirred over ice, an orange peel
+recipeId: old-fashioned
+name: Old fashioned
+keywords: [old-fashioned]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: whiskey, minGrade: fair, measureL: 0.06 }
+- { slot: sweet, category: sugar, minGrade: fair, measureL: 0.005 }
+- { slot: dash, category: bitters, minGrade: fair, measureL: 0.002 }
+toolCapabilities: [bar-spoon]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/rocks
+outputAppearance: an old fashioned, amber over a single large cube
+garnish: { category: orange, count: 1 }
+ice: cubes

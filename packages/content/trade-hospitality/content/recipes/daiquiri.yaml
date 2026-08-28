@@ -1,17 +1,14 @@
+# Daiquiri — rum, lime and syrup, shaken hard
 recipeId: daiquiri
 name: Daiquiri
-keywords:
-- daiquiri
+keywords: [daiquiri]
+discipline: bartending
+difficulty: moderate
 inputSlots:
-- slot: base
-  category: rum
-  minGrade: fair
-  measureL: 0.06
-- slot: sour
-  category: lime
-  minGrade: fair
-  measureL: 0.02
-toolCapabilities:
-- shaker
-outputTemplate: /trade/hospitality/thing/cocktail-glass
+- { slot: base, category: rum, minGrade: fair, measureL: 0.06 }
+- { slot: sour, category: lime-juice, minGrade: fair, measureL: 0.025 }
+- { slot: sweet, category: syrup, minGrade: fair, measureL: 0.015 }
+toolCapabilities: [shaker]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/coupe
 outputAppearance: a pale, frothy daiquiri

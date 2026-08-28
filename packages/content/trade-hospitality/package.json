@@ -1,14 +1,30 @@
 {
   "name": "@saxonberg/content-trade-hospitality",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "The hospitality trade \u2014 what tending bar introduces: its stations, its cocktail recipes, the tip jar.",
+  "description": "The hospitality trade — what tending bar introduces: the stations (tap, ice bin, glass rack, water tap, basin, the house tablet), the bar tools, the nine glasses of the cycling pool, the twenty-four-line menu and the press, the bar/cellar bundles and the venue archetype. A capability pack.",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-bottling": "workspace:*",
+    "@saxonberg/content-trade-brewing": "workspace:*",
+    "@saxonberg/content-trade-distilling": "workspace:*",
+    "@saxonberg/content-trade-hearth-cooking": "workspace:*",
+    "@saxonberg/content-trade-produce": "workspace:*",
+    "@saxonberg/content-trade-winemaking": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
   }
 }

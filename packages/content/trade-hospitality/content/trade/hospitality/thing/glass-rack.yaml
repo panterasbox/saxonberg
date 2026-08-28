@@ -1,0 +1,78 @@
+# The glass rack — the pool's home: an open container (never sealed) the
+# gather walk descends into, so a clean glass in the rack is claimable.
+# `populates:` mints the venue's glassware once; from then on the pool
+# CYCLES (claim → serve → bus → wash → rack) and a broken glass is a
+# shortfall on the stock sheet, bought like anything else.
+class: /platform/thing/GlassRack
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a glass rack
+  longDescription: An overhead rack of glassware, stems hooked in rows, catching the light.
+  primaryKeyword: rack
+  keywords: [rack, glass-rack, glassware, glasses]
+  mass: 15
+  populates:
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/coupe
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/rocks
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/highball
+    - /trade/hospitality/thing/collins
+    - /trade/hospitality/thing/collins
+    - /trade/hospitality/thing/collins
+    - /trade/hospitality/thing/collins
+    - /trade/hospitality/thing/pint
+    - /trade/hospitality/thing/pint
+    - /trade/hospitality/thing/pint
+    - /trade/hospitality/thing/pint
+    - /trade/hospitality/thing/pint
+    - /trade/hospitality/thing/pint
+    - /trade/hospitality/thing/wine
+    - /trade/hospitality/thing/wine
+    - /trade/hospitality/thing/wine
+    - /trade/hospitality/thing/wine
+    - /trade/hospitality/thing/wine
+    - /trade/hospitality/thing/wine
+    - /trade/hospitality/thing/flute
+    - /trade/hospitality/thing/flute
+    - /trade/hospitality/thing/flute
+    - /trade/hospitality/thing/flute
+    - /trade/hospitality/thing/mug
+    - /trade/hospitality/thing/mug
+    - /trade/hospitality/thing/mug
+    - /trade/hospitality/thing/mug
+    - /trade/hospitality/thing/copper-mug
+    - /trade/hospitality/thing/copper-mug
+    - /trade/hospitality/thing/copper-mug
+    - /trade/hospitality/thing/copper-mug
+    - /trade/hospitality/thing/juice-bottle
+    - /trade/hospitality/thing/juice-bottle
+    - /trade/hospitality/thing/juice-bottle
+    - /trade/hospitality/thing/juice-bottle

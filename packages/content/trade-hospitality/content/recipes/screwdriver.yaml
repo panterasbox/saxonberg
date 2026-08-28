@@ -1,0 +1,14 @@
+# Screwdriver — vodka and orange juice over ice
+recipeId: screwdriver
+name: Screwdriver
+keywords: [screwdriver]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: base, category: vodka, minGrade: fair, measureL: 0.05 }
+- { slot: juice, category: orange-juice, minGrade: fair, measureL: 0.15 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a screwdriver, orange and tall
+ice: cubes

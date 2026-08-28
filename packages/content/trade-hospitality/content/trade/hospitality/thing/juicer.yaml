@@ -1,0 +1,12 @@
+# a citrus press — a bar tool offering the `juicer` capability (a ToolItem; the
+# capability table decides which verbs it affords).
+class: /platform/thing/ToolItem
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a citrus press
+  longDescription: A hinged hand press that halves a lime and squeezes it in one squeeze.
+  primaryKeyword: juicer
+  keywords: [juicer, press, citrus-press]
+  capabilities: [juicer]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.6

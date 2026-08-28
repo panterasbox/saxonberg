@@ -1,0 +1,17 @@
+# Fresh lime juice — house-made (the `press-lime` recipe's authored output
+# material). Tag `lime-juice` is what a sour slot matches.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: lime juice
+  appearance: cloudy, sharp lime juice
+  keywords: [lime-juice, juice]
+  density: 1030
+  thermalConductivity: 0.58
+  specificHeat: 3900
+  edibility: true
+  nutrients: [water, sugar, vitamin-c]
+  toxicity: []
+  tags: [liquid, beverage, drinkable, juice, citrus, fresh, lime-juice]
+  composition: []
+  biologicalSource: null
