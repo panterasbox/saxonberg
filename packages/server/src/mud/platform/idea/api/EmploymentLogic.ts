@@ -306,7 +306,13 @@ async function issueHouseCardImpl(
   let account: string;
   try {
     account = await operatingAccountOfImpl(organization as BusinessStuff);
-  } catch {
+  } catch (err) {
+    // A purchasing NPC with no operating account cannot trade as the
+    // house — say so; a silent return left every hand cardless.
+    console.warn(
+      `EmploymentLogic: no house card for ${actor.getTemplatePath()} — ` +
+        `${organization.getTemplatePath()} has no operating account: ${String(err)}`,
+    );
     return;
   }
   for (const held of actor.getContents()) {
@@ -314,6 +320,9 @@ async function issueHouseCardImpl(
     if (held.getCredential('payment')?.hasAccount(account)) return;
   }
   await BankingApi.issueCard(account, UNCAPPED_HOUSE_CARD, actor);
+  console.info(
+    `EmploymentLogic: house card dealt to ${actor.getTemplatePath()} for ${organization.getTemplatePath()}`,
+  );
 }
 
 /** The house card's spend cap: the position's authority is the seat's, not a number. */
@@ -818,7 +827,13 @@ export class EmploymentLogic extends ApiLogic {
       const roster = business.getRoster();
       for (const assignment of roster.getAssignments()) {
         const actor = StuffApi.findByTemplatePath(assignment.assignee);
-        if (!actor || !MixinApi.isEmployed(actor)) continue;
+        if (!actor || !MixinApi.isEmployed(actor)) {
+          console.warn(
+            `EmploymentLogic: roster ${businessPath}/${assignment.positionKey} — ` +
+              `assignee ${assignment.assignee} ${actor ? 'is not Employed' : 'is not live'}`,
+          );
+          continue;
+        }
         const employed = actor as EmployedActor;
 
         const emp = business.ensureRostered(
