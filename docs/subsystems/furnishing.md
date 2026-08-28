@@ -298,7 +298,7 @@ row with a `populates:` of the trade's own fixtures: hospitality's
 tap, ice bin, water tap, basin, the glass rack with its pool, seating,
 the house tablet) and **`cellar`** (racking, a keg, a cold store);
 distilling's **`warehouse`** (`/trade/distilling/location/warehouse` —
-a Stock counter, racking, a dock exit stub), which the cash-and-carry
+racking; each yard adds its own Stock + hand), which the cash-and-carry
 and every producer's yard spell out (template inheritance does not exist,
 so a room lists its fixtures itself; the bundle row is the exemplar).
 The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
