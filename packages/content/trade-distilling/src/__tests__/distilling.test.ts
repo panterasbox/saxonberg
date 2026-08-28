@@ -397,6 +397,22 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     expect(cards().length).toBe(1);
   });
 
+  it('a restored hand — record kept, inventory not — is dealt its card again on the next roster tick', async () => {
+    const hand = makeHand();
+    await EmploymentApi.hire(outfit, hand, 'hand');
+    const cards = () => hand.getContents().filter((c) => MixinApi.isCredentialWallet(c));
+    expect(cards().length).toBe(1);
+    // The restart: the record survives on the actor, the card does not.
+    ContainmentApi.move(cards()[0] as never, floorRoom as never);
+    expect(cards().length).toBe(0);
+    outfit.rosterSlots = [
+      { positionKey: 'hand', assignee: hand.getTemplatePath()!, schedule: [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }] },
+    ] as never;
+    EmploymentApi.tickRoster();
+    await new Promise((r) => setTimeout(r, 50));
+    expect(cards().length).toBe(1);
+  });
+
   it('the hand consigns only up to its outfit\'s headroom under the listing cap — never at an over-cap decline', async () => {
     const settings: Record<string, string> = { 'retail.consignment.listingCap': '1' };
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) => settings[key] ?? '');

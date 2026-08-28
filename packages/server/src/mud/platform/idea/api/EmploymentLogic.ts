@@ -364,12 +364,26 @@ async function endEmploymentImpl(
 async function buysForImpl(actor: Stuff): Promise<BusinessStuff[]> {
   const who = actor.getIdentityPath() ?? actor.getTemplatePath();
   if (!who) return [];
+  // The actor's own records + each business's roster — never the
+  // world-wide holder scan (`holdersByPositionImpl`): `buysFor` runs on
+  // every `consign`/`buy`-as-the-house and every keeper beat, and the
+  // first live drive found it at 70% of a saturated CPU.
   const out: BusinessStuff[] = [];
+  const employed = MixinApi.isEmployed(actor) ? (actor as EmployedActor) : null;
   for (const business of allBusinessesImpl()) {
+    const path = business.getTemplatePath() ?? '';
+    const record = employed?.getEmployment(path);
+    const exited = record ? TERMINAL.includes(record.status) : false;
+    const keys = new Set<string>();
+    if (record && !exited) keys.add(record.positionKey);
+    if (!exited) {
+      for (const a of business.getRosterAssignments()) {
+        if (a.assignee === who) keys.add(a.positionKey);
+      }
+    }
     let buys = false;
-    for (const [positionKey, holders] of holdersByPositionImpl(business)) {
-      if (!holders.has(who)) continue;
-      if (business.getPosition(positionKey)?.purchases) {
+    for (const key of keys) {
+      if (business.getPosition(key)?.purchases) {
         buys = true;
         break;
       }
@@ -807,16 +821,17 @@ export class EmploymentLogic extends ApiLogic {
         if (!actor || !MixinApi.isEmployed(actor)) continue;
         const employed = actor as EmployedActor;
 
-        const fresh = !employed.getEmployment(businessPath);
         const emp = business.ensureRostered(
           employed,
           assignment.positionKey,
           nowRaw,
         );
-        if (fresh) {
+        {
           // A roster-materialized purchasing NPC is dealt its house card
-          // (3d) — fire-and-forget like the wage settle below: the tick
-          // is synchronous by design, and the card is idempotent.
+          // (3d) — on EVERY tick, not only a fresh record: a restored NPC
+          // carries its record but not its inventory (the card is not
+          // captured with it), and the issue is idempotent on the
+          // inventory. Fire-and-forget like the wage settle below.
           void issueHouseCardImpl(
             business,
             actor,
