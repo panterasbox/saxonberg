@@ -227,6 +227,19 @@ Watching also best-effort delegates to `StreamApi.tune` (Twitch now; the
 YouTube implied chat-tune resolves live-or-not through the same path). See
 [cockpit.md](./cockpit.md) for the client half.
 
+### A shared screen — `watch <target> on <screen>` (libations)
+
+The same key, written by the **server for every viewer who can see a
+display**. `watch <target> on <tv>` / `watch off on <tv>` take an `on`
+object arg (`peers` scope, `requires: DisplayMixin`); `DisplayApi.mayDrive`
+decides who may (the remote in hand, the house's seat, or anyone in
+reach — by the screen's `pairing`), and `DisplayApi.show` writes each
+perceiving viewer's `cockpit.watch` with a `display: { stuffId, label }`
+marker. Walk out of the room and `refreshViewer` clears it; the personal
+`watch` (no marker) is untouched. On the client the only change is the
+caption under the embed ("on <label> — whoever holds the remote switches
+it off"); the iframe path is identical. See [display.md](./display.md).
+
 ## Identity / rendering
 
 `RelaySpeaker.service` spans `'twitch' | 'youtube' | 'kick'`. Twitch and
