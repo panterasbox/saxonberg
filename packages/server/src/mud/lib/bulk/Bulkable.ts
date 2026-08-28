@@ -387,6 +387,20 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public closure: ClosureLevel = 'liquidTight';
 
+    static fieldMeta: FieldMeta = {
+      interiorBulk: { persistent: true, authorable: true },
+      surfaceBulk: { persistent: true, authorable: true },
+      interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
+      interiorPayload: { persistent: true, runtimeState: true },
+      interiorAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
+      interiorCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
+      surfaceMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
+      surfacePayload: { persistent: true, runtimeState: true },
+      surfaceAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
+      surfaceCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
+      closure: { persistent: true, authorable: true },
+    };
+
     /**
      * Live-query subscribable fields. `bulkAmount` is the interior
      * litres — what a stock sheet reads — and `setBulkAmount('interior')`
@@ -407,20 +421,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         },
       },
     ];
-
-    static fieldMeta: FieldMeta = {
-      interiorBulk: { persistent: true, authorable: true },
-      surfaceBulk: { persistent: true, authorable: true },
-      interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
-      interiorPayload: { persistent: true, runtimeState: true },
-      interiorAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
-      interiorCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
-      surfaceMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
-      surfacePayload: { persistent: true, runtimeState: true },
-      surfaceAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
-      surfaceCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
-      closure: { persistent: true, authorable: true },
-    };
 
     // ---- accessor pairs (strict-Quantity invariants, Pattern D) ----
     protected get interiorAmount(): Quantity<'L'> {
