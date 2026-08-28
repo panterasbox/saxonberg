@@ -42,8 +42,12 @@ shifts and wages, a menu with prices, `order martini` → the on-shift
 `Maker` → the recipe consumes 0.06 L of gin + 0.01 L of vermouth from
 real bottles → a drink in a glass → a Charge settles from the patron's
 credential to the bar's account at Goodkin → the deficit P&L reads
-income against wages. Attendant queue, tip jar, the glass pool. Two
-recipes (martini, daiquiri). The customer-facing loop is real.
+income against wages. Attendant queue, tip jar. Two recipes (martini,
+daiquiri). The customer-facing loop is real. (⚠ Corrected at
+requirements: the **glass pool is NOT built** — `CraftingLogic` clones
+the output glass per drink, so every order mints a glass and nothing
+busses or washes it. daves-bar-slate designed the pool; this build
+ships it.)
 
 Five things are fake or missing, and they are the whole build:
 
@@ -493,6 +497,127 @@ struck for v1, an **ice bin** (a vessel, insulated) takes its place, and
 the `tap` row covers both the beer tap (keg-fed) and the water tap
 (source-fed) — the same dispensing shape over two supplies. This keeps
 the build clear of the sync/async source seam the water pack stalled on.
+
+---
+
+## Part 11 — Archetypes, and the two things the repo calls that
+
+Both apply, and the bar is the case that triggers the second:
+
+- **Room archetypes** (the furnishing build): a `FurnishableRoom` row
+  that is a *bundle* — the kitchen is "a range, a counter, a larder, a
+  basin"; it confers nothing, it is the errand collapse. The bar wants
+  **`bar`** (the back-bar, the well, the counter, the tap, the ice bin,
+  the basin, the glass rack, seating) and **`cellar`** (racking, kegs,
+  the cold store); the distributor reuses the general store's shape as
+  **`warehouse`** (a Stock counter, racking, a dock). Dave's Bar becomes
+  an *instance* of the bundle, and a player who opens a bar gets the
+  same one from the provisioner.
+- **The venue archetype** (content-packs A13.5 / A14): a declared
+  `archetype` *document* stating an industry's floor **in capabilities,
+  not furniture** — derives a synthetic test venue and a completeness
+  checklist; never enforced at runtime. Declined until a third industry
+  brought its own gap: **hospitality is the third industry**, and its
+  floor (a water source, a dispensing station, cold storage, a work
+  surface, seating) is genuinely different, so the kind ships here with
+  `hospitality` as the exemplar.
+
+> Room archetype = furniture (content, a bundle). Venue archetype =
+> capabilities (a document, a floor). The bundle *satisfies* the floor.
+
+---
+
+## Part 12 — ⭐⭐ Verbs are for physical acts; operations are apps
+
+> **User: "I'm hesitant to have verbs that are highly specialized like
+> 'stocktake'. what's wrong with just 'get'? some processes are bespoke
+> so yes that would need a verb like 'muddle'. but when we can stay
+> generic we should. 'buy' should just be 'buy' everywhere."**
+
+A verb earns a word when a body does something to matter — `muddle`,
+`pour`, `wash`. Information and administration — counting stock,
+setting par, the P&L, which account pays — are **apps**, and apps
+already have a home: `house`, `wallet`, `job`. So: **no `stocktake`**
+(`house stock`, a live card), **no `par` verb** (`house par`), **no
+`buy --for`** (`buy` is `buy`; a purchasing position puts the *house
+account in your wallet*, `wallet use house`), **no `bus`** (`get` /
+`put`). New verbs: **`muddle`**, **`wash`**; `shake` only if `mix` is
+not already the shaker's word. Mara's restock is the same three things
+a player does — read `house stock`, `buy` with the house account
+active, `put` on the rail. No verb exists that only an NPC can use.
+
+---
+
+## Part 13 — ⭐⭐⭐ Apps render on a DISPLAY; the display is a substrate
+
+> **User: "emotes and dms work because they're both expressions that
+> you're tuned into. but what are you tuned into for doing inventory?
+> are we just materializing imagery into the person's mind? maybe you
+> need an ocular implant as well as the cranial one, otherwise you need
+> to carry around a screen."**
+
+The three-base model already draws the seam: the aether host is *"ESP
+in phenomenology — thoughts willed into existence, bypassing the sense
+organs."* That is **expression**. A stock sheet is **imagery**, and
+nothing licenses materializing it in a mind. So:
+
+> **An app renders on a display. A display is a Thing — a tablet, a
+> terminal, a wall screen — or (later) an ocular implant. The aether is
+> only the link.**
+
+> **User: "a generic tablet item is just a portable screen connected to
+> the aether through its own modem. that also means you can control it
+> with your mind, because your cranial implant has duplex communication
+> over the network just like the tablet does. you can manipulate it
+> with your hands but you don't have to."**
+
+**The display substrate** — `DisplayMixin` on a Thing: `showing: Source
+| null`, a modem (attunement intrinsic to a device), a pairing policy.
+
+- **A display shows a SOURCE**, of two kinds — a **stream** (a
+  `StreamerTarget`: the fights, the chamber, the news, real players in
+  the lounge; the client renders the video embed, now *following the
+  screen in front of you*) or a **card** (MQL-backed: the stock sheet,
+  the auction board, a bill's countdown; the card surface with a
+  *place*). The lounge slate lists both as screen content already. A
+  per-display **source policy** is the fiction boundary (the lounge
+  shows anything; Terminus shows in-world channels only).
+- **Input is duplex over the aether; output is optical.** Drive a
+  display by hand (holding it) or by mind (your implant, no hands) —
+  the same command, two channels. Everyone who can **see** the screen
+  sees what it shows; from the cellar you can drive the counter tablet
+  by mind and still not see it. The ocular implant (later) is a display
+  in your own visual field — the augment table's next row.
+- **Pairing is the physics of the remote.** Who may drive a display is
+  the display's policy: **`remote`** (whoever holds the paired remote —
+  the lounge TV; possession is the ability, the room's tolerance is the
+  social layer, *"the remote is not held, it is tolerated"* survives),
+  **`held`** (a personal tablet), **`staff`** (positions on the signed-in
+  principal — the house tablet), **`open`** (a terminal, a kiosk).
+  Pairing your own implant to a TV that did not invite it is *hacking a
+  display* — real, a security build's, not this one.
+- **Display ≠ authority.** A display is *signed in* as a principal
+  (the house tablet as the business), which scopes its apps; **money
+  authority never comes from the screen** — `buy` on the house account
+  needs the wallet to carry it, which a purchasing position confers. A
+  thief with the house tablet sees the stock sheet and spends nothing.
+
+⭐ **The tablet is the clipboard.** daves-bar's leadership thesis —
+*"leadership = the inventory clipboard, recognized not granted,
+transferred by continuity"* — needed no design: whoever is carrying the
+house tablet is running the bar, and picking it up when Mara is gone is
+the succession arc as a physical act.
+
+**Ships:** the mixin with both source kinds and all four policies (a
+"generic tablet" that only showed cards would be a claim, not a
+proof); three instances — the **house tablet** (cards, `staff`), the
+**terminal** re-homed onto it (cards, `open`), and **one TV with a
+remote** in the sports booth (streams, `remote`) as the stream
+exemplar; the client's focal embed learns to follow a shared display.
+Not this build: the ocular implant, an app store (apps stay verbs), a
+display streaming to another, the rest of the lounge's screens and the
+channel lineup (the lounge's own build). Hospitality is the display's
+*first consumer*, not its owner — it is platform substrate.
 
 ## Open (for requirements)
 
