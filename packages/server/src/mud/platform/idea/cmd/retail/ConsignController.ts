@@ -109,9 +109,14 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // sweep stood in the outfit's stock) is the possessor's to put up,
     // and consigning stamps it to the principal. A chattel id alone is
     // identity, not ownership.
+    // (`ChattelApi.ownerOf` DERIVES an unstamped good's owner from the
+    // parcel over its template — a `group`, the trade's title. Only a
+    // player or an organization is ever stamped, so a group owner is
+    // never a stamp: the good is nobody's in particular.)
     const ownedByPrincipal =
       ownedBy(consignorKey) ||
       owner === null ||
+      owner.kind === "group" ||
       ownedBy(giver.getTemplatePath());
     if (!ownedByPrincipal) {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
