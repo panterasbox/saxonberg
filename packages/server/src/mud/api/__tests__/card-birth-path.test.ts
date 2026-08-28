@@ -102,8 +102,8 @@ describe('a card is born on the server, or not at all', () => {
     /*
      * ⭐ Every shipped mint site, by name.
      *
-     * Eight controllers open cards directly (nine calls — `look` opens
-     * two). Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
+     * Nine controllers open cards directly (ten calls — `look` opens
+     * two; `house stock` is the libations build's). Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
      * layout`, and — new here — `Avatar.enter`, which is what made a
      * saved workspace something you can simply return to rather than
      * something you have to switch modes twice to get back. And the
@@ -121,6 +121,7 @@ describe('a card is born on the server, or not at all', () => {
         'mud/platform/idea/api/PromptLogic.ts:push',
         'mud/platform/idea/cmd/author/CmsController.ts:open',
         'mud/platform/idea/cmd/author/StudioController.ts:open',
+        'mud/platform/idea/cmd/banking/HouseController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/SenseController.ts:open',
@@ -176,6 +177,7 @@ describe('a card is born on the server, or not at all', () => {
         'git',
         'help',
         'news',
+        'stock',
         'studio',
         'subject',
         'who',
