@@ -562,8 +562,8 @@ lint family walks pack `src/` throughout (`scripts/pack-roots.ts` is the
 scripts' shared table): `instanceable` (invariant 3 through the table,
 invariant 8 — no `lib/`, every module under a branch), `gates`,
 `imports`, `module-scope`, `field-meta`, `blessed-bands`, `arg-kinds`
-(every `cmd/` under a pack's content), `untitled` (`/arcana` is the
-tenth title root).
+(every `cmd/` under a pack's content), `untitled` (`/arcana` is a title
+root because arcana claims it — the roots derive from the claims).
 
 ## The two entry points
 
@@ -740,12 +740,14 @@ the whole install set:
    host ships** (`/compact/executive` is the platform's row;
    `/corpo/aevex` is corpo-aevex's own);
 3. the NPC-only membership fence (above);
-4. **coverage** — every path the pack ships under one of the **nine
-   title roots** (`TITLE_ROOTS` in `lib/paths.ts` — ONE list, read by
-   the installer and by `lint:untitled`: `/obj`, `/world`, `/cmd`,
-   `/compact`, `/studio`, `/wiki`, `/home`, `/corpo`, `/trade` —
-   template paths, document paths and wiki pages alike) lies under a
-   claim of the pack **or a host**. `/trade/<industry>` (wave 4a) is an
+4. **coverage** — every path the pack ships under a **title root**
+   lies under a claim of the pack **or a host** (template paths,
+   document paths and wiki pages alike). The title roots are
+   **derived, never listed**: the first segment of every extent any
+   pack in the install set claims (`titleRootsOf`; `lint:untitled`
+   mirrors it over the manifests). A root nobody claims is a place no
+   title reaches, so nothing under it can be untitled; a root anyone
+   claims is a place, and everything under it must be covered. `/trade/<industry>` (wave 4a) is an
    industry pack's root: what the trade **introduces** — its stations
    and stock under `/trade/<industry>/<branch>/`, its controllers under
    `…/command/`, its recipes at `/trade/<industry>/recipes/<id>` (the
@@ -1058,10 +1060,10 @@ junk drawer — expected to slim as trade packs take their objects.
   venue's `offstage` row names); `mud/lib/time/MechanicalMovement.ts`;
   the commons classes `mud/platform/thing/{CraftedDrink,GradedReceptacle,
   NeonSign,CocktailShaker,TipJar,Menu}.ts` — the wave-4b graduations.
-- `mud/lib/paths.ts` — `TITLE_ROOTS` (the nine) + `NON_TEMPLATE_DIRS`
-  (enumerated from `DOCUMENT_KINDS`), the one list the installer,
-  `CommandLogic`'s offline reader, `lint:untitled` and
-  `lint:instanceable` share.
+- `mud/lib/paths.ts` — `NON_TEMPLATE_DIRS` (enumerated from
+  `DOCUMENT_KINDS`), the one list the installer, `CommandLogic`'s
+  offline reader, `lint:untitled` and `lint:instanceable` share. (The
+  title roots are not a list — they derive from the claims.)
 - `mud/lib/document/DocumentKinds.ts` — the closed document-kind
   vocabulary (kind, natural key, dir, extension, vanish policy).
 - `mud/api/pack.ts` — `PackApi` + the manifest / result / record /
@@ -1155,7 +1157,9 @@ rows into `world-seed`; no disk fallback for command views;
 **Wave 4a (2026-08-27) — the path surgery.** `/world/` → `/world/`
 everywhere (content, `src/mud/world/`, tests, e2e, docs) with **no
 migration** — the database is dropped; the `/trade/`
-title root (nine; ONE `TITLE_ROOTS` in `lib/paths.ts`) and the
+title root (then one of nine in a `TITLE_ROOTS` list; the list was
+retired for a derivation from the claims in the capability-packs
+build) and the
 industry-pack shape (`/trade/<industry>/{obj,command,recipes,cmd}`,
 `lint:instanceable` invariant 7); the hearthworks re-cut into
 `trade-smithing` + `trade-hearth-cooking` (the trades own what they
@@ -1212,8 +1216,9 @@ mirrors it: `src/mud/platform/` → `src/mud/platform/<branch>/`. `command` is
 its view the document `<root>/cmd/<category>/<verb>` (`/cmd` is no longer a
 root; the engine's 195 views live at `/platform/cmd/…` and their keys are
 their paths, `platform/cmd/perception/look.yaml`). ONE walk rule: a `cmd`
-dir holds views unless its parent is `idea`. `TITLE_ROOTS` is
-`/platform /stuff /world /compact /studio /wiki /home /corpo /trade`;
+dir holds views unless its parent is `idea`. The title roots were
+`/platform /stuff /world /compact /studio /wiki /home /corpo /trade`
+(a list then; derived from the claims since capability packs);
 `lint:instanceable` invariant 7 checks the branch segment under every
 rooted tree. Rosters that ship from two roots (Locality, Government)
 scan `TemplatePathRosters`. Not applied inside `/world/<locality>` rows

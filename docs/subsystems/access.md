@@ -462,9 +462,10 @@ they are declared by a pack manifest's `requires.groups` and
 otherwise). Adding a new owned area is a manifest claim (see
 [parcel.md](./parcel.md), [content-packs.md](./content-packs.md));
 adding a wizard/streamer/archwizard is a single member-add. The
-test-auth seam's founder character joins `wizards`, `lounge`,
-`streamers` and `archwizards` — never a state group; its authority over
-the platform comes from heading the executive.
+test-auth seam's founder character (`backend/TestHooks.ts`) joins
+**every managed group** — whatever the installed packs declared, never
+a list kept in the kernel — and never a state group; its authority
+over the platform comes from heading the executive.
 
 ## Action vocabulary
 

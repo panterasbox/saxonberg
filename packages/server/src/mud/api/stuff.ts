@@ -54,12 +54,6 @@ import { SecurityPolicies } from '../lib/security/SecurityPolicies';
 export type StuffConstructor<T extends Stuff = Stuff> = new () => T;
 
 /**
- * The kernel's own class-namespace roots — every class path not under
- * one of these must be under a registered capability-pack root.
- */
-const KERNEL_CLASS_ROOTS = ['/platform/', '/lib/', '/world/', '/trade/'] as const;
-
-/**
  * Where a class path resolved (`StuffApi.resolveClassFile`): the backing
  * file, and whether the kernel tree or a capability pack's `src/`
  * served it. The installer's rung check keys on `origin`.
@@ -191,25 +185,12 @@ export class StuffApi {
       throw new Error(`Class path cannot contain ..: ${classPath}`);
     }
 
-    // Must be in allowed directories. `/lib/` = engine substrate,
-    // `/platform/<branch>/` = the engine's own classes, `/world/` = a
-    // locality's classes (mirrors its template namespace, e.g.
-    // `/world/lounge/location/Lounge`), `/trade/` = an industry pack's own
-    // classes (`/trade/<industry>/idea/cmd/…`) — plus every namespace
-    // root a capability pack has registered a `src/` for (`/arcana/`).
-    const allowedPrefixes = [
-      ...KERNEL_CLASS_ROOTS,
-      ...ModuleApi.packSources().map((e) => e.root + '/'),
-    ];
-    const hasAllowedPrefix = allowedPrefixes.some((prefix) =>
-      classPath.startsWith(prefix)
-    );
-    if (!hasAllowedPrefix) {
-      throw new Error(
-        `Class path must start with ${allowedPrefixes.join(' or ')}: ${classPath}`
-      );
-    }
-
+    // No namespace allowlist. Whether a path is a legitimate class is
+    // decided by RESOLUTION (`resolveClassFile`: a registered pack root
+    // resolves into that pack's `src/`, anything else into the kernel
+    // tree) and by the build-time gate (`lint:instanceable` — nothing
+    // instances `/lib/`, every `class:` resolves). A runtime prefix
+    // list would be a third copy of the same fact, kept by hand.
     return classPath;
   }
 

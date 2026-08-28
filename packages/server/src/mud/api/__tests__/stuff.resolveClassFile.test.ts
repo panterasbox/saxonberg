@@ -44,8 +44,15 @@ describe('StuffApi.resolveClassFile', () => {
     );
   });
 
-  it('an unregistered root is refused as before', () => {
-    expect(() => StuffApi.resolveClassFile('/nowhere/thing/X')).toThrow(/Class path must start with/);
+  it('an unregistered root is the kernel tree\'s — and resolution, not a prefix list, decides whether it exists', async () => {
+    const r = StuffApi.resolveClassFile('/nowhere/thing/X');
+    expect(r.origin).toBe('kernel');
+    await expect(StuffApi.loadClassByPath('/nowhere/thing/X')).rejects.toThrow(/failed to import/);
+  });
+
+  it('the traversal guard is the only shape rule', () => {
+    expect(() => StuffApi.resolveClassFile('platform/thing/Prop')).toThrow(/must start with \//);
+    expect(() => StuffApi.resolveClassFile('/platform/../secret')).toThrow(/cannot contain/);
   });
 
   it('loadClassByPath imports a pack class through the table', async () => {

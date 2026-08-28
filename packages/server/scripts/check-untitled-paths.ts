@@ -22,13 +22,21 @@ import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { join, dirname, relative, basename } from "path";
 import { fileURLToPath } from "url";
 import YAML from "yaml";
-import { TITLE_ROOTS, NON_TEMPLATE_DIRS as LIB_NON_TEMPLATE_DIRS } from "../src/mud/lib/paths";
+import { NON_TEMPLATE_DIRS as LIB_NON_TEMPLATE_DIRS } from "../src/mud/lib/paths";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
-/** The title-bearing namespace roots — the installer's, ONE list (`lib/paths.ts`). */
-export { TITLE_ROOTS };
+/**
+ * The title-bearing namespace roots, DERIVED from the claims (the
+ * installer's `titleRootsOf`, mirrored): the first segment of every
+ * extent any pack claims. A root nobody claims is a place no title
+ * reaches; a root anyone claims is a place every path under it must be
+ * covered in. No list.
+ */
+export function titleRootsOf(claims: readonly string[]): string[] {
+  return [...new Set(claims.map((c) => "/" + c.split("/")[1]))];
+}
 /** The `content/` dirs that are NOT the template kind (`lib/paths.ts`), plus the two non-yaml trees this walk special-cases. */
 const NON_TEMPLATE_DIRS = new Set([...LIB_NON_TEMPLATE_DIRS, "msh", "wiki"]);
 /** The yaml document kinds and their content dirs (`DOCUMENT_KINDS`, mirrored). */
@@ -39,17 +47,25 @@ export interface Untitled {
   pack: string;
 }
 
+/** A path a pack ships: a TEMPLATE row (a place, always title-checked) or a document / wiki page (checked under claimed roots). */
+export interface Shipped {
+  pack: string;
+  path: string;
+  template?: boolean;
+}
+
 function under(path: string, extent: string): boolean {
   return path === extent || path.startsWith(extent + "/");
 }
 
-/** The pure decision core: every shipped path under a title root with no claim as a prefix. */
+/** The pure decision core: every template row, and every document under a claimed root, with no claim as a prefix. */
 export function classify(
-  shipped: ReadonlyArray<{ pack: string; path: string }>,
+  shipped: ReadonlyArray<Shipped>,
   claims: readonly string[],
 ): Untitled[] {
+  const roots = titleRootsOf(claims);
   return shipped
-    .filter((s) => TITLE_ROOTS.some((r) => under(s.path, r)))
+    .filter((s) => s.template || roots.some((r) => under(s.path, r)))
     .filter((s) => !claims.some((c) => under(s.path, c)))
     .map((s) => ({ path: s.path, pack: s.pack }))
     .sort((a, b) => a.path.localeCompare(b.path));
@@ -68,10 +84,10 @@ function* walk(dir: string, skipCmd: boolean): Generator<string> {
   }
 }
 
-/** Every path a pack ships, the installer's rules mirrored. */
-export function shippedPathsOf(packRoot: string, root: string): string[] {
+/** Every path a pack ships, the installer's rules mirrored: `[path, isTemplate]`. */
+export function shippedPathsOf(packRoot: string, root: string): Array<[string, boolean]> {
   const content = join(packRoot, "content");
-  const out: string[] = [];
+  const out: Array<[string, boolean]> = [];
   if (!existsSync(content)) return out;
   for (const entry of readdirSync(content)) {
     const full = join(content, entry);
@@ -79,35 +95,35 @@ export function shippedPathsOf(packRoot: string, root: string): string[] {
     if (isDir && NON_TEMPLATE_DIRS.has(entry)) {
       if (DOCUMENT_DIRS.includes(entry)) {
         for (const f of walk(full, false)) {
-          if (f.endsWith(".yaml")) out.push(`${root}/${entry}/` + relative(full, f).replace(/\.yaml$/, "").split("\\").join("/"));
+          if (f.endsWith(".yaml")) out.push([`${root}/${entry}/` + relative(full, f).replace(/\.yaml$/, "").split("\\").join("/"), false]);
         }
       } else if (entry === "msh") {
         for (const f of walk(full, false)) {
-          if (f.endsWith(".msh")) out.push(`${root}/msh/` + relative(full, f).replace(/\.msh$/, "").split("\\").join("/"));
+          if (f.endsWith(".msh")) out.push([`${root}/msh/` + relative(full, f).replace(/\.msh$/, "").split("\\").join("/"), false]);
         }
       } else if (entry === "wiki") {
         // Zone rows (`wiki/<ns>.yaml`) are templates; pages (`wiki/<ns>/<slug>.md`) are documents.
         for (const f of walk(full, false)) {
           const rel = relative(content, f).split("\\").join("/");
-          if (f.endsWith(".yaml")) out.push("/" + rel.replace(/\.yaml$/, ""));
-          else if (f.endsWith(".md")) out.push("/" + rel.replace(/\.md$/, ""));
+          if (f.endsWith(".yaml")) out.push(["/" + rel.replace(/\.yaml$/, ""), true]);
+          else if (f.endsWith(".md")) out.push(["/" + rel.replace(/\.md$/, ""), false]);
         }
       }
       continue;
     }
     if (isDir) {
       for (const f of walk(full, true)) {
-        if (f.endsWith(".yaml")) out.push("/" + relative(content, f).replace(/\.yaml$/, "").split("\\").join("/"));
+        if (f.endsWith(".yaml")) out.push(["/" + relative(content, f).replace(/\.yaml$/, "").split("\\").join("/"), true]);
       }
       // A locality's views: `world/**/cmd/*.yaml` → `/world/**/cmd/<verb>`.
       for (const f of walk(full, false)) {
         const rel = relative(content, f).split("\\").join("/");
         const dirs = rel.split("/").slice(0, -1);
         const at = dirs.lastIndexOf("cmd");
-        if (f.endsWith(".yaml") && at >= 0 && dirs[at - 1] !== "idea" && !rel.includes("__tests__")) out.push("/" + rel.replace(/\.yaml$/, ""));
+        if (f.endsWith(".yaml") && at >= 0 && dirs[at - 1] !== "idea" && !rel.includes("__tests__")) out.push(["/" + rel.replace(/\.yaml$/, ""), false]);
       }
     } else if (entry.endsWith(".yaml")) {
-      out.push("/" + basename(entry, ".yaml"));
+      out.push(["/" + basename(entry, ".yaml"), true]);
     }
   }
   return out;
@@ -115,8 +131,8 @@ export function shippedPathsOf(packRoot: string, root: string): string[] {
 
 interface Manifest { id: string; root?: string; requires?: { title?: Array<{ extent: string }> } }
 
-function scan(): { shipped: Array<{ pack: string; path: string }>; claims: string[] } {
-  const shipped: Array<{ pack: string; path: string }> = [];
+function scan(): { shipped: Shipped[]; claims: string[] } {
+  const shipped: Shipped[] = [];
   const claims: string[] = [];
   if (!existsSync(CONTENT)) return { shipped, claims };
   for (const pack of readdirSync(CONTENT)) {
@@ -125,7 +141,7 @@ function scan(): { shipped: Array<{ pack: string; path: string }>; claims: strin
     if (!existsSync(file)) continue;
     const m = YAML.parse(readFileSync(file, "utf8")) as Manifest;
     for (const t of m.requires?.title ?? []) claims.push(t.extent);
-    for (const path of shippedPathsOf(root, m.root ?? `/${m.id}`)) shipped.push({ pack: m.id, path });
+    for (const [path, template] of shippedPathsOf(root, m.root ?? `/${m.id}`)) shipped.push({ pack: m.id, path, template });
   }
   return { shipped, claims };
 }

@@ -17,11 +17,7 @@
 
 import type { WebSocket } from 'ws';
 import type { IBackend } from './IBackend';
-import type {
-  AuthProvider,
-  Envelope,
-  PassportGoogleProfile,
-} from '@saxonberg/types';
+import type { AuthProvider, Envelope } from '@saxonberg/types';
 import { INTENTIONAL_LEAVE_CLOSE_CODE } from '@saxonberg/types';
 import type {
   LinkResult,
@@ -33,23 +29,6 @@ import type { InboundClientMessage } from './inbound';
 import { ConnectionApi } from '../mud/api/connection';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { SecurityApi } from '../mud/api/security';
-
-/**
- * Build a deterministic synthetic Google profile for test-mode login.
- * The fixed `id` (`e2e:<handle>`) makes user/avatar creation
- * idempotent across runs. Used only by `handleTestAuthentication`.
- */
-function syntheticTestProfile(handle: string): PassportGoogleProfile {
-  const safe = handle.replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'default';
-  return {
-    id: `e2e:${safe}`,
-    displayName: handle,
-    emails: [{ value: `${safe}@e2e.local`, verified: true }],
-    provider: 'google',
-    _raw: '',
-    _json: {},
-  };
-}
 
 /**
  * Backend - Singleton for I/O operations.
@@ -411,62 +390,6 @@ export class Backend implements IBackend {
       done(null, result);
     } catch (error) {
       console.error('Backend: Error in handleProviderUnlink:', error);
-      done(error);
-    }
-  }
-
-  /**
-   * TEST-ONLY authentication. Mints a session user for a deterministic
-   * synthetic profile, bypassing Google OAuth. Mirrors
-   * `handleProviderAuth('google', …)` exactly — same `runRoot` root
-   * frame, same provider-parameterized creation path, same
-   * `done(null, { id })` shape — so the resulting session and Avatar
-   * are indistinguishable from a real login.
-   *
-   * Hard-gated on `AUTH_MODE === 'test'`: refuses regardless of how it
-   * is reached. The route that calls this is itself only mounted in
-   * test mode (see `Server` + `TestAuthRoutes`); this is the second
-   * line of defense. `runRoot` lives here because only `backend/**`
-   * (and a few framework dirs) may push call frames — `services/` may
-   * not.
-   *
-   * @param handle - stable label → deterministic user/avatar (idempotent)
-   * @param done - same callback shape as the OAuth verify path
-   */
-  public async handleTestAuthentication(
-    handle: string,
-    done: (error: unknown, user?: { id: string }) => void,
-    withCharacter = false,
-    startLocation?: string,
-    wizard = false
-  ): Promise<void> {
-    if (process.env.AUTH_MODE !== 'test') {
-      done(new Error('Backend: test authentication is disabled'));
-      return;
-    }
-    try {
-      if (!this.application) {
-        throw new Error('Backend: Application not initialized');
-      }
-      const app = this.application;
-      const profile = syntheticTestProfile(handle);
-      const userId = await ExecutionContextApi.runRoot(
-        Backend,
-        'handleTestAuthentication',
-        async () => {
-          // Test seam stays Google-shaped — passes provider: 'google'
-          // through the same provider-parameterized creation path.
-          const id = await app.findOrCreateUserFromProvider('google', profile);
-          // Optionally provision a ready character so in-world E2E tests
-          // skip char-gen. char-gen specs omit this (0 chars → intake).
-          if (withCharacter)
-            await app.provisionTestCharacter(id, handle, startLocation, wizard);
-          return id;
-        }
-      );
-      done(null, { id: userId });
-    } catch (error) {
-      console.error('Backend: Error in handleTestAuthentication:', error);
       done(error);
     }
   }

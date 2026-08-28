@@ -477,9 +477,12 @@ discoverability.
   a test of real content lives beside the content (`src/mud/world/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
-  shipped template path under the ten title roots** (`/platform /stuff /world
-  /compact /studio /wiki /home /corpo /trade /arcana`) lies under some pack's
-  `requires.title` claim. `ownerOf` returns `null` for untitled content
+  shipped template path under a claimed root** lies under some pack's
+  `requires.title` claim. The title roots are **derived** — the first
+  segment of every claim any pack makes (`/platform /stuff /world
+  /compact /studio /wiki /home /corpo /trade /arcana /blueprints
+  /expression` today); there is no list to edit when a pack claims a
+  new root. `ownerOf` returns `null` for untitled content
   and every write fails closed, so an unclaimed shipped path is a path
   nobody can ever edit. No exemption list. CI-gating.
 - **Sealed-subdir isolation** (`.eslintrc.js`, `no-restricted-imports`,

@@ -39,7 +39,7 @@ import { ExecutionContextApi } from '../../../api/execution-context';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import { SoulApi } from '../../../api/soul';
 import { CommandApi } from '../../../api/command';
-import { NON_TEMPLATE_DIRS, TemplatePaths, TITLE_ROOTS } from '../../../lib/paths';
+import { NON_TEMPLATE_DIRS, TemplatePaths } from '../../../lib/paths';
 import { Emote } from '../../../lib/social/Emote';
 import { Recipe } from '../../../lib/craft/Recipe';
 import { AppSettings } from '../../../lib/config/AppSettings';
@@ -1077,17 +1077,26 @@ async function assertClassesResolve(
     try {
       res = StuffApi.resolveClassFile(classPath);
     } catch (cause) {
-      if (!pack.srcRoot && inOwnNamespace(classPath, pack)) {
-        throw new Error(
-          `PackApi: pack '${packId}' claims data but ships code: ` +
-            `'${classPath}' lies in its own namespace ` +
-            `'${namespaceRootsOf(pack.manifest).find((ns) => underExtent(classPath, ns))}' ` +
-            `and the pack has no src/ (content file: ${relFile}). A pack ` +
-            `whose classes are its own is a capability pack — ship them ` +
-            `under src/ (see content-packs.md § The capability rung).`,
-        );
-      }
       throw unresolvedClass(packId, classPath, relFile, cause);
+    }
+    // The mis-rung pack: a class in the pack's OWN namespace that the
+    // kernel tree does not hold, from a pack shipping no src/. Keyed on
+    // what is on disk, never on a namespace list — a pack whose rows name
+    // parked kernel classes under its own claim resolves and passes.
+    if (
+      res.origin === 'kernel' &&
+      !existsSync(res.file) &&
+      !pack.srcRoot &&
+      inOwnNamespace(classPath, pack)
+    ) {
+      throw new Error(
+        `PackApi: pack '${packId}' claims data but ships code: ` +
+          `'${classPath}' lies in its own namespace ` +
+          `'${namespaceRootsOf(pack.manifest).find((ns) => underExtent(classPath, ns))}' ` +
+          `and the pack has no src/ (content file: ${relFile}). A pack ` +
+          `whose classes are its own is a capability pack — ship them ` +
+          `under src/ (see content-packs.md § The capability rung).`,
+      );
     }
     if (res.origin !== 'kernel') {
       const owner = set.packOfSrcRoot.get(res.origin.srcRoot);
@@ -2863,22 +2872,41 @@ function claimedExtentsOf(manifest: PackManifest, all: ReadonlyMap<string, PackM
   return out;
 }
 
-function underTitleRoot(path: string): boolean {
-  return TITLE_ROOTS.some((r) => underExtent(path, r));
+/**
+ * The title-bearing namespace roots, DERIVED: the first segment of every
+ * extent any pack in the install set claims. A TEMPLATE row is a place
+ * by definition and is always checked for coverage; a document or a
+ * wiki page is checked only under a root somebody claims — a root
+ * nobody claims (`/expression`'s emotes, a pack's own document root) is
+ * a place no title reaches. No list.
+ */
+function titleRootsOf(all: ReadonlyMap<string, PackManifest>): string[] {
+  const roots = new Set<string>();
+  for (const m of all.values()) {
+    for (const t of m.requires.title) roots.add('/' + t.extent.split('/')[1]);
+  }
+  return [...roots];
 }
 
 /**
  * Every path-addressed row a pack ships under a title root: domain
  * template paths + document paths + wiki pages.
  */
-function shippedPathsOf(content: PackContent): string[] {
+function shippedPathsOf(content: PackContent, titleRoots: readonly string[]): string[] {
+  const rooted = (p: string): boolean => titleRoots.some((r) => underExtent(p, r));
   const out: string[] = [];
   for (const d of content.domain) out.push(d.path);
   for (const files of content.documents.values()) {
-    for (const f of files) out.push(f.path.startsWith('/') ? f.path : `/${f.path}`);
+    for (const f of files) {
+      const p = f.path.startsWith('/') ? f.path : `/${f.path}`;
+      if (rooted(p)) out.push(p);
+    }
   }
-  for (const w of content.wiki) out.push(`/wiki/${w.namespace}/${w.slug}`);
-  return out.filter(underTitleRoot);
+  for (const w of content.wiki) {
+    const p = `/wiki/${w.namespace}/${w.slug}`;
+    if (rooted(p)) out.push(p);
+  }
+  return out;
 }
 
 /**
@@ -2953,7 +2981,7 @@ function gateRequires(
   // Coverage.
   const claims = claimedExtentsOf(manifest, installSet);
   if (claims.length === 0) return;
-  for (const path of shippedPathsOf(rp.content)) {
+  for (const path of shippedPathsOf(rp.content, titleRootsOf(installSet))) {
     if (!claims.some((e) => underExtent(path, e))) {
       throw new Error(
         `PackApi: pack '${manifest.id}': row ${path} is outside every extent ` +
