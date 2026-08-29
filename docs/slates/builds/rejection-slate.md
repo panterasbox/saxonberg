@@ -1,7 +1,9 @@
 # Rejection slate (working doc) — the mining town, and the one mine
 
-> **Status: merged design, pre-requirements.** **One locality**: a frontier
-> mining town, the mine below it, and the staked claim field around it.
+> **Status: merged design, pre-requirements. Placement DECIDED
+> 2026-08-29 — this is a venue on the OUTSKIRTS OF TERMINUS**, the main
+> locality, not a separate sphere. **One venue**: a mining camp, the mine
+> below it, and the staked claim field around it.
 > **Ferrow's mechanics + Rejection's cast** (decided 2026-08-29). It carries
 > three jobs at once — the **materials faucet** (ends the metal-import era),
 > the **property teacher** (staked private claims), and the **content
@@ -49,6 +51,54 @@ bible §9 makes it a **company mine held by a co-op `Business`** on tutwork and
 tribute. And the co-op model has to be reconciled with the staked-claim field
 this slate adds — historically they coexist (a company operation with
 independents working the margins), which is probably the answer.
+
+---
+
+## Placement — a Terminus venue
+
+**Decided 2026-08-29: the outskirts of Terminus.** Not its own sphere, not
+the highlands. It follows the **Hinkley Hills precedent** exactly — that
+suburb is a `CartesianZone` declared at `world/terminus/hinkley-hills.yaml`
+with its rooms in the sibling folder, `cellSize: 6.0` rather than the city's
+3.0 because *"this is open ground with room between things,"* and ownership
+deliberately **not** declared in the zone (it lives in the gated `parcels`
+collection — the governing security invariant). The camp takes the same
+shape; the mine itself is the separate **3D zone with negative z** the
+content bible specifies.
+
+**What this buys.** The materials faucet closes inside one locality:
+`terminus/general-store/goods/iron-ingot.yaml` is the shop-side stand-in the
+mine exists to replace, `counting-houses` is the bank the buyout runs
+through, and `registry` charters the co-op. Mine → ore → shop → player, all
+walkable. It also means low-level players reach the mine, which the remote
+version made hard.
+
+**What it costs, and the fix.** Rejection's flavour was *geographic*
+isolation — a dead-end valley, one road out. On the city's edge that's gone,
+so the isolation becomes **jurisdictional**, which is stronger:
+
+- ⭐ **The claim field lies outside Terminus's declared jurisdiction.**
+  [civics](../../subsystems/civics.md) already models
+  Locality-declared jurisdiction with derive-on-read residency, so
+  "ungoverned" stops being a fictional assertion and becomes an engine
+  state. Nobody in the city cares what happens at the diggings — and the law
+  formally doesn't reach them. That is the ungoverned political case,
+  mechanically.
+- **Val's goal re-targets.** "The fare out of the valley" no longer means
+  anything with the city right there. He wants **passage through the
+  terminal** (`terminus/terminal/` — the TPA hub with three departure gates
+  already exists) to somewhere genuinely far: Saxonberg, the second city.
+  Same money threshold, a real elsewhere.
+- ⭐ **Why the city is safe and the camp is not.** Dirt dragons need loose
+  ground. Terminus is built up and paved; the diggings are disturbed earth.
+  So the danger gradient is legible straight off the map, and it quietly
+  explains the settlement pattern — *the city is safe because it is a city.*
+
+**The highland lore mostly survives.** The content bible sites the mine
+"where the fertile valleys climb toward frontier wild," in the
+"outer-valley lesser-house hills" — outskirts can climb. House Ferrow's
+blazon over the lintel, the Widening lapse, and the co-op's reopening all
+carry over unchanged; only "remote" goes.
 
 ---
 
@@ -301,9 +351,14 @@ settle it in any direction, including badly.
 
 ## Open
 
-1. **Does this share a world with the highlands** (the content bible sites the
-   mine "where the fertile valleys climb toward frontier wild" — suggestive),
-   or does the frontier register want its own sphere? **Unresolved.**
+1. ✅ **RESOLVED 2026-08-29 — the outskirts of Terminus.** See § *Placement*.
+1b. ⚠ **Property-teacher overlap with Hinkley Hills.** Hinkley already
+   teaches land title on Terminus's outskirts — lots, `PlatBook`,
+   `LotHolder`. This venue would teach **mineral** claims. That is a genuine
+   real-property distinction (split estate: surface rights vs mineral
+   rights, which can be severed and held by different people) and the pair
+   could teach it well — but it is two property venues on the same city's
+   edge, and worth a deliberate yes rather than drifting into it.
 2. **Ownership model** — the co-op/commons contradiction above, and how the
    staked claim field coexists with a company operation.
 3. **Graduating the content bible's mechanics** out of ephemeral `docs/staging/`
