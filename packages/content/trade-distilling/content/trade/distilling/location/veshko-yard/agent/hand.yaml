@@ -23,10 +23,15 @@ data:
         shelf: /trade/distilling/thing/counter
         batch: 6
         ask:
+          # Volk carries the mark and a premium over the same liquid
+          # unbranded — the whole Kirkland lesson in two numbers.
           spirit:volk: 9
-          spirit:veshko-whiskey: 12
-          spirit:veshko-rum: 11
-          spirit:veshko-gin: 11
+          spirit:gin: 7
+          spirit:vodka: 6
+          spirit:whiskey: 7
+          spirit:rum-light: 7
+          spirit:rum-dark: 8
+          spirit:tequila: 8
     - brain: /lib/behavior/idles
       trigger: cadence:43s
       config:

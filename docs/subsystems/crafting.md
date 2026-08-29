@@ -432,6 +432,15 @@ takes the first reachable **clean, empty** vessel of the output's
 in the pool scan); none → the diegetic decline **`no-glass`** ("no clean
 coupe").
 
+⭐ **The rail rule: an unnamed pour takes the CHEAPEST liquid that clears
+the recipe's `minGrade`; `with <brand>` overrides it.** That is what a bar
+does, and it is what makes stocking a decision — your well sets the margin
+on every drink nobody specified, which is most of them, while the good
+bottle is not squandered on a guest who did not ask for it. The resolve
+took the *highest* grade before, which poured the premium gin into every
+anonymous G&T. Item inputs order the same way (the bruised lime goes in
+the daiquiri).
+
 ⭐ **The match is the vessel kind (`category`, [bulk.md](./bulk.md)), not
 the template path** — `outputVesselKind` reads the output row's own
 `category`, and a row that declares none falls back to path-matching, the

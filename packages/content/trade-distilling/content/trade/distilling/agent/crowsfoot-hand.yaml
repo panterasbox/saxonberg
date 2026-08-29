@@ -28,6 +28,12 @@ data:
         batch: 6
         ask:
           spirit:crowsfoot-gin: 40
+          # The specialties: a small house's real position. Dearer than
+          # the corpo's rail, and the menu cannot do without them.
+          spirit:bitters: 14
+          spirit:orange-liqueur: 22
+          spirit:bitter-liqueur: 24
+          spirit:aperitivo: 20
     - brain: /lib/behavior/idles
       trigger: cadence:37s
       config:

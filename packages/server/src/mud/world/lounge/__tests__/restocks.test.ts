@@ -73,8 +73,8 @@ const RACK = '/trade/hospitality/thing/glass-rack';
 const CASH_AND_CARRY = '/trade/distilling/location/cash-and-carry';
 const COUNTER = '/trade/distilling/thing/counter';
 const DISTILLING = '/trade/distilling/idea/business';
-const OUTFIT = '/trade/distilling/idea/floor-outfit';
-const FLOOR = '/trade/distilling/location/floor';
+const OUTFIT = '/trade/distilling/location/veshko-yard/idea/outfit';
+const FLOOR = '/trade/distilling/location/veshko-yard/location/distillery';
 const GIN = '/trade/distilling/idea/material/gin';
 const CARD = '/stuff/thing/PaymentCard';
 
@@ -210,7 +210,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     ContainmentApi.move(rack as never, bar as never);
     counter = stock(COUNTER, 'counter');
     ContainmentApi.move(counter as never, cashAndCarry as never);
-    floorStock = stock('/trade/distilling/thing/floor-stock', 'stock');
+    floorStock = stock('/trade/distilling/location/veshko-yard/thing/stock', 'stock');
     ContainmentApi.move(floorStock as never, floor as never);
 
     business(DISTILLING, [{ key: 'clerk', label: 'clerking', wageRate: 5, confers: [] }], [CASH_AND_CARRY, COUNTER]);
@@ -240,7 +240,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
 
   /** An outfit hand consigns `n` gin bottles at the counter, as the outfit. */
   async function consignGin(n: number, ask: number): Promise<Bottle[]> {
-    const hand = makeStuffAtPath(() => new Hand(), `/trade/distilling/agent/floor-hand-${seq++}`);
+    const hand = makeStuffAtPath(() => new Hand(), `/trade/distilling/location/veshko-yard/agent/hand-${seq++}`);
     hand.setName('Orrin');
     ContainmentApi.move(hand as never, cashAndCarry as never);
     await EmploymentApi.hire(outfit, hand, 'hand');

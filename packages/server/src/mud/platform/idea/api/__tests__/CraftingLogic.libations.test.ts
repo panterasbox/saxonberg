@@ -61,6 +61,7 @@ const LIME = `${M}/lime`;
 const COUPE = '/stuff/thing/_test/lib/coupe';
 const CAN = '/stuff/thing/_test/lib/can';
 const CAN_OF_COLA = '/stuff/thing/_test/lib/can-of-cola';
+const CROWSFOOT_GIN = '/stuff/idea/material/_test/crowsfoot-gin';
 const HIGHBALL = '/stuff/thing/_test/lib/highball';
 const JUICE_BOTTLE = '/stuff/thing/_test/lib/juice-bottle';
 const DAVE = '/stuff/agent/_test/lib/dave';
@@ -171,6 +172,7 @@ beforeEach(async () => {
 
   registerMaterial(BLEND, 'mixed drink', ['cocktail']);
   registerMaterial(GIN, 'gin', ['gin', 'spirit']);
+  registerMaterial(CROWSFOOT_GIN, 'crowsfoot gin', ['gin', 'spirit', 'crowsfoot']);
   registerMaterial(VERMOUTH, 'vermouth', ['vermouth']);
   registerMaterial(RUM, 'rum', ['rum', 'spirit']);
   registerMaterial(LIME_JUICE, 'lime juice', ['lime-juice', 'juice']);
@@ -533,5 +535,52 @@ describe('the pool matches the VESSEL KIND, not the template path', () => {
     } finally {
       spy.mockRestore();
     }
+  });
+});
+
+describe('the well — an unnamed pour takes the rail, a named one takes the brand', () => {
+  // ⭐ The bar-owner decision, made real: your well determines the margin
+  // on every drink nobody specified (which is most of them), while the
+  // good bottle is not squandered on a guest who did not ask for it.
+  // Before this the resolve took the HIGHEST grade, which poured the
+  // premium gin into every anonymous G&T — the opposite of what a bar does.
+  it('an unspecified gin & tonic pours the cheapest gin that clears minGrade', async () => {
+    ContainmentApi.move(makeGlass(HIGHBALL) as never, room as never);
+    ContainmentApi.move(makeHolder(ICE, 5), room);
+    const rail = makeBottle(GIN, 1, 'fair');
+    const good = makeBottle(GIN, 1, 'fine');
+    ContainmentApi.move(good, room);
+    ContainmentApi.move(rail, room);
+
+    const before = { rail: slot(rail).getAmount().rawValue(), good: slot(good).getAmount().rawValue() };
+    const out = await craftAs(dave, { recipeRef: 'gin-tonic', makerMode: 'self' });
+    expect(out.ok).toBe(true);
+
+    // The claim under test: the FINE bottle is untouched. (Which of the
+    // several `fair` gins in reach was drawn from is arbitrary — the
+    // point is that the good one was not squandered on a guest who did
+    // not ask for it.)
+    expect(slot(good).getAmount().rawValue()).toBeCloseTo(before.good, 6);
+    expect(before.rail).toBeGreaterThan(0);
+  });
+
+  it('ordering it BY NAME overrides the rail and pours the brand', async () => {
+    ContainmentApi.move(makeGlass(HIGHBALL) as never, room as never);
+    ContainmentApi.move(makeHolder(ICE, 5), room);
+    const rail = makeBottle(GIN, 1, 'fair');
+    const good = makeBottle(CROWSFOOT_GIN, 1, 'fine');
+    ContainmentApi.move(rail, room);
+    ContainmentApi.move(good, room);
+
+    const before = { rail: slot(rail).getAmount().rawValue(), good: slot(good).getAmount().rawValue() };
+    const out = await craftAs(dave, {
+      recipeRef: 'gin-tonic',
+      makerMode: 'self',
+      brand: 'crowsfoot',
+    });
+    expect(out.ok).toBe(true);
+
+    expect(slot(good).getAmount().rawValue()).toBeLessThan(before.good);
+    expect(slot(rail).getAmount().rawValue()).toBeCloseTo(before.rail, 6);
   });
 });

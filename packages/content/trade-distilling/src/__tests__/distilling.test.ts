@@ -199,7 +199,12 @@ describe('trade-distilling — the floor rows', () => {
     const stocks = new Set(THING_DIRS.flatMap(rows).filter((r) => r.class === '/platform/thing/Stock').map((r) => r.path));
     const materials = new Set(rows('idea/material').map((r) => r.path));
     const floor = floorRows();
-    expect(floor.length).toBe(11 + 2 + 4); // the generics + Crowsfoot, Hollis's two labels, Veshko's yard
+    // ⭐ The roster, by producer: Veshko makes the six unbranded rail
+    // pours AND Volk (same still, same liquid, one carries a mark);
+    // Hollis puts its own mark on Veshko's whiskey and rum and distils
+    // nothing; Crowsfoot is the small house — its gin plus the four
+    // botanical specialties the menu cannot do without.
+    expect(floor.length).toBe(7 + 2 + 5);
     for (const r of floor) {
       expect(typeof r.data.censusKey, r.file).toBe('string');
       expect(typeof r.data.regionTarget, r.file).toBe('number');

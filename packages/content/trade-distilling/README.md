@@ -39,3 +39,31 @@ A corpo pack supplies capital + the mark; a corpo-owned producer is a
 product of the trade and lives here, pointing UP at its owner. The trade
 names nobody downstream. Every stub trade names
 `/trade/distilling/thing/counter` in its hand's `consigns` config.
+
+## ⭐ The roster — who makes what, and why it is legible
+
+Four producers consign onto the one cash-and-carry counter. The shelf is
+meant to *take a side* (corpos-slate), so every row has an owner with an
+ethos and a position:
+
+| producer | what it is | rows |
+|---|---|---|
+| **Veshko's yard** (`/corpo/veshko`) | the volume distillery — the Ruthless Optimizer | the six **unbranded rail** pours (gin, vodka, whiskey, light + dark rum, tequila) **and** Volk |
+| **Hollis's floor** (`/corpo/hollis`) | mass retail; distils **nothing** | Old Hollis, Hollis Cane — Hollis's mark on Veshko's liquid |
+| **Crowsfoot** | the small house across town | its premium gin **and** the four botanical specialties — bitters, orange and bitter liqueur, aperitivo |
+| *(the cash-and-carry)* | the distributor — brokers, produces nothing | — |
+
+**Same still, three positions.** Veshko's whiskey is sold unbranded on
+the rail, and again as *Old Hollis* wearing Hollis's mark. A curious
+player who reads `interiorMaterial` finds the same liquid at two prices —
+the Kirkland structure, and the point of the whole exercise.
+
+⭐ **The rail carries no mark, so it lives at the TRADE's paths**
+(`/trade/distilling/thing/gin`), not under Veshko's yard; only its
+`container:` says who makes it. That gap is deliberate: **the corpo is in
+your glass even when there is no mark on the bottle.**
+
+⭐ **The independent has a real position, not a curiosity's.** A negroni
+needs bitter liqueur, a spritz needs aperitivo, an old-fashioned needs
+bitters — so a bar cannot serve its menu without dealing with Crowsfoot,
+however much cheaper the corpo's rail is.

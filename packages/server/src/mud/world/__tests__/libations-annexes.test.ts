@@ -34,7 +34,20 @@ const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-p
 const VESHKO = '/trade/distilling/location/veshko-yard';
 const HOLLIS = '/trade/distilling';
 const HOLLIS_ROWS = ['agent/hollis-hand', 'idea/hollis-outfit', 'location/hollis-floor', 'thing/hollis-stock', 'thing/old-hollis', 'thing/hollis-cane'].map((r) => `${HOLLIS}/${r}`);
-const isYardRow = (path: string): boolean => path.startsWith(`${VESHKO}/`) || HOLLIS_ROWS.includes(path);
+const VESHKO_STOCK = `${VESHKO}/thing/stock`;
+const HOLLIS_STOCK = `${HOLLIS}/thing/hollis-stock`;
+/**
+ * ⭐ A yard's rows are the ones HOMED there, not the ones pathed there.
+ * The unbranded rail lives at the trade's own paths — it carries no mark,
+ * so nothing about it should shout Veshko — while its `container:` says
+ * who makes it. That gap is deliberate: the corpo is in your glass even
+ * when there is no mark on the bottle.
+ */
+const isYardRow = (path: string, data?: Record<string, unknown>): boolean =>
+  path.startsWith(`${VESHKO}/`) ||
+  HOLLIS_ROWS.includes(path) ||
+  data?.container === VESHKO_STOCK ||
+  data?.container === HOLLIS_STOCK;
 const YARDS = ['veshko', 'hollis'];
 const COUNTER = '/trade/distilling/thing/counter';
 
@@ -74,7 +87,7 @@ function allRows(): Row[] {
 
 const rows = allRows();
 const byPath = new Map(rows.map((r) => [r.path, r]));
-const annexRows = rows.filter((r) => ANNEXES.includes(r.pack) || isYardRow(r.path));
+const annexRows = rows.filter((r) => ANNEXES.includes(r.pack) || isYardRow(r.path, r.data));
 const floorRows = annexRows.filter((r) => typeof r.data.censusKey === 'string');
 
 describe('libations annexes — the floor rows fit the faucet', () => {
@@ -82,7 +95,14 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     for (const pack of ANNEXES) {
       expect(floorRows.filter((r) => r.pack === pack).length, pack).toBeGreaterThan(0);
     }
-    expect(floorRows.filter((r) => r.path.startsWith(`${VESHKO}/`)).length, 'veshko').toBe(4);
+    // ⭐ A producer is counted by the Stock its rows spawn INTO, not by
+    // their path. The unbranded rail lives at the TRADE's paths — it
+    // carries no mark, so nothing about it should shout Veshko — while
+    // its `container:` says who makes it. That gap is the design: the
+    // corpo is in your glass even when there is no mark on the bottle.
+    const homedIn = (stockPath: string) =>
+      floorRows.filter((r) => r.data.container === stockPath).length;
+    expect(homedIn(VESHKO_STOCK), 'veshko').toBe(7);
     expect(floorRows.filter((r) => HOLLIS_ROWS.includes(r.path)).length, 'hollis').toBe(2);
     // A corpo pack is capital + the mark: no product, no locality.
     for (const r of rows.filter((r) => r.pack.startsWith('corpo-'))) {
@@ -91,7 +111,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     // bottling ships 9: seven mixers + the ice bag + the can of cola (the
     // 330 mL can is its own price point, not a smaller bottle).
     // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
-    expect(floorRows.length).toBe(2 + 5 + 9 + 8 + 4 + 4 + 2);
+    expect(floorRows.length).toBe(2 + 5 + 9 + 8 + 4 + 7 + 2);
   });
 
   it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {
@@ -128,8 +148,12 @@ describe('libations annexes — the floor rows fit the faucet', () => {
   it('the private-label fact: Hollis bottles hold the material Veshko\'s unbranded bottles hold', () => {
     const old = byPath.get(`${HOLLIS}/thing/old-hollis`)!;
     const cane = byPath.get(`${HOLLIS}/thing/hollis-cane`)!;
-    expect(old.data.interiorMaterial).toBe(byPath.get(`${VESHKO}/thing/whiskey`)!.data.interiorMaterial);
-    expect(cane.data.interiorMaterial).toBe(byPath.get(`${VESHKO}/thing/rum`)!.data.interiorMaterial);
+    // The same liquid, three positions: unbranded rail, Volk, Old Hollis.
+    const rail = (n: string) => byPath.get(`/trade/distilling/thing/${n}`)!;
+    expect(old.data.interiorMaterial).toBe(rail('whiskey').data.interiorMaterial);
+    expect(cane.data.interiorMaterial).toBe(rail('rum-dark').data.interiorMaterial);
+    expect(rail('whiskey').data._brandKey).toBeUndefined();
+    expect(rail('whiskey').data.container).toBe(`${VESHKO}/thing/stock`);
     expect(old.data._brandKey).toBe('old-hollis');
     expect(byPath.get(`${VESHKO}/thing/volk`)!.data._brandKey).toBe('volk');
     // Every brand key an annex names is a Brand row some pack ships.

@@ -425,7 +425,13 @@ function pickCandidate(
       const by = materialMatchesBrand(y.material, brand) ? 1 : 0;
       if (bx !== by) return by - bx;
     }
-    return y.grade.compareTo(x.grade);
+    // ⭐ An UNNAMED pour takes the cheapest liquid that still clears the
+    // recipe's `minGrade` — the rail. That is what a bar does, and it is
+    // what makes stocking a decision: your well determines the margin on
+    // every drink nobody specified, which is most of them, while a good
+    // bottle is not squandered on someone who did not ask for it. Ask
+    // for it by name (`with crowsfoot`) and the branch above overrides.
+    return x.grade.compareTo(y.grade);
   });
   return eligible[0]!;
 }
@@ -434,7 +440,8 @@ function pickCandidate(
  * Pick the item inputs for one discrete/glob slot: category tag on the
  * Material + min grade (ungraded stock counts `fair`) + enough un-claimed
  * units across the reachable candidates. Honors a `with <brand>`
- * preference, then highest grade; greedy across sources until the slot's
+ * preference, then the LOWEST sufficient grade (the rail — see
+ * `pickBulkInput`); greedy across sources until the slot's
  * `count` is covered (a glob covers many units, a discrete Tangible one).
  * `claimedUnits` tracks per-source draw so two slots never double-claim.
  * Returns the matched draws, or null when the slot cannot be covered.
@@ -460,7 +467,9 @@ function pickItemInputs(
       const by = materialMatchesBrand(y.material, brand) ? 1 : 0;
       if (bx !== by) return by - bx;
     }
-    return y.grade.compareTo(x.grade);
+    // Cheapest sufficient first, as above — the bruised lime goes in the
+    // daiquiri and the good one stays for the guest who asks.
+    return x.grade.compareTo(y.grade);
   });
   const picked: MatchedItemInput[] = [];
   let remaining = need;

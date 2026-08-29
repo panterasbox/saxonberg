@@ -1,9 +1,13 @@
-# The generic floor bottle of aperitivo — the distributor's own house
-# product (the "small outfit" consignor's, until the distillery build
-# makes it). A `SpiritBottle` row: `censusKey` + `regionTarget` make it a
-# floor product the spawn sweep stands at target, and its home
-# `container:` is the floor outfit's Stock — the ONLY faucet. The hand
-# carries it to the cash-and-carry counter and consigns it as the outfit.
+# A SPECIALTY — the botanicals a big distillery does not bother with and
+# a small house lives on. Crowsfoot makes it, alongside its gin.
+#
+# ⭐ This is what gives the independent a real position: a negroni needs
+# bitter liqueur, a spritz needs aperitivo, an old-fashioned needs
+# bitters. The bar cannot serve its menu without dealing with the little
+# place across town, however much cheaper the corpo's rail is.
+#
+# `container:` is Crowsfoot's Stock — the ONLY faucet. Its hand carries
+# the case to the cash-and-carry and consigns it AS Crowsfoot.
 class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -20,4 +24,4 @@ data:
   censusKey: spirit:aperitivo
   regionTarget: 12
   materialTags: [spirit, liqueur, aperitivo]
-  container: /trade/distilling/thing/floor-stock
+  container: /trade/distilling/thing/crowsfoot-stock
