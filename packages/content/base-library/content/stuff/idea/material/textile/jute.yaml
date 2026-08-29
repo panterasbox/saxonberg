@@ -1,0 +1,36 @@
+# Jute — plant-bast textile: the sacking fibre. Retted from the stems of
+# Corchorus, spun coarse and woven open, which is what makes hessian a
+# sack rather than a cloth — it breathes, so grain and roots keep in it
+# instead of sweating. Cheap, strong in tension, and it rots, which is
+# the honest trade against a plastic sack and the reason a jute sack is
+# a consumable a pantry replaces rather than an heirloom.
+#
+# Highly hygroscopic (a damp sack gains real weight and then spoils what
+# it holds); stiffer and far less springy than wool, and a poorer
+# insulator because the weave is open rather than lofted.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: jute
+  appearance: coarse woven hessian
+  keywords: [jute, hessian, burlap, sacking]
+  density: 1450
+  thermalConductivity: 0.06
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  # Stiffer than wool in the fibre, but brittle — it tears rather than
+  # stretches, which is why a jute sack fails at the seam.
+  hardness: 6
+  toughness: 2
+  specificHeat: 1360
+  # Electrical conductivity (S/m) — dry plant fibre insulates.
+  electricalConductivity: 1.0e-11
+  # Water absorption capacity (% of dry mass, ASTM D570): jute is
+  # notoriously thirsty — a wet sack is a heavy sack.
+  waterAbsorptionCapacity: 25
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "organic", "plant", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource: null

@@ -172,12 +172,24 @@ the contract. ⚠ The derive immediately caught an unfaithful mock — the
 distilling sweep test cloned its bottles EMPTY, which a real clone never
 is.
 
-⚠ **One vocabulary decision left open:** the sack's material. Hessian is
-jute, and the fibre vocabulary has only `wool`/`down`; the row leaves
-`material` unauthored (inheriting glass, which is wrong) rather than mint
-a material in passing — materials are a closed set by ruling.
+✅ **`jute` added to the fibre vocabulary** (founder's call) — hessian is
+jute, and all four sack rows now name it.
 
-**Later, in order of how much of the loop each closes:** the deposit
+⚠ **And it exposed a substrate gap worth naming:** the sacks ship
+`closure: liquidTight`, which is a lie about hessian, because
+`BulkableLogic.requiredClosureFor` returns `liquidTight` for **every**
+material in v1 — only the liquid phase exists, and `granular → open` is
+a commented extension point nobody has built. An honestly-`open` sack
+could not be filled or drawn from, which would break the syrup recipe's
+sugar draw. The lie is recorded in the rows rather than hidden; when the
+granular phase lands, every sack becomes `closure: open` and nothing else
+changes. **This is the third gap the can found that is really a
+missing-phase problem** (the others: carbonation never goes flat; ice is
+modelled but no other solid is).
+
+**Later, in order of how much of the loop each closes:** the **granular
+bulk phase** (`requiredClosureFor`, so a sack can be an honest open
+weave) · the deposit
 (law + contract leg — closes *collection* and mints a vocation) · the
 `fill` recipe (closes *filling*; the pool of empties becomes real) ·
 `remelt` (closes the loop) · `Recipe.energyKWh` + smelting · the

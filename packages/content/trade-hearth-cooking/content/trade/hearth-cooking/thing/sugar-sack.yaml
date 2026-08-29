@@ -10,6 +10,7 @@ data:
   interiorCapacity: 20
   interiorMaterial: /trade/hearth-cooking/idea/material/sugar
   interiorAmount: 6.25
+  material: /stuff/idea/material/textile/jute
   closure: liquidTight
   gradeBand: fair
   censusKey: pantry:sugar
