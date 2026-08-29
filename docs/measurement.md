@@ -77,6 +77,39 @@ Fusing any two produces a known failure. Fuse 1 and 2 and you get the
 scoreboard that tells you what to want. Fuse 2 and 3 and you get a state
 religion. Leave 3 empty and you get the lie above.
 
+## ⭐⭐ Silence on worth is not silence on quantity — and abstention is not available
+
+⚠ **Added 2026-08-29** (`design/libations`; the argument is recorded in
+full in [slates/builds/standing-mint-slate.md](./slates/builds/standing-mint-slate.md),
+the decision in [polity-decision-register.md](./polity-decision-register.md)
+D9). Layer 1 being *silent on worth* has been read as *"the engine must
+emit nothing aggregable."* That reading is wrong, and it fails on this
+doc's own grounds.
+
+**The scalar is produced by the decision, not the ledger.** Every binary
+choice — hire? lend? deal? admit? — collapses whatever information exists
+into one bit; a score is that collapse pre-computed. So refusing to
+aggregate does not prevent aggregation. It **relocates** it to whoever
+has the best scraper, with *private* weights — and unpublished weights
+are precisely what Part 7 (*the first screen is the syllabus*) exists to
+forbid. Abstention buys the opposite of the property it was reaching for.
+
+The corrected rule:
+
+> ⭐⭐⭐ **The engine measures and may publish. It must never be the only
+> rater.**
+
+Third-party raters — player institutions with their own **published**
+weights — are a first-class, intended feature, and trust in a rater is
+itself renown. What layer 1 stays silent on is **worth**, not quantity:
+it may say *how many*, and it may say *by what weights this aggregate was
+computed*; it may not say *and therefore this person is better*. Ship a
+scalar only where the market condition holds — strangers transacting at
+volume, low per-transaction stakes — and never manufacture one where it
+does not.
+
+The failure mode this renames: not *publication*, but **monopoly**.
+
 ## The same structure, three times
 
 This is not a religion mechanic or an education mechanic. It is the
@@ -301,6 +334,7 @@ to apply.
 | a hidden measurement of the player | Mara's defining property (Part 2) |
 | a gauge on a declared standard | converts a standard into a score (Part 6.3) |
 | the platform ranking players on a valuation it chose | fuses layers 1 and 2 |
+| the platform as the **only** rater of conduct | monopoly, not publication, is the failure — pluralism is what separates a reputation from a score (Part 1) |
 | variable-ratio reinforcement — loot boxes, gacha, pity timers | the one RNG application banned on ethical rather than design grounds ([uncertainty.md](./uncertainty.md)) |
 | streaks that punish absence | imposes a valuation (*continuity is good*) nobody declared |
 | an imposition that is not enumerable | if it cannot be listed it cannot be amended (layer 3) |

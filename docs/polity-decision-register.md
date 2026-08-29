@@ -313,6 +313,43 @@ flagged for the polity to revisit.
   (Federation / Commons); or the polity revisits.
 - **Tier.** Interim.
 
+### D9 — The engine measures and may publish; it is never the only rater
+
+- **Decision.** Standing is a conduct score — **say so plainly**; the
+  euphemisms ("just influence", "just engagement") are hedges the project
+  does not use. What makes it defensible is structural, not semantic: the
+  engine records **deeds** and may publish **weights and aggregates**, but
+  it must never hold a monopoly on rating. Third-party raters — player
+  institutions with their own published weights — are a first-class,
+  intended feature, and *trust in a rater is itself renown*. Ship a scalar
+  only where the market condition holds (strangers transacting at volume,
+  low per-transaction stakes); never manufacture one where it does not.
+- **Rationale (evidence).** The scalar is produced by the **decision**,
+  not the ledger: every binary choice (hire? lend? deal? admit?) collapses
+  available information to one bit, so a score is that collapse
+  pre-computed. Refusing to aggregate therefore does not prevent
+  aggregation — it relocates it to whoever has the best scraper, with
+  **private** weights, which is the exact property (opacity) that makes
+  scoring intolerable. The real-world settlement for "credit scores will
+  exist" was not "the state issues one" but the FCRA shape: build one if
+  you like, the subject may see and dispute it, there are several bureaus.
+  Pluralism + disclosure + dispute rights is the civilising structure; the
+  absence of scores never was. An earlier formulation — *"the engine never
+  values"* — was **retracted** in session for exactly this reason.
+- **Tradeoff accepted.** Plural raters means the platform hosts scores it
+  did not author and may find repugnant, including well-built ones with
+  ugly weights. Capture, farming, and Goodhart are then live in-world
+  rather than designed away — and they are **required reachable states**
+  (standing-mint-slate.md Part 7), not caveats. The mitigations are
+  legibility and the audit vocation, never suppression.
+- **Revisitation trigger.** A dominant rater achieves de-facto monopoly
+  (test 4 fails in practice); or a rater's score begins gating goods
+  unrelated to the conduct it measures (test 5); or the polity revisits.
+- **Tier.** Interim — **candidate for Tier 1.** The founder should decide
+  whether "never the only rater" belongs in the permanent spine; it is the
+  single property that separates this from social credit, and it reads
+  like structure rather than policy.
+
 ---
 
 ## Tier 3 — open (undecided)
@@ -333,6 +370,24 @@ marked as such so an empty seam is never mistaken for a settled answer.
   game (cooperative-slate.md:2229, 2249).
 - **The proof-of-personhood mechanism (D7)** — the actual verification
   method.
+- **⭐ What conduct confers standing, and at what weight — the mint.**
+  *How consumer standing is minted is the ballgame*: with it a polity can
+  affect every other element of play (the vote, the market, the labour
+  supply, who is heard). Deliberately **not** ours to decide. Both opening
+  arguments are handed over intact in
+  [slates/builds/standing-mint-slate.md](./slates/builds/standing-mint-slate.md)
+  — the mechanical case (Goodhart, crowding-out, off-measurement collapse,
+  measurement validity) and the political case (whose work counts; the
+  bartender who wants bartending weighted higher is doing what a polity is
+  *for*, and may simply be right). ⚠ The two layers look alike and only
+  the first is settleable by evidence — and mechanical arguments will be
+  used as political weapons, which is not a reason to withhold them.
+- **The distributional impact statement** — computing, before a vote, who
+  gains and loses from a proposed weight change (the engine can do this
+  exactly; real legislatures mostly cannot). *That* it should exist is
+  agreed; its methodology is contestable, and ⚠ it must not become a
+  technocratic veto: **having an interest is not disqualifying;
+  concealing it is.**
 - **The compute meter's currency + the precise presence-exclusion line**
   — *that* compute is metered by use is settled; the exact unit
   (engagement-subsidy vs. capital-allocation vs. a rule-bound market) and

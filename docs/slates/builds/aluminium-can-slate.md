@@ -171,3 +171,165 @@ as the standard.
 `fill` recipe (closes *filling*; the pool of empties becomes real) ·
 `remelt` (closes the loop) · `Recipe.energyKWh` + smelting · the
 metal-forming trade · going flat · caffeine · the pallet, with freight.
+
+---
+
+## 7. The can as civic curriculum
+
+*The general argument this section generated — standing as a conduct
+score, who mints it, and why the weights are never ours — moved to
+[standing-mint-slate.md](./standing-mint-slate.md). What stays here is
+the can.*
+
+### 7.1 ⭐⭐⭐⭐⭐ The can is a collective action problem you can hold
+
+My empty is worth ~1.5¢ of metal and costs me a small annoyance to
+handle properly. Everyone's empties together are worth 95% of a
+smelter's energy bill. **My small cost, our large benefit, no
+coordination** — the shape of nearly every civic problem a person will
+meet: vaccination, taxes, litter, emissions, voting, jury duty. The can
+is the smallest object that contains the structure whole.
+
+⭐ **And this is why the can works where a longsword cannot.** Nobody
+role-plays caring about forty longswords in a chest; everyone arrives
+with a stance toward cans on a lawn. Junk accumulation is a problem in a
+game like this regardless — the can is the manifestation that *lands*,
+because it is a real-life simulacrum. **Choosing what to simulate at
+fidelity is choosing which real-world moral intuitions you can recruit
+for free.** That is a content-selection principle, and it is worth more
+than most mechanics.
+
+### 7.2 The three tools, and the fourth move
+
+Exactly three ways to close the gap, and they map onto real political
+dispositions with different costs:
+
+- **Price it** (a deposit) — make the individual incentive match. Cheap
+  to administer, self-enforcing.
+- **Mandate it** (kerbside law, littering fines) — command-and-control;
+  needs enforcement, which needs a state.
+- **Norm it** ("don't be a litterbug") — cheapest, weakest, scales
+  without institutions.
+
+⭐⭐ **The fourth move is to shift the frame so nobody solves it.** Keep
+America Beautiful was founded in 1953 by packaging and beverage
+manufacturers (American Can, Owens-Illinois Glass); the Crying Indian ad
+(1971) was theirs. Its function was to make litter an **individual moral
+failing** rather than a **packaging design decision** — because the
+alternative on the table was bottle bills, which would have cost the
+industry money. *The norm-based solution was funded by the party that
+would otherwise have paid for the price-based one.*
+
+**And it is discoverable with shipped substrate, not scripted.** Corpos
+have temperaments and brands; the press subsystem ships publishers,
+releases and a ticker; `authoring_events` is an authorship ledger. A
+bottling corpo facing a deposit proposal funds a campaign about
+litterbugs. A player reads it in the gazette. A player who digs into who
+paid for it finds the can maker. Nobody wrote a quest — the NPC corpo
+followed its interest, and investigative journalism was available as
+*play*.
+
+### 7.3 ⭐⭐⭐⭐ The emergent nobody designed
+
+Germany's *Pfand* is €0.25 — high enough to actually move behaviour;
+return rates run in the high 90s. What emerged, that no legislator
+intended: an informal economy of people collecting cans from bins and
+parks. The middle class abandons deposits; people who need money collect
+them. **A redistribution channel and a livelihood, as a side effect of a
+litter law.**
+
+That is the payoff. Not "civics +1". Two game-weeks after the vote the
+streets are clean and somebody has a living. Nothing tells the player
+they did well — *the feed hides the measurement; the mirror shows you*.
+It is [vocations.md](../../vocations.md)'s demand test passed **only by
+law**, which is the sharpest single lesson in the object: **a vocation
+can appear because the polity priced an externality.**
+
+### 7.4 ⚠⚠ The keystone: the empty must be a burden
+
+None of this is reachable unless **the empty persists and is mildly
+annoying.** No burden → no spoiled commons → no problem → no law worth
+passing. Every civic property above descends from that one mechanical
+fact.
+
+But nobody wants inventory management. So the burden must be **ambient
+and collective, not individual and fiddly**: your personal cost is
+trivial, the room accumulates, the street has a litter state, the
+venue's keeper has to bus. Which is *the actual structure of the real
+problem* — **the mechanic teaches by being isomorphic, not by
+narrating.** This is the dial most likely to be set wrong, in either
+direction.
+
+### 7.5 ⭐⭐⭐⭐⭐ The required pairing: the can and the blood
+
+The single most valuable thing this curriculum can ship, and it only
+works if the engine stays out of the valuation:
+
+| | **cans** | **blood** |
+|---|---|---|
+| the act | society needs it | society needs it |
+| price it | **works** — return rate tracks deposit size almost exactly; litter falls; a collector's living appears | **backfires** — paying can *reduce* supply by converting a gift into a transaction (Titmuss, *The Gift Relationship*, 1970) |
+| the mechanism | incentive alignment | **crowding-out** — same shape as Gneezy & Rustichini, *A Fine is a Price* (2000): fining late parents made lateness worse, and it stayed worse after the fine was withdrawn |
+
+Two acts a society needs; opposite correct policies. A player who passes
+a deposit on cans, then tries the same trick on blood and watches
+donation **fall**, has learned something most adults never learn — and
+no essay delivers it. See [blood-slate.md](./blood-slate.md).
+
+⚠ **This entire lesson is impossible if the engine credits both with
+standing.** That is the concrete reason the mint question
+([standing-mint-slate.md](./standing-mint-slate.md)) is not ours.
+
+### 7.6 The guardrail: model the mechanism, never the verdict
+
+Ship the deposit as an **available law with real tradeoffs**, not as a
+good thing. The counter-lessons must be reachable or this is propaganda:
+
+- **Retailers genuinely eat the handling cost.** That is the real fight
+  in every US state that has tried a bottle bill, and a player arguing
+  the retailer's side should be **right about that part**.
+- **Rate matters more than existence.** Return rates track deposit
+  value; Michigan at 10¢ ran in the 90s, most 5¢ states sat far lower,
+  and Oregon's move to 10¢ lifted its rate substantially. A 2-zenny
+  deposit that does nothing is a better teacher than a working one.
+- **Who keeps the unclaimed deposits changes what the law is.** Michigan
+  sends most escheat to the state; in Germany the industry keeps it —
+  meaning the operator **profits when you don't return**. Same law,
+  different residual claimant, opposite incentive.
+- **Jurisdictional arbitrage invents itself.** A bottle-bill locality
+  beside one without produces can smuggling — prosecuted for real in
+  Michigan, and a Seinfeld plot. A player *will* find the arb unprompted
+  and thereby understand federalism better than from any explanation.
+- **The intuition does not transfer.** Aluminium recycling is genuinely
+  excellent — scrap carries enough market value to pay for its own
+  collection, which is why informal collection happens even without
+  deposits. Most plastics downcycle; glass often loses on transport
+  weight. A player who generalises "recycling good" from the can to
+  everything has learned the **wrong** thing, and the game must let them
+  find out. **Updating on material-specific evidence rather than on
+  identity is the actual civic skill.**
+
+The historical arc, for a polity that amends over time: **norms
+(1950s–70s) → deposits (1970s–) → extended producer responsibility
+(2000s–)**, EPR being the structural rebuttal to the
+individual-responsibility frame the industry sold.
+
+### 7.7 Why this medium and not a documentary
+
+- **Duration** — you live the second-order effects, on a 60-day loop, in
+  a game-week drive. A classroom cannot.
+- **Multiplayer** — a collective action problem needs an actual
+  collective with actual incentives.
+- **Authorship** — players draft the law as content
+  ([legal-code-slate.md](./legal-code-slate.md)); writing a bottle bill
+  with its rate, exemptions and residual claimant **is** legislative
+  drafting practice (the applied-hours thesis).
+- **Auditability** — everything is on a ledger, so a player can check
+  whether the policy worked against real numbers, with no narrator.
+  That is the mirror.
+
+⭐ **The bottle bill is the ideal first law a player-run locality ever
+passes:** concrete, visible within days, reversible, with a genuine
+distributional fight built in. Compare teaching governance with tax
+rates or criminal law — too abstract, too slow, too punishing to get
+wrong.
