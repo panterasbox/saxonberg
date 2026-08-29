@@ -7,7 +7,7 @@ data:
   longDescription: A chalkboard propped behind the bar, cocktails listed in a tidy hand.
   keywords: [menu, chalkboard, board]
   # The 24 lines of the libations menu (slate Part 9): the hospitality
-  # trade's 21 cocktails + coffee, and the pint / glass-of-wine / mixer
+  # trade's 21 cocktails + coffee, and the pint / glass-of-wine / soft-drink
   # lines each serving trade ships with its stub. Every one consumes real
   # matter off the rail the keeper bought.
   offeredRecipes:
@@ -36,7 +36,7 @@ data:
     - glass-of-red
     - glass-of-white
     - glass-of-sparkling
-    - mixer
+    - soft-drink
   # Authored flat prices (minor units / credits) — the bartender's
   # willingness. Ordering a priced drink settles a presented Charge from the
   # patron's credential to the bar's account (banking); unpriced drinks are
@@ -67,4 +67,4 @@ data:
     glass-of-red: 7
     glass-of-white: 7
     glass-of-sparkling: 9
-    mixer: 3
+    soft-drink: 3

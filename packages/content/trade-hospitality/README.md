@@ -7,7 +7,7 @@ The hospitality trade — a **capability pack** (it ships `src/`). Root
 - `src/thing/Tap.ts` — the dispensing station: a `Surfaced` fixture that is a `tap` tool; the keg it draws from rests beside it in the room, where the gather walk already sees it.
 - `content/trade/hospitality/thing/` — the tools, the stations, the nine glasses (`category:` is the glassware par key), the house tablet.
 - `content/trade/hospitality/idea/material/` — the house-made juices the press yields.
-- `content/recipes/` — the menu (21 lines here; the pint, the three wines and the mixer ride their trades) and the four `press-*` recipes.
+- `content/recipes/` — the menu (21 lines here; the pint, the three wines and the soft drink ride their trades) and the four `press-*` recipes.
 - `content/trade/hospitality/location/{bar,cellar}.yaml` — the bundles a venue populates by reference.
 - `content/archetypes/hospitality.yaml` — the venue archetype (`ArchetypeApi.materialize('hospitality')` builds the test venue).
 

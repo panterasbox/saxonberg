@@ -206,7 +206,7 @@ describe('libations annexes — the serving recipes and the zone', () => {
     expect(syrup.requiresHeatK).toBe(340);
     expect(syrup.outputPortionL).toBe(0.5);
     expect(syrup.inputSlots[0]).toMatchObject({ kind: 'item', category: 'sugar', count: 1 });
-    const mixer = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-bottling/content/recipes/mixer.yaml'), 'utf8')) as Record<string, unknown>);
+    const mixer = Recipe.fromData(parse(readFileSync(join(PACKS, 'trade-bottling/content/recipes/soft-drink.yaml'), 'utf8')) as Record<string, unknown>);
     expect(mixer.ice).toBe('cubes');
   });
 

@@ -610,7 +610,7 @@ homed by what they *are*:
   (toasted-ration, root-mash, fine-roast, hearty-stew),
   `trade-hospitality` the bar's 21 cocktails + coffee and the four
   presses, each stub trade its serving recipe (`pint`, `glass-of-{red,
-  white,sparkling}`, `mixer`, `simple-syrup`) — the 24-line menu of the
+  white,sparkling}`, `soft-drink`, `simple-syrup`) — the 24-line menu of the
   libations slate; `generic-objects` ships none. The
   catalogue is **path-agnostic** — it rebuilds from every `recipe`
   document whoever installed it — so a venue's `craft` never knows

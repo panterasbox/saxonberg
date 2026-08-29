@@ -65,7 +65,7 @@ const MENU = [
   'moscow-mule', 'cosmopolitan', 'screwdriver', 'old-fashioned', 'whiskey-sour',
   'manhattan', 'whiskey-ginger', 'daiquiri', 'mojito', 'dark-and-stormy',
   'cuba-libre', 'margarita', 'paloma', 'aperol-spritz', 'coffee',
-  'pint', 'glass-of-red', 'glass-of-white', 'glass-of-sparkling', 'mixer',
+  'pint', 'glass-of-red', 'glass-of-white', 'glass-of-sparkling', 'soft-drink',
 ];
 const PRESSES = ['press-lime', 'press-lemon', 'press-orange', 'press-grapefruit'];
 
@@ -318,7 +318,7 @@ describe('trade-hospitality — the menu, every line', () => {
       expect(g.getContents().length, `${id} garnish`).toBeGreaterThan(0);
     }
     // Ice on the iced ones, none on the neat ones.
-    for (const id of ['gin-tonic', 'moscow-mule', 'mojito', 'old-fashioned', 'mixer']) {
+    for (const id of ['gin-tonic', 'moscow-mule', 'mojito', 'old-fashioned', 'soft-drink']) {
       expect(served[id]!.getIceKg(), `${id} ice`).toBeGreaterThan(0);
     }
     for (const id of ['martini', 'daiquiri', 'gimlet', 'coffee', 'glass-of-red']) {

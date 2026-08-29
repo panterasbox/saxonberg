@@ -110,7 +110,7 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
     const prices = menu.prices as Record<string, number>;
     expect(offered.length).toBeGreaterThanOrEqual(24);
     for (const id of offered) expect(prices[id], id).toBeGreaterThan(0);
-    for (const id of ["martini", "mojito", "gin-tonic", "pint", "glass-of-red", "mixer", "coffee"]) {
+    for (const id of ["martini", "mojito", "gin-tonic", "pint", "glass-of-red", "soft-drink", "coffee"]) {
       expect(offered).toContain(id);
     }
   });
