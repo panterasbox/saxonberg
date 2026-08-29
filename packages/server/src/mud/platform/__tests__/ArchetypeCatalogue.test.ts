@@ -14,6 +14,7 @@ import { ArchetypeApi } from '../../api/archetype';
 import { ContainmentApi } from '../../api/containment';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { Quantity } from '../../lib/quantity';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
 import Room from '../location/Room';
@@ -38,6 +39,9 @@ const BAR = {
     { key: 'surface', needs: { surface: true }, default: '/fx/thing/bench' },
     { key: 'dispensing', needs: { tool: 'tap' }, default: '/fx/thing/tap' },
     { key: 'seating', needs: { seating: 1 } },
+    // Cold storage has no default: it is a property of a SPACE (a cellar,
+    // a walk-in), and you cannot clone a room into a room.
+    { key: 'cold', needs: { coldStorage: true } },
   ],
 };
 const RECIPES = [
@@ -107,6 +111,32 @@ describe('ArchetypeApi', () => {
     expect(sat.get('tool:mixing-glass')).toBe(false);
     expect(sat.get('heatK')).toBe(false);
     expect(rows.find((r) => r.key === 'dispensing')!.by).toBeTruthy();
+  });
+
+  // ⭐ Cold storage is a property of a SPACE, not a kind of appliance: a
+  // cellar is cool because it is underground, a walk-in because a chiller
+  // holds it there, and anything carried into either drifts to that
+  // through the shipped thermal resolver. The bar shipped a `cold-store`
+  // prop that was Thermal + Sealable + Bulkable with NO Container — a
+  // 200 L insulated tub of ice that could not hold a keg — and it was the
+  // venue's only nominal cold storage.
+  it('a cool ROOM is cold storage on its own; a temperate one is not', () => {
+    const cold = makeStuff(() => new Room());
+    stampTemplatePathForTest(cold, `/fx/location/cellar-${seq++}`);
+    cold.setTemperature(Quantity.of(285, 'K'));
+
+    const warm = makeStuff(() => new Room());
+    stampTemplatePathForTest(warm, `/fx/location/backroom-${seq++}`);
+    warm.setTemperature(Quantity.of(295, 'K'));
+
+    const coldRow = ArchetypeApi.checklist('hospitality', cold as unknown as Stuff)!
+      .find((r) => r.key === 'cold')!;
+    expect(coldRow.satisfied).toBe(true);
+    expect(coldRow.by).toBeTruthy();
+
+    const warmRow = ArchetypeApi.checklist('hospitality', warm as unknown as Stuff)!
+      .find((r) => r.key === 'cold')!;
+    expect(warmRow.satisfied).toBe(false);
   });
 
   it('materialize clones the venue row and each authored default into it', async () => {

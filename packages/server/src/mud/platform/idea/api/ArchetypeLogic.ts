@@ -133,8 +133,31 @@ function materialMatches(s: Stuff & { getBulkMaterialPath(a: 'interior'): string
   );
 }
 
-/** Which occupant(s) satisfy `need`; the first as `by`, or null. */
-function satisfiedBy(need: CapabilityNeed, occupants: Stuff[]): Stuff | null {
+/**
+ * A space at or below this is cold storage in its own right — a cellar,
+ * a walk-in. 288 K ≈ 15 °C: cool enough that kegs, cases and wine keep.
+ */
+const COLD_STORAGE_MAX_K = 288;
+
+/**
+ * What satisfies `need` — an occupant, or (for `coldStorage`) the VENUE
+ * ITSELF. Cold storage is a property of a SPACE, not a kind of
+ * appliance: a cellar is cool because it is underground, a walk-in
+ * because a chiller holds it there, and anything carried into either
+ * drifts to that temperature through the shipped thermal resolver
+ * (`ThermalMixin.restamp` → `BiomeApi.resolveTemperatureFor`). An
+ * insulated holder still counts — a box of ice is cold storage too.
+ *
+ * The venue's temperature is read from its own authored override rather
+ * than resolved outward, because the checklist is synchronous and
+ * *reported, never enforced*: a room that is cold only because its
+ * biome is cold is not a claim this venue gets to make.
+ */
+function satisfiedBy(
+  need: CapabilityNeed,
+  occupants: Stuff[],
+  venue: Stuff,
+): Stuff | null {
   if ('tool' in need) {
     return occupants.find((s) => MixinApi.isTool(s) && s.hasCapability(need.tool)) ?? null;
   }
@@ -159,7 +182,15 @@ function satisfiedBy(need: CapabilityNeed, occupants: Stuff[]): Stuff | null {
     const seats = occupants.filter((s) => MixinApi.isPostured(s));
     return seats.length >= need.seating ? seats[0]! : null;
   }
-  return occupants.find((s) => MixinApi.isThermal(s) && MixinApi.isSealable(s)) ?? null;
+  const holder = occupants.find(
+    (s) => MixinApi.isThermal(s) && MixinApi.isSealable(s),
+  );
+  if (holder) return holder;
+  if (MixinApi.isAtmospheric(venue)) {
+    const t = venue._temperature;
+    if (t !== null && t.rawValue() <= COLD_STORAGE_MAX_K) return venue;
+  }
+  return null;
 }
 
 function checklistImpl(archetypeId: string, venue: Stuff): ChecklistRow[] | null {
@@ -167,7 +198,7 @@ function checklistImpl(archetypeId: string, venue: Stuff): ChecklistRow[] | null
   if (!desc) return null;
   const occupants = MixinApi.isContainer(venue) ? occupantsOf(venue) : [];
   return desc.rows.map((row) => {
-    const by = satisfiedBy(row.needs, occupants);
+    const by = satisfiedBy(row.needs, occupants, venue);
     return { ...row, satisfied: by !== null, by: by ? by.getPresentation() : null };
   });
 }

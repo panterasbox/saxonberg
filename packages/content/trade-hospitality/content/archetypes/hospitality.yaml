@@ -12,7 +12,12 @@ capabilities:
   - { key: water, needs: { bulkSource: water }, default: /trade/hospitality/thing/water-tap }
   - { key: wash, needs: { bulkSource: water }, default: /trade/hospitality/thing/basin }
   - { key: dispensing, needs: { tool: tap }, default: /trade/hospitality/thing/tap }
-  - { key: cold, needs: { coldStorage: true }, default: /trade/hospitality/thing/ice-bin }
+  # Two different needs the one `cold` slot used to conflate: ICE to build
+  # drinks with (a bulk source at the bar), and somewhere COLD to keep
+  # kegs and cases (a property of a space — the cellar. No default: you
+  # cannot clone a room into a room).
+  - { key: ice, needs: { bulkSource: ice }, default: /trade/hospitality/thing/ice-bin }
+  - { key: cold, needs: { coldStorage: true } }
   - { key: surface, needs: { surface: true }, default: /trade/hospitality/thing/back-bar }
   - { key: well, needs: { surface: true }, default: /trade/hospitality/thing/well }
   - { key: seating, needs: { seating: 1 }, default: /trade/hospitality/thing/stool }

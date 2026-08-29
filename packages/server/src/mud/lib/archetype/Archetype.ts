@@ -29,7 +29,9 @@ import type { StoredDocument } from '../document/StoredDocument';
  *   path): an unbounded source (a tap) or a stocked holder.
  * - `surface` — a `Surfaced` work surface.
  * - `seating` — at least `n` posture-bearing fixtures.
- * - `coldStorage` — an insulated, sealable holder (`Thermal` + `Sealable`).
+ * - `coldStorage` — somewhere cold: the VENUE itself when it is cool
+ *   (a cellar, a walk-in — cold storage is a property of a SPACE), or an
+ *   insulated, sealable holder in it (`Thermal` + `Sealable`).
  */
 export type CapabilityNeed =
   | { tool: string }

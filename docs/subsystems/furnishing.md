@@ -21,6 +21,39 @@ rung and every content precedent) and [posture](./posture.md).
 
 ---
 
+## ⭐ Cold storage is a property of a SPACE, not an appliance
+
+A cellar is cool because it is underground; a walk-in is cold because a
+chiller holds it there. Either way the mechanism is the same and already
+shipped: a `Location` composes `AtmosphericMixin`, so it carries an
+authorable `_temperature`, and anything carried in drifts toward it
+through `ThermalMixin.restamp` → `BiomeApi.resolveTemperatureFor`. **No
+class, no appliance, no new field** — the hospitality `cellar` bundle is
+simply a room authored at 285 K.
+
+The archetype's `coldStorage` need is satisfied by the **venue itself**
+when its own authored temperature is ≤ 288 K (≈ 15 °C), or by an
+insulated sealable holder in it (a box of ice is cold storage too). It
+reads the venue's *own* override rather than resolving outward, because
+the checklist is synchronous and *reported, never enforced* — a room that
+is cold only because its biome is cold is not a claim the venue gets to
+make.
+
+⚠ **They are not the same thing and should not be collapsed.** The
+difference is the design:
+
+| | cellar | walk-in |
+|---|---|---|
+| cold by | earth, passively | a chiller, actively |
+| roughly | 285 K (12 °C) | ~275 K (2 °C) |
+| running cost | **none** | power |
+| failure mode | **none** | dies with the power |
+| right for | wine, cask ale, spirits, dry stock | kegs, produce, anything that must be *cold* |
+
+Only the cellar ships. The walk-in is the upgrade a venue buys into, and
+it waits for the power meter to be worth having — a running cost and an
+outage that spoils what is inside are the whole point of it.
+
 ## The two scopes
 
 | | host-side (shipped) | owner-side (this build) |
