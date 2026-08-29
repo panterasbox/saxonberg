@@ -79,6 +79,9 @@ See also:
   expresses multi-stage / scheduled behavior by *authoring scripts* in the
   scripting language, not by emitting a tool-call per beat. This slate says
   *who drives and how*; that slate says *in what language*.
+- [perfection-slate.md](./perfection-slate.md) — **the exemplar.** A mining
+  town with three LLM-driven residents and eleven mute ones; the worked
+  context-window example and the "dumb but immersive" tiering live there.
 - [biome.md](../../subsystems/biome.md) — the weather/atmosphere push that is
   one trigger source for ambient director beats (`EventApi` broadcast).
 - [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) —
@@ -100,6 +103,11 @@ See also:
 - **Per-NPC LLM agents.** N independent brains can't hear each other think;
   one director performing the whole cast gives coherent chemistry (banter,
   callbacks, group dynamics) — the showrunner model. Also avoids N× context.
+  ⚠ **Qualified 2026-08-29:** this holds for *performance* and is retained,
+  but it does **not** deliver structural **knowledge asymmetry** — a single
+  director reads every character's block and can leak across them. See
+  § *Knowledge asymmetry* for the case that needs isolated calls, and the
+  hybrid that keeps the showrunner for everything else.
 - **A tool-menu of pre-canned reactions.** Caps the LLM to what was
   anticipated — the opposite of why you'd use one. Bound the **affordances**
   (what's possible in the world), free the **expression** (what to do/say).
@@ -149,23 +157,219 @@ See also:
 
 ---
 
+## Distinctness: the four axes
+
+*Answers open Q2 (persona/memory shape on entities).* The observed failure
+mode of LLM NPCs is that they all sound like the same helpful assistant in
+different hats — because they're handed the same oversized context and the
+same objective. **Distinctness is a property of the context, not of the
+prompt.** Persona prose ("you are a gruff blacksmith") is a costume over one
+distribution and wears off within a few hundred tokens.
+
+So a character's block is assembled from four axes, each already a shipped
+subsystem — no new authored personality field:
+
+| Axis | What it is | Rides |
+|---|---|---|
+| **Knows** | perception-scoped context — what it can sense and recall, never world state | [perception](../../subsystems/perception.md), [belief](../../subsystems/belief.md) realms, [concealment](../../subsystems/concealment.md), [light](../../subsystems/light.md), the [record layer](../../subsystems/record-layer.md) |
+| **Is** | trait vector × regard toward *this specific speaker* × current vitals | [trait](../../subsystems/trait.md) (17 opposed pairs), belief/regard, [renown](../../subsystems/renown.md) |
+| **Wants** | a job, a shift, stock, a debt — something to lose | [employment](../../subsystems/employment.md), [contract](../../subsystems/contract.md), [banking](../../subsystems/banking.md), [activity](../../subsystems/activity.md) |
+| **Can** | its verb list **is** its tool schema | `augmentation.getActiveMixins`, affordance attribution |
+
+Every row is a number or a data source. Nobody writes "gruff."
+
+Two consequences:
+
+- **The context block is a perception query, never a state dump.** This is an
+  integrity requirement, not flavor — a character whose block contains ground
+  truth will leak it, and a barkeep who knows you're disguised because the
+  context said so breaks [belief](../../subsystems/belief.md)'s disguise
+  exactly the way a client-side cheat breaks combat (**A8**, server-authoritative
+  everything).
+- **Feed beliefs, not facts.** The most characterful thing an NPC can be is
+  *confidently wrong*, and the belief store is built for it — beliefs diverge
+  from truth and rumour mutates as it propagates. This is substrate almost
+  nobody else has.
+
+### Over-helpfulness is cured mechanically, not by prompting
+
+An assistant-tuned model wants to serve the player. The fix is that the
+character has a shift to work and the engagement framework can simply end the
+conversation — [activity](../../subsystems/activity.md) slot contention
+already models "busy." An NPC who walks off because its cadence trigger fired
+is more in character than any instruction could make it.
+
+### The line that cannot be crossed
+
+[uncertainty.md](../../uncertainty.md) bans **resolutional** randomness and
+**A6/A10** forbid a die between a choice and its outcome. A language model is
+a sampler, so: **it generates, it never resolves.** It decides what a
+character says and raises; it does **not** decide whether the lock opens, the
+trade clears, or the character was persuaded. Output is a *proposal* routed
+through the ordinary dispatcher, which may refuse it — the same
+librarian-not-judge line the constitution series draws.
+
+That constraint is also the security bound: players will type injection
+attempts at NPCs, and the ceiling on what one can be talked into is whatever
+`force` already permits for that target. Con artistry becomes gameplay; it
+never becomes code-trust.
+
+---
+
+## Knowledge asymmetry — where the director model needs help
+
+*Refines decision #2 and open Q4.* The showrunner model is right about
+**performance** and wrong about **knowledge**. One director assembling one
+scene context reads every character's block at once, so an NPC holding
+information whose leakage breaks a mechanic — a disguise, a concealed item, a
+secret, a sensor only they can read — has no *structural* guarantee of
+keeping it. Prompt discipline is not a mechanism.
+
+**The hybrid:**
+
+- **Director by default.** Ensemble scenes, banter, ambient narration, extras
+  — one call, one cached prefix, coherent chemistry. Unchanged.
+- **Isolated per-character call when knowledge asymmetry is load-bearing.**
+  The character's block is assembled alone and no other character's block is
+  in the window. Triggered by the mechanics that already exist: an active
+  disguise, a concealment band, a per-viewer belief divergence, or an
+  instrument/sensor whose reads are private to one entity.
+
+The partition lives in the **data layout** either way; the isolated call is
+what makes it enforceable rather than instructed. This keeps decision #2's
+cost and chemistry win for the ~90% case and buys honest fog for the rest.
+
+---
+
+## Funding: sponsorship, not player budgets
+
+The obvious funding model — each player buys a token budget, or supplies
+their own API key, for smarter NPCs — is **barred by an eternity clause**:
+
+> **Art. I §2 — No money buys advantage.** Real money may fund the world and
+> earn a *voice* in its governance; it may never purchase in-world currency,
+> property, or any gameplay advantage.
+
+A paying player who gets a conversational NPC while a non-paying player gets
+a canned tree has bought gameplay advantage. Unamendable except by founding
+anew (Art. X §4). No packaging fixes it.
+
+**Invert who the money attaches to.** A patron funds *the NPC's* inference,
+and that NPC is articulate **for everyone who talks to her**. Same money,
+same cost relief, benefit non-excludable — which is real money funding the
+world, exactly what Art. I §2 permits, earning capital-chamber standing
+through machinery that already exists. It is also the better pitch for a
+patronage-driven community:
+*adopt Rhonda; she stays sharp while she's sponsored*, and if sponsorship
+lapses she narrows for everyone at once, which is legible and fair.
+
+**The parity floor that makes any paid layer legal:** everything an LLM
+character can say must be reachable through the deterministic path — the tree
+responder, a `read` on an instrument, an authored line. **The tree must be
+complete, not a degraded stub.** That buys three things at once: the paid
+layer changes texture rather than outcomes; the game is fully playable with
+no API key configured; and budget exhaustion becomes graceful narrowing
+instead of an NPC going mute mid-scene. The honest target is that *the floor
+is good*, not that the ceiling is hidden — a regular will notice the
+difference, they just cannot learn anything a free player cannot.
+
+**Against bring-your-own-key**, if it is ever revisited:
+
+- Custody of user API keys is a liability class the project does not
+  currently carry (the encrypted-at-rest pattern exists for OAuth tokens in
+  `twitch_profiles` / `kick_profiles`, but a leaked key is the user's money).
+- Proxying or reselling inference has commercial-terms implications — read
+  them before building, do not assume.
+- "Paste your API key" is the least diegetic possible surface.
+- ⭐ **Decisive, and checkable before any build: prompt caching is
+  per-organization.** The stable identity prefix is the bulk of a
+  character's token weight and the volatile delta is small. One operator key
+  caches that prefix once and every player reads it; N players with N keys
+  means N cold caches for the same block, every session. BYO-key can
+  plausibly cost **more in aggregate** than paying centrally — which inverts
+  the whole reason for it. Measure this first; if it holds, the branch closes
+  on economics and the rest never needs litigating.
+
+If per-player budgets are ever built anyway, two rules: **meter in abstract
+units, never tokens** (the moment a player can do arithmetic they ration
+their own conversation, which is the opposite of immersion), and prefer a
+flat subscription with a soft cap over a meter.
+
+---
+
+## Cost shape
+
+*Answers open Q6.* The blow-up is never per-call price; it is fan-out — N
+characters × every utterance. Three levers in order:
+
+1. **Gate with the witness triggers already shipped.** Most NPCs should not
+   be listening, which is also realistic. A design decision, not an
+   optimisation — and the same gate as open Q1's salience question.
+2. **Tier the models.** A small fast model for "does this concern me?"
+   routing and ambient chatter; a frontier model for a named character in a
+   real conversation.
+3. **Cache the identity block.** Caching is prefix-match, so the layout is
+   stable-first / volatile-last: identity + standing orders + lexicon cached,
+   perception delta fresh. Verify with `usage.cache_read_input_tokens` rather
+   than assuming. To inject world events mid-conversation, append a
+   `{"role": "system"}` entry to `messages[]` instead of editing the
+   top-level system prompt — it preserves the cached prefix and is the
+   injection-safe operator channel, which matters when players type at the
+   thing.
+
+Offline work — overnight reflection, rumour propagation, restock decisions —
+goes through the Batch API at half price. Background characters can have a
+day's ambient lines generated overnight against *yesterday's real events*:
+static at runtime, zero latency, still about today.
+
+Order-of-magnitude for three live characters in one locality with gating:
+roughly **$0.50–$1 per player-hour** at frontier pricing, materially less
+with a small model routing. ⚠ Back-of-envelope — the first experiment exists
+to replace it with a measurement.
+
+---
+
+## The first experiment
+
+Deliberately **not** the content build. **One LLM brain on one existing
+Dave's Bar NPC**, operator-funded, no budget system, no metering, no
+sponsorship. [Dave's Bar](./daves-bar-slate.md) is built and the libations
+build gave it a real supply chain, so there is state worth talking about
+today.
+
+What it is for: does perception-scoped context actually produce distinct
+behaviour; can the model drive the dispatcher without breaking it; what does
+an hour really cost. Every expensive decision above is de-risked by that one
+number. The [Perfection](./perfection-slate.md) town is then a content build
+done because it is wanted — not a prerequisite.
+
+---
+
 ## Open questions
 
 1. **Salience gate** — what tips a locality from "rote, lower-rung" into
    "warrants a director beat," and how the active-cast set is assembled.
-2. **Persona/memory shape on entities** — how a character's voice + rolling
-   memory are stored (data on the entity) and projected into the beat;
-   cross-scene consistency.
+2. **Persona/memory shape on entities** — ✅ **answered** by § *Distinctness:
+   the four axes* (knows / is / wants / can, each a shipped subsystem).
+   Still open: cross-scene consistency — the rule is that anything a
+   character asserts is written back as a belief/chronicle row so the
+   *record*, not the model's memory, is the source of truth.
 3. **Extra ↔ principal graduation** — when a directed extra (the nameless
    drunk) becomes a named character with persistent persona.
 4. **Director ↔ `Behaved` integration** — the director as the `llm-brain`
    rung vs. a scene-level service that fronts the shared narrator; how it
-   composes with per-NPC lower-rung brains running concurrently.
+   composes with per-NPC lower-rung brains running concurrently. Partly
+   addressed by § *Knowledge asymmetry* (director by default, isolated call
+   when asymmetry is load-bearing).
 5. **Content filtering / safety** — the generated text passes through engine
    output; where the filter sits; prompt-injection bounds (force is already
    capability-bounded + player-excluded).
-6. **Cost / cadence model** — beat frequency, caching discipline (stable
-   voice prefix), model tiering per scene importance.
+6. **Cost / cadence model** — ✅ **answered in shape** by § *Cost shape*
+   (witness gating, model tiering, prefix caching, Batch for offline).
+   Open: the actual numbers, which the first experiment produces.
+7. **Sponsorship mechanics** — how an NPC's sponsored/unsponsored state is
+   held, displayed, and degraded; whether it reads as a capital-chamber
+   contribution for standing purposes.
 
 ---
 
