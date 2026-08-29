@@ -11,6 +11,7 @@
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-produce": "workspace:*",
+    "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

@@ -1,0 +1,142 @@
+/**
+ * StrainController — `strain [<vessel>] into <glass>` (the terminal mint).
+ *
+ * The terminal manual-build step. At completion it hands the vessel's
+ * accumulated buffer to `CraftingApi.mintFromBuild`, which reverse-matches
+ * it to a recipe and mints the graded, maker's-marked drink into the
+ * player's glass — reusing the one quality model. The maker is captured
+ * from `getActingAuthor` at dispatch (a real command frame) and carried,
+ * since the mint runs at engaged-completion outside that frame.
+ *
+ * An off-spec build still yields *a* drink (the generic mint); only the
+ * deed/knowledge gate (P9) cares whether it matched a recipe.
+ */
+
+import { ManualBuildController } from "@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController";
+import type { CommandContext, CommandModel } from "@saxonberg/server/mud/api/command";
+import type { MqlOneResult } from "@saxonberg/server/mud/api/mql";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import type { Builds } from "@saxonberg/server/mud/lib/craft/ManualBuild";
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { MessageApi } from "@saxonberg/server/mud/api/message";
+import { Mml } from "@saxonberg/server/mud/api/mml";
+import { CraftingApi } from "@saxonberg/server/mud/api/crafting";
+import { ExecutionContextApi } from "@saxonberg/server/mud/api/execution-context";
+import { ScriptApi } from "@saxonberg/server/mud/api/script";
+
+const TOPIC = "act.deed";
+const STRAIN_MS = 2500;
+
+interface StrainModel extends CommandModel {
+  vessel?: MqlOneResult;
+  glass: MqlOneResult;
+}
+
+export default class StrainController extends ManualBuildController<StrainModel> {
+  execute(model: StrainModel, context: CommandContext): void {
+    const giver = context.commandGiver;
+
+    const vessel: Stuff | null =
+      model.vessel?.stuff ?? this.findBuildVessel(giver);
+    if (!vessel || !MixinApi.isBuildVessel(vessel)) {
+      this.declineStep(
+        context,
+        Mml.compose`Strain what? You need a shaker or mixing glass you've built in.`,
+        "no-vessel",
+      );
+      return;
+    }
+    if (vessel.isBuildEmpty()) {
+      this.declineStep(
+        context,
+        Mml.compose`${Mml.thing(vessel)} is empty — there's nothing to strain.`,
+        "empty-build",
+      );
+      return;
+    }
+    const glass = model.glass?.stuff ?? null;
+    if (!glass) {
+      this.declineStep(
+        context,
+        Mml.compose`Strain it into what? You need a glass.`,
+        "no-glass",
+      );
+      return;
+    }
+
+    // Capture the maker from the live command frame; the mint runs later,
+    // at engaged-completion, where no command frame exists.
+    const makerPath =
+      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getTemplatePath() ??
+      "";
+    const built: Stuff & Builds = vessel;
+    const into = glass;
+    // The builder + this strain's command text, captured for demonstration
+    // capture (the mint + transcribe run later, outside the command frame).
+    const builder = giver;
+    const commandText = context.commandText;
+
+    this.engageStep(context, {
+      durationMs: this.paceMs(STRAIN_MS, vessel, ["shaker", "mixing-glass"]),
+      beginSelf: Mml.compose`You begin straining ${Mml.thing(vessel)} into ${Mml.thing(glass)}.`,
+      onComplete: () => {
+        void (async (): Promise<void> => {
+          // Close the capture: the strain is the last step of the build.
+          built.recordCommand(commandText);
+          const sources = built.getCommandSources();
+          const outcome = await CraftingApi.mintFromBuild({
+            vessel: into,
+            contributions: [...built.getContributions()],
+            method: built.getBuildMethod(),
+            makerPath,
+          });
+          if (!outcome.ok) {
+            MessageApi.scene(giver)
+              .topic(TOPIC)
+              .toSelf(Mml.compose`The strain goes wrong, and nothing comes together.`)
+              .send();
+            return;
+          }
+          const recipeId = outcome.recipeId;
+          built.clearBuild();
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(Mml.compose`You strain out ${Mml.thing(outcome.output)}.`)
+            .toPeers(Mml.compose`${Mml.actor(giver)} strains out ${Mml.thing(outcome.output)}.`)
+            .send();
+
+          // The chronicle knowledge ladder + demonstration capture. The
+          // FIRST faithful, hand-typed build of a recipe mints the
+          // can-make **deed** and transcribes + banks the personal
+          // recipe-script — the SAME act (learning *is* getting the
+          // script). Later builds of a recipe you can already make just
+          // yield the drink; a scripted replay records no sources. The
+          // capture runs at engaged-completion, outside the command frame
+          // — so `ScriptApi.captureManualBuild` (a framework seam) stamps
+          // the builder as the acting author the transcribe attributes to;
+          // a controller can't push/tag frames itself.
+          if (recipeId.length > 0 && sources.length > 0) {
+            const view = await CraftingApi.lookupRecipe(recipeId);
+            const name = view?.name ?? recipeId;
+            const path = await ScriptApi.captureManualBuild(
+              builder,
+              recipeId,
+              name,
+              sources,
+            );
+            if (path !== null) {
+              MessageApi.scene(giver)
+                .topic(TOPIC)
+                .toSelf(
+                  Mml.compose`You've worked out how to make ${name} — the recipe is yours now (try \`make ${recipeId}\`).`,
+                )
+                .send();
+            }
+          }
+        })().catch((err: unknown) => {
+          console.error("StrainController: mint failed", err);
+        });
+      },
+    });
+  }
+}

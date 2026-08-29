@@ -2374,11 +2374,12 @@ with no instrument (`make`) is innate on `Avatar`. Patient-side marker
 interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
 side: eligibility is matter (Material tags + edibility) + instrument
 capabilities, and interfaces exist only for real state or behavior.
-The fix's final form is the **capability table**
-(`lib/craft/ToolCapability.ts` + `ToolMixin`'s `InstanceContributor`):
-a tool's verb families derive from its seed row's `capabilities` list —
-zero code, zero statics — so a tool variant (kit → machine) is pure
-data. See
+The fix's final form is **the row names its verbs**
+(`CapabilitySpec.verbs` + `ToolMixin`'s `InstanceContributor`): a tool's
+verbs are its seed row's `capabilities[].verbs` — zero code, zero
+statics, and no kernel table (the one that existed made the kernel name
+trade views; libations retired it) — so a tool variant (kit → machine)
+is pure data. See
 [command-spec.md § who affords a verb](./subsystems/command-spec.md) and
 [crafting.md § The offer](./subsystems/crafting.md).
 

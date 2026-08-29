@@ -13,6 +13,6 @@ data:
   longDescription: |
     Cast iron and walnut, a wheel taller than your hand, a needle that never hesitates. Everything the kit does, it does before you've finished threading.
   capabilities:
-    - { kind: mending, rate: 3, control: fine }
+    - { kind: mending, rate: 3, control: fine, verbs: [platform/cmd/crafting/repair.yaml, platform/cmd/crafting/salvage.yaml] }
   _materialPath: /stuff/idea/material/element/iron
   mass: 18

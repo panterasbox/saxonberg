@@ -116,14 +116,28 @@ object, so spec, controller, and seed all live under
 
 **Who affords a verb is a separate question from where its spec
 lives — and the answer is the *instrument***. The tool/fixture that
-does the work carries the working verbs — for tools, **derived from
-instance data**: the capability table (`lib/craft/ToolCapability.ts`)
-maps each kind to its verb family + placement, and `ToolMixin`
-implements the `InstanceContributor` seam over the instance's authored
-`capabilities` (the whetstone entry → `sharpen` carried-only, `pot` →
-the cooking steps, `anvil` → the smithing family, `mending` →
-repair/salvage), so a tool variant is pure seed data — no class, no
-statics. Appliance mixins with real behavior (the furnace →
+does the work carries the working verbs — for tools, **as the row's own
+data**: a capability entry names its `verbs` (command-view keys) and
+its `placement`, and `ToolMixin` implements the `InstanceContributor`
+seam over the instance's authored `capabilities` (the whetstone entry →
+`sharpen` carried-only, `pot` → the cooking steps, `anvil` → the
+smithing family, `mending` → repair/salvage), so a tool variant is pure
+seed data — no class, no statics, and **no kernel table** (the
+capability vocabulary is open; see
+[crafting.md](./crafting.md)).
+
+**Where a verb's spec lives follows the same rule: with the pack whose
+content affords it.** The platform pack ships the verbs any trade's
+instrument can confer (`pour`, `stir`, `heat`, `repair`, `salvage`,
+`wash`, `make`) and the commerce pair (`retail/menu`, `retail/order`);
+a trade's own steps ship in the trade's capability pack — hospitality's
+`muddle`/`strain`/`garnish`/`mix`/`serve`, hearth-cooking's
+`cook`/`plate`, smithing's `forge`/`hammer`/`quench`/`sharpen` — as
+`content/<root>/cmd/<category>/<verb>.yaml` + `src/idea/cmd/<category>/`
+controllers + `content/<root>/idea/cmd/<category>/<Name>Controller.yaml`
+seeds (arcana's shape), referenced from a row's `capabilities[].verbs`
+by the `<root-sans-slash>/cmd/<category>/<verb>.yaml` key
+(`trade/smithing/cmd/crafting/hammer.yaml`). Appliance mixins with real behavior (the furnace →
 `heat`/`ignite`/`douse`/`pump`) still declare statics. A commerce
 object (a `CommerceMenu`) affords only its commerce verbs
 (`menu`/`order`) — the menu is for ordering, not making.

@@ -1,0 +1,15 @@
+# The cook pot — the cooking branch's build vessel + `pot` tool, and the
+# smithing ladder's easy rung (forge one, then cook in it). Portable
+# capital: reachable heat + a pot is a kitchen, anywhere.
+class: /platform/thing/CookPot
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a cook pot
+  primaryKeyword: pot
+  keywords: [pot, cook-pot, kettle]
+  longDescription: |
+    A deep-bellied iron pot with a bail handle, seasoned black inside. It has boiled a thousand suppers and is ready for the next.
+  capabilities:
+    - { kind: pot, verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, platform/cmd/crafting/heat.yaml, trade/hearth-cooking/cmd/crafting/plate.yaml, trade/hearth-cooking/cmd/crafting/cook.yaml] }
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 2.5

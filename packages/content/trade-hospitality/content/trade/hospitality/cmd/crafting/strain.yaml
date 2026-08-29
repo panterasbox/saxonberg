@@ -1,0 +1,27 @@
+verbs: [strain]
+controller: /trade/hospitality/idea/cmd/crafting/StrainController
+description: "Strain a finished build into a glass (the terminal step)"
+help: |
+  Finish the drink — `strain into glass`, or `strain shaker into glass`.
+  The build is matched to a recipe and the graded, maker's-marked drink
+  is strained into your glass. An off-spec build still yields a drink,
+  just not a named one. Takes a moment.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # `vessel` is optional (defaults to the build you're working in), so
+  # `glass` can't be a *required* positional after it — the controller
+  # enforces that a glass was named (declines otherwise).
+  - name: vessel
+    type: object
+    required: false
+    scope: "reachable"
+    requires: ManualBuildMixin
+  - name: glass
+    type: object
+    required: false
+    scope: "reachable"
+    prepositions: [into, in]
+    requires: ManualBuildMixin

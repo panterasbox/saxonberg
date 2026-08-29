@@ -3,10 +3,10 @@
  *
  * `Receptacle` is already `ThermalMixin(BulkableMixin(Thing))`, so the can
  * is the liquid holder; `ToolMixin` is what makes it an *instrument*: its
- * authored `capabilities: [watering]` drives
- * `ToolMixin.getInstanceContributions` over the closed
- * `TOOL_CAPABILITIES` vocabulary, whose `watering` row confers
- * `platform/cmd/bulk/water.yaml` at `placement: 'carried'`. So the verb appears only
+ * authored `capabilities: [{ kind: watering, verbs:
+ * [platform/cmd/bulk/water.yaml], placement: carried }]` drives
+ * `ToolMixin.getInstanceContributions` — the row's own verbs at the
+ * row's own placement. So the verb appears only
  * while a can is in your pack — the standing "instruments confer working
  * verbs" rule, getting its first non-crafting consumer.
  *

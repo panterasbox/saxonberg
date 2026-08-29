@@ -1,6 +1,6 @@
 # Libations slate — the bar's supply chain, and putting things where they go
 
-> **Built 2026-08-28 on `design/libations`** — requirements
+> **Built 2026-08-28 on `design/libations`** — review rulings: a corpo pack is capital + the mark only (products in the trade pack); **a verb lives with the pack whose content affords it** (hospitality/hearth-cooking/smithing own their steps; the capability vocabulary is open and a tool row names its own verbs; `menu`/`order` are platform `retail`). Requirements
 > `docs/requirements/libations-requirements.md` (D1–D14), plan
 > `docs/plans/libations-plan.md` (six phases, twenty findings; its
 > *Blockers / deviations* records what the code forced: the lounge stays

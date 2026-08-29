@@ -1,0 +1,18 @@
+verbs: [sharpen, hone]
+controller: /trade/smithing/idea/cmd/crafting/SharpenController
+description: "Sharpen a blade with your whetstone"
+help: |
+  Restore a dulled edge — `sharpen knife`. Needs a whetstone in your
+  kit; works anywhere (a campfire's as good as a smithy). Takes a while,
+  keeps your hands busy, and the whole room hears the stone. Sharpening
+  restores the EDGE only — a nicked or broken blade needs `repair`.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: blade
+    type: object
+    required: true
+    scope: "reachable"
+    requires: KeenMixin

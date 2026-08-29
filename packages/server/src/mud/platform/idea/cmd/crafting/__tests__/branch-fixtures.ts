@@ -90,6 +90,35 @@ export async function completeStep(ms: number): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
 }
 
+/**
+ * Point the persistence layer at an in-memory store for a test that
+ * authors its own recipe rows: `documents` rows of kind `recipe` are
+ * wrapped in the document shape the catalogue reads; every other
+ * collection is filtered by shallow equality. Spies restore with
+ * `vi.restoreAllMocks()`.
+ */
+export function mockPersistenceStore(
+  store: Record<string, Record<string, unknown>[]>,
+): void {
+  const pm = PersistenceManager.get();
+  vi.spyOn(pm, 'isConnected').mockReturnValue(true);
+  vi.spyOn(pm, 'find').mockImplementation(
+    async (col: string, query: Record<string, unknown>) => {
+      if (col === 'documents' && query.kind === 'recipe') {
+        return (store['recipes'] ?? []).map((d) => ({
+          path: `/generic-objects/recipes/${String(d.recipeId)}`,
+          owner: '/generic-objects',
+          kind: 'recipe',
+          data: d,
+        })) as never;
+      }
+      return (store[col] ?? []).filter((d) =>
+        Object.entries(query).every(([k, v]) => d[k] === v),
+      ) as never;
+    },
+  );
+}
+
 export function registerMaterial(
   path: string,
   name: string,

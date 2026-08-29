@@ -7,6 +7,7 @@ data:
   longDescription: A thick hardwood muddler, its end stained green with mint.
   primaryKeyword: muddler
   keywords: [muddler]
-  capabilities: [muddler]
+  capabilities:
+    - { kind: muddler, verbs: [trade/hospitality/cmd/crafting/muddle.yaml] }
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.2

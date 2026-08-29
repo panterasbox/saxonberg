@@ -1,0 +1,3 @@
+# trade-smithing
+
+The smithing trade, a **capability pack**: the stations (anvil, whetstone, workbench), the iron stock, the recipes (fire-poker, smiths-hammer, belt-knife, cook-pot, leather-jerkin), and — since libations — the trade's own working verbs, `forge`, `hammer`, `quench`, `sharpen`, as `content/trade/smithing/cmd/crafting/` views with their controllers in `src/idea/cmd/crafting/` and the tests beside them. The anvil and whetstone rows author the verbs they confer (`capabilities[].verbs`); `repair`/`salvage`/`heat` stay platform because any trade's instrument confers them. Fire stations (Forge, Oven, Kiln) are fire-substrate commons; the Hearthworks smithy is the venue that hosts this trade. Depends on hearth-cooking for the cook-pot recipe's output row.

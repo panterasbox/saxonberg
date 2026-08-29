@@ -63,6 +63,11 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality'].map((pack) =>
   fileURLToPath(new URL(`../../../../../../content/${pack}/content/recipes/`, import.meta.url)),
 );
+/** A shipped row's `data` block, read from a pack by content-relative path. */
+const readRow = (rel: string): Record<string, unknown> =>
+  (YAML.parse(
+    readFileSync(fileURLToPath(new URL(`../../../../../../content/${rel}`, import.meta.url)), 'utf8'),
+  ) as { data: Record<string, unknown> }).data;
 const PACK_MATERIALS = fileURLToPath(
   new URL(
     '../../../../../../content/base-library/content/stuff/idea/material/',
@@ -268,25 +273,28 @@ afterEach(() => {
 describe('the venue menus', () => {
   it('every menu affords commerce only; instruments carry the working verbs', () => {
     // Menus = menu/order, any venue (inherited off the commerce base).
-    const commerce = ['platform/cmd/crafting/menu.yaml', 'platform/cmd/crafting/order.yaml'];
+    const commerce = ['platform/cmd/retail/menu.yaml', 'platform/cmd/retail/order.yaml'];
     expect(Menu.commandContributions.peers).toEqual(commerce);
     expect(Menu.commandContributions.environment).toEqual(commerce);
 
-    // The working verbs ride the instruments — derived from instance
-    // `capabilities` through the capability table (no per-tool classes).
+    // The working verbs ride the instruments — the rows' own authored
+    // `capabilities[].verbs` (no per-tool classes, no kernel table).
+    const anvilRow = readRow('trade-smithing/content/trade/smithing/thing/anvil.yaml');
     const anvil = makeStuff(() => new ToolItem());
-    anvil.setCapabilities(['anvil']);
+    anvil.setCapabilities(anvilRow.capabilities as never);
     const anvilEnv = anvil.getInstanceContributions().peers ?? [];
-    expect(anvilEnv).toContain('platform/cmd/crafting/hammer.yaml');
-    expect(anvilEnv).toContain('platform/cmd/crafting/forge.yaml');
+    expect(anvilEnv).toContain('trade/smithing/cmd/crafting/hammer.yaml');
+    expect(anvilEnv).toContain('trade/smithing/cmd/crafting/forge.yaml');
     expect(anvilEnv).toContain('platform/cmd/crafting/repair.yaml');
-    expect(anvilEnv).not.toContain('platform/cmd/crafting/mix.yaml');
+    expect(anvilEnv).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
 
+    const potRow = readRow('trade-hearth-cooking/content/trade/hearth-cooking/thing/cook-pot.yaml');
     const pot = makeStuff(() => new CookPot());
+    pot.setCapabilities(potRow.capabilities as never);
     const potEnv = pot.getInstanceContributions().peers ?? [];
-    expect(potEnv).toContain('platform/cmd/crafting/cook.yaml');
+    expect(potEnv).toContain('trade/hearth-cooking/cmd/crafting/cook.yaml');
     expect(potEnv).toContain('platform/cmd/crafting/pour.yaml');
-    expect(potEnv).not.toContain('platform/cmd/crafting/forge.yaml');
+    expect(potEnv).not.toContain('trade/smithing/cmd/crafting/forge.yaml');
 
     // `heat` is the furnace's (the fire is the instrument) + the pot's.
     expect(Forge.commandContributions.peers).toContain(

@@ -9,6 +9,7 @@ data:
   keywords: [whetstone, stone, hone]
   longDescription: |
     A palm-sized bar of grey granite, one face dished by years of blades.
-  capabilities: [whetstone]
+  capabilities:
+    - { kind: whetstone, verbs: [trade/smithing/cmd/crafting/sharpen.yaml], placement: carried }
   _materialPath: /stuff/idea/material/rock/granite
   mass: 0.3

@@ -12,6 +12,7 @@ data:
   keywords: [anvil, stump]
   longDescription: |
     A smithy anvil on a scarred oak stump, its face bright where ten thousand blows have polished it.
-  capabilities: [anvil]
+  capabilities:
+    - { kind: anvil, verbs: [trade/smithing/cmd/crafting/hammer.yaml, trade/smithing/cmd/crafting/quench.yaml, trade/smithing/cmd/crafting/forge.yaml, platform/cmd/crafting/repair.yaml, platform/cmd/crafting/salvage.yaml] }
   _materialPath: /stuff/idea/material/element/iron
   mass: 60

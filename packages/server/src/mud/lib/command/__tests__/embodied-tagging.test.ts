@@ -72,7 +72,7 @@ const READ_ONLY_IN_MATERIAL = new Set([
   'platform/cmd/banking/wallet.yaml',
   'platform/cmd/banking/house.yaml',
   'platform/cmd/banking/reserve.yaml',
-  'platform/cmd/crafting/menu.yaml',
+  'platform/cmd/retail/menu.yaml',
   'platform/cmd/inventory/inventory.yaml',
   'arcana/cmd/magic/spells.yaml',
 ]);

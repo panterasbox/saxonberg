@@ -62,13 +62,14 @@ with a diegetic reason, not a flag flip.
   across input grades), `fair` fallback for an ungraded craft; `_control`
   is the deferred skill seam (ignored in v1). A plain value-object, **not**
   a `Quantity` (grade is ordinal-categorical, not a measured scalar).
-- **`ToolCapability`** (`ToolCapability.ts`) — the capability vocabulary
-  (`shaker`/`strainer`/`muddler`/`mixing-glass` + the branches'
-  `striking`/`anvil`/`whetstone`/`mending`/`pot`) +
-  `ToolCapabilities.isCapability`/`definitionOf`/`validateEntry` and the
-  **capability table** (each kind's conferred verb family + placement —
-  see § The offer) with the `CapabilitySpec` parameterized-entry shape
-  (`rate`/`control`/`placement`, `RATE_MIN`/`RATE_MAX`). There is **no
+- **`ToolCapability`** (`ToolCapability.ts`) — the capability
+  **contract**: an **open** vocabulary (any kebab name a recipe's
+  `toolCapabilities` and a tool row's `capabilities` agree on — the
+  kernel keeps no list, so a pack that ships a `still` and the recipes
+  that need one edits nothing here) + `ToolCapabilities.validateEntry`
+  and the `CapabilitySpec` parameterized-entry shape (`kind`, **`verbs`**
+  — the command-view keys the entry confers, the row's own data —
+  `rate`/`control`/`placement`, `RATE_MIN`/`RATE_MAX`). There is **no
   workbench concept** —
   "workbench" is just the word for capabilities too heavy to carry: the
   pot and whetstone are portable capital, the anvil (60 kg — a fixture
@@ -317,33 +318,50 @@ A menu affords **commerce only** — the base's `commandContributions` is
 (content packs wave 4b collapsed the three empty venue subclasses —
 the lounge's `Menu`, `SmithyMenu`, `KitchenMenu` — into it; what
 differed was the rows' data: `offeredRecipes`, prices). The
-*working* verbs are **instrument-conferred through the capability
-table** (`lib/craft/ToolCapability.ts`): each kind's definition names
-the verb family it confers and its placement, and `ToolMixin` derives
-its per-instance contributions from the table over the instance's
-authored `capabilities` (the `InstanceContributor` seam — see
-[command-routing.md](./command-routing.md)). The surface follows
+*working* verbs are **instrument-conferred, and the instrument's row
+names them**: a capability entry carries `verbs` (command-view keys)
+and `ToolMixin` derives its per-instance contributions from the
+instance's authored `capabilities` (the `InstanceContributor` seam —
+see [command-routing.md](./command-routing.md)). There is **no kernel
+table** (libations retired `CAPABILITY_TABLE`): the kernel could not
+name a trade's view without owning the trade, and the verbs moved to
+the packs whose content affords them (below). The surface follows
 capital, not venue flags (the menu is for ordering, not making; camp
 cooking works because reachable heat + a pot IS a kitchen), and **a
 tool variant is pure seed data** — the sewing machine is
-`class: /lib/craft/ToolItem` + one spec entry, no code:
+`class: /lib/craft/ToolItem` + one spec entry, no code. The shipped
+rows, as authored:
 
-| kind | confers | placement |
-|---|---|---|
-| `shaker` / `mixing-glass` | pour, stir, strain, garnish, serve, mix | reachable |
-| `pot` | pour, stir, heat, plate, cook | reachable |
-| `anvil` | hammer, quench, forge, repair, salvage | reachable |
-| `mending` | repair, salvage | reachable |
-| `whetstone` | sharpen | **carried** (personal capital) |
-| `striking` / `strainer` / `muddler` | — (recipe-side kinds) | — |
+| row | entry | confers | placement |
+|---|---|---|---|
+| hospitality `shaker` / `mixing-glass` | `shaker` / `mixing-glass` | platform `pour`, `stir`; hospitality `strain`, `garnish`, `serve`, `mix` | reachable |
+| hospitality `muddler` | `muddler` | hospitality `muddle` | reachable |
+| hearth-cooking `cook-pot` | `pot` | platform `pour`, `stir`, `heat`; hearth-cooking `plate`, `cook` | reachable |
+| smithing `anvil` | `anvil` | smithing `hammer`, `quench`, `forge`; platform `repair`, `salvage` | reachable |
+| general-store `sewing-kit` / `sewing-machine` | `mending` | platform `repair`, `salvage` | reachable |
+| smithing / general-store `whetstone` | `whetstone` | smithing `sharpen` | **carried** (personal capital) |
+| generic-objects `watering-can` | `watering` | platform `water` | **carried** |
+| `striking` / `strainer` / `juicer` / `tap` / `bar-spoon` / `still` | bare kinds | — (recipe-side requirements) | — |
 
-Placement is a kind default with a **per-entry override** (a 40 kg
-grinding wheel authors `placement: reachable` on its `whetstone`
-entry). `FurnaceMixin` still statically confers `heat` (with
+**Where a crafting verb lives** — with the pack whose content affords
+it: `make`, `heat`, `pour`, `stir`/`shake`, `repair`, `salvage`, `wash`
+are platform (a pot and a shaker both pour and stir; a furnace heats; a
+basin washes; mending is any trade's); `menu`/`order` are platform
+**retail** (a menu is commerce, any venue); `muddle`, `strain`,
+`garnish`, `mix`, `serve` are `trade-hospitality`'s; `cook`, `plate`
+are `trade-hearth-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
+are `trade-smithing`'s — each a capability pack with its controllers in
+`src/idea/cmd/crafting/` and the tests beside them. The kitchen bundle
+and the cook-pot row are hearth-cooking's too (the bundle collects the
+trade's instruments).
+
+Placement is per entry (default `reachable`; a 40 kg grinding wheel
+authors `placement: reachable` on its `whetstone` entry where the
+hand-stone authors `carried`). `FurnaceMixin` still statically confers `heat` (with
 `ignite`/`douse`/`pump`) — an appliance mixin, not a `Tooled` host —
 and `make` is innate on `Avatar` (knowledge-driven, no instrument).
 Capability entries are **parameterized**:
-`{ kind, rate?, control?, placement? }` (a bare string = the defaulted
+`{ kind, verbs?, rate?, control?, placement? }` (a bare string = the defaulted
 spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
 that divides the engaged duration of the steps the kind confers (the
 **conferring kind paces the step**: the anvil paces `hammer`/`quench`,

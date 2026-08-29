@@ -5,5 +5,6 @@ data:
   shortDescription: a mixing glass
   longDescription: A heavy mixing glass and a long bar spoon.
   keywords: [mixing-glass, mixing, glass, spoon]
-  capabilities: [mixing-glass]
+  capabilities:
+    - { kind: mixing-glass, verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, trade/hospitality/cmd/crafting/strain.yaml, trade/hospitality/cmd/crafting/garnish.yaml, trade/hospitality/cmd/crafting/serve.yaml, trade/hospitality/cmd/crafting/mix.yaml] }
   condition: 1

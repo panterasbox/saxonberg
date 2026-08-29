@@ -43,8 +43,8 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The capabilities this tool offers — bare kind strings (shorthand
      * for the defaulted spec) and/or parameterized entries
-     * `{ kind, rate?, control?, placement? }`, validated against the
-     * vocabulary. Persisted exactly as authored; normalization happens
+     * `{ kind, verbs?, rate?, control?, placement? }`, validated for
+     * shape (the vocabulary is open). Persisted exactly as authored; normalization happens
      * on read (`entryFor`), so seeds stay byte-stable.
      */
     public capabilities: (string | CapabilitySpec)[] = [];
@@ -107,11 +107,12 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Per-instance dynamic command contributions (the
-     * `InstanceContributor` seam): the union of the capability table's
-     * verb families over this instance's **authored** capabilities —
-     * the tool that does the work carries its working verbs, so a tool
-     * variant is pure seed data. Placement per the kind's table entry
-     * (`reachable` → environment + peers, `carried` → environment
+     * `InstanceContributor` seam): the union of the **authored** verbs
+     * over this instance's capability entries — the tool that does the
+     * work carries its working verbs, and the verbs are the row's own
+     * data (`{ kind, verbs, placement? }`), so a tool variant is pure
+     * seed data and the kernel never names a trade's view. Placement per
+     * entry (`reachable` → environment + peers, `carried` → environment
      * only). Deliberately NOT broken-gated: a broken anvil keeps
      * *affording* `hammer` and the controller's `hasCapability` check
      * declines diegetically (a vanishing verb would also go stale —
@@ -133,15 +134,15 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       const environment: string[] = [...(inner.environment ?? [])];
       const peers: string[] = [...(inner.peers ?? [])];
       for (const entry of this.capabilities) {
-        const spec: CapabilitySpec =
-          typeof entry === 'string' ? { kind: entry } : entry;
-        const def = ToolCapabilities.definitionOf(spec.kind);
-        if (!def || def.verbs.length === 0) continue;
-        const placement = spec.placement ?? def.placement;
+        if (typeof entry === 'string') continue;
+        const verbs = entry.verbs ?? [];
+        if (verbs.length === 0) continue;
+        const placement =
+          entry.placement ?? ToolCapabilities.DEFAULT_PLACEMENT;
         // Carried: the tool hands its verbs to its holder.
-        environment.push(...def.verbs);
+        environment.push(...verbs);
         // Reachable: and to anyone else in the room with it.
-        if (placement === 'reachable') peers.push(...def.verbs);
+        if (placement === 'reachable') peers.push(...verbs);
       }
       if (
         environment.length === (inner.environment?.length ?? 0) &&

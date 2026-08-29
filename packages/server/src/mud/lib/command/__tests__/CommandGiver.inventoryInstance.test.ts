@@ -35,7 +35,7 @@ function affords(player: Player, verb: string): boolean {
 beforeAll(() => {
   // The contributions reference these views — ensure they resolve.
   CommandApi.getCommand("platform/cmd/crafting/repair.yaml");
-  CommandApi.getCommand("platform/cmd/crafting/sharpen.yaml");
+  CommandApi.getCommand("trade/smithing/cmd/crafting/sharpen.yaml");
 });
 
 beforeEach(() => {
@@ -43,11 +43,13 @@ beforeEach(() => {
 });
 
 describe("the inventory bucket's instance consult", () => {
-  it("a carried data-only tool confers its kind's verbs; dropping loses them", () => {
+  it("a carried data-only tool confers its authored verbs; dropping loses them", () => {
     const room = makeStuff(() => new Room());
     const player = makeStuff(() => new Player());
     const kit = makeStuff(() => new Tool());
-    kit.setCapabilities(["mending"]);
+    kit.setCapabilities([
+      { kind: "mending", verbs: ["platform/cmd/crafting/repair.yaml", "platform/cmd/crafting/salvage.yaml"] },
+    ]);
     ContainmentApi.move(player, room);
 
     expect(affords(player, "repair")).toBe(false);
@@ -65,7 +67,9 @@ describe("the inventory bucket's instance consult", () => {
     const room = makeStuff(() => new Room());
     const player = makeStuff(() => new Player());
     const stone = makeStuff(() => new Tool());
-    stone.setCapabilities(["whetstone"]);
+    stone.setCapabilities([
+      { kind: "whetstone", verbs: ["trade/smithing/cmd/crafting/sharpen.yaml"], placement: "carried" },
+    ]);
     ContainmentApi.move(player, room);
     ContainmentApi.move(stone, room);
 

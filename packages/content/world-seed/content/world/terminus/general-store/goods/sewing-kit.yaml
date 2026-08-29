@@ -11,6 +11,7 @@ data:
   keywords: [sewing-kit, kit, sewing, needle, awl, thread]
   longDescription: |
     A canvas roll of needles, waxed thread, an awl, and patience. Everything soft that tears, this mends.
-  capabilities: [mending]
+  capabilities:
+    - { kind: mending, verbs: [platform/cmd/crafting/repair.yaml, platform/cmd/crafting/salvage.yaml] }
   _materialPath: /stuff/idea/material/textile/wool
   mass: 0.4

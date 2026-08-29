@@ -18,7 +18,6 @@ import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../../lib/husbandry/Cultivable';
-import { ToolCapabilities } from '../../../../../lib/craft/ToolCapability';
 import { Quantity } from '../../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
@@ -151,7 +150,9 @@ function makeCan(litres: number): WateringCan {
     can.setShortDescription('a tin watering can');
     can.interiorBulk = true;
     can.setInteriorCapacity(Quantity.of(2, 'L'));
-    can.setCapabilities(['watering']);
+    can.setCapabilities([
+      { kind: 'watering', verbs: ['platform/cmd/bulk/water.yaml'], placement: 'carried' },
+    ]);
     if (litres > 0) {
       can.setBulkMaterial('interior', water());
       can.setBulkAmount('interior', Quantity.of(litres, 'L'));
@@ -198,14 +199,6 @@ let captured: Stuff[];
 let deeds: Array<{ discipline: string; difficulty: string; outcome: string }>;
 
 describe('the watering capability', () => {
-  it('the watering row confers water, carried-only', () => {
-    const def = ToolCapabilities.definitionOf('watering');
-    expect(def).not.toBeNull();
-    expect(def!.verbs).toEqual(['platform/cmd/bulk/water.yaml']);
-    expect(def!.placement).toBe('carried');
-    expect(ToolCapabilities.isCapability('watering')).toBe(true);
-  });
-
   it('a carried can affords water; the same can on the floor does not', () => {
     const can = makeCan(1);
     const contributions = can.getInstanceContributions();

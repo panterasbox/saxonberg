@@ -21,9 +21,10 @@ const CookPotBase = CraftedMixin(
 
 export default class CookPot extends CookPotBase {
   /**
-   * The defining capability default — authored seeds may extend it.
-   * Reachable heat + a pot IS a kitchen: the `pot` entry alone confers
-   * the cooking verbs through the capability table (no statics).
+   * The defining capability default — authored seeds extend it with
+   * the verbs the pot confers (the cook-pot row names them: the
+   * kitchen's `cook`/`plate`, the platform's `pour`/`stir`/`heat`).
+   * Reachable heat + a pot IS a kitchen.
    */
   public override capabilities: string[] = ['pot'];
 }

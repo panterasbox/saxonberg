@@ -397,9 +397,9 @@ talk.yaml` exactly when the host carries a dialogue tree (an `engage`
 spec) — so a conversational NPC is discoverable and a silent one is
 not, with no subclass and no manual push/pop (see
 [npc-dialogue.md](./npc-dialogue.md)) — and
-`ToolMixin.getInstanceContributions` derives a tool's verb families
-from the capability table over its authored `capabilities`, so a tool
-variant is pure seed data (see [crafting.md](./crafting.md)). A
+`ToolMixin.getInstanceContributions` reads a tool's verbs off its
+authored `capabilities[].verbs` entries, so a tool variant is pure seed
+data and the kernel names no trade's view (see [crafting.md](./crafting.md)). A
 shadowing implementation must merge the inner contributor's buckets
 (both consumers show the pattern).
 

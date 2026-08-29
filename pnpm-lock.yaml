@@ -493,6 +493,16 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/trade-hospitality:
     dependencies:
@@ -566,12 +576,25 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-hearth-cooking':
+        specifier: workspace:*
+        version: link:../trade-hearth-cooking
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
 
   packages/content/trade-winemaking:
     dependencies:
@@ -623,6 +646,9 @@ importers:
       '@saxonberg/content-trade-produce':
         specifier: workspace:*
         version: link:../trade-produce
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -695,7 +695,14 @@ reason.
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
   stay under `boundary`). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
-  `look` alias, not its own verb. The libations build added `wash`/`muddle`
+  `look` alias, not its own verb. ⭐ **A verb lives with the pack whose content
+  affords it**: platform keeps the verbs any trade's instrument confers
+  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
+  `retail/menu`+`order`; a trade's own steps ship in its capability pack
+  (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
+  `trade-hearth-cooking`: `cook`/`plate`; `trade-smithing`:
+  `forge`/`hammer`/`quench`/`sharpen`) under `content/<root>/cmd/` +
+  `src/idea/cmd/`. The libations build added `wash`/`muddle`
   (crafting), `quit` (employment), `house par`/`house stock` (banking) and
   `watch … on <screen>` (stream).
 - **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.

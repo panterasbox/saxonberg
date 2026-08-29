@@ -1531,7 +1531,7 @@ cleanest pack candidate in the tree.
 
 - `dependsOn: base-library` — iron, firewood, hide are materials.
 - `dependsOn: generic-objects` — ⭐⭐ **every recipe's `outputTemplate`
-  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/stuff/thing/CookPot`,
+  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/trade/hearth-cooking/thing/cook-pot`,
   `/stuff/thing/gear/smiths-hammer`, `/stuff/thing/armor/hide-jerkin`,
   `/stuff/thing/items/plated-dish`). Cross-pack template references are
   LOAD-BEARING from pack one — the installer needs a reference check
@@ -2003,7 +2003,7 @@ plus three decisions it forced.
    CookPot are fire-substrate COMMONS (`/obj/`) — smelting is the phase
    engine, not a recipe. The capability floor makes it natural: the
    archetype *requires heat*, `default: /stuff/thing/Forge`. Corollary:
-   smithing's cook-pot recipe outputs `/stuff/thing/CookPot` — a commons
+   smithing's cook-pot recipe outputs `/trade/hearth-cooking/thing/cook-pot` — a commons
    template — so smithing-makes-cooking's-tools creates **no pack
    edge**. ⭐ Recipes that output commons goods are chain-neutral.
 2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are

@@ -26,7 +26,7 @@ import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
 } from '../../../../../lib/husbandry/Cultivable';
-import { ToolCapabilities } from '../../../../../lib/craft/ToolCapability';
+import { execSync } from 'node:child_process';
 import { Quantity } from '../../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
@@ -234,17 +234,15 @@ let captured: Stuff[];
 let deeds: Array<{ discipline: string; difficulty: string; outcome: string }>;
 
 describe('feed is NOT tool-afforded', () => {
-  it('no capability row confers it — you feed by hand', () => {
-    // `water` rides the `watering` row because a can is an instrument.
-    // Compost is a material, not a tool, so there is nothing to confer.
-    for (const name of ToolCapabilities.ALL) {
-      const def = ToolCapabilities.definitionOf(name);
-      expect(def?.verbs ?? []).not.toContain('platform/cmd/bulk/feed.yaml');
-    }
-    // …and `water` DOES ride one, which is the contrast.
-    expect(ToolCapabilities.definitionOf('watering')?.verbs).toContain(
-      'platform/cmd/bulk/water.yaml',
-    );
+  it('no shipped tool row confers it — you feed by hand', () => {
+    // `water` rides the watering can's own authored verbs because a can
+    // is an instrument. Compost is a material, not a tool, so no row
+    // anywhere names `feed` as a conferred verb.
+    const hits = execSync(
+      "grep -rl 'platform/cmd/bulk/feed.yaml' ../content --include='*.yaml' || true",
+      { cwd: process.cwd(), encoding: 'utf8' },
+    ).trim();
+    expect(hits).toBe('');
   });
 });
 
