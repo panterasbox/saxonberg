@@ -160,11 +160,22 @@ named here because the can and the pallet are the two objects whose
 
 ## 6. What to do now (this MR) vs later
 
-**Now, small, content + one derive-on-read:** fix the eight vessel rows
-(construction in the description, `open: true`, aluminium on the can,
-`sealed` on the capped bottles); the census derives from state; a
-`can-of-cola` row + its price on the menu; the bottling README rewritten
-as the standard.
+**✅ DONE in the libations MR (`3bc9c8d3b`, `68a878d0c`):** aluminium as
+an element row; the eight vessel rows as a real standard
+(construction-only descriptions, `open: true`, aluminium/steel/oak,
+`sealed` on the can + keg + capped bottles, `liquidTight` kept on the
+cask because it breathes, `open` on the sack; crate and basket described
+as open containers, not vessels); `can-of-cola` as the standard *used*;
+`Bottle.getCensusKey()` derives from state, so an empty reports
+`vessel:<keyword>` and a drunk-dry floor restocks; the bottling README as
+the contract. ⚠ The derive immediately caught an unfaithful mock — the
+distilling sweep test cloned its bottles EMPTY, which a real clone never
+is.
+
+⚠ **One vocabulary decision left open:** the sack's material. Hessian is
+jute, and the fibre vocabulary has only `wool`/`down`; the row leaves
+`material` unauthored (inheriting glass, which is wrong) rather than mint
+a material in passing — materials are a closed set by ruling.
 
 **Later, in order of how much of the loop each closes:** the deposit
 (law + contract leg — closes *collection* and mints a vocation) · the
