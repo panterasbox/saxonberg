@@ -116,26 +116,6 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
   });
 });
 
-describe("Dave's Bar — the sports booth", () => {
-  it("the bar opens east into the booth, which declares its own way back", () => {
-    const exits = loadLounge("location/bar.yaml").data?.exits as Record<string, Record<string, unknown>>;
-    expect(exits.east?.destination).toBe("/world/lounge/location/booth");
-    expect(exits.east?.bidirectional).toBe(false);
-    const back = loadLounge("location/booth.yaml").data?.exits as Record<string, Record<string, unknown>>;
-    expect(back.west?.destination).toBe("/world/lounge/location/bar");
-  });
-
-  it("the TV is a Screen paired to the booth's remote; both populate the booth", () => {
-    const booth = loadLounge("location/booth.yaml").data?.populates as string[];
-    expect(booth).toEqual(["/world/lounge/thing/tv", "/world/lounge/thing/remote"]);
-    const tv = loadLounge("thing/tv.yaml");
-    expect(tv.class).toBe("/platform/thing/Screen");
-    expect(tv.data?.pairing).toBe("remote");
-    expect(tv.data?.remote).toBe("/world/lounge/thing/remote");
-    expect(loadLounge("thing/remote.yaml").class).toBe("/platform/thing/Remote");
-  });
-});
-
 describe("Dave's Bar — the player path to the keeper seat", () => {
   it("Dave's dialogue offers work only to somebody holding no position here, and appoints AS Dave", () => {
     const behaviors = loadLounge("agent/dave.yaml").data?.behaviors as { brain: string; config: { nodes: Record<string, { choices?: { line: string; guard?: unknown[]; to?: string; effects?: { verb: string; command?: string }[] }[] }> } }[];

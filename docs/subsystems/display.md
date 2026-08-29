@@ -123,15 +123,15 @@ source. `viewersOf(display)` is the derived viewer list.
 One hook, called from `Mobile.traverse` and `Mobile.teleport` after the
 move: project every lit display the viewer now sees, and if their
 `cockpit.watch` names a display they no longer see, clear it. Walking
-into the booth shows what the TV shows; walking out, the shared embed
-leaves with you. A personal watch (no `display` marker) is untouched.
+into a room with a lit TV shows what it shows; walking out, the shared
+embed leaves with you. A personal watch (no `display` marker) is untouched.
 
-## The three instances
+## The instances — two shipped, one waiting
 
 | | class | pairing | sourcePolicy | row |
 |---|---|---|---|---|
 | **house tablet** | `/platform/thing/Tablet` (`Display(Detailed(Thing))`, portable) | `staff` | `cards` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
-| **booth TV + remote** | `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))` — self-seats via `seatIn`, `canMove` vetoes anything but a `Location`: mounted, never carried) + `/platform/thing/Remote` (`Detailed(Thing)`; the row authors `keywords: [remote]`) | `remote` | `any` | `/world/lounge/thing/tv` (`remote: /world/lounge/thing/remote`) in `/world/lounge/location/booth` |
+| **a wall TV + remote** | `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))` — self-seats via `seatIn`, `canMove` vetoes anything but a `Location`: mounted, never carried) + `/platform/thing/Remote` (`Detailed(Thing)`; the row authors `keywords: [remote]`) | `remote` | `any` | **no row ships.** The classes, the `remote` policy and `watch … on <screen>` are proven on synthetic fixtures (`Display.test.ts`, `WatchController.test.ts`); the first row is the LOUNGE's sports booth (lounge-slate § *Themed booths*), not Dave's Bar — the bar is where soft skills get evidenced, not where you stare at a screen |
 | **the terminal** | `TpaTerminal` composes the mixin; the constructor sets `open` / `cards` | `open` | `cards` | the lounge terminal, unchanged |
 
 ## The verbs that drive a display

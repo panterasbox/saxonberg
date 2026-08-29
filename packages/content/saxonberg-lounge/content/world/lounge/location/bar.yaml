@@ -71,11 +71,6 @@ data:
       concealment: hidden
       hint: A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall.
       bidirectional: false
-    # The sports booth off the east end — a FurnishableRoom instanced on
-    # first entry; it declares its own west exit back (the office pattern).
-    east:
-      destination: /world/lounge/location/booth
-      bidirectional: false
   # The corpo battlefield, lit. Branded neon signs attached as non-
   # portable wall fixtures (AdornableMixin.applyAdornments): each carries
   # a corpo mark and emits light, so rival Veshko (amber) and Aevex
