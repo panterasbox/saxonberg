@@ -1,8 +1,14 @@
-# Crate — the produce preset: an empty open crate over `/platform/thing/Crate`.
+# The crate — an EMPTY open container, and the standard a produce case
+# is built against (see `crate-of-lime.yaml` and its siblings, which
+# populate this shape with fruit).
+#
+# Not a vessel: a crate holds discrete things, so it is a `Crate`
+# (Container), never a `Bottle`. It has no `closure` — that scale is
+# the bulk domain's.
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: an empty crate
   primaryKeyword: crate
-  keywords: [crate, box]
+  keywords: [crate, box, empty]
   longDescription: A slatted wooden crate, empty but for a few leaves.

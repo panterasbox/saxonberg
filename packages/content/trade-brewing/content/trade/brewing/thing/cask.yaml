@@ -1,11 +1,15 @@
-# Cask — the second preset: 50 L of oak, the conditioning vessel the ferment build will fill. Empty until then.
+# The cask — the EMPTY conditioning vessel the ferment build will fill.
+# `liquidTight`, NOT `sealed`, and that is not an oversight: a cask
+# breathes through the oak. Breathing is what a cask is for.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "a cask"
   longDescription: "An oak cask, hooped and bunged, that once held something stronger."
   primaryKeyword: cask
-  keywords: ["cask", "barrel", "oak"]
+  keywords: ["cask", "barrel", "oak", "empty"]
+  material: /stuff/idea/material/wood/oak
   interiorBulk: true
   interiorCapacity: 50
   closure: liquidTight
+  open: true

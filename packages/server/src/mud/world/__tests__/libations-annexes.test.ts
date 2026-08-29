@@ -88,8 +88,10 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     for (const r of rows.filter((r) => r.pack.startsWith('corpo-'))) {
       expect(r.path.startsWith('/corpo/') || r.path.startsWith('/stuff/idea/corpo/'), r.path).toBe(true);
     }
+    // bottling ships 9: seven mixers + the ice bag + the can of cola (the
+    // 330 mL can is its own price point, not a smaller bottle).
     // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
-    expect(floorRows.length).toBe(2 + 5 + 8 + 8 + 4 + 4 + 2);
+    expect(floorRows.length).toBe(2 + 5 + 9 + 8 + 4 + 4 + 2);
   });
 
   it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {

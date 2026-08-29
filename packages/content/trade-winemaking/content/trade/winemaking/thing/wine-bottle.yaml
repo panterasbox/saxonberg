@@ -1,11 +1,14 @@
-# Wine bottle — the winemaking preset as a row over `/platform/thing/Bottle`.
+# The wine bottle — the EMPTY vessel; the standard a wine is built
+# against (see the five floor rows). `sealed`: a cork holds gas, which
+# is what keeps a sparkling wine sparkling.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "a wine bottle"
-  longDescription: "A dark-green 750 mL wine bottle, corked."
+  longDescription: "A dark-green 750 mL bottle with a punted base, the neck ready for a cork."
   primaryKeyword: bottle
-  keywords: ["bottle", "wine"]
+  keywords: ["bottle", "wine", "empty"]
   interiorBulk: true
   interiorCapacity: 0.75
   closure: sealed
+  open: true

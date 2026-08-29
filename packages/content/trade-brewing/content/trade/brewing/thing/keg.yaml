@@ -1,11 +1,15 @@
-# Keg — the brewing trade's vessel PRESET as a row over `/platform/thing/Bottle`: 30 L, coupler-sealed. A data stub names kernel classes; the floor rows below repeat the preset (template inheritance does not exist).
+# The keg — the EMPTY vessel; the standard a brewed product is built
+# against (see `keg-ale.yaml`). `sealed` because a keg is pressurised —
+# that is the whole point of the coupler.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "a keg"
   longDescription: "A thirty-litre steel keg, a tap-coupler on the crown."
   primaryKeyword: keg
-  keywords: ["keg", "barrel"]
+  keywords: ["keg", "barrel", "empty"]
+  material: /stuff/idea/material/alloy/steel
   interiorBulk: true
   interiorCapacity: 30
-  closure: liquidTight
+  closure: sealed
+  open: true

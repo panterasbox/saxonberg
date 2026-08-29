@@ -1,11 +1,21 @@
-# Can — the bottling preset: 330 mL, sealed.
+# The can — the EMPTY vessel bottling fills. This is the STANDARD a
+# canned product is built against: same class, same capacity, same
+# construction, plus the fill (see `can-of-cola.yaml`). Template
+# inheritance does not exist, so a product row repeats these fields
+# rather than referencing this one — the row is the exemplar and the
+# README is the contract.
+#
+# `closure: sealed` is CONSTRUCTION (gas-tight — it is why fizzy drinks
+# come in cans); `open` is STATE. An empty can is an opened can.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "a can"
-  longDescription: "A 330 mL aluminium can, ring-pull intact."
+  longDescription: "A 330 mL aluminium can — drawn in one piece, lined, the lid seamed on. It weighs almost nothing."
   primaryKeyword: can
-  keywords: ["can", "tin"]
+  keywords: ["can", "tin", "empty"]
+  material: /stuff/idea/material/element/aluminium
   interiorBulk: true
   interiorCapacity: 0.33
   closure: sealed
+  open: true

@@ -29,6 +29,7 @@ data:
           mixer:tonic: 3
           mixer:ginger-beer: 3
           mixer:cola: 3
+          mixer:cola-can: 2
           mixer:grapefruit-soda: 3
           mixer:cranberry-juice: 4
           mixer:orange-juice: 4

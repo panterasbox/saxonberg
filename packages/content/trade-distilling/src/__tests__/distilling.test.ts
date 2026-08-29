@@ -41,6 +41,34 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
+import Material from '@saxonberg/server/mud/platform/idea/material/Material';
+
+let fillSeq = 0;
+
+/**
+ * Fill a bottle the way a REAL clone arrives filled — the row's
+ * `interiorMaterial` + `interiorAmount` go through the hydrator, so a
+ * spawned floor bottle holds its product.
+ *
+ * ⚠ Load-bearing, not decoration: the census counts PRODUCT, and an
+ * empty vessel reports `vessel:<keyword>` however its row is authored
+ * (`Bottle.getCensusKey`). A mock that hands back an empty bottle is a
+ * mock of something that never happens, and it hid exactly the bug the
+ * derive was added to catch — a floor that reads at target while bare.
+ */
+function fillLikeAClone(bottle: { setBulkMaterial: (a: string, m: never) => void; setBulkAmount: (a: string, q: Quantity<'L'>) => void; setInteriorCapacity: (q: Quantity<'L'>) => void; interiorBulk: boolean }, name: string, litres = 0.75): void {
+  const material = makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName(name);
+    m.setKeywords([name]);
+    m.setTags(['liquid']);
+    return m;
+  }, `/stuff/idea/material/bulk/${name}-fill-${fillSeq++}`) as unknown as never;
+  bottle.interiorBulk = true;
+  bottle.setInteriorCapacity(Quantity.of(litres, 'L'));
+  bottle.setBulkMaterial('interior', material);
+  bottle.setBulkAmount('interior', Quantity.of(litres, 'L'));
+}
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
@@ -239,6 +267,9 @@ describe('trade-distilling — the sweep stands the floor at target from the shi
       stampTemplatePathForTest(b, path);
       b.setCensusKey(row.data.censusKey as string);
       b.regionTarget = row.data.regionTarget as number;
+      // A real clone arrives FILLED (the row authors interiorMaterial +
+      // interiorAmount); an empty one is not product and would not count.
+      fillLikeAClone(b as never, String(row.data.primaryKeyword ?? 'spirit'));
       ContainmentApi.move(b as never, stock as never);
       return b as unknown as Stuff;
     });
@@ -270,6 +301,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     b.setKeywords([kw, 'bottle', 'spirit']);
     b.setPrimaryKeyword(kw);
     b.setCensusKey(key);
+    fillLikeAClone(b as never, kw);
     return b;
   }
 

@@ -1,11 +1,18 @@
-# Sack — the pantry preset over `/platform/thing/Bottle` (a bulk holder for a solid: 20 L of dry goods).
+# The sack — the EMPTY vessel; the standard a dry pantry good is built
+# against (see the sugar/salt/coffee rows). `open`: hessian keeps
+# nothing in but the goods themselves.
+#
+# ⚠ The material is left unauthored (it inherits glass, which is wrong).
+# A jute/hessian fibre row is a MATERIAL-VOCABULARY decision — the
+# vocabulary is closed by design, so it is not minted in passing.
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "a sack"
-  longDescription: "A hessian sack, tied at the neck."
+  longDescription: "A hessian sack, wide-mouthed, the neck tie hanging loose."
   primaryKeyword: sack
-  keywords: ["sack", "bag"]
+  keywords: ["sack", "bag", "empty"]
   interiorBulk: true
   interiorCapacity: 20
-  closure: liquidTight
+  closure: open
+  open: true

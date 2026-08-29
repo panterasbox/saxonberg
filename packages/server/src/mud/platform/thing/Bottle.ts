@@ -18,7 +18,8 @@
  * `censusKey` derives from the interior material's primary keyword when
  * unauthored (`material:gin`), so a floor row counts the moment it names
  * what it holds — a row that wants a coarser bucket (`spirit:gin`) says
- * so.
+ * so. ⭐ An EMPTY vessel is not product and never counts as its authored
+ * bucket — see `getCensusKey` below.
  */
 
 import GradedReceptacle from './GradedReceptacle';
@@ -45,8 +46,30 @@ export default class Bottle extends BottleBase {
     this.setPrimaryKeyword('bottle');
   }
 
-  /** The authored bucket, else `material:<interior primary keyword>`. */
+  /**
+   * ⭐ The census counts PRODUCT, and product is a filled vessel.
+   *
+   * An emptied bottle is not a bottle of gin any more — it is a bottle.
+   * Deriving the key from **state** rather than reading the authored row
+   * is what makes the faucet honest: drain the world's gin and the
+   * shortfall is real, so the sweep restocks. Reading the authored key
+   * unconditionally (the shipped behaviour before this) left every empty
+   * counting as product for ever, so a world drunk dry read as *at
+   * target* while the shelf stood bare.
+   *
+   * An empty's own key is `vessel:<primary keyword>` — derived, never
+   * authored, so nothing can target it and the sweep never mints
+   * empties (they come from drinking). It is also the count a returns
+   * or deposit market would read.
+   *
+   * A vessel with no interior slot at all is not a product either way,
+   * and keeps its authored key.
+   */
   public override getCensusKey(): string {
+    if (this.hasInteriorBulk() && this.getBulkAmount('interior').rawValue() <= 0) {
+      const kw = this.getPrimaryKeyword();
+      return kw ? `vessel:${kw.toLowerCase()}` : '';
+    }
     const authored = super.getCensusKey();
     if (authored.length > 0) return authored;
     const material = this.getBulkMaterial('interior');
