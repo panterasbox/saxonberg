@@ -361,10 +361,21 @@ the wound.
   *semi-herded by the folk* = subterranean pastoralism), **lantern-moths**
   (light-lured — the "your flame draws them" swarm).
 - **The deep & bottom** *(aether-touched, sparse, strange)* — the **apex: the
-  Delver** *(prov.)* — a great blind thing that *swims through rock*, ancient and
-  territorial, drawn to the vibration of greedy digging (the folk's dread — "dig
-  too deep and you wake the Delver"; a rare landmark-creature, grounded-strange
-  never a dragon). Around it, **aether-touched fauna** feeding on the charge,
+  **dirt dragon** — *the Delver* to the highland folk, *dirt dragon* on the
+  frontier, **one species under two names** (establishing that is a real act of
+  survey work). A great blind thing, ancient and territorial, drawn to the
+  vibration of greedy digging (the dread — "dig too deep and you wake it"; a
+  rare landmark-creature, grounded-strange).
+  **⚠ Revised 2026-08-29 — it moves through SOFT GROUND, never rock.** The
+  earlier *swims-through-rock* reading is retired: a rock-swimming apex has
+  **no counter**, violating this section's own law that every danger pairs with
+  a skill/tool and *"the deep is legible to the competent, not unfair RNG."*
+  Soil-bound yields three counters at once — be on bedrock, be still, mind
+  where your spoil goes. It also adds a **second risk axis**: every other
+  danger here scales with *depth*, this one with **ground type** — so loose
+  shallow placer ground can be deadlier than a deep hard-rock drift, and a
+  crew's own tailings become the road in. Soft ground underground is the
+  `Fall` room type. Life cycle: [rejection-slate](./rejection-slate.md). Around it, **aether-touched fauna** feeding on the charge,
   behaving wrong near willed-metal.
 
 **The fauna are an economy, not just a threat.** Hunted, foraged, herded, they
@@ -489,7 +500,21 @@ oppression, **stasis**. So the paradox splits:
   the never-empty air, the miners content and unchanging. The horror is how
   *nice* it looks.
 
-## The worked exemplar — the paired mine
+## The worked exemplar — one mine, mirrored in time
+
+> **⚠ REVISED 2026-08-29 — the mirror is TEMPORAL, not spatial.** Delving 9
+> is **no longer a second venue to build.** Three localities running one engine
+> is three content builds for one system's worth of mechanics — the Ferrow
+> content bible's own §9 says *"the carve-mine-shore-seal engine is shared,
+> only Held-ground ownership-attribution differs."* And mine #1 is what ends
+> the metal-import era; #2 and #3 end nothing, while farming and the other
+> industries go unbuilt. **The good/evil contrast now runs in time, on one
+> mine**, through the buyout arc the content bible already names its arc engine
+> (*"Veshko is quietly circling to buy the claim outright; independents holding
+> their ground against a corpo"*). Everything below stays canon **as fiction**
+> — Delving 9 is what the mine *becomes* if the corpo wins, and a state the
+> players can steer it away from. It is a future, not a neighbour.
+> The locality: [rejection-slate](./rejection-slate.md).
 
 The carve that teaches the grammar **system × residue × mirror**: every object
 does three jobs at once — exercises a system, carries a history, and mirrors
@@ -524,7 +549,7 @@ becomes tools and gear.
   deeper galleries), and — licensed past the cordon with a Warden — the
   *field-dead pocket*, the seam into Phase-1 near-siege content.
 
-### Delving 9 *(the Ordinance)*
+### Delving 9 *(the Ordinance)* — **the mine's possible future, not a second build**
 
 The mirror — and **the name is the lesson: "the Ferrow Delving" → "Delving 9,"**
 the house struck out, a serial in its place. Same function, opposite soul:

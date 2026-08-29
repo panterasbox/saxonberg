@@ -1,141 +1,228 @@
-# Perfection slate (working doc) — the mining town that talks back
+# Rejection slate (working doc) — the mining town, and the one mine
 
-> **Status: experience design, pre-requirements.** A small mining town in a
-> dead-end valley, built as the **content exemplar for LLM-driven NPCs**
-> ([llm-content-slate](./llm-content-slate.md)). Three residents are driven
-> by a language model; the other eleven are not, and the design problem this
-> slate exists to solve is making that boundary **invisible and diegetic**.
-> Homage to Perfection, Nevada — the characters come from *Tremors*, the
-> industry does not.
+> **Status: merged design, pre-requirements.** **One locality**: a frontier
+> mining town, the mine below it, and the staked claim field around it.
+> **Ferrow's mechanics + Rejection's cast** (decided 2026-08-29). It carries
+> three jobs at once — the **materials faucet** (ends the metal-import era),
+> the **property teacher** (staked private claims), and the **content
+> exemplar for LLM-driven NPCs**.
 
-Leans on: [mining](./mining-slate.md) (the industry) ·
-[llm-content](./llm-content-slate.md) (the architecture) ·
-[npc-behavior](./npc-behavior-slate.md) (the brain ladder) ·
-[belief](../../subsystems/belief.md) (recognition + regard) ·
-[trait](../../subsystems/trait.md) · [contract](../../subsystems/contract.md)
-(gig labour) · [employment](../../subsystems/employment.md) ·
-[parcel](../../subsystems/parcel.md) + [smallholding](../../subsystems/smallholding.md)
-(claims) · [fasttravel](../../subsystems/fasttravel.md) (the road out) ·
-[perception](../../subsystems/perception.md) · [biome](../../subsystems/biome.md).
+Mechanics: [mining-slate](./mining-slate.md) (the four play layers, the
+dangers, the deep ecology) + `docs/staging/ferrow-delving.md` (the content
+bible — the 3D zone, three-state persistence, vein-vs-heading, seal-and-reap;
+⚠ **staging is ephemeral**, so the mechanics it resolved need to graduate into
+this slate or the mining slate before that file is deleted).
+Architecture for the cast: [llm-content-slate](./llm-content-slate.md).
+Substrate: [parcel](../../subsystems/parcel.md) ·
+[hazard](../../subsystems/hazard.md) ·
+[encumbrance](../../subsystems/encumbrance.md) ·
+[respiration](../../subsystems/respiration.md) ·
+[thermal](../../subsystems/thermal.md) · [light](../../subsystems/light.md) ·
+[belief](../../subsystems/belief.md) · [trait](../../subsystems/trait.md) ·
+[contract](../../subsystems/contract.md) ·
+[employment](../../subsystems/employment.md) ·
+[perception](../../subsystems/perception.md).
 
 ---
 
-## The reframe that makes it work
+## ⭐ The merge — what this replaces
+
+**Three localities running one shared engine was three content builds for one
+system's worth of mechanics.** Mine #1 ends the metal-import era; mines #2 and
+#3 end nothing, while farming and every other industry go unbuilt. So:
+
+| Was | Now |
+|---|---|
+| Ferrow Delving (co-op mine, highlands) | **the mechanics** — inherited whole |
+| Delving 9 (the Ordinance mirror, a second venue) | **not a build.** The mirror runs **in time** — Delving 9 is what this mine *becomes* if the corpo wins. Still canon as fiction. |
+| Perfection / Rejection (a third, frontier mine) | **this locality** — the one mine, with the frontier cast |
+| Rejection as "the ungoverned political case" | the **town**, not a second mine |
+
+**Names (proposed).** The **town is Rejection**; the **mine is the Ferrow**.
+Each name keeps the half it earned, and it sidesteps a live vocabulary
+collision — *"the delve"* is already shipped content (the newbie-wilds trap
+ruin), so nothing new should be called a Delving.
+
+**Two inherited contradictions still to settle** (both predate this merge):
+`content-pack-units.md:94` calls Ferrow *commons / deep-law* while the content
+bible §9 makes it a **company mine held by a co-op `Business`** on tutwork and
+tribute. And the co-op model has to be reconciled with the staked-claim field
+this slate adds — historically they coexist (a company operation with
+independents working the margins), which is probably the answer.
+
+---
+
+## The reframe that runs the town
 
 > **The town isn't dumb. It's mute.**
 
-The simulation runs identically for all fourteen residents — the store has
-real stock, everyone works real shifts, holds real regard for the player,
-gets rained on. What is scarce is not intelligence but **language**. Three of
-them can talk about what is happening; the other eleven only *do* things.
+The simulation runs identically for every resident — the store has real stock,
+everyone works real shifts, holds real regard, gets rained on. What is scarce
+is not intelligence but **language**. Three residents can talk about what is
+happening; the rest only *do* things. A mute NPC who is materially consistent
+is far more convincing than a talkative one who is materially static — the
+uncanny valley is not dumbness, it is dumb **and** context-free.
 
-That reads as immersive rather than cheap because a mute NPC who is
-materially consistent is far more convincing than a talkative one who is
-materially static. The uncanny valley is not dumbness — it is dumb **and**
-context-free.
-
-## Taking the liberty at the economy, not the people
-
-*Tremors* establishes geographic isolation and a highway out, and essentially
-no industry — which is a gift: the economy is ours to install and the
-characters survive it intact. (The franchise's own prequel arguably helps
-here: the town was founded as a silver-mining camp called Rejection and
-renamed itself later. Worth confirming before it goes in any player-facing
-text.)
-
-Mining buys four things the town needs:
-
-1. **Contract labour** — Val and Earl are handymen, so they are gig workers
-   ([contract](../../subsystems/contract.md)).
-2. **A company store** with finite stock — the honest-numbers surface the
-   mute residents speak from.
-3. **Claims that can be owned** ([parcel](../../subsystems/parcel.md)).
-4. ⭐ **An economic reason for seismographs to exist.** Rhonda stops being a
-   tourist with instruments and becomes the person whose data says where the
-   ore and the cave-ins are.
-
-And **make the road real**: one [fast-travel](../../subsystems/fasttravel.md)
-node out of the valley, with a fare. Isolation you can price is isolation the
-player can feel.
-
----
-
-## The three, differentiated mechanically
-
-| | **Val McKee** | **Earl Bassett** | **Rhonda LeBeck** |
-|---|---|---|---|
-| **Wants** | the fare out — a money threshold | a claim of his own — a parcel title | survey coverage — instrument data |
-| **Knows** | today, the bar, who owes him; poor recall | every job they ever took, every debt, tool condition | seismograph rows **nobody else can read**; no local history, doesn't know your name until introduced |
-| **Is** | impulsive, brave; regard swings fast | cautious, loyal; regard moves slowly and remembers | curious, socially oblivious |
-| **Can** | dig, haul, repair, drive | dig, haul, repair, timber | read instruments — **cannot** dig |
-
-Every cell is a number or a data source. Val's recklessness is a goal that
-pays out above a threshold; Earl's grudges are a slower regard-decay
-constant; Rhonda's outsider status is
-[belief](../../subsystems/belief.md)'s recognition rule doing its ordinary
-job. Nobody wrote "gruff."
-
-**The goals conflict productively, and that is the engine.** Rhonda wants
-into dangerous ground; Val will take the risky gig if the payout closes his
-gap; Earl won't risk the tools or the partner. The *Tremors* dynamic, as
-three numbers rather than a script.
-
-### Rhonda is the asymmetry case
-
-She is the reason
-[llm-content-slate](./llm-content-slate.md) § *Knowledge asymmetry* exists:
-her instrument rows are private to her, and a shared director context would
-hand them to everyone. She is the first consumer of the **isolated
-per-character call**.
-
----
-
-## Four tiers of townsfolk
+### Four tiers of townsfolk
 
 | Tier | Who | Mechanism | Cost |
 |---|---|---|---|
-| **0** | the world | weather, light, shift schedules, stock levels, mine condition | free — and does most of the work |
-| **1** | the eleven | canned brains + [prose](../../subsystems/prose.md) templates **over live state** | free |
-| **2** | the eleven, ambient | Batch API overnight: today's idle lines conditioned on *yesterday's real events* | half price, zero latency |
-| **3** | the three | live model calls, on `engage` or a witness trigger they'd plausibly care about | the only runtime spend |
+| **0** | the world | weather, light, shifts, stock, mine condition | free — does most of the work |
+| **1** | the many | canned brains + [prose](../../subsystems/prose.md) templates **over live state** | free |
+| **2** | the many, ambient | Batch API overnight: today's idle lines from *yesterday's real events* | half price, no latency |
+| **3** | the three | live model calls, on `engage` or a witness trigger they'd care about | the only runtime spend |
 
-Tier 1 is where "dumb but immersive" is actually won. Walter's line is not
-authored text, it is a template reading the stock counter — *"Dynamite's out
-till the truck comes Thursday."* True because the counter says so, therefore
+Tier 1 is where "dumb but immersive" is won: the storekeeper's line is not
+authored text, it is a template reading the stock counter — *"Powder's out
+till the freight comes Thursday."* True because the counter says so, so it is
 never wrong and never stale.
 
-Tier 2 is the underrated one: a miner grumbling about the north drift the
-morning after the north drift flooded, written overnight by a model that saw
-the day's events, replayed at runtime for nothing.
-
-## ⭐ The rule that makes muteness diegetic
+### ⭐ The rule that makes muteness diegetic
 
 > **A background NPC never answers a question. It produces a fact, and
 > defers.**
 
-Walter doesn't reason about the cave-in; he says the assay office is closed
-and *"ask Earl, he did the timbering."* Melvin doesn't converse; he repeats
-something he overheard, wrong.
+The storekeeper doesn't reason about the cave-in; he says the assay shed is
+shut and *"ask Earl, he did the timbering."* That hides the capability
+boundary inside a social convention, funnels players toward the characters
+worth spending money on, and turns the mute residents into the town's
+**rumour layer** — they generate facts and half-truths; the three speaking
+characters are the town's mouth.
 
-That deferral does three jobs at once: it hides the capability boundary
-inside a social convention, it funnels players toward the characters worth
-spending money on, and it turns eleven mutes into the town's **rumour
-layer** — they generate events and half-true beliefs, and the three speaking
-characters are the town's mouth. The mute residents never need to be clever;
-they need to produce state the clever ones can talk about.
+---
+
+## The cast
+
+Homage archetypes (*Tremors*), differentiated **mechanically** — every cell is
+a number or a data source, and nobody wrote "gruff." Names likely want to
+shift off the originals before ship; the archetypes are what matter.
+
+| | **Val** | **Earl** | **Rhonda** |
+|---|---|---|---|
+| **Wants** | the fare out — a money threshold | a claim of his own — a parcel title | survey coverage — instrument data |
+| **Knows** | today, the bar, who owes him; poor recall | every job they took, every debt, tool condition | seismograph rows **nobody else can read**; no local history, doesn't know your name until introduced |
+| **Is** | impulsive, brave; regard swings fast | cautious, loyal; regard moves slowly and remembers | curious, socially oblivious |
+| **Can** | dig, haul, repair, drive | dig, haul, repair, timber | read instruments — **cannot** dig |
+
+**The goals conflict productively, and that is the engine.** Rhonda wants into
+dangerous ground; Val takes the risky gig if the payout closes his gap; Earl
+won't risk the tools or the partner. Three numbers, not a script.
+
+Rhonda is also the [knowledge-asymmetry](./llm-content-slate.md) case — her
+instrument rows are private to her, so she is the first consumer of the
+**isolated per-character call** rather than the shared director context.
+
+---
+
+## Dirt dragons
+
+The mining slate's apex predator, named and given a body. **One species, two
+names** — *the Delver* in the highlands, *dirt dragons* on the frontier;
+establishing they are the same animal is a real act of survey work.
+
+**Soil, never rock.** This is the whole tactical game and it is required by
+the mining slate's own law that every danger pairs with a counter. Bedrock is
+safe; loose ground is not. Which means:
+
+- **The mine manufactures its own threat.** Tailings, spoil, backfill,
+  disturbed overburden — every ton moved makes more navigable ground. The
+  danger map is something the players build by working.
+- **The industry is the dinner bell.** They are blind and hunt by vibration.
+  Drills, blasting, ore carts, a stamp mill. Production and predation are one
+  variable.
+- ⭐ **The risk map goes two-dimensional.** Every other danger in the mining
+  slate scales with *depth*; this one scales with **ground type**. A shallow
+  placer claim can be deadlier than a deep hard-rock drift.
+
+Most counter-play is already shipped: `sneak`/`run` are locomotion modes, and
+[encumbrance](../../subsystems/encumbrance.md)'s consequence ladder means **the
+ore you are carrying is what gets you killed** — the whole greed decision, with
+no new mechanics and no dice.
+
+### The life cycle — three sensory games, one substrate
+
+| Stage | Domain | Hunts by | Counter | Rides |
+|---|---|---|---|---|
+| **Dirt dragon** | underground, soft ground only | vibration | be still, be quiet, be on rock | locomotion, encumbrance |
+| **Whelps** | surface, daylight | **heat / infrared** | be cold; they overheat and must shed it | [thermal](../../subsystems/thermal.md) |
+| **Firedrakes** | airborne, night | smell + heat | be indoors, be odourless | [fire](../../subsystems/fire.md), [ranged](../../subsystems/ranged.md) far band |
+
+Concealment is already **per-sense and band-based**, so these are three
+genuinely different problems over one shipped mechanic: a player who just
+climbed out of a hot drift carrying a lantern is lit up to a whelp and
+invisible to a dragon.
+
+**The names carry content.** *Firedrake* rhymes with **firedamp**, already in
+the mining slate's danger list — a miner's word for a thing that flies and
+burns. And *whelps* is **wrong**: the town thinks they are juvenile dragons;
+they are a separate life stage. A folk taxonomy corrected by observation is
+exactly the epistemics the prospecting layer is built on.
+
+⭐ **Whelps reproduce by eating** — eat enough, split, exponential. An
+unchecked outbreak has a doubling time, so the town either responds together
+or is overrun: a commons problem with a clock, which is a **governance** event
+rather than a raid. It also makes their combat self-pressuring — anything they
+eat mid-fight becomes another one.
+
+**The adult is a hazard, not a combatant.** Nobody wins a fight with one; you
+avoid, escape, or trap it. Whelps are the fightable stage, and they live in the
+old workings — a century of abandoned levels, collapsed adits and backfilled
+stopes is a network of voids too small for an adult and perfectly sized for
+something young. That is why the fightable thing is near rock: not moving
+*through* it, living in the holes the town made and forgot.
+
+---
+
+## The real science is the payoff
+
+Two places where the fiction forces genuine method — the practicum thesis with
+teeth:
+
+- **Seismic triangulation.** Three stations, arrival-time differences, and you
+  locate an event in three dimensions, depth included. Discriminating settling
+  from a blast from a moving animal is real signal work: periodicity,
+  magnitude, depth. The player learns seismology because it is the only way to
+  survive.
+- **Placer versus lode is the risk gradient, for free.** Placer works loose
+  sediment; lode cuts hard rock. That real economic-geology distinction *is*
+  the traversability line — rich easy ground is lethal, poor hard ground is
+  safe. Nothing has to be forced; that is how mining works, and the animal
+  just makes it matter.
+
+## The economy
+
+- **Claim prices encode danger.** The market discovers the risk premium on
+  soft ground by itself — real land economics produced by a predator.
+- ⭐ **Hazard pay as a verifiable contract clause.** [Contracts](../../subsystems/contract.md)
+  are clauses over verifiable conditions, and a seismic threshold is exactly
+  that: *"pays double if station 3 exceeds twelve events in six hours."*
+  Rhonda's data becomes contractually load-bearing. Tightest available
+  integration; build toward it early.
+- **The seismic network is a commons.** Stations break, need placing, need
+  visiting, and everyone benefits whether they paid or not. An underfunded
+  early-warning system in a town that makes its money by making noise is the
+  political economy the platform exists to teach, at a shippable size.
+
+## The temporal mirror
+
+The corpo (Veshko, per the content bible) circling to buy the claim is the arc
+engine, and it is how this locality carries the Ordinance lesson without a
+second venue: the mine can *become* Delving 9 — safe, lit, ventilated,
+provided-for, hollow — and the players are the ones who decide whether it
+does. Change beats comparison, and it costs one build instead of two.
 
 ---
 
 ## Worked example — Rhonda's context window
 
-Dusk on day 47; a stranger walks into her camp; station 3 has been
-misbehaving for five days.
+Dusk on day 47; a stranger walks into her camp; station 3 has been misbehaving
+for five days.
 
 **Block A — identity. Cache-stable, never changes between turns.**
 
 ```
-name     Rhonda LeBeck — graduate seismologist, second season on the
-         Perfection survey. Not from here.
+name     Rhonda — graduate seismologist, second season on the survey.
+         Not from here.
 traits   curious 0.9 · patient 0.7 · cautious 0.6 · trusting 0.5 ·
          deferential 0.2 · gregarious 0.2
 goal     18 of 24 survey stations reporting. You need station 7 back.
@@ -145,7 +232,7 @@ can      read_instrument · place_station · analyze · walk · give · trade
 cannot   dig · timber · haul · fight
 ```
 
-**Standing orders** — where the doctrine lives, in four lines:
+**Standing orders** — the doctrine, in four lines:
 
 ```
 - You say and propose. You never decide outcomes. Asked whether ground
@@ -164,14 +251,14 @@ supplies and money, open contracts, instrument condition.
 ```
 TIME     day 47, 19:40, dusk. Clear, 14°C, wind 8 km/h west.
 PLACE    Survey camp, east bench. Open sky. Firelight — dim.
-PRESENT  Earl Bassett  [known · regard +12]
+PRESENT  Earl  [known · regard +12]
          an unfamiliar man  [unknown · regard 0 · no name]
 SPEAKER  the unfamiliar man
 
 MEMORY   day 44 · station 7 stopped reporting; you haven't reached it
          day 46 · Earl refused to re-timber the north drift — said the
                   ground "sounds wrong." You logged the remark.
-         day 46 · Walter has no dynamite until Thursday
+         day 46 · the store has no powder until Thursday
 
 INSTRUMENTS  — only you can read these —
   station 3   north drift, 340 m   14 events/6h   max M1.8   ↑ from 2/6h
@@ -186,9 +273,8 @@ sensor reading in a context window nobody else has.** She cannot say
 "something is down there" — she is not a narrator. She can say the pattern is
 periodic and settling isn't, which is worse.
 
-Note the provenance of the Walter line: a *mute* NPC produced a fact, it
-became a belief row, and a *speaking* NPC is the one who can voice it. The
-rumour layer, working.
+Note the provenance of the powder line: a *mute* NPC produced a fact, it
+became a belief row, and a *speaking* NPC is who can voice it.
 
 **What comes out is commands, not prose:**
 
@@ -198,35 +284,38 @@ say "Station three's been running fourteen events in six hours since
 emote frowns at the drum
 ```
 
-The `say` rides the ordinary speech path and the room hears it. Had she
-emitted `dig`, the dispatcher refuses her — she has no such verb — and the
-refusal is *real* rather than a prompt asking her to stay in character.
-
-**Write-back:** anything she asserts becomes a belief or chronicle row, so
-the record is the source of truth on what she said, not the model's memory of
-it. That is what stops her contradicting herself next Tuesday.
+Had she emitted `dig`, the dispatcher refuses her — she has no such verb — and
+the refusal is *real* rather than a prompt asking her to stay in character.
+**Write-back:** anything she asserts becomes a belief or chronicle row, so the
+record is the source of truth on what she said, not the model's memory of it.
 
 ---
 
 ## The payoff
 
-The scenario nobody authored: Rhonda's seismograph shows movement under the
-north drift; Earl reads the timbering and refuses; Val's fare gap is $340 and
-the hazard contract pays $500. The player walks in on an argument that exists
+The scenario nobody authored: the seismograph shows movement under the north
+drift; Earl reads the timbering and refuses; Val's fare gap is $340 and the
+hazard contract pays $500. The player walks in on an argument that exists
 because **three goal-states and one sensor reading intersected** — and can
 settle it in any direction, including badly.
 
 ## Open
 
-1. **The mine itself** — depth model, claim subdivision, cave-in as a
-   [hazard](../../subsystems/hazard.md) consumer; how much comes from
-   [mining-slate](./mining-slate.md) unchanged.
-2. **What is under the north drift.** Deliberately unanswered here; the
-   seismic signature is designed to support an answer without asserting one.
-3. **The other eleven** — the roster, their trades, which facts each one
-   produces for the rumour layer.
-4. **Sponsorship surface** — if the three are patron-funded
-   ([llm-content-slate](./llm-content-slate.md) § *Funding*), how the town
-   displays it without breaking the fiction.
-5. **Pack shape** — whether Perfection ships as its own content pack and what
-   title root it claims.
+1. **Does this share a world with the highlands** (the content bible sites the
+   mine "where the fertile valleys climb toward frontier wild" — suggestive),
+   or does the frontier register want its own sphere? **Unresolved.**
+2. **Ownership model** — the co-op/commons contradiction above, and how the
+   staked claim field coexists with a company operation.
+3. **Graduating the content bible's mechanics** out of ephemeral `docs/staging/`
+   before that file is deleted: the 3D `CartesianZone` with negative z, the
+   three-state Spine/Held/Provisional persistence, mine-a-vein vs
+   carve-a-heading, seal-and-reap at chokepoints.
+4. **Two platform primitives** the content bible commits to that don't exist
+   and aren't mining-specific: `LiftMixin` (`lib/conveyance/`) and `JobBoard`
+   (`lib/employment/`). Platform work a mining build may not be sizing.
+5. **Cast names** — how far off the originals to move them.
+6. **How much of the collapse is knowable.** If the old workings hold the
+   answer that's an investigation vertical; if it stays rumour the town is
+   cheaper and spookier.
+7. **Whether the full life cycle runs here** or whelps and firedrakes are a
+   later escalation the town only dreads at first.

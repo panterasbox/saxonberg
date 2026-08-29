@@ -79,7 +79,7 @@ See also:
   expresses multi-stage / scheduled behavior by *authoring scripts* in the
   scripting language, not by emitting a tool-call per beat. This slate says
   *who drives and how*; that slate says *in what language*.
-- [perfection-slate.md](./perfection-slate.md) — **the exemplar.** A mining
+- [rejection-slate.md](./rejection-slate.md) — **the exemplar.** A mining
   town with three LLM-driven residents and eleven mute ones; the worked
   context-window example and the "dumb but immersive" tiering live there.
 - [biome.md](../../subsystems/biome.md) — the weather/atmosphere push that is
@@ -340,7 +340,7 @@ today.
 What it is for: does perception-scoped context actually produce distinct
 behaviour; can the model drive the dispatcher without breaking it; what does
 an hour really cost. Every expensive decision above is de-risked by that one
-number. The [Perfection](./perfection-slate.md) town is then a content build
+number. The [Rejection](./rejection-slate.md) town is then a content build
 done because it is wanted — not a prerequisite.
 
 ---
