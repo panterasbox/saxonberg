@@ -16,6 +16,7 @@
 import '../../../../../test-bootstrap';
 import WorldClockRegistry from '../../WorldClockRegistry';
 import { TemplatePaths } from '../../../../lib/paths';
+import { Template } from '../../../../lib/stuff/Template';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi, type CraftRequest } from '../../../../api/crafting';
 import { StuffApi } from '../../../../api/stuff';
@@ -58,6 +59,8 @@ const OLIVE = `${M}/olive`;
 const MINT = `${M}/mint`;
 const LIME = `${M}/lime`;
 const COUPE = '/stuff/thing/_test/lib/coupe';
+const CAN = '/stuff/thing/_test/lib/can';
+const CAN_OF_COLA = '/stuff/thing/_test/lib/can-of-cola';
 const HIGHBALL = '/stuff/thing/_test/lib/highball';
 const JUICE_BOTTLE = '/stuff/thing/_test/lib/juice-bottle';
 const DAVE = '/stuff/agent/_test/lib/dave';
@@ -194,6 +197,18 @@ beforeEach(async () => {
       toolCapabilities: ['mixing-glass'],
       outputTemplate: COUPE,
       garnish: { category: 'olive' },
+    },
+    {
+      // A fill: the output is the EMPTY VESSEL row, and the pool must
+      // accept a drained product of the same kind.
+      recipeId: 'refill',
+      name: 'Refill',
+      keywords: ['refill'],
+      inputSlots: [
+        { slot: 'base', category: 'gin', minGrade: 'fair', measureL: 0.05 },
+      ],
+      toolCapabilities: ['mixing-glass'],
+      outputTemplate: CAN,
     },
     {
       recipeId: 'gin-tonic',
@@ -477,5 +492,46 @@ describe('the recipe substrate (1d)', () => {
     expect(slot(bottle).getAmount().rawValue()).toBeCloseTo(0.03, 6);
     expect(slot(bottle).getPayload()?.tags).toContain('lime');
     expect((bottle as CraftedDrink).getTechnique()).toBe('built');
+  });
+});
+
+describe('the pool matches the VESSEL KIND, not the template path', () => {
+  // ⭐ A drained can of cola and a factory-fresh can are the same input
+  // to a fill — which is what a real line does, and what the returns
+  // loop depends on. Path-matching walked past the drained one, so an
+  // emptied vessel was economically dead the moment it was emptied.
+  it('a drained PRODUCT is claimable by a fill whose output is the EMPTY VESSEL row', async () => {
+    // The pool holds NO factory can — only a drained can of cola, which
+    // is a different template row of the same kind.
+    const drained = makeGlass(CAN_OF_COLA, 0.33);
+    drained.setCategory('can');
+    ContainmentApi.move(drained as never, room as never);
+
+    // The output row declares the kind (a template read in the logic).
+    const spy = vi
+      .spyOn(Template, 'findByPath')
+      .mockResolvedValue({ data: { category: 'can' } } as never);
+    try {
+      const out = await craftAs(dave, { recipeRef: 'refill', makerMode: 'self' });
+      expect(out.ok).toBe(true);
+      if (!out.ok) return;
+      expect(out.output).toBe(drained);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('a row that declares no kind still matches by path (the shipped fallback)', async () => {
+    const wrongPath = makeGlass(CAN_OF_COLA, 0.33);
+    wrongPath.setCategory('can');
+    ContainmentApi.move(wrongPath as never, room as never);
+    // No template row → no kind → path matching → nothing to claim.
+    const spy = vi.spyOn(Template, 'findByPath').mockResolvedValue(null);
+    try {
+      const out = await craftAs(dave, { recipeRef: 'refill', makerMode: 'self' });
+      expect(out).toMatchObject({ ok: false, reason: 'no-glass' });
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

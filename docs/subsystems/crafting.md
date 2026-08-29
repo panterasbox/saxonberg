@@ -426,11 +426,21 @@ the present on-shift maker.
 
 **A drink is made IN a real glass.** For `outputApplication: bulk` (the
 bar's default) `craftImpl` no longer clones the output: `claimGlass`
-takes the first reachable **clean, empty** instance whose `templatePath`
-is the recipe's `outputTemplate` (the gather walk already descends open
-room containers, so a `/platform/thing/GlassRack` — an open
-`Detailed(Container(Thing))` — is in the pool scan); none → the diegetic
-decline **`no-glass`** ("no clean coupe"). The claimed glass is marked
+takes the first reachable **clean, empty** vessel of the output's
+**kind** (the gather walk already descends open room containers, so a
+`/platform/thing/GlassRack` — an open `Detailed(Container(Thing))` — is
+in the pool scan); none → the diegetic decline **`no-glass`** ("no clean
+coupe").
+
+⭐ **The match is the vessel kind (`category`, [bulk.md](./bulk.md)), not
+the template path** — `outputVesselKind` reads the output row's own
+`category`, and a row that declares none falls back to path-matching, the
+behaviour before kinds existed. This is what makes a washed-out vessel
+and a factory-fresh one the **same input to a fill**, which is what a
+real line does. Path-matching meant a drained can of cola could never be
+refilled — walked past in favour of one nobody had drunk from — so an
+emptied vessel was economically dead the moment it was emptied, and the
+returns loop was blocked at its first step. The claimed glass is marked
 `soiled` at fill; `serve`/`order` hand over the claimed glass. `tangible`
 / `edible` outputs keep cloning (smithing's transform and cooking's
 plate are the next pools). Breakage needs no mechanism: `throw` /

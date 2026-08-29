@@ -21,6 +21,7 @@ import {
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
 import { Recipe, type RecipeInputSlot } from '../../../lib/craft/Recipe';
+import { Template } from '../../../lib/stuff/Template';
 import { Techniques, type Technique } from '../../../lib/craft/Technique';
 import { ContainmentApi } from '../../../api/containment';
 import { GlobbableApi } from '../../../api/glob';
@@ -192,13 +193,49 @@ function asPoolGlass(stuff: Stuff): Partial<PoolGlass> {
 }
 
 /**
- * Claim the output glass from the pool: the first reachable clean, empty
- * instance of the recipe's `outputTemplate`. Null when the pool has none
+ * Claim the output vessel from the pool: the first reachable clean,
+ * empty one of the recipe's output **kind**. Null when the pool has none
  * — the diegetic `no-glass` decline ("no clean coupe"), the bound that
  * makes bussing and washing real work.
+ *
+ * ⭐ The match is the **vessel kind** (`category` on `BulkableMixin`),
+ * not the template path, with the path as the fallback for a row that
+ * declares no kind. That is what makes a washed-out vessel and a
+ * factory-fresh one the same input to a fill — which is what a real
+ * line does, and what the whole returns loop depends on. Matching the
+ * path meant a drained can of cola could never be refilled: it would be
+ * walked straight past in favour of a can nobody had drunk from, and an
+ * emptied vessel was economically dead the moment it was emptied.
+ *
+ * `wantKind` is the output row's own `category`, resolved by the caller
+ * (a template read, so this stays synchronous over the gathered pool).
  */
-function claimGlass(gathered: GatheredMatter, recipe: Recipe): Stuff | null {
+/**
+ * The **vessel kind** the recipe's output row declares (`can`, `coupe`,
+ * `keg`), or `''` for a row that declares none — in which case
+ * {@link claimGlass} falls back to matching the template path, the
+ * behaviour before kinds existed.
+ *
+ * Read from the template row rather than from an instance: the pool may
+ * hold nothing but drained products, which is exactly the case the kind
+ * exists to serve.
+ */
+async function outputVesselKind(recipe: Recipe): Promise<string> {
+  const row = await Template.findByPath(recipe.getOutputTemplate());
+  const kind = (row?.data as { category?: unknown } | undefined)?.category;
+  return typeof kind === 'string' ? kind : '';
+}
+
+function claimGlass(
+  gathered: GatheredMatter,
+  recipe: Recipe,
+  wantKind: string,
+): Stuff | null {
   const want = recipe.getOutputTemplate();
+  const kindOf = (g: Stuff): string =>
+    MixinApi.isBulkable(g) ? g.getCategory() : '';
+  const matches = (g: Stuff): boolean =>
+    wantKind ? kindOf(g) === wantKind : g.getTemplatePath() === want;
   // A house-made intermediate (an authored `outputMaterial`: pressed
   // juice, the syrup) TOPS UP a reachable bottle of the same template
   // already holding that material — the day's lime juice is one bottle,
@@ -207,14 +244,14 @@ function claimGlass(gathered: GatheredMatter, recipe: Recipe): Stuff | null {
   const authored = recipe.getOutputMaterial();
   if (authored) {
     for (const b of gathered.bottles) {
-      if (b.stuff.getTemplatePath() !== want) continue;
+      if (!matches(b.stuff)) continue;
       if (b.slot.getMaterialPath() !== authored) continue;
       if (b.slot.available() <= EPS) continue;
       return b.stuff;
     }
   }
   for (const g of gathered.glasses) {
-    if (g.getTemplatePath() !== want) continue;
+    if (!matches(g)) continue;
     const pool = asPoolGlass(g);
     const claimable =
       typeof pool.isClaimable === 'function'
@@ -1287,7 +1324,11 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // recipe's output-application kind), stamp, consume, wear.
   let output: Stuff;
   if (application === 'bulk') {
-    const glass = claimGlass({ bottles, tools, items, glasses }, recipe);
+    const glass = claimGlass(
+      { bottles, tools, items, glasses },
+      recipe,
+      await outputVesselKind(recipe),
+    );
     if (!glass) {
       return { ok: false, reason: 'no-glass', detail: recipe.getOutputTemplate() };
     }
