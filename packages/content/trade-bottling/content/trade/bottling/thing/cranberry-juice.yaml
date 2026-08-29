@@ -6,6 +6,7 @@ data:
   longDescription: "A one-litre screw-capped bottle of cranberry juice, the bottling floor's plain label."
   primaryKeyword: cranberry
   keywords: ["cranberry", "juice", "bottle", "mixer"]
+  category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1
   interiorMaterial: /trade/bottling/idea/material/cranberry-juice

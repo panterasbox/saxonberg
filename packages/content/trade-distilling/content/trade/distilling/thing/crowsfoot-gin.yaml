@@ -9,6 +9,7 @@ data:
   longDescription: A bottle of Crowsfoot gin — a hand-numbered label, a crow's foot pressed into the wax.
   primaryKeyword: crowsfoot
   keywords: [crowsfoot, gin, bottle, spirit]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/gin

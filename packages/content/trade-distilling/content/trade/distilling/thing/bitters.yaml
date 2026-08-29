@@ -11,6 +11,7 @@ data:
   longDescription: A small dasher bottle of aromatic bitters, the cap crusted.
   primaryKeyword: bitters
   keywords: [bitters, bottle, dasher, spirit]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.2
   interiorMaterial: /trade/distilling/idea/material/bitters

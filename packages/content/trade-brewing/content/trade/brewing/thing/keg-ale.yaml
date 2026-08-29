@@ -6,6 +6,7 @@ data:
   longDescription: "A thirty-litre steel keg of ale, the brewery's chalk mark on the crown."
   primaryKeyword: ale
   keywords: ["ale", "keg", "beer"]
+  category: keg
   interiorBulk: true
   interiorCapacity: 30
   interiorMaterial: /trade/brewing/idea/material/ale

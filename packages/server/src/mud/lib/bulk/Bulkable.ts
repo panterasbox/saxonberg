@@ -249,6 +249,21 @@ export class BulkSlot {
 
 /** Public shape contributed by BulkableMixin. */
 export interface Bulkable {
+  /**
+   * ⭐ The **vessel kind** — `coupe`, `can`, `keg`, `sack`. What this
+   * holder IS, independent of what is in it, and the tie between an
+   * empty vessel and the product that is that vessel filled.
+   *
+   * A coupe is a coupe whether it holds a martini or nothing: the glass
+   * pool claims *any* clean empty of the right kind, the census counts
+   * an emptied vessel under its kind rather than under the product it
+   * used to be, and the par sheet counts glassware and kegs by it.
+   * Authored on both the vessel row and every product row over it —
+   * that shared string IS the relationship, since template inheritance
+   * does not exist.
+   */
+  getCategory(): string;
+  setCategory(value: string): void;
   hasInteriorBulk(): boolean;
   hasSurfaceBulk(): boolean;
   /**
@@ -387,7 +402,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public closure: ClosureLevel = 'liquidTight';
 
+    /** The vessel kind (`coupe`, `can`, `keg`, `sack`). See {@link Bulkable.getCategory}. */
+    public category: string = '';
+
     static fieldMeta: FieldMeta = {
+      category: { persistent: true, authorable: true },
       interiorBulk: { persistent: true, authorable: true },
       surfaceBulk: { persistent: true, authorable: true },
       interiorMaterial: { persistent: true, authorable: true, authorPicker: 'Material' },
@@ -421,6 +440,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         },
       },
     ];
+
+    getCategory(): string {
+      return this.category;
+    }
+    setCategory(value: string): void {
+      this.category = value;
+    }
 
     // ---- accessor pairs (strict-Quantity invariants, Pattern D) ----
     protected get interiorAmount(): Quantity<'L'> {
@@ -692,7 +718,18 @@ function bulkContentsAugmenter(
   ] as [BulkAffordance, boolean][]) {
     if (!present) continue;
     const contents = host.getContentsDescriptionFor(viewer, affordance);
-    if (!contents) continue;
+    if (!contents) {
+      // ⭐ An empty vessel of a known kind SAYS it is empty. Without
+      // this a drained can of cola still read "a can of cola … the lid
+      // unbroken" off its authored row, which is a lie the moment
+      // somebody drinks it. Only the interior slot, and only when the
+      // row declared what kind of vessel it is.
+      const kind = host.getCategory();
+      if (affordance === 'interior' && kind) {
+        lines.push(`The ${kind} is empty.`);
+      }
+      continue;
+    }
     lines.push(
       affordance === 'surface'
         ? `A puddle of ${contents} pools here.`

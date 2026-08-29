@@ -14,6 +14,9 @@ data:
   longDescription: "A 330 mL aluminium can — drawn in one piece, lined, the lid seamed on. It weighs almost nothing."
   primaryKeyword: can
   keywords: ["can", "tin", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: can
   material: /stuff/idea/material/element/aluminium
   interiorBulk: true
   interiorCapacity: 0.33

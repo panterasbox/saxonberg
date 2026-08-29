@@ -6,6 +6,7 @@ data:
   longDescription: "A five-kilo sack of roasted coffee, still warm-smelling."
   primaryKeyword: coffee
   keywords: ["coffee", "sack", "beans"]
+  category: sack
   interiorBulk: true
   interiorCapacity: 20
   interiorMaterial: /trade/hearth-cooking/idea/material/coffee

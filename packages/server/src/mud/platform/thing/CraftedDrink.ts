@@ -19,7 +19,8 @@
  *
  * A glass is **claimed, not cloned**: `CraftingLogic` fills the first
  * clean, empty instance of the recipe's `outputTemplate` in reach and
- * marks it `soiled`; `wash` clears it. `category` is the glassware par key
+ * marks it `soiled`; `wash` clears it. `category` (on `BulkableMixin`,
+ * the vessel kind) is the glassware par key
  * (`coupe`, `rocks`, …) the stock sheet counts by.
  *
  * `getLong()` appends the working (shaken / on the rocks / fizzing) and
@@ -52,7 +53,6 @@ const CraftedDrinkBase = CraftedMixin(
 
 export default class CraftedDrink extends CraftedDrinkBase {
   static fieldMeta: FieldMeta = {
-    category: { persistent: true, authorable: true },
     soiled: { persistent: true, runtimeState: true },
     technique: { persistent: true, runtimeState: true },
     iceKg: { persistent: true, runtimeState: true },
@@ -60,9 +60,6 @@ export default class CraftedDrink extends CraftedDrinkBase {
     iceMeltK: { persistent: true, runtimeState: true },
     iceLatentJPerKg: { persistent: true, runtimeState: true },
   };
-
-  /** The glassware par key (`coupe`, `rocks`, `highball`, …). Authored. */
-  public category: string = '';
 
   /** Used since its last wash — a soiled glass is never claimed. */
   public soiled: boolean = false;
@@ -85,14 +82,11 @@ export default class CraftedDrink extends CraftedDrinkBase {
   /** Reentry guard for the ice plateau (see `reconcileThermal`). */
   private _iceReconciling = false;
 
-  // ---- category / soiled ----
-
-  getCategory(): string {
-    return this.category;
-  }
-  setCategory(value: string): void {
-    this.category = value;
-  }
+  // ---- soiled ----
+  // `category` (the glassware par key: `coupe`, `rocks`, …) lives on
+  // `BulkableMixin` — it is the VESSEL KIND, shared with cans, kegs and
+  // sacks, and it is what ties an empty vessel to the product that is
+  // that vessel filled.
 
   isSoiled(): boolean {
     return this.soiled;

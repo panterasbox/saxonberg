@@ -19,7 +19,8 @@
  * unauthored (`material:gin`), so a floor row counts the moment it names
  * what it holds — a row that wants a coarser bucket (`spirit:gin`) says
  * so. ⭐ An EMPTY vessel is not product and never counts as its authored
- * bucket — see `getCensusKey` below.
+ * bucket — it counts under its VESSEL KIND (`category`), which is what
+ * ties `can.yaml` to `can-of-cola.yaml`. See `getCensusKey` below.
  */
 
 import GradedReceptacle from './GradedReceptacle';
@@ -67,8 +68,14 @@ export default class Bottle extends BottleBase {
    */
   public override getCensusKey(): string {
     if (this.hasInteriorBulk() && this.getBulkAmount('interior').rawValue() <= 0) {
-      const kw = this.getPrimaryKeyword();
-      return kw ? `vessel:${kw.toLowerCase()}` : '';
+      // The VESSEL KIND first (`category` on Bulkable: `can`, `keg`,
+      // `sack`), so a drained can of cola counts with the empty cans
+      // rather than under its own product keyword — the empty-vessel
+      // row and the product row share one census the moment both
+      // declare the kind. Falls back to the keyword for a row that
+      // declares none.
+      const kind = this.getCategory() || this.getPrimaryKeyword();
+      return kind ? `vessel:${kind.toLowerCase()}` : '';
     }
     const authored = super.getCensusKey();
     if (authored.length > 0) return authored;

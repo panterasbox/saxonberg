@@ -6,6 +6,7 @@ data:
   longDescription: "A one-litre screw-capped bottle of ginger beer, the bottling floor's plain label."
   primaryKeyword: ginger-beer
   keywords: ["ginger-beer", "ginger", "bottle", "mixer"]
+  category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1
   interiorMaterial: /trade/bottling/idea/material/ginger-beer

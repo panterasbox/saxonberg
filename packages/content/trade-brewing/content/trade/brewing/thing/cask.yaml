@@ -8,6 +8,9 @@ data:
   longDescription: "An oak cask, hooped and bunged, that once held something stronger."
   primaryKeyword: cask
   keywords: ["cask", "barrel", "oak", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: cask
   material: /stuff/idea/material/wood/oak
   interiorBulk: true
   interiorCapacity: 50

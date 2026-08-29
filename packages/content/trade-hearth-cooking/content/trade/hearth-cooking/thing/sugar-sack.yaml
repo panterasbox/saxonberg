@@ -6,6 +6,7 @@ data:
   longDescription: "A ten-kilo hessian sack of sugar, stencilled."
   primaryKeyword: sugar
   keywords: ["sugar", "sack"]
+  category: sack
   interiorBulk: true
   interiorCapacity: 20
   interiorMaterial: /trade/hearth-cooking/idea/material/sugar

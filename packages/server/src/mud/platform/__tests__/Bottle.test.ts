@@ -88,8 +88,48 @@ describe('Bottle', () => {
     it("the empty's key is derived, never authored — so nothing can target it and the sweep never mints empties", () => {
       const b = makeStuff(() => new Bottle());
       stampTemplatePathForTest(b, '/obj/test/bottle-6');
-      b.setKeywords(['can', 'tin']);
-      b.setPrimaryKeyword('can');
+      b.setCategory('can');
+      expect(b.getCensusKey()).toBe('vessel:can');
+    });
+
+    // ⭐ The vessel kind IS the relationship between `can.yaml` (the
+    // empty) and `can-of-cola.yaml` (that vessel, filled). Template
+    // inheritance does not exist, so the shared `category` string is
+    // the only tie there is — and it has to be enough for the census,
+    // or a drained can of cola counts as `vessel:cola` and never joins
+    // the empty cans a returns market would collect.
+    it('a drained product and a factory-fresh empty are the SAME thing to the census', () => {
+      const factory = makeStuff(() => new Bottle());
+      stampTemplatePathForTest(factory, '/obj/test/can');
+      factory.setCategory('can');
+      factory.setKeywords(['can', 'tin']);
+      factory.setPrimaryKeyword('can');
+
+      const product = makeStuff(() => new Bottle());
+      stampTemplatePathForTest(product, '/obj/test/can-of-cola');
+      product.setCategory('can');
+      product.setKeywords(['cola', 'can']);
+      product.setPrimaryKeyword('cola');
+      product.setCensusKey('mixer:cola-can');
+      fill(product, 'cola', 0.33);
+
+      // Full, it is product; the two are different things.
+      expect(product.getCensusKey()).toBe('mixer:cola-can');
+      expect(factory.getCensusKey()).toBe('vessel:can');
+
+      // Drunk, it is a can — the same can the fill line draws from.
+      product.setBulkAmount('interior', Quantity.of(0, 'L'));
+      expect(product.getCensusKey()).toBe('vessel:can');
+      expect(product.getCensusKey()).toBe(factory.getCensusKey());
+    });
+
+    it('the kind beats the keyword — without it a drained product hides under its own name', () => {
+      const b = makeStuff(() => new Bottle());
+      stampTemplatePathForTest(b, '/obj/test/bottle-7');
+      b.setKeywords(['cola', 'can']);
+      b.setPrimaryKeyword('cola');
+      expect(b.getCensusKey()).toBe('vessel:cola');
+      b.setCategory('can');
       expect(b.getCensusKey()).toBe('vessel:can');
     });
   });

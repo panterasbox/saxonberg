@@ -11,6 +11,7 @@ data:
   longDescription: A slim bottle of orange liqueur, sticky at the neck.
   primaryKeyword: liqueur
   keywords: [liqueur, bottle, orange, spirit]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/orange-liqueur

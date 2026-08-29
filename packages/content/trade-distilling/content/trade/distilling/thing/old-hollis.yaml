@@ -6,6 +6,7 @@ data:
   longDescription: "A red-labelled bottle of Old Hollis whiskey \u2014 cheap, cheerful, proud of it. The fine print says the liquid is Veshko's."
   primaryKeyword: old-hollis
   keywords: ["old-hollis", "hollis", "whiskey", "bottle", "spirit"]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/whiskey

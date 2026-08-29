@@ -16,6 +16,34 @@ holds-as-attribute reframe, the per-affordance model, the deferred
 tails). This doc is the operational reference for what shipped — the
 thermos slice.
 
+## ⭐ `category` — the vessel kind, and the tie between an empty and a product
+
+A bulk holder declares **what kind of vessel it is**: `coupe`, `can`,
+`keg`, `sack`, `spirit-bottle`. It is a property of the vessel,
+independent of what is in it — a coupe is a coupe whether it holds a
+martini or nothing.
+
+It exists because **template inheritance does not exist**, so the empty
+vessel row (`/trade/bottling/thing/can`) and the product row that is
+that vessel filled (`…/can-of-cola`) are otherwise strangers that happen
+to share a class. The shared `category` string *is* the relationship,
+and three things read it:
+
+- **The census** ([residency.md](./residency.md)) — an emptied vessel
+  counts under `vessel:<category>`, so a drained can of cola joins the
+  factory-fresh empties instead of hiding under `vessel:cola`. That is
+  the count a deposit or returns market reads, and it is why draining
+  the world's gin makes the floor genuinely short.
+- **The pool** ([crafting.md](./crafting.md)) — `claimGlass` takes any
+  clean empty of the right kind. A washed-out vessel and a new one are
+  the same input to a fill, which is what a real line does.
+- **The par sheet** ([employment.md](./employment.md)) — glassware and
+  kegs are counted by kind, not by product.
+
+Authored on **both** the vessel row and every product row over it. A
+holder that declares none falls back to its primary keyword, which is
+right for a fixture whose interior is permanent (a plant pot's soil).
+
 ## The model
 
 ### `BulkableMixin` (`lib/bulk/Bulkable.ts`)

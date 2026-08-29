@@ -6,6 +6,7 @@ data:
   longDescription: "A thirty-litre steel keg of lager, sweating in the cold."
   primaryKeyword: lager
   keywords: ["lager", "keg", "beer"]
+  category: keg
   interiorBulk: true
   interiorCapacity: 30
   interiorMaterial: /trade/brewing/idea/material/lager

@@ -11,6 +11,7 @@ data:
   longDescription: A dark bottle of bitter liqueur with a florid old label.
   primaryKeyword: amaro
   keywords: [amaro, bottle, liqueur, bitter, spirit]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/bitter-liqueur

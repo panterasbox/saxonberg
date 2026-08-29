@@ -172,6 +172,19 @@ the contract. ⚠ The derive immediately caught an unfaithful mock — the
 distilling sweep test cloned its bottles EMPTY, which a real clone never
 is.
 
+✅ **The empty↔product relationship is now expressed** (`category`, the
+vessel kind, lifted from `CraftedDrink` onto `BulkableMixin`). The
+question *"deplete the cola and what are you left with?"* had no good
+answer: the two rows were strangers, a drained can still described
+itself as *"a can of cola, the lid unbroken"*, and the census derive
+returned `vessel:cola` — so drained cans never joined the empty cans.
+The glass pool had already solved this the right way (a coupe is ONE
+row, empty or full, tied by `category`), and the can had been authored
+against the pattern. Now every vessel row and every product row over it
+declares the kind; an emptied vessel counts as `vessel:<kind>` and reads
+*"The can is empty."* **No new mixin field was needed — the field
+existed on the wrong class.**
+
 ✅ **`jute` added to the fibre vocabulary** (founder's call) — hessian is
 jute, and all four sack rows now name it.
 

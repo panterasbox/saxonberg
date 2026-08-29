@@ -6,6 +6,7 @@ data:
   longDescription: "A red-labelled bottle of Hollis Cane dark rum. The liquid is Veshko's."
   primaryKeyword: hollis-cane
   keywords: ["hollis-cane", "hollis", "rum", "bottle", "spirit"]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/rum-dark

@@ -6,6 +6,7 @@ data:
   longDescription: "A corked bottle of red wine, the vintner outfit's plain label."
   primaryKeyword: red
   keywords: ["red", "wine", "bottle"]
+  category: wine-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/winemaking/idea/material/red

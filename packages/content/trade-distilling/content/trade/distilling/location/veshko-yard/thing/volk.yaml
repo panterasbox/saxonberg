@@ -6,6 +6,7 @@ data:
   longDescription: "A grey-labelled bottle of Volk \u2014 the well-rail vodka, industrially perfect."
   primaryKeyword: volk
   keywords: ["volk", "vodka", "bottle", "spirit"]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/vodka

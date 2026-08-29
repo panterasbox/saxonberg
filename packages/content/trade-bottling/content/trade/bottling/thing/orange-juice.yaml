@@ -6,6 +6,7 @@ data:
   longDescription: "A one-litre screw-capped bottle of orange juice, the bottling floor's plain label."
   primaryKeyword: orange-juice
   keywords: ["orange-juice", "juice", "oj", "bottle", "mixer"]
+  category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1
   interiorMaterial: /trade/bottling/idea/material/orange-juice

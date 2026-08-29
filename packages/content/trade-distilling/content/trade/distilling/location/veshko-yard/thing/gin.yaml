@@ -6,6 +6,7 @@ data:
   longDescription: "An unbranded bottle of Veshko gin, the mark small in the corner."
   primaryKeyword: gin
   keywords: ["gin", "veshko", "bottle", "spirit"]
+  category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75
   interiorMaterial: /trade/distilling/idea/material/gin

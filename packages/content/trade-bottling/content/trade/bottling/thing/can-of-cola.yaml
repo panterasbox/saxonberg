@@ -12,6 +12,9 @@ data:
   longDescription: "A 330 mL can of cola, cold to the hand, the lid unbroken."
   primaryKeyword: cola
   keywords: ["cola", "coke", "can", "tin"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: can
   material: /stuff/idea/material/element/aluminium
   interiorBulk: true
   interiorCapacity: 0.33

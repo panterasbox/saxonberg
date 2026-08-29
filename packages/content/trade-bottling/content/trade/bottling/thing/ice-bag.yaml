@@ -6,6 +6,7 @@ data:
   longDescription: "A five-kilo bag of ice, sweating through the plastic."
   primaryKeyword: ice
   keywords: ["ice", "bag"]
+  category: ice-bag
   interiorBulk: true
   interiorCapacity: 5.5
   interiorMaterial: /trade/bottling/idea/material/ice
