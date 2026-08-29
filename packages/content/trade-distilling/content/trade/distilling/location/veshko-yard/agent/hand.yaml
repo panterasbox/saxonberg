@@ -19,7 +19,7 @@ data:
     - brain: /lib/behavior/consigns
       trigger: cadence:90s
       config:
-        stock: /world/veshko/thing/stock
+        stock: /trade/distilling/location/veshko-yard/thing/stock
         shelf: /trade/distilling/thing/counter
         batch: 6
         ask:

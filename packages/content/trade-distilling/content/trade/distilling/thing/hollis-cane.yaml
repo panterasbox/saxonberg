@@ -16,4 +16,4 @@ data:
   censusKey: spirit:hollis-cane
   regionTarget: 8
   materialTags: ["spirit", "rum"]
-  container: /world/hollis/thing/stock
+  container: /trade/distilling/thing/hollis-stock

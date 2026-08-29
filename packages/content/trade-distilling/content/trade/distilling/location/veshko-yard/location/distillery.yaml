@@ -15,5 +15,5 @@ data:
   ambientColorTemperature: 3800
   populates:
     - /trade/distilling/thing/racking
-    - /world/veshko/thing/stock
-    - /world/veshko/agent/hand
+    - /trade/distilling/location/veshko-yard/thing/stock
+    - /trade/distilling/location/veshko-yard/agent/hand

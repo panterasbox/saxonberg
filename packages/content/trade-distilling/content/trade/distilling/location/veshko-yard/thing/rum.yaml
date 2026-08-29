@@ -15,4 +15,4 @@ data:
   censusKey: spirit:veshko-rum
   regionTarget: 12
   materialTags: ["spirit", "rum"]
-  container: /world/veshko/thing/stock
+  container: /trade/distilling/location/veshko-yard/thing/stock

@@ -19,10 +19,10 @@ data:
       purchases: true
   rosterSlots:
     - positionKey: hand
-      assignee: /world/hollis/agent/hand
+      assignee: /trade/distilling/agent/hollis-hand
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
   banksAt: goodkin
   operatingLocations:
-    - /world/hollis/location/bottling-floor
-    - /world/hollis/thing/stock
+    - /trade/distilling/location/hollis-floor
+    - /trade/distilling/thing/hollis-stock

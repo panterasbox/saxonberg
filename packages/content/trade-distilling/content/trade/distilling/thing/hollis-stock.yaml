@@ -10,6 +10,6 @@ data:
   attendDurationMs: 0
   staffingPolicy: self-service
   serverPositionKeys: []
-  businessPath: /world/hollis/idea/business
+  businessPath: /trade/distilling/idea/hollis-outfit
   stockLines: []
   prices: {}

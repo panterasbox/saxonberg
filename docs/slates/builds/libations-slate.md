@@ -13,7 +13,9 @@
 > restocks every 10 min); no glassware supplier exists yet; cost of goods
 > derives on read. **The corpos roster re-cut** (Part 4) is now shipped
 > content: Veshko makes, Hollis private-labels, Vionne/Goodkin/Aevex ship
-> no bottle. Subsystem homes: [retail.md](../../subsystems/retail.md),
+> no bottle — and (review ruling) **a corpo pack is capital + the mark,
+> never products or trade localities**: both yards live in
+> `trade-distilling` (`location/veshko-yard/`, the `hollis-*` rows), owned via `parentOrganization`. Subsystem homes: [retail.md](../../subsystems/retail.md),
 > [employment.md](../../subsystems/employment.md),
 > [crafting.md](../../subsystems/crafting.md),
 > [display.md](../../subsystems/display.md),

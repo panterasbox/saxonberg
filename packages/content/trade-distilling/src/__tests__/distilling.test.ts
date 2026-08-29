@@ -107,7 +107,9 @@ function rows(dir: string): Row[] {
   return out;
 }
 
-const floorRows = (): Row[] => rows('thing').filter((r) => r.class === `${ROOT}/thing/SpiritBottle`);
+/** The trade's floor rows, the corpo-owned yards' included (Veshko's is a locality under `location/`; Hollis's rows are flat). */
+const THING_DIRS = ['thing', 'location/veshko-yard/thing'];
+const floorRows = (): Row[] => THING_DIRS.flatMap(rows).filter((r) => r.class === `${ROOT}/thing/SpiritBottle`);
 
 function asPrincipal<T>(who: Stuff, fn: () => Promise<T>): Promise<T> {
   return withRootContext(null, 'distilling.test', () => {
@@ -166,10 +168,10 @@ describe('trade-distilling — the classes', () => {
 
 describe('trade-distilling — the floor rows', () => {
   it('every floor bottle is a drawable floor product homed in a shipped Stock, over a shipped material', () => {
-    const stocks = new Set(rows('thing').filter((r) => r.class === '/platform/thing/Stock').map((r) => r.path));
+    const stocks = new Set(THING_DIRS.flatMap(rows).filter((r) => r.class === '/platform/thing/Stock').map((r) => r.path));
     const materials = new Set(rows('idea/material').map((r) => r.path));
     const floor = floorRows();
-    expect(floor.length).toBe(11);
+    expect(floor.length).toBe(11 + 2 + 4); // the generics + Crowsfoot, Hollis's two labels, Veshko's yard
     for (const r of floor) {
       expect(typeof r.data.censusKey, r.file).toBe('string');
       expect(typeof r.data.regionTarget, r.file).toBe('number');

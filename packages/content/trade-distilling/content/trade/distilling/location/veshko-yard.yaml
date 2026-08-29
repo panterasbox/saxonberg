@@ -1,4 +1,4 @@
-# Veshko's distillery yard — the locality zone over /world/veshko, and the
+# Veshko's distillery yard — the locality zone over /trade/distilling/location/veshko-yard, and the
 # EXEMPLAR of a zone that declares what it STOCKS: the census-key → count
 # table `ResidencyLogic` reads through `lookupField('stocks')`, overriding
 # each floor row's own `regionTarget` for this region. "How many Volk stand

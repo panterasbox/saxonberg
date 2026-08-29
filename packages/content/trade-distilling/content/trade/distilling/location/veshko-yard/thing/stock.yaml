@@ -11,6 +11,6 @@ data:
   attendDurationMs: 0
   staffingPolicy: self-service
   serverPositionKeys: []
-  businessPath: /world/veshko/idea/business
+  businessPath: /trade/distilling/location/veshko-yard/idea/outfit
   stockLines: []
   prices: {}

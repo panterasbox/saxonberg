@@ -261,15 +261,9 @@ importers:
 
   packages/content/corpo-hollis:
     dependencies:
-      '@saxonberg/content-corpo-veshko':
-        specifier: workspace:*
-        version: link:../corpo-veshko
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -282,9 +276,6 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-trade-distilling':
-        specifier: workspace:*
-        version: link:../trade-distilling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -453,6 +444,12 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-corpo-hollis':
+        specifier: workspace:*
+        version: link:../corpo-hollis
+      '@saxonberg/content-corpo-veshko':
+        specifier: workspace:*
+        version: link:../corpo-veshko
       '@saxonberg/content-generic-objects':
         specifier: workspace:*
         version: link:../generic-objects

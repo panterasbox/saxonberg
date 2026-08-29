@@ -2,22 +2,18 @@ id: corpo-hollis
 version: 0.3.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /corpo/hollis
 description: >-
-  The hollis corpo — its mark, its brands, and its org chart; and (libations)
-  its BOTTLING FLOOR: /world/hollis, a warehouse that distils nothing.
-  Hollis private-labels Veshko's liquid — Old Hollis is Veshko's whiskey,
-  Hollis Cane is Veshko's rum — and the hand consigns the red-labelled
-  bottles onto the distilling trade's cash-and-carry. Hollis LABELS.
-# The corpo's own chart maintains its pack (content-packs wave 3, D8): the
-# organization row this pack ships, resident from boot.
+  The hollis corpo — its mark, its brands, and its org chart. CAPITAL and
+  the MARK, nothing else: Hollis's bottling floor (a warehouse that distils
+  nothing — Old Hollis is Veshko's whiskey, Hollis Cane is Veshko's rum)
+  is a PRODUCT of the distilling trade and lives in `trade-distilling` as
+  an outfit whose `parentOrganization` points here. Hollis LABELS — in the
+  trade pack.
 maintainers: { organization: /corpo/hollis }
 requires:
   # The organization holds its own branch — which is what makes it the
   # committee over /corpo/hollis (the subsidiaries' appointing authority)
-  # — and the floor it operates.
+  # — the only extent a corpo pack holds.
   title:
     - { extent: /corpo/hollis }
-    - { extent: /world/hollis, landUse: industrial }
 boot:
   - { template: /corpo/hollis, role: producer, reason: appoint and the chart reads resolve the organization by templatePath }
-  - { template: /world/hollis/location/bottling-floor, role: producer, reason: "the floor — its Stock is the home container the private-label bottles spawn into, and its hand runs the consigns brain" }
-  - { template: /world/hollis/idea/business, role: producer, reason: "the hand's purchases position is materialized by the roster tick over a live business; the consigns beat trades as Hollis Bottling" }

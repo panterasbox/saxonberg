@@ -12,5 +12,5 @@ data:
   ambientColorTemperature: 4500
   populates:
     - /trade/distilling/thing/racking
-    - /world/hollis/thing/stock
-    - /world/hollis/agent/hand
+    - /trade/distilling/thing/hollis-stock
+    - /trade/distilling/agent/hollis-hand

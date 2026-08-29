@@ -16,4 +16,4 @@ data:
   censusKey: spirit:old-hollis
   regionTarget: 8
   materialTags: ["spirit", "whiskey"]
-  container: /world/hollis/thing/stock
+  container: /trade/distilling/thing/hollis-stock

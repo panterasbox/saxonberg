@@ -18,7 +18,7 @@ data:
     - brain: /lib/behavior/consigns
       trigger: cadence:90s
       config:
-        stock: /world/hollis/thing/stock
+        stock: /trade/distilling/thing/hollis-stock
         shelf: /trade/distilling/thing/counter
         batch: 6
         ask:

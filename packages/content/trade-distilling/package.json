@@ -2,7 +2,7 @@
   "name": "@saxonberg/content-trade-distilling",
   "version": "0.1.0",
   "private": true,
-  "description": "The distilling trade — the spirit materials, the SpiritBottle stock vessel, the still, the distilling discipline, and the cash-and-carry distributor with its consigning floor outfits. A capability pack.",
+  "description": "The distilling trade — the spirit materials, the SpiritBottle stock vessel, the still, the distilling discipline, the cash-and-carry distributor with its consigning floor outfits, and the corpo-owned yards (Veshko's distillery, Hollis's bottling floor — products of the trade, owned via parentOrganization). A capability pack.",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-corpo-hollis": "workspace:*",
+    "@saxonberg/content-corpo-veshko": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/server": "workspace:*",

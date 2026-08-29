@@ -16,4 +16,4 @@ data:
   censusKey: spirit:volk
   regionTarget: 12
   materialTags: ["spirit", "vodka"]
-  container: /world/veshko/thing/stock
+  container: /trade/distilling/location/veshko-yard/thing/stock

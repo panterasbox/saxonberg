@@ -1,7 +1,8 @@
 /**
- * The libations annexes (phase 3b + 3c): the five stub trades and the two
- * corpo localities are DATA packs, so their proof is a row-shape test over
- * the shipped YAML — every floor product is drawable (a census key, a
+ * The libations annexes (phase 3b + 3c): the five stub trades are DATA
+ * packs, and the two corpo-owned yards (Veshko's, Hollis's) are rows the
+ * distilling trade ships — a corpo pack supplies capital + the mark, never
+ * products — so their proof is a row-shape test over the shipped YAML — every floor product is drawable (a census key, a
  * target, a home `container:` that is a Stock the same pack ships), over a
  * material some pack ships whose tags carry the recipe category; every
  * hand names the distilling counter as its host shelf and asks a price for
@@ -11,8 +12,8 @@
  * proven once, in the distilling pack's own suite; this is the annexes'
  * half — that their rows fit it.
  *
- * Lives under `mud/world/` because it names `/world/veshko` and
- * `/world/hollis` (lint:test-content).
+ * Lives under `mud/world/` beside the other content-shaped tests (it
+ * names no `/world/` path since the yards moved into the trade).
  */
 
 import '../../../test-bootstrap';
@@ -28,7 +29,13 @@ import Crate from '../../platform/thing/Crate';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
-const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-produce', 'trade-hearth-cooking', 'corpo-veshko', 'corpo-hollis'];
+const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-produce', 'trade-hearth-cooking'];
+/** The two corpo-owned yards: distilling's rows, owned via `parentOrganization`. */
+const VESHKO = '/trade/distilling/location/veshko-yard';
+const HOLLIS = '/trade/distilling';
+const HOLLIS_ROWS = ['agent/hollis-hand', 'idea/hollis-outfit', 'location/hollis-floor', 'thing/hollis-stock', 'thing/old-hollis', 'thing/hollis-cane'].map((r) => `${HOLLIS}/${r}`);
+const isYardRow = (path: string): boolean => path.startsWith(`${VESHKO}/`) || HOLLIS_ROWS.includes(path);
+const YARDS = ['veshko', 'hollis'];
 const COUNTER = '/trade/distilling/thing/counter';
 
 interface Row {
@@ -67,13 +74,19 @@ function allRows(): Row[] {
 
 const rows = allRows();
 const byPath = new Map(rows.map((r) => [r.path, r]));
-const annexRows = rows.filter((r) => ANNEXES.includes(r.pack));
+const annexRows = rows.filter((r) => ANNEXES.includes(r.pack) || isYardRow(r.path));
 const floorRows = annexRows.filter((r) => typeof r.data.censusKey === 'string');
 
 describe('libations annexes — the floor rows fit the faucet', () => {
-  it('the five stubs and the two corpo localities each ship floor product', () => {
+  it('the five stubs and the two corpo yards each ship floor product; no corpo pack ships any', () => {
     for (const pack of ANNEXES) {
       expect(floorRows.filter((r) => r.pack === pack).length, pack).toBeGreaterThan(0);
+    }
+    expect(floorRows.filter((r) => r.path.startsWith(`${VESHKO}/`)).length, 'veshko').toBe(4);
+    expect(floorRows.filter((r) => HOLLIS_ROWS.includes(r.path)).length, 'hollis').toBe(2);
+    // A corpo pack is capital + the mark: no product, no locality.
+    for (const r of rows.filter((r) => r.pack.startsWith('corpo-'))) {
+      expect(r.path.startsWith('/corpo/') || r.path.startsWith('/stuff/idea/corpo/'), r.path).toBe(true);
     }
     // hearth-cooking: three sacks + the syrup bottle (the bar's syrup line is bought, not cooked)
     expect(floorRows.length).toBe(2 + 5 + 8 + 8 + 4 + 4 + 2);
@@ -111,12 +124,12 @@ describe('libations annexes — the floor rows fit the faucet', () => {
   });
 
   it('the private-label fact: Hollis bottles hold the material Veshko\'s unbranded bottles hold', () => {
-    const old = byPath.get('/world/hollis/thing/old-hollis')!;
-    const cane = byPath.get('/world/hollis/thing/hollis-cane')!;
-    expect(old.data.interiorMaterial).toBe(byPath.get('/world/veshko/thing/whiskey')!.data.interiorMaterial);
-    expect(cane.data.interiorMaterial).toBe(byPath.get('/world/veshko/thing/rum')!.data.interiorMaterial);
+    const old = byPath.get(`${HOLLIS}/thing/old-hollis`)!;
+    const cane = byPath.get(`${HOLLIS}/thing/hollis-cane`)!;
+    expect(old.data.interiorMaterial).toBe(byPath.get(`${VESHKO}/thing/whiskey`)!.data.interiorMaterial);
+    expect(cane.data.interiorMaterial).toBe(byPath.get(`${VESHKO}/thing/rum`)!.data.interiorMaterial);
     expect(old.data._brandKey).toBe('old-hollis');
-    expect(byPath.get('/world/veshko/thing/volk')!.data._brandKey).toBe('volk');
+    expect(byPath.get(`${VESHKO}/thing/volk`)!.data._brandKey).toBe('volk');
     // Every brand key an annex names is a Brand row some pack ships.
     const brands = new Set(rows.filter((r) => r.class === '/platform/idea/corpo/Brand').map((r) => r.data.key));
     for (const r of floorRows.filter((r) => typeof r.data._brandKey === 'string')) {
@@ -146,7 +159,7 @@ describe('libations annexes — the hands name the host', () => {
   );
 
   it('one consigning hand per annex; each names the distilling counter and asks for every key homed in its stock', () => {
-    expect(hands.length).toBe(ANNEXES.length);
+    expect(hands.length).toBe(ANNEXES.length + YARDS.length);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/lib/behavior/consigns',
@@ -168,10 +181,10 @@ describe('libations annexes — the hands name the host', () => {
     }
   });
 
-  it('the corpo yards hang off their charts; the stubs are independent', () => {
-    expect(byPath.get('/world/veshko/idea/business')!.data.parentOrganization).toBe('/corpo/veshko');
-    expect(byPath.get('/world/hollis/idea/business')!.data.parentOrganization).toBe('/corpo/hollis');
-    for (const r of annexRows.filter((r) => r.class === '/platform/idea/Business' && r.pack.startsWith('trade-'))) {
+  it('the corpo yards hang off their charts (the trade points UP at its owner); the stubs are independent', () => {
+    expect(byPath.get(`${VESHKO}/idea/outfit`)!.data.parentOrganization).toBe('/corpo/veshko');
+    expect(byPath.get(`${HOLLIS}/idea/hollis-outfit`)!.data.parentOrganization).toBe('/corpo/hollis');
+    for (const r of annexRows.filter((r) => r.class === '/platform/idea/Business' && !isYardRow(r.path))) {
       expect(r.data.parentOrganization, r.path).toBeUndefined();
     }
   });
@@ -207,10 +220,10 @@ describe('libations annexes — the serving recipes and the zone', () => {
   });
 
   it("the Veshko zone's stocks: reaches the field ResidencyLogic reads (lookupField), and favours with it", async () => {
-    const zoneRow = byPath.get('/world/veshko')!;
+    const zoneRow = byPath.get(VESHKO)!;
     expect(zoneRow.class).toBe('/platform/idea/location/CartesianZone');
     const z = makeStuff(() => new CartesianZone());
-    stampTemplatePathForTest(z, '/world/veshko');
+    stampTemplatePathForTest(z, VESHKO);
     z.setStocks(zoneRow.data.stocks as Record<string, number>);
     z.setFavours(zoneRow.data.favours as string[]);
     expect(await z.lookupField<Record<string, number>>('stocks')).toMatchObject({ 'spirit:volk': 24 });
@@ -218,7 +231,7 @@ describe('libations annexes — the serving recipes and the zone', () => {
     // Every key the zone stocks is a floor row homed in the yard.
     for (const key of Object.keys(zoneRow.data.stocks as Record<string, number>)) {
       const row = floorRows.find((r) => r.data.censusKey === key);
-      expect(row?.data.container, key).toBe('/world/veshko/thing/stock');
+      expect(row?.data.container, key).toBe(`${VESHKO}/thing/stock`);
     }
   });
 });

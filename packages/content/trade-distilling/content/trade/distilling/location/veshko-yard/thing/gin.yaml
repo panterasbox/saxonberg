@@ -15,4 +15,4 @@ data:
   censusKey: spirit:veshko-gin
   regionTarget: 12
   materialTags: ["spirit", "gin"]
-  container: /world/veshko/thing/stock
+  container: /trade/distilling/location/veshko-yard/thing/stock

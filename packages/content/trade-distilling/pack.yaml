@@ -12,8 +12,12 @@ description: >-
   rail from. Nothing here is `populates`-magic: the floor product stands
   at target through the spawn sweep (the sanctioned faucet), and a
   producer's own outfit consigns it onto the distributor's counter with
-  the `consigns` brain. The trade names nobody; the annexes (the corpo
-  packs, the stub trades) name the counter.
+  the `consigns` brain. The two corpo-owned producers live HERE too —
+  Veshko's yard (the `location/veshko-yard` locality, the zone that authors `stocks:`) and Hollis's
+  bottling floor (the flat `hollis-*` rows) — because a bottle of Volk is a product of
+  the distilling PROCESS; the corpo pack supplies the capital and the
+  mark, and each yard's `parentOrganization` points up at it. The trade
+  names nobody downstream; the stub trades name the counter.
 requires:
   groups:
     - name: distilling
@@ -28,6 +32,8 @@ boot:
   - { template: /trade/distilling/location/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the annexes' hands to consign onto it and for the boot spawn sweep to have a census" }
   - { template: /trade/distilling/location/floor, role: producer, reason: "the floor outfit's yard — its Stock is the home container the floor rows spawn into, and its hand runs the consigns brain" }
   - { template: /trade/distilling/location/crowsfoot-floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
+  - { template: /trade/distilling/location/veshko-yard/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
+  - { template: /trade/distilling/location/hollis-floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain" }
   # The three businesses: the roster tick materializes the hands'
   # purchasing positions (and deals each its house card) only over a LIVE
   # business — a lazily stood-up one would leave the first beat trading as
@@ -35,3 +41,5 @@ boot:
   - { template: /trade/distilling/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
   - { template: /trade/distilling/idea/floor-outfit, role: producer, reason: "the floor hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }
   - { template: /trade/distilling/idea/crowsfoot-outfit, role: producer, reason: "the Crowsfoot hand's `purchases` position likewise" }
+  - { template: /trade/distilling/location/veshko-yard/idea/outfit, role: producer, reason: "Veshko Distilling (parentOrganization /corpo/veshko) — the hand's purchases position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /trade/distilling/idea/hollis-outfit, role: producer, reason: "Hollis Bottling (parentOrganization /corpo/hollis) — likewise" }

@@ -200,7 +200,7 @@ both through `lookupField`, so they inherit down the zone tree and a child
 narrows. ⚠ They were read before libations but never **declared** — the
 Hydrator reflects only `fieldMeta` fields, so an authored `stocks:` was
 silently dropped (the reference-ideas-inert-at-boot pattern). Veshko's
-yard (`corpo-veshko/content/world/veshko.yaml`) is the first zone to
+yard (`trade-distilling/content/trade/distilling/location/veshko-yard.yaml`) is the first zone to
 author one (`spirit:vodka: 24`, whiskey/rum/gin 12). `blessingOdds` is
 still undeclared. See [residency.md](./residency.md).
 

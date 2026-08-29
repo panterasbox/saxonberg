@@ -24,5 +24,18 @@ The distilling trade — a **capability** pack (it ships `src/`).
 - `content/trade/distilling/agent/` — the clerk and the two hands (the
   kernel's `consigns` brain, configured to the counter).
 
-The trade names nobody. Every annex (a corpo pack, a stub trade) names
+- `content/trade/distilling/location/veshko-yard.yaml` + `location/veshko-yard/{location,thing,agent,idea}/` — **Veshko's yard**:
+  the zone that authors `stocks:` (the exemplar), the distillery floor,
+  Veshko Distilling (`idea/outfit`, `parentOrganization: /corpo/veshko`),
+  its stock, its hand, and the floor rows — Volk and the unbranded
+  whiskey / rum / gin Hollis private-labels.
+- the `hollis-*` rows under `content/trade/distilling/{agent,idea,location,thing}/` — **Hollis's bottling floor**: a
+  warehouse that distils nothing; `old-hollis` / `hollis-cane` are rows
+  whose `interiorMaterial` is distilling's whiskey / dark rum (the
+  private-label fact, legible on `look`); Hollis Bottling (`idea/outfit`,
+  `parentOrganization: /corpo/hollis`), its stock, its hand.
+
+A corpo pack supplies capital + the mark; a corpo-owned producer is a
+product of the trade and lives here, pointing UP at its owner. The trade
+names nobody downstream. Every stub trade names
 `/trade/distilling/thing/counter` in its hand's `consigns` config.

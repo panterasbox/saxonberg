@@ -18,10 +18,10 @@ data:
       purchases: true
   rosterSlots:
     - positionKey: hand
-      assignee: /world/veshko/agent/hand
+      assignee: /trade/distilling/location/veshko-yard/agent/hand
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
   banksAt: goodkin
   operatingLocations:
-    - /world/veshko/location/distillery
-    - /world/veshko/thing/stock
+    - /trade/distilling/location/veshko-yard/location/distillery
+    - /trade/distilling/location/veshko-yard/thing/stock
