@@ -200,6 +200,17 @@ changes. **This is the third gap the can found that is really a
 missing-phase problem** (the others: carbonation never goes flat; ice is
 modelled but no other solid is).
 
+⚠ **One follow-up the crate found, recorded so it is not lost:** the
+vessel kind (`category`) lives on `BulkableMixin`, so a `Crate` — a
+Container, not a Bulkable — cannot carry it, and an emptied crate derives
+`vessel:grapefruits` rather than `vessel:crate`. **Empties therefore do
+not converge across a Container holder's kinds**, which is exactly what
+the vessel kind exists for: a produce crate is a returnable transport
+item as much as a can is. Inert until something counts or trades
+`vessel:*`, and `DetailedMixin` is ruled out as the home. Candidates and
+reasoning: [bulk.md](../../subsystems/bulk.md) § *OPEN — `category` has
+no home a `Crate` can reach*.
+
 **Later, in order of how much of the loop each closes:** the **granular
 bulk phase** (`requiredClosureFor`, so a sack can be an honest open
 weave) · the deposit

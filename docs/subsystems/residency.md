@@ -36,6 +36,27 @@ See the seeding [residency-slate.md](../slates/tails/residency-slate.md).
 (The requirements doc was retired at the pre-merge sweep; this doc is the
 record of what shipped.)
 
+## ⭐ An empty HOLDER is not product
+
+`CirculatingMixin.getCensusKey()` derives from **state**: a holder that is
+empty counts under `vessel:<kind>` rather than under its authored key. A
+holder is empty when every dimension it *has* is empty — a `Bulkable`'s
+interior slot, a `Container`'s contents, both when it is both. A thing
+that is neither is not a holder and keeps its authored key (a grapefruit
+is product, not an empty vessel).
+
+Without this the faucet lies in both directions: a world drunk dry read
+as *at target* while the shelf stood bare, and a bar that emptied four
+crates of grapefruit left four crates the census still counted as full,
+so the produce floor never restocked. Empties get their own count, which
+is also what a deposit or returns market reads.
+
+⚠ The empty's *kind* comes from `category` where the holder has one — see
+[bulk.md](./bulk.md), including the open question about `Crate`, which
+cannot carry `category` today and so derives from its primary keyword
+instead.
+
+
 ## The whole mechanism
 
 Deliberately small: **one method, one signal, one sweep.**
