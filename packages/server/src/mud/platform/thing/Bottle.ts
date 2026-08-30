@@ -20,7 +20,8 @@
  * what it holds — a row that wants a coarser bucket (`spirit:gin`) says
  * so. ⭐ An EMPTY vessel is not product and never counts as its authored
  * bucket — it counts under its VESSEL KIND (`category`), which is what
- * ties `can.yaml` to `can-of-cola.yaml`. See `getCensusKey` below.
+ * ties `can.yaml` to `can-of-cola.yaml`. That rule is general and lives
+ * on `CirculatingMixin`; only the unauthored-material fallback is here.
  */
 
 import GradedReceptacle from './GradedReceptacle';
@@ -48,37 +49,21 @@ export default class Bottle extends BottleBase {
   }
 
   /**
-   * ⭐ The census counts PRODUCT, and product is a filled vessel.
+   * The unauthored fallback: a floor row that names what it holds counts
+   * the moment it does (`material:gin`), so a row wanting a coarser
+   * bucket (`spirit:gin`) says so and anything else still counts.
    *
-   * An emptied bottle is not a bottle of gin any more — it is a bottle.
-   * Deriving the key from **state** rather than reading the authored row
-   * is what makes the faucet honest: drain the world's gin and the
-   * shortfall is real, so the sweep restocks. Reading the authored key
-   * unconditionally (the shipped behaviour before this) left every empty
-   * counting as product for ever, so a world drunk dry read as *at
-   * target* while the shelf stood bare.
-   *
-   * An empty's own key is `vessel:<primary keyword>` — derived, never
-   * authored, so nothing can target it and the sweep never mints
-   * empties (they come from drinking). It is also the count a returns
-   * or deposit market would read.
-   *
-   * A vessel with no interior slot at all is not a product either way,
-   * and keeps its authored key.
+   * ⭐ The *empty* case is not here — it is the general rule on
+   * `CirculatingMixin.getCensusKey`, which every circulating holder gets
+   * (a Container-only `Crate` had the bug for as long as this lived on
+   * `Bottle` alone). `super` returns `vessel:<kind>` for an empty and the
+   * authored key otherwise; only the unauthored-and-filled case is a
+   * bottle-specific question, because only a Bulkable has an interior
+   * material to name.
    */
   public override getCensusKey(): string {
-    if (this.hasInteriorBulk() && this.getBulkAmount('interior').rawValue() <= 0) {
-      // The VESSEL KIND first (`category` on Bulkable: `can`, `keg`,
-      // `sack`), so a drained can of cola counts with the empty cans
-      // rather than under its own product keyword — the empty-vessel
-      // row and the product row share one census the moment both
-      // declare the kind. Falls back to the keyword for a row that
-      // declares none.
-      const kind = this.getCategory() || this.getPrimaryKeyword();
-      return kind ? `vessel:${kind.toLowerCase()}` : '';
-    }
-    const authored = super.getCensusKey();
-    if (authored.length > 0) return authored;
+    const key = super.getCensusKey();
+    if (key.length > 0) return key;
     const material = this.getBulkMaterial('interior');
     const kw = material?.getPrimaryKeyword() ?? material?.getName();
     return kw ? `material:${kw.toLowerCase()}` : '';
