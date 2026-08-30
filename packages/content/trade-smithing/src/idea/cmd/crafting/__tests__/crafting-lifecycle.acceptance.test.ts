@@ -30,7 +30,7 @@ import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import Casting from '@saxonberg/server/mud/platform/thing/Casting';
 import Scrap from '@saxonberg/server/mud/platform/thing/Scrap';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
-import Whetstone from '@saxonberg/server/mud/platform/thing/Whetstone';
+import Whetstone from '../../../../thing/Whetstone';
 import { Construction } from '@saxonberg/server/mud/lib/material/Construction';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';

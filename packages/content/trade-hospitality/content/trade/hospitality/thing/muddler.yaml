@@ -1,6 +1,6 @@
-# a muddler — a bar tool offering the `muddler` capability (a ToolItem; the
-# capability table decides which verbs it affords).
-class: /platform/thing/ToolItem
+# a muddler — the bar tool that muddles. `muddle` is declared on the
+# Muddler class; the row carries the working it performs.
+class: /trade/hospitality/thing/Muddler
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a muddler
@@ -12,7 +12,6 @@ data:
     # loses to a finishing instrument (a mojito is muddled, then built).
     - {
         kind: muddler,
-        verbs: [trade/hospitality/cmd/crafting/muddle.yaml],
         technique: { name: muddled, priority: 1 },
       }
   _materialPath: /stuff/idea/material/element/iron

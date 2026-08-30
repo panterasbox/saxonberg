@@ -1,6 +1,7 @@
 # A watering can — the instrument that confers `water`. The row's own
-# `capabilities` entry names the verb and its placement: `carried`, so
-# the verb lights only while the can is in your pack.
+# The `watering` capability is what the can IS; the `water` verb is
+# declared once on the WateringCan class (environment bucket only, so it
+# lights just while the can is in your pack).
 class: /platform/thing/WateringCan
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -13,4 +14,4 @@ data:
   interiorBulk: true
   interiorCapacity: 2
   capabilities:
-    - { kind: watering, verbs: [platform/cmd/bulk/water.yaml], placement: carried }
+    - { kind: watering }

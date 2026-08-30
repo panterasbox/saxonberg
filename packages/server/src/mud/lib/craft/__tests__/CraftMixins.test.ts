@@ -63,53 +63,6 @@ describe('ToolMixin', () => {
     expect(t.getCondition()).toBe(1);
   });
 
-  describe('authored verbs (getInstanceContributions)', () => {
-    const MEND = ['platform/cmd/crafting/repair.yaml', 'platform/cmd/crafting/salvage.yaml'];
-    it('derives buckets from the row\'s own verbs — reachable by default', () => {
-      const t = makeStuff(() => new ToolHost());
-      t.setCapabilities([{ kind: 'mending', verbs: MEND }]);
-      const c = t.getInstanceContributions();
-      expect(c.peers).toEqual(MEND);
-      expect(c.environment).toEqual(MEND);
-    });
-
-    it('a carried-placement entry grants to its HOLDER only (the whetstone)', () => {
-      const t = makeStuff(() => new ToolHost());
-      t.setCapabilities([
-        { kind: 'whetstone', verbs: ['trade/smithing/cmd/crafting/sharpen.yaml'], placement: 'carried' },
-      ]);
-      const c = t.getInstanceContributions();
-      expect(c.environment).toEqual(['trade/smithing/cmd/crafting/sharpen.yaml']);
-      expect(c.peers ?? []).toEqual([]);
-    });
-
-    it('bare kinds (recipe-side requirements) and empty capabilities confer nothing', () => {
-      const t = makeStuff(() => new ToolHost());
-      t.setCapabilities(['striking', 'strainer', 'juicer', { kind: 'muddler' }]);
-      expect(t.getInstanceContributions()).toEqual({});
-      t.setCapabilities([]);
-      expect(t.getInstanceContributions()).toEqual({});
-    });
-
-    it('the vocabulary is open — a pack\'s own kind confers a pack\'s own view', () => {
-      const t = makeStuff(() => new ToolHost());
-      t.setCapabilities([
-        { kind: 'muddler', verbs: ['trade/hospitality/cmd/crafting/muddle.yaml'] },
-      ]);
-      const c = t.getInstanceContributions();
-      expect(c.environment).toEqual(['trade/hospitality/cmd/crafting/muddle.yaml']);
-    });
-
-    it('a broken tool still contributes (the verb declines, not vanishes)', () => {
-      const t = makeStuff(() => new ToolHost());
-      t.setCapabilities([{ kind: 'anvil', verbs: ['trade/smithing/cmd/crafting/hammer.yaml'] }]);
-      t.setCondition(0);
-      expect(t.hasCapability('anvil')).toBe(false); // capability lost
-      const c = t.getInstanceContributions(); // affordance kept
-      expect(c.peers).toContain('trade/smithing/cmd/crafting/hammer.yaml');
-    });
-  });
-
   describe('parameterized capability specs', () => {
     it('string shorthand ≡ the defaulted spec', () => {
       const short = makeStuff(() => new ToolHost());
@@ -121,18 +74,12 @@ describe('ToolMixin', () => {
         expect(t.capabilityRate('mending')).toBe(1);
         expect(t.capabilityControl('mending')).toBeNull();
       }
-      expect(short.getInstanceContributions()).toEqual(
-        spec.getInstanceContributions(),
-      );
     });
 
     it('validates both entry forms on set', () => {
       const t = makeStuff(() => new ToolHost());
       expect(() => t.setCapabilities(['Blender!'])).toThrow(/Blender/);
       expect(() => t.setCapabilities([{ kind: '' }])).toThrow(/name/);
-      expect(() =>
-        t.setCapabilities([{ kind: 'blender', verbs: ['not-a-view'] }]),
-      ).toThrow(/verbs/);
       expect(() =>
         t.setCapabilities([{ kind: 'mending', rate: 0 }]),
       ).toThrow(/rate/);
@@ -145,11 +92,6 @@ describe('ToolMixin', () => {
       expect(() =>
         t.setCapabilities([{ kind: 'mending', control: 'legendary' }]),
       ).toThrow(/control/);
-      expect(() =>
-        t.setCapabilities([
-          { kind: 'mending', placement: 'orbital' as never },
-        ]),
-      ).toThrow(/placement/);
     });
 
     it('clamps the read rate to the band', () => {
@@ -161,24 +103,6 @@ describe('ToolMixin', () => {
       t.setCapabilities([{ kind: 'mending', rate: 50 }]);
       expect(t.capabilityRate('mending')).toBe(10);
       expect(t.capabilityRate('anvil')).toBe(1); // absent kind → 1
-    });
-
-    it('per-entry placement is the entry\'s own', () => {
-      const SHARPEN = ['trade/smithing/cmd/crafting/sharpen.yaml'];
-      const wheel = makeStuff(() => new ToolHost());
-      wheel.setCapabilities([
-        { kind: 'whetstone', verbs: SHARPEN, placement: 'reachable', rate: 4 },
-      ]);
-      const c = wheel.getInstanceContributions();
-      expect(c.peers).toEqual(SHARPEN); // the grinding wheel
-      expect(c.environment).toEqual(SHARPEN);
-
-      const MEND = ['platform/cmd/crafting/repair.yaml', 'platform/cmd/crafting/salvage.yaml'];
-      const strapped = makeStuff(() => new ToolHost());
-      strapped.setCapabilities([{ kind: 'mending', verbs: MEND, placement: 'carried' }]);
-      const c2 = strapped.getInstanceContributions();
-      expect(c2.environment).toEqual(MEND);
-      expect(c2.peers ?? []).toEqual([]);
     });
 
     it('a mixed authored array round-trips the Hydrator behavior-identically', async () => {

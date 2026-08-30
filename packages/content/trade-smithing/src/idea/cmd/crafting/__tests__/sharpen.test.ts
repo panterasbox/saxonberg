@@ -13,7 +13,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Weapon from '@saxonberg/server/mud/platform/thing/equipment/Weapon';
-import Whetstone from '@saxonberg/server/mud/platform/thing/Whetstone';
+import Whetstone from '../../../../thing/Whetstone';
 import { Construction } from '@saxonberg/server/mud/lib/material/Construction';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import {

@@ -1,11 +1,15 @@
 /**
- * The capability table's acceptance content, end to end: the sewing
- * machine is a SEED-ONLY variant — `class: /lib/craft/ToolItem`, no
- * class of its own — whose `mending` spec (rate 3, control fine)
- * confers the repair/salvage surface when carried, works in a third
- * the time (asserted in tool-pacing.test.ts), and floors a repaired
- * soft good's grade at `fine`. Reads the REAL seed row, so a drifted
- * seed fails here.
+ * The sewing machine end to end: a `MendingTool` ROW whose `mending`
+ * spec (rate 3, control fine) works in a third the time (asserted in
+ * tool-pacing.test.ts) and floors a repaired soft good's grade at
+ * `fine`. Reads the REAL seed row, so a drifted seed fails here.
+ *
+ * ⭐ It shares its class with the sewing KIT, and the line between them
+ * is the point: what they AFFORD is identical and lives on the class
+ * (`repair`, `salvage`, once); what they are LIKE — rate, control —
+ * varies per row. The machine was a bare `ToolItem` row naming its own
+ * verbs until verbs became a single class-level record; a row can no
+ * longer vary its verb set, and nothing here wanted to.
  */
 
 import "../../../../test-bootstrap";
@@ -24,7 +28,7 @@ import { Quantity } from "../../../lib/quantity";
 import Material from "../../../lib/material/Material";
 import Thing from "../../../lib/stuff/Thing";
 import Armor from "../../../platform/thing/equipment/Armor";
-import ToolItem from "../../../platform/thing/ToolItem";
+import MendingTool from "../../../platform/thing/MendingTool";
 import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
 import RecipeCatalogue from "../../../platform/idea/RecipeCatalogue";
 import { Idea } from "../../../lib/stuff/Idea";
@@ -70,11 +74,11 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
-async function hydrateMachine(): Promise<ToolItem> {
+async function hydrateMachine(): Promise<MendingTool> {
   const seed = YAML.parse(readFileSync(SEED, "utf8")) as Seed;
-  // The whole point: no class beyond the generic ToolItem.
-  expect(seed.class).toBe("/platform/thing/ToolItem");
-  const machine = makeStuff(() => new ToolItem());
+  // One class shared with the sewing kit — they afford identically.
+  expect(seed.class).toBe("/platform/thing/MendingTool");
+  const machine = makeStuff(() => new MendingTool());
   makeStuffAtPath(() => {
     const m = new Material();
     m.setName("iron");
@@ -87,7 +91,7 @@ async function hydrateMachine(): Promise<ToolItem> {
   return machine;
 }
 
-describe("the sewing machine (seed-only variant)", () => {
+describe("the sewing machine (a MendingTool row)", () => {
   it("the seed's spec confers rate 3 + control fine on the mending kind", async () => {
     const machine = await hydrateMachine();
     expect(machine.hasCapability("mending")).toBe(true);

@@ -25,12 +25,25 @@ const CookPotBase = CraftedMixin(
   ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
 );
 
+const HEARTH = [
+  'platform/cmd/crafting/heat.yaml',
+  'trade/hearth-cooking/cmd/crafting/cook.yaml',
+  'trade/hearth-cooking/cmd/crafting/plate.yaml',
+];
+
 export default class CookPot extends CookPotBase {
   /**
-   * The defining capability default — authored seeds extend it with
-   * the verbs the pot confers (the cook-pot row names them: the
-   * kitchen's `cook`/`plate`, the platform's `pour`/`stir`/`heat`).
-   * Reachable heat + a pot IS a kitchen.
+   * ⭐ The verbs the pot performs, named once, here. `pour` and `stir`
+   * are NOT among them — a pot is a `ManualBuild` vessel, and the build
+   * buffer is what banks and works a step-by-step build, so those two
+   * come from `ManualBuildMixin`'s own static. Reachable heat + a pot IS
+   * a kitchen.
    */
+  static commandContributions: CommandContributions = {
+    environment: HEARTH,
+    peers: HEARTH,
+  };
+
+  /** The defining capability default — authored seeds may extend it. */
   public override capabilities: string[] = ['pot'];
 }

@@ -26,6 +26,7 @@
  * the inter-Stuff contract is the method surface, never the fields.
  */
 
+import type { CommandContributions } from "../../api/command";
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
@@ -122,6 +123,25 @@ export interface Builds {
 export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class ManualBuildMixin extends Base implements Builds {
     static _mixinName = "ManualBuildMixin";
+
+    /**
+     * ⭐ The build buffer is what `pour` banks into and `stir` works on,
+     * so the build vessel is what affords them — the shaker, the mixing
+     * glass, the cook pot, and anything else that buffers a
+     * step-by-step build. Named once, here, instead of copied onto every
+     * instrument row (where the shaker and the mixing glass carried the
+     * identical six-verb list and the bar's own stations carried none).
+     */
+    static commandContributions: CommandContributions = {
+      environment: [
+        "platform/cmd/crafting/pour.yaml",
+        "platform/cmd/crafting/stir.yaml",
+      ],
+      peers: [
+        "platform/cmd/crafting/pour.yaml",
+        "platform/cmd/crafting/stir.yaml",
+      ],
+    };
 
     /**
      * Runtime-only build buffer. Deliberately absent from

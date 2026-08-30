@@ -375,33 +375,54 @@ Each filename resolves through `CommandApi.getCommand` and is loaded
 once per file; the resulting `CommandDefinition` is shared across
 every host that contributes it.
 
-### `InstanceContributor` — per-instance dynamic contributions
+### ⚠⚠ There is ONE record of verb affordances, and this is it
 
-`commandContributions` is **static** (class-level), so it can't express
-"contribute X only when this *instance's* state holds." The optional
-`InstanceContributor` seam (`api/command.ts`, `@hook`) closes that gap:
+`static commandContributions` on a class and every mixin in its chain.
+Nothing else. If you want to know what verbs an object confers, you read
+its ancestry; if you want to change them, you edit a static.
 
-```ts
-interface InstanceContributor { getInstanceContributions(): CommandContributions; }
-```
+There was a second record. `commandContributions` is class-level, so it
+cannot express "contribute X only when this *instance's* state holds",
+and an optional `InstanceContributor` seam
+(`getInstanceContributions()`) closed that gap — consulted at the
+`inventory`/`environment`/`peers` containment-delta push sites and
+merged with the statics. Two consumers used it: `BehavedMixin` afforded
+`talk` only when the host carried a dialogue tree, and `ToolMixin` read
+a tool's verbs off its authored `capabilities[].verbs`. **It is gone**,
+and so is `capabilities[].verbs`.
 
-At the `inventory`/`environment`/`peers` containment-delta push sites,
-`CommandLogic.collectBucketDefsForInstance` merges a contributor's
-per-instance result with its class/mixin statics (the inventory site
-joined with the capability-table build). Because it rides the ordinary
-push/pop/reset movement machinery, late-arrival, departure, and mover
-relocation are all handled with no extra hooks (the hook must be cheap
-and total — a throw is swallowed to no contribution). Two shipped
-consumers: `BehavedMixin.getInstanceContributions` affords `social/
-talk.yaml` exactly when the host carries a dialogue tree (an `engage`
-spec) — so a conversational NPC is discoverable and a silent one is
-not, with no subclass and no manual push/pop (see
-[npc-dialogue.md](./npc-dialogue.md)) — and
-`ToolMixin.getInstanceContributions` reads a tool's verbs off its
-authored `capabilities[].verbs` entries, so a tool variant is pure seed
-data and the kernel names no trade's view (see [crafting.md](./crafting.md)). A
-shadowing implementation must merge the inner contributor's buckets
-(both consumers show the pattern).
+Why it had to go:
+
+- **Two records of one fact.** An author had two ways to hang a verb on
+  an object and no rule for choosing; which one applied depended on
+  whether the object happened to compose `ToolMixin`.
+- **Two vocabularies.** The row-level form said `placement: reachable |
+  carried` where the statics say `environment` / `peers` / `self` /
+  `inventory` — a coarser rename of a subset, unable to express `self`
+  or `inventory` at all.
+- **It drifted, exactly as a duplicated fact does.** The shaker and the
+  mixing glass each carried the identical six-verb list `pour stir
+  strain garnish serve mix` — the BAR's verb set, not the shaker's —
+  because those were the two rows with a `capabilities` block to hang a
+  list on. The stations that host the work afforded nothing.
+- **A hot-path hook, try/catch-swallowed**, so a throwing host silently
+  afforded nothing rather than failing loudly.
+- **The client reasons about how verbs are afforded.** A verb set that
+  varies with authored data the client cannot see is one it cannot
+  reason about.
+
+**Afford statically, decline diegetically.** The conditional cases the
+seam served are the controller's job, and the codebase already had the
+pattern: a broken anvil keeps affording `hammer` and the controller
+declines on the capability. So every Behaved host affords `talk` and
+`TalkController` answers *"<npc> has nothing to say"*. Trying and being
+told is discoverable; a verb that is simply absent teaches nothing.
+
+Where per-instance variation was *real*, it was a class all along: an
+instrument that performs a distinct working is a distinct kind of thing,
+and a capability pack ships classes. That also fixes a cross-pack leak
+for free — each pack's classes name only its own views, so the kernel
+can never name a trade's verb (see [crafting.md](./crafting.md)).
 
 ## ⭐ Affordance categories — the radial's fixed geometry
 

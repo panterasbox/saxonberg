@@ -18,7 +18,6 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { ToolCapabilities, type CapabilitySpec } from './ToolCapability';
 import type { ConferredTechnique } from './Technique';
@@ -122,52 +121,5 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       return null;
     }
 
-    /**
-     * Per-instance dynamic command contributions (the
-     * `InstanceContributor` seam): the union of the **authored** verbs
-     * over this instance's capability entries — the tool that does the
-     * work carries its working verbs, and the verbs are the row's own
-     * data (`{ kind, verbs, placement? }`), so a tool variant is pure
-     * seed data and the kernel never names a trade's view. Placement per
-     * entry (`reachable` → environment + peers, `carried` → environment
-     * only). Deliberately NOT broken-gated: a broken anvil keeps
-     * *affording* `hammer` and the controller's `hasCapability` check
-     * declines diegetically (a vanishing verb would also go stale —
-     * breakage doesn't move the tool, so no containment delta fires).
-     */
-    public getInstanceContributions(): CommandContributions {
-      // Merge any inner contributor's buckets (the Behaved pattern) —
-      // a shadowing implementation must not drop a sibling seam.
-      const inner =
-        (
-          Base.prototype as {
-            getInstanceContributions?: () => CommandContributions;
-          }
-        ).getInstanceContributions?.call(this) ?? {};
-      // Directional buckets: `environment` grants OUTWARD to whoever
-      // holds the tool, `peers` grants sideways to everyone sharing the
-      // room with it. (Both were named one bucket to the left before the
-      // affordance-scope rename.)
-      const environment: string[] = [...(inner.environment ?? [])];
-      const peers: string[] = [...(inner.peers ?? [])];
-      for (const entry of this.capabilities) {
-        if (typeof entry === 'string') continue;
-        const verbs = entry.verbs ?? [];
-        if (verbs.length === 0) continue;
-        const placement =
-          entry.placement ?? ToolCapabilities.DEFAULT_PLACEMENT;
-        // Carried: the tool hands its verbs to its holder.
-        environment.push(...verbs);
-        // Reachable: and to anyone else in the room with it.
-        if (placement === 'reachable') peers.push(...verbs);
-      }
-      if (
-        environment.length === (inner.environment?.length ?? 0) &&
-        peers.length === (inner.peers?.length ?? 0)
-      ) {
-        return inner;
-      }
-      return { ...inner, environment, peers };
-    }
   };
 }

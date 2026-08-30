@@ -1,5 +1,4 @@
-# a bar spoon — a bar tool offering the `bar-spoon` capability (a ToolItem; the
-# capability table decides which verbs it affords).
+# a bar spoon — a bar tool offering the `bar-spoon` capability.
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

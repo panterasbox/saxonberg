@@ -79,13 +79,15 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/PortableLight",
     "/platform/thing/equipment/Weapon",
     "/platform/thing/Receptacle",
-    // The crafting goods: the sewing kit + the sewing MACHINE (the
-    // capability table's data-only variant) are plain ToolItems; the
-    // whetstone keeps its class for the Audible rasp (behavior, not
-    // affordances); the ingot a Meltable Thing — all discrete, none
-    // Globbable.
+    // The crafting goods: the sewing kit and the sewing MACHINE are both
+    // `MendingTool` — one class, because they afford identically and
+    // differ only in `rate`/`control`, which is row data. The whetstone
+    // carries the Audible rasp AND its own carried-only `sharpen`, and
+    // lives in the smithing pack so the kernel never names a trade's
+    // view. The ingot a Meltable Thing — all discrete, none Globbable.
     "/platform/thing/ToolItem",
-    "/platform/thing/Whetstone",
+    "/platform/thing/MendingTool",
+    "/trade/smithing/thing/Whetstone",
     "/platform/thing/Ingot",
     // The gardening line (husbandry phase 1): a pot is a Slotted fixture
     // with a bulk interior for soil, a seed a discrete Thing naming the

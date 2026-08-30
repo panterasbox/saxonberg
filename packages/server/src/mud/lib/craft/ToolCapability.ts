@@ -14,38 +14,40 @@
  * names `still` on both sides and nothing in the kernel changes (the
  * libations build's rule — a pack never needs a kernel LIST edit).
  *
- * **The verbs a tool confers — and the WORKING it performs — are the tool
- * row's own data**, never a kernel table's: `capabilities: [{ kind: shaker, verbs: [...] }]`. The
- * tool that does the work carries its working verbs (the
- * instrument-conferred model — command-spec.md § who affords a verb), and
- * a verb lives in the pack whose content affords it, so the kernel can
- * never name a trade's view.
+ * **The WORKING an instrument performs is the tool row's own data**,
+ * never a kernel table's — `technique: { name: shaken, chillK: 8 }`.
+ *
+ * ⚠ A capability entry names **no verbs**. It used to: `verbs: [...]`
+ * plus a `placement` was the only way a ROW could hang a verb on an
+ * object, since `commandContributions` is a class static. That made two
+ * records of verb affordances, in two vocabularies (`placement:
+ * reachable|carried` against the statics' four buckets, which could not
+ * express `self` or `inventory` at all) — and the kind→verbs grouping
+ * was inert, read in exactly one place and never consulted for anything
+ * but translation. It also drifted: the shaker and the mixing glass each
+ * carried the identical six-verb list `pour stir strain garnish serve
+ * mix`, which is the BAR's verb set, not the shaker's — they had it
+ * because they were the two rows with a `capabilities` block to hang it
+ * on, while the back-bar and the well afforded nothing.
+ *
+ * There is now one record: `static commandContributions` on the class
+ * or mixin. An instrument that performs a distinct working is a distinct
+ * kind of thing and gets a class, which is what a capability pack ships
+ * anyway — and because each pack's classes name only its own views, the
+ * kernel can never name a trade's verb.
  */
 
 import { Grade } from './Grade';
 import { Techniques, type TechniqueSpec } from './Technique';
 
 /**
- * Where a capability's conferred verbs light up: `reachable` = the tool
- * affords from the room or a pack (environment + peers buckets);
- * `carried` = only from a pack (environment bucket — the whetstone's
- * personal-capital rule as a data value). Default `reachable`.
- */
-export type CapabilityPlacement = 'reachable' | 'carried';
-
-/**
  * A parameterized capability entry — how a tool variant is authored as
  * pure instance data (kit → machine, whetstone → grinding wheel). A
- * bare kind string is shorthand for the defaulted spec (no verbs, rate 1,
- * no control floor, `reachable`).
+ * bare kind string is shorthand for the defaulted spec (rate 1, no
+ * control floor, no working).
  */
 export interface CapabilitySpec {
   kind: string;
-  /** The command-view keys this entry confers on whoever can use the
-   * tool (`trade/hospitality/cmd/crafting/strain.yaml`,
-   * `platform/cmd/bulk/water.yaml`). Empty/absent = a recipe-side kind:
-   * a requirement, not a verb source. */
-  verbs?: string[];
   /** Work-rate multiplier — paces the conferring kind's engaged steps
    * (clamped {@link ToolCapabilities.RATE_MIN}–{@link ToolCapabilities.RATE_MAX}
    * at read). Default 1. */
@@ -53,8 +55,6 @@ export interface CapabilitySpec {
   /** A Grade band embedded in the capital — floors the outcome grade of
    * work done with this instrument. Default none. */
   control?: string;
-  /** Where the verbs light up. Default `reachable`. */
-  placement?: CapabilityPlacement;
   /**
    * The **working this instrument performs**, and what it does to the
    * output — `{ name, chillK?, dilutionL?, aerated?, priority? }`. The
@@ -75,9 +75,6 @@ export class ToolCapabilities {
   public static readonly RATE_MIN = 0.25;
   public static readonly RATE_MAX = 10;
 
-  /** The default placement of an entry that authors none. */
-  public static readonly DEFAULT_PLACEMENT: CapabilityPlacement = 'reachable';
-
   /** A well-formed capability name: a non-empty kebab token. */
   public static isCapabilityName(s: unknown): s is string {
     return typeof s === 'string' && /^[a-z][a-z0-9-]*$/.test(s);
@@ -96,16 +93,6 @@ export class ToolCapabilities {
       );
     }
     if (typeof entry === 'string') return;
-    if (entry.verbs !== undefined) {
-      if (
-        !Array.isArray(entry.verbs) ||
-        entry.verbs.some((v) => typeof v !== 'string' || !v.endsWith('.yaml'))
-      ) {
-        throw new RangeError(
-          `ToolCapabilities.validateEntry: verbs for '${kind}' must be command-view keys ('<root>/cmd/<category>/<verb>.yaml')`,
-        );
-      }
-    }
     if (entry.rate !== undefined) {
       if (!Number.isFinite(entry.rate) || entry.rate <= 0) {
         throw new RangeError(
@@ -116,15 +103,6 @@ export class ToolCapabilities {
     if (entry.control !== undefined && !Grade.isBand(entry.control)) {
       throw new RangeError(
         `ToolCapabilities.validateEntry: unknown control band '${entry.control}' for '${kind}'`,
-      );
-    }
-    if (
-      entry.placement !== undefined &&
-      entry.placement !== 'reachable' &&
-      entry.placement !== 'carried'
-    ) {
-      throw new RangeError(
-        `ToolCapabilities.validateEntry: unknown placement '${entry.placement}' for '${kind}'`,
       );
     }
     if (entry.technique !== undefined) {

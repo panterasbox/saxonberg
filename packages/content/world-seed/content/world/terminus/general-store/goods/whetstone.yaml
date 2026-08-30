@@ -1,7 +1,7 @@
 # A whetstone — the personal-capital exemplar: carried, it affords
 # `sharpen` (the working-surface ritual); it wears with use and the store
 # sells the next one. Granite, with an Audible rasp the room hears.
-class: /platform/thing/Whetstone
+class: /trade/smithing/thing/Whetstone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a whetstone
@@ -10,6 +10,6 @@ data:
   longDescription: |
     A palm-sized bar of grey granite, one face dished by years of blades. Spit, steel, patience.
   capabilities:
-    - { kind: whetstone, verbs: [trade/smithing/cmd/crafting/sharpen.yaml], placement: carried }
+    - { kind: whetstone }
   _materialPath: /stuff/idea/material/rock/granite
   mass: 0.3

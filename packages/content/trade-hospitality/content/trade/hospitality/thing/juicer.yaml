@@ -1,5 +1,4 @@
-# a citrus press — a bar tool offering the `juicer` capability (a ToolItem; the
-# capability table decides which verbs it affords).
+# a citrus press — a bar tool offering the `juicer` capability.
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

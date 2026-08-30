@@ -69,7 +69,7 @@ with a diegetic reason, not a flag flip.
   that need one edits nothing here) + `ToolCapabilities.validateEntry`
   and the `CapabilitySpec` parameterized-entry shape (`kind`, **`verbs`**
   — the command-view keys the entry confers, the row's own data —
-  `rate`/`control`/`placement`, `RATE_MIN`/`RATE_MAX`). There is **no
+  `rate`/`control`/`technique`, `RATE_MIN`/`RATE_MAX`). There is **no
   workbench concept** —
   "workbench" is just the word for capabilities too heavy to carry: the
   pot and whetstone are portable capital, the anvil (60 kg — a fixture
@@ -318,30 +318,53 @@ A menu affords **commerce only** — the base's `commandContributions` is
 (content packs wave 4b collapsed the three empty venue subclasses —
 the lounge's `Menu`, `SmithyMenu`, `KitchenMenu` — into it; what
 differed was the rows' data: `offeredRecipes`, prices). The
-*working* verbs are **instrument-conferred, and the instrument's row
-names them**: a capability entry carries `verbs` (command-view keys)
-and `ToolMixin` derives its per-instance contributions from the
-instance's authored `capabilities` (the `InstanceContributor` seam —
-see [command-routing.md](./command-routing.md)). There is **no kernel
-table** (libations retired `CAPABILITY_TABLE`): the kernel could not
-name a trade's view without owning the trade, and the verbs moved to
-the packs whose content affords them (below). The surface follows
-capital, not venue flags (the menu is for ordering, not making; camp
-cooking works because reachable heat + a pot IS a kitchen), and **a
-tool variant is pure seed data** — the sewing machine is
-`class: /lib/craft/ToolItem` + one spec entry, no code. The shipped
-rows, as authored:
+*working* verbs are **instrument-conferred, and named exactly once** —
+on the class of the thing that performs the act, as `static
+commandContributions`. There is **no kernel table** (libations retired
+`CAPABILITY_TABLE`: the kernel could not name a trade's view without
+owning the trade) **and no row-level verb list** — `capabilities[].verbs`
+and `placement` were deleted after them, because two records of one fact
+is the same failure one level down (see
+[command-routing.md](./command-routing.md) § *There is ONE record of verb
+affordances*). A capability entry now names a **requirement and a
+working**, never a verb.
 
-| row | entry | confers | placement |
-|---|---|---|---|
-| hospitality `shaker` / `mixing-glass` | `shaker` / `mixing-glass` | platform `pour`, `stir`; hospitality `strain`, `garnish`, `serve`, `mix` | reachable |
-| hospitality `muddler` | `muddler` | hospitality `muddle` | reachable |
-| hearth-cooking `cook-pot` | `pot` | platform `pour`, `stir`, `heat`; hearth-cooking `plate`, `cook` | reachable |
-| smithing `anvil` | `anvil` | smithing `hammer`, `quench`, `forge`; platform `repair`, `salvage` | reachable |
-| general-store `sewing-kit` / `sewing-machine` | `mending` | platform `repair`, `salvage` | reachable |
-| smithing / general-store `whetstone` | `whetstone` | smithing `sharpen` | **carried** (personal capital) |
-| generic-objects `watering-can` | `watering` | platform `water` | **carried** |
-| `striking` / `strainer` / `juicer` / `tap` / `bar-spoon` / `still` | bare kinds | — (recipe-side requirements) | — |
+⭐ **Split by what performs the act.** That is the discipline that keeps
+one record honest, and the bar is the worked example — its six verbs
+used to be a single list copied verbatim onto two rows:
+
+| verb | performed by | declared on |
+|---|---|---|
+| platform `pour`, `stir` | the build VESSEL — what a build is banked into and worked on | `ManualBuildMixin` (shaker, mixing glass, cook pot) |
+| hospitality `strain` | the STRAINER | `/trade/hospitality/thing/Strainer` |
+| hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
+| hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
+| hearth-cooking `cook`, `plate`, platform `heat` | the POT | `/trade/hearth-cooking/thing/CookPot` |
+| smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
+| platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
+| smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
+| platform `water` | the CAN, **carried only** | `/platform/thing/WateringCan` |
+| `striking` · `strainer` · `juicer` · `tap` · `bar-spoon` · `still` | — | bare kinds: recipe-side requirements, no verbs |
+
+**Carried vs reachable is the bucket, not a second word.** A class
+declaring both `environment` and `peers` is reachable (carried or on the
+floor); one declaring only `environment` is personal capital — your own
+whetstone anywhere, and nothing from a stone across the room. The
+row-level `placement: reachable | carried` was a coarser rename of a
+subset of the four buckets, and could not express `self` or `inventory`
+at all.
+
+⚠ **A class per instrument is the price, and it is the right one.** A
+row can no longer vary its verbs — the sewing kit and the sewing machine
+differ in `rate` and `control`, which is row data, and afford
+identically, which is class data. That is the point. It also closes a
+cross-pack leak for free: a pack's classes name only that pack's views,
+so `Whetstone` moved out of `/platform/thing/` rather than let the
+kernel name `trade/smithing/…/sharpen.yaml`.
+
+The surface follows capital, not venue flags (the menu is for ordering,
+not making; camp cooking works because reachable heat + a pot IS a
+kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
 it: `make`, `heat`, `pour`, `stir`/`shake`, `repair`, `salvage`, `wash`
@@ -355,14 +378,11 @@ are `trade-smithing`'s — each a capability pack with its controllers in
 and the cook-pot row are hearth-cooking's too (the bundle collects the
 trade's instruments).
 
-Placement is per entry (default `reachable`; a 40 kg grinding wheel
-authors `placement: reachable` on its `whetstone` entry where the
-hand-stone authors `carried`). `FurnaceMixin` still statically confers `heat` (with
-`ignite`/`douse`/`pump`) — an appliance mixin, not a `Tooled` host —
-and `make` is innate on `Avatar` (knowledge-driven, no instrument).
-Capability entries are **parameterized**:
-`{ kind, verbs?, rate?, control?, placement? }` (a bare string = the defaulted
-spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
+`FurnaceMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
+— an appliance mixin, not a `Tooled` host — and `make` is innate on
+`Avatar` (knowledge-driven, no instrument). Capability entries are
+**parameterized**: `{ kind, rate?, control?, technique? }` (a bare
+string = the defaulted spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
 that divides the engaged duration of the steps the kind confers (the
 **conferring kind paces the step**: the anvil paces `hammer`/`quench`,
 the `mending` instrument the now-engaged `repair`; the `striking`
@@ -370,12 +390,13 @@ hammer is a requirement, never a pacer), and `control` is a Grade band
 embedded in the capital that **floors** the outcome grade of work done
 with the instrument (craft, mint, repair — floor only; the ceiling
 stays the skill seam's). `analyze` reads a control-bearing tool's
-band. Class-carried behavior is orthogonal: `CookPot`/`CocktailShaker`
-keep their classes for the build-vessel buffer, `Whetstone` for its
-Audible rasp — none carry affordance statics. Affordance surfaces
-refresh on the next containment delta (the documented
-`InstanceContributor` limitation — a `setCapabilities` edit or a
-break/repair doesn't re-push mid-placement).
+band. `CocktailShaker` backs both the shaker and the mixing glass and
+carries no affordance statics of its own — what they perform in common
+(`pour`, `stir`) is `ManualBuildMixin`'s, and what differs between them
+is the technique, which is row data. Affordance surfaces refresh on the
+next containment delta, so a `setCapabilities` edit or a break/repair
+doesn't re-push mid-placement — which no longer matters for the verb
+SET, since that is now fixed by the class.
 
 `MenuController`/`OrderController` import the lib base, so `order` is
 venue-generic: a smithy with a menu and an on-shift maker just works.
@@ -833,7 +854,7 @@ recipe + `mending` are its attach points; waits on a fiber source);
 recipe-spread vectors beyond watching (taught curricula, discovery,
 tradeable recipe-items); runtime affordance recompute on
 `setCapabilities`/break-repair (surfaces refresh on the next
-containment delta — the documented `InstanceContributor` limitation);
+containment delta);
 powered tool variants / the electric machine's supply gate (the
 forge's `requiresHeatK` shape is the socket — the electricity consumer
 build); per-capability wear differentiation + machine-vs-hand

@@ -294,30 +294,25 @@ describe('the venue menus', () => {
     expect(Menu.commandContributions.peers).toEqual(commerce);
     expect(Menu.commandContributions.environment).toEqual(commerce);
 
-    // The working verbs ride the instruments — the rows' own authored
-    // `capabilities[].verbs` (no per-tool classes, no kernel table).
-    const anvilRow = readRow('trade-smithing/content/trade/smithing/thing/anvil.yaml');
-    const anvil = makeStuff(() => new ToolItem());
-    anvil.setCapabilities(anvilRow.capabilities as never);
-    const anvilEnv = anvil.getInstanceContributions().peers ?? [];
-    expect(anvilEnv).toContain('trade/smithing/cmd/crafting/hammer.yaml');
-    expect(anvilEnv).toContain('trade/smithing/cmd/crafting/forge.yaml');
-    expect(anvilEnv).toContain('platform/cmd/crafting/repair.yaml');
-    expect(anvilEnv).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
+    // ⭐ The working verbs ride the instruments, and there is exactly ONE
+    // record of that: `static commandContributions` on the class. A
+    // trade's own instrument verbs live on that trade's pack classes
+    // (`/trade/smithing/thing/Anvil`, `/trade/hearth-cooking/thing/CookPot`)
+    // and are asserted in those packs' suites — which is precisely why
+    // no kernel test can name them, and why the kernel can never name a
+    // trade's view. What the KERNEL owns is the build vessel: `pour` and
+    // `stir` are banked into and worked on a manual build, so
+    // `ManualBuildMixin` declares them for every vessel that buffers one
+    // — the shaker, the mixing glass, the cook pot.
+    const build = ManualBuildMixin(Thing).commandContributions;
+    expect(build.peers).toContain('platform/cmd/crafting/pour.yaml');
+    expect(build.peers).toContain('platform/cmd/crafting/stir.yaml');
+    expect(build.peers).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
 
-    const potRow = readRow('trade-hearth-cooking/content/trade/hearth-cooking/thing/cook-pot.yaml');
-    const pot = makeStuff(() => new TestPot());
-    pot.setCapabilities(potRow.capabilities as never);
-    const potEnv = pot.getInstanceContributions().peers ?? [];
-    expect(potEnv).toContain('trade/hearth-cooking/cmd/crafting/cook.yaml');
-    expect(potEnv).toContain('platform/cmd/crafting/pour.yaml');
-    expect(potEnv).not.toContain('trade/smithing/cmd/crafting/forge.yaml');
-
-    // `heat` is the furnace's (the fire is the instrument) + the pot's.
+    // `heat` is the furnace's — the fire is the instrument.
     expect(Forge.commandContributions.peers).toContain(
       'platform/cmd/crafting/heat.yaml',
     );
-    expect(potEnv).toContain('platform/cmd/crafting/heat.yaml');
 
     // The one Menu IS a commerce menu (resolveIn's instanceof filter);
     // the venues differ only in the rows' data.

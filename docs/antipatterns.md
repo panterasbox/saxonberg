@@ -2427,12 +2427,12 @@ with no instrument (`make`) is innate on `Avatar`. Patient-side marker
 interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
 side: eligibility is matter (Material tags + edibility) + instrument
 capabilities, and interfaces exist only for real state or behavior.
-The fix's final form is **the row names its verbs**
-(`CapabilitySpec.verbs` + `ToolMixin`'s `InstanceContributor`): a tool's
-verbs are its seed row's `capabilities[].verbs` — zero code, zero
-statics, and no kernel table (the one that existed made the kernel name
-trade views; libations retired it) — so a tool variant (kit → machine)
-is pure data. See
+⚠ An earlier fix went one step too far: it let **the row name its
+verbs** (`CapabilitySpec.verbs` + `ToolMixin`'s `InstanceContributor`),
+so a tool variant was pure data with no class. That removed the kernel
+table and then re-created the problem one level down — see *Two records
+of one fact* below. Verbs are now declared once, on the class of the
+thing that performs the act. See
 [command-spec.md § who affords a verb](./subsystems/command-spec.md) and
 [crafting.md § The offer](./subsystems/crafting.md).
 
@@ -3316,3 +3316,68 @@ Structural invariants are the case that *does* belong at the chokepoint
 `getContents()`, because it lives in the host's `getFixtures()` tier and
 the move would corrupt two-tier bookkeeping. That is the data model
 refusing to be made inconsistent, not a policy about who may act.
+
+## Two records of one fact — a second place to declare verb affordances
+
+**Don't** add a second mechanism for something the class ancestry
+already records, however convenient the new one is at the call site.
+**Do** put the fact in one place and pay whatever that costs.
+
+```yaml
+// WRONG — a row naming verbs, because `commandContributions` is a class
+// static and this was the only way a ROW could hang a verb on an object.
+capabilities:
+  - kind: shaker
+    verbs: [pour, stir, strain, garnish, serve, mix]
+    placement: reachable
+```
+
+```ts
+// RIGHT — one record: the class of the thing that performs the act.
+export default class Strainer extends ToolItem {
+  static commandContributions: CommandContributions = {
+    environment: [STRAIN], peers: [STRAIN],
+  };
+}
+```
+
+Four things go wrong, and they generalize past verbs:
+
+1. **No rule for choosing.** An author had two ways to hang a verb and
+   the applicable one depended on whether the object happened to compose
+   `ToolMixin`.
+2. **A second vocabulary for a subset.** `placement: reachable | carried`
+   renamed a slice of `environment` / `peers` / `self` / `inventory`, and
+   could not express the last two at all. A shorthand that cannot say
+   everything the thing it abbreviates can say is a fork.
+3. **It drifted, the way duplicated facts do.** The shaker and the mixing
+   glass carried the *identical* six-verb list — the bar's verb set, not
+   the shaker's, with `garnish` and `serve` on a shaking vessel — because
+   they were the two rows with a `capabilities` block to hang a list on.
+   The stations that host the work afforded nothing.
+4. **Consumers reason about the single record.** The client makes
+   assumptions about how verbs are afforded; a verb set varying with
+   authored data it cannot see is one it cannot reason about.
+
+⭐ The tell that the grouping was never real: `capabilities[].verbs` was
+**read in exactly one place**, where it was translated into
+`CommandContributions`. Nothing ever asked which verbs the *shaker*
+capability conferred. A field whose only consumer is its own translation
+layer is a second representation, not a feature.
+
+**Afford statically, decline diegetically.** The conditional cases a
+dynamic seam serves are the controller's job: a broken anvil keeps
+affording `hammer` and declines on the capability; every Behaved NPC
+affords `talk` and `TalkController` says *"has nothing to say"*. Trying
+and being told is discoverable; an absent verb teaches nothing.
+
+**The price is a class per instrument, and it is the right price** — an
+instrument that performs a distinct working is a distinct kind of thing,
+and a capability pack ships classes anyway. Rows keep what genuinely
+varies per instance (rate, control, technique, material, mass); the
+sewing kit and the sewing machine differ in `rate`/`control` and afford
+identically, which is exactly the line. It also closes a cross-pack leak
+for free: a pack's classes name only that pack's views, so the kernel
+can never name a trade's verb. See
+[command-routing.md](./subsystems/command-routing.md) § *There is ONE
+record of verb affordances*.

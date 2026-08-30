@@ -1,137 +1,131 @@
 /**
- * Affordance-attribution accessor tests.
+ * The affordance walk over the ONE record of verb affordances: `static
+ * commandContributions` on a class and every mixin in its chain.
  *
- * `getAffordances()` is the source-preserving sibling of
- * `getAvailableCommands()`: the same newest-first recency walk, but each
- * command paired with its resolved affording `source` (the giver itself
- * for innate `'self'` entries, the granting item otherwise) and its
- * `bucket`. `getAvailableCommands()` is its flattened projection.
+ * ⭐ These cases used to prove the same behaviours through a second,
+ * per-instance record (an `InstanceContributor` hook the walk consulted
+ * at containment-delta time, fed by an authored `capabilities[].verbs`
+ * list on the row). That record is gone: two ways to hang a verb on an
+ * object meant an author had no rule for picking, and the verbs a thing
+ * affords could vary with data the client cannot see. A verb an object
+ * affords is now a property of what the object IS.
+ *
+ * What the buckets carry — and this is the whole of what `placement:
+ * reachable | carried` used to say, in the vocabulary the statics
+ * already had:
+ *
+ *   - `environment` — OUTWARD, to whoever carries the thing;
+ *   - `peers`       — SIDEWAYS, to everyone sharing the room with it.
+ *
+ * So a tool declaring both is reachable (carried or on the floor); one
+ * declaring only `environment` is personal capital — your own whetstone,
+ * anywhere, and nothing from a stone across the room.
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Idea } from '../../stuff/Idea';
-import {
-  CommandGiverMixin,
-  type CommandGiver,
-} from '../CommandGiver';
-import { ContainableMixin } from '../../spatial/Containable';
-import { ContainerMixin } from '../../spatial/Container';
-import { SensorMixin } from '../../message/Sensor';
-import { ContainmentApi } from '../../../api/containment';
-import { CommandApi } from '../../../api/command';
-import { makeStuff } from '../../security/__tests__/test-setup';
-import {
-  PersistenceManager,
-  Collections,
-} from '../../../../backend/PersistenceManager';
+import { describe, it, expect, beforeAll, beforeEach } from "vitest";
+import { makeStuff } from "../../security/__tests__/test-setup";
+import { Idea } from "../../stuff/Idea";
+import { ContainerMixin } from "../../spatial/Container";
+import { ContainableMixin } from "../../spatial/Containable";
+import { CommandGiverMixin } from "../CommandGiver";
+import { ToolMixin } from "../../craft/Tooled";
+import { DurableMixin } from "../../material/Durable";
+import { ContainmentApi } from "../../../api/containment";
+import { CommandApi, type CommandContributions } from "../../../api/command";
+import { StuffApi } from "../../../api/stuff";
 
-const TestGiverBase = CommandGiverMixin(
-  SensorMixin(ContainerMixin(ContainableMixin(Idea)))
-);
+const MENDING = [
+  "platform/cmd/crafting/repair.yaml",
+  "platform/cmd/crafting/salvage.yaml",
+];
 
-class TestGiver extends TestGiverBase {
-  static override commandContributions = {
-      peers: [],
-    self: ['platform/cmd/system/ping.yaml'],
-    environment: [],
-  };
-  protected override handleMessage(_frame: unknown): void {
-    // discard
-  }
-}
+class Room extends ContainerMixin(Idea) {}
+class ToolBase extends ToolMixin(DurableMixin(ContainableMixin(Idea))) {}
 
-const InvProviderBase = ContainableMixin(Idea);
-class InvProvider extends InvProviderBase {
-  static commandContributions = {
-      peers: [],
-    self: [],
-    environment: ['platform/cmd/system/ping.yaml'],
+/** Reachable: declares both buckets. */
+class MendingTool extends ToolBase {
+  static commandContributions: CommandContributions = {
+    environment: MENDING,
+    peers: MENDING,
   };
 }
 
-type Giver = TestGiver & CommandGiver;
-
-function moveInto(item: unknown, giver: Giver): void {
-  ContainmentApi.move(
-    item as Parameters<typeof ContainmentApi.move>[0],
-    giver as unknown as Parameters<typeof ContainmentApi.move>[1]
-  );
+/** Personal capital: `environment` only. */
+class Whetstone extends ToolBase {
+  static commandContributions: CommandContributions = {
+    environment: ["trade/smithing/cmd/crafting/sharpen.yaml"],
+  };
 }
 
-describe('CommandGiverMixin.getAffordances', () => {
-  beforeEach(() => {
-    CommandApi.clearCache();
-    const find = vi.fn(
-      async (collection: string, query: Record<string, unknown>) => {
-        if (
-          collection === Collections.Content &&
-          query.path === '/platform/idea/cmd/system/PingController'
-        ) {
-          return [
-            {
-              path: '/platform/idea/cmd/system/PingController',
-              class: '/platform/idea/cmd/system/PingController',
-              data: {},
-            },
-          ];
-        }
-        return [];
-      }
-    );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
-      save: vi.fn(),
-      find,
-      findById: vi.fn(),
-    } as unknown as PersistenceManager);
+class Player extends ContainerMixin(
+  CommandGiverMixin(ContainableMixin(Idea)),
+) {}
+
+function affords(player: Player, verb: string): boolean {
+  return player.getAvailableCommands().some((c) => c.verbs.includes(verb));
+}
+
+beforeAll(() => {
+  // The contributions reference these views — ensure they resolve.
+  CommandApi.getCommand("platform/cmd/crafting/repair.yaml");
+  CommandApi.getCommand("trade/smithing/cmd/crafting/sharpen.yaml");
+});
+
+beforeEach(() => {
+  StuffApi.clearAll();
+});
+
+describe("verb affordances come from class statics, and only from there", () => {
+  it("a reachable tool confers its verbs carried AND from the floor", () => {
+    const room = makeStuff(() => new Room());
+    const player = makeStuff(() => new Player());
+    const kit = makeStuff(() => new MendingTool());
+    ContainmentApi.move(player, room);
+
+    expect(affords(player, "repair")).toBe(false);
+    ContainmentApi.move(kit, player);
+    expect(affords(player, "repair")).toBe(true);
+    expect(affords(player, "salvage")).toBe(true);
+
+    // Dropped: it declares `peers` too, so the floor still affords it.
+    ContainmentApi.move(kit, room);
+    expect(affords(player, "repair")).toBe(true);
   });
 
-  it('returns records pairing each command with a source and bucket', () => {
-    const giver = makeStuff(() => new TestGiver()) as Giver;
-    const affs = giver.getAffordances();
-    expect(affs.length).toBeGreaterThan(0);
-    for (const a of affs) {
-      expect(a.command.getPrimaryVerb()).toBeTruthy();
-      expect(a.source).toBeTruthy();
-      expect(['self', 'inventory', 'environment', 'peers']).toContain(a.bucket);
-    }
+  it("an environment-only tool never lights up from the room", () => {
+    const room = makeStuff(() => new Room());
+    const player = makeStuff(() => new Player());
+    const stone = makeStuff(() => new Whetstone());
+    ContainmentApi.move(player, room);
+    ContainmentApi.move(stone, room);
+
+    expect(affords(player, "sharpen")).toBe(false); // present ≠ carried
+    ContainmentApi.move(stone, player);
+    expect(affords(player, "sharpen")).toBe(true); // carried
+    ContainmentApi.move(stone, room);
+    expect(affords(player, "sharpen")).toBe(false); // dropped → gone
   });
 
-  it('resolves the self sentinel to the giver instance (never the string)', () => {
-    const giver = makeStuff(() => new TestGiver()) as Giver;
-    const affs = giver.getAffordances();
-    // A freshly-seeded giver has only its own self contributions.
-    expect(affs.every((a) => a.bucket === 'self')).toBe(true);
-    for (const a of affs) {
-      expect(a.source).toBe(giver);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(a.source as any).not.toBe('self');
-    }
-  });
+  it("two rows over one class afford identically — a row cannot vary verbs", () => {
+    const room = makeStuff(() => new Room());
+    const player = makeStuff(() => new Player());
+    // The sewing kit and the sewing machine differ in rate and control,
+    // which is row data; they cannot differ in what they afford, which
+    // is the point of a single class-level record.
+    const kitLike = makeStuff(() => new MendingTool());
+    kitLike.setCapabilities([{ kind: "mending" }]);
+    const machineLike = makeStuff(() => new MendingTool());
+    machineLike.setCapabilities([
+      { kind: "mending", rate: 3, control: "fine" },
+    ]);
+    ContainmentApi.move(player, room);
 
-  it('attributes a held item\'s command to the granting item', () => {
-    const giver = makeStuff(() => new TestGiver()) as Giver;
-    giver.getAffordances(); // seed self
-    const item = makeStuff(() => new InvProvider());
-    moveInto(item, giver);
+    ContainmentApi.move(kitLike, player);
+    expect(affords(player, "repair")).toBe(true);
+    ContainmentApi.move(kitLike, null);
 
-    const affs = giver.getAffordances();
-    // A held item grants OUTWARD to its holder — the `environment`
-    // bucket under the directional model, not `inventory` (which now
-    // means "to what is inside me").
-    const invAff = affs.find((a) => a.bucket === 'environment');
-    expect(invAff).toBeDefined();
-    expect(invAff!.source).toBe(item);
-    expect(invAff!.command.hasVerb('ping')).toBe(true);
-  });
-
-  it('getAvailableCommands is exactly the affordance projection', () => {
-    const giver = makeStuff(() => new TestGiver()) as Giver;
-    const item = makeStuff(() => new InvProvider());
-    moveInto(item, giver);
-
-    expect(giver.getAvailableCommands()).toEqual(
-      giver.getAffordances().map((a) => a.command)
-    );
+    ContainmentApi.move(machineLike, player);
+    expect(affords(player, "repair")).toBe(true);
   });
 });

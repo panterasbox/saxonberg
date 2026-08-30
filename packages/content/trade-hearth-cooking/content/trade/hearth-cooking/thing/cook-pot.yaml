@@ -10,6 +10,6 @@ data:
   longDescription: |
     A deep-bellied iron pot with a bail handle, seasoned black inside. It has boiled a thousand suppers and is ready for the next.
   capabilities:
-    - { kind: pot, verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, platform/cmd/crafting/heat.yaml, trade/hearth-cooking/cmd/crafting/plate.yaml, trade/hearth-cooking/cmd/crafting/cook.yaml] }
+    - { kind: pot }
   _materialPath: /stuff/idea/material/element/iron
   mass: 2.5

@@ -150,9 +150,7 @@ function makeCan(litres: number): WateringCan {
     can.setShortDescription('a tin watering can');
     can.interiorBulk = true;
     can.setInteriorCapacity(Quantity.of(2, 'L'));
-    can.setCapabilities([
-      { kind: 'watering', verbs: ['platform/cmd/bulk/water.yaml'], placement: 'carried' },
-    ]);
+    can.setCapabilities([{ kind: 'watering' }]);
     if (litres > 0) {
       can.setBulkMaterial('interior', water());
       can.setBulkAmount('interior', Quantity.of(litres, 'L'));
@@ -200,14 +198,15 @@ let deeds: Array<{ discipline: string; difficulty: string; outcome: string }>;
 
 describe('the watering capability', () => {
   it('a carried can affords water; the same can on the floor does not', () => {
-    const can = makeCan(1);
-    const contributions = can.getInstanceContributions();
-    // The `carried` placement puts it in the ENVIRONMENT bucket only —
-    // the can grants outward to whoever holds it — so a can lying in the
-    // room confers nothing on the occupants (which would be `peers`).
-    // The whetstone rule, as data.
-    expect(contributions.environment ?? []).toContain('platform/cmd/bulk/water.yaml');
-    expect(contributions.peers ?? []).not.toContain('platform/cmd/bulk/water.yaml');
+    // ⭐ Declared once, on the class: `water` is in the ENVIRONMENT
+    // bucket only — the can grants OUTWARD to whoever holds it — so a
+    // can lying in the room confers nothing on the occupants (which
+    // would be `peers`). The whetstone rule, in the bucket vocabulary
+    // the statics always had. (It was `placement: carried` on the row's
+    // capability entry until verbs became a single class-level record.)
+    const c = WateringCan.commandContributions;
+    expect(c.environment ?? []).toContain('platform/cmd/bulk/water.yaml');
+    expect(c.peers ?? []).not.toContain('platform/cmd/bulk/water.yaml');
   });
 });
 

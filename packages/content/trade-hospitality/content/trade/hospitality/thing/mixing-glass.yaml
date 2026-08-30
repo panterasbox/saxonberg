@@ -10,7 +10,6 @@ data:
     # drink clear — the whole reason a martini is stirred.
     - {
         kind: mixing-glass,
-        verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, trade/hospitality/cmd/crafting/strain.yaml, trade/hospitality/cmd/crafting/garnish.yaml, trade/hospitality/cmd/crafting/serve.yaml, trade/hospitality/cmd/crafting/mix.yaml],
         technique: { name: stirred, chillK: 6, dilutionL: 0.01, priority: 2 },
       }
   condition: 1

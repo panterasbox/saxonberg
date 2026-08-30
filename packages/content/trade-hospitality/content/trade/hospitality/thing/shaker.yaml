@@ -12,7 +12,6 @@ data:
     # drink — a whiskey smash is muddled, then shaken.
     - {
         kind: shaker,
-        verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, trade/hospitality/cmd/crafting/strain.yaml, trade/hospitality/cmd/crafting/garnish.yaml, trade/hospitality/cmd/crafting/serve.yaml, trade/hospitality/cmd/crafting/mix.yaml],
         technique: { name: shaken, chillK: 8, dilutionL: 0.02, aerated: true, priority: 2 },
       }
   condition: 1

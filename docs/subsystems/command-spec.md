@@ -115,15 +115,24 @@ object, so spec, controller, and seed all live under
 `Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
 **Who affords a verb is a separate question from where its spec
-lives — and the answer is the *instrument***. The tool/fixture that
-does the work carries the working verbs — for tools, **as the row's own
-data**: a capability entry names its `verbs` (command-view keys) and
-its `placement`, and `ToolMixin` implements the `InstanceContributor`
-seam over the instance's authored `capabilities` (the whetstone entry →
-`sharpen` carried-only, `pot` → the cooking steps, `anvil` → the
-smithing family, `mending` → repair/salvage), so a tool variant is pure
-seed data — no class, no statics, and **no kernel table** (the
-capability vocabulary is open; see
+lives — and the answer is the *thing that performs the act***, declared
+in **one place**: `static commandContributions` on that thing's class or
+a mixin in its chain. There is no second, row-level record; a
+`capabilities` entry names **no verbs**
+([command-routing.md](./command-routing.md) § *There is ONE record of
+verb affordances*).
+
+Splitting by what performs the act is the discipline that keeps the
+single record honest. The bar is the worked example: `pour` and `stir`
+are banked into and worked on a **build**, so `ManualBuildMixin`
+declares them for every vessel that buffers one (shaker, mixing glass,
+cook pot); `strain` is the **strainer's**; `mix`, `serve` and `garnish`
+are whole-drink acts done at the **station** (`BarStation` — the
+back-bar and the well). An instrument that performs a distinct working
+is a distinct kind of thing and gets a class, which is what a capability
+pack ships anyway (`Muddler`, `Strainer`, `Anvil`, `Whetstone`). The
+capability vocabulary itself stays open and verb-free — a kind is a
+recipe-side requirement and a working, never a verb source (see
 [crafting.md](./crafting.md)).
 
 **Where a verb's spec lives follows the same rule: with the pack whose
@@ -135,15 +144,18 @@ a trade's own steps ship in the trade's capability pack — hospitality's
 `cook`/`plate`, smithing's `forge`/`hammer`/`quench`/`sharpen` — as
 `content/<root>/cmd/<category>/<verb>.yaml` + `src/idea/cmd/<category>/`
 controllers + `content/<root>/idea/cmd/<category>/<Name>Controller.yaml`
-seeds (arcana's shape), referenced from a row's `capabilities[].verbs`
-by the `<root-sans-slash>/cmd/<category>/<verb>.yaml` key
-(`trade/smithing/cmd/crafting/hammer.yaml`). Appliance mixins with real behavior (the furnace →
-`heat`/`ignite`/`douse`/`pump`) still declare statics. A commerce
+seeds (arcana's shape), named from that pack's own classes by the
+`<root-sans-slash>/cmd/<category>/<verb>.yaml` key
+(`trade/smithing/cmd/crafting/hammer.yaml`). ⭐ Because a pack's classes
+name only its own views, **the kernel can never name a trade's verb** —
+which is why `Whetstone` moved out of `/platform/thing/` when verbs
+became statics. Appliance mixins with real behavior (the furnace →
+`heat`/`ignite`/`douse`/`pump`) declare statics the same way. A commerce
 object (a `CommerceMenu`) affords only its commerce verbs
 (`menu`/`order`) — the menu is for ordering, not making.
 Knowledge-driven verbs with no instrument (`make`) are innate on
 `Avatar`. See [crafting.md § The offer](./crafting.md) for the table
-and the parameterized specs (rate / control / placement).
+and the parameterized specs (rate / control / technique).
 
 ### Aside: spec, parser, and the model
 

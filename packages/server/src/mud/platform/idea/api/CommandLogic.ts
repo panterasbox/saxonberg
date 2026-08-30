@@ -76,7 +76,6 @@ import {
   type AliasExpansionInfo,
   type Parser,
   type CommandContributions,
-  type InstanceContributor,
   type FieldValue,
   type ModelData,
   type CommandModel,
@@ -2914,49 +2913,24 @@ function bucketFilenames(ctor: unknown, bucket: Bucket): string[] {
 }
 
 /**
- * Per-instance dynamic contribution filenames for `bucket`, via the
- * optional {@link InstanceContributor} seam. Defensive: the hook runs on
- * the containment hot path, so a throw is swallowed to no contribution.
- */
-function instanceBucketFilenames(instance: Stuff, bucket: Bucket): string[] {
-  const fn = (instance as Partial<InstanceContributor>)
-    .getInstanceContributions;
-  if (typeof fn !== 'function') return [];
-  try {
-    return fn.call(instance)?.[bucket] ?? [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * The named bucket's contributions off a **class** only (static). Used
- * where no instance is in hand (shadows, hosted updates, self-seed).
+ * ⭐ The named bucket's contributions — **the one and only record of verb
+ * affordances**: `static commandContributions` off the class and every
+ * mixin in its chain, and nothing else.
+ *
+ * There was a second, per-instance record (an `InstanceContributor` hook
+ * consulted at containment-delta time) so a row could vary its verbs by
+ * authored data. It is gone. Two records of the same fact meant an
+ * author had two ways to hang a verb on an object and no rule for
+ * picking, and it put a hot-path hook — try/catch-swallowed, so a
+ * throwing host silently afforded nothing — on the containment path.
+ * A verb an object affords is now a property of what the object IS,
+ * which is a thing the client can rely on.
  */
 function collectBucketDefs(
   ctor: unknown,
   bucket: Bucket
 ): CommandDefinition[] {
   return resolveDefs(bucketFilenames(ctor, bucket));
-}
-
-/**
- * The named bucket's contributions off a live **instance** — its
- * class/mixin statics PLUS any per-instance {@link InstanceContributor}
- * contributions. Used at the `inventory`/`environment`/`peers`
- * containment-delta push sites so a contribution can depend on
- * per-instance state (a tool's authored `capabilities`, a Behaved
- * host's dialogue tree) and still ride the ordinary movement
- * push/pop/reset lifecycle.
- */
-function collectBucketDefsForInstance(
-  instance: Stuff,
-  bucket: Bucket
-): CommandDefinition[] {
-  return resolveDefs([
-    ...bucketFilenames(instance.constructor, bucket),
-    ...instanceBucketFilenames(instance, bucket),
-  ]);
 }
 
 /**
@@ -3086,7 +3060,7 @@ function applyContainmentDeltaImpl(
   // container above it. This is what makes a rock in a bag in your pack
   // still hand you `throw`.
   for (const m of moved) {
-    const defs = collectBucketDefsForInstance(m, 'environment');
+    const defs = collectBucketDefs(m.constructor, 'environment');
     if (defs.length === 0) continue;
     for (const anc of ancestors) {
       if (!MixinApi.isCommandGiver(anc)) continue;
@@ -3098,7 +3072,7 @@ function applyContainmentDeltaImpl(
   // moved subtree. A pack that affords `rummage` affords it to what it
   // swallowed, however deep.
   for (const anc of ancestors) {
-    const defs = collectBucketDefsForInstance(anc, 'inventory');
+    const defs = collectBucketDefs(anc.constructor, 'inventory');
     if (defs.length === 0) continue;
     for (const m of moved) {
       if (!MixinApi.isCommandGiver(m)) continue;
@@ -3117,7 +3091,7 @@ function applyContainmentDeltaImpl(
     for (const sibling of (scope as Stuff & Container).getContents()) {
       if (moved.includes(sibling)) continue;
 
-      const theirs = collectBucketDefsForInstance(sibling, 'peers');
+      const theirs = collectBucketDefs(sibling.constructor, 'peers');
       if (theirs.length > 0) {
         for (const m of moved) {
           if (!MixinApi.isCommandGiver(m)) continue;
@@ -3126,7 +3100,7 @@ function applyContainmentDeltaImpl(
       }
       if (!MixinApi.isCommandGiver(sibling)) continue;
       for (const m of moved) {
-        const mine = collectBucketDefsForInstance(m, 'peers');
+        const mine = collectBucketDefs(m.constructor, 'peers');
         if (mine.length === 0) continue;
         (sibling as Stuff & CommandGiver).pushCommandSource(m, 'peers', mine);
       }

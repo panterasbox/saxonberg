@@ -1,6 +1,5 @@
-# a hawthorne strainer — a bar tool offering the `strainer` capability (a ToolItem; the
-# capability table decides which verbs it affords).
-class: /platform/thing/ToolItem
+# a hawthorne strainer — a bar tool offering the `strainer` capability.
+class: /trade/hospitality/thing/Strainer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a hawthorne strainer
