@@ -98,6 +98,14 @@ const SOURCE_ROOT_HINTS = [
  */
 const IMMEDIATE_CALLER_FRAMES = 8;
 
+/**
+ * The one thing this file wants off a V8 `CallSite`. Structural, so no
+ * `@types/node` `NodeJS.CallSite` dependency and no cast through `any`.
+ */
+interface CallSiteLike {
+  getFileName(): string | null | undefined;
+}
+
 
 export class ModuleApi {
   private constructor() {}
@@ -332,14 +340,37 @@ export class ModuleApi {
     // enough to push a legitimate caller out of the window — extracting
     // it broke 438 tests.
     const prevLimit = Error.stackTraceLimit;
-    let stack: string;
+    const prevPrepare = Error.prepareStackTrace;
+    let captured: unknown;
     try {
       if (maxFrames > 0) Error.stackTraceLimit = maxFrames;
-      stack = new Error().stack ?? '';
+      // ⭐ Hand back the raw CallSites instead of rendered text. Reading
+      // `.stack` as a STRING is what costs: V8 builds the text lazily
+      // through whatever `prepareStackTrace` the runtime installed, and
+      // under `tsx` (and `vite-node` in tests) that is Node's
+      // source-map remapper, which resolves and remaps EVERY frame. We
+      // never wanted line numbers or pretty text — we want one filename
+      // per frame, which a CallSite gives directly.
+      Error.prepareStackTrace = (_e, callSites) => callSites;
+      captured = new Error().stack;
     } finally {
       Error.stackTraceLimit = prevLimit;
+      Error.prepareStackTrace = prevPrepare;
     }
-    for (const url of ModuleApi.#parseFrameUrls(stack)) {
+    // Defensive: if anything else won the hook and handed back text, the
+    // string path still answers. Correctness must not depend on the
+    // fast path winning.
+    if (typeof captured === 'string') {
+      for (const url of ModuleApi.#parseFrameUrls(captured)) {
+        if (SELF.test(url)) continue;
+        yield url;
+      }
+      return;
+    }
+    for (const site of (captured as CallSiteLike[] | undefined) ?? []) {
+      const raw = site?.getFileName?.();
+      if (!raw) continue;
+      const url = raw.replace(/\\/g, '/');
       if (SELF.test(url)) continue;
       yield url;
     }
