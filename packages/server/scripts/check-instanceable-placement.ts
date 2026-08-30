@@ -235,6 +235,22 @@ function main(): void {
         detail: `data has ${Object.keys(data as object).length} key(s) but no hydratorClass — every one is silently discarded`,
       });
     }
+    // 9 — a curated blueprint's `classPath` must resolve, exactly as a
+    // template's `class` must. Blueprints carry no `class:`, so every
+    // check above skipped them — and three shipped rows (coin,
+    // payment-card, campfire) sat pointing at `/stuff/thing/…` when the
+    // classes are at `/platform/thing/…`. The Studio dropped them at
+    // boot with a warning nobody was reading, so the curated entry for
+    // each was simply absent. A dead pointer in shipped content is the
+    // build's job, not a boot log's.
+    const classPath = typeof t.classPath === 'string' ? t.classPath : null;
+    if (classPath && !classResolves(classPath, sources)) {
+      findings.push({
+        invariant: 9,
+        file,
+        detail: `classPath: ${classPath} resolves to no module + export`,
+      });
+    }
     // 7 — the obj/ segment rule inside an industry's subtree
     if (!tradePlacementOk(path, cls !== null, packRoots)) {
       findings.push({ invariant: 7, file, detail: `${path} names a class but its second segment is not a branch (thing|idea|agent|location)` });
@@ -307,6 +323,7 @@ function main(): void {
     6: 'orphaned data (no hydratorClass — silently discarded)',
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
     8: 'a capability pack src/ outside the taxonomy (lib/, a module not under a branch or behavior/, or a behavior/ module not brain-shaped)',
+    9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +
