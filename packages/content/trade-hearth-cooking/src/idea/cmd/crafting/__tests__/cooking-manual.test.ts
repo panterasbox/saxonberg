@@ -20,7 +20,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import CookPot from '@saxonberg/server/mud/platform/thing/CookPot';
+import CookPot from '../../../../thing/CookPot';
 import CraftedDrink from '@saxonberg/server/mud/platform/thing/CraftedDrink';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {

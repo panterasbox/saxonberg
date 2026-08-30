@@ -1,7 +1,7 @@
 # The cook pot — the cooking branch's build vessel + `pot` tool, and the
 # smithing ladder's easy rung (forge one, then cook in it). Portable
 # capital: reachable heat + a pot is a kitchen, anywhere.
-class: /platform/thing/CookPot
+class: /trade/hearth-cooking/thing/CookPot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a cook pot

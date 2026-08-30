@@ -28,11 +28,15 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
 import Thing from '../../../lib/stuff/Thing';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { DurableMixin } from '../../../lib/material/Durable';
+import { ToolMixin } from '../../../lib/craft/Tooled';
+import { ManualBuildMixin } from '../../../lib/craft/ManualBuild';
+import { CraftedMixin } from '../../../lib/craft/Crafted';
 import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Oven from '../../../platform/thing/Oven';
 import Chest from '../../../platform/thing/Chest';
-import CookPot from '../../../platform/thing/CookPot';
 import Dish from '../../../platform/thing/Dish';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import ToolItem from '../../../platform/thing/ToolItem';
@@ -270,6 +274,19 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
+/**
+ * A synthetic build vessel — Crafted + Durable + ManualBuild + Tool, the
+ * SHAPE the hearth cares about. Hearth-cooking's `CookPot` ships in its
+ * own pack (a class lives in the pack whose content names it), and the
+ * kernel knows a pot only by the `pot` capability its ROW authors — which
+ * is exactly what the affordance assertion below reads off the row.
+ */
+class TestPot extends CraftedMixin(
+  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
+) {
+  public override capabilities: string[] = ['pot'];
+}
+
 describe('the venue menus', () => {
   it('every menu affords commerce only; instruments carry the working verbs', () => {
     // Menus = menu/order, any venue (inherited off the commerce base).
@@ -289,7 +306,7 @@ describe('the venue menus', () => {
     expect(anvilEnv).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
 
     const potRow = readRow('trade-hearth-cooking/content/trade/hearth-cooking/thing/cook-pot.yaml');
-    const pot = makeStuff(() => new CookPot());
+    const pot = makeStuff(() => new TestPot());
     pot.setCapabilities(potRow.capabilities as never);
     const potEnv = pot.getInstanceContributions().peers ?? [];
     expect(potEnv).toContain('trade/hearth-cooking/cmd/crafting/cook.yaml');
@@ -380,7 +397,7 @@ describe('the cookhouse, served', () => {
   } {
     const room = makeStuff(() => new TestRoom());
     ContainmentApi.move(makeOven(true), room);
-    const pot = makeStuff(() => new CookPot());
+    const pot = makeStuff(() => new TestPot());
     ContainmentApi.move(pot, room);
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest, room);

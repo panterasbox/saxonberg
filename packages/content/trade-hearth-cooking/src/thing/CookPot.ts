@@ -5,15 +5,21 @@
  * craftable (a smithing recipe output — `CraftedMixin`), durable, portable
  * capital (camp-stew in the wilds is the point: reachable heat + a pot is
  * a kitchen).
+ *
+ * Ships at `/trade/hearth-cooking/thing/CookPot` (the capability rung): a
+ * class lives in the pack whose content is the only thing that names it,
+ * and a cook pot is a kitchen tool. Nothing in the kernel refers to it —
+ * `CraftingLogic` finds a pot because the ROW authors the `pot`
+ * capability, never because it knows this class.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
-import { DurableMixin } from '../../lib/material/Durable';
-import { ToolMixin } from '../../lib/craft/Tooled';
-import { ManualBuildMixin } from '../../lib/craft/ManualBuild';
-import { CraftedMixin } from '../../lib/craft/Crafted';
-import type { CommandContributions } from '../../api/command';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
+import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 const CookPotBase = CraftedMixin(
   ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
