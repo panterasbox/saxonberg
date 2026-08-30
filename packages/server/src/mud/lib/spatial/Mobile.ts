@@ -48,7 +48,6 @@ import { Mml } from '../../api/mml';
 import { ProseApi } from '../../api/prose';
 import { NavigationApi } from '../../api/navigation';
 import { CommandApi, type CommandContributions } from '../../api/command';
-import { DisplayApi } from '../../api/display';
 import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
@@ -543,8 +542,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       await this.autoSenseOnArrival();
       this.autoIntroduceOnArrival();
       // The display you can see shows X — and the one you left, no
-      // longer. One hook, both directions (display.md).
-      DisplayApi.refreshViewer(this as unknown as Stuff);
+      // longer. One hook, both directions; the viewer owns its own
+      // client state, so the viewer is who re-syncs it (display.md).
+      const self = this as unknown as Stuff;
+      if (MixinApi.isHasInteractive(self)) self.refreshDisplays();
     }
 
     /**
@@ -572,7 +573,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         void this.autoSenseOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      DisplayApi.refreshViewer(this as unknown as Stuff);
+      const mover = this as unknown as Stuff;
+      if (MixinApi.isHasInteractive(mover)) mover.refreshDisplays();
     }
 
     /**

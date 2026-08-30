@@ -3,7 +3,7 @@
  * the venue's profit-and-loss; `house payroll <worker> <amount>` pays a wage
  * from the house account; `house par <category> <level>` sets a par line
  * on the Business; `house stock` shows the live stock sheet — the rail
- * against par, perception-scoped, as a card ON A SCREEN (`DisplayApi.
+ * against par, perception-scoped, as a card ON A SCREEN (the screen's own `show` —
  * resolveFor`: the tablet you hold, one in sight, or one by mind).
  *
  * ⚠ **Gated on the SEAT, never the wizard axis.** `requiresWizard` is the
@@ -23,8 +23,7 @@ import type { Business, ParUnit, StockSheetLine } from "../../../../api/employme
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { CardApi } from "../../../../api/card";
-import { DisplayApi } from "../../../../api/display";
-import type { ResolvedDisplay } from "../../../../api/display";
+import type { Display } from "../../../../lib/display/Display";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../api/stuff";
 import { MixinApi } from "../../../../api/mixin";
@@ -203,7 +202,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
    */
   private async stock(context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const screen = await DisplayApi.resolveFor(giver);
+    const screen = await this.resolveScreen(giver);
     // A screen signed in as a principal shows THAT house's sheet to whoever
     // drives it — the thief with the tablet reads it; otherwise the seat's.
     const principal = screen?.display.getPrincipal() ?? "";
@@ -228,7 +227,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     // The display is the card's birth path when a display is involved:
     // `show` pushes to every viewer who sees the screen, the holder among
     // them — never a second push through `CardApi.open`.
-    DisplayApi.show(screen.display, {
+    screen.display.show({
       kind: "card",
       cardId: "stock",
       key: CardApi.keyFor(context, "stock"),
@@ -240,8 +239,10 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
    * The house app runs on a SCREEN: the tablet you hold, one in sight you
    * may drive, or one anywhere by mind. None → `no-display`.
    */
-  private async screen(context: CommandContext): Promise<ResolvedDisplay | null> {
-    const screen = await DisplayApi.resolveFor(context.commandGiver);
+  private async screen(
+    context: CommandContext,
+  ): Promise<{ display: Stuff & Display; mode: "hand" | "mind" } | null> {
+    const screen = await this.resolveScreen(context.commandGiver);
     if (!screen) {
       MessageApi.scene(context.commandGiver)
         .topic(TOPIC)

@@ -6,8 +6,7 @@ source to everyone who can see it. Output is optical; the difference
 between the three is data.
 
 Source: `lib/display/Display.ts` (`DisplayMixin`), `api/display.ts`
-(`DisplayApi`), `platform/idea/api/DisplayLogic.ts` (the logic singleton
-at `/platform/idea/api/display`), `platform/thing/{Tablet,Screen,Remote}.ts`,
+`platform/thing/{Tablet,Screen,Remote}.ts`,
 `world/common/tpa/TpaTerminal.ts` (composes the mixin). Tests:
 `lib/display/__tests__/Display.test.ts`.
 
@@ -37,7 +36,7 @@ Persistent + authorable fields (the row decides which screen it is):
 
 Runtime only: `_showing: DisplaySource | null` — **a screen is dark on
 boot**; nothing persists what it showed. `_setShowing` is gated
-`FromTemplate('/platform/idea/api/display')`: only the logic singleton
+~~`FromTemplate('/platform/idea/api/display')`~~ — the gate is gone with the Api; only the mixin
 writes it, because a write without the projection below would leave
 every viewer's screen stale.
 
@@ -55,7 +54,7 @@ A **stream** is the focal embed the personal `watch` verb already writes
 departures board (a `subject` card on the terminal carrying the board's
 prose).
 
-## Who drives — the pairing policies (`DisplayApi.mayDrive`)
+## Who drives — the pairing policies (`display.mayDrive(actor)`)
 
 | pairing | drives it iff |
 |---|---|
@@ -74,7 +73,7 @@ aether mixin. Driving *by mind* is `MixinApi.isActive(driver,
 display exists; driving *by hand* needs reach. (Plan deviation 4 from
 the requirements' wording; the five D12 behaviours hold.)
 
-### The resolver ladder (`DisplayApi.resolveFor(actor)`)
+### The implicit-screen ladder (`CommandController.resolveScreen`)
 
 Returns `{ display, mode: 'hand' | 'mind' } | null`:
 
@@ -92,7 +91,7 @@ Returns `{ display, mode: 'hand' | 'mind' } | null`:
 A command that needs a screen and finds none declines `no-display`
 ("you'd need a screen").
 
-## Who sees — the projection rule (`DisplayApi.show`)
+## Who sees — the projection rule (`display.show(source)`)
 
 > *The display you can see shows X.*
 
@@ -110,7 +109,7 @@ world on every projection — never from the connection registry.
   Interactives with the display's presentation as the card `title`.
   That is the card rail's ONE birth path: the onlooker's card is a fact
   the server pushes, not one the client infers. (The `card-birth-path`
-  test's mint set records `DisplayLogic:push`; when a display is in
+  test's mint set records `Display.ts:push`; when a display is in
   play, `show` is the birth path and the driver's own card is one of the
   projected viewers' — no double push.)
 
@@ -118,7 +117,7 @@ world on every projection — never from the connection registry.
 `cockpit.watch` that names it. `refresh(display)` re-projects the current
 source. `viewersOf(display)` is the derived viewer list.
 
-### Arrival and departure — `DisplayApi.refreshViewer(viewer)`
+### Arrival and departure — `viewer.refreshDisplays()`
 
 One hook, called from `Mobile.traverse` and `Mobile.teleport` after the
 move: project every lit display the viewer now sees, and if their
@@ -178,3 +177,38 @@ empty-state copy; the iframe path is identical. Two RTL tests.
 [fasttravel.md](./fasttravel.md) (the terminal), [augmentation.md](./augmentation.md)
 (`AetherMixin` activity), the libations plan
 (`docs/plans/libations-plan.md`, findings 16–18).
+
+## ⭐ There is no `DisplayApi` — a display drives itself
+
+The first cut of this subsystem shipped a seven-method `DisplayApi` +
+`DisplayLogic` pair. It was built by **pattern-matching the shape of
+other subsystems** rather than by asking whether display needs
+orchestration, and CLAUDE.md had already answered that:
+
+> An Api method exists to **orchestrate** — movement, lifecycle,
+> cross-object dispatch. A read or mutation that belongs to ONE object
+> lives on that object… Don't add a thin Api wrapper around a single
+> object method.
+
+`DisplayApi.mayDrive(actor, display)` was the tell: `FooApi.f(fooStuff)`
+where the object should simply answer for itself. Five of the seven
+methods were about one screen's own state and moved onto the mixin —
+`mayDrive`, `isCarriedBy`, `viewersOf`, `show`, `clear`, `refresh`.
+
+⚠ **Fanning out to N viewers is not the test.** `victim.afflict(...)`
+dispatches across half the engine and still lives on the victim; the
+test is *whose state is this fundamentally about*. `show` mutates the
+screen and then tells the room — that is a screen doing its job.
+
+The two leftovers went to homes that already existed, because two
+methods do not justify a namespace:
+
+| leftover | home | why |
+|---|---|---|
+| the arrival/departure hook | **`HasInteractive.refreshDisplays()`** | it re-syncs the *viewer's* client state, and this mixin owns that state — it declares the `cockpit.watch` key itself |
+| the implicit-screen ladder | **`CommandController.resolveScreen()`** | it is the fallback for a command that named no screen; the explicit form already resolves through the ordinary arg machinery |
+
+`_setShowing`'s `FromTemplate` gate existed only because the Api was the
+one legitimate writer. With the writer inside the class it collapsed
+into an ordinary private field.
+

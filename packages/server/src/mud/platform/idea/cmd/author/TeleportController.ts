@@ -30,7 +30,6 @@ import { Currency, BankingApi, Money } from "../../../../api/banking";
 import type { Charge } from "../../../../api/banking";
 import { EmploymentApi } from "../../../../api/employment";
 import { AppApi } from "../../../../api/app";
-import { DisplayApi } from "../../../../api/display";
 import { CardApi } from "../../../../api/card";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import type { AetherHosted } from "../../../../lib/augmentation/AetherHosted";
@@ -266,7 +265,7 @@ export default class TeleportController extends CommandController<TeleportModel>
         // The board is what the terminal SHOWS: a card pushed to everyone
         // in reach of the screen, the reader included (display.md).
         if (MixinApi.isDisplay(node)) {
-          DisplayApi.show(node, {
+          node.show({
             kind: "card",
             cardId: "subject",
             subjectId: node.stuffId,

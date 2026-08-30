@@ -104,10 +104,10 @@ describe('a card is born on the server, or not at all', () => {
      *
      * Eight controllers open cards directly (nine calls — `look` opens
      * two). The libations build's `house stock` is born through a
-     * DISPLAY: `DisplayApi.show` → `DisplayLogic` PUSHES the card to
-     * every viewer who sees the screen (the holder among them) — the
-     * onlooker's card is a fact the server pushes, so the display is a
-     * birth path, not a second one. Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
+     * DISPLAY: `display.show(...)` PUSHES the card to every viewer who
+     * sees the screen (the holder among them) — the onlooker's card is a
+     * fact the server pushes, so the display is a birth path, not a
+     * second one. A display drives itself, so the mint site is the mixin. Three more apply an ARRANGEMENT: `cockpit mode`, `cockpit
      * layout`, and — new here — `Avatar.enter`, which is what made a
      * saved workspace something you can simply return to rather than
      * something you have to switch modes twice to get back. And the
@@ -122,7 +122,7 @@ describe('a card is born on the server, or not at all', () => {
     expect(sites.sort()).toEqual(
       [
         'mud/platform/agent/Avatar.ts:applyArrangement',
-        'mud/platform/idea/api/DisplayLogic.ts:push',
+        'mud/lib/display/Display.ts:push',
         'mud/platform/idea/api/PromptLogic.ts:push',
         'mud/platform/idea/cmd/author/CmsController.ts:open',
         'mud/platform/idea/cmd/author/StudioController.ts:open',
@@ -282,11 +282,11 @@ describe('a declared card is a reachable card', () => {
       )) {
         born.add(m[1]!);
       }
-      // Minted through a DISPLAY — `DisplayApi.show(screen, { kind:
-      // 'card', cardId: 'x' })` pushes via `CardApi.push` for every viewer
-      // who sees the screen (display.md).
+      // Minted through a DISPLAY — `<screen>.show({ kind: 'card',
+      // cardId: 'x' })` pushes via `CardApi.push` for every viewer who
+      // sees the screen (display.md).
       for (const m of text.matchAll(
-        /DisplayApi\.show\([^;]*?cardId:\s*['"]([a-z]+)['"]/g,
+        /\.show\([^;]*?cardId:\s*['"]([a-z]+)['"]/g,
       )) {
         born.add(m[1]!);
       }

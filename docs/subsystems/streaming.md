@@ -231,9 +231,9 @@ YouTube implied chat-tune resolves live-or-not through the same path). See
 
 The same key, written by the **server for every viewer who can see a
 display**. `watch <target> on <tv>` / `watch off on <tv>` take an `on`
-object arg (`peers` scope, `requires: DisplayMixin`); `DisplayApi.mayDrive`
+object arg (`peers` scope, `requires: DisplayMixin`); `display.mayDrive(actor)`
 decides who may (the remote in hand, the house's seat, or anyone in
-reach — by the screen's `pairing`), and `DisplayApi.show` writes each
+reach — by the screen's `pairing`), and `display.show(source)` writes each
 perceiving viewer's `cockpit.watch` with a `display: { stuffId, label }`
 marker. Walk out of the room and `refreshViewer` clears it; the personal
 `watch` (no marker) is untouched. On the client the only change is the

@@ -29,7 +29,10 @@ import type {
 import { Idea } from '../stuff/Idea';
 import { PromptApi } from '../../api/prompt';
 import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
+import type { Display } from '../display/Display';
 import type { Stuff } from '../stuff/Stuff';
+import type { CommandGiver } from '../command/CommandGiver';
 
 /**
  * Abstract base class for command controllers.
@@ -58,6 +61,56 @@ export abstract class CommandController<
     model: T,
     context: CommandContext
   ): void | Promise<void>;
+
+  /**
+   * ⭐ The IMPLICIT screen — the one `actor` drives when the command did
+   * not name one. A command that *does* name a screen resolves it through
+   * the ordinary arg machinery (`watch … on <screen>`: `peers` scope,
+   * `requires: DisplayMixin`); this is only the fallback, and it lives
+   * here so the several verbs that show something on a screen share one
+   * ladder instead of each inventing it.
+   *
+   * The ladder is ordered by REACH, and so is its cost:
+   *
+   *  1. **Held** — a screen in your hand is yours to drive whatever its
+   *     pairing. The thief with the house tablet READS the sheet; the
+   *     seat is what they lack, and the seat is checked where money
+   *     moves, never here.
+   *  2. **In reach and drivable** — a screen you share a room with whose
+   *     `pairing` admits you.
+   *  3. **Anywhere, by mind** — the modem is the driver's own attunement.
+   *     ⚠ The ONE global read, gated on the attunement *before* it
+   *     enumerates so an ordinary actor never pays for it, and expressed
+   *     as an MQL system sweep rather than a bespoke world scan.
+   *
+   * `mode` says which: a driver by mind sees nothing of what they show.
+   */
+  protected async resolveScreen(
+    actor: Stuff & CommandGiver,
+  ): Promise<{ display: Stuff & Display; mode: 'hand' | 'mind' } | null> {
+    const reachable = MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+      commandGiver: actor,
+      scope: 'reachable',
+    }).stuff.filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
+
+    for (const d of reachable) {
+      if (d.isCarriedBy(actor)) return { display: d, mode: 'hand' };
+    }
+    for (const d of reachable) {
+      if (await d.mayDrive(actor)) return { display: d, mode: 'hand' };
+    }
+    if (MixinApi.isActive(actor, 'AetherMixin')) {
+      const all = MqlApi.resolveMany('world:[mixin.DisplayMixin]', {
+        commandGiver: null,
+        scope: 'world',
+      }).stuff.filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
+      for (const d of all) {
+        if (d.getPairing() === 'open') continue;
+        if (await d.mayDrive(actor)) return { display: d, mode: 'mind' };
+      }
+    }
+    return null;
+  }
 
   /**
    * **Ask for an object the player didn't name**, from a reachable

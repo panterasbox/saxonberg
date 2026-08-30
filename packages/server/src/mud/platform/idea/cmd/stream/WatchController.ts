@@ -15,8 +15,8 @@
  * `StreamApi.tune` (Twitch two-way; YouTube read-only).
  *
  * `watch <target> on <screen>` drives a SHARED display instead (the
- * booth TV): `DisplayApi.mayDrive` decides (the remote, the seat, reach),
- * `DisplayApi.show` writes every viewer's embed who sees the screen.
+ * booth TV): the screen's own `mayDrive` decides (the remote, the seat, reach),
+ * and its `show` writes every viewer's embed who sees the screen.
  * `watch off on <screen>` darkens it. See docs/subsystems/display.md.
  */
 
@@ -27,8 +27,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { PlayerApi } from '../../../../api/player';
 import { StreamApi } from '../../../../api/stream';
-import { DisplayApi } from '../../../../api/display';
-import type { Display } from '../../../../api/display';
+import type { Display } from '../../../../lib/display/Display';
 import type { MqlOneResult } from '../../../../api/mql';
 import { StreamerTarget } from '../../../../lib/streaming/StreamerTarget';
 import type { ParsedTarget } from '../../../../lib/streaming/StreamerTarget';
@@ -66,7 +65,7 @@ export default class WatchController extends CommandController<WatchModel> {
       if (!MixinApi.isDisplay(screen)) {
         return this.fail(context, "that isn't a screen.", 'not-display');
       }
-      if (!(await DisplayApi.mayDrive(giver, screen))) {
+      if (!(await screen.mayDrive(giver))) {
         return this.fail(
           context,
           `you can't drive ${screen.getPresentation()} — whoever holds the remote can.`,
@@ -74,7 +73,7 @@ export default class WatchController extends CommandController<WatchModel> {
         );
       }
       if (model.subcommand === 'off') {
-        DisplayApi.clear(screen);
+        screen.clear();
         return this.send(
           context,
           Mml.fromMarkup(`\nYou switch ${screen.getPresentation()} off.\n`),
@@ -227,7 +226,7 @@ export default class WatchController extends CommandController<WatchModel> {
           'source-refused',
         );
       }
-      DisplayApi.show(screen, { kind: 'stream', target, label });
+      screen.show({ kind: 'stream', target, label });
       this.send(
         context,
         Mml.fromMarkup(`\n${screen.getPresentation()} shows ${label}.\n`),

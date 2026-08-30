@@ -9,8 +9,8 @@
  */
 
 import '../../../../test-bootstrap';
+import { CommandController } from '../../command/CommandController';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DisplayApi } from '../../../api/display';
 import { StuffApi } from '../../../api/stuff';
 import { EventApi } from '../../../api/event';
 import { ShadowApi } from '../../../api/shadow';
@@ -117,7 +117,23 @@ function makeActor(name: string, attuned: boolean): Actor {
   return actor;
 }
 
-describe('DisplayApi', () => {
+/**
+ * The implicit-screen ladder is `CommandController.resolveScreen` — the
+ * fallback a verb uses when the command named no screen. A one-method
+ * controller is the honest seam: it is where the ladder actually lives.
+ */
+class LadderProbe extends CommandController {
+  execute(): void {}
+  run(actor: Stuff) {
+    return this.resolveScreen(actor as never);
+  }
+}
+
+function resolveScreenFor(actor: Stuff) {
+  return makeStuff(() => new LadderProbe()).run(actor);
+}
+
+describe('DisplayMixin — a display drives itself', () => {
   let booth: Room;
   let cellar: Room;
 
@@ -143,8 +159,8 @@ describe('DisplayApi', () => {
       const tablet = await StuffApi.create(() => new Tablet());
       tablet.setPairing('held');
       ContainmentApi.move(tablet, a.avatar);
-      expect(await DisplayApi.mayDrive(a.avatar, tablet)).toBe(true);
-      expect(await DisplayApi.mayDrive(b.avatar, tablet)).toBe(false);
+      expect(await tablet.mayDrive(a.avatar)).toBe(true);
+      expect(await tablet.mayDrive(b.avatar)).toBe(false);
     });
 
     it('remote: whoever carries the paired remote', async () => {
@@ -156,8 +172,8 @@ describe('DisplayApi', () => {
       ContainmentApi.move(tv, booth);
       const remote = makeStuffAtPath(() => new Remote(), REMOTE);
       ContainmentApi.move(remote, a.avatar);
-      expect(await DisplayApi.mayDrive(a.avatar, tv)).toBe(true);
-      expect(await DisplayApi.mayDrive(b.avatar, tv)).toBe(false);
+      expect(await tv.mayDrive(a.avatar)).toBe(true);
+      expect(await tv.mayDrive(b.avatar)).toBe(false);
     });
 
     it('staff: a position at the principal, never a bare holder', async () => {
@@ -169,8 +185,8 @@ describe('DisplayApi', () => {
       tablet.setPairing('staff');
       tablet.setPrincipal(BIZ);
       ContainmentApi.move(tablet, thief.avatar);
-      expect(await DisplayApi.mayDrive(keeper.avatar, tablet)).toBe(true);
-      expect(await DisplayApi.mayDrive(thief.avatar, tablet)).toBe(false);
+      expect(await tablet.mayDrive(keeper.avatar)).toBe(true);
+      expect(await tablet.mayDrive(thief.avatar)).toBe(false);
     });
 
     it('open: anyone in reach, nobody elsewhere', async () => {
@@ -179,8 +195,8 @@ describe('DisplayApi', () => {
       const board = await StuffApi.create(() => new Screen());
       board.setPairing('open');
       ContainmentApi.move(board, booth);
-      expect(await DisplayApi.mayDrive(here.avatar, board)).toBe(true);
-      expect(await DisplayApi.mayDrive(away.avatar, board)).toBe(false);
+      expect(await board.mayDrive(here.avatar)).toBe(true);
+      expect(await board.mayDrive(away.avatar)).toBe(false);
     });
   });
 
@@ -191,7 +207,7 @@ describe('DisplayApi', () => {
       tablet.setPairing('staff');
       tablet.setPrincipal(BIZ);
       ContainmentApi.move(tablet, thief.avatar);
-      const r = await DisplayApi.resolveFor(thief.avatar);
+      const r = await resolveScreenFor(thief.avatar);
       expect(r?.display.stuffId).toBe(tablet.stuffId);
       expect(r?.mode).toBe('hand');
     });
@@ -201,9 +217,9 @@ describe('DisplayApi', () => {
       const tv = await StuffApi.create(() => new Screen());
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
-      expect((await DisplayApi.resolveFor(a.avatar))?.display.stuffId).toBe(tv.stuffId);
+      expect((await resolveScreenFor(a.avatar))?.display.stuffId).toBe(tv.stuffId);
       const b = await makeViewer('Bob', cellar);
-      expect(await DisplayApi.resolveFor(b.avatar)).toBeNull();
+      expect(await resolveScreenFor(b.avatar)).toBeNull();
     });
 
     it('then a paired screen anywhere, by mind — only with an active attunement', async () => {
@@ -218,10 +234,10 @@ describe('DisplayApi', () => {
       ContainmentApi.move(deaf, cellar);
       EmploymentApi.hire(biz, attuned as unknown as Stuff, 'keeper');
       EmploymentApi.hire(biz, deaf as unknown as Stuff, 'keeper');
-      const r = await DisplayApi.resolveFor(attuned as unknown as Stuff);
+      const r = await resolveScreenFor(attuned as unknown as Stuff);
       expect(r?.display.stuffId).toBe(tablet.stuffId);
       expect(r?.mode).toBe('mind');
-      expect(await DisplayApi.resolveFor(deaf as unknown as Stuff)).toBeNull();
+      expect(await resolveScreenFor(deaf as unknown as Stuff)).toBeNull();
     });
   });
 
@@ -233,7 +249,7 @@ describe('DisplayApi', () => {
       const tablet = await StuffApi.create(() => new Tablet());
       tablet.setPairing('held');
       ContainmentApi.move(tablet, a.avatar);
-      DisplayApi.show(tablet, { kind: 'card', cardId: 'who', key: 'who' });
+      tablet.show({ kind: 'card', cardId: 'who', key: 'who' });
       expect(a.cards().length).toBe(1);
       expect(b.cards().length).toBe(1);
       expect(c.cards().length).toBe(0);
@@ -247,7 +263,7 @@ describe('DisplayApi', () => {
       tv.setPairing('open');
       tv.setShortDescription('the booth TV');
       ContainmentApi.move(tv, booth);
-      DisplayApi.show(tv, {
+      tv.show({
         kind: 'stream',
         target: { platform: 'twitch', channel: 'shroud' },
         label: 'Twitch #shroud',
@@ -255,7 +271,7 @@ describe('DisplayApi', () => {
       expect(a.watched()?.display?.stuffId).toBe(tv.stuffId);
       expect(a.watched()?.display?.label).toBe(tv.getPresentation());
       expect(c.watched()).toBeNull();
-      DisplayApi.clear(tv);
+      tv.clear();
       expect(a.watched()).toBeNull();
     });
 
@@ -263,7 +279,7 @@ describe('DisplayApi', () => {
       const tablet = await StuffApi.create(() => new Tablet());
       tablet.setSourcePolicy('cards');
       expect(() =>
-        DisplayApi.show(tablet, {
+        tablet.show({
           kind: 'stream',
           target: { platform: 'twitch', channel: 'x' },
           label: 'x',
@@ -289,7 +305,7 @@ describe('DisplayApi', () => {
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
 
-      const ids = DisplayApi.viewersOf(tv).map((v) => v.stuffId);
+      const ids = tv.viewersOf().map((v: { stuffId: string }) => v.stuffId);
       expect(ids).toContain(near.avatar.stuffId);
       expect(ids).not.toContain(far.avatar.stuffId);
     });
@@ -300,15 +316,15 @@ describe('DisplayApi', () => {
       const boothTv = await StuffApi.create(() => new Screen());
       boothTv.setPairing('open');
       ContainmentApi.move(boothTv, booth);
-      DisplayApi.show(boothTv, { kind: 'card', cardId: 'who', key: 'who' });
+      boothTv.show({ kind: 'card', cardId: 'who', key: 'who' });
       expect(cy.cards().length).toBe(0);
 
-      DisplayApi.refreshViewer(cy.avatar);
+      cy.avatar.refreshDisplays();
       expect(cy.cards().length).toBe(0);
 
       // Same screen, same viewer, once they share a room.
       ContainmentApi.move(boothTv, cellar);
-      DisplayApi.refreshViewer(cy.avatar);
+      cy.avatar.refreshDisplays();
       expect(cy.cards().length).toBe(1);
     });
   });
@@ -318,7 +334,7 @@ describe('DisplayApi', () => {
       const tv = await StuffApi.create(() => new Screen());
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
-      DisplayApi.show(tv, {
+      tv.show({
         kind: 'stream',
         target: { platform: 'kick', channel: 'xqc' },
         label: 'Kick #xqc',

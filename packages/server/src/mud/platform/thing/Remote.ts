@@ -1,7 +1,7 @@
 /**
  * Remote — the thing you hold to drive a `remote`-paired `Screen`. It
  * carries no pairing itself: the screen's `remote` field names this
- * row's template path, and `DisplayApi.mayDrive` asks whether the actor
+ * row's template path, and the screen's `mayDrive` asks whether the actor
  * carries an instance of it. The row authors its keywords.
  */
 

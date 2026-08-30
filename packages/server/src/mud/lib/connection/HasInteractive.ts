@@ -27,10 +27,12 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { VetoResult } from '../errors';
-import type { EvictionContext } from '../stuff/Stuff';
+import type { EvictionContext, Stuff as StuffRef } from '../stuff/Stuff';
 import type Interactive from '../../platform/idea/Interactive';
 import type { CommandContributions } from '../../api/command';
 import { ShellApi } from '../../api/shell';
+import { MixinApi } from '../../api/mixin';
+import { MqlApi } from '../../api/mql';
 import { GoogleProfile } from '../identity/GoogleProfile';
 import {
   LAYOUT_NAMES,
@@ -117,6 +119,19 @@ export interface HasInteractive {
    * `addInteractive` / `removeInteractive`.
    */
   getInteractives(): ReadonlySet<Interactive>;
+
+  /**
+   * Re-sync this viewer's client state with the screens they can reach:
+   * project every lit display they now see, and clear a shared embed
+   * (`cockpit.watch` with a `display` marker) they have walked away
+   * from. A *personal* watch — no marker — is never touched.
+   *
+   * ⭐ Lives here because this mixin owns the viewer's client state and
+   * declares the `cockpit.watch` key itself; the projection is the
+   * screen's own (`display.refreshFor(viewer)`). `Mobile` calls it on
+   * arrival and after a teleport — one hook, both directions.
+   */
+  refreshDisplays(): void;
 
   /** Add an Interactive connection. */
   addInteractive(interactive: Interactive): void;
@@ -734,6 +749,34 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
     static fieldMeta: FieldMeta = {
       _clientState: { persistent: true, runtimeState: true },
     };
+
+    public refreshDisplays(): void {
+      const self = this as unknown as StuffRef & HasInteractive;
+      const current =
+        self.getClientState<{ display?: { stuffId: string } } | null>(
+          'cockpit.watch',
+        ) ?? null;
+      const named = current?.display?.stuffId ?? null;
+      let stillSeen = false;
+      // MQL is how you search: `reachable` is the actor-anchored seed —
+      // inventory and room, at depth — so a screen the viewer carries and
+      // one standing in the room are both found, and no world scan is.
+      if (!MixinApi.isCommandGiver(self)) return;
+      const found = MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+        commandGiver: self,
+        scope: 'reachable',
+      });
+      for (const s of found.stuff) {
+        if (!MixinApi.isDisplay(s)) continue;
+        if (s.stuffId === named) stillSeen = true;
+        s.refreshFor(self);
+      }
+      // Walked out of the booth: the shared embed leaves with the screen.
+      if (named && !stillSeen) {
+        self.setClientState('cockpit.watch', null);
+        self.pushClientStateUpdate('cockpit.watch', null);
+      }
+    }
 
     public getInteractives(): ReadonlySet<Interactive> {
       return this.interactives;
