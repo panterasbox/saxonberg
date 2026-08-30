@@ -170,6 +170,41 @@ marks the host conversational for the `talk` affordance. See
 `addressed` and `given` are deferred (dialogue Wave 2 / later); both slot
 in as additional `handleMessage` topic predicates with no new event.
 
+## ⚠⚠ The cast holds still while the world is closed
+
+A brain wires at its host's `postRegister` — a host has to exist before
+it can behave — but the schedule a cadence trigger arms is **real
+time**, not game time. So without a gate the whole cast begins acting
+the moment `BootstrapManager` has stood the world up, which is *minutes*
+before the subsystems those brains act THROUGH have booted.
+
+`Behaved._runAct` checks `AppApi.isWorldOpen()` — one gate, at the single
+point cadence and witness both come through. `AppBootstrap` closes the
+world for the length of its sequence and opens it at the end. The fact
+defaults to OPEN, so nothing in a test or a script has to know it exists.
+
+⭐ **The symptom, and why it is not cosmetic.** A live drive of the
+libations branch opened with every trade hand's `consigns` beat failing,
+in a chain that reads backwards:
+
+```
+wallet use house → unknown-verb(wallet)   ← no house card; employment
+                                            boots ~200 log lines later
+→ the hand falls back to trading as ITSELF
+→ consign syrup --ask 6 → no-account(/trade/hearth-cooking/agent/pantry-hand)
+```
+
+Eight trades, every beat. Nothing was wrong with the content —
+`purchases: true` and `banksAt:` are authored correctly on every outfit.
+And the beats **starved the boot that would have fixed them**: 61% CPU
+for six and a half minutes while `RenownStanding.warm()`'s awaited
+`find({})` queued behind brain work for an event loop, and the server
+never reached `listen` at all.
+
+⚠ The obvious lever is the wrong one. `WorldClockApi.pause()` does not
+stop a brain: cadences are real-time, and pausing game time changes
+nothing about them.
+
 ## Ambient pacing budget
 
 **These are starting points we expect to tune by feel — not a spec.** The
