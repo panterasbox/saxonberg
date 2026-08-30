@@ -340,12 +340,26 @@ zone's declaration covers its descendants and a child can narrow it.
 | `favours` — material tags | multiplies draw weight for matching items |
 | `blessingOdds` — BUC weights | **overrides an item's own generation odds, zone-wide** (see [magic-items.md](./magic-items.md) § Generation odds) |
 
-`stocks` and `favours` are declared `Zone` fields since libations
-(they were read but never hydrated before — [zone.md](./zone.md));
-Veshko's yard is the first shipped zone to author `stocks`.
-`blessingOdds` is still undeclared. A region that declares nothing leaves
-every item on its own baseline and a neutral affinity, so distribution
-works in un-authored regions rather than silently placing nothing.
+⭐ All three are declared on **`SpatialZone`**, not on `Zone`
+([zone.md](./zone.md)): only a region *in space* can stock goods, while a
+`FolderZone` is a namespace root (`/wiki`, `/home`, `/studio`) where the
+question does not arise — and an `authorable` field on the base would
+offer it, in the studio panel, for every zone in the game. The
+inheritance walk is unaffected either way: `lookupField` consults
+ancestors, so a zone that declares nothing simply walks on.
+
+All three were read but never hydrated before being declared — the
+Hydrator only reflects into fields it finds in the merged `fieldMeta`
+chain, so an authored value on an undeclared field is **silently
+dropped**. `stocks` and `favours` were fixed in libations;
+`blessingOdds` had the same bug for longer and is fixed with them, which
+is what makes the documented zone-wide BUC override able to fire at all.
+Veshko's yard is the first shipped zone to author `stocks`; nothing
+ships an authored zone `blessingOdds` yet.
+
+A region that declares nothing leaves every item on its own baseline and
+a neutral affinity, so distribution works in un-authored regions rather
+than silently placing nothing.
 
 ## ⭐ The sweep is a faucet — template candidates, the home region, the batch draw (libations)
 

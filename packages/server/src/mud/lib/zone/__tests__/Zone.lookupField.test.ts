@@ -4,8 +4,10 @@ import { StuffApi } from '../../../api/stuff';
 import { ZoneApi } from '../../../api/zone';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import FolderZone from '../../../platform/idea/FolderZone';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { Zone } from '../Zone';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { MixinApi } from '../../../api/mixin';
 
 /**
  * Tests for `Zone.lookupField` — the template-ancestry inheritance
@@ -202,6 +204,71 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
     // With an own value, it surfaces.
     (rooted as unknown as Record<string, unknown>).biome = 'self-defined';
     expect(await rooted.lookupField<string>('biome')).toBe('self-defined');
+  });
+
+  /**
+   * ⭐ The region fields live on `SpatialZone`, not on `Zone`.
+   *
+   * They arrived on the base in the libations build and were moved down
+   * on review: only a region IN SPACE can stock goods, while a
+   * `FolderZone` is a namespace root (`/wiki`, `/home`, `/studio`) — and
+   * an `authorable` field on the base offers "how many bottles of vodka
+   * stand here" for every zone in the game, in the studio panel.
+   *
+   * The pair below is the whole contract: a spatial zone resolves what it
+   * authored, and a folder zone yields the reader's empty default rather
+   * than carrying a field it can never mean anything by. Behaviour is
+   * unchanged because `lookupField` walks ancestors either way.
+   */
+  it('a SpatialZone carries the region fields and resolves what it authored', async () => {
+    const yard = makeStuff(() => new CartesianZone());
+    yard.setStocks({ 'spirit:vodka': 24 });
+    yard.setFavours(['spirit']);
+    yard.setBlessingOdds({ cursed: 3, uncursed: 95, blessed: 2 });
+
+    expect(await yard.lookupField<Record<string, number>>('stocks')).toMatchObject({
+      'spirit:vodka': 24,
+    });
+    expect(await yard.lookupField<string[]>('favours')).toEqual(['spirit']);
+    expect(await yard.lookupField<unknown>('blessingOdds')).toMatchObject({ blessed: 2 });
+  });
+
+  it('a FolderZone does not carry them, and the reader takes its empty default', async () => {
+    const namespaceRoot = makeStuff(() => new FolderZone());
+    // Not merely unset — the field does not exist on this class at all.
+    expect('stocks' in (namespaceRoot as unknown as Record<string, unknown>)).toBe(false);
+    expect('favours' in (namespaceRoot as unknown as Record<string, unknown>)).toBe(false);
+
+    // The walk finds nothing and returns null, which is exactly what
+    // `ResidencyLogic.regionStockFor` turns into `{}` / `[]`.
+    expect(await namespaceRoot.lookupField<Record<string, number>>('stocks')).toBeNull();
+    expect(await namespaceRoot.lookupField<string[]>('favours')).toBeNull();
+  });
+
+  /**
+   * ⚠ The Hydrator reflects into fields it finds in the merged
+   * `fieldMeta` chain, so an UNDECLARED field is silently dropped from a
+   * template's `data:` — the bug `stocks`/`favours` had before libations
+   * declared them, and which `blessingOdds` still had afterwards:
+   * `ResidencyLogic` read `lookupField('blessingOdds')` and the
+   * documented zone-wide BUC override could never fire, because nothing
+   * ever put a value there to be read.
+   *
+   * This asserts the declaration itself, since that is what the Hydrator
+   * consults — a `lookupField` test alone would pass on a hand-set value
+   * and hide the drop.
+   */
+  it('all three region fields are DECLARED on the spatial chain, so the Hydrator can reach them', () => {
+    const spatial = MixinApi.getAllFieldMeta(CartesianZone);
+    for (const field of ['stocks', 'favours', 'blessingOdds']) {
+      expect(spatial[field], `${field} declared`).toBeDefined();
+    }
+    // And the base still owns only what a zone IS.
+    const folder = MixinApi.getAllFieldMeta(FolderZone);
+    expect(folder.name).toBeDefined();
+    for (const field of ['stocks', 'favours', 'blessingOdds']) {
+      expect(folder[field], `${field} absent from a namespace root`).toBeUndefined();
+    }
   });
 
   it('ZoneApi.getEnclosingZone returns nearest Zone-class template ancestor', async () => {

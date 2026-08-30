@@ -24,6 +24,28 @@ its identity isn't a coordinate frame itself. Carving them out of
 concerns live in `lib/zone/`; only the spatial-coordinate-bearing
 subclasses stay under `lib/spatial/`.
 
+## ⚠ What belongs on `Zone` itself
+
+`Zone` declares exactly two fields — `name` and `wire` — and both are
+about what a zone *is*. Subsystem concerns go on the subclass that can
+mean something by them.
+
+Two precedents, one old and one recent. Ownership/access fields
+(`ownerGroup` / `accessGroups`) were **removed** from `Zone` in property
+phase 0a, because title belongs in the gated `parcels` collection rather
+than on an editable zone template. And the spawn sweep's region fields
+(`stocks` / `favours` / `blessingOdds`) landed on `Zone` in the libations
+build and were **moved down to `SpatialZone`** on review: a `FolderZone`
+is a namespace root (`/wiki`, `/home`, `/studio`), so "how many bottles
+of vodka stand here" is not a question it can answer — yet an
+`authorable` field on the base offers exactly that, for every zone in the
+game, in the studio's composition panel.
+
+The inheritance walk never forces the choice: `lookupField` consults
+ancestors, so a subclass that does not declare a field simply walks on
+and the reader takes its default. **Declare a field at the narrowest
+class that can mean something by it.**
+
 ## The class hierarchy
 
 ```
@@ -51,6 +73,9 @@ CartesianZone  SphericalZone
   `CartesianZone` and `SphericalZone` extend this — not `Zone`
   directly. Exits are authored explicitly on rooms; the zone is the
   coordinate grid + its invariants, never an exit source.
+  ⭐ Also the home of the **region fields** the spawn sweep reads —
+  `stocks`, `favours`, `blessingOdds` ([residency.md](./residency.md)) —
+  because only a region *in space* can stock goods.
 - **`FolderZone`** — generic organizational scope, no spatial
   topology. Use for templatePath folders like `/world/narnia/`
   or `/stuff/idea/biome/outdoor/` that organize a content team's tree
