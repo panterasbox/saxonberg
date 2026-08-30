@@ -281,4 +281,38 @@ describe("TPA identity binding (integration)", () => {
     expect(a.getContainer()).toBe(offRoom); // refused, not moved
     expect(c.getNotes().some((n) => n.kind === "controller-rejected" && n.reason === "out-of-service")).toBe(true);
   });
+
+  // ⭐ The departures board is the PROSE arm of a display, and prose off
+  // a screen is read per reader — never pushed. It shipped as a `card`
+  // projected to everyone who could see the terminal, which meant the
+  // whole room got the board annotated against whichever traveller last
+  // touched it: wrong for everyone else, and nobody else's business.
+  it("the board reads per reader, and driving it puts nothing on the screen", async () => {
+    const registered = makeTraveller("gina");
+    const stranger = makeTraveller("hank");
+
+    const arrive = await StuffApi.singleton<Stuff & FastTravel>(ARRIVE);
+    await registerCtl().execute(
+      {} as CommandModel,
+      ctx(registered, null, "register", arrive as unknown as Stuff),
+    );
+
+    const dRoom = await StuffApi.singleton<Stuff & Container>(D_ROOM);
+    const gate = await StuffApi.singleton<Stuff & FastTravel>(DEPART);
+    ContainmentApi.move(registered, dRoom);
+    ContainmentApi.move(stranger, dRoom);
+
+    if (!MixinApi.isDisplay(gate)) throw new Error("the gate is a display");
+    const mine = (await gate.readScreen(registered as unknown as Stuff))?.toString();
+    const theirs = (await gate.readScreen(stranger as unknown as Stuff))?.toString();
+    expect(mine).toContain("Departures");
+    expect(theirs).toContain("Departures");
+    expect(mine).not.toContain("not yet registered");
+    expect(theirs).toContain("not yet registered");
+
+    // And reading it leaves the screen dark: the board is COMPUTED, so
+    // there is no shared payload for a bystander to inherit.
+    await teleportCtl().execute({} as CommandModel, ctx(stranger, dRoom, "teleport"));
+    expect(gate.getShowing()).toBeNull();
+  });
 });

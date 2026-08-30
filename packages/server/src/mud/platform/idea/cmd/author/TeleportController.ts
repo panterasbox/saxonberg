@@ -30,7 +30,6 @@ import { Currency, BankingApi, Money } from "../../../../api/banking";
 import type { Charge } from "../../../../api/banking";
 import { EmploymentApi } from "../../../../api/employment";
 import { AppApi } from "../../../../api/app";
-import { CardApi } from "../../../../api/card";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import type { AetherHosted } from "../../../../lib/augmentation/AetherHosted";
 import type { CredentialWallet } from "../../../../lib/credential/CredentialWallet";
@@ -260,19 +259,13 @@ export default class TeleportController extends CommandController<TeleportModel>
     const ref = node.getSelectedDestination();
     if (!ref) {
       if (MixinApi.isSensor(giver)) {
-        const board = await node.renderDepartures(giver);
-        this.tell(context, board);
-        // The board is what the terminal SHOWS: a card pushed to everyone
-        // in reach of the screen, the reader included (display.md).
-        if (MixinApi.isDisplay(node)) {
-          node.show({
-            kind: "card",
-            cardId: "subject",
-            subjectId: node.stuffId,
-            key: CardApi.keyFor(context, "subject"),
-            prose: Mml.fromMarkup(board),
-          });
-        }
+        // ⭐ The board is PROSE, and prose off a screen is read, never
+        // pushed: `renderDepartures` annotates each route against THIS
+        // reader's travel credential, so the earlier card — projected to
+        // everyone who could see the terminal — showed the whole room one
+        // traveller's registrations. The same text is what `look
+        // <terminal>` renders, through `TpaTerminal.readScreen`.
+        this.tell(context, await node.renderDepartures(giver));
       }
       return;
     }

@@ -22,6 +22,8 @@
  */
 
 import { Mml } from "../../../api/mml";
+import { MixinApi } from "../../../api/mixin";
+import type { Stuff } from "../../../lib/stuff/Stuff";
 import Thing from "../../../lib/stuff/Thing";
 import { DetailedMixin } from "../../../lib/description/Detailed";
 import { FastTravelMixin } from "../../../lib/fasttravel/FastTravel";
@@ -31,8 +33,9 @@ import { SingletonMixin } from "../../../lib/stuff/Singleton";
 import { DisplayMixin } from "../../../lib/display/Display";
 
 // The departures board is a DISPLAY: `pairing: open` (anyone in reach
-// drives it — a bare `teleport`), `sourcePolicy: cards` (the board is a
-// card pushed to everyone in reach). See docs/subsystems/display.md.
+// reads it), `shows: ['prose']` — a board is prose, and this terminal's
+// prose is COMPUTED rather than driven (`readScreen` below). See
+// docs/subsystems/display.md.
 const TpaTerminalBase = DisplayMixin(
   SingletonMixin(
     PostRegistrationMixin(
@@ -60,7 +63,7 @@ export default class TpaTerminal extends TpaTerminalBase {
   constructor() {
     super();
     this.pairing = "open";
-    this.sourcePolicy = "cards";
+    this.shows = ["prose"];
   }
 
   public override async postRegister(_context?: unknown): Promise<void> {
@@ -77,6 +80,22 @@ export default class TpaTerminal extends TpaTerminalBase {
   public override onDestruct(): void {
     this.disarmTimetable();
     super.onDestruct();
+  }
+
+  /**
+   * ⭐ The PROSE arm, and the reason it cannot be a pushed payload: the
+   * board annotates every route against the READER's own travel
+   * credential ("— not yet registered"). One shared payload would show
+   * the whole room whichever traveller last touched the terminal had
+   * registered — wrong for everyone else, and nobody's business. So the
+   * board resolves when you read the screen, per reader.
+   *
+   * `look <terminal>` is therefore how you read the board; a bare
+   * `teleport` is the same text on demand.
+   */
+  override async readScreen(viewer: Stuff): Promise<Mml | null> {
+    if (!MixinApi.isSensor(viewer)) return super.readScreen(viewer);
+    return Mml.fromMarkup(await this.renderDepartures(viewer));
   }
 
   /**
