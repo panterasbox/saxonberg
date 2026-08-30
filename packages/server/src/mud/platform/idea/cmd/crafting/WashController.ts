@@ -63,8 +63,14 @@ export default class WashController extends ManualBuildController<WashModel> {
 
   /**
    * A reachable bulk holder of water — held, then in the room (the
-   * two-leg reach the tool finder uses). Water is read off the slot's
-   * Material: the `water` keyword or tag.
+   * two-leg reach the tool finder uses).
+   *
+   * ⭐ Water is the Material's **`water` tag** and nothing else. This
+   * once also matched the keyword and the display name, which is how it
+   * worked at all: the water row carried no `water` tag, so the identity
+   * branch never fired and the string match was load-bearing. Keywords
+   * are the command line's tokens and say nothing about what a thing IS
+   * — see docs/antipatterns.md § Keywords Where You Mean Identity.
    */
   private findWater(giver: Stuff): Stuff | null {
     const candidates: Stuff[] = [];
@@ -79,13 +85,7 @@ export default class WashController extends ManualBuildController<WashModel> {
       if (!slot || slot.isEmpty()) continue;
       const m = slot.getMaterial();
       if (!m) continue;
-      if (
-        m.hasTag("water") ||
-        m.getKeywords().includes("water") ||
-        m.getName().toLowerCase() === "water"
-      ) {
-        return c;
-      }
+      if (m.hasTag("water")) return c;
     }
     return null;
   }

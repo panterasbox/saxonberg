@@ -1021,6 +1021,59 @@ const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
 on a singleton class throw. `singleton()` is the convenient surface
 that respects the contract automatically.
 
+## Keywords Where You Mean *Identity* — Match Materials, Never Words
+
+⚠ **Recorded 2026-08-30 (founder), and it is a hard rule:**
+
+> **Keywords are human-usable tokens meant for a command-line
+> interpreter. They have no bearing on identity.**
+
+A keyword exists so a player can type `get coupe` and the binder can find
+the coupe. That is its whole job. The moment engine logic asks *"is this
+water?"* by looking at a keyword — or at a display name, or a substring
+of one — it has stopped modelling the world and started parsing English.
+
+**Identity for matter lives on the `Material`:** its **tags** (the
+semantic vocabulary recipes already match on — a `kind: item` slot with
+`category: gin` matches the tag `gin`) and, where the *substance* rather
+than the kind is the question, its **`composition`**. Never keywords,
+never `getName()`, and never a substring of either.
+
+| Don't | Do |
+|---|---|
+| `m.getKeywords().includes('water')` | `m.hasTag('water')` |
+| `m.getName().toLowerCase() === 'water'` | `m.hasTag('water')` |
+| `m.getName().toLowerCase().includes(brand)` | resolve the `Brand` row / `_brandKey` |
+| `category: material.getName().toLowerCase()` | an authored tag on the material |
+
+### Why the fallback chain is the tell
+
+The shape that hides this is the permissive OR:
+
+```ts
+// ⚠ WashController, as first shipped
+m.hasTag('water') || m.getKeywords().includes('water') || m.getName().toLowerCase() === 'water'
+```
+
+It reads as defensive breadth. It is the opposite: **the water material
+carried tags `[liquid, beverage, drinkable]` and no `water` tag at all**,
+so the identity branch never fired and the meaningless one was
+load-bearing. A fallback chain lets a missing model hide behind a string
+match — and it fails in both directions: a "waterfall" prop or a
+"watering can" matches, while a real water source whose author never
+typed the word does not.
+
+**If several materials legitimately answer to one idea** (fresh water,
+rain water, brine), that is a modelling question — a shared tag, or a
+`composition` that names the base — **not** a wider net of words.
+
+### The one legitimate use
+
+Matching a keyword against a **player-typed token** at the command
+boundary: the binder's scope walk, a destination name in `teleport`.
+That is what keywords are. Anywhere the player did not type it, do not
+match on it.
+
 ## Object Identity Where You Mean *Person* Identity
 
 **ANTIPATTERN**: comparing two `Stuff` with `===` (or by `stuffId`) to

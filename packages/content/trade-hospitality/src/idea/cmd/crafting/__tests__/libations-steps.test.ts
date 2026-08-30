@@ -88,7 +88,10 @@ let actor: TestActor;
 
 beforeEach(async () => {
   await standUpBranchHarness();
-  material(WATER, 'water', ['liquid']);
+  // ⭐ The identity tag, not the name: this fixture passed on the display
+  // name alone before the rule (antipatterns.md § Keywords Where You Mean
+  // Identity) — the same way the shipped water row did.
+  material(WATER, 'water', ['liquid', 'water']);
   material(BLEND, 'mixed drink', ['cocktail']);
   material(OLIVE, 'olive', ['olive']);
   material(RUM, 'rum', ['rum']);
