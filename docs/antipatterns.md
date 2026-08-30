@@ -3381,3 +3381,42 @@ for free: a pack's classes name only that pack's views, so the kernel
 can never name a trade's verb. See
 [command-routing.md](./subsystems/command-routing.md) § *There is ONE
 record of verb affordances*.
+
+## A room fixture contributing in the `environment` bucket
+
+**Don't** put a fixture's verb in `environment` and assume people in the
+room get it. **Do** use `peers` for sideways, `environment` for outward.
+
+```ts
+// WRONG — a wash basin. `environment` grants OUTWARD, to the containers
+// ABOVE this thing: the rule that makes a rock in a bag in your pack
+// still hand you `throw`. A basin stands in the room as the player's
+// SIBLING, and nobody carries a basin — so this reaches NOBODY.
+static commandContributions = {
+  environment: ['platform/cmd/crafting/wash.yaml'],
+};
+
+// RIGHT — sideways, to everyone sharing the room with it.
+static commandContributions = { peers: ['platform/cmd/crafting/wash.yaml'] };
+```
+
+The buckets are directional and the names do not say so loudly enough:
+
+| bucket | direction | typical host |
+|---|---|---|
+| `self` | to the holder itself | a mixin on the actor |
+| `inventory` | INWARD, to everything the host contains | a pack affording `rummage` |
+| `environment` | OUTWARD, to every container above | a **carried** thing |
+| `peers` | SIDEWAYS, across the room | a **fixture** |
+
+⚠ `environment` on a fixture is silently dead: no error, no warning, the
+verb simply never appears. `wash` shipped that way at the bar basin, the
+water tap, the dorm tap and the standpipe, and **every controller test
+passed the whole time** — they call the controller directly. *Affordance
+is wiring; a controller test proves the controller.* Assert that a
+person standing where the thing is can actually see the verb.
+
+The tell, if you are auditing: an `environment`-only contributor that is
+not a carried thing. In this tree the other four (`Wieldable`,
+`PaymentCard`, `WateringCan`, the Whistle) are all carried, which is
+what the bucket is for.

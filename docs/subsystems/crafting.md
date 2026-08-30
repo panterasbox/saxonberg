@@ -430,7 +430,24 @@ emitting via `ctx.note` + `MessageApi.scene`.
 `serve`/`mix`/`forge`/`cook` are general agent verbs; `order` routes to
 the present on-shift maker.
 
-- **`wash <glass>`** (libations) — an engaged step (~3 s) that needs a
+- **`wash <glass>`** (libations) — afforded by **`WaterFixture`** (the
+  bar basin, the water tap, the dorm tap, the standpipe) in the `peers`
+  bucket. ⚠ It shipped on `UnboundedReceptacle` — *inexhaustible liquid
+  source* — whose other row is the demo's **coffee urn**, and in the
+  `environment` bucket, which grants OUTWARD to the containers ABOVE a
+  thing. A basin is the player's SIBLING and nobody carries one, so
+  **`wash` was afforded to nobody, anywhere it shipped**; the controller
+  tests passed throughout because they call the controller. Affordance
+  is wiring, and wiring needs its own assertion
+  (`lib/command/__tests__/WaterFixture.affordance.test.ts`).
+  The controller stays deliberately more permissive than the affordance
+  — any reachable bulk holder whose matter is water, a carried jug
+  included. The fixture provides DISCOVERABILITY; water in reach is what
+  makes it work. A static cannot read a holder's contents, and should
+  not: that is the state-dependent affordance the `InstanceContributor`
+  seam expressed, deleted for the reasons in
+  [command-routing.md](./command-routing.md).
+  An engaged step (~3 s) that needs a
   reachable water source: a `Bulkable` holder whose material carries the
   **`water` tag** (the basin/tap `UnboundedReceptacle` affords the view).
   ⚠ The tag, and only the tag — this once also matched the material's
