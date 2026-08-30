@@ -35,6 +35,48 @@ should be retired.
 
 **So the posture is not containment. It is friction plus daylight.**
 
+### ⭐ One capability, many doors
+
+**`eval` is not a special door. It is the *weakest* one.** Every path
+below ends in arbitrary TypeScript executing in-process, and they are all
+gated by the same single bit (`requiresWizard`):
+
+| Door | Capability it grants | Guarded by |
+|---|---|---|
+| `eval` | a **five-name curated context** (`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi`, `console`, + `self`/`target`) | verb gate, parcel authority, the allowlist |
+| `write` + `reload` | **the entire import graph** — `fs`, `child_process`, everything | verb gate, zone `can('write')` |
+| template code fields | a named class / hydrator / brain | `enforceCodeFieldGate` over `CodeNamingFields` |
+
+⚠ **The import boundary is build-time only.** `lint:imports` runs in CI;
+the runtime loader hook (`services/loader/loader-hook.js`) *stamps*
+modules with call-security provenance and **denies nothing**. So a module
+written at runtime and reloaded imports whatever it likes. Which makes
+`write` + `reload` **strictly more powerful than `eval`**, and it is the
+less observed of the two.
+
+Two consequences, and they govern the rest of this document:
+
+1. **Hardening one door is theatre.** A timeout on `eval`, or curating
+   its context, buys nothing in security terms while `write` sits
+   unlogged next to it. Either the whole set is treated uniformly or the
+   effort is wasted. *(The eval timeout is still worth doing — as
+   **containment**, against failed experiments, which is Tier 3. It is
+   not a security control and this doc should not have filed it as one.)*
+2. **The one real asymmetry is forensic, not capability.** A `write`
+   leaves an artifact — a file on disk, visible to `git status`, and
+   `GitLogic.ts:340` commits it with a synthetic author derived from the
+   acting avatar. An `eval` leaves nothing but a scratch singleton that
+   the next eval replaces. **`eval` is the deniable door**, so it is the
+   one whose *payload* has to be captured, because nothing else captures
+   it. The unobserved window for `write` is narrower but real: write →
+   reload → revert, never published, never committed.
+
+A corollary worth noting: the loader stamps every mud module with its
+module id, so a file written at a path some `FromModule` policy already
+trusts **inherits that trust**. Not an escalation for someone who is
+already a wizard — but it means module-provenance trust is exactly as
+strong as source-tree write control, and no stronger.
+
 ## 2. Four layers, and only one of them is defeated by root
 
 | Layer | Cost at runtime | Survives a hostile wizard? |
@@ -114,15 +156,24 @@ than it reads:
 
 *Cheapest possible wins: the thinking is done, the wire isn't.*
 
-1. **`eval` has no timeout.** `ScriptLogic.ts:546-555` is
-   `runInContext(createContext(sandbox))` with no options object.
-   `while(true){}` in an eval body hangs the process. Meanwhile
-   `lib/shell/Author.ts:42-61` declares `eval.timeoutMs` (default 1000)
-   and `eval.maxDepth` (default 32) with the comment *"the sandbox honors
-   it when the isolated-vm migration lands."* **Nothing reads either
-   key.** `vm.Script.runInContext(ctx, { timeout })` has always supported
-   this. ⚠ Caveat to document at the same time: `vm`'s timeout interrupts
-   **synchronous** code only — a hung promise sails past it.
+1. ⭐ **The code-trust surface is audited unevenly, which means it is
+   not audited.** Per § *One capability, many doors*, this is one control,
+   not three, and it is the highest-value item in the document:
+   - `eval` records the **act, not the payload** —
+     `EvalController.ts:203` calls `recordAuthoring({ path:
+     '<parcel>/_eval' })`, best-effort inside a swallowing `try/catch`.
+     **Wire-parcel evals record nothing at all.**
+   - **Source-tree writes record nothing.** `write`/`rm`/`mv`/`cp`/
+     `mkdir` controllers all call `SourceTreeApi.*` and write no row;
+     only `StudioLogic` follows its write with `recordAuthoring`.
+     Published changes are attributed in git history — writes that are
+     never published are not.
+   - **Reload records nothing** (item 3 below).
+
+   One append-only row per code-trust act, uniform across all three
+   doors, with `eval` additionally capturing its body because it is the
+   only door that leaves no artifact. Anything less and the wizard simply
+   uses the door that isn't watched.
 2. **Two lint checks documented as CI-gating are not in CI.**
    `.gitlab-ci.yml` runs 17; `lint:gates` and `lint:boundary` are absent,
    though CLAUDE.md calls both CI-gating. `lint:gates` is what keeps every
@@ -172,6 +223,18 @@ One blocking loop stops the world, and nothing would tell you:
 Generalize `RenderBudget` across these rather than inventing a mechanism
 per surface.
 
+**And the `eval` timeout belongs here, not in the security tiers.**
+`ScriptLogic.ts:546-555` is `runInContext(createContext(sandbox))` with no
+options object, so `while(true){}` in an eval body hangs the process —
+while `lib/shell/Author.ts:42-61` declares `eval.timeoutMs` (default 1000)
+and `eval.maxDepth` (default 32) with the comment *"the sandbox honors it
+when the isolated-vm migration lands."* **Nothing reads either key**, and
+`vm.Script.runInContext(ctx, { timeout })` has supported it all along.
+This is worth doing as a guard against **failed experiments** — the
+original ask — and claims nothing against a hostile author. ⚠ `vm`'s
+timeout interrupts **synchronous** code only; a hung promise sails past
+it.
+
 ### Tier 4 — input reaching dangerous constructs
 
 6. **`GrepController.ts:48` compiles a raw command-line string** into
@@ -195,14 +258,10 @@ Since root cannot be prevented, **this tier is the real security model.**
     `SecurityError` in six places and logs nothing;
     `SecurityPolicy.name` is documented as *"used in audit logs"* and
     there are no audit logs. A probing wizard currently leaves no trace.
-11. **`eval` records the act, not the payload.** `EvalController.ts:203`
-    calls `recordAuthoring({ path: '<parcel>/_eval' })` — best-effort, in
-    a swallowing try/catch — so you learn that someone evaled, never what
-    they ran. **Wire-parcel evals record nothing at all.**
-12. **Source-tree writes record nothing** (`write`/`rm`/`mv`/`cp`/`mkdir`
-    controllers); only `StudioLogic` follows its write with
-    `recordAuthoring`.
-13. **No operator-facing signal of any kind.** No alerting, no metrics, no
+11. *(The eval / source-write audit gaps were here; they are **Tier 1
+    item 1** now — they are one control, not several, and filing them
+    last was the mistake this document was written to avoid.)*
+12. **No operator-facing signal of any kind.** No alerting, no metrics, no
     event-loop-lag detection. `/healthz` is liveness only and does not
     check Mongo or the world; `/stats` is unauthenticated. A hung `eval`
     is indistinguishable from a dead box.
