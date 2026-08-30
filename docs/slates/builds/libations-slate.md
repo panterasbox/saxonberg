@@ -244,7 +244,7 @@ complete at its tier, exactly as the retail slate's general store was.
 | **`trade-brewing`** (stub) | data | ale / lager materials (`drink/ale` out of base-library), keg + cask presets, a generic floor beer, "a pint" | platform, trade-distilling? no — independent |
 | **`trade-winemaking`** (stub) | data | wine materials (red, white, sparkling) + **vermouth** (dry + sweet — out of base-library; fortified wine is winemaking's), the wine `Bottle`, generic floor wines + the house vermouths, "a glass of …" | trade-distilling (fortification names its spirit) |
 | **`trade-bottling`** (stub) | data | the soft mixers (soda water, tonic, ginger beer, cola, grapefruit soda, bottled juices), a bottle/can preset, the generic floor | platform |
-| **`trade-produce`** (stub) | data | fresh produce materials (lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry — and the crops out of generic-objects), crate/basket presets, the greengrocer floor; the beginning of the farming pack | platform, base-library |
+| **`trade-farming`** (stub) | data | fresh produce materials (lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry — and the crops out of generic-objects), crate/basket presets, the greengrocer floor; the beginning of the farming pack | platform, base-library |
 | **`corpo-veshko`** | data | the Volk bottle rows + the **Veshko distillery** — a `Business` (`parentOrganization: veshko`) that is the floor's producer of record | trade-distilling |
 | **`corpo-hollis`** | data | the Old Hollis / Hollis Cane bottle rows (the private label: `interiorMaterial` = Veshko's generic, `_brandKey` = Hollis's) | trade-distilling, corpo-veshko |
 | **`trade-hospitality`** | data → capability if the ice machine / tap need a class | the **v1 menu** (Part 9: ~24 recipes), the house recipes (`press`, simple syrup, the garnish cuts), the tools (muddler, bar spoon, strainer, juicer, tap, ice machine), nine glassware presets | + the five libation trades |
@@ -423,7 +423,7 @@ dairy and poultry have a trade).
 | **wine** | red, white, sparkling | ferment | **trade-winemaking** (stub) |
 | **beer** | ale, lager | ferment | **trade-brewing** (stub) |
 | **soft / mixer** | soda water, tonic, ginger beer, cola, grapefruit soda, cranberry juice, orange juice (bottled) | **bottle** | **trade-bottling** (stub) — earns its pack here: seven products and someone could make a living at it |
-| **fresh produce** | lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry | grow | **trade-produce** (stub) — everything downstream of growing: the materials, crate/basket presets, the floor at a greengrocer; the beginning of the farming pack the reorg reaches at *f* |
+| **fresh produce** | lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry | grow | **trade-farming** (stub) — everything downstream of growing: the materials, crate/basket presets, the floor at a greengrocer; the beginning of the farming pack the reorg reaches at *f* |
 | **pantry** | sugar, simple syrup, salt, coffee | cook / mill | **trade-hearth-cooking** (syrup is a recipe; sugar + salt are its pantry materials — `salt` and `coffee` move out of base-library's `bulk/`) |
 | **ice** | ice (cubes, crushed) | freeze — *bought bagged in v1* (Part 10) | the **distributor's floor**, kept in hospitality's **ice bin**; the ice machine waits for power |
 | **house-made** | pressed lime / lemon / orange / grapefruit juice, simple syrup, a twist / a wedge / a peel | press / cook / cut | **trade-hospitality** (recipes: `press`, the syrup, the garnish cuts) |

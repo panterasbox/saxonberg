@@ -120,8 +120,8 @@ function contentRows(): Row[] {
     ...yamlDir('trade-winemaking', 'trade/winemaking/thing', '/trade/winemaking/thing'),
     ...yamlDir('trade-bottling', 'trade/bottling/idea/material', '/trade/bottling/idea/material'),
     ...yamlDir('trade-bottling', 'trade/bottling/thing', '/trade/bottling/thing'),
-    ...yamlDir('trade-produce', 'trade/produce/idea/material', '/trade/produce/idea/material'),
-    ...yamlDir('trade-produce', 'trade/produce/thing', '/trade/produce/thing'),
+    ...yamlDir('trade-farming', 'trade/farming/idea/material', '/trade/farming/idea/material'),
+    ...yamlDir('trade-farming', 'trade/farming/thing', '/trade/farming/thing'),
     ...yamlDir('trade-hearth-cooking', 'trade/hearth-cooking/idea/material', '/trade/hearth-cooking/idea/material'),
     ...yamlDir('trade-hearth-cooking', 'trade/hearth-cooking/thing', '/trade/hearth-cooking/thing'),
   ];
@@ -218,7 +218,7 @@ beforeAll(async () => {
     await stock(`/trade/bottling/thing/${p}`);
   }
   for (const p of ['limes', 'lemons', 'oranges', 'grapefruits', 'mint', 'cherries', 'olives', 'cranberries']) {
-    await stock(`/trade/produce/thing/crate-of-${p}`);
+    await stock(`/trade/farming/thing/crate-of-${p}`);
   }
   await stock('/trade/hearth-cooking/thing/sugar-sack');
   await stock('/trade/hearth-cooking/thing/coffee-sack');

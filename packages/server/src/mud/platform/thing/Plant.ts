@@ -66,7 +66,7 @@ export default class Plant extends PlantBase {
   };
 
   /**
-   * The `/trade/produce/thing/seed/…` template a flowering episode mints. Null for a
+   * The `/trade/farming/thing/seed/…` template a flowering episode mints. Null for a
    * species that sets no seed in v1.
    */
   public seedTemplatePath: string | null = null;

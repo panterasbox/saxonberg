@@ -10,7 +10,7 @@
  * ordinary content.
  *
  * ⭐ **What it confers is the answer, not the noun.** `growsIntoPath`
- * names the `/trade/produce/thing/plant/…` template this thing mints when planted. A
+ * names the `/trade/farming/thing/plant/…` template this thing mints when planted. A
  * seed has one. So does a cutting, a tuber, a bulb, a runner — and none
  * of those should have to `extend Seed` to be plantable, inheriting a
  * class whose doc commits to "bought at a store, discrete, never a
@@ -34,7 +34,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 
 /** Public method surface — methods only, per the inter-stuff contract. */
 export interface Plantable {
-  /** The `/trade/produce/thing/plant/…` template this mints when planted, or null. */
+  /** The `/trade/farming/thing/plant/…` template this mints when planted, or null. */
   getGrowsIntoPath(): string | null;
   setGrowsIntoPath(value: string | null): void;
 }
@@ -52,7 +52,7 @@ export function PlantableMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
-     * The `/trade/produce/thing/plant/…` template this mints when planted.
+     * The `/trade/farming/thing/plant/…` template this mints when planted.
      *
      * Public because the `Hydrator` reflects into persistent fields by
      * name; other Stuff use the method surface.

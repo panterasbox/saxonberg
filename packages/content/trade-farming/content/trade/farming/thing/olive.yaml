@@ -1,0 +1,13 @@
+# An olive — the discrete produce item (a graded Provision over its own
+# material, the prime-cut shape). A recipe's `kind: item` slot matches the
+# material tag `olive`; the crate below mints these.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an olive
+  primaryKeyword: olive
+  keywords: [olive, olives, produce]
+  longDescription: "A green olive, brine-wet."
+  _materialPath: /trade/farming/idea/material/olive
+  gradeBand: fair
+  mass: 0.004

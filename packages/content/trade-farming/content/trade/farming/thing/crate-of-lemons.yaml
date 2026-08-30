@@ -1,0 +1,28 @@
+# A crate of lemons — the floor unit: a `Crate` (Circulating + Populates +
+# an OPEN Container) the sweep stands at target in the farm's stock, holding
+# 12 lemons minted on hydration. The bar's par line counts the lemons
+# inside; the crate is what the hand consigns and the keeper buys.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of lemons
+  primaryKeyword: lemons
+  keywords: [crate, lemons, lemon, produce]
+  longDescription: A slatted wooden crate of lemons, the grower's stencil on the side.
+  censusKey: produce:lemon
+  regionTarget: 4
+  materialTags: [produce, lemon]
+  container: /trade/farming/thing/farm-stock
+  populates:
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon
+    - /trade/farming/thing/lemon

@@ -23,7 +23,7 @@ const OBJ_DIR = fileURLToPath(
 );
 // The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
 const PRODUCE_DIR = fileURLToPath(
-  new URL("../../../../../../content/trade-produce/content/trade/produce/", import.meta.url),
+  new URL("../../../../../../content/trade-farming/content/trade/farming/", import.meta.url),
 );
 const CH_DIR = fileURLToPath(
   new URL("../../../../../../content/world-seed/content/world/terminus/counting-houses/", import.meta.url),
@@ -109,12 +109,12 @@ describe("general-store content integrity", () => {
       const local = line.itemTemplatePath.startsWith(
         "/world/terminus/general-store/",
       );
-      const produce = line.itemTemplatePath.startsWith("/trade/produce/");
+      const produce = line.itemTemplatePath.startsWith("/trade/farming/");
       const dir = local ? STORE_DIR : produce ? PRODUCE_DIR : OBJ_DIR;
       const rel = local
         ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
         : produce
-          ? line.itemTemplatePath.replace("/trade/produce/", "")
+          ? line.itemTemplatePath.replace("/trade/farming/", "")
           : line.itemTemplatePath.replace("/stuff/", "");
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);

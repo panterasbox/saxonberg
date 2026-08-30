@@ -29,7 +29,7 @@ import Crate from '../../platform/thing/Crate';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
-const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-produce', 'trade-hearth-cooking'];
+const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-hearth-cooking'];
 /** The two corpo-owned yards: distilling's rows, owned via `parentOrganization`. */
 const VESHKO = '/trade/distilling/location/veshko-yard';
 const HOLLIS = '/trade/distilling';
@@ -173,7 +173,7 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     expect(ice.latentHeatOfFusion).toBe(334000);
     expect(ice.tags).toContain('ice');
     for (const key of ['lime', 'lemon', 'orange', 'grapefruit', 'mint', 'cherry', 'olive', 'cranberry']) {
-      expect(byPath.get(`/trade/produce/idea/material/${key}`)!.data.tags, key).toContain(key);
+      expect(byPath.get(`/trade/farming/idea/material/${key}`)!.data.tags, key).toContain(key);
     }
   });
 });

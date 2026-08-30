@@ -1,0 +1,39 @@
+# Snake plant — the same class as the peace lily, with the profile inverted
+# on BOTH axes at once: drought-tolerant (a third the transpiration, and
+# satisfied on a nearly dry root zone) and low-light-tolerant (happy at a
+# level that would stress the lily). It is slower to mature and modest at
+# the roots to match — the plant you can neglect.
+#
+# It ships as the general store's seed, which is how a player comes by a
+# second species. See docs/subsystems/husbandry.md.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a snake plant
+  primaryKeyword: "snake plant"
+  keywords: ["snake plant", snake, sansevieria, plant, houseplant]
+  longDescription: |
+    Stiff upright leaves stand in a blade-straight cluster, banded pale and dark like something that would rather not be touched. A snake plant, entirely indifferent to whether anyone remembers it exists.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/snake-plant
+  # No moisture reserve — the water lives in the ground (see peace-lily).
+  profile:
+    # Drought-tolerant: content on a nearly empty root zone, and it spends
+    # water a third as fast — so it survives a gap that kills the lily.
+    moistureHappyAt: 0.15
+    moistureWiltAt: 0.02
+    litresPerGameDay: 0.03
+    # Low-light-tolerant: a dim corner that stresses the lily suits it.
+    luxHappyAt: 8
+    luxDarkAt: 0.5
+    rootDemand:
+      seedling: 0.1
+      young: 0.5
+      established: 1.2
+      mature: 2.0
+    daysToStage:
+      young: 45
+      established: 130
+      mature: 240

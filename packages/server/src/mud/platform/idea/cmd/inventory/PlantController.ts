@@ -103,7 +103,7 @@ export default class PlantController extends CommandController<PlantModel> {
     // office is not agriculture.
     if (target.isFixedGround()) {
       // WHERE the bed stands, not what template it came from: every bed
-      // clones from `/trade/produce/thing/bed/garden`, so the template path would zone
+      // clones from `/trade/farming/thing/bed/garden`, so the template path would zone
       // every bed in the world identically. The parcel that governs it
       // is the one covering the ROOM it is in.
       //

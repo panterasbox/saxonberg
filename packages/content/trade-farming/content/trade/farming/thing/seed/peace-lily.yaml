@@ -1,0 +1,18 @@
+# A peace-lily seed. A discrete Thing (never Globbable — the store's stated
+# convention, and seed LOTS only become meaningful once genetics gives
+# fixed-vs-segregating lines something to mean). It names the plant template
+# it grows into and carries no inherited variation of its own.
+#
+# This is an ordinary /obj/ item, NOT a general-store `goods/` template: the
+# store's `itemTemplatePath` takes any path, and duplicating it under
+# `goods/` would mean two seeds that grow the same plant and drift apart.
+class: /platform/thing/Seed
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a peace lily seed
+  primaryKeyword: seed
+  keywords: [seed, "lily seed", "peace lily seed"]
+  longDescription: |
+    A single dark seed, barely bigger than a peppercorn, in a twist of waxed paper.
+  growsIntoPath: /trade/farming/thing/plant/peace-lily
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii

@@ -38,7 +38,7 @@ Load-bearing docs: [retail.md](../subsystems/retail.md),
   shortfall, carries it in and places it; the same three acts available
   to a player holding the position.
 - **The supply chain exists as trades.** `trade-distilling` whole;
-  `trade-brewing`, `trade-winemaking`, `trade-bottling`, `trade-produce`
+  `trade-brewing`, `trade-winemaking`, `trade-bottling`, `trade-farming`
   as stubs (everything downstream of production); hearth-cooking's
   pantry; a distributor the bar buys from that the producers consign
   into.
@@ -288,7 +288,7 @@ it.
 | **trade-brewing** (stub) | data | ale, lager; keg + cask presets; the tap's keg; a generic floor beer; "a pint" |
 | **trade-winemaking** (stub) | data | red, white, sparkling; dry + sweet vermouth (out of base-library); the wine bottle; generic floor wines; "a glass of …" |
 | **trade-bottling** (stub) | data | soda water, tonic, ginger beer, cola, grapefruit soda, bottled cranberry / orange juice; a bottle/can preset; the floor |
-| **trade-produce** (stub) | data | lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry; crate/basket presets; the floor; `crop/seed/plant/pot/bed` rows out of generic-objects |
+| **trade-farming** (stub) | data | lime, lemon, orange, grapefruit, mint, cherry, olive, cranberry; crate/basket presets; the floor; `crop/seed/plant/pot/bed` rows out of generic-objects |
 | **trade-hearth-cooking** | data | + the pantry: sugar, salt, coffee (out of base-library), simple syrup |
 | **corpo-veshko** | data | the Veshko distillery (`Business`) + Volk and the generic-under-mark rows |
 | **corpo-hollis** | data | Old Hollis, Hollis Cane (private label over Veshko's liquid) |

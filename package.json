@@ -22,7 +22,7 @@
     "@saxonberg/content-trade-distilling": "workspace:*",
     "@saxonberg/content-trade-hearth-cooking": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",
-    "@saxonberg/content-trade-produce": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-smithing": "workspace:*",
     "@saxonberg/content-trade-winemaking": "workspace:*",
     "@saxonberg/content-wiki-starter": "workspace:*",

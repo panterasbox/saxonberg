@@ -1,0 +1,14 @@
+{
+  "name": "@saxonberg/content-trade-farming",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The farming trade \u2014 growing end to end: the pots, bed, seeds and plants (production), plus the eight produce materials, their Provision items, the crate/basket presets, the crates at target and the farm outfit that consigns them (output).",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-distilling": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  }
+}

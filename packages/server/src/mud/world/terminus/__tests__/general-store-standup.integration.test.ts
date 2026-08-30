@@ -35,7 +35,7 @@ const STORE_DIR = fileURLToPath(
 );
 const OBJ_DIR = fileURLToPath(new URL("../../../../../../content/generic-objects/content/stuff/", import.meta.url));
 // The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
-const PRODUCE_DIR = fileURLToPath(new URL("../../../../../../content/trade-produce/content/trade/produce/", import.meta.url));
+const PRODUCE_DIR = fileURLToPath(new URL("../../../../../../content/trade-farming/content/trade/farming/", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/goods/torch";
 
@@ -46,10 +46,10 @@ const TORCH = "/world/terminus/general-store/goods/torch";
  * pots (and two seeds growing the same plant) drifting apart.
  */
 const GARDEN_LINES = [
-  "/trade/produce/thing/pot/small",
-  "/trade/produce/thing/pot/large",
+  "/trade/farming/thing/pot/small",
+  "/trade/farming/thing/pot/large",
   "/stuff/thing/vessel/soil-sack",
-  "/trade/produce/thing/seed/snake-plant",
+  "/trade/farming/thing/seed/snake-plant",
 ] as const;
 
 function seedDoc(rel: string): Doc {
@@ -64,10 +64,10 @@ function seedDoc(rel: string): Doc {
   };
 }
 
-/** Load a shipped row by template path — generic-objects' `/stuff/…` or the produce trade's `/trade/produce/…`. */
+/** Load a shipped row by template path — generic-objects' `/stuff/…` or the produce trade's `/trade/farming/…`. */
 function objDoc(path: string): Doc {
-  const file = path.startsWith("/trade/produce/")
-    ? `${PRODUCE_DIR}${path.replace("/trade/produce/", "")}.yaml`
+  const file = path.startsWith("/trade/farming/")
+    ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
     : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
   const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
   return {
@@ -155,8 +155,8 @@ describe("general-store standup (real seeds)", () => {
     // The large pot is the first purchase a player has a REASON to make, so
     // it must stay affordable against the 20-credit arrival stipend while
     // costing more than the small pot it replaces.
-    const small = counter.priceFor("/trade/produce/thing/pot/small")!;
-    const large = counter.priceFor("/trade/produce/thing/pot/large")!;
+    const small = counter.priceFor("/trade/farming/thing/pot/small")!;
+    const large = counter.priceFor("/trade/farming/thing/pot/large")!;
     expect(large).toBeGreaterThan(small);
     expect(large).toBeLessThan(20);
   });
@@ -183,6 +183,6 @@ describe("general-store standup (real seeds)", () => {
 
     // The seed names the plant it grows into (and is discrete, per above).
     const seed = counter.resolveBuy("snake plant seed") as unknown as Seed;
-    expect(seed.getGrowsIntoPath()).toBe("/trade/produce/thing/plant/snake-plant");
+    expect(seed.getGrowsIntoPath()).toBe("/trade/farming/thing/plant/snake-plant");
   });
 });

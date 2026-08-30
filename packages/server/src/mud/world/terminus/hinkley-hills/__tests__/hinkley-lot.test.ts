@@ -44,7 +44,7 @@ describe("the yard ships the kit that makes it workable", () => {
   });
 
   it("ships the bed and the water source", () => {
-    expect(populates).toContain("/trade/produce/thing/bed/garden");
+    expect(populates).toContain("/trade/farming/thing/bed/garden");
     expect(populates).toContain(`/${HINKLEY}/standpipe`);
   });
 

@@ -1,0 +1,38 @@
+# Carrots — the first CROP. Everything about how it grows is the same
+# engine the two houseplants run on; what makes it a crop is two fields
+# the ornamentals leave unset: `harvestTemplatePath` and `nutrientDraw`.
+#
+# The profile is tuned as an outdoor annual against the peace lily's
+# indoor one: thirstier than a lily per day (it is in the sun and it is
+# building a root), far more light-hungry (25 lux satisfies a houseplant;
+# a field crop wants full daylight), and MUCH faster to mature — 84
+# game-days rather than 168, so a season is a season and not a year.
+#
+# `rootDemand` at maturity is 3 L, which is exactly a full bed's share
+# when four are planted in 12 L. Plant four and they finish; plant four
+# in a bed you never fed and the nitrogen runs out first.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a row of carrots
+  primaryKeyword: carrots
+  keywords: [carrot, carrots, "carrot tops", tops, crop]
+  longDescription: |
+    Feathery green tops stand up in a close row, the soil around them cracked where something is swelling underneath.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/carrot
+  harvestTemplatePath: /trade/farming/thing/crop/carrot
+  # Percentage points of the bed's nitrogen one crop takes with it. Four
+  # carrots off a full bed leave it at 40% — one more round without
+  # feeding and the fourth limiting factor starts to bite.
+  nutrientDraw: 15
+  profile:
+    moistureHappyAt: 0.3
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.12
+    luxHappyAt: 120
+    luxDarkAt: 15
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 14, established: 42, mature: 84 }

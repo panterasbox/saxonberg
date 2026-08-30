@@ -123,7 +123,7 @@ function makePlant(): Plant {
     p.setLifecycleState('alive');
     p.setProfile(lilyProfile());
     return p;
-  }, freshPath('/trade/produce/thing/plant/_feed'));
+  }, freshPath('/trade/farming/thing/plant/_feed'));
 }
 
 /** A bed with `nitrogen` percentage points already in it. */
@@ -157,7 +157,7 @@ function makeBed(nitrogen = 100): GardenBed {
       ),
     );
     return bed;
-  }, freshPath('/trade/produce/thing/bed/_feed'));
+  }, freshPath('/trade/farming/thing/bed/_feed'));
 }
 
 /** A pot — moisture only, NO nitrogen. */
@@ -181,7 +181,7 @@ function makePot(): PlantPot {
       ),
     );
     return pot;
-  }, freshPath('/trade/produce/thing/pot/_feed'));
+  }, freshPath('/trade/farming/thing/pot/_feed'));
 }
 
 function makeSack(litres: number): Receptacle {
