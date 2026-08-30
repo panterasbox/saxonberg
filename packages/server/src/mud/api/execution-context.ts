@@ -135,8 +135,52 @@ export interface RunRootOpts {
   jurisdictionBound?: string;
 }
 
-/** ALS-backed storage. Mutating operations replace the array immutably. */
-const _als = new AsyncLocalStorage<CallFrame[]>();
+/**
+ * One link of the call stack.
+ *
+ * ⭐ A linked list, not an array, and that is the whole point: a push is
+ * one allocation regardless of how deep the stack already is. The array
+ * form copied its parent on every push (`[...parent, frame]`), which is
+ * O(depth) work on the hottest path in the engine — and play runs deep.
+ * Measured on `bench-gate`'s depth sweep: a dispatch cost 3.96 us at the
+ * top of an empty stack and 8.2 us two hundred frames down, and the
+ * difference was the copy.
+ *
+ * `root` is carried on every node rather than walked to, because the
+ * sandbox boundary reads frame-0's metadata on every single dispatch and
+ * that read must stay O(1).
+ */
+interface FrameNode {
+  readonly frame: CallFrame;
+  readonly parent: FrameNode | null;
+  /** Frame 0. Self on a root node. */
+  root: FrameNode;
+}
+
+/** ALS-backed storage — the innermost frame; walk `parent` for the rest. */
+const _als = new AsyncLocalStorage<FrameNode>();
+
+/** Link `frame` beneath the current node (or start a fresh stack). */
+function _linkFrame(frame: CallFrame, parent: FrameNode | null): FrameNode {
+  const node: FrameNode = { frame, parent, root: null as unknown as FrameNode };
+  node.root = parent !== null ? parent.root : node;
+  return node;
+}
+
+/**
+ * The frames outermost-first, as an array. Only the three readers that
+ * genuinely need the whole stack pay for it (`getCallStack`,
+ * `getCommandStack`, `dumpCallStack`) — none of them is on a hot path.
+ */
+function _materialise(node: FrameNode | undefined): CallFrame[] {
+  if (!node) return [];
+  const out: CallFrame[] = [];
+  for (let n: FrameNode | null = node; n !== null; n = n.parent) {
+    out.push(n.frame);
+  }
+  out.reverse();
+  return out;
+}
 
 /**
  * The capability handed back by {@link ExecutionContextApi.claimFramePush}
@@ -171,9 +215,7 @@ function _pushFrame<T>(
     kind: opts?.kind,
     metadata: opts?.metadata,
   };
-  const parent = _als.getStore() ?? [];
-  const next = [...parent, frame];
-  return _als.run(next, fn);
+  return _als.run(_linkFrame(frame, _als.getStore() ?? null), fn);
 }
 
 /* ────────────────── Caller authorisation ──────────────────
@@ -353,9 +395,8 @@ export class ExecutionContextApi {
    * `run`/`runRoot` wrapper) or if the top frame has a null caller.
    */
   public static getCaller(): unknown | null {
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) return null;
-    return stack[stack.length - 1]!.caller;
+    const node = _als.getStore();
+    return node ? node.frame.caller : null;
   }
 
   /**
@@ -364,9 +405,8 @@ export class ExecutionContextApi {
    * `this` matches the framework's view.
    */
   public static getCurrentTarget(): unknown | null {
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) return null;
-    return stack[stack.length - 1]!.target;
+    const node = _als.getStore();
+    return node ? node.frame.target : null;
   }
 
   /**
@@ -374,8 +414,7 @@ export class ExecutionContextApi {
    * Always returns an array (empty if no context).
    */
   public static getCallStack(): CallStack {
-    const stack = _als.getStore();
-    return stack ?? [];
+    return _materialise(_als.getStore());
   }
 
   /**
@@ -387,11 +426,8 @@ export class ExecutionContextApi {
    * topmost Command frame whose target is admin-flagged").
    */
   public static findFrame(kind: FrameKind): CallFrame | null {
-    const stack = _als.getStore();
-    if (!stack) return null;
-    for (let i = stack.length - 1; i >= 0; i--) {
-      const frame = stack[i]!;
-      if (frame.kind === kind) return frame;
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      if (n.frame.kind === kind) return n.frame;
     }
     return null;
   }
@@ -410,13 +446,13 @@ export class ExecutionContextApi {
    */
   public static tagCurrentFrame(kind: FrameKind): void {
     _assertFrameMutatorAllowed('tagCurrentFrame');
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) {
+    const node = _als.getStore();
+    if (!node) {
       throw new SecurityError(
         `tagCurrentFrame(${kind}): no frame on the stack to tag`
       );
     }
-    stack[stack.length - 1]!.kind = kind;
+    node.frame.kind = kind;
   }
 
   /**
@@ -480,12 +516,9 @@ export class ExecutionContextApi {
     }
     // No command frame — a REST/`runRoot` dispatch. Read the nearest
     // `tagActingAuthor` stamp (the boundary names its Avatar in metadata).
-    const stack = _als.getStore();
-    if (stack) {
-      for (let i = stack.length - 1; i >= 0; i--) {
-        const author = stack[i]!.metadata?.actingAuthor;
-        if (author != null) return author;
-      }
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const author = n.frame.metadata?.actingAuthor;
+      if (author != null) return author;
     }
     return null;
   }
@@ -505,13 +538,13 @@ export class ExecutionContextApi {
    */
   public static tagActingAuthor(principal: unknown): void {
     _assertFrameMutatorAllowed('tagActingAuthor');
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) {
+    const node = _als.getStore();
+    if (!node) {
       throw new SecurityError(
         'tagActingAuthor: no frame on the stack to tag'
       );
     }
-    const top = stack[stack.length - 1]!;
+    const top = node.frame;
     if (!top.metadata) top.metadata = {};
     top.metadata.actingAuthor = principal;
   }
@@ -541,8 +574,7 @@ export class ExecutionContextApi {
     context: CommandContext;
     forced: boolean;
   }> {
-    const stack = _als.getStore();
-    if (!stack) return [];
+    const stack = _materialise(_als.getStore());
     const out: { context: CommandContext; forced: boolean }[] = [];
     for (const frame of stack) {
       if (frame.kind !== FrameKind.Command) continue;
@@ -586,9 +618,9 @@ export class ExecutionContextApi {
    * accepts scope as a parameter; everything derives it from here.
    */
   public static getCircleScope(): string | null {
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) return null;
-    return (stack[0]!.metadata?.circleScope as string | undefined) ?? null;
+    const node = _als.getStore();
+    if (!node) return null;
+    return (node.root.frame.metadata?.circleScope as string | undefined) ?? null;
   }
 
   /**
@@ -598,10 +630,10 @@ export class ExecutionContextApi {
    * this is null on every ordinary path.
    */
   public static getJurisdictionBound(): string | null {
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) return null;
+    const node = _als.getStore();
+    if (!node) return null;
     return (
-      (stack[0]!.metadata?.jurisdictionBound as string | undefined) ?? null
+      (node.root.frame.metadata?.jurisdictionBound as string | undefined) ?? null
     );
   }
 
@@ -614,9 +646,9 @@ export class ExecutionContextApi {
     scope: string | null;
     bound: string | null;
   } {
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) return { scope: null, bound: null };
-    const md = stack[0]!.metadata;
+    const node = _als.getStore();
+    if (!node) return { scope: null, bound: null };
+    const md = node.root.frame.metadata;
     if (!md) return { scope: null, bound: null };
     return {
       scope: (md.circleScope as string | undefined) ?? null,
@@ -637,13 +669,13 @@ export class ExecutionContextApi {
    */
   public static establishCircleScope(scope: string): void {
     _assertFrameMutatorAllowed('establishCircleScope');
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) {
+    const node = _als.getStore();
+    if (!node) {
       throw new SecurityError(
         'establishCircleScope: no frame on the stack to establish scope on'
       );
     }
-    const root = stack[0]!;
+    const root = node.root.frame;
     const existing = root.metadata?.circleScope;
     if (existing != null) {
       throw new SecurityError(
@@ -664,10 +696,8 @@ export class ExecutionContextApi {
    * either way, the live "originating command id" surfaces here.
    */
   public static getCurrentCausingCommandId(): string | null {
-    const stack = _als.getStore();
-    if (!stack) return null;
-    for (let i = stack.length - 1; i >= 0; i--) {
-      const id = stack[i]!.metadata?.causingCommandId;
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const id = n.frame.metadata?.causingCommandId;
       if (typeof id === 'string') return id;
     }
     return null;
@@ -689,13 +719,13 @@ export class ExecutionContextApi {
     patch: Record<string, unknown>
   ): void {
     _assertFrameMutatorAllowed('updateCurrentFrameMetadata');
-    const stack = _als.getStore();
-    if (!stack || stack.length === 0) {
+    const node = _als.getStore();
+    if (!node) {
       throw new SecurityError(
         'updateCurrentFrameMetadata: no frame on the stack to update'
       );
     }
-    const top = stack[stack.length - 1]!;
+    const top = node.frame;
     if (!top.metadata) top.metadata = {};
     Object.assign(top.metadata, patch);
   }
@@ -705,7 +735,7 @@ export class ExecutionContextApi {
    * human-formatted; do not parse this output.
    */
   public static dumpCallStack(): string {
-    const stack = _als.getStore() ?? [];
+    const stack = _materialise(_als.getStore());
     if (stack.length === 0) return '<empty call stack>';
     return stack
       .map((f, i) => {
@@ -829,7 +859,7 @@ export class ExecutionContextApi {
       kind: FrameKind.Root,
       metadata: _scopeMetadata(opts),
     };
-    return _als.run([root], fn);
+    return _als.run(_linkFrame(root, null), fn);
   }
 
   /**
@@ -870,7 +900,7 @@ export class ExecutionContextApi {
     };
     try {
       return await _als.run(
-        [root],
+        _linkFrame(root, null),
         () => Promise.resolve(fn()) as Promise<T>
       );
     } catch (err) {
@@ -887,7 +917,7 @@ export class ExecutionContextApi {
    */
   public static _clearForTesting(): void {
     SecurityApi.assertTestOnly('_clearForTesting');
-    _als.enterWith(undefined as unknown as CallFrame[]);
+    _als.enterWith(undefined as unknown as FrameNode);
   }
 
   /**

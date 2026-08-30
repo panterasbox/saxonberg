@@ -100,11 +100,15 @@ function bench(variants: Variant[]): Map<string, number> {
  * 2x REGRESSION from an optimisation. `--force` runs anyway and says so.
  */
 function assertQuiet(): void {
-  const load = loadavg()[0]!;
+  // +1 core for this process's own tsx compile: the guard reads load
+  // AFTER the import graph is built, so our own warm-up is in the number
+  // it is judging. Without the allowance the guard refuses a machine
+  // that is quiet apart from us.
+  const load = loadavg()[0]! - 1;
   const budget = Math.max(1, cpus().length / 4);
   if (load <= budget) return;
   const msg =
-    `bench-gate: the machine is NOT quiet — 1-min load ${load.toFixed(1)} ` +
+    `bench-gate: the machine is NOT quiet — 1-min load ${(load + 1).toFixed(1)} ` +
     `over a budget of ${budget.toFixed(1)} on ${cpus().length} cores.`;
   if (process.argv.includes("--force")) {
     console.error(`${msg}\n  ⚠ --force: the numbers below are CONTAMINATED.\n`);
