@@ -54,9 +54,33 @@ import type { Stuff } from '../lib/stuff/Stuff';
  * dereferences this slot at runtime only, by which point the wiring
  * pass has run.
  */
+/**
+ * The two ShadowApi entries the security gate calls on EVERY method
+ * dispatch in the engine, as RAW functions.
+ *
+ * ⭐ Every static on an Api class is wrapped by `decorateApiClass` so
+ * that a static call resolves a policy and pushes a frame. For these two
+ * that wrapping is pure cost: both are `@internal` helpers under the
+ * Public fallback policy, so the gate was resolving a policy it always
+ * passes and pushing a frame nothing ever reads — twice, before it could
+ * decide anything about the call it was actually gating. It was the
+ * security layer paying its own toll to ask itself a question.
+ *
+ * So `ShadowApi` hands these over unwrapped, captured before its own
+ * decoration runs. `_withDispatch` and `_invokeOnShadow` stay gated:
+ * they fire only when a shadow is actually attached, which is rare, and
+ * they are the ones worth a frame.
+ */
+interface ShadowGateEntries {
+  consumeBypass(): boolean;
+  shadowsFor(host: object, methodName: string): ReadonlyArray<object> | null;
+}
+
 interface ShadowApiLike {
   _consumeBypass(): boolean;
   _shadowsFor(host: object, methodName: string): ReadonlyArray<object> | null;
+  /** The raw per-dispatch pair — see {@link ShadowGateEntries}. */
+  _gateEntries(): ShadowGateEntries;
   _withDispatch<T>(
     host: object,
     methodName: string,
@@ -453,6 +477,22 @@ export class SecurityApi {
     SecurityApi.#wrapStaticDescriptor(cls as ClassKey, methodName, descriptor);
   }
 
+  /**
+   * The static wrapper's denial throw, hoisted for the same reason the
+   * gate's is: it was allocated on every static Api call in the engine
+   * to be used on almost none of them.
+   */
+  static #denyStatic(
+    cls: ClassKey,
+    methodName: string,
+    policy: SecurityPolicy
+  ): never {
+    throw new SecurityError(
+      `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
+      { methodName, policyName: policy.name }
+    );
+  }
+
   static #wrapStaticDescriptor(
     cls: ClassKey,
     methodName: string,
@@ -466,21 +506,15 @@ export class SecurityApi {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
       const allowed = policy.allows(caller, cls, methodName, args);
-      const deny = (): never => {
-        throw new SecurityError(
-          `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
-          { methodName, policyName: policy.name }
-        );
-      };
       if (allowed instanceof Promise) {
         return allowed.then((ok) => {
-          if (!ok) deny();
+          if (!ok) SecurityApi.#denyStatic(cls, methodName, policy);
           return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
             original.apply(this, args)
           );
         });
       }
-      if (!allowed) deny();
+      if (!allowed) SecurityApi.#denyStatic(cls, methodName, policy);
       return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
         original.apply(this, args)
       );
@@ -617,6 +651,9 @@ export class SecurityApi {
 
   static #shadowApi: ShadowApiLike | null = null;
 
+  /** The unwrapped per-dispatch pair — see {@link ShadowGateEntries}. */
+  static #shadowGate: ShadowGateEntries | null = null;
+
   /**
    * Slot for the boot wiring to hand `ShadowApi` to the security gate
    * (`BootstrapManager.installFrameworkWiring`); idempotent.
@@ -624,6 +661,7 @@ export class SecurityApi {
    */
   public static _registerShadowApi(impl: ShadowApiLike): void {
     SecurityApi.#shadowApi = impl;
+    SecurityApi.#shadowGate = impl._gateEntries();
   }
 
   /* ───────────────── Sandbox boundary check (Layer 4) ─────────────────
@@ -1129,12 +1167,12 @@ export class SecurityApi {
     ctx: InterceptionContext,
     next: () => unknown
   ): unknown => {
-    const shadowApi = SecurityApi.#shadowApi;
+    const shadowGate = SecurityApi.#shadowGate;
 
     // (a) bypass marker — single-shot, consumed atomically. Skips the
     // check entirely if ShadowApi hasn't registered yet (only happens
     // during boot before any Stuff exists, so no shadows are possible).
-    if (shadowApi?._consumeBypass()) {
+    if (shadowGate?.consumeBypass()) {
       return next();
     }
 
@@ -1246,11 +1284,11 @@ export class SecurityApi {
       // and it does not run on the hot path.
       return allowedOrPromise.then((ok) => {
         if (!ok) SecurityApi.#deny(ctx, policy);
-        return SecurityApi.#proceed(ctx, caller, shadowApi, next);
+        return SecurityApi.#proceed(ctx, caller, shadowGate, next);
       });
     }
     if (!allowedOrPromise) SecurityApi.#deny(ctx, policy);
-    return SecurityApi.#proceed(ctx, caller, shadowApi, next);
+    return SecurityApi.#proceed(ctx, caller, shadowGate, next);
   };
 
   /** The denial throw, hoisted so the gate allocates nothing to refuse. */
@@ -1280,7 +1318,7 @@ export class SecurityApi {
   static #proceed(
     ctx: InterceptionContext,
     caller: unknown,
-    shadowApi: ShadowApiLike | null,
+    shadowGate: ShadowGateEntries | null,
     next: () => unknown
   ): unknown {
     // 2a. Residency last-touch instrumentation. Fires only on a
@@ -1298,11 +1336,14 @@ export class SecurityApi {
     // stored the proxy, so lookup must use the same identity. When
     // shadows fire, the chain is a complete replacement for the raw
     // call — we don't call next() in this branch.
-    const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop) ?? null;
+    const shadows = shadowGate?.shadowsFor(ctx.proxy, ctx.prop) ?? null;
     if (shadows && shadows.length > 0) {
-      // The shadow path allocates: it is the rare branch, and its
-      // choreography genuinely needs the nesting.
-      return shadowApi!._withDispatch(
+      // The shadow path allocates, and calls the GATED ShadowApi
+      // statics: it fires only when a shadow is attached, which is rare,
+      // and its choreography genuinely needs both the nesting and the
+      // frames.
+      const shadowApi = SecurityApi.#shadowApi!;
+      return shadowApi._withDispatch(
         ctx.proxy,
         ctx.prop,
         shadows,

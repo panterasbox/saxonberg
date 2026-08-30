@@ -55,8 +55,16 @@ class Probe extends PropertiedMixin(ContainableMixin(DetailedMixin(Thing))) {
   }
 }
 
-const ITERS = 100_000;
-const TRIALS = 5;
+const ITERS = Number(process.env.BENCH_ITERS ?? 100_000);
+const TRIALS = Number(process.env.BENCH_TRIALS ?? 5);
+
+/**
+ * `--hot` runs ONLY the production path, for a long time, and skips the
+ * sweeps. It exists to be profiled: a profile of the full bench is
+ * mostly module load and stubbed variants, so the thing you are trying
+ * to see is a rounding error in it.
+ */
+const HOT_ONLY = process.argv.includes("--hot");
 
 /** Median ns/call over interleaved trials. */
 function median(xs: number[]): number {
@@ -161,6 +169,15 @@ function main(): void {
         realResolve;
     };
   };
+
+  if (HOT_ONLY) {
+    const t0 = process.hrtime.bigint();
+    for (let i = 0; i < ITERS; i++) p.bump();
+    console.log(
+      `  hot path  ${(Number(process.hrtime.bigint() - t0) / ITERS).toFixed(0)} ns/call over ${ITERS} calls`
+    );
+    process.exit(0);
+  }
 
   const results = bench([
     { label: "raw (no proxy)", run: () => void raw.bump() },
