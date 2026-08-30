@@ -69,7 +69,16 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       "/platform/thing/Chair", // bed, tub, armchair — slots authored per seed
       "/platform/thing/Oven", // the range
       "/platform/thing/Chest", // the larder
-      "/platform/thing/UnboundedReceptacle", // the basin
+      // The basin. ⭐ It was `/platform/thing/UnboundedReceptacle` — but
+      // that class means only *inexhaustible liquid source*, and its
+      // other shipped row is a COFFEE URN, so `wash` sat on a class that
+      // offered you a verb for washing a glass in the coffee.
+      // `WaterFixture` is the deliberate split this test exists to
+      // force: plumbed water you can work at, and the thing that affords
+      // `wash` (in `peers`, so a person standing at it can actually see
+      // the verb — it was in `environment`, which reaches only the
+      // containers ABOVE a thing, and nobody carries a basin).
+      "/platform/thing/WaterFixture",
       "/platform/thing/Surface", // the counter
       "/platform/thing/Prop", // the toilet — prose, no capability
     ]);

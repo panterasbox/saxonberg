@@ -65,10 +65,15 @@ export default class GetController extends CommandController<GetModel> {
     // one question with one owner: `PerceptionApi.canReach`. It knows
     // about open containers, so the rack's coupe and the stock's keg
     // answer true without this file knowing what a container is.
-    const candidates = stuff.filter(
-      (s) =>
-        PerceptionApi.canReach(giver, s) &&
-        !inventory.some((it) => it.stuffId === s.stuffId)
+    // ⚠ ONE reach walk for the whole list — never `canReach` per
+    // candidate. Each `canReach` re-walks the room and one level into
+    // every open container AND pays a call-security stack capture, so
+    // the per-candidate form is quadratic: a live drive found 96.5% of
+    // the server's CPU in this controller, with `get produce` binding
+    // every item in an open floor stock.
+    const reachable = PerceptionApi.reachableAmong(giver, stuff);
+    const candidates = reachable.filter(
+      (s) => !inventory.some((it) => it.stuffId === s.stuffId)
     );
 
     const result = await GlobbableApi.applyQuantity<GetPayload>(
@@ -104,11 +109,15 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     const pickedNames: string[] = [];
-    for (const target of targets) {
+    // ⚠ Same rule, one walk — see the note in `execute`.
+    const reachable = PerceptionApi.reachableAmong(
+      context.commandGiver,
+      targets,
+    );
+    for (const target of reachable) {
       if (inventory.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
-      if (!PerceptionApi.canReach(context.commandGiver, target)) continue;
       if (this.pickUpOperand(target, context)) {
         pickedNames.push(target.getPresentation());
       }
