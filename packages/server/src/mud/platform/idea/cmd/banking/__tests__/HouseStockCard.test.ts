@@ -77,7 +77,7 @@ describe('the stock card', () => {
     // The house app runs on a screen: the house tablet in hand (display.md).
     const tablet = await StuffApi.create(() => new Tablet());
     tablet.setPairing('staff');
-    tablet.setSourcePolicy('cards');
+    tablet.setShows(['card']);
     tablet.setPrincipal('/stuff/test/bar/business');
     ContainmentApi.move(tablet, h.avatar);
 

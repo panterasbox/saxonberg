@@ -383,14 +383,13 @@ export default class LookController extends CommandController<LookModel> {
       }
     }
     // A display reads what it shows — the booth's television, the house
-    // tablet with the stock sheet up.
+    // tablet with the stock sheet up, the terminal's departures. ⭐ The
+    // screen renders itself: `readScreen(viewer)` is the PROSE arm, and
+    // it is per-viewer, so a board that annotates against the reader's
+    // own credential resolves here rather than being pushed at the room.
     if (MixinApi.isDisplay(target)) {
-      const showing = target.getShowing();
-      if (showing) {
-        const what =
-          showing.kind === 'stream' ? showing.label : `the ${showing.cardId} card`;
-        body = Mml.compose`${body}── Showing: ${what}.`;
-      }
+      const screen = await target.readScreen(actor);
+      if (screen) body = Mml.compose`${body}── ${screen}`;
     }
     // The same drill-in for an OPEN container: the glass rack's coupes,
     // a crate's limes. A sealed one (a closed chest, a capped bottle)

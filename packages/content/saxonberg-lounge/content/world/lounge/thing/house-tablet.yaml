@@ -11,6 +11,7 @@ data:
   primaryKeyword: tablet
   keywords: [tablet, house-tablet, screen]
   pairing: staff
-  sourcePolicy: cards
+  shows:
+    - card
   principal: /world/lounge/idea/business
   mass: 0.5

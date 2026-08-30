@@ -186,7 +186,7 @@ describe('WatchController', () => {
       ContainmentApi.move(actor, location);
       await run({ target: 'shroud', twitch: true, on: { stuff: tv, raw: 'tv' } });
       expect(tv.getShowing()).toEqual({
-        kind: 'stream',
+        kind: 'video',
         target: { platform: 'twitch', channel: 'shroud' },
         label: 'Twitch #shroud',
       });

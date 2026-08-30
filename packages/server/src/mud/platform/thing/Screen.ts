@@ -1,7 +1,8 @@
 /**
  * Screen — a wall-mounted display: `DisplayMixin` on a self-seating
  * `Fixture` Thing, not portable. A wall TV is a row over this with
- * `pairing: remote`, `remote: <the remote's row>`, `sourcePolicy: any`
+ * `pairing: remote`, `remote: <the remote's row>` and no `shows` (all
+ * three kinds)
  * (no row ships yet — the lounge's themed booths are its first home). Pairing is the screen's field, never the remote's — a `Remote`
  * is a plain thing you carry.
  */

@@ -3,10 +3,20 @@
  * can see it (D12). A tablet, a wall TV, the terminal's departures board
  * — one mixin, output optical, the difference is data.
  *
- * A display shows a `DisplaySource`: a **stream** (the focal embed the
- * `watch` verb already writes per viewer) or a **card** (pushed through
- * the card rail's one birth path). What it shows is a runtime fact — a
- * screen is dark on boot. Who may DRIVE it is the `pairing` policy:
+ * Two axes, deliberately separate, because the first cut of this mixin
+ * fused them and `sourcePolicy: 'any' | 'cards' | 'streams'` was the
+ * seam — a PERMISSION field whose values were RENDERING kinds:
+ *
+ *  - **what it shows** — a `DisplaySource`, carrying its own
+ *    `DisplayKind` (`video` | `card` | `prose`). The kind decides which
+ *    client component renders it; the screen does not decide, and does
+ *    not need to know. What it shows is a runtime fact — a screen is
+ *    dark on boot.
+ *  - **what it will admit** — `shows: DisplayKind[]`, a policy over
+ *    kinds. A departures board is `shows: ['prose']`; a screen with no
+ *    row narrowing it admits all three.
+ *
+ * Who may DRIVE it is the `pairing` policy:
  *
  *  - `held`   — whoever carries it;
  *  - `remote` — whoever carries the paired remote (`remote` names it);
@@ -40,9 +50,9 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { WatchTarget, CardId } from '@saxonberg/types';
-import type { Mml } from '../../api/mml';
 import type { HasInteractive } from '../connection/HasInteractive';
 import Location from '../stuff/Location';
+import { Mml } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { CardApi } from '../../api/card';
@@ -60,16 +70,29 @@ export const DISPLAY_PAIRINGS: readonly DisplayPairing[] = [
   'open',
 ];
 
-export type DisplaySourcePolicy = 'any' | 'cards' | 'streams';
-export const DISPLAY_SOURCE_POLICIES: readonly DisplaySourcePolicy[] = [
-  'any',
-  'cards',
-  'streams',
-];
+/**
+ * ⭐ **How the content manifests** — the axis the first cut of this mixin
+ * did not model at all. A screen's contents reach a player three ways,
+ * and they are different *client components*, not different data:
+ *
+ *  - `video` — an embed the client renders (live or recorded; which of
+ *    the two is a property of the content, and organising it into
+ *    networks or guides is a later ADDRESSING layer that changes
+ *    nothing here);
+ *  - `card`  — an app: controls and feedback, on the card rail;
+ *  - `prose` — ordinary game text, read off the screen.
+ *
+ * The kind is carried, explicit and total, so the arms are exhaustive
+ * rather than "the two we built plus a fudge". A screen no longer
+ * declares *"I do cards"*: it shows content, and the content knows how
+ * it manifests.
+ */
+export type DisplayKind = 'video' | 'card' | 'prose';
+export const DISPLAY_KINDS: readonly DisplayKind[] = ['video', 'card', 'prose'];
 
-/** What a display shows. A stream is the focal embed; a card is pushed. */
+/** What a display shows. */
 export type DisplaySource =
-  | { kind: 'stream'; target: WatchTarget; label: string }
+  | { kind: 'video'; target: WatchTarget; label: string }
   | {
       kind: 'card';
       cardId: CardId;
@@ -77,14 +100,16 @@ export type DisplaySource =
       key: string;
       /** The prose the driver's command emitted — rides the card. */
       prose?: Mml;
-    };
+    }
+  | { kind: 'prose'; body: Mml };
 
 /** Public shape provided by DisplayMixin. */
 export interface Display {
   getPairing(): DisplayPairing;
   setPairing(p: DisplayPairing): void;
-  getSourcePolicy(): DisplaySourcePolicy;
-  setSourcePolicy(p: DisplaySourcePolicy): void;
+  /** The kinds this screen admits — a policy OVER kinds, not the mechanism. */
+  getShows(): DisplayKind[];
+  setShows(kinds: DisplayKind[]): void;
   /** The Business path the `staff` policy checks, or `''`. */
   getPrincipal(): string;
   setPrincipal(path: string): void;
@@ -94,6 +119,18 @@ export interface Display {
   getShowing(): DisplaySource | null;
   /** Whether the policy admits this source kind. */
   acceptsSource(source: DisplaySource): boolean;
+  /**
+   * ⭐ The PROSE arm: what `viewer` reads off this screen right now, or
+   * `null` when it is dark. Resolved at READ time and per viewer, which
+   * is why prose needs no projection — see `project`.
+   *
+   * The default renders the showing source: a prose body verbatim, a
+   * video or card as the one-line "Showing: …" a look already gave. A
+   * host whose board is COMPUTED rather than driven overrides this —
+   * the TPA terminal's departures, which annotate against the reader's
+   * own travel credential and could never have been one shared payload.
+   */
+  readScreen(viewer: Stuff): Promise<Mml | null>;
 
   /** The pairing policy: may `actor` drive this screen? */
   mayDrive(actor: Stuff): Promise<boolean>;
@@ -123,13 +160,18 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
 
     static fieldMeta: FieldMeta = {
       pairing: { persistent: true, authorable: true },
-      sourcePolicy: { persistent: true, authorable: true },
+      shows: { persistent: true, authorable: true },
       principal: { persistent: true, authorable: true, authorPicker: 'Template' },
       remote: { persistent: true, authorable: true, authorPicker: 'Template' },
     };
 
     pairing: DisplayPairing = 'open';
-    sourcePolicy: DisplaySourcePolicy = 'any';
+    /**
+     * Every kind, unless a row narrows it. The default is TOTAL rather
+     * than an `'any'` sentinel: a fourth kind would otherwise have to
+     * teach the sentinel about itself.
+     */
+    shows: DisplayKind[] = [...DISPLAY_KINDS];
     principal = '';
     remote = '';
 
@@ -145,14 +187,16 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
       }
       this.pairing = p;
     }
-    getSourcePolicy(): DisplaySourcePolicy {
-      return this.sourcePolicy;
+    getShows(): DisplayKind[] {
+      return this.shows;
     }
-    setSourcePolicy(p: DisplaySourcePolicy): void {
-      if (!DISPLAY_SOURCE_POLICIES.includes(p)) {
-        throw new Error(`Display.sourcePolicy: unknown policy '${String(p)}'`);
+    setShows(kinds: DisplayKind[]): void {
+      for (const k of kinds) {
+        if (!DISPLAY_KINDS.includes(k)) {
+          throw new Error(`Display.shows: unknown kind '${String(k)}'`);
+        }
       }
-      this.sourcePolicy = p;
+      this.shows = [...kinds];
     }
     getPrincipal(): string {
       return this.principal;
@@ -170,9 +214,20 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
       return this._showing;
     }
     acceptsSource(source: DisplaySource): boolean {
-      const policy = this.sourcePolicy;
-      if (policy === 'any') return true;
-      return policy === 'cards' ? source.kind === 'card' : source.kind === 'stream';
+      return this.shows.includes(source.kind);
+    }
+
+    async readScreen(_viewer: Stuff): Promise<Mml | null> {
+      const source = this._showing;
+      if (!source) return null;
+      switch (source.kind) {
+        case 'prose':
+          return source.body;
+        case 'video':
+          return Mml.compose`Showing: ${source.label}.`;
+        case 'card':
+          return Mml.compose`Showing: the ${source.cardId} card.`;
+      }
     }
 
     // ---- driving -------------------------------------------------------
@@ -222,7 +277,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
       const previous = this._showing;
       this._showing = source;
       for (const viewer of this.viewersOf()) {
-        if (previous?.kind === 'stream' && source.kind !== 'stream') {
+        if (previous?.kind === 'video' && source.kind !== 'video') {
           this.clearWatch(viewer);
         }
         this.project(viewer, source);
@@ -276,24 +331,45 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
 
     // ---- internals -----------------------------------------------------
 
+    /**
+     * The three arms, exhaustively. Each is a different CLIENT COMPONENT
+     * reached by a different channel — which is precisely the axis that
+     * has to be carried rather than inferred.
+     */
     private project(viewer: Stuff & HasInteractive, source: DisplaySource): void {
       const self = this as unknown as Stuff;
-      if (source.kind === 'stream') {
-        const target: WatchTarget = {
-          ...source.target,
-          display: { stuffId: self.stuffId, label: self.getPresentation() },
-        };
-        viewer.setClientState(WATCH_KEY, target);
-        viewer.pushClientStateUpdate(WATCH_KEY, target);
-        return;
-      }
-      for (const interactive of viewer.getInteractives()) {
-        CardApi.push(interactive, source.cardId, {
-          key: source.key,
-          subjectId: source.subjectId,
-          prose: source.prose,
-          title: (this as unknown as Stuff).getPresentation(),
-        });
+      switch (source.kind) {
+        case 'video': {
+          const target: WatchTarget = {
+            ...source.target,
+            display: { stuffId: self.stuffId, label: self.getPresentation() },
+          };
+          viewer.setClientState(WATCH_KEY, target);
+          viewer.pushClientStateUpdate(WATCH_KEY, target);
+          return;
+        }
+        case 'card': {
+          for (const interactive of viewer.getInteractives()) {
+            CardApi.push(interactive, source.cardId, {
+              key: source.key,
+              subjectId: source.subjectId,
+              prose: source.prose,
+              title: self.getPresentation(),
+            });
+          }
+          return;
+        }
+        case 'prose':
+          // ⭐ **Prose has no projection, and that is the finding.** The
+          // other two arms push because the client holds a component that
+          // must be told; prose is ordinary game text the client already
+          // renders, and what a screen says is READ OFF IT —
+          // `readScreen(viewer)`, at look time, per viewer. Pushing it
+          // would spam the room on every refresh AND would flatten a
+          // per-viewer board into one shared payload — which is the bug
+          // the departures board actually had. The prose arm is thinner
+          // than a mechanism: it is the display declining to use one.
+          return;
       }
     }
 

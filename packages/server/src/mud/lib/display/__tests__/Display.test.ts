@@ -15,6 +15,10 @@ import { StuffApi } from '../../../api/stuff';
 import { EventApi } from '../../../api/event';
 import { ShadowApi } from '../../../api/shadow';
 import { CardApi } from '../../../api/card';
+import { CommandApi } from '../../../api/command';
+import { CommandDefinition } from '../../command/CommandDefinition';
+import LookController from '../../../platform/idea/cmd/perception/LookController';
+import { Mml } from '../../../api/mml';
 import { ConnectionApi } from '../../../api/connection';
 import { ContainmentApi } from '../../../api/containment';
 import { EmploymentApi } from '../../../api/employment';
@@ -256,7 +260,7 @@ describe('DisplayMixin — a display drives itself', () => {
       expect(a.cards()[0]!.title).toBe(tablet.getPresentation());
     });
 
-    it('a stream writes each viewer\'s cockpit.watch with the display marker; clear empties it', async () => {
+    it('a video writes each viewer\'s cockpit.watch with the display marker; clear empties it', async () => {
       const a = await makeViewer('Ann', booth);
       const c = await makeViewer('Cy', cellar);
       const tv = await StuffApi.create(() => new Screen());
@@ -264,7 +268,7 @@ describe('DisplayMixin — a display drives itself', () => {
       tv.setShortDescription('the booth TV');
       ContainmentApi.move(tv, booth);
       tv.show({
-        kind: 'stream',
+        kind: 'video',
         target: { platform: 'twitch', channel: 'shroud' },
         label: 'Twitch #shroud',
       });
@@ -275,16 +279,86 @@ describe('DisplayMixin — a display drives itself', () => {
       expect(a.watched()).toBeNull();
     });
 
-    it('a source policy refuses the other kind', async () => {
+    it('`shows` is a policy over kinds: a card-only tablet refuses a video', async () => {
       const tablet = await StuffApi.create(() => new Tablet());
-      tablet.setSourcePolicy('cards');
+      tablet.setShows(['card']);
       expect(() =>
         tablet.show({
-          kind: 'stream',
+          kind: 'video',
           target: { platform: 'twitch', channel: 'x' },
           label: 'x',
         }),
       ).toThrow(/does not show/);
+    });
+
+    // ⭐ The third arm. Prose is ordinary game text the client already
+    // renders, so it has no projection to push — it is READ off the
+    // screen, per viewer, at look time. What proves the arm is real is
+    // therefore the ABSENCE of a push plus the presence of a read: a
+    // card would have landed on the rail, and this does not.
+    it('prose pushes nothing and is read off the screen instead', async () => {
+      const a = await makeViewer('Ann', booth);
+      const board = await StuffApi.create(() => new Screen());
+      board.setPairing('open');
+      board.setShortDescription('the specials board');
+      ContainmentApi.move(board, booth);
+      board.show({
+        kind: 'prose',
+        body: Mml.compose`Tonight: the old fashioned.`,
+      });
+      expect(a.cards().length).toBe(0);
+      expect(a.watched()).toBeNull();
+      const read = await board.readScreen(a.avatar as unknown as Stuff);
+      expect(read?.toString()).toContain('Tonight: the old fashioned.');
+    });
+
+    // ⭐ The WIRING, not just the read: `look <screen>` is how prose
+    // reaches a player, so the controller has to actually call
+    // `readScreen`. Asserting the mixin method in isolation would prove
+    // a renderer nobody invokes.
+    it('look <screen> renders the prose it shows', async () => {
+      const viewer = await makeViewer('Lena', booth);
+      const board = await StuffApi.create(() => new Screen());
+      board.setShortDescription('the specials board');
+      board.setKeywords(['board']);
+      ContainmentApi.move(board, booth);
+      board.show({
+        kind: 'prose',
+        body: Mml.compose`Tonight: the old fashioned.`,
+      });
+      const controller = makeStuff(() => new LookController());
+      await controller.execute(
+        { target: { stuff: board as unknown as Stuff, raw: 'board' } } as never,
+        CommandApi.createCommandContext({
+          commandGiver: viewer.avatar as never,
+          location: booth as never,
+          commandText: 'look board',
+          executionId: 'display-look',
+          commandId: 'display-look',
+          verb: 'look',
+          command: CommandDefinition.fromYaml(
+            'verbs: [look]\ncontroller: NoopController\ndescription: stub\nopens_card: subject\n',
+            '<test>',
+          ),
+        }),
+      );
+      const said = JSON.stringify(viewer.envelopes);
+      expect(said).toContain('Tonight: the old fashioned.');
+    });
+
+    it('a video reads as a one-line "Showing" off the screen; a dark screen reads null', async () => {
+      const tv = await StuffApi.create(() => new Screen());
+      tv.setPairing('open');
+      ContainmentApi.move(tv, booth);
+      const viewer = await makeViewer('Vi', booth);
+      const self = viewer.avatar as unknown as Stuff;
+      expect(await tv.readScreen(self)).toBeNull();
+      tv.show({
+        kind: 'video',
+        target: { platform: 'twitch', channel: 'shroud' },
+        label: 'Twitch #shroud',
+      });
+      expect((await tv.readScreen(self))?.toString()).toContain('Twitch #shroud');
     });
   });
 
@@ -335,7 +409,7 @@ describe('DisplayMixin — a display drives itself', () => {
       tv.setPairing('open');
       ContainmentApi.move(tv, booth);
       tv.show({
-        kind: 'stream',
+        kind: 'video',
         target: { platform: 'kick', channel: 'xqc' },
         label: 'Kick #xqc',
       });

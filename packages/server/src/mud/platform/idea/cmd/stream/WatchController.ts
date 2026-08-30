@@ -219,14 +219,14 @@ export default class WatchController extends CommandController<WatchModel> {
     if (screen) {
       // A shared screen: the server writes every viewer's embed who sees
       // it (the driver included when they do) — never the driver's alone.
-      if (!screen.acceptsSource({ kind: 'stream', target, label })) {
+      if (!screen.acceptsSource({ kind: 'video', target, label })) {
         return this.fail(
           context,
           `${screen.getPresentation()} doesn't show streams.`,
           'source-refused',
         );
       }
-      screen.show({ kind: 'stream', target, label });
+      screen.show({ kind: 'video', target, label });
       this.send(
         context,
         Mml.fromMarkup(`\n${screen.getPresentation()} shows ${label}.\n`),

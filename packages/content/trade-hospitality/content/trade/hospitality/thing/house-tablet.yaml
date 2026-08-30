@@ -12,6 +12,7 @@ data:
   primaryKeyword: tablet
   keywords: [tablet, house-tablet, screen]
   pairing: staff
-  sourcePolicy: cards
+  shows:
+    - card
   principal: ''
   mass: 0.5
