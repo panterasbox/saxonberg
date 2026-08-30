@@ -104,13 +104,17 @@ needs one, rather than being the mechanism.
 
 ## Scope
 
-**This MR (!206), because the founder asked for it here:**
+**This MR (!206), because the founder asked for it here — ✅ BUILT
+(`a2e61c402`, `55bd90606`):**
 
-1. The three-arm content kind, explicit and total.
-2. Prose as a real arm, and the terminal board moved onto it — the
-   acceptance test.
-3. `sourcePolicy` untangled: a policy over kinds, not the mechanism.
-4. The client dispatching on the carried kind rather than inferring.
+1. ✅ The three-arm content kind, explicit and total. `DisplayKind =
+   video | card | prose`; `project` switches exhaustively. `stream` →
+   `video`: a stream is a *transport*, video is the *manifestation*.
+2. ✅ Prose as a real arm, and the terminal board moved onto it.
+3. ✅ `sourcePolicy` → `shows: DisplayKind[]`, defaulting to all three
+   rather than to an `'any'` sentinel (a sentinel has to be taught about
+   every new kind).
+4. ✅ …by dissolving, not by building. See the answer to Q1.
 
 **Deferred, with reasons:**
 
@@ -124,10 +128,30 @@ needs one, rather than being the mechanism.
 ## ⚠ Open questions the build must answer
 
 1. **Does prose project per-viewer, or is it an ordinary scene message?**
-   A board everyone in reach can read may just be `MessageApi.scene`,
-   in which case the "prose arm" is *thinner than a mechanism* — it is
-   the display choosing not to use one. That would be the best outcome
-   and should be tested first.
+   — ✅ **ANSWERED: neither. Prose does not project at all.**
+
+   The guess in this slate was close and not quite right. Prose is not a
+   scene message either, because a *message* is an event and a screen's
+   contents are *state you can go and read*. The answer is
+   `readScreen(viewer)`: what a screen says is **read off it**, at look
+   time, per viewer. `LookController` calling that is the entire wiring;
+   the arm is thinner than a mechanism, exactly as hoped.
+
+   ⭐ **And the departures board proved it the hard way.**
+   `renderDepartures(viewer)` annotates each route against the READER's
+   own travel credential ("— not yet registered") — so the shipped
+   card, projected to everyone who could see the terminal, showed the
+   whole room whichever traveller last touched it. A per-viewer render
+   can never be one shared payload. That is not a rendering nicety; it
+   was a live defect, and it is the reason prose is pulled rather than
+   pushed.
+
+   ⭐ **This is also why (4) dissolved.** Once prose is read rather than
+   pushed, there is no third wire shape for the client to dispatch on:
+   each arm already reaches its own component, and `StreamEmbed` reads
+   the `display` marker off the target it is handed rather than inferring
+   it. The client changed **nothing**. The "one projection, one wire
+   shape" consolidation below stays open as its own build.
 2. **What happens when a viewer cannot render a kind?** A text client
    and a video source; an interactive card pushed to something with no
    rail. The kind being explicit is what makes this answerable at all.

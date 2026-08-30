@@ -5,7 +5,7 @@ terminal's departures board are one thing** — a `Thing` that shows one
 source to everyone who can see it. Output is optical; the difference
 between the three is data.
 
-Source: `lib/display/Display.ts` (`DisplayMixin`), `api/display.ts`
+Source: `lib/display/Display.ts` (`DisplayMixin`),
 `platform/thing/{Tablet,Screen,Remote}.ts`,
 `world/common/tpa/TpaTerminal.ts` (composes the mixin). Tests:
 `lib/display/__tests__/Display.test.ts`.
@@ -30,7 +30,7 @@ Persistent + authorable fields (the row decides which screen it is):
 | field | values | meaning |
 |---|---|---|
 | `pairing` | `remote` · `held` · `staff` · `open` | who may DRIVE it (below) |
-| `sourcePolicy` | `any` · `cards` · `streams` | which source kinds it accepts (`acceptsSource`) |
+| `shows` | a list of `DisplayKind` | which kinds it accepts (`acceptsSource`); defaults to **all three** |
 | `principal` | a Business template path or `''` | the `staff` policy's "signed in as" |
 | `remote` | a `Remote` row's template path or `''` | the `remote` policy's paired thing |
 
@@ -40,19 +40,59 @@ boot**; nothing persists what it showed. `_setShowing` is gated
 writes it, because a write without the projection below would leave
 every viewer's screen stale.
 
-### The two source kinds
+### ⭐ The three arms — `DisplayKind`
+
+The first cut of this mixin modelled *the screen*, *who drives it* and
+*what is showing*, and did **not** model **how the client renders it**.
+So there were two hardcoded manifestation paths and no third, and
+`sourcePolicy: 'any' | 'cards' | 'streams'` straddled the gap — a
+PERMISSION field whose values were rendering kinds. The founder's model
+is the right one: a display is any screen anywhere, and its contents
+manifest three ways, which are three *client components*.
 
 ```ts
+type DisplayKind = 'video' | 'card' | 'prose';
+
 type DisplaySource =
-  | { kind: 'stream'; target: WatchTarget; label: string }
-  | { kind: 'card'; cardId: CardId; subjectId?: string; key: string; prose?: Mml };
+  | { kind: 'video'; target: WatchTarget; label: string }
+  | { kind: 'card'; cardId: CardId; subjectId?: string; key: string; prose?: Mml }
+  | { kind: 'prose'; body: Mml };
 ```
 
-A **stream** is the focal embed the personal `watch` verb already writes
-([streaming.md](./streaming.md)). A **card** is a card-rail card
-([card-surface.md](./card-surface.md)) — the `stock` sheet, the terminal's
-departures board (a `subject` card on the terminal carrying the board's
-prose).
+- **video** — an embed the client renders ([streaming.md](./streaming.md)).
+  Live vs recorded is a property of the CONTENT; organising content into
+  networks, feeds or a guide is a later **addressing** layer that changes
+  nothing here. *A stream is a transport (Twitch, YouTube); video is the
+  manifestation* — which is why the kind is not called `stream`.
+- **card** — an app: controls and feedback, on the card rail
+  ([card-surface.md](./card-surface.md)). The `stock` sheet.
+- **prose** — ordinary game text, read off the screen.
+
+The kind is **carried, explicit and total**: `project` switches
+exhaustively, so a fourth arm is a compile error rather than a silent
+fall-through. A screen no longer declares *"I do cards"* — it shows
+content, and the content knows how it manifests.
+
+`shows: DisplayKind[]` is what remains of `sourcePolicy`: an honest
+policy OVER kinds. It defaults to **all three** rather than to an `'any'`
+sentinel — a sentinel has to be taught about every new kind, which is the
+central-list failure mode ([antipatterns.md](../antipatterns.md)).
+
+### ⭐⭐ Prose has no projection, and that is the finding
+
+`readScreen(viewer): Promise<Mml | null>` is the whole prose arm: **what
+this viewer reads off this screen right now.** The default renders the
+showing source — a prose body verbatim, a video or card as the one-line
+"Showing: …" that `look` already gave — and a host whose board is
+*computed* rather than driven overrides it.
+
+The other two arms push because the client holds a component that must be
+told. Prose is text the client already renders, and what a screen says is
+**read off it**, at look time, per viewer. Pushing prose would spam the
+room on every refresh *and* would flatten a per-viewer board into one
+shared payload. So the prose arm is **thinner than a mechanism**: it is
+the display declining to use one, and `LookController` calling
+`readScreen` is the entire wiring.
 
 ## Who drives — the pairing policies (`display.mayDrive(actor)`)
 
@@ -102,7 +142,7 @@ attached, in the display's resting room, passing
 concealment gate only, so the room check is explicit). Derived from the
 world on every projection — never from the connection registry.
 
-- A **stream** source writes each viewer's `cockpit.watch` clientState —
+- A **video** source writes each viewer's `cockpit.watch` clientState —
   the same key the personal `watch` writes — with a `display: { stuffId,
   label }` marker, and pushes it. No new wire message.
 - A **card** source is `CardApi.push`ed to each of the viewer's
@@ -112,6 +152,7 @@ world on every projection — never from the connection registry.
   test's mint set records `Display.ts:push`; when a display is in
   play, `show` is the birth path and the driver's own card is one of the
   projected viewers' — no double push.)
+- A **prose** source projects **nothing** — see above. It is read.
 
 `clear(display)` darkens it and clears every projected viewer's
 `cockpit.watch` that names it. `refresh(display)` re-projects the current
@@ -127,11 +168,11 @@ embed leaves with you. A personal watch (no `display` marker) is untouched.
 
 ## The instances — two shipped, one waiting
 
-| | class | pairing | sourcePolicy | row |
+| | class | pairing | `shows` | row |
 |---|---|---|---|---|
-| **house tablet** | `/platform/thing/Tablet` (`Display(Detailed(Thing))`, portable) | `staff` | `cards` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
-| **a wall TV + remote** | `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))` — self-seats via `seatIn`, `canMove` vetoes anything but a `Location`: mounted, never carried) + `/platform/thing/Remote` (`Detailed(Thing)`; the row authors `keywords: [remote]`) | `remote` | `any` | **no row ships.** The classes, the `remote` policy and `watch … on <screen>` are proven on synthetic fixtures (`Display.test.ts`, `WatchController.test.ts`); the first row is the LOUNGE's sports booth (lounge-slate § *Themed booths*), not Dave's Bar — the bar is where soft skills get evidenced, not where you stare at a screen |
-| **the terminal** | `TpaTerminal` composes the mixin; the constructor sets `open` / `cards` | `open` | `cards` | the lounge terminal, unchanged |
+| **house tablet** | `/platform/thing/Tablet` (`Display(Detailed(Thing))`, portable) | `staff` | `[card]` | `/trade/hospitality/thing/house-tablet` (`principal: ''`); the lounge's `/world/lounge/thing/house-tablet` sets `principal: /world/lounge/idea/business` |
+| **a wall TV + remote** | `/platform/thing/Screen` (`Display(PostRegistration(Fixture(Detailed(Thing))))` — self-seats via `seatIn`, `canMove` vetoes anything but a `Location`: mounted, never carried) + `/platform/thing/Remote` (`Detailed(Thing)`; the row authors `keywords: [remote]`) | `remote` | all three | **no row ships.** The classes, the `remote` policy and `watch … on <screen>` are proven on synthetic fixtures (`Display.test.ts`, `WatchController.test.ts`); the first row is the LOUNGE's sports booth (lounge-slate § *Themed booths*), not Dave's Bar — the bar is where soft skills get evidenced, not where you stare at a screen |
+| **the terminal** | `TpaTerminal` composes the mixin; the constructor sets `open` / `['prose']`, and overrides `readScreen` — its board is COMPUTED, not driven | `open` | `[prose]` | the lounge terminal, unchanged |
 
 ## The verbs that drive a display
 
@@ -147,12 +188,28 @@ embed leaves with you. A personal watch (no `display` marker) is untouched.
   `peers` scope with `requires: DisplayMixin`; `mayDrive` decides;
   `show`/`clear` project. Personal `watch` (no `on`) is unchanged.
 - **`teleport`** (bare, at a terminal): the departures board renders for
-  the reader and is `show`n as a `subject` card carrying the board's
-  prose to everyone in reach of the terminal.
+  the reader, and for the reader only. ⚠ It formerly `show`ed a `subject`
+  card carrying the board's prose to everyone in reach — which was the
+  symptom that proved the missing arm (a board is plainly not an app with
+  controls and feedback; it shipped as a card because card was the only
+  non-video arm) **and a real defect**: `renderDepartures(viewer)`
+  annotates each route against the READER's own travel credential ("— not
+  yet registered"), so the whole room got one traveller's registration
+  state — wrong for all of them, and nobody else's business. The board is
+  now `TpaTerminal.readScreen(viewer)`, which also makes
+  **`look <terminal>` the way you read the board**.
 
 ## What the client changed
 
-Nothing but a caption. `@saxonberg/types` `WatchTarget` gained
+**Nothing, in either wave** — and that is a result, not an omission. The
+manifestation kind decides which client component renders the content,
+and each arm already reaches its own: video the embed, card the rail,
+prose the text stream the client has always had. `StreamEmbed` reads the
+`display` marker off the target it is handed; it does not infer it. The
+"one projection, one wire shape" consolidation the slate raises stays
+open, and would be its own build.
+
+From the D12 wave, a caption. `@saxonberg/types` `WatchTarget` gained
 `display?: { stuffId: string; label: string }`. `StreamEmbed.tsx` renders
 "on <label> — whoever holds the remote switches it off" under a shared
 embed (`data-testid="display-caption"`) and hides the personal
@@ -167,7 +224,14 @@ empty-state copy; the iframe path is identical. Two RTL tests.
   design.
 - A screen as an aether host (see the modem rule above).
 - Driving an `open` screen by mind.
-- Multiple simultaneous sources per screen.
+- Multiple simultaneous sources per screen (`showing` is one slot; a
+  screen running a card *and* a ticker is a real thing and would want
+  more — the slate's open question 3).
+- A network / channel / guide layer above `video` — **addressing**, not
+  rendering, and deliberately deferred.
+- Driver policy off the closed `pairing` enum. Real, and the same
+  central-list finding as three other fixes in this review; it is an
+  ACCESS change ([access.md](./access.md)) and gets its own commit.
 
 ## Cross-references
 
