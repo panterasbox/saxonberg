@@ -3270,3 +3270,49 @@ question with one owner. `GetController` carried the wrong version until
 the libations review: it meant the rule for reaching into an open
 container lived in four places, and the one called `canReach` was not one
 of them. See [perception.md](./subsystems/perception.md) § *`canReach`*.
+
+## A movement veto where you mean "a person can't pick that up"
+
+**Don't** stop an object being carried off by overriding `canMove` —
+the pre-move veto that fires inside `ContainmentApi.move`. **Do** mark
+it `fixedInPlace` and let the verb that models *a person taking a thing*
+refuse.
+
+```ts
+// WRONG — the lowest-level veto in the system, standing in for a
+// capability test. It fires inside the chokepoint that a remodel, a
+// `place`, a room rebuild and an author rearranging scenery all use, so
+// it says the move is IMPOSSIBLE rather than that this actor may not
+// make it. It also takes no actor, so it could not tell the difference
+// even if it wanted to. And it is class-level: a screen standing on a
+// counter is the same class, and this can never say so.
+canMove(to: (Stuff & Container) | null): VetoResult {
+  if (to === null || to instanceof Location) return { ok: true };
+  return { ok: false, reason: 'mounted' };
+}
+
+// RIGHT — a persistent, authorable fact about THIS object, read by the
+// verb that models taking. `get` refuses; everything else still moves it.
+this.fixedInPlace = true;   // or the row authors it
+```
+
+The general shape: **a veto at a chokepoint answers "can this happen at
+all"; a capability test on a verb answers "may this actor do it".**
+Reaching for the first when you mean the second is easy, because the
+chokepoint is the one place you are certain every path goes through —
+which is exactly why a policy planted there catches every path that
+isn't a player.
+
+Mounted is not immovable. The tell is a veto whose reason is a *fact
+about the object* (`'mounted'`, `'bolted down'`, `'too heavy'`) rather
+than about the operation: a fact about the object is state, and state
+belongs in a field the row can author. `Screen.canMove` was the tree's
+only production override, found in the libations review; `canMove` now
+has no production users and stays for genuine class invariants. See
+[spatial.md](./subsystems/spatial.md) § *`canMove` is a class invariant*.
+
+Structural invariants are the case that *does* belong at the chokepoint
+— an attached `Adornment` throws rather than sliding into a container's
+`getContents()`, because it lives in the host's `getFixtures()` tier and
+the move would corrupt two-tier bookkeeping. That is the data model
+refusing to be made inconsistent, not a policy about who may act.

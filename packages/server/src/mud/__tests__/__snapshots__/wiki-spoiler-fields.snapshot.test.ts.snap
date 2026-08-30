@@ -225,6 +225,7 @@ ContactsMixin._contacts = 0
 ContainableMixin._restingOn = 0
 ContainableMixin.container = 0
 ContainableMixin.environment = 0
+ContainableMixin.fixedInPlace = 0
 ContractEvent.actor = 0
 ContractEvent.at = 0
 ContractEvent.contractId = 0

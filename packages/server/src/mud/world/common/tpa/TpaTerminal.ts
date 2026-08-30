@@ -64,6 +64,9 @@ export default class TpaTerminal extends TpaTerminalBase {
     super();
     this.pairing = "open";
     this.shows = ["prose"];
+    // A brass pillar: nobody walks off with it. Narrow by design — the
+    // TPA re-seating it, or an author moving the whole gate, still works.
+    this.fixedInPlace = true;
   }
 
   public override async postRegister(_context?: unknown): Promise<void> {

@@ -135,6 +135,38 @@ describe('GetController — bareword path (no quantity)', () => {
     expect(sword.getContainer()).toBe(giver);
   });
 
+  // ⭐ The narrow test that replaced `Screen.canMove`. A bolted-down
+  // thing refuses *an agent taking it* and nothing else: the same object
+  // still moves through `ContainmentApi.move`, which is what a remodel,
+  // a `place` and an author rearranging scenery all use.
+  it('refuses to pick up something fixed in place, and still lets the world move it', async () => {
+    const loc = makeStuff(() => new Location());
+    const other = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const bench = makeStuff(() => {
+      const b = new Sword();
+      b.setName('bench');
+      b.setFixedInPlace(true);
+      return b;
+    });
+    ContainmentApi.move(bench, loc);
+
+    const controller = makeStuff(() => new GetController());
+    const ctx = makeContext(giver, loc);
+    await controller.execute(makeModel(makeResult([bench], 'bench')), ctx);
+    expect(bench.getContainer()).toBe(loc);
+    expect(
+      ctx
+        .getNotes()
+        .some((n) => n.kind === 'controller-rejected' && n.reason === 'fixed-in-place'),
+    ).toBe(true);
+
+    // Not immovable — only unpocketable. The remodel still lands.
+    ContainmentApi.move(bench, other);
+    expect(bench.getContainer()).toBe(other);
+  });
+
   it('moves a single item from the location into inventory', async () => {
     const loc = makeStuff(() => new Location());
     const giver = makeStuff(() => new TestGiver());

@@ -24,6 +24,19 @@
  *   - `canMove(to)` — pre-move veto on the moving item.
  *   - `onMoved(from, to)` — post-move notification. Either argument
  *     may be `null` for first-placement / final-detach edges.
+ *
+ * ⚠⚠ **`canMove` is for a CLASS INVARIANT, never for "a person can't
+ * take that."** It fires inside `ContainmentApi.move`, which is the
+ * chokepoint *everything* goes through — a remodel, a `place`, a room
+ * being rebuilt, an author moving scenery. A veto there says the move is
+ * **impossible**, not that the actor lacks the standing to make it, and
+ * there is no actor in its arguments to reason about anyway.
+ *
+ * The thing you almost always mean is much narrower: *this cannot be
+ * picked up or carried off by an agent* — which is `fixedInPlace`, a
+ * STATE the row authors and the taking verb reads. A wall-mounted screen
+ * is not immovable; it is not pocketable. Those are different facts, and
+ * only the second one belongs to `get`.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -117,7 +130,27 @@ export interface Containable {
    */
   _setRestingOn(surface: (Stuff & Surfaced) | null): void;
 
-  /** Optional pre-move veto on the moving item itself. */
+  /**
+   * ⭐ **Bolted down: no agent picks this up or carries it off.** The
+   * wall TV, the terminal's brass pillar, a bench cemented to the
+   * pavement. Read by the verbs that model *a person taking a thing*
+   * (`get`), never by `ContainmentApi.move` — a remodel, a `place`, an
+   * author rearranging scenery all still move it, because they are not
+   * agents pocketing it.
+   *
+   * It is a per-INSTANCE, authorable fact, which is the other half of
+   * why it is not a `canMove` override: whether a given screen is bolted
+   * to the wall or standing on a counter is the ROW's business, and a
+   * class-level veto could never say.
+   */
+  isFixedInPlace(): boolean;
+  setFixedInPlace(fixed: boolean): void;
+
+  /**
+   * Optional pre-move veto on the moving item itself. ⚠ A CLASS
+   * INVARIANT only — see the note at the top of this file. For "an agent
+   * cannot take this", use `fixedInPlace`.
+   */
   canMove?(to: (Stuff & Container) | null): VetoResult;
 
   /**
@@ -175,6 +208,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static fieldMeta: FieldMeta = {
       container: { instruction: true, authorable: true, authorPicker: 'Template' },
+      fixedInPlace: { persistent: true, authorable: true },
       // Both reference fields are instance refs, so both self-heal on
       // read. Neither is persistent — see the field docs below.
       environment: { ref: 'instance', lifetime: 'weak' },
@@ -234,6 +268,20 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * container, just without the on-surface precision.
      */
     protected _restingOn: (Stuff & Surfaced) | null = null;
+
+    /**
+     * Bolted down — see `isFixedInPlace` on the interface. Authorable
+     * per row, because whether a thing is mounted is a fact about THIS
+     * one, not about its class.
+     */
+    fixedInPlace = false;
+
+    isFixedInPlace(): boolean {
+      return this.fixedInPlace;
+    }
+    setFixedInPlace(fixed: boolean): void {
+      this.fixedInPlace = fixed;
+    }
 
     /**
      * State-mutation chokepoint. Reachable only from

@@ -197,6 +197,26 @@ export default class GetController extends CommandController<GetModel> {
       );
     }
 
+    // ⭐ Bolted down. The narrow test that replaces a `canMove` veto:
+    // the wall TV, the terminal's brass pillar. It refuses *an agent
+    // taking it*, and nothing else — a remodel, a `place`, an author
+    // rearranging scenery all still move it through
+    // `ContainmentApi.move`, because none of those is a person pocketing
+    // a television. Authored per row, so the same class covers a screen
+    // standing on a counter.
+    if (operand.isFixedInPlace()) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'fixed-in-place',
+        detail: `${operand.getPresentation()} is fixed in place`,
+      });
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.thing(operand)} is fixed in place.`)
+        .send();
+      return false;
+    }
+
     // Pick-up-your-own-trap: a placed, still-armed trap can only be lifted
     // by the one who set it — you can't pocket someone else's rigged snare
     // (and a concealed one a stranger can't perceive never resolves here
