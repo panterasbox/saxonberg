@@ -508,9 +508,29 @@ function DevLogin() {
         body: JSON.stringify({ handle: handle.trim() || "dev", withCharacter }),
       });
       if (!res.ok) throw new Error("dev login failed");
-      // No reload — connect in place like the guest path. "Skip to world"
-      // provisioned a character, so flag the auto-enter for
-      // CharacterSelect; "New character" has none → char-gen.
+      // ⭐ Tell OUR OWN store the session exists. The OAuth path gets
+      // this for free — it redirects, the app remounts, and the
+      // `/auth/status` bootstrap calls `setAuth`. This path never
+      // reloads, so without it `connectionPhase` stays
+      // `unauthenticated` and the front door never yields: the socket
+      // connects, the server sends the character-select frames, and the
+      // client sits on "Connecting…" forever because it is still
+      // rendering the login takeover. (The guest path does not need it
+      // because the server mints and ENTERS immediately, and the
+      // welcome frame flips the phase on its own.)
+      const data = (await res.json().catch(() => null)) as {
+        isAuthenticated?: boolean;
+        user?: { id?: string } | null;
+      } | null;
+      const id = data?.user?.id;
+      useStore.getState().setAuth({
+        isAuthenticated: data?.isAuthenticated !== false,
+        user: id ? { id, email: "", displayName: handle.trim() || "dev" } : null,
+        player: null,
+        isWizard: false,
+      });
+      // "Skip to world" provisioned a character, so flag the auto-enter
+      // for CharacterSelect; "New character" has none → char-gen.
       if (withCharacter) useStore.getState().setAutoEnterPending(true);
       websocketClient.connect(WS_URL);
     } catch {
