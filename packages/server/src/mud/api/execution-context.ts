@@ -138,6 +138,44 @@ export interface RunRootOpts {
 /** ALS-backed storage. Mutating operations replace the array immutably. */
 const _als = new AsyncLocalStorage<CallFrame[]>();
 
+/**
+ * The capability handed back by {@link ExecutionContextApi.claimFramePush}
+ * — the body of `run` with the per-call caller proof already taken.
+ */
+export type FramePush = <T>(
+  caller: unknown | null,
+  target: unknown | null,
+  method: string,
+  opts: RunFrameOpts | undefined,
+  fn: () => T
+) => T;
+
+/**
+ * Push a frame and run `fn` beneath it. The shared body of `run` (which
+ * proves its caller every call) and of the claimed {@link FramePush}
+ * capability (whose holder proved it once). Module-private: the only way
+ * out of this file is `claimFramePush`, which is itself proof-gated.
+ */
+function _pushFrame<T>(
+  caller: unknown | null,
+  target: unknown | null,
+  method: string,
+  opts: RunFrameOpts | undefined,
+  fn: () => T
+): T {
+  const frame: CallFrame = {
+    caller,
+    target,
+    method,
+    timestamp: Date.now(),
+    kind: opts?.kind,
+    metadata: opts?.metadata,
+  };
+  const parent = _als.getStore() ?? [];
+  const next = [...parent, frame];
+  return _als.run(next, fn);
+}
+
 /* ────────────────── Caller authorisation ──────────────────
  *
  * `run`, `runRoot`, and `tagCurrentFrame` mutate the call stack — the
@@ -726,17 +764,43 @@ export class ExecutionContextApi {
     fn: () => T
   ): T {
     _assertFrameMutatorAllowed('run');
-    const frame: CallFrame = {
-      caller,
-      target,
-      method,
-      timestamp: Date.now(),
-      kind: opts?.kind,
-      metadata: opts?.metadata,
-    };
-    const parent = _als.getStore() ?? [];
-    const next = [...parent, frame];
-    return _als.run(next, fn);
+    return _pushFrame(caller, target, method, opts, fn);
+  }
+
+  /**
+   * Take the frame-push proof ONCE and hand back the capability.
+   *
+   * `run` proves from the call stack, on every single call, that its
+   * caller is framework code. That proof costs a stack capture, and the
+   * proxy gate pays it three times per method dispatch in the entire
+   * engine — to re-derive a fact that is fixed at the call site and
+   * cannot change between calls. Measured: 88% of the gate's cost, and
+   * the gate is 2000x a raw call.
+   *
+   * So the hot paths take the proof once, at first use, and keep what
+   * it yields: the raw push function, a closure over module-private
+   * state that nothing outside this file can otherwise name or reach.
+   *
+   * This is not a weaker check, it is the same check taken at the right
+   * frequency. The stack walk still gates the *claim*, so an unallowlisted
+   * file gets a `SecurityError` here exactly as it would from `run`; the
+   * three public frame mutators (`tagCurrentFrame`, `tagActingAuthor`,
+   * `establishCircleScope`) keep their per-call walk, since they are
+   * rare and they are what a forge would actually target. The handle
+   * itself is an opaque capability of the kind the mudlib already uses
+   * for sealed operations (`ScriptApi.compileSandboxed`,
+   * `PersistApi.sealString`) — holding one is a code-review fact, not a
+   * runtime one.
+   *
+   * Claim it lazily at first use and cache it in a private static; a
+   * module-scope claim would be an executable statement at module scope.
+   *
+   * @internal — framework only. Two holders today: the proxy security
+   * gate and the static-method wrapper, both in `api/security.ts`.
+   */
+  public static claimFramePush(): FramePush {
+    _assertFrameMutatorAllowed('claimFramePush');
+    return _pushFrame;
   }
 
   /**

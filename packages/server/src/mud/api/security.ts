@@ -29,7 +29,11 @@
 
 import { nanoid } from 'nanoid';
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
-import { ExecutionContextApi, OMNI_SCOPE } from './execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+  type FramePush,
+} from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import { SecurityError } from '../lib/security/errors';
@@ -391,13 +395,13 @@ export class SecurityApi {
       if (allowed instanceof Promise) {
         return allowed.then((ok) => {
           if (!ok) deny();
-          return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
+          return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
             original.apply(this, args)
           );
         });
       }
       if (!allowed) deny();
-      return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
+      return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
         original.apply(this, args)
       );
     };
@@ -517,6 +521,20 @@ export class SecurityApi {
    * The interceptor reads this slot at runtime only, so the
    * security-shadow load cycle stays acyclic at module-eval time.
    */
+  /**
+   * The claimed frame-push capability — see
+   * {@link ExecutionContextApi.claimFramePush}. Claimed on first use
+   * (a module-scope claim would be an executable statement at module
+   * scope), then reused: the caller proof is taken once for this file
+   * instead of on every method dispatch in the engine.
+   */
+  static #framePush: FramePush | null = null;
+
+  /** The claimed push, claiming it if this is the first dispatch. */
+  static #pushFrame(): FramePush {
+    return (SecurityApi.#framePush ??= ExecutionContextApi.claimFramePush());
+  }
+
   static #shadowApi: ShadowApiLike | null = null;
 
   /**
@@ -1177,7 +1195,7 @@ export class SecurityApi {
           ctx.args as unknown[],
           () => {
             const top = shadows[shadows.length - 1]!;
-            return ExecutionContextApi.run(
+            return SecurityApi.#pushFrame()(
               caller,
               top,
               ctx.prop,
@@ -1194,7 +1212,7 @@ export class SecurityApi {
       }
 
       // 4. no shadows — push the host's frame and continue the pipeline.
-      return ExecutionContextApi.run(
+      return SecurityApi.#pushFrame()(
         caller,
         ctx.proxy,
         ctx.prop,
