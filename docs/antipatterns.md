@@ -3464,3 +3464,52 @@ ask and enrollment is the only shape; that is the distinction, not
 convenience. See
 [persistence.md](./subsystems/persistence.md) § *`captureHostOf`* and
 the lifecycle-signals slate.
+
+## Unwrapping the first hop of a proxy walk and not the rest
+
+**Don't** unwrap the object you start from and then walk on through
+whatever its getters hand back. **Do** unwrap at every hop.
+
+```ts
+// WRONG — `getContainer()` RETURNS a proxy, so only hop one is raw.
+let node = MixinApi.isContainable(raw) ? raw.getContainer() : null;
+while (node) { …; node = node.getContainer(); }   // gated, and it TOUCHES
+
+// RIGHT
+const up = (s) => {
+  if (!MixinApi.isContainable(s)) return null;
+  const next = s.getContainer();
+  return next ? ProxyApi.unwrap(next) : null;
+};
+```
+
+Both halves of the reason matter, and the correctness one is easy to
+miss because nothing breaks loudly:
+
+- **It defeats what the unwrap was for.** The residency sweeps unwrap
+  precisely so enumeration never counts as a touch. A walk that
+  re-proxies at hop two touches every ancestor in the world, so the
+  cold tail the eviction sweep looks for can never go cold.
+- **It is expensive.** Every proxied call runs the security gate, and
+  the gate captures a JS stack.
+
+⭐ The live evidence: `ResidencyLogic.isInPresentRoom` ran this walk for
+every object in the world on every reset sweep, and **five of five
+`Debugger.pause` samples** landed in it while the server sat pinned at a
+core. It was player-triggered — the function early-returns on an empty
+`presentRooms`, so the cliff arrives with the first login.
+
+⚠ Two lessons about MEASURING, not just fixing:
+
+1. **A sampling profile named the wrong function.** Its inclusive-time
+   attribution pointed at a verb controller that happened to be running
+   in the window. Repeated `Debugger.pause` on the live process named
+   the real steady state, unanimously. When a profile and a pause
+   disagree, the pause is the one holding the actual stack.
+2. **The site that chooses raw owns the framework's guards.** Reading
+   raw skips the proxy's `ref: 'instance'` self-heal, so the walk needs
+   its own `isDestroyed()` break — and a `seen` set, because nothing
+   else is left to stop a corrupted cycle.
+
+See [residency.md](./subsystems/residency.md) § *Walk RAW all the way
+up*.

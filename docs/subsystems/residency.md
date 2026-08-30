@@ -301,6 +301,38 @@ wired.
 - **Ordered LRU / incremental sweeping** — escalations if observe-mode
   data ever shows the O(n) scan spiking.
 
+## ⚠⚠ Walk RAW all the way up, not just the first hop
+
+The sweeps unwrap (`ProxyApi.unwrap`) so that **enumeration never counts
+as a residency touch** — a sweep that touched what it inspected would
+keep the whole world warm and there would be no cold tail to find.
+
+The trap: `getContainer()` **returns a proxy**. Unwrapping only the
+object you start from leaves every hop *after* the first going back
+through the security proxy, which
+
+- **touches** each ancestor, so the sweep warms every container in the
+  world one hop at a time — the correctness half, and it silently
+  defeats eviction; and
+- **costs a gated call** per hop, and a gated call captures a JS stack.
+
+`isInPresentRoom` had exactly this shape, and it runs for EVERY object
+in the world on every reset sweep. A live drive of the libations branch
+found the server pinned at a full core with **five of five debugger
+pauses landing in `runResetSweep → isInPresentRoom → getContainer`**.
+
+⭐ **And it was player-triggered.** The function early-returns when
+`presentRooms` is empty, so an idle world costs nothing and the cliff
+appears the moment somebody logs in — which is the one time it must not.
+That is also why a sampling profile alone was misleading: it named a
+verb controller that happened to be running in the sample window, while
+repeated `Debugger.pause` sampling named the real steady state five
+times out of five.
+
+The rule: **if a walk unwraps, it unwraps at every hop**, and the site
+that chooses raw carries the guards that the proxy would have applied
+(the `isDestroyed()` break, and a `seen` set against a corrupted cycle).
+
 ## The presence walk and the sandbox boundary
 
 `presenceWalkImpl` runs from a field root and reads each connected

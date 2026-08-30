@@ -157,16 +157,40 @@ function presenceWalkImpl(): Set<string> {
  * that chooses raw carries the guard rather than every getter carrying
  * a duplicate of the framework rule.
  */
+/**
+ * Is `raw` inside a room somebody is watching?
+ *
+ * ⚠⚠ **Walks RAW the whole way up, and both reasons matter.**
+ * `getContainer()` RETURNS a proxy, so a walk that unwrapped only the
+ * starting object went back through the security proxy at every hop
+ * after the first:
+ *
+ *  - **Correctness.** The sweep unwraps precisely so that enumeration
+ *    never counts as a residency touch — and then touched every
+ *    container in the world anyway, one hop at a time. The cold-tail
+ *    the eviction sweep exists to find could never GO cold.
+ *  - **Cost.** Every proxied hop is a gated call, and a gated call
+ *    captures a JS stack. This runs for EVERY object in the world, on
+ *    every reset sweep. A live drive caught the server pinned at a
+ *    core with five of five debugger pauses landing right here.
+ *
+ * ⭐ And it is player-triggered: the `presentRooms.size === 0` early
+ * return means an empty world costs nothing, so the cliff appears the
+ * moment somebody logs in. Which is exactly when it must not.
+ */
 function isInPresentRoom(raw: Stuff, presentRooms: Set<string>): boolean {
   if (presentRooms.size === 0) return false;
-  let node: Stuff | null = MixinApi.isContainable(raw)
-    ? (raw as Stuff & Containable).getContainer()
-    : null;
-  while (node !== null && !node.isDestroyed()) {
+  const up = (s: Stuff): Stuff | null => {
+    if (!MixinApi.isContainable(s)) return null;
+    const next = (s as Stuff & Containable).getContainer();
+    return next ? ProxyApi.unwrap(next) : null;
+  };
+  let node: Stuff | null = up(raw);
+  const seen = new Set<string>();
+  while (node !== null && !node.isDestroyed() && !seen.has(node.stuffId)) {
     if (presentRooms.has(node.stuffId)) return true;
-    node = MixinApi.isContainable(node)
-      ? (node as Stuff & Containable).getContainer()
-      : null;
+    seen.add(node.stuffId);
+    node = up(node);
   }
   return false;
 }
