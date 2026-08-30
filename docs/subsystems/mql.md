@@ -348,6 +348,15 @@ Seed-shaped chain elements split by whether the seed is
   prior set. `reachable:online` is "of the giver's reachable set,
   which are online."
 
+⭐ **`peers` descends ONE level into an open container** standing in the
+room — the glass rack's coupes, the floor stock's kegs, a crate's limes —
+so a bare noun can name what is plainly in front of you without a
+`from <holder>` clause. The openness test is `MixinApi.isOpenContainer`,
+the same rule `PerceptionApi.canReach` asks, so the scope can never offer
+a candidate that reach then refuses (nor hide one it would allow). A shut
+`Sealable` and anything that is somebody stay opaque. See
+[perception.md](./perception.md) § *`canReach`*.
+
 **Set-aware exclusion is per seed.** `peers` and `inventory` exclude
 the prior set from the union — their per-element definitions
 already exclude the focal Stuff (peers excludes the focal by

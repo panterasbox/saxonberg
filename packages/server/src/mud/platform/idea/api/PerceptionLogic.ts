@@ -282,12 +282,33 @@ export class PerceptionLogic extends ApiLogic {
     // is unreachable.
     if (opts?.viaExit && location && id === location.stuffId) return true;
 
-    if (MixinApi.isContainer(actor)) {
-      for (const c of actor.getContents()) if (c.stuffId === id) return true;
-    }
-    if (location && MixinApi.isContainer(location)) {
-      for (const c of location.getContents()) if (c.stuffId === id) return true;
-    }
+    // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
+    // open crate standing here, or into the open pouch you are carrying;
+    // a box INSIDE that crate must be opened or taken out first. The
+    // openness test is `MixinApi.isOpenContainer` — the single rule the
+    // `peers` scope walk, `mustBeInLocation` and `VisionModality` also
+    // ask, so what you can name, see and touch can never diverge.
+    //
+    // ⚠ This clause is why reach could not stay flat: with only the two
+    // direct scans below, a coupe standing in a glass rack — or any good
+    // in an open Stock counter, or a lime in a crate — was unreachable
+    // by every verb in the game, and each caller grew its own bespoke
+    // descent instead.
+    const reachesInto = (holder: Stuff): boolean => {
+      if (!MixinApi.isContainer(holder)) return false;
+      for (const c of holder.getContents()) {
+        if (c.stuffId === id) return true;
+        if (MixinApi.isOpenContainer(c)) {
+          for (const inner of c.getContents()) {
+            if (inner.stuffId === id) return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (MixinApi.isContainer(actor) && reachesInto(actor)) return true;
+    if (location && reachesInto(location)) return true;
     // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
     // — so a containment-only test misses every door in the game. This
     // clause is the entire reason reach could not stay hand-rolled: the

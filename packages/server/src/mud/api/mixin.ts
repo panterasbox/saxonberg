@@ -689,6 +689,36 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Container);
   }
 
+  /**
+   * ⭐ **The one open-container rule.** A container whose contents are
+   * exposed to the space it stands in: the glass rack's coupes, the
+   * floor stock's kegs, a crate of limes. Everything that means "you can
+   * reach/see one level into that" asks THIS — `PerceptionApi.canReach`,
+   * the `peers` scope walk, `mustBeInLocation`, `VisionModality` — so
+   * the four can never disagree about what is exposed.
+   *
+   * Two exclusions, both load-bearing:
+   * - **A shut container hides its contents.** Non-`Sealable` is always
+   *   open (a rack has no lid); a `Sealable` that is closed is opaque.
+   * - **A container that is somebody is never transparent.** You cannot
+   *   reach into another actor's pockets, so anything that is a person or
+   *   a creature is excluded even standing open. ⚠ `Organism` is in that
+   *   test deliberately: keying only on `CommandGiver`/`HasInteractive`
+   *   covered players and NPCs and left every non-commandable creature's
+   *   inventory transparent — a pack animal's panniers were public.
+   */
+  public static isOpenContainer(obj: Stuff): obj is Stuff & Container {
+    if (!this.isContainer(obj)) return false;
+    if (
+      this.isCommandGiver(obj) ||
+      this.isHasInteractive(obj) ||
+      this.isOrganism(obj)
+    ) {
+      return false;
+    }
+    return !(this.isSealable(obj) && !obj.isOpen());
+  }
+
   public static isContainable(obj: Stuff): obj is Stuff & Containable {
     return this.hasMixin(obj, Mixins.Containable);
   }

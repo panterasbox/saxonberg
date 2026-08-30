@@ -43,14 +43,16 @@ const validator: FieldValidator = (value, field, context) => {
   for (const stuff of stuffs) {
     if (locationIds.has((stuff as Stuff).stuffId)) continue;
     // Inside an open container that stands here (the rack's coupe, the
-    // stock's keg) — the same one-level reach the `peers` scope grants.
+    // stock's keg) — the same one rule `PerceptionApi.canReach` and the
+    // `peers` scope ask, so the validator cannot refuse what the binder
+    // just offered.
     const holder = MixinApi.isContainable(stuff as Stuff)
       ? (stuff as Stuff & Containable).getContainer()
       : null;
     if (
       holder &&
       locationIds.has(holder.stuffId) &&
-      MqlApi.isOpenPeerContainer(holder as Stuff)
+      MixinApi.isOpenContainer(holder as Stuff)
     ) {
       continue;
     }

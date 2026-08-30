@@ -3190,3 +3190,30 @@ a harness that fakes the driver proves the *logic*, never the *driver*
 — a query shape only Mongo can refuse is a query shape the drive has to
 exercise. See [content-packs.md](./subsystems/content-packs.md) (the
 subject kind) and the memory note on the pack harness.
+
+## A controller rebuilding the binder's pool
+
+**Don't** have a controller re-enumerate what is around the actor in
+order to decide whether its bound arguments are valid. **Do** check
+**state** on each bound object.
+
+```ts
+// WRONG — rebuilds the pool the binder already walked, and encodes a
+// second copy of "what is reachable" that can drift from the first.
+const here: Stuff[] = [];
+for (const item of context.location.getContents()) {
+  here.push(item);
+  if (isOpenContainer(item)) here.push(...item.getContents());
+}
+const candidates = stuff.filter((s) => here.some((i) => i.stuffId === s.stuffId));
+
+// RIGHT — the scope already resolved WHICH objects the words name; all
+// that is left is whether each one is valid for this operation.
+const candidates = stuff.filter((s) => PerceptionApi.canReach(giver, s));
+```
+
+MQL targets at any depth the scope offers, and the controller asks one
+question with one owner. `GetController` carried the wrong version until
+the libations review: it meant the rule for reaching into an open
+container lived in four places, and the one called `canReach` was not one
+of them. See [perception.md](./subsystems/perception.md) § *`canReach`*.

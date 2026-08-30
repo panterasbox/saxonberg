@@ -17,7 +17,6 @@ import type {
   } from '../../../../api/command';
 import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { MqlApi } from '../../../../api/mql';
 import { ContainmentApi } from '../../../../api/containment';
 import { GlobbableApi, type ApplyQuantityResult } from '../../../../api/glob';
 import { MessageApi } from '../../../../api/message';
@@ -26,6 +25,7 @@ import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
 import { Touch } from '../../../../lib/perception/Touch';
 import { ChattelApi } from '../../../../api/chattel';
+import { PerceptionApi } from '../../../../api/perception';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
@@ -55,26 +55,20 @@ export default class GetController extends CommandController<GetModel> {
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
-    // What is "here": the room's contents, plus one level into an open
-    // container standing in it — the rack's coupe, the stock's keg — the
-    // same reach the `peers` scope and `mustBeInLocation` grant.
-    const here: Stuff[] = [];
-    for (const item of context.location.getContents()) {
-      here.push(item);
-      if (MqlApi.isOpenPeerContainer(item)) here.push(...item.getContents());
-    }
-
     if (!quantity) {
-      return this.executeWholeSet(stuff, inventory, here, raw, context);
+      return this.executeWholeSet(stuff, inventory, raw, context);
     }
 
-    // Source: location contents. Filter to candidates actually
-    // present here and not already in inventory.
-    const inLocation = stuff.filter((s) =>
-      here.some((it) => it.stuffId === s.stuffId)
-    );
-    const candidates = inLocation.filter(
-      (s) => !inventory.some((it) => it.stuffId === s.stuffId)
+    // ⭐ The controller checks STATE; it does not rebuild the binder's
+    // pool. The scope already resolved which objects `raw` names — all
+    // that is left is whether each one is takeable from here, which is
+    // one question with one owner: `PerceptionApi.canReach`. It knows
+    // about open containers, so the rack's coupe and the stock's keg
+    // answer true without this file knowing what a container is.
+    const candidates = stuff.filter(
+      (s) =>
+        PerceptionApi.canReach(giver, s) &&
+        !inventory.some((it) => it.stuffId === s.stuffId)
     );
 
     const result = await GlobbableApi.applyQuantity<GetPayload>(
@@ -98,7 +92,6 @@ export default class GetController extends CommandController<GetModel> {
   private executeWholeSet(
     targets: Stuff[],
     inventory: readonly Stuff[],
-    here: readonly Stuff[],
     raw: string,
     context: CommandContext
   ): void {
@@ -115,9 +108,7 @@ export default class GetController extends CommandController<GetModel> {
       if (inventory.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
-      if (!here.some((item) => item.stuffId === target.stuffId)) {
-        continue;
-      }
+      if (!PerceptionApi.canReach(context.commandGiver, target)) continue;
       if (this.pickUpOperand(target, context)) {
         pickedNames.push(target.getPresentation());
       }

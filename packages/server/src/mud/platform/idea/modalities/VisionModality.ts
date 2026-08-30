@@ -33,7 +33,6 @@ import type {
 import { Quantity } from '../../../lib/quantity';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
-import { MqlApi } from '../../../api/mql';
 import { PerceptionApi } from '../../../api/perception';
 import type { LightConduit } from '../../../lib/boundary/Conduit';
 import type { Conduit } from '../../../lib/boundary/Conduit';
@@ -160,14 +159,15 @@ export class VisionModality extends Modality {
     // stand, not the dark of your own pocket ("You pick up something").
     // The same one level for an open container standing in a room: a
     // coupe in the rack, a keg in the floor stock, reads in the room's
-    // light, the way the `peers` scope already reaches for it.
+    // light — `MixinApi.isOpenContainer`, the one rule reach and the
+    // `peers` scope ask, so you can never name what you cannot see.
     if (env.stuffId === viewer.stuffId) {
       env = MixinApi.isContainable(viewer)
         ? (viewer.getContainer() ?? env)
         : env;
     } else if (
       !(env instanceof Location) &&
-      MqlApi.isOpenPeerContainer(env as Stuff) &&
+      MixinApi.isOpenContainer(env as Stuff) &&
       MixinApi.isContainable(env)
     ) {
       env = env.getContainer() ?? env;

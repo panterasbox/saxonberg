@@ -6,12 +6,13 @@
  * `peers` scope saw only the room's direct contents: the libations live
  * drive watched every floor hand's `get ale` at its own stock decline
  * `empty-result`, and a player could no more take a coupe off the rack.
- * `MqlApi.isOpenPeerContainer` is the one predicate the scope and
+ * `MixinApi.isOpenContainer` is the one predicate the scope and
  * `mustBeInLocation` share, so they cannot disagree about reach.
  */
 import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { MqlApi } from '../../mql';
+import { MixinApi } from '../../mixin';
 import { PerceptionMixin } from '../../../lib/perception/Perception';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { VisibleMixin } from '../../../lib/description/Visible';
@@ -59,7 +60,7 @@ describe('MQL peers — one level into an open container', () => {
     ContainmentApi.move(rack, room);
     ContainmentApi.move(glass, rack);
     expect(found(viewer)).toContain(glass.stuffId);
-    expect(MqlApi.isOpenPeerContainer(rack)).toBe(true);
+    expect(MixinApi.isOpenContainer(rack)).toBe(true);
   });
 
   it('does not see into a shut chest — and does once it is opened', () => {
@@ -87,6 +88,6 @@ describe('MQL peers — one level into an open container', () => {
     ContainmentApi.move(other, room);
     ContainmentApi.move(glass, other);
     expect(found(viewer)).not.toContain(glass.stuffId);
-    expect(MqlApi.isOpenPeerContainer(other)).toBe(false);
+    expect(MixinApi.isOpenContainer(other)).toBe(false);
   });
 });
