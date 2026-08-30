@@ -410,13 +410,25 @@ emitting via `ctx.note` + `MessageApi.scene`.
 the present on-shift maker.
 
 - **`wash <glass>`** (libations) — an engaged step (~3 s) that needs a
-  reachable water source (a `Bulkable` holder whose material is `water`
-  — the basin/tap `UnboundedReceptacle` affords the view); drains the
-  residue to the discard sink, destructs any garnish left inside, clears
-  `soiled`. The effect lives in `CraftingApi.washGlass` →
-  `CraftingLogic.washImpl` (an engaged `onComplete` runs under the
-  scheduler frame, so a `FromModule(WashController)` gate could never
-  pass). Bussing is `get <glass>` / `put <glass> in rack` — shipped verbs.
+  reachable water source: a `Bulkable` holder whose material carries the
+  **`water` tag** (the basin/tap `UnboundedReceptacle` affords the view).
+  ⚠ The tag, and only the tag — this once also matched the material's
+  keyword and display name, which is how it worked at all, since the
+  water row carried no `water` tag; see
+  [antipatterns.md](../antipatterns.md) § *Keywords Where You Mean
+  Identity*.
+
+  ⭐ **The effect is `vessel.wash()` on `CraftVessel`**, not an Api call.
+  It tips the dregs, destroys any garnish inside, drops the ice and the
+  technique stamp, and marks it clean. It was `CraftingApi.washGlass`
+  (placed there because an engaged `onComplete` runs under the scheduler
+  frame, so a `FromModule(WashController)` gate could never pass) — but
+  that was a *gating* argument, not a placement one: every line touched
+  nothing but the vessel's own state, and with the writer inside the
+  class `soiled` needs no gate at all. Named for the vessel rather than
+  the glass, because a syrup bottle and a juice bottle are
+  `CraftVessel`s too. Bussing is `get <glass>` / `put <glass> in rack` —
+  shipped verbs.
 - **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
   `muddler` capability; records `BuildMethod` `'muddled'`.
   `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`

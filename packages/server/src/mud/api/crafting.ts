@@ -272,16 +272,6 @@ export class CraftingApi {
     return logic().salvage(request);
   }
 
-  /**
-   * Wash a used glass — return it to the pool: the dregs go to the
-   * discard sink, whatever was in it (the garnish) is destructed, the ice
-   * is tipped, and the soil mark clears so `craft` will claim it again.
-   * The `wash` verb's effect (its controller checks the water). Returns
-   * false when `glass` is not a pool glass (not Crafted + Bulkable).
-   */
-  public static washGlass(glass: Stuff): boolean {
-    return logic().washGlass(glass);
-  }
 
   /** Resolve a recipe id/keyword to a display view, or null. */
   public static async lookupRecipe(ref: string): Promise<RecipeView | null> {

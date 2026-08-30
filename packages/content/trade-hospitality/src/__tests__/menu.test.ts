@@ -360,7 +360,7 @@ describe('trade-hospitality — the menu, every line', () => {
       (c) => c.getTemplatePath() === `${ROOT}/thing/coupe`,
     )!;
     ContainmentApi.move(dirty as never, venue as never);
-    expect(CraftingApi.washGlass(dirty)).toBe(true);
+    (dirty as CraftVessel).wash();
     expect((dirty as CraftVessel).isClaimable()).toBe(true);
     const again = await craftAs(maker, { recipeRef: 'martini', makerMode: 'self' });
     expect(again.ok, JSON.stringify(again)).toBe(true);

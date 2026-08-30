@@ -1265,32 +1265,6 @@ async function mintVessel(
   return { ok: true, output: vessel, grade, recipeId };
 }
 
-/** The wash. See {@link CraftingApi.washGlass}. */
-function washImpl(glass: Stuff): boolean {
-  if (!MixinApi.isBulkable(glass) || !MixinApi.isCrafted(glass)) return false;
-  const slot = BulkableApi.slotFor(glass, undefined);
-  if (slot) {
-    if (!slot.isEmpty()) {
-      BulkableApi.transfer(slot, null, {
-        kind: 'measure',
-        litres: slot.getAmount().rawValue(),
-        mode: 'lenient',
-      });
-    }
-    slot.setAmount(Quantity.of(0, 'L'));
-    slot.setMaterial(null);
-    slot.setPayload(null);
-  }
-  if (MixinApi.isContainer(glass)) {
-    for (const c of [...glass.getContents()]) StuffApi.destruct(c);
-  }
-  const pool = asPoolGlass(glass);
-  if (typeof pool.clearIce === 'function') pool.clearIce();
-  if (typeof pool.setTechnique === 'function') pool.setTechnique('');
-  if (typeof pool.setSoiled === 'function') pool.setSoiled(false);
-  return true;
-}
-
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */
 async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const catalogue = await requireCatalogue();
@@ -1749,12 +1723,6 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async salvage(request: SalvageRequest): Promise<SalvageOutcome> {
     return salvageImpl(request);
-  }
-
-  /** See {@link CraftingApi.washGlass}. */
-  @CallSecurity(CraftingApiCallers)
-  public washGlass(glass: Stuff): boolean {
-    return washImpl(glass);
   }
 
   /** See {@link CraftingApi.lookupRecipe}. */

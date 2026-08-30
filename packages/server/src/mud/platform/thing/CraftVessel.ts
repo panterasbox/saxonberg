@@ -42,6 +42,8 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin, type Crafted } from '../../lib/craft/Crafted';
 import type { FieldMeta } from '../../lib/mixin';
 import { Quantity } from '../../lib/quantity';
+import { BulkableApi } from '../../api/bulk';
+import { StuffApi } from '../../api/stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 
@@ -49,7 +51,12 @@ import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 const DEFAULT_MELT_K = 273;
 const DEFAULT_LATENT_J_PER_KG = 334000;
 
-/** Who may soil or clean a glass: the fill and the wash — both `CraftingLogic`. */
+/**
+ * Who may mark it used: the FILL, which is `CraftingLogic`'s. The wash is
+ * `wash()` below — inside the class, so it writes the field directly and
+ * needs no gate. (The gate once had to name the wash too, only because
+ * the wash lived on an Api.)
+ */
 const SoiledWriters = SecurityPolicies.FromModule(
   '/platform/idea/api/CraftingLogic#CraftingLogic',
 );
@@ -102,6 +109,40 @@ export default class CraftVessel extends CraftVesselBase {
   @CallSecurity(SoiledWriters)
   setSoiled(value: boolean): void {
     this.soiled = value;
+  }
+
+  /**
+   * Wash it: tip the dregs, destroy whatever was garnishing it, drop the
+   * ice and the technique stamp, and mark it clean. Claimable again.
+   *
+   * ⭐ This was `CraftingApi.washGlass(glass)` — an Api function whose
+   * every line touched nothing but the vessel: its own slot, its own
+   * contents, its own ice/technique/soiled. It opened with a type guard
+   * that existed only because it took a bare `Stuff`, and it reached the
+   * class's own members through a cast (`typeof pool.clearIce ===
+   * 'function'`). Duck-typing a class's own methods from outside is the
+   * tell. See docs/antipatterns.md § Thin Api Wrappers over Object
+   * Methods.
+   *
+   * Named for the vessel, not the glass: a syrup bottle and a juice
+   * bottle are `CraftVessel`s too.
+   */
+  wash(): void {
+    const slot = this.getBulk('interior');
+    if (!slot.isEmpty()) {
+      BulkableApi.transfer(slot, null, {
+        kind: 'measure',
+        litres: slot.getAmount().rawValue(),
+        mode: 'lenient',
+      });
+    }
+    slot.setAmount(Quantity.of(0, 'L'));
+    slot.setMaterial(null);
+    slot.setPayload(null);
+    for (const c of [...this.getContents()]) StuffApi.destruct(c);
+    this.clearIce();
+    this.setTechnique('');
+    this.soiled = false;
   }
 
   /** Clean and empty — claimable for a fill. */

@@ -3,7 +3,7 @@
  *
  * The bussing beat's last step. An engaged step (~3 s) that needs a
  * reachable **water source** — any bulk holder in reach whose matter is
- * water (the basin, the tap, a jug) — and then `CraftingApi.washGlass`:
+ * water (the basin, the tap, a jug) — and then the vessel washes itself:
  * the residue to the discard sink, whatever was left in the glass (the
  * olive) thrown out, the ice tipped, the soil mark cleared so the pool
  * will claim it again.
@@ -20,7 +20,7 @@ import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
-import { CraftingApi } from "../../../../api/crafting";
+import CraftVessel from "../../../thing/CraftVessel";
 
 const TOPIC = "act.deed";
 const WASH_MS = 3000;
@@ -33,7 +33,7 @@ export default class WashController extends ManualBuildController<WashModel> {
   execute(model: WashModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const glass = model.glass?.stuff ?? null;
-    if (!glass || !MixinApi.isBulkable(glass) || !MixinApi.isCrafted(glass)) {
+    if (!(glass instanceof CraftVessel)) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-glass");
       return;
     }
@@ -51,7 +51,7 @@ export default class WashController extends ManualBuildController<WashModel> {
       durationMs: WASH_MS,
       beginSelf: Mml.compose`You take ${Mml.thing(glass)} to ${Mml.thing(water)}.`,
       onComplete: () => {
-        CraftingApi.washGlass(glass);
+        glass.wash();
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You wash ${Mml.thing(glass)} clean.`)
