@@ -26,6 +26,7 @@ import { ConditionApi } from '../../../../api/condition';
 import { Touch } from '../../../../lib/perception/Touch';
 import { ChattelApi } from '../../../../api/chattel';
 import { PerceptionApi } from '../../../../api/perception';
+import { ProxyApi } from '../../../../api/proxy';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
@@ -153,12 +154,27 @@ export default class GetController extends CommandController<GetModel> {
     return;
   }
 
-  /** Bolted down: not a candidate for picking up. */
+  /**
+   * Bolted down: not a candidate for picking up.
+   *
+   * ⚠ Read off the RAW target. This runs once per candidate, and
+   * `get produce` on a floor stock binds hundreds — every proxied call
+   * pays the call-security gate, and the gate captures a JS stack. The
+   * eager form (`MixinApi.isContainable(s) && s.isFixedInPlace()`) was
+   * two gated calls per candidate and put `GetController` back at 36%
+   * of the server within one boot of my adding it.
+   *
+   * Safe to read raw here on both counts: `fixedInPlace` is plain state
+   * with no shadow that could legitimately disagree (a polymorph does
+   * not un-bolt a basin), and `get.yaml` requires `ContainableMixin` on
+   * its targets, so the mixin check the gate was paying for is already
+   * guaranteed by the arg spec.
+   */
   private isFixed(s: Stuff): boolean {
-    return (
-      MixinApi.isContainable(s) &&
-      (s as unknown as { isFixedInPlace(): boolean }).isFixedInPlace()
-    );
+    const raw = ProxyApi.unwrap(s) as unknown as {
+      isFixedInPlace?: () => boolean;
+    };
+    return raw.isFixedInPlace?.() === true;
   }
 
   /**
