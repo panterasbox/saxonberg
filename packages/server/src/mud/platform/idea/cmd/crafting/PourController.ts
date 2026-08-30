@@ -37,12 +37,6 @@ interface PourModel extends CommandModel {
   vessel?: MqlOneResult;
 }
 
-/** A material's recipe category — its primary keyword (e.g. gin → `gin`). */
-function primaryCategory(material: Material): string {
-  const keywords = material.getKeywords();
-  return (keywords.length > 0 ? keywords[0]! : material.getName()).toLowerCase();
-}
-
 export default class PourController extends ManualBuildController<PourModel> {
   async execute(model: PourModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -102,7 +96,6 @@ export default class PourController extends ManualBuildController<PourModel> {
     // sync, but a Material singleton may need an async load first.
     const mpath = slot.getMaterialPath();
     const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
-    const category = material ? primaryCategory(material) : "unknown";
     const gradeBand = bottle.getGradeBand();
     // Captured for the demonstration-capture trail (empty for a scripted
     // dispatch — only a hand-typed build accumulates a transcript).
@@ -126,7 +119,9 @@ export default class PourController extends ManualBuildController<PourModel> {
           return;
         }
         vessel.addContribution({
-          category,
+          // The material's authored tags are the vocabulary a recipe slot
+          // matches on — never a keyword or the display name.
+          tags: material ? [...material.getTags()] : [],
           measureL: result.applied,
           gradeBand,
           materialPath: material?.getTemplatePath() ?? undefined,
@@ -166,7 +161,6 @@ export default class PourController extends ManualBuildController<PourModel> {
       onComplete: () => {
         if (ingredient.isDestroyed()) return; // gone mid-step — nothing to add
         build.addContribution({
-          category: primaryCategory(material),
           measureL: 0,
           gradeBand: MixinApi.isGraded(ingredient)
             ? ingredient.getGradeBand()

@@ -37,8 +37,19 @@ export type BuildMethod = Technique;
 
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {
-  /** The Material category tag (e.g. `gin`) — matched against recipe slots. */
-  category: string;
+  /**
+   * A Material **tag** naming what was contributed (e.g. `gin`), matched
+   * against a recipe slot's `category`.
+   *
+   * ⚠ Optional, and `tags` is the authority: a slot matches against the
+   * source Material's full tag set, so a contribution that carries `tags`
+   * need not name one. It was once SYNTHESISED from the material's
+   * display name (`getName().toLowerCase()`) or its first keyword, which
+   * is the antipattern — a recipe's category vocabulary is authored tags,
+   * and words are the command line's. See docs/antipatterns.md
+   * § Keywords Where You Mean Identity.
+   */
+  category?: string;
   /** Volume contributed, in litres (0 for a discrete item contribution). */
   measureL: number;
   /** The source's grade band word, for weakest-link derivation. */
@@ -133,7 +144,8 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       const material = host.getMaterial();
       if (!material) return false;
       this.addContribution({
-        category: material.getName().toLowerCase(),
+        // No `category`: `tags` below is the material's authored
+        // vocabulary and is what a slot matches on.
         measureL: 0,
         gradeBand: MixinApi.isGraded(host) ? host.getGradeBand() : "fair",
         kind: "item",

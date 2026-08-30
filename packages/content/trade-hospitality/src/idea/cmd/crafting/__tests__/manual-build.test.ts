@@ -198,10 +198,12 @@ describe("pour as an engaged activity", () => {
     expect(actor.hasEngagement("hands")).toBe(false); // slot released
     expect(BulkableApi.slotFor(bottle, undefined)!.getAmount().rawValue()).toBeCloseTo(0.64, 6);
     expect(shaker.getContributions()).toHaveLength(1);
-    expect(shaker.getContributions()[0]).toMatchObject({
-      category: "gin",
-      gradeBand: "fine",
-    });
+    // ⭐ The contribution carries the material's AUTHORED TAGS, which is
+    // what a recipe slot matches on. It used to carry a `category`
+    // synthesised from the material's first keyword — see
+    // docs/antipatterns.md § Keywords Where You Mean Identity.
+    expect(shaker.getContributions()[0]).toMatchObject({ gradeBand: "fine" });
+    expect(shaker.getContributions()[0]!.tags).toContain("gin");
   });
 
   it("a second build step conflicts while the hands slot is held", async () => {

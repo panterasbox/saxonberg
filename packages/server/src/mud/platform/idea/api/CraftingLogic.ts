@@ -943,8 +943,12 @@ function buildSatisfies(
         if (used.has(i)) continue;
         const c = contributions[i]!;
         if ((c.kind ?? 'bulk') !== 'bulk') continue;
+        // Tags are the authority for BOTH kinds now; an explicitly
+        // named `category` still matches (tests and hand-built
+        // contributions set one).
         if (
-          c.category === slot.category &&
+          (c.category === slot.category ||
+            (c.tags ?? []).includes(slot.category)) &&
           c.measureL >= (slot.measureL ?? 0) - EPS &&
           Grade.of(c.gradeBand).compareTo(minGrade) >= 0
         ) {
