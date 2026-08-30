@@ -72,9 +72,21 @@ export default class GetController extends CommandController<GetModel> {
     // the server's CPU in this controller, with `get produce` binding
     // every item in an open floor stock.
     const reachable = PerceptionApi.reachableAmong(giver, stuff);
+    // ⭐ A bolted-down thing is not a CANDIDATE for picking up, so it
+    // must not consume the quantity slot. `get 1 crowsfoot` matches both
+    // the crowsfoot stock and the crowsfoot bottles standing in it — and
+    // spending the one slot on the immovable counter, then reporting
+    // `fixed-in-place`, is not what was asked. Filter them out and take
+    // the bottle. (If EVERY match is fixed there is nothing to take, and
+    // the whole-set branch below says so by name.)
     const candidates = reachable.filter(
-      (s) => !inventory.some((it) => it.stuffId === s.stuffId)
+      (s) =>
+        !this.isFixed(s) &&
+        !inventory.some((it) => it.stuffId === s.stuffId)
     );
+    if (candidates.length === 0 && reachable.some((s) => this.isFixed(s))) {
+      return this.declineAllFixed(reachable, raw, context);
+    }
 
     const result = await GlobbableApi.applyQuantity<GetPayload>(
       candidates,
@@ -114,7 +126,11 @@ export default class GetController extends CommandController<GetModel> {
       context.commandGiver,
       targets,
     );
-    for (const target of reachable) {
+    const takeable = reachable.filter((s) => !this.isFixed(s));
+    if (takeable.length === 0 && reachable.length > 0) {
+      return this.declineAllFixed(reachable, raw, context);
+    }
+    for (const target of takeable) {
       if (inventory.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
@@ -135,6 +151,35 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /** Bolted down: not a candidate for picking up. */
+  private isFixed(s: Stuff): boolean {
+    return (
+      MixinApi.isContainable(s) &&
+      (s as unknown as { isFixedInPlace(): boolean }).isFixedInPlace()
+    );
+  }
+
+  /**
+   * Everything the words named is bolted down. Say THAT — "you don't see
+   * any 'basin' here" would be a lie about a basin standing right there.
+   */
+  private declineAllFixed(
+    matches: readonly Stuff[],
+    raw: string,
+    context: CommandContext,
+  ): void {
+    const first = matches.find((s) => this.isFixed(s)) ?? matches[0]!;
+    MessageApi.scene(context.commandGiver)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`${Mml.thing(first)} is fixed in place.`)
+      .send();
+    context.note({
+      kind: 'controller-rejected',
+      reason: 'fixed-in-place',
+      detail: raw,
+    });
   }
 
   private renderResult(

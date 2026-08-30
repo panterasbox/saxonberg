@@ -217,6 +217,43 @@ describe('GetController — quantity-bearing path', () => {
     vi.restoreAllMocks();
   });
 
+  // ⭐ A bolted-down match must not eat the quantity slot. `get 1
+  // crowsfoot` matches both the crowsfoot STOCK and the crowsfoot
+  // bottles standing in it; spending the one slot on the immovable
+  // counter and reporting `fixed-in-place` is not what was asked. A
+  // live drive hit exactly this the moment the fixtures became fixed.
+  it('skips a fixed-in-place match and takes the takeable one', async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const counter = makeStuff(() => {
+      const c = new Rack();
+      c.setName('crowsfoot');
+      return c;
+    });
+    (counter as unknown as { setFixedInPlace(b: boolean): void }).setFixedInPlace(true);
+    ContainmentApi.move(counter, loc);
+    const bottle = makeStuff(() => {
+      const b = new Sword();
+      b.setName('crowsfoot');
+      return b;
+    });
+    ContainmentApi.move(bottle, loc);
+
+    const controller = makeStuff(() => new GetController());
+    await controller.execute(
+      makeModel(
+        makeResult([counter, bottle] as never, 'crowsfoot', {
+          value: { kind: 'count', n: 1 },
+          mode: 'lenient',
+        }),
+      ),
+      makeContext(giver, loc),
+    );
+    expect(bottle.getContainer()).toBe(giver);
+    expect(counter.getContainer()).toBe(loc);
+  });
+
   // ⭐ DISCRETE items, not a glob. The coin case below splits one stack;
   // this is N separate things sharing a keyword — a floor stock's dozen
   // grapefruits, a rack's dozen coupes — and it is the case the
