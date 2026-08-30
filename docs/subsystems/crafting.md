@@ -428,8 +428,9 @@ the present on-shift maker.
 bar's default) `craftImpl` no longer clones the output: `claimGlass`
 takes the first reachable **clean, empty** vessel of the output's
 **kind** (the gather walk already descends open room containers, so a
-`/platform/thing/GlassRack` — an open `Detailed(Container(Thing))` — is
-in the pool scan); none → the diegetic decline **`no-glass`** ("no clean
+hospitality's `GlassRack` — an open `Container(Thing)` — is in the pool
+scan; the kernel knows no rack class, only that the walk descends open
+containers); none → the diegetic decline **`no-glass`** ("no clean
 coupe").
 
 ⭐ **The rail rule: an unnamed pour takes the CHEAPEST liquid that clears
@@ -620,8 +621,11 @@ homed by what they *are*:
   (`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))` since
   libations, `getLong()` appends the verdict), `Menu`, `GradedReceptacle`
   (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`) and over it
-  `Bottle` (the stock vessel — [retail.md](./retail.md)), `GlassRack`,
-  `Crate`, `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`.
+  `Bottle` (the stock vessel — [retail.md](./retail.md)), `Crate`,
+  `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`. ⭐ A class
+  named for ONE trade's fixture ships in that trade's pack, not here —
+  `GlassRack` is hospitality's, `CookPot` hearth-cooking's, `SpiritBottle`
+  and `Still` distilling's. See [content-packs.md](./content-packs.md) § *Where a class lives*.
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
   packs wave 4a/4b): `trade-smithing` ships the smithing five at

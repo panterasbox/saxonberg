@@ -14,3 +14,7 @@ The hospitality trade — a **capability pack** (it ships `src/`). Root
 Tests: `pnpm --filter @saxonberg/content-trade-hospitality test` — `src/__tests__/menu.test.ts` builds the venue from the archetype, stocks it from the trades' own rows and orders every menu line.
 
 Since the review of the libations MR the bar's own steps ship here too: `muddle`, `strain`, `garnish`, `mix`, `serve` under `content/trade/hospitality/cmd/crafting/` with their controllers in `src/idea/cmd/crafting/`; the shaker, mixing-glass and muddler rows author the verbs they confer. `pour`/`stir`/`shake`/`wash` stay platform (a pot pours and stirs too; a basin washes anything); `menu`/`order` are platform `retail`.
+
+`src/` ships the classes only this trade names: `IceBin`, `Tap`, and
+`GlassRack` (the glass pool's home — an open container; the kernel knows
+no rack class, only that the gather walk descends open containers).

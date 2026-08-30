@@ -3,7 +3,7 @@
 # `populates:` mints the venue's glassware once; from then on the pool
 # CYCLES (claim → serve → bus → wash → rack) and a broken glass is a
 # shortfall on the stock sheet, bought like anything else.
-class: /platform/thing/GlassRack
+class: /trade/hospitality/thing/GlassRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a glass rack

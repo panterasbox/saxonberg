@@ -36,7 +36,6 @@ import { MakerMixin } from '../../../../lib/craft/Maker';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import Receptacle from '../../../thing/Receptacle';
 import CraftedDrink from '../../../thing/CraftedDrink';
-import GlassRack from '../../../thing/GlassRack';
 import ToolItem from '../../../thing/ToolItem';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import {
@@ -107,6 +106,14 @@ function makeHolder(materialPath: string, amountL: number) {
   b.setInteriorAmount(Quantity.of(amountL, 'L'));
   return b;
 }
+
+/**
+ * A synthetic open container — the pool's home. The kernel knows nothing
+ * about racks: the gather walk descends ANY open `Container`, so this
+ * proves the mechanism without reaching for hospitality's shipped
+ * `GlassRack` row (which lives in the pack, per `lint:test-content`).
+ */
+class TestRack extends ContainerMixin(Thing) {}
 
 function makeGlass(path: string, capacityL = 0.4): CraftedDrink {
   const g = makeStuffAtPath(() => new CraftedDrink(), path);
@@ -310,7 +317,7 @@ afterEach(() => {
 
 describe('the glass pool (1c)', () => {
   it('claims a clean coupe from the rack, bounds service at the pool, serves again after a wash', async () => {
-    const rack = makeStuff(() => new GlassRack());
+    const rack = makeStuff(() => new TestRack());
     ContainmentApi.move(rack, room);
     const a = makeGlass(COUPE);
     const b = makeGlass(COUPE);

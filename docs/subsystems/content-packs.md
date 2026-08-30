@@ -462,6 +462,32 @@ The different-pack-stamp refusal in the reconcile stays as the belt to
 this check's suspenders.
 
 ## The capability rung — a pack ships classes
+### ⭐ Where a class lives — the same rule as a brain's
+
+> **A class lives in the pack whose content is the only thing that names
+> it.** The kernel keeps what several trades name, or what nothing names
+> because it is substrate.
+
+The rule already stated for brains (below), applied to classes — which is
+what the capability rung is *for*. The test is the row set, not the
+inheritance: `GlassRack` was named by hospitality alone and named for a
+bar fixture, so it ships in hospitality; `CookPot` likewise in
+hearth-cooking; `SpiritBottle` and `Still` were always distilling's.
+
+⚠ **One current consumer is not the test — the NAME is.** `Crate` is
+named only by produce today, and stays kernel: a crate is a case of
+anything, and brewing or bottling would plausibly ship one. `Bottle`
+(four packs) and `Tablet`/`Screen` (display substrate) stay for the
+ordinary reason.
+
+⭐ A useful tell: **a kernel class only ever imported by TESTS is
+suspect.** Both `GlassRack` and `CookPot` had zero production kernel
+importers — the only kernel references were tests reaching for shipped
+trade content, which `lint:test-content` already discourages. Moving the
+class forces those tests onto synthetic fixtures, which is where they
+belonged: the kernel knows no rack class, only that the gather walk
+descends open `Container`s.
+
 
 A pack's `src/` has the kernel's taxonomy and nothing else: instanceable
 classes under the four branches (`thing/`, `idea/`, `agent/`,

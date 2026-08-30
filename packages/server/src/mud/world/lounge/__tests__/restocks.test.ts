@@ -25,7 +25,6 @@ import ConsignController from '../../../platform/idea/cmd/retail/ConsignControll
 import WalletController from '../../../platform/idea/cmd/banking/WalletController';
 import Stock from '../../../platform/thing/Stock';
 import Bottle from '../../../platform/thing/Bottle';
-import GlassRack from '../../../platform/thing/GlassRack';
 import CraftedDrink from '../../../platform/thing/CraftedDrink';
 import Coin from '../../../platform/thing/Coin';
 import BankCounter from '../../../platform/thing/BankCounter';
@@ -48,6 +47,7 @@ import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { EmployedMixin } from '../../../lib/employment/Employed';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../lib/spatial/Container';
+import Thing from '../../../lib/stuff/Thing';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { MobileMixin } from '../../../lib/spatial/Mobile';
 import { NamedMixin } from '../../../lib/description/Named';
@@ -136,14 +136,22 @@ function stock(path: string, kw: string): Stock {
   }, path);
 }
 
+/**
+ * A synthetic open container — the back-bar shelf and the glass rack.
+ * The brain puts things on/in them and the gather walk descends them
+ * because they are open `Container`s, not because of any class the
+ * kernel knows: hospitality's `GlassRack` ships in its own pack.
+ */
+class TestRack extends ContainerMixin(Thing) {}
+
 describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-carry", () => {
   let bar: Location;
   let floor: Location;
   let cashAndCarry: Location;
   let counter: Stock;
   let floorStock: Stock;
-  let shelf: GlassRack;
-  let rack: GlassRack;
+  let shelf: TestRack;
+  let rack: TestRack;
   let barBiz: BusinessEntity;
   let outfit: BusinessEntity;
   let gin: Material;
@@ -200,11 +208,11 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
     bar = makeStuffAtPath(() => new Location(), BAR);
     floor = makeStuffAtPath(() => new Location(), FLOOR);
     cashAndCarry = makeStuffAtPath(() => new Location(), CASH_AND_CARRY);
-    shelf = makeStuffAtPath(() => new GlassRack(), SHELF);
+    shelf = makeStuffAtPath(() => new TestRack(), SHELF);
     shelf.setKeywords(['back-bar', 'shelf']);
     shelf.setPrimaryKeyword('back-bar');
     ContainmentApi.move(shelf as never, bar as never);
-    rack = makeStuffAtPath(() => new GlassRack(), RACK);
+    rack = makeStuffAtPath(() => new TestRack(), RACK);
     rack.setKeywords(['rack', 'glass-rack']);
     rack.setPrimaryKeyword('rack');
     ContainmentApi.move(rack as never, bar as never);

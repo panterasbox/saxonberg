@@ -8,12 +8,18 @@
  * Deliberately NOT `Sealable`: a rack has no lid, so it is always open to
  * the walk. `Populates` so a bar bundle authors its dozen coupes in place.
  * Content, not class, decides which glasses a given rack holds.
+ *
+ * Ships at `/trade/hospitality/thing/GlassRack` (the capability rung): a
+ * class lives in the pack whose content is the only thing that names it,
+ * and a glass rack is a bar fixture. Nothing in the kernel refers to it —
+ * `CraftingLogic` finds a rack's contents because the gather walk
+ * descends any open `Container`, never because it knows this class.
  */
 
-import Thing from '../../lib/stuff/Thing';
-import { DetailedMixin } from '../../lib/description/Detailed';
-import { ContainerMixin } from '../../lib/spatial/Container';
-import { PopulatesMixin } from '../../lib/stuff/Populates';
+import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { PopulatesMixin } from '@saxonberg/server/mud/lib/stuff/Populates';
 
 const GlassRackBase = PopulatesMixin(ContainerMixin(DetailedMixin(Thing)));
 
