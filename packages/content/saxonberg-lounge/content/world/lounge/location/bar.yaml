@@ -50,7 +50,13 @@ data:
       description: |
         Up close the dark slab is a ledger of its own — water rings inside water rings, a constellation of old cigarette burns, initials gouged in by somebody who got told off for it. Sanded smooth, never replaced. A newer bar would have thrown it out years ago; that's rather the point.
     stools:
-      keywords: [stool, stools, seat, seats, leather, rail]
+      # ⚠ NOT `rail`. The back-bar claims it (`back-bar.yaml` keywords),
+      # and the whole build calls that shelf the rail — `house stock`
+      # reports it, Mara's beat shelves onto it, the room text says "the
+      # rail is stocked by BUYING". With `rail` on both, the room card's
+      # own "the back-bar" button sent `look rail` and showed you the
+      # STOOLS: what you can name, see and touch had diverged.
+      keywords: [stool, stools, seat, seats, leather]
       description: |
         Worn leather, each one shaped a little differently by the body that owns it — and on a quiet night one at the end of the rail sits empty on purpose, kept for whichever of the staff is off-shift and drinking here anyway. Where else would they go.
   # The way into Dave's office — now a DISCOVERABLE secret door (D1/Phase 3
