@@ -23,6 +23,8 @@
  * and every `FromModule` gate denies.
  */
 
+import { loadavg, cpus } from "node:os";
+
 import "../src/test-bootstrap";
 import Thing from "../src/mud/lib/stuff/Thing";
 import { ProxyApi } from "../src/mud/api/proxy";
@@ -38,6 +40,18 @@ class Probe extends PropertiedMixin(ContainableMixin(DetailedMixin(Thing))) {
   private _n = 0;
   public bump(): number {
     return ++this._n;
+  }
+
+  /**
+   * Run `fn` `depth` proxied frames down. Each recursion is a real
+   * dispatch, so the ExecutionContext stack is genuinely that deep —
+   * which is the only way to see the cost that scales with it. A
+   * benchmark run from the top of an empty stack measures a call the
+   * engine never makes: a command in play is dozens of frames down.
+   */
+  public descend<T>(depth: number, fn: () => T): T {
+    if (depth <= 0) return fn();
+    return this.descend(depth - 1, fn);
   }
 }
 
@@ -76,7 +90,32 @@ function bench(variants: Variant[]): Map<string, number> {
   return out;
 }
 
+/**
+ * Refuse to report a number taken on a busy machine.
+ *
+ * The same guard `bench-suite` carries, for the same reason: a run that
+ * shares eight cores with a vitest fork measures the contention, not the
+ * change. Caught here concretely — a gate change measured 4.5 us on a
+ * quiet box and 8.7 us while the suite ran beside it, which read as a
+ * 2x REGRESSION from an optimisation. `--force` runs anyway and says so.
+ */
+function assertQuiet(): void {
+  const load = loadavg()[0]!;
+  const budget = Math.max(1, cpus().length / 4);
+  if (load <= budget) return;
+  const msg =
+    `bench-gate: the machine is NOT quiet — 1-min load ${load.toFixed(1)} ` +
+    `over a budget of ${budget.toFixed(1)} on ${cpus().length} cores.`;
+  if (process.argv.includes("--force")) {
+    console.error(`${msg}\n  ⚠ --force: the numbers below are CONTAMINATED.\n`);
+    return;
+  }
+  console.error(`${msg}\n  Wait for it to settle, or pass --force.`);
+  process.exit(1);
+}
+
 function main(): void {
+  assertQuiet();
   const p = makeStuff(() => new Probe());
   const raw = ProxyApi.unwrap(p as never) as unknown as Probe;
 
@@ -154,6 +193,18 @@ function main(): void {
     console.log(
       `  ${k.trim().padEnd(24)} ${d.toFixed(0).padStart(7)} ns  (${((d / overhead) * 100).toFixed(0)}% of overhead)`
     );
+  }
+
+  // How the cost scales with call depth. Each frame push copies the
+  // whole parent stack, so a dispatch 100 frames down pays 100 pointer
+  // copies that a dispatch at the top does not. Play runs deep.
+  console.log("\n  by ExecutionContext stack depth (production path):");
+  for (const depth of [0, 25, 100, 200]) {
+    const ns = p.descend(depth, () => {
+      const one = bench([{ label: "d", run: () => void p.bump() }]);
+      return one.get("d")!;
+    });
+    console.log(`    depth ${String(depth).padStart(3)}  ${ns.toFixed(0).padStart(7)} ns/call`);
   }
 
   // How many stack captures does one dispatch cost? The number the
