@@ -600,6 +600,7 @@ PlatBook.lotBranch = 0
 PlatBook.lots = 0
 PlatBook.parentExtent = 0
 PlatBook.priceMinor = 0
+PopulatesMixin._populated = 0
 PopulatesMixin.populates = 0
 PosedMixin.posture = 0
 PosedMixin.restingOnPath = 0

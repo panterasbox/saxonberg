@@ -155,6 +155,36 @@ Order is load-bearing. **Register fires before hydrate** so that anything
 resolving the in-flight object by `stuffId` during hydrate or
 `postRegister` (e.g., a self-referencing exit hydrator) finds it.
 
+## ⭐ Instruction appliers run ONCE — `populates` is initial furnishing
+
+⚠ **Added 2026-08-30** (the libations review). `TemplateApi.restoreFromTemplate`
+— the **CMS save go-live** (`CmsLogic`) and the **pack reconcile go-live**
+(`PackLogic`) — re-runs the *full* `hydrate`, which re-dispatches every
+Phase-2 instruction applier. For a *value* field that is harmless: the
+field is re-assigned to the authored value, which is the point. For an
+applier that **mints objects** it is a faucet: before this,
+publishing an edit to a `populates:` row minted a fresh set into every
+live instance — every crate in the world gaining six more grapefruits,
+every non-singleton fixture in a plain room duplicated.
+
+`PopulatesMixin` therefore records `_populated` and no-ops once set.
+Singletons were already safe (the applier skips one already placed);
+this covers the plain-clone branch. `PersistableMixin` hosts (every
+`FurnishableRoom`) were never exposed — that override only *retains*
+the specs and lets the establishing context seed them once via
+`seedBornWith` — and the guard now makes that idempotent too.
+
+⚠ **Deliberately not count-aware.** "Top up to the declared list" was
+rejected: the same mechanism serves a room's fixtures, which are meant
+to be permanent, and a crate's contents, which are meant to be
+**consumed**. "Declared minus present" would resurrect goods somebody
+drank, ate or sold — the faucet the libations build spent its whole
+length removing from the bar. An author who edits the list and wants it
+applied **re-clones**; there are no migrations.
+
+**The general rule for a new instruction field: if the applier creates
+Stuff, it must be idempotent, because go-live will call it again.**
+
 ## The Hydrator Contract
 
 `Hydrator` (`lib/stuff/Hydrator.ts`) is a one-method interface:

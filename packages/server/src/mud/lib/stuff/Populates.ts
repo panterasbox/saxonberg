@@ -31,6 +31,29 @@
  * to produce runtime placements). There is NO paired `getPopulates()`
  * accessor on the runtime instance — the spec is discarded after
  * Phase 2.
+ *
+ * ## ⭐ Run ONCE, at birth — `populates` is initial furnishing
+ *
+ * The applier no-ops once `_populated` is set. This is load-bearing, not
+ * hygiene: `TemplateApi.restoreFromTemplate` — the CMS save go-live and
+ * the pack reconcile go-live — re-runs the FULL `hydrate`, which
+ * re-dispatches every instruction applier. Without the guard, editing a
+ * `populates` row and publishing minted a fresh set into every live
+ * instance: every crate in the world gaining six more grapefruits, every
+ * non-singleton fixture in a plain room duplicated. A content edit is not
+ * a faucet.
+ *
+ * ⚠ Deliberately **not** count-aware ("top up to the declared list").
+ * The same mechanism serves a room's fixtures, which are meant to be
+ * permanent, and a crate's contents, which are meant to be CONSUMED —
+ * so "declared minus present" would resurrect goods somebody drank, ate
+ * or sold. That is the faucet the libations build spent its whole
+ * length removing from the bar.
+ *
+ * An author who edits the list and wants it applied **re-clones**; there
+ * are no migrations. Singletons were already safe via the
+ * `getContainer() !== null` skip; this covers the plain-clone branch,
+ * and it makes `Persistable.seedBornWith` idempotent for free.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -64,8 +87,18 @@ export interface Populates {
    *   a template's `populates` field. **Instruction applier** — consumes
    *   the spec during hydration to spawn/populate; the spec is not
    *   retained and there is no paired getter (not a property).
+   *
+   *   ⭐ Runs **once per instance**: a no-op once this host has been
+   *   populated, so a go-live re-hydrate does not mint a second set.
+   *   See the class docstring.
    */
   applyPopulates(specs: PopulateSpec[]): Promise<void>;
+
+  /** Whether this host has already laid down its born-with contents. */
+  hasPopulated(): boolean;
+
+  /** Storage for {@link Populates.hasPopulated} (public for the Hydrator). */
+  _populated: boolean;
 }
 
 export function PopulatesMixin<
@@ -82,7 +115,18 @@ export function PopulatesMixin<
      */
     static fieldMeta: FieldMeta = {
       populates: { instruction: true, authorable: true },
+      // Runtime state, never authored: set by the applier itself so a
+      // go-live re-hydrate cannot mint a second set. Persistent so the
+      // fact survives a capture/restore round trip.
+      _populated: { persistent: true, runtimeState: true },
     };
+
+    /** True once this host has laid down its born-with contents. */
+    public _populated: boolean = false;
+
+    public hasPopulated(): boolean {
+      return this._populated;
+    }
 
     /**
      * Phase 2 applier. See class docstring for dispatch semantics.
@@ -94,6 +138,10 @@ export function PopulatesMixin<
      */
     async applyPopulates(specs: PopulateSpec[]): Promise<void> {
       if (!Array.isArray(specs)) return;
+      // ⭐ Initial furnishing, once. `restoreFromTemplate` re-runs the
+      // whole hydrate on go-live; without this, publishing an edit to a
+      // `populates:` row mints a fresh set into every live instance.
+      if (this._populated) return;
       // Lazy import to dodge any cycle through Stuff.
       const { Template } = await import('./Template');
       // Track populated instances by source path so a later `onto` entry can
@@ -141,6 +189,10 @@ export function PopulatesMixin<
         }
         placed.set(path, inst);
       }
+      // Set after a successful run: a throw mid-list is a content bug
+      // that aborts the clone, and leaving the flag clear keeps the
+      // half-populated shell out of the "already done" state.
+      this._populated = true;
     }
   };
 }

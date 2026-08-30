@@ -18,6 +18,7 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import PersistentHydrator from '../../platform/idea/persistence/PersistentHydrator';
 import { StuffApi } from '../../api/stuff';
 import { HotReloadApi } from '../../api/hot-reload';
+import { TemplateApi } from '../../api/template';
 import {
   PersistenceManager,
   Collections,
@@ -179,6 +180,46 @@ describe('spawn substrate integration', () => {
     const potion = library.getContents()[0]!;
     expect(potion).toBeInstanceOf(SpawnPotion);
     expect(potion.getContainer()).toBe(library);
+  });
+
+  // ⭐ The go-live case, and the one that matters. `restoreFromTemplate`
+  // is the CMS save go-live and the pack reconcile go-live; it re-runs
+  // the FULL hydrate, which re-dispatches every instruction applier.
+  // Before the run-once guard, publishing an edit to a `populates:` row
+  // minted a fresh set into every live instance — every crate in the
+  // world gaining six more grapefruits. A content edit is not a faucet.
+  it('a go-live re-hydrate does NOT mint a second set (populates runs once)', async () => {
+    installInMemoryStore([
+      {
+        path: PersistentHydrator.templatePath,
+        class: '/platform/idea/persistence/PersistentHydrator',
+        data: {},
+      },
+      {
+        path: '/test/potion',
+        class: '/platform/idea/SpawnPotion',
+        hydratorClass: PersistentHydrator.templatePath,
+        data: {},
+      },
+      {
+        path: '/test/library',
+        class: '/platform/idea/SpawnLibrary',
+        hydratorClass: PersistentHydrator.templatePath,
+        data: { populates: ['/test/potion'] },
+      },
+    ]);
+
+    const library = await StuffApi.singleton<SpawnLibrary>('/test/library');
+    expect(library.getContents().length).toBe(1);
+    expect(library.hasPopulated()).toBe(true);
+
+    // The author edits the row and publishes.
+    await TemplateApi.restoreFromTemplate(library as never);
+    expect(library.getContents().length).toBe(1);
+
+    // And the applier itself is inert on a second call, however reached.
+    await library.applyPopulates(['/test/potion']);
+    expect(library.getContents().length).toBe(1);
   });
 
   it('clone-from-template with data.container places the child via Layer 3 (hydration self-placement)', async () => {
