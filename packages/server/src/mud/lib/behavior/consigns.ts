@@ -109,11 +109,27 @@ export const brain = class {
     if (hand.getContainer() !== home) hand.teleport(home as Stuff & Container);
 
     // Take the goods off the floor — `get` reaches into the open stock.
+    //
+    // ⚠⚠ `get 1 <kw>`, never a bare `get <kw>`. `get` binds its targets
+    // GREEDILY, and a floor stock holds many goods sharing one keyword,
+    // so a bare `get grapefruit` takes EVERY grapefruit on the floor —
+    // the `batch` cap above then bounds nothing at all. A live drive
+    // watched a player's `get coupe` empty a whole rack (twelve), and
+    // the hands did the same to their floors every beat: the shelf's
+    // per-consignor cap let only a few up, the rest stayed in hand, and
+    // the next beat piled more on top.
+    //
+    // That is not just untidy — it is quadratic. Every `consign` asks
+    // `BankingApi.activeCredential`, which resolves `person` scope over
+    // everything the hand carries to find its house card, so an
+    // inventory that grows without bound makes each consign slower than
+    // the last. A profile of the running server put 54% of the process
+    // in `ConsignController → activeHouse → activeCredential`.
     const before = new Set(hand.getContents().map((c) => c.stuffId));
     for (const good of goods) {
       const kw = keywordOf(good);
       if (!kw) continue;
-      await CommandApi.forceCommand(hand, `get ${kw}`);
+      await CommandApi.forceCommand(hand, `get 1 ${kw}`);
       // A lift that declined (too heavy, not there) leaves the good where
       // it was — stop rather than grind through the rest; the next beat
       // starts from what the hand can carry.

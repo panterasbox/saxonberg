@@ -217,6 +217,43 @@ describe('GetController — quantity-bearing path', () => {
     vi.restoreAllMocks();
   });
 
+  // ⭐ DISCRETE items, not a glob. The coin case below splits one stack;
+  // this is N separate things sharing a keyword — a floor stock's dozen
+  // grapefruits, a rack's dozen coupes — and it is the case the
+  // `consigns` beat depends on. A bare `get <kw>` binds them ALL
+  // (`greedy: true`), which is how a hand's inventory grew without
+  // bound and made every later `consign` slower than the last; the beat
+  // asks `get 1 <kw>` so its authored `batch` means something.
+  it('takes exactly ONE of several discrete things sharing a keyword', async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const swords = Array.from({ length: 5 }, () => {
+      const sw = makeStuff(() => {
+        const x = new Sword();
+        x.setName('sword');
+        return x;
+      });
+      ContainmentApi.move(sw, loc);
+      return sw;
+    });
+
+    const controller = makeStuff(() => new GetController());
+    await controller.execute(
+      makeModel(
+        makeResult(swords as never, 'swords', {
+          value: { kind: 'count', n: 1 },
+          mode: 'lenient',
+        }),
+      ),
+      makeContext(giver, loc),
+    );
+
+    const carried = giver.getContents().filter((c) => swords.includes(c as never));
+    expect(carried.length).toBe(1);
+    expect(loc.getContents().filter((c) => swords.includes(c as never)).length).toBe(4);
+  });
+
   it('picks up 5 of a 30-coin pile (lenient count)', async () => {
     stubCoinClone();
     const loc = makeStuff(() => new Location());
