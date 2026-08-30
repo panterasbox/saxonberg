@@ -26,6 +26,7 @@ import { ExecutionContextApi } from '../../../../api/execution-context';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Quantity } from '../../../../lib/quantity';
+import type { TechniqueSpec } from '../../../../lib/craft/Technique';
 import Material from '../../../../lib/material/Material';
 import Thing from '../../../../lib/stuff/Thing';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -130,9 +131,22 @@ function makeItem(materialPath: string): Thing {
   return t;
 }
 
+/**
+ * A tool authoring the working it performs. ⭐ The kernel keeps no
+ * technique table: an instrument that names no working leaves the drink
+ * `built`, which is why these fixtures author one — the same data a
+ * shipped tool row carries.
+ */
+const WORKINGS: Record<string, TechniqueSpec | undefined> = {
+  shaker: { name: 'shaken', chillK: 8, dilutionL: 0.02, aerated: true, priority: 2 },
+  'mixing-glass': { name: 'stirred', chillK: 6, dilutionL: 0.01, priority: 2 },
+  muddler: { name: 'muddled', priority: 1 },
+};
+
 function makeTool(cap: string) {
   const t = makeStuff(() => new ToolItem());
-  t.setCapabilities([cap]);
+  const technique = WORKINGS[cap];
+  t.setCapabilities([technique ? { kind: cap, technique } : cap]);
   return t;
 }
 
@@ -589,5 +603,49 @@ describe('the well — an unnamed pour takes the rail, a named one takes the bra
 
     expect(slot(good).getAmount().rawValue()).toBeLessThan(before.good);
     expect(slot(rail).getAmount().rawValue()).toBeCloseTo(before.rail, 6);
+  });
+});
+
+describe('the technique vocabulary is OPEN — a pack adds a working with no kernel edit', () => {
+  // ⭐ The kernel keeps no technique table and no list of words. A trade
+  // that presses, churns or steeps authors the working on the instrument
+  // that performs it, and the numbers are that row's data. Nothing below
+  // exists anywhere in the kernel: `churned` is invented here, exactly as
+  // a pack would invent it.
+  it('an invented working names the drink and applies its own numbers', async () => {
+    ContainmentApi.move(makeGlass(HIGHBALL) as never, room as never);
+    ContainmentApi.move(makeHolder(ICE, 5), room);
+
+    const churn = makeStuff(() => new ToolItem());
+    churn.setCapabilities([
+      {
+        kind: 'churn',
+        technique: { name: 'churned', chillK: 5, dilutionL: 0.03, aerated: true },
+      },
+    ]);
+    ContainmentApi.move(churn, room);
+
+    store.recipes!.push({
+      recipeId: 'churned-gin',
+      name: 'Churned Gin',
+      keywords: ['churned-gin'],
+      inputSlots: [{ slot: 'base', category: 'gin', minGrade: 'fair', measureL: 0.05 }],
+      toolCapabilities: ['churn'],
+      outputTemplate: HIGHBALL,
+    });
+    // Re-warm the catalogue the fixture already stood up — the recipe is
+    // new content, not a second singleton.
+    await StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/platform/idea/RecipeCatalogue',
+    )!.warm();
+
+    const out = await craftAs(dave, { recipeRef: 'churned-gin', makerMode: 'self' });
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+
+    const drink = out.output as CraftVessel;
+    expect(drink.getTechnique()).toBe('churned');
+    // The tool's own dilution landed: 0.05 L of gin + 0.03 L folded in.
+    expect(slot(drink).getAmount().rawValue()).toBeCloseTo(0.08, 6);
   });
 });

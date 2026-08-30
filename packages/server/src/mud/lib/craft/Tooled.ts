@@ -21,6 +21,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { ToolCapabilities, type CapabilitySpec } from './ToolCapability';
+import type { ConferredTechnique } from './Technique';
 
 export interface Tooled {
   getCapabilities(): readonly string[];
@@ -30,6 +31,12 @@ export interface Tooled {
   capabilityRate(kind: string): number;
   /** The kind's authored control band, or null. */
   capabilityControl(kind: string): string | null;
+  /**
+   * Every working this instrument performs, across its capability
+   * entries — what `Techniques.fromTools` reads at the fill. The tool
+   * is what knows; the kernel keeps no technique table.
+   */
+  capabilityTechniques(): readonly ConferredTechnique[];
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -90,6 +97,16 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     capabilityControl(kind: string): string | null {
       return this.entryFor(kind)?.control ?? null;
+    }
+
+    public capabilityTechniques(): readonly ConferredTechnique[] {
+      const out: ConferredTechnique[] = [];
+      for (const e of this.capabilities) {
+        if (typeof e !== 'string' && e.technique) {
+          out.push({ kind: e.kind, technique: e.technique });
+        }
+      }
+      return out;
     }
 
     /** The kind's normalized entry — a bare string IS the defaulted

@@ -14,8 +14,8 @@
  * names `still` on both sides and nothing in the kernel changes (the
  * libations build's rule — a pack never needs a kernel LIST edit).
  *
- * **The verbs a tool confers are the tool row's own data**, never a
- * kernel table's: `capabilities: [{ kind: shaker, verbs: [...] }]`. The
+ * **The verbs a tool confers — and the WORKING it performs — are the tool
+ * row's own data**, never a kernel table's: `capabilities: [{ kind: shaker, verbs: [...] }]`. The
  * tool that does the work carries its working verbs (the
  * instrument-conferred model — command-spec.md § who affords a verb), and
  * a verb lives in the pack whose content affords it, so the kernel can
@@ -23,6 +23,7 @@
  */
 
 import { Grade } from './Grade';
+import { Techniques, type TechniqueSpec } from './Technique';
 
 /**
  * Where a capability's conferred verbs light up: `reachable` = the tool
@@ -54,6 +55,15 @@ export interface CapabilitySpec {
   control?: string;
   /** Where the verbs light up. Default `reachable`. */
   placement?: CapabilityPlacement;
+  /**
+   * The **working this instrument performs**, and what it does to the
+   * output — `{ name, chillK?, dilutionL?, aerated?, priority? }`. The
+   * shaker is what makes a drink shaken and the shaker is what knows
+   * shaking chills 8 K; the kernel keeps no technique table, so a pack
+   * that ships a churn names `churned` here and changes nothing in the
+   * kernel. Absent = this instrument names no working.
+   */
+  technique?: TechniqueSpec;
 }
 
 /**
@@ -116,6 +126,30 @@ export class ToolCapabilities {
       throw new RangeError(
         `ToolCapabilities.validateEntry: unknown placement '${entry.placement}' for '${kind}'`,
       );
+    }
+    if (entry.technique !== undefined) {
+      const t = entry.technique;
+      if (!t || !Techniques.isTechniqueName(t.name)) {
+        throw new RangeError(
+          `ToolCapabilities.validateEntry: bad technique name '${String(t?.name)}' for '${kind}'`,
+        );
+      }
+      for (const [f, v] of [
+        ['chillK', t.chillK],
+        ['dilutionL', t.dilutionL],
+        ['priority', t.priority],
+      ] as const) {
+        if (v !== undefined && (!Number.isFinite(v) || v < 0)) {
+          throw new RangeError(
+            `ToolCapabilities.validateEntry: bad technique ${f} '${String(v)}' for '${kind}'`,
+          );
+        }
+      }
+      if (t.aerated !== undefined && typeof t.aerated !== 'boolean') {
+        throw new RangeError(
+          `ToolCapabilities.validateEntry: technique aerated must be a boolean for '${kind}'`,
+        );
+      }
     }
   }
 }

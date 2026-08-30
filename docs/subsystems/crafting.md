@@ -470,11 +470,43 @@ true`, `interiorCapacity`.
 **Recipe** (`lib/craft/Recipe.ts`) gains `garnish?: { category, count?
 }` and `ice?: 'cubes' | 'crushed' | 'none'`. The count measure is the
 shipped `count` on `kind: item` slots (no new field); a dash is
-`measureL: 0.001`. **Technique** (`lib/craft/Technique.ts`, a vocabulary
-value-object) — `shaken` (−8 K, 0.02 L water, aerated) · `stirred` (−6 K,
-0.01 L) · `built` · `muddled` (0) — derives from the tool capabilities on
-the resolve path (`shaker` → shaken, `mixing-glass` → stirred, `muddler`
-→ muddled, else built) and from the step on the hand path.
+`measureL: 0.001`.
+
+### ⭐ Technique — an OPEN vocabulary the instrument owns
+
+**The kernel keeps no technique list and no effect table.** A technique
+is any kebab word a tool row names, and its numbers are that row's data:
+
+```yaml
+capabilities:
+  - { kind: shaker,
+      technique: { name: shaken, chillK: 8, dilutionL: 0.02, aerated: true, priority: 2 } }
+```
+
+⭐ **The tool is what knows.** A shaker is what makes a drink shaken, and
+a shaker is what knows shaking chills ~8 K and folds in ~20 mL of
+meltwater. A kernel table of `shaken | stirred | built | muddled` said,
+wrongly, that those are facts about *crafting* rather than facts about
+*bar tools* — so a cheese pack could not have `pressed` without a kernel
+MR. Same smell, same fix, as the capability vocabulary above.
+
+Resolution (`Techniques.fromTools`):
+
+- ⚠ **The recipe's `toolCapabilities` filter the field.** Only an
+  instrument offering a capability the recipe *required* may name the
+  working — otherwise the furniture in the room would decide and one
+  recipe would come out differently in two bars.
+- **A recipe requiring no instrument is `built`.** A gin & tonic is built
+  in the glass; a mixing glass on the well must not quietly stir it.
+- Among the eligible, highest **`priority`** wins — *the finishing
+  instrument names the drink* (a whiskey smash is muddled, then shaken,
+  so shaker and mixing-glass outrank muddler).
+- The **hand path** (`stir`/`shake`/`muddle`) names the working by verb
+  but still takes its numbers from the instrument in reach — you cannot
+  shake without a shaker. An unauthored word finishes neutral.
+
+Hospitality authors the bar's four: shaker (shaken), mixing-glass
+(stirred), muddler (muddled), bar-spoon (built).
 
 At the fill (`applyBulkOutput`): the technique's chill + dilution;
 **ice** — `crafting.iceKg` (0.15) of `ice` bulk moved from any reachable

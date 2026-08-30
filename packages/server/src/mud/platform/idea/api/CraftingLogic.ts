@@ -22,7 +22,11 @@ import {
 import type Material from '../../../lib/material/Material';
 import { Recipe, type RecipeInputSlot } from '../../../lib/craft/Recipe';
 import { Template } from '../../../lib/stuff/Template';
-import { Techniques, type Technique } from '../../../lib/craft/Technique';
+import {
+  Techniques,
+  type Technique,
+  type ResolvedTechnique,
+} from '../../../lib/craft/Technique';
 import { ContainmentApi } from '../../../api/containment';
 import { GlobbableApi } from '../../../api/glob';
 import type RecipeCatalogue from '../RecipeCatalogue';
@@ -573,12 +577,12 @@ function iceKgPerDrink(): number {
 async function finishGlass(
   output: Stuff,
   outSlot: BulkSlot,
-  technique: Technique,
+  working: ResolvedTechnique,
   inputs: { holder: Stuff; litres: number }[],
   ice: { candidate: BottleCandidate; kg: number; form: string } | null,
   garnish: MatchedItemInput[],
 ): Promise<void> {
-  const effect = Techniques.effect(technique);
+  const { name: technique, effect } = working;
   // Dilution: the working folds water in (a real volume on the slot).
   if (effect.dilutionL > 0) {
     const room = outSlot.remaining();
@@ -1184,10 +1188,26 @@ async function mintVessel(
     );
   }
 
-  // The working (recorded by stir / shake / muddle) finishes the glass:
-  // chill + dilution, the technique stamp, the soil mark. Ice and garnish
-  // are the hand's own steps (`garnish <glass> with <x>`), not the strain's.
-  await finishGlass(vessel, outSlot, req.method ?? 'built', [], null, []);
+  // The working finishes the glass: chill + dilution, the technique
+  // stamp, the soil mark. Ice and garnish are the hand's own steps
+  // (`garnish <glass> with <x>`), not the strain's.
+  //
+  // ⭐ The hand path NAMES the working by verb (stir / shake / muddle
+  // recorded it) but takes its NUMBERS from the instrument in reach —
+  // you cannot shake without a shaker, and the shaker is what knows what
+  // shaking does. An unauthored word finishes neutral.
+  const handMethod = req.method ?? Techniques.BUILT;
+  await finishGlass(
+    vessel,
+    outSlot,
+    {
+      name: handMethod,
+      effect: Techniques.effectFor(handMethod, reachableTools(makerStuff)),
+    },
+    [],
+    null,
+    [],
+  );
 
   vessel.stamp({
     maker: makerPath,
@@ -1355,7 +1375,12 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     await finishGlass(
       output,
       outSlot,
-      Techniques.forCapabilities(recipe.getToolCapabilities()),
+      // ⭐ The working comes from the INSTRUMENTS in reach, not from a
+      // kernel table keyed on the recipe's capability words: the shaker
+      // is what makes a drink shaken and the shaker is what knows what
+      // shaking does. A pack that ships a churn authors `churned` on it
+      // and the kernel never learns the word.
+      Techniques.fromTools(tools, recipe.getToolCapabilities()),
       matched.map((m) => ({ holder: m.slot.getHolder(), litres: m.measureL })),
       ice,
       garnish,

@@ -92,7 +92,14 @@ function makeGlass() {
 
 function makeTool(cap: string) {
   const t = makeStuff(() => new ToolItem());
-  t.setCapabilities([cap]);
+  // ⭐ The instrument authors the working it performs — the kernel keeps
+  // no technique table, so a tool naming none leaves the drink `built`.
+  // These are the same numbers hospitality's mixing-glass row carries.
+  t.setCapabilities([
+    cap === 'mixing-glass'
+      ? { kind: cap, technique: { name: 'stirred', chillK: 6, dilutionL: 0.01, priority: 2 } }
+      : cap,
+  ]);
   return t;
 }
 

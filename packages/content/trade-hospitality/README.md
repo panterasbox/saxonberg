@@ -18,3 +18,8 @@ Since the review of the libations MR the bar's own steps ship here too: `muddle`
 `src/` ships the classes only this trade names: `IceBin`, `Tap`, and
 `GlassRack` (the glass pool's home — an open container; the kernel knows
 no rack class, only that the gather walk descends open containers).
+
+The bar's four workings are authored on the instruments that perform
+them — shaker (`shaken`), mixing-glass (`stirred`), muddler (`muddled`),
+bar-spoon (`built`). The kernel keeps no technique table: a trade that
+presses or churns names its own working on its own tool.

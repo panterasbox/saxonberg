@@ -6,5 +6,13 @@ data:
   longDescription: A dented steel cocktail shaker, cold to the touch.
   keywords: [shaker]
   capabilities:
-    - { kind: shaker, verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, trade/hospitality/cmd/crafting/strain.yaml, trade/hospitality/cmd/crafting/garnish.yaml, trade/hospitality/cmd/crafting/serve.yaml, trade/hospitality/cmd/crafting/mix.yaml] }
+    # ⭐ The tool is what knows what the working does. Shaking with ice
+    # chills hardest, dilutes most, and folds air in (a shaken drink reads
+    # cloudy). `priority: 2` because the FINISHING instrument names the
+    # drink — a whiskey smash is muddled, then shaken.
+    - {
+        kind: shaker,
+        verbs: [platform/cmd/crafting/pour.yaml, platform/cmd/crafting/stir.yaml, trade/hospitality/cmd/crafting/strain.yaml, trade/hospitality/cmd/crafting/garnish.yaml, trade/hospitality/cmd/crafting/serve.yaml, trade/hospitality/cmd/crafting/mix.yaml],
+        technique: { name: shaken, chillK: 8, dilutionL: 0.02, aerated: true, priority: 2 },
+      }
   condition: 1

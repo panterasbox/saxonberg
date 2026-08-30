@@ -462,6 +462,22 @@ The different-pack-stamp refusal in the reconcile stays as the belt to
 this check's suspenders.
 
 ## The capability rung — a pack ships classes
+### ⭐ …and where a trade's VOCABULARY lives
+
+The same rule one level down: **the kernel keeps no list of a trade's
+words.** Three closed tables were opened during the libations review, all
+for the same reason — a pack must never need a kernel LIST edit:
+
+| was | is now |
+|---|---|
+| `ToolCapability`'s closed kinds + a table of the verbs each confers | any kebab string; **the tool row authors its verbs** |
+| `Technique`'s `shaken \| stirred \| built \| muddled` + an effect table | any kebab string; **the tool row authors the working and its numbers** |
+| `CAPABILITY_TECHNIQUES`, mapping capability → technique | gone; the instrument that performs the working names it |
+
+The tell is the same each time: the kernel naming a *word* only one trade
+uses. A capability, a technique, a material tag and a census key are all
+open strings two pieces of **content** agree on.
+
 ### ⭐ Where a class lives — the same rule as a brain's
 
 > **A class lives in the pack whose content is the only thing that names

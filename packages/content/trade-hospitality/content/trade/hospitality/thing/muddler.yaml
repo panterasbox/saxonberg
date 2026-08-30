@@ -8,6 +8,12 @@ data:
   primaryKeyword: muddler
   keywords: [muddler]
   capabilities:
-    - { kind: muddler, verbs: [trade/hospitality/cmd/crafting/muddle.yaml] }
+    # Muddling neither chills nor dilutes — it is a preparation, so it
+    # loses to a finishing instrument (a mojito is muddled, then built).
+    - {
+        kind: muddler,
+        verbs: [trade/hospitality/cmd/crafting/muddle.yaml],
+        technique: { name: muddled, priority: 1 },
+      }
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.2

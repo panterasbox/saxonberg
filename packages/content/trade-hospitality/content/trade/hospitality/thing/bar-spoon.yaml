@@ -7,6 +7,10 @@ data:
   longDescription: A long twisted-stem bar spoon.
   primaryKeyword: bar-spoon
   keywords: [bar-spoon, spoon]
-  capabilities: [bar-spoon]
+  # A bar spoon builds in the glass: no chill, no dilution from the
+  # working itself (the ice does that over time). It names the working
+  # so a drink built with one reads `built` rather than unworked.
+  capabilities:
+    - { kind: bar-spoon, technique: { name: built } }
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.05
