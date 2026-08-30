@@ -57,8 +57,31 @@ const DEFAULT_LATENT_J_PER_KG = 334000;
  * needs no gate. (The gate once had to name the wash too, only because
  * the wash lived on an Api.)
  */
-const SoiledWriters = SecurityPolicies.FromModule(
-  '/platform/idea/api/CraftingLogic#CraftingLogic',
+const SoiledWriters = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule(
+    '/platform/idea/api/CraftingLogic#CraftingLogic',
+  ),
+  // ⚠⚠ **The clone pipeline, and it is not optional.** `soiled` is a
+  // `persistent` field, so a `Hydrator` writes it through the two-phase
+  // `set<Field>` dispatch — both for a fresh clone and, critically, for
+  // a logged-out player's inventory coming back out of
+  // `holder_snapshots`. Without these arms the gate denies the Hydrator
+  // and the restore THROWS.
+  //
+  // ⭐ That is not theoretical. A live drive washed a coupe, logged out,
+  // and could not log back in: `handleUserConnect` died with
+  // `Policy FromModule(CraftingLogic) denied setSoiled()` from inside
+  // `PersistentHydrator.hydrate`. Ordinary play wrote a `soiled` glass
+  // into the snapshot and the player was locked out of their character.
+  //
+  // Two arms because `lib/stuff/Hydrator` is an INTERFACE with no
+  // runtime class to gate on: the concrete hydrator's code provenance
+  // and its template lineage. This is the `Coin.CoinQuantityMutators`
+  // shape, for the same reason and with the same `lint:gates` cover.
+  SecurityPolicies.FromModule('/platform/idea/persistence/PersistentHydrator', {
+    includeSubclasses: true,
+  }),
+  SecurityPolicies.FromTemplate('/platform/idea/persistence/*Hydrator'),
 );
 
 const CraftVesselBase = CraftedMixin(
