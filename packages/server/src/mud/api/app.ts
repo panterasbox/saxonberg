@@ -51,6 +51,51 @@ function logic(): AppLogic {
 }
 
 export class AppApi {
+  /**
+   * ⭐ **Is the world open for business?**
+   *
+   * Defaults to OPEN, so nothing in a test or a script has to know this
+   * exists. `AppBootstrap` closes it for the length of the boot sequence
+   * and opens it at the end.
+   *
+   * ⚠ The reason is not tidiness. NPC brains are wired at their host's
+   * `postRegister`, which necessarily runs early — the host has to exist
+   * before it can behave — but the schedules they arm are REAL-TIME, so
+   * the cast starts acting minutes before the subsystems it acts through
+   * are booted. A live drive of this branch opened with every trade
+   * hand's `consigns` beat failing: `wallet` an unknown verb (no house
+   * card — employment boots much later), so it fell back to trading as
+   * itself and was refused for `no-account`.
+   *
+   * ⚠⚠ And it is not merely noise: the beats **starve the boot that
+   * would fix them**. Measured on that drive — the process sat at 61%
+   * CPU for six and a half minutes while `RenownStanding.warm()`'s
+   * awaited `find({})` waited behind brain work for an event loop, and
+   * the server never reached `listen`. Boot cannot finish because the
+   * unbooted world is busy failing.
+   *
+   * This is the "maintenance mode" the class docstring anticipates,
+   * arriving from the boot end first. It is a runtime operation, not a
+   * cache-warm: an operator taking the world down for maintenance would
+   * flip the same switch.
+   */
+  static #worldOpen = true;
+
+  /** Whether the world is open — brains and other actors check this. */
+  static isWorldOpen(): boolean {
+    return AppApi.#worldOpen;
+  }
+
+  /** Close the world: the cast holds still. */
+  static closeWorld(): void {
+    AppApi.#worldOpen = false;
+  }
+
+  /** Open the world: the cast may act. */
+  static openWorld(): void {
+    AppApi.#worldOpen = true;
+  }
+
   private constructor() {}
 
   /**

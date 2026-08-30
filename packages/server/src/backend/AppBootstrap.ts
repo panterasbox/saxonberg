@@ -26,6 +26,7 @@ import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { PackApi } from '../mud/api/pack';
 import { WorldClockApi } from '../mud/api/worldclock';
+import { AppApi } from '../mud/api/app';
 import { AppSettings } from '../mud/lib/config/AppSettings';
 import { RenownApi } from '../mud/api/renown';
 import RenownStanding from '../mud/lib/standing/RenownStanding';
@@ -116,6 +117,16 @@ export class AppBootstrap {
     // classes self-register at their own module load (the hierarchy's
     // root invariant must populate before any construction, including
     // the lazy singletons built during seeding below).
+    // ⭐ The world is CLOSED for the length of this sequence. NPC brains
+    // wire at their host's `postRegister` (below, in
+    // `BootstrapManager.run`) because a host must exist before it can
+    // behave — but the schedules they arm are real-time, so without this
+    // the cast starts acting minutes before the subsystems it acts
+    // through are booted. It is not just a storm of failed beats in the
+    // log: those beats starve THIS sequence's own awaited reads, and on
+    // the drive that found it the server never reached `listen` at all.
+    AppApi.closeWorld();
+
     BootstrapManager.installFrameworkWiring();
 
     // Wire the Document marshaller-resolution seam before any save/clone
@@ -219,6 +230,7 @@ export class AppBootstrap {
     // Stuff from the manifest, and the clock state is a Document, not
     // a clonable template.)
     await WorldClockApi.boot();
+
 
     // Materials — stand the authored roster up as live singletons so the
     // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
@@ -360,6 +372,11 @@ export class AppBootstrap {
     // a server whose front page lies. Booted last: it must see every
     // registry it may have to re-seed afterwards.
     RecordApi.boot();
+
+    // ⭐ …and the world opens HERE, with every subsystem above booted, so
+    // the first beat any brain runs meets a complete world.
+    AppApi.openWorld();
+    console.info('AppBootstrap: world open — the cast may act');
 
     // Author diagnostics Producer 3 — the TS compile watcher. Dev-only:
     // production runs compiled JS with no TS source to watch. Best-effort:

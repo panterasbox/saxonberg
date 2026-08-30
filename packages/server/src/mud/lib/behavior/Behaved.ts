@@ -394,6 +394,14 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       perceived: BrainContext['perceived'],
       source: 'cadence' | 'witness'
     ): Promise<void> {
+      // ⭐ The cast holds still while the world is closed. Brains are
+      // wired at `postRegister` — the host must exist before it can
+      // behave — but their schedules are REAL-TIME, so without this they
+      // start acting minutes before the subsystems they act THROUGH are
+      // booted, and their failing beats starve the boot that would fix
+      // them (`AppApi.isWorldOpen`). One check, at the single point
+      // cadence and witness both come through.
+      if (!AppApi.isWorldOpen()) return;
       // A witnessing brain that claims slots holds them briefly so a
       // concurrently-running cadence brain (requiresFree) yields.
       if (
