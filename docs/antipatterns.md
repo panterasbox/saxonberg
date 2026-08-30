@@ -3513,3 +3513,153 @@ core. It was player-triggered — the function early-returns on an empty
 
 See [residency.md](./subsystems/residency.md) § *Walk RAW all the way
 up*.
+
+## Proving per call what is fixed per call site
+
+`ExecutionContextApi.run` proved, by walking the stack, that its caller
+was framework code — on every call. The fact cannot change between
+calls: the call site is in a file, and the file is either allowlisted or
+it is not. Measured at **88% of the call-security gate**, and the gate
+was 2000x a raw method call.
+
+The shape to reach for is a **capability taken once**: the same proof
+gates the claim, and what it yields is the raw operation, held by the
+one call site that proved it.
+
+### BAD
+
+```ts
+// Every dispatch in the engine: new Error(), CallSite capture, regex.
+public static run<T>(caller, target, method, opts, fn): T {
+  _assertFrameMutatorAllowed('run');   // ← the stack walk
+  …
+}
+```
+
+### GOOD
+
+```ts
+// execution-context.ts — the proof still gates the claim.
+public static claimFramePush(): FramePush {
+  _assertFrameMutatorAllowed('claimFramePush');
+  return _pushFrame;                    // module-private closure
+}
+
+// security.ts — claimed lazily at first use, then kept.
+static #framePush: FramePush | null = null;
+static #pushFrame(): FramePush {
+  return (SecurityApi.#framePush ??= ExecutionContextApi.claimFramePush());
+}
+```
+
+Applies to any per-call proof of a per-site fact: caller identity,
+module provenance, "am I inside a test". It does **not** apply to proofs
+of things that genuinely vary per call — who the *actor* is, what the
+receiver holds, whether a scope is in effect.
+
+## A gate that gates its own collaborators
+
+The security gate's first act was `ShadowApi._consumeBypass()` and its
+last `_shadowsFor()`. Both are statics on a decorated Api class, so each
+resolved a policy, read the current target and pushed a call frame —
+**twice, before the gate could decide anything about the call it was
+there to gate.** Neither buys anything: both are `@internal` helpers
+under the Public fallback, and nothing anywhere reads a
+`ShadowApi._shadowsFor` frame.
+
+The framework paying its own toll is not defence in depth; it is the
+toll booth queueing for itself.
+
+### BAD
+
+```ts
+static #securityGate = (ctx, next) => {
+  if (SecurityApi.#shadowApi?._consumeBypass()) return next();  // gated static
+  …
+  const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop);  // gated static
+```
+
+### GOOD
+
+```ts
+// shadow.ts — captured in the one window where these are still the
+// functions and not the wrappers.
+const GATE_ENTRIES = {
+  consumeBypass: ShadowApi._consumeBypass.bind(ShadowApi),
+  shadowsFor: ShadowApi._shadowsFor.bind(ShadowApi),
+};
+SecurityApi.decorateApiClass(ShadowApi);
+```
+
+⚠ Narrow it to the methods the gate calls **per dispatch**. The rare
+collaborators (`_withDispatch`, `_invokeOnShadow` — only when a shadow
+is actually attached) stay gated: they are the ones a frame is worth
+having. And never expose the unwrapped original *on the wrapper* — that
+would un-gate every Api in the engine, not just these two.
+
+## A closure declared inside a function that runs millions of times
+
+```ts
+const deny = (): never => { throw new SecurityError(…); };
+```
+
+reads better than a hoisted method, and on a hot path it is an
+allocation per call for something used on almost none of them. Under the
+`tsx`/esbuild runtime the server actually runs on it is worse than an
+allocation: `keepNames` wraps every function expression in
+`__name(fn, "…")`, which is an `Object.defineProperty`. A profile put
+`__name` plus its native setter at **27% of the security gate**.
+
+Hoist the closure to a static method taking what it closed over. And
+look for the degenerate case: `run(…, () => next())` allocates a
+function whose whole body is to call the function it was handed — pass
+`next`.
+
+### GOOD
+
+```ts
+if (!allowed) SecurityApi.#deny(ctx, policy);
+return SecurityApi.#pushFrame()(caller, ctx.proxy, ctx.prop, undefined, next);
+```
+
+## A benchmark run from the top of an empty stack
+
+`ExecutionContextApi.run` pushed a frame with `[...parent, frame]` — an
+O(depth) copy. The microbenchmark could not see it, because a
+microbenchmark calls from depth 0 and play runs dozens of frames down.
+The cost **doubled** between depth 0 and depth 200, and the fix (a
+linked list — one allocation per push whatever the depth) made it flat.
+
+Any bench of a call that nests must sweep the nesting. `bench-gate` does.
+
+Its two siblings, both of which cost real time here:
+
+- **A busy machine invents wins and regressions.** A change measured
+  8.7 µs against a 4.5 µs baseline — a 2x regression — because a vitest
+  run had the other seven cores. `bench-suite` and `bench-gate` both
+  refuse to report on a loaded box.
+- **An attached debugger changes what you are measuring.** VS Code's
+  auto-attach rides in `NODE_OPTIONS`, and an attached inspector makes
+  stack capture ~1.6x dearer. Run benches with
+  `env -u NODE_OPTIONS -u VSCODE_INSPECTOR_OPTIONS`.
+
+## Reading a template row from the database per clone
+
+`StuffApi.clone` → `Template.findByPath` → `PersistApi.find` goes to
+Mongo **every time**, and the hydration cascade recurses through `clone`
+for `hydratorClass` and `populates:`. Against Atlas at a measured 33 ms
+round trip, one shipped item costs about **13 serialized trips —
+448 ms** — and the boot spawn sweep clones 341 of them, one after
+another, for **152 seconds of a 5.7-minute boot**. A CPU profile of that
+boot is **76% idle**: it is not computing, it is waiting.
+
+⚠ **Not fixed — filed.** A template read cache is a real design
+conversation (the invalidation points — CMS save, pack install,
+go-live, `restoreFromTemplate`, hot reload — all exist as chokepoints,
+but enumerating them all is the work). Recorded here so the next person
+to profile a slow boot does not start, as this investigation did, by
+optimising the CPU.
+
+**The general form:** before optimising a slow phase, check whether it
+is *busy* or *waiting*. An idle-dominated profile means round trips, and
+no amount of per-call work removes a round trip.

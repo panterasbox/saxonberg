@@ -1,152 +1,189 @@
-# Call security performance — the investigation brief
+# Call security performance — the investigation, and what it found
 
-*Working document, 2026-08-30, from the libations live drive (MR !206).
-Written to disk deliberately, before a context compact, so the
-measurements and the code reading survive. **Nothing here is
-implemented.** The founder's framing: "it's probably not just one thing,
-it's probably a few optimizations working together."*
+*2026-08-30, from the libations live drive (MR !206). The founder's
+framing: "it's probably not just one thing, it's probably a few
+optimizations working together." That turned out to be exactly right —
+five changes, each worth between 1.3x and 10x, and none of them the
+thing the first profile pointed at.*
 
----
-
-## 1. What is measured, and how
-
-Every CPU profile taken during a day of live driving bottoms out in the
-same place:
-
-```
-57%   #walkExternalFrames        api/module.ts        ← self time
-29%   (anon) :0                                       ← V8 CallSite materialisation
- 3.5% (garbage collector)
-```
-
-Inclusive-time, same server, after five separate fixes had already
-landed:
-
-```
-50.9%  executeCommand            lib/command/CommandGiver.ts
-47.9%  resolveMany               api/mql/resolver.ts
-47.5%  candidatesForPeers        api/mql/scope-walk.ts
-47.2%    └─ pushDirect
-22.0%       └─ RecognitionApi.describe
-19.1%  wouldExceedCeiling        lib/encumbrance/LoadBearing.ts
-```
-
-**Method note that cost real time.** A sampling profile names what *was*
-running; `Debugger.pause` names what *is*. They disagreed twice and the
-pause was right both times. ⚠ But a pause script that exits racing its
-own `Debugger.resume` leaves the process paused — listening, never
-accepting — and that looks exactly like a product hang. Always
-`setSkipAllPauses` + `resume` before exit. Scripts used:
-`scratchpad/prof.mjs` (self time), `tree2.mjs` (inclusive, framework
-frames filtered), `stack.mjs` (pause + full stack), `resume.mjs`,
-`peek.mjs` (Mongo).
+**Result: a proxied method call went 50 µs → 2.1 µs. 2000x a raw call →
+424x. And flat in stack depth, where it used to double.**
 
 ---
 
-## 2. The call path, read end to end
+## 1. The instrument
 
-Line references are to this branch.
+`packages/server/scripts/bench-gate.ts` (+ `bench-gate-preload.js`).
 
-**`api/proxy.ts` — the get trap (`~163`)**
-- `RAW_TARGET` and `PASSTHROUGH_KEYS` short-circuit first.
-- `findDescriptor` walks the prototype chain **on every property access**
-  to spot getters before `Reflect.get` would fire them.
-- Method values are wrapped and the wrapper is **cached per function**
-  (`wrapperCache`), so wrapper creation is not the cost.
-- Every wrapped call → `#runPipeline` → the interceptor chain.
-
-**`api/security.ts` — `#securityGate` (`1030`)**, the sole interceptor:
-1. bypass marker (`_consumeBypass`)
-2. destroyed-object inert guard — `ctx.target.isDestroyed()`
-3. sandbox boundary — `getCircleScope()` + `_boundaryContext()`; fast
-   path is two loads and a compare
-4. `resolveCallPolicy(target, prop)` then `policy.allows(...)`
-5. `proceed()` → `touch()` → `_shadowsFor(proxy, prop)` →
-   **`ExecutionContextApi.run(caller, proxy, prop, undefined, next)`**
-
-**`api/execution-context.ts` — `run` (`721`)**
-```ts
-public static run<T>(…) {
-  _assertFrameMutatorAllowed('run');        // ← line 728
-  …
-  const parent = _als.getStore() ?? [];
-  const next = [...parent, frame];          // ← O(depth) copy per push
-  return _als.run(next, fn);
-}
+```
+env -u NODE_OPTIONS -u VSCODE_INSPECTOR_OPTIONS \
+  pnpm tsx scripts/bench-gate-preload.js          # the table
+  … scripts/bench-gate-preload.js --hot           # production path only, for profiling
 ```
 
-**`_assertFrameMutatorAllowed` (`217`)**
-```ts
-const url = ModuleApi.getImmediateCallerUrl(_SELF_URL);   // ← the capture
-const cached = _allowlistCache.get(url);                  // ← cache is HERE
+Four things about it are load-bearing, each learned by getting it wrong
+first:
+
+1. **The preload is not optional.** It registers the call-security
+   loader hook before any game import. Without it no class carries a
+   module stamp and every `FromModule` gate denies.
+2. **The editor's auto-attach debugger must be off.** `NODE_OPTIONS`
+   carries VS Code's bootloader, and an attached inspector makes stack
+   capture ~1.6x dearer — which was the thing being measured. Every
+   profile taken during the live drive was under it.
+3. **It refuses a busy machine.** The policy cache measured 8.7 µs
+   against a 4.5 µs baseline — a 2x *regression* from an optimisation —
+   because a vitest run had the other seven cores.
+4. **It sweeps stack depth.** A benchmark run from an empty stack
+   measures a call the engine never makes.
+
+Layers are attributed by **subtraction** over **interleaved medians**: a
+single pass drifts 40%, which is enough to invent a win.
+
+---
+
+## 2. ⭐ What was actually wrong
+
+### 2.1 The caller proof was taken per call, not per call site
+
+`ExecutionContextApi.run` walked the stack (`new Error()` + CallSite
+capture) on every call to prove its caller was framework code. **88% of
+the gate.**
+
+The fact it was deriving cannot change between calls: `security.ts` is
+in the allowlist and cannot stop being. So the proof is now taken once,
+per call site — `claimFramePush()` runs the same stack proof and hands
+back the push capability, which the two hot holders claim lazily and
+keep. An unallowlisted file gets the same `SecurityError` from the claim
+that it would have got from `run`. The three public frame mutators
+(`tagCurrentFrame`, `tagActingAuthor`, `establishCircleScope`) keep the
+per-call walk: they are rare, and they are what a forge would target.
+
+**Verified before believing it:** every production caller of
+`run`/`runRoot`/`tagCurrentFrame`/`tagActingAuthor`/`establishCircleScope`
+is a framework file already named in `_frameMutatorAllowlist`. Zero
+content callers. (The two hits in `lib/npc/DialogueConversation.ts` are
+prose in comments.)
+
+### 2.2 ⭐⭐ The proof was being paid THREE times per dispatch
+
+The finding that changed the shape of the answer, and the first profile
+had hidden it. The gate's first act is `ShadowApi._consumeBypass()` and
+its last is `_shadowsFor()`. Both are statics on a decorated Api class,
+so each resolved a policy, read the current target and pushed a frame —
+**before the gate could decide anything about the call it was there to
+gate.** The security layer was paying its own toll to ask itself a
+question.
+
+Neither buys anything: both are `@internal` helpers under the Public
+fallback, and nothing reads a `ShadowApi._shadowsFor` frame. ShadowApi
+now hands the two over unwrapped, captured in the one window where they
+are still the functions and not the wrappers — between the class body
+and its own `decorateApiClass`. `_withDispatch` / `_invokeOnShadow` stay
+gated: they fire only when a shadow is attached, and they are the ones a
+frame is worth having.
+
+### 2.3 Five closures per dispatch, and the runtime named each one
+
+Once the walk was gone, the profile showed **27% in esbuild's `__name`
+and its native property setter.** The gate read as `const deny = …;
+const proceed = …; run(…, () => next())` — three function allocations on
+every method call in the engine, and under the `tsx` runtime the server
+actually runs on, an `Object.defineProperty(fn, 'name')` apiece.
+
+`deny` and `proceed` are static methods now, taking what they had closed
+over. `next` goes to the frame push directly: it is already the zero-arg
+thunk the push wants, so `() => next()` was allocating a function to
+call a function it had been handed. And the proxy pipeline built a
+`next` chain link per call for a chain no shipped configuration has —
+production registers exactly ONE interceptor, so it hands `raw` straight
+over. **Five allocations → one.**
+
+### 2.4 A pure function of (class, method), recomputed per call
+
+`resolveCallPolicy` walked the prototype chain twice — per-method
+policies, then class defaults — and a shipped class is a dozen mixins
+deep. Now cached weakly on the constructor and stamped with a generation
+every policy writer bumps, so a `@CallSecurity` registered after a class
+has dispatched invalidates rather than lingering as a stale allow.
+
+### 2.5 The frame push copied the whole stack
+
+`const next = [...parent, frame]` — O(depth), on the hottest path in the
+engine, and play does not run at depth 0:
+
+| depth | before | after |
+|---|---|---|
+| 0 | 3960 ns | 3572 ns |
+| 25 | 4466 ns | 3809 ns |
+| 100 | 4880 ns | 3445 ns |
+| 200 | **8200 ns** | **3788 ns** |
+
+The store is now the innermost `FrameNode` with the rest hanging off
+`parent`. Every reader was one of four shapes: top is `node.frame`; the
+reverse walks follow `parent`; frame-0 is `node.root`, carried on every
+node because the sandbox boundary reads root metadata on every dispatch
+and that read must stay O(1); and the three readers that want the whole
+stack (`getCallStack`, `getCommandStack`, `dumpCallStack`, none hot)
+materialise an array.
+
+---
+
+## 3. The arc, measured
+
+| state | ns/call | vs raw |
+|---|---|---|
+| as the live drive ran it (debugger attached) | 75 000 | 10 000x |
+| baseline, no debugger | 50 700 | 2 000x |
+| + proof per call site (§2.1) | 7 300 | 1 400x |
+| + closures hoisted (§2.3) | 4 500 | 870x |
+| + policy cached (§2.4) | 3 500 | 680x |
+| + linked-list frames (§2.5) | 3 150 | 470x |
+| + gate stops gating itself (§2.2) | **2 140** | **424x** |
+
+---
+
+## 4. ⚠ The finding this investigation did NOT expect
+
+**Boot is not CPU-bound, and the gate was never its problem.**
+
+A fresh boot still takes **5.7 minutes**, and a CPU profile of one is
+**76% idle**. Timestamped:
+
+```
+ 152.6s  ResidencyApi boot spawn sweep — 341 placed
+  73.5s  (CompileWatcher / tsc — after listen)
+  62.8s  BootstrapManager — 62 entries
+  30.8s  PackApi 'platform' install
+  19.1s  MaterialApi.boot — 84 singletons
 ```
 
-**`api/module.ts` — `getImmediateCallerUrl` (`291`) → `#walkExternalFrames`**
-- sets `Error.stackTraceLimit = 8`, constructs `new Error()`, reads
-  `.stack` with a raw `prepareStackTrace` so CallSites come back
-  unrendered (fixed earlier today — it used to render text and
-  source-map-remap every frame under `tsx`).
+Measured Atlas round trip from this box: **33 ms** (`ping` and
+`findOne` alike). 152.6 s / 341 objects = **448 ms per clone ≈ 13.5
+serialized round trips each**.
+
+`StuffApi.clone` → `Template.findByPath` → `PersistApi.find` reads the
+row **from Mongo every time**, with no cache, and the hydration cascade
+recurses through `clone` for `hydratorClass` and `populates:` — so one
+shipped item is a dozen sequential 33 ms trips.
+
+**This is a template-read-cache design conversation, not a tweak** —
+the invalidation points (CMS save, pack install, go-live,
+`restoreFromTemplate`, hot reload) all exist and are chokepoints, but
+naming them all is the work. Not built here; filed. It is the actual
+answer to "fresh boot 5–13 min", which the call-security pass does not
+touch.
 
 ---
 
-## 3. ⭐ The three findings that matter
-
-### 3.1 The allowlist cache sits downstream of the expensive part
-
-`_allowlistCache` is keyed by **URL** — and computing the URL *is* the
-stack walk. So the cache saves a handful of regex tests and nothing
-else. **Every successful gated dispatch in the engine walks the stack.**
-
-### 3.2 `run`'s caller is always the framework
-
-`_assertFrameMutatorAllowed` exists to stop content code forging call
-frames. But the hot caller — `#securityGate.proceed()` — is the security
-layer itself, and it already knows it is trusted. The stack walk is
-being paid to re-derive a fact the call site holds statically.
-
-Candidate: a private capability (module-private symbol, or a
-`#runTrusted` entry point reachable only from `security.ts`) that skips
-the assertion. The three *public* frame mutators (`tagCurrentFrame`,
-`tagActingAuthor`, `establishCircleScope`) keep the walk — they are rare
-and they are the ones a forge would actually target.
-
-⚠ Must be checked before believing: is `run` ever called from content?
-`_frameMutatorAllowlist` names `mud/lib/security/**`, `mud/api/**`,
-`backend/**`, `lib/command/CommandGiver`, `*.test.ts` — so today's
-answer looks like "framework only", which is exactly what makes the
-per-call proof redundant.
-
-### 3.3 Frame push copies the whole stack
-
-`const next = [...parent, frame]` allocates an array of depth N per
-gated call. Observed stacks in this world run **~200 frames deep**, and
-GC was 3.5% of samples. A linked-list frame (`{ frame, parent }`) with
-lazy materialisation for the rare readers would make the push O(1).
-
----
-
-## 4. Other candidates, cheapest first
-
-| # | idea | evidence | risk |
-|---|---|---|---|
-| a | Skip the walk for trusted `run` (§3.2) | 57% self time is the walk | needs the "is it framework-only" proof |
-| b | O(1) frame push (§3.3) | ~200-deep stacks, GC 3.5% | frame readers must handle the new shape |
-| c | Hoist viewer-invariant checks out of `describeCore` | `isSensor(viewer)`/`isPerception(viewer)` re-asked for all ~35 candidates in one scope walk | none obvious |
-| d | `pushDirect` calls `describe` **and** `perceivedKeywords`; for an ORGANISM the latter calls `describeCore` a second time | `RecognitionLogic:390` | none obvious |
-| e | Memoise recognition per (viewer, target) per command resolve | each candidate visited once per resolve, so gain is small | low value |
-| f | `findDescriptor` prototype walk per property access | every access, not just methods | correctness-sensitive |
-| g | Cache `resolveCallPolicy(target, prop)` by (ctor, prop) | policy is static per class+method | shadows/HMR invalidation |
-
----
-
-## 5. The rule this all produces
+## 5. The rule this produces
 
 > **A loop over N objects that makes a gated call per object costs N
-> stack captures.**
+> gate dispatches — and one used to cost 50 µs.**
 
-Five instances found by driving in one day. Three of the five I wrote
-*myself*, while fixing the other two — which is the argument that this
-needs an engine answer, not discipline:
+Five instances found by driving in one day. Three of the five were
+written *while fixing the other two*, which is the argument that this
+needed an engine answer rather than discipline:
 
 | site | the per-item gated call | measured |
 |---|---|---|
@@ -156,55 +193,43 @@ needs an engine answer, not discipline:
 | `CommandLogic` delta (mine) | `ancestorsOf(m)` per moved item | 21% |
 | `LoadBearing → getConditionBand` | a metabolic integration per `get` | 28% |
 
-Established mitigation, already used twice: **walk RAW**
-(`ProxyApi.unwrap`) when the read is plain state and no shadow could
-legitimately disagree — and then the site carries the guards the proxy
-would have applied (`isDestroyed()` break, a `seen` set).
+Established mitigation, used twice: **walk RAW** (`ProxyApi.unwrap`)
+when the read is plain state and no shadow could legitimately disagree —
+and then the site carries the guards the proxy would have applied
+(`isDestroyed()` break, a `seen` set).
 
 ---
 
-## 6. What must NOT be traded away
+## 6. What was NOT traded away
 
-- **Tamper resistance is the gate's whole value.** `stamp()` reads the
-  stack precisely so a file cannot lie about its own URL.
-- **Viewer-relative naming is load-bearing**: *what you can name, see and
-  touch can never diverge*. `RecognitionApi.describe` in the scope walk
-  is why `look bob` works iff the room view says "Bob". The 22% is a
-  feature's cost, not waste.
-- **The destroyed-object inert guard** keeps benign races from
-  cascading, with zero per-call-site instrumentation.
+- **Tamper resistance.** The stack proof still gates the *claim*; what
+  changed is how often it is taken, not whether.
+- **Viewer-relative naming.** `RecognitionApi.describe` in the scope
+  walk is why `look bob` works iff the room view says "Bob". Its 22% is
+  a feature's cost, not waste.
+- **The destroyed-object inert guard**, which keeps benign races from
+  cascading with zero per-call-site instrumentation.
 
 ---
 
-## 7. Where MR !206 stands
+## 7. Left on the table
 
-106 commits, all pushed, clean tree. `pnpm vitest run src/mud/lib
-src/mud/api` → **6111 passed**. All 16 CI lints green at last check.
-
-Live-verified in a browser: the 26-drink menu, `wash` end to end, the
-verb split (all seven afforded), reach into open containers, the prose
-departures board, single-period emotes, fixtures that cannot be
-pocketed, fresh login 2.5 s.
-
-Supply chain, decline taxonomy per boot: `unknown-verb(wallet)` 30 → 0,
-`no-account` 8-trades-every-beat → 0, `nothing-picked-up` 17 → 0,
-`empty-result` 20 → 3. Ten house cards dealt; `over-cap(24)` is the
-anti-grief cap working.
-
-**Not yet verified in-world:** actually ordering a drink. The greedy-arg
-fix is merged and `order <cocktail…> with <brand>` now binds, but every
-attempt queued behind NPC load — i.e. behind §1.
-
-**Still open, unrelated to perf:** `not-held` in the consigns beat (the
-beat consigns by keyword and something does not resolve); one
-`mql-error[targets]`; `/finalize` has not run (one full-suite pass, the
-`HouseStockCard` flake, retiring the plan + requirements docs).
+- **`findDescriptor`** walks the prototype chain and allocates a
+  descriptor per level, on every property access. ~55 ns of the
+  remaining 2.1 µs. The safe form caches only *accessor-ness* per
+  prototype (a method does not become a getter under HMR) and skips the
+  walk entirely for the common case. Not done: the reward no longer
+  justifies touching the get trap.
+- **The static-Api wrapper's apply thunk** — one closure per static Api
+  call, off the dispatch path but everywhere else.
+- **§4, the boot round trips.** The big one, and not this subsystem.
 
 ## Cross-references
 
 [call-security.md](../../subsystems/call-security.md) ·
-[mql.md](../../subsystems/mql.md) ·
-[belief.md](../../subsystems/belief.md) ·
+[templates.md](../../subsystems/templates.md) ·
 [residency.md](../../subsystems/residency.md) ·
+[persistence.md](../../subsystems/persistence.md) ·
 [antipatterns.md](../../antipatterns.md) ·
+[testing.md](../../testing.md) ·
 [gate-cost-slate.md](./gate-cost-slate.md) (the short version)
