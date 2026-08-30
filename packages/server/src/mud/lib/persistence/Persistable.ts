@@ -43,6 +43,7 @@ import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
 import type { PopulateSpec, Populates } from "../stuff/Populates";
 import { MixinApi } from "../../api/mixin";
+import { PersistableRegistry } from "./PersistableRegistry";
 import { PersistableApi } from "../../api/persistable";
 
 /** Public shape provided by PersistableMixin. */
@@ -161,6 +162,17 @@ export function PersistableMixin<
     setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
+      // ⭐ Enroll for the process-shutdown capture at the moment this host
+      // becomes capturable. Self-enrollment, so nothing has to scan the
+      // world to find us — see PersistableRegistry.
+      //
+      // An Avatar is skipped: it captures at logout, on its own seam, and
+      // the shutdown sweep would only race that. The exclusion lives here
+      // rather than at the shutdown loop because "who needs the sweep" is
+      // this mixin's knowledge, not the bootstrapper's.
+      if (!MixinApi.isHasInteractive(this as unknown as Stuff)) {
+        PersistableRegistry.enroll(this as unknown as Stuff);
+      }
     }
 
     isPersistenceKeyExplicit(): boolean {
@@ -246,6 +258,7 @@ export function PersistableMixin<
      * mirroring `Avatar.onDestruct`'s fire-and-forget save.
      */
     static cleanupOnDestruct(stuff: Stuff): void {
+      PersistableRegistry.withdraw(stuff);
       if (!MixinApi.isPersistable(stuff)) return;
       if (!stuff.shouldPersist()) return; // guest / opted-out — no record
       const scope = stuff.getTemplatePath();

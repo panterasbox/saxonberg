@@ -34,6 +34,7 @@ import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
 import { MixinApi } from '../mud/api/mixin';
 import { PersistableApi } from '../mud/api/persistable';
+import { PersistableRegistry } from '../mud/lib/persistence/PersistableRegistry';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 // Loaded for its side effect: registers banking's `bank-circle` dialogue
@@ -415,12 +416,15 @@ export class AppBootstrap {
     // sweeps would lose everything consigned or placed since (the
     // libations live drive watched a dev restart empty the cash-and-carry
     // counter). Capture each one, best-effort, before the process ends.
-    // Avatars have their own logout capture and are skipped.
+    //
+    // ⭐ The hosts ENROLLED themselves when they established a persistence
+    // key; this loop does not go looking for them. Who wants capturing at
+    // shutdown is PersistableMixin's knowledge — including the Avatar
+    // exclusion, since an Avatar captures at logout on its own seam — and
+    // this file has no business enumerating the world to rediscover it.
     let captured = 0;
-    for (const stuff of StuffApi.getAllObjects()) {
-      if (!MixinApi.isPersistable(stuff) || MixinApi.isHasInteractive(stuff)) {
-        continue;
-      }
+    for (const stuff of PersistableRegistry.hosts()) {
+      if (!MixinApi.isPersistable(stuff)) continue;
       if (stuff.getPersistenceKey() === null) continue; // never established
       try {
         await PersistableApi.capture(stuff);
