@@ -664,10 +664,34 @@ function validateArgOrdering(
       );
     }
 
+    // ⭐ Greedy must be last — UNLESS everything after it declares a
+    // preposition to stop at. The binder already implements exactly
+    // that (`collectLaterPrepositions` + the boundary-lookahead slice in
+    // `CommandLogic`): a greedy field consumes tokens until it meets a
+    // later field's preposition. This invariant forbade the only shape
+    // that could reach it, so that lookahead was dead code.
+    //
+    // ⚠ It also made a natural command shape inexpressible, and the
+    // libations build shipped one: `order <cocktail…> with <brand>`.
+    // Without a greedy cocktail, `order old fashioned` bound only
+    // "old" — and a live drive found FOURTEEN of the bar's twenty-six
+    // menu items unorderable for exactly that reason ("Gin & tonic",
+    // "Tom Collins", "Moscow mule", "Glass of red"…).
+    //
+    // The relaxation is narrow on purpose: a following field with NO
+    // preposition would have no boundary token, so the greedy field
+    // would swallow it and the shape really would be ambiguous.
     if (def.greedy && i !== args.length - 1) {
-      throw new Error(
-        `greedy arg must be last: ${filePath} ${label} arg "${def.name}"`
+      const trailing = args.slice(i + 1);
+      const allBounded = trailing.every(
+        (a) => a.prepositions && a.prepositions.length > 0
       );
+      if (!allBounded) {
+        throw new Error(
+          `greedy arg must be last, or be followed only by prepositional ` +
+            `args (a boundary to stop at): ${filePath} ${label} arg "${def.name}"`
+        );
+      }
     }
 
     const isOptional = def.required === false;

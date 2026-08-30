@@ -13,6 +13,10 @@ args:
   - name: cocktail
     type: string
     required: true
+    # Menu names are multi-word — "Old fashioned", "Gin & tonic",
+    # "Glass of red". Greedy, stopping at `with` (the brand's
+    # preposition) so `order martini with bombay` still splits.
+    greedy: true
   - name: brand
     type: string
     required: false
