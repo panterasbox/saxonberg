@@ -1235,7 +1235,18 @@ export class CommandLogic extends ApiLogic {
             : [];
           const skipFocus = focusEffects.some((e) => e.action === 'skip');
           if (focusMode !== 'none' && !skipFocus) {
-            updatePlayerFocus(focused, raw, picked, via, focusMode);
+            // `stuff` is the pre-cardinality candidate list: more than
+            // one means the player was asked to choose (or a policy
+            // chose for them), so the fragment they typed does not name
+            // what they got.
+            updatePlayerFocus(
+              focused,
+              raw,
+              picked,
+              via,
+              focusMode,
+              stuff.length > 1
+            );
           }
           const asMany: MqlMany = { stuff: [picked] };
           if (via) asMany.via = via;
@@ -3342,9 +3353,35 @@ function updatePlayerFocus(
   raw: string,
   stuff: Stuff,
   via: MqlMatchVia | undefined,
-  mode: 'extend' | 'replace'
+  mode: 'extend' | 'replace',
+  wasAmbiguous: boolean
 ): void {
-  const fragment = resolvePronounFragment(giver, raw) ?? raw;
+  /*
+   * ⭐⭐ **A disambiguated pick anchors on the THING, never on the word
+   * that was ambiguous.**
+   *
+   * The focus is an MQL fragment, and `$focus` re-RESOLVES it on every
+   * later command that defaults to it (`look` declares
+   * `default: "$focus"`). So storing the player's typed keyword after a
+   * disambiguation stores the ambiguity: at a counter holding eleven
+   * gins, `look gin` asked "which target?", the player picked one, and
+   * focus became `gin` — whereupon the next bare `look` re-resolved
+   * eleven gins and asked again, forever. A live drive walked into it
+   * and could not walk out: every command after the first pick was
+   * another prompt, and a command sent while a prompt is open produces
+   * no response at all, so the session simply went silent.
+   *
+   * `#<stuffId>` is a viewer-free MQL seed that resolves to exactly the
+   * Stuff that was picked, and it chains (`#abc:label`) exactly as a
+   * keyword fragment does, so drilling still works.
+   *
+   * Only when the raw WAS ambiguous. An unambiguous `look lantern`
+   * keeps `lantern` as its fragment — that is what the player said, it
+   * still means one thing, and it is what `focus` shows them.
+   */
+  const fragment = wasAmbiguous
+    ? `#${stuff.stuffId}`
+    : resolvePronounFragment(giver, raw) ?? raw;
 
   if (mode === 'replace') {
     giver.setFocus(fragment);
