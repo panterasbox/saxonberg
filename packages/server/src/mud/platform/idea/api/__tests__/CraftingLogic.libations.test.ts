@@ -17,6 +17,8 @@ import '../../../../../test-bootstrap';
 import WorldClockRegistry from '../../WorldClockRegistry';
 import { TemplatePaths } from '../../../../lib/paths';
 import { Template } from '../../../../lib/stuff/Template';
+import Brand from '../../corpo/Brand';
+import CorpoCatalogue from '../../CorpoCatalogue';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi, type CraftRequest } from '../../../../api/crafting';
 import { StuffApi } from '../../../../api/stuff';
@@ -559,6 +561,31 @@ describe('the pool matches the VESSEL KIND, not the template path', () => {
   });
 });
 
+/**
+ * One `Brand` row in a warmed `CorpoCatalogue`, so a player's `with
+ * crowsfoot` token resolves to the key `crowsfoot-gin` the bottle
+ * carries. The token is matched ONCE at the boundary; the pour
+ * preference then compares brand keys.
+ */
+async function warmBrandCatalogue(): Promise<void> {
+  vi.spyOn(Template, 'findDescendants').mockImplementation(
+    async (basePath: string) =>
+      (basePath === Brand.TEMPLATE_PATH_PREFIX
+        ? [
+            {
+              path: `${basePath}crowsfoot-gin`,
+              data: { key: 'crowsfoot-gin', name: 'Crowsfoot Gin', owner: '', category: 'gin' },
+            },
+          ]
+        : []) as unknown as Template[],
+  );
+  const cat = makeStuffAtPath(
+    () => new CorpoCatalogue(),
+    '/platform/idea/CorpoCatalogue',
+  );
+  await cat.postRegister();
+}
+
 describe('the well — an unnamed pour takes the rail, a named one takes the brand', () => {
   // ⭐ The bar-owner decision, made real: your well determines the margin
   // on every drink nobody specified (which is most of them), while the
@@ -585,11 +612,20 @@ describe('the well — an unnamed pour takes the rail, a named one takes the bra
     expect(before.rail).toBeGreaterThan(0);
   });
 
+  // ⭐ The mark lives on the BOTTLE (`_brandKey`), not on the liquid —
+  // which is the whole point of private label: Old Hollis and Veshko's
+  // unbranded rail hold the same material. This test used to pass because
+  // the matcher read the MATERIAL's display name, so a material called
+  // "crowsfoot gin" matched the token `crowsfoot`. Corrected to carry a
+  // real mark against a real Brand row: see docs/antipatterns.md
+  // § Keywords Where You Mean Identity.
   it('ordering it BY NAME overrides the rail and pours the brand', async () => {
+    await warmBrandCatalogue();
     ContainmentApi.move(makeGlass(HIGHBALL) as never, room as never);
     ContainmentApi.move(makeHolder(ICE, 5), room);
     const rail = makeBottle(GIN, 1, 'fair');
-    const good = makeBottle(CROWSFOOT_GIN, 1, 'fine');
+    const good = makeBottle(GIN, 1, 'fine');
+    good.setBrandKey('crowsfoot-gin');
     ContainmentApi.move(rail, room);
     ContainmentApi.move(good, room);
 

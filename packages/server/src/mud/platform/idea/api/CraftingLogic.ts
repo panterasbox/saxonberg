@@ -5,6 +5,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import { CorpoApi } from '../../../api/corpo';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
@@ -395,15 +396,55 @@ async function gatherMatter(
   return gathered;
 }
 
-function materialMatchesBrand(material: Material | null, brand: string): boolean {
-  if (!material) return false;
-  const b = brand.toLowerCase();
-  return material.getName().toLowerCase().includes(b) || material.hasTag(b);
+/**
+ * Resolve a player-typed `with <brand>` token to a brand **key**, once
+ * per craft.
+ *
+ * ⭐ This is the ONLY place a word is matched, and it is the sanctioned
+ * one: a token the player typed, resolved at the command boundary
+ * against the brands that actually exist. Everything downstream compares
+ * `_brandKey` for equality — identity, not prose.
+ *
+ * It replaced `material.getName().toLowerCase().includes(brand)`, which
+ * asked whether a MATERIAL's display name contained the token: `with
+ * crow` matched Crowsfoot and anything else spelled with a crow in it,
+ * and a mark carried by the bottle rather than the liquid could never
+ * match at all. See docs/antipatterns.md § Keywords Where You Mean
+ * Identity.
+ */
+function resolveBrandKey(token: string): string | null {
+  const t = token.trim().toLowerCase();
+  if (!t) return null;
+  const brands = CorpoApi.listBrands();
+  const exact = brands.find(
+    (b) => b.key.toLowerCase() === t || b.name.toLowerCase() === t,
+  );
+  if (exact) return exact.key;
+  // A shorter spoken form of the mark — "crowsfoot" for `crowsfoot-gin`,
+  // "hollis" for `old-hollis`. Segments of the key and words of the
+  // name, never a free substring.
+  const spoken = brands.find(
+    (b) =>
+      b.key.toLowerCase().split('-').includes(t) ||
+      b.name.toLowerCase().split(/\s+/).includes(t),
+  );
+  return spoken?.key ?? null;
+}
+
+/**
+ * Does this candidate carry the mark? The mark lives on the **bottle**
+ * (`_brandKey`, `BrandedMixin`) — a brand is a mark somebody owns, not a
+ * property of the liquid, which is the whole point of private label:
+ * Old Hollis and Veshko's unbranded rail hold the SAME material.
+ */
+function carriesBrand(stuff: Stuff, brandKey: string): boolean {
+  return CorpoApi.brandOf(stuff)?.key === brandKey;
 }
 
 /**
  * Pick the input bottle for one recipe slot: category tag + min grade +
- * enough un-claimed reachable volume. Honors a `with <brand>` preference,
+ * enough un-claimed reachable volume. Honors a resolved `with <brand>`
+ * preference (matched on the bottle's mark, never on the liquid's name),
  * then highest grade. `claimed` tracks per-bottle draw so two slots of the
  * same category don't double-claim the same litres.
  */
@@ -411,7 +452,7 @@ function pickCandidate(
   inSlot: RecipeInputSlot,
   bottles: BottleCandidate[],
   claimed: Map<Stuff, number>,
-  brand: string | undefined,
+  brandKey: string | null,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.measureL ?? 0;
@@ -424,9 +465,9 @@ function pickCandidate(
   );
   if (eligible.length === 0) return null;
   eligible.sort((x, y) => {
-    if (brand) {
-      const bx = materialMatchesBrand(x.material, brand) ? 1 : 0;
-      const by = materialMatchesBrand(y.material, brand) ? 1 : 0;
+    if (brandKey) {
+      const bx = carriesBrand(x.stuff, brandKey) ? 1 : 0;
+      const by = carriesBrand(y.stuff, brandKey) ? 1 : 0;
       if (bx !== by) return by - bx;
     }
     // ⭐ An UNNAMED pour takes the cheapest liquid that still clears the
@@ -454,7 +495,7 @@ function pickItemInputs(
   inSlot: RecipeInputSlot,
   items: ItemCandidate[],
   claimedUnits: Map<Stuff, number>,
-  brand: string | undefined,
+  brandKey: string | null,
 ): MatchedItemInput[] | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.count ?? 1;
@@ -466,9 +507,9 @@ function pickItemInputs(
   );
   if (eligible.length === 0) return null;
   eligible.sort((x, y) => {
-    if (brand) {
-      const bx = materialMatchesBrand(x.material, brand) ? 1 : 0;
-      const by = materialMatchesBrand(y.material, brand) ? 1 : 0;
+    if (brandKey) {
+      const bx = carriesBrand(x.stuff, brandKey) ? 1 : 0;
+      const by = carriesBrand(y.stuff, brandKey) ? 1 : 0;
       if (bx !== by) return by - bx;
     }
     // Cheapest sufficient first, as above — the bruised lime goes in the
@@ -1267,12 +1308,17 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // on its kind: bulk → bottle draw, item → discrete/glob units.
   const claimed = new Map<Stuff, number>();
   const claimedUnits = new Map<Stuff, number>();
+  // The player's `with <brand>` token, resolved to a brand KEY once —
+  // the one place a word is matched (see `resolveBrandKey`). A token
+  // naming no brand that exists resolves to null and the preference is
+  // simply not applied.
+  const brandKey = req.brand ? resolveBrandKey(req.brand) : null;
   const matched: MatchedInput[] = [];
   const matchedItems: MatchedItemInput[] = [];
   const grades: Grade[] = [];
   for (const inSlot of recipe.getInputSlots()) {
     if (Recipe.isItemSlot(inSlot)) {
-      const picks = pickItemInputs(inSlot, items, claimedUnits, req.brand);
+      const picks = pickItemInputs(inSlot, items, claimedUnits, brandKey);
       if (!picks) {
         return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
       }
@@ -1280,7 +1326,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       for (const p of picks) grades.push(p.grade);
       continue;
     }
-    const cand = pickCandidate(inSlot, bottles, claimed, req.brand);
+    const cand = pickCandidate(inSlot, bottles, claimed, brandKey);
     if (!cand) {
       return { ok: false, reason: 'insufficient-input', detail: inSlot.category };
     }
@@ -1336,7 +1382,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
         { slot: 'garnish', category: g.category, minGrade: 'fair', kind: 'item', count: g.count ?? 1 },
         items,
         claimedUnits,
-        req.brand,
+        brandKey,
       );
       if (!picks) {
         return { ok: false, reason: 'insufficient-input', detail: g.category };
