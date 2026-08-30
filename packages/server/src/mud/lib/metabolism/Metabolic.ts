@@ -528,6 +528,20 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
 
+      // ⭐⭐ Below the model's own resolution, do nothing YET — and
+      // deliberately do not re-stamp, so the elapsed time accumulates
+      // and the next read past a full step integrates all of it. No
+      // game-time is lost; it is batched to the granularity this model
+      // already declares (`STEP_SEC` — "one game-minute").
+      //
+      // ⚠ Without this, reconcile-on-read integrated a sliver on EVERY
+      // read. `getConditionBand` reconciles, `getCarryCapacity` reads
+      // the band, and `wouldExceedCeiling` reads the capacity — so every
+      // single `get` ran a full metabolic integration, at a slice up to
+      // 600× finer than the declared step. A live profile put 28% of the
+      // whole server in `wouldExceedCeiling`, nearly all of it here.
+      if (elapsed < D.STEP_SEC) return;
+
       this._reconciling = true;
       try {
         let remaining = elapsed;
