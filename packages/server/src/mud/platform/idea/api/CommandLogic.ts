@@ -3077,10 +3077,30 @@ function applyContainmentDeltaImpl(
   //
   // For the moved root `ancestorsOf(m)` IS `[to, ...ancestorsOf(to)]`,
   // so this is a strict generalisation, not a change of rule.
+  // ⚠ Computed as "holders INSIDE the moved subtree, then the shared
+  // destination chain" rather than a fresh `ancestorsOf(m)` per item.
+  // They give the same answer, but `ancestorsOf` walks containment
+  // through PROXIED `getContainer()` calls, and each of those pays the
+  // call-security gate (which captures a JS stack). When a hand moves
+  // carrying two hundred goods, `moved` is two hundred and one items —
+  // so the naive form re-walked the whole chain two hundred times. The
+  // in-subtree part is one or two hops for a flat inventory.
+  const movedIds = new Set(moved.map((m) => m.stuffId));
+  const receiversFor = (m: Stuff): Stuff[] => {
+    const inner: Stuff[] = [];
+    let cur = MixinApi.isContainable(m) ? m.getContainer() : null;
+    let hops = 0;
+    while (cur && movedIds.has(cur.stuffId) && hops < CONTAINMENT_WALK_CAP) {
+      inner.push(cur);
+      cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+      hops += 1;
+    }
+    return [...inner, ...ancestors];
+  };
   for (const m of moved) {
     const defs = collectBucketDefs(m.constructor, 'environment');
     if (defs.length === 0) continue;
-    for (const anc of ancestorsOf(m)) {
+    for (const anc of receiversFor(m)) {
       if (!MixinApi.isCommandGiver(anc)) continue;
       (anc as Stuff & CommandGiver).pushCommandSource(m, 'environment', defs);
     }
