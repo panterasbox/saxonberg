@@ -43,7 +43,6 @@ import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
 import type { PopulateSpec, Populates } from "../stuff/Populates";
 import { MixinApi } from "../../api/mixin";
-import { PersistableRegistry } from "./PersistableRegistry";
 import { PersistableApi } from "../../api/persistable";
 
 /** Public shape provided by PersistableMixin. */
@@ -75,6 +74,20 @@ export interface Persistable {
    * the same `(scope, key)` record. See {@link setPersistenceKey}.
    */
   getPersistenceKey(): string | null;
+
+  /**
+   * Does this host want a capture as the process ends?
+   *
+   * ⭐ The knowledge belongs here, not to the bootstrapper. An Avatar
+   * says no: it captures at logout on its own seam, and a shutdown sweep
+   * would only race that. A host with no persistence key says no — it
+   * never established one, so there is nothing to write.
+   *
+   * A PREDICATE, not a registry. The set of hosts wanting a shutdown
+   * capture is derivable from the hosts themselves, so nothing caches
+   * it: `world:[mixin.PersistableMixin]` at shutdown, filtered by this.
+   */
+  capturesAtShutdown(): boolean;
 
   /**
    * Stash the explicit per-instance persistence key (the record `owner`).
@@ -162,17 +175,13 @@ export function PersistableMixin<
     setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
-      // ⭐ Enroll for the process-shutdown capture at the moment this host
-      // becomes capturable. Self-enrollment, so nothing has to scan the
-      // world to find us — see PersistableRegistry.
-      //
-      // An Avatar is skipped: it captures at logout, on its own seam, and
-      // the shutdown sweep would only race that. The exclusion lives here
-      // rather than at the shutdown loop because "who needs the sweep" is
-      // this mixin's knowledge, not the bootstrapper's.
-      if (!MixinApi.isHasInteractive(this as unknown as Stuff)) {
-        PersistableRegistry.enroll(this as unknown as Stuff);
-      }
+    }
+
+    capturesAtShutdown(): boolean {
+      if (this._persistenceKey === null) return false; // never established
+      // An Avatar captures at logout, on its own seam; a shutdown sweep
+      // would only race it.
+      return !MixinApi.isHasInteractive(this as unknown as Stuff);
     }
 
     isPersistenceKeyExplicit(): boolean {
@@ -258,7 +267,6 @@ export function PersistableMixin<
      * mirroring `Avatar.onDestruct`'s fire-and-forget save.
      */
     static cleanupOnDestruct(stuff: Stuff): void {
-      PersistableRegistry.withdraw(stuff);
       if (!MixinApi.isPersistable(stuff)) return;
       if (!stuff.shouldPersist()) return; // guest / opted-out — no record
       const scope = stuff.getTemplatePath();

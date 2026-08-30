@@ -3420,3 +3420,47 @@ The tell, if you are auditing: an `environment`-only contributor that is
 not a carried thing. In this tree the other four (`Wieldable`,
 `PaymentCard`, `WateringCan`, the Whistle) are all carried, which is
 what the bucket is for.
+
+## A registry caching a fact its members already hold
+
+**Don't** stand up a registry so a rare consumer can avoid deriving a
+set. **Do** ask the objects, and use MQL when the question is "which
+things in the world".
+
+```ts
+// WRONG — hosts enroll on one setter, withdraw on destruct, forever.
+PersistableRegistry.enroll(this);
+…
+for (const stuff of PersistableRegistry.hosts()) {
+  if (!MixinApi.isPersistable(stuff)) continue;      // re-derived
+  if (stuff.getPersistenceKey() === null) continue;  // re-derived
+  …                                                  // (hosts() also filters isDestroyed)
+}
+
+// RIGHT — a predicate on the thing, and the sanctioned world search.
+const hosts = MqlApi.resolveMany('world:[mixin.PersistableMixin]', {
+  commandGiver: null, scope: 'world',
+}).stuff;
+for (const stuff of hosts) if (stuff.capturesAtShutdown()) …
+```
+
+⭐ **The tell: the reader revalidates everything the cache caches.** If
+every membership fact has to be re-checked on read, the registry stored
+nothing — and it still costs a write on every mutation that could change
+membership, plus an explicit withdrawal a future caller can forget, plus
+staleness on hot reload.
+
+Weigh maintenance against reads. This one was maintained on every
+`setPersistenceKey` and every destruct, for the whole life of the
+process, so that **one sweep at process exit** could skip a walk. That is
+the wrong side of the trade even before the correctness costs.
+
+The legitimate cases are the opposite shape: `byId` and `byTemplatePath`
+answer questions asked constantly and answer them O(1), and neither is
+derivable from an object by asking it. **Membership that IS derivable
+from the members should be derived.** Where the subscriber is not an
+object at all — a subsystem contributing a closure — there is nobody to
+ask and enrollment is the only shape; that is the distinction, not
+convenience. See
+[persistence.md](./subsystems/persistence.md) § *`captureHostOf`* and
+the lifecycle-signals slate.

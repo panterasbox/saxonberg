@@ -75,8 +75,16 @@ re-derived by whoever edits the sequence next.
 
 - A subscription seam on the lifecycle Api — a subscriber enrolls with
   its phase, and un-enrolls when it is destructed or torn down.
-  **Self-enrollment, never a scan**: the enrolled set contains exactly
-  the things that care.
+
+  ⚠ **But do not reach for enrollment where a PREDICATE will do.** The
+  libations MR tried self-enrollment for the persistable capture first
+  and removed it: the enrolled set held no fact the objects did not
+  already hold, and the one reader re-derived every one of them anyway.
+  See *What the libations MR did* below — the correction is the most
+  useful thing this slate carries. Enrollment earns its keep only when
+  membership is NOT derivable from the members: a subsystem-level
+  handler with a phase and a closure has nowhere else to live; a set of
+  Stuff answering "do I want this?" does.
 - `AppBootstrap.shutdown()` becomes *fire the phases in order, await each,
   isolate failures* — and knows the name of nobody.
 - Each existing occupant enrolls at its own init, beside the code that
@@ -92,10 +100,13 @@ real content:
    than one that drops a buffer. A per-phase deadline, after which the
    phase is abandoned with a loud record, is the likely answer — but the
    budget is a real decision, not a default.
-3. **Whether Stuff may subscribe directly, or only subsystems.** The
-   persistable capture wants per-instance enrollment; the record layer
-   wants one subsystem-level handler. If both, the seam has two
-   registration shapes and should say so plainly.
+3. **Whether Stuff may subscribe directly, or only subsystems.**
+   ⭐ Provisionally ANSWERED by the correction above: **only
+   subsystems.** The case for per-instance enrollment was the
+   persistable capture, and that turned out to want a predicate and a
+   query, not a subscription. If a second Stuff-level case appears, it
+   should be made to prove membership is not derivable before the seam
+   grows a second registration shape.
 
 ## Scope, and what already moved
 
@@ -103,13 +114,42 @@ real content:
 the record layer, and questions 1–3 are genuine design rather than
 mechanics.
 
-**What the libations MR did do**, as a step in the same direction rather
-than away from it: the persistable shutdown capture became
-**self-enrolling** — `PersistableMixin` registers itself when it
-establishes a persistence key and un-registers on destruct — which
-deleted a `getAllObjects()` world scan and moved the knowledge from the
-centre to the thing that owns it. `AppBootstrap` still names it; the
-signal is what would stop that.
+**What the libations MR did**, in two moves — and the second is the one
+worth carrying into this build.
+
+It first made the persistable shutdown capture **self-enrolling**: a
+`PersistableRegistry` that `PersistableMixin` enrolled into on
+`setPersistenceKey` and withdrew from on destruct, replacing a
+`getAllObjects()` loop.
+
+Then it **deleted that registry**, because the founder asked why a new
+registry was needed and the answer was that it wasn't:
+
+- It was a **third index of Stuff** beside `byId` and `byTemplatePath`,
+  caching a fact every member already held.
+- ⭐ **Its one consumer re-derived everything it cached** — `isPersistable`,
+  a null key, `isDestroyed` — which is the tell. *A cache whose reader
+  revalidates everything it caches is buying nothing.*
+- It was maintained on every key-set and every destruct, **forever**, to
+  save a single sweep at process exit.
+- Membership could go stale on a hot reload, and needed an explicit
+  withdrawal that a future caller could forget.
+
+What replaced it: `capturesAtShutdown()`, a predicate the host answers
+about itself (including the Avatar exclusion — an Avatar captures at
+logout on its own seam), and the sanctioned world search at shutdown,
+`world:[mixin.PersistableMixin]` in system mode. That is what
+`lint:world-scan` points a bespoke `getAllObjects()` loop at in the
+first place. Nothing to keep in sync; a destroyed host is simply not
+there to answer.
+
+⭐ **The distinction this build must respect.** *Who wants a signal* is
+derivable when the subscribers are Stuff — ask them. It is NOT derivable
+when a subscriber is a subsystem contributing a phase and a closure
+(`CompileWatcher`, `RecordApi`), because there is no object to ask. This
+slate's seam is for the second kind, and should not be widened into the
+first. `AppBootstrap` still names those three; the signal is what would
+stop that.
 
 ## Cross-references
 
