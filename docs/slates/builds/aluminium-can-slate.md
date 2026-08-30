@@ -173,7 +173,7 @@ distilling sweep test cloned its bottles EMPTY, which a real clone never
 is.
 
 ✅ **The empty↔product relationship is now expressed** (`category`, the
-vessel kind, lifted from `CraftedDrink` onto `BulkableMixin`). The
+vessel kind, lifted from `CraftVessel` onto `BulkableMixin`). The
 question *"deplete the cola and what are you left with?"* had no good
 answer: the two rows were strangers, a drained can still described
 itself as *"a can of cola, the lid unbroken"*, and the census derive

@@ -19,7 +19,7 @@ import { BulkableApi } from "../../../../api/bulk";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 import { Quantity } from "../../../../lib/quantity";
 import Material from "../../../../lib/material/Material";
-import CraftedDrink from "../../../thing/CraftedDrink";
+import CraftVessel from "../../../thing/CraftVessel";
 import RecipeCatalogue from "../../RecipeCatalogue";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { NamedMixin } from "../../../../lib/description/Named";
@@ -59,7 +59,7 @@ function registerMaterial(path: string, name: string, tags: string[]): void {
 }
 
 function makeGlass() {
-  const g = makeStuff(() => new CraftedDrink());
+  const g = makeStuff(() => new CraftVessel());
   (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
   g.setInteriorCapacity(Quantity.of(0.3, "L"));
   return g;

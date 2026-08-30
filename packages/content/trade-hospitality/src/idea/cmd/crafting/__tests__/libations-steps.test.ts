@@ -23,7 +23,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import CraftedDrink from '@saxonberg/server/mud/platform/thing/CraftedDrink';
+import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import CocktailShaker from '@saxonberg/server/mud/platform/thing/CocktailShaker';
 import ToolItem from '@saxonberg/server/mud/platform/thing/ToolItem';
@@ -62,8 +62,8 @@ function material(path: string, name: string, tags: string[]): Material {
 }
 
 /** A used coupe: half a drink in it, an olive, ice, soiled. */
-function makeUsedCoupe(): CraftedDrink {
-  const g = makeStuff(() => new CraftedDrink());
+function makeUsedCoupe(): CraftVessel {
+  const g = makeStuff(() => new CraftVessel());
   (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
   g.setInteriorCapacity(Quantity.of(0.3, 'L'));
   (g as unknown as { interiorMaterial: string }).interiorMaterial = BLEND;

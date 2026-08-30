@@ -25,7 +25,7 @@ import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import ToolItem from '../../../thing/ToolItem';
-import CraftedDrink from '../../../thing/CraftedDrink';
+import CraftVessel from '../../../thing/CraftVessel';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -84,7 +84,7 @@ function makeBottle(materialPath: string, band: string, amountL: number) {
 
 /** A clean, empty glass of the recipe's output form — the pool entry. */
 function makeGlass() {
-  const g = makeStuffAtPath(() => new CraftedDrink(), GLASS);
+  const g = makeStuffAtPath(() => new CraftVessel(), GLASS);
   (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
   g.setInteriorCapacity(Quantity.of(0.3, 'L'));
   return g;
@@ -137,7 +137,7 @@ beforeEach(async () => {
   // Stub clone to mint the output glass (avoids the dynamic class-import).
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
     if (path !== GLASS) throw new Error(`unexpected clone ${path}`);
-    const g = makeStuff(() => new CraftedDrink());
+    const g = makeStuff(() => new CraftVessel());
     (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
     g.setInteriorCapacity(Quantity.of(0.3, 'L'));
     return g as never;

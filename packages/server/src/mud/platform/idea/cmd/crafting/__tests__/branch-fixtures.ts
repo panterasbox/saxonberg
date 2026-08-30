@@ -333,10 +333,10 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
       return makeStuff(() => new TestKnife()) as never;
     }
     if (path === DISH_T) {
-      const { default: CraftedDrink } = await import(
-        '../../../../thing/CraftedDrink'
+      const { default: CraftVessel } = await import(
+        '../../../../thing/CraftVessel'
       );
-      const d = makeStuff(() => new CraftedDrink());
+      const d = makeStuff(() => new CraftVessel());
       (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
       d.setInteriorCapacity(Quantity.of(0.6, 'L'));
       return d as never;

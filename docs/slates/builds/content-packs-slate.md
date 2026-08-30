@@ -2864,7 +2864,7 @@ only because YAML cannot declare a composition without a class.
 
 **Lounge (14):** residue: `Menu` (dies with wave 3's seed repoint,
 taking SmithyMenu/KitchenMenu — three thin subclasses → one shared
-`obj/` concrete) · pure composition → genericize: `CraftedDrink`
+`obj/` concrete) · pure composition → genericize: `CraftVessel`
 `GradedReceptacle` `NeonSign` `CocktailShaker` (templates → trade or
 venue) · real extractions: `Offstage` → **employment** (off-shift NPC
 parking; hearthworks' cast is the second consumer — extract NOW) and
@@ -2876,7 +2876,7 @@ pack's boot-manifest entry — the first content boot customer) ·
 
 > **Applied 2026-08-27 (content packs wave 4b):** the lounge table
 > landed as written — `Menu`/`SmithyMenu`/`KitchenMenu` → one
-> `platform/thing/Menu`; `CraftedDrink` `GradedReceptacle` `NeonSign`
+> `platform/thing/Menu`; `CraftVessel` `GradedReceptacle` `NeonSign`
 > `CocktailShaker` → `platform/thing/`; `Offstage` → `lib/employment`
 > (+ `platform/location/Offstage`, the hearthworks as second consumer);
 > `TipJar` → `platform/thing` with its template in `/trade/hospitality`;

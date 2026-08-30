@@ -424,7 +424,7 @@ service robots, and the economy wait for their own waves.
 
 **State check before designing:** Wave 1 shipped (the `LoungeWarren`,
 flavor tags, the TPA terminal, the north exit) — and **the BAR went deep
-without the lounge doing so.** `CocktailShaker`, `CraftedDrink`,
+without the lounge doing so.** `CocktailShaker`, `CraftVessel`,
 `GradedReceptacle`, `Menu`, `TipJar`, `GlassAlley` all landed via the
 crafting and employment builds, so Waves 2–3 are largely done **for Dave's
 Bar.** The lounge proper is still Wave 1.

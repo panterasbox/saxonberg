@@ -50,7 +50,7 @@ import Material from '@saxonberg/server/mud/lib/material/Material';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
 import ArchetypeCatalogue from '@saxonberg/server/mud/platform/idea/ArchetypeCatalogue';
-import CraftedDrink from '@saxonberg/server/mud/platform/thing/CraftedDrink';
+import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import IceBin from '../thing/IceBin';
 import Tap from '../thing/Tap';
 
@@ -297,12 +297,12 @@ describe('trade-hospitality — the menu, every line', () => {
       .getContents()
       .find((c) => c.getTemplatePath() === '/trade/distilling/thing/gin')!;
     const ginBefore = litres(gin);
-    const served: Record<string, CraftedDrink> = {};
+    const served: Record<string, CraftVessel> = {};
     for (const id of MENU) {
       const out = await craftAs(maker, { recipeRef: id, makerMode: 'self' });
       expect(out.ok, `${id}: ${JSON.stringify(out)}`).toBe(true);
-      const drink = (out as { output: Stuff }).output as CraftedDrink;
-      expect(drink).toBeInstanceOf(CraftedDrink);
+      const drink = (out as { output: Stuff }).output as CraftVessel;
+      expect(drink).toBeInstanceOf(CraftVessel);
       expect(litres(drink)).toBeGreaterThan(0);
       expect(drink.isSoiled()).toBe(true);
       served[id] = drink;
@@ -358,7 +358,7 @@ describe('trade-hospitality — the menu, every line', () => {
     )!;
     ContainmentApi.move(dirty as never, venue as never);
     expect(CraftingApi.washGlass(dirty)).toBe(true);
-    expect((dirty as CraftedDrink).isClaimable()).toBe(true);
+    expect((dirty as CraftVessel).isClaimable()).toBe(true);
     const again = await craftAs(maker, { recipeRef: 'martini', makerMode: 'self' });
     expect(again.ok, JSON.stringify(again)).toBe(true);
     expect((again as { output: Stuff }).output).toBe(dirty);

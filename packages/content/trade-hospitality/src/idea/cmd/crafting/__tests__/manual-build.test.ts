@@ -38,7 +38,7 @@ import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainableMixin } from "@saxonberg/server/mud/lib/spatial/Containable";
 import GradedReceptacle from "@saxonberg/server/mud/platform/thing/GradedReceptacle";
-import CraftedDrink from "@saxonberg/server/mud/platform/thing/CraftedDrink";
+import CraftVessel from "@saxonberg/server/mud/platform/thing/CraftVessel";
 import CocktailShaker from "@saxonberg/server/mud/platform/thing/CocktailShaker";
 import RecipeCatalogue from "@saxonberg/server/mud/platform/idea/RecipeCatalogue";
 import { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
@@ -82,7 +82,7 @@ function makeBottle(materialPath: string, band: string, amountL: number) {
 }
 
 function makeGlass() {
-  const g = makeStuff(() => new CraftedDrink());
+  const g = makeStuff(() => new CraftVessel());
   (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
   g.setInteriorCapacity(Quantity.of(0.3, "L"));
   return g;

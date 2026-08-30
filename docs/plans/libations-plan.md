@@ -94,17 +94,17 @@ under *Blockers / deviations*).
     — that IS the count measure; a dash is `measureL: 0.001`. D9's
     `measureCount` needs no new field (deviation noted).
 12. **`GarnishController` is a pure flourish** (narration only) and
-    `Receptacle`/`CraftedDrink` are deliberately **not** `Container`s
+    `Receptacle`/`CraftVessel` are deliberately **not** `Container`s
     ("an ice cube floating in water is a documented future content
-    choice"). This build IS that choice: `CraftedDrink` gains
+    choice"). This build IS that choice: `CraftVessel` gains
     `ContainerMixin` so a garnish is a thing *in* the glass.
     `Surfaced` was considered and rejected — resting items keep
     `container = the room`, so a handed-over glass would leave its
     olive behind.
 13. **`Receptacle` composes `ThermalMixin` (reconcile-on-read, Newton
-    cooling) but `CraftedDrink` does not** — it is
+    cooling) but `CraftVessel` does not** — it is
     `Crafted(Bulkable(Detailed(Thing)))`. D9's "the drink's temperature
-    is real" needs `ThermalMixin` on `CraftedDrink`. Water's
+    is real" needs `ThermalMixin` on `CraftVessel`. Water's
     `latentHeatOfFusion: 334000` and `meltingPoint: 273` are authored
     (`base-library/…/bulk/water.yaml`), so ice melt = the Meltable
     plateau's arithmetic run inside the drink's own reconcile.
@@ -300,7 +300,7 @@ when a bottle drains (`_drainScheduledForTesting`).
 - `platform/thing/GlassRack.ts` — `Detailed(Container(Thing))` (an open,
   non-Sealable container), keywords `rack`. Content, not class, decides
   which glasses live in it.
-- `platform/thing/CraftedDrink.ts` → `Crafted(Thermal(Bulkable(
+- `platform/thing/CraftVessel.ts` → `Crafted(Thermal(Bulkable(
   Container(Detailed(Thing)))))` (findings 12, 13). Persistent
   `soiled: boolean` (`isSoiled()`/`_setSoiled` gated to
   `FromModule('/platform/idea/api/CraftingLogic')` and the wash
@@ -333,7 +333,7 @@ when a bottle drains (`_drainScheduledForTesting`).
   `{ category: coupe, unit: count, level: 12 }` reports the shortfall.
   No new mechanism.
 
-**Tests:** 40 `order`s on a 12-glass pool never exceed 12 `CraftedDrink`
+**Tests:** 40 `order`s on a 12-glass pool never exceed 12 `CraftVessel`
 instances and decline after the 12th until one is bussed + washed; a
 washed glass serves again; a destroyed glass shows as shortfall on the
 sheet; `wash` refuses with no water reachable; the strain path
@@ -369,7 +369,7 @@ be given a glass for (the lounge fixtures in
   the glass (`ContainmentApi.move(item, glass)`); **carbonation**: if
   any consumed input material carries `carbonated`, the derived payload
   records it (`BulkPayload` gains a `tags` union of input tags).
-- `CraftedDrink`: `iceKg`, `iceForm`, `technique` persistent;
+- `CraftVessel`: `iceKg`, `iceForm`, `technique` persistent;
   `reconcileThermal()` override: while `iceKg > 0` the temperature is
   clamped at water's `meltingPoint`; heat that would have raised it
   above 273 K instead melts `ΔJ / latentHeatOfFusion` kg of ice
@@ -743,7 +743,7 @@ base-library, the five stubs, hearth-cooking (recipe categories).
   (`UnboundedReceptacle`, water), `glass-rack`
   (`/platform/thing/GlassRack`), `house-tablet`
   (`/platform/thing/Tablet`, `pairing: staff`, `sourcePolicy: cards`);
-  nine glasses over `/platform/thing/CraftedDrink` — `coupe` (rename of
+  nine glasses over `/platform/thing/CraftVessel` — `coupe` (rename of
   `cocktail-glass`, keep both keywords), `rocks`, `highball`, `collins`,
   `pint`, `wine`, `flute`, `mug` (moved from generic-objects `vessel/mug`),
   `copper-mug` — each with `category: <glass>` and `interiorCapacity`;
@@ -948,7 +948,7 @@ clone for `bulk` outputs; the claimed instance is what `serve`/`order`
 hand over; a decline is `no-glass`. `tangible`/`edible` keep cloning
 this build.
 
-**(e) Ice melt.** Reconcile-on-read in `CraftedDrink.reconcileThermal`:
+**(e) Ice melt.** Reconcile-on-read in `CraftVessel.reconcileThermal`:
 the latent plateau at 273 K melts ice into water on the same slot.
 Nothing is scheduled.
 

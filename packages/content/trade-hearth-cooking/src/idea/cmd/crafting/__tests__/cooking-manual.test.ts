@@ -21,7 +21,7 @@ import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import CookPot from '../../../../thing/CookPot';
-import CraftedDrink from '@saxonberg/server/mud/platform/thing/CraftedDrink';
+import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   TestActor,
@@ -56,8 +56,8 @@ let room: TestActor;
 let actor: TestActor;
 let pot: CookPot;
 
-function makeDish(): CraftedDrink {
-  const d = makeStuff(() => new CraftedDrink());
+function makeDish(): CraftVessel {
+  const d = makeStuff(() => new CraftVessel());
   (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
   d.setInteriorCapacity(Quantity.of(0.6, 'L'));
   return d;

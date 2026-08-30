@@ -11,7 +11,7 @@
  * shaking with ice chills harder and dilutes more than stirring, and
  * aerates (cloudy); a built drink is neither chilled nor diluted by the
  * working itself (the ice in the glass does that over time — see
- * `CraftedDrink.reconcileThermal`).
+ * `CraftVessel.reconcileThermal`).
  */
 
 /** The closed vocabulary of build techniques. */

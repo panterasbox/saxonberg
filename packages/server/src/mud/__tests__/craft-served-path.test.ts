@@ -25,7 +25,7 @@ import type { ToxinBehavior } from '../lib/metabolism/Metabolic';
 import { Creature } from '../lib/creature/Creature';
 import GradedReceptacle from '../platform/thing/GradedReceptacle';
 import ToolItem from '../platform/thing/ToolItem';
-import CraftedDrink from '../platform/thing/CraftedDrink';
+import CraftVessel from '../platform/thing/CraftVessel';
 import Menu from '../platform/thing/Menu';
 import RecipeCatalogue from '../platform/idea/RecipeCatalogue';
 import { Idea } from '../lib/stuff/Idea';
@@ -165,7 +165,7 @@ beforeEach(async () => {
   );
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
     if (path !== GLASS) throw new Error(`unexpected clone ${path}`);
-    const g = makeStuff(() => new CraftedDrink());
+    const g = makeStuff(() => new CraftVessel());
     (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
     g.setInteriorCapacity(Quantity.of(0.3, 'L'));
     return g as never;
@@ -186,7 +186,7 @@ beforeEach(async () => {
   ContainmentApi.move(makeBottle(GIN, 'fine'), room);
   ContainmentApi.move(makeBottle(VERMOUTH, 'fair'), room);
   // The glass pool: one clean coupe of the recipe's output form in reach.
-  const coupe = makeStuffAtPath(() => new CraftedDrink(), GLASS);
+  const coupe = makeStuffAtPath(() => new CraftVessel(), GLASS);
   (coupe as unknown as { interiorBulk: boolean }).interiorBulk = true;
   coupe.setInteriorCapacity(Quantity.of(0.3, 'L'));
   ContainmentApi.move(coupe, room);

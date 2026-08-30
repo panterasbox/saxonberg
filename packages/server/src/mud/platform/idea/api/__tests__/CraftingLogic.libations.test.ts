@@ -35,7 +35,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { MakerMixin } from '../../../../lib/craft/Maker';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import Receptacle from '../../../thing/Receptacle';
-import CraftedDrink from '../../../thing/CraftedDrink';
+import CraftVessel from '../../../thing/CraftVessel';
 import ToolItem from '../../../thing/ToolItem';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import {
@@ -115,8 +115,8 @@ function makeHolder(materialPath: string, amountL: number) {
  */
 class TestRack extends ContainerMixin(Thing) {}
 
-function makeGlass(path: string, capacityL = 0.4): CraftedDrink {
-  const g = makeStuffAtPath(() => new CraftedDrink(), path);
+function makeGlass(path: string, capacityL = 0.4): CraftVessel {
+  const g = makeStuffAtPath(() => new CraftVessel(), path);
   (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
   g.setInteriorCapacity(Quantity.of(capacityL, 'L'));
   return g;
@@ -147,7 +147,7 @@ let room: TestRoom;
 let dave: TestBartender;
 
 const slot = (o: Stuff) => BulkableApi.slotFor(o, undefined)!;
-const tempK = (o: Stuff) => (o as unknown as CraftedDrink).getTemperature().rawValue();
+const tempK = (o: Stuff) => (o as unknown as CraftVessel).getTemperature().rawValue();
 
 beforeEach(async () => {
   store = { recipes: [] };
@@ -332,10 +332,10 @@ describe('the glass pool (1c)', () => {
     if (!first.ok) return;
     // Claimed, not cloned: the output IS one of the rack's glasses.
     expect([a, b]).toContain(first.output);
-    expect((first.output as CraftedDrink).isSoiled()).toBe(true);
+    expect((first.output as CraftVessel).isSoiled()).toBe(true);
     // And it's a stamped, filled drink.
     expect(slot(first.output).getAmount().rawValue()).toBeGreaterThan(0.06);
-    expect((first.output as CraftedDrink).getRecipe()).toBe('martini');
+    expect((first.output as CraftVessel).getRecipe()).toBe('martini');
 
     const second = await craftAs(dave, { recipeRef: 'martini', makerMode: 'self' });
     expect(second.ok).toBe(true);
@@ -352,7 +352,7 @@ describe('the glass pool (1c)', () => {
     expect(slot(gin).getAmount().rawValue()).toBeCloseTo(1 - 0.12, 6);
 
     // A washed glass (emptied, clean) is claimable again.
-    const used = first.output as CraftedDrink;
+    const used = first.output as CraftVessel;
     slot(used).setAmount(Quantity.of(0, 'L'));
     slot(used).setMaterial(null);
     for (const c of [...used.getContents()]) StuffApi.destruct(c);
@@ -473,8 +473,8 @@ describe('the recipe substrate (1d)', () => {
     const withIt = await craftAs(dave, { recipeRef: 'mojito', makerMode: 'self' });
     expect(withIt.ok).toBe(true);
     if (!withIt.ok) return;
-    expect((withIt.output as CraftedDrink).getTechnique()).toBe('muddled');
-    expect((withIt.output as CraftedDrink).getLong()).toMatch(/muddled/);
+    expect((withIt.output as CraftVessel).getTechnique()).toBe('muddled');
+    expect((withIt.output as CraftVessel).getLong()).toMatch(/muddled/);
   });
 
   it('a dash slot at 0.001 L debits exactly one millilitre', async () => {
@@ -500,7 +500,7 @@ describe('the recipe substrate (1d)', () => {
     expect(lime.isDestroyed()).toBe(true);
     expect(slot(bottle).getAmount().rawValue()).toBeCloseTo(0.03, 6);
     expect(slot(bottle).getPayload()?.tags).toContain('lime');
-    expect((bottle as CraftedDrink).getTechnique()).toBe('built');
+    expect((bottle as CraftVessel).getTechnique()).toBe('built');
   });
 });
 

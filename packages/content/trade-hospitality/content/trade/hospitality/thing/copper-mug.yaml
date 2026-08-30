@@ -1,6 +1,6 @@
-# a copper mug — a pool glass over CraftedDrink (claimed, served, bussed, washed;
+# a copper mug — a pool glass over CraftVessel (claimed, served, bussed, washed;
 # never minted per drink). `category` is the glassware par key.
-class: /platform/thing/CraftedDrink
+class: /platform/thing/CraftVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a copper mug

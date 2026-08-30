@@ -25,7 +25,7 @@ import ConsignController from '../../../platform/idea/cmd/retail/ConsignControll
 import WalletController from '../../../platform/idea/cmd/banking/WalletController';
 import Stock from '../../../platform/thing/Stock';
 import Bottle from '../../../platform/thing/Bottle';
-import CraftedDrink from '../../../platform/thing/CraftedDrink';
+import CraftVessel from '../../../platform/thing/CraftVessel';
 import Coin from '../../../platform/thing/Coin';
 import BankCounter from '../../../platform/thing/BankCounter';
 import PaymentCard from '../../../platform/thing/PaymentCard';
@@ -301,7 +301,7 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
         return;
       }
       if (verb === 'wash') {
-        const item = find(rest[0]!, who.getContents() as Stuff[]) as CraftedDrink | undefined;
+        const item = find(rest[0]!, who.getContents() as Stuff[]) as CraftVessel | undefined;
         if (item) (item as unknown as { soiled: boolean }).soiled = false;
         return;
       }
@@ -368,14 +368,14 @@ describe("the keeper's back loop — Mara restocks Dave's Bar from the cash-and-
 
   it('the bussing beat: a soiled, empty glass loose in the bar is collected, washed and racked', async () => {
     barBiz.removeParLine('gin'); // nothing to buy this beat — only the glass line
-    const dirty = makeStuffAtPath(() => new CraftedDrink(), '/trade/hospitality/thing/coupe');
+    const dirty = makeStuffAtPath(() => new CraftVessel(), '/trade/hospitality/thing/coupe');
     dirty.interiorBulk = true;
     dirty.setKeywords(['coupe', 'glass']);
     dirty.setPrimaryKeyword('coupe');
     dirty.setCategory('coupe');
     (dirty as unknown as { soiled: boolean }).soiled = true;
     ContainmentApi.move(dirty as never, bar as never);
-    const clean = makeStuffAtPath(() => new CraftedDrink(), '/trade/hospitality/thing/coupe');
+    const clean = makeStuffAtPath(() => new CraftVessel(), '/trade/hospitality/thing/coupe');
     clean.interiorBulk = true;
     clean.setKeywords(['coupe', 'glass']);
     clean.setCategory('coupe');

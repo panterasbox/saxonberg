@@ -14,7 +14,7 @@ data:
     []
   tags: ["solid", "ice", "frozen"]
   # Frozen water: the plateau the drink's own reconcile melts against
-  # (CraftedDrink.reconcileThermal — latent heat of fusion, at 273 K).
+  # (CraftVessel.reconcileThermal — latent heat of fusion, at 273 K).
   meltingPoint: 273
   latentHeatOfFusion: 334000
   boilingPoint: 373

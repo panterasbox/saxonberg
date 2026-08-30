@@ -1,27 +1,34 @@
 /**
- * CraftedDrink — a glass: the output form of a bar craft, the thing that
- * holds the drink and carries the maker's mark.
+ * CraftVessel — **the vessel a craft's bulk output lands in**: claimed
+ * from a pool, filled, marked used, washed, claimed again. A bar glass is
+ * the obvious case, but so are hearth-cooking's syrup bottle and the
+ * house juice bottles — this is not a drink class, it is the shape every
+ * claimable vessel is a row over.
+ *
+ * (It was `CraftedDrink` until the pool generalized past the bar. The
+ * name said drink; the thing is a vessel.)
  *
  * `Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))`:
  *
- *   - **Bulkable** — it holds the mixed liquid (`drink`/`sip` route it to
- *     metabolism). A glass is "empty" when its bulk is empty.
- *   - **Container** — a garnish is a thing *in* the glass (the olive
+ *   - **Bulkable** — it holds what was made (`drink`/`sip` route it to
+ *     metabolism). It is "empty" when its bulk is empty, which is what
+ *     makes it claimable again.
+ *   - **Container** — a garnish is a thing *in* the vessel (the olive
  *     leaves with the martini). This is the "ice cube floating in water"
- *     choice `Receptacle` documents as future content: made here, for
- *     the glass only.
- *   - **Thermal** — the drink's temperature is real (Newton cooling toward
- *     the room, like any `Receptacle`), and while the glass holds ice the
+ *     choice `Receptacle` documents as future content: made here.
+ *   - **Thermal** — the contents' temperature is real (Newton cooling
+ *     toward the room, like any `Receptacle`), and while it holds ice the
  *     temperature sits at the ice's melting point: heat that would have
- *     warmed the drink melts ice into it instead (dilution — a real bulk
- *     credit on the same slot). Reconcile-on-read; nothing is scheduled.
+ *     warmed the contents melts ice into them instead (dilution — a real
+ *     bulk credit on the same slot). Reconcile-on-read; nothing scheduled.
  *   - **Crafted** — the per-instance maker/grade/recipe stamp.
  *
- * A glass is **claimed, not cloned**: `CraftingLogic` fills the first
- * clean, empty instance of the recipe's `outputTemplate` in reach and
- * marks it `soiled`; `wash` clears it. `category` (on `BulkableMixin`,
- * the vessel kind) is the glassware par key
- * (`coupe`, `rocks`, …) the stock sheet counts by.
+ * A vessel is **claimed, not cloned**: `CraftingLogic` fills the first
+ * clean, empty one of the output's *kind* in reach and marks it `soiled`;
+ * `wash` clears it. `category` (on `BulkableMixin`, the vessel kind) is
+ * what the pool matches on and what the stock sheet counts by — the same
+ * string that ties an empty vessel to the product that is it filled
+ * ([bulk.md](../../../../../docs/subsystems/bulk.md)).
  *
  * `getLong()` appends the working (shaken / on the rocks / fizzing) and
  * the Dwarf-Fortress quality verdict — never a number.
@@ -47,11 +54,11 @@ const SoiledWriters = SecurityPolicies.FromModule(
   '/platform/idea/api/CraftingLogic#CraftingLogic',
 );
 
-const CraftedDrinkBase = CraftedMixin(
+const CraftVesselBase = CraftedMixin(
   ThermalMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing)))),
 );
 
-export default class CraftedDrink extends CraftedDrinkBase {
+export default class CraftVessel extends CraftVesselBase {
   static fieldMeta: FieldMeta = {
     soiled: { persistent: true, runtimeState: true },
     technique: { persistent: true, runtimeState: true },
@@ -131,7 +138,7 @@ export default class CraftedDrink extends CraftedDrinkBase {
    */
   setIce(kg: number, form: string, meltK?: number, latentJPerKg?: number): void {
     if (!Number.isFinite(kg) || kg < 0) {
-      throw new RangeError(`CraftedDrink.setIce: bad mass ${String(kg)}`);
+      throw new RangeError(`CraftVessel.setIce: bad mass ${String(kg)}`);
     }
     this.iceKg = kg;
     this.iceForm = kg > 0 ? form : '';

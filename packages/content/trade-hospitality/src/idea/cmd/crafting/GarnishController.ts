@@ -2,7 +2,7 @@
  * GarnishController — `garnish <glass> with <x>` (the finishing step).
  *
  * An engaged finishing step that, at completion, moves the garnish INTO
- * the glass — a `CraftedDrink` is a `Container`, so the olive is a thing
+ * the glass — a `CraftVessel` is a `Container`, so the olive is a thing
  * in the martini and leaves with it (the same act the resolve path does
  * for a recipe's `garnish:`). A glass that can't hold things (a Dish)
  * keeps the flourish only.

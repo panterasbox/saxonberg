@@ -176,7 +176,7 @@ interface GatheredMatter {
 }
 
 /**
- * The glass-pool surface `CraftedDrink` carries (duck-typed — the kernel
+ * The glass-pool surface `CraftVessel` carries (duck-typed — the kernel
  * never names the platform class). A vessel without it is claimable
  * whenever its bulk is empty.
  */
@@ -565,7 +565,7 @@ function iceKgPerDrink(): number {
 /**
  * The finishing pass every filled glass gets, resolve path or hand path:
  * the working's chill + dilution, the ice from the bin (the plateau —
- * see `CraftedDrink`), the garnish moved INTO the glass, the technique
+ * see `CraftVessel`), the garnish moved INTO the glass, the technique
  * stamp, and the soil mark. `inputs` are the drawn holders (their
  * temperatures blend into the fill); `ice` / `garnish` were matched
  * before anything was consumed.

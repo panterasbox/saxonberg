@@ -457,14 +457,14 @@ plate are the next pools). Breakage needs no mechanism: `throw` /
 `StuffApi.destruct` remove a glass and the par sheet reports the
 shortfall.
 
-`CraftedDrink` is now `Crafted(Thermal(Bulkable(Container(Detailed(
+`CraftVessel` is now `Crafted(Thermal(Bulkable(Container(Detailed(
 Thing)))))` — a `Container` so a garnish is a thing *in* the glass and
 leaves with it (`Surfaced` was rejected: a resting item's container is
 the room, so a handed-over glass would leave its olive behind); `Thermal`
 so the temperature is real. Fields: `soiled` (`isSoiled()`; `setSoiled`
 gated to `CraftingLogic`), `category` (the glassware par key — `coupe`,
 `rocks`, …; `getCategory()`), `iceKg`, `iceForm`, `technique`. Glass
-rows: `class: /platform/thing/CraftedDrink`, `category`, `interiorBulk:
+rows: `class: /platform/thing/CraftVessel`, `category`, `interiorBulk:
 true`, `interiorCapacity`.
 
 **Recipe** (`lib/craft/Recipe.ts`) gains `garnish?: { category, count?
@@ -487,7 +487,7 @@ soda input reads "fizzing". Any Bulkable holder in reach is now an
 input candidate (ungraded ⇒ `fair`) — that is how the ice bin and the
 water tap feed a craft; a Crafted vessel is never descended into.
 
-**Ice melts on read.** `CraftedDrink.reconcileThermal` clamps the
+**Ice melts on read.** `CraftVessel.reconcileThermal` clamps the
 temperature at water's `meltingPoint` while `iceKg > 0`; heat that would
 raise it instead melts `ΔJ / latentHeatOfFusion` kg into the slot as
 water (dilution — a real bulk credit), and Newton cooling resumes when
@@ -617,7 +617,7 @@ homed by what they *are*:
   minimal concrete `Character` — shares its path with the npc-behavior
   lane's richer `NPC`, which the add/add merge resolves to).
 - **Commons** → `platform/thing/` (content packs wave 4b — composition-only
-  classes are commons, not content): `CraftedDrink`
+  classes are commons, not content): `CraftVessel`
   (`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))` since
   libations, `getLong()` appends the verdict), `Menu`, `GradedReceptacle`
   (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`) and over it
