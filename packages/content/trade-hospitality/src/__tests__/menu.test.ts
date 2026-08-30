@@ -1,6 +1,6 @@
 /**
  * The hospitality pack's own suite (libations 3e): the venue is built
- * from the `hospitality` ARCHETYPE (`ArchetypeApi.materialize`), stocked
+ * from the `hospitality` ARCHETYPE (`Archetype.materialize()`), stocked
  * from the trades' own shipped rows (one floor bottle per spirit, kegs,
  * wine, the mixers, bagged ice, a crate of each fruit, the pantry sacks,
  * the glass rack), and every line of the menu is ordered through the
@@ -28,7 +28,6 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installRecordTestDb } from '@saxonberg/server/mud/lib/persistence/__tests__/record-test-db';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
-import { ArchetypeApi } from '@saxonberg/server/mud/api/archetype';
 import { CraftingApi, type CraftRequest } from '@saxonberg/server/mud/api/crafting';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -43,7 +42,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { StoredDocument } from '@saxonberg/server/mud/lib/document/StoredDocument';
-import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ContainerMixin, type Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MakerMixin } from '@saxonberg/server/mud/lib/craft/Maker';
 import Material from '@saxonberg/server/mud/lib/material/Material';
@@ -134,7 +133,7 @@ function contentRows(): Row[] {
 
 class TestBartender extends MakerMixin(ContainerMixin(ContainableMixin(Idea))) {}
 
-let venue: Stuff;
+let venue: Stuff & Container;
 let maker: TestBartender;
 const now = 1000;
 
@@ -199,7 +198,9 @@ beforeAll(async () => {
   for (const r of contentRows().filter((r) => r.path.includes('/idea/material/'))) {
     await StuffApi.singleton(r.path);
   }
-  venue = await ArchetypeApi.materialize('hospitality');
+  venue = await StuffApi.findByTemplatePath<ArchetypeCatalogue>(
+    '/platform/idea/ArchetypeCatalogue',
+  )!.getArchetype('hospitality')!.materialize();
   maker = makeStuff(() => new TestBartender());
   ContainmentApi.move(maker as never, venue as never);
 
@@ -248,14 +249,16 @@ describe('trade-hospitality — the classes', () => {
 });
 
 describe('trade-hospitality — the venue from the archetype', () => {
-  it('materialize stands every default up; the checklist REPORTS (the cold range is short of 340 K, nothing refuses)', () => {
-    const rows = ArchetypeApi.checklist('hospitality', venue)!;
-    expect(rows.length).toBeGreaterThan(0);
-    for (const r of rows.filter((r) => !('heatK' in r.needs))) {
-      expect(r.satisfied, r.key).toBe(true);
-    }
+  it('materialize stands every authored default up, and the effective floor derives the recipes\' tools', () => {
+    // Every authored slot that HAS a default is standing in the venue.
+    const a = StuffApi.findByTemplatePath<ArchetypeCatalogue>(
+      '/platform/idea/ArchetypeCatalogue',
+    )!.getArchetype('hospitality')!;
+    const defaults = a.getCapabilities().filter((c) => c.default).length;
+    expect(venue.getContents().length).toBeGreaterThanOrEqual(defaults);
+
     // The tool rows the recipes DERIVE are on the effective floor too.
-    const keys = ArchetypeApi.describe('hospitality')!.rows.map((r) => JSON.stringify(r.needs));
+    const keys = a.describe().rows.map((r) => JSON.stringify(r.needs));
     for (const cap of ['shaker', 'mixing-glass', 'muddler', 'bar-spoon', 'juicer', 'tap']) {
       expect(keys, cap).toContain(JSON.stringify({ tool: cap }));
     }

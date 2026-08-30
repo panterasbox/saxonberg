@@ -9,7 +9,7 @@ The hospitality trade — a **capability pack** (it ships `src/`). Root
 - `content/trade/hospitality/idea/material/` — the house-made juices the press yields.
 - `content/recipes/` — the menu (21 lines here; the pint, the three wines and the soft drink ride their trades) and the four `press-*` recipes.
 - `content/trade/hospitality/location/{bar,cellar}.yaml` — the bundles a venue populates by reference.
-- `content/archetypes/hospitality.yaml` — the venue archetype (`ArchetypeApi.materialize('hospitality')` builds the test venue).
+- `content/archetypes/hospitality.yaml` — the venue archetype (`archetype.materialize()` (`hospitality')` builds the test venue).
 
 Tests: `pnpm --filter @saxonberg/content-trade-hospitality test` — `src/__tests__/menu.test.ts` builds the venue from the archetype, stocks it from the trades' own rows and orders every menu line.
 

@@ -1,4 +1,4 @@
-# The bare venue — the room `ArchetypeApi.materialize` clones and fills
+# The bare venue — the room `Archetype.materialize()` clones and fills
 # with an archetype's default bindings (the derived test venue, A13.5).
 # Nothing populates it; the archetype does.
 class: /platform/location/FurnishableRoom

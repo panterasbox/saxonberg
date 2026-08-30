@@ -1,20 +1,22 @@
 /**
  * The venue archetype at runtime (libations 1e): the catalogue warms
- * from `documents {kind: archetype}`; `describe` DERIVES the tool/heat
+ * from `documents {kind: archetype}`; `describe()` DERIVES the tool/heat
  * rows from the industry's recipes and merges them into the authored
- * slots; `checklist` reports what a venue satisfies and never refuses;
- * `materialize` builds the derived test venue from the defaults.
+ * slots; `materialize()` builds the derived test venue from the defaults.
+ *
+ * ⭐ An archetype describes and materializes ITSELF — there is no
+ * `ArchetypeApi` (see `Archetype`'s docstring for why), and no
+ * `checklist`: D11 said *no runtime enforcement*, so a reporting surface
+ * nothing read was the does-nothing shape.
  */
 
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../../api/document';
 import { StuffApi } from '../../api/stuff';
-import { ArchetypeApi } from '../../api/archetype';
 import { ContainmentApi } from '../../api/containment';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { Quantity } from '../../lib/quantity';
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
 import Room from '../location/Room';
@@ -52,8 +54,9 @@ const RECIPES = [
 ];
 
 let seq = 0;
+let catalogue: ArchetypeCatalogue;
 
-describe('ArchetypeApi', () => {
+describe('the venue archetype', () => {
   beforeEach(async () => {
     installV1QuantityMarshallers();
     StuffApi.clearAll();
@@ -63,8 +66,8 @@ describe('ArchetypeApi', () => {
         ? [doc('/trade/fx/archetypes/hospitality', BAR), doc('/trade/fx/archetypes/broken', { archetypeId: 'broken' })]
         : RECIPES.map((r) => doc(`/trade/fx/recipes/${r.recipeId}`, r)),
     );
-    const cat = makeStuffAtPath(() => new ArchetypeCatalogue(), '/platform/idea/ArchetypeCatalogue');
-    await cat.warm();
+    catalogue = makeStuffAtPath(() => new ArchetypeCatalogue(), '/platform/idea/ArchetypeCatalogue');
+    await catalogue.warm();
     const rec = makeStuffAtPath(() => new RecipeCatalogue(), '/platform/idea/RecipeCatalogue');
     await rec.warm();
   });
@@ -74,12 +77,12 @@ describe('ArchetypeApi', () => {
   });
 
   it('warms from the document store; a malformed row is skipped loudly, never fatal', () => {
-    expect(ArchetypeApi.all().map((a) => a.getArchetypeId())).toEqual(['hospitality']);
-    expect(ArchetypeApi.describe('nope')).toBeNull();
+    expect(catalogue.allArchetypes().map((a) => a.getArchetypeId())).toEqual(['hospitality']);
+    expect(catalogue.getArchetype('nope')).toBeNull();
   });
 
   it('describe derives the tool/heat rows from the INDUSTRY’s recipes and merges into authored slots', () => {
-    const d = ArchetypeApi.describe('hospitality')!;
+    const d = catalogue.getArchetype('hospitality')!.describe();
     const byKey = new Map(d.rows.map((r) => [r.key, r]));
     // The authored `dispensing` slot IS the derived `tool:tap` — merged, default kept.
     expect(byKey.get('dispensing')).toMatchObject({ needs: { tool: 'tap' }, default: '/fx/thing/tap', derivedFrom: ['pint'] });
@@ -90,53 +93,6 @@ describe('ArchetypeApi', () => {
     // Another industry's recipe contributes nothing.
     expect(byKey.get('tool:anvil')).toBeUndefined();
     expect(byKey.get('heatK')!.needs).toEqual({ heatK: 340 });
-  });
-
-  it('checklist reports what the venue satisfies — and refuses nothing', () => {
-    const venue = makeStuff(() => new Room());
-    stampTemplatePathForTest(venue, `/fx/location/venue-${seq++}`);
-    const bench = makeStuff(() => new Bench());
-    stampTemplatePathForTest(bench, `/fx/thing/bench-${seq++}`);
-    const tap = makeStuff(() => new Tool()) as Tool;
-    stampTemplatePathForTest(tap, `/fx/thing/tap-${seq++}`);
-    tap.capabilities = ['tap'];
-    ContainmentApi.move(bench as never, venue as never);
-    ContainmentApi.move(tap as never, venue as never);
-
-    const rows = ArchetypeApi.checklist('hospitality', venue as unknown as Stuff)!;
-    const sat = new Map(rows.map((r) => [r.key, r.satisfied]));
-    expect(sat.get('surface')).toBe(true);
-    expect(sat.get('dispensing')).toBe(true);
-    expect(sat.get('seating')).toBe(false);
-    expect(sat.get('tool:mixing-glass')).toBe(false);
-    expect(sat.get('heatK')).toBe(false);
-    expect(rows.find((r) => r.key === 'dispensing')!.by).toBeTruthy();
-  });
-
-  // ⭐ Cold storage is a property of a SPACE, not a kind of appliance: a
-  // cellar is cool because it is underground, a walk-in because a chiller
-  // holds it there, and anything carried into either drifts to that
-  // through the shipped thermal resolver. The bar shipped a `cold-store`
-  // prop that was Thermal + Sealable + Bulkable with NO Container — a
-  // 200 L insulated tub of ice that could not hold a keg — and it was the
-  // venue's only nominal cold storage.
-  it('a cool ROOM is cold storage on its own; a temperate one is not', () => {
-    const cold = makeStuff(() => new Room());
-    stampTemplatePathForTest(cold, `/fx/location/cellar-${seq++}`);
-    cold.setTemperature(Quantity.of(285, 'K'));
-
-    const warm = makeStuff(() => new Room());
-    stampTemplatePathForTest(warm, `/fx/location/backroom-${seq++}`);
-    warm.setTemperature(Quantity.of(295, 'K'));
-
-    const coldRow = ArchetypeApi.checklist('hospitality', cold as unknown as Stuff)!
-      .find((r) => r.key === 'cold')!;
-    expect(coldRow.satisfied).toBe(true);
-    expect(coldRow.by).toBeTruthy();
-
-    const warmRow = ArchetypeApi.checklist('hospitality', warm as unknown as Stuff)!
-      .find((r) => r.key === 'cold')!;
-    expect(warmRow.satisfied).toBe(false);
   });
 
   it('materialize clones the venue row and each authored default into it', async () => {
@@ -153,10 +109,8 @@ describe('ArchetypeApi', () => {
       if (path.endsWith('tap')) (s as unknown as Tool).capabilities = ['tap'];
       return s;
     });
-    const venue = await ArchetypeApi.materialize('hospitality');
+    const venue = await catalogue.getArchetype('hospitality')!.materialize();
     expect(cloned).toEqual(['/platform/location/venue', '/fx/thing/bench', '/fx/thing/tap']);
     expect(venue.getContents().length).toBe(2);
-    const rows = ArchetypeApi.checklist('hospitality', venue as unknown as Stuff)!;
-    expect(rows.filter((r) => r.satisfied).map((r) => r.key).sort()).toEqual(['dispensing', 'surface']);
   });
 });

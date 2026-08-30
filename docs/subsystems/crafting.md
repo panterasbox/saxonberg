@@ -685,7 +685,7 @@ Every libation `Material` lives with the trade whose PROCESS makes it
 (`/trade/{distilling,brewing,winemaking,bottling,produce,hearth-cooking}/idea/material/`);
 base-library keeps water, air, salt-water. `trade-hospitality/content/
 archetypes/hospitality.yaml` is the venue archetype its own `menu.test.ts`
-materializes a bar from (`ArchetypeApi.materialize`) to order all 24
+materializes a bar from (`archetype.materialize()`) to order all 24
 lines. Crafted drinks are transient runtime matter (persisted nowhere;
 reset on restart).
 

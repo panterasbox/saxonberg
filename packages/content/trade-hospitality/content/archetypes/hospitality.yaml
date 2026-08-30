@@ -1,9 +1,9 @@
 # The hospitality venue archetype (D11, A13/A14): what a bar NEEDS, as
 # capability slots the kernel can check over a venue's contents, each with
-# the default row `ArchetypeApi.materialize` binds. The residue only: the
+# the default row `Archetype.materialize()` binds. The residue only: the
 # tool and heat rows (shaker, mixing-glass, muddler, bar-spoon, juicer,
 # tap; the syrup's 340 K) are DERIVED from the trade's recipes by
-# `ArchetypeApi.describe` and never repeated here. Reported, never
+# `Archetype.describe()` and never repeated here. Reported, never
 # enforced — a venue missing a slot is short on the checklist, not refused.
 archetypeId: hospitality
 label: a bar

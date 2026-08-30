@@ -8,16 +8,56 @@
  * the contract without an exemption.
  *
  * Most of the floor is DERIVED on read from the industry's recipes
- * (`ArchetypeApi.describe`); this document is only what mechanics cannot
- * express. It carries ZERO logic and nothing at runtime gates on it: a
- * bar with no ice bin is a legal, visible state.
+ * ({@link Archetype.describe}); this document is only what mechanics
+ * cannot express. **Nothing at runtime gates on it**: a bar with no ice
+ * bin is a legal, visible state (D11 — "no runtime enforcement").
  *
- * The one concept this module defines — the value-object + its
- * validation. Installed as the `archetype` document kind
- * (`content/archetypes/<id>.yaml`, natural key `archetypeId`).
+ * ⭐ **There is no `ArchetypeApi`.** An archetype describes and
+ * materializes itself. The first cut shipped a four-method
+ * `ArchetypeApi` + `ArchetypeLogic` pair whose every caller was a test —
+ * the two production paths that touch archetypes (the pack installer's
+ * validator, and the go-live re-warm) reach {@link Archetype.fromData}
+ * and the catalogue directly, and always did. An Api exists to
+ * ORCHESTRATE; this was a façade over a value-object and a catalogue
+ * that were already the natural homes.
+ *
+ * The one concept this module defines — the value-object, its validation
+ * and its two derived reads. Installed as the `archetype` document kind
+ * (`content/archetypes/<id>.yaml`, natural key `archetypeId`); the
+ * runtime index is `ArchetypeCatalogue`.
  */
 
 import type { StoredDocument } from '../document/StoredDocument';
+import type { Stuff } from '../stuff/Stuff';
+import type { Container } from '../spatial/Container';
+import type RecipeCatalogue from '../../platform/idea/RecipeCatalogue';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
+
+const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
+/** The platform's bare venue row {@link Archetype.materialize} clones. */
+const VENUE_PATH = '/platform/location/venue';
+
+/**
+ * One row of the EFFECTIVE floor: an authored slot, a derived one, or an
+ * authored slot that a recipe also derives (then `derivedFrom` names the
+ * recipes and `default` is the authored binding).
+ */
+export interface EffectiveRow {
+  key: string;
+  needs: CapabilityNeed;
+  default: string | null;
+  /** Recipe ids that derive this need; empty for pure residue. */
+  derivedFrom: string[];
+}
+
+export interface ArchetypeDescription {
+  archetypeId: string;
+  label: string;
+  industry: string;
+  rows: EffectiveRow[];
+}
 
 /**
  * What a capability slot needs — one predicate the kernel can evaluate
@@ -147,5 +187,74 @@ export class Archetype {
       ...this.data,
       capabilities: this.data.capabilities.map((c) => ({ ...c, needs: { ...c.needs } })),
     };
+  }
+
+  // ---- the two derived reads ------------------------------------------
+
+  /**
+   * The EFFECTIVE floor: this archetype's authored residue plus every
+   * tool capability and heat requirement across its industry's recipes.
+   *
+   * A derived need that an authored slot already states merges into that
+   * slot (keeping its key and default); a need no slot states becomes a
+   * row of its own with no default — the archetype's completeness check
+   * is exactly the list of those rows.
+   */
+  describe(): ArchetypeDescription {
+    return {
+      archetypeId: this.getArchetypeId(),
+      label: this.getLabel(),
+      industry: this.getIndustry(),
+      rows: this.effectiveRows(),
+    };
+  }
+
+  private effectiveRows(): EffectiveRow[] {
+    const rows = new Map<string, EffectiveRow>();
+    const order: string[] = [];
+    for (const slot of this.getCapabilities()) {
+      const k = Archetype.needKey(slot.needs);
+      rows.set(k, { key: slot.key, needs: slot.needs, default: slot.default, derivedFrom: [] });
+      order.push(k);
+    }
+    const add = (need: CapabilityNeed, recipeId: string): void => {
+      const k = Archetype.needKey(need);
+      const existing = rows.get(k);
+      if (existing) {
+        if ('heatK' in need && 'heatK' in existing.needs && need.heatK > existing.needs.heatK) {
+          existing.needs = { heatK: need.heatK };
+        }
+        if (!existing.derivedFrom.includes(recipeId)) existing.derivedFrom.push(recipeId);
+        return;
+      }
+      rows.set(k, { key: k, needs: need, default: null, derivedFrom: [recipeId] });
+      order.push(k);
+    };
+    const recipes = StuffApi.findByTemplatePath<RecipeCatalogue>(RECIPES_PATH) ?? null;
+    for (const r of recipes?.allRecipes() ?? []) {
+      if (r.getDiscipline() !== this.getIndustry()) continue;
+      for (const cap of r.getToolCapabilities()) add({ tool: cap }, r.getRecipeId());
+      const heat = r.getRequiresHeatK();
+      if (heat > 0) add({ heatK: heat }, r.getRecipeId());
+    }
+    return order.map((k) => rows.get(k)!);
+  }
+
+  /**
+   * The derived venue (A13.5, D11's *"the bar's own test venue is derived
+   * from it"*): a bare venue room with each authored slot's default
+   * binding cloned into it. Slots with no default are the archetype's own
+   * honesty — a reader of {@link describe} names them.
+   */
+  async materialize(): Promise<Stuff & Container> {
+    const venue = (await StuffApi.clone(VENUE_PATH)) as Stuff & Container;
+    for (const slot of this.getCapabilities()) {
+      if (!slot.default) continue;
+      const item = await StuffApi.clone(slot.default);
+      if (MixinApi.isContainable(item) && item.getContainer() !== venue) {
+        ContainmentApi.move(item as never, venue as never);
+      }
+    }
+    return venue;
   }
 }
