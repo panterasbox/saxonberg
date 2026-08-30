@@ -272,6 +272,47 @@ describe('DisplayApi', () => {
     });
   });
 
+  // ⭐ The reads are ROOM-scoped, not world-scoped. `sees()` always
+  // required the viewer to be in the display's room, so the room's
+  // containment subtree is the complete candidate set — a world scan was
+  // only ever a slower way to the same answer, and it sat on
+  // `Mobile.traverse`/`teleport`, i.e. on every step any actor takes.
+  describe('the reads are bounded by the room', () => {
+    it('viewersOf sees only the display\'s own room — not a viewer elsewhere holding their own screen', async () => {
+      const near = await makeViewer('Nell', booth);
+      const far = await makeViewer('Fen', cellar);
+      const farTablet = await StuffApi.create(() => new Tablet());
+      farTablet.setPairing('held');
+      ContainmentApi.move(farTablet, far.avatar);
+
+      const tv = await StuffApi.create(() => new Screen());
+      tv.setPairing('open');
+      ContainmentApi.move(tv, booth);
+
+      const ids = DisplayApi.viewersOf(tv).map((v) => v.stuffId);
+      expect(ids).toContain(near.avatar.stuffId);
+      expect(ids).not.toContain(far.avatar.stuffId);
+    });
+
+    it('refreshViewer projects only the displays in the viewer\'s own room', async () => {
+      const cy = await makeViewer('Cy', cellar);
+      // A lit screen in the OTHER room.
+      const boothTv = await StuffApi.create(() => new Screen());
+      boothTv.setPairing('open');
+      ContainmentApi.move(boothTv, booth);
+      DisplayApi.show(boothTv, { kind: 'card', cardId: 'who', key: 'who' });
+      expect(cy.cards().length).toBe(0);
+
+      DisplayApi.refreshViewer(cy.avatar);
+      expect(cy.cards().length).toBe(0);
+
+      // Same screen, same viewer, once they share a room.
+      ContainmentApi.move(boothTv, cellar);
+      DisplayApi.refreshViewer(cy.avatar);
+      expect(cy.cards().length).toBe(1);
+    });
+  });
+
   describe('arrival and departure', () => {
     it('walking in shows what the screen shows; walking out clears it', async () => {
       const tv = await StuffApi.create(() => new Screen());

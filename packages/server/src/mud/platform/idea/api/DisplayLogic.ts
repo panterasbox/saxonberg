@@ -12,6 +12,7 @@ import Location from '../../../lib/stuff/Location';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { CardApi } from '../../../api/card';
+import { MqlApi } from '../../../api/mql';
 import { PerceptionApi } from '../../../api/perception';
 import { EmploymentApi } from '../../../api/employment';
 import type { WatchTarget } from '@saxonberg/types';
@@ -78,27 +79,34 @@ export class DisplayLogic extends ApiLogic {
     }
   }
 
-  /** See {@link DisplayApi.resolveFor}. */
+  /**
+   * See {@link DisplayApi.resolveFor}.
+   *
+   * ⭐ The ladder is ordered by REACH, and so is its cost: rung 1 walks
+   * the actor's own inventory, rung 2 the actor's room, and only rung 3
+   * — driving a screen in another room, which requires an attuned mind —
+   * looks at the world at all. The local rungs answer almost every call.
+   */
   @CallSecurity(DisplayApiCallers)
   public async resolveFor(actor: Stuff): Promise<ResolvedDisplay | null> {
-    const displays = this.allDisplays();
     // 1. Held — a screen in your hand is yours to drive, whatever its
     //    pairing: the thief with the house tablet READS the sheet (the
     //    screen shows what it shows); the seat is what they lack, and the
     //    seat is checked where money moves, never here.
-    for (const d of displays) {
-      if (this.carries(actor, d)) return { display: d, mode: 'hand' };
+    for (const d of this.displaysWithin(actor)) {
+      return { display: d, mode: 'hand' };
     }
     // 2. Paired and in sight — a screen in the room the actor may drive.
-    const room = this.roomOf(actor);
-    for (const d of displays) {
-      if (room && this.roomOf(d) === room && (await this.mayDriveImpl(actor, d))) {
-        return { display: d, mode: 'hand' };
-      }
+    //    `displaysAround` is already room-scoped, so the old
+    //    `roomOf(d) === room` test is the walk's boundary, not a filter.
+    for (const d of this.displaysAround(actor)) {
+      if (await this.mayDriveImpl(actor, d)) return { display: d, mode: 'hand' };
     }
     // 3. Paired anywhere, by mind — the modem is the driver's attunement.
+    //    The ONE global rung, and it is gated on the attunement first so
+    //    an ordinary actor never pays for it.
     if (MixinApi.isActive(actor, 'AetherMixin')) {
-      for (const d of displays) {
+      for (const d of this.allDisplays()) {
         if (d.getPairing() === 'open') continue;
         if (await this.mayDriveImpl(actor, d)) return { display: d, mode: 'mind' };
       }
@@ -146,7 +154,7 @@ export class DisplayLogic extends ApiLogic {
     const current = viewer.getClientState<WatchTarget | null>(WATCH_KEY) ?? null;
     const named = current?.display?.stuffId ?? null;
     let stillSeen = false;
-    for (const d of this.allDisplays()) {
+    for (const d of this.displaysAround(viewer)) {
       const source = d.getShowing();
       if (!source) continue;
       if (!this.sees(viewer, d)) continue;
@@ -167,13 +175,22 @@ export class DisplayLogic extends ApiLogic {
   }
 
   /**
-   * Derived from the WORLD, not the connection registry: a viewer is a
-   * `HasInteractive` Stuff with at least one Interactive attached — the
-   * same fact `CardApi.push` needs — in the display's room, perceiving it.
+   * Derived from the display's ROOM, not from the connection registry and
+   * not from the world: a viewer is a `HasInteractive` Stuff with at
+   * least one Interactive attached — the same fact `CardApi.push` needs —
+   * in the display's room, perceiving it.
+   *
+   * ⚠ Room-scoped on purpose. `sees()` already requires the viewer to be
+   * in the display's room, so the room's containment subtree is the
+   * complete candidate set and a world scan was only ever a slower way to
+   * reach the same answer — one paid on every `show`, `clear` and
+   * `refresh`. See {@link subtreeOf}.
    */
   private viewersOfImpl(display: DisplayStuff): (Stuff & HasInteractive)[] {
+    const room = this.roomOf(display);
+    if (!room) return [];
     const out: (Stuff & HasInteractive)[] = [];
-    for (const s of StuffApi.getAllObjects()) {
+    for (const s of this.subtreeOf(room)) {
       if (!MixinApi.isHasInteractive(s)) continue;
       if (s.getInteractives().size === 0) continue;
       if (this.sees(s, display)) out.push(s);
@@ -260,9 +277,62 @@ export class DisplayLogic extends ApiLogic {
     return walk(actor);
   }
 
-  private allDisplays(): DisplayStuff[] {
-    return StuffApi.getAllObjects().filter((s): s is DisplayStuff =>
+  /**
+   * Every Stuff in `host`'s containment subtree, stopping at a nested
+   * `Location` (another room's business is its own). The bounded walk the
+   * room-scoped reads share — O(room), where the honest alternative was
+   * O(world) on the movement path.
+   */
+  private subtreeOf(host: Stuff): Stuff[] {
+    const out: Stuff[] = [];
+    const seen = new Set<string>();
+    const walk = (h: Stuff): void => {
+      if (!MixinApi.isContainer(h)) return;
+      for (const item of h.getContents()) {
+        const s = item as unknown as Stuff;
+        if (s.isDestroyed() || seen.has(s.stuffId)) continue;
+        seen.add(s.stuffId);
+        out.push(s);
+        // A room inside this one keeps its own occupants.
+        if (s instanceof Location) continue;
+        walk(s);
+      }
+    };
+    walk(host);
+    return out;
+  }
+
+  /** The displays inside `host` — its inventory, at any depth. */
+  private displaysWithin(host: Stuff): DisplayStuff[] {
+    return this.subtreeOf(host).filter((s): s is DisplayStuff =>
       MixinApi.isDisplay(s),
     );
+  }
+
+  /**
+   * The displays `viewer` shares a room with — including one it carries
+   * itself (the viewer is in the room, the tablet is in the viewer, so
+   * both are in the room's subtree; the `held` rung stays unconditional).
+   */
+  private displaysAround(viewer: Stuff): DisplayStuff[] {
+    const room = this.roomOf(viewer);
+    if (!room) return [];
+    return this.displaysWithin(room);
+  }
+
+  /**
+   * ⚠ The one world-wide read, reached only by the by-mind rung of
+   * {@link resolveFor} — driving a screen in another room, which no
+   * room-local walk can answer. MQL system enumeration (null giver — a
+   * viewer-blind engine sweep) rather than a bespoke `getAllObjects`
+   * filter-loop: the sanctioned form, see antipatterns.md § *Bespoke
+   * Object-Search Algorithms*.
+   */
+  private allDisplays(): DisplayStuff[] {
+    const matches = MqlApi.resolveMany('world:[mixin.DisplayMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    });
+    return matches.stuff.filter((s): s is DisplayStuff => MixinApi.isDisplay(s));
   }
 }
