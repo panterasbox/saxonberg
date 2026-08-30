@@ -167,6 +167,22 @@ row **from Mongo every time**, with no cache, and the hydration cascade
 recurses through `clone` for `hydratorClass` and `populates:` — so one
 shipped item is a dozen sequential 33 ms trips.
 
+**Live, after the pass** (fresh boot, `AUTH_MODE=test`, one character in
+the lounge over the real WebSocket):
+
+```
+auth/status      2 ms      play <id>   628 ms
+look           220 ms      inventory   260 ms      who   290 ms
+```
+
+Everything works and nothing is denied — but a warm `look` at 220 ms is
+about **7 x the 33 ms round trip**, which is the same shape as §4 rather
+than a gate cost: at 2.1 µs a dispatch, 220 ms would be a hundred
+thousand proxied calls. ⚠ Stated as a *hypothesis with a matching
+order of magnitude*, not a measurement — nobody has counted the queries
+a `look` makes. Counting them is the first step of the boot work, and it
+would answer both.
+
 **This is a template-read-cache design conversation, not a tweak** —
 the invalidation points (CMS save, pack install, go-live,
 `restoreFromTemplate`, hot reload) all exist and are chokepoints, but
