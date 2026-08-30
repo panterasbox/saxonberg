@@ -139,7 +139,10 @@ export interface Display {
   /** The connected viewers who see it (same room, perceives). */
   viewersOf(): (Stuff & HasInteractive)[];
 
-  /** Show `source`, and project it to every viewer who sees the screen. */
+  /**
+   * Show `source`, and project it to every viewer who sees the screen —
+   * for the arms that HAVE a projection. Prose does not; it is read.
+   */
   show(source: DisplaySource): void;
   /** Darken it; every projected viewer's embed clears. */
   clear(): void;
