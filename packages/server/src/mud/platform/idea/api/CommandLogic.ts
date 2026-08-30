@@ -3059,10 +3059,28 @@ function applyContainmentDeltaImpl(
   // ── `environment`: the moved subtree grants OUTWARD, to every
   // container above it. This is what makes a rock in a bag in your pack
   // still hand you `throw`.
+  //
+  // ⚠⚠ Every container above **that item** — `ancestorsOf(m)` — not the
+  // destination's chain. The two differ exactly for what the mover is
+  // CARRYING, and the difference was a serious bug: a move first calls
+  // `resetCommandSources`, which drops every `environment` and `peers`
+  // entry, and the re-push then reached only the destination and above.
+  // So a mover lost the verbs its OWN inventory confers, and did not get
+  // them back until something in its pack moved again.
+  //
+  // ⭐ In play that meant: pick up your whetstone and `sharpen` works;
+  // walk one room and it is gone. A live drive found it as every trade
+  // hand's `wallet use house` failing with `unknown-verb` — the consigns
+  // beat teleports to the counter and THEN tries to trade as the house,
+  // so the house card in its pocket had just been forgotten. Thirty
+  // failures in one boot, every hand, after all ten cards were dealt.
+  //
+  // For the moved root `ancestorsOf(m)` IS `[to, ...ancestorsOf(to)]`,
+  // so this is a strict generalisation, not a change of rule.
   for (const m of moved) {
     const defs = collectBucketDefs(m.constructor, 'environment');
     if (defs.length === 0) continue;
-    for (const anc of ancestors) {
+    for (const anc of ancestorsOf(m)) {
       if (!MixinApi.isCommandGiver(anc)) continue;
       (anc as Stuff & CommandGiver).pushCommandSource(m, 'environment', defs);
     }

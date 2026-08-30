@@ -41,6 +41,8 @@ const MENDING = [
 ];
 
 class Room extends ContainerMixin(Idea) {}
+/** A container you can also carry — a satchel. */
+class Pack extends ContainerMixin(ContainableMixin(Idea)) {}
 class ToolBase extends ToolMixin(DurableMixin(ContainableMixin(Idea))) {}
 
 /** Reachable: declares both buckets. */
@@ -105,6 +107,47 @@ describe("verb affordances come from class statics, and only from there", () => 
     expect(affords(player, "sharpen")).toBe(true); // carried
     ContainmentApi.move(stone, room);
     expect(affords(player, "sharpen")).toBe(false); // dropped → gone
+  });
+
+  // ⭐⭐ **You keep what you carry.** A move calls
+  // `resetCommandSources`, which drops every `environment` and `peers`
+  // entry, and the re-push afterwards reached only the DESTINATION's
+  // ancestor chain — never the mover itself. So a mover lost the verbs
+  // its own inventory confers and did not get them back until something
+  // in its pack moved again.
+  //
+  // In play: pick up your whetstone and `sharpen` works; walk one room
+  // and it is gone. A live drive found it as every trade hand's `wallet
+  // use house` failing with `unknown-verb` — the consigns beat teleports
+  // to the counter and THEN trades as the house, so the card in its
+  // pocket had just been forgotten. Thirty failures in one boot, every
+  // hand, after all ten cards had been dealt.
+  it("a carried tool keeps affording after its holder walks to another room", () => {
+    const a = makeStuff(() => new Room());
+    const b = makeStuff(() => new Room());
+    const player = makeStuff(() => new Player());
+    ContainmentApi.move(player, a);
+    const kit = makeStuff(() => new MendingTool());
+    ContainmentApi.move(kit, player);
+    expect(affords(player, "repair")).toBe(true);
+
+    ContainmentApi.move(player, b);
+    expect(affords(player, "repair")).toBe(true);
+  });
+
+  it("and a tool deep in a pack survives the walk too", () => {
+    const a = makeStuff(() => new Room());
+    const b = makeStuff(() => new Room());
+    const player = makeStuff(() => new Player());
+    ContainmentApi.move(player, a);
+    const pack = makeStuff(() => new Pack());
+    ContainmentApi.move(pack, player);
+    const kit = makeStuff(() => new MendingTool());
+    ContainmentApi.move(kit, pack);
+    expect(affords(player, "repair")).toBe(true);
+
+    ContainmentApi.move(player, b);
+    expect(affords(player, "repair")).toBe(true);
   });
 
   it("two rows over one class afford identically — a row cannot vary verbs", () => {
