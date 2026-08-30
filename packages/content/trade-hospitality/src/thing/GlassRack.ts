@@ -23,4 +23,11 @@ import { PopulatesMixin } from '@saxonberg/server/mud/lib/stuff/Populates';
 
 const GlassRackBase = PopulatesMixin(ContainerMixin(DetailedMixin(Thing)));
 
-export default class GlassRack extends GlassRackBase {}
+export default class GlassRack extends GlassRackBase {
+  constructor() {
+    super();
+    // ⭐ Fixed in place. The rack is built in; the glasses IN it are
+    // what you take.
+    this.fixedInPlace = true;
+  }
+}

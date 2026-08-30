@@ -21,6 +21,9 @@ const TapBase = SurfacedMixin(ToolMixin(DetailedMixin(Thing)));
 export default class Tap extends TapBase {
   constructor() {
     super();
+    // ⭐ Fixed in place. Plumbed to the cellar: what comes out of it is
+    // yours, the tap is not.
+    this.fixedInPlace = true;
     this.capabilities = ['tap'];
     this.setKeywords(['tap', 'taps', 'beer-tap']);
     this.setPrimaryKeyword('tap');

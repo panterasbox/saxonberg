@@ -34,6 +34,17 @@ import UnboundedReceptacle from './UnboundedReceptacle';
 import type { CommandContributions } from '../../api/command';
 
 export default class WaterFixture extends UnboundedReceptacle {
+  constructor() {
+    super();
+    // ⭐ Plumbed in. A live drive walked out of Dave's Bar carrying the
+    // wash basin — 30 kg is well inside a person's lift, so encumbrance
+    // was never going to stop it, and nothing else did either. What
+    // stops you is that it is connected to the water, which is exactly
+    // what `fixedInPlace` says: no agent pockets it, while a remodel or
+    // a `place` still moves it.
+    this.fixedInPlace = true;
+  }
+
   /** Sideways: anyone in the room with the basin can wash at it. */
   static commandContributions: CommandContributions = {
     peers: ['platform/cmd/crafting/wash.yaml'],

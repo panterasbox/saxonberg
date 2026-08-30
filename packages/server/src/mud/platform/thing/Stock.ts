@@ -59,6 +59,13 @@ const StockBase = PersistableMixin(
 );
 
 export default class Stock extends StockBase {
+  constructor() {
+    super();
+    // ⭐ Fixed in place. A shop's counter is joinery — the goods ON it
+    // are the goods; the counter is not one of them.
+    this.fixedInPlace = true;
+  }
+
   static fieldMeta: FieldMeta = {
     stockLines: { persistent: true, authorable: true },
   };

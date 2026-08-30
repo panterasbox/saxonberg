@@ -16,6 +16,9 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 export default class IceBin extends Thermos {
   constructor() {
     super();
+    // ⭐ Fixed in place. Set under the lip where the bartender works;
+    // the ice is what you take, not the bin.
+    this.fixedInPlace = true;
     (this as unknown as { interiorBulk: boolean }).interiorBulk = true;
     this.setInteriorCapacity(Quantity.of(30, 'L'));
     this.setBarrier('vacuum');
