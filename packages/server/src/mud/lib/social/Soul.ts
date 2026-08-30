@@ -197,8 +197,24 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
       // self body uses the literal "You" prefix because the actor
       // isn't tagged in the body and so doesn't trigger the
       // substitution.
-      const selfBody = Mml.compose`You ${parsed}.`;
-      const peerBody = Mml.compose`${actorName} ${parsed}.`;
+      // ⭐ Only add the stop the author did not write. Every one of the
+      // 68 authored `free` emote values in shipped content ends in a
+      // period — that IS the convention, an emote value is a finished
+      // clause — so appending one unconditionally rendered every single
+      // one with a double stop. A live drive read it off the bar wall:
+      //
+      //     Dave winks knowingly at no one in particular..
+      //
+      // A player typing `emote waves.` got the same. Terminal
+      // punctuation includes a closing quote or bracket after the stop
+      // (`emote mutters "fine."`).
+      const needsStop = !/[.!?…]["'”’)\]]?$/.test(text.trim());
+      const selfBody = needsStop
+        ? Mml.compose`You ${parsed}.`
+        : Mml.compose`You ${parsed}`;
+      const peerBody = needsStop
+        ? Mml.compose`${actorName} ${parsed}.`
+        : Mml.compose`${actorName} ${parsed}`;
       const out: EmoteBodies = { self: selfBody, peer: peerBody };
       if (target) out.target = peerBody;
       return out;
