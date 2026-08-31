@@ -90,6 +90,18 @@ University Avenue (D9).
   lots and units mint when a resident needs them; capacity is a runtime
   operator dial with a shipped default (D10). The plat book's authored
   40-lot roster retires.
+- **The three rungs run on one substrate.** The four-role model
+  (catalogue / front / provisioner / circulation) holds at every rung;
+  the two-tier holdings+circulation machinery is lifted from
+  `DormWarren` into a shared base all three institutions consume, the
+  dorm converging onto it with behavior pinned by its suite (D12).
+  Layout is a **plat plan** — authored data mapping slot → circulation
+  node — shipping static, linear, and branched shapes (D13), so roads
+  grow (and branch) the way floors already stack.
+- **A realty office opens in Terminus.** One office + realtor NPC
+  fronting every plat book in the world (D14) — land purchase gets a
+  diegetic front the way the dorm has Katie; rentals go through the
+  landlord's own manager instead.
 - **Owned goods can be mounted, not just set down.** Wall/finer
   placement lands as a small verb over the shipped `Adornable` fixture
   surface (D11) — hang a lamp, take it back down; a mounted good
@@ -314,6 +326,74 @@ Room capacity is **read, never enforced** — `spaceOf` may make a
 crowded room read crowded; a hard furniture cap is the
 administered-multiplier sin (the land-draw rule applied indoors).
 
+### D12 — The four-role uniform model; one institution, two tiers
+
+Every rung is the same machine wearing different clothes, and the doc
+demands the uniformity as structure:
+
+| role | dorm | apartment | Hinkley SFH |
+|---|---|---|---|
+| **catalogue** | implicit (always a room) | the vacancy list | `PlatBook` |
+| **front** | Katie | the property manager | the realtor (D14) |
+| **provisioner** | `DormWarren.admit` | the unit provisioner | `LotHolder` |
+| **circulation** | corridors + stairs | corridors + lobby | road segments |
+
+Tenure (lease vs sale) changes only whose agent the front is and which
+chokepoint fires (`grantUse` vs `subdivide`+`transfer`); nothing else.
+
+**One institution, two tiers — never two warrens.** A road segment is a
+corridor lying down: circulation is cloned on demand to reach the
+stock, reaped outside-in under the shipped contiguity invariant (a
+corridor never reaps under a live room; the road stays connected back
+to the authored entrance), and its whole lifecycle is *derived from*
+the holdings it serves — a separate roads-warren would carry a policy
+that only mirrors the holdings anyway. **The planner lifts
+`DormWarren`'s two-tier machinery (holdings + circulation + the reap
+invariant) into a shared base consumed by all three institutions; the
+dorm converges onto it**, with its observable behavior pinned by its
+existing suite.
+
+### D13 — The plat plan: layout is authored data, and branching ships
+
+The "intelligence about how a map grows" is a **plat plan** — authored
+data on the institution, never code — mapping slot → circulation node
+(the extent already encodes the slot: `f<floor>-r<pos>`, built for the
+dorm). Three plan shapes ship:
+
+- **static** — authored circulation, minted holdings (today's Hinkley
+  stays valid as the degenerate plan; a bespoke hand-made neighborhood
+  keeps its streets and only mints homes);
+- **linear** — nodes extend on demand (the dorm's floor math; a road
+  is the same math rotated — node = road segment, N frontages per
+  segment);
+- **branched** — node = (road, segment): multiple roads, courts,
+  culs-de-sac, so a real neighborhood shape is expressible in v1.
+
+The operator cap (D10) is the plan's *how much*; the plan is the
+*how*. Unsold reaches of a planned road read honestly as unbuilt ("the
+road peters out into stakes and grass") until their frontage sells —
+the dorm's impassable-empty-floor rule, horizontal.
+
+### D14 — The realtor: one Terminus realty office fronts every plat book
+
+**A realtor is the human face of a plat book** (the catalogue the
+smallholding doc already says "grows outward — terms, demand pricing,
+auctions, as land becomes a market"). One realty office in Terminus,
+with a realtor NPC, fronts **all** books — `title` already enumerates
+`world:[class.PlatBook]` and knows no locality, so a second subdivision
+anywhere simply appears in the window. This seeds the Landwrights
+(guild-slate: survey, valuation, conveyancing). The doctrine holds
+(NPCs do their jobs; no cold-OS surface): the realtor's dialogue *is*
+the menu, and the actual `title buy` fires **as the buyer** — their
+money moves through settle; unlike Katie's `provision`, the agent
+cannot act for them. Raw verbs stay the operator surface. **Rentals
+bypass the realtor** and go through the landlord's own manager —
+through a realtor unless you're renting. Named seams, not scope: a
+*previous owner* is a future listing in a book grown into a market
+(resale — when it lands, "a sale is permanent" stops being true); a
+*developer* is a player selling a subdivision's book over land they
+hold (the development slate's vocation).
+
 ## Constraints
 
 - **No residence subsystem, no per-feature Api.** Apartments and houses
@@ -365,6 +445,16 @@ administered-multiplier sin (the land-draw rule applied indoors).
   at its limit and admits after the owner raises the dial at runtime;
   an empty unit goes dormant and reconstitutes from the durable slot
   set.
+- **The substrate is shared and the dorm didn't move:** the two-tier
+  base is consumed by all three institutions; the dorm's existing suite
+  passes unchanged after its convergence. At least one **branched**
+  plat plan is exercised (a road that grows a branch as its frontage
+  fills), and a static-plan institution (authored streets, minted
+  homes) still provisions correctly.
+- **The realtor loop drives:** at the realty office, the realtor's
+  dialogue lists what's for sale across books, walks the buyer to the
+  confirm, and the purchase fires as the buyer through settle; the raw
+  `title` verb still works as the operator surface.
 - **Condition works:** a neglected shell's condition declines on read
   over elapsed game time (slope, with cause legible); maintenance
   restores it; a well-kept dorm/lease passes the ascent gate and a
@@ -387,7 +477,11 @@ administered-multiplier sin (the land-draw rule applied indoors).
 - Seeding slates: [stewardship-slate](../slates/builds/stewardship-slate.md) ·
   [property-slate](../slates/builds/property-slate.md) §K/§L ·
   [dorm-warren-slate](../slates/builds/dorm-warren-slate.md) (superseded
-  parts flagged in D8)
+  parts flagged in D8) ·
+  [guild-slate](../slates/builds/guild-slate.md) (the Landwrights — the
+  realty office seeds them, D14) ·
+  [development-slate](../slates/builds/development-slate.md) (the
+  player-developer vocation the plat-book/plan split accommodates)
 - Superseded: [apartment-requirements.md](./apartment-requirements.md)
 - Subsystem docs: [residence.md](../subsystems/residence.md) ·
   [furnishing.md](../subsystems/furnishing.md) ·
