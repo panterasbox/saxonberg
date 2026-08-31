@@ -121,6 +121,11 @@ University Avenue (D9).
   keyed-member locator (warren → member, and address targeting); and
   Hinkley's shipped minted yards rework onto the keyed model through
   the `LotHolder` seam.
+- **The content homes into its packs.** Three locality packs
+  (`eternal-university`, `terminus`, `hinkley-hills`) home their full
+  subtrees + parked TS out of the transitional world-seed, and the
+  `residence` capability pack ships the machinery every locality's
+  rows name (D18).
 - **Owned goods can be mounted, not just set down.** Wall/finer
   placement lands as a small verb over the shipped `Adornable` fixture
   surface (D11) — hang a lamp, take it back down; a mounted good
@@ -574,6 +579,37 @@ leaving it a wire-body special case:
   (always a row) and `identityPath` = instance (scheme-derived, backed
   per family), with the mint schemes enumerated.
 
+### D18 — Packaging: three locality packs + the `residence` capability pack
+
+Not a trade (a trade is a **process**); the machinery is a
+**capability pack** on the arcana rung, governed by arcana's membership
+test — *a capability pack holds what other packs' content names*:
+
+- **`residence`** (root `/residence`) ships the substrate classes the
+  locality packs' rows name — the programme, building, door, and plat
+  machinery (the shipped `PlatBook`/`LotHolder`/`LotGateExit` move in,
+  their class paths repointing `/platform/idea/…` →
+  `/residence/idea/…`; DB drop, no migration) — plus the substrate's
+  own verbs (`survey`, `maintain`), its settings defaults (the arcana
+  `content/settings/` precedent), and the householder's kit.
+- **`eternal-university`**, **`terminus`**, **`hinkley-hills`** — the
+  three locality packs, homed **whole** out of the transitional
+  world-seed: each takes its full content subtree AND its parked
+  kernel TS (`mud/world/<locality>/` → pack `src/`; class paths
+  unchanged, a locality pack's root being its extent). The dorms live
+  in eternal-university, the apartments in terminus, the single-family
+  homes in hinkley-hills. world-seed shrinks to moor / practicum /
+  substation / common + the commons `stuff/` tree.
+- **Stays kernel**: `lib/` substrate (the shared warren base, the plat
+  plan value-object — the arcana precedent kept `lib/magic` kernel),
+  every Api addition (a pack adding an Api is the *mod* rung), the D17
+  identity machinery, the MQL locator, and generic verbs (`hang` is
+  inventory-over-Adornable, not residence-specific). Furniture
+  classes/rows stay with generic-objects (which gains a `src/` if
+  needed — the rung is a fact about a directory, not an identity).
+- A pack must never need a kernel list edit (the capability-packs
+  rule); the census lint covers pack `src/` and `content/` alike.
+
 ## Constraints
 
 - **No residence subsystem, no per-feature Api.** Apartments and houses
@@ -659,6 +695,12 @@ leaving it a wire-body special case:
   address resolves to the same room; no rowless room paths survive the
   Hinkley rework (drive: log out in your yard, log back into the
   *same* yard — exact placement via `(scope, key)`).
+- **The pack cut is clean:** the four new packs install on a fresh DB
+  (the boot union covers them); world-seed retains only
+  moor / practicum / substation / common + the commons tree; no
+  locality is split across packs; pack `src/` classes resolve (the
+  requires-kernel check passes); `/platform/idea/{PlatBook, LotHolder,
+  LotGateExit}` no longer exist.
 - **Condition works:** a neglected shell's condition declines on read
   over elapsed game time (slope, with cause legible); maintenance
   restores it; a well-kept dorm/lease passes the ascent gate and a
@@ -700,7 +742,10 @@ leaving it a wire-body special case:
   [residency.md](../subsystems/residency.md) ·
   [mql.md](../subsystems/mql.md) (the keyed-member locator) ·
   [address.md](../subsystems/address.md) (the Locality address as
-  place identity)
+  place identity) ·
+  [content-packs.md](../subsystems/content-packs.md) (the capability
+  rung + the transitional world-seed D18 dissolves three localities
+  out of)
 - Doctrine: [ref-shapes](../ref-shapes.md) — identity/lineage/backing,
   updated at sweep per D17
 - Parallel build: build-3 owns cultivation (husbandry.md + the

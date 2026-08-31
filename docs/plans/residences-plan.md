@@ -64,6 +64,72 @@ The hang path: `hang <item>` moves the owned, `Adornment`-composing good out of 
 - **The landlord's agency performs it:** new kernel brain `lib/behavior/maintains.ts` (cadence trigger; config `{extent}`) — resolves the programme(s) under the extent and dispatches `maintain` as the NPC (bounded by affordance: the NPC carries a kit via `populates:`). Wired onto Katie (dorm) and Walter (Seznick shell) in their seed rows. That is the acceptance's "performed by the owning organization's agency."
 - **The ascent gate:** at both chokepoints — `TitleController.executeBuy` and the apartment `LeaseController` — read the actor's current holdings (`ParcelApi.heldUnitsOf(holder)` leases + owned residential lots via the books' extents) and refuse below `residence.ascent.minCondition` (shipped default `0.5` in the settings YAML — authored default, not a kernel dial), with the reason named. Holding nothing passes; the dorm grant has no gate.
 
+### P11 — Packaging: the pack cut (D18) and the relocation map
+
+Four new packs land in **Wave 0**. Every file path in Waves 1–11 below
+was written pre-cut — the build agent applies this map wherever a
+listed path has a new home:
+
+| The waves say | Actually lands in |
+|---|---|
+| `packages/server/src/mud/world/eternal/**` (DormWarren, DormThemes, Katie's class, the provision controllers, tests) | `packages/content/eternal-university/src/**` — **class paths unchanged** (a locality pack's `src/` registers against its root, and its root is its extent `/world/eternal`) |
+| `packages/server/src/mud/world/terminus/**` (TicketClerk, paths.ts, hinkley TS, tests) | `packages/content/terminus/src/**` and `packages/content/hinkley-hills/src/**`, split by locality |
+| `packages/content/world-seed/content/world/eternal/**` | `packages/content/eternal-university/content/world/eternal/**` |
+| `packages/content/world-seed/content/world/terminus/hinkley-hills{,.yaml}/**` | `packages/content/hinkley-hills/content/world/terminus/hinkley-hills/**` |
+| the rest of `…/world-seed/content/world/terminus/**` + the new mayfield-row / realty content + the store furniture rows | `packages/content/terminus/content/world/terminus/**` |
+| new classes `platform/idea/{HoldingProgramme,UnitBuilding,FrontDoorExit}.ts`, `platform/thing/DeedDesk.ts` | `packages/content/residence/src/idea/…` / `src/thing/…` — class paths `/residence/<branch>/<Name>` |
+| shipped `platform/idea/{PlatBook,LotHolder,LotGateExit}.ts` | **move** to `packages/content/residence/src/idea/` — class paths repoint `/platform/idea/…` → `/residence/idea/…`; every citing row moves in the same cut; DB drop covers live state |
+| the `survey` / `maintain` controllers + views | the `residence` pack (`src/idea/cmd/…` + `content/residence/cmd/…`) — the arcana five-verbs precedent |
+| `content/settings/residence.yaml` | `packages/content/residence/content/settings/residence.yaml` (the arcana `settings/magic.yaml` precedent — **this resolves OPEN 2**) |
+| the householder's-kit row | `residence` pack content; the store's stockLine cites it cross-pack (dependency edge: terminus → residence) |
+| `SconceLamp.ts` + the furniture goods templates | `generic-objects` (which gains a `src/` if it lacks one — the rung is a fact about a directory, not an identity); the store stockLines cite them |
+| stays kernel | `lib/location/{HoldingWarren,PlatPlan}.ts`, `lib/behavior/maintains.ts`, every Api change, the MQL work, the D17 machinery, `hang` (platform inventory), `TitleController` (kernel civics) |
+
+Dependency edges: the three locality packs depend on `residence` +
+platform + generic-objects; `terminus` additionally inherits
+world-seed's corpo-goodkin / corpo-vionne / saxonberg-lounge edges
+(the counting-houses prose + the departure route); world-seed drops
+them.
+
+---
+
+## Wave 0 — The pack cut
+
+**Goal:** D18 — mint `residence`, `eternal-university`, `terminus`,
+`hinkley-hills`; home the three localities whole (content + parked
+TS); world-seed shrinks to moor / practicum / substation / common +
+the commons `stuff/` tree. Pure relocation, zero behavior change.
+
+**Depends on:** nothing. **Blocks:** every later wave's file targets
+(the P11 map).
+
+**Operations:**
+- Scaffold the four packages (`package.json`, `pack.yaml`,
+  `tsconfig.json`, `vitest.config.ts`, README — the arcana shape).
+  Roots: `/residence`, `/world/eternal`, `/world/terminus`,
+  `/world/terminus/hinkley-hills`. The root `package.json` pack list
+  (the deployment manifest) gains four entries.
+- `git mv` the content subtrees + parked TS per the P11 map (⚠ git mv
+  stages immediately — commit in slices, stage by name).
+- Move the three shipped platform classes into `residence/src/idea/`;
+  repoint every `class:` / boot reference (`/platform/idea/…` →
+  `/residence/idea/…`); update `lib/paths.ts` constants and any
+  `FromModule` gate strings (`lint:gates` catches stragglers).
+- Split world-seed's manifest: each group / title claim / boot entry
+  moves to the pack that owns it (duncan-hall → eternal-university;
+  terminus → terminus; hinkley-hills + lot-1 → hinkley-hills);
+  world-seed keeps the four remaining localities + commons.
+- Pack tests move with their `src/` (pack suites);
+  `PackApi.registerSources()` in `test-bootstrap` covers the new roots.
+
+**Tests prove:** the full suite + every pack suite green with zero
+behavior change (this wave earns one deliberate full-suite run — a
+pure relocation is only provable whole; the finalize run remains the
+other); a fresh-DB boot installs all four packs (the boot union);
+`lint:gates` / `lint:instanceable` / `lint:untitled` green post-move;
+the eternal + terminus trees are gone from kernel
+`packages/server/src/mud/world/`.
+
 ---
 
 ## Wave 1 — The D17 identity split + the census lint
