@@ -269,6 +269,25 @@ the ledger** (the zone doesn't enforce it). `radius` → size-scale
 wiring lands here if B0's verify finds it absent. Field retirement:
 deferred seam, comment only.
 
+**Soil at the mint — no roll, no check, a fact of the place** (user
+ruling): a discipline check on break-ground would violate three
+doctrines at once (uncertainty.md's resolutional ban; nothing gates
+on a band; *competence never multiplies yield*). What the minted
+field gets: soil **volume** from the chosen area (the bulk model);
+reserves **full** — the **sod dividend**, real agronomy (virgin
+ground under old grass is nitrogen-rich; the field then depletes
+harvest by harvest until `feed` becomes the discipline — the nutrient
+lesson taught by the initial condition itself); soil **quality
+variation deliberately absent** (husbandry's deferred seam — phase
+4's six-reserve soil), and when it arrives it derives from **place**:
+a district **ground-character seam named now** as a comment-documented
+field home on the fields-zone/biome row (the real Valley of Heart's
+Delight was famed for its alluvium — the name does the work). Skill
+enters as the **deed**: break-ground credits `agriculture` at
+`standard` (honest labor, never `hard` — world-derived difficulty per
+the advancement rule); the **engagement's duration scales with area**,
+the difficulty class doesn't.
+
 ### P8 — The exemplar farm ships as authored history (D7's authoring path)
 
 The `hearts-delight` pack pre-sells one holding (manifest title claim,
