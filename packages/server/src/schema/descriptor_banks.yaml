@@ -1,5 +1,6 @@
 collection: descriptor_banks
 owner: DescriptorBank
+ownerModule: /lib/identification/DescriptorBank
 subsystem: magic-items.md
 summary: >-
   The pools an unidentified magic item draws its appearance from — one bank

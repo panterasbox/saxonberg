@@ -23,10 +23,14 @@ afterEach(() => {
 });
 
 /** The doc every fixture starts from: correct in every respect. */
-function goodDoc(overrides: Record<string, string> = {}): string {
+function goodDoc(
+  overrides: Record<string, string> = {},
+  opts: { drop?: string[] } = {}
+): string {
   const fields: Record<string, string> = {
     collection: 'wiki',
     owner: 'WikiPage',
+    ownerModule: '/lib/wiki/WikiPage',
     subsystem: 'wiki.md',
     summary: 'The encyclopedia current page state.',
     purpose: 'One row per article, and the reveal model applies here.',
@@ -34,6 +38,7 @@ function goodDoc(overrides: Record<string, string> = {}): string {
     reset: 'wipe',
     ...overrides,
   };
+  for (const key of opts.drop ?? []) delete fields[key];
   return (
     Object.entries(fields)
       .map(([k, v]) => `${k}: ${v}`)
@@ -56,9 +61,12 @@ function world(opts: {
   temps.push(root);
   const schemaDir = join(root, 'schema');
   const srcRoot = join(root, 'src');
+  // Mirrors the real layout, because assertion 4 derives `ownerModule`
+  // from the file's position relative to `src/mud/`.
+  const classDir = join(srcRoot, 'mud', 'lib', 'wiki');
   const subsystemsDir = join(root, 'subsystems');
   mkdirSync(schemaDir);
-  mkdirSync(srcRoot);
+  mkdirSync(classDir, { recursive: true });
   mkdirSync(subsystemsDir);
 
   const docs = opts.docs ?? { 'wiki.yaml': goodDoc() };
@@ -66,7 +74,7 @@ function world(opts: {
     writeFileSync(join(schemaDir, file), body, 'utf-8');
   }
   writeFileSync(
-    join(srcRoot, 'WikiPage.ts'),
+    join(classDir, 'WikiPage.ts'),
     opts.source ??
       "import { Collections } from './Collections';\n" +
         'export class WikiPage {\n' +
@@ -105,11 +113,10 @@ describe('check-schema-docs — the six assertions', () => {
         world({
           docs: {
             'wiki.yaml': goodDoc(),
-            'sprockets.yaml': goodDoc({
-              collection: 'sprockets',
-              owner: 'none',
-              subsystem: 'wiki.md',
-            }),
+            'sprockets.yaml': goodDoc(
+              { collection: 'sprockets', owner: 'none', subsystem: 'wiki.md' },
+              { drop: ['ownerModule'] }
+            ),
           },
         })
       )
@@ -180,7 +187,13 @@ describe('check-schema-docs — the six assertions', () => {
 
   it('4 · `owner: none` on a collection a class DOES write fails', () => {
     const findings = relevant(
-      audit(world({ docs: { 'wiki.yaml': goodDoc({ owner: 'none' }) } }))
+      audit(
+        world({
+          docs: {
+            'wiki.yaml': goodDoc({ owner: 'none' }, { drop: ['ownerModule'] }),
+          },
+        })
+      )
     );
     expect(findings.map((f) => f.detail).join('\n')).toMatch(
       /says `owner: none`, but WikiPage declares/

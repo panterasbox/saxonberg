@@ -17,9 +17,11 @@
  *   3. Every `static collectionName` outside `__tests__` is
  *      `Collections.X`, never a string literal.
  *   4. Every doc's `owner` names a real `Document` subclass whose
- *      `collectionName` is that collection. `owner: none` is legal and
- *      means *nothing but `PersistApi` writes here* — which must then be
- *      true.
+ *      `collectionName` is that collection, and its `ownerModule` names
+ *      exactly the file that class is declared in — so the path the help
+ *      projector resolves cannot drift when a class moves. `owner: none`
+ *      is legal and means *nothing but `PersistApi` writes here*, which
+ *      must then be true.
  *   5. Every doc's `subsystem` resolves to a real file under
  *      `docs/subsystems/`.
  *   6. Every doc has a non-empty `summary` and `purpose`.
@@ -44,7 +46,7 @@
 
 import { readdirSync, readFileSync, statSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join, relative } from 'path';
+import { dirname, join, relative, sep } from 'path';
 import ts from 'typescript';
 import YAML from 'yaml';
 import { SchemaDoc } from '../src/mud/lib/persistence/SchemaDoc';
@@ -296,6 +298,22 @@ export function audit(roots: AuditRoots = DEFAULT_ROOTS): Finding[] {
         '4 · owner names the class that writes here',
         `${doc.collection}.yaml names owner \`${doc.owner}\`, but the class ` +
           `whose collectionName is ${doc.collection} is ${named}`
+      );
+      continue;
+    }
+    // The module path the help projector resolves, checked against the
+    // file the class is actually declared in.
+    const actual =
+      '/' +
+      relative(join(srcRoot, 'mud'), match.file)
+        .replace(/\.ts$/, '')
+        .split(sep)
+        .join('/');
+    if (doc.ownerModule !== actual) {
+      add(
+        '4 · owner names the class that writes here',
+        `${doc.collection}.yaml says \`ownerModule: ${doc.ownerModule}\`, ` +
+          `but ${doc.owner} is declared in ${actual}`
       );
     }
   }

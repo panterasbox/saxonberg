@@ -1,5 +1,6 @@
 collection: media_assets
 owner: MediaAsset
+ownerModule: /lib/media/MediaAsset
 subsystem: media.md
 summary: >-
   Provenance for every generated illustration: prompt, model, and where the

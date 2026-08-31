@@ -1,5 +1,6 @@
 collection: chattel
 owner: ChattelRecord
+ownerModule: /lib/chattel/ChattelRecord
 subsystem: chattel.md
 summary: >-
   Per-instance ownership of movable things: one row per owned object.

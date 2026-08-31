@@ -92,6 +92,21 @@ export class SchemaDoc {
   public readonly collection: string;
   /** The `Document` subclass that writes here, or `null` for `none`. */
   public readonly owner: string | null;
+  /**
+   * The mud-rooted module path of that class (`/lib/banking/LedgerEntry`),
+   * or `null` when there is no owner.
+   *
+   * ⚠ Not redundant with {@link owner}, and not a second thing to keep in
+   * sync: the field list in a collection's help topic is HARVESTED from
+   * `Owner.fieldMeta` (D3 — a YAML restating the fields would be two
+   * copies of one sentence), and harvesting needs the class OBJECT rather
+   * than its name. `StuffApi.resolveClassFile` is the one place a class
+   * path becomes a file, so the doc names the path and the projector
+   * resolves it. `pnpm lint:schema` proves the path names exactly the
+   * file whose class declares this collection, so it cannot drift — a
+   * class that moves fails the build.
+   */
+  public readonly ownerModule: string | null;
   /** The owning doc under `docs/subsystems/`, e.g. `banking.md`. */
   public readonly subsystem: string;
   /** One line. What this collection is. */
@@ -107,6 +122,7 @@ export class SchemaDoc {
   private constructor(init: {
     collection: string;
     owner: string | null;
+    ownerModule: string | null;
     subsystem: string;
     summary: string;
     purpose: string;
@@ -117,6 +133,7 @@ export class SchemaDoc {
   }) {
     this.collection = init.collection;
     this.owner = init.owner;
+    this.ownerModule = init.ownerModule;
     this.subsystem = init.subsystem;
     this.summary = init.summary;
     this.purpose = init.purpose;
@@ -166,6 +183,19 @@ export class SchemaDoc {
     }
     const owner = ownerRaw === 'none' ? null : ownerRaw;
 
+    const moduleRaw = doc.ownerModule;
+    if (owner === null) {
+      if (moduleRaw !== undefined) {
+        return fail('`ownerModule` has no meaning with `owner: none`');
+      }
+    } else if (typeof moduleRaw !== 'string' || !moduleRaw.startsWith('/')) {
+      return fail(
+        '`ownerModule` is required alongside an `owner` — the mud-rooted ' +
+          "module path of that class, e.g. '/lib/banking/LedgerEntry'"
+      );
+    }
+    const ownerModule = owner === null ? null : (moduleRaw as string);
+
     const subsystem = doc.subsystem;
     if (typeof subsystem !== 'string' || !subsystem.endsWith('.md')) {
       return fail('`subsystem` is required and must name a `.md` file');
@@ -189,6 +219,7 @@ export class SchemaDoc {
     return new SchemaDoc({
       collection,
       owner,
+      ownerModule,
       subsystem,
       summary: summary.trim(),
       purpose: purpose.trim(),

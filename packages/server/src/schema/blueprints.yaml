@@ -1,5 +1,6 @@
 collection: blueprints
 owner: Blueprint
+ownerModule: /lib/studio/Blueprint
 subsystem: studio.md
 summary: >-
   The Studio's composition catalogue — one row per authored blueprint.

@@ -1,5 +1,6 @@
 collection: forum_votes
 owner: Vote
+ownerModule: /lib/forum/Vote
 subsystem: forums.md
 summary: >-
   One row per (entry, voter) — the vote, and the enforcement of one vote.

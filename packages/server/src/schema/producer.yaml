@@ -1,5 +1,6 @@
 collection: producer
 owner: ProducerStanding
+ownerModule: /lib/standing/ProducerStanding
 subsystem: influence.md
 summary: >-
   The materialized per-author producer standing — a rebuildable cache.

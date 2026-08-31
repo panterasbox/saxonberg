@@ -1,5 +1,6 @@
 collection: disposition_events
 owner: DispositionEntry
+ownerModule: /lib/trait/DispositionEntry
 subsystem: trait.md
 summary: >-
   The trait evidence ledger — the Transcript's sibling, for who you are

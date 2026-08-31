@@ -1,5 +1,6 @@
 collection: parties
 owner: PartyRecord
+ownerModule: /lib/party/PartyRecord
 subsystem: party.md
 summary: >-
   Durable party mirrors — the crews that outlive a session.

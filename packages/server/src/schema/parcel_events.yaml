@@ -1,5 +1,6 @@
 collection: parcel_events
 owner: ParcelEvent
+ownerModule: /lib/parcel/ParcelEvent
 subsystem: parcel.md
 summary: >-
   The chain of title — every grant, subdivision and transfer, append-only.

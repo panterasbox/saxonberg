@@ -265,10 +265,17 @@ path-resolved-module design with NPC brains.
 
 ## Wave 4 (proposed 2026-08-31) — the schema as loaded content
 
-> **Status: captured, not designed.** Raised during the boot-time build.
-> It supersedes the "MongoDB schema / indexing — no change needed" line
-> in *What this slate does NOT cover* above, which was written before
-> anyone wanted the schema to be data.
+> ## ✅ **BUILT — the schema-docs build, 2026-08-31.**
+> Graduated to
+> [persistence.md § Collections](../../subsystems/persistence.md) and
+> [help.md § Collections projector](../../subsystems/help.md). The
+> section below is kept as the *record of what was asked for*; the
+> shipped answer differs on one point, recorded at the end.
+>
+> **Status when raised: captured, not designed.** Raised during the
+> boot-time build. It supersedes the "MongoDB schema / indexing — no
+> change needed" line in *What this slate does NOT cover* above, which
+> was written before anyone wanted the schema to be data.
 
 **The want, in the raiser's words:** *externalize all the DB schema into
 YAML docs with their own version histories, and PM just loads whatever
@@ -380,3 +387,30 @@ mean. These are repo files, so git already gives developers one; the
 question is whether a *player* reading the help entry should see a
 readable "this changed, and why" — i.e. an authored `history:` block —
 or whether git is enough and the help entry carries only current truth.
+
+### ✅ What shipped, and the one place it differs
+
+Built 2026-08-31 (`design/schema-docs`). One authored YAML per
+collection at `packages/server/src/schema/`, the three tables generated
+and committed, `pnpm lint:schema` binding collection ↔ doc ↔ class ↔
+subsystem doc, and a third help projector — `help bank_ledger` reads the
+whole thing over a socket.
+
+Two rulings the requirements pass settled:
+
+- **`history:` was declined** (the "still open" question above). These
+  are repo files, so git already gives a history, and a fifth authored
+  block to keep in sync serves a reader worse than a good `purpose`
+  does.
+- **PM loads the docs; it does not load them "like a seeder would".**
+  The vocabulary is used in TYPE position across ~50 files, so it is
+  GENERATED from the docs and committed rather than parsed at boot —
+  which keeps the compile-time error a typo produces today. The
+  indexes, which have no type surface, genuinely are loaded.
+
+⚠ One count in the survey above was off: `createIndexes()` held **84**
+authored index specs, not 89, plus the two derived loops. The shipped
+docs carry all 84.
+
+Wave 3 (marshallers / hooks / Hydrator as path-resolved modules) is
+untouched and independent.

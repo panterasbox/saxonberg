@@ -1,5 +1,6 @@
 collection: accountability_events
 owner: AccountabilityEvent
+ownerModule: /lib/accountability/AccountabilityEvent
 subsystem: accountability.md
 summary: >-
   The unified harm-consent ledger: who did what to whom, with blame left

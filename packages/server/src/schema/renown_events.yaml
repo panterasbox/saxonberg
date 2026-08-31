@@ -1,5 +1,6 @@
 collection: renown_events
 owner: RenownEvent
+ownerModule: /lib/standing/RenownEvent
 subsystem: renown.md
 summary: >-
   The append-only, scope-tagged log of every signal that moves someone's

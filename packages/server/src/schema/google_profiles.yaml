@@ -1,5 +1,6 @@
 collection: google_profiles
 owner: GoogleProfile
+ownerModule: /lib/identity/GoogleProfile
 subsystem: connection.md
 summary: >-
   The Google OAuth profile behind an account, stored apart from it.

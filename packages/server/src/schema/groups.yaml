@@ -1,5 +1,6 @@
 collection: groups
 owner: Group
+ownerModule: /lib/social/Group
 subsystem: grouping.md
 summary: >-
   Named sets of people — the axis groups, the packs' bodies, and everything

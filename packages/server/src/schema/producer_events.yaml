@@ -1,5 +1,6 @@
 collection: producer_events
 owner: ProducerEvent
+ownerModule: /lib/standing/ProducerEvent
 subsystem: influence.md
 summary: >-
   The append-only attributed-engagement log: whose work someone else spent

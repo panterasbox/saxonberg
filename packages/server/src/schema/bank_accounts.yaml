@@ -1,5 +1,6 @@
 collection: bank_accounts
 owner: AccountBalance
+ownerModule: /lib/banking/AccountBalance
 subsystem: banking.md
 summary: >-
   The materialized account registry and balance — a cache over the ledger.

@@ -10,6 +10,7 @@
  * what the plan says and catches per index.
  */
 
+import '../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync, readdirSync, copyFileSync } from 'fs';
 import { tmpdir } from 'os';

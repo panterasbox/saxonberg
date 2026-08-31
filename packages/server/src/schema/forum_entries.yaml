@@ -1,5 +1,6 @@
 collection: forum_entries
 owner: Entry
+ownerModule: /lib/forum/Entry
 subsystem: forums.md
 summary: >-
   The reply tree: threads and posts, one row each.

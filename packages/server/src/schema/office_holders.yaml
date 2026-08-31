@@ -1,5 +1,6 @@
 collection: office_holders
 owner: OfficeHolder
+ownerModule: /lib/governance/OfficeHolder
 subsystem: governance.md
 summary: >-
   Who currently holds which office — sparse, because absence means the

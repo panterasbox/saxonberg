@@ -1,5 +1,6 @@
 collection: bank_ledger
 owner: LedgerEntry
+ownerModule: /lib/banking/LedgerEntry
 subsystem: banking.md
 summary: >-
   The money system of record. Every movement of money, append-only.

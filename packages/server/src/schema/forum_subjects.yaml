@@ -1,5 +1,6 @@
 collection: forum_subjects
 owner: Subject
+ownerModule: /lib/forum/Subject
 subsystem: forums.md
 summary: >-
   The linking spine: the subject a board, a channel or an article can all be

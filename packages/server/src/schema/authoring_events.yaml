@@ -1,5 +1,6 @@
 collection: authoring_events
 owner: AuthoringEvent
+ownerModule: /lib/standing/AuthoringEvent
 subsystem: provenance.md
 summary: >-
   The append-only authorship ledger: who made what, derived from context

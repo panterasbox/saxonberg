@@ -1,5 +1,6 @@
 collection: bank_supply
 owner: SupplyAggregate
+ownerModule: /lib/banking/SupplyAggregate
 subsystem: banking.md
 summary: >-
   The single-row money-supply headline — how much exists, rebuildable from

@@ -1,5 +1,6 @@
 collection: content
 owner: Template
+ownerModule: /lib/stuff/Template
 subsystem: templates.md
 summary: >-
   The template tree — every authored row the world is cloned from.

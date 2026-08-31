@@ -1,5 +1,6 @@
 collection: beliefs
 owner: BeliefDocument
+ownerModule: /lib/belief/BeliefDocument
 subsystem: belief.md
 summary: >-
   Per-viewer identity memory: what YOU know about who someone is.

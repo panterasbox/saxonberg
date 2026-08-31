@@ -1,5 +1,6 @@
 collection: world_state
 owner: WorldClockState
+ownerModule: /lib/time/WorldClockState
 subsystem: time.md
 summary: >-
   The world-clock singleton — one row, the current in-world time.

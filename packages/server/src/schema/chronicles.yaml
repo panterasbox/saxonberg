@@ -1,5 +1,6 @@
 collection: chronicles
 owner: ChronicleEntry
+ownerModule: /lib/chronicle/ChronicleEntry
 subsystem: chronicle.md
 summary: >-
   The per-character append-only identity ledger: deeds recorded, claims

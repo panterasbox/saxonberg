@@ -1,5 +1,6 @@
 collection: holder_snapshots
 owner: PersistedRecord
+ownerModule: /lib/persistence/PersistedRecord
 subsystem: persistence.md
 summary: >-
   The self-persistence spine's records — a live host's runtime state,

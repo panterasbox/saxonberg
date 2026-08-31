@@ -1,5 +1,6 @@
 collection: wiki_revisions
 owner: WikiRevision
+ownerModule: /lib/wiki/WikiRevision
 subsystem: wiki.md
 summary: >-
   The append-only wiki edit log, in its own collection so a page read never

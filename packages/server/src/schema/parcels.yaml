@@ -1,5 +1,6 @@
 collection: parcels
 owner: ParcelRecord
+ownerModule: /lib/parcel/ParcelRecord
 subsystem: parcel.md
 summary: >-
   The real-property title registry: who holds title to which extent.

@@ -1,5 +1,6 @@
 collection: contracts
 owner: ContractRecord
+ownerModule: /lib/employment/ContractRecord
 subsystem: contract.md
 summary: >-
   Work-contract current state: one row per gig, from posting to settlement.

@@ -316,6 +316,8 @@ pnpm test:near        # only the tests beside what you changed (fast loop)
 pnpm test:gym         # the balance benches — NOT in `test`; own CI job
 pnpm lint             # ESLint across all packages
 pnpm format           # Prettier
+pnpm gen:schema       # regenerate Collections / the two policy tables
+                      #   from packages/server/src/schema/*.yaml
 ```
 
 ⚠⚠ **`pnpm test` costs ~15 minutes, and a green run stays valid until a
@@ -477,6 +479,18 @@ discoverability.
   and fails too. A kernel test proves the kernel over synthetic fixtures;
   a test of real content lives beside the content (`src/mud/world/**`,
   exempt). CI-gating. See [testing.md](./docs/testing.md).
+- `pnpm lint:schema` (`scripts/check-schema-docs.ts`) — **the collection
+  ↔ schema doc ↔ record class ↔ subsystem doc link.** Six assertions: one
+  doc per collection and no extras either way; the three generated tables
+  are current with the docs; every `static collectionName` is
+  `Collections.X` and never a string literal (this failed on 11 classes
+  when written); every `owner` names the class that really writes there
+  and every `ownerModule` names the file that class is really declared
+  in; every `subsystem` resolves under `docs/subsystems/`; every doc says
+  what its collection is. No exemption list — test fixtures are exempt
+  from the literal rule by living under `__tests__`, and that is the only
+  carve-out. Resolution is AST-based and **file-scoped** (the
+  `lint:topics` lesson). CI-gating.
 - `pnpm lint:untitled` (`scripts/check-untitled-paths.ts`) — **every
   shipped template path under a claimed root** lies under some pack's
   `requires.title` claim. The title roots are **derived** — the first
@@ -1009,39 +1023,28 @@ multiplexing, disconnect): see
 
 ## MongoDB Collections
 
-One line per collection; the owning subsystem doc holds the schema,
-indexes, and write-path rules — this list is for orientation only. The
-name vocabulary itself is `mud/lib/persistence/Collections.ts` (mudlib
-side — `backend/PersistenceManager` re-exports it).
+**Every collection has one authored doc at
+`packages/server/src/schema/<collection>.yaml`** — what it is for, what
+is true of every row, why each index exists, the class that writes it,
+and the subsystem doc that owns the concept. 48 files, one per
+collection. Read the one you need; `ls packages/server/src/schema/` is
+the index, and `Collections.ts` carries every summary line.
 
-- `users` / `google_profiles` / `twitch_profiles` / `kick_profiles` — auth records + per-provider OAuth profiles, token-bearing ones encrypted at rest (connection.md)
-- `content` — the templates collection; pack-installed rows carry `sourcePack` (content-packs.md)
-- `pack_installs` — the pack installer's per-deployment ledger: baselines, pins, conflicts; three-way reconcile reads it (content-packs.md)
-- `app_settings` / `world_state` — the config and world-clock singletons
-- `descriptor_banks` — the unidentified-appearance pools, one per item class; pack-installed reference data (magic-items.md)
-- `beliefs` — per-viewer identity-memory rows (belief.md)
-- `chronicles` — per-character append-only identity ledger (chronicle.md)
-- `transcripts` — advancement evidence ledger; Competence derives on read (advancement.md)
-- `disposition_events` — trait evidence ledger, the Transcript's sibling (trait.md)
-- `renown_events` / `renown` — renown signal log + rebuildable standings cache (renown.md)
-- `participation_events` / `participation` — active-bucket log + rebuildable standings (participation.md)
-- `producer_events` / `producer` — attributed-engagement log + rebuildable standings (influence.md)
-- `authoring_events` — append-only authorship ledger (provenance.md)
-- `positions` — held conviction stakes (influence.md)
-- `blueprints` — the Studio composition catalogue (studio.md)
-- `documents` — the path-addressed, kind-tagged document store: scripts (`msh`), releases, and the pack-installed kinds — `emote`, `recipe`, `name-bank`, `blueprint` (the curated overlay), `command-view` (document-store.md)
-- `office_holders` — the sparse government-office handoff store; absence = founder default (governance.md)
-- `bank_ledger` / `bank_accounts` / `bank_supply` — the banking system of record + rebuildable caches; the sealed `postTransaction` chokepoint is the only ledger writer (banking.md)
-- `parcels` / `parcel_events` — property-title registry + chain-of-title; stored SEPARATELY from the `domain` content it gates — the governing security invariant (parcel.md)
-- `chattel` / `chattel_events` — per-instance ownership row + chain-of-title (chattel.md)
-- `diagnostics` — the author-diagnostics store, TTL-rotated (diagnostics.md)
-- `holder_snapshots` — the self-persistence spine's records; written only by the gated PersistableLogic (persistence.md)
-- `player_frames` — the per-player rolling window of delivered frames; owner-only reads, lazy oldest-first eviction (record-layer.md)
-- `parties` — durable Party mirrors; ad-hoc parties never write here (party.md)
-- `accountability_events` — the unified harm-consent ledger; blame derived on read, never stamped (accountability.md)
-- `contracts` / `contract_events` — gig current-state rows + the append-only lifecycle chain; money legs live only in `bank_ledger` (contract.md)
-- `wiki` — the encyclopedia's current page state, one row per article (wiki.md)
-- `wiki_revisions` — the append-only edit log; a separate collection so a page READ never drags its history (wiki.md)
+⭐ **Decided by this build (2026-08-31): the 28-line orientation list
+that used to live here is gone, not grown to 48.** It covered 28 of 48
+and was therefore already misleading by omission; every collection now
+has a full description in its own file, a summary line on its
+`Collections` enum member, and a help topic (`help bank_ledger`). A
+partial list in the file that is always in context is the worst place
+for it.
+
+The three machine-readable tables — `Collections`, `COLLECTION_POLICIES`,
+`RESET_DISPOSITIONS` — are **generated** from those docs by
+`pnpm gen:schema` and carry a do-not-edit banner. Indexes are loaded from
+them at boot. `pnpm lint:schema` gates that the docs, the generated
+tables, the record classes and the subsystem docs all agree.
+
+See [persistence.md § Collections](./docs/subsystems/persistence.md).
 
 ## Session Notes for Claude
 

@@ -1,5 +1,6 @@
 collection: users
 owner: User
+ownerModule: /lib/identity/User
 subsystem: connection.md
 summary: >-
   One row per human account — the identity every character hangs off.

@@ -1,5 +1,6 @@
 collection: chattel_events
 owner: ChattelEvent
+ownerModule: /lib/chattel/ChattelEvent
 subsystem: chattel.md
 summary: >-
   The chain of title for movables — stamp, transfer, and every hand it

@@ -1,5 +1,6 @@
 collection: forum_boards
 owner: Board
+ownerModule: /lib/forum/Board
 subsystem: forums.md
 summary: >-
   One row per board — the forum manifestation of a subject.

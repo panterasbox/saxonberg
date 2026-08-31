@@ -1,5 +1,6 @@
 collection: forum_events
 owner: ForumEvent
+ownerModule: /lib/forum/ForumEvent
 subsystem: forums.md
 summary: >-
   The forums' append-only audit and archive log.

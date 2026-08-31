@@ -1,5 +1,6 @@
 collection: positions
 owner: Position
+ownerModule: /lib/standing/Position
 subsystem: influence.md
 summary: >-
   Held conviction — one row per stake somebody currently holds.

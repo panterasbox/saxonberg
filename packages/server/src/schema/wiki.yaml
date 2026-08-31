@@ -1,5 +1,6 @@
 collection: wiki
 owner: WikiPage
+ownerModule: /lib/wiki/WikiPage
 subsystem: wiki.md
 summary: >-
   The encyclopedia's current page state — one row per article.

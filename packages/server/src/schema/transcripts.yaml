@@ -1,5 +1,6 @@
 collection: transcripts
 owner: TranscriptEntry
+ownerModule: /lib/advancement/TranscriptEntry
 subsystem: advancement.md
 summary: >-
   The advancement evidence ledger: one row per sub-check a character

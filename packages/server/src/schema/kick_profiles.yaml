@@ -1,5 +1,6 @@
 collection: kick_profiles
 owner: KickProfile
+ownerModule: /lib/identity/KickProfile
 subsystem: streaming.md
 summary: >-
   The Kick OAuth profile behind an account, and the KickProfile provider's

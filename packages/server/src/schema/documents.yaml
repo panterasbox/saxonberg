@@ -1,5 +1,6 @@
 collection: documents
 owner: StoredDocument
+ownerModule: /lib/document/StoredDocument
 subsystem: document-store.md
 summary: >-
   The third path-addressed tree: kind-tagged documents, from press releases

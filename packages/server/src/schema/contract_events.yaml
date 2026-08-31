@@ -1,5 +1,6 @@
 collection: contract_events
 owner: ContractEvent
+ownerModule: /lib/employment/ContractEvent
 subsystem: contract.md
 summary: >-
   The append-only gig lifecycle chain: posted, claimed, delivered, settled.

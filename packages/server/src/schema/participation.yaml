@@ -1,5 +1,6 @@
 collection: participation
 owner: ParticipationStanding
+ownerModule: /lib/standing/ParticipationStanding
 subsystem: participation.md
 summary: >-
   The materialized per-subject participation standing — a rebuildable cache.

@@ -1,5 +1,6 @@
 collection: channels
 owner: Channel
+ownerModule: /lib/social/Channel
 subsystem: chat.md
 summary: >-
   Chat channels — one row per named channel, of three kinds.

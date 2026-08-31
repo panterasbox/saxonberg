@@ -154,11 +154,16 @@ adding.
 - **Named value-object / vocabulary / registry modules** — the
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
-  class (`Light`, `Quantity`, `Reserve`), an enum-like vocabulary plus
+  class (`Light`, `Quantity`, `Reserve`, `lib/persistence/SchemaDoc.ts`'s
+  `SchemaDoc` — the parsed, validated form of one authored collection
+  description, no `fs` and no YAML parser, so the three readers hand it
+  an already-parsed object), an enum-like vocabulary plus
   its validation array (`lib/persistence/Collections.ts`'s
   `Collections` — collection *names*, no driver and no I/O, which is
   why it lives here and `backend/PersistenceManager` re-exports it
-  rather than owning it), or a platform-wide registry (`lib/mixin.ts`'s
+  rather than owning it; **generated** from the schema docs, along with
+  `CollectionPolicy.ts` and `ResetPolicy.ts`), or a platform-wide
+  registry (`lib/mixin.ts`'s
   `Mixins`, `lib/paths.ts`'s `TemplatePaths`). This is the fourth
   category named so that an orphan type/constant has a home other than
   the forbidden `types.ts` / `constants.ts` reflex — see

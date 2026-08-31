@@ -1,5 +1,6 @@
 collection: twitch_profiles
 owner: TwitchProfile
+ownerModule: /lib/identity/TwitchProfile
 subsystem: connection.md
 summary: >-
   The Twitch OAuth profile behind an account, and the relay's token store.

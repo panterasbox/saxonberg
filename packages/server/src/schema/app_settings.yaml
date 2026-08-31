@@ -1,5 +1,6 @@
 collection: app_settings
 owner: AppSettings
+ownerModule: /lib/config/AppSettings
 subsystem: app-settings.md
 summary: >-
   The configuration singleton — one row, the whole knob board.
