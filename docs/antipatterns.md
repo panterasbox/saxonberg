@@ -3663,3 +3663,70 @@ optimising the CPU.
 **The general form:** before optimising a slow phase, check whether it
 is *busy* or *waiting*. An idle-dominated profile means round trips, and
 no amount of per-call work removes a round trip.
+
+## Two things in one room answering to one word
+
+`look rail` at Dave's Bar returned the bar STOOLS. `look tap` returned
+the neon signs. In both cases the room card's own button — labelled "the
+back-bar", labelled "a beer tap" — sent the command that produced
+something else.
+
+⭐ **Keywords are human-usable tokens for a command-line interpreter, and
+a word three fixtures claim is not a token — it is a prompt generator.**
+Five fixtures in one small room were fighting over `bar`, `rail`,
+`shelf`, `taps` and `handle`, which are exactly the words a drinker
+types. Measured before the cut:
+
+```
+look tap   -> 3 matches: a beer tap, a water tap, the bar
+look rail  -> 3 matches: the back-bar, the well, the bar
+```
+
+### The rule: one word, one owner — and the owner is what the build calls it
+
+`rail` is the back-bar because that is what `house stock` reports, what
+the restocks beat shelves onto, and what the room's own prose means by
+"the rail is stocked by BUYING". Pick the owner from the language the
+rest of the system already uses, not from what reads nicely on the row.
+
+### The corollary: the object owns DOING, the detail owns LOOKING
+
+A room detail and a real object often describe the same thing — the bar
+counter is an object AND a `slab` detail; the teller counter is an object
+AND part of the `vault` detail. Both claimed `counter` / `till` /
+`grille`.
+
+Split them by what the word is *for*: the object keeps the words you act
+with (`bar`, `counter`, `till`), the detail keeps the words you look
+closely with (`slab`, `woodwork`, `scars`, `sunrise`).
+
+### ⚠⚠ Matching is SUBSTRING containment, so a keyword claims every word inside it
+
+`scope-walk.ts` scores with `keywords.some(kw => kw.includes(query))`.
+Not equality, not prefix. So:
+
+- `speed-rail` answers to `rail` — and so does `speedrail`. Removing the
+  hyphen fixes nothing; the string has to stop containing the word.
+- `back-bar` answers to `bar`. `ice-bin` answers to `ice` and `bin`.
+  `wash-basin` answers to `wash`.
+- ⚠ And the nonsense case, found in the shipped bar: **`look ice` matches
+  the JUICER**, because "ju-*ice*-r" contains it. So does
+  `juice-bottle`. No content edit can fix that one — it is the matcher's
+  rule, and it is worth revisiting (a prefix match would keep `juic` →
+  juicer while dropping `ice` → juicer).
+
+### What to leave alone
+
+Multiplicity is not collision. Twelve coupes all answering `coupe` is the
+glass pool working, and the disambiguation prompt is the correct answer
+to "which one". Likewise a station hall with a departures board and a job
+board: two real boards, one honest question.
+
+### Finding them
+
+A sweep over every room's `details` keywords against the keywords of the
+rows its `populates`/`adornments` name, comparing by substring, found
+every instance in the shipped world in one pass. ⚠ It only sees the YAML
+half — a class that sets its keywords in a constructor (`Tap.ts`) is
+invisible to it, which is an argument for a real lint rather than a
+one-off script.
