@@ -272,10 +272,12 @@ an agricultural lot band in **hectares** against Hinkley's 0.1 ha.
 
 **Holdings.** The plat book sells non-uniform lots — a 1 ha croft
 beside a 40 ha spread; price and area are per-lot data. At provision a
-holding is **one room, the homestead** — build-2's `LotHolder`
-machinery verbatim (minted yard room, gate off the lane, farmhouse as
-prose). The rest of the acreage is real in the ledger, prose in the
-world.
+holding is **one room, the homestead** — build-2's holder machinery
+*as reworked by the residences build* (their D16/D17: a keyed
+`HoldingProgramme` admitted through the `LotHolder` seam; every room a
+keyed instance of a real row; gate off the lane; farmhouse as prose,
+or a floorplan when their interiors land here later). The rest of the
+acreage is real in the ledger, prose in the world.
 
 **Breaking ground.** A field exists only once you carve it: the
 break-ground act buds a **field room** off the homestead, allocating a
@@ -345,10 +347,23 @@ the user's go-ahead):
 - **The map is DATA-ONLY this build**: honest placement (focus +
   radius / coords) for every room it mints; the "your holding" card
   rides the map-UI work item, not this cycle.
-- **Packaging split per the Hinkley precedent**: world-seed ships the
-  district's geography and title claims (Heart's Delight, Murphy's
-  Station, the plat book); trade-farming ships the farming substrate,
-  species/plant content, and the exemplar farm's tenancy.
+- **Packaging per residences D18** *(supersedes the earlier
+  world-seed lean — build-2's pack cut clarified the model)*: a new
+  **`hearts-delight` locality pack** (root
+  `/world/terminus/hearts-delight`) homes the district **whole** —
+  geography, zone rows, title claims, Murphy's Station, the plat
+  book/holder rows and any parked TS — depending on the `residence`
+  capability pack (whose machinery its rows name, at the repointed
+  `/residence/idea/…` paths) and on `trade-farming`, which stays the
+  **trade**: species, plants, seeds, produce, process content, and
+  the exemplar farm's cast. The farmers market venue is Terminus
+  ground and homes in the `terminus` locality pack (this build adds
+  the rows there; the farming tenancy — stall config, the farmer's
+  beats — stays trade-farming, the locality-owns-place /
+  trade-owns-process split). Where the cultivation-generic pieces
+  (the field row, break-ground classes) home — kernel `lib/`,
+  `trade-farming` `src/`, or `residence` — is the planner's call
+  under D18's membership tests.
 
 ### D6 — The farmer-proprietor and the beats — LOCKED
 
@@ -461,6 +476,37 @@ owes is two **observable truths**, not numbers:
 
 Tests assert mechanism; the live drive asserts the steady state; **no
 test ever pins a tuning number**.
+
+## Dependencies & interfaces — build-2 (residences)
+
+Read alongside build-2's `residences-requirements.md` (D1–D18) and
+`residences-plan.md` (branch `design/residences`). Three facts govern
+this build's sequencing and seams:
+
+- **The plan splits in two stages.** *Stage A* — independent of
+  build-2, buildable now: the fruit cycle, the healed gather,
+  harvest-accepts-ground, the ten species, the farmers market, the
+  keeper re-point, the faucet closure, the commuting-cast fix.
+  *Stage B* — Heart's Delight itself — **depends on residences'
+  Waves 0–5 landing** (the pack cut, the D17 identity split +
+  `lint:census`, `HoldingWarren`/`PlatPlan`, `HoldingProgramme` +
+  keyed placement, the LotHolder rework): building the district before
+  the identity split would mint rooms on machinery scheduled for
+  deletion (`asTemplatePath` is retired).
+- **Break-ground is the programme's first runtime-member consumer**
+  *(interface note to residences)*: their D16 defers *remodel* (editing
+  a house floorplan); our field-budding is a different, act-driven
+  axis — outdoor members added to a holding's set at runtime. Their
+  programme's membership already "reconstitutes from durable rows" and
+  "manages whatever exists under its extent"; the ask is only that the
+  member contract stay open to runtime-added outdoor members, which
+  farming's break-ground then consumes on their base rather than
+  building beside it.
+- **Their machinery this build consumes as-is**: the generative
+  `PlatBook` + branched `PlatPlan` (a rural lane that grows as lots
+  sell), keys at `title buy`, the ascent gate, `heldUnitsOf`,
+  `survey` (condition + archetypes read naturally over a farm
+  holding), and D18 packaging (our D5 sub-item).
 
 ## Constraints
 
