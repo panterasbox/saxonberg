@@ -33,8 +33,10 @@ merged 2026-08-02 (`d332620c2`) with `PlatBook` + `LotHolder` +
 grid zone*; Hinkley sidestepped it — lots live in their own zone, each
 lot's room is a **minted identity** (`FurnishableRoom` at
 `<lotExtent>/<leaf>`, deliberately off-grid), reached by a `LotGateExit`
-off the lane. A suburb of N single-family lots is one lane + N gates + N
-minted rooms. The region parcel stays deferred for the genuinely
+off the lane. A suburb of N single-family lots is one lane + N gates +
+N per-lot rooms. (This build reworks that mint onto keyed instances of
+real rows — D16/D17 — without changing the conclusion: no region
+parcel is needed.) The region parcel stays deferred for the genuinely
 *seamless* open-coordinate case, but suburbia — named in §L as its
 motivating consumer — no longer needs it.
 
@@ -108,11 +110,17 @@ University Avenue (D9).
   as all four archetypes, a bare room reads as none, and nothing is
   ever enforced.
 - **Every holding runs the residential programme.** At every rung the
-  holding is a warren one level down — a programme instance minted at
-  its extent, managing minted-identity rooms stood up from its
-  floorplan and owning the holding-level state (dormancy as a unit,
-  condition, terms, the archetype read) (D16) — the parity claim
-  across all residential parcels.
+  holding is a warren one level down — a keyed programme instance at
+  its extent, managing keyed rooms stood up from its floorplan and
+  owning the holding-level state (dormancy as a unit, condition,
+  terms, the archetype read) (D16) — the parity claim across all
+  residential parcels.
+- **The content census becomes an invariant.** `templatePath` always
+  resolves to a content row, lint-gated; instance identity moves to
+  the `identityPath` / `(scope, key)` axis (D17); MQL gains the
+  keyed-member locator (warren → member, and address targeting); and
+  Hinkley's shipped minted yards rework onto the keyed model through
+  the `LotHolder` seam.
 - **Owned goods can be mounted, not just set down.** Wall/finer
   placement lands as a small verb over the shipped `Adornable` fixture
   surface (D11) — hang a lamp, take it back down; a mounted good
@@ -213,13 +221,14 @@ not Hinkley and not this build.
 ### D2 — The house is minted rooms behind a locked door
 
 The `LotHolder` provisioning flow grows from one room (the yard) to a
-small graph of minted `FurnishableRoom` identities under the lot extent
-(house rooms + yard), instantiating the shipped archetype rows as
+small graph of keyed `FurnishableRoom` instances under the lot's
+extent key (house rooms + yard — D16/D17), instantiating the shipped
+archetype rows as
 `populates:` sources. The house's front door is the lock; the yard gate
 stays open. `LotHolder.provision` is already the `@hook` designed for
-this swap — the "minted template per residence" successor the
-smallholding doc predicted, arriving as designed rather than by
-replacement.
+provisioning-model swaps — used here for the keyed multi-room model
+(D16/D17) rather than the minted-per-residence successor the doc
+predicted; same seam, different direction.
 
 ### D3 — The apartment building is a Warren of units, landlord-owned
 
@@ -476,43 +485,52 @@ one *policy*, not the definition. Both levels have that shape:
   the tenure terms (D5), the archetype read (D15), lease revert, and
   the future utility meter's aggregation point.
 
-**Identity and instancing — the synthesis of two poles.** Anonymous
-clone members (the dorm's original model) give management but broke
-identity — per-lot land-use resolution, exact placement, the defects
-Hinkley's minted identities fixed; manager-less minted rooms give
-identity but leave the programme's work smeared and unowned. Both at
-once:
+**Identity and instancing — the keyed model (with D17).** Anonymous
+clone members give management but broke per-lot resolution and exact
+placement; per-room *minted paths* (Hinkley's first fix) broke the
+content census — a `templatePath` resolving to no row. The model that
+keeps all three properties:
 
-- The programme is **minted at the holding's extent** —
-  `SingletonMixin` is one-instance-per-templatePath, so a minted
-  manager per holding keeps the singleton invariant intact (the
-  PlatBook/LotHolder per-subdivision instancing precedent, verbatim).
-- Its member rooms are **minted identities** under the extent
-  (`<extent>/<leaf>`) — MQL-queryable, zone-resolvable through the one
-  authored covering zone per subdivision/building (the shipped `lots`
-  pattern), placement-exact.
-- A minted identity gets a **path, never a template row** — the
-  per-instance `domain` row stays the named anti-pattern; a home's
-  durable documents are its `holder_snapshots` records and its parcel
-  row, keyed by the minted paths.
+- **Every room is a keyed instance of a real content row** —
+  `(scope = the authored row, key = the holding's parcel extent
+  [+ leaf])`, the dorm's own D1 shape. `templatePath` always resolves
+  to a row (D17); per-holding uniqueness is carried by D1's unique-key
+  guard, never by minted paths. **The programme is a keyed instance
+  too** — one residential-programme row, one keyed instance per
+  holding.
+- **Coverage consults the key**: land-use/title resolution for a keyed
+  room reads its key, which *is* the parcel extent — they were always
+  the same fact. Placement restore records `(scope, key)` and
+  re-enters through the programme's admit (the dorm already does).
+  Zone resolution simplifies — real rows have real ancestry, so the
+  covering-zone contortion built for rowless paths retires.
+- **The Locality address is the human per-place identity**
+  (`terminus/hinkley-hills/lot-1`) — instance data resolved by the
+  shipped longest-prefix walk; the identifier a person, a deed, and a
+  report actually want.
+- **MQL grows a keyed-member locator**: target the warren/programme (a
+  real row) and narrow to the member by key and/or address — the
+  grammar is the planner's, the capability is required.
 - **Membership reconstitutes from durable rows** (parcels above — the
   `childParcelsOf` boot re-hang precedent; snapshots + floorplan
   below), which is what makes composition dynamic without elastic
   spawning: the programme manages whatever exists under its extent,
   and **remodel — changing that set — has an owner** (still a
   development-slate seam, not this build).
+- **Hinkley's shipped minted yards rework onto this** through the
+  `LotHolder` swap seam smallholding.md built for exactly this kind of
+  provisioning-model change.
 
 **Member identity policy is per member class, and identity follows
-state longevity.** A minted room is a *clone by mechanism, singleton by
-identity* — one clone pipeline, two identity policies — so the warren's
-member contract (compose singletons or clones) is unchanged. State that
-outlives the tenure gets a minted identity (dwelling rooms); state that
-dies with the stay, or no state at all, stays an anonymous clone — the
-wiring (doors, gate/stair exits, rebuilt from durable rows and reaped
-freely) today, and the **inn room** later (interchangeable short-stay
-space that re-leases clean nightly, where a minted identity would be
+state longevity.** State that outlives the tenure gets a durable key +
+address (dwelling rooms); state that dies with the stay, or no state
+at all, stays an anonymous unkeyed clone — the wiring (doors,
+gate/stair exits, rebuilt from durable rows and reaped freely) today,
+and the **inn room** later (interchangeable short-stay space that
+re-leases clean nightly, where a durable per-room identity would be
 actively wrong — a named future consumer of this substrate, not this
-build).
+build). Either way the warren's member contract — compose singletons
+or clones — is unchanged.
 
 The **floorplan** is the programme's *initial* data — what to mint at
 provision; the plat plan : institution :: floorplan : holding symmetry
@@ -522,6 +540,39 @@ enforcement point. **The dorm** is the degenerate case (a single-room
 holding); how far it converges onto the recursive shape this build is
 the **planner's call**, weighed against live-record churn, with its
 suite pinning observable behavior either way.
+
+### D17 — The identity split: `templatePath` always resolves to a row
+
+The build adopts the invariant behind the content census: **every
+`templatePath` resolves to a row in the content collection.** What a
+minted instance carries is a different field on a different axis — the
+**`identityPath`** (the getter the sandbox already built) — which
+universalizes the sandbox's identity-vs-template split instead of
+leaving it a wire-body special case:
+
+- **Principals keep their identity strings unchanged in value** —
+  `/platform/agent/Avatar/<playerId>`, `/platform/idea/party/<uuid>`
+  survive everywhere they are referenced (grants, holders, chattel
+  stamps, snapshot owners) — reclassified as identities in an identity
+  namespace, each family backed by the census collection it already
+  has (`holder_snapshots`, `parties`, `parcels`). The per-instance
+  `domain` row stays the anti-pattern (runtime data in the
+  protowizard-editable authoring tree); the reporting answer is that
+  **every family's census exists, in the right collection, addressed
+  by the right axis** — the confusion was one field name meaning two
+  things.
+- **Places carry no per-instance paths at all** (D16): a room's
+  instance identity is its `(scope, key)` plus its Locality address.
+- **A lint enforces the invariant** (the `lint:instanceable` family's
+  shape): no `templatePath` stamp without a resolvable row;
+  `asTemplatePath` retires or narrows to the identity axis. The six
+  framework registries' constant paths (Card / MqlSubscription /
+  WorldClock / Scheduler / reaction / event) get trivial rows or move
+  to the identity axis — planner's call per case.
+- **The doctrine edit lands at sweep**: ref-shapes'
+  identity/lineage/backing section updates so `templatePath` = kind
+  (always a row) and `identityPath` = instance (scheme-derived, backed
+  per family), with the mint schemes enumerated.
 
 ## Constraints
 
@@ -546,10 +597,11 @@ suite pinning observable behavior either way.
   faucet, per the shipped e2e pattern.
 - **Economy Law 2 stays scoped to goods** — no clock-wear lands on any
   `DurableMixin` good; weathering is structure-only (D4).
-- **Nothing instances `/lib/`**; minted identities follow the Hinkley
-  channel (`asTemplatePath`); pack contributions ride manifests
-  (`requires.groups` / `requires.title` / `boot`) with **no kernel list
-  edits** (the capability-packs rule).
+- **Nothing instances `/lib/`**; every `templatePath` resolves to a
+  content row (D17 — lint-gated), instance identity riding the
+  `identityPath` / `(scope, key)` axis, never a rowless path; pack
+  contributions ride manifests (`requires.groups` / `requires.title` /
+  `boot`) with **no kernel list edits** (the capability-packs rule).
 - **Content verbs are afforded by content** (the NPC / fixture carries
   the affordance), and every verb passes the affordance chain —
   contributed, in scope, parseable, conferred by something present. The
@@ -601,6 +653,12 @@ suite pinning observable behavior either way.
   cold storage makes it read as a kitchen — whatever objects satisfied
   the needs; nothing anywhere enforces an archetype (tested: an
   unrecognized room provisions, persists, and functions identically).
+- **The identity invariant holds:** the lint fails on any
+  `templatePath` stamp without a resolvable row and the tree passes;
+  the MQL keyed-member locator resolves warren → room, and a Locality
+  address resolves to the same room; no rowless room paths survive the
+  Hinkley rework (drive: log out in your yard, log back into the
+  *same* yard — exact placement via `(scope, key)`).
 - **Condition works:** a neglected shell's condition declines on read
   over elapsed game time (slope, with cause legible); maintenance
   restores it; a well-kept dorm/lease passes the ascent gate and a
@@ -639,7 +697,12 @@ suite pinning observable behavior either way.
   [persistence.md](../subsystems/persistence.md) ·
   [retail.md](../subsystems/retail.md) ·
   [banking.md](../subsystems/banking.md) ·
-  [residency.md](../subsystems/residency.md)
+  [residency.md](../subsystems/residency.md) ·
+  [mql.md](../subsystems/mql.md) (the keyed-member locator) ·
+  [address.md](../subsystems/address.md) (the Locality address as
+  place identity)
+- Doctrine: [ref-shapes](../ref-shapes.md) — identity/lineage/backing,
+  updated at sweep per D17
 - Parallel build: build-3 owns cultivation (husbandry.md + the
   cultivation half of smallholding.md); the seam is the yard's contents,
   which this build does not touch.
