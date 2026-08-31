@@ -5,7 +5,8 @@
 > the build agent's opening position, not yet discussed. Locked so far:
 > the suburban-garden invariant (D0), the fruit cycle (D1–D2), the
 > harvest mint + matter-not-mark rule (D3), the faucet closure + the
-> market path (D4), the land model (D5), the farmer + the beats (D6).
+> market path (D4), the land model (D5), the farmer + the beats (D6),
+> the two entry points (D7).
 
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
@@ -385,17 +386,47 @@ cast is never a room-snapshot's content (rooms already skip live
 avatars); it re-establishes from populates/roster on restore — and
 lands in this build as spine work with its own tests.
 
-### D7 — The grove ships established; a new tree is a real commitment *(draft — "grove" wording predates D5's holdings)*
+### D7 — One growth model, two first-class entry points — LOCKED
 
-The farm's plants are authored at maturity with loaded fruiting windows,
-so the chain is live from first boot with no authored crates. A
-player-planted tree runs the real clock — on the order of a game year
-(~a real month) to maturity — which is deliberate: the orchard is the
-mechanic that makes land tenure real (farming-slate § Orchards). Seed
-packets for every grown species are purchasable at the farm's own
-counter (a `Stock` with `stockLines`, retail parity — the shop faucet
-for *planting stock* is the accepted retail pattern; the deletion
-doctrine targets the bar's *input* faucet).
+> **The models support both ends: authored content that produces from
+> first boot, and player-minted ground planted with whatever its
+> holder wants. Neither is a hack around the other.**
+
+**The authoring path** (the bar needs limes *today*). A pack can stand
+up a producing farm **entirely in data**: the holding's field ledger
+seeded in content (fields pre-broken), rows planted, grown state
+authored per plant. Authored maturity is honest because the world
+isn't born the day the server boots — authoring a bearing tree asserts
+its *past care* — under one constraint: **authored states must be
+model-consistent**, a state the reconcile could actually have produced
+(plausible maturity, vigor, load; never fruit on a seedling). The
+exemplar holding's fields ship established and bearing under this
+rule.
+
+**The player path** (the long term). Mint new ground, break fields,
+plant anything — **no crop-to-district coupling, no regional
+whitelist, ever** (D0 doing its job). Fit is expressed through
+profiles — a bog plant sulks on dry ground because of its curves —
+never through permission. The clock stands un-softened: ~a game year
+to first citrus is the tenure lesson D5 locked, and the bridge income
+is real horticulture's own answer — **fast cycles while trees
+establish** (mint and the annual tier pay in days; the starter
+experience teaches the market gardener's truth).
+
+**The asymmetry is old ground vs new ground, and both are
+purchasable.** The plat book prices a standing orchard above raw
+acreage — turn-key at a premium, raw land cheap. Anyone buys history
+at its price; the exemplar farm just happens to be old ground.
+
+**The equivalence test.** An authored farm and a player farm are
+**indistinguishable to every downstream system** — harvest, grades,
+the market, persistence, the beats. If any consumer can tell which
+path made the ground, the models failed.
+
+**Named seams, not v1:** the nursery (buying a *sapling* — age at the
+margin — instead of a seed); planting-stock retail placement is
+content (seed packets sell at retail, the general store's gardening
+line precedent).
 
 ### D8 — Grapes and juniper ship; grain does not *(draft)*
 
