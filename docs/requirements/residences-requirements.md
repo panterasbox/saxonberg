@@ -107,10 +107,12 @@ University Avenue (D9).
   needs, and a dedicated legible read reports it; the dorm bedsit reads
   as all four archetypes, a bare room reads as none, and nothing is
   ever enforced.
-- **Every holding is a floorplan.** At every rung the holding
-  materializes as an authored room-graph minted under its extent, and
-  title / provisioning / persistence / dormancy align on that extent
-  (D16) — the parity claim across all residential parcels.
+- **Every holding runs the residential programme.** At every rung the
+  holding is a warren one level down — a programme instance minted at
+  its extent, managing minted-identity rooms stood up from its
+  floorplan and owning the holding-level state (dormancy as a unit,
+  condition, terms, the archetype read) (D16) — the parity claim
+  across all residential parcels.
 - **Owned goods can be mounted, not just set down.** Wall/finer
   placement lands as a small verb over the shipped `Adornable` fixture
   surface (D11) — hang a lamp, take it back down; a mounted good
@@ -361,17 +363,19 @@ demands the uniformity as structure:
 Tenure (lease vs sale) changes only whose agent the front is and which
 chokepoint fires (`grantUse` vs `subdivide`+`transfer`); nothing else.
 
-**One institution, two tiers — never two warrens.** A road segment is a
-corridor lying down: circulation is cloned on demand to reach the
-stock, reaped outside-in under the shipped contiguity invariant (a
-corridor never reaps under a live room; the road stays connected back
-to the authored entrance), and its whole lifecycle is *derived from*
-the holdings it serves — a separate roads-warren would carry a policy
-that only mirrors the holdings anyway. **The planner lifts
-`DormWarren`'s two-tier machinery (holdings + circulation + the reap
-invariant) into a shared base consumed by all three institutions; the
-dorm converges onto it**, with its observable behavior pinned by its
-existing suite.
+**One institution, two tiers — circulation is never its own warren.**
+A road segment is a corridor lying down: circulation is cloned on
+demand to reach the stock, reaped outside-in under the shipped
+contiguity invariant (a corridor never reaps under a live room; the
+road stays connected back to the authored entrance), and its whole
+lifecycle is *derived from* the holdings it serves — a separate
+roads-warren would carry a policy that only mirrors the holdings
+anyway. (The *holdings* themselves are warren-shaped one level down —
+D16's recursion — a different axis from this rule.) **The planner
+lifts `DormWarren`'s two-tier machinery (holdings + circulation + the
+reap invariant) into a shared base consumed at both levels (D16)**;
+the dorm's convergence depth is the planner's call (D16), its
+observable behavior pinned by its existing suite either way.
 
 ### D13 — The plat plan: layout is authored data, and branching ships
 
@@ -454,31 +458,66 @@ Outside the vocabulary: everything. A room satisfying no archetype is
 just a room full of your stuff; freedom is the default, recognition is
 laid over it.
 
-### D16 — The warren bottoms out at the holding; a holding is a floorplan
+### D16 — Warren-of-warrens: the residential programme
 
-No warren-of-warrens. A warren earns its machinery through **dynamic
-membership**; a holding's interior has none — its rooms are a fixed set
-that materializes and sleeps together. So the warren's member is the
-**holding** (unit, lot), and the holding materializes as its
-**floorplan**: a small authored graph of rooms minted under the
-holding's extent (`<extent>/<leaf>`, the shipped Hinkley channel — the
-yard is an outdoor leaf of the lot's floorplan). **The four lifecycles
-align on the extent**: title, provisioning, persistence keying, and
-dormancy all operate on the holding as one thing — an apartment goes
-dormant as a unit, never room-by-room. The symmetry with D13 is the
-abstraction: **the plat plan is to the institution what the floorplan
-is to the holding** — authored data a provisioner consumes to mint a
-graph — with different lifecycles (stock grows member-at-a-time; a
-floorplan stands up whole). Remodel/expansion — adding a room to your
-house — is *editing the floorplan*, a named seam (development-slate
-territory), not warren mechanics and not this build.
+**Two levels of one management substrate.** The warren's essence is
+collective lifecycle management of a room set — members, wiring,
+population witness, admit, reap, teardown — of which elastic growth is
+one *policy*, not the definition. Both levels have that shape:
+
+- **The institution** is a warren whose members are **holdings**, with
+  circulation as its second tier (D12) and stock policy from its plat
+  plan (D13).
+- **Each holding** is a warren one level down: a **residential
+  programme** instance whose members are the holding's rooms, and the
+  home of every holding-level concern — dormancy as a unit (the
+  holding sleeps and wakes whole, never room-by-room), interior +
+  front-door wiring, the shell condition and weathering clock (D4),
+  the tenure terms (D5), the archetype read (D15), lease revert, and
+  the future utility meter's aggregation point.
+
+**Identity and instancing — the synthesis of two poles.** Anonymous
+clone members (the dorm's original model) give management but broke
+identity — per-lot land-use resolution, exact placement, the defects
+Hinkley's minted identities fixed; manager-less minted rooms give
+identity but leave the programme's work smeared and unowned. Both at
+once:
+
+- The programme is **minted at the holding's extent** —
+  `SingletonMixin` is one-instance-per-templatePath, so a minted
+  manager per holding keeps the singleton invariant intact (the
+  PlatBook/LotHolder per-subdivision instancing precedent, verbatim).
+- Its member rooms are **minted identities** under the extent
+  (`<extent>/<leaf>`) — MQL-queryable, zone-resolvable through the one
+  authored covering zone per subdivision/building (the shipped `lots`
+  pattern), placement-exact.
+- A minted identity gets a **path, never a template row** — the
+  per-instance `domain` row stays the named anti-pattern; a home's
+  durable documents are its `holder_snapshots` records and its parcel
+  row, keyed by the minted paths.
+- **Membership reconstitutes from durable rows** (parcels above — the
+  `childParcelsOf` boot re-hang precedent; snapshots + floorplan
+  below), which is what makes composition dynamic without elastic
+  spawning: the programme manages whatever exists under its extent,
+  and **remodel — changing that set — has an owner** (still a
+  development-slate seam, not this build).
+
+The **floorplan** is the programme's *initial* data — what to mint at
+provision; the plat plan : institution :: floorplan : holding symmetry
+stands. The four lifecycles — title, provisioning, persistence keying,
+dormancy — align on the extent, with the programme as their
+enforcement point. **The dorm** is the degenerate case (a single-room
+holding); how far it converges onto the recursive shape this build is
+the **planner's call**, weighed against live-record churn, with its
+suite pinning observable behavior either way.
 
 ## Constraints
 
 - **No residence subsystem, no per-feature Api.** Apartments and houses
-  are content over general substrates, exactly like the dorm. Condition/
-  obligation machinery goes wherever the planner homes it (a mixin +
-  existing facades) — a new Api is an explicit ask first.
+  are content over general substrates, exactly like the dorm.
+  Condition/obligation machinery lives on the holding's residential
+  programme (D16) behind existing facades — a new Api is an explicit
+  ask first.
 - **Title and access data live in `parcels`, never on zone templates**
   (the parcel.md governing invariant); keyways ride the parcel row as
   shipped.
@@ -534,7 +573,9 @@ territory), not warren mechanics and not this build.
   set.
 - **The substrate is shared and the dorm didn't move:** the two-tier
   base is consumed by all three institutions; the dorm's existing suite
-  passes unchanged after its convergence. At least one **branched**
+  passes unchanged at whatever convergence depth the plan picks. A
+  holding sleeps and wakes **whole** — rooms, fixtures, and placed
+  goods together, never room-by-room. At least one **branched**
   plat plan is exercised (a road that grows a branch as its frontage
   fills), and a static-plan institution (authored streets, minted
   homes) still provisions correctly.
@@ -554,8 +595,9 @@ territory), not warren mechanics and not this build.
   dilapidated one is refused with the reason named; interior goods show
   zero clock-wear (tested).
 - **Terms resolve:** each rung's upkeep-responsibility term is readable
-  where the planner homes it, and the landlord's shell upkeep is
-  performed by the owning organization's agency, not the tenant.
+  on the holding's residential programme (D16), and the landlord's
+  shell upkeep is performed by the owning organization's agency, not
+  the tenant.
 - **The stewardship slate carries the correction** and smallholding.md's
   house-prose note is closed (holder half only); residence.md (or a
   sibling) documents the ladder, condition, terms, and the deferred
