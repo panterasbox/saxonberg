@@ -161,7 +161,6 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
       stuffId: 't1',
       getTemplatePath: () => '/platform/agent/Avatar/t1',
       getIdentityPath: () => '/platform/agent/Avatar/t1',
-    getIdentityPath: () => '/platform/agent/Avatar/t1',
       getPresentation: () => 'Mara',
       getPlayerId: () => 'p-mara',
       allContacts: () => [], // viewer is not a contact of the target
