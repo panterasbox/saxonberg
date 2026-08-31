@@ -59,18 +59,18 @@
  * the right default for a thing that mints rooms.
  */
 
-import { Idea } from "../../lib/stuff/Idea";
-import { SingletonMixin } from "../../lib/stuff/Singleton";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { StuffApi } from "../../api/stuff";
-import { MixinApi } from "../../api/mixin";
-import { ParcelApi } from "../../api/parcel";
-import { PersistableApi } from "../../api/persistable";
+import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
+import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
+import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
+import { PersistableApi } from "@saxonberg/server/mud/api/persistable";
 import LotGateExit from "./LotGateExit";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
-import type { VetoResult } from "../../lib/errors";
-import type { FieldMeta } from "../../lib/mixin";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
+import type { VetoResult } from "@saxonberg/server/mud/lib/errors";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 const LotHolderBase = SingletonMixin(PostRegistrationMixin(Idea));
 

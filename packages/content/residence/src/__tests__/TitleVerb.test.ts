@@ -15,49 +15,49 @@
  * wherever you happen to be standing.
  */
 
-import "../../../../../../test-bootstrap";
+import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import TitleController from '../TitleController';
-import ParcelRegistry from '../../../ParcelRegistry';
-import LotHolder from '../../../LotHolder';
-import PlatBook from '../../../PlatBook';
-import GroupRegistry from '../../../GroupRegistry';
-import { ParcelApi } from '../../../../../api/parcel';
-import { BankingApi } from '../../../../../api/banking';
-import { EmploymentApi } from '../../../../../api/employment';
-import { StuffApi } from '../../../../../api/stuff';
-import { ContainmentApi } from '../../../../../api/containment';
-import { ExecutionContextApi } from '../../../../../api/execution-context';
-import { ParcelEvent } from '../../../../../lib/parcel/ParcelEvent';
-import { Document } from '../../../../../lib/persistence/Document';
-import { QuantityMarshaller } from '../../../persistence/QuantityMarshaller';
-import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
-import { NamedMixin } from '../../../../../lib/description/Named';
-import { SensorMixin } from '../../../../../lib/message/Sensor';
-import { ContainerMixin } from '../../../../../lib/spatial/Container';
-import { ExitableMixin } from '../../../../../lib/boundary/Exitable';
-import { ContainableMixin } from '../../../../../lib/spatial/Containable';
-import { Idea } from '../../../../../lib/stuff/Idea';
-import { PersistableMixin } from '../../../../../lib/persistence/Persistable';
-import { PostRegistrationMixin } from '../../../../../lib/stuff/PostRegistration';
-import Location from '../../../../../lib/stuff/Location';
-import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
-import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/TitleController';
+import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
+import LotHolder from '../idea/LotHolder';
+import PlatBook from '../idea/PlatBook';
+import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
+import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
+import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
+import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
+import { QuantityMarshaller } from '@saxonberg/server/mud/platform/idea/persistence/QuantityMarshaller';
+import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
+import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
+import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import { PostRegistrationMixin } from '@saxonberg/server/mud/lib/stuff/PostRegistration';
+import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import {
   CommandApi,
   type CommandContext,
   type ModelData,
-} from '../../../../../api/command';
+} from '@saxonberg/server/mud/api/command';
 import {
   makeStuff,
   makeStuffAtPath,
   withRootContext,
-} from '../../../../../lib/security/__tests__/test-setup';
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
-} from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+} from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 /** A persistable room — what a real yard template clones to. */
 class TitleTestRoom extends PersistableMixin(

@@ -31,12 +31,12 @@
  * See [docs/subsystems/smallholding.md] and [docs/subsystems/parcel.md].
  */
 
-import { Idea } from "../../lib/stuff/Idea";
-import { SingletonMixin } from "../../lib/stuff/Singleton";
-import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
-import { LandUses, type LandUse } from "../../lib/parcel/LandUse";
-import type { VetoResult } from "../../lib/errors";
-import type { FieldMeta } from "../../lib/mixin";
+import { Idea } from "@saxonberg/server/mud/lib/stuff/Idea";
+import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
+import { PostRegistrationMixin } from "@saxonberg/server/mud/lib/stuff/PostRegistration";
+import { LandUses, type LandUse } from "@saxonberg/server/mud/lib/parcel/LandUse";
+import type { VetoResult } from "@saxonberg/server/mud/lib/errors";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
 const PlatBookBase = SingletonMixin(PostRegistrationMixin(Idea));
 

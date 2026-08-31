@@ -42,11 +42,11 @@
  * *those* get the lock.
  */
 
-import DeferredDestinationExit from "../../lib/boundary/DeferredDestinationExit";
-import type { Stuff } from "../../lib/stuff/Stuff";
-import type { Container } from "../../lib/spatial/Container";
+import DeferredDestinationExit from "@saxonberg/server/mud/lib/boundary/DeferredDestinationExit";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type LotHolder from "./LotHolder";
-import { StuffApi } from "../../api/stuff";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 
 export default class LotGateExit extends DeferredDestinationExit {
   /**

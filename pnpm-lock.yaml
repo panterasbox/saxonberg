@@ -47,6 +47,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:packages/content/platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:packages/content/residence
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:packages/content/saxonberg-lounge
@@ -361,6 +364,28 @@ importers:
         specifier: workspace:*
         version: link:../../types
 
+  packages/content/residence:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/saxonberg-lounge:
     dependencies:
       '@saxonberg/content-corpo-aevex':
@@ -637,6 +662,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
       '@saxonberg/content-saxonberg-lounge':
         specifier: workspace:*
         version: link:../saxonberg-lounge

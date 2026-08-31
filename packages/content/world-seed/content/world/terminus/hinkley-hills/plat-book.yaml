@@ -1,5 +1,5 @@
 # Hinkley Hills' plat book — the CATALOGUE half: what is for sale and on
-# what terms. An instance of the general `/platform/idea/PlatBook`, because selling
+# what terms. An instance of the general `/residence/idea/PlatBook`, because selling
 # subdivided ground crosses localities and only these particular lots are
 # Hinkley's.
 #
@@ -8,7 +8,7 @@
 # grows outward as land becomes a market (terms, demand pricing,
 # auctions) while provisioning is the piece most likely to be swapped
 # wholesale for minted-per-residence templates.
-class: /platform/idea/PlatBook
+class: /residence/idea/PlatBook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   label: Hinkley Hills

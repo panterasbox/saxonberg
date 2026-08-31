@@ -15,6 +15,7 @@
     "@saxonberg/content-hearthworks": "workspace:*",
     "@saxonberg/content-newbie-wilds": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/content-trade-bottling": "workspace:*",

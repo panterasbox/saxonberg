@@ -35,7 +35,7 @@
  * The verb is core; the subdivisions are content. Everything
  * locality-specific — which lots exist, what they cost, how big they are,
  * what stands on one, what use it is stamped with — is authored on a
- * {@link LotHolder} instance, and this controller enumerates the holders
+ * `LotHolder` instance (the residence pack’s), and this controller enumerates the holders
  * rather than knowing any of them. A second subdivision anywhere in the
  * world is a seed file and no change here.
  *
@@ -60,16 +60,40 @@ import { BankingApi, type Charge } from '../../../../api/banking';
 import { EmploymentApi } from '../../../../api/employment';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
-import { LandUses } from '../../../../lib/parcel/LandUse';
+import { LandUses, type LandUse } from '../../../../lib/parcel/LandUse';
 import { Money } from '../../../../lib/banking/Money';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MqlApi } from '../../../../api/mql';
-import PlatBook from '../../PlatBook';
-import type LotHolder from '../../LotHolder';
 import { Currency } from "../../../../lib/banking/Currency";
 
 const TOPIC = 'act.deed';
+
+/**
+ * The catalogue / provisioner surfaces this verb consumes — STRUCTURAL,
+ * because the concrete `PlatBook` / `LotHolder` classes ship in the
+ * `residence` capability pack and the kernel imports no pack code.
+ * MQL's `[class.PlatBook]` filter selects by class-lineage NAME (the
+ * `matchesClass` prototype walk), so the shapes below are the method
+ * contract the verb actually reads; the duck-check in `books()` keeps a
+ * name collision from reaching a method call.
+ */
+interface PlatBookShape extends Stuff {
+  getLabel(): string;
+  getParentExtent(): string;
+  getPriceMinor(): number;
+  getAreaM2(): number;
+  getLandUse(): LandUse;
+  getHolderPath(): string;
+  extentFor(raw: string): string | null;
+  lotExtents(): string[];
+}
+
+/** The provisioning half a book names by path (`residence/idea/LotHolder`). */
+interface LotHolderShape extends Stuff {
+  provision(lotExtent: string): Promise<{ room: Stuff; firstTime: boolean }>;
+  ensureGate(lotExtent: string): Promise<void>;
+}
 
 /** Where land business is transacted — the city's records counter. */
 const REGISTRY_ROOM = '/world/terminus/registry/office';
@@ -96,12 +120,16 @@ export default class TitleController extends CommandController<TitleModel> {
    * giver — the plat books are world content, not a viewer's
    * perception), the `LocomotionLogic.allModes` shape.
    */
-  private books(): PlatBook[] {
+  private books(): PlatBookShape[] {
     const matches = MqlApi.resolveMany('world:[class.PlatBook]', {
       commandGiver: null,
       scope: 'world',
     });
-    return matches.stuff.filter((s): s is PlatBook => s instanceof PlatBook);
+    return matches.stuff.filter(
+      (s): s is PlatBookShape =>
+        typeof (s as Partial<PlatBookShape>).lotExtents === 'function' &&
+        typeof (s as Partial<PlatBookShape>).getHolderPath === 'function',
+    );
   }
 
   /**
@@ -109,10 +137,10 @@ export default class TitleController extends CommandController<TitleModel> {
    * with nothing behind it is a content bug, and the sale says so rather
    * than taking the money).
    */
-  private holderFor(book: PlatBook): LotHolder | null {
+  private holderFor(book: PlatBookShape): LotHolderShape | null {
     const path = book.getHolderPath();
     if (!path) return null;
-    return StuffApi.findByTemplatePath<LotHolder>(path) ?? null;
+    return StuffApi.findByTemplatePath<LotHolderShape>(path) ?? null;
   }
 
   /** `title` — what ground do I hold, and what may I do on it. */
@@ -221,7 +249,7 @@ export default class TitleController extends CommandController<TitleModel> {
     // Which subdivision sells it? The holders are the plat books; this
     // controller knows none of them by name.
     const raw = model.lot ?? '';
-    let book: PlatBook | null = null;
+    let book: PlatBookShape | null = null;
     let extent: string | null = null;
     for (const b of this.books()) {
       const candidate = b.extentFor(raw);
