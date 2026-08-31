@@ -1,5 +1,10 @@
 # Farming — requirements
 
+> **Status: requirements conversation IN PROGRESS.** Decisions marked
+> **LOCKED** are agreed with the user; sections marked *(draft)* are
+> the build agent's opening position, not yet discussed. Locked so far:
+> the suburban-garden invariant (D0), the land model (D5).
+
 Make farming an actual production chain. The libations build made the
 bar's supply chain real from the cash-and-carry **down**; everything
 above it is a spawn sweep — `trade-farming`'s own `farm-stock.yaml` says
@@ -48,9 +53,11 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
 - **The census faucet for produce is closed.** No produce item or
   produce crate enters the world through the spawn sweep. A lime exists
   because somebody harvested it.
-- **The farm is a real venue.** Growing ground (grove + beds) on
-  agriculturally-zoned, pack-titled land, with water and compost
-  sources, reachable and workable by a player.
+- **Farmland is real, buyable ground.** The Valley of Heart's Delight
+  (D5): a rural locality whose plat book sells holdings a player can
+  title, live on, and break into fields — a farm is also a residence.
+  The NPC exemplar farm is one pre-sold holding, worked, with water
+  and compost sources.
 - **The chain runs unattended.** A grower NPC tends, harvests, packs
   and stocks through literal verbs (the `consigns` / `restocks`
   precedent); Wen's consigns beat carries packed crates to the
@@ -83,13 +90,33 @@ Seeded by [farming-slate](../slates/builds/farming-slate.md) and
 - **The distillery consuming grapes/juniper** — a future distilling
   build (fermentation is its one new mechanic). This build only ships
   the crops (see D8).
-- **Farm geography** — no road network to the farm; reachability rides
-  an existing travel mechanism (D5), and placing the farm on a drawn
-  map is deferred with the locomotion/freight slates.
+- **Roads beyond the district** — Heart's Delight is real geography
+  (D5), but the road network linking it to the wider map, and freight
+  over it, stay with the locomotion/freight slates. The map *UI*
+  (2D/3D) is its own work item; this build owes honest placement data
+  (see D5's open sub-items).
 
 ## Surface decisions
 
-### D1 — The perennial is the mechanic; one shape covers all eight
+### D0 — The suburban-garden invariant — LOCKED
+
+> **A farm is a garden with more ground, never a different kind of
+> thing.** Nothing this build ships may key a *capability* on
+> `agricultural` land or on the rural district. What `agricultural`
+> buys is quantity — bigger lot bands, more land-draw budget, and
+> (phase 4, later) the field density. The mechanics are scale-free.
+
+Same rank as *"a pot is a bed with one slot."* Concretely: a Hinkley
+resident plants the same seed in their own yard's bed and gets the
+same plant, window, grade; sells surplus at the same counter at their
+own ask. The acceptance drive includes a **Hinkley-yard leg**
+exercising every new mechanic with zero farm-specific anything — if
+any step needs the rural district to work, the design failed. What the
+invariant deliberately does NOT flatten is economics: a quarter-acre
+yard tops out at a few beds of draw; making a living takes hectares —
+area and land price doing their job, not a rule.
+
+### D1 — The perennial is the mechanic; one shape covers all eight *(draft)*
 
 Seven of the eight produce materials are botanically perennial, and mint
 regrows from cutting; forcing them through the annual
@@ -99,7 +126,7 @@ window** on `GrowingMixin` is the one new mechanic; every grown species
 in this build (and the two D8 crops) rides it. The carrot demonstrates
 the annual path is unchanged.
 
-### D2 — The fruiting window: accrue under the limiting factor, harvest takes the window
+### D2 — The fruiting window: accrue under the limiting factor, harvest takes the window *(draft)*
 
 A mature perennial **accrues yield** (a fruit/sprig count) during
 reconcile, at an authored per-game-day rate scaled by the same
@@ -131,7 +158,7 @@ No tick, no scheduler: accrual is computed in the same read-triggered
 reconcile steps. Whether perennial-ness is a flag or the presence of
 the fruiting profile fields is the planner's call.
 
-### D3 — Harvest mints the real item, graded and marked
+### D3 — Harvest mints the real item, graded and marked *(draft)*
 
 A lime tree's `harvestTemplatePath` is `/trade/farming/thing/lime` —
 the very `Provision` the bar's recipes consume. Harvest stamps each
@@ -141,7 +168,7 @@ context, crafting's rule — compose `CraftedMixin` where needed). The
 authored `gradeBand: fair` on the produce rows becomes the derive
 default for an ungraded scrap, not the band every lime carries.
 
-### D4 — Packing is a real act; the crate rows leave the spawn table
+### D4 — Packing is a real act; the crate rows leave the spawn table *(draft)*
 
 Fruit reaches the floor in crates via the shipped verbs (`get`,
 `put … in crate`); the empty-crate template ships already. The
@@ -157,32 +184,97 @@ Minting the empty crate at packing time is an **accepted packaging
 abstraction**, at parity with bottles: the growing now costs somebody
 the activity; the box does not (uncertainty.md's abstraction law).
 
-### D5 — The farm becomes ground
+### D5 — The land model: the Valley of Heart's Delight — LOCKED
 
-The venue grows from a packing shed into a smallholding, all inside
-`/trade/farming`:
+Farmland is **place**, not a pack island: a farm is also a residence,
+and farmland needs a rural locality of its own. (An earlier draft of
+this decision put the farm venue inside `/trade/farming` hung off the
+long meadow — overturned: that quietly decided farmland wasn't
+buyable ground.)
 
-- **A grove room** (and garden ground for the herb/shrub rows) —
-  `FurnishableRoom`, authored ambient daylight bright enough for the
-  citrus profiles (the Hinkley-yard precedent: `Location`'s flat light
-  denominator + authored ambient; no sun driver).
-- **Orchard rows and beds** as `GardenBed`-class **rows** at tree
-  scale — bigger soil volume, tree-sized slot counts, authored
-  `landRequirementM2`. No new class unless the planner finds one is
-  forced; *a pot is a bed with one slot* generalizes upward.
-- **Zoning by manifest**: the pack's `requires.title` entry for the
-  farm's ground declares `landUse: agricultural` (+ `areaM2`) — the
-  shipped world-seed mechanism, no kernel edit. The `fixedGround` gate
-  then admits the beds honestly.
-- **Water and compost sources** on the ground (standpipe
-  `UnboundedSource`; a compost crib at the same tap-parity deferral —
-  the finite-regenerating source stays the named deferred seam).
-- **Reachability**: a player can get to the farm without wizardry,
-  through whatever mechanism today reaches the cash-and-carry side of
-  the trade venues (lean: a fast-travel node; planner mirrors the
-  shipped precedent). The hand's teleport beat is unchanged.
+**The locality — `terminus/hearts-delight`.** "The Valley of Heart's
+Delight" — the Santa Clara Valley's orchard-era boosters' name, which
+is diegetically exact: a land developer's pitch for farmland plats is
+what a `PlatBook` *is*. The valley lies past Hinkley Hills (the third
+Tiebout rung: city → suburb → rural), arrival at **Murphy's
+Station** — the stop keeps the older name, as the real one did.
+Unincorporated at first — no government until farmers want one, which
+is itself the political-science content. Land gets bigger and cheaper
+with distance (von Thünen, on purpose; the freight slate has been
+waiting for it). The district is zoned `agricultural` via manifest
+title claims (the world-seed Hinkley mechanism, no kernel edit), with
+an agricultural lot band in **hectares** against Hinkley's 0.1 ha.
 
-### D6 — The grower: the family's first production brain
+**Holdings.** The plat book sells non-uniform lots — a 1 ha croft
+beside a 40 ha spread; price and area are per-lot data. At provision a
+holding is **one room, the homestead** — build-2's `LotHolder`
+machinery verbatim (minted yard room, gate off the lane, farmhouse as
+prose). The rest of the acreage is real in the ledger, prose in the
+world.
+
+**Breaking ground.** A field exists only once you carve it: the
+break-ground act buds a **field room** off the homestead, allocating a
+player-chosen area from the holding's remaining acreage. The holding's
+area is a budget; every field spends it; the allocation — how much of
+your hundred acres goes to citrus vs cherries vs vines — is the
+economic decision made mechanical. One crop per field is economics and
+convention, never a gate (D0). Capacity derives from allocated area
+through the shipped land draw.
+
+**Identity: the farm is a Warren reading its own record.** One
+*authored* field-room template; each field is a **keyed instance**
+(`(scope, key)`, the `DormWarren.admit` pattern), budded by the
+holding's holder from a **field ledger** (`{leaf, name, areaM2}`)
+stored on the holding's persistence record. No template rows are
+minted at runtime. Land use resolves correctly per holding because the
+gate already reads a room's **persistence key over its template path**
+(the rule the Hinkley build added). Fields are rooms, not child
+parcels — title stays one row; selling the holding sells the fields;
+`subdivide` remains the shipped path for actually selling ground.
+
+**Geometry — the hybrid, and every room plots.** No free-floating
+rooms: every location participates in a coordinate system.
+
+- **The town fabric is cartesian** — the district is a `CartesianZone`
+  (rural cells, larger than Hinkley's 6 m) holding Murphy's Station,
+  the lane, and the homestead lots (the Hinkley lots-zone pattern
+  verbatim).
+- **Only broken ground is spherical** — the first use of the shipped
+  `SphericalZone`/`SphericalLocation` model: one authored
+  **`<district>/fields` SphericalZone** covers the shared field
+  template (forced anyway — keyed instances resolve their zone through
+  the one template's ancestry, the same fact behind Hinkley's single
+  lots zone). Every field is a sphere: focus + radius, **radius
+  derived from allocated area** (`r ≈ √(area/π)`) — the economic
+  decision literally draws the map. Exits are explicit named labels
+  ("go orchard"), authored by the holder, per the zone's own contract;
+  the homestead→field gate is a named non-cardinal cross-zone exit
+  (legal by the lot-gate precedent). Each holding's field cluster
+  anchors at a focus **projected from its cartesian lot position**, so
+  clusters cannot collide and the spherical map mirrors the town map;
+  fields ring-pack around their anchor. **No-overlap is enforced by
+  the break-ground act** against the ledger (the zone's focus index
+  deliberately does not enforce it). The player meets the spherical
+  convention only inside their own fields — the gentlest debut — and
+  the 2D/3D map work gets honest placement data from every room this
+  build mints.
+
+**The NPC exemplar farm** is a pre-sold holding (the Hinkley lot-1
+move) with three or four fields already broken — citrus, stone fruit,
+vines, herbs — worked by the trade outfit as a tenant of the locality,
+so the chain runs from boot and the district's prose is true.
+
+Open sub-items within D5 (leans stated, not locked): break-ground's
+cost (lean: a real engagement with game-time); field retirement back
+to grass (lean: defer); verify/wire `radius` driving the
+photometric/air/ranged size scale as cartesian `extent` does (a small
+principled addition if absent); foci auto-packed v1 (player-placed
+wants the map UI first); whether a first "your holding" map card is in
+this build or data-only; the packaging split (which pack ships the
+district's geography vs the trade content — Hinkley precedent has
+world-seed shipping ground and claims).
+
+### D6 — The grower: the family's first production brain *(draft)*
 
 The farm outfit gains a **grower position** and NPC running a new
 kernel `tends` brain — the production brain the living-world roadmap
@@ -193,7 +285,7 @@ it, `harvest` loaded plants, pack crates, `put` them in the farm's
 Stock. Not presence-gated; cadence-triggered; nothing it does is
 unavailable to a player. Wen Hartley's `consigns` beat is untouched.
 
-### D7 — The grove ships established; a new tree is a real commitment
+### D7 — The grove ships established; a new tree is a real commitment *(draft — "grove" wording predates D5's holdings)*
 
 The farm's plants are authored at maturity with loaded fruiting windows,
 so the chain is live from first boot with no authored crates. A
@@ -205,7 +297,7 @@ counter (a `Stock` with `stockLines`, retail parity — the shop faucet
 for *planting stock* is the accepted retail pattern; the deletion
 doctrine targets the bar's *input* faucet).
 
-### D8 — Grapes and juniper ship; grain does not
+### D8 — Grapes and juniper ship; grain does not *(draft)*
 
 Two more perennials — the grapevine and the juniper shrub — ship on the
 same mechanic as crops with no current consumer. They are distilling's
@@ -214,7 +306,7 @@ fruiting window exactly, and their marginal cost is a handful of rows.
 Grain and cane are annual field crops at the aggregate density and wait
 for phase 4. *(Cuttable if review wants the set minimal.)*
 
-### D9 — Throughput is tuned against the lounge's par
+### D9 — Throughput is tuned against the lounge's par *(draft)*
 
 Accrual rates, fruit caps, and beat cadences are dials
 (`AppSetting`-backed where the husbandry precedent has dials) tuned so
@@ -293,6 +385,8 @@ placeholders for a running game, per the husbandry calibration stance.
   substrate; it does not open phase 4)
 - Subsystems: [husbandry](../subsystems/husbandry.md) ·
   [smallholding](../subsystems/smallholding.md) ·
+  [zone](../subsystems/zone.md) ·
+  [location](../subsystems/location.md) ·
   [retail](../subsystems/retail.md) ·
   [employment](../subsystems/employment.md) ·
   [residency](../subsystems/residency.md) ·
