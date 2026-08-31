@@ -95,6 +95,7 @@ const DORMS = DormWarren.DORMS_EXTENT;
 const PACKS = fileURLToPath(new URL("../../../../../../../content/", import.meta.url));
 const SEEDS = `${PACKS}world-seed/content/`;
 const OBJECTS = `${PACKS}generic-objects/content/`;
+const PRODUCE = `${PACKS}trade-farming/content/`;
 const SPECIES = `${PACKS}species-and-names/content/`;
 const PLATFORM = `${PACKS}platform/content/`;
 const CONTENT = fileURLToPath(
@@ -167,13 +168,13 @@ function seedDomain(): void {
     );
   }
   // The gardening objects.
-  addSeed('/stuff/thing/pot/starter', `${OBJECTS}stuff/thing/pot/starter.yaml`);
-  addSeed('/stuff/thing/pot/small', `${OBJECTS}stuff/thing/pot/small.yaml`);
-  addSeed('/stuff/thing/pot/large', `${OBJECTS}stuff/thing/pot/large.yaml`);
-  addSeed('/stuff/thing/plant/peace-lily', `${OBJECTS}stuff/thing/plant/peace-lily.yaml`);
-  addSeed('/stuff/thing/plant/snake-plant', `${OBJECTS}stuff/thing/plant/snake-plant.yaml`);
-  addSeed('/stuff/thing/seed/peace-lily', `${OBJECTS}stuff/thing/seed/peace-lily.yaml`);
-  addSeed('/stuff/thing/seed/snake-plant', `${OBJECTS}stuff/thing/seed/snake-plant.yaml`);
+  addSeed('/trade/farming/thing/pot/starter', `${PRODUCE}trade/farming/thing/pot/starter.yaml`);
+  addSeed('/trade/farming/thing/pot/small', `${PRODUCE}trade/farming/thing/pot/small.yaml`);
+  addSeed('/trade/farming/thing/pot/large', `${PRODUCE}trade/farming/thing/pot/large.yaml`);
+  addSeed('/trade/farming/thing/plant/peace-lily', `${PRODUCE}trade/farming/thing/plant/peace-lily.yaml`);
+  addSeed('/trade/farming/thing/plant/snake-plant', `${PRODUCE}trade/farming/thing/plant/snake-plant.yaml`);
+  addSeed('/trade/farming/thing/seed/peace-lily', `${PRODUCE}trade/farming/thing/seed/peace-lily.yaml`);
+  addSeed('/trade/farming/thing/seed/snake-plant', `${PRODUCE}trade/farming/thing/seed/snake-plant.yaml`);
   addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
   addSeed('/stuff/thing/vessel/soil-sack', `${OBJECTS}stuff/thing/vessel/soil-sack.yaml`);
   // Materials + taxonomy the above reference.
@@ -624,8 +625,8 @@ describe('the dorm houseplant — content and placement', () => {
 
     // Acquire the kit (buyability itself is proven in the store test).
     const sack = await StuffApi.clone<Stuff>('/stuff/thing/vessel/soil-sack');
-    const small = await StuffApi.clone<PlantPot>('/stuff/thing/pot/small');
-    const seed = await StuffApi.clone<Seed>('/stuff/thing/seed/snake-plant');
+    const small = await StuffApi.clone<PlantPot>('/trade/farming/thing/pot/small');
+    const seed = await StuffApi.clone<Seed>('/trade/farming/thing/seed/snake-plant');
     for (const item of [sack, small, seed]) {
       ContainmentApi.move(item as Stuff & Containable, tenant);
     }
@@ -672,7 +673,7 @@ describe('the dorm houseplant — content and placement', () => {
     expect(grown.isAlive()).toBe(true); // stalls, never dies of it
 
     // 4. Buy the large pot, fill it, `repot`.
-    const large = await StuffApi.clone<PlantPot>('/stuff/thing/pot/large');
+    const large = await StuffApi.clone<PlantPot>('/trade/farming/thing/pot/large');
     ContainmentApi.move(large, room as unknown as Stuff & Container);
     const sack2 = await StuffApi.clone<Stuff>('/stuff/thing/vessel/soil-sack');
     ContainmentApi.move(sack2 as Stuff & Containable, tenant);
@@ -722,7 +723,7 @@ describe('the dorm houseplant — content and placement', () => {
     expect(setSeed).toBeInstanceOf(Seed);
     if (!setSeed) throw new Error('unreachable — asserted above');
     // …and that seed grows the same species: the loop closes with no money.
-    expect(setSeed.getGrowsIntoPath()).toBe('/stuff/thing/plant/snake-plant');
+    expect(setSeed.getGrowsIntoPath()).toBe('/trade/farming/thing/plant/snake-plant');
   });
 });
 
@@ -854,7 +855,7 @@ describe('the dorm houseplant — durability', () => {
     // the dorm is involved.
     const records = col('holder_snapshots');
     const own = records.find(
-      (r) => r.scope === '/stuff/thing/plant/peace-lily' && r.owner === key,
+      (r) => r.scope === '/trade/farming/thing/plant/peace-lily' && r.owner === key,
     );
     expect(own).toBeDefined();
     // The avatar's slice refs it by (ref, key), not by absorbing it.
@@ -862,7 +863,7 @@ describe('the dorm houseplant — durability', () => {
       (r) => r.scope === tenant.getTemplatePath(),
     )!;
     const refs = JSON.stringify(avatarRec.state);
-    expect(refs).toContain('/stuff/thing/plant/peace-lily');
+    expect(refs).toContain('/trade/farming/thing/plant/peace-lily');
     expect(refs).toContain(key);
 
     // Time passes while everything is torn down, then the avatar restores.
@@ -993,7 +994,7 @@ describe('the dorm houseplant — durability', () => {
     const records = col('holder_snapshots');
     expect(
       records.find(
-        (r) => r.scope === '/stuff/thing/plant/peace-lily' && r.owner === key,
+        (r) => r.scope === '/trade/farming/thing/plant/peace-lily' && r.owner === key,
       ),
     ).toBeUndefined();
     // The room's record still REFERS to the key (it was written while the
@@ -1056,7 +1057,7 @@ describe('the dorm houseplant — durability', () => {
     pot.soilClockStamp = checkpointStamp;
     const restored = makeStuffAtPath(
       () => new Plant(),
-      '/stuff/thing/plant/peace-lily',
+      '/trade/farming/thing/plant/peace-lily',
     );
     restored.setPersistenceKey(key);
     await PersistableApi.materialize(restored, key);
@@ -1091,7 +1092,7 @@ describe('the dorm houseplant — durability', () => {
 
     const restored2 = makeStuffAtPath(
       () => new Plant(),
-      '/stuff/thing/plant/peace-lily',
+      '/trade/farming/thing/plant/peace-lily',
     );
     restored2.setPersistenceKey(key);
     await PersistableApi.materialize(restored2, key);

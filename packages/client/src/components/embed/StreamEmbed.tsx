@@ -81,6 +81,18 @@ const Placeholder = styled.div`
   padding: ${tokens.space.xl};
 `;
 
+/**
+ * The shared-display caption: "on <label>" under a screen that is not the
+ * viewer's own `watch`. The server wrote the target for everyone who can
+ * see the screen; whoever holds the remote clears it, not `watch off`.
+ */
+const Caption = styled.div`
+  color: ${tokens.color.fgMuted};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.small};
+  padding: ${tokens.space.xs} ${tokens.space.sm};
+`;
+
 const IFRAME_SANDBOX =
   "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
 
@@ -132,6 +144,7 @@ function iframeFor(target: WatchTarget): JSX.Element {
 }
 
 export function StreamEmbed({ target }: StreamEmbedProps): JSX.Element {
+  const display = target?.display ?? null;
   return (
     <Wrap>
       <Stage>
@@ -146,6 +159,11 @@ export function StreamEmbed({ target }: StreamEmbedProps): JSX.Element {
           )}
         </Screen>
       </Stage>
+      {display ? (
+        <Caption data-testid="display-caption">
+          on {display.label} — whoever holds the remote switches it off
+        </Caption>
+      ) : null}
     </Wrap>
   );
 }

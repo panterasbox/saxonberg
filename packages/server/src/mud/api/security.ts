@@ -29,7 +29,11 @@
 
 import { nanoid } from 'nanoid';
 import type { SecurityPolicy } from '../lib/security/SecurityPolicies';
-import { ExecutionContextApi, OMNI_SCOPE } from './execution-context';
+import {
+  ExecutionContextApi,
+  OMNI_SCOPE,
+  type FramePush,
+} from './execution-context';
 import { ModuleApi } from './module';
 import { ProxyApi, type Interceptor, type InterceptionContext } from './proxy';
 import { SecurityError } from '../lib/security/errors';
@@ -50,9 +54,33 @@ import type { Stuff } from '../lib/stuff/Stuff';
  * dereferences this slot at runtime only, by which point the wiring
  * pass has run.
  */
+/**
+ * The two ShadowApi entries the security gate calls on EVERY method
+ * dispatch in the engine, as RAW functions.
+ *
+ * ⭐ Every static on an Api class is wrapped by `decorateApiClass` so
+ * that a static call resolves a policy and pushes a frame. For these two
+ * that wrapping is pure cost: both are `@internal` helpers under the
+ * Public fallback policy, so the gate was resolving a policy it always
+ * passes and pushing a frame nothing ever reads — twice, before it could
+ * decide anything about the call it was actually gating. It was the
+ * security layer paying its own toll to ask itself a question.
+ *
+ * So `ShadowApi` hands these over unwrapped, captured before its own
+ * decoration runs. `_withDispatch` and `_invokeOnShadow` stay gated:
+ * they fire only when a shadow is actually attached, which is rare, and
+ * they are the ones worth a frame.
+ */
+interface ShadowGateEntries {
+  consumeBypass(): boolean;
+  shadowsFor(host: object, methodName: string): ReadonlyArray<object> | null;
+}
+
 interface ShadowApiLike {
   _consumeBypass(): boolean;
   _shadowsFor(host: object, methodName: string): ReadonlyArray<object> | null;
+  /** The raw per-dispatch pair — see {@link ShadowGateEntries}. */
+  _gateEntries(): ShadowGateEntries;
   _withDispatch<T>(
     host: object,
     methodName: string,
@@ -123,6 +151,40 @@ export class SecurityApi {
   static #classDefaultPolicies: WeakMap<ClassKey, SecurityPolicy> =
     new WeakMap();
 
+  /**
+   * Resolved-policy cache, instance side.
+   *
+   * `resolveCallPolicy` walks the prototype chain TWICE — once for a
+   * per-method policy, once for a class default — and a shipped class
+   * is a dozen mixins deep. It does this on every method dispatch in
+   * the engine, to recompute a pure function of (constructor, method).
+   * A profile put it at 20% of what the gate costs.
+   *
+   * Weakly keyed on the constructor, so a hot-reloaded class's entry is
+   * collected with the class rather than pinning it. Stamped with
+   * {@link SecurityApi.#policyGeneration}, which every policy writer
+   * bumps: a `@CallSecurity` registered after a class has already
+   * dispatched invalidates the whole cache instead of lingering as a
+   * stale allow.
+   */
+  static #policyCache: WeakMap<
+    ClassKey,
+    { gen: number; byMethod: Map<string, SecurityPolicy> }
+  > = new WeakMap();
+
+  /** Resolved-policy cache, static side — same contract, keyed by class. */
+  static #staticPolicyCache: WeakMap<
+    ClassKey,
+    { gen: number; byMethod: Map<string, SecurityPolicy> }
+  > = new WeakMap();
+
+  /**
+   * Bumped by every writer of a policy registry. A cache entry stamped
+   * with an older generation is discarded, so registration order can
+   * never leave a stale policy in front of a stricter one.
+   */
+  static #policyGeneration = 0;
+
   /** Per-method @Unshadowable. */
   static #methodUnshadowable: WeakMap<ClassKey, Set<string>> = new WeakMap();
 
@@ -162,6 +224,7 @@ export class SecurityApi {
       SecurityApi.#methodPolicies.set(k, map);
     }
     map.set(methodName, policy);
+    SecurityApi.#policyGeneration++;
   }
 
   /** Stamp a class-form @CallSecurity default policy. @internal */
@@ -170,6 +233,7 @@ export class SecurityApi {
     policy: SecurityPolicy
   ): void {
     SecurityApi.#classDefaultPolicies.set(cls as ClassKey, policy);
+    SecurityApi.#policyGeneration++;
   }
 
   /** Stamp a method-form @Unshadowable. @internal */
@@ -231,6 +295,28 @@ export class SecurityApi {
     instance: object,
     methodName: string
   ): SecurityPolicy {
+    const ctor = (instance as { constructor?: ClassKey }).constructor;
+    if (ctor === undefined) {
+      // Null-prototype object — nothing to key on; resolve the long way.
+      return SecurityApi.#resolveCallPolicyUncached(instance, methodName);
+    }
+    let entry = SecurityApi.#policyCache.get(ctor);
+    if (entry === undefined || entry.gen !== SecurityApi.#policyGeneration) {
+      entry = { gen: SecurityApi.#policyGeneration, byMethod: new Map() };
+      SecurityApi.#policyCache.set(ctor, entry);
+    }
+    const hit = entry.byMethod.get(methodName);
+    if (hit !== undefined) return hit;
+    const resolved = SecurityApi.#resolveCallPolicyUncached(instance, methodName);
+    entry.byMethod.set(methodName, resolved);
+    return resolved;
+  }
+
+  /** The prototype-chain walk {@link SecurityApi.resolveCallPolicy} caches. */
+  static #resolveCallPolicyUncached(
+    instance: object,
+    methodName: string
+  ): SecurityPolicy {
     let proto: unknown = Object.getPrototypeOf(instance);
     while (proto && proto !== Object.prototype) {
       const cls = (proto as { constructor: ClassKey }).constructor;
@@ -256,6 +342,27 @@ export class SecurityApi {
    * inherited the same way). Returns Public if no policy was registered.
    */
   public static resolveStaticCallPolicy(
+    cls: object,
+    methodName: string
+  ): SecurityPolicy {
+    const k = cls as ClassKey;
+    let entry = SecurityApi.#staticPolicyCache.get(k);
+    if (entry === undefined || entry.gen !== SecurityApi.#policyGeneration) {
+      entry = { gen: SecurityApi.#policyGeneration, byMethod: new Map() };
+      SecurityApi.#staticPolicyCache.set(k, entry);
+    }
+    const hit = entry.byMethod.get(methodName);
+    if (hit !== undefined) return hit;
+    const resolved = SecurityApi.#resolveStaticCallPolicyUncached(cls, methodName);
+    entry.byMethod.set(methodName, resolved);
+    return resolved;
+  }
+
+  /**
+   * The class-chain walk {@link SecurityApi.resolveStaticCallPolicy}
+   * caches.
+   */
+  static #resolveStaticCallPolicyUncached(
     cls: object,
     methodName: string
   ): SecurityPolicy {
@@ -340,6 +447,7 @@ export class SecurityApi {
     const k = cls as ClassKey;
     if (!SecurityApi.#classDefaultPolicies.has(k)) {
       SecurityApi.#classDefaultPolicies.set(k, PUBLIC_FALLBACK);
+      SecurityApi.#policyGeneration++;
     }
     SecurityApi.#wrapAllStaticMethods(k);
   }
@@ -369,6 +477,22 @@ export class SecurityApi {
     SecurityApi.#wrapStaticDescriptor(cls as ClassKey, methodName, descriptor);
   }
 
+  /**
+   * The static wrapper's denial throw, hoisted for the same reason the
+   * gate's is: it was allocated on every static Api call in the engine
+   * to be used on almost none of them.
+   */
+  static #denyStatic(
+    cls: ClassKey,
+    methodName: string,
+    policy: SecurityPolicy
+  ): never {
+    throw new SecurityError(
+      `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
+      { methodName, policyName: policy.name }
+    );
+  }
+
   static #wrapStaticDescriptor(
     cls: ClassKey,
     methodName: string,
@@ -382,22 +506,16 @@ export class SecurityApi {
       const policy = SecurityApi.resolveStaticCallPolicy(cls, methodName);
       const caller = ExecutionContextApi.getCurrentTarget();
       const allowed = policy.allows(caller, cls, methodName, args);
-      const deny = (): never => {
-        throw new SecurityError(
-          `Policy ${policy.name} denied ${(cls as { name?: string }).name ?? '<class>'}.${methodName}()`,
-          { methodName, policyName: policy.name }
-        );
-      };
       if (allowed instanceof Promise) {
         return allowed.then((ok) => {
-          if (!ok) deny();
-          return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
+          if (!ok) SecurityApi.#denyStatic(cls, methodName, policy);
+          return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
             original.apply(this, args)
           );
         });
       }
-      if (!allowed) deny();
-      return ExecutionContextApi.run(caller, cls, methodName, undefined, () =>
+      if (!allowed) SecurityApi.#denyStatic(cls, methodName, policy);
+      return SecurityApi.#pushFrame()(caller, cls, methodName, undefined, () =>
         original.apply(this, args)
       );
     };
@@ -517,7 +635,24 @@ export class SecurityApi {
    * The interceptor reads this slot at runtime only, so the
    * security-shadow load cycle stays acyclic at module-eval time.
    */
+  /**
+   * The claimed frame-push capability — see
+   * {@link ExecutionContextApi.claimFramePush}. Claimed on first use
+   * (a module-scope claim would be an executable statement at module
+   * scope), then reused: the caller proof is taken once for this file
+   * instead of on every method dispatch in the engine.
+   */
+  static #framePush: FramePush | null = null;
+
+  /** The claimed push, claiming it if this is the first dispatch. */
+  static #pushFrame(): FramePush {
+    return (SecurityApi.#framePush ??= ExecutionContextApi.claimFramePush());
+  }
+
   static #shadowApi: ShadowApiLike | null = null;
+
+  /** The unwrapped per-dispatch pair — see {@link ShadowGateEntries}. */
+  static #shadowGate: ShadowGateEntries | null = null;
 
   /**
    * Slot for the boot wiring to hand `ShadowApi` to the security gate
@@ -526,6 +661,7 @@ export class SecurityApi {
    */
   public static _registerShadowApi(impl: ShadowApiLike): void {
     SecurityApi.#shadowApi = impl;
+    SecurityApi.#shadowGate = impl._gateEntries();
   }
 
   /* ───────────────── Sandbox boundary check (Layer 4) ─────────────────
@@ -1031,12 +1167,12 @@ export class SecurityApi {
     ctx: InterceptionContext,
     next: () => unknown
   ): unknown => {
-    const shadowApi = SecurityApi.#shadowApi;
+    const shadowGate = SecurityApi.#shadowGate;
 
     // (a) bypass marker — single-shot, consumed atomically. Skips the
     // check entirely if ShadowApi hasn't registered yet (only happens
     // during boot before any Stuff exists, so no shadows are possible).
-    if (shadowApi?._consumeBypass()) {
+    if (shadowGate?.consumeBypass()) {
       return next();
     }
 
@@ -1141,77 +1277,95 @@ export class SecurityApi {
     const policy = SecurityApi.resolveCallPolicy(ctx.target, ctx.prop);
     const caller = ExecutionContextApi.getCurrentTarget();
     const allowedOrPromise = policy.allows(caller, ctx.proxy, ctx.prop, ctx.args);
-    const deny = (): never => {
-      throw new SecurityError(
-        `Policy ${policy.name} denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}`,
-        {
-          stuffId: ctx.target.stuffId,
-          methodName: ctx.prop,
-          policyName: policy.name,
-        }
-      );
-    };
-
-    const proceed = (): unknown => {
-      // 2a. Residency last-touch instrumentation. Fires only on a
-      // successful (non-denied) dispatch — denied calls don't count as
-      // touches — and only on a real method call, not a getter read
-      // (`!ctx.isGetter`): a passive read shouldn't keep an object
-      // resident. `ctx.target` is the raw Stuff, so `touch()` runs
-      // un-proxied (no re-entry into this gate) and writes its slot
-      // directly.
-      if (!ctx.isGetter) {
-        ctx.target.touch();
-      }
-
-      // 3. shadow dispatch. Lookup keyed by proxyRef — `ShadowApi.attach`
-      // stored the proxy, so lookup must use the same identity. When
-      // shadows fire, the chain is a complete replacement for the raw
-      // call — we don't call next() in this branch.
-      const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop) ?? null;
-      if (shadows && shadows.length > 0) {
-        return shadowApi!._withDispatch(
-          ctx.proxy,
-          ctx.prop,
-          shadows,
-          ctx.args as unknown[],
-          () => {
-            const top = shadows[shadows.length - 1]!;
-            return ExecutionContextApi.run(
-              caller,
-              top,
-              ctx.prop,
-              undefined,
-              () =>
-                shadowApi!._invokeOnShadow(
-                  top,
-                  ctx.prop,
-                  ctx.isGetter ? [] : (ctx.args as unknown[])
-                )
-            );
-          }
-        );
-      }
-
-      // 4. no shadows — push the host's frame and continue the pipeline.
-      return ExecutionContextApi.run(
-        caller,
-        ctx.proxy,
-        ctx.prop,
-        undefined,
-        () => next()
-      );
-    };
 
     if (allowedOrPromise instanceof Promise) {
+      // Async policy — rare (a policy that awaits a group lookup). This
+      // is the one branch that still allocates a closure per dispatch,
+      // and it does not run on the hot path.
       return allowedOrPromise.then((ok) => {
-        if (!ok) deny();
-        return proceed();
+        if (!ok) SecurityApi.#deny(ctx, policy);
+        return SecurityApi.#proceed(ctx, caller, shadowGate, next);
       });
     }
-    if (!allowedOrPromise) deny();
-    return proceed();
+    if (!allowedOrPromise) SecurityApi.#deny(ctx, policy);
+    return SecurityApi.#proceed(ctx, caller, shadowGate, next);
   };
+
+  /** The denial throw, hoisted so the gate allocates nothing to refuse. */
+  static #deny(ctx: InterceptionContext, policy: SecurityPolicy): never {
+    throw new SecurityError(
+      `Policy ${policy.name} denied ${ctx.prop}() on Stuff ${ctx.target.stuffId}`,
+      {
+        stuffId: ctx.target.stuffId,
+        methodName: ctx.prop,
+        policyName: policy.name,
+      }
+    );
+  }
+
+  /**
+   * The allowed path: touch, shadow dispatch, frame push.
+   *
+   * ⭐ A static method, not the closure it reads more naturally as.
+   * `#securityGate` runs on every method call in the engine, and a
+   * closure declared inside it is ALLOCATED on every one of them —
+   * plus, under the `tsx`/esbuild runtime the server actually runs on,
+   * an `Object.defineProperty(fn, 'name')` apiece, which a CPU profile
+   * put at 27% of the gate. Hoisting `deny` + `proceed` and passing
+   * `next` straight through takes the gate from five allocations per
+   * dispatch to one.
+   */
+  static #proceed(
+    ctx: InterceptionContext,
+    caller: unknown,
+    shadowGate: ShadowGateEntries | null,
+    next: () => unknown
+  ): unknown {
+    // 2a. Residency last-touch instrumentation. Fires only on a
+    // successful (non-denied) dispatch — denied calls don't count as
+    // touches — and only on a real method call, not a getter read
+    // (`!ctx.isGetter`): a passive read shouldn't keep an object
+    // resident. `ctx.target` is the raw Stuff, so `touch()` runs
+    // un-proxied (no re-entry into this gate) and writes its slot
+    // directly.
+    if (!ctx.isGetter) {
+      ctx.target.touch();
+    }
+
+    // 3. shadow dispatch. Lookup keyed by proxyRef — `ShadowApi.attach`
+    // stored the proxy, so lookup must use the same identity. When
+    // shadows fire, the chain is a complete replacement for the raw
+    // call — we don't call next() in this branch.
+    const shadows = shadowGate?.shadowsFor(ctx.proxy, ctx.prop) ?? null;
+    if (shadows && shadows.length > 0) {
+      // The shadow path allocates, and calls the GATED ShadowApi
+      // statics: it fires only when a shadow is attached, which is rare,
+      // and its choreography genuinely needs both the nesting and the
+      // frames.
+      const shadowApi = SecurityApi.#shadowApi!;
+      return shadowApi._withDispatch(
+        ctx.proxy,
+        ctx.prop,
+        shadows,
+        ctx.args as unknown[],
+        () => {
+          const top = shadows[shadows.length - 1]!;
+          return SecurityApi.#pushFrame()(caller, top, ctx.prop, undefined, () =>
+            shadowApi!._invokeOnShadow(
+              top,
+              ctx.prop,
+              ctx.isGetter ? [] : (ctx.args as unknown[])
+            )
+          );
+        }
+      );
+    }
+
+    // 4. no shadows — push the host's frame and continue the pipeline.
+    // `next` is already the zero-arg thunk the push wants; wrapping it
+    // in `() => next()` would allocate for nothing.
+    return SecurityApi.#pushFrame()(caller, ctx.proxy, ctx.prop, undefined, next);
+  }
 
   /**
    * Static initializer: registers the security gate with `ProxyApi`

@@ -57,6 +57,7 @@ export type CraftDeclineReason =
   | 'missing-tool'
   | 'insufficient-input'
   | 'insufficient-heat'
+  | 'no-glass'
   | 'no-output';
 
 export interface CraftSuccess {
@@ -270,6 +271,7 @@ export class CraftingApi {
   ): Promise<SalvageOutcome> {
     return logic().salvage(request);
   }
+
 
   /** Resolve a recipe id/keyword to a display view, or null. */
   public static async lookupRecipe(ref: string): Promise<RecipeView | null> {

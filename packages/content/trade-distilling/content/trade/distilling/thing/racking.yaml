@@ -1,0 +1,9 @@
+# Warehouse racking — a Surfaced fixture cased goods rest on. The `warehouse`
+# bundle's one fixture; a venue's `populates: { onto }` puts crates and
+# casks on it.
+class: /platform/thing/Surface
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the racking
+  longDescription: Steel racking to the rafters, the lower bays cased and labelled, the upper ones empty and waiting.
+  keywords: [racking, rack, shelves, shelving, bay]

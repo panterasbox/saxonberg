@@ -26,18 +26,31 @@
  * the inter-Stuff contract is the method surface, never the fields.
  */
 
+import type { CommandContributions } from "../../api/command";
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
 import { Grade } from "./Grade";
+import type { Technique } from "./Technique";
 
-/** How the build was worked — recorded by `stir` / `shake`. */
-export type BuildMethod = "stirred" | "shaken";
+/** How the build was worked — recorded by `stir` / `shake` / `muddle`. */
+export type BuildMethod = Technique;
 
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {
-  /** The Material category tag (e.g. `gin`) — matched against recipe slots. */
-  category: string;
+  /**
+   * A Material **tag** naming what was contributed (e.g. `gin`), matched
+   * against a recipe slot's `category`.
+   *
+   * ⚠ Optional, and `tags` is the authority: a slot matches against the
+   * source Material's full tag set, so a contribution that carries `tags`
+   * need not name one. It was once SYNTHESISED from the material's
+   * display name (`getName().toLowerCase()`) or its first keyword, which
+   * is the antipattern — a recipe's category vocabulary is authored tags,
+   * and words are the command line's. See docs/antipatterns.md
+   * § Keywords Where You Mean Identity.
+   */
+  category?: string;
   /** Volume contributed, in litres (0 for a discrete item contribution). */
   measureL: number;
   /** The source's grade band word, for weakest-link derivation. */
@@ -112,6 +125,25 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = "ManualBuildMixin";
 
     /**
+     * ⭐ The build buffer is what `pour` banks into and `stir` works on,
+     * so the build vessel is what affords them — the shaker, the mixing
+     * glass, the cook pot, and anything else that buffers a
+     * step-by-step build. Named once, here, instead of copied onto every
+     * instrument row (where the shaker and the mixing glass carried the
+     * identical six-verb list and the bar's own stations carried none).
+     */
+    static commandContributions: CommandContributions = {
+      environment: [
+        "platform/cmd/crafting/pour.yaml",
+        "platform/cmd/crafting/stir.yaml",
+      ],
+      peers: [
+        "platform/cmd/crafting/pour.yaml",
+        "platform/cmd/crafting/stir.yaml",
+      ],
+    };
+
+    /**
      * Runtime-only build buffer. Deliberately absent from
      * `persistentFields` — a build-in-progress doesn't survive a reload,
      * mirroring `EngagedMixin`'s transient slot map.
@@ -132,7 +164,8 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
       const material = host.getMaterial();
       if (!material) return false;
       this.addContribution({
-        category: material.getName().toLowerCase(),
+        // No `category`: `tags` below is the material's authored
+        // vocabulary and is what a slot matches on.
         measureL: 0,
         gradeBand: MixinApi.isGraded(host) ? host.getGradeBand() : "fair",
         kind: "item",

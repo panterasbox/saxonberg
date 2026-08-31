@@ -3,7 +3,18 @@ class: /platform/thing/CocktailShaker
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a mixing glass
-  longDescription: A heavy mixing glass and a long bar spoon.
-  keywords: [mixing-glass, mixing, glass, spoon]
-  capabilities: [mixing-glass]
+  longDescription: A heavy mixing glass, thick-walled and straight-sided, its lip cold to the back of a finger.
+  # ⚠ NOT `spoon`, and the prose no longer promises one: the bar spoon is
+  # its OWN fixture on the well (`/trade/hospitality/thing/bar-spoon`).
+  # A row that describes a tool it does not contain, and answers to its
+  # name, is the same divergence a shared keyword is — `look spoon` had
+  # two answers and only one of them could be picked up.
+  keywords: [mixing-glass, mixing, glass]
+  capabilities:
+    # Stirring chills less than shaking, dilutes less, and keeps the
+    # drink clear — the whole reason a martini is stirred.
+    - {
+        kind: mixing-glass,
+        technique: { name: stirred, chillK: 6, dilutionL: 0.01, priority: 2 },
+      }
   condition: 1

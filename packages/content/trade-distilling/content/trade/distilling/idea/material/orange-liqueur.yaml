@@ -1,0 +1,19 @@
+# Orange liqueur — a spirit input. The category tag(s) are what a recipe
+# input slot matches (orange-liqueur); the brand is the ROW's
+# (`_brandKey`), never the material's. Distilling's, by the generic drain
+# rule: the trade whose PROCESS makes it ships it.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: orange liqueur
+  appearance: a sweet, bitter-orange liqueur
+  keywords: [orange-liqueur]
+  density: 940
+  thermalConductivity: 0.17
+  specificHeat: 2400
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 14 }
+  tags: [liquid, beverage, drinkable, alcoholic, spirit, liqueur, orange-liqueur]
+  composition: []
+  biologicalSource: null

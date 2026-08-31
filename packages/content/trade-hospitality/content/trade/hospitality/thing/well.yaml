@@ -1,0 +1,20 @@
+# The well — the speed rail under the bar's lip, a Surfaced shelf the
+# working bottles rest ON (the bar bundle's `onto` target beside the
+# back-bar).
+class: /trade/hospitality/thing/BarStation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the well
+  longDescription: The speed rail below the bar's lip, the working bottles necked in a row within a hand's reach.
+  primaryKeyword: well
+  # ⚠ NOT `rail`, `speed-rail` or `speedrail` — the back-bar owns `rail`.
+  #
+  # ⚠⚠ Keyword matching is SUBSTRING containment, not equality:
+  # `scope-walk.ts` scores on `keywords.some(kw => kw.includes(query))`.
+  # So EVERY keyword containing "rail" answers to `rail` — the hyphen has
+  # nothing to do with it, and `speedrail` is no better than `speed-rail`.
+  # A keyword does not just claim itself; it claims every word it
+  # contains. `well` is the name, and the trade term is in the
+  # description where it reads.
+  keywords: [well]
+  mass: 20

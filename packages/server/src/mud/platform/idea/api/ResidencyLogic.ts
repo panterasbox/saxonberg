@@ -27,6 +27,8 @@ import { SecurityApi } from '../../../api/security';
 import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
 import { ZoneApi } from '../../../api/zone';
 import { Census, type WorldCensus } from '../../../lib/residency/Census';
+import { Template } from '../../../lib/stuff/Template';
+import { Mixins } from '../../../lib/mixin';
 import { SpawnTable, type SpawnCandidate } from '../../../lib/residency/SpawnTable';
 import type { Circulating } from '../../../lib/residency/Circulating';
 import { WorldClockApi, type ClockHandle } from '../../../api/worldclock';
@@ -155,16 +157,40 @@ function presenceWalkImpl(): Set<string> {
  * that chooses raw carries the guard rather than every getter carrying
  * a duplicate of the framework rule.
  */
+/**
+ * Is `raw` inside a room somebody is watching?
+ *
+ * ⚠⚠ **Walks RAW the whole way up, and both reasons matter.**
+ * `getContainer()` RETURNS a proxy, so a walk that unwrapped only the
+ * starting object went back through the security proxy at every hop
+ * after the first:
+ *
+ *  - **Correctness.** The sweep unwraps precisely so that enumeration
+ *    never counts as a residency touch — and then touched every
+ *    container in the world anyway, one hop at a time. The cold-tail
+ *    the eviction sweep exists to find could never GO cold.
+ *  - **Cost.** Every proxied hop is a gated call, and a gated call
+ *    captures a JS stack. This runs for EVERY object in the world, on
+ *    every reset sweep. A live drive caught the server pinned at a
+ *    core with five of five debugger pauses landing right here.
+ *
+ * ⭐ And it is player-triggered: the `presentRooms.size === 0` early
+ * return means an empty world costs nothing, so the cliff appears the
+ * moment somebody logs in. Which is exactly when it must not.
+ */
 function isInPresentRoom(raw: Stuff, presentRooms: Set<string>): boolean {
   if (presentRooms.size === 0) return false;
-  let node: Stuff | null = MixinApi.isContainable(raw)
-    ? (raw as Stuff & Containable).getContainer()
-    : null;
-  while (node !== null && !node.isDestroyed()) {
+  const up = (s: Stuff): Stuff | null => {
+    if (!MixinApi.isContainable(s)) return null;
+    const next = (s as Stuff & Containable).getContainer();
+    return next ? ProxyApi.unwrap(next) : null;
+  };
+  let node: Stuff | null = up(raw);
+  const seen = new Set<string>();
+  while (node !== null && !node.isDestroyed() && !seen.has(node.stuffId)) {
     if (presentRooms.has(node.stuffId)) return true;
-    node = MixinApi.isContainable(node)
-      ? (node as Stuff & Containable).getContainer()
-      : null;
+    seen.add(node.stuffId);
+    node = up(node);
   }
   return false;
 }
@@ -205,42 +231,63 @@ export interface SpawnSweepReport {
  * not a spawn budget and must not become one.
  */
 async function runSpawnSweep(): Promise<SpawnSweepReport> {
-  const census = await Census.takeCensus();
+  const taken = await Census.takeCensus();
   const mode = readSpawnMode();
+  const perRegionCap = readPerRegionCap();
   const report: SpawnSweepReport = {
-    regions: census.size,
+    regions: 0,
     declined: 0,
     placed: 0,
   };
 
-  // v1 candidate set: every circulating template the world already
-  // knows. The AUTHORED half of D31 (a declared par on a resettable
-  // holder) rides the shipped reset sweep above and is deliberately
-  // untouched here — `populates:` likewise stays what it is, a
-  // clone-time cascade for set dressing, never the injection path for
-  // economy-bearing items.
-  const candidates = collectSpawnCandidates();
+  // The candidate set: every template row that declares a census key
+  // (a producer's floor product, authored with its home `container:`)
+  // plus every live circulating thing's own template. Template-derived
+  // first, so a FRESH boot stands a floor at target before any instance
+  // exists to copy. The AUTHORED half of D31 (a declared par on a
+  // resettable holder) rides the reset sweep and is untouched here —
+  // `populates:` likewise stays a clone-time cascade for set dressing,
+  // never the injection path for economy-bearing items.
+  const candidates = await collectSpawnCandidates();
   if (candidates.length === 0) return report;
 
-  for (const region of census.keys()) {
+  // A sweep's own running count: the census is taken ONCE, then kept
+  // honest locally as the sweep places — one query per sweep, and a
+  // draw-until-decline loop that sees its own placements.
+  const census = new Map<string, Map<string, number>>();
+  for (const [region, bucket] of taken) census.set(region, new Map(bucket));
+  const regions = new Set<string>(taken.keys());
+  for (const c of candidates) if (c.region !== undefined) regions.add(c.region);
+  report.regions = regions.size;
+
+  for (const region of regions) {
     const { stocks, affinity, blessingOdds } = await regionStockFor(region);
-    // A zone's declared count wins over the item's baseline.
-    const scoped = candidates.map((c) => {
-      const declared = stocks[c.censusKey];
-      return typeof declared === 'number'
-        ? { ...c, regionTarget: declared }
-        : c;
-    });
-    const pick = SpawnTable.draw(scoped, census, region, { affinity });
-    if (!pick) {
-      // The region is at target for everything the table could place.
-      // This is authored placement suppressing random spawning without
-      // either channel knowing about the other — and it is REGIONAL,
-      // never global (AC 34).
-      report.declined++;
-      continue;
-    }
-    if (mode === 'enforce') {
+    // A zone's declared count wins over the item's baseline; a candidate
+    // with an authored home is only ever drawn for that home.
+    const scoped = candidates
+      .filter((c) => c.region === undefined || c.region === region)
+      .map((c) => {
+        const declared = stocks[c.censusKey];
+        return typeof declared === 'number'
+          ? { ...c, regionTarget: declared }
+          : c;
+      });
+    let placedHere = 0;
+    for (;;) {
+      const pick = SpawnTable.draw(scoped, census, region, { affinity });
+      if (!pick) {
+        // The region is at target for everything the table could place.
+        // This is authored placement suppressing random spawning without
+        // either channel knowing about the other — and it is REGIONAL,
+        // never global (AC 34).
+        report.declined++;
+        break;
+      }
+      if (mode !== 'enforce') {
+        // Observe mode: the table's first answer is the whole report.
+        break;
+      }
+      if (placedHere >= perRegionCap) break;
       try {
         const minted = await StuffApi.clone(pick.templatePath);
         // **The BUC roll happens HERE and nowhere else** — at the random
@@ -255,8 +302,16 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
         // output rolling dice.
         rollBlessing(minted, blessingOdds);
         report.placed++;
+        placedHere++;
+        let bucket = census.get(region);
+        if (!bucket) {
+          bucket = new Map<string, number>();
+          census.set(region, bucket);
+        }
+        bucket.set(pick.censusKey, (bucket.get(pick.censusKey) ?? 0) + 1);
       } catch (err) {
         console.warn('[residency] spawn clone failed', pick.templatePath, err);
+        break;
       }
     }
   }
@@ -336,15 +391,45 @@ function rollBlessing(
 }
 
 /**
- * The templates the spawn table may draw from — every live circulating
- * thing's own template, deduped by census key + path.
+ * The templates the spawn table may draw from — every template row that
+ * DECLARES a census key (a floor product: `censusKey`, `regionTarget`,
+ * `materialTags` and its home `container:` all authored in `data`), plus
+ * every live circulating thing's own template (the shipped v1 set, which
+ * keeps an item that exists somewhere stockable even when its key is
+ * derived rather than authored). Deduped by path, the authored row
+ * winning because it carries the home region.
  *
- * v1 reads the live world rather than a separate registry, which keeps
- * the candidate set honest (a thing that exists somewhere can be
- * stocked) and avoids minting a table nobody would remember to update.
+ * A template candidate's home region is the zone of its `container:` —
+ * the producer's Stock counter — resolved once per sweep. A row with no
+ * container is homeless and may be drawn anywhere (the v1 behaviour).
  */
-function collectSpawnCandidates(): SpawnCandidate[] {
+async function collectSpawnCandidates(): Promise<SpawnCandidate[]> {
   const byPath = new Map<string, SpawnCandidate>();
+  const rows = await Template.findWhereDataHas('censusKey');
+  const circulatingClass = new Map<string, boolean>();
+  for (const tpl of rows) {
+    const data = tpl.data;
+    const censusKey = typeof data.censusKey === 'string' ? data.censusKey : '';
+    if (censusKey.length === 0 || !tpl.class) continue;
+    if (!circulatingClass.has(tpl.class)) {
+      circulatingClass.set(tpl.class, await isCirculatingClass(tpl.class));
+    }
+    if (!circulatingClass.get(tpl.class)) continue;
+    const container = typeof data.container === 'string' ? data.container : null;
+    const region = container ? await regionOfPath(container) : undefined;
+    const materialTags = Array.isArray(data.materialTags)
+      ? data.materialTags.filter((t): t is string => typeof t === 'string')
+      : [];
+    byPath.set(tpl.path, {
+      templatePath: tpl.path,
+      censusKey,
+      effectTags: [],
+      materialTags,
+      regionTarget:
+        typeof data.regionTarget === 'number' ? data.regionTarget : DEFAULT_REGION_TARGET,
+      ...(region !== undefined ? { region } : {}),
+    });
+  }
   for (const obj of StuffApi.getAllObjects()) {
     const raw = ProxyApi.unwrap(obj);
     if (!MixinApi.isCirculating(raw)) continue;
@@ -365,6 +450,40 @@ function collectSpawnCandidates(): SpawnCandidate[] {
     });
   }
   return [...byPath.values()];
+}
+
+/** The item's own baseline target when a row leaves it unauthored (`Circulating`'s). */
+const DEFAULT_REGION_TARGET = 3;
+
+/** Does `classPath` compose `CirculatingMixin`? (The `MaterialLogic.isMaterialClass` precedent.) */
+async function isCirculatingClass(classPath: string): Promise<boolean> {
+  try {
+    const ctor = await StuffApi.loadClassByPath(classPath);
+    return MixinApi.hasMixin(ctor as never, Mixins.Circulating);
+  } catch {
+    return false;
+  }
+}
+
+/** The census region a template path falls in — its zone, else the unplaced region. */
+async function regionOfPath(path: string): Promise<string> {
+  try {
+    const zone = await ZoneApi.resolveZoneForPath(path);
+    return zone?.getTemplatePath() ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** The per-region placement cap (`residency.spawn.perRegionCap`, default 64). */
+function readPerRegionCap(): number {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.residencySpawnPerRegionCap);
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 64;
+  } catch {
+    return 64;
+  }
 }
 
 /** `observe` (default) | `enforce` — the sibling of the two shipped modes. */

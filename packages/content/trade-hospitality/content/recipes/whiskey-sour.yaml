@@ -1,0 +1,15 @@
+# Whiskey sour — shaken sour (the egg white is menu v2)
+recipeId: whiskey-sour
+name: Whiskey sour
+keywords: [whiskey-sour, sour]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: whiskey, minGrade: fair, measureL: 0.06 }
+- { slot: sour, category: lemon-juice, minGrade: fair, measureL: 0.03 }
+- { slot: sweet, category: syrup, minGrade: fair, measureL: 0.02 }
+toolCapabilities: [shaker]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/rocks
+outputAppearance: a whiskey sour, cloudy and gold
+ice: cubes

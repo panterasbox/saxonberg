@@ -141,41 +141,22 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * Per-instance dynamic command contributions, merged with the static
-     * `commandContributions` by the containment-delta machinery (the
-     * `InstanceContributor` seam). A Behaved host affords `talk` to
-     * nearby givers **exactly when** it carries an `engage`-triggered
-     * (dialogue-responder) spec — so a conversational NPC is
-     * discoverable and a silent one is not, with no subclass and no
-     * manual push/pop. Reads the persisted `behaviors:` (hydrated before
-     * placement, so it is live at containment-delta time), independent of
-     * brain wiring. The framework's pop-on-departure / reset-on-move
-     * handles teardown; adding/removing a tree on an already-placed host
-     * settles on its next (re)placement.
+     * ⭐ **`talk` is afforded by being a Behaved host, full stop.** It
+     * used to be conditional — the per-instance hook offered `talk` only
+     * when the host carried an `engage`-triggered dialogue spec, so a
+     * silent NPC was not addressable. That was a second record of verb
+     * affordances beside this static, and the condition is the
+     * controller's job anyway: `TalkController` declines diegetically
+     * when there is nothing to say, exactly as a broken tool keeps
+     * affording its verb and the controller declines on the capability.
+     *
+     * Afford statically, decline diegetically. A verb that appears and
+     * disappears with authored data is a verb the client cannot reason
+     * about.
      */
-    public getInstanceContributions(): CommandContributions {
-      // Merge any inner contributor's buckets (CasterMixin sits under
-      // this on the NPC chain) — a shadowing implementation must not
-      // silently drop a sibling seam's affordances.
-      const inner =
-        (
-          Base.prototype as {
-            getInstanceContributions?: () => CommandContributions;
-          }
-        ).getInstanceContributions?.call(this) ?? {};
-      const conversational = (this.behaviors ?? []).some(
-        (s) => s.trigger === 'engage'
-      );
-      if (!conversational) return inner;
-      // `talk` reaches whoever shares the room with this NPC — one
-      // bucket now, since `peers` is the sideways one. (It was listed on
-      // both `environment` and `peers` before the rename, which were two
-      // names for the same sibling fan-out.)
-      return {
-        ...inner,
-        peers: [...(inner.peers ?? []), 'platform/cmd/social/talk.yaml'],
-      };
-    }
+    static commandContributions: CommandContributions = {
+      peers: ['platform/cmd/social/talk.yaml'],
+    };
 
     // ───────── lifecycle ─────────
 
@@ -413,6 +394,14 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       perceived: BrainContext['perceived'],
       source: 'cadence' | 'witness'
     ): Promise<void> {
+      // ⭐ The cast holds still while the world is closed. Brains are
+      // wired at `postRegister` — the host must exist before it can
+      // behave — but their schedules are REAL-TIME, so without this they
+      // start acting minutes before the subsystems they act THROUGH are
+      // booted, and their failing beats starve the boot that would fix
+      // them (`AppApi.isWorldOpen`). One check, at the single point
+      // cadence and witness both come through.
+      if (!AppApi.isWorldOpen()) return;
       // A witnessing brain that claims slots holds them briefly so a
       // concurrently-running cadence brain (requiresFree) yields.
       if (

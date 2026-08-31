@@ -57,6 +57,7 @@ import type Exit from '../lib/boundary/Exit';
 import type { SenseChannel } from '../lib/description/Perceiver';
 import { MixinApi } from './mixin';
 import { escapeText, decodeEntity } from './mml/entities';
+import { KNOWN_TAGS } from './mml/tags';
 import { flatten as flattenInternal } from './mml/flatten';
 import { isKnownLinkScheme } from './mml/schemes';
 import {
@@ -157,6 +158,38 @@ export interface AugmentOpts {
  * close to its companions (`MarkupAugmenter` type, `AugmentOpts`
  * shape). See `Mml.augment` for the public-surface docstring.
  */
+/**
+ * ⭐ Neutralise angle brackets that are **not** MML.
+ *
+ * A description is a MIX: mostly authored prose, sometimes markup that
+ * CODE composed into it (`<sense channel="…">` from `BodyPlan` /
+ * `Perceiver`, wrapped `<detail>` keys). So it can be neither trusted
+ * wholesale nor escaped wholesale — a blanket escape would break the
+ * sense-strip augmenter, and trusting it wholesale eats authored text.
+ *
+ * ⚠ It ate authored text. Every authored hint written the natural way —
+ * `` `teleport <place>` ``, `` `go <direction>` `` — had its
+ * placeholder DELETED on the way to the player. A live drive read the
+ * TPA terminal's own help as *"step up and name a stop — `teleport ` —
+ * to ride"*, with a stray `</place>` further down where the parser
+ * closed the tag it thought had opened. The authored content carries
+ * `<path>`, `<target>`, `<name>`, `<key>`, `<player>`, `<place>`,
+ * `<destination>` … and not one of them is an MML tag.
+ *
+ * So: a bracket pair whose name is in `KNOWN_TAGS` is markup and
+ * survives; anything else is prose and gets escaped. Closing tags and
+ * self-closing forms ride the same rule.
+ */
+function escapeUnknownTags(text: string): string {
+  return text.replace(
+    /<(\/?)([A-Za-z][A-Za-z0-9-]*)((?:\s[^<>]*)?)(\/?)>/g,
+    (whole, _slash: string, name: string) =>
+      KNOWN_TAGS.has(name.toLowerCase())
+        ? whole
+        : whole.replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+  );
+}
+
 function augmentMarkupImpl(
   text: string,
   host: Stuff,
@@ -168,7 +201,9 @@ function augmentMarkupImpl(
   const augmenters = MixinApi.getAllMarkupAugmenters(
     ctor as Parameters<typeof MixinApi.getAllMarkupAugmenters>[0],
   ) as MarkupAugmenter[];
-  let result = text;
+  // Before any augmenter runs: what the author wrote as prose stays
+  // prose. Augmenters match on words, which escaping leaves untouched.
+  let result = escapeUnknownTags(text);
   for (const aug of augmenters) {
     result = aug(result, host, viewer, opts);
   }

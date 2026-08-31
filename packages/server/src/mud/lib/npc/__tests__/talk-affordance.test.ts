@@ -1,10 +1,18 @@
 /**
- * Discoverability (AC#2): a tree-bearing NPC affords `talk` to nearby
- * command-givers; a silent NPC affords neither. Exercises the
- * `InstanceContributor` seam end to end — BehavedMixin's per-instance
- * contribution rides the ordinary containment-delta push/pop, so it
- * works whether the player is already present, arrives later, or the NPC
- * departs.
+ * Discoverability (AC#2): a Behaved NPC affords `talk` to nearby
+ * command-givers, and the affordance rides the ordinary
+ * containment-delta push/pop — so it works whether the player is
+ * already present, arrives later, or the NPC departs.
+ *
+ * ⭐ **Afford statically, decline diegetically.** `talk` used to be
+ * conditional on the NPC carrying an `engage`-triggered dialogue spec,
+ * through a per-instance contribution hook. That was a second record of
+ * verb affordances beside the class statics, and it made the verb set
+ * depend on authored data the client cannot see. Now every Behaved host
+ * affords `talk`, and `TalkController` answers "<npc> has nothing to
+ * say" for one with no tree — the same shape as a broken tool, which
+ * keeps affording its verb while the controller declines on the
+ * capability.
  */
 
 import "../../../../test-bootstrap";
@@ -71,14 +79,17 @@ describe("talk affordance (discoverability)", () => {
     expect(affordsTalk(player)).toBe(true);
   });
 
-  it("a silent NPC affords neither (no engage spec)", () => {
+  // A silent NPC is addressable and says nothing — it is not invisible
+  // to the parser. Trying and being told is the discoverable outcome; a
+  // verb that is simply absent teaches the player nothing.
+  it("a silent NPC still affords talk — the controller is what declines", () => {
     const room = makeStuff(() => new Room());
     const player = makeStuff(() => new Player());
     const npc = makeStuff(() => new Npc());
     npc.behaviors = [IDLE_SPEC];
     ContainmentApi.move(npc as never, room as never);
     ContainmentApi.move(player as never, room as never);
-    expect(affordsTalk(player)).toBe(false);
+    expect(affordsTalk(player)).toBe(true);
   });
 
   it("withdraws talk when the tree NPC leaves the room", () => {

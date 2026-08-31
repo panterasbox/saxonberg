@@ -541,6 +541,11 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       // on arrival).
       await this.autoSenseOnArrival();
       this.autoIntroduceOnArrival();
+      // The display you can see shows X — and the one you left, no
+      // longer. One hook, both directions; the viewer owns its own
+      // client state, so the viewer is who re-syncs it (display.md).
+      const self = this as unknown as Stuff;
+      if (MixinApi.isHasInteractive(self)) self.refreshDisplays();
     }
 
     /**
@@ -568,6 +573,8 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         void this.autoSenseOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
+      const mover = this as unknown as Stuff;
+      if (MixinApi.isHasInteractive(mover)) mover.refreshDisplays();
     }
 
     /**

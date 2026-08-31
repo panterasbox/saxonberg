@@ -1,14 +1,20 @@
 id: trade-hospitality
-version: 0.1.0
+version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /trade/hospitality
 description: >-
-  The hospitality trade — what tending bar introduces: its stations (the
-  shaker, the mixing glass, the cocktail glass, the back-bar), its recipes
-  (daiquiri, martini) and the tip jar. The bottles are a venue's own stock
-  of base-library materials, and positions are rows on a venue's Business
-  (employment.md) — neither is the trade's. Dave's Bar
-  (/world/lounge/location/bar) is the venue that hosts this trade; it
-  populates the stations by reference. Content packs wave 4b.
+  The hospitality trade — a CAPABILITY pack since libations. What tending
+  bar introduces, cut at the trade's process (serving) and never at a
+  substance: the stations (the keg tap, the ice bin, the water tap and
+  basin, the glass rack, the back-bar, the house tablet), the bar tools
+  (shaker, mixing glass, muddler, bar spoon, strainer, juicer), the nine
+  glasses of the cycling pool (claimed, served, bussed, washed — never
+  minted per drink), the twenty-four-line menu of a healthy neighbourhood
+  bar plus the press and the house-made juices, the `bar` and `cellar`
+  bundles a venue populates by reference, and the `hospitality` venue
+  archetype. The bottles are a venue's own stock bought from the
+  cash-and-carry (trade-distilling); the positions are rows on a venue's
+  Business (employment.md). Dave's Bar (/world/lounge/location/bar) is the
+  venue that hosts this trade.
 requires:
   groups:
     - name: hospitality

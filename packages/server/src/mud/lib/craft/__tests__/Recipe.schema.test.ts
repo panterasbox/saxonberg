@@ -27,7 +27,7 @@ const OLD_ROW = {
     { slot: 'mod', category: 'vermouth', minGrade: 'fair', measureL: 0.01 },
   ],
   toolCapabilities: ['mixing-glass'],
-  outputTemplate: '/trade/hospitality/thing/cocktail-glass',
+  outputTemplate: '/trade/hospitality/thing/coupe',
   outputMaterial: '/stuff/idea/material/cocktail/martini',
   baseGradeBand: '',
 };
@@ -112,7 +112,7 @@ describe('Recipe schema round-trip', () => {
     expect(r.getKeywords()).toEqual(['martini']);
     expect(r.getInputSlots()).toEqual(OLD_ROW.inputSlots);
     expect(r.getToolCapabilities()).toEqual(['mixing-glass']);
-    expect(r.getOutputTemplate()).toBe('/trade/hospitality/thing/cocktail-glass');
+    expect(r.getOutputTemplate()).toBe('/trade/hospitality/thing/coupe');
     expect(r.getOutputMaterial()).toBe('/stuff/idea/material/cocktail/martini');
     expect(r.getBaseGrade()).toBeNull();
     // New fields default: no heat gate, bulk application, no ladder row.

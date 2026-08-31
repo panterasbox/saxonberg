@@ -528,6 +528,20 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
 
+      // ⭐⭐ Below the model's own resolution, do nothing YET — and
+      // deliberately do not re-stamp, so the elapsed time accumulates
+      // and the next read past a full step integrates all of it. No
+      // game-time is lost; it is batched to the granularity this model
+      // already declares (`STEP_SEC` — "one game-minute").
+      //
+      // ⚠ Without this, reconcile-on-read integrated a sliver on EVERY
+      // read. `getConditionBand` reconciles, `getCarryCapacity` reads
+      // the band, and `wouldExceedCeiling` reads the capacity — so every
+      // single `get` ran a full metabolic integration, at a slice up to
+      // 600× finer than the declared step. A live profile put 28% of the
+      // whole server in `wouldExceedCeiling`, nearly all of it here.
+      if (elapsed < D.STEP_SEC) return;
+
       this._reconciling = true;
       try {
         let remaining = elapsed;
@@ -1118,6 +1132,28 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected currentRestQuality(): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isSlottable(self)) return 1.0;
+      // ⭐⭐ The body already RECORDS where it rests, so ask it before
+      // going looking. `getOccupiedHost()` is an inverse lookup, and its
+      // implementation is a WORLD-WIDE MQL over every `Slotted` host —
+      // on a path that runs constantly:
+      //
+      //   getConditionBand → getReserves → reconcileMetabolism
+      //   → integrateSlice → coupledRecovery → currentRestQuality
+      //   → getOccupiedHost → findOccupiedSlots → world:[SlottedMixin]
+      //
+      // A live drive found the server pinned at a core with five of five
+      // debugger pauses in that chain. An actor resting on nothing — the
+      // overwhelming common case, since standing is the default posture
+      // — has no host to find, and `Posed.getRestingOnPath()` says so in
+      // one field read.
+      //
+      // Deliberately a SHORT-CIRCUIT rather than resolving the path
+      // itself: identical behaviour, no new index, and the inverse
+      // lookup stays the one authority for the case that really needs
+      // it. `SlotLogic.findOccupiedSlots` still carries its own
+      // "promote to an inverse index if profiling demands" note; this
+      // removes the caller that was doing the demanding.
+      if (MixinApi.isPosed(self) && !self.getRestingOnPath()) return 1.0;
       const host = self.getOccupiedHost();
       if (host && MixinApi.isPostured(host)) return host.getRestQuality();
       return 1.0;

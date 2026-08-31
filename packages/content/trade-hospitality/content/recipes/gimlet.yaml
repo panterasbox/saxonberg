@@ -1,0 +1,14 @@
+# Gimlet — gin, lime and syrup, shaken
+recipeId: gimlet
+name: Gimlet
+keywords: [gimlet]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: gin, minGrade: fair, measureL: 0.06 }
+- { slot: sour, category: lime-juice, minGrade: fair, measureL: 0.02 }
+- { slot: sweet, category: syrup, minGrade: fair, measureL: 0.02 }
+toolCapabilities: [shaker]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/coupe
+outputAppearance: a pale green gimlet

@@ -1,0 +1,12 @@
+# Coffee — a quarter litre from the urn into a mug
+recipeId: coffee
+name: Coffee
+keywords: [coffee, cup-of-coffee]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: coffee, category: coffee, minGrade: fair, measureL: 0.25 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/mug
+outputAppearance: a mug of black coffee, steaming

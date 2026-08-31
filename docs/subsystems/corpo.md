@@ -125,11 +125,11 @@ Two surfaces beyond the accessors:
   by `Mml.augment`.
 
 `Branded` is general (any Stuff can be marked — a bottle, later a venue or an
-`Adornment`). **`BrandedBottle`** (`lib/corpo/BrandedBottle.ts`,
-`BrandedMixin(Thing)`) is the minimal composed class the proof-demo bottles
-use — a branded object **only**: it deliberately does **not** model
-booze-as-bulk (`Bulkable`); working bottles and the back-bar surface are the
-bar build's job.
+`Adornment`). The working bottle is `/platform/thing/Bottle` (a Graded,
+Bulkable, Sealable, Circulating receptacle — libations); its `_brandKey`
+is the mark. The mark-only `BrandedBottle` proof class and its two demo
+rows were retired in the libations drain — every shipped branded thing
+is now a real bottle in a trade or corpo pack.
 
 ## Authored content (v1, the booze slice)
 
@@ -142,9 +142,30 @@ bar build's job.
 - Six booze brands: Volk (Veshko), Goodkin Reserve (Goodkin), Vionne Noir
   (Vionne), Old Hollis (Hollis), aevex zero (Aevex), and **Crowsfoot Gin**
   (independent — empty `owner`).
-- Two proof-demo bottle templates under `/stuff/thing/corpo/demo/` — a Volk bottle
-  (resolves to Veshko) and a Crowsfoot bottle (resolves to a null corpo) —
-  proving end-to-end mark resolution + the derived perception line.
+- The branded bottles are real floor product, and they live in the
+  **trade** pack: Volk and the unbranded Veshko liquid under
+  `/trade/distilling/location/veshko-yard/thing/` (resolves to Veshko), Old Hollis /
+  Hollis Cane under `/trade/distilling/thing/`, and Crowsfoot under
+  `/trade/distilling/thing/` (resolves to a null corpo) — end-to-end mark
+  resolution + the derived perception line on a working `Bottle`. The
+  Crowsfoot **Brand** row ships with `trade-distilling`, at the catalogue's
+  `/stuff/idea/corpo/Brand/` prefix like every other brand.
+
+### A corpo pack is capital + the mark, nothing else
+
+The rule, decided at the libations review: **a corpo pack ships the
+`Corpo` row, its `Brand` rows and its organization chart — never a
+product and never a trade locality.** A bottle of Volk is a product of
+the distilling *process*; the only thing "corpo" about it is one field
+(`_brandKey`) pointing at a Brand row, which is exactly what the corpo
+pack supplies. So a corpo-owned producer — Veshko's distillery yard,
+Hollis's bottling floor — lives in its **trade** pack as an outfit
+(Business + Stock + hand + floor) whose `parentOrganization` points *up*
+at `/corpo/<x>`; the trade pack depends on the corpo pack, never the
+reverse. The only localities a corpo pack would ever ship are
+corpo-shaped buildings (a branch, an HQ). A store franchised by a corpo
+belongs to its *neighborhood* pack. The requirements' D14 table had
+placed the bottle rows in the corpo packs; that was the error.
 
 The `rivals` edges are **authored canon with no runtime consumer this build**
 — the fault-line map is real and queryable, but nothing reads it yet (the

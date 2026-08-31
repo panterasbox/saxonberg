@@ -1,0 +1,12 @@
+# a champagne flute — a pool glass over CraftVessel (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a champagne flute
+  longDescription: A tall, narrow flute on a thin stem.
+  primaryKeyword: flute
+  keywords: [flute, glass, champagne-flute]
+  category: flute
+  interiorBulk: true
+  interiorCapacity: 0.18

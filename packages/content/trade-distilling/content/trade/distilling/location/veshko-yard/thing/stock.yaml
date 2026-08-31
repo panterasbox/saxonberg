@@ -1,0 +1,16 @@
+# Veshko's stock — the Stock the yard's floor product spawns INTO (every
+# Veshko bottle row's `container:`); the zone's `stocks:` sets the counts.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Veshko's stock
+  primaryKeyword: stock
+  keywords: [stock, pallet, cases]
+  longDescription: Pallets of Volk shrink-wrapped by the hundred, and the unbranded cases behind them.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /trade/distilling/location/veshko-yard/idea/outfit
+  stockLines: []
+  prices: {}

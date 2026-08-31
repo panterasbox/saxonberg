@@ -1,3 +1,11 @@
 # corpo-hollis
 
-The `domain` kind: the Corpo mark (`/stuff/idea/corpo/Corpo/hollis`) and every Brand whose `data.owner` is `hollis`. The `/corpo/hollis` Organization entry in `mud/bootstrap.ts` and the `config/groups.yaml` board row stay platform-seeded (D12).
+The Corpo mark (`/stuff/idea/corpo/Corpo/hollis`), every Brand whose
+`data.owner` is `hollis` (Old Hollis, Hollis Cane), and the `/corpo/hollis`
+Organization (the chart; `maintainers`).
+
+**A corpo pack is capital + the mark, nothing else.** Hollis's bottling
+floor — a warehouse that distils nothing, private-labelling Veshko's
+liquid — is a product of the distilling *process* and lives in
+`trade-distilling` (the `hollis-*` rows under `content/trade/distilling/{agent,idea,location,thing}/`), owned from here
+through `parentOrganization: /corpo/hollis`.

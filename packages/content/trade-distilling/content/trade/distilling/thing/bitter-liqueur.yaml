@@ -1,0 +1,27 @@
+# A SPECIALTY — the botanicals a big distillery does not bother with and
+# a small house lives on. Crowsfoot makes it, alongside its gin.
+#
+# ⭐ This is what gives the independent a real position: a negroni needs
+# bitter liqueur, a spritz needs aperitivo, an old-fashioned needs
+# bitters. The bar cannot serve its menu without dealing with the little
+# place across town, however much cheaper the corpo's rail is.
+#
+# `container:` is Crowsfoot's Stock — the ONLY faucet. Its hand carries
+# the case to the cash-and-carry and consigns it AS Crowsfoot.
+class: /trade/distilling/thing/SpiritBottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of bitter liqueur
+  longDescription: A dark bottle of bitter liqueur with a florid old label.
+  primaryKeyword: amaro
+  keywords: [amaro, bottle, liqueur, bitter, spirit]
+  category: spirit-bottle
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /trade/distilling/idea/material/bitter-liqueur
+  interiorAmount: 0.75
+  gradeBand: fair
+  censusKey: spirit:bitter-liqueur
+  regionTarget: 12
+  materialTags: [spirit, liqueur, bitter-liqueur]
+  container: /trade/distilling/thing/crowsfoot-stock

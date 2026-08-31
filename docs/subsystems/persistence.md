@@ -646,9 +646,33 @@ shape** — see [husbandry.md](./husbandry.md).
 
 ### `captureHostOf` — the mutating-act capture
 
-Capture is **event-driven, not periodic, and not at shutdown**: autosave is
-Avatar-only and `AppBootstrap.shutdown()` persists the world clock and
-nothing else. Reconcile-on-read state survives a rolled-back checkpoint by
+Capture is **event-driven, not periodic**: autosave is Avatar-only.
+Shutdown is the one exception and the backstop — a stop between two
+residency sweeps would lose everything consigned or placed since (the
+libations live drive watched a dev restart empty the cash-and-carry
+counter), so `AppBootstrap.shutdown()` captures each persistable host
+best-effort, alongside the world clock.
+
+⭐ **It ASKS rather than remembering.** The hosts come from
+`world:[mixin.PersistableMixin]` in system mode — the sanctioned world
+search ([mql.md](./mql.md); it is what `lint:world-scan` points a
+bespoke `getAllObjects()` loop at) — and each answers
+`capturesAtShutdown()` for itself. That predicate holds the exclusions,
+because who wants a shutdown capture is this mixin's knowledge, not the
+bootstrapper's: a host with no persistence key never established one, and
+an **Avatar** says no because it captures at logout on its own seam and
+the sweep would only race it.
+
+⚠ A `PersistableRegistry` briefly sat here, with hosts enrolling on
+`setPersistenceKey` and withdrawing on destruct. It was deleted: a third
+index of Stuff beside `byId` and `byTemplatePath`, caching a fact every
+member already held — and its one consumer re-derived all of it on read
+(`isPersistable`, a null key, `isDestroyed`). *A cache whose reader
+revalidates everything it caches is buying nothing*, and this one was
+maintained on every key-set and every destruct, forever, to save a single
+sweep at process exit.
+
+Reconcile-on-read state survives a rolled-back checkpoint by
 re-deriving elapsed time from its clock stamp — but it cannot re-derive an
 **intervention**, so an act that changes a host's state has to capture it.
 
@@ -982,8 +1006,12 @@ The **second persistence scope** landed: owned chattel persists with its
   now dispatched as step (4) of `restoreState`, after the slotted pass, so
   any layer can carry an async restore hook as originally intended.
 - **`ContainerMixin.captureSlice` skips a second kind of content** — a good
-  someone has been *stamped* as owning. Both skips share ONE filter,
-  because the Container and Slotted slices read one content ordering.
+  stamped to a *player*, whose own estate record carries it
+  (`ChattelApi.isOwnerPersisted`). A good stamped to an *organization* has
+  no estate to ride and stays in its host's record (the libations build:
+  a business's consigned counter, its bought rail). Both skips share ONE
+  filter, because the Container and Slotted slices read one content
+  ordering.
 - **Capture reports what it skipped.** `CaptureContext.noteOwnedGood`, and
   `captureImpl` flushes each skipped good into its owner's estate after the
   synchronous state build. Without it, a good in a room going dormant while

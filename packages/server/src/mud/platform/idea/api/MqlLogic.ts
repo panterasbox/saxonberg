@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
+import type { Container } from '../../../lib/spatial/Container';
 import type {
   MqlContext,
   MqlMatchVia,
@@ -85,6 +86,7 @@ export class MqlLogic extends ApiLogic {
     if (quantity) out.quantity = quantity;
     return out;
   }
+
 
   /** See {@link MqlApi.extractStuffs}. */
   @CallSecurity(MqlApiCallers)

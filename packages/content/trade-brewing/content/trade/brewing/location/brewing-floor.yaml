@@ -1,0 +1,17 @@
+# the brewery outfit's floor — the yard: the outfit's Stock (the floor rows' home
+# `container:` — the sweep stands them at target here) and the hand whose
+# `consigns` beat carries them to the cash-and-carry. No exits: the hand
+# teleports (the `shifts` shape); a walk is the locomotion slate's.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the brewery floor"
+  primaryKeyword: floor
+  keywords: ["floor", "brewery", "yard"]
+  longDescription: |
+    A wet stone floor under a roller door: stacked kegs, a hose, the sweet-sour smell of the mash room beyond (the ferment is the distillery build's; the floor stands at target through the sweep until then).
+  ambientIntensity: 25
+  ambientColorTemperature: 4200
+  populates:
+    - /trade/brewing/thing/brewing-stock
+    - /trade/brewing/agent/brewing-hand

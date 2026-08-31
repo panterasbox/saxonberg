@@ -16,6 +16,7 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
 import { RecognitionApi } from '../recognition';
 import { PerceptionApi } from '../perception';
@@ -131,6 +132,16 @@ export function candidatesForPeers(
     if (item.stuffId === giver.stuffId) continue;
     pushDirect(out, item, giver, attention);
     pushDetails(out, item, giver);
+    // One level into an OPEN container standing in the room — the glass
+    // rack's coupes, the floor stock's kegs, a crate's limes. The pool
+    // this scope offers must agree with what `PerceptionApi.canReach`
+    // grants, so both ask `MixinApi.isOpenContainer` rather than each
+    // carrying its own notion of "exposed".
+    if (MixinApi.isOpenContainer(item)) {
+      for (const inner of item.getContents()) {
+        pushDirect(out, inner, giver, attention);
+      }
+    }
   }
   return out;
 }

@@ -1,0 +1,15 @@
+# Manhattan — stirred, a cherry
+recipeId: manhattan
+name: Manhattan
+keywords: [manhattan]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: whiskey, minGrade: fair, measureL: 0.06 }
+- { slot: modifier, category: sweet-vermouth, minGrade: fair, measureL: 0.03 }
+- { slot: dash, category: bitters, minGrade: fair, measureL: 0.002 }
+toolCapabilities: [mixing-glass]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/coupe
+outputAppearance: a manhattan, dark red, a cherry at the bottom
+garnish: { category: cherry, count: 1 }

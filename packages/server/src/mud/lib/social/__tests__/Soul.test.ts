@@ -141,6 +141,50 @@ describe('SoulMixin.emoteFree', () => {
     expect(bob.received[0]!.body).toMatch(/<thing[^>]*>Alice<\/thing> shuffles a deck of cards\./);
   });
 
+  // ⭐ The stop the author already wrote is not doubled. Every one of
+  // the 68 authored `free` emote values in shipped content ends in a
+  // period — that IS the convention — so an unconditional append gave
+  // every single one a double stop. A live drive read it off the wall
+  // of Dave's Bar: "Dave winks knowingly at no one in particular.."
+  it('does not double a stop the text already ends with', () => {
+    const room = makeStuff(() => new Location());
+    const alice = makeStuff(() => new CharacterStuff());
+    alice.setName('Alice');
+    ContainmentApi.move(alice, room);
+    const bob = makeStuff(() => new Listener());
+    ContainmentApi.move(bob, room);
+
+    alice.emoteFree('winks knowingly at no one in particular.');
+    expect(alice.received[0]!.body).toBe(
+      'You winks knowingly at no one in particular.',
+    );
+    expect(bob.received[0]!.body).not.toContain('..');
+
+    // …and the other terminal marks, including a closing quote after
+    // one (the body is entity-escaped, so assert on the stop, not the
+    // literal glyphs).
+    for (const [i, text] of [
+      'throws up their hands!',
+      'raises an eyebrow?',
+      'trails off…',
+      'mutters "fine."',
+    ].entries()) {
+      alice.emoteFree(text);
+      const body = alice.received[i + 1]!.body;
+      expect(body).not.toMatch(/[.!?…]\.$/);
+      expect(body.startsWith('You ')).toBe(true);
+    }
+  });
+
+  it('still adds a stop when the author left it off', () => {
+    const room = makeStuff(() => new Location());
+    const alice = makeStuff(() => new CharacterStuff());
+    alice.setName('Alice');
+    ContainmentApi.move(alice, room);
+    alice.emoteFree('shuffles a deck of cards');
+    expect(alice.received[0]!.body).toBe('You shuffles a deck of cards.');
+  });
+
   it('resolves `@mention` syntax inside the body to <mention> tags', () => {
     const room = makeStuff(() => new Location());
     const alice = makeStuff(() => new CharacterStuff());

@@ -115,21 +115,47 @@ object, so spec, controller, and seed all live under
 `Whistle.ts`, `CrossingLog.ts`, and `Watch.ts`.
 
 **Who affords a verb is a separate question from where its spec
-lives — and the answer is the *instrument***. The tool/fixture that
-does the work carries the working verbs — for tools, **derived from
-instance data**: the capability table (`lib/craft/ToolCapability.ts`)
-maps each kind to its verb family + placement, and `ToolMixin`
-implements the `InstanceContributor` seam over the instance's authored
-`capabilities` (the whetstone entry → `sharpen` carried-only, `pot` →
-the cooking steps, `anvil` → the smithing family, `mending` →
-repair/salvage), so a tool variant is pure seed data — no class, no
-statics. Appliance mixins with real behavior (the furnace →
-`heat`/`ignite`/`douse`/`pump`) still declare statics. A commerce
+lives — and the answer is the *thing that performs the act***, declared
+in **one place**: `static commandContributions` on that thing's class or
+a mixin in its chain. There is no second, row-level record; a
+`capabilities` entry names **no verbs**
+([command-routing.md](./command-routing.md) § *There is ONE record of
+verb affordances*).
+
+Splitting by what performs the act is the discipline that keeps the
+single record honest. The bar is the worked example: `pour` and `stir`
+are banked into and worked on a **build**, so `ManualBuildMixin`
+declares them for every vessel that buffers one (shaker, mixing glass,
+cook pot); `strain` is the **strainer's**; `mix`, `serve` and `garnish`
+are whole-drink acts done at the **station** (`BarStation` — the
+back-bar and the well). An instrument that performs a distinct working
+is a distinct kind of thing and gets a class, which is what a capability
+pack ships anyway (`Muddler`, `Strainer`, `Anvil`, `Whetstone`). The
+capability vocabulary itself stays open and verb-free — a kind is a
+recipe-side requirement and a working, never a verb source (see
+[crafting.md](./crafting.md)).
+
+**Where a verb's spec lives follows the same rule: with the pack whose
+content affords it.** The platform pack ships the verbs any trade's
+instrument can confer (`pour`, `stir`, `heat`, `repair`, `salvage`,
+`wash`, `make`) and the commerce pair (`retail/menu`, `retail/order`);
+a trade's own steps ship in the trade's capability pack — hospitality's
+`muddle`/`strain`/`garnish`/`mix`/`serve`, hearth-cooking's
+`cook`/`plate`, smithing's `forge`/`hammer`/`quench`/`sharpen` — as
+`content/<root>/cmd/<category>/<verb>.yaml` + `src/idea/cmd/<category>/`
+controllers + `content/<root>/idea/cmd/<category>/<Name>Controller.yaml`
+seeds (arcana's shape), named from that pack's own classes by the
+`<root-sans-slash>/cmd/<category>/<verb>.yaml` key
+(`trade/smithing/cmd/crafting/hammer.yaml`). ⭐ Because a pack's classes
+name only its own views, **the kernel can never name a trade's verb** —
+which is why `Whetstone` moved out of `/platform/thing/` when verbs
+became statics. Appliance mixins with real behavior (the furnace →
+`heat`/`ignite`/`douse`/`pump`) declare statics the same way. A commerce
 object (a `CommerceMenu`) affords only its commerce verbs
 (`menu`/`order`) — the menu is for ordering, not making.
 Knowledge-driven verbs with no instrument (`make`) are innate on
 `Avatar`. See [crafting.md § The offer](./crafting.md) for the table
-and the parameterized specs (rate / control / placement).
+and the parameterized specs (rate / control / technique).
 
 ### Aside: spec, parser, and the model
 
@@ -533,6 +559,27 @@ before focus updates, so the trail tracks the actual referent rather
 than the unstable pronoun.
 
 Empty resolutions never touch focus regardless of mode.
+
+⭐⭐ **A DISAMBIGUATED pick anchors on the THING, never on the word.**
+The focus is an MQL fragment and `$focus` **re-resolves** it on every
+later command that defaults to it (`look` declares `default: "$focus"`).
+So storing the keyword the player typed, after they were asked to choose
+between eleven things that matched it, stores the ambiguity: the next
+bare `look` finds eleven again and asks again, forever. When the
+candidate list held more than one, the binder anchors focus on
+`#<stuffId>` — a viewer-free MQL seed that resolves to exactly what was
+picked and still chains (`#abc:label`) for drilling. An UNambiguous
+match keeps the player's own word: it names one thing, and it is what
+`focus` shows them.
+
+⚠ It reads back as the thing, not the id — `buildPromptContext`
+resolves a bare id anchor to its presentation, so the shell prompt says
+`the house tablet>` and not `#wtYvAoxeDjtrMJku8NThs>`.
+
+⚠⚠ And the failure mode was worse than a loop: **a command sent while a
+prompt is open produces no response at all**, so from the seat the
+session did not loop, it went silent. See
+[prompt.md](./prompt.md).
 
 Only meaningful when the giver is `Focused` (Avatars composing
 `ShelledCharacter`). NPCs without `FocusedMixin` ignore the field.

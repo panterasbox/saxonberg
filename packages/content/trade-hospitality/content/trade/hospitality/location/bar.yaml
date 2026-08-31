@@ -1,0 +1,40 @@
+# The `bar` bundle — what a bar-room is furnished with, as a FurnishableRoom
+# row a venue instances or copies by reference (template inheritance does
+# not exist: a venue with its own class — Dave's Bar — lists the same
+# fixtures in its own `populates:`). Every station the menu exposes, and
+# NO bottles: the rail is stocked by buying (the keeper's `restocks` beat
+# at the cash-and-carry), never by `populates` magic.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: a bar
+  description: |
+    A narrow room with a long bar down one side, stools along it, the back-bar mirrored and lit from beneath. A brass tap handle stands over its drip tray; the ice bin and the well sit under the lip where the bartender works.
+  keywords: [bar, barroom, taproom]
+  populates:
+    # The back-bar and the well: the Surfaced shelves the working bottles
+    # rest ON once bought (`put gin on back-bar`). Listed before their
+    # `onto` items.
+    - /trade/hospitality/thing/back-bar
+    - /trade/hospitality/thing/well
+    - { template: /trade/hospitality/thing/shaker, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/mixing-glass, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/muddler, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/bar-spoon, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/strainer, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/juicer, onto: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/house-tablet, onto: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/tip-jar, onto: /trade/hospitality/thing/back-bar }
+    # The stations.
+    - /trade/hospitality/thing/tap
+    - /trade/hospitality/thing/ice-bin
+    - /trade/hospitality/thing/water-tap
+    - /trade/hospitality/thing/basin
+    - /trade/hospitality/thing/glass-rack
+    # Seating.
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool
+    - /trade/hospitality/thing/stool

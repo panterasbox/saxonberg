@@ -62,13 +62,14 @@ with a diegetic reason, not a flag flip.
   across input grades), `fair` fallback for an ungraded craft; `_control`
   is the deferred skill seam (ignored in v1). A plain value-object, **not**
   a `Quantity` (grade is ordinal-categorical, not a measured scalar).
-- **`ToolCapability`** (`ToolCapability.ts`) — the capability vocabulary
-  (`shaker`/`strainer`/`muddler`/`mixing-glass` + the branches'
-  `striking`/`anvil`/`whetstone`/`mending`/`pot`) +
-  `ToolCapabilities.isCapability`/`definitionOf`/`validateEntry` and the
-  **capability table** (each kind's conferred verb family + placement —
-  see § The offer) with the `CapabilitySpec` parameterized-entry shape
-  (`rate`/`control`/`placement`, `RATE_MIN`/`RATE_MAX`). There is **no
+- **`ToolCapability`** (`ToolCapability.ts`) — the capability
+  **contract**: an **open** vocabulary (any kebab name a recipe's
+  `toolCapabilities` and a tool row's `capabilities` agree on — the
+  kernel keeps no list, so a pack that ships a `still` and the recipes
+  that need one edits nothing here) + `ToolCapabilities.validateEntry`
+  and the `CapabilitySpec` parameterized-entry shape (`kind`, **`verbs`**
+  — the command-view keys the entry confers, the row's own data —
+  `rate`/`control`/`technique`, `RATE_MIN`/`RATE_MAX`). There is **no
   workbench concept** —
   "workbench" is just the word for capabilities too heavy to carry: the
   pot and whetstone are portable capital, the anvil (60 kg — a fixture
@@ -254,7 +255,7 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
    - `'bulk'` / `'edible'` — fill the output's bulk slot at
      `Σ measureL` / `outputPortionL`. The substance is **derived by
      default**: the slot points at the ONE generic blend base
-     (`cocktail/mixed` / `food/cooked`) and a per-instance
+     (`/platform/idea/material/blend` / `/platform/idea/material/cooked`) and a per-instance
      **`BulkPayload`** carries the blend's identity (recipe
      name/appearance/keywords) + macros **summed from the consumed
      inputs** — macros in = macros out (a martini's 26 mg of alcohol
@@ -317,34 +318,71 @@ A menu affords **commerce only** — the base's `commandContributions` is
 (content packs wave 4b collapsed the three empty venue subclasses —
 the lounge's `Menu`, `SmithyMenu`, `KitchenMenu` — into it; what
 differed was the rows' data: `offeredRecipes`, prices). The
-*working* verbs are **instrument-conferred through the capability
-table** (`lib/craft/ToolCapability.ts`): each kind's definition names
-the verb family it confers and its placement, and `ToolMixin` derives
-its per-instance contributions from the table over the instance's
-authored `capabilities` (the `InstanceContributor` seam — see
-[command-routing.md](./command-routing.md)). The surface follows
-capital, not venue flags (the menu is for ordering, not making; camp
-cooking works because reachable heat + a pot IS a kitchen), and **a
-tool variant is pure seed data** — the sewing machine is
-`class: /lib/craft/ToolItem` + one spec entry, no code:
+*working* verbs are **instrument-conferred, and named exactly once** —
+on the class of the thing that performs the act, as `static
+commandContributions`. There is **no kernel table** (libations retired
+`CAPABILITY_TABLE`: the kernel could not name a trade's view without
+owning the trade) **and no row-level verb list** — `capabilities[].verbs`
+and `placement` were deleted after them, because two records of one fact
+is the same failure one level down (see
+[command-routing.md](./command-routing.md) § *There is ONE record of verb
+affordances*). A capability entry now names a **requirement and a
+working**, never a verb.
 
-| kind | confers | placement |
+⭐ **Split by what performs the act.** That is the discipline that keeps
+one record honest, and the bar is the worked example — its six verbs
+used to be a single list copied verbatim onto two rows:
+
+| verb | performed by | declared on |
 |---|---|---|
-| `shaker` / `mixing-glass` | pour, stir, strain, garnish, serve, mix | reachable |
-| `pot` | pour, stir, heat, plate, cook | reachable |
-| `anvil` | hammer, quench, forge, repair, salvage | reachable |
-| `mending` | repair, salvage | reachable |
-| `whetstone` | sharpen | **carried** (personal capital) |
-| `striking` / `strainer` / `muddler` | — (recipe-side kinds) | — |
+| platform `pour`, `stir` | the build VESSEL — what a build is banked into and worked on | `ManualBuildMixin` (shaker, mixing glass, cook pot) |
+| hospitality `strain` | the STRAINER | `/trade/hospitality/thing/Strainer` |
+| hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
+| hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
+| hearth-cooking `cook`, `plate`, platform `heat` | the POT | `/trade/hearth-cooking/thing/CookPot` |
+| smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
+| platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
+| smithing `sharpen` | the STONE, **carried only** | `/trade/smithing/thing/Whetstone` |
+| platform `water` | the CAN, **carried only** | `/platform/thing/WateringCan` |
+| `striking` · `strainer` · `juicer` · `tap` · `bar-spoon` · `still` | — | bare kinds: recipe-side requirements, no verbs |
 
-Placement is a kind default with a **per-entry override** (a 40 kg
-grinding wheel authors `placement: reachable` on its `whetstone`
-entry). `FurnaceMixin` still statically confers `heat` (with
-`ignite`/`douse`/`pump`) — an appliance mixin, not a `Tooled` host —
-and `make` is innate on `Avatar` (knowledge-driven, no instrument).
-Capability entries are **parameterized**:
-`{ kind, rate?, control?, placement? }` (a bare string = the defaulted
-spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
+**Carried vs reachable is the bucket, not a second word.** A class
+declaring both `environment` and `peers` is reachable (carried or on the
+floor); one declaring only `environment` is personal capital — your own
+whetstone anywhere, and nothing from a stone across the room. The
+row-level `placement: reachable | carried` was a coarser rename of a
+subset of the four buckets, and could not express `self` or `inventory`
+at all.
+
+⚠ **A class per instrument is the price, and it is the right one.** A
+row can no longer vary its verbs — the sewing kit and the sewing machine
+differ in `rate` and `control`, which is row data, and afford
+identically, which is class data. That is the point. It also closes a
+cross-pack leak for free: a pack's classes name only that pack's views,
+so `Whetstone` moved out of `/platform/thing/` rather than let the
+kernel name `trade/smithing/…/sharpen.yaml`.
+
+The surface follows capital, not venue flags (the menu is for ordering,
+not making; camp cooking works because reachable heat + a pot IS a
+kitchen).
+
+**Where a crafting verb lives** — with the pack whose content affords
+it: `make`, `heat`, `pour`, `stir`/`shake`, `repair`, `salvage`, `wash`
+are platform (a pot and a shaker both pour and stir; a furnace heats; a
+basin washes; mending is any trade's); `menu`/`order` are platform
+**retail** (a menu is commerce, any venue); `muddle`, `strain`,
+`garnish`, `mix`, `serve` are `trade-hospitality`'s; `cook`, `plate`
+are `trade-hearth-cooking`'s; `forge`, `hammer`, `quench`, `sharpen`
+are `trade-smithing`'s — each a capability pack with its controllers in
+`src/idea/cmd/crafting/` and the tests beside them. The kitchen bundle
+and the cook-pot row are hearth-cooking's too (the bundle collects the
+trade's instruments).
+
+`FurnaceMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
+— an appliance mixin, not a `Tooled` host — and `make` is innate on
+`Avatar` (knowledge-driven, no instrument). Capability entries are
+**parameterized**: `{ kind, rate?, control?, technique? }` (a bare
+string = the defaulted spec) — `rate` is a work-rate multiplier (clamped 0.25–10 at read)
 that divides the engaged duration of the steps the kind confers (the
 **conferring kind paces the step**: the anvil paces `hammer`/`quench`,
 the `mending` instrument the now-engaged `repair`; the `striking`
@@ -352,12 +390,13 @@ hammer is a requirement, never a pacer), and `control` is a Grade band
 embedded in the capital that **floors** the outcome grade of work done
 with the instrument (craft, mint, repair — floor only; the ceiling
 stays the skill seam's). `analyze` reads a control-bearing tool's
-band. Class-carried behavior is orthogonal: `CookPot`/`CocktailShaker`
-keep their classes for the build-vessel buffer, `Whetstone` for its
-Audible rasp — none carry affordance statics. Affordance surfaces
-refresh on the next containment delta (the documented
-`InstanceContributor` limitation — a `setCapabilities` edit or a
-break/repair doesn't re-push mid-placement).
+band. `CocktailShaker` backs both the shaker and the mixing glass and
+carries no affordance statics of its own — what they perform in common
+(`pour`, `stir`) is `ManualBuildMixin`'s, and what differs between them
+is the technique, which is row data. Affordance surfaces refresh on the
+next containment delta, so a `setCapabilities` edit or a break/repair
+doesn't re-push mid-placement — which no longer matters for the verb
+SET, since that is now fixed by the class.
 
 `MenuController`/`OrderController` import the lib base, so `order` is
 venue-generic: a smithy with a menu and an on-shift maker just works.
@@ -390,6 +429,170 @@ emitting via `ctx.note` + `MessageApi.scene`.
 
 `serve`/`mix`/`forge`/`cook` are general agent verbs; `order` routes to
 the present on-shift maker.
+
+- **`wash <glass>`** (libations) — afforded by **`WaterFixture`** (the
+  bar basin, the water tap, the dorm tap, the standpipe) in the `peers`
+  bucket. ⚠ It shipped on `UnboundedReceptacle` — *inexhaustible liquid
+  source* — whose other row is the demo's **coffee urn**, and in the
+  `environment` bucket, which grants OUTWARD to the containers ABOVE a
+  thing. A basin is the player's SIBLING and nobody carries one, so
+  **`wash` was afforded to nobody, anywhere it shipped**; the controller
+  tests passed throughout because they call the controller. Affordance
+  is wiring, and wiring needs its own assertion
+  (`lib/command/__tests__/WaterFixture.affordance.test.ts`).
+  The controller stays deliberately more permissive than the affordance
+  — any reachable bulk holder whose matter is water, a carried jug
+  included. The fixture provides DISCOVERABILITY; water in reach is what
+  makes it work. A static cannot read a holder's contents, and should
+  not: that is the state-dependent affordance the `InstanceContributor`
+  seam expressed, deleted for the reasons in
+  [command-routing.md](./command-routing.md).
+  An engaged step (~3 s) that needs a
+  reachable water source: a `Bulkable` holder whose material carries the
+  **`water` tag** (the basin/tap `UnboundedReceptacle` affords the view).
+  ⚠ The tag, and only the tag — this once also matched the material's
+  keyword and display name, which is how it worked at all, since the
+  water row carried no `water` tag; see
+  [antipatterns.md](../antipatterns.md) § *Keywords Where You Mean
+  Identity*.
+
+  ⭐ **The effect is `vessel.wash()` on `CraftVessel`**, not an Api call.
+  It tips the dregs, destroys any garnish inside, drops the ice and the
+  technique stamp, and marks it clean. It was `CraftingApi.washGlass`
+  (placed there because an engaged `onComplete` runs under the scheduler
+  frame, so a `FromModule(WashController)` gate could never pass) — but
+  that was a *gating* argument, not a placement one: every line touched
+  nothing but the vessel's own state, and with the writer inside the
+  class `soiled` needs no gate at all. Named for the vessel rather than
+  the glass, because a syrup bottle and a juice bottle are
+  `CraftVessel`s too. Bussing is `get <glass>` / `put <glass> in rack` —
+  shipped verbs.
+- **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
+  `muddler` capability; records `BuildMethod` `'muddled'`.
+  `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`
+  is the resolve verb — nothing was renamed.
+
+## ⭐ The glass pool, the technique, ice, garnish (libations D9/D10)
+
+**A drink is made IN a real glass.** For `outputApplication: bulk` (the
+bar's default) `craftImpl` no longer clones the output: `claimGlass`
+takes the first reachable **clean, empty** vessel of the output's
+**kind** (the gather walk already descends open room containers, so a
+hospitality's `GlassRack` — an open `Container(Thing)` — is in the pool
+scan; the kernel knows no rack class, only that the walk descends open
+containers); none → the diegetic decline **`no-glass`** ("no clean
+coupe").
+
+⭐ **The rail rule: an unnamed pour takes the CHEAPEST liquid that clears
+the recipe's `minGrade`; `with <brand>` overrides it.** That is what a bar
+does, and it is what makes stocking a decision — your well sets the margin
+on every drink nobody specified, which is most of them, while the good
+bottle is not squandered on a guest who did not ask for it. The resolve
+took the *highest* grade before, which poured the premium gin into every
+anonymous G&T. Item inputs order the same way (the bruised lime goes in
+the daiquiri).
+
+⭐ **The match is the vessel kind (`category`, [bulk.md](./bulk.md)), not
+the template path** — `outputVesselKind` reads the output row's own
+`category`, and a row that declares none falls back to path-matching, the
+behaviour before kinds existed. This is what makes a washed-out vessel
+and a factory-fresh one the **same input to a fill**, which is what a
+real line does. Path-matching meant a drained can of cola could never be
+refilled — walked past in favour of one nobody had drunk from — so an
+emptied vessel was economically dead the moment it was emptied, and the
+returns loop was blocked at its first step. The claimed glass is marked
+`soiled` at fill; `serve`/`order` hand over the claimed glass. `tangible`
+/ `edible` outputs keep cloning (smithing's transform and cooking's
+plate are the next pools). Breakage needs no mechanism: `throw` /
+`StuffApi.destruct` remove a glass and the par sheet reports the
+shortfall.
+
+`CraftVessel` is now `Crafted(Thermal(Bulkable(Container(Detailed(
+Thing)))))` — a `Container` so a garnish is a thing *in* the glass and
+leaves with it (`Surfaced` was rejected: a resting item's container is
+the room, so a handed-over glass would leave its olive behind); `Thermal`
+so the temperature is real. Fields: `soiled` (`isSoiled()`; `setSoiled`
+gated to `CraftingLogic`), `category` (the glassware par key — `coupe`,
+`rocks`, …; `getCategory()`), `iceKg`, `iceForm`, `technique`. Glass
+rows: `class: /platform/thing/CraftVessel`, `category`, `interiorBulk:
+true`, `interiorCapacity`.
+
+**Recipe** (`lib/craft/Recipe.ts`) gains `garnish?: { category, count?
+}` and `ice?: 'cubes' | 'crushed' | 'none'`. The count measure is the
+shipped `count` on `kind: item` slots (no new field); a dash is
+`measureL: 0.001`.
+
+### ⭐ Technique — an OPEN vocabulary the instrument owns
+
+**The kernel keeps no technique list and no effect table.** A technique
+is any kebab word a tool row names, and its numbers are that row's data:
+
+```yaml
+capabilities:
+  - { kind: shaker,
+      technique: { name: shaken, chillK: 8, dilutionL: 0.02, aerated: true, priority: 2 } }
+```
+
+⭐ **The tool is what knows.** A shaker is what makes a drink shaken, and
+a shaker is what knows shaking chills ~8 K and folds in ~20 mL of
+meltwater. A kernel table of `shaken | stirred | built | muddled` said,
+wrongly, that those are facts about *crafting* rather than facts about
+*bar tools* — so a cheese pack could not have `pressed` without a kernel
+MR. Same smell, same fix, as the capability vocabulary above.
+
+Resolution (`Techniques.fromTools`):
+
+- ⚠ **The recipe's `toolCapabilities` filter the field.** Only an
+  instrument offering a capability the recipe *required* may name the
+  working — otherwise the furniture in the room would decide and one
+  recipe would come out differently in two bars.
+- **A recipe requiring no instrument is `built`.** A gin & tonic is built
+  in the glass; a mixing glass on the well must not quietly stir it.
+- Among the eligible, highest **`priority`** wins — *the finishing
+  instrument names the drink* (a whiskey smash is muddled, then shaken,
+  so shaker and mixing-glass outrank muddler).
+- The **hand path** (`stir`/`shake`/`muddle`) names the working by verb
+  but still takes its numbers from the instrument in reach — you cannot
+  shake without a shaker. An unauthored word finishes neutral.
+
+Hospitality authors the bar's four: shaker (shaken), mixing-glass
+(stirred), muddler (muddled), bar-spoon (built).
+
+At the fill (`applyBulkOutput`): the technique's chill + dilution;
+**ice** — `crafting.iceKg` (0.15) of `ice` bulk moved from any reachable
+`Bulkable` whose material carries the `ice` tag (the hospitality
+`IceBin`; `insufficient-input: ice` if wanted and absent); **garnish** —
+a reachable item matched by category, moved INTO the glass (the
+`GarnishController` flourish now does the same at completion);
+**carbonation** — a `BulkPayload.tags` union of the inputs' tags, so a
+soda input reads "fizzing". Any Bulkable holder in reach is now an
+input candidate (ungraded ⇒ `fair`) — that is how the ice bin and the
+water tap feed a craft; a Crafted vessel is never descended into.
+
+**Ice melts on read.** `CraftVessel.reconcileThermal` clamps the
+temperature at water's `meltingPoint` while `iceKg > 0`; heat that would
+raise it instead melts `ΔJ / latentHeatOfFusion` kg into the slot as
+water (dilution — a real bulk credit), and Newton cooling resumes when
+the ice is gone. Applied at the fill too: a room-temperature pour over
+150 g of ice melts ~55 g at once (the honest arithmetic; tests assert
+conservation). Nothing is scheduled. Presentation reads the stamps and
+contents: "shaken, cloudy with air", "on the rocks", "fizzing", "with an
+olive".
+
+**House-made inputs.** Two rules the menu forced: a Crafted bulk vessel
+holding a real (non-blend) material — a recipe with authored
+`outputMaterial`, like pressed juice or syrup — is a bulk **source**, not
+a pool glass; and such a recipe **tops up** a reachable bottle of the
+same template already holding that material (one juice bottle a day,
+not one per lime). `press-{lime,lemon,orange,grapefruit}` (tool `juicer`,
+`kind: item` produce, `outputPortionL`) and hearth-cooking's
+`simple-syrup` (sugar + water, `requiresHeatK: 340`, tool `pot`) are
+ordinary `bulk` recipes over this.
+
+The kernel's two generic materials moved to the **platform pack** —
+`/platform/idea/material/blend` (`GENERIC_MIXED_MATERIAL`) and
+`/platform/idea/material/cooked` (`GENERIC_COOKED_MATERIAL`) — because a
+kernel module may not name a trade pack's row.
 
 ## The manual build (the by-hand path)
 
@@ -496,30 +699,45 @@ homed by what they *are*:
   minimal concrete `Character` — shares its path with the npc-behavior
   lane's richer `NPC`, which the add/add merge resolves to).
 - **Commons** → `platform/thing/` (content packs wave 4b — composition-only
-  classes are commons, not content): `CraftedDrink`
-  (`CraftedMixin(BulkableMixin(DetailedMixin(Thing)))`, `getLong()`
-  appends the verdict), `Menu`, `GradedReceptacle`
-  (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`, the stock bottle),
-  `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`.
+  classes are commons, not content): `CraftVessel`
+  (`Crafted(Thermal(Bulkable(Container(Detailed(Thing)))))` since
+  libations, `getLong()` appends the verdict), `Menu`, `GradedReceptacle`
+  (`BrandedMixin(GradedMixin(BulkableMixin(Thing)))`) and over it
+  `Bottle` (the stock vessel — [retail.md](./retail.md)), `Crate`,
+  `CocktailShaker` (the build vessel), `NeonSign`, `TipJar`. ⭐ A class
+  named for ONE trade's fixture ships in that trade's pack, not here —
+  `GlassRack` is hospitality's, `CookPot` hearth-cooking's, `SpiritBottle`
+  and `Still` distilling's. See [content-packs.md](./content-packs.md) § *Where a class lives*.
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
   packs wave 4a/4b): `trade-smithing` ships the smithing five at
   `/trade/smithing/recipes/<id>`, `trade-hearth-cooking` its four
   (toasted-ration, root-mash, fine-roast, hearty-stew),
-  `trade-hospitality` the two cocktails (daiquiri, martini);
-  `generic-objects` ships none. The
+  `trade-hospitality` the bar's 21 cocktails + coffee and the four
+  presses, each stub trade its serving recipe (`pint`, `glass-of-{red,
+  white,sparkling}`, `soft-drink`, `simple-syrup`) — the 24-line menu of the
+  libations slate; `generic-objects` ships none. The
   catalogue is **path-agnostic** — it rebuilds from every `recipe`
   document whoever installed it — so a venue's `craft` never knows
   which pack its recipe came from.
 
 **Seeds:** the station templates are the hospitality trade's
-(`trade-hospitality/content/trade/hospitality/thing/` — back-bar,
-shaker, mixing-glass, cocktail-glass, tip-jar); the venue's own rows sit
-in `saxonberg-lounge/content/world/lounge/thing/` (the four bottles,
-bar-menu) and `agent/` (dave); the `Bar` self-stocks via `populates:`
-(bottles `onto` the trade's back-bar, then dave + menu). Cocktail/spirit
-`Material`s are base-library's; recipe knowledge is the trade's. Crafted drinks are transient
-runtime matter (persisted nowhere; reset on restart).
+(`trade-hospitality/content/trade/hospitality/thing/` — back-bar, well,
+shaker, mixing-glass, muddler, bar-spoon, strainer, juicer, tap, ice-bin,
+water-tap, basin, glass-rack, house-tablet, tip-jar, the nine pool
+glasses + the juice bottle; `src/thing/{IceBin,Tap}.ts` — hospitality is
+a capability pack since libations); the venue's own rows sit in
+`saxonberg-lounge/content/world/lounge/thing/` (bar-menu, house-tablet,
+tv, remote) and `agent/` (dave, mara). **The `Bar` populates NO bottle**
+— the rail is stocked by Mara's `restocks` brain buying at the
+distributor ([retail.md](./retail.md), [employment.md](./employment.md)).
+Every libation `Material` lives with the trade whose PROCESS makes it
+(`/trade/{distilling,brewing,winemaking,bottling,produce,hearth-cooking}/idea/material/`);
+base-library keeps water, air, salt-water. `trade-hospitality/content/
+archetypes/hospitality.yaml` is the venue archetype its own `menu.test.ts`
+materializes a bar from (`archetype.materialize()`) to order all 24
+lines. Crafted drinks are transient runtime matter (persisted nowhere;
+reset on restart).
 
 ## Persistence story
 
@@ -653,7 +871,7 @@ recipe + `mending` are its attach points; waits on a fiber source);
 recipe-spread vectors beyond watching (taught curricula, discovery,
 tradeable recipe-items); runtime affordance recompute on
 `setCapabilities`/break-repair (surfaces refresh on the next
-containment delta — the documented `InstanceContributor` limitation);
+containment delta);
 powered tool variants / the electric machine's supply gate (the
 forge's `requiresHeatK` shape is the socket — the electricity consumer
 build); per-capability wear differentiation + machine-vs-hand

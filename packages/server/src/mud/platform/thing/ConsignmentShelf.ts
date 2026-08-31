@@ -18,8 +18,15 @@ import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
 import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
 import { MqlApi } from "../../api/mql";
+import { MixinApi } from "../../api/mixin";
 import type { CommandContext, CommandContributions } from "../../api/command";
 import type { FieldMeta } from "../../lib/mixin";
+import type { Stuff } from "../../lib/stuff/Stuff";
+import type { Container } from "../../lib/spatial/Container";
+import type { ConsignmentShelf as ConsignmentShelfSurface } from "../../lib/retail/Consignment";
+
+/** Any fixture that brokers listings — this class, or a `Stock` counter. */
+export type ShelfStuff = Stuff & Container & ConsignmentShelfSurface;
 
 const ConsignmentShelfBase = PersistableMixin(
   ConsignmentShelfMixin(PostRegistrationMixin(DetailedMixin(Vessel))),
@@ -28,16 +35,20 @@ const ConsignmentShelfBase = PersistableMixin(
 export default class ConsignmentShelf extends ConsignmentShelfBase {
   static fieldMeta: FieldMeta = {};
 
-  /** Resolve the consignment shelf a `consign`/`reclaim`/`buy` works off. */
-  static resolveIn(context: CommandContext): ConsignmentShelf | null {
+  /**
+   * Resolve the brokerage shelf a `consign`/`reclaim`/`buy` works off —
+   * by MIXIN, not class: a `Stock` counter composes the shelf too (one
+   * counter is both), so the verbs resolve whichever fixture is here.
+   */
+  static resolveIn(context: CommandContext): ShelfStuff | null {
     const source = context.commandSource;
-    if (source instanceof ConsignmentShelf) return source;
+    if (source && MixinApi.isConsignmentShelf(source)) return source as ShelfStuff;
     const peers = MqlApi.resolveMany("peers", {
       commandGiver: context.commandGiver,
       scope: "reachable",
     });
     return (
-      peers.stuff.find((s): s is ConsignmentShelf => s instanceof ConsignmentShelf) ??
+      (peers.stuff.find((s) => MixinApi.isConsignmentShelf(s)) as ShelfStuff | undefined) ??
       null
     );
   }

@@ -317,6 +317,35 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     noProse: true,
     singleton: true,
   },
+
+  /**
+   * ⭐ **The house stock sheet — the rail against par, live.**
+   *
+   * The rows are the bulk holders the viewer can **reach and perceive**
+   * (`reachable` is giver-anchored, so the perception gate is MQL's own —
+   * a bottle in a closed cupboard is not on the sheet, and a keeper in the
+   * cellar reading by mind sees nothing of the rail). Each row carries its
+   * material and its `bulkAmount`, which `Bulkable` fires on every debit
+   * and credit, so a pour moves the sheet without asking. The par lines
+   * themselves ride the card's `prose` — the sheet `house stock` just
+   * printed — because par is policy on the Business, not a Stuff MQL can
+   * enumerate.
+   *
+   * Unpinned and live: it is a reading of the rail at the moment you
+   * asked, tracked while it is the newest thing you asked for.
+   */
+  stock: {
+    label: 'the stock sheet',
+    source: {
+      kind: 'mql',
+      query: 'reachable:[mixin.BulkableMixin]',
+      cardinality: 'many',
+      fields: ['displayName', 'primaryKeyword', 'bulkMaterial', 'bulkAmount'],
+    },
+    pinnedByDefault: false,
+    live: true,
+    command: 'house stock',
+  },
 };
 
 /**

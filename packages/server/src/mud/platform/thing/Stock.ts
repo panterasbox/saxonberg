@@ -11,6 +11,8 @@
  * `populates`-cloned into the container, and `prices` is keyed by the item
  * template path (the offer key). A buy moves one shelf item to the buyer;
  * the reset sweep (see `ResettableMixin`) tops each line back to `par`.
+ * A counter with NO `stockLines` is a pure brokerage — everything on it
+ * was consigned (the cash-and-carry distributor).
  */
 
 import { Vessel } from "../../lib/stuff/Vessel";
@@ -19,6 +21,8 @@ import { PricedOfferMixin } from "../../lib/commerce/PricedOffer";
 import { AttendantMixin } from "../../lib/attendant/Attendant";
 import { ResettableMixin } from "../../lib/residency/Resettable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
+import { PersistableMixin } from "../../lib/persistence/Persistable";
+import { ConsignmentShelfMixin } from "../../lib/retail/Consignment";
 import { MqlApi } from "../../api/mql";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
@@ -39,11 +43,29 @@ export interface StockLine {
   brandKey?: string;
 }
 
-const StockBase = ResettableMixin(
-  AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
+// One counter is BOTH the house's shelf and a brokerage shelf (libations
+// D4): `ConsignmentShelfMixin` holds the listings a consignor (a player,
+// or a producer's floor hand consigning AS its business) puts up, so a
+// distributor whose counter carries no `stockLines` at all — the
+// cash-and-carry — is still a `Stock` (`buy` resolves either). `Persistable`
+// is outermost and load-bearing exactly as on `ConsignmentShelf`: a good
+// in the shop's custody survives a bounce.
+const StockBase = PersistableMixin(
+  ConsignmentShelfMixin(
+    ResettableMixin(
+      AttendantMixin(PricedOfferMixin(DetailedMixin(PostRegistrationMixin(Vessel)))),
+    ),
+  ),
 );
 
 export default class Stock extends StockBase {
+  constructor() {
+    super();
+    // ⭐ Fixed in place. A shop's counter is joinery — the goods ON it
+    // are the goods; the counter is not one of them.
+    this.fixedInPlace = true;
+  }
+
   static fieldMeta: FieldMeta = {
     stockLines: { persistent: true, authorable: true },
   };
@@ -72,10 +94,22 @@ export default class Stock extends StockBase {
     return peers.stuff.find((s): s is Stock => s instanceof Stock) ?? null;
   }
 
+  // A Stock counter is a consignment shelf too (libations 3a: one counter
+  // is both), so it affords the shelf's verbs — a floor hand at the
+  // cash-and-carry `consign`s onto it; the mixin's own static table is
+  // not inherited through composition.
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ["platform/cmd/retail/buy.yaml"],
-    environment: ["platform/cmd/retail/buy.yaml"],
+    peers: [
+      "platform/cmd/retail/buy.yaml",
+      "platform/cmd/retail/consign.yaml",
+      "platform/cmd/retail/reclaim.yaml",
+    ],
+    environment: [
+      "platform/cmd/retail/buy.yaml",
+      "platform/cmd/retail/consign.yaml",
+      "platform/cmd/retail/reclaim.yaml",
+    ],
   };
 
   /** The buyable goods currently on the shelf. */

@@ -16,7 +16,7 @@ data:
     z: 0
   populates:
     - /stuff/thing/Oven
-    - /stuff/thing/CookPot
+    - /trade/hearth-cooking/thing/cook-pot
     - /world/hearthworks/thing/kitchen-menu
     - /world/hearthworks/thing/pantry-chest
     # Working stock out on the table (the DIY floor's hand-reach; the

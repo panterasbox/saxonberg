@@ -1,0 +1,14 @@
+# Distilling — the trade's discipline. Ships HERE (with the pack whose code
+# will derive it — the still's recipes; the row waits with the tool), never
+# in the platform: the rule the capability rung applies to magic applies to
+# a trade the moment it reaches the rung.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: distilling
+  channel: skill
+  label: Distilling
+  iscedf: "0721"  # ISCED-F 2013: food processing
+  description: Control at the still — the wash, the cut, the run. Improves by doing, when there is a still to do it at.
+  requires:
+    - recipe-knowledge

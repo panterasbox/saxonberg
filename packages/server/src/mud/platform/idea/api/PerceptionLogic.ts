@@ -282,12 +282,33 @@ export class PerceptionLogic extends ApiLogic {
     // is unreachable.
     if (opts?.viaExit && location && id === location.stuffId) return true;
 
-    if (MixinApi.isContainer(actor)) {
-      for (const c of actor.getContents()) if (c.stuffId === id) return true;
-    }
-    if (location && MixinApi.isContainer(location)) {
-      for (const c of location.getContents()) if (c.stuffId === id) return true;
-    }
+    // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
+    // open crate standing here, or into the open pouch you are carrying;
+    // a box INSIDE that crate must be opened or taken out first. The
+    // openness test is `MixinApi.isOpenContainer` — the single rule the
+    // `peers` scope walk, `mustBeInLocation` and `VisionModality` also
+    // ask, so what you can name, see and touch can never diverge.
+    //
+    // ⚠ This clause is why reach could not stay flat: with only the two
+    // direct scans below, a coupe standing in a glass rack — or any good
+    // in an open Stock counter, or a lime in a crate — was unreachable
+    // by every verb in the game, and each caller grew its own bespoke
+    // descent instead.
+    const reachesInto = (holder: Stuff): boolean => {
+      if (!MixinApi.isContainer(holder)) return false;
+      for (const c of holder.getContents()) {
+        if (c.stuffId === id) return true;
+        if (MixinApi.isOpenContainer(c)) {
+          for (const inner of c.getContents()) {
+            if (inner.stuffId === id) return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (MixinApi.isContainer(actor) && reachesInto(actor)) return true;
+    if (location && reachesInto(location)) return true;
     // ⚠ Attached doors are in NO container — they ride `exit.getDoor()`
     // — so a containment-only test misses every door in the game. This
     // clause is the entire reason reach could not stay hand-rolled: the
@@ -299,6 +320,63 @@ export class PerceptionLogic extends ApiLogic {
       }
     }
     return false;
+  }
+
+  /**
+   * ⭐⭐ **The same rule, once, for a whole candidate list.**
+   *
+   * `canReach` is O(room contents + one level into each open container)
+   * per call AND it is gated, so a caller that asks it per candidate
+   * pays that walk N times and a call-security stack capture N times.
+   * That is quadratic, and it is not theoretical: `get produce` on a
+   * farm floor binds every produce item in the open floor stock —
+   * hundreds — and `GetController` asked `canReach` for each. A live
+   * drive found **96.5% of the whole server's CPU inside
+   * `GetController.executeWholeSet`**, with a trivial HTTP GET taking
+   * 17 seconds behind it.
+   *
+   * One walk, one gate, O(1) per candidate afterwards. The RULE is not
+   * duplicated — this is the walk, and `canReach` is the single-target
+   * question asked of the same descent.
+   */
+  @CallSecurity(PerceptionApiCallers)
+  public reachableAmong(
+    actor: Stuff,
+    candidates: readonly Stuff[],
+    opts?: { location?: Stuff | null },
+  ): Stuff[] {
+    if (candidates.length === 0) return [];
+    const location =
+      opts?.location !== undefined
+        ? opts.location
+        : MixinApi.isContainable(actor)
+          ? actor.getContainer()
+          : null;
+
+    // The reachable id set: everything directly in the actor or the
+    // room, plus one level into each open container on either side —
+    // the same descent `canReach` walks, and the same
+    // `MixinApi.isOpenContainer` the `peers` scope asks.
+    const ids = new Set<string>([actor.stuffId]);
+    const collect = (holder: Stuff | null): void => {
+      if (!holder || !MixinApi.isContainer(holder)) return;
+      for (const c of holder.getContents()) {
+        ids.add(c.stuffId);
+        if (MixinApi.isOpenContainer(c)) {
+          for (const inner of c.getContents()) ids.add(inner.stuffId);
+        }
+      }
+    };
+    collect(MixinApi.isContainer(actor) ? actor : null);
+    collect(location);
+    // Attached doors ride their exit, in no container at all.
+    if (location && MixinApi.isExitable(location)) {
+      for (const exit of location.getObviousExits()) {
+        const door = exit.getDoor();
+        if (door) ids.add(door.stuffId);
+      }
+    }
+    return candidates.filter((c) => ids.has(c.stuffId));
   }
 
   @CallSecurity(PerceptionApiCallers)

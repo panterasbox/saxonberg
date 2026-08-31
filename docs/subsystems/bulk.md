@@ -16,6 +16,67 @@ holds-as-attribute reframe, the per-affordance model, the deferred
 tails). This doc is the operational reference for what shipped — the
 thermos slice.
 
+## ⭐ `category` — the vessel kind, and the tie between an empty and a product
+
+A bulk holder declares **what kind of vessel it is**: `coupe`, `can`,
+`keg`, `sack`, `spirit-bottle`. It is a property of the vessel,
+independent of what is in it — a coupe is a coupe whether it holds a
+martini or nothing.
+
+It exists because **template inheritance does not exist**, so the empty
+vessel row (`/trade/bottling/thing/can`) and the product row that is
+that vessel filled (`…/can-of-cola`) are otherwise strangers that happen
+to share a class. The shared `category` string *is* the relationship,
+and three things read it:
+
+- **The census** ([residency.md](./residency.md)) — an emptied vessel
+  counts under `vessel:<category>`, so a drained can of cola joins the
+  factory-fresh empties instead of hiding under `vessel:cola`. That is
+  the count a deposit or returns market reads, and it is why draining
+  the world's gin makes the floor genuinely short.
+- **The pool** ([crafting.md](./crafting.md)) — `claimGlass` takes any
+  clean empty of the right kind. A washed-out vessel and a new one are
+  the same input to a fill, which is what a real line does.
+- **The par sheet** ([employment.md](./employment.md)) — glassware and
+  kegs are counted by kind, not by product.
+
+Authored on **both** the vessel row and every product row over it. A
+holder that declares none falls back to its primary keyword, which is
+right for a fixture whose interior is permanent (a plant pot's soil).
+
+### ⚠ OPEN — `category` has no home a `Crate` can reach
+
+`category` lives on **`BulkableMixin`**, so only bulk holders carry it.
+`Crate` is a `Container` and not `Bulkable`, so authoring `category: crate`
+on a crate row would be **silently discarded by the hydrator** — it is
+deliberately *not* authored today.
+
+The consequence is narrow but real: an emptied crate derives
+`vessel:<primaryKeyword>` (`vessel:grapefruits`), so **empties do not
+converge across a Container holder's kinds** the way empty cans converge
+on `vessel:can`. Convergence is the whole point of the vessel kind — a
+produce crate is a returnable transport item exactly as a can is one — so
+this wants fixing before anything counts or trades `vessel:*`. Nothing
+does today, which is why it is deferred rather than urgent.
+
+⚠ **`DetailedMixin` is NOT the home** (ruled out 2026-08-30). Detailed is
+about descriptions and detail keys; the vessel kind is a structural fact
+about the holder, and parking it there because the three classes happen
+to share it would be an accident of composition, not a design.
+
+The real candidates, for whoever picks this up:
+- **A small dedicated mixin** composed by `Bottle`, `CraftVessel` and
+  `Crate`. A mixin for one field is heavy, but the field *is* the
+  concept, which is the bar this codebase sets.
+- **Reconsider whether the pool-claim needs `category` on non-Circulating
+  vessels at all.** `CirculatingMixin` already owns `censusKey`,
+  `isEmptyHolder()` and `holderKind()` — it would be the natural home
+  except that a bar's glasses (`CraftVessel`) are not Circulating. If
+  they should be, the field has a home already and this dissolves.
+
+Whichever way: it ripples through the pool-claim (`claimGlass`) and the
+par sheet (`stockSheetFor`), so it is a change, not a row edit.
+
 ## The model
 
 ### `BulkableMixin` (`lib/bulk/Bulkable.ts`)
@@ -172,7 +233,7 @@ Material). So each slot optionally carries a **`BulkPayload`** — a
 plain persisted record with a Material row's identity + metabolism
 face (`name`/`appearance`/`keywords`, `nutrients` routing tags, label
 `nutrientAmounts`, per-serving `toxicity`, `edible`) — while the slot's
-material stays ONE generic substance (`food/cooked`,
+material stays ONE generic substance (`/platform/idea/material/cooked`,
 `cocktail/mixed`). Every reader treats `payload ?? material`
 uniformly: the MQL bulk candidate (`look stew`), the contents
 augmenter, the NutritionLabel, the drink/sip prose, and metabolism's

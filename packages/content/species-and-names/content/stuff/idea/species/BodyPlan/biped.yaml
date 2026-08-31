@@ -48,6 +48,16 @@ data:
     - { modality: vision, count: 2, position: frontal }
     - { modality: hearing, count: 2, position: lateral }
     - { modality: smell, count: 1, position: forward }
+    # ⚠ Touch and taste were MISSING, and their absence was silent: the
+    # `feel` and `taste` verbs ship, their `requiresTouch`/`requiresTaste`
+    # validators ship, the modality singletons ship — and no body plan
+    # granted either, so every character in the world got "You can't feel
+    # anything." forever. A live drive found it going after the libations
+    # plan's own acceptance check ("a G&T colder than the rail — `feel`").
+    #
+    # Skin is `circumferential` (all around); the tongue is `forward`.
+    - { modality: touch, count: 1, position: circumferential }
+    - { modality: taste, count: 1, position: forward }
   # Typed anatomy (Vitals substrate). Coarse v1 roster: limbs / head /
   # torso + heart / lungs. Tissue masses (kg) are the strength substrate;
   # enablesSlots gates wear/wield; governsVital is the organ→vital

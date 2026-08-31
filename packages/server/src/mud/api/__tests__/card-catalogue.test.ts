@@ -21,9 +21,9 @@ import {
 } from '../../lib/connection/Cards';
 
 describe('the card catalogue', () => {
-  it('ships exactly nine cards, and the list and the map agree', () => {
-    expect(CARD_IDS.length).toBe(9);
-    expect(Object.keys(CARDS).length).toBe(9);
+  it('ships exactly ten cards, and the list and the map agree', () => {
+    expect(CARD_IDS.length).toBe(10);
+    expect(Object.keys(CARDS).length).toBe(10);
     expect([...CARD_IDS].sort()).toEqual(Object.keys(CARDS).sort());
   });
 
@@ -58,7 +58,7 @@ describe('the card catalogue', () => {
     const unpinnedAndLive = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && CARDS[id].live,
     );
-    expect(unpinnedAndLive).toEqual(['subject']);
+    expect(unpinnedAndLive).toEqual(['subject', 'stock']);
   });
 
   /**
@@ -66,11 +66,12 @@ describe('the card catalogue', () => {
    * is static leaves `live` a field nothing reads, and a declaration
    * nothing reads is indistinguishable from a broken one.
    */
-  it('at least one row is live, and it is `subject`', () => {
+  it('at least one row is live, and it is `subject` (the stock sheet joins it)', () => {
     const live = CARD_IDS.filter((id) => CARDS[id].live);
-    expect(live).toEqual(['subject']);
+    expect(live).toEqual(['subject', 'stock']);
     // A live card's source must be MQL — there is nothing else to wake.
     expect(CARDS.subject.source.kind).toBe('mql');
+    expect(CARDS.stock.source.kind).toBe('mql');
   });
 
   /**
@@ -176,7 +177,7 @@ describe('the card catalogue', () => {
         `${retired} should have been retired`,
       ).toBe(false);
     }
-    // …and the union really is the nine we expect, by name.
+    // …and the union really is the ten we expect, by name.
     expect([...CARD_IDS].sort()).toEqual(
       (
         [
@@ -185,6 +186,7 @@ describe('the card catalogue', () => {
           'help',
           'news',
           'prompt',
+          'stock',
           'studio',
           'subject',
           'who',

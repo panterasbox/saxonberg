@@ -1,0 +1,5 @@
+# ArchetypeCatalogue — the singleton that warms the venue-archetype index
+# from the `archetype` documents. No field state; the cache is rebuilt on
+# demand.
+class: /platform/idea/ArchetypeCatalogue
+data: {}

@@ -25,9 +25,13 @@ export default class PaymentCard extends CredentialWalletMixin(Thing) {
    * `inventory` bucket), so you can `pay` / manage your `wallet` anywhere you
    * hold the card, not only at a bank counter.
    */
+  // A card in HAND affords the wallet verbs too — the NPC hand dealt a
+  // house card at hire has no implant; `wallet use house` was an unknown
+  // verb to it (the libations live drive) with the card in its pocket.
   static commandContributions: CommandContributions = {
     self: [],
     peers: [],
+    inventory: ["platform/cmd/banking/pay.yaml", "platform/cmd/banking/wallet.yaml"],
     environment: ["platform/cmd/banking/pay.yaml", "platform/cmd/banking/wallet.yaml"],
   };
 }

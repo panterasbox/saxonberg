@@ -19,7 +19,7 @@ import { BulkableApi } from "../../../../api/bulk";
 import { PersistenceManager } from "../../../../../backend/PersistenceManager";
 import { Quantity } from "../../../../lib/quantity";
 import Material from "../../../../lib/material/Material";
-import CraftedDrink from "../../../thing/CraftedDrink";
+import CraftVessel from "../../../thing/CraftVessel";
 import RecipeCatalogue from "../../RecipeCatalogue";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { NamedMixin } from "../../../../lib/description/Named";
@@ -37,7 +37,7 @@ import {
 const GIN = "/stuff/idea/material/spirit/gin";
 const VERMOUTH = "/stuff/idea/material/spirit/vermouth";
 const MARTINI_MAT = "/stuff/idea/material/cocktail/martini";
-const MIXED_MAT = "/stuff/idea/material/cocktail/mixed";
+const MIXED_MAT = "/platform/idea/material/blend";
 const DAVE = "/world/lounge/dave-buildmint";
 
 class TestMaker extends NamedMixin(ContainableMixin(Idea)) {
@@ -59,7 +59,7 @@ function registerMaterial(path: string, name: string, tags: string[]): void {
 }
 
 function makeGlass() {
-  const g = makeStuff(() => new CraftedDrink());
+  const g = makeStuff(() => new CraftVessel());
   (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
   g.setInteriorCapacity(Quantity.of(0.3, "L"));
   return g;
@@ -113,7 +113,7 @@ beforeEach(async () => {
       { slot: "mod", category: "vermouth", minGrade: "fair", measureL: 0.01 },
     ],
     toolCapabilities: ["mixing-glass"],
-    outputTemplate: "/trade/hospitality/thing/cocktail-glass",
+    outputTemplate: "/trade/hospitality/thing/coupe",
     outputMaterial: MARTINI_MAT,
     baseGradeBand: "",
   });

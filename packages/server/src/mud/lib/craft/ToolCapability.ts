@@ -1,6 +1,5 @@
 /**
- * ToolCapability — the vocabulary of capabilities a tool can offer and a
- * recipe can require.
+ * ToolCapability — a capability a tool can offer and a recipe can require.
  *
  * Like "weapon" and "tool" themselves, a capability is a **role**, not a
  * kind: a recipe requires "a shaker" (a capability), and any present
@@ -8,50 +7,44 @@
  * (inputs by category, tools by capability) applied to the capital side of
  * control.
  *
- * v1 authors only need a couple of these (the bar's shaker / mixing-glass);
- * the small vocabulary is seeded ahead so recipes across domains can require
- * by kind without a schema change. Closed checklist (validated on author),
- * distinct from Material's open tag set.
+ * **The vocabulary is open.** A capability is any non-empty string a
+ * recipe's `toolCapabilities` and a tool row's `capabilities` agree on —
+ * the same open-tag contract as Material's tags. The kernel keeps no
+ * list: a trade pack that ships a still and the recipes that need one
+ * names `still` on both sides and nothing in the kernel changes (the
+ * libations build's rule — a pack never needs a kernel LIST edit).
+ *
+ * **The WORKING an instrument performs is the tool row's own data**,
+ * never a kernel table's — `technique: { name: shaken, chillK: 8 }`.
+ *
+ * ⚠ A capability entry names **no verbs**. It used to: `verbs: [...]`
+ * plus a `placement` was the only way a ROW could hang a verb on an
+ * object, since `commandContributions` is a class static. That made two
+ * records of verb affordances, in two vocabularies (`placement:
+ * reachable|carried` against the statics' four buckets, which could not
+ * express `self` or `inventory` at all) — and the kind→verbs grouping
+ * was inert, read in exactly one place and never consulted for anything
+ * but translation. It also drifted: the shaker and the mixing glass each
+ * carried the identical six-verb list `pour stir strain garnish serve
+ * mix`, which is the BAR's verb set, not the shaker's — they had it
+ * because they were the two rows with a `capabilities` block to hang it
+ * on, while the back-bar and the well afforded nothing.
+ *
+ * There is now one record: `static commandContributions` on the class
+ * or mixin. An instrument that performs a distinct working is a distinct
+ * kind of thing and gets a class, which is what a capability pack ships
+ * anyway — and because each pack's classes name only its own views, the
+ * kernel can never name a trade's verb.
  */
 
 import { Grade } from './Grade';
-
-/** The known tool capabilities. */
-export const TOOL_CAPABILITIES = [
-  'shaker',
-  'strainer',
-  'muddler',
-  'mixing-glass',
-  'striking',
-  'anvil',
-  'whetstone',
-  'mending',
-  'pot',
-  'watering',
-] as const;
-
-/** A tool capability — one of {@link TOOL_CAPABILITIES}. */
-export type ToolCapability = (typeof TOOL_CAPABILITIES)[number];
-
-/**
- * Where a kind's conferred verbs light up: `reachable` = the tool
- * affords from the room or a pack (environment + inventory buckets);
- * `carried` = only from a pack (inventory bucket — the whetstone's
- * personal-capital rule as a data value).
- */
-export type CapabilityPlacement = 'reachable' | 'carried';
-
-/** A kind's definition — the verb family it confers + its placement. */
-export interface CapabilityKindDef {
-  /** `cmd/` YAML keys the kind confers (empty = recipe-side kind). */
-  verbs: readonly string[];
-  placement: CapabilityPlacement;
-}
+import { Techniques, type TechniqueSpec } from './Technique';
 
 /**
  * A parameterized capability entry — how a tool variant is authored as
  * pure instance data (kit → machine, whetstone → grinding wheel). A
- * bare kind string is shorthand for the defaulted spec.
+ * bare kind string is shorthand for the defaulted spec (rate 1, no
+ * control floor, no working).
  */
 export interface CapabilitySpec {
   kind: string;
@@ -62,91 +55,30 @@ export interface CapabilitySpec {
   /** A Grade band embedded in the capital — floors the outcome grade of
    * work done with this instrument. Default none. */
   control?: string;
-  /** Per-entry override of the kind's default placement (the grinding
-   * wheel: `whetstone` kind, `reachable` placement). */
-  placement?: CapabilityPlacement;
+  /**
+   * The **working this instrument performs**, and what it does to the
+   * output — `{ name, chillK?, dilutionL?, aerated?, priority? }`. The
+   * shaker is what makes a drink shaken and the shaker is what knows
+   * shaking chills 8 K; the kernel keeps no technique table, so a pack
+   * that ships a churn names `churned` here and changes nothing in the
+   * kernel. Absent = this instrument names no working.
+   */
+  technique?: TechniqueSpec;
 }
 
 /**
- * The capability → verb-family table: each kind's definition, keyed by
- * the closed vocabulary. The tool that does the work carries its
- * working verbs (the instrument-conferred model — see
- * command-spec.md § who affords a verb); `ToolMixin` derives its
- * `InstanceContributor` buckets from this table over an instance's
- * authored `capabilities`, so a tool variant is pure seed data.
- * Recipe-side kinds (`striking`/`strainer`/`muddler`) confer nothing —
- * they are requirements, not verb sources.
- */
-const BAR_VESSEL_VERBS = [
-  'platform/cmd/crafting/pour.yaml',
-  'platform/cmd/crafting/stir.yaml',
-  'platform/cmd/crafting/strain.yaml',
-  'platform/cmd/crafting/garnish.yaml',
-  'platform/cmd/crafting/serve.yaml',
-  'platform/cmd/crafting/mix.yaml',
-] as const;
-
-const CAPABILITY_TABLE: Record<ToolCapability, CapabilityKindDef> = {
-  shaker: { verbs: BAR_VESSEL_VERBS, placement: 'reachable' },
-  'mixing-glass': { verbs: BAR_VESSEL_VERBS, placement: 'reachable' },
-  pot: {
-    verbs: [
-      'platform/cmd/crafting/pour.yaml',
-      'platform/cmd/crafting/stir.yaml',
-      'platform/cmd/crafting/heat.yaml',
-      'platform/cmd/crafting/plate.yaml',
-      'platform/cmd/crafting/cook.yaml',
-    ],
-    placement: 'reachable',
-  },
-  anvil: {
-    verbs: [
-      'platform/cmd/crafting/hammer.yaml',
-      'platform/cmd/crafting/quench.yaml',
-      'platform/cmd/crafting/forge.yaml',
-      'platform/cmd/crafting/repair.yaml',
-      'platform/cmd/crafting/salvage.yaml',
-    ],
-    placement: 'reachable',
-  },
-  mending: {
-    verbs: ['platform/cmd/crafting/repair.yaml', 'platform/cmd/crafting/salvage.yaml'],
-    placement: 'reachable',
-  },
-  whetstone: { verbs: ['platform/cmd/crafting/sharpen.yaml'], placement: 'carried' },
-  // The first non-crafting consumer of the instrument-confers-verbs rule:
-  // a watering can in your pack affords `water`. `carried` is the
-  // whetstone's personal-capital rule as data — a can on the floor confers
-  // nothing.
-  watering: { verbs: ['platform/cmd/bulk/water.yaml'], placement: 'carried' },
-  striking: { verbs: [], placement: 'reachable' },
-  strainer: { verbs: [], placement: 'reachable' },
-  muddler: { verbs: [], placement: 'reachable' },
-};
-
-/**
- * The capability vocabulary holder — a thin static surface (the concept this
- * module owns) rather than a free-floating predicate function.
+ * The capability contract holder — a thin static surface (the concept
+ * this module owns) rather than a free-floating predicate function.
  */
 export class ToolCapabilities {
-  /** The full vocabulary. */
-  public static readonly ALL: readonly ToolCapability[] = TOOL_CAPABILITIES;
-
-  /** Narrowing predicate for a string against the vocabulary. */
-  public static isCapability(s: string): s is ToolCapability {
-    return (TOOL_CAPABILITIES as readonly string[]).includes(s);
-  }
-
-  /** The kind's table definition (verb family + placement), or null. */
-  public static definitionOf(kind: string): CapabilityKindDef | null {
-    return ToolCapabilities.isCapability(kind)
-      ? CAPABILITY_TABLE[kind]
-      : null;
-  }
-
   /** The work-rate clamp band — data can never zero a duration. */
   public static readonly RATE_MIN = 0.25;
   public static readonly RATE_MAX = 10;
+
+  /** A well-formed capability name: a non-empty kebab token. */
+  public static isCapabilityName(s: unknown): s is string {
+    return typeof s === 'string' && /^[a-z][a-z0-9-]*$/.test(s);
+  }
 
   /**
    * Validate one authored capability entry (either form). Throws with
@@ -154,10 +86,10 @@ export class ToolCapabilities {
    * gate (setter-first hydration).
    */
   public static validateEntry(entry: string | CapabilitySpec): void {
-    const kind = typeof entry === 'string' ? entry : entry.kind;
-    if (!ToolCapabilities.isCapability(kind)) {
+    const kind = typeof entry === 'string' ? entry : entry?.kind;
+    if (!ToolCapabilities.isCapabilityName(kind)) {
       throw new RangeError(
-        `ToolCapabilities.validateEntry: unknown capability '${kind}'`,
+        `ToolCapabilities.validateEntry: bad capability name '${String(kind)}'`,
       );
     }
     if (typeof entry === 'string') return;
@@ -173,14 +105,29 @@ export class ToolCapabilities {
         `ToolCapabilities.validateEntry: unknown control band '${entry.control}' for '${kind}'`,
       );
     }
-    if (
-      entry.placement !== undefined &&
-      entry.placement !== 'reachable' &&
-      entry.placement !== 'carried'
-    ) {
-      throw new RangeError(
-        `ToolCapabilities.validateEntry: unknown placement '${entry.placement}' for '${kind}'`,
-      );
+    if (entry.technique !== undefined) {
+      const t = entry.technique;
+      if (!t || !Techniques.isTechniqueName(t.name)) {
+        throw new RangeError(
+          `ToolCapabilities.validateEntry: bad technique name '${String(t?.name)}' for '${kind}'`,
+        );
+      }
+      for (const [f, v] of [
+        ['chillK', t.chillK],
+        ['dilutionL', t.dilutionL],
+        ['priority', t.priority],
+      ] as const) {
+        if (v !== undefined && (!Number.isFinite(v) || v < 0)) {
+          throw new RangeError(
+            `ToolCapabilities.validateEntry: bad technique ${f} '${String(v)}' for '${kind}'`,
+          );
+        }
+      }
+      if (t.aerated !== undefined && typeof t.aerated !== 'boolean') {
+        throw new RangeError(
+          `ToolCapabilities.validateEntry: technique aerated must be a boolean for '${kind}'`,
+        );
+      }
     }
   }
 }

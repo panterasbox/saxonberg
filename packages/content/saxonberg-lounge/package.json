@@ -10,6 +10,8 @@
     "@saxonberg/content-corpo-veshko": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-distilling": "workspace:*",
+    "@saxonberg/content-trade-hospitality": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   }

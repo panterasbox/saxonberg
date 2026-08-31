@@ -64,9 +64,12 @@ export class ResidencyApi {
   }
 
   /**
-   * Run one spawn sweep now (test / manual seam). Returns what it did —
-   * including how many regions **declined** because they were already at
-   * target, which is the observable half of authored placement
+   * Run one spawn sweep now — the boot seam (`AppBootstrap`, once, after
+   * the manifest clones) and the test / manual seam. Draws per region
+   * until the table declines (capped by `residency.spawn.perRegionCap`),
+   * so a producer's floor stands at target in ONE sweep. Returns what it
+   * did — including how many regions **declined** because they were
+   * already at target, which is the observable half of authored placement
    * suppressing random spawning.
    */
   public static spawnNow(): Promise<SpawnSweepReport> {

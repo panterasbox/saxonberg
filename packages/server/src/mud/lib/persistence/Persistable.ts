@@ -76,6 +76,20 @@ export interface Persistable {
   getPersistenceKey(): string | null;
 
   /**
+   * Does this host want a capture as the process ends?
+   *
+   * ⭐ The knowledge belongs here, not to the bootstrapper. An Avatar
+   * says no: it captures at logout on its own seam, and a shutdown sweep
+   * would only race that. A host with no persistence key says no — it
+   * never established one, so there is nothing to write.
+   *
+   * A PREDICATE, not a registry. The set of hosts wanting a shutdown
+   * capture is derivable from the hosts themselves, so nothing caches
+   * it: `world:[mixin.PersistableMixin]` at shutdown, filtered by this.
+   */
+  capturesAtShutdown(): boolean;
+
+  /**
    * Stash the explicit per-instance persistence key (the record `owner`).
    * Written by `PersistableLogic` when a keyed capture/materialize resolves
    * a key; read back on a keyless re-capture.
@@ -161,6 +175,13 @@ export function PersistableMixin<
     setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
+    }
+
+    capturesAtShutdown(): boolean {
+      if (this._persistenceKey === null) return false; // never established
+      // An Avatar captures at logout, on its own seam; a shutdown sweep
+      // would only race it.
+      return !MixinApi.isHasInteractive(this as unknown as Stuff);
     }
 
     isPersistenceKeyExplicit(): boolean {

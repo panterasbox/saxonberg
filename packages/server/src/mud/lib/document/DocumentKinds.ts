@@ -60,6 +60,8 @@ export const DOCUMENT_KINDS = {
   'name-bank': { kind: 'name-bank', naturalKey: 'key', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', naturalKey: 'blueprintId', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', naturalKey: null, contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },
+  /** The venue archetype — an industry's floor in capabilities (content-packs A13/A14). */
+  archetype: { kind: 'archetype', naturalKey: 'archetypeId', contentDir: 'archetypes', ext: 'yaml', onVanish: 'delete' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

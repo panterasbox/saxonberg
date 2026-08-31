@@ -336,7 +336,7 @@ mirrors it):**
 | `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,
-`CraftedDrink`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
+`CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
 `TipJar`) are `platform/thing/` commons since wave 4b — see
 [crafting.md](./crafting.md). Content classes live under
 `/world/lounge/<branch>/` — a managed area's own class namespace,

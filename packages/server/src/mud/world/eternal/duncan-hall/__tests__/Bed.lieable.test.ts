@@ -107,7 +107,7 @@ describe("the dorm fixtures earn their classes", () => {
     expect(MixinApi.hasMixin(Desk, Mixins.Surfaced)).toBe(true);
   });
 
-  it("the tap has no bespoke class at all — it is already the generic one", () => {
+  it("the tap has no bespoke class at all — it is a generic water fixture", () => {
     // `/platform/thing/UnboundedReceptacle`, same class the bathroom basin uses. Two
     // rows over one class with different prose IS the archetype pattern;
     // collapsing them would delete content, not duplication.
@@ -122,7 +122,11 @@ describe("the dorm fixtures earn their classes", () => {
         "utf8",
       ),
     ) as { class?: string };
-    expect(tap.class).toBe("/platform/thing/UnboundedReceptacle");
+    // `WaterFixture` is still a GENERIC class, not a bespoke dorm one:
+    // it is the shared "plumbed water you can work at" (the bar basin,
+    // the standpipe, this tap), split off `UnboundedReceptacle` when
+    // that class's other row turned out to be a coffee urn.
+    expect(tap.class).toBe("/platform/thing/WaterFixture");
   });
 
   it("DormRoom composes the four layers whose omission is SILENT", () => {

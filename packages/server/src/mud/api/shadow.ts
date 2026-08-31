@@ -291,6 +291,29 @@ export class ShadowApi {
    * true exactly once per `callBypass` to tell the proxy to return
    * the raw method without further mediation. @internal
    */
+  /**
+   * The two entries the security gate calls on every method dispatch in
+   * the engine, unwrapped.
+   *
+   * ⭐ `decorateApiClass` wraps every static so a static Api call
+   * resolves a policy and pushes a frame. For these two that is pure
+   * cost — both are `@internal` helpers under the Public fallback, so
+   * the gate was resolving a policy it always passes and pushing a frame
+   * nothing reads, TWICE, before it could decide anything about the call
+   * it was actually there to gate. `GATE_ENTRIES` captures them before
+   * this class's own decoration runs; `SecurityApi._registerShadowApi`
+   * takes them once at boot.
+   *
+   * Only these two. `_withDispatch` and `_invokeOnShadow` stay wrapped:
+   * they fire only when a shadow is attached, and they are the ones a
+   * frame is worth having for.
+   *
+   * @internal
+   */
+  public static _gateEntries(): typeof GATE_ENTRIES {
+    return GATE_ENTRIES;
+  }
+
   public static _consumeBypass(): boolean {
     const state = _dispatchALS.getStore();
     if (!state) return false;
@@ -564,5 +587,16 @@ export class ShadowApi {
     this.#shadowMethods.delete(shadow);
   }
 }
+
+/**
+ * The raw per-dispatch pair — see {@link ShadowApi._gateEntries}.
+ * Declared HERE, between the class and its decoration, because that is
+ * the only window in which `ShadowApi._shadowsFor` is still the
+ * function and not the wrapper.
+ */
+const GATE_ENTRIES = {
+  consumeBypass: ShadowApi._consumeBypass.bind(ShadowApi),
+  shadowsFor: ShadowApi._shadowsFor.bind(ShadowApi),
+};
 
 SecurityApi.decorateApiClass(ShadowApi);

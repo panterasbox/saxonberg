@@ -59,6 +59,16 @@ export abstract class Zone extends Idea {
     wire: { persistent: true },
   };
 
+  // ⚠ Region/spawn fields (`stocks` / `favours` / `blessingOdds`) are NOT
+  // here — they live on `SpatialZone`. They arrived on this base in the
+  // libations build and were moved down on review: a `FolderZone` is a
+  // namespace root (`/wiki`, `/home`, `/studio`) and "how many bottles of
+  // vodka stand in the wiki namespace" is not a question, but an
+  // `authorable` field on this class offers it in the studio for every
+  // zone in the game. Only a region IN SPACE can stock goods. The
+  // inheritance walk is unaffected: `lookupField` consults ancestors, so a
+  // FolderZone that does not declare them simply walks on.
+  //
   // Ownership/access fields (`ownerGroup` / `accessGroups` /
   // `ownerGroupName`) were REMOVED in property phase 0a. Title now lives in
   // the gated `parcels` collection (`ParcelRegistry` / `ParcelApi`), never

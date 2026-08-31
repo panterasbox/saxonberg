@@ -63,3 +63,26 @@ describe("StreamEmbed", () => {
     );
   });
 });
+
+describe("StreamEmbed on a shared display", () => {
+  it("renders the 'on <label>' caption and the remote hint for a display target", () => {
+    const { container } = render(
+      <StreamEmbed
+        target={{
+          platform: "twitch",
+          channel: "shroud",
+          display: { stuffId: "tv-1", label: "the booth TV" },
+        }}
+      />,
+    );
+    expect(container.querySelectorAll("iframe")).toHaveLength(1);
+    const caption = screen.getByTestId("display-caption");
+    expect(caption.textContent).toContain("on the booth TV");
+    expect(caption.textContent).toMatch(/remote/i);
+  });
+
+  it("renders no caption for a personal watch", () => {
+    render(<StreamEmbed target={{ platform: "twitch", channel: "shroud" }} />);
+    expect(screen.queryByTestId("display-caption")).toBeNull();
+  });
+});

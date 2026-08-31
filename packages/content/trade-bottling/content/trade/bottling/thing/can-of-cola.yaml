@@ -1,0 +1,29 @@
+# A can of cola — the STANDARD USED: `can.yaml`'s vessel, filled and
+# seamed. The 330 mL can is its own price point, not a smaller bottle,
+# so it carries its own census key.
+#
+# Drain it and it is a can again: `Bottle.getCensusKey()` derives the
+# EMPTY's key from state, so an empty stops counting as product and the
+# floor restocks. Nothing spawns empties — they come from drinking.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a can of cola"
+  longDescription: "A 330 mL can of cola, cold to the hand, the lid unbroken."
+  primaryKeyword: cola
+  keywords: ["cola", "coke", "can", "tin"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: can
+  material: /stuff/idea/material/element/aluminium
+  interiorBulk: true
+  interiorCapacity: 0.33
+  interiorMaterial: /trade/bottling/idea/material/cola
+  interiorAmount: 0.33
+  closure: sealed
+  open: false
+  gradeBand: fair
+  censusKey: mixer:cola-can
+  regionTarget: 12
+  materialTags: ["mixer", "cola"]
+  container: /trade/bottling/thing/bottling-stock

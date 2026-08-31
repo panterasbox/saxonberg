@@ -1,0 +1,17 @@
+# The bar's house tablet — the hospitality tablet row, signed in as Dave's
+# Bar. `pairing: staff` means whoever holds a position here (or Dave)
+# drives it from anywhere their attunement reaches; in the hand it drives
+# for anyone, but a thief gets only the sheet — `house stock` reads the
+# principal, money authority stays the wallet's.
+class: /platform/thing/Tablet
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the house tablet
+  longDescription: A scuffed tablet in a rubber case propped against the back-bar mirror, the stock sheet never far from its screen.
+  primaryKeyword: tablet
+  keywords: [tablet, house-tablet, screen]
+  pairing: staff
+  shows:
+    - card
+  principal: /world/lounge/idea/business
+  mass: 0.5

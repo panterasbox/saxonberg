@@ -49,9 +49,44 @@ no stored row gains a group owner.
 A stamped good also carries a **`place`** (a room identity, `'inventory'`,
 or `'storage'`) and persists **owner-side** rather than with whatever room
 it is standing in. That is the [furnishing](./furnishing.md) subsystem —
-`setPlace` / `followCustody` / `placedIn` / `evictToStorage` / `isStamped`
+`setPlace` / `followCustody` / `placedIn` / `evictToStorage` / `isStamped` /
+`isOwnerPersisted` (stamped to a player — the persistence skip rule's predicate)
 on this same facade, the `place` column on the `chattel` row as a by-room
 index, and the estate slice that carries the goods themselves.
+
+## ⭐ What identity means for a vessel — the row is provenance, the instance is the thing
+
+⚠ **Added 2026-08-29** (the aluminium-can review; slate
+`slates/builds/aluminium-can-slate.md`). A question worth settling
+before the returns/deposit work: *drink the cola — what are you left
+with, and is it the same object?*
+
+**It is the same object.** The durable identity of a movable good is its
+**instance** — the `_chattelId` below — not the template row it was
+minted from. For a vessel the row says **how it was produced** (`a can,
+filled with cola, 0.33 L`); it is provenance, not a standing claim about
+what the thing currently contains. Drinking changes the contents, not
+the identity: same instance, same chattel id, unbroken chain of title.
+
+The alternative — a filled can and an empty can as two *stored*
+identities, transmuting on drain — was weighed and rejected. It is the
+more intuitive shape for shopping, and the engine already gives that
+feel by **derivation**: an emptied vessel counts under its vessel kind
+(`vessel:can`, [bulk.md](./bulk.md)), reads as *"The can is empty."*,
+and is claimable by a fill of that kind. Stored transmutation buys
+nothing extra and costs a great deal — re-stamping `templatePath` is the
+identity anti-pattern, and destroy-and-create severs this chain of
+title, orphans any consignment listing, and invalidates live refs, on a
+routine action.
+
+⭐⭐ **The decisive case is the deposit.** A deposit exists precisely
+because a vessel has value *independent of what is in it*. If drinking
+destroyed the product and created a new empty, there would be no answer
+to *what did you pay the deposit on* — the object paid for is gone and
+the object returned was never sold. Because the instance persists, the
+deposit is an ordinary escrow leg against a good whose title never
+broke: you paid a deposit on **this can**, and **this can** is what you
+bring back.
 
 ## The durable per-instance id (the crux)
 

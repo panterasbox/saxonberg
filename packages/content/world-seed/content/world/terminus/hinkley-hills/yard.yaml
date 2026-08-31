@@ -48,7 +48,7 @@ data:
     south:
       destination: /world/terminus/hinkley-hills/lane
   populates:
-    - /stuff/thing/bed/garden
+    - /trade/farming/thing/bed/garden
     - /world/terminus/hinkley-hills/standpipe
     # The can is not decoration — `water` is a TOOL-conferred verb
     # (ToolCapability `watering`, placement `carried`), so a yard with a

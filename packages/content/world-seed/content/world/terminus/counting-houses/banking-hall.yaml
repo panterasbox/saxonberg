@@ -32,7 +32,12 @@ data:
       kind: /stuff/idea/exits/archway
   details:
     vault:
-      keywords: [vault, grille, door, sunrise, till]
+      # ⚠ NOT `till`/`grille` — the teller counter is a real OBJECT here
+      # and it owns both (`bank-counter.yaml`). This detail is what you
+      # read; the counter is what you act at. Same rule the bar needed:
+      # the object owns the words you DO with, the detail the words you
+      # LOOK with.
+      keywords: [vault, door, sunrise]
       description: |
         Behind the counter, past a discreet brass grille, the vault door stands closed — a slab of pale steel with a sunrise engraved across its whole face, rays reaching to the edges. You can see it but not reach it; the counter and the grille are between you and the money. What the branch can hand you in cash comes across the counter, from Wenna, and no other way.
     board:

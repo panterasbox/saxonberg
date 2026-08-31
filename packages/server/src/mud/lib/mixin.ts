@@ -316,6 +316,9 @@ export const Mixins = {
   Offstage: 'OffstageMixin',
   FastTravel: 'FastTravelMixin',
   Fixture: 'FixtureMixin',
+  // A screen: shows one source (a stream or a card) to everyone who can
+  // see it. Pairing decides who drives it. See docs/subsystems/display.md.
+  Display: 'DisplayMixin',
   LoadBearing: 'LoadBearingMixin',
   BeliefStore: 'BeliefStoreMixin',
   Disguisable: 'DisguisableMixin',
@@ -545,6 +548,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Making & wear.
   ManualBuildMixin: "{} isn't a vessel you can work in",
+  CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
@@ -569,4 +573,5 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // the subject, so the phrase reads from the actor's side.
   ScryableMixin: "you can't scry with {}",
   CredentialWalletMixin: "{} isn't a card",
+  DisplayMixin: "{} isn't a screen",
 };

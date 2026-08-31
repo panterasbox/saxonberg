@@ -1,0 +1,17 @@
+# The mixer bottle — the EMPTY vessel; the standard a bottled mixer is
+# built against (see `cola.yaml` and its siblings). `sealed` because a
+# screw cap holds gas: an uncapped mixer goes flat, a capped one keeps.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a mixer bottle"
+  longDescription: "A one-litre bottle, straight-sided, with a screw cap."
+  primaryKeyword: bottle
+  keywords: ["bottle", "mixer", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: mixer-bottle
+  interiorBulk: true
+  interiorCapacity: 1
+  closure: sealed
+  open: true

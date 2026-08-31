@@ -1,0 +1,15 @@
+# Vodka soda — built over ice, a lime wedge
+recipeId: vodka-soda
+name: Vodka soda
+keywords: [vodka-soda]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: base, category: vodka, minGrade: fair, measureL: 0.05 }
+- { slot: mixer, category: soda-water, minGrade: fair, measureL: 0.15 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a vodka soda, clear as water
+garnish: { category: lime, count: 1 }
+ice: cubes

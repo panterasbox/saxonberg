@@ -76,7 +76,6 @@ import {
   type AliasExpansionInfo,
   type Parser,
   type CommandContributions,
-  type InstanceContributor,
   type FieldValue,
   type ModelData,
   type CommandModel,
@@ -648,6 +647,7 @@ export class CommandLogic extends ApiLogic {
     }
 
     const expand = makeExpander(ctx.commandGiver);
+    const expandDefault = makeDefaultExpander(ctx.commandGiver);
     const fields: ModelData = {};
     let i = 1;
     let stopped = false;
@@ -749,7 +749,7 @@ export class CommandLogic extends ApiLogic {
     let prep: Record<string, string> = {};
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
-      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand);
+      const r = bindPositionals(positionals, sub.args ?? [], parsed, expand, expandDefault);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -758,7 +758,7 @@ export class CommandLogic extends ApiLogic {
       // candidate + remaining tokens against the top-level args. On
       // bind failure, surface the ORIGINAL unknown-subcommand error
       // pointing at the candidate — the slate's required behavior.
-      const r = bindPositionals(positionals, command.args, parsed, expand);
+      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
       if ('error' in r) {
         return {
           error: 'unknown-subcommand',
@@ -780,7 +780,7 @@ export class CommandLogic extends ApiLogic {
       }
     } else {
       // Flat verb — single bind against the top-level args.
-      const r = bindPositionals(positionals, command.args, parsed, expand);
+      const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
       if ('error' in r) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
@@ -1114,14 +1114,33 @@ export class CommandLogic extends ApiLogic {
         def.updates_focus ?? 'none';
       const fieldPrep = prep[fname];
 
+      // A scope's answer counts only if something in it can satisfy
+      // the field's `requires:`; otherwise the scan moves on to the
+      // next scope (the `$focus` → `reachable` chain is a chain, not a
+      // first-name-match-wins). No `requires:` → every match counts.
+      const terms =
+        (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
+      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
+
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
           r = { stuff: [] };
+          // The first raw match is kept as the fallback: when NOTHING in
+          // any scope is admissible, bind it anyway so the field's
+          // validator can say why ("that has no mass") rather than the
+          // scan pretending it saw nothing.
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-            if (r.stuff.length > 0) break;
+            const got = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+            const kept = got.stuff.filter(admissible);
+            if (kept.length > 0) {
+              r = { ...got, stuff: kept };
+              break;
+            }
           }
+          if (r.stuff.length === 0 && firstRaw) r = firstRaw;
         } catch (err) {
           context.note({
             kind: 'mql-error',
@@ -1154,8 +1173,9 @@ export class CommandLogic extends ApiLogic {
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
         try {
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            if (useTop) {
+            if (useTop && terms.length === 0) {
               const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
@@ -1164,14 +1184,26 @@ export class CommandLogic extends ApiLogic {
                 break;
               }
             } else {
+              // With `requires:` the cheap top-one path can't be used —
+              // the top match may be the inadmissible one — so the
+              // scope is resolved in full and the first admissible
+              // match is the top. The first raw match is the fallback
+              // when nothing anywhere is admissible (see above).
               const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-              if (r.stuff.length > 0) {
-                stuff = r.stuff;
+              if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
+              const kept = r.stuff.filter(admissible);
+              if (kept.length > 0) {
+                stuff = useTop ? [kept[0] as Stuff] : kept;
                 via = r.via;
                 quantity = r.quantity;
                 break;
               }
             }
+          }
+          if (stuff.length === 0 && firstRaw) {
+            stuff = useTop ? [firstRaw.stuff[0] as Stuff] : firstRaw.stuff;
+            via = firstRaw.via;
+            quantity = firstRaw.quantity;
           }
         } catch (err) {
           context.note({
@@ -1203,7 +1235,18 @@ export class CommandLogic extends ApiLogic {
             : [];
           const skipFocus = focusEffects.some((e) => e.action === 'skip');
           if (focusMode !== 'none' && !skipFocus) {
-            updatePlayerFocus(focused, raw, picked, via, focusMode);
+            // `stuff` is the pre-cardinality candidate list: more than
+            // one means the player was asked to choose (or a policy
+            // chose for them), so the fragment they typed does not name
+            // what they got.
+            updatePlayerFocus(
+              focused,
+              raw,
+              picked,
+              via,
+              focusMode,
+              stuff.length > 1
+            );
           }
           const asMany: MqlMany = { stuff: [picked] };
           if (via) asMany.via = via;
@@ -1230,15 +1273,30 @@ export class CommandLogic extends ApiLogic {
       const tries: string[] = yamlScopes.map((s) =>
         ShellApi.expandVariables(s, giver)
       );
+      // Same `requires:`-aware scan as the positional loop.
+      const terms =
+        (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
+      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
 
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
           r = { stuff: [] };
+          // The first raw match is kept as the fallback: when NOTHING in
+          // any scope is admissible, bind it anyway so the field's
+          // validator can say why ("that has no mass") rather than the
+          // scan pretending it saw nothing.
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            r = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-            if (r.stuff.length > 0) break;
+            const got = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+            const kept = got.stuff.filter(admissible);
+            if (kept.length > 0) {
+              r = { ...got, stuff: kept };
+              break;
+            }
           }
+          if (r.stuff.length === 0 && firstRaw) r = firstRaw;
         } catch (err) {
           context.note({
             kind: 'mql-error',
@@ -1263,8 +1321,9 @@ export class CommandLogic extends ApiLogic {
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
         try {
+          let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            if (useTop) {
+            if (useTop && terms.length === 0) {
               const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
               if (r.stuff !== null) {
                 stuff = [r.stuff];
@@ -1273,14 +1332,26 @@ export class CommandLogic extends ApiLogic {
                 break;
               }
             } else {
+              // With `requires:` the cheap top-one path can't be used —
+              // the top match may be the inadmissible one — so the
+              // scope is resolved in full and the first admissible
+              // match is the top. The first raw match is the fallback
+              // when nothing anywhere is admissible (see above).
               const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
-              if (r.stuff.length > 0) {
-                stuff = r.stuff;
+              if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
+              const kept = r.stuff.filter(admissible);
+              if (kept.length > 0) {
+                stuff = useTop ? [kept[0] as Stuff] : kept;
                 via = r.via;
                 quantity = r.quantity;
                 break;
               }
             }
+          }
+          if (stuff.length === 0 && firstRaw) {
+            stuff = useTop ? [firstRaw.stuff[0] as Stuff] : firstRaw.stuff;
+            via = firstRaw.via;
+            quantity = firstRaw.quantity;
           }
         } catch (err) {
           context.note({
@@ -2088,6 +2159,7 @@ function bindPositionals(
   args: PositionalDefinition[],
   parsed: ParsedCommand,
   expand: (text: string) => string,
+  expandDefault: (text: string) => string = expand,
 ):
   | { bound: ModelData; prep: Record<string, string> }
   | { error: 'shape'; summary: string } {
@@ -2117,7 +2189,7 @@ function bindPositionals(
     if (def.greedy) {
       if (pi >= positionals.length) {
         if (def.default !== undefined) {
-          bound[name] = expand(def.default);
+          bound[name] = expandDefault(def.default);
           return { bound, prep };
         }
         if (def.required !== false) {
@@ -2159,7 +2231,7 @@ function bindPositionals(
         // — the greedy field has no content. Default fills if
         // declared; else required→shape error / optional→absent.
         if (def.default !== undefined) {
-          bound[name] = expand(def.default);
+          bound[name] = expandDefault(def.default);
         } else if (def.required !== false) {
           return {
             error: 'shape',
@@ -2217,7 +2289,7 @@ function bindPositionals(
     if (def.required) {
       if (pi >= positionals.length || nextBelongsToLater) {
         if (def.default !== undefined) {
-          bound[name] = expand(def.default);
+          bound[name] = expandDefault(def.default);
           continue;
         }
         return {
@@ -2250,7 +2322,7 @@ function bindPositionals(
       bound[name] = expand(positionals[pi]!.value);
       pi++;
     } else if (def.default !== undefined) {
-      bound[name] = expand(def.default);
+      bound[name] = expandDefault(def.default);
     }
   }
 
@@ -2272,6 +2344,18 @@ function makeExpander(giver: Stuff): (text: string) => string {
   if (!MixinApi.isEnvironment(giver)) return (s) => s;
   const enabled = giver.getSetting<boolean>('shell.interpolate-vars');
   if (enabled === false) return (s) => s;
+  return (text) => ShellApi.expandVariables(text, giver);
+}
+
+/**
+ * The expander for a view's AUTHORED `default:` — always the shell's,
+ * whoever the giver is. A giver with no shell environment (an NPC driven
+ * by a brain or a dialogue dispatch) keeps its typed text literal (see
+ * `makeExpander` — pinned by shell.test), but a default like `"$focus"`
+ * is the view author's word, not the giver's: it reached MQL raw as a
+ * bare `$` on every forced `sense` before this.
+ */
+function makeDefaultExpander(giver: Stuff): (text: string) => string {
   return (text) => ShellApi.expandVariables(text, giver);
 }
 
@@ -2675,11 +2759,19 @@ async function resolveCommandValidators(
       validators?: string[];
       requires?: MixinRequirement;
       _resolvedValidators?: FieldValidator[];
+      _requirementTerms?: RequirementTerm[];
     },
     where: string,
   ): Promise<void> => {
     const fns: FieldValidator[] = [];
     if (target.requires !== undefined) {
+      // The parsed terms ride the def as well: the scope scan filters
+      // candidates by them BEFORE binding (below), so a `$focus` match
+      // that can never satisfy `requires:` — the room "Dave's Bar" for
+      // `talk dave` — falls through to the next scope instead of
+      // shadowing the barkeep. The validator stays as the post-bind
+      // check for a field bound by structured input.
+      target._requirementTerms = await parseRequirement(target.requires, where);
       const synthesized = await requirementValidator(target.requires, where);
       if (synthesized) fns.push(synthesized);
     }
@@ -2832,49 +2924,24 @@ function bucketFilenames(ctor: unknown, bucket: Bucket): string[] {
 }
 
 /**
- * Per-instance dynamic contribution filenames for `bucket`, via the
- * optional {@link InstanceContributor} seam. Defensive: the hook runs on
- * the containment hot path, so a throw is swallowed to no contribution.
- */
-function instanceBucketFilenames(instance: Stuff, bucket: Bucket): string[] {
-  const fn = (instance as Partial<InstanceContributor>)
-    .getInstanceContributions;
-  if (typeof fn !== 'function') return [];
-  try {
-    return fn.call(instance)?.[bucket] ?? [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * The named bucket's contributions off a **class** only (static). Used
- * where no instance is in hand (shadows, hosted updates, self-seed).
+ * ⭐ The named bucket's contributions — **the one and only record of verb
+ * affordances**: `static commandContributions` off the class and every
+ * mixin in its chain, and nothing else.
+ *
+ * There was a second, per-instance record (an `InstanceContributor` hook
+ * consulted at containment-delta time) so a row could vary its verbs by
+ * authored data. It is gone. Two records of the same fact meant an
+ * author had two ways to hang a verb on an object and no rule for
+ * picking, and it put a hot-path hook — try/catch-swallowed, so a
+ * throwing host silently afforded nothing — on the containment path.
+ * A verb an object affords is now a property of what the object IS,
+ * which is a thing the client can rely on.
  */
 function collectBucketDefs(
   ctor: unknown,
   bucket: Bucket
 ): CommandDefinition[] {
   return resolveDefs(bucketFilenames(ctor, bucket));
-}
-
-/**
- * The named bucket's contributions off a live **instance** — its
- * class/mixin statics PLUS any per-instance {@link InstanceContributor}
- * contributions. Used at the `inventory`/`environment`/`peers`
- * containment-delta push sites so a contribution can depend on
- * per-instance state (a tool's authored `capabilities`, a Behaved
- * host's dialogue tree) and still ride the ordinary movement
- * push/pop/reset lifecycle.
- */
-function collectBucketDefsForInstance(
-  instance: Stuff,
-  bucket: Bucket
-): CommandDefinition[] {
-  return resolveDefs([
-    ...bucketFilenames(instance.constructor, bucket),
-    ...instanceBucketFilenames(instance, bucket),
-  ]);
 }
 
 /**
@@ -3003,10 +3070,48 @@ function applyContainmentDeltaImpl(
   // ── `environment`: the moved subtree grants OUTWARD, to every
   // container above it. This is what makes a rock in a bag in your pack
   // still hand you `throw`.
+  //
+  // ⚠⚠ Every container above **that item** — `ancestorsOf(m)` — not the
+  // destination's chain. The two differ exactly for what the mover is
+  // CARRYING, and the difference was a serious bug: a move first calls
+  // `resetCommandSources`, which drops every `environment` and `peers`
+  // entry, and the re-push then reached only the destination and above.
+  // So a mover lost the verbs its OWN inventory confers, and did not get
+  // them back until something in its pack moved again.
+  //
+  // ⭐ In play that meant: pick up your whetstone and `sharpen` works;
+  // walk one room and it is gone. A live drive found it as every trade
+  // hand's `wallet use house` failing with `unknown-verb` — the consigns
+  // beat teleports to the counter and THEN tries to trade as the house,
+  // so the house card in its pocket had just been forgotten. Thirty
+  // failures in one boot, every hand, after all ten cards were dealt.
+  //
+  // For the moved root `ancestorsOf(m)` IS `[to, ...ancestorsOf(to)]`,
+  // so this is a strict generalisation, not a change of rule.
+  // ⚠ Computed as "holders INSIDE the moved subtree, then the shared
+  // destination chain" rather than a fresh `ancestorsOf(m)` per item.
+  // They give the same answer, but `ancestorsOf` walks containment
+  // through PROXIED `getContainer()` calls, and each of those pays the
+  // call-security gate (which captures a JS stack). When a hand moves
+  // carrying two hundred goods, `moved` is two hundred and one items —
+  // so the naive form re-walked the whole chain two hundred times. The
+  // in-subtree part is one or two hops for a flat inventory.
+  const movedIds = new Set(moved.map((m) => m.stuffId));
+  const receiversFor = (m: Stuff): Stuff[] => {
+    const inner: Stuff[] = [];
+    let cur = MixinApi.isContainable(m) ? m.getContainer() : null;
+    let hops = 0;
+    while (cur && movedIds.has(cur.stuffId) && hops < CONTAINMENT_WALK_CAP) {
+      inner.push(cur);
+      cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
+      hops += 1;
+    }
+    return [...inner, ...ancestors];
+  };
   for (const m of moved) {
-    const defs = collectBucketDefsForInstance(m, 'environment');
+    const defs = collectBucketDefs(m.constructor, 'environment');
     if (defs.length === 0) continue;
-    for (const anc of ancestors) {
+    for (const anc of receiversFor(m)) {
       if (!MixinApi.isCommandGiver(anc)) continue;
       (anc as Stuff & CommandGiver).pushCommandSource(m, 'environment', defs);
     }
@@ -3016,7 +3121,7 @@ function applyContainmentDeltaImpl(
   // moved subtree. A pack that affords `rummage` affords it to what it
   // swallowed, however deep.
   for (const anc of ancestors) {
-    const defs = collectBucketDefsForInstance(anc, 'inventory');
+    const defs = collectBucketDefs(anc.constructor, 'inventory');
     if (defs.length === 0) continue;
     for (const m of moved) {
       if (!MixinApi.isCommandGiver(m)) continue;
@@ -3035,7 +3140,7 @@ function applyContainmentDeltaImpl(
     for (const sibling of (scope as Stuff & Container).getContents()) {
       if (moved.includes(sibling)) continue;
 
-      const theirs = collectBucketDefsForInstance(sibling, 'peers');
+      const theirs = collectBucketDefs(sibling.constructor, 'peers');
       if (theirs.length > 0) {
         for (const m of moved) {
           if (!MixinApi.isCommandGiver(m)) continue;
@@ -3044,7 +3149,7 @@ function applyContainmentDeltaImpl(
       }
       if (!MixinApi.isCommandGiver(sibling)) continue;
       for (const m of moved) {
-        const mine = collectBucketDefsForInstance(m, 'peers');
+        const mine = collectBucketDefs(m.constructor, 'peers');
         if (mine.length === 0) continue;
         (sibling as Stuff & CommandGiver).pushCommandSource(m, 'peers', mine);
       }
@@ -3248,9 +3353,35 @@ function updatePlayerFocus(
   raw: string,
   stuff: Stuff,
   via: MqlMatchVia | undefined,
-  mode: 'extend' | 'replace'
+  mode: 'extend' | 'replace',
+  wasAmbiguous: boolean
 ): void {
-  const fragment = resolvePronounFragment(giver, raw) ?? raw;
+  /*
+   * ⭐⭐ **A disambiguated pick anchors on the THING, never on the word
+   * that was ambiguous.**
+   *
+   * The focus is an MQL fragment, and `$focus` re-RESOLVES it on every
+   * later command that defaults to it (`look` declares
+   * `default: "$focus"`). So storing the player's typed keyword after a
+   * disambiguation stores the ambiguity: at a counter holding eleven
+   * gins, `look gin` asked "which target?", the player picked one, and
+   * focus became `gin` — whereupon the next bare `look` re-resolved
+   * eleven gins and asked again, forever. A live drive walked into it
+   * and could not walk out: every command after the first pick was
+   * another prompt, and a command sent while a prompt is open produces
+   * no response at all, so the session simply went silent.
+   *
+   * `#<stuffId>` is a viewer-free MQL seed that resolves to exactly the
+   * Stuff that was picked, and it chains (`#abc:label`) exactly as a
+   * keyword fragment does, so drilling still works.
+   *
+   * Only when the raw WAS ambiguous. An unambiguous `look lantern`
+   * keeps `lantern` as its fragment — that is what the player said, it
+   * still means one thing, and it is what `focus` shows them.
+   */
+  const fragment = wasAmbiguous
+    ? `#${stuff.stuffId}`
+    : resolvePronounFragment(giver, raw) ?? raw;
 
   if (mode === 'replace') {
     giver.setFocus(fragment);

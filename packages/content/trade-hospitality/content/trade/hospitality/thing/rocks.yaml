@@ -1,0 +1,12 @@
+# a rocks glass — a pool glass over CraftVessel (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a rocks glass
+  longDescription: A short, heavy-bottomed tumbler.
+  primaryKeyword: rocks
+  keywords: [rocks, tumbler, glass, old-fashioned-glass]
+  category: rocks
+  interiorBulk: true
+  interiorCapacity: 0.3

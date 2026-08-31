@@ -7,10 +7,10 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import BrandedBottle from "../../../platform/thing/corpo/BrandedBottle";
 import CorpoCatalogue from "../../../platform/idea/CorpoCatalogue";
 import Corpo from "../../../platform/idea/corpo/Corpo";
 import Brand from "../../../platform/idea/corpo/Brand";
+import { BrandedMixin } from "../Branded";
 import Thing from "../../stuff/Thing";
 import { Stuff } from "../../stuff/Stuff";
 import { StuffApi } from "../../../api/stuff";
@@ -21,6 +21,10 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
+
+// The minimal branded object: the mixin over a bare Thing (no shipped class
+// exists for a mark-only bottle any more — libations phase 5 retired it).
+class BrandedBottle extends BrandedMixin(Thing) {}
 
 type Loose = Record<string, unknown>;
 

@@ -360,8 +360,28 @@ export function buildPromptContext(
   giver: Stuff,
 ): Record<string, unknown> {
   return {
-    focus: MixinApi.isFocused(giver) ? giver.getFocus() : '',
+    focus: MixinApi.isFocused(giver) ? renderFocus(giver.getFocus()) : '',
   };
+}
+
+/**
+ * The focus fragment as a PLAYER should read it.
+ *
+ * ⚠ The fragment is MQL, and after a disambiguation it anchors on the
+ * thing rather than the ambiguous word the player typed — `#<stuffId>`,
+ * so that `$focus` re-resolves to exactly what they picked instead of
+ * asking again forever. Correct, and unreadable: a live drive answered
+ * "which target?" and got a prompt reading
+ * `#wtYvAoxeDjtrMJku8NThs>`.
+ *
+ * So the prompt renders the id anchor as the thing's name. Only the
+ * anchor form — every other fragment (`here`, `here:bookcase:book`) is
+ * already the player's own words and is shown as written.
+ */
+function renderFocus(fragment: string): string {
+  if (!fragment.startsWith('#') || fragment.includes(':')) return fragment;
+  const found = StuffApi.findById(fragment.slice(1));
+  return found ? found.getPresentation() : fragment;
 }
 
 SecurityApi.decorateApiClass(PromptApi);

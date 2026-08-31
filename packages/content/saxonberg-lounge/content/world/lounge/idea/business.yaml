@@ -15,6 +15,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "Dave's Bar"
   # Who may fill this business's positions. Dave owns the bar, so the
   # authority is the ENTITY edge — a replaceable pointer, not a group.
   # Checked by EmploymentApi.isProprietorOf; the covers brain reads it too
@@ -33,12 +34,29 @@ data:
       label: tending bar
       wageRate: 4
       confers: [MakerMixin]
+    # The keeper — the seat that BUYS for the house. `purchases: true` is
+    # what lets its holder `wallet use house` (the operating account
+    # becomes the one they trade as) and run `house stock` / `house par`.
+    # Unpaid: Mara keeps the bar on her bartending wage; a player Dave
+    # appoints (his "looking for work?" branch) holds it the same way and
+    # `quit`s the same way. No wizard anywhere in the loop.
+    - key: keeper
+      label: keeping the bar
+      wageRate: 0
+      confers: []
+      purchases: true
   # The roster — the single source of truth for who tends and when. The
   # schedules are lifted verbatim from what each NPC's `shifts` brain read
   # before this build (the brain now just reacts to the state this drives).
   # Weekdays are 0-based; hours are a half-open [start, end) window.
   rosterSlots:
     - positionKey: bartender
+      assignee: /world/lounge/agent/mara
+      schedule:
+        - { days: [0, 1, 2, 3, 4], hours: [6, 14] }
+    # Mara keeps the bar on the same window she tends it — the par sheet
+    # is hers to read (nobody stands in), the wage line stays honest (0).
+    - positionKey: keeper
       assignee: /world/lounge/agent/mara
       schedule:
         - { days: [0, 1, 2, 3, 4], hours: [6, 14] }
@@ -61,3 +79,60 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/lounge/location/bar
+
+  # The par manifest — what the house means to keep on hand, and where it
+  # buys it. Every line is bought from the one distributor (the distilling
+  # trade's cash-and-carry, where every producer outfit consigns). Spirits,
+  # liqueurs, vermouths, wine, mixers and syrup in litres; kegs in litres;
+  # produce, glassware in count; ice in kilos. A category is a material TAG
+  # (a bottle of gin carries `gin`) or a glass row's own `category`. What
+  # is ON HAND is never stored — `house stock` and Mara's `restocks` beat
+  # derive it from what the reader can see from the rail. Glassware has no
+  # supplier yet (nobody sells glasses at the counter): the lines still
+  # show breakage as a shortfall.
+  parLines:
+    - { category: gin, unit: L, level: 3, supplier: /trade/distilling/idea/business }
+    - { category: vodka, unit: L, level: 3, supplier: /trade/distilling/idea/business }
+    - { category: whiskey, unit: L, level: 3, supplier: /trade/distilling/idea/business }
+    - { category: light-rum, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
+    - { category: dark-rum, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
+    - { category: tequila, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
+    - { category: orange-liqueur, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
+    - { category: bitter-liqueur, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
+    - { category: aperitivo, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
+    - { category: bitters, unit: L, level: 0.2, supplier: /trade/distilling/idea/business }
+    - { category: dry-vermouth, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
+    - { category: sweet-vermouth, unit: L, level: 0.75, supplier: /trade/distilling/idea/business }
+    - { category: red, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
+    - { category: white, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
+    - { category: sparkling, unit: L, level: 1.5, supplier: /trade/distilling/idea/business }
+    - { category: ale, unit: L, level: 30, supplier: /trade/distilling/idea/business }
+    - { category: lager, unit: L, level: 30, supplier: /trade/distilling/idea/business }
+    - { category: soda-water, unit: L, level: 3, supplier: /trade/distilling/idea/business }
+    - { category: tonic, unit: L, level: 3, supplier: /trade/distilling/idea/business }
+    - { category: ginger-beer, unit: L, level: 2, supplier: /trade/distilling/idea/business }
+    - { category: cola, unit: L, level: 2, supplier: /trade/distilling/idea/business }
+    - { category: grapefruit-soda, unit: L, level: 1, supplier: /trade/distilling/idea/business }
+    - { category: cranberry-juice, unit: L, level: 1, supplier: /trade/distilling/idea/business }
+    - { category: orange-juice, unit: L, level: 1, supplier: /trade/distilling/idea/business }
+    - { category: lime, unit: count, level: 24, supplier: /trade/distilling/idea/business }
+    - { category: lemon, unit: count, level: 12, supplier: /trade/distilling/idea/business }
+    - { category: orange, unit: count, level: 6, supplier: /trade/distilling/idea/business }
+    - { category: grapefruit, unit: count, level: 6, supplier: /trade/distilling/idea/business }
+    - { category: mint, unit: count, level: 12, supplier: /trade/distilling/idea/business }
+    - { category: cherry, unit: count, level: 12, supplier: /trade/distilling/idea/business }
+    - { category: olive, unit: count, level: 24, supplier: /trade/distilling/idea/business }
+    - { category: cranberry, unit: count, level: 12, supplier: /trade/distilling/idea/business }
+    - { category: sugar, unit: L, level: 2, supplier: /trade/distilling/idea/business }
+    - { category: coffee, unit: L, level: 1, supplier: /trade/distilling/idea/business }
+    - { category: syrup, unit: L, level: 0.5, supplier: /trade/distilling/idea/business }
+    - { category: ice, unit: kg, level: 5, supplier: /trade/distilling/idea/business }
+    - { category: coupe, unit: count, level: 12 }
+    - { category: rocks, unit: count, level: 8 }
+    - { category: highball, unit: count, level: 12 }
+    - { category: collins, unit: count, level: 4 }
+    - { category: pint, unit: count, level: 6 }
+    - { category: wine, unit: count, level: 6 }
+    - { category: flute, unit: count, level: 4 }
+    - { category: mug, unit: count, level: 4 }
+    - { category: copper-mug, unit: count, level: 4 }

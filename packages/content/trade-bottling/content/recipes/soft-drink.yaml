@@ -1,0 +1,18 @@
+# A soft drink — bottling's serving recipe: 200 mL of any bottled mixer over ice into
+# hospitality's highball, for the patron who isn't drinking. (`mixer` is the CATEGORY tag
+# the cocktails draw on; this is the line you order on its own.)
+recipeId: soft-drink
+name: Soft drink
+keywords: ["soft-drink", "soda", "tonic", "cola", "mixer"]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- slot: mixer
+  category: "mixer"
+  minGrade: "fair"
+  measureL: 0.2
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a tall glass of soda over ice
+ice: cubes

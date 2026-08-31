@@ -389,6 +389,9 @@ function resolveVar(name: string, giver: Stuff): string {
     }
   }
 
+  // A giver with no focus of its own — an NPC driven by a brain, whose
+  // forced `sense` on arrival names `$focus` — is looking at where it is.
+  if (name === "focus") return "here";
   if (MixinApi.isSensor(giver)) {
     MudlogApi.warn("shell", Mml.compose`unknown variable: $${name}`, {
       to: giver,

@@ -17,4 +17,12 @@ import { DetailedMixin } from '../../lib/description/Detailed';
 
 const ChairBase = PosturedMixin(SlottedMixin(DetailedMixin(Thing)));
 
-export default class Chair extends ChairBase {}
+export default class Chair extends ChairBase {
+  constructor() {
+    super();
+    // ⭐ Fixed in place. A stool, a bed, a tub, an armchair: furniture.
+    // You rearrange it with `place`; you do not pocket it. A live drive
+    // walked out of Dave's Bar carrying four bar stools.
+    this.fixedInPlace = true;
+  }
+}

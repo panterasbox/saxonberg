@@ -91,7 +91,7 @@ export default class AppointController extends CommandController<AppointModel> {
       );
     }
 
-    const record = EmploymentApi.hire(organization, appointee, positionKey);
+    const record = await EmploymentApi.hire(organization, appointee, positionKey);
     if (!record) {
       return this.fail(
         context,

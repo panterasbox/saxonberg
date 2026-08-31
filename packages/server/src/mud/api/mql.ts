@@ -21,6 +21,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { Container } from '../lib/spatial/Container';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { MqlLogic } from '../platform/idea/api/MqlLogic';
@@ -122,6 +123,7 @@ export class MqlApi {
   static extractStuffs(value: unknown): Stuff[] | null {
     return logic().extractStuffs(value);
   }
+
 
   /**
    * Pick the effective target Stuff from a single-cardinality binding,

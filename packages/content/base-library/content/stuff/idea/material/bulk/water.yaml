@@ -25,6 +25,13 @@ data:
   edibility: true
   nutrients: [water]
   toxicity: []
-  tags: [liquid, beverage, drinkable]
+  # ⭐ `water` is the IDENTITY tag — what engine logic asks for when it
+  # needs water (rinsing at a basin, the archetype's water-source slot).
+  # It is authored here because identity lives on the Material, never on
+  # a keyword: see docs/antipatterns.md § Keywords Where You Mean
+  # Identity. `salt-water` deliberately does NOT carry it — brine is not
+  # rinse water, and the check that wants "any liquid" should ask for
+  # `liquid`.
+  tags: [liquid, water, beverage, drinkable]
   composition: []
   biologicalSource: null

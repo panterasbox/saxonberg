@@ -2,7 +2,7 @@
   "name": "@saxonberg/content-corpo-veshko",
   "version": "0.1.0",
   "private": true,
-  "description": "The veshko corpo \u2014 its mark and its brands.",
+  "description": "The veshko corpo — its mark and its brands.",
   "type": "module",
   "dependencies": {
     "@saxonberg/content-platform": "workspace:*",

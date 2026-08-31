@@ -49,6 +49,13 @@ export interface SpawnCandidate {
   readonly materialTags: readonly string[];
   /** How many of this key a region should hold. */
   readonly regionTarget: number;
+  /**
+   * The region the candidate is HOME to — the zone of the row's own
+   * `container:` (a producer's Stock counter), so a floor bottle is drawn
+   * for the region it will actually land in and nowhere else. Unset for
+   * a candidate with no authored home: it may be drawn in any region.
+   */
+  readonly region?: string;
 }
 
 /** What a region prefers to stock, by material tag. */

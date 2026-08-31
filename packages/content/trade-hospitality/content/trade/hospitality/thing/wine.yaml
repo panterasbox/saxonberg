@@ -1,0 +1,12 @@
+# a wine glass — a pool glass over CraftVessel (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wine glass
+  longDescription: A stemmed wine glass with a generous bowl.
+  primaryKeyword: wine
+  keywords: [wine, glass, wine-glass]
+  category: wine
+  interiorBulk: true
+  interiorCapacity: 0.25

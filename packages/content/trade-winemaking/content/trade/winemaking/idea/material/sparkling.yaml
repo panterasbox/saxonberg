@@ -1,0 +1,17 @@
+# Sparkling wine — `carbonated`, so the spritz fizzes (the derived payload carries the tag).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: sparkling wine
+  appearance: "a pale sparkling wine, beading in the glass"
+  keywords: ["sparkling", "wine", "fizz"]
+  density: 995
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["water"]
+  toxicity:
+    - { type: alcohol, amount: 12 }
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "sparkling", "carbonated"]
+  composition: []
+  biologicalSource: null

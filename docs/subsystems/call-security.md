@@ -1697,61 +1697,105 @@ framework is that there is no privileged out-of-band caller identity.
 Worth knowing, because it was never priced and it is the engine's most
 common operation. Measured under **`tsx`, the production runtime**
 (`deployment.md` — the server runs from TypeScript source, not a
-compiled build):
+compiled build), with `packages/server/scripts/bench-gate.ts`:
 
-| | µs |
-|---|---|
-| field read through the proxy | 0.3 |
-| **gated method call** | **50** (was 68) |
-| the same method, unwrapped | 0.1 |
+| | ns/call | vs a raw call |
+|---|---|---|
+| the method, unwrapped | 5 | 1x |
+| **gated method call** | **2 140** | **424x** |
+| *(before the 2026-08-30 pass)* | *50 700* | *2 000x* |
 
-It is flat in world size, flat in call depth, and not a first-touch
-cost — a constant, paid per dispatch.
+Flat in world size, **flat in call depth**, and not a first-touch cost —
+a constant, paid per dispatch.
 
-> ⚠ **~37 µs of it is one `new Error().stack`.**
+### How it got from 50 µs to 2.1
 
-Every gated dispatch runs `ExecutionContextApi.run` →
-`_assertFrameMutatorAllowed` → `ModuleApi.getImmediateCallerUrl`, which
-captures a stack to answer "who called me". Building the stack text
-runs the runtime's `prepareStackTrace`, which **source-map remaps every
-frame** — the same capture costs 9.4 µs on plain node and ~37–52 µs
-under `tsx`.
+Five changes, none of them the thing the first profile pointed at. The
+full investigation, with the numbers at each step, is
+[call-security-performance-slate.md](../slates/builds/call-security-performance-slate.md).
 
-The remap is **per frame**, so `#walkExternalFrames` takes a
-`maxFrames` bound and the immediate-caller lookups pass one: ten frames
-were being formatted to answer a question about one.
-`getImmediateCallerUrl` and `#findCallerUrl` **retry unbounded** if the
-bound finds nothing, so `IMMEDIATE_CALLER_FRAMES` is a performance knob
-and never a correctness one — a truncated capture must not turn into a
-`SecurityError`.
+1. **⭐ The caller proof is taken per CALL SITE, not per call.**
+   `ExecutionContextApi.run` walked the stack on every call to prove its
+   caller was framework code — 88% of the gate, re-deriving a fact fixed
+   at the call site. `claimFramePush()` runs the same proof once and
+   hands back the push capability; the two hot holders (the proxy gate,
+   the static wrapper) claim it lazily and keep it. An unallowlisted
+   file gets the same `SecurityError` from the claim it would have got
+   from `run`, and the three PUBLIC frame mutators (`tagCurrentFrame`,
+   `tagActingAuthor`, `establishCircleScope`) keep the per-call walk —
+   they are rare, and they are what a forge would target.
+2. **⭐⭐ The gate stopped gating its own collaborators.** Its first act
+   was `ShadowApi._consumeBypass()` and its last `_shadowsFor()`, both
+   decorated statics — so each resolved a policy and pushed a frame
+   *before the gate could decide anything about the call it was there to
+   gate*. Stack captures per dispatch: **3 → 0**. ShadowApi now hands
+   those two over unwrapped (`_gateEntries()`), captured in the one
+   window where they are still the functions and not the wrappers.
+   `_withDispatch` / `_invokeOnShadow` stay gated: they fire only when a
+   shadow is attached, and they are the ones a frame is worth having.
+3. **Five closures per dispatch → one.** `deny` and `proceed` are static
+   methods now, and `next` goes to the frame push directly (it is
+   already the zero-arg thunk the push wants). Under `tsx`/esbuild each
+   closure also carried an `Object.defineProperty(fn, "name")`; `__name`
+   plus its native setter were **27% of the profile**.
+4. **`resolveCallPolicy` is cached** on the constructor (weakly), stamped
+   with a generation every policy writer bumps — so a `@CallSecurity`
+   registered after a class has dispatched invalidates rather than
+   lingering as a stale allow.
+5. **The frame stack is a linked list.** `run` pushed with
+   `[...parent, frame]` — O(depth), on the hottest path, and play does
+   not run at depth 0. The cost used to double between depth 0 and depth
+   200 (3.96 µs → 8.2 µs); it is now flat.
+
+> ⚠ **Benchmarking this is easy to get wrong**, three ways, all of which
+> cost real time here: an attached editor debugger makes stack capture
+> ~1.6x dearer (`env -u NODE_OPTIONS -u VSCODE_INSPECTOR_OPTIONS`); a
+> busy machine invents both wins and regressions (a change read as a 2x
+> REGRESSION with a vitest run on the other cores); and a bench that
+> calls from an empty stack measures a call the engine never makes.
+> `bench-gate` refuses a loaded box and sweeps call depth.
+
+### The capture itself
+
+`#walkExternalFrames` hands back raw `CallSite`s
+(`Error.prepareStackTrace = (_e, callSites) => callSites`) rather than
+reading `.stack` as a string. Building the text runs the runtime's
+`prepareStackTrace`, which **source-map remaps every frame** — the same
+capture costs 9.4 µs on plain node and ~37–52 µs under `tsx`. The remap
+is per frame, so the immediate-caller lookups pass a `maxFrames` bound
+and **retry unbounded** when it finds nothing: the bound is a
+performance knob and never a correctness one, because a truncated
+capture must not become a `SecurityError`.
 
 > ⚠ **Do not extract the capture into a helper.** A helper adds one
 > stack frame, and one frame is enough to push a legitimate caller out
-> of V8's 10-frame default window. `assertTestOnly` scans for a test
-> frame *anywhere* below it, and the chain through a nested
+> of V8's default window. `assertTestOnly` scans for a test frame
+> *anywhere* below it, and the chain through a nested
 > `_clearAllForTesting` lands on exactly 10 — extracting the capture
-> broke **438 tests**. The hazard is pre-existing and already noted in
-> `assertTestOnly`'s own comment; the inline capture is what keeps it
+> broke **438 tests**. The inline capture is what keeps that hazard
 > latent.
 
-### The optimization that does NOT work
+### What was NOT traded away
 
-Swapping in a raw `prepareStackTrace` (`(_e, frames) => frames`) skips
-both the text build and the remap, and takes a gated call from 68 µs to
-**14 µs** — a 4.9× win. **It was tried and reverted**, because
-`CallSite.getFileName()` and the source-mapped rendered stack disagree
-somewhere that changes a **policy decision**: `combat-gym`'s
-feint-vs-turtle cell flips from `A` to `draw`, deterministically, in
-isolation. Probing both forms side by side at several depths showed
-byte-identical URLs, so whatever differs is narrower than the probes —
-and a security gate is the wrong place to ship an unexplained
-behavioural delta. The 4.9× is real and still on the table; it needs
-the disagreement identified first.
+- **Tamper resistance.** The stack proof still gates the *claim*; what
+  changed is how often it is taken, not whether.
+- **Viewer-relative naming.** `RecognitionApi.describe` inside the MQL
+  scope walk is why `look bob` works iff the room view says "Bob". Its
+  22% is a feature's cost, not waste.
+- **The destroyed-object inert guard**, which keeps benign races from
+  cascading with zero per-call-site instrumentation.
 
-**The remaining capture cost is the source-map hook**, which exists
-because production runs from source so authors can `write`/`reload`
-live. That is a deliberate trade, not an oversight — it just has a
-price, and this is it.
+### The rule this produced
+
+> **A loop over N objects that makes a gated call per object costs N
+> gate dispatches.**
+
+Five instances were found by driving in one day — three of them written
+*while fixing the other two*, which is the argument that this needed an
+engine answer rather than discipline. The established mitigation is to
+**walk RAW** (`ProxyApi.unwrap`) when the read is plain state and no
+shadow could legitimately disagree, carrying the guards the proxy would
+have applied (an `isDestroyed()` break, a `seen` set).
 
 ## Errors
 

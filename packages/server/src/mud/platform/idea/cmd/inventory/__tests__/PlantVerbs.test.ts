@@ -102,7 +102,7 @@ function tissue(): Material {
 }
 
 /** The template path the seed names; the clone stub mints from it. */
-const PLANT_TEMPLATE = '/stuff/thing/plant/_verbtest';
+const PLANT_TEMPLATE = '/trade/farming/thing/plant/_verbtest';
 
 function newPlant(): Plant {
   const p = new Plant();
@@ -140,7 +140,7 @@ function makePot(soil: number, capacity = Math.max(soil, 0.5)): PlantPot {
       ),
     );
     return pot;
-  }, freshPath('/stuff/thing/pot/_test'));
+  }, freshPath('/trade/farming/thing/pot/_test'));
 }
 
 function makeSeed(growsInto: string | null = PLANT_TEMPLATE): Seed {
@@ -149,7 +149,7 @@ function makeSeed(growsInto: string | null = PLANT_TEMPLATE): Seed {
     s.setShortDescription('a peace lily seed');
     s.setGrowsIntoPath(growsInto);
     return s;
-  }, freshPath('/stuff/thing/seed/_test'));
+  }, freshPath('/trade/farming/thing/seed/_test'));
 }
 
 function stubCommand(verb: string): CommandDefinition {
@@ -295,7 +295,7 @@ describe('plant / repot', () => {
     const { giver, room } = scene();
     const pot = makePot(0.5);
     ContainmentApi.move(pot, room);
-    const sitting = makePlantAt(freshPath('/stuff/thing/plant/_sitting'));
+    const sitting = makePlantAt(freshPath('/trade/farming/thing/plant/_sitting'));
     ContainmentApi.move(sitting, pot);
     pot.occupy(sitting, PLANT_SLOT);
     const seed = makeSeed();
@@ -347,7 +347,7 @@ describe('plant / repot', () => {
     const large = makePot(3);
     ContainmentApi.move(small, room);
     ContainmentApi.move(large, room);
-    const p = makePlantAt(freshPath('/stuff/thing/plant/_move'));
+    const p = makePlantAt(freshPath('/trade/farming/thing/plant/_move'));
     ContainmentApi.move(p, small);
     small.occupy(p, PLANT_SLOT);
 
@@ -395,7 +395,7 @@ describe('plant / repot', () => {
     const thimble = makePot(0.2);
     ContainmentApi.move(large, room);
     ContainmentApi.move(thimble, room);
-    const p = makePlantAt(freshPath('/stuff/thing/plant/_grown'));
+    const p = makePlantAt(freshPath('/trade/farming/thing/plant/_grown'));
     ContainmentApi.move(p, large);
     large.occupy(p, PLANT_SLOT);
 
@@ -486,7 +486,7 @@ describe('plant / repot', () => {
     const dry = makePot(0, 3);
     ContainmentApi.move(large, room);
     ContainmentApi.move(dry, room);
-    const p = makePlantAt(freshPath('/stuff/thing/plant/_dry'));
+    const p = makePlantAt(freshPath('/trade/farming/thing/plant/_dry'));
     ContainmentApi.move(p, large);
     large.occupy(p, PLANT_SLOT);
 

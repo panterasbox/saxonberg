@@ -259,6 +259,12 @@ export default class TeleportController extends CommandController<TeleportModel>
     const ref = node.getSelectedDestination();
     if (!ref) {
       if (MixinApi.isSensor(giver)) {
+        // ⭐ The board is PROSE, and prose off a screen is read, never
+        // pushed: `renderDepartures` annotates each route against THIS
+        // reader's travel credential, so the earlier card — projected to
+        // everyone who could see the terminal — showed the whole room one
+        // traveller's registrations. The same text is what `look
+        // <terminal>` renders, through `TpaTerminal.readScreen`.
         this.tell(context, await node.renderDepartures(giver));
       }
       return;

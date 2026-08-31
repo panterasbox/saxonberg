@@ -1,0 +1,14 @@
+# The glass-wash basin — a WaterFixture: inexhaustible water, and the
+# fixture that affords `wash` to everyone in the room with it (the
+# class's `peers` contributions). Bussed glasses are washed here and
+# racked.
+class: /platform/thing/WaterFixture
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a wash basin
+  longDescription: A deep steel basin with a glass-washing brush on a spring, the water never quite still.
+  primaryKeyword: basin
+  keywords: [basin, sink, wash-basin, water]
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 30

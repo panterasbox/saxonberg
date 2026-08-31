@@ -1,0 +1,19 @@
+# The floor keg of lager.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a keg of lager"
+  longDescription: "A thirty-litre steel keg of lager, sweating in the cold."
+  primaryKeyword: lager
+  keywords: ["lager", "keg", "beer"]
+  category: keg
+  interiorBulk: true
+  interiorCapacity: 30
+  interiorMaterial: /trade/brewing/idea/material/lager
+  interiorAmount: 30
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: keg:lager
+  regionTarget: 4
+  materialTags: ["beer", "lager"]
+  container: /trade/brewing/thing/brewing-stock

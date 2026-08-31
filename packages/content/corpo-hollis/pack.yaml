@@ -1,15 +1,18 @@
 id: corpo-hollis
-version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+version: 0.3.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 root: /corpo/hollis
-description: The hollis corpo — its mark, its brands, and its org chart.
-# The corpo's own chart maintains its pack (content-packs wave 3, D8): the
-# organization row this pack ships, resident from boot.
+description: >-
+  The hollis corpo — its mark, its brands, and its org chart. CAPITAL and
+  the MARK, nothing else: Hollis's bottling floor (a warehouse that distils
+  nothing — Old Hollis is Veshko's whiskey, Hollis Cane is Veshko's rum)
+  is a PRODUCT of the distilling trade and lives in `trade-distilling` as
+  an outfit whose `parentOrganization` points here. Hollis LABELS — in the
+  trade pack.
 maintainers: { organization: /corpo/hollis }
 requires:
   # The organization holds its own branch — which is what makes it the
-  # committee over /corpo/hollis (the subsidiaries' appointing authority).
-  # On a world where the retired `hollis` board group held it, the title
-  # migrates to the organization.
+  # committee over /corpo/hollis (the subsidiaries' appointing authority)
+  # — the only extent a corpo pack holds.
   title:
     - { extent: /corpo/hollis }
 boot:

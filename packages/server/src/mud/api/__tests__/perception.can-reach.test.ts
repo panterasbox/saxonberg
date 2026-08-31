@@ -29,12 +29,28 @@ import CartesianLocation from '../../lib/location/CartesianLocation';
 import { Idea } from '../../lib/stuff/Idea';
 import { NamedMixin } from '../../lib/description/Named';
 import { ContainerMixin } from '../../lib/spatial/Container';
+import { CommandGiverMixin } from '../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../lib/spatial/Containable';
+import { SealableMixin } from '../../lib/spatial/Sealable';
+import { DetailedMixin } from '../../lib/description/Detailed';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
 /** An actor that can hold things and be somewhere. */
 class Actor extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {}
+
+/** An open-topped holder: a rack, a crate, a stock counter. No lid. */
+class Rack extends ContainerMixin(ContainableMixin(DetailedMixin(Thing))) {}
+
+/** Somebody: an actor who takes commands. Their pockets are their own. */
+class Person extends CommandGiverMixin(
+  ContainerMixin(ContainableMixin(NamedMixin(Idea))),
+) {}
+
+/** A holder with a lid — shut by default. */
+class Chest extends SealableMixin(
+  ContainerMixin(ContainableMixin(DetailedMixin(Thing))),
+) {}
 
 describe('PerceptionApi.canReach', () => {
   let zone: CartesianZone;
@@ -114,5 +130,56 @@ describe('PerceptionApi.canReach', () => {
     expect(PerceptionApi.canReach(s(actor), s(here), { viaExit: true })).toBe(
       true,
     );
+  });
+  // ⭐ ONE LEVEL into an open container, and the negatives are the point:
+  // this clause is what four callers had each hand-rolled, so the rule it
+  // encodes has to be exactly the shared one (`MixinApi.isOpenContainer`).
+  describe('one level into an open container', () => {
+    it('reaches a coupe standing in an open rack in the room', () => {
+      const rack = makeStuff(() => new Rack());
+      const coupe = makeStuff(() => new Thing());
+      ContainmentApi.move(rack, here as unknown as never);
+      ContainmentApi.move(coupe, rack as unknown as never);
+      expect(PerceptionApi.canReach(s(actor), s(coupe))).toBe(true);
+    });
+
+    it('reaches into an open holder the actor is CARRYING', () => {
+      const pouch = makeStuff(() => new Rack());
+      const coin = makeStuff(() => new Thing());
+      ContainmentApi.move(pouch, actor as unknown as never);
+      ContainmentApi.move(coin, pouch as unknown as never);
+      expect(PerceptionApi.canReach(s(actor), s(coin))).toBe(true);
+    });
+
+    it('does NOT reach into a shut chest — and does once it is opened', () => {
+      const chest = makeStuff(() => new Chest());
+      const coupe = makeStuff(() => new Thing());
+      ContainmentApi.move(chest, here as unknown as never);
+      ContainmentApi.move(coupe, chest as unknown as never);
+      chest.setOpen(false);
+      expect(PerceptionApi.canReach(s(actor), s(coupe))).toBe(false);
+      chest.setOpen(true);
+      expect(PerceptionApi.canReach(s(actor), s(coupe))).toBe(true);
+    });
+
+    it("does NOT reach into somebody else's inventory, open or not", () => {
+      const other = makeStuff(() => new Person());
+      other.setName('Bob');
+      const coin = makeStuff(() => new Thing());
+      ContainmentApi.move(other, here as unknown as never);
+      ContainmentApi.move(coin, other as unknown as never);
+      expect(PerceptionApi.canReach(s(actor), s(coin))).toBe(false);
+    });
+
+    it('stops at ONE level — a box inside the crate is not reachable', () => {
+      const crate = makeStuff(() => new Rack());
+      const box = makeStuff(() => new Rack());
+      const gem = makeStuff(() => new Thing());
+      ContainmentApi.move(crate, here as unknown as never);
+      ContainmentApi.move(box, crate as unknown as never);
+      ContainmentApi.move(gem, box as unknown as never);
+      expect(PerceptionApi.canReach(s(actor), s(box))).toBe(true);
+      expect(PerceptionApi.canReach(s(actor), s(gem))).toBe(false);
+    });
   });
 });

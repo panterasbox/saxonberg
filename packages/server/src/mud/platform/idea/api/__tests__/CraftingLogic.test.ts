@@ -25,7 +25,7 @@ import { Quantity } from '../../../../lib/quantity';
 import Material from '../../../../lib/material/Material';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import ToolItem from '../../../thing/ToolItem';
-import CraftedDrink from '../../../thing/CraftedDrink';
+import CraftVessel from '../../../thing/CraftVessel';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
@@ -58,7 +58,7 @@ const GIN = '/stuff/idea/material/spirit/gin';
 const VERMOUTH = '/stuff/idea/material/spirit/vermouth';
 const RUM = '/stuff/idea/material/spirit/rum';
 const MARTINI_MAT = '/stuff/idea/material/cocktail/martini';
-const GLASS = '/trade/hospitality/thing/cocktail-glass';
+const GLASS = '/trade/hospitality/thing/coupe';
 const DAVE = '/world/lounge/dave-test';
 
 let store: Record<string, Record<string, unknown>[]>;
@@ -82,9 +82,24 @@ function makeBottle(materialPath: string, band: string, amountL: number) {
   return b;
 }
 
+/** A clean, empty glass of the recipe's output form — the pool entry. */
+function makeGlass() {
+  const g = makeStuffAtPath(() => new CraftVessel(), GLASS);
+  (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
+  g.setInteriorCapacity(Quantity.of(0.3, 'L'));
+  return g;
+}
+
 function makeTool(cap: string) {
   const t = makeStuff(() => new ToolItem());
-  t.setCapabilities([cap]);
+  // ⭐ The instrument authors the working it performs — the kernel keeps
+  // no technique table, so a tool naming none leaves the drink `built`.
+  // These are the same numbers hospitality's mixing-glass row carries.
+  t.setCapabilities([
+    cap === 'mixing-glass'
+      ? { kind: cap, technique: { name: 'stirred', chillK: 6, dilutionL: 0.01, priority: 2 } }
+      : cap,
+  ]);
   return t;
 }
 
@@ -129,7 +144,7 @@ beforeEach(async () => {
   // Stub clone to mint the output glass (avoids the dynamic class-import).
   vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
     if (path !== GLASS) throw new Error(`unexpected clone ${path}`);
-    const g = makeStuff(() => new CraftedDrink());
+    const g = makeStuff(() => new CraftVessel());
     (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
     g.setInteriorCapacity(Quantity.of(0.3, 'L'));
     return g as never;
@@ -167,6 +182,7 @@ beforeEach(async () => {
   ContainmentApi.move(makeBottle(GIN, 'fine', 0.7), room);
   ContainmentApi.move(makeBottle(VERMOUTH, 'fair', 0.7), room);
   ContainmentApi.move(makeTool('mixing-glass'), room);
+  ContainmentApi.move(makeGlass(), room);
   ContainmentApi.move(bartender, room);
 });
 
@@ -187,12 +203,14 @@ describe('CraftingLogic.craft', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
 
-    // Output: a crafted, graded glass holding 0.07 L of martini.
+    // Output: a crafted, graded glass holding 0.07 L of martini plus the
+    // 0.01 L a stirred working folds in (the `mixing-glass` technique's
+    // dilution) — conservation plus the honest water.
     expect(MixinApi.isCrafted(outcome.output)).toBe(true);
     expect(outcome.grade.getBand()).toBe('fair'); // min(fine, fair)
     const outSlot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(outSlot.getMaterialPath()).toBe(MARTINI_MAT);
-    expect(outSlot.getAmount().rawValue()).toBeCloseTo(0.07, 6);
+    expect(outSlot.getAmount().rawValue()).toBeCloseTo(0.08, 6);
 
     // Provenance + recipe + clock stamped.
     expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(DAVE);

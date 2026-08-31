@@ -264,6 +264,25 @@ export class PerceptionApi {
     return logic().canReach(actor, target, opts);
   }
 
+  /**
+   * ⭐ `canReach` for a whole candidate list, in ONE walk and ONE gated
+   * call. Use this in any loop — asking `canReach` per candidate is
+   * quadratic (each call re-walks the room and one level into every
+   * open container) and pays a call-security stack capture each time.
+   *
+   * `GetController` did exactly that, and a live drive found 96.5% of
+   * the server's CPU inside it: `get produce` binds every item in an
+   * open floor stock, so the per-candidate ask re-walked hundreds of
+   * items hundreds of times.
+   */
+  public static reachableAmong(
+    actor: Stuff,
+    candidates: readonly Stuff[],
+    opts?: { location?: Stuff | null },
+  ): Stuff[] {
+    return logic().reachableAmong(actor, candidates, opts);
+  }
+
   public static perceives(
     viewer: Stuff,
     target: Stuff,

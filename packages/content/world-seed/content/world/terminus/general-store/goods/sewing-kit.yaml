@@ -3,7 +3,7 @@
 # cousin, the smith's forge for things that were never metal). The
 # `mending` capability entry alone confers repair/salvage (the
 # capability table). Its up-market variant is the sewing machine.
-class: /platform/thing/ToolItem
+class: /platform/thing/MendingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a sewing kit
@@ -11,6 +11,7 @@ data:
   keywords: [sewing-kit, kit, sewing, needle, awl, thread]
   longDescription: |
     A canvas roll of needles, waxed thread, an awl, and patience. Everything soft that tears, this mends.
-  capabilities: [mending]
+  capabilities:
+    - { kind: mending }
   _materialPath: /stuff/idea/material/textile/wool
   mass: 0.4

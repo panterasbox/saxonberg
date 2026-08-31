@@ -1,0 +1,19 @@
+# The floor bottle of cola — 1 L, at target in the bottling stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of cola"
+  longDescription: "A one-litre screw-capped bottle of cola, the bottling floor's plain label."
+  primaryKeyword: cola
+  keywords: ["cola", "coke", "bottle", "mixer"]
+  category: mixer-bottle
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/bottling/idea/material/cola
+  interiorAmount: 1
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: mixer:cola
+  regionTarget: 8
+  materialTags: ["mixer", "cola"]
+  container: /trade/bottling/thing/bottling-stock

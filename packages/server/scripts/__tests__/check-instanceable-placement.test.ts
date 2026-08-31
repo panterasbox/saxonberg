@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { tradePlacementOk, packSrcPlacementOk } from '../check-instanceable-placement';
+import { tradePlacementOk, packSrcPlacementOk, packBrainShapeOk } from '../check-instanceable-placement';
 
 describe('check-instanceable-placement.tradePlacementOk', () => {
   it('an instanceable row under <root>/<branch>/ passes', () => {
@@ -47,5 +47,17 @@ describe('check-instanceable-placement over a capability pack', () => {
     expect(packSrcPlacementOk('lib/Helper.ts')).toBe(false);
     expect(packSrcPlacementOk('Helper.ts')).toBe(false);
     expect(packSrcPlacementOk('util/Helper.ts')).toBe(false);
+    // behavior/ is the Brain category's home in a pack — flat, one file per brain.
+    expect(packSrcPlacementOk('behavior/paces.ts')).toBe(true);
+    expect(packSrcPlacementOk('behavior/nested/paces.ts')).toBe(false);
+  });
+
+  it('a pack behavior/ module must be brain-shaped', () => {
+    expect(packBrainShapeOk("import type { BrainContext } from 'x';\nexport const brain = class {\n  static label = 'paces';\n  static act() {}\n};\n")).toBe(true);
+    expect(packBrainShapeOk("export const brain = class {};\nexport type Foo = number;\n")).toBe(true);
+    // A second value export, an anonymous object, or a class declaration are not the shape.
+    expect(packBrainShapeOk("export const brain = class {};\nexport const helper = 1;\n")).toBe(false);
+    expect(packBrainShapeOk("export const brain = { label: 'x' };\n")).toBe(false);
+    expect(packBrainShapeOk("export class Paces {}\n")).toBe(false);
   });
 });

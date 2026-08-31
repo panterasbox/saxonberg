@@ -8,6 +8,39 @@ mixin or Api. Concrete users (light, hearing, display-name
 composition, language understanding, faction visibility, vendor
 pricing) reference this doc rather than re-derive the rule.
 
+## ⭐ `canReach` — the ONE definition of reach, and its one-level bound
+
+An actor reaches: itself; what it carries; what stands in its location;
+a door attached to one of that location's exits; and — **one level** —
+what stands inside an **open container** on either side (the glass
+rack's coupe, the floor stock's keg, a crate's limes, a coin in the open
+pouch you are carrying).
+
+**One level, deliberately.** Reach into the open crate, yes; a box
+*inside* that crate must be opened or taken out first. Without a bound,
+"reachable" would mean "anywhere in the room's transitive contents",
+which is not what a hand does.
+
+The openness test is **`MixinApi.isOpenContainer`**, and it is the single
+rule four things ask — `canReach`, the MQL `peers` scope walk,
+`mustBeInLocation`, and `VisionModality` — so what you can **name**, what
+you can **see** and what you can **touch** cannot drift apart. Its two
+exclusions are load-bearing: a shut `Sealable` is opaque, and a container
+that is **somebody** (a `CommandGiver`, a `HasInteractive`, or any
+`Organism`) is never transparent — you cannot reach into another actor's
+pockets, and `Organism` is in that list because keying only on
+commandability left every non-commandable creature's inventory public.
+
+⚠ **How this went wrong once already, recorded so it does not repeat.**
+`canReach` was flat — me, my contents, the room's contents — so a thing
+standing in an open container was unreachable by every verb in the game.
+The libations build hit it in a live drive and patched it at **four
+symptom sites** (the scope walk, the validator, vision, and
+`GetController`'s own pool) instead of at the concept, leaving four
+encodings of reach that could diverge while the predicate actually
+*named* reach still did not know the rule. The fix was to give the rule
+one owner and let the callers ask.
+
 ## Why this doc exists
 
 Several queries in Saxonberg return different answers depending on

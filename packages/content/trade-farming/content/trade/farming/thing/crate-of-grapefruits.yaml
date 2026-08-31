@@ -1,0 +1,22 @@
+# A crate of grapefruits — the floor unit: a `Crate` (Circulating + Populates +
+# an OPEN Container) the sweep stands at target in the farm's stock, holding
+# 6 grapefruits minted on hydration. The bar's par line counts the grapefruits
+# inside; the crate is what the hand consigns and the keeper buys.
+class: /platform/thing/Crate
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a crate of grapefruits
+  primaryKeyword: grapefruits
+  keywords: [crate, grapefruits, grapefruit, produce]
+  longDescription: A slatted wooden crate of grapefruits, the grower's stencil on the side.
+  censusKey: produce:grapefruit
+  regionTarget: 4
+  materialTags: [produce, grapefruit]
+  container: /trade/farming/thing/farm-stock
+  populates:
+    - /trade/farming/thing/grapefruit
+    - /trade/farming/thing/grapefruit
+    - /trade/farming/thing/grapefruit
+    - /trade/farming/thing/grapefruit
+    - /trade/farming/thing/grapefruit
+    - /trade/farming/thing/grapefruit

@@ -168,7 +168,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       // one here without reporting it would destroy it with the host.
       const contents = container.getContents().filter((item) => {
         if (MixinApi.isHasInteractive(item)) return false;
-        if (ChattelApi.isStamped(item)) {
+        if (ChattelApi.isOwnerPersisted(item)) {
           ctx.noteOwnedGood(item);
           return false;
         }

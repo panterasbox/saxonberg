@@ -19,30 +19,42 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
-// A32.2 scaffolding: a kernel test reading shipped content by path. The
-// archetypes are the generic-objects pack's rows (content-packs wave 3).
-const SEEDS = fileURLToPath(new URL("../../../../../content/generic-objects/content/", import.meta.url));
+// A32.2 scaffolding: a kernel test reading shipped content by path. Three
+// archetypes are the generic-objects pack's rows (content-packs wave 3);
+// the kitchen is the hearth-cooking trade's bundle (libations — a venue
+// bundle lives with the trade whose instruments it collects).
+const CONTENT = fileURLToPath(new URL("../../../../../content/", import.meta.url));
+const ROW: Record<string, string> = {
+  bedroom: "generic-objects/content/stuff/location/room/bedroom.yaml",
+  kitchen: "trade-hearth-cooking/content/trade/hearth-cooking/location/kitchen.yaml",
+  bathroom: "generic-objects/content/stuff/location/room/bathroom.yaml",
+  living: "generic-objects/content/stuff/location/room/living.yaml",
+};
 
 interface Seed {
   class?: string;
   data?: Record<string, unknown>;
 }
 
-const read = (rel: string): Seed =>
-  parse(readFileSync(join(SEEDS, rel), "utf8")) as Seed;
+const SEEDS = join(CONTENT, "generic-objects/content/");
+/** An archetype by name, or any generic-objects row by content-relative path. */
+const read = (name: string): Seed =>
+  parse(
+    readFileSync(ROW[name] ? join(CONTENT, ROW[name]) : join(SEEDS, name), "utf8"),
+  ) as Seed;
 
 const ARCHETYPES = ["bedroom", "kitchen", "bathroom", "living"] as const;
 
 describe("the four archetypes are template rows over ONE class (D6)", () => {
   it("all four exist and share `/lib/location/FurnishableRoom`", () => {
     for (const name of ARCHETYPES) {
-      const seed = read(`stuff/location/room/${name}.yaml`);
+      const seed = read(name);
       expect(seed.class).toBe("/platform/location/FurnishableRoom");
     }
   });
 
   it("what distinguishes them is prose and their fixture set, nothing else", () => {
-    const seeds = ARCHETYPES.map((n) => read(`stuff/location/room/${n}.yaml`));
+    const seeds = ARCHETYPES.map((n) => read(n));
     const prose = seeds.map((s) => s.data?.longDescription);
     expect(new Set(prose).size).toBe(4);
 
@@ -57,7 +69,16 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       "/platform/thing/Chair", // bed, tub, armchair — slots authored per seed
       "/platform/thing/Oven", // the range
       "/platform/thing/Chest", // the larder
-      "/platform/thing/UnboundedReceptacle", // the basin
+      // The basin. ⭐ It was `/platform/thing/UnboundedReceptacle` — but
+      // that class means only *inexhaustible liquid source*, and its
+      // other shipped row is a COFFEE URN, so `wash` sat on a class that
+      // offered you a verb for washing a glass in the coffee.
+      // `WaterFixture` is the deliberate split this test exists to
+      // force: plumbed water you can work at, and the thing that affords
+      // `wash` (in `peers`, so a person standing at it can actually see
+      // the verb — it was in `environment`, which reaches only the
+      // containers ABOVE a thing, and nobody carries a basin).
+      "/platform/thing/WaterFixture",
       "/platform/thing/Surface", // the counter
       "/platform/thing/Prop", // the toilet — prose, no capability
     ]);
@@ -84,7 +105,7 @@ describe("the bedroom — FUNCTION (D10)", () => {
 
 describe("the kitchen — BUNDLE (D12)", () => {
   it("collapses the errand: heat, water, a work surface, food in reach", () => {
-    const kitchen = read("stuff/location/room/kitchen.yaml");
+    const kitchen = read("kitchen");
     expect(kitchen.data?.populates).toEqual([
       "/stuff/thing/fixture/range",
       "/stuff/thing/fixture/counter",
@@ -106,7 +127,7 @@ describe("the kitchen — BUNDLE (D12)", () => {
     // and CO, self-smother. Any open neighbour ventilates, so it is
     // forgiving; deleting this block restores open air with nothing else
     // touched.
-    const reserves = read("stuff/location/room/kitchen.yaml").data?.reserves as Record<
+    const reserves = read("kitchen").data?.reserves as Record<
       string,
       { capacityValue?: number; theme?: string }
     >;
@@ -116,14 +137,14 @@ describe("the kitchen — BUNDLE (D12)", () => {
 
   it("no OTHER archetype authors one — a bedroom is open air", () => {
     for (const name of ["bedroom", "bathroom", "living"] as const) {
-      expect(read(`stuff/location/room/${name}.yaml`).data?.reserves).toBeUndefined();
+      expect(read(name).data?.reserves).toBeUndefined();
     }
   });
 });
 
 describe("the bathroom — PRESENCE (D13)", () => {
   it("three fixtures at three rungs of the LOD ladder", () => {
-    expect(read("stuff/location/room/bathroom.yaml").data?.populates).toEqual([
+    expect(read("bathroom").data?.populates).toEqual([
       "/stuff/thing/fixture/toilet",
       "/stuff/thing/fixture/basin",
       "/stuff/thing/fixture/tub",
@@ -161,7 +182,7 @@ describe("the living room — AUDIENCE (D16)", () => {
     // Every other archetype comes with built-ins the landlord fitted. This
     // one comes with a floor and light, because filling it is the player's
     // only job here.
-    const living = read("stuff/location/room/living.yaml");
+    const living = read("living");
     expect(living.data?.populates).toBeUndefined();
     expect(living.data?.ambientIntensity).toBeGreaterThan(0);
   });
@@ -171,7 +192,7 @@ describe("the living room — AUDIENCE (D16)", () => {
     expect(chair.class).toBe("/platform/thing/Chair");
     // ...and it is in no archetype's populates.
     for (const name of ARCHETYPES) {
-      const populates = (read(`stuff/location/room/${name}.yaml`).data?.populates ??
+      const populates = (read(name).data?.populates ??
         []) as string[];
       expect(populates).not.toContain("/stuff/thing/fixture/armchair");
     }
@@ -189,14 +210,14 @@ describe("venue-genericity and the tier invariant (D15, D13)", () => {
     // invariant that costs nothing now and is expensive to retrofit is that
     // NO row encodes a locality or assumes municipal plumbing.
     for (const name of ARCHETYPES) {
-      const raw = readFileSync(join(SEEDS, `stuff/location/room/${name}.yaml`), "utf8");
+      const raw = readFileSync(join(CONTENT, ROW[name]!), "utf8");
       expect(raw).not.toMatch(/terminus|hinkley|municipal/i);
     }
   });
 
   it("no archetype names a residence — home-ness comes from the parcel above", () => {
     for (const name of ARCHETYPES) {
-      const seed = read(`stuff/location/room/${name}.yaml`);
+      const seed = read(name);
       expect(JSON.stringify(seed.data)).not.toMatch(/apartment|tenant|lease/i);
     }
   });

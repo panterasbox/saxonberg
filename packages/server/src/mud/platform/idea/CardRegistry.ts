@@ -120,6 +120,9 @@ export interface CardState {
    */
   takenAt?: number;
   title?: string;
+  /** The title was given at birth — a many-row mql card keeps it over the
+   * first row's name (the stock sheet is not "an ice bin"). */
+  titleExplicit?: boolean;
   subjectId?: string;
   promptId?: string;
   /** The MML the controller already emitted; absent when `noProse`. */
@@ -163,8 +166,9 @@ export interface CardOpenOptions {
    * ⭐ What this card is CALLED, when the producer knows better than the
    * catalogue does. A `payload` card has no projected record to take a
    * name from, so without this a column of wiki reads is a column of
-   * cards all called "the wiki" — unscannable. An mql card derives its
-   * own from the subject and ignores this.
+   * cards all called "the wiki" — unscannable. A one-subject mql card
+   * derives its own from the subject; a many-row one (the stock sheet)
+   * keeps a title given here over its first row's name.
    */
   title?: string;
   /**
@@ -289,6 +293,7 @@ export default class CardRegistry extends Idea {
       cardId,
       key,
       pinned: opts.pinned ?? def.pinnedByDefault,
+      ...(opts.title ? { title: opts.title, titleExplicit: true } : {}),
       openedAt: now,
       lastTouchedAt: now,
       ...(opts.subjectId ? { subjectId: opts.subjectId } : {}),
@@ -335,7 +340,9 @@ export default class CardRegistry extends Idea {
       });
       if (initial === null) return null;
       state.records = initial as CardRecord[];
-      state.title = initial[0]?.displayName as string | undefined;
+      if (!state.titleExplicit) {
+        state.title = initial[0]?.displayName as string | undefined;
+      }
       // A live card is by construction an inspection card: the only
       // live row is the one you get by looking at something.
       const liveSubject = StuffApi.findById(
@@ -875,7 +882,9 @@ export default class CardRegistry extends Idea {
           viewer,
         ) as unknown as CardRecord,
     );
-    state.title = state.records[0]?.displayName as string | undefined;
+    if (!state.titleExplicit) {
+      state.title = state.records[0]?.displayName as string | undefined;
+    }
     const subject = stuffList[0];
     if (subject) state.subjectKind = subjectKindOf(subject);
   }

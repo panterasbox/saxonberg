@@ -1,0 +1,19 @@
+# Bagged ice — 5 kg (5.45 L at 917 kg/m³) of frozen water, a bottling-floor product; the bar's `ice` par line counts kilograms of it. Insulated only by its bag — it melts like anything else.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bag of ice"
+  longDescription: "A five-kilo bag of ice, sweating through the plastic."
+  primaryKeyword: ice
+  keywords: ["ice", "bag"]
+  category: ice-bag
+  interiorBulk: true
+  interiorCapacity: 5.5
+  interiorMaterial: /trade/bottling/idea/material/ice
+  interiorAmount: 5.45
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: ice:bag
+  regionTarget: 10
+  materialTags: ["ice"]
+  container: /trade/bottling/thing/bottling-stock

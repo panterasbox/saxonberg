@@ -394,7 +394,7 @@ describe('the recipe document kind', () => {
     name: 'Gin Martini',
     keywords: ['martini'],
     inputSlots: [{ slot: 'base', category: 'gin', minGrade: 'fair', measureL: 0.06 }],
-    outputTemplate: '/trade/hospitality/thing/cocktail-glass',
+    outputTemplate: '/trade/hospitality/thing/coupe',
   };
 
   it('installs at /generic-objects/recipes/<recipeId> and updates on a file change', async () => {

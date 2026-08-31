@@ -1,0 +1,17 @@
+# Tonic water — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: tonic water
+  appearance: "bitter, fizzing tonic water"
+  keywords: ["tonic", "tonic-water"]
+  density: 1030
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["water", "sugar"]
+  toxicity:
+    []
+  tags: ["liquid", "beverage", "drinkable", "tonic", "mixer", "carbonated"]
+  composition: []
+  biologicalSource: null

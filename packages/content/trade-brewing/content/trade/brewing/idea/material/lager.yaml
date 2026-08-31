@@ -1,0 +1,19 @@
+# Lager — brewing's second line. Category tags `beer`, `lager`.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: lager
+  appearance: "a pale, bright lager"
+  keywords: ["lager", "beer", "brew"]
+  density: 1008
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["carb", "water"]
+  toxicity:
+    - { type: alcohol, amount: 13 }
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "lager"]
+  nutrientAmounts:
+    carb: 11000
+  composition: []
+  biologicalSource: null

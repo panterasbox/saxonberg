@@ -1021,6 +1021,59 @@ const narnia = await StuffApi.singleton<CartesianZone>('/narnia');
 on a singleton class throw. `singleton()` is the convenient surface
 that respects the contract automatically.
 
+## Keywords Where You Mean *Identity* — Match Materials, Never Words
+
+⚠ **Recorded 2026-08-30 (founder), and it is a hard rule:**
+
+> **Keywords are human-usable tokens meant for a command-line
+> interpreter. They have no bearing on identity.**
+
+A keyword exists so a player can type `get coupe` and the binder can find
+the coupe. That is its whole job. The moment engine logic asks *"is this
+water?"* by looking at a keyword — or at a display name, or a substring
+of one — it has stopped modelling the world and started parsing English.
+
+**Identity for matter lives on the `Material`:** its **tags** (the
+semantic vocabulary recipes already match on — a `kind: item` slot with
+`category: gin` matches the tag `gin`) and, where the *substance* rather
+than the kind is the question, its **`composition`**. Never keywords,
+never `getName()`, and never a substring of either.
+
+| Don't | Do |
+|---|---|
+| `m.getKeywords().includes('water')` | `m.hasTag('water')` |
+| `m.getName().toLowerCase() === 'water'` | `m.hasTag('water')` |
+| `m.getName().toLowerCase().includes(brand)` | resolve the `Brand` row / `_brandKey` |
+| `category: material.getName().toLowerCase()` | an authored tag on the material |
+
+### Why the fallback chain is the tell
+
+The shape that hides this is the permissive OR:
+
+```ts
+// ⚠ WashController, as first shipped
+m.hasTag('water') || m.getKeywords().includes('water') || m.getName().toLowerCase() === 'water'
+```
+
+It reads as defensive breadth. It is the opposite: **the water material
+carried tags `[liquid, beverage, drinkable]` and no `water` tag at all**,
+so the identity branch never fired and the meaningless one was
+load-bearing. A fallback chain lets a missing model hide behind a string
+match — and it fails in both directions: a "waterfall" prop or a
+"watering can" matches, while a real water source whose author never
+typed the word does not.
+
+**If several materials legitimately answer to one idea** (fresh water,
+rain water, brine), that is a modelling question — a shared tag, or a
+`composition` that names the base — **not** a wider net of words.
+
+### The one legitimate use
+
+Matching a keyword against a **player-typed token** at the command
+boundary: the binder's scope walk, a destination name in `teleport`.
+That is what keywords are. Anywhere the player did not type it, do not
+match on it.
+
 ## Object Identity Where You Mean *Person* Identity
 
 **ANTIPATTERN**: comparing two `Stuff` with `===` (or by `stuffId`) to
@@ -2374,11 +2427,12 @@ with no instrument (`make`) is innate on `Avatar`. Patient-side marker
 interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
 side: eligibility is matter (Material tags + edibility) + instrument
 capabilities, and interfaces exist only for real state or behavior.
-The fix's final form is the **capability table**
-(`lib/craft/ToolCapability.ts` + `ToolMixin`'s `InstanceContributor`):
-a tool's verb families derive from its seed row's `capabilities` list —
-zero code, zero statics — so a tool variant (kit → machine) is pure
-data. See
+⚠ An earlier fix went one step too far: it let **the row name its
+verbs** (`CapabilitySpec.verbs` + `ToolMixin`'s `InstanceContributor`),
+so a tool variant was pure data with no class. That removed the kernel
+table and then re-created the problem one level down — see *Two records
+of one fact* below. Verbs are now declared once, on the class of the
+thing that performs the act. See
 [command-spec.md § who affords a verb](./subsystems/command-spec.md) and
 [crafting.md § The offer](./subsystems/crafting.md).
 
@@ -3189,3 +3243,490 @@ a harness that fakes the driver proves the *logic*, never the *driver*
 — a query shape only Mongo can refuse is a query shape the drive has to
 exercise. See [content-packs.md](./subsystems/content-packs.md) (the
 subject kind) and the memory note on the pack harness.
+
+## A controller rebuilding the binder's pool
+
+**Don't** have a controller re-enumerate what is around the actor in
+order to decide whether its bound arguments are valid. **Do** check
+**state** on each bound object.
+
+```ts
+// WRONG — rebuilds the pool the binder already walked, and encodes a
+// second copy of "what is reachable" that can drift from the first.
+const here: Stuff[] = [];
+for (const item of context.location.getContents()) {
+  here.push(item);
+  if (isOpenContainer(item)) here.push(...item.getContents());
+}
+const candidates = stuff.filter((s) => here.some((i) => i.stuffId === s.stuffId));
+
+// RIGHT — the scope already resolved WHICH objects the words name; all
+// that is left is whether each one is valid for this operation.
+const candidates = stuff.filter((s) => PerceptionApi.canReach(giver, s));
+```
+
+MQL targets at any depth the scope offers, and the controller asks one
+question with one owner. `GetController` carried the wrong version until
+the libations review: it meant the rule for reaching into an open
+container lived in four places, and the one called `canReach` was not one
+of them. See [perception.md](./subsystems/perception.md) § *`canReach`*.
+
+## A movement veto where you mean "a person can't pick that up"
+
+**Don't** stop an object being carried off by overriding `canMove` —
+the pre-move veto that fires inside `ContainmentApi.move`. **Do** mark
+it `fixedInPlace` and let the verb that models *a person taking a thing*
+refuse.
+
+```ts
+// WRONG — the lowest-level veto in the system, standing in for a
+// capability test. It fires inside the chokepoint that a remodel, a
+// `place`, a room rebuild and an author rearranging scenery all use, so
+// it says the move is IMPOSSIBLE rather than that this actor may not
+// make it. It also takes no actor, so it could not tell the difference
+// even if it wanted to. And it is class-level: a screen standing on a
+// counter is the same class, and this can never say so.
+canMove(to: (Stuff & Container) | null): VetoResult {
+  if (to === null || to instanceof Location) return { ok: true };
+  return { ok: false, reason: 'mounted' };
+}
+
+// RIGHT — a persistent, authorable fact about THIS object, read by the
+// verb that models taking. `get` refuses; everything else still moves it.
+this.fixedInPlace = true;   // or the row authors it
+```
+
+The general shape: **a veto at a chokepoint answers "can this happen at
+all"; a capability test on a verb answers "may this actor do it".**
+Reaching for the first when you mean the second is easy, because the
+chokepoint is the one place you are certain every path goes through —
+which is exactly why a policy planted there catches every path that
+isn't a player.
+
+Mounted is not immovable. The tell is a veto whose reason is a *fact
+about the object* (`'mounted'`, `'bolted down'`, `'too heavy'`) rather
+than about the operation: a fact about the object is state, and state
+belongs in a field the row can author. `Screen.canMove` was the tree's
+only production override, found in the libations review; `canMove` now
+has no production users and stays for genuine class invariants. See
+[spatial.md](./subsystems/spatial.md) § *`canMove` is a class invariant*.
+
+Structural invariants are the case that *does* belong at the chokepoint
+— an attached `Adornment` throws rather than sliding into a container's
+`getContents()`, because it lives in the host's `getFixtures()` tier and
+the move would corrupt two-tier bookkeeping. That is the data model
+refusing to be made inconsistent, not a policy about who may act.
+
+## Two records of one fact — a second place to declare verb affordances
+
+**Don't** add a second mechanism for something the class ancestry
+already records, however convenient the new one is at the call site.
+**Do** put the fact in one place and pay whatever that costs.
+
+```yaml
+// WRONG — a row naming verbs, because `commandContributions` is a class
+// static and this was the only way a ROW could hang a verb on an object.
+capabilities:
+  - kind: shaker
+    verbs: [pour, stir, strain, garnish, serve, mix]
+    placement: reachable
+```
+
+```ts
+// RIGHT — one record: the class of the thing that performs the act.
+export default class Strainer extends ToolItem {
+  static commandContributions: CommandContributions = {
+    environment: [STRAIN], peers: [STRAIN],
+  };
+}
+```
+
+Four things go wrong, and they generalize past verbs:
+
+1. **No rule for choosing.** An author had two ways to hang a verb and
+   the applicable one depended on whether the object happened to compose
+   `ToolMixin`.
+2. **A second vocabulary for a subset.** `placement: reachable | carried`
+   renamed a slice of `environment` / `peers` / `self` / `inventory`, and
+   could not express the last two at all. A shorthand that cannot say
+   everything the thing it abbreviates can say is a fork.
+3. **It drifted, the way duplicated facts do.** The shaker and the mixing
+   glass carried the *identical* six-verb list — the bar's verb set, not
+   the shaker's, with `garnish` and `serve` on a shaking vessel — because
+   they were the two rows with a `capabilities` block to hang a list on.
+   The stations that host the work afforded nothing.
+4. **Consumers reason about the single record.** The client makes
+   assumptions about how verbs are afforded; a verb set varying with
+   authored data it cannot see is one it cannot reason about.
+
+⭐ The tell that the grouping was never real: `capabilities[].verbs` was
+**read in exactly one place**, where it was translated into
+`CommandContributions`. Nothing ever asked which verbs the *shaker*
+capability conferred. A field whose only consumer is its own translation
+layer is a second representation, not a feature.
+
+**Afford statically, decline diegetically.** The conditional cases a
+dynamic seam serves are the controller's job: a broken anvil keeps
+affording `hammer` and declines on the capability; every Behaved NPC
+affords `talk` and `TalkController` says *"has nothing to say"*. Trying
+and being told is discoverable; an absent verb teaches nothing.
+
+**The price is a class per instrument, and it is the right price** — an
+instrument that performs a distinct working is a distinct kind of thing,
+and a capability pack ships classes anyway. Rows keep what genuinely
+varies per instance (rate, control, technique, material, mass); the
+sewing kit and the sewing machine differ in `rate`/`control` and afford
+identically, which is exactly the line. It also closes a cross-pack leak
+for free: a pack's classes name only that pack's views, so the kernel
+can never name a trade's verb. See
+[command-routing.md](./subsystems/command-routing.md) § *There is ONE
+record of verb affordances*.
+
+## A room fixture contributing in the `environment` bucket
+
+**Don't** put a fixture's verb in `environment` and assume people in the
+room get it. **Do** use `peers` for sideways, `environment` for outward.
+
+```ts
+// WRONG — a wash basin. `environment` grants OUTWARD, to the containers
+// ABOVE this thing: the rule that makes a rock in a bag in your pack
+// still hand you `throw`. A basin stands in the room as the player's
+// SIBLING, and nobody carries a basin — so this reaches NOBODY.
+static commandContributions = {
+  environment: ['platform/cmd/crafting/wash.yaml'],
+};
+
+// RIGHT — sideways, to everyone sharing the room with it.
+static commandContributions = { peers: ['platform/cmd/crafting/wash.yaml'] };
+```
+
+The buckets are directional and the names do not say so loudly enough:
+
+| bucket | direction | typical host |
+|---|---|---|
+| `self` | to the holder itself | a mixin on the actor |
+| `inventory` | INWARD, to everything the host contains | a pack affording `rummage` |
+| `environment` | OUTWARD, to every container above | a **carried** thing |
+| `peers` | SIDEWAYS, across the room | a **fixture** |
+
+⚠ `environment` on a fixture is silently dead: no error, no warning, the
+verb simply never appears. `wash` shipped that way at the bar basin, the
+water tap, the dorm tap and the standpipe, and **every controller test
+passed the whole time** — they call the controller directly. *Affordance
+is wiring; a controller test proves the controller.* Assert that a
+person standing where the thing is can actually see the verb.
+
+The tell, if you are auditing: an `environment`-only contributor that is
+not a carried thing. In this tree the other four (`Wieldable`,
+`PaymentCard`, `WateringCan`, the Whistle) are all carried, which is
+what the bucket is for.
+
+## A registry caching a fact its members already hold
+
+**Don't** stand up a registry so a rare consumer can avoid deriving a
+set. **Do** ask the objects, and use MQL when the question is "which
+things in the world".
+
+```ts
+// WRONG — hosts enroll on one setter, withdraw on destruct, forever.
+PersistableRegistry.enroll(this);
+…
+for (const stuff of PersistableRegistry.hosts()) {
+  if (!MixinApi.isPersistable(stuff)) continue;      // re-derived
+  if (stuff.getPersistenceKey() === null) continue;  // re-derived
+  …                                                  // (hosts() also filters isDestroyed)
+}
+
+// RIGHT — a predicate on the thing, and the sanctioned world search.
+const hosts = MqlApi.resolveMany('world:[mixin.PersistableMixin]', {
+  commandGiver: null, scope: 'world',
+}).stuff;
+for (const stuff of hosts) if (stuff.capturesAtShutdown()) …
+```
+
+⭐ **The tell: the reader revalidates everything the cache caches.** If
+every membership fact has to be re-checked on read, the registry stored
+nothing — and it still costs a write on every mutation that could change
+membership, plus an explicit withdrawal a future caller can forget, plus
+staleness on hot reload.
+
+Weigh maintenance against reads. This one was maintained on every
+`setPersistenceKey` and every destruct, for the whole life of the
+process, so that **one sweep at process exit** could skip a walk. That is
+the wrong side of the trade even before the correctness costs.
+
+The legitimate cases are the opposite shape: `byId` and `byTemplatePath`
+answer questions asked constantly and answer them O(1), and neither is
+derivable from an object by asking it. **Membership that IS derivable
+from the members should be derived.** Where the subscriber is not an
+object at all — a subsystem contributing a closure — there is nobody to
+ask and enrollment is the only shape; that is the distinction, not
+convenience. See
+[persistence.md](./subsystems/persistence.md) § *`captureHostOf`* and
+the lifecycle-signals slate.
+
+## Unwrapping the first hop of a proxy walk and not the rest
+
+**Don't** unwrap the object you start from and then walk on through
+whatever its getters hand back. **Do** unwrap at every hop.
+
+```ts
+// WRONG — `getContainer()` RETURNS a proxy, so only hop one is raw.
+let node = MixinApi.isContainable(raw) ? raw.getContainer() : null;
+while (node) { …; node = node.getContainer(); }   // gated, and it TOUCHES
+
+// RIGHT
+const up = (s) => {
+  if (!MixinApi.isContainable(s)) return null;
+  const next = s.getContainer();
+  return next ? ProxyApi.unwrap(next) : null;
+};
+```
+
+Both halves of the reason matter, and the correctness one is easy to
+miss because nothing breaks loudly:
+
+- **It defeats what the unwrap was for.** The residency sweeps unwrap
+  precisely so enumeration never counts as a touch. A walk that
+  re-proxies at hop two touches every ancestor in the world, so the
+  cold tail the eviction sweep looks for can never go cold.
+- **It is expensive.** Every proxied call runs the security gate, and
+  the gate captures a JS stack.
+
+⭐ The live evidence: `ResidencyLogic.isInPresentRoom` ran this walk for
+every object in the world on every reset sweep, and **five of five
+`Debugger.pause` samples** landed in it while the server sat pinned at a
+core. It was player-triggered — the function early-returns on an empty
+`presentRooms`, so the cliff arrives with the first login.
+
+⚠ Two lessons about MEASURING, not just fixing:
+
+1. **A sampling profile named the wrong function.** Its inclusive-time
+   attribution pointed at a verb controller that happened to be running
+   in the window. Repeated `Debugger.pause` on the live process named
+   the real steady state, unanimously. When a profile and a pause
+   disagree, the pause is the one holding the actual stack.
+2. **The site that chooses raw owns the framework's guards.** Reading
+   raw skips the proxy's `ref: 'instance'` self-heal, so the walk needs
+   its own `isDestroyed()` break — and a `seen` set, because nothing
+   else is left to stop a corrupted cycle.
+
+See [residency.md](./subsystems/residency.md) § *Walk RAW all the way
+up*.
+
+## Proving per call what is fixed per call site
+
+`ExecutionContextApi.run` proved, by walking the stack, that its caller
+was framework code — on every call. The fact cannot change between
+calls: the call site is in a file, and the file is either allowlisted or
+it is not. Measured at **88% of the call-security gate**, and the gate
+was 2000x a raw method call.
+
+The shape to reach for is a **capability taken once**: the same proof
+gates the claim, and what it yields is the raw operation, held by the
+one call site that proved it.
+
+### BAD
+
+```ts
+// Every dispatch in the engine: new Error(), CallSite capture, regex.
+public static run<T>(caller, target, method, opts, fn): T {
+  _assertFrameMutatorAllowed('run');   // ← the stack walk
+  …
+}
+```
+
+### GOOD
+
+```ts
+// execution-context.ts — the proof still gates the claim.
+public static claimFramePush(): FramePush {
+  _assertFrameMutatorAllowed('claimFramePush');
+  return _pushFrame;                    // module-private closure
+}
+
+// security.ts — claimed lazily at first use, then kept.
+static #framePush: FramePush | null = null;
+static #pushFrame(): FramePush {
+  return (SecurityApi.#framePush ??= ExecutionContextApi.claimFramePush());
+}
+```
+
+Applies to any per-call proof of a per-site fact: caller identity,
+module provenance, "am I inside a test". It does **not** apply to proofs
+of things that genuinely vary per call — who the *actor* is, what the
+receiver holds, whether a scope is in effect.
+
+## A gate that gates its own collaborators
+
+The security gate's first act was `ShadowApi._consumeBypass()` and its
+last `_shadowsFor()`. Both are statics on a decorated Api class, so each
+resolved a policy, read the current target and pushed a call frame —
+**twice, before the gate could decide anything about the call it was
+there to gate.** Neither buys anything: both are `@internal` helpers
+under the Public fallback, and nothing anywhere reads a
+`ShadowApi._shadowsFor` frame.
+
+The framework paying its own toll is not defence in depth; it is the
+toll booth queueing for itself.
+
+### BAD
+
+```ts
+static #securityGate = (ctx, next) => {
+  if (SecurityApi.#shadowApi?._consumeBypass()) return next();  // gated static
+  …
+  const shadows = shadowApi?._shadowsFor(ctx.proxy, ctx.prop);  // gated static
+```
+
+### GOOD
+
+```ts
+// shadow.ts — captured in the one window where these are still the
+// functions and not the wrappers.
+const GATE_ENTRIES = {
+  consumeBypass: ShadowApi._consumeBypass.bind(ShadowApi),
+  shadowsFor: ShadowApi._shadowsFor.bind(ShadowApi),
+};
+SecurityApi.decorateApiClass(ShadowApi);
+```
+
+⚠ Narrow it to the methods the gate calls **per dispatch**. The rare
+collaborators (`_withDispatch`, `_invokeOnShadow` — only when a shadow
+is actually attached) stay gated: they are the ones a frame is worth
+having. And never expose the unwrapped original *on the wrapper* — that
+would un-gate every Api in the engine, not just these two.
+
+## A closure declared inside a function that runs millions of times
+
+```ts
+const deny = (): never => { throw new SecurityError(…); };
+```
+
+reads better than a hoisted method, and on a hot path it is an
+allocation per call for something used on almost none of them. Under the
+`tsx`/esbuild runtime the server actually runs on it is worse than an
+allocation: `keepNames` wraps every function expression in
+`__name(fn, "…")`, which is an `Object.defineProperty`. A profile put
+`__name` plus its native setter at **27% of the security gate**.
+
+Hoist the closure to a static method taking what it closed over. And
+look for the degenerate case: `run(…, () => next())` allocates a
+function whose whole body is to call the function it was handed — pass
+`next`.
+
+### GOOD
+
+```ts
+if (!allowed) SecurityApi.#deny(ctx, policy);
+return SecurityApi.#pushFrame()(caller, ctx.proxy, ctx.prop, undefined, next);
+```
+
+## A benchmark run from the top of an empty stack
+
+`ExecutionContextApi.run` pushed a frame with `[...parent, frame]` — an
+O(depth) copy. The microbenchmark could not see it, because a
+microbenchmark calls from depth 0 and play runs dozens of frames down.
+The cost **doubled** between depth 0 and depth 200, and the fix (a
+linked list — one allocation per push whatever the depth) made it flat.
+
+Any bench of a call that nests must sweep the nesting. `bench-gate` does.
+
+Its two siblings, both of which cost real time here:
+
+- **A busy machine invents wins and regressions.** A change measured
+  8.7 µs against a 4.5 µs baseline — a 2x regression — because a vitest
+  run had the other seven cores. `bench-suite` and `bench-gate` both
+  refuse to report on a loaded box.
+- **An attached debugger changes what you are measuring.** VS Code's
+  auto-attach rides in `NODE_OPTIONS`, and an attached inspector makes
+  stack capture ~1.6x dearer. Run benches with
+  `env -u NODE_OPTIONS -u VSCODE_INSPECTOR_OPTIONS`.
+
+## Reading a template row from the database per clone
+
+`StuffApi.clone` → `Template.findByPath` → `PersistApi.find` goes to
+Mongo **every time**, and the hydration cascade recurses through `clone`
+for `hydratorClass` and `populates:`. Against Atlas at a measured 33 ms
+round trip, one shipped item costs about **13 serialized trips —
+448 ms** — and the boot spawn sweep clones 341 of them, one after
+another, for **152 seconds of a 5.7-minute boot**. A CPU profile of that
+boot is **76% idle**: it is not computing, it is waiting.
+
+⚠ **Not fixed — filed.** A template read cache is a real design
+conversation (the invalidation points — CMS save, pack install,
+go-live, `restoreFromTemplate`, hot reload — all exist as chokepoints,
+but enumerating them all is the work). Recorded here so the next person
+to profile a slow boot does not start, as this investigation did, by
+optimising the CPU.
+
+**The general form:** before optimising a slow phase, check whether it
+is *busy* or *waiting*. An idle-dominated profile means round trips, and
+no amount of per-call work removes a round trip.
+
+## Two things in one room answering to one word
+
+`look rail` at Dave's Bar returned the bar STOOLS. `look tap` returned
+the neon signs. In both cases the room card's own button — labelled "the
+back-bar", labelled "a beer tap" — sent the command that produced
+something else.
+
+⭐ **Keywords are human-usable tokens for a command-line interpreter, and
+a word three fixtures claim is not a token — it is a prompt generator.**
+Five fixtures in one small room were fighting over `bar`, `rail`,
+`shelf`, `taps` and `handle`, which are exactly the words a drinker
+types. Measured before the cut:
+
+```
+look tap   -> 3 matches: a beer tap, a water tap, the bar
+look rail  -> 3 matches: the back-bar, the well, the bar
+```
+
+### The rule: one word, one owner — and the owner is what the build calls it
+
+`rail` is the back-bar because that is what `house stock` reports, what
+the restocks beat shelves onto, and what the room's own prose means by
+"the rail is stocked by BUYING". Pick the owner from the language the
+rest of the system already uses, not from what reads nicely on the row.
+
+### The corollary: the object owns DOING, the detail owns LOOKING
+
+A room detail and a real object often describe the same thing — the bar
+counter is an object AND a `slab` detail; the teller counter is an object
+AND part of the `vault` detail. Both claimed `counter` / `till` /
+`grille`.
+
+Split them by what the word is *for*: the object keeps the words you act
+with (`bar`, `counter`, `till`), the detail keeps the words you look
+closely with (`slab`, `woodwork`, `scars`, `sunrise`).
+
+### ⚠⚠ Matching is SUBSTRING containment, so a keyword claims every word inside it
+
+`scope-walk.ts` scores with `keywords.some(kw => kw.includes(query))`.
+Not equality, not prefix. So:
+
+- `speed-rail` answers to `rail` — and so does `speedrail`. Removing the
+  hyphen fixes nothing; the string has to stop containing the word.
+- `back-bar` answers to `bar`. `ice-bin` answers to `ice` and `bin`.
+  `wash-basin` answers to `wash`.
+- ⚠ And the nonsense case, found in the shipped bar: **`look ice` matches
+  the JUICER**, because "ju-*ice*-r" contains it. So does
+  `juice-bottle`. No content edit can fix that one — it is the matcher's
+  rule, and it is worth revisiting (a prefix match would keep `juic` →
+  juicer while dropping `ice` → juicer).
+
+### What to leave alone
+
+Multiplicity is not collision. Twelve coupes all answering `coupe` is the
+glass pool working, and the disambiguation prompt is the correct answer
+to "which one". Likewise a station hall with a departures board and a job
+board: two real boards, one honest question.
+
+### Finding them
+
+A sweep over every room's `details` keywords against the keywords of the
+rows its `populates`/`adornments` name, comparing by substring, found
+every instance in the shipped world in one pass. ⚠ It only sees the YAML
+half — a class that sets its keywords in a constructor (`Tap.ts`) is
+invisible to it, which is an argument for a real lint rather than a
+one-off script.

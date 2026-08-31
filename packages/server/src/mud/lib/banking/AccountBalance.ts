@@ -151,6 +151,34 @@ export default class AccountBalance extends Document {
     return totals;
   }
 
+  /**
+   * Σ of the NEGATIVE account balances per currency, as a positive number —
+   * the world's outstanding overdraft.
+   *
+   * ⭐ Why this is worth its own aggregate: an account allowed to go negative
+   * is a second mint the Governor does not control. Wages post with no
+   * solvency check (a venue runs red by design), so an unfunded business can
+   * pay staff money that was never issued — and because
+   * {@link cachedTotalsByCurrency} NETS, the supply report cancels the two
+   * halves and reads zero while that money sits in workers' pockets, ready
+   * to spend. A live drive found a world with a reported supply of 0 and
+   * 599 zorkmids circulating.
+   *
+   * Conservation still holds arithmetically; what breaks is the meaning of
+   * "money supply". Reporting the overdraft separately keeps the audit
+   * honest without changing what anybody is allowed to do.
+   */
+  static cachedOverdraftByCurrency(): Map<string, number> {
+    const owed = new Map<string, number>();
+    for (const [id, balance] of AccountBalance._cache) {
+      if (balance >= 0) continue;
+      const currency = AccountBalance._currencyCache.get(id) ?? "";
+      if (!currency) continue;
+      owed.set(currency, (owed.get(currency) ?? 0) - balance);
+    }
+    return owed;
+  }
+
   /** Keep the read cache in step after a posting / rebuild. */
   static putCached(accountId: string, balance: number, currency?: string): void {
     AccountBalance._cache.set(accountId, balance);

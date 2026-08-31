@@ -1,0 +1,16 @@
+# Negroni — equal parts, stirred, over ice with an orange peel
+recipeId: negroni
+name: Negroni
+keywords: [negroni]
+discipline: bartending
+difficulty: moderate
+inputSlots:
+- { slot: base, category: gin, minGrade: fair, measureL: 0.03 }
+- { slot: modifier, category: sweet-vermouth, minGrade: fair, measureL: 0.03 }
+- { slot: bitter, category: bitter-liqueur, minGrade: fair, measureL: 0.03 }
+toolCapabilities: [mixing-glass]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/rocks
+outputAppearance: a negroni the colour of a stop light
+garnish: { category: orange, count: 1 }
+ice: cubes

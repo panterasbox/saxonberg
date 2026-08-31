@@ -1,0 +1,29 @@
+# An UNBRANDED well pour — the bottle a bar reaches for when the guest
+# does not specify. No mark, `fair` grade, cheap: the rail.
+#
+# ⭐ Veshko makes it. Same still, three positions on the shelf: this
+# (no mark), Volk (Veshko's own mark, one step up, the same liquid), and
+# Old Hollis / Hollis Cane (Hollis's mark on Veshko's liquid). That is
+# the Ruthless Optimizer's vertical integration, and it means the corpo
+# is in your glass even when there is no mark on the bottle — a quiet
+# fact a curious player can find by asking where the case came from.
+#
+# `container:` is Veshko's yard Stock — the ONLY faucet. Its hand carries
+# the case to the cash-and-carry and consigns it AS Veshko.
+class: /trade/distilling/thing/SpiritBottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a bottle of tequila
+  longDescription: A tall bottle of pale tequila, the cork wired down.
+  primaryKeyword: tequila
+  keywords: [tequila, bottle, spirit]
+  category: spirit-bottle
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /trade/distilling/idea/material/tequila
+  interiorAmount: 0.75
+  gradeBand: fair
+  censusKey: spirit:tequila
+  regionTarget: 12
+  materialTags: [spirit, tequila]
+  container: /trade/distilling/location/veshko-yard/thing/stock

@@ -3,15 +3,15 @@ version: 0.2.0          # reserved; nothing reads/enforces it (non-goal: version
 root: /generic-objects
 description: >-
   Generic objects — the object clusters (items, arms, armor, clothes, gear,
-  vessels, fixtures, instruments, traps, pots, plants, seeds, crops, beds,
-  surfaces, exits, the four room archetypes), the loose objects
-  (Campfire … Casting), the one independent brand, and the crafting recipe
-  roster. The junk drawer: expected to slim as trade packs take their
-  objects.
+  vessels, fixtures, instruments, traps, surfaces, exits, the four room
+  archetypes) and the loose objects (Campfire … Casting). The junk drawer,
+  slimming: the libations drain took the brand, the demo bottles, the mug
+  and the whole growing cluster (pots, plants, seeds, crops, beds → the
+  produce trade); each trade pack takes its objects as it ships.
 requires:
   # One claim per cluster the pack ships — the branches are the pack's;
-  # the loose rows (and obj/corpo's brand + demo bottles) are covered by
-  # the host's /stuff. Held by the default maintainers group.
+  # the loose rows are covered by the host's /stuff. Held by the default
+  # maintainers group.
   title:
     - { extent: /stuff/thing/items }
     - { extent: /stuff/thing/arms }
@@ -22,11 +22,6 @@ requires:
     - { extent: /stuff/thing/fixture }
     - { extent: /stuff/thing/instrument }
     - { extent: /stuff/thing/traps }
-    - { extent: /stuff/thing/pot }
-    - { extent: /stuff/thing/plant }
-    - { extent: /stuff/thing/seed }
-    - { extent: /stuff/thing/crop }
-    - { extent: /stuff/thing/bed }
     - { extent: /stuff/thing/surface }
     - { extent: /stuff/idea/exits }
     - { extent: /stuff/location/room }

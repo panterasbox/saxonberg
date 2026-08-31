@@ -21,6 +21,10 @@ const STORE_DIR = fileURLToPath(
 const OBJ_DIR = fileURLToPath(
   new URL("../../../../../../content/generic-objects/content/stuff/", import.meta.url),
 );
+// The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
+const PRODUCE_DIR = fileURLToPath(
+  new URL("../../../../../../content/trade-farming/content/trade/farming/", import.meta.url),
+);
 const CH_DIR = fileURLToPath(
   new URL("../../../../../../content/world-seed/content/world/terminus/counting-houses/", import.meta.url),
 );
@@ -75,13 +79,15 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/PortableLight",
     "/platform/thing/equipment/Weapon",
     "/platform/thing/Receptacle",
-    // The crafting goods: the sewing kit + the sewing MACHINE (the
-    // capability table's data-only variant) are plain ToolItems; the
-    // whetstone keeps its class for the Audible rasp (behavior, not
-    // affordances); the ingot a Meltable Thing — all discrete, none
-    // Globbable.
+    // The crafting goods: the sewing kit and the sewing MACHINE are both
+    // `MendingTool` — one class, because they afford identically and
+    // differ only in `rate`/`control`, which is row data. The whetstone
+    // carries the Audible rasp AND its own carried-only `sharpen`, and
+    // lives in the smithing pack so the kernel never names a trade's
+    // view. The ingot a Meltable Thing — all discrete, none Globbable.
     "/platform/thing/ToolItem",
-    "/platform/thing/Whetstone",
+    "/platform/thing/MendingTool",
+    "/trade/smithing/thing/Whetstone",
     "/platform/thing/Ingot",
     // The gardening line (husbandry phase 1): a pot is a Slotted fixture
     // with a bulk interior for soil, a seed a discrete Thing naming the
@@ -105,10 +111,13 @@ describe("general-store content integrity", () => {
       const local = line.itemTemplatePath.startsWith(
         "/world/terminus/general-store/",
       );
-      const dir = local ? STORE_DIR : OBJ_DIR;
+      const produce = line.itemTemplatePath.startsWith("/trade/farming/");
+      const dir = local ? STORE_DIR : produce ? PRODUCE_DIR : OBJ_DIR;
       const rel = local
         ? line.itemTemplatePath.replace("/world/terminus/general-store/", "")
-        : line.itemTemplatePath.replace("/stuff/", "");
+        : produce
+          ? line.itemTemplatePath.replace("/trade/farming/", "")
+          : line.itemTemplatePath.replace("/stuff/", "");
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
       // A real, discrete item class (backed by a shipped system, not a prop).

@@ -53,6 +53,11 @@ class Sword extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'Sword';
 }
 
+/** An open container standing in the room — never sealed, nobody's. */
+class Rack extends ContainerMixin(ContainableMixin(NamedMixin(Idea))) {
+  static _mixinName = 'Rack';
+}
+
 const COIN_PATH = '/obj/item/Coin';
 
 function stubCoinClone() {
@@ -109,6 +114,59 @@ describe('GetController — bareword path (no quantity)', () => {
     StuffApi.clearAll();
   });
 
+  it('reaches one level into an open container standing in the room (the rack\'s coupe)', async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const rack = makeStuff(() => new Rack());
+    ContainmentApi.move(rack, loc);
+    const sword = makeStuff(() => {
+      const s = new Sword();
+      s.setName('sword');
+      return s;
+    });
+    ContainmentApi.move(sword, rack);
+
+    const controller = makeStuff(() => new GetController());
+    await controller.execute(
+      makeModel(makeResult([sword], 'sword')),
+      makeContext(giver, loc)
+    );
+    expect(sword.getContainer()).toBe(giver);
+  });
+
+  // ⭐ The narrow test that replaced `Screen.canMove`. A bolted-down
+  // thing refuses *an agent taking it* and nothing else: the same object
+  // still moves through `ContainmentApi.move`, which is what a remodel,
+  // a `place` and an author rearranging scenery all use.
+  it('refuses to pick up something fixed in place, and still lets the world move it', async () => {
+    const loc = makeStuff(() => new Location());
+    const other = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const bench = makeStuff(() => {
+      const b = new Sword();
+      b.setName('bench');
+      b.setFixedInPlace(true);
+      return b;
+    });
+    ContainmentApi.move(bench, loc);
+
+    const controller = makeStuff(() => new GetController());
+    const ctx = makeContext(giver, loc);
+    await controller.execute(makeModel(makeResult([bench], 'bench')), ctx);
+    expect(bench.getContainer()).toBe(loc);
+    expect(
+      ctx
+        .getNotes()
+        .some((n) => n.kind === 'controller-rejected' && n.reason === 'fixed-in-place'),
+    ).toBe(true);
+
+    // Not immovable — only unpocketable. The remodel still lands.
+    ContainmentApi.move(bench, other);
+    expect(bench.getContainer()).toBe(other);
+  });
+
   it('moves a single item from the location into inventory', async () => {
     const loc = makeStuff(() => new Location());
     const giver = makeStuff(() => new TestGiver());
@@ -157,6 +215,80 @@ describe('GetController — quantity-bearing path', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  // ⭐ A bolted-down match must not eat the quantity slot. `get 1
+  // crowsfoot` matches both the crowsfoot STOCK and the crowsfoot
+  // bottles standing in it; spending the one slot on the immovable
+  // counter and reporting `fixed-in-place` is not what was asked. A
+  // live drive hit exactly this the moment the fixtures became fixed.
+  it('skips a fixed-in-place match and takes the takeable one', async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const counter = makeStuff(() => {
+      const c = new Rack();
+      c.setName('crowsfoot');
+      return c;
+    });
+    (counter as unknown as { setFixedInPlace(b: boolean): void }).setFixedInPlace(true);
+    ContainmentApi.move(counter, loc);
+    const bottle = makeStuff(() => {
+      const b = new Sword();
+      b.setName('crowsfoot');
+      return b;
+    });
+    ContainmentApi.move(bottle, loc);
+
+    const controller = makeStuff(() => new GetController());
+    await controller.execute(
+      makeModel(
+        makeResult([counter, bottle] as never, 'crowsfoot', {
+          value: { kind: 'count', n: 1 },
+          mode: 'lenient',
+        }),
+      ),
+      makeContext(giver, loc),
+    );
+    expect(bottle.getContainer()).toBe(giver);
+    expect(counter.getContainer()).toBe(loc);
+  });
+
+  // ⭐ DISCRETE items, not a glob. The coin case below splits one stack;
+  // this is N separate things sharing a keyword — a floor stock's dozen
+  // grapefruits, a rack's dozen coupes — and it is the case the
+  // `consigns` beat depends on. A bare `get <kw>` binds them ALL
+  // (`greedy: true`), which is how a hand's inventory grew without
+  // bound and made every later `consign` slower than the last; the beat
+  // asks `get 1 <kw>` so its authored `batch` means something.
+  it('takes exactly ONE of several discrete things sharing a keyword', async () => {
+    const loc = makeStuff(() => new Location());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const swords = Array.from({ length: 5 }, () => {
+      const sw = makeStuff(() => {
+        const x = new Sword();
+        x.setName('sword');
+        return x;
+      });
+      ContainmentApi.move(sw, loc);
+      return sw;
+    });
+
+    const controller = makeStuff(() => new GetController());
+    await controller.execute(
+      makeModel(
+        makeResult(swords as never, 'swords', {
+          value: { kind: 'count', n: 1 },
+          mode: 'lenient',
+        }),
+      ),
+      makeContext(giver, loc),
+    );
+
+    const carried = giver.getContents().filter((c) => swords.includes(c as never));
+    expect(carried.length).toBe(1);
+    expect(loc.getContents().filter((c) => swords.includes(c as never)).length).toBe(4);
   });
 
   it('picks up 5 of a 30-coin pile (lenient count)', async () => {

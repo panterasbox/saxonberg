@@ -1,0 +1,14 @@
+# Pressed grapefruit juice — one grapefruit through the press into a juice bottle from the pool
+recipeId: press-grapefruit
+name: Pressed grapefruit juice
+keywords: [press-grapefruit, grapefruit-juice]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: fruit, category: grapefruit, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [juicer]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/juice-bottle
+outputAppearance: fresh grapefruit juice, cloudy
+outputMaterial: /trade/hospitality/idea/material/grapefruit-juice
+outputPortionL: 0.1

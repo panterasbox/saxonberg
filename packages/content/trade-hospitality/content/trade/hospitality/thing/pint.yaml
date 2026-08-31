@@ -1,0 +1,12 @@
+# a pint glass — a pool glass over CraftVessel (claimed, served, bussed, washed;
+# never minted per drink). `category` is the glassware par key.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a pint glass
+  longDescription: A nonic pint glass with the bulge below the rim.
+  primaryKeyword: pint
+  keywords: [pint, glass, pint-glass]
+  category: pint
+  interiorBulk: true
+  interiorCapacity: 0.57

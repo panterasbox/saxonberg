@@ -171,6 +171,37 @@ export abstract class Template extends Document {
    * All Templates whose path begins with `basePath + '/'` — i.e. strict
    * descendants (excludes `basePath` itself).
    */
+  /**
+   * Every template whose path contains `infix` as a whole run of
+   * segments (`'/idea/material/'` → the platform's, the commons' and
+   * every trade pack's material rows alike). The root-agnostic sibling
+   * of {@link findDescendants}: a reference roster that lives under the
+   * same branch in every pack is found by the branch, never by a list
+   * of roots.
+   */
+  static async findByPathInfix(infix: string): Promise<Template[]> {
+    const escaped = infix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const docs = (await PersistApi.find(
+      Template.collectionName,
+      { path: { $regex: escaped } }
+    )) as DomainDoc[];
+    return Promise.all(docs.map((d) => Template._materialize(d)));
+  }
+
+  /**
+   * Every template whose `data` block carries `field` — the spawn
+   * sweep's candidate query (`censusKey`): a template-derived roster, so
+   * a fresh boot can stand a producer's floor at target before any
+   * instance of the row exists to copy.
+   */
+  static async findWhereDataHas(field: string): Promise<Template[]> {
+    const docs = (await PersistApi.find(
+      Template.collectionName,
+      { [`data.${field}`]: { $exists: true } }
+    )) as DomainDoc[];
+    return Promise.all(docs.map((d) => Template._materialize(d)));
+  }
+
   static async findDescendants(basePath: string): Promise<Template[]> {
     const prefix = basePath.endsWith('/') ? basePath : basePath + '/';
     const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

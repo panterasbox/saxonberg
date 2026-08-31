@@ -1,0 +1,19 @@
+# The Veshko distillery — a `warehouse` instance (the distilling pack's
+# exemplar row, repeated: template inheritance does not exist): racking,
+# the stock the zone's `stocks:` fills, the hand. The stills that make it
+# are the distillery build's; today the floor stands at target through the
+# sweep, which is the sanctioned faucet.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Veshko distillery floor
+  primaryKeyword: distillery
+  keywords: [distillery, floor, yard, veshko]
+  longDescription: |
+    A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
+  ambientIntensity: 30
+  ambientColorTemperature: 3800
+  populates:
+    - /trade/distilling/thing/racking
+    - /trade/distilling/location/veshko-yard/thing/stock
+    - /trade/distilling/location/veshko-yard/agent/hand

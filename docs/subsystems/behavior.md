@@ -107,6 +107,26 @@ controller `clone-per-execution` HMR pattern (see
 because resolution is a map lookup, where a `Stuff` singleton would need
 an explicit `dest` to swap the cached instance.
 
+## Brains in packs — `src/behavior/` is the Brain category's home
+
+A capability pack may ship a brain (libations 1g): `packages/content/
+<pkg>/src/behavior/<name>.ts` backs `/<root>/behavior/<name>` for every
+namespace root the pack holds — the pack-side mirror of the kernel's
+`lib/behavior/`. Nothing in the resolver changed: `resolveExport` rides
+the same pack source table `resolveClassFile` reads, so a pack brain
+resolves into the pack's `src/` and never the kernel tree, and the CMS
+save-gate's brain-path check accepts any root that table resolves.
+`lint:instanceable` invariant 8 admits `behavior/*.ts` (flat — one file
+per brain) and checks the brain shape on those files (sole export
+`brain`, a named class-expression). A pack brain imports the base
+types by package specifier (`@saxonberg/server/mud/lib/behavior/brain`).
+
+**The class rule:** *a brain lives in the pack whose content is the only
+thing that names it.* A generic economy brain (`restocks`, `consigns`,
+`shifts`, `covers`) is kernel; the first real pack brain arrives with
+the first pack that needs a bespoke one. Proof:
+`lib/behavior/__tests__/pack-brain.test.ts`.
+
 ## Triggers: cadence + witness — no new events
 
 A trigger is a thin selector over **two sources**. State conditions ("at
@@ -149,6 +169,41 @@ marks the host conversational for the `talk` affordance. See
 
 `addressed` and `given` are deferred (dialogue Wave 2 / later); both slot
 in as additional `handleMessage` topic predicates with no new event.
+
+## ⚠⚠ The cast holds still while the world is closed
+
+A brain wires at its host's `postRegister` — a host has to exist before
+it can behave — but the schedule a cadence trigger arms is **real
+time**, not game time. So without a gate the whole cast begins acting
+the moment `BootstrapManager` has stood the world up, which is *minutes*
+before the subsystems those brains act THROUGH have booted.
+
+`Behaved._runAct` checks `AppApi.isWorldOpen()` — one gate, at the single
+point cadence and witness both come through. `AppBootstrap` closes the
+world for the length of its sequence and opens it at the end. The fact
+defaults to OPEN, so nothing in a test or a script has to know it exists.
+
+⭐ **The symptom, and why it is not cosmetic.** A live drive of the
+libations branch opened with every trade hand's `consigns` beat failing,
+in a chain that reads backwards:
+
+```
+wallet use house → unknown-verb(wallet)   ← no house card; employment
+                                            boots ~200 log lines later
+→ the hand falls back to trading as ITSELF
+→ consign syrup --ask 6 → no-account(/trade/hearth-cooking/agent/pantry-hand)
+```
+
+Eight trades, every beat. Nothing was wrong with the content —
+`purchases: true` and `banksAt:` are authored correctly on every outfit.
+And the beats **starved the boot that would have fixed them**: 61% CPU
+for six and a half minutes while `RenownStanding.warm()`'s awaited
+`find({})` queued behind brain work for an event loop, and the server
+never reached `listen` at all.
+
+⚠ The obvious lever is the wrong one. `WorldClockApi.pause()` does not
+stop a brain: cadences are real-time, and pausing game time changes
+nothing about them.
 
 ## Ambient pacing budget
 
@@ -272,6 +327,8 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
 | `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
 | `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
+| `consigns` | cadence (not ambient, not presence-gated) | — | — | a producer's hand carries floor stock to the host shelf and consigns it **as the business** — literal verbs via `forceCommand` (`get`, `wallet use house`, `consign … --ask`), `teleport` between floor and counter | `{ stock, shelf, ask: {censusKey: minor}, defaultAsk?, batch? }` |
+| `restocks` | cadence (not ambient, not presence-gated) | — | — | the keeper reads `EmploymentApi.stockSheetFor` (perception-scoped), groups shortfall by each par line's supplier, `wallet use house` / `buy` a unit at a time / `put … on` / `pour … into`, then busses (`get`, `wash`, `put … in rack`); stops at the first `insufficient-funds` | `{ shelf, rack?, bin?, batch? }` — fixtures only; the supplier comes from the par line |
 
 (The trait-aware `converses` brain — cadence, claims `voice` — is documented
 in [trait.md](./trait.md).) The speech/idle cadence brains declare
@@ -292,6 +349,15 @@ active on-shift maker is present it `beginCover`s a transient unpaid
 `MakerMixin`-conferring shift so an `order` still finds a fulfiller. This is
 presence/migration only — the in-room shift-*change* ritual (count-out,
 reconcile, hand-off) is a later scripting wave.
+
+⭐ **`consigns` and `restocks` are the first brains that dispatch
+commands.** Neither calls an Api that moves money: every act is a literal
+verb through `CommandApi.forceCommand(host, text)`, so "no verb only an
+NPC can use" is checkable, and a `buy` the house cannot afford declines
+for the hand exactly as for a player. ⚠ **Cadence is real time only**
+(`Behaved._parseTrigger` accepts `ms|s|m`); Mara restocks on
+`cadence:10m`, the hands consign on `cadence:90s` — a game-time cadence
+is a `Behaved` change nobody has needed yet.
 
 ## Dev workflow & isolation (path-based)
 

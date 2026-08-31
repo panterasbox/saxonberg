@@ -288,6 +288,17 @@ export class ProxyApi {
    */
   static #runPipeline(ctx: InterceptionContext, raw: () => unknown): unknown {
     const interceptors = ProxyApi.#interceptors;
+    // ⭐ The two shapes the engine actually runs in, walked without
+    // allocating a chain link. Production registers exactly ONE
+    // interceptor (the security gate) and boot briefly has zero; the
+    // generic `next` closure below exists for a chain that no shipped
+    // configuration builds, and it was being allocated — and, under the
+    // `tsx`/esbuild runtime, `Object.defineProperty`-named — on every
+    // method call in the engine. `raw` is already the zero-arg thunk an
+    // interceptor's `next` is contracted to be, so the single-
+    // interceptor case hands it straight over.
+    if (interceptors.length === 1) return interceptors[0]!(ctx, raw);
+    if (interceptors.length === 0) return raw();
     let i = 0;
     const next = (): unknown => {
       if (i >= interceptors.length) return raw();

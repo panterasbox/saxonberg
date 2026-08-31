@@ -288,6 +288,19 @@ export class StuffApi {
    *   zone resolution see the identity path from birth. The SOURCE
    *   template stays the hydration lineage only.
    */
+  /**
+   * Run `fn` outside any in-flight clone tree. The cycle guard's store
+   * propagates through every async continuation spawned inside a clone
+   * — including a timer an NPC's `postRegister` arms — so work that is
+   * a fresh ROOT by definition (a scheduled callback) must shed it, or
+   * two later, unrelated forced commands share one "in flight" set and
+   * the second trips as a false cycle. `ScheduleApi`'s root wrapper is
+   * the caller.
+   */
+  public static outsideCloneTree<T>(fn: () => T): T {
+    return this.#cloneStackALS.exit(fn);
+  }
+
   public static async clone<T extends Stuff>(
     templatePath: string,
     context?: unknown,
@@ -545,9 +558,55 @@ export class StuffApi {
     // guard in clone().
     const pending = this.#pendingSingletons.get(path);
     if (pending) return pending as Promise<T>;
-    const p = this.clone<T>(path, context).finally(() => {
-      this.#pendingSingletons.delete(path);
-    });
+    const p = this.clone<T>(path, context)
+      .then(async (inst) => {
+        // A persistable SINGLETON's establishing context is this call:
+        // one instance per template path, so its record is keyed by
+        // the scope alone (the same keyless key a nested `{ ref }`
+        // restore derives). Restore when a record exists, else lay down
+        // its born-with `populates:` and capture the first record — a
+        // venue room reached by an exit or booted by a pack, a Stock
+        // counter placed by a room's populates. Multi-instance hosts
+        // (a dorm unit, a lot's yard, an Avatar) never come through
+        // here: their provisioner clones and keys them itself.
+        if (MixinApi.isPersistable(inst) && inst.getPersistenceKey() === null) {
+          const { PersistableApi } = await import('./persistable');
+          const scope = inst.getTemplatePath() ?? path;
+          // The record store may be absent (a test with no persistence
+          // wired, a boot before the connection). The world still has
+          // to stand: no readable record → seed, and a failed write is a
+          // warning, never a bare room.
+          const warn = (what: string, err: unknown): void =>
+            console.warn(
+              `StuffApi.singleton('${path}'): ${what} failed — ` +
+                (err instanceof Error ? err.message : String(err)),
+            );
+          let hasRecord = false;
+          try {
+            hasRecord = await PersistableApi.hasRecord(scope);
+          } catch (err) {
+            warn('record lookup', err);
+          }
+          if (hasRecord) {
+            try {
+              await PersistableApi.materialize(inst);
+            } catch (err) {
+              warn('restore', err);
+            }
+          } else {
+            await inst.seedBornWith();
+            try {
+              await PersistableApi.capture(inst);
+            } catch (err) {
+              warn('first capture', err);
+            }
+          }
+        }
+        return inst;
+      })
+      .finally(() => {
+        this.#pendingSingletons.delete(path);
+      });
     this.#pendingSingletons.set(path, p as Promise<Stuff>);
     return p;
   }

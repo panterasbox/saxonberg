@@ -21,6 +21,7 @@ import { AppApi } from '../../../api/app';
 import { ZoneApi } from '../../../api/zone';
 import { ContainmentApi } from '../../../api/containment';
 import { AppSettingKeys } from '../../config/AppSettings';
+import { Template } from '../../stuff/Template';
 import { CirculatingMixin } from '../Circulating';
 import { BlessableMixin } from '../../magic/Blessable';
 import { ArcaneMixin } from '../../magic/Arcane';
@@ -67,6 +68,8 @@ describe('the spawn sweep stamps a BUC band on what it mints', () => {
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
       key === AppSettingKeys.residencySpawnMode ? 'enforce' : '',
     );
+    // No authored floor rows: the candidate set is the live world's.
+    vi.spyOn(Template, 'findWhereDataHas').mockResolvedValue([]);
     // Every clone hands back a fresh wand we keep a handle on.
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () => {
       const w = makeStuff(() => new TestWand());

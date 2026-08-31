@@ -1,0 +1,35 @@
+# Tamsin Roke — the brewery outfit's hand. Holds the outfit's `hand` position
+# (`purchases: true`): dealt the house card at hire, then the `consigns`
+# brain drives the literal verbs — `get`, `wallet use house`, `consign …
+# --ask` — carrying the stock to the cash-and-carry counter and consigning
+# it AS the outfit. The counter path is this config's, never the trade's.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Tamsin Roke
+  pronouns: they
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: hand
+  alternateNames: ["tamsin", "roke"]
+  shortDescription: "a broad brewer's hand in a rubber apron"
+  longDescription: |
+    A broad-shouldered hand in a rubber apron, forearms like hawsers from rolling kegs. Smells of malt.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:90s
+      config:
+        stock: /trade/brewing/thing/brewing-stock
+        shelf: /trade/distilling/thing/counter
+        batch: 6
+        ask:
+          keg:ale: 60
+          keg:lager: 60
+    - brain: /lib/behavior/idles
+      trigger: cadence:41s
+      config:
+        pool:
+          - { kind: free, value: "rolls a keg into line with one boot." }
+          - { kind: free, value: "rinses a coupler and hangs it up." }

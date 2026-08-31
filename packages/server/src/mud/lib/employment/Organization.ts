@@ -159,7 +159,28 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       },
       positions: { persistent: true, authorable: true },
       rosterSlots: { persistent: true, authorable: true },
+      name: { persistent: true, authorable: true },
     };
+
+    /**
+     * How the organization is called in prose — "the house account of
+     * Dave's Bar", "Stock at the cash-and-carry". Authored on the row;
+     * empty falls through to the Stuff default ("something"), which is
+     * what every business read as until the libations live drive.
+     */
+    public name: string = '';
+
+    public getName(): string {
+      return this.name;
+    }
+
+    public setName(value: string): void {
+      this.name = typeof value === 'string' ? value.trim() : '';
+    }
+
+    public getPresentation(): string {
+      return this.name.length > 0 ? this.name : super.getPresentation();
+    }
 
     /**
      * Who may fill this organization's positions — a {@link PrincipalRef},

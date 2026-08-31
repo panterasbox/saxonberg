@@ -1,0 +1,17 @@
+# The wine bottle — the EMPTY vessel; the standard a wine is built
+# against (see the five floor rows). `sealed`: a cork holds gas, which
+# is what keeps a sparkling wine sparkling.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a wine bottle"
+  longDescription: "A dark-green 750 mL bottle with a punted base, the neck ready for a cork."
+  primaryKeyword: bottle
+  keywords: ["bottle", "wine", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: wine-bottle
+  interiorBulk: true
+  interiorCapacity: 0.75
+  closure: sealed
+  open: true

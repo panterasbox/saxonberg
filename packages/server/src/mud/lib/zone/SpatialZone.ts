@@ -16,12 +16,75 @@
 import { Zone } from './Zone';
 import type Location from '../stuff/Location';
 import type { VetoResult } from '../errors';
+import type { FieldMeta } from '../mixin';
+import type { BlessingOdds } from '../magic/Blessing';
 
 /**
  * Abstract base for all topographical Zone subtypes (`CartesianZone`,
  * `SphericalZone`): a Set of member Locations + the zone back-reference.
  */
 export abstract class SpatialZone extends Zone {
+  /**
+   * The region fields the spawn sweep reads, all three off the ordinary
+   * `lookupField` walk so a parent region's declaration covers its
+   * descendants and a child can narrow it.
+   *
+   * ⭐ They are declared HERE, not on `Zone`, and that is the point: only
+   * a region **in space** can stock goods. A `FolderZone` is a namespace
+   * root (`/wiki`, `/home`, `/studio`) and "how many bottles of vodka
+   * stand in the wiki namespace" is not a question — but an `authorable`
+   * field on the base offers exactly that, for every zone in the game, in
+   * the studio's composition panel. Behaviour is unchanged either way:
+   * `lookupField` consults ancestors, so a zone that does not declare
+   * them walks on and the reader takes its empty default.
+   */
+  static fieldMeta: FieldMeta = {
+    stocks: { persistent: true, authorable: true },
+    favours: { persistent: true, authorable: true },
+    blessingOdds: { persistent: true, authorable: true },
+  };
+
+  /**
+   * What this region STOCKS: census key → target count, the zone-side
+   * override of a floor row's own `regionTarget` (`ResidencyLogic` reads
+   * it through `lookupField('stocks')`). `null` = not declared here. A
+   * distillery's yard authors `{ 'spirit:vodka': 24 }` and the spawn
+   * sweep stands the floor at that count; a `0` means "none of that here".
+   */
+  protected stocks: Record<string, number> | null = null;
+
+  public getStocks(): Record<string, number> | null { return this.stocks; }
+  public setStocks(value: Record<string, number> | null): void { this.stocks = value; }
+
+  /**
+   * Material tags this region FAVOURS (place affinity — a mine stocks
+   * metal, a grove wood): the spawn table's second multiplier
+   * (`SpawnTable.weightFor` multiplies rarity by it), read by the same
+   * walk. `null` = not declared here.
+   */
+  protected favours: string[] | null = null;
+
+  public getFavours(): string[] | null { return this.favours; }
+  public setFavours(value: string[] | null): void { this.favours = value; }
+
+  /**
+   * BUC weights this region imposes, overriding an item's own generation
+   * odds zone-wide — *this PLACE is like that*
+   * ([magic-items.md](../../../../docs/subsystems/magic-items.md)).
+   *
+   * ⚠ `ResidencyLogic` has read this through `lookupField('blessingOdds')`
+   * since the magic-items build, but **no Zone class declared it**, so the
+   * Hydrator silently dropped any authored zone-level value and the
+   * documented override could never fire — the same silent-drop bug
+   * `stocks`/`favours` had. Declared here with them. Nothing ships an
+   * authored zone value yet; the item-level field is a different one, on
+   * the item.
+   */
+  protected blessingOdds: BlessingOdds | null = null;
+
+  public getBlessingOdds(): BlessingOdds | null { return this.blessingOdds; }
+  public setBlessingOdds(value: BlessingOdds | null): void { this.blessingOdds = value; }
+
   /**
    * Locations that live in this zone. Populated by the subclass's
    * `addLocation()`. Host-internal storage; external callers go

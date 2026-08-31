@@ -1,0 +1,15 @@
+# A pint — the brewing trade's serving recipe: half a litre off the tap into a pint glass (hospitality's row; the glass is the venue's).
+recipeId: pint
+name: Pint
+keywords: ["pint", "beer", "ale", "lager"]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- slot: beer
+  category: "beer"
+  minGrade: "fair"
+  measureL: 0.5
+toolCapabilities: ["tap"]
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/pint
+outputAppearance: a pint of beer with a finger of head

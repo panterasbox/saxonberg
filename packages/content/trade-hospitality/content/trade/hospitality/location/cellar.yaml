@@ -1,0 +1,23 @@
+# The `cellar` bundle — the back room where cased and kegged stock keeps.
+# Empty of stock by construction: kegs and cases arrive by buying.
+#
+# ⭐ The cellar IS the cold storage — it needs no appliance. `_temperature`
+# (Atmospheric, on every Location) holds it at 285 K / 12 °C, and anything
+# carried in drifts to that through the shipped thermal resolver
+# (`ThermalMixin.restamp` → `BiomeApi.resolveTemperatureFor`). Passive,
+# free, and it never fails: a cellar is cool because it is underground.
+#
+# A WALK-IN is the same idea one step colder and not free — ~275 K held by
+# a powered chiller, with a running cost and an outage that spoils what is
+# in it. That is the upgrade a bar buys into, and it waits for the power
+# meter to be worth having.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: a cellar
+  description: |
+    A low, cool room behind the bar, steel racking along one wall. The air is markedly cooler than the bar's, and the floor is damp where the kegs stand.
+  keywords: [cellar, back-room, store]
+  _temperature: 285
+  populates:
+    - /trade/hospitality/thing/racking

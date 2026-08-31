@@ -34,6 +34,8 @@ const STORE_DIR = fileURLToPath(
   new URL("../../../../../../content/world-seed/content/world/terminus/general-store/", import.meta.url),
 );
 const OBJ_DIR = fileURLToPath(new URL("../../../../../../content/generic-objects/content/stuff/", import.meta.url));
+// The growing cluster (pots, seeds, plants) is the produce trade's (libations drain).
+const PRODUCE_DIR = fileURLToPath(new URL("../../../../../../content/trade-farming/content/trade/farming/", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/goods/torch";
 
@@ -44,10 +46,10 @@ const TORCH = "/world/terminus/general-store/goods/torch";
  * pots (and two seeds growing the same plant) drifting apart.
  */
 const GARDEN_LINES = [
-  "thing/pot/small",
-  "thing/pot/large",
-  "thing/vessel/soil-sack",
-  "thing/seed/snake-plant",
+  "/trade/farming/thing/pot/small",
+  "/trade/farming/thing/pot/large",
+  "/stuff/thing/vessel/soil-sack",
+  "/trade/farming/thing/seed/snake-plant",
 ] as const;
 
 function seedDoc(rel: string): Doc {
@@ -62,13 +64,14 @@ function seedDoc(rel: string): Doc {
   };
 }
 
-/** Load a generic-objects row under `content/obj/` at its `/obj/<rel>` path. */
-function objDoc(rel: string): Doc {
-  const parsed = YAML.parse(
-    readFileSync(`${OBJ_DIR}${rel}.yaml`, "utf-8"),
-  ) as Record<string, unknown>;
+/** Load a shipped row by template path — generic-objects' `/stuff/…` or the produce trade's `/trade/farming/…`. */
+function objDoc(path: string): Doc {
+  const file = path.startsWith("/trade/farming/")
+    ? `${PRODUCE_DIR}${path.replace("/trade/farming/", "")}.yaml`
+    : `${OBJ_DIR}${path.replace("/stuff/", "")}.yaml`;
+  const parsed = YAML.parse(readFileSync(file, "utf-8")) as Record<string, unknown>;
   return {
-    path: `/stuff/${rel}`,
+    path,
     class: parsed.class as string,
     hydratorClass: (parsed.hydratorClass as string) ?? PH,
     data: (parsed.data as Record<string, unknown>) ?? {},
@@ -145,15 +148,15 @@ describe("general-store standup (real seeds)", () => {
   it("the gardening line stocks to par and is priced against the ladder", async () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
     for (const rel of GARDEN_LINES) {
-      const path = `/stuff/${rel}`;
+      const path = rel;
       expect(counter.onHand(path), `${path} on hand`).toBeGreaterThan(0);
       expect(counter.priceFor(path), `${path} priced`).toBeGreaterThan(0);
     }
     // The large pot is the first purchase a player has a REASON to make, so
     // it must stay affordable against the 20-credit arrival stipend while
     // costing more than the small pot it replaces.
-    const small = counter.priceFor("/stuff/thing/pot/small")!;
-    const large = counter.priceFor("/stuff/thing/pot/large")!;
+    const small = counter.priceFor("/trade/farming/thing/pot/small")!;
+    const large = counter.priceFor("/trade/farming/thing/pot/large")!;
     expect(large).toBeGreaterThan(small);
     expect(large).toBeLessThan(20);
   });
@@ -180,6 +183,6 @@ describe("general-store standup (real seeds)", () => {
 
     // The seed names the plant it grows into (and is discrete, per above).
     const seed = counter.resolveBuy("snake plant seed") as unknown as Seed;
-    expect(seed.getGrowsIntoPath()).toBe("/stuff/thing/plant/snake-plant");
+    expect(seed.getGrowsIntoPath()).toBe("/trade/farming/thing/plant/snake-plant");
   });
 });

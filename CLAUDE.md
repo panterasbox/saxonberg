@@ -115,6 +115,7 @@ behavior. Read the relevant doc before editing in its area.
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
   - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports (Twitch/YouTube/Kick — Kick = webhook-inbound + the KickProfile provider); overlay chat forwarding
+  - [display.md](./docs/subsystems/display.md) — screens: `DisplayMixin` (a tablet, a wall TV, the terminal's board are one thing), the four pairing policies + the unconditional `held` rung, stream/card sources, the projection rule (*the display you can see shows X* — `cockpit.watch` + `CardApi.push` per perceiving viewer), the modem as a predicate on the DRIVER, `resolveFor` ladder, `refreshViewer`; ⚠ a display confers no money authority
   - [twitch-relay.md](./docs/subsystems/twitch-relay.md) — [superseded → streaming.md] the Twitch transport: EventSub reader, reauth flow, RelaySpeaker
   - [properties.md](./docs/subsystems/properties.md) — PropertiedMixin, Property<T>, transient vs saved storage, masks
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution + resolution, async override
@@ -157,7 +158,7 @@ behavior. Read the relevant doc before editing in its area.
   - [contract.md](./docs/subsystems/contract.md) — the work-contract (gig) substrate: clauses over verifiable conditions, escrow, the board, the custodian rule
   - [collections.md](./docs/subsystems/collections.md) — canonical surfaces for collection-shaped mixins, naming axes
   - [hot-reload.md](./docs/subsystems/hot-reload.md) — HotReloadApi state machine, clone integration, controller dispatch
-  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the nineteen shipped packs (the platform is pack zero; arcana the first capability pack; no seeders)
+  - [content-packs.md](./docs/subsystems/content-packs.md) — versioned content packages: the PackApi reconcile installer, the contribution kinds (domain / document over `DocumentKinds` / settings / subject / wiki / command-view) and their policies, `sourcePack` stamps, the manifest's `requires` (groups + title claims) / `boot` / `maintainers`, the boot union, `SAXONBERG_PACKS`, the **capability rung** (a pack ships `src/`; the class-source table, `resolveClassFile`, the server's `exports` map as the pack import profile, the deployment manifest, the rung check), the twenty-five shipped packs (the platform is pack zero; arcana, trade-distilling and trade-hospitality the capability packs; brains in packs via `src/behavior/`; the `archetype` kind; the stub trades; no seeders)
   - [race.md](./docs/subsystems/race.md) — Material substrate, Clade scope, BodyPlan + Species templates, OrganismMixin, animacy gating
   - [vitals.md](./docs/subsystems/vitals.md) — body-state substrate: the Agent/Creature/Character split, VitalsMixin, BodyPlan anatomy, death seams
   - [harm.md](./docs/subsystems/harm.md) — the injury driver: `ConditionApi.inflict`, five trauma behaviors, reconcile-on-read wounds, the medic vertical
@@ -689,12 +690,21 @@ reason.
   (the FICTION's governments — `government`; the meta `committee` verb
   stays under `system`, the jargon standard's layer split), stream, tpa,
   medical, combat, magic (`cast`/`spells` — the casting core), work (the
-  labor market — `job`/`fulfill`), device
+  labor market — `job`/`fulfill`), employment (`appoint`/`quit`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`), device
   ("operating a built object or mechanism" —
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
   stay under `boundary`). The concealment build added `search` (perception),
   `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
-  `look` alias, not its own verb.
+  `look` alias, not its own verb. ⭐ **A verb lives with the pack whose content
+  affords it**: platform keeps the verbs any trade's instrument confers
+  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
+  `retail/menu`+`order`; a trade's own steps ship in its capability pack
+  (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
+  `trade-hearth-cooking`: `cook`/`plate`; `trade-smithing`:
+  `forge`/`hammer`/`quench`/`sharpen`) under `content/<root>/cmd/` +
+  `src/idea/cmd/`. The libations build added `wash`/`muddle`
+  (crafting), `quit` (employment), `house par`/`house stock` (banking) and
+  `watch … on <screen>` (stream).
 - **Command controllers**: in `mud/platform/idea/cmd/<category>/`, e.g.
   `perception/LookController.ts`, `movement/GoController.ts` (content
   controllers live under `world/<sphere>/<locality>/idea/cmd/`, above).

@@ -28,11 +28,15 @@ import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import { Quantity } from '../../../lib/quantity';
 import Material from '../../../lib/material/Material';
 import Thing from '../../../lib/stuff/Thing';
+import { DetailedMixin } from '../../../lib/description/Detailed';
+import { DurableMixin } from '../../../lib/material/Durable';
+import { ToolMixin } from '../../../lib/craft/Tooled';
+import { ManualBuildMixin } from '../../../lib/craft/ManualBuild';
+import { CraftedMixin } from '../../../lib/craft/Crafted';
 import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Oven from '../../../platform/thing/Oven';
 import Chest from '../../../platform/thing/Chest';
-import CookPot from '../../../platform/thing/CookPot';
 import Dish from '../../../platform/thing/Dish';
 import Weapon from '../../../platform/thing/equipment/Weapon';
 import ToolItem from '../../../platform/thing/ToolItem';
@@ -63,9 +67,21 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 const RECIPE_DIRS = ['trade-smithing', 'trade-hearth-cooking', 'trade-hospitality'].map((pack) =>
   fileURLToPath(new URL(`../../../../../../content/${pack}/content/recipes/`, import.meta.url)),
 );
+/** A shipped row's `data` block, read from a pack by content-relative path. */
+const readRow = (rel: string): Record<string, unknown> =>
+  (YAML.parse(
+    readFileSync(fileURLToPath(new URL(`../../../../../../content/${rel}`, import.meta.url)), 'utf8'),
+  ) as { data: Record<string, unknown> }).data;
 const PACK_MATERIALS = fileURLToPath(
   new URL(
     '../../../../../../content/base-library/content/stuff/idea/material/',
+    import.meta.url,
+  ),
+);
+// The generic cooked base is the PLATFORM pack's (the kernel names it).
+const PLATFORM_MATERIALS = fileURLToPath(
+  new URL(
+    '../../../../../../content/platform/content/platform/idea/material/',
     import.meta.url,
   ),
 );
@@ -88,9 +104,9 @@ class TestPatron extends ContainerMixin(NamedMixin(ContainableMixin(Idea))) {
 }
 
 /** Register a Material at its pack path from the REAL pack row. */
-function loadPackMaterial(rel: string): Material {
+function loadPackMaterial(rel: string, platform = false): Material {
   const parsed = YAML.parse(
-    readFileSync(`${PACK_MATERIALS}${rel}.yaml`, 'utf-8'),
+    readFileSync(`${platform ? PLATFORM_MATERIALS : PACK_MATERIALS}${rel}.yaml`, 'utf-8'),
   ) as { data: Record<string, unknown> };
   const d = parsed.data;
   return makeStuffAtPath(() => {
@@ -103,7 +119,7 @@ function loadPackMaterial(rel: string): Material {
       m.setNutrientAmounts(d.nutrientAmounts as Record<string, number>);
     }
     return m;
-  }, `/stuff/idea/material/${rel}`) as unknown as Material;
+  }, `${platform ? '/platform' : '/stuff'}/idea/material/${rel}`) as unknown as Material;
 }
 
 function makeForge(lit: boolean, bellows = false): Forge {
@@ -222,7 +238,7 @@ beforeEach(async () => {
   loadPackMaterial('food/trail-ration');
   loadPackMaterial('food/root-vegetable');
   loadPackMaterial('food/stew-meat');
-  loadPackMaterial('food/cooked');
+  loadPackMaterial('cooked', true);
 
   // Output templates cloned by the roster (the real classes, minted here
   // — the faked-Mongo test has no clone pipeline; the substation
@@ -258,34 +274,45 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
+/**
+ * A synthetic build vessel — Crafted + Durable + ManualBuild + Tool, the
+ * SHAPE the hearth cares about. Hearth-cooking's `CookPot` ships in its
+ * own pack (a class lives in the pack whose content names it), and the
+ * kernel knows a pot only by the `pot` capability its ROW authors — which
+ * is exactly what the affordance assertion below reads off the row.
+ */
+class TestPot extends CraftedMixin(
+  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
+) {
+  public override capabilities: string[] = ['pot'];
+}
+
 describe('the venue menus', () => {
   it('every menu affords commerce only; instruments carry the working verbs', () => {
     // Menus = menu/order, any venue (inherited off the commerce base).
-    const commerce = ['platform/cmd/crafting/menu.yaml', 'platform/cmd/crafting/order.yaml'];
+    const commerce = ['platform/cmd/retail/menu.yaml', 'platform/cmd/retail/order.yaml'];
     expect(Menu.commandContributions.peers).toEqual(commerce);
     expect(Menu.commandContributions.environment).toEqual(commerce);
 
-    // The working verbs ride the instruments — derived from instance
-    // `capabilities` through the capability table (no per-tool classes).
-    const anvil = makeStuff(() => new ToolItem());
-    anvil.setCapabilities(['anvil']);
-    const anvilEnv = anvil.getInstanceContributions().peers ?? [];
-    expect(anvilEnv).toContain('platform/cmd/crafting/hammer.yaml');
-    expect(anvilEnv).toContain('platform/cmd/crafting/forge.yaml');
-    expect(anvilEnv).toContain('platform/cmd/crafting/repair.yaml');
-    expect(anvilEnv).not.toContain('platform/cmd/crafting/mix.yaml');
+    // ⭐ The working verbs ride the instruments, and there is exactly ONE
+    // record of that: `static commandContributions` on the class. A
+    // trade's own instrument verbs live on that trade's pack classes
+    // (`/trade/smithing/thing/Anvil`, `/trade/hearth-cooking/thing/CookPot`)
+    // and are asserted in those packs' suites — which is precisely why
+    // no kernel test can name them, and why the kernel can never name a
+    // trade's view. What the KERNEL owns is the build vessel: `pour` and
+    // `stir` are banked into and worked on a manual build, so
+    // `ManualBuildMixin` declares them for every vessel that buffers one
+    // — the shaker, the mixing glass, the cook pot.
+    const build = ManualBuildMixin(Thing).commandContributions;
+    expect(build.peers).toContain('platform/cmd/crafting/pour.yaml');
+    expect(build.peers).toContain('platform/cmd/crafting/stir.yaml');
+    expect(build.peers).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
 
-    const pot = makeStuff(() => new CookPot());
-    const potEnv = pot.getInstanceContributions().peers ?? [];
-    expect(potEnv).toContain('platform/cmd/crafting/cook.yaml');
-    expect(potEnv).toContain('platform/cmd/crafting/pour.yaml');
-    expect(potEnv).not.toContain('platform/cmd/crafting/forge.yaml');
-
-    // `heat` is the furnace's (the fire is the instrument) + the pot's.
+    // `heat` is the furnace's — the fire is the instrument.
     expect(Forge.commandContributions.peers).toContain(
       'platform/cmd/crafting/heat.yaml',
     );
-    expect(potEnv).toContain('platform/cmd/crafting/heat.yaml');
 
     // The one Menu IS a commerce menu (resolveIn's instanceof filter);
     // the venues differ only in the rows' data.
@@ -365,7 +392,7 @@ describe('the cookhouse, served', () => {
   } {
     const room = makeStuff(() => new TestRoom());
     ContainmentApi.move(makeOven(true), room);
-    const pot = makeStuff(() => new CookPot());
+    const pot = makeStuff(() => new TestPot());
     ContainmentApi.move(pot, room);
     const chest = makeStuff(() => new Chest());
     ContainmentApi.move(chest, room);
@@ -394,7 +421,7 @@ describe('the cookhouse, served', () => {
     // points at the ONE generic cooked base and the payload carries the
     // stew's identity + macros, summed from the ACTUAL pantry inputs
     // (macros in = macros out; the fixed-vocabulary rule live).
-    expect(slot.getMaterialPath()).toBe('/stuff/idea/material/food/cooked');
+    expect(slot.getMaterialPath()).toBe('/platform/idea/material/cooked');
     const payload = slot.getPayload()!;
     expect(payload.name).toBe('Hearty Stew');
     expect(payload.nutrientAmounts).toMatchObject({

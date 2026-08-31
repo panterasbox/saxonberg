@@ -26,12 +26,15 @@ import { BootstrapManager } from './BootstrapManager';
 import { CommandApi } from '../mud/api/command';
 import { PackApi } from '../mud/api/pack';
 import { WorldClockApi } from '../mud/api/worldclock';
+import { AppApi } from '../mud/api/app';
 import { AppSettings } from '../mud/lib/config/AppSettings';
 import { RenownApi } from '../mud/api/renown';
 import RenownStanding from '../mud/lib/standing/RenownStanding';
 import { ConsumerApi } from '../mud/api/consumer';
 import ParticipationStanding from '../mud/lib/standing/ParticipationStanding';
 import { ProducerApi } from '../mud/api/producer';
+import { MixinApi } from '../mud/api/mixin';
+import { PersistableApi } from '../mud/api/persistable';
 import ProducerStanding from '../mud/lib/standing/ProducerStanding';
 import { BankingApi } from '../mud/api/banking';
 // Loaded for its side effect: registers banking's `bank-circle` dialogue
@@ -114,6 +117,16 @@ export class AppBootstrap {
     // classes self-register at their own module load (the hierarchy's
     // root invariant must populate before any construction, including
     // the lazy singletons built during seeding below).
+    // ⭐ The world is CLOSED for the length of this sequence. NPC brains
+    // wire at their host's `postRegister` (below, in
+    // `BootstrapManager.run`) because a host must exist before it can
+    // behave — but the schedules they arm are real-time, so without this
+    // the cast starts acting minutes before the subsystems it acts
+    // through are booted. It is not just a storm of failed beats in the
+    // log: those beats starve THIS sequence's own awaited reads, and on
+    // the drive that found it the server never reached `listen` at all.
+    AppApi.closeWorld();
+
     BootstrapManager.installFrameworkWiring();
 
     // Wire the Document marshaller-resolution seam before any save/clone
@@ -218,6 +231,7 @@ export class AppBootstrap {
     // a clonable template.)
     await WorldClockApi.boot();
 
+
     // Materials — stand the authored roster up as live singletons so the
     // sync resolve-on-read seams (getMaterial / bulk slots / autoignition)
     // hit from the first frame (nothing else stands materials up live).
@@ -262,6 +276,16 @@ export class AppBootstrap {
     // above). Ships in observe mode, so booting culls nothing until an
     // operator flips `residency.mode` to `enforce`.
     ResidencyApi.boot();
+    // The boot-time SPAWN sweep — the world stands at target on a fresh
+    // boot, not a game-day later: every producer's floor row (a template
+    // with an authored `censusKey` + home `container:`) is drawn until
+    // its region declines. Enforce is the platform default; an operator
+    // who flips `residency.spawn.mode` to observe gets a report only.
+    const spawned = await ResidencyApi.spawnNow();
+    console.info(
+      `ResidencyApi: boot spawn sweep — ${spawned.placed} placed, ` +
+        `${spawned.declined} region(s) at target of ${spawned.regions}`,
+    );
 
     // The card surface — install the relevance-window sweep. ONE
     // recurring callback for the whole card set, never a timer per card:
@@ -349,6 +373,11 @@ export class AppBootstrap {
     // registry it may have to re-seed afterwards.
     RecordApi.boot();
 
+    // ⭐ …and the world opens HERE, with every subsystem above booted, so
+    // the first beat any brain runs meets a complete world.
+    AppApi.openWorld();
+    console.info('AppBootstrap: world open — the cast may act');
+
     // Author diagnostics Producer 3 — the TS compile watcher. Dev-only:
     // production runs compiled JS with no TS source to watch. Best-effort:
     // a missing tsconfig / watcher failure logs and continues (diagnostics
@@ -398,5 +427,50 @@ export class AppBootstrap {
     } catch (err) {
       console.error('AppBootstrap: record-layer flush failed:', err);
     }
+    // The world's persistable singletons — venue rooms, stock counters —
+    // capture at establish and at the residency sweep; a stop between two
+    // sweeps would lose everything consigned or placed since (the
+    // libations live drive watched a dev restart empty the cash-and-carry
+    // counter). Capture each one, best-effort, before the process ends.
+    //
+    // ⭐ ASKED, not remembered. The hosts are found by a system-mode MQL
+    // sweep — the sanctioned "search the world" (mql.md; it is what
+    // `lint:world-scan` points a bespoke `getAllObjects()` loop at) —
+    // and each says for itself whether it wants a capture. Who wants one
+    // is `PersistableMixin`'s knowledge, including the Avatar exclusion;
+    // this file only asks.
+    //
+    // ⚠ This briefly kept a `PersistableRegistry` that hosts enrolled
+    // themselves into. It was a third index of Stuff holding no fact the
+    // objects did not already hold — and this very loop re-derived every
+    // one of them on read (`isPersistable`, a null key, `isDestroyed`),
+    // which is the tell that a cache is buying nothing. Maintained on
+    // every key-set and every destruct, forever, to save one sweep at
+    // process exit.
+    // Imported HERE, not at module scope: this file deliberately keeps
+    // `api/mql` off its eager chain to avoid the documented
+    // `ConnectionApi → ConnectionManager → Interactive → Idea` cycle
+    // (see the `installOnlineHoldersProvider` note above). By shutdown
+    // everything is long since loaded.
+    const { MqlApi } = await import('../mud/api/mql');
+    const hosts = MqlApi.resolveMany('world:[mixin.PersistableMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    }).stuff;
+    let captured = 0;
+    for (const stuff of hosts) {
+      if (!MixinApi.isPersistable(stuff)) continue;
+      if (!stuff.capturesAtShutdown()) continue;
+      try {
+        await PersistableApi.capture(stuff);
+        captured += 1;
+      } catch (err) {
+        console.error(
+          `AppBootstrap: shutdown capture failed for ${stuff.getTemplatePath() ?? stuff.stuffId}:`,
+          err,
+        );
+      }
+    }
+    console.info(`AppBootstrap: shutdown captured ${captured} persistable host(s)`);
   }
 }

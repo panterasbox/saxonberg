@@ -217,6 +217,38 @@ export class BankingApi {
     return logic().corpoKeyOf(accountId);
   }
 
+  /**
+   * The **owner key** recorded on an account — a player path, or a
+   * Business's account path. What `buy` reads off the receipt's routing
+   * account to decide whom the chattel is stamped to: a business's
+   * account active in the wallet means the purchase is the business's.
+   */
+  public static async ownerKeyOf(accountId: string): Promise<string | null> {
+    return logic().ownerKeyOf(accountId);
+  }
+
+  /**
+   * Link `accountId` into `actor`'s reachable payment credential — the
+   * `autoLinkToWallet` seam for an account the actor does **not** own
+   * (`wallet use house` puts the business's operating account in a
+   * purchasing holder's wallet). Returns false when the actor carries no
+   * credential. Settlement never checks ownership of the routing account,
+   * so this link IS the conferral; the caller checks the position.
+   */
+  public static linkAccount(actor: Stuff, accountId: string): boolean {
+    return logic().linkAccount(actor, accountId);
+  }
+
+  /**
+   * The inverse: take `accountId` out of the actor's reachable credential
+   * (active pointer falls back to the first remaining link). Best-effort;
+   * a missing credential is a no-op. What leaving a purchasing position
+   * does.
+   */
+  public static unlinkAccount(actor: Stuff, accountId: string): void {
+    return logic().unlinkAccount(actor, accountId);
+  }
+
   /** Deposit a coin stack: coin → vault, balance credited 1:1 (custodial). */
   public static async deposit(
     bank: Stuff & Bank,
@@ -269,12 +301,17 @@ export class BankingApi {
   // .setActiveAccount(id)` / `.setFrozen(true)` directly (the caller holds the
   // record). They were thin forwards through here with no gate to route.
 
-  /** Issue/reissue a payment card linked 1:1 to `accountId`, into inventory. */
+  /**
+   * Issue/reissue a payment card linked 1:1 to `accountId`, into inventory —
+   * the acting principal's, or `holder`'s when named (the house card a
+   * purchasing NPC is dealt at hire; nobody is acting as the NPC then).
+   */
   public static async issueCard(
     accountId: string,
     capMinor: number,
+    holder?: Stuff,
   ): Promise<Stuff & CredentialWallet> {
-    return logic().issueCard(accountId, capMinor);
+    return logic().issueCard(accountId, capMinor, holder);
   }
 
   /* ──────────────── wages + reporting ──────────────── */
@@ -457,14 +494,26 @@ export class BankingApi {
    * path, custodied at the `bank` institution), creating a primary one if
    * absent — lazily, on first banking interaction at the venue. The bar's
    * account the order/pnl/payroll flows resolve.
+   *
+   * `openingCapital` (minor units) is minted in on the FIRST materialization
+   * only. Omit it to take the `banking.openingCapital` default; pass `0` to
+   * decline — which is what a worker's payer-derived account does, since a
+   * worker earns wages rather than being capitalized.
    */
   public static async ensureVenueAccount(
     ownerPath: string,
     bank: string,
     corpoKey: string,
-    currency: string
+    currency: string,
+    openingCapital?: number
   ): Promise<string> {
-    return logic().ensureVenueAccount(ownerPath, bank, corpoKey, currency);
+    return logic().ensureVenueAccount(
+      ownerPath,
+      bank,
+      corpoKey,
+      currency,
+      openingCapital
+    );
   }
 
   /**

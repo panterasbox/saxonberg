@@ -1,0 +1,23 @@
+# Lives in the PLATFORM pack (`/platform/idea/material/cooked`) because the
+# kernel names it (`CraftingLogic.GENERIC_COOKED_MATERIAL`), and a kernel
+# module may never name a trade pack's row (libations phase 5).
+# Cooked fare — the ONE generic substance every derived cooked blend
+# points at (a plated stew, a pot-luck): generic dense-food physics +
+# the edible routing home. The blend's actual identity + macros ride the
+# holder's per-instance BulkPayload (macros in = macros out) — per-dish
+# material rows are the retired anti-pattern (the fixed-vocabulary rule,
+# see /platform/idea/material/ConsumableMaterial).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: cooked fare
+  appearance: a portion of plain cooked fare
+  keywords: [food, fare, portion]
+  density: 1000
+  thermalConductivity: 0.5
+  specificHeat: 3500
+  edibility: true
+  nutrients: [carb]
+  tags: [food, cooked]
+  composition: []
+  biologicalSource: null

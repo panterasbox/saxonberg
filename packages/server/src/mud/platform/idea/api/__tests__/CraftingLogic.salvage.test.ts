@@ -27,6 +27,12 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { Grade } from '../../../../lib/craft/Grade';
 import { MixinApi } from '../../../../api/mixin';
 import { Stuff } from '../../../../lib/stuff/Stuff';
+import Thing from '../../../../lib/stuff/Thing';
+import { DetailedMixin } from '../../../../lib/description/Detailed';
+import { DurableMixin } from '../../../../lib/material/Durable';
+import { ToolMixin } from '../../../../lib/craft/Tooled';
+import { ManualBuildMixin } from '../../../../lib/craft/ManualBuild';
+import { CraftedMixin } from '../../../../lib/craft/Crafted';
 import type { SalvageOutcome } from '../../../../api/crafting';
 import {
   makeStuff,
@@ -114,6 +120,13 @@ afterEach(() => {
   WorldClockApi._resetForTesting();
 });
 
+/** A build vessel's shape: craftable, durable, banks contributions. */
+class TestPot extends CraftedMixin(
+  ManualBuildMixin(ToolMixin(DurableMixin(DetailedMixin(Thing)))),
+) {
+  public override capabilities: string[] = ['pot'];
+}
+
 describe('CraftingLogic.salvage', () => {
   it('a forged knife yields LESS iron than the ingot that made it (conservation)', async () => {
     // The acceptance loop's last leg: a 0.5 kg iron knife (forged from a
@@ -189,8 +202,10 @@ describe('CraftingLogic.salvage', () => {
       detail: 'no-material',
     });
 
-    const { default: CookPot } = await import('../../../thing/CookPot');
-    const pot = makeStuff(() => new CookPot());
+    // A synthetic build vessel — Crafted + Durable + ManualBuild + Tool,
+    // the SHAPE salvage cares about. Hearth-cooking's CookPot ships in
+    // its own pack; the kernel knows no pot class.
+    const pot = makeStuff(() => new TestPot());
     pot.setMaterial(mat(IRON));
     pot.setMass(Quantity.of(2, 'kg'));
     pot.addContribution({

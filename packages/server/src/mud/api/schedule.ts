@@ -18,6 +18,7 @@
  */
 
 import { ExecutionContextApi } from './execution-context';
+import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 
 /**
@@ -133,6 +134,16 @@ function planRun(
   // containment layers govern the deferred work exactly as they governed
   // the scheduling act (the `causingCommandId` precedent, verbatim).
   const opts = circleScope !== null ? { circleScope } : undefined;
+  // A scheduled callback is a fresh root — never part of the clone tree
+  // that armed it (see `StuffApi.outsideCloneTree`).
+  StuffApi.outsideCloneTree(() => planRunInner(causingId, fn, opts));
+}
+
+function planRunInner(
+  causingId: string | null,
+  fn: () => void,
+  opts: { circleScope: string } | undefined
+): void {
   if (causingId === null) {
     void ExecutionContextApi.runRootGuarded(
       ScheduleApi,

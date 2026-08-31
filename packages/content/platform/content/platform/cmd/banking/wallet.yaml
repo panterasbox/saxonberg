@@ -4,13 +4,17 @@ description: "Your payment wallet — show / use / freeze"
 help: |
   Bare `wallet` shows which account your implant pays from. `wallet use
   <corpo>` switches the active account (a default `pay` then routes through
-  that bank). `wallet freeze <card>` reports a card lost — it's frozen and a
-  fresh one is reissued; your balance is untouched.
+  that bank). `wallet use house` puts the operating account of the house
+  you buy for into your wallet — you need a purchasing position there, or
+  to be its proprietor; while it's active, `buy` pays from it and what you
+  buy belongs to the house, and `consign` sells as the house. Leaving the
+  position takes it back out. `wallet freeze <card>` reports a card lost —
+  it's frozen and a fresh one is reissued; your balance is untouched.
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   use:
-    description: "Switch the implant's active account to your <corpo> account"
+    description: "Switch the active account to your <corpo> account, or `house`"
     args:
       - name: corpo
         type: string

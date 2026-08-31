@@ -1,0 +1,17 @@
+# the pantry outfit's floor — the yard: the outfit's Stock (the floor rows' home
+# `container:` — the sweep stands them at target here) and the hand whose
+# `consigns` beat carries them to the cash-and-carry. No exits: the hand
+# teleports (the `shifts` shape); a walk is the locomotion slate's.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the pantry floor"
+  primaryKeyword: floor
+  keywords: ["floor", "pantry", "storeroom"]
+  longDescription: |
+    A dry storeroom with a scale by the door and sacks on pallets — the dry-goods floor the cookhouse and the bar both draw on.
+  ambientIntensity: 25
+  ambientColorTemperature: 4200
+  populates:
+    - /trade/hearth-cooking/thing/pantry-stock
+    - /trade/hearth-cooking/agent/pantry-hand

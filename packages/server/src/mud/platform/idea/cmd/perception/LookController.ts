@@ -32,6 +32,8 @@ import type {
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
+import { StuffApi } from '../../../../api/stuff';
+import { ChattelApi } from '../../../../api/chattel';
 import { ContainmentApi } from '../../../../api/containment';
 import { MessageApi } from '../../../../api/message';
 import { CardApi } from '../../../../api/card';
@@ -365,6 +367,44 @@ export default class LookController extends CommandController<LookModel> {
         // A person sitting on a stool rests on a surface too.
         const list = Mml.list(resting.map((r) => Mml.actor(r)));
         body = Mml.compose`${body}── On it: ${list}.`;
+      }
+    }
+    // A stamped good says whose it is — the bottle bought for the bar
+    // reads "Dave's Bar's", the one bought for yourself reads yours. A
+    // title-derived owner (a group's, nobody's in particular) says nothing.
+    if (MixinApi.isChattel(target) && target.getChattelId()) {
+      const owner = await ChattelApi.ownerOf(target);
+      const holder =
+        owner?.kind === 'organization' || owner?.kind === 'player'
+          ? StuffApi.findByTemplatePath(owner.templatePath)
+          : null;
+      if (holder) {
+        body = Mml.compose`${body}── Owned by ${holder.getPresentation()}.`;
+      }
+    }
+    // A display reads what it shows — the booth's television, the house
+    // tablet with the stock sheet up, the terminal's departures. ⭐ The
+    // screen renders itself: `readScreen(viewer)` is the PROSE arm, and
+    // it is per-viewer, so a board that annotates against the reader's
+    // own credential resolves here rather than being pushed at the room.
+    if (MixinApi.isDisplay(target)) {
+      const screen = await target.readScreen(actor);
+      if (screen) body = Mml.compose`${body}── ${screen}`;
+    }
+    // The same drill-in for an OPEN container: the glass rack's coupes,
+    // a crate's limes. A sealed one (a closed chest, a capped bottle)
+    // shows nothing — what is inside is not in view. Concealed contents
+    // stay with the glance below, which decides what a look turns up.
+    if (
+      MixinApi.isContainer(target) &&
+      !(MixinApi.isSealable(target) && !target.isOpen())
+    ) {
+      const inside = [...target.getContents()].filter(
+        (c) => !MixinApi.isConcealable(c) || !c.isConcealed(),
+      );
+      if (inside.length > 0) {
+        const list = Mml.list(inside.map((c) => Mml.actor(c)));
+        body = Mml.compose`${body}── In it: ${list}.`;
       }
     }
 

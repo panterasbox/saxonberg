@@ -113,6 +113,35 @@ describe('cadence wiring + presence gating', () => {
     expect(fires()[0]?.source).toBe('cadence');
   });
 
+  // ⭐ The cast holds still while the world is closed. Brains wire at
+  // `postRegister` — a host must exist before it can behave — but the
+  // schedules they arm are REAL-TIME, so without this gate they act
+  // through subsystems that boot minutes later. On the drive that found
+  // it, every trade hand's `consigns` beat failed (`wallet` unknown, then
+  // `no-account`) AND the failing beats starved the boot's own awaited
+  // reads: 61% CPU for six and a half minutes, and the server never
+  // reached `listen`.
+  it('does not act while the world is closed, and resumes when it opens', async () => {
+    vi.useFakeTimers();
+    const room = makeStuff(() => new TestRoom());
+    const npc = makeStuff(() => new TestNPC()) as unknown as NPC;
+    ContainmentApi.move(npc as never, room as never);
+    npc.behaviors = [{ brain: PROBE, trigger: 'cadence:1s' }];
+    await npc.postRegister();
+    const player = makeStuff(() => new TestPlayer());
+    ContainmentApi.move(player as never, room as never);
+
+    AppApi.closeWorld();
+    try {
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(fires().length).toBe(0); // an audience, a live wiring — and stillness
+    } finally {
+      AppApi.openWorld();
+    }
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(fires().length).toBeGreaterThan(0);
+  });
+
   it('jitters the cadence interval (no lockstep)', async () => {
     vi.useFakeTimers();
     const delays = vi.spyOn(ScheduleApi, 'schedule');

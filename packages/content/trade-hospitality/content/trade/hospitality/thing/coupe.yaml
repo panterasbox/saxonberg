@@ -1,0 +1,14 @@
+# The coupe — the stemmed cocktail glass (formerly `cocktail-glass`; both
+# keywords kept). A pool glass over CraftVessel: starts empty, is CLAIMED
+# by a bulk recipe whose outputTemplate names it, served, bussed, washed —
+# never minted per drink. `category` is the glassware par key.
+class: /platform/thing/CraftVessel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a coupe
+  longDescription: A stemmed cocktail glass, its bowl a shallow saucer.
+  primaryKeyword: coupe
+  keywords: [coupe, glass, cocktail, cocktail-glass]
+  category: coupe
+  interiorBulk: true
+  interiorCapacity: 0.2

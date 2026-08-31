@@ -18,9 +18,9 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { ToolCapabilities, type CapabilitySpec } from './ToolCapability';
+import type { ConferredTechnique } from './Technique';
 
 export interface Tooled {
   getCapabilities(): readonly string[];
@@ -30,6 +30,12 @@ export interface Tooled {
   capabilityRate(kind: string): number;
   /** The kind's authored control band, or null. */
   capabilityControl(kind: string): string | null;
+  /**
+   * Every working this instrument performs, across its capability
+   * entries — what `Techniques.fromTools` reads at the fill. The tool
+   * is what knows; the kernel keeps no technique table.
+   */
+  capabilityTechniques(): readonly ConferredTechnique[];
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -43,8 +49,8 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * The capabilities this tool offers — bare kind strings (shorthand
      * for the defaulted spec) and/or parameterized entries
-     * `{ kind, rate?, control?, placement? }`, validated against the
-     * vocabulary. Persisted exactly as authored; normalization happens
+     * `{ kind, verbs?, rate?, control?, placement? }`, validated for
+     * shape (the vocabulary is open). Persisted exactly as authored; normalization happens
      * on read (`entryFor`), so seeds stay byte-stable.
      */
     public capabilities: (string | CapabilitySpec)[] = [];
@@ -92,6 +98,16 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.entryFor(kind)?.control ?? null;
     }
 
+    public capabilityTechniques(): readonly ConferredTechnique[] {
+      const out: ConferredTechnique[] = [];
+      for (const e of this.capabilities) {
+        if (typeof e !== 'string' && e.technique) {
+          out.push({ kind: e.kind, technique: e.technique });
+        }
+      }
+      return out;
+    }
+
     /** The kind's normalized entry — a bare string IS the defaulted
      * spec everywhere behavior reads it. Null when the kind is absent. */
     private entryFor(kind: string): CapabilitySpec | null {
@@ -105,51 +121,5 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       return null;
     }
 
-    /**
-     * Per-instance dynamic command contributions (the
-     * `InstanceContributor` seam): the union of the capability table's
-     * verb families over this instance's **authored** capabilities —
-     * the tool that does the work carries its working verbs, so a tool
-     * variant is pure seed data. Placement per the kind's table entry
-     * (`reachable` → environment + peers, `carried` → environment
-     * only). Deliberately NOT broken-gated: a broken anvil keeps
-     * *affording* `hammer` and the controller's `hasCapability` check
-     * declines diegetically (a vanishing verb would also go stale —
-     * breakage doesn't move the tool, so no containment delta fires).
-     */
-    public getInstanceContributions(): CommandContributions {
-      // Merge any inner contributor's buckets (the Behaved pattern) —
-      // a shadowing implementation must not drop a sibling seam.
-      const inner =
-        (
-          Base.prototype as {
-            getInstanceContributions?: () => CommandContributions;
-          }
-        ).getInstanceContributions?.call(this) ?? {};
-      // Directional buckets: `environment` grants OUTWARD to whoever
-      // holds the tool, `peers` grants sideways to everyone sharing the
-      // room with it. (Both were named one bucket to the left before the
-      // affordance-scope rename.)
-      const environment: string[] = [...(inner.environment ?? [])];
-      const peers: string[] = [...(inner.peers ?? [])];
-      for (const entry of this.capabilities) {
-        const spec: CapabilitySpec =
-          typeof entry === 'string' ? { kind: entry } : entry;
-        const def = ToolCapabilities.definitionOf(spec.kind);
-        if (!def || def.verbs.length === 0) continue;
-        const placement = spec.placement ?? def.placement;
-        // Carried: the tool hands its verbs to its holder.
-        environment.push(...def.verbs);
-        // Reachable: and to anyone else in the room with it.
-        if (placement === 'reachable') peers.push(...def.verbs);
-      }
-      if (
-        environment.length === (inner.environment?.length ?? 0) &&
-        peers.length === (inner.peers?.length ?? 0)
-      ) {
-        return inner;
-      }
-      return { ...inner, environment, peers };
-    }
   };
 }

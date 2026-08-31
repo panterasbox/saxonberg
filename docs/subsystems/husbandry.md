@@ -421,11 +421,12 @@ against the pot's soil volume, so a mature plant refuses a thimble.
 ### `water` is tool-afforded
 
 `water` is conferred by a watering can **in your inventory**, through
-`ToolMixin.getInstanceContributions` over the closed `TOOL_CAPABILITIES`
-vocabulary:
+`ToolMixin.getInstanceContributions` over the can row's own capability
+entry (the vocabulary is open; the row names the verb):
 
-```ts
-watering: { verbs: ['bulk/water.yaml'], placement: 'carried' },
+```yaml
+capabilities:
+  - { kind: watering, verbs: [platform/cmd/bulk/water.yaml], placement: carried }
 ```
 
 `placement: 'carried'` is the whetstone's personal-capital rule as data —

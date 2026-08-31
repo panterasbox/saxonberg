@@ -41,6 +41,11 @@ composes its capability).
   (Law 2). `resetsWhilePresent() → true` (restock while browsed is fine).
 - **Self-stocks on standup**: `postRegister` calls `reset()`, so the same
   one mechanism handles boot-stock and ongoing topup.
+- **One counter is both** (libations): `Stock` composes
+  `ConsignmentShelfMixin` (+ `PersistableMixin`), so a counter with
+  **no `stockLines`** (an empty list makes `reset()` a no-op) is a pure
+  consignment shelf — the cash-and-carry. `buy` resolves either; a listed
+  good on a Stock counter routes to the listing path.
 
 The ownable staples **must be discrete `Thing`s, never `Globbable`** —
 chattel stamps a discrete instance, so a fungible stack would fall through
@@ -80,7 +85,10 @@ consignment needs no bespoke ownership pointer:
   glob is refused); you must hold a bank account (the payout target —
   nudge to Goodkin otherwise); and you must be under the **per-consignor
   listing cap** (`retail.consignment.listingCap` — the shared-shelf
-  anti-grief guard, the withdrawal-quota sibling). An unstamped
+  anti-grief guard, the withdrawal-quota sibling; the platform ships
+  **24**, a case per consigning outfit on a distributor's counter — and
+  the `consigns` brain reads its outfit's headroom under it, so an NPC
+  hand never runs at an `over-cap` decline). An unstamped
   author-owned good is stamped to you on consign (establish-on-consign).
 - **A sale** splits the ask (commission → store, remainder → the
   consignor's **primary bank account** via `Charge.splits`), transfers
@@ -97,6 +105,45 @@ The `ConsignmentShelf` (`lib/retail/ConsignmentShelf.ts`) composes
 consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient
 shelf would drop it).
+
+## The distributor — the cash-and-carry, and consignment BY a business (libations)
+
+The bar buys from a **distributor**, never from a `populates:` line.
+`trade-distilling` ships the cash-and-carry
+(`/trade/distilling/location/cash-and-carry`, a `FurnishableRoom`;
+`thing/counter` a `Stock` with no lines, `serverPositionKeys: [clerk]`;
+`idea/business` with `clerk` and `keeper` (`purchases: true`)). Everything
+on the counter is **consigned by an authored consignor**: every producer
+pack ships an *outfit* — a Business, a `Stock` its floor product stands
+in, and a hand NPC running the kernel **`consigns`** brain whose config
+names the HOST shelf (`{ stock, shelf, ask: {censusKey: minor},
+defaultAsk?, batch? }`). The annex names the host; the distributor names
+nobody. The hand holds a `purchases` position, carries the house card,
+and each beat `get`s up to `batch` goods, teleports to the counter,
+`wallet use house`, `consign <kw> --ask <n>` — as the business
+(`ConsignController` accepts an `organization` owner the giver buys for;
+the listing's `consignorKey` is the outfit's path, and "each consignor's
+account rises on resale" is the shipped split leg). The floor itself
+stands at target through the residency spawn sweep, the rows' own
+`container:` naming the outfit's Stock ([residency.md](./residency.md)).
+
+The buyer's side is the wallet rule ([employment.md](./employment.md)):
+with the house account active, `buy` settles from it and stamps the
+chattel to the business (`ChattelApi.ownerKeyOf` widened: an
+`OrganizationMixin` Stuff → the `organization` owner arm); with a
+personal account it stamps the buyer, exactly as before. The `restocks`
+brain is a keeper doing that loop on cadence.
+
+**The stock vessels**: `/platform/thing/Bottle`
+(`Circulating(Sealable(Detailed(GradedReceptacle)))` over `Thing`'s
+Chattel — 0.75 L glass, liquid-tight; presets are ROWS: `keg`, `cask`,
+`wine-bottle`, `can`, `mixer-bottle`, `sack`, `ice-bag`; distilling's
+`SpiritBottle` extends it in code) and `/platform/thing/Crate`
+(`Circulating(Populates(Container(Detailed(Thing))))`, open and never
+Sealable so the crafting gather walk finds the limes; the fruit are
+`Provision` rows its `populates:` mints). A floor row authors `censusKey`,
+`regionTarget`, `container: <the outfit's Stock>`, `interiorMaterial`,
+`gradeBand`, `_brandKey`.
 
 ## Content: the store on the new-player path
 

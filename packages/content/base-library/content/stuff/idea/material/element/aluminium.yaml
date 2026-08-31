@@ -1,0 +1,44 @@
+# Aluminium — Al, atomic number 13. Light, soft, silvery; the beverage
+# can, the foil, the aircraft skin. Passivates instantly in air (a
+# hairline oxide film — it does not rust the way iron does, which is why
+# an empty can on the roadside is still a can a decade later). Primary
+# production is the Hall–Héroult cell: electrolysis of alumina in molten
+# cryolite at ~1230 K, ~13–15 kWh per kg — the single most
+# electricity-hungry commodity metal, which is why smelters sit beside
+# hydro dams. Remelting scrap costs ~5 % of that, which is why the can
+# is the most-recycled beverage container on Earth: a used can is back
+# on a shelf as a new can in roughly sixty days. Both facts are the
+# point of this row — see the aluminium-can slate.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: aluminium
+  density: 2700
+  specificHeat: 897
+  thermalConductivity: 237
+  # Electrical conductivity (S/m) — ~3.5×10⁷, ~60 % of copper by volume
+  # but twice copper per unit mass (overhead power lines are aluminium).
+  electricalConductivity: 3.5e7
+  # Phase change (thermal): melts at 933 K (a kitchen-scale furnace
+  # remelts it), boils at 2743 K; fusion 397 kJ/kg, vaporization 10.9 MJ/kg.
+  meltingPoint: 933
+  latentHeatOfFusion: 397000
+  boilingPoint: 2743
+  latentHeatOfVaporization: 10900000
+  # Metal wets only as a surface film.
+  waterAbsorptionCapacity: 0.2
+  # Mechanical response (materials-response): soft and ductile — a can
+  # dents where steel would ring. MPa / MJ·m⁻³, marshalled. (Pure Al;
+  # the 3004 can-body alloy is roughly twice as hard — a content
+  # extension, like stainless over steel.)
+  hardness: 160
+  toughness: 90
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["element", "metal", "non-ferrous", "crystalline", "conductor", "light", "passivating"]
+  composition: []
+  symbol: Al
+  atomicNumber: 13
+  molarMass: 26.982
+  biologicalSource: null

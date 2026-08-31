@@ -99,7 +99,7 @@ function makePlant(
   opts: { short?: string; seedPath?: string } = {},
 ): Plant {
   plantSeq += 1;
-  const path = `/stuff/thing/plant/_test-${plantSeq}`;
+  const path = `/trade/farming/thing/plant/_test-${plantSeq}`;
   return makeStuffAtPath(() => {
     const p = new Plant();
     p.setShortDescription(opts.short ?? 'a peace lily');
@@ -140,7 +140,7 @@ function makePot(soil: number, capacity = soil): PlantPot {
       ),
     );
     return pot;
-  }, `/stuff/thing/pot/_test-${potSeq}`);
+  }, `/trade/farming/thing/pot/_test-${potSeq}`);
 }
 
 /**
@@ -256,7 +256,7 @@ describe('Plant — the growing object', () => {
         return makeStuffAtPath(() => {
           const s = new Seed();
           s.setShortDescription('a peace lily seed');
-          s.setGrowsIntoPath('/stuff/thing/plant/_seedtest');
+          s.setGrowsIntoPath('/trade/farming/thing/plant/_seedtest');
           return s;
         }, `${path}#${minted}`);
       }) as unknown as typeof StuffApi.clone);
@@ -264,7 +264,7 @@ describe('Plant — the growing object', () => {
     try {
       const room = makeStuff(() => new LitRoom());
       room.setAmbientFlux(40);
-      const p = makePlant(lilyProfile(), { seedPath: '/stuff/thing/seed/_test' });
+      const p = makePlant(lilyProfile(), { seedPath: '/trade/farming/thing/seed/_test' });
       const big = makePot(3);
       ContainmentApi.move(big, room);
       pot(p, big);
@@ -279,7 +279,7 @@ describe('Plant — the growing object', () => {
       // The seed lands in the POT's contents — a plant is not a container.
       const seeds = big.getContents().filter((c) => c instanceof Seed);
       expect(seeds).toHaveLength(1);
-      expect(p.getSeedTemplatePath()).toBe('/stuff/thing/seed/_test');
+      expect(p.getSeedTemplatePath()).toBe('/trade/farming/thing/seed/_test');
 
       // Further reads inside the SAME flowering episode set no second seed.
       setNow(260 * DAY);
@@ -441,7 +441,7 @@ describe('Plant — the growing object', () => {
       p.setLifecycleState('alive');
       p.setProfile(lilyProfile());
       return p;
-    }, '/stuff/thing/plant/shared');
+    }, '/trade/farming/thing/plant/shared');
     const b = makeStuffAtPath(() => {
       const p = new Plant();
       p.setMaterial(tissue());
@@ -449,7 +449,7 @@ describe('Plant — the growing object', () => {
       p.setLifecycleState('alive');
       p.setProfile(lilyProfile());
       return p;
-    }, '/stuff/thing/plant/shared');
+    }, '/trade/farming/thing/plant/shared');
     const potA = makePot(3);
     const potB = makePot(3);
     ContainmentApi.move(potA, room);
@@ -509,10 +509,10 @@ describe('PlantPot + Seed — the rest of the assembly', () => {
     const s = makeStuffAtPath(() => {
       const seed = new Seed();
       seed.setShortDescription('a peace lily seed');
-      seed.setGrowsIntoPath('/stuff/thing/plant/peace-lily');
+      seed.setGrowsIntoPath('/trade/farming/thing/plant/peace-lily');
       return seed;
-    }, '/stuff/thing/seed/peace-lily');
-    expect(s.getGrowsIntoPath()).toBe('/stuff/thing/plant/peace-lily');
+    }, '/trade/farming/thing/seed/peace-lily');
+    expect(s.getGrowsIntoPath()).toBe('/trade/farming/thing/plant/peace-lily');
     expect(MixinApi.isGlobbable(s)).toBe(false);
   });
 });

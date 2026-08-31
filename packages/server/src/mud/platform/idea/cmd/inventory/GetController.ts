@@ -25,6 +25,8 @@ import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
 import { Touch } from '../../../../lib/perception/Touch';
 import { ChattelApi } from '../../../../api/chattel';
+import { PerceptionApi } from '../../../../api/perception';
+import { ProxyApi } from '../../../../api/proxy';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
@@ -54,20 +56,38 @@ export default class GetController extends CommandController<GetModel> {
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
-    const here = context.location.getContents();
-
     if (!quantity) {
-      return this.executeWholeSet(stuff, inventory, here, raw, context);
+      return this.executeWholeSet(stuff, inventory, raw, context);
     }
 
-    // Source: location contents. Filter to candidates actually
-    // present here and not already in inventory.
-    const inLocation = stuff.filter((s) =>
-      here.some((it) => it.stuffId === s.stuffId)
+    // ⭐ The controller checks STATE; it does not rebuild the binder's
+    // pool. The scope already resolved which objects `raw` names — all
+    // that is left is whether each one is takeable from here, which is
+    // one question with one owner: `PerceptionApi.canReach`. It knows
+    // about open containers, so the rack's coupe and the stock's keg
+    // answer true without this file knowing what a container is.
+    // ⚠ ONE reach walk for the whole list — never `canReach` per
+    // candidate. Each `canReach` re-walks the room and one level into
+    // every open container AND pays a call-security stack capture, so
+    // the per-candidate form is quadratic: a live drive found 96.5% of
+    // the server's CPU in this controller, with `get produce` binding
+    // every item in an open floor stock.
+    const reachable = PerceptionApi.reachableAmong(giver, stuff);
+    // ⭐ A bolted-down thing is not a CANDIDATE for picking up, so it
+    // must not consume the quantity slot. `get 1 crowsfoot` matches both
+    // the crowsfoot stock and the crowsfoot bottles standing in it — and
+    // spending the one slot on the immovable counter, then reporting
+    // `fixed-in-place`, is not what was asked. Filter them out and take
+    // the bottle. (If EVERY match is fixed there is nothing to take, and
+    // the whole-set branch below says so by name.)
+    const candidates = reachable.filter(
+      (s) =>
+        !this.isFixed(s) &&
+        !inventory.some((it) => it.stuffId === s.stuffId)
     );
-    const candidates = inLocation.filter(
-      (s) => !inventory.some((it) => it.stuffId === s.stuffId)
-    );
+    if (candidates.length === 0 && reachable.some((s) => this.isFixed(s))) {
+      return this.declineAllFixed(reachable, raw, context);
+    }
 
     const result = await GlobbableApi.applyQuantity<GetPayload>(
       candidates,
@@ -90,7 +110,6 @@ export default class GetController extends CommandController<GetModel> {
   private executeWholeSet(
     targets: Stuff[],
     inventory: readonly Stuff[],
-    here: readonly Stuff[],
     raw: string,
     context: CommandContext
   ): void {
@@ -103,11 +122,17 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     const pickedNames: string[] = [];
-    for (const target of targets) {
+    // ⚠ Same rule, one walk — see the note in `execute`.
+    const reachable = PerceptionApi.reachableAmong(
+      context.commandGiver,
+      targets,
+    );
+    const takeable = reachable.filter((s) => !this.isFixed(s));
+    if (takeable.length === 0 && reachable.length > 0) {
+      return this.declineAllFixed(reachable, raw, context);
+    }
+    for (const target of takeable) {
       if (inventory.some((item) => item.stuffId === target.stuffId)) {
-        continue;
-      }
-      if (!here.some((item) => item.stuffId === target.stuffId)) {
         continue;
       }
       if (this.pickUpOperand(target, context)) {
@@ -127,6 +152,50 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /**
+   * Bolted down: not a candidate for picking up.
+   *
+   * ⚠ Read off the RAW target. This runs once per candidate, and
+   * `get produce` on a floor stock binds hundreds — every proxied call
+   * pays the call-security gate, and the gate captures a JS stack. The
+   * eager form (`MixinApi.isContainable(s) && s.isFixedInPlace()`) was
+   * two gated calls per candidate and put `GetController` back at 36%
+   * of the server within one boot of my adding it.
+   *
+   * Safe to read raw here on both counts: `fixedInPlace` is plain state
+   * with no shadow that could legitimately disagree (a polymorph does
+   * not un-bolt a basin), and `get.yaml` requires `ContainableMixin` on
+   * its targets, so the mixin check the gate was paying for is already
+   * guaranteed by the arg spec.
+   */
+  private isFixed(s: Stuff): boolean {
+    const raw = ProxyApi.unwrap(s) as unknown as {
+      isFixedInPlace?: () => boolean;
+    };
+    return raw.isFixedInPlace?.() === true;
+  }
+
+  /**
+   * Everything the words named is bolted down. Say THAT — "you don't see
+   * any 'basin' here" would be a lie about a basin standing right there.
+   */
+  private declineAllFixed(
+    matches: readonly Stuff[],
+    raw: string,
+    context: CommandContext,
+  ): void {
+    const first = matches.find((s) => this.isFixed(s)) ?? matches[0]!;
+    MessageApi.scene(context.commandGiver)
+      .topic('sense.survey')
+      .toSelf(Mml.compose`${Mml.thing(first)} is fixed in place.`)
+      .send();
+    context.note({
+      kind: 'controller-rejected',
+      reason: 'fixed-in-place',
+      detail: raw,
+    });
   }
 
   private renderResult(
@@ -196,6 +265,26 @@ export default class GetController extends CommandController<GetModel> {
       throw new Error(
         `GetController: commandGiver ${giver.stuffId} is not a Container`
       );
+    }
+
+    // ⭐ Bolted down. The narrow test that replaces a `canMove` veto:
+    // the wall TV, the terminal's brass pillar. It refuses *an agent
+    // taking it*, and nothing else — a remodel, a `place`, an author
+    // rearranging scenery all still move it through
+    // `ContainmentApi.move`, because none of those is a person pocketing
+    // a television. Authored per row, so the same class covers a screen
+    // standing on a counter.
+    if (operand.isFixedInPlace()) {
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'fixed-in-place',
+        detail: `${operand.getPresentation()} is fixed in place`,
+      });
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.thing(operand)} is fixed in place.`)
+        .send();
+      return false;
     }
 
     // Pick-up-your-own-trap: a placed, still-armed trap can only be lifted

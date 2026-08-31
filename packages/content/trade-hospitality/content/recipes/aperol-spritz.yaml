@@ -1,0 +1,16 @@
+# Aperol spritz — aperitivo, sparkling wine and a splash of soda over ice, an orange slice
+recipeId: aperol-spritz
+name: Aperol spritz
+keywords: [spritz, aperol-spritz]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: bitter, category: aperitivo, minGrade: fair, measureL: 0.06 }
+- { slot: wine, category: sparkling, minGrade: fair, measureL: 0.09 }
+- { slot: mixer, category: soda-water, minGrade: fair, measureL: 0.03 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/wine
+outputAppearance: a spritz, orange and fizzing in a wine glass
+garnish: { category: orange, count: 1 }
+ice: cubes

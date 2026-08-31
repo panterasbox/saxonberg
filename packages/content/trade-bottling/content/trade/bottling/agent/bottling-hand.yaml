@@ -1,0 +1,42 @@
+# Dez Okoro — the bottling floor's hand. Holds the outfit's `hand` position
+# (`purchases: true`): dealt the house card at hire, then the `consigns`
+# brain drives the literal verbs — `get`, `wallet use house`, `consign …
+# --ask` — carrying the stock to the cash-and-carry counter and consigning
+# it AS the outfit. The counter path is this config's, never the trade's.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Dez Okoro
+  pronouns: they
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: hand
+  alternateNames: ["dez", "okoro"]
+  shortDescription: "a quick bottling hand in a hairnet"
+  longDescription: |
+    A quick, compact hand in a hairnet who stacks with both hands and counts by fours.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:90s
+      config:
+        stock: /trade/bottling/thing/bottling-stock
+        shelf: /trade/distilling/thing/counter
+        batch: 6
+        ask:
+          mixer:soda-water: 3
+          mixer:tonic: 3
+          mixer:ginger-beer: 3
+          mixer:cola: 3
+          mixer:cola-can: 2
+          mixer:grapefruit-soda: 3
+          mixer:cranberry-juice: 4
+          mixer:orange-juice: 4
+          ice:bag: 5
+    - brain: /lib/behavior/idles
+      trigger: cadence:41s
+      config:
+        pool:
+          - { kind: free, value: "shrink-wraps a pallet with a hiss." }
+          - { kind: free, value: "slams the freezer lid and leans on it." }

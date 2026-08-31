@@ -121,6 +121,17 @@ describe("DialogueTreeSchema.validate", () => {
     ).toBe(true);
   });
 
+  it("accepts a `position:<organization path>` fact and rejects a bare one", () => {
+    const set = (fact: string) => {
+      const tree = validTree() as unknown as Record<string, unknown>;
+      (tree.nodes as Record<string, { choices: { guard: unknown[] }[] }>)
+        .neutral!.choices[0]!.guard = [{ fact, op: "eq", value: false }];
+      return DialogueTreeSchema.validate(tree);
+    };
+    expect(set("position:/stuff/test/business")).toEqual([]);
+    expect(set("position:keeper").some((e) => e.includes("not a recognized fact"))).toBe(true);
+  });
+
   it("rejects an unknown trait axis but accepts a real one", () => {
     const bad = validTree();
     bad.nodes.neutral!.choices![0]!.guard = [

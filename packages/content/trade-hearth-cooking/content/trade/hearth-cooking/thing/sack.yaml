@@ -1,0 +1,26 @@
+# The sack — the EMPTY vessel; the standard a dry pantry good is built
+# against (see the sugar/salt/coffee rows).
+#
+# ⚠ `closure: liquidTight` is a LIE the engine currently requires, and it
+# is recorded rather than hidden. Hessian is an OPEN weave — it keeps
+# nothing in but the goods themselves. But `BulkableLogic.requiredClosureFor`
+# returns `liquidTight` for every material in v1 (only the liquid phase
+# exists; the granular case is the commented extension point), so an
+# honestly-`open` sack could not be filled or drawn from at all. When the
+# granular phase lands, every sack row here becomes `closure: open` and
+# nothing else changes.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a sack"
+  longDescription: "A hessian sack, wide-mouthed, the neck tie hanging loose."
+  primaryKeyword: sack
+  keywords: ["sack", "bag", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: sack
+  material: /stuff/idea/material/textile/jute
+  interiorBulk: true
+  interiorCapacity: 20
+  closure: liquidTight
+  open: true

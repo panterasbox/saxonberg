@@ -36,6 +36,27 @@ See the seeding [residency-slate.md](../slates/tails/residency-slate.md).
 (The requirements doc was retired at the pre-merge sweep; this doc is the
 record of what shipped.)
 
+## ⭐ An empty HOLDER is not product
+
+`CirculatingMixin.getCensusKey()` derives from **state**: a holder that is
+empty counts under `vessel:<kind>` rather than under its authored key. A
+holder is empty when every dimension it *has* is empty — a `Bulkable`'s
+interior slot, a `Container`'s contents, both when it is both. A thing
+that is neither is not a holder and keeps its authored key (a grapefruit
+is product, not an empty vessel).
+
+Without this the faucet lies in both directions: a world drunk dry read
+as *at target* while the shelf stood bare, and a bar that emptied four
+crates of grapefruit left four crates the census still counted as full,
+so the produce floor never restocked. Empties get their own count, which
+is also what a deposit or returns market reads.
+
+⚠ The empty's *kind* comes from `category` where the holder has one — see
+[bulk.md](./bulk.md), including the open question about `Crate`, which
+cannot carry `category` today and so derives from its primary keyword
+instead.
+
+
 ## The whole mechanism
 
 Deliberately small: **one method, one signal, one sweep.**
@@ -280,6 +301,38 @@ wired.
 - **Ordered LRU / incremental sweeping** — escalations if observe-mode
   data ever shows the O(n) scan spiking.
 
+## ⚠⚠ Walk RAW all the way up, not just the first hop
+
+The sweeps unwrap (`ProxyApi.unwrap`) so that **enumeration never counts
+as a residency touch** — a sweep that touched what it inspected would
+keep the whole world warm and there would be no cold tail to find.
+
+The trap: `getContainer()` **returns a proxy**. Unwrapping only the
+object you start from leaves every hop *after* the first going back
+through the security proxy, which
+
+- **touches** each ancestor, so the sweep warms every container in the
+  world one hop at a time — the correctness half, and it silently
+  defeats eviction; and
+- **costs a gated call** per hop, and a gated call captures a JS stack.
+
+`isInPresentRoom` had exactly this shape, and it runs for EVERY object
+in the world on every reset sweep. A live drive of the libations branch
+found the server pinned at a full core with **five of five debugger
+pauses landing in `runResetSweep → isInPresentRoom → getContainer`**.
+
+⭐ **And it was player-triggered.** The function early-returns when
+`presentRooms` is empty, so an idle world costs nothing and the cliff
+appears the moment somebody logs in — which is the one time it must not.
+That is also why a sampling profile alone was misleading: it named a
+verb controller that happened to be running in the sample window, while
+repeated `Debugger.pause` sampling named the real steady state five
+times out of five.
+
+The rule: **if a walk unwraps, it unwraps at every hop**, and the site
+that chooses raw carries the guards that the proxy would have applied
+(the `isDestroyed()` break, and a `seen` set against a corrupted cycle).
+
 ## The presence walk and the sandbox boundary
 
 `presenceWalkImpl` runs from a field root and reads each connected
@@ -319,10 +372,62 @@ zone's declaration covers its descendants and a child can narrow it.
 | `favours` — material tags | multiplies draw weight for matching items |
 | `blessingOdds` — BUC weights | **overrides an item's own generation odds, zone-wide** (see [magic-items.md](./magic-items.md) § Generation odds) |
 
-⚠ **None of the three is declared by any shipped zone yet.** A region
-that declares nothing leaves every item on its own baseline and a
-neutral affinity, so distribution works in un-authored regions rather
+⭐ All three are declared on **`SpatialZone`**, not on `Zone`
+([zone.md](./zone.md)): only a region *in space* can stock goods, while a
+`FolderZone` is a namespace root (`/wiki`, `/home`, `/studio`) where the
+question does not arise — and an `authorable` field on the base would
+offer it, in the studio panel, for every zone in the game. The
+inheritance walk is unaffected either way: `lookupField` consults
+ancestors, so a zone that declares nothing simply walks on.
+
+All three were read but never hydrated before being declared — the
+Hydrator only reflects into fields it finds in the merged `fieldMeta`
+chain, so an authored value on an undeclared field is **silently
+dropped**. `stocks` and `favours` were fixed in libations;
+`blessingOdds` had the same bug for longer and is fixed with them, which
+is what makes the documented zone-wide BUC override able to fire at all.
+Veshko's yard is the first shipped zone to author `stocks`; nothing
+ships an authored zone `blessingOdds` yet.
+
+A region that declares nothing leaves every item on its own baseline and
+a neutral affinity, so distribution works in un-authored regions rather
 than silently placing nothing.
+
+## ⭐ The sweep is a faucet — template candidates, the home region, the batch draw (libations)
+
+The spawn sweep is the **sanctioned faucet** a producer's floor stock
+stands at target through (D4: never a second faucet). Three changes made
+it one:
+
+- **Candidates are template-derived.** As shipped the candidate set was
+  *live circulating things only* — on a fresh DB there was nothing to
+  copy, so a floor could never stand up. `ResidencyLogic` now unions the
+  live set with every template row that authors `censusKey`
+  (`Template.findWhereDataHas('censusKey')`) whose class composes
+  `Circulating`. A row candidate carries a **home region** — the zone of
+  its `container:` — and is drawn only there; the shipped `applyContainer`
+  places the clone (so a floor bottle row naming its outfit's `Stock`
+  lands in it with no new code). Live candidates without a home are
+  drawn anywhere (the v1 behaviour, kept). A zone-less producer counts in
+  the unplaced region `''`, where the row's own `regionTarget` governs —
+  a zone `stocks:` is the optional override.
+- **Draw until decline, per region.** One census, many placements: the
+  loop keeps a local copy of the census honest as it places, stops when
+  the table declines, and is capped by `residency.spawn.perRegionCap`
+  (`AppSettingKeys.residencySpawnPerRegionCap`; the platform ships **512** —
+  the authored floor, ~360 items across the trades' stocks, most in the
+  zone-less region `''`, must fit under it or a fresh boot stands short;
+  the code default is 64).
+- **A boot run, in `enforce`.** `AppBootstrap` calls
+  `ResidencyApi.spawnNow()` once after `ResidencyApi.boot()` (after
+  `PackApi.install()`), and the platform's `settings/residency.yaml`
+  ships `residency.spawn.mode: enforce` — the "stands at target on a
+  fresh boot" criterion. `rollBlessing` is untouched.
+
+⚠ **Cost**: `ContainmentApi.move` is O(room contents), so the boot sweep
+placing ~180 bottles and ~32 crates × 12 items takes tens of seconds on a
+fresh DB (the pack tests scale targets down for this reason). A cheaper
+placement is a kernel follow-up, not a content dial.
 
 The BUC roll fires on the freshly cloned object at the mint site inside
 the sweep — deliberately **not** in `StuffApi.clone`, so an author's

@@ -1,0 +1,15 @@
+# Gin & tonic — built over ice, a lime wedge
+recipeId: gin-tonic
+name: Gin & tonic
+keywords: [gin-tonic, g-and-t, gt]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: base, category: gin, minGrade: fair, measureL: 0.05 }
+- { slot: mixer, category: tonic, minGrade: fair, measureL: 0.15 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a gin and tonic, fizzing over ice
+garnish: { category: lime, count: 1 }
+ice: cubes

@@ -52,6 +52,8 @@ import { LandUses } from '../../../lib/parcel/LandUse';
 import type { ParcelOwner, TitleClaim } from '../../../lib/parcel/ParcelRecord';
 import type { GroupRole } from '../../../lib/social/Group';
 import type RecipeCatalogue from '../RecipeCatalogue';
+import type ArchetypeCatalogue from '../ArchetypeCatalogue';
+import { Archetype } from '../../../lib/archetype/Archetype';
 import type BlueprintCatalogue from '../BlueprintCatalogue';
 import WikiRegistry, { WikiConflict } from '../WikiRegistry';
 import type { WikiPage, WikiSubject } from '../../../lib/wiki/WikiPage';
@@ -100,7 +102,7 @@ interface ResolvedPack {
 
 /** A parsed `domain`-kind content file. */
 interface DomainFile {
-  /** Derived template path (`/stuff/idea/material/spirit/gin`). */
+  /** Derived template path (`/trade/distilling/idea/material/gin`). */
   path: string;
   /** Backing class path. */
   class: string;
@@ -164,6 +166,7 @@ const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<Declared
 const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>) => void> = {
   emote: (d) => void Emote.fromData(d),
   recipe: (d) => void Recipe.fromData(d),
+  archetype: (d) => void Archetype.fromData(d),
   'command-view': (d) => {
     const trail = CommandApi.validateCommandView(d);
     if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
@@ -3230,6 +3233,12 @@ async function invalidateDocumentKind(
       // The recipe read surface is SYNC, so a resident catalogue is
       // re-warmed here rather than dropped.
       const cat = StuffApi.findByTemplatePath<RecipeCatalogue>('/platform/idea/RecipeCatalogue');
+      if (cat) await cat.warm();
+      return;
+    }
+    case 'archetype': {
+      // Same shape as the recipe kind: a sync read surface, re-warmed.
+      const cat = StuffApi.findByTemplatePath<ArchetypeCatalogue>('/platform/idea/ArchetypeCatalogue');
       if (cat) await cat.warm();
       return;
     }

@@ -1,0 +1,14 @@
+# Whiskey ginger — built over ice
+recipeId: whiskey-ginger
+name: Whiskey ginger
+keywords: [whiskey-ginger]
+discipline: bartending
+difficulty: easy
+inputSlots:
+- { slot: base, category: whiskey, minGrade: fair, measureL: 0.05 }
+- { slot: mixer, category: ginger-beer, minGrade: fair, measureL: 0.15 }
+toolCapabilities: []
+outputApplication: bulk
+outputTemplate: /trade/hospitality/thing/highball
+outputAppearance: a whiskey ginger, tall and gold
+ice: cubes

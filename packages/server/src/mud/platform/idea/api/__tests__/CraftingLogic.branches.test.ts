@@ -23,7 +23,7 @@ import Thing from '../../../../lib/stuff/Thing';
 import Ingot from '../../../thing/Ingot';
 import Forge from '../../../thing/Forge';
 import ToolItem from '../../../thing/ToolItem';
-import CraftedDrink from '../../../thing/CraftedDrink';
+import CraftVessel from '../../../thing/CraftVessel';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve';
@@ -66,7 +66,7 @@ const MEAT = '/stuff/idea/material/_test/branch-meat';
 const STEW = '/stuff/idea/material/_test/branch-stew';
 const GIN = '/stuff/idea/material/_test/branch-gin';
 const VERMOUTH = '/stuff/idea/material/_test/branch-vermouth';
-const MIXED = '/stuff/idea/material/cocktail/mixed';
+const MIXED = '/platform/idea/material/blend';
 const KNIFE_T = '/obj/_test/branch-knife';
 const DISH_T = '/obj/_test/branch-dish';
 const GLASS_T = '/obj/_test/branch-glass';
@@ -167,7 +167,7 @@ beforeEach(async () => {
       return makeStuff(() => new TestKnife()) as never;
     }
     if (path === DISH_T || path === GLASS_T) {
-      const g = makeStuff(() => new CraftedDrink());
+      const g = makeStuff(() => new CraftVessel());
       (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
       g.setInteriorCapacity(Quantity.of(1, 'L'));
       return g as never;
@@ -370,7 +370,7 @@ describe('the edible (cooking) branch', () => {
     // the intervening await) — the strict debit must throw, not short-draw.
     vi.mocked(StuffApi.clone).mockImplementation(async () => {
       veg.setQuantity(1);
-      const g = makeStuff(() => new CraftedDrink());
+      const g = makeStuff(() => new CraftVessel());
       (g as unknown as { interiorBulk: boolean }).interiorBulk = true;
       g.setInteriorCapacity(Quantity.of(1, 'L'));
       return g as never;
@@ -418,6 +418,11 @@ describe('the gather walk rungs', () => {
     const mixer = makeStuff(() => new ToolItem());
     mixer.setCapabilities(['mixing-glass']);
     ContainmentApi.move(mixer, room);
+    // A bulk output is claimed from the pool, never cloned: one clean glass.
+    const glass = makeStuffAtPath(() => new CraftVessel(), GLASS_T);
+    (glass as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    glass.setInteriorCapacity(Quantity.of(0.3, 'L'));
+    ContainmentApi.move(glass, room);
 
     const outcome = await craftAs(smith, {
       recipeRef: 'martini',

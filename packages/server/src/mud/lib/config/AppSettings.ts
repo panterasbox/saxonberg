@@ -289,6 +289,14 @@ export const AppSettingKeys = {
    */
   bankingOpeningFloat: "banking.openingFloat",
   /**
+   * Banking — the **opening capital** (minor units) minted into a business's
+   * operating account the first time it is materialized. `openingFloat`'s
+   * sibling one tier down: a branch's till is capitalized for its customers,
+   * a venue's account for its trade. A business may override per-row with
+   * `openingCapital:`. `0` disables. See docs/subsystems/banking.md.
+   */
+  bankingOpeningCapital: "banking.openingCapital",
+  /**
    * Banking — the **default custodian bank** (an institution key, e.g.
    * `goodkin`) — the boot restamp's LAST RESORT for legacy rows with no
    * derivable custodian relationship (a business banks at its authored
@@ -499,6 +507,11 @@ export const AppSettingKeys = {
    * `regionTarget`, overridden by the zone's `stocks`).
    * *Calibrate at launch.* */
   residencySpawnAffinityBoost: "residency.spawn.affinityBoost",
+  /** Residency — how many placements one sweep may make in ONE region
+   * before it stops drawing there (the draw-until-decline loop's cap, so a
+   * mis-authored target can never turn a sweep into a flood). Default 64.
+   * *Calibrate at launch.* */
+  residencySpawnPerRegionCap: "residency.spawn.perRegionCap",
 
   /**
    * Retail — the general store. `listingCap` is the per-consignor active-
@@ -1294,6 +1307,9 @@ export const AppSettingKeys = {
   craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
   /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
   craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
+  /** Crafting — kilograms of ice an iced drink takes from the reachable
+   * ice bin at the fill (the bar's scoop). */
+  craftingIceKg: "crafting.iceKg",
 
   /*
    * Wiki — the render budget (docs/subsystems/wiki.md).

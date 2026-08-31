@@ -52,6 +52,24 @@ settings:
   - key: banking.openingFloat
     value: "500"
 
+  # Banking — the OPENING CAPITAL (minor units) minted into a business's
+  # operating account the first time that account is materialized. The
+  # sibling of `openingFloat` one tier down: a branch's till is capitalized
+  # for its customers, a venue's account is capitalized for its trade.
+  #
+  # ⭐ Why a venue needs it: wages post with NO solvency check (a venue runs
+  # its P&L red by design — the deficit-as-target, covered by CB subsidy),
+  # but PURCHASES do check (`settle` refuses an overdrawn payer). So an
+  # uncapitalized venue pays its staff into the red and then cannot buy
+  # stock — the supply chain stops at the first `buy`. A live drive found
+  # Dave's Bar at -349 with a money supply of zero and no way forward.
+  #
+  # A business may override with its own `openingCapital:` — a distillery
+  # needs more standing capital than a bar. 0 disables (and a venue then
+  # opens on nothing, which is a legitimate world to configure).
+  - key: banking.openingCapital
+    value: "20000"
+
   # Banking — the default custodian bank (an INSTITUTION key: your account
   # exists at the bank; branches are service points). The boot restamp's
   # last resort for legacy rows with no derivable relationship — a business

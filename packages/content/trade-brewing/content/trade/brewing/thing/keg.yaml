@@ -1,0 +1,18 @@
+# The keg — the EMPTY vessel; the standard a brewed product is built
+# against (see `keg-ale.yaml`). `sealed` because a keg is pressurised —
+# that is the whole point of the coupler.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a keg"
+  longDescription: "A thirty-litre steel keg, a tap-coupler on the crown."
+  primaryKeyword: keg
+  keywords: ["keg", "barrel", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: keg
+  material: /stuff/idea/material/alloy/steel
+  interiorBulk: true
+  interiorCapacity: 30
+  closure: sealed
+  open: true

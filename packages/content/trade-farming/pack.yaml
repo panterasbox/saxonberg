@@ -1,0 +1,26 @@
+id: trade-farming
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /trade/farming
+description: >-
+  The farming trade — growing, end to end. A trade is a PROCESS, and
+  produce is one of farming's OUTPUTS, not a trade of its own; this pack
+  therefore owns both halves, the way trade-distilling owns the still and
+  the bottle. Production: the pots, the garden bed, the seeds, and the
+  plants they become — the growing apparatus the smallholding substrate
+  (husbandry + smallholding) drives. Output: eight food materials tagged
+  by category (lime, lemon, orange, grapefruit, mint, cherry, olive,
+  cranberry), each a graded Provision item, the crate and basket presets
+  over the platform Crate, a crate of each standing at target in the
+  farm's stock, and the farm outfit whose hand consigns them onto the
+  cash-and-carry. Horticulture is farming too: the ornamental house
+  plants (peace lily, snake plant) are grown here, not filed under food.
+requires:
+  groups:
+    - name: farming
+      purpose: the farming trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/farming, holder: { group: farming } }
+boot:
+  - { template: /trade/farming/location/farm, role: producer, reason: "the farm — its Stock is the home container the crates spawn into, and its hand runs the consigns brain" }
+  - { template: /trade/farming/idea/farm-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }

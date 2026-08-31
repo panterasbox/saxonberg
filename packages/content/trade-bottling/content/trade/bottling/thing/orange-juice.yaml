@@ -1,0 +1,19 @@
+# The floor bottle of orange juice — 1 L, at target in the bottling stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of orange juice"
+  longDescription: "A one-litre screw-capped bottle of orange juice, the bottling floor's plain label."
+  primaryKeyword: orange-juice
+  keywords: ["orange-juice", "juice", "oj", "bottle", "mixer"]
+  category: mixer-bottle
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/bottling/idea/material/orange-juice
+  interiorAmount: 1
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: mixer:orange-juice
+  regionTarget: 8
+  materialTags: ["mixer", "orange-juice"]
+  container: /trade/bottling/thing/bottling-stock

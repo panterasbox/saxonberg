@@ -1,0 +1,18 @@
+# The cask — the EMPTY conditioning vessel the ferment build will fill.
+# `liquidTight`, NOT `sealed`, and that is not an oversight: a cask
+# breathes through the oak. Breathing is what a cask is for.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a cask"
+  longDescription: "An oak cask, hooped and bunged, that once held something stronger."
+  primaryKeyword: cask
+  keywords: ["cask", "barrel", "oak", "empty"]
+  # The VESSEL KIND — the tie between this row and every product
+  # that is this vessel filled (an emptied one counts and reads as this).
+  category: cask
+  material: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 50
+  closure: liquidTight
+  open: true

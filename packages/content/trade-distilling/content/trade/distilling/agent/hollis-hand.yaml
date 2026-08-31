@@ -1,0 +1,32 @@
+# Bram Hollis (no relation, he says) — Hollis Bottling's hand; dealt the
+# house card at hire, consigns the private-label rows AS Hollis Bottling.
+class: /platform/agent/NPC
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Bram Tull
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: hand
+  alternateNames: [bram, tull]
+  shortDescription: a cheerful bottling hand in a Hollis-red cap
+  longDescription: |
+    A cheerful, round-faced man in a red company cap who whistles the Hollis jingle without noticing and stacks cases label-out.
+  dispositions:
+    - { disposition: sociability, valence: 50 }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:90s
+      config:
+        stock: /trade/distilling/thing/hollis-stock
+        shelf: /trade/distilling/thing/counter
+        batch: 6
+        ask:
+          spirit:old-hollis: 10
+          spirit:hollis-cane: 10
+    - brain: /lib/behavior/idles
+      trigger: cadence:47s
+      config:
+        pool:
+          - { kind: free, value: "turns a case so the red label faces out." }
+          - { kind: free, value: "whistles two bars of the Hollis jingle." }

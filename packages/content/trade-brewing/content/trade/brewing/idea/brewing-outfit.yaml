@@ -1,0 +1,29 @@
+# the brewery outfit — an OUTFIT: a Business + a Stock its floor product spawns into +
+# a hand with the `consigns` brain (the distilling pack's trio, the shape
+# every producer annex repeats). The hand's `hand` position `purchases`, so
+# at hire it is dealt the house card and its `wallet use house` / `consign`
+# trade AS this business — each resale at the cash-and-carry splits to this
+# operating account. The annex names the host (the counter); the host
+# names nobody.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the brewing outfit"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: hand
+      label: running the brewery outfit's floor
+      wageRate: 3
+      confers: []
+      purchases: true
+  rosterSlots:
+    - positionKey: hand
+      assignee: /trade/brewing/agent/brewing-hand
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /trade/brewing/location/brewing-floor
+    - /trade/brewing/thing/brewing-stock

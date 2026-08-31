@@ -1,0 +1,17 @@
+# Cherry — produce's food material; tag `cherry` is the recipe category (a garnish slot, a press's item slot, the par sheet).
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: cherry
+  appearance: "a dark red cherry, stem on"
+  keywords: ["cherry"]
+  density: 1000
+  thermalConductivity: 0.5
+  specificHeat: 3600
+  edibility: true
+  nutrients: ["water", "sugar"]
+  toxicity:
+    []
+  tags: ["solid", "food", "produce", "cherry", "fruit"]
+  composition: []
+  biologicalSource: null

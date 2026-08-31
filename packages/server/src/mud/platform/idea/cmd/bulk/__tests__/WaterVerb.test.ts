@@ -18,7 +18,6 @@ import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../../lib/husbandry/Cultivable';
-import { ToolCapabilities } from '../../../../../lib/craft/ToolCapability';
 import { Quantity } from '../../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
@@ -118,7 +117,7 @@ function makePlant(): Plant {
     p.setLifecycleState('alive');
     p.setProfile(lilyProfile());
     return p;
-  }, freshPath('/stuff/thing/plant/_water'));
+  }, freshPath('/trade/farming/thing/plant/_water'));
 }
 
 function makePot(soil = 3): PlantPot {
@@ -142,7 +141,7 @@ function makePot(soil = 3): PlantPot {
       ),
     );
     return pot;
-  }, freshPath('/stuff/thing/pot/_water'));
+  }, freshPath('/trade/farming/thing/pot/_water'));
 }
 
 function makeCan(litres: number): WateringCan {
@@ -151,7 +150,7 @@ function makeCan(litres: number): WateringCan {
     can.setShortDescription('a tin watering can');
     can.interiorBulk = true;
     can.setInteriorCapacity(Quantity.of(2, 'L'));
-    can.setCapabilities(['watering']);
+    can.setCapabilities([{ kind: 'watering' }]);
     if (litres > 0) {
       can.setBulkMaterial('interior', water());
       can.setBulkAmount('interior', Quantity.of(litres, 'L'));
@@ -198,23 +197,16 @@ let captured: Stuff[];
 let deeds: Array<{ discipline: string; difficulty: string; outcome: string }>;
 
 describe('the watering capability', () => {
-  it('the watering row confers water, carried-only', () => {
-    const def = ToolCapabilities.definitionOf('watering');
-    expect(def).not.toBeNull();
-    expect(def!.verbs).toEqual(['platform/cmd/bulk/water.yaml']);
-    expect(def!.placement).toBe('carried');
-    expect(ToolCapabilities.isCapability('watering')).toBe(true);
-  });
-
   it('a carried can affords water; the same can on the floor does not', () => {
-    const can = makeCan(1);
-    const contributions = can.getInstanceContributions();
-    // The `carried` placement puts it in the ENVIRONMENT bucket only —
-    // the can grants outward to whoever holds it — so a can lying in the
-    // room confers nothing on the occupants (which would be `peers`).
-    // The whetstone rule, as data.
-    expect(contributions.environment ?? []).toContain('platform/cmd/bulk/water.yaml');
-    expect(contributions.peers ?? []).not.toContain('platform/cmd/bulk/water.yaml');
+    // ⭐ Declared once, on the class: `water` is in the ENVIRONMENT
+    // bucket only — the can grants OUTWARD to whoever holds it — so a
+    // can lying in the room confers nothing on the occupants (which
+    // would be `peers`). The whetstone rule, in the bucket vocabulary
+    // the statics always had. (It was `placement: carried` on the row's
+    // capability entry until verbs became a single class-level record.)
+    const c = WateringCan.commandContributions;
+    expect(c.environment ?? []).toContain('platform/cmd/bulk/water.yaml');
+    expect(c.peers ?? []).not.toContain('platform/cmd/bulk/water.yaml');
   });
 });
 

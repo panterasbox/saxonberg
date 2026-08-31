@@ -1,0 +1,19 @@
+verbs: [quit]
+controller: /platform/idea/cmd/employment/QuitController
+description: "Leave a position you hold"
+help: |
+  Leave a job. Bare `quit` leaves the one position you hold; if you hold
+  several, name the organization — `quit /world/lounge/idea/business`.
+  Leaving a position is what takes the house account back out of your
+  wallet, if you'd put it there with `wallet use house`. Your record is
+  kept (you quit; you weren't fired).
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: quit
+    note: Leave the one position you hold
+args:
+  - name: organization
+    type: string
+    required: false

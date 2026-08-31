@@ -1,0 +1,18 @@
+# the vintner outfit's stock — the Stock the floor product spawns INTO (every floor
+# row's `container:`). No `stockLines` (the spawn sweep is the faucet, never
+# a reset), no prices (nothing is sold here — the hand carries it to the
+# cash-and-carry and consigns it).
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "the vintner stock"
+  primaryKeyword: stock
+  keywords: [stock, pallet, cases]
+  longDescription: "Cases of corked bottles on a cool stone floor, straw between the necks."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /trade/winemaking/idea/vintner-outfit
+  stockLines: []
+  prices: {}

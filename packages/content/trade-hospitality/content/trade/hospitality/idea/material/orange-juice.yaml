@@ -1,0 +1,17 @@
+# Fresh orange juice — house-made (the `press-orange` recipe's authored output
+# material). Tag `orange-juice` is what a sour slot matches.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: orange juice
+  appearance: bright fresh orange juice
+  keywords: [orange-juice, juice]
+  density: 1030
+  thermalConductivity: 0.58
+  specificHeat: 3900
+  edibility: true
+  nutrients: [water, sugar, vitamin-c]
+  toxicity: []
+  tags: [liquid, beverage, drinkable, juice, citrus, fresh, orange-juice]
+  composition: []
+  biologicalSource: null

@@ -55,9 +55,22 @@ export interface Circulating {
    * compete for the same regional stock, so it is the *kind* of thing
    * rather than the exact template — twenty different wands are still
    * twenty wands on the shelf.
+   *
+   * ⭐ **An empty HOLDER is not product.** See {@link Circulating.isEmptyHolder}:
+   * a drained bottle and a crate somebody took the last grapefruit out of
+   * both stop counting as what they used to hold, and count under
+   * `vessel:<kind>` instead.
    */
   getCensusKey(): string;
   setCensusKey(key: string): void;
+
+  /**
+   * Whether this is a holder (Bulkable and/or Container) that currently
+   * holds **nothing** — the state in which it stops being product.
+   * Always `false` for a thing that is not a holder at all: a grapefruit,
+   * a coin and a wand are product, not vessels, and have no empty state.
+   */
+  isEmptyHolder(): boolean;
 
   /**
    * The grid cells this item's effects occupy — **read from `Arcane`**,
@@ -131,8 +144,85 @@ export function CirculatingMixin<TBase extends MixinConstructor>(Base: TBase) {
         : [];
     }
 
+    /**
+     * ⭐ The census counts PRODUCT, and product is a FILLED holder.
+     *
+     * A drained bottle is not a bottle of gin any more — it is a bottle;
+     * a crate somebody took the last grapefruit out of is not a crate of
+     * grapefruits — it is a crate. Deriving the key from **state**
+     * rather than reading the authored row is what keeps the faucet
+     * honest: drink the world's gin, or use up the world's produce, and
+     * the shortfall is real, so the sweep restocks. Reading the authored
+     * key unconditionally left every empty counting as product for ever,
+     * so a world drunk dry read as *at target* while the shelf stood
+     * bare.
+     *
+     * ⚠ This lives HERE, on the mixin that owns `censusKey`, rather than
+     * on any one holder class — it was first written as an override on
+     * `Bottle`, which left `Crate` (a Container, not a Bulkable) with the
+     * original bug. One rule, every circulating holder.
+     *
+     * An empty's own key is `vessel:<kind>` — **derived, never
+     * authored**, so nothing can target it and the sweep never mints
+     * empties (they come from consumption). It is also the count a
+     * returns or deposit market would read.
+     */
     public getCensusKey(): string {
+      if (this.isEmptyHolder()) {
+        const kind = this.holderKind();
+        return kind ? `vessel:${kind.toLowerCase()}` : '';
+      }
       return this.censusKey;
+    }
+
+    /**
+     * A holder is empty when every dimension it HAS is empty: a Bulkable
+     * with an interior slot must have nothing in the slot, a Container
+     * must hold nothing, and a host that is both must satisfy both (a
+     * glass with an olive but no liquid is not a clean empty glass, and
+     * `isClaimable` agrees).
+     *
+     * A host that is neither is not a holder and never "empty" — a
+     * Provision, a coin, a wand is product in its own right and keeps
+     * its authored key.
+     */
+    public isEmptyHolder(): boolean {
+      const self = this as unknown as Stuff;
+      let isHolder = false;
+      let empty = true;
+      if (MixinApi.isBulkable(self) && self.hasInteriorBulk()) {
+        isHolder = true;
+        if (self.getBulkAmount('interior').rawValue() > 0) empty = false;
+      }
+      if (MixinApi.isContainer(self)) {
+        isHolder = true;
+        if (self.getContents().length > 0) empty = false;
+      }
+      return isHolder && empty;
+    }
+
+    /**
+     * What KIND of holder this is, for an empty's derived key: the
+     * authored vessel kind (`category`, on `BulkableMixin` — `can`,
+     * `keg`, `coupe`) when the host has one, else its primary keyword.
+     * Read duck-typed because a Container-only holder (a `Crate`) has no
+     * `category` field to read — see the note in the commit.
+     */
+    private holderKind(): string {
+      const withCategory = this as unknown as {
+        getCategory?: () => string;
+        getPrimaryKeyword?: () => string | undefined;
+      };
+      const category =
+        typeof withCategory.getCategory === 'function'
+          ? withCategory.getCategory()
+          : '';
+      if (category) return category;
+      return (
+        (typeof withCategory.getPrimaryKeyword === 'function'
+          ? withCategory.getPrimaryKeyword()
+          : '') ?? ''
+      );
     }
 
     public setCensusKey(key: string): void {

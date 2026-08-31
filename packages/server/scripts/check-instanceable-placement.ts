@@ -26,10 +26,13 @@
  *      kinds (`recipes/`, a tree's `cmd/` views) are never walked here.
  *      A capability pack's own root (`/arcana/`) is a rooted tree too.
  *   8. A capability pack's `src/` has the kernel's taxonomy and nothing
- *      else: no `lib/`, and every module under a branch directory. A
- *      `class:` under a pack namespace resolves into that pack's `src/`
- *      (invariant 3, through the same table `StuffApi.resolveClassFile`
- *      reads — `scripts/pack-roots.ts`).
+ *      else: no `lib/`, and every module under a branch directory — or
+ *      under `behavior/`, the Brain category's home inside a pack
+ *      (mirroring the kernel's `lib/behavior/`; libations 1g), where a
+ *      module must have the brain shape: its sole export is `brain`, a
+ *      named class-expression. A `class:` under a pack namespace
+ *      resolves into that pack's `src/` (invariant 3, through the same
+ *      table `StuffApi.resolveClassFile` reads — `scripts/pack-roots.ts`).
  *
  * Invariants 5 and 6 are the `hydratorClass` pair, and 6 is the one that
  * matters: `StuffApi.clone` step 5 runs NO hydration when the field is
@@ -154,7 +157,8 @@ export function tradePlacementOk(
  * Invariant 8, the pure decision: a capability pack's `src/` has the
  * kernel's taxonomy and nothing else — no `lib/` (substrate it needs is
  * the kernel's, or a class it ships under a branch), and no module
- * outside a branch directory (`thing/`, `idea/`, `agent/`, `location/`).
+ * outside a branch directory (`thing/`, `idea/`, `agent/`, `location/`)
+ * or the pack's `behavior/` (a brain — one file per brain, flat).
  * `rel` is `src/`-relative with forward slashes; tests are not modules.
  */
 export function packSrcPlacementOk(rel: string): boolean {
@@ -163,7 +167,22 @@ export function packSrcPlacementOk(rel: string): boolean {
   const top = parts[0];
   if (top === 'lib') return false;
   if (parts.length < 2) return false;
+  if (top === 'behavior') return parts.length === 2;
   return (BRANCHES as readonly string[]).includes(top!);
+}
+
+/**
+ * Invariant 8's brain half, the pure decision: a module under a pack's
+ * `behavior/` has the Brain category's shape — its ONLY export is
+ * `brain`, and it is a named class-expression (`export const brain =
+ * class {`), which is what the HMR registry retains and what
+ * `StuffApi.resolveExport(path, 'brain')` finds. Type-only exports are
+ * erased and do not count.
+ */
+export function packBrainShapeOk(source: string): boolean {
+  const exports = [...source.matchAll(/^export\s+(?!type\b|interface\b)(?:const|let|var|function|class|default|\{)\s*([A-Za-z_$][\w$]*)?/gm)];
+  if (exports.length !== 1) return false;
+  return /^export\s+const\s+brain\s*=\s*class\b/m.test(source);
 }
 
 function main(): void {
@@ -216,6 +235,22 @@ function main(): void {
         detail: `data has ${Object.keys(data as object).length} key(s) but no hydratorClass — every one is silently discarded`,
       });
     }
+    // 9 — a curated blueprint's `classPath` must resolve, exactly as a
+    // template's `class` must. Blueprints carry no `class:`, so every
+    // check above skipped them — and three shipped rows (coin,
+    // payment-card, campfire) sat pointing at `/stuff/thing/…` when the
+    // classes are at `/platform/thing/…`. The Studio dropped them at
+    // boot with a warning nobody was reading, so the curated entry for
+    // each was simply absent. A dead pointer in shipped content is the
+    // build's job, not a boot log's.
+    const classPath = typeof t.classPath === 'string' ? t.classPath : null;
+    if (classPath && !classResolves(classPath, sources)) {
+      findings.push({
+        invariant: 9,
+        file,
+        detail: `classPath: ${classPath} resolves to no module + export`,
+      });
+    }
     // 7 — the obj/ segment rule inside an industry's subtree
     if (!tradePlacementOk(path, cls !== null, packRoots)) {
       findings.push({ invariant: 7, file, detail: `${path} names a class but its second segment is not a branch (thing|idea|agent|location)` });
@@ -244,7 +279,9 @@ function main(): void {
     for (const f of packSrcFiles(pack.srcDir)) {
       const rel = relative(pack.srcDir, f).split('\\').join('/');
       if (!packSrcPlacementOk(rel)) {
-        findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location)` });
+        findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is outside a branch directory (thing|idea|agent|location) or behavior/` });
+      } else if (rel.startsWith('behavior/') && !packBrainShapeOk(readFileSync(f, 'utf8'))) {
+        findings.push({ invariant: 8, file: f, detail: `pack ${pack.id}: src/${rel} is not brain-shaped (sole export \`brain\`, a named class-expression)` });
       }
     }
   }
@@ -285,7 +322,8 @@ function main(): void {
     5: 'redundant hydratorClass (no data to apply)',
     6: 'orphaned data (no hydratorClass — silently discarded)',
     7: 'instanceable template not under a branch segment (thing|idea|agent|location)',
-    8: 'a capability pack src/ outside the taxonomy (lib/, or a module not under a branch)',
+    8: 'a capability pack src/ outside the taxonomy (lib/, a module not under a branch or behavior/, or a behavior/ module not brain-shaped)',
+    9: 'classPath: does not resolve (a curated blueprint pointing at nothing)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

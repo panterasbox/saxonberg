@@ -530,7 +530,7 @@ vehicle carrying passengers might not be); `toPeers` always.
 | `onExited(mover, via)` | source room | `Mobile.traverse` (post) |
 | `onEntered(mover, via)` | dest room | `Mobile.traverse` (post) |
 | `onTraversed(via)` | mover | `Mobile.traverse` (post) |
-| `canMove(to)` | item | `ContainmentApi.move` (pre) |
+| `canMove(to)` | item | `ContainmentApi.move` (pre) — ⚠ class invariants only, see below |
 | `canRemoveContainable(item)` | source container | `ContainmentApi.move` (pre) |
 | `canAddContainable(item)` | dest container | `ContainmentApi.move` (pre) |
 | `onContainableRemoved(item)` | source container | `ContainmentApi.move` (post) |
@@ -541,6 +541,38 @@ The traversal layer fires from `Mobile.traverse` and is exit-aware.
 The containment layer fires from `ContainmentApi.move` and runs
 regardless of whether an Exit was involved (so `teleport` and
 `StuffApi.clone`-then-place still trigger the containment hooks).
+
+### ⚠⚠ `canMove` is a class invariant, never "a person can't take that"
+
+It is the lowest-level veto in the system, and the tempting one. It fires
+inside `ContainmentApi.move` — *the* chokepoint, which a remodel, a
+`place`, a room being rebuilt and an author rearranging scenery all go
+through. A veto there says the move is **impossible**. It also takes no
+actor, so it cannot reason about who is doing the moving even if you
+wanted it to.
+
+What you almost always mean is narrower: **an agent cannot pick this up
+or carry it off.** That is `fixedInPlace` — a persistent, authorable
+state on `ContainableMixin`, read by the verbs that model *a person
+taking a thing* (`get` refuses with `fixed-in-place`; `hitch` is already
+gated by `HaulableMixin` composition). The wall TV is *mounted*, not
+*immovable*, and the two are different facts.
+
+Being a per-instance field is the other half of the argument: whether a
+given screen is bolted to the wall or standing on a counter is the ROW's
+business, and a class-level veto could never say. `Screen.canMove`
+(refusing every destination but a `Location`) was the one production
+override in the tree; it is gone, and `canMove` now has **no production
+users** — the seam stays for a genuine class invariant, and
+`witness.test.ts` holds its contract.
+
+A structural invariant is the case that *does* belong at the chokepoint,
+and there is one: an attached `Adornment` throws rather than sliding into
+a container's `getContents()`, because it lives in the host's
+`getFixtures()` tier and moving it would corrupt two-tier bookkeeping.
+That is not a policy about who may act — it is the data model refusing to
+be made inconsistent. **Structural invariants throw at the chokepoint;
+"a person can't lift that" is a capability test on the verb.**
 
 ### Conveyance ripple
 

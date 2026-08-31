@@ -1531,7 +1531,7 @@ cleanest pack candidate in the tree.
 
 - `dependsOn: base-library` — iron, firewood, hide are materials.
 - `dependsOn: generic-objects` — ⭐⭐ **every recipe's `outputTemplate`
-  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/stuff/thing/CookPot`,
+  is another pack's row** (`/stuff/thing/arms/fire-poker`, `/trade/hearth-cooking/thing/cook-pot`,
   `/stuff/thing/gear/smiths-hammer`, `/stuff/thing/armor/hide-jerkin`,
   `/stuff/thing/items/plated-dish`). Cross-pack template references are
   LOAD-BEARING from pack one — the installer needs a reference check
@@ -2003,7 +2003,7 @@ plus three decisions it forced.
    CookPot are fire-substrate COMMONS (`/obj/`) — smelting is the phase
    engine, not a recipe. The capability floor makes it natural: the
    archetype *requires heat*, `default: /stuff/thing/Forge`. Corollary:
-   smithing's cook-pot recipe outputs `/stuff/thing/CookPot` — a commons
+   smithing's cook-pot recipe outputs `/trade/hearth-cooking/thing/cook-pot` — a commons
    template — so smithing-makes-cooking's-tools creates **no pack
    edge**. ⭐ Recipes that output commons goods are chain-neutral.
 2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are
@@ -2864,7 +2864,7 @@ only because YAML cannot declare a composition without a class.
 
 **Lounge (14):** residue: `Menu` (dies with wave 3's seed repoint,
 taking SmithyMenu/KitchenMenu — three thin subclasses → one shared
-`obj/` concrete) · pure composition → genericize: `CraftedDrink`
+`obj/` concrete) · pure composition → genericize: `CraftVessel`
 `GradedReceptacle` `NeonSign` `CocktailShaker` (templates → trade or
 venue) · real extractions: `Offstage` → **employment** (off-shift NPC
 parking; hearthworks' cast is the second consumer — extract NOW) and
@@ -2876,7 +2876,7 @@ pack's boot-manifest entry — the first content boot customer) ·
 
 > **Applied 2026-08-27 (content packs wave 4b):** the lounge table
 > landed as written — `Menu`/`SmithyMenu`/`KitchenMenu` → one
-> `platform/thing/Menu`; `CraftedDrink` `GradedReceptacle` `NeonSign`
+> `platform/thing/Menu`; `CraftVessel` `GradedReceptacle` `NeonSign`
 > `CocktailShaker` → `platform/thing/`; `Offstage` → `lib/employment`
 > (+ `platform/location/Offstage`, the hearthworks as second consumer);
 > `TipJar` → `platform/thing` with its template in `/trade/hospitality`;

@@ -1,0 +1,19 @@
+# The floor bottle of cranberry juice — 1 L, at target in the bottling stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of cranberry juice"
+  longDescription: "A one-litre screw-capped bottle of cranberry juice, the bottling floor's plain label."
+  primaryKeyword: cranberry
+  keywords: ["cranberry", "juice", "bottle", "mixer"]
+  category: mixer-bottle
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/bottling/idea/material/cranberry-juice
+  interiorAmount: 1
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: mixer:cranberry-juice
+  regionTarget: 8
+  materialTags: ["mixer", "cranberry-juice"]
+  container: /trade/bottling/thing/bottling-stock

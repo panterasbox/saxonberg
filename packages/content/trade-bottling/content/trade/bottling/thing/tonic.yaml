@@ -1,0 +1,19 @@
+# The floor bottle of tonic water — 1 L, at target in the bottling stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of tonic water"
+  longDescription: "A one-litre screw-capped bottle of tonic water, the bottling floor's plain label."
+  primaryKeyword: tonic
+  keywords: ["tonic", "tonic-water", "bottle", "mixer"]
+  category: mixer-bottle
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/bottling/idea/material/tonic
+  interiorAmount: 1
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: mixer:tonic
+  regionTarget: 8
+  materialTags: ["mixer", "tonic"]
+  container: /trade/bottling/thing/bottling-stock

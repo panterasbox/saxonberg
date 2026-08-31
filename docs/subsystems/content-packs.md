@@ -78,14 +78,14 @@ packages/content/base-library/
 ├── src/                  # CAPABILITY packs only: the classes its rows name, <root>/<branch>/…
 └── content/              # content root; MIRRORS the template-path namespace
     └── lib/
-        ├── material/spirit/gin.yaml   →  template path /stuff/idea/material/spirit/gin
+        ├── material/spirit/gin.yaml   →  template path /trade/distilling/idea/material/gin
         └── biome/…
 ```
 
 The `content/` root mirrors the template-path namespace: a file's path
 relative to `content/`, minus `.yaml`, prefixed with `/`, **is** its
-template path (`content/stuff/idea/material/spirit/gin.yaml` →
-`/stuff/idea/material/spirit/gin`; `content/world/newbie-wilds/crossroads/hub.yaml`
+template path (`content/trade/distilling/idea/material/gin.yaml` →
+`/trade/distilling/idea/material/gin`; `content/world/newbie-wilds/crossroads/hub.yaml`
 → `/world/newbie-wilds/crossroads/hub`; `content/corpo/aevex.yaml` →
 `/corpo/aevex`; `content/home.yaml` → `/home`) — the rule the retired
 `SeederManager` used. So the path is a pure namespace identifier,
@@ -224,7 +224,7 @@ which a path-prefix notion of ownership could not:
 | every `content/**/*.yaml` **outside the kind dirs below** | **domain** (the template kind) | reconciled into the `content` collection (stamped). Wave 3 widened the walk from the two enumerated roots (`obj/`, `domain/`) to *everything that is not another kind's directory*: a pack ships a row at the path its file mirrors, wherever in the tree that path lives — `content/corpo/aevex.yaml` → `/corpo/aevex`, `content/home.yaml` → `/home`, `content/wiki/main.yaml` → `/wiki/main` (the namespace ZONE rows; the wiki *pages* beside them are `.md`, a different extension, read by the wiki kind). The non-template dirs are **enumerated by kind** (`nonTemplateDirs()`: `settings`, `subjects`, `descriptor-banks`, `quantity`, and every yaml `DOCUMENT_KINDS` `contentDir`), never guessed. `cmd/` is skipped at **any** depth — a command view has no `class:` and is the command-view document kind |
 | `content/quantity/quantity-tags.yaml` | **quantity** | loaded into the in-memory tag table via `QuantityApi.loadTagTables(path)` |
 | `content/descriptor-banks/<key>.yaml` | **descriptor-banks** | reconciled into `descriptor_banks` (stamped), keyed on the basename = the item class; the appearance caches drop on change |
-| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; a flat-key kind gets its natural key from the basename (a disagreeing file fails at `read`); per-kind read validation (what the retired seeders validated) |
+| `content/<contentDir>/<name>.<ext>` per **`DOCUMENT_KINDS`** — `emotes/*.yaml`, `recipes/*.yaml`, `name-banks/*.yaml`, `blueprints/*.yaml`, `archetypes/*.yaml` (the venue archetype — libations D11: `{ archetypeId, label, industry, capabilities: [{ key, needs, default? }] }`, `needs` one of `tool`/`heatK`/`bulkSource`/`surface`/`seating`/`coldStorage`; validated by `Archetype.fromData`, warmed into `ArchetypeCatalogue`; an archetype then describes and materializes **itself** — `archetype.describe()` is the effective floor (the authored residue + the rows derived from the industry's recipes) and `archetype.materialize()` is the derived test venue (a `FurnishableRoom` + each default binding). ⭐ **There is no `ArchetypeApi`**: the first cut shipped one whose every caller was a test, while the two production paths — this validator and the go-live re-warm — reached the value-object and the catalogue directly. A `checklist(venue)` reporting surface was deleted with it: D11 said *no runtime enforcement*, and nothing read it), `msh/*.msh`, `cmd/**/*.yaml` (+ every template tree's own `<tree>/**/cmd/*.yaml` — `world/…/cmd/`, `trade/…/cmd/`) | **document** (one strategy per declared kind) | reconciled into `documents` (stamped) at `root + key` — the closed vocabulary in `lib/document/DocumentKinds.ts`; a `.yaml` file's object is `data`, an `.msh` file is `data: { source }`; a flat-key kind gets its natural key from the basename (a disagreeing file fails at `read`); per-kind read validation (what the retired seeders validated) |
 | `content/settings/<section>.yaml` | **settings** | merged into the `app_settings` singleton (**merge-missing**, below) |
 | `content/subjects/<name>.yaml` | **subject** | `forum_subjects` + its channel/board surfaces (**archive-never-reap**, below) |
 | `content/wiki/<ns>/<slug>.md` | **wiki** | submitted through `WikiRegistry` AS the pack (**CAS**, below) — never rows |
@@ -462,13 +462,58 @@ The different-pack-stamp refusal in the reconcile stays as the belt to
 this check's suspenders.
 
 ## The capability rung — a pack ships classes
+### ⭐ …and where a trade's VOCABULARY lives
+
+The same rule one level down: **the kernel keeps no list of a trade's
+words.** Three closed tables were opened during the libations review, all
+for the same reason — a pack must never need a kernel LIST edit:
+
+| was | is now |
+|---|---|
+| `ToolCapability`'s closed kinds + a table of the verbs each confers | any kebab string; **the tool row authors its verbs** |
+| `Technique`'s `shaken \| stirred \| built \| muddled` + an effect table | any kebab string; **the tool row authors the working and its numbers** |
+| `CAPABILITY_TECHNIQUES`, mapping capability → technique | gone; the instrument that performs the working names it |
+
+The tell is the same each time: the kernel naming a *word* only one trade
+uses. A capability, a technique, a material tag and a census key are all
+open strings two pieces of **content** agree on.
+
+### ⭐ Where a class lives — the same rule as a brain's
+
+> **A class lives in the pack whose content is the only thing that names
+> it.** The kernel keeps what several trades name, or what nothing names
+> because it is substrate.
+
+The rule already stated for brains (below), applied to classes — which is
+what the capability rung is *for*. The test is the row set, not the
+inheritance: `GlassRack` was named by hospitality alone and named for a
+bar fixture, so it ships in hospitality; `CookPot` likewise in
+hearth-cooking; `SpiritBottle` and `Still` were always distilling's.
+
+⚠ **One current consumer is not the test — the NAME is.** `Crate` is
+named only by produce today, and stays kernel: a crate is a case of
+anything, and brewing or bottling would plausibly ship one. `Bottle`
+(four packs) and `Tablet`/`Screen` (display substrate) stay for the
+ordinary reason.
+
+⭐ A useful tell: **a kernel class only ever imported by TESTS is
+suspect.** Both `GlassRack` and `CookPot` had zero production kernel
+importers — the only kernel references were tests reaching for shipped
+trade content, which `lint:test-content` already discourages. Moving the
+class forces those tests onto synthetic fixtures, which is where they
+belonged: the kernel knows no rack class, only that the gather walk
+descends open `Container`s.
+
 
 A pack's `src/` has the kernel's taxonomy and nothing else: instanceable
 classes under the four branches (`thing/`, `idea/`, `agent/`,
-`location/`), controllers at `idea/cmd/<category>/`, tests under
-`__tests__/`; **no `lib/`** (substrate a pack needs is the kernel's, or
-a class it ships under a branch), no free-floating helpers, no Api (a
-pack that needs an Api needs a kernel MR — the *mod* rung).
+`location/`), controllers at `idea/cmd/<category>/`, brains under
+`behavior/` (the Brain category's home inside a pack, mirroring the
+kernel's `lib/behavior/` — see [behavior.md](./behavior.md) § Brains in
+packs), tests under `__tests__/`; **no `lib/`** (substrate a pack needs
+is the kernel's, or a class it ships under a branch), no free-floating
+helpers, no Api (a pack that needs an Api needs a kernel MR — the *mod*
+rung).
 `packages/content/<pkg>/src/<rel>.ts` backs `<root>/<rel>` for every
 namespace root the pack holds — source mirrors path, inside a pack as in
 the kernel — so `packages/content/arcana/src/thing/Wand.ts` IS
@@ -757,7 +802,7 @@ the whole install set:
    segment. What a trade merely *uses* (fire stations, a cut of meat) is
    commons under `/obj`; where it is *practised* (the smithy) is a venue
    under `/world/`. `base-library`'s rows under `/obj` ride the platform's `/obj`
-   claim; `generic-objects` claims its seventeen `/stuff/<branch>/<cluster>`
+   claim; `generic-objects` claims its twelve `/stuff/<branch>/<cluster>`
    branches itself; `wiki-starter`'s pages ride `/wiki`. A pack's own
    document root *outside* the title roots (`/expression`,
    `/generic-objects`) is the pack's to claim or not. A pack whose whole
@@ -916,20 +961,33 @@ the installer's walk mirrored in a script; zero is green).
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcana** (CAPABILITY — magic's substrate) | platform | default | `/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |
 | **arcane-library** (CAPABILITY — magic's catalog) | platform, arcana | default | — (rides `/stuff`): the 12 spells, the 13 items at `/stuff/thing/magic/` (wands, scrolls, books, a conduit, the bench, three potions, a ring, an amulet), the two loci `glowlight-mote`/`spark-locus` whose classes `src/` ships, the three draughts | — | — |
-| **generic-objects** | platform | default | seventeen `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `pot`, `plant`, `seed`, `crop`, `bed`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
-| **trade-smithing** | platform, generic-objects | default | `/trade/smithing` → group `smithing` (PM-owned) | `smithing` | — |
-| **trade-hearth-cooking** | platform, generic-objects | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned); four recipes since wave 4b (toasted-ration, root-mash, fine-roast, hearty-stew) | `hearth-cooking` | — |
-| **trade-hospitality** | platform, generic-objects, base-library | default | `/trade/hospitality` → group `hospitality` (PM-owned): the four bar stations (shaker, mixing-glass, cocktail-glass, back-bar), the tip-jar template, the two cocktail recipes — what the lounge introduced; bottles and positions stay the venue's (wave 4b) | `hospitality` | — |
+| **generic-objects** | platform | default | twelve `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
+| **trade-smithing** (CAPABILITY — libations) | platform, generic-objects, trade-hearth-cooking (the cook-pot recipe's output row) | default | `/trade/smithing` → group `smithing` (PM-owned); `src/idea/cmd/crafting/` ships `forge`/`hammer`/`quench`/`sharpen` (views under `content/trade/smithing/cmd/crafting/`); the anvil and whetstone rows author the verbs they confer | `smithing` | — |
+| **trade-hearth-cooking** (CAPABILITY + the pantry, libations) | platform, generic-objects, base-library, trade-distilling | default | `/trade/hearth-cooking` → group `hearth-cooking` (PM-owned); `src/idea/cmd/crafting/` ships `cook`/`plate`; the `cook-pot` row (from generic-objects) and the `kitchen` bundle (from generic-objects' room archetypes) — the trade's instrument and the bundle that collects it; the four wave-4b recipes + `simple-syrup`; the pantry: `sugar`/`salt`/`coffee`/`simple-syrup` materials, the `sack` preset, sacks + a `syrup` floor row, the `syrup-bottle`, the pantry outfit (`pantry-outfit` + `pantry-floor` + a consigning hand) | `hearth-cooking` | the pantry floor + outfit (producer) |
+| **trade-distilling** (CAPABILITY — libations) | platform, base-library, generic-objects, corpo-veshko, corpo-hollis | default | `/trade/distilling` → group `distilling` (PM-owned): `src/` ships `SpiritBottle` (a `Bottle` preset in code) and `Still` (the furnace-family station, capability `still`, no recipe yet); ten spirit materials tagged by category; ten generic floor bottles at target + Crowsfoot (`gradeBand: fine`, the independent Brand row at `/stuff/idea/corpo/Brand/crowsfoot-gin`); the **cash-and-carry** (the distributor the bar buys from — a `Stock` counter with no lines = a consignment shelf, a Business with `clerk` + `keeper`, a clerk on `shifts`); two floor outfits with `consigns` hands; the **two corpo-owned yards** as the `location/veshko-yard` locality (the zone that authors `stocks:` — vodka 24, whiskey/rum/gin 12; Volk + the unbranded liquid) and the flat `hollis-*` rows (the bottling floor: `old-hollis` / `hollis-cane` over Veshko's material), each an outfit whose `parentOrganization` points up at its corpo pack — a corpo pack is capital + the mark, never products; the `warehouse` bundle; the `distilling` Discipline | `distilling` | the five rooms + the five Businesses (producer) |
+| **trade-brewing** · **trade-winemaking** · **trade-bottling** (STUB trades — libations) | platform, base-library, trade-distilling | default | `/trade/<x>` → group `<x>` (PM-owned): everything **downstream of production and nothing of production** — materials tagged by category (`carbonated` on sparkling and the sodas; bottling's `ice` = frozen water with `density`/`meltingPoint`/`latentHeatOfFusion`), the vessel presets as rows over `/platform/thing/Bottle` (`keg`, `cask`, `wine-bottle`, `can`, `mixer-bottle`, `ice-bag`) or `/platform/thing/Crate`, the floor product at target in the outfit's stock, the outfit trio (`<x>-outfit` Business + `<x>-stock` + `<x>-hand` on `consigns` → the distilling counter), the serving recipe (`pint`, `glass-of-{red,white,sparkling}`, `soft-drink`). | `<x>` | the floor + outfit (producer) |
+| **trade-farming** (libations) | platform, base-library, trade-distilling | default | `/trade/farming` → group `farming` (PM-owned). ⭐ **A trade is a PROCESS, and produce is one of farming's OUTPUTS** — so this pack owns BOTH halves, as trade-distilling owns the still and the bottle, and it is **not** a stub. **Production:** the growing apparatus the husbandry/smallholding substrate drives — `thing/{pot,bed,seed,plant,crop}/` (drained from generic-objects; a pot is horticulture's vessel the way a keg is brewing's, and a dorm owning one no more makes pots household content than the bar owning a keg makes kegs hospitality's). **Output:** eight food materials tagged by category, each a graded `Provision`, the `crate`/`basket` presets over `/platform/thing/Crate` (the fruit are `Provision` rows the crate populates), a crate of each at target in `farm-stock`, and the `farm-outfit` + `farm-hand` on `consigns` → the distilling counter. Horticulture is farming too: the ornamentals (peace lily, snake plant) are grown here rather than filed under food. No serving recipe — produce is an input (`press` is hospitality's) | `farming` | the farm + outfit (producer) |
+| **trade-hospitality** (CAPABILITY — libations) | platform, base-library, generic-objects, the five stubs, hearth-cooking | default | `/trade/hospitality` → group `hospitality` (PM-owned): `src/` ships `IceBin` (an insulated Thermos of ice) and `Tap` (a Surfaced fixture that is a `tap` tool); the bar tools (muddler, bar-spoon, strainer, juicer), the stations (tap, ice-bin, water-tap, basin, glass-rack, well, house-tablet), the nine pool glasses over `CraftVessel` (coupe = cocktail-glass renamed) + the juice bottle, the four house-made juices; 21 cocktails + coffee + four presses; the `bar` and `cellar` bundles; `archetypes/hospitality.yaml`; `src/idea/cmd/crafting/` ships the bar's own steps `muddle`/`strain`/`garnish`/`mix`/`serve` (the shaker/mixing-glass/muddler rows author the verbs they confer); `menu.test.ts` materializes a venue from the archetype and orders all 24 lines | `hospitality` | — |
 | **expression** | platform | group `soul` | `/expression` → group `soul` | — | — |
 | **wiki-starter** | platform | default | — (rides `/wiki`) | — | — |
-| **corpo-{aevex,goodkin,hollis,veshko,vionne}** | platform | organization `/corpo/<key>` | `/corpo/<key>` (holder = maintainers) | — | `/corpo/<key>` (producer) |
+| **corpo-{aevex,goodkin,vionne}** | platform | organization `/corpo/<key>` | `/corpo/<key>` (holder = maintainers) | — | `/corpo/<key>` (producer) |
+| **corpo-veshko** (libations: the one corpo that MAKES — in the TRADE pack) | platform | organization `/corpo/veshko` | `/corpo/veshko` only — capital + the mark (Volk's Brand row, the chart); Veshko's yard is `trade-distilling`'s `location/veshko-yard/` locality, owned via `parentOrganization` | — | `/corpo/veshko` (producer) |
+| **corpo-hollis** (libations: PRIVATE-LABELS Veshko's liquid — in the TRADE pack) | platform | organization `/corpo/hollis` | `/corpo/hollis` only — capital + the mark (Old Hollis, Hollis Cane; the chart); the bottling floor is `trade-distilling`'s flat `hollis-*` rows, owned via `parentOrganization` | — | `/corpo/hollis` (producer) |
 | **newbie-wilds** | platform | default | `/world/newbie-wilds` → group `newbie-wilds` | `newbie-wilds` | — |
-| **saxonberg-lounge** (the lounge, whole, since wave 4b) | platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge`: the 22 venue rows under `/world/lounge/{location,thing,idea,agent}` + the FolderZone, the library root, the three `msh`, the landing setting | `lounge` | `/world/lounge/thing/terminal` (producer — the TPA network's eager root) |
+| **saxonberg-lounge** (the lounge, whole, since wave 4b; **stays a DATA pack** — its classes are parked kernel classes under `mud/world/lounge/`) | platform, corpo-goodkin, corpo-vionne, corpo-aevex, corpo-veshko | group `lounge` | `/stuff/idea/lounge`, `/world/lounge` → group `lounge`: the venue rows under `/world/lounge/{location,thing,idea,agent}` + the FolderZone, the library root, the three `msh`, the landing setting. Libations: the `Bar` populates **no bottle** (the four `*-bottle` rows deleted) — it lists the hospitality `bar` bundle's fixtures + the house tablet (`principal: /world/lounge/idea/business`); the sports **booth** with a `Screen` + `Remote`; `business.yaml` gains the `keeper` position (`purchases: true`) and 45 `parLines`; Mara runs `restocks`; Dave's dialogue appoints the keeper; the menu offers 26 lines | `lounge` | `/world/lounge/thing/terminal` (producer — the TPA network's eager root) |
 | **hearthworks** (a VENUE pack, wave 4b) | platform, trade-smithing, trade-hearth-cooking, corpo-goodkin | default | `/world/hearthworks` → group `hearthworks` (PM-owned): the `/world/hearthworks` CartesianZone + 12 rows under branch subdirs — the four rooms + the forge floor + `offstage`, the business, Berta and Odo, the two menus, the pantry; every station and recipe a `populates:` reference to a trade's or the commons' row | `hearthworks` | — |
 | **world-seed** (TRANSITIONAL — eternal, terminus, moor, practicum, substation, common) | platform, saxonberg-lounge (the Terminus departure route names the lounge terminal), corpo-goodkin, corpo-vionne | default | the four Terminus parcels → `terminus` (`terminal`, `counting-houses`, `general-store`, `registry`, with land uses); `/world/terminus/hinkley-hills` + `lots/lot-1` → `hinkley-hills`; `/world/eternal/duncan-hall` + `dorms` → `duncan-hall` | `duncan-hall` (enrols Katie), `hinkley-hills`, `terminus` | the dorm-warren, the plat-book, the lot-holder (producer) |
 
-Nineteen (`arcane-descriptors` folded into `arcana` — the pack that ships
-the class ships the bank). The corpo packs became **organizations** in wave 3: each ships
+Twenty-five (`arcane-descriptors` folded into `arcana` — the pack that
+ships the class ships the bank; libations added trade-distilling,
+trade-brewing, trade-winemaking, trade-bottling, trade-farming and made
+hospitality a capability pack). **A stub trade** ships everything
+downstream of production and nothing of production — materials, vessel
+presets, brands, the floor product on an authored consignor, the serving
+recipe — so the bar's demand is met today while the ferment/still is the
+distillery build's. **The generic drain rule:** a row lives in the pack
+whose PROCESS makes it; `generic-objects` is the junk drawer, slimming
+(no brand, no demo bottle, no crop since libations). The corpo packs became **organizations** in wave 3: each ships
 `content/corpo/<key>.yaml` (its chart — authority the PM office, because
 a chart whose authority is *the committee over `/corpo/<key>`* recurses
 once the organization holds that very title) beside its mark and
@@ -974,7 +1032,7 @@ timelines (separate repos / third-party packs / a marketplace) — the
 same boundary as the repo split — at which point it tracks the pack's
 **public surface** (the paths and tags other content references), not its
 values: editing gin's density breaks nothing (it re-hydrates); renaming
-`/stuff/idea/material/spirit/gin` breaks every pointer.
+`/trade/distilling/idea/material/gin` breaks every pointer.
 
 ## Deferred
 
@@ -1072,7 +1130,7 @@ a manifest declares which, so the script still says).
 - `mud/lib/employment/Offstage.ts` (`OffstageMixin`, the off-shift
   parking role) + `mud/platform/location/Offstage.ts` (the clonable every
   venue's `offstage` row names); `mud/lib/time/MechanicalMovement.ts`;
-  the commons classes `mud/platform/thing/{CraftedDrink,GradedReceptacle,
+  the commons classes `mud/platform/thing/{CraftVessel,GradedReceptacle,
   NeonSign,CocktailShaker,TipJar,Menu}.ts` — the wave-4b graduations.
 - `mud/lib/paths.ts` — `NON_TEMPLATE_DIRS` (enumerated from
   `DOCUMENT_KINDS`), the one list the installer, `CommandLogic`'s
@@ -1199,7 +1257,7 @@ cocktail recipes) and hearth-cooking's second pass rides along —
 `platform/location/Offstage`; both venues' casts park through it, the
 hearthworks gaining the `shifts` brain and an `offstage` row),
 `MechanicalMovement` → `lib/time`, and the composition-only classes
-(`CraftedDrink`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
+(`CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
 `TipJar`, the three menus collapsed to ONE `Menu`) → `platform/thing/`.
 The locality rule applied: rows and source under branch subdirs by
 lineage (>6) or flat (≤6). "Packs seed, they do not own" proven by

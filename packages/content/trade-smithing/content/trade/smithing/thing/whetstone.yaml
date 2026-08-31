@@ -1,7 +1,7 @@
 # The smithy's whetstone — venue kit for the DIY floor: carry it and the
 # sharpen ritual lights up (the carried-affordance model); the store
 # sells your own.
-class: /platform/thing/Whetstone
+class: /trade/smithing/thing/Whetstone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: a smithy whetstone
@@ -9,6 +9,7 @@ data:
   keywords: [whetstone, stone, hone]
   longDescription: |
     A palm-sized bar of grey granite, one face dished by years of blades.
-  capabilities: [whetstone]
+  capabilities:
+    - { kind: whetstone }
   _materialPath: /stuff/idea/material/rock/granite
   mass: 0.3

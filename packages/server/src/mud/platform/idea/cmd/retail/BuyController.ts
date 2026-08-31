@@ -16,19 +16,27 @@
  *
  * Unlike the bar, a store hands nothing over unless payment clears. The
  * `Stock` is also the Attendant point (a closed counter refuses).
+ *
+ * ⭐ **The wallet's active account is the principal you trade as.** The
+ * receipt's routing account resolves to an owner key; when that key is a
+ * live Business (a purchasing holder ran `wallet use house`), the good is
+ * stamped to **the business**, and the charge is the business's `purchases`
+ * line. A personal account stamps the buyer, exactly as before. No `--for`:
+ * the wallet says whom you buy for.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import Stock from "../../../thing/Stock";
-import ConsignmentShelf from "../../../thing/ConsignmentShelf";
+import ConsignmentShelf, { type ShelfStuff } from "../../../thing/ConsignmentShelf";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
-import type { Charge, RemittanceSplit } from "../../../../api/banking";
+import type { Charge, RemittanceSplit, SettlementReceipt } from "../../../../api/banking";
+import { StuffApi } from "../../../../api/stuff";
 import { EmploymentApi } from "../../../../api/employment";
 import { AppApi } from "../../../../api/app";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
@@ -69,10 +77,20 @@ export default class BuyController extends CommandController<BuyModel> {
       }
     }
 
-    const stockItem = stock?.resolveBuy(model.thing) ?? null;
-    const listItem = stockItem
-      ? null
-      : shelf?.resolveConsigned(model.thing) ?? null;
+    // One counter can be both the house's shelf and a brokerage (`Stock`
+    // composes the shelf): a good that carries a live listing is a
+    // consignment wherever it sits, never a priced stock line.
+    const candidate = stock?.resolveBuy(model.thing) ?? null;
+    const listed =
+      candidate && shelf && MixinApi.isChattel(candidate)
+        ? shelf.listingFor(candidate.getChattelId()) !== null
+        : false;
+    const stockItem = candidate && !listed ? candidate : null;
+    const listItem = listed
+      ? candidate
+      : stockItem
+        ? null
+        : shelf?.resolveConsigned(model.thing) ?? null;
     if (!stockItem && !listItem) {
       this.reject(
         giver,
@@ -119,14 +137,27 @@ export default class BuyController extends CommandController<BuyModel> {
       return;
     }
     this.handOver(item, giver);
-    await ChattelApi.stamp(item, giver);
-    this.announce(giver, item, paid);
+    const owner = await this.buyerOf(giver, paid.receipt);
+    await ChattelApi.stamp(item, owner);
+    this.announce(giver, item, paid.tail, owner);
+  }
+
+  /**
+   * Whom the purchase is for: the live Business whose operating account
+   * the receipt routed from, else the giver. Cash always buys personally.
+   */
+  private async buyerOf(giver: Stuff, receipt: SettlementReceipt): Promise<Stuff> {
+    if (receipt.method !== "credential" || !receipt.accountId) return giver;
+    const ownerKey = await BankingApi.ownerKeyOf(receipt.accountId);
+    if (!ownerKey || ownerKey === giver.getTemplatePath()) return giver;
+    const live = StuffApi.findByTemplatePath(ownerKey);
+    return live && MixinApi.isBusiness(live) ? live : giver;
   }
 
   /** Buy a consignment listing — settle the ask, split to the consignor,
    *  transfer the owner-stamp to the buyer. */
   private async buyListing(
-    shelf: ConsignmentShelf,
+    shelf: ShelfStuff,
     item: Stuff & Containable,
     stock: Stock | null,
     giver: Stuff,
@@ -150,7 +181,9 @@ export default class BuyController extends CommandController<BuyModel> {
     // parcel/group owner falls back to the listing's recorded consignor.
     const owner = await ChattelApi.ownerOf(item);
     const consignorKey =
-      owner?.kind === "player" ? owner.templatePath : listing.consignorKey;
+      owner?.kind === "player" || owner?.kind === "organization"
+        ? owner.templatePath
+        : listing.consignorKey;
     const consignorPrimary = await BankingApi.primaryAccountIdOf(consignorKey);
     if (!consignorPrimary) {
       this.reject(
@@ -186,10 +219,11 @@ export default class BuyController extends CommandController<BuyModel> {
       this.rejectBroke(giver, context, item, model);
       return;
     }
-    await ChattelApi.transfer(item, giver); // stamp → buyer
+    const buyer = await this.buyerOf(giver, paid.receipt);
+    await ChattelApi.transfer(item, buyer); // stamp → buyer (or their house)
     this.handOver(item, giver); // custody → buyer
     if (MixinApi.isChattel(item)) shelf.removeListing(item.getChattelId());
-    this.announce(giver, item, paid);
+    this.announce(giver, item, paid.tail, buyer);
   }
 
   /**
@@ -203,7 +237,7 @@ export default class BuyController extends CommandController<BuyModel> {
     splits: RemittanceSplit[],
     taxable: number,
     reason: string,
-  ): Promise<string | null> {
+  ): Promise<{ tail: string; receipt: SettlementReceipt } | null> {
     if (!venuePath) return null;
     const business = await EmploymentApi.ensureOperatorAt(venuePath);
     if (!business) return null;
@@ -222,7 +256,7 @@ export default class BuyController extends CommandController<BuyModel> {
       category: "sales",
       splits: splits.length > 0 ? splits : undefined,
     };
-    let receipt;
+    let receipt: SettlementReceipt;
     try {
       receipt = await BankingApi.settle(charge, { kind: "credential" });
     } catch {
@@ -233,9 +267,10 @@ export default class BuyController extends CommandController<BuyModel> {
       }
     }
     if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, Currency.compact()));
-    return receipt.corpoKey
+    const tail = receipt.corpoKey
       ? `(${Money.of(amount, Currency.compact()).render()}, ${receipt.corpoKey})`
       : `(${Money.of(amount, Currency.compact()).render()})`;
+    return { tail, receipt };
   }
 
   private commissionRate(): number {
@@ -254,11 +289,12 @@ export default class BuyController extends CommandController<BuyModel> {
     }
   }
 
-  private announce(giver: Stuff, item: Stuff, paid: string): void {
+  private announce(giver: Stuff, item: Stuff, paid: string, owner: Stuff): void {
+    const forHouse = owner === giver ? "" : ` for ${owner.getPresentation()}`;
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You buy ${Mml.thing(item)}. ${paid}`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${Mml.thing(item)}.`)
+      .toSelf(Mml.compose`You buy ${Mml.thing(item)}${forHouse}. ${paid}`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} buys ${Mml.thing(item)}${forHouse}.`)
       .send();
   }
 
@@ -268,7 +304,7 @@ export default class BuyController extends CommandController<BuyModel> {
     item: Stuff,
     model: BuyModel,
   ): void {
-    this.reject(giver, context, Mml.compose`You can't cover ${Mml.thing(item)} just now.`, {
+    this.reject(giver, context, Mml.compose`You can't cover ${item.getPresentation()} just now.`, {
       kind: "controller-rejected",
       reason: "insufficient-funds",
       detail: model.thing,

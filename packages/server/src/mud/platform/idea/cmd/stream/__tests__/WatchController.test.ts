@@ -28,6 +28,8 @@ import { StuffApi } from '../../../../../api/stuff';
 import { MessageApi } from '../../../../../api/message';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { WatchTarget } from '@saxonberg/types';
+import Screen from '../../../../thing/Screen';
+import { ContainmentApi } from '../../../../../api/containment';
 
 class TestActor extends HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -60,6 +62,7 @@ interface WatchModel extends ModelData {
   twitch?: boolean;
   youtube?: boolean;
   kick?: boolean;
+  on?: { stuff: unknown; raw: string };
 }
 
 function watched(actor: TestActor): WatchTarget | null {
@@ -172,5 +175,35 @@ describe('WatchController', () => {
             (n as { reason: string }).reason === 'ambiguous-handle',
         ),
     ).toBe(true);
+  });
+
+  describe('watch … on <screen> — a shared display', () => {
+    it('an open screen in the room shows the stream to the room; watch off on it clears', async () => {
+      const tv = await StuffApi.create(() => new Screen());
+      tv.setPairing('open');
+      tv.setShortDescription('the booth TV');
+      ContainmentApi.move(tv, location);
+      ContainmentApi.move(actor, location);
+      await run({ target: 'shroud', twitch: true, on: { stuff: tv, raw: 'tv' } });
+      expect(tv.getShowing()).toEqual({
+        kind: 'video',
+        target: { platform: 'twitch', channel: 'shroud' },
+        label: 'Twitch #shroud',
+      });
+      await run({ subcommand: 'off', on: { stuff: tv, raw: 'tv' } });
+      expect(tv.getShowing()).toBeNull();
+    });
+
+    it('a remote-paired screen refuses a driver without the remote', async () => {
+      const tv = await StuffApi.create(() => new Screen());
+      tv.setPairing('remote');
+      tv.setRemote('/stuff/test/remote');
+      ContainmentApi.move(tv, location);
+      ContainmentApi.move(actor, location);
+      const ctx = await run({ target: 'shroud', twitch: true, on: { stuff: tv, raw: 'tv' } });
+      expect(tv.getShowing()).toBeNull();
+      const notes = ctx.getNotes().filter((n) => n.kind === 'controller-rejected') as { reason: string }[];
+      expect(notes.map((n) => n.reason)).toEqual(['not-driver']);
+    });
   });
 });

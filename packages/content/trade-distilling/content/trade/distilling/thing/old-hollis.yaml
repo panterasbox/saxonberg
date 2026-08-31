@@ -1,0 +1,20 @@
+# Old Hollis — Hollis's mark on Veshko's whiskey: the private-label fact is the `interiorMaterial` pointer (distilling's whiskey material, the same row Veshko's unbranded whiskey holds).
+class: /trade/distilling/thing/SpiritBottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a bottle of Old Hollis"
+  longDescription: "A red-labelled bottle of Old Hollis whiskey \u2014 cheap, cheerful, proud of it. The fine print says the liquid is Veshko's."
+  primaryKeyword: old-hollis
+  keywords: ["old-hollis", "hollis", "whiskey", "bottle", "spirit"]
+  category: spirit-bottle
+  interiorBulk: true
+  interiorCapacity: 0.75
+  interiorMaterial: /trade/distilling/idea/material/whiskey
+  interiorAmount: 0.75
+  closure: sealed
+  gradeBand: fair
+  _brandKey: old-hollis
+  censusKey: spirit:old-hollis
+  regionTarget: 8
+  materialTags: ["spirit", "whiskey"]
+  container: /trade/distilling/thing/hollis-stock

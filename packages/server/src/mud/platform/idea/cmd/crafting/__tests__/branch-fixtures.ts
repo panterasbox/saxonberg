@@ -43,7 +43,7 @@ import {
 export const IRON = '/stuff/idea/material/_test/mb-iron';
 export const VEG = '/stuff/idea/material/food/root-vegetable';
 export const MEAT = '/stuff/idea/material/food/stew-meat';
-export const COOKED = '/stuff/idea/material/food/cooked';
+export const COOKED = '/platform/idea/material/cooked';
 export const KNIFE_T = '/stuff/thing/arms/belt-knife';
 export const DISH_T = '/stuff/thing/items/plated-dish';
 
@@ -88,6 +88,35 @@ export function ref(stuff: Stuff | null, raw: string): MqlOneResult {
 export async function completeStep(ms: number): Promise<void> {
   WorldClockApi._advanceForTesting(ms);
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
+
+/**
+ * Point the persistence layer at an in-memory store for a test that
+ * authors its own recipe rows: `documents` rows of kind `recipe` are
+ * wrapped in the document shape the catalogue reads; every other
+ * collection is filtered by shallow equality. Spies restore with
+ * `vi.restoreAllMocks()`.
+ */
+export function mockPersistenceStore(
+  store: Record<string, Record<string, unknown>[]>,
+): void {
+  const pm = PersistenceManager.get();
+  vi.spyOn(pm, 'isConnected').mockReturnValue(true);
+  vi.spyOn(pm, 'find').mockImplementation(
+    async (col: string, query: Record<string, unknown>) => {
+      if (col === 'documents' && query.kind === 'recipe') {
+        return (store['recipes'] ?? []).map((d) => ({
+          path: `/generic-objects/recipes/${String(d.recipeId)}`,
+          owner: '/generic-objects',
+          kind: 'recipe',
+          data: d,
+        })) as never;
+      }
+      return (store[col] ?? []).filter((d) =>
+        Object.entries(query).every(([k, v]) => d[k] === v),
+      ) as never;
+    },
+  );
 }
 
 export function registerMaterial(
@@ -304,10 +333,10 @@ export async function standUpBranchHarness(): Promise<BranchHarness> {
       return makeStuff(() => new TestKnife()) as never;
     }
     if (path === DISH_T) {
-      const { default: CraftedDrink } = await import(
-        '../../../../thing/CraftedDrink'
+      const { default: CraftVessel } = await import(
+        '../../../../thing/CraftVessel'
       );
-      const d = makeStuff(() => new CraftedDrink());
+      const d = makeStuff(() => new CraftVessel());
       (d as unknown as { interiorBulk: boolean }).interiorBulk = true;
       d.setInteriorCapacity(Quantity.of(0.6, 'L'));
       return d as never;

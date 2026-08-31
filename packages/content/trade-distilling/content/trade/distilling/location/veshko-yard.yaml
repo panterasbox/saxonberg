@@ -1,0 +1,23 @@
+# Veshko's distillery yard — the locality zone over /trade/distilling/location/veshko-yard, and the
+# EXEMPLAR of a zone that declares what it STOCKS: the census-key → count
+# table `ResidencyLogic` reads through `lookupField('stocks')`, overriding
+# each floor row's own `regionTarget` for this region. "How many Volk stand
+# in Veshko's yard" is a fact about the yard.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Veshko Yard
+  cellSize: 3.0
+  # ⭐ The zone's own counts override each row's regionTarget: Veshko's
+  # yard is the world's volume distillery, so it stands DEEP on the
+  # unbranded rail (what every bar pours by default) and deeper still on
+  # Volk, the mark it puts on the same liquid.
+  stocks:
+    spirit:volk: 24
+    spirit:gin: 18
+    spirit:vodka: 18
+    spirit:whiskey: 18
+    spirit:rum-light: 18
+    spirit:rum-dark: 12
+    spirit:tequila: 12
+  favours: [spirit]

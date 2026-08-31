@@ -1,0 +1,15 @@
+# Hollis's stock — the Stock the private-label rows spawn into.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Hollis's stock
+  primaryKeyword: stock
+  keywords: [stock, pallet, cases]
+  longDescription: Cases of Old Hollis and Hollis Cane, the labels louder than the liquid.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /trade/distilling/idea/hollis-outfit
+  stockLines: []
+  prices: {}

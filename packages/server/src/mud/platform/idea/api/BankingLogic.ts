@@ -121,14 +121,33 @@ const COIN_PATH = "/stuff/thing/Coin";
  * ledger row always names *someone*.
  */
 function actingActorKey(): string {
-  const principal = ExecutionContextApi.getActingAuthor() as {
+  const principal = actingPrincipal() as {
     getTemplatePath?(): string | null;
   } | null;
   return principal?.getTemplatePath?.() ?? "system";
 }
 
-/** The acting principal as a Stuff (for moving coin to/from it), or null. */
+/**
+ * The acting principal as a Stuff (for moving coin to/from it), or null.
+ *
+ * The PAYER is the command frame's giver whenever the command chain has
+ * one consistent giver — forced or not. A forced command still runs AS
+ * its giver (a brain's hand at the counter, Dave hiring through a
+ * dialogue dispatch), and the money authority it spends is the wallet
+ * that giver carries, which is the whole wallet rule. Authorship
+ * attribution (`getActingAuthor`) keeps failing closed on a forced
+ * chain — provenance is a different question from who is paying. A
+ * cross-actor cascade (A's command triggering B's) has no single giver
+ * and pays as nobody, exactly as before. Outside any command frame the
+ * tagged author (a REST boundary's Avatar) is the principal.
+ */
 function actingPrincipal(): Stuff | null {
+  const commands = ExecutionContextApi.getCommandStack();
+  if (commands.length > 0) {
+    const givers = new Set(commands.map((c) => c.context.commandGiver));
+    if (givers.size !== 1) return null;
+    return (commands[0]!.context.commandGiver as unknown as Stuff) ?? null;
+  }
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
 }
 
@@ -305,6 +324,7 @@ async function ensureVenueAccountImpl(
   bank: string,
   corpoKey: string,
   currency: string,
+  openingCapital?: number,
 ): Promise<string> {
   if (!active()) {
     throw new Error("BankingLogic.ensureVenueAccount: no persistence");
@@ -330,6 +350,30 @@ async function ensureVenueAccountImpl(
   row.currency = currency;
   await row.save();
   AccountBalance.putCached(row.accountId, 0, currency);
+  // ⭐ Capitalize on FIRST materialization — the `openingFloat` pattern one
+  // tier down, and idempotent for the same reason: the `existing` guard
+  // above means this line is reached exactly once per (owner, bank).
+  //
+  // `undefined` takes the configured default; an explicit `0` declines it,
+  // which is how a WORKER's payer-derived account opens (a worker earns
+  // wages, they are not capitalized). Best-effort: a capital failure must
+  // never block opening the account — an uncapitalized venue is a venue
+  // that cannot buy, not a venue that cannot exist.
+  const capital = openingCapital ?? openingCapitalMinor();
+  if (capital > 0) {
+    await postTransaction("mint", [
+      {
+        currency,
+        from: Account.ISSUANCE,
+        to: row.accountId,
+        amount: capital,
+        memo: "opening capital",
+        category: "subsidy",
+      },
+    ]).catch(() => {
+      /* best-effort — see above */
+    });
+  }
   return row.accountId;
 }
 
@@ -528,6 +572,16 @@ async function seedFloatImpl(
 function openingFloatMinor(): number {
   try {
     const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningFloat));
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** The configured default opening capital (minor units), 0 if unset/pre-warm. */
+function openingCapitalMinor(): number {
+  try {
+    const raw = Number(AppApi.setting(AppSettingKeys.bankingOpeningCapital));
     return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
   } catch {
     return 0;
@@ -1313,12 +1367,15 @@ function reconcileImpl(currency: string): ReconcileResult {
   const accountTotal =
     AccountBalance.cachedTotalsByCurrency().get(currency) ?? 0;
   const { circulating: circulatingCoin } = liveCoinOf(currency);
+  const overdraft =
+    AccountBalance.cachedOverdraftByCurrency().get(currency) ?? 0;
   return {
     currency,
     supply,
     accountTotal,
     circulatingCoin,
     cashInExistence: supply - accountTotal,
+    overdraft,
     balanced: supply === accountTotal + circulatingCoin,
   };
 }
@@ -1363,8 +1420,16 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
   const rows = await entriesForImpl(accountId);
   const lines: Partial<Record<PnlCategory, number>> = {};
   for (const r of rows) {
-    const signed = r.toAccount === accountId ? r.amount : -r.amount;
-    lines[r.category] = (lines[r.category] ?? 0) + signed;
+    const income = r.toAccount === accountId;
+    const signed = income ? r.amount : -r.amount;
+    // One row, two readings: a `sales` leg is the payee's revenue and the
+    // payer's cost of goods. The category is stamped once (the seller's
+    // side); the buyer's P&L derives its own line on read.
+    const category: PnlCategory =
+      !income && (r.category === 'sales' || r.category === 'consignment')
+        ? 'cogs'
+        : r.category;
+    lines[category] = (lines[category] ?? 0) + signed;
   }
   return {
     account: accountId,
@@ -1380,8 +1445,9 @@ async function profitAndLossImpl(accountId: string): Promise<ProfitAndLoss> {
 async function issueCardImpl(
   accountId: string,
   capMinor: number,
+  holder?: Stuff,
 ): Promise<Stuff & CredentialWallet> {
-  const principal = actingPrincipal();
+  const principal = holder ?? actingPrincipal();
   const card = await StuffApi.clone<PaymentCard>(TemplatePaths.paymentCard);
   const pay = card.ensureCredential("payment");
   pay.linkAccount(accountId);
@@ -1544,21 +1610,56 @@ async function applyDelta(
 }
 
 /**
+ * The per-currency write queue for {@link bumpSupply}.
+ *
+ * ⚠⚠ **`bumpSupply` is read-modify-write across an `await`, and that is a
+ * race.** Nine businesses opening their accounts during one boot posted nine
+ * mints concurrently; every one of them ran `find` before any of them ran
+ * `save`, every one found nothing, and every one created its own row — six
+ * `bank_supply` documents for a single currency, and a money supply that read
+ * a fraction of what had been minted.
+ *
+ * It never showed before because minting was RARE: a hand-typed
+ * `reserve mint` and nothing else. Opening capital made it the common case
+ * on the first boot of any world, which is exactly when nobody is watching.
+ *
+ * A promise chain per currency is the whole fix here: `postTransaction` is
+ * the sealed, in-process, single-writer chokepoint, so serializing its
+ * aggregate write against itself makes find→save atomic without inventing a
+ * persistence-layer `$inc`. Keyed per currency because conservation is N
+ * independent domains — a zorkmid posting must not wait behind a scrip one.
+ */
+const _supplyWrites = new Map<string, Promise<void>>();
+
+/**
  * Find-or-create **this currency's** supply row, add the deltas, keep the
  * mirror. Conservation is N independent domains — one row per currency.
+ *
+ * Serialized per currency — see {@link _supplyWrites}.
  */
 async function bumpSupply(
   currency: string,
   minted: number,
   drained: number,
 ): Promise<void> {
-  const [existing] = await SupplyAggregate.find<SupplyAggregate>({ currency });
-  const row = existing ?? new SupplyAggregate();
-  if (!existing) row.currency = currency;
-  row.minted += minted;
-  row.drained += drained;
-  await row.save();
-  await SupplyAggregate.warm();
+  const prior = _supplyWrites.get(currency) ?? Promise.resolve();
+  const next = prior
+    .catch(() => {
+      /* a failed predecessor must not poison the queue */
+    })
+    .then(async () => {
+      const [existing] = await SupplyAggregate.find<SupplyAggregate>({
+        currency,
+      });
+      const row = existing ?? new SupplyAggregate();
+      if (!existing) row.currency = currency;
+      row.minted += minted;
+      row.drained += drained;
+      await row.save();
+      await SupplyAggregate.warm();
+    });
+  _supplyWrites.set(currency, next);
+  return next;
 }
 
 /** All ledger rows touching `accountId` on either side (dedup by `_id`). */
@@ -1783,6 +1884,28 @@ export class BankingLogic extends ApiLogic {
     return account?.corpoKey ?? null;
   }
 
+  /** See {@link BankingApi.ownerKeyOf}. The account's recorded owner key. */
+  @CallSecurity(BankingApiCallers)
+  public async ownerKeyOf(accountId: string): Promise<string | null> {
+    const account = await accountByIdImpl(accountId);
+    return account?.owner ?? null;
+  }
+
+  /** See {@link BankingApi.linkAccount}. */
+  @CallSecurity(BankingApiCallers)
+  public linkAccount(actor: Stuff, accountId: string): boolean {
+    const cred = reachableCredential(actor);
+    if (!cred) return false;
+    cred.linkAccount(accountId);
+    return true;
+  }
+
+  /** See {@link BankingApi.unlinkAccount}. */
+  @CallSecurity(BankingApiCallers)
+  public unlinkAccount(actor: Stuff, accountId: string): void {
+    reachableCredential(actor)?.unlinkAccount(accountId);
+  }
+
   /** See {@link BankingApi.deposit}. Coin → vault, balance credited (1:1). */
   @CallSecurity(BankingApiCallers)
   public async deposit(
@@ -1983,8 +2106,9 @@ export class BankingLogic extends ApiLogic {
   public async issueCard(
     accountId: string,
     capMinor: number,
+    holder?: Stuff,
   ): Promise<Stuff & CredentialWallet> {
-    return issueCardImpl(accountId, capMinor);
+    return issueCardImpl(accountId, capMinor, holder);
   }
 
   /* ──────────────── wages + reporting ──────────────── */
@@ -2119,8 +2243,15 @@ export class BankingLogic extends ApiLogic {
     bank: string,
     corpoKey: string,
     currency: string,
+    openingCapital?: number,
   ): Promise<string> {
-    return ensureVenueAccountImpl(ownerPath, bank, corpoKey, currency);
+    return ensureVenueAccountImpl(
+      ownerPath,
+      bank,
+      corpoKey,
+      currency,
+      openingCapital,
+    );
   }
 
   /** See {@link BankingApi.ensureCorpoTreasury}. The corpo's royalty account. */

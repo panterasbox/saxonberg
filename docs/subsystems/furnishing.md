@@ -21,6 +21,39 @@ rung and every content precedent) and [posture](./posture.md).
 
 ---
 
+## ⭐ Cold storage is a property of a SPACE, not an appliance
+
+A cellar is cool because it is underground; a walk-in is cold because a
+chiller holds it there. Either way the mechanism is the same and already
+shipped: a `Location` composes `AtmosphericMixin`, so it carries an
+authorable `_temperature`, and anything carried in drifts toward it
+through `ThermalMixin.restamp` → `BiomeApi.resolveTemperatureFor`. **No
+class, no appliance, no new field** — the hospitality `cellar` bundle is
+simply a room authored at 285 K.
+
+The archetype's `coldStorage` need is satisfied by the **venue itself**
+when its own authored temperature is ≤ 288 K (≈ 15 °C), or by an
+insulated sealable holder in it (a box of ice is cold storage too). It
+reads the venue's *own* override rather than resolving outward, because
+the checklist is synchronous and *reported, never enforced* — a room that
+is cold only because its biome is cold is not a claim the venue gets to
+make.
+
+⚠ **They are not the same thing and should not be collapsed.** The
+difference is the design:
+
+| | cellar | walk-in |
+|---|---|---|
+| cold by | earth, passively | a chiller, actively |
+| roughly | 285 K (12 °C) | ~275 K (2 °C) |
+| running cost | **none** | power |
+| failure mode | **none** | dies with the power |
+| right for | wine, cask ale, spirits, dry stock | kegs, produce, anything that must be *cold* |
+
+Only the cellar ships. The walk-in is the upgrade a venue buys into, and
+it waits for the power meter to be worth having — a running cost and an
+outage that spoils what is inside are the whole point of it.
+
 ## The two scopes
 
 | | host-side (shipped) | owner-side (this build) |
@@ -65,17 +98,24 @@ now *is* — the one call a custody verb makes after moving something.
 `ContainerMixin.captureSlice` drops two kinds of content:
 
 - a live player avatar (`HasInteractive`) — shipped;
-- a good someone has been **stamped** as owning — this build.
+- a good stamped to a **player** — a good its *owner* persists.
 
 Both in **one filter**, because the Container and Slotted slices read a
 single content ordering and `PersistableLogic` builds the same index; two
 passes would let the worn indices drift.
 
-**It keys on the stamp, not on `ownerOf`.** That is semantically right — a
-fixture under a parcel extent is *owned* (the parcel rung, below) but not
-*stamped*, so it keeps riding its room's record where it belongs — and it
-is also the only version that fits a capture walk that **cannot await**.
-`ChattelApi.isStamped` is the synchronous predicate.
+**It keys on the stamped owner's kind, not on `ownerOf`.** A fixture under
+a parcel extent is *owned* (the parcel rung, below) but not *stamped*, so
+it keeps riding its room's record where it belongs. And only a **player**
+is an `EstateMixin` host with a record of its own to carry the good and a
+room overlay to lay it back down. An **organization** has no estate: the
+goods a business consigns onto its own counter, or buys for its own rail,
+are stamped `{ kind: 'organization' }` and live in that counter's, that
+rail's, record like any fixture — skipping them captured them by *nobody*
+(the libations live drive watched a dev restart empty the cash-and-carry
+counter and the bar). `ChattelApi.isOwnerPersisted` is the synchronous
+predicate (the registry's in-memory title index; `isStamped` is the
+weaker "has a title at all"), because a capture walk **cannot await**.
 
 ## Capture is synchronous, and that shapes everything
 
@@ -291,6 +331,18 @@ Four archetypes ship, and they are four *different kinds of answer*:
 
 They add **zero new classes, mixins or verbs** — a test enumerates the six
 shipped classes every fixture uses.
+
+**Three trade bundles** joined them in libations, each a `FurnishableRoom`
+row with a `populates:` of the trade's own fixtures: hospitality's
+**`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
+tap, ice bin, water tap, basin, the glass rack with its pool, seating,
+the house tablet) and **`cellar`** (racking, a keg, a cold store);
+distilling's **`warehouse`** (`/trade/distilling/location/warehouse` —
+racking; each yard adds its own Stock + hand), which the cash-and-carry
+and every producer's yard spell out (template inheritance does not exist,
+so a room lists its fixtures itself; the bundle row is the exemplar).
+The lounge's `Bar` keeps its own class (a `SingletonMixin` room the
+Warren wires) and lists the bundle's fixtures by reference.
 
 > ⚠ **The archetypes need a provisioner, and this build does not ship one.**
 > On a persistable host `applyPopulates` only **retains** the specs;

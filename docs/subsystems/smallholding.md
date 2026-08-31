@@ -266,7 +266,7 @@ and should not be (`DormWarren` likewise is not).
 
 Selling subdivided ground crosses localities, so both classes are
 general (`/platform/… + /stuff/`) and each subdivision seeds **instances** — the way
-`/platform/thing/Plant` is the class and `/stuff/thing/plant/carrot` is a carrot.
+`/platform/thing/Plant` is the class and `/trade/farming/thing/plant/carrot` is a carrot.
 `SingletonMixin` is one-instance-per-templatePath, so one of each per
 subdivision is exactly what composing it means.
 

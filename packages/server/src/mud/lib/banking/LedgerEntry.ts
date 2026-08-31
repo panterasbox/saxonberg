@@ -125,6 +125,17 @@ export interface ReconcileResult {
   circulatingCoin: number;
   /** `supply − accountTotal` — cash in existence (held outside accounts). */
   cashInExistence: number;
+  /**
+   * Σ of the negative account balances, as a positive number — money that
+   * is spendable but was never issued.
+   *
+   * ⭐ `accountTotal` NETS, so an overdraft cancels itself out of the supply
+   * figure: a world where every venue is unfunded reports a supply of zero
+   * while its workers hold real, spendable wages. Conservation still holds;
+   * what stops meaning anything is "money supply". Reported, never blocked —
+   * running a venue red is the deficit-as-target design.
+   */
+  overdraft: number;
   /** Whether `supply === accountTotal + circulatingCoin`. */
   balanced: boolean;
 }

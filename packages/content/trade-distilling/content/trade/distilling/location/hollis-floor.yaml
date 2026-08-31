@@ -1,0 +1,16 @@
+# The Hollis bottling floor — a warehouse that distils nothing: a labelling
+# line, pallets of Veshko's liquid coming in unmarked and going out red.
+class: /platform/location/FurnishableRoom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the Hollis bottling floor
+  primaryKeyword: floor
+  keywords: [floor, bottling, hollis, warehouse]
+  longDescription: |
+    A bright, cheap warehouse floor: a labelling line clacking away, grey Veshko cases stacked by the intake door and red Hollis cases by the dock. No still anywhere.
+  ambientIntensity: 30
+  ambientColorTemperature: 4500
+  populates:
+    - /trade/distilling/thing/racking
+    - /trade/distilling/thing/hollis-stock
+    - /trade/distilling/agent/hollis-hand

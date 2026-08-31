@@ -383,7 +383,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     const base = results.find((r) => r.packId === 'base-library');
     expect(base).toBeDefined();
     // Materials + biomes inserted as stamped domain rows.
-    expect(base!.inserted).toContain('/stuff/idea/material/spirit/gin');
+    expect(base!.inserted).toContain('/stuff/idea/material/bulk/water');
     expect(base!.inserted).toContain('/stuff/idea/biome');
     // Content-kind dispatch: the quantity tag tables were loaded too.
     expect(base!.quantityTables).toBeGreaterThan(0);
@@ -421,6 +421,8 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
       '/stuff/idea/corpo/Brand/hollis-cane',
       '/stuff/idea/corpo/Brand/old-hollis',
       '/stuff/idea/corpo/Corpo/hollis',
+      // Capital + the mark, nothing else: Hollis's bottling floor is a
+      // product of the distilling trade and ships with trade-distilling.
     ]);
 
     // Every written row is stamped by one of the shipped packs — no

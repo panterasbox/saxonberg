@@ -79,6 +79,34 @@ describe('buildPromptContext', () => {
     const obj = makeStuff(() => new Plain());
     expect(buildPromptContext(obj)).toEqual({ focus: '' });
   });
+
+  /**
+   * ⚠ After a disambiguation the focus anchors on the THING — `#<stuffId>`,
+   * so `$focus` re-resolves to what the player picked rather than to the
+   * ambiguous word they typed. Correct, and unreadable: a live drive
+   * answered "which target?" and got a prompt reading
+   * `#wtYvAoxeDjtrMJku8NThs>`.
+   */
+  it('renders an id ANCHOR as the thing, not the id', () => {
+    const giver = makeStuff(() => new TestGiver());
+    const thing = makeStuff(() => new Plain());
+    giver.setFocus(`#${thing.stuffId}`);
+    expect(buildPromptContext(giver)).toEqual({
+      focus: thing.getPresentation(),
+    });
+  });
+
+  it('leaves an ordinary fragment — the player\'s own words — alone', () => {
+    const giver = makeStuff(() => new TestGiver());
+    giver.setFocus('here:bookcase:book');
+    expect(buildPromptContext(giver)).toEqual({ focus: 'here:bookcase:book' });
+  });
+
+  it('an id that no longer resolves falls back to the fragment', () => {
+    const giver = makeStuff(() => new TestGiver());
+    giver.setFocus('#gone-forever');
+    expect(buildPromptContext(giver)).toEqual({ focus: '#gone-forever' });
+  });
 });
 
 describe('renderPromptRefresh', () => {

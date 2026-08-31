@@ -85,12 +85,16 @@ export const GUARD_OPS = [
  *   - `trait:<axis>` → `TraitApi.positionFor(npc, axis).position` (signed −100..100)
  *   - `time:hour`    → world hour-of-day (0..23)
  *   - `state:<key>`  → ephemeral conversation scratch (this conversation only)
+ *   - `position:<organization path>` → whether the player holds a
+ *     non-exited position there (`EmploymentApi.holdsPosition`); an
+ *     employer's "looking for work?" branch guards on it being false
  */
 export type GuardFact =
   | "regard"
   | `trait:${string}`
   | `time:${string}`
-  | `state:${string}`;
+  | `state:${string}`
+  | `position:${string}`;
 
 /** A structured predicate over a {@link GuardFact}. */
 export interface DialogueGuard {
@@ -111,7 +115,9 @@ export interface DialogueGuard {
  *   - `dispatch`  runs a command AS THE NPC (the "NPCs do their jobs" seam):
  *                 the NPC performs a real world-action through the command
  *                 bus, bounded by its own authority. `$player` in the command
- *                 renders to the interlocutor. See
+ *                 renders to the interlocutor BY IDENTITY (`#<stuffId>`,
+ *                 the viewer-free MQL seed — the NPC may not know their
+ *                 name). See
  *                 `docs/subsystems/npc-dialogue.md § dispatch` for the
  *                 security model (the target controller's `execute()`
  *                 authorization is the boundary — `forced` bypasses the
@@ -372,6 +378,8 @@ function isKnownFact(fact: string): boolean {
       return (TIME_FACTS as readonly string[]).includes(key);
     case "state":
       return true;
+    case "position":
+      return key.startsWith("/");
     default:
       return false;
   }

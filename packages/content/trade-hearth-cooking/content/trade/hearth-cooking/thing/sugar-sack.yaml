@@ -1,0 +1,20 @@
+# The floor sack of sugar — 10 kg at target in the pantry stock.
+class: /platform/thing/Bottle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: "a sack of sugar"
+  longDescription: "A ten-kilo hessian sack of sugar, stencilled."
+  primaryKeyword: sugar
+  keywords: ["sugar", "sack"]
+  category: sack
+  interiorBulk: true
+  interiorCapacity: 20
+  interiorMaterial: /trade/hearth-cooking/idea/material/sugar
+  interiorAmount: 6.25
+  material: /stuff/idea/material/textile/jute
+  closure: liquidTight
+  gradeBand: fair
+  censusKey: pantry:sugar
+  regionTarget: 6
+  materialTags: ["food", "sugar"]
+  container: /trade/hearth-cooking/thing/pantry-stock

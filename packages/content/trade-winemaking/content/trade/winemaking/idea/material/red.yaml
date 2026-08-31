@@ -1,0 +1,17 @@
+# Red wine — winemaking's. Category tags `wine`, `red`.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: red wine
+  appearance: "a dark, full red wine"
+  keywords: ["red", "wine"]
+  density: 995
+  thermalConductivity: 0.5
+  specificHeat: 3800
+  edibility: true
+  nutrients: ["water"]
+  toxicity:
+    - { type: alcohol, amount: 14 }
+  tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "red"]
+  composition: []
+  biologicalSource: null
